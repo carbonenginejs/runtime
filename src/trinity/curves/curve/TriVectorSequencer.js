@@ -134,11 +134,10 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.renamed("Update")
   @meta.adapted
-  Update_Ticks(time, out)
+  Update__Ticks(time, out)
   {
-    this.GetValueAt_Ticks(time, out);
+    this.GetValueAt__Ticks(time, out);
     vec3.copy(this.value, out);
     return out;
   }
@@ -150,9 +149,8 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.renamed("GetValueAt")
   @meta.adapted
-  GetValueAt_Ticks(time, out)
+  GetValueAt__Ticks(time, out)
   {
     if (this.operator === TRIOPERATOR.TRIOP_MULTIPLY) return this.GetValueAtMult(time, out, true);
     if (this.operator === TRIOPERATOR.TRIOP_ADD) return this.GetValueAtAdd(time, out, true);
@@ -175,7 +173,7 @@ export class TriVectorSequencer extends ITriVectorFunction
     vec3.set(out, 1, 1, 1);
     for (const curve of this.functions)
     {
-      if (ticks) curve.GetValueAt_Ticks(time, this._childValue);
+      if (ticks) curve.GetValueAt__Ticks(time, this._childValue);
       else curve.GetValueAt(time, this._childValue);
       vec3.multiply(out, out, this._childValue);
     }
@@ -197,7 +195,7 @@ export class TriVectorSequencer extends ITriVectorFunction
     vec3.zero(out);
     for (const curve of this.functions)
     {
-      if (ticks) curve.GetValueAt_Ticks(time, this._childValue);
+      if (ticks) curve.GetValueAt__Ticks(time, this._childValue);
       else curve.GetValueAt(time, this._childValue);
       vec3.add(out, out, this._childValue);
     }
@@ -223,7 +221,7 @@ export class TriVectorSequencer extends ITriVectorFunction
     const multiplier = 1 / this.functions.length;
     for (const curve of this.functions)
     {
-      if (ticks) curve.GetValueAt_Ticks(time, this._childValue);
+      if (ticks) curve.GetValueAt__Ticks(time, this._childValue);
       else curve.GetValueAt(time, this._childValue);
       vec3.scaleAndAdd(out, out, this._childValue, multiplier);
     }
@@ -276,14 +274,13 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.renamed("GetValueDotAt")
   @meta.adapted
-  GetValueDotAt_Ticks(time, out)
+  GetValueDotAt__Ticks(time, out)
   {
     vec3.zero(out);
     for (const curve of this.functions)
     {
-      curve.GetValueDotAt_Ticks(time, this._childValue);
+      curve.GetValueDotAt__Ticks(time, this._childValue);
       vec3.add(out, out, this._childValue);
     }
     return out;
@@ -295,14 +292,13 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.renamed("GetValueDoubleDotAt")
   @meta.adapted
-  GetValueDoubleDotAt_Ticks(time, out)
+  GetValueDoubleDotAt__Ticks(time, out)
   {
     vec3.zero(out);
     for (const curve of this.functions)
     {
-      curve.GetValueDoubleDotAt_Ticks(time, this._childValue);
+      curve.GetValueDoubleDotAt__Ticks(time, this._childValue);
       vec3.add(out, out, this._childValue);
     }
     return out;

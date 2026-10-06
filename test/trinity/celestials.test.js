@@ -36,8 +36,8 @@ test('planet composes ball before local rotation; surface scales translation and
   planet.scaling.set([2, 3, 4]);
   quat.setAxisAngle(planet.rotation, [0, 1, 0], Math.PI / 2);
   const ball = quat.setAxisAngle(quat.create(), [1, 0, 0], Math.PI / 2);
-  planet.translationCurve = { Update_Ticks(time, out) { assert.equal(time, 123); out.set([1000000, 2000000, 3000000]); } };
-  planet.rotationCurve = { Update_Ticks(_time, out) { out.set(ball); } };
+  planet.translationCurve = { Update__Ticks(time, out) { assert.equal(time, 123); out.set([1000000, 2000000, 3000000]); } };
+  planet.rotationCurve = { Update__Ticks(_time, out) { out.set(ball); } };
   const child = name => ({
     UpdateAsyncronous(_context, params) { calls.push([name, 'async', Array.from(params.localToWorldTransform), params.spaceObjectParent, params.childParent]); },
     UpdateSyncronous(_context, params) { calls.push([name, 'sync', Array.from(params.localToWorldTransform)]); }
@@ -184,7 +184,7 @@ test('transparent batches preserve native reversed stable sort at equal distance
 test('shadow spheres exclude the sun by curve identity and planets behind it; keep largest two', () =>
 {
   const scene = new EveSpaceScene();
-  const curve = x => ({ GetValueAt_Ticks: (_time, out) => out.set([x,0,0]) });
+  const curve = x => ({ GetValueAt__Ticks: (_time, out) => out.set([x,0,0]) });
   scene.sunBall = curve(100);
   const planet = (size, ball, x, radius) => ({
     GetEstimatedPixelDiameter: () => size, GetTranslationCurve: () => ball,
@@ -204,7 +204,7 @@ test('depth pass uses the identified sun half-radius and preserves the native in
   const scene=new EveSpaceScene();
   const {context}=camera();
   let distance=10, angle;
-  scene.sunBall={GetValueAt_Ticks:(_time,out)=>out.set([distance,0,0])};
+  scene.sunBall={GetValueAt__Ticks:(_time,out)=>out.set([distance,0,0])};
   scene.planets.push({
     GetZOnlyRenderables(){}, GetTranslationCurve:()=>scene.sunBall,
     GetWorldPosition:out=>out.set([distance,0,0]), GetRadius:()=>10,
@@ -252,7 +252,7 @@ test('lensflare distance law reaches both global and per-object glare scale', ()
   const {context, view, projection} = camera();
   const frustum = {viewPos: [0,0,0], viewDir: [0,0,1], projectionMatrix: projection};
   for (const au of [0.1,1,10]) {
-    flare.translationCurve = { Update_Ticks: (_time,out) => out.set([0,0,-au * 0.1495978707e12]) };
+    flare.translationCurve = { Update__Ticks: (_time,out) => out.set([0,0,-au * 0.1495978707e12]) };
     flare.Update(10,20);
     const expected = 1.5 / Math.log(vec3.length(flare.position) / 0.1495978707e12 + 2.71);
     assert.equal(flare.sunSize,expected);
@@ -270,7 +270,7 @@ test('lensflare curve owner addresses all same-name sets and leaves others alone
   const flare = new EveLensflare();
   const log = [];
   const set = (name,duration) => ({GetName:()=>name,GetMaxCurveDuration:()=>duration,GetRangeDuration:()=>duration/2,
-    ResetTimeRange:()=>log.push('reset'),Play:()=>log.push('play'),PlayTimeRange:r=>log.push(r),Stop:()=>log.push('stop'),Update_RealTimeSimTime:(a,b)=>log.push([a,b])});
+    ResetTimeRange:()=>log.push('reset'),Play:()=>log.push('play'),PlayTimeRange:r=>log.push(r),Stop:()=>log.push('stop'),Update__RealTimeSimTime:(a,b)=>log.push([a,b])});
   flare.curveSets.push(set('sun',2),set('sun',4),set('other',100));
   assert.equal(flare.GetCurveSetDuration('sun'),4);
   assert.equal(flare.GetRangeDuration('sun','rise'),2);

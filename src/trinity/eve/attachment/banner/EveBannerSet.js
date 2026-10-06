@@ -277,7 +277,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
     batch.SetMaterial(this.effect);
     batch.SetPerObjectData(perObjectData);
     batch.SetPickingData(this.GetPickingID());
-    batch.SetGeometry_Allocation(this._vertexDeclaration, vertices, indices);
+    batch.SetGeometry__Allocation(this._vertexDeclaration, vertices, indices);
     batch.SetDrawIndexedInstanced(indices.GetSize() / indices.GetStride(), 1, indices.GetStartIndex(), vertices.GetOffset() / vertices.GetStride(), 0);
     if (batchType === TriBatchType.TRIBATCHTYPE_ADDITIVE) batch.SetRenderingMode(RenderingMode.RM_ALPHA_ADDITIVE);
     batches.Commit(batch);

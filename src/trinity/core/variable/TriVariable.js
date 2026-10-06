@@ -194,12 +194,12 @@ export class TriVariable extends ITr2EffectValue
         ? Tr2ColorSpace.COLOR_SPACE_SRGB
         : Tr2ColorSpace.COLOR_SPACE_LINEAR;
 
-      return resourceDesc.SetSrv_TextureAL(stage, registerIndex, this._Texture(renderContext), colorSpace);
+      return resourceDesc.SetSrv__TextureAL(stage, registerIndex, this._Texture(renderContext), colorSpace);
     }
 
     if (this.contentType === TriVariableContentType.TRIVARIABLE_GPUBUFFER)
     {
-      return resourceDesc.SetSrv_BufferAL(stage, registerIndex, this._GpuBuffer());
+      return resourceDesc.SetSrv__BufferAL(stage, registerIndex, this._GpuBuffer());
     }
 
     return false;
@@ -223,12 +223,12 @@ export class TriVariable extends ITr2EffectValue
   {
     if (this.contentType === TriVariableContentType.TRIVARIABLE_TEXTURE_RES)
     {
-      return resourceDesc.SetUav_TextureAL(stage, registerIndex, this._Texture());
+      return resourceDesc.SetUav__TextureAL(stage, registerIndex, this._Texture());
     }
 
     if (this.contentType === TriVariableContentType.TRIVARIABLE_GPUBUFFER)
     {
-      return resourceDesc.SetUav_BufferAL(stage, registerIndex, this._GpuBuffer());
+      return resourceDesc.SetUav__BufferAL(stage, registerIndex, this._GpuBuffer());
     }
 
     return false;

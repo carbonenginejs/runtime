@@ -88,13 +88,12 @@ export class EveCurveLineSet extends Tr2CurveLineSet
   @meta.implemented
   GetRenderables(renderables)
   {
-    return this.GetRenderables_Impostors(renderables, null);
+    return this.GetRenderables__Impostors(renderables, null);
   }
 
   /** Appends this renderable only when the last cull passed. */
-  @meta.renamed("GetRenderables")
   @meta.implemented
-  GetRenderables_Impostors(renderables, _impostors)
+  GetRenderables__Impostors(renderables, _impostors)
   {
     if (this.isVisible)
     {

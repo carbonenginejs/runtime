@@ -138,7 +138,7 @@ test("EveSpaceScene.GetRenderables aggregates objects and the camera attachment 
   const scene = new EveSpaceScene();
   const stub = (name) => ({
     name,
-    GetRenderables_Impostors(out)
+    GetRenderables__Impostors(out)
     {
       out.push(this);
       return out;

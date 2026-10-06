@@ -373,7 +373,7 @@ export class Tr2MeshBase
     let morphDeformation = 0;
     if (morphTargetsCount)
     {
-      const lod = geometry.GetMeshLod_LodIndex(this.meshIndex, 0);
+      const lod = geometry.GetMeshLod__LodIndex(this.meshIndex, 0);
       for (let i = 0; i < morphTargetsCount; i++)
       {
         const morph = morphTargets[i];
@@ -528,7 +528,7 @@ export class Tr2MeshBase
     const geometry = this.GetGeometryResource();
     if (!geometry) return false;
 
-    const lod = geometry.GetMeshLod_ScreenSize(this.meshIndex, screenSize);
+    const lod = geometry.GetMeshLod__ScreenSize(this.meshIndex, screenSize);
     if (!lod) return false;
 
     // Carbon reads m_uvDensities off the resolved LOD; a resource that exposes
@@ -639,7 +639,7 @@ export class Tr2MeshBase
     // screen size (Tr2MeshBase.cpp:381) and passes it to every area. A resource
     // that cannot select a LOD yet yields null, and the batch then carries its
     // geometry-source descriptor with no draw arguments.
-    const lod = geometry ? geometry.GetMeshLod_ScreenSize(this.meshIndex, screenSize) : null;
+    const lod = geometry ? geometry.GetMeshLod__ScreenSize(this.meshIndex, screenSize) : null;
 
     for (const area of areaList)
     {
@@ -723,7 +723,7 @@ export class Tr2MeshBase
     }
 
     batch.SetPerObjectData(perObjectData ?? null);
-    batch.SetPickingData_MeshArea(this.meshIndex, area.GetIndex());
+    batch.SetPickingData__MeshArea(this.meshIndex, area.GetIndex());
     return batch;
   }
 

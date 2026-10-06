@@ -438,9 +438,9 @@ export class EveSpaceSceneRenderDriver
     // projection. Carbon's post passes (fog, depth of field, god rays) read
     // the depth buffer under that convention.
     esm.SetInvertedDepthTest(true);
-    esm.PushRenderTarget_Current(0);
-    esm.PushRenderTarget_Current(1);
-    esm.PushDepthStencilBuffer_Current();
+    esm.PushRenderTarget__Current(0);
+    esm.PushRenderTarget__Current(1);
+    esm.PushDepthStencilBuffer__Current();
 
     try
     {
@@ -791,7 +791,7 @@ export class EveSpaceSceneRenderDriver
       // post process still reads the depth the pass would discard.
       if (velocity)
       {
-        esm.PushRenderTarget_TextureAL(velocity, 1);
+        esm.PushRenderTarget__TextureAL(velocity, 1);
         try
         {
           renderContext.RenderPassHint(
@@ -818,8 +818,8 @@ export class EveSpaceSceneRenderDriver
       if (opaque)
       {
         renderContext.RenderPassHint(new Tr2ColorAttachment(Tr2LoadAction.DONT_CARE, Tr2StoreAction.STORE), null);
-        esm.PushDepthStencilBuffer_TextureAL(null);
-        esm.PushRenderTarget_TextureAL(opaque);
+        esm.PushDepthStencilBuffer__TextureAL(null);
+        esm.PushRenderTarget__TextureAL(opaque);
         try
         {
           esm.ApplyStandardStates(RenderingMode.RM_FULLSCREEN);
@@ -843,8 +843,8 @@ export class EveSpaceSceneRenderDriver
       const store = Tr2VariableStore.globalStore();
       if (volumes)
       {
-        store.RegisterVariable_TextureAL("EveSceneFroxelFogMap", volumes[0].Get());
-        store.RegisterVariable_TextureAL("EveSceneFogVolumeMap", volumes[1].Get());
+        store.RegisterVariable__TextureAL("EveSceneFroxelFogMap", volumes[0].Get());
+        store.RegisterVariable__TextureAL("EveSceneFogVolumeMap", volumes[1].Get());
       }
       try
       {
@@ -873,8 +873,8 @@ export class EveSpaceSceneRenderDriver
       {
         if (volumes)
         {
-          store.RegisterVariable_TextureAL("EveSceneFroxelFogMap", new Tr2TextureAL());
-          store.RegisterVariable_TextureAL("EveSceneFogVolumeMap", new Tr2TextureAL());
+          store.RegisterVariable__TextureAL("EveSceneFroxelFogMap", new Tr2TextureAL());
+          store.RegisterVariable__TextureAL("EveSceneFogVolumeMap", new Tr2TextureAL());
           // Native handle destruction ignores an empty return (Tr2GpuResourcePool.h:180-187).
           for (const volume of volumes) if (volume.IsValid()) this._gpuResourcePool.Free(volume);
         }
@@ -1093,11 +1093,11 @@ export class EveSpaceSceneRenderDriver
       const esm = renderContext.GetEffectStateManager();
       this._BeginRenderPass(esm, [ destination ], null);
       esm.ApplyStandardStates(RenderingMode.RM_FULLSCREEN);
-      effect.SetParameter_TextureAL("BlitCurrent", backBufferCopy.Get());
-      effect.SetParameter_TextureAL("TexDistortion", distortion);
+      effect.SetParameter__TextureAL("BlitCurrent", backBufferCopy.Get());
+      effect.SetParameter__TextureAL("TexDistortion", distortion);
       Tr2Renderer.drawFullScreenWithShader(renderContext, effect);
-      effect.SetParameter_TextureAL("BlitCurrent", null);
-      effect.SetParameter_TextureAL("TexDistortion", null);
+      effect.SetParameter__TextureAL("BlitCurrent", null);
+      effect.SetParameter__TextureAL("TexDistortion", null);
     }
     finally
     {

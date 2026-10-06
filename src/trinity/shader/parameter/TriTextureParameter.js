@@ -251,13 +251,13 @@ export class TriTextureParameter extends CjsParameter
     // (cpp:371-379), a static we cannot reach (see
     // Tr2TextureAnimationParameter.CopyToResourceSet); an empty srv, which the
     // backend fills with its dummy texture, is the same degraded bind.
-    if (!resource) return resourceDesc.SetSrv_TextureAL(stage, registerIndex, null, colorSpace);
+    if (!resource) return resourceDesc.SetSrv__TextureAL(stage, registerIndex, null, colorSpace);
 
     const texture = RealizeTexture(resource, renderContext);
 
     if (!texture) this._ArmCompletion(resource);
 
-    return resourceDesc.SetSrv_TextureAL(stage, registerIndex, texture, colorSpace);
+    return resourceDesc.SetSrv__TextureAL(stage, registerIndex, texture, colorSpace);
   }
 
   /** Resources whose texture-change event already re-dirties this parameter's materials. */
@@ -330,7 +330,7 @@ export class TriTextureParameter extends CjsParameter
   {
     // Carbon binds m_cachedTexture, the provider's texture (cpp:189-195).
     const resource = this.GetResource();
-    return resourceDesc.SetUav_TextureAL(stage, registerIndex, resource ? resource.GetTexture() : null, this.uavMipLevel);
+    return resourceDesc.SetUav__TextureAL(stage, registerIndex, resource ? resource.GetTexture() : null, this.uavMipLevel);
   }
 
   /** Always true - a texture swap must dirty the owning materials' resource sets. */

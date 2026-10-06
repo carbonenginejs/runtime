@@ -70,15 +70,15 @@ test("EveRootTransform evaluates detached curves and implements Carbon targetabl
 {
   const root = new EveRootTransform();
   root.boundingSphereRadius = 4;
-  root.translationCurve = { GetValueDotAt_Ticks(_time, out) { return out; },
-    Update_Ticks(time, out)
+  root.translationCurve = { GetValueDotAt__Ticks(_time, out) { return out; },
+    Update__Ticks(time, out)
     {
       assert.equal(time, 3);
       out.set([10, 20, 30]);
     }
   };
   root.modelTranslationCurve = {
-    Update_Ticks(time, out)
+    Update__Ticks(time, out)
     {
       assert.equal(time, 3);
       out.set([1, 0, 0]);
@@ -144,7 +144,7 @@ test("EveEffectRoot2 owns Carbon effect transforms, lifecycle, LOD, and target s
   };
   const curveSet = {
     name: "impact",
-    Update_RealTimeSimTime(realTime, simTime)
+    Update__RealTimeSimTime(realTime, simTime)
     {
       calls.push(["curve-update", realTime, simTime]);
     },
@@ -262,8 +262,8 @@ test("EveEffectRoot2 owns Carbon effect transforms, lifecycle, LOD, and target s
       calls.push(["observer", Array.from(transform.slice(12, 15))]);
     }
   });
-  effect.translationCurve = { GetValueDotAt_Ticks(_time, out) { return out; },
-    Update_Ticks(time, out)
+  effect.translationCurve = { GetValueDotAt__Ticks(_time, out) { return out; },
+    Update__Ticks(time, out)
     {
       assert.equal(time, 4);
       out.set([10, 0, 0]);
@@ -295,7 +295,7 @@ test("EveEffectRoot2 owns Carbon effect transforms, lifecycle, LOD, and target s
   });
   assert.equal(effect.UpdateVisibility(visibilityContext), true);
   assert.equal(effect.lodLevel, Tr2Lod.TR2_LOD_HIGH);
-  const renderables = effect.GetRenderables_Impostors([], null);
+  const renderables = effect.GetRenderables__Impostors([], null);
   assert.deepEqual(renderables, ["visual"]);
   assert.deepEqual(calls.find(call => call[0] === "child-lod"), ["child-lod", Tr2Lod.TR2_LOD_HIGH]);
 
@@ -618,18 +618,18 @@ test("EveSpaceObject2 evaluates Carbon model curves into detached world transfor
   const object = new EveSpaceObject2();
   const halfSqrt = Math.SQRT1_2;
   const translationCurve = {
-    Update_Ticks(time, out)
+    Update__Ticks(time, out)
     {
       assert.equal(time, 5);
       out[0] = 10;
       out[1] = 20;
       out[2] = 30;
     },
-    GetValueAt_Ticks()
+    GetValueAt__Ticks()
     {
       assert.fail("a void-returning Update must not fall through to GetValueAt");
     },
-    GetValueDotAt_Ticks(time, out)
+    GetValueDotAt__Ticks(time, out)
     {
       assert.equal(time, 5);
       out[0] = 1;
@@ -638,7 +638,7 @@ test("EveSpaceObject2 evaluates Carbon model curves into detached world transfor
     }
   };
   const rotationCurve = {
-    Update_Ticks(_time, out)
+    Update__Ticks(_time, out)
     {
       out[0] = 0;
       out[1] = 0;
@@ -647,7 +647,7 @@ test("EveSpaceObject2 evaluates Carbon model curves into detached world transfor
     }
   };
   const modelRotationCurve = {
-    Update_Ticks(_time, out)
+    Update__Ticks(_time, out)
     {
       out[0] = 0;
       out[1] = 0;
@@ -656,7 +656,7 @@ test("EveSpaceObject2 evaluates Carbon model curves into detached world transfor
     }
   };
   const modelTranslationCurve = {
-    Update_Ticks(_time, out)
+    Update__Ticks(_time, out)
     {
       out[0] = 1;
       out[1] = 0;
@@ -710,8 +710,8 @@ test("EveSpaceObject2 drives observers, controller frequency, mute, and emitter 
   observer.SetPosition([1, 2, 3]);
   observer.SetObserver(emitter);
   object.AddObserver(observer);
-  object.translationCurve = { GetValueDotAt_Ticks(_time, out) { return out; },
-    Update_Ticks(_time, out)
+  object.translationCurve = { GetValueDotAt__Ticks(_time, out) { return out; },
+    Update__Ticks(_time, out)
     {
       out[0] = 10;
       out[1] = 20;
@@ -1212,8 +1212,8 @@ test("EveSpaceObject2 restores Carbon world bounds, visibility, renderables, and
     }
   };
   object.modelScale = 2;
-  object.translationCurve = { GetValueDotAt_Ticks(_time, out) { return out; },
-    Update_Ticks(_time, out)
+  object.translationCurve = { GetValueDotAt__Ticks(_time, out) { return out; },
+    Update__Ticks(_time, out)
     {
       out.set([10, 0, 0]);
     }
@@ -1265,7 +1265,7 @@ test("EveSpaceObject2 restores Carbon world bounds, visibility, renderables, and
   })), true);
   assert.equal(object.IsInFrustum(), true);
   assert.equal(object.lodLevel, Tr2Lod.TR2_LOD_HIGH);
-  assert.deepEqual(object.GetRenderables_Impostors([], null), [object, "child"]);
+  assert.deepEqual(object.GetRenderables__Impostors([], null), [object, "child"]);
   assert.deepEqual(calls.find(call => call[0] === "screen"), ["screen", 37.5, 10]);
   assert.equal(object.GetLastUsedMeshLod(), 2);
   assert.deepEqual(calls.find(call => call[0] === "lod"), ["lod", 3, 37.5]);
@@ -1412,13 +1412,13 @@ test("EveSpaceObject2 transforms locator records and freezes high detail meshes"
   // Model transform: translation adds, then rotation spins position and
   // pre-multiplies the record rotation (sampled at the time origin).
   object.modelTranslationCurve = {
-    GetValueAt_Ticks(_time, out)
+    GetValueAt__Ticks(_time, out)
     {
       out.set([0, 0, 3]);
     }
   };
   object.modelRotationCurve = {
-    GetValueAt_Ticks(_time, out)
+    GetValueAt__Ticks(_time, out)
     {
       // 90 degrees around +Y: +Z maps onto +X.
       out.set([0, 0.7071067811865476, 0, 0.7071067811865476]);
@@ -1572,13 +1572,13 @@ test("a mesh-less EveSpaceObject2 with an impact overlay renders its impacts (Ca
     mediumDetailThreshold: 60,
     lodFactor: 1
   })), true);
-  assert.deepEqual(object.GetRenderables_Impostors([], null), [object]);
+  assert.deepEqual(object.GetRenderables__Impostors([], null), [object]);
   assert.equal(object.GetBatches({}, 0, null, 0), true);
   assert.equal(calls.length, 1);
   // The screen size is computed without a mesh, so impacts pick a real LOD.
   assert.equal(calls[0][3], 75);
 
   object.impactOverlay = null;
-  assert.deepEqual(object.GetRenderables_Impostors([], null), []);
+  assert.deepEqual(object.GetRenderables__Impostors([], null), []);
   assert.equal(object.GetBatches({}, 0, null, 0), false);
 });

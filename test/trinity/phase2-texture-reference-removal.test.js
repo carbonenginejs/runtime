@@ -125,14 +125,14 @@ test("opaque texture and event state stay outside Blue resources and persisted c
 test("effect owner reuses its provider and releases only its own AL value share", () =>
 {
   const effect = new Tr2Effect(), first = textureValue(), second = textureValue();
-  effect.SetParameter_TextureAL("InputTexture", first.value);
+  effect.SetParameter__TextureAL("InputTexture", first.value);
   const parameter = effect.GetResourceByName("InputTexture"), reference = parameter.GetTextureProvider();
   assert.equal(CjsSchema.cast(reference, ITr2TextureProvider), reference);
   const events = [];
   const listener = { Changed() { events.push(reference.GetTexture().IsValid()); } };
   reference.OnTextureChange().RegisterListener(listener, listener.Changed);
   first.value.Destroy();
-  effect.SetParameter_TextureAL("InputTexture", second.value);
+  effect.SetParameter__TextureAL("InputTexture", second.value);
   assert.equal(parameter.GetTextureProvider(), reference);
   assert.equal(first.state.destroyed, 1);
   assert.equal(events.length, 1);

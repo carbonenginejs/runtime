@@ -46,14 +46,14 @@ export class TriStepPushDepthStencil extends TriRenderStep
     const esm = renderContext.GetEffectStateManager();
     if (this.depthStencil)
     {
-      return esm.PushDepthStencilBuffer_TextureAL(this.depthStencil) ? TriRenderJob.StepResult.RS_OK : TriRenderJob.StepResult.RS_FAILED;
+      return esm.PushDepthStencilBuffer__TextureAL(this.depthStencil) ? TriRenderJob.StepResult.RS_OK : TriRenderJob.StepResult.RS_FAILED;
     }
     if (this.pushCurrent)
     {
-      esm.PushDepthStencilBuffer_Current();
+      esm.PushDepthStencilBuffer__Current();
       return TriRenderJob.StepResult.RS_OK;
     }
-    esm.PushDepthStencilBuffer_TextureAL(null);
+    esm.PushDepthStencilBuffer__TextureAL(null);
     return TriRenderJob.StepResult.RS_OK;
   }
 }

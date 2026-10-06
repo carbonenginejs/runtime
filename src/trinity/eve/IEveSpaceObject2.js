@@ -59,10 +59,9 @@ export class IEveSpaceObject2
    * @param {Array} _renderables Collected renderables.
    * @param {object} [_impostors] The impostor manager, when one exists.
    */
-  @meta.renamed("GetRenderables")
-  GetRenderables_Impostors(_renderables, _impostors)
+  GetRenderables__Impostors(_renderables, _impostors)
   {
-    throw new Error("IEveSpaceObject2.GetRenderables_Impostors must be implemented by a space object.");
+    throw new Error("IEveSpaceObject2.GetRenderables__Impostors must be implemented by a space object.");
   }
 
   /**

@@ -2076,13 +2076,13 @@ export class EveTurretSet extends EveEntity
     if (batchType !== TriBatchType.TRIBATCHTYPE_OPAQUE || !this.display || !this.visibleCount || !this._instanceBuffer.IsValid()) return false;
     const geometry = this.geometryResource;
     if (!geometry || !geometry.IsGood()) return false;
-    const lod = geometry.GetMeshLod_LodIndex(0, 0);
+    const lod = geometry.GetMeshLod__LodIndex(0, 0);
     if (!lod || !CreateLodAllocations(geometry, 0, lod, Tr2RenderContext_GetMainThreadRenderContext())) return false;
     // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
     if (!this.turretEffect || !this.turretEffect.IsGood()) return false;
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(this.turretEffect);
-    batch.SetGeometry_AllocationSecondStream(this._vertexDeclHandle, lod.vertexAllocation, this._instanceBuffer, lod.indexAllocation);
+    batch.SetGeometry__AllocationSecondStream(this._vertexDeclHandle, lod.vertexAllocation, this._instanceBuffer, lod.indexAllocation);
     batch.SetPerObjectData(perObjectData);
     batch.SetDrawIndexedInstanced(TriGeometryRes.getLodPrimitiveCount(lod) * 3, this.visibleCount,
       lod.indexAllocation.GetStartIndex(), lod.vertexAllocation.GetOffset() / lod.vertexAllocation.GetStride(),
@@ -2110,9 +2110,8 @@ export class EveTurretSet extends EveEntity
    * becomes the optional trailing length-1 array (out-params last).
    * Adapted: The length-1 out array replaces the float& out-param; the shadow math is ported, including exactly which paths write the out value.
    */
-  @meta.renamed("IsCastingShadow")
   @meta.adapted
-  IsCastingShadow_ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
+  IsCastingShadow__ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
   {
     if (!this.display || !this.geometryResource)
     {
@@ -2157,13 +2156,13 @@ export class EveTurretSet extends EveEntity
     if (!this.display || !this.visibleCount || !this._instanceBuffer.IsValid()) return false;
     const geometry = this.geometryResource;
     if (!geometry || !geometry.IsGood()) return false;
-    const lod = geometry.GetMeshLod_LodIndex(0, 0);
+    const lod = geometry.GetMeshLod__LodIndex(0, 0);
     if (!lod || !CreateLodAllocations(geometry, 0, lod, Tr2RenderContext_GetMainThreadRenderContext())) return false;
     // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
     if (!this.turretEffect || !this.turretEffect.IsGood()) return false;
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(this.turretEffect);
-    batch.SetGeometry_AllocationSecondStream(this._vertexDeclHandle, lod.vertexAllocation, this._instanceBuffer, lod.indexAllocation);
+    batch.SetGeometry__AllocationSecondStream(this._vertexDeclHandle, lod.vertexAllocation, this._instanceBuffer, lod.indexAllocation);
     batch.SetPerObjectData(perObjectData);
     batch.SetDrawIndexedInstanced(TriGeometryRes.getLodPrimitiveCount(lod) * 3, this.visibleCount,
       lod.indexAllocation.GetStartIndex(), lod.vertexAllocation.GetOffset() / lod.vertexAllocation.GetStride(),

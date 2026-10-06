@@ -149,9 +149,9 @@ export class EveStretch extends IEveFiringEffectElement
     if (!this.update) return true;
     // Carbon EveStretch.cpp:57-75: source and destination update through their Be::Time overloads.
     const time = context.GetTime();
-    if (this.source) this.source.Update_Ticks(time, this._sourcePosition);
+    if (this.source) this.source.Update__Ticks(time, this._sourcePosition);
     else if (this._useTransforms) mat4.getTranslation(this._sourcePosition, this._sourceTransform);
-    if (this.dest) this.dest.Update_Ticks(time, this._destinationPosition);
+    if (this.dest) this.dest.Update__Ticks(time, this._destinationPosition);
     return true;
   }
 
@@ -336,7 +336,7 @@ export class EveStretch extends IEveFiringEffectElement
   @meta.implemented
   GetRenderables(out)
   {
-    return this.GetRenderables_Impostors(out, null);
+    return this.GetRenderables__Impostors(out, null);
   }
 
   /**
@@ -347,15 +347,14 @@ export class EveStretch extends IEveFiringEffectElement
    *
    * @returns {Array} out
    */
-  @meta.renamed("GetRenderables")
   @meta.adapted
-  GetRenderables_Impostors(out = [], impostors)
+  GetRenderables__Impostors(out = [], impostors)
   {
     if (!this.display) return out;
-    if (this.sourceObject && this._displaySource) this.sourceObject.GetRenderables_Impostors(out, impostors);
-    if (this.destObject && this._displayDestination) this.destObject.GetRenderables_Impostors(out, impostors);
-    if (this.stretchObject) this.stretchObject.GetRenderables_Impostors(out, impostors);
-    if (this.moveObject) this.moveObject.GetRenderables_Impostors(out, impostors);
+    if (this.sourceObject && this._displaySource) this.sourceObject.GetRenderables__Impostors(out, impostors);
+    if (this.destObject && this._displayDestination) this.destObject.GetRenderables__Impostors(out, impostors);
+    if (this.stretchObject) this.stretchObject.GetRenderables__Impostors(out, impostors);
+    if (this.moveObject) this.moveObject.GetRenderables__Impostors(out, impostors);
     return out;
   }
 

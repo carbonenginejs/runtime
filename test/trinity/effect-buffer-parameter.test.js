@@ -9,13 +9,13 @@ import { StubBuffer, StubTarget } from "../support/stubContext.js";
 // Tr2Effect::SetParameter( name, const Tr2BufferAL& ) (Tr2Effect.cpp:2228-2255):
 // a buffer lands in a geometry buffer parameter holding a runtime GPU buffer,
 // never in a texture slot, and a later set reuses both.
-test("SetParameter_BufferAL binds an AL buffer through a geometry buffer parameter", () =>
+test("SetParameter__BufferAL binds an AL buffer through a geometry buffer parameter", () =>
 {
   const effect = new Tr2Effect();
   const first = StubBuffer();
   const second = StubBuffer();
 
-  effect.SetParameter_BufferAL("Exposure", first);
+  effect.SetParameter__BufferAL("Exposure", first);
 
   const parameter = effect.GetResourceByName("Exposure");
   assert.equal(getRegisteredClassName(parameter.constructor), "Tr2GeometryBufferParameter");
@@ -24,7 +24,7 @@ test("SetParameter_BufferAL binds an AL buffer through a geometry buffer paramet
   assert.notEqual(held.GetGpuBuffer(0), first);
   assert.equal(held.GetGpuBuffer(0).Equals(first), true);
 
-  effect.SetParameter_BufferAL("Exposure", second);
+  effect.SetParameter__BufferAL("Exposure", second);
   assert.equal(effect.GetResourceByName("Exposure"), parameter, "the slot is reused");
   assert.equal(parameter.GetGpuBuffer(), held, "and so is its runtime buffer");
   assert.notEqual(held.GetGpuBuffer(0), second);
@@ -32,7 +32,7 @@ test("SetParameter_BufferAL binds an AL buffer through a geometry buffer paramet
 
   // TEMP_PARAM's reset (Tr2PostProcessRenderer.cpp:132-150) is a
   // default-constructed buffer; null is that value and clears the SAME slot.
-  effect.SetParameter_BufferAL("Exposure", null);
+  effect.SetParameter__BufferAL("Exposure", null);
   assert.equal(effect.GetResourceByName("Exposure"), parameter, "no texture slot replaces it");
   assert.equal(held.GetGpuBuffer(0), null);
 });
@@ -41,13 +41,13 @@ test("SetParameter_BufferAL binds an AL buffer through a geometry buffer paramet
 // a raw texture is wrapped in a Tr2TextureReference, because the slot binds
 // through a provider's GetTexture(). Passing the texture itself left a slot
 // whose provider had no GetTexture, and the first GPU draw threw.
-test("SetParameter_TextureAL wraps an AL texture in a reused texture reference", () =>
+test("SetParameter__TextureAL wraps an AL texture in a reused texture reference", () =>
 {
   const effect = new Tr2Effect();
   const first = StubTarget();
   const second = StubTarget();
 
-  effect.SetParameter_TextureAL("InputTexture", first);
+  effect.SetParameter__TextureAL("InputTexture", first);
 
   const parameter = effect.GetResourceByName("InputTexture");
   const reference = parameter.GetTextureProvider();
@@ -55,12 +55,12 @@ test("SetParameter_TextureAL wraps an AL texture in a reused texture reference",
   assert.notEqual(reference.GetTexture(), first);
   assert.equal(reference.GetTexture().Equals(first), true);
 
-  effect.SetParameter_TextureAL("InputTexture", second);
+  effect.SetParameter__TextureAL("InputTexture", second);
   assert.equal(parameter.GetTextureProvider(), reference, "the reference is reused");
   assert.notEqual(reference.GetTexture(), second);
   assert.equal(reference.GetTexture().Equals(second), true);
 
-  effect.SetParameter_TextureAL("InputTexture", null);
+  effect.SetParameter__TextureAL("InputTexture", null);
   assert.equal(parameter.GetTextureProvider(), reference, "TEMP_PARAM's reset empties it");
   assert.equal(reference.GetTexture().IsValid(), false);
 });

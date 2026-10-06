@@ -181,7 +181,7 @@ export class TriLineSet
 
   /** Carbon's AddOrientedBox( transform, min, max, color ) (cpp:330-353): AddBox's edges through a transform. */
   @meta.implemented
-  AddOrientedBox_MinMax(transform, min, max, color)
+  AddOrientedBox__MinMax(transform, min, max, color)
   {
     // vec3_0 is minA, vec3_1 is minB, vec3_2 is minC, vec3_3 is maxA, vec3_4 is maxB, vec3_5 is maxC.
     const { vec3_0, vec3_1, vec3_2, vec3_3, vec3_4, vec3_5 } = TriLineSet.scratch;

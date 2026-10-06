@@ -66,9 +66,8 @@ export class Tr2ResourceSetDescriptionAL
    *
    * @returns {boolean} Whether the record changed.
    */
-  @meta.renamed("SetSrv")
   @meta.adapted
-  SetSrv_BufferAL(stage, registerIndex, buffer)
+  SetSrv__BufferAL(stage, registerIndex, buffer)
   {
     const current = this._SrvRecord(stage, registerIndex);
     if (!current) return false;
@@ -89,9 +88,8 @@ export class Tr2ResourceSetDescriptionAL
    *
    * @returns {boolean} Whether the record changed.
    */
-  @meta.renamed("SetSrv")
   @meta.adapted
-  SetSrv_TextureAL(stage, registerIndex, texture, colorSpace = 0)
+  SetSrv__TextureAL(stage, registerIndex, texture, colorSpace = 0)
   {
     const current = this._SrvRecord(stage, registerIndex);
     if (!current) return false;
@@ -106,12 +104,12 @@ export class Tr2ResourceSetDescriptionAL
 
   /**
    * Carbon's bare SetSrv is not supported: its buffer and texture overloads
-   * differ only in our own classes. Call SetSrv_BufferAL or SetSrv_TextureAL.
+   * differ only in our own classes. Call SetSrv__BufferAL or SetSrv__TextureAL.
    */
   @meta.notSupported
   SetSrv()
   {
-    throw new Error("Tr2ResourceSetDescriptionAL.SetSrv is not supported; call SetSrv_BufferAL or SetSrv_TextureAL.");
+    throw new Error("Tr2ResourceSetDescriptionAL.SetSrv is not supported; call SetSrv__BufferAL or SetSrv__TextureAL.");
   }
 
   /** The Srv record mapped to a stage register, or null out of range. */
@@ -131,9 +129,8 @@ export class Tr2ResourceSetDescriptionAL
    *
    * @returns {boolean} Whether the record changed.
    */
-  @meta.renamed("SetUav")
   @meta.adapted
-  SetUav_BufferAL(stage, registerIndex, buffer)
+  SetUav__BufferAL(stage, registerIndex, buffer)
   {
     const current = this._UavRecord(stage, registerIndex);
     if (!current) return false;
@@ -154,9 +151,8 @@ export class Tr2ResourceSetDescriptionAL
    *
    * @returns {boolean} Whether the record changed.
    */
-  @meta.renamed("SetUav")
   @meta.adapted
-  SetUav_TextureAL(stage, registerIndex, texture, mip = 0)
+  SetUav__TextureAL(stage, registerIndex, texture, mip = 0)
   {
     const current = this._UavRecord(stage, registerIndex);
     if (!current) return false;
@@ -171,12 +167,12 @@ export class Tr2ResourceSetDescriptionAL
 
   /**
    * Carbon's bare SetUav is not supported: its buffer and texture overloads
-   * differ only in our own classes. Call SetUav_BufferAL or SetUav_TextureAL.
+   * differ only in our own classes. Call SetUav__BufferAL or SetUav__TextureAL.
    */
   @meta.notSupported
   SetUav()
   {
-    throw new Error("Tr2ResourceSetDescriptionAL.SetUav is not supported; call SetUav_BufferAL or SetUav_TextureAL.");
+    throw new Error("Tr2ResourceSetDescriptionAL.SetUav is not supported; call SetUav__BufferAL or SetUav__TextureAL.");
   }
 
   /** The Uav record mapped to a stage register, or null out of range. */

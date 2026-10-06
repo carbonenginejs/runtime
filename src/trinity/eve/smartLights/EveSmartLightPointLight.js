@@ -141,9 +141,8 @@ export class EveSmartLightPointLight extends EveEntity
   _lightDataView = null;
 
   /** IEveSmartLightGroup default: point-light groups have no async work. */
-  @meta.renamed("UpdateAsyncronous")
   @meta.noop
-  UpdateAsyncronous_Distribution(_updateContext, _params, _distribution)
+  UpdateAsyncronous__Distribution(_updateContext, _params, _distribution)
   {
   }
 
@@ -339,9 +338,8 @@ export class EveSmartLightPointLight extends EveEntity
    * Captures the frame state and updates the attribute modifiers with full
    * strength (EveSmartLightPointLight.cpp:43-54).
    */
-  @meta.renamed("UpdateSyncronous")
   @meta.implemented
-  UpdateSyncronous_Distribution(updateContext, params, distribution)
+  UpdateSyncronous__Distribution(updateContext, params, distribution)
   {
     this._activationStrength = params?.activationStrength ?? 1;
     mat4.copy(this._worldTransform, params?.localToWorldTransform ?? EveSmartLightPointLight._identity);

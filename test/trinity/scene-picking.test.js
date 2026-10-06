@@ -30,8 +30,8 @@ function setup(t, framework = "pointer")
   t.mock.method(scene, "ApplyPerFrameData", () => {});
   t.mock.method(object, "GetPerObjectData", () => new Tr2PerObjectData());
   t.mock.method(object, "GetPickingBatches", (_batches, _flags, data) => { pointer = data.GetPickingPointer(); objectId = data.GetUserData(); });
-  t.mock.method(context, "RenderBatchesForPicking_Pointer", () => {});
-  t.mock.method(context, "RenderBatchesForPicking_ObjectId", () => {});
+  t.mock.method(context, "RenderBatchesForPicking__Pointer", () => {});
+  t.mock.method(context, "RenderBatchesForPicking__ObjectId", () => {});
   t.mock.method(Tr2TextureAL.prototype, "CreateReadback", () =>
   {
     let resolve, ready = false, valid = true;
@@ -146,7 +146,7 @@ test("failed picking draws restore context state and remove the failed request",
 {
   const h = setup(t), listener = new EvePickingContext();
   const esm = h.context.GetEffectStateManager(), inverted = esm.IsDepthTestInverted(), managed = esm.IsManagedRendering();
-  t.mock.method(h.context, "RenderBatchesForPicking_Pointer", () => { throw new Error("synthetic draw failure"); });
+  t.mock.method(h.context, "RenderBatchesForPicking__Pointer", () => { throw new Error("synthetic draw failure"); });
   assert.throws(() => h.scene.PerformPicking(listener, false, ...h.args), /synthetic draw failure/);
   assert.deepEqual([...h.context.GetViewTransform()], h.originalView);
   assert.equal(esm.IsDepthTestInverted(), inverted);
@@ -203,7 +203,7 @@ test("failed legacy draws restore state and release the failed request", t =>
 {
   const h = setup(t, "objectId"), listener = new EvePickingContext();
   const esm = h.context.GetEffectStateManager(), inverted = esm.IsDepthTestInverted(), managed = esm.IsManagedRendering();
-  t.mock.method(h.context, "RenderBatchesForPicking_ObjectId", () => { throw new Error("legacy draw failure"); });
+  t.mock.method(h.context, "RenderBatchesForPicking__ObjectId", () => { throw new Error("legacy draw failure"); });
   assert.throws(() => h.scene.PerformPicking(listener, false, ...h.args), /legacy draw failure/u);
   assert.deepEqual([...h.context.GetViewTransform()], h.originalView);
   assert.equal(esm.IsDepthTestInverted(), inverted);

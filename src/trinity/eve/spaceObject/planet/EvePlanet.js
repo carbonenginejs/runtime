@@ -174,15 +174,15 @@ export class EvePlanet extends EveEffectRoot2
     vec3.set(vec3_0, 0, 0, 0);
     quat.identity(quat_0);
     const time = updateContext.GetTime();
-    if (this.translationCurve) this.translationCurve.Update_Ticks(time, vec3_0);
-    if (this.rotationCurve) this.rotationCurve.Update_Ticks(time, quat_0);
+    if (this.translationCurve) this.translationCurve.Update__Ticks(time, vec3_0);
+    if (this.rotationCurve) this.rotationCurve.Update__Ticks(time, quat_0);
     vec3.add(vec3_0, vec3_0, this.translation);
     // Carbon (row-vector): ballRotation * m_rotation - ball first.
     quat.multiply(quat_0, this.rotation, quat_0);
     quat.normalize(quat_0, quat_0);
     mat4.fromRotationTranslationScale(this._worldTransform, quat_0, vec3_0, this.scaling);
     this.UpdateEffectChildren(updateContext, this._worldTransform, renderScale);
-    for (const curveSet of this.curveSets) curveSet.Update_RealTimeSimTime(time, time, updateContext.renderContext);
+    for (const curveSet of this.curveSets) curveSet.Update__RealTimeSimTime(time, time, updateContext.renderContext);
     this.UpdateControllers(0.5);
     for (const observer of this.observers) observer.Update(this._worldTransform);
   }

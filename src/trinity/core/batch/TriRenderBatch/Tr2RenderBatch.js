@@ -39,7 +39,7 @@ export function OrderOf(ref)
 
 // THE ALLOCATION TYPE IS A PORT GAP, AND THESE TWO HELPERS ARE WHERE IT SHOWS.
 //
-// Carbon's `SetGeometry_Allocation` takes a `Tr2SuballocatedBuffer::Allocation`
+// Carbon's `SetGeometry__Allocation` takes a `Tr2SuballocatedBuffer::Allocation`
 // (`Tr2SuballocatedBuffer.h:23-66`) and simply calls `GetBuffer()`, `GetOffset()`,
 // `GetStride()` and `GetStartIndex()` on it - no probing, because the type is the
 // argument. We have no such class: it needs `Tr2VirtualAllocator`, which in
@@ -181,7 +181,7 @@ export class Tr2RenderBatch
    * allocation parameters that replace vb/stride/ib (docs 22d1237); formerly
    * SetGeometryFromAllocations.
    */
-  SetGeometry_Allocation(vertexDeclaration, vertexAllocation, indexAllocation)
+  SetGeometry__Allocation(vertexDeclaration, vertexAllocation, indexAllocation)
   {
     this.SetGeometry(
       vertexDeclaration,
@@ -195,11 +195,11 @@ export class Tr2RenderBatch
   /**
    * Carbon's SetGeometry( vertexDecl, vb1, vb2, ib ) (h:70): the second
    * allocation becomes vertex stream 1. Named for what it adds to
-   * SetGeometry_Allocation; formerly SetGeometryFromAllocations2.
+   * SetGeometry__Allocation; formerly SetGeometryFromAllocations2.
    */
-  SetGeometry_AllocationSecondStream(vertexDeclaration, vertexAllocation1, vertexAllocation2, indexAllocation)
+  SetGeometry__AllocationSecondStream(vertexDeclaration, vertexAllocation1, vertexAllocation2, indexAllocation)
   {
-    this.SetGeometry_Allocation(vertexDeclaration, vertexAllocation1, indexAllocation);
+    this.SetGeometry__Allocation(vertexDeclaration, vertexAllocation1, indexAllocation);
     this.vertexStreams[1] = AllocationBuffer(vertexAllocation2);
     this.stride[1] = AllocationStride(vertexAllocation2);
   }
@@ -326,7 +326,7 @@ export class Tr2RenderBatch
    * @param {number} meshIndex
    * @param {number} areaIndex
    */
-  SetPickingData_MeshArea(meshIndex, areaIndex)
+  SetPickingData__MeshArea(meshIndex, areaIndex)
   {
     this.SetPickingData((meshIndex << 8) | (areaIndex & 0xff));
   }

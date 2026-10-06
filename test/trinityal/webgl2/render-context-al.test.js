@@ -184,7 +184,7 @@ function drawable()
     context.SetShaderProgram(program);
     context.SetVertexLayout(layout);
     context.SetStreamSource(0, vertices, 0, 12);
-    context.SetIndices_Stride(indices, 2);
+    context.SetIndices__Stride(indices, 2);
     context.SetTopology(Topology.TOP_TRIANGLES);
 
     return { gl, calls, context, program, vertices, indices };

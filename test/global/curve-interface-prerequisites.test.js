@@ -24,27 +24,27 @@ const contracts = [
   },
   {
     name: "ITriScalarFunction", Contract: ITriScalarFunction, direct: DirectScalar, base: ITriFunction,
-    own: [ "Update", "GetValueAt", "ScaleTime", "Update_Ticks", "GetValueAt_Ticks" ], abstract: [ "Update", "GetValueAt", "ScaleTime" ],
-    ticks: [ "Update_Ticks", "GetValueAt_Ticks" ]
+    own: [ "Update", "GetValueAt", "ScaleTime", "Update__Ticks", "GetValueAt__Ticks" ], abstract: [ "Update", "GetValueAt", "ScaleTime" ],
+    ticks: [ "Update__Ticks", "GetValueAt__Ticks" ]
   },
   {
     name: "ITriVectorFunction", Contract: ITriVectorFunction, direct: DirectVector, base: ITriFunction,
     own: [ "Update", "GetValueAt", "GetValueDotAt", "GetValueDoubleDotAt", "InterpolatedPosition",
-      "Update_Ticks", "GetValueAt_Ticks", "GetValueDotAt_Ticks", "GetValueDoubleDotAt_Ticks" ],
+      "Update__Ticks", "GetValueAt__Ticks", "GetValueDotAt__Ticks", "GetValueDoubleDotAt__Ticks" ],
     abstract: [ "Update", "GetValueAt", "GetValueDotAt", "GetValueDoubleDotAt", "InterpolatedPosition" ],
-    ticks: [ "Update_Ticks", "GetValueAt_Ticks", "GetValueDotAt_Ticks", "GetValueDoubleDotAt_Ticks" ]
+    ticks: [ "Update__Ticks", "GetValueAt__Ticks", "GetValueDotAt__Ticks", "GetValueDoubleDotAt__Ticks" ]
   },
   {
     name: "ITriQuaternionFunction", Contract: ITriQuaternionFunction, direct: DirectQuaternion, base: ITriFunction,
     own: [ "Update", "GetValueAt", "GetValueDotAt", "GetValueDoubleDotAt",
-      "Update_Ticks", "GetValueAt_Ticks", "GetValueDotAt_Ticks", "GetValueDoubleDotAt_Ticks" ],
+      "Update__Ticks", "GetValueAt__Ticks", "GetValueDotAt__Ticks", "GetValueDoubleDotAt__Ticks" ],
     abstract: [ "Update", "GetValueAt", "GetValueDotAt", "GetValueDoubleDotAt" ],
-    ticks: [ "Update_Ticks", "GetValueAt_Ticks", "GetValueDotAt_Ticks", "GetValueDoubleDotAt_Ticks" ]
+    ticks: [ "Update__Ticks", "GetValueAt__Ticks", "GetValueDotAt__Ticks", "GetValueDoubleDotAt__Ticks" ]
   },
   {
     name: "ITriColorFunction", Contract: ITriColorFunction, direct: DirectColor, base: ITriFunction,
-    own: [ "Update", "GetValueAt", "Update_Ticks", "GetValueAt_Ticks" ], abstract: [ "Update", "GetValueAt" ],
-    ticks: [ "Update_Ticks", "GetValueAt_Ticks" ]
+    own: [ "Update", "GetValueAt", "Update__Ticks", "GetValueAt__Ticks" ], abstract: [ "Update", "GetValueAt" ],
+    ticks: [ "Update__Ticks", "GetValueAt__Ticks" ]
   },
   {
     name: "ITriCurveLength", Contract: ITriCurveLength, direct: DirectLength,

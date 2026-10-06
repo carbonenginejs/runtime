@@ -17,8 +17,8 @@ export class IEveShadowCaster
 
   /**
    * Carbon's bare IsCastingShadow, for literal ports: routes on the second
-   * argument, a Vector3 position selecting IsCastingShadow_PositionRadius and
-   * anything else the shadow-frustum form IsCastingShadow_ShadowFrustum
+   * argument, a Vector3 position selecting IsCastingShadow__PositionRadius and
+   * anything else the shadow-frustum form IsCastingShadow__ShadowFrustum
    * (h:144-145). Engine code calls the specific names; this inspects its
    * argument only because JavaScript cannot overload.
    *
@@ -27,8 +27,8 @@ export class IEveShadowCaster
   IsCastingShadow(cameraFrustum, second, third, fourth)
   {
     return isVector3(second)
-      ? this.IsCastingShadow_PositionRadius(cameraFrustum, second, third, fourth)
-      : this.IsCastingShadow_ShadowFrustum(cameraFrustum, second, third, fourth);
+      ? this.IsCastingShadow__PositionRadius(cameraFrustum, second, third, fourth)
+      : this.IsCastingShadow__ShadowFrustum(cameraFrustum, second, third, fourth);
   }
 
   /**
@@ -37,9 +37,9 @@ export class IEveShadowCaster
    *
    * @returns {boolean}
    */
-  IsCastingShadow_ShadowFrustum(_cameraFrustum, _shadowFrustum, _renderReason, _sizeInShadow)
+  IsCastingShadow__ShadowFrustum(_cameraFrustum, _shadowFrustum, _renderReason, _sizeInShadow)
   {
-    throw new Error("IEveShadowCaster.IsCastingShadow_ShadowFrustum must be implemented by a shadow caster.");
+    throw new Error("IEveShadowCaster.IsCastingShadow__ShadowFrustum must be implemented by a shadow caster.");
   }
 
   /**
@@ -48,7 +48,7 @@ export class IEveShadowCaster
    *
    * @returns {boolean}
    */
-  IsCastingShadow_PositionRadius(_cameraFrustum, _position, _radius, _renderReason)
+  IsCastingShadow__PositionRadius(_cameraFrustum, _position, _radius, _renderReason)
   {
     return false;
   }
@@ -84,8 +84,8 @@ export class IEveShadowCaster
 
 
 CjsSchema.decorateMethod(IEveShadowCaster, "IsCastingShadow", meta.blue.method, meta.adapted);
-CjsSchema.decorateMethod(IEveShadowCaster, "IsCastingShadow_ShadowFrustum", meta.renamed("IsCastingShadow"), meta.abstract);
-CjsSchema.decorateMethod(IEveShadowCaster, "IsCastingShadow_PositionRadius", meta.renamed("IsCastingShadow"), meta.implemented);
+CjsSchema.decorateMethod(IEveShadowCaster, "IsCastingShadow__ShadowFrustum", meta.abstract);
+CjsSchema.decorateMethod(IEveShadowCaster, "IsCastingShadow__PositionRadius", meta.implemented);
 CjsSchema.decorateMethod(IEveShadowCaster, "GetShadowBatches", meta.abstract);
 CjsSchema.decorateMethod(IEveShadowCaster, "GetShadowPerObjectData", meta.abstract);
 for (const name of [ "PushRtGeometry", "MarkRtDirty", "IsShadowCastingDirty" ]) CjsSchema.decorateMethod(IEveShadowCaster, name, meta.implemented);

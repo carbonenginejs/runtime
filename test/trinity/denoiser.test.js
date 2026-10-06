@@ -120,10 +120,10 @@ test("Radius goes through the uint32 overload: its bits, not a float", () =>
   const renderer = new Tr2Renderer();
   const denoiser = new Tr2Denoiser();
   const radii = [];
-  const original = Tr2Effect.prototype.SetParameter_UInt32;
+  const original = Tr2Effect.prototype.SetParameter__UInt32;
 
   Tr2Renderer.prepareDeviceResources(context);
-  Tr2Effect.prototype.SetParameter_UInt32 = function (name, value)
+  Tr2Effect.prototype.SetParameter__UInt32 = function (name, value)
   {
     if (name === "Radius") radii.push(value);
     return original.call(this, name, value);
@@ -135,14 +135,14 @@ test("Radius goes through the uint32 overload: its bits, not a float", () =>
   }
   finally
   {
-    Tr2Effect.prototype.SetParameter_UInt32 = original;
+    Tr2Effect.prototype.SetParameter__UInt32 = original;
   }
 
   assert.ok(radii.length > 0, "the blur passes were given a radius");
   assert.deepEqual(radii, radii.map(() => 5), "Carbon's default m_radius, through the uint32 overload");
 
   const effect = new Tr2Effect();
-  effect.SetParameter_UInt32("Radius", 5);
+  effect.SetParameter__UInt32("Radius", 5);
   assert.equal(float32ToBits(effect.FindParameterByName("Radius").value), 5, "stored as the integer's bits");
 });
 

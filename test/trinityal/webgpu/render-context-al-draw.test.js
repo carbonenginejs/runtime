@@ -150,7 +150,7 @@ function bindGeometry(al, program)
     { usage: 0, usageIndex: 0, type: "Float32", elementCount: 3, offset: 0, stream: 0 }
   ]));
   al.SetStreamSource(0, deviceBuffer("vb", al), 0, 12);
-  al.SetIndices_Stride(deviceBuffer("ib", al), 2);
+  al.SetIndices__Stride(deviceBuffer("ib", al), 2);
   al.SetShaderProgram(program);
   al.SetRenderStates(Tr2RenderStateSetup.fromKeyValues([]));
 }
@@ -372,7 +372,7 @@ test("a hit binds the streams of the pipeline it found, not of the last miss", (
   al.SetTopology(Topology.TOP_TRIANGLES);
   al.SetStreamSource(0, deviceBuffer("vb0", al), 0, 20);
   al.SetStreamSource(1, deviceBuffer("vb1", al), 0, 8);
-  al.SetIndices_Stride(deviceBuffer("ib", al), 2);
+  al.SetIndices__Stride(deviceBuffer("ib", al), 2);
   al.SetShaderProgram(program);
   al.SetRenderStates(Tr2RenderStateSetup.fromKeyValues([]));
 
@@ -455,7 +455,7 @@ test("a program that declares bind groups draws with the bound constant buffer a
   const description = new Tr2ResourceSetDescriptionAL({ program });
 
   description.SetSampler(ShaderType.PIXEL_SHADER, 3, sampler);
-  description.SetSrv_TextureAL(ShaderType.PIXEL_SHADER, 3, deviceTexture("diffuse", al));
+  description.SetSrv__TextureAL(ShaderType.PIXEL_SHADER, 3, deviceTexture("diffuse", al));
 
   const set = al.CreateResourceSet(description, program);
 
@@ -558,7 +558,7 @@ test("what the vertex half cannot say refuses the draw and names the gap", () =>
   // No stream bound: the layout's stream has no stride.
   al.SetTopology(Topology.TOP_TRIANGLES);
   al.SetVertexLayout(al.CreateVertexLayout([ { usage: 0, usageIndex: 0, type: "Float32", elementCount: 3, offset: 0 } ]));
-  al.SetIndices_Stride(deviceBuffer("ib", al), 2);
+  al.SetIndices__Stride(deviceBuffer("ib", al), 2);
   al.SetShaderProgram(program);
   al.SetRenderStates(Tr2RenderStateSetup.fromKeyValues([]));
 
@@ -572,14 +572,14 @@ test("what the vertex half cannot say refuses the draw and names the gap", () =>
 
   // An index stride WebGPU has no format for.
   al.SetStreamSource(0, deviceBuffer("vb", al), 0, 12);
-  al.SetIndices_Stride(deviceBuffer("ib", al), 3);
+  al.SetIndices__Stride(deviceBuffer("ib", al), 3);
   assert.ok(Failed(al.DrawIndexedInstanced(36, 1)));
   assert.match(al.m_pipelineFailure, /index format for a 3-byte stride/);
 
   // A declaration whose element type this backend cannot name: WebGPU has no
   // three-component 8-bit format. (FLOAT32_3 is Carbon's own DataType name and
   // IS nameable - float32x3.)
-  al.SetIndices_Stride(deviceBuffer("ib", al), 2);
+  al.SetIndices__Stride(deviceBuffer("ib", al), 2);
   al.SetVertexLayout(al.CreateVertexLayout([ { usage: 0, usageIndex: 0, type: "UBYTE_3", offset: 0 } ]));
   assert.ok(Failed(al.DrawIndexedInstanced(36, 1)));
   assert.match(al.m_pipelineFailure, /vertex format for stream 0/);
@@ -702,7 +702,7 @@ test("a draw fills the emulated-addressing modes buffer from the bound sampler s
   const description = new Tr2ResourceSetDescriptionAL({ program });
 
   description.SetSampler(ShaderType.PIXEL_SHADER, 3, decal);
-  description.SetSrv_TextureAL(ShaderType.PIXEL_SHADER, 3, deviceTexture("decal", al));
+  description.SetSrv__TextureAL(ShaderType.PIXEL_SHADER, 3, deviceTexture("decal", al));
 
   const set = al.CreateResourceSet(description, program);
 

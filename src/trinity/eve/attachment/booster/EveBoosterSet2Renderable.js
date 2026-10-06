@@ -495,7 +495,7 @@ export class EveBoosterSet2Renderable
     this.trailsVisible = trailsLod > lowDetailThreshold;
 
     this.isVisible = frustum.IsSphereVisible(boundingSphere) ||
-      frustum.IsBoxVisible_BoundsMinMax(this.trailsBoundsMin, this.trailsBoundsMax);
+      frustum.IsBoxVisible__BoundsMinMax(this.trailsBoundsMin, this.trailsBoundsMax);
 
     return this.isVisible;
   }

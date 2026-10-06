@@ -291,17 +291,17 @@ export class Tr2ReflectionProbe
 
       this._filterEffect.SetEffectPathName(FILTER_EFFECT);
       this._preFilterEffect.SetEffectPathName(PRE_FILTER_EFFECT);
-      this._preFilterEffect.SetParameter_TextureProvider("tex_hi_res", source);
-      this._preFilterEffect.SetParameter_TextureProvider("tex_lo_res", this._preFilterTarget);
+      this._preFilterEffect.SetParameter__TextureProvider("tex_hi_res", source);
+      this._preFilterEffect.SetParameter__TextureProvider("tex_lo_res", this._preFilterTarget);
       this._preFilterEffect.SetOption("HOLLYWOOD_MODE", this.hollywoodMode ? "HOLLYWOOD_ON" : "HOLLYWOOD_OFF");
       if (this.hollywoodMode)
       {
-        this._preFilterEffect.SetParameter_Vector4("BackLightColor", Array.from(this.backlightColor));
+        this._preFilterEffect.SetParameter__Vector4("BackLightColor", Array.from(this.backlightColor));
         this._preFilterEffect.SetParameter("BackLightContrast", this.backlightContrast);
-        this._preFilterEffect.SetParameter_Vector3("ViewDirection", [ 0, 1, 0 ]);
+        this._preFilterEffect.SetParameter__Vector3("ViewDirection", [ 0, 1, 0 ]);
       }
 
-      this._filterEffect.SetParameter_TextureProvider("tex_in", this._preFilterTarget);
+      this._filterEffect.SetParameter__TextureProvider("tex_in", this._preFilterTarget);
       for (let mip = 0; mip < MIP_COUNT; mip += 1)
       {
         const parameter = new Tr2RuntimeTextureParameter();
@@ -311,14 +311,14 @@ export class Tr2ReflectionProbe
       this._filterEffect.SetParameter("output_srgb", this.hdrOutput ? 0 : 1);
 
       this._copyMipEffect.SetEffectPathName(COPY_MIP_EFFECT);
-      this._copyMipEffect.SetParameter_TextureProvider("tex_hi_res", source);
-      this._copyMipEffect.SetParameter_TextureProvider("tex_lo_res", this.reflectionTexture);
+      this._copyMipEffect.SetParameter__TextureProvider("tex_hi_res", source);
+      this._copyMipEffect.SetParameter__TextureProvider("tex_lo_res", this.reflectionTexture);
       this._copyMipEffect.SetOption("HOLLYWOOD_MODE", this.hollywoodMode ? "HOLLYWOOD_ON" : "HOLLYWOOD_OFF");
       if (this.hollywoodMode)
       {
-        this._copyMipEffect.SetParameter_Vector4("BackLightColor", Array.from(this.backlightColor));
+        this._copyMipEffect.SetParameter__Vector4("BackLightColor", Array.from(this.backlightColor));
         this._copyMipEffect.SetParameter("BackLightContrast", this.backlightContrast);
-        this._copyMipEffect.SetParameter_Vector3("ViewDirection", [ 0, 1, 0 ]);
+        this._copyMipEffect.SetParameter__Vector3("ViewDirection", [ 0, 1, 0 ]);
       }
 
       this._initialized = true;
@@ -377,9 +377,9 @@ export class Tr2ReflectionProbe
 
       for (const effect of [ this._preFilterEffect, this._copyMipEffect ])
       {
-        effect.SetParameter_Vector4("BackLightColor", Array.from(this.backlightColor));
+        effect.SetParameter__Vector4("BackLightColor", Array.from(this.backlightColor));
         effect.SetParameter("BackLightContrast", this.backlightContrast);
-        effect.SetParameter_Vector3("ViewDirection", viewDirection);
+        effect.SetParameter__Vector3("ViewDirection", viewDirection);
       }
     }
 
@@ -456,8 +456,8 @@ export class Tr2ReflectionProbe
     esm.PushViewport();
     renderContext.PushViewTransform();
     renderContext.PushProjection();
-    esm.PushRenderTarget_Current();
-    esm.PushDepthStencilBuffer_Current();
+    esm.PushRenderTarget__Current();
+    esm.PushDepthStencilBuffer__Current();
 
     esm.SetViewport({ x: 0, y: 0, width: this.reflectionSize, height: this.reflectionSize, minZ: 0, maxZ: 1 });
 

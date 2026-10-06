@@ -54,13 +54,13 @@ test("EveTacticalOverlayTrackObject samples position and velocity curves", () =>
   const calls = [];
   const tracked = new EveTacticalOverlayTrackObject();
   tracked.translationCurve = {
-    GetValueDotAt_Ticks(time, out)
+    GetValueDotAt__Ticks(time, out)
     {
       calls.push(["velocity", time]);
       out.set([1, 2, 3]);
       return out;
     },
-    GetValueAt_Ticks(time, out)
+    GetValueAt__Ticks(time, out)
     {
       calls.push(["position", time]);
       out.set([4, 5, 6]);

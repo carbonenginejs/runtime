@@ -298,7 +298,7 @@ export class EveTrailsSet
     if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
     if (!this.geometryResource.GetMeshCount()) return;
 
-    const lod = this.geometryResource.GetMeshLod_LodIndex(0, 0);
+    const lod = this.geometryResource.GetMeshLod__LodIndex(0, 0);
     if (!lod) return;
     if (!lod.allocationsValid && !CreateLodAllocations(this.geometryResource, 0, lod, Tr2RenderContext_GetMainThreadRenderContext())) return;
 
@@ -307,7 +307,7 @@ export class EveTrailsSet
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(this.effect);
     batch.SetPerObjectData(perObjectData);
-    batch.SetGeometry_AllocationSecondStream(this._vertexDeclHandle, vertices, instances, lod.indexAllocation);
+    batch.SetGeometry__AllocationSecondStream(this._vertexDeclHandle, vertices, instances, lod.indexAllocation);
     batch.SetDrawIndexedInstanced(
       TriGeometryRes.getPrimitiveCount(lod, 0, lod.areas?.length ?? 0) * 3,
       this._trailData.length,

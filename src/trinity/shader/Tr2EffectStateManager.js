@@ -848,7 +848,7 @@ export class Tr2EffectStateManager
    * @param {number} [slot] Target slot.
    * @returns {boolean} True.
    */
-  PushRenderTarget_Current(slot = 0)
+  PushRenderTarget__Current(slot = 0)
   {
     this.#renderContext.PushRenderTarget(slot);
     return true;
@@ -864,7 +864,7 @@ export class Tr2EffectStateManager
    * @param {number} [slot] Target slot.
    * @returns {boolean} True.
    */
-  PushRenderTarget_TextureAL(renderTarget, slot = 0)
+  PushRenderTarget__TextureAL(renderTarget, slot = 0)
   {
     this.#renderContext.PushRenderTarget(slot);
     this.SetRenderTarget(slot, renderTarget);
@@ -881,8 +881,8 @@ export class Tr2EffectStateManager
   PushRenderTarget(first = undefined, slot = 0)
   {
     return first === undefined || typeof first === "number"
-      ? this.PushRenderTarget_Current(first ?? 0)
-      : this.PushRenderTarget_TextureAL(first, slot);
+      ? this.PushRenderTarget__Current(first ?? 0)
+      : this.PushRenderTarget__TextureAL(first, slot);
   }
 
   /**
@@ -917,7 +917,7 @@ export class Tr2EffectStateManager
    *
    * @returns {boolean} True.
    */
-  PushDepthStencilBuffer_Current()
+  PushDepthStencilBuffer__Current()
   {
     this.#renderContext.PushDepthStencil();
     return true;
@@ -931,7 +931,7 @@ export class Tr2EffectStateManager
    * @param {object|null} depthStencil The surface to bind after saving.
    * @returns {boolean} True.
    */
-  PushDepthStencilBuffer_TextureAL(depthStencil)
+  PushDepthStencilBuffer__TextureAL(depthStencil)
   {
     this.#renderContext.PushDepthStencil();
     this.SetDepthStencilBuffer(depthStencil);
@@ -948,8 +948,8 @@ export class Tr2EffectStateManager
   PushDepthStencilBuffer(depthStencil = undefined)
   {
     return depthStencil === undefined
-      ? this.PushDepthStencilBuffer_Current()
-      : this.PushDepthStencilBuffer_TextureAL(depthStencil);
+      ? this.PushDepthStencilBuffer__Current()
+      : this.PushDepthStencilBuffer__TextureAL(depthStencil);
   }
 
   /**
@@ -1709,7 +1709,7 @@ export class Tr2EffectStateManager
       this.#currentValues.indexStride = stride;
     }
 
-    this.#renderContext.SetIndices_Stride(indices, stride);
+    this.#renderContext.SetIndices__Stride(indices, stride);
 
     return true;
   }

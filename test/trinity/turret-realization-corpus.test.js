@@ -472,14 +472,14 @@ test("real packed turret shader receives native instance IDs and final opaque/sh
   set.turretEffect={GetShaderStateInterface:()=>shader,ApplyMaterialDataForPass(){},IsGood:()=>true};
   set.displayEffects=false;
   const coefficients=ship._psData.Get("shLightingCoefficients");for(let i=0;i<coefficients.length;i++)coefficients[i]=i+.25;
-  const renderables=ship.GetRenderables_Impostors([]);assert.ok(renderables.includes(set),"EveMobile.cpp:291 forwards the turret renderable and SH span");
+  const renderables=ship.GetRenderables__Impostors([]);assert.ok(renderables.includes(set),"EveMobile.cpp:291 forwards the turret renderable and SH span");
   assert.ok(set._parentShLighting.buffer===coefficients.buffer);assert.equal(set._parentShLighting.byteOffset,coefficients.byteOffset,"RawData.Get creates views of the same borrowed coefficient span");
   Tr2RingBuffer.ResetInstances();Tr2RingBuffer.GetInstance("Float4x3",48,context);t.after(()=>Tr2RingBuffer.ResetInstances());
   const store=makePerObjectStore(),pod=set.GetPerObjectData({Alloc:name=>store.Allocate(name)});
   for(let i=0;i<7;i++)assert.deepEqual(Array.from(pod.ps.GetIndex("shLightingCoefficients",i)),Array.from(coefficients.subarray(i*4,i*4+4)));
   const committed=[],accumulator={Commit(batch){if(!batch.IsValid())return false;committed.push(batch);return true;}};
   assert.equal(set.GetBatches(accumulator,TriBatchType.TRIBATCHTYPE_OPAQUE,pod),true);
-  const lod=resource.GetMeshLod_LodIndex(0,0),batch=committed[0];
+  const lod=resource.GetMeshLod__LodIndex(0,0),batch=committed[0];
   const expected=[5760,2,lod.indexAllocation.GetStartIndex(),lod.vertexAllocation.GetOffset()/lod.vertexAllocation.GetStride(),set._instanceBuffer.GetOffset()/4];
   assert.ok(expected[2]>0&&expected[3]>0&&expected[4]>0,"all shared offsets are nonzero");
   assert.equal(batch.geometrySource,null);context.RenderBatches({GetBatches:()=>[batch]});assert.deepEqual(draws.at(-1),expected);
@@ -487,7 +487,7 @@ test("real packed turret shader receives native instance IDs and final opaque/sh
   assert.equal(set.GetBatches(accumulator,TriBatchType.TRIBATCHTYPE_ADDITIVE,pod),false);
   set.display=false;assert.equal(set.GetBatches(accumulator,TriBatchType.TRIBATCHTYPE_OPAQUE,pod),false);assert.equal(set.GetShadowBatches(accumulator,pod,100),false);set.GetRenderables([]);assert.equal(set._parentShLighting,null);set.display=true;
   set.visibleCount=0;assert.equal(set.GetShadowBatches(accumulator,pod,100),false);set.visibleCount=2;
-  const saved=resource.GetMeshLod_LodIndex;resource.GetMeshLod_LodIndex=()=>null;assert.equal(set.GetShadowBatches(accumulator,pod,100),false);resource.GetMeshLod_LodIndex=saved;
+  const saved=resource.GetMeshLod__LodIndex;resource.GetMeshLod__LodIndex=()=>null;assert.equal(set.GetShadowBatches(accumulator,pod,100),false);resource.GetMeshLod__LodIndex=saved;
   set.ReleaseResources();assert.equal(set._instanceBuffer.IsValid(),false);assert.equal(set.GetShadowBatches(accumulator,pod,100),false);
   const firstCount=instanceUploads.length;const allocating=shared.Allocate;shared.Allocate=()=>null;
   assert.equal(set.PrepareResources(),true,"native OnPrepareResources returns true after void InitializeInstanceBuffer");assert.equal(set._instanceBuffer.IsValid(),false);assert.equal(set.GetShadowBatches(accumulator,pod,100),false);shared.Allocate=allocating;
@@ -600,7 +600,7 @@ test("native ambient instances copy controlled source, isolate controller state 
   for(const [turretLod,childLod] of [[EveTurretSet.LOD.LOD_INVALID,Tr2Lod.TR2_LOD_UNSPECIFIED],[EveTurretSet.LOD.LOD_EMPTY,Tr2Lod.TR2_LOD_LOW],[EveTurretSet.LOD.LOD_HIGHEST,Tr2Lod.TR2_LOD_HIGH]]){set.lodLevel=turretLod;set.UpdateVisibility({GetFrustum:()=>({IsSphereVisible:()=>false})});assert.equal(ambientLod,childLod);}
   set.ambientEffectEditingMode=false;set.OnModified("ambientEffectEditingMode");set.SetAmbientEffect(null);assert.equal(set.GetAmbientEffectOrGeneratedEffect(),null);assert.equal(source.IsInRegistry(),false);
   set.Destroy();resource.MarkPrepared();assert.equal(set.geometryResource,null);assert.equal(set.IsInRegistry(),false);assert.equal(TriDevice.GetResourcesRegistered().includes(set),false);
-  ship.turretSets.length=0;assert.equal(ship.GetRenderables_Impostors([]).includes(set),false,"removed/destroyed turret is not collected");
+  ship.turretSets.length=0;assert.equal(ship.GetRenderables__Impostors([]).includes(set),false,"removed/destroyed turret is not collected");
 });
 
 test("instance container native copier, bone wrapper, reset and boundary quirk",()=>

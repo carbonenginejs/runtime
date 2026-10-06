@@ -1314,8 +1314,8 @@ export class EveSpaceObject2 extends EveEntity
 
     if (this.translationCurve)
     {
-      this.translationCurve.Update_Ticks(time, this.worldPosition);
-      this.translationCurve.GetValueDotAt_Ticks(time, this.worldVelocity);
+      this.translationCurve.Update__Ticks(time, this.worldPosition);
+      this.translationCurve.GetValueDotAt__Ticks(time, this.worldVelocity);
     }
     else
     {
@@ -1323,12 +1323,12 @@ export class EveSpaceObject2 extends EveEntity
       vec3.zero(this.worldVelocity);
     }
 
-    if (this.rotationCurve) this.rotationCurve.Update_Ticks(time, this.worldRotation);
+    if (this.rotationCurve) this.rotationCurve.Update__Ticks(time, this.worldRotation);
     else quat.identity(this.worldRotation);
     if (this.modelRotationCurve)
     {
       const { _modelRotation, _rotation } = EveSpaceObject2;
-      this.modelRotationCurve.Update_Ticks(time, _modelRotation);
+      this.modelRotationCurve.Update__Ticks(time, _modelRotation);
       // Carbon (row-vector): rotation = modelRotation * m_worldRotation - model first.
       quat.multiply(_rotation, this.worldRotation, _modelRotation);
       mat4.fromQuat(this.worldTransform, _rotation);
@@ -1350,7 +1350,7 @@ export class EveSpaceObject2 extends EveEntity
     if (this.modelTranslationCurve)
     {
       const modelTranslation = EveSpaceObject2._modelTranslation;
-      this.modelTranslationCurve.Update_Ticks(time, modelTranslation);
+      this.modelTranslationCurve.Update__Ticks(time, modelTranslation);
       vec3.transformMat4(modelTranslation, modelTranslation, this.worldTransform);
       this.worldTransform[12] = this.worldPosition[0] + modelTranslation[0];
       this.worldTransform[13] = this.worldPosition[1] + modelTranslation[1];
@@ -1730,7 +1730,7 @@ export class EveSpaceObject2 extends EveEntity
     {
       for (const curveSet of this.curveSets)
       {
-        curveSet.Update_RealTimeSimTime(time, time, updateContext.renderContext);
+        curveSet.Update__RealTimeSimTime(time, time, updateContext.renderContext);
       }
     }
 
@@ -1960,9 +1960,8 @@ export class EveSpaceObject2 extends EveEntity
    * @param {Tr2ImpostorManager|null} impostors The scene's impostor manager, if any.
    * @returns {ITr2Renderable[]} out
    */
-  @meta.renamed("GetRenderables")
   @meta.adapted
-  GetRenderables_Impostors(out = [], impostors)
+  GetRenderables__Impostors(out = [], impostors)
   {
     this._impostorMode = this._impostorMode && impostors !== null;
     if (!this.display || !this.isVisible) return out;
@@ -2167,7 +2166,7 @@ export class EveSpaceObject2 extends EveEntity
     // returns early when there is none. This port keeps collecting so a
     // GPU-free graph still produces batches; the LOD only supplies draw
     // arguments.
-    const lod = geometry?.GetMeshLod_ScreenSize(meshIndex, this._meshScreenSize) ?? null;
+    const lod = geometry?.GetMeshLod__ScreenSize(meshIndex, this._meshScreenSize) ?? null;
 
     const sorted = [];
     for (const area of areas)
@@ -2372,7 +2371,7 @@ export class EveSpaceObject2 extends EveEntity
     if (!geometry || !geometry.IsGood()) return false;
 
     const meshIndex = mesh.GetMeshIndex();
-    const lod = geometry.GetMeshLod_ScreenSize(meshIndex, this._meshScreenSize);
+    const lod = geometry.GetMeshLod__ScreenSize(meshIndex, this._meshScreenSize);
     if (!lod) return false;
 
     let committed = false;
@@ -2507,9 +2506,8 @@ export class EveSpaceObject2 extends EveEntity
    * Adapted: The optional length-one array replaces Carbon's float& sizeInShadow
    * out-parameter.
    */
-  @meta.renamed("IsCastingShadow")
   @meta.adapted
-  IsCastingShadow_ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
+  IsCastingShadow__ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
   {
     if (!this.display || this._boundingSphereWorldRadius <= 0)
     {
@@ -3769,7 +3767,7 @@ export class EveSpaceObject2 extends EveEntity
   {
     for (const curveSet of this.curveSets)
     {
-      if (curveSet.GetName() === name) curveSet.Update_RealTimeSimTime(time, time, renderContext);
+      if (curveSet.GetName() === name) curveSet.Update__RealTimeSimTime(time, time, renderContext);
     }
     for (const owner of this._CurveSetOwners()) owner.UpdateCurveSet(name, time, renderContext);
   }
@@ -4613,13 +4611,13 @@ export class EveSpaceObject2 extends EveEntity
     if (this.modelTranslationCurve)
     {
       const translation = vec3.zero(EveSpaceObject2._modelTranslation);
-      this.modelTranslationCurve.GetValueAt_Ticks(0, translation);
+      this.modelTranslationCurve.GetValueAt__Ticks(0, translation);
       vec3.add(position, position, translation);
     }
     if (this.modelRotationCurve)
     {
       const modelRotation = quat.identity(EveSpaceObject2._modelRotation);
-      this.modelRotationCurve.GetValueAt_Ticks(0, modelRotation);
+      this.modelRotationCurve.GetValueAt__Ticks(0, modelRotation);
       vec3.transformQuat(position, position, modelRotation);
       quat.multiply(rotation, modelRotation, rotation);
     }

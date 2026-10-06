@@ -341,7 +341,7 @@ test("EveMultiEffect owns dynamic graphs, preserves map precedence, and updates 
   duplicateParameter.SetParameterObject({ id: "parameter" });
   const curveSet = new TriCurveSet();
   curveSet.name = "Duplicate";
-  record(curveSet, "Update_RealTimeSimTime", "curve", args => args.slice(0, 2));
+  record(curveSet, "Update__RealTimeSimTime", "curve", args => args.slice(0, 2));
   const binding = new Tr2DynamicBinding();
   record(binding, "SetOwner", "binding-owner");
   record(binding, "Link", "link", () => []);

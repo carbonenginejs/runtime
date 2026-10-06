@@ -42,10 +42,10 @@ test("TriCurveSet converts selected tick clocks to double seconds before its dri
   const set = new TriCurveSet();
   const driverTimes = [];
   set.driver = { GetCurveSetTime(time) { driverTimes.push(time); return time; } };
-  set.Update_RealTimeSimTime(30_000_000, 12_500_000);
-  set.Update_RealTimeSimTime(30_000_000, 0);
+  set.Update__RealTimeSimTime(30_000_000, 12_500_000);
+  set.Update__RealTimeSimTime(30_000_000, 0);
   set.useRealTime = true;
-  set.Update_RealTimeSimTime(1_000_001, 90_000_000);
+  set.Update__RealTimeSimTime(1_000_001, 90_000_000);
   set.Update(1.25);
   set.Update(1.5);
   assert.deepEqual(driverTimes, [1.25, 0, 0.1000001, 1.25, 1.5]);

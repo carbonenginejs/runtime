@@ -150,7 +150,7 @@ function EmptyShadowResources()
 //     (cpp:1524), so every receiver's secondary-lighting coefficients are
 //     current for the frame being submitted. Skipped entirely when the scene
 //     carries no shLightingManager.
-// 10c. `scene.PopulatePerFramePSData_ShadowMap(data, shadowMap, renderContext)` then
+// 10c. `scene.PopulatePerFramePSData__ShadowMap(data, shadowMap, renderContext)` then
 //     `scene.PopulatePerFrameVSData(data, renderContext)` - Carbon's order at
 //     cpp:1424-1425, PS first, because the pixel fill is what resolves
 //     m_upscalingAmount that the vertex fill then reads. Runs after GatherLights
@@ -804,7 +804,7 @@ export class EveSpaceScene
 
     for (const curveSet of this.curveSets)
     {
-      curveSet.Update_RealTimeSimTime(realTime, simTime, context.renderContext);
+      curveSet.Update__RealTimeSimTime(realTime, simTime, context.renderContext);
     }
 
     for (const object of this.objects)
@@ -836,7 +836,7 @@ export class EveSpaceScene
     // (Carbon: m_sunData.DirWorld = -Normalize(sunDirection)).
     if (this.sunBall)
     {
-      this.sunBall.Update_Ticks(simTime, sunDirectionScratch);
+      this.sunBall.Update__Ticks(simTime, sunDirectionScratch);
       vec3.normalize(sunDirectionScratch, sunDirectionScratch);
       vec3.negate(this.sunDirection, sunDirectionScratch);
     }
@@ -982,8 +982,8 @@ export class EveSpaceScene
   {
     switch (Tr2RenderContext.eveSpacePickingFramework)
     {
-      case "objectId": return this.PerformPicking_ObjectId(listener, immediate, x, y, projection, view, viewport, pickTypes, renderContext);
-      case "pointer": return this.PerformPicking_Pointer(listener, immediate, x, y, projection, view, viewport, pickTypes, renderContext);
+      case "objectId": return this.PerformPicking__ObjectId(listener, immediate, x, y, projection, view, viewport, pickTypes, renderContext);
+      case "pointer": return this.PerformPicking__Pointer(listener, immediate, x, y, projection, view, viewport, pickTypes, renderContext);
       default: throw new TypeError("Unknown eveSpacePickingFramework; expected objectId or pointer.");
     }
   }
@@ -997,7 +997,7 @@ export class EveSpaceScene
    * Pick entry is an explicit unported obligation, not silently skipped.
    */
   @meta.adapted
-  PerformPicking_ObjectId(listener, immediate, x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT,
+  PerformPicking__ObjectId(listener, immediate, x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT,
     renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     if (this._destroyed) throw new Error("Cannot pick a destroyed EveSpaceScene.");
@@ -1058,7 +1058,7 @@ export class EveSpaceScene
               }
               batches.Finalize();
               esm.ApplyStandardStates(RenderingMode.RM_PICKING);
-              renderContext.RenderBatchesForPicking_ObjectId(batches, "Picking");
+              renderContext.RenderBatchesForPicking__ObjectId(batches, "Picking");
             }
             finally { buffer.EndRendering(renderContext); }
             batches.Clear();
@@ -1102,7 +1102,7 @@ export class EveSpaceScene
    * Instanced, skinned, interior and debug-renderer picking remain separate ports.
    */
   @meta.adapted
-  PerformPicking_Pointer(listener, immediate, x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT,
+  PerformPicking__Pointer(listener, immediate, x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT,
     renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     if (this._destroyed) throw new Error("Cannot pick a destroyed EveSpaceScene.");
@@ -1136,8 +1136,8 @@ export class EveSpaceScene
         {
           esm.SetInvertedDepthTest(true);
           esm.BeginManagedRendering();
-          esm.PushRenderTarget_TextureAL(this._pickBuffer);
-          esm.PushDepthStencilBuffer_TextureAL(this._pickDepthBuffer);
+          esm.PushRenderTarget__TextureAL(this._pickBuffer);
+          esm.PushDepthStencilBuffer__TextureAL(this._pickDepthBuffer);
           try
           {
             renderContext.Clear({ clearColor: true, clearDepth: true, color: [0, 0, 0, 0], depth: 0 });
@@ -1158,7 +1158,7 @@ export class EveSpaceScene
             }
             batches.Finalize();
             esm.ApplyStandardStates(RenderingMode.RM_PICKING);
-            renderContext.RenderBatchesForPicking_Pointer(batches, "Picking");
+            renderContext.RenderBatchesForPicking__Pointer(batches, "Picking");
           }
           finally
           {
@@ -1232,7 +1232,7 @@ export class EveSpaceScene
     const mainData = mapping.result === ALResult.S_OK ? mapping.data : null;
     const debugData = debug.result === ALResult.S_OK ? debug.data : null;
     const result = pending.framework === "objectId"
-      ? pending.DecodeResult_ObjectId(mainData, debugData, immediate, this.instancedMeshManager)
+      ? pending.DecodeResult__ObjectId(mainData, debugData, immediate, this.instancedMeshManager)
       : mainData ? pending.DecodeResult(mainData) : [null, 0, 0];
     listener.UpdateResult(pending.pickedX, pending.pickedY, ...result);
     listener.readbacks.shift();
@@ -1288,7 +1288,7 @@ export class EveSpaceScene
       {
         if (!object.IsPickable()) continue;
         object.UpdateVisibility(this.updateContext, IDENTITY);
-        object.GetRenderables_Impostors(visible, null);
+        object.GetRenderables__Impostors(visible, null);
       }
     }
     finally
@@ -1298,7 +1298,7 @@ export class EveSpaceScene
     if (this.cameraAttachmentParent)
     {
       this.cameraAttachmentParent.UpdateVisibility(this.updateContext, IDENTITY);
-      this.cameraAttachmentParent.GetRenderables_Impostors(visible, null);
+      this.cameraAttachmentParent.GetRenderables__Impostors(visible, null);
     }
     return visible;
   }
@@ -1415,8 +1415,8 @@ export class EveSpaceScene
       impostors = this.impostorManager;
     }
 
-    for (const object of this.objects) object?.GetRenderables_Impostors(out, this.impostorManager);
-    this.cameraAttachmentParent?.GetRenderables_Impostors(out, this.impostorManager);
+    for (const object of this.objects) object?.GetRenderables__Impostors(out, this.impostorManager);
+    this.cameraAttachmentParent?.GetRenderables__Impostors(out, this.impostorManager);
 
     if (impostors)
     {
@@ -2304,7 +2304,7 @@ export class EveSpaceScene
     const esm = renderContext.GetEffectStateManager();
     if (velocityMap)
     {
-      esm.PushRenderTarget_TextureAL(velocityMap, 1);
+      esm.PushRenderTarget__TextureAL(velocityMap, 1);
       try
       {
         renderContext.RenderPassHint(
@@ -2668,12 +2668,12 @@ export class EveSpaceScene
         this.sunDirection, this.currentSunColor, this.updateContext.GetOrigin(), renderContext.GetViewTransform(),
         renderContext.GetReversedDepthProjectionTransform());
     }
-    store.RegisterVariable_TextureAL("EveSceneFroxelFogMap", froxelFog ? froxelFog.Get() : new Tr2TextureAL());
+    store.RegisterVariable__TextureAL("EveSceneFroxelFogMap", froxelFog ? froxelFog.Get() : new Tr2TextureAL());
 
     this.RenderTransparentBatches(batches, renderContext);
     renderContext.SetReadOnlyDepth(false);
 
-    store.RegisterVariable_TextureAL("EveSceneFroxelFogMap", new Tr2TextureAL());
+    store.RegisterVariable__TextureAL("EveSceneFroxelFogMap", new Tr2TextureAL());
     EveSpaceScene.registerWithVariableStore(EmptyShadowResources(), gpuResourcePool);
 
     this.ClearBatches(batches);
@@ -2923,7 +2923,7 @@ export class EveSpaceScene
       this.RenderOpaqueBatches(this._secondaryBatches, context);
       const oldDepth = context.GetRenderContextAL().GetReadOnlyDepth();
       context.SetReadOnlyDepth(true);
-      esm.PushRenderTarget_TextureAL(null, 1);
+      esm.PushRenderTarget__TextureAL(null, 1);
       try
       {
         this.RenderTransparentBatches(this._secondaryBatches, context);
@@ -3001,7 +3001,7 @@ export class EveSpaceScene
 
     esm.BeginManagedRendering();
     esm.SetRenderTarget(1, customStencil);
-    esm.PushRenderTarget_Current();
+    esm.PushRenderTarget__Current();
 
     if (normalMap)
     {
@@ -3119,7 +3119,7 @@ export class EveSpaceScene
     const visible = [];
     try
     {
-      if (this.sunBall) this.sunBall.GetValueAt_Ticks(this.updateContext.GetTime(), sun);
+      if (this.sunBall) this.sunBall.GetValueAt__Ticks(this.updateContext.GetTime(), sun);
       for (const planet of this.planets)
       {
         const size = planet.GetEstimatedPixelDiameter();
@@ -3128,7 +3128,7 @@ export class EveSpaceScene
         if (curve !== null && curve === this.sunBall) continue;
         if (curve && this.sunBall)
         {
-          curve.GetValueAt_Ticks(this.updateContext.GetTime(), position);
+          curve.GetValueAt__Ticks(this.updateContext.GetTime(), position);
           if ((position[0] - sun[0]) * -sun[0] + (position[1] - sun[1]) * -sun[1] + (position[2] - sun[2]) * -sun[2] < 0) continue;
         }
         planet.GetWorldPosition(position);
@@ -3169,8 +3169,8 @@ export class EveSpaceScene
     if (!accumulator.GetBatchCount()) return false;
 
     const esm = renderContext.GetEffectStateManager();
-    esm.PushRenderTarget_TextureAL(distortionMap);
-    esm.PushDepthStencilBuffer_Current();
+    esm.PushRenderTarget__TextureAL(distortionMap);
+    esm.PushDepthStencilBuffer__Current();
     try
     {
       if (depthMap) esm.SetDepthStencilBuffer(depthMap);
@@ -3322,7 +3322,7 @@ export class EveSpaceScene
       {
         const radius = [ 0 ];
 
-        if (caster.IsCastingShadow_ShadowFrustum(cameraFrustums[frustumIndex], shadowFrustums[frustumIndex], renderReason, radius))
+        if (caster.IsCastingShadow__ShadowFrustum(cameraFrustums[frustumIndex], shadowFrustums[frustumIndex], renderReason, radius))
         {
           shadowCasterInfo.push({ radius: radius[0], caster, perObjectData: null });
         }
@@ -3390,7 +3390,7 @@ export class EveSpaceScene
       renderContext.SetRenderState(RenderState.RS_DEPTH_CLIP_ENABLE, 1);
     }
 
-    this.PopulatePerFramePSData_ShadowMap(this._perFramePS, shadowMap, renderContext);
+    this.PopulatePerFramePSData__ShadowMap(this._perFramePS, shadowMap, renderContext);
     this.ApplyPerFrameData(renderContext);
 
     const result = shadowMap.DrawToShadowMapResult(renderContext, gpuResourcePool, depthMap, cascadedShadowDepth.Get(), this.upscalingAmount, renderer);
@@ -3658,7 +3658,7 @@ export class EveSpaceScene
   @meta.implemented
   PopulatePerFramePSData(data, renderContext)
   {
-    return this.PopulatePerFramePSData_ShadowMap(data, this.cascadedShadowMap, renderContext);
+    return this.PopulatePerFramePSData__ShadowMap(data, this.cascadedShadowMap, renderContext);
   }
 
   /**
@@ -3681,9 +3681,8 @@ export class EveSpaceScene
    * @param {Object} renderContext - the frame's Tr2RenderContext
    * @returns {Object} data
    */
-  @meta.renamed("PopulatePerFramePSData")
   @meta.adapted
-  PopulatePerFramePSData_ShadowMap(data, shadowMap, renderContext)
+  PopulatePerFramePSData__ShadowMap(data, shadowMap, renderContext)
   {
     const out = data;
     const frame = this._EngineFrameState(renderContext);

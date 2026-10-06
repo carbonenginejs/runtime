@@ -78,7 +78,7 @@ export class EveOccluder
     {
       sprite.UpdateSyncronous(dummyContext);
       sprite.UpdateVisibility(updateContext, transform);
-      sprite.GetRenderables_Impostors(renderables, null);
+      sprite.GetRenderables__Impostors(renderables, null);
     }
 
     // Only the opaque areas matter for an occlusion query (cpp:173-179).

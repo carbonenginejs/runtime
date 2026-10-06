@@ -29,7 +29,7 @@ test("every LOD carries one deformation amount per morph target, Carbon's larges
 
   // Carbon's CalculateMorphDeformationAmount (cpp:2240-2256 helpers): sqrt of the largest squared distance from each
   // base position to its morph position, re-derived here from the decoded vertices.
-  const lod = geometry.GetMeshLod_LodIndex(meshIndex, 0);
+  const lod = geometry.GetMeshLod__LodIndex(meshIndex, 0);
   const base = (lod.vertex ?? mesh.vertex).position;
   for (const index of [ 0, Math.floor(targets.length / 2), targets.length - 1 ])
   {
@@ -47,7 +47,7 @@ test("every LOD carries one deformation amount per morph target, Carbon's larges
   const plain = meshes.findIndex(other => !other.morphTargets?.targets?.length);
   if (plain >= 0)
   {
-    assert.deepEqual(geometry.GetMeshLod_LodIndex(plain, 0).morphTargetDeformationAmounts, [], "a mesh without morphs gets empty tables, as Carbon's empty vectors");
+    assert.deepEqual(geometry.GetMeshLod__LodIndex(plain, 0).morphTargetDeformationAmounts, [], "a mesh without morphs gets empty tables, as Carbon's empty vectors");
   }
 });
 
@@ -65,7 +65,7 @@ test("Tr2MeshBase.GetBounds grows by the loaded morph amounts (Tr2MeshBase.cpp:2
   const bones = bindings.map(() => mat4.create());
   const indices = bindings.map((_binding, index) => index);
   const rest = mesh.GetBounds(bones, indices, bindings.length);
-  const amount = geometry.GetMeshLod_LodIndex(meshIndex, 0).morphTargetDeformationAmounts[0];
+  const amount = geometry.GetMeshLod__LodIndex(meshIndex, 0).morphTargetDeformationAmounts[0];
   const grown = mesh.GetBounds(bones, indices, bindings.length, [ { index: 0, weight: 2 } ], 1);
   for (let axis = 0; axis < 3; axis++)
   {
@@ -91,7 +91,7 @@ test("every LOD stores the target names less \"Shape\" and a cleared baked flag 
   const { geometry, meshIndex } = await FaceGeometry();
   assert.ok(meshIndex >= 0, "the face-only head has Shape-suffixed morph targets");
   const targets = geometry.GetPayload().meshes[meshIndex].morphTargets.targets;
-  const lod = geometry.GetMeshLod_LodIndex(meshIndex, 0);
+  const lod = geometry.GetMeshLod__LodIndex(meshIndex, 0);
   assert.equal(lod.morphTargetNames.length, targets.length);
   targets.forEach((target, index) =>
   {

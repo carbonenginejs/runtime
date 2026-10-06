@@ -111,7 +111,7 @@ export class EveShip2 extends EveMobile
     {
       if (this.translationCurve)
       {
-        this.translationCurve.GetValueDoubleDotAt_Ticks(time, this._acceleration);
+        this.translationCurve.GetValueDoubleDotAt__Ticks(time, this._acceleration);
       }
       else
       {
@@ -172,15 +172,14 @@ export class EveShip2 extends EveMobile
   }
 
   /** Carbon EveShip2::GetRenderables - base, then booster renderables. */
-  @meta.renamed("GetRenderables")
   @meta.implemented
-  GetRenderables_Impostors(out, _impostors)
+  GetRenderables__Impostors(out, _impostors)
   {
     if (!this.display)
     {
       return out;
     }
-    super.GetRenderables_Impostors(out, null);
+    super.GetRenderables__Impostors(out, null);
     if (this.DisplayBoosters())
     {
       this.boosters.GetRenderables(out);

@@ -397,13 +397,13 @@ test("EveSpriteSet builds the authored SOF sprite graph without renderer buffers
 
   const existing = new EveSpriteSetItem();
   assertEquals(set.Add(existing), existing);
-  const simple = set.Add_Scale(vec3.fromValues(1, 2, 3), 4, vec4.fromValues(1, 0, 0, 1), vec4.fromValues(0, 1, 0, 1));
+  const simple = set.Add__Scale(vec3.fromValues(1, 2, 3), 4, vec4.fromValues(1, 0, 0, 1), vec4.fromValues(0, 1, 0, 1));
   assertVec3(simple.position, [1, 2, 3]);
   assertEquals(simple.minScale, 4);
   assertEquals(simple.maxScale, 4);
   assertEquals(simple.blinkRate, 0);
 
-  const full = set.Add_Blink(vec3.fromValues(4, 5, 6), 0.25, 0.5, 2, 8, 0.75, vec4.fromValues(0.1, 0.2, 0.3, 0.4), vec4.fromValues(0.5, 0.6, 0.7, 0.8));
+  const full = set.Add__Blink(vec3.fromValues(4, 5, 6), 0.25, 0.5, 2, 8, 0.75, vec4.fromValues(0.1, 0.2, 0.3, 0.4), vec4.fromValues(0.5, 0.6, 0.7, 0.8));
   assertEquals(full.blinkRate, 0.25);
   assertEquals(full.blinkPhase, 0.5);
   assertEquals(full.minScale, 2);
@@ -882,10 +882,10 @@ test("EveRemotePositionCurve caches Carbon remote sweep values", () =>
   curve.sweepTime = 4;
   const out = vec3.create();
   // Carbon's Be::Time Update sweeps; the start latches at 10 s and the start curve samples in seconds.
-  curve.Update_Ticks(100_000_000, out);
+  curve.Update__Ticks(100_000_000, out);
   assertVec3(out, [11, 22, 33]);
   assertVec3(curve.value, [11, 22, 33]);
-  curve.Update_Ticks(130_000_000, out);
+  curve.Update__Ticks(130_000_000, out);
   assertVec3(out, [16, 30, 44]);
   assertVec3(curve.value, [16, 30, 44]);
   const cached = vec3.create();
@@ -899,7 +899,7 @@ test("EveRemotePositionCurve preserves Carbon no-start and derivative behavior",
   curve.value[1] = 8;
   curve.value[2] = 7;
   const out = vec3.fromValues(1, 1, 1);
-  curve.Update_Ticks(30_000_000, out);
+  curve.Update__Ticks(30_000_000, out);
   assertVec3(out, [0, 0, 0]);
   assertVec3(curve.value, [9, 8, 7]);
   curve.GetValueDotAt(3, out);
@@ -934,12 +934,12 @@ test("EveLODHelper follows Carbon update and merge thresholds", () =>
     GetLowDetailThreshold: () => 10,
     GetMediumDetailThreshold: () => 20
   };
-  assertEquals(EveLODHelper.MergeLOD_SphereUpdateContext(Tr2Lod.TR2_LOD_LOW, sphere, context), Tr2Lod.TR2_LOD_MEDIUM);
+  assertEquals(EveLODHelper.MergeLOD__SphereUpdateContext(Tr2Lod.TR2_LOD_LOW, sphere, context), Tr2Lod.TR2_LOD_MEDIUM);
   context.GetFrustum = () => ({
     IsSphereVisible: () => false,
     GetPixelSizeAccross: () => 100
   });
-  assertEquals(EveLODHelper.MergeLOD_SphereUpdateContext(Tr2Lod.TR2_LOD_HIGH, sphere, context), Tr2Lod.TR2_LOD_UNSPECIFIED);
+  assertEquals(EveLODHelper.MergeLOD__SphereUpdateContext(Tr2Lod.TR2_LOD_HIGH, sphere, context), Tr2Lod.TR2_LOD_UNSPECIFIED);
 });
 
 test("virtual camera float behaviours follow Carbon update semantics", () =>
@@ -1623,7 +1623,7 @@ function DistanceContext(currentTime, lastTime, shift = [0, 0, 0])
 test("EveDistanceField follows Carbon static and dynamic CPU coverage", () =>
 {
   const sample = position => ({
-    GetValueAt_Ticks(_time, out)
+    GetValueAt__Ticks(_time, out)
     {
       return vec3.copy(out, position);
     }

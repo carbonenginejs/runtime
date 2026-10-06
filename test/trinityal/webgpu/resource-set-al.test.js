@@ -88,8 +88,8 @@ test("Create resolves every non-uniform slot against the program, by the stage t
   bones.TrinityALImpl_GetObject().GetDeviceBuffer = () => ({ kind: "buffer", id: "bones" });
 
   description.SetSampler(ShaderType.PIXEL_SHADER, 2, sampler);
-  description.SetSrv_TextureAL(ShaderType.PIXEL_SHADER, 2, textureWith({ GetDeviceTextureView: (dimension, colorSpace, sampleType) => ({ kind: "view", dimension, colorSpace, sampleType }) }), 1);
-  description.SetSrv_BufferAL(ShaderType.VERTEX_SHADER, 5, bones);
+  description.SetSrv__TextureAL(ShaderType.PIXEL_SHADER, 2, textureWith({ GetDeviceTextureView: (dimension, colorSpace, sampleType) => ({ kind: "view", dimension, colorSpace, sampleType }) }), 1);
+  description.SetSrv__BufferAL(ShaderType.VERTEX_SHADER, 5, bones);
 
   const set = new CjsWebgpuResourceSetAL();
 
@@ -119,7 +119,7 @@ test("what the description leaves empty takes a dummy of the slot's kind, and a 
   const description = new Tr2ResourceSetDescriptionAL({ program });
 
   // An empty AL binding selects the backend fallback while a resource loads.
-  description.SetSrv_TextureAL(ShaderType.PIXEL_SHADER, 2, null);
+  description.SetSrv__TextureAL(ShaderType.PIXEL_SHADER, 2, null);
 
   const set = al.CreateResourceSet(description, program);
   const entries = set.m_resourceSet.implementation.GetEntries();
@@ -154,7 +154,7 @@ test("a filtered float32 resource fails before a set or bind group can be publis
   const description = new Tr2ResourceSetDescriptionAL({ program });
   const texture = al.CreateTexture(Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_R32_FLOAT), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.RENDER_TARGET });
   assert.equal(texture.IsValid(), true);
-  description.SetSrv_TextureAL(ShaderType.PIXEL_SHADER, 2, texture);
+  description.SetSrv__TextureAL(ShaderType.PIXEL_SHADER, 2, texture);
   const set = new CjsWebgpuResourceSetAL();
   assert.throws(() => set.Create(description, program, al), /requires active float32-filterable/);
   assert.equal(set.IsValid(), false);
@@ -176,11 +176,11 @@ test("context binding keeps the old implementation when its public handle is rec
   const bound = al.GetBoundState().resourceSet;
   const previous = bound.m_resourceSet.implementation;
   assert.notEqual(bound, set);
-  assert.equal(set.Create_Program(description, program, al), ALResult.S_OK);
+  assert.equal(set.Create__Program(description, program, al), ALResult.S_OK);
   assert.notEqual(set.m_resourceSet.implementation, previous);
   assert.equal(bound.m_resourceSet.implementation, previous);
   assert.equal(bound.IsValid(), true);
-  assert.equal(set.Create_Program(new Tr2ResourceSetDescriptionAL(), program, al), ALResult.E_INVALIDARG);
+  assert.equal(set.Create__Program(new Tr2ResourceSetDescriptionAL(), program, al), ALResult.E_INVALIDARG);
   assert.equal(set.IsValid(), false, "failed Create resets the public handle");
   assert.equal(bound.IsValid(), true, "the captured implementation survives failure too");
 });
@@ -192,7 +192,7 @@ test("WebGPU refuses unsupported heap views with the original status code", () =
   const description = new Tr2ResourceSetDescriptionAL({ program });
   const set = al.CreateResourceSet(description, program);
   assert.equal(description.SetSrvHeapView(ShaderType.PIXEL_SHADER, 2), true);
-  assert.equal(set.Create_Program(description, program, al), ALResult.E_FAIL);
+  assert.equal(set.Create__Program(description, program, al), ALResult.E_FAIL);
   assert.equal(set.IsValid(), false);
 });
 
@@ -218,8 +218,8 @@ test("a writable storage view bound twice takes a dummy the second time, and eve
     }
   });
 
-  description.SetUav_TextureAL(ShaderType.PIXEL_SHADER, 0, packed, 6);
-  description.SetUav_TextureAL(ShaderType.PIXEL_SHADER, 1, packed, 6);
+  description.SetUav__TextureAL(ShaderType.PIXEL_SHADER, 0, packed, 6);
+  description.SetUav__TextureAL(ShaderType.PIXEL_SHADER, 1, packed, 6);
   // Slot 2 left empty.
 
   const set = new CjsWebgpuResourceSetAL();
@@ -234,7 +234,7 @@ test("a writable storage view bound twice takes a dummy the second time, and eve
   assert.equal(created.textures, 2, "a dummy each");
 
   // Different mips of one texture do not alias.
-  description.SetUav_TextureAL(ShaderType.PIXEL_SHADER, 1, packed, 5);
+  description.SetUav__TextureAL(ShaderType.PIXEL_SHADER, 1, packed, 5);
   const distinct = new CjsWebgpuResourceSetAL();
 
   distinct.Create(description, program, al);

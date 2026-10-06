@@ -21,11 +21,11 @@ function makeFrustum({ visible = true, pixelSize = 100 } = {})
 {
   return new (class extends TriFrustum
   {
-    IsSphereVisible_CenterRadius()
+    IsSphereVisible__CenterRadius()
     {
       return visible;
     }
-    GetPixelSizeAccross_CenterRadius()
+    GetPixelSizeAccross__CenterRadius()
     {
       return pixelSize;
     }

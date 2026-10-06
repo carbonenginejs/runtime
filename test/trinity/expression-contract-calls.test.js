@@ -3,7 +3,7 @@ import test from "node:test";
 import { Tr2Controller, Tr2TimelineController, Tr2ControllerFloatVariable, Tr2StateMachine, Tr2CurveScalarExpression, Tr2CurveVector3Expression, Tr2CurveEulerRotationExpression, Tr2CurveConstant } from "../../npm/dist/trinity/index.js";
 import { ITr2CurveSetOwner } from "../../npm/dist/trinity/curves/ITr2CurveSetOwner.js";
 import { ITr2ControllerOwner } from "../../npm/dist/trinity/controllers/ITr2ControllerOwner.js";
-import { DEFAULT_FUNCTIONS, ResolveIdentifier, GetRandomConstant, GetInputValue, GetInputValue_Time, GetCurveSetTime, GetExternalControllerVariable, GetServerTimeValue, CallContextFunction } from "../../npm/dist/trinity/controllers/expression/expressionRuntime.js";
+import { DEFAULT_FUNCTIONS, ResolveIdentifier, GetRandomConstant, GetInputValue, GetInputValue__Time, GetCurveSetTime, GetExternalControllerVariable, GetServerTimeValue, CallContextFunction } from "../../npm/dist/trinity/controllers/expression/expressionRuntime.js";
 
 for (const Type of [Tr2Controller, Tr2TimelineController])
 {
@@ -34,7 +34,7 @@ test("StateTime requires native GetStateRunTime and retains standalone action ti
 
 for (const Type of [Tr2CurveScalarExpression, Tr2CurveVector3Expression, Tr2CurveEulerRotationExpression])
 {
-  for (const [method, read] of [["GetRandomConstant", GetRandomConstant], ["GetInputValue", GetInputValue], ["GetInputValue_Time", GetInputValue_Time]])
+  for (const [method, read] of [["GetRandomConstant", GetRandomConstant], ["GetInputValue", GetInputValue], ["GetInputValue__Time", GetInputValue__Time]])
   {
     test(`${Type.name} expressions require ${method}`, () =>
     {
@@ -50,10 +50,10 @@ test("expression helpers preserve required getter results without numeric fallba
   const curve = new Tr2CurveScalarExpression();
   curve.GetRandomConstant = () => undefined;
   curve.GetInputValue = () => undefined;
-  curve.GetInputValue_Time = () => undefined;
+  curve.GetInputValue__Time = () => undefined;
   assert.equal(GetRandomConstant({ curve }), undefined);
   assert.equal(GetInputValue({ curve }, 0), undefined);
-  assert.equal(GetInputValue_Time({ curve }, 0, 2), undefined);
+  assert.equal(GetInputValue__Time({ curve }, 0, 2), undefined);
 });
 
 test("explicit evaluator inputs require scalar-function sampling and preserve bounds", () =>
@@ -62,7 +62,7 @@ test("explicit evaluator inputs require scalar-function sampling and preserve bo
   input.GetValueAt = time => time + 2;
   const context = { inputs: [input], time: 4 };
   assert.equal(GetInputValue(context, 0), 6);
-  assert.equal(GetInputValue_Time(context, 0, 8), 10);
+  assert.equal(GetInputValue__Time(context, 0, 8), 10);
   assert.equal(GetInputValue(context, 5), 0);
   input.GetValueAt = undefined;
   input.value[0] = 17;

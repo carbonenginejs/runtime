@@ -31,20 +31,19 @@ export class Tr2ResourceSetAL
   /**
    * Carbon's bare Create is not supported: the program and pipeline overloads
    * (Tr2ResourceSetAL.h:134-135) differ only in our own classes. Call
-   * Create_Program or Create_Pipeline.
+   * Create__Program or Create__Pipeline.
    */
   Create()
   {
-    throw new Error("Tr2ResourceSetAL.Create is not supported; call Create_Program or Create_Pipeline.");
+    throw new Error("Tr2ResourceSetAL.Create is not supported; call Create__Program or Create__Pipeline.");
   }
 
   /**
    * Carbon's Create( description, pipeline, renderContext ) (h:135): raytracing
    * resource sets, which neither JS backend supports.
    */
-  @meta.renamed("Create")
   @meta.adapted
-  Create_Pipeline(_description, _pipeline, _renderContext)
+  Create__Pipeline(_description, _pipeline, _renderContext)
   {
     this.Destroy();
     return ALResult.E_FAIL;
@@ -58,9 +57,8 @@ export class Tr2ResourceSetAL
    * Adapted: Context allocation replaces the compile-time platform include. Shared ownership
    * is explicitly released.
    */
-  @meta.renamed("Create")
   @meta.adapted
-  Create_Program(description, program, renderContext)
+  Create__Program(description, program, renderContext)
   {
     this.Destroy();
     const { result, implementation } = renderContext.CreateResourceSet(description, program, true);

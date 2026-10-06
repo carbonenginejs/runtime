@@ -84,7 +84,7 @@ test("EveSpaceScene script helpers preserve Carbon's direct scene contracts", ()
   const scene = new EveSpaceScene();
   const clocks = [];
   scene.curveSets.push({
-    Update_RealTimeSimTime(realTime, simTime)
+    Update__RealTimeSimTime(realTime, simTime)
     {
       clocks.push([realTime, simTime]);
     }
@@ -162,7 +162,7 @@ test("EveSpaceScene.Update drives collections in Carbon's order and signatures",
     }
   });
   scene.curveSets.push({
-    Update_RealTimeSimTime(realTime, simTime)
+    Update__RealTimeSimTime(realTime, simTime)
     {
       calls.push(["curveSet", realTime, simTime]);
     }
@@ -201,7 +201,7 @@ test("EveSpaceScene.Update tracks the origin and the sun direction", () =>
 
   scene.ballpark = new TestBallpark();
   scene.sunBall = {
-    Update_Ticks(_time, out)
+    Update__Ticks(_time, out)
     {
       out[0] = 0;
       out[1] = 0;
@@ -267,7 +267,7 @@ test("object-level curve sets and overlays receive the context time as both cloc
 
   const calls = [];
   object.curveSets.push({
-    Update_RealTimeSimTime(realTime, simTime)
+    Update__RealTimeSimTime(realTime, simTime)
     {
       calls.push(["curveSet", realTime, simTime]);
     }

@@ -820,9 +820,8 @@ export class EveBoosterSet2 extends EveEntity
    * @param {number} index Renderable instance index.
    * @returns {number}
    */
-  @meta.renamed("GetBoosterIntensity")
   @meta.implemented
-  GetBoosterIntensity_Index(index)
+  GetBoosterIntensity__Index(index)
   {
     const renderable = this.instances[index >>> 0];
     return renderable ? renderable.GetIntensity() : 0;

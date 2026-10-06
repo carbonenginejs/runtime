@@ -266,8 +266,8 @@ test("TriFrustum.IsSphereVisible agrees with the sampling oracle for spheres str
   assert.equal(frustum.IsSphereVisible(beyondFarSphere), true, "back plane ignored by default (Carbon parity)");
   assert.equal(frustum.IsSphereVisible(beyondFarSphere, true), false, "cullBackPlane=true rejects beyond-far spheres");
   // (center, radius, cullBackPlane) overload agrees with the packed overload.
-  assert.equal(frustum.IsSphereVisible_CenterRadius(beyondFar, radius, true), false);
-  assert.equal(frustum.IsSphereVisible_CenterRadius(beyondFar, radius), true);
+  assert.equal(frustum.IsSphereVisible__CenterRadius(beyondFar, radius, true), false);
+  assert.equal(frustum.IsSphereVisible__CenterRadius(beyondFar, radius), true);
 });
 
 // --- TriFrustum: boxes straddling every plane -------------------------------
@@ -307,7 +307,7 @@ test("TriFrustum.IsBoxVisible agrees with corner sampling for boxes straddling e
     // default planes.
     const min = [onPlane[0] - half, onPlane[1] - half, onPlane[2] - half];
     const max = [onPlane[0] + half, onPlane[1] + half, onPlane[2] + half];
-    assert.equal(frustum.IsBoxVisible_BoundsMinMax(min, max), true, `plane ${planeIndex}: straddling box visible`);
+    assert.equal(frustum.IsBoxVisible__BoundsMinMax(min, max), true, `plane ${planeIndex}: straddling box visible`);
     assert.equal(frustum.IsBoxVisible(Float32Array.of(...min, ...max)), true, `plane ${planeIndex}: AABB overload`);
     if (planeIndex !== TriFrustum.PLANE_BACK)
     {
@@ -320,7 +320,7 @@ test("TriFrustum.IsBoxVisible agrees with corner sampling for boxes straddling e
     const reach = half * (Math.abs(n[0]) + Math.abs(n[1]) + Math.abs(n[2])) + delta;
     const outMin = [min[0] - n[0] * reach, min[1] - n[1] * reach, min[2] - n[2] * reach];
     const outMax = [max[0] - n[0] * reach, max[1] - n[1] * reach, max[2] - n[2] * reach];
-    assert.equal(frustum.IsBoxVisible_BoundsMinMax(outMin, outMax), false, `plane ${planeIndex}: fully-outside box invisible`);
+    assert.equal(frustum.IsBoxVisible__BoundsMinMax(outMin, outMax), false, `plane ${planeIndex}: fully-outside box invisible`);
     for (const corner of cornersOf(outMin, outMax))
     {
       assert.equal(OraclePointVisible(view, projection, corner, true), false,
@@ -363,7 +363,7 @@ test("TriFrustum pixel sizes: exact projection ground truth, distance ordering, 
   assert.ok(Math.abs(nearPixels / farPixels - 2) < 1e-3, "half the distance, twice the pixels");
 
   // (center, radius) overload agrees with the packed vec4 overload.
-  assert.equal(frustum.GetPixelSizeAccross_CenterRadius(near100, radius), nearPixels);
+  assert.equal(frustum.GetPixelSizeAccross__CenterRadius(near100, radius), nearPixels);
 
   // Doubling the viewport width exactly doubles the pixel coverage.
   const wide = MakeFixture({ width: 2560 });
@@ -372,7 +372,7 @@ test("TriFrustum pixel sizes: exact projection ground truth, distance ordering, 
   // Estimate: within 1% of exact at these distances, same overload dispatch.
   const est = frustum.GetPixelSizeAccrossEst(sphereFar);
   assert.ok(Math.abs(est - farPixels) < farPixels * 0.01, `estimate ${est} tracks exact ${farPixels}`);
-  assert.equal(frustum.GetPixelSizeAccrossEst_CenterRadius(far200, radius), est);
+  assert.equal(frustum.GetPixelSizeAccrossEst__CenterRadius(far200, radius), est);
 
   // Camera inside the sphere: float max (Carbon std::numeric_limits<float>::max()).
   const engulfing = vec4.fromValues(EYE[0], EYE[1], EYE[2], 50);
@@ -385,12 +385,12 @@ test("TriFrustum pixel sizes: exact projection ground truth, distance ordering, 
 
   // Sphere duck { center, radius } takes Carbon's Est delegation (cpp:295-298);
   // AABB duck goes through its bounding sphere.
-  assert.equal(frustum.GetPixelSizeAccross_Sphere({ center: far200, radius }), est);
+  assert.equal(frustum.GetPixelSizeAccross__Sphere({ center: far200, radius }), est);
   const boxMin = [far200[0] - 6, far200[1] - 6, far200[2] - 6];
   const boxMax = [far200[0] + 6, far200[1] + 6, far200[2] + 6];
   const boxRadius = Math.hypot(12, 12, 12) / 2;
-  const boxPixels = frustum.GetPixelSizeAccross_AxisAlignedBox(Float32Array.of(...boxMin, ...boxMax));
-  const boxExpected = frustum.GetPixelSizeAccrossEst_CenterRadius(far200, boxRadius);
+  const boxPixels = frustum.GetPixelSizeAccross__AxisAlignedBox(Float32Array.of(...boxMin, ...boxMax));
+  const boxExpected = frustum.GetPixelSizeAccrossEst__CenterRadius(far200, boxRadius);
   assert.ok(Math.abs(boxPixels - boxExpected) < boxExpected * 1e-6);
 });
 
@@ -518,7 +518,7 @@ test("TriFrustumOrtho sphere tests agree with a view-space AABB sampling oracle"
 
   // Deep interior sphere.
   const inside = SunViewPoint(view, 5, 2, 100);
-  assert.equal(ortho.IsSphereVisibleAndInsideNearPlane_CenterRadius(inside, 3), true);
+  assert.equal(ortho.IsSphereVisibleAndInsideNearPlane__CenterRadius(inside, 3), true);
   assert.equal(ortho.IsSphereVisibleIgnoreFarPlane(inside, 3), true);
   assert.equal(ortho.SphereTestIgnoreFarPlane({ center: inside, radius: 3 }), TriFrustumTestResult.Inside);
   assert.equal(sampleVisible(inside, 3, true), true);
@@ -526,7 +526,7 @@ test("TriFrustumOrtho sphere tests agree with a view-space AABB sampling oracle"
   // Beyond the far bound: rejected by the near-plane variant, accepted when
   // the far plane is ignored (the shadow-caster behind-the-view case).
   const beyondFar = SunViewPoint(view, 5, 2, 350);
-  assert.equal(ortho.IsSphereVisibleAndInsideNearPlane_CenterRadius(beyondFar, 10), false);
+  assert.equal(ortho.IsSphereVisibleAndInsideNearPlane__CenterRadius(beyondFar, 10), false);
   assert.equal(ortho.IsSphereVisibleIgnoreFarPlane(beyondFar, 10), true);
   assert.equal(ortho.SphereTestIgnoreFarPlane({ center: beyondFar, radius: 10 }), TriFrustumTestResult.Inside);
   assert.equal(sampleVisible(beyondFar, 10, false), false);
@@ -534,21 +534,21 @@ test("TriFrustumOrtho sphere tests agree with a view-space AABB sampling oracle"
 
   // Before the near bound (z < min.z) by more than the radius: outside both.
   const beforeNear = SunViewPoint(view, 5, 2, 2);
-  assert.equal(ortho.IsSphereVisibleAndInsideNearPlane_CenterRadius(beforeNear, 1), false);
+  assert.equal(ortho.IsSphereVisibleAndInsideNearPlane__CenterRadius(beforeNear, 1), false);
   assert.equal(ortho.IsSphereVisibleIgnoreFarPlane(beforeNear, 1), false);
   assert.equal(ortho.SphereTestIgnoreFarPlane({ center: beforeNear, radius: 1 }), TriFrustumTestResult.Outside);
   assert.equal(sampleVisible(beforeNear, 0.9, true), false);
 
   // Straddling the near bound: visible, classified Intersect.
   const straddleNear = SunViewPoint(view, 5, 2, 4.5);
-  assert.equal(ortho.IsSphereVisibleAndInsideNearPlane_CenterRadius(straddleNear, 1), true);
+  assert.equal(ortho.IsSphereVisibleAndInsideNearPlane__CenterRadius(straddleNear, 1), true);
   assert.equal(ortho.IsSphereVisibleIgnoreFarPlane(straddleNear, 1), true);
   assert.equal(ortho.SphereTestIgnoreFarPlane({ center: straddleNear, radius: 1 }), TriFrustumTestResult.Intersect);
   assert.equal(sampleVisible(straddleNear, 1, true), true);
 
   // Outside +x beyond the radius (corner distance in x alone).
   const outsideX = SunViewPoint(view, boundsMax[0] + 5, 2, 100);
-  assert.equal(ortho.IsSphereVisibleAndInsideNearPlane_CenterRadius(outsideX, 3), false);
+  assert.equal(ortho.IsSphereVisibleAndInsideNearPlane__CenterRadius(outsideX, 3), false);
   assert.equal(ortho.IsSphereVisibleIgnoreFarPlane(outsideX, 3), false);
   assert.equal(sampleVisible(outsideX, 3, true), false);
   // ...but a radius covering the gap straddles back in.
@@ -727,19 +727,19 @@ test("EveLODHelper.MergeLOD works end-to-end through a real context and derived 
   // Thresholds bracketed around the measured size drive the LOD choice.
   context.SetMediumDetailThreshold(pixels * 0.9);
   context.SetLowDetailThreshold(pixels * 0.5);
-  assert.equal(EveLODHelper.MergeLOD_SphereUpdateContext(Tr2Lod.TR2_LOD_UNSPECIFIED, sphere, context), Tr2Lod.TR2_LOD_HIGH);
+  assert.equal(EveLODHelper.MergeLOD__SphereUpdateContext(Tr2Lod.TR2_LOD_UNSPECIFIED, sphere, context), Tr2Lod.TR2_LOD_HIGH);
 
   context.SetMediumDetailThreshold(pixels * 1.1);
-  assert.equal(EveLODHelper.MergeLOD_SphereUpdateContext(Tr2Lod.TR2_LOD_UNSPECIFIED, sphere, context), Tr2Lod.TR2_LOD_MEDIUM);
+  assert.equal(EveLODHelper.MergeLOD__SphereUpdateContext(Tr2Lod.TR2_LOD_UNSPECIFIED, sphere, context), Tr2Lod.TR2_LOD_MEDIUM);
 
   context.SetLowDetailThreshold(pixels * 1.1);
-  assert.equal(EveLODHelper.MergeLOD_SphereUpdateContext(Tr2Lod.TR2_LOD_UNSPECIFIED, sphere, context), Tr2Lod.TR2_LOD_LOW);
+  assert.equal(EveLODHelper.MergeLOD__SphereUpdateContext(Tr2Lod.TR2_LOD_UNSPECIFIED, sphere, context), Tr2Lod.TR2_LOD_LOW);
 
   // Merge keeps the higher of the two LODs.
-  assert.equal(EveLODHelper.MergeLOD_SphereUpdateContext(Tr2Lod.TR2_LOD_ULTRA, sphere, context), Tr2Lod.TR2_LOD_ULTRA);
+  assert.equal(EveLODHelper.MergeLOD__SphereUpdateContext(Tr2Lod.TR2_LOD_ULTRA, sphere, context), Tr2Lod.TR2_LOD_ULTRA);
 
   // Outside the frustum: unspecified.
   const behind = vec3.scaleAndAdd(vec3.create(), EYE, forward, -50);
   const behindSphere = vec4.fromValues(behind[0], behind[1], behind[2], 1);
-  assert.equal(EveLODHelper.MergeLOD_SphereUpdateContext(Tr2Lod.TR2_LOD_HIGH, behindSphere, context), Tr2Lod.TR2_LOD_UNSPECIFIED);
+  assert.equal(EveLODHelper.MergeLOD__SphereUpdateContext(Tr2Lod.TR2_LOD_HIGH, behindSphere, context), Tr2Lod.TR2_LOD_UNSPECIFIED);
 });

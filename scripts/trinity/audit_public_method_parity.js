@@ -235,6 +235,16 @@ async function ReadJavaScriptClasses(directory, includeDropped = false)
         if (!name) continue;
         const metadata = { hasCarbon: HasCarbonDecorator(member, "method"), isStatic: member.static === true };
         methods.set(name, metadata);
+        // An overload variant `Name__Variant` credits Carbon's `Name`: C++
+        // reserves `__`, so everything before it is the donor's name. Like a
+        // renamed twin, it must not erase the exposure of the exact-name method.
+        // A private `_Name__Variant` credits nothing here, as `_Name` does not.
+        const variantOf = name.startsWith("_") ? null : OverloadDonor(name);
+        if (variantOf)
+        {
+          const existing = methods.get(variantOf);
+          methods.set(variantOf, existing ? { ...existing, hasCarbon: existing.hasCarbon || metadata.hasCarbon } : metadata);
+        }
         // A browser wrapper can keep its Blue name while declaring its C++
         // original, just as the native-method audit already resolves aliases.
         for (const decorator of member.decorators ?? [])
@@ -449,6 +459,22 @@ function GetMemberName(member)
   if (member.key?.type === "Identifier") return member.key.name;
   if (member.key?.type === "StringLiteral" || member.key?.type === "NumericLiteral") return String(member.key.value);
   return null;
+}
+
+/**
+ * The Carbon name an overload variant `Name__Variant` (or private
+ * `_Name__Variant`) splits, or null. C++ reserves `__`, so a double underscore
+ * can never be part of a Carbon name.
+ *
+ * @param {string} name
+ * @returns {string|null}
+ */
+function OverloadDonor(name)
+{
+  if (name.startsWith("__")) return null;
+  const split = name.indexOf("__", 1);
+  if (split < 0) return null;
+  return name.slice(name.startsWith("_") ? 1 : 0, split);
 }
 
 /** @param {object} member @param {string} name */

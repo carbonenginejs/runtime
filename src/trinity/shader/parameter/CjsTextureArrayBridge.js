@@ -107,6 +107,6 @@ export class CjsTextureArrayBridge
     const resource = this.GetResource();
     const texture = resource ? RealizeTexture(resource, renderContext) : null;
 
-    return resourceDesc.SetSrv_TextureAL(stage, registerIndex, texture, colorSpace);
+    return resourceDesc.SetSrv__TextureAL(stage, registerIndex, texture, colorSpace);
   }
 }

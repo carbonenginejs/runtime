@@ -156,9 +156,9 @@ export class EveTriggerVolume
    */
   _UpdateWorldTransform(time)
   {
-    if (this.translationCurve) this.translationCurve.Update_Ticks(time, CURVE_TRANSLATION_SCRATCH);
+    if (this.translationCurve) this.translationCurve.Update__Ticks(time, CURVE_TRANSLATION_SCRATCH);
     else vec3.copy(CURVE_TRANSLATION_SCRATCH, EveTriggerVolume._zeroTranslation);
-    if (this.rotationCurve) this.rotationCurve.Update_Ticks(time, CURVE_ROTATION_SCRATCH);
+    if (this.rotationCurve) this.rotationCurve.Update__Ticks(time, CURVE_ROTATION_SCRATCH);
     else quat.copy(CURVE_ROTATION_SCRATCH, EveTriggerVolume._identityRotation);
     mat4.fromRotationTranslation(
       this._worldTransform, CURVE_ROTATION_SCRATCH, CURVE_TRANSLATION_SCRATCH);
@@ -238,7 +238,7 @@ export class EveTriggerVolume
     let inside = false;
     if (this.trackedPositionCurve && this.volumes.length)
     {
-      this.trackedPositionCurve.Update_Ticks(time, TRACKED_POSITION_SCRATCH);
+      this.trackedPositionCurve.Update__Ticks(time, TRACKED_POSITION_SCRATCH);
 
       if (!mat4.invert(INVERSE_WORLD_SCRATCH, this._worldTransform))
       {
@@ -295,9 +295,8 @@ export class EveTriggerVolume
   }
 
   /** The trigger volume renders nothing (cpp:168-170). */
-  @meta.renamed("GetRenderables")
   @meta.implemented
-  GetRenderables_Impostors(_renderables, _impostors)
+  GetRenderables__Impostors(_renderables, _impostors)
   {
   }
 

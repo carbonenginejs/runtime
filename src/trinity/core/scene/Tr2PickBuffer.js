@@ -74,8 +74,8 @@ export class Tr2PickBuffer
   {
     if (!this._pickTarget.IsValid() || !this._depthBuffer.IsValid()) return false;
     const esm = context.GetEffectStateManager();
-    esm.PushRenderTarget_TextureAL(this._pickTarget);
-    esm.PushDepthStencilBuffer_TextureAL(this._depthBuffer);
+    esm.PushRenderTarget__TextureAL(this._pickTarget);
+    esm.PushDepthStencilBuffer__TextureAL(this._depthBuffer);
     if (Failed(context.Clear({ clearColor: true, clearDepth: true, color: this._clearColor, depth: initialDepth })))
     {
       this.EndRendering(context);

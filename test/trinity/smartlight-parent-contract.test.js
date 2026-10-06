@@ -14,7 +14,7 @@ test("smart-light placement consumes the parent's output matrix, not its return 
   params.spaceObjectParent.GetLocalToWorldTransform = () => { throw new Error("child parent takes precedence"); };
   let received;
   quad.UpdateTransform = value => { received = Array.from(value); };
-  quad.UpdateAsyncronous_Distribution(new EveUpdateContext(), params, null);
+  quad.UpdateAsyncronous__Distribution(new EveUpdateContext(), params, null);
   assert.equal(received[12], 12);
   assert.equal(params.localToWorldTransform[12], 5, "native local matrix copy must not mutate input");
 });
@@ -26,7 +26,7 @@ test("smart-light placement keeps the supplied matrix when no parent exists", ()
   params.localToWorldTransform[12] = 9;
   let received;
   quad.UpdateTransform = value => { received = Array.from(value); };
-  quad.UpdateAsyncronous_Distribution(new EveUpdateContext(), params, null);
+  quad.UpdateAsyncronous__Distribution(new EveUpdateContext(), params, null);
   assert.equal(received[12], 9);
-  assert.throws(() => quad.UpdateAsyncronous_Distribution(new EveUpdateContext(), null, null), TypeError);
+  assert.throws(() => quad.UpdateAsyncronous__Distribution(new EveUpdateContext(), null, null), TypeError);
 });

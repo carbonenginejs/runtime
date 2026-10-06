@@ -56,7 +56,7 @@ test("EveCamera update reproduces Carbon orbit, view-basis slots, and listeners"
   const camera = new EveCamera();
   const parentPosition = vec3.fromValues(3, 4, 5);
   camera.parent = {
-    GetValueAt_Ticks(_time, out)
+    GetValueAt__Ticks(_time, out)
     {
       return vec3.copy(out, parentPosition);
     }

@@ -45,12 +45,12 @@ test("smart-light edit mode registers changed effects with the shared quad rende
   quad.effect = effect;
   const update = new EveUpdateContext();
   const params = new EveChildUpdateParams();
-  quad.UpdateSyncronous_Distribution(update, params, null);
+  quad.UpdateSyncronous__Distribution(update, params, null);
   assert.equal(renderer.GetEffectRecords().get(0x1234).effect, effect);
   effect.GetHashValue = () => 0x5678;
-  quad.UpdateSyncronous_Distribution(update, params, null);
+  quad.UpdateSyncronous__Distribution(update, params, null);
   assert.ok(renderer.GetEffectRecords().has(0x5678));
   quad.effect = null;
-  quad.UpdateSyncronous_Distribution(update, params, null);
+  quad.UpdateSyncronous__Distribution(update, params, null);
   assert.equal(quad._effectKey, 0);
 });

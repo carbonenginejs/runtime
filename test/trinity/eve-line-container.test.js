@@ -52,14 +52,14 @@ test("EveLineContainer rebuilds one real line set in exact connector order", () 
 
   const point = new eve.EveConnector();
   point.sourceObject = {
-    GetValueAt_Ticks(time, out)
+    GetValueAt__Ticks(time, out)
     {
       calls.push([ "point-source", time ]);
       vec3.set(out, 0, 0, 0);
     }
   };
   point.destObject = {
-    GetValueAt_Ticks(time, out)
+    GetValueAt__Ticks(time, out)
     {
       calls.push([ "point-destination", time ]);
       vec3.set(out, 2, 0, 0);
@@ -107,7 +107,7 @@ test("EveLineContainer display and query gates delegate without duck probes", ()
       this.calls.push([ "visibility", context, parent ]);
     }
 
-    GetRenderables_Impostors(renderables, impostors)
+    GetRenderables__Impostors(renderables, impostors)
     {
       this.calls.push([ "renderables", renderables, impostors ]);
     }
@@ -152,12 +152,12 @@ test("EveLineContainer display and query gates delegate without duck probes", ()
 
   container.display = false;
   container.UpdateVisibility(context, parent);
-  container.GetRenderables_Impostors(renderables, impostors);
+  container.GetRenderables__Impostors(renderables, impostors);
   assert.deepEqual(lineSet.calls, []);
 
   container.display = true;
   container.UpdateVisibility(context, parent);
-  container.GetRenderables_Impostors(renderables, impostors);
+  container.GetRenderables__Impostors(renderables, impostors);
   const sphere = vec4.create();
   const position = vec3.create();
   const minBounds = vec3.create();

@@ -328,7 +328,7 @@ export class Tr2RenderContextALStub
       return { result, implementation };
     }
     const resourceSet = new Tr2ResourceSetAL();
-    if (Failed(resourceSet.Create_Program(description, program, this))) return null;
+    if (Failed(resourceSet.Create__Program(description, program, this))) return null;
     return resourceSet;
   }
 
@@ -806,7 +806,7 @@ export class Tr2RenderContextALStub
    * @param {number} _stride Bytes per index.
    * @returns {number} `S_OK`.
    */
-  SetIndices_Stride(_buffer, _stride)
+  SetIndices__Stride(_buffer, _stride)
   {
     return ALResult.S_OK;
   }

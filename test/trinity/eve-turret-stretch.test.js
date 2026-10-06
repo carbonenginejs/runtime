@@ -136,7 +136,7 @@ test("EveLocalPositionCurve implements Carbon offset and ellipsoid behavior", ()
   curve.parentRotationCurve = constantCurve(0, 0, 0, 1);
   vec3.set(curve.positionOffset, 1, 2, 3);
   curve.SetBehavior(EveLocalPositionCurve.LocalPositionBehavior.POS_OFFSET_POSITION);
-  assert.deepEqual(Array.from(curve.GetValueAt_Ticks(20_000_000, vec3.create())), [11, 22, 33]);
+  assert.deepEqual(Array.from(curve.GetValueAt__Ticks(20_000_000, vec3.create())), [11, 22, 33]);
   // The double GetValueAt only copies m_value (Carbon cpp:316-322), which behaviours other than POS_NONE never store.
   assert.deepEqual(Array.from(curve.GetValueAt(2, vec3.create())), [0, 0, 0]);
 
@@ -144,7 +144,7 @@ test("EveLocalPositionCurve implements Carbon offset and ellipsoid behavior", ()
   vec3.set(curve.boundingSize, 20, 30, 40);
   curve.offset = 5;
   curve.SetBehavior(EveLocalPositionCurve.LocalPositionBehavior.POS_NEAREST_BOUNDING_POINT);
-  assert.deepEqual(Array.from(curve.GetValueAt_Ticks(20_000_000, vec3.create())), [35, 20, 30]);
+  assert.deepEqual(Array.from(curve.GetValueAt__Ticks(20_000_000, vec3.create())), [35, 20, 30]);
 });
 
 test("EveFiringEffectElementContainer owns active element lifecycle", () =>

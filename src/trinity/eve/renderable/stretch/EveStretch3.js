@@ -533,8 +533,8 @@ export class EveStretch3 extends IEveFiringEffectElement
     const time = context.GetTime();
     for (const binding of this.dynamicBindings) binding.Update(time);
     for (const controller of this.controllers) controller.Update(0.5);
-    if (this.source) this.source.Update_Ticks(time, this.sourcePosition);
-    if (this.dest) this.dest.Update_Ticks(time, this.destinationPosition);
+    if (this.source) this.source.Update__Ticks(time, this.sourcePosition);
+    if (this.dest) this.dest.Update__Ticks(time, this.destinationPosition);
     this.length.value = vec3.distance(this.sourcePosition, this.destinationPosition);
 
     const params = this._makeParams();
@@ -582,7 +582,7 @@ export class EveStretch3 extends IEveFiringEffectElement
     const time = context.GetTime();
     if (this.startTime === 0) this.startTime = time;
     const relative = time - this.startTime;
-    for (const curveSet of this.curveSets) curveSet.Update_RealTimeSimTime(relative, relative, context.renderContext);
+    for (const curveSet of this.curveSets) curveSet.Update__RealTimeSimTime(relative, relative, context.renderContext);
 
     const params = this._makeParams();
     vec3.subtract(EveStretch3._moveDirection, this.sourcePosition, this.destinationPosition);
@@ -720,7 +720,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   @meta.implemented
   GetRenderables(out)
   {
-    return this.GetRenderables_Impostors(out, null);
+    return this.GetRenderables__Impostors(out, null);
   }
 
   /**
@@ -728,9 +728,8 @@ export class EveStretch3 extends IEveFiringEffectElement
    * displayed. EveStretch3 has no batches of its own; its children draw.
    * @returns {Array} out
    */
-  @meta.renamed("GetRenderables")
   @meta.implemented
-  GetRenderables_Impostors(out = [], _impostors)
+  GetRenderables__Impostors(out = [], _impostors)
   {
     if (this.display) this._RunOnComponents((component) => component.GetRenderables(out));
     return out;
@@ -990,7 +989,7 @@ export class EveStretch3 extends IEveFiringEffectElement
     {
       if (curveSet.GetName() === name)
       {
-        curveSet.Update_RealTimeSimTime(time, time, renderContext);
+        curveSet.Update__RealTimeSimTime(time, time, renderContext);
       }
     }
     this._RunOnComponents((component) =>

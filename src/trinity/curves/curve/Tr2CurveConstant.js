@@ -107,22 +107,20 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {Float32Array|number[]} [out] Caller-owned output storage for the non-scalar forms.
    * @returns {number|Float32Array|number[]} The supplied output or scalar value.
    */
-  @meta.renamed("Update")
   @meta.adapted
-  Update_Ticks(time, out)
+  Update__Ticks(time, out)
   {
     return this.Update(CcpTime.timeAsDouble(time), out);
   }
 
   /**
-   * Carbon's GetValueAt(Be::Time) for every interface the constant implements, as Update_Ticks. JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
+   * Carbon's GetValueAt(Be::Time) for every interface the constant implements, as Update__Ticks. JavaScript cannot overload on argument type, so the Be::Time overload has its own name.
    * @param {number} time Scene time in Blue 100ns ticks.
    * @param {Float32Array|number[]} [out] Caller-owned output storage for the non-scalar forms.
    * @returns {number|Float32Array|number[]} The supplied output or scalar value.
    */
-  @meta.renamed("GetValueAt")
   @meta.adapted
-  GetValueAt_Ticks(time, out)
+  GetValueAt__Ticks(time, out)
   {
     return this.GetValueAt(CcpTime.timeAsDouble(time), out);
   }

@@ -306,7 +306,7 @@ export class EveEffectRoot2 extends EveEntity
 
     this.UpdateControllers(frequency);
     const time = updateContext.GetTime();
-    for (const curveSet of this.curveSets) curveSet.Update_RealTimeSimTime(time, time, updateContext.renderContext);
+    for (const curveSet of this.curveSets) curveSet.Update__RealTimeSimTime(time, time, updateContext.renderContext);
     if (this.effectChildren.length)
     {
       const params = this._CreateChildUpdateParams();
@@ -354,9 +354,8 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Collects child renderables after applying a pending LOD change. */
-  @meta.renamed("GetRenderables")
   @meta.implemented
-  GetRenderables_Impostors(out = [], _impostors)
+  GetRenderables__Impostors(out = [], _impostors)
   {
     if (!this.display) return out;
     if (this._changeLOD)
@@ -408,13 +407,13 @@ export class EveEffectRoot2 extends EveEntity
   @meta.adapted
   UpdateWorldTransform(time)
   {
-    if (this.translationCurve) this.translationCurve.Update_Ticks(time, EveEffectRoot2._translation);
+    if (this.translationCurve) this.translationCurve.Update__Ticks(time, EveEffectRoot2._translation);
     else vec3.copy(EveEffectRoot2._translation, EveEffectRoot2._zero);
-    if (this.rotationCurve) this.rotationCurve.Update_Ticks(time, EveEffectRoot2._rotation);
+    if (this.rotationCurve) this.rotationCurve.Update__Ticks(time, EveEffectRoot2._rotation);
     else quat.copy(EveEffectRoot2._rotation, EveEffectRoot2._identityRotation);
     if (this.modelRotationCurve)
     {
-      this.modelRotationCurve.Update_Ticks(time, EveEffectRoot2._modelRotation);
+      this.modelRotationCurve.Update__Ticks(time, EveEffectRoot2._modelRotation);
       // Carbon (row-vector): rotation = modelRotation * rotation - model first.
       quat.multiply(EveEffectRoot2._rotation, EveEffectRoot2._rotation, EveEffectRoot2._modelRotation);
     }
@@ -422,7 +421,7 @@ export class EveEffectRoot2 extends EveEntity
     mat4.fromRotationTranslation(this._worldTransform, EveEffectRoot2._rotation, EveEffectRoot2._translation);
     if (this.modelTranslationCurve)
     {
-      this.modelTranslationCurve.Update_Ticks(time, EveEffectRoot2._modelTranslation);
+      this.modelTranslationCurve.Update__Ticks(time, EveEffectRoot2._modelTranslation);
       vec3.transformMat4(EveEffectRoot2._modelTranslation, EveEffectRoot2._modelTranslation, this._worldTransform);
       this._worldTransform[12] = EveEffectRoot2._modelTranslation[0];
       this._worldTransform[13] = EveEffectRoot2._modelTranslation[1];
@@ -1038,7 +1037,7 @@ export class EveEffectRoot2 extends EveEntity
     const target = String(name ?? "");
     for (const curveSet of this.curveSets)
     {
-      if (curveSet.GetName() === target) curveSet.Update_RealTimeSimTime(time, time, renderContext);
+      if (curveSet.GetName() === target) curveSet.Update__RealTimeSimTime(time, time, renderContext);
     }
     for (const child of this.effectChildren)
     {

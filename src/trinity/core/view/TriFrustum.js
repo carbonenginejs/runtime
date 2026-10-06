@@ -149,7 +149,7 @@ export class TriFrustum
    */
   IsSphereVisible(sphere, cullBackPlane = false)
   {
-    return this.IsSphereVisible_CenterRadius(sphere, sphere[3], cullBackPlane);
+    return this.IsSphereVisible__CenterRadius(sphere, sphere[3], cullBackPlane);
   }
 
   /**
@@ -163,7 +163,7 @@ export class TriFrustum
    * @param {Boolean} [cullBackPlane]
    * @returns {Boolean}
    */
-  IsSphereVisible_CenterRadius(center, radius, cullBackPlane = false)
+  IsSphereVisible__CenterRadius(center, radius, cullBackPlane = false)
   {
     const sphereOrCenter = center;
     const cullBack = cullBackPlane;
@@ -219,7 +219,7 @@ export class TriFrustum
    */
   IsPointVisible(point)
   {
-    return this.IsSphereVisible_CenterRadius(point, 0);
+    return this.IsSphereVisible__CenterRadius(point, 0);
   }
 
   /**
@@ -234,7 +234,7 @@ export class TriFrustum
     {
       return false;
     }
-    return this.IsBoxVisible_BoundsMinMax(box3.$min(aabb), box3.$max(aabb));
+    return this.IsBoxVisible__BoundsMinMax(box3.$min(aabb), box3.$max(aabb));
   }
 
   /**
@@ -245,7 +245,7 @@ export class TriFrustum
    * @param {Float32Array} max - boundsMax
    * @returns {Boolean}
    */
-  IsBoxVisible_BoundsMinMax(min, max)
+  IsBoxVisible__BoundsMinMax(min, max)
   {
     for (let i = 0; i < TriFrustum.PLANE_COUNT; i++)
     {
@@ -271,7 +271,7 @@ export class TriFrustum
    */
   GetPixelSizeAccross(sphere)
   {
-    return this.GetPixelSizeAccross_CenterRadius(sphere, sphere[3]);
+    return this.GetPixelSizeAccross__CenterRadius(sphere, sphere[3]);
   }
 
   /**
@@ -280,9 +280,9 @@ export class TriFrustum
    * @param {{ center: Float32Array, radius: Number }} sphere
    * @returns {Number}
    */
-  GetPixelSizeAccross_Sphere(sphere)
+  GetPixelSizeAccross__Sphere(sphere)
   {
-    return this.GetPixelSizeAccrossEst_CenterRadius(sphere.center, sphere.radius);
+    return this.GetPixelSizeAccrossEst__CenterRadius(sphere.center, sphere.radius);
   }
 
   /**
@@ -292,11 +292,11 @@ export class TriFrustum
    * @param {Float32Array} box - box3
    * @returns {Number}
    */
-  GetPixelSizeAccross_AxisAlignedBox(box)
+  GetPixelSizeAccross__AxisAlignedBox(box)
   {
     if (box3.isEmpty(box)) return 0;
     const boxRadius = box3.toPositionRadius(box, TriFrustum.#boxCenterScratch);
-    return this.GetPixelSizeAccrossEst_CenterRadius(TriFrustum.#boxCenterScratch, boxRadius);
+    return this.GetPixelSizeAccrossEst__CenterRadius(TriFrustum.#boxCenterScratch, boxRadius);
   }
 
   /**
@@ -307,7 +307,7 @@ export class TriFrustum
    */
   GetPixelSizeAccrossEst(sphere)
   {
-    return this.GetPixelSizeAccrossEst_CenterRadius(sphere, sphere[3]);
+    return this.GetPixelSizeAccrossEst__CenterRadius(sphere, sphere[3]);
   }
 
   /**
@@ -317,7 +317,7 @@ export class TriFrustum
    * @param {Number} radius
    * @returns {Number}
    */
-  GetPixelSizeAccross_CenterRadius(center, radius)
+  GetPixelSizeAccross__CenterRadius(center, radius)
   {
     // Carbon: Vector3 d(center - m_viewPos); d = -d; => d = viewPos - center.
     const dx = this.viewPos[0] - center[0];
@@ -351,7 +351,7 @@ export class TriFrustum
    * @param {Number} radius
    * @returns {Number}
    */
-  GetPixelSizeAccrossEst_CenterRadius(center, radius)
+  GetPixelSizeAccrossEst__CenterRadius(center, radius)
   {
     if (radius <= 0)
     {

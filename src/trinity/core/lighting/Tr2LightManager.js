@@ -481,7 +481,7 @@ export class Tr2LightManager
       if ((this._records[i].flags & Tr2LightManager.Flags.CASTS_SHADOWS) !== 0)
       {
         let sizeAcross = this._frustum
-          ? this._frustum.GetPixelSizeAccrossEst_CenterRadius(this._records[i].position, this._records[i].radius)
+          ? this._frustum.GetPixelSizeAccrossEst__CenterRadius(this._records[i].position, this._records[i].radius)
           : 0;
         if (!Number.isFinite(sizeAcross)) sizeAcross = 1 << HIGH_QUALITY_ATLAS_SIZE_LOG2;
         lightTuples.push({ lightIndex: i, sizeAcross });
@@ -1065,8 +1065,8 @@ export class Tr2LightManager
   _CullAndDim(position, radius)
   {
     if (!this._frustum) return 1;
-    if (!this._frustum.IsSphereVisible_CenterRadius(position, radius)) return 0;
-    const size = this._frustum.GetPixelSizeAccross_CenterRadius(position, radius);
+    if (!this._frustum.IsSphereVisible__CenterRadius(position, radius)) return 0;
+    const size = this._frustum.GetPixelSizeAccross__CenterRadius(position, radius);
     if (!(size > this._adjustedCutoff)) return 0;
     // Contract §"Colour carries the radius": the fade band sits ABOVE the
     // cutoff - absent at the cutoff, full brightness FADE_SIZE above it.
@@ -1080,7 +1080,7 @@ export class Tr2LightManager
   _ScreenSize(record)
   {
     if (!this._frustum) return record.radius;
-    return this._frustum.GetPixelSizeAccross_CenterRadius(record.position, record.radius);
+    return this._frustum.GetPixelSizeAccross__CenterRadius(record.position, record.radius);
   }
 
   /**

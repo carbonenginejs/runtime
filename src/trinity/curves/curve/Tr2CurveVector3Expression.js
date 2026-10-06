@@ -246,9 +246,8 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} out
    */
-  @meta.renamed("GetValueDotAt")
   @meta.noop
-  GetValueDotAt_Ticks(_time, out)
+  GetValueDotAt__Ticks(_time, out)
   {
     return out;
   }
@@ -259,9 +258,8 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} out
    */
-  @meta.renamed("GetValueDoubleDotAt")
   @meta.noop
-  GetValueDoubleDotAt_Ticks(_time, out)
+  GetValueDoubleDotAt__Ticks(_time, out)
   {
     return out;
   }
@@ -385,7 +383,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   @meta.implemented
   GetInputValue(index)
   {
-    return this.GetInputValue_Time(index, this._currentTime);
+    return this.GetInputValue__Time(index, this._currentTime);
   }
 
   /**
@@ -394,9 +392,8 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @param {number} time Sample time.
    * @returns {number}
    */
-  @meta.renamed("GetInputValue")
   @meta.implemented
-  GetInputValue_Time(index, time)
+  GetInputValue__Time(index, time)
   {
     index |= 0;
     if (index < 0 || index >= this.inputs.length)

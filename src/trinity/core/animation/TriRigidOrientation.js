@@ -164,7 +164,7 @@ export class TriRigidOrientation extends ITriQuaternionFunction
   /**
    * The orientation at a time measured from the start, written into `out`;
    * before the first key it is the retained value. Time first and output last, as the rest of the curve family;
-   * GetValueAt_Ticks is the Be::Time overload.
+   * GetValueAt__Ticks is the Be::Time overload.
    */
   @meta.blue.method
   @meta.adapted
@@ -252,9 +252,8 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * @param {Float32Array} out Caller-owned quaternion.
    * @returns {Float32Array} out
    */
-  @meta.renamed("GetValueAt")
   @meta.adapted
-  GetValueAt_Ticks(time, out)
+  GetValueAt__Ticks(time, out)
   {
     return this.GetValueAt(CcpTime.timeAsDouble(time - this.start), out);
   }
@@ -265,11 +264,10 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * @param {Float32Array} out Caller-owned quaternion.
    * @returns {Float32Array} out
    */
-  @meta.renamed("Update")
   @meta.adapted
-  Update_Ticks(time, out)
+  Update__Ticks(time, out)
   {
-    this.GetValueAt_Ticks(time, this.value);
+    this.GetValueAt__Ticks(time, this.value);
     return quat.copy(out, this.value);
   }
 
@@ -280,9 +278,8 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * @param {Float32Array} out Caller-owned vector.
    * @returns {Float32Array} out
    */
-  @meta.renamed("GetValueDotAt")
   @meta.adapted
-  GetValueDotAt_Ticks(time, out)
+  GetValueDotAt__Ticks(time, out)
   {
     return this.GetValueDotAt(CcpTime.timeAsDouble(time - this.start), out);
   }

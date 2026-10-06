@@ -91,7 +91,7 @@ export class EvePendingPickingReadback
    * Adapted: return the shared JS result tuple; buffers are browser snapshots.
    */
   @meta.adapted
-  DecodeResult_ObjectId(main, debug, immediate, instancedMeshManager)
+  DecodeResult__ObjectId(main, debug, immediate, instancedMeshManager)
   {
     let object = null, area = 0;
     if (debug && debug.byteLength >= 16)

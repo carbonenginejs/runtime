@@ -99,7 +99,7 @@ test("a Tr2CurveConstant in a vector slot writes its value through the tick over
   ship.translationCurve = constant;
   ship.UpdateWorldTransform(SCENE_START);
   near(ship.worldPosition, [ 7, 8, 9 ], "constant position");
-  assert.equal(constant.Update_Ticks(SCENE_START), 7, "the scalar form still returns the first component");
+  assert.equal(constant.Update__Ticks(SCENE_START), 7, "the scalar form still returns the first component");
 });
 
 test("TriRigidOrientation's tick overloads sample relative to its start", () =>
@@ -112,9 +112,9 @@ test("TriRigidOrientation's tick overloads sample relative to its start", () =>
   curve.I = 1;
   curve.states = [ torque ];
   curve.start = SCENE_START;
-  const viaTicks = curve.GetValueAt_Ticks(SCENE_START + 2 * TICKS_PER_SECOND, quat.create());
+  const viaTicks = curve.GetValueAt__Ticks(SCENE_START + 2 * TICKS_PER_SECOND, quat.create());
   const viaSeconds = curve.GetValueAt(2, quat.create());
   for (let index = 0; index < 4; index++) assert.ok(Math.abs(viaTicks[index] - viaSeconds[index]) < 1e-6, `component ${index}`);
-  const rate = curve.GetValueDotAt_Ticks(SCENE_START + 2 * TICKS_PER_SECOND, vec3.create());
+  const rate = curve.GetValueDotAt__Ticks(SCENE_START + 2 * TICKS_PER_SECOND, vec3.create());
   near(rate, curve.GetValueDotAt(2, vec3.create()), "angular velocity");
 });

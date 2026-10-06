@@ -567,9 +567,8 @@ export class Tr2Material
    * @param {string} techniqueName Technique name.
    * @returns {boolean}
    */
-  @meta.renamed("CompatibleWithGdr")
   @meta.implemented
-  CompatibleWithGdr_TechniqueName(techniqueName)
+  CompatibleWithGdr__TechniqueName(techniqueName)
   {
     if (this.shader !== null && !(this.shader instanceof Tr2Shader))
     {

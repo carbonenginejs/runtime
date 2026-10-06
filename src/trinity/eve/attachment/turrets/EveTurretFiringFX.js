@@ -706,7 +706,7 @@ export class EveTurretFiringFX extends EveEntity
     }
     const curveSet = this.isFiring ? this.startCurveSet : this.stopCurveSet;
     const time = context.GetTime();
-    if (curveSet) curveSet.Update_RealTimeSimTime(time, time, context.renderContext);
+    if (curveSet) curveSet.Update__RealTimeSimTime(time, time, context.renderContext);
     if (this.sourceObserver) this.sourceObserver.Update(this._perMuzzleData[0].muzzleTransform);
     if (this.destinationObserver) this.destinationObserver.Update(CjsStretchRuntime.translationMatrix(this.endPosition, EveTurretFiringFX._destinationTransform));
     return justFired;

@@ -404,13 +404,12 @@ export class EveSpherePin
   @meta.implemented
   GetRenderables(renderables)
   {
-    return this.GetRenderables_Impostors(renderables, null);
+    return this.GetRenderables__Impostors(renderables, null);
   }
 
   /** Native collection checks display only; the optional impostor manager is unused. */
-  @meta.renamed("GetRenderables")
   @meta.implemented
-  GetRenderables_Impostors(renderables, _impostors)
+  GetRenderables__Impostors(renderables, _impostors)
   {
     if (this.display) renderables.push(this);
   }
@@ -514,7 +513,7 @@ export class EveSpherePin
   {
     const geometry = this._geometryResource;
     if (!geometry || !geometry.IsGood() || geometry.GetMeshCount() < 1) return;
-    const lod = geometry.GetMeshLod_LodIndex(0, 0);
+    const lod = geometry.GetMeshLod__LodIndex(0, 0);
     if (!lod || !this._indexBuffer.IsValid()) return;
     const context = Tr2RenderContext_GetMainThreadRenderContext();
     if (!CreateLodAllocations(geometry, 0, lod, context)) return;

@@ -27,7 +27,7 @@ function system(t)
 test("during-life generic spawn receives pre-force and post-integration endpoints; stationary branch stays point form",t=>{
   setup(t);const p=system(t),calls=[];
   p.forces.push({Update(){},GetForce(_p,_v,_dt,_m,out){out.set([2,0,-2]);return out;}});
-  const record=(...args)=>{calls.push(args.map(value=>ArrayBuffer.isView(value)?Array.from(value):value));};p.emitParticleDuringLifeEmitter={SpawnParticles:record,SpawnParticles_StartEnd:record};
+  const record=(...args)=>{calls.push(args.map(value=>ArrayBuffer.isView(value)?Array.from(value):value));};p.emitParticleDuringLifeEmitter={SpawnParticles:record,SpawnParticles__StartEnd:record};
   const args=new ITr2GenericEmitterUpdateArguments();p.UpdateSimulation(0.5,args);
   assert.equal(calls[0].length,6,"Tr2ParticleSystem.cpp:699-706 six-argument generic overload");
   assert.equal(calls[0][0],args);
@@ -40,7 +40,7 @@ for(const Emitter of [Tr2GpuSharedEmitter,Tr2GpuUniqueEmitter])test(`${Emitter==
   const e=new Emitter();e.rate=30;e.emissionDensity=2;e.Initialize();
   const args=new ITr2GenericEmitterUpdateArguments(),requests=[];
   args.system={Emit(emitter){requests.push({count:emitter.count,start:Array.from(emitter.positionPrevious),end:Array.from(emitter.position),v0:Array.from(emitter.velocityPrevious),v1:Array.from(emitter.velocity)});}};
-  e.SpawnParticles_StartEnd(args,[0,0,0],[3,0,0],[1,0,0],[2,0,0],0.5);
+  e.SpawnParticles__StartEnd(args,[0,0,0],[3,0,0],[1,0,0],[2,0,0],0.5);
   assert.deepEqual(requests,[{count:8,start:[0,0,0],end:[3,0,0],v0:[1,0,0],v1:[2,0,0]}],"Shared.cpp:189 cap1/15; cpp:204-213 time rate plus segment density");
   requests.length=0;e.SpawnParticles(args,[9,0,0],[2,0,0],0.1);
   assert.deepEqual(requests,[{count:3,start:[9,0,0],end:[9,0,0],v0:[2,0,0],v1:[2,0,0]}],"point overload preserves its existing rate modifier");

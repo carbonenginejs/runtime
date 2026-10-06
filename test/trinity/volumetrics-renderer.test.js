@@ -437,7 +437,7 @@ test("cloud pass sorts stably, budgets one lightmap, binds four slices, blurs an
   const cloud = (name, sort, updates) => ({
     SetSceneInformation(info) { assert.equal(info.targetWidth, 56); assert.equal(info.targetHeight, 28); },
     UpdateVolumetricLightmap() { log.push("update:" + name); return updates; },
-    GetSortValue_Frustum() { return sort; },
+    GetSortValue__Frustum() { return sort; },
     GetVolumetricBatches(_frustum, acc) { acc.batches.push({ name }); }
   });
   const registry = volumeRegistry([cloud("near", 1, true), cloud("far-a", 3, true), cloud("far-b", 3, true)]);
@@ -485,12 +485,12 @@ test("raw texture registration copies ownership, reuses the global reference, an
   const global = core.Tr2VariableStore.globalStore(), local = new core.Tr2VariableStore();
   try
   {
-    const variable = global.RegisterVariable_TextureAL(name, f.depth);
+    const variable = global.RegisterVariable__TextureAL(name, f.depth);
     const reference = variable.GetValue();
     let changes = 0;
     const owner = {};
     reference.OnTextureChange().RegisterListener(owner, () => changes++);
-    assert.equal(local.RegisterVariable_TextureAL(name, new Tr2TextureAL()), variable, "native global lookup quirk");
+    assert.equal(local.RegisterVariable__TextureAL(name, new Tr2TextureAL()), variable, "native global lookup quirk");
     assert.equal(variable.GetValue(), reference);
     assert.equal(reference.GetTexture().IsValid(), false);
     assert.equal(f.depth.IsValid(), true, "registration did not take the caller's ownership");

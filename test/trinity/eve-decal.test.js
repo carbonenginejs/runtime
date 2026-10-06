@@ -461,7 +461,7 @@ test("GetBatches commits the hull LOD's vertices with the decal's own indices (c
     GetLodIndexForScreenSize: () => 0,
     IsGood: () => true,
     GetMeshCount: () => 1,
-    GetMeshLod_LodIndex: () => ({ allocationsValid: true, vertexAllocation }),
+    GetMeshLod__LodIndex: () => ({ allocationsValid: true, vertexAllocation }),
     GetMeshVertexElements: () => []
   };
 
@@ -486,7 +486,7 @@ test("GetBatches commits the hull LOD's vertices with the decal's own indices (c
 
   // Another batch type, or a hull whose LOD allocations are not valid yet, commits nothing.
   decal.GetBatches({ Commit: batch => committed.push(batch) }, 0, perObjectData);
-  hull.GetMeshLod_LodIndex = () => ({ allocationsValid: false, vertexAllocation });
+  hull.GetMeshLod__LodIndex = () => ({ allocationsValid: false, vertexAllocation });
   decal.GetBatches({ Commit: batch => committed.push(batch) }, 1, perObjectData);
   assert.equal(committed.length, 1);
 });

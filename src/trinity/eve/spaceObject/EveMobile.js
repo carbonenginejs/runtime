@@ -347,12 +347,11 @@ export class EveMobile extends EveSpaceObject2
    * nothing is appended while display is off. Adapted: the existing base
    * accepts one output array; native impostor output remains unported.
    */
-  @meta.renamed("GetRenderables")
   @meta.adapted
-  GetRenderables_Impostors(out = [], _impostors)
+  GetRenderables__Impostors(out = [], _impostors)
   {
     if (!this.display) return out;
-    super.GetRenderables_Impostors(out, null);
+    super.GetRenderables__Impostors(out, null);
     for (const turretSet of this.turretSets) turretSet.GetRenderables(out, this._psData.Get("shLightingCoefficients"));
     return out;
   }

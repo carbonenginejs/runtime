@@ -102,7 +102,7 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
 
   /**
    * Carbon's point SpawnParticles overload (cpp:55-120); the start/end
-   * overload is SpawnParticles_StartEnd. Scaling uses reusable value copies.
+   * overload is SpawnParticles__StartEnd. Scaling uses reusable value copies.
    * As in Carbon, spawning does not update the attractor's world position.
    */
   @meta.blue.method
@@ -133,9 +133,8 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
    * shared spawning. The renamed entry remains available to existing callers.
    * Formerly SpawnParticlesSegment.
    */
-  @meta.renamed("SpawnParticles")
   @meta.adapted
-  SpawnParticles_StartEnd(arguments_, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime)
+  SpawnParticles__StartEnd(arguments_, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime)
   {
     this._ReadParameters();
     const emitter = this._emitter;

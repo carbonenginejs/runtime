@@ -319,7 +319,7 @@ export class Tr2GpuSharedEmitter
 
   /**
    * Carbon's point SpawnParticles overload (cpp:149-162); the start/end
-   * overload is SpawnParticles_StartEnd. A reusable value copy preserves the
+   * overload is SpawnParticles__StartEnd. A reusable value copy preserves the
    * continuous emitter's direction history.
    */
   @meta.blue.method
@@ -335,9 +335,8 @@ export class Tr2GpuSharedEmitter
    * also exposes Carbon's second overload explicitly for existing JS callers.
    * Formerly SpawnParticlesSegment.
    */
-  @meta.renamed("SpawnParticles")
   @meta.adapted
-  SpawnParticles_StartEnd(arguments_, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime)
+  SpawnParticles__StartEnd(arguments_, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime)
   {
     this._ReadParameters();
     this._SpawnSegment(arguments_, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime);

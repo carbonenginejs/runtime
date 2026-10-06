@@ -52,7 +52,7 @@ export class TriFrustumOrtho
    */
   IsSphereVisibleAndInsideNearPlane(sphere)
   {
-    return this.IsSphereVisibleAndInsideNearPlane_CenterRadius(sphere, sphere[3]);
+    return this.IsSphereVisibleAndInsideNearPlane__CenterRadius(sphere, sphere[3]);
   }
 
   /**
@@ -63,7 +63,7 @@ export class TriFrustumOrtho
    * @param {Number} radius
    * @returns {Boolean}
    */
-  IsSphereVisibleAndInsideNearPlane_CenterRadius(worldCenter, radius)
+  IsSphereVisibleAndInsideNearPlane__CenterRadius(worldCenter, radius)
   {
     const r = radius;
     const center = vec3.transformMat4(CENTER_SCRATCH, worldCenter, this.view);

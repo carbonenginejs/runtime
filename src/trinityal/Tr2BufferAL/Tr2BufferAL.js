@@ -82,11 +82,10 @@ export class Tr2BufferAL
   }
 
   /** Forwards Carbon's offset/size MapForReading to the implementation. */
-  @meta.renamed("MapForReading")
   @meta.implemented
-  MapForReading_OffsetSize(renderContext, offset, size)
+  MapForReading__OffsetSize(renderContext, offset, size)
   {
-    return this._buffer ? this._buffer.implementation.MapForReading_OffsetSize(renderContext, offset, size) : { result: ALResult.E_INVALIDCALL, data: null };
+    return this._buffer ? this._buffer.implementation.MapForReading__OffsetSize(renderContext, offset, size) : { result: ALResult.E_INVALIDCALL, data: null };
   }
 
   /** Forwards UnmapForReading to the implementation, preserving the empty-value result. */

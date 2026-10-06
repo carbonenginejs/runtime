@@ -187,11 +187,11 @@ export function RealizeBatchGeometry(batch, renderContext)
 
   if (!source || !source.geometry) return false;
 
-  const lod = source.lod ?? source.geometry.GetMeshLod_LodIndex(source.meshIndex, 0);
+  const lod = source.lod ?? source.geometry.GetMeshLod__LodIndex(source.meshIndex, 0);
 
   if (!CreateLodAllocations(source.geometry, source.meshIndex, lod, renderContext)) return false;
 
-  batch.SetGeometry_Allocation(batch.vertexDeclaration, lod.vertexAllocation, lod.indexAllocation);
+  batch.SetGeometry__Allocation(batch.vertexDeclaration, lod.vertexAllocation, lod.indexAllocation);
 
   const draw = Tr2RenderBatch.resolveDrawArguments(lod, source.areaIndex, source.count, source.reversed);
 

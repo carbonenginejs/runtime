@@ -492,7 +492,7 @@ export class Tr2Mesh extends Tr2MeshBase
   _GetMorphLod()
   {
     const geometry = this.GetGeometryResource();
-    return geometry ? geometry.GetMeshLod_LodIndex(this.meshIndex, 0) : null;
+    return geometry ? geometry.GetMeshLod__LodIndex(this.meshIndex, 0) : null;
   }
 
   /** Returns detached indexed morph state in exact target-name order. */

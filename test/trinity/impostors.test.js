@@ -43,10 +43,10 @@ test("an object the manager declines pushes its renderables instead (cpp:1821-18
   object._impostorMode = true;
   object.PushRenderables = out => out.push("hull");
   // A manager whose atlas was never prepared declines every Add.
-  const declined = object.GetRenderables_Impostors([], new Tr2ImpostorManager());
+  const declined = object.GetRenderables__Impostors([], new Tr2ImpostorManager());
   assert.deepEqual(declined, [ "hull" ]);
   assert.equal(object.IsImpostor(), false, "impostor mode falls back when Add fails");
 
   object._impostorMode = true;
-  assert.deepEqual(object.GetRenderables_Impostors([], null), [ "hull" ], "no manager: impostor mode is dropped");
+  assert.deepEqual(object.GetRenderables__Impostors([], null), [ "hull" ], "no manager: impostor mode is dropped");
 });

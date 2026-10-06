@@ -58,7 +58,7 @@ export class EveLODHelper
    * @param {EveUpdateContext} updateContext
    * @returns {Number}
    */
-  static MergeLOD_SphereUpdateContext(lod0, sphere, updateContext)
+  static MergeLOD__SphereUpdateContext(lod0, sphere, updateContext)
   {
     const frustum = updateContext.GetFrustum();
     if (!frustum.IsSphereVisible(sphere))

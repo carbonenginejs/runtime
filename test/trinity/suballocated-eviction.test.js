@@ -208,7 +208,7 @@ test("failed LOD index uploads unwind before retry or resource eviction", () =>
       const buffer = SharedGeometryBuffer(renderContext);
       const geometry = new TriGeometryRes();
       geometry.SetPayload({ meshes: [ mesh() ] });
-      const lod = geometry.GetMeshLod_LodIndex(0, 0);
+      const lod = geometry.GetMeshLod__LodIndex(0, 0);
       const seed = buffer.Allocate(4, 1, null, renderContext);
       const block = seed.GetBuffer();
       buffer.Free(seed);

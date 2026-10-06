@@ -139,8 +139,8 @@ export class EveTacticalOverlay
     if (this.translationCurve)
     {
       const time = updateContext.GetTime();
-      this.translationCurve.GetValueAt_Ticks(time, this.worldPosition);
-      this.translationCurve.GetValueDotAt_Ticks(time, this._rootVelocity);
+      this.translationCurve.GetValueAt__Ticks(time, this.worldPosition);
+      this.translationCurve.GetValueDotAt__Ticks(time, this._rootVelocity);
     }
     for (const trackObject of this.trackObjects)
     {
@@ -316,9 +316,8 @@ export class EveTacticalOverlay
   }
 
   /** Carbon's tactical overlay has no ordinary renderable children. */
-  @meta.renamed("GetRenderables")
   @meta.noop
-  GetRenderables_Impostors(_renderables, _impostors)
+  GetRenderables__Impostors(_renderables, _impostors)
   {
   }
 

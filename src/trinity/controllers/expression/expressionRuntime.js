@@ -463,7 +463,7 @@ export const DEFAULT_FUNCTIONS = {
   fractal: (ctx, x, alpha, beta, n) =>
     (carbonPerlin1D(ToNumber(x) + GetRandomConstant(ctx), ToNumber(alpha), ToNumber(beta), Math.trunc(ToNumber(n) + 0.5)) + 1) / 2,
   input: (ctx, index) => GetInputValue(ctx, index),
-  inputAt: (ctx, index, time) => GetInputValue_Time(ctx, index, time),
+  inputAt: (ctx, index, time) => GetInputValue__Time(ctx, index, time),
   // Tr2ControllerExpression.cpp:31-34; action contexts separately supply elapsed stateTime.
   StateTime: ctx => ctx.stateMachine ? ctx.stateMachine.GetStateRunTime() : ToNumber(ctx.stateTime),
   CurveSetTime: (ctx, name) => GetCurveSetTime(ctx, name),
@@ -508,10 +508,10 @@ export function GetInputValue(context, index)
 }
 
 /** Reads a curve input at the requested time (Tr2CurveScalarExpression.cpp:65-68). */
-export function GetInputValue_Time(context, index, time)
+export function GetInputValue__Time(context, index, time)
 {
   const source = context.curve ?? context.self ?? context.expression;
-  return source ? source.GetInputValue_Time(RoundInputIndex(index), time) : ReadInputDirect(context, index, time);
+  return source ? source.GetInputValue__Time(RoundInputIndex(index), time) : ReadInputDirect(context, index, time);
 }
 
 /**

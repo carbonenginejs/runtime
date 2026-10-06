@@ -231,7 +231,7 @@ test("an overlay block batch carries the mesh's vertex declaration", () =>
 
   assert.notEqual(expected, 0, "the control declaration must not be handle 0");
   assert.equal(batch.vertexDeclaration, expected);
-  assert.equal(batch.geometrySource.lod, object.mesh.geometry.GetMeshLod_ScreenSize(0, Infinity),
+  assert.equal(batch.geometrySource.lod, object.mesh.geometry.GetMeshLod__ScreenSize(0, Infinity),
     "the resolved LOD rides on the source, so submit realizes that LOD");
 });
 
@@ -242,7 +242,7 @@ test("an overlay walk with no resolvable LOD commits nothing", () =>
   const object = new EveSpaceObject2();
   object.mesh = new Tr2Mesh();
   object.mesh.geometry = geometry(1);
-  object.mesh.geometry.GetMeshLod_ScreenSize = () => null;
+  object.mesh.geometry.GetMeshLod__ScreenSize = () => null;
   object.mesh.AddArea(OPAQUE, area({ id: "hull" }, { index: 0 }));
 
   const overlay = new EveMeshOverlayEffect();

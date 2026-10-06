@@ -94,7 +94,7 @@ export class EveLocalPositionCurve extends ITriVectorFunction
   }
 
   /**
-   * Carbon's Update(double) is a no-op returning its input (EveLocalPositionCurve.cpp:302-305); Update_Ticks is the
+   * Carbon's Update(double) is a no-op returning its input (EveLocalPositionCurve.cpp:302-305); Update__Ticks is the
    * overload that evaluates behaviours.
    * @param {number} _time Unused seconds.
    * @param {Float32Array} out Caller-owned vec3, returned unchanged.
@@ -114,9 +114,8 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * @param {Float32Array} out Caller-owned vec3.
    * @returns {Float32Array} out
    */
-  @meta.renamed("Update")
   @meta.adapted
-  Update_Ticks(time, out)
+  Update__Ticks(time, out)
   {
     switch (this.behavior)
     {
@@ -162,12 +161,11 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * @param {Float32Array} out Caller-owned vec3.
    * @returns {Float32Array} out
    */
-  @meta.renamed("GetValueAt")
   @meta.adapted
-  GetValueAt_Ticks(time, out)
+  GetValueAt__Ticks(time, out)
   {
     vec3.copy(out, this.value);
-    return this.Update_Ticks(time, out);
+    return this.Update__Ticks(time, out);
   }
 
   /**
@@ -237,12 +235,12 @@ export class EveLocalPositionCurve extends ITriVectorFunction
     vec3.copy(out, this.positionOffset);
     if (this.parentRotationCurve)
     {
-      this.parentRotationCurve.GetValueAt_Ticks(time, EveLocalPositionCurve._rotation);
+      this.parentRotationCurve.GetValueAt__Ticks(time, EveLocalPositionCurve._rotation);
       vec3.transformQuat(out, out, EveLocalPositionCurve._rotation);
     }
     if (this.parentPositionCurve)
     {
-      this.parentPositionCurve.GetValueAt_Ticks(time, EveLocalPositionCurve._parentPosition);
+      this.parentPositionCurve.GetValueAt__Ticks(time, EveLocalPositionCurve._parentPosition);
       vec3.add(out, out, EveLocalPositionCurve._parentPosition);
     }
     return out;
@@ -256,8 +254,8 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    */
   CalculateOffsetPlaneRotation(time, out)
   {
-    if (this.parentPositionCurve) this.parentPositionCurve.GetValueAt_Ticks(time, EveLocalPositionCurve._parentPosition);
-    if (this.alignPositionCurve) this.alignPositionCurve.GetValueAt_Ticks(time, out);
+    if (this.parentPositionCurve) this.parentPositionCurve.GetValueAt__Ticks(time, EveLocalPositionCurve._parentPosition);
+    if (this.alignPositionCurve) this.alignPositionCurve.GetValueAt__Ticks(time, out);
     else vec3.copy(out, this.positionOffset);
 
     const length = vec3.distance(out, EveLocalPositionCurve._parentPosition);
@@ -283,16 +281,16 @@ export class EveLocalPositionCurve extends ITriVectorFunction
   {
     if (!(this.parentPositionCurve && this.alignPositionCurve && this.parentRotationCurve))
     {
-      if (this.parentPositionCurve) this.parentPositionCurve.GetValueAt_Ticks(time, out);
+      if (this.parentPositionCurve) this.parentPositionCurve.GetValueAt__Ticks(time, out);
       return out;
     }
 
     const parentPosition = EveLocalPositionCurve._parentPosition;
     const alignedPosition = EveLocalPositionCurve._alignedPosition;
     const direction = EveLocalPositionCurve._direction;
-    this.parentPositionCurve.GetValueAt_Ticks(time, parentPosition);
-    this.alignPositionCurve.GetValueAt_Ticks(time, alignedPosition);
-    this.parentRotationCurve.GetValueAt_Ticks(time, EveLocalPositionCurve._rotation);
+    this.parentPositionCurve.GetValueAt__Ticks(time, parentPosition);
+    this.alignPositionCurve.GetValueAt__Ticks(time, alignedPosition);
+    this.parentRotationCurve.GetValueAt__Ticks(time, EveLocalPositionCurve._rotation);
     vec3.normalize(direction, vec3.subtract(direction, alignedPosition, parentPosition));
 
     quat.normalize(EveLocalPositionCurve._rotation, EveLocalPositionCurve._rotation);
@@ -334,7 +332,7 @@ export class EveLocalPositionCurve extends ITriVectorFunction
     if (!target) return out;
     if (this.damageLocatorIndex === -1)
     {
-      this.alignPositionCurve.GetValueAt_Ticks(time, EveLocalPositionCurve._parentPosition);
+      this.alignPositionCurve.GetValueAt__Ticks(time, EveLocalPositionCurve._parentPosition);
       this.damageLocatorIndex = target.GetGoodDamageLocatorIndex(EveLocalPositionCurve._parentPosition);
     }
     target.GetDamageLocatorPosition(this.damageLocatorIndex, true, out);
@@ -351,7 +349,7 @@ export class EveLocalPositionCurve extends ITriVectorFunction
     if (!(this.alignPositionCurve && this.parent)) return out;
     const target = CjsSchema.cast(this.parent, ITriTargetable);
     if (!target) return out;
-    this.alignPositionCurve.GetValueAt_Ticks(time, EveLocalPositionCurve._parentPosition);
+    this.alignPositionCurve.GetValueAt__Ticks(time, EveLocalPositionCurve._parentPosition);
     if (this.damageLocatorIndex === -1)
     {
       this.damageLocatorIndex = target.GetGoodDamageLocatorIndex(EveLocalPositionCurve._parentPosition);

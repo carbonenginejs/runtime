@@ -118,9 +118,8 @@ export class EveSOFDNA
    * @param {EveSOFDNA|null} parent
    * @param {EveSOFDataMgr} dataMgr
    */
-  @meta.renamed("Setup")
   @meta.implemented
-  Setup_Descriptor(layoutName, descriptor, parent, dataMgr)
+  Setup__Descriptor(layoutName, descriptor, parent, dataMgr)
   {
     this._setupFromDescriptor(String(layoutName ?? ""), descriptor, parent, dataMgr);
   }
@@ -1388,7 +1387,7 @@ export class EveSOFDNA
     const pattern = this.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_PATTERN);
     if (pattern?.length) this.patternData = dataMgr.GetPatternData(pattern[0]);
     const layouts = this.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_LAYOUT);
-    if (layouts) this.layoutData = dataMgr.GetLayoutData_Vector(layouts);
+    if (layouts) this.layoutData = dataMgr.GetLayoutData__Vector(layouts);
     this.genericData = dataMgr.GetGenericData();
 
     if (this.HasDnaCommand(EveSOFDNA.DnaCommand.CMD_VARIANT)) this._setupCustomData();
@@ -1459,7 +1458,7 @@ export class EveSOFDNA
     const pattern = this.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_PATTERN);
     if (pattern) this.patternData = dataMgr.GetPatternData(pattern[0]);
     const layouts = this.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_LAYOUT);
-    if (layouts) this.layoutData = dataMgr.GetLayoutData_Vector(layouts);
+    if (layouts) this.layoutData = dataMgr.GetLayoutData__Vector(layouts);
     this.genericData = dataMgr.GetGenericData();
     if (this.HasDnaCommand(EveSOFDNA.DnaCommand.CMD_VARIANT)) this._setupCustomData();
 

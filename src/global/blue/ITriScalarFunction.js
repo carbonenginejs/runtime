@@ -49,7 +49,7 @@ export class ITriScalarFunction extends ITriFunction
    * @param {number} time Scene time in Blue 100ns ticks.
    * @returns {number} The Update result.
    */
-  Update_Ticks(time)
+  Update__Ticks(time)
   {
     return this.Update(CcpTime.timeAsDouble(time));
   }
@@ -62,7 +62,7 @@ export class ITriScalarFunction extends ITriFunction
    * @param {number} time Scene time in Blue 100ns ticks.
    * @returns {number} The GetValueAt result.
    */
-  GetValueAt_Ticks(time)
+  GetValueAt__Ticks(time)
   {
     return this.GetValueAt(CcpTime.timeAsDouble(time));
   }
@@ -72,8 +72,8 @@ for (const method of [ "Update", "GetValueAt", "ScaleTime" ])
 {
   CjsSchema.decorateMethod(ITriScalarFunction, method, meta.requires, meta.abstract);
 }
-CjsSchema.decorateMethod(ITriScalarFunction, "Update_Ticks", meta.renamed("Update"), meta.adapted);
-CjsSchema.decorateMethod(ITriScalarFunction, "GetValueAt_Ticks", meta.renamed("GetValueAt"), meta.adapted);
+CjsSchema.decorateMethod(ITriScalarFunction, "Update__Ticks", meta.adapted);
+CjsSchema.decorateMethod(ITriScalarFunction, "GetValueAt__Ticks", meta.adapted);
 CjsSchema.define(ITriScalarFunction, {
   className: "ITriScalarFunction", carbon: "ITriScalarFunction", family: "blue", fields: {}
 });

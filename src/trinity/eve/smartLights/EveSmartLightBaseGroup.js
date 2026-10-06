@@ -65,16 +65,14 @@ export class EveSmartLightBaseGroup
   _resolvedGroupColor = color.createLinear();
 
   /** IEveSmartLightGroup default: no asynchronous work. */
-  @meta.renamed("UpdateAsyncronous")
   @meta.noop
-  UpdateAsyncronous_Distribution(_updateContext, _params, _distribution)
+  UpdateAsyncronous__Distribution(_updateContext, _params, _distribution)
   {
   }
 
   /** IEveSmartLightGroup default: no synchronous work. */
-  @meta.renamed("UpdateSyncronous")
   @meta.noop
-  UpdateSyncronous_Distribution(_updateContext, _params, _distribution)
+  UpdateSyncronous__Distribution(_updateContext, _params, _distribution)
   {
   }
 

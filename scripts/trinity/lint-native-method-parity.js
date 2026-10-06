@@ -16,7 +16,8 @@
 //
 // JS method resolution credits the full chain: own methods, base classes,
 // and declared contract methods. Composed interfaces contribute their bodies
-// alongside the primary prototype chain. @meta.renamed("X") counts as X, and
+// alongside the primary prototype chain. An overload variant `X__Variant`
+// counts as X. @meta.renamed("X") counts as X, and
 // so does meta.renamed("X") given at define time - in a
 // `CjsSchema.define(Class, { methods: { Name: [ ... ] } })` map or a
 // `CjsSchema.decorateMethod(Class, "Name", ...)` call - which is the only form
@@ -279,11 +280,15 @@ async function ReadJavaScriptClasses(directory)
           continue;
         }
         methods.add(name);
+        // An overload variant `Name__Variant` credits Carbon's `Name`: C++
+        // reserves `__`, so everything before it is the donor's name.
+        const variantOf = OverloadDonor(name);
+        if (variantOf) methods.add(variantOf);
         // `_Method` is the library's private spelling (underscore, not `#`),
         // so it credits Carbon's private `Method` the same way `#Method` does.
         if (name.startsWith("_"))
         {
-          const privateName = name.slice(1);
+          const privateName = variantOf ?? name.slice(1);
           methods.add(privateName);
           methods.add(privateName.charAt(0).toLowerCase() + privateName.slice(1));
         }
@@ -409,6 +414,19 @@ function MemberName(member)
   if (member.key?.type === "Identifier") return member.key.name;
   if (member.key?.type === "StringLiteral") return member.key.value;
   return null;
+}
+
+/**
+ * The Carbon name an overload variant `Name__Variant` (or private
+ * `_Name__Variant`) splits, or null. C++ reserves `__`, so a double underscore
+ * can never be part of a Carbon name.
+ */
+function OverloadDonor(name)
+{
+  if (name.startsWith("__")) return null;
+  const split = name.indexOf("__", 1);
+  if (split < 0) return null;
+  return name.slice(name.startsWith("_") ? 1 : 0, split);
 }
 
 function RenamedOriginal(member)

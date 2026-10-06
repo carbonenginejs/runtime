@@ -188,7 +188,7 @@ export class TriVariableParameter extends CjsParameter
   {
     return this.variable
       ? this.variable.ApplyUav(resourceDesc, stage, registerIndex)
-      : resourceDesc.SetUav_TextureAL(stage, registerIndex, null);
+      : resourceDesc.SetUav__TextureAL(stage, registerIndex, null);
   }
 
   /**

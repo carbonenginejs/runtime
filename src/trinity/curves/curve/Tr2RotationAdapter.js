@@ -81,7 +81,7 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
 
   /**
    * Updates the cache and copies the quaternion into the output buffer.
-   * JavaScript retains the native double-time path with seconds first and output last; Update_Ticks is the Be::Time overload.
+   * JavaScript retains the native double-time path with seconds first and output last; Update__Ticks is the Be::Time overload.
    * @param {number} time Time in seconds.
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
@@ -202,9 +202,8 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @param {number} time Scene time in Blue 100ns ticks.
    * @returns {number} Local time in seconds.
    */
-  @meta.renamed("GetLocalTime")
   @meta.adapted
-  GetLocalTime_Ticks(time)
+  GetLocalTime__Ticks(time)
   {
     return CcpTime.timeAsDouble(time - this._start + this._offset) / this._timeScale;
   }
@@ -216,14 +215,13 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.renamed("Update")
   @meta.adapted
-  Update_Ticks(time, out)
+  Update__Ticks(time, out)
   {
     if (this._start === 0) this._start = time;
     if (this.curve)
     {
-      this.curve.Update(this.GetLocalTime_Ticks(time), this.currentValue);
+      this.curve.Update(this.GetLocalTime__Ticks(time), this.currentValue);
     }
     else
     {
@@ -239,14 +237,13 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.renamed("GetValueAt")
   @meta.adapted
-  GetValueAt_Ticks(time, out)
+  GetValueAt__Ticks(time, out)
   {
     if (this._start === 0) this._start = time;
     if (this.curve)
     {
-      return this.curve.GetValueAt(this.GetLocalTime_Ticks(time), out);
+      return this.curve.GetValueAt(this.GetLocalTime__Ticks(time), out);
     }
     return quat.copy(out, this.value);
   }

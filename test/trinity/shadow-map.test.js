@@ -218,9 +218,9 @@ test("shadow rendering sets its own device state, as Carbon's does", () =>
   const esm = {
     PushViewport() { calls.push("PushViewport"); },
     PopViewport() { calls.push("PopViewport"); },
-    PushRenderTarget_TextureAL() { calls.push("PushRenderTarget_TextureAL"); },
+    PushRenderTarget__TextureAL() { calls.push("PushRenderTarget__TextureAL"); },
     PopRenderTarget() { calls.push("PopRenderTarget"); },
-    PushDepthStencilBuffer_TextureAL(value) { calls.push([ "PushDepthStencilBuffer_TextureAL", value ]); },
+    PushDepthStencilBuffer__TextureAL(value) { calls.push([ "PushDepthStencilBuffer__TextureAL", value ]); },
     PopDepthStencilBuffer() { calls.push("PopDepthStencilBuffer"); },
     UpdateRenderTargetViewport(w, h) { calls.push([ "UpdateRenderTargetViewport", w, h ]); },
     SetViewport(viewport) { calls.push([ "SetViewport", viewport ]); }
@@ -246,7 +246,7 @@ test("shadow rendering sets its own device state, as Carbon's does", () =>
   assert.equal(borrowed[0][0], "cascadedShadowDepth");
   assert.deepEqual(
     calls.map(call => (Array.isArray(call) ? call[0] : call)),
-    [ "PushViewport", "PushRenderTarget_TextureAL", "PushDepthStencilBuffer_TextureAL", "UpdateRenderTargetViewport", "Clear", "SetReadOnlyDepth" ]
+    [ "PushViewport", "PushRenderTarget__TextureAL", "PushDepthStencilBuffer__TextureAL", "UpdateRenderTargetViewport", "Clear", "SetReadOnlyDepth" ]
   );
   assert.deepEqual(calls[3], [ "UpdateRenderTargetViewport", 4096, 2048 ]);
   // The texture is bound, not the pool handle: Carbon's handle converts to its
@@ -480,7 +480,7 @@ test("EveSpaceScene.RenderShadows draws each cascade's casters with the Shadow t
   // A caster in two cascades. Batches are what a real object would commit;
   // here the count stands in for them.
   const caster = shadowCaster({
-    IsCastingShadow_ShadowFrustum: (camera, shadowFrustum, reason, radius) =>
+    IsCastingShadow__ShadowFrustum: (camera, shadowFrustum, reason, radius) =>
     {
       calls.push("IsCastingShadow");
       radius[0] = 20;
@@ -528,7 +528,7 @@ test("EveSpaceScene.RenderShadows draws nothing without a cascaded map, at DISAB
 
     prepare(scene);
     scene.componentRegistry.RegisterComponent("ShadowCaster", shadowCaster({
-      IsCastingShadow_ShadowFrustum: () => { asked = true; return true; },
+      IsCastingShadow__ShadowFrustum: () => { asked = true; return true; },
       GetShadowPerObjectData: () => null,
       GetShadowBatches: () => {}
     }));

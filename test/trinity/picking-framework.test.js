@@ -20,8 +20,8 @@ test("one non-Carbon setting defaults to objectId and routes the scene wrapper",
   const previous = Tr2RenderContext.eveSpacePickingFramework, scene = new EveSpaceScene();
   t.after(() => { Tr2RenderContext.eveSpacePickingFramework = previous; scene.Destroy(); });
   const args = [{}, false, 12, 34, {}, {}, {}, 3, {}];
-  t.mock.method(scene, "PerformPicking_ObjectId", (...received) => { assert.deepEqual(received, args); return "old"; });
-  t.mock.method(scene, "PerformPicking_Pointer", (...received) => { assert.deepEqual(received, args); return "new"; });
+  t.mock.method(scene, "PerformPicking__ObjectId", (...received) => { assert.deepEqual(received, args); return "old"; });
+  t.mock.method(scene, "PerformPicking__Pointer", (...received) => { assert.deepEqual(received, args); return "new"; });
   assert.equal(scene.PerformPicking(...args), "old");
   Tr2RenderContext.eveSpacePickingFramework = "pointer";
   assert.equal(scene.PerformPicking(...args), "new");
@@ -41,12 +41,12 @@ test("legacy BGRA decode preserves both byte pairs and native minus-one offsets"
   {
     const padded = new Uint8Array(12);
     padded.set(Pixel(id, area), 4);
-    assert.deepEqual(request.DecodeResult_ObjectId(padded.subarray(4, 8), null, false, null), [expected, area, 0]);
+    assert.deepEqual(request.DecodeResult__ObjectId(padded.subarray(4, 8), null, false, null), [expected, area, 0]);
     assert.deepEqual(seen.at(-1), [id, area]);
   }
-  assert.deepEqual(request.DecodeResult_ObjectId(new Uint8Array(4), null, false, null), [null, 0, 0]);
-  assert.deepEqual(request.DecodeResult_ObjectId(new Uint8Array([0, 1, 0, 0]), null, false, null), [expected, 0xffffffff, 0]);
-  assert.deepEqual(request.DecodeResult_ObjectId(new Uint8Array([255, 255, 255, 255]), null, false, null), [null, 0, 0]);
+  assert.deepEqual(request.DecodeResult__ObjectId(new Uint8Array(4), null, false, null), [null, 0, 0]);
+  assert.deepEqual(request.DecodeResult__ObjectId(new Uint8Array([0, 1, 0, 0]), null, false, null), [expected, 0xffffffff, 0]);
+  assert.deepEqual(request.DecodeResult__ObjectId(new Uint8Array([255, 255, 255, 255]), null, false, null), [null, 0, 0]);
 });
 
 test("legacy debug precedence and immediate versus retained instanced traceback follow the old revision", t =>
@@ -57,11 +57,11 @@ test("legacy debug precedence and immediate versus retained instanced traceback 
   request.collisionSet.push([{ GetID() { return hull; } }, null]);
   request.debugLineObjects.push({ object: debugObject, area: 8 });
   const debug = new Float32Array([1, 1, 0, 0]);
-  assert.deepEqual(request.DecodeResult_ObjectId(Pixel(0, 2), debug, false, null), [debugObject, 8, 0]);
+  assert.deepEqual(request.DecodeResult__ObjectId(Pixel(0, 2), debug, false, null), [debugObject, 8, 0]);
   request.instancedTraceback.push([owner, 17]);
-  assert.deepEqual(request.DecodeResult_ObjectId(Pixel(1, 23), null, false, null), [owner, 17 << 16, 0]);
+  assert.deepEqual(request.DecodeResult__ObjectId(Pixel(1, 23), null, false, null), [owner, 17 << 16, 0]);
   const manager = { GetPickedObject(id, area) { assert.deepEqual([id, area], [1, 23]); return [owner, 99]; } };
-  assert.deepEqual(request.DecodeResult_ObjectId(Pixel(1, 23), null, true, manager), [owner, 99, 0]);
+  assert.deepEqual(request.DecodeResult__ObjectId(Pixel(1, 23), null, true, manager), [owner, 99, 0]);
 });
 
 test("legacy per-object identity is uint32 and remains separate from pointer words", () =>
@@ -82,7 +82,7 @@ test("primitive picking keeps its float buffer and explicit objectId draw path e
   assert.equal(scene._pickBuffer._format, PixelFormat.PIXEL_FORMAT_R32G32B32A32_FLOAT);
   const events = [];
   const esm = { IsDepthTestInverted: () => false, SetInvertedDepthTest() {}, ApplyStandardStates() {} };
-  const context = { GetEffectStateManager: () => esm, RenderBatchesForPicking_ObjectId(_batches, technique) { events.push(technique); } };
+  const context = { GetEffectStateManager: () => esm, RenderBatchesForPicking__ObjectId(_batches, technique) { events.push(technique); } };
   t.mock.method(scene._pickBuffer, "BeginRendering", () => true);
   t.mock.method(scene._pickBuffer, "EndRendering", () => true);
   scene.RenderPicking(null, { Finalize() {} }, ITr2PickableScene.PickComponent.PICK_OBJECT, context);

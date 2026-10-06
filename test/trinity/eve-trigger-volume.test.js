@@ -35,7 +35,7 @@ test("EveTriggerVolume fires edge-triggered callbacks with exclusion subtraction
 
   const tracked = vec3.fromValues(100, 0, 0);
   trigger.trackedPositionCurve = {
-    Update_Ticks(_time, out)
+    Update__Ticks(_time, out)
     {
       vec3.copy(out, tracked);
     }
@@ -89,14 +89,14 @@ test("EveTriggerVolume transforms, merges bounding spheres, and floors pickable 
   trigger.volumes.push(sphereVolume([ -20, 0, 0 ], 10));
   trigger.volumes.push(sphereVolume([ 20, 0, 0 ], 10));
   trigger.translationCurve = {
-    Update_Ticks(_time, out)
+    Update__Ticks(_time, out)
     {
       vec3.set(out, 0, 100, 0);
     }
   };
   const halfSqrt = Math.SQRT1_2;
   trigger.rotationCurve = {
-    Update_Ticks(_time, out)
+    Update__Ticks(_time, out)
     {
       // 90 degrees about +Z
       out[0] = 0; out[1] = 0; out[2] = halfSqrt; out[3] = halfSqrt;

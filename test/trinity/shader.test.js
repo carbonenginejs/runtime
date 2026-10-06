@@ -448,7 +448,7 @@ test("promoted shader resource parameters stay graph-only", () =>
   // assertion note further down this file.
   const srvCalls = [];
   assertEquals(geometry.CopyToResourceSet({
-    SetSrv_BufferAL(stage, registerIndex, buffer)
+    SetSrv__BufferAL(stage, registerIndex, buffer)
     {
       srvCalls.push([ stage, registerIndex, buffer ]);
       return true;
@@ -459,7 +459,7 @@ test("promoted shader resource parameters stay graph-only", () =>
 
   const uavCalls = [];
   assertEquals(geometry.ApplyUav({
-    SetUav_BufferAL(stage, registerIndex, buffer)
+    SetUav__BufferAL(stage, registerIndex, buffer)
     {
       uavCalls.push([ stage, registerIndex, buffer ]);
       return true;
@@ -471,8 +471,8 @@ test("promoted shader resource parameters stay graph-only", () =>
   // Carbon's asymmetry: an untouched srv register keeps whatever the last draw
   // left there, while a stale uav would be written into.
   const unbound = new Tr2GeometryBufferParameter();
-  assertEquals(unbound.CopyToResourceSet({ SetSrv_BufferAL: () => true }, 1, 2), false);
-  assertEquals(unbound.ApplyUav({ SetUav_BufferAL: (s, r, buffer) => buffer === null }, 1, 2), true);
+  assertEquals(unbound.CopyToResourceSet({ SetSrv__BufferAL: () => true }, 1, 2), false);
+  assertEquals(unbound.ApplyUav({ SetUav__BufferAL: (s, r, buffer) => buffer === null }, 1, 2), true);
   const textureAnimation = new Tr2TextureAnimationParameter();
   textureAnimation.animation = {
     GetTexture(channel)
@@ -487,7 +487,7 @@ test("promoted shader resource parameters stay graph-only", () =>
   // than a count.
   const bound = [];
   assertEquals(textureAnimation.CopyToResourceSet({
-    SetSrv_TextureAL(stage, registerIndex, texture, colorSpace)
+    SetSrv__TextureAL(stage, registerIndex, texture, colorSpace)
     {
       bound.push({ stage, registerIndex, texture, colorSpace });
       return true;
@@ -497,12 +497,12 @@ test("promoted shader resource parameters stay graph-only", () =>
   assertEquals(bound[0].colorSpace, Tr2ColorSpace.COLOR_SPACE_SRGB, "the flag selects sRGB");
 
   bound.length = 0;
-  textureAnimation.CopyToResourceSet({ SetSrv_TextureAL: (s, r, t, c) => (bound.push(c), true) }, 1, 2);
+  textureAnimation.CopyToResourceSet({ SetSrv__TextureAL: (s, r, t, c) => (bound.push(c), true) }, 1, 2);
   assertEquals(bound[0], Tr2ColorSpace.COLOR_SPACE_LINEAR, "and linear without it");
 
   // An animated texture is sampled, never written, so Carbon's ApplyUav is
   // false unconditionally - not a stub.
-  assertEquals(textureAnimation.ApplyUav({ SetUav_TextureAL: () => true }, 1, 2), false);
+  assertEquals(textureAnimation.ApplyUav({ SetUav__TextureAL: () => true }, 1, 2), false);
   const invalidations = [];
   textureAnimation.OnAddedToMaterial({
     InvalidateResourceSets()
@@ -1016,8 +1016,8 @@ test("ClearResources drops resources and keeps samplers, as Carbon's does", () =
   const buffer = { id: "buffer" };
   const sampler = { id: "sampler" };
 
-  assert(desc.SetSrv_TextureAL(0, 3, texture));
-  assert(desc.SetUav_TextureAL(1, 4, buffer));
+  assert(desc.SetSrv__TextureAL(0, 3, texture));
+  assert(desc.SetUav__TextureAL(1, 4, buffer));
   assert(desc.SetSampler(0, 2, sampler));
 
   desc.ClearResources();

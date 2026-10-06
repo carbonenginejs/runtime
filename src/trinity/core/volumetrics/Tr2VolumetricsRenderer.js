@@ -197,10 +197,10 @@ export class Tr2VolumetricsRenderer
   constructor()
   {
     const store = Tr2VariableStore.globalStore();
-    store.RegisterVariable_TextureAL("EveSceneFogVolumeMap", new Tr2TextureAL());
-    store.RegisterVariable_TextureAL("VolumetricDepthMap", new Tr2TextureAL());
+    store.RegisterVariable__TextureAL("EveSceneFogVolumeMap", new Tr2TextureAL());
+    store.RegisterVariable__TextureAL("VolumetricDepthMap", new Tr2TextureAL());
     store.RegisterVariableInternal("EveSceneMieEnvironmentMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this.mieEnvironmentMap);
-    store.RegisterVariable_TextureAL("EveSceneFroxelFogMap", new Tr2TextureAL());
+    store.RegisterVariable__TextureAL("EveSceneFroxelFogMap", new Tr2TextureAL());
     const path = "res:/Graphics/Effect/Managed/Space/SpecialFX/Volumetric/";
     this.volumeBlit.SetEffectPathName(path + "VolumeBlit.fx");
     this.downsampleDepth.SetEffectPathName(path + "DownsampleDepth.fx");
@@ -411,7 +411,7 @@ export class Tr2VolumetricsRenderer
       return Tr2VolumetricsRenderer.getEmptyVolumetricTexture(gpuResourcePool);
     }
     const store = Tr2VariableStore.globalStore();
-    store.RegisterVariable_TextureAL("EveSceneFroxelFogMap", froxelFog);
+    store.RegisterVariable__TextureAL("EveSceneFroxelFogMap", froxelFog);
     const sceneInformation = { quality: this.quality, depthSlices, targetWidth: width,
       targetHeight: height, sunDirection, receiveShadows: this.receiveShadows,
       castShadows: this.castShadows, raytracedShadows: raytracingEnabled };
@@ -429,10 +429,10 @@ export class Tr2VolumetricsRenderer
       this.lastRequestedHeight = height;
       for (let slot = 0; slot < 4; slot++)
       {
-        esm.PushRenderTarget_Current(slot);
+        esm.PushRenderTarget__Current(slot);
         pushedTargets++;
       }
-      esm.PushDepthStencilBuffer_TextureAL(null);
+      esm.PushDepthStencilBuffer__TextureAL(null);
       pushedDepth = true;
       if (originalWidth === width && originalHeight === height)
         this.volumeBlit.SetOption("CLOUD_UPSAMPLING", "CLOUD_UPSAMPLING_NONE");
@@ -443,16 +443,16 @@ export class Tr2VolumetricsRenderer
         this.volumeBlit.SetOption("CLOUD_UPSAMPLING", "CLOUD_UPSAMPLING_BILINEAR");
         esm.SetRenderTarget(0, volumetricDepth.Get());
         esm.SetRenderTarget(1, null);
-        this.downsampleDepth.SetParameter_Vector4("DepthSizes", [width, height, originalWidth, originalHeight]);
-        this.downsampleDepth.SetParameter_TextureAL("DepthMap", sceneDepth);
+        this.downsampleDepth.SetParameter__Vector4("DepthSizes", [width, height, originalWidth, originalHeight]);
+        this.downsampleDepth.SetParameter__TextureAL("DepthMap", sceneDepth);
         Tr2Renderer.drawScreenQuad(renderContext, this.downsampleDepth);
-        this.downsampleDepth.SetParameter_TextureAL("DepthMap", null);
+        this.downsampleDepth.SetParameter__TextureAL("DepthMap", null);
       }
-      store.RegisterVariable_TextureAL("VolumetricDepthMap", volumetricDepth && volumetricDepth.IsValid() ? volumetricDepth.Get() : sceneDepth);
+      store.RegisterVariable__TextureAL("VolumetricDepthMap", volumetricDepth && volumetricDepth.IsValid() ? volumetricDepth.Get() : sceneDepth);
       for (let slot = 0; slot < 4; slot++) esm.SetRenderTarget(slot, volumeSlices.Get(), true, slot);
       for (let slot = 0; slot < 4; slot++) renderContext.Clear({ clearColor: true, clearDepth: false, color: 0, slot });
       const renderables = [];
-      registry.ProcessComponents(componentType, cloud => renderables.push([cloud, cloud.GetSortValue_Frustum(frustum)]));
+      registry.ProcessComponents(componentType, cloud => renderables.push([cloud, cloud.GetSortValue__Frustum(frustum)]));
       renderables.sort((left, right) => right[1] - left[1]);
       for (const [cloud] of renderables) cloud.GetVolumetricBatches(frustum, batches);
       if (batches.GetBatchCount())
@@ -468,24 +468,24 @@ export class Tr2VolumetricsRenderer
         esm.ApplyStandardStates(RenderingMode.RM_FULLSCREEN);
         esm.SetRenderTarget(0, blurScratch.Get());
         for (let slot = 1; slot < 4; slot++) esm.SetRenderTarget(slot, null);
-        this.hBlur.SetParameter_TextureAL("EveSceneFogVolumeMap", volumeSlices.Get());
-        this.hBlur.SetParameter_Vector4("DepthSizes", [width, height, 1 / width, 0]);
+        this.hBlur.SetParameter__TextureAL("EveSceneFogVolumeMap", volumeSlices.Get());
+        this.hBlur.SetParameter__Vector4("DepthSizes", [width, height, 1 / width, 0]);
         Tr2Renderer.drawScreenQuad(renderContext, this.hBlur);
-        this.hBlur.SetParameter_TextureAL("EveSceneFogVolumeMap", null);
+        this.hBlur.SetParameter__TextureAL("EveSceneFogVolumeMap", null);
         esm.SetRenderTarget(0, volumeSlices.Get(), true, 3);
-        this.vBlur.SetParameter_Vector4("DepthSizes", [width, height, 0, 1 / height]);
-        this.vBlur.SetParameter_TextureAL("SourceMap", blurScratch.Get());
+        this.vBlur.SetParameter__Vector4("DepthSizes", [width, height, 0, 1 / height]);
+        this.vBlur.SetParameter__TextureAL("SourceMap", blurScratch.Get());
         Tr2Renderer.drawScreenQuad(renderContext, this.vBlur);
-        this.vBlur.SetParameter_TextureAL("SourceMap", null);
+        this.vBlur.SetParameter__TextureAL("SourceMap", null);
         gpuResourcePool.Free(blurScratch);
         blurScratch = null;
       }
       while (pushedTargets) esm.PopRenderTarget(--pushedTargets);
       esm.ApplyStandardStates(RenderingMode.RM_ALPHA);
-      this.volumeBlit.SetParameter_Vector4("DepthSizes", [width, height, originalWidth, originalHeight]);
-      this.volumeBlit.SetParameter_TextureAL("EveSceneFogVolumeMap", volumeSlices.Get());
+      this.volumeBlit.SetParameter__Vector4("DepthSizes", [width, height, originalWidth, originalHeight]);
+      this.volumeBlit.SetParameter__TextureAL("EveSceneFogVolumeMap", volumeSlices.Get());
       Tr2Renderer.drawScreenQuad(renderContext, this.volumeBlit);
-      this.volumeBlit.SetParameter_TextureAL("EveSceneFogVolumeMap", null);
+      this.volumeBlit.SetParameter__TextureAL("EveSceneFogVolumeMap", null);
       esm.PopDepthStencilBuffer();
       pushedDepth = false;
       returned = true;
@@ -498,15 +498,15 @@ export class Tr2VolumetricsRenderer
       while (pushedTargets) esm.PopRenderTarget(--pushedTargets);
       if (pushedDepth) esm.PopDepthStencilBuffer();
       batches.Clear();
-      this.downsampleDepth.SetParameter_TextureAL("DepthMap", new Tr2TextureAL());
-      this.hBlur.SetParameter_TextureAL("EveSceneFogVolumeMap", new Tr2TextureAL());
-      this.vBlur.SetParameter_TextureAL("SourceMap", new Tr2TextureAL());
-      this.volumeBlit.SetParameter_TextureAL("EveSceneFogVolumeMap", new Tr2TextureAL());
-      store.RegisterVariable_TextureAL("VolumetricDepthMap", new Tr2TextureAL());
+      this.downsampleDepth.SetParameter__TextureAL("DepthMap", new Tr2TextureAL());
+      this.hBlur.SetParameter__TextureAL("EveSceneFogVolumeMap", new Tr2TextureAL());
+      this.vBlur.SetParameter__TextureAL("SourceMap", new Tr2TextureAL());
+      this.volumeBlit.SetParameter__TextureAL("EveSceneFogVolumeMap", new Tr2TextureAL());
+      store.RegisterVariable__TextureAL("VolumetricDepthMap", new Tr2TextureAL());
       if (!returned && volumeSlices) gpuResourcePool.Free(volumeSlices);
       if (volumetricDepth) gpuResourcePool.Free(volumetricDepth);
       if (blurScratch) gpuResourcePool.Free(blurScratch);
-      store.RegisterVariable_TextureAL("EveSceneFroxelFogMap", new Tr2TextureAL());
+      store.RegisterVariable__TextureAL("EveSceneFroxelFogMap", new Tr2TextureAL());
     }
   }
 
@@ -711,8 +711,8 @@ export class Tr2VolumetricsRenderer
         calculateFroxels.SetOption("SHADOWS", shadowType === Tr2VolumetricsRenderer._shadowType.SHADOWS_CASCADED ? "SHADOWS_ENABLED" : "SHADOWS_DISABLED");
         calculateFroxels.SetOption("GOD_RAY_NOISE", this.godRayNoiseIntensity > 0 ? "GOD_RAY_NOISE_ENABLED" : "GOD_RAY_NOISE_DISABLED");
         calculateFroxels.SetOption("FOG_NOISE", this.fogNoiseIntensity > 0 ? "FOG_NOISE_ENABLED" : "FOG_NOISE_DISABLED");
-        calculateFroxels.SetParameter_TextureProvider("Noise3DTexture", this._froxel3DNoise);
-        calculateFroxels.SetParameter_TextureAL("RtFroxelOutputTexture", fogFroxels.Get());
+        calculateFroxels.SetParameter__TextureProvider("Noise3DTexture", this._froxel3DNoise);
+        calculateFroxels.SetParameter__TextureAL("RtFroxelOutputTexture", fogFroxels.Get());
         Tr2Renderer.runComputeShader(calculateFroxels, wgX, wgY, wgZ, renderContext);
       }
 
@@ -726,23 +726,23 @@ export class Tr2VolumetricsRenderer
         const temporalOutput = resources.currentTemporalFroxels ? temporalFroxels1 : temporalFroxels0;
         resources.currentTemporalFroxels = !resources.currentTemporalFroxels;
 
-        resources.filterFroxels.SetParameter_TextureAL("InputTexture", fogFroxels.Get());
-        resources.filterFroxels.SetParameter_TextureAL("PreviousTexture", temporalInput.Get());
-        resources.filterFroxels.SetParameter_TextureAL("OutputTexture", temporalOutput.Get());
+        resources.filterFroxels.SetParameter__TextureAL("InputTexture", fogFroxels.Get());
+        resources.filterFroxels.SetParameter__TextureAL("PreviousTexture", temporalInput.Get());
+        resources.filterFroxels.SetParameter__TextureAL("OutputTexture", temporalOutput.Get());
         Tr2Renderer.runComputeShader(resources.filterFroxels, wgX, wgY, wgZ, renderContext);
 
-        resources.raymarchFroxels.SetParameter_TextureAL("InputTexture", temporalOutput.Get());
+        resources.raymarchFroxels.SetParameter__TextureAL("InputTexture", temporalOutput.Get());
       }
 
-      resources.raymarchFroxels.SetParameter_TextureAL("OutputTexture", fogFroxels.Get());
+      resources.raymarchFroxels.SetParameter__TextureAL("OutputTexture", fogFroxels.Get());
       // An 8x4 workgroup is faster here.
       Tr2Renderer.runComputeShader(resources.raymarchFroxels, Math.floor((width + 7) / 8), Math.floor((height + 3) / 4), 1, renderContext);
 
       renderContext.GetEffectStateManager().ApplyStandardStates(RenderingMode.RM_ALPHA);
       resources.applyFroxels.SetOption("ENVIRONMENT_LIGHTING", this.environmentIntensity > 0 ? "ENVIRONMENT_LIGHTING_ENABLED" : "ENVIRONMENT_LIGHTING_DISABLED");
-      resources.applyFroxels.SetParameter_TextureAL("EveSceneFroxelFogMap", fogFroxels.Get());
+      resources.applyFroxels.SetParameter__TextureAL("EveSceneFroxelFogMap", fogFroxels.Get());
       Tr2Renderer.drawScreenQuad(renderContext, resources.applyFroxels);
-      resources.applyFroxels.SetParameter_TextureAL("EveSceneFroxelFogMap", new Tr2TextureAL());
+      resources.applyFroxels.SetParameter__TextureAL("EveSceneFroxelFogMap", new Tr2TextureAL());
     }
     catch (error)
     {
@@ -826,12 +826,12 @@ export class Tr2VolumetricsRenderer
       this._previousEnvironmentG = environmentG;
 
       const effect = this._updateMieEnvironmentMap;
-      effect.SetParameter_UInt32("Resolution", environmentMapResolution);
-      effect.SetParameter_Vector2("Jitter", jitter);
+      effect.SetParameter__UInt32("Resolution", environmentMapResolution);
+      effect.SetParameter__Vector2("Jitter", jitter);
       effect.SetParameter("EnvironmentG", environmentG);
       effect.SetParameter("BlendWeight", blendWeight);
       effect.SetParameter("Random", this._environmentRandom);
-      effect.SetParameter_TextureProvider("PrecomputedMieEnvironmentMap", this.mieEnvironmentMap);
+      effect.SetParameter__TextureProvider("PrecomputedMieEnvironmentMap", this.mieEnvironmentMap);
       Tr2Renderer.runComputeShader(effect, environmentMapResolution / 8, environmentMapResolution / 8, 6, renderContext);
     }
   }
@@ -1088,8 +1088,8 @@ export class Tr2VolumetricsRenderer
     if (!batches.GetBatchCount()) return;
     batches.Finalize();
     const esm = renderContext.GetEffectStateManager();
-    esm.PushRenderTarget_TextureAL(shadowMap);
-    esm.PushDepthStencilBuffer_TextureAL(null);
+    esm.PushRenderTarget__TextureAL(shadowMap);
+    esm.PushDepthStencilBuffer__TextureAL(null);
     esm.ApplyStandardStates(RenderingMode.RM_ALPHA);
     try { renderContext.RenderBatches(batches, "Shadow"); }
     finally

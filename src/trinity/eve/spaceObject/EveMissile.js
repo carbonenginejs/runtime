@@ -110,7 +110,7 @@ export class EveMissile extends EveSpaceObject2
     if (this.rotationCurve)
     {
       quat.identity(EveMissile._ballRotation);
-      this.rotationCurve.Update_Ticks(time, EveMissile._ballRotation);
+      this.rotationCurve.Update__Ticks(time, EveMissile._ballRotation);
       quat.invert(EveMissile._ballRotation, EveMissile._ballRotation);
       mat4.fromQuat(EveMissile._inverseBallRotation, EveMissile._ballRotation);
     }
@@ -119,8 +119,8 @@ export class EveMissile extends EveSpaceObject2
     vec3.set(EveMissile._missileVelocity, 0, 0, 0);
     if (this.translationCurve && this.target)
     {
-      this.translationCurve.GetValueAt_Ticks(time, EveMissile._missilePosition);
-      this.translationCurve.GetValueDotAt_Ticks(time, EveMissile._missileVelocity);
+      this.translationCurve.GetValueAt__Ticks(time, EveMissile._missilePosition);
+      this.translationCurve.GetValueDotAt__Ticks(time, EveMissile._missileVelocity);
       this.target.GetDamageLocatorPosition(-1, true, EveMissile._targetPosition);
       const speed = vec3.length(EveMissile._missileVelocity);
       if (speed > 0)
@@ -189,12 +189,11 @@ export class EveMissile extends EveSpaceObject2
    * Adapted: returns the caller's output array; the existing collectors do not
    * represent Carbon's impostor-manager argument.
    */
-  @meta.renamed("GetRenderables")
   @meta.adapted
-  GetRenderables_Impostors(out = [], _impostors)
+  GetRenderables__Impostors(out = [], _impostors)
   {
-    super.GetRenderables_Impostors(out, null);
-    for (const warhead of this.warheads) warhead.GetRenderables_Impostors(out, null);
+    super.GetRenderables__Impostors(out, null);
+    for (const warhead of this.warheads) warhead.GetRenderables__Impostors(out, null);
     return out;
   }
 

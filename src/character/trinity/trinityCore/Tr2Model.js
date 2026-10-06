@@ -177,7 +177,7 @@ export class Tr2Model
     const geometry = mesh.GetGeometryResource();
     if (!geometry || !geometry.IsGood()) return;
     // Native literal 0 selects the int lodIndex overload, not float screenSize.
-    const lod = geometry.GetMeshLod_LodIndex(mesh.GetMeshIndex(), 0);
+    const lod = geometry.GetMeshLod__LodIndex(mesh.GetMeshIndex(), 0);
     if (!lod || !CreateLodAllocations(geometry, mesh.GetMeshIndex(), lod, Tr2RenderContext_GetMainThreadRenderContext())) return;
     for (const area of areas)
     {

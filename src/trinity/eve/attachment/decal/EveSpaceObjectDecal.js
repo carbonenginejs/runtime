@@ -541,7 +541,7 @@ export class EveSpaceObjectDecal
     // transformed box and HALF ITS FULL DIAGONAL (cpp:159-160).
     const center = EveSpaceObjectDecal._pointScratch;
     const radius = box3.toPositionRadius(bounds, center);
-    const pixelSize = frustum.GetPixelSizeAccrossEst_CenterRadius(center, radius);
+    const pixelSize = frustum.GetPixelSizeAccrossEst__CenterRadius(center, radius);
     const modifiedMinScreen = this.minScreenSize * updateContext.GetLodFactor();
 
     if (pixelSize < modifiedMinScreen) return false;
@@ -831,7 +831,7 @@ export class EveSpaceObjectDecal
     if (!decalLod || !decalLod.primitiveCount) return;
 
     // Carbon GetMeshLod( 0, int ) is the index overload.
-    const lod = this._baseGeometryResource.GetMeshLod_LodIndex(0, this._geometryLodIndex);
+    const lod = this._baseGeometryResource.GetMeshLod__LodIndex(0, this._geometryLodIndex);
     if (!lod.allocationsValid) return;
     // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.
     if (!this.decalEffect || !this.decalEffect.IsGood()) return;
@@ -844,7 +844,7 @@ export class EveSpaceObjectDecal
       ? this._vertexDeclarationOverride
       : Tr2EffectStateManager.getVertexDeclarationHandle(CarbonVertexElements(this._baseGeometryResource.GetMeshVertexElements(0)));
 
-    batch.SetGeometry_Allocation(declaration, lod.vertexAllocation, decalGeometry.indexBuffer);
+    batch.SetGeometry__Allocation(declaration, lod.vertexAllocation, decalGeometry.indexBuffer);
     batch.SetPerObjectData(perObjectData);
 
     const indexCount = decalLod.primitiveCount * 3;

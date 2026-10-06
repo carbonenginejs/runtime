@@ -121,22 +121,22 @@ test("SOF-shaped rotation value binding updates a plain adapter's authored outpu
     assert.deepEqual([...destination.currentValue],[0,0,1,0]);
 });
 
-test("modifier native UpdateValue is a no-op while Update_Ticks chooses the required source path; the double Update is Carbon's stub",()=>
+test("modifier native UpdateValue is a no-op while Update__Ticks chooses the required source path; the double Update is Carbon's stub",()=>
 {
     const modifier=new Tr2VectorFunctionModifier();
     const calls=[];
-    modifier.clientBall={Update_Ticks(t,out){calls.push(["Update_Ticks",t,out]);out.set([1,2,3]);},InterpolatedPosition(t,out){calls.push(["InterpolatedPosition",t,out]);out.set([4,5,6]);}};
+    modifier.clientBall={Update__Ticks(t,out){calls.push(["Update__Ticks",t,out]);out.set([1,2,3]);},InterpolatedPosition(t,out){calls.push(["InterpolatedPosition",t,out]);out.set([4,5,6]);}};
     modifier.offsetPosition.set([1,1,1]);modifier.scaleModifier=2;
     assert.equal(modifier.UpdateValue(10),undefined);assert.equal(calls.length,0);
     const out=new Float32Array(3);
-    assert.ok(modifier.Update_Ticks(110_000_000,out)===out);
-    assert.deepEqual([...out],[4,6,8]);assert.equal(calls[0][0],"Update_Ticks");assert.equal(calls[0][1],110_000_000);assert.ok(calls[0][2]===out);
+    assert.ok(modifier.Update__Ticks(110_000_000,out)===out);
+    assert.deepEqual([...out],[4,6,8]);assert.equal(calls[0][0],"Update__Ticks");assert.equal(calls[0][1],110_000_000);assert.ok(calls[0][2]===out);
     modifier.useSystemCoordinates=true;
-    modifier.Update_Ticks(120_000_000,out);
+    modifier.Update__Ticks(120_000_000,out);
     assert.deepEqual([...out],[10,12,14]);assert.equal(calls[1][0],"InterpolatedPosition");assert.equal(calls[1][1],120_000_000);assert.ok(calls[1][2]===out);
     // The double overload is Carbon's deprecated stub: output untouched, ball not asked.
     out.set([7,7,7]);assert.ok(modifier.Update(12,out)===out);assert.deepEqual([...out],[7,7,7]);assert.equal(calls.length,2);
-    modifier.clientBall={};modifier.useSystemCoordinates=false;assert.throws(()=>modifier.Update_Ticks(130_000_000,out),TypeError);
+    modifier.clientBall={};modifier.useSystemCoordinates=false;assert.throws(()=>modifier.Update__Ticks(130_000_000,out),TypeError);
 });
 
 test("modifier requires methods on a present renderer while retaining null-context adaptation",()=>

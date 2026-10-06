@@ -145,7 +145,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
       ? Tr2ColorSpace.COLOR_SPACE_SRGB
       : Tr2ColorSpace.COLOR_SPACE_LINEAR;
 
-    return resourceDesc.SetSrv_TextureAL(stage, registerIndex, this._Texture(renderContext), colorSpace);
+    return resourceDesc.SetSrv__TextureAL(stage, registerIndex, this._Texture(renderContext), colorSpace);
   }
 
   /** The provider's texture, realized through the context if it is a resource that has loaded but not yet been created; null otherwise. */
@@ -181,8 +181,8 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
     const texture = this.texture ? this.texture.GetTexture() : null;
 
     return texture
-      ? resourceDesc.SetUav_TextureAL(stage, registerIndex, texture, this.uavMipLevel)
-      : resourceDesc.SetUav_TextureAL(stage, registerIndex, null);
+      ? resourceDesc.SetUav__TextureAL(stage, registerIndex, texture, this.uavMipLevel)
+      : resourceDesc.SetUav__TextureAL(stage, registerIndex, null);
   }
 
   /**

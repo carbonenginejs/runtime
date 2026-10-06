@@ -115,7 +115,7 @@ export class TriGeometryRes extends CjsResource
     // Granny): the target names, less the exporter's "Shape" suffix; a cleared baked flag per target; and the
     // deformation amount, the CMF target's maxDisplacement or, for Granny, the largest morph-to-base distance, which
     // the gr2 conversion has already reduced to the same maxDisplacement. A mesh without morphs gets empty tables; one
-    // with no lods is its own LOD (GetMeshLod_LodIndex).
+    // with no lods is its own LOD (GetMeshLod__LodIndex).
     for (const mesh of payload.meshes)
     {
       const targets = mesh.morphTargets?.targets ?? [];
@@ -363,7 +363,7 @@ export class TriGeometryRes extends CjsResource
 
   // Carbon TriGeometryRes.cpp:268-279. Carbon overloads this on float
   // screenSize versus int lodIndex; JavaScript cannot, so the index form is
-  // GetMeshLod_LodIndex. Carbon indexes m_lods with the result unguarded, so a
+  // GetMeshLod__LodIndex. Carbon indexes m_lods with the result unguarded, so a
   // mesh with an EMPTY lod list reads out of bounds there; this port returns
   // null (a known Carbon defect).
 
@@ -375,19 +375,19 @@ export class TriGeometryRes extends CjsResource
    * @param {number} screenSize
    * @returns {object|null}
    */
-  GetMeshLod_ScreenSize(meshIndex, screenSize)
+  GetMeshLod__ScreenSize(meshIndex, screenSize)
   {
-    return this.GetMeshLod_LodIndex(meshIndex, this.GetLodIndexForScreenSize(meshIndex, screenSize));
+    return this.GetMeshLod__LodIndex(meshIndex, this.GetLodIndexForScreenSize(meshIndex, screenSize));
   }
 
   /**
    * Carbon's bare GetMeshLod is not supported: its float screenSize and int
    * lodIndex overloads (TriGeometryRes.h:282-283) are both JavaScript numbers.
-   * Call GetMeshLod_ScreenSize or GetMeshLod_LodIndex.
+   * Call GetMeshLod__ScreenSize or GetMeshLod__LodIndex.
    */
   GetMeshLod()
   {
-    throw new Error("TriGeometryRes.GetMeshLod is not supported; call GetMeshLod_ScreenSize or GetMeshLod_LodIndex.");
+    throw new Error("TriGeometryRes.GetMeshLod is not supported; call GetMeshLod__ScreenSize or GetMeshLod__LodIndex.");
   }
 
   /**
@@ -398,7 +398,7 @@ export class TriGeometryRes extends CjsResource
    * @param {number} lodIndex
    * @returns {object|null}
    */
-  GetMeshLod_LodIndex(meshIndex, lodIndex)
+  GetMeshLod__LodIndex(meshIndex, lodIndex)
   {
     const mesh = this.GetPayload()?.meshes?.[meshIndex];
 
@@ -810,7 +810,7 @@ export class TriGeometryRes extends CjsResource
   GetInstanceData(bufferIndex = 0, screenSize = Infinity)
   {
     const mesh = this.GetMeshData(bufferIndex);
-    const lod = mesh ? this.GetMeshLod_ScreenSize(bufferIndex, screenSize) : null;
+    const lod = mesh ? this.GetMeshLod__ScreenSize(bufferIndex, screenSize) : null;
     const allocation = lod?.vertexAllocation;
     if (!allocation) return { buffer: null, offset: 0, stride: 0, count: 0 };
     return { buffer: allocation.GetBuffer(), offset: allocation.GetOffset(),
@@ -1475,8 +1475,8 @@ CjsSchema.define(TriGeometryRes, {
     GetMeshAreaCount: [ meta.blue.method, meta.adapted ],
     GetLodIndexForScreenSize: [ meta.blue.method, meta.adapted ],
     GetMeshLod: [ meta.blue.method, meta.notSupported ],
-    GetMeshLod_ScreenSize: [ meta.renamed("GetMeshLod"), meta.adapted ],
-    GetMeshLod_LodIndex: [ meta.renamed("GetMeshLod"), meta.adapted ],
+    GetMeshLod__ScreenSize: [ meta.adapted ],
+    GetMeshLod__LodIndex: [ meta.adapted ],
     GetMeshName: [ meta.blue.method, meta.adapted ],
     GetMeshAreaName: [ meta.blue.method, meta.adapted ],
     GetAreaBoundingBox: [ meta.blue.method, meta.adapted ],

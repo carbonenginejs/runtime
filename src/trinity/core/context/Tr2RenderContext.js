@@ -798,9 +798,9 @@ export class Tr2RenderContext
    * @param {number} stride Bytes per index.
    * @returns {number} An `ALResult`: whether the AL accepted it.
    */
-  SetIndices_Stride(buffer, stride)
+  SetIndices__Stride(buffer, stride)
   {
-    return this._requireAL("SetIndices_Stride").SetIndices_Stride(buffer, stride);
+    return this._requireAL("SetIndices__Stride").SetIndices__Stride(buffer, stride);
   }
 
   /**
@@ -1435,8 +1435,8 @@ export class Tr2RenderContext
   {
     switch (Tr2RenderContext.eveSpacePickingFramework)
     {
-      case "objectId": return this.RenderBatchesForPicking_ObjectId(batches, techniqueName);
-      case "pointer": return this.RenderBatchesForPicking_Pointer(batches, techniqueName);
+      case "objectId": return this.RenderBatchesForPicking__ObjectId(batches, techniqueName);
+      case "pointer": return this.RenderBatchesForPicking__Pointer(batches, techniqueName);
       default: throw new TypeError("Unknown eveSpacePickingFramework; expected objectId or pointer.");
     }
   }
@@ -1466,7 +1466,7 @@ export class Tr2RenderContext
    * @returns {number} Number of submitted batches.
    */
   @meta.adapted
-  RenderBatchesForPicking_ObjectId(batches, techniqueName = DEFAULT_TECHNIQUE)
+  RenderBatchesForPicking__ObjectId(batches, techniqueName = DEFAULT_TECHNIQUE)
   {
     Tr2RingBuffer.prepareInstances(this);
     const objectId = this.GetObjectIdVariable();
@@ -1506,7 +1506,7 @@ export class Tr2RenderContext
    * @returns {number} Number of submitted batches.
    */
   @meta.adapted
-  RenderBatchesForPicking_Pointer(batches, techniqueName = DEFAULT_TECHNIQUE)
+  RenderBatchesForPicking__Pointer(batches, techniqueName = DEFAULT_TECHNIQUE)
   {
     Tr2RingBuffer.prepareInstances(this);
     const store = Tr2VariableStore.globalStore();

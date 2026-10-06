@@ -279,10 +279,10 @@ test("MapForReading answers one frame late from a completed staging copy", async
   await new Promise(resolve => setTimeout(resolve, 0));
 
   // Next call: the completed copy, sliced to the span asked for.
-  const read = buffer.MapForReading_OffsetSize(context, 1, 2);
+  const read = buffer.MapForReading__OffsetSize(context, 1, 2);
   assert.equal(read.result, ALResult.S_OK);
   assert.deepEqual(Array.from(read.data), [ 2, 3 ]);
-  assert.equal(buffer.MapForReading_OffsetSize(context, 4, 64).result, ALResult.E_INVALIDARG);
+  assert.equal(buffer.MapForReading__OffsetSize(context, 4, 64).result, ALResult.E_INVALIDARG);
 });
 
 test("UpdateBuffer writes a WRITE_OFTEN buffer and a plain WRITE one", () =>

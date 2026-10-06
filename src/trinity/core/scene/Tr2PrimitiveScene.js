@@ -298,7 +298,7 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
         {
           picking.Finalize();
           esm.ApplyStandardStates(RenderingMode.RM_PICKING);
-          context.RenderBatchesForPicking_ObjectId(picking, "Main");
+          context.RenderBatchesForPicking__ObjectId(picking, "Main");
         }
         return true;
       }

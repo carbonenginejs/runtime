@@ -1388,7 +1388,7 @@ export class CjsWebgpuRenderContextAL
    */
   SetIndices(buffer)
   {
-    return this.SetIndices_Stride(buffer, buffer ? buffer.GetDesc().stride : 0);
+    return this.SetIndices__Stride(buffer, buffer ? buffer.GetDesc().stride : 0);
   }
 
   /**
@@ -1398,7 +1398,7 @@ export class CjsWebgpuRenderContextAL
    * @param {number} stride Bytes per index.
    * @returns {number} `S_OK`.
    */
-  SetIndices_Stride(buffer, stride)
+  SetIndices__Stride(buffer, stride)
   {
     this._indexBuffer = buffer ? buffer.TrinityALImpl_GetObject() : null;
     this._indexStride = stride;
@@ -2357,7 +2357,7 @@ export class CjsWebgpuRenderContextAL
       return { result, implementation };
     }
     const resourceSet = new Tr2ResourceSetAL();
-    if (Failed(resourceSet.Create_Program(description, program, this))) return null;
+    if (Failed(resourceSet.Create__Program(description, program, this))) return null;
     return resourceSet;
   }
 

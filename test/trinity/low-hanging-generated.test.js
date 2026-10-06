@@ -1490,7 +1490,7 @@ test("EveLensflare.Update ports Carbon's position, sun size, and fan-out", () =>
 
   // update === false: nothing moves.
   lensflare.update = false;
-  lensflare.translationCurve = { Update_Ticks() { throw new Error("must not run"); } };
+  lensflare.translationCurve = { Update__Ticks() { throw new Error("must not run"); } };
   lensflare.Update(1, 2);
 
   // No curve: sunSize is 1 (cpp:161), not the constructed 0.
@@ -1502,7 +1502,7 @@ test("EveLensflare.Update ports Carbon's position, sun size, and fan-out", () =>
   // Curve at exactly 1 AU: 1.5 / ln(1 + 2.71), and the call is out-LAST.
   const curveArgs = [];
   lensflare.translationCurve = {
-    Update_Ticks(time, out)
+    Update__Ticks(time, out)
     {
       curveArgs.push([time, out]);
       out.set([0.1495978707e12, 0, 0]);
@@ -1510,7 +1510,7 @@ test("EveLensflare.Update ports Carbon's position, sun size, and fan-out", () =>
   };
   const curveSetCalls = [];
   const controllerCalls = [];
-  lensflare.curveSets.push({ Update_RealTimeSimTime(realTime, simTime) { curveSetCalls.push([realTime, simTime]); } });
+  lensflare.curveSets.push({ Update__RealTimeSimTime(realTime, simTime) { curveSetCalls.push([realTime, simTime]); } });
   lensflare.controllers.push({ Update(frequency) { controllerCalls.push(frequency); } });
   lensflare.Update(7, 3);
   assert.equal(curveArgs.length, 1);

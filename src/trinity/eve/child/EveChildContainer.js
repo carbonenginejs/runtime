@@ -875,7 +875,7 @@ export class EveChildContainer extends EveChildTransform
       const time = updateContext.GetTime();
       for (const curveSet of this.curveSets)
       {
-        curveSet.Update_RealTimeSimTime(time, time, updateContext.renderContext);
+        curveSet.Update__RealTimeSimTime(time, time, updateContext.renderContext);
       }
     }
 
@@ -1352,7 +1352,7 @@ export class EveChildContainer extends EveChildTransform
     {
       if (curveSet.GetName() === target)
       {
-        curveSet.Update_RealTimeSimTime(time, time, renderContext);
+        curveSet.Update__RealTimeSimTime(time, time, renderContext);
       }
     }
 

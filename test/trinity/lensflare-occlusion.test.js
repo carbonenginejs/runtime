@@ -69,7 +69,7 @@ function RecordingSprite(log)
   return {
     UpdateSyncronous: () => log.push("sync"),
     UpdateVisibility: (_context, transform) => log.push(`visibility:${transform.length}`),
-    GetRenderables_Impostors: out => { out.push(renderable); return out; }
+    GetRenderables__Impostors: out => { out.push(renderable); return out; }
   };
 }
 

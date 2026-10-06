@@ -51,11 +51,11 @@ test("actual step forwards both raw clocks and caller view to real curve sets",(
 });
 
 test("hidden Scene retains clocks and skips view, updates and cleanup",()=>{
- const scene=new Tr2Sprite2dScene(),set=new TriCurveSet();assert.deepEqual([...Tr2VariableStore.globalStore().GetVariable("g_DotVector").GetValue()],[0,0,0,1]);scene.curveSets.Append(set);scene.clearFinishedCurveSets=true;scene.display=false;set.Update_RealTimeSimTime=()=>{throw Error("hidden update");};scene.Update(31,47,{GetViewTransform(){throw Error("hidden camera");}});assert.deepEqual([scene._realTime,scene._simTime],[31,47]);assert.equal(scene.curveSets.length,1);assert.deepEqual([...Tr2VariableStore.globalStore().GetVariable("g_DotVector").GetValue()],[0,0,0,1]);
+ const scene=new Tr2Sprite2dScene(),set=new TriCurveSet();assert.deepEqual([...Tr2VariableStore.globalStore().GetVariable("g_DotVector").GetValue()],[0,0,0,1]);scene.curveSets.Append(set);scene.clearFinishedCurveSets=true;scene.display=false;set.Update__RealTimeSimTime=()=>{throw Error("hidden update");};scene.Update(31,47,{GetViewTransform(){throw Error("hidden camera");}});assert.deepEqual([scene._realTime,scene._simTime],[31,47]);assert.equal(scene.curveSets.length,1);assert.deepEqual([...Tr2VariableStore.globalStore().GetVariable("g_DotVector").GetValue()],[0,0,0,1]);
 });
 
 test("cleanup follows all updates and removes adjacent stopped sets with Blue notifications",()=>{
- const scene=new Tr2Sprite2dScene(),events=[],sets=Array.from({length:3},()=>new TriCurveSet());sets.forEach((set,i)=>{set.Update_RealTimeSimTime=()=>events.push("update"+i);set.isPlaying=i===2;scene.curveSets.Append(set);});class Observer extends IListNotify{OnListModified(_event,_key,_key2,value){events.push("remove"+sets.indexOf(value));}}scene.curveSets.SetNotify(new Observer());const list=scene.curveSets;scene.clearFinishedCurveSets=true;scene.Update(1,2,context);assert.equal(scene.curveSets,list);assert.deepEqual([...list],[sets[2]]);assert.deepEqual(events,["update0","update1","update2","remove0","remove1"]);
+ const scene=new Tr2Sprite2dScene(),events=[],sets=Array.from({length:3},()=>new TriCurveSet());sets.forEach((set,i)=>{set.Update__RealTimeSimTime=()=>events.push("update"+i);set.isPlaying=i===2;scene.curveSets.Append(set);});class Observer extends IListNotify{OnListModified(_event,_key,_key2,value){events.push("remove"+sets.indexOf(value));}}scene.curveSets.SetNotify(new Observer());const list=scene.curveSets;scene.clearFinishedCurveSets=true;scene.Update(1,2,context);assert.equal(scene.curveSets,list);assert.deepEqual([...list],[sets[2]]);assert.deepEqual(events,["update0","update1","update2","remove0","remove1"]);
 });
 
 test("required updateable and curve calls fail rather than skip malformed objects",()=>{
@@ -85,7 +85,7 @@ test("Scene uses the main-thread view fallback and tolerates a missing shader ha
     const scene = new Tr2Sprite2dScene();
     const set = new TriCurveSet();
     const received = [];
-    set.Update_RealTimeSimTime = (...times) => received.push(times);
+    set.Update__RealTimeSimTime = (...times) => received.push(times);
     scene.curveSets.Append(set);
     scene.Update(17, 23);
     const expected = [2 * 0.332621 * 0.882455, -2 * 0.332621 * 0.882455, 0.882455 ** 2 - 2 * 0.332621 ** 2, 1];

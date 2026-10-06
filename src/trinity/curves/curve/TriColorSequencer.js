@@ -152,11 +152,10 @@ export class TriColorSequencer extends ITriColorFunction
    * @param {Float32Array} out Destination color.
    * @returns {Float32Array} The destination.
    */
-  @meta.renamed("Update")
   @meta.adapted
-  Update_Ticks(time, out)
+  Update__Ticks(time, out)
   {
-    this.GetValueAt_Ticks(time, out);
+    this.GetValueAt__Ticks(time, out);
     vec4.copy(this.value, out);
     return out;
   }
@@ -168,16 +167,15 @@ export class TriColorSequencer extends ITriColorFunction
    * @param {Float32Array} out Destination color.
    * @returns {Float32Array} The destination.
    */
-  @meta.renamed("GetValueAt")
   @meta.adapted
-  GetValueAt_Ticks(time, out)
+  GetValueAt__Ticks(time, out)
   {
     if (this.operator === TRIOPERATOR.TRIOP_MULTIPLY)
     {
       vec4.set(out, 1, 1, 1, 1);
       for (const curve of this.functions)
       {
-        curve.GetValueAt_Ticks(time, this._childValue);
+        curve.GetValueAt__Ticks(time, this._childValue);
         vec4.multiply(out, out, this._childValue);
       }
       return out;
@@ -185,7 +183,7 @@ export class TriColorSequencer extends ITriColorFunction
     vec4.set(out, 0, 0, 0, 0);
     for (const curve of this.functions)
     {
-      curve.GetValueAt_Ticks(time, this._childValue);
+      curve.GetValueAt__Ticks(time, this._childValue);
       vec4.add(out, out, this._childValue);
     }
     return out;

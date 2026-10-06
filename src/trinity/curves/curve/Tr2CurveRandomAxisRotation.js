@@ -137,9 +137,8 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
    */
-  @meta.renamed("Update")
   @meta.adapted
-  Update_Ticks(time, out)
+  Update__Ticks(time, out)
   {
     this.Evaluate(this.currentValue, this.GetWrappedTime(time));
     return quat.copy(out, this.currentValue);
@@ -151,9 +150,8 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
    */
-  @meta.renamed("GetValueAt")
   @meta.adapted
-  GetValueAt_Ticks(time, out)
+  GetValueAt__Ticks(time, out)
   {
     return this.Evaluate(out, this.GetWrappedTime(time));
   }

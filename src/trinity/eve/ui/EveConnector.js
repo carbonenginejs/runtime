@@ -164,11 +164,11 @@ export class EveConnector
     const time = context.GetTime();
     if (this.sourceObject)
     {
-      this.sourceObject.GetValueAt_Ticks(time, this.sourcePosition);
+      this.sourceObject.GetValueAt__Ticks(time, this.sourcePosition);
     }
     if (this.destObject)
     {
-      this.destObject.GetValueAt_Ticks(time, this.destPosition);
+      this.destObject.GetValueAt__Ticks(time, this.destPosition);
     }
   }
 
@@ -218,7 +218,7 @@ export class EveConnector
       }
 
       case ConnectorType.Circle:
-        this._AddCircle_PlaneNormal(lineSet, this.sourcePosition, this.length, this.planeNormal);
+        this._AddCircle__PlaneNormal(lineSet, this.sourcePosition, this.length, this.planeNormal);
         break;
 
       case ConnectorType.Ellipse:
@@ -290,7 +290,7 @@ export class EveConnector
   }
 
   /** Emits a circle around an arbitrary plane normal as four spherical arcs (EveConnector.cpp:139-150). */
-  _AddCircle_PlaneNormal(lineSet, center, radius, planeNormal)
+  _AddCircle__PlaneNormal(lineSet, center, radius, planeNormal)
   {
     this._CalculateSideAndFront(planeNormal, SIDE, FRONT);
     vec3.scale(SIDE, SIDE, radius);

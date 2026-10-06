@@ -66,13 +66,13 @@ export class EveRootTransform extends EveTransform
   UpdateSyncronous(updateContext = null)
   {
     const time = updateContext.GetTime();
-    if (this.translationCurve) this.translationCurve.Update_Ticks(time, EveRootTransform._translation);
+    if (this.translationCurve) this.translationCurve.Update__Ticks(time, EveRootTransform._translation);
     else vec3.copy(EveRootTransform._translation, EveRootTransform._zero);
-    if (this.rotationCurve) this.rotationCurve.Update_Ticks(time, EveRootTransform._rotation);
+    if (this.rotationCurve) this.rotationCurve.Update__Ticks(time, EveRootTransform._rotation);
     else quat.copy(EveRootTransform._rotation, EveRootTransform._identityRotation);
     if (this.modelRotationCurve)
     {
-      this.modelRotationCurve.Update_Ticks(time, EveRootTransform._modelRotation);
+      this.modelRotationCurve.Update__Ticks(time, EveRootTransform._modelRotation);
       // Carbon (row-vector): rotation = modelRotation * rotation - model first.
       quat.multiply(EveRootTransform._rotation, EveRootTransform._rotation, EveRootTransform._modelRotation);
     }
@@ -80,7 +80,7 @@ export class EveRootTransform extends EveTransform
     mat4.fromRotationTranslation(this._lastUpdateMatrix, EveRootTransform._rotation, EveRootTransform._translation);
     if (this.modelTranslationCurve)
     {
-      this.modelTranslationCurve.Update_Ticks(time, EveRootTransform._modelTranslation);
+      this.modelTranslationCurve.Update__Ticks(time, EveRootTransform._modelTranslation);
       vec3.transformMat4(EveRootTransform._modelTranslation, EveRootTransform._modelTranslation, this._lastUpdateMatrix);
       this._lastUpdateMatrix[12] = EveRootTransform._modelTranslation[0];
       this._lastUpdateMatrix[13] = EveRootTransform._modelTranslation[1];

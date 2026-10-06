@@ -50,7 +50,7 @@ test("AddOrientedBox takes the unit box's corners through boxMatrix", () =>
   near(lines.vertices[1].position, [ 7, -3, -4 ], "minA");
 
   const minMax = new TriLineSet();
-  minMax.AddOrientedBox_MinMax(mat4.fromTranslation(mat4.create(), [ 1, 2, 3 ]), [ 0, 0, 0 ], [ 1, 1, 1 ], 0xffffffff);
+  minMax.AddOrientedBox__MinMax(mat4.fromTranslation(mat4.create(), [ 1, 2, 3 ]), [ 0, 0, 0 ], [ 1, 1, 1 ], 0xffffffff);
   near(minMax.vertices[0].position, [ 1, 2, 3 ], "AddBox's first edge, translated");
 });
 

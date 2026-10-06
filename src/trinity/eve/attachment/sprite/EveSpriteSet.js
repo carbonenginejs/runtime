@@ -182,9 +182,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * carries its meaning (docs 22d1237). Adapted: returns the new item.
    * @returns {EveSpriteSetItem}
    */
-  @meta.renamed("Add")
   @meta.adapted
-  Add_Scale(pos, scale, color, warpColor)
+  Add__Scale(pos, scale, color, warpColor)
   {
     return this._AddItem(pos, 0, 0, scale, scale, 0, color, warpColor);
   }
@@ -195,14 +194,13 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * blink parameters that carry its meaning. Adapted: returns the new item.
    * @returns {EveSpriteSetItem}
    */
-  @meta.renamed("Add")
   @meta.adapted
-  Add_Blink(pos, blinkRate, blinkPhase, minScale, maxScale, falloff, color, warpColor)
+  Add__Blink(pos, blinkRate, blinkPhase, minScale, maxScale, falloff, color, warpColor)
   {
     return this._AddItem(pos, blinkRate, blinkPhase, minScale, maxScale, falloff, color, warpColor);
   }
 
-  /** Builds and appends one item; the shared body of Add_Scale and Add_Blink. */
+  /** Builds and appends one item; the shared body of Add__Scale and Add__Blink. */
   _AddItem(pos, blinkRate, blinkPhase, minScale, maxScale, falloff, color, warpColor)
   {
     const item = new EveSpriteSetItem();

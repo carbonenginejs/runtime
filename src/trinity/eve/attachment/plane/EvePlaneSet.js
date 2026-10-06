@@ -469,9 +469,8 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * @param {TriTextureParameter|null} map
    * @returns {ArrayLike<number>}
    */
-  @meta.renamed("GetAverageColor")
   @meta.implemented
-  GetAverageColor_Map(map)
+  GetAverageColor__Map(map)
   {
     if (!map || !map.GetResource()) return WHITE;
     const resource = CjsSchema.cast(map.GetResource(), TriTextureRes);
@@ -481,7 +480,7 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
 
   /**
    * Multiplies the two layer, image and mask textures' average colours componentwise.
-   * Each missing texture contributes white through GetAverageColor_Map.
+   * Each missing texture contributes white through GetAverageColor__Map.
    * Carbon GetAverageColor (EvePlaneSet.cpp:499-528).
    *
    * Adapted: Writes and returns the caller's colour vector instead of a Color value.
@@ -493,10 +492,10 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
   @meta.adapted
   GetAverageColor(out = new Float32Array(4))
   {
-    const layer1 = this.GetAverageColor_Map(this.layerMap1Parameter);
-    const layer2 = this.GetAverageColor_Map(this.layerMap2Parameter);
-    const image = this.GetAverageColor_Map(this.imageMapParameter);
-    const mask = this.GetAverageColor_Map(this.maskMapParameter);
+    const layer1 = this.GetAverageColor__Map(this.layerMap1Parameter);
+    const layer2 = this.GetAverageColor__Map(this.layerMap2Parameter);
+    const image = this.GetAverageColor__Map(this.imageMapParameter);
+    const mask = this.GetAverageColor__Map(this.maskMapParameter);
     for (let channel = 0; channel < 4; channel++)
     {
       out[channel] = layer1[channel] * layer2[channel] * image[channel] * mask[channel];

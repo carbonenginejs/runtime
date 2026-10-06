@@ -79,7 +79,7 @@ test("cold instanced mesh merges declarations and preserves suballocation/instan
     assert.equal(merged[i+1].usageIndex,original.items[i].usageIndex+8,"Tr2InstancedMesh.cpp:482 native semantic offset");
   }
   assert.deepEqual(original.items.map(item=>({...item})),saved,"merge leaves source declaration unchanged");
-  const lod=g.GetMeshLod_ScreenSize(0,Infinity);assert.equal(lod.allocationsValid,undefined);
+  const lod=g.GetMeshLod__ScreenSize(0,Infinity);assert.equal(lod.allocationsValid,undefined);
   const batches=collect(mesh,[area]);assert.equal(batches.length,1);assert.equal(lod.allocationsValid,true,"cold base realized before stream1 binding");
   const b=batches[0];assert.equal(b.vertexStreams[1],data.buffer);assert.equal(b.instanceCount,2);assert.equal(b.startInstanceLocation,3);
   assert.ok(b.baseVertexLocation>0);assert.equal(b.startIndexLocation,lod.indexAllocation.GetStartIndex()+3);
@@ -103,7 +103,7 @@ test("instanced mesh preserves native empty, readiness, display and reversed-ind
   mesh.display=false;assert.equal(collect(mesh,[area]).length,0);mesh.display=true;
   area.display=false;assert.equal(collect(mesh,[area]).length,0);area.display=true;
   area.count=0;assert.equal(collect(mesh,[area]).length,0);area.count=1;
-  g.GetMeshLod_ScreenSize(0,Infinity).reversedIndicesValid=false;assert.equal(collect(mesh,[area],true).length,0);
+  g.GetMeshLod__ScreenSize(0,Infinity).reversedIndicesValid=false;assert.equal(collect(mesh,[area],true).length,0);
   p.ClearParticles();assert.equal(collect(mesh,[area]).length,0);p.ReleaseResources();assert.equal(collect(mesh,[area]).length,0);
 });
 

@@ -741,12 +741,12 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   {
     const frustum = updateContext.GetFrustum();
     const sphere = this.boundingSphere;
-    if (!this.display || !frustum.IsSphereVisible_CenterRadius(sphere.center, sphere.radius))
+    if (!this.display || !frustum.IsSphereVisible__CenterRadius(sphere.center, sphere.radius))
     {
       return false;
     }
     // Carbon passes the CcpMath::Sphere (EveChildCloud2.cpp:238, :828): the Sphere overload, CE-04 Est maths.
-    const screenSize = frustum.GetPixelSizeAccross_Sphere(sphere);
+    const screenSize = frustum.GetPixelSizeAccross__Sphere(sphere);
     if (screenSize < this.minScreenSize * updateContext.GetLodFactor())
     {
       return false;
@@ -818,9 +818,8 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * distance minus |authored local scaling| * sortingModifier, consumed by the
    * volumetric renderer's DESCENDING stable sort (farthest first,
    * Tr2VolumetricsRenderer.cpp:276-287). */
-  @meta.renamed("GetSortValue")
   @meta.implemented
-  GetSortValue_Frustum(frustum)
+  GetSortValue__Frustum(frustum)
   {
     const viewPos = frustum.viewPos;
     const w = this.worldTransform;
@@ -847,14 +846,14 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     }
     const sphere = this.boundingSphere;
     const isVisible = this.display && this.hasUpdated &&
-      frustum.IsSphereVisible_CenterRadius(sphere.center, sphere.radius);
+      frustum.IsSphereVisible__CenterRadius(sphere.center, sphere.radius);
     if (!isVisible)
     {
       return false;
     }
 
     // Carbon passes the CcpMath::Sphere (EveChildCloud2.cpp:238, :828): the Sphere overload, CE-04 Est maths.
-    const screenSize = frustum.GetPixelSizeAccross_Sphere(sphere);
+    const screenSize = frustum.GetPixelSizeAccross__Sphere(sphere);
     if (screenSize < this.adjustedMinScreenSize)
     {
       return false;
@@ -868,7 +867,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
 
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(this.effect);
-    batch.SetPerObjectData(this.GetPerObjectData_ScreenSize(batches, screenSize));
+    batch.SetPerObjectData(this.GetPerObjectData__ScreenSize(batches, screenSize));
     batch.SetGeometry(this._declaration, this._vertexBuffer, 12, this._indexBuffer, this._indexBuffer.GetDesc().stride);
     batch.SetDrawIndexedInstanced(12 * 3, 1, 0, 0, 0);
     const committed = batches.Commit(batch);
@@ -1040,7 +1039,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
 
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(this.effect);
-    batch.SetPerObjectData(this.GetPerObjectData_ScreenSize(batches, 1));
+    batch.SetPerObjectData(this.GetPerObjectData__ScreenSize(batches, 1));
     batch.SetRenderingMode(RenderingMode.RM_ALPHA);
     batch.SetVertexDeclaration(0);
     batch.SetDrawInstanced(3, 1, 0, 0);
@@ -1130,8 +1129,8 @@ export class EveChildCloud2 extends EveSpaceObjectChild
         DepthStencilFormat.DSFMT_D32F, 1, 0, ExFlag.EX_NONE, renderContext);
     const esm = renderContext.GetEffectStateManager();
     esm.PushViewport();
-    esm.PushRenderTarget_TextureAL(null);
-    esm.PushDepthStencilBuffer_TextureAL(this.shadowMapDS.GetTexture());
+    esm.PushRenderTarget__TextureAL(null);
+    esm.PushDepthStencilBuffer__TextureAL(this.shadowMapDS.GetTexture());
     esm.UpdateRenderTargetViewport(this.shadowMapDS.GetWidth(), this.shadowMapDS.GetHeight());
     renderContext.Clear({ depth: true, clearDepth: 1, clearStencil: 0 });
     renderContext.SetReadOnlyDepth(false);
@@ -1182,7 +1181,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
 
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(this.reflectionEffect);
-    batch.SetPerObjectData(this.GetPerObjectData_ScreenSize(batches, 10000));
+    batch.SetPerObjectData(this.GetPerObjectData__ScreenSize(batches, 10000));
     batch.SetGeometry(this._declaration, this._vertexBuffer, 12, this._indexBuffer, this._indexBuffer.GetDesc().stride);
     batch.SetDrawIndexedInstanced(12 * 3, 1, 0, 0, 0);
     batch.SetRenderingMode(RenderingMode.RM_ALPHA);
@@ -1203,14 +1202,13 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   @meta.implemented
   GetPerObjectData(accumulator)
   {
-    return this.GetPerObjectData_ScreenSize(accumulator, 1);
+    return this.GetPerObjectData__ScreenSize(accumulator, 1);
   }
 
   /** Carbon's GetPerObjectData( accumulator, screenSize ): allocates and fills the
    * concrete cloud struct (cpp:516). */
-  @meta.renamed("GetPerObjectData")
   @meta.implemented
-  GetPerObjectData_ScreenSize(accumulator, screenSize)
+  GetPerObjectData__ScreenSize(accumulator, screenSize)
   {
     const record = EveChildCloud2PerObjectData.alloc(accumulator);
     if (!record) return null;

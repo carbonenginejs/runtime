@@ -52,7 +52,7 @@ test("unbound variables preserve the native empty resource and UAV branches", ()
   const parameter = new TriVariableParameter();
   const desc = new Tr2ResourceSetDescriptionAL();
   const calls = [];
-  desc.SetUav_TextureAL = (...args) => { calls.push(args); return true; };
+  desc.SetUav__TextureAL = (...args) => { calls.push(args); return true; };
   assert.equal(parameter.CopyToResourceSet(desc, 0, 2), false);
   assert.equal(parameter.ApplyUav(desc, 1, 3), true);
   assert.deepEqual(calls, [[1, 3, null]]);

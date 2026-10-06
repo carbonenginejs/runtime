@@ -4636,13 +4636,13 @@ export class EveSOF
 
   /** Acquires selected layouts before returning their normalized projections,
    * in request order with duplicates kept; the async form of
-   * EveSOFDataMgr.GetLayoutData_Vector. */
+   * EveSOFDataMgr.GetLayoutData__Vector. */
   @meta.ours
-  async GetLayoutData_Vector(names, options = {})
+  async GetLayoutData__Vector(names, options = {})
   {
     names = names.map(name => String(name).trim().toLowerCase());
     await this._FetchLayouts(names, options);
-    return this.dataMgr.GetLayoutData_Vector(names);
+    return this.dataMgr.GetLayoutData__Vector(names);
   }
 
   /** Initializes and, with a library builder, fetches the named layouts. */

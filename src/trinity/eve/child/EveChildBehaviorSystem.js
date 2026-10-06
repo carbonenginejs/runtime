@@ -628,7 +628,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
     if (!group.display || !mesh) return;
     const geometry = mesh.GetGeometryResource();
     if (!geometry || !geometry.IsGood()) return;
-    const lod = geometry.GetMeshLod_LodIndex(mesh.GetMeshIndex(), 0);
+    const lod = geometry.GetMeshLod__LodIndex(mesh.GetMeshIndex(), 0);
     if (!lod || !CreateLodAllocations(geometry, mesh.GetMeshIndex(), lod, Tr2RenderContext_GetMainThreadRenderContext())) return;
     group.CreateVertexDeclaration();
     for (const area of mesh.GetAreas(batchType))
@@ -646,8 +646,8 @@ export class EveChildBehaviorSystem extends EveChildTransform
       batch.SetMaterial(material);
       if (!batch.IsValid()) continue;
       batch.SetPerObjectData(perObjectData);
-      batch.SetPickingData_MeshArea(mesh.GetMeshIndex(), area.GetIndex());
-      batch.SetGeometry_Allocation(group.GetVertexDeclarationHandle(), lod.vertexAllocation,
+      batch.SetPickingData__MeshArea(mesh.GetMeshIndex(), area.GetIndex());
+      batch.SetGeometry__Allocation(group.GetVertexDeclarationHandle(), lod.vertexAllocation,
         reversed ? lod.reversedIndexAllocation : lod.indexAllocation);
       batch.SetStreamSource(1, this._shipInstanceBuffer, this._shipStride);
       batch.SetDrawIndexedInstanced(draw.indexCountPerInstance, group.GetSize(),

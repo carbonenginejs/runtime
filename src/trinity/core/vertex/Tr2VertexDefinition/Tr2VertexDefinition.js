@@ -89,7 +89,7 @@ export class Tr2VertexDefinition
    * parameter: the first item with the usage and
    * usage index; null when absent.
    */
-  Find_UsageIndex(usage, usageIndex)
+  Find__UsageIndex(usage, usageIndex)
   {
     const code = usageCodeOf(usage);
     for (const item of this.items)

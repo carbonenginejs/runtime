@@ -265,7 +265,7 @@ export class EveSwarmRenderable extends EveEntity
     const viewPosition = renderContext.GetViewPosition();
     const geometry = this.mesh.GetGeometryResource();
     const meshIndex = this.mesh.GetMeshIndex();
-    const lod = geometry ? geometry.GetMeshLod_ScreenSize(meshIndex, Number.MAX_VALUE) : null;
+    const lod = geometry ? geometry.GetMeshLod__ScreenSize(meshIndex, Number.MAX_VALUE) : null;
     const sorted = [];
 
     for (const area of areas)
@@ -358,9 +358,8 @@ export class EveSwarmRenderable extends EveEntity
    *
    * Adapted: Carbon's float& out-param becomes the optional trailing length-1 array; which paths write it is kept.
    */
-  @meta.renamed("IsCastingShadow")
   @meta.adapted
-  IsCastingShadow_ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
+  IsCastingShadow__ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
   {
     if (!this.owner)
     {

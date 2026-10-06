@@ -258,7 +258,7 @@ export class EveMultiEffect
   {
     for (const curveSet of this.curveSets)
     {
-      if (curveSet.GetName() === name) curveSet.Update_RealTimeSimTime(time, time, renderContext);
+      if (curveSet.GetName() === name) curveSet.Update__RealTimeSimTime(time, time, renderContext);
     }
   }
 
@@ -309,7 +309,7 @@ export class EveMultiEffect
   UpdateSyncronous(updateContext)
   {
     const time = updateContext.GetTime();
-    for (const curveSet of this.curveSets) curveSet.Update_RealTimeSimTime(time, time, updateContext.renderContext);
+    for (const curveSet of this.curveSets) curveSet.Update__RealTimeSimTime(time, time, updateContext.renderContext);
     for (const controller of this.controllers) controller.Update(0.5);
     for (const binding of this.bindings) binding.Update(time);
   }
@@ -335,9 +335,8 @@ export class EveMultiEffect
    * IEveSpaceObject2 hook; the effect contributes no renderables - it animates
    * objects that are collected by their own owners.
    */
-  @meta.renamed("GetRenderables")
   @meta.noop
-  GetRenderables_Impostors(_renderables, _impostors)
+  GetRenderables__Impostors(_renderables, _impostors)
   {
   }
 

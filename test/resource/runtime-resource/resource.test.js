@@ -2764,10 +2764,10 @@ test("TriGeometryRes selects a LOD by screen size, lowest quality first", () => 
   assert.equal(geometry.GetLodIndexForScreenSize(0, 900), 0);
   assert.equal(geometry.GetLodIndexForScreenSize(0, 99999), 0,
     "a request larger than the best LOD falls back to the highest quality one");
-  assert.equal(geometry.GetMeshLod_ScreenSize(0, 20).maxScreenSize, 50);
-  assert.equal(geometry.GetMeshLod_ScreenSize(0, 900).maxScreenSize, 1000);
+  assert.equal(geometry.GetMeshLod__ScreenSize(0, 20).maxScreenSize, 50);
+  assert.equal(geometry.GetMeshLod__ScreenSize(0, 900).maxScreenSize, 1000);
   assert.equal(geometry.GetLodIndexForScreenSize(9, 10), -1, "no such mesh");
-  assert.equal(geometry.GetMeshLod_ScreenSize(9, 10), null);
+  assert.equal(geometry.GetMeshLod__ScreenSize(9, 10), null);
 
   geometry.forceLod = true;
   geometry.forcedLodIndex = 1;
@@ -2784,8 +2784,8 @@ test("TriGeometryRes treats a flattened single-LOD mesh as its own LOD", () => {
     meshes: [ { name: "rock", areas: [ { firstIndex: 0, primitiveCount: 12 } ] } ]
   });
 
-  assert.equal(geometry.GetMeshLod_ScreenSize(0, 100)?.name, "rock");
-  assert.equal(geometry.GetMeshLod_LodIndex(0, 1), null, "there is only one");
+  assert.equal(geometry.GetMeshLod__ScreenSize(0, 100)?.name, "rock");
+  assert.equal(geometry.GetMeshLod__LodIndex(0, 1), null, "there is only one");
 });
 
 test("TriGeometryRes.getPrimitiveCount sums an area run and clamps it", () => {

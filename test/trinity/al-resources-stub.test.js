@@ -140,7 +140,7 @@ test("a ranged read returns the bytes of that range", () =>
   buffer.MapForWriting(al).data.set([ 0, 1, 2, 3, 4, 5, 6, 7 ]);
   buffer.UnmapForWriting();
 
-  const ranged = buffer.MapForReading_OffsetSize(al, 4, 2);
+  const ranged = buffer.MapForReading__OffsetSize(al, 4, 2);
 
   assert.equal(ranged.result, ALResult.S_OK);
   assert.deepEqual([ ...ranged.data ], [ 4, 5 ]);
@@ -159,8 +159,8 @@ test("a range past the end, or of nothing, is refused", () =>
     al
   );
 
-  assert.equal(buffer.MapForReading_OffsetSize(al, 6, 4).result, ALResult.E_INVALIDARG);
-  assert.equal(buffer.MapForReading_OffsetSize(al, 6, 0).result, ALResult.E_INVALIDARG);
+  assert.equal(buffer.MapForReading__OffsetSize(al, 6, 4).result, ALResult.E_INVALIDARG);
+  assert.equal(buffer.MapForReading__OffsetSize(al, 6, 0).result, ALResult.E_INVALIDARG);
 
   buffer.Destroy();
 });

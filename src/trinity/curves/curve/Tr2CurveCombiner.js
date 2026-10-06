@@ -92,9 +92,8 @@ export class Tr2CurveCombiner extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.renamed("Update")
   @meta.adapted
-  Update_Ticks(time, out)
+  Update__Ticks(time, out)
   {
     const sum = vec3.alloc();
     try
@@ -106,7 +105,7 @@ export class Tr2CurveCombiner extends ITriVectorFunction
         for (const curve of this.curves)
         {
           vec3.zero(childValue);
-          curve.Update_Ticks(time, childValue);
+          curve.Update__Ticks(time, childValue);
           vec3.add(sum, sum, childValue);
         }
         vec3.copy(this.currentValue, sum);

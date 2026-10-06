@@ -244,9 +244,8 @@ export class EveSOFDataMgr
    * @param {string[]} names
    * @returns {object[]}
    */
-  @meta.renamed("GetLayoutData")
   @meta.implemented
-  GetLayoutData_Vector(names)
+  GetLayoutData__Vector(names)
   {
     const result = [];
     for (const name of names)

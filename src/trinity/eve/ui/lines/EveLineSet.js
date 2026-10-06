@@ -194,8 +194,8 @@ export class EveLineSet
     quat.identity(quat_0);
     const time = updateContext.GetTime();
 
-    if (this.translationCurve) this.translationCurve.Update_Ticks(time, vec3_0);
-    if (this.rotationCurve) this.rotationCurve.Update_Ticks(time, quat_0);
+    if (this.translationCurve) this.translationCurve.Update__Ticks(time, vec3_0);
+    if (this.rotationCurve) this.rotationCurve.Update__Ticks(time, quat_0);
 
     mat4.fromRotationTranslationScale(this.worldTransform, quat_0, vec3_0, this.scaling);
   }
@@ -230,9 +230,8 @@ export class EveLineSet
   }
 
   /** Carbon's GetRenderables( renderables, impostors ) (cpp:138-146): the set itself while displayed. */
-  @meta.renamed("GetRenderables")
   @meta.implemented
-  GetRenderables_Impostors(out = [], _impostors = null)
+  GetRenderables__Impostors(out = [], _impostors = null)
   {
     if (!this.display) return out;
     out.push(this);
@@ -244,7 +243,7 @@ export class EveLineSet
   @meta.implemented
   GetRenderables(out = [])
   {
-    return this.GetRenderables_Impostors(out, null);
+    return this.GetRenderables__Impostors(out, null);
   }
 
   /** Carbon GetBoundingSphere (cpp:153-157): the sphere SubmitChanges last built; always valid. */

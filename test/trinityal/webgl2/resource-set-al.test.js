@@ -83,8 +83,8 @@ test("each texture unit gets its register's resource and its paired sampler", ()
     const second = { kind: "sampler s0" };
 
     const description = new Tr2ResourceSetDescriptionAL({ program: linked });
-    description.SetSrv_TextureAL(ShaderType.PIXEL_SHADER, 0, texture, Tr2ColorSpace.COLOR_SPACE_SRGB);
-    description.SetSrv_BufferAL(ShaderType.PIXEL_SHADER, 1, buffer);
+    description.SetSrv__TextureAL(ShaderType.PIXEL_SHADER, 0, texture, Tr2ColorSpace.COLOR_SPACE_SRGB);
+    description.SetSrv__BufferAL(ShaderType.PIXEL_SHADER, 1, buffer);
     description.SetSampler(ShaderType.PIXEL_SHADER, 3, first);
     description.SetSampler(ShaderType.PIXEL_SHADER, 0, second);
 
@@ -132,7 +132,7 @@ test("an unordered-access view outside the pixel and compute stages is refused",
 
     assert.equal(create(linked, description).result, ALResult.S_OK, "an empty UAV slot is skipped before the check");
 
-    description.SetUav_TextureAL(ShaderType.VERTEX_SHADER, 0, { kind: "texture" });
+    description.SetUav__TextureAL(ShaderType.VERTEX_SHADER, 0, { kind: "texture" });
     assert.equal(create(linked, description).result, ALResult.E_INVALIDARG);
 });
 
@@ -141,7 +141,7 @@ test("a pixel-stage unordered-access view is accepted, and resolves to nothing",
     const { gl } = FakeWebgl2();
     const linked = program(gl, { pixelRegisters: [ ...PIXEL_REGISTERS, { registerType: UAV, registerIndex: 1 } ] });
     const description = new Tr2ResourceSetDescriptionAL({ program: linked });
-    description.SetUav_TextureAL(ShaderType.PIXEL_SHADER, 1, { kind: "texture" }, 0);
+    description.SetUav__TextureAL(ShaderType.PIXEL_SHADER, 1, { kind: "texture" }, 0);
 
     const { set, result } = create(linked, description);
     assert.equal(result, ALResult.S_OK);

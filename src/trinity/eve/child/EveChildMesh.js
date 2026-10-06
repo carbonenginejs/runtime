@@ -1198,7 +1198,7 @@ export class EveChildMesh extends EveChildTransform
       this.currentInstanceScreenSize *= invLodFactor;
 
       const boxVisible = this._worldBoundsValid &&
-        (frustum?.IsBoxVisible_BoundsMinMax ? !!frustum.IsBoxVisible_BoundsMinMax(this._worldBoundsMin, this._worldBoundsMax) : true);
+        (frustum?.IsBoxVisible__BoundsMinMax ? !!frustum.IsBoxVisible__BoundsMinMax(this._worldBoundsMin, this._worldBoundsMax) : true);
 
       if (boxVisible)
       {
@@ -1402,7 +1402,7 @@ export class EveChildMesh extends EveChildTransform
     if (!this._overlayAreaBlocksBuilt) this.RebuildOverlayAreaBlocks();
 
     const meshIndex = this.mesh.GetMeshIndex();
-    const lod = geometry.GetMeshLod_ScreenSize(
+    const lod = geometry.GetMeshLod__ScreenSize(
       meshIndex, Math.min(this.currentInstanceScreenSize, this.currentScreenSize));
     let committed = false;
 
@@ -1515,9 +1515,8 @@ export class EveChildMesh extends EveChildTransform
    * @param {Number} renderReason
    * @returns {Boolean}
    */
-  @meta.renamed("IsCastingShadow")
   @meta.implemented
-  IsCastingShadow_PositionRadius(cameraFrustum, position, radius, renderReason)
+  IsCastingShadow__PositionRadius(cameraFrustum, position, radius, renderReason)
   {
     if (!this.display || !this.castShadow || !this._hasUpdated)
     {
@@ -1551,9 +1550,8 @@ export class EveChildMesh extends EveChildTransform
    * @param {Array|null} sizeOut
    * @returns {Boolean}
    */
-  @meta.renamed("IsCastingShadow")
   @meta.adapted
-  IsCastingShadow_ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeOut = null)
+  IsCastingShadow__ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeOut = null)
   {
     if (!this.display || !this.castShadow || !this._hasUpdated)
     {

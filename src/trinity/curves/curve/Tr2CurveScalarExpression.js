@@ -248,7 +248,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   @meta.implemented
   GetInputValue(index)
   {
-    return this.GetInputValue_Time(index, this._currentTime);
+    return this.GetInputValue__Time(index, this._currentTime);
   }
 
   /**
@@ -257,9 +257,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * @param {number} time Sample time.
    * @returns {number}
    */
-  @meta.renamed("GetInputValue")
   @meta.implemented
-  GetInputValue_Time(index, time)
+  GetInputValue__Time(index, time)
   {
     index |= 0;
     if (index < 0 || index >= this.inputs.length)

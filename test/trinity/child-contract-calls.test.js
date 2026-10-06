@@ -64,7 +64,7 @@ test("sphere pins forward the clock result without substituting currentTime", ()
   context.currentTime = 123;
   const calls = [];
   pin.curveSets.push(Object.assign(new TriCurveSet(), {
-    Update_RealTimeSimTime: (real, sim) => calls.push([real, sim])
+    Update__RealTimeSimTime: (real, sim) => calls.push([real, sim])
   }));
   pin.UpdateAsyncronous(context, new EveChildUpdateParams());
   assert.deepEqual(calls, [[undefined, undefined]]);
@@ -77,7 +77,7 @@ test("sphere pins forward legitimate zero clock values", () =>
   context.SetTime(0);
   const calls = [];
   pin.curveSets.push(Object.assign(new TriCurveSet(), {
-    Update_RealTimeSimTime: (real, sim) => calls.push([real, sim])
+    Update__RealTimeSimTime: (real, sim) => calls.push([real, sim])
   }));
   pin.UpdateAsyncronous(context, new EveChildUpdateParams());
   assert.deepEqual(calls, [[0, 0]]);

@@ -148,7 +148,7 @@ class VisibleFrustum extends TriFrustum
     return true;
   }
 
-  IsBoxVisible_BoundsMinMax()
+  IsBoxVisible__BoundsMinMax()
   {
     return true;
   }
@@ -158,7 +158,7 @@ class VisibleFrustum extends TriFrustum
     return 100;
   }
 
-  GetPixelSizeAccrossEst_CenterRadius()
+  GetPixelSizeAccrossEst__CenterRadius()
   {
     return 100;
   }
@@ -365,7 +365,7 @@ test("smart-light modifiers receive a nominal detached placement and RGB-only co
     [1.5, 0.75, 2.25]
   );
   const frame = createFrame(worldTransform);
-  smart.UpdateAsyncronous_Distribution(frame.updateContext, frame.params, distribution);
+  smart.UpdateAsyncronous__Distribution(frame.updateContext, frame.params, distribution);
 
   let received = null;
   const modifier = {
@@ -378,7 +378,7 @@ test("smart-light modifiers receive a nominal detached placement and RGB-only co
     }
   };
   smart.attributeModifiers.push(modifier);
-  smart.UpdateSyncronous_Distribution(frame.updateContext, frame.params, distribution);
+  smart.UpdateSyncronous__Distribution(frame.updateContext, frame.params, distribution);
 
   assert.ok(received.value instanceof PlacementDataWithIdentifier);
   assert.notEqual(received.value, placement);
@@ -392,7 +392,7 @@ test("smart-light modifiers receive a nominal detached placement and RGB-only co
 
   const inherited = new TestDistribution([]);
   smart.distribution = inherited;
-  smart.UpdateAsyncronous_Distribution(frame.updateContext, frame.params, distribution);
+  smart.UpdateAsyncronous__Distribution(frame.updateContext, frame.params, distribution);
   assert.equal(inherited.asyncCount, 1);
 });
 
@@ -563,7 +563,7 @@ test("smart mesh uses the real effect Vector4 facade and preserves Carbon wrong-
   const wrong = new Tr2FloatParameter();
   wrong.name = "OtherColor";
   effect.parameters.push(wrong);
-  effect.SetParameter_Vector4("OtherColor", [0.5, 0.6, 0.7, 0.8]);
+  effect.SetParameter__Vector4("OtherColor", [0.5, 0.6, 0.7, 0.8]);
   assert.equal(effect.parameters[0] instanceof Tr2Vector4Parameter, true);
   assert.equal(effect.parameters.includes(wrong), true);
   assert.equal(effect.parameters.at(-1) instanceof Tr2Vector4Parameter, true);

@@ -110,7 +110,7 @@ export class EveLensflare
   @meta.implemented
   UpdateCurveSet(name, time)
   {
-    for (const curveSet of this.curveSets) if (curveSet.GetName() === name) curveSet.Update_RealTimeSimTime(time, time);
+    for (const curveSet of this.curveSets) if (curveSet.GetName() === name) curveSet.Update__RealTimeSimTime(time, time);
   }
 
   /** Longest duration among matching curve sets (cpp:455-466). */
@@ -300,7 +300,7 @@ export class EveLensflare
 
     if (this.translationCurve)
     {
-      this.translationCurve.Update_Ticks(simTime, this.position);
+      this.translationCurve.Update__Ticks(simTime, this.position);
       const distanceToCenter = vec3.length(this.position) / 0.1495978707e12;
       this.sunSize = 1.5 / Math.log(distanceToCenter + 2.71);
     }
@@ -318,7 +318,7 @@ export class EveLensflare
 
     for (const curveSet of this.curveSets)
     {
-      curveSet.Update_RealTimeSimTime(realTime, simTime);
+      curveSet.Update__RealTimeSimTime(realTime, simTime);
     }
     for (const controller of this.controllers)
     {
@@ -507,7 +507,7 @@ export class EveLensflare
   {
     if (!this.display || !this.isVisible) return renderables;
 
-    for (const flare of this.flares) flare.GetRenderables_Impostors(renderables, null);
+    for (const flare of this.flares) flare.GetRenderables__Impostors(renderables, null);
     if (this.mesh) renderables.push(this);
     return renderables;
   }

@@ -19,9 +19,9 @@ export class ITr2GenericEmitter
   }
 
   /** Carbon's SpawnParticles( arguments, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime ) (ITr2GenericEmitter.h:93). */
-  SpawnParticles_StartEnd(_arguments, _positionStart, _positionEnd, _velocityStart, _velocityEnd, _deltaTime)
+  SpawnParticles__StartEnd(_arguments, _positionStart, _positionEnd, _velocityStart, _velocityEnd, _deltaTime)
   {
-    throw new Error("ITr2GenericEmitter.SpawnParticles_StartEnd must be implemented by a particle emitter.");
+    throw new Error("ITr2GenericEmitter.SpawnParticles__StartEnd must be implemented by a particle emitter.");
   }
 
   /** Notifies the emitter that spawn calls may arrive from concurrent simulation. */

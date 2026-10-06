@@ -180,7 +180,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   /**
    * Carbon's EveChildMesh overload UpdateSyncronous( context, params ): an
    * empty override (EveSmartLightMesh.h:23); the owning EveChildSmartLightSet
-   * drives this mesh through UpdateSyncronous_Distribution instead.
+   * drives this mesh through UpdateSyncronous__Distribution instead.
    */
   @meta.blue.method
   @meta.noop
@@ -193,9 +193,8 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * distribution ) (EveSmartLightMesh.cpp:21); the owning EveChildSmartLightSet
    * supplies the distribution.
    */
-  @meta.renamed("UpdateSyncronous")
   @meta.implemented
-  UpdateSyncronous_Distribution(updateContext, params, distribution)
+  UpdateSyncronous__Distribution(updateContext, params, distribution)
   {
     EveChildMesh.prototype.UpdateSyncronous.call(this, updateContext, params);
     if (!distribution || !this.display)
@@ -287,9 +286,8 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * Carbon's IEveSmartLightGroup overload UpdateAsyncronous( context, params,
    * distribution ) (EveSmartLightMesh.cpp:139): updates the instance-mesh base.
    */
-  @meta.renamed("UpdateAsyncronous")
   @meta.implemented
-  UpdateAsyncronous_Distribution(updateContext, params, _distribution)
+  UpdateAsyncronous__Distribution(updateContext, params, _distribution)
   {
     return super.UpdateAsyncronous(updateContext, params);
   }
@@ -372,7 +370,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
       const effect = area.GetMaterialInterface();
       if (effect instanceof Tr2Effect)
       {
-        effect.SetParameter_Vector4(this.shaderParamColorName, meshColor);
+        effect.SetParameter__Vector4(this.shaderParamColorName, meshColor);
       }
     }
 

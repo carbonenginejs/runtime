@@ -348,7 +348,7 @@ export class EveDistanceField
    */
   static _sampleObject(object, time, out)
   {
-    return object.GetValueAt_Ticks(time, out);
+    return object.GetValueAt__Ticks(time, out);
   }
 
   static _cameraPosition = vec3.create();

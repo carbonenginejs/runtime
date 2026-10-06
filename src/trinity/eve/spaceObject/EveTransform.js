@@ -338,7 +338,7 @@ export class EveTransform extends Tr2Transform
   @meta.implemented
   GetRenderables(out)
   {
-    return this.GetRenderables_Impostors(out, null);
+    return this.GetRenderables__Impostors(out, null);
   }
 
   /**
@@ -346,9 +346,8 @@ export class EveTransform extends Tr2Transform
    * mesh, then recurses into the children; nothing is appended while display is
    * off.
    */
-  @meta.renamed("GetRenderables")
   @meta.implemented
-  GetRenderables_Impostors(out = [], _impostors)
+  GetRenderables__Impostors(out = [], _impostors)
   {
     if (!this.display) return out;
     for (const system of this.particleSystems) system.SortParticles();

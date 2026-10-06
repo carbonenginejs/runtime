@@ -172,8 +172,8 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
     vec3.transformMat4(WORLD_POSITION, this._boundingSphere, this.worldTransform);
     const frustum = updateContext.GetFrustum();
     const radius = this._boundingSphere[3];
-    return frustum.IsSphereVisible_CenterRadius(WORLD_POSITION, radius) &&
-      frustum.GetPixelSizeAccrossEst_CenterRadius(WORLD_POSITION, radius) >= updateContext.GetVisibilityThreshold();
+    return frustum.IsSphereVisible__CenterRadius(WORLD_POSITION, radius) &&
+      frustum.GetPixelSizeAccrossEst__CenterRadius(WORLD_POSITION, radius) >= updateContext.GetVisibilityThreshold();
   }
 
   /**
@@ -183,9 +183,8 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
    * Adapted: The float& sizeInShadow output is an optional one-element array; all culling
    * and >5-pixel policy are ported.
    */
-  @meta.renamed("IsCastingShadow")
   @meta.adapted
-  IsCastingShadow_ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
+  IsCastingShadow__ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
   {
     if (!this.display || !this.castShadow)
     {

@@ -408,7 +408,7 @@ export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
    * @param {number} size Byte count.
    * @returns {{result: number, data: Uint8Array|null}} The bytes, or null.
    */
-  MapForReading_OffsetSize(_renderContext, offset, size)
+  MapForReading__OffsetSize(_renderContext, offset, size)
   {
     return this._MapForReading(offset, size);
   }

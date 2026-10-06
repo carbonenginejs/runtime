@@ -73,7 +73,7 @@ test("the blitter runs every pass of its shader over one quad", () =>
   const blitter = new Tr2Blitter();
   const effect = material(3);
 
-  assert.equal(blitter.Draw_Effect(context, effect), true);
+  assert.equal(blitter.Draw__Effect(context, effect), true);
 
   // Carbon applies shader state then material data per pass, and draws inside
   // the loop rather than once after it (cpp:146-156).
@@ -95,7 +95,7 @@ test("the quad reaches the vertex buffer, as a triangle strip", () =>
   al.SetTopology = (topology) => { topologies.push(topology); return ALResult.S_OK; };
   al.DrawPrimitive = (startVertex, primitiveCount) => { draws.push([ startVertex, primitiveCount ]); return ALResult.S_OK; };
 
-  assert.equal(blitter.Draw_Effect(context, material()), true);
+  assert.equal(blitter.Draw__Effect(context, material()), true);
 
   // Four vertices describe two triangles as a strip. Drawing them as a list
   // would need six and silently render one triangle from garbage.
@@ -110,10 +110,10 @@ test("a null material is refused rather than crashing", () =>
 
   // Carbon asserts and then returns false anyway; the refusal is the shipping
   // half (cpp:101-107).
-  assert.equal(blitter.Draw_Effect(context, null), false);
+  assert.equal(blitter.Draw__Effect(context, null), false);
 
   // A material with no shader is the same refusal, one level in.
-  assert.equal(blitter.Draw_Effect(context, { GetShaderStateInterface: () => null, IsGood: () => false }), false);
+  assert.equal(blitter.Draw__Effect(context, { GetShaderStateInterface: () => null, IsGood: () => false }), false);
 });
 
 test("BlitSource is published for a textured blit and cleared afterwards", () =>
@@ -122,7 +122,7 @@ test("BlitSource is published for a textured blit and cleared afterwards", () =>
   const blitter = new Tr2Blitter();
   const texture = StubTarget();
 
-  blitter.Draw_EffectTexture(context, material(), texture);
+  blitter.Draw__EffectTexture(context, material(), texture);
 
   // Carbon clears the entry after the draw (cpp:157-158) so the next blit
   // cannot inherit this one's texture. A blitter that only ever set it would
@@ -147,7 +147,7 @@ test("BlitSource is a texture variable, and the draw sees the texture through a 
   const textureType = blitSource.contentType;
   drawing.ApplyMaterialDataForPass = () => seen.push(blitSource.GetValue().GetTexture().TrinityALImpl_GetObject());
 
-  blitter.Draw_EffectTexture(context, drawing, texture);
+  blitter.Draw__EffectTexture(context, drawing, texture);
 
   assert.equal(textureType, blitSource.contentType, "the draw does not change the variable's type");
   assert.equal(textureType, 2, "TRIVARIABLE_TEXTURE_RES");
@@ -174,7 +174,7 @@ test("resources are prepared once and released together", () =>
   assert.equal(blitter.PrepareResources(context), true);
 });
 
-test("Draw_Texture picks the filtered effect only for linear, and refuses a missing one", () =>
+test("Draw__Texture picks the filtered effect only for linear, and refuses a missing one", () =>
 {
   const context = stubContext();
   const blitter = new Tr2Blitter();
@@ -183,17 +183,17 @@ test("Draw_Texture picks the filtered effect only for linear, and refuses a miss
 
   blitter.SetBlitEffects(point, linear);
 
-  assert.equal(blitter.Draw_Texture(context, { id: "t" }, undefined, undefined, 0), true);
+  assert.equal(blitter.Draw__Texture(context, { id: "t" }, undefined, undefined, 0), true);
   assert.equal(point.log.length, 2);
   assert.equal(linear.log.length, 0);
 
-  assert.equal(blitter.Draw_Texture(context, { id: "t" }, undefined, undefined, 1), true);
+  assert.equal(blitter.Draw__Texture(context, { id: "t" }, undefined, undefined, 1), true);
   assert.equal(linear.log.length, 2);
 
   // Point and linear are two different EFFECTS in Carbon, not a sampler
   // setting, so a blitter given only one cannot serve the other.
   const partial = new Tr2Blitter().SetBlitEffects(material());
-  assert.equal(partial.Draw_Texture(context, { id: "t" }, undefined, undefined, 1), false);
+  assert.equal(partial.Draw__Texture(context, { id: "t" }, undefined, undefined, 1), false);
 });
 
 test("camera space refuses when no projection is set rather than unprojecting through nothing", () =>

@@ -84,7 +84,7 @@ test("scene drive order matches Carbon GatherBatches: visibility then gather, ca
     {
       log.push({ name, method: "UpdateVisibility", updateContext, parentTransform });
     },
-    GetRenderables_Impostors(out)
+    GetRenderables__Impostors(out)
     {
       log.push({ name, method: "GetRenderables" });
       out.push(name);
@@ -121,7 +121,7 @@ test("scene drive order matches Carbon GatherBatches: visibility then gather, ca
   // Decision 7: the camera parent default-constructs as a real EveEffectRoot2.
   const cameraParent = scene.cameraAttachmentParent;
   assert.ok(cameraParent instanceof EveEffectRoot2, "cameraAttachmentParent default-constructs");
-  for (const method of ["SetTransform", "UpdateSyncronous", "UpdateAsyncronous", "UpdateVisibility", "GetRenderables_Impostors"])
+  for (const method of ["SetTransform", "UpdateSyncronous", "UpdateAsyncronous", "UpdateVisibility", "GetRenderables__Impostors"])
   {
     const original = cameraParent[method].bind(cameraParent);
     cameraParent[method] = (...args) =>
@@ -171,7 +171,7 @@ test("scene drive order matches Carbon GatherBatches: visibility then gather, ca
   assert.deepEqual(log.map(entry => `${entry.name}.${entry.method}`), [
     "object0.GetRenderables",
     "object1.GetRenderables",
-    "cameraParent.GetRenderables_Impostors",
+    "cameraParent.GetRenderables__Impostors",
     "staticParticles.GetRenderables"
   ]);
   assert.equal(log[3].frustumArg, camera.frustum, "staticParticles gather receives the stamped frustum");
@@ -238,8 +238,8 @@ test("UpdateVisibility + GetRenderables cull real EveSpaceObject2s through a rea
       }
     };
     object.SetBoundingSphereInformation(new Float32Array([0, 0, 0, 10]));
-    object.translationCurve = { GetValueDotAt_Ticks(_time, out) { return out; },
-      Update_Ticks(_time, out)
+    object.translationCurve = { GetValueDotAt__Ticks(_time, out) { return out; },
+      Update__Ticks(_time, out)
       {
         out.set(position);
       }
@@ -622,7 +622,7 @@ test("display=false gates every BeginRender-phase method; update=false gates Upd
     {
       calls.push("visibility");
     },
-    GetRenderables_Impostors(out)
+    GetRenderables__Impostors(out)
     {
       calls.push("gather");
       out.push("stub");

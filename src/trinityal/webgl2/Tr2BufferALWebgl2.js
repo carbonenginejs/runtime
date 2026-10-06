@@ -341,9 +341,8 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    * @param {number} size Bytes in the range.
    * @returns {{result: number, data: Uint8Array|null}} The mapping.
    */
-  @meta.renamed("MapForReading")
   @meta.adapted
-  MapForReading_OffsetSize(renderContext, offset, size)
+  MapForReading__OffsetSize(renderContext, offset, size)
   {
     return this._MapForReading(renderContext, true, offset, size);
   }

@@ -56,7 +56,7 @@ test("Chjita-sized mesh realizes once and reuses its allocation across render pa
     decl: [{usage:"Position",usageIndex:0,type:"Float32",elementCount:3,offset:48}],
     vertex: {position}, indices:[{faces:[0,1,2]}], areas:[{firstElement:0,elementCount:1}]
   }] });
-  const lod = geometry.GetMeshLod_LodIndex(0,0);
+  const lod = geometry.GetMeshLod__LodIndex(0,0);
   try
   {
     assert.equal(CreateLodAllocations(geometry,0,lod,context), true);

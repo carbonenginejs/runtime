@@ -123,9 +123,8 @@ export class TriCurveSet extends IInitialize
    * @param {object|null} [renderContext=null] Rendering context forwarded to curves.
    * @returns {void}
    */
-  @meta.renamed("Update")
   @meta.implemented
-  Update_RealTimeSimTime(realTime, simTime, renderContext = null)
+  Update__RealTimeSimTime(realTime, simTime, renderContext = null)
   {
     this.Update(CcpTime.timeAsDouble(this.useRealTime ? realTime : simTime), renderContext);
   }

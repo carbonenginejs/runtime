@@ -156,8 +156,8 @@ export class ITr2PickableScene
     try
     {
       context.ApplyStandardStates(RenderingMode.RM_PICKING);
-      if (opaque.GetBatchCount()) context.RenderBatchesForPicking_ObjectId(opaque, "Picking");
-      if (picking && this.RenderPickingAreasForComponents(pass)) context.RenderBatchesForPicking_ObjectId(picking, "Main");
+      if (opaque.GetBatchCount()) context.RenderBatchesForPicking__ObjectId(opaque, "Picking");
+      if (picking && this.RenderPickingAreasForComponents(pass)) context.RenderBatchesForPicking__ObjectId(picking, "Main");
       return true;
     }
     finally

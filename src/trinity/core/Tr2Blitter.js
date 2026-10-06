@@ -260,7 +260,7 @@ export class Tr2Blitter
   /**
    * Draws a screen quad with a material, optionally over a texture.
    *
-   * Carbon's `DrawHelper` (`Tr2Blitter.cpp:100-159`), which every Draw_*
+   * Carbon's `DrawHelper` (`Tr2Blitter.cpp:100-159`), which every Draw__*
    * overload and DrawInCameraSpace call.
    *
    * @param {object} renderContext The context to draw through.
@@ -349,15 +349,15 @@ export class Tr2Blitter
   /**
    * Carbon's bare Draw is not supported: telling a material from a texture
    * would need a type check on our own classes. Call the specific overload:
-   * Draw_Texture, Draw_TextureVertexCoords, Draw_EffectTexture,
-   * Draw_EffectTextureTexCoords, Draw_EffectTextureVertexCoords, Draw_Effect,
-   * Draw_EffectTexCoords or Draw_EffectVertexCoords. In these names TexCoords
+   * Draw__Texture, Draw__TextureVertexCoords, Draw__EffectTexture,
+   * Draw__EffectTextureTexCoords, Draw__EffectTextureVertexCoords, Draw__Effect,
+   * Draw__EffectTexCoords or Draw__EffectVertexCoords. In these names TexCoords
    * is tlTexCoord/brTexCoord and VertexCoords is tlVertexCoord/brVertexCoord;
    * the VertexCoords forms always carry their tex coords too.
    */
   Draw()
   {
-    throw new Error("Tr2Blitter.Draw is not supported; call Draw_Texture, Draw_TextureVertexCoords, Draw_EffectTexture, Draw_EffectTextureTexCoords, Draw_EffectTextureVertexCoords, Draw_Effect, Draw_EffectTexCoords or Draw_EffectVertexCoords.");
+    throw new Error("Tr2Blitter.Draw is not supported; call Draw__Texture, Draw__TextureVertexCoords, Draw__EffectTexture, Draw__EffectTextureTexCoords, Draw__EffectTextureVertexCoords, Draw__Effect, Draw__EffectTexCoords or Draw__EffectVertexCoords.");
   }
 
   /**
@@ -367,7 +367,7 @@ export class Tr2Blitter
    *
    * @returns {boolean} Whether the quad was drawn.
    */
-  Draw_Texture(renderContext, texture, tlTexCoord = TL_DEFAULT, brTexCoord = BR_DEFAULT, filter = Filtering.FILTER_POINT)
+  Draw__Texture(renderContext, texture, tlTexCoord = TL_DEFAULT, brTexCoord = BR_DEFAULT, filter = Filtering.FILTER_POINT)
   {
     // Carbon's switch has no default and falls through to `return false` for an
     // unknown filter (`cpp:43-50`).
@@ -378,49 +378,49 @@ export class Tr2Blitter
   }
 
   /** Carbon's Draw( renderContext, texture, tl, br, tlV, brV ) (cpp:54): the point blit effect. */
-  Draw_TextureVertexCoords(renderContext, texture, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord)
+  Draw__TextureVertexCoords(renderContext, texture, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord)
   {
     return this.#DrawMaterial(renderContext, this.#blitEffect, texture, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord);
   }
 
   /** Carbon's Draw( renderContext, effect, texture ) (cpp:59). */
-  Draw_EffectTexture(renderContext, effect, texture)
+  Draw__EffectTexture(renderContext, effect, texture)
   {
     return this.#DrawMaterial(renderContext, effect, texture);
   }
 
   /** Carbon's Draw( renderContext, effect, texture, tl, br ) (cpp:64). */
-  Draw_EffectTextureTexCoords(renderContext, effect, texture, tlTexCoord, brTexCoord)
+  Draw__EffectTextureTexCoords(renderContext, effect, texture, tlTexCoord, brTexCoord)
   {
     return this.#DrawMaterial(renderContext, effect, texture, tlTexCoord, brTexCoord);
   }
 
   /** Carbon's Draw( renderContext, effect, texture, tl, br, tlV, brV ) (cpp:69). */
-  Draw_EffectTextureVertexCoords(renderContext, effect, texture, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord)
+  Draw__EffectTextureVertexCoords(renderContext, effect, texture, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord)
   {
     return this.#DrawMaterial(renderContext, effect, texture, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord);
   }
 
   /** Carbon's Draw( renderContext, material ) (cpp:82): a fullscreen shader. */
-  Draw_Effect(renderContext, effect)
+  Draw__Effect(renderContext, effect)
   {
     return this.#DrawMaterial(renderContext, effect, null);
   }
 
   /** Carbon's Draw( renderContext, effect, tl, br ) (cpp:89). */
-  Draw_EffectTexCoords(renderContext, effect, tlTexCoord, brTexCoord)
+  Draw__EffectTexCoords(renderContext, effect, tlTexCoord, brTexCoord)
   {
     return this.#DrawMaterial(renderContext, effect, null, tlTexCoord, brTexCoord);
   }
 
   /** Carbon's Draw( renderContext, effect, tl, br, tlV, brV ) (cpp:36-39). */
-  Draw_EffectVertexCoords(renderContext, effect, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord)
+  Draw__EffectVertexCoords(renderContext, effect, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord)
   {
     return this.#DrawMaterial(renderContext, effect, null, tlTexCoord, brTexCoord, tlVertexCoord, brVertexCoord);
   }
 
   /**
-   * The Draw_* overloads' shared call into DrawHelper with the material's own
+   * The Draw__* overloads' shared call into DrawHelper with the material's own
    * shader. Adapted: a null material, or one whose resource is not good, is not
    * drawn; asking renews what the effect holds.
    */

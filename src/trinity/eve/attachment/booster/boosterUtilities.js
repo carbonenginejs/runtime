@@ -144,7 +144,7 @@ export function CreateBoosterFlares(glows, transform, params)
 function AddBoosterFlare(glows, position, direction, distance, blinkRate, blinkPhase, minScale, maxScale, color, warpColor)
 {
   vec3.scaleAndAdd(FLARE_SPRITE_SCRATCH, position, direction, -distance);
-  glows.Add_Blink(FLARE_SPRITE_SCRATCH, blinkRate, blinkPhase, minScale, maxScale, 0, color, warpColor);
+  glows.Add__Blink(FLARE_SPRITE_SCRATCH, blinkRate, blinkPhase, minScale, maxScale, 0, color, warpColor);
 }
 
 /**

@@ -125,7 +125,7 @@ function pooledGeometry({ reversedIndicesValid = true } = {})
     vertexAllocation: { offset: 2048, stride: 32 }
   };
 
-  return { lod, GetMeshLod_ScreenSize: () => lod, GetMeshVertexElements: () => null };
+  return { lod, GetMeshLod__ScreenSize: () => lod, GetMeshVertexElements: () => null };
 }
 
 test("CreateGeometryBatch fills Carbon's draw arguments from a realized LOD", () =>
@@ -197,7 +197,7 @@ test("an unrealized mesh keeps zero bases, which is correct for a non-pooling en
     vertexAllocation: null
   };
 
-  const batch = mesh.CreateGeometryBatch({ GetMeshLod_ScreenSize: () => lod, GetMeshVertexElements: () => null }, area({ id: "fx" }), null, false, lod);
+  const batch = mesh.CreateGeometryBatch({ GetMeshLod__ScreenSize: () => lod, GetMeshVertexElements: () => null }, area({ id: "fx" }), null, false, lod);
 
   assert.equal(batch.indexCountPerInstance, 30, "geometry data alone completes the count");
   assert.equal(batch.startIndexLocation, 0);
@@ -215,7 +215,7 @@ test("GetBatches resolves the LOD once from the caller's screen size", () =>
   const requested = [];
   const geometry = pooledGeometry();
   mesh.GetGeometryResource = () => ({
-    GetMeshLod_ScreenSize(meshIndex, screenSize)
+    GetMeshLod__ScreenSize(meshIndex, screenSize)
     {
       requested.push([ meshIndex, screenSize ]);
       return geometry.lod;
@@ -241,7 +241,7 @@ test("a mesh batch carries its vertex-declaration handle, so binning can tell me
   const declA = [ { usage: 0, usageIndex: 0, type: "FLOAT3", offset: 0, stream: 0 } ];
   const declB = [ { usage: 0, usageIndex: 0, type: "FLOAT3", offset: 4, stream: 0 } ];
 
-  const geometryFor = decl => ({ GetMeshLod_ScreenSize: () => lod, GetMeshVertexElements: () => decl });
+  const geometryFor = decl => ({ GetMeshLod__ScreenSize: () => lod, GetMeshVertexElements: () => decl });
 
   const first = mesh.CreateGeometryBatch(geometryFor(declA), area(effect), null, false, lod);
   const same = mesh.CreateGeometryBatch(geometryFor(declA), area(effect), null, false, lod);

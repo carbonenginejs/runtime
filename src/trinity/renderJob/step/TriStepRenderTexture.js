@@ -100,7 +100,7 @@ export class TriStepRenderTexture extends TriRenderStep
 
     if (!source || !source.GetTexture()) return TriRenderStep.Result.RS_OK;
 
-    const drawn = renderContext.GetBlitter().Draw_Texture(renderContext, source.GetTexture(), this.tlTexCoord, this.brTexCoord);
+    const drawn = renderContext.GetBlitter().Draw__Texture(renderContext, source.GetTexture(), this.tlTexCoord, this.brTexCoord);
 
     return this.ClearIfFail(drawn, renderContext);
   }

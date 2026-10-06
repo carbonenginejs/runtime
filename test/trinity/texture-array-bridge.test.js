@@ -56,7 +56,7 @@ function bind(effect)
 {
   const [ merged ] = effect.parametersForPasses[0].passes[0].stageInput[PIXEL_SHADER].textures;
   const bound = [];
-  const desc = { SetSrv_TextureAL: (stage, register, resource) => { bound.push({ stage, register, resource }); return true; } };
+  const desc = { SetSrv__TextureAL: (stage, register, resource) => { bound.push({ stage, register, resource }); return true; } };
   merged.sourceValue.CopyToResourceSet(desc, PIXEL_SHADER, merged.registerIndex, merged.registerCount, null);
   return bound[0];
 }

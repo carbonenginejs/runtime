@@ -73,8 +73,8 @@ function createShadowEffect()
   // runtime slot are different classes, so declaring the res-path kind here left
   // SetParameter unable to find a runtime slot to update - it added a new one on
   // every call, and a per-frame resolve grew the resource list without bound.
-  effect.SetParameter_TextureAL("EveSpaceSceneCascadedShadowMap", null);
-  effect.SetParameter_TextureAL("DepthMap", null);
+  effect.SetParameter__TextureAL("EveSpaceSceneCascadedShadowMap", null);
+  effect.SetParameter__TextureAL("DepthMap", null);
   return effect;
 }
 
@@ -550,8 +550,8 @@ export class Tr2ShadowMap
     // save the slot and leave the scene's colour target bound underneath the
     // whole shadow pass, which is what this line used to do.
     esm.PushViewport();
-    esm.PushRenderTarget_TextureAL(null);
-    esm.PushDepthStencilBuffer_TextureAL(cascadedShadowDepth.Get());
+    esm.PushRenderTarget__TextureAL(null);
+    esm.PushDepthStencilBuffer__TextureAL(cascadedShadowDepth.Get());
     esm.UpdateRenderTargetViewport(cascadedShadowDepth.Get().GetWidth(), cascadedShadowDepth.Get().GetHeight());
 
     // Carbon wants a clean depth buffer for this pass and says so.
@@ -652,16 +652,16 @@ export class Tr2ShadowMap
 
     const esm = renderContext.GetEffectStateManager();
 
-    esm.PushRenderTarget_TextureAL(shadowMapResult.Get());
-    esm.PushDepthStencilBuffer_TextureAL(null);
+    esm.PushRenderTarget__TextureAL(shadowMapResult.Get());
+    esm.PushDepthStencilBuffer__TextureAL(null);
 
     try
     {
-      this.cascadeEffect.SetParameter_TextureAL("EveSpaceSceneCascadedShadowMap", cascadedShadowDepth);
-      this.cascadeEffect.SetParameter_TextureAL("DepthMap", depthMap);
+      this.cascadeEffect.SetParameter__TextureAL("EveSpaceSceneCascadedShadowMap", cascadedShadowDepth);
+      this.cascadeEffect.SetParameter__TextureAL("DepthMap", depthMap);
       Tr2Renderer.drawScreenQuad(renderContext, this.cascadeEffect);
-      this.cascadeEffect.SetParameter_TextureAL("EveSpaceSceneCascadedShadowMap", null);
-      this.cascadeEffect.SetParameter_TextureAL("DepthMap", null);
+      this.cascadeEffect.SetParameter__TextureAL("EveSpaceSceneCascadedShadowMap", null);
+      this.cascadeEffect.SetParameter__TextureAL("DepthMap", null);
 
       // Carbon gates on all three (`cpp:296`). Setup() nulls the denoiser when
       // it is disabled, so the useDenoiser flag and a present denoiser are not

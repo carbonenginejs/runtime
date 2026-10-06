@@ -69,7 +69,7 @@ test("render-texture passes the borrowed texture to the blitter and preserves te
   provider.GetHeight = provider.GetWidth;
   const blitter = context.GetBlitter();
   const calls = [];
-  blitter.Draw_Texture = (...args) => { calls.push(args); return true; };
+  blitter.Draw__Texture = (...args) => { calls.push(args); return true; };
   const step = new TriStepRenderTexture();
   step.texture = provider;
   step.textureSize.set([7, 8]);

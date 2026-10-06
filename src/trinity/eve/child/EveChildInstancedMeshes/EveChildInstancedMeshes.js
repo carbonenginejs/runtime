@@ -439,8 +439,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
         const worldSphere = found.mesh.instanceSpheres[found.instanceIndex] ?? EMPTY_SPHERE;
         const frustum = updateContext.GetFrustum();
         info.estimatedPixelDiameter = Math.max(
-          frustum.GetPixelSizeAccrossEst_CenterRadius(worldSphere.center, worldSphere.radius) * updateContext.GetInvLodFactor(), 0);
-        info.isInFrustum = frustum.IsSphereVisible_CenterRadius(worldSphere.center, worldSphere.radius);
+          frustum.GetPixelSizeAccrossEst__CenterRadius(worldSphere.center, worldSphere.radius) * updateContext.GetInvLodFactor(), 0);
+        info.isInFrustum = frustum.IsSphereVisible__CenterRadius(worldSphere.center, worldSphere.radius);
         this._partDamageLocators = FindDamageLocators(found.mesh.ownedLocatorSets);
         info.getDamageLocatorPositionOS = this._getPartDamageLocatorPositionOS;
       }
@@ -1316,12 +1316,12 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
         const sphere = mesh.instanceSpheres[index];
         if (!sphere) continue;
         if (this._lastCameraFrustum &&
-          this._lastCameraFrustum.IsSphereVisible_CenterRadius(sphere.center, sphere.radius) === false) continue;
+          this._lastCameraFrustum.IsSphereVisible__CenterRadius(sphere.center, sphere.radius) === false) continue;
 
         const screenSize = this._lastCameraFrustum
-          ? this._lastCameraFrustum.GetPixelSizeAccrossEst_CenterRadius(sphere.center, sphere.radius) * this._lastInvLodFactor
+          ? this._lastCameraFrustum.GetPixelSizeAccrossEst__CenterRadius(sphere.center, sphere.radius) * this._lastInvLodFactor
           : Infinity;
-        const lod = geometry.GetMeshLod_ScreenSize(mesh.meshIndex, screenSize);
+        const lod = geometry.GetMeshLod__ScreenSize(mesh.meshIndex, screenSize);
 
         // Carbon cpp:1404-1413: the part's damage pass comes first, under
         // its own and the inherited overlays.
@@ -1539,9 +1539,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   /** Carbon EveChildInstancedMeshes::IsCastingShadow (cpp:73-76) always
    * returns false (instanced shadows cull per instance group); presence
    * satisfies the "ShadowCaster" duck contract. */
-  @meta.renamed("IsCastingShadow")
   @meta.implemented
-  IsCastingShadow_ShadowFrustum(..._args)
+  IsCastingShadow__ShadowFrustum(..._args)
   {
     return false;
   }

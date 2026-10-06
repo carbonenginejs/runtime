@@ -617,9 +617,8 @@ export class Tr2RuntimeInstanceData
   }
 
   /** Carbon's start/end SpawnParticles overload; also a deliberate no-op. */
-  @meta.renamed("SpawnParticles")
   @meta.implemented
-  SpawnParticles_StartEnd(_arguments, _positionStart, _positionEnd, _velocityStart, _velocityEnd, _deltaTime)
+  SpawnParticles__StartEnd(_arguments, _positionStart, _positionEnd, _velocityStart, _velocityEnd, _deltaTime)
   {
   }
 
