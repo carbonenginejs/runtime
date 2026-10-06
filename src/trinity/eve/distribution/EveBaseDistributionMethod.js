@@ -267,7 +267,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
         const event = modifier.ProcessDistributionModifier(placement, deltaTime, params);
         if (event !== DistributionEntityLifeTimeEvent.DO_NOTHING)
         {
-          this._handleDistributionEntityLifetimeEvent(index, event);
+          this._HandleDistributionEntityLifetimeEvent(index, event);
           entityKilled = true;
           break;
         }
@@ -330,7 +330,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
     const count = Math.min(Math.max(0, Math.trunc(howMany)), this.freePlacements);
     for (let i = 0; i < count; i++)
     {
-      const placement = this._getRandomPlacement();
+      const placement = this._GetRandomPlacement();
       placement.uniqueID = this.entitiesSpawned++;
       this.placementData.push(placement);
     }
@@ -350,7 +350,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
       return -1;
     }
 
-    let entityIndex = this._getInitialPlacementIndexByID(entityID);
+    let entityIndex = this._GetInitialPlacementIndexByID(entityID);
     if (entityIndex < 0 || this._initialPlacements[entityIndex].timeOutDuration > 0)
     {
       return -1;
@@ -360,7 +360,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
     if (entityIndex < this.freePlacements)
     {
       this.freePlacements--;
-      this._swapInitialPlacements(entityIndex, this.freePlacements);
+      this._SwapInitialPlacements(entityIndex, this.freePlacements);
       entityIndex = this.freePlacements;
     }
 
@@ -417,7 +417,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   @meta.adapted
   GetInitialPlacementData(uniqueID)
   {
-    const index = this._getInitialPlacementIndexByID(uniqueID);
+    const index = this._GetInitialPlacementIndexByID(uniqueID);
     return index >= 0 && index < this._initialPlacements.length
       ? this._initialPlacements[index].placement
       : null;
@@ -455,7 +455,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * Maps a placement unique id to its current index in the pool, or -1 when the
    * id is unknown.
    */
-  _getInitialPlacementIndexByID(entityID)
+  _GetInitialPlacementIndexByID(entityID)
   {
     return this._uniqueIDIndices.get(entityID) ?? -1;
   }
@@ -464,7 +464,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * Swaps two pool entries and updates the id-to-index map; this is how
    * placements move between the free and in-use partitions of the pool.
    */
-  _swapInitialPlacements(indexA, indexB)
+  _SwapInitialPlacements(indexA, indexB)
   {
     if (indexA === indexB)
     {
@@ -485,14 +485,14 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * lifetime modifier pass over the clone; returns null when that placement is
    * not free.
    */
-  _getPlacement(entityID)
+  _GetPlacement(entityID)
   {
     if (this.freePlacements < 1 || this._initialPlacements.length === 0)
     {
       return null;
     }
 
-    const selectedIndex = this._getInitialPlacementIndexByID(entityID);
+    const selectedIndex = this._GetInitialPlacementIndexByID(entityID);
     if (selectedIndex < 0 || selectedIndex >= this.freePlacements)
     {
       return null;
@@ -503,7 +503,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
     const placement = EveBaseDistributionMethod._clonePlacement(initial.placement);
     placement.initialPlacementID = initial.placement.uniqueID;
     this.freePlacements--;
-    this._swapInitialPlacements(selectedIndex, this.freePlacements);
+    this._SwapInitialPlacements(selectedIndex, this.freePlacements);
 
     for (const modifier of this.spawnModifiers)
     {
@@ -519,7 +519,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   }
 
   /** Takes a uniformly chosen free placement out of the pool. */
-  _getRandomPlacement()
+  _GetRandomPlacement()
   {
     if (this.freePlacements < 1 || this._initialPlacements.length === 0)
     {
@@ -528,7 +528,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
       return new PlacementDataWithIdentifier();
     }
     const selectedIndex = Math.floor(Math.random() * this.freePlacements);
-    return this._getPlacement(this._initialPlacements[selectedIndex].placement.uniqueID);
+    return this._GetPlacement(this._initialPlacements[selectedIndex].placement.uniqueID);
   }
 
   /**
@@ -554,7 +554,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
       }
       else
       {
-        this._swapInitialPlacements(index, this.freePlacements);
+        this._SwapInitialPlacements(index, this.freePlacements);
         this.freePlacements++;
       }
     }
@@ -586,7 +586,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    */
   _getInitialPlacementMatrix(placement)
   {
-    const originIndex = this._getInitialPlacementIndexByID(placement.initialPlacementID);
+    const originIndex = this._GetInitialPlacementIndexByID(placement.initialPlacementID);
     if (originIndex < 0)
     {
       return mat4.create();
@@ -606,7 +606,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * placement drawn from the distribution, from its initial position, or from
    * its current position.
    */
-  _handleDistributionEntityLifetimeEvent(index, event)
+  _HandleDistributionEntityLifetimeEvent(index, event)
   {
     if (event === DistributionEntityLifeTimeEvent.KILL_ENTITY)
     {
@@ -624,7 +624,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
     switch (event)
     {
       case DistributionEntityLifeTimeEvent.KILL_AND_SPAWN_NEW_FROM_DISTRIBUTION:
-        replacement = this._getRandomPlacement();
+        replacement = this._GetRandomPlacement();
         break;
 
       case DistributionEntityLifeTimeEvent.KILL_AND_SPAWN_NEW_FROM_INITIAL_POSITION:

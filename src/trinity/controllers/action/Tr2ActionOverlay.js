@@ -79,7 +79,7 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
     {
       return;
     }
-    this._loadOverlay(resolved.owner);
+    this._LoadOverlay(resolved.owner);
     if (resolved.rebind)
     {
       ITr2ControllerAction.callTarget(controllerOwner, "Rebind", true);
@@ -120,7 +120,7 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    * nominal resource/owner contracts are not implemented by this adapter.
    */
   @meta.adapted
-  _loadOverlay(owner)
+  _LoadOverlay(owner)
   {
     this._overlay = this.overlayName ? ITr2ControllerAction.callTarget(owner, "GetOverlayEffectByName", this.overlayName) ?? Tr2ActionOverlay._findNamed(owner, "overlays", this.overlayName) : null;
     if (!this._overlay && this.addOnStart && this.path)

@@ -307,7 +307,7 @@ export class Tr2StateMachineState
     }
     if (this._isFinalizing)
     {
-      const next = this._getNextState();
+      const next = this._GetNextState();
       if (!next)
       {
         this._isActive = false;
@@ -415,9 +415,8 @@ export class Tr2StateMachineState
    * @returns {Tr2StateMachineState|null} First active destination, or null.
    */
   @meta.blue.method
-  @meta.renamed("GetNextState")
   @meta.adapted
-  _getNextState()
+  _GetNextState()
   {
     for (const transition of this.transitions)
     {

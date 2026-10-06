@@ -125,7 +125,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
   @meta.implemented
   Initialize()
   {
-    this._reEvaluateKeys();
+    this._ReEvaluateKeys();
     return true;
   }
 
@@ -176,7 +176,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
     {
       return 0;
     }
-    this._reEvaluateKeys();
+    this._ReEvaluateKeys();
     const length = this.Length();
     time = time / this.timeScale - this.timeOffset;
     if (length <= 0 || time <= 0)
@@ -202,11 +202,11 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
     }
     if (time <= Number(first.time))
     {
-      return this._interpolate(time, null, first);
+      return this._Interpolate(time, null, first);
     }
     if (time >= Number(last.time))
     {
-      return this._interpolate(time, last, null);
+      return this._Interpolate(time, last, null);
     }
     let startKey = first;
     let endKey = first;
@@ -220,7 +220,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
       }
     }
     // Native comparisons all fail for NaN; it still samples the final segment.
-    return this._interpolate(time, startKey, endKey);
+    return this._Interpolate(time, startKey, endKey);
   }
 
   /**
@@ -424,7 +424,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
   @meta.implemented
   Sort()
   {
-    this._reEvaluateKeys();
+    this._ReEvaluateKeys();
   }
 
   /**
@@ -432,7 +432,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * predecessor so expressions can reference prevKeyTime and prevKeyValue.
    */
   @meta.implemented
-  _reEvaluateKeys()
+  _ReEvaluateKeys()
   {
     let previousKey = null;
     for (const key of this.keys)
@@ -476,7 +476,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * Hermite uses the existing equivalent scalar helper.
    */
   @meta.adapted
-  _interpolate(time, lastKey, nextKey)
+  _Interpolate(time, lastKey, nextKey)
   {
     let deltaTime = this.Length();
     let startValue = Number(this.keys[0].value);

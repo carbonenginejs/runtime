@@ -82,7 +82,7 @@ export class Tr2StateMachineTransition
     this._source = state;
     if (this._source.GetStateMachine())
     {
-      this._updateDestination();
+      this._UpdateDestination();
     }
   }
 
@@ -124,7 +124,7 @@ export class Tr2StateMachineTransition
       this.Compile();
       this._source.UpdateVariableMask();
     }
-    if (IsMatch(propertyName, "name")) this._updateDestination();
+    if (IsMatch(propertyName, "name")) this._UpdateDestination();
     return true;
   }
 
@@ -383,9 +383,8 @@ export class Tr2StateMachineTransition
    * @returns {void}
    */
   @meta.blue.method
-  @meta.renamed("UpdateDestination")
   @meta.adapted
-  _updateDestination()
+  _UpdateDestination()
   {
     this._destination = this._source.GetStateMachine().GetStateByName(this.name);
     if (!this._destination)

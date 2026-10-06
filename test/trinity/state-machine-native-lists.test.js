@@ -521,9 +521,7 @@ test("state lookup requires GetName while retained accessors remain custom conve
   assert.equal(machine.GetState(99), null);
   assert.equal(machine.GetCurrentState(), null);
   assert.equal(machine.GetStateTime(), machine.GetStateRunTime());
-  const transitions = CjsSchema.getMethod(Tr2StateMachine, "_followTransitions");
-  assert.equal(transitions.carbon.method, true);
-  assert.equal(transitions.carbon.originalName, "FollowTransitions");
+  const transitions = CjsSchema.getMethod(Tr2StateMachine, "_FollowTransitions");
   assert.equal(transitions.impl.status, "adapted");
   for (const name of ["GetCurrentState", "GetState", "GetStateTime"])
   {

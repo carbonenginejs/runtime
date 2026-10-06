@@ -238,12 +238,14 @@ async function ReadJavaScriptClasses(directory, includeDropped = false)
         // An overload variant `Name__Variant` credits Carbon's `Name`: C++
         // reserves `__`, so everything before it is the donor's name. Like a
         // renamed twin, it must not erase the exposure of the exact-name method.
-        // A private `_Name__Variant` credits nothing here, as `_Name` does not.
-        const variantOf = name.startsWith("_") ? null : OverloadDonor(name);
-        if (variantOf)
+        // `_Name` is the library's private spelling of Carbon's private or
+        // protected `Name`, as the native-method lint already credits it.
+        const privateOf = name.startsWith("_") && !name.startsWith("__") ? name.slice(1) : null;
+        for (const original of [ OverloadDonor(name), privateOf ])
         {
-          const existing = methods.get(variantOf);
-          methods.set(variantOf, existing ? { ...existing, hasCarbon: existing.hasCarbon || metadata.hasCarbon } : metadata);
+          if (!original) continue;
+          const existing = methods.get(original);
+          methods.set(original, existing ? { ...existing, hasCarbon: existing.hasCarbon || metadata.hasCarbon } : metadata);
         }
         // A browser wrapper can keep its Blue name while declaring its C++
         // original, just as the native-method audit already resolves aliases.

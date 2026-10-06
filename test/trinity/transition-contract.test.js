@@ -291,9 +291,7 @@ test("metadata distinguishes custom JS helpers from renamed native UpdateDestina
     assert.equal(method?.impl?.status, "custom", name);
     assert.equal(method.carbon?.method, undefined, name);
   }
-  const update = CjsSchema.getMethod(Type, "_updateDestination");
-  assert.equal(update.carbon.method, true);
-  assert.equal(update.carbon.originalName, "UpdateDestination");
+  const update = CjsSchema.getMethod(Type, "_UpdateDestination");
   assert.equal(update.impl.status, "adapted");
   assert.equal(CjsSchema.getMethod(Type, "GetState").carbon.method, true);
   const transition = new Type(), source = State("source");

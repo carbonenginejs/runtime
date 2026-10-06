@@ -220,7 +220,7 @@ export class Tr2StateMachine
       return;
     }
     this.currentState.Start();
-    this._followTransitions(0xffffffffffffffffn);
+    this._FollowTransitions(0xffffffffffffffffn);
   }
 
   /**
@@ -252,7 +252,7 @@ export class Tr2StateMachine
   {
     if (this.currentState)
     {
-      this._followTransitions(dirtyVariables);
+      this._FollowTransitions(dirtyVariables);
     }
   }
 
@@ -343,9 +343,8 @@ export class Tr2StateMachine
    * @returns {void}
    */
   @meta.blue.method
-  @meta.renamed("FollowTransitions")
   @meta.adapted
-  _followTransitions(dirtyVariables)
+  _FollowTransitions(dirtyVariables)
   {
     let next = this.currentState?.Update(dirtyVariables) ?? null;
     if (!next)

@@ -99,7 +99,7 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
   Link(controller)
   {
     this._controller = controller;
-    this._linkToDestinationOwner();
+    this._LinkToDestinationOwner();
   }
 
   /**
@@ -133,7 +133,7 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
     this._controller = controller;
     if (!this.destination)
     {
-      this._linkToDestinationOwner();
+      this._LinkToDestinationOwner();
     }
     if (!this.IsDestinationValid())
     {
@@ -156,7 +156,7 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
   @meta.adapted
   OnModified(propertyName)
   {
-    if (IsMatch(propertyName, "destinationOwner")) this._linkToDestinationOwner();
+    if (IsMatch(propertyName, "destinationOwner")) this._LinkToDestinationOwner();
     return true;
   }
 
@@ -184,7 +184,7 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    * Resolves `destination` by case-insensitively matching destinationOwner
    * against the owner's binding roots.
    */
-  _linkToDestinationOwner()
+  _LinkToDestinationOwner()
   {
     this.destination = null;
     if (!this._controller)

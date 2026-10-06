@@ -1390,7 +1390,7 @@ export class EveSOFDNA
     if (layouts) this.layoutData = dataMgr.GetLayoutData__Vector(layouts);
     this.genericData = dataMgr.GetGenericData();
 
-    if (this.HasDnaCommand(EveSOFDNA.DnaCommand.CMD_VARIANT)) this._setupCustomData();
+    if (this.HasDnaCommand(EveSOFDNA.DnaCommand.CMD_VARIANT)) this._SetupCustomData();
     this.parentBoundingSphere = this.GetHullBoundingSphere();
     this.parentHullShapeEllipsoid = EveSOFDNA._CopyEllipsoid(this.GetHullShapeEllipsoid());
     this.isSkinned = this.hullDatas[0]?.isSkinned === true;
@@ -1460,7 +1460,7 @@ export class EveSOFDNA
     const layouts = this.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_LAYOUT);
     if (layouts) this.layoutData = dataMgr.GetLayoutData__Vector(layouts);
     this.genericData = dataMgr.GetGenericData();
-    if (this.HasDnaCommand(EveSOFDNA.DnaCommand.CMD_VARIANT)) this._setupCustomData();
+    if (this.HasDnaCommand(EveSOFDNA.DnaCommand.CMD_VARIANT)) this._SetupCustomData();
 
     this.dna = `${descriptor.hull}:${this.factionName}:${this.raceName}`;
     for (const name of [...this._commands.keys()].sort())
@@ -1487,7 +1487,7 @@ export class EveSOFDNA
    * Replaces the resolved hull references with resolver-owned variant hull
    * snapshots when a variant command is active.
    */
-  _setupCustomData()
+  _SetupCustomData()
   {
     const args = this.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_VARIANT);
     if (!args?.length) return;

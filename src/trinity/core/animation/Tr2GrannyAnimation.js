@@ -717,7 +717,7 @@ export class Tr2GrannyAnimation
     // Carbon quirk (cpp:1727-1742 with GrannyBoneOffset.cpp:195-196): offsets
     // are applied onto the persistent pose, so with no pose modifier to
     // restore it they compound every frame on bones no animation rewrites.
-    this._applyBoneOffsets();
+    this._ApplyBoneOffsets();
     this._composePose();
     return true;
   }
@@ -1395,7 +1395,7 @@ export class Tr2GrannyAnimation
   }
 
   /** Applies configured bone offsets to the sampled local pose. */
-  _applyBoneOffsets()
+  _ApplyBoneOffsets()
   {
     // Carbon cpp:1727-1742: rebind when the rig changed, then apply per bone.
     const bones = this._runtimeModel?.bones ?? [];

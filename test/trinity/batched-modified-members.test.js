@@ -28,7 +28,7 @@ test("a transition batch refreshes both its condition and destination", () =>
   const calls = [];
   const target = {
     _source: { UpdateVariableMask: () => calls.push("mask") },
-    Compile: () => calls.push("compile"), _updateDestination: () => calls.push("destination")
+    Compile: () => calls.push("compile"), _UpdateDestination: () => calls.push("destination")
   };
   Tr2StateMachineTransition.prototype.OnModified.call(target, ["condition", "name"]);
   assert.deepEqual(calls, ["compile", "mask", "destination"]);

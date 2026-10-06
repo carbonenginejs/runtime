@@ -101,8 +101,8 @@ export class EveDistanceField
     this.distanceThreshold = distanceThreshold;
     this.timeAdjustmentSecondsIn = timeAdjustmentSecondsIn;
     this.timeAdjustmentSecondsOut = timeAdjustmentSecondsOut;
-    this._createCurveSet();
-    this._updateDistanceCurveSize();
+    this._CreateCurveSet();
+    this._UpdateDistanceCurveSize();
   }
 
   /**
@@ -120,7 +120,7 @@ export class EveDistanceField
     this.distanceThreshold = distanceThreshold;
     this.timeAdjustmentSecondsIn = timeAdjustmentSecondsIn;
     this.timeAdjustmentSecondsOut = timeAdjustmentSecondsOut;
-    this._createCurveSet();
+    this._CreateCurveSet();
   }
 
   /**
@@ -144,7 +144,7 @@ export class EveDistanceField
     const time = updateContext.GetTime();
     if (this._updateDistanceCurve)
     {
-      this._updateDistanceCurveSize();
+      this._UpdateDistanceCurveSize();
     }
     if (this.distance < 0)
     {
@@ -154,7 +154,7 @@ export class EveDistanceField
     let distanceNow = this.maxDistance;
     if (this._isDynamic)
     {
-      distanceNow = this._calculateFieldCoverageAndDistance(time, cameraPosition, originShift);
+      distanceNow = this._CalculateFieldCoverageAndDistance(time, cameraPosition, originShift);
     }
     else
     {
@@ -224,7 +224,7 @@ export class EveDistanceField
       case 0x09:
         if (this.objects.length === 0)
         {
-          this._setNeutralValues();
+          this._SetNeutralValues();
         }
         break;
     }
@@ -241,7 +241,7 @@ export class EveDistanceField
    * Builds the curve set the field drives: a single named scalar curve falling
    * linearly from 1 to 0 across the distance range.
    */
-  _createCurveSet()
+  _CreateCurveSet()
   {
     this.curveSet = new TriCurveSet();
     this._distanceCurve = new Tr2CurveScalar();
@@ -256,7 +256,7 @@ export class EveDistanceField
    * Moves the distance curve's two keys onto the current minimum and maximum
    * distance and clears the pending-rebuild flag.
    */
-  _updateDistanceCurveSize()
+  _UpdateDistanceCurveSize()
   {
     // Carbon retains the resize request until the curve exists.
     if (!this._distanceCurve) return;
@@ -272,7 +272,7 @@ export class EveDistanceField
   }
 
   /** Zeroes the midpoint and extent once nothing is being tracked. */
-  _setNeutralValues()
+  _SetNeutralValues()
   {
     vec3.zero(this.midpoint);
     vec3.zero(this.dimensions);
@@ -285,7 +285,7 @@ export class EveDistanceField
    * distanceThreshold of the mean spread, enforcing the maximum X/Z ratio and
    * the minimum Y ratio.
    */
-  _calculateFieldCoverageAndDistance(time, cameraPosition, originShift)
+  _CalculateFieldCoverageAndDistance(time, cameraPosition, originShift)
   {
     if (this.objects.length === 0)
     {

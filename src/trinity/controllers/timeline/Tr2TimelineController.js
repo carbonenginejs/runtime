@@ -237,7 +237,7 @@ export class Tr2TimelineController extends EveThrottleable
     this._lastUpdateTime = simTime;
     if (!this.isPaused)
     {
-      this._setTime(this._time + dt, true);
+      this._SetTime(this._time + dt, true);
     }
     if (this._updateables.size)
     {
@@ -776,7 +776,7 @@ export class Tr2TimelineController extends EveThrottleable
     {
       return;
     }
-    this._setTime(time, false);
+    this._SetTime(time, false);
   }
 
   /**
@@ -785,7 +785,7 @@ export class Tr2TimelineController extends EveThrottleable
    * skipped over in one step is started and stopped back to back so it is not
    * silently missed.
    */
-  _setTime(time, includePassedActions)
+  _SetTime(time, includePassedActions)
   {
     const oldTime = this._time;
     this._time = time;

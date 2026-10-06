@@ -53,7 +53,7 @@ export class EveMobile extends EveSpaceObject2
   Initialize()
   {
     super.Initialize();
-    this._resetTurretLocatorCounter(true);
+    this._ResetTurretLocatorCounter(true);
     this.RebuildTurretPositions();
     return true;
   }
@@ -159,7 +159,7 @@ export class EveMobile extends EveSpaceObject2
   RebuildTurretPositions()
   {
     this._turretSetsLocatorInfo.length = 0;
-    this._resetTurretLocatorCounter(false);
+    this._ResetTurretLocatorCounter(false);
     const resolved = { index: 0 };
     for (const turretSet of this.turretSets)
     {
@@ -168,11 +168,11 @@ export class EveMobile extends EveSpaceObject2
       let locatorNumber = 0;
       if (!turretInName)
       {
-        let counting = this._getTurretLocatorCountingInfo(name);
+        let counting = this._GetTurretLocatorCountingInfo(name);
         if (!counting)
         {
           name = "locator_turret_";
-          counting = this._getTurretLocatorCountingInfo(name);
+          counting = this._GetTurretLocatorCountingInfo(name);
           if (!counting) continue;
           turretInName = true;
         }
@@ -182,7 +182,7 @@ export class EveMobile extends EveSpaceObject2
           if (!turretInName)
           {
             name = "locator_turret_";
-            counting = this._getTurretLocatorCountingInfo(name);
+            counting = this._GetTurretLocatorCountingInfo(name);
             if (!counting) continue;
             locatorNumber = counting.current;
           }
@@ -462,7 +462,7 @@ export class EveMobile extends EveSpaceObject2
    * locators, resetting each prefix's running count and, when asked, recomputing
    * its total from the digit that follows the prefix.
    */
-  _resetTurretLocatorCounter(updateTotal)
+  _ResetTurretLocatorCounter(updateTotal)
   {
     for (const locator of this.locators)
     {
@@ -489,7 +489,7 @@ export class EveMobile extends EveSpaceObject2
    * Returns the next locator number to allocate for a name prefix together with
    * that prefix's total, or null when the prefix is unknown.
    */
-  _getTurretLocatorCountingInfo(name)
+  _GetTurretLocatorCountingInfo(name)
   {
     const info = this._turretLocatorCountingInfo.get(name);
     return info ? { current: info.currentCount + 1, total: info.totalCount } : null;

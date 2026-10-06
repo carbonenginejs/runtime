@@ -419,7 +419,7 @@ test("GetNextState uses all dirty bits, skips false activation and reads the sel
   selected.onDestination = () => ++reads === 1 ? first : second;
   state.transitions.Append(rejected);
   state.transitions.Append(selected);
-  assert.equal(state._getNextState(), second);
+  assert.equal(state._GetNextState(), second);
   assert.deepEqual(rejected.calls, [["CanActivate", ALL_DIRTY]]);
   assert.deepEqual(selected.calls, [["CanActivate", ALL_DIRTY], ["GetDestination"], ["GetDestination"]]);
   assert.equal(reads, 2);
@@ -557,10 +557,10 @@ test("required transition methods fail visibly when an admitted instance is malf
   transition.GetVariableMask = undefined;
   assert.throws(() => state.UpdateVariableMask(), TypeError);
   transition.CanActivate = undefined;
-  assert.throws(() => state._getNextState(), TypeError);
+  assert.throws(() => state._GetNextState(), TypeError);
   transition.CanActivate = () => true;
   transition.GetDestination = undefined;
-  assert.throws(() => state._getNextState(), TypeError);
+  assert.throws(() => state._GetNextState(), TypeError);
 });
 
 test("Start and Stop remain queued, re-read controllers at drain and skip actions after Unlink", t =>
@@ -819,9 +819,7 @@ test("DictReader retains explicit Transition notifications with real linked reco
 
 test("model-free State labels native GetNextState and retained custom helpers", () =>
 {
-  const method = CjsSchema.getMethod(Tr2StateMachineState, "_getNextState");
-  assert.equal(method.carbon.method, true);
-  assert.equal(method.carbon.originalName, "GetNextState");
+  const method = CjsSchema.getMethod(Tr2StateMachineState, "_GetNextState");
   assert.equal(method.impl.status, "adapted");
   const convenience = CjsSchema.getMethod(Tr2StateMachineState, "CanTransition");
   assert.equal(convenience.impl.status, "custom");

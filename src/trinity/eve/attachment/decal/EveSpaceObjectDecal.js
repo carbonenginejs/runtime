@@ -173,7 +173,7 @@ export class EveSpaceObjectDecal
   @meta.adapted
   Initialize()
   {
-    return this._updateDecalMatrix();
+    return this._UpdateDecalMatrix();
   }
 
   /**
@@ -189,7 +189,7 @@ export class EveSpaceObjectDecal
   {
     if (IsMatch(propertyName, "position") || IsMatch(propertyName, "rotation") || IsMatch(propertyName, "scaling"))
     {
-      this._updateDecalMatrix();
+      this._UpdateDecalMatrix();
       if (!this.HasStaticIndexBuffers()) this._decalGeometry = null;
     }
     return true;
@@ -882,7 +882,7 @@ export class EveSpaceObjectDecal
    * Recomposes the decal matrix from the authored rotation, position and scaling
    * and inverts it; returns whether the inverse existed.
    */
-  _updateDecalMatrix()
+  _UpdateDecalMatrix()
   {
     mat4.fromRotationTranslationScale(this._decalMatrix, this.rotation, this.position, this.scaling);
     return !!mat4.invert(this._inverseDecalMatrix, this._decalMatrix);
