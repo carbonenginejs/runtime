@@ -297,7 +297,7 @@
   ],
   "scripts": {
     "build:npm": "node scripts/build-npm.js && rollup -c && node scripts/build-min.js",
-    "lint": "npm run lint:layers && npm run lint:source && npm run lint:optional-calls && npm run lint:instanceof && npm run lint:constructor-name && npm run lint:private-references && npm run lint:typed-array-alloc && npm run lint:carbon-methods && npm run lint:class-shape && npm run lint:class-file-naming && npm run lint:donor-coverage && npm run lint:enum-parity && npm run lint:struct-defaults && npm run lint:al-parity && npm run lint:al-contract && npm run lint:trinity && npm run audit:trinity:parity && npm run lint:docs",
+    "lint": "npm run lint:layers && npm run lint:source && npm run lint:optional-calls && npm run lint:instanceof && npm run lint:constructor-name && npm run lint:private-references && npm run lint:typed-array-alloc && npm run lint:carbon-methods && npm run lint:class-shape && npm run lint:class-file-naming && npm run lint:donor-coverage && npm run lint:enum-parity && npm run lint:struct-defaults && npm run lint:al-parity && npm run lint:al-contract && npm run lint:trinity && npm run audit:trinity:parity && npm run lint:docs && npm run lint:format-jsdoc",
     "lint:carbon-methods": "node scripts/trinity/lint-native-method-parity.js",
     "lint:optional-calls": "node scripts/lint-optional-calls.js",
     "lint:layers": "node scripts/lint-layering.js",
@@ -309,6 +309,7 @@
     "lint:struct-defaults": "node scripts/lint-struct-defaults.js",
     "lint:al-parity": "node scripts/lint-al-parity.js",
     "lint:docs": "node scripts/lint-docs.js",
+    "lint:format-jsdoc": "node scripts/lint-format-jsdoc.js",
     "lint:trinity": "node scripts/trinity/lint_source_style.js",
     "audit:jsdoc": "node ../docs/tooling/bin/cjs-jsdoc.js audit .",
     "audit:gaps": "node scripts/audit_implementation_gaps.js",
