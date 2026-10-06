@@ -7,7 +7,26 @@ const Code = ImageIOResult.Code;
 const COMPONENTS_BGRA = [ 2, 1, 0, 3 ];
 const COMPONENTS_R = [ 0, 1 ];
 
-/** Carbon GetFormat: storage depends on channel count, not color mode. */
+/**
+ * PSD file header fields read by doReadHeader.
+ *
+ * @typedef {object} CjsPsdHeader
+ * @property {number} version File version; 1 is supported.
+ * @property {number} channelCount Stored channel count.
+ * @property {number} height Image height in pixels.
+ * @property {number} width Image width in pixels.
+ * @property {number} depth Bits per channel.
+ * @property {number} colorMode PSD color mode (1 grayscale, 3 RGB).
+ * @property {number} [compression] Merged-image compression (0 raw, 1 RLE).
+ * @property {number} [imageDataOffset] Byte offset of the merged-image data.
+ */
+
+/**
+ * Carbon GetFormat: storage depends on channel count, not color mode.
+ *
+ * @param {CjsPsdHeader} header Parsed PSD header.
+ * @returns {number} The PixelFormat value used to store the image.
+ */
 export function getFormat(header)
 {
     switch (header.channelCount)
@@ -23,6 +42,9 @@ export function getFormat(header)
  * Carbon DoReadHeader (PsdHandler.cpp:81-126), with a byte offset replacing
  * ICcpStream's cursor. The three length-prefixed blocks are skipped intact;
  * only the stored merged image is read, never individual layers.
+ *
+ * @param {Uint8Array|ArrayBuffer} input PSD file bytes.
+ * @returns {{code: number, header?: CjsPsdHeader}} The ImageIOResult code and, once the signature matched, the header.
  */
 export function doReadHeader(input)
 {
@@ -116,6 +138,11 @@ function readRleData(bytes, header, data)
  * Carbon Psd::ReadImage (PsdHandler.cpp:299-323), adapted from streams to
  * caller-owned bytes. Load parameters are unused by the donor. Header errors
  * leave outputs alone; pixel errors destroy the newly created bitmap.
+ *
+ * @param {Uint8Array|ArrayBuffer} input PSD file bytes.
+ * @param {import("#imageio").HostBitmap} bitmap Destination bitmap.
+ * @param {import("#imageio").Metadata|null} metadata Optional metadata out; receives a default cutout.
+ * @returns {ImageIOResult} The read result.
  */
 export function readImage(input, bitmap, metadata)
 {

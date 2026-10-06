@@ -60,6 +60,9 @@ export class CjsYamlReader extends CjsReader
     /**
      * Creates a CjsYamlReader over caller-provided YAML bytes and reader
      * options.
+     *
+     * @param {string|ArrayBuffer|ArrayBufferView} input YAML text or UTF-8 bytes.
+     * @param {import("./helpers.js").CjsYamlValues} [options={}] Normalized reader options.
      */
     constructor(input, options = {})
     {
@@ -82,19 +85,29 @@ export class CjsYamlReader extends CjsReader
     /**
      * Reads the primary public payload representation from the supplied input
      * for the YAML document reader.
+     *
+     * @returns {*} The JSON-safe payload graph.
      */
     Read()
     {
         return this.ReadPayload();
     }
 
-    /** Reads payload from the current YAML document reader. */
+    /**
+     * Reads payload from the current YAML document reader.
+     *
+     * @returns {*} The JSON-safe payload graph.
+     */
     ReadPayload()
     {
         return toJsonGraph(this.ReadRaw(), this.options);
     }
 
-    /** Reads raw from the current YAML document reader. */
+    /**
+     * Reads raw from the current YAML document reader.
+     *
+     * @returns {*} The converted value, with shared nodes kept as shared references.
+     */
     ReadRaw()
     {
         this.AssertSyntax();
@@ -102,7 +115,11 @@ export class CjsYamlReader extends CjsReader
         return this.Convert(this.document.contents, new Map());
     }
 
-    /** Reads document from the current YAML document reader. */
+    /**
+     * Reads document from the current YAML document reader.
+     *
+     * @returns {import("./helpers.js").CjsYamlDocument} The inventory and converted value.
+     */
     ReadDocument()
     {
         let value = null;
@@ -137,6 +154,8 @@ export class CjsYamlReader extends CjsReader
     /**
      * Returns structural metadata without materializing the decoded payload for
      * the YAML document reader.
+     *
+     * @returns {import("./helpers.js").CjsYamlInspection} The structural metadata.
      */
     Inspect()
     {
@@ -155,6 +174,8 @@ export class CjsYamlReader extends CjsReader
     /**
      * Classifies the root YAML node before conversion for the YAML document
      * reader.
+     *
+     * @returns {string} "null", "mapping", "sequence", "scalar", "alias" or "unknown".
      */
     RootKind()
     {
@@ -170,6 +191,8 @@ export class CjsYamlReader extends CjsReader
     /**
      * Validates syntax against YAML document reader constraints and throws on
      * failure.
+     *
+     * @throws {SyntaxError} When the parser reported an error.
      */
     AssertSyntax()
     {
@@ -182,6 +205,8 @@ export class CjsYamlReader extends CjsReader
     /**
      * Validates alias limit against YAML document reader constraints and throws
      * on failure.
+     *
+     * @throws {RangeError} When the alias count exceeds maxAliasCount.
      */
     AssertAliasLimit()
     {
@@ -193,6 +218,11 @@ export class CjsYamlReader extends CjsReader
     /**
      * Converts the current value into the normalized YAML document reader
      * representation.
+     *
+     * @param {import("yaml").Node|null|undefined} node YAML node to convert.
+     * @param {Map<import("yaml").Node, *>} memo Converted values keyed by node, for shared references.
+     * @returns {*} The converted value.
+     * @throws {Error} When an alias is unresolved or a tag violates the tag policy.
      */
     Convert(node, memo)
     {
@@ -258,7 +288,15 @@ export class CjsYamlReader extends CjsReader
         return this.ConvertBase(node, memo, true);
     }
 
-    /** Converts base into the normalized YAML document reader representation. */
+    /**
+     * Converts base into the normalized YAML document reader representation.
+     *
+     * @param {import("yaml").Node} node YAML node to convert, ignoring any custom tag.
+     * @param {Map<import("yaml").Node, *>} memo Converted values keyed by node.
+     * @param {boolean} memoize True to record the new container in memo.
+     * @returns {*} The converted value.
+     * @throws {Error} When a mapping key repeats or the node is unsupported.
+     */
     ConvertBase(node, memo, memoize)
     {
         if (isScalar(node)) return node.value;
@@ -295,6 +333,10 @@ export class CjsYamlReader extends CjsReader
     /**
      * Converts a YAML mapping key into its JavaScript property representation
      * for the YAML document reader.
+     *
+     * @param {import("yaml").Node|null} node Mapping key node.
+     * @returns {string} The property name.
+     * @throws {Error} When the key is not a scalar.
      */
     MapKey(node)
     {
@@ -305,6 +347,9 @@ export class CjsYamlReader extends CjsReader
     /**
      * Converts a YAML custom-tag node through its registered handler for the
      * YAML document reader.
+     *
+     * @param {import("yaml").Node} node YAML node.
+     * @returns {string|null} The canonical custom tag, or null for none or a standard tag.
      */
     CustomTag(node)
     {
@@ -315,6 +360,10 @@ export class CjsYamlReader extends CjsReader
     /**
      * Validates tag allowed against YAML document reader constraints and throws
      * on failure.
+     *
+     * @param {string} tag Canonical custom tag.
+     * @param {import("yaml").Node} node Tagged node, for the error location.
+     * @throws {Error} When allowedTags is set and does not contain the tag.
      */
     AssertTagAllowed(tag, node)
     {
@@ -323,7 +372,12 @@ export class CjsYamlReader extends CjsReader
         if (!allowed.has(tag)) throw this.NodeError(node, `custom tag "${tag}" is not in allowedTags`);
     }
 
-    /** Finds tag handler in the current YAML document reader. */
+    /**
+     * Finds tag handler in the current YAML document reader.
+     *
+     * @param {string} tag Canonical custom tag.
+     * @returns {Function|null} The handler for the tag or its short form, or null.
+     */
     FindTagHandler(tag)
     {
         const handlers = this.options.tagHandlers;
@@ -335,6 +389,10 @@ export class CjsYamlReader extends CjsReader
     /**
      * Builds the context passed to a YAML custom-tag handler for the YAML
      * document reader.
+     *
+     * @param {string} tag Canonical custom tag.
+     * @param {import("yaml").Node} node Tagged node.
+     * @returns {{tag: string, sourceName: string|null, location: import("./helpers.js").CjsYamlLocation|null}} The handler context.
      */
     TagContext(tag, node)
     {
@@ -348,6 +406,10 @@ export class CjsYamlReader extends CjsReader
     /**
      * Creates a YAML conversion error annotated with node location for the YAML
      * document reader.
+     *
+     * @param {import("yaml").Node|null} node Node the error refers to.
+     * @param {string} message Error message.
+     * @returns {Error} The error, with code "YAML_TAG_POLICY" and location.
      */
     NodeError(node, message)
     {
@@ -363,6 +425,9 @@ export class CjsYamlReader extends CjsReader
     /**
      * Returns normalized source-location metadata for a YAML node for the YAML
      * document reader.
+     *
+     * @param {import("yaml").Node|null} node YAML node.
+     * @returns {import("./helpers.js").CjsYamlLocation|null} The node start location, or null without a range.
      */
     Location(node)
     {
@@ -374,6 +439,9 @@ export class CjsYamlReader extends CjsReader
     /**
      * Returns normalized source-location metadata for a YAML tag for the YAML
      * document reader.
+     *
+     * @param {import("yaml").Node|null} node Tagged YAML node.
+     * @returns {import("./helpers.js").CjsYamlLocation|null} The tag location, falling back to the node location.
      */
     TagLocation(node)
     {
@@ -394,6 +462,9 @@ export class CjsYamlReader extends CjsReader
     /**
      * Builds a public description of error from the current YAML document
      * reader.
+     *
+     * @param {Error|import("yaml").YAMLError} error Parser or conversion error.
+     * @returns {import("./helpers.js").CjsYamlErrorDescription} The error description.
      */
     DescribeError(error)
     {
@@ -408,7 +479,11 @@ export class CjsYamlReader extends CjsReader
         };
     }
 
-    /** Builds inventory for the current YAML document reader. */
+    /**
+     * Builds inventory for the current YAML document reader.
+     *
+     * @returns {{tags: Array<object>, anchors: Array<object>, aliases: Array<object>, warnings: Array<import("./helpers.js").CjsYamlErrorDescription>, errors: Array<import("./helpers.js").CjsYamlErrorDescription>}} The tags, anchors, aliases, warnings and errors.
+     */
     BuildInventory()
     {
         const tags = [];
@@ -437,6 +512,9 @@ export class CjsYamlReader extends CjsReader
     /**
      * Returns the public kind label for a YAML node for the YAML document
      * reader.
+     *
+     * @param {import("yaml").Node} node YAML node.
+     * @returns {string} "mapping", "sequence", "scalar", "alias" or "unknown".
      */
     NodeKind(node)
     {

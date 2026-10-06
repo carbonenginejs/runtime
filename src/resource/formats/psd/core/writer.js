@@ -2,7 +2,12 @@
 import { ImageIOResult } from "#imageio";
 import { GetBytesPerPixel, PixelFormat as F, TextureType } from "#consts/render-context";
 
-/** Carbon Psd::IsSaveSupported (PsdHandler.cpp:332-344), including mip acceptance. */
+/**
+ * Carbon Psd::IsSaveSupported (PsdHandler.cpp:332-344), including mip acceptance.
+ *
+ * @param {import("#imageio").BitmapDimensions} dimensions Dimensions of the bitmap to save.
+ * @returns {ImageIOResult} OK, or SAVE_NOT_SUPPORTED.
+ */
 export function isSaveSupported(dimensions)
 {
     const supported = dimensions.GetType() === TextureType.TEX_TYPE_2D
@@ -17,6 +22,9 @@ export function isSaveSupported(dimensions)
  * planar channels and three empty auxiliary blocks; metadata is not serialized.
  * Adapted: the existing ImageIO byte-returning contract replaces ICcpStream,
  * so stream WRITE_FAILURE has no counterpart in this in-memory writer.
+ *
+ * @param {import("#imageio").HostBitmap} image Bitmap to encode.
+ * @returns {{result: ImageIOResult, bytes: Uint8Array|null}} The result and, on success, the PSD file bytes.
  */
 export function save(image)
 {

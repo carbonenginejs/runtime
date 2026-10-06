@@ -25,7 +25,69 @@ export const DEFAULT_VALUES = {
 
 const OPTION_KEYS = new Set(Object.keys(DEFAULT_VALUES));
 
-/** Returns true when a value can be decoded as YAML source text. */
+/**
+ * Normalized YAML reader options.
+ *
+ * @typedef {object} CjsYamlValues
+ * @property {string} emit Output to emit: "payload", "json", "raw" or "document".
+ * @property {string} tagPolicy Custom-tag policy: "preserve", "reject" or "handle".
+ * @property {Array<string>|null} allowedTags Custom tags allowed, or null for any.
+ * @property {Object<string, Function>|Map<string, Function>} tagHandlers Handlers keyed by tag.
+ * @property {string|null} sourceName Source name used in messages and metadata.
+ * @property {number} maxAliasCount Maximum number of aliases accepted.
+ * @property {boolean} uniqueKeys True to reject duplicate mapping keys.
+ * @property {boolean} intAsBigInt True to keep integer scalars as bigint.
+ * @property {string} idField Field marking a repeated node's identity.
+ * @property {string} refField Field marking a reference to a repeated node.
+ * @property {string} valuesField Field holding a repeated sequence's items.
+ * @property {string} tagField Field holding a preserved custom tag.
+ * @property {string} valueField Field holding a preserved custom tag's value.
+ */
+
+/**
+ * Source location of a YAML node or tag.
+ *
+ * @typedef {object} CjsYamlLocation
+ * @property {number} [offset] Character offset into the source.
+ * @property {number} line One-based line.
+ * @property {number} column One-based column.
+ */
+
+/**
+ * Public description of a YAML parse or conversion error.
+ *
+ * @typedef {object} CjsYamlErrorDescription
+ * @property {string} code Error code, or "YAML_ERROR".
+ * @property {string} message Error message.
+ * @property {CjsYamlLocation|null} location Error location, when known.
+ */
+
+/**
+ * Structural metadata of one YAML source, as returned by Inspect.
+ *
+ * @typedef {object} CjsYamlInspection
+ * @property {{id: string}} format Always { id: "yaml" }.
+ * @property {{name: string|null, length: number}} source Source name and text length.
+ * @property {{kind: string}} root Root node kind.
+ * @property {Array<{tag: string, kind: string, location: CjsYamlLocation|null}>} tags Custom tags found.
+ * @property {Array<{name: string, kind: string, location: CjsYamlLocation|null}>} anchors Anchors found.
+ * @property {Array<{name: string, location: CjsYamlLocation|null}>} aliases Aliases found.
+ * @property {Array<CjsYamlErrorDescription>} warnings Parser warnings.
+ * @property {Array<CjsYamlErrorDescription>} errors Parser errors.
+ */
+
+/**
+ * Document output: the inspection plus the converted raw value.
+ *
+ * @typedef {CjsYamlInspection & {value: *}} CjsYamlDocument
+ */
+
+/**
+ * Returns true when a value can be decoded as YAML source text.
+ *
+ * @param {*} value Candidate input of any type.
+ * @returns {boolean} True for a string, ArrayBuffer or ArrayBuffer view.
+ */
 export function isYamlSourceInput(value)
 {
     return typeof value === "string"
@@ -36,6 +98,11 @@ export function isYamlSourceInput(value)
 /**
  * Converts string or byte input into strict UTF-8 YAML source text while
  * respecting typed-array/DataView bounds.
+ *
+ * @param {string|ArrayBuffer|ArrayBufferView} value YAML text or bytes.
+ * @param {string} [readerName="CjsYamlFormat"] Name used in error messages.
+ * @returns {string} The YAML source text.
+ * @throws {TypeError} When the input is not text or bytes, or is not valid UTF-8.
  */
 export function toYamlSourceText(value, readerName = "CjsYamlFormat")
 {
@@ -136,6 +203,12 @@ function normalizeBoolean(value, name, readerName)
 /**
  * Normalizes reader options against their supported defaults for the YAML
  * document reader.
+ *
+ * @param {CjsYamlValues} base Values to start from.
+ * @param {object} [options={}] Overrides; only the CjsYamlValues fields are accepted.
+ * @param {string} [readerName="CjsYamlFormat"] Name used in error messages.
+ * @returns {CjsYamlValues} The normalized values.
+ * @throws {TypeError} When options is not an object, has an unknown key, or a field is invalid.
  */
 export function normalizeValues(base, options = {}, readerName = "CjsYamlFormat")
 {
@@ -188,6 +261,11 @@ export function normalizeValues(base, options = {}, readerName = "CjsYamlFormat"
 /**
  * Converts a YAML node graph into JSON-safe values while preserving references
  * for the YAML document reader.
+ *
+ * @param {*} value Converted YAML value of any shape.
+ * @param {CjsYamlValues} options Normalized options; idField, refField and valuesField are read.
+ * @returns {*} The JSON-safe graph.
+ * @throws {TypeError} When a repeated mapping already holds the identity field.
  */
 export function toJsonGraph(value, options)
 {

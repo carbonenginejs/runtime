@@ -11,8 +11,44 @@ export const DEFAULT_VALUES = {
 };
 
 /**
+ * Normalized WebP reader options.
+ *
+ * @typedef {object} CjsWebpValues
+ * @property {string} emit Output to emit: "raw", "json" or "webpJson".
+ * @property {string} inputType Expected source format; "webp".
+ * @property {string} source Source label reported in metadata; "" means "buffer".
+ */
+
+/**
+ * WebP container metadata returned by inspectWithValues.
+ *
+ * @typedef {object} CjsWebpInspection
+ * @property {string} sourceFormat Always "webp".
+ * @property {string} container Always "riff".
+ * @property {number} riffLength RIFF payload length from the file header.
+ * @property {string} codec "vp8", "vp8l", "vp8x" or "webp".
+ * @property {number} width Image width in pixels.
+ * @property {number} height Image height in pixels.
+ * @property {boolean} hasAlpha True when an alpha channel is signalled.
+ * @property {boolean} animated True when animation chunks are present.
+ * @property {number} animationFrameCount Number of ANMF frames.
+ * @property {number} animationDurationMs Sum of frame durations.
+ * @property {Array<{x: number, y: number, width: number, height: number, durationMs: number, flags: number}>} animationFrames ANMF frame headers.
+ * @property {boolean} isCompressed Always true.
+ * @property {Array<{type: string, byteOffset: number, byteLength: number}>} chunks RIFF chunk headers.
+ * @property {number} byteLength Input byte length.
+ * @property {string} source Source label, or "buffer".
+ */
+
+/**
  * Normalizes reader options against their supported defaults for the WebP format
  * reader.
+ *
+ * @param {CjsWebpValues} [base=DEFAULT_VALUES] Values to start from.
+ * @param {object} [options={}] Overrides; only emit, inputType and source are accepted.
+ * @param {string} [readerName="CjsWebpFormat"] Name used in error messages.
+ * @returns {CjsWebpValues} The normalized values.
+ * @throws {TypeError} When options is not an object, has an unknown key, or an unknown emit value.
  */
 export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsWebpFormat")
 {
@@ -33,10 +69,12 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName 
     return values;
 }
 
-/** Returns a byte view over the supplied binary input for the WebP format reader. */
 /**
  * Reports whether the supplied bytes have a RIFF/WebP header for the WebP format
  * reader.
+ *
+ * @param {Uint8Array} bytes Candidate bytes.
+ * @returns {boolean} True when the RIFF/WEBP signature is present.
  */
 export function isWebP(bytes)
 {
@@ -44,7 +82,15 @@ export function isWebP(bytes)
         ascii(bytes, 0, 4) === "RIFF" && ascii(bytes, 8, 4) === "WEBP";
 }
 
-/** Inspects input using normalized format options for the WebP format reader. */
+/**
+ * Inspects input using normalized format options for the WebP format reader.
+ *
+ * @param {Uint8Array|ArrayBuffer} input WebP file bytes.
+ * @param {CjsWebpValues} [values=DEFAULT_VALUES] Normalized options; source is read.
+ * @param {string} [expectedType="webp"] Required source format, or empty to skip the check.
+ * @returns {CjsWebpInspection} The container metadata.
+ * @throws {TypeError} When the input is not a RIFF WebP container or not the expected type.
+ */
 export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "webp")
 {
     const bytes = asUint8Array(input, "WebP input");
@@ -60,6 +106,10 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
 /**
  * Reports whether input is supported under normalized format options for the
  * WebP format reader.
+ *
+ * @param {Uint8Array|ArrayBuffer} input Candidate bytes.
+ * @param {CjsWebpValues} [values=DEFAULT_VALUES] Normalized options; source is read.
+ * @returns {object} The support report: format, supported, confidence, metadata, variants, warnings and errors.
  */
 export function probeSupportWithValues(input, values = DEFAULT_VALUES)
 {
@@ -104,7 +154,14 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES)
     }
 }
 
-/** Reads input using normalized format options for the WebP format reader. */
+/**
+ * Reads input using normalized format options for the WebP format reader.
+ *
+ * @param {Uint8Array|ArrayBuffer} input WebP file bytes.
+ * @param {CjsWebpValues} [values=DEFAULT_VALUES] Normalized options; emit and source are read.
+ * @returns {{sourceFormat: string, mimeType: string, metadata: CjsWebpInspection, bytes: Uint8Array}|CjsWebpInspection} The raw record, or the metadata for JSON output.
+ * @throws {Error} When the emit value is not implemented.
+ */
 export function readWithValues(input, values = DEFAULT_VALUES)
 {
     const bytes = asUint8Array(input, "WebP input");
@@ -124,7 +181,6 @@ export function readWithValues(input, values = DEFAULT_VALUES)
     throw error;
 }
 
-/** Converts a parsed payload into a JSON-safe value for the WebP format reader. */
 /** The shared JSON policy for this reader, under the name its callers use. */
 export { toJsonValue };
 
