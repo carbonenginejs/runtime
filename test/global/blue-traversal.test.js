@@ -15,11 +15,11 @@ CjsSchema.define(Graph, {
         { name: "list", key: "list", type: { kind: "list", itemType: "BlueTraversalGraph" }, lifecycle: { ownership: "owned" } },
         { name: "map", key: "map", type: { kind: "map", valueType: Graph } },
         { name: "set", key: "set", type: { kind: "set", itemType: { kind: "objectRef", className: Graph } } },
-        { name: "embedded", key: "embedded", type: { kind: "struct", className: Graph } },
+        { name: "embedded", key: "embedded", type: { kind: "root", className: Graph } },
         { name: "weak", key: "weak", type: { kind: "weakRef", className: Graph } },
         { name: "raw", key: "raw", type: { kind: "rawStruct", className: Graph } },
         { name: "unknown", key: "unknown", type: { kind: "unknown" } },
-        { name: "untyped", key: "untyped", type: { kind: "struct" } },
+        { name: "untyped", key: "untyped", type: { kind: "root" } },
         { name: "numbers", key: "numbers", type: { kind: "list", itemType: "uint32" } },
     ]
 });

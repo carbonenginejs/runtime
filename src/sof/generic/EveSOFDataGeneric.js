@@ -97,7 +97,7 @@ export class EveSOFDataGeneric
   /** m_bannerShader (PEveSOFDataGenericShader) [READ, PERSIST] */
   @meta.blue.read
   @meta.blue.persist
-  @meta.type.struct("EveSOFDataGenericShader")
+  @meta.type.root("EveSOFDataGenericShader")
   bannerShader = new EveSOFDataGenericShader();
 
   /** m_swarm (EveSOFDataGenericSwarmPtr) [READWRITE, PERSIST] */

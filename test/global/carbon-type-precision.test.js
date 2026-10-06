@@ -85,7 +85,7 @@ test("explicit weak references remain distinct without adding a lifetime policy"
 
 test("type normalization retains existing structure metadata", () =>
 {
-    const declaration = { kind: "struct", structure: "NativeValue", cppType: "NativeValue" };
+    const declaration = { kind: "root", structure: "NativeValue", cppType: "NativeValue" };
     assert.deepEqual(normalizeCarbonTypeDescriptor(declaration), {
         ...declaration, js: "object"
     });

@@ -476,7 +476,7 @@ test("SOF generic records expose the seven Carbon decal usages and embedded bann
   }
   assert.equal("decalMinScreenSize" in generic, false);
   assert.equal(CjsSchema.getField(EveSOFDataGeneric, "decalMinScreenSize"), null);
-  assert.equal(CjsSchema.getField(EveSOFDataGeneric, "bannerShader").type.kind, "struct");
+  assert.equal(CjsSchema.getField(EveSOFDataGeneric, "bannerShader").type.kind, "root");
   assert.ok(generic.bannerShader instanceof EveSOFDataGenericShader);
   assert.notEqual(generic.bannerShader, next.bannerShader);
   assert.equal(generic.bannerShader.doGenerateDepthArea, true);

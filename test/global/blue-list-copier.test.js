@@ -223,7 +223,7 @@ test("generic root and embedded struct copies need no fabricated registered list
   assert.notEqual(destination[0], source[0]);
   class EmbeddedHost { items = new BlueList(ItemContract); }
   CjsSchema.define(EmbeddedHost, { className: "BlueListCopierEmbeddedHost", fields: {
-    items: [ meta.type.struct("IList"), meta.blue.persist ]
+    items: [ meta.type.root("IList"), meta.blue.persist ]
   } });
   const from = new EmbeddedHost(), to = new EmbeddedHost(), original = to.items;
   from.items.push(MakeLeaf(3));

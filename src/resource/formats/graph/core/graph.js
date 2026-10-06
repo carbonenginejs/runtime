@@ -6,7 +6,7 @@ import { mappedInterfaces } from "../../../../global/compose/interface.js";
 import { dataType, isRecord, memberPath, put } from "./dataTypes.js";
 
 const RESERVED = new Set(["_type", "_id", "_ref", "__bluemetadata__"]);
-const OBJECTS = new Set(["objectRef", "model", "weakRef", "struct", "rawStruct"]);
+const OBJECTS = new Set(["objectRef", "model", "weakRef", "root", "rawStruct"]);
 
 /**
  * The canonical stored member projection; never use the lossy compatibility fields bag.
@@ -310,7 +310,7 @@ export function writeGraph(root, handlers, options = {})
     {
         const Constructor = storageClass(instance, type);
         if (!Constructor || !CjsSchema.getClassName(Constructor)) throw new TypeError("Unknown registered class");
-        const isEmbedded = type.kind === "struct" || type.kind === "rawStruct";
+        const isEmbedded = type.kind === "root" || type.kind === "rawStruct";
         const set = isEmbedded ? embedded : strong;
         if (set.has(instance)) return;
         set.add(instance);
@@ -331,7 +331,7 @@ export function writeGraph(root, handlers, options = {})
     };
     const object = (instance, type, path, isRoot = false) =>
     {
-        if (instance === null && !isRoot && type.kind !== "struct") return null;
+        if (instance === null && !isRoot && type.kind !== "root") return null;
         const Constructor = storageClass(instance, type);
         if (!Constructor || !CjsSchema.getClassName(Constructor)) throw new TypeError("Unknown registered class");
         if (Constructor === instance.constructor) checkClass(instance, type);
@@ -340,7 +340,7 @@ export function writeGraph(root, handlers, options = {})
             if (!strong.has(instance) || embedded.has(instance)) throw new TypeError("Weak reference target is outside the strong graph");
             return { _ref: idFor(instance) };
         }
-        const isEmbedded = type.kind === "struct" || type.kind === "rawStruct";
+        const isEmbedded = type.kind === "root" || type.kind === "rawStruct";
         if (!isEmbedded && embedded.has(instance)) throw new TypeError("Reference into embedded storage is unsupported");
         if (!isEmbedded && written.has(instance)) return { _ref: idFor(instance) };
         if (isEmbedded && activeEmbedded.has(instance)) throw new TypeError("Embedded storage cannot contain a cycle");
@@ -437,7 +437,7 @@ function hasStructure(type)
  */
 function storageClass(instance, type)
 {
-    if (isRecord(instance) && ["struct", "rawStruct"].includes(type.kind) && hasStructure(type))
+    if (isRecord(instance) && ["root", "rawStruct"].includes(type.kind) && hasStructure(type))
     {
         return typeof type.className === "function" ? type.className : CjsSchema.GetConstructor(type.className);
     }
@@ -564,9 +564,9 @@ export function readGraph(root, handlers, options = {})
     };
     const object = (source, type, path, existing = null, collectionItem = false) =>
     {
-        if (source === null && type.kind !== "struct") return null;
+        if (source === null && type.kind !== "root") return null;
         if (!isRecord(source)) throw new TypeError("Expected class definition or reference");
-        const isEmbedded = type.kind === "struct" || type.kind === "rawStruct";
+        const isEmbedded = type.kind === "root" || type.kind === "rawStruct";
         if (isEmbedded && (Object.hasOwn(source, "_ref") || Object.hasOwn(source, "_id"))) throw new TypeError("Embedded storage cannot carry identity markers");
         if (Object.hasOwn(source, "_ref"))
         {

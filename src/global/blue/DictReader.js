@@ -1402,7 +1402,7 @@ function MatchesObjectValues(current, source)
       if (!CjsSchema.isFieldWritable(field) || field.type?.runtimeOnly === true) continue;
       const value = readDictionaryValue(current, field);
       const kind = field.type?.kind;
-      if (["model", "objectRef", "struct", "list", "array"].includes(kind))
+      if (["model", "objectRef", "root", "list", "array"].includes(kind))
       {
         if (!MatchesObjectValues(value, source[name])) return false;
       }

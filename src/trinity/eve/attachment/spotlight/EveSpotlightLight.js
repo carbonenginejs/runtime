@@ -14,7 +14,7 @@ import { CjsLightData } from "../../lights/CjsLightData.js";
 export class EveSpotlightLight
 {
   @meta.owned
-  @meta.type.struct("CjsLightData")
+  @meta.type.root("CjsLightData")
   lightData = new CjsLightData();
 
   @meta.type.mat4

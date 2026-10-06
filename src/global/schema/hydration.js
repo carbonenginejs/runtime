@@ -218,7 +218,7 @@ function readerMemberValue(current, value, member)
         case "weakRef":
         case "rawStruct":
             return value;
-        case "struct":
+        case "root":
             if (current == null || value !== current)
             {
                 throw new TypeError(`Embedded member ${member.name} must be decoded into its existing destination.`);

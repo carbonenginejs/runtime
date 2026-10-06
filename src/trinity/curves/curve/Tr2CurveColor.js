@@ -48,7 +48,7 @@ export class Tr2CurveColor extends ITriColorFunction
    */
   @meta.blue.read
   @meta.blue.persist
-  @meta.type.struct("Tr2CurveScalar")
+  @meta.type.root("Tr2CurveScalar")
   r = new Tr2CurveScalar();
 
   /**
@@ -57,7 +57,7 @@ export class Tr2CurveColor extends ITriColorFunction
    */
   @meta.blue.read
   @meta.blue.persist
-  @meta.type.struct("Tr2CurveScalar")
+  @meta.type.root("Tr2CurveScalar")
   g = new Tr2CurveScalar();
 
   /**
@@ -66,7 +66,7 @@ export class Tr2CurveColor extends ITriColorFunction
    */
   @meta.blue.read
   @meta.blue.persist
-  @meta.type.struct("Tr2CurveScalar")
+  @meta.type.root("Tr2CurveScalar")
   b = new Tr2CurveScalar();
 
   /**
@@ -75,7 +75,7 @@ export class Tr2CurveColor extends ITriColorFunction
    */
   @meta.blue.read
   @meta.blue.persist
-  @meta.type.struct("Tr2CurveScalar")
+  @meta.type.root("Tr2CurveScalar")
   a = new Tr2CurveScalar();
 
   /**

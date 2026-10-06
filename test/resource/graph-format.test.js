@@ -158,8 +158,8 @@ test("struct collections allocate new value storage and embedded aliases resolve
     CjsSchema.define(Item, { className: "GraphStructItem", members: [{ name: "count", key: "count", type: { kind: "int32" }, edit: { persist: true } }] });
     registerClass({ name: "GraphStructAlias", type: Item });
     CjsSchema.define(Owner, { className: "GraphStructOwner", members: [
-        { name: "items", key: "items", type: { kind: "list", itemType: { kind: "struct", className: "GraphStructItem" } }, edit: { persist: true } },
-        { name: "item", key: "item", type: { kind: "struct", className: "GraphStructItem" }, edit: { persist: true } }
+        { name: "items", key: "items", type: { kind: "list", itemType: { kind: "root", className: "GraphStructItem" } }, edit: { persist: true } },
+        { name: "item", key: "item", type: { kind: "root", className: "GraphStructItem" }, edit: { persist: true } }
     ] });
     const original = new Owner(); original.items.push(new Item()); original.items[0].count = 7;
     const result = Format.read(Format.write(original), { emit: "runtime" });
@@ -226,7 +226,7 @@ test("failed struct collections retain every previous element unchanged", () =>
     class Owner { items = [new Item()]; }
     CjsSchema.define(Item, { className: "GraphAtomicStruct", members: [{ name: "count", key: "count", type: { kind: "int32" }, edit: { persist: true } }] });
     CjsSchema.define(Owner, { className: "GraphAtomicOwner", members: [
-        { name: "items", key: "items", type: { kind: "list", itemType: { kind: "struct", className: "GraphAtomicStruct" } }, edit: { persist: true } }
+        { name: "items", key: "items", type: { kind: "list", itemType: { kind: "root", className: "GraphAtomicStruct" } }, edit: { persist: true } }
     ] });
     const result = read({ _type: "GraphAtomicOwner", items: [{ _type: "GraphAtomicStruct", count: 99 }, 42] });
     assert.deepEqual(result.reports.map(item => item.path), ["/root/items/1"]);
@@ -267,10 +267,10 @@ test("embedded cycles fail at the member without recursing indefinitely", () =>
     class Item { child = null; }
     class Owner { item = new Item(); }
     CjsSchema.define(Item, { className: "GraphEmbeddedCycle", members: [
-        { name: "child", key: "child", type: { kind: "struct", className: "GraphEmbeddedCycle" }, edit: { persist: true } }
+        { name: "child", key: "child", type: { kind: "root", className: "GraphEmbeddedCycle" }, edit: { persist: true } }
     ] });
     CjsSchema.define(Owner, { className: "GraphEmbeddedCycleOwner", members: [
-        { name: "item", key: "item", type: { kind: "struct", className: "GraphEmbeddedCycle" }, edit: { persist: true } }
+        { name: "item", key: "item", type: { kind: "root", className: "GraphEmbeddedCycle" }, edit: { persist: true } }
     ] });
     const owner = new Owner(); owner.item.child = owner.item;
     assert.throws(() => Format.write(owner), error => error.reports[0].path === "/root/item/child" && /cycle/u.test(error.message));

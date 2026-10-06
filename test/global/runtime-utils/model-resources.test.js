@@ -36,7 +36,7 @@ class BranchHolder
   res = null;
 }
 
-CjsSchema.decorateField(BranchHolder, "child", meta.type.struct(LeafHolder));
+CjsSchema.decorateField(BranchHolder, "child", meta.type.root(LeafHolder));
 CjsSchema.decorateField(BranchHolder, "res", meta.type.resource("TestRes"));
 CjsSchema.define(BranchHolder, { className: "BranchHolder", family: "test" });
 
@@ -72,7 +72,7 @@ class DeclaredHolder
 CjsSchema.decorateField(DeclaredHolder, "texture", meta.type.objectRef("TestRes"));
 CjsSchema.decorateField(DeclaredHolder, "geometry", meta.type.objectRef("TestRes"));
 CjsSchema.decorateField(DeclaredHolder, "profiles", meta.type.list("TestRes"));
-CjsSchema.decorateField(DeclaredHolder, "child", meta.type.struct(DeclaredHolder));
+CjsSchema.decorateField(DeclaredHolder, "child", meta.type.root(DeclaredHolder));
 CjsSchema.define(DeclaredHolder, { className: "DeclaredHolder", family: "test" });
 
 

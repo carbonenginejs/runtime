@@ -517,7 +517,7 @@ test("interior constant-buffer records preserve native fixed-array cardinalities
   assert.notStrictEqual(perLight.shadowRect[0], perLight.shadowRect[1]);
   assert.notStrictEqual(perLight.shadowInfluence[0], perLight.shadowInfluence[1]);
   assert.equal(CjsSchema.getField(Tr2InteriorPerObjectPSData, "pointLights")?.type?.itemType?.kind,
-    "struct");
+    "root");
   assert.equal(CjsSchema.getField(Tr2InteriorPerObjectPSData, "pointLights")?.type?.itemType?.className,
     "Tr2InteriorPerObjectLightData");
 

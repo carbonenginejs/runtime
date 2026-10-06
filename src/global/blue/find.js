@@ -137,7 +137,7 @@ function enumerateValue(value, declaration, onChild, reverse, index = null)
             onChild(value, index);
             return;
 
-        case "struct":
+        case "root":
             if (type.className) onChild(value, index);
             return;
 

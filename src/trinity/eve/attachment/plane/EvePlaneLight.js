@@ -24,7 +24,7 @@ export class EvePlaneLight
   static FT_FADEINOUT = 4;
 
   @meta.owned
-  @meta.type.struct("CjsLightData")
+  @meta.type.root("CjsLightData")
   lightData = new CjsLightData();
 
   @meta.type.float32

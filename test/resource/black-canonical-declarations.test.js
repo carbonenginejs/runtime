@@ -54,7 +54,7 @@ test("canonical Black refuses missing wire facts instead of borrowing legacy fie
 test("canonical Black keeps declared reference, embedded and collection codec distinctions", () =>
 {
     const codec = type => CjsBlackSchemaRegistry.fromDeclaredType(type).black;
-    assert.equal(codec({ kind: "struct", className: "Child" }).beType, "IROOT");
+    assert.equal(codec({ kind: "root", className: "Child" }).beType, "IROOT");
     assert.equal(codec({ kind: "weakRef", className: "Child" }).beType, "IROOTWEAKREF");
     assert.equal(codec({ kind: "list", itemType: "Child" }).container, "list");
     assert.equal(codec({ kind: "map", valueType: { kind: "objectRef", className: "Child" } }).container, "dict");
@@ -215,7 +215,7 @@ test("canonical embedded decoding populates existing storage before its initiali
     class Owner { embedded = (original = new Embedded()); }
     carbonInterfaceDecorator([IInitialize])(Embedded);
     CjsSchema.define(Embedded, { className: "BlackCanonicalEmbedded", members: [member("value", "uint32")] });
-    CjsSchema.define(Owner, { className: "BlackCanonicalEmbeddedOwner", members: [member("embedded", "struct")] });
+    CjsSchema.define(Owner, { className: "BlackCanonicalEmbeddedOwner", members: [member("embedded", "root")] });
     const fixture = new BlackFixture();
     // Native ReadIRoot ignores this type name; the existing instance owns its table.
     const inline = fixture.Object(2, "UnusedEmbeddedWireClass", [["value", u32(12)]]).subarray(4);

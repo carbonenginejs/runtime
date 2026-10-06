@@ -23,7 +23,7 @@ export class Tr2InteriorPerObjectPSData
 
   /** pointLights (Tr2InteriorPerObjectLightData[10]) */
   @meta.type.array({
-    kind: "struct",
+    kind: "root",
     className: "Tr2InteriorPerObjectLightData"
   })
   pointLights = Array.from({ length: 10 }, () => new Tr2InteriorPerObjectLightData());

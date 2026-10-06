@@ -102,7 +102,7 @@ export class CjsBlackPropertyReaders
                     ? CjsBlackPropertyReaders.readBinaryBlock(reader, { beType: "BINARYBLOCK" }, descriptor)
                     : CjsBlackPropertyReaders.readTypedArray(reader, descriptor);
 
-            case CARBON_TYPE.STRUCT:
+            case CARBON_TYPE.ROOT:
             case CARBON_TYPE.RAW_STRUCT:
                 return reader.context.ReadEmbeddedObject(reader, destination);
 
@@ -259,7 +259,7 @@ export class CjsBlackPropertyReaders
                 if (descriptor.arrayType === "Uint32Array") CjsBlackPropertyReaders.skipBinaryBlock(reader);
                 else CjsBlackPropertyReaders.skipTypedArray(reader);
                 return;
-            case CARBON_TYPE.STRUCT:
+            case CARBON_TYPE.ROOT:
             case CARBON_TYPE.RAW_STRUCT:
                 reader.context.SkipEmbeddedObject(reader);
                 return;

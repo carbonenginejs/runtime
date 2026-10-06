@@ -668,8 +668,10 @@ export class CjsSchema
      * Field type descriptors. Three reference-shaped kinds differ in how a
      * value is populated:
      * - `model(className)` holds a registered class by reference;
-     * - `struct(className)` has value semantics: when the owner already holds
-     *   an instance, SetValues populates it in place, keeping its identity;
+     * - `root(className)` is Carbon's IROOT, an object embedded in its owner:
+     *   the owner creates it, and readers and SetValues populate it in place,
+     *   keeping its identity. It is not a binary struct; those are described by
+     *   `meta.struct` on the item class;
      * - `rawStruct(nativeType)` is an opaque native payload whose plain values
      *   never construct a model.
      */
@@ -744,7 +746,7 @@ export class CjsSchema
         set: itemType => fieldDecorator("type", { kind: "set", itemType }),
         string: fieldDecorator("type", { kind: "string" }),
         wstring: fieldDecorator("type", { kind: "wstring" }),
-        struct: className => fieldDecorator("type", { kind: "struct", className }),
+        root: className => fieldDecorator("type", { kind: "root", className }),
         typedArray: arrayType => fieldDecorator("type", { kind: "typedArray", arrayType }),
         uint8: fieldDecorator("type", { kind: "uint8" }),
         uint16: fieldDecorator("type", { kind: "uint16" }),
@@ -1484,7 +1486,7 @@ function resolveDeclaredConstructor(type)
     }
     else if (type && typeof type === "object")
     {
-        if (["model", "objectRef", "struct"].includes(type.kind))
+        if (["model", "objectRef", "root"].includes(type.kind))
         {
             className = type.className || null;
         }
@@ -2552,12 +2554,12 @@ function buildClassInfo(Constructor, namespaces)
 const MANY_KINDS = new Set([ "list", "array", "set", "map" ]);
 
 // Kinds that can hold a child model. Bucketing on the KIND rather than on a
-// resolvable class reference keeps traversal conservative: `type.struct(Class)`
+// resolvable class reference keeps traversal conservative: `type.root(Class)`
 // drops the reference during normalization, and a raw defineField may omit the
 // item type, so requiring a reference would silently stop visiting those.
 // Scalar and math kinds are excluded, which is where the saving comes from.
 const MODEL_KINDS = new Set([
-    "struct", "model", "rawStruct", "objectRef", "unknown",
+    "root", "model", "rawStruct", "objectRef", "unknown",
     "list", "array", "set", "map"
 ]);
 
@@ -2628,7 +2630,7 @@ function isValueItemType(itemType)
 }
 
 
-// Only string references survive normalization - type.struct(SomeClass) drops
+// Only string references survive normalization - type.root(SomeClass) drops
 // the reference entirely - so a field can only be bucketed when it names a
 // class. The one field in the tree that named nothing was a missing
 // declaration, not a deliberate escape.

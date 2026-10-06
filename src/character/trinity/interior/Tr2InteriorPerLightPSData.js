@@ -14,7 +14,7 @@ export class Tr2InteriorPerLightPSData
 {
 
   /** lightData (Tr2InteriorPerObjectLightData) */
-  @meta.type.struct("Tr2InteriorPerObjectLightData")
+  @meta.type.root("Tr2InteriorPerObjectLightData")
   lightData = new Tr2InteriorPerObjectLightData();
 
   /** mirrorToWorldMatrix (Matrix) */

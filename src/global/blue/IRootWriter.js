@@ -50,7 +50,7 @@ export class IRootWriter
 
       // An object is written as one - and so can be aliased - whatever the
       // member declares: our interchange lets any member hold one.
-      if (OBJECT_KINDS.has(kind) || kind === "struct" || IsObject(value))
+      if (OBJECT_KINDS.has(kind) || kind === "root" || IsObject(value))
       {
         this.WriteIRoot(value, DeclaredClassName(field.type));
       }

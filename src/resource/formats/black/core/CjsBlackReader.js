@@ -435,7 +435,7 @@ export class CjsBlackReader extends CjsBlueReader
             if (canonical)
             {
                 const type = declaration?.type;
-                if (type?.kind === "struct") destination = getReaderMemberValue(target, declaration);
+                if (type?.kind === "root") destination = getReaderMemberValue(target, declaration);
                 else if (!fieldTarget.discard && type?.kind === "list" && fieldTarget.field.jsType?.elementType?.kind === "objectRef")
                 {
                     const current = getReaderMemberValue(target, declaration);

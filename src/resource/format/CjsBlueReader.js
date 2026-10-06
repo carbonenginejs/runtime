@@ -557,7 +557,7 @@ export class CjsBlueReader extends CjsReader
 
         if (kind === CARBON_TYPE.ARRAY && Array.isArray(value)) return value;
         if ((kind === CARBON_TYPE.OBJECT_REF
-            || kind === CARBON_TYPE.STRUCT
+            || kind === CARBON_TYPE.ROOT
             || kind === CARBON_TYPE.RAW_STRUCT
             || kind === CARBON_TYPE.UNKNOWN)
             && value && typeof value === "object")

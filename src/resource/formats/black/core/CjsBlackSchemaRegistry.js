@@ -91,7 +91,7 @@ export class CjsBlackSchemaRegistry
             return CjsBlackSchemaRegistry.compactBlackType(
                 kind === "weakRef" ? "IROOTWEAKREF" : "IROOTPTR", { ...type, kind: "objectRef" });
         }
-        if (kind === "struct")
+        if (kind === "root")
         {
             return CjsBlackSchemaRegistry.compactBlackType("IROOT", type);
         }

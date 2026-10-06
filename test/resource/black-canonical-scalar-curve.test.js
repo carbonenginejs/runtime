@@ -116,12 +116,12 @@ test("the prior array-of-struct declaration lacks a canonical raw-record codec",
             const info = CjsSchema.getSchema(Tr2CurveScalar);
             return CjsBlackSchemaRegistry.fromClassInfo({ ...info, members: info.members.map(member =>
                 member.name === "keys" ? { ...member, type: { kind: "array",
-                    itemType: { kind: "struct", className: "Tr2CurveScalarKey" } } } : member) });
+                    itemType: { kind: "root", className: "Tr2CurveScalarKey" } } } : member) });
         }
     }
     assert.throws(() => new PriorDeclarationReader(curveBytes(), {
         schema: null, initialize: false
-    }).CreateObject(), /Tr2CurveScalar\.keys: Unsupported canonical Black array item type: struct/);
+    }).CreateObject(), /Tr2CurveScalar\.keys: Unsupported canonical Black array item type: root/);
 });
 
 /** Bounded wire fixture for Black header/object framing, with no runtime schema source. */

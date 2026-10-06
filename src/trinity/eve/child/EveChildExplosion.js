@@ -450,7 +450,7 @@ export class EveChildExplosion extends EveChildContainer
       {
         if (!field.edit?.persist) continue;
         const kind = field.type?.kind, value = node[field.name];
-        if ((kind === "model" || kind === "objectRef" || kind === "struct") && value) stack.push(value);
+        if ((kind === "model" || kind === "objectRef" || kind === "root") && value) stack.push(value);
         else if (kind === "list" && value)
         {
           for (const item of value) if (item) stack.push(item);

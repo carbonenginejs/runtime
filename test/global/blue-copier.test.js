@@ -472,7 +472,7 @@ test("embedded members keep destination objects while pointer members allocate",
     pointer = null;
   }
   CjsSchema.define(CopierEmbeddedAndPointer, { className: "CopierEmbeddedAndPointer", fields: {
-    embedded: [ CjsSchema.meta.type.struct("CopierLeaf"), CjsSchema.meta.blue.persist ],
+    embedded: [ CjsSchema.meta.type.root("CopierLeaf"), CjsSchema.meta.blue.persist ],
     pointer: [ CjsSchema.meta.type.objectRef("CopierLeaf"), CjsSchema.meta.blue.persist ]
   } });
   const source = new CopierEmbeddedAndPointer();

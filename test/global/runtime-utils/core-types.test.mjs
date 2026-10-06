@@ -983,10 +983,10 @@ test("uses schema metadata as the default schema value shape", () => {
     CjsSchema.defineField(SchemaNode, "name", "type", { kind: "string" });
     CjsSchema.defineField(SchemaNode, "position", "type", { kind: "vec3" });
     CjsSchema.defineField(SchemaNode, "position", "edit", { notify: true });
-    CjsSchema.defineField(SchemaNode, "child", "type", { kind: "struct", className: "SchemaChild" });
+    CjsSchema.defineField(SchemaNode, "child", "type", { kind: "root", className: "SchemaChild" });
     CjsSchema.defineField(SchemaNode, "children", "type", {
         kind: "array",
-        itemType: { kind: "struct", className: "SchemaChild" }
+        itemType: { kind: "root", className: "SchemaChild" }
     });
     CjsSchema.defineField(SchemaNode, "computed", "type", { kind: "float32" });
     CjsSchema.defineField(SchemaNode, "computed", "edit", { read: true });
@@ -1113,7 +1113,7 @@ test("registered struct fields copy values into their constructor-owned instance
     CjsSchema.defineField(ValueStruct, "position", "type", { kind: "vec3" });
     CjsSchema.defineField(ValueStruct, "radius", "type", { kind: "float32" });
     CjsSchema.define(ValueStruct, { className: "ValueStruct" });
-    CjsSchema.defineField(StructOwner, "data", "type", { kind: "struct", className: "ValueStruct" });
+    CjsSchema.defineField(StructOwner, "data", "type", { kind: "root", className: "ValueStruct" });
     CjsSchema.define(StructOwner, { className: "StructOwner" });
 
     const owner = new StructOwner();

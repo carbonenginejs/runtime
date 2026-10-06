@@ -35,7 +35,7 @@ export const CARBON_TYPE = Object.freeze({
     MODEL: "model",
     OBJECT_REF: "objectRef",
     WEAK_REF: "weakRef",
-    STRUCT: "struct",
+    ROOT: "root",
     RAW_STRUCT: "rawStruct",
     TYPED_ARRAY: "typedArray"
 });
@@ -76,7 +76,7 @@ const TYPE_DEFINITIONS = {
     [CARBON_TYPE.OBJECT_REF]: { kind: CARBON_TYPE.OBJECT_REF, js: "object|null" },
     // BlueTypes.h IROOTWEAKREF describes the reference; it installs no JS lifetime policy.
     [CARBON_TYPE.WEAK_REF]: { kind: CARBON_TYPE.WEAK_REF, js: "object|null" },
-    [CARBON_TYPE.STRUCT]: { kind: CARBON_TYPE.STRUCT, js: "object" },
+    [CARBON_TYPE.ROOT]: { kind: CARBON_TYPE.ROOT, js: "object" },
     [CARBON_TYPE.RAW_STRUCT]: { kind: CARBON_TYPE.RAW_STRUCT, js: "object" },
     [CARBON_TYPE.TYPED_ARRAY]: { kind: CARBON_TYPE.TYPED_ARRAY, js: "TypedArray" },
     ...FLOAT32_VECTOR_DEFINITIONS
@@ -445,7 +445,7 @@ export function defaultCarbonValue(type)
         case CARBON_TYPE.MODEL:
         case CARBON_TYPE.OBJECT_REF:
         case CARBON_TYPE.WEAK_REF:
-        case CARBON_TYPE.STRUCT:
+        case CARBON_TYPE.ROOT:
         case CARBON_TYPE.RAW_STRUCT:
         case CARBON_TYPE.UNKNOWN:
         default:

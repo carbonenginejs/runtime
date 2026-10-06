@@ -862,7 +862,7 @@ test("Tr2CurveVector2 composes scalar component curves", () =>
   tangentCurve.AddKey(0, vec2.fromValues(1, 2), Tr2CurveInterpolation.HERMITE, undefined, vec2.fromValues(9, 9));
   assertAlmostEquals(tangentCurve.x.keys[0].rightTangent, 0);
   assertAlmostEquals(tangentCurve.y.keys[0].rightTangent, 0);
-  assertEquals(CjsSchema.getField(Tr2CurveVector2, "x")?.type.kind, "struct");
+  assertEquals(CjsSchema.getField(Tr2CurveVector2, "x")?.type.kind, "root");
   assertEquals(CjsSchema.getField(Tr2CurveVector2, "currentValue")?.type.kind, "vec2");
 });
 test("Tr2CurveVector3 composes scalar component curves", () =>
@@ -885,7 +885,7 @@ test("Tr2CurveVector3 composes scalar component curves", () =>
   assertAlmostEquals(tangentCurve.x.keys[0].rightTangent, 0);
   assertAlmostEquals(tangentCurve.y.keys[0].rightTangent, 0);
   assertAlmostEquals(tangentCurve.z.keys[0].rightTangent, 0);
-  assertEquals(CjsSchema.getField(Tr2CurveVector3, "x")?.type.kind, "struct");
+  assertEquals(CjsSchema.getField(Tr2CurveVector3, "x")?.type.kind, "root");
   assertEquals(CjsSchema.getField(Tr2CurveVector3, "currentValue")?.type.kind, "vec3");
 });
 test("Tr2CurveColor composes scalar component curves and gamma output", () =>
@@ -928,7 +928,7 @@ test("Tr2CurveColor composes scalar component curves and gamma output", () =>
   assertAlmostEquals(tangentCurve.g.keys[0].rightTangent, 0);
   assertAlmostEquals(tangentCurve.b.keys[0].rightTangent, 0);
   assertAlmostEquals(tangentCurve.a.keys[0].rightTangent, 0);
-  assertEquals(CjsSchema.getField(Tr2CurveColor, "r")?.type.kind, "struct");
+  assertEquals(CjsSchema.getField(Tr2CurveColor, "r")?.type.kind, "root");
   assertEquals(CjsSchema.getField(Tr2CurveColor, "currentValue")?.type.kind, "color");
 });
 test("Tr2CurveEulerRotation composes scalar curves with Carbon rotation order", () =>

@@ -132,12 +132,12 @@ test("the unchanged prior quaternion array-of-struct descriptor has no canonical
             const info = CjsSchema.getSchema(Tr2CurveQuaternion);
             return CjsBlackSchemaRegistry.fromClassInfo({ ...info, members: info.members.map(member =>
                 member.name === "keys" ? { ...member, type: { kind: "array",
-                    itemType: { kind: "struct", className: "Tr2CurveQuaternionKey" } } } : member) });
+                    itemType: { kind: "root", className: "Tr2CurveQuaternionKey" } } } : member) });
         }
     }
     assert.throws(() => new PriorDeclarationReader(curveBytes(), {
         schema: null, initialize: false
-    }).CreateObject(), /Tr2CurveQuaternion\.keys: Unsupported canonical Black array item type: struct/);
+    }).CreateObject(), /Tr2CurveQuaternion\.keys: Unsupported canonical Black array item type: root/);
 });
 
 /** Bounded wire fixture for Black header/object framing, with no runtime schema source. */

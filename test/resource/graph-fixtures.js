@@ -34,7 +34,7 @@ export function fixtures(prefix)
             field("name", "string"), field("peer", { kind: "objectRef", className: `${prefix}Node` }),
             field("weak", { kind: "weakRef", className: `${prefix}Node` }),
             field("children", { kind: "list", itemType: { kind: "objectRef", className: `${prefix}Node` } }),
-            field("embedded", { kind: "struct", className: `${prefix}Embedded` }),
+            field("embedded", { kind: "root", className: `${prefix}Embedded` }),
             field("indices", { kind: "typedArray", arrayType: "Uint32Array" }), field("huge", "uint64"),
             field("choice", "int32"), field("flags", "uint32", { edit: { persist: true, flags: true } }),
             field("colour", "linear"), field("scale", "scale"), field("path", "path"),

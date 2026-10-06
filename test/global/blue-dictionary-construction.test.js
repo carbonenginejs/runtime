@@ -60,7 +60,7 @@ test("declared embedded population preserves storage and bypasses SetValues", ()
   class Child { buffer = new Float32Array([1, 2]); count = 0; Initialize() { this.count++; } SetValues() { assert.fail("SetValues"); } }
   const childName = define(Child, { buffer: { type: { kind: "vector2" } } }, [IInitialize]);
   class Parent { child = new Child(); count = 0; Initialize() { this.count++; } }
-  define(Parent, { child: { type: { kind: "struct", className: childName } } }, [IInitialize]);
+  define(Parent, { child: { type: { kind: "root", className: childName } } }, [IInitialize]);
   const target = new Parent();
   const child = target.child, buffer = child.buffer;
   reader().ReadInto(target, { child: { _type: childName, _id: "embedded", buffer: [3, 4] } });
@@ -207,7 +207,7 @@ test("declared embedded storage rejects known and missing aliases without replac
   class Child { value = 0; }
   const childName = define(Child, { value: CjsSchema.meta.type.int32 });
   class Parent { reference = null; embedded = new Child(); }
-  define(Parent, { reference: ref(childName), embedded: { type: { kind: "struct", className: childName } } });
+  define(Parent, { reference: ref(childName), embedded: { type: { kind: "root", className: childName } } });
   for (const id of ["known", "missing"]) {
     const target = new Parent();
     const embedded = target.embedded;

@@ -35,7 +35,7 @@ export class Tr2CurveVector2 extends ITriFunction
    */
   @meta.blue.read
   @meta.blue.persist
-  @meta.type.struct("Tr2CurveScalar")
+  @meta.type.root("Tr2CurveScalar")
   x = new Tr2CurveScalar();
 
   /**
@@ -44,7 +44,7 @@ export class Tr2CurveVector2 extends ITriFunction
    */
   @meta.blue.read
   @meta.blue.persist
-  @meta.type.struct("Tr2CurveScalar")
+  @meta.type.root("Tr2CurveScalar")
   y = new Tr2CurveScalar();
 
   /**

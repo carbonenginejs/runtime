@@ -120,9 +120,9 @@ test("math storage is filled in place and embedded objects require the existing 
   applyReaderMember(target, member("position", "vec3"), [1, 2, 3]);
   assert.equal(target.position, position);
   assert.deepEqual([...position], [1, 2, 3]);
-  applyReaderMember(target, member("embedded", "struct"), embedded);
+  applyReaderMember(target, member("embedded", "root"), embedded);
   assert.equal(target.embedded, embedded);
-  assert.throws(() => applyReaderMember(target, member("embedded", "struct"), {}), /existing destination/);
+  assert.throws(() => applyReaderMember(target, member("embedded", "root"), {}), /existing destination/);
 });
 
 test("reader rejects unknown member types and dictionary accessors visibly", () => {

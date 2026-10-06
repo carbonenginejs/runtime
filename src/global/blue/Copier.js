@@ -22,7 +22,7 @@
 // | scalars, strings, enum, path | LONG, FLOAT, CSTRING, ... | assign |
 // | vectors, matrices, typedArray | FLOATARRAY, DOUBLEARRAY, INTARRAY | written into the existing buffer by SetValues' own in-place writers; a new buffer only when the destination has none of that shape |
 // | model, objectRef | IROOTPTR | recursive CopyTo into a NEW object (the old one is released) |
-// | struct | IROOT (embedded) | recursive CopyTo into the EXISTING object |
+// | root | IROOT (embedded) | recursive CopyTo into the EXISTING object |
 // | list, array of objects | IROOT BlueList + AssignTo | cleared, each item CopyTo'd (BlueListUtil.h:506-540) |
 // | map of objects | IROOT BlueDict + AssignTo | cleared, each entry CopyTo'd, failures skipped (BlueDict.h:334-356) |
 // | list, array, map, set of values; rawStruct | BlueStructureList + AssignTo | copied by value (BlueStructureList.h:185-195) |
@@ -259,7 +259,7 @@ export class Copier extends ICopier
       return true;
     }
 
-    if (kind === "struct")
+    if (kind === "root")
     {
       // Copy<IROOT> (BlueVariable.cpp:338-343): an embedded object is copied
       // into the one the destination already holds.
@@ -437,7 +437,7 @@ export class Copier extends ICopier
   {
     const item = type?.valueType ?? type?.itemType;
     if (typeof item === "string" && CjsSchema.GetConstructor(item) !== null) return true;
-    if (OBJECT_KINDS.has(item?.kind) || item?.kind === "struct") return true;
+    if (OBJECT_KINDS.has(item?.kind) || item?.kind === "root") return true;
     for (const value of (items instanceof Map ? items.values() : items) ?? [])
     {
       if (value && typeof value === "object" && CjsSchema.getClassName(value.constructor) !== null) return true;

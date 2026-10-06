@@ -13,7 +13,7 @@
 // |---|---|---|
 // | scalars, strings, enum, path, expression | LONG, FLOAT, CSTRING, ... | `ReadValue` |
 // | vectors, matrices, color, typedArray | FLOATARRAY | into the existing buffer (`ReadFloatArray`), a new one only when the member has none of that shape |
-// | struct | IROOT (embedded) | `ReadIRoot` into the EXISTING object |
+// | root | IROOT (embedded) | `ReadIRoot` into the EXISTING object |
 // | model, objectRef | IROOTPTR | `ReadIRootClass`: an anchor's object, or a new one |
 // | list, array | IROOT BlueList | `ReadList` |
 // | map, set, rawStruct | IROOT BlueDict / BlueStructureList | by value |
@@ -106,7 +106,7 @@ export class IRootReaderBase
 
     // A declared embedded slot owns its existing storage even when a values
     // bag also carries _type. Generic typed-bag pointer dispatch comes later.
-    if (this._options?.declarations === true && kind === "struct")
+    if (this._options?.declarations === true && kind === "root")
     {
       return this.HandlePropertyIRoot(instance, field);
     }
@@ -120,13 +120,13 @@ export class IRootReaderBase
     // naming its class builds one in any single-valued member: our interchange
     // lets any member hold an object (`{ _ref }`, `_type`).
     // A live object of a registered class is assigned as a reference in any
-    // member but a struct, which copies (values transport ruling 3).
+    // member but a root, which copies (values transport ruling 3).
     if (OBJECT_KINDS.has(kind) || this.IsReferenceSource() || (!CONTAINER_KINDS.has(kind) && this.IsTypedSource())
-      || (kind !== "struct" && this.IsObjectSource()))
+      || (kind !== "root" && this.IsObjectSource()))
     {
       return this.ReadIRootPtr(instance, field, notification);
     }
-    if (kind === "struct")
+    if (kind === "root")
     {
       return this.HandlePropertyIRoot(instance, field);
     }
@@ -158,7 +158,7 @@ export class IRootReaderBase
 
   /**
    * An embedded object member (`HandlePropertyIRoot`, IRootReader.cpp:195-221):
-   * read into the member's existing object. Adapted: a struct member that holds
+   * read into the member's existing object. Adapted: a root member that holds
    * nothing yet is given a new object of its declared class, since a JavaScript
    * member is not storage the object already owns.
    *
