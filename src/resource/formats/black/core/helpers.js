@@ -21,7 +21,6 @@ export const DEFAULT_VALUES = {
     includeRefIndex: false,
     trace: false,
     debug: false,
-    decodeBinaryBlocks: false,
     captureUnknownBlackFields: false,
     captureUnknownResourceFields: false,
     captureUnknownWhenNoBlackFields: false,
@@ -33,7 +32,6 @@ export const DEFAULT_VALUES = {
     payloadReferenceField: "_ref",
     pathHandler: null,
     adapter: null,
-    customTypes: null,
     classes: {}
 };
 
@@ -62,7 +60,6 @@ export const DEFAULT_VALUES = {
  * @property {boolean} includeRefIndex Whether document output carries a reference index.
  * @property {boolean} trace Enables every include option.
  * @property {boolean} debug Enables every include option.
- * @property {boolean} decodeBinaryBlocks Whether document mode decodes Uint32Array binary blocks.
  * @property {boolean} captureUnknownBlackFields Whether unknown Black fields are captured instead of rejected.
  * @property {boolean} captureUnknownResourceFields Whether unknown fields named like `res:/` paths are captured.
  * @property {boolean} captureUnknownWhenNoBlackFields Whether unknown fields are captured for shapes without Black fields.
@@ -74,8 +71,6 @@ export const DEFAULT_VALUES = {
  * @property {string} payloadReferenceField Payload field that refers to a reference id.
  * @property {Function|null} pathHandler Transform applied to decoded resource paths.
  * @property {object|null} adapter Legacy hydration adapter.
- * @property {Map<string, Function>|Object<string, Function>|null} customTypes Handlers for named opaque
- *     (custom) block types, by type name; see `CjsBlackPropertyReaders.customReader`.
  * @property {Object<string, Function>} classes Runtime class constructors by Black class name.
  */
 
@@ -262,7 +257,6 @@ function cloneValues(values)
         includeRefIndex: Boolean(values.includeRefIndex),
         trace: Boolean(values.trace),
         debug: Boolean(values.debug),
-        decodeBinaryBlocks: Boolean(values.decodeBinaryBlocks),
         captureUnknownBlackFields: Boolean(values.captureUnknownBlackFields),
         captureUnknownResourceFields: Boolean(values.captureUnknownResourceFields),
         captureUnknownWhenNoBlackFields: Boolean(values.captureUnknownWhenNoBlackFields),
@@ -274,7 +268,6 @@ function cloneValues(values)
         payloadReferenceField: values.payloadReferenceField,
         pathHandler: values.pathHandler ?? null,
         adapter: values.adapter ?? null,
-        customTypes: values.customTypes ?? null,
         classes: { ...classMap(values) }
     };
 }
@@ -384,7 +377,6 @@ export function normalizeValues(base, options, classKeys, readerName)
     if (Object.hasOwn(options, "includeRefIndex")) values.includeRefIndex = Boolean(options.includeRefIndex);
     if (Object.hasOwn(options, "trace")) values.trace = Boolean(options.trace);
     if (Object.hasOwn(options, "debug")) values.debug = Boolean(options.debug);
-    if (Object.hasOwn(options, "decodeBinaryBlocks")) values.decodeBinaryBlocks = Boolean(options.decodeBinaryBlocks);
     if (Object.hasOwn(options, "captureUnknownBlackFields")) values.captureUnknownBlackFields = Boolean(options.captureUnknownBlackFields);
     if (Object.hasOwn(options, "captureUnknownResourceFields")) values.captureUnknownResourceFields = Boolean(options.captureUnknownResourceFields);
     if (Object.hasOwn(options, "captureUnknownWhenNoBlackFields")) values.captureUnknownWhenNoBlackFields = Boolean(options.captureUnknownWhenNoBlackFields);
@@ -395,15 +387,6 @@ export function normalizeValues(base, options, classKeys, readerName)
     if (Object.hasOwn(options, "payloadIdField")) values.payloadIdField = options.payloadIdField;
     if (Object.hasOwn(options, "payloadReferenceField")) values.payloadReferenceField = options.payloadReferenceField;
     if (Object.hasOwn(options, "adapter")) values.adapter = options.adapter ?? null;
-    if (Object.hasOwn(options, "customTypes"))
-    {
-        const customTypes = options.customTypes ?? null;
-        if (customTypes !== null && (typeof customTypes !== "object" || Array.isArray(customTypes)))
-        {
-            throw new TypeError(`${readerName} customTypes option must be a Map or an object of handlers`);
-        }
-        values.customTypes = customTypes;
-    }
     if (Object.hasOwn(options, "pathHandler"))
     {
         if (options.pathHandler !== null && options.pathHandler !== undefined && typeof options.pathHandler !== "function")

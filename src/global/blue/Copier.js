@@ -27,6 +27,7 @@
 // | map of objects | IROOT BlueDict + AssignTo | cleared, each entry CopyTo'd, failures skipped (BlueDict.h:334-356) |
 // | list, array, map, set of values; rawStruct | by value | copied by value |
 // | structList | IROOT BlueStructureList + AssignTo | records copied by value (BlueStructureList.h:185-195): each into the destination's record at that index, or a new one |
+// | binary | BINARYBLOCK | never copied: its member size is 0, so the `memcmp` below always finds it unchanged |
 //
 // "UNCHANGED" IS A PER-KIND TEST. Carbon skips a member whose bytes are
 // identical (`memcmp`, Copier.cpp:141-150) so that OnModified fires only for
@@ -204,6 +205,10 @@ export class Copier extends ICopier
         continue;
       }
       if (!(field.edit?.persist || field.edit?.persistOnly)) continue;
+      // MAP_ATTRIBUTE_AS_CUSTOM_BINARY_BLOCK gives a size of 0
+      // (BlueExposureMacros.h:157-161), so Copier.cpp:173-176 compares no
+      // bytes and skips the member.
+      if (field.type?.binary === true) continue;
 
       const kind = field.type?.kind;
       const from = Copier._memberStorage(source, field).value;

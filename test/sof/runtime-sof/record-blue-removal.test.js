@@ -48,20 +48,25 @@ test("real SOF hydration adapter reads all three model-free record declarations"
   const adapter=createSofHydrationAdapter(),string=new StringRecord(),texture=new Texture(),indices=new Indices();
   adapter.applyValues(string,{str:"Material1"});
   adapter.applyValues(texture,{name:"AlbedoMap",resFilePath:"res:/hull.dds"});
-  adapter.applyValues(indices,{indexBuffer:[0,1,70000,4294967295]});
+  // indexBuffer is a binary block: DictReader refuses one (DictReader.cpp:718-721).
+  assert.throws(()=>adapter.applyValues(indices,{indexBuffer:[0,1,70000,4294967295]}),/DictReader does not support binary blocks/);
+  for(const index of [0,1,70000,4294967295])indices.AddIndex(index);
   assert.equal(string.str,"Material1");assert.deepEqual(texture.Assign(),{AlbedoMap:"res:/hull.dds"});
   assert.ok(indices.indexBuffer instanceof Uint32Array);assert.deepEqual(indices.GetIndices(),[0,1,70000,4294967295]);
   for(const record of [string,texture,indices])adapter.finalize(record,{kind:CjsSchema.getClassName(record.constructor)});
   const values=new DictWriter().WriteObject(indices,{}, {persistOnly:true});
-  assert.deepEqual(values.indexBuffer,[0,1,70000,4294967295]);
+  assert.equal(Object.hasOwn(values,"indexBuffer"),false,"a values bag carries no binary block");
 });
 
-test("declared reader and Blue Copier preserve typed buffers and record independence", () =>
+test("declared reader refuses the index binary block, and the Blue Copier never copies it", () =>
 {
-  const source=new DictReader({declarations:true}).CreateObject({_type:"EveSOFDataDecalIndexBuffer",indexBuffer:[0,70000,4294967295]});
+  assert.throws(()=>new DictReader({declarations:true}).CreateObject({_type:"EveSOFDataDecalIndexBuffer",indexBuffer:[0,70000,4294967295]}),/DictReader does not support binary blocks/);
+  const source=new DictReader({declarations:true}).CreateObject({_type:"EveSOFDataDecalIndexBuffer"});
+  for(const index of [0,70000,4294967295])source.AddIndex(index);
+  // BINARYBLOCK's member size is 0, so Copier.cpp:173-176 always skips it.
   const copy=new Copier().CloneTo(source);
   assert.equal(copy.constructor,Indices);assert.notEqual(copy.indexBuffer,source.indexBuffer);
-  assert.deepEqual(copy.GetIndices(),[0,70000,4294967295]);
+  assert.deepEqual(copy.GetIndices(),[]);
   copy.AddIndex(9);assert.equal(source.indexBuffer.length,3);
   const texture=new DictReader({declarations:true}).CreateObject({_type:"EveSOFDataTexture",name:"A",resFilePath:"res:/a.dds"});
   assert.deepEqual(new Copier().CloneTo(texture).Assign(),{A:"res:/a.dds"});
@@ -81,15 +86,17 @@ test("Blue shader copy and values preserve model-free string and texture childre
   assert.equal(values.parameters[0].str,"Paint");assert.equal(values.defaultTextures[0].resFilePath,"res:/a.dds");
 });
 
-test("existing decal owner schema copy and export preserve model-free index records", () =>
+test("existing decal owner schema copy and export keep model-free index records, without their binary blocks", () =>
 {
   const buffer=new Indices();buffer.AddIndex(70000);buffer.AddIndex(1);
   const owner=new EveSOFDataHullDecalSetItem();owner.indexBuffers.push(buffer);
   const copy=new EveSOFDataHullDecalSetItem();CjsSchema.copy(copy, owner);
   assert.equal(copy.indexBuffers[0].constructor,Indices);
-  assert.notEqual(copy.indexBuffers[0].indexBuffer,buffer.indexBuffer);
-  const values=CjsSchema.getValues(copy, {}, {refs:true,forceTypeTags:true});
-  assert.deepEqual(values.indexBuffers[0].indexBuffer,[70000,1]);
+  assert.notEqual(copy.indexBuffers[0],buffer);
+  assert.deepEqual(copy.indexBuffers[0].GetIndices(),[],"the Copier never copies a binary block");
+  const values=CjsSchema.getValues(owner, {}, {refs:true,forceTypeTags:true});
+  assert.equal(values.indexBuffers[0]._type,"EveSOFDataDecalIndexBuffer");
+  assert.equal(Object.hasOwn(values.indexBuffers[0],"indexBuffer"),false);
 });
 
 test("SOF texture composition reuses records and catalog projection accepts model-free strings", () =>
@@ -110,10 +117,10 @@ test("SOF texture composition reuses records and catalog projection accepts mode
 
 test("decal custom persistence methods preserve their established JavaScript buffer contract", () =>
 {
-  const record=new Indices(),storage=record.AllocateReadBuffer(16);
+  const record=new Indices(),storage=record.AllocateReadBuffer("indexBuffer",16);
   storage.set([7,8,70000,10]);
-  const view=record.GetWriteBufferAndSize();assert.equal(view.buffer,storage);assert.equal(view.byteSize,16);
-  record.SetBufferAndSize(new Uint32Array([99]),8);
+  const view=record.GetWriteBufferAndSize("indexBuffer");assert.equal(view.buffer,storage);assert.equal(view.byteSize,16);
+  record.SetBufferAndSize("indexBuffer",new Uint32Array([99]),8);
   assert.deepEqual(record.GetIndices(),[7,8]);
   record.ReleaseWriteBuffer();assert.deepEqual(record.GetIndices(),[7,8]);
   const copied=record.GetIndices();copied[0]=99;assert.equal(record.indexBuffer[0],7);

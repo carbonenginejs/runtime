@@ -20,14 +20,9 @@ export const schema = definitions.schema;
 export const version = definitions.version;
 export const generatedAt = definitions.generatedAt;
 export const enums = definitions.enums;
-// Explicit transport declarations supplement native custom-block macros, which
-// identify a wire block but cannot state the JavaScript data type. The dated
-// donor snapshot remains unchanged.
-export const classes = {
-    ...definitions.classes,
-    EveSOFDataDecalIndexBuffer: { ...definitions.classes.EveSOFDataDecalIndexBuffer, indexBuffer: "uint32Array" },
-    Tr2ActionPython: { ...definitions.classes.Tr2ActionPython, state: { type: "custom", name: "Tr2ActionPython.state" } }
-};
+// A binaryBlock member's bytes are decoded by its owner's ICustomPersist, so the
+// snapshot's classes need no transport declarations of their own.
+export const classes = definitions.classes;
 
 export { definitions };
 export default classes;

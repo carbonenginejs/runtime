@@ -11,7 +11,7 @@ import {
 import { composeAbstractDecorator } from "../compose/abstract.js";
 import { CJS_CLASS_NAME, getRegisteredClassName, requireRegisteredClassName } from "../compose/className.js";
 import { composeNotifyDecorator } from "../compose/notify.js";
-import { carbonInheritDecorator, carbonInterfaceDecorator, carbonChainToDecorator, cast } from "../compose/interface.js";
+import { carbonInheritDecorator, carbonInterfaceDecorator, carbonChainToDecorator, cast, mappedInterfaces } from "../compose/interface.js";
 import { composeValuesDecorator, createValuesTransport, isExportableField, isWritableField } from "../compose/values.js";
 import { blueEnums, CjsBlueEnumRegistry, CJS_ENUM_NAME } from "../blue/enums/CjsBlueEnumRegistry.js";
 import { TriSettingNames } from "../consts/trinity.js";
@@ -705,7 +705,16 @@ export class CjsSchema
         bigInt64Array: fieldDecorator("type", { kind: "typedArray", arrayType: "BigInt64Array" }),
         bigUint64Array: fieldDecorator("type", { kind: "typedArray", arrayType: "BigUint64Array" }),
         flags: values => combinedFieldDecorator({ type: { kind: "uint32" }, enum: normalizeEnumDefinition(values), edit: { flags: true } }),
-        custom: name => fieldDecorator("type", { kind: "custom", name: requireTypeName(name) }),
+        /**
+         * Carbon's BINARYBLOCK (`MAP_ATTRIBUTE_AS_CUSTOM_BINARY_BLOCK`,
+         * BlueExposureMacros.h:157-161): how the member is stored. Readers move
+         * the block's bytes only; the class decodes them through its
+         * ICustomPersist methods. It implies nothing else: the member also
+         * declares the value it holds (`uint32Array`, ...) and
+         * `meta.blue.persistOnly`, and `define` refuses it without either, or
+         * on a class that does not map ICustomPersist.
+         */
+        binary: fieldDecorator("type", { binary: true }),
         define: definition => classDefinitionDecorator(definition),
         expression: fieldDecorator("type", { kind: "expression", js: "string" }),
         float32: fieldDecorator("type", { kind: "float32" }),
@@ -1617,17 +1626,10 @@ function settingDecorator(name, { applies = SETTING_APPLIES.ALWAYS, enum: enumTy
     }, "carbon", value);
 }
 
-/** A named custom type is meaningful only when a format explicitly handles it. */
 /** A struct list names its item class by its registered name, resolved at read time. */
 function requireClassName(name)
 {
     if (typeof name !== "string" || !name.trim()) throw new TypeError("meta.type.structList requires a registered class name.");
-    return name.trim();
-}
-
-function requireTypeName(name)
-{
-    if (typeof name !== "string" || !name.trim()) throw new TypeError("meta.type.custom requires a nonempty name.");
     return name.trim();
 }
 
@@ -2078,8 +2080,37 @@ function sealClassSchema(Constructor, schema)
     schema.effectiveFieldsByName = new Map(fields.map(field => [ field.name, field ]));
     schema.effectiveMethodsByName = computeEffectiveMethods(Constructor);
     schema.hiddenInheritedAll = computeHiddenInheritedFieldNames(Constructor);
+    RejectInvalidBinaryMembers(Constructor, schema);
     schema.registered = true;
     SCHEMA_GENERATION += 1;
+}
+
+/**
+ * Refuses a `meta.type.binary` member Carbon could not have. Carbon's only
+ * binary-block macro always gives PERSISTONLY (BlueExposureMacros.h:157-161),
+ * and its readers and writers reach the bytes only through the instance's
+ * ICustomPersist (IRootReader.cpp:77-88, IRootWriter.cpp:56-67).
+ *
+ * @param {Function} Constructor The class being registered.
+ * @param {object} schema Its schema, with effective members and fields built.
+ * @throws {TypeError} When a binary member is not persistOnly, or the class does not map ICustomPersist.
+ */
+function RejectInvalidBinaryMembers(Constructor, schema)
+{
+    const binary = [ ...schema.effectiveMembers, ...schema.effectiveFields ].filter(member => member.type?.binary === true);
+    if (!binary.length) return;
+    for (const member of binary)
+    {
+        if (member.edit?.persistOnly !== true)
+        {
+            throw new TypeError(`${schema.className}.${member.name}: meta.type.binary requires meta.blue.persistOnly.`);
+        }
+    }
+    const mapsCustomPersist = [ ...mappedInterfaces(Constructor) ].some(Interface => getRegisteredClassName(Interface) === "ICustomPersist");
+    if (!mapsCustomPersist)
+    {
+        throw new TypeError(`${schema.className}: meta.type.binary requires the class to map ICustomPersist.`);
+    }
 }
 
 /**

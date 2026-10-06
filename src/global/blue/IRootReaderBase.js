@@ -18,6 +18,7 @@
 // | list, array | IROOT BlueList | `ReadList` |
 // | map, set, rawStruct | IROOT BlueDict | by value |
 // | structList | IROOT BlueStructureList | `ReadStructureList`: records by value, into instances of the item class |
+// | binary | BINARYBLOCK | `ReadBinaryBlock`: the reader hands the bytes to the instance's ICustomPersist |
 //
 // WHICH MEMBERS A KEY MAY NAME. Carbon's base finds PERSIST members only, and
 // an unknown name throws `InvalidAttributeException` (:99-106). Ours finds any
@@ -29,6 +30,7 @@
 import { CjsSchema, meta } from "#schema";
 import { omitRuntimeValues } from "../schema/CjsSchema.js";
 import { coerceCarbonMathInto, coerceCarbonTypedArrayInto, normalizeCarbonValue } from "../schema/types/index.js";
+import { ICustomPersist } from "./ICustomPersist.js";
 import { IRootReaderException } from "./IRootReaderException.js";
 import { InvalidAttributeException } from "./InvalidAttributeException.js";
 import { getDictionaryDeclarations, readDictionaryValue, writeDictionaryValue } from "./dictionaryDeclarations.js";
@@ -79,7 +81,15 @@ export class IRootReaderBase
     let changed;
     try
     {
-      changed = this._ReadMember(instance, field, notification);
+      if (field.type?.binary === true)
+      {
+        // BINARYBLOCK (IRootReader.cpp:77-88): the instance decodes the bytes,
+        // and one that does not map ICustomPersist is not given them.
+        const persist = CjsSchema.cast(instance, ICustomPersist);
+        if (persist) this.ReadBinaryBlock(persist, attributeName);
+        changed = persist !== null;
+      }
+      else changed = this._ReadMember(instance, field, notification);
     }
     catch (error)
     {
@@ -307,6 +317,12 @@ export class IRootReaderBase
   ReadList(_instance, _field)
   {
     throw new Error("IRootReaderBase.ReadList is provided by a reader.");
+  }
+
+  /** Reads a binary block into an ICustomPersist (`ReadBinaryBlock`, IRootReader.h:114); a subclass provides it. */
+  ReadBinaryBlock(_instance, _propertyName)
+  {
+    throw new Error("IRootReaderBase.ReadBinaryBlock is provided by a reader.");
   }
 
   /** Selected declarations by alias, refreshed with the schema revision. */

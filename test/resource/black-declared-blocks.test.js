@@ -14,67 +14,58 @@ function cursor(bytes, length = bytes.length, options = {})
   buffer.set(bytes, 4);
   return new CjsBlackBinaryReader(new DataView(buffer.buffer), { readMode: "payload", options });
 }
-const uint32 = { kind: "typedArray", arrayType: "Uint32Array" };
+const binary = { kind: "typedArray", arrayType: "Uint32Array", binary: true };
 
-test("Black Uint32Array uses declared storage and little-endian byte lengths under any name", () =>
+test("Black BINARYBLOCK moves size and bytes only, whatever the member holds", () =>
 {
+  // BlackReader::ReadBinaryBlock (BlackReader.cpp:599-612): the owner's ICustomPersist decodes the bytes.
   const bytes = [0,0,0,0,1,0,1,0,255,255,255,255];
-  for (const name of ["arbitraryWords", "indexBuffer"])
+  for (const type of [binary, { kind: "uint8", binary: true }])
   {
-    const field = { ...CjsBlackSchemaRegistry.fromDeclaredType(uint32), name };
+    const field = { ...CjsBlackSchemaRegistry.fromDeclaredType(type), name: "indexBuffer" };
+    assert.equal(field.black.beType, "BINARYBLOCK");
     const reader = cursor(bytes);
     const result = Readers.readValue(reader, field);
-    assert.ok(result instanceof Uint32Array);
-    assert.deepEqual([...result], [0, 65537, 4294967295]);
+    assert.equal(result.$type, "black.binaryBlock");
+    assert.equal(result.byteLength, 12);
+    assert.ok(result.bytes instanceof Uint8Array);
+    assert.deepEqual([...result.bytes], bytes);
     assert.equal(reader.remaining, 0);
     const skipped = cursor(bytes);
     Readers.skipValue(skipped, field);
     assert.equal(skipped.remaining, 0);
   }
-  const raw = Readers.readBinaryBlock(cursor(bytes), { beType: "BINARYBLOCK", name: "indexBuffer" }, { kind: "typedArray" });
-  assert.equal(raw instanceof Uint32Array, false, "the old special field name does not choose a codec");
-  assert.ok(raw.bytes instanceof Uint8Array);
-  assert.deepEqual([...raw.bytes], bytes);
 });
 
-test("Black typed binary blocks reject negative, misaligned and truncated byte lengths", () =>
+test("Black binary blocks reject negative and truncated byte lengths; an odd length is the class's to judge", () =>
 {
-  const field = CjsBlackSchemaRegistry.fromDeclaredType(uint32);
+  const field = CjsBlackSchemaRegistry.fromDeclaredType(binary);
   assert.throws(() => Readers.readValue(cursor([], -1), field), /nonnegative/);
-  assert.throws(() => Readers.readValue(cursor([1,2,3]), field), /multiple of four/);
   assert.throws(() => Readers.readValue(cursor([1,2,3,4], 8), field), /bounds|end|range|bytes/i);
+  assert.equal(Readers.readValue(cursor([1,2,3]), field).byteLength, 3);
 });
 
-test("Black custom blocks require local opt-in and retain byte storage", () =>
+test("only meta.type.binary maps to BINARYBLOCK; the snapshot's binaryBlock members need no transport declaration", () =>
 {
-  const field = CjsBlackSchemaRegistry.fromDeclaredType({kind:"custom",name:"Example.Bytes"});
-  assert.throws(() => Readers.readValue(cursor([3,5]), field), /no custom type handler/);
-  assert.throws(() => Readers.skipValue(cursor([3,5]), field), /no custom type handler/);
-  const bytes = Readers.readValue(cursor([3,5], 2, {customTypes: {"Example.Bytes": value => value}}), field);
-  assert.ok(bytes instanceof Uint8Array);
-  assert.deepEqual([...bytes], [3,5]);
-  const python = CjsBlackSchemaRegistry.fromDeclaredType({kind:"custom",name:"Tr2ActionPython.state"});
-  assert.deepEqual(Readers.readValue(cursor([1,2,3]), python), Uint8Array.of(1,2,3));
-  assert.equal(classes.EveSOFDataDecalIndexBuffer.indexBuffer, "uint32Array");
-  assert.deepEqual(classes.Tr2ActionPython.state, {type:"custom",name:"Tr2ActionPython.state"});
-});
-
-
-test("Black customTypes is a format option: normalizeValues accepts it and the reader resolves it", () =>
-{
-  // customReader's opt-in is "by this format or this reader" (CjsBlackPropertyReaders.customReader); the
-  // format reaches the reader only through normalizeValues, which once rejected the key as unknown.
-  const field = CjsBlackSchemaRegistry.fromDeclaredType({kind:"custom",name:"Example.Bytes"});
-  const handler = value => value;
-  for (const customTypes of [ { "Example.Bytes": handler }, new Map([ [ "Example.Bytes", handler ] ]) ])
+  assert.throws(() => CjsBlackSchemaRegistry.fromDeclaredType({ kind: "typedArray", arrayType: "Uint32Array" }), /Unsupported canonical Black type: typedArray/);
+  assert.throws(() => CjsBlackSchemaRegistry.fromDeclaredType({ kind: "custom", name: "Tr2ActionPython.state" }), /Unsupported canonical Black type: custom/);
+  assert.equal(classes.EveSOFDataDecalIndexBuffer.indexBuffer, "binaryBlock");
+  assert.equal(classes.Tr2ActionPython.state, "binaryBlock");
+  const compact = CjsBlackSchemaRegistry.compactTypeDescriptor("binaryBlock", {});
+  assert.equal(compact.black.beType, "BINARYBLOCK");
+  assert.equal(compact.jsType.binary, true);
+  for (const retired of [ "uint32Array", "custom" ])
   {
-    const values = normalizeValues(DEFAULT_VALUES, { customTypes }, CLASS_KEYS, "CjsBlackFormat");
-    assert.equal(values.customTypes, customTypes);
-    assert.equal(normalizeValues(values, {}, CLASS_KEYS, "CjsBlackFormat").customTypes, customTypes, "kept when values are re-normalised");
-    assert.deepEqual([...Readers.readValue(cursor([3,5], 2, values), field)], [3,5]);
+    assert.equal(CjsBlackSchemaRegistry.compactTypeDescriptor(retired, { name: "x" }).black.beType, null);
   }
-  assert.equal(normalizeValues(DEFAULT_VALUES, {}, CLASS_KEYS, "CjsBlackFormat").customTypes, null);
-  assert.throws(() => normalizeValues(DEFAULT_VALUES, { customTypes: [ handler ] }, CLASS_KEYS, "CjsBlackFormat"), /customTypes option must be/);
+});
+
+test("the retired decodeBinaryBlocks and customTypes options are unknown", () =>
+{
+  for (const options of [ { decodeBinaryBlocks: true }, { customTypes: {} } ])
+  {
+    assert.throws(() => normalizeValues(DEFAULT_VALUES, options, CLASS_KEYS, "CjsBlackFormat"), /unknown option/);
+  }
 });
 
 test("Black rejects unsupported data kinds before reading or skipping object storage", () =>

@@ -160,6 +160,8 @@ export class CjsRedReader extends CjsBlueReader
      */
     Hydrate(node)
     {
+        // A !!binary scalar is bytes, not a node.
+        if (ArrayBuffer.isView(node)) return node;
         if (node && typeof node === "object")
         {
             if (this.refs.has(node)) return this.MakeReference(node);
@@ -299,6 +301,13 @@ export class CjsRedReader extends CjsBlueReader
 
         if (this.mode === "payload")
         {
+            // A !!binary scalar is decoded by its owner's class, as a runtime read does.
+            for (const key of Object.keys(values))
+            {
+                if (!ArrayBuffer.isView(values[key])) continue;
+                const decoded = this.ReadBinaryBlockValue(type, key, values[key]);
+                if (decoded !== undefined) values[key] = decoded;
+            }
             this.AssignPayloadValues(target, values);
             return;
         }

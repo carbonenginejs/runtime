@@ -1221,6 +1221,16 @@ export class DictReader extends IRootReaderBase
     }
   }
 
+  /**
+   * A dictionary carries no binary blocks (DictReader.cpp:718-721).
+   *
+   * @throws {IRootReaderException} Always.
+   */
+  ReadBinaryBlock(_instance, _propertyName)
+  {
+    this._ThrowError("DictReader does not support binary blocks");
+  }
+
   /** `ThrowError` (:584-598): the message, prefixed with the member path. */
   _ThrowError(message)
   {

@@ -264,7 +264,7 @@ test("Copier dispatches mapped SetValue notifications to the concrete expression
   assert.equal(source.IsExpressionValid(), false, "copying must not link or initialize the source");
 });
 
-test("Copier runs the concrete Python Initialize after copying fields and suppresses member notifications", t =>
+test("Copier runs the concrete Python Initialize after copying fields, never the state block, and suppresses member notifications", t =>
 {
   const source = new Tr2ActionPython();
   source.module = "controller_action_test";
@@ -291,20 +291,16 @@ test("Copier runs the concrete Python Initialize after copying fields and suppre
   assert.equal(factories[0].action, destination);
   assert.equal(factories[0].moduleName, "controller_action_test");
   assert.equal(factories[0].className, "HostAction");
-  assert.deepEqual(factories[0].state, [3, 5, 8]);
+  // "state" is a binary block, whose member size is 0: Copier.cpp:173-176
+  // always skips it, so the copy's host starts with no saved state.
+  assert.deepEqual(factories[0].state, []);
   assert.notEqual(destination.state, source.state);
-  assert.notEqual(destination.state.buffer, source.state.buffer);
-  assert.equal(loads.length, 1);
-  assert.equal(loads[0], destination.state);
+  assert.equal(loads.length, 0, "empty state skips OnLoad");
   // GetInstance lazily creates a host, so inspect all dispatch evidence first.
   // Do not call it on the source: that would initialize the source in this test.
   assert.equal(destination.GetInstance(), host);
   assert.equal(factories.length, 1);
-  assert.equal(loads.length, 1);
-  destination.state[0] = 99;
   assert.deepEqual([...source.state], [3, 5, 8]);
-  // This exercises the existing Initialize/OnLoad adaptation, not custom binary
-  // persistence dispatch or the native output-pointer representation.
 });
 
 test("DictReader ReadInto retains its explicit notification seam with the real SetValue method", t =>

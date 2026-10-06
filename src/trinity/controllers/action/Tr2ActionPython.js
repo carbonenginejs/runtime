@@ -18,8 +18,8 @@ import { ContinueOnMainThread } from "../../core/continueOnMainThread.js";
  * Owner getter results pass directly to hooks (Tr2ActionPython.cpp:79-141).
  * Queued callbacks retain their selected JS instance, unlike native callbacks
  * that capture self and consult its current callback table when the queue drains.
- * State remains the existing persisted Uint8Array plus explicit buffer adapter;
- * this class does not install native custom-binary dispatch in shared readers.
+ * State is Carbon's custom binary block: readers move its bytes through this
+ * class's ICustomPersist methods.
  */
 @meta.define({
   className: "Tr2ActionPython",
@@ -130,13 +130,17 @@ export class Tr2ActionPython extends ITr2ControllerAction
   className = "";
 
   /**
-   * Adapted state storage for the existing JavaScript reader/copy path.
-   * Native state is MAP_ATTRIBUTE_AS_CUSTOM_BINARY_BLOCK, not ordinary storage.
-   * Keeping this field does not make DictWriter call OnSave automatically.
+   * The Python instance's saved state, Carbon's custom binary block "state"
+   * (Tr2ActionPython_Blue.cpp:22). Readers hand its bytes to
+   * AllocateReadBuffer and SetBufferAndSize.
+   * Not supported: the state belongs to a Python object, and the browser runs
+   * no Python; a JavaScript host receives the bytes through OnLoad as they are.
    * @type {Uint8Array}
    */
   @meta.blue.persistOnly
-  @meta.type.custom("Tr2ActionPython.state")
+  @meta.type.binary
+  @meta.type.uint8Array
+  @meta.notSupported
   state = new Uint8Array(0);
 
   _controller = null;

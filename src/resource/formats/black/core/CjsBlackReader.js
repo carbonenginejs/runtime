@@ -443,6 +443,13 @@ export class CjsBlackReader extends CjsBlueReader
                 }
             }
             const value = this.ReadFieldValueWithContext(objectReader, kind, blackName, fieldTarget, destination);
+            // BlackReader::ReadBinaryBlock: the instance decodes the bytes. One
+            // that does not map ICustomPersist keeps the raw block.
+            if (IsBinaryBlock(fieldTarget) && !fieldTarget.discard && this.ReadBinaryBlock(target, blackName, value.bytes))
+            {
+                previousBlackName = blackName;
+                continue;
+            }
             if (canonical)
             {
                 if (!fieldTarget.discard) applyReaderMember(target, declaration, value);
@@ -516,7 +523,12 @@ export class CjsBlackReader extends CjsBlueReader
                     continue;
                 }
 
-                const value = this.ReadFieldValueWithContext(objectReader, kind, blackName, fieldTarget);
+                let value = this.ReadFieldValueWithContext(objectReader, kind, blackName, fieldTarget);
+                if (IsBinaryBlock(fieldTarget))
+                {
+                    const decoded = this.ReadBinaryBlockValue(kind, blackName, value.bytes);
+                    if (decoded !== undefined) value = decoded;
+                }
                 this.AssignPayloadFieldValue(target, fieldTarget, value);
                 previousBlackName = blackName;
             }
@@ -1285,6 +1297,17 @@ export class CjsBlackReader extends CjsBlueReader
 const CJS_BLACK_INDEX_TOKEN_NAMES = Object.freeze({
     SIMPLEPRIMARY: "SimplePrimary"
 });
+
+/**
+ * Whether a resolved field is a Carbon BINARYBLOCK on the wire.
+ *
+ * @param {import("./helpers.js").BlackFieldTarget} target Resolved field.
+ * @returns {boolean} True for a declared binary block.
+ */
+function IsBinaryBlock(target)
+{
+    return !target.unknown && target.field?.black?.beType === "BINARYBLOCK";
+}
 
 /**
  * A structure-list field's descriptor with its layout taken from the

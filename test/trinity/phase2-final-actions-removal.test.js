@@ -83,23 +83,24 @@ function HostFactory(t, factory)
   t.after(() => { Tr2ActionPython.registerFactory(previous); ExecuteMainThreadActions(); });
 }
 
-test("Python reader initialization and copy own state bytes without claiming custom binary dispatch", t =>
+test("Python state is a binary block: DictReader refuses it, SetBufferAndSize loads it, the Copier never copies it", t =>
 {
   const calls = [];
   HostFactory(t, (_module, _class, action) => ({ OnLoad: bytes => calls.push([action, bytes]) }));
-  const action = new DictReader({ declarations: true }).CreateObject({
+  assert.throws(() => new DictReader({ declarations: true }).CreateObject({
     _type: "Tr2ActionPython", module: "m", className: "c", state: Uint8Array.of(1, 2)
-  });
+  }), /DictReader does not support binary blocks/);
+  const action = new DictReader({ declarations: true }).CreateObject({ _type: "Tr2ActionPython", module: "m", className: "c" });
+  assert.equal(calls.length, 0, "empty state skips OnLoad");
+  action.SetBufferAndSize("state", action.AllocateReadBuffer("state", 2).fill(1), 2);
   assert.equal(calls.length, 1);
   assert.equal(calls[0][0], action);
   assert.equal(calls[0][1], action.state);
   const clone = new Copier().CloneTo(action);
-  assert.equal(calls.length, 2);
-  assert.notEqual(clone.state.buffer, action.state.buffer);
-  clone.state[0] = 9;
-  assert.equal(action.state[0], 1);
+  assert.equal(calls.length, 1, "the clone's state is empty");
+  assert.deepEqual([...clone.state], []);
   action.SetBufferAndSize("state", new Uint8Array(0));
-  assert.equal(calls.length, 2, "retained JS adapter skips empty OnLoad");
+  assert.equal(calls.length, 1, "retained JS adapter skips empty OnLoad");
 });
 
 test("Python retains queued host capture across notification and requires controller registration", t =>

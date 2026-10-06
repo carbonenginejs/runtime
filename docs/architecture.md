@@ -344,9 +344,13 @@ for packed channels. Formats dispatch the resolved data type, not these meanings
 Flags stores uint32 and carries enum/FLAGS metadata. Named meta.requires installs
 throwing methods for missing class requirements and preserves implementations.
 
-Black reads uint32Array as Carbon BINARYBLOCK: signed byte length followed by
-little-endian words. The member name does not select a codec. Opaque blocks use
-meta.type.custom(name); Black opts into Tr2ActionPython.state as Uint8Array.
-Other names require a customTypes map or own-property object of handlers in the
-reader options. A handler receives (bytes, descriptor); an unknown name fails.
-These handlers belong to Black and do not register handlers in other formats.
+meta.type.binary is Carbon's BINARYBLOCK, a custom binary block: how a member is
+stored, beside the type of the value it holds (`@meta.type.binary` with
+`@meta.type.uint32Array`). It requires meta.blue.persistOnly, and a class that
+maps ICustomPersist; define refuses it otherwise. Readers only move the bytes:
+Black reads a signed byte length and the raw bytes, Red a base64 `!!binary`
+scalar, and both hand them to the instance's AllocateReadBuffer and
+SetBufferAndSize, which decode them. A payload read carries the value the
+owner's class decodes; a document read keeps the raw `black.binaryBlock` record.
+As in Carbon, DictReader refuses a binary block and the Copier never copies one,
+so values bags carry none.

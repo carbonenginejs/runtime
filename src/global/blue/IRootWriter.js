@@ -16,6 +16,7 @@ import { CjsSchema, meta } from "#schema";
 import { omitRuntimeValues } from "../schema/CjsSchema.js";
 import { exportCarbonValue } from "../schema/types/index.js";
 import { getDictionaryDeclarations, readDictionaryValue } from "./dictionaryDeclarations.js";
+import { ICustomPersist } from "./ICustomPersist.js";
 
 /** Kinds written as an object that may be shared (IROOTPTR). */
 const OBJECT_KINDS = new Set([ "model", "objectRef" ]);
@@ -43,6 +44,15 @@ export class IRootWriter
     for (const field of getDictionaryDeclarations(instance.constructor).fields)
     {
       if (!CjsSchema.isFieldExported(field, options)) continue;
+
+      if (field.type?.binary === true)
+      {
+        // BINARYBLOCK (IRootWriter.cpp:56-67): the instance supplies the bytes,
+        // and the writer writes the member name itself.
+        const persist = CjsSchema.cast(instance, ICustomPersist);
+        if (persist) this.WriteBinaryBlock(persist, field.name);
+        continue;
+      }
 
       const kind = field.type?.kind;
       const value = readDictionaryValue(instance, field);
@@ -141,6 +151,12 @@ export class IRootWriter
       else this.WriteNestedValue(item);
     }
     this.WriteRecordEnd();
+  }
+
+  /** Writes a binary block from an ICustomPersist (`WriteBinaryBlock`, IRootWriter.h:52); a writer provides it. */
+  WriteBinaryBlock(_persist, _propertyName)
+  {
+    throw new Error("IRootWriter.WriteBinaryBlock is provided by a writer.");
   }
 
   /** Begins a plain record inside a value; a writer provides it. */

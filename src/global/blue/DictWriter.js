@@ -179,6 +179,22 @@ export class DictWriter extends IRootWriter
   }
 
 
+  /**
+   * Writes nothing: a values bag carries no binary block.
+   *
+   * Adapted: YamlWriter writes the bytes as a base64 `!!binary` scalar
+   * (YamlWriter.cpp:154-180), but DictReader, which reads these bags, refuses
+   * a binary block (DictReader.cpp:718-721), so a bag that held one could not
+   * be read back. The Copier does not copy one either (BINARYBLOCK's member
+   * size is 0, so Copier.cpp:173-176 always finds it unchanged).
+   *
+   * @param {object} _persist The instance's ICustomPersist.
+   * @param {string} _propertyName The block's member name.
+   */
+  WriteBinaryBlock(_persist, _propertyName)
+  {
+  }
+
   /** `Cleanup` (YamlWriter.cpp:245-254). */
   _Cleanup()
   {
@@ -192,4 +208,5 @@ export class DictWriter extends IRootWriter
 
 CjsSchema.define(DictWriter, { className: "DictWriter", modelledOn: "YamlWriter" });
 CjsSchema.decorateMethod(DictWriter, "WriteIRoot", meta.adapted);
+CjsSchema.decorateMethod(DictWriter, "WriteBinaryBlock", meta.adapted);
 CjsSchema.decorateMethod(DictWriter, "WriteObject", meta.ours);

@@ -67,6 +67,8 @@ export class CjsBlackSchemaRegistry
         if (typeof type === "function") type = { kind: "objectRef", className: type };
         if (typeof type === "string") type = { kind: type };
         if (type?.runtimeOnly === true) throw new TypeError("Runtime-only fields have no Black codec.");
+        // meta.type.binary is Carbon's BINARYBLOCK, whatever value the member holds.
+        if (type?.binary === true) return CjsBlackSchemaRegistry.compactBlackType("BINARYBLOCK", type);
         const kind = type?.kind;
         const scalarTypes = {
             boolean: "bool", string: "string", wstring: "wstring", path: "path",
@@ -82,10 +84,6 @@ export class CjsBlackSchemaRegistry
         {
             return CjsBlackSchemaRegistry.compactTypeDescriptor(scalarTypes[kind], type);
         }
-        if (kind === "typedArray" && type.arrayType === "Uint32Array")
-            return CjsBlackSchemaRegistry.compactBlackType("BINARYBLOCK", type);
-        if (kind === "custom" && typeof type.name === "string" && type.name)
-            return CjsBlackSchemaRegistry.compactBlackType("BINARYBLOCK", type);
         if (kind === "model" || kind === "objectRef" || kind === "weakRef")
         {
             return CjsBlackSchemaRegistry.compactBlackType(
@@ -513,9 +511,8 @@ export class CjsBlackSchemaRegistry
      * representation for the Black object-graph reader.
      *
      * @param {string} type Compact type name, such as "float", "vector3" or "structList".
-     * @param {object} spec Field spec; supplies `length`, `cppType`, `structure` and `name` where the type uses them.
+     * @param {object} spec Field spec; supplies `length`, `cppType` and `structure` where the type uses them.
      * @returns {import("./helpers.js").BlackCompactType} The type pair.
-     * @throws {TypeError} When a custom type has no name.
      */
     static compactTypeDescriptor(type, spec)
     {
@@ -585,13 +582,9 @@ export class CjsBlackSchemaRegistry
                     cppType: spec.cppType || "StructureList",
                     structure: spec.structure
                 });
-            case "uint32Array":
-                return CjsBlackSchemaRegistry.compactBlackType("BINARYBLOCK", { kind: "typedArray", arrayType: "Uint32Array" });
-            case "custom":
-                if (typeof spec.name !== "string" || !spec.name) throw new TypeError("Black custom type requires a name.");
-                return CjsBlackSchemaRegistry.compactBlackType("BINARYBLOCK", { kind: "custom", name: spec.name });
             case "binaryBlock":
-                return CjsBlackSchemaRegistry.compactBlackType("BINARYBLOCK", { kind: "typedArray" });
+                // The bytes go to the owner's ICustomPersist; the block names no value type.
+                return CjsBlackSchemaRegistry.compactBlackType("BINARYBLOCK", { kind: "unknown", binary: true });
             default:
                 return CjsBlackSchemaRegistry.compactBlackType(null, { kind: normalized });
         }

@@ -350,8 +350,9 @@ test("all read modes include field context in unknown-property errors", () =>
     assert.throws(() => CjsBlackFormat.readDocument(input, { schema: sampleSchema }), expected);
 });
 
-test("payload decodes indexBuffer binary blocks as Uint32Array", () =>
+test("payload keeps a binary block raw when no registered class decodes it", () =>
 {
+    // Only the owner's ICustomPersist decodes a block; TestIndexBuffer is not registered.
     const builder = new BlackFixtureBuilder();
     const input = builder.Finish(builder.Object(1, "TestIndexBuffer", [
         [ "indexBuffer", binaryBlockUint32([ 0, 1, 65537 ]) ]
@@ -359,9 +360,9 @@ test("payload decodes indexBuffer binary blocks as Uint32Array", () =>
 
     const payload = CjsBlackFormat.readPayload(input, { schema: sampleSchema });
 
-    assert.equal(payload.object.indexBuffer instanceof Uint32Array, true);
-    assert.deepEqual(Array.from(payload.object.indexBuffer), [ 0, 1, 65537 ]);
-    assert.deepEqual(CjsBlackFormat.toJSON(payload).object.indexBuffer, [ 0, 1, 65537 ]);
+    assert.equal(payload.object.indexBuffer.$type, "black.binaryBlock");
+    assert.equal(payload.object.indexBuffer.byteLength, 12);
+    assert.deepEqual(Array.from(payload.object.indexBuffer.bytes), [ 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0 ]);
 });
 
 test("manually decorated expression string fields read string refs", () =>

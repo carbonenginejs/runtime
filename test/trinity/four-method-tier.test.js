@@ -139,16 +139,16 @@ test("EveSOFDataDecalIndexBuffer speaks the ICustomPersist contract (cpp:958-978
 {
   const record = new EveSOFDataDecalIndexBuffer();
 
-  const store = record.AllocateReadBuffer(16);
+  const store = record.AllocateReadBuffer("indexBuffer", 16);
   assert.equal(store.length, 4);
   store.set([ 7, 8, 9, 10 ]);
 
-  const { buffer, byteSize } = record.GetWriteBufferAndSize();
+  const { buffer, byteSize } = record.GetWriteBufferAndSize("indexBuffer");
   assert.equal(byteSize, 16);
   assert.deepEqual([ ...buffer ], [ 7, 8, 9, 10 ]);
 
   // SetBufferAndSize IGNORES the pointer and only truncates (donor comment).
-  record.SetBufferAndSize(new Uint32Array([ 99, 99 ]), 8);
+  record.SetBufferAndSize("indexBuffer", new Uint32Array([ 99, 99 ]), 8);
   assert.deepEqual([ ...record.indexBuffer ], [ 7, 8 ], "truncated, incoming data ignored");
 
   record.ReleaseWriteBuffer();

@@ -97,12 +97,8 @@ export class CjsBlackPropertyReaders
             case CARBON_TYPE.ARRAY:
                 return CjsBlackPropertyReaders.readArray(reader, descriptor);
 
-            case "custom":
-                return CjsBlackPropertyReaders.readBinaryBlock(reader, { beType: "BINARYBLOCK" }, descriptor);
             case CARBON_TYPE.TYPED_ARRAY:
-                return descriptor.arrayType === "Uint32Array"
-                    ? CjsBlackPropertyReaders.readBinaryBlock(reader, { beType: "BINARYBLOCK" }, descriptor)
-                    : CjsBlackPropertyReaders.readTypedArray(reader, descriptor);
+                return CjsBlackPropertyReaders.readTypedArray(reader, descriptor);
 
             case CARBON_TYPE.ROOT:
             case CARBON_TYPE.RAW_STRUCT:
@@ -181,7 +177,7 @@ export class CjsBlackPropertyReaders
                 return CjsBlackPropertyReaders.readFloatArray(reader, black.length || descriptor.length || 0);
 
             case "BINARYBLOCK":
-                return CjsBlackPropertyReaders.readBinaryBlock(reader, black, descriptor);
+                return CjsBlackPropertyReaders.readBinaryBlock(reader, black);
 
             case "IROOTPTR":
             case "IROOTWEAKREF":
@@ -253,13 +249,8 @@ export class CjsBlackPropertyReaders
             case CARBON_TYPE.ARRAY:
                 CjsBlackPropertyReaders.skipArray(reader, descriptor);
                 return;
-            case "custom":
-                CjsBlackPropertyReaders.customReader(reader, descriptor.name);
-                CjsBlackPropertyReaders.skipBinaryBlock(reader);
-                return;
             case CARBON_TYPE.TYPED_ARRAY:
-                if (descriptor.arrayType === "Uint32Array") CjsBlackPropertyReaders.skipBinaryBlock(reader);
-                else CjsBlackPropertyReaders.skipTypedArray(reader);
+                CjsBlackPropertyReaders.skipTypedArray(reader);
                 return;
             case CARBON_TYPE.ROOT:
             case CARBON_TYPE.RAW_STRUCT:
@@ -322,7 +313,6 @@ export class CjsBlackPropertyReaders
                 reader.Skip((black.length || descriptor.length || 0) * 4);
                 return;
             case "BINARYBLOCK":
-                if (descriptor.kind === "custom") CjsBlackPropertyReaders.customReader(reader, descriptor.name);
                 CjsBlackPropertyReaders.skipBinaryBlock(reader);
                 return;
             case "IROOTPTR":
@@ -462,63 +452,22 @@ export class CjsBlackPropertyReaders
     }
 
     /**
-     * Reads a Carbon BINARYBLOCK using its declared data type.
+     * Reads a Carbon BINARYBLOCK's int32 size and raw bytes
+     * (BlackReader::ReadBinaryBlock, BlackReader.cpp:599-612). The bytes are
+     * not decoded here: the object reader hands them to the instance's
+     * ICustomPersist, and a document read keeps this record.
      *
      * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor positioned at the block length.
      * @param {{beType: string}} black Black wire description of the block.
-     * @param {object} [descriptor={}] Normalized Carbon type descriptor; selects a custom handler or Uint32Array decoding.
-     * @returns {*} The custom handler's result, a Uint32Array, or a `black.binaryBlock` record.
-     * @throws {RangeError} When the length is negative, or not a multiple of four for a Uint32Array.
+     * @returns {{$type: string, beType: string, byteLength: number, bytes: Uint8Array}} The `black.binaryBlock` record.
+     * @throws {RangeError} When the length is negative.
      */
-    static readBinaryBlock(reader, black, descriptor = {})
+    static readBinaryBlock(reader, black)
     {
-        const custom = descriptor.kind === "custom" ? CjsBlackPropertyReaders.customReader(reader, descriptor.name) : null;
         const byteLength = reader.ReadI32();
         if (byteLength < 0) throw new RangeError("Black binary block length must be nonnegative.");
-        const uint32 = descriptor.kind === "typedArray" && descriptor.arrayType === "Uint32Array";
-        if (uint32 && byteLength % 4) throw new RangeError("Black Uint32Array block length must be a multiple of four.");
         const bytes = reader.ReadBytes(byteLength);
-        if (custom) return custom(bytes, descriptor);
-        if (uint32 && !(reader.context?.readMode === "document" && !reader.context?.options.decodeBinaryBlocks))
-            return CjsBlackPropertyReaders.readUint32Array(bytes);
         return { $type: "black.binaryBlock", beType: black.beType, byteLength, bytes };
-    }
-
-    /**
-     * Named opaque types are opted into by this format or this reader only.
-     *
-     * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor whose context options carry `customTypes`.
-     * @param {string} name Custom type name.
-     * @returns {Function} Handler called with the block bytes and the descriptor.
-     * @throws {TypeError} When no handler is registered for the name.
-     */
-    static customReader(reader, name)
-    {
-        const configured = reader.context?.options?.customTypes;
-        const handler = configured instanceof Map ? configured.get(name)
-            : configured && Object.hasOwn(configured, name) ? configured[name] : undefined;
-        if (typeof handler === "function") return handler;
-        // Native Python state is an opaque byte payload, never a persistence callback.
-        if (name === "Tr2ActionPython.state") return bytes => bytes;
-        throw new TypeError('Black has no custom type handler for "' + name + '".');
-    }
-
-    /**
-     * Reads a binary block as an array of unsigned 32-bit integers for the Black
-     * object-graph reader.
-     *
-     * @param {Uint8Array} bytes Block bytes; the length is a multiple of four.
-     * @returns {Uint32Array} The little-endian values.
-     */
-    static readUint32Array(bytes)
-    {
-        const result = new Uint32Array(bytes.byteLength / 4);
-        const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-        for (let i = 0; i < result.length; i++)
-        {
-            result[i] = view.getUint32(i * 4, true);
-        }
-        return result;
     }
 
     /**

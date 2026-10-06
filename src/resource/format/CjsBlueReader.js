@@ -1,5 +1,7 @@
 import { CjsSchema } from "#schema/CjsSchema";
 import { DictReader } from "../../global/blue/DictReader.js";
+import { ICustomPersist } from "../../global/blue/ICustomPersist.js";
+import { readDictionaryValue } from "../../global/blue/dictionaryDeclarations.js";
 import { resolveHydrationAdapter } from "#schema/hydration";
 import {
     CARBON_TYPE,
@@ -160,6 +162,18 @@ export class CjsBlueReader extends CjsReader
         // adapter to inspect the object. A fallback carrier (no class) and a
         // caller-supplied plain class both answer no, and keep raw assignment.
         context.declared = CjsSchema.getClassName(this.ResolveClass(kind)) !== null;
+        if (context.declared)
+        {
+            // A binary block's bytes go to the instance (YamlReader::ReadBinaryBlock,
+            // YamlReader.cpp:539-556), never through the values transport.
+            for (const member of BinaryMembers(target.constructor))
+            {
+                if (!Object.hasOwn(values, member.name) || !ArrayBuffer.isView(values[member.name])) continue;
+                if (!this.ReadBinaryBlock(target, member.name, values[member.name])) continue;
+                values = { ...values };
+                delete values[member.name];
+            }
+        }
         if (context.declared && typeof target.SetValues !== "function"
             && typeof this.options.adapter?.applyValues !== "function")
         {
@@ -182,6 +196,59 @@ export class CjsBlueReader extends CjsReader
         }
         else this.adapter.applyValues(target, values, context);
         this.runtimeInstances.push({ instance: target, kind, shape });
+    }
+
+    /**
+     * A reader's `ReadBinaryBlock` (BlackReader.cpp:599-612,
+     * YamlReader.cpp:539-556): the bytes are copied into the buffer the
+     * instance's `AllocateReadBuffer` returns, and `SetBufferAndSize` hands
+     * them back for the instance to decode. An instance that does not map
+     * ICustomPersist is not given them (IRootReader.cpp:77-88).
+     *
+     * Adapted: the transport has already read the block, as size and bytes or
+     * as a decoded base64 scalar; this is the half every reader shares. The
+     * returned buffer is any typed array the class chooses, filled bytewise.
+     *
+     * @param {object} instance The object that owns the block.
+     * @param {string} propertyName The block's member name.
+     * @param {ArrayBufferView} bytes The block's bytes.
+     * @returns {boolean} Whether the instance took them.
+     */
+    ReadBinaryBlock(instance, propertyName, bytes)
+    {
+        const persist = CjsSchema.cast(instance, ICustomPersist);
+        if (!persist) return false;
+        const buffer = persist.AllocateReadBuffer(propertyName, bytes.byteLength);
+        // memcpy: byte views over the two existing buffers, once per block read.
+        const target = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength); // alloc: byte view, no copy
+        const source = new Uint8Array(bytes.buffer, bytes.byteOffset, Math.min(bytes.byteLength, target.byteLength)); // alloc: byte view, no copy
+        target.set(source);
+        persist.SetBufferAndSize(propertyName, buffer, bytes.byteLength);
+        return true;
+    }
+
+    /**
+     * The value a binary block decodes to, for a payload read: a new instance
+     * of the owner's class reads the bytes (`ReadBinaryBlock`), and the payload
+     * carries the member it then holds.
+     *
+     * Ours: a payload is plain values, so no instance owns the block; the class
+     * still decodes its own bytes.
+     *
+     * @param {string|null} kind Persisted class name.
+     * @param {string} propertyName The block's member name.
+     * @param {ArrayBufferView} bytes The block's bytes.
+     * @returns {*} The decoded member value, or undefined when no registered class declares the block.
+     */
+    ReadBinaryBlockValue(kind, propertyName, bytes)
+    {
+        const Constructor = this.ResolveClass(kind);
+        if (!Constructor || CjsSchema.getClassName(Constructor) === null) return undefined;
+        const member = BinaryMembers(Constructor).find(item => item.name === propertyName);
+        if (!member) return undefined;
+        const instance = new Constructor();
+        if (!this.ReadBinaryBlock(instance, propertyName, bytes)) return undefined;
+        return readDictionaryValue(instance, member);
     }
 
     /**
@@ -639,6 +706,17 @@ export class CjsBlueReader extends CjsReader
             && Number.isInteger(expectedLength)
             && value.length !== expectedLength;
     }
+}
+
+/**
+ * A class's `meta.type.binary` members: Carbon's BINARYBLOCK attributes.
+ *
+ * @param {Function} Constructor A registered class.
+ * @returns {object[]} Its binary member declarations.
+ */
+function BinaryMembers(Constructor)
+{
+    return CjsSchema.getSchema(Constructor).members.filter(member => member.type?.binary === true);
 }
 
 export default CjsBlueReader;

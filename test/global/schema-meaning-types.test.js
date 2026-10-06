@@ -55,7 +55,6 @@ test("Stage-3, decorator calls and manual declarations agree for compound flags 
   const definitions = Object.fromEntries(Object.keys(meanings).map(name => [name, meta.type[name]]));
   definitions.flags = meta.type.flags({ A: 1, B: 2 });
   definitions.words = meta.type.uint32Array;
-  definitions.opaque = meta.type.custom("Example.Bytes");
   definitions.packed = [meta.type.mixed, meta.ui.components(["speed", "size", "opacity", "age"]), meta.ui.description("Particle channels")];
   class Manual {}
   CjsSchema.define(Manual, { className: "MeaningManual", fields: definitions });
@@ -85,12 +84,13 @@ test("Stage-3, decorator calls and manual declarations agree for compound flags 
   assert.equal(packed.edit, undefined);
 });
 
-test("custom types and component labels require valid explicit declarations", () =>
+test("component labels require valid explicit declarations; meta.type.custom is gone", () =>
 {
-  for (const name of [undefined, null, "", " ", 7]) assert.throws(() => meta.type.custom(name), /nonempty name/);
+  assert.equal(meta.type.custom, undefined);
   assert.throws(() => meta.ui.components(["x", 2]), /string labels/);
   assert.throws(() => meta.ui.components(["a", "b", "c", "d", "e"]), /four/);
-  assert.equal(CjsBlackSchemaRegistry.fromDeclaredType({kind:"custom",name:"Unregistered"}).black.beType, "BINARYBLOCK");
+  assert.equal(CjsBlackSchemaRegistry.fromDeclaredType({ kind: "uint32", binary: true }).black.beType, "BINARYBLOCK");
+  assert.throws(() => CjsBlackSchemaRegistry.fromDeclaredType({ kind: "typedArray", arrayType: "Uint32Array" }), /Unsupported canonical Black type: typedArray/);
 });
 
 test("named requirements install throwing methods while preserving implementations", () =>
