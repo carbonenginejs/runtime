@@ -14,19 +14,19 @@ export class Tr2AudioStretchAuto extends Tr2AudioStretchBase
   /** m_impactEvent (std::wstring) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.wstring
   impactEvent = "";
 
   /** m_outburstEvent (std::wstring) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.wstring
   outburstEvent = "";
 
   /** m_stretchEvent (std::wstring) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.wstring
   stretchEvent = "";
 
   /** Carbon method TriggerOutburstEvent. */

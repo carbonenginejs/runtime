@@ -316,7 +316,7 @@ export class EveProjectBracket
 
   /** m_name (std::wstring) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.string
+  @meta.type.wstring
   name = "";
 
   /** m_parent (Tr2Sprite2dContainerPtr) [READWRITE] */

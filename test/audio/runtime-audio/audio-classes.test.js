@@ -147,7 +147,7 @@ test("schema canary: field metadata survives", () =>
   new AudGameObjResource();
   new AudEmitter();
 
-  assert.equal(CjsSchema.getField(AudGameObjResource, "eventPrefix").type.kind, "string");
+  assert.equal(CjsSchema.getField(AudGameObjResource, "eventPrefix").type.kind, "wstring");
   assert.equal(CjsSchema.getField(AudEmitter, "maxNormalizedValue").type.kind, "float32");
 
   // position follows Carbon's Blue mapping exactly: READ, not persisted.

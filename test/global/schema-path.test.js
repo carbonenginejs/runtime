@@ -13,7 +13,7 @@ import "../../npm/dist/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 
 
-const { path } = CjsSchema.meta.type;
+const { path, wpath } = CjsSchema.meta.type;
 
 
 /** The type descriptor a decorator records on a fresh class. */
@@ -30,6 +30,14 @@ test("path() and bare path both accept any file", () =>
   assert.deepEqual(typeOf(path()).accepts, []);
   assert.deepEqual(typeOf(path).accepts, [], "bare use, applied as the decorator itself");
   assert.equal(typeOf(path).kind, "path");
+});
+
+
+test("wpath is a path held in a wide string, with the same entries", () =>
+{
+  assert.deepEqual(typeOf(wpath), { kind: "wpath", accepts: [] });
+  assert.deepEqual(typeOf(wpath("TriTextureRes")), { kind: "wpath", accepts: [ "TriTextureRes" ] });
+  assert.throws(() => wpath("texture"), TypeError);
 });
 
 
@@ -61,7 +69,7 @@ test("every class name used in a path label names a registered class", () =>
       if (entry.isDirectory()) walk(full);
       else if (entry.name.endsWith(".js"))
       {
-        for (const match of readFileSync(full, "utf8").matchAll(/@meta\.type\.path\(([^)]*)\)/g))
+        for (const match of readFileSync(full, "utf8").matchAll(/@meta\.type\.w?path\(([^)]*)\)/g))
         {
           for (const name of match[1].match(/"([A-Z][A-Za-z0-9_]*)"/g) ?? [])
           {

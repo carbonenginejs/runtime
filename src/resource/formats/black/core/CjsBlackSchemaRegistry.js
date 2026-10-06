@@ -71,7 +71,7 @@ export class CjsBlackSchemaRegistry
         if (type?.binary === true) return CjsBlackSchemaRegistry.compactBlackType("BINARYBLOCK", type);
         const kind = type?.kind;
         const scalarTypes = {
-            boolean: "bool", string: "string", wstring: "wstring", path: "path",
+            boolean: "bool", string: "string", wstring: "wstring", path: "path", wpath: "wpath",
             expression: "expression", enum: "enum", float32: "float", float64: "double",
             int8: "byte", uint8: "ubyte", int16: "short", uint16: "ushort",
             int32: "int", uint32: "uint", int64: "int64", uint64: "uint64",
@@ -528,6 +528,8 @@ export class CjsBlackSchemaRegistry
                 return CjsBlackSchemaRegistry.compactBlackType("STDWSTRING", { kind: "string" });
             case "path":
                 return CjsBlackSchemaRegistry.compactBlackType("STDSTRING", { kind: "path" });
+            case "wpath":
+                return CjsBlackSchemaRegistry.compactBlackType("STDWSTRING", { kind: "wpath" });
             case "expression":
                 return CjsBlackSchemaRegistry.compactBlackType("STDSTRING", { kind: "expression", js: "string" });
             case "enum":

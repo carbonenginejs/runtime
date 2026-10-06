@@ -30,7 +30,7 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.wstring
   name = "";
 
   /**

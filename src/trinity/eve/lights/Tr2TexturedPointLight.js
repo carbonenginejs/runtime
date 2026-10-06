@@ -34,7 +34,7 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path("TriTextureRes")
+  @meta.type.wpath("TriTextureRes")
   texturePath = "";
 
   @meta.type.boolean

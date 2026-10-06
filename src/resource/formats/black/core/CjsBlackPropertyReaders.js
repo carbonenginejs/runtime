@@ -44,6 +44,9 @@ export class CjsBlackPropertyReaders
             case CARBON_TYPE.PATH:
                 return reader.context.TransformPath(reader.ReadStringRef());
 
+            case CARBON_TYPE.WPATH:
+                return reader.context.TransformPath(reader.ReadWideStringRef());
+
             case CARBON_TYPE.ENUM:
                 return reader.ReadI32();
 
@@ -147,7 +150,10 @@ export class CjsBlackPropertyReaders
             case "STDWSTRING":
             case "SHAREDSTRINGW":
             case "WREFERENCE":
-                return reader.ReadWideStringRef();
+            {
+                const value = reader.ReadWideStringRef();
+                return descriptor.kind === CARBON_TYPE.WPATH ? reader.context.TransformPath(value) : value;
+            }
 
             case "FLOAT":
                 return reader.ReadF32();
@@ -213,6 +219,7 @@ export class CjsBlackPropertyReaders
                 return;
             case CARBON_TYPE.STRING:
             case CARBON_TYPE.PATH:
+            case CARBON_TYPE.WPATH:
             case CARBON_TYPE.EXPRESSION:
             case CARBON_TYPE.INT16:
             case CARBON_TYPE.UINT16:

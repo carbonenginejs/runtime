@@ -75,7 +75,7 @@ export class EveSmartLightPointLight extends EveEntity
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.path("Tr2LightProfileRes")
+  @meta.type.wpath("Tr2LightProfileRes")
   lightProfilePath = "";
 
   /** m_staticOffsetTranslation (Vector3) [READWRITE, PERSIST] */

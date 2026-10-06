@@ -295,7 +295,7 @@ export class Tr2ExternalParameter extends IInitialize
     // Carbon binds any member (Tr2ExternalParameter.cpp:88-108); path and
     // expression fields are strings too. SOF's banner parameters bind a
     // TriTextureParameter's path-typed resourcePath.
-    if (kind === "string" || kind === "path" || kind === "expression" || (kind === null && typeof value === "string"))
+    if (kind === "string" || kind === "wstring" || kind === "path" || kind === "wpath" || kind === "expression" || (kind === null && typeof value === "string"))
     {
       return { category: "string", kind: "string" };
     }

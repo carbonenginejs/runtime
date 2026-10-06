@@ -39,7 +39,7 @@ export class Tr2Sprite2dTexture
 
   /** m_name (std::wstring) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.string
+  @meta.type.wstring
   name = "";
 
   /** m_rotation (float) [READWRITE, NOTIFY] */

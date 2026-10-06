@@ -332,6 +332,13 @@ accepts it:
 Several entries are written as a list, for example
 `@meta.type.path([ "TriGeometryRes", "object" ])`. Entries are validated when
 the class is defined. The runtime does not enforce them on assignment.
+
+`string` and `wstring` are plain strings, narrow and wide; `path` and `wpath`
+are paths, narrow and wide, with the same entries. The wide kinds are Carbon's
+`std::wstring` members: Black keeps a narrow and a wide string table, and a
+member's declaration alone decides which table its index reads, so a
+`std::wstring` path is `@meta.type.wpath("TriTextureRes")`.
+
 ## Declared types and Black binary blocks
 
 Decorator namespaces follow ownership: meta.blue is Carbon exposure, meta.ui is

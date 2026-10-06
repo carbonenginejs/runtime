@@ -182,13 +182,13 @@ export class EveChildTurret extends EveChildMesh
   /** Audio event for mechanical noise when moving from idle to targeting. */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.wstring
   idleToTargetingMovementAudioEvent = "";
 
   /** Audio event for mechanical noise when moving from targeting to idle. */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.wstring
   targetingToIdleMovementAudioEvent = "";
 
   // Carbon m_target: created in the constructor with fade-on-locator-change

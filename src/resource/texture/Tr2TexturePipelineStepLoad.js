@@ -61,7 +61,7 @@ export class Tr2TexturePipelineStepLoad
 CjsSchema.define(Tr2TexturePipelineStepLoad, {
   className: "Tr2TexturePipelineStepLoad", family: "resources",
   fields: {
-    path: [ meta.blue.persist, meta.type.string ]
+    path: [ meta.blue.persist, meta.type.wpath ]
   },
   methods: {
     GetResourceDependencies: [ meta.blue.method, meta.implemented ],

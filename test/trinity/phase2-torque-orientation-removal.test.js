@@ -26,7 +26,7 @@ test("native declaration order and flags preserve torque graph copying without c
 {
   for (const [Type, expected] of [
     [TriTorque, [["time", "float32"], ["rot0", "quat"], ["omega0", "vec3"], ["torque", "vec3"]]],
-    [TriRigidOrientation, [["name", "string"], ["I", "float32"], ["drag", "float32"], ["value", "quat"], ["start", "float64"], ["states", "list"]]]
+    [TriRigidOrientation, [["name", "wstring"], ["I", "float32"], ["drag", "float32"], ["value", "quat"], ["start", "float64"], ["states", "list"]]]
   ])
   {
     const fields = CjsSchema.getSchema(Type).members;

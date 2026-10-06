@@ -756,7 +756,13 @@ export class CjsSchema
          * Bare `@meta.type.path` (or `path: meta.type.path` in a define table)
          * still means any file: see `pathDecorator`.
          */
-        path: pathDecorator(),
+        path: pathDecorator("path"),
+        /**
+         * A path held in a wide string (`std::wstring`): `path`'s meaning and
+         * entries, stored as Carbon's STDWSTRING, so readers use the wide
+         * string table.
+         */
+        wpath: pathDecorator("wpath"),
         quat: fieldDecorator("type", { kind: "quat" }),
         rawStruct: className => fieldDecorator("type", { kind: "rawStruct", className }),
         set: itemType => fieldDecorator("type", { kind: "set", itemType }),
@@ -3182,15 +3188,16 @@ function normalizeEnumSchema(values, definition)
  * arity, not by guessing at a value's shape. A define table reads the same
  * "any file" metadata from the function.
  *
+ * @param {"path"|"wpath"} kind The narrow or wide path kind.
  * @returns {Function} The path decorator factory.
  */
-function pathDecorator()
+function pathDecorator(kind)
 {
-    const any = fieldDecorator("type", { kind: "path", accepts: [] });
+    const any = fieldDecorator("type", { kind, accepts: [] });
     const path = (...args) => (args.length >= 2
         ? any(...args)
-        : fieldDecorator("type", { kind: "path", accepts: normalizePathAccepts(args[0]) }));
-    return describeDecorator(path, "type", { kind: "path", accepts: [] });
+        : fieldDecorator("type", { kind, accepts: normalizePathAccepts(args[0]) }));
+    return describeDecorator(path, "type", { kind, accepts: [] });
 }
 
 /**

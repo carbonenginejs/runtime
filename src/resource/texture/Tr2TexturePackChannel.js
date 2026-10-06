@@ -22,6 +22,6 @@ CjsSchema.define(Tr2TexturePackChannel, {
   fields: {
     channel: [ meta.blue.persist, meta.type.uint8 ],
     fill: [ meta.blue.persist, meta.type.uint8 ],
-    path: [ meta.blue.persist, meta.type.string ]
+    path: [ meta.blue.persist, meta.type.wpath ]
   }
 });

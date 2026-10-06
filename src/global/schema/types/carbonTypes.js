@@ -10,6 +10,8 @@ export const CARBON_TYPE = Object.freeze({
     STRING: "string",
     WSTRING: "wstring",
     PATH: "path",
+    // A path in a wide string (std::wstring): Black reads it from the wide table.
+    WPATH: "wpath",
     EXPRESSION: "expression",
     ENUM: "enum",
     FLOAT32: "float32",
@@ -58,6 +60,7 @@ const TYPE_DEFINITIONS = {
     // BlueTypes.h distinguishes STDSTRING/STDWSTRING; both use JS strings.
     [CARBON_TYPE.WSTRING]: { kind: CARBON_TYPE.WSTRING, js: "string" },
     [CARBON_TYPE.PATH]: { kind: CARBON_TYPE.PATH, js: "string" },
+    [CARBON_TYPE.WPATH]: { kind: CARBON_TYPE.WPATH, js: "string" },
     [CARBON_TYPE.EXPRESSION]: { kind: CARBON_TYPE.EXPRESSION, js: "string", semantic: CARBON_TYPE.EXPRESSION },
     [CARBON_TYPE.ENUM]: { kind: CARBON_TYPE.ENUM, js: "number|string|null" },
     [CARBON_TYPE.FLOAT32]: { kind: CARBON_TYPE.FLOAT32, js: "number", bits: 32, signed: true, floating: true },
@@ -396,6 +399,7 @@ export function defaultCarbonValue(type)
         case CARBON_TYPE.STRING:
         case CARBON_TYPE.WSTRING:
         case CARBON_TYPE.PATH:
+        case CARBON_TYPE.WPATH:
         case CARBON_TYPE.EXPRESSION:
             return "";
         case CARBON_TYPE.FLOAT32:
@@ -469,6 +473,7 @@ export function normalizeCarbonValue(value, type)
         case CARBON_TYPE.STRING:
         case CARBON_TYPE.WSTRING:
         case CARBON_TYPE.PATH:
+        case CARBON_TYPE.WPATH:
         case CARBON_TYPE.EXPRESSION:
             return String(value);
         case CARBON_TYPE.FLOAT32:

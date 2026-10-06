@@ -10,7 +10,7 @@ export class AudEventKey
   /** m_value (std::wstring) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.wstring
   value = "";
 
   /** m_time (float) [READWRITE, PERSIST] */

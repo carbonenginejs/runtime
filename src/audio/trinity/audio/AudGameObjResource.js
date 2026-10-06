@@ -77,7 +77,7 @@ export class AudGameObjResource
   /** m_eventPrefix (std::wstring) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.wstring
   eventPrefix = "";
 
   /** m_additionalCullingWeight (float) [READ] */
@@ -127,7 +127,7 @@ export class AudGameObjResource
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.string
+  @meta.type.wstring
   eventName = "";
 
   /** m_cumulativeWeight (float) [READ] */
