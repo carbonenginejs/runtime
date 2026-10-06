@@ -10,7 +10,12 @@ import { CjsResManWorkerLoader } from "#blue/worker/CjsResManWorkerLoader";
  * caller publishes it. Cancellation and failure release every worker/listener.
  * @param {object} payload Clone-safe bitmap or surface request.
  * @param {object} [options] AbortSignal, Worker factory and module URL overrides.
+ * @param {AbortSignal} [options.signal] Cancels the job.
+ * @param {Function} [options.workerFactory] Worker factory passed to the loader.
+ * @param {string|URL} [options.workerUrl] Worker module URL; defaults to `../compressionWorker.js`.
  * @returns {Promise<object>} Complete output or a rejected cancellation/failure.
+ * @throws {DOMException} An AbortError when the signal is aborted.
+ * @throws {TypeError} When the worker result has no `Uint8Array` data.
  */
 export async function compressAsync(payload, options = {})
 {

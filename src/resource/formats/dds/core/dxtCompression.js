@@ -18,13 +18,25 @@ const SOURCE_LAYOUTS = new Map([
     [P.PIXEL_FORMAT_B8G8R8X8_UNORM_SRGB, { bytes: 4, r: 2, g: 1, b: 0, a: -1 }]
 ]);
 
-/** Exact 8-bit channel layouts accepted by the encoder; no float reinterpretation. */
+/**
+ * Exact 8-bit channel layouts accepted by the encoder; no float reinterpretation.
+ *
+ * @param {number} format Source PixelFormat.
+ * @returns {boolean} True for the 8-bit UNORM layouts the encoder reads.
+ */
 export function isCompressionSourceSupported(format)
 {
     return SOURCE_LAYOUTS.has(format);
 }
 
-/** Native compression mode to storage format; no content-role policy here. */
+/**
+ * Native compression mode to storage format; no content-role policy here.
+ *
+ * @param {number} format Carbon compression mode (Tr2DxtCompressionFormat).
+ * @param {boolean} [srgb=false] Whether to return the sRGB storage format.
+ * @returns {number} The BC PixelFormat.
+ * @throws {RangeError} For an unknown mode, or sRGB on a mode without sRGB storage.
+ */
 export function compressionPixelFormat(format, srgb = false)
 {
     switch (format)
@@ -55,14 +67,28 @@ export function compressionPixelFormat(format, srgb = false)
     }
 }
 
-/** Require an exact nonnegative byte offset or positive extent before allocation. */
+/**
+ * Require an exact nonnegative byte offset or positive extent before allocation.
+ *
+ * @param {number} value Value to check.
+ * @param {string} name Name used in the error message.
+ * @param {number} [minimum=0] Smallest accepted value.
+ * @returns {number} `value`.
+ * @throws {RangeError} When `value` is not a safe integer of at least `minimum`.
+ */
 function integer(value, name, minimum = 0)
 {
     if (!Number.isSafeInteger(value) || value < minimum) throw new RangeError(`Invalid ${name}`);
     return value;
 }
 
-/** HostBitmap's complete array storage size, without allocating a bitmap. */
+/**
+ * HostBitmap's complete array storage size, without allocating a bitmap.
+ *
+ * @param {import("#imageio").BitmapDimensions} dimensions Bitmap dimensions.
+ * @returns {number} Bytes of every mip of every array element.
+ * @throws {RangeError} When the size is not a positive safe integer.
+ */
 export function getRawDataSize(dimensions)
 {
     let size = 0;
@@ -82,7 +108,15 @@ export function getRawDataSize(dimensions)
  * @param {number} format Carbon compression mode.
  * @param {Uint8Array} output Private destination storage.
  * @param {object} [options] Native input format, offsets, pitches and quality.
+ * @param {number} [options.sourceFormat] Source PixelFormat; defaults to B8G8R8A8_UNORM.
+ * @param {number} [options.inputPitch] Source row pitch in bytes.
+ * @param {number} [options.outputPitch] Destination block-row pitch in bytes.
+ * @param {number} [options.inputOffset=0] Source byte offset.
+ * @param {number} [options.outputOffset=0] Destination byte offset.
+ * @param {number} [options.quality=2] Squish quality 0-2; -1 means 2.
  * @returns {void}
+ * @throws {TypeError} For an unsupported source format.
+ * @throws {RangeError} For invalid extents, pitches, offsets, storage sizes or quality.
  */
 export function compressSurface(input, width, height, format, output, options = {})
 {
@@ -157,10 +191,14 @@ export function compressSurface(input, width, height, format, output, options = 
  * Encode every array face, mip and depth slice in a DDS native bitmap packet.
  * Source: BitmapDimensions.h mip layout; Tr2HostBitmap.cpp:512-557 publication.
  * Extension: preserve the complete texture instead of only a 2D base level.
- * @param {object} packet Description, native byte storage and metadata.
+ * @param {import("./helpers.js").DdsBitmapPacket} packet Description, native byte storage and metadata.
  * @param {number} format Explicit Carbon compression mode (not automatically selected).
  * @param {object} [options] Squish quality and explicit output sRGB flag.
- * @returns {object} Independently owned complete compressed bitmap packet.
+ * @param {number} [options.quality] Squish quality 0-2.
+ * @param {boolean} [options.srgb] Output sRGB storage; defaults to the source format's sRGB-ness.
+ * @returns {import("./helpers.js").DdsBitmapPacket} Independently owned complete compressed bitmap packet.
+ * @throws {TypeError} For an unsupported source format.
+ * @throws {RangeError} For invalid dimensions or mismatched storage.
  */
 export function compressBitmap(packet, format, options = {})
 {

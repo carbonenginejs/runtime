@@ -17,7 +17,12 @@ const LEGACY_FOURCC = new Map([
 const SRGB_FORMATS = new Set([P.PIXEL_FORMAT_BC1_UNORM_SRGB,
     P.PIXEL_FORMAT_BC2_UNORM_SRGB, P.PIXEL_FORMAT_BC3_UNORM_SRGB]);
 
-/** MakePixelFormat's BC1-BC5 compressed export subset. */
+/**
+ * MakePixelFormat's BC1-BC5 compressed export subset.
+ *
+ * @param {?(import("#imageio").BitmapDimensions|import("#imageio").HostBitmap)} dimensions Bitmap dimensions, or null.
+ * @returns {boolean} True for BC1-BC5 UNORM (BC1-BC3 sRGB) 1D, 2D, 3D or cube storage.
+ */
 export function isDdsSaveSupported(dimensions)
 {
     if (dimensions === null || dimensions === undefined) return false;
@@ -26,7 +31,12 @@ export function isDdsSaveSupported(dimensions)
         [T.TEX_TYPE_1D, T.TEX_TYPE_2D, T.TEX_TYPE_3D, T.TEX_TYPE_CUBE].includes(type);
 }
 
-/** Pack a four-character DDS identifier into its little-endian integer. */
+/**
+ * Pack a four-character DDS identifier into its little-endian integer.
+ *
+ * @param {string} text Four ASCII characters.
+ * @returns {number} The packed value.
+ */
 function fourCC(text)
 {
     return text.charCodeAt(0) | (text.charCodeAt(1) << 8) | (text.charCodeAt(2) << 16) | (text.charCodeAt(3) << 24);
@@ -35,8 +45,10 @@ function fourCC(text)
 /**
  * Save already compressed BC1-BC5 storage, preserving every subresource.
  * Carbon writes to a stream; the format API returns the complete DDS bytes.
- * @param {object} packet Native bitmap description, storage and metadata.
+ * @param {import("./helpers.js").DdsBitmapPacket} packet Native bitmap description, storage and metadata.
  * @returns {Uint8Array} DDS file bytes.
+ * @throws {TypeError} When the format is not a supported BC format.
+ * @throws {RangeError} For invalid dimensions, topology, mip count or storage size.
  */
 export function writeDds(packet)
 {

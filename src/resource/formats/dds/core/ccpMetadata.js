@@ -2,7 +2,13 @@
 // Approved DDS correction: validate body offsets before reading donor strings.
 const SIGNATURE = new TextEncoder().encode("CCP-META");
 
-/** Read the optional donor trailer; malformed metadata does not invalidate pixels. */
+/**
+ * Read the optional donor trailer; malformed metadata does not invalidate pixels.
+ *
+ * @param {Uint8Array} bytes File bytes.
+ * @param {number} offset Byte offset of the trailer, just after the pixel payload.
+ * @returns {Array<[string, string]>} Key/value pairs in file order; empty when absent or malformed.
+ */
 export function loadCcpMetadata(bytes, offset)
 {
     if (!Number.isSafeInteger(offset) || offset < 0 || offset + 20 > bytes.length) return [];
@@ -30,7 +36,14 @@ export function loadCcpMetadata(bytes, offset)
     return result;
 }
 
-/** Append Carbon's ordered, duplicate-preserving string pairs, encoded as UTF-8. */
+/**
+ * Append Carbon's ordered, duplicate-preserving string pairs, encoded as UTF-8.
+ *
+ * @param {import("../../../format/CjsByteWriter.js").CjsByteWriter} writer Destination writer.
+ * @param {Array<[string, string]>} metadata Key/value pairs.
+ * @throws {TypeError} When an entry is not a pair of strings.
+ * @throws {RangeError} When the body exceeds 32 bits.
+ */
 export function saveCcpMetadata(writer, metadata)
 {
     const encoder = new TextEncoder(), pairs = [];

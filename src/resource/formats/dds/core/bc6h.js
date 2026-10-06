@@ -81,6 +81,13 @@ const ANCHOR_2 = new Uint8Array([
 /**
  * Decodes BC6H texture blocks into a normalized floating-point image for the DDS
  * format reader.
+ *
+ * @param {Uint8Array} source Block data.
+ * @param {number} width Image width.
+ * @param {number} height Image height.
+ * @param {number} [rowPitch] Bytes per block row; defaults to tightly packed.
+ * @param {boolean} [signed=false] Whether the blocks are signed (BC6H_SF16).
+ * @returns {Float32Array} Linear RGBA float pixels.
  */
 export function decodeBc6h(source, width, height, rowPitch = Math.ceil(width / 4) * 16, signed = false)
 {
@@ -104,6 +111,11 @@ export function decodeBc6h(source, width, height, rowPitch = Math.ceil(width / 4
 /**
  * Decodes one BC6H texture block into destination pixels for the DDS format
  * reader.
+ *
+ * @param {Uint8Array} block 16 bytes of one block.
+ * @param {boolean} [signed=false] Whether the block is signed (BC6H_SF16).
+ * @returns {Float32Array} 16 RGBA float texels; opaque black for a reserved mode.
+ * @throws {RangeError} When the block is shorter than 16 bytes.
  */
 export function decodeBc6hBlock(block, signed = false)
 {
@@ -169,6 +181,13 @@ export function decodeBc6hBlock(block, signed = false)
     return output;
 }
 
+/**
+ * Sign-extends endpoints and resolves transformed (delta) endpoints in place.
+ *
+ * @param {Array<number[]>} endpoints Four `[r, g, b]` endpoints.
+ * @param {{subsets:number,endpointBits:number,deltaBits:number[],transformed:boolean}} mode Mode description.
+ * @param {boolean} signed Whether the block is signed.
+ */
 function prepareEndpoints(endpoints, mode, signed)
 {
     if (signed)
@@ -204,6 +223,14 @@ function prepareEndpoints(endpoints, mode, signed)
     }
 }
 
+/**
+ * Expands a quantized endpoint component to 16-bit range.
+ *
+ * @param {number} component Endpoint component.
+ * @param {number} bits Endpoint precision.
+ * @param {boolean} signed Whether the block is signed.
+ * @returns {number} The unquantized component.
+ */
 function unquantize(component, bits, signed)
 {
     if (signed)
@@ -226,6 +253,13 @@ function unquantize(component, bits, signed)
     return ((component << 16) + 0x8000) >> bits;
 }
 
+/**
+ * Scales an interpolated component to half-float bits.
+ *
+ * @param {number} component Interpolated component.
+ * @param {boolean} signed Whether the block is signed.
+ * @returns {number} 16-bit half bits.
+ */
 function finishHalf(component, signed)
 {
     if (signed)
@@ -238,11 +272,24 @@ function finishHalf(component, signed)
     return (component * 31) >> 6;
 }
 
+/**
+ * Sign-extends the low `bits` bits of a value.
+ *
+ * @param {number} value Raw value.
+ * @param {number} bits Bit width.
+ * @returns {number} The signed value.
+ */
 function signExtend(value, bits)
 {
     return (value << (32 - bits)) >> (32 - bits);
 }
 
+/**
+ * Converts IEEE 754 half-precision bits to a number.
+ *
+ * @param {number} value 16-bit half bits.
+ * @returns {number} The value.
+ */
 function halfToFloat(value)
 {
     const sign = value & 0x8000 ? -1 : 1;
@@ -253,6 +300,11 @@ function halfToFloat(value)
     return sign * Math.pow(2, exponent - 15) * (1 + mantissa / 1024);
 }
 
+/**
+ * Builds a 4x4 block of opaque black float texels.
+ *
+ * @returns {Float32Array} 16 RGBA float texels.
+ */
 function opaqueBlackBlock()
 {
     const output = new Float32Array(16 * 4);
@@ -260,6 +312,16 @@ function opaqueBlackBlock()
     return output;
 }
 
+/**
+ * Copies a decoded 4x4 block into the image, clipping at its edges.
+ *
+ * @param {Float32Array} block 16 RGBA texels.
+ * @param {Float32Array} output Image RGBA pixels.
+ * @param {number} width Image width.
+ * @param {number} height Image height.
+ * @param {number} blockX Block column.
+ * @param {number} blockY Block row.
+ */
 function copyBlock(block, output, width, height, blockX, blockY)
 {
     for (let y = 0; y < 4; y++)

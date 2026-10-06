@@ -48,13 +48,24 @@ import { ImageUtility } from "#imageio";
 import { PixelFormat } from "#consts/render-context";
 
 
-/** A little-endian view over a subresource's bytes. */
+/**
+ * A little-endian view over a subresource's bytes.
+ *
+ * @param {Uint8Array} bytes Subresource bytes.
+ * @returns {DataView} A view over the same range.
+ */
 function View(bytes)
 {
   return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
 }
 
-/** Writes one packed 0xAARRGGBB pixel as B, G, R, A bytes, dropping writes past the end. */
+/**
+ * Writes one packed 0xAARRGGBB pixel as B, G, R, A bytes, dropping writes past the end.
+ *
+ * @param {Uint8Array} out BGRA8 destination.
+ * @param {number} at Byte offset of the pixel.
+ * @param {number} color Packed 0xAARRGGBB colour.
+ */
 function Put(out, at, color)
 {
   if (at + 3 >= out.length) return;

@@ -6,7 +6,17 @@
 import { PixelFormat as P, TextureType as T, IsCompressedFormat } from "#consts/render-context";
 import { isCompressionSourceSupported } from "./dxtCompression.js";
 
-/** Choose a Carbon encoder only when role, storage and active WebGPU features permit it. */
+/**
+ * Choose a Carbon encoder only when role, storage and active WebGPU features permit it.
+ *
+ * @param {import("./helpers.js").DdsBitmapPacket} packet Uncompressed bitmap packet.
+ * @param {import("./helpers.js").DdsCompressionRequest} request Caller's role, backend and active features.
+ * @param {boolean} request.enabled Whether on-load compression is wanted at all.
+ * @param {string} request.backend Selected backend; only "webgpu" has a policy.
+ * @param {string} request.role Texture role from the caller's asset semantics.
+ * @param {Iterable<string>} request.features Active device feature names.
+ * @returns {import("./helpers.js").DdsCompressionChoice} The chosen Carbon compression mode, or null with the reason.
+ */
 export function selectCompression(packet, request)
 {
     const { format, type, width, height } = packet.description;

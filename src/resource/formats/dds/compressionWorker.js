@@ -5,7 +5,21 @@ import { Message } from "#blue/worker/protocol";
 import { compressBitmap, compressSurface, compressionPixelFormat } from "./core/dxtCompression.js";
 import { PixelFormat as P } from "#consts/render-context";
 
-/** Execute one clone-safe compression request without touching a live resource. */
+/**
+ * Execute one clone-safe compression request without touching a live resource.
+ *
+ * @param {object} payload Request posted by `compressAsync`.
+ * @param {"bitmap"|"surface"} payload.kind Operation kind.
+ * @param {import("./core/helpers.js").DdsBitmapPacket} [payload.packet] Bitmap packet, for "bitmap".
+ * @param {number} payload.format Carbon compression mode.
+ * @param {object} payload.options Encoder options.
+ * @param {Uint8Array} [payload.input] Source storage, for "surface".
+ * @param {number} [payload.width] Surface width, for "surface".
+ * @param {number} [payload.height] Surface height, for "surface".
+ * @returns {object} The compressed packet (or `{ data }` for a surface) plus `encodeTimeMs`.
+ * @throws {TypeError} For an unknown operation kind.
+ * @throws {RangeError} For invalid surface output dimensions.
+ */
 export function executeCompression(payload)
 {
     const started = performance.now();
@@ -26,7 +40,12 @@ export function executeCompression(payload)
     return { ...result, encodeTimeMs: performance.now() - started };
 }
 
-/** Install the existing worker protocol for this DDS-owned encoding operation. */
+/**
+ * Install the existing worker protocol for this DDS-owned encoding operation.
+ *
+ * @param {object} scope Worker global scope; uses `addEventListener`, `removeEventListener` and `postMessage`.
+ * @returns {Function} Removes the message listener.
+ */
 export function installCompressionWorker(scope)
 {
     const onMessage = event =>

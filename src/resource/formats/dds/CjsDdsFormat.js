@@ -59,32 +59,81 @@ const LEGACY_PIXEL_FORMATS = {
  */
 export class CjsDdsFormat extends CjsImageFormat
 {
-    /** Approved role-based optional load policy; capabilities describe the active device. */
+    /**
+     * Approved role-based optional load policy; capabilities describe the active device.
+     *
+     * @param {import("./core/helpers.js").DdsBitmapPacket} packet Uncompressed bitmap packet.
+     * @param {import("./core/helpers.js").DdsCompressionRequest} request Caller's role, backend and active features.
+     * @returns {import("./core/helpers.js").DdsCompressionChoice} The chosen Carbon compression mode, or null with the reason.
+     */
     static selectCompression(packet, request)
     {
         return selectCompression(packet, request);
     }
 
-    /** Shared DDS block encoder; explicit mode selection preserves every bitmap subresource. */
+    /**
+     * Shared DDS block encoder; explicit mode selection preserves every bitmap subresource.
+     *
+     * @param {import("./core/helpers.js").DdsBitmapPacket} packet Uncompressed bitmap packet.
+     * @param {number} format Carbon compression mode.
+     * @param {object} [options={}] Encoder options.
+     * @param {number} [options.quality] Squish quality 0-2.
+     * @param {boolean} [options.srgb] Output sRGB storage.
+     * @returns {import("./core/helpers.js").DdsBitmapPacket} The compressed packet.
+     */
     static compressBitmap(packet, format, options = {})
     {
         return compressBitmap(packet, format, options);
     }
 
-    /** Browser adaptation of Carbon's task: an owned worker returns complete bitmap storage. */
+    /**
+     * Browser adaptation of Carbon's task: an owned worker returns complete bitmap storage.
+     *
+     * @param {import("./core/helpers.js").DdsBitmapPacket} packet Uncompressed bitmap packet.
+     * @param {number} format Carbon compression mode.
+     * @param {object} [options={}] Encoder and worker options.
+     * @param {number} [options.quality] Squish quality 0-2.
+     * @param {boolean} [options.srgb] Output sRGB storage.
+     * @param {AbortSignal} [options.signal] Cancels the job.
+     * @returns {Promise<object>} The compressed packet from the worker.
+     */
     static compressBitmapAsync(packet, format, options = {})
     {
         return compressAsync({ kind: "bitmap", packet, format,
             options: { quality: options.quality, srgb: options.srgb } }, options);
     }
 
-    /** Shared surface encoder; source/output pitches are in bytes. */
+    /**
+     * Shared surface encoder; source/output pitches are in bytes.
+     *
+     * @param {Uint8Array} input Native source storage.
+     * @param {number} width Surface width.
+     * @param {number} height Surface height.
+     * @param {number} format Carbon compression mode.
+     * @param {Uint8Array} output Destination block storage.
+     * @param {object} [options={}] Source format, offsets, pitches and quality (see `compressSurface` in `core/dxtCompression.js`).
+     * @returns {void}
+     */
     static compressSurface(input, width, height, format, output, options = {})
     {
         return compressSurface(input, width, height, format, output, options);
     }
 
-    /** Browser worker surface entry; caller input and output are never transferred. */
+    /**
+     * Browser worker surface entry; caller input and output are never transferred.
+     *
+     * @param {Uint8Array} input Native source storage.
+     * @param {number} width Surface width.
+     * @param {number} height Surface height.
+     * @param {number} format Carbon compression mode.
+     * @param {object} [options={}] Encoder and worker options.
+     * @param {number} [options.quality] Squish quality 0-2.
+     * @param {number} [options.sourceFormat] Source PixelFormat.
+     * @param {number} [options.inputPitch] Source row pitch in bytes.
+     * @param {number} [options.outputPitch] Destination block-row pitch in bytes.
+     * @param {AbortSignal} [options.signal] Cancels the job.
+     * @returns {Promise<object>} `{ data, encodeTimeMs }` from the worker.
+     */
     static compressSurfaceAsync(input, width, height, format, options = {})
     {
         return compressAsync({ kind: "surface", input, width, height, format,
@@ -92,19 +141,36 @@ export class CjsDdsFormat extends CjsImageFormat
                 inputPitch: options.inputPitch, outputPitch: options.outputPitch } }, options);
     }
 
-    /** Carbon compression mode to corrected BC storage format. */
+    /**
+     * Carbon compression mode to corrected BC storage format.
+     *
+     * @param {number} format Carbon compression mode.
+     * @param {boolean} [srgb=false] Whether to return the sRGB storage format.
+     * @returns {number} The BC PixelFormat.
+     */
     static compressionPixelFormat(format, srgb = false)
     {
         return compressionPixelFormat(format, srgb);
     }
 
-    /** Carbon IsSaveSupported, limited to the implemented compressed DDS writer. */
+    /**
+     * Carbon IsSaveSupported, limited to the implemented compressed DDS writer.
+     *
+     * @param {?(import("#imageio").BitmapDimensions|import("#imageio").HostBitmap)} dimensions Bitmap dimensions.
+     * @returns {ImageIOResult} OK, or SAVE_NOT_SUPPORTED.
+     */
     static isSaveSupported(dimensions)
     {
         return new ImageIOResult(isDdsSaveSupported(dimensions) ? ImageIOResult.Code.OK : ImageIOResult.Code.SAVE_NOT_SUPPORTED);
     }
 
-    /** Carbon Save stream adaptation: return a result and complete DDS bytes. */
+    /**
+     * Carbon Save stream adaptation: return a result and complete DDS bytes.
+     *
+     * @param {import("#imageio").HostBitmap} bitmap Compressed source bitmap.
+     * @param {?import("#imageio").Metadata} [metadata=null] Metadata whose string pairs are written as CCP-META.
+     * @returns {{result: ImageIOResult, bytes: Uint8Array|null}} The outcome.
+     */
     static save(bitmap, metadata = null)
     {
         try
@@ -122,7 +188,12 @@ export class CjsDdsFormat extends CjsImageFormat
         }
     }
 
-    /** Existing format-write entry: serialize a native compressed bitmap packet. */
+    /**
+     * Existing format-write entry: serialize a native compressed bitmap packet.
+     *
+     * @param {import("./core/helpers.js").DdsBitmapPacket} packet Compressed bitmap packet.
+     * @returns {Uint8Array} DDS file bytes.
+     */
     static write(packet)
     {
         return writeDds(packet);
@@ -154,7 +225,7 @@ export class CjsDdsFormat extends CjsImageFormat
     /**
      * Create a reusable DDS format profile.
      *
-     * @param {object} [options] Default read/inspect options.
+     * @param {Partial<import("./core/helpers.js").DdsValues>} [options] Default read/inspect options.
      */
     constructor(options = {})
     {
@@ -165,7 +236,9 @@ export class CjsDdsFormat extends CjsImageFormat
     /**
      * Merge options into this profile.
      *
-     * @param {object} [options] Values to merge.
+     * @param {Partial<import("./core/helpers.js").DdsValues>} [options] Values to merge.
+     * @param {string} [options.emit] Output to emit.
+     * @param {string} [options.inputType="dds"] Expected source type.
      * @returns {CjsDdsFormat} This format profile.
      */
     SetValues(options = {})
@@ -177,8 +250,10 @@ export class CjsDdsFormat extends CjsImageFormat
     /**
      * Get normalized profile values with optional per-call overrides.
      *
-     * @param {object} [options] Per-call values.
-     * @returns {object} Normalized read values.
+     * @param {Partial<import("./core/helpers.js").DdsValues>} [options] Per-call values.
+     * @param {string} [options.emit] Output to emit.
+     * @param {string} [options.inputType="dds"] Expected source type.
+     * @returns {import("./core/helpers.js").DdsValues} Normalized read values.
      */
     GetValues(options = {})
     {
@@ -213,8 +288,8 @@ export class CjsDdsFormat extends CjsImageFormat
      * Inspect DDS bytes without decoding texture data.
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input DDS bytes.
-     * @param {object} [options] Per-call values.
-     * @returns {object} DDS header metadata.
+     * @param {Partial<import("./core/helpers.js").DdsValues>} [options] Per-call values.
+     * @returns {import("./core/helpers.js").DdsInspection} DDS header metadata.
      */
     Inspect(input, options = {})
     {
@@ -226,6 +301,7 @@ export class CjsDdsFormat extends CjsImageFormat
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input DDS bytes.
      * @param {object} [options] Read options.
+     * @param {string} [options.emit] Output to emit; "bitmap" reads through `readBitmap`.
      * @returns {object} GPU-free raw/debug/texture payload for the selected emit target.
      */
     static read(input, options = {})
@@ -250,8 +326,8 @@ export class CjsDdsFormat extends CjsImageFormat
      * One-shot DDS inspection.
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input DDS bytes.
-     * @param {object} [options] Inspect options.
-     * @returns {object} DDS header metadata.
+     * @param {Partial<import("./core/helpers.js").DdsValues>} [options] Inspect options.
+     * @returns {import("./core/helpers.js").DdsInspection} DDS header metadata.
      */
     static inspect(input, options = {})
     {
@@ -435,13 +511,14 @@ export class CjsDdsFormat extends CjsImageFormat
      * included (`trinity/trinity/Tr2ImageIOHelpers.cpp:48-88`) - so this is a
      * platform-forced divergence rather than a design choice.
      *
-     * @param {Uint8Array} bytes - the slice's block data, and nothing else
-     * @param {Object} values
-     * @param {String} values.pixelFormat - e.g. "bc7-rgba-unorm"
-     * @param {Number} values.width
-     * @param {Number} values.height
-     * @param {Number} [values.rowPitch] - bytes per block row; derived when absent
+     * @param {Uint8Array} bytes The slice's block data, and nothing else.
+     * @param {object} [values={}] Slice description.
+     * @param {string} values.pixelFormat Pixel format, e.g. "bc7-rgba-unorm".
+     * @param {number} values.width Slice width.
+     * @param {number} values.height Slice height.
+     * @param {number} [values.rowPitch] Bytes per block row; derived when absent.
      * @returns {Uint8Array} width * height * 4, row-major, top-left origin
+     * @throws {Error} When `pixelFormat` is not block-compressed.
      */
     static decodeBlockSlice(bytes, values = {})
     {
@@ -459,9 +536,10 @@ export class CjsDdsFormat extends CjsImageFormat
     }
 
     /**
-     * Whether `decodeBlockSlice` can decode a pixel format
-     * @param {String} pixelFormat
-     * @returns {Boolean}
+     * Whether `decodeBlockSlice` can decode a pixel format.
+     *
+     * @param {?string} pixelFormat Canonical pixel format name.
+     * @returns {boolean} True for BC1-BC7 formats.
      */
     static canDecodeBlockSlice(pixelFormat)
     {
@@ -510,7 +588,9 @@ export class CjsDdsFormat extends CjsImageFormat
      *
      * @param {Uint8Array|ArrayBuffer} input DDS bytes.
      * @param {object} [options] Format options; source labels error messages.
-     * @returns {object} Native dimensions, metadata and pixel/block storage.
+     * @param {string} [options.source] Source path passed to `LoadParameters`.
+     * @returns {import("./core/helpers.js").DdsBitmapPacket} Native dimensions, metadata and pixel/block storage.
+     * @throws {Error} With code `CJS_RESOURCE_IMAGE_READ_FAILED` when the image read fails.
      */
     static readBitmap(input, options = {})
     {

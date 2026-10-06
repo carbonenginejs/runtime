@@ -32,49 +32,97 @@ const FLT_MAX = 3.4028234663852886e38;
 const GRID = [31, 63, 31];
 const GRID_RCP = [f(1 / 31), f(1 / 63), f(1 / 31)];
 
-/** Scalar simd_float addition, retaining each component's float precision. */
+/**
+ * Scalar simd_float addition, retaining each component's float precision.
+ *
+ * @param {number[]} a Left vector.
+ * @param {number[]} b Right vector.
+ * @returns {number[]} Component sums rounded to float.
+ */
 function add(a, b)
 {
     return a.map((x, i) => f(x + b[i]));
 }
 
-/** Scalar simd_float subtraction. */
+/**
+ * Scalar simd_float subtraction.
+ *
+ * @param {number[]} a Left vector.
+ * @param {number[]} b Right vector.
+ * @returns {number[]} Component differences rounded to float.
+ */
 function sub(a, b)
 {
     return a.map((x, i) => f(x - b[i]));
 }
 
-/** Scalar simd_float component multiplication. */
+/**
+ * Scalar simd_float component multiplication.
+ *
+ * @param {number[]} a Left vector.
+ * @param {number[]} b Right vector.
+ * @returns {number[]} Component products rounded to float.
+ */
 function mul(a, b)
 {
     return a.map((x, i) => f(x * b[i]));
 }
 
-/** Scalar multiplication with a previously rounded float constant. */
+/**
+ * Scalar multiplication with a previously rounded float constant.
+ *
+ * @param {number[]} a Vector.
+ * @param {number} s Scale.
+ * @returns {number[]} Scaled components rounded to float.
+ */
 function scale(a, s)
 {
     return a.map(x => f(x * s));
 }
 
-/** Non-fused MultiplyAdd from simd_float.h. */
+/**
+ * Non-fused MultiplyAdd from simd_float.h.
+ *
+ * @param {number[]} a First factor.
+ * @param {number[]} b Second factor.
+ * @param {number[]} c Addend.
+ * @returns {number[]} `a * b + c`, rounded per operation.
+ */
 function multiplyAdd(a, b, c)
 {
     return add(mul(a, b), c);
 }
 
-/** Three-component Dot from maths.h, with left-to-right addition. */
+/**
+ * Three-component Dot from maths.h, with left-to-right addition.
+ *
+ * @param {number[]} a Left vector.
+ * @param {number[]} b Right vector.
+ * @returns {number} The float-rounded dot product.
+ */
 function dot(a, b)
 {
     return f(f(f(a[0] * b[0]) + f(a[1] * b[1])) + f(a[2] * b[2]));
 }
 
-/** std::max retains its first argument for an unordered comparison. */
+/**
+ * std::max retains its first argument for an unordered comparison.
+ *
+ * @param {number} a First value.
+ * @param {number} b Second value.
+ * @returns {number} `b` when `a < b`, otherwise `a`.
+ */
 function max(a, b)
 {
     return a < b ? b : a;
 }
 
-/** Clamp and round endpoints to the 565 grid (RangeFit/ClusterFit). */
+/**
+ * Clamp and round endpoints to the 565 grid (RangeFit/ClusterFit).
+ *
+ * @param {number[]} a RGB endpoint in 0..1.
+ * @returns {number[]} The endpoint snapped to the 565 grid.
+ */
 function quantize(a)
 {
     return GRID.map((g, i) =>
@@ -85,13 +133,26 @@ function quantize(a)
     });
 }
 
-/** FloatToInt from colourblock.cpp, including float rounding before the cast. */
+/**
+ * FloatToInt from colourblock.cpp, including float rounding before the cast.
+ *
+ * @param {number} a Value to round.
+ * @param {number} limit Largest result.
+ * @returns {number} Integer clamped to 0..limit.
+ */
 function floatToInt(a, limit)
 {
     return Math.max(0, Math.min(limit, Math.trunc(f(a + 0.5))));
 }
 
-/** ColourSet without alpha weighting, matching Carbon's uniform metric call. */
+/**
+ * ColourSet without alpha weighting, matching Carbon's uniform metric call.
+ *
+ * @param {Uint8Array} rgba Sixteen RGBA texels.
+ * @param {number} mask Valid texel bitmask.
+ * @param {boolean} dxt1 Whether texels with alpha below 128 are transparent (DXT1).
+ * @returns {import("./helpers.js").SquishColourSet} Unique colours, their weights and the texel remap.
+ */
 function colourSet(rgba, mask, dxt1)
 {
     const points = [], weights = [], remap = [];
@@ -127,7 +188,12 @@ function colourSet(rgba, mask, dxt1)
     return { points, weights, remap, transparent };
 }
 
-/** ComputeWeightedCovariance and the active eight-step power iteration. */
+/**
+ * ComputeWeightedCovariance and the active eight-step power iteration.
+ *
+ * @param {import("./helpers.js").SquishColourSet} set Colour set.
+ * @returns {number[]} The principal axis.
+ */
 function principleComponent(set)
 {
     let total = 0, centroid = [0, 0, 0];
@@ -157,7 +223,17 @@ function principleComponent(set)
     return v;
 }
 
-/** WriteColourBlock3/4, including endpoint swaps and equal-endpoint indices. */
+/**
+ * WriteColourBlock3/4, including endpoint swaps and equal-endpoint indices.
+ *
+ * @param {number[]} start First RGB endpoint in 0..1.
+ * @param {number[]} end Second RGB endpoint in 0..1.
+ * @param {number[]} indices Palette index per colour-set point.
+ * @param {import("./helpers.js").SquishColourSet} set Colour set.
+ * @param {boolean} three Whether to write the three-colour mode.
+ * @param {Uint8Array} output Destination block storage.
+ * @param {number} offset Destination byte offset.
+ */
 function writeColourBlock(start, end, indices, set, three, output, offset)
 {
     const packed = a => (floatToInt(f(31 * a[0]), 31) << 11) |
@@ -185,7 +261,16 @@ function writeColourBlock(start, end, indices, set, three, output, offset)
     }
 }
 
-/** SingleColourFit with the exact 1.15 integer lookup tables. */
+/**
+ * SingleColourFit with the exact 1.15 integer lookup tables.
+ *
+ * @param {import("./helpers.js").SquishColourSet} set Colour set.
+ * @param {boolean} three Whether to fit the three-colour mode.
+ * @param {number} best Error to beat.
+ * @param {Uint8Array} output Destination block storage.
+ * @param {number} offset Destination byte offset.
+ * @returns {number} The new best error; the block is written only when it improves.
+ */
 function singleColourFit(set, three, best, output, offset)
 {
     const tables = three ? [lookup_5_3, lookup_6_3, lookup_5_3] : [lookup_5_4, lookup_6_4, lookup_5_4];
@@ -215,7 +300,16 @@ function singleColourFit(set, three, best, output, offset)
     return best;
 }
 
-/** RangeFit using unweighted point error, as in the native implementation. */
+/**
+ * RangeFit using unweighted point error, as in the native implementation.
+ *
+ * @param {import("./helpers.js").SquishColourSet} set Colour set.
+ * @param {boolean} three Whether to fit the three-colour mode.
+ * @param {number} best Error to beat.
+ * @param {Uint8Array} output Destination block storage.
+ * @param {number} offset Destination byte offset.
+ * @returns {number} The new best error; the block is written only when it improves.
+ */
 function rangeFit(set, three, best, output, offset)
 {
     const axis = principleComponent(set);
@@ -260,7 +354,14 @@ function rangeFit(set, three, best, output, offset)
     return best;
 }
 
-/** ClusterFit least-squares solution and error, with scalar non-fused math. */
+/**
+ * ClusterFit least-squares solution and error, with scalar non-fused math.
+ *
+ * @param {number[]} alphax Weighted alpha sums (RGB plus alpha squared).
+ * @param {number[]} betax Weighted beta sums (RGB plus beta squared).
+ * @param {number} alphabeta Weighted alpha-beta product sum.
+ * @returns {{a:number[],b:number[],error:number}} Quantized endpoints and their error.
+ */
 function solve(alphax, betax, alphabeta)
 {
     const alpha2 = alphax[3], beta2 = betax[3];
@@ -279,7 +380,17 @@ function solve(alphax, betax, alphabeta)
     return { a, b, error };
 }
 
-/** ClusterFit stable ordering, exhaustive cluster boundaries and eight iterations. */
+/**
+ * ClusterFit stable ordering, exhaustive cluster boundaries and eight iterations.
+ *
+ * @param {import("./helpers.js").SquishColourSet} set Colour set.
+ * @param {boolean} three Whether to fit the three-colour mode.
+ * @param {number} best Error to beat.
+ * @param {boolean} iterative Whether to iterate up to eight times (ITER_CLUSTER_FIT).
+ * @param {Uint8Array} output Destination block storage.
+ * @param {number} offset Destination byte offset.
+ * @returns {number} The new best error; the block is written only when it improves.
+ */
 function clusterFit(set, three, best, iterative, output, offset)
 {
     const count = set.points.length, orders = [];
@@ -354,7 +465,15 @@ function clusterFit(set, three, best, iterative, output, offset)
     return bestError;
 }
 
-/** CompressAlphaDxt5, also used directly for the BC4 and BC5 channels. */
+/**
+ * CompressAlphaDxt5, also used directly for the BC4 and BC5 channels.
+ *
+ * @param {Uint8Array} rgba Sixteen RGBA texels.
+ * @param {number} mask Valid texel bitmask.
+ * @param {number} channel Channel index to encode (0-3).
+ * @param {Uint8Array} output Destination block storage.
+ * @param {number} offset Destination byte offset of the 8-byte alpha block.
+ */
 function compressAlpha(rgba, mask, channel, output, offset)
 {
     let min5 = 255, max5 = 0, min7 = 255, max7 = 0;
@@ -422,6 +541,7 @@ function compressAlpha(rgba, mask, channel, output, offset)
  * @param {Uint8Array} output Destination block storage.
  * @param {number} [offset=0] Destination byte offset.
  * @returns {void}
+ * @throws {RangeError} For an unknown format or quality, or storage too short for the block.
  */
 export function compressMasked(rgba, mask, format, quality, output, offset = 0)
 {

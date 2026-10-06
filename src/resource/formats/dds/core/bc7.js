@@ -69,6 +69,12 @@ const ANCHOR_3_THIRD = new Uint8Array([
 /**
  * Decodes BC7 texture blocks into a normalized RGBA image for the DDS format
  * reader.
+ *
+ * @param {Uint8Array} source Block data.
+ * @param {number} width Image width.
+ * @param {number} height Image height.
+ * @param {number} [rowPitch] Bytes per block row; defaults to tightly packed.
+ * @returns {Uint8Array} RGBA8 pixels.
  */
 export function decodeBc7(source, width, height, rowPitch = Math.ceil(width / 4) * 16)
 {
@@ -92,6 +98,10 @@ export function decodeBc7(source, width, height, rowPitch = Math.ceil(width / 4)
 /**
  * Decodes one BC7 texture block into destination pixels for the DDS format
  * reader.
+ *
+ * @param {Uint8Array} block 16 bytes of one block.
+ * @returns {Uint8Array} 16 RGBA8 texels; transparent black for a reserved mode.
+ * @throws {RangeError} When the block is shorter than 16 bytes.
  */
 export function decodeBc7Block(block)
 {
@@ -199,6 +209,15 @@ export function decodeBc7Block(block)
     return pixels;
 }
 
+/**
+ * Reads 16 texel indices, one bit shorter at each subset's anchor.
+ *
+ * @param {Bc7BitReader} reader Block reader.
+ * @param {number} bitCount Index precision.
+ * @param {number} subsets Subset count.
+ * @param {number} partition Partition index.
+ * @returns {Uint8Array} 16 indices.
+ */
 function readIndices(reader, bitCount, subsets, partition)
 {
     const indices = new Uint8Array(16);
@@ -211,6 +230,14 @@ function readIndices(reader, bitCount, subsets, partition)
     return indices;
 }
 
+/**
+ * Returns the subset a texel belongs to.
+ *
+ * @param {number} subsets Subset count.
+ * @param {number} partition Partition index.
+ * @param {number} pixel Texel index 0-15.
+ * @returns {number} Subset index.
+ */
 function getSubset(subsets, partition, pixel)
 {
     if (subsets === 1) return 0;
@@ -218,6 +245,14 @@ function getSubset(subsets, partition, pixel)
     return (PARTITIONS_3[partition] >>> (pixel * 2)) & 3;
 }
 
+/**
+ * Returns the anchor texel of a subset.
+ *
+ * @param {number} subsets Subset count.
+ * @param {number} partition Partition index.
+ * @param {number} subset Subset index.
+ * @returns {number} Anchor texel index.
+ */
 function getAnchor(subsets, partition, subset)
 {
     if (subset === 0) return 0;
@@ -225,18 +260,44 @@ function getAnchor(subsets, partition, subset)
     return subset === 1 ? ANCHOR_3_SECOND[partition] : ANCHOR_3_THIRD[partition];
 }
 
+/**
+ * Expands an endpoint component to 8 bits by bit replication.
+ *
+ * @param {number} value Component value.
+ * @param {number} bitCount Component precision.
+ * @returns {number} 8-bit value.
+ */
 function expandEndpoint(value, bitCount)
 {
     if (bitCount === 8) return value;
     return (value << (8 - bitCount)) | (value >>> (2 * bitCount - 8));
 }
 
+/**
+ * Interpolates between two endpoints with the BC7 weight table.
+ *
+ * @param {number} first First endpoint component.
+ * @param {number} second Second endpoint component.
+ * @param {number} index Texel index.
+ * @param {number} bitCount Index precision.
+ * @returns {number} Interpolated component.
+ */
 function interpolate(first, second, index, bitCount)
 {
     const weight = WEIGHTS[bitCount][index];
     return ((64 - weight) * first + weight * second + 32) >>> 6;
 }
 
+/**
+ * Copies a decoded 4x4 block into the image, clipping at its edges.
+ *
+ * @param {Uint8Array} block 16 RGBA texels.
+ * @param {Uint8Array} output Image RGBA pixels.
+ * @param {number} width Image width.
+ * @param {number} height Image height.
+ * @param {number} blockX Block column.
+ * @param {number} blockY Block row.
+ */
 function copyBlock(block, output, width, height, blockX, blockY)
 {
     for (let y = 0; y < 4; y++)
@@ -255,10 +316,6 @@ function copyBlock(block, output, width, height, blockX, blockY)
 }
 
 /**
- * LSB-first bit reader over a single 128-bit BC7 block bitstream for the
- * software BC7 decoder.
- */
-/**
  * The shared LSB-first cursor, bounded to one 128-bit block.
  *
  * A BC7 block carries no length of its own, so running past 128 bits means the
@@ -271,13 +328,22 @@ class Bc7BitReader extends CjsBitReader
 
     static endOfDataMessage = "BC7 block bitstream exceeds 128 bits";
 
-    /** Creates a cursor over one 128-bit BC7 block. */
+    /**
+     * Creates a cursor over one 128-bit BC7 block.
+     *
+     * @param {Uint8Array} bytes 16 bytes of one block.
+     */
     constructor(bytes)
     {
         super(bytes, { endBit: 128 });
     }
 
-    /** Reads `bitCount` bits, LSB-first, from this block. */
+    /**
+     * Reads `bitCount` bits, LSB-first, from this block.
+     *
+     * @param {number} bitCount Number of bits.
+     * @returns {number} The value.
+     */
     read(bitCount)
     {
         return this.ReadBits(bitCount);

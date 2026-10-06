@@ -115,8 +115,140 @@ const COMPRESSED_PIXEL_FORMATS = new Set([
 
 
 /**
+ * Normalized DDS reader options.
+ *
+ * @typedef {object} DdsValues
+ * @property {string} emit Output to emit: "bitmap", "image", "texture", "rgba" or "raw".
+ * @property {string} inputType Lower-case expected source type without a leading dot, or "".
+ * @property {string} source Diagnostic source label, or "".
+ * @property {boolean} [expandLegacy] For "texture", rewrite 24-bit and L8A8 payloads to 32-bit.
+ */
+
+/**
+ * DDS header metadata read without decoding pixel data.
+ *
+ * Unrecognized bytes produce only `{ sourceFormat: "", width: 0, height: 0 }`.
+ *
+ * @typedef {object} DdsInspection
+ * @property {string} sourceFormat "dds", the expected type, or "" for unrecognized bytes.
+ * @property {number} [byteLength] Input length in bytes (set by `inspectWithValues`).
+ * @property {number} width Top-level width.
+ * @property {number} height Top-level height.
+ * @property {number} [headerSize] Declared header size (124).
+ * @property {number} [depth] Declared depth.
+ * @property {number} [mipCount] Mip count, at least 1.
+ * @property {number} [pitchOrLinearSize] Header pitch/linear size field.
+ * @property {number} [pfFlags] Pixel format flags.
+ * @property {string} [fourCc] FourCC as text with trailing NULs removed.
+ * @property {number} [fourCcCode] FourCC as a little-endian integer.
+ * @property {number} [rgbBitCount] Pixel format bit count.
+ * @property {number} [rBitMask] Red mask.
+ * @property {number} [gBitMask] Green mask.
+ * @property {number} [bBitMask] Blue mask.
+ * @property {number} [aBitMask] Alpha mask.
+ * @property {number} [caps2] Caps2 field.
+ * @property {boolean} [hasDx10] Whether a DX10 header extension is present.
+ * @property {number} [dxgiFormat] DXGI format from the DX10 header, or 0.
+ * @property {number} [resourceDimension] DX10 resource dimension, or 0.
+ * @property {number} [arraySize] Array size; a cube's count of cubes.
+ * @property {number} [dataOffset] Byte offset of the pixel data (128 or 148).
+ * @property {number} [dataBytes] Bytes after `dataOffset`.
+ * @property {?number} [expectedDataBytes] Bytes every subresource needs, or null for an unknown format.
+ * @property {boolean} [isDataComplete] Whether `dataBytes` covers `expectedDataBytes`.
+ * @property {?number} [missingDataBytes] Shortfall in bytes, or null.
+ * @property {?number} [extraDataBytes] Trailing bytes past the pixel data, or null.
+ * @property {number} [faces] 6 for a cube, otherwise 1.
+ * @property {string[]} [cubeFaces] Cube face names flagged in caps2.
+ * @property {boolean} [isCubeComplete] Whether all six cube faces are flagged.
+ * @property {boolean} [isCube] Whether caps2 marks a cube map.
+ * @property {boolean} [isVolume] Whether the header flags mark a volume.
+ * @property {string} [dimension] "1d", "2d", "3d" or "cube".
+ * @property {string} [pixelFormat] Canonical pixel format name, or "" when unrecognized.
+ * @property {string} [textureFormat] `pixelFormat`, the FourCC, or "dds-legacy".
+ * @property {boolean} [isCompressed] Whether the format is block-compressed.
+ * @property {boolean} [nativeTextureOnly] Compressed with no software RGBA decoder.
+ * @property {boolean} [hasAlpha] Whether the format carries alpha.
+ * @property {boolean} [hasMipMaps] Whether the header declares more than one mip.
+ */
+
+/**
+ * Location and layout of one mip of one array layer or cube face.
+ *
+ * @typedef {object} DdsSubresource
+ * @property {number} mip Mip level.
+ * @property {number} layer Layer index across arrays and cube faces.
+ * @property {number} arrayIndex Array element (cube index for cubes).
+ * @property {number} face Cube face index, or 0.
+ * @property {number} offset Byte offset from the start of the pixel data.
+ * @property {number} byteLength Bytes in this subresource.
+ * @property {number} rowPitch Bytes per row (per block row for BC formats).
+ * @property {number} slicePitch Bytes per depth slice.
+ * @property {number} width Mip width.
+ * @property {number} height Mip height.
+ * @property {number} depth Mip depth.
+ */
+
+/**
+ * Native bitmap description shared by the DDS reader, writer and encoder.
+ *
+ * @typedef {object} DdsBitmapDescription
+ * @property {number} type TextureType.
+ * @property {number} format PixelFormat.
+ * @property {number} width Top-level width.
+ * @property {number} height Top-level height.
+ * @property {number} depth Top-level depth.
+ * @property {number} mipCount Mip count.
+ * @property {number} arraySize Array size (6 per cube for cubes).
+ */
+
+/**
+ * Plain bitmap packet: a description, its complete native storage and metadata.
+ *
+ * @typedef {object} DdsBitmapPacket
+ * @property {string} [sourceFormat] "dds" on packets this format produces.
+ * @property {DdsBitmapDescription} description Bitmap description.
+ * @property {Uint8Array} data Every subresource, in HostBitmap order.
+ * @property {?{cutout?:object,metadata:Array<[string, string]>}} [metadata] Cutout and CCP-META string pairs.
+ */
+
+/**
+ * Caller input to `selectCompression`.
+ *
+ * @typedef {object} DdsCompressionRequest
+ * @property {boolean} enabled Whether on-load compression is wanted at all.
+ * @property {string} backend Selected backend.
+ * @property {string} role Texture role from the caller's asset semantics.
+ * @property {Iterable<string>} features Active device feature names.
+ */
+
+/**
+ * Result of `selectCompression`.
+ *
+ * @typedef {object} DdsCompressionChoice
+ * @property {?number} mode Carbon compression mode, or null when skipped.
+ * @property {string} reason Why the mode was chosen or skipped.
+ */
+
+/**
+ * Unique colours of one 4x4 block, built by `colourSet` in `libsquish.js`.
+ *
+ * @typedef {object} SquishColourSet
+ * @property {Array<number[]>} points Unique RGB colours in 0..1.
+ * @property {number[]} weights Square root of each colour's texel count.
+ * @property {number[]} remap Point index per texel, or -1 for masked or transparent texels.
+ * @property {boolean} transparent Whether a valid texel was dropped as transparent (DXT1).
+ */
+
+/**
  * Normalizes reader options against their supported defaults for the DDS format
  * reader.
+ *
+ * @param {Partial<DdsValues>|null} [base=DEFAULT_VALUES] Values to start from.
+ * @param {Partial<DdsValues>|null} [options={}] Caller options layered over `base`.
+ * @param {string} [options.emit] Output to emit.
+ * @param {string} [options.inputType] Expected source type.
+ * @param {string} [readerName="CjsImageFormat"] Name used in error messages.
+ * @returns {DdsValues} The normalized values.
  */
 export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsImageFormat")
 {
@@ -126,7 +258,12 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName 
     return values;
 }
 
-/** Normalizes the requested input representation for the DDS format reader. */
+/**
+ * Normalizes the requested input representation for the DDS format reader.
+ *
+ * @param {?string} inputType Type or extension, with or without a leading dot.
+ * @returns {string} Lower-case type with "jpg" mapped to "jpeg", or "" when empty.
+ */
 export function normalizeInputType(inputType)
 {
     if (!inputType) return "";
@@ -134,7 +271,15 @@ export function normalizeInputType(inputType)
     return value === "jpg" ? "jpeg" : value;
 }
 
-/** Normalizes the requested output representation for the DDS format reader. */
+/**
+ * Normalizes the requested output representation for the DDS format reader.
+ *
+ * @param {?string} emit Requested output.
+ * @param {string} inputType Normalized input type.
+ * @param {string} readerName Name used in error messages.
+ * @returns {string} The emit value, or "raw" when none was given.
+ * @throws {TypeError} When `emit` is not "bitmap", "image", "texture", "rgba" or "raw".
+ */
 export function normalizeEmit(emit, inputType, readerName)
 {
     if (emit === undefined || emit === null) return OUTPUT_RAW;
@@ -142,8 +287,15 @@ export function normalizeEmit(emit, inputType, readerName)
     throw new TypeError(`${readerName}: unknown emit value ${JSON.stringify(emit)}`);
 }
 
-/** Returns a byte view over the supplied binary input for the DDS format reader. */
-/** Inspects input using normalized format options for the DDS format reader. */
+/**
+ * Inspects input using normalized format options for the DDS format reader.
+ *
+ * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input File bytes.
+ * @param {DdsValues} [values=DEFAULT_VALUES] Normalized reader values.
+ * @param {string} [expectedType=""] Required detected type, or "" to accept any.
+ * @returns {DdsInspection} The header metadata with `byteLength`.
+ * @throws {TypeError} When the detected type does not match `expectedType`.
+ */
 export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     const bytes = asUint8Array(input, "Image input");
@@ -165,6 +317,12 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
 /**
  * Reports whether input is supported under normalized format options for the DDS
  * format reader.
+ *
+ * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input File bytes.
+ * @param {DdsValues} [values=DEFAULT_VALUES] Normalized reader values.
+ * @param {string} [expectedType=""] Required detected type, or "" to accept any.
+ * @returns {object} Support report with compressed, texture, rgba and raw variants, or
+ *     `supported` "none" with the error message when inspection fails.
  */
 export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
@@ -242,7 +400,16 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedT
     }
 }
 
-/** Reads input using normalized format options for the DDS format reader. */
+/**
+ * Reads input using normalized format options for the DDS format reader.
+ *
+ * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input File bytes.
+ * @param {DdsValues} [values=DEFAULT_VALUES] Normalized reader values.
+ * @param {string} [expectedType=""] Required detected type, or "" to accept any.
+ * @returns {object} `{ sourceFormat, metadata, bytes }` for "raw", the texture payload
+ *     with subresources for "texture", or the decoded RGBA payload for "rgba"/"image".
+ * @throws {Error} With code `CJS_FORMAT_OUTPUT_NOT_IMPLEMENTED` for any other output.
+ */
 export function readWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     const bytes = asUint8Array(input, "Image input");
@@ -278,6 +445,11 @@ export function readWithValues(input, values = DEFAULT_VALUES, expectedType = ""
 /**
  * Inspects the supplied bytes without decoding their payload for the DDS format
  * reader.
+ *
+ * @param {Uint8Array} bytes File bytes.
+ * @returns {DdsInspection} DDS header metadata, or `{ sourceFormat: "", width: 0, height: 0 }`
+ *     when the bytes are not a DDS.
+ * @throws {RangeError} When a DX10 1D texture declares a height other than one.
  */
 export function inspectBytes(bytes)
 {
@@ -290,6 +462,13 @@ export function inspectBytes(bytes)
 
 
 
+/**
+ * Parses the DDS header and DX10 extension into metadata.
+ *
+ * @param {Uint8Array} bytes File bytes with a valid DDS magic and header size.
+ * @returns {DdsInspection} The header metadata.
+ * @throws {RangeError} When a DX10 1D texture declares a height other than one.
+ */
 function inspectDDS(bytes)
 {
     const headerSize = readU32LE(bytes, 4);
@@ -462,6 +641,10 @@ const LEGACY_EXPANSIONS = {
 /**
  * Rewrite a 24-bit or A8L8 texture payload into Carbon's 32-bit shape, subresource
  * by subresource, when `values.expandLegacy` asks for it.
+ *
+ * @param {object} texture Texture payload from `readDdsTexture`.
+ * @returns {object} The same payload for other formats, or a copy with rewritten data,
+ *     pixel format and subresource pitches.
  */
 function expandLegacyTexture(texture)
 {
@@ -491,6 +674,16 @@ function expandLegacyTexture(texture)
     return { ...texture, pixelFormat: rule.pixelFormat, dataBytes: offset, subresources, data };
 }
 
+/**
+ * Builds the GPU-free texture payload: metadata, subresource layout and a view of the pixel data.
+ *
+ * @param {Uint8Array} bytes File bytes.
+ * @param {DdsInspection} metadata Header metadata.
+ * @param {DdsValues} [values=DEFAULT_VALUES] Normalized reader values.
+ * @param {boolean} [values.expandLegacy] Rewrite 24-bit and L8A8 payloads to 32-bit.
+ * @returns {object} Texture payload with `subresources` ({@link DdsSubresource}[]) and `data`.
+ * @throws {Error} With code `CJS_FORMAT_OUTPUT_NOT_SUPPORTED` for an unrecognized format.
+ */
 function readDdsTexture(bytes, metadata, values = DEFAULT_VALUES)
 {
     if (!metadata.pixelFormat)
@@ -535,14 +728,20 @@ function readDdsTexture(bytes, metadata, values = DEFAULT_VALUES)
  * includes the uncompressed formats. A caller holding one slice of a volume has
  * no file to ask about, only a format name.
  *
- * @param {String} pixelFormat
- * @returns {Boolean}
+ * @param {?string} pixelFormat Canonical pixel format name.
+ * @returns {boolean} True for BC1-BC7 formats.
  */
 export function canDecodeDdsBlockFormat(pixelFormat)
 {
     return /^bc[1-7]/u.test(String(pixelFormat ?? ""));
 }
 
+/**
+ * Reports whether the software RGBA decoder handles a file's pixel format.
+ *
+ * @param {{pixelFormat?:string}} metadata Header metadata.
+ * @returns {boolean} True for the uncompressed and BC formats the decoder reads.
+ */
 function canDecodeDdsToRgba(metadata)
 {
     return [
@@ -594,8 +793,9 @@ function canDecodeDdsToRgba(metadata)
  * values. The block decoders are in-project, with no codec package.
  *
  * @param {Uint8Array} bytes DDS bytes.
- * @param {object} metadata Inspected DDS metadata.
- * @returns {object} RGBA payload.
+ * @param {DdsInspection} metadata Inspected DDS metadata.
+ * @returns {object} RGBA payload; `data` is a `Uint8Array`, or a `Float32Array` for float formats.
+ * @throws {Error} With code `CJS_FORMAT_OUTPUT_NOT_SUPPORTED` for a format the decoder cannot read.
  */
 function readDdsToRgba(bytes, metadata)
 {
@@ -656,7 +856,14 @@ function readDdsToRgba(bytes, metadata)
     };
 }
 
-/** Decodes one 2D slice of a DDS subresource to RGBA, whatever its block format. */
+/**
+ * Decodes one 2D slice of a DDS subresource to RGBA, whatever its block format.
+ *
+ * @param {Uint8Array} source The slice's pixel or block data.
+ * @param {{width:number,height:number,pixelFormat:string}} metadata Slice dimensions and pixel format.
+ * @param {{rowPitch:number}} subresource Row pitch in bytes (per block row for BC formats).
+ * @returns {Uint8Array|Float32Array} RGBA pixels; `Float32Array` for BC6H and float formats.
+ */
 export function decodeDdsSlice(source, metadata, subresource)
 {
     const { width, height } = metadata;
@@ -674,7 +881,12 @@ export function decodeDdsSlice(source, metadata, subresource)
     return isFloatPixelFormat(format) ? decodeFloatUncompressed(source, metadata) : decodeUncompressed(source, metadata);
 }
 
-/** Joins same-typed slice buffers into one, preserving the element type. */
+/**
+ * Joins same-typed slice buffers into one, preserving the element type.
+ *
+ * @param {Array<Uint8Array|Float32Array>} parts Non-empty list of same-typed arrays.
+ * @returns {Uint8Array|Float32Array} The concatenation, typed like `parts[0]`.
+ */
 function concatTypedArrays(parts)
 {
     let total = 0;
@@ -693,6 +905,14 @@ function concatTypedArrays(parts)
     return out;
 }
 
+/**
+ * Lays out every subresource in file order: per layer (cube faces within cubes), every mip.
+ *
+ * @param {Uint8Array} bytes File bytes.
+ * @param {DdsInspection} metadata Header metadata.
+ * @returns {DdsSubresource[]} The subresources.
+ * @throws {Error} With code `CJS_FORMAT_TRUNCATED` when the data is short.
+ */
 function buildDdsSubresources(bytes, metadata)
 {
     const subresources = [];
@@ -739,6 +959,13 @@ function buildDdsSubresources(bytes, metadata)
     return subresources;
 }
 
+/**
+ * Sums the byte size of every subresource a header describes.
+ *
+ * @param {{pixelFormat:string,width:number,height:number,depth:number,mipCount:number,arraySize:number,isCube:boolean,isVolume:boolean}} metadata
+ *     Header fields.
+ * @returns {number} Expected pixel data size in bytes.
+ */
 function getDdsExpectedDataBytes(metadata)
 {
     let total = 0;
@@ -758,6 +985,12 @@ function getDdsExpectedDataBytes(metadata)
     return total;
 }
 
+/**
+ * Lists the cube faces flagged in caps2.
+ *
+ * @param {number} caps2 Caps2 field.
+ * @returns {string[]} Face names, or empty when the cube map flag is clear.
+ */
 function getDdsCubeFaces(caps2)
 {
     if (!(caps2 & DDSCAPS2_CUBEMAP))
@@ -769,6 +1002,16 @@ function getDdsCubeFaces(caps2)
         .map((entry) => entry[0]);
 }
 
+/**
+ * Computes row pitch, slice pitch and size of one mip.
+ *
+ * @param {string} pixelFormat Canonical pixel format name.
+ * @param {number} width Mip width.
+ * @param {number} height Mip height.
+ * @param {number} depth Mip depth.
+ * @returns {{rowPitch:number,slicePitch:number,byteLength:number}} The layout.
+ * @throws {Error} With code `CJS_FORMAT_OUTPUT_NOT_SUPPORTED` for an unknown format.
+ */
 function getDdsLevelLayout(pixelFormat, width, height, depth)
 {
     const blockBytes = pixelFormat.startsWith("bc1-") || pixelFormat.startsWith("bc4-") ? 8 :
@@ -816,6 +1059,13 @@ function getDdsLevelLayout(pixelFormat, width, height, depth)
     return { rowPitch, slicePitch, byteLength: slicePitch * depth };
 }
 
+/**
+ * Converts an 8-bit uncompressed slice to RGBA8.
+ *
+ * @param {Uint8Array} source Slice pixels.
+ * @param {{width:number,height:number,pixelFormat:string}} metadata Slice dimensions and pixel format.
+ * @returns {Uint8Array} RGBA8 pixels.
+ */
 function decodeUncompressed(source, metadata)
 {
     const rgba = new Uint8Array(metadata.width * metadata.height * 4);
@@ -885,6 +1135,13 @@ function decodeUncompressed(source, metadata)
     return rgba;
 }
 
+/**
+ * Converts a 16- or 32-bit float uncompressed slice to RGBA float.
+ *
+ * @param {Uint8Array} source Slice pixels.
+ * @param {{width:number,height:number,pixelFormat:string}} metadata Slice dimensions and pixel format.
+ * @returns {Float32Array} RGBA float pixels.
+ */
 function decodeFloatUncompressed(source, metadata)
 {
     const rgba = new Float32Array(metadata.width * metadata.height * 4);
@@ -956,6 +1213,12 @@ function decodeFloatUncompressed(source, metadata)
     return rgba;
 }
 
+/**
+ * Reports whether a pixel format decodes to float RGBA.
+ *
+ * @param {*} pixelFormat Canonical pixel format name.
+ * @returns {boolean} True for BC6H and the float formats.
+ */
 function isFloatPixelFormat(pixelFormat)
 {
     return typeof pixelFormat === "string" && (pixelFormat.startsWith("bc6h-") ||
@@ -963,6 +1226,12 @@ function isFloatPixelFormat(pixelFormat)
             "r16float" ].includes(pixelFormat));
 }
 
+/**
+ * Converts IEEE 754 half-precision bits to a number.
+ *
+ * @param {number} value 16-bit half bits.
+ * @returns {number} The value.
+ */
 function halfToFloat(value)
 {
     const sign = (value & 0x8000) ? -1 : 1;
@@ -979,6 +1248,15 @@ function halfToFloat(value)
     return sign * Math.pow(2, exponent - 15) * (1 + mantissa / 1024);
 }
 
+/**
+ * Decodes BC1 blocks to RGBA8.
+ *
+ * @param {Uint8Array} source Block data.
+ * @param {number} width Slice width.
+ * @param {number} height Slice height.
+ * @param {number} rowPitch Bytes per block row.
+ * @returns {Uint8Array} RGBA8 pixels.
+ */
 function decodeBc1(source, width, height, rowPitch)
 {
     const rgba = new Uint8Array(width * height * 4);
@@ -1010,6 +1288,15 @@ function decodeBc1(source, width, height, rowPitch)
     return rgba;
 }
 
+/**
+ * Decodes BC2 blocks (explicit 4-bit alpha) to RGBA8.
+ *
+ * @param {Uint8Array} source Block data.
+ * @param {number} width Slice width.
+ * @param {number} height Slice height.
+ * @param {number} rowPitch Bytes per block row.
+ * @returns {Uint8Array} RGBA8 pixels.
+ */
 function decodeBc2(source, width, height, rowPitch)
 {
     return decodeBcAlphaColor(source, width, height, rowPitch, (blockOffset, x, y) =>
@@ -1019,6 +1306,15 @@ function decodeBc2(source, width, height, rowPitch)
     }, 8);
 }
 
+/**
+ * Decodes BC3 blocks (interpolated alpha) to RGBA8.
+ *
+ * @param {Uint8Array} source Block data.
+ * @param {number} width Slice width.
+ * @param {number} height Slice height.
+ * @param {number} rowPitch Bytes per block row.
+ * @returns {Uint8Array} RGBA8 pixels.
+ */
 function decodeBc3(source, width, height, rowPitch)
 {
     return decodeBcAlphaColor(source, width, height, rowPitch, (blockOffset, x, y) =>
@@ -1044,6 +1340,16 @@ function decodeBc3(source, width, height, rowPitch)
     }, 8);
 }
 
+/**
+ * Decodes BC4 blocks to greyscale RGBA8.
+ *
+ * @param {Uint8Array} source Block data.
+ * @param {number} width Slice width.
+ * @param {number} height Slice height.
+ * @param {number} rowPitch Bytes per block row.
+ * @param {boolean} signed Whether the endpoints are SNORM.
+ * @returns {Uint8Array} RGBA8 pixels.
+ */
 function decodeBc4(source, width, height, rowPitch, signed)
 {
     const rgba = new Uint8Array(width * height * 4);
@@ -1058,6 +1364,16 @@ function decodeBc4(source, width, height, rowPitch, signed)
     return rgba;
 }
 
+/**
+ * Decodes BC5 blocks to red/green RGBA8.
+ *
+ * @param {Uint8Array} source Block data.
+ * @param {number} width Slice width.
+ * @param {number} height Slice height.
+ * @param {number} rowPitch Bytes per block row.
+ * @param {boolean} signed Whether the endpoints are SNORM.
+ * @returns {Uint8Array} RGBA8 pixels.
+ */
 function decodeBc5(source, width, height, rowPitch, signed)
 {
     const rgba = new Uint8Array(width * height * 4);
@@ -1071,6 +1387,16 @@ function decodeBc5(source, width, height, rowPitch, signed)
     return rgba;
 }
 
+/**
+ * Decodes one texel of a BC4 channel block.
+ *
+ * @param {Uint8Array} source Block data.
+ * @param {number} blockOffset Byte offset of the 8-byte channel block.
+ * @param {number} x Texel column in the block.
+ * @param {number} y Texel row in the block.
+ * @param {boolean} signed Whether the endpoints are SNORM.
+ * @returns {number} The value as a byte (SNORM remapped to 0-255).
+ */
 function decodeBc4Value(source, blockOffset, x, y, signed)
 {
     const endpoint0 = signed ? decodeSnormByte(source[blockOffset]) : source[blockOffset];
@@ -1096,12 +1422,28 @@ function decodeBc4Value(source, blockOffset, x, y, signed)
     return signed ? Math.max(0, Math.min(255, Math.round((value + 1) * 127.5))) : Math.round(value);
 }
 
+/**
+ * Converts an SNORM8 byte to -1..1.
+ *
+ * @param {number} value Unsigned byte holding the two's-complement value.
+ * @returns {number} The normalized value.
+ */
 function decodeSnormByte(value)
 {
     const signed = value > 127 ? value - 256 : value;
     return Math.max(-1, signed / 127);
 }
 
+/**
+ * Calls `callback` for every in-bounds texel of every block.
+ *
+ * @param {number} width Slice width.
+ * @param {number} height Slice height.
+ * @param {number} rowPitch Bytes per block row.
+ * @param {number} blockBytes Bytes per block.
+ * @param {(blockOffset:number, x:number, y:number, outputOffset:number) => void} callback
+ *     Receives the block offset, texel position in the block and RGBA8 output offset.
+ */
 function forEachBcPixel(width, height, rowPitch, blockBytes, callback)
 {
     for (let blockY = 0; blockY < Math.ceil(height / 4); blockY++)
@@ -1125,6 +1467,17 @@ function forEachBcPixel(width, height, rowPitch, blockBytes, callback)
     }
 }
 
+/**
+ * Decodes 16-byte blocks that pair an alpha block with a four-colour BC1 block.
+ *
+ * @param {Uint8Array} source Block data.
+ * @param {number} width Slice width.
+ * @param {number} height Slice height.
+ * @param {number} rowPitch Bytes per block row.
+ * @param {(blockOffset:number, x:number, y:number) => number} alphaAt Alpha for one texel.
+ * @param {number} [colorOffset=0] Byte offset of the colour block within the block.
+ * @returns {Uint8Array} RGBA8 pixels.
+ */
 function decodeBcAlphaColor(source, width, height, rowPitch, alphaAt, colorOffset = 0)
 {
     const rgba = new Uint8Array(width * height * 4);
@@ -1161,6 +1514,14 @@ function decodeBcAlphaColor(source, width, height, rowPitch, alphaAt, colorOffse
     return rgba;
 }
 
+/**
+ * Builds the four-entry BC1 palette from two RGB565 endpoints.
+ *
+ * @param {number} c0 First endpoint.
+ * @param {number} c1 Second endpoint.
+ * @param {boolean} [forceFourColor=false] Always use the four-colour mode, as BC2/BC3 do.
+ * @returns {Array<number[]>} Four `[r, g, b, a]` entries.
+ */
 function decodeBc1Colors(c0, c1, forceFourColor = false)
 {
     const first = decode565(c0);
@@ -1192,6 +1553,12 @@ function decodeBc1Colors(c0, c1, forceFourColor = false)
     return colors;
 }
 
+/**
+ * Expands an RGB565 value to RGBA8 with rounding.
+ *
+ * @param {number} value RGB565 value.
+ * @returns {number[]} `[r, g, b, 255]`.
+ */
 function decode565(value)
 {
     return [
@@ -1226,6 +1593,13 @@ const LEGACY_D3DFMT_PIXEL_FORMATS = {
     116: "rgba32float"
 };
 
+/**
+ * Maps the DX10 format, FourCC or RGB masks to a canonical pixel format name.
+ *
+ * @param {{pfFlags:number,fourCc:string,fourCcCode:number,rgbBitCount:number,rBitMask:number,gBitMask:number,bBitMask:number,aBitMask:number,dxgiFormat:number}} format
+ *     Pixel format fields.
+ * @returns {string} The pixel format name, or "" when unrecognized.
+ */
 function getDdsPixelFormat(format)
 {
     if (format.dxgiFormat) return DXGI_PIXEL_FORMATS[format.dxgiFormat] || "";
