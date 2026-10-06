@@ -784,10 +784,11 @@ function buildCmf(reader, raw, values)
         raw,
         values
     );
+    // GR2 forwards no hydration source, unlike CMF: its options never accepted one.
     return hydrateCmf(
         buildCmfFromShared(reassembleGr2Lods(shared)),
         values.classes,
-        { source: values.source },
+        {},
         "CjsGr2Format CMF"
     );
 }
