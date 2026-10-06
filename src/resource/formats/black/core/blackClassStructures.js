@@ -1,7 +1,13 @@
 // Native offsets belong to the registered item class, never declaration order.
 import { CjsSchema } from "#schema";
 
-/** Returns the registered class's explicit BlueStructureDefinition and defaults. */
+/**
+ * Returns the registered class's explicit BlueStructureDefinition and defaults.
+ *
+ * @param {string|Function} className Registered item class name, or the class itself.
+ * @returns {import("./helpers.js").BlackStructureLayout} The structure definition with the class defaults.
+ * @throws {TypeError} When the class is unregistered, has no structureDefinition, or lacks a member default.
+ */
 export function structClassLayout(className)
 {
     const Item = typeof className === "function" ? className : CjsSchema.GetConstructor(className);
@@ -16,7 +22,14 @@ export function structClassLayout(className)
     return { ...definition, defaults };
 }
 
-/** Resolves a StructureList's item through schema metadata without domain imports. */
+/**
+ * Resolves a StructureList's item through schema metadata without domain imports.
+ *
+ * @param {string} ownerClass Registered name of the class that owns the list.
+ * @param {string} fieldName Name of the StructureList member.
+ * @returns {import("./helpers.js").BlackStructureLayout} The item class layout.
+ * @throws {TypeError} When the owner is unregistered or the member declares no item class.
+ */
 export function classStructureLayout(ownerClass, fieldName)
 {
     const Owner = CjsSchema.GetConstructor(ownerClass);

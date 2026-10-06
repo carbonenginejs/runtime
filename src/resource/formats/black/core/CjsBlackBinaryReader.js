@@ -7,6 +7,10 @@ export class CjsBlackBinaryReader
     /**
      * Creates a CjsBlackBinaryReader over caller-provided Black bytes and reader
      * options.
+     *
+     * @param {DataView} dataView Bytes the cursor reads.
+     * @param {import("./CjsBlackReader.js").CjsBlackReader|null} [context=null] Object-graph reader that owns the string tables and nested reads.
+     * @throws {TypeError} When `dataView` is not a DataView.
      */
     constructor(dataView, context = null)
     {
@@ -23,6 +27,8 @@ export class CjsBlackBinaryReader
     /**
      * Returns the number of unread Black bytes for the Black object-graph
      * reader.
+     *
+     * @returns {number} Unread byte count.
      */
     get remaining()
     {
@@ -32,6 +38,8 @@ export class CjsBlackBinaryReader
     /**
      * Reports whether the Black cursor consumed every byte for the Black
      * object-graph reader.
+     *
+     * @returns {boolean} True when no bytes remain.
      */
     AtEnd()
     {
@@ -41,6 +49,9 @@ export class CjsBlackBinaryReader
     /**
      * Validates end against Black object-graph reader constraints and throws on
      * failure.
+     *
+     * @param {string} [message="Black reader did not reach end"] Error message prefix.
+     * @throws {RangeError} When bytes remain.
      */
     ExpectEnd(message = "Black reader did not reach end")
     {
@@ -53,6 +64,11 @@ export class CjsBlackBinaryReader
     /**
      * Validates U32 against Black object-graph reader constraints and throws on
      * failure.
+     *
+     * @param {number} expected Required value.
+     * @param {string} message Error message prefix.
+     * @returns {number} The value read.
+     * @throws {RangeError} When the value differs.
      */
     ExpectU32(expected, message)
     {
@@ -64,20 +80,34 @@ export class CjsBlackBinaryReader
         return actual;
     }
 
-    /** Reads binary reader from the current Black object-graph reader. */
+    /**
+     * Reads binary reader from the current Black object-graph reader.
+     *
+     * @param {number} byteLength Bytes to consume.
+     * @returns {CjsBlackBinaryReader} A cursor over those bytes, sharing this context.
+     */
     ReadBinaryReader(byteLength)
     {
         return new CjsBlackBinaryReader(this.ReadDataView(byteLength), this.context);
     }
 
-    /** Reads bytes from the current Black object-graph reader. */
+    /**
+     * Reads bytes from the current Black object-graph reader.
+     *
+     * @param {number} byteLength Bytes to consume.
+     * @returns {Uint8Array} A view over those bytes.
+     */
     ReadBytes(byteLength)
     {
         const view = this.ReadDataView(byteLength);
         return new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
     }
 
-    /** Reads C string from the current Black object-graph reader. */
+    /**
+     * Reads C string from the current Black object-graph reader.
+     *
+     * @returns {string} The UTF-8 string, without its terminator.
+     */
     ReadCString()
     {
         const startOffset = this.offset;
@@ -92,7 +122,11 @@ export class CjsBlackBinaryReader
         return CjsBlackBinaryReader.utf8Decoder.decode(bytes);
     }
 
-    /** Reads CW string from the current Black object-graph reader. */
+    /**
+     * Reads CW string from the current Black object-graph reader.
+     *
+     * @returns {string} The UTF-16LE string, without its terminator.
+     */
     ReadCWString()
     {
         const startOffset = this.offset;
@@ -107,7 +141,13 @@ export class CjsBlackBinaryReader
         return CjsBlackBinaryReader.utf16Decoder.decode(bytes);
     }
 
-    /** Reads data view from the current Black object-graph reader. */
+    /**
+     * Reads data view from the current Black object-graph reader.
+     *
+     * @param {number} byteLength Bytes to consume.
+     * @returns {DataView} A view over those bytes.
+     * @throws {RangeError} When the length is invalid or exceeds the remaining bytes.
+     */
     ReadDataView(byteLength)
     {
         if (!Number.isInteger(byteLength) || byteLength < 0)
@@ -128,6 +168,8 @@ export class CjsBlackBinaryReader
     /**
      * Reads a 32-bit float from the Black cursor for the Black object-graph
      * reader.
+     *
+     * @returns {number} The value read.
      */
     ReadF32()
     {
@@ -139,6 +181,8 @@ export class CjsBlackBinaryReader
     /**
      * Reads a 64-bit float from the Black cursor for the Black object-graph
      * reader.
+     *
+     * @returns {number} The value read.
      */
     ReadF64()
     {
@@ -150,6 +194,8 @@ export class CjsBlackBinaryReader
     /**
      * Reads a signed 8-bit integer from the Black cursor for the Black
      * object-graph reader.
+     *
+     * @returns {number} The value read.
      */
     ReadI8()
     {
@@ -161,6 +207,8 @@ export class CjsBlackBinaryReader
     /**
      * Reads a signed 16-bit integer from the Black cursor for the Black
      * object-graph reader.
+     *
+     * @returns {number} The value read.
      */
     ReadI16()
     {
@@ -172,6 +220,8 @@ export class CjsBlackBinaryReader
     /**
      * Reads a signed 32-bit integer from the Black cursor for the Black
      * object-graph reader.
+     *
+     * @returns {number} The value read.
      */
     ReadI32()
     {
@@ -183,6 +233,8 @@ export class CjsBlackBinaryReader
     /**
      * Reads a signed 64-bit integer from the Black cursor for the Black
      * object-graph reader.
+     *
+     * @returns {bigint} The value read.
      */
     ReadI64()
     {
@@ -192,6 +244,9 @@ export class CjsBlackBinaryReader
     /**
      * Resolves a narrow-string table index from the Black cursor for the Black
      * object-graph reader.
+     *
+     * @returns {string} The referenced string.
+     * @throws {RangeError} When the index is outside the string table.
      */
     ReadStringRef()
     {
@@ -204,7 +259,12 @@ export class CjsBlackBinaryReader
         return strings[index];
     }
 
-    /** Reads wide string ref from the current Black object-graph reader. */
+    /**
+     * Reads wide string ref from the current Black object-graph reader.
+     *
+     * @returns {string} The referenced wide string.
+     * @throws {RangeError} When the index is outside the wide string table.
+     */
     ReadWideStringRef()
     {
         const index = this.ReadU16();
@@ -219,6 +279,8 @@ export class CjsBlackBinaryReader
     /**
      * Reads an unsigned 8-bit integer from the Black cursor for the Black
      * object-graph reader.
+     *
+     * @returns {number} The value read.
      */
     ReadU8()
     {
@@ -230,6 +292,8 @@ export class CjsBlackBinaryReader
     /**
      * Reads an unsigned 16-bit integer from the Black cursor for the Black
      * object-graph reader.
+     *
+     * @returns {number} The value read.
      */
     ReadU16()
     {
@@ -241,6 +305,8 @@ export class CjsBlackBinaryReader
     /**
      * Reads an unsigned 32-bit integer from the Black cursor for the Black
      * object-graph reader.
+     *
+     * @returns {number} The value read.
      */
     ReadU32()
     {
@@ -252,6 +318,8 @@ export class CjsBlackBinaryReader
     /**
      * Reads an unsigned 64-bit integer from the Black cursor for the Black
      * object-graph reader.
+     *
+     * @returns {bigint} The value read.
      */
     ReadU64()
     {
@@ -261,13 +329,21 @@ export class CjsBlackBinaryReader
     /**
      * Advances the Black cursor by a validated byte count for the Black
      * object-graph reader.
+     *
+     * @param {number} byteLength Bytes to skip.
      */
     Skip(byteLength)
     {
         this.ReadDataView(byteLength);
     }
 
-    /** Consumes offset from the current Black object-graph reader. */
+    /**
+     * Consumes offset from the current Black object-graph reader.
+     *
+     * @param {number} byteLength Bytes to consume.
+     * @returns {number} The offset before consuming.
+     * @throws {RangeError} When fewer bytes remain.
+     */
     ConsumeOffset(byteLength)
     {
         if (this.remaining < byteLength)
@@ -283,6 +359,11 @@ export class CjsBlackBinaryReader
     /**
      * Creates a bounded Black reader over supported binary input for the Black
      * object-graph reader.
+     *
+     * @param {import("./helpers.js").BlackInput} input Bytes, a view, or an existing cursor (returned unchanged).
+     * @param {import("./CjsBlackReader.js").CjsBlackReader|null} [context=null] Object-graph reader for a new cursor.
+     * @returns {CjsBlackBinaryReader} The cursor.
+     * @throws {TypeError} When the input is not binary.
      */
     static from(input, context = null)
     {

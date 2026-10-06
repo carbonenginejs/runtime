@@ -15,6 +15,12 @@ export class CjsBlackPropertyReaders
      * Decodes a field, carrying existing embedded storage through the transport.
      * @impl adapted JavaScript dispatches canonical descriptors to wire codecs;
      * the shared reader service owns storage writes and notifications.
+     *
+     * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor positioned at the value.
+     * @param {import("./helpers.js").BlackSourceField|object} field Schema field, `{ jsType }` wrapper, or type descriptor.
+     * @param {object} [destination] Existing embedded object or list storage to read into.
+     * @returns {*} The decoded value.
+     * @throws {TypeError} When the type has no reader.
      */
     static readValue(reader, field, destination = undefined)
     {
@@ -111,6 +117,12 @@ export class CjsBlackPropertyReaders
 
     /**
      * Decodes one native Black wire type, preserving an embedded destination.
+     *
+     * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor positioned at the value.
+     * @param {import("./helpers.js").BlackWireField} black Black wire description of the field.
+     * @param {object} descriptor Normalized Carbon type descriptor.
+     * @param {object} [destination] Existing embedded object or list storage to read into.
+     * @returns {*} The decoded value.
      * @impl adapted Native pointer offsets are replaced by a supplied JS object.
      */
     static readBlackValue(reader, black, descriptor, destination = undefined)
@@ -178,7 +190,13 @@ export class CjsBlackPropertyReaders
         }
     }
 
-    /** Advances past value in the current Black object-graph reader. */
+    /**
+     * Advances past value in the current Black object-graph reader.
+     *
+     * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor positioned at the value.
+     * @param {import("./helpers.js").BlackSourceField|object} field Schema field, `{ jsType }` wrapper, or type descriptor.
+     * @throws {TypeError} When the type has no skip handler.
+     */
     static skipValue(reader, field)
     {
         const descriptor = normalizeCarbonTypeDescriptor(field);
@@ -254,7 +272,13 @@ export class CjsBlackPropertyReaders
         }
     }
 
-    /** Advances past black value in the current Black object-graph reader. */
+    /**
+     * Advances past black value in the current Black object-graph reader.
+     *
+     * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor positioned at the value.
+     * @param {import("./helpers.js").BlackWireField} black Black wire description of the field.
+     * @param {object} descriptor Normalized Carbon type descriptor.
+     */
     static skipBlackValue(reader, black, descriptor)
     {
         switch (black.beType)
@@ -308,7 +332,13 @@ export class CjsBlackPropertyReaders
         }
     }
 
-    /** Reads black structure list from the current Black object-graph reader. */
+    /**
+     * Reads black structure list from the current Black object-graph reader.
+     *
+     * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor positioned at the list.
+     * @param {import("./helpers.js").BlackWireField} black Black wire description with the C++ type and structure layout.
+     * @returns {object[]|object} Records projected through the layout, or a `black.structureList` byte record without one.
+     */
     static readBlackStructureList(reader, black)
     {
         return CjsBlackPropertyReaders.readStructureList(reader, {
@@ -324,6 +354,10 @@ export class CjsBlackPropertyReaders
     /**
      * Reads a schema field through the non-Black fallback decoder for the Black
      * object-graph reader.
+     *
+     * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor positioned at the value.
+     * @param {object} descriptor Normalized Carbon type descriptor.
+     * @returns {*} The decoded value.
      */
     static readValueWithoutBlack(reader, descriptor)
     {
@@ -333,6 +367,10 @@ export class CjsBlackPropertyReaders
     /**
      * Reads a schema field whose wire value references the Black string table
      * for the Black object-graph reader.
+     *
+     * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor positioned at the string index.
+     * @param {object} descriptor Normalized Carbon type descriptor; a path kind goes through the path handler.
+     * @returns {string} The string, transformed when it is a path.
      */
     static readStringRef(reader, descriptor)
     {
@@ -343,6 +381,12 @@ export class CjsBlackPropertyReaders
     /**
      * Reads a nested Black root-interface value for the Black object-graph
      * reader.
+     *
+     * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor positioned at the value.
+     * @param {import("./helpers.js").BlackWireField} black Black wire description with the container kind.
+     * @param {object} descriptor Normalized Carbon type descriptor.
+     * @param {object} [destination] Existing embedded object or list storage to read into.
+     * @returns {*} The list, dictionary, array or embedded object.
      * @impl adapted The transport receives the existing JS embedded destination.
      */
     static readBlackIRoot(reader, black, descriptor, destination = undefined)
@@ -357,6 +401,10 @@ export class CjsBlackPropertyReaders
     /**
      * Advances past a nested Black root-interface value for the Black
      * object-graph reader.
+     *
+     * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor positioned at the value.
+     * @param {import("./helpers.js").BlackWireField} black Black wire description with the container kind.
+     * @param {object} descriptor Normalized Carbon type descriptor.
      */
     static skipBlackIRoot(reader, black, descriptor)
     {
@@ -377,6 +425,9 @@ export class CjsBlackPropertyReaders
      * Reads dictionary entries as own data properties for the shared writer.
      * @impl adapted JS keys never invoke Object.prototype setters; the shared
      * member writer retains existing dictionary entries and skips null values.
+     *
+     * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor positioned at the entry count.
+     * @returns {Object<string, *>} Decoded objects by key.
      */
     static readDict(reader)
     {
@@ -392,7 +443,11 @@ export class CjsBlackPropertyReaders
         return result;
     }
 
-    /** Advances past dict in the current Black object-graph reader. */
+    /**
+     * Advances past dict in the current Black object-graph reader.
+     *
+     * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor positioned at the entry count.
+     */
     static skipDict(reader)
     {
         const count = reader.ReadU32();
@@ -403,7 +458,15 @@ export class CjsBlackPropertyReaders
         }
     }
 
-    /** Reads a Carbon BINARYBLOCK using its declared data type. */
+    /**
+     * Reads a Carbon BINARYBLOCK using its declared data type.
+     *
+     * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor positioned at the block length.
+     * @param {{beType: string}} black Black wire description of the block.
+     * @param {object} [descriptor={}] Normalized Carbon type descriptor; selects a custom handler or Uint32Array decoding.
+     * @returns {*} The custom handler's result, a Uint32Array, or a `black.binaryBlock` record.
+     * @throws {RangeError} When the length is negative, or not a multiple of four for a Uint32Array.
+     */
     static readBinaryBlock(reader, black, descriptor = {})
     {
         const custom = descriptor.kind === "custom" ? CjsBlackPropertyReaders.customReader(reader, descriptor.name) : null;
@@ -418,7 +481,14 @@ export class CjsBlackPropertyReaders
         return { $type: "black.binaryBlock", beType: black.beType, byteLength, bytes };
     }
 
-    /** Named opaque types are opted into by this format or this reader only. */
+    /**
+     * Named opaque types are opted into by this format or this reader only.
+     *
+     * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor whose context options carry `customTypes`.
+     * @param {string} name Custom type name.
+     * @returns {Function} Handler called with the block bytes and the descriptor.
+     * @throws {TypeError} When no handler is registered for the name.
+     */
     static customReader(reader, name)
     {
         const configured = reader.context?.options?.customTypes;
@@ -433,6 +503,9 @@ export class CjsBlackPropertyReaders
     /**
      * Reads a binary block as an array of unsigned 32-bit integers for the Black
      * object-graph reader.
+     *
+     * @param {Uint8Array} bytes Block bytes; the length is a multiple of four.
+     * @returns {Uint32Array} The little-endian values.
      */
     static readUint32Array(bytes)
     {
@@ -449,6 +522,10 @@ export class CjsBlackPropertyReaders
      * Populates the canonical mapped IList destination supplied by the reader.
      * BlackReader.cpp:482-509 clears before reading and ignores Append rejection.
      * JS restores the observer on failure; accepted items are not rolled back.
+     *
+     * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor positioned at the item count.
+     * @param {object} list Mapped IList destination (`Remove`, `GetInfo`, `SetNotify`, `Append`).
+     * @returns {object} The same list.
      */
     static readNativeList(reader, list)
     {
@@ -473,7 +550,13 @@ export class CjsBlackPropertyReaders
         return list;
     }
 
-    /** Reads array from the current Black object-graph reader. */
+    /**
+     * Reads array from the current Black object-graph reader.
+     *
+     * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor positioned at the array.
+     * @param {object} descriptor Array type descriptor with its `elementType`.
+     * @returns {Array<*>|object} The elements, or a structure-list result for raw structures.
+     */
     static readArray(reader, descriptor)
     {
         const elementType = normalizeCarbonTypeDescriptor(descriptor.elementType);
@@ -498,7 +581,12 @@ export class CjsBlackPropertyReaders
         return result;
     }
 
-    /** Advances past array in the current Black object-graph reader. */
+    /**
+     * Advances past array in the current Black object-graph reader.
+     *
+     * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor positioned at the array.
+     * @param {object} descriptor Array type descriptor with its `elementType`.
+     */
     static skipArray(reader, descriptor)
     {
         const elementType = normalizeCarbonTypeDescriptor(descriptor.elementType);
@@ -522,7 +610,13 @@ export class CjsBlackPropertyReaders
         }
     }
 
-    /** Reads float array from the current Black object-graph reader. */
+    /**
+     * Reads float array from the current Black object-graph reader.
+     *
+     * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor positioned at the floats.
+     * @param {number} count Number of 32-bit floats.
+     * @returns {number[]} The values.
+     */
     static readFloatArray(reader, count)
     {
         const result = [];
@@ -533,7 +627,14 @@ export class CjsBlackPropertyReaders
         return result;
     }
 
-    /** Reads structure list from the current Black object-graph reader. */
+    /**
+     * Reads structure list from the current Black object-graph reader.
+     *
+     * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor positioned at the record count.
+     * @param {{structure?: import("./helpers.js").BlackStructureLayout, cppType?: string, elementType?: object}} descriptor List descriptor.
+     * @returns {object[]|object} Records projected through the layout, or a `black.structureList` byte record without one.
+     * @throws {RangeError} When the record size does not fit the layout.
+     */
     static readStructureList(reader, descriptor)
     {
         const count = reader.ReadI32();
@@ -591,7 +692,11 @@ export class CjsBlackPropertyReaders
         };
     }
 
-    /** Advances past structure list in the current Black object-graph reader. */
+    /**
+     * Advances past structure list in the current Black object-graph reader.
+     *
+     * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor positioned at the record count.
+     */
     static skipStructureList(reader)
     {
         const count = reader.ReadI32();
@@ -599,7 +704,13 @@ export class CjsBlackPropertyReaders
         reader.Skip(count * structureSize);
     }
 
-    /** Reads typed array from the current Black object-graph reader. */
+    /**
+     * Reads typed array from the current Black object-graph reader.
+     *
+     * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor positioned at the element count.
+     * @param {object} descriptor Typed-array descriptor; its `js` is copied into the result.
+     * @returns {{$type: string, count: number, elementSize: number, js: *, bytes: number[]}} A `black.typedArray` byte record.
+     */
     static readTypedArray(reader, descriptor)
     {
         const count = reader.ReadU32();
@@ -614,7 +725,11 @@ export class CjsBlackPropertyReaders
         };
     }
 
-    /** Advances past typed array in the current Black object-graph reader. */
+    /**
+     * Advances past typed array in the current Black object-graph reader.
+     *
+     * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor positioned at the element count.
+     */
     static skipTypedArray(reader)
     {
         const count = reader.ReadU32();
@@ -622,7 +737,11 @@ export class CjsBlackPropertyReaders
         reader.Skip(count * elementSize);
     }
 
-    /** Advances past binary block in the current Black object-graph reader. */
+    /**
+     * Advances past binary block in the current Black object-graph reader.
+     *
+     * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor positioned at the block length.
+     */
     static skipBinaryBlock(reader)
     {
         const byteLength = reader.ReadI32();

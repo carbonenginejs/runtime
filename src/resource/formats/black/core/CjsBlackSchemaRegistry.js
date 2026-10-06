@@ -13,7 +13,7 @@ export class CjsBlackSchemaRegistry
      * The declaration is retained for the shared reader's storage operation.
      *
      * @param {object} info Canonical class info from CjsSchema.getSchema.
-     * @returns {object} A reader-local shape, never a second declaration registry.
+     * @returns {import("./helpers.js").BlackSourceShape} A reader-local shape, never a second declaration registry.
      * @impl adapted JavaScript derives decoder records instead of native member offsets.
      */
     static fromClassInfo(info)
@@ -59,7 +59,7 @@ export class CjsBlackSchemaRegistry
      * snapshot or inferring the wire encoding from the current JS value.
      *
      * @param {object|string|Function} type Canonical member or collection item type.
-     * @returns {object} Black codec and normalized value descriptor.
+     * @returns {import("./helpers.js").BlackCompactType} Black codec and normalized value descriptor.
      * @impl adapted Codec dispatch is local to the JavaScript Black transport.
      */
     static fromDeclaredType(type)
@@ -122,19 +122,33 @@ export class CjsBlackSchemaRegistry
         throw new TypeError(`Unsupported canonical Black type: ${kind || "missing"}`);
     }
 
-    /** Creates a CjsBlackSchemaRegistry with caller-provided initial state. */
+    /**
+     * Creates a CjsBlackSchemaRegistry with caller-provided initial state.
+     *
+     * @param {object|null} [schema=null] Schema document or compact class map to index.
+     */
     constructor(schema = null)
     {
         this.shapes = CjsBlackSchemaRegistry.createShapeMap(schema);
     }
 
-    /** Returns source shape from the current Black object-graph reader. */
+    /**
+     * Returns source shape from the current Black object-graph reader.
+     *
+     * @param {string} kind Black class name.
+     * @returns {import("./helpers.js").BlackSourceShape|null} The shape, or null when none is registered.
+     */
     GetSourceShape(kind)
     {
         return this.shapes.get(kind) || null;
     }
 
-    /** Creates shape map for the current Black object-graph reader. */
+    /**
+     * Creates shape map for the current Black object-graph reader.
+     *
+     * @param {object|null} schema Schema document or compact class map.
+     * @returns {Map<string, import("./helpers.js").BlackSourceShape>} Shapes by class name and alias.
+     */
     static createShapeMap(schema)
     {
         const shapes = new Map();
@@ -148,7 +162,13 @@ export class CjsBlackSchemaRegistry
         return shapes;
     }
 
-    /** Collects schema shapes required by the current Black object-graph reader. */
+    /**
+     * Collects schema shapes required by the current Black object-graph reader.
+     *
+     * @param {*} value Schema value to walk; non-objects are ignored.
+     * @param {Map<string, import("./helpers.js").BlackSourceShape>} shapes Map that receives the shapes.
+     * @param {WeakSet<object>} seen Objects already walked.
+     */
     static collectSchemaShapes(value, shapes, seen)
     {
         if (!value || typeof value !== "object") return;
@@ -202,6 +222,9 @@ export class CjsBlackSchemaRegistry
     /**
      * Reports whether the current Black object-graph reader satisfies compact
      * class map.
+     *
+     * @param {*} value Candidate schema value.
+     * @returns {boolean} True for a non-empty map of class names to compact field maps.
      */
     static isCompactClassMap(value)
     {
@@ -223,6 +246,9 @@ export class CjsBlackSchemaRegistry
     /**
      * Reports whether the current Black object-graph reader satisfies compact
      * class fields.
+     *
+     * @param {Object<string, *>|null|undefined} fields Field specs by Black name.
+     * @returns {boolean} True when every spec is a compact field spec.
      */
     static isCompactClassFields(fields)
     {
@@ -233,6 +259,9 @@ export class CjsBlackSchemaRegistry
     /**
      * Reports whether the current Black object-graph reader satisfies compact
      * field spec.
+     *
+     * @param {*} spec Candidate field spec.
+     * @returns {boolean} True for a type string, or an object with a string `type` or `kind`.
      */
     static isCompactFieldSpec(spec)
     {
@@ -241,7 +270,12 @@ export class CjsBlackSchemaRegistry
         return typeof spec.type === "string" || typeof spec.kind === "string";
     }
 
-    /** Adds compact class map to the current Black object-graph reader. */
+    /**
+     * Adds compact class map to the current Black object-graph reader.
+     *
+     * @param {Object<string, Object<string, string|object>>} classes Compact field maps by class name.
+     * @param {Map<string, import("./helpers.js").BlackSourceShape>} shapes Map that receives the shapes.
+     */
     static addCompactClassMap(classes, shapes)
     {
         for (const [ className, fields ] of Object.entries(classes || {}))
@@ -253,6 +287,9 @@ export class CjsBlackSchemaRegistry
     /**
      * Reports whether the current Black object-graph reader satisfies class
      * schema.
+     *
+     * @param {*} value Candidate schema value.
+     * @returns {boolean} True when the value describes one class.
      */
     static isClassSchema(value)
     {
@@ -267,7 +304,12 @@ export class CjsBlackSchemaRegistry
         );
     }
 
-    /** Adds shape to the current Black object-graph reader. */
+    /**
+     * Adds shape to the current Black object-graph reader.
+     *
+     * @param {object} schema Class schema.
+     * @param {Map<string, import("./helpers.js").BlackSourceShape>} shapes Map that receives the shape under its class name and aliases.
+     */
     static addShape(schema, shapes)
     {
         const shape = CjsBlackSchemaRegistry.normalizeShape(schema);
@@ -282,6 +324,9 @@ export class CjsBlackSchemaRegistry
     /**
      * Converts shape into the canonical Black object-graph reader
      * representation.
+     *
+     * @param {object} schema Class schema.
+     * @returns {import("./helpers.js").BlackSourceShape|null} The shape, or null when no class name is found.
      */
     static normalizeShape(schema)
     {
@@ -313,6 +358,9 @@ export class CjsBlackSchemaRegistry
     /**
      * Converts fields into the canonical Black object-graph reader
      * representation.
+     *
+     * @param {object} schema Class schema.
+     * @returns {import("./helpers.js").BlackSourceField[]} Fields, unique by name.
      */
     static normalizeFields(schema)
     {
@@ -367,6 +415,9 @@ export class CjsBlackSchemaRegistry
     /**
      * Reports whether the current Black object-graph reader satisfies compact
      * field map.
+     *
+     * @param {*} value Candidate field map.
+     * @returns {boolean} True for a non-array object.
      */
     static isCompactFieldMap(value)
     {
@@ -376,6 +427,9 @@ export class CjsBlackSchemaRegistry
     /**
      * Converts compact Black field declarations into normalized field records
      * for the Black object-graph reader.
+     *
+     * @param {Object<string, string|object>|null|undefined} fields Field specs by Black name.
+     * @returns {import("./helpers.js").BlackWireField[]} Black wire descriptions.
      */
     static compactBlackFields(fields)
     {
@@ -386,6 +440,10 @@ export class CjsBlackSchemaRegistry
     /**
      * Converts one compact field declaration into a normalized field record for
      * the Black object-graph reader.
+     *
+     * @param {string} blackName Black field name.
+     * @param {string|object} fieldSpec Type name, or a spec object.
+     * @returns {{name: string, fieldName: string, enumType: string|null, jsType: object, black: import("./helpers.js").BlackWireField}} The field record.
      */
     static compactField(blackName, fieldSpec)
     {
@@ -402,6 +460,10 @@ export class CjsBlackSchemaRegistry
     /**
      * Converts one Black-specific compact field declaration into a normalized
      * record for the Black object-graph reader.
+     *
+     * @param {string} blackName Black field name.
+     * @param {string|object} fieldSpec Type name, or a spec object.
+     * @returns {import("./helpers.js").BlackWireField} The Black wire description.
      */
     static compactBlackField(blackName, fieldSpec)
     {
@@ -411,6 +473,10 @@ export class CjsBlackSchemaRegistry
     /**
      * Converts compact spec into the canonical Black object-graph reader
      * representation.
+     *
+     * @param {string} blackName Black field name.
+     * @param {string|object|null|undefined} fieldSpec Type name, or a spec object.
+     * @returns {{fieldName: string, enumType: string|null, jsType: object, black: import("./helpers.js").BlackWireField}} The normalized spec.
      */
     static normalizeCompactSpec(blackName, fieldSpec)
     {
@@ -444,6 +510,11 @@ export class CjsBlackSchemaRegistry
     /**
      * Converts a compact type descriptor into its normalized schema
      * representation for the Black object-graph reader.
+     *
+     * @param {string} type Compact type name, such as "float", "vector3" or "structList".
+     * @param {object} spec Field spec; supplies `length`, `cppType`, `structure` and `name` where the type uses them.
+     * @returns {import("./helpers.js").BlackCompactType} The type pair.
+     * @throws {TypeError} When a custom type has no name.
      */
     static compactTypeDescriptor(type, spec)
     {
@@ -528,6 +599,11 @@ export class CjsBlackSchemaRegistry
     /**
      * Converts a compact Black wire type into its normalized schema
      * representation for the Black object-graph reader.
+     *
+     * @param {string|null} beType Black wire type.
+     * @param {object} jsType Carbon type descriptor.
+     * @param {object} [extra={}] Extra Black wire fields, such as `container`, `signed` or `length`.
+     * @returns {import("./helpers.js").BlackCompactType} The type pair.
      */
     static compactBlackType(beType, jsType, extra = {})
     {
@@ -544,6 +620,10 @@ export class CjsBlackSchemaRegistry
     /**
      * Converts a compact float-array type into its normalized schema
      * representation for the Black object-graph reader.
+     *
+     * @param {string} kind Carbon type kind.
+     * @param {number} length Float count.
+     * @returns {import("./helpers.js").BlackCompactType} The FLOATARRAY type pair.
      */
     static compactFloatArrayType(kind, length)
     {
@@ -553,6 +633,10 @@ export class CjsBlackSchemaRegistry
     /**
      * Converts a compact wire-type code into its normalized schema
      * representation for the Black object-graph reader.
+     *
+     * @param {string|null} beType Black wire type.
+     * @param {string|null} [container=null] IROOT container kind.
+     * @returns {string|null} The short wire-type code, or null for an unmapped type.
      */
     static compactWireType(beType, container = null)
     {
@@ -595,6 +679,10 @@ export class CjsBlackSchemaRegistry
     /**
      * Converts black field into the canonical Black object-graph reader
      * representation.
+     *
+     * @param {object} field Black field description, possibly with a `names` role map.
+     * @param {import("./helpers.js").BlackSourceField[]} [sourceFields=[]] Schema fields that supply missing C++ names and types.
+     * @returns {import("./helpers.js").BlackWireField} The normalized description.
      */
     static normalizeBlackField(field, sourceFields = [])
     {
@@ -635,6 +723,10 @@ export class CjsBlackSchemaRegistry
     /**
      * Reports whether black field name matches the current Black object-graph
      * reader.
+     *
+     * @param {import("./helpers.js").BlackWireField|null|undefined} field Black field description.
+     * @param {string} blackName Black field name.
+     * @returns {boolean} True when any of the field's names is the Black name.
      */
     static matchesBlackFieldName(field, blackName)
     {
@@ -658,6 +750,10 @@ export class CjsBlackSchemaRegistry
     /**
      * Classifies a field name as canonical, source, or alias metadata for the
      * Black object-graph reader.
+     *
+     * @param {Object<string, string|string[]>|null} names Roles by name; a string holds space-separated roles.
+     * @param {string} role Role to find.
+     * @returns {string|null} The first name with the role, or null.
      */
     static getNameRole(names, role)
     {
@@ -672,7 +768,12 @@ export class CjsBlackSchemaRegistry
         return null;
     }
 
-    /** Converts the current Black object-graph reader value to JS field name. */
+    /**
+     * Converts the current Black object-graph reader value to JS field name.
+     *
+     * @param {string|null|undefined} value C++ member name.
+     * @returns {string} The name without an `m_` prefix.
+     */
     static toJsFieldName(value)
     {
         return String(value || "").replace(/^m_/, "");

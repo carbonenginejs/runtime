@@ -55,7 +55,7 @@ export class CjsBlackFormat extends CjsFormat
     /**
      * Create a reusable format profile.
      *
-     * @param {object} [options] Default format values.
+     * @param {Partial<import("./core/helpers.js").BlackReaderValues>} [options] Default format values.
      */
     constructor(options = {})
     {
@@ -66,7 +66,7 @@ export class CjsBlackFormat extends CjsFormat
     /**
      * Set format values for this reusable profile.
      *
-     * @param {object} [options] Values to merge into the profile.
+     * @param {Partial<import("./core/helpers.js").BlackReaderValues>} [options] Values to merge into the profile.
      * @returns {CjsBlackFormat} This format profile.
      */
     SetValues(options = {})
@@ -82,8 +82,8 @@ export class CjsBlackFormat extends CjsFormat
     /**
      * Get this profile's current values, optionally with per-call overrides.
      *
-     * @param {object} [options] Optional values to merge into a copy.
-     * @returns {object} A copy of the effective values.
+     * @param {Partial<import("./core/helpers.js").BlackReaderValues>} [options] Optional values to merge into a copy.
+     * @returns {import("./core/helpers.js").BlackReaderValues} A copy of the effective values.
      */
     GetValues(options = {})
     {
@@ -98,7 +98,7 @@ export class CjsBlackFormat extends CjsFormat
     /**
      * Set multiple runtime class constructors for this profile.
      *
-     * @param {object} [classes] Map of Black class names to constructors.
+     * @param {Object<string, Function>} [classes] Map of Black class names to constructors.
      * @returns {CjsBlackFormat} This format profile.
      */
     SetClasses(classes = {})
@@ -153,9 +153,9 @@ export class CjsBlackFormat extends CjsFormat
     /**
      * Read Black data with this profile's values.
      *
-     * @param {unknown} input Black format input.
-     * @param {object} [options] Per-call value overrides.
-     * @returns {object} Public payload output by default.
+     * @param {import("./core/helpers.js").BlackInput} input Black format input.
+     * @param {Partial<import("./core/helpers.js").BlackReaderValues>} [options] Per-call value overrides.
+     * @returns {import("./core/helpers.js").BlackPayload|import("./core/helpers.js").BlackRuntimeResult|import("#model/document").CjsCarbonDocument} Public payload output by default.
      */
     Read(input, options = {})
     {
@@ -165,9 +165,9 @@ export class CjsBlackFormat extends CjsFormat
     /**
      * Read Black data as a neutral document graph for diagnostics.
      *
-     * @param {unknown} input Black format input.
-     * @param {object} [options] Per-call value overrides.
-     * @returns {object} CarbonEngineJS document graph.
+     * @param {import("./core/helpers.js").BlackInput} input Black format input.
+     * @param {Partial<import("./core/helpers.js").BlackReaderValues>} [options] Per-call value overrides.
+     * @returns {import("#model/document").CjsCarbonDocument} CarbonEngineJS document graph.
      */
     ReadDocument(input, options = {})
     {
@@ -177,9 +177,9 @@ export class CjsBlackFormat extends CjsFormat
     /**
      * Read Black data as runtime objects or plain source-shaped objects.
      *
-     * @param {unknown} input Black format input.
-     * @param {object} [options] Per-call value overrides.
-     * @returns {object} Runtime read result.
+     * @param {import("./core/helpers.js").BlackInput} input Black format input.
+     * @param {Partial<import("./core/helpers.js").BlackReaderValues>} [options] Per-call value overrides.
+     * @returns {import("./core/helpers.js").BlackRuntimeResult} Runtime read result.
      */
     ReadRuntime(input, options = {})
     {
@@ -189,9 +189,9 @@ export class CjsBlackFormat extends CjsFormat
     /**
      * Read Black data as compact public payload JSON.
      *
-     * @param {unknown} input Black format input.
-     * @param {object} [options] Per-call value overrides.
-     * @returns {object} Public payload output.
+     * @param {import("./core/helpers.js").BlackInput} input Black format input.
+     * @param {Partial<import("./core/helpers.js").BlackReaderValues>} [options] Per-call value overrides.
+     * @returns {import("./core/helpers.js").BlackPayload} Public payload output.
      */
     ReadPayload(input, options = {})
     {
@@ -201,9 +201,9 @@ export class CjsBlackFormat extends CjsFormat
     /**
      * Inspect Black data with this profile's values.
      *
-     * @param {unknown} input Black format input.
-     * @param {object} [options] Per-call value overrides.
-     * @returns {object} Plain summary data.
+     * @param {import("./core/helpers.js").BlackInput} input Black format input.
+     * @param {Partial<import("./core/helpers.js").BlackReaderValues>} [options] Per-call value overrides.
+     * @returns {import("./core/helpers.js").BlackInspection} Plain summary data.
      */
     Inspect(input, options = {})
     {
@@ -224,9 +224,9 @@ export class CjsBlackFormat extends CjsFormat
     /**
      * Static one-shot read. Static methods use camelCase by convention.
      *
-     * @param {unknown} input Black format input.
-     * @param {object} [options] Format values.
-     * @returns {object} Format output.
+     * @param {import("./core/helpers.js").BlackInput} input Black format input.
+     * @param {Partial<import("./core/helpers.js").BlackReaderValues>} [options] Format values.
+     * @returns {import("./core/helpers.js").BlackPayload|import("./core/helpers.js").BlackRuntimeResult|import("#model/document").CjsCarbonDocument} Format output.
      */
     static read(input, options = {})
     {
@@ -239,9 +239,9 @@ export class CjsBlackFormat extends CjsFormat
     /**
      * Static one-shot document read.
      *
-     * @param {unknown} input Black format input.
-     * @param {object} [options] Format values.
-     * @returns {object} CarbonEngineJS document graph.
+     * @param {import("./core/helpers.js").BlackInput} input Black format input.
+     * @param {Partial<import("./core/helpers.js").BlackReaderValues>} [options] Format values.
+     * @returns {import("#model/document").CjsCarbonDocument} CarbonEngineJS document graph.
      */
     static readDocument(input, options = {})
     {
@@ -251,9 +251,9 @@ export class CjsBlackFormat extends CjsFormat
     /**
      * Static one-shot runtime read.
      *
-     * @param {unknown} input Black format input.
-     * @param {object} [options] Format values.
-     * @returns {object} Runtime read result.
+     * @param {import("./core/helpers.js").BlackInput} input Black format input.
+     * @param {Partial<import("./core/helpers.js").BlackReaderValues>} [options] Format values.
+     * @returns {import("./core/helpers.js").BlackRuntimeResult} Runtime read result.
      */
     static readRuntime(input, options = {})
     {
@@ -265,8 +265,8 @@ export class CjsBlackFormat extends CjsFormat
      * `CreateObject()` builds a new graph each call, as Carbon's resource
      * manager keeps a BlackReader per file (BlueResMan.cpp:722-773).
      *
-     * @param {unknown} input Black format input.
-     * @param {object} [options] Format values.
+     * @param {import("./core/helpers.js").BlackInput} input Black format input.
+     * @param {Partial<import("./core/helpers.js").BlackReaderValues>} [options] Format values.
      * @returns {CjsBlackReader} The builder.
      */
     static createObjectBuilder(input, options = {})
@@ -277,9 +277,9 @@ export class CjsBlackFormat extends CjsFormat
     /**
      * Static one-shot public payload read.
      *
-     * @param {unknown} input Black format input.
-     * @param {object} [options] Format values.
-     * @returns {object} Public payload output.
+     * @param {import("./core/helpers.js").BlackInput} input Black format input.
+     * @param {Partial<import("./core/helpers.js").BlackReaderValues>} [options] Format values.
+     * @returns {import("./core/helpers.js").BlackPayload} Public payload output.
      */
     static readPayload(input, options = {})
     {
@@ -289,9 +289,9 @@ export class CjsBlackFormat extends CjsFormat
     /**
      * Static one-shot inspection.
      *
-     * @param {unknown} input Black format input.
-     * @param {object} [options] Format values.
-     * @returns {object} Plain summary data.
+     * @param {import("./core/helpers.js").BlackInput} input Black format input.
+     * @param {Partial<import("./core/helpers.js").BlackReaderValues>} [options] Format values.
+     * @returns {import("./core/helpers.js").BlackInspection} Plain summary data.
      */
     static inspect(input, options = {})
     {
@@ -345,7 +345,12 @@ export class CjsBlackFormat extends CjsFormat
         raw: { role: "debug", decoded: true }
     });
 
-    /** Provides the one-shot Black copy reader options helper entry point. */
+    /**
+     * Provides the one-shot Black copy reader options helper entry point.
+     *
+     * @param {import("./core/helpers.js").BlackReaderValues} values Normalized values.
+     * @returns {Partial<import("./core/helpers.js").BlackReaderValues>} The values without `emit`, `schema` and `classes`.
+     */
     static copyReaderOptions(values)
     {
         const {
@@ -359,6 +364,12 @@ export class CjsBlackFormat extends CjsFormat
 
 }
 
+/**
+ * Returns a DataView over probe input, or null when the input is not binary.
+ *
+ * @param {unknown} input Candidate source.
+ * @returns {DataView|null} A view over the bytes, or null.
+ */
 function getBlackProbeView(input)
 {
     if (input instanceof ArrayBuffer) return new DataView(input);
