@@ -61,7 +61,7 @@ export class CjsLightData
   @meta.type.float32
   innerAngle = 0;
 
-  @meta.type.path("TriTextureRes")
+  @meta.type.wpath("TriTextureRes")
   texturePath = "";
 
   @meta.type.int32

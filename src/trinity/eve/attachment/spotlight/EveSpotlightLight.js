@@ -29,7 +29,7 @@ export class EveSpotlightLight
   @meta.type.uint32
   index = 0;
 
-  @meta.type.path("Tr2LightProfileRes")
+  @meta.type.wpath("Tr2LightProfileRes")
   lightProfilePath = "";
 
   /**

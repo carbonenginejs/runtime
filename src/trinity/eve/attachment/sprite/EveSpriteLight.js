@@ -39,7 +39,7 @@ export class EveSpriteLight
   @meta.type.mat4
   boneMatrix = mat4.create();
 
-  @meta.type.path("Tr2LightProfileRes")
+  @meta.type.wpath("Tr2LightProfileRes")
   lightProfilePath = "";
 
   /**
