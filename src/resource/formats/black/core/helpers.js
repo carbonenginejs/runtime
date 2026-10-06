@@ -33,6 +33,7 @@ export const DEFAULT_VALUES = {
     payloadReferenceField: "_ref",
     pathHandler: null,
     adapter: null,
+    customTypes: null,
     classes: {}
 };
 
@@ -73,6 +74,8 @@ export const DEFAULT_VALUES = {
  * @property {string} payloadReferenceField Payload field that refers to a reference id.
  * @property {Function|null} pathHandler Transform applied to decoded resource paths.
  * @property {object|null} adapter Legacy hydration adapter.
+ * @property {Map<string, Function>|Object<string, Function>|null} customTypes Handlers for named opaque
+ *     (custom) block types, by type name; see `CjsBlackPropertyReaders.customReader`.
  * @property {Object<string, Function>} classes Runtime class constructors by Black class name.
  */
 
@@ -271,6 +274,7 @@ function cloneValues(values)
         payloadReferenceField: values.payloadReferenceField,
         pathHandler: values.pathHandler ?? null,
         adapter: values.adapter ?? null,
+        customTypes: values.customTypes ?? null,
         classes: { ...classMap(values) }
     };
 }
@@ -391,6 +395,15 @@ export function normalizeValues(base, options, classKeys, readerName)
     if (Object.hasOwn(options, "payloadIdField")) values.payloadIdField = options.payloadIdField;
     if (Object.hasOwn(options, "payloadReferenceField")) values.payloadReferenceField = options.payloadReferenceField;
     if (Object.hasOwn(options, "adapter")) values.adapter = options.adapter ?? null;
+    if (Object.hasOwn(options, "customTypes"))
+    {
+        const customTypes = options.customTypes ?? null;
+        if (customTypes !== null && (typeof customTypes !== "object" || Array.isArray(customTypes)))
+        {
+            throw new TypeError(`${readerName} customTypes option must be a Map or an object of handlers`);
+        }
+        values.customTypes = customTypes;
+    }
     if (Object.hasOwn(options, "pathHandler"))
     {
         if (options.pathHandler !== null && options.pathHandler !== undefined && typeof options.pathHandler !== "function")
