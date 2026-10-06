@@ -1,8 +1,22 @@
+/**
+ * Rounds a value to Float32 precision.
+ *
+ * @param {number} value Input.
+ * @returns {number} The rounded value.
+ */
 function f32(value)
 {
     return Math.fround(value);
 }
 
+/**
+ * Returns a vector length computed in Float32 steps.
+ *
+ * @param {number} x X component.
+ * @param {number} y Y component.
+ * @param {number} z Z component.
+ * @returns {number} The length.
+ */
 function length3(x, y, z)
 {
     const
@@ -13,6 +27,12 @@ function length3(x, y, z)
     return f32(Math.sqrt(squared));
 }
 
+/**
+ * Returns the diagonal length of the positions' bounding box.
+ *
+ * @param {ArrayLike<number>} position Flat vec3 positions.
+ * @returns {number} The diameter, or 0 when empty.
+ */
 function meshDiameter(position)
 {
     if (!position.length) return 0;
@@ -35,6 +55,14 @@ function meshDiameter(position)
     );
 }
 
+/**
+ * Returns the distance between two vertices.
+ *
+ * @param {ArrayLike<number>} position Flat vec3 positions.
+ * @param {number} leftIndex First vertex index.
+ * @param {number} rightIndex Second vertex index.
+ * @returns {number} The edge length.
+ */
 function edgeLength(position, leftIndex, rightIndex)
 {
     const left = leftIndex * 3;
@@ -46,6 +74,15 @@ function edgeLength(position, leftIndex, rightIndex)
     );
 }
 
+/**
+ * Returns the squared UV distance between two vertices.
+ *
+ * @param {ArrayLike<number>} uv Flat UV values.
+ * @param {number} width UV components per vertex.
+ * @param {number} leftIndex First vertex index.
+ * @param {number} rightIndex Second vertex index.
+ * @returns {number} The squared distance.
+ */
 function uvDistanceSquared(uv, width, leftIndex, rightIndex)
 {
     let squared = 0;
@@ -61,6 +98,15 @@ function uvDistanceSquared(uv, width, leftIndex, rightIndex)
     return squared;
 }
 
+/**
+ * Calculates one UV set's density over a triangle list.
+ *
+ * @param {ArrayLike<number>} position Flat vec3 positions.
+ * @param {ArrayLike<number>} uv Flat UV values.
+ * @param {Array<number>} indices Triangle indices.
+ * @returns {number} The density, or 0 when there is nothing to measure.
+ * @throws {Error} When the indices are not whole triangles within the vertex range.
+ */
 function calculateUvDensity(position, uv, indices)
 {
     const vertexCount = Math.floor(position.length / 3);

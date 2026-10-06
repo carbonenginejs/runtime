@@ -22,7 +22,15 @@ import {
 import { decodeGeometryAsync, decodeGeometrySync } from "./buffers.js";
 import { validateCmfGraph, validateCmfSections } from "./validate.js";
 
-/** Reads and validates a CMF document synchronously for the CMF format reader. */
+/**
+ * Reads and validates a CMF document synchronously for the CMF format reader.
+ *
+ * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input File bytes.
+ * @param {object} [options={}] Reader options.
+ * @param {boolean} [options.validateCrc] False skips the checksum check.
+ * @param {boolean} [options.decodeBuffers] Whether to decode GPU buffers into channels.
+ * @returns {import("./helpers.js").CmfGraph} The validated graph.
+ */
 export function readCmf(input, options = {})
 {
     const reader = new BinaryReader(input);
@@ -62,7 +70,15 @@ export function readCmf(input, options = {})
     return result;
 }
 
-/** Reads and validates a CMF document asynchronously for the CMF format reader. */
+/**
+ * Reads and validates a CMF document asynchronously for the CMF format reader.
+ *
+ * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input File bytes.
+ * @param {object} [options={}] Reader options.
+ * @param {boolean} [options.validateCrc] False skips the checksum check.
+ * @param {boolean} [options.decodeBuffers] Whether to decode GPU buffers into channels.
+ * @returns {Promise<import("./helpers.js").CmfGraph>} The validated graph.
+ */
 export async function readCmfAsync(input, options = {})
 {
     const reader = new BinaryReader(input);
@@ -102,6 +118,16 @@ export async function readCmfAsync(input, options = {})
     return result;
 }
 
+/**
+ * Checks that a section is large enough for its root structure and that the
+ * root lies inside the file.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {import("./helpers.js").CmfSection} section Section record.
+ * @param {number} size Root structure byte size.
+ * @param {string} label Section label for errors.
+ * @throws {Error} When the section is smaller than its root structure.
+ */
 function requireSectionRoot(reader, section, size, label)
 {
     if (section.uncompressedSize < size)
@@ -111,7 +137,13 @@ function requireSectionRoot(reader, section, size, label)
     reader.require(section.offset, size, `${label} root`);
 }
 
-/** Reads header from the current CMF format reader. */
+/**
+ * Reads header from the current CMF format reader.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @returns {import("./helpers.js").CmfHeader} The header and section table.
+ * @throws {Error} When headerSize lies outside the file.
+ */
 export function readHeader(reader)
 {
     const signature = reader.u32(0);
@@ -141,6 +173,9 @@ export function readHeader(reader)
 /**
  * Returns CMF header and section metadata without decoding geometry for the CMF
  * format reader.
+ *
+ * @param {import("./helpers.js").CmfGraph} result Raw graph.
+ * @returns {object} Header fields plus per-section, mesh, skeleton and animation summaries.
  */
 export function inspectCmf(result)
 {
@@ -181,6 +216,16 @@ export function inspectCmf(result)
     };
 }
 
+/**
+ * Checks the signature, version, section table and, unless disabled, the
+ * file checksum.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {import("./helpers.js").CmfHeader} header Parsed header.
+ * @param {object} options Reader options.
+ * @param {boolean} [options.validateCrc] False skips the checksum check.
+ * @throws {Error} When the signature, version or checksum does not match.
+ */
 function validateHeader(reader, header, options)
 {
     if (header.signature !== FILE_SIGNATURE)
@@ -205,6 +250,13 @@ function validateHeader(reader, header, options)
     }
 }
 
+/**
+ * Reads one section record.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {number} offset Record offset.
+ * @returns {import("./helpers.js").CmfSection} The section.
+ */
 function readSection(reader, offset)
 {
     return {
@@ -217,6 +269,13 @@ function readSection(reader, offset)
     };
 }
 
+/**
+ * Reads the Data section root.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {number} offset Root offset.
+ * @returns {{ meshes: Array<import("./helpers.js").CmfMesh>, skeletons: Array<import("./helpers.js").CmfSkeleton>, animations: Array<import("./helpers.js").CmfAnimation> }} The root arrays.
+ */
 function readData(reader, offset)
 {
     return {
@@ -226,6 +285,13 @@ function readData(reader, offset)
     };
 }
 
+/**
+ * Reads the Metadata section root.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {number} offset Root offset.
+ * @returns {import("./helpers.js").CmfMetadata} The metadata.
+ */
 function readMetadata(reader, offset)
 {
     return {
@@ -233,6 +299,13 @@ function readMetadata(reader, offset)
     };
 }
 
+/**
+ * Reads one metadata entry.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {number} offset Struct offset.
+ * @returns {import("./helpers.js").CmfMetadataEntry} The entry.
+ */
 function readMetadataEntry(reader, offset)
 {
     return {
@@ -241,6 +314,13 @@ function readMetadataEntry(reader, offset)
     };
 }
 
+/**
+ * Reads one mesh struct.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {number} offset Struct offset.
+ * @returns {import("./helpers.js").CmfMesh} The mesh.
+ */
 function readMesh(reader, offset)
 {
     return {
@@ -258,6 +338,13 @@ function readMesh(reader, offset)
     };
 }
 
+/**
+ * Reads one vertex element struct.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {number} offset Struct offset.
+ * @returns {import("./helpers.js").CmfVertexElement} The element.
+ */
 function readVertexElement(reader, offset)
 {
     return {
@@ -269,6 +356,13 @@ function readVertexElement(reader, offset)
     };
 }
 
+/**
+ * Reads one mesh area struct.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {number} offset Struct offset.
+ * @returns {import("./helpers.js").CmfMeshArea} The area.
+ */
 function readMeshArea(reader, offset)
 {
     return {
@@ -280,6 +374,13 @@ function readMeshArea(reader, offset)
     };
 }
 
+/**
+ * Reads one LOD mesh area struct.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {number} offset Struct offset.
+ * @returns {import("./helpers.js").CmfLodMeshArea} The LOD area range.
+ */
 function readLodMeshArea(reader, offset)
 {
     return {
@@ -288,6 +389,13 @@ function readLodMeshArea(reader, offset)
     };
 }
 
+/**
+ * Reads one bone binding struct.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {number} offset Struct offset.
+ * @returns {import("./helpers.js").CmfBoneBinding} The binding.
+ */
 function readBoneBinding(reader, offset)
 {
     return {
@@ -296,6 +404,13 @@ function readBoneBinding(reader, offset)
     };
 }
 
+/**
+ * Reads a mesh's morph target set.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {number} offset Struct offset.
+ * @returns {import("./helpers.js").CmfMorphTargets} The morph target set.
+ */
 function readMorphTargets(reader, offset)
 {
     return {
@@ -304,6 +419,13 @@ function readMorphTargets(reader, offset)
     };
 }
 
+/**
+ * Reads one morph target struct.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {number} offset Struct offset.
+ * @returns {import("./helpers.js").CmfMorphTarget} The target.
+ */
 function readMorphTarget(reader, offset)
 {
     return {
@@ -312,6 +434,13 @@ function readMorphTarget(reader, offset)
     };
 }
 
+/**
+ * Reads one mesh LOD struct.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {number} offset Struct offset.
+ * @returns {import("./helpers.js").CmfMeshLod} The LOD.
+ */
 function readMeshLod(reader, offset)
 {
     return {
@@ -323,6 +452,13 @@ function readMeshLod(reader, offset)
     };
 }
 
+/**
+ * Reads one LOD morph target struct.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {number} offset Struct offset.
+ * @returns {import("./helpers.js").CmfLodMorphTarget} The LOD morph target.
+ */
 function readLodMorphTarget(reader, offset)
 {
     return {
@@ -330,6 +466,13 @@ function readLodMorphTarget(reader, offset)
     };
 }
 
+/**
+ * Reads a mesh's audio occlusion mesh.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {number} offset Struct offset.
+ * @returns {import("./helpers.js").CmfAudioOcclusionMesh} The occlusion mesh.
+ */
 function readAudioOcclusionMesh(reader, offset)
 {
     const verticesSpan = readSpan(reader, offset, 12, 4);
@@ -340,6 +483,13 @@ function readAudioOcclusionMesh(reader, offset)
     };
 }
 
+/**
+ * Reads one skeleton struct.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {number} offset Struct offset.
+ * @returns {import("./helpers.js").CmfSkeleton} The skeleton.
+ */
 function readSkeleton(reader, offset)
 {
     return {
@@ -352,6 +502,13 @@ function readSkeleton(reader, offset)
     };
 }
 
+/**
+ * Reads one transform struct.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {number} offset Struct offset.
+ * @returns {import("./helpers.js").CmfTransform} The transform.
+ */
 function readTransform(reader, offset)
 {
     return {
@@ -361,6 +518,13 @@ function readTransform(reader, offset)
     };
 }
 
+/**
+ * Reads one bone mask struct.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {number} offset Struct offset.
+ * @returns {import("./helpers.js").CmfBoneMask} The mask.
+ */
 function readBoneMask(reader, offset)
 {
     return {
@@ -369,6 +533,13 @@ function readBoneMask(reader, offset)
     };
 }
 
+/**
+ * Reads one bone weight struct.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {number} offset Struct offset.
+ * @returns {import("./helpers.js").CmfBoneWeight} The weight.
+ */
 function readBoneWeight(reader, offset)
 {
     return {
@@ -377,6 +548,13 @@ function readBoneWeight(reader, offset)
     };
 }
 
+/**
+ * Reads one animation struct.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {number} offset Struct offset.
+ * @returns {import("./helpers.js").CmfAnimation} The animation.
+ */
 function readAnimation(reader, offset)
 {
     return {
@@ -387,6 +565,13 @@ function readAnimation(reader, offset)
     };
 }
 
+/**
+ * Reads one animation channel struct.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {number} offset Struct offset.
+ * @returns {import("./helpers.js").CmfAnimationChannel} The channel.
+ */
 function readAnimationChannel(reader, offset)
 {
     return {
@@ -396,6 +581,13 @@ function readAnimationChannel(reader, offset)
     };
 }
 
+/**
+ * Reads one animation curve struct.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {number} offset Struct offset.
+ * @returns {import("./helpers.js").CmfAnimationCurve} The curve.
+ */
 function readAnimationCurve(reader, offset)
 {
     return {
@@ -409,6 +601,13 @@ function readAnimationCurve(reader, offset)
     };
 }
 
+/**
+ * Reads one buffer view struct.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {number} offset Struct offset.
+ * @returns {import("./helpers.js").CmfBufferView} The view.
+ */
 function readBufferView(reader, offset)
 {
     return {
@@ -419,6 +618,17 @@ function readBufferView(reader, offset)
     };
 }
 
+/**
+ * Reads a tagged self-relative span field and checks its size, alignment and
+ * section range.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {number} offset Span field offset.
+ * @param {number} elementSize Element byte size.
+ * @param {number} [alignment] Required data alignment; defaults to min(elementSize, 8).
+ * @returns {import("./helpers.js").CmfSpan} The resolved span.
+ * @throws {Error} When the span holds a pointer, is misaligned, or leaves its section.
+ */
 function readSpan(reader, offset, elementSize, alignment = Math.min(elementSize, 8))
 {
     const byteSize = reader.u64(offset + 8);
@@ -466,6 +676,18 @@ function readSpan(reader, offset, elementSize, alignment = Math.min(elementSize,
     };
 }
 
+/**
+ * Runs a callback with the reader's span range limited to one section,
+ * restoring the previous range afterwards.
+ *
+ * @template T
+ * @param {BinaryReader} reader Source reader.
+ * @param {number} start Section start offset.
+ * @param {number} size Section byte size.
+ * @param {string} label Section label for errors.
+ * @param {() => T} callback Reads within the section.
+ * @returns {T} The callback's result.
+ */
 function withSpanRange(reader, start, size, label, callback)
 {
     const previous = reader.spanRange;
@@ -480,6 +702,15 @@ function withSpanRange(reader, start, size, label, callback)
     }
 }
 
+/**
+ * Reads every element of a span.
+ *
+ * @template T
+ * @param {BinaryReader} reader Source reader.
+ * @param {import("./helpers.js").CmfSpan} span Resolved span.
+ * @param {(reader: BinaryReader, offset: number) => T} readElement Reads one element.
+ * @returns {Array<T>} The elements.
+ */
 function readArray(reader, span, readElement)
 {
     const values = [];
@@ -495,17 +726,38 @@ function readArray(reader, span, readElement)
     return values;
 }
 
+/**
+ * Reads a UTF-8 string span field.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {number} offset Span field offset.
+ * @returns {string} The string, empty for an empty span.
+ */
 function readString(reader, offset)
 {
     const span = readSpan(reader, offset, 1);
     return span.offset === null ? "" : reader.string(span.offset, span.byteSize);
 }
 
+/**
+ * Copies a byte span into a plain array.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {import("./helpers.js").CmfSpan} span Resolved span.
+ * @returns {Array<number>} The bytes.
+ */
 function readByteArray(reader, span)
 {
     return span.offset === null ? [] : Array.from(reader.bytesAt(span.offset, span.byteSize));
 }
 
+/**
+ * Reads a span of unsigned 16-bit integers.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {import("./helpers.js").CmfSpan} span Resolved span.
+ * @returns {Array<number>} The values.
+ */
 function readUint16Array(reader, span)
 {
     const values = [];
@@ -516,6 +768,13 @@ function readUint16Array(reader, span)
     return values;
 }
 
+/**
+ * Reads a span of unsigned 32-bit integers.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {import("./helpers.js").CmfSpan} span Resolved span.
+ * @returns {Array<number>} The values.
+ */
 function readUint32Array(reader, span)
 {
     const values = [];
@@ -526,6 +785,13 @@ function readUint32Array(reader, span)
     return values;
 }
 
+/**
+ * Reads a span of 32-bit floats.
+ *
+ * @param {BinaryReader} reader Source reader.
+ * @param {import("./helpers.js").CmfSpan} span Resolved span.
+ * @returns {Array<number>} The values.
+ */
 function readFloatArray(reader, span)
 {
     const values = [];
@@ -536,6 +802,12 @@ function readFloatArray(reader, span)
     return values;
 }
 
+/**
+ * Maps the stored skeleton byte to an index, with 0xff meaning none.
+ *
+ * @param {number} value Stored byte.
+ * @returns {number|null} The skeleton index, or null.
+ */
 function readSkeletonIndex(value)
 {
     return value === 0xff ? null : value;

@@ -15,7 +15,7 @@ import { crc32 } from "./binary.js";
 import { readCmf } from "./schema.js";
 import { validateCmfGraph } from "./validate.js";
 
-/**
+/*
  * Binary CMF v1 writer.
  *
  * Mirrors CarbonEngine's `cmf::BuildFile`: the object graph is flattened into
@@ -33,6 +33,12 @@ const FLOAT32_MAX = 3.4028234663852886e38;
 let encoderReady = false;
 MeshoptEncoder.ready.then(() => { encoderReady = true; });
 
+/**
+ * Creates a writer error.
+ *
+ * @param {string} message Error detail.
+ * @returns {Error} The error, with code CJS_FORMAT_WRITE_ERROR.
+ */
 function writeError(message)
 {
     const error = new Error(`CMF write: ${message}`);
@@ -40,6 +46,15 @@ function writeError(message)
     return error;
 }
 
+/**
+ * Resolves an enum name, `Unknown(n)` label or number to its numeric value.
+ *
+ * @param {ReadonlyArray<string>} names Enum names indexed by value.
+ * @param {string|number} value Name, label or number.
+ * @param {string} label Enum label for errors.
+ * @returns {number} The numeric value.
+ * @throws {Error} When the name is unknown.
+ */
 function enumValue(names, value, label)
 {
     if (typeof value === "number") return value;
@@ -66,6 +81,8 @@ class Flattener
     /**
      * Grows the output buffer when the requested write would exceed capacity for
      * the CMF binary writer.
+     *
+     * @param {number} capacity Required byte capacity.
      */
     _ensure(capacity)
     {
@@ -78,7 +95,12 @@ class Flattener
         this._view = new DataView(grown.buffer);
     }
 
-    /** Reserves output storage in the current CMF binary writer. */
+    /**
+     * Reserves output storage in the current CMF binary writer.
+     *
+     * @param {number} byteLength Bytes to reserve; zero-filled.
+     * @returns {number} Offset of the reserved range.
+     */
     reserve(byteLength)
     {
         const offset = this.size;
@@ -88,7 +110,13 @@ class Flattener
         return offset;
     }
 
-    /** Reserves aligned in the current CMF binary writer. */
+    /**
+     * Reserves aligned in the current CMF binary writer.
+     *
+     * @param {number} byteLength Bytes to reserve; zero-filled.
+     * @param {number} [alignment=8] Start alignment.
+     * @returns {number} Offset of the reserved range.
+     */
     reserveAligned(byteLength, alignment = 8)
     {
         const padded = Math.ceil(this.size / alignment) * alignment;
@@ -101,42 +129,63 @@ class Flattener
     /**
      * Writes an unsigned 8-bit integer into the output buffer for the CMF binary
      * writer.
+     *
+     * @param {number} offset Byte offset.
+     * @param {number} value Value.
      */
     u8(offset, value) { this._view.setUint8(offset, value); }
 
     /**
      * Writes an unsigned 16-bit little-endian integer into the output buffer for
      * the CMF binary writer.
+     *
+     * @param {number} offset Byte offset.
+     * @param {number} value Value.
      */
     u16(offset, value) { this._view.setUint16(offset, value, true); }
 
     /**
      * Writes an unsigned 32-bit little-endian integer into the output buffer for
      * the CMF binary writer.
+     *
+     * @param {number} offset Byte offset.
+     * @param {number} value Value.
      */
     u32(offset, value) { this._view.setUint32(offset, value, true); }
 
     /**
      * Writes a 32-bit little-endian float into the output buffer for the CMF
      * binary writer.
+     *
+     * @param {number} offset Byte offset.
+     * @param {number} [value] Value; nullish writes 0.
      */
     f32(offset, value) { this._view.setFloat32(offset, value ?? 0, true); }
 
     /**
      * Writes a signed 64-bit little-endian integer into the output buffer for
      * the CMF binary writer.
+     *
+     * @param {number} offset Byte offset.
+     * @param {number|bigint} value Value.
      */
     i64(offset, value) { this._view.setBigInt64(offset, BigInt(value), true); }
 
     /**
      * Writes an unsigned 64-bit little-endian integer into the output buffer for
      * the CMF binary writer.
+     *
+     * @param {number} offset Byte offset.
+     * @param {number|bigint} value Value.
      */
     u64(offset, value) { this._view.setBigUint64(offset, BigInt(value), true); }
 
     /**
      * Copies bytes into a previously reserved output range for the CMF binary
      * writer.
+     *
+     * @param {number} offset Byte offset.
+     * @param {ArrayLike<number>} bytes Bytes to copy.
      */
     setBytes(offset, bytes)
     {
@@ -149,6 +198,14 @@ class Flattener
      * `writeElement(flattener, offset, element)` may itself append nested
      * chunks; leaf chunks (`dedup: true`) are shared when byte-identical,
      * matching the reference writer.
+     *
+     * @template T
+     * @param {number} fieldOffset Offset of the 16-byte span field.
+     * @param {ArrayLike<T>|null|undefined} elements Elements to write.
+     * @param {number} elementSize Element byte size.
+     * @param {(target: Flattener, offset: number, element: T) => void} writeElement Writes one element.
+     * @param {object} [options] Span options.
+     * @param {boolean} [options.dedup=false] Shares byte-identical leaf chunks.
      */
     span(fieldOffset, elements, elementSize, writeElement, { dedup = false } = {})
     {
@@ -193,6 +250,9 @@ class Flattener
     /**
      * Writes a length-prefixed UTF-8 string into the output buffer for the CMF
      * binary writer.
+     *
+     * @param {number} fieldOffset Offset of the span field.
+     * @param {string} [value] String; falsy writes an empty span.
      */
     string(fieldOffset, value)
     {
@@ -201,8 +261,9 @@ class Flattener
     }
 
     /**
-     * Writes a length-prefixed byte block into the output buffer for the CMF
-     * binary writer.
+     * Returns a copy of the bytes written so far.
+     *
+     * @returns {Uint8Array} The output bytes.
      */
     bytes()
     {
@@ -210,6 +271,12 @@ class Flattener
     }
 }
 
+/**
+ * Returns a length plus FNV-1a hash key for a chunk.
+ *
+ * @param {Uint8Array} bytes Chunk bytes.
+ * @returns {string} The cache key.
+ */
 function chunkKey(bytes)
 {
     let hash = 2166136261 >>> 0;
@@ -221,6 +288,14 @@ function chunkKey(bytes)
     return `${bytes.length}:${hash}`;
 }
 
+/**
+ * Compares a chunk against bytes already written at an offset.
+ *
+ * @param {Uint8Array} target Written bytes.
+ * @param {number} offset Offset in `target`.
+ * @param {Uint8Array} chunk Chunk bytes.
+ * @returns {boolean} True when equal.
+ */
 function bytesEqual(target, offset, chunk)
 {
     for (let i = 0; i < chunk.length; i++)
@@ -230,6 +305,13 @@ function bytesEqual(target, offset, chunk)
     return true;
 }
 
+/**
+ * Writes a bounds struct, using the uninitialized FLT_MAX/-FLT_MAX pair when absent.
+ *
+ * @param {Flattener} buffer Destination.
+ * @param {number} offset Struct offset.
+ * @param {import("./helpers.js").CmfBounds|null|undefined} bounds Bounds.
+ */
 function writeBounds(buffer, offset, bounds)
 {
     const min = bounds?.min ?? [ FLOAT32_MAX, FLOAT32_MAX, FLOAT32_MAX ];
@@ -238,6 +320,14 @@ function writeBounds(buffer, offset, bounds)
     for (let i = 0; i < 3; i++) buffer.f32(offset + 12 + i * 4, max[i]);
 }
 
+/**
+ * Writes a buffer view struct, remapping its buffer index to a section index.
+ *
+ * @param {Flattener} buffer Destination.
+ * @param {number} offset Struct offset.
+ * @param {import("./helpers.js").CmfBufferView|null|undefined} view Buffer view.
+ * @param {Map<number, number>} remap Buffer index to section index.
+ */
 function writeBufferView(buffer, offset, view, remap)
 {
     const size = view?.size || 0;
@@ -248,6 +338,13 @@ function writeBufferView(buffer, offset, view, remap)
     buffer.u32(offset + 12, view?.stride || 0);
 }
 
+/**
+ * Writes a vertex element struct.
+ *
+ * @param {Flattener} buffer Destination.
+ * @param {number} offset Struct offset.
+ * @param {import("./helpers.js").CmfVertexElement} element Vertex element.
+ */
 function writeVertexElement(buffer, offset, element)
 {
     buffer.u8(offset, enumValue(Usage, element.usage, "vertex usage"));
@@ -257,6 +354,15 @@ function writeVertexElement(buffer, offset, element)
     buffer.u32(offset + 4, element.offset || 0);
 }
 
+/**
+ * Flattens the meshes, skeletons and animations into the Data section.
+ *
+ * @param {Flattener} buffer Destination with the Data root reserved.
+ * @param {number} offset Data root offset.
+ * @param {import("./helpers.js").CmfGraph} graph CMF graph.
+ * @param {Map<number, number>} remap Buffer index to section index.
+ * @throws {Error} When a skeleton's bones are not name strings.
+ */
 function writeData(buffer, offset, graph, remap)
 {
     const writeMesh = (target, meshOffset, mesh) =>
@@ -375,6 +481,10 @@ function writeData(buffer, offset, graph, remap)
 /**
  * Collect BufferView usage in reference-writer order and decide per-buffer
  * compression (conflicting stride/kind across views falls back to None).
+ *
+ * @param {import("./helpers.js").CmfGraph} graph CMF graph.
+ * @param {boolean} compress Whether to request meshoptimizer compression.
+ * @returns {Array<{ index: number, stride: number, compression: string }>} One record per referenced buffer.
  */
 function collectBufferRecords(graph, compress)
 {
@@ -416,6 +526,14 @@ function collectBufferRecords(graph, compress)
     return records;
 }
 
+/**
+ * Finds the supplied bytes for a buffer record.
+ *
+ * @param {import("./helpers.js").CmfGraph} graph CMF graph with `buffers`.
+ * @param {{ index: number }} record Buffer record.
+ * @returns {Uint8Array} The bytes.
+ * @throws {Error} When no data is supplied for the index.
+ */
 function resolveBufferBytes(graph, record)
 {
     const buffers = graph.buffers || [];
@@ -428,6 +546,15 @@ function resolveBufferBytes(graph, record)
     return data instanceof Uint8Array ? data : new Uint8Array(data);
 }
 
+/**
+ * Compresses a buffer with meshoptimizer when its record requests it and its
+ * layout allows it.
+ *
+ * @param {Uint8Array} bytes Uncompressed bytes.
+ * @param {{ stride: number, compression: string }} record Buffer record.
+ * @returns {{ data: Uint8Array, compression: string, gpuAlignment: number }} The stored bytes and section fields.
+ * @throws {Error} When compression is requested before the encoder is ready.
+ */
 function compressBuffer(bytes, record)
 {
     if (record.compression === "None" || bytes.byteLength === 0)
@@ -476,12 +603,14 @@ function compressBuffer(bytes, record)
 /**
  * Serialize a CMF-native graph into .cmf bytes.
  *
- * @param {object} graph Native graph: `{ meshes, skeletons, animations, metadata?, buffers? }`
+ * @param {import("./helpers.js").CmfGraph} graph Native graph: `{ meshes, skeletons, animations, metadata?, buffers? }`
  *   where `buffers` supplies uncompressed GPU bytes for each BufferView
  *   `index` (as `{ index, data }` entries or an index-keyed array).
- * @param {object} [options] `compress` (default false for the sync writer)
- *   enables meshoptimizer vertex/index compression.
+ * @param {object} [options={}] Writer options.
+ * @param {boolean} [options.compress] True enables meshoptimizer vertex/index
+ *   compression (default false for the sync writer).
  * @returns {Uint8Array} Complete .cmf file bytes.
+ * @throws {Error} When the graph is not an object or its skeleton bones are not name strings.
  */
 export function writeCmf(graph, options = {})
 {
@@ -594,8 +723,9 @@ export function writeCmf(graph, options = {})
  * Serialize a CMF-native graph asynchronously with compression enabled by
  * default (awaits meshoptimizer encoder initialization).
  *
- * @param {object} graph Native graph (see `writeCmf`).
- * @param {object} [options] `compress` defaults to true.
+ * @param {import("./helpers.js").CmfGraph} graph Native graph (see `writeCmf`).
+ * @param {object} [options={}] Writer options.
+ * @param {boolean} [options.compress] False disables compression; defaults to true.
  * @returns {Promise<Uint8Array>} Complete .cmf file bytes.
  */
 export async function writeCmfAsync(graph, options = {})

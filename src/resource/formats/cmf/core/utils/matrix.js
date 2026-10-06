@@ -1,7 +1,13 @@
 import { isArrayLike } from "../../../../../global/utils/is.js";
 import { normalizeQuaternion } from "./quaternion.js";
 
-/** Invert a finite 4x4 row-major matrix with Gauss-Jordan elimination. */
+/**
+ * Invert a finite 4x4 row-major matrix with Gauss-Jordan elimination.
+ *
+ * @param {ArrayLike<number>} matrix Sixteen finite values.
+ * @returns {Array<number>} The inverse, with values below 1e-12 snapped to 0.
+ * @throws {Error} When the matrix is malformed or singular.
+ */
 export function invertMatrix4(matrix)
 {
     if (!isArrayLike(matrix) || matrix.length !== 16 || matrix.some((value) => !Number.isFinite(value)))
@@ -54,7 +60,14 @@ export function invertMatrix4(matrix)
     return inverse.flat().map((value) => Math.abs(value) < 1e-12 ? 0 : value);
 }
 
-/** Multiply two flat row-major 4x4 matrices. */
+/**
+ * Multiply two flat row-major 4x4 matrices.
+ *
+ * @param {ArrayLike<number>} a Left matrix.
+ * @param {ArrayLike<number>} b Right matrix.
+ * @returns {Array<number>} The product `a * b`.
+ * @throws {Error} When either input is not sixteen values.
+ */
 export function multiplyMatrix4(a, b)
 {
     if (!isArrayLike(a) || a.length !== 16 || !isArrayLike(b) || b.length !== 16)
@@ -75,7 +88,15 @@ export function multiplyMatrix4(a, b)
     return output;
 }
 
-/** Compose CMF row-vector TRS with translation in elements 12..14. */
+/**
+ * Compose CMF row-vector TRS with translation in elements 12..14.
+ *
+ * @param {ArrayLike<number>} position Translation (x, y, z).
+ * @param {ArrayLike<number>} rotation Rotation quaternion (x, y, z, w); normalized here.
+ * @param {ArrayLike<number>} scale Scale (x, y, z).
+ * @returns {Array<number>} The sixteen matrix values.
+ * @throws {Error} When position or scale is not three finite values.
+ */
 export function composeCmfTransform(position, rotation, scale)
 {
     if (![ position, scale ].every(value => isArrayLike(value) && value.length === 3) ||
@@ -107,7 +128,13 @@ export function composeCmfTransform(position, rotation, scale)
     ];
 }
 
-/** Transpose a flat 4x4 matrix. */
+/**
+ * Transpose a flat 4x4 matrix.
+ *
+ * @param {ArrayLike<number>} matrix Sixteen values.
+ * @returns {Array<number>} The transpose.
+ * @throws {Error} When the input is not sixteen values.
+ */
 export function transposeMatrix4(matrix)
 {
     if (!isArrayLike(matrix) || matrix.length !== 16)

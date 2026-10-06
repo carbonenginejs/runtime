@@ -1,6 +1,6 @@
 import { CjsFormat } from "../../format/CjsFormat.js";
 import { CjsGeometryFormat } from "../../format/CjsGeometryFormat.js";
-/**
+/*
  * Exposed CarbonEngineJS-facing CMF format class.
  *
  * CMF is expected to become the common CarbonEngineJS geometry container, so
@@ -178,7 +178,7 @@ export class CjsCmfFormat extends CjsGeometryFormat
      *
      * @param {Uint8Array|Buffer|ArrayBuffer|object} input Raw .cmf bytes or an existing raw read result.
      * @param {object} [options] Per-call values.
-     * @returns {object}
+     * @returns {import("./core/helpers.js").CmfGraph} The validated raw graph.
      */
     ReadRaw(input, options = {})
     {
@@ -191,7 +191,7 @@ export class CjsCmfFormat extends CjsGeometryFormat
      *
      * @param {Uint8Array|Buffer|ArrayBuffer|object} input Raw .cmf bytes or an existing raw read result.
      * @param {object} [options] Per-call values.
-     * @returns {Promise<object>}
+     * @returns {Promise<import("./core/helpers.js").CmfGraph>} The validated raw graph.
      */
     async ReadRawAsync(input, options = {})
     {
@@ -229,7 +229,7 @@ export class CjsCmfFormat extends CjsGeometryFormat
      * metadata and a `buffers` list supplying uncompressed bytes per
      * BufferView index.
      *
-     * @param {object} graph CMF-native graph.
+     * @param {import("./core/helpers.js").CmfGraph} graph CMF-native graph.
      * @param {object} [options] Writer options (`compress`).
      * @returns {Uint8Array} Complete .cmf file bytes.
      */
@@ -242,7 +242,7 @@ export class CjsCmfFormat extends CjsGeometryFormat
      * Serialize a CMF-native graph to binary .cmf bytes with meshoptimizer
      * compression enabled by default.
      *
-     * @param {object} graph CMF-native graph.
+     * @param {import("./core/helpers.js").CmfGraph} graph CMF-native graph.
      * @param {object} [options] Writer options (`compress`, default true).
      * @returns {Promise<Uint8Array>} Complete .cmf file bytes.
      */
@@ -319,8 +319,8 @@ export class CjsCmfFormat extends CjsGeometryFormat
      * Decodes an animation curve's tagged byte arrays to Float32 knots and
      * values, once, for sampleAnimationCurve and sampleQuaternionCurve.
      *
-     * @param {object} curve A CMF AnimationCurve.
-     * @returns {{ dimension: number, interpolation: string, knots: Float32Array, values: Float32Array }}
+     * @param {import("./core/helpers.js").CmfAnimationCurve} curve A CMF AnimationCurve.
+     * @returns {import("./core/helpers.js").CmfDecodedCurve} The decoded knots and values.
      */
     static decodeAnimationCurve(curve)
     {
@@ -332,7 +332,7 @@ export class CjsCmfFormat extends CjsGeometryFormat
      * (mesh/src/cmf/animation.cpp:140-158).
      *
      * @param {ArrayLike<number>} out Receives the value's components.
-     * @param {object} curve A decoded curve.
+     * @param {import("./core/helpers.js").CmfDecodedCurve} curve A decoded curve.
      * @param {number} time The sample time.
      * @returns {ArrayLike<number>} out.
      */
@@ -346,7 +346,7 @@ export class CjsCmfFormat extends CjsGeometryFormat
      * does: Linear interpolates with Carbon's Slerp (animation.cpp:203-226).
      *
      * @param {ArrayLike<number>} out Receives x, y, z, w.
-     * @param {object} curve A decoded 4-component curve.
+     * @param {import("./core/helpers.js").CmfDecodedCurve} curve A decoded 4-component curve.
      * @param {number} time The sample time.
      * @returns {ArrayLike<number>} out.
      */
@@ -396,7 +396,7 @@ export class CjsCmfFormat extends CjsGeometryFormat
      *
      * @param {Uint8Array|Buffer|ArrayBuffer|object} input Raw .cmf bytes or an existing raw read result.
      * @param {object} [options] Reader values.
-     * @returns {object}
+     * @returns {import("./core/helpers.js").CmfGraph} The validated raw graph.
      */
     static readRaw(input, options = {})
     {
@@ -408,7 +408,7 @@ export class CjsCmfFormat extends CjsGeometryFormat
      *
      * @param {Uint8Array|Buffer|ArrayBuffer|object} input Raw .cmf bytes or an existing raw read result.
      * @param {object} [options] Reader values.
-     * @returns {Promise<object>}
+     * @returns {Promise<import("./core/helpers.js").CmfGraph>} The validated raw graph.
      */
     static async readRawAsync(input, options = {})
     {
@@ -441,7 +441,7 @@ export class CjsCmfFormat extends CjsGeometryFormat
     /**
      * Static one-shot binary write without compression.
      *
-     * @param {object} graph CMF-native graph.
+     * @param {import("./core/helpers.js").CmfGraph} graph CMF-native graph.
      * @param {object} [options] Writer options (`compress`).
      * @returns {Uint8Array} Complete .cmf file bytes.
      */
@@ -454,7 +454,7 @@ export class CjsCmfFormat extends CjsGeometryFormat
      * Static one-shot binary write with meshoptimizer compression enabled by
      * default.
      *
-     * @param {object} graph CMF-native graph.
+     * @param {import("./core/helpers.js").CmfGraph} graph CMF-native graph.
      * @param {object} [options] Writer options (`compress`, default true).
      * @returns {Promise<Uint8Array>} Complete .cmf file bytes.
      */

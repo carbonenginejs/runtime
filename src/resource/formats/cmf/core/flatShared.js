@@ -6,6 +6,10 @@ import { elementTypeSize, estimateStrideFromDecl } from "./utils/vertex.js";
  * `vertex` channel map and index groups, no skeletons, animations or morphs.
  * The OBJ and STL adapters use it; `shared.js` `buildCmfFromShared` is the
  * full route (LODs, skeletons, animations, metadata).
+ *
+ * @param {object} root Flat shared geometry root.
+ * @param {Array<object>} [root.meshes] Meshes with `name`, `vertex`, `indices`, `minBounds` and `maxBounds`.
+ * @returns {import("./helpers.js").CmfGraph} The CMF graph, carrying channel data instead of GPU buffers.
  */
 export function buildCmfFromFlatShared(root)
 {
@@ -17,6 +21,12 @@ export function buildCmfFromFlatShared(root)
         animations: []
     };
 }
+/**
+ * Builds one single-LOD CMF mesh from a flat shared mesh.
+ *
+ * @param {object} mesh Flat shared mesh.
+ * @returns {import("./helpers.js").CmfMesh} The CMF mesh.
+ */
 function buildMesh(mesh)
 {
     const
@@ -63,6 +73,12 @@ function buildMesh(mesh)
     };
 }
 
+/**
+ * Builds a packed Float32 vertex declaration from the populated channels.
+ *
+ * @param {import("./helpers.js").CmfVertexChannels} vertex Shared vertex channels.
+ * @returns {Array<import("./helpers.js").CmfVertexElement>} The declaration.
+ */
 function buildDecl(vertex)
 {
     const decl = [];
@@ -87,11 +103,23 @@ function buildDecl(vertex)
     return decl;
 }
 
+/**
+ * Returns the vertex stride the channels' declaration needs.
+ *
+ * @param {import("./helpers.js").CmfVertexChannels} vertex Shared vertex channels.
+ * @returns {number} Stride in bytes.
+ */
 function estimateVertexStride(vertex)
 {
     return estimateStrideFromDecl(buildDecl(vertex));
 }
 
+/**
+ * Reads a flat shared mesh's bounds.
+ *
+ * @param {object} mesh Flat shared mesh with optional `minBounds` and `maxBounds`.
+ * @returns {import("./helpers.js").CmfBounds} The bounds, zero when absent.
+ */
 function bounds(mesh)
 {
     return {

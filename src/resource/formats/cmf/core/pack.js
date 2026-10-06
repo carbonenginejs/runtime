@@ -1,4 +1,4 @@
-/**
+/*
  * GPU-buffer packing for CMF writing.
  *
  * `buildCmfFromShared` (and hand-built graphs) carry deinterleaved vertex
@@ -26,6 +26,12 @@ const CHANNEL_NAMES = Object.freeze({
     PackedTangentLegacy: "packedTangentLegacy"
 });
 
+/**
+ * Creates a packing error.
+ *
+ * @param {string} message Error detail.
+ * @returns {Error} The error, with code CJS_FORMAT_WRITE_ERROR.
+ */
 function packError(message)
 {
     const error = new Error(`CMF pack: ${message}`);
@@ -33,6 +39,13 @@ function packError(message)
     return error;
 }
 
+/**
+ * Returns the shared channel name for a vertex element.
+ *
+ * @param {import("./helpers.js").CmfVertexElement} element Vertex element.
+ * @returns {string} The channel name.
+ * @throws {Error} When the usage is unknown.
+ */
 function channelName(element)
 {
     const base = CHANNEL_NAMES[element.usage];
@@ -42,6 +55,13 @@ function channelName(element)
     return base;
 }
 
+/**
+ * Returns an element type's byte size as a packing error on failure.
+ *
+ * @param {string} type ElementType name.
+ * @returns {number} The byte size.
+ * @throws {Error} When the type is not supported.
+ */
 function packedElementTypeSize(type)
 {
     try
@@ -54,6 +74,12 @@ function packedElementTypeSize(type)
     }
 }
 
+/**
+ * Encodes a number as an IEEE-754 binary16 bit pattern.
+ *
+ * @param {number} value Input.
+ * @returns {number} The 16-bit pattern.
+ */
 function floatToHalf(value)
 {
     if (Number.isNaN(value)) return 0x7e00;
@@ -73,6 +99,16 @@ function floatToHalf(value)
     return sign | ((exponent + 15) << 10) | mantissa;
 }
 
+/**
+ * Writes one component in the given element type, scaling and clamping
+ * normalized types.
+ *
+ * @param {DataView} view Destination.
+ * @param {number} offset Byte offset.
+ * @param {string} type ElementType name.
+ * @param {number} value Value.
+ * @throws {Error} When the type is not supported.
+ */
 function writeComponent(view, offset, type, value)
 {
     switch (type)
@@ -91,12 +127,28 @@ function writeComponent(view, offset, type, value)
     }
 }
 
+/**
+ * Rounds a value and clamps it to a range.
+ *
+ * @param {number} value Input; falsy reads as 0.
+ * @param {number} min Lower bound.
+ * @param {number} max Upper bound.
+ * @returns {number} The clamped integer.
+ */
 function clampRound(value, min, max)
 {
     const rounded = Math.round(value || 0);
     return rounded < min ? min : rounded > max ? max : rounded;
 }
 
+/**
+ * Returns the vertex count shared by every declared channel.
+ *
+ * @param {Array<import("./helpers.js").CmfVertexElement>} decl Vertex declaration.
+ * @param {import("./helpers.js").CmfVertexChannels} vertex Channels.
+ * @returns {number} The vertex count, or 0 for an empty declaration.
+ * @throws {Error} When a channel is missing, partial, or has a different count.
+ */
 function vertexCountFor(decl, vertex)
 {
     // One declaration describes one vertex row count. Taking the shortest
@@ -136,6 +188,13 @@ function vertexCountFor(decl, vertex)
     return count ?? 0;
 }
 
+/**
+ * Returns a declaration's stride as a packing error on failure.
+ *
+ * @param {Array<import("./helpers.js").CmfVertexElement>} decl Vertex declaration.
+ * @returns {number} Stride in bytes.
+ * @throws {Error} When an element type is not supported.
+ */
 function strideFor(decl)
 {
     try
@@ -148,7 +207,14 @@ function strideFor(decl)
     }
 }
 
-/** Pack semantic CMF element values while preserving already-packed byte payloads. */
+/**
+ * Pack semantic CMF element values while preserving already-packed byte payloads.
+ *
+ * @param {Uint8Array|ArrayBuffer|DataView|ArrayLike<number>} values Values or packed bytes.
+ * @param {string} type ElementType name.
+ * @param {number} elementCount Value count, used to recognise byte arrays that are already packed.
+ * @returns {Uint8Array} The packed bytes.
+ */
 function packElementArray(values, type, elementCount)
 {
     const size = packedElementTypeSize(type);
@@ -170,7 +236,12 @@ function packElementArray(values, type, elementCount)
     return bytes;
 }
 
-/** Pack every native CMF animation curve's knot and value payloads. */
+/**
+ * Pack every native CMF animation curve's knot and value payloads.
+ *
+ * @param {Array<import("./helpers.js").CmfAnimation>|undefined} animations Animations.
+ * @returns {Array<import("./helpers.js").CmfAnimation>} Copies with packed knot and value bytes.
+ */
 function packAnimationCurves(animations)
 {
     return (animations || []).map((animation) => ({
@@ -186,9 +257,9 @@ function packAnimationCurves(animations)
 /**
  * Interleave deinterleaved channels into vertex-buffer bytes per `decl`.
  *
- * @param {Array<object>} decl Vertex declaration.
- * @param {object} vertex Channel-name-keyed flat arrays.
- * @returns {object} `{ bytes, stride, count }`.
+ * @param {Array<import("./helpers.js").CmfVertexElement>} decl Vertex declaration.
+ * @param {import("./helpers.js").CmfVertexChannels} vertex Channel-name-keyed flat arrays.
+ * @returns {{ bytes: Uint8Array, stride: number, count: number }} The bytes, stride and vertex count.
  * @throws {Error} When a declared channel is missing, partial, or has a
  * different vertex count from its peers.
  */
@@ -219,9 +290,9 @@ export function packVertexBuffer(decl, vertex)
 /**
  * Concatenate index groups into index-buffer bytes.
  *
- * @param {Array<object>} groups Index groups with `faces` arrays.
+ * @param {Array<import("./helpers.js").CmfIndexGroup>} groups Index groups with `faces` arrays.
  * @param {ArrayLike<number>|null} [indexBuffer] Complete authored index stream.
- * @returns {object} `{ bytes, stride, count }` (u16 unless any index needs u32).
+ * @returns {{ bytes: Uint8Array, stride: number, count: number }} The bytes, stride and index count (u16 unless any index needs u32).
  */
 export function packIndexBuffer(groups, indexBuffer = null)
 {
@@ -246,6 +317,12 @@ export function packIndexBuffer(groups, indexBuffer = null)
     return { bytes, stride, count: faces.length };
 }
 
+/**
+ * Rejects a skeleton whose bones are not name strings.
+ *
+ * @param {object} skeleton Skeleton.
+ * @throws {Error} When the skeleton is GR2-shaped.
+ */
 function assertCmfNativeSkeleton(skeleton)
 {
     const bonesAreNames = Array.isArray(skeleton?.bones) &&
@@ -265,8 +342,8 @@ function assertCmfNativeSkeleton(skeleton)
  * Buffer indices are reassigned uniquely across all meshes/LODs/morph
  * targets; BufferViews are rebuilt from the packed bytes.
  *
- * @param {object} graph CMF-native graph carrying `vertex`/`indices` channel data.
- * @returns {object} `{ graph, buffers }` ready for `writeCmf`.
+ * @param {import("./helpers.js").CmfGraph} graph CMF-native graph carrying `vertex`/`indices` channel data.
+ * @returns {{ graph: import("./helpers.js").CmfGraph, buffers: Array<import("./helpers.js").CmfBufferRecord|null> }} The graph and buffers, ready for `writeCmf`.
  */
 export function packGraphBuffers(graph)
 {

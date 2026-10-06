@@ -3,11 +3,22 @@ import { normalizeQuaternionSeries } from "./utils/quaternion.js";
 
 const NO_CURVE = { format: 0, degree: 0, error: "no curve data" };
 
+/**
+ * Returns a fresh copy of the no-curve placeholder.
+ *
+ * @returns {{ format: number, degree: number, error: string }} The placeholder curve.
+ */
 function copyNoCurve()
 {
     return { ...NO_CURVE };
 }
 
+/**
+ * Expands flat vec3 scale controls into 3x3 diagonal scale/shear controls.
+ *
+ * @param {ArrayLike<number>} values Flat scale values.
+ * @returns {Array<number>} Nine values per key.
+ */
 function expandScaleControls(values)
 {
     const expanded = [];
@@ -18,6 +29,15 @@ function expandScaleControls(values)
     return expanded;
 }
 
+/**
+ * Returns a curve payload as numbers, copying an already-decoded array or
+ * decoding tagged bytes.
+ *
+ * @param {ArrayLike<number>|Uint8Array|ArrayBuffer} input Decoded values or packed bytes.
+ * @param {string} type ElementType name of the packed bytes.
+ * @param {number} expectedLength Value count of an already-decoded array.
+ * @returns {Array<number>} The values.
+ */
 function decodeCurveArray(input, type, expectedLength)
 {
     if (Array.isArray(input) && input.length === expectedLength && input.every(Number.isFinite))
@@ -27,6 +47,16 @@ function decodeCurveArray(input, type, expectedLength)
     return decodeElementArray(input, type);
 }
 
+/**
+ * Converts a CMF curve into a decoded GR2-shaped curve.
+ *
+ * @param {import("./helpers.js").CmfAnimationCurve|null|undefined} curve CMF curve.
+ * @param {number} targetDimension Required value dimension.
+ * @param {boolean} [expandScale=false] Expands vec3 scale to 3x3 scale/shear.
+ * @param {boolean} [normalizeRotation=false] Normalizes quaternion controls.
+ * @returns {object} The GR2 curve `{ format, degree, knots, controls }`, or the no-curve placeholder.
+ * @throws {Error} When the interpolation, counts or dimension do not fit.
+ */
 function convertCurve(curve, targetDimension, expandScale = false, normalizeRotation = false)
 {
     if (!curve) return copyNoCurve();
@@ -69,6 +99,13 @@ function convertCurve(curve, targetDimension, expandScale = false, normalizeRota
     };
 }
 
+/**
+ * Converts a CMF skeleton into a GR2-shaped skeleton.
+ *
+ * @param {import("./helpers.js").CmfSkeleton} skeleton CMF skeleton.
+ * @returns {{ name: string, bones: Array<object> }} The GR2 skeleton.
+ * @throws {Error} When bone names repeat.
+ */
 function convertSkeleton(skeleton)
 {
     const names = skeleton.bones ?? [];
@@ -94,7 +131,12 @@ function convertSkeleton(skeleton)
     };
 }
 
-/** Build GR2-shaped models from CMF skeleton and mesh bindings. */
+/**
+ * Build GR2-shaped models from CMF skeleton and mesh bindings.
+ *
+ * @param {import("./helpers.js").CmfGraph} raw CMF graph.
+ * @returns {Array<{ name: string, skeleton: object, meshBindings: Array<number> }>} One model per skeleton.
+ */
 export function buildGr2Models(raw)
 {
     return (raw.skeletons ?? []).map((skeleton, skeletonIndex) => ({
@@ -105,6 +147,12 @@ export function buildGr2Models(raw)
     }));
 }
 
+/**
+ * Creates an empty GR2 transform track.
+ *
+ * @param {string} name Bone name.
+ * @returns {object} The track with no-curve placeholders.
+ */
 function makeTransformTrack(name)
 {
     return {
@@ -116,6 +164,15 @@ function makeTransformTrack(name)
     };
 }
 
+/**
+ * Groups a CMF animation's channels into GR2 track groups, one per skeleton
+ * plus groups for unclaimed bones and morph targets.
+ *
+ * @param {import("./helpers.js").CmfAnimation} animation CMF animation.
+ * @param {Array<import("./helpers.js").CmfSkeleton>} skeletons CMF skeletons.
+ * @returns {Array<{ name: string, transformTracks: Array<object>, vectorTracks: Array<object> }>} The track groups.
+ * @throws {Error} When a channel is unsupported, duplicated, missing its curve, or resolves to no single skeleton.
+ */
 function animationGroups(animation, skeletons)
 {
     const boneChannels = new Map();
@@ -188,7 +245,12 @@ function animationGroups(animation, skeletons)
     return groups;
 }
 
-/** Build GR2-shaped animations from CMF native animations. */
+/**
+ * Build GR2-shaped animations from CMF native animations.
+ *
+ * @param {import("./helpers.js").CmfGraph} raw CMF graph.
+ * @returns {Array<object>} GR2-shaped animations.
+ */
 export function buildGr2Animations(raw)
 {
     return (raw.animations ?? []).map((animation) => ({

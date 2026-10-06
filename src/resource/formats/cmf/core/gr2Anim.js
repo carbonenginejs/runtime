@@ -1,4 +1,4 @@
-/**
+/*
  * GR2-shaped skeleton/animation conversion into CMF-native data.
  *
  * Input is the GR2 JSON shape emitted by the GR2 reader. Packed Granny curves
@@ -25,6 +25,12 @@ import { composeCmfTransform, invertMatrix4, multiplyMatrix4 } from "./utils/mat
 import { normalizeQuaternionSeries } from "./utils/quaternion.js";
 import { morphAnimationTargetName } from "./utils/morph.js";
 
+/**
+ * Creates a GR2 conversion error.
+ *
+ * @param {string} message Error detail.
+ * @returns {Error} The error, with code CJS_FORMAT_WRITE_ERROR.
+ */
 function convertError(message)
 {
     const error = new Error(`CMF gr2 convert: ${message}`);
@@ -63,6 +69,14 @@ const FLOAT32_EPSILON = 2 ** -23;
 const SCALE_SHEAR_RELATIVE_EPSILONS = 4;
 const SCALE_SHEAR_OFF_DIAGONALS = Object.freeze([ 1, 2, 3, 5, 6, 7 ]);
 
+/**
+ * Tests a 3x3 scale/shear block for off-diagonal values beyond a small
+ * relative Float32 tolerance.
+ *
+ * @param {ArrayLike<number>} values Flat scale/shear values.
+ * @param {number} [offset=0] Start of the 3x3 block.
+ * @returns {boolean} True when the block contains shear.
+ */
 function containsScaleShear(values, offset = 0)
 {
     let magnitude = 1;
@@ -76,6 +90,13 @@ function containsScaleShear(values, offset = 0)
     );
 }
 
+/**
+ * Returns a GR2 bone's rest transform as position, rotation and diagonal scale.
+ *
+ * @param {object} bone GR2 bone with optional `position`, `orientation` and `scaleShear`.
+ * @returns {{ position: Array<number>, rotation: Array<number>, scale: Array<number> }} The rest transform.
+ * @throws {Error} When the rest scale/shear contains shear.
+ */
 function boneRestTransform(bone)
 {
     const scaleShear = bone.scaleShear || [ 1, 0, 0, 0, 1, 0, 0, 0, 1 ];
@@ -96,7 +117,7 @@ function boneRestTransform(bone)
  * Convert a GR2-shaped skeleton into a CMF-native skeleton.
  *
  * @param {object} skeleton GR2 skeleton `{ name, bones: [{ name, parentIndex, position?, orientation?, scaleShear? }] }`.
- * @returns {object} CMF-native skeleton with rebuilt inverse bind matrices.
+ * @returns {import("./helpers.js").CmfSkeleton} CMF-native skeleton with rebuilt inverse bind matrices.
  */
 export function convertGr2Skeleton(skeleton)
 {
@@ -186,6 +207,13 @@ export function evaluateDecodedCurve(curve, time, out, duration = 0)
     });
 }
 
+/**
+ * Rejects a scale/shear curve whose controls contain shear.
+ *
+ * @param {{ knots: Array<number>, controls: Array<number>, degree: number, dimension: number, preserveIdentity?: boolean, format?: number, keyframed?: boolean }} curve Decoded curve with 9-value controls.
+ * @param {string} track Track name for errors.
+ * @throws {Error} When any control contains shear.
+ */
 function validateScaleShearCurve(curve, track)
 {
     for (let offset = 0; offset < curve.controls.length; offset += 9)
@@ -197,6 +225,12 @@ function validateScaleShearCurve(curve, track)
     }
 }
 
+/**
+ * Collects a CMF- or GR2-shaped skeleton's bone names.
+ *
+ * @param {object} skeleton Skeleton with string or `{ name }` bones.
+ * @returns {Set<string>} The bone names.
+ */
 function skeletonBoneNames(skeleton)
 {
     return new Set((skeleton?.bones || []).map(bone =>
@@ -204,27 +238,59 @@ function skeletonBoneNames(skeleton)
     ));
 }
 
+/**
+ * Lists a mesh's bone binding names.
+ *
+ * @param {object} mesh Shared mesh.
+ * @returns {Array<string>} The binding names.
+ */
 function meshBoneBindingNames(mesh)
 {
     return (mesh?.boneBindings || []).map(binding => binding?.name || "");
 }
 
+/**
+ * Tests whether a mesh or any of its LODs carries BoneIndices data.
+ *
+ * @param {object} mesh Shared mesh.
+ * @returns {boolean} True when blendIndice data is present.
+ */
 function meshHasBoneIndices(mesh)
 {
     if ((mesh?.vertex?.blendIndice ?? []).length) return true;
     return (mesh?.lods ?? []).some(lod => (lod?.vertex?.blendIndice ?? []).length > 0);
 }
 
+/**
+ * Tests whether every binding name is a bone of the skeleton.
+ *
+ * @param {Set<string>} names Skeleton bone names.
+ * @param {Array<string>} bindings Binding names.
+ * @returns {boolean} True when all bindings resolve.
+ */
 function skeletonContainsBindings(names, bindings)
 {
     return bindings.every(name => names.has(name));
 }
 
+/**
+ * Encodes numbers as little-endian Float32 bytes.
+ *
+ * @param {ArrayLike<number>} values Values.
+ * @returns {Array<number>} The bytes.
+ */
 function floatBytes(values)
 {
     return Array.from(new Uint8Array(new Float32Array(values).buffer));
 }
 
+/**
+ * Tests whether flat quaternion values are all identity.
+ *
+ * @param {Array<number>} values Flat values.
+ * @param {number} dimension Value dimension; only 4 can match.
+ * @returns {boolean} True when every value is the identity quaternion.
+ */
 function isIdentityValue(values, dimension)
 {
     const identity = dimension === 4 ? [ 0, 0, 0, 1 ] : dimension === 3 ? null : null;
@@ -232,6 +298,13 @@ function isIdentityValue(values, dimension)
     return values.every((value, index) => Math.abs(value - identity[index % 4]) < 1e-7);
 }
 
+/**
+ * Returns the scale diagonal of one key's 3x3 scale/shear controls.
+ *
+ * @param {ArrayLike<number>} controls Flat 9-value controls.
+ * @param {number} knotIndex Key index.
+ * @returns {Array<number>} The x, y, z scale.
+ */
 function diagonalFromScaleShear(controls, knotIndex)
 {
     return [
@@ -241,6 +314,16 @@ function diagonalFromScaleShear(controls, knotIndex)
     ];
 }
 
+/**
+ * Decodes and validates one GR2 track curve.
+ *
+ * @param {object|null|undefined} curve Packed or decoded GR2 curve.
+ * @param {number} expectedDimension Required value dimension.
+ * @param {string} track Track name for errors.
+ * @param {string} kind Curve kind for errors.
+ * @returns {{ knots: Array<number>, controls: Array<number>, degree: number, dimension: number, preserveIdentity?: boolean, format?: number, keyframed?: boolean }|null} The decoded curve, or null when absent.
+ * @throws {Error} When the curve cannot be decoded or is malformed.
+ */
 function decodeTrackCurve(curve, expectedDimension, track, kind)
 {
     if (!curve) return null;
@@ -312,6 +395,14 @@ function decodeTrackCurve(curve, expectedDimension, track, kind)
     };
 }
 
+/**
+ * Normalizes flat quaternion controls in place, rethrowing failures as
+ * conversion errors.
+ *
+ * @param {Array<number>} values Flat quaternion controls.
+ * @returns {Array<number>} The same array.
+ * @throws {Error} When a quaternion has zero length.
+ */
 function normalizeQuaternionValues(values)
 {
     try
@@ -324,6 +415,17 @@ function normalizeQuaternionValues(values)
     }
 }
 
+/**
+ * Converts a decoded Granny curve into a CMF Step or Linear curve,
+ * resampling degree-2 curves.
+ *
+ * @param {{ knots: Array<number>, controls: Array<number>, degree: number, dimension: number, preserveIdentity?: boolean, format?: number, keyframed?: boolean }} curve Decoded curve.
+ * @param {number} targetDimension Output value dimension.
+ * @param {number} duration Animation duration.
+ * @param {number} sampleRate Degree-2 resample rate in Hz.
+ * @param {boolean} [quaternion=false] Normalizes values as quaternions.
+ * @returns {import("./helpers.js").CmfAnimationCurve & { plainValues: Array<number> }} The CMF curve plus its unencoded values.
+ */
 function convertCurve(curve, targetDimension, duration, sampleRate, quaternion = false)
 {
     const dimension = curve.dimension;
@@ -524,6 +626,12 @@ function convertCurve(curve, targetDimension, duration, sampleRate, quaternion =
 const ulpScratch = new Float32Array(1);
 const ulpScratchBits = new Uint32Array(ulpScratch.buffer);
 
+/**
+ * Returns the Float32 value one ULP below a positive value.
+ *
+ * @param {number} value Input.
+ * @returns {number} The previous Float32, or the input when not positive.
+ */
 function float32UlpBefore(value)
 {
     if (!(value > 0)) return value;
@@ -536,9 +644,12 @@ function float32UlpBefore(value)
  * Convert a GR2-shaped animation into a CMF-native animation.
  *
  * @param {object} animation GR2 animation with decoded curves.
- * @param {object} [options] `sampleRate` (Hz, default 30) for degree-2 resampling;
- * `dropEmpty` returns null when filtering leaves no channels.
- * @returns {object|null} CMF-native animation with channels and curves, or null when requested.
+ * @param {object} [options={}] Conversion options.
+ * @param {number} [options.sampleRate=30] Degree-2 resample rate in Hz.
+ * @param {Set<string>} [options.morphTargetNames] Vector track names kept as MorphTarget channels.
+ * @param {boolean} [options.preserveIdentity] Keeps constant identity rotation and scale channels.
+ * @param {boolean} [options.dropEmpty] Returns null when filtering leaves no channels.
+ * @returns {import("./helpers.js").CmfAnimation|null} CMF-native animation with channels and curves, or null when requested.
  */
 export function convertGr2Animation(animation, options = {})
 {
@@ -673,7 +784,8 @@ export function convertGr2Animation(animation, options = {})
  * palette; a unique palette match resolves otherwise-unbound skinned meshes.
  *
  * @param {object} root Shared geometry root.
- * @param {object} [options] Conversion options (`sampleRate`).
+ * @param {object} [options={}] Conversion options.
+ * @param {number} [options.sampleRate] Degree-2 resample rate in Hz.
  * @returns {object} Root with converted skeletons/animations.
  */
 export function convertGr2SkeletonsAndAnimations(root, options = {})

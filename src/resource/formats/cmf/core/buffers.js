@@ -15,7 +15,13 @@ const CHANNEL_NAMES = Object.freeze({
     PackedTangentLegacy: "packedTangentLegacy"
 });
 
-/** Decodes geometry sync into a normalized CMF format reader result. */
+/**
+ * Decodes geometry sync into a normalized CMF format reader result.
+ *
+ * @param {import("./helpers.js").CmfGraph} result Parsed graph; receives buffers and decoded channels.
+ * @param {Uint8Array} sourceBytes File bytes.
+ * @returns {import("./helpers.js").CmfGraph} The same graph.
+ */
 export function decodeGeometrySync(result, sourceBytes)
 {
     const sections = result.sections.map((section, index) => decodeSectionSync(section, index, sourceBytes));
@@ -23,7 +29,13 @@ export function decodeGeometrySync(result, sourceBytes)
     return result;
 }
 
-/** Decodes geometry async into a normalized CMF format reader result. */
+/**
+ * Decodes geometry async into a normalized CMF format reader result.
+ *
+ * @param {import("./helpers.js").CmfGraph} result Parsed graph; receives buffers and decoded channels.
+ * @param {Uint8Array} sourceBytes File bytes.
+ * @returns {Promise<import("./helpers.js").CmfGraph>} The same graph.
+ */
 export async function decodeGeometryAsync(result, sourceBytes)
 {
     await MeshoptDecoder.ready;
@@ -32,6 +44,15 @@ export async function decodeGeometryAsync(result, sourceBytes)
     return result;
 }
 
+/**
+ * Returns an uncompressed GPU section's bytes.
+ *
+ * @param {import("./helpers.js").CmfSection} section Section record.
+ * @param {number} index Section index.
+ * @param {Uint8Array} sourceBytes File bytes.
+ * @returns {Uint8Array|null} The section bytes, or null for non-GPU sections.
+ * @throws {Error} When the section is compressed.
+ */
 function decodeSectionSync(section, index, sourceBytes)
 {
     if (section.compression !== "None")
@@ -42,6 +63,15 @@ function decodeSectionSync(section, index, sourceBytes)
     return sectionBytes(section, index, sourceBytes);
 }
 
+/**
+ * Returns a GPU section's bytes, decoding meshoptimizer compression.
+ *
+ * @param {import("./helpers.js").CmfSection} section Section record.
+ * @param {number} index Section index.
+ * @param {Uint8Array} sourceBytes File bytes.
+ * @returns {Uint8Array|null} The uncompressed bytes, or null for non-GPU sections.
+ * @throws {Error} When the compression is not supported.
+ */
 function decodeSectionWithMeshopt(section, index, sourceBytes)
 {
     const source = sectionBytes(section, index, sourceBytes);
@@ -68,6 +98,14 @@ function decodeSectionWithMeshopt(section, index, sourceBytes)
     throw new Error(`Unsupported CMF section compression "${section.compression}"`);
 }
 
+/**
+ * Returns the stored bytes of a GPU buffer section.
+ *
+ * @param {import("./helpers.js").CmfSection} section Section record.
+ * @param {number} index Section index.
+ * @param {Uint8Array} sourceBytes File bytes.
+ * @returns {Uint8Array|null} A view over the stored bytes, or null for the Data section and non-GPU sections.
+ */
 function sectionBytes(section, index, sourceBytes)
 {
     if (index === 0 || section.type !== "GpuBuffer")
@@ -78,6 +116,13 @@ function sectionBytes(section, index, sourceBytes)
     return sourceBytes.subarray(section.offset, section.offset + section.compressedSize);
 }
 
+/**
+ * Attaches decoded buffers to the graph and decoded vertex channels and index
+ * groups to every mesh and LOD.
+ *
+ * @param {import("./helpers.js").CmfGraph} result Parsed graph.
+ * @param {Array<Uint8Array|null>} sectionData Uncompressed bytes per section.
+ */
 function attachGeometry(result, sectionData)
 {
     result.buffers = result.sections.map((section, index) =>
@@ -121,6 +166,14 @@ function attachGeometry(result, sectionData)
     }
 }
 
+/**
+ * Deinterleaves a vertex buffer view into named channels.
+ *
+ * @param {Array<import("./helpers.js").CmfVertexElement>} decl Vertex declaration.
+ * @param {import("./helpers.js").CmfBufferView} view Vertex buffer view.
+ * @param {Array<Uint8Array|null>} sectionData Uncompressed bytes per section.
+ * @returns {import("./helpers.js").CmfVertexChannels} The channels.
+ */
 function readVertexChannels(decl, view, sectionData)
 {
     const channels = createVertexChannels();
@@ -150,6 +203,14 @@ function readVertexChannels(decl, view, sectionData)
     return channels;
 }
 
+/**
+ * Splits a LOD's index buffer into one group per area.
+ *
+ * @param {import("./helpers.js").CmfMesh} mesh Owning mesh.
+ * @param {import("./helpers.js").CmfMeshLod} lod LOD.
+ * @param {Array<Uint8Array|null>} sectionData Uncompressed bytes per section.
+ * @returns {Array<import("./helpers.js").CmfIndexGroup>} The index groups.
+ */
 function readIndexGroups(mesh, lod, sectionData)
 {
     if (mesh.topology === "PointList")
@@ -196,6 +257,14 @@ function readIndexGroups(mesh, lod, sectionData)
     });
 }
 
+/**
+ * Reads little-endian indices of the given width.
+ *
+ * @param {DataView} reader Index bytes.
+ * @param {number} byteSize Byte count to read.
+ * @param {number} stride Index width in bytes.
+ * @returns {Array<number>} The indices.
+ */
 function readIndices(reader, byteSize, stride)
 {
     const result = [];
@@ -208,6 +277,13 @@ function readIndices(reader, byteSize, stride)
     return result;
 }
 
+/**
+ * Returns the bytes a buffer view covers.
+ *
+ * @param {import("./helpers.js").CmfBufferView} view Buffer view.
+ * @param {Array<Uint8Array|null>} sectionData Uncompressed bytes per section.
+ * @returns {Uint8Array|null} A subarray, or null when the section is missing or the view is empty.
+ */
 function viewData(view, sectionData)
 {
     const section = sectionData[view.index];
@@ -219,6 +295,12 @@ function viewData(view, sectionData)
     return section.subarray(view.offset, view.offset + view.size);
 }
 
+/**
+ * Returns the shared channel name for a vertex element.
+ *
+ * @param {import("./helpers.js").CmfVertexElement} element Vertex element.
+ * @returns {string} The channel name.
+ */
 function channelName(element)
 {
     const base = CHANNEL_NAMES[element.usage] ?? lowerFirst(element.usage);
@@ -235,6 +317,11 @@ function channelName(element)
     return base;
 }
 
+/**
+ * Creates empty vertex channels.
+ *
+ * @returns {import("./helpers.js").CmfVertexChannels} Empty channels.
+ */
 function createVertexChannels()
 {
     return {
@@ -252,12 +339,27 @@ function createVertexChannels()
     };
 }
 
+/**
+ * Reads one component of a vertex element.
+ *
+ * @param {DataView} reader Vertex bytes.
+ * @param {number} base Element byte offset.
+ * @param {string} type ElementType name.
+ * @param {number} component Component index.
+ * @returns {number} The decoded value.
+ */
 function readElementComponent(reader, base, type, component)
 {
     const offset = base + component * elementTypeSize(type);
     return readCmfElementComponent(reader, offset, type);
 }
 
+/**
+ * Lower-cases the first character.
+ *
+ * @param {string} value Input.
+ * @returns {string} The converted string.
+ */
 function lowerFirst(value)
 {
     return value ? value[0].toLowerCase() + value.slice(1) : value;

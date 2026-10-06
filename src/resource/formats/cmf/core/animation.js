@@ -14,9 +14,9 @@ import { decodeElementArray } from "./utils/vertex.js";
  * Decodes a CMF animation curve's tagged byte arrays into plain Float32 knots
  * and values.
  *
- * @param {object} curve A CMF AnimationCurve: valueDimension, interpolation,
+ * @param {import("./helpers.js").CmfAnimationCurve} curve A CMF AnimationCurve: valueDimension, interpolation,
  *   knotType, valueType, knots, values.
- * @returns {{ dimension: number, interpolation: string, knots: Float32Array, values: Float32Array }}
+ * @returns {import("./helpers.js").CmfDecodedCurve} The decoded knots and values.
  */
 export function decodeAnimationCurve(curve)
 {
@@ -69,7 +69,7 @@ function findKnotInterval(knots, time)
  * as Carbon's `default: return {}` does.
  *
  * @param {ArrayLike<number>} out Receives `dimension` components.
- * @param {object} curve A decoded curve (decodeAnimationCurve).
+ * @param {import("./helpers.js").CmfDecodedCurve} curve A decoded curve (decodeAnimationCurve).
  * @param {number} time The sample time.
  * @returns {ArrayLike<number>} out.
  */
@@ -100,7 +100,7 @@ export function sampleAnimationCurve(out, curve, time)
  * when the two are within 0.001 of parallel. Components are x, y, z, w.
  *
  * @param {ArrayLike<number>} out Receives the quaternion.
- * @param {object} curve A decoded 4-component curve.
+ * @param {import("./helpers.js").CmfDecodedCurve} curve A decoded 4-component curve.
  * @param {number} time The sample time.
  * @returns {ArrayLike<number>} out.
  */

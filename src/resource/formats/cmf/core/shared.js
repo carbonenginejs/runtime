@@ -23,6 +23,12 @@ const VERTEX_CHANNELS = [
 /**
  * Builds a CMF document from normalized shared geometry for the CMF format
  * reader.
+ *
+ * @param {object} input Shared geometry root, or a single shared mesh.
+ * @param {object} [options={}] Build options, also passed to the GR2 skeleton and animation conversion.
+ * @param {string} [options.boneIndexType] ElementType for BoneIndices; defaults to UInt16.
+ * @param {number} [options.sampleRate] GR2 degree-2 curve resample rate in Hz.
+ * @returns {import("./helpers.js").CmfGraph} The CMF graph, carrying channel data instead of GPU buffers.
  */
 export function buildCmfFromShared(input, options = {})
 {
@@ -40,6 +46,11 @@ export function buildCmfFromShared(input, options = {})
 /**
  * Builds normalized shared geometry from a CMF document for the CMF format
  * reader.
+ *
+ * @param {import("./helpers.js").CmfGraph} raw CMF graph.
+ * @param {import("./helpers.js").CmfClasses} classes Constructors used for hydration.
+ * @param {import("./helpers.js").CmfHydrationOptions} [hydrationOptions={}] Values forwarded to SetValues.
+ * @returns {object} The hydrated shared root, or its plain fields.
  */
 export function buildSharedFromCmf(raw, classes, hydrationOptions = {})
 {
@@ -53,6 +64,14 @@ export function buildSharedFromCmf(raw, classes, hydrationOptions = {})
     }, hydrationClasses, hydrationOptions);
 }
 
+/**
+ * Builds one CMF mesh from a shared mesh and its LODs.
+ *
+ * @param {object} mesh Shared mesh.
+ * @param {object} options Build options.
+ * @returns {import("./helpers.js").CmfMesh} The CMF mesh, carrying channel data.
+ * @throws {Error} When bone bindings and BoneIndices are not both present or both absent.
+ */
 function buildMesh(mesh, options)
 {
     const lodSources = sharedLodSources(mesh);
@@ -106,6 +125,13 @@ function buildMesh(mesh, options)
     };
 }
 
+/**
+ * Returns one normalized shared mesh per LOD, inheriting mesh-level fields
+ * and morph targets.
+ *
+ * @param {object} mesh Shared mesh with optional `lods`.
+ * @returns {Array<object>} The LOD sources.
+ */
 function sharedLodSources(mesh)
 {
     const lods = Array.isArray(mesh.lods) && mesh.lods.length ? mesh.lods : [ mesh ];
@@ -129,6 +155,15 @@ function sharedLodSources(mesh)
     });
 }
 
+/**
+ * Builds one LOD from a normalized shared LOD source.
+ *
+ * @param {object} mesh Shared LOD source.
+ * @param {number} index LOD index.
+ * @param {object} options Build options.
+ * @returns {import("./helpers.js").CmfMeshLod & { decl: Array<import("./helpers.js").CmfVertexElement>, topology: string, morphTargetSet: { decl: Array<import("./helpers.js").CmfVertexElement>, targets: Array<import("./helpers.js").CmfMorphTarget>, lods: Array<import("./helpers.js").CmfLodMorphTarget> }, indexBuffer: ArrayLike<number>|null }} The LOD plus the build-only fields buildMesh strips.
+ * @throws {Error} When the topology, vertex count or indices are invalid.
+ */
 function buildLod(mesh, index, options)
 {
     const
@@ -205,6 +240,14 @@ function buildLod(mesh, index, options)
     };
 }
 
+/**
+ * Returns a LOD's threshold, defaulting only the first LOD.
+ *
+ * @param {object} mesh Shared LOD source.
+ * @param {number} index LOD index.
+ * @returns {number} The threshold.
+ * @throws {Error} When a later LOD has no threshold.
+ */
 function lodThreshold(mesh, index)
 {
     if (mesh.threshold !== undefined && mesh.threshold !== null) return mesh.threshold;
@@ -212,6 +255,15 @@ function lodThreshold(mesh, index)
     throw new Error(`CMF LOD ${index} requires an explicit descending threshold`);
 }
 
+/**
+ * Builds one mesh area from authored area data or the LOD geometry.
+ *
+ * @param {object} mesh Shared mesh.
+ * @param {Array<import("./helpers.js").CmfMeshLod & { decl: Array<import("./helpers.js").CmfVertexElement>, topology: string, morphTargetSet: { decl: Array<import("./helpers.js").CmfVertexElement>, targets: Array<import("./helpers.js").CmfMorphTarget>, lods: Array<import("./helpers.js").CmfLodMorphTarget> }, indexBuffer: ArrayLike<number>|null }>} lods Built LODs.
+ * @param {import("./helpers.js").CmfIndexGroup} group Base LOD index group.
+ * @param {number} areaIndex Area index.
+ * @returns {import("./helpers.js").CmfMeshArea} The area.
+ */
 function buildMeshArea(mesh, lods, group, areaIndex)
 {
     const source = mesh.areas?.[areaIndex] ?? group;
@@ -233,6 +285,14 @@ function buildMeshArea(mesh, lods, group, areaIndex)
     };
 }
 
+/**
+ * Returns the vertex indices an area uses.
+ *
+ * @param {import("./helpers.js").CmfIndexGroup|undefined} group Index group.
+ * @param {string} topology MeshTopology name.
+ * @param {number} vertexCount Vertex count, used for point lists.
+ * @returns {ArrayLike<number>} The faces, or the point range.
+ */
 function areaVertexIndices(group, topology, vertexCount)
 {
     if (topology !== "PointList") return group?.faces ?? [];
@@ -241,6 +301,14 @@ function areaVertexIndices(group, topology, vertexCount)
     return Array.from({ length: count }, (_, index) => first + index);
 }
 
+/**
+ * Collects the bone binding indices with positive weight in an area.
+ *
+ * @param {import("./helpers.js").CmfIndexGroup|undefined} group Index group.
+ * @param {import("./helpers.js").CmfVertexChannels|undefined} vertex Vertex channels.
+ * @param {string} topology MeshTopology name.
+ * @returns {Array<number>} The bone indices.
+ */
 function areaBones(group, vertex, topology)
 {
     const boneIndices = vertex?.blendIndice ?? [];
@@ -260,6 +328,15 @@ function areaBones(group, vertex, topology)
     return Array.from(bones);
 }
 
+/**
+ * Tests whether any morph target moves a vertex of the area.
+ *
+ * @param {import("./helpers.js").CmfIndexGroup|undefined} group Index group.
+ * @param {ArrayLike<number>} basePositions Base positions.
+ * @param {Array<import("./helpers.js").CmfLodMorphTarget>} morphLods Morph targets with vertex channels.
+ * @param {string} topology MeshTopology name.
+ * @returns {boolean} True when a morph position differs.
+ */
 function areaAffectedByMorphTargets(group, basePositions, morphLods, topology)
 {
     const vertexCount = basePositions.length / 3;
@@ -277,6 +354,14 @@ function areaAffectedByMorphTargets(group, basePositions, morphLods, topology)
     return false;
 }
 
+/**
+ * Computes an area's bounds from its vertices, falling back to the mesh bounds.
+ *
+ * @param {import("./helpers.js").CmfIndexGroup} group Index group.
+ * @param {import("./helpers.js").CmfVertexChannels} vertex Vertex channels.
+ * @param {object} mesh Shared mesh.
+ * @returns {import("./helpers.js").CmfBounds} The bounds.
+ */
 function boundsForArea(group, vertex, mesh)
 {
     const positions = vertex?.position ?? [];
@@ -300,6 +385,14 @@ function boundsForArea(group, vertex, mesh)
     return { min, max };
 }
 
+/**
+ * Builds a LOD's area ranges from its index groups.
+ *
+ * @param {Array<import("./helpers.js").CmfIndexGroup>} groups Index groups.
+ * @param {string} topology MeshTopology name.
+ * @param {number} vertexCount Vertex count, used for point lists.
+ * @returns {Array<import("./helpers.js").CmfLodMeshArea>} The area ranges.
+ */
 function buildLodAreas(groups, topology, vertexCount)
 {
     if (topology === "PointList")
@@ -319,6 +412,13 @@ function buildLodAreas(groups, topology, vertexCount)
     }));
 }
 
+/**
+ * Compares two vertex declarations element by element.
+ *
+ * @param {Array<import("./helpers.js").CmfVertexElement>} left Declaration.
+ * @param {Array<import("./helpers.js").CmfVertexElement>} right Declaration.
+ * @returns {boolean} True when equal.
+ */
 function sameDeclaration(left, right)
 {
     return left.length === right.length && left.every((element, index) =>
@@ -330,6 +430,13 @@ function sameDeclaration(left, right)
     });
 }
 
+/**
+ * Checks that every LOD matches the base LOD's layout and that thresholds
+ * descend.
+ *
+ * @param {Array<import("./helpers.js").CmfMeshLod & { decl: Array<import("./helpers.js").CmfVertexElement>, topology: string, morphTargetSet: { decl: Array<import("./helpers.js").CmfVertexElement>, targets: Array<import("./helpers.js").CmfMorphTarget>, lods: Array<import("./helpers.js").CmfLodMorphTarget> }, indexBuffer: ArrayLike<number>|null }>} lods Built LODs.
+ * @throws {Error} When a LOD is incompatible.
+ */
 function assertCompatibleLods(lods)
 {
     const base = lods[0];
@@ -358,6 +465,12 @@ function assertCompatibleLods(lods)
     }
 }
 
+/**
+ * Normalizes a shared mesh's skin and packed tangents, and its morph targets' tangents.
+ *
+ * @param {object} mesh Shared mesh.
+ * @returns {object} The normalized copy.
+ */
 function normalizeSharedMeshTangents(mesh)
 {
     const vertex = normalizeSharedVertex(mesh.vertex ?? {}, mesh.vertexCount);
@@ -368,6 +481,13 @@ function normalizeSharedMeshTangents(mesh)
     return { ...mesh, vertex, morphTargets };
 }
 
+/**
+ * Returns the number of rows a morph target supplies.
+ *
+ * @param {object} mesh Shared mesh.
+ * @param {object} target Shared morph target.
+ * @returns {number} The row count.
+ */
 function morphTargetVertexCount(mesh, target)
 {
     const indices = target.vertexIndices ?? [];
@@ -379,11 +499,26 @@ function morphTargetVertexCount(mesh, target)
     return Math.floor((mesh.vertex?.position ?? []).length / 3);
 }
 
+/**
+ * Normalizes packed tangents and rigid skin weights.
+ *
+ * @param {import("./helpers.js").CmfVertexChannels} vertex Vertex channels.
+ * @param {number|undefined} vertexCount Explicit vertex count.
+ * @returns {import("./helpers.js").CmfVertexChannels} The normalized channels.
+ */
 function normalizeSharedVertex(vertex, vertexCount)
 {
     return normalizeSharedVertexSkin(normalizeSharedVertexTangents(vertex, vertexCount), vertexCount);
 }
 
+/**
+ * Moves a 4-wide tangent channel without normals or binormals to
+ * `packedTangentLegacy`.
+ *
+ * @param {import("./helpers.js").CmfVertexChannels} vertex Vertex channels.
+ * @param {number|undefined} vertexCount Explicit vertex count.
+ * @returns {import("./helpers.js").CmfVertexChannels} The input, or a copy with the channel moved.
+ */
 function normalizeSharedVertexTangents(vertex, vertexCount)
 {
     const
@@ -402,6 +537,13 @@ function normalizeSharedVertexTangents(vertex, vertexCount)
     return { ...vertex, tangent: [], packedTangentLegacy: tangent };
 }
 
+/**
+ * Adds rigid (1, 0, 0, 0) weights to BoneIndices that have no BoneWeights.
+ *
+ * @param {import("./helpers.js").CmfVertexChannels} vertex Vertex channels.
+ * @param {number|undefined} vertexCount Explicit vertex count.
+ * @returns {import("./helpers.js").CmfVertexChannels} The input, or a copy with weights.
+ */
 function normalizeSharedVertexSkin(vertex, vertexCount)
 {
     const
@@ -422,6 +564,13 @@ function normalizeSharedVertexSkin(vertex, vertexCount)
     return normalized;
 }
 
+/**
+ * Builds a LOD's morph declaration, target records and per-target buffers.
+ *
+ * @param {object} mesh Shared LOD source.
+ * @returns {{ decl: Array<import("./helpers.js").CmfVertexElement>, targets: Array<import("./helpers.js").CmfMorphTarget>, lods: Array<import("./helpers.js").CmfLodMorphTarget> }} The morph target set.
+ * @throws {Error} When targets lack a base position, repeat names, use absent channels or have invalid displacement.
+ */
 function buildMorphTargets(mesh)
 {
     const targets = mesh.morphTargets ?? [];
@@ -497,6 +646,14 @@ function buildMorphTargets(mesh)
     };
 }
 
+/**
+ * Lists the known vertex channels plus numbered normal, tangent and
+ * binormal channels found on the base or targets, in usage order.
+ *
+ * @param {import("./helpers.js").CmfVertexChannels} baseVertex Base vertex channels.
+ * @param {Array<object>} targets Shared morph targets.
+ * @returns {Array<[name: string, usage: string, elementCount: number, usageIndex?: number, type?: string]>} The channel specs.
+ */
 function morphChannelSpecs(baseVertex, targets)
 {
     const specs = [ ...VERTEX_CHANNELS ];
@@ -517,6 +674,12 @@ function morphChannelSpecs(baseVertex, targets)
         Usage.indexOf(left[1]) - Usage.indexOf(right[1]) || (left[3] ?? 0) - (right[3] ?? 0));
 }
 
+/**
+ * Builds a packed morph declaration from channel specs.
+ *
+ * @param {Array<{ usage: string, usageIndex: number, type: string, elementCount: number }>} specs Channel specs.
+ * @returns {Array<import("./helpers.js").CmfVertexElement>} The declaration.
+ */
 function buildMorphDecl(specs)
 {
     let offset = 0;
@@ -528,6 +691,16 @@ function buildMorphDecl(specs)
     });
 }
 
+/**
+ * Returns a morph channel's width, detecting 3- or 4-wide tangent and
+ * binormal channels from the targets.
+ *
+ * @param {object} mesh Shared LOD source.
+ * @param {Array<object>} targets Shared morph targets.
+ * @param {string} name Channel name.
+ * @param {number} defaultCount Default width.
+ * @returns {number} The width.
+ */
 function morphChannelElementCount(mesh, targets, name, defaultCount)
 {
     if (!/^tangent(?:[1-9][0-9]*)?$/u.test(name) && !/^binormal(?:[1-9][0-9]*)?$/u.test(name)) return defaultCount;
@@ -544,6 +717,12 @@ function morphChannelElementCount(mesh, targets, name, defaultCount)
     return defaultCount;
 }
 
+/**
+ * Builds a bone binding from a shared binding.
+ *
+ * @param {object} binding Shared binding with `name` and `minBounds`/`maxBounds` or `bounds`.
+ * @returns {import("./helpers.js").CmfBoneBinding} The binding.
+ */
 function buildBoneBinding(binding)
 {
     return {
@@ -555,6 +734,16 @@ function buildBoneBinding(binding)
     };
 }
 
+/**
+ * Builds a packed vertex declaration from the populated channels.
+ *
+ * @param {import("./helpers.js").CmfVertexChannels} vertex Vertex channels.
+ * @param {object} [options={}] Build options.
+ * @param {string} [options.boneIndexType] ElementType for BoneIndices; defaults to UInt16.
+ * @param {number} [explicitVertexCount] Vertex count that fixes each channel's width.
+ * @returns {Array<import("./helpers.js").CmfVertexElement>} The declaration.
+ * @throws {Error} When a channel does not match the explicit vertex count.
+ */
 function buildDecl(vertex, options = {}, explicitVertexCount)
 {
     const decl = [];
@@ -625,6 +814,12 @@ function buildDecl(vertex, options = {}, explicitVertexCount)
     return decl;
 }
 
+/**
+ * Reads a shared mesh's bounds.
+ *
+ * @param {object} mesh Shared mesh with `minBounds`/`maxBounds` or `bounds`.
+ * @returns {import("./helpers.js").CmfBounds} The bounds, zero when absent.
+ */
 function boundsFromShared(mesh)
 {
     return {
@@ -633,6 +828,12 @@ function boundsFromShared(mesh)
     };
 }
 
+/**
+ * Converts shared metadata to CMF metadata entries.
+ *
+ * @param {object|null|undefined} metadata CMF metadata, or a key-value object.
+ * @returns {import("./helpers.js").CmfMetadata|null} The metadata, or null.
+ */
 function normalizeMetadata(metadata)
 {
     if (!metadata) return null;
@@ -645,6 +846,13 @@ function normalizeMetadata(metadata)
     };
 }
 
+/**
+ * Hydrates one CMF mesh as a shared mesh.
+ *
+ * @param {import("./helpers.js").CmfMesh} mesh CMF mesh.
+ * @param {import("./helpers.js").CmfClasses} classes Hydration class map.
+ * @returns {object} The hydrated node, or its plain fields.
+ */
 function hydrateSharedMesh(mesh, classes)
 {
     return hydrate("Mesh", {
@@ -677,6 +885,13 @@ function hydrateSharedMesh(mesh, classes)
     }, classes);
 }
 
+/**
+ * Hydrates metadata and its entries.
+ *
+ * @param {import("./helpers.js").CmfMetadata} metadata Metadata.
+ * @param {import("./helpers.js").CmfClasses} classes Hydration class map.
+ * @returns {object} The hydrated node, or its plain fields.
+ */
 function hydrateMetadata(metadata, classes)
 {
     return hydrate("Metadata", {
@@ -684,16 +899,35 @@ function hydrateMetadata(metadata, classes)
     }, classes);
 }
 
+/**
+ * Hydrates a skeleton.
+ *
+ * @param {import("./helpers.js").CmfSkeleton} skeleton Skeleton.
+ * @param {import("./helpers.js").CmfClasses} classes Hydration class map.
+ * @returns {object} The hydrated node, or its plain fields.
+ */
 function hydrateSkeleton(skeleton, classes)
 {
     return hydrate("Skeleton", skeleton, classes);
 }
 
+/**
+ * Hydrates an animation.
+ *
+ * @param {import("./helpers.js").CmfAnimation} animation Animation.
+ * @param {import("./helpers.js").CmfClasses} classes Hydration class map.
+ * @returns {object} The hydrated node, or its plain fields.
+ */
 function hydrateAnimation(animation, classes)
 {
     return hydrate("Animation", animation, classes);
 }
 
+/**
+ * Creates empty shared vertex channels.
+ *
+ * @returns {import("./helpers.js").CmfVertexChannels} Empty channels.
+ */
 function emptyVertex()
 {
     return {
@@ -711,6 +945,16 @@ function emptyVertex()
     };
 }
 
+/**
+ * Constructs and populates the class registered for a key, or returns the
+ * plain fields when none is registered.
+ *
+ * @param {string} type Class key.
+ * @param {object} fields Field values.
+ * @param {import("./helpers.js").CmfClasses} classes Hydration class map.
+ * @param {import("./helpers.js").CmfHydrationOptions} [hydrationOptions={}] Values forwarded to SetValues.
+ * @returns {object} The populated instance, or `fields`.
+ */
 function hydrate(type, fields, classes, hydrationOptions = {})
 {
     const Class = classes?.[type];
@@ -718,6 +962,15 @@ function hydrate(type, fields, classes, hydrationOptions = {})
     return Class ? populate(new Class(), fields, options) : fields;
 }
 
+/**
+ * Populates an instance through its SetValues.
+ *
+ * @param {object} instance Instance to populate.
+ * @param {object} fields Field values.
+ * @param {import("./helpers.js").CmfHydrationOptions} [hydrationOptions={}] Values forwarded to SetValues.
+ * @returns {object} The instance.
+ * @throws {TypeError} When the instance has no SetValues.
+ */
 function populate(instance, fields, hydrationOptions = {})
 {
     if (!instance || typeof instance.SetValues !== "function")
@@ -728,6 +981,14 @@ function populate(instance, fields, hydrationOptions = {})
     return instance;
 }
 
+/**
+ * Creates a class map inheriting from the caller's map and carrying the
+ * hydration options.
+ *
+ * @param {import("./helpers.js").CmfClasses} classes Caller class map.
+ * @param {import("./helpers.js").CmfHydrationOptions} hydrationOptions Values forwarded to SetValues.
+ * @returns {import("./helpers.js").CmfClasses} The derived class map.
+ */
 function createHydrationClasses(classes, hydrationOptions)
 {
     const map = Object.create(classes || null);

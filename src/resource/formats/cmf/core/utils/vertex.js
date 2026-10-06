@@ -29,7 +29,7 @@ export function elementTypeSize(type)
 /**
  * Calculate the byte stride required by a CMF vertex declaration.
  *
- * @param {Array<object>} decl CMF vertex elements.
+ * @param {Array<import("../helpers.js").CmfVertexElement>} decl CMF vertex elements.
  * @returns {number} Required stride in bytes.
  */
 export function estimateStrideFromDecl(decl = [])
@@ -45,7 +45,12 @@ export function estimateStrideFromDecl(decl = [])
     return stride;
 }
 
-/** Decode one IEEE-754 binary16 value. */
+/**
+ * Decode one IEEE-754 binary16 value.
+ *
+ * @param {number} value The 16-bit pattern.
+ * @returns {number} The decoded value.
+ */
 export function halfToFloat(value)
 {
     const
@@ -58,7 +63,14 @@ export function halfToFloat(value)
     return sign * Math.pow(2, exponent - 15) * (1 + fraction / 1024);
 }
 
-/** Decode one CMF element component from a DataView. */
+/**
+ * Decode one CMF element component from a DataView.
+ *
+ * @param {DataView} view Source bytes.
+ * @param {number} offset Byte offset.
+ * @param {string} type CMF ElementType name.
+ * @returns {number} The decoded value; normalized types map to 0..1 or -1..1.
+ */
 export function readElementComponent(view, offset, type)
 {
     switch (type)
@@ -77,7 +89,14 @@ export function readElementComponent(view, offset, type)
     }
 }
 
-/** Decode a tightly-packed CMF element byte array to JavaScript numbers. */
+/**
+ * Decode a tightly-packed CMF element byte array to JavaScript numbers.
+ *
+ * @param {Uint8Array|ArrayBuffer|ArrayBufferView|ArrayLike<number>|null} input Packed bytes.
+ * @param {string} type CMF ElementType name.
+ * @returns {Array<number>} The decoded values.
+ * @throws {Error} When the byte length is not a multiple of the element size.
+ */
 export function decodeElementArray(input, type)
 {
     const bytes = input instanceof Uint8Array

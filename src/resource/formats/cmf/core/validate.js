@@ -14,6 +14,13 @@ const UINT16_MAX = 0xffff;
 const UINT32_MAX = 0xffffffff;
 const FLOAT32_MAX = 3.4028234663852886e38;
 
+/**
+ * Throws a validation error with the phase's prefix and code.
+ *
+ * @param {string} message Error detail.
+ * @param {import("./helpers.js").CmfValidateOptions|undefined} options Validation context.
+ * @throws {Error} Always.
+ */
 function invalid(message, options)
 {
     const prefix = options?.phase === "write" ? "CMF write" : "Invalid CMF";
@@ -22,6 +29,16 @@ function invalid(message, options)
     throw error;
 }
 
+/**
+ * Returns an array value, or the fallback when nullish.
+ *
+ * @param {*} value Candidate.
+ * @param {string} label Label for errors.
+ * @param {import("./helpers.js").CmfValidateOptions} options Validation context.
+ * @param {Array<*>} [fallback=[]] Value returned for null or undefined.
+ * @returns {Array<*>} The array.
+ * @throws {Error} When the value is not an array.
+ */
 function array(value, label, options, fallback = [])
 {
     if (value === undefined || value === null) return fallback;
@@ -29,6 +46,16 @@ function array(value, label, options, fallback = [])
     return value;
 }
 
+/**
+ * Checks an unsigned integer against a maximum.
+ *
+ * @param {*} value Candidate.
+ * @param {number} max Inclusive maximum.
+ * @param {string} label Label for errors.
+ * @param {import("./helpers.js").CmfValidateOptions} options Validation context.
+ * @returns {number} The value.
+ * @throws {Error} When the value is out of range.
+ */
 function uint(value, max, label, options)
 {
     if (!Number.isInteger(value) || value < 0 || value > max)
@@ -38,6 +65,15 @@ function uint(value, max, label, options)
     return value;
 }
 
+/**
+ * Checks that a value is finite as a Float32.
+ *
+ * @param {*} value Candidate.
+ * @param {string} label Label for errors.
+ * @param {import("./helpers.js").CmfValidateOptions} options Validation context.
+ * @returns {number} The value.
+ * @throws {Error} When the value is not finite.
+ */
 function finiteFloat(value, label, options)
 {
     if (!Number.isFinite(value) || !Number.isFinite(Math.fround(value)))
@@ -47,6 +83,15 @@ function finiteFloat(value, label, options)
     return value;
 }
 
+/**
+ * Checks that a value holds exactly `count` finite Float32 values.
+ *
+ * @param {*} value Candidate.
+ * @param {number} count Required length.
+ * @param {string} label Label for errors.
+ * @param {import("./helpers.js").CmfValidateOptions} options Validation context.
+ * @throws {Error} When the length or any value is invalid.
+ */
 function finiteArray(value, count, label, options)
 {
     if ((!Array.isArray(value) && !ArrayBuffer.isView(value)) || value.length !== count)
@@ -59,6 +104,15 @@ function finiteArray(value, count, label, options)
     }
 }
 
+/**
+ * Checks that a value holds exactly `count` numbers.
+ *
+ * @param {*} value Candidate.
+ * @param {number} count Required length.
+ * @param {string} label Label for errors.
+ * @param {import("./helpers.js").CmfValidateOptions} options Validation context.
+ * @throws {Error} When the length or any value is invalid.
+ */
 function numericArray(value, count, label, options)
 {
     if ((!Array.isArray(value) && !ArrayBuffer.isView(value)) || value.length !== count)
@@ -71,12 +125,30 @@ function numericArray(value, count, label, options)
     }
 }
 
+/**
+ * Checks that a value is a string, optionally non-empty.
+ *
+ * @param {*} value Candidate.
+ * @param {string} label Label for errors.
+ * @param {import("./helpers.js").CmfValidateOptions} options Validation context.
+ * @param {boolean} [allowEmpty=true] Whether an empty string passes.
+ * @throws {Error} When the value is not an accepted string.
+ */
 function name(value, label, options, allowEmpty = true)
 {
     if (typeof value !== "string") invalid(`${label} must be a string`, options);
     if (!allowEmpty && !value) invalid(`${label} must not be empty`, options);
 }
 
+/**
+ * Checks that every value is an accepted name and no name repeats.
+ *
+ * @param {Array<*>} values Candidates.
+ * @param {string} label Label for errors.
+ * @param {import("./helpers.js").CmfValidateOptions} options Validation context.
+ * @param {boolean} [allowEmpty=true] Whether empty strings pass.
+ * @throws {Error} When a name is invalid or repeated.
+ */
 function uniqueNames(values, label, options, allowEmpty = true)
 {
     const seen = new Set();
@@ -89,6 +161,14 @@ function uniqueNames(values, label, options, allowEmpty = true)
     }
 }
 
+/**
+ * Checks optional bounds for shape and min/max ordering.
+ *
+ * @param {import("./helpers.js").CmfBounds|null|undefined} bounds Bounds.
+ * @param {string} label Label for errors.
+ * @param {import("./helpers.js").CmfValidateOptions} options Validation context.
+ * @throws {Error} When the bounds are malformed or inverted.
+ */
 function validateBounds(bounds, label, options)
 {
     if (bounds === undefined || bounds === null) return;
@@ -108,6 +188,16 @@ function validateBounds(bounds, label, options)
     }
 }
 
+/**
+ * Checks a vertex declaration's elements, uniqueness, alignment, overlap and
+ * packed-tangent rules.
+ *
+ * @param {*} value Candidate declaration.
+ * @param {string} label Label for errors.
+ * @param {import("./helpers.js").CmfValidateOptions} options Validation context.
+ * @returns {Array<import("./helpers.js").CmfVertexElement>} The declaration.
+ * @throws {Error} When the declaration breaks a rule.
+ */
 function validateVertexDeclaration(value, label, options)
 {
     const decl = array(value, label, options);
@@ -178,6 +268,13 @@ function validateVertexDeclaration(value, label, options)
     return decl;
 }
 
+/**
+ * Returns the supplied or decoded bytes for a buffer index.
+ *
+ * @param {import("./helpers.js").CmfGraph} graph CMF graph.
+ * @param {number} index Buffer index.
+ * @returns {Uint8Array|null} The bytes, or null when none are supplied.
+ */
 function bufferEntry(graph, index)
 {
     const buffers = graph.buffers ?? [];
@@ -193,6 +290,15 @@ function bufferEntry(graph, index)
                 : null;
 }
 
+/**
+ * Checks a buffer view against its section and supplied bytes.
+ *
+ * @param {import("./helpers.js").CmfBufferView} view Buffer view.
+ * @param {string} label Label for errors.
+ * @param {import("./helpers.js").CmfGraph} graph CMF graph.
+ * @param {import("./helpers.js").CmfValidateOptions} options Validation context.
+ * @throws {Error} When the view is malformed or out of range.
+ */
 function validateBufferView(view, label, graph, options)
 {
     if (!view || typeof view !== "object") invalid(`${label} must be an object`, options);
@@ -225,6 +331,16 @@ function validateBufferView(view, label, graph, options)
     if (!bytes && options?.phase === "write") invalid(`${label} has no supplied buffer ${index}`, options);
 }
 
+/**
+ * Checks that every float component in a vertex buffer is finite.
+ *
+ * @param {Array<import("./helpers.js").CmfVertexElement>} decl Vertex declaration.
+ * @param {import("./helpers.js").CmfBufferView} view Vertex buffer view.
+ * @param {import("./helpers.js").CmfGraph} graph CMF graph.
+ * @param {string} label Label for errors.
+ * @param {import("./helpers.js").CmfValidateOptions} options Validation context.
+ * @throws {Error} When a component is not finite.
+ */
 function validateFiniteVertexBuffer(decl, view, graph, label, options)
 {
     const bytes = bufferEntry(graph, view.index);
@@ -248,6 +364,16 @@ function validateFiniteVertexBuffer(decl, view, graph, label, options)
     }
 }
 
+/**
+ * Checks one mesh LOD's buffers, areas and morph targets.
+ *
+ * @param {import("./helpers.js").CmfMesh} mesh Validated mesh fields.
+ * @param {import("./helpers.js").CmfMeshLod} lod LOD.
+ * @param {number} lodIndex LOD index.
+ * @param {import("./helpers.js").CmfGraph} graph CMF graph.
+ * @param {import("./helpers.js").CmfValidateOptions} options Validation context.
+ * @throws {Error} When the LOD breaks a rule.
+ */
 function validateMeshLod(mesh, lod, lodIndex, graph, options)
 {
     if (!lod || typeof lod !== "object") invalid(`mesh ${JSON.stringify(mesh.name)} LOD ${lodIndex} must be an object`, options);
@@ -323,6 +449,14 @@ function validateMeshLod(mesh, lod, lodIndex, graph, options)
     validateFiniteVertexBuffer(mesh.decl, lod.vb, graph, `${label} vertex buffer`, options);
 }
 
+/**
+ * Checks a mesh's audio occlusion mesh.
+ *
+ * @param {import("./helpers.js").CmfAudioOcclusionMesh|null|undefined} value Occlusion mesh.
+ * @param {string} meshLabel Mesh label for errors.
+ * @param {import("./helpers.js").CmfValidateOptions} options Validation context.
+ * @throws {Error} When the occlusion mesh breaks a rule.
+ */
 function validateAudioOcclusionMesh(value, meshLabel, options)
 {
     const mesh = value ?? {};
@@ -340,6 +474,16 @@ function validateAudioOcclusionMesh(value, meshLabel, options)
     validateBounds(mesh.bounds, `${meshLabel} audio bounds`, options);
 }
 
+/**
+ * Checks one mesh: declaration, topology, LODs, areas, bindings, UV
+ * densities, skeleton, occlusion mesh, bounds and morph targets.
+ *
+ * @param {import("./helpers.js").CmfMesh} mesh Mesh.
+ * @param {number} meshIndex Mesh index.
+ * @param {import("./helpers.js").CmfGraph} graph CMF graph.
+ * @param {import("./helpers.js").CmfValidateOptions} options Validation context.
+ * @throws {Error} When the mesh breaks a rule.
+ */
 function validateMesh(mesh, meshIndex, graph, options)
 {
     if (!mesh || typeof mesh !== "object") invalid(`mesh ${meshIndex} must be an object`, options);
@@ -453,6 +597,14 @@ function validateMesh(mesh, meshIndex, graph, options)
     });
 }
 
+/**
+ * Checks one skeleton's bones, parents, transforms and bone masks.
+ *
+ * @param {import("./helpers.js").CmfSkeleton} skeleton Skeleton.
+ * @param {number} skeletonIndex Skeleton index.
+ * @param {import("./helpers.js").CmfValidateOptions} options Validation context.
+ * @throws {Error} When the skeleton breaks a rule.
+ */
 function validateSkeleton(skeleton, skeletonIndex, options)
 {
     if (!skeleton || typeof skeleton !== "object") invalid(`skeleton ${skeletonIndex} must be an object`, options);
@@ -516,6 +668,15 @@ function validateSkeleton(skeleton, skeletonIndex, options)
     }
 }
 
+/**
+ * Returns a byte payload as a plain array of bytes.
+ *
+ * @param {*} value Byte array, typed view or ArrayBuffer.
+ * @param {string} label Label for errors.
+ * @param {import("./helpers.js").CmfValidateOptions} options Validation context.
+ * @returns {Array<number>} The bytes.
+ * @throws {Error} When the value is not a byte array.
+ */
 function byteArray(value, label, options)
 {
     const bytes = Array.isArray(value)
@@ -530,6 +691,13 @@ function byteArray(value, label, options)
     return bytes;
 }
 
+/**
+ * Decodes packed bytes as scalars of one element type.
+ *
+ * @param {Array<number>} bytes Packed bytes.
+ * @param {string} type ElementType name.
+ * @returns {Array<number>} The values.
+ */
 function decodedScalars(bytes, type)
 {
     const data = Uint8Array.from(bytes);
@@ -540,6 +708,15 @@ function decodedScalars(bytes, type)
     return output;
 }
 
+/**
+ * Checks one animation curve's header, payload sizes, finiteness and knot order.
+ *
+ * @param {import("./helpers.js").CmfAnimationCurve} curve Curve.
+ * @param {string} animationLabel Animation label for errors.
+ * @param {number} curveIndex Curve index.
+ * @param {import("./helpers.js").CmfValidateOptions} options Validation context.
+ * @throws {Error} When the curve breaks a rule.
+ */
 function validateCurve(curve, animationLabel, curveIndex, options)
 {
     const label = `${animationLabel} curve ${curveIndex}`;
@@ -568,6 +745,14 @@ function validateCurve(curve, animationLabel, curveIndex, options)
     }
 }
 
+/**
+ * Checks one animation's duration, curves and channels.
+ *
+ * @param {import("./helpers.js").CmfAnimation} animation Animation.
+ * @param {number} animationIndex Animation index.
+ * @param {import("./helpers.js").CmfValidateOptions} options Validation context.
+ * @throws {Error} When the animation breaks a rule.
+ */
 function validateAnimation(animation, animationIndex, options)
 {
     if (!animation || typeof animation !== "object") invalid(`animation ${animationIndex} must be an object`, options);
@@ -597,6 +782,13 @@ function validateAnimation(animation, animationIndex, options)
     }
 }
 
+/**
+ * Checks optional metadata for unique keys and string values.
+ *
+ * @param {import("./helpers.js").CmfMetadata|null|undefined} metadata Metadata.
+ * @param {import("./helpers.js").CmfValidateOptions} options Validation context.
+ * @throws {Error} When the metadata breaks a rule.
+ */
 function validateMetadata(metadata, options)
 {
     if (metadata === undefined || metadata === null) return;
@@ -612,9 +804,9 @@ function validateMetadata(metadata, options)
  * Source: mesh/src/cmf/utils.cpp (IsMeshValid, IsSkeletonValid,
  * IsAnimationValid, AreBufferViewsValid, AreBuffersValid).
  *
- * @param {object} graph CMF graph, optionally carrying parsed sections and decoded/supplied buffers.
- * @param {{ phase?: "read"|"write" }} [options] Validation context.
- * @returns {object} The validated graph.
+ * @param {import("./helpers.js").CmfGraph} graph CMF graph, optionally carrying parsed sections and decoded/supplied buffers.
+ * @param {import("./helpers.js").CmfValidateOptions} [options={}] Validation context.
+ * @returns {import("./helpers.js").CmfGraph} The validated graph.
  */
 export function validateCmfGraph(graph, options = {})
 {
@@ -630,7 +822,14 @@ export function validateCmfGraph(graph, options = {})
     return graph;
 }
 
-/** Validate parsed CMF header sections against Carbon's file rules. */
+/**
+ * Validate parsed CMF header sections against Carbon's file rules.
+ *
+ * @param {{ headerSize: number, sections: Array<import("./helpers.js").CmfSection> }} header Parsed header.
+ * @param {number} fileSize File byte length.
+ * @param {import("./helpers.js").CmfValidateOptions} [options={}] Validation context.
+ * @throws {Error} When the section table breaks a rule.
+ */
 export function validateCmfSections(header, fileSize, options = {})
 {
     if (header.headerSize < 32 || header.headerSize > fileSize) invalid("headerSize is outside the file", options);

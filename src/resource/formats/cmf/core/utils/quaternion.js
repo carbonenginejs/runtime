@@ -1,4 +1,11 @@
-/** Normalize one xyzw quaternion and canonicalize signed zeroes. */
+/**
+ * Normalize one xyzw quaternion and canonicalize signed zeroes.
+ *
+ * @param {ArrayLike<number>} value Quaternion (x, y, z, w).
+ * @param {string} [label="quaternion"] Label for errors.
+ * @returns {Array<number>} The normalized quaternion.
+ * @throws {Error} When the quaternion has zero length.
+ */
 export function normalizeQuaternion(value, label = "quaternion")
 {
     const length = Math.hypot(value[0], value[1], value[2], value[3]);
@@ -10,7 +17,13 @@ export function normalizeQuaternion(value, label = "quaternion")
     });
 }
 
-/** Normalize flat xyzw controls and keep adjacent keys in one hemisphere. */
+/**
+ * Normalize flat xyzw controls and keep adjacent keys in one hemisphere.
+ *
+ * @param {Array<number>} values Flat quaternion controls; normalized in place.
+ * @param {string} [label="quaternion curve"] Label for errors.
+ * @returns {Array<number>} The same array.
+ */
 export function normalizeQuaternionSeries(values, label = "quaternion curve")
 {
     let previous = null;
@@ -35,7 +48,15 @@ export function normalizeQuaternionSeries(values, label = "quaternion curve")
     return values;
 }
 
-/** Linearly interpolate and normalize one xyzw quaternion. */
+/**
+ * Linearly interpolate and normalize one xyzw quaternion.
+ *
+ * @param {Array<number>} start Start quaternion.
+ * @param {Array<number>} end End quaternion; negated when on the opposite hemisphere.
+ * @param {number} alpha Interpolation factor.
+ * @param {string} [label="quaternion interpolation"] Label for errors.
+ * @returns {Array<number>} The normalized result.
+ */
 export function normalizedLerpQuaternion(start, end, alpha, label = "quaternion interpolation")
 {
     const dot = start.reduce((sum, value, index) => sum + value * end[index], 0);
@@ -45,13 +66,26 @@ export function normalizedLerpQuaternion(start, end, alpha, label = "quaternion 
     ), label);
 }
 
-/** Return the shortest angular distance between two normalized xyzw quaternions. */
+/**
+ * Return the shortest angular distance between two normalized xyzw quaternions.
+ *
+ * @param {Array<number>} a First quaternion.
+ * @param {Array<number>} b Second quaternion.
+ * @returns {number} The angle in radians.
+ */
 export function quaternionAngularDifference(a, b)
 {
     const dot = Math.min(1, Math.abs(a.reduce((sum, value, index) => sum + value * b[index], 0)));
     return 2 * Math.acos(dot);
 }
 
+/**
+ * Evaluates a polynomial with Horner's method.
+ *
+ * @param {Array<number>} coefficients Coefficients, lowest order first.
+ * @param {number} value Argument.
+ * @returns {number} The polynomial value.
+ */
 function polynomialValue(coefficients, value)
 {
     let result = 0;
@@ -62,6 +96,13 @@ function polynomialValue(coefficients, value)
     return result;
 }
 
+/**
+ * Scales a polynomial to unit maximum coefficient and trims negligible
+ * leading terms.
+ *
+ * @param {Array<number>} coefficients Coefficients, lowest order first.
+ * @returns {Array<number>} The normalized coefficients, or `[0]` for the zero polynomial.
+ */
 function normalizedPolynomial(coefficients)
 {
     let scale = 0;
@@ -72,6 +113,13 @@ function normalizedPolynomial(coefficients)
     return result;
 }
 
+/**
+ * Multiplies two polynomials.
+ *
+ * @param {Array<number>} left Coefficients, lowest order first.
+ * @param {Array<number>} right Coefficients, lowest order first.
+ * @returns {Array<number>} The product's coefficients.
+ */
 function multiplyPolynomials(left, right)
 {
     const result = new Array(left.length + right.length - 1).fill(0);
@@ -82,6 +130,14 @@ function multiplyPolynomials(left, right)
     return result;
 }
 
+/**
+ * Adds a scaled polynomial to another.
+ *
+ * @param {Array<number>} left Coefficients, lowest order first.
+ * @param {Array<number>} right Coefficients, lowest order first.
+ * @param {number} [rightScale=1] Factor applied to `right`.
+ * @returns {Array<number>} The sum's coefficients.
+ */
 function addPolynomials(left, right, rightScale = 1)
 {
     const result = new Array(Math.max(left.length, right.length)).fill(0);
@@ -92,11 +148,24 @@ function addPolynomials(left, right, rightScale = 1)
     return result;
 }
 
+/**
+ * Differentiates a polynomial.
+ *
+ * @param {Array<number>} coefficients Coefficients, lowest order first.
+ * @returns {Array<number>} The derivative's coefficients.
+ */
 function derivativePolynomial(coefficients)
 {
     return coefficients.slice(1).map((value, index) => value * (index + 1));
 }
 
+/**
+ * Finds the real roots of a polynomial in [0, 1] by bisecting between
+ * critical points.
+ *
+ * @param {Array<number>} coefficients Coefficients, lowest order first.
+ * @returns {Array<number>} The roots.
+ */
 function polynomialRootsInUnitInterval(coefficients)
 {
     const polynomial = normalizedPolynomial(coefficients);
@@ -146,6 +215,16 @@ function polynomialRootsInUnitInterval(coefficients)
     return roots;
 }
 
+/**
+ * Returns the quadratic in t of the dot product of two linear quaternion
+ * segments `startA + deltaA t` and `startB + deltaB t`.
+ *
+ * @param {Array<number>} startA First segment start.
+ * @param {Array<number>} deltaA First segment delta.
+ * @param {Array<number>} startB Second segment start.
+ * @param {Array<number>} deltaB Second segment delta.
+ * @returns {Array<number>} Constant, linear and quadratic coefficients.
+ */
 function dotPolynomial(startA, deltaA, startB, deltaB)
 {
     let constant = 0;
@@ -160,6 +239,15 @@ function dotPolynomial(startA, deltaA, startB, deltaB)
     return [ constant, linear, quadratic ];
 }
 
+/**
+ * Scales a quaternion segment by its largest component and returns its start
+ * and delta.
+ *
+ * @param {Array<number>} start Segment start quaternion.
+ * @param {Array<number>} end Segment end quaternion.
+ * @returns {{ start: Array<number>, delta: Array<number> }} The scaled segment.
+ * @throws {Error} When both quaternions are zero.
+ */
 function scaledQuaternionSegment(start, end)
 {
     let scale = 0;
@@ -226,6 +314,12 @@ export const QUATERNION_SEGMENT_SAMPLE_FRACTIONS = Object.freeze([ 0.25, 0.5, 0.
 /**
  * Test representative interior ticks before accepting a quaternion bake segment.
  * The evaluator receives the quantized tick and its actual fraction of the segment.
+ *
+ * @param {number} startTick Segment start tick, a safe integer.
+ * @param {number} endTick Segment end tick, a safe integer.
+ * @param {(tick: number, local: number) => number} evaluator Returns the error at a tick.
+ * @param {number} [tolerance=1e-4] Largest accepted error.
+ * @returns {boolean} True when any sampled error exceeds the tolerance.
  */
 export function quaternionSegmentNeedsSubdivision(startTick, endTick, evaluator, tolerance = 1e-4)
 {
@@ -246,7 +340,13 @@ export function quaternionSegmentNeedsSubdivision(startTick, endTick, evaluator,
     return false;
 }
 
-/** Return an overflow-safe integer midpoint for two safe integer ticks. */
+/**
+ * Return an overflow-safe integer midpoint for two safe integer ticks.
+ *
+ * @param {number} startTick Start tick.
+ * @param {number} endTick End tick.
+ * @returns {number} The midpoint, rounded toward zero.
+ */
 export function quaternionSegmentMidpointTick(startTick, endTick)
 {
     return Number((BigInt(startTick) + BigInt(endTick)) / 2n);

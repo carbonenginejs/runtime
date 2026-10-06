@@ -1,10 +1,21 @@
-/** Resolve a mesh morph name to its animation channel name using Carbon's Shape suffix convention. */
+/**
+ * Resolve a mesh morph name to its animation channel name using Carbon's Shape suffix convention.
+ *
+ * @param {string} name Mesh morph target name.
+ * @returns {string} The animation channel name.
+ */
 export function morphAnimationTargetName(name)
 {
     // AddMorphWeightChannels strips one suffix only when a non-empty name remains.
     return name.length > 5 && name.endsWith("Shape") ? name.slice(0, -5) : name;
 }
 
+/**
+ * Returns the vertex count of the first populated known channel.
+ *
+ * @param {import("../helpers.js").CmfVertexChannels|undefined} vertex Vertex channels.
+ * @returns {number} The vertex count, or 0.
+ */
 function vertexCountOf(vertex)
 {
     for (const [ name, width ] of [
@@ -19,11 +30,27 @@ function vertexCountOf(vertex)
     return 0;
 }
 
+/**
+ * Returns the number of source rows a morph target supplies.
+ *
+ * @param {object} target Shared morph target with optional `vertexIndices` and `vertex`.
+ * @param {number} fallback Count used when the target has no rows.
+ * @returns {number} The row count.
+ */
 function sourceCountOf(target, fallback)
 {
     return Array.isArray(target.vertexIndices) ? target.vertexIndices.length : vertexCountOf(target.vertex) || fallback;
 }
 
+/**
+ * Returns a channel's components per vertex.
+ *
+ * @param {ArrayLike<number>} values Channel values.
+ * @param {number} count Vertex count.
+ * @param {string} channel Channel name for errors.
+ * @returns {number} The width, or 0 for an empty channel.
+ * @throws {Error} When the length is not a multiple of the count.
+ */
 function channelWidth(values, count, channel)
 {
     if (!values.length) return 0;
@@ -34,6 +61,15 @@ function channelWidth(values, count, channel)
     return values.length / count;
 }
 
+/**
+ * Copies a base channel into an array of the requested width, zero-filling.
+ *
+ * @param {import("../helpers.js").CmfVertexChannels} baseVertex Base vertex channels.
+ * @param {string} channel Channel name.
+ * @param {number} vertexCount Vertex count.
+ * @param {number} width Output components per vertex.
+ * @returns {Array<number>} The values.
+ */
 function baseChannelValues(baseVertex, channel, vertexCount, width)
 {
     const base = baseVertex?.[channel] ?? [];
@@ -51,7 +87,16 @@ function baseChannelValues(baseVertex, channel, vertexCount, width)
     return values;
 }
 
-/** Canonicalize a shared morph target to full per-vertex CMF absolute channels. */
+/**
+ * Canonicalize a shared morph target to full per-vertex CMF absolute channels.
+ *
+ * @param {import("../helpers.js").CmfVertexChannels} baseVertex Base vertex channels.
+ * @param {object} target Shared morph target with `vertex`, optional `vertexIndices` and `dataIsDeltas`.
+ * @param {Array<{ name: string, elementCount?: number }>|null} [specs=null] Channels to emit; defaults to position plus the target's channels.
+ * @param {number|null} [explicitVertexCount=null] Vertex count; defaults to the base channels' count.
+ * @returns {import("../helpers.js").CmfVertexChannels} Absolute per-vertex channels.
+ * @throws {Error} When a channel is absent from the base, mis-sized, or indexes outside the vertex range.
+ */
 export function canonicalMorphVertex(baseVertex, target, specs = null, explicitVertexCount = null)
 {
     const vertexCount = explicitVertexCount ?? vertexCountOf(baseVertex);
@@ -116,7 +161,13 @@ export function canonicalMorphVertex(baseVertex, target, specs = null, explicitV
     return output;
 }
 
-/** Maximum Euclidean displacement between flat vec3 absolute and base channels. */
+/**
+ * Maximum Euclidean displacement between flat vec3 absolute and base channels.
+ *
+ * @param {ArrayLike<number>} [position=[]] Absolute morph positions.
+ * @param {ArrayLike<number>} [basePosition=[]] Base positions.
+ * @returns {number} The largest per-vertex distance.
+ */
 export function maxMorphDisplacement(position = [], basePosition = [])
 {
     let maximum = 0;

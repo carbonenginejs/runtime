@@ -1,10 +1,10 @@
 /**
  * Hydrate a native CMF graph through caller-provided node constructors.
  *
- * @param {object} root Native CMF graph.
- * @param {object} [classes] CMF class-key to constructor map.
- * @param {object} [hydrationOptions] Values forwarded to SetValues.
- * @param {string} [populationLabel] Reader label used by population errors.
+ * @param {import("../helpers.js").CmfGraph} root Native CMF graph.
+ * @param {import("../helpers.js").CmfClasses} [classes={}] CMF class-key to constructor map.
+ * @param {import("../helpers.js").CmfHydrationOptions} [hydrationOptions={}] Values forwarded to SetValues.
+ * @param {string} [populationLabel="CjsCmfFormat"] Reader label used by population errors.
  * @returns {object} Hydrated CMF root or the original plain node shapes.
  */
 export function hydrateCmf(root, classes = {}, hydrationOptions = {}, populationLabel = "CjsCmfFormat")
@@ -31,6 +31,15 @@ export function hydrateCmf(root, classes = {}, hydrationOptions = {}, population
     return hydrateNode("Root", fields, classes, hydrationOptions, populationLabel);
 }
 
+/**
+ * Hydrates the metadata node and its entries.
+ *
+ * @param {import("../helpers.js").CmfMetadata} metadata Metadata.
+ * @param {import("../helpers.js").CmfClasses} classes CMF class-key to constructor map.
+ * @param {import("../helpers.js").CmfHydrationOptions} hydrationOptions Values forwarded to SetValues.
+ * @param {string} populationLabel Reader label used by population errors.
+ * @returns {object} The hydrated node, or its plain fields.
+ */
 function hydrateMetadata(metadata, classes, hydrationOptions, populationLabel)
 {
     return hydrateNode("Metadata", {
@@ -45,6 +54,15 @@ function hydrateMetadata(metadata, classes, hydrationOptions, populationLabel)
     }, classes, hydrationOptions, populationLabel);
 }
 
+/**
+ * Hydrates a mesh and its child nodes, lifting the first LOD's vertex and index data.
+ *
+ * @param {import("../helpers.js").CmfMesh} mesh Mesh.
+ * @param {import("../helpers.js").CmfClasses} classes CMF class-key to constructor map.
+ * @param {import("../helpers.js").CmfHydrationOptions} hydrationOptions Values forwarded to SetValues.
+ * @param {string} populationLabel Reader label used by population errors.
+ * @returns {object} The hydrated node, or its plain fields.
+ */
 function hydrateMesh(mesh, classes, hydrationOptions, populationLabel)
 {
     const
@@ -118,6 +136,15 @@ function hydrateMesh(mesh, classes, hydrationOptions, populationLabel)
     }, classes, hydrationOptions, populationLabel);
 }
 
+/**
+ * Hydrates a mesh LOD and its child nodes.
+ *
+ * @param {import("../helpers.js").CmfMeshLod} lod LOD.
+ * @param {import("../helpers.js").CmfClasses} classes CMF class-key to constructor map.
+ * @param {import("../helpers.js").CmfHydrationOptions} hydrationOptions Values forwarded to SetValues.
+ * @param {string} populationLabel Reader label used by population errors.
+ * @returns {object} The hydrated node, or its plain fields.
+ */
 function hydrateLod(lod, classes, hydrationOptions, populationLabel)
 {
     const fields = {
@@ -152,6 +179,15 @@ function hydrateLod(lod, classes, hydrationOptions, populationLabel)
     return hydrateNode("MeshLod", fields, classes, hydrationOptions, populationLabel);
 }
 
+/**
+ * Hydrates a skeleton and its bone masks.
+ *
+ * @param {import("../helpers.js").CmfSkeleton} skeleton Skeleton.
+ * @param {import("../helpers.js").CmfClasses} classes CMF class-key to constructor map.
+ * @param {import("../helpers.js").CmfHydrationOptions} hydrationOptions Values forwarded to SetValues.
+ * @param {string} populationLabel Reader label used by population errors.
+ * @returns {object} The hydrated node, or its plain fields.
+ */
 function hydrateSkeleton(skeleton, classes, hydrationOptions, populationLabel)
 {
     return hydrateNode("Skeleton", {
@@ -169,6 +205,15 @@ function hydrateSkeleton(skeleton, classes, hydrationOptions, populationLabel)
     }, classes, hydrationOptions, populationLabel);
 }
 
+/**
+ * Hydrates an animation and its channels and curves.
+ *
+ * @param {import("../helpers.js").CmfAnimation} animation Animation.
+ * @param {import("../helpers.js").CmfClasses} classes CMF class-key to constructor map.
+ * @param {import("../helpers.js").CmfHydrationOptions} hydrationOptions Values forwarded to SetValues.
+ * @param {string} populationLabel Reader label used by population errors.
+ * @returns {object} The hydrated node, or its plain fields.
+ */
 function hydrateAnimation(animation, classes, hydrationOptions, populationLabel)
 {
     return hydrateNode("Animation", {
@@ -190,6 +235,18 @@ function hydrateAnimation(animation, classes, hydrationOptions, populationLabel)
     }, classes, hydrationOptions, populationLabel);
 }
 
+/**
+ * Constructs and populates the class registered for a key, or returns the
+ * plain fields when none is registered.
+ *
+ * @param {string} type Class key.
+ * @param {object} fields Field values.
+ * @param {import("../helpers.js").CmfClasses} classes CMF class-key to constructor map.
+ * @param {import("../helpers.js").CmfHydrationOptions} hydrationOptions Values forwarded to SetValues.
+ * @param {string} populationLabel Reader label used by population errors.
+ * @returns {object} The populated instance, or `fields`.
+ * @throws {TypeError} When the instance has no SetValues.
+ */
 function hydrateNode(type, fields, classes, hydrationOptions, populationLabel)
 {
     const Class = classes?.[type];
