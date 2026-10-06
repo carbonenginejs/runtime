@@ -236,12 +236,14 @@ export class CjsWemFormat extends CjsFormat
     }
 
     static id = "CjsWemFormat";
+
     static outputs = CjsFormat.defineOutputs({
         raw: { outputStreams: StreamType.STREAM_AUDIO, default: true, passthrough: true },
         ogg: { outputStreams: StreamType.STREAM_AUDIO },
         pcm: { outputStreams: StreamType.STREAM_AUDIO, decoded: true },
         wemJson: { role: "debug", probes: [ "wemJson", "raw" ] }
     });
+
     static extensions = [ ".wem" ];
 }
 

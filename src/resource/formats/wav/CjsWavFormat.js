@@ -188,12 +188,14 @@ export class CjsWavFormat extends CjsFormat
     }
 
     static id = "CjsWavFormat";
+
     static outputs = CjsFormat.defineOutputs({
         audio: { outputStreams: StreamType.STREAM_AUDIO, decoded: true, probes: [ "audio", "pcm" ] },
         pcm: { outputStreams: StreamType.STREAM_AUDIO, decoded: true },
         wavJson: { role: "debug", probes: [ "wavJson", "raw" ] },
         raw: { outputStreams: StreamType.STREAM_AUDIO, role: "debug", default: true, passthrough: true }
     });
+
     static extensions = [ ".wav" ];
 }
 

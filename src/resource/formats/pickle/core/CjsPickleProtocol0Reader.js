@@ -39,6 +39,7 @@ const PROTOCOL = 0;
 export class CjsPickleProtocol0Reader
 {
   _bytes;
+
   _limits;
 
   /**

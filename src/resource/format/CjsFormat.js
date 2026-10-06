@@ -518,8 +518,11 @@ export class CjsFormat
   });
 
   static id = "";
+
   static extensions = [];
+
   static outputs = {};
+
   /**
    * What this format can be written FROM, empty when it cannot be written.
    *
@@ -531,7 +534,9 @@ export class CjsFormat
    * result is lossy.
    */
   static inputs = {};
+
   static requestResponseType = "arraybuffer";
+
   static worker = null;
 }
 

@@ -42,13 +42,21 @@ export class CjsGltfFormat extends CjsGeometryFormat
     static className = "CjsGltfFormat";
 
     _emit = DEFAULT_VALUES.emit;
+
     _source = DEFAULT_VALUES.source;
+
     _buffers = DEFAULT_VALUES.buffers;
+
     _packTangents = DEFAULT_VALUES.packTangents;
+
     _uvHandedness = DEFAULT_VALUES.uvHandedness;
+
     _rebuildMissingNormals = DEFAULT_VALUES.rebuildMissingNormals;
+
     _rebuildMissingTangents = DEFAULT_VALUES.rebuildMissingTangents;
+
     _rebuildMissingBiNormals = DEFAULT_VALUES.rebuildMissingBiNormals;
+
     _classes = DEFAULT_VALUES.classes;
 
     /**
@@ -213,7 +221,9 @@ export class CjsGltfFormat extends CjsGeometryFormat
     }
 
     static classKeys = CLASS_KEYS;
+
     static id = "CjsGltfFormat";
+
     static outputs = CjsFormat.defineOutputs({
         shared: { default: true, decoded: true },
         gr2: { decoded: true },
@@ -221,6 +231,7 @@ export class CjsGltfFormat extends CjsGeometryFormat
         json: { role: "debug", decoded: true },
         gltfJson: { role: "debug", decoded: true }
     });
+
     static extensions = [ ".gltf", ".glb" ];
 
 }

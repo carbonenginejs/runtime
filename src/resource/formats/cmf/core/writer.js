@@ -56,8 +56,11 @@ function enumValue(names, value, label)
 class Flattener
 {
     _bytes = new Uint8Array(1024);
+
     _view = new DataView(this._bytes.buffer);
+
     _chunkCache = new Map();
+
     size = 0;
 
     /**

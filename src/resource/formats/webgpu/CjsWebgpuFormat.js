@@ -38,10 +38,15 @@ export class CjsWebgpuFormat extends CjsFormat
     static className = "CjsWebgpuFormat";
 
     _emit = DEFAULT_VALUES.emit;
+
     _source = DEFAULT_VALUES.source;
+
     _decodeInstructions = DEFAULT_VALUES.decodeInstructions;
+
     _permutation = DEFAULT_VALUES.permutation;
+
     _schema = DEFAULT_VALUES.schema;
+
     _classes = {};
 
     /**
@@ -403,13 +408,19 @@ export class CjsWebgpuFormat extends CjsFormat
     }
 
     static classKeys = CLASS_KEYS;
+
     static id = "CjsWebgpuFormat";
+
     static outputs = CjsFormat.defineOutputs({
         json: { default: true, decoded: true }
     });
+
     static extensions = [ ".carbonwebgpu" ];
+
     static format = CARBON_WEBGPU_FORMAT;
+
     static analysisFormat = CARBON_WEBGPU_ANALYSIS_FORMAT;
+
     static packageVersion = FORMAT_WEBGPU_PACKAGE_VERSION;
 }
 

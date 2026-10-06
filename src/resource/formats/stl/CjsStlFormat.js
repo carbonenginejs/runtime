@@ -74,15 +74,25 @@ export class CjsStlFormat extends CjsGeometryFormat
     static className = "CjsStlFormat";
 
     _emit = DEFAULT_VALUES.emit;
+
     _source = DEFAULT_VALUES.source;
+
     _binary = DEFAULT_VALUES.binary;
+
     _solidName = DEFAULT_VALUES.solidName;
+
     _scale = DEFAULT_VALUES.scale;
+
     _recalculateNormals = DEFAULT_VALUES.recalculateNormals;
+
     _weldVertices = DEFAULT_VALUES.weldVertices;
+
     _weldTolerance = DEFAULT_VALUES.weldTolerance;
+
     _skipDegenerate = DEFAULT_VALUES.skipDegenerate;
+
     _requireWatertight = DEFAULT_VALUES.requireWatertight;
+
     _classes = DEFAULT_VALUES.classes;
 
     /**
@@ -277,7 +287,9 @@ export class CjsStlFormat extends CjsGeometryFormat
     }
 
     static classKeys = CLASS_KEYS;
+
     static id = "CjsStlFormat";
+
     // STL takes the shared geometry root directly rather than going through
     // CMF, because it carries triangles and nothing else worth preserving.
     // Lossless for what STL can represent; everything else was never in scope.
@@ -292,6 +304,7 @@ export class CjsStlFormat extends CjsGeometryFormat
         json: { role: "debug", decoded: true },
         stlJson: { role: "debug", default: true, decoded: true }
     });
+
     static extensions = [ ".stl" ];
 
 }

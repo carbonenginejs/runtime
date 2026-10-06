@@ -130,12 +130,14 @@ export class CjsGifFormat extends CjsImageFormat
     }
 
     static id = "CjsGifFormat";
+
     static outputs = CjsFormat.defineOutputs({
         image: { decoded: true, probes: [ "image", "rgba" ] },
         rgba: { decoded: true },
         gifJson: { role: "debug", probes: [ "gifJson", "raw" ] },
         raw: { role: "debug", default: true, passthrough: true }
     });
+
     /**
      * Fill a HostBitmap through this format's RGBA8 output, for Carbon's ImageIO
      * registry (ImageIO). See CjsImageFormat.readImageFromRgbaPayload.

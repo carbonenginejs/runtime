@@ -63,6 +63,7 @@ const UTF8 = new TextDecoder("utf-8", { fatal: true });
 export class CjsPickleProtocol4Reader
 {
   _bytes;
+
   _limits;
 
   /**

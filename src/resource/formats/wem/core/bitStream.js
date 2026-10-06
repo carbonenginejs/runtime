@@ -99,13 +99,21 @@ export class BitReader extends CjsBitReader
 export class OggPageWriter
 {
     _pages = [];
+
     _payload = new Uint8Array(OGG_MAX_PAYLOAD);
+
     _payloadBytes = 0;
+
     _bitBuffer = 0;
+
     _bitsStored = 0;
+
     _granule = 0;
+
     _sequenceNumber = 0;
+
     _first = true;
+
     _continued = false;
 
     /**

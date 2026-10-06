@@ -280,7 +280,9 @@ export class CjsFbxFormat extends CjsGeometryFormat
     }
 
     static classKeys = CLASS_KEYS;
+
     static id = "CjsFbxFormat";
+
     // FBX is written THROUGH CMF: `write` takes a native CMF graph and
     // `writeShared` converts shared or GR2-shaped geometry into one first.
     static inputs = CjsFormat.defineInputs({
@@ -295,6 +297,7 @@ export class CjsFbxFormat extends CjsGeometryFormat
         fbxJson: { role: "debug", decoded: true, probes: [ "fbxJson", "document" ] },
         raw: { role: "debug", default: true, passthrough: true, probes: [ "raw", "document" ] }
     });
+
     static extensions = [ ".fbx" ];
 }
 

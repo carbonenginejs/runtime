@@ -62,11 +62,17 @@ export class CjsGr2Format extends CjsGeometryFormat
     static className = "CjsGr2Format";
 
     _emit = DEFAULT_VALUES.emit;
+
     _decompressCurves = DEFAULT_VALUES.decompressCurves;
+
     _unpackTangents = DEFAULT_VALUES.unpackTangents;
+
     _rebuildMissingNormals = DEFAULT_VALUES.rebuildMissingNormals;
+
     _rebuildMissingTangents = DEFAULT_VALUES.rebuildMissingTangents;
+
     _rebuildMissingBiNormals = DEFAULT_VALUES.rebuildMissingBiNormals;
+
     _classes = {};
 
     /**
@@ -319,7 +325,9 @@ export class CjsGr2Format extends CjsGeometryFormat
     };
 
     static classKeys = CLASS_KEYS;
+
     static id = "CjsGr2Format";
+
     // Same shape as the other geometry writers: a native CMF v1 graph is the
     // default input, and `writeShared` adapts a shared or GR2-shaped root.
     static inputs = CjsFormat.defineInputs({
@@ -334,8 +342,11 @@ export class CjsGr2Format extends CjsGeometryFormat
         gr2Json: { role: "debug", decoded: true },
         raw: { role: "debug", decoded: true }
     });
+
     static extensions = [ ".gr2", ".gsf" ];
+
     static curves = curves;
+
     static tangents = tangents;
 
     /**

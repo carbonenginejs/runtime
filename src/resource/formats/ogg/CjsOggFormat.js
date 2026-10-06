@@ -135,12 +135,14 @@ export class CjsOggFormat extends CjsFormat
     }
 
     static id = "CjsOggFormat";
+
     static outputs = CjsFormat.defineOutputs({
         pcm: { outputStreams: StreamType.STREAM_AUDIO, decoded: true },
         audio: { outputStreams: StreamType.STREAM_AUDIO, decoded: true, probes: [ "audio", "pcm" ] },
         oggJson: { role: "debug", probes: [ "oggJson", "raw" ] },
         raw: { outputStreams: StreamType.STREAM_AUDIO_VIDEO, role: "debug", default: true, passthrough: true }
     });
+
     static extensions = [ ".ogg", ".oga", ".ogv" ];
 }
 

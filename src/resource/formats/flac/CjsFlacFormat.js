@@ -106,10 +106,12 @@ export class CjsFlacFormat extends CjsFormat
     }
 
     static id = "CjsFlacFormat";
+
     static outputs = CjsFormat.defineOutputs({
         flacJson: { role: "debug", probes: [ "flacJson", "raw" ] },
         raw: { outputStreams: StreamType.STREAM_AUDIO, role: "debug", default: true, passthrough: true }
     });
+
     static extensions = [ ".flac" ];
 }
 

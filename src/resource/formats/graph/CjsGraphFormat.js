@@ -6,14 +6,20 @@ import { readEnvelope, writeEnvelope } from "./core/text.js";
 export class CjsGraphFormat extends CjsFormat
 {
     static className = "CjsGraphFormat";
+
     static id = "CjsGraphFormat";
+
     static wireFormat = "cjs.graph";
+
     static version = 1;
+
     static extensions = [];
+
     static outputs = CjsFormat.defineOutputs({
         values: { default: true, decoded: true },
         runtime: { decoded: true }
     });
+
     static inputs = CjsFormat.defineInputs({ runtime: { default: true }, values: {} });
 
     /** Keep a reusable profile without registering a format or starting any services. */

@@ -261,6 +261,7 @@ export class CjsPngFormat extends CjsImageFormat
 
 
     static id = "CjsPngFormat";
+
     static inputs = CjsFormat.defineInputs({
         // async because the compressing path is the real one; the sync writer
         // emits stored blocks and is the fallback, not the intent.
@@ -272,6 +273,7 @@ export class CjsPngFormat extends CjsImageFormat
         rgba: { readMode: "async", decoded: true },
         raw: { role: "debug", default: true, passthrough: true }
     });
+
     /**
      * Fill a HostBitmap through this format's RGBA8 output, for Carbon's ImageIO
      * registry (ImageIO). See CjsImageFormat.readImageFromRgbaPayload.

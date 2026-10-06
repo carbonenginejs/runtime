@@ -88,7 +88,9 @@ export class CjsFsdFormat extends CjsFormat
     }
 
     static id = "CjsFsdFormat";
+
     static extensions = [ ".fsdbinary" ];
+
     static outputs = CjsFormat.defineOutputs({
         payload: { default: true, decoded: true },
         json: { decoded: true }

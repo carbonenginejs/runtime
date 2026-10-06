@@ -37,6 +37,7 @@ export class CjsFsd64Binary
     };
 
     _bytes;
+
     _view;
 
     /** Creates a validated view over caller-supplied container bytes. */

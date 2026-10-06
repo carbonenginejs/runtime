@@ -37,12 +37,19 @@ export class CjsObjFormat extends CjsGeometryFormat
     static className = "CjsObjFormat";
 
     _emit = DEFAULT_VALUES.emit;
+
     _source = DEFAULT_VALUES.source;
+
     _packTangents = DEFAULT_VALUES.packTangents;
+
     _uvHandedness = DEFAULT_VALUES.uvHandedness;
+
     _rebuildMissingNormals = DEFAULT_VALUES.rebuildMissingNormals;
+
     _rebuildMissingTangents = DEFAULT_VALUES.rebuildMissingTangents;
+
     _rebuildMissingBiNormals = DEFAULT_VALUES.rebuildMissingBiNormals;
+
     _classes = DEFAULT_VALUES.classes;
 
     /**
@@ -188,7 +195,9 @@ export class CjsObjFormat extends CjsGeometryFormat
     }
 
     static classKeys = CLASS_KEYS;
+
     static id = "CjsObjFormat";
+
     static outputs = CjsFormat.defineOutputs({
         shared: { decoded: true },
         gr2: { decoded: true },
@@ -196,6 +205,7 @@ export class CjsObjFormat extends CjsGeometryFormat
         json: { role: "debug", decoded: true },
         objJson: { role: "debug", default: true, decoded: true }
     });
+
     static extensions = [ ".obj" ];
 
 }

@@ -47,8 +47,11 @@ export class CjsCmfFormat extends CjsGeometryFormat
     static className = "CjsCmfFormat";
 
     _emit = DEFAULT_VALUES.emit;
+
     _validateCrc = DEFAULT_VALUES.validateCrc;
+
     _decodeBuffers = DEFAULT_VALUES.decodeBuffers;
+
     _classes = {};
 
     /**
@@ -491,7 +494,9 @@ export class CjsCmfFormat extends CjsGeometryFormat
     }
 
     static classKeys = CLASS_KEYS;
+
     static id = "CjsCmfFormat";
+
     // The writer's own graph is the default: `write` takes a CMF-native graph,
     // while `writeShared` converts a shared geometry root through it first.
     // Both are lossless - CMF is the container this package writes for keeps.
@@ -508,6 +513,7 @@ export class CjsCmfFormat extends CjsGeometryFormat
         cmfJson: { role: "debug", decoded: true },
         raw: { role: "debug", decoded: true }
     });
+
     static extensions = [ ".cmf" ];
 }
 

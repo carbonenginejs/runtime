@@ -263,11 +263,17 @@ export function writeCarbonEffectFile(parts)
 export class CjsCarbonEffectWriter
 {
     _table;
+
     _permutations = [];
+
     _bodies = [];
+
     _compilerVersion;
+
     _sourceHash;
+
     _backend;
+
     _version;
 
     /**

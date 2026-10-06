@@ -4,6 +4,7 @@
 export class HlslEffectStageInput
 {
     static invalid = 0xffffffff;
+
     static shaderConstantsMax = 256 * 16;
 
     /**

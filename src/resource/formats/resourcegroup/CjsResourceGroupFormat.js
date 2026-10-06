@@ -190,7 +190,10 @@ export class CjsResourceGroupFormat extends CjsFormat
     }
 
     static id = "CjsResourceGroupFormat";
+
     static extensions = [];
+
     static outputs = CjsFormat.defineOutputs({ json: { default: true, decoded: true } });
+
     static inputs = CjsFormat.defineInputs({ json: { default: true } });
 }

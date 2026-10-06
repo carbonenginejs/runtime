@@ -69,7 +69,9 @@ export class CjsDxbcFormat extends CjsFormat
     static className = "CjsDxbcFormat";
 
     _emit = DEFAULT_VALUES.emit;
+
     _source = DEFAULT_VALUES.source;
+
     _decodeInstructions = DEFAULT_VALUES.decodeInstructions;
 
     /**
@@ -212,10 +214,12 @@ export class CjsDxbcFormat extends CjsFormat
     }
 
     static id = "CjsDxbcFormat";
+
     static outputs = CjsFormat.defineOutputs({
         json: { default: true, decoded: true },
         raw: { role: "debug", decoded: true }
     });
+
     static extensions = [];
 
 }

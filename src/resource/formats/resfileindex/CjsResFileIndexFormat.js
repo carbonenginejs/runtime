@@ -160,8 +160,11 @@ export class CjsResFileIndexFormat extends CjsFormat
     }
 
     static id = "CjsResFileIndexFormat";
+
     static extensions = [];
+
     static outputs = CjsFormat.defineOutputs({ json: { default: true, decoded: true } });
+
     static inputs = CjsFormat.defineInputs({ json: { default: true } });
 }
 

@@ -127,6 +127,7 @@ export class CjsDdsFormat extends CjsImageFormat
     {
         return writeDds(packet);
     }
+
     /** Registered name; `constructor.name` does not survive minification. */
     static className = "CjsDdsFormat";
 
@@ -543,7 +544,9 @@ export class CjsDdsFormat extends CjsImageFormat
     };
 
     static id = "CjsDdsFormat";
+
     static inputs = CjsFormat.defineInputs({ bitmap: { default: true } });
+
     static outputs = CjsFormat.defineOutputs({
         texture: { probes: [ "texture", "compressed" ] },
         image: { decoded: true, probes: [ "image", "rgba" ] },
@@ -551,6 +554,7 @@ export class CjsDdsFormat extends CjsImageFormat
         raw: { role: "debug", default: true, passthrough: true },
         bitmap: { decoded: true }
     });
+
     static extensions = [ ".dds" ];
 }
 

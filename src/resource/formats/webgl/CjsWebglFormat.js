@@ -40,6 +40,7 @@ export class CjsWebglFormat extends CjsFormat
     static className = "CjsWebglFormat";
 
     _emit = DEFAULT_VALUES.emit;
+
     _source = DEFAULT_VALUES.source;
 
     /**
@@ -218,9 +219,11 @@ export class CjsWebglFormat extends CjsFormat
     }
 
     static id = "CjsWebglFormat";
+
     static outputs = CjsFormat.defineOutputs({
         json: { default: true, decoded: true }
     });
+
     static extensions = [];
 
 }

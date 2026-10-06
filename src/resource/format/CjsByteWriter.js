@@ -18,7 +18,9 @@ const textEncoder = new TextEncoder();
 export class CjsByteWriter
 {
     _bytes;
+
     _view;
+
     _length = 0;
 
     /**

@@ -298,5 +298,6 @@ export class CjsBlackBinaryReader
     }
 
     static utf8Decoder = new TextDecoder("utf-8");
+
     static utf16Decoder = new TextDecoder("utf-16le");
 }

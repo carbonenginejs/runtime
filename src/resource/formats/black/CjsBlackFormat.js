@@ -33,8 +33,11 @@ export class CjsBlackFormat extends CjsFormat
     static className = "CjsBlackFormat";
 
     _emit = DEFAULT_VALUES.emit;
+
     _schema = DEFAULT_VALUES.schema;
+
     _readerOptions = {};
+
     _classes = {};
 
     /**
@@ -325,10 +328,15 @@ export class CjsBlackFormat extends CjsFormat
     }
 
     static classKeys = CLASS_KEYS;
+
     static id = "CjsBlackFormat";
+
     static extensions = [CJS_BLACK_EXTENSION];
+
     static fourCC = CJS_BLACK_FOURCC;
+
     static version = CJS_BLACK_VERSION;
+
     static outputs = CjsFormat.defineOutputs({
         json: { default: true, decoded: true },
         document: { decoded: true },

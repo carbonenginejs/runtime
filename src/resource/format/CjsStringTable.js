@@ -85,9 +85,13 @@ function hashBytes(bytes)
 export class CjsStringTable
 {
     _blobs = [];
+
     _buckets = new Map();
+
     _byteLength = 0;
+
     _offsets = null;
+
     _handedOutOffsets = false;
 
     /**

@@ -37,8 +37,11 @@ export class CjsRedFormat extends CjsFormat
     static className = "CjsRedFormat";
 
     _emit = DEFAULT_VALUES.emit;
+
     _schema = DEFAULT_VALUES.schema;
+
     _readerOptions = {};
+
     _classes = {};
 
     /**
@@ -274,9 +277,13 @@ export class CjsRedFormat extends CjsFormat
     }
 
     static classKeys = CLASS_KEYS;
+
     static schema = blackDefinitions;
+
     static id = "CjsRedFormat";
+
     static extensions = [ ".red" ];
+
     static outputs = CjsFormat.defineOutputs({
         json: { default: true, decoded: true },
         payload: { decoded: true },

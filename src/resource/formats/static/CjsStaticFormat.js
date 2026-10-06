@@ -157,7 +157,9 @@ export class CjsStaticFormat extends CjsFormat
 
 
   static id = "CjsStaticFormat";
+
   static extensions = [ ".static" ];
+
   static outputs = {};
 
   /**

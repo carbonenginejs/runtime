@@ -73,11 +73,17 @@ export function canDecodeJpeg(metadata = {})
 class BaselineJpegDecoder
 {
     _bytes;
+
     _offset = 0;
+
     _quantization = new Map();
+
     _huffman = new Map();
+
     _frame = null;
+
     _scan = null;
+
     _restartInterval = 0;
 
     /** Creates a BaselineJpegDecoder with caller-provided initial state. */
@@ -412,9 +418,13 @@ class BaselineJpegDecoder
 class EntropyReader
 {
     _bytes;
+
     _offset;
+
     _buffer = 0;
+
     _bits = 0;
+
     _marker = null;
 
     /**

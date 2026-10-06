@@ -236,6 +236,7 @@ export class CjsJpegFormat extends CjsImageFormat
 
 
     static id = "CjsJpegFormat";
+
     static inputs = CjsFormat.defineInputs({
         rgba: { default: true, lossy: true, options: [ "quality", "subsampling" ] }
     });
@@ -245,6 +246,7 @@ export class CjsJpegFormat extends CjsImageFormat
         rgba: { decoded: true },
         raw: { role: "debug", default: true, passthrough: true }
     });
+
     /**
      * Fill a HostBitmap through this format's RGBA8 output, for Carbon's ImageIO
      * registry (ImageIO). See CjsImageFormat.readImageFromRgbaPayload.

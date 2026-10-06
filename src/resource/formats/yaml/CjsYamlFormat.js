@@ -144,7 +144,9 @@ export class CjsYamlFormat extends CjsFormat
     }
 
     static id = "CjsYamlFormat";
+
     static extensions = [ ".yaml", ".yml" ];
+
     static outputs = CjsFormat.defineOutputs({
         json: { decoded: true },
         payload: { default: true, decoded: true },

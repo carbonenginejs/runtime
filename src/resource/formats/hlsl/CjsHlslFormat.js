@@ -64,8 +64,11 @@ export class CjsHlslFormat extends CjsFormat
     static className = "CjsHlslFormat";
 
     _emit = DEFAULT_VALUES.emit;
+
     _source = DEFAULT_VALUES.source;
+
     _permutation = DEFAULT_VALUES.permutation;
+
     _classes = DEFAULT_VALUES.classes;
 
     /**
@@ -264,12 +267,15 @@ export class CjsHlslFormat extends CjsFormat
     }
 
     static classKeys = CLASS_KEYS;
+
     static id = "CjsHlslFormat";
+
     static outputs = CjsFormat.defineOutputs({
         json: { default: true, decoded: true },
         metadata: { decoded: true },
         raw: { role: "debug", decoded: true }
     });
+
     static extensions = [ ".sm_hi", ".sm_lo", ".sm_depth" ];
 
 }

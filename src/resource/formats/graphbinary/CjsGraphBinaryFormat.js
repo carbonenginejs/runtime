@@ -6,14 +6,20 @@ import { binaryArray, createBinaryWriter, openBinary, writePayload } from "./cor
 export class CjsGraphBinaryFormat extends CjsFormat
 {
     static className = "CjsGraphBinaryFormat";
+
     static id = "CjsGraphBinaryFormat";
+
     static wireFormat = "cjs.graph.binary";
+
     static version = 1;
+
     static extensions = [];
+
     static outputs = CjsFormat.defineOutputs({
         values: { default: true, decoded: true },
         runtime: { decoded: true }
     });
+
     static inputs = CjsFormat.defineInputs({ runtime: { default: true }, values: {} });
 
     /** Hold a reusable detached profile; import/construction registers nothing. */
