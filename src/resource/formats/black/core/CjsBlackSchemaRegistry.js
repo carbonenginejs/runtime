@@ -95,21 +95,22 @@ export class CjsBlackSchemaRegistry
         {
             return CjsBlackSchemaRegistry.compactBlackType("IROOT", type);
         }
+        if (kind === "structList")
+        {
+            // BlueStructureList: the item class supplies the layout through meta.struct,
+            // and a runtime read builds each record as an instance of it.
+            if (Object.hasOwn(type, "structure")) throw new TypeError("Inline structure layouts are removed; use meta.struct on the item class.");
+            const structure = structClassLayout(type.className);
+            return CjsBlackSchemaRegistry.compactBlackType("IROOT", { kind: "structList", className: type.className }, {
+                container: "list", cppType: "StructureList", structure, itemClassName: type.className
+            });
+        }
         if (kind === "list" || kind === "array" || kind === "set" || kind === "map")
         {
             let itemType = kind === "map" ? type.valueType : type.itemType;
-            // Legacy list("Class") is a reference collection. Raw structure
-            // lists must instead declare rawStruct with a registered struct class.
+            // list("Class") is a collection of objects; a BlueStructureList is structList("Class").
             if (typeof itemType === "string") itemType = { kind: "objectRef", className: itemType };
             if (typeof itemType === "function") itemType = { kind: "objectRef", className: itemType };
-            if (itemType?.kind === "rawStruct" && kind !== "map")
-            {
-                if (Object.hasOwn(type, "structure")) throw new TypeError("Inline structure layouts are removed; use meta.struct on the item class.");
-                const structure = structClassLayout(itemType.className);
-                return CjsBlackSchemaRegistry.compactBlackType("IROOT", { kind: "array" }, {
-                    container: "list", cppType: "StructureList", structure
-                });
-            }
             if (![ "model", "objectRef", "weakRef" ].includes(itemType?.kind))
             {
                 throw new TypeError(`Unsupported canonical Black ${kind} item type: ${itemType?.kind || "missing"}`);

@@ -665,7 +665,7 @@ export class CjsSchema
 
 
     /**
-     * Field type descriptors. Three reference-shaped kinds differ in how a
+     * Field type descriptors. The object-shaped kinds differ in how a
      * value is populated:
      * - `model(className)` holds a registered class by reference;
      * - `root(className)` is Carbon's IROOT, an object embedded in its owner:
@@ -673,7 +673,9 @@ export class CjsSchema
      *   keeping its identity. It is not a binary struct; those are described by
      *   `meta.struct` on the item class;
      * - `rawStruct(nativeType)` is an opaque native payload whose plain values
-     *   never construct a model.
+     *   never construct a model;
+     * - `structList(className)` is a list of binary records, each an instance
+     *   of a class with a `meta.struct` layout.
      */
     static #type = {
         /**
@@ -747,6 +749,12 @@ export class CjsSchema
         string: fieldDecorator("type", { kind: "string" }),
         wstring: fieldDecorator("type", { kind: "wstring" }),
         root: className => fieldDecorator("type", { kind: "root", className }),
+        /**
+         * Declares Carbon's BlueStructureList: packed records whose layout the
+         * item class declares with `meta.struct`. Each record is an instance of
+         * that class, held by value.
+         */
+        structList: className => fieldDecorator("type", { kind: "structList", className: requireClassName(className) }),
         typedArray: arrayType => fieldDecorator("type", { kind: "typedArray", arrayType }),
         uint8: fieldDecorator("type", { kind: "uint8" }),
         uint16: fieldDecorator("type", { kind: "uint16" }),
@@ -1610,6 +1618,13 @@ function settingDecorator(name, { applies = SETTING_APPLIES.ALWAYS, enum: enumTy
 }
 
 /** A named custom type is meaningful only when a format explicitly handles it. */
+/** A struct list names its item class by its registered name, resolved at read time. */
+function requireClassName(name)
+{
+    if (typeof name !== "string" || !name.trim()) throw new TypeError("meta.type.structList requires a registered class name.");
+    return name.trim();
+}
+
 function requireTypeName(name)
 {
     if (typeof name !== "string" || !name.trim()) throw new TypeError("meta.type.custom requires a nonempty name.");

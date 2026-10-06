@@ -6,6 +6,13 @@ import { CjsBlackSchemaRegistry } from "../../npm/dist/resource/formats/black/co
 import { classStructureLayout } from "../../npm/dist/resource/formats/black/core/blackClassStructures.js";
 import { Tr2CurveQuaternion } from "../../npm/dist/trinity/curves/curve/Tr2CurveQuaternion.js";
 
+/** A struct record's own fields as plain data, vectors as plain arrays. */
+function plainRecord(record)
+{
+    return Object.fromEntries(Object.entries(record).map(([key, value]) => [key, ArrayBuffer.isView(value) ? Array.from(value) : value]));
+}
+
+
 const authored = [
     { time: 0, value: [0, 0, 0, 1], id: 0xbeef, interpolation: 1 },
     { time: 4, value: [0, 0, 1, 0], id: 0xfedc, interpolation: 0xabcd }
@@ -60,7 +67,7 @@ test("canonical quaternion records preserve storage and drive production slerp a
     assert.equal(curve.keys, keys);
     assert.equal(curve.currentValue, currentValue);
     assert.ok(currentValue instanceof Float32Array);
-    assert.deepEqual(curve.keys, authored);
+    assert.deepEqual(curve.keys.map(plainRecord), authored);
     assert.notEqual(curve.keys[0].value, curve.keys[1].value);
     assert.equal(curve.name, "AuthoredQuaternion");
     assert.equal(reader.reader.AtEnd(), true);
@@ -79,7 +86,7 @@ test("canonical quaternion records preserve storage and drive production slerp a
     assert.equal(curve.Update(3, out), out);
     assert.equal(curve.currentValue, currentValue);
     near(out, [0, 0, Math.sin(3 * Math.PI / 8), Math.cos(3 * Math.PI / 8)]);
-    assert.deepEqual(curve.keys, authored, "evaluation does not mutate decoded key values");
+    assert.deepEqual(curve.keys.map(plainRecord), authored, "evaluation does not mutate decoded key values");
     changed.mock.restore();
     const first = curve.keys[0], last = curve.keys[1];
     curve.keys.reverse();
@@ -95,7 +102,7 @@ test("quaternion keys retain verified JS short-record defaults with fresh per-re
     {
         const reader = new CjsBlackReader(curveBytes(stride), { schema: null, initialize: false });
         const curve = reader.CreateObject();
-        assert.deepEqual(curve.keys, authored.map(key => ({ time: key.time,
+        assert.deepEqual(curve.keys.map(plainRecord), authored.map(key => ({ time: key.time,
             value: stride >= 20 ? key.value : [0, 0, 0, 1],
             id: stride >= 22 ? key.id : 0, interpolation: 1 })));
         assert.notEqual(curve.keys[0].value, curve.keys[1].value);
@@ -105,10 +112,10 @@ test("quaternion keys retain verified JS short-record defaults with fresh per-re
         if (stride === 4)
         {
             curve.keys[0].value[0] = 99;
-            assert.deepEqual(curve.keys[1].value, [0, 0, 0, 1]);
+            assert.deepEqual(Array.from(curve.keys[1].value), [0, 0, 0, 1]);
             assert.deepEqual(classStructureLayout("Tr2CurveQuaternion", "keys").defaults.value, [0, 0, 0, 1]);
             const next = new CjsBlackReader(curveBytes(4), { schema: null, initialize: false }).CreateObject();
-            assert.deepEqual(next.keys[0].value, [0, 0, 0, 1]);
+            assert.deepEqual(Array.from(next.keys[0].value), [0, 0, 0, 1]);
             assert.notEqual(next.keys[0].value, curve.keys[1].value);
         }
     }

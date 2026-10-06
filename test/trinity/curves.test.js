@@ -800,7 +800,7 @@ test("Tr2CurveQuaternion evaluates constant, slerp, and cycle wrapping", () =>
   curve.Update(1, out);
   assertAlmostEquals(out[2], Math.SQRT1_2);
   assertAlmostEquals(curve.currentValue[2], Math.SQRT1_2);
-  assertEquals(CjsSchema.getField(Tr2CurveQuaternion, "keys")?.type.kind, "array");
+  assertEquals(CjsSchema.getField(Tr2CurveQuaternion, "keys")?.type.kind, "structList");
   assertEquals(CjsSchema.getField(Tr2CurveQuaternion, "currentValue")?.type.kind, "quat");
 });
 test("Tr2CurveScalar evaluates linear, clamp, and linear extrapolation", () =>
@@ -817,7 +817,7 @@ test("Tr2CurveScalar evaluates linear, clamp, and linear extrapolation", () =>
   assertAlmostEquals(curve.GetValue(-1), -1);
   assertAlmostEquals(curve.GetValue(3), 9);
   assertAlmostEquals(curve.GetTangentAt(3), 4);
-  assertEquals(CjsSchema.getField(Tr2CurveScalar, "keys")?.type.kind, "array");
+  assertEquals(CjsSchema.getField(Tr2CurveScalar, "keys")?.type.kind, "structList");
 });
 test("Tr2CurveScalar keeps stable sorted keys and computes hermite", () =>
 {

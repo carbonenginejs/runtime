@@ -25,7 +25,8 @@
 // | root | IROOT (embedded) | recursive CopyTo into the EXISTING object |
 // | list, array of objects | IROOT BlueList + AssignTo | cleared, each item CopyTo'd (BlueListUtil.h:506-540) |
 // | map of objects | IROOT BlueDict + AssignTo | cleared, each entry CopyTo'd, failures skipped (BlueDict.h:334-356) |
-// | list, array, map, set of values; rawStruct | BlueStructureList + AssignTo | copied by value (BlueStructureList.h:185-195) |
+// | list, array, map, set of values; rawStruct | by value | copied by value |
+// | structList | IROOT BlueStructureList + AssignTo | records copied by value (BlueStructureList.h:185-195): each into the destination's record at that index, or a new one |
 //
 // "UNCHANGED" IS A PER-KIND TEST. Carbon skips a member whose bytes are
 // identical (`memcmp`, Copier.cpp:141-150) so that OnModified fires only for
@@ -44,7 +45,7 @@ import { hasOwnInterfaceTable, mappedInterfaces } from "../compose/interface.js"
 const { OverrideResult } = ICopier;
 
 const OBJECT_KINDS = new Set([ "model", "objectRef" ]);
-const CONTAINER_KINDS = new Set([ "list", "array", "map", "set" ]);
+const CONTAINER_KINDS = new Set([ "list", "array", "map", "set", "structList" ]);
 
 
 /** `Copier` - Blue's object copy mechanism, per blueexposure/Copier.cpp. */
@@ -259,6 +260,11 @@ export class Copier extends ICopier
       return true;
     }
 
+    if (kind === "structList")
+    {
+      return this._AssignStructureList(storage, from, to, field.type.className);
+    }
+
     if (kind === "root")
     {
       // Copy<IROOT> (BlueVariable.cpp:338-343): an embedded object is copied
@@ -299,6 +305,32 @@ export class Copier extends ICopier
       if (!copy) return false; // Carbon resizes to the items copied so far.
       items.push(copy);
     }
+    return true;
+  }
+
+  /**
+   * BlueStructureList AssignTo (BlueStructureList.h:185-195): the records are
+   * copied by value. Each is copied into the record the destination already
+   * holds at that index, or into a new one; a record is never shared.
+   *
+   * @param {object} storage The member's storage slot.
+   * @param {Array} from The source records.
+   * @param {Array} to The destination's current records.
+   * @param {string} className The declared record class.
+   * @returns {boolean} Whether every record copied.
+   */
+  _AssignStructureList(storage, from, to, className)
+  {
+    const current = Array.isArray(to) ? to : [];
+    const records = [];
+    for (let i = 0; i < (from?.length ?? 0); i++)
+    {
+      const existing = CjsSchema.isInstanceOf(className, current[i]) ? current[i] : null;
+      const copy = this.CopyTo(from[i], existing);
+      if (!copy) return false;
+      records.push(copy);
+    }
+    storage.target[storage.key] = records;
     return true;
   }
 

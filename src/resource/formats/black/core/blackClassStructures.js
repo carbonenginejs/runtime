@@ -36,7 +36,9 @@ export function classStructureLayout(ownerClass, fieldName)
     // Layouts live on the classes, so an owner whose package was never imported is unregistered, not undeclared.
     if (!Owner) throw new TypeError(`Black struct ${ownerClass}.${fieldName}: class ${ownerClass} is not registered (import its package)`);
     const declaration = CjsSchema.getSchema(Owner).members.find(member => member.name === fieldName);
-    const itemType = declaration?.type?.itemType ?? CjsSchema.getField(Owner, fieldName)?.type?.itemType;
+    const type = declaration?.type ?? CjsSchema.getField(Owner, fieldName)?.type;
+    // meta.type.structList names its record class directly.
+    const itemType = type?.kind === "structList" ? type.className : type?.itemType;
     const itemName = typeof itemType === "string" || typeof itemType === "function" ? itemType : itemType?.className;
     if (!itemName) throw new TypeError(`Black struct ${ownerClass}.${fieldName} has no declared item class`);
     return structClassLayout(itemName);

@@ -16,7 +16,8 @@
 // | root | IROOT (embedded) | `ReadIRoot` into the EXISTING object |
 // | model, objectRef | IROOTPTR | `ReadIRootClass`: an anchor's object, or a new one |
 // | list, array | IROOT BlueList | `ReadList` |
-// | map, set, rawStruct | IROOT BlueDict / BlueStructureList | by value |
+// | map, set, rawStruct | IROOT BlueDict | by value |
+// | structList | IROOT BlueStructureList | `ReadStructureList`: records by value, into instances of the item class |
 //
 // WHICH MEMBERS A KEY MAY NAME. Carbon's base finds PERSIST members only, and
 // an unknown name throws `InvalidAttributeException` (:99-106). Ours finds any
@@ -104,6 +105,12 @@ export class IRootReaderBase
     const kind = field.type?.kind;
     const current = readDictionaryValue(instance, field);
 
+    // A BlueStructureList holds records by value; it is never a list of objects.
+    if (kind === "structList")
+    {
+      return this.ReadStructureList(instance, field);
+    }
+
     // A declared embedded slot owns its existing storage even when a values
     // bag also carries _type. Generic typed-bag pointer dispatch comes later.
     if (this._options?.declarations === true && kind === "root")
@@ -175,6 +182,56 @@ export class IRootReaderBase
     const created = this.ReadIRootClass(field);
     writeDictionaryValue(instance, field, created);
     return created !== current;
+  }
+
+  /**
+   * A BlueStructureList member (`ReadStructureList`, IRootReader.cpp:179,
+   * DictReader.cpp:532-660): records held by value, each an instance of the
+   * declared struct class. Records already held are filled in place, index by
+   * index; missing ones are created and surplus ones dropped. A live record is
+   * copied, never shared.
+   *
+   * Adapted: Carbon appends each record to one packed buffer with notification
+   * muted, and its dictionary form is `{ items: [[member, ...], ...] }`. Ours
+   * holds one instance of the item class per record instead of packed memory,
+   * and reads our values format, one record per item.
+   *
+   * @param {object} instance The owner.
+   * @param {object} field The struct-list declaration.
+   * @returns {boolean} Whether the member changed.
+   */
+  ReadStructureList(instance, field)
+  {
+    const source = this.ReadValue();
+    const current = readDictionaryValue(instance, field);
+    if (source === current) return false;
+    const className = field.type.className;
+    const Item = CjsSchema.GetConstructor(className);
+    if (!Item) throw new TypeError(`Struct list ${field.name}: class ${className} is not registered`);
+    const records = source ?? [];
+    if (!Array.isArray(records)) throw new TypeError(`Struct list ${field.name} requires an array`);
+
+    const list = Array.isArray(current) ? current : [];
+    let changed = list !== current || list.length !== records.length;
+    const next = new Array(records.length);
+    for (let i = 0; i < records.length; i++)
+    {
+      const record = records[i];
+      if (record === null || typeof record !== "object") throw new TypeError(`Struct list ${field.name}[${i}] requires a record`);
+      const reuse = CjsSchema.isInstanceOf(className, list[i]);
+      const item = reuse ? list[i] : new Item();
+      if (!reuse) changed = true;
+      const values = CjsSchema.getClassName(record.constructor) ? CjsSchema.getValues(record) : record;
+      if (CjsSchema.setValues(item, values, { returnBoolean: true })) changed = true;
+      next[i] = item;
+    }
+    if (list === current)
+    {
+      list.length = 0;
+      for (const item of next) list.push(item);
+    }
+    else writeDictionaryValue(instance, field, next);
+    return changed;
   }
 
   /**
@@ -284,4 +341,5 @@ export class IRootReaderBase
 CjsSchema.define(IRootReaderBase, { className: "IRootReaderBase", carbon: "IRootReaderBase" });
 CjsSchema.decorateMethod(IRootReaderBase, "HandleAttribute", meta.adapted);
 CjsSchema.decorateMethod(IRootReaderBase, "HandlePropertyIRoot", meta.adapted);
+CjsSchema.decorateMethod(IRootReaderBase, "ReadStructureList", meta.adapted);
 CjsSchema.decorateMethod(IRootReaderBase, "FindEntry", meta.adapted);

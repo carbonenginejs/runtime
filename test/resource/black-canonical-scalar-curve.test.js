@@ -5,6 +5,13 @@ import { CjsBlackReader } from "../../npm/dist/resource/formats/black/core/CjsBl
 import { CjsBlackSchemaRegistry } from "../../npm/dist/resource/formats/black/core/CjsBlackSchemaRegistry.js";
 import { Tr2CurveScalar } from "../../npm/dist/trinity/curves/curve/Tr2CurveScalar.js";
 
+/** A struct record's own fields as plain data, vectors as plain arrays. */
+function plainRecord(record)
+{
+    return Object.fromEntries(Object.entries(record).map(([key, value]) => [key, ArrayBuffer.isView(value) ? Array.from(value) : value]));
+}
+
+
 const authored = [
     { time: 0, value: 2, leftTangent: .5, rightTangent: 3, id: 0xbeef, interpolation: 1, tangentType: 3 },
     { time: 4, value: 10, leftTangent: 4, rightTangent: -.5, id: 0xfedc, interpolation: 2, tangentType: 2 }
@@ -51,7 +58,7 @@ test("canonical production scalar curve preserves mixed-width keys and evaluates
     assert.equal(curve.constructor, Tr2CurveScalar);
     assert.equal(reader.references.size, 0, "the builder does not retain the returned graph");
     assert.equal(curve.keys, originalKeys);
-    assert.deepEqual(curve.keys, authored);
+    assert.deepEqual(curve.keys.map(plainRecord), authored);
     assert.equal(curve.name, "AuthoredScalar");
     assert.equal(reader.reader.AtEnd(), true);
     assert.deepEqual(reader.reports, []);
@@ -90,7 +97,7 @@ test("scalar keys preserve the existing JS short-record boundaries and trailing 
         const curve = reader.CreateObject();
         assert.equal(curve.keys.length, 2);
         for (let index = 0; index < 2; index++)
-            assert.deepEqual(curve.keys[index], Object.fromEntries(fields.map((name, member) =>
+            assert.deepEqual(plainRecord(curve.keys[index]), Object.fromEntries(fields.map((name, member) =>
                 [name, boundaries[member] <= stride ? authored[index][name] : defaults[member]])), `stride ${stride}, record ${index}`);
         assert.equal(curve.name, "AuthoredScalar");
         assert.equal(reader.reader.AtEnd(), true);

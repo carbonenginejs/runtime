@@ -106,6 +106,31 @@ export function applyReaderMember(instance, member, value)
 }
 
 /**
+ * Writes one decoded member of a structure-list record.
+ *
+ * A record's members are BlueStructureDefinition entries, not exposed PERSIST
+ * attributes, and Carbon copies them into the packed record without
+ * notification (BlackReader.cpp:573-596). Each value is written into the
+ * record's own storage under the same rules as a persisted member.
+ *
+ * @param {object} record Destination record, an instance of the struct class.
+ * @param {object} member The struct class's member declaration.
+ * @param {*} value Decoded value.
+ * @returns {object} The record.
+ */
+export function applyStructRecordMember(record, member, value)
+{
+    if (member?.role !== "member" || !member.struct)
+    {
+        throw new TypeError(`Struct record member ${member?.name} has no meta.struct layout.`);
+    }
+    const storage = readerMemberStorage(record, member);
+    const next = readerMemberValue(storage.value, value, member);
+    if (!Object.is(next, storage.value)) storage.target[storage.key] = next;
+    return record;
+}
+
+/**
  * Completes one object immediately after its members have been read.
  *
  * BlackReader::ReadIRootClass calls only mapped IInitialize here and ignores
@@ -239,6 +264,16 @@ function readerMemberValue(current, value, member)
             {
                 if (type.kind !== "list" || item != null) result.push(item);
             }
+            return result;
+        }
+        case "structList":
+        {
+            // BlueStructureList: the reader built each record as an instance of the item class.
+            if (!Array.isArray(value)) throw new TypeError(`Reader member ${member.name} requires an array of records.`);
+            if (value === current) return current;
+            const result = Array.isArray(current) ? current : [];
+            result.length = 0;
+            for (const item of value) result.push(item);
             return result;
         }
         case "set":

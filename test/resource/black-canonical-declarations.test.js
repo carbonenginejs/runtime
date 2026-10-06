@@ -43,12 +43,16 @@ test("canonical Black refuses missing wire facts instead of borrowing legacy fie
     }), /Unsupported canonical Black type/);
     assert.throws(() => CjsBlackSchemaRegistry.fromDeclaredType({ kind: "list" }), /item type: missing/);
     assert.throws(() => CjsBlackSchemaRegistry.fromDeclaredType({
-        kind: "list", itemType: { kind: "rawStruct", className: "NativeRecord" }
+        kind: "structList", className: "NativeRecord"
     }), /item class NativeRecord is not registered \(import its package\)/);
     assert.throws(() => CjsBlackSchemaRegistry.fromDeclaredType({
-        kind: "list", itemType: { kind: "rawStruct" },
+        kind: "structList", className: "BadNativeRecord",
         structure: { name: "BadNativeRecord", size: 4, members: [{ name: "name", offset: 0, type: "string" }] }
     }), /Inline structure layouts are removed/);
+    // The former spelling of a structure list is refused, not read as objects.
+    assert.throws(() => CjsBlackSchemaRegistry.fromDeclaredType({
+        kind: "list", itemType: { kind: "rawStruct", className: "Tr2ConstantEffectParameter" }
+    }), /Unsupported canonical Black list item type: rawStruct/);
 });
 
 test("canonical Black keeps declared reference, embedded and collection codec distinctions", () =>
@@ -299,7 +303,7 @@ test("complete scene graphs decode with explicit baseless test classes and canon
     CjsSchema.define(Effect, { className: "Tr2Effect", members: [
         member("effectFilePath", "string"),
         member("resources", "list", { type: { kind: "list", itemType: { kind: "objectRef", className: "TriTextureParameter" } } }),
-        member("constParameters", "list", { type: { kind: "list", itemType: { kind: "rawStruct", className: "Tr2ConstantEffectParameter" } } })
+        member("constParameters", "structList", { type: { kind: "structList", className: "Tr2ConstantEffectParameter" } })
     ] });
     CjsSchema.define(Texture, { className: "TriTextureParameter", members: [member("name", "string"), member("resourcePath", "path")] });
     const verify = bytes =>

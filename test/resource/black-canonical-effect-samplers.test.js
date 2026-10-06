@@ -6,6 +6,13 @@ import { CjsBlackSchemaRegistry } from "../../npm/dist/resource/formats/black/co
 import { Tr2Effect } from "../../npm/dist/trinity/shader/Tr2Effect.js";
 import { Tr2SamplerOverride } from "../../npm/dist/trinity/shader/sampler/Tr2SamplerOverride.js";
 
+/** A struct record's own fields as plain data, vectors as plain arrays. */
+function plainRecord(record)
+{
+    return Object.fromEntries(Object.entries(record).map(([key, value]) => [key, ArrayBuffer.isView(value) ? Array.from(value) : value]));
+}
+
+
 // Native class facts: READ|PERSIST structure list, no NOTIFY.
 // Wire facts: cpp84-95 members, h23-37 + Tr2SamplerStateAL.h36 full64-bit
 // sizeof56, including the unexposed shared_ptr tail at40..55.
@@ -60,7 +67,8 @@ test("canonical sampler records preserve list identity, unsigned fields and full
     assert.equal(reader.references.size, 0, "the builder does not retain the returned graph");
     assert.equal(effect.samplerOverrides, originalList);
     assert.equal(effect.samplerOverrides.length, 2);
-    assert.deepEqual(effect.samplerOverrides[0], { name: "PatternSampler", addressU: 1, addressV: 2,
+    assert.equal(effect.samplerOverrides[0].constructor, Tr2SamplerOverride);
+    assert.deepEqual(plainRecord(effect.samplerOverrides[0]), { name: "PatternSampler", addressU: 1, addressV: 2,
         addressW: 3, filter: 2, mipFilter: 2, lodBias: .25, maxMipLevel: 4, maxAnisotropy: 8 });
     assert.equal(effect.samplerOverrides[1].addressU, 0xffffffff);
     assert.equal(effect.samplerOverrides[1].lodBias, 1.25);

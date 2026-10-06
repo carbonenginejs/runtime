@@ -77,7 +77,7 @@ test("canonical Black populates the registered production scene graph without in
     for (let i = 0; i < 5; i++)
     {
         assert.equal(effect.constParameters[i].name, `AuthoredParameter${i}`);
-        assert.deepEqual(effect.constParameters[i].value, [i, i + .25, i + .5, 1]);
+        assert.deepEqual(Array.from(effect.constParameters[i].value), [i, i + .25, i + .5, 1]);
     }
     for (let i = 0; i < 4; i++)
     {

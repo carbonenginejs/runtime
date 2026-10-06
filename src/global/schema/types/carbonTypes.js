@@ -37,6 +37,7 @@ export const CARBON_TYPE = Object.freeze({
     WEAK_REF: "weakRef",
     ROOT: "root",
     RAW_STRUCT: "rawStruct",
+    STRUCT_LIST: "structList",
     TYPED_ARRAY: "typedArray"
 });
 
@@ -78,6 +79,8 @@ const TYPE_DEFINITIONS = {
     [CARBON_TYPE.WEAK_REF]: { kind: CARBON_TYPE.WEAK_REF, js: "object|null" },
     [CARBON_TYPE.ROOT]: { kind: CARBON_TYPE.ROOT, js: "object" },
     [CARBON_TYPE.RAW_STRUCT]: { kind: CARBON_TYPE.RAW_STRUCT, js: "object" },
+    // BlueStructureList: packed records described by the item class's meta.struct layout.
+    [CARBON_TYPE.STRUCT_LIST]: { kind: CARBON_TYPE.STRUCT_LIST, js: "Array" },
     [CARBON_TYPE.TYPED_ARRAY]: { kind: CARBON_TYPE.TYPED_ARRAY, js: "TypedArray" },
     ...FLOAT32_VECTOR_DEFINITIONS
 };
@@ -425,6 +428,7 @@ export function defaultCarbonValue(type)
         case CARBON_TYPE.MATRIX4:
             return createCarbonMathValue(descriptor);
         case CARBON_TYPE.ARRAY:
+        case CARBON_TYPE.STRUCT_LIST:
             return [];
         case CARBON_TYPE.MAP:
             return new Map();
@@ -500,6 +504,7 @@ export function normalizeCarbonValue(value, type)
         case CARBON_TYPE.TYPED_ARRAY:
             return createCarbonTypedArrayValue(descriptor, value);
         case CARBON_TYPE.ARRAY:
+        case CARBON_TYPE.STRUCT_LIST:
             return Array.isArray(value) ? value.map(cloneCarbonValue) : [cloneCarbonValue(value)];
         case CARBON_TYPE.MAP:
             return value instanceof Map ? cloneCarbonValue(value) : new Map(Object.entries(value || {}));

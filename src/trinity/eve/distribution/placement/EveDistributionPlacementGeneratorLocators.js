@@ -15,7 +15,7 @@ export class EveDistributionPlacementGeneratorLocators extends IEveDistributionP
   /** m_locators (PLocatorStructureList) [READ, PERSIST] */
   @meta.blue.read
   @meta.blue.persist
-  @meta.type.list("Locator")
+  @meta.type.structList("Locator")
   locators = [];
 
   /** Flags the pool as stale when the authored locator list changes. */

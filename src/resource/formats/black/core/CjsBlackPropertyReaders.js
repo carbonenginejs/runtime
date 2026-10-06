@@ -1,4 +1,6 @@
 import { BLUELISTEVENT } from "#consts/blue";
+import { CjsSchema } from "#schema";
+import { applyStructRecordMember } from "#schema/hydration";
 import {
     CARBON_TYPE,
     normalizeCarbonTypeDescriptor
@@ -344,6 +346,7 @@ export class CjsBlackPropertyReaders
         return CjsBlackPropertyReaders.readStructureList(reader, {
             cppType: black.cppType,
             structure: black.structure,
+            itemClassName: black.itemClassName ?? null,
             elementType: {
                 kind: CARBON_TYPE.RAW_STRUCT,
                 cppType: black.cppType
@@ -659,23 +662,36 @@ export class CjsBlackPropertyReaders
             }
             const records = reader.ReadBinaryReader(count * structureSize);
             const result = [];
+            // A runtime read of a declared structList builds each record as an
+            // instance of its class; payload and document reads stay plain data.
+            const Item = descriptor.itemClassName && reader.context?.readMode === "runtime"
+                ? CjsSchema.GetConstructor(descriptor.itemClassName) : null;
+            if (descriptor.itemClassName && reader.context?.readMode === "runtime" && !Item)
+            {
+                throw new TypeError(`Black struct ${descriptor.itemClassName} is not registered (import its package)`);
+            }
+            const declarations = Item ? CjsBlackPropertyReaders.structMemberDeclarations(Item) : null;
             for (let index = 0; index < count; index++)
             {
                 const record = records.ReadBinaryReader(structureSize);
-                const value = {};
+                const value = Item ? new Item() : {};
                 for (const [ memberIndex, member ] of structure.members.entries())
                 {
                     if (earlier && structure.boundaries[memberIndex] > structureSize)
                     {
+                        // An instance already holds its class default.
+                        if (Item) continue;
                         // A copy per record: an array default must not be shared.
                         const fallback = structure.defaults[member.name];
                         value[member.name] = ArrayBuffer.isView(fallback) || Array.isArray(fallback) ? fallback.slice() : fallback;
                         continue;
                     }
                     record.offset = member.offset;
-                    value[member.name] = CjsBlackPropertyReaders.readValue(record, {
+                    const read = CjsBlackPropertyReaders.readValue(record, {
                         jsType: { kind: member.type }
                     });
+                    if (Item) applyStructRecordMember(value, declarations.get(member.name), read);
+                    else value[member.name] = read;
                 }
                 result.push(value);
             }
@@ -690,6 +706,22 @@ export class CjsBlackPropertyReaders
             elementType: descriptor.elementType?.cppType || null,
             bytes: Array.from(bytes)
         };
+    }
+
+    /**
+     * The persisted member declarations of a struct record class, by name.
+     *
+     * @param {Function} Item The struct record class.
+     * @returns {Map<string, object>} Its member declarations.
+     */
+    static structMemberDeclarations(Item)
+    {
+        const declarations = new Map();
+        for (const member of CjsSchema.getSchema(Item).members)
+        {
+            if (member.role === "member" && !declarations.has(member.name)) declarations.set(member.name, member);
+        }
+        return declarations;
     }
 
     /**

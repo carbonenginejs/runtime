@@ -73,6 +73,8 @@ function storage(instance, field)
 function descriptor(type, field)
 {
     if (typeof type === "function") type = { kind: "objectRef", className: CjsSchema.getClassName(type) };
+    // A BlueStructureList travels as a list of embedded records of its item class.
+    if (type?.kind === "structList") type = { kind: "list", itemType: { kind: "rawStruct", className: type.className } };
     if (typeof type === "string" && getClassRegistration(type)) type = { kind: "objectRef", className: type };
     return dataType(type, field);
 }
@@ -141,6 +143,7 @@ function childType(value, key, type)
     const kind = graphPosition(type);
     if (kind === "map") return type.valueType;
     if (["array", "list", "set"].includes(kind)) return type.itemType;
+    if (kind === "structList") return { kind: "rawStruct", className: type.className };
     if (isRecord(value) && typeof value._type === "string" && (!kind || OBJECTS.has(kind)))
     {
         const registration = getClassRegistration(value._type);

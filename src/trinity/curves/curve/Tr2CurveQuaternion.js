@@ -26,7 +26,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    */
   @meta.blue.read
   @meta.blue.persist
-  @meta.type.array({ kind: "rawStruct", className: "Tr2CurveQuaternionKey" })
+  @meta.type.structList("Tr2CurveQuaternionKey")
   keys = [];
 
   /**

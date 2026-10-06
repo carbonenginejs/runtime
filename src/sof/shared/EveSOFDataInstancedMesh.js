@@ -22,7 +22,7 @@ export class EveSOFDataInstancedMesh
   /** m_instances (PEveSofDataMeshInstanceStructureList) [READ, PERSIST] */
   @meta.blue.read
   @meta.blue.persist
-  @meta.type.list("EveSofDataMeshInstance")
+  @meta.type.structList("EveSofDataMeshInstance")
   instances = [];
 
   /** m_textures (PEveSOFDataTextureVector) [READ, PERSIST] */

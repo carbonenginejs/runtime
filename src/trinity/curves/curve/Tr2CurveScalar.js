@@ -202,7 +202,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
    */
   @meta.blue.read
   @meta.blue.persist
-  @meta.type.array({ kind: "rawStruct", className: "Tr2CurveScalarKey" })
+  @meta.type.structList("Tr2CurveScalarKey")
   keys = [];
 
   /**

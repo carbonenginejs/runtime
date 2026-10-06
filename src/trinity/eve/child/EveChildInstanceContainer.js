@@ -71,7 +71,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   /** m_transforms (PEveChildInstanceTransformStructureList) [READ, PERSIST] */
   @meta.blue.read
   @meta.blue.persist
-  @meta.type.list("EveChildInstanceTransform")
+  @meta.type.structList("EveChildInstanceTransform")
   transforms = [];
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */

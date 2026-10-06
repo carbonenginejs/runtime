@@ -103,7 +103,7 @@ export class Tr2Effect extends Tr2Material
 
   @meta.blue.read
   @meta.blue.persist
-  @meta.type.list({ kind: "rawStruct", className: "Tr2ShaderOption" })
+  @meta.type.structList("Tr2ShaderOption")
   options = [];
 
   /**
@@ -124,7 +124,7 @@ export class Tr2Effect extends Tr2Material
 
   @meta.blue.read
   @meta.blue.persist
-  @meta.type.list({ kind: "rawStruct", className: "Tr2ConstantEffectParameter" })
+  @meta.type.structList("Tr2ConstantEffectParameter")
   constParameters = [];
 
   /**
@@ -181,7 +181,7 @@ export class Tr2Effect extends Tr2Material
 
   @meta.blue.read
   @meta.blue.persist
-  @meta.type.list({ kind: "rawStruct", className: "Tr2SamplerOverride" })
+  @meta.type.structList("Tr2SamplerOverride")
   samplerOverrides = [];
 
   /**
