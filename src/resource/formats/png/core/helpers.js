@@ -39,6 +39,22 @@ export const OUTPUT_TEXTURE = "texture";
 export const OUTPUT_RGBA = "rgba";
 export const OUTPUT_RAW = "raw";
 
+/**
+ * Normalized PNG reader options.
+ *
+ * @typedef {object} PngValues
+ * @property {string} emit Output to produce: "raw", "rgba" or "image".
+ * @property {string} inputType Expected source format, lower case without a dot; empty when unset.
+ * @property {string} source Source label reported in probes; empty means "buffer".
+ */
+
+/**
+ * Byte input accepted by the PNG reader.
+ *
+ * @typedef {Uint8Array|ArrayBuffer|ArrayBufferView} PngInput
+ */
+
+/** @type {PngValues} */
 export const DEFAULT_VALUES = {
     emit: OUTPUT_RAW,
     inputType: "",
@@ -50,6 +66,14 @@ export const DEFAULT_VALUES = {
 /**
  * Normalizes reader options against their supported defaults for the PNG format
  * reader.
+ *
+ * @param {PngValues} [base=DEFAULT_VALUES] Values the options are layered over.
+ * @param {object} [options={}] Caller options to merge.
+ * @param {string} [options.emit] Output to produce.
+ * @param {string} [options.inputType] Expected source format.
+ * @param {string} [options.source] Source label.
+ * @param {string} [readerName="CjsImageFormat"] Name used in error messages.
+ * @returns {PngValues} The merged, normalized values.
  */
 export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsImageFormat")
 {
@@ -59,7 +83,12 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName 
     return values;
 }
 
-/** Normalizes the requested input representation for the PNG format reader. */
+/**
+ * Normalizes the requested input representation for the PNG format reader.
+ *
+ * @param {*} inputType Requested type, such as ".png" or "JPG"; falsy means none.
+ * @returns {string} Lower-case type without a leading dot, "jpg" mapped to "jpeg", or "".
+ */
 export function normalizeInputType(inputType)
 {
     if (!inputType) return "";
@@ -67,7 +96,15 @@ export function normalizeInputType(inputType)
     return value === "jpg" ? "jpeg" : value;
 }
 
-/** Normalizes the requested output representation for the PNG format reader. */
+/**
+ * Normalizes the requested output representation for the PNG format reader.
+ *
+ * @param {string|null|undefined} emit Requested output; nullish means "raw".
+ * @param {string} inputType Normalized input type; currently unread.
+ * @param {string} readerName Name used in error messages.
+ * @returns {string} The validated emit value.
+ * @throws {TypeError} When emit is not "image", "rgba" or "raw".
+ */
 export function normalizeEmit(emit, inputType, readerName)
 {
     if (emit === undefined || emit === null) return OUTPUT_RAW;
@@ -75,8 +112,15 @@ export function normalizeEmit(emit, inputType, readerName)
     throw new TypeError(`${readerName}: unknown emit value ${JSON.stringify(emit)}`);
 }
 
-/** Returns a byte view over the supplied binary input for the PNG format reader. */
-/** Inspects input using normalized format options for the PNG format reader. */
+/**
+ * Inspects input using normalized format options for the PNG format reader.
+ *
+ * @param {PngInput} input Image bytes.
+ * @param {PngValues} [values=DEFAULT_VALUES] Normalized reader options.
+ * @param {string} [expectedType=""] Source format the bytes must be; empty skips the check.
+ * @returns {object} Header and chunk metadata with sourceFormat and byteLength.
+ * @throws {TypeError} When expectedType is set and the bytes are a different format.
+ */
 export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     const bytes = asUint8Array(input, "Image input");
@@ -98,6 +142,11 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
 /**
  * Reports whether input is supported under normalized format options for the PNG
  * format reader.
+ *
+ * @param {PngInput} input Image bytes.
+ * @param {PngValues} [values=DEFAULT_VALUES] Normalized reader options.
+ * @param {string} [expectedType=""] Source format the bytes must be; empty skips the check.
+ * @returns {object} Support report with format, supported, preferredOutput, metadata, variants, warnings and errors.
  */
 export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
@@ -146,7 +195,15 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedT
     }
 }
 
-/** Reads input using normalized format options for the PNG format reader. */
+/**
+ * Reads input using normalized format options for the PNG format reader.
+ *
+ * @param {PngInput} input Image bytes.
+ * @param {PngValues} [values=DEFAULT_VALUES] Normalized reader options; only emit "raw" is handled.
+ * @param {string} [expectedType=""] Source format the bytes must be; empty skips the check.
+ * @returns {object} Raw output: sourceFormat, mimeType, metadata and bytes.
+ * @throws {Error} When emit is anything other than "raw".
+ */
 export function readWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     const bytes = asUint8Array(input, "Image input");
@@ -172,6 +229,11 @@ export function readWithValues(input, values = DEFAULT_VALUES, expectedType = ""
 /**
  * Reads input asynchronously using normalized format options for the PNG format
  * reader.
+ *
+ * @param {PngInput} input Image bytes.
+ * @param {PngValues} [values=DEFAULT_VALUES] Normalized reader options; emit selects the output.
+ * @param {string} [expectedType=""] Source format the bytes must be; empty skips the check.
+ * @returns {Promise<object>} Raw output, or a decoded RGBA payload for "rgba"/"image" on PNG input.
  */
 export async function readWithValuesAsync(input, values = DEFAULT_VALUES, expectedType = "")
 {
@@ -195,6 +257,9 @@ export async function readWithValuesAsync(input, values = DEFAULT_VALUES, expect
 /**
  * Inspects the supplied bytes without decoding their payload for the PNG format
  * reader.
+ *
+ * @param {Uint8Array} bytes Candidate image bytes.
+ * @returns {object} PNG header metadata, or `{ sourceFormat: "", width: 0, height: 0 }` when not a PNG.
  */
 export function inspectBytes(bytes)
 {

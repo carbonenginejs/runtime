@@ -145,7 +145,11 @@ class PacketReader extends CjsBitReader
     /** True once a read has run past the end of the packet. */
     eop = false;
 
-    /** Creates a PacketReader over caller-provided Ogg bytes. */
+    /**
+     * Creates a PacketReader over caller-provided Ogg bytes.
+     *
+     * @param {Uint8Array} bytes Packet bytes to read.
+     */
     constructor(bytes)
     {
         super(bytes, { source: "ogg" });
@@ -172,7 +176,10 @@ class PacketReader extends CjsBitReader
  */
 class Codebook
 {
-    /** Creates a Codebook with caller-provided initial state. */
+    /**
+     * Creates an empty Codebook whose fields are filled by the codebook
+     * parser.
+     */
     constructor()
     {
         this.dimensions = 0;
@@ -189,6 +196,9 @@ class Codebook
     /**
      * Builds the canonical Vorbis Huffman decode tree for this codebook for the
      * Ogg decoder.
+     *
+     * @param {Uint8Array} lengths Code length per symbol; NO_CODE marks an unused entry.
+     * @throws {Error} When the lengths over-specify the Huffman tree.
      */
     buildHuffman(lengths)
     {
@@ -269,7 +279,13 @@ class Codebook
         this.treeNodes = nodes;
     }
 
-    /** Decodes the Ogg input into a normalized Ogg decoder result. */
+    /**
+     * Decodes one Huffman-coded symbol from the packet reader.
+     *
+     * @param {PacketReader} reader Reader positioned at the code.
+     * @returns {number} The decoded symbol, or -1 at end of packet.
+     * @throws {Error} When the stream holds an invalid or over-long code.
+     */
     decode(reader)
     {
         // fast path: peek up to FAST_BITS without consuming
@@ -322,7 +338,13 @@ class Codebook
         throw decodeError("huffman walk exceeded max code length");
     }
 
-    /** Reconstructs one vector-quantized codebook component for the Ogg decoder. */
+    /**
+     * Reconstructs one vector-quantized codebook component for the Ogg decoder.
+     *
+     * @param {number} symbol Decoded codebook entry.
+     * @param {number} element Component index within the entry's vector.
+     * @returns {number} The component value.
+     */
     vqValue(symbol, element)
     {
         if (this.lookupType === 1)

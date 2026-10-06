@@ -270,7 +270,12 @@ export class CjsRedFormat extends CjsFormat
         return toJsonValue(value);
     }
 
-    /** Provides the one-shot RED copy reader options helper entry point. */
+    /**
+     * Provides the one-shot RED copy reader options helper entry point.
+     *
+     * @param {import("./core/helpers.js").RedValues} values Normalized values.
+     * @returns {object} The values without emit, schema and classes.
+     */
     static copyReaderOptions(values)
     {
         return copyReaderOptions(values);

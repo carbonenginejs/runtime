@@ -5,6 +5,24 @@ export const OUTPUT_PAYLOAD = "payload";
 export const OUTPUT_RUNTIME = "runtime";
 export const OUTPUT_RAW = "raw";
 
+/**
+ * Normalized RED reader options.
+ *
+ * @typedef {object} RedValues
+ * @property {string} emit Output to produce: "json", "payload", "runtime" or "raw".
+ * @property {object|null} schema Schema definitions, or null.
+ * @property {object|null} registry Runtime class registry, or null.
+ * @property {number} firstId First payload reference id.
+ * @property {Function|null} parse Custom YAML text parser, or null.
+ * @property {object|null} adapter Runtime adapter, or null.
+ * @property {string} payloadTypeField Payload field holding the type name.
+ * @property {string} payloadIdField Payload field holding the reference id.
+ * @property {string} payloadReferenceField Payload field holding a reference.
+ * @property {string} payloadValuesField Payload field wrapping repeated sequence values.
+ * @property {Object<string, Function>} classes Map of Red type names to constructors.
+ */
+
+/** @type {RedValues} */
 export const DEFAULT_VALUES = {
     emit: OUTPUT_JSON,
     schema: null,
@@ -64,7 +82,14 @@ function cloneValues(values)
     };
 }
 
-/** Validates a requested runtime class key for the RED object-graph reader. */
+/**
+ * Validates a requested runtime class key for the RED object-graph reader.
+ *
+ * @param {ReadonlyArray<string>} classKeys Known class keys; currently unread.
+ * @param {string} key Red type name to validate.
+ * @param {string} readerName Name used in error messages.
+ * @throws {Error} When the key is not a non-empty string.
+ */
 export function validateClassKey(classKeys, key, readerName)
 {
     if (typeof key !== "string" || !key)
@@ -76,6 +101,12 @@ export function validateClassKey(classKeys, key, readerName)
 /**
  * Validates a resolved runtime class constructor for the RED object-graph
  * reader.
+ *
+ * @param {ReadonlyArray<string>} classKeys Known class keys, passed to validateClassKey.
+ * @param {string} type Red type name the constructor is registered under.
+ * @param {Function} Class Constructor to validate.
+ * @param {string} readerName Name used in error messages.
+ * @throws {TypeError} When Class is not a function.
  */
 export function validateClass(classKeys, type, Class, readerName)
 {
@@ -105,6 +136,25 @@ function mergeClasses(values, classes, classKeys, readerName)
 /**
  * Normalizes reader options against their supported defaults for the RED
  * object-graph reader.
+ *
+ * @param {RedValues} base Values the options are layered over.
+ * @param {object} options Caller options; each key must be a RedValues field.
+ * @param {string} [options.emit] Output to produce.
+ * @param {object|null} [options.schema] Schema definitions.
+ * @param {object|null} [options.registry] Runtime class registry.
+ * @param {number} [options.firstId] First payload reference id.
+ * @param {Function|null} [options.parse] Custom YAML text parser.
+ * @param {object|null} [options.adapter] Runtime adapter.
+ * @param {string} [options.payloadTypeField] Payload type field name.
+ * @param {string} [options.payloadIdField] Payload id field name.
+ * @param {string} [options.payloadReferenceField] Payload reference field name.
+ * @param {string} [options.payloadValuesField] Payload values field name.
+ * @param {Object<string, Function>} [options.classes] Constructors merged into the class map.
+ * @param {ReadonlyArray<string>} classKeys Known class keys.
+ * @param {string} readerName Name used in error messages.
+ * @returns {RedValues} A new normalized values object.
+ * @throws {TypeError} When options is not an object, holds an unknown key, or carries an invalid parse or classes value.
+ * @throws {Error} When emit names an unknown output.
  */
 export function normalizeValues(base, options, classKeys, readerName)
 {
@@ -137,17 +187,18 @@ export function normalizeValues(base, options, classKeys, readerName)
     return values;
 }
 
-/** Copies reader options accepted by the current RED object-graph reader. */
+/**
+ * Copies reader options accepted by the current RED object-graph reader.
+ *
+ * @param {RedValues} values Normalized values.
+ * @returns {object} The values without emit, schema and classes.
+ */
 export function copyReaderOptions(values)
 {
     const { emit: _emit, schema: _schema, classes: _classes, ...readerOptions } = values;
     return readerOptions;
 }
 
-/**
- * Converts a parsed payload into a JSON-safe value for the RED object-graph
- * reader.
- */
 /**
  * Convert to JSON, refusing a cycle, naming this reader in the error.
  *

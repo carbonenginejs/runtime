@@ -95,6 +95,8 @@ export class CjsPngFormat extends CjsImageFormat
      * One-shot PNG write from a normalized RGBA payload, without compressing.
      *
      * @param {object} payload As emitted for `rgba`.
+     * @param {object} [options={}] Write options.
+     * @param {number} [options.compression] PNG compression method; only 0 is defined.
      * @returns {Uint8Array} PNG bytes.
      */
     static write(payload, options = {})
@@ -106,6 +108,8 @@ export class CjsPngFormat extends CjsImageFormat
      * One-shot compressed PNG write from a normalized RGBA payload.
      *
      * @param {object} payload As emitted for `rgba`.
+     * @param {object} [options={}] Write options.
+     * @param {number} [options.compression] PNG compression method; only 0 is defined.
      * @returns {Promise<Uint8Array>} PNG bytes.
      */
     static async writeAsync(payload, options = {})
@@ -117,6 +121,8 @@ export class CjsPngFormat extends CjsImageFormat
      * Write a normalized RGBA payload as PNG bytes, without compressing.
      *
      * @param {object} payload As emitted for `rgba`.
+     * @param {object} [options={}] Write options.
+     * @param {number} [options.compression] PNG compression method; only 0 is defined.
      * @returns {Uint8Array} PNG bytes.
      */
     Write(payload, options = {})
@@ -128,6 +134,8 @@ export class CjsPngFormat extends CjsImageFormat
      * Write a normalized RGBA payload as compressed PNG bytes.
      *
      * @param {object} payload As emitted for `rgba`.
+     * @param {object} [options={}] Write options.
+     * @param {number} [options.compression] PNG compression method; only 0 is defined.
      * @returns {Promise<Uint8Array>} PNG bytes.
      */
     async WriteAsync(payload, options = {})
@@ -278,10 +286,10 @@ export class CjsPngFormat extends CjsImageFormat
      * Fill a HostBitmap through this format's RGBA8 output, for Carbon's ImageIO
      * registry (ImageIO). See CjsImageFormat.readImageFromRgbaPayload.
      *
-     * @param {Uint8Array|ArrayBuffer} input Image bytes.
+     * @param {Uint8Array|ArrayBuffer} _input Image bytes; unread.
      * @param {object} _loadParameters Load parameters; a single-mip image skips nothing.
-     * @param {object} bitmap Destination HostBitmap.
-     * @param {object|null} [metadata] Optional Metadata out.
+     * @param {object} _bitmap Destination HostBitmap; unread.
+     * @param {object|null} [_metadata=null] Optional Metadata out; unread.
      * @returns {object} ImageIOResult.
      */
     static readImageNative(_input, _loadParameters, _bitmap, _metadata = null)

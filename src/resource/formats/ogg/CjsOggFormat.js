@@ -29,7 +29,11 @@ export class CjsOggFormat extends CjsFormat
 
     _values = DEFAULT_VALUES;
 
-    /** Creates a CjsOggFormat with caller-provided reader configuration. */
+    /**
+     * Creates a CjsOggFormat with caller-provided reader configuration.
+     *
+     * @param {object} [options={}] Reader options; see normalizeValues for the accepted fields.
+     */
     constructor(options = {})
     {
         super();
@@ -39,6 +43,12 @@ export class CjsOggFormat extends CjsFormat
     /**
      * Applies caller-provided options after normalizing supported fields for the
      * Ogg format configuration.
+     *
+     * @param {object} [options={}] Reader options to merge.
+     * @param {string} [options.emit] Output to produce.
+     * @param {string} [options.inputType] Expected source format.
+     * @param {string} [options.source] Source label.
+     * @returns {CjsOggFormat} This format.
      */
     SetValues(options = {})
     {
@@ -49,6 +59,9 @@ export class CjsOggFormat extends CjsFormat
     /**
      * Returns a snapshot of the normalized reader options for the Ogg format
      * configuration.
+     *
+     * @param {object} [options={}] Per-call overrides merged over the stored values.
+     * @returns {import("./core/helpers.js").OggValues} The normalized values.
      */
     GetValues(options = {})
     {
@@ -58,6 +71,10 @@ export class CjsOggFormat extends CjsFormat
     /**
      * Reads the primary public payload representation from the supplied input
      * for the Ogg format configuration.
+     *
+     * @param {import("./core/helpers.js").OggInput} input Ogg bytes.
+     * @param {object} [options={}] Per-call option overrides.
+     * @returns {object} The payload selected by the emit option.
      */
     Read(input, options = {})
     {
@@ -67,6 +84,10 @@ export class CjsOggFormat extends CjsFormat
     /**
      * Reads the primary public payload representation asynchronously for the Ogg
      * format configuration.
+     *
+     * @param {import("./core/helpers.js").OggInput} input Ogg bytes.
+     * @param {object} [options={}] Per-call option overrides.
+     * @returns {Promise<object>} The payload selected by the emit option.
      */
     async ReadAsync(input, options = {})
     {
@@ -76,6 +97,10 @@ export class CjsOggFormat extends CjsFormat
     /**
      * Returns structural metadata without materializing the decoded payload for
      * the Ogg format configuration.
+     *
+     * @param {import("./core/helpers.js").OggInput} input Ogg bytes.
+     * @param {object} [options={}] Per-call option overrides.
+     * @returns {object} Page, stream and track metadata.
      */
     Inspect(input, options = {})
     {
@@ -85,43 +110,80 @@ export class CjsOggFormat extends CjsFormat
     /**
      * Converts the current decoded payload into a JSON-safe representation for
      * the Ogg format configuration.
+     *
+     * @param {*} value Payload to convert.
+     * @returns {*} JSON-safe value with byte arrays summarized.
      */
     ToJSON(value)
     {
         return toJsonValue(value);
     }
 
-    /** Provides the one-shot Ogg payload reader entry point. */
+    /**
+     * Provides the one-shot Ogg payload reader entry point.
+     *
+     * @param {import("./core/helpers.js").OggInput} input Ogg bytes.
+     * @param {object} [options={}] Reader options.
+     * @returns {object} The payload selected by the emit option.
+     */
     static read(input, options = {})
     {
         return readWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "ogg", ...options }, FORMAT_NAME));
     }
 
-    /** Provides the asynchronous one-shot Ogg payload reader entry point. */
+    /**
+     * Provides the asynchronous one-shot Ogg payload reader entry point.
+     *
+     * @param {import("./core/helpers.js").OggInput} input Ogg bytes.
+     * @param {object} [options={}] Reader options.
+     * @returns {Promise<object>} The payload selected by the emit option.
+     */
     static async readAsync(input, options = {})
     {
         return CjsOggFormat.read(input, options);
     }
 
-    /** Provides the one-shot Ogg metadata inspection entry point. */
+    /**
+     * Provides the one-shot Ogg metadata inspection entry point.
+     *
+     * @param {import("./core/helpers.js").OggInput} input Ogg bytes.
+     * @param {object} [options={}] Reader options.
+     * @returns {object} Page, stream and track metadata.
+     */
     static inspect(input, options = {})
     {
         return inspectWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "ogg", ...options }, FORMAT_NAME));
     }
 
-    /** Checks one input against the Ogg decoder capability contract. */
+    /**
+     * Checks one input against the Ogg decoder capability contract.
+     *
+     * @param {import("./core/helpers.js").OggInput} input Ogg bytes.
+     * @param {object} [options={}] Reader options.
+     * @returns {object} Support report for the input.
+     */
     static probeSupport(input, options = {})
     {
         return probeSupportWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "ogg", ...options }, FORMAT_NAME));
     }
 
-    /** Provides the one-shot Ogg JSON conversion entry point. */
+    /**
+     * Provides the one-shot Ogg JSON conversion entry point.
+     *
+     * @param {*} value Payload to convert.
+     * @returns {*} JSON-safe value with byte arrays summarized.
+     */
     static toJSON(value)
     {
         return toJsonValue(value);
     }
 
-    /** Checks whether caller-provided bytes carry the expected Ogg signature. */
+    /**
+     * Checks whether caller-provided bytes carry the expected Ogg signature.
+     *
+     * @param {*} input Candidate byte input; unsupported values yield false.
+     * @returns {boolean} True when the input starts with an Ogg page signature.
+     */
     static isOGG(input)
     {
         try

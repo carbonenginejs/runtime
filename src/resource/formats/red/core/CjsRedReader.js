@@ -11,7 +11,12 @@ import { parseRed, isTypedTable, decodeTypedTable, isStrippedKey } from "./redGr
  */
 export class CjsRedReader extends CjsBlueReader
 {
-    /** Creates a CjsRedReader over caller-provided RED bytes and reader options. */
+    /**
+     * Creates a CjsRedReader over caller-provided RED bytes and reader options.
+     *
+     * @param {unknown} input Parsed Red object, YAML string, or UTF-8 bytes.
+     * @param {import("./helpers.js").RedValues} [options={}] Normalized reader options.
+     */
     constructor(input, options = {})
     {
         super(options, {
@@ -23,7 +28,10 @@ export class CjsRedReader extends CjsBlueReader
         this.ResetReadState();
     }
 
-    /** Clears read state before reusing the current RED object-graph reader. */
+    /**
+     * Clears read state before reusing the current RED object-graph
+     * reader.
+     */
     ResetReadState()
     {
         super.ResetBlueReadState();
@@ -36,6 +44,8 @@ export class CjsRedReader extends CjsBlueReader
     /**
      * Returns structural metadata without materializing the decoded payload for
      * the RED object-graph reader.
+     *
+     * @returns {{format: {id: string}, root: {type: string|null}, nodeCount: number, typeCounts: Object<string, number>}} Typed node counts for the graph.
      */
     Inspect()
     {
@@ -78,6 +88,8 @@ export class CjsRedReader extends CjsBlueReader
     /**
      * Returns the runtime type name declared by the root RED node for the RED
      * object-graph reader.
+     *
+     * @returns {string|null} The root type name, or null when the root has none.
      */
     RootType()
     {
@@ -89,13 +101,19 @@ export class CjsRedReader extends CjsBlueReader
     /**
      * Reads the primary public payload representation from the supplied input
      * for the RED object-graph reader.
+     *
+     * @returns {{comments: Array, object: *}} The payload output.
      */
     Read()
     {
         return this.ReadPayload();
     }
 
-    /** Reads payload from the current RED object-graph reader. */
+    /**
+     * Reads payload from the current RED object-graph reader.
+     *
+     * @returns {{comments: Array, object: *}} Reader reports and the hydrated payload root.
+     */
     ReadPayload()
     {
         this.mode = "payload";
@@ -106,7 +124,11 @@ export class CjsRedReader extends CjsBlueReader
         return { comments: this.reports, object };
     }
 
-    /** Reads runtime from the current RED object-graph reader. */
+    /**
+     * Reads runtime from the current RED object-graph reader.
+     *
+     * @returns {{root: *, format: {id: string}, reports: Array}} The runtime instance root and reader reports.
+     */
     ReadRuntime()
     {
         this.mode = "runtime";
@@ -118,7 +140,11 @@ export class CjsRedReader extends CjsBlueReader
         return { root, format: { id: "red" }, reports: this.reports };
     }
 
-    /** Reads raw from the current RED object-graph reader. */
+    /**
+     * Reads raw from the current RED object-graph reader.
+     *
+     * @returns {*} The plain hydrated graph with type keys kept.
+     */
     ReadRaw()
     {
         this.mode = "raw";
@@ -126,7 +152,12 @@ export class CjsRedReader extends CjsBlueReader
         return this.Hydrate(this.root);
     }
 
-    /** Hydrates the supplied payload into the current RED object-graph reader. */
+    /**
+     * Hydrates the supplied payload into the current RED object-graph reader.
+     *
+     * @param {*} node Source graph node; non-objects pass through.
+     * @returns {*} The hydrated target, a reference to an already hydrated node, or the scalar unchanged.
+     */
     Hydrate(node)
     {
         if (node && typeof node === "object")
@@ -155,7 +186,13 @@ export class CjsRedReader extends CjsBlueReader
         return node;
     }
 
-    /** Hydrates sequence into the current RED object-graph reader. */
+    /**
+     * Hydrates sequence into the current RED object-graph reader.
+     *
+     * @param {object} source Source sequence or typed table, used as the identity key.
+     * @param {Iterable<*>} items Items to hydrate.
+     * @returns {Array|object} The hydrated array, or a values wrapper for a repeated payload sequence.
+     */
     HydrateSequence(source, items)
     {
         const values = [];
@@ -174,6 +211,8 @@ export class CjsRedReader extends CjsBlueReader
     /**
      * Counts payload references reachable through the current RED object-graph
      * reader.
+     *
+     * @param {*} root Graph root to walk.
      */
     CountPayloadReferences(root)
     {
@@ -207,13 +246,21 @@ export class CjsRedReader extends CjsBlueReader
     /**
      * Reports whether the current RED object-graph reader satisfies repeated
      * payload node.
+     *
+     * @param {object} node Source graph node.
+     * @returns {boolean} True when the node is referenced more than once.
      */
     IsRepeatedPayloadNode(node)
     {
         return (this.payloadReferenceCounts.get(node) || 0) > 1;
     }
 
-    /** Creates target for the current RED object-graph reader. */
+    /**
+     * Creates target for the current RED object-graph reader.
+     *
+     * @param {string|null} type Red type name, or null for an untyped map.
+     * @returns {object} An empty target for the current read mode.
+     */
     CreateTarget(type)
     {
         if (this.mode === "runtime")
@@ -230,6 +277,10 @@ export class CjsRedReader extends CjsBlueReader
     /**
      * Assigns values while preserving the current RED object-graph reader
      * contract.
+     *
+     * @param {object} target Target created by CreateTarget.
+     * @param {object} values Hydrated field values.
+     * @param {string|null} type Red type name, or null for an untyped map.
      */
     AssignValues(target, values, type)
     {
@@ -255,7 +306,12 @@ export class CjsRedReader extends CjsBlueReader
         Object.assign(target, values);
     }
 
-    /** Creates reference for the current RED object-graph reader. */
+    /**
+     * Creates reference for the current RED object-graph reader.
+     *
+     * @param {object} node Source graph node already hydrated.
+     * @returns {*} The shared target, or a payload reference to it in payload mode.
+     */
     MakeReference(node)
     {
         const target = this.refs.get(node);
@@ -268,6 +324,9 @@ export class CjsRedReader extends CjsBlueReader
     /**
      * Allocates or returns the stable reference identifier for a payload object
      * for the RED object-graph reader.
+     *
+     * @param {object} node Source graph node.
+     * @returns {number} The node's reference id.
      */
     IdFor(node)
     {

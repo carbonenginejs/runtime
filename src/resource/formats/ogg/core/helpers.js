@@ -8,6 +8,22 @@ export const OUTPUT_JSON = "json";
 export const OUTPUT_PCM = "pcm";
 export const OUTPUT_AUDIO = "audio";
 
+/**
+ * Normalized Ogg reader options.
+ *
+ * @typedef {object} OggValues
+ * @property {string} emit Output to produce: "raw", "json", "oggJson", "audio" or "pcm".
+ * @property {string} inputType Expected source format; "ogg".
+ * @property {string} source Source label reported in metadata; empty means "buffer".
+ */
+
+/**
+ * Byte input accepted by the Ogg reader.
+ *
+ * @typedef {Uint8Array|ArrayBuffer|ArrayBufferView} OggInput
+ */
+
+/** @type {OggValues} */
 export const DEFAULT_VALUES = {
     emit: OUTPUT_RAW,
     inputType: "ogg",
@@ -17,6 +33,15 @@ export const DEFAULT_VALUES = {
 /**
  * Normalizes reader options against their supported defaults for the Ogg format
  * reader.
+ *
+ * @param {OggValues} [base=DEFAULT_VALUES] Values the options are layered over.
+ * @param {object} [options={}] Caller options to merge.
+ * @param {string} [options.emit] Output to produce.
+ * @param {string} [options.inputType] Expected source format.
+ * @param {string} [options.source] Source label.
+ * @param {string} [readerName="CjsOggFormat"] Name used in error messages.
+ * @returns {OggValues} The merged, validated values.
+ * @throws {TypeError} When options is not an object, holds an unknown key, or names an unknown emit value.
  */
 export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsOggFormat")
 {
@@ -37,17 +62,27 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName 
     return values;
 }
 
-/** Returns a byte view over the supplied binary input for the Ogg format reader. */
 /**
  * Reports whether the supplied bytes begin with an Ogg page signature for the
  * Ogg format reader.
+ *
+ * @param {Uint8Array} bytes Bytes to test.
+ * @returns {boolean} True when the bytes start with "OggS".
  */
 export function isOGG(bytes)
 {
     return bytes.byteLength >= 4 && ascii(bytes, 0, 4) === "OggS";
 }
 
-/** Inspects input using normalized format options for the Ogg format reader. */
+/**
+ * Inspects input using normalized format options for the Ogg format reader.
+ *
+ * @param {OggInput} input Ogg bytes.
+ * @param {OggValues} [values=DEFAULT_VALUES] Normalized reader options.
+ * @param {string} [expectedType="ogg"] Source format the input must report; empty skips the check.
+ * @returns {object} Page, stream and track metadata plus byteLength and source.
+ * @throws {TypeError} When the input is not an Ogg container or reports a different source format.
+ */
 export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "ogg")
 {
     const bytes = asUint8Array(input, "OGG input");
@@ -63,6 +98,10 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
 /**
  * Reports whether input is supported under normalized format options for the Ogg
  * format reader.
+ *
+ * @param {OggInput} input Ogg bytes.
+ * @param {OggValues} [values=DEFAULT_VALUES] Normalized reader options.
+ * @returns {object} Support report with format, supported, preferredOutput, metadata, variants, warnings and errors.
  */
 export function probeSupportWithValues(input, values = DEFAULT_VALUES)
 {
@@ -126,7 +165,14 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES)
     }
 }
 
-/** Reads input using normalized format options for the Ogg format reader. */
+/**
+ * Reads input using normalized format options for the Ogg format reader.
+ *
+ * @param {OggInput} input Ogg bytes.
+ * @param {OggValues} [values=DEFAULT_VALUES] Normalized reader options; emit selects the output.
+ * @returns {object} Raw bytes with metadata, the metadata alone, or interleaved float32 PCM with channel data.
+ * @throws {Error} When PCM is requested for a non-Vorbis stream or the emit value is not implemented.
+ */
 export function readWithValues(input, values = DEFAULT_VALUES)
 {
     const bytes = asUint8Array(input, "OGG input");
@@ -182,7 +228,6 @@ export function readWithValues(input, values = DEFAULT_VALUES)
     throw error;
 }
 
-/** Converts a parsed payload into a JSON-safe value for the Ogg format reader. */
 /** The shared JSON policy for this reader, under the name its callers use. */
 export { toJsonValue };
 
