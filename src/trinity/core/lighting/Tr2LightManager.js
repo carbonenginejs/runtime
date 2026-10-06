@@ -2,10 +2,10 @@
 //
 // The local-light manager: collects per-light records from every
 // ITr2LightOwner during the scene gather, culls and premultiplies them,
-// selects the volumetric set, packs the light buffer, and uploads it with
-// the light lists into the LightBuffer/LightIndexBuffer globals. The lists
-// are built on the CPU (DoUpdateLists) until computelightlists translates;
-// the shadow atlas texture and the raytraced path are not made.
+// selects the volumetric set, packs the light buffer, and uploads it. The
+// per-tile light lists are built on the GPU by computelightlists
+// (DoUpdateLists); LightBuffer and LightIndexBuffer are the globals the
+// shaders read. The shadow atlas texture and the raytraced path are not made.
 //
 // SHIPPING BEHAVIOUR PIN: Carbon ships with g_useDynamicLightsShadows =
 // false (cpp:21-22, a TRI_REGISTER_SETTING - runtime-mutable, hence the
@@ -28,20 +28,26 @@
 import { CjsSchema, meta } from "#schema";
 import { CjsResource } from "#blue";
 import { num } from "#math/num";
+import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
+import { PixelFormat, ShaderType } from "#consts/render-context";
 import { ShadowQuality } from "../../generated/trinityCore/enums.js";
 import { Tr2TextureArray } from "../Tr2TextureArray/index.js";
+import { Tr2GpuBuffer } from "../device/Tr2GpuBuffer.js";
 import { Tr2GpuStructuredBuffer } from "../device/Tr2GpuStructuredBuffer.js";
 import { TriDevice } from "../device/TriDevice.js";
-import { Tr2Renderer } from "../Tr2Renderer.js";
+import { Tr2Renderer, PER_FRAME_PS } from "../Tr2Renderer.js";
+import { Tr2RenderUtils } from "../Tr2RenderUtils.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
-import { Succeeded } from "#trinityal";
+import { Tr2Effect } from "../../shader/Tr2Effect.js";
+import { Succeeded, Tr2ConstantUsageAL } from "#trinityal";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
 // Tr2LightManager.cpp:30-48 - copied verbatim; the buffer sizes are the ABI
 // the AL uploads against.
 const LIGHT_BUFFER_SIZE = 1024;
+const INDEX_BUFFER_SIZE = 8 * 1024 * 1024;
 const CUTOFF_PIXEL_SIZE = 7;
 const FADE_SIZE = 5;
 const MAX_NUM_VOLUMETRIC_LIGHTS = 16;
@@ -54,9 +60,20 @@ const BYTES_PER_LIGHT = FLOATS_PER_LIGHT * 4;
 // Tr2LightManager.cpp:39-40 - the light-list tiles, 16x16 pixels.
 const TILE_WIDTH = 16;
 const TILE_HEIGHT = 16;
-// Header words per tile: list0 head, list1 head, particle-list head
-// (computelightlists writes all three; the hull shaders read +0).
-const HEADER_WORDS_PER_TILE = 3;
+
+// PerFrameData (Tr2LightManager.cpp:50-64), in 32-bit words: viewInverse and
+// projInverse (transposed), cameraPos and a pad, then width, height, tilesX,
+// tilesY, lightCount, indexBufferSize and two pads. 176 bytes.
+const PER_FRAME_VIEW_INVERSE = 0;
+const PER_FRAME_PROJ_INVERSE = 16;
+const PER_FRAME_CAMERA_POS = 32;
+const PER_FRAME_WIDTH = 36;
+const PER_FRAME_HEIGHT = 37;
+const PER_FRAME_TILES_X = 38;
+const PER_FRAME_TILES_Y = 39;
+const PER_FRAME_LIGHT_COUNT = 40;
+const PER_FRAME_INDEX_BUFFER_SIZE = 41;
+const PER_FRAME_WORDS = 44;
 
 /** CCP_ALIGN: round up to a power-of-two alignment. */
 function align(value, alignment)
@@ -717,8 +734,8 @@ export class Tr2LightManager
   // that here now. Nothing in src ever called the setter, so the five readers
   // had been sampling a constant zero.
 
-  /** Carbon m_effect's path, computelightlists (EveSpaceScene.cpp:1380). */
-  _effectPath = "";
+  /** m_effect (Tr2EffectPtr): computelightlists (EveSpaceScene.cpp:1380), Clear then Main. */
+  _effect = new Tr2Effect();
 
   /** m_lightBuffer (Tr2GpuStructuredBufferPtr): one PerLightData per light. */
   _lightBuffer = new Tr2GpuStructuredBuffer();
@@ -726,28 +743,43 @@ export class Tr2LightManager
   /** m_indexBuffer (Tr2GpuStructuredBufferPtr): tile headers, then list nodes. */
   _indexBuffer = new Tr2GpuStructuredBuffer();
 
+  /** m_indexBufferCounter (Tr2GpuBufferPtr): LightIndexCount, the kernel's node allocator. */
+  _indexBufferCounter = new Tr2GpuBuffer();
+
+  /** m_perFrameData (Tr2ConstantBufferAL): PerFrameData for the dispatch. */
+  _perFrameData = null;
+
+  /** The PerFrameData record filled each dispatch, and its float and uint views. */
+  _perFrameRecord = new ArrayBuffer(PER_FRAME_WORDS * 4);
+
+  _perFrameFloats = new Float32Array(this._perFrameRecord);
+
+  _perFrameWords = new Uint32Array(this._perFrameRecord);
+
+  _perFrameViewInverse = this._perFrameFloats.subarray(PER_FRAME_VIEW_INVERSE, PER_FRAME_VIEW_INVERSE + 16);
+
+  _perFrameProjInverse = this._perFrameFloats.subarray(PER_FRAME_PROJ_INVERSE, PER_FRAME_PROJ_INVERSE + 16);
+
   /** m_lightBufferVariable / m_indexBufferVariable (TriVariableHandle). */
   _lightBufferVariable = null;
 
   _indexBufferVariable = null;
 
-  /** The CPU-built index list, reused across frames (see DoUpdateLists). */
-  _indexList = new Uint32Array(0);
-
   /**
    * Carbon's constructor half that makes this a device resource and
-   * publishes the globals (cpp:145-176): LightBuffer and LightIndexBuffer are
-   * registered once and pointed at the buffers, and the buffers are made
-   * when a device allows it. Carbon also publishes LightProfileArray; the JS
-   * texture array is not yet a texture provider, so it is not registered.
-   * Profile-less lights, most of them, never sample it.
+   * publishes the globals (cpp:145-176): the effect takes the light-list
+   * path, LightBuffer and LightIndexBuffer are registered once and pointed at
+   * the buffers, and the buffers are made when a device allows it. Carbon
+   * also publishes LightProfileArray; the JS texture array is not yet a
+   * texture provider, so it is not registered. Profile-less lights, most of
+   * them, never sample it.
    *
    * @param {string} effectPath The light-list compute effect.
    * @returns {Tr2LightManager} This manager.
    */
   _InitializeDevice(effectPath)
   {
-    this._effectPath = String(effectPath ?? "");
+    this._effect.SetEffectPathName(effectPath);
     const store = Tr2VariableStore.globalStore();
     this._lightBufferVariable = store.RegisterVariableInternal(Tr2LightManager.LIGHT_BUFFER_NAME, TriVariableContentType.TRIVARIABLE_GPUBUFFER, this._lightBuffer);
     this._indexBufferVariable = store.RegisterVariableInternal(Tr2LightManager.LIGHT_INDEX_BUFFER_NAME, TriVariableContentType.TRIVARIABLE_GPUBUFFER, this._indexBuffer);
@@ -798,6 +830,8 @@ export class Tr2LightManager
 
   static _instance = null;
 
+  static scratch = { words4_0: new Uint32Array(4), mat4_0: mat4.create() };
+
   /** Carbon SetVariableStore (cpp:214-218): the globals name this manager's buffers. */
   @meta.blue.method
   @meta.implemented
@@ -820,56 +854,64 @@ export class Tr2LightManager
   }
 
   /**
-   * Carbon OnPrepareResources (cpp:657-675): the light buffer, and the index
-   * buffer.
+   * Carbon OnPrepareResources (cpp:657-675): the light buffer, the 8M-entry
+   * GPU-writable index buffer, the R32_SINT node counter, and the per-frame
+   * constants; the effect is pointed at all three buffers, its depth map
+   * left empty until a dispatch sets it.
    *
-   * The index buffer is sized by UpdateLists to what the CPU list needs, and
-   * created CPU-writable; see DoUpdateLists. Carbon makes it 8M elements,
-   * GPU-writable, for the compute kernel's allocator. The counter and the
-   * per-frame constants belong to that kernel and are not made.
-   *
-   * Adapted: the light lists are filled on the CPU, not by
-   * computelightlists, so the index buffer is CPU-writable and sized per
-   * screen.
+   * @returns {boolean} True.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnPrepareResources()
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
-    const { CPU_WRITABLE } = Tr2GpuStructuredBuffer.CreationFlag;
-    this._lightBuffer.Create(LIGHT_BUFFER_SIZE, BYTES_PER_LIGHT, CPU_WRITABLE, renderContext);
+    const structured = Tr2GpuStructuredBuffer.CreationFlag;
+    this._lightBuffer.Create(LIGHT_BUFFER_SIZE, BYTES_PER_LIGHT, structured.CPU_WRITABLE, renderContext);
     this._lightBuffer.SetName("Light buffer");
+    this._indexBuffer.Create(INDEX_BUFFER_SIZE, 4, structured.GPU_WRITABLE, renderContext);
     this._indexBuffer.SetName("Light indices");
+    this._indexBufferCounter.Create(1, PixelFormat.PIXEL_FORMAT_R32_SINT, Tr2GpuBuffer.CreationFlags.GPU_WRITABLE, renderContext);
     this.ClearLightIndices(renderContext);
+    this._perFrameData = renderContext.CreateConstantBuffer();
+    this._perFrameData.Create(this._perFrameRecord.byteLength, Tr2ConstantUsageAL.ONE_SHOT, null, renderContext);
+
+    this._effect.SetParameter__GpuBuffer("LightBuffer", this._lightBuffer);
+    this._effect.SetParameter__GpuBuffer("LightIndices", this._indexBuffer);
+    this._effect.SetParameter__GpuBuffer("LightIndexCount", this._indexBufferCounter);
+    this._effect.SetParameter__TextureAL("DepthMap", null);
     return true;
   }
 
-  /** Carbon ReleaseResources (cpp:641-655): nothing of the light lists is released. */
+  /**
+   * Carbon ReleaseResources (cpp:641-655): only the per-frame constants are
+   * released, when their memory class is; the buffers and the effect stay.
+   *
+   * @param {number} storage The TriStorage classes being released.
+   */
   @meta.blue.method
   @meta.implemented
-  ReleaseResources(_storage)
+  ReleaseResources(storage)
   {
+    if (this._perFrameData && (storage & this._perFrameData.GetMemoryClass())) this._perFrameData = null;
   }
 
   /**
-   * Carbon ClearLightIndices (cpp:370-378): zero indices, so every tile head
-   * reads "no lights".
+   * Carbon ClearLightIndices (cpp:370-378): the index buffer cleared to zero
+   * as a UAV, so every tile head reads "no lights".
    *
-   * Adapted: Carbon clears the whole buffer as a UAV; the CPU-written buffer
-   * is zeroed through a map.
-   *
-   * @param {Tr2RenderContext} renderContext The context to write through.
-   * @returns {boolean} Whether the clear was written.
+   * @param {Tr2RenderContext} renderContext The context to clear through.
+   * @returns {boolean} Whether the clear succeeded, or there was no buffer.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   ClearLightIndices(renderContext)
   {
     const buffer = this._indexBuffer.GetGpuBuffer(0);
     if (!buffer) return true;
-    this._indexList.fill(0);
-    return Tr2LightManager._WriteMapped(buffer, null, renderContext);
+    const { words4_0 } = Tr2LightManager.scratch;
+    words4_0.fill(0);
+    return Succeeded(renderContext.ClearUav(buffer, words4_0));
   }
 
   /**
@@ -920,88 +962,66 @@ export class Tr2LightManager
   }
 
   /**
-   * Carbon DoUpdateLists (cpp:401-440) builds each 16x16 tile's light lists
-   * on the GPU with computelightlists. Here they are built on the CPU, in
-   * the kernel's own layout (decoded from build 3498825): three header words
-   * per tile - list0 head, list1 head, particle-list head - then
-   * [lightIndex, next] nodes, 0-based light indices, 0 ending a list.
+   * Carbon DoUpdateLists (cpp:401-440): uploads the light buffer, fills
+   * PerFrameData, binds it at the per-frame pixel register for the compute
+   * stage, and runs computelightlists - Clear (1x1x1) zeroes the node
+   * counter, then Main runs one 16x16 group per tile over the depth map,
+   * linking each tile's lights into the index buffer.
    *
-   * Every tile's heads point at one shared chain instead of a tile-culled
-   * one. The hull shaders test each light per pixel (dist < radius and
-   * FLAG_AFFECTS_SURFACES), so the picture is the same; only the tile cull's
-   * saving is lost. The particle list holds the lights flagged
-   * AFFECTS_PARTICLES.
+   * The tile count follows the render target's size, as Carbon's does. The
+   * depth map is bound for the dispatch only.
    *
-   * The tile count follows the render target, as the kernel's does; the
-   * depth map is that size.
-   *
-   * Adapted: computelightlists does not translate to WebGPU yet (its UAV
-   * shapes), so the CPU builds the lists.
-   *
-   * @param {object} depthMap The scene depth.
+   * @param {Tr2TextureAL} depthMap The scene depth.
    * @param {Tr2RenderContext} renderContext The frame's context.
-   * @returns {boolean} Whether the lists were written.
+   * @returns {boolean} Whether both dispatches ran.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   DoUpdateLists(depthMap, renderContext)
   {
+    if (!this._lightBuffer.IsValid() || !this._indexBuffer.IsValid() || !this._indexBufferCounter.IsValid()) return false;
+
     if (!this.UpdateLightBuffer(renderContext)) return false;
 
-    const width = depthMap ? depthMap.GetWidth() : 0;
-    const height = depthMap ? depthMap.GetHeight() : 0;
-    if (!width || !height) return false;
+    const { mat4_0 } = Tr2LightManager.scratch;
+    const floats = this._perFrameFloats;
+    const words = this._perFrameWords;
+    const esm = renderContext.GetEffectStateManager();
 
-    const tiles = Math.ceil(width / TILE_WIDTH) * Math.ceil(height / TILE_HEIGHT);
-    const headerWords = tiles * HEADER_WORDS_PER_TILE;
-    const count = this._packedCount;
+    // Tr2Renderer::GetInverseProjectionTransform is Inverse(s_projectionTransform)
+    // (Tr2Renderer.cpp:197), the inverse SetProjection publishes as
+    // ProjectionInvMat; it is inverted here from the context's projection,
+    // identity when singular as SetProjection does.
+    const projection = renderContext.GetProjection();
+    const projectionInverse = (projection && mat4.invert(mat4_0, projection)) ?? mat4.identity(mat4_0);
+    mat4.transpose(this._perFrameProjInverse, projectionInverse);
+    mat4.transpose(this._perFrameViewInverse, renderContext.GetInverseViewTransform());
+    floats.set(renderContext.GetViewPosition(), PER_FRAME_CAMERA_POS);
+    words[PER_FRAME_WIDTH] = esm.renderTargetWidth >>> 0;
+    words[PER_FRAME_HEIGHT] = esm.renderTargetHeight >>> 0;
+    words[PER_FRAME_TILES_X] = Math.floor((words[PER_FRAME_WIDTH] + (TILE_WIDTH - 1)) / TILE_WIDTH);
+    words[PER_FRAME_TILES_Y] = Math.floor((words[PER_FRAME_HEIGHT] + (TILE_HEIGHT - 1)) / TILE_HEIGHT);
+    words[PER_FRAME_LIGHT_COUNT] = Math.min(this._lightBuffer.GetCount(), this._packedCount);
+    words[PER_FRAME_INDEX_BUFFER_SIZE] = INDEX_BUFFER_SIZE;
 
-    let particleCount = 0;
-    for (let index = 0; index < count; index++)
+    this._effect.SetParameter__TextureAL("DepthMap", depthMap);
+    try
     {
-      if (this._LightFlags(index) & Tr2LightManager.Flags.AFFECTS_PARTICLES) particleCount++;
+      // The per-frame constants are released with their memory class
+      // (ReleaseResources); Carbon's empty buffer is recreated by the fill.
+      this._perFrameData ??= renderContext.CreateConstantBuffer();
+      if (!Tr2RenderUtils.fillAndSetConstants(this._perFrameData, words, this._perFrameRecord.byteLength, 1 << ShaderType.COMPUTE_SHADER, PER_FRAME_PS, renderContext))
+      {
+        return false;
+      }
+      if (!Tr2Renderer.runComputeShader(this._effect, "Clear", 1, 1, 1, renderContext)) return false;
+      return Tr2Renderer.runComputeShader(this._effect, words[PER_FRAME_TILES_X], words[PER_FRAME_TILES_Y], 1, renderContext);
     }
-    const words = headerWords + 2 * (count + particleCount);
-
-    if (this._indexList.length < words) this._indexList = new Uint32Array(words);
-    if (this._indexBuffer.GetCount() < words)
+    finally
     {
-      this._indexBuffer.Create(words, 4, Tr2GpuStructuredBuffer.CreationFlag.CPU_WRITABLE, renderContext);
-      this._indexBuffer.SetName("Light indices");
-      this.SetVariableStore();
+      // ON_BLOCK_EXIT (cpp:422): the depth map is unbound however the dispatch ends.
+      this._effect.SetParameter__TextureAL("DepthMap", null);
     }
-    const list = this._indexList;
-    list.fill(0);
-
-    // The shared chain of every light, then the chain of particle lights.
-    let node = headerWords;
-    const surfaceHead = node;
-    for (let index = 0; index < count; index++, node += 2)
-    {
-      list[node] = index;
-      list[node + 1] = index + 1 < count ? node + 2 : 0;
-    }
-    const particleHead = particleCount ? node : 0;
-    for (let index = 0, seen = 0; index < count; index++)
-    {
-      if (!(this._LightFlags(index) & Tr2LightManager.Flags.AFFECTS_PARTICLES)) continue;
-      seen++;
-      list[node] = index;
-      list[node + 1] = seen < particleCount ? node + 2 : 0;
-      node += 2;
-    }
-
-    for (let tile = 0; tile < tiles; tile++)
-    {
-      const header = tile * HEADER_WORDS_PER_TILE;
-      list[header] = surfaceHead;
-      list[header + 1] = surfaceHead;
-      list[header + 2] = particleHead;
-    }
-
-    const buffer = this._indexBuffer.GetGpuBuffer(0);
-    if (!buffer) return false;
-    return Tr2LightManager._WriteMapped(buffer, list.subarray(0, words), renderContext);
   }
 
   /**

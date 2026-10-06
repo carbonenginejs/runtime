@@ -193,11 +193,198 @@ test("Clear drops records, not frustum state", () =>
   assert.equal(manager.GetLightData().length, 0);
 });
 
-// The GPU half (Tr2LightManager.cpp:140-212, 370-440, 622-675). The light
-// lists are built on the CPU in computelightlists' own layout - three header
-// words per 16x16 tile, then [lightIndex, next] nodes, 0-based indices, 0
-// ending a list - with every tile sharing one chain.
-test("UpdateLists builds the shared chain in the light-list layout, 0-based, and clears when empty", async () =>
+// The GPU half (Tr2LightManager.cpp:140-212, 370-440, 622-675):
+// computelightlists builds the per-tile lists. Against a recording render
+// context, with Tr2Renderer.runComputeShader replaced by a recorder. No GPU.
+
+// An invertible projection and inverse view whose transposed inverses are
+// exact in float32.
+const PROJECTION = [ 2, 0, 0, 0, 0, 4, 0, 0, 0, 0, 1, 0, 3, 5, 7, 1 ];
+const PROJECTION_INVERSE_TRANSPOSED = [ 0.5, 0, 0, -1.5, 0, 0.25, 0, -1.25, 0, 0, 1, -7, 0, 0, 0, 1 ];
+const VIEW_INVERSE = [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 10, 20, 30, 1 ];
+const VIEW_INVERSE_TRANSPOSED = [ 1, 0, 0, 10, 0, 1, 0, 20, 0, 0, 1, 30, 0, 0, 0, 1 ];
+
+/** A render context that records what the manager asks of it. */
+function recordingContext({ width = 33, height = 17 } = {})
+{
+  const log = [];
+  const buffers = [];
+  const constants = { size: 0, usage: null, bytes: new Uint8Array(0) };
+  return {
+    log,
+    buffers,
+    constants,
+    CreateBuffer(desc)
+    {
+      let bytes = null;
+      const buffer = {
+        GetDesc: () => desc,
+        SetName() {},
+        Destroy() {},
+        // Mapped only for the light upload; the 32 MB index buffer never is.
+        MapForWriting: () => ({ result: 0, data: (bytes ??= new Uint8Array(desc.count * desc.stride)) }),
+        UnmapForWriting() {}
+      };
+      buffers.push(buffer);
+      return buffer;
+    },
+    CreateConstantBuffer: () => ({
+      IsValid: () => constants.size > 0,
+      GetSize: () => constants.size,
+      Create(size, usage) { constants.size = size; constants.usage = usage; constants.bytes = new Uint8Array(size); return 0; },
+      Lock: () => ({ result: 0, data: constants.bytes }),
+      Unlock: () => 0,
+      GetMemoryClass: () => 1
+    }),
+    SetConstants: (buffer, stage, register) => log.push([ "constants", stage, register ]),
+    ClearUav: (buffer, values) => { log.push([ "clearUav", buffer.GetDesc().count, Array.from(values) ]); return 0; },
+    GetEffectStateManager: () => ({ renderTargetWidth: width, renderTargetHeight: height }),
+    GetProjection: () => PROJECTION,
+    GetInverseViewTransform: () => VIEW_INVERSE,
+    GetViewPosition: () => [ 10, 20, 30 ]
+  };
+}
+
+/**
+ * A manager prepared against `context`: OnPrepareResources reads the
+ * main-thread context, which is pointed at the recorder's buffer and
+ * constant creation for the call. The effect records its DepthMap binds.
+ */
+async function preparedManager(context)
+{
+  const { Tr2RenderContext_GetMainThreadRenderContext } = await import("../../npm/dist/trinity/core/index.js");
+  const { Tr2Effect } = await import("../../npm/dist/trinity/index.js");
+  const main = Tr2RenderContext_GetMainThreadRenderContext();
+  const manager = new Tr2LightManager();
+  manager._effect = new (class extends Tr2Effect
+  {
+    SetParameter__TextureAL(name, texture, uavMipLevel)
+    {
+      if (name === "DepthMap") context.log.push([ "depthMap", texture ]);
+      super.SetParameter__TextureAL(name, texture, uavMipLevel);
+    }
+  })();
+  const own = [ "CreateBuffer", "CreateConstantBuffer", "ClearUav" ];
+  for (const name of own) main[name] = context[name];
+  try
+  {
+    assert.equal(manager.OnPrepareResources(), true);
+  }
+  finally
+  {
+    for (const name of own) delete main[name];
+  }
+  return manager;
+}
+
+/** Replaces Tr2Renderer.runComputeShader with a recorder for one test. */
+async function recordCompute(t, log, answer = () => true)
+{
+  const { Tr2Renderer } = await import("../../npm/dist/trinity/core/index.js");
+  const direct = Tr2Renderer.runComputeShader;
+  Tr2Renderer.runComputeShader = (effect, ...args) =>
+  {
+    const call = typeof args[0] === "string" ? args.slice(0, 4) : args.slice(0, 3);
+    log.push([ "dispatch", ...call ]);
+    return answer(call);
+  };
+  t.after(() => { Tr2Renderer.runComputeShader = direct; });
+}
+
+/** Two lights packed, the second also lighting particles. */
+function addTwoLights(manager)
+{
+  manager.AddPointLight([ 0, 0, 0 ], 10, [ 1, 1, 1 ]);
+  manager.AddPointLight([ 5, 0, 0 ], 10, [ 1, 0, 0 ], 0, FLAGS.AFFECTS_SURFACES | FLAGS.AFFECTS_PARTICLES);
+  manager.ResolveLightData();
+  assert.equal(manager.GetLightCount(), 2);
+}
+
+test("OnPrepareResources makes Carbon's light, index and counter buffers and points the effect at them", async () =>
+{
+  const { PixelFormat, Tr2CpuUsage, Tr2GpuUsage } = await import("../../npm/dist/global/consts/renderContext/index.js");
+  const { Tr2ConstantUsageAL } = await import("../../npm/dist/trinityal/index.js");
+  const context = recordingContext();
+  const manager = await preparedManager(context);
+  // ClearLightIndices (cpp:666): the whole index buffer, as a UAV.
+  assert.deepEqual(context.log, [ [ "clearUav", 8 * 1024 * 1024, [ 0, 0, 0, 0 ] ], [ "depthMap", null ] ]);
+
+  const [ light, index, counter ] = context.buffers.map(buffer => buffer.GetDesc());
+  assert.deepEqual([ light.count, light.stride, light.cpuUsage ], [ 1024, 48, Tr2CpuUsage.WRITE_OFTEN ]);
+  assert.equal(light.gpuUsage & Tr2GpuUsage.UNORDERED_ACCESS, 0);
+  // INDEX_BUFFER_SIZE (cpp:33): 8M uint indices, written by the kernel.
+  assert.deepEqual([ index.count, index.stride, index.cpuUsage ], [ 8 * 1024 * 1024, 4, Tr2CpuUsage.READ ]);
+  assert.ok(index.gpuUsage & Tr2GpuUsage.UNORDERED_ACCESS);
+  // LightIndexCount: one signed counter (cpp:665).
+  assert.deepEqual([ counter.count, counter.format ], [ 1, PixelFormat.PIXEL_FORMAT_R32_SINT ]);
+  assert.ok(counter.gpuUsage & Tr2GpuUsage.UNORDERED_ACCESS);
+  // PerFrameData (cpp:50-64) is 176 bytes, ONE_SHOT.
+  assert.deepEqual([ context.constants.size, context.constants.usage ], [ 176, Tr2ConstantUsageAL.ONE_SHOT ]);
+
+  assert.equal(manager._effect.GetResourceByName("LightBuffer").GetGpuBuffer(), manager._lightBuffer);
+  assert.equal(manager._effect.GetResourceByName("LightIndices").GetGpuBuffer(), manager._indexBuffer);
+  assert.equal(manager._effect.GetResourceByName("LightIndexCount").GetGpuBuffer(), manager._indexBufferCounter);
+  assert.ok(manager._effect.GetResourceByName("DepthMap"), "the depth map slot exists, empty");
+});
+
+test("UpdateLists fills PerFrameData, then runs Clear and one group per 16x16 tile with the depth map bound", async t =>
+{
+  const { ShaderType } = await import("../../npm/dist/global/consts/renderContext/index.js");
+  const { PER_FRAME_PS } = await import("../../npm/dist/trinity/core/index.js");
+  const context = recordingContext({ width: 33, height: 17 });
+  const manager = await preparedManager(context);
+  await recordCompute(t, context.log);
+  addTwoLights(manager);
+  context.log.length = 0;
+
+  const depthMap = { name: "depth" };
+  assert.equal(manager.UpdateLists(depthMap, context), true);
+  // 33x17 pixels round up to 3x2 tiles (cpp:417-418).
+  assert.deepEqual(context.log, [
+    [ "depthMap", depthMap ],
+    [ "constants", ShaderType.COMPUTE_SHADER, PER_FRAME_PS ],
+    [ "dispatch", "Clear", 1, 1, 1 ],
+    [ "dispatch", 3, 2, 1 ],
+    [ "depthMap", null ]
+  ]);
+
+  const bytes = context.constants.bytes;
+  const floats = new Float32Array(bytes.buffer, 0, 44);
+  const words = new Uint32Array(bytes.buffer, 0, 44);
+  assert.deepEqual(Array.from(floats.subarray(0, 16)), VIEW_INVERSE_TRANSPOSED);
+  assert.deepEqual(Array.from(floats.subarray(16, 32)), PROJECTION_INVERSE_TRANSPOSED);
+  assert.deepEqual(Array.from(floats.subarray(32, 35)), [ 10, 20, 30 ]);
+  // width, height, tilesX, tilesY, lightCount, indexBufferSize.
+  assert.deepEqual(Array.from(words.subarray(36, 42)), [ 33, 17, 3, 2, 2, 8 * 1024 * 1024 ]);
+});
+
+test("a failed dispatch clears the lists and unbinds the depth map; no lights clears without dispatching", async t =>
+{
+  const context = recordingContext();
+  const manager = await preparedManager(context);
+  await recordCompute(t, context.log, call => call[0] !== "Clear");
+  addTwoLights(manager);
+  context.log.length = 0;
+
+  const depthMap = { name: "depth" };
+  assert.equal(manager.UpdateLists(depthMap, context), false);
+  assert.deepEqual(context.log.slice(-3), [
+    [ "dispatch", "Clear", 1, 1, 1 ],
+    [ "depthMap", null ],
+    [ "clearUav", 8 * 1024 * 1024, [ 0, 0, 0, 0 ] ]
+  ]);
+
+  context.log.length = 0;
+  manager.Clear(context);
+  manager.ResolveLightData();
+  assert.equal(manager.UpdateLists(depthMap, context), true);
+  assert.deepEqual(context.log, [
+    [ "clearUav", 8 * 1024 * 1024, [ 0, 0, 0, 0 ] ],
+    [ "clearUav", 8 * 1024 * 1024, [ 0, 0, 0, 0 ] ]
+  ], "Clear's clear, then UpdateLists' - no dispatch");
+});
+
+test("the process-wide manager publishes its buffers; on the stub device the GPU-writable buffers are refused, so no list is built", async () =>
 {
   const { Tr2RenderContext_GetMainThreadRenderContext } = await import("../../npm/dist/trinity/core/index.js");
   const { Tr2VariableStore } = await import("../../npm/dist/trinity/core/index.js");
@@ -207,35 +394,19 @@ test("UpdateLists builds the shared chain in the light-list layout, 0-based, and
   const manager = Tr2LightManager.getOrCreateInstance("res:/graphics/effect/managed/space/system/computelightlists.fx");
   assert.equal(Tr2LightManager.getInstance(), manager);
   assert.equal(Tr2LightManager.getOrCreateInstance("other"), manager, "one manager per process");
+  assert.equal(manager._effect.GetEffectPathName(), "res:/graphics/effect/managed/space/system/computelightlists.fx");
 
   const store = Tr2VariableStore.globalStore();
   assert.equal(store.FindVariable("LightBuffer").GetValue(), manager._lightBuffer);
   assert.equal(store.FindVariable("LightIndexBuffer").GetValue(), manager._indexBuffer);
 
+  // Carbon's stub refuses a buffer nothing can write (Tr2BufferALStub.Create).
+  assert.equal(manager._lightBuffer.IsValid(), true);
+  assert.equal(manager._indexBuffer.IsValid(), false);
+  assert.equal(manager._indexBufferCounter.IsValid(), false);
   manager.Clear(renderContext);
-  manager.AddPointLight([ 0, 0, 0 ], 10, [ 1, 1, 1 ]);
-  manager.AddPointLight([ 5, 0, 0 ], 10, [ 1, 0, 0 ], 0, Tr2LightManager.Flags.AFFECTS_SURFACES | Tr2LightManager.Flags.AFFECTS_PARTICLES);
-  manager.ResolveLightData();
-  assert.equal(manager.GetLightCount(), 2);
-
-  // 32x16 pixels is two tiles: six header words, then the nodes.
-  const depthMap = { GetWidth: () => 32, GetHeight: () => 16 };
-  assert.equal(manager.UpdateLists(depthMap, renderContext), true);
-
-  const list = Array.from(manager._indexList.subarray(0, 6 + 4 + 2));
-  assert.deepEqual(list, [
-    6, 6, 10, // tile 0: list0 head, list1 head, particle head
-    6, 6, 10, // tile 1
-    0, 8,     // light 0, then the node at 8
-    1, 0,     // light 1, end
-    1, 0      // particle chain: light 1, end
-  ]);
-
-  // No lights: every head reads "none".
-  manager.Clear(renderContext);
-  manager.ResolveLightData();
-  assert.equal(manager.UpdateLists(depthMap, renderContext), true);
-  assert.ok(manager._indexList.every(word => word === 0));
+  addTwoLights(manager);
+  assert.equal(manager.UpdateLists({}, renderContext), false);
 
   Tr2LightManager.deleteInstance();
   assert.equal(Tr2LightManager.getInstance(), null);
