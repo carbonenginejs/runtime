@@ -58,7 +58,12 @@ export function oggChecksum(bytes, length)
  */
 class WemBitstreamError extends CjsFormatRangeError
 {
-    /** Creates a truncation error with the cursor state that produced it. */
+    /**
+     * Creates a truncation error with the cursor state that produced it.
+     *
+     * @param {string} message Error message.
+     * @param {object} [details={}] Cursor state recorded on the error.
+     */
     constructor(message, details = {})
     {
         super(message, details);
@@ -152,7 +157,11 @@ export class OggPageWriter
         this._granule = granule;
     }
 
-    /** Flushes bits into the current WEM binary writer output. */
+    /**
+     * Flushes bits into the current WEM binary writer output.
+     *
+     * @throws {Error} When the packet no longer fits in one Ogg page.
+     */
     _flushBits()
     {
         if (this._bitsStored === 0) return;

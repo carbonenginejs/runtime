@@ -52,7 +52,22 @@ export const DEFAULT_VALUES = {
 
 const textDecoder = new TextDecoder("utf-8", { fatal: false });
 
-/** Tests whether bytes carry the VTA signature and supported version. */
+/**
+ * Normalized VTA read options.
+ *
+ * @typedef {object} CjsVtaValues
+ * @property {string} emit Output to emit: "volume", "raw", "json" or "vtaJson".
+ * @property {number} frame Frame to decode.
+ * @property {boolean} allFrames Whether every frame up to `frame` is emitted.
+ * @property {string|number|null} grid Grid name or index, or null for all grids.
+ */
+
+/**
+ * Tests whether bytes carry the VTA signature and supported version.
+ *
+ * @param {Uint8Array} bytes Candidate bytes.
+ * @returns {boolean} True when the VTA signature and version 1 are present.
+ */
 export function isVTA(bytes)
 {
     return bytes.length >= HEADER_SIZE
@@ -60,7 +75,15 @@ export function isVTA(bytes)
         && readU32(bytes, 4) === VTA_VERSION;
 }
 
-/** Normalizes and validates VTA read options over a base profile. */
+/**
+ * Normalizes and validates VTA read options over a base profile.
+ *
+ * @param {CjsVtaValues} [base=DEFAULT_VALUES] Base option profile.
+ * @param {Partial<CjsVtaValues>} [options={}] Caller options merged over the base.
+ * @param {string} [readerName="CjsVtaFormat"] Reader name used in error messages.
+ * @returns {CjsVtaValues} The merged, validated options.
+ * @throws {TypeError} When options are not an object, name an unknown key, or hold an invalid value.
+ */
 export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsVtaFormat")
 {
     if (!options || typeof options !== "object")
@@ -306,13 +329,23 @@ export async function* decodeVolumeFrames(bytes, values)
     }
 }
 
-/** Inspect entry shared by the instance and static surfaces. */
+/**
+ * Inspect entry shared by the instance and static surfaces.
+ *
+ * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input VTA bytes.
+ * @returns {object} Structural description from `inspectBytes`.
+ */
 export function inspectWithValues(input)
 {
     return inspectBytes(asUint8Array(input, "VTA input"));
 }
 
-/** Cheap support report: signature, version, and pixel-format coverage. */
+/**
+ * Cheap support report: signature, version, and pixel-format coverage.
+ *
+ * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input VTA bytes.
+ * @returns {object} Report with `supported`, plus `gridCount` and `frameCount` or a `reason`.
+ */
 export function probeSupportWithValues(input)
 {
     const bytes = asUint8Array(input, "VTA input");
@@ -329,7 +362,14 @@ export function probeSupportWithValues(input)
     }
 }
 
-/** Synchronous read: raw passthrough and structural debug only. */
+/**
+ * Synchronous read: raw passthrough and structural debug only.
+ *
+ * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input VTA bytes.
+ * @param {CjsVtaValues} values Normalized read options.
+ * @returns {object} Raw bytes or the structural description, tagged with `emit`.
+ * @throws {Error} When volume output is requested, which is asynchronous only.
+ */
 export function readWithValues(input, values)
 {
     const bytes = asUint8Array(input, "VTA input");
@@ -346,7 +386,13 @@ export function readWithValues(input, values)
     throw error;
 }
 
-/** Asynchronous read: everything, including decoded volumes. */
+/**
+ * Asynchronous read: everything, including decoded volumes.
+ *
+ * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input VTA bytes.
+ * @param {CjsVtaValues} values Normalized read options.
+ * @returns {Promise<object>} The decoded volume payload, or the synchronous read result.
+ */
 export async function readAsyncWithValues(input, values)
 {
     if (values.emit !== OUTPUT_VOLUME)
@@ -356,6 +402,5 @@ export async function readAsyncWithValues(input, values)
     return decodeVolumes(asUint8Array(input, "VTA input"), values);
 }
 
-/** Convert format output into JSON-compatible debug data. */
 /** The shared JSON policy for this reader, under the name its callers use. */
 export { toJsonValue };

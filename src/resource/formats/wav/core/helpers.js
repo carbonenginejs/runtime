@@ -5,6 +5,14 @@ export const OUTPUT_PCM = "pcm";
 export const OUTPUT_RAW = "raw";
 export const OUTPUT_JSON = "json";
 
+/**
+ * Normalized WAV reader options.
+ *
+ * @typedef {object} CjsWavValues
+ * @property {string} emit Output to emit.
+ * @property {string} inputType Normalized input type, or "" when unknown.
+ * @property {string} source Source label reported by support probes.
+ */
 export const DEFAULT_VALUES = {
     emit: OUTPUT_RAW,
     inputType: "",
@@ -19,6 +27,11 @@ const DEBUG_OUTPUTS = Object.freeze({
 /**
  * Normalizes reader options against their supported defaults for the WAV format
  * reader.
+ *
+ * @param {CjsWavValues} [base=DEFAULT_VALUES] Base option profile.
+ * @param {Partial<CjsWavValues>} [options={}] Caller options merged over the base.
+ * @param {string} [readerName="CjsAudioFormat"] Reader name used in error messages.
+ * @returns {CjsWavValues} The merged, normalized options.
  */
 export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsAudioFormat")
 {
@@ -28,13 +41,26 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName 
     return values;
 }
 
-/** Normalizes the requested input representation for the WAV format reader. */
+/**
+ * Normalizes the requested input representation for the WAV format reader.
+ *
+ * @param {string} [inputType] Requested input type or file extension.
+ * @returns {string} The lower-case type without a leading dot, or "" when none.
+ */
 export function normalizeInputType(inputType)
 {
     return inputType ? String(inputType).replace(/^\./u, "").toLowerCase() : "";
 }
 
-/** Normalizes the requested output representation for the WAV format reader. */
+/**
+ * Normalizes the requested output representation for the WAV format reader.
+ *
+ * @param {string|null|undefined} emit Requested output name.
+ * @param {string} inputType Normalized input type (unused).
+ * @param {string} readerName Reader name used in error messages.
+ * @returns {string} The output name, "raw" when none was given.
+ * @throws {TypeError} When the emit value is unknown.
+ */
 export function normalizeEmit(emit, inputType, readerName)
 {
     if (emit === undefined || emit === null) return OUTPUT_RAW;
@@ -43,8 +69,15 @@ export function normalizeEmit(emit, inputType, readerName)
     throw new TypeError(`${readerName}: unknown emit value ${JSON.stringify(emit)}`);
 }
 
-/** Returns a byte view over the supplied binary input for the WAV format reader. */
-/** Inspects input using normalized format options for the WAV format reader. */
+/**
+ * Inspects input using normalized format options for the WAV format reader.
+ *
+ * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input Audio bytes.
+ * @param {CjsWavValues} [values=DEFAULT_VALUES] Normalized reader options.
+ * @param {string} [expectedType=""] Format the input must be, or "" to accept any.
+ * @returns {object} Header metadata with `byteLength` and `sourceFormat`.
+ * @throws {TypeError} When the input is not binary or does not match the expected type.
+ */
 export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     const bytes = asUint8Array(input, "Audio input");
@@ -63,6 +96,11 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
 /**
  * Reports whether input is supported under normalized format options for the WAV
  * format reader.
+ *
+ * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input Audio bytes.
+ * @param {CjsWavValues} [values=DEFAULT_VALUES] Normalized reader options.
+ * @param {string} [expectedType=""] Format the input must be, or "" to accept any.
+ * @returns {object} Support report with `supported`, `variants`, `metadata` and `errors`.
  */
 export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
@@ -114,7 +152,15 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedT
     }
 }
 
-/** Reads input using normalized format options for the WAV format reader. */
+/**
+ * Reads input using normalized format options for the WAV format reader.
+ *
+ * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input Audio bytes.
+ * @param {CjsWavValues} [values=DEFAULT_VALUES] Normalized reader options.
+ * @param {string} [expectedType=""] Format the input must be, or "" to accept any.
+ * @returns {object} The output selected by `values.emit`.
+ * @throws {Error} When the requested output is not implemented for the detected format.
+ */
 export function readWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     const bytes = asUint8Array(input, "Audio input");
@@ -147,13 +193,15 @@ function getAudioMimeType(metadata)
     return "audio/wav";
 }
 
-/** Converts a parsed payload into a JSON-safe value for the WAV format reader. */
 /** The shared JSON policy for this reader, under the name its callers use. */
 export { toJsonValue };
 
 /**
  * Inspects the supplied bytes without decoding their payload for the WAV format
  * reader.
+ *
+ * @param {Uint8Array} bytes Candidate bytes.
+ * @returns {object} Header metadata; `sourceFormat` is "" when unrecognized.
  */
 export function inspectBytes(bytes)
 {
@@ -165,6 +213,9 @@ export function inspectBytes(bytes)
 /**
  * Reports whether the supplied bytes have a RIFF/WAVE header for the WAV format
  * reader.
+ *
+ * @param {Uint8Array} bytes Candidate bytes.
+ * @returns {boolean} True when a RIFF/WAVE header is present.
  */
 export function isWAV(bytes)
 {
@@ -174,6 +225,9 @@ export function isWAV(bytes)
 /**
  * Reports whether the supplied bytes have a supported MP3 header for the WAV
  * format reader.
+ *
+ * @param {Uint8Array} bytes Candidate bytes.
+ * @returns {boolean} True when an ID3 tag or MPEG frame sync is present.
  */
 export function isMP3(bytes)
 {

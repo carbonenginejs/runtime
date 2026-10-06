@@ -4,6 +4,14 @@ export const OUTPUT_VIDEO = "video";
 export const OUTPUT_RAW = "raw";
 export const OUTPUT_JSON = "json";
 
+/**
+ * Normalized MP4 reader options.
+ *
+ * @typedef {object} CjsMp4Values
+ * @property {string} emit Output to emit.
+ * @property {string} inputType Normalized input type, or "" when unknown.
+ * @property {string} source Source label reported by support probes.
+ */
 export const DEFAULT_VALUES = {
     emit: OUTPUT_RAW,
     inputType: "",
@@ -19,6 +27,11 @@ const DEBUG_OUTPUTS = Object.freeze({
 /**
  * Normalizes reader options against their supported defaults for the MP4 format
  * reader.
+ *
+ * @param {CjsMp4Values} [base=DEFAULT_VALUES] Base option profile.
+ * @param {Partial<CjsMp4Values>} [options={}] Caller options merged over the base.
+ * @param {string} [readerName="CjsVideoFormat"] Reader name used in error messages.
+ * @returns {CjsMp4Values} The merged, normalized options.
  */
 export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsVideoFormat")
 {
@@ -28,7 +41,15 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName 
     return values;
 }
 
-/** Normalizes the requested output representation for the MP4 format reader. */
+/**
+ * Normalizes the requested output representation for the MP4 format reader.
+ *
+ * @param {string|null|undefined} emit Requested output name.
+ * @param {string} inputType Normalized input type (unused).
+ * @param {string} readerName Reader name used in error messages.
+ * @returns {string} The output name, "raw" when none was given.
+ * @throws {TypeError} When the emit value is unknown.
+ */
 export function normalizeEmit(emit, inputType, readerName)
 {
     if (emit === undefined || emit === null) return OUTPUT_RAW;
@@ -37,8 +58,15 @@ export function normalizeEmit(emit, inputType, readerName)
     throw new TypeError(`${readerName}: unknown emit value ${JSON.stringify(emit)}`);
 }
 
-/** Returns a byte view over the supplied binary input for the MP4 format reader. */
-/** Inspects input using normalized format options for the MP4 format reader. */
+/**
+ * Inspects input using normalized format options for the MP4 format reader.
+ *
+ * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input Video bytes.
+ * @param {CjsMp4Values} [values=DEFAULT_VALUES] Normalized reader options.
+ * @param {string} [expectedType=""] Format the input must be, or "" to accept any.
+ * @returns {object} Header metadata with `byteLength` and `sourceFormat`.
+ * @throws {TypeError} When the input is not binary or does not match the expected type.
+ */
 export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     const bytes = asUint8Array(input, "Video input");
@@ -57,6 +85,11 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
 /**
  * Reports whether input is supported under normalized format options for the MP4
  * format reader.
+ *
+ * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input Video bytes.
+ * @param {CjsMp4Values} [values=DEFAULT_VALUES] Normalized reader options.
+ * @param {string} [expectedType=""] Format the input must be, or "" to accept any.
+ * @returns {object} Support report with `supported`, `variants`, `metadata` and `errors`.
  */
 export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
@@ -117,7 +150,15 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedT
     }
 }
 
-/** Reads input using normalized format options for the MP4 format reader. */
+/**
+ * Reads input using normalized format options for the MP4 format reader.
+ *
+ * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input Video bytes.
+ * @param {CjsMp4Values} [values=DEFAULT_VALUES] Normalized reader options.
+ * @param {string} [expectedType=""] Format the input must be, or "" to accept any.
+ * @returns {object} The output selected by `values.emit`.
+ * @throws {Error} When the requested output is not implemented for the detected format.
+ */
 export function readWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     const bytes = asUint8Array(input, "Video input");
@@ -182,6 +223,9 @@ function getMediaMimeType(metadata)
 /**
  * Inspects the supplied bytes without decoding their payload for the MP4 format
  * reader.
+ *
+ * @param {Uint8Array} bytes Candidate bytes.
+ * @returns {object} Header metadata; `sourceFormat` is "" when unrecognized.
  */
 export function inspectBytes(bytes)
 {
@@ -193,6 +237,9 @@ export function inspectBytes(bytes)
 /**
  * Reports whether the supplied bytes have an ISO base-media header for the MP4
  * format reader.
+ *
+ * @param {Uint8Array} bytes Candidate bytes.
+ * @returns {boolean} True when an `ftyp` box is present.
  */
 export function isMP4(bytes)
 {
@@ -202,13 +249,15 @@ export function isMP4(bytes)
 /**
  * Reports whether the supplied bytes have a WebM EBML header for the MP4 format
  * reader.
+ *
+ * @param {Uint8Array} bytes Candidate bytes.
+ * @returns {boolean} True when the EBML signature is present.
  */
 export function isWebM(bytes)
 {
     return bytes.byteLength >= 4 && bytes[0] === 0x1a && bytes[1] === 0x45 && bytes[2] === 0xdf && bytes[3] === 0xa3;
 }
 
-/** Converts a parsed payload into a JSON-safe value for the MP4 format reader. */
 /** The shared JSON policy for this reader, under the name its callers use. */
 export { toJsonValue };
 

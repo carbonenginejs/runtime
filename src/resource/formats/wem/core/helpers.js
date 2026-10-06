@@ -9,6 +9,15 @@ export const OUTPUT_WEM_JSON = "wemJson";
 export const OUTPUT_OGG = "ogg";
 export const OUTPUT_PCM = "pcm";
 
+/**
+ * Normalized WEM reader options.
+ *
+ * @typedef {object} CjsWemValues
+ * @property {string} emit Output to emit.
+ * @property {string} inputType Normalized input type, defaulting to "wem".
+ * @property {string} source Source label reported by support probes.
+ * @property {Uint8Array} [codebooks] Packed codebook library override for Ogg repacking.
+ */
 export const DEFAULT_VALUES = {
     emit: OUTPUT_RAW,
     inputType: "wem",
@@ -40,6 +49,11 @@ export const WEM_CODEC_NAMES = {
 /**
  * Normalizes reader options against their supported defaults for the WEM format
  * reader.
+ *
+ * @param {CjsWemValues} [base=DEFAULT_VALUES] Base option profile.
+ * @param {Partial<CjsWemValues>} [options={}] Caller options merged over the base.
+ * @param {string} [readerName="CjsWemFormat"] Reader name used in error messages.
+ * @returns {CjsWemValues} The merged, normalized options.
  */
 export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsWemFormat")
 {
@@ -49,7 +63,14 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName 
     return values;
 }
 
-/** Normalizes the requested output representation for the WEM format reader. */
+/**
+ * Normalizes the requested output representation for the WEM format reader.
+ *
+ * @param {string|null|undefined} emit Requested output name.
+ * @param {string} readerName Reader name used in error messages.
+ * @returns {string} The output name, "raw" when none was given.
+ * @throws {TypeError} When the emit value is unknown.
+ */
 export function normalizeEmit(emit, readerName)
 {
     if (emit === undefined || emit === null) return OUTPUT_RAW;
@@ -57,7 +78,6 @@ export function normalizeEmit(emit, readerName)
     throw new TypeError(`${readerName}: unknown emit value ${JSON.stringify(emit)}`);
 }
 
-/** Returns a byte view over the supplied binary input for the WEM format reader. */
 /**
  * Test for a Wwise RIFF/RIFX WAVE signature.
  *
@@ -183,7 +203,14 @@ export function inspectWEM(bytes)
     return info;
 }
 
-/** Inspects input using normalized format options for the WEM format reader. */
+/**
+ * Inspects input using normalized format options for the WEM format reader.
+ *
+ * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input WEM bytes.
+ * @param {CjsWemValues} [values=DEFAULT_VALUES] Normalized reader options.
+ * @returns {object} Header metadata with `byteLength`, `source` and the parsed RIFF fields.
+ * @throws {TypeError} When the input is not a RIFF/RIFX WAVE container.
+ */
 export function inspectWithValues(input, values = DEFAULT_VALUES)
 {
     const bytes = asUint8Array(input, "Wem input");
@@ -201,6 +228,10 @@ export function inspectWithValues(input, values = DEFAULT_VALUES)
 /**
  * Reports whether input is supported under normalized format options for the WEM
  * format reader.
+ *
+ * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input WEM bytes.
+ * @param {CjsWemValues} [values=DEFAULT_VALUES] Normalized reader options.
+ * @returns {object} Support report with `supported`, `variants`, `metadata` and `errors`.
  */
 export function probeSupportWithValues(input, values = DEFAULT_VALUES)
 {
@@ -344,7 +375,14 @@ function getOggSupport(metadata)
     return { supported: true, reason: "" };
 }
 
-/** Reads input using normalized format options for the WEM format reader. */
+/**
+ * Reads input using normalized format options for the WEM format reader.
+ *
+ * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input WEM bytes.
+ * @param {CjsWemValues} [values=DEFAULT_VALUES] Normalized reader options.
+ * @returns {object} The output selected by `values.emit`.
+ * @throws {Error} When the requested output is not implemented for the detected format.
+ */
 export function readWithValues(input, values = DEFAULT_VALUES)
 {
     const bytes = asUint8Array(input, "Wem input");
@@ -409,7 +447,6 @@ export function readWithValues(input, values = DEFAULT_VALUES)
     throw error;
 }
 
-/** Converts a parsed payload into a JSON-safe value for the WEM format reader. */
 /** The shared JSON policy for this reader, under the name its callers use. */
 export { toJsonValue };
 
