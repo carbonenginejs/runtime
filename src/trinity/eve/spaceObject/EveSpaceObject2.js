@@ -3056,7 +3056,7 @@ export class EveSpaceObject2 extends EveEntity
       return;
     }
 
-    const damageLocators = this._GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
+    const damageLocators = this.GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
     if (!damageLocators?.length)
     {
       this._damageLocatorEnabled.length = 0;
@@ -3129,7 +3129,7 @@ export class EveSpaceObject2 extends EveEntity
   @meta.implemented
   CreateImpactFromPosition(position, direction, lifeTime, size)
   {
-    const closestDamageLocator = this._GetClosestLocatorIndex(position, EveSpaceObject2._damageLocatorSetName);
+    const closestDamageLocator = this.GetClosestLocatorIndex(position, EveSpaceObject2._damageLocatorSetName);
     return this.CreateImpact(closestDamageLocator, direction, lifeTime, size);
   }
 
@@ -3153,7 +3153,7 @@ export class EveSpaceObject2 extends EveEntity
           // Carbon EveSpaceObject2.cpp:3644-3651: parts honour the impact
           // switch here, and spawn debris except at low LOD.
           if (!EveDamageOverlay.impactEffectEnabled) return -1;
-          return this._EnsureChildDamageOverlay(range).CreateImpact(
+          return this.EnsureChildDamageOverlay(range).CreateImpact(
             damageLocatorIndex - range.start, size, this.lodLevel !== Tr2Lod.TR2_LOD_LOW);
         }
       }
@@ -3255,7 +3255,7 @@ export class EveSpaceObject2 extends EveEntity
   @meta.implemented
   GetLocatorCount(locatorSetName)
   {
-    return this._GetLocatorsForSet(locatorSetName)?.length ?? 0;
+    return this.GetLocatorsForSet(locatorSetName)?.length ?? 0;
   }
 
   /**
@@ -3266,7 +3266,16 @@ export class EveSpaceObject2 extends EveEntity
   @meta.implemented
   GetLocatorsForSet(locatorSetName)
   {
-    return this._GetLocatorsForSet(locatorSetName);
+    const target = String(locatorSetName ?? "");
+    this.EnsureChildLocatorMerged();
+    for (const set of this._mergedLocatorSets)
+    {
+      if (set.HasName(target))
+      {
+        return set.GetLocators();
+      }
+    }
+    return null;
   }
 
   /** Appends copies of a named locator set, merging with an existing authored set. */
@@ -3316,7 +3325,7 @@ export class EveSpaceObject2 extends EveEntity
   @meta.implemented
   GetCloseLocatorIndex(position, locatorSetName)
   {
-    const locators = this._GetLocatorsForSet(locatorSetName);
+    const locators = this.GetLocatorsForSet(locatorSetName);
     if (!locators)
     {
       return -1;
@@ -3366,7 +3375,7 @@ export class EveSpaceObject2 extends EveEntity
     const targetableCall = typeof inWorldSpaceOrOut === "boolean";
     const inWorldSpace = targetableCall && inWorldSpaceOrOut;
     if (!targetableCall) out = inWorldSpaceOrOut;
-    const locators = this._GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
+    const locators = this.GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
     if (!locators || !(index >= 0 && index < locators.length))
     {
       vec3.set(out, 0, targetableCall ? 1 : 0, 0);
@@ -3388,7 +3397,7 @@ export class EveSpaceObject2 extends EveEntity
   @meta.adapted
   GetDamageLocatorPosition(index, inWorldSpace, out = vec3.create())
   {
-    const locators = this._GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
+    const locators = this.GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
     if (!locators || !(index >= 0 && index < locators.length))
     {
       if (inWorldSpace) vec3.set(out, this.worldTransform[12], this.worldTransform[13], this.worldTransform[14]);
@@ -3409,7 +3418,7 @@ export class EveSpaceObject2 extends EveEntity
   @meta.implemented
   GetDamageLocatorBindPosition(index, out = vec3.create())
   {
-    const locators = this._GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
+    const locators = this.GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
     if (!locators || !(index >= 0 && index < locators.length))
     {
       vec3.set(out, 0, 0, 0);
@@ -3424,7 +3433,7 @@ export class EveSpaceObject2 extends EveEntity
   @meta.implemented
   GetClosestDamageLocatorIndex(position)
   {
-    return this._GetClosestLocatorIndex(position, EveSpaceObject2._damageLocatorSetName);
+    return this.GetClosestLocatorIndex(position, EveSpaceObject2._damageLocatorSetName);
   }
 
   /**
@@ -3437,7 +3446,7 @@ export class EveSpaceObject2 extends EveEntity
   @meta.adapted
   GetGoodDamageLocatorIndex(position)
   {
-    const locators = this._GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
+    const locators = this.GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
     if (!locators) return 0;
 
     const objectPosition = vec3.transformMat4(EveSpaceObject2._objectPosition, position, this.inverseWorldTransform);
@@ -3483,7 +3492,7 @@ export class EveSpaceObject2 extends EveEntity
         bestLocator = index;
       }
     }
-    return bestLocator < 0 ? this._GetClosestLocatorIndex(position, EveSpaceObject2._damageLocatorSetName) : bestLocator;
+    return bestLocator < 0 ? this.GetClosestLocatorIndex(position, EveSpaceObject2._damageLocatorSetName) : bestLocator;
   }
 
   /** Gets the model-scaled target radius. */
@@ -3615,7 +3624,7 @@ export class EveSpaceObject2 extends EveEntity
   @meta.implemented
   GetDamageLocator(index, out = vec3.create())
   {
-    const locators = this._GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
+    const locators = this.GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
     if (!locators || !(index >= 0 && index < locators.length))
     {
       return vec3.set(out, 0, 0, 0);
@@ -3633,7 +3642,7 @@ export class EveSpaceObject2 extends EveEntity
   @meta.implemented
   GetTransformedDamageLocator(index, out = vec3.create())
   {
-    const locators = this._GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
+    const locators = this.GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
     if (!locators || !(index >= 0 && index < locators.length))
     {
       return vec3.set(out, 0, 0, 0);
@@ -3682,7 +3691,7 @@ export class EveSpaceObject2 extends EveEntity
   @meta.implemented
   GetLocatorPosition(out, index, inWorldSpace, locatorSetName)
   {
-    const locators = index < 0 ? null : this._GetLocatorsForSet(locatorSetName);
+    const locators = index < 0 ? null : this.GetLocatorsForSet(locatorSetName);
     if (!locators || index >= locators.length)
     {
       if (inWorldSpace)
@@ -3732,7 +3741,7 @@ export class EveSpaceObject2 extends EveEntity
   @meta.implemented
   GetLocatorDirection(out, index, inWorldSpace, locatorSetName)
   {
-    const locators = index < 0 ? null : this._GetLocatorsForSet(locatorSetName);
+    const locators = index < 0 ? null : this.GetLocatorsForSet(locatorSetName);
     if (!locators || index >= locators.length)
     {
       vec3.set(out, 0, 1, 0);
@@ -4334,7 +4343,7 @@ export class EveSpaceObject2 extends EveEntity
       this.EnsureChildLocatorMerged();
       for (const range of this._mergedDamageLocatorSources)
       {
-        this._EnsureChildDamageOverlay(range).SetDamageState(
+        this.EnsureChildDamageOverlay(range).SetDamageState(
           shield, armor, hull, doCreateArmorImpacts);
       }
     }
@@ -4357,12 +4366,12 @@ export class EveSpaceObject2 extends EveEntity
     this.EnsureChildLocatorMerged();
     for (const range of this._mergedDamageLocatorSources)
     {
-      this._EnsureChildDamageOverlay(range).ToggleEffect(name, enable, duration);
+      this.EnsureChildDamageOverlay(range).ToggleEffect(name, enable, duration);
     }
   }
 
   /** Creates and synchronizes the damage overlay owned by one child-locator range. */
-  _EnsureChildDamageOverlay(range)
+  EnsureChildDamageOverlay(range)
   {
     let overlay = range.owner.GetPartDamageOverlay(range.partTag);
     if (!overlay)
@@ -4623,26 +4632,6 @@ export class EveSpaceObject2 extends EveEntity
     }
   }
 
-  // Carbon GetLocatorsForSet: first set matching the name wins.
-
-  /**
-   * Returns the locator list of the first locator set carrying the name, or null
-   * when no set matches; the list stays owned by the locator set.
-   */
-  _GetLocatorsForSet(locatorSetName)
-  {
-    const target = String(locatorSetName ?? "");
-    this.EnsureChildLocatorMerged();
-    for (const set of this._mergedLocatorSets)
-    {
-      if (set.HasName(target))
-      {
-        return set.GetLocators();
-      }
-    }
-    return null;
-  }
-
   /**
    * Writes a locator's object-space position and direction (Carbon
    * EveSpaceObject2.cpp:3784-3805, rewritten upstream by 3d988b1d).
@@ -4692,9 +4681,9 @@ export class EveSpaceObject2 extends EveEntity
    * world position - 0 when the set is missing, -1 when no locator faces the
    * position.
    */
-  _GetClosestLocatorIndex(position, locatorSetName)
+  GetClosestLocatorIndex(position, locatorSetName)
   {
-    const locators = this._GetLocatorsForSet(locatorSetName);
+    const locators = this.GetLocatorsForSet(locatorSetName);
     if (!locators)
     {
       return 0;

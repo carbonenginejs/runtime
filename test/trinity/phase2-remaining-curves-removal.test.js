@@ -141,7 +141,7 @@ test("child damage overlay clones plain Perlin authored values through Blue Copi
     GetPartDamageOverlay: () => created ? overlay : null,
     CreatePartDamageOverlay() { created = true; }, GetPartArmorDamageShaderEffect: () => null
   };
-  assert.equal(parent._EnsureChildDamageOverlay({ owner, partTag: 1, count: 0, start: 0 }), overlay);
+  assert.equal(parent.EnsureChildDamageOverlay({ owner, partTag: 1, count: 0, start: 0 }), overlay);
   assert.ok(clone instanceof TriPerlinCurve);
   assert.notEqual(clone, source);
   assert.equal(clone.n, 7);

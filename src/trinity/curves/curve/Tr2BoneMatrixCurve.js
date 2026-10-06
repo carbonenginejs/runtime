@@ -221,7 +221,7 @@ export class Tr2BoneMatrixCurve extends ITriFunction
     if (this.length <= 0 || time <= 0) return mat4.copy(out, this.startValue);
     if (time > this.length && !this.cycle)
       return mat4.copy(out, this.reversed ? this.startValue : this.endValue);
-    return this._Interpolate(out);
+    return this.Interpolate(out);
   }
 
   /**
@@ -433,7 +433,7 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * @returns {mat4} out
    */
   @meta.implemented
-  _Interpolate(out)
+  Interpolate(out)
   {
     const skinnedObject = this.skinnedObject;
     if (!skinnedObject || !this._bone)

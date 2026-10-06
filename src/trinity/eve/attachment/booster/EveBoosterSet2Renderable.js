@@ -237,7 +237,7 @@ export class EveBoosterSet2Renderable
     {
       return false;
     }
-    this._CalculateSplineData(deltaTime);
+    this.CalculateSplineData(deltaTime);
 
     const length = this.trailsTotalLength;
     if (length > EveBoosterSet2.eveSpaceObjectTrailsMinLength &&
@@ -560,7 +560,7 @@ export class EveBoosterSet2Renderable
    * offsets rotated into parent space - then recomputes the spline metrics;
    * returns false for a non-positive delta.
    */
-  _CalculateSplineData(deltaTime)
+  CalculateSplineData(deltaTime)
   {
     const elapsed = Number(deltaTime);
     if (!(elapsed > 0))

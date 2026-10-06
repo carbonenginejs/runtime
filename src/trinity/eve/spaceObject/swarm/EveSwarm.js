@@ -1099,7 +1099,7 @@ export class EveSwarm extends EveShip2
 
     if (index >= 0)
     {
-      const damageLocators = this._GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
+      const damageLocators = this.GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
       if (damageLocators && index < damageLocators.length)
       {
         // vec3_24 is position, vec3_25 direction.
