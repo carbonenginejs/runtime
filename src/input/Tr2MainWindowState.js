@@ -15,8 +15,8 @@ export class Tr2MainWindowState
     static Tr2WindowMode = Tr2WindowMode;
     static Tr2WindowShowState = Tr2WindowShowState;
 
-    /** Creates a main-window state record with Carbon-compatible defaults. */
-    constructor(values = {})
+    /** Creates a main-window state record with Carbon's State defaults. */
+    constructor()
     {
         this.adapter = 0;
         this.presentInterval = PresentInterval.PRESENT_INTERVAL_ONE;
@@ -26,38 +26,26 @@ export class Tr2MainWindowState
         this.showState = Tr2WindowShowState.NORMAL;
         this.windowMode = Tr2WindowMode.FULL_SCREEN;
         this.top = 0;
-        this.SetValues(values);
     }
 
-    /** Applies recognized numeric state values and returns this record. */
-    SetValues(values = {})
-    {
-        for (const key of [ "adapter", "presentInterval", "height", "width", "left", "showState", "windowMode", "top" ])
-        {
-            if (Object.prototype.hasOwnProperty.call(values, key)) this[key] = Number(values[key]);
-        }
-        return this;
-    }
-
-    /** Returns a detached main-window state record. */
-    GetValues()
-    {
-        return {
-            adapter: this.adapter,
-            presentInterval: this.presentInterval,
-            height: this.height,
-            width: this.width,
-            left: this.left,
-            showState: this.showState,
-            windowMode: this.windowMode,
-            top: this.top
-        };
-    }
-
-    /** Returns an independent copy of this state. */
+    /**
+     * Returns an independent copy of this state, as Carbon copies its State
+     * struct.
+     *
+     * @returns {Tr2MainWindowState} The copy.
+     */
     Clone()
     {
-        return new Tr2MainWindowState(this.GetValues());
+        const copy = new Tr2MainWindowState();
+        copy.adapter = this.adapter;
+        copy.presentInterval = this.presentInterval;
+        copy.height = this.height;
+        copy.width = this.width;
+        copy.left = this.left;
+        copy.showState = this.showState;
+        copy.windowMode = this.windowMode;
+        copy.top = this.top;
+        return copy;
     }
 
     /**

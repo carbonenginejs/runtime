@@ -1,67 +1,64 @@
 import { optionalString, snapshotWebIdl } from "./browserHelpers.js";
 
 /**
- * Browser-visible subset of Carbon's Tr2VideoDriver.
+ * Browser-visible subset of Carbon's Tr2VideoDriver (Tr2VideoAdapters.h), a
+ * read-only report its adapter fills.
  *
  * Browsers normally withhold native driver versions and dates. Unknown values
  * remain null rather than being inferred from the user agent or adapter name.
  */
 export class Tr2VideoDriver
 {
-    /** Creates a browser-visible video-driver snapshot. */
-    constructor(values = {})
-    {
-        this.SetValues(values);
-    }
+    /** Driver release date, or null when the browser withholds it. */
+    driverDate = null;
 
-    /** Applies browser-visible driver values and returns this snapshot. */
-    SetValues(values = {})
-    {
-        this.driverDate = optionalString(values.driverDate);
-        this.driverVendor = optionalString(values.driverVendor);
-        this.driverVersion = values.driverVersion ?? null;
-        this.driverVersionString = optionalString(values.driverVersionString);
-        this.isAmdDynamicSwitchable = values.isAmdDynamicSwitchable ?? null;
-        this.isOptimus = values.isOptimus ?? null;
-        this.description = optionalString(values.description);
-        this.available = values.available ?? [
-            this.driverDate,
-            this.driverVendor,
-            this.driverVersion,
-            this.driverVersionString,
-            this.description
-        ].some(value => value !== null);
-        return this;
-    }
+    /** Driver vendor company, or null. */
+    driverVendor = null;
 
-    /** Returns a detached record of browser-visible driver values. */
-    GetValues()
-    {
-        return {
-            driverDate: this.driverDate,
-            driverVendor: this.driverVendor,
-            driverVersion: this.driverVersion,
-            driverVersionString: this.driverVersionString,
-            isAmdDynamicSwitchable: this.isAmdDynamicSwitchable,
-            isOptimus: this.isOptimus,
-            description: this.description,
-            available: this.available
-        };
-    }
+    /** Driver version as a number, or null. */
+    driverVersion = null;
 
-    /** Creates a driver snapshot from GPU adapter information. */
+    /** Driver version as a string, or null. */
+    driverVersionString = null;
+
+    /** Whether the machine runs AMD Dynamic Switchable graphics, or null when unknown. */
+    isAmdDynamicSwitchable = null;
+
+    /** Whether the machine runs Optimus graphics, or null when unknown. */
+    isOptimus = null;
+
+    /** Human-readable driver description, or null. */
+    description = null;
+
+    /** Whether the browser exposed any driver information at all. */
+    available = false;
+
+    /**
+     * Creates a driver report from GPU adapter information, as Carbon fills
+     * its report from the device's driver info.
+     *
+     * @param {object} [adapterInfo] A GPUAdapterInfo-like object.
+     * @returns {Tr2VideoDriver} The report.
+     */
     static FromGPUAdapterInfo(adapterInfo = {})
     {
         const info = snapshotWebIdl(adapterInfo);
-        return new Tr2VideoDriver({
-            driverDate: info.driverDate,
-            driverVendor: info.driverVendor ?? info.vendor,
-            driverVersion: info.driverVersion,
-            driverVersionString: info.driverVersionString ?? info.driver,
-            isAmdDynamicSwitchable: info.isAmdDynamicSwitchable,
-            isOptimus: info.isOptimus,
-            description: info.description
-        });
+        const driver = new Tr2VideoDriver();
+        driver.driverDate = optionalString(info.driverDate);
+        driver.driverVendor = optionalString(info.driverVendor ?? info.vendor);
+        driver.driverVersion = info.driverVersion ?? null;
+        driver.driverVersionString = optionalString(info.driverVersionString ?? info.driver);
+        driver.isAmdDynamicSwitchable = info.isAmdDynamicSwitchable ?? null;
+        driver.isOptimus = info.isOptimus ?? null;
+        driver.description = optionalString(info.description);
+        driver.available = [
+            driver.driverDate,
+            driver.driverVendor,
+            driver.driverVersion,
+            driver.driverVersionString,
+            driver.description
+        ].some(value => value !== null);
+        return driver;
     }
 }
 

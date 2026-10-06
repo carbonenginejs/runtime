@@ -54,18 +54,17 @@ test("Tr2MainWindowState retains Carbon defaults and reset comparison", () =>
     assert.equal(state.presentInterval, Tr2MainWindowState.PresentInterval.PRESENT_INTERVAL_ONE);
     assert.equal(state.__str__(), "full screen on adapter 0 0x0, present interval one");
 
-    const windowed = state.Clone().SetValues({
-        windowMode: Tr2MainWindowState.Tr2WindowMode.WINDOWED,
-        width: 1280,
-        height: 720,
-        left: -12,
-        top: 34,
-        showState: Tr2MainWindowState.Tr2WindowShowState.MAXIMIZED
-    });
+    const windowed = state.Clone();
+    windowed.windowMode = Tr2MainWindowState.Tr2WindowMode.WINDOWED;
+    windowed.width = 1280;
+    windowed.height = 720;
+    windowed.left = -12;
+    windowed.top = 34;
+    windowed.showState = Tr2MainWindowState.Tr2WindowShowState.MAXIMIZED;
     assert.equal(windowed.__str__(), "windowed on adapter 0 1280x720, present interval one, position (-12, 34), maximized");
     assert.equal(windowed.RequiresDeviceReset(state), true);
     assert.throws(
-        () => windowed.RequiresDeviceReset(state.GetValues()),
+        () => windowed.RequiresDeviceReset({ ...state }),
         /requires Tr2MainWindowState/u
     );
 });
@@ -221,7 +220,7 @@ test("Tr2MainWindow emits only changed state intent from the input layer", () =>
     const headless = new Tr2MainWindow({
         onWindowStateChange: state => headlessChanges.push(state)
     });
-    assert.deepEqual(headless.GetDefaultState().GetValues(), new Tr2MainWindowState().GetValues());
+    assert.deepEqual({ ...headless.GetDefaultState() }, { ...new Tr2MainWindowState() });
     assert.equal(headless.SetWindowState(headless.GetWindowState()), true);
     assert.equal(headlessChanges.length, 0);
 
@@ -239,7 +238,7 @@ test("Tr2MainWindow emits only changed state intent from the input layer", () =>
         window: windowTarget,
         document: documentTarget,
         target,
-        state: { width: 1280, height: 720 },
+        state: CjsSchema.from("Tr2MainWindowState", { width: 1280, height: 720 }),
         onWindowStateChange: state => changes.push(state)
     });
 

@@ -44,7 +44,7 @@ export class Tr2MainWindow
             this[field] = null;
         }
         this.imeState_MacOS = 0;
-        this.#state = new Tr2MainWindowState(options.state);
+        this.#state = options.state ? options.state.Clone() : new Tr2MainWindowState();
         this.#storedStates = new Map();
         this.#minimumSize = { width: 100, height: 100 };
         this.#pressed = new Set();
@@ -148,7 +148,7 @@ export class Tr2MainWindow
      */
     SetWindowState(state)
     {
-        const next = state instanceof Tr2MainWindowState ? state.Clone() : new Tr2MainWindowState(state);
+        const next = state.Clone();
         this.SanitizeState(next);
         if (statesEqual(this.#state, next)) return true;
         this.#state = next;
@@ -179,7 +179,8 @@ export class Tr2MainWindow
     /** Creates the default sanitized state for one window mode. */
     GetDefaultState(windowMode = Tr2WindowMode.FULL_SCREEN)
     {
-        const state = new Tr2MainWindowState({ windowMode });
+        const state = new Tr2MainWindowState();
+        state.windowMode = windowMode;
         state.width = Number(windowMode === Tr2WindowMode.FULL_SCREEN ? this.#screen?.width : this.#window?.innerWidth) || 0;
         state.height = Number(windowMode === Tr2WindowMode.FULL_SCREEN ? this.#screen?.height : this.#window?.innerHeight) || 0;
         return this.SanitizeState(state);
@@ -188,8 +189,7 @@ export class Tr2MainWindow
     /** Stores a detached state snapshot for its window mode. */
     StoreStateSettings(state)
     {
-        const value = state instanceof Tr2MainWindowState ? state : new Tr2MainWindowState(state);
-        this.#storedStates.set(value.windowMode, value.Clone());
+        this.#storedStates.set(state.windowMode, state.Clone());
         return this;
     }
 
