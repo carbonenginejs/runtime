@@ -6,6 +6,14 @@
  * a second container reader.
  */
 
+/**
+ * Collect string values under file, path or source keys that name a `.gr2` file.
+ *
+ * @param {*} value Reflected value to walk.
+ * @param {Set<object>} [seen] Objects already visited.
+ * @param {Set<string>} [output] Collected references.
+ * @returns {Set<string>} The `output` set.
+ */
 function collectGr2References(value, seen = new Set(), output = new Set())
 {
     if (!value || typeof value !== "object" || seen.has(value)) return output;
@@ -26,13 +34,24 @@ function collectGr2References(value, seen = new Set(), output = new Set())
     return output;
 }
 
-/** Whether a reflected Granny result has the GState root schema. */
+/**
+ * Whether a reflected Granny result has the GState root schema.
+ *
+ * @param {import("./reader.js").RawGr2ReadResult} raw Raw reflected read result.
+ * @returns {boolean} True when the root has a state machine and animation sets.
+ */
 export function isGsfRaw(raw)
 {
     return !!raw?.fileInfo?.StateMachine && Array.isArray(raw.fileInfo?.AnimationSets);
 }
 
-/** Project a reflected Granny result into a stable GSF-facing document. */
+/**
+ * Project a reflected Granny result into a stable GSF-facing document.
+ *
+ * @param {import("./reader.js").RawGr2ReadResult} raw Raw reflected read result.
+ * @returns {import("./helpers.js").GsfDocument} The GSF document.
+ * @throws {Error} When the root is not a GState root.
+ */
 export function projectGsf(raw)
 {
     if (!isGsfRaw(raw)) throw new Error("format-gr2: expected Granny State root schema");
@@ -64,7 +83,12 @@ export function projectGsf(raw)
     };
 }
 
-/** Build a lightweight GSF support and dependency summary. */
+/**
+ * Build a lightweight GSF support and dependency summary.
+ *
+ * @param {import("./reader.js").RawGr2ReadResult} raw Raw reflected read result.
+ * @returns {import("./helpers.js").GsfInspection} The summary.
+ */
 export function inspectGsfRaw(raw)
 {
     const value = projectGsf(raw);

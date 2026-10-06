@@ -41,6 +41,14 @@ const CONTROL15_MAX = 0x7fff;
 const CONTROL7_MAX = 0x7f;
 const FLOAT_BITS = new DataView(new ArrayBuffer(4));
 
+/**
+ * Validate an explicit curve before compression.
+ *
+ * @param {import("./helpers.js").Gr2ExplicitCurve} curve Curve to check.
+ * @param {number} dimension Control dimension.
+ * @throws {TypeError} When knots or controls are not arrays, or the dimension is not a positive integer.
+ * @throws {Error} When the control count, finiteness or knot ordering is invalid.
+ */
 function assertCurve(curve, dimension)
 {
     if (!curve || !Array.isArray(curve.knots) || !Array.isArray(curve.controls))
@@ -77,6 +85,12 @@ function assertCurve(curve, dimension)
     }
 }
 
+/**
+ * Build the float `DaK32fC32f` record for a curve.
+ *
+ * @param {import("./helpers.js").Gr2ExplicitCurve} curve Source curve.
+ * @returns {import("./helpers.js").Gr2PackedCurve} Uncompressed curve record with float32-rounded values.
+ */
 function uncompressedCurve(curve)
 {
     return {
@@ -87,11 +101,24 @@ function uncompressedCurve(curve)
     };
 }
 
+/**
+ * Byte length of a packed payload rounded up to four bytes.
+ *
+ * @param {number} length Number of packed components.
+ * @param {number} componentSize Bytes per component.
+ * @returns {number} Aligned byte length.
+ */
 function alignedPayloadBytes(length, componentSize)
 {
     return Math.ceil(length * componentSize / 4) * 4;
 }
 
+/**
+ * Estimate the serialized size of a curve record.
+ *
+ * @param {import("./helpers.js").Gr2PackedCurve} curve Curve record.
+ * @returns {number} Estimated bytes, or Infinity for an unknown format.
+ */
 function estimatedCurveBytes(curve)
 {
     const count = curve.knotsControls?.length ?? 0;
@@ -148,6 +175,16 @@ function estimatedCurveBytes(curve)
     }
 }
 
+/**
+ * Compare one source sample with one decoded sample.
+ *
+ * @param {number[]} source Source control values.
+ * @param {number[]} decoded Decoded control values.
+ * @param {number} dimension Number of components to compare.
+ * @param {number} tolerance Euclidean distance, or angular difference for quaternions.
+ * @param {boolean} asQuaternion Compare as normalized quaternions.
+ * @returns {boolean} True when the difference is within tolerance.
+ */
 function valuesWithinTolerance(source, decoded, dimension, tolerance, asQuaternion)
 {
     if (asQuaternion)
@@ -166,6 +203,17 @@ function valuesWithinTolerance(source, decoded, dimension, tolerance, asQuaterni
     return Math.sqrt(squareError) <= tolerance;
 }
 
+/**
+ * Decode a candidate and check it against the source at keys and between them.
+ *
+ * @param {import("./helpers.js").Gr2ExplicitCurve} source Source curve.
+ * @param {import("./helpers.js").Gr2PackedCurve} candidate Packed candidate.
+ * @param {number} dimension Control dimension.
+ * @param {number} tolerance Allowed difference.
+ * @param {number|undefined} duration Animation duration, or undefined to use the last knot.
+ * @param {boolean} asQuaternion Compare as normalized quaternions.
+ * @returns {boolean} True when every sample is within tolerance.
+ */
 function candidateWithinTolerance(source, candidate, dimension, tolerance, duration, asQuaternion)
 {
     const decoded = decodeCurve(candidate, dimension);
@@ -244,6 +292,18 @@ function candidateWithinTolerance(source, candidate, dimension, tolerance, durat
     return true;
 }
 
+/**
+ * Pick the smallest candidate within tolerance, or the uncompressed curve.
+ *
+ * @param {import("./helpers.js").Gr2ExplicitCurve} source Source curve.
+ * @param {Array<import("./helpers.js").Gr2PackedCurve|null|undefined|false>} candidates Candidates; falsy
+ *     entries are skipped.
+ * @param {number} dimension Control dimension.
+ * @param {number} tolerance Allowed difference.
+ * @param {number|undefined} duration Animation duration, or undefined to use the last knot.
+ * @param {boolean} [asQuaternion=false] Compare as normalized quaternions.
+ * @returns {import("./helpers.js").Gr2PackedCurve} The selected curve record.
+ */
 function selectSmallestCandidate(source, candidates, dimension, tolerance, duration, asQuaternion = false)
 {
     let best = uncompressedCurve(source);
@@ -263,12 +323,25 @@ function selectSmallestCandidate(source, candidates, dimension, tolerance, durat
     return best;
 }
 
+/**
+ * Upper 16 bits of a value's float32 encoding.
+ *
+ * @param {number} value Value to encode.
+ * @returns {number} Unsigned 16-bit high half.
+ */
 function high16(value)
 {
     FLOAT_BITS.setFloat32(0, Math.fround(value), true);
     return FLOAT_BITS.getUint16(2, true);
 }
 
+/**
+ * Quantize knots with a truncated float32 scale.
+ *
+ * @param {number[]} knots Knot times.
+ * @param {number} maximum Largest quantized value.
+ * @returns {{oneOverKnotScaleTrunc: number, values: number[]}} Truncated scale and quantized knots.
+ */
 function knotPacking(knots, maximum)
 {
     const last = knots[knots.length - 1];
@@ -286,6 +359,13 @@ function knotPacking(knots, maximum)
     };
 }
 
+/**
+ * Quantize knots with a full float32 scale.
+ *
+ * @param {number[]} knots Knot times.
+ * @param {number} maximum Largest quantized value.
+ * @returns {{oneOverKnotScale: number, values: number[]}} Scale and quantized knots.
+ */
 function floatKnotPacking(knots, maximum)
 {
     const last = knots[knots.length - 1];
@@ -296,6 +376,16 @@ function floatKnotPacking(knots, maximum)
     };
 }
 
+/**
+ * Quantize each control component against its own range.
+ *
+ * @param {number[]} controls Interleaved control values.
+ * @param {number} dimension Stride between keys in `controls`.
+ * @param {number} maximum Largest quantized value.
+ * @param {number} [components=dimension] Number of leading components to pack.
+ * @returns {{scales: number[], offsets: number[], values: number[]}} Per-component scale and offset, and the
+ *     quantized values.
+ */
 function componentPacking(controls, dimension, maximum, components = dimension)
 {
     const scales = new Array(components);
@@ -325,6 +415,13 @@ function componentPacking(controls, dimension, maximum, components = dimension)
     return { scales, offsets, values };
 }
 
+/**
+ * Whether every key repeats the first key's controls.
+ *
+ * @param {number[]} controls Interleaved control values.
+ * @param {number} dimension Control dimension.
+ * @returns {boolean} True when the curve is constant.
+ */
 function allControlsEqual(controls, dimension)
 {
     for (let index = dimension; index < controls.length; index++)
@@ -334,12 +431,27 @@ function allControlsEqual(controls, dimension)
     return true;
 }
 
+/**
+ * Whether controls equal an identity value.
+ *
+ * @param {number[]} controls Control values.
+ * @param {number[]|undefined} identity Identity value, or undefined.
+ * @returns {boolean} True when `identity` is an array equal to `controls`.
+ */
 function isIdentity(controls, identity)
 {
     return Array.isArray(identity) && identity.length === controls.length &&
         identity.every((value, index) => controls[index] === value);
 }
 
+/**
+ * Build an identity or constant record from a curve's first key.
+ *
+ * @param {import("./helpers.js").Gr2ExplicitCurve} curve Source curve.
+ * @param {number} dimension Control dimension.
+ * @param {number[]|undefined} identity Identity value, or undefined.
+ * @returns {import("./helpers.js").Gr2PackedCurve} Identity or constant curve record.
+ */
 function constantCurve(curve, dimension, identity)
 {
     const controls = curve.controls.slice(0, dimension).map(Math.fround);
@@ -352,6 +464,15 @@ function constantCurve(curve, dimension, identity)
     return { format: FORMAT_DA_CONSTANT_32F, degree: 0, controls };
 }
 
+/**
+ * Encode a curve as a generic quantized `DaK` record.
+ *
+ * @param {import("./helpers.js").Gr2ExplicitCurve} curve Source curve.
+ * @param {number} dimension Control dimension.
+ * @param {number} maximum Largest quantized value.
+ * @param {number} format Granny curve-data format id.
+ * @returns {import("./helpers.js").Gr2PackedCurve} Packed candidate.
+ */
 function encodeDaK(curve, dimension, maximum, format)
 {
     const knots = knotPacking(curve.knots, maximum);
@@ -365,6 +486,14 @@ function encodeDaK(curve, dimension, maximum, format)
     };
 }
 
+/**
+ * Encode a three-component curve as a quantized `D3K` record.
+ *
+ * @param {import("./helpers.js").Gr2ExplicitCurve} curve Source curve.
+ * @param {number} maximum Largest quantized value.
+ * @param {number} format Granny curve-data format id.
+ * @returns {import("./helpers.js").Gr2PackedCurve} Packed candidate.
+ */
 function encodeD3K(curve, maximum, format)
 {
     const knots = knotPacking(curve.knots, maximum);
@@ -379,6 +508,13 @@ function encodeD3K(curve, maximum, format)
     };
 }
 
+/**
+ * Fit three-component controls to a line through the extremes of their dominant component.
+ *
+ * @param {number[]} controls Interleaved xyz controls.
+ * @returns {{offsets: number[], scales: number[], parameters: number[]}|null} Line offset and direction, and
+ *     one parameter per key; null when the dominant component has no range.
+ */
 function d3I1Shape(controls)
 {
     const count = controls.length / 3;
@@ -434,6 +570,13 @@ function d3I1Shape(controls)
     return { offsets, scales, parameters };
 }
 
+/**
+ * Encode a line-shaped curve as a float `D3I1K32fC32f` record.
+ *
+ * @param {import("./helpers.js").Gr2ExplicitCurve} curve Source curve.
+ * @param {{offsets: number[], scales: number[], parameters: number[]}} shape Shape from `d3I1Shape`.
+ * @returns {import("./helpers.js").Gr2PackedCurve} Packed candidate.
+ */
 function encodeD3I1Float(curve, shape)
 {
     return {
@@ -445,6 +588,15 @@ function encodeD3I1Float(curve, shape)
     };
 }
 
+/**
+ * Encode a line-shaped curve as a quantized `D3I1` record.
+ *
+ * @param {import("./helpers.js").Gr2ExplicitCurve} curve Source curve.
+ * @param {{offsets: number[], scales: number[], parameters: number[]}} shape Shape from `d3I1Shape`.
+ * @param {number} maximum Largest quantized value.
+ * @param {number} format Granny curve-data format id.
+ * @returns {import("./helpers.js").Gr2PackedCurve} Packed candidate.
+ */
 function encodeD3I1(curve, shape, maximum, format)
 {
     const knots = knotPacking(curve.knots, maximum);
@@ -461,6 +613,12 @@ function encodeD3I1(curve, shape, maximum, format)
     };
 }
 
+/**
+ * Classify 3x3 scale/shear controls as uniform or diagonal scale.
+ *
+ * @param {number[]} controls Interleaved 3x3 matrices.
+ * @returns {"uniform"|"diagonal"|null} The shape, or null when any off-diagonal value is non-zero.
+ */
 function scaleCurveShape(controls)
 {
     let uniform = true;
@@ -479,6 +637,16 @@ function scaleCurveShape(controls)
     return uniform ? "uniform" : "diagonal";
 }
 
+/**
+ * Encode a scale/shear curve as a quantized `D9I1` or `D9I3` record.
+ *
+ * @param {import("./helpers.js").Gr2ExplicitCurve} curve Source curve.
+ * @param {"uniform"|"diagonal"} shape Shape from `scaleCurveShape`.
+ * @param {number} maximum Largest quantized value.
+ * @param {number} uniformFormat Format id used for uniform scale.
+ * @param {number} diagonalFormat Format id used for diagonal scale.
+ * @returns {import("./helpers.js").Gr2PackedCurve} Packed candidate.
+ */
 function encodeD9I(curve, shape, maximum, uniformFormat, diagonalFormat)
 {
     const knots = knotPacking(curve.knots, maximum);
@@ -513,6 +681,16 @@ function encodeD9I(curve, shape, maximum, uniformFormat, diagonalFormat)
     };
 }
 
+/**
+ * Find the `D4n` table entry with the smallest scale that covers a range.
+ *
+ * @param {number} minimum Smallest component value.
+ * @param {number} maximum Largest component value.
+ * @param {number} multiplier Scale table multiplier.
+ * @param {number} controlMaximum Largest quantized control value.
+ * @returns {{selector: number, scale: number, offset: number}|null} The table entry, or null when none covers
+ *     the range.
+ */
 function selectorForRange(minimum, maximum, multiplier, controlMaximum)
 {
     let best = null;
@@ -530,6 +708,18 @@ function selectorForRange(minimum, maximum, multiplier, controlMaximum)
     return best;
 }
 
+/**
+ * Encode a quaternion curve as a `D4n` record with the largest component omitted.
+ *
+ * @param {import("./helpers.js").Gr2ExplicitCurve} curve Source quaternion curve.
+ * @param {number} tolerance Allowed angular difference at the keys.
+ * @param {number} maximum Largest quantized knot value.
+ * @param {number} controlMaximum Largest quantized control value.
+ * @param {number} multiplier Scale table multiplier.
+ * @param {number} format Granny curve-data format id.
+ * @returns {import("./helpers.js").Gr2PackedCurve|null} Packed candidate, or null when no selector fits or the
+ *     keys exceed tolerance.
+ */
 function encodeD4n(curve, tolerance, maximum, controlMaximum, multiplier, format)
 {
     const controls = normalizeQuaternionSeries(curve.controls.slice(), "GR2 orientation compression");
@@ -617,6 +807,20 @@ function encodeD4n(curve, tolerance, maximum, controlMaximum, multiplier, format
  * The first writer pass keeps the authored degree and knot count. It performs
  * format packing and quantization, while curve fitting/reduction remains a
  * separate optimization that can use this function's decoder validation.
+ *
+ * @param {import("./helpers.js").Gr2ExplicitCurve} curve Explicit curve.
+ * @param {number} dimension Control dimension.
+ * @param {object} [options] Compression options.
+ * @param {boolean} [options.asQuaternion] Treat controls as quaternions; requires dimension 4.
+ * @param {number[]} [options.identity] Value written as an identity curve when the curve is constant.
+ * @param {boolean} [options.compressed] False keeps the uncompressed float record.
+ * @param {number} [options.orientationTolerance] Angular tolerance for quaternions.
+ * @param {number} [options.positionTolerance] Distance tolerance for dimension 3.
+ * @param {number} [options.scaleShearTolerance] Distance tolerance for dimension 9.
+ * @param {number} [options.tolerance] Distance tolerance for other dimensions.
+ * @param {number} [options.duration] Animation duration used for sampling; defaults to the last knot.
+ * @returns {import("./helpers.js").Gr2PackedCurve} The smallest record within tolerance.
+ * @throws {TypeError} When `asQuaternion` is set with a dimension other than 4.
  */
 export function compressGr2Curve(curve, dimension, options = {})
 {

@@ -68,6 +68,7 @@ export const CLASS_KEYS = Object.freeze([
  * @param {Gr2NodeClasses} classes Opt-in node class map.
  * @param {string} key Node key to look up in `classes`.
  * @param {object} props Fields to populate onto the instance.
+ * @param {object} [hydrationOptions] Extra `SetValues` options forwarded to the instance.
  * @returns {object} A populated class instance, or `props` when no
  * constructor is registered for `key`.
  */
@@ -77,6 +78,15 @@ function build(classes, key, props, hydrationOptions = {})
     return Ctor ? populate(new Ctor(), props, hydrationOptions) : props;
 }
 
+/**
+ * Populate a constructed node instance through its `SetValues` method.
+ *
+ * @param {object} instance Newly constructed node instance.
+ * @param {object} props Fields to populate onto the instance.
+ * @param {object} [hydrationOptions] Extra `SetValues` options; `skipUpdate` and `skipEvents` are forced on.
+ * @returns {object} The populated instance.
+ * @throws {TypeError} When the instance has no `SetValues` method.
+ */
 function populate(instance, props, hydrationOptions = {})
 {
     if (!instance || typeof instance.SetValues !== "function")
@@ -188,6 +198,12 @@ const VERTEX_CHANNELS = [
     [ "blendWeight", "BoneWeights", 4 ]
 ];
 
+/**
+ * Copy every known vertex channel from reflected vertex objects.
+ *
+ * @param {object[]} vertices Reflected vertex array with non-enumerable type metadata.
+ * @returns {Object<string, Float32Array|Array>} Channels keyed by emitted channel name.
+ */
 function emitVertexChannels(vertices)
 {
     const channels = {};
@@ -274,6 +290,7 @@ function uarr(a) { return scalarArray(a).map(x => x >>> 0); }
  *
  * @param {object} curve2 Reflected Granny curve object.
  * @param {Gr2NodeClasses} [classes] Opt-in node class map.
+ * @param {number[]} [controlFallback=[0]] Controls used when the curve carries none.
  * @returns {object} Compact curve record with format-specific fields.
  */
 function emitCurve(curve2, classes = {}, controlFallback = [ 0 ])
@@ -418,6 +435,14 @@ function emitMorphTarget(mt, classes = {})
     });
 }
 
+/**
+ * Map a vertex annotation set's rows onto mesh vertex indices.
+ *
+ * @param {object} set Reflected Granny vertex annotation set.
+ * @param {number} vertexCount Number of vertices in the owning mesh.
+ * @returns {{rows: object[], vertexIndices: number[]|null}} Annotation rows, and their vertex indices or null
+ * when the rows map one-to-one onto every vertex.
+ */
 function mappedAnnotationRows(set, vertexCount)
 {
     const
@@ -457,6 +482,14 @@ function mappedAnnotationRows(set, vertexCount)
     return { rows, vertexIndices: identity ? null : vertexIndices };
 }
 
+/**
+ * Project a vertex annotation set as a delta morph target.
+ *
+ * @param {object} set Reflected Granny vertex annotation set.
+ * @param {number} vertexCount Number of vertices in the owning mesh.
+ * @param {Gr2NodeClasses} [classes] Opt-in node class map.
+ * @returns {object|null} Emitted morph-target record, or null when the set maps no rows.
+ */
 function emitVertexAnnotationTarget(set, vertexCount, classes = {})
 {
     if (!set || !set.VertexAnnotations?.length) return null;
@@ -478,6 +511,7 @@ function emitVertexAnnotationTarget(set, vertexCount, classes = {})
  *
  * @param {object} mesh Reflected Granny mesh object.
  * @param {Gr2NodeClasses} [classes] Opt-in node class map.
+ * @param {boolean} [rebuildMissingBounds=false] Compute mesh and group bounds from positions.
  * @returns {object} Emitted mesh record.
  */
 function emitMesh(mesh, classes = {}, rebuildMissingBounds = false)
@@ -582,6 +616,7 @@ function emitMesh(mesh, classes = {}, rebuildMissingBounds = false)
  *
  * @param {Float32Array} positions Flat xyz position channel.
  * @param {Uint16Array|Uint32Array} faces Vertex indices.
+ * @param {number} [width=3] Components per vertex in `positions`.
  * @returns {{min: Float32Array, max: Float32Array}|null} Bounds, or null without data.
  */
 function boundsFromFaces(positions, faces, width = 3)
@@ -778,6 +813,7 @@ function emitAnimation(anim, classes = {})
  * @param {number} version Granny file format revision.
  * @param {object} [options] Emission options.
  * @param {Gr2NodeClasses} [options.classes] Opt-in node class map.
+ * @param {boolean} [options.rebuildMissingBounds=false] Compute mesh and group bounds from positions.
  * @returns {Gr2SharedRoot} Plain shared projection, or a
  * populated `classes.Root` instance when provided.
  */

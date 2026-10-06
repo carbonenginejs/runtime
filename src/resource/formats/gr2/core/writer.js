@@ -17,7 +17,22 @@ import { GRANNY_MEMBER_TYPES as M } from "./reader.js";
 const POSITION_IDENTITY = Object.freeze([ 0, 0, 0 ]);
 const ORIENTATION_IDENTITY = Object.freeze([ 0, 0, 0, 1 ]);
 const SCALE_SHEAR_IDENTITY = Object.freeze([ 1, 0, 0, 0, 1, 0, 0, 0, 1 ]);
+/**
+ * Build one member definition for `gr2Type`.
+ *
+ * @param {number} type Granny member type id.
+ * @param {string} name Member name.
+ * @param {import("./helpers.js").Gr2WriterType|null} [ref=null] Referenced or inline type.
+ * @param {number} [arrayWidth=0] Fixed array width; 0 for a scalar.
+ * @returns {import("./helpers.js").Gr2WriterMember} The member definition.
+ */
 const member = (type, name, ref = null, arrayWidth = 0) => ({ type, name, ref, arrayWidth });
+/**
+ * Create a fresh identity transform record.
+ *
+ * @returns {{flags: number, position: number[], orientation: number[], scaleShear: number[]}} Identity
+ *     transform with flags 7.
+ */
 const identityTransform = () => ({
     flags: 7,
     position: [ ...POSITION_IDENTITY ],
@@ -366,6 +381,21 @@ const STATIC_TYPES = [
     MeshBinding, Model, FileInfo
 ];
 
+/**
+ * Validate writer options and fill their defaults.
+ *
+ * @param {object} options Caller writer options.
+ * @param {string} [options.tangentMode="preserve"] Tangent layout.
+ * @param {string} [options.sectionCompression="none"] Section storage.
+ * @param {boolean} [options.compressedCurves=true] False writes float curves.
+ * @param {number} [options.tolerance] Scalar/general curve error.
+ * @param {number} [options.positionTolerance] Position curve error.
+ * @param {number} [options.orientationTolerance] Orientation curve angular error.
+ * @param {number} [options.scaleShearTolerance] Scale/shear curve error.
+ * @param {string} [options.sourceName=""] Value written to `FromFileName`.
+ * @returns {import("./helpers.js").Gr2WriterOptions} The validated options.
+ * @throws {CjsFormatWriteError} When `tangentMode` or `sectionCompression` is unknown.
+ */
 function validateOptions(options)
 {
     const tangentMode = options.tangentMode ?? "preserve";
@@ -390,6 +420,12 @@ function validateOptions(options)
     };
 }
 
+/**
+ * Expand quaternion-packed tangent frames into normal, tangent and binormal channels.
+ *
+ * @param {ArrayLike<number>} values Four components per vertex; the w sign selects the normal direction.
+ * @returns {{normal: number[], tangent: number[], binormal: number[]}} Flat xyz channels.
+ */
 function unpackQuaternionFrames(values)
 {
     const result = { normal: [], tangent: [], binormal: [] };
@@ -409,6 +445,12 @@ function unpackQuaternionFrames(values)
     return result;
 }
 
+/**
+ * Expand legacy angle-packed tangent frames into normal, tangent and binormal channels.
+ *
+ * @param {Array<number>} values Four packed components per vertex.
+ * @returns {{normal: number[], tangent: number[], binormal: number[]}} Flat xyz channels.
+ */
 function unpackLegacyFrames(values)
 {
     const result = { normal: [], tangent: [], binormal: [] };
@@ -422,6 +464,17 @@ function unpackLegacyFrames(values)
     return result;
 }
 
+/**
+ * Choose the tangent data to write for one vertex set.
+ *
+ * @param {object} vertex Vertex channels (`packedTangentLegacy`, `packedTangent`, `normal`, `tangent`,
+ *     `binormal`).
+ * @param {number} count Vertex count.
+ * @param {"preserve"|"packed"|"unpacked"} tangentMode Tangent layout to write.
+ * @returns {{packed: boolean, values: (ArrayLike<number>|{normal: ArrayLike<number>,
+ *     tangent: ArrayLike<number>, binormal: ArrayLike<number>}|null)}} Packed frames, explicit channels, or
+ *     null values when the source has no tangent data.
+ */
 function tangentData(vertex, count, tangentMode)
 {
     const
@@ -446,6 +499,16 @@ function tangentData(vertex, count, tangentMode)
     return { packed: false, values: explicit ?? (legacy ? unpackLegacyFrames(legacy) : unpackQuaternionFrames(quaternion)) };
 }
 
+/**
+ * Check one vertex channel's length.
+ *
+ * @param {ArrayLike<number>|undefined} values Channel values.
+ * @param {number} width Components per vertex.
+ * @param {number} count Vertex count.
+ * @param {string} name Channel name, used in the error.
+ * @returns {ArrayLike<number>|null} The values, or null when the channel is absent or empty.
+ * @throws {CjsFormatWriteError} When the length is not `width * count`.
+ */
 function channel(values, width, count, name)
 {
     if (!values?.length) return null;
@@ -456,6 +519,15 @@ function channel(values, width, count, name)
     return values;
 }
 
+/**
+ * Build a reflected vertex type and its `granny_vertex_data` record.
+ *
+ * @param {object} vertex Vertex channels.
+ * @param {import("./helpers.js").Gr2WriterOptions} options Validated writer options.
+ * @param {string} typeSuffix Suffix that makes the vertex type name unique.
+ * @returns {{type: import("./helpers.js").Gr2WriterType, value: object}} The vertex type and vertex-data record.
+ * @throws {CjsFormatWriteError} When positions are not complete xyz values or a channel length is wrong.
+ */
 function vertexData(vertex, options, typeSuffix)
 {
     const positions = vertex.position ?? [];
@@ -524,6 +596,15 @@ function vertexData(vertex, options, typeSuffix)
     };
 }
 
+/**
+ * Build a `granny_tri_topology` record from index groups.
+ *
+ * @param {Array<{faces?: ArrayLike<number>, firstElement?: number}>} groups Index groups, one material each.
+ * @param {Uint16Array|Uint32Array|number[]|null} [indexBuffer=null] Complete index stream; null concatenates
+ *     the group faces.
+ * @returns {object} The topology record.
+ * @throws {CjsFormatWriteError} When indices are not a complete non-negative triangle list.
+ */
 function buildTopology(groups, indexBuffer = null)
 {
     // The container encoder consumes plain reflected arrays. This temporary
@@ -569,6 +650,13 @@ function buildTopology(groups, indexBuffer = null)
     };
 }
 
+/**
+ * List the LOD sources of a shared mesh, or the mesh itself when it has none.
+ *
+ * @param {object} mesh Shared mesh record.
+ * @returns {Array<{vertex: object, indices: object[], indexBuffer: (ArrayLike<number>|undefined),
+ *     morphTargets: object[], threshold?: number, index?: number}>} LOD sources in order.
+ */
 function lodSources(mesh)
 {
     const lods = (mesh.lods ?? []).filter(lod => lod?.vertex && lod?.indices);
@@ -586,6 +674,15 @@ function lodSources(mesh)
     }));
 }
 
+/**
+ * Build mesh, vertex-data, topology and material records for every mesh LOD.
+ *
+ * @param {object} shared Shared geometry root.
+ * @param {import("./helpers.js").Gr2WriterOptions} options Validated writer options.
+ * @param {import("./helpers.js").Gr2WriterType[]} dynamicTypes Receives the generated vertex types.
+ * @returns {{meshes: object[], vertexDatas: object[], topologies: object[], materials: object[],
+ *     sourceIndices: number[]}} The records, and the shared mesh index of each mesh record.
+ */
 function buildMeshes(shared, options, dynamicTypes)
 {
     const meshes = [];
@@ -649,6 +746,12 @@ function buildMeshes(shared, options, dynamicTypes)
     return { meshes, vertexDatas, topologies, materials, sourceIndices };
 }
 
+/**
+ * Build `granny_skeleton` records from CMF skeletons.
+ *
+ * @param {object} cmf Native CMF v1 graph.
+ * @returns {object[]} Skeleton records.
+ */
 function buildSkeletons(cmf)
 {
     return (cmf.skeletons ?? []).map((skeleton) =>
@@ -688,6 +791,14 @@ function buildSkeletons(cmf)
     });
 }
 
+/**
+ * Wrap a packed curve in its curve-data variant.
+ *
+ * @param {import("./helpers.js").Gr2PackedCurve} curve Packed curve.
+ * @param {import("./helpers.js").Gr2WriterType[]} dynamicTypes Receives the curve-data type when not present.
+ * @returns {import("./helpers.js").Gr2WriterVariant} The curve-data variant.
+ * @throws {CjsFormatWriteError} When the curve format cannot be written.
+ */
 function curveVariant(curve, dynamicTypes)
 {
     const header = { Format: curve.format, Degree: curve.degree | 0 };
@@ -849,6 +960,19 @@ function curveVariant(curve, dynamicTypes)
     }
 }
 
+/**
+ * Compress one curve and build its `granny_curve2` record.
+ *
+ * @param {object} source Explicit curve, or a record with `error` that writes a constant curve.
+ * @param {number} dimension Control dimension.
+ * @param {number} duration Animation duration.
+ * @param {import("./helpers.js").Gr2WriterOptions} options Validated writer options.
+ * @param {import("./helpers.js").Gr2WriterType[]} dynamicTypes Receives the curve-data type.
+ * @param {object} [curveOptions] Per-curve options.
+ * @param {boolean} [curveOptions.asQuaternion] Treat controls as quaternions.
+ * @param {ReadonlyArray<number>} [curveOptions.identity] Identity value for the curve.
+ * @returns {{CurveData: import("./helpers.js").Gr2WriterVariant}} The curve record.
+ */
 function writeCurve(source, dimension, duration, options, dynamicTypes, curveOptions = {})
 {
     const explicit = source?.error
@@ -871,6 +995,14 @@ function writeCurve(source, dimension, duration, options, dynamicTypes, curveOpt
     return { CurveData: curveVariant(packed, dynamicTypes) };
 }
 
+/**
+ * Build `granny_animation` records and the flat track-group list from CMF animations.
+ *
+ * @param {object} cmf Native CMF v1 graph.
+ * @param {import("./helpers.js").Gr2WriterOptions} options Validated writer options.
+ * @param {import("./helpers.js").Gr2WriterType[]} dynamicTypes Receives the curve-data types.
+ * @returns {{animations: object[], trackGroups: object[]}} Animation records and every track group.
+ */
 function buildAnimations(cmf, options, dynamicTypes)
 {
     const animations = buildGr2Animations(cmf).map((animation) => ({
@@ -920,6 +1052,14 @@ function buildAnimations(cmf, options, dynamicTypes)
     return { animations, trackGroups };
 }
 
+/**
+ * Build the `granny_file_info` root and the type set that describes it.
+ *
+ * @param {object} cmf Native CMF v1 graph.
+ * @param {object} shared Shared geometry built from the CMF graph.
+ * @param {import("./helpers.js").Gr2WriterOptions} options Validated writer options.
+ * @returns {{types: import("./helpers.js").Gr2WriterType[], root: object}} Type set and root record.
+ */
 function buildFileInfo(cmf, shared, options)
 {
     const dynamicTypes = [];
@@ -1021,6 +1161,11 @@ export function writeGr2(input, writerOptions = {})
  * A four-component `tangent` with no `normal` or `binormal` is a packed frame
  * and enters CMF as `PackedTangentLegacy`, so the CMF step keeps the packed
  * layout instead of expanding it.
+ *
+ * @param {object} input Shared geometry root or GR2 JSON graph.
+ * @param {object} [writerOptions] Writer options, as for `writeGr2`; also passed to the CMF conversion.
+ * @returns {Uint8Array} Complete GR2 file bytes.
+ * @throws {CjsFormatWriteError} When `tangentMode` or `sectionCompression` is unknown.
  */
 export function writeSharedGr2(input, writerOptions = {})
 {

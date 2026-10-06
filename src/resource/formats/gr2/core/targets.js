@@ -4,6 +4,13 @@ import { projectShared } from "./shared.js";
 export { CMF_CLASS_KEYS } from "../../cmf/core/constants.js";
 export { buildCmfFromShared };
 
+/**
+ * Split a `BaseName LOD <threshold>` mesh name.
+ *
+ * @param {*} name Mesh name.
+ * @returns {{base: string, threshold: number}|null} The base name and threshold, or null when the name has no
+ *     LOD suffix.
+ */
 function parsedLodName(name)
 {
     const match = /^(.*?) LOD (\d+)$/u.exec(String(name ?? ""));
@@ -16,6 +23,10 @@ function parsedLodName(name)
  * Carbon publishes those siblings as LODs inside the unique unsuffixed base
  * mesh. Names without a unique exact base are left untouched; `_lowdetail`
  * resource paths are unrelated to this in-file convention.
+ *
+ * @param {import("./shared.js").Gr2SharedRoot} root Shared GR2 projection.
+ * @returns {import("./shared.js").Gr2SharedRoot} A shallow copy with combined meshes and remapped model mesh
+ *     bindings.
  */
 export function reassembleGr2Lods(root)
 {
@@ -92,7 +103,12 @@ export function reassembleGr2Lods(root)
     return { ...root, meshes: output, models };
 }
 
-/** Build a plain CMF graph directly from a parsed GR2 result. */
+/**
+ * Build a plain CMF graph directly from a parsed GR2 result.
+ *
+ * @param {import("./reader.js").RawGr2ReadResult} raw Raw reflected read result.
+ * @returns {object} The plain CMF graph.
+ */
 export function buildCmfFromRaw(raw)
 {
     return buildCmfFromShared(reassembleGr2Lods(projectShared(raw.fileInfo, raw.version)));

@@ -18,11 +18,25 @@ const UTF8 = new TextEncoder();
 export const GR2_SECTION_COMPRESSION_NONE = "none";
 export const GR2_SECTION_COMPRESSION_BITKNIT2_RAW = "bitknit2Raw";
 
+/**
+ * Round a value up to a multiple of an alignment.
+ *
+ * @param {number} value Value to round.
+ * @param {number} alignment Alignment in bytes.
+ * @returns {number} The aligned value.
+ */
 function align(value, alignment)
 {
     return Math.ceil(value / alignment) * alignment;
 }
 
+/**
+ * Create a zeroed byte array and fill it through a DataView.
+ *
+ * @param {number} size Byte length.
+ * @param {function(DataView): void} write Callback writing into the view.
+ * @returns {Uint8Array} The written bytes.
+ */
 function bytesWith(size, write)
 {
     const bytes = new Uint8Array(size);
@@ -31,6 +45,12 @@ function bytesWith(size, write)
 }
 
 
+/**
+ * Byte width of one numeric Granny member component.
+ *
+ * @param {number} type Granny member type id.
+ * @returns {number} Bytes per component, or 0 for a non-numeric type.
+ */
 function primitiveSize(type)
 {
     switch (type)
@@ -58,6 +78,13 @@ function primitiveSize(type)
     }
 }
 
+/**
+ * Byte width of one member in the 32-bit layout.
+ *
+ * @param {import("./helpers.js").Gr2WriterMember} member Member definition.
+ * @param {function(import("./helpers.js").Gr2WriterType): number} sizeOf Object size of an inline type.
+ * @returns {number} Member size in bytes.
+ */
 function memberSize(member, sizeOf)
 {
     const width = member.arrayWidth > 0 ? member.arrayWidth : 1;
@@ -91,7 +118,14 @@ function memberSize(member, sizeOf)
     }
 }
 
-/** Define one reflected Granny type used by the pure-JavaScript writer. */
+/**
+ * Define one reflected Granny type used by the pure-JavaScript writer.
+ *
+ * @param {string} name Type name.
+ * @param {Array<{type: number, name: string, ref?: import("./helpers.js").Gr2WriterType|null,
+ *     arrayWidth?: number}>} members Member definitions; `arrayWidth` defaults to 0 and `ref` to null.
+ * @returns {import("./helpers.js").Gr2WriterType} The reflected type.
+ */
 export function gr2Type(name, members)
 {
     return { name, members: members.map((member) => ({
@@ -101,7 +135,13 @@ export function gr2Type(name, members)
     })) };
 }
 
-/** Wrap a dynamic object or array with its reflected Granny type. */
+/**
+ * Wrap a dynamic object or array with its reflected Granny type.
+ *
+ * @param {import("./helpers.js").Gr2WriterType} type Reflected type of the value.
+ * @param {*} value Object, or array for variant arrays.
+ * @returns {import("./helpers.js").Gr2WriterVariant} The tagged value.
+ */
 export function gr2Variant(type, value)
 {
     return { type, value };
@@ -110,7 +150,11 @@ export function gr2Variant(type, value)
 /** Serializes one reflected Granny object graph into relocatable section data. */
 class SectionSerializer
 {
-    /** Create a serializer for a closed set of reflected types. */
+    /**
+     * Create a serializer for a closed set of reflected types.
+     *
+     * @param {import("./helpers.js").Gr2WriterType[]} types Every type the graph uses.
+     */
     constructor(types)
     {
         this.types = types;
@@ -123,7 +167,15 @@ class SectionSerializer
         this.mixedFixups = [];
     }
 
-    /** Serialize the root graph and return section bytes plus relocation metadata. */
+    /**
+     * Serialize the root graph and return section bytes plus relocation metadata.
+     *
+     * @param {import("./helpers.js").Gr2WriterType} rootType Reflected root type.
+     * @param {object} root Root object graph.
+     * @returns {{bytes: Uint8Array, fixups: Array<{from: number, target: number}>,
+     *     mixedFixups: Array<{count: number, offset: number, typeOffset: number}>, rootTypeOffset: number,
+     *     rootOffset: number|null}} Section bytes, sorted pointer and mixed-marshalling fixups, and root offsets.
+     */
     Serialize(rootType, root)
     {
         for (const type of this.types)
@@ -144,21 +196,36 @@ class SectionSerializer
         };
     }
 
-    /** Advance the section cursor to the requested byte alignment. */
+    /**
+     * Advance the section cursor to the requested byte alignment.
+     *
+     * @param {number} alignment Alignment in bytes.
+     */
     Align(alignment)
     {
         const size = align(this.writer.length, alignment) - this.writer.length;
         if (size) this.writer.reserve(size);
     }
 
-    /** Allocate a four-byte-aligned zeroed section block. */
+    /**
+     * Allocate a four-byte-aligned zeroed section block.
+     *
+     * @param {number} size Block size in bytes.
+     * @returns {number} Section offset of the block.
+     */
     Allocate(size)
     {
         this.Align(4);
         return this.writer.reserve(size);
     }
 
-    /** Resolve the section offset of a registered reflected type. */
+    /**
+     * Resolve the section offset of a registered reflected type.
+     *
+     * @param {import("./helpers.js").Gr2WriterType} type Registered type.
+     * @returns {number} Section offset of the type's member-definition array.
+     * @throws {CjsFormatWriteError} When the type was not registered.
+     */
     TypeOffset(type)
     {
         const offset = this.typeOffsets.get(type);
@@ -169,7 +236,12 @@ class SectionSerializer
         return offset;
     }
 
-    /** Compute the tightly packed 32-bit object size of a reflected type. */
+    /**
+     * Compute the tightly packed 32-bit object size of a reflected type.
+     *
+     * @param {import("./helpers.js").Gr2WriterType} type Reflected type.
+     * @returns {number} Object size in bytes.
+     */
     ObjectSize(type)
     {
         if (this.sizeCache.has(type)) return this.sizeCache.get(type);
@@ -180,32 +252,57 @@ class SectionSerializer
         return size;
     }
 
-    /** Record a non-null pointer relocation. */
+    /**
+     * Record a non-null pointer relocation.
+     *
+     * @param {number} from Section offset of the pointer field.
+     * @param {number|null|undefined} target Section offset it points to; null or undefined records nothing.
+     */
     FixPointer(from, target)
     {
         if (target === null || target === undefined) return;
         this.fixups.push({ from, target });
     }
 
-    /** Patch a signed 16-bit section value. */
+    /**
+     * Patch a signed 16-bit section value.
+     *
+     * @param {number} offset Section offset.
+     * @param {number} value Value to write.
+     */
     PatchI16(offset, value)
     {
         this.writer.patchBytes(offset, bytesWith(2, view => view.setInt16(0, value | 0, true)));
     }
 
-    /** Patch an unsigned 16-bit section value. */
+    /**
+     * Patch an unsigned 16-bit section value.
+     *
+     * @param {number} offset Section offset.
+     * @param {number} value Value to write.
+     */
     PatchU16(offset, value)
     {
         this.writer.patchBytes(offset, bytesWith(2, view => view.setUint16(0, value & 0xffff, true)));
     }
 
-    /** Patch a float32 section value. */
+    /**
+     * Patch a float32 section value.
+     *
+     * @param {number} offset Section offset.
+     * @param {*} value Value to write; non-numeric values write 0.
+     */
     PatchF32(offset, value)
     {
         this.writer.patchBytes(offset, bytesWith(4, view => view.setFloat32(0, Number(value) || 0, true)));
     }
 
-    /** Deduplicate and write a null-terminated UTF-8 string. */
+    /**
+     * Deduplicate and write a null-terminated UTF-8 string.
+     *
+     * @param {*} value Value written as text; null or undefined writes an empty string.
+     * @returns {number} Section offset of the string.
+     */
     WriteString(value)
     {
         const text = String(value ?? "");
@@ -217,7 +314,11 @@ class SectionSerializer
         return offset;
     }
 
-    /** Write one reflected member-definition array. */
+    /**
+     * Write one reflected member-definition array.
+     *
+     * @param {import("./helpers.js").Gr2WriterType} type Registered type.
+     */
     WriteType(type)
     {
         const base = this.TypeOffset(type);
@@ -232,7 +333,12 @@ class SectionSerializer
         }
     }
 
-    /** Get the identity cache for one reflected object type. */
+    /**
+     * Get the identity cache for one reflected object type.
+     *
+     * @param {import("./helpers.js").Gr2WriterType} type Reflected type.
+     * @returns {WeakMap<object, number>} Section offsets of objects already written as this type.
+     */
     ObjectMap(type)
     {
         let map = this.objectOffsets.get(type);
@@ -244,7 +350,13 @@ class SectionSerializer
         return map;
     }
 
-    /** Write or reuse one referenced object. */
+    /**
+     * Write or reuse one referenced object.
+     *
+     * @param {import("./helpers.js").Gr2WriterType} type Reflected type.
+     * @param {*} value Object, or a scalar for a single-member wrapper type.
+     * @returns {number|null} Section offset of the object, or null for a null or undefined value.
+     */
     WriteObject(type, value)
     {
         if (value === null || value === undefined) return null;
@@ -262,7 +374,14 @@ class SectionSerializer
         return offset;
     }
 
-    /** Resolve a member value, including scalar-wrapper shorthand. */
+    /**
+     * Resolve a member value, including scalar-wrapper shorthand.
+     *
+     * @param {import("./helpers.js").Gr2WriterType} type Owning type.
+     * @param {*} value Object, or a scalar for a single-member wrapper type.
+     * @param {import("./helpers.js").Gr2WriterMember} member Member to resolve.
+     * @returns {*} The member value, or undefined.
+     */
     MemberValue(type, value, member)
     {
         if (value && typeof value === "object" && Object.hasOwn(value, member.name)) return value[member.name];
@@ -270,7 +389,13 @@ class SectionSerializer
         return undefined;
     }
 
-    /** Write an object into an already allocated section block. */
+    /**
+     * Write an object into an already allocated section block.
+     *
+     * @param {import("./helpers.js").Gr2WriterType} type Reflected type.
+     * @param {*} value Object, or a scalar for a single-member wrapper type.
+     * @param {number} base Section offset of the block.
+     */
     WriteObjectAt(type, value, base)
     {
         let offset = base;
@@ -281,7 +406,13 @@ class SectionSerializer
         }
     }
 
-    /** Write a contiguous reflected object array. */
+    /**
+     * Write a contiguous reflected object array.
+     *
+     * @param {import("./helpers.js").Gr2WriterType} type Element type.
+     * @param {Array<*>} values Elements.
+     * @returns {number|null} Section offset of the array, or null when empty.
+     */
     WriteArray(type, values)
     {
         if (!values.length) return null;
@@ -294,7 +425,13 @@ class SectionSerializer
         return offset;
     }
 
-    /** Write a contiguous array of relocated object pointers. */
+    /**
+     * Write a contiguous array of relocated object pointers.
+     *
+     * @param {import("./helpers.js").Gr2WriterType} type Referenced type.
+     * @param {Array<*>} values Referenced objects.
+     * @returns {number|null} Section offset of the pointer array, or null when empty.
+     */
     WriteReferences(type, values)
     {
         if (!values.length) return null;
@@ -306,7 +443,13 @@ class SectionSerializer
         return offset;
     }
 
-    /** Encode one member according to its reflected Granny member type. */
+    /**
+     * Encode one member according to its reflected Granny member type.
+     *
+     * @param {import("./helpers.js").Gr2WriterMember} member Member definition.
+     * @param {*} value Member value; variant members take a `Gr2WriterVariant`.
+     * @param {number} offset Section offset of the member.
+     */
     WriteMember(member, value, offset)
     {
         switch (member.type)
@@ -381,7 +524,16 @@ class SectionSerializer
         }
     }
 
-    /** Encode Granny's fixed 68-byte transform value. */
+    /**
+     * Encode Granny's fixed 68-byte transform value.
+     *
+     * @param {number} offset Section offset of the transform.
+     * @param {object} [value] Transform; camelCase or PascalCase field names are read.
+     * @param {number} [value.flags=7] Transform flags.
+     * @param {number[]} [value.position] Translation xyz.
+     * @param {number[]} [value.orientation] Quaternion xyzw.
+     * @param {number[]} [value.scaleShear] 3x3 scale/shear matrix.
+     */
     WriteTransform(offset, value = {})
     {
         const
@@ -395,7 +547,14 @@ class SectionSerializer
         for (const component of scaleShear) { this.PatchF32(cursor, component); cursor += 4; }
     }
 
-    /** Encode a scalar or fixed-width numeric member. */
+    /**
+     * Encode a scalar or fixed-width numeric member.
+     *
+     * @param {import("./helpers.js").Gr2WriterMember} member Numeric member definition.
+     * @param {number|number[]} value Scalar, or array for a fixed-width member; missing entries write 0.
+     * @param {number} offset Section offset of the member.
+     * @throws {CjsFormatWriteError} When the member type is not numeric.
+     */
     WriteNumeric(member, value, offset)
     {
         const width = member.arrayWidth > 0 ? member.arrayWidth : 1;
@@ -447,6 +606,12 @@ class SectionSerializer
     }
 }
 
+/**
+ * Encode pointer fixups as 12-byte records.
+ *
+ * @param {Array<{from: number, target: number}>} fixups Pointer fixups.
+ * @returns {Uint8Array} Encoded fixup table.
+ */
 function pointerFixupBytes(fixups)
 {
     const writer = new CjsByteWriter(fixups.length * 12);
@@ -459,6 +624,12 @@ function pointerFixupBytes(fixups)
     return writer.toBytes();
 }
 
+/**
+ * Encode mixed-marshalling fixups as 16-byte records.
+ *
+ * @param {Array<{count: number, offset: number, typeOffset: number}>} fixups Mixed-marshalling fixups.
+ * @returns {Uint8Array} Encoded fixup table.
+ */
 function mixedFixupBytes(fixups)
 {
     const writer = new CjsByteWriter(fixups.length * 16);
@@ -472,11 +643,25 @@ function mixedFixupBytes(fixups)
     return writer.toBytes();
 }
 
+/**
+ * Pad a byte writer to an alignment.
+ *
+ * @param {CjsByteWriter} writer Writer to pad.
+ * @param {number} alignment Alignment in bytes.
+ */
 function alignWriter(writer, alignment)
 {
     writer.reserve(align(writer.length, alignment) - writer.length);
 }
 
+/**
+ * Append a fixup table, BitKnit2-packed with a length prefix when compressed.
+ *
+ * @param {CjsByteWriter} writer File writer.
+ * @param {Uint8Array} bytes Encoded fixup table.
+ * @param {boolean} compressed Pack the table.
+ * @returns {number} File offset of the table, or 0 when it is empty.
+ */
 function appendFixups(writer, bytes, compressed)
 {
     if (!bytes.length) return 0;
@@ -498,11 +683,13 @@ function appendFixups(writer, bytes, compressed)
 /**
  * Serialize one standard reflected graph as a 32-bit little-endian GR2 file.
  *
- * @param {object} rootType Reflected root type.
+ * @param {import("./helpers.js").Gr2WriterType} rootType Reflected root type.
  * @param {object} root Root object graph.
- * @param {object[]} types Closed reflected type set.
- * @param {{sectionCompression?: "none"|"bitknit2Raw"}} [options] Outer-section storage.
+ * @param {import("./helpers.js").Gr2WriterType[]} types Closed reflected type set.
+ * @param {object} [options] Outer-section storage.
+ * @param {"none"|"bitknit2Raw"} [options.sectionCompression="none"] Section and fixup storage.
  * @returns {Uint8Array} Complete GR2 file bytes.
+ * @throws {CjsFormatWriteError} When `sectionCompression` is unknown.
  */
 export function writeGr2Container(rootType, root, types, options = {})
 {

@@ -91,7 +91,11 @@ class FrequencyModel
         this.rebuildLookup();
     }
 
-    /** Rebuilds lookup used by the current GR2 format reader. */
+    /**
+     * Rebuilds lookup used by the current GR2 format reader.
+     *
+     * Fills `lookup` from the current cumulative frequencies.
+     */
     rebuildLookup()
     {
         const cum = this.cum;
@@ -161,6 +165,12 @@ export function decompressBitKnit2(bytes, expandedSize)
     const wordCount = bytes.length >>> 1;
     let wordIndex = 0;
 
+    /**
+     * Read the next little-endian 16-bit source word.
+     *
+     * @returns {number} The word.
+     * @throws {Error} When the source is exhausted.
+     */
     function nextWord()
     {
         if (wordIndex >= wordCount)
@@ -205,6 +215,9 @@ export function decompressBitKnit2(bytes, expandedSize)
     let stateA = 0;
     let stateB = 0;
 
+    /**
+     * Initialize both entropy states from the source words.
+     */
     function initEntropyStates()
     {
         let merged = nextWord() * 0x10000 + nextWord();
@@ -223,6 +236,12 @@ export function decompressBitKnit2(bytes, expandedSize)
         stateB = ((merged % 0x10000) * 0x10000 + nextWord()) % modulus + modulus;
     }
 
+    /**
+     * Take raw bits from the current entropy state, then swap the states.
+     *
+     * @param {number} n Number of bits.
+     * @returns {number} The bits.
+     */
     function popBits(n)
     {
         const value = stateA % POW2[n];
@@ -237,6 +256,12 @@ export function decompressBitKnit2(bytes, expandedSize)
         return value;
     }
 
+    /**
+     * Decode one symbol with an adaptive model, then swap the states.
+     *
+     * @param {FrequencyModel} model Adaptive frequency model; it observes the symbol.
+     * @returns {number} The decoded symbol.
+     */
     function popSymbol(model)
     {
         const cum = model.cum;

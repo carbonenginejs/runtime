@@ -132,7 +132,7 @@ export class CjsGr2Format extends CjsGeometryFormat
      *
      * @param {Uint8Array|Buffer|object} input Raw .gr2 bytes or an existing raw read result.
      * @param {object} [options] Per-call values.
-     * @returns {object}
+     * @returns {object} The GR2 JSON root, hydrated GR2 or CMF graph, or raw read result, per `emit`.
      */
     Read(input, options = {})
     {
@@ -167,7 +167,7 @@ export class CjsGr2Format extends CjsGeometryFormat
      * Parse a .gr2 buffer into the reflected Granny object graph.
      *
      * @param {Uint8Array|Buffer|object} input Raw .gr2 bytes or an existing raw read result.
-     * @returns {object}
+     * @returns {import("./core/reader.js").RawGr2ReadResult} The raw reflected read result.
      */
     ReadRaw(input)
     {
@@ -178,27 +178,45 @@ export class CjsGr2Format extends CjsGeometryFormat
      * Return a stable, lightweight summary for a GR2 buffer or raw result.
      *
      * @param {Uint8Array|Buffer|object} input Raw .gr2 bytes or an existing raw read result.
-     * @returns {object}
+     * @returns {import("./core/helpers.js").Gr2Inspection} Version, section count, source and top-level counts.
      */
     Inspect(input)
     {
         return inspectRawGr2Result(this.ReadRaw(input));
     }
 
-    /** Whether input is a Granny State document carried by the GR2 container. */
+    /**
+     * Whether input is a Granny State document carried by the GR2 container.
+     *
+     * @param {Uint8Array|Buffer|object} input Raw .gr2/.gsf bytes or an existing raw read result.
+     * @returns {boolean} True when the root has the GState schema.
+     */
     IsGSF(input)
     {
         return isGsfRaw(this.ReadRaw(input));
     }
 
-    /** Read the GState semantic projection, or raw reflected data with `emit: "raw"`. */
+    /**
+     * Read the GState semantic projection, or raw reflected data with `emit: "raw"`.
+     *
+     * @param {Uint8Array|Buffer|object} input Raw .gsf bytes or an existing raw read result.
+     * @param {object} [options] Per-call values.
+     * @param {string} [options.emit] "raw" returns the raw reflected result.
+     * @returns {import("./core/helpers.js").GsfDocument|import("./core/reader.js").RawGr2ReadResult} The GSF
+     *     document, or the raw result.
+     */
     ReadGSF(input, options = {})
     {
         const raw = this.ReadRaw(input);
         return options.emit === "raw" ? raw : projectGsf(raw);
     }
 
-    /** Inspect a GSF document and its referenced GR2 animations. */
+    /**
+     * Inspect a GSF document and its referenced GR2 animations.
+     *
+     * @param {Uint8Array|Buffer|object} input Raw .gsf bytes or an existing raw read result.
+     * @returns {import("./core/helpers.js").GsfInspection} The GSF summary.
+     */
     InspectGSF(input)
     {
         return inspectGsfRaw(this.ReadRaw(input));
@@ -220,7 +238,7 @@ export class CjsGr2Format extends CjsGeometryFormat
      *
      * @param {Uint8Array|Buffer|object} input Raw .gr2 bytes or an existing raw read result.
      * @param {object} [options] Reader and post-processing values.
-     * @returns {object}
+     * @returns {object} The GR2 JSON root, hydrated GR2 or CMF graph, or raw read result, per `emit`.
      */
     static read(input, options = {})
     {
@@ -255,7 +273,7 @@ export class CjsGr2Format extends CjsGeometryFormat
      * Static one-shot raw read.
      *
      * @param {Uint8Array|Buffer|object} input Raw .gr2 bytes or an existing raw read result.
-     * @returns {object}
+     * @returns {import("./core/reader.js").RawGr2ReadResult} The raw reflected read result.
      */
     static readRaw(input)
     {
@@ -266,14 +284,19 @@ export class CjsGr2Format extends CjsGeometryFormat
      * Static one-shot inspection.
      *
      * @param {Uint8Array|Buffer|object} input Raw .gr2 bytes or an existing raw read result.
-     * @returns {object}
+     * @returns {import("./core/helpers.js").Gr2Inspection} Version, section count, source and top-level counts.
      */
     static inspect(input)
     {
         return inspectRawGr2Result(readRawInput(input));
     }
 
-    /** Whether input is a Granny State document carried by the GR2 container. */
+    /**
+     * Whether input is a Granny State document carried by the GR2 container.
+     *
+     * @param {Uint8Array|Buffer|object} input Raw .gr2/.gsf bytes or an existing raw read result.
+     * @returns {boolean} True when the root has the GState schema; false when it does not or reading fails.
+     */
     static isGsf(input)
     {
         try
@@ -286,20 +309,40 @@ export class CjsGr2Format extends CjsGeometryFormat
         }
     }
 
-    /** Read the GState semantic projection, or raw reflected data with `emit: "raw"`. */
+    /**
+     * Read the GState semantic projection, or raw reflected data with `emit: "raw"`.
+     *
+     * @param {Uint8Array|Buffer|object} input Raw .gsf bytes or an existing raw read result.
+     * @param {object} [options] Read values.
+     * @param {string} [options.emit] "raw" returns the raw reflected result.
+     * @returns {import("./core/helpers.js").GsfDocument|import("./core/reader.js").RawGr2ReadResult} The GSF
+     *     document, or the raw result.
+     */
     static readGsf(input, options = {})
     {
         const raw = readRawInput(input);
         return options.emit === "raw" ? raw : projectGsf(raw);
     }
 
-    /** Async one-shot GSF read for standard format API compatibility. */
+    /**
+     * Async one-shot GSF read for standard format API compatibility.
+     *
+     * @param {Uint8Array|Buffer|object} input Raw .gsf bytes or an existing raw read result.
+     * @param {object} [options] Read values, as for `readGsf`.
+     * @returns {Promise<import("./core/helpers.js").GsfDocument|import("./core/reader.js").RawGr2ReadResult>}
+     *     The GSF document, or the raw result.
+     */
     static readGsfAsync(input, options = {})
     {
         return Promise.resolve(this.readGsf(input, options));
     }
 
-    /** Inspect a GSF document and its referenced GR2 animations. */
+    /**
+     * Inspect a GSF document and its referenced GR2 animations.
+     *
+     * @param {Uint8Array|Buffer|object} input Raw .gsf bytes or an existing raw read result.
+     * @returns {import("./core/helpers.js").GsfInspection} The GSF summary.
+     */
     static inspectGsf(input)
     {
         return inspectGsfRaw(readRawInput(input));
