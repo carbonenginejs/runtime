@@ -677,15 +677,23 @@ export class Tr2MeshBase
     // is skipped; the mesh's other areas still draw.
     if (!effect.IsGood()) return null;
 
-    const batch = new Tr2RenderBatch();
-    batch.SetMaterial(effect);
-    if (!batch.IsValid()) return null;
-
     // Carbon XORs the area's authored winding with the caller's request
     // (Tr2MeshBase.cpp:373); it is not a property of the area alone. The
     // EveSpaceObject2 path always passes false, but EveChildMesh and the
     // reflection reason pass a live value.
     const reversed = area.GetReversed() !== reverseWinding;
+
+    // Carbon computes the draw arguments here, from the resolved LOD, and an
+    // area with no primitives or no valid index range gets no batch
+    // (Tr2MeshBase.cpp:356-366): an index past the LOD's areas, as a hidden
+    // area_min_hull authors with 999, or a count of 0. Without a LOD the
+    // batch carries its descriptor and RealizeBatchGeometry resolves it.
+    const draw = Tr2RenderBatch.resolveDrawArguments(lod, area.GetIndex(), area.GetCount(), reversed);
+    if (lod && !draw) return null;
+
+    const batch = new Tr2RenderBatch();
+    batch.SetMaterial(effect);
+    if (!batch.IsValid()) return null;
 
     batch.SetGeometrySource(geometry, this.meshIndex, area.GetIndex(), area.GetCount(), reversed, lod);
 
@@ -706,11 +714,6 @@ export class Tr2MeshBase
     {
       batch.SetVertexDeclaration(Tr2EffectStateManager.getVertexDeclarationHandle(carbonElements));
     }
-
-    // Carbon computes the draw arguments here, from the resolved LOD. Without a
-    // LOD the batch still carries its descriptor and the arguments stay zero,
-    // which is what every mesh batch did before this seam existed.
-    const draw = Tr2RenderBatch.resolveDrawArguments(lod, area.GetIndex(), area.GetCount(), reversed);
 
     if (draw)
     {

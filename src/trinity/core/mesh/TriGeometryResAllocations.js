@@ -175,11 +175,13 @@ export function CreateLodAllocations(geometry, meshIndex, lod, renderContext)
  *
  * This is the second half of Carbon's `CreateGeometryBatch`
  * (`Tr2MeshBase.cpp:372-392`): `SetGeometry` from the LOD's allocations, then
- * the draw arguments with the allocations' start indices folded in.
+ * the draw arguments with the allocations' start indices folded in. An area
+ * with no primitives or no valid index range is refused, as Carbon's invalid
+ * batch is.
  *
  * @param {object} batch A `Tr2RenderBatch` whose `geometrySource` is set.
  * @param {object} renderContext The `Tr2RenderContext` submitting it.
- * @returns {boolean} Whether the batch now carries buffers.
+ * @returns {boolean} Whether the batch now carries buffers and a draw.
  */
 export function RealizeBatchGeometry(batch, renderContext)
 {
@@ -191,20 +193,23 @@ export function RealizeBatchGeometry(batch, renderContext)
 
   if (!CreateLodAllocations(source.geometry, source.meshIndex, lod, renderContext)) return false;
 
-  batch.SetGeometry__Allocation(batch.vertexDeclaration, lod.vertexAllocation, lod.indexAllocation);
-
   const draw = Tr2RenderBatch.resolveDrawArguments(lod, source.areaIndex, source.count, source.reversed);
 
-  if (draw)
-  {
-    batch.SetDrawIndexedInstanced(
-      draw.indexCountPerInstance,
-      draw.instanceCount,
-      draw.startIndexLocation,
-      draw.baseVertexLocation,
-      draw.startInstanceLocation
-    );
-  }
+  // No primitives, or no valid index range: Carbon's CreateGeometryBatch
+  // returns an invalid batch (Tr2MeshBase.cpp:356-366), so nothing is drawn.
+  // Checked before the streams are set, so a resubmit asks again rather than
+  // finding streams and drawing zero.
+  if (!draw) return false;
+
+  batch.SetGeometry__Allocation(batch.vertexDeclaration, lod.vertexAllocation, lod.indexAllocation);
+
+  batch.SetDrawIndexedInstanced(
+    draw.indexCountPerInstance,
+    draw.instanceCount,
+    draw.startIndexLocation,
+    draw.baseVertexLocation,
+    draw.startInstanceLocation
+  );
 
   return true;
 }

@@ -187,3 +187,31 @@ test("a descriptor batch whose LOD cannot be realized yet is not drawn", () =>
   assert.equal(renderContext.SubmitGeometry(batch), false);
   assert.equal(draws, 0);
 });
+
+test("a descriptor batch whose area has no primitives is not realized or drawn", () =>
+{
+  // Carbon's CreateGeometryBatch returns an invalid batch on !primCount
+  // (Tr2MeshBase.cpp:356-361): a hidden area authored with index 999 on a
+  // one-area model never reaches a submit. It used to draw zero indices.
+  const renderContext = context();
+  const al = renderContext.GetRenderContextAL();
+  const geometry = new TriGeometryRes();
+  let draws = 0;
+
+  geometry.SetPayload(meshPayload());
+  renderContext.DrawInstanced = () => { draws += 1; return ALResult.S_OK; };
+  renderContext.DrawIndexedInstanced = () => { draws += 1; return ALResult.S_OK; };
+  al.BeginScene();
+
+  for (const [ index, count ] of [ [ 999, 1 ], [ 0, 0 ] ])
+  {
+    const batch = new Tr2RenderBatch();
+
+    batch.SetGeometrySource(geometry, 0, index, count, false, geometry.GetMeshLod__LodIndex(0, 0));
+    batch.topology = 4;
+    assert.equal(RealizeBatchGeometry(batch, renderContext), false, `index ${index}, count ${count}`);
+    assert.equal(batch.vertexStreams[0] ?? null, null, "no streams, so a resubmit asks again");
+    assert.equal(renderContext.SubmitGeometry(batch), false);
+  }
+  assert.equal(draws, 0);
+});

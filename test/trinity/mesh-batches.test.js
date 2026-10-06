@@ -175,16 +175,44 @@ test("reverseWinding XORs the area's authored winding, it does not replace it", 
     false, "authored-reverse area + reverseWinding = forward again");
 });
 
-test("a reversed draw with no reversed indices leaves draw arguments unfilled", () =>
+test("a reversed draw with no reversed indices gets no batch", () =>
 {
   const mesh = new GeometrylessMesh();
   const geometry = pooledGeometry({ reversedIndicesValid: false });
 
+  // Carbon: !indexRange.valid returns an invalid batch (Tr2MeshBase.cpp:363-366).
   const batch = mesh.CreateGeometryBatch(
     geometry, area({ id: "fx" }, { index: 0, count: 1, reversed: true }), null, false, geometry.lod);
 
-  assert.equal(batch.indexCountPerInstance, 0, "Carbon emits no batch; the GPU-free port emits no draw");
-  assert.ok(batch.geometrySource, "the descriptor is still recorded");
+  assert.equal(batch, null);
+});
+
+test("an area with no primitives gets no batch, so nothing draws zero indices", () =>
+{
+  const mesh = new GeometrylessMesh();
+  const geometry = pooledGeometry();
+
+  // Carbon: !primCount returns an invalid batch (Tr2MeshBase.cpp:356-361). A
+  // hidden area such as area_min_hull is authored with index 999 on a model
+  // with fewer areas; a count of 0 covers no areas.
+  assert.equal(mesh.CreateGeometryBatch(geometry, area({ id: "fx" }, { index: 999, count: 1 }), null, false, geometry.lod), null, "an index past the LOD's areas");
+  assert.equal(mesh.CreateGeometryBatch(geometry, area({ id: "fx" }, { index: 1, count: 0 }), null, false, geometry.lod), null, "a count of 0");
+
+  mesh.AddArea(TriBatchType.TRIBATCHTYPE_OPAQUE, area({ id: "fx" }, { index: 999, count: 1 }));
+  mesh.AddArea(TriBatchType.TRIBATCHTYPE_OPAQUE, area({ id: "fx" }, { index: 1, count: 1 }));
+  mesh.GetGeometryResource = () => geometry;
+  const accumulator = new TriRenderBatchAccumulator();
+  assert.equal(mesh.GetBatches(accumulator, TriBatchType.TRIBATCHTYPE_OPAQUE, null), true);
+  assert.equal(accumulator.GetBatchCount(), 1, "only the area with primitives is committed");
+});
+
+test("without a LOD the area keeps its descriptor batch, resolved when it is realized", () =>
+{
+  const mesh = new GeometrylessMesh();
+  const batch = mesh.CreateGeometryBatch(pooledGeometry(), area({ id: "fx" }, { index: 999, count: 1 }), null, false, null);
+
+  assert.ok(batch.geometrySource, "the LOD is not selectable yet, so nothing is known to be empty");
+  assert.equal(batch.indexCountPerInstance, 0);
 });
 
 test("an unrealized mesh keeps zero bases, which is correct for a non-pooling engine", () =>
