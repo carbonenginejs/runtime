@@ -10,6 +10,13 @@ export class CjsFsd64Reader
 
     /**
      * Registers one approved file-specific reader by logical path.
+     *
+     * @param {string} path Logical resource path; matched case-insensitively with forward slashes.
+     * @param {Function|{Read: Function, ReadJSON?: Function}} reader Reader object, or a Read function.
+     * @param {object} [options={}] Registration options.
+     * @param {boolean} [options.replace] True to replace an existing registration.
+     * @returns {CjsFsd64Reader} This registry.
+     * @throws {Error} When the path is already registered and replace is not true.
      */
     Register(path, reader, options = {})
     {
@@ -30,6 +37,9 @@ export class CjsFsd64Reader
 
     /**
      * Removes a reader without affecting any caller-owned bytes or data.
+     *
+     * @param {string} path Logical resource path.
+     * @returns {boolean} True when a reader was removed.
      */
     Remove(path)
     {
@@ -38,6 +48,9 @@ export class CjsFsd64Reader
 
     /**
      * Reports whether an exact file-specific reader is registered.
+     *
+     * @param {string} path Logical resource path.
+     * @returns {boolean} True when a reader is registered for the path.
      */
     Has(path)
     {
@@ -46,6 +59,8 @@ export class CjsFsd64Reader
 
     /**
      * Lists registered logical paths in deterministic order.
+     *
+     * @returns {Array<string>} Normalized paths, sorted.
      */
     List()
     {
@@ -54,6 +69,12 @@ export class CjsFsd64Reader
 
     /**
      * Reads caller-supplied bytes with the reader registered for options.path.
+     *
+     * @param {ArrayBuffer|ArrayBufferView} input Container bytes.
+     * @param {object} [options={}] Read options, passed to the reader with the normalized path.
+     * @param {string} options.path Logical resource path of the registered reader.
+     * @returns {Promise<unknown>} The reader's result.
+     * @throws {Error} When no reader is registered for the path.
      */
     async Read(input, options = {})
     {
@@ -78,6 +99,12 @@ export class CjsFsd64Reader
     /**
      * Reads caller-supplied bytes as a plain JSON-compatible value through the
      * schema-backed reader registered for options.path.
+     *
+     * @param {ArrayBuffer|ArrayBufferView} input Container bytes.
+     * @param {object} [options={}] Read options, passed to the reader with the normalized path.
+     * @param {string} options.path Logical resource path of the registered reader.
+     * @returns {Promise<unknown>} The reader's plain JSON-compatible result.
+     * @throws {Error} When no reader is registered or it has no ReadJSON.
      */
     async ReadJSON(input, options = {})
     {
@@ -110,6 +137,10 @@ export class CjsFsd64Reader
 
 /**
  * Produces a stable registry key without importing resource-source policy.
+ *
+ * @param {unknown} value Logical resource path.
+ * @returns {string} Trimmed, forward-slashed, lowercase key.
+ * @throws {TypeError} When value is not a non-empty string.
  */
 function NormalizeReaderKey(value)
 {
@@ -125,6 +156,10 @@ function NormalizeReaderKey(value)
 
 /**
  * Accepts object readers and function shorthand while storing one contract.
+ *
+ * @param {unknown} value Reader object or Read function.
+ * @returns {{Read: Function, ReadJSON?: Function}} The reader object.
+ * @throws {TypeError} When value has no Read function.
  */
 function NormalizeReader(value)
 {
@@ -145,6 +180,10 @@ function NormalizeReader(value)
 
 /**
  * Creates a byte view over accepted binary inputs without copying or mutation.
+ *
+ * @param {ArrayBuffer|ArrayBufferView} input Caller bytes.
+ * @returns {Uint8Array} A view over the same storage.
+ * @throws {TypeError} When input is neither an ArrayBuffer nor a view.
  */
 function NormalizeBytes(input)
 {

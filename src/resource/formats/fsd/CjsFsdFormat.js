@@ -19,9 +19,12 @@ export class CjsFsdFormat extends CjsFormat
 
     /**
      * Inspect the explicitly selected legacy layout or recognized modern layout.
-     * @param {*} input Candidate input.
-     * @param {object} [options] Format profile.
-     * @returns {object} Variant metadata.
+     *
+     * @param {ArrayBuffer|ArrayBufferView} input Candidate input.
+     * @param {object} [options={}] Format profile, passed to the variant.
+     * @param {number} [options.bitWidth] 32 selects the legacy layout.
+     * @param {string} [options.variant] "fsd32" or "32" selects the legacy layout.
+     * @returns {import("./64/CjsFsd64Format.js").CjsFsdVariantMetadata} Variant metadata.
      */
     static inspect(input, options = {})
     {
@@ -35,9 +38,12 @@ export class CjsFsdFormat extends CjsFormat
 
     /**
      * Report support for the selected or recognized FSD variant.
-     * @param {*|string} input Candidate input.
-     * @param {object} [options] Format and reader options.
-     * @returns {object} Plain support report.
+     *
+     * @param {ArrayBuffer|ArrayBufferView|string} input Candidate bytes or path.
+     * @param {object} [options={}] Format and reader options, passed to the variant.
+     * @param {number} [options.bitWidth] 32 selects the legacy layout.
+     * @param {string} [options.variant] "fsd32" or "32" selects the legacy layout.
+     * @returns {import("./64/CjsFsd64Format.js").CjsFsdSupportReport} Plain support report.
      */
     static probeSupport(input, options = {})
     {
@@ -51,9 +57,14 @@ export class CjsFsdFormat extends CjsFormat
 
     /**
      * Decode the selected or recognized FSD variant.
-     * @param {*} input Candidate input.
-     * @param {object} [options] Format and reader options.
-     * @returns {*} Decoded payload.
+     *
+     * @param {ArrayBuffer|ArrayBufferView} input Container bytes.
+     * @param {object} [options={}] Format and reader options, passed to the variant.
+     * @param {number} [options.bitWidth] 32 selects the legacy layout.
+     * @param {string} [options.variant] "fsd32" or "32" selects the legacy layout.
+     * @param {string} [options.path] Source name used in errors.
+     * @returns {unknown} The dataset reader's decoded payload.
+     * @throws {Error} When the input is neither variant.
      */
     static read(input, options = {})
     {
@@ -78,9 +89,10 @@ export class CjsFsdFormat extends CjsFormat
 
     /**
      * Decode the selected or recognized FSD variant to JSON-compatible values.
-     * @param {*} input Candidate input.
-     * @param {object} [options] Format and reader options.
-     * @returns {*} Decoded JSON-compatible value.
+     *
+     * @param {ArrayBuffer|ArrayBufferView} input Container bytes.
+     * @param {object} [options={}] Format and reader options, as for read.
+     * @returns {unknown} The dataset reader's JSON-compatible value.
      */
     static readJSON(input, options = {})
     {

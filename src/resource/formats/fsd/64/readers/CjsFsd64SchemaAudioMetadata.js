@@ -19,8 +19,9 @@ export class CjsFsd64SchemaAudioMetadata extends CjsFsd64SchemaReader
 {
     /**
      * Decode audio metadata maps and verify every declared section count.
+     *
      * @param {ArrayBuffer|ArrayBufferView} bytes Container bytes.
-     * @returns {object} Decoded section maps.
+     * @returns {Object<string, Map<(number|string), unknown>>} Decoded section maps, keyed by section name.
      */
     Read(bytes)
     {
@@ -29,8 +30,9 @@ export class CjsFsd64SchemaAudioMetadata extends CjsFsd64SchemaReader
 
     /**
      * Decode JSON-compatible audio metadata and verify section counts.
+     *
      * @param {ArrayBuffer|ArrayBufferView} bytes Container bytes.
-     * @returns {object} Decoded JSON-compatible sections.
+     * @returns {Object<string, Object<string, unknown>>} Decoded JSON-compatible sections, keyed by section name.
      */
     ReadJSON(bytes)
     {
@@ -217,6 +219,15 @@ export class CjsFsd64SchemaAudioMetadata extends CjsFsd64SchemaReader
 
 }
 
+/**
+ * Verifies each section's decoded record count against the count in the container.
+ *
+ * @param {ArrayBuffer|ArrayBufferView} bytes Container bytes.
+ * @param {Object<string, unknown>} decoded Decoded root, keyed by section name.
+ * @param {function(unknown): number} size Counts the records in one decoded section.
+ * @returns {Object<string, unknown>} The decoded root, unchanged.
+ * @throws {Error} When a section count does not match.
+ */
 function AssertCounts(bytes, decoded, size)
 {
     const schemaPath = CjsFsd64SchemaAudioMetadata.getFsdSchema().path;

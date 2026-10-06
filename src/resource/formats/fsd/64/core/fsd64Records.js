@@ -1,6 +1,17 @@
 import { CjsFsd64Binary } from "./CjsFsd64Binary.js";
 
-/** Decodes one map using a caller-supplied fixed-record function. */
+/**
+ * Decodes one map using a caller-supplied fixed-record function.
+ *
+ * @param {ArrayBuffer|ArrayBufferView} bytes Container bytes.
+ * @param {object} options Container options, also passed to CjsFsd64Binary.
+ * @param {number} options.recordSize Byte size of one map record.
+ * @param {string} [options.path] Logical resource path, for errors.
+ * @param {string|Array<string>} [options.schemaID] Accepted schema identities.
+ * @param {function(CjsFsd64Binary, number): [unknown, unknown]} readRecord Reads the key and value at a record offset.
+ * @returns {Map<unknown, unknown>} The decoded map.
+ * @throws {Error} When a key repeats.
+ */
 export function ReadFsdMap(bytes, options, readRecord)
 {
     const binary = new CjsFsd64Binary(bytes, options);
@@ -25,7 +36,16 @@ export function ReadFsdMap(bytes, options, readRecord)
     return result;
 }
 
-/** Reads a required UTF-8 field and reports its logical field identity on failure. */
+/**
+ * Reads a required UTF-8 field and reports its logical field identity on failure.
+ *
+ * @param {CjsFsd64Binary} binary Container view.
+ * @param {number} pointerOffset Absolute offset of the string pointer.
+ * @param {string} path Logical resource path, for errors.
+ * @param {string} field Field label, for errors.
+ * @returns {string} The string.
+ * @throws {Error} When the string is invalid.
+ */
 export function ReadRequiredString(binary, pointerOffset, path, field)
 {
     const value = binary.Utf8StringAtDataPointer(binary.Uint64(pointerOffset));
@@ -42,7 +62,17 @@ export function ReadRequiredString(binary, pointerOffset, path, field)
     return value;
 }
 
-/** Reads a required string-list field and reports its logical field identity on failure. */
+/**
+ * Reads a required string-list field and reports its logical field identity on failure.
+ *
+ * @param {CjsFsd64Binary} binary Container view.
+ * @param {number} pointerOffset Absolute offset of the list pointer.
+ * @param {string} path Logical resource path, for errors.
+ * @param {string} field Field label, for errors.
+ * @param {number} [maximumCount=100] Largest accepted string count.
+ * @returns {Array<string>} The strings.
+ * @throws {Error} When the list is invalid.
+ */
 export function ReadRequiredStringList(binary, pointerOffset, path, field, maximumCount = 100)
 {
     const value = binary.StringList(binary.Uint64(pointerOffset), maximumCount);
@@ -59,7 +89,14 @@ export function ReadRequiredStringList(binary, pointerOffset, path, field, maxim
     return value;
 }
 
-/** Rejects presence flags outside a reader's supported mask. */
+/**
+ * Rejects presence flags outside a reader's supported mask.
+ *
+ * @param {number} flags Presence flags read from the record.
+ * @param {number} mask Supported flag bits.
+ * @param {string} path Logical resource path, for errors.
+ * @throws {Error} When a flag outside the mask is set.
+ */
 export function AssertFlags(flags, mask, path)
 {
     if ((flags & ~mask) !== 0)

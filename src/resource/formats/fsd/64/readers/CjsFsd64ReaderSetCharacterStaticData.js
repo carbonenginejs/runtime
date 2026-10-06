@@ -36,7 +36,8 @@ export class CjsFsd64ReaderSetCharacterStaticData
 {
     /**
      * Create a fresh list of the reviewed character static-data readers.
-     * @returns {CjsFsd64SchemaReader[]} Reader instances.
+     *
+     * @returns {Array<import("../core/CjsFsd64SchemaReader.js").CjsFsd64SchemaReader>} Reader instances.
      */
     static create()
     {
@@ -45,8 +46,9 @@ export class CjsFsd64ReaderSetCharacterStaticData
 
     /**
      * Register every reviewed character reader by its resource path.
-     * @param {object} registry Dataset reader registry.
-     * @returns {object} The supplied registry.
+     *
+     * @param {import("../core/CjsFsd64Reader.js").CjsFsd64Reader} registry Dataset reader registry.
+     * @returns {import("../core/CjsFsd64Reader.js").CjsFsd64Reader} The supplied registry.
      */
     static registerAll(registry)
     {

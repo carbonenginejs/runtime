@@ -16,9 +16,12 @@ export class CjsFsd32Format extends CjsFormat
 
     /**
      * Test whether the caller explicitly selected the legacy FSD layout.
+     *
      * @param {string|null} _filename Resource path; this format ignores it.
-     * @param {*} _input Unused candidate input.
-     * @param {object} [options] Caller format profile.
+     * @param {unknown} _input Unused candidate input.
+     * @param {object} [options={}] Caller format profile.
+     * @param {number} [options.bitWidth] 32 selects the legacy layout.
+     * @param {string} [options.variant] "fsd32" or "32" selects the legacy layout.
      * @returns {boolean} True when legacy FSD was explicitly selected.
      */
     static is(_filename, _input, options = {})
@@ -30,9 +33,12 @@ export class CjsFsd32Format extends CjsFormat
 
     /**
      * Report the legacy layout's explicit unsupported status.
-     * @param {*|string} input Candidate input.
-     * @param {object} [options] Caller format profile.
-     * @returns {object} Plain support report.
+     *
+     * @param {ArrayBuffer|ArrayBufferView|string} input Candidate bytes or path.
+     * @param {object} [options={}] Caller format profile.
+     * @param {number} [options.bitWidth] 32 selects the legacy layout.
+     * @param {string} [options.variant] "fsd32" or "32" selects the legacy layout.
+     * @returns {import("../64/CjsFsd64Format.js").CjsFsdSupportReport} Plain support report.
      */
     static probeSupport(input, options = {})
     {
@@ -58,9 +64,10 @@ export class CjsFsd32Format extends CjsFormat
 
     /**
      * Inspect caller-supplied legacy layout metadata.
-     * @param {*} input Candidate input.
-     * @param {object} [options] Caller format profile.
-     * @returns {object} Legacy layout metadata.
+     *
+     * @param {ArrayBuffer|ArrayBufferView|string} input Candidate bytes or path.
+     * @param {object} [options={}] Caller format profile, as for probeSupport.
+     * @returns {import("../64/CjsFsd64Format.js").CjsFsdVariantMetadata} Legacy layout metadata.
      */
     static inspect(input, options = {})
     {
@@ -69,9 +76,12 @@ export class CjsFsd32Format extends CjsFormat
 
     /**
      * Reject legacy FSD decoding until its schema-driven reader exists.
-     * @param {*} _input Unused candidate input.
-     * @param {object} [options] Caller format profile.
+     *
+     * @param {unknown} _input Unused candidate input.
+     * @param {object} [options={}] Caller format profile.
+     * @param {string} [options.path] Source name recorded on the error.
      * @returns {never} Always throws the unsupported-layout error.
+     * @throws {Error} Always, with `code` "CJS_FSD_32_UNSUPPORTED".
      */
     static read(_input, options = {})
     {
@@ -89,8 +99,9 @@ export class CjsFsd32Format extends CjsFormat
 
     /**
      * Reject legacy FSD JSON decoding.
-     * @param {*} input Candidate input.
-     * @param {object} [options] Caller format profile.
+     *
+     * @param {unknown} input Unused candidate input.
+     * @param {object} [options={}] Caller format profile, as for read.
      * @returns {never} Always throws the unsupported-layout error.
      */
     static readJSON(input, options = {})

@@ -40,7 +40,16 @@ export class CjsFsd64Binary
 
     _view;
 
-    /** Creates a validated view over caller-supplied container bytes. */
+    /**
+     * Creates a validated view over caller-supplied container bytes.
+     *
+     * @param {ArrayBuffer|ArrayBufferView} bytes Container bytes; views keep their offsets.
+     * @param {object} [options={}] Validation options.
+     * @param {string} [options.path] Source name used in errors; "FSD input" when absent.
+     * @param {string|Array<string>} [options.schemaID] Accepted schema identities, passed to AssertSchema.
+     * @throws {TypeError} When bytes is neither an ArrayBuffer nor a view.
+     * @throws {Error} When the header is short or its payload length does not match.
+     */
     constructor(bytes, options = {})
     {
         this._bytes = NormalizeBytes(bytes);
@@ -58,25 +67,41 @@ export class CjsFsd64Binary
         }
     }
 
-    /** Returns the complete container byte length. */
+    /**
+     * Returns the complete container byte length.
+     *
+     * @returns {number} Byte length of the container.
+     */
     get ByteLength()
     {
         return this._bytes.byteLength;
     }
 
-    /** Returns the payload length declared by the container header. */
+    /**
+     * Returns the payload length declared by the container header.
+     *
+     * @returns {number} Declared payload length.
+     */
     get PayloadLength()
     {
         return this.Uint64(24);
     }
 
-    /** Returns the first byte offset after the fixed container header. */
+    /**
+     * Returns the first byte offset after the fixed container header.
+     *
+     * @returns {number} The header size, 32.
+     */
     get RootOffset()
     {
         return HEADER_SIZE;
     }
 
-    /** Returns the lossless hexadecimal schema identity from the header. */
+    /**
+     * Returns the lossless hexadecimal schema identity from the header.
+     *
+     * @returns {string} 48 lowercase hexadecimal characters.
+     */
     get SchemaID()
     {
         return Hex(this._bytes.subarray(0, 24));
@@ -92,6 +117,8 @@ export class CjsFsd64Binary
      * NetEase build 3466057: eleven datasets agreed on the first sixteen bytes
      * and differed on the last eight in every case, the sole exception being a
      * file that is byte-identical on both.
+     *
+     * @returns {string} 32 lowercase hexadecimal characters.
      */
     get LayoutID()
     {
@@ -113,6 +140,10 @@ export class CjsFsd64Binary
      * `b7107f57…`, yet every offset, every presence bit and the modifier entry
      * are the same. A reader may accept both, and should say what it measured
      * to justify each one.
+     *
+     * @param {string|Array<string>} expected One or more 32- or 48-character identities.
+     * @param {string} [path="FSD input"] Source name used in the error.
+     * @throws {Error} When no expected identity matches; the error carries `code` "CJS_FSD_SCHEMA_UNSUPPORTED".
      */
     AssertSchema(expected, path = "FSD input")
     {
@@ -134,7 +165,12 @@ export class CjsFsd64Binary
         throw error;
     }
 
-    /** Resolves one payload-relative offset to an absolute container offset. */
+    /**
+     * Resolves one payload-relative offset to an absolute container offset.
+     *
+     * @param {number} relativeOffset Payload-relative byte offset.
+     * @returns {number} The absolute byte offset.
+     */
     Absolute(relativeOffset)
     {
         const absolute = this.RootOffset + relativeOffset;
@@ -142,13 +178,24 @@ export class CjsFsd64Binary
         return absolute;
     }
 
-    /** Aligns an absolute byte offset to the next eight-byte boundary. */
+    /**
+     * Aligns an absolute byte offset to the next eight-byte boundary.
+     *
+     * @param {number} offset Absolute byte offset.
+     * @returns {number} The offset rounded up to a multiple of 8.
+     */
     Align8(offset)
     {
         return Math.ceil(offset / 8) * 8;
     }
 
-    /** Rejects a byte range which falls outside the supplied container. */
+    /**
+     * Rejects a byte range which falls outside the supplied container.
+     *
+     * @param {number} offset Absolute byte offset.
+     * @param {number} size Range byte length.
+     * @throws {RangeError} When the range is not inside the container.
+     */
     AssertRange(offset, size)
     {
         if (!Number.isSafeInteger(offset) || !Number.isSafeInteger(size) ||
@@ -162,49 +209,86 @@ export class CjsFsd64Binary
         }
     }
 
-    /** Reads one unsigned byte at an absolute offset. */
+    /**
+     * Reads one unsigned byte at an absolute offset.
+     *
+     * @param {number} offset Absolute byte offset.
+     * @returns {number} The byte value.
+     */
     Byte(offset)
     {
         this.AssertRange(offset, 1);
         return this._view.getUint8(offset);
     }
 
-    /** Returns a bounded byte view without copying its contents. */
+    /**
+     * Returns a bounded byte view without copying its contents.
+     *
+     * @param {number} offset Absolute byte offset.
+     * @param {number} size Byte length.
+     * @returns {Uint8Array} A view over the container bytes.
+     */
     Bytes(offset, size)
     {
         this.AssertRange(offset, size);
         return this._bytes.subarray(offset, offset + size);
     }
 
-    /** Reads one little-endian 32-bit floating-point value. */
+    /**
+     * Reads one little-endian 32-bit floating-point value.
+     *
+     * @param {number} offset Absolute byte offset.
+     * @returns {number} The value.
+     */
     Float32(offset)
     {
         this.AssertRange(offset, 4);
         return this._view.getFloat32(offset, true);
     }
 
-    /** Reads one little-endian 64-bit floating-point value. */
+    /**
+     * Reads one little-endian 64-bit floating-point value.
+     *
+     * @param {number} offset Absolute byte offset.
+     * @returns {number} The value.
+     */
     Float64(offset)
     {
         this.AssertRange(offset, 8);
         return this._view.getFloat64(offset, true);
     }
 
-    /** Reads one little-endian signed 32-bit integer. */
+    /**
+     * Reads one little-endian signed 32-bit integer.
+     *
+     * @param {number} offset Absolute byte offset.
+     * @returns {number} The value.
+     */
     Int32(offset)
     {
         this.AssertRange(offset, 4);
         return this._view.getInt32(offset, true);
     }
 
-    /** Reads one little-endian unsigned 32-bit integer. */
+    /**
+     * Reads one little-endian unsigned 32-bit integer.
+     *
+     * @param {number} offset Absolute byte offset.
+     * @returns {number} The value.
+     */
     Uint32(offset)
     {
         this.AssertRange(offset, 4);
         return this._view.getUint32(offset, true);
     }
 
-    /** Reads one little-endian unsigned 64-bit safe integer. */
+    /**
+     * Reads one little-endian unsigned 64-bit safe integer.
+     *
+     * @param {number} offset Absolute byte offset.
+     * @returns {number} The value.
+     * @throws {RangeError} When the value exceeds Number.MAX_SAFE_INTEGER.
+     */
     Uint64(offset)
     {
         this.AssertRange(offset, 8);
@@ -224,6 +308,9 @@ export class CjsFsd64Binary
     /**
      * Reads an unsigned 64-bit identity without passing through a JavaScript
      * number, returning its lossless decimal JSON representation.
+     *
+     * @param {number} offset Absolute byte offset.
+     * @returns {string} The value in decimal.
      */
     Uint64Identity(offset)
     {
@@ -231,7 +318,12 @@ export class CjsFsd64Binary
         return this._view.getBigUint64(offset, true).toString(10);
     }
 
-    /** Returns a safe unsigned 64-bit value or null for an invalid read. */
+    /**
+     * Returns a safe unsigned 64-bit value or null for an invalid read.
+     *
+     * @param {number} offset Absolute byte offset.
+     * @returns {number|null} The value, or null when out of range or unsafe.
+     */
     TryUint64(offset)
     {
         if (!Number.isSafeInteger(offset) || offset < 0 || offset + 8 > this.ByteLength)
@@ -245,6 +337,11 @@ export class CjsFsd64Binary
 
     /**
      * Returns the absolute offsets of every record in an FSD hash-map.
+     *
+     * @param {number} recordSize Byte size of one record.
+     * @param {number} [headerOffset=this.RootOffset] Absolute offset of the map header.
+     * @returns {Array<number>} Absolute record offsets, bucket by bucket.
+     * @throws {Error} When the bucket records do not add up to the declared count.
      */
     MapEntries(recordSize, headerOffset = this.RootOffset)
     {
@@ -292,6 +389,12 @@ export class CjsFsd64Binary
 
     /**
      * Returns absolute offsets for a count-prefixed FSD list.
+     *
+     * @param {number} relativeOffset Payload-relative list pointer; 0 is an empty list.
+     * @param {number} recordSize Byte size of one element.
+     * @param {number} [maximumCount=Number.MAX_SAFE_INTEGER] Largest accepted element count.
+     * @returns {Array<number>} Absolute element offsets.
+     * @throws {RangeError} When the pointer is invalid or the count exceeds the limit.
      */
     ListEntries(relativeOffset, recordSize, maximumCount = Number.MAX_SAFE_INTEGER)
     {
@@ -329,7 +432,13 @@ export class CjsFsd64Binary
         );
     }
 
-    /** Returns a printable ASCII string or null for invalid evidence. */
+    /**
+     * Returns a printable ASCII string or null for invalid evidence.
+     *
+     * @param {number} relativeOffset Payload-relative string pointer.
+     * @param {number} [maximumLength=4096] Largest accepted byte length.
+     * @returns {string|null} The string, or null.
+     */
     StringAtDataPointer(relativeOffset, maximumLength = 4096)
     {
         const value = this.Utf8StringAtDataPointer(relativeOffset, maximumLength);
@@ -352,7 +461,13 @@ export class CjsFsd64Binary
         return value;
     }
 
-    /** Returns a strict UTF-8 string or null for invalid evidence. */
+    /**
+     * Returns a strict UTF-8 string or null for invalid evidence.
+     *
+     * @param {number} relativeOffset Payload-relative string pointer.
+     * @param {number} [maximumLength=4096] Largest accepted byte length.
+     * @returns {string|null} The string, or null.
+     */
     Utf8StringAtDataPointer(relativeOffset, maximumLength = 4096)
     {
         if (!Number.isSafeInteger(relativeOffset) || relativeOffset < 8)
@@ -378,7 +493,13 @@ export class CjsFsd64Binary
         }
     }
 
-    /** Returns a bounded printable string list or null for invalid evidence. */
+    /**
+     * Returns a bounded printable string list or null for invalid evidence.
+     *
+     * @param {number} relativeOffset Payload-relative list pointer.
+     * @param {number} [maximumCount=100] Largest accepted string count.
+     * @returns {Array<string>|null} The strings, or null.
+     */
     StringList(relativeOffset, maximumCount = 100)
     {
         if (!Number.isSafeInteger(relativeOffset) || relativeOffset < 8)
@@ -411,7 +532,13 @@ export class CjsFsd64Binary
         return values;
     }
 
-    /** Returns a bounded unsigned 32-bit list or null for invalid evidence. */
+    /**
+     * Returns a bounded unsigned 32-bit list or null for invalid evidence.
+     *
+     * @param {number} relativeOffset Payload-relative list pointer; 0 is an empty list.
+     * @param {number} [maximumCount=100] Largest accepted element count.
+     * @returns {Array<number>|null} The values, or null.
+     */
     Uint32List(relativeOffset, maximumCount = 100)
     {
         if (relativeOffset === 0)
@@ -438,7 +565,14 @@ export class CjsFsd64Binary
         );
     }
 
-    /** Validates the byte range occupied by a repeated fixed-size value. */
+    /**
+     * Validates the byte range occupied by a repeated fixed-size value.
+     *
+     * @param {number} offset Absolute offset of the first element.
+     * @param {number} count Element count.
+     * @param {number} size Byte size of one element.
+     * @throws {RangeError} When the count is invalid or the range leaves the container.
+     */
     _AssertElementRange(offset, count, size)
     {
         if (!Number.isSafeInteger(count) || count < 0 ||
@@ -454,7 +588,12 @@ export class CjsFsd64Binary
         this.AssertRange(offset, count * size);
     }
 
-    /** Validates the fixed header and its declared payload length. */
+    /**
+     * Validates the fixed header and its declared payload length.
+     *
+     * @param {string} path Source name used in errors.
+     * @throws {Error} When the header is short or the payload length does not match.
+     */
     _AssertContainer(path)
     {
         if (this.ByteLength < HEADER_SIZE)
@@ -477,6 +616,12 @@ export class CjsFsd64Binary
     }
 }
 
+/**
+ * Rejects a record size that is not a positive safe integer.
+ *
+ * @param {number} value Record byte size.
+ * @throws {RangeError} When the size is invalid.
+ */
 function AssertRecordSize(value)
 {
     if (!Number.isSafeInteger(value) || value < 1)
@@ -487,11 +632,24 @@ function AssertRecordSize(value)
     }
 }
 
+/**
+ * Formats bytes as lowercase hexadecimal.
+ *
+ * @param {Uint8Array} bytes Bytes to format.
+ * @returns {string} Two characters per byte.
+ */
 function Hex(bytes)
 {
     return Array.from(bytes, value => value.toString(16).padStart(2, "0")).join("");
 }
 
+/**
+ * Views caller bytes as a Uint8Array over the same storage.
+ *
+ * @param {ArrayBuffer|ArrayBufferView} input Caller bytes.
+ * @returns {Uint8Array} A view over the same storage.
+ * @throws {TypeError} When input is neither an ArrayBuffer nor a view.
+ */
 function NormalizeBytes(input)
 {
     if (input instanceof ArrayBuffer)

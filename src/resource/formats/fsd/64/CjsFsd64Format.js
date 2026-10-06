@@ -5,6 +5,37 @@ const VARIANT = "cfsd64";
 const OUTPUT_JSON = "json";
 const OUTPUT_PAYLOAD = "payload";
 
+/**
+ * FSD variant metadata. Modern containers fill every field; the legacy and failed-probe forms carry
+ * nulls and omit the container fields.
+ *
+ * @typedef {object} CjsFsdVariantMetadata
+ * @property {string} family Always "fsd".
+ * @property {string|null} variant "cfsd64", "fsd32", or null when unidentified.
+ * @property {number|null} bitWidth 64, 32, or null when unidentified.
+ * @property {boolean} decodable True when a reader can decode this variant.
+ * @property {string|null} [identifiedBy] "caller" when the legacy layout was selected by options.
+ * @property {number} [headerSize] Container header byte size.
+ * @property {number} [byteLength] Container byte length.
+ * @property {number} [payloadLength] Declared payload byte length.
+ * @property {string} [layoutID] 32-character layout identity.
+ * @property {string} [schemaID] 48-character schema identity.
+ */
+
+/**
+ * Plain FSD support report returned by `probeSupport`.
+ *
+ * @typedef {object} CjsFsdSupportReport
+ * @property {string} format Variant name, "cfsd64" or "fsd32".
+ * @property {string} source "path" for a string input, "buffer" otherwise.
+ * @property {boolean} recognized True when the variant was recognized.
+ * @property {boolean} supported True when an output can be decoded.
+ * @property {string} [preferredOutput] "payload", "json", or "" when nothing is readable.
+ * @property {string} reason Human-readable explanation.
+ * @property {Array<{kind: string, supported: boolean, requires?: Array<string>}>} [variants] Per-output support.
+ * @property {CjsFsdVariantMetadata} metadata Variant metadata.
+ */
+
 /** Identifies and dispatches modern 64-bit cFSD containers. */
 export class CjsFsd64Format extends CjsFormat
 {
@@ -13,9 +44,11 @@ export class CjsFsd64Format extends CjsFormat
 
     /**
      * Describe a validated modern cFSD envelope.
+     *
      * @param {ArrayBuffer|ArrayBufferView} input Container bytes.
-     * @param {object} [options] Inspection options.
-     * @returns {object} Container metadata.
+     * @param {object} [options={}] Inspection options.
+     * @param {string} [options.path] Source name used in errors.
+     * @returns {CjsFsdVariantMetadata} Container metadata.
      */
     static describe(input, options = {})
     {
@@ -36,6 +69,7 @@ export class CjsFsd64Format extends CjsFormat
 
     /**
      * Test whether bytes contain a valid modern cFSD envelope.
+     *
      * @param {string|null} _filename Resource path; this format ignores it.
      * @param {ArrayBuffer|ArrayBufferView} input Candidate bytes.
      * @returns {boolean} True when the envelope is valid.
@@ -55,9 +89,13 @@ export class CjsFsd64Format extends CjsFormat
 
     /**
      * Report recognition and available dataset-reader outputs.
+     *
      * @param {ArrayBuffer|ArrayBufferView|string} input Candidate input.
-     * @param {object} [options] Probe and reader options.
-     * @returns {object} Plain support report.
+     * @param {object} [options={}] Probe and reader options.
+     * @param {string} [options.path] Source name used in errors.
+     * @param {{Read?: Function, ReadJSON?: Function}} [options.reader] Dataset reader.
+     * @param {{Read?: Function, ReadJSON?: Function}} [options.registry] Dataset reader registry, used when reader is absent.
+     * @returns {CjsFsdSupportReport} Plain support report.
      */
     static probeSupport(input, options = {})
     {
@@ -108,9 +146,11 @@ export class CjsFsd64Format extends CjsFormat
 
     /**
      * Inspect a modern cFSD container.
+     *
      * @param {ArrayBuffer|ArrayBufferView} input Container bytes.
-     * @param {object} [options] Inspection options.
-     * @returns {object} Container metadata.
+     * @param {object} [options={}] Inspection options.
+     * @param {string} [options.path] Source name used in errors.
+     * @returns {CjsFsdVariantMetadata} Container metadata.
      */
     static inspect(input, options = {})
     {
@@ -119,9 +159,15 @@ export class CjsFsd64Format extends CjsFormat
 
     /**
      * Decode a modern cFSD container with the supplied dataset reader.
+     *
      * @param {ArrayBuffer|ArrayBufferView} input Container bytes.
-     * @param {object} [options] Reader and output options.
-     * @returns {*} Decoded payload or JSON value.
+     * @param {object} [options={}] Reader and output options, passed on to the reader.
+     * @param {string} [options.path] Source name used in errors.
+     * @param {{Read?: Function, ReadJSON?: Function}} [options.reader] Dataset reader.
+     * @param {{Read?: Function, ReadJSON?: Function}} [options.registry] Dataset reader registry, used when reader is absent.
+     * @param {string} [options.emit] "json" selects ReadJSON; anything else selects Read.
+     * @returns {unknown} The reader's decoded payload or JSON value.
+     * @throws {TypeError} When no reader exposes the selected method.
      */
     static read(input, options = {})
     {
@@ -148,9 +194,10 @@ export class CjsFsd64Format extends CjsFormat
 
     /**
      * Decode a modern cFSD container to JSON-compatible values.
+     *
      * @param {ArrayBuffer|ArrayBufferView} input Container bytes.
-     * @param {object} [options] Reader options.
-     * @returns {*} Decoded JSON-compatible value.
+     * @param {object} [options={}] Reader options, as for read.
+     * @returns {unknown} The reader's JSON-compatible value.
      */
     static readJSON(input, options = {})
     {

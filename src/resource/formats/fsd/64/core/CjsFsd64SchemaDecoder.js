@@ -21,12 +21,54 @@ const TYPE_SIZES = {
 };
 
 /**
+ * One value in a binary schema: a field, a map key or value, a list item or a presence word. The fields
+ * beyond `type` and `offset` apply to the types that read them.
+ *
+ * @typedef {object} CjsFsdValueDescriptor
+ * @property {string} type A `CjsFsd64Binary.Type` name.
+ * @property {number} [offset] Byte offset inside the containing record.
+ * @property {string} [name] Decoded field name, for object fields.
+ * @property {string} [sourceName] The client's name for the field.
+ * @property {boolean} [renamed] True when `name` deliberately departs from `sourceName`.
+ * @property {number} [bit] Bit index, for BOOLEAN.
+ * @property {number} [presenceMask] Presence bit that gates the field.
+ * @property {number} [allowedMask] Allowed presence bits, for a presence word.
+ * @property {number} [itemSize] Element byte size, for LIST.
+ * @property {number} [maximumCount] Largest accepted element count, for LIST.
+ * @property {CjsFsdValueDescriptor} [item] Element descriptor, for LIST.
+ * @property {number} [recordSize] Record byte size, for MAP.
+ * @property {number} [recordOffset] Object offset inside each record, for MAP without `value`.
+ * @property {CjsFsdValueDescriptor} [key] Key descriptor, for MAP.
+ * @property {CjsFsdValueDescriptor} [value] Value descriptor, for MAP of scalars.
+ * @property {number} [headerSize] Header byte size, for a root OBJECT.
+ * @property {CjsFsdValueDescriptor} [presence] Presence word, for OBJECT records.
+ * @property {Array<CjsFsdValueDescriptor>} [fields] Object fields ordered by offset.
+ */
+
+/**
+ * An inert, JSON-shaped binary layout schema for one FSD dataset.
+ *
+ * @typedef {object} CjsFsdSchema
+ * @property {string} schema Always "carbonenginejs.fsdBinarySchema".
+ * @property {number} schemaVersion Always 1.
+ * @property {string} path Logical resource path.
+ * @property {string} name Dataset name.
+ * @property {string} schemaID 32- or 48-character hexadecimal identity.
+ * @property {Array<string>} [acceptedSchemaIDs] Further identities measured to share the layout.
+ * @property {CjsFsdValueDescriptor} container Root MAP or OBJECT descriptor.
+ */
+
+/**
  * Validates declarative binary schemas and decodes caller-supplied bytes.
  */
 export class CjsFsd64SchemaDecoder
 {
     /**
      * Validates and returns one inert JSON schema definition.
+     *
+     * @param {CjsFsdSchema} schema Schema to validate.
+     * @returns {CjsFsdSchema} The same schema.
+     * @throws {TypeError} When the schema is invalid.
      */
     static defineSchema(schema)
     {
@@ -37,6 +79,10 @@ export class CjsFsd64SchemaDecoder
     /**
      * Decodes a schema-defined value using the established private reader
      * contract: Maps and numeric identifier values.
+     *
+     * @param {ArrayBuffer|ArrayBufferView} bytes Container bytes.
+     * @param {CjsFsdSchema} schema Dataset schema.
+     * @returns {Map<(number|string), unknown>|Object<string, unknown>} A Map for a root MAP, a plain object for a root OBJECT.
      */
     static read(bytes, schema)
     {
@@ -46,6 +92,10 @@ export class CjsFsd64SchemaDecoder
     /**
      * Decodes a schema-defined value to plain JSON-compatible objects.
      * Identifier keys and values are emitted as lossless decimal strings.
+     *
+     * @param {ArrayBuffer|ArrayBufferView} bytes Container bytes.
+     * @param {CjsFsdSchema} schema Dataset schema.
+     * @returns {Object<string, unknown>} The plain decoded value.
      */
     static readJSON(bytes, schema)
     {
@@ -53,6 +103,14 @@ export class CjsFsd64SchemaDecoder
     }
 }
 
+/**
+ * Validates the schema, opens the container and decodes its root MAP or OBJECT.
+ *
+ * @param {ArrayBuffer|ArrayBufferView} bytes Container bytes.
+ * @param {CjsFsdSchema} schema Dataset schema.
+ * @param {boolean} json True for plain objects and decimal-string identifiers.
+ * @returns {Map<(number|string), unknown>|Object<string, unknown>} The decoded root.
+ */
 function DecodeRoot(bytes, schema, json)
 {
     ValidateSchema(schema);
@@ -70,6 +128,18 @@ function DecodeRoot(bytes, schema, json)
         : DecodeMap(binary, containerOffset, schema.container, json, schema.path);
 }
 
+/**
+ * Decodes one schema value at a record offset.
+ *
+ * @param {import("./CjsFsd64Binary.js").CjsFsd64Binary} binary Container view.
+ * @param {number} baseOffset Absolute offset of the containing record.
+ * @param {CjsFsdValueDescriptor} descriptor Value descriptor.
+ * @param {boolean} json True for plain objects and decimal-string identifiers.
+ * @param {string} path Logical resource path, for errors.
+ * @param {string} field Field label, for errors.
+ * @returns {unknown} The decoded value.
+ * @throws {TypeError} When the descriptor type is unsupported.
+ */
 function DecodeValue(binary, baseOffset, descriptor, json, path, field)
 {
     const type = ResolveFsdType(descriptor.type);
@@ -124,6 +194,16 @@ function DecodeValue(binary, baseOffset, descriptor, json, path, field)
     }
 }
 
+/**
+ * Decodes the present fields of one object record.
+ *
+ * @param {import("./CjsFsd64Binary.js").CjsFsd64Binary} binary Container view.
+ * @param {number} baseOffset Absolute offset of the record.
+ * @param {CjsFsdValueDescriptor} descriptor Object descriptor.
+ * @param {boolean} json True for plain objects and decimal-string identifiers.
+ * @param {string} path Logical resource path, for errors.
+ * @returns {Object<string, unknown>} The decoded fields.
+ */
 function DecodeObject(binary, baseOffset, descriptor, json, path)
 {
     const flags = descriptor.presence
@@ -157,6 +237,17 @@ function DecodeObject(binary, baseOffset, descriptor, json, path)
     return value;
 }
 
+/**
+ * Decodes a count-prefixed list through its pointer.
+ *
+ * @param {import("./CjsFsd64Binary.js").CjsFsd64Binary} binary Container view.
+ * @param {number} pointerOffset Absolute offset of the list pointer.
+ * @param {CjsFsdValueDescriptor} descriptor LIST descriptor.
+ * @param {boolean} json True for plain objects and decimal-string identifiers.
+ * @param {string} path Logical resource path, for errors.
+ * @param {string} field Field label, for errors.
+ * @returns {Array<unknown>} The decoded items.
+ */
 function DecodeList(binary, pointerOffset, descriptor, json, path, field)
 {
     const relativeOffset = binary.Uint64(pointerOffset);
@@ -176,6 +267,16 @@ function DecodeList(binary, pointerOffset, descriptor, json, path, field)
     ));
 }
 
+/**
+ * Decodes every record of a hash-map.
+ *
+ * @param {import("./CjsFsd64Binary.js").CjsFsd64Binary} binary Container view.
+ * @param {number} headerOffset Absolute offset of the map header.
+ * @param {CjsFsdValueDescriptor} descriptor MAP descriptor.
+ * @param {boolean} json True for a key-sorted plain object, false for a Map.
+ * @param {string} path Logical resource path, for errors.
+ * @returns {Map<(number|string), unknown>|Object<string, unknown>} The decoded entries.
+ */
 function DecodeMap(binary, headerOffset, descriptor, json, path)
 {
     const entries = [];
@@ -200,11 +301,26 @@ function DecodeMap(binary, headerOffset, descriptor, json, path)
         : CreateMap(entries, path);
 }
 
+/**
+ * Returns an identifier as a decimal string in JSON mode.
+ *
+ * @param {number} value Identifier value.
+ * @param {boolean} json True for a decimal string.
+ * @returns {number|string} The identifier.
+ */
 function FormatIdentifier(value, json)
 {
     return json ? value.toString(10) : value;
 }
 
+/**
+ * Builds a Map, rejecting duplicate keys.
+ *
+ * @param {Array<[unknown, unknown]>} entries Key/value pairs.
+ * @param {string} path Logical resource path, for errors.
+ * @returns {Map<unknown, unknown>} The map.
+ * @throws {Error} When a key repeats.
+ */
 function CreateMap(entries, path)
 {
     const result = new Map();
@@ -222,6 +338,15 @@ function CreateMap(entries, path)
     return result;
 }
 
+/**
+ * Builds a key-sorted plain object, rejecting duplicate keys.
+ *
+ * @param {Array<[unknown, unknown]>} entries Key/value pairs; sorted in place.
+ * @param {string} path Logical resource path, for errors.
+ * @param {string} keyType Key descriptor type, which selects integer or string ordering.
+ * @returns {Object<string, unknown>} The object.
+ * @throws {Error} When a key repeats.
+ */
 function CreateJSONObject(entries, path, keyType)
 {
     entries.sort(([ left ], [ right ]) => CompareKeys(left, right, keyType));
@@ -242,6 +367,14 @@ function CreateJSONObject(entries, path, keyType)
     return result;
 }
 
+/**
+ * Orders two map keys numerically for integer key types and as strings otherwise.
+ *
+ * @param {number|string} left First key.
+ * @param {number|string} right Second key.
+ * @param {string} type Key descriptor type.
+ * @returns {number} -1, 0 or 1.
+ */
 function CompareKeys(left, right, type)
 {
     if (IsIntegerType(type))
@@ -256,6 +389,12 @@ function CompareKeys(left, right, type)
     return leftValue < rightValue ? -1 : leftValue > rightValue ? 1 : 0;
 }
 
+/**
+ * Reports whether a binary type decodes to an integer.
+ *
+ * @param {string} type Binary type name.
+ * @returns {boolean} True for integer and identifier types.
+ */
 function IsIntegerType(type)
 {
     return type === CjsFsd64Binary.Type.INT_32 ||
@@ -267,6 +406,13 @@ function IsIntegerType(type)
         type === CjsFsd64Binary.Type.UINT_64_IDENTIFIER;
 }
 
+/**
+ * Defines an enumerable data property, including names such as __proto__.
+ *
+ * @param {object} target Object to write.
+ * @param {string} property Property name.
+ * @param {unknown} value Value to store.
+ */
 function DefineValue(target, property, value)
 {
     Object.defineProperty(target, property, {
@@ -277,6 +423,13 @@ function DefineValue(target, property, value)
     });
 }
 
+/**
+ * Creates the duplicate-map-key error.
+ *
+ * @param {unknown} key Repeated key.
+ * @param {string} path Logical resource path.
+ * @returns {Error} The error, with `code` "CJS_FSD_DUPLICATE_KEY".
+ */
 function DuplicateKeyError(key, path)
 {
     const error = new Error(`Duplicate FSD map key in ${path}: ${key}`);
@@ -286,6 +439,12 @@ function DuplicateKeyError(key, path)
     return error;
 }
 
+/**
+ * Validates a schema's header, identities and root descriptor.
+ *
+ * @param {CjsFsdSchema} schema Schema to validate.
+ * @throws {TypeError} When the schema is invalid.
+ */
 function ValidateSchema(schema)
 {
     if (!IsPlainObject(schema) || schema.schema !== SCHEMA_NAME ||
@@ -353,6 +512,13 @@ function ValidateSchema(schema)
     ValidateMapDescriptor(schema.container, "container");
 }
 
+/**
+ * Validates a MAP descriptor's record size, key and value or object record.
+ *
+ * @param {CjsFsdValueDescriptor} descriptor MAP descriptor.
+ * @param {string} label Schema location, for errors.
+ * @throws {TypeError} When the descriptor is invalid.
+ */
 function ValidateMapDescriptor(descriptor, label)
 {
     assertPositiveInteger(descriptor.recordSize, `${label}.recordSize`);
@@ -385,6 +551,14 @@ function ValidateMapDescriptor(descriptor, label)
     );
 }
 
+/**
+ * Validates an object descriptor's presence word and ordered, unique fields.
+ *
+ * @param {CjsFsdValueDescriptor} descriptor Object descriptor.
+ * @param {number} availableSize Bytes available to the object.
+ * @param {string} label Schema location, for errors.
+ * @throws {TypeError} When the descriptor is invalid.
+ */
 function ValidateObjectDescriptor(descriptor, availableSize, label)
 {
     if (!Array.isArray(descriptor.fields))
@@ -474,6 +648,10 @@ export function CamelizeFieldName(sourceName)
  * audit. A field that departs deliberately, such as a label identifier the
  * export republishes as resolved text, declares `renamed: true` and says why in
  * the reader.
+ *
+ * @param {CjsFsdValueDescriptor} descriptor Field descriptor.
+ * @param {string} label Schema location, for errors.
+ * @throws {TypeError} When sourceName is invalid or does not convert to the field name.
  */
 function ValidateSourceName(descriptor, label)
 {
@@ -497,6 +675,14 @@ function ValidateSourceName(descriptor, label)
     }
 }
 
+/**
+ * Validates one value descriptor against the bytes available to it.
+ *
+ * @param {CjsFsdValueDescriptor} descriptor Value descriptor.
+ * @param {number} availableSize Bytes available in the containing record.
+ * @param {string} label Schema location, for errors.
+ * @throws {TypeError} When the descriptor is invalid.
+ */
 function ValidateValueDescriptor(descriptor, availableSize, label)
 {
     if (!IsPlainObject(descriptor))
@@ -544,6 +730,14 @@ function ValidateValueDescriptor(descriptor, availableSize, label)
     }
 }
 
+/**
+ * Validates a field's single-bit presence mask against the record's allowed mask.
+ *
+ * @param {CjsFsdValueDescriptor} field Field descriptor.
+ * @param {CjsFsdValueDescriptor|undefined} presence Record presence word.
+ * @param {string} label Schema location, for errors.
+ * @throws {TypeError} When the mask is invalid.
+ */
 function ValidatePresenceMask(field, presence, label)
 {
     if (field.presenceMask === undefined)
@@ -570,6 +764,13 @@ function ValidatePresenceMask(field, presence, label)
     }
 }
 
+/**
+ * Resolves a schema type name through `CjsFsd64Binary.Type`.
+ *
+ * @param {unknown} type Type name.
+ * @returns {string} The binary type.
+ * @throws {TypeError} When the name is unknown.
+ */
 function ResolveFsdType(type)
 {
     if (typeof type !== "string" || !Object.hasOwn(CjsFsd64Binary.Type, type))
@@ -580,6 +781,13 @@ function ResolveFsdType(type)
     return CjsFsd64Binary.Type[type];
 }
 
+/**
+ * Rejects an offset that is not a non-negative safe integer.
+ *
+ * @param {unknown} value Offset.
+ * @param {string} label Schema location, for errors.
+ * @throws {TypeError} When the offset is invalid.
+ */
 function AssertOffset(value, label)
 {
     if (!Number.isSafeInteger(value) || value < 0)
@@ -587,6 +795,13 @@ function AssertOffset(value, label)
         throw SchemaError(`${label} must be a non-negative safe integer.`);
     }
 }
+/**
+ * Rejects a mask that is not a non-negative safe integer.
+ *
+ * @param {unknown} value Mask.
+ * @param {string} label Schema location, for errors.
+ * @throws {TypeError} When the mask is invalid.
+ */
 function AssertSafeMask(value, label)
 {
     if (!Number.isSafeInteger(value) || value < 0)
@@ -595,6 +810,12 @@ function AssertSafeMask(value, label)
     }
 }
 
+/**
+ * Reports whether a value is a plain object.
+ *
+ * @param {unknown} value Value to test.
+ * @returns {boolean} True when the prototype is Object.prototype or null.
+ */
 function IsPlainObject(value)
 {
     if (value === null || typeof value !== "object")
@@ -606,6 +827,12 @@ function IsPlainObject(value)
     return prototype === Object.prototype || prototype === null;
 }
 
+/**
+ * Creates a schema validation error.
+ *
+ * @param {string} message Error message.
+ * @returns {TypeError} The error, with `code` "CJS_FSD_BINARY_SCHEMA_INVALID".
+ */
 function SchemaError(message)
 {
     const error = new TypeError(message);
