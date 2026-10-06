@@ -384,7 +384,6 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Carbon's protected SpawnParticles overload, with a distinct JS name. */
-  @meta.renamed("SpawnParticles")
   @meta.adapted
   _SpawnParticles(emitter, arguments_, positionStart, positionEnd, velocityStart, velocityEnd, carryOverCount, deltaTime)
   {

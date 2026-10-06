@@ -82,7 +82,7 @@ export class AudEmitter extends AudGameObjResource
    *
    * @param {string} [name] Emitter name; Carbon defaults it to empty.
    */
-  @meta.renamed("__init__")
+  @meta.blue.method
   @meta.implemented
   __init__(name = "")
   {
@@ -91,7 +91,7 @@ export class AudEmitter extends AudGameObjResource
   }
 
   /** Carbon method SendEvent -> PostEvent (ITr2AudEmitter). */
-  @meta.renamed("SendEvent")
+  @meta.blue.method
   @meta.implemented
   SendEvent(name, bypassPrefix = false)
   {
@@ -120,7 +120,7 @@ export class AudEmitter extends AudGameObjResource
   }
 
   /** Carbon Blue method SetPlacement -> SetPosition. */
-  @meta.renamed("SetPlacement")
+  @meta.blue.method
   @meta.implemented
   SetPlacement(front, top, position)
   {

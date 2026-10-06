@@ -207,7 +207,6 @@
     "omitted EveVirtualCameraTransitionBase.IsComplete",
     "omitted ProcessLifetime.GetPotentialPoints",
     "omitted ProcessLifetime.GetRandomOffset",
-    "omitted SplineTunnelGroup.CreateSplineTunnels",
     "omitted SplineTunnelGroup.void",
     "omitted Tr2ActionPython.InstantiateObject",
     "omitted Tr2BoneMatrixCurve.AddKey_",

@@ -359,7 +359,6 @@ export class SoundPrioritization
   }
 
   /** Carbon static CalculateObjectWeight: lower weight = higher priority; pure subtraction, no clamps. */
-  @meta.renamed("CalculateObjectWeight")
   @meta.implemented
   static calculateObjectWeight(distanceSq, isMuted, isInRange, isUsed, isVisible, isPlaying2D, isPlayingVital,
     additionalWeight, activeEventCount, waitingOneShotWeight, usedEmitterWeight, rangeWeight,

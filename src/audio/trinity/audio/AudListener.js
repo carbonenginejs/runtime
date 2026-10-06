@@ -41,7 +41,7 @@ export class AudListener extends AudGameObjResource
    * @param {ArrayLike<number>} position Listener position.
    * @returns {number} The placement result.
    */
-  @meta.renamed("SetPosition")
+  @meta.blue.method
   @meta.implemented
   SetPosition(front, top, position)
   {
