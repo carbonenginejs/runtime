@@ -78,11 +78,23 @@ const SYNC_FLAG_NAMES = [
 const SM51_RESOURCE_OPERAND_TYPES = new Set([ 6, 7, 8, 30 ]);
 const SM51_UNBOUNDED_REGISTER = 0xffffffff;
 
+/**
+ * Sign-extends a 4-bit two's-complement value.
+ *
+ * @param {number} value Value in the low four bits.
+ * @returns {number} The value in [-8, 7].
+ */
 function signExtend4(value)
 {
     return (value & 0x8) ? value - 0x10 : value;
 }
 
+/**
+ * Lists the components selected by a 4-bit write mask.
+ *
+ * @param {number} mask Component mask, bit 0 for x.
+ * @returns {string} The selected component letters in order, such as "xyw".
+ */
 function maskToComponents(mask)
 {
     return COMPONENTS.filter((_, index) => (mask & (1 << index)) !== 0).join("");
@@ -143,6 +155,15 @@ function decodeReturnTypeToken(token)
     };
 }
 
+/**
+ * Decodes an SM5.1 3D binding-range operand into its range record.
+ *
+ * @param {object} operand Decoded declaration operand.
+ * @param {number} registerSpace Register space from the declaration.
+ * @param {function(string, object=): DxbcReadError} fail Builds the error to throw.
+ * @returns {{bindingModel: string, rangeId: number, lowerBound: number, upperBound: number, unbounded: boolean, registerCount: number|null, registerSpace: number}} The binding range.
+ * @throws {DxbcReadError} When the operand is not three immediate indices or the bounds are inverted.
+ */
 function decodeSm51BindingRange(operand, registerSpace, fail)
 {
     if (operand.indices.length !== 3)
@@ -185,6 +206,12 @@ function decodeSm51BindingRange(operand, registerSpace, fail)
     };
 }
 
+/**
+ * Describes an SM5.1 resource operand's range id and index operands.
+ *
+ * @param {object} operand Decoded instruction operand.
+ * @returns {{bindingModel: string, rangeId: number|null, nonUniform: boolean, absoluteIndex: object|null, bufferIndex: object|null, vectorOffset: object|null}|null} The reference, or null for a non-resource operand.
+ */
 function decodeSm51ResourceReference(operand)
 {
     if (!SM51_RESOURCE_OPERAND_TYPES.has(operand.type) || operand.indices.length === 0)
@@ -212,6 +239,14 @@ function decodeSm51ResourceReference(operand)
     return reference;
 }
 
+/**
+ * Validates a thread-group shared-memory declaration operand and returns its register index.
+ *
+ * @param {object} operand Decoded declaration operand.
+ * @param {function(string, object=): DxbcReadError} fail Builds the error to throw.
+ * @returns {number} The register index.
+ * @throws {DxbcReadError} When the operand is not an unmodified 1D immediate g# register.
+ */
 function decodeThreadGroupSharedMemoryRegister(operand, fail)
 {
     if (operand.typeName !== "thread_group_shared_memory")
@@ -265,6 +300,15 @@ function decodeThreadGroupSharedMemoryRegister(operand, fail)
     return index.values[0];
 }
 
+/**
+ * Rejects a byte count or stride that is zero or not a multiple of 4.
+ *
+ * @param {number} value Byte value.
+ * @param {string} fieldName Field name, for the error.
+ * @param {function(string, object=): DxbcReadError} fail Builds the error to throw.
+ * @returns {number} The value.
+ * @throws {DxbcReadError} When the value is invalid.
+ */
 function requirePositiveDwordAligned(value, fieldName, fail)
 {
     if (value === 0 || (value & 0x3) !== 0)

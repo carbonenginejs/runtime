@@ -15,6 +15,30 @@ const INTEGER_FIELDS = new Set([
 const NUMBER = /^[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?$/u;
 
 /**
+ * Authored IES photometry as returned by `readIes`; no multiplier, ballast or unit is applied.
+ *
+ * @typedef {object} CjsIesPhotometry
+ * @property {string} headerText Text before the TILT line, trailing whitespace removed.
+ * @property {string} tilt The TILT value; always "NONE".
+ * @property {number} lampCount Lamp count.
+ * @property {number} lumensPerLamp Lumens per lamp.
+ * @property {number} candelaMultiplier Candela multiplier.
+ * @property {number} verticalAngleCount Vertical angle count.
+ * @property {number} horizontalAngleCount Horizontal angle count.
+ * @property {number} photometricType Photometric type.
+ * @property {number} unitsType Units type.
+ * @property {number} width Luminous opening width.
+ * @property {number} length Luminous opening length.
+ * @property {number} height Luminous opening height.
+ * @property {number} ballastFactor Ballast factor.
+ * @property {number} futureUse Reserved field.
+ * @property {number} inputWatts Input watts.
+ * @property {Array<number>} verticalAngles Vertical angles in authored degrees.
+ * @property {Array<number>} horizontalAngles Horizontal angles in authored degrees.
+ * @property {Array<number>} candelaValues Horizontal-major candela table: h * verticalAngleCount + v.
+ */
+
+/**
  * Parses the supported IES text container from a byte view.
  *
  * The result is `{ headerText, tilt, ...HEADER_FIELDS, verticalAngles,
@@ -32,8 +56,11 @@ const NUMBER = /^[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?$/u;
  * not validated.
  *
  * @param {ArrayBuffer|ArrayBufferView} input File bytes, respecting view offsets.
- * @param {object} [options] Source label and output selection.
- * @returns {object} Raw photometric fields and horizontal-major candela table.
+ * @param {object} [options={}] Source label and output selection; no other keys are accepted.
+ * @param {string} [options.source] Source label used in error messages.
+ * @param {string} [options.emit] Output selection; only "payload" is accepted.
+ * @returns {CjsIesPhotometry} Raw photometric fields and horizontal-major candela table.
+ * @throws {TypeError} When the options or the file are invalid.
  */
 export function readIes(input, options = {})
 {

@@ -13,9 +13,10 @@ export class CjsIESFormat extends CjsFormat
 
     /**
      * Reads bytes using this instance's defaults and per-call overrides.
+     *
      * @param {ArrayBuffer|ArrayBufferView} input IES file bytes.
-     * @param {object} [options] Read options (source and emit).
-     * @returns {object} Authored header, angles and candela values.
+     * @param {object} [options={}] Read options (source and emit), over the instance options.
+     * @returns {import("./core/readIes.js").CjsIesPhotometry|import("./core/bakeLightProfile.js").CjsIesLightProfile} Authored header, angles and candela values, or the baked light profile.
      */
     Read(input, options = {})
     {
@@ -24,9 +25,10 @@ export class CjsIESFormat extends CjsFormat
 
     /**
      * Inspects the file with this instance's options.
+     *
      * @param {ArrayBuffer|ArrayBufferView} input IES file bytes.
-     * @param {object} [options] Read options.
-     * @returns {object} Header and angle metadata, excluding candela values.
+     * @param {object} [options={}] Read options, over the instance options.
+     * @returns {Omit<import("./core/readIes.js").CjsIesPhotometry, "candelaValues">} Header and angle metadata, excluding candela values.
      */
     Inspect(input, options = {})
     {
@@ -36,9 +38,12 @@ export class CjsIESFormat extends CjsFormat
     /**
      * Decodes bytes without applying multipliers, normalization or resampling.
      * Candela values are horizontal-major: h * verticalAngleCount + v.
+     *
      * @param {ArrayBuffer|ArrayBufferView} input IES file bytes.
-     * @param {object} [options] Optional source label and emit: "payload".
-     * @returns {object} Plain, JSON-compatible authored photometric data.
+     * @param {object} [options={}] Optional source label and emit.
+     * @param {string} [options.source] Source label used in error messages.
+     * @param {string} [options.emit] "payload" for the photometry, "lightProfile" for the baked strip.
+     * @returns {import("./core/readIes.js").CjsIesPhotometry|import("./core/bakeLightProfile.js").CjsIesLightProfile} Plain, JSON-compatible authored photometric data, or the baked light profile.
      */
     static read(input, options = {})
     {
@@ -56,9 +61,11 @@ export class CjsIESFormat extends CjsFormat
 
     /**
      * Validates the file and returns its header and angle tables.
+     *
      * @param {ArrayBuffer|ArrayBufferView} input IES file bytes.
-     * @param {object} [options] Read options.
-     * @returns {object} Metadata without the candela table.
+     * @param {object} [options={}] Read options.
+     * @param {string} [options.source] Source label used in error messages.
+     * @returns {Omit<import("./core/readIes.js").CjsIesPhotometry, "candelaValues">} Metadata without the candela table.
      */
     static inspect(input, options = {})
     {

@@ -1,6 +1,17 @@
 ﻿import { num } from "#math/num";
 
 /**
+ * A baked light-profile strip: R16F half-float samples laid out mip-major.
+ *
+ * @typedef {object} CjsIesLightProfile
+ * @property {number} width Top-level texel width.
+ * @property {number} height Texel height.
+ * @property {number} mipCount Mip level count.
+ * @property {string} format Texel format name.
+ * @property {Uint16Array} samples Half-float bits for every mip level, largest first.
+ */
+
+/**
  * Bakes photometry into Carbon's light-profile strip.
  *
  * Literal port of the texture half of `Tr2LightProfileRes::ParseIes`
@@ -21,8 +32,8 @@
  * float32 (Math.fround) where Carbon computes in float; acos/Ï€ differences
  * from C's float intrinsics sit below half-float quantization.
  *
- * @param {object} photometry `readIes` output (horizontal-major candela table).
- * @returns {{width: number, height: number, mipCount: number, format: string, samples: Uint16Array}}
+ * @param {import("./readIes.js").CjsIesPhotometry} photometry `readIes` output (horizontal-major candela table).
+ * @returns {CjsIesLightProfile} The baked strip and its mip chain.
  */
 export function bakeLightProfile(photometry)
 {
