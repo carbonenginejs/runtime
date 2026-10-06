@@ -141,19 +141,31 @@ export class CjsBitReader extends CjsReader
         this.startBit = this.bitPosition;
     }
 
-    /** Bits still readable before the configured end. */
+    /**
+     * Bits still readable before the configured end.
+     *
+     * @returns {number} Remaining bit count, never negative.
+     */
     get remaining()
     {
         return Math.max(0, this.endBit - this.bitPosition);
     }
 
-    /** Bits consumed since construction — Carbon's `GetBitPosition`. */
+    /**
+     * Bits consumed since construction — Carbon's `GetBitPosition`.
+     *
+     * @returns {number} Bits read since the start bit.
+     */
     get totalBitsRead()
     {
         return this.bitPosition - this.startBit;
     }
 
-    /** True once the cursor sits on a byte boundary. */
+    /**
+     * True once the cursor sits on a byte boundary.
+     *
+     * @returns {boolean} Whether the bit position is a multiple of eight.
+     */
     get isAligned()
     {
         return (this.bitPosition & 7) === 0;

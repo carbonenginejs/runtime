@@ -44,20 +44,38 @@ export class CjsResourceProbe
     Object.assign(this, normalizeReport(values));
   }
 
-  /** Normalize a plain format report at the resource boundary. */
+  /**
+   * Normalize a plain format report at the resource boundary.
+   *
+   * @param {object|null} input Plain report, or an object with `toJSON()`.
+   * @returns {CjsResourceProbe} The normalized report.
+   */
   static from(input)
   {
     if (input && typeof input.toJSON === "function") return new this(input.toJSON());
     return new this(input);
   }
 
-  /** Whether the selected output is usable, optionally requiring real proof. */
+  /**
+   * Whether the selected output is usable, optionally requiring real proof.
+   *
+   * @param {object|null} [options=null] Usage options.
+   * @param {boolean} [options.verified] Require the output to be verified.
+   * @returns {boolean} True when the selected output is usable.
+   */
   canUseSelected(options = null)
   {
     return this.supported === true && (!options?.verified || this.verified === true);
   }
 
-  /** Whether one declared output is usable, optionally requiring real proof. */
+  /**
+   * Whether one declared output is usable, optionally requiring real proof.
+   *
+   * @param {string} output Output name, matched case-insensitively.
+   * @param {object|null} [options=null] Usage options.
+   * @param {boolean} [options.verified] Require the output to be verified.
+   * @returns {boolean} True when that output is usable.
+   */
   canUse(output, options = null)
   {
     const normalized = String(output || "").toLowerCase();

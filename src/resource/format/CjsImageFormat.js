@@ -15,6 +15,15 @@ const SRGB_BLOCK_FORMATS = new Set([
   PixelFormat.PIXEL_FORMAT_BC7_UNORM_SRGB
 ]);
 
+/** Media type per identified image container. */
+const IMAGE_MIME_TYPES = Object.freeze({
+    png: "image/png",
+    jpeg: "image/jpeg",
+    jpg: "image/jpeg",
+    tga: "image/x-tga",
+    dds: "image/vnd-ms.dds"
+});
+
 /**
  * The base of every image format: it gives each subclass Carbon's image-handler
  * table and the step that turns a native read into the format a caller asked
@@ -37,15 +46,6 @@ const SRGB_BLOCK_FORMATS = new Set([
  * to a block format is the next step here, so every image format inherits it
  * from this one place.
  */
-/** Media type per identified image container. */
-const IMAGE_MIME_TYPES = Object.freeze({
-    png: "image/png",
-    jpeg: "image/jpeg",
-    jpg: "image/jpeg",
-    tga: "image/x-tga",
-    dds: "image/vnd-ms.dds"
-});
-
 export class CjsImageFormat extends CjsFormat
 {
 
@@ -242,7 +242,14 @@ export class CjsImageFormat extends CjsFormat
     return this._finishRead(this.readImageNative(bytes, loadParameters, bitmap, metadata), loadParameters, bitmap);
   }
 
-  /** The conversion to the requested format, shared by both reads. */
+  /**
+   * The conversion to the requested format, shared by both reads.
+   *
+   * @param {ImageIOResult} result Result of the native read.
+   * @param {LoadParameters} loadParameters Load parameters.
+   * @param {HostBitmap} bitmap Bitmap the native read filled.
+   * @returns {ImageIOResult} The native result, or a conversion error.
+   */
   static _finishRead(result, loadParameters, bitmap)
   {
     if (!result.IsOk()) return result;

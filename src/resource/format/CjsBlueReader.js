@@ -29,11 +29,36 @@ import { CjsReader } from "./CjsReader.js";
  * its node is met, applies the node's values after its children are read, and
  * runs every `finalize` only once the whole graph exists.
  */
+/**
+ * A persisted member resolved against its owner, as passed to
+ * `AssignRuntimeFieldValue` and `AssignPayloadFieldValue`.
+ *
+ * @typedef {object} CjsBlueFieldTarget
+ * @property {boolean} [discard] Drop the value.
+ * @property {boolean} [unknown] The member has no declared field.
+ * @property {string} [wireName] Persisted member name, used when unknown.
+ * @property {boolean} [indexed] The value goes into one slot of the field.
+ * @property {number|string} [index] Slot index; an integer selects an array container.
+ * @property {number|string} [key] Slot key written into the container.
+ * @property {object} [field] Declared field descriptor, carrying `name`.
+ */
 export class CjsBlueReader extends CjsReader
 {
     /**
      * Creates a CjsBlueReader over caller-provided resource bytes and reader
      * options.
+     *
+     * @param {object} [options={}] Reader options; also the hydration options.
+     * @param {object} [options.schema] Schema used to build the shape map.
+     * @param {object} [config={}] Transport configuration.
+     * @param {object} [config.schemaRegistry] Schema registry for shapes.
+     * @param {object} [config.defaultRegistry] Class registry used when options give none.
+     * @param {boolean} [config.includeShapeContext] Pass the shape in runtime contexts.
+     * @param {boolean} [config.includeSourceShape] Keep the source shape on fallback targets.
+     * @param {boolean} [config.includeEmptyPayloadType] Emit the type field for empty kinds.
+     * @param {boolean} [config.requirePayloadReferenceTarget] Always assign the reference ID.
+     * @param {boolean} [config.includePayloadValuesField] Use a values field for sequence identity.
+     * @param {boolean} [config.validatePayloadReservedFields] Reject payload field collisions.
      */
     constructor(options = {}, config = {})
     {
@@ -60,7 +85,9 @@ export class CjsBlueReader extends CjsReader
         this.ResetBlueReadState();
     }
 
-    /** Clears blue read state before reusing the current Blue graph reader. */
+    /**
+     * Clears blue read state before reusing the current Blue graph reader.
+     */
     ResetBlueReadState()
     {
         this.reports = [];
@@ -82,7 +109,13 @@ export class CjsBlueReader extends CjsReader
         }
     }
 
-    /** Creates runtime target for the current Blue graph reader. */
+    /**
+     * Creates runtime target for the current Blue graph reader.
+     *
+     * @param {string} kind Persisted class name.
+     * @param {object|null} [shape=null] Source shape for the class, when known.
+     * @returns {object} The constructed runtime object, or a fallback carrier.
+     */
     CreateRuntimeTarget(kind, shape = null)
     {
         const built = this.adapter.construct(
@@ -97,7 +130,13 @@ export class CjsBlueReader extends CjsReader
         return this.CreateRuntimeFallback(kind, shape);
     }
 
-    /** Creates runtime fallback for the current Blue graph reader. */
+    /**
+     * Creates runtime fallback for the current Blue graph reader.
+     *
+     * @param {string|null} kind Persisted class name.
+     * @param {object|null} [shape=null] Source shape for the class, when known.
+     * @returns {object} A plain carrier recording the source class.
+     */
     CreateRuntimeFallback(kind, shape = null)
     {
         const target = { _sourceClassName: this.includeSourceShape ? kind : (kind || null) };
@@ -105,7 +144,14 @@ export class CjsBlueReader extends CjsReader
         return target;
     }
 
-    /** Applies runtime values to the current Blue graph reader. */
+    /**
+     * Applies runtime values to the current Blue graph reader.
+     *
+     * @param {object} target Runtime object to populate.
+     * @param {Object<string, *>} values Decoded member values by name.
+     * @param {string} kind Persisted class name.
+     * @param {object|null} [shape=null] Source shape for the class, when known.
+     */
     ApplyRuntimeValues(target, values, kind, shape = null)
     {
         const context = this.CreateRuntimeContext(kind, shape, true, this.hydrationOptions);
@@ -138,7 +184,15 @@ export class CjsBlueReader extends CjsReader
         this.runtimeInstances.push({ instance: target, kind, shape });
     }
 
-    /** Creates runtime context for the current Blue graph reader. */
+    /**
+     * Creates runtime context for the current Blue graph reader.
+     *
+     * @param {string} kind Persisted class name.
+     * @param {object|null} shape Source shape for the class.
+     * @param {boolean} includeOptions Whether to attach `options`.
+     * @param {object|null} [options=null] Options attached when included.
+     * @returns {object} The hydration adapter context.
+     */
     CreateRuntimeContext(kind, shape, includeOptions, options = null)
     {
         const context = { kind };
@@ -147,14 +201,25 @@ export class CjsBlueReader extends CjsReader
         return context;
     }
 
-    /** Creates payload target for the current Blue graph reader. */
+    /**
+     * Creates payload target for the current Blue graph reader.
+     *
+     * @param {string|null} kind Persisted class name.
+     * @returns {object} An empty payload object, tagged with its type when configured.
+     */
     CreatePayloadTarget(kind)
     {
         const typeField = this.GetPayloadTypeField();
         return typeField && (kind || this.includeEmptyPayloadType) ? { [typeField]: kind } : {};
     }
 
-    /** Creates payload reference for the current Blue graph reader. */
+    /**
+     * Creates payload reference for the current Blue graph reader.
+     *
+     * @param {object} targetObject Referenced payload object.
+     * @param {number|string} referenceId Reference identity.
+     * @returns {object} A reference marker, or the target itself.
+     */
     CreatePayloadReference(targetObject, referenceId)
     {
         const idField = this.GetPayloadIdField();
@@ -172,31 +237,54 @@ export class CjsBlueReader extends CjsReader
         return referenceField ? { [referenceField]: referenceId } : targetObject;
     }
 
-    /** Returns payload type field from the current Blue graph reader. */
+    /**
+     * Returns payload type field from the current Blue graph reader.
+     *
+     * @returns {string|null} The field name, or null when disabled.
+     */
     GetPayloadTypeField()
     {
         return this.GetPayloadField("payloadTypeField", "_type");
     }
 
-    /** Returns payload ID field from the current Blue graph reader. */
+    /**
+     * Returns payload ID field from the current Blue graph reader.
+     *
+     * @returns {string|null} The field name, or null when disabled.
+     */
     GetPayloadIdField()
     {
         return this.GetPayloadField("payloadIdField", "_id");
     }
 
-    /** Returns payload reference field from the current Blue graph reader. */
+    /**
+     * Returns payload reference field from the current Blue graph reader.
+     *
+     * @returns {string|null} The field name, or null when disabled.
+     */
     GetPayloadReferenceField()
     {
         return this.GetPayloadField("payloadReferenceField", "_ref");
     }
 
-    /** Returns payload values field from the current Blue graph reader. */
+    /**
+     * Returns payload values field from the current Blue graph reader.
+     *
+     * @returns {string|null} The field name, or null when disabled.
+     */
     GetPayloadValuesField()
     {
         return this.GetPayloadField("payloadValuesField", "_values");
     }
 
-    /** Returns payload field from the current Blue graph reader. */
+    /**
+     * Returns payload field from the current Blue graph reader.
+     *
+     * @param {string} name Option name holding the field name.
+     * @param {string} fallback Field name used when the option is unset.
+     * @returns {string|null} The field name, or null when disabled.
+     * @throws {TypeError} When validation is on and the option is not a non-empty string or false.
+     */
     GetPayloadField(name, fallback)
     {
         const value = this.options[name];
@@ -216,6 +304,8 @@ export class CjsBlueReader extends CjsReader
     /**
      * Validates payload configuration against Blue graph reader constraints and
      * throws on failure.
+     *
+     * @throws {TypeError} When the configured marker fields conflict.
      */
     ValidatePayloadConfiguration()
     {
@@ -270,6 +360,9 @@ export class CjsBlueReader extends CjsReader
     /**
      * Validates payload field available against Blue graph reader constraints
      * and throws on failure.
+     *
+     * @param {string} field Payload field name.
+     * @throws {TypeError} When the field is reserved for a marker.
      */
     AssertPayloadFieldAvailable(field)
     {
@@ -286,6 +379,9 @@ export class CjsBlueReader extends CjsReader
     /**
      * Assigns payload values while preserving the current Blue graph reader
      * contract.
+     *
+     * @param {object} targetObject Payload object.
+     * @param {Object<string, *>} values Member values by name.
      */
     AssignPayloadValues(targetObject, values)
     {
@@ -299,6 +395,11 @@ export class CjsBlueReader extends CjsReader
     /**
      * Assigns payload reference ID while preserving the current Blue graph
      * reader contract.
+     *
+     * @param {object} targetObject Payload object.
+     * @param {string} idField ID field name.
+     * @param {number|string} referenceId Reference identity.
+     * @throws {TypeError} When validation is on and an existing ID differs.
      */
     AssignPayloadReferenceId(targetObject, idField, referenceId)
     {
@@ -318,6 +419,10 @@ export class CjsBlueReader extends CjsReader
     /**
      * Creates a payload error annotated with the current graph context for the
      * Blue graph reader.
+     *
+     * @param {string} code Error code.
+     * @param {string} message Error message.
+     * @returns {TypeError} The error, carrying `code`.
      */
     PayloadError(code, message)
     {
@@ -326,7 +431,13 @@ export class CjsBlueReader extends CjsReader
         return error;
     }
 
-    /** Defines payload property on the current Blue graph reader result. */
+    /**
+     * Defines payload property on the current Blue graph reader result.
+     *
+     * @param {object} targetObject Payload object.
+     * @param {string} field Property name.
+     * @param {*} value Property value.
+     */
     DefinePayloadProperty(targetObject, field, value)
     {
         Object.defineProperty(targetObject, field, {
@@ -340,6 +451,10 @@ export class CjsBlueReader extends CjsReader
     /**
      * Assigns runtime field value while preserving the current Blue graph reader
      * contract.
+     *
+     * @param {object} targetObject Runtime object.
+     * @param {CjsBlueFieldTarget} target Resolved field target.
+     * @param {*} value Decoded value.
      */
     AssignRuntimeFieldValue(targetObject, target, value)
     {
@@ -369,6 +484,10 @@ export class CjsBlueReader extends CjsReader
     /**
      * Assigns payload field value while preserving the current Blue graph reader
      * contract.
+     *
+     * @param {object} targetObject Payload object.
+     * @param {CjsBlueFieldTarget} target Resolved field target.
+     * @param {*} value Decoded value.
      */
     AssignPayloadFieldValue(targetObject, target, value)
     {
@@ -422,6 +541,10 @@ export class CjsBlueReader extends CjsReader
     /**
      * Converts runtime field value into the canonical Blue graph reader
      * representation.
+     *
+     * @param {*} value Decoded value.
+     * @param {object|null} field Declared field descriptor.
+     * @returns {*} The normalized value, or the value unchanged.
      */
     NormalizeRuntimeFieldValue(value, field)
     {
@@ -446,7 +569,12 @@ export class CjsBlueReader extends CjsReader
         return normalizeCarbonValue(value, field);
     }
 
-    /** Resolves source shape against the current Blue graph reader. */
+    /**
+     * Resolves source shape against the current Blue graph reader.
+     *
+     * @param {string} kind Persisted class name.
+     * @returns {object|null} The source shape, or null.
+     */
     ResolveSourceShape(kind)
     {
         const registry = this.options.registry || null;
@@ -468,7 +596,12 @@ export class CjsBlueReader extends CjsReader
         return this.schemaShapes.get(kind) || null;
     }
 
-    /** Resolves class against the current Blue graph reader. */
+    /**
+     * Resolves class against the current Blue graph reader.
+     *
+     * @param {string|null} kind Persisted class name.
+     * @returns {Function|null} The class constructor, or null.
+     */
     ResolveClass(kind)
     {
         if (!kind) return null;
@@ -481,6 +614,9 @@ export class CjsBlueReader extends CjsReader
     /**
      * Applies the configured resource-path transform to a decoded field value
      * for the Blue graph reader.
+     *
+     * @param {string} value Decoded resource path.
+     * @returns {string} The transformed path, or the value unchanged.
      */
     TransformPath(value)
     {
@@ -491,6 +627,10 @@ export class CjsBlueReader extends CjsReader
     /**
      * Reports whether the current Blue graph reader satisfies shape incompatible
      * math array.
+     *
+     * @param {*} value Decoded value.
+     * @param {object|null} descriptor Normalized type descriptor.
+     * @returns {boolean} True when an array's length differs from the declared length.
      */
     static isShapeIncompatibleMathArray(value, descriptor)
     {

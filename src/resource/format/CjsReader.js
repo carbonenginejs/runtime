@@ -13,6 +13,8 @@ export class CjsReader
     /**
      * Creates a CjsReader over caller-provided resource bytes and reader
      * options.
+     *
+     * @param {object} [options={}] Reader options, kept as `this.options`.
      */
     constructor(options = {})
     {

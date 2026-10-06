@@ -14,6 +14,55 @@ function FormatName(Constructor)
   return typeof Constructor?.className === "string" ? Constructor.className : "<unnamed format>";
 }
 
+/**
+ * One declared output, as built by `CjsFormat.defineOutputs`.
+ *
+ * @typedef {object} CjsFormatOutputCapability
+ * @property {string} output Output selector.
+ * @property {number} outputStreams Carbon StreamType flags, zero for non-stream outputs.
+ * @property {boolean} hasVideo Derived from `outputStreams`.
+ * @property {boolean} hasAudio Derived from `outputStreams`.
+ * @property {string} role "runtime" or "debug".
+ * @property {string} readMode "sync" or "async".
+ * @property {boolean} decoded Whether the output is decoded.
+ * @property {boolean} passthrough Whether the output passes the source through.
+ * @property {boolean} default Whether this is the default output.
+ * @property {string[]} probes Probe variant names that map to this output.
+ * @property {string[]} requires Declared requirements.
+ */
+
+/**
+ * One declared write input, as built by `CjsFormat.defineInputs`.
+ *
+ * @typedef {object} CjsFormatInputCapability
+ * @property {string} input Payload name.
+ * @property {string} writeMode "sync" or "async".
+ * @property {boolean} lossy Whether writing from this input loses data.
+ * @property {boolean} default Whether this is the default input.
+ * @property {string[]} options Declared option names.
+ */
+
+/**
+ * A normalized format support report, returned by `getSupport` and
+ * `verifySupport`.
+ *
+ * @typedef {object} CjsFormatSupportReport
+ * @property {string} format Format identity.
+ * @property {string} source "path", "buffer" or a caller-provided source.
+ * @property {boolean} recognized Whether the format recognized the input.
+ * @property {string} output Selected output, or "".
+ * @property {boolean} supported Whether the selected output is usable.
+ * @property {boolean} verified Whether the real read path ran.
+ * @property {string} preferredOutput Output the format prefers, or "".
+ * @property {string} reason Human-readable explanation.
+ * @property {object|null} metadata Inspection metadata, when any.
+ * @property {object|null} capability The selected output entry.
+ * @property {object[]} outputs Every declared output with its support state.
+ * @property {string[]} warnings Warnings.
+ * @property {string[]} errors Error messages.
+ * @property {object|null} error Structured error from verification.
+ */
+
 const OUTPUT_ROLE_RUNTIME = "runtime";
 const OUTPUT_ROLE_DEBUG = "debug";
 const READ_MODE_SYNC = "sync";
@@ -59,20 +108,35 @@ export class CjsFormat
     this.options = { ...(options || {}) };
   }
 
-  /** Apply caller-provided instance defaults. */
+  /**
+   * Apply caller-provided instance defaults.
+   *
+   * @param {object|null} [values=null] Options merged over the current ones.
+   * @returns {this} This format.
+   */
   SetValues(values = null)
   {
     this.options = { ...this.options, ...(values || {}) };
     return this;
   }
 
-  /** Return caller-provided instance defaults. */
+  /**
+   * Return caller-provided instance defaults.
+   *
+   * @returns {object} A copy of the instance options.
+   */
   GetValues()
   {
     return { ...this.options };
   }
 
-  /** Read through the concrete instance implementation. */
+  /**
+   * Read through the concrete instance implementation.
+   *
+   * @param {Uint8Array|ArrayBuffer|string} _input Source bytes, or a resource path.
+   * @param {object|null} [_options=null] Read options.
+   * @throws {Error} When the subclass does not implement it.
+   */
   Read(_input, _options = null)
   {
     const error = new Error(`${FormatName(this.constructor)}.Read is not implemented.`);
@@ -80,27 +144,51 @@ export class CjsFormat
     throw error;
   }
 
-  /** Async instance read; synchronous readers inherit this exact fallback. */
+  /**
+   * Async instance read; synchronous readers inherit this exact fallback.
+   *
+   * @param {Uint8Array|ArrayBuffer|string} input Source bytes, or a resource path.
+   * @param {object|null} [options=null] Read options.
+   * @returns {Promise<*>} The format-specific read result.
+   */
   async ReadAsync(input, options = null)
   {
     return this.Read(input, options);
   }
 
-  /** Inspect with the instance's normalized options when available. */
+  /**
+   * Inspect with the instance's normalized options when available.
+   *
+   * @param {Uint8Array|ArrayBuffer|string} input Source bytes, or a resource path.
+   * @param {object|null} [options=null] Inspection options.
+   * @returns {object} Format-specific structural metadata.
+   */
   Inspect(input, options = null)
   {
     const values = this.GetValues(options || {});
     return this.constructor.inspect(input, values);
   }
 
-  /** Return the cheap, unverified support report for this instance profile. */
+  /**
+   * Return the cheap, unverified support report for this instance profile.
+   *
+   * @param {Uint8Array|ArrayBuffer|string} input Source bytes, or a resource path.
+   * @param {object|null} [options=null] Support options.
+   * @returns {CjsFormatSupportReport} The advisory report.
+   */
   GetSupport(input, options = null)
   {
     const values = this.GetValues(options || {});
     return this.constructor.getSupport(input, values);
   }
 
-  /** Exercise one exact output through the real asynchronous read path. */
+  /**
+   * Exercise one exact output through the real asynchronous read path.
+   *
+   * @param {Uint8Array|ArrayBuffer|string} input Source bytes, or a resource path.
+   * @param {object|null} [options=null] Support options.
+   * @returns {Promise<CjsFormatSupportReport>} The verified report.
+   */
   VerifySupport(input, options = null)
   {
     const values = this.GetValues(options || {});
@@ -110,6 +198,11 @@ export class CjsFormat
   /**
    * Static read boundary. Concrete formats normally override this; the base
    * fallback supports the few formats implemented only as instance readers.
+   *
+   * @param {Uint8Array|ArrayBuffer|string} input Source bytes, or a resource path.
+   * @param {object|null} [options=null] Read options.
+   * @returns {*} The format-specific read result.
+   * @throws {Error} When neither the static nor the instance read is implemented.
    */
   static read(input, options = null)
   {
@@ -123,7 +216,13 @@ export class CjsFormat
     return reader.Read(input, options || {});
   }
 
-  /** Async read boundary used by support verification and resource loading. */
+  /**
+   * Async read boundary used by support verification and resource loading.
+   *
+   * @param {Uint8Array|ArrayBuffer|string} input Source bytes, or a resource path.
+   * @param {object|null} [options=null] Read options.
+   * @returns {Promise<*>} The format-specific read result.
+   */
   static async readAsync(input, options = null)
   {
     if (Object.hasOwn(this, "read")) return this.read(input, options || {});
@@ -136,6 +235,11 @@ export class CjsFormat
    *
    * Inspection answers what the input is. It does not claim that any decoder
    * output works in the current environment.
+   *
+   * @param {Uint8Array|ArrayBuffer|string} _input Source bytes, or a resource path.
+   * @param {object|null} [_options=null] Inspection options.
+   * @returns {object} Format-specific structural metadata.
+   * @throws {Error} When the subclass does not implement it.
    */
   static inspect(_input, _options = null)
   {
@@ -183,6 +287,10 @@ export class CjsFormat
    * as supported whenever the input is recognised and `supported` is not
    * false or "none", so an override is only worth writing for a condition
    * the output declaration cannot express.
+   *
+   * @param {Uint8Array|ArrayBuffer|string} input Source bytes, or a resource path.
+   * @param {object|null} [options=null] Probe options.
+   * @returns {object} A plain support report for getSupport() to normalize.
    */
   static probeSupport(input, options = null)
   {
@@ -215,6 +323,12 @@ export class CjsFormat
    * This is advisory: it may use headers, structure, and current environment
    * features, but never claims that the decoder ran. Every output entry is
    * therefore returned with verified:false.
+   *
+   * @param {Uint8Array|ArrayBuffer|string} input Source bytes, or a resource path.
+   * @param {object|null} [options=null] Support options.
+   * @param {string} [options.emit] Output to select.
+   * @param {string} [options.source] Source label used when the probe gives none.
+   * @returns {CjsFormatSupportReport} The advisory report.
    */
   static getSupport(input, options = null)
   {
@@ -249,6 +363,11 @@ export class CjsFormat
    * CJS_FORMAT_OUTPUT_UNDECLARED without running a reader. Otherwise the
    * report has `verified: true` and either `supported: true` or a structured
    * `error` (name, code, message, details, cause).
+   *
+   * @param {Uint8Array|ArrayBuffer|string} input Source bytes, or a resource path.
+   * @param {object|null} [options=null] Support options.
+   * @param {string} [options.emit] Output to verify.
+   * @returns {Promise<CjsFormatSupportReport>} The verified report.
    */
   static async verifySupport(input, options = null)
   {
@@ -285,7 +404,12 @@ export class CjsFormat
     }
   }
 
-  /** Return the canonical declaration for one output selector. */
+  /**
+   * Return the canonical declaration for one output selector.
+   *
+   * @param {string|null} [output=null] Output name, or null for the default.
+   * @returns {CjsFormatOutputCapability|null} The declaration, or null.
+   */
   static getOutputCapability(output = null)
   {
     if (!output)
@@ -308,7 +432,12 @@ export class CjsFormat
     return this.getInputCapability(input) !== null;
   }
 
-  /** Look up one declared write input, or the default when none is named. */
+  /**
+   * Look up one declared write input, or the default when none is named.
+   *
+   * @param {string|null} [input=null] Payload name, or null for the default.
+   * @returns {CjsFormatInputCapability|null} The declaration, or null.
+   */
   static getInputCapability(input = null)
   {
     if (!input)
@@ -332,6 +461,10 @@ export class CjsFormat
    * needs before choosing a writer - a converter that reaches for JPEG to save
    * space and destroys an alpha channel it needed has made a mistake nothing
    * downstream can detect.
+   *
+   * @param {Object<string, object>} [definitions={}] Input descriptors by name.
+   * @returns {Object<string, CjsFormatInputCapability>} The validated input map.
+   * @throws {TypeError} When the map or a descriptor is invalid.
    */
   static defineInputs(definitions = {})
   {
@@ -370,7 +503,13 @@ export class CjsFormat
     return inputs;
   }
 
-  /** Validate one format's authoritative output map. */
+  /**
+   * Validate one format's authoritative output map.
+   *
+   * @param {Object<string, object>} [definitions={}] Output descriptors by name.
+   * @returns {Object<string, CjsFormatOutputCapability>} The validated output map.
+   * @throws {TypeError} When the map or a descriptor is invalid.
+   */
   static defineOutputs(definitions = {})
   {
     if (!definitions || typeof definitions !== "object" || Array.isArray(definitions))
@@ -425,7 +564,12 @@ export class CjsFormat
     return outputs;
   }
 
-  /** Assert the canonical format surface without requiring optional outputs. */
+  /**
+   * Assert the canonical format surface without requiring optional outputs.
+   *
+   * @param {Function} Constructor A CjsFormat subclass.
+   * @throws {TypeError} When the subclass breaks the format surface.
+   */
   static validateContract(Constructor)
   {
     if (typeof Constructor !== "function" || !(Constructor.prototype instanceof CjsFormat))
