@@ -144,6 +144,41 @@ function ruleFor(opcodeName, program, instruction)
             sourceByOperand: { 1: "uint32", 2: "uint32" }
         };
     }
+    // Raw (byte-addressed) group-shared memory: the address is a byte offset,
+    // the words are untyped bits, as structured access keeps them.
+    if (opcodeName === "ld_raw")
+    {
+        return {
+            name: "raw-load",
+            destination: null,
+            sourceByOperand: { 1: "uint32" }
+        };
+    }
+    if (opcodeName === "store_raw")
+    {
+        return {
+            name: "raw-store",
+            destination: null,
+            sourceByOperand: { 1: "uint32" }
+        };
+    }
+    if (opcodeName === "atomic_umin" || opcodeName === "atomic_umax")
+    {
+        return {
+            name: "atomic-unsigned-min-max",
+            destination: null,
+            sourceByOperand: { 1: "uint32", 2: "uint32" }
+        };
+    }
+    if (opcodeName === "imm_atomic_exch")
+    {
+        // On group-shared memory, which lowers as u32 words.
+        return {
+            name: "atomic-exchange-returning",
+            destination: "uint32",
+            sourceByOperand: { 2: "uint32", 3: "uint32" }
+        };
+    }
     const conversions = {
         ftoi: [ "int32", "float32" ],
         ftou: [ "uint32", "float32" ],

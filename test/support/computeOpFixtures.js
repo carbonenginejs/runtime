@@ -96,6 +96,38 @@ const publish = () => op("store_structured", [
  * then r0.x into u1[0]. u0 is R32 words; signed takes the typed-view table's
  * R32_SINT through the binding plan, as ParticleCounters does.
  */
+const rawShared = (registerIndex, byteCount) => declaration("dcl_thread_group_shared_memory_raw", {
+    registerIndex,
+    byteCount
+}, register("thread_group_shared_memory", registerIndex, { componentCount: 0 }));
+
+/**
+ * Raw group-shared memory g0 (16 bytes) at a byte address, as computelightlists
+ * uses it: `atomic_umax g0, a, l(5)` when atomic, `ld_raw r0.x, a, g0.xxxx`,
+ * `store_raw g0.x, a, r0.x`, then r0.x into u1[0]. A computed address comes
+ * through r0.y (`mov r0.y, l(address)`) rather than an immediate.
+ *
+ * @param {object} options The access.
+ * @param {number} options.address Byte address.
+ * @param {boolean} [options.computed] Address through a register.
+ * @param {boolean} [options.atomic] Also an atomic on the word, making g0 atomic.
+ * @returns {object} The fixture.
+ */
+export function rawGroupSharedFixture({ address, computed = false, atomic = false })
+{
+    const shared = (options = {}) => register("thread_group_shared_memory", 0, { componentCount: 0, ...options });
+    const at = () => (computed ? register("temp", 0, { selected: "y" }) : immediate([ address ]));
+    return program(
+        () => [ rawShared(0, 16), structuredUav(1, 4) ],
+        () => [
+            ...(computed ? [ op("mov", [ register("temp", 0, { mask: "y" }), immediate([ address ]) ]) ] : []),
+            ...(atomic ? [ op("atomic_umax", [ shared(), at(), immediate([ 5 ]) ]) ] : []),
+            op("ld_raw", [ register("temp", 0, { mask: "x" }), at(), shared({ swizzle: "xxxx" }) ]),
+            op("store_raw", [ shared({ mask: "x" }), at(), register("temp", 0, { selected: "x" }) ]),
+            publish()
+        ]);
+}
+
 export function immAtomicAddFixture(address, typeName = "uint")
 {
     return program(

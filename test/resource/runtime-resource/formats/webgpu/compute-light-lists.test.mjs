@@ -18,6 +18,7 @@ import {
     particleClearSignedAtomicLayoutPolicy
 } from "../../../../../src/resource/formats/webgpu/core/wgsl/lowerParticleClearComputePrograms.js";
 import { clientResources } from "../../../../support/clientResources.js";
+import { fixtureWgsl, rawGroupSharedFixture } from "../../../../support/computeOpFixtures.js";
 
 const client = await clientResources();
 const skip = client.skip ?? false;
@@ -89,4 +90,71 @@ test("the shipped GPU particle effects translate byte-identically", { skip }, as
             assert.equal(sha256(translation), translationHash);
         });
     }
+});
+
+// Main: the per-tile culling kernel (Tr2LightManager.cpp:435, one 16x16 group
+// per tile). Its raw group-shared memory, barriers and group-shared atomics
+// lower through the general compute path.
+for (const tier of [ "sm_depth", "sm_hi", "sm_lo" ])
+{
+    test(`computelightlists.${tier} translates whole, Main through the general compute path`, { skip }, async () =>
+    {
+        const path = `res:/graphics/effect.dx11/managed/space/system/computelightlists.${tier}`;
+        const result = CjsWebgpuFormat.buildEffect(await client.Read(path), { source: path });
+        assert.equal(result.qualification.packageValid, true);
+        const main = result.wgsl.shaders.map(shader => shader.code).find(code => code.includes("@workgroup_size(16, 16, 1)"));
+        assert.ok(main, "Main is the 16x16 kernel");
+
+        // dcl_thread_group_shared_memory_raw: the list heads and depth bounds are
+        // targets of atomics, so atomic; the tail link and the tile planes are not.
+        for (const atomic of [ "g0", "g1", "g2", "g4", "g5", "g6" ])
+        {
+            assert.ok(main.includes(`var<workgroup> ${atomic}: array<atomic<u32>, 1>;`), atomic);
+        }
+        assert.ok(main.includes("var<workgroup> g3: array<u32, 1>;"));
+        assert.ok(main.includes("var<workgroup> g7: array<u32, 11>;"), "the 44-byte tile record");
+
+        // store_raw/ld_raw on atomic words are atomicStore/atomicLoad; on plain ones, indexing.
+        assert.ok(main.includes("atomicStore(&g4[0u], 0x3f800000u);"), "the depth minimum starts at 1.0");
+        assert.match(main, /bitcast<f32>\(atomicLoad\(&g4\[0u\]\)\)/u);
+        assert.match(main, /g7\[0u\] = bitcast<u32>\(/u);
+        // atomic_umin/umax, sync and imm_atomic_exch.
+        assert.match(main, /atomicMin\(&g4\[0u\], /u);
+        assert.match(main, /atomicMax\(&g5\[0u\], /u);
+        assert.ok(main.includes("workgroupBarrier();"));
+        for (const head of [ "g0", "g1", "g2" ]) assert.ok(main.includes(`atomicExchange(&${head}[0u], `), head);
+        // The node counter is the signed LightIndexCount.
+        assert.ok(main.includes("var<storage, read_write> u0: array<atomic<i32>>;"));
+        assert.match(main, /atomicAdd\(&u0\[/u);
+    });
+}
+
+test("raw group-shared access at an immediate address indexes its word, and fails closed past the end", () =>
+{
+    const code = fixtureWgsl(rawGroupSharedFixture({ address: 8 }));
+    assert.ok(code.includes("var<workgroup> g0: array<u32, 4>;"), code);
+    assert.ok(code.includes("let value3: u32 = g0[2u];"), code);
+    assert.ok(code.includes("g0[2u] = value3;"), code);
+    // D3D leaves an out-of-range group-shared access undefined; it is refused, not emitted.
+    assert.throws(() => fixtureWgsl(rawGroupSharedFixture({ address: 16 })), /addresses past g0's 16 bytes/u);
+});
+
+test("a raw group-shared word an atomic targets is atomic<u32>, and its plain access becomes atomicLoad/atomicStore", () =>
+{
+    const code = fixtureWgsl(rawGroupSharedFixture({ address: 8, atomic: true }));
+    assert.ok(code.includes("var<workgroup> g0: array<atomic<u32>, 4>;"), code);
+    assert.ok(code.includes("atomicMax(&g0[2u], 0x00000005u);"), code);
+    assert.ok(code.includes("atomicLoad(&g0[2u])"), code);
+    assert.ok(code.includes("atomicStore(&g0[2u], value3);"), code);
+});
+
+test("a computed raw group-shared address is range-tested and clamped, and reads 0 out of range", () =>
+{
+    const plain = fixtureWgsl(rawGroupSharedFixture({ address: 8, computed: true }));
+    assert.ok(plain.includes("select(0u, g0[min(((value3) >> 2u), 3u)], ((value3) >> 2u) < 4u)"), plain);
+    assert.match(plain, /if \(\(\(value3\) >> 2u\) < 4u\)\s*\{\s*g0\[min\(\(\(value3\) >> 2u\), 3u\)\] = value4;/u);
+
+    const atomic = fixtureWgsl(rawGroupSharedFixture({ address: 8, computed: true, atomic: true }));
+    assert.match(atomic, /if \(\(\(value3\) >> 2u\) < 4u\)\s*\{\s*atomicMax\(&g0\[min\(\(\(value3\) >> 2u\), 3u\)\], 0x00000005u\);/u);
+    assert.ok(atomic.includes("select(0u, atomicLoad(&g0[min(((value3) >> 2u), 3u)]), ((value3) >> 2u) < 4u)"), atomic);
 });

@@ -24,14 +24,14 @@ import { TYPED_VIEW_FORMATS, typedBufferLoad } from "./wgslTypedViews.js";
 
 const COMPONENTS = [ "x", "y", "z", "w" ];
 const SUPPORTED_OPCODES = new Set([
-    "add", "and", "atomic_iadd", "bfi", "deriv_rtx", "deriv_rty", "deriv_rtx_coarse",
+    "add", "and", "atomic_iadd", "atomic_umax", "atomic_umin", "bfi", "deriv_rtx", "deriv_rty", "deriv_rtx_coarse",
     "deriv_rty_coarse", "deriv_rtx_fine", "deriv_rty_fine", "discard", "div",
     "dp2", "dp3", "dp4", "eq", "exp", "f16tof32", "f32tof16", "frc", "ftoi", "gather4",
-    "ftou", "ge", "iadd", "ieq", "ige", "ilt", "imad", "imax", "imin", "imm_atomic_iadd", "imul",
-    "ine", "ineg", "ishl", "ishr", "if", "itof", "ld", "ld_structured", "ld_uav_typed", "log", "lt",
+    "ftou", "ge", "iadd", "ieq", "ige", "ilt", "imad", "imax", "imin", "imm_atomic_exch", "imm_atomic_iadd", "imul",
+    "ine", "ineg", "ishl", "ishr", "if", "itof", "ld", "ld_raw", "ld_structured", "ld_uav_typed", "log", "lt",
     "mad", "max", "min", "mov", "movc", "mul", "ne", "not", "or", "rcp", "resinfo",
     "round_ne", "round_ni", "round_pi", "round_z", "rsq", "sample", "sample_b", "sample_d",
-    "sample_l", "sincos", "sqrt", "store_structured", "sync", "udiv", "uge", "ubfe", "ibfe", "countbits", "ult", "umax", "umin", "ushr",
+    "sample_l", "sincos", "sqrt", "store_raw", "store_structured", "sync", "udiv", "uge", "ubfe", "ibfe", "countbits", "ult", "umax", "umin", "ushr",
     "utof", "xor", "endif", "ret", "store_uav_typed"
 ]);
 const METADATA_OPCODE_EXTENSIONS = new Set([ "resource_dimension", "resource_return_type" ]);
@@ -1216,6 +1216,23 @@ function expressionFor(program, instruction, write, inputs, bindings, context = 
         return count === 4 && components.join("") === "xyzw" ? loaded : `${loaded}.${components.join("")}`;
     }
     if (op === "ld_structured") return structuredLoadExpression(program, instruction, write, valueType(program, write), inputs, bindings);
+
+    if (op === "ld_raw") return rawLoadExpression(program, instruction, write, valueType(program, write), inputs, bindings);
+    if (op === "imm_atomic_exch")
+    {
+        // D3D11 `imm_atomic_exch dst, g#, byteAddress, value`: swaps and
+        // returns the word's prior value. Group-shared memory only; a computed
+        // address out of range swaps the clamped word (D3D leaves it
+        // undefined) and returns 0.
+        if (count !== 1 || instruction.saturate)
+        {
+            throw new Error(`WGSL imm_atomic_exch instruction ${instruction.index} requires a scalar result`);
+        }
+        const { shared } = rawGroupSharedOperand(program, instruction, 1);
+        const access = rawWordAccess(shared, rawWordBase(program, instruction, 2, inputs, bindings), 0, instruction);
+        const exchange = `atomicExchange(&${shared.name}[${access.index}], ${source(3, 1)})`;
+        return access.inRange ? `select(0u, ${exchange}, ${access.inRange})` : exchange;
+    }
     if (op === "imm_atomic_iadd")
     {
         // D3D11 `imm_atomic_iadd dst, u#, address, value`: adds and returns
@@ -1436,12 +1453,56 @@ function applyResultBitcast(instruction, write, expression, type)
         `instruction ${instruction.index} result`);
 }
 
+/** Non-returning group-shared atomics, by DXBC opcode, as WGSL atomic builtins. */
+const GROUP_SHARED_ATOMICS = { atomic_iadd: "atomicAdd", atomic_umin: "atomicMin", atomic_umax: "atomicMax" };
+
 /**
- * A structured group-shared memory declaration (`dcl_thread_group_shared_memory_structured`)
- * as the workgroup array it lowers to: `g<register>`, one u32 per DWORD.
+ * The group-shared registers an atomic instruction targets. WGSL atomics need
+ * an atomic type, so those words lower as `atomic<u32>` and every plain read
+ * or write of them becomes atomicLoad or atomicStore.
+ *
+ * @param {object} program CJS shader IR.
+ * @returns {Set<number>} Register indices.
+ */
+function groupSharedAtomicRegisters(program)
+{
+    const registers = new Set();
+    for (const instruction of program.instructions)
+    {
+        const operandIndex = Object.hasOwn(GROUP_SHARED_ATOMICS, instruction.opcodeName) ? 0
+            : instruction.opcodeName === "imm_atomic_exch" ? 1 : -1;
+        const operand = instruction.operands[operandIndex];
+        if (operand?.typeName === "thread_group_shared_memory") registers.add(operand.registerIndex);
+    }
+    return registers;
+}
+
+/**
+ * A group-shared memory declaration as the workgroup array it lowers to:
+ * `g<register>`, one u32 per DWORD. A structured declaration
+ * (`dcl_thread_group_shared_memory_structured`) records its stride; a raw one
+ * (`dcl_thread_group_shared_memory_raw`) is byte-addressed, and is atomic
+ * when an atomic instruction targets it.
  */
 function groupSharedMemory(program, registerIndex, instruction)
 {
+    const raw = program.declarations.find((entry) =>
+        entry.opcodeName === "dcl_thread_group_shared_memory_raw"
+        && entry.data?.registerIndex === registerIndex);
+    if (raw)
+    {
+        const byteCount = raw.data.byteCount;
+        if (!Number.isInteger(byteCount) || byteCount < 4 || byteCount % 4 !== 0)
+        {
+            throw new Error(`WGSL instruction ${instruction.index} uses raw group-shared memory g${registerIndex} with an invalid byte count`);
+        }
+        return {
+            name: `g${registerIndex}`,
+            raw: true,
+            elementCount: byteCount / 4,
+            atomic: groupSharedAtomicRegisters(program).has(registerIndex)
+        };
+    }
     const declaration = program.declarations.find((entry) =>
         entry.opcodeName === "dcl_thread_group_shared_memory_structured"
         && entry.data?.registerIndex === registerIndex);
@@ -1476,18 +1537,204 @@ function structuredUavTarget(instruction, bindings)
 /** The workgroup arrays a compute program's group-shared declarations need. */
 function computeWorkgroupVariables(program)
 {
+    const atomics = groupSharedAtomicRegisters(program);
     const variables = program.declarations
-        .filter((entry) => entry.opcodeName === "dcl_thread_group_shared_memory_structured")
+        .filter((entry) => entry.opcodeName === "dcl_thread_group_shared_memory_structured"
+            || entry.opcodeName === "dcl_thread_group_shared_memory_raw")
         .map((entry) =>
         {
             const shared = groupSharedMemory(program, entry.data?.registerIndex, entry);
-            return { name: shared.name, elementType: "u32", elementCount: shared.elementCount };
+            if (!shared.raw && atomics.has(entry.data?.registerIndex))
+            {
+                throw new Error(`WGSL compute lowering supports atomics only on raw group-shared memory (g${entry.data?.registerIndex})`);
+            }
+            return { name: shared.name, elementType: shared.atomic ? "atomic<u32>" : "u32", elementCount: shared.elementCount };
         });
-    if (program.declarations.some((entry) => entry.opcodeName === "dcl_thread_group_shared_memory_raw"))
-    {
-        throw new Error("WGSL compute lowering supports only structured group-shared memory");
-    }
     return variables.length ? { workgroupVariables: variables } : {};
+}
+
+/**
+ * The word a raw group-shared access starts at: `{ word }` for an immediate
+ * byte address, `{ code }` (the byte address over four) otherwise. D3D leaves
+ * an out-of-range group-shared access undefined; an immediate one fails closed
+ * here, and a computed one is clamped and its result selected to 0.
+ *
+ * @param {object} program CJS shader IR.
+ * @param {object} instruction The accessing instruction.
+ * @param {number} operandIndex Its byte-address operand.
+ * @param {Array} inputs Interface inputs.
+ * @param {Array} bindings Resource bindings.
+ * @returns {{word: number}|{code: string}} The first word.
+ */
+function rawWordBase(program, instruction, operandIndex, inputs, bindings)
+{
+    const operand = instruction.operands[operandIndex];
+    if ((operand?.modifierName || "none") !== "none")
+    {
+        throw new Error(`WGSL raw group-shared instruction ${instruction.index} requires an unmodified byte address`);
+    }
+    if (operand?.typeName === "immediate32")
+    {
+        const bytes = operand.immediateValues?.[0]?.uint32;
+        if (operand.immediateValues?.length !== 1 || !Number.isInteger(bytes) || bytes % 4 !== 0)
+        {
+            throw new Error(`WGSL raw group-shared instruction ${instruction.index} requires a DWORD-aligned byte address`);
+        }
+        return { word: bytes / 4 };
+    }
+    if (!COMPONENTS.includes(operand?.selected))
+    {
+        throw new Error(`WGSL raw group-shared instruction ${instruction.index} requires one scalar byte address`);
+    }
+    return { code: `((${operandExpression(program, instruction, operandIndex, "x", 1, "uint32", inputs, bindings)}) >> 2u)` };
+}
+
+/**
+ * One word of raw group-shared memory: the index to use and, for a computed
+ * address, its range test.
+ *
+ * @param {object} shared The raw group-shared memory.
+ * @param {{word: number}|{code: string}} base The first word.
+ * @param {number} lane Words past the first.
+ * @param {object} instruction The accessing instruction.
+ * @returns {{index: string, inRange: string|null}} The word access.
+ */
+function rawWordAccess(shared, base, lane, instruction)
+{
+    if (base.word !== undefined)
+    {
+        const word = base.word + lane;
+        if (word >= shared.elementCount)
+        {
+            throw new Error(`WGSL raw group-shared instruction ${instruction.index} addresses past ${shared.name}'s ${shared.elementCount * 4} bytes`);
+        }
+        return { index: `${word}u`, inRange: null };
+    }
+    const word = lane ? `(${base.code} + ${lane}u)` : base.code;
+    return { index: `min(${word}, ${shared.elementCount - 1}u)`, inRange: `${word} < ${shared.elementCount}u` };
+}
+
+/**
+ * The raw group-shared memory an instruction operand names.
+ *
+ * @param {object} program CJS shader IR.
+ * @param {object} instruction The accessing instruction.
+ * @param {number} operandIndex The group-shared operand.
+ * @returns {{operand: object, shared: object}} The operand and its memory.
+ */
+function rawGroupSharedOperand(program, instruction, operandIndex)
+{
+    const operand = instruction.operands[operandIndex];
+    if (operand?.typeName !== "thread_group_shared_memory")
+    {
+        throw new Error(`WGSL ${instruction.opcodeName} instruction ${instruction.index} supports only group-shared memory`);
+    }
+    const shared = groupSharedMemory(program, operand.registerIndex, instruction);
+    if (!shared.raw)
+    {
+        throw new Error(`WGSL ${instruction.opcodeName} instruction ${instruction.index} requires raw group-shared memory`);
+    }
+    return { operand, shared };
+}
+
+/**
+ * `ld_raw dst, byteAddress, g#`: one u32 word per selected component, read
+ * plainly, or with atomicLoad when the memory is atomic.
+ *
+ * @param {object} program CJS shader IR.
+ * @param {object} instruction The load.
+ * @param {object} write Its result write.
+ * @param {object|null} type The result type, or null for the raw words.
+ * @param {Array} inputs Interface inputs.
+ * @param {Array} bindings Resource bindings.
+ * @returns {string|Array<string>} The loaded value, or its words.
+ */
+function rawLoadExpression(program, instruction, write, type, inputs, bindings)
+{
+    if (instruction.operands.length !== 3)
+    {
+        throw new Error(`WGSL ld_raw instruction ${instruction.index} requires three operands`);
+    }
+    const { operand, shared } = rawGroupSharedOperand(program, instruction, 2);
+    const base = rawWordBase(program, instruction, 1, inputs, bindings);
+    const words = rawSelectedComponents(operand, write.mask, write.mask.length).map((component) =>
+    {
+        const access = rawWordAccess(shared, base, COMPONENTS.indexOf(component), instruction);
+        const element = `${shared.name}[${access.index}]`;
+        const read = shared.atomic ? `atomicLoad(&${element})` : element;
+        return access.inRange ? `select(0u, ${read}, ${access.inRange})` : read;
+    });
+    if (type === null) return words;
+    const parts = words.map((word) => reinterpretCode(word, "uint32", type.scalarType, 1, `raw load ${instruction.index}`));
+    return vectorCode(parts, type.scalarType);
+}
+
+/**
+ * `store_raw g#.mask, byteAddress, value`: each written lane to the next word,
+ * its bits unchanged; atomicStore when the memory is atomic.
+ *
+ * @param {object} program CJS shader IR.
+ * @param {object} instruction The store.
+ * @param {Array} inputs Interface inputs.
+ * @param {Array} bindings Resource bindings.
+ * @returns {Array<object>} The statements.
+ */
+function lowerRawStore(program, instruction, inputs, bindings)
+{
+    if (instruction.operands.length !== 3)
+    {
+        throw new Error(`WGSL store_raw instruction ${instruction.index} requires three operands`);
+    }
+    const { operand, shared } = rawGroupSharedOperand(program, instruction, 0);
+    const mask = operand.mask || "x";
+    if (!"xyzw".startsWith(mask))
+    {
+        throw new Error(`WGSL store_raw instruction ${instruction.index} requires a contiguous .x/.xy/.xyz/.xyzw mask`);
+    }
+    const base = rawWordBase(program, instruction, 1, inputs, bindings);
+    const located = { instructionIndex: instruction.index, dxbcOffset: instruction.dxbcOffset };
+    return Array.from(mask).map((component, laneIndex) =>
+    {
+        const access = rawWordAccess(shared, base, laneIndex, instruction);
+        const value = operandLaneExpression(program, instruction, 2, mask, laneIndex, "uint32", inputs, bindings, true);
+        const element = `${shared.name}[${access.index}]`;
+        const write = shared.atomic
+            ? { kind: "call", ...located, expression: { code: `atomicStore(&${element}, ${value})`, type: "void" } }
+            : { kind: "value-assignment", ...located, name: element, expression: { code: value, type: "u32" } };
+        return access.inRange
+            ? { kind: "if", ...located, condition: { code: access.inRange, type: "bool" }, statements: [ write ] }
+            : write;
+    });
+}
+
+/**
+ * `atomic_iadd/atomic_umin/atomic_umax g#, byteAddress, value`: the WGSL
+ * atomic on one word of raw group-shared memory.
+ *
+ * @param {object} program CJS shader IR.
+ * @param {object} instruction The atomic.
+ * @param {Array} inputs Interface inputs.
+ * @param {Array} bindings Resource bindings.
+ * @returns {object} The statement.
+ */
+function lowerGroupSharedAtomic(program, instruction, inputs, bindings)
+{
+    if (instruction.operands.length !== 3 || instruction.saturate)
+    {
+        throw new Error(`WGSL group-shared atomic instruction ${instruction.index} has an unsupported operand shape`);
+    }
+    const { shared } = rawGroupSharedOperand(program, instruction, 0);
+    const access = rawWordAccess(shared, rawWordBase(program, instruction, 1, inputs, bindings), 0, instruction);
+    const value = operandExpression(program, instruction, 2, "x", 1, "uint32", inputs, bindings);
+    const located = { instructionIndex: instruction.index, dxbcOffset: instruction.dxbcOffset };
+    const call = {
+        kind: "call",
+        ...located,
+        expression: { code: `${GROUP_SHARED_ATOMICS[instruction.opcodeName]}(&${shared.name}[${access.index}], ${value})`, type: "void" }
+    };
+    return access.inRange
+        ? { kind: "if", ...located, condition: { code: access.inRange, type: "bool" }, statements: [ call ] }
+        : call;
 }
 
 /**
@@ -1809,6 +2056,21 @@ function lowerInstruction(program, instruction, inputs, outputs, bindings, writt
             expression: { code, type: "void" }
         }));
     }
+    if (Object.hasOwn(GROUP_SHARED_ATOMICS, instruction.opcodeName)
+        && instruction.operands[0]?.typeName === "thread_group_shared_memory"
+        && program.declarations.some((entry) => entry.opcodeName === "dcl_thread_group_shared_memory_raw"
+            && entry.data?.registerIndex === instruction.operands[0].registerIndex))
+    {
+        return lowerGroupSharedAtomic(program, instruction, inputs, bindings);
+    }
+    if (instruction.opcodeName === "atomic_umin" || instruction.opcodeName === "atomic_umax")
+    {
+        throw new Error(`WGSL ${instruction.opcodeName} instruction ${instruction.index} is supported only on group-shared memory`);
+    }
+    if (instruction.opcodeName === "store_raw")
+    {
+        return lowerRawStore(program, instruction, inputs, bindings);
+    }
     if (instruction.opcodeName === "atomic_iadd")
     {
         const uav = validateFixedHandleOperand(instruction, 0, "uav", "fragment");
@@ -1886,9 +2148,11 @@ function lowerInstruction(program, instruction, inputs, outputs, bindings, writt
             // bounded to unsaturated temps with register, immediate or cbuffer
             // lane sources; its condition follows u32 modifier rules and its
             // value operands the raw float-data mover rules.
-            if (instruction.opcodeName === "ld_structured" && localSsaDestination && !instruction.saturate)
+            if ((instruction.opcodeName === "ld_structured" || instruction.opcodeName === "ld_raw") && localSsaDestination && !instruction.saturate)
             {
-                const words = structuredLoadExpression(program, instruction, write, null, inputs, bindings);
+                const words = instruction.opcodeName === "ld_raw"
+                    ? rawLoadExpression(program, instruction, write, null, inputs, bindings)
+                    : structuredLoadExpression(program, instruction, write, null, inputs, bindings);
                 return Array.from(write.mask).map((component, laneIndex) => ({
                     kind: "let",
                     instructionIndex: instruction.index,
