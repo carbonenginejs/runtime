@@ -88,12 +88,17 @@ export class Tr2Material
   }
 
   /**
-   * The per-pass parameter block for a technique/pass pair, or null when either
-   * index is out of range.
+   * The per-pass parameter block for a technique/pass pair
+   * (Tr2Material.cpp:376-379). Carbon indexes directly; an index out of range
+   * is a caller bug, not an absence.
+   *
+   * @param {number} [techniqueIndex=0] Technique index.
+   * @param {number} [passIndex=0] Pass index within the technique.
+   * @returns {Tr2EffectPassParameters} The pass parameters.
    */
   GetPassDescription(techniqueIndex = 0, passIndex = 0)
   {
-    return this.parametersForPasses?.[techniqueIndex]?.passes?.[passIndex] ?? null;
+    return this.parametersForPasses[techniqueIndex].passes[passIndex];
   }
 
   /**
@@ -120,8 +125,6 @@ export class Tr2Material
     if (!this.shader) return false;
 
     const pass = this.GetPassDescription(techniqueIndex, passIndex);
-
-    if (!pass) return false;
 
     // SEEDED ON FIRST APPLY, THROUGH THE CONTEXT THAT APPLIES. Carbon seeds the
     // pass description with sampler states at effect load through the
@@ -579,7 +582,7 @@ export class Tr2Material
     {
       return false;
     }
-    return (this.parametersForPasses?.[techniqueIndex]?.passes ?? []).every(pass => pass?.compatibleWithGdr !== false);
+    return this.parametersForPasses[techniqueIndex].passes.every(pass => pass.compatibleWithGdr);
   }
 
 }
