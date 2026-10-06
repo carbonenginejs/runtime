@@ -18,8 +18,8 @@ import {
 test("Tr2TextureLodManager mirrors Carbon registration and removal order", async () =>
 {
   const manager = new Tr2TextureLodManager();
-  const first = new TriTextureRes({ name: "first" });
-  const second = new TriTextureRes({ name: "second" });
+  const first = new TriTextureRes();
+  const second = new TriTextureRes();
 
   manager.RegisterTexture(first).RegisterTexture(second).RegisterTexture(first);
   const snapshot = manager.GetManagedTextures();

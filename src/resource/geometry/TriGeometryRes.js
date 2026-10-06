@@ -63,15 +63,6 @@ export class TriGeometryRes extends CjsResource
   /** The payload ReadGrannyFile returned, so SetPayload can tell it from any other. */
   _grannyPayload = null;
 
-  /** Creates a TriGeometryRes with caller-provided initial state. */
-  constructor(values = null)
-  {
-    super();
-    this.SetValues(values || {}, {
-      skipUpdate: true,
-      skipEvents: true
-    });
-  }
 
   /**
    * Attach a plain geometry payload or an already decoded Granny graph.

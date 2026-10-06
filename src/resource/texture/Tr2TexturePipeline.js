@@ -30,14 +30,6 @@ export class Tr2TexturePipeline
   /** m_steps (PITr2TexturePipelineStepVector) [READ, PERSIST] */
   steps = [];
 
-  /** Creates a Tr2TexturePipeline with caller-provided initial state. */
-  constructor(values = null)
-  {
-    CjsSchema.setValues(this, values || {}, {
-      skipUpdate: true,
-      skipEvents: true
-    });
-  }
 
   /**
    * Carbon Execute (cpp:24-45): run every step against one bitmap, then apply

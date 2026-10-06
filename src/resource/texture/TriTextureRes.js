@@ -51,14 +51,6 @@ export class TriTextureRes extends CjsResource
   cutoutX = 0;
   cutoutY = 0;
 
-  /** Creates a TriTextureRes with caller-provided initial state. */
-  constructor(values = null) {
-    super();
-    this.SetValues(values || {}, {
-      skipUpdate: true,
-      skipEvents: true
-    });
-  }
 
   /**
    * Carbon's Initialize, with its procedural branch (TriTextureRes.cpp:223-236):

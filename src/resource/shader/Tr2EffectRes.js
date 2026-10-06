@@ -88,15 +88,6 @@ export class Tr2EffectRes extends CjsResource
     return this;
   }
 
-  /** Creates a Tr2EffectRes with caller-provided initial state. */
-  constructor(values = null)
-  {
-    super();
-    this.SetValues(values || {}, {
-      skipUpdate: true,
-      skipEvents: true
-    });
-  }
 
   /**
    * Attach a plain shader/effect payload.

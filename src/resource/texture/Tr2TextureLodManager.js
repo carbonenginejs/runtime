@@ -43,14 +43,6 @@ export class Tr2TextureLodManager
 
   _textures = [];
 
-  /** Creates a Tr2TextureLodManager with caller-provided initial state. */
-  constructor(values = null)
-  {
-    CjsSchema.setValues(this, values || {}, {
-      skipUpdate: true,
-      skipEvents: true
-    });
-  }
 
   /**
    * Append one texture to the managed list in registration order.

@@ -27,14 +27,6 @@ export class Tr2ImageRes extends CjsResource
   /** Mirrors the bitmap's height. */
   height = 0;
 
-  /** Creates a Tr2ImageRes with caller-provided initial state. */
-  constructor(values = null) {
-    super();
-    this.SetValues(values || {}, {
-      skipUpdate: true,
-      skipEvents: true
-    });
-  }
 
   /**
    * Attach a native bitmap and mirror Carbon-exposed metadata.
