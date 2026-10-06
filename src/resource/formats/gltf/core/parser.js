@@ -57,7 +57,13 @@ function createVertexChannels()
     return channels;
 }
 
-/** Returns a byte view over the supplied binary input for the glTF format reader. */function toUtf8(bytes)
+/**
+ * Decodes bytes as UTF-8 text.
+ *
+ * @param {Uint8Array} bytes Text bytes.
+ * @returns {string} The decoded text.
+ */
+function toUtf8(bytes)
 {
     return new TextDecoder().decode(bytes);
 }
@@ -67,7 +73,12 @@ function isGlbBytes(bytes)
     return bytes.length >= 12 && new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(0, true) === GLB_MAGIC;
 }
 
-/** Reports whether the current glTF format reader satisfies glb. */
+/**
+ * Reports whether the current glTF format reader satisfies glb.
+ *
+ * @param {ArrayBuffer|ArrayBufferView} input Candidate bytes.
+ * @returns {boolean} True for GLB bytes; false for anything else, including non-byte input.
+ */
 export function isGlb(input)
 {
     try
@@ -90,7 +101,13 @@ function parseJsonText(text)
     return json;
 }
 
-/** Parses input from the current glTF format reader. */
+/**
+ * Parses input from the current glTF format reader.
+ *
+ * @param {object|string|ArrayBuffer|ArrayBufferView} input glTF object, JSON text or bytes, or GLB bytes.
+ * @returns {import("./helpers.js").CjsGltfParsedInput} The document, GLB binary chunk and container format.
+ * @throws {Error} When the input is not a glTF asset or the GLB is malformed.
+ */
 export function parseInput(input)
 {
     if (input && typeof input === "object" && !(input instanceof ArrayBuffer) && !ArrayBuffer.isView(input))
@@ -1361,6 +1378,14 @@ function registerMorphTargets(morphTargets, gltf, nodeIndex)
 
 /**
  * Parses glTF or GLB input into the normalized shared geometry graph.
+ *
+ * @param {object} gltf The glTF JSON document.
+ * @param {object} [options={}] Parse options.
+ * @param {Uint8Array|null} [options.binaryChunk=null] GLB BIN chunk.
+ * @param {string} [options.source="memory"] Source name recorded on the root.
+ * @param {import("./helpers.js").CjsGltfBufferSource|null} [options.buffers=null] External buffer bytes.
+ * @returns {{grannyFileFormatRevision: number, grannyFileSource: string, meshes: Array<object>, models: Array<object>, animations: Array<object>}} The shared geometry root.
+ * @throws {Error} When the asset is not glTF 2.x or its meshes, LODs or buffers are unsupported.
  */
 export function parseGltfToShared(gltf, { binaryChunk = null, source = "memory", buffers: providedBuffers = null } = {})
 {
@@ -1487,7 +1512,15 @@ export function parseGltfToShared(gltf, { binaryChunk = null, source = "memory",
     return root;
 }
 
-/** Inspects glTF without materializing the full glTF format reader payload. */
+/**
+ * Inspects glTF without materializing the full glTF format reader payload.
+ *
+ * @param {object} gltf The glTF JSON document.
+ * @param {object} [options={}] Inspection options.
+ * @param {string} [options.format="gltf"] Container format to report.
+ * @param {string} [options.source="memory"] Source name to report.
+ * @returns {import("./helpers.js").CjsGltfInspection} The document summary.
+ */
 export function inspectGltf(gltf, { format = "gltf", source = "memory" } = {})
 {
     return {

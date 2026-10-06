@@ -62,7 +62,7 @@ export class CjsGltfFormat extends CjsGeometryFormat
     /**
      * Create a reusable format profile.
      *
-     * @param {object} [options] Default format values.
+     * @param {object} [options={}] Default format values; the keys of CjsGltfValues.
      */
     constructor(options = {})
     {
@@ -73,7 +73,7 @@ export class CjsGltfFormat extends CjsGeometryFormat
     /**
      * Set format values for this reusable profile.
      *
-     * @param {object} [options] Values to merge into the profile.
+     * @param {object} [options={}] Values to merge into the profile; the keys of CjsGltfValues.
      * @returns {CjsGltfFormat} This format profile.
      */
     SetValues(options = {})
@@ -96,8 +96,8 @@ export class CjsGltfFormat extends CjsGeometryFormat
     /**
      * Get this profile's current values, optionally with per-call overrides.
      *
-     * @param {object} [options] Optional values to merge into a copy.
-     * @returns {object} A copy of the effective values.
+     * @param {object} [options={}] Optional values to merge into a copy.
+     * @returns {import("./core/helpers.js").CjsGltfValues} A copy of the effective values.
      */
     GetValues(options = {})
     {
@@ -117,8 +117,8 @@ export class CjsGltfFormat extends CjsGeometryFormat
     /**
      * Read glTF/GLB data with this profile's values.
      *
-     * @param {object|string|Uint8Array|ArrayBuffer|DataView} input glTF object, JSON text/bytes, or GLB bytes.
-     * @param {object} [options] Per-call value overrides.
+     * @param {object|string|ArrayBuffer|ArrayBufferView} input glTF object, JSON text/bytes, or GLB bytes.
+     * @param {object} [options={}] Per-call value overrides.
      * @returns {object} The shared CarbonEngineJS JSON geometry schema.
      */
     Read(input, options = {})
@@ -129,9 +129,9 @@ export class CjsGltfFormat extends CjsGeometryFormat
     /**
      * Inspect glTF/GLB data without hydrating classes.
      *
-     * @param {object|string|Uint8Array|ArrayBuffer|DataView} input glTF object, JSON text/bytes, or GLB bytes.
-     * @param {object} [options] Per-call value overrides.
-     * @returns {object} Plain summary data.
+     * @param {object|string|ArrayBuffer|ArrayBufferView} input glTF object, JSON text/bytes, or GLB bytes.
+     * @param {object} [options={}] Per-call value overrides.
+     * @returns {import("./core/helpers.js").CjsGltfInspection} Plain summary data.
      */
     Inspect(input, options = {})
     {
@@ -152,8 +152,8 @@ export class CjsGltfFormat extends CjsGeometryFormat
     /**
      * Static one-shot read. Static methods use camelCase by convention.
      *
-     * @param {object|string|Uint8Array|ArrayBuffer|DataView} input glTF object, JSON text/bytes, or GLB bytes.
-     * @param {object} [options] Format values.
+     * @param {object|string|ArrayBuffer|ArrayBufferView} input glTF object, JSON text/bytes, or GLB bytes.
+     * @param {object} [options={}] Format values; the keys of CjsGltfValues.
      * @returns {object} The shared CarbonEngineJS JSON geometry schema.
      */
     static read(input, options = {})
@@ -164,9 +164,9 @@ export class CjsGltfFormat extends CjsGeometryFormat
     /**
      * Static one-shot inspection.
      *
-     * @param {object|string|Uint8Array|ArrayBuffer|DataView} input glTF object, JSON text/bytes, or GLB bytes.
-     * @param {object} [options] Format values.
-     * @returns {object} Plain summary data.
+     * @param {object|string|ArrayBuffer|ArrayBufferView} input glTF object, JSON text/bytes, or GLB bytes.
+     * @param {object} [options={}] Format values; the keys of CjsGltfValues.
+     * @returns {import("./core/helpers.js").CjsGltfInspection} Plain summary data.
      */
     static inspect(input, options = {})
     {
@@ -187,7 +187,7 @@ export class CjsGltfFormat extends CjsGeometryFormat
     /**
      * Cheap payload sniff for GLB bytes.
      *
-     * @param {Uint8Array|ArrayBuffer|DataView} input Candidate bytes.
+     * @param {ArrayBuffer|ArrayBufferView} input Candidate bytes.
      * @returns {boolean} True when the payload starts with GLB magic.
      */
     static isGlb(input)
@@ -198,7 +198,7 @@ export class CjsGltfFormat extends CjsGeometryFormat
     /**
      * Cheap object/text/bytes sniff for glTF-like assets.
      *
-     * @param {object|string|Uint8Array|ArrayBuffer|DataView} input Candidate glTF data.
+     * @param {object|string|ArrayBuffer|ArrayBufferView} input Candidate glTF data.
      * @returns {boolean} True when the input looks like glTF 2.x or GLB.
      */
     static isGltf(input)

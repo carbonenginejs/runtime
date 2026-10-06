@@ -7,12 +7,30 @@ export const CLASS_KEYS = Object.freeze([
     "Skeleton", "Bone", "Animation", "TrackGroup", "TransformTrack", "VectorTrack", "Curve"
 ]);
 
+/**
+ * Builds one node with the class registered for its key, or returns the plain props when none is.
+ *
+ * @param {Object<string, Function>} classes Runtime classes keyed by class key.
+ * @param {string} key Class key.
+ * @param {object} props Plain node values.
+ * @param {object} [hydrationOptions={}] Options passed to SetValues.
+ * @returns {object} The populated instance, or props.
+ */
 function build(classes, key, props, hydrationOptions = {})
 {
     const Ctor = classes[key];
     return Ctor ? populate(new Ctor(), props, hydrationOptions) : props;
 }
 
+/**
+ * Applies plain values to an instance through SetValues, without update or events.
+ *
+ * @param {object} instance Instance exposing SetValues.
+ * @param {object} props Plain node values.
+ * @param {object} [hydrationOptions={}] Options passed to SetValues.
+ * @returns {object} The instance.
+ * @throws {TypeError} When the instance has no SetValues.
+ */
 function populate(instance, props, hydrationOptions = {})
 {
     if (!instance || typeof instance.SetValues !== "function")
@@ -23,6 +41,14 @@ function populate(instance, props, hydrationOptions = {})
     return instance;
 }
 
+/**
+ * Builds a curve node, passing a missing curve through.
+ *
+ * @param {object|null|undefined} curve Plain curve.
+ * @param {Object<string, Function>} classes Runtime classes keyed by class key.
+ * @param {object} hydrationOptions Options passed to SetValues.
+ * @returns {object|null|undefined} The curve node, or the missing value.
+ */
 function hydrateCurve(curve, classes, hydrationOptions)
 {
     return curve ? build(classes, "Curve", curve, hydrationOptions) : curve;
@@ -32,8 +58,8 @@ function hydrateCurve(curve, classes, hydrationOptions)
  * Hydrate the plain shared graph with caller-supplied classes.
  *
  * @param {object} root Plain JSON graph.
- * @param {object} [options] Hydration options.
- * @param {object} [options.classes] Node constructor map.
+ * @param {object} [options] Hydration options; the remaining fields are passed to SetValues.
+ * @param {Object<string, Function>} [options.classes] Node constructor map.
  * @returns {object} Hydrated graph.
  */
 export function hydrateShared(root, { classes = {}, ...hydrationOptions } = {})

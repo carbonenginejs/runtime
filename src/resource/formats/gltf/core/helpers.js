@@ -40,6 +40,55 @@ export const OUTPUT_SHARED = "shared";
 export const OUTPUT_GR2 = "gr2";
 export const OUTPUT_CMF = "cmf";
 
+/**
+ * External buffer bytes supplied by the caller: an array indexed by buffer, a Map or a record keyed by
+ * buffer URI or index.
+ *
+ * @typedef {Array<ArrayBuffer|ArrayBufferView>|Map<(string|number), ArrayBuffer|ArrayBufferView>|Object<string, ArrayBuffer|ArrayBufferView>} CjsGltfBufferSource
+ */
+
+/**
+ * Normalized glTF reader values. A rule is a boolean, or a function that receives the mesh context and
+ * returns a boolean.
+ *
+ * @typedef {object} CjsGltfValues
+ * @property {string} emit "shared", "json", "gltfJson", "gr2" or "cmf".
+ * @property {string} source Source name recorded on the output.
+ * @property {CjsGltfBufferSource|null} buffers External buffer bytes.
+ * @property {boolean|function(object): boolean} packTangents Rule for packing tangent frames.
+ * @property {string} uvHandedness "right" or "left".
+ * @property {boolean|function(object): boolean} rebuildMissingNormals Rule for generating absent normals.
+ * @property {boolean|function(object): boolean} rebuildMissingTangents Rule for generating absent tangents.
+ * @property {boolean|function(object): boolean} rebuildMissingBiNormals Rule for generating absent binormals.
+ * @property {Object<string, Function>} classes Runtime classes keyed by class key.
+ */
+
+/**
+ * The parsed glTF document and its GLB binary chunk.
+ *
+ * @typedef {object} CjsGltfParsedInput
+ * @property {object} gltf The glTF JSON document.
+ * @property {Uint8Array|null} binaryChunk GLB BIN chunk, or null.
+ * @property {string} format "gltf" or "glb".
+ */
+
+/**
+ * Summary returned by glTF inspection.
+ *
+ * @typedef {object} CjsGltfInspection
+ * @property {string} source Source name.
+ * @property {string} format "gltf" or "glb".
+ * @property {string|undefined} assetVersion The asset version string.
+ * @property {number} sceneCount Scene count.
+ * @property {number} nodeCount Node count.
+ * @property {number} meshCount Mesh count.
+ * @property {number} skinCount Skin count.
+ * @property {number} animationCount Animation count.
+ * @property {number} materialCount Material count.
+ * @property {Array<{name: string, primitiveCount: number}>} meshes Per-mesh summaries.
+ * @property {Array<{name: string, channelCount: number, samplerCount: number}>} animations Per-animation summaries.
+ */
+
 export const DEFAULT_VALUES = {
     emit: OUTPUT_SHARED,
     source: "memory",
@@ -64,18 +113,38 @@ const OPTION_KEYS = new Set([
     "classes"
 ]);
 
-/** Validates a requested runtime class key for the glTF format reader. */
+/**
+ * Validates a requested runtime class key for the glTF format reader.
+ *
+ * @param {string} key Class key.
+ * @param {string} [readerName="CjsGltfFormat"] Reader name used in errors.
+ */
 export function validateClassKey(key, readerName = "CjsGltfFormat")
 {
     CjsGeometryFormat.validateClassKey(key, CLASS_KEYS, readerName);
 }
 
-/** Validates a resolved runtime class constructor for the glTF format reader. */
+/**
+ * Validates a resolved runtime class constructor for the glTF format reader.
+ *
+ * @param {string} key Class key.
+ * @param {Function} Class Runtime class constructor.
+ * @param {string} [readerName="CjsGltfFormat"] Reader name used in errors.
+ */
 export function validateClass(key, Class, readerName = "CjsGltfFormat")
 {
     CjsGeometryFormat.validateClass(key, Class, CLASS_KEYS, readerName);
 }
 
+/**
+ * Merges caller classes over the base map; a null or undefined entry removes its key.
+ *
+ * @param {Object<string, Function>} base Current classes.
+ * @param {Object<string, Function|null|undefined>} classes Caller classes.
+ * @param {string} readerName Reader name used in errors.
+ * @returns {Object<string, Function>} The merged map.
+ * @throws {TypeError} When classes is not an object.
+ */
 function mergeClasses(base, classes, readerName)
 {
     if (!classes || typeof classes !== "object")
@@ -97,12 +166,29 @@ function mergeClasses(base, classes, readerName)
     return next;
 }
 
+/**
+ * Accepts a boolean or function rule.
+ *
+ * @param {string} name Option name, for the error.
+ * @param {unknown} value Rule value.
+ * @param {string} readerName Reader name used in errors.
+ * @returns {boolean|function(object): boolean} The rule.
+ * @throws {TypeError} When value is neither a boolean nor a function.
+ */
 function validateRule(name, value, readerName)
 {
     if (typeof value === "boolean" || typeof value === "function") return value;
     throw new TypeError(`${readerName}: ${name} must be true, false, or a function`);
 }
 
+/**
+ * Maps the accepted UV handedness spellings to "right" or "left".
+ *
+ * @param {string|number|null|undefined} value Requested handedness.
+ * @param {string} readerName Reader name used in errors.
+ * @returns {string} "right" or "left".
+ * @throws {TypeError} When value is not a recognized spelling.
+ */
 function normalizeUvHandedness(value, readerName)
 {
     if (value === undefined || value === null) return DEFAULT_VALUES.uvHandedness;
@@ -114,6 +200,12 @@ function normalizeUvHandedness(value, readerName)
 /**
  * Normalizes reader options against their supported defaults for the glTF format
  * reader.
+ *
+ * @param {CjsGltfValues} base Values the options override.
+ * @param {object} [options={}] Caller options; only the CjsGltfValues keys are accepted.
+ * @param {string} [readerName="CjsGltfFormat"] Reader name used in errors.
+ * @returns {CjsGltfValues} The normalized values.
+ * @throws {TypeError} When an option is unknown or invalid, or a class emit has no classes.
  */
 export function normalizeValues(base, options = {}, readerName = "CjsGltfFormat")
 {
@@ -156,6 +248,14 @@ export function normalizeValues(base, options = {}, readerName = "CjsGltfFormat"
     };
 }
 
+/**
+ * Validates the requested output, defaulting to "shared".
+ *
+ * @param {string|null|undefined} emit Requested output.
+ * @param {string} readerName Reader name used in errors.
+ * @returns {string} The output name.
+ * @throws {TypeError} When emit is unknown.
+ */
 function normalizeEmit(emit, readerName)
 {
     if (emit === undefined || emit === null) return OUTPUT_SHARED;
@@ -164,17 +264,40 @@ function normalizeEmit(emit, readerName)
     throw new TypeError(`${readerName}: emit must be "${OUTPUT_SHARED}", "${OUTPUT_GLTF_JSON}", "${OUTPUT_GR2}", or "${OUTPUT_CMF}", got ${JSON.stringify(emit)}`);
 }
 
+/**
+ * Reports whether a class map holds any constructor.
+ *
+ * @param {Object<string, Function>} classes Class map.
+ * @returns {boolean} True when at least one entry is a function.
+ */
 function hasClasses(classes)
 {
     return !!classes && Object.values(classes).some((Class) => typeof Class === "function");
 }
 
+/**
+ * Reports whether a mesh has a non-empty vertex channel.
+ *
+ * @param {object} mesh Shared mesh.
+ * @param {string} channel Vertex channel name.
+ * @returns {boolean} True when the channel has data.
+ */
 function hasVertexChannel(mesh, channel)
 {
     const value = mesh && mesh.vertex && mesh.vertex[channel];
     return !!value && value.length > 0;
 }
 
+/**
+ * Returns a non-empty vertex channel, or fails naming the feature that needs it.
+ *
+ * @param {object} mesh Shared mesh.
+ * @param {number} meshIndex Mesh index, for the error.
+ * @param {string} channel Vertex channel name.
+ * @param {string} feature Feature name, for the error.
+ * @returns {ArrayLike<number>} The channel values.
+ * @throws {Error} When the channel is absent or empty.
+ */
 function requireVertexChannel(mesh, meshIndex, channel, feature)
 {
     const value = mesh && mesh.vertex && mesh.vertex[channel];
@@ -186,6 +309,15 @@ function requireVertexChannel(mesh, meshIndex, channel, feature)
     return value;
 }
 
+/**
+ * Concatenates the triangle indices of every index group.
+ *
+ * @param {object} mesh Shared mesh.
+ * @param {number} meshIndex Mesh index, for the error.
+ * @param {string} feature Feature name, for the error.
+ * @returns {Array<number>} The triangle indices.
+ * @throws {Error} When the mesh has no triangle indices.
+ */
 function triangleFaces(mesh, meshIndex, feature)
 {
     const faces = [];
@@ -201,6 +333,15 @@ function triangleFaces(mesh, meshIndex, feature)
     return faces;
 }
 
+/**
+ * Evaluates a boolean or function rule for one mesh.
+ *
+ * @param {import("../CjsGltfFormat.js").CjsGltfFormat|typeof import("../CjsGltfFormat.js").CjsGltfFormat} format Format profile or class, passed to a function rule.
+ * @param {boolean|function(object): boolean} rule Rule to evaluate.
+ * @param {object} context Mesh context passed to a function rule; `context.feature` names it in errors.
+ * @returns {boolean} The rule result.
+ * @throws {TypeError} When a function rule returns a non-boolean.
+ */
 function shouldApplyMeshRule(format, rule, context)
 {
     if (typeof rule === "function")
@@ -215,11 +356,24 @@ function shouldApplyMeshRule(format, rule, context)
     return rule;
 }
 
+/**
+ * Counts a mesh's vertices from its position channel.
+ *
+ * @param {object} mesh Shared mesh.
+ * @returns {number} The vertex count.
+ */
 function vertexCount(mesh)
 {
     return mesh.vertex.position.length / 3;
 }
 
+/**
+ * Returns the tangent channel as three components per vertex.
+ *
+ * @param {object} mesh Shared mesh.
+ * @returns {Array<number>} XYZ tangents.
+ * @throws {Error} When the tangent channel is not 3 or 4 components wide.
+ */
 function tangentXyz(mesh)
 {
     const
@@ -240,6 +394,14 @@ function tangentXyz(mesh)
     return out;
 }
 
+/**
+ * Generates binormals from normals and tangents, using the tangent w sign when present.
+ *
+ * @param {object} mesh Shared mesh.
+ * @param {CjsGltfValues} values Reader values; `values.uvHandedness` applies to 3-wide tangents.
+ * @returns {Array<number>} XYZ binormals.
+ * @throws {Error} When the tangent channel is not 3 or 4 components wide.
+ */
 function generatedBiNormalsForMesh(mesh, values)
 {
     const
@@ -274,6 +436,16 @@ function generatedBiNormalsForMesh(mesh, values)
     return out;
 }
 
+/**
+ * Generates the absent normal, tangent and binormal channels the rules ask for, then packs tangents.
+ *
+ * @param {import("../CjsGltfFormat.js").CjsGltfFormat|typeof import("../CjsGltfFormat.js").CjsGltfFormat} format Format profile or class, passed to function rules.
+ * @param {object} root Shared geometry root.
+ * @param {object} mesh Shared mesh or LOD to update in place.
+ * @param {number} meshIndex Mesh index.
+ * @param {number} lodIndex LOD index.
+ * @param {CjsGltfValues} values Reader values.
+ */
 function rebuildMeshData(format, root, mesh, meshIndex, lodIndex, values)
 {
     const
@@ -328,6 +500,13 @@ function rebuildMeshData(format, root, mesh, meshIndex, lodIndex, values)
     }
 }
 
+/**
+ * Runs rebuildMeshData over every mesh and LOD, keeping each mesh's channels on its first LOD.
+ *
+ * @param {import("../CjsGltfFormat.js").CjsGltfFormat|typeof import("../CjsGltfFormat.js").CjsGltfFormat} format Format profile or class, passed to function rules.
+ * @param {object} shared Shared geometry root.
+ * @param {CjsGltfValues} values Reader values.
+ */
 function rebuildMissingMeshData(format, shared, values)
 {
     for (let meshIndex = 0; meshIndex < shared.meshes.length; meshIndex++)
@@ -346,7 +525,14 @@ function rebuildMissingMeshData(format, shared, values)
     }
 }
 
-/** Reads input using normalized format options for the glTF format reader. */
+/**
+ * Reads input using normalized format options for the glTF format reader.
+ *
+ * @param {import("../CjsGltfFormat.js").CjsGltfFormat|typeof import("../CjsGltfFormat.js").CjsGltfFormat} format Format profile or class, passed to function rules.
+ * @param {object|string|ArrayBuffer|ArrayBufferView} input glTF object, JSON text or bytes, or GLB bytes.
+ * @param {CjsGltfValues} values Normalized reader values.
+ * @returns {object} The CMF, JSON or hydrated shared output that values.emit selects.
+ */
 export function readWithValues(format, input, values)
 {
     const parsed = parseInput(input);
@@ -372,13 +558,18 @@ export function readWithValues(format, input, values)
     return hydrateShared(shared, { classes: values.classes, source: values.source });
 }
 
-/** Inspects input using normalized format options for the glTF format reader. */
+/**
+ * Inspects input using normalized format options for the glTF format reader.
+ *
+ * @param {object|string|ArrayBuffer|ArrayBufferView} input glTF object, JSON text or bytes, or GLB bytes.
+ * @param {CjsGltfValues} values Normalized reader values; `values.source` is reported.
+ * @returns {CjsGltfInspection} The document summary.
+ */
 export function inspectWithValues(input, values)
 {
     const parsed = parseInput(input);
     return inspectGltf(parsed.gltf, { format: parsed.format, source: values.source });
 }
 
-/** Converts a parsed payload into a JSON-safe value for the glTF format reader. */
 /** The shared JSON policy for this reader, under the name its callers use. */
 export { toJsonValue };
