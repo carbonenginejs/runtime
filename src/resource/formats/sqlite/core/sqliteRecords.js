@@ -179,7 +179,12 @@ export function ReadRecord(payload, encoding) {
   return values;
 }
 
-/** Creates a tagged error, so a caller can tell a malformed container apart. */
+/**
+ * Creates a tagged error, so a caller can tell a malformed container apart.
+ *
+ * @param {string} message Error message.
+ * @returns {Error} Error with `code` `CJS_SQLITE_FORMAT_INVALID`.
+ */
 export function SqliteError(message) {
   const error = new Error(message);
 

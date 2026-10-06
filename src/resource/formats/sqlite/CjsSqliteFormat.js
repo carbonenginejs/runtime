@@ -85,7 +85,12 @@ export class CjsSqliteFormat extends CjsFormat {
     };
   }
 
-  /** Return header facts without reading table rows. */
+  /**
+   * Return header facts without reading table rows.
+   *
+   * @param {Uint8Array|ArrayBuffer} input Container bytes.
+   * @returns {object} Family, decodability and the parsed header.
+   */
   static inspect(input) {
     const header = ReadHeader(Normalize(input));
     return { family: this.id, decodable: true, header };
@@ -127,17 +132,35 @@ export class CjsSqliteFormat extends CjsFormat {
     return tables;
   }
 
-  /** Reads to plain JSON-compatible values, converting blobs to arrays. */
+  /**
+   * Reads to plain JSON-compatible values, converting blobs to arrays.
+   *
+   * @param {Uint8Array|ArrayBuffer} input Container bytes.
+   * @param {object} [options={}] Read options, as for `read`; `output` is forced to `json`.
+   * @returns {object} Tables keyed by name, each an array of row objects.
+   */
   static readJSON(input, options = {}) {
     return this.read(input, { ...options, output: OUTPUT_JSON });
   }
 
-  /** Reads with blobs left as `Uint8Array` and wide integers as `BigInt`. */
+  /**
+   * Reads with blobs left as `Uint8Array` and wide integers as `BigInt`.
+   *
+   * @param {Uint8Array|ArrayBuffer} input Container bytes.
+   * @param {object} [options={}] Read options, as for `read`; `output` is forced to `payload`.
+   * @returns {object} Tables keyed by name, each an array of row objects.
+   */
   static readPayload(input, options = {}) {
     return this.read(input, { ...options, output: OUTPUT_PAYLOAD });
   }
 
-  /** Returns the parsed header and `sqlite_master` entries, decoding no rows. */
+  /**
+   * Returns the parsed header and `sqlite_master` entries, decoding no rows.
+   *
+   * @param {Uint8Array|ArrayBuffer} input Container bytes.
+   * @param {object} [options={}] Read options, as for `read`; `output` is forced to `raw`.
+   * @returns {{header: object, schema: Array<object>}} Parsed header and master entries.
+   */
   static readRaw(input, options = {}) {
     return this.read(input, { ...options, output: OUTPUT_RAW });
   }

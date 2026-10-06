@@ -203,7 +203,13 @@ export class CjsPickleFormat extends CjsFormat
     return CjsPickleProtocol0Reader.ToJSON(value);
   }
 
-  /** Validate pickle structure and return format metadata. */
+  /**
+   * Validate pickle structure and return format metadata.
+   *
+   * @param {ArrayBuffer|ArrayBufferView} input Pickle bytes.
+   * @param {object} [options={}] Format options; `source` is dropped before reading.
+   * @returns {object} Protocol, byte length and root value type.
+   */
   static inspect(input, options = {})
   {
     const { source: _source, ...readOptions } = options;
@@ -216,8 +222,6 @@ export class CjsPickleFormat extends CjsFormat
       rootType: value === null ? "null" : Array.isArray(value) ? "array" : typeof value
     };
   }
-
-  /** Return synchronous advisory support from a bounded protocol-0 decode. */
 
   /**
    * Normalize a format profile and partial override into detached effective

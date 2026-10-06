@@ -132,6 +132,9 @@ export function inspectRasterCompleteness(stages, shaders)
  * Checks the host-side routing contract emitted for compute-as-fragment
  * programs. A boolean marker is insufficient: the runtime needs the original
  * dispatch shape, dispatch-origin uniform, and every UAV render-target route.
+ *
+ * @param {*} value Candidate contract.
+ * @returns {boolean} True when the value is a complete compute-as-fragment contract.
  */
 export function isComputeFragmentContract(value)
 {

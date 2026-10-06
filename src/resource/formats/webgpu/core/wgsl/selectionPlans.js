@@ -9,19 +9,35 @@ function scalarTypeName(type)
     return SCALAR_TYPE_NAMES[type] || null;
 }
 
-/** Returns the WGSL zero literal for a scalar IR type, or null. */
+/**
+ * Returns the WGSL zero literal for a scalar IR type, or null.
+ *
+ * @param {string} type Scalar IR type name.
+ * @returns {string|null} WGSL zero literal.
+ */
 export function zeroForType(type)
 {
     return ({ float32: "0.0", int32: "0i", uint32: "0u", bitpattern32: "0u", bool: "false" })[type] || null;
 }
 
-/** Clones the per-field output-component write tracking map. */
+/**
+ * Clones the per-field output-component write tracking map.
+ *
+ * @param {Map<*, Set<*>>} written Write tracking map.
+ * @returns {Map<*, Set<*>>} Deep copy with fresh sets.
+ */
 export function cloneWritten(written)
 {
     return new Map(Array.from(written, ([ key, value ]) => [ key, new Set(value) ]));
 }
 
-/** Finds the basic block containing an instruction index. */
+/**
+ * Finds the basic block containing an instruction index.
+ *
+ * @param {object} program CJS shader IR program.
+ * @param {number} instructionIndex Instruction index.
+ * @returns {object|null} Containing block.
+ */
 export function blockForInstruction(program, instructionIndex)
 {
     return program.blocks.find((block) => instructionIndex >= block.startInstruction && instructionIndex <= block.endInstruction) || null;

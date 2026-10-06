@@ -493,7 +493,12 @@ export function createGlobalMarker(state, name, offset)
   return marker;
 }
 
-/** Rebuilds one allowed global from its arguments. Calls nothing. */
+/**
+ * Rebuilds one allowed global from its arguments. Calls nothing.
+ *
+ * @param {object} state Decoder state.
+ * @param {number} offset REDUCE opcode offset.
+ */
 export function reduce(state, offset)
 {
   const args = state.stack.pop();
@@ -636,6 +641,12 @@ function RebuildOrderedDict(args, state, offset)
  * list, set as a dictionary value or left as the result, it would reach the
  * caller as `{}` - indistinguishable from an empty dictionary, and buryable
  * anywhere in the graph through the memo.
+ *
+ * @param {object} state Decoder state.
+ * @param {*} value Decoded value about to be stored or returned.
+ * @param {number} offset Opcode offset reported on error.
+ * @returns {*} The value, unchanged.
+ * @throws {Error} When the value is a global marker.
  */
 export function rejectGlobalMarker(state, value, offset)
 {

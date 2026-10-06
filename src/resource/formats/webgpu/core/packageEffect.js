@@ -55,7 +55,12 @@ const REFUSED_EFFECTS = [
     { pattern: /\/managed\/space\/system\/crash\.[^/]*$/iu, reason: "system/crash never terminates without its sentinel and races across workgroups" }
 ];
 
-/** Throws for an effect this backend refuses by name. */
+/**
+ * Throws for an effect this backend refuses by name.
+ *
+ * @param {string} source Effect source path.
+ * @throws {Error} When the path matches a refused effect.
+ */
 export function rejectRefusedEffect(source)
 {
     const refused = REFUSED_EFFECTS.find((entry) => entry.pattern.test(String(source ?? "")));

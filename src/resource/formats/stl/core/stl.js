@@ -196,14 +196,23 @@ function rootSource(input)
 class DisjointSet
 {
 
-    /** Creates a DisjointSet with caller-provided initial state. */
+    /**
+     * Creates a DisjointSet with caller-provided initial state.
+     *
+     * @param {number} size Number of elements, each starting in its own set.
+     */
     constructor(size)
     {
         this.parent = new Array(size);
         for (let i = 0; i < size; i++) this.parent[i] = i;
     }
 
-    /** Finds the canonical entry in the current STL format reader. */
+    /**
+     * Finds the canonical entry in the current STL format reader.
+     *
+     * @param {number} value Element index.
+     * @returns {number} Root index of the element's set.
+     */
     find(value)
     {
         const parent = this.parent[value];
@@ -215,6 +224,9 @@ class DisjointSet
     /**
      * Merges the connected components containing two mesh vertices for the STL
      * format reader.
+     *
+     * @param {number} a First element index.
+     * @param {number} b Second element index.
      */
     union(a, b)
     {

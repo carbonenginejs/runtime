@@ -62,6 +62,7 @@ export function NeedsEmulation(modes)
  * textureSample, textureSampleBias, textureSampleLevel and textureSampleGrad -
  * instead of needing a variant for each.
  *
+ * @param {Set<string>} [used] Helper names to emit; anything but a Set emits all.
  * @returns {string[]} WGSL source lines.
  */
 export function EmulatedAddressingHelpers(used)

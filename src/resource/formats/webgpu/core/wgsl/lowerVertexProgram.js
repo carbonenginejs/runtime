@@ -1167,6 +1167,8 @@ function lowerInstruction(program, instruction, inputs, outputs, bindings, writt
  * interface assignments, and canonical uniform-buffer bindings.
  *
  * @param {object} program CJS shader IR.
+ * @param {object} [options={}] Lowering options.
+ * @param {object} [options.bindingPlan] Binding plan supplying layout and varying interpolation.
  * @returns {object} Typed vertex program.
  */
 export function lowerVertexProgram(program, options = {})

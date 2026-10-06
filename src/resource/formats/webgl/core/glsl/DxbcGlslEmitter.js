@@ -1751,6 +1751,7 @@ export class DxbcGlslEmitter
      *
      * @param {object} state Mutable emission state.
      * @param {object} instruction Decoded input declaration.
+     * @returns {void}
      * @private
      */
     _declareVertexInput(state, instruction)
@@ -1803,6 +1804,7 @@ export class DxbcGlslEmitter
      *
      * @param {object} state Mutable emission state.
      * @param {object} instruction Decoded input declaration.
+     * @returns {void}
      * @private
      */
     _declarePixelInput(state, instruction)
@@ -2224,9 +2226,16 @@ export class DxbcGlslEmitter
     }
 
     /**
-   * Builds the lvalue text for one register-space destination component,
-   * remapped into the target variable's declared component space.
-   */
+     * Builds the lvalue text for one register-space destination component,
+     * remapped into the target variable's declared component space.
+     *
+     * @param {object} state Mutable emission state.
+     * @param {object} destOperand Decoded DXBC destination operand.
+     * @param {object} target Resolved destination.
+     * @param {string} component Register-space component character.
+     * @returns {string} GLSL lvalue text.
+     * @private
+     */
     _destComponentRef(state, destOperand, target, component)
     {
         const remapped = state.formatter.remapComponents(destOperand, component);
@@ -2258,9 +2267,16 @@ export class DxbcGlslEmitter
     }
 
     /**
-   * Reads a source at the destination mask's width, wrapping in a matching
-   * constructor so intrinsic arguments always type-check exactly.
-   */
+     * Reads a source at the destination mask's width, wrapping in a matching
+     * constructor so intrinsic arguments always type-check exactly.
+     *
+     * @param {object} state Mutable emission state.
+     * @param {object} operand Decoded DXBC source operand.
+     * @param {string} destMask Destination component mask characters.
+     * @param {string} [as="float"] Component kind: `float`, `int` or `uint`.
+     * @returns {string} GLSL expression text.
+     * @private
+     */
     _vecArg(state, operand, destMask, as = "float")
     {
         const expression = state.formatter.sourceExpression(operand, { destMask, as });

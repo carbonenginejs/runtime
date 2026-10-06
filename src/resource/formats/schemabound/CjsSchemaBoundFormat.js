@@ -43,7 +43,10 @@ export class CjsSchemaBoundFormat extends CjsFormat {
    * this format cannot support - and `CjsStaticFormat` already answers which
    * family a `.static` file belongs to.
    *
-   * @param {object|Uint8Array|ArrayBuffer|string} schema Schema document or its bytes.
+   * @param {string|null} _filename Unused; the schema alone decides.
+   * @param {object|Uint8Array|ArrayBuffer|string} input Schema document or its bytes, used when no `options.schema` is given.
+   * @param {object|null} [options=null] Probe options.
+   * @param {object|Uint8Array|ArrayBuffer|string} [options.schema] Schema document or its bytes.
    * @returns {boolean} True when the schema has a root this reader understands.
    */
   static is(_filename, input, options = null) {
@@ -57,8 +60,10 @@ export class CjsSchemaBoundFormat extends CjsFormat {
   /**
    * Reports whether this format can read a payload described by a schema.
    *
-   * @param {object|Uint8Array|ArrayBuffer|string} schema Schema document or its bytes.
-   * @param {object} [options] Probe options.
+   * @param {object|Uint8Array|ArrayBuffer|string} input Schema document or its bytes, or the payload when `options.schema` is given.
+   * @param {object|null} [options=null] Probe options.
+   * @param {object|Uint8Array|ArrayBuffer|string} [options.schema] Schema document or its bytes.
+   * @param {string} [options.source] Probe source label; defaults to `buffer`.
    * @returns {object} Resource probe.
    */
   static probeSupport(input, options = null) {
@@ -84,7 +89,14 @@ export class CjsSchemaBoundFormat extends CjsFormat {
     };
   }
 
-  /** Return schema and payload facts without decoding the payload. */
+  /**
+   * Return schema and payload facts without decoding the payload.
+   *
+   * @param {object|Uint8Array|ArrayBuffer|string} input Schema document or its bytes, or the payload when `options.schema` is given.
+   * @param {object|null} [options=null] Inspect options.
+   * @param {object|Uint8Array|ArrayBuffer|string} [options.schema] Schema document or its bytes.
+   * @returns {object} Family, root type, decodability and payload byte length (null without a payload).
+   */
   static inspect(input, options = null) {
     const schema = this.schema(options?.schema ?? input);
     return {
@@ -139,12 +151,26 @@ export class CjsSchemaBoundFormat extends CjsFormat {
     return output === OUTPUT_PAYLOAD ? decoded : ToJSON(decoded);
   }
 
-  /** Reads to plain JSON-compatible values. */
+  /**
+   * Reads to plain JSON-compatible values.
+   *
+   * @param {Uint8Array|ArrayBuffer} input Container bytes.
+   * @param {object} [options={}] Read options, as for `read`; `output` is forced to `json`.
+   * @param {object|Uint8Array|ArrayBuffer|string} options.schema The sibling schema.
+   * @returns {object|Array} The decoded container.
+   */
   static readJSON(input, options = {}) {
     return this.read(input, { ...options, output: OUTPUT_JSON });
   }
 
-  /** Reads with wide integers left as `BigInt`. */
+  /**
+   * Reads with wide integers left as `BigInt`.
+   *
+   * @param {Uint8Array|ArrayBuffer} input Container bytes.
+   * @param {object} [options={}] Read options, as for `read`; `output` is forced to `payload`.
+   * @param {object|Uint8Array|ArrayBuffer|string} options.schema The sibling schema.
+   * @returns {object|Array} The decoded container.
+   */
   static readPayload(input, options = {}) {
     return this.read(input, { ...options, output: OUTPUT_PAYLOAD });
   }
