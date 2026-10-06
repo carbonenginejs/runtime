@@ -115,12 +115,557 @@ const SUPPORTED_MATERIAL_MAPPINGS = new Set([ "AllSame", "ByPolygon" ]);
 let fixedDeflateTables = null;
 
 /**
+ * Normalized FBX reader values.
+ *
+ * @typedef {object} FbxReaderValues
+ * @property {string} emit Emit target: "raw", "fbxJson", "gr2" or "cmf".
+ * @property {string} inputType Input type, lower case without a leading dot.
+ * @property {string} source Resource path or label.
+ * @property {boolean} flipV Whether imported UV V coordinates are flipped.
+ * @property {string} compatibility "source" or "carbon".
+ * @property {Object<string, Function>} classes Output node constructors by class key.
+ * @property {number} maxBytes Maximum input byte length.
+ * @property {number} maxNodes Maximum node count.
+ * @property {number} maxDepth Maximum node depth.
+ * @property {number} maxProperties Maximum properties per node.
+ * @property {number} maxArrayLength Maximum array property length.
+ */
+
+/**
+ * Encoding detection for FBX bytes.
+ *
+ * @typedef {object} FbxDetection
+ * @property {string} encoding "binary", "ascii", or "" when unrecognized.
+ * @property {number} version FBX version, or 0 when unknown.
+ * @property {string} signature Detected signature text.
+ * @property {number} rootNodeCount Root node count.
+ * @property {string[]} rootNodeNames Root node names.
+ * @property {number} confidence Detection confidence from 0 to 1.
+ */
+
+/**
+ * Lightweight FBX metadata.
+ *
+ * @typedef {FbxDetection & {sourceFormat: string, byteLength: number, source: string}} FbxMetadata
+ */
+
+/**
+ * Raw read payload.
+ *
+ * @typedef {object} FbxRawPayload
+ * @property {string} sourceFormat Always "fbx".
+ * @property {FbxMetadata} metadata Inspected metadata.
+ * @property {Uint8Array} bytes Input bytes.
+ */
+
+/**
+ * FBX support report.
+ *
+ * @typedef {object} FbxSupportReport
+ * @property {string} format Always "fbx".
+ * @property {string} source Resource path, or "buffer".
+ * @property {string} supported "partial" or "none".
+ * @property {number} confidence Detection confidence.
+ * @property {string} preferredOutput Preferred emit target, or "".
+ * @property {string} reason Support summary or error message.
+ * @property {FbxMetadata|null} metadata Inspected metadata, or null on error.
+ * @property {Array<{kind: string, codec: string, supported: boolean, reason?: string}>} variants Output variants.
+ * @property {string[]} warnings Feature warnings.
+ * @property {string[]} errors Errors.
+ */
+
+/**
+ * Feature-support warnings and errors.
+ *
+ * @typedef {object} FbxDiagnostics
+ * @property {string[]} warnings Warning messages.
+ * @property {string[]} errors Error messages.
+ */
+
+/**
+ * Compressed array property left undecoded.
+ *
+ * @typedef {object} FbxCompressedArray
+ * @property {string} arrayType Array type code.
+ * @property {number} length Element count.
+ * @property {number} encoding Array encoding value.
+ * @property {number} byteOffset Byte offset of the array data.
+ * @property {number} byteLength Byte length of the array data.
+ * @property {boolean} compressed Always true.
+ */
+
+/**
+ * Decoded FBX property value.
+ *
+ * @typedef {number|string|boolean|Uint8Array|Float32Array|Float64Array|Int32Array|Array<number|string|boolean>|FbxCompressedArray} FbxPropertyValue
+ */
+
+/**
+ * Parsed FBX node.
+ *
+ * @typedef {object} FbxNode
+ * @property {string} name Node name.
+ * @property {FbxPropertyValue[]} properties Property values.
+ * @property {string[]} propertyTypes Binary property type codes; empty for ASCII nodes.
+ * @property {FbxNode[]} children Child nodes.
+ */
+
+/**
+ * Parsed FBX document.
+ *
+ * @typedef {FbxMetadata & {nodes: FbxNode[], nodeCount: number, root: object}} FbxDocument
+ */
+
+/**
+ * Binary node header.
+ *
+ * @typedef {object} FbxBinaryNodeHeader
+ * @property {number} endOffset Byte offset after the node.
+ * @property {number} propertyCount Property count.
+ * @property {number} propertyListLength Property list byte length.
+ * @property {number} nameLength Name byte length.
+ * @property {number} nameOffset Name byte offset.
+ * @property {string} name Node name.
+ * @property {number} propertiesOffset Byte offset of the first property.
+ */
+
+/**
+ * Binary property read result.
+ *
+ * @typedef {object} FbxBinaryPropertyResult
+ * @property {string} type Property type code.
+ * @property {FbxPropertyValue} value Decoded value.
+ * @property {number} offset Byte offset after the property.
+ */
+
+/**
+ * Inflate output state.
+ *
+ * @typedef {object} FbxInflateState
+ * @property {Uint8Array} output Output bytes.
+ * @property {number} offset Next output offset.
+ */
+
+/**
+ * Deflate literal/length and distance tables.
+ *
+ * @typedef {object} FbxDeflateTables
+ * @property {DeflateHuffmanTable} literalLength Literal/length table.
+ * @property {DeflateHuffmanTable} distance Distance table.
+ */
+
+/**
+ * Object summary read from an Objects child node.
+ *
+ * @typedef {object} FbxObjectSummary
+ * @property {FbxPropertyValue} id Object id.
+ * @property {string} key Object id as a string key.
+ * @property {string} nodeName Object node name, such as "Geometry".
+ * @property {string} name Short object name.
+ * @property {string} fullName Full object name property.
+ * @property {string} className Object class property.
+ * @property {number} propertyCount Property count.
+ * @property {number} childCount Child node count.
+ * @property {string[]} attributeNames Child node names.
+ */
+
+/**
+ * Indexed object entry with its source node.
+ *
+ * @typedef {FbxObjectSummary & {node: FbxNode}} FbxObjectEntry
+ */
+
+/**
+ * Objects indexed by key and node name.
+ *
+ * @typedef {object} FbxObjectIndex
+ * @property {FbxObjectEntry[]} list Entries in document order.
+ * @property {Object<string, FbxObjectEntry>} byId Entries by key.
+ * @property {Object<string, FbxObjectEntry[]>} byType Entries by node name.
+ */
+
+/**
+ * One FBX connection.
+ *
+ * @typedef {object} FbxConnection
+ * @property {string} relation Relation, such as "OO" or "OP".
+ * @property {FbxPropertyValue} childId Child object id.
+ * @property {FbxPropertyValue} parentId Parent object id.
+ * @property {string} property Connected property name, or "".
+ * @property {string} childKey Child object key.
+ * @property {string} parentKey Parent object key.
+ */
+
+/**
+ * Connections indexed in both directions.
+ *
+ * @typedef {object} FbxConnections
+ * @property {number} count Connection count.
+ * @property {FbxConnection[]} list Connections in document order.
+ * @property {Object<string, string[]>} parentsByChild Parent keys by child key.
+ * @property {Object<string, string[]>} childrenByParent Child keys by parent key.
+ */
+
+/**
+ * One Properties70 definition.
+ *
+ * @typedef {object} FbxProperty70
+ * @property {FbxPropertyValue} type Property type.
+ * @property {FbxPropertyValue} label Property label.
+ * @property {FbxPropertyValue} flags Property flags.
+ * @property {FbxPropertyValue|FbxPropertyValue[]|undefined} value Single value, or an array for multiple values.
+ */
+
+/**
+ * Scene axis and unit conversion from GlobalSettings.
+ *
+ * @typedef {object} FbxSceneTransform
+ * @property {number} scale Unit scale.
+ * @property {number[]} right Right axis vector.
+ * @property {number[]} up Up axis vector.
+ * @property {number[]} forward Forward axis vector.
+ */
+
+/**
+ * World transform state of a Model.
+ *
+ * @typedef {object} FbxModelTransformState
+ * @property {number[]} nodeToWorld Node-to-world matrix.
+ * @property {number[]} unscaledNodeToWorld Node-to-world matrix without local scale.
+ * @property {number[]} inheritScale Scale inherited by children.
+ */
+
+/**
+ * Local transform state of a Model.
+ *
+ * @typedef {object} FbxModelLocalState
+ * @property {Object<string, FbxProperty70>} properties Model Properties70.
+ * @property {number[]} translation Local translation.
+ * @property {number[]} scale Local scale.
+ * @property {number} inheritType InheritType property.
+ * @property {number[]} matrix Local matrix.
+ * @property {number[]} unscaledMatrix Local matrix with unit scale.
+ */
+
+/**
+ * Translation, quaternion rotation and scale.
+ *
+ * @typedef {object} FbxTransform
+ * @property {number[]} position Translation.
+ * @property {number[]} rotation Quaternion as [x, y, z, w].
+ * @property {number[]} scale Scale.
+ */
+
+/**
+ * One polygon corner of decoded geometry.
+ *
+ * @typedef {object} FbxPolygonCorner
+ * @property {number} outputIndex Expanded vertex index.
+ * @property {number} controlPointIndex Control point index.
+ * @property {number} polygonIndex Polygon index.
+ * @property {number} polygonCornerIndex Corner index within the polygon.
+ */
+
+/**
+ * Geometry decoded to polygon corners.
+ *
+ * @typedef {object} FbxDecodedPolygons
+ * @property {number[]} positions Expanded corner positions.
+ * @property {FbxPolygonCorner[]} corners Corners in order.
+ * @property {number[][]} polygons Expanded vertex indices per polygon.
+ */
+
+/**
+ * Axis-aligned bounds.
+ *
+ * @typedef {object} FbxBounds
+ * @property {number[]} minBounds Minimum corner.
+ * @property {number[]} maxBounds Maximum corner.
+ */
+
+/**
+ * Mesh bone binding.
+ *
+ * @typedef {FbxBounds & {name: string}} FbxBoneBinding
+ */
+
+/**
+ * Skin cluster data merged per linked bone.
+ *
+ * @typedef {object} FbxSkinClusterRecord
+ * @property {FbxObjectEntry} cluster First Cluster deformer for the bone.
+ * @property {FbxObjectEntry} bone Linked bone Model.
+ * @property {string} boneKey Bone object key.
+ * @property {string} boneName Bone name.
+ * @property {number[]} indexes Control point indexes.
+ * @property {number[]} weights Weights.
+ */
+
+/**
+ * One bone influence on a control point.
+ *
+ * @typedef {object} FbxInfluence
+ * @property {number} boneIndex Bone binding index.
+ * @property {string} boneKey Bone object key.
+ * @property {string} boneName Bone name.
+ * @property {number} weight Weight.
+ */
+
+/**
+ * Skin data for one mesh.
+ *
+ * @typedef {object} FbxSkinning
+ * @property {FbxBoneBinding[]} boneBindings Bone bindings.
+ * @property {number[]} blendIndice Four binding indices per vertex.
+ * @property {number[]} blendWeight Four weights per vertex.
+ * @property {string[]} boneKeys Bone object keys per binding.
+ * @property {number|null} skeleton Skeleton index, or null.
+ */
+
+/**
+ * GR2 bone.
+ *
+ * @typedef {object} FbxGr2Bone
+ * @property {string} name Bone name.
+ * @property {number} parentIndex Parent bone index, or -1.
+ * @property {number} flag Bone flags.
+ * @property {number[]} position Translation.
+ * @property {number[]} orientation Quaternion as [x, y, z, w].
+ * @property {number[]} scaleShear 3x3 scale/shear matrix.
+ */
+
+/**
+ * CMF bone mask.
+ *
+ * @typedef {object} FbxBoneMask
+ * @property {string} name Mask name.
+ * @property {Array<{index: number, weight: number}>} weights Weight per bone index.
+ */
+
+/**
+ * CMF skeleton.
+ *
+ * @typedef {object} FbxCmfSkeleton
+ * @property {string} name Skeleton name.
+ * @property {string[]} bones Bone names.
+ * @property {number[]} parents Parent indices; 0xffffffff marks a root.
+ * @property {FbxTransform[]} restTransforms Rest transform per bone.
+ * @property {number[][]} invBindTransforms Inverse bind matrix per bone.
+ * @property {FbxBoneMask[]} boneMasks Bone masks.
+ */
+
+/**
+ * Imported bone record.
+ *
+ * @typedef {object} FbxBoneRecord
+ * @property {FbxObjectEntry} bone Bone Model.
+ * @property {number} parentIndex Parent record index, or -1.
+ * @property {number[]} localMatrix Local matrix.
+ * @property {FbxTransform} transform Local transform.
+ */
+
+/**
+ * Imported skeleton in GR2 and CMF form.
+ *
+ * @typedef {object} FbxImportedSkeleton
+ * @property {string} name Skeleton name.
+ * @property {string[]} boneKeys Bone object keys.
+ * @property {{name: string, bones: FbxGr2Bone[]}} gr2Skeleton GR2 skeleton.
+ * @property {FbxCmfSkeleton} cmfSkeleton CMF skeleton.
+ */
+
+/**
+ * Imported skeletons and bone lookup.
+ *
+ * @typedef {object} FbxSkeletonContext
+ * @property {FbxImportedSkeleton[]} skeletons Skeletons.
+ * @property {Map<string, number>} boneToSkeletonIndex Skeleton index by bone key.
+ */
+
+/**
+ * Index group of one material slot.
+ *
+ * @typedef {object} FbxIndexGroup
+ * @property {string} name Material name.
+ * @property {number} bytesPerIndex 2 or 4.
+ * @property {number[]} faces Triangle indices.
+ */
+
+/**
+ * Material slot.
+ *
+ * @typedef {object} FbxMaterialSlot
+ * @property {string} key Material key.
+ * @property {string} name Material name.
+ */
+
+/**
+ * Material slots and per-polygon slot selection.
+ *
+ * @typedef {object} FbxMaterialSelection
+ * @property {FbxMaterialSlot[]} slots Material slots.
+ * @property {number[]} polygonSlots Slot index per polygon.
+ */
+
+/**
+ * Imported morph target.
+ *
+ * @typedef {object} FbxMorphTarget
+ * @property {string} name Target name.
+ * @property {boolean} dataIsDeltas Always false; positions are absolute.
+ * @property {number} maxDisplacement Largest position displacement.
+ * @property {Object<string, number[]>} vertex Vertex channels.
+ */
+
+/**
+ * Imported GR2-shaped mesh.
+ *
+ * @typedef {object} FbxGr2Mesh
+ * @property {string} name Mesh name.
+ * @property {FbxMorphTarget[]} morphTargets Morph targets.
+ * @property {number[]} minBounds Minimum corner.
+ * @property {number[]} maxBounds Maximum corner.
+ * @property {FbxBoneBinding[]} boneBindings Bone bindings.
+ * @property {Object<string, number[]>} vertex Vertex channels.
+ * @property {FbxIndexGroup[]} indices Index groups.
+ * @property {number|null} skeleton Skeleton index, or null.
+ */
+
+/**
+ * GR2 model.
+ *
+ * @typedef {object} FbxGr2Model
+ * @property {string} name Model name.
+ * @property {{name: string, bones: FbxGr2Bone[]}} skeleton GR2 skeleton.
+ * @property {number[]} meshBindings Bound mesh indices.
+ */
+
+/**
+ * Imported animation curve sampled at FBX ticks.
+ *
+ * @typedef {object} FbxAnimationCurve
+ * @property {number[]} ticks Key times in FBX ticks.
+ * @property {number[]} values Key values, `valueDimension` per key.
+ * @property {string} interpolation "Linear", "Step" or "Mixed".
+ * @property {string[]} [interpolations] Interpolation per key.
+ */
+
+/**
+ * Bone animation target.
+ *
+ * @typedef {object} FbxBoneTarget
+ * @property {string} name Bone name.
+ * @property {boolean} isRoot Whether the bone is a skeleton root.
+ */
+
+/**
+ * Imported animation channel before CMF packing.
+ *
+ * @typedef {object} FbxAnimationRecord
+ * @property {string} target Target name.
+ * @property {string} targetType "MorphTarget", "BonePosition", "BoneRotation" or "BoneScale".
+ * @property {number} valueDimension Values per key.
+ * @property {FbxAnimationCurve} curve Curve.
+ * @property {string} [source] Morph source: "deformPercent" or "rootProperty".
+ * @property {FbxObjectEntry} [_bone] Bone Model of a bone record.
+ * @property {FbxBoneTarget} [_boneTarget] Bone target of a bone record.
+ * @property {string} [_property] "position", "rotation" or "scale".
+ * @property {FbxAnimationCurve} [_vectorCurve] Source vector curve.
+ */
+
+/**
+ * CMF animation curve.
+ *
+ * @typedef {object} FbxCmfCurve
+ * @property {number} valueDimension Values per key.
+ * @property {string} interpolation Interpolation.
+ * @property {string} knotType Knot element type.
+ * @property {string} valueType Value element type.
+ * @property {number} knotCount Knot count.
+ * @property {number[]} knots Packed float32 knot bytes.
+ * @property {number[]} values Packed float32 value bytes.
+ */
+
+/**
+ * CMF animation.
+ *
+ * @typedef {object} FbxCmfAnimation
+ * @property {string} name Animation name.
+ * @property {Array<{target: string, targetType: string, curveIndex: number}>} channels Channels.
+ * @property {FbxCmfCurve[]} curves Curves.
+ * @property {number} duration Duration in seconds.
+ */
+
+/**
+ * Imported GR2-shaped root.
+ *
+ * @typedef {object} FbxGr2Root
+ * @property {number} grannyFileFormatRevision Granny file format revision.
+ * @property {string} grannyFileSource Source label.
+ * @property {FbxGr2Mesh[]} meshes Meshes.
+ * @property {FbxGr2Model[]} models Models.
+ * @property {FbxCmfSkeleton[]} skeletons CMF skeletons.
+ * @property {object[]} animations GR2 animations.
+ * @property {FbxCmfAnimation[]} cmfAnimations CMF animations.
+ */
+
+/**
+ * Node record for the binary FBX writer.
+ *
+ * @typedef {object} FbxWriteNode
+ * @property {string} name Node name.
+ * @property {FbxWriteProperty[]} properties Properties.
+ * @property {FbxWriteNode[]} children Child nodes.
+ * @property {boolean} forceSentinel Whether to write the null sentinel record even without children.
+ */
+
+/**
+ * Property record for the binary FBX writer.
+ *
+ * @typedef {object} FbxWriteProperty
+ * @property {string} type Property type code.
+ * @property {number|bigint|string|Uint8Array} [value] Scalar, string or raw value.
+ * @property {ArrayLike<number|bigint>} [values] Array values.
+ */
+
+/**
+ * Decoded CMF curve for the FBX writer.
+ *
+ * @typedef {object} FbxWriteCurve
+ * @property {string} interpolation "Step" or "Linear".
+ * @property {number} valueDimension Values per key.
+ * @property {number} knotCount Knot count.
+ * @property {number[]} knots Knot times in seconds.
+ * @property {number[]} ticks Knot times in FBX ticks.
+ * @property {number[]} values Key values.
+ */
+
+/**
+ * Normalized FBX write options.
+ *
+ * @typedef {object} FbxWriteOptions
+ * @property {number} version FBX version.
+ * @property {string} compatibility "source" or "carbon".
+ * @property {number|string|null|undefined} morphAnimationRoot Carbon morph animation carrier skeleton index or name.
+ * @property {boolean} [flipV] When not false, UV V coordinates are written as `1 - v`.
+ */
+
+/**
+ * Skeleton root that carries Carbon morph animation properties.
+ *
+ * @typedef {object} FbxMorphCarrier
+ * @property {number} skeletonIndex Skeleton index.
+ * @property {number} rootBoneIndex Root bone index.
+ * @property {string[]} names Animated morph target names.
+ */
+
+/**
  * Normalize reader values.
  *
- * @param {object} [base] Base values.
- * @param {object} [options] Override values.
+ * @param {Partial<FbxReaderValues>} [base] Base values.
+ * @param {Partial<FbxReaderValues>} [options] Override values.
  * @param {string} [readerName] Reader name for errors.
- * @returns {object} Normalized values.
+ * @returns {FbxReaderValues} Normalized values.
  */
 export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsFbxFormat")
 {
@@ -216,17 +761,11 @@ export function normalizeEmit(emit, readerName)
 }
 
 /**
- * Convert supported binary inputs to bytes.
- *
- * @param {Uint8Array|ArrayBuffer|DataView} input Binary input.
- * @returns {Uint8Array} Byte view.
- */
-/**
  * Read FBX bytes with normalized values.
  *
  * @param {Uint8Array|ArrayBuffer|DataView} input FBX bytes.
- * @param {object} values Normalized reader values.
- * @returns {object} Raw or debug payload.
+ * @param {FbxReaderValues} [values=DEFAULT_VALUES] Normalized reader values.
+ * @returns {FbxRawPayload|FbxDocument|object} Raw or debug payload.
  */
 export function readWithValues(input, values = DEFAULT_VALUES)
 {
@@ -259,8 +798,8 @@ export function readWithValues(input, values = DEFAULT_VALUES)
  * Inspect FBX bytes.
  *
  * @param {Uint8Array|ArrayBuffer|DataView} input FBX bytes.
- * @param {object} values Normalized reader values.
- * @returns {object} Lightweight FBX metadata.
+ * @param {FbxReaderValues} [values=DEFAULT_VALUES] Normalized reader values.
+ * @returns {FbxMetadata} Lightweight FBX metadata.
  */
 export function inspectWithValues(input, values = DEFAULT_VALUES)
 {
@@ -279,8 +818,8 @@ export function inspectWithValues(input, values = DEFAULT_VALUES)
  * Parse FBX bytes into a browser-safe debug document.
  *
  * @param {Uint8Array|ArrayBuffer|DataView} input FBX bytes.
- * @param {object} values Normalized reader values.
- * @returns {object} Parsed FBX document.
+ * @param {FbxReaderValues} [values=DEFAULT_VALUES] Normalized reader values.
+ * @returns {FbxDocument} Parsed FBX document.
  */
 export function parseWithValues(input, values = DEFAULT_VALUES)
 {
@@ -293,7 +832,7 @@ export function parseWithValues(input, values = DEFAULT_VALUES)
  * Read static FBX mesh data into GR2-shaped caller classes.
  *
  * @param {Uint8Array|ArrayBuffer|DataView} input FBX bytes.
- * @param {object} values Normalized reader values.
+ * @param {FbxReaderValues} [values=DEFAULT_VALUES] Normalized reader values.
  * @returns {object} Hydrated GR2-shaped root.
  */
 export function readGr2WithValues(input, values = DEFAULT_VALUES)
@@ -306,7 +845,7 @@ export function readGr2WithValues(input, values = DEFAULT_VALUES)
  * Read static FBX mesh data into CMF-shaped caller classes.
  *
  * @param {Uint8Array|ArrayBuffer|DataView} input FBX bytes.
- * @param {object} values Normalized reader values.
+ * @param {FbxReaderValues} [values=DEFAULT_VALUES] Normalized reader values.
  * @returns {object} Hydrated CMF-shaped root.
  */
 export function readCmfWithValues(input, values = DEFAULT_VALUES)
@@ -326,6 +865,12 @@ export function readCmfWithValues(input, values = DEFAULT_VALUES)
     );
 }
 
+/**
+ * Build CMF metadata entries for an imported FBX root.
+ *
+ * @param {FbxGr2Root} root Imported GR2-shaped root.
+ * @returns {{entries: Array<{key: string, value: string}>}} CMF metadata.
+ */
 function buildCmfMetadata(root)
 {
     const source = String(root.grannyFileSource || "");
@@ -337,6 +882,14 @@ function buildCmfMetadata(root)
     return { entries };
 }
 
+/**
+ * Parse every node of binary or ASCII FBX bytes into a debug document.
+ *
+ * @param {Uint8Array|ArrayBuffer|DataView} input FBX bytes.
+ * @param {FbxReaderValues} [values=DEFAULT_VALUES] Normalized reader values.
+ * @returns {FbxDocument} Parsed document.
+ * @throws {Error} When the input exceeds `maxBytes` or is not FBX.
+ */
 function parseDocumentWithValues(input, values = DEFAULT_VALUES)
 {
     const bytes = asUint8Array(input, "Fbx input");
@@ -362,6 +915,14 @@ function parseDocumentWithValues(input, values = DEFAULT_VALUES)
     throw error;
 }
 
+/**
+ * Parse only the GlobalSettings, Objects and Connections root nodes needed for GR2/CMF output.
+ *
+ * @param {Uint8Array|ArrayBuffer|DataView} input FBX bytes.
+ * @param {FbxReaderValues} values Normalized reader values.
+ * @returns {FbxMetadata & {nodes: FbxNode[]}} Metadata and the selected root nodes.
+ * @throws {Error} When the input exceeds `maxBytes` or is not FBX.
+ */
 function parseGr2DocumentWithValues(input, values)
 {
     const bytes = asUint8Array(input, "Fbx input");
@@ -397,8 +958,8 @@ function parseGr2DocumentWithValues(input, values)
  * Report FBX support for the current implementation.
  *
  * @param {Uint8Array|ArrayBuffer|DataView} input FBX bytes.
- * @param {object} values Normalized reader values.
- * @returns {object} Support report.
+ * @param {FbxReaderValues} [values=DEFAULT_VALUES] Normalized reader values.
+ * @returns {FbxSupportReport} Support report.
  */
 export function probeSupportWithValues(input, values = DEFAULT_VALUES)
 {
@@ -444,6 +1005,14 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES)
     }
 }
 
+/**
+ * Scan FBX bytes for features GR2/CMF output does not import, reporting errors instead of throwing.
+ *
+ * @param {Uint8Array|ArrayBuffer|DataView} input FBX bytes.
+ * @param {FbxReaderValues} values Normalized reader values.
+ * @param {FbxMetadata} metadata Inspected metadata.
+ * @returns {FbxDiagnostics} Warnings and errors.
+ */
 function inspectFbxFeatureSupport(input, values, metadata)
 {
     try
@@ -466,6 +1035,12 @@ function inspectFbxFeatureSupport(input, values, metadata)
     }
 }
 
+/**
+ * Collect feature-support warnings from parsed root nodes.
+ *
+ * @param {FbxNode[]} nodes Root nodes.
+ * @returns {FbxDiagnostics} Warnings and errors.
+ */
 function collectFbxFeatureSupport(nodes)
 {
     const
@@ -496,6 +1071,12 @@ function collectFbxFeatureSupport(nodes)
     };
 }
 
+/**
+ * Warn about Geometry objects that cannot be imported as meshes.
+ *
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {string[]} warnings Warnings list to append to.
+ */
 function collectGeometryFeatureWarnings(objectIndex, warnings)
 {
     for (const geometry of objectIndex.list.filter(entry => entry.nodeName === "Geometry"))
@@ -522,6 +1103,12 @@ function collectGeometryFeatureWarnings(objectIndex, warnings)
     }
 }
 
+/**
+ * Warn about unsupported layer elements on mesh Geometry objects.
+ *
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {string[]} warnings Warnings list to append to.
+ */
 function collectLayerElementFeatureWarnings(objectIndex, warnings)
 {
     for (const geometry of objectIndex.list.filter(entry => entry.nodeName === "Geometry" && (!entry.className || entry.className === "Mesh")))
@@ -546,6 +1133,13 @@ function collectLayerElementFeatureWarnings(objectIndex, warnings)
     }
 }
 
+/**
+ * Warn about unsupported mapping or reference modes on a vertex layer element.
+ *
+ * @param {FbxObjectEntry} geometry Geometry object.
+ * @param {FbxNode} layer Layer element node.
+ * @param {string[]} warnings Warnings list to append to.
+ */
 function collectVertexLayerFeatureWarnings(geometry, layer, warnings)
 {
     const
@@ -562,6 +1156,13 @@ function collectVertexLayerFeatureWarnings(geometry, layer, warnings)
     }
 }
 
+/**
+ * Warn about an unsupported mapping mode on a material layer element.
+ *
+ * @param {FbxObjectEntry} geometry Geometry object.
+ * @param {FbxNode} layer LayerElementMaterial node.
+ * @param {string[]} warnings Warnings list to append to.
+ */
 function collectMaterialLayerFeatureWarnings(geometry, layer, warnings)
 {
     const mapping = String(readFirstChildProperty(layer, "MappingInformationType") || "AllSame");
@@ -571,6 +1172,13 @@ function collectMaterialLayerFeatureWarnings(geometry, layer, warnings)
     }
 }
 
+/**
+ * Warn about extra skins, skipped clusters and control points with more than four influences.
+ *
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @param {string[]} warnings Warnings list to append to.
+ */
 function collectSkinFeatureWarnings(objectIndex, connections, warnings)
 {
     for (const geometry of objectIndex.list.filter(entry => entry.nodeName === "Geometry" && (!entry.className || entry.className === "Mesh")))
@@ -621,7 +1229,7 @@ function collectSkinFeatureWarnings(objectIndex, connections, warnings)
 /**
  * Check whether an indexed FBX object is a Skin deformer.
  *
- * @param {object} entry Indexed object entry.
+ * @param {FbxObjectEntry|null|undefined} entry Indexed object entry.
  * @returns {boolean} True when the entry is a Skin deformer.
  */
 function isSkinDeformer(entry)
@@ -632,7 +1240,7 @@ function isSkinDeformer(entry)
 /**
  * Check whether an indexed FBX object is a Cluster deformer.
  *
- * @param {object} entry Indexed object entry.
+ * @param {FbxObjectEntry|null|undefined} entry Indexed object entry.
  * @returns {boolean} True when the entry is a Cluster deformer.
  */
 function isClusterDeformer(entry)
@@ -640,6 +1248,12 @@ function isClusterDeformer(entry)
     return entry?.className === "Cluster" || entry?.fullName?.startsWith("SubDeformer::") || entry?.name?.includes("Cluster");
 }
 
+/**
+ * Check whether any control point has more than four positive influences.
+ *
+ * @param {FbxSkinClusterRecord[]} records Skin cluster records.
+ * @returns {boolean} True when a control point has more than four positive influences.
+ */
 function hasControlPointInfluenceOverflow(records)
 {
     const controlPointInfluences = buildControlPointInfluences(records);
@@ -653,6 +1267,13 @@ function hasControlPointInfluenceOverflow(records)
     return false;
 }
 
+/**
+ * Warn about BlendShapeChannels with in-between targets.
+ *
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @param {string[]} warnings Warnings list to append to.
+ */
 function collectBlendShapeFeatureWarnings(objectIndex, connections, warnings)
 {
     const channels = objectIndex.list
@@ -668,6 +1289,13 @@ function collectBlendShapeFeatureWarnings(objectIndex, connections, warnings)
     }
 }
 
+/**
+ * Warn about layered stacks, unsupported layer settings and unsupported curve interpolation.
+ *
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @param {string[]} warnings Warnings list to append to.
+ */
 function collectAnimationFeatureWarnings(objectIndex, connections, warnings)
 {
     for (const stack of objectIndex.list.filter(entry => entry.nodeName === "AnimationStack"))
@@ -704,6 +1332,12 @@ function collectAnimationFeatureWarnings(objectIndex, connections, warnings)
     }
 }
 
+/**
+ * Append a warning unless it is already present.
+ *
+ * @param {string[]} warnings Warnings list.
+ * @param {string} message Warning message.
+ */
 function addWarning(warnings, message)
 {
     if (!warnings.includes(message))
@@ -712,6 +1346,12 @@ function addWarning(warnings, message)
     }
 }
 
+/**
+ * Format an object's name, full name or key for messages.
+ *
+ * @param {FbxObjectSummary|null|undefined} entry Object entry.
+ * @returns {string} JSON-quoted label.
+ */
 function objectLabel(entry)
 {
     return JSON.stringify(entry?.name || entry?.fullName || entry?.key || "");
@@ -721,7 +1361,7 @@ function objectLabel(entry)
  * Inspect raw bytes without normalized options.
  *
  * @param {Uint8Array} bytes FBX bytes.
- * @returns {object} Detected metadata.
+ * @returns {FbxDetection} Detected metadata.
  */
 export function inspectBytes(bytes)
 {
@@ -786,6 +1426,12 @@ export function toJsonValue(value)
     return value;
 }
 
+/**
+ * Inspect binary FBX bytes by walking the root node headers.
+ *
+ * @param {Uint8Array} bytes Binary FBX bytes.
+ * @returns {FbxDetection} Detected metadata.
+ */
 function inspectBinaryBytes(bytes)
 {
     const version = readU32LE(bytes, 23);
@@ -816,6 +1462,15 @@ function inspectBinaryBytes(bytes)
     };
 }
 
+/**
+ * Parse every root node of binary FBX bytes.
+ *
+ * @param {Uint8Array} bytes Binary FBX bytes.
+ * @param {FbxMetadata} metadata Inspected metadata.
+ * @param {FbxReaderValues} values Normalized reader values.
+ * @returns {FbxDocument} Parsed document.
+ * @throws {Error} When the node count exceeds `maxNodes`.
+ */
 function parseBinaryDocument(bytes, metadata, values)
 {
     const nodes = [];
@@ -851,6 +1506,17 @@ function parseBinaryDocument(bytes, metadata, values)
     return document;
 }
 
+/**
+ * Read one binary node and its children.
+ *
+ * @param {Uint8Array} bytes Binary FBX bytes.
+ * @param {number} offset Node byte offset.
+ * @param {number} version FBX version.
+ * @param {FbxReaderValues} values Normalized reader values.
+ * @param {number} depth Node depth.
+ * @returns {{offset: number, count: number, node: FbxNode}} End offset, node count and node.
+ * @throws {Error} When the node is malformed or exceeds a reader limit.
+ */
 function readBinaryNode(bytes, offset, version, values, depth)
 {
     if (depth > values.maxDepth)
@@ -929,6 +1595,15 @@ function readBinaryNode(bytes, offset, version, values, depth)
     };
 }
 
+/**
+ * Read a binary node header.
+ *
+ * @param {Uint8Array} bytes Binary FBX bytes.
+ * @param {number} offset Node byte offset.
+ * @param {number} version FBX version; 7500 and later use 64-bit header fields.
+ * @returns {FbxBinaryNodeHeader|null} The header, or null for a null record or a truncated header.
+ * @throws {Error} When offsets exceed the safe integer range or the name is truncated.
+ */
 function readBinaryNodeHeader(bytes, offset, version)
 {
     const large = version >= 7500;
@@ -972,6 +1647,15 @@ function readBinaryNodeHeader(bytes, offset, version)
     };
 }
 
+/**
+ * Read one binary property.
+ *
+ * @param {Uint8Array} bytes Binary FBX bytes.
+ * @param {number} offset Property byte offset.
+ * @param {FbxReaderValues} values Normalized reader values.
+ * @returns {FbxBinaryPropertyResult} Type, value and end offset.
+ * @throws {Error} When the property is truncated or of an unsupported type.
+ */
 function readBinaryProperty(bytes, offset, values)
 {
     ensureRange(bytes, offset, 1, "fbx: property type is truncated");
@@ -1014,6 +1698,15 @@ function readBinaryProperty(bytes, offset, values)
     }
 }
 
+/**
+ * Read a length-prefixed string or raw property.
+ *
+ * @param {Uint8Array} bytes Binary FBX bytes.
+ * @param {number} offset Byte offset of the length field.
+ * @param {string} type Property type code.
+ * @param {string} kind "string" or "bytes".
+ * @returns {FbxBinaryPropertyResult} Type, value and end offset.
+ */
 function readBinaryBlobProperty(bytes, offset, type, kind)
 {
     ensureRange(bytes, offset, 4, `fbx: ${kind} property length is truncated`);
@@ -1029,6 +1722,16 @@ function readBinaryBlobProperty(bytes, offset, type, kind)
     };
 }
 
+/**
+ * Read an array property, inflating zlib-encoded data.
+ *
+ * @param {Uint8Array} bytes Binary FBX bytes.
+ * @param {number} offset Byte offset of the array header.
+ * @param {string} type Array type code.
+ * @param {FbxReaderValues} values Normalized reader values.
+ * @returns {FbxBinaryPropertyResult} Type, value and end offset; unknown encodings give an FbxCompressedArray value.
+ * @throws {Error} When the array exceeds `maxArrayLength`.
+ */
 function readBinaryArrayProperty(bytes, offset, type, values)
 {
     ensureRange(bytes, offset, 12, "fbx: array property header is truncated");
@@ -1077,6 +1780,17 @@ function readBinaryArrayProperty(bytes, offset, type, values)
     };
 }
 
+/**
+ * Decode uncompressed array elements.
+ *
+ * @param {Uint8Array} bytes Source bytes.
+ * @param {number} offset Byte offset of the first element.
+ * @param {string} type Array type code.
+ * @param {number} length Element count.
+ * @param {number} byteLength Available byte length.
+ * @returns {Float32Array|Float64Array|Int32Array|Array<number|string>|boolean[]} Decoded elements.
+ * @throws {Error} When the data is shorter than the element count needs.
+ */
 function readUncompressedArray(bytes, offset, type, length, byteLength)
 {
     const expected = getArrayElementSize(type) * length;
@@ -1146,6 +1860,14 @@ function readUncompressedArray(bytes, offset, type, length, byteLength)
 // Carbon offers no donor either way: `mesh` vendors ufbx
 // (`mesh/vendor/github.com/ufbx`), so Carbon's FBX decompression lives inside
 // third-party C rather than in code there is anything to port.
+/**
+ * Inflate a zlib stream and verify its Adler-32 checksum.
+ *
+ * @param {Uint8Array} source Zlib stream bytes.
+ * @param {number} expectedLength Expected output length.
+ * @returns {Uint8Array} Inflated bytes.
+ * @throws {Error} When the header, data or checksum is invalid.
+ */
 function inflateZlib(source, expectedLength)
 {
     if (source.byteLength < 6)
@@ -1179,6 +1901,14 @@ function inflateZlib(source, expectedLength)
     return output;
 }
 
+/**
+ * Inflate a raw deflate stream.
+ *
+ * @param {Uint8Array} source Deflate stream bytes.
+ * @param {number} expectedLength Expected output length.
+ * @returns {Uint8Array} Inflated bytes.
+ * @throws {Error} When a block type is reserved or the output length differs.
+ */
 function inflateDeflate(source, expectedLength)
 {
     const
@@ -1221,6 +1951,13 @@ function inflateDeflate(source, expectedLength)
     return state.output;
 }
 
+/**
+ * Copy a stored deflate block to the output.
+ *
+ * @param {DeflateBitReader} reader Bit reader.
+ * @param {FbxInflateState} state Output state.
+ * @throws {Error} When the block length check fails.
+ */
 function inflateStoredBlock(reader, state)
 {
     reader.alignByte();
@@ -1239,6 +1976,15 @@ function inflateStoredBlock(reader, state)
     }
 }
 
+/**
+ * Decode a Huffman-coded deflate block to the output.
+ *
+ * @param {DeflateBitReader} reader Bit reader.
+ * @param {FbxInflateState} state Output state.
+ * @param {DeflateHuffmanTable} literalLengthTable Literal/length table.
+ * @param {DeflateHuffmanTable} distanceTable Distance table.
+ * @throws {Error} When a length or distance symbol is invalid.
+ */
 function inflateHuffmanBlock(reader, state, literalLengthTable, distanceTable)
 {
     for (;;)
@@ -1274,6 +2020,11 @@ function inflateHuffmanBlock(reader, state, literalLengthTable, distanceTable)
     }
 }
 
+/**
+ * Get the fixed deflate Huffman tables, building them once.
+ *
+ * @returns {FbxDeflateTables} Fixed tables.
+ */
 function getFixedDeflateTables()
 {
     if (!fixedDeflateTables)
@@ -1304,6 +2055,13 @@ function getFixedDeflateTables()
     return fixedDeflateTables;
 }
 
+/**
+ * Read the dynamic Huffman tables of a deflate block.
+ *
+ * @param {DeflateBitReader} reader Bit reader.
+ * @returns {FbxDeflateTables} Dynamic tables.
+ * @throws {Error} When the code lengths are invalid.
+ */
 function readDynamicDeflateTables(reader)
 {
     const
@@ -1357,6 +2115,15 @@ function readDynamicDeflateTables(reader)
     };
 }
 
+/**
+ * Append a repeated code length.
+ *
+ * @param {number[]} lengths Code lengths to append to.
+ * @param {number} value Code length to repeat.
+ * @param {number} count Repeat count.
+ * @param {number} totalCount Total code length count.
+ * @throws {Error} When the repeat overflows the total count.
+ */
 function repeatCodeLength(lengths, value, count, totalCount)
 {
     if (lengths.length + count > totalCount)
@@ -1369,6 +2136,13 @@ function repeatCodeLength(lengths, value, count, totalCount)
     }
 }
 
+/**
+ * Write one inflated byte.
+ *
+ * @param {FbxInflateState} state Output state.
+ * @param {number} value Byte value.
+ * @throws {Error} When the output is already full.
+ */
 function writeInflatedByte(state, value)
 {
     if (state.offset >= state.output.byteLength)
@@ -1378,6 +2152,14 @@ function writeInflatedByte(state, value)
     state.output[state.offset++] = value & 0xff;
 }
 
+/**
+ * Copy a back-reference from earlier output.
+ *
+ * @param {FbxInflateState} state Output state.
+ * @param {number} distance Back-reference distance.
+ * @param {number} length Byte count.
+ * @throws {Error} When the distance is invalid.
+ */
 function copyInflatedBytes(state, distance, length)
 {
     if (distance <= 0 || distance > state.offset)
@@ -1400,6 +2182,8 @@ class DeflateBitReader
     /**
      * Creates a DeflateBitReader over caller-provided FBX bytes and reader
      * options.
+     *
+     * @param {Uint8Array} bytes Raw deflate stream bytes.
      */
     constructor(bytes)
     {
@@ -1409,7 +2193,13 @@ class DeflateBitReader
         this.bitCount = 0;
     }
 
-    /** Reads bits from the current FBX binary reader. */
+    /**
+     * Reads bits from the current FBX binary reader.
+     *
+     * @param {number} count Number of bits to read, least significant first.
+     * @returns {number} The bits as an unsigned value.
+     * @throws {Error} When the deflate stream is truncated.
+     */
     readBits(count)
     {
         let
@@ -1450,7 +2240,12 @@ class DeflateBitReader
         this.bitCount = 0;
     }
 
-    /** Reads aligned byte from the current FBX binary reader. */
+    /**
+     * Reads aligned byte from the current FBX binary reader.
+     *
+     * @returns {number} The byte value.
+     * @throws {Error} When the stored block is truncated.
+     */
     readAlignedByte()
     {
         if (this.byteOffset >= this.bytes.byteLength)
@@ -1460,7 +2255,11 @@ class DeflateBitReader
         return this.bytes[this.byteOffset++];
     }
 
-    /** Reads aligned U16 LE from the current FBX binary reader. */
+    /**
+     * Reads aligned U16 LE from the current FBX binary reader.
+     *
+     * @returns {number} The unsigned 16-bit value.
+     */
     readAlignedU16LE()
     {
         const
@@ -1476,7 +2275,12 @@ class DeflateBitReader
  */
 class DeflateHuffmanTable
 {
-    /** Creates a DeflateHuffmanTable with caller-provided initial state. */
+    /**
+     * Creates a DeflateHuffmanTable with caller-provided initial state.
+     *
+     * @param {number[]} lengths Code length per symbol; 0 marks an unused symbol.
+     * @throws {Error} When a code length is outside 0..15.
+     */
     constructor(lengths)
     {
         this.tables = [];
@@ -1525,6 +2329,10 @@ class DeflateHuffmanTable
     /**
      * Decodes one symbol through the canonical Deflate Huffman table for the FBX
      * decoder.
+     *
+     * @param {DeflateBitReader} reader Bit reader positioned at the code.
+     * @returns {number} The decoded symbol.
+     * @throws {Error} When no code matches.
      */
     decode(reader)
     {
@@ -1543,6 +2351,13 @@ class DeflateHuffmanTable
     }
 }
 
+/**
+ * Reverse the low bits of a value.
+ *
+ * @param {number} value Value to reverse.
+ * @param {number} length Bit count.
+ * @returns {number} Reversed value.
+ */
 function reverseBits(value, length)
 {
     let reversed = 0;
@@ -1554,6 +2369,15 @@ function reverseBits(value, length)
     return reversed;
 }
 
+/**
+ * Parse every node of ASCII FBX bytes.
+ *
+ * @param {Uint8Array} bytes ASCII FBX bytes.
+ * @param {FbxMetadata} metadata Inspected metadata.
+ * @param {FbxReaderValues} values Normalized reader values.
+ * @returns {FbxDocument} Parsed document.
+ * @throws {Error} When the node count or depth exceeds a reader limit.
+ */
 function parseAsciiDocument(bytes, metadata, values)
 {
     const text = TEXT_DECODER.decode(bytes);
@@ -1617,6 +2441,16 @@ function parseAsciiDocument(bytes, metadata, values)
     return document;
 }
 
+/**
+ * Read the named binary root nodes, skipping the rest.
+ *
+ * @param {Uint8Array} bytes Binary FBX bytes.
+ * @param {FbxMetadata} metadata Inspected metadata.
+ * @param {FbxReaderValues} values Normalized reader values.
+ * @param {Set<string>} targetNames Root node names to read.
+ * @returns {FbxNode[]} Selected root nodes.
+ * @throws {Error} When a root node is invalid or the node count exceeds `maxNodes`.
+ */
 function readBinaryTargetNodes(bytes, metadata, values, targetNames)
 {
     const nodes = [];
@@ -1658,6 +2492,15 @@ function readBinaryTargetNodes(bytes, metadata, values, targetNames)
     return nodes;
 }
 
+/**
+ * Read the named ASCII root nodes, skipping the rest.
+ *
+ * @param {Uint8Array} bytes ASCII FBX bytes.
+ * @param {FbxReaderValues} values Normalized reader values.
+ * @param {Set<string>} targetNames Root node names to read.
+ * @returns {FbxNode[]} Selected root nodes.
+ * @throws {Error} When the node count or depth exceeds a reader limit.
+ */
 function readAsciiTargetNodes(bytes, values, targetNames)
 {
     const text = TEXT_DECODER.decode(bytes);
@@ -1722,6 +2565,16 @@ function readAsciiTargetNodes(bytes, values, targetNames)
     return nodes;
 }
 
+/**
+ * Build a GR2-shaped root with CMF animations from parsed root nodes.
+ *
+ * @param {FbxNode[]} nodes GlobalSettings, Objects and Connections root nodes.
+ * @param {FbxReaderValues} values Normalized reader values.
+ * @param {string} values.emit When "gr2", GR2 animations are built too.
+ * @param {string} values.source Source label.
+ * @returns {FbxGr2Root} Imported root.
+ * @throws {Error} When there is no Objects node or no supported mesh.
+ */
 function buildGr2FromFbxNodes(nodes, values)
 {
     const objectsNode = findFirstNode(nodes, "Objects");
@@ -1779,6 +2632,21 @@ function buildGr2FromFbxNodes(nodes, values)
     return root;
 }
 
+/**
+ * Build a GR2-shaped mesh from a Geometry object and its owning Model.
+ *
+ * @param {FbxObjectEntry} geometry Geometry object.
+ * @param {FbxObjectEntry|null} owner Owning Model, or null.
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @param {FbxSceneTransform} sceneTransform Scene conversion.
+ * @param {Map<string, FbxModelTransformState>} modelWorldCache Model transform cache.
+ * @param {FbxSkeletonContext} skeletonContext Imported skeletons.
+ * @param {FbxReaderValues} values Normalized reader values.
+ * @param {string} values.compatibility In "carbon" mode, authored binormals are not imported.
+ * @returns {FbxGr2Mesh} The mesh.
+ * @throws {Error} When the Vertices length is invalid.
+ */
 function buildGr2MeshFromGeometry(geometry, owner, objectIndex, connections, sceneTransform, modelWorldCache, skeletonContext, values)
 {
     const
@@ -1853,6 +2721,11 @@ function buildGr2MeshFromGeometry(geometry, owner, objectIndex, connections, sce
     };
 }
 
+/**
+ * Generate missing indexed binormal channels from matching indexed normals and tangents.
+ *
+ * @param {Object<string, number[]>} vertex Vertex channels, updated in place.
+ */
 function deriveIndexedBinormals(vertex)
 {
     for (const name of Object.keys(vertex))
@@ -1865,6 +2738,19 @@ function deriveIndexedBinormals(vertex)
     }
 }
 
+/**
+ * Read the first Skin deformer of a Geometry into per-vertex blend indices, weights and bone bindings.
+ *
+ * @param {FbxObjectEntry} geometry Geometry object.
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @param {FbxDecodedPolygons} decoded Decoded polygons.
+ * @param {number[]} positions Expanded scene-space positions.
+ * @param {FbxSceneTransform} sceneTransform Scene conversion.
+ * @param {Map<string, FbxModelTransformState>} modelWorldCache Model transform cache.
+ * @param {FbxSkeletonContext} skeletonContext Imported skeletons.
+ * @returns {FbxSkinning} Skin data, empty when the geometry is not skinned.
+ */
 function readSkinning(geometry, objectIndex, connections, decoded, positions, sceneTransform, modelWorldCache, skeletonContext)
 {
     const skin = connectedChildObjects(geometry, objectIndex, connections, "Deformer")
@@ -1908,6 +2794,11 @@ function readSkinning(geometry, objectIndex, connections, decoded, positions, sc
     return { boneBindings, blendIndice, blendWeight, boneKeys, skeleton };
 }
 
+/**
+ * Create empty skin data.
+ *
+ * @returns {FbxSkinning} Skin data with no bindings.
+ */
 function emptySkinning()
 {
     return { boneBindings: [], blendIndice: [], blendWeight: [], boneKeys: [], skeleton: null };
@@ -1947,6 +2838,22 @@ function generateBaseBinormals(normal, tangent)
     return cleanNumericArray(generateBiNormals(normal, tangent));
 }
 
+/**
+ * Read the morph targets of a Geometry's BlendShape deformers, skipping in-between channels.
+ *
+ * @param {FbxObjectEntry} geometry Geometry object.
+ * @param {FbxObjectEntry|null} owner Owning Model, or null.
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @param {FbxDecodedPolygons} decoded Decoded polygons.
+ * @param {number[]} controlPoints Geometry control points.
+ * @param {number[]} meshTransform Geometry-to-world matrix.
+ * @param {FbxSceneTransform} sceneTransform Scene conversion.
+ * @param {number[]} basePositions Expanded base positions.
+ * @param {number[]} triangleFaces Triangle indices.
+ * @param {Object<string, number[]>} baseVertex Base normal, tangent, binormal and texcoord0 channels.
+ * @returns {FbxMorphTarget[]} Morph targets.
+ */
 function readMorphTargets(geometry, owner, objectIndex, connections, decoded, controlPoints, meshTransform, sceneTransform, basePositions, triangleFaces, baseVertex)
 {
     const blendShapes = connectedChildObjects(geometry, objectIndex, connections, "Deformer")
@@ -1979,6 +2886,23 @@ function readMorphTargets(geometry, owner, objectIndex, connections, decoded, co
     return targets;
 }
 
+/**
+ * Build one morph target from a Shape geometry.
+ *
+ * @param {FbxObjectEntry} shape Shape geometry.
+ * @param {FbxObjectEntry} channel BlendShapeChannel.
+ * @param {FbxObjectEntry} geometry Base Geometry object.
+ * @param {FbxObjectEntry|null} owner Owning Model, or null.
+ * @param {FbxDecodedPolygons} decoded Decoded polygons.
+ * @param {number[]} controlPoints Base control points.
+ * @param {number[]} meshTransform Geometry-to-world matrix.
+ * @param {FbxSceneTransform} sceneTransform Scene conversion.
+ * @param {number[]} basePositions Expanded base positions.
+ * @param {number[]} triangleFaces Triangle indices.
+ * @param {Object<string, number[]>} baseVertex Base normal, tangent, binormal and texcoord0 channels.
+ * @returns {FbxMorphTarget|null} The target, or null when the shape has no Indexes or Vertices.
+ * @throws {Error} When Vertices or Indexes are invalid.
+ */
 function buildMorphTarget(shape, channel, geometry, owner, decoded, controlPoints, meshTransform, sceneTransform, basePositions, triangleFaces, baseVertex)
 {
     const
@@ -2052,6 +2976,22 @@ function buildMorphTarget(shape, channel, geometry, owner, decoded, controlPoint
     };
 }
 
+/**
+ * Build a morph target's normal, tangent and binormal channels.
+ *
+ * @param {string} name Morph target name.
+ * @param {FbxObjectEntry} shape Shape geometry.
+ * @param {number[]} indexes Shape control point indexes.
+ * @param {FbxObjectEntry} geometry Base Geometry object.
+ * @param {FbxObjectEntry|null} owner Owning Model, or null.
+ * @param {FbxDecodedPolygons} decoded Decoded polygons.
+ * @param {number[]} meshTransform Geometry-to-world matrix.
+ * @param {FbxSceneTransform} sceneTransform Scene conversion.
+ * @param {number[]} positions Expanded target positions.
+ * @param {number[]} triangleFaces Triangle indices.
+ * @param {Object<string, number[]>} baseVertex Base normal, tangent, binormal and texcoord0 channels.
+ * @returns {{normal: number[], tangent: number[], binormal: number[]}} Target channels; empty arrays when absent.
+ */
 function buildMorphTargetVertexChannels(name, shape, indexes, geometry, owner, decoded, meshTransform, sceneTransform, positions, triangleFaces, baseVertex)
 {
     let normal = readMorphTargetShapeNormals(shape, indexes, decoded, meshTransform, sceneTransform, baseVertex);
@@ -2074,6 +3014,18 @@ function buildMorphTargetVertexChannels(name, shape, indexes, geometry, owner, d
     return { normal, tangent, binormal };
 }
 
+/**
+ * Read a Shape's Normals deltas and add them to the base normals.
+ *
+ * @param {FbxObjectEntry} shape Shape geometry.
+ * @param {number[]} indexes Shape control point indexes.
+ * @param {FbxDecodedPolygons} decoded Decoded polygons.
+ * @param {number[]} meshTransform Geometry-to-world matrix.
+ * @param {FbxSceneTransform} sceneTransform Scene conversion.
+ * @param {Object<string, number[]>} baseVertex Base channels.
+ * @returns {number[]} Expanded target normals, or an empty array when the shape has none.
+ * @throws {Error} When the base has no normals or the Normals length does not match Indexes.
+ */
 function readMorphTargetShapeNormals(shape, indexes, decoded, meshTransform, sceneTransform, baseVertex)
 {
     const values = readChildArray(shape.node, "Normals") || [];
@@ -2104,6 +3056,17 @@ function readMorphTargetShapeNormals(shape, indexes, decoded, meshTransform, sce
     return baseVertex.normal.map((value, index) => value + deltas[index]);
 }
 
+/**
+ * Read a morph target's custom `bsNormals_` property normals.
+ *
+ * @param {string} name Morph target name.
+ * @param {FbxObjectEntry} geometry Base Geometry object.
+ * @param {FbxObjectEntry|null} owner Owning Model, or null.
+ * @param {FbxDecodedPolygons} decoded Decoded polygons.
+ * @param {number[]} meshTransform Geometry-to-world matrix.
+ * @param {FbxSceneTransform} sceneTransform Scene conversion.
+ * @returns {number[]} Expanded scene-space normals, or an empty array when absent.
+ */
 function readMorphTargetCustomNormals(name, geometry, owner, decoded, meshTransform, sceneTransform)
 {
     const encoded = readMorphTargetCustomNormalString(name, owner, geometry);
@@ -2119,6 +3082,14 @@ function readMorphTargetCustomNormals(name, geometry, owner, decoded, meshTransf
     );
 }
 
+/**
+ * Find a morph target's `bsNormals_` string on the owning Model or the Geometry.
+ *
+ * @param {string} name Morph target name.
+ * @param {FbxObjectEntry|null} owner Owning Model, or null.
+ * @param {FbxObjectEntry} geometry Base Geometry object.
+ * @returns {string} Base64 text, or "" when absent.
+ */
 function readMorphTargetCustomNormalString(name, owner, geometry)
 {
     const propertyName = `bsNormals_${name}`;
@@ -2133,6 +3104,15 @@ function readMorphTargetCustomNormalString(name, owner, geometry)
     return "";
 }
 
+/**
+ * Decode base64 little-endian float32 vec3 values.
+ *
+ * @param {string} encoded Base64 text.
+ * @param {number} vertexCount Expected vec3 count.
+ * @param {string} feature Feature name for errors.
+ * @returns {number[]} Decoded values.
+ * @throws {Error} When the byte length does not match the vertex count.
+ */
 function decodeBase64Float32Vector3Array(encoded, vertexCount, feature)
 {
     const
@@ -2155,6 +3135,14 @@ function decodeBase64Float32Vector3Array(encoded, vertexCount, feature)
     return values;
 }
 
+/**
+ * Decode base64 text, ignoring whitespace and stopping at padding.
+ *
+ * @param {string} encoded Base64 text.
+ * @param {string} feature Feature name for errors.
+ * @returns {Uint8Array} Decoded bytes.
+ * @throws {Error} When the text contains an invalid character.
+ */
 function decodeBase64Bytes(encoded, feature)
 {
     const bytes = [];
@@ -2189,6 +3177,13 @@ function decodeBase64Bytes(encoded, feature)
     return Uint8Array.from(bytes);
 }
 
+/**
+ * Compute the largest distance between matching base and target positions.
+ *
+ * @param {number[]} basePositions Base positions.
+ * @param {number[]} targetPositions Target positions.
+ * @returns {number} Largest displacement.
+ */
 function computeMaxDisplacement(basePositions, targetPositions)
 {
     let maxDisplacement = 0;
@@ -2203,6 +3198,18 @@ function computeMaxDisplacement(basePositions, targetPositions)
     return cleanFloat(maxDisplacement);
 }
 
+/**
+ * Read every AnimationStack into a CMF animation.
+ *
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @param {FbxGr2Mesh[]} meshes Imported meshes.
+ * @param {FbxSkeletonContext} skeletonContext Imported skeletons.
+ * @param {FbxSceneTransform} sceneTransform Scene conversion.
+ * @param {FbxReaderValues} values Normalized reader values.
+ * @param {string} values.compatibility In "carbon" mode, the animation order is reversed.
+ * @returns {FbxCmfAnimation[]} CMF animations.
+ */
 function readCmfAnimations(objectIndex, connections, meshes, skeletonContext, sceneTransform, values)
 {
     const
@@ -2229,6 +3236,12 @@ function readCmfAnimations(objectIndex, connections, meshes, skeletonContext, sc
     return values.compatibility === COMPATIBILITY_CARBON ? animations.reverse() : animations;
 }
 
+/**
+ * Collect the morph target names of imported meshes.
+ *
+ * @param {FbxGr2Mesh[]} meshes Imported meshes.
+ * @returns {Set<string>} Morph target names.
+ */
 function buildMorphTargetNameSet(meshes)
 {
     const names = new Set();
@@ -2245,6 +3258,12 @@ function buildMorphTargetNameSet(meshes)
     return names;
 }
 
+/**
+ * Map bone keys to their CMF bone names and root flags.
+ *
+ * @param {FbxSkeletonContext} skeletonContext Imported skeletons.
+ * @returns {Map<string, FbxBoneTarget>} Bone targets by bone key.
+ */
 function buildCmfBoneTargetMap(skeletonContext)
 {
     const targets = new Map();
@@ -2261,6 +3280,20 @@ function buildCmfBoneTargetMap(skeletonContext)
     return targets;
 }
 
+/**
+ * Read one AnimationStack into a CMF animation.
+ *
+ * @param {FbxObjectEntry} stack AnimationStack object.
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @param {Set<string>} morphTargetNames Imported morph target names.
+ * @param {Map<string, FbxBoneTarget>} boneTargets Bone targets by bone key.
+ * @param {FbxSceneTransform} sceneTransform Scene conversion.
+ * @param {FbxReaderValues} values Normalized reader values.
+ * @param {string} values.compatibility "source" or "carbon".
+ * @returns {FbxCmfAnimation|null} The animation, or null when it has no channels.
+ * @throws {Error} When the stack has several layers or a curve lies outside the stack time span.
+ */
 function readCmfAnimation(stack, objectIndex, connections, morphTargetNames, boneTargets, sceneTransform, values)
 {
     const layers = connectedChildObjects(stack, objectIndex, connections, "AnimationLayer");
@@ -2369,6 +3402,13 @@ function readCmfAnimation(stack, objectIndex, connections, morphTargetNames, bon
     };
 }
 
+/**
+ * Rewrite Step and Mixed curves as Linear curves with duplicated keys at each step.
+ *
+ * @param {FbxAnimationCurve} curve Source curve.
+ * @param {number} dimension Values per key.
+ * @returns {FbxAnimationCurve} Linear curve, or the source curve when it is not stepped.
+ */
 function carbonLinearizeStepCurve(curve, dimension)
 {
     if (curve.interpolation === "Mixed")
@@ -2402,6 +3442,12 @@ function carbonLinearizeStepCurve(curve, dimension)
     return { ...curve, ticks, values, interpolation: "Linear" };
 }
 
+/**
+ * Validate that an AnimationLayer uses only default weight, blend and accumulation settings.
+ *
+ * @param {FbxObjectEntry} layer AnimationLayer object.
+ * @throws {Error} When the layer uses an unsupported setting.
+ */
 function validateAnimationLayer(layer)
 {
     const properties = readProperties70(layer.node).properties;
@@ -2426,6 +3472,14 @@ function validateAnimationLayer(layer)
     }
 }
 
+/**
+ * Read a stack's start and stop ticks, or derive the start from its curves.
+ *
+ * @param {FbxObjectEntry} stack AnimationStack object.
+ * @param {FbxAnimationRecord[]} records Stack animation records.
+ * @returns {{startTick: number, stopTick: number|null, duration: number|null}} Time span; stop and duration are null when not authored.
+ * @throws {Error} When the authored span is invalid or outside the safe tick range.
+ */
 function readAnimationStackTimeSpan(stack, records)
 {
     const
@@ -2465,6 +3519,15 @@ function readAnimationStackTimeSpan(stack, records)
     };
 }
 
+/**
+ * Read DeformPercent morph animation records from a curve node.
+ *
+ * @param {FbxObjectEntry} curveNode AnimationCurveNode object.
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @param {Set<string>} morphTargetNames Imported morph target names; empty accepts every name.
+ * @returns {FbxAnimationRecord[]} Morph records.
+ */
 function readMorphAnimationRecords(curveNode, objectIndex, connections, morphTargetNames)
 {
     const
@@ -2485,6 +3548,16 @@ function readMorphAnimationRecords(curveNode, objectIndex, connections, morphTar
     }));
 }
 
+/**
+ * Read a morph animation record from a user-defined numeric property on a root bone.
+ *
+ * @param {FbxObjectEntry} curveNode AnimationCurveNode object.
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @param {Set<string>} morphTargetNames Imported morph target names; empty accepts every name.
+ * @param {Map<string, FbxBoneTarget>} boneTargets Bone targets by bone key.
+ * @returns {FbxAnimationRecord[]} Zero or one morph record.
+ */
 function readRootPropertyMorphAnimationRecords(curveNode, objectIndex, connections, morphTargetNames, boneTargets)
 {
     const targetConnection = connections.list.find(connection =>
@@ -2519,6 +3592,13 @@ function readRootPropertyMorphAnimationRecords(curveNode, objectIndex, connectio
         : [];
 }
 
+/**
+ * Drop duplicate morph records authored by both sources, checking that their curves agree.
+ *
+ * @param {FbxAnimationRecord[]} records Animation records.
+ * @returns {FbxAnimationRecord[]} Records with one record per morph target.
+ * @throws {Error} When a target is authored twice by one source or the two sources disagree.
+ */
 function deduplicateMorphAnimationRecords(records)
 {
     const output = [];
@@ -2549,6 +3629,13 @@ function deduplicateMorphAnimationRecords(records)
     return output;
 }
 
+/**
+ * Compare two scalar curves within a small value tolerance.
+ *
+ * @param {FbxAnimationCurve} left First curve.
+ * @param {FbxAnimationCurve} right Second curve.
+ * @returns {boolean} True when the curves match.
+ */
 function sameScalarAnimationCurve(left, right)
 {
     if (left.interpolation !== right.interpolation || left.ticks.length !== right.ticks.length ||
@@ -2558,6 +3645,15 @@ function sameScalarAnimationCurve(left, right)
         (left.interpolations ?? []).every((value, index) => value === right.interpolations?.[index]);
 }
 
+/**
+ * List the morph target names a curve node drives through BlendShapeChannel DeformPercent.
+ *
+ * @param {FbxObjectEntry} curveNode AnimationCurveNode object.
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @param {Set<string>} morphTargetNames Imported morph target names; empty accepts every name.
+ * @returns {string[]} Unique target names.
+ */
 function readMorphAnimationTargets(curveNode, objectIndex, connections, morphTargetNames)
 {
     const targets = [];
@@ -2585,6 +3681,14 @@ function readMorphAnimationTargets(curveNode, objectIndex, connections, morphTar
     return Array.from(new Set(targets));
 }
 
+/**
+ * List the morph target names of a BlendShapeChannel.
+ *
+ * @param {FbxObjectEntry} channel BlendShapeChannel object.
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @returns {string[]} Target names; empty for in-between channels.
+ */
 function readBlendShapeChannelMorphNames(channel, objectIndex, connections)
 {
     const shapes = readBlendShapeChannelShapes(channel, objectIndex, connections);
@@ -2600,28 +3704,67 @@ function readBlendShapeChannelMorphNames(channel, objectIndex, connections)
     return names.length ? names : [ channel.name || "morph_target" ];
 }
 
+/**
+ * List the Shape geometries of a BlendShapeChannel.
+ *
+ * @param {FbxObjectEntry} channel BlendShapeChannel object.
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @returns {FbxObjectEntry[]} Shape geometries.
+ */
 function readBlendShapeChannelShapes(channel, objectIndex, connections)
 {
     return connectedChildObjects(channel, objectIndex, connections, "Geometry")
         .filter(shape => shape.className === "Shape" || shape.fullName.startsWith("Geometry::Shape") || shape.name);
 }
 
+/**
+ * Read a BlendShapeChannel's FullWeights.
+ *
+ * @param {FbxObjectEntry} channel BlendShapeChannel object.
+ * @returns {number[]} Full weights, or an empty array.
+ */
 function readBlendShapeChannelFullWeights(channel)
 {
     return readChildArray(channel.node, "FullWeights") || [];
 }
 
+/**
+ * Check whether a BlendShapeChannel holds in-between targets.
+ *
+ * @param {FbxObjectEntry} channel BlendShapeChannel object.
+ * @param {FbxObjectEntry[]} shapes Channel Shape geometries.
+ * @returns {boolean} True when the channel has several shapes or full weights.
+ */
 function isUnsupportedBlendShapeInBetween(channel, shapes)
 {
     // Multiple shapes/weights under one FBX channel are in-between targets, not independent sliders.
     return shapes.length > 1 || readBlendShapeChannelFullWeights(channel).length > 1;
 }
 
+/**
+ * Read a DeformPercent curve scaled from percent to a 0..1 weight.
+ *
+ * @param {FbxObjectEntry} curveNode AnimationCurveNode object.
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @returns {FbxAnimationCurve|null} The curve, or null when absent.
+ */
 function readMorphAnimationCurve(curveNode, objectIndex, connections)
 {
     return readAnyScalarAnimationCurve(curveNode, objectIndex, connections, 0.01, isMorphAnimationProperty);
 }
 
+/**
+ * Read one scalar curve of a curve node, preferring a property match or the X axis.
+ *
+ * @param {FbxObjectEntry} curveNode AnimationCurveNode object.
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @param {number} scale Value scale.
+ * @param {function(string): boolean|null} [predicate=null] Connection property filter.
+ * @returns {FbxAnimationCurve|null} The curve, or null when absent.
+ */
 function readAnyScalarAnimationCurve(curveNode, objectIndex, connections, scale, predicate = null)
 {
     const curves = connections.list
@@ -2635,6 +3778,14 @@ function readAnyScalarAnimationCurve(curveNode, objectIndex, connections, scale,
     return match ? readScalarAnimationCurve(match.curve, scale) : null;
 }
 
+/**
+ * Read an AnimationCurve's keys sorted by time.
+ *
+ * @param {FbxObjectEntry} curve AnimationCurve object.
+ * @param {number} scale Value scale.
+ * @returns {FbxAnimationCurve|null} The curve, or null when it has no keys.
+ * @throws {Error} When the key arrays mismatch or key times repeat.
+ */
 function readScalarAnimationCurve(curve, scale)
 {
     const
@@ -2682,12 +3833,27 @@ function readScalarAnimationCurve(curve, scale)
     };
 }
 
+/**
+ * Summarize an AnimationCurve's interpolation.
+ *
+ * @param {FbxNode} curveNode AnimationCurve node.
+ * @param {number} keyCount Key count.
+ * @returns {string} "Linear", "Step" or "Mixed".
+ */
 function readAnimationCurveInterpolation(curveNode, keyCount)
 {
     const modes = new Set(readAnimationCurveInterpolations(curveNode, keyCount));
     return modes.size <= 1 ? [ ...modes ][0] ?? "Linear" : "Mixed";
 }
 
+/**
+ * Expand an AnimationCurve's KeyAttrFlags to one interpolation per key.
+ *
+ * @param {FbxNode} curveNode AnimationCurve node.
+ * @param {number} keyCount Key count.
+ * @returns {string[]} "Linear" or "Step" per key.
+ * @throws {Error} When the attribute arrays are malformed or use an unsupported mode.
+ */
 function readAnimationCurveInterpolations(curveNode, keyCount)
 {
     const flags = readChildArray(curveNode, "KeyAttrFlags") || [];
@@ -2733,6 +3899,17 @@ function readAnimationCurveInterpolations(curveNode, keyCount)
     return interpolations;
 }
 
+/**
+ * Read a bone translation, rotation or scaling curve node into an animation record.
+ *
+ * @param {FbxObjectEntry} curveNode AnimationCurveNode object.
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @param {Map<string, FbxBoneTarget>} boneTargets Bone targets by bone key.
+ * @param {FbxSceneTransform} sceneTransform Scene conversion.
+ * @param {string} compatibility "source" or "carbon".
+ * @returns {FbxAnimationRecord|null} The record, or null when the curve node drives no bone.
+ */
 function readBoneAnimationRecord(curveNode, objectIndex, connections, boneTargets, sceneTransform, compatibility)
 {
     const targetConnection = connections.list.find(connection =>
@@ -2822,6 +3999,15 @@ function readBoneAnimationRecord(curveNode, objectIndex, connections, boneTarget
     };
 }
 
+/**
+ * Resample bone records into position, rotation and scale records per bone from the full Model transform.
+ *
+ * @param {FbxAnimationRecord[]} records Animation records.
+ * @param {FbxSceneTransform} sceneTransform Scene conversion.
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @returns {FbxAnimationRecord[]} Baked bone records followed by the morph records.
+ * @throws {Error} When a bone authors one property more than once.
+ */
 function bakeCarbonBoneAnimationRecords(records, sceneTransform, objectIndex)
 {
     const morphRecords = records.filter(record => !record._bone);
@@ -2931,12 +4117,25 @@ function bakeCarbonBoneAnimationRecords(records, sceneTransform, objectIndex)
     return output;
 }
 
+/**
+ * Check whether a Model has a non-zero pivot or offset.
+ *
+ * @param {Object<string, FbxProperty70>} properties Model Properties70.
+ * @returns {boolean} True when a pivot or offset is non-zero.
+ */
 function modelTransformCanMovePivot(properties)
 {
     return [ "RotationPivot", "ScalingPivot", "RotationOffset", "ScalingOffset" ].some(name =>
         propertyVector3(properties, name, [ 0, 0, 0 ]).some(value => value !== 0));
 }
 
+/**
+ * List sample times, adding a before-sample where a curve steps.
+ *
+ * @param {Iterable<number>} ticks Sample ticks.
+ * @param {FbxAnimationCurve[]} curves Curves checked for steps.
+ * @returns {Array<{tick: number, before: boolean}>} Samples in time order.
+ */
 function animationSampleDescriptors(ticks, curves)
 {
     const ordered = Array.from(ticks).sort((left, right) => left - right);
@@ -2958,6 +4157,15 @@ function animationSampleDescriptors(ticks, curves)
     return samples;
 }
 
+/**
+ * Sample a three-component curve.
+ *
+ * @param {FbxAnimationCurve|undefined} curve Curve, or undefined to use the fallback.
+ * @param {number} tick Sample tick.
+ * @param {number[]} fallback Fallback vector.
+ * @param {boolean} [before=false] Sample the value just before a step at this tick.
+ * @returns {number[]} Sampled vector.
+ */
 function sampleVectorAnimationCurve(curve, tick, fallback, before = false)
 {
     if (!curve) return fallback.slice();
@@ -2974,6 +4182,12 @@ function sampleVectorAnimationCurve(curve, tick, fallback, before = false)
     return values;
 }
 
+/**
+ * Make root positions relative to the first key.
+ *
+ * @param {number[]} values Packed positions.
+ * @returns {number[]} Relative positions.
+ */
 function relativeRootPositions(values)
 {
     if (!values.length) return values;
@@ -2981,6 +4195,12 @@ function relativeRootPositions(values)
     return values.map((value, index) => cleanFloat(value - origin[index % 3]));
 }
 
+/**
+ * Make root rotations relative to the first key.
+ *
+ * @param {number[]} values Packed quaternions.
+ * @returns {number[]} Relative quaternions.
+ */
 function relativeRootRotations(values)
 {
     if (!values.length) return values;
@@ -2996,6 +4216,13 @@ function relativeRootRotations(values)
     return normalizeQuaternionSeries(output, "Carbon-relative FBX root rotation");
 }
 
+/**
+ * Invert a quaternion.
+ *
+ * @param {number[]} value Quaternion as [x, y, z, w].
+ * @returns {number[]} Inverse quaternion.
+ * @throws {Error} When the quaternion has zero length.
+ */
 function quaternionInverse(value)
 {
     const lengthSquared = value.reduce((sum, component) => sum + component * component, 0);
@@ -3008,6 +4235,13 @@ function quaternionInverse(value)
     ];
 }
 
+/**
+ * Multiply two quaternions.
+ *
+ * @param {number[]} left Left quaternion.
+ * @param {number[]} right Right quaternion.
+ * @returns {number[]} Product quaternion.
+ */
 function quaternionMultiply(left, right)
 {
     const [ ax, ay, az, aw ] = left;
@@ -3020,11 +4254,23 @@ function quaternionMultiply(left, right)
     ].map(cleanFloat);
 }
 
+/**
+ * Check whether a property name is a bone translation, rotation or scaling property.
+ *
+ * @param {string} property Property name.
+ * @returns {boolean} True for a bone transform property.
+ */
 function isBoneAnimationProperty(property)
 {
     return !!normalizeBoneAnimationProperty(property);
 }
 
+/**
+ * Map a property name to a bone transform component.
+ *
+ * @param {string} property Property name.
+ * @returns {string} "position", "rotation", "scale", or "".
+ */
 function normalizeBoneAnimationProperty(property)
 {
     const text = String(property || "").replace(/\s+/gu, "").toLowerCase();
@@ -3043,6 +4289,13 @@ function normalizeBoneAnimationProperty(property)
     return "";
 }
 
+/**
+ * Get a bone's authored local value for a transform component.
+ *
+ * @param {Object<string, FbxProperty70>} properties Bone Properties70.
+ * @param {string} property "position", "rotation" or "scale".
+ * @returns {number[]} Authored vector.
+ */
 function boneAnimationFallback(properties, property)
 {
     if (property === "position")
@@ -3056,6 +4309,13 @@ function boneAnimationFallback(properties, property)
     return propertyVector3(properties, "Lcl Scaling", [ 1, 1, 1 ]);
 }
 
+/**
+ * Get a curve node's default axis values.
+ *
+ * @param {FbxObjectEntry} curveNode AnimationCurveNode object.
+ * @param {number[]} fallback Fallback vector.
+ * @returns {number[]} Default vector.
+ */
 function animationCurveNodeFallback(curveNode, fallback)
 {
     const
@@ -3065,6 +4325,15 @@ function animationCurveNodeFallback(curveNode, fallback)
     return axes.map((axis, index) => propertyNumber(properties, axis, fallback[index]));
 }
 
+/**
+ * Read a curve node's X, Y and Z curves into one vector curve.
+ *
+ * @param {FbxObjectEntry} curveNode AnimationCurveNode object.
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @param {number[]} fallback Value for axes without a curve.
+ * @returns {FbxAnimationCurve|null} Vector curve, or null when the node has no axis curves.
+ */
 function readVectorAnimationCurve(curveNode, objectIndex, connections, fallback)
 {
     const components = [ null, null, null ];
@@ -3119,6 +4388,12 @@ function readVectorAnimationCurve(curveNode, objectIndex, connections, fallback)
     return { ticks, values, interpolation: "Linear" };
 }
 
+/**
+ * Get the axis index a property or curve name ends with.
+ *
+ * @param {string} property Property or curve name.
+ * @returns {number|null} 0, 1 or 2, or null when there is no axis suffix.
+ */
 function animationCurveAxis(property)
 {
     const text = String(property || "").trim().toLowerCase();
@@ -3137,6 +4412,12 @@ function animationCurveAxis(property)
     return null;
 }
 
+/**
+ * Collect the sorted unique key ticks of several curves.
+ *
+ * @param {Array<FbxAnimationCurve|null>} components Curves.
+ * @returns {number[]} Sorted ticks.
+ */
 function uniqueSortedTicks(components)
 {
     const ticks = new Set();
@@ -3150,6 +4431,15 @@ function uniqueSortedTicks(components)
     return Array.from(ticks).sort((a, b) => a - b);
 }
 
+/**
+ * Sample a scalar curve with step or linear interpolation.
+ *
+ * @param {FbxAnimationCurve|null} curve Curve, or null to use the fallback.
+ * @param {number} tick Sample tick.
+ * @param {number} fallback Fallback value.
+ * @param {boolean} [before=false] Sample the value just before a step at this tick.
+ * @returns {number} Sampled value.
+ */
 function sampleScalarAnimationCurve(curve, tick, fallback, before = false)
 {
     if (!curve)
@@ -3195,6 +4485,14 @@ function sampleScalarAnimationCurve(curve, tick, fallback, before = false)
     return fallback;
 }
 
+/**
+ * Convert bone positions to scene space.
+ *
+ * @param {number[]} values Packed positions.
+ * @param {FbxSceneTransform} sceneTransform Scene conversion.
+ * @param {boolean} isRoot Whether the bone is a skeleton root.
+ * @returns {number[]} Converted positions.
+ */
 function packBonePositionValues(values, sceneTransform, isRoot)
 {
     const output = [];
@@ -3208,6 +4506,15 @@ function packBonePositionValues(values, sceneTransform, isRoot)
     return output;
 }
 
+/**
+ * Convert bone Euler rotations to quaternions through the bone's Model transform.
+ *
+ * @param {FbxObjectEntry} bone Bone Model.
+ * @param {number[]} values Packed Euler angles in degrees.
+ * @param {FbxSceneTransform} sceneTransform Scene conversion.
+ * @param {boolean} isRoot Whether the bone is a skeleton root.
+ * @returns {number[]} Packed quaternions.
+ */
 function packBoneRotationValues(bone, values, sceneTransform, isRoot)
 {
     const
@@ -3230,6 +4537,16 @@ function packBoneRotationValues(bone, values, sceneTransform, isRoot)
     return normalizeQuaternionSeries(output, "FBX animation rotation");
 }
 
+/**
+ * Convert a bone Euler curve to a quaternion curve, subdividing linear segments as needed.
+ *
+ * @param {FbxObjectEntry} bone Bone Model.
+ * @param {FbxAnimationCurve} curve Euler curve.
+ * @param {FbxSceneTransform} sceneTransform Scene conversion.
+ * @param {boolean} isRoot Whether the bone is a skeleton root.
+ * @returns {{ticks: number[], values: number[]}} Quaternion keys.
+ * @throws {Error} When a segment needs too many keys.
+ */
 function packBoneRotationCurve(bone, curve, sceneTransform, isRoot)
 {
     const quaternions = packBoneRotationValues(bone, curve.values, sceneTransform, isRoot);
@@ -3299,6 +4616,12 @@ function packBoneRotationCurve(bone, curve, sceneTransform, isRoot)
     };
 }
 
+/**
+ * Check whether an object is a BlendShapeChannel deformer.
+ *
+ * @param {FbxObjectEntry|undefined} entry Object entry.
+ * @returns {boolean} True for a BlendShapeChannel.
+ */
 function isBlendShapeChannel(entry)
 {
     return !!entry && entry.nodeName === "Deformer" && (
@@ -3308,11 +4631,24 @@ function isBlendShapeChannel(entry)
     );
 }
 
+/**
+ * Check whether a property name is DeformPercent.
+ *
+ * @param {string} property Property name.
+ * @returns {boolean} True for DeformPercent.
+ */
 function isMorphAnimationProperty(property)
 {
     return String(property || "").toLowerCase().includes("deformpercent");
 }
 
+/**
+ * Check whether an object has a user-defined numeric Properties70 property.
+ *
+ * @param {FbxObjectEntry|undefined} entry Object entry.
+ * @param {string} property Property name.
+ * @returns {boolean} True when the property is user-defined and numeric.
+ */
 function isUserDefinedNumericProperty(entry, property)
 {
     if (!entry || !property)
@@ -3328,6 +4664,12 @@ function isUserDefinedNumericProperty(entry, property)
     return typeof definition.value === "number";
 }
 
+/**
+ * Drop missing and repeated entries by key.
+ *
+ * @param {Array<FbxObjectEntry|null|undefined>} entries Entries.
+ * @returns {FbxObjectEntry[]} Unique entries.
+ */
 function uniqueEntries(entries)
 {
     const
@@ -3346,6 +4688,12 @@ function uniqueEntries(entries)
     return unique;
 }
 
+/**
+ * Pack values as little-endian float32 bytes.
+ *
+ * @param {number[]} values Values.
+ * @returns {number[]} Byte values.
+ */
 function packFloat32Values(values)
 {
     const
@@ -3356,6 +4704,14 @@ function packFloat32Values(values)
     return Array.from(bytes);
 }
 
+/**
+ * Build cluster records merged by linked bone, skipping clusters without a bone or weights.
+ *
+ * @param {FbxObjectEntry[]} clusters Cluster deformers.
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @returns {FbxSkinClusterRecord[]} Records.
+ */
 function buildSkinClusterRecords(clusters, objectIndex, connections)
 {
     const
@@ -3398,6 +4754,13 @@ function buildSkinClusterRecords(clusters, objectIndex, connections)
     return records;
 }
 
+/**
+ * Check whether a cluster has a positive weight.
+ *
+ * @param {number[]} indexes Control point indexes.
+ * @param {number[]} weights Weights.
+ * @returns {boolean} True when a weight is positive.
+ */
 function hasPositiveClusterWeight(indexes, weights)
 {
     for (let i = 0; i < indexes.length; i++)
@@ -3410,6 +4773,12 @@ function hasPositiveClusterWeight(indexes, weights)
     return false;
 }
 
+/**
+ * Collect positive bone influences per control point.
+ *
+ * @param {FbxSkinClusterRecord[]} records Cluster records.
+ * @returns {Map<number, FbxInfluence[]>} Influences by control point index.
+ */
 function buildControlPointInfluences(records)
 {
     const controlPointInfluences = new Map();
@@ -3448,6 +4817,12 @@ function buildControlPointInfluences(records)
     return controlPointInfluences;
 }
 
+/**
+ * Keep the four strongest positive influences and normalize their weights.
+ *
+ * @param {FbxInfluence[]} influences Influences.
+ * @returns {FbxInfluence[]} Normalized influences.
+ */
 function normalizeInfluences(influences)
 {
     const best = influences
@@ -3467,6 +4842,18 @@ function normalizeInfluences(influences)
     }));
 }
 
+/**
+ * Build bone bindings with bounds of their influenced vertices in bone space.
+ *
+ * @param {FbxSkinClusterRecord[]} records Cluster records.
+ * @param {FbxInfluence[][]} outputInfluences Influences per vertex.
+ * @param {number[]} positions Expanded scene-space positions.
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @param {FbxSceneTransform} sceneTransform Scene conversion.
+ * @param {Map<string, FbxModelTransformState>} modelWorldCache Model transform cache.
+ * @returns {FbxBoneBinding[]} Bone bindings.
+ */
 function buildBoneBindingsFromInfluences(records, outputInfluences, positions, objectIndex, connections, sceneTransform, modelWorldCache)
 {
     return records.map((record, boneIndex) =>
@@ -3496,6 +4883,16 @@ function buildBoneBindingsFromInfluences(records, outputInfluences, positions, o
     });
 }
 
+/**
+ * Build the scene-to-bone matrix of a cluster's bone.
+ *
+ * @param {FbxSkinClusterRecord} record Cluster record.
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @param {FbxSceneTransform} sceneTransform Scene conversion.
+ * @param {Map<string, FbxModelTransformState>} modelWorldCache Model transform cache.
+ * @returns {number[]} Inverse bone world matrix.
+ */
 function buildBoneBindingMatrix(record, objectIndex, connections, sceneTransform, modelWorldCache)
 {
     return invertMatrix4(transformMatrixScene(
@@ -3504,11 +4901,26 @@ function buildBoneBindingMatrix(record, objectIndex, connections, sceneTransform
     ));
 }
 
+/**
+ * Get the bone Model linked to a cluster.
+ *
+ * @param {FbxObjectEntry} cluster Cluster deformer.
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @returns {FbxObjectEntry|null} Bone Model, or null.
+ */
 function clusterBone(cluster, objectIndex, connections)
 {
     return connectedChildObjects(cluster, objectIndex, connections, "Model")[0] || null;
 }
 
+/**
+ * Find the one skeleton that holds every bone of a skin.
+ *
+ * @param {string[]} boneKeys Bone keys.
+ * @param {FbxSkeletonContext} skeletonContext Imported skeletons.
+ * @returns {number|null} Skeleton index, or null when the bones are not in one skeleton.
+ */
 function findSkinSkeletonIndex(boneKeys, skeletonContext)
 {
     if (!skeletonContext)
@@ -3542,6 +4954,17 @@ function findSkinSkeletonIndex(boneKeys, skeletonContext)
     return skeletonIndex;
 }
 
+/**
+ * Build a skeleton for every root bone hierarchy.
+ *
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @param {FbxSceneTransform} sceneTransform Scene conversion.
+ * @param {Map<string, FbxModelTransformState>} modelWorldCache Model transform cache.
+ * @param {FbxReaderValues} values Normalized reader values.
+ * @param {string} values.compatibility In "carbon" mode, bind poses are not read.
+ * @returns {FbxSkeletonContext} Imported skeletons.
+ */
 function buildSkeletonContext(objectIndex, connections, sceneTransform, modelWorldCache, values)
 {
     const
@@ -3588,6 +5011,20 @@ function buildSkeletonContext(objectIndex, connections, sceneTransform, modelWor
     return { skeletons, boneToSkeletonIndex };
 }
 
+/**
+ * Build one skeleton from a root bone, ordering bones parent first.
+ *
+ * @param {FbxObjectEntry} root Root bone Model.
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @param {FbxSceneTransform} sceneTransform Scene conversion.
+ * @param {Map<string, FbxModelTransformState>} modelWorldCache Model transform cache.
+ * @param {Map<string, number[]>} bindPoseMatrices Bind matrices by bone key.
+ * @param {Set<string>} visited Bone keys already assigned, updated in place.
+ * @param {string} compatibility "source" or "carbon".
+ * @returns {FbxImportedSkeleton} The skeleton.
+ * @throws {Error} When the bone hierarchy is cyclic.
+ */
 function buildSkeleton(root, objectIndex, connections, sceneTransform, modelWorldCache, bindPoseMatrices, visited, compatibility)
 {
     const
@@ -3677,8 +5114,8 @@ function buildSkeleton(root, objectIndex, connections, sceneTransform, modelWorl
 /**
  * Build CMF bone masks from user-defined numeric bone properties.
  *
- * @param {object[]} records Imported skeleton bone records.
- * @returns {object[]} CMF bone masks.
+ * @param {FbxBoneRecord[]} records Imported skeleton bone records.
+ * @returns {FbxBoneMask[]} CMF bone masks.
  */
 function buildCmfBoneMasks(records)
 {
@@ -3713,7 +5150,7 @@ function buildCmfBoneMasks(records)
 /**
  * Check whether a Properties70 definition should become a CMF bone-mask weight.
  *
- * @param {object} definition Parsed Properties70 definition.
+ * @param {FbxProperty70|undefined} definition Parsed Properties70 definition.
  * @returns {boolean} True when the property is user-defined and numeric.
  */
 function isUserDefinedNumericPropertyDefinition(definition)
@@ -3732,6 +5169,13 @@ function clamp01(value)
     return Math.min(1, Math.max(0, finiteNumber(value, "bone mask weight")));
 }
 
+/**
+ * Build a GR2 model per skeleton with its bound meshes.
+ *
+ * @param {FbxImportedSkeleton[]} skeletons Imported skeletons.
+ * @param {FbxGr2Mesh[]} meshes Imported meshes.
+ * @returns {FbxGr2Model[]} Models.
+ */
 function buildGr2Models(skeletons, meshes)
 {
     return skeletons.map((skeleton, skeletonIndex) => ({
@@ -3743,6 +5187,12 @@ function buildGr2Models(skeletons, meshes)
     }));
 }
 
+/**
+ * Build a GR2 bone from a bone record.
+ *
+ * @param {FbxBoneRecord} record Bone record.
+ * @returns {FbxGr2Bone} The bone.
+ */
 function buildGr2Bone(record)
 {
     const transform = record.transform;
@@ -3760,6 +5210,17 @@ function buildGr2Bone(record)
     };
 }
 
+/**
+ * Build a bone's local matrix: scene-space world matrix for a root, local Model matrix otherwise.
+ *
+ * @param {FbxObjectEntry} bone Bone Model.
+ * @param {number} parentIndex Parent record index, or -1.
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @param {FbxSceneTransform} sceneTransform Scene conversion.
+ * @param {Map<string, FbxModelTransformState>} modelWorldCache Model transform cache.
+ * @returns {number[]} Local matrix.
+ */
 function buildBoneLocalMatrix(bone, parentIndex, objectIndex, connections, sceneTransform, modelWorldCache)
 {
     if (parentIndex === -1)
@@ -3773,6 +5234,13 @@ function buildBoneLocalMatrix(bone, parentIndex, objectIndex, connections, scene
     return scaleMatrixTranslation(buildModelLocalTransform(bone), sceneTransform.scale);
 }
 
+/**
+ * Build transposed inverse bind matrices from bind poses, or from the rest hierarchy.
+ *
+ * @param {FbxBoneRecord[]} records Bone records.
+ * @param {Map<string, number[]>} bindPoseMatrices Bind matrices by bone key.
+ * @returns {number[][]} Inverse bind matrices.
+ */
 function buildInvBindTransforms(records, bindPoseMatrices)
 {
     const invBindTransforms = [];
@@ -3795,6 +5263,14 @@ function buildInvBindTransforms(records, bindPoseMatrices)
     return invBindTransforms.map((matrix) => transposeMatrix4(matrix));
 }
 
+/**
+ * Read bind matrices from BindPose nodes, then from cluster TransformLink matrices.
+ *
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @param {FbxSceneTransform} sceneTransform Scene conversion.
+ * @returns {Map<string, number[]>} Scene-space bind matrices by bone key.
+ */
 function readBindPoseMatrices(objectIndex, connections, sceneTransform)
 {
     const matrices = new Map();
@@ -3837,11 +5313,23 @@ function readBindPoseMatrices(objectIndex, connections, sceneTransform)
     return matrices;
 }
 
+/**
+ * Check whether an object is a LimbNode Model.
+ *
+ * @param {FbxObjectEntry|undefined} entry Object entry.
+ * @returns {boolean} True for a bone Model.
+ */
 function isBoneModel(entry)
 {
     return entry?.nodeName === "Model" && (entry.className === "LimbNode" || /LimbNode/iu.test(entry.fullName));
 }
 
+/**
+ * Read the scene axes and unit scale from GlobalSettings.
+ *
+ * @param {FbxNode|null} globalSettingsNode GlobalSettings node, or null.
+ * @returns {FbxSceneTransform} Scene conversion.
+ */
 function buildSceneTransform(globalSettingsNode)
 {
     const properties = readProperties70(globalSettingsNode).properties;
@@ -3863,6 +5351,15 @@ function buildSceneTransform(globalSettingsNode)
     };
 }
 
+/**
+ * Build a geometry's world matrix from its owning Model and geometric transform.
+ *
+ * @param {FbxObjectEntry|null} owner Owning Model, or null for identity.
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @param {Map<string, FbxModelTransformState>} modelWorldCache Model transform cache.
+ * @returns {number[]} Geometry-to-world matrix.
+ */
 function buildMeshGeometryToWorld(owner, objectIndex, connections, modelWorldCache)
 {
     if (!owner)
@@ -3876,6 +5373,15 @@ function buildMeshGeometryToWorld(owner, objectIndex, connections, modelWorldCac
     );
 }
 
+/**
+ * Build a Model's world transform state through its parents, with caching.
+ *
+ * @param {FbxObjectEntry} model Model object.
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @param {Map<string, FbxModelTransformState>} cache Model transform cache.
+ * @returns {FbxModelTransformState} World transform state.
+ */
 function buildModelTransformState(model, objectIndex, connections, cache)
 {
     if (cache.has(model.key))
@@ -3900,12 +5406,24 @@ function buildModelTransformState(model, objectIndex, connections, cache)
     return state;
 }
 
+/**
+ * Build a Model's local matrix from its Properties70.
+ *
+ * @param {FbxObjectEntry} model Model object.
+ * @returns {number[]} Local matrix.
+ */
 function buildModelLocalTransform(model)
 {
     const properties = readProperties70(model.node).properties;
     return composeModelTransform(properties);
 }
 
+/**
+ * Read a Model's local transform state.
+ *
+ * @param {FbxObjectEntry} model Model object.
+ * @returns {FbxModelLocalState} Local state.
+ */
 function buildModelLocalState(model)
 {
     const
@@ -3923,6 +5441,13 @@ function buildModelLocalState(model)
     };
 }
 
+/**
+ * Combine a local state with its parent's world state by InheritType.
+ *
+ * @param {FbxModelLocalState} local Local state.
+ * @param {FbxModelTransformState} parentState Parent world state.
+ * @returns {FbxModelTransformState} World state.
+ */
 function composeInheritedModelState(local, parentState)
 {
     const inheritType = integerNumber(local.inheritType, "InheritType");
@@ -3949,6 +5474,12 @@ function composeInheritedModelState(local, parentState)
     };
 }
 
+/**
+ * Build a Model's geometric transform matrix.
+ *
+ * @param {FbxObjectEntry} model Model object.
+ * @returns {number[]} Geometric matrix.
+ */
 function buildModelGeometricTransform(model)
 {
     const properties = readProperties70(model.node).properties;
@@ -3960,6 +5491,16 @@ function buildModelGeometricTransform(model)
     );
 }
 
+/**
+ * Compose a Model's local matrix from its translation, pivots, offsets, rotations and scale.
+ *
+ * @param {Object<string, FbxProperty70>} properties Model Properties70.
+ * @param {object} [overrides={}] Values used instead of the Lcl properties.
+ * @param {number[]} [overrides.translation] Translation.
+ * @param {number[]} [overrides.rotation] Euler rotation in degrees.
+ * @param {number[]} [overrides.scale] Scale.
+ * @returns {number[]} Local matrix.
+ */
 function composeModelTransform(properties, overrides = {})
 {
     const
@@ -3982,6 +5523,15 @@ function composeModelTransform(properties, overrides = {})
     ]);
 }
 
+/**
+ * Compose translation, rotation and scale into one matrix.
+ *
+ * @param {number[]} translation Translation.
+ * @param {number[]} rotationDegrees Euler rotation in degrees.
+ * @param {number[]} scale Scale.
+ * @param {string} rotationOrder Rotation order, such as "XYZ".
+ * @returns {number[]} Matrix.
+ */
 function composeSimpleTransform(translation, rotationDegrees, scale, rotationOrder)
 {
     return multiplyMatrix4(
@@ -3990,6 +5540,14 @@ function composeSimpleTransform(translation, rotationDegrees, scale, rotationOrd
     );
 }
 
+/**
+ * Transform packed points by a matrix and into scene space.
+ *
+ * @param {number[]} values Packed points.
+ * @param {number[]} matrix Matrix.
+ * @param {FbxSceneTransform} sceneTransform Scene conversion.
+ * @returns {number[]} Transformed points.
+ */
 function transformPoints(values, matrix, sceneTransform)
 {
     const output = [];
@@ -4001,6 +5559,14 @@ function transformPoints(values, matrix, sceneTransform)
     return output;
 }
 
+/**
+ * Transform packed directions by a matrix's upper 3x3 into scene space and normalize them.
+ *
+ * @param {number[]} values Packed directions.
+ * @param {number[]} matrix Matrix.
+ * @param {FbxSceneTransform} sceneTransform Scene conversion.
+ * @returns {number[]} Transformed directions.
+ */
 function transformDirections(values, matrix, sceneTransform)
 {
     if (!values.length)
@@ -4022,12 +5588,26 @@ function transformDirections(values, matrix, sceneTransform)
     return output;
 }
 
+/**
+ * Convert a point to scene axes and units.
+ *
+ * @param {number[]} point Point.
+ * @param {FbxSceneTransform} sceneTransform Scene conversion.
+ * @returns {number[]} Scene-space point.
+ */
 function transformScenePoint(point, sceneTransform)
 {
     const vector = transformSceneVector(point, sceneTransform);
     return vector.map(value => value * sceneTransform.scale);
 }
 
+/**
+ * Convert a vector to scene axes.
+ *
+ * @param {number[]} vector Vector.
+ * @param {FbxSceneTransform} sceneTransform Scene conversion.
+ * @returns {number[]} Scene-space vector.
+ */
 function transformSceneVector(vector, sceneTransform)
 {
     return [
@@ -4037,6 +5617,13 @@ function transformSceneVector(vector, sceneTransform)
     ];
 }
 
+/**
+ * Convert a matrix's basis and translation to scene axes and units.
+ *
+ * @param {number[]} matrix Matrix.
+ * @param {FbxSceneTransform} sceneTransform Scene conversion.
+ * @returns {number[]} Scene-space matrix.
+ */
 function transformMatrixScene(matrix, sceneTransform)
 {
     const
@@ -4053,6 +5640,13 @@ function transformMatrixScene(matrix, sceneTransform)
     ]);
 }
 
+/**
+ * Scale a matrix's translation.
+ *
+ * @param {number[]} matrix Matrix.
+ * @param {number} scale Scale factor.
+ * @returns {number[]} Scaled matrix.
+ */
 function scaleMatrixTranslation(matrix, scale)
 {
     const output = matrix.slice();
@@ -4062,6 +5656,12 @@ function scaleMatrixTranslation(matrix, scale)
     return cleanMatrix4(output);
 }
 
+/**
+ * Decompose a matrix into translation, quaternion and scale.
+ *
+ * @param {number[]} matrix Matrix.
+ * @returns {FbxTransform} Transform.
+ */
 function decomposeMatrix4(matrix)
 {
     const
@@ -4083,6 +5683,12 @@ function decomposeMatrix4(matrix)
     };
 }
 
+/**
+ * Convert a 3x3 rotation matrix to a normalized quaternion.
+ *
+ * @param {number[]} matrix 3x3 rotation matrix.
+ * @returns {number[]} Quaternion as [x, y, z, w].
+ */
 function matrixToQuaternion(matrix)
 {
     const
@@ -4134,6 +5740,14 @@ function matrixToQuaternion(matrix)
     return normalizeQuaternion([ x, y, z, w ]);
 }
 
+/**
+ * Read a three-component Properties70 value.
+ *
+ * @param {Object<string, FbxProperty70>} properties Properties70.
+ * @param {string} name Property name.
+ * @param {number[]} fallback Fallback vector.
+ * @returns {number[]} Vector.
+ */
 function propertyVector3(properties, name, fallback)
 {
     const value = properties[name]?.value;
@@ -4148,6 +5762,14 @@ function propertyVector3(properties, name, fallback)
     return fallback;
 }
 
+/**
+ * Read a numeric Properties70 value.
+ *
+ * @param {Object<string, FbxProperty70>} properties Properties70.
+ * @param {string} name Property name.
+ * @param {number|null} fallback Fallback value.
+ * @returns {number|null} Value, or the fallback.
+ */
 function propertyNumber(properties, name, fallback)
 {
     const value = properties[name]?.value;
@@ -4158,6 +5780,12 @@ function propertyNumber(properties, name, fallback)
     return finiteNumber(value, name);
 }
 
+/**
+ * Read a Model's RotationOrder as an axis-order string.
+ *
+ * @param {Object<string, FbxProperty70>} properties Model Properties70.
+ * @returns {string} Rotation order, such as "XYZ".
+ */
 function propertyRotationOrder(properties)
 {
     const value = propertyNumber(properties, "RotationOrder", null);
@@ -4168,6 +5796,13 @@ function propertyRotationOrder(properties)
     return FBX_ROTATION_ORDERS[value] || DEFAULT_ROTATION_ORDER;
 }
 
+/**
+ * Create a unit axis vector.
+ *
+ * @param {number} axis Axis index, clamped to 0..2.
+ * @param {number} sign Negative for a negative axis.
+ * @returns {number[]} Axis vector.
+ */
 function axisVector(axis, sign)
 {
     const vector = [ 0, 0, 0 ];
@@ -4176,6 +5811,12 @@ function axisVector(axis, sign)
     return vector;
 }
 
+/**
+ * Create a translation matrix.
+ *
+ * @param {number[]} translation Translation.
+ * @returns {number[]} Matrix.
+ */
 function translationMatrix4(translation)
 {
     return [
@@ -4186,6 +5827,12 @@ function translationMatrix4(translation)
     ];
 }
 
+/**
+ * Create a scale matrix.
+ *
+ * @param {number[]} scale Scale.
+ * @returns {number[]} Matrix.
+ */
 function scaleMatrix4(scale)
 {
     return [
@@ -4196,6 +5843,13 @@ function scaleMatrix4(scale)
     ];
 }
 
+/**
+ * Create a rotation matrix from Euler angles in a rotation order.
+ *
+ * @param {number[]} rotationDegrees Euler angles in degrees.
+ * @param {string} order Rotation order, such as "XYZ".
+ * @returns {number[]} Matrix.
+ */
 function rotationMatrix4(rotationDegrees, order)
 {
     let matrix = IDENTITY_MATRIX4;
@@ -4208,6 +5862,13 @@ function rotationMatrix4(rotationDegrees, order)
     return matrix;
 }
 
+/**
+ * Create the inverse of a rotation matrix from Euler angles.
+ *
+ * @param {number[]} rotationDegrees Euler angles in degrees.
+ * @param {string} order Rotation order, such as "XYZ".
+ * @returns {number[]} Matrix.
+ */
 function inverseRotationMatrix4(rotationDegrees, order)
 {
     let matrix = IDENTITY_MATRIX4;
@@ -4219,26 +5880,58 @@ function inverseRotationMatrix4(rotationDegrees, order)
     return matrix;
 }
 
+/**
+ * Multiply matrices in order.
+ *
+ * @param {number[][]} matrices Matrices.
+ * @returns {number[]} Product matrix.
+ */
 function multiplyMatrix4List(matrices)
 {
     return matrices.reduce((matrix, next) => multiplyMatrix4(matrix, next), IDENTITY_MATRIX4);
 }
 
+/**
+ * Negate a vector.
+ *
+ * @param {number[]} vector Vector.
+ * @returns {number[]} Negated vector.
+ */
 function negateVector3(vector)
 {
     return [ -vector[0], -vector[1], -vector[2] ];
 }
 
+/**
+ * Multiply two vectors component-wise.
+ *
+ * @param {number[]} a First vector.
+ * @param {number[]} b Second vector.
+ * @returns {number[]} Product vector.
+ */
 function multiplyVector3(a, b)
 {
     return [ a[0] * b[0], a[1] * b[1], a[2] * b[2] ];
 }
 
+/**
+ * Map an axis letter to its index.
+ *
+ * @param {string} axis "X", "Y" or "Z".
+ * @returns {number} 0, 1 or 2.
+ */
 function axisIndex(axis)
 {
     return axis === "X" ? 0 : axis === "Y" ? 1 : 2;
 }
 
+/**
+ * Create a rotation matrix about one axis.
+ *
+ * @param {string} axis "X", "Y" or "Z".
+ * @param {number} radians Angle in radians.
+ * @returns {number[]} Matrix.
+ */
 function axisRotationMatrix4(axis, radians)
 {
     const
@@ -4271,6 +5964,13 @@ function axisRotationMatrix4(axis, radians)
     }
 }
 
+/**
+ * Invert a matrix.
+ *
+ * @param {number[]} matrix Matrix.
+ * @returns {number[]} Inverse matrix.
+ * @throws {Error} When the matrix is not invertible.
+ */
 function invertMatrix4(matrix)
 {
     try
@@ -4283,6 +5983,14 @@ function invertMatrix4(matrix)
     }
 }
 
+/**
+ * Transform packed direction deltas into scene space without normalizing.
+ *
+ * @param {number[]} values Packed direction deltas.
+ * @param {number[]} matrix Matrix.
+ * @param {FbxSceneTransform} sceneTransform Scene conversion.
+ * @returns {number[]} Transformed deltas.
+ */
 function transformDirectionDeltas(values, matrix, sceneTransform)
 {
     const output = [];
@@ -4295,6 +6003,13 @@ function transformDirectionDeltas(values, matrix, sceneTransform)
     return output;
 }
 
+/**
+ * Transform a point by a matrix.
+ *
+ * @param {number[]} point Point.
+ * @param {number[]} matrix Matrix.
+ * @returns {number[]} Transformed point.
+ */
 function transformPointMatrix4(point, matrix)
 {
     return [
@@ -4304,6 +6019,13 @@ function transformPointMatrix4(point, matrix)
     ];
 }
 
+/**
+ * Transform a vector by a matrix's upper 3x3.
+ *
+ * @param {number[]} vector Vector.
+ * @param {number[]} matrix Matrix.
+ * @returns {number[]} Transformed vector.
+ */
 function transformVectorMatrix4(vector, matrix)
 {
     return [
@@ -4313,6 +6035,12 @@ function transformVectorMatrix4(vector, matrix)
     ];
 }
 
+/**
+ * Normalize a vector.
+ *
+ * @param {number[]} vector Vector.
+ * @returns {number[]} Unit vector, or zero for a zero vector.
+ */
 function normalizeVector3(vector)
 {
     const length = Math.hypot(vector[0], vector[1], vector[2]);
@@ -4323,6 +6051,12 @@ function normalizeVector3(vector)
     return vector.map(value => cleanFloat(value / length));
 }
 
+/**
+ * Normalize a quaternion.
+ *
+ * @param {number[]} quaternion Quaternion as [x, y, z, w].
+ * @returns {number[]} Unit quaternion, or identity for a zero quaternion.
+ */
 function normalizeQuaternion(quaternion)
 {
     const length = Math.hypot(quaternion[0], quaternion[1], quaternion[2], quaternion[3]);
@@ -4333,41 +6067,90 @@ function normalizeQuaternion(quaternion)
     return quaternion.map(value => cleanFloat(value / length));
 }
 
+/**
+ * Compute a dot product.
+ *
+ * @param {number[]} a First vector.
+ * @param {number[]} b Second vector.
+ * @returns {number} Dot product.
+ */
 function dotVector3(a, b)
 {
     return cleanFloat(a[0] * b[0] + a[1] * b[1] + a[2] * b[2]);
 }
 
+/**
+ * Convert degrees to radians.
+ *
+ * @param {number} value Angle in degrees.
+ * @returns {number} Angle in radians.
+ */
 function degreesToRadians(value)
 {
     return value * Math.PI / 180;
 }
 
+/**
+ * Snap values below 1e-12 in magnitude to zero.
+ *
+ * @param {number} value Value.
+ * @returns {number} Cleaned value.
+ */
 function cleanFloat(value)
 {
     return Math.abs(value) < 1e-12 ? 0 : value;
 }
 
+/**
+ * Clean every component of a vector.
+ *
+ * @param {number[]} vector Vector.
+ * @returns {number[]} Cleaned vector.
+ */
 function cleanVector3(vector)
 {
     return vector.map(cleanFloat);
 }
 
+/**
+ * Clean every value of an array-like.
+ *
+ * @param {ArrayLike<number>} values Values.
+ * @returns {number[]} Cleaned values.
+ */
 function cleanNumericArray(values)
 {
     return Array.from(values, cleanFloat);
 }
 
+/**
+ * Check whether a value is a non-empty array or typed array.
+ *
+ * @param {unknown} values Value.
+ * @returns {boolean} True when non-empty.
+ */
 function hasArrayValues(values)
 {
     return (Array.isArray(values) || ArrayBuffer.isView(values)) && values.length > 0;
 }
 
+/**
+ * Clean every component of a matrix.
+ *
+ * @param {number[]} matrix Matrix.
+ * @returns {number[]} Cleaned matrix.
+ */
 function cleanMatrix4(matrix)
 {
     return matrix.map(cleanFloat);
 }
 
+/**
+ * Index the children of an Objects node by key and node name.
+ *
+ * @param {FbxNode} objectsNode Objects node.
+ * @returns {FbxObjectIndex} Indexed objects.
+ */
 function indexObjectNodes(objectsNode)
 {
     const byId = {};
@@ -4391,6 +6174,15 @@ function indexObjectNodes(objectsNode)
     return { list, byId, byType };
 }
 
+/**
+ * List the connected parents of an object with a node name.
+ *
+ * @param {FbxObjectEntry} entry Object entry.
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @param {string} nodeName Parent node name.
+ * @returns {FbxObjectEntry[]} Parents.
+ */
 function connectedParentObjects(entry, objectIndex, connections, nodeName)
 {
     return (connections.parentsByChild[entry.key] || [])
@@ -4398,6 +6190,15 @@ function connectedParentObjects(entry, objectIndex, connections, nodeName)
         .filter(parent => parent && parent.nodeName === nodeName);
 }
 
+/**
+ * List the connected children of an object with a node name.
+ *
+ * @param {FbxObjectEntry|null} entry Object entry, or null.
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @param {string} nodeName Child node name.
+ * @returns {FbxObjectEntry[]} Children, or an empty array for a null entry.
+ */
 function connectedChildObjects(entry, objectIndex, connections, nodeName)
 {
     if (!entry)
@@ -4410,6 +6211,14 @@ function connectedChildObjects(entry, objectIndex, connections, nodeName)
         .filter(child => child && child.nodeName === nodeName);
 }
 
+/**
+ * Read a required numeric child array.
+ *
+ * @param {FbxNode} node Parent node.
+ * @param {string} childName Child node name.
+ * @returns {number[]} Values.
+ * @throws {Error} When the child array is missing.
+ */
 function requireChildArray(node, childName)
 {
     const values = readChildArray(node, childName);
@@ -4420,12 +6229,26 @@ function requireChildArray(node, childName)
     return values;
 }
 
+/**
+ * Read a numeric child array.
+ *
+ * @param {FbxNode} node Parent node.
+ * @param {string} childName Child node name.
+ * @returns {number[]|null} Values, or null when absent.
+ */
 function readChildArray(node, childName)
 {
     const child = findFirstNode(node.children, childName);
     return child ? readNodeArray(child, childName) : null;
 }
 
+/**
+ * Read a node's first array property, or its ASCII `a` child.
+ *
+ * @param {FbxNode} node Node.
+ * @param {string} feature Feature name for errors.
+ * @returns {number[]|null} Values, or null when the node holds no array.
+ */
 function readNodeArray(node, feature)
 {
     for (const property of node.properties)
@@ -4441,6 +6264,14 @@ function readNodeArray(node, feature)
     return asciiArray ? asciiArray.properties.map(value => finiteNumber(value, feature)) : null;
 }
 
+/**
+ * Convert an array property value to finite numbers.
+ *
+ * @param {FbxPropertyValue|undefined} property Property value.
+ * @param {string} feature Feature name for errors.
+ * @returns {number[]|null} Values, or null when the property is not an array.
+ * @throws {Error} When the array is still compressed (code "CJS_FORMAT_OUTPUT_NOT_SUPPORTED").
+ */
 function arrayPropertyToNumbers(property, feature)
 {
     if (!property)
@@ -4467,6 +6298,15 @@ function arrayPropertyToNumbers(property, feature)
     return null;
 }
 
+/**
+ * Expand control points to one vertex per polygon corner.
+ *
+ * @param {number[]} controlPoints Control points.
+ * @param {number[]} polygonVertexIndex PolygonVertexIndex values.
+ * @param {FbxObjectEntry} geometry Geometry object for errors.
+ * @returns {FbxDecodedPolygons} Decoded polygons.
+ * @throws {Error} When an index is out of range or a polygon is short or unterminated.
+ */
 function decodePolygonCorners(controlPoints, polygonVertexIndex, geometry)
 {
     const
@@ -4522,6 +6362,20 @@ function decodePolygonCorners(controlPoints, polygonVertexIndex, geometry)
     return { positions, corners, polygons };
 }
 
+/**
+ * Read a layer element channel expanded to one element per polygon corner.
+ *
+ * @param {FbxNode} geometryNode Geometry node.
+ * @param {string} layerName Layer element node name.
+ * @param {number} layerIndex Layer element index.
+ * @param {string[]} valueNames Candidate value child names.
+ * @param {string[]} indexNames Candidate index child names.
+ * @param {number} elementSize Components per element.
+ * @param {FbxDecodedPolygons} decoded Decoded polygons.
+ * @param {string} feature Feature name for errors.
+ * @returns {number[]} Expanded values, or an empty array when absent.
+ * @throws {Error} When the value length is not a multiple of the element size.
+ */
 function readLayerElementChannel(geometryNode, layerName, layerIndex, valueNames, indexNames, elementSize, decoded, feature)
 {
     const layer = findLayerElementNode(geometryNode, layerName, layerIndex);
@@ -4559,6 +6413,18 @@ function readLayerElementChannel(geometryNode, layerName, layerIndex, valueNames
     return output;
 }
 
+/**
+ * Read every supported layer element channel of a Geometry.
+ *
+ * @param {FbxNode} geometryNode Geometry node.
+ * @param {FbxDecodedPolygons} decoded Decoded polygons.
+ * @param {FbxReaderValues} values Normalized reader values.
+ * @param {string} values.compatibility In "carbon" mode, binormals are skipped.
+ * @param {boolean} values.flipV Whether UV V coordinates are flipped.
+ * @param {number[]} meshTransform Geometry-to-world matrix.
+ * @param {FbxSceneTransform} sceneTransform Scene conversion.
+ * @returns {Object<string, number[]>} Channels by CMF vertex channel name.
+ */
 function readGeometryLayerChannels(geometryNode, decoded, values, meshTransform, sceneTransform)
 {
     const output = {};
@@ -4594,6 +6460,14 @@ function readGeometryLayerChannels(geometryNode, decoded, values, meshTransform,
     return output;
 }
 
+/**
+ * List the usage indices of a layer element, from Layer routing when present.
+ *
+ * @param {FbxNode} geometryNode Geometry node.
+ * @param {string} layerName Layer element node name.
+ * @returns {number[]} Sorted unique usage indices.
+ * @throws {Error} When an index is outside 0..255.
+ */
 function layerUsageIndices(geometryNode, layerName)
 {
     const routed = [];
@@ -4643,6 +6517,14 @@ function flipTexcoordV(texcoord)
     return flipped;
 }
 
+/**
+ * Find a layer element node by its index property or position.
+ *
+ * @param {FbxNode} geometryNode Geometry node.
+ * @param {string} layerName Layer element node name.
+ * @param {number} layerIndex Layer element index.
+ * @returns {FbxNode|null} Layer element node, or null.
+ */
 function findLayerElementNode(geometryNode, layerName, layerIndex)
 {
     const layers = geometryNode.children.filter(child => child.name === layerName);
@@ -4653,6 +6535,14 @@ function findLayerElementNode(geometryNode, layerName, layerIndex)
     }) || layers[layerIndex] || null;
 }
 
+/**
+ * Find a layer element node through a Layer's LayerElement reference.
+ *
+ * @param {FbxNode} geometryNode Geometry node.
+ * @param {string} layerName Layer element node name.
+ * @param {number} layerIndex Layer index.
+ * @returns {FbxNode|null} Layer element node, or null.
+ */
 function findRoutedLayerElementNode(geometryNode, layerName, layerIndex)
 {
     const layerNodes = geometryNode.children.filter(child => child.name === "Layer");
@@ -4677,6 +6567,13 @@ function findRoutedLayerElementNode(geometryNode, layerName, layerIndex)
     return findLayerElementNode(geometryNode, layerName, layerIndex);
 }
 
+/**
+ * Read the first present child array from candidate names.
+ *
+ * @param {FbxNode} node Parent node.
+ * @param {string[]} childNames Candidate child names.
+ * @returns {number[]|null} Values, or null when none is present.
+ */
 function readFirstChildArray(node, childNames)
 {
     for (const childName of childNames)
@@ -4690,6 +6587,15 @@ function readFirstChildArray(node, childNames)
     return null;
 }
 
+/**
+ * Get the element index a corner uses for a mapping mode.
+ *
+ * @param {string} mapping MappingInformationType.
+ * @param {FbxPolygonCorner} corner Polygon corner.
+ * @param {string} feature Feature name for errors.
+ * @returns {number} Mapped index.
+ * @throws {Error} When the mapping mode is unsupported.
+ */
 function resolveLayerMappingIndex(mapping, corner, feature)
 {
     switch (mapping)
@@ -4709,6 +6615,16 @@ function resolveLayerMappingIndex(mapping, corner, feature)
     }
 }
 
+/**
+ * Resolve a mapped index through a reference mode.
+ *
+ * @param {string} reference ReferenceInformationType.
+ * @param {number[]} indices Index array.
+ * @param {number} mappedIndex Mapped index.
+ * @param {string} feature Feature name for errors.
+ * @returns {number} Direct element index.
+ * @throws {Error} When the reference mode is unsupported or the index array is too short.
+ */
 function resolveLayerReferenceIndex(reference, indices, mappedIndex, feature)
 {
     switch (reference)
@@ -4729,6 +6645,16 @@ function resolveLayerReferenceIndex(reference, indices, mappedIndex, feature)
     }
 }
 
+/**
+ * Append one layer element's components.
+ *
+ * @param {number[]} output Output values.
+ * @param {number[]} values Element values.
+ * @param {number} directIndex Element index.
+ * @param {number} elementSize Components per element.
+ * @param {string} feature Feature name for errors.
+ * @throws {Error} When the index is out of range.
+ */
 function appendLayerElement(output, values, directIndex, elementSize, feature)
 {
     const offset = directIndex * elementSize;
@@ -4743,6 +6669,14 @@ function appendLayerElement(output, values, directIndex, elementSize, feature)
     }
 }
 
+/**
+ * Group triangles by material slot.
+ *
+ * @param {number[][][]} polygonTriangles Triangles per polygon.
+ * @param {FbxMaterialSelection} materialSelection Material slots and polygon selection.
+ * @returns {FbxIndexGroup[]} Index groups.
+ * @throws {Error} When a polygon references a missing slot.
+ */
 function buildIndexGroups(polygonTriangles, materialSelection)
 {
     const groups = materialSelection.slots.map(slot => ({
@@ -4779,11 +6713,25 @@ function buildIndexGroups(polygonTriangles, materialSelection)
     return groups;
 }
 
+/**
+ * Triangulate every polygon.
+ *
+ * @param {number[][]} polygons Vertex indices per polygon.
+ * @param {number[]} positions Expanded positions.
+ * @returns {number[][][]} Triangles per polygon.
+ */
 function triangulatePolygonList(polygons, positions)
 {
     return polygons.map(polygon => triangulatePolygon(polygon, positions));
 }
 
+/**
+ * Triangulate a polygon by ear clipping, falling back to a fan.
+ *
+ * @param {number[]} polygon Vertex indices.
+ * @param {number[]} positions Expanded positions.
+ * @returns {number[][]} Triangles.
+ */
 function triangulatePolygon(polygon, positions)
 {
     if (polygon.length === 3)
@@ -4847,6 +6795,12 @@ function triangulatePolygon(polygon, positions)
     return triangles.length ? triangles : triangulatePolygonFan(polygon);
 }
 
+/**
+ * Flatten triangles per polygon to one index list.
+ *
+ * @param {number[][][]} polygonTriangles Triangles per polygon.
+ * @returns {number[]} Triangle indices.
+ */
 function flattenPolygonTriangles(polygonTriangles)
 {
     const faces = [];
@@ -4860,6 +6814,13 @@ function flattenPolygonTriangles(polygonTriangles)
     return faces;
 }
 
+/**
+ * Reverse triangle winding when the transform reflects.
+ *
+ * @param {number[][][]} polygonTriangles Triangles per polygon.
+ * @param {boolean} reflected Whether the transform reflects.
+ * @returns {number[][][]} Oriented triangles.
+ */
 function orientPolygonTriangles(polygonTriangles, reflected)
 {
     if (!reflected) return polygonTriangles;
@@ -4868,6 +6829,13 @@ function orientPolygonTriangles(polygonTriangles, reflected)
     ]));
 }
 
+/**
+ * Check whether a matrix combined with the scene conversion reflects.
+ *
+ * @param {number[]} matrix Matrix.
+ * @param {FbxSceneTransform} sceneTransform Scene conversion.
+ * @returns {boolean} True when the determinant is negative.
+ */
 function isReflectedTransform(matrix, sceneTransform)
 {
     const matrixDeterminant = determinant3(
@@ -4883,6 +6851,20 @@ function isReflectedTransform(matrix, sceneTransform)
     return matrixDeterminant * sceneDeterminant < 0;
 }
 
+/**
+ * Compute a 3x3 determinant.
+ *
+ * @param {number} a00 Row 0, column 0.
+ * @param {number} a01 Row 0, column 1.
+ * @param {number} a02 Row 0, column 2.
+ * @param {number} a10 Row 1, column 0.
+ * @param {number} a11 Row 1, column 1.
+ * @param {number} a12 Row 1, column 2.
+ * @param {number} a20 Row 2, column 0.
+ * @param {number} a21 Row 2, column 1.
+ * @param {number} a22 Row 2, column 2.
+ * @returns {number} Determinant.
+ */
 function determinant3(a00, a01, a02, a10, a11, a12, a20, a21, a22)
 {
     return a00 * (a11 * a22 - a12 * a21) -
@@ -4890,6 +6872,12 @@ function determinant3(a00, a01, a02, a10, a11, a12, a20, a21, a22)
         a02 * (a10 * a21 - a11 * a20);
 }
 
+/**
+ * Triangulate a polygon as a fan from its first vertex.
+ *
+ * @param {number[]} polygon Vertex indices.
+ * @returns {number[][]} Triangles.
+ */
 function triangulatePolygonFan(polygon)
 {
     const triangles = [];
@@ -4900,6 +6888,13 @@ function triangulatePolygonFan(polygon)
     return triangles;
 }
 
+/**
+ * Project a polygon onto the plane that drops its normal's dominant axis.
+ *
+ * @param {number[]} polygon Vertex indices.
+ * @param {number[]} positions Expanded positions.
+ * @returns {number[][]|null} 2D points, or null for a degenerate polygon.
+ */
 function projectPolygonTo2D(polygon, positions)
 {
     const normal = computePolygonNormal(polygon, positions);
@@ -4929,6 +6924,13 @@ function projectPolygonTo2D(polygon, positions)
     });
 }
 
+/**
+ * Compute a polygon's Newell normal.
+ *
+ * @param {number[]} polygon Vertex indices.
+ * @param {number[]} positions Expanded positions.
+ * @returns {number[]} Unnormalized normal.
+ */
 function computePolygonNormal(polygon, positions)
 {
     const normal = [ 0, 0, 0 ];
@@ -4951,6 +6953,12 @@ function computePolygonNormal(polygon, positions)
     return normal;
 }
 
+/**
+ * Compute a 2D polygon's signed area.
+ *
+ * @param {number[][]} points 2D points.
+ * @returns {number} Signed area.
+ */
 function signedArea2D(points)
 {
     let area = 0;
@@ -4965,6 +6973,17 @@ function signedArea2D(points)
     return area * 0.5;
 }
 
+/**
+ * Check whether a vertex is a clippable ear.
+ *
+ * @param {number} previous Previous point index.
+ * @param {number} current Current point index.
+ * @param {number} next Next point index.
+ * @param {number[]} remaining Remaining point indices.
+ * @param {number[][]} points 2D points.
+ * @param {number} area Polygon signed area.
+ * @returns {boolean} True for an ear.
+ */
 function isEar2D(previous, current, next, remaining, points, area)
 {
     const cross = cross2D(points[previous], points[current], points[next]);
@@ -4987,6 +7006,13 @@ function isEar2D(previous, current, next, remaining, points, area)
     return true;
 }
 
+/**
+ * Check whether a 2D polygon is convex.
+ *
+ * @param {number[][]} points 2D points.
+ * @param {number} area Polygon signed area.
+ * @returns {boolean} True when convex.
+ */
 function isConvexPolygon2D(points, area)
 {
     for (let i = 0; i < points.length; i++)
@@ -5004,11 +7030,28 @@ function isConvexPolygon2D(points, area)
     return true;
 }
 
+/**
+ * Compute the 2D cross product of `b - a` and `c - a`.
+ *
+ * @param {number[]} a First point.
+ * @param {number[]} b Second point.
+ * @param {number[]} c Third point.
+ * @returns {number} Cross product.
+ */
 function cross2D(a, b, c)
 {
     return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
 }
 
+/**
+ * Check whether a 2D point lies in or on a triangle.
+ *
+ * @param {number[]} point Point.
+ * @param {number[]} a First corner.
+ * @param {number[]} b Second corner.
+ * @param {number[]} c Third corner.
+ * @returns {boolean} True when inside or on an edge.
+ */
 function pointInTriangle2D(point, a, b, c)
 {
     const
@@ -5021,6 +7064,17 @@ function pointInTriangle2D(point, a, b, c)
     return !(hasNegative && hasPositive);
 }
 
+/**
+ * Read material slots and the slot of each polygon.
+ *
+ * @param {FbxObjectEntry} geometry Geometry object.
+ * @param {FbxObjectEntry|null} owner Owning Model, or null.
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @param {number} polygonCount Polygon count.
+ * @returns {FbxMaterialSelection} Material selection.
+ * @throws {Error} When a polygon slot is out of range.
+ */
 function readPolygonMaterials(geometry, owner, objectIndex, connections, polygonCount)
 {
     const slots = readMaterialSlots(geometry, owner, objectIndex, connections);
@@ -5055,6 +7109,15 @@ function readPolygonMaterials(geometry, owner, objectIndex, connections, polygon
     return { slots, polygonSlots };
 }
 
+/**
+ * List the unique Materials connected to a Model and its Geometry.
+ *
+ * @param {FbxObjectEntry} geometry Geometry object.
+ * @param {FbxObjectEntry|null} owner Owning Model, or null.
+ * @param {FbxObjectIndex} objectIndex Indexed objects.
+ * @param {FbxConnections} connections Indexed connections.
+ * @returns {FbxMaterialSlot[]} Material slots.
+ */
 function readMaterialSlots(geometry, owner, objectIndex, connections)
 {
     const materials = [
@@ -5077,11 +7140,25 @@ function readMaterialSlots(geometry, owner, objectIndex, connections)
     return slots;
 }
 
+/**
+ * Name a mesh after its owning Model or Geometry.
+ *
+ * @param {FbxObjectEntry} geometry Geometry object.
+ * @param {FbxObjectEntry|null} owner Owning Model, or null.
+ * @returns {string} Mesh name.
+ */
 function meshNameFromFbx(geometry, owner)
 {
     return owner?.name || geometry.name || "fbx_mesh";
 }
 
+/**
+ * Create GR2 vertex channels with empty defaults.
+ *
+ * @param {number[]} position Positions.
+ * @param {Object<string, number[]>} [channels={}] Channels that override the defaults.
+ * @returns {Object<string, number[]>} Vertex channels.
+ */
 function createGr2Vertex(position, channels = {})
 {
     return {
@@ -5098,6 +7175,12 @@ function createGr2Vertex(position, channels = {})
     };
 }
 
+/**
+ * Compute the bounds of packed positions.
+ *
+ * @param {number[]} positions Packed positions.
+ * @returns {FbxBounds} Bounds; zero for no positions.
+ */
 function computeBounds(positions)
 {
     if (!positions.length)
@@ -5128,6 +7211,14 @@ function computeBounds(positions)
     return { minBounds, maxBounds };
 }
 
+/**
+ * Hydrate a GR2-shaped root into caller classes.
+ *
+ * @param {FbxGr2Root} root Imported root.
+ * @param {Object<string, Function>} classes Output node constructors by class key.
+ * @param {object} [hydrationOptions={}] Options passed to `SetValues`.
+ * @returns {object} Hydrated root.
+ */
 function hydrateGr2(root, classes, hydrationOptions = {})
 {
     const hydrationClasses = createHydrationClasses(classes, hydrationOptions);
@@ -5148,6 +7239,13 @@ function hydrateGr2(root, classes, hydrationOptions = {})
     }, hydrationClasses, hydrationOptions);
 }
 
+/**
+ * Hydrate a GR2 animation and its track groups, tracks and curves.
+ *
+ * @param {object} animation GR2 animation.
+ * @param {Object<string, Function>} classes Hydration class map.
+ * @returns {object} Hydrated animation.
+ */
 function hydrateGr2Animation(animation, classes)
 {
     return hydrate("Animation", {
@@ -5168,6 +7266,13 @@ function hydrateGr2Animation(animation, classes)
     }, classes);
 }
 
+/**
+ * Hydrate a GR2 model and its skeleton.
+ *
+ * @param {FbxGr2Model} model GR2 model.
+ * @param {Object<string, Function>} classes Hydration class map.
+ * @returns {object} Hydrated model.
+ */
 function hydrateGr2Model(model, classes)
 {
     return hydrate("Model", {
@@ -5176,6 +7281,13 @@ function hydrateGr2Model(model, classes)
     }, classes);
 }
 
+/**
+ * Hydrate a GR2 skeleton and its bones.
+ *
+ * @param {{name: string, bones: FbxGr2Bone[]}} skeleton GR2 skeleton.
+ * @param {Object<string, Function>} classes Hydration class map.
+ * @returns {object} Hydrated skeleton.
+ */
 function hydrateGr2Skeleton(skeleton, classes)
 {
     return hydrate("Skeleton", {
@@ -5184,6 +7296,15 @@ function hydrateGr2Skeleton(skeleton, classes)
     }, classes);
 }
 
+/**
+ * Create a class instance for a class key and populate it, or return the fields unchanged.
+ *
+ * @param {string} type Class key.
+ * @param {object} fields Fields.
+ * @param {Object<string, Function>} classes Hydration class map.
+ * @param {object} [hydrationOptions={}] Options passed to `SetValues`; empty uses the map's stored options.
+ * @returns {object} Instance, or the fields when no class is registered.
+ */
 function hydrate(type, fields, classes, hydrationOptions = {})
 {
     const Class = classes?.[type];
@@ -5196,6 +7317,15 @@ function hydrate(type, fields, classes, hydrationOptions = {})
     return populate(new Class(), fields, options);
 }
 
+/**
+ * Populate an instance through `SetValues`.
+ *
+ * @param {object} instance Class instance.
+ * @param {object} fields Fields.
+ * @param {object} [hydrationOptions={}] Options passed to `SetValues`.
+ * @returns {object} The instance.
+ * @throws {TypeError} When the instance has no `SetValues`.
+ */
 function populate(instance, fields, hydrationOptions = {})
 {
     if (!instance || typeof instance.SetValues !== "function")
@@ -5206,6 +7336,13 @@ function populate(instance, fields, hydrationOptions = {})
     return instance;
 }
 
+/**
+ * Create a class map that inherits from the caller's map and carries hydration options.
+ *
+ * @param {Object<string, Function>} classes Output node constructors.
+ * @param {object} hydrationOptions Options passed to `SetValues`.
+ * @returns {Object<string, Function>} Hydration class map.
+ */
 function createHydrationClasses(classes, hydrationOptions)
 {
     const map = Object.create(classes || null);
@@ -5213,6 +7350,12 @@ function createHydrationClasses(classes, hydrationOptions)
     return map;
 }
 
+/**
+ * Summarize a parsed document's header, settings, definitions, objects and connections.
+ *
+ * @param {FbxNode[]} nodes Root nodes.
+ * @returns {object} Document summary.
+ */
 function buildFbxRoot(nodes)
 {
     const headerNode = findFirstNode(nodes, "FBXHeaderExtension");
@@ -5231,6 +7374,12 @@ function buildFbxRoot(nodes)
     };
 }
 
+/**
+ * Read the FBXHeaderExtension summary.
+ *
+ * @param {FbxNode|null} node FBXHeaderExtension node, or null.
+ * @returns {{fbxHeaderVersion?: FbxPropertyValue, fbxVersion?: FbxPropertyValue, creator?: FbxPropertyValue}} Header summary.
+ */
 function readHeader(node)
 {
     if (!node)
@@ -5245,6 +7394,12 @@ function readHeader(node)
     };
 }
 
+/**
+ * Read the Definitions summary.
+ *
+ * @param {FbxNode|null} node Definitions node, or null.
+ * @returns {{version: FbxPropertyValue, count: FbxPropertyValue, objectTypes: Array<{type: FbxPropertyValue, count: FbxPropertyValue}>}} Definitions summary.
+ */
 function readDefinitions(node)
 {
     if (!node)
@@ -5265,6 +7420,12 @@ function readDefinitions(node)
     };
 }
 
+/**
+ * Read an ObjectType definition.
+ *
+ * @param {FbxNode} node ObjectType node.
+ * @returns {{type: FbxPropertyValue, count: FbxPropertyValue}} Type and count.
+ */
 function readObjectType(node)
 {
     return {
@@ -5273,6 +7434,12 @@ function readObjectType(node)
     };
 }
 
+/**
+ * Summarize the children of an Objects node.
+ *
+ * @param {FbxNode|null} node Objects node, or null.
+ * @returns {{count: number, list: FbxObjectSummary[], byId: Object<string, FbxObjectSummary>, byType: Object<string, string[]>}} Object summaries.
+ */
 function readObjects(node)
 {
     const byId = {};
@@ -5309,6 +7476,12 @@ function readObjects(node)
     };
 }
 
+/**
+ * Summarize one object node.
+ *
+ * @param {FbxNode} node Object node.
+ * @returns {FbxObjectSummary} Object summary.
+ */
 function readObjectEntry(node)
 {
     const id = node.properties[0];
@@ -5328,6 +7501,12 @@ function readObjectEntry(node)
     };
 }
 
+/**
+ * Read and index the connections of a Connections node.
+ *
+ * @param {FbxNode|null} node Connections node, or null.
+ * @returns {FbxConnections} Indexed connections.
+ */
 function readConnections(node)
 {
     const list = [];
@@ -5365,6 +7544,12 @@ function readConnections(node)
     };
 }
 
+/**
+ * Read a node's Properties70 definitions.
+ *
+ * @param {FbxNode|null|undefined} node Node, or nullish.
+ * @returns {{properties: Object<string, FbxProperty70>}} Definitions by property name.
+ */
 function readProperties70(node)
 {
     const properties = {};
@@ -5394,6 +7579,12 @@ function readProperties70(node)
     return { properties };
 }
 
+/**
+ * Get a `P` node's value: one value, or an array for several.
+ *
+ * @param {FbxPropertyValue[]} properties `P` node properties.
+ * @returns {FbxPropertyValue|FbxPropertyValue[]|undefined} Value.
+ */
 function getProperty70Value(properties)
 {
     if (properties.length <= 5)
@@ -5403,17 +7594,37 @@ function getProperty70Value(properties)
     return properties.slice(4);
 }
 
+/**
+ * Read the first property of a named child.
+ *
+ * @param {FbxNode} node Parent node.
+ * @param {string} childName Child node name.
+ * @returns {FbxPropertyValue|undefined} Property value, or undefined when absent.
+ */
 function readFirstChildProperty(node, childName)
 {
     const child = findFirstNode(node.children, childName);
     return child ? child.properties[0] : undefined;
 }
 
+/**
+ * Find the first node with a name.
+ *
+ * @param {FbxNode[]} nodes Nodes.
+ * @param {string} name Node name.
+ * @returns {FbxNode|null} Node, or null.
+ */
 function findFirstNode(nodes, name)
 {
     return nodes.find(node => node.name === name) || null;
 }
 
+/**
+ * Strip the class marker and namespace from an object name.
+ *
+ * @param {FbxPropertyValue} fullName Full object name.
+ * @returns {string} Short name, or "" for a non-string.
+ */
 function getShortObjectName(fullName)
 {
     if (typeof fullName !== "string")
@@ -5428,6 +7639,13 @@ function getShortObjectName(fullName)
     return namespaceMarker === -1 ? objectName : objectName.slice(namespaceMarker + 2);
 }
 
+/**
+ * Append a value to a keyed list.
+ *
+ * @param {Object<string, Array<*>>} index Lists by key.
+ * @param {string} key Key.
+ * @param {*} value Value.
+ */
 function pushIndex(index, key, value)
 {
     if (!index[key])
@@ -5437,11 +7655,25 @@ function pushIndex(index, key, value)
     index[key].push(value);
 }
 
+/**
+ * Convert an object id to a string key.
+ *
+ * @param {FbxPropertyValue|undefined|null} value Object id.
+ * @returns {string} Key, or "" for nullish ids.
+ */
 function toObjectKey(value)
 {
     return value === undefined || value === null ? "" : String(value);
 }
 
+/**
+ * Append a continuation line to the last ASCII `a` array node.
+ *
+ * @param {Array<{children: FbxNode[]}>} stack Open node stack.
+ * @param {string} line Continuation line.
+ * @param {FbxReaderValues} values Normalized reader values.
+ * @throws {Error} When the array exceeds `maxProperties`.
+ */
 function appendAsciiArrayContinuation(stack, line, values)
 {
     const
@@ -5456,6 +7688,14 @@ function appendAsciiArrayContinuation(stack, line, values)
     }
 }
 
+/**
+ * Parse an ASCII `Name: properties` line into a node.
+ *
+ * @param {string} line Trimmed line.
+ * @param {FbxReaderValues} values Normalized reader values.
+ * @returns {(FbxNode & {opensBlock: boolean})|null} Node, or null when the line is not a node.
+ * @throws {Error} When the node exceeds `maxProperties`.
+ */
 function parseAsciiLine(line, values)
 {
     const match = /^([A-Za-z_][\w.]*)\s*:\s*(.*)$/u.exec(line);
@@ -5486,11 +7726,23 @@ function parseAsciiLine(line, values)
     };
 }
 
+/**
+ * Parse comma-separated ASCII property values.
+ *
+ * @param {string} body Property text.
+ * @returns {Array<number|string|boolean>} Values.
+ */
 function parseAsciiProperties(body)
 {
     return splitAsciiProperties(body).map(parseAsciiValue);
 }
 
+/**
+ * Split ASCII property text on commas outside quotes.
+ *
+ * @param {string} body Property text.
+ * @returns {string[]} Trimmed parts.
+ */
 function splitAsciiProperties(body)
 {
     const parts = [];
@@ -5536,6 +7788,12 @@ function splitAsciiProperties(body)
     return parts;
 }
 
+/**
+ * Parse one ASCII property value.
+ *
+ * @param {string} value Value text.
+ * @returns {number|string|boolean} Parsed value; integers outside the safe range stay strings.
+ */
 function parseAsciiValue(value)
 {
     if (/^".*"$/u.test(value))
@@ -5558,6 +7816,12 @@ function parseAsciiValue(value)
     return value;
 }
 
+/**
+ * Remove a `;` comment outside quotes.
+ *
+ * @param {string} line Line.
+ * @returns {string} Line without its comment.
+ */
 function stripAsciiComment(line)
 {
     let quoted = false;
@@ -5588,6 +7852,12 @@ function stripAsciiComment(line)
     return line;
 }
 
+/**
+ * Check for the binary FBX signature.
+ *
+ * @param {Uint8Array} bytes Bytes.
+ * @returns {boolean} True when the signature matches.
+ */
 function isBinaryFBX(bytes)
 {
     if (bytes.byteLength < BINARY_HEADER_SIZE)
@@ -5604,6 +7874,12 @@ function isBinaryFBX(bytes)
     return true;
 }
 
+/**
+ * Check whether text looks like ASCII FBX.
+ *
+ * @param {string} text Text prefix.
+ * @returns {boolean} True when ASCII FBX markers are found.
+ */
 function isAsciiFBXText(text)
 {
     return /(^|\n)\s*FBXHeaderExtension\s*:/u.test(text) ||
@@ -5611,11 +7887,23 @@ function isAsciiFBXText(text)
         /;\s*FBX\s+\d+\.\d+\.\d+/iu.test(text);
 }
 
+/**
+ * Count ASCII root nodes.
+ *
+ * @param {string} text ASCII FBX text.
+ * @returns {number} Root node count.
+ */
 function countAsciiRootNodes(text)
 {
     return collectAsciiRootNames(text).length;
 }
 
+/**
+ * Collect ASCII root node names.
+ *
+ * @param {string} text ASCII FBX text.
+ * @returns {string[]} Root node names.
+ */
 function collectAsciiRootNames(text)
 {
     const names = [];
@@ -5648,6 +7936,12 @@ function collectAsciiRootNames(text)
     return names;
 }
 
+/**
+ * Read the FBX version from FBXVersion or the header comment.
+ *
+ * @param {string} text ASCII FBX text.
+ * @returns {number} Version, or 0 when absent.
+ */
 function readAsciiVersion(text)
 {
     const direct = /FBXVersion\s*:\s*(\d+)/u.exec(text);
@@ -5664,6 +7958,13 @@ function readAsciiVersion(text)
     return Number(`${comment[1]}${comment[2].padStart(2, "0")}${comment[3].padStart(2, "0")}`);
 }
 
+/**
+ * Decode a byte prefix as Latin-1 text, stopping at a NUL.
+ *
+ * @param {Uint8Array} bytes Bytes.
+ * @param {number} length Maximum byte count.
+ * @returns {string} Text.
+ */
 function decodeAsciiPrefix(bytes, length)
 {
     let text = "";
@@ -5680,11 +7981,25 @@ function decodeAsciiPrefix(bytes, length)
     return text;
 }
 
+/**
+ * Get the binary node header size for a version.
+ *
+ * @param {number} version FBX version.
+ * @returns {number} 25 for 7500 and later, otherwise 13.
+ */
 function getBinaryNodeHeaderSize(version)
 {
     return version >= 7500 ? NODE_HEADER_64_SIZE : NODE_HEADER_32_SIZE;
 }
 
+/**
+ * Check for an all-zero null record.
+ *
+ * @param {Uint8Array} bytes Bytes.
+ * @param {number} offset Byte offset.
+ * @param {number} length Record length.
+ * @returns {boolean} True for a complete all-zero record.
+ */
 function isNullRecord(bytes, offset, length)
 {
     if (offset + length > bytes.byteLength)
@@ -5701,6 +8016,12 @@ function isNullRecord(bytes, offset, length)
     return true;
 }
 
+/**
+ * Get the element byte size of an array type.
+ *
+ * @param {string} type Array type code.
+ * @returns {number} Element size in bytes.
+ */
 function getArrayElementSize(type)
 {
     if (type === "d" || type === "l")
@@ -5714,6 +8035,15 @@ function getArrayElementSize(type)
     return 1;
 }
 
+/**
+ * Validate a positive integer reader limit.
+ *
+ * @param {number} value Limit.
+ * @param {string} fieldName Option name.
+ * @param {string} readerName Reader name for errors.
+ * @returns {number} The limit.
+ * @throws {TypeError} When the value is not a positive integer.
+ */
 function normalizeIntegerLimit(value, fieldName, readerName)
 {
     if (!Number.isInteger(value) || value < 1)
@@ -5744,6 +8074,14 @@ function normalizeBooleanOption(value, fieldName, readerName)
     throw new TypeError(`${readerName}: ${fieldName} must be a boolean`);
 }
 
+/**
+ * Validate the compatibility option.
+ *
+ * @param {string} value Compatibility mode.
+ * @param {string} readerName Reader name for errors.
+ * @returns {string} "source" or "carbon".
+ * @throws {TypeError} When the value is neither.
+ */
 function normalizeCompatibility(value, readerName)
 {
     if (value === COMPATIBILITY_SOURCE || value === COMPATIBILITY_CARBON) return value;
@@ -5752,6 +8090,14 @@ function normalizeCompatibility(value, readerName)
     );
 }
 
+/**
+ * Validate and copy a class map.
+ *
+ * @param {Object<string, Function>|null|undefined} classes Class map.
+ * @param {string} readerName Reader name for errors.
+ * @returns {Object<string, Function>} Copied class map.
+ * @throws {TypeError} When the map is not an object.
+ */
 function normalizeClasses(classes, readerName)
 {
     if (!classes)
@@ -5772,6 +8118,15 @@ function normalizeClasses(classes, readerName)
     return normalized;
 }
 
+/**
+ * Merge a class map over a base map; nullish entries delete keys.
+ *
+ * @param {Object<string, Function>} base Base class map.
+ * @param {Object<string, Function|null>} classes Overrides.
+ * @param {string} readerName Reader name for errors.
+ * @returns {Object<string, Function>} Merged class map.
+ * @throws {TypeError} When the overrides are not an object.
+ */
 function mergeClasses(base, classes, readerName)
 {
     if (!classes || typeof classes !== "object" || Array.isArray(classes))
@@ -5794,11 +8149,25 @@ function mergeClasses(base, classes, readerName)
     return normalized;
 }
 
+/**
+ * Check whether a class map holds a constructor.
+ *
+ * @param {Object<string, Function>} classes Class map.
+ * @returns {boolean} True when a constructor is present.
+ */
 function hasClasses(classes)
 {
     return !!classes && Object.values(classes).some(Class => typeof Class === "function");
 }
 
+/**
+ * Convert a value to a finite number.
+ *
+ * @param {unknown} value Value.
+ * @param {string} feature Feature name for errors.
+ * @returns {number} Number.
+ * @throws {Error} When the value is not finite.
+ */
 function finiteNumber(value, feature)
 {
     const number = Number(value);
@@ -5809,6 +8178,14 @@ function finiteNumber(value, feature)
     return number;
 }
 
+/**
+ * Convert a value to a finite integer.
+ *
+ * @param {unknown} value Value.
+ * @param {string} feature Feature name for errors.
+ * @returns {number} Integer.
+ * @throws {Error} When the value is not a finite integer.
+ */
 function integerNumber(value, feature)
 {
     const number = finiteNumber(value, feature);
@@ -5819,6 +8196,15 @@ function integerNumber(value, feature)
     return number;
 }
 
+/**
+ * Check that a byte range lies within the bytes.
+ *
+ * @param {Uint8Array} bytes Bytes.
+ * @param {number} offset Byte offset.
+ * @param {number} length Byte length.
+ * @param {string} message Error message.
+ * @throws {Error} When the range runs past the end.
+ */
 function ensureRange(bytes, offset, length, message)
 {
     if (offset + length > bytes.byteLength)
@@ -5827,33 +8213,76 @@ function ensureRange(bytes, offset, length, message)
     }
 }
 
+/**
+ * Decode a UTF-8 string.
+ *
+ * @param {Uint8Array} bytes Bytes.
+ * @param {number} offset Byte offset.
+ * @param {number} length Byte length.
+ * @returns {string} Decoded string.
+ */
 function readString(bytes, offset, length)
 {
     ensureRange(bytes, offset, length, "fbx: string is truncated");
     return TEXT_DECODER.decode(bytes.subarray(offset, offset + length));
 }
 
+/**
+ * Read an unsigned 32-bit little-endian integer.
+ *
+ * @param {Uint8Array} bytes Bytes.
+ * @param {number} offset Byte offset.
+ * @returns {number} Value.
+ */
 function readU32LE(bytes, offset)
 {
     return (bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] * 0x1000000)) >>> 0;
 }
 
+/**
+ * Read an unsigned 32-bit big-endian integer.
+ *
+ * @param {Uint8Array} bytes Bytes.
+ * @param {number} offset Byte offset.
+ * @returns {number} Value.
+ */
 function readU32BE(bytes, offset)
 {
     return (((bytes[offset] << 24) >>> 0) | (bytes[offset + 1] << 16) | (bytes[offset + 2] << 8) | bytes[offset + 3]) >>> 0;
 }
 
+/**
+ * Read a signed 16-bit little-endian integer.
+ *
+ * @param {Uint8Array} bytes Bytes.
+ * @param {number} offset Byte offset.
+ * @returns {number} Value.
+ */
 function readI16LE(bytes, offset)
 {
     const value = bytes[offset] | (bytes[offset + 1] << 8);
     return value & 0x8000 ? value - 0x10000 : value;
 }
 
+/**
+ * Read a signed 32-bit little-endian integer.
+ *
+ * @param {Uint8Array} bytes Bytes.
+ * @param {number} offset Byte offset.
+ * @returns {number} Value.
+ */
 function readI32LE(bytes, offset)
 {
     return bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] << 24);
 }
 
+/**
+ * Read an unsigned 64-bit little-endian integer as a number.
+ *
+ * @param {Uint8Array} bytes Bytes.
+ * @param {number} offset Byte offset.
+ * @returns {number} Value; may exceed the safe integer range.
+ */
 function readU64LEAsNumber(bytes, offset)
 {
     const low = readU32LE(bytes, offset);
@@ -5861,6 +8290,13 @@ function readU64LEAsNumber(bytes, offset)
     return high * 0x100000000 + low;
 }
 
+/**
+ * Read a signed 64-bit little-endian integer.
+ *
+ * @param {Uint8Array} bytes Bytes.
+ * @param {number} offset Byte offset.
+ * @returns {number|string} Number when safe, otherwise its decimal string.
+ */
 function readI64LEValue(bytes, offset)
 {
     const
@@ -5872,11 +8308,25 @@ function readI64LEValue(bytes, offset)
     return Number.isSafeInteger(number) ? number : value.toString();
 }
 
+/**
+ * Read a little-endian float32.
+ *
+ * @param {Uint8Array} bytes Bytes.
+ * @param {number} offset Byte offset.
+ * @returns {number} Value.
+ */
 function readF32LE(bytes, offset)
 {
     return new DataView(bytes.buffer, bytes.byteOffset + offset, 4).getFloat32(0, true);
 }
 
+/**
+ * Read a little-endian float64.
+ *
+ * @param {Uint8Array} bytes Bytes.
+ * @param {number} offset Byte offset.
+ * @returns {number} Value.
+ */
 function readF64LE(bytes, offset)
 {
     return new DataView(bytes.buffer, bytes.byteOffset + offset, 8).getFloat64(0, true);

@@ -21,6 +21,12 @@ import {
 } from "../../cmf/core/utils/quaternion.js";
 import { decodeElementArray } from "../../cmf/core/utils/vertex.js";
 
+/** @typedef {import("./helpers.js").FbxWriteNode} FbxWriteNode */
+/** @typedef {import("./helpers.js").FbxWriteProperty} FbxWriteProperty */
+/** @typedef {import("./helpers.js").FbxWriteCurve} FbxWriteCurve */
+/** @typedef {import("./helpers.js").FbxWriteOptions} FbxWriteOptions */
+/** @typedef {import("./helpers.js").FbxMorphCarrier} FbxMorphCarrier */
+
 const textEncoder = new TextEncoder();
 const BINARY_SIGNATURE = "Kaydara FBX Binary  \0\x1a\0";
 const VERSION_7400 = 7400;
@@ -67,21 +73,49 @@ const DECL_CHANNELS = {
     BoneWeights: [ "blendWeight", 0 ]
 };
 
+/**
+ * Create an FBX node record for the binary writer.
+ *
+ * @param {string} name Node name.
+ * @param {FbxWriteProperty[]} [properties=[]] Node properties.
+ * @param {FbxWriteNode[]} [children=[]] Child nodes.
+ * @param {boolean} [forceSentinel=false] Whether to write the null sentinel record even without children.
+ * @returns {FbxWriteNode} The node record.
+ */
 function node(name, properties = [], children = [], forceSentinel = false)
 {
     return { name, properties, children, forceSentinel };
 }
 
+/**
+ * Create an int64 (`L`) property.
+ *
+ * @param {number|bigint} value Integer value.
+ * @returns {FbxWriteProperty} The property record.
+ */
 function long(value)
 {
     return { type: "L", value: BigInt(value) };
 }
 
+/**
+ * Create a string (`S`) property.
+ *
+ * @param {*} value Value converted with `String`.
+ * @returns {FbxWriteProperty} The property record.
+ */
 function string(value)
 {
     return { type: "S", value: String(value) };
 }
 
+/**
+ * Create the binary FBX object-name string property that joins a display name and an object class.
+ *
+ * @param {string} name Object display name.
+ * @param {string} className FBX object class.
+ * @returns {FbxWriteProperty} The string property record.
+ */
 function objectName(name, className)
 {
     // Binary FBX stores an object's display name and object class in one string.
@@ -90,41 +124,89 @@ function objectName(name, className)
     return string(`${name}\0\x01${className}`);
 }
 
+/**
+ * Create an int32 (`I`) property.
+ *
+ * @param {number} value Value truncated to a 32-bit integer.
+ * @returns {FbxWriteProperty} The property record.
+ */
 function integer(value)
 {
     return { type: "I", value: Number(value) | 0 };
 }
 
+/**
+ * Create a float64 (`D`) property.
+ *
+ * @param {number} value Value converted with `Number`.
+ * @returns {FbxWriteProperty} The property record.
+ */
 function double(value)
 {
     return { type: "D", value: Number(value) };
 }
 
+/**
+ * Create a float64 array (`d`) property.
+ *
+ * @param {ArrayLike<number>} values Array values.
+ * @returns {FbxWriteProperty} The property record.
+ */
 function doubleArray(values)
 {
     return { type: "d", values };
 }
 
+/**
+ * Create an int32 array (`i`) property.
+ *
+ * @param {ArrayLike<number>} values Array values.
+ * @returns {FbxWriteProperty} The property record.
+ */
 function intArray(values)
 {
     return { type: "i", values };
 }
 
+/**
+ * Create a float32 array (`f`) property.
+ *
+ * @param {ArrayLike<number>} values Array values.
+ * @returns {FbxWriteProperty} The property record.
+ */
 function floatArray(values)
 {
     return { type: "f", values };
 }
 
+/**
+ * Create an int64 array (`l`) property.
+ *
+ * @param {ArrayLike<number|bigint>} values Array values.
+ * @returns {FbxWriteProperty} The property record.
+ */
 function longArray(values)
 {
     return { type: "l", values };
 }
 
+/**
+ * Create a raw bytes (`R`) property.
+ *
+ * @param {Uint8Array} value Raw bytes.
+ * @returns {FbxWriteProperty} The property record.
+ */
 function raw(value)
 {
     return { type: "R", value };
 }
 
+/**
+ * Encode values as little-endian float32 bytes in base64.
+ *
+ * @param {ArrayLike<number>} values Values to encode.
+ * @returns {string} Base64 text.
+ */
 function base64Float32(values)
 {
     const bytes = new Uint8Array(values.length * 4);
@@ -147,11 +229,25 @@ function base64Float32(values)
     return encoded;
 }
 
+/**
+ * Create an FBX write error with a prefixed message.
+ *
+ * @param {string} message Error message.
+ * @param {object} [details={}] Error details.
+ * @returns {CjsFormatWriteError} The error, for the caller to throw.
+ */
 function writeError(message, details = {})
 {
     return new CjsFormatWriteError(`FBX write: ${message}`, details);
 }
 
+/**
+ * Validate an optional FBX object name.
+ *
+ * @param {*} value Name to validate; undefined, null and "" are accepted.
+ * @param {string} label Label for errors.
+ * @throws {CjsFormatWriteError} When the name is not a string or contains `::` or a NUL.
+ */
 function validateName(value, label)
 {
     if (value === undefined || value === null || value === "") return;
@@ -162,6 +258,14 @@ function validateName(value, label)
     }
 }
 
+/**
+ * Validate an array of finite numbers with an exact length.
+ *
+ * @param {ArrayLike<number>} values Values to check.
+ * @param {number} expectedLength Required length.
+ * @param {string} label Label for errors.
+ * @throws {CjsFormatWriteError} When the length differs or a value is not finite.
+ */
 function validateFiniteArray(values, expectedLength, label)
 {
     if (!isArrayLike(values) || values.length !== expectedLength)
@@ -174,6 +278,13 @@ function validateFiniteArray(values, expectedLength, label)
     }
 }
 
+/**
+ * Compare two array-likes element by element.
+ *
+ * @param {ArrayLike<*>} a First array.
+ * @param {ArrayLike<*>} b Second array.
+ * @returns {boolean} True when both are the same object or hold equal values.
+ */
 function arraysEqual(a, b)
 {
     return a === b || (
@@ -183,6 +294,13 @@ function arraysEqual(a, b)
     );
 }
 
+/**
+ * Validate that a mesh has at most one LOD and that its top-level data matches LOD 0.
+ *
+ * @param {object} mesh CMF mesh.
+ * @param {number} meshIndex Mesh index for errors.
+ * @throws {CjsFormatWriteError} When the LODs cannot be exported.
+ */
 function validateLodProjection(mesh, meshIndex)
 {
     const lods = mesh.lods ?? [];
@@ -212,6 +330,12 @@ function validateLodProjection(mesh, meshIndex)
     }
 }
 
+/**
+ * Map a CMF vertex declaration element to its vertex channel name.
+ *
+ * @param {{usage: string, usageIndex?: number}} element Declaration element.
+ * @returns {string|null} Channel name, or null when FBX export does not support the element.
+ */
 function declarationChannel(element)
 {
     const mapping = DECL_CHANNELS[element?.usage];
@@ -225,6 +349,12 @@ function declarationChannel(element)
     return usageIndex ? `${mapping[0]}${usageIndex}` : mapping[0];
 }
 
+/**
+ * Get the component count FBX export uses for a vertex channel.
+ *
+ * @param {string} channel Vertex channel name.
+ * @returns {number|null} Component count, or null for an unsupported channel.
+ */
 function vertexChannelWidth(channel)
 {
     if (Object.hasOwn(SUPPORTED_VERTEX_CHANNELS, channel)) return SUPPORTED_VERTEX_CHANNELS[channel];
@@ -235,6 +365,13 @@ function vertexChannelWidth(channel)
     return 3;
 }
 
+/**
+ * Validate that every vertex channel and declaration element of a mesh is exportable.
+ *
+ * @param {object} mesh CMF mesh.
+ * @param {number} meshIndex Mesh index for errors.
+ * @throws {CjsFormatWriteError} When a channel or declaration element is unsupported.
+ */
 function validateVertexDeclaration(mesh, meshIndex)
 {
     const vertex = vertexData(mesh);
@@ -258,16 +395,35 @@ function validateVertexDeclaration(mesh, meshIndex)
     }
 }
 
+/**
+ * Get a mesh's vertex channels, falling back to LOD 0.
+ *
+ * @param {object} mesh CMF mesh.
+ * @returns {Object<string, ArrayLike<number>>} Vertex channels by name.
+ */
 function vertexData(mesh)
 {
     return mesh.vertex ?? mesh.lods?.[0]?.vertex ?? {};
 }
 
+/**
+ * Get a mesh's index groups, falling back to LOD 0.
+ *
+ * @param {object} mesh CMF mesh.
+ * @returns {Array<{name?: string, faces?: ArrayLike<number>}>} Index groups.
+ */
 function indexGroups(mesh)
 {
     return mesh.indices ?? mesh.lods?.[0]?.indices ?? [];
 }
 
+/**
+ * Validate a CMF mesh for FBX export.
+ *
+ * @param {object} mesh CMF mesh.
+ * @param {number} meshIndex Mesh index for errors.
+ * @throws {CjsFormatWriteError} When the mesh, its indices or its channels cannot be exported.
+ */
 function validateMesh(mesh, meshIndex)
 {
     if (!mesh || typeof mesh !== "object") throw writeError(`mesh ${meshIndex} must be an object`);
@@ -340,6 +496,12 @@ function validateMesh(mesh, meshIndex)
     }
 }
 
+/**
+ * Build the FBX PolygonVertexIndex array, marking each triangle's last corner with a bitwise NOT.
+ *
+ * @param {object} mesh CMF mesh.
+ * @returns {number[]} Polygon vertex indices.
+ */
 function polygonVertexIndices(mesh)
 {
     const result = [];
@@ -354,6 +516,16 @@ function polygonVertexIndices(mesh)
     return result;
 }
 
+/**
+ * Expand a per-vertex channel to per-polygon-vertex values.
+ *
+ * @param {object} mesh CMF mesh.
+ * @param {string} channel Vertex channel name.
+ * @param {number} width Output component count; missing components are written as 1.
+ * @param {number} meshIndex Mesh index for errors.
+ * @returns {number[]} Expanded values, or an empty array when the channel is absent.
+ * @throws {CjsFormatWriteError} When the channel length is wrong or a value is not finite.
+ */
 function polygonVertexChannel(mesh, channel, width, meshIndex)
 {
     const source = vertexData(mesh)[channel] ?? [];
@@ -390,6 +562,15 @@ function polygonVertexChannel(mesh, channel, width, meshIndex)
     return output;
 }
 
+/**
+ * Create a ByPolygonVertex/Direct layer element node.
+ *
+ * @param {string} name Layer element node name.
+ * @param {string} valueName Child node name that holds the values.
+ * @param {number[]} values Expanded values.
+ * @param {number} usageIndex Layer element index.
+ * @returns {FbxWriteNode} The layer element node.
+ */
 function layerElement(name, valueName, values, usageIndex)
 {
     return node(name, [ integer(usageIndex) ], [
@@ -401,6 +582,15 @@ function layerElement(name, valueName, values, usageIndex)
     ]);
 }
 
+/**
+ * Build the child nodes of a mesh Geometry object: vertices, polygon indices, layer elements and layers.
+ *
+ * @param {object} mesh CMF mesh.
+ * @param {number} meshIndex Mesh index for errors.
+ * @param {FbxWriteOptions} options Normalized write options.
+ * @param {boolean} [options.flipV] When not false, UV V coordinates are written as `1 - v`.
+ * @returns {FbxWriteNode[]} Geometry child nodes.
+ */
 function geometryChildren(mesh, meshIndex, options)
 {
     const children = [
@@ -474,6 +664,14 @@ function geometryChildren(mesh, meshIndex, options)
     return children;
 }
 
+/**
+ * List the usage indices and channel names of a mesh's vertex channels with a prefix.
+ *
+ * @param {object} mesh CMF mesh.
+ * @param {string} prefix Channel prefix, such as "normal" or "texcoord".
+ * @returns {Array<[number, string]>} Usage index and channel name pairs, sorted by usage index.
+ * @throws {CjsFormatWriteError} When a usage index exceeds 255 or two channels share one.
+ */
 function vertexChannelUsages(mesh, prefix)
 {
     const vertex = vertexData(mesh);
@@ -502,6 +700,13 @@ function vertexChannelUsages(mesh, prefix)
     return Array.from(byIndex).sort((left, right) => left[0] - right[0]);
 }
 
+/**
+ * Create a Layer's LayerElement reference node.
+ *
+ * @param {string} type Layer element node name.
+ * @param {number} typedIndex Layer element index.
+ * @returns {FbxWriteNode} The reference node.
+ */
 function layerElementReference(type, typedIndex)
 {
     return node("LayerElement", [], [
@@ -510,6 +715,13 @@ function layerElementReference(type, typedIndex)
     ]);
 }
 
+/**
+ * Convert a quaternion to XYZ Euler angles in degrees.
+ *
+ * @param {number[]} quaternion Quaternion as [x, y, z, w].
+ * @returns {number[]} Euler angles in degrees.
+ * @throws {CjsFormatWriteError} When the quaternion cannot be normalized.
+ */
 function quaternionToEulerXyz(quaternion)
 {
     let normalized;
@@ -531,6 +743,15 @@ function quaternionToEulerXyz(quaternion)
     ];
 }
 
+/**
+ * Create a Properties70 `P` node with numeric values.
+ *
+ * @param {string} name Property name.
+ * @param {string} type Property type.
+ * @param {string} flags Property flags.
+ * @param {Iterable<number>} values Property values.
+ * @returns {FbxWriteNode} The property node.
+ */
 function propertyNode(name, type, flags, values)
 {
     return node("P", [
@@ -542,11 +763,26 @@ function propertyNode(name, type, flags, values)
     ]);
 }
 
+/**
+ * Create a Properties70 `P` node with a KString value.
+ *
+ * @param {string} name Property name.
+ * @param {string} value String value.
+ * @returns {FbxWriteNode} The property node.
+ */
 function stringPropertyNode(name, value)
 {
     return node("P", [ string(name), string("KString"), string(""), string("U"), string(value) ]);
 }
 
+/**
+ * Expand per-vertex values to per-polygon-vertex values.
+ *
+ * @param {object} mesh CMF mesh.
+ * @param {ArrayLike<number>} values Per-vertex values.
+ * @param {number} width Component count per vertex.
+ * @returns {number[]} Expanded values.
+ */
 function expandPolygonVertexValues(mesh, values, width)
 {
     const expanded = [];
@@ -560,6 +796,13 @@ function expandPolygonVertexValues(mesh, values, width)
     return expanded;
 }
 
+/**
+ * Validate a CMF skeleton, its hierarchy, inverse binds and bone masks for FBX export.
+ *
+ * @param {object} skeleton CMF skeleton.
+ * @param {number} skeletonIndex Skeleton index for errors.
+ * @throws {CjsFormatWriteError} When the skeleton cannot be exported.
+ */
 function validateSkeleton(skeleton, skeletonIndex)
 {
     if (!skeleton || typeof skeleton !== "object")
@@ -656,6 +899,14 @@ function validateSkeleton(skeleton, skeletonIndex)
     }
 }
 
+/**
+ * Build the Properties70 node of a bone Model.
+ *
+ * @param {object} skeleton CMF skeleton.
+ * @param {number} boneIndex Bone index.
+ * @param {string[]} [morphProperties=[]] Morph property names written on the root bone.
+ * @returns {FbxWriteNode} The Properties70 node.
+ */
 function boneProperties(skeleton, boneIndex, morphProperties = [])
 {
     const rest = skeleton.restTransforms?.[boneIndex] ?? {};
@@ -681,6 +932,17 @@ function boneProperties(skeleton, boneIndex, morphProperties = [])
     return node("Properties70", [], children);
 }
 
+/**
+ * Append bone Models, their connections and bind Poses for every CMF skeleton.
+ *
+ * @param {object} cmf Native CMF root.
+ * @param {FbxWriteNode[]} objects Objects list to append to.
+ * @param {FbxWriteNode[]} connections Connections list to append to.
+ * @param {function(): bigint} allocateId Object id allocator.
+ * @param {FbxMorphCarrier|null} morphCarrier Carbon morph animation carrier, or null.
+ * @returns {bigint[][]} Bone object ids per skeleton.
+ * @throws {CjsFormatWriteError} When an inverse bind matrix cannot be inverted.
+ */
 function appendSkeletons(cmf, objects, connections, allocateId, morphCarrier)
 {
     const skeletonBoneIds = [];
@@ -746,6 +1008,19 @@ function appendSkeletons(cmf, objects, connections, allocateId, morphCarrier)
     return skeletonBoneIds;
 }
 
+/**
+ * Append the Skin deformer and Cluster sub-deformers of a skinned mesh.
+ *
+ * @param {object} mesh CMF mesh.
+ * @param {number} meshIndex Mesh index for errors.
+ * @param {bigint} geometryId Geometry object id.
+ * @param {object} cmf Native CMF root.
+ * @param {bigint[][]} skeletonBoneIds Bone object ids per skeleton.
+ * @param {FbxWriteNode[]} objects Objects list to append to.
+ * @param {FbxWriteNode[]} connections Connections list to append to.
+ * @param {function(): bigint} allocateId Object id allocator.
+ * @throws {CjsFormatWriteError} When bindings, skin channels or weights are invalid.
+ */
 function appendSkin(mesh, meshIndex, geometryId, cmf, skeletonBoneIds, objects, connections, allocateId)
 {
     const bindings = mesh.boneBindings ?? [];
@@ -864,6 +1139,19 @@ function appendSkin(mesh, meshIndex, geometryId, cmf, skeletonBoneIds, objects, 
     }
 }
 
+/**
+ * Append the BlendShape deformer, channels and Shape geometries of a mesh's morph targets.
+ *
+ * @param {object} mesh CMF mesh.
+ * @param {number} meshIndex Mesh index for errors.
+ * @param {bigint} geometryId Geometry object id.
+ * @param {FbxWriteNode[]} objects Objects list to append to.
+ * @param {FbxWriteNode[]} connections Connections list to append to.
+ * @param {function(): bigint} allocateId Object id allocator.
+ * @param {Map<string, bigint[]>} morphChannels BlendShapeChannel ids by morph target name, filled in.
+ * @returns {FbxWriteNode[]} Custom-normal properties for the mesh Model.
+ * @throws {CjsFormatWriteError} When morph metadata or payloads cannot be exported.
+ */
 function appendMorphs(mesh, meshIndex, geometryId, objects, connections, allocateId, morphChannels)
 {
     const targets = mesh.morphTargets?.targets ?? [];
@@ -1032,6 +1320,13 @@ function appendMorphs(mesh, meshIndex, geometryId, objects, connections, allocat
     return customProperties;
 }
 
+/**
+ * Map bone names to their exported object ids.
+ *
+ * @param {object} cmf Native CMF root.
+ * @param {bigint[][]} skeletonBoneIds Bone object ids per skeleton.
+ * @returns {Map<string, bigint[]>} Object ids by bone name.
+ */
 function buildBoneTargetMap(cmf, skeletonBoneIds)
 {
     const targets = new Map();
@@ -1048,6 +1343,14 @@ function buildBoneTargetMap(cmf, skeletonBoneIds)
     return targets;
 }
 
+/**
+ * Convert seconds to FBX ticks.
+ *
+ * @param {number} seconds Time in seconds.
+ * @param {string} label Label for errors.
+ * @returns {number} FBX tick count.
+ * @throws {CjsFormatWriteError} When the time is negative, not finite, or outside the safe tick range.
+ */
 function animationTick(seconds, label)
 {
     if (!Number.isFinite(seconds) || seconds < 0)
@@ -1059,6 +1362,15 @@ function animationTick(seconds, label)
     return tick;
 }
 
+/**
+ * Decode a CMF animation curve's knots and values and convert knots to FBX ticks.
+ *
+ * @param {object} curve CMF animation curve.
+ * @param {number} animationIndex Animation index for errors.
+ * @param {number} channelIndex Channel index for errors.
+ * @returns {FbxWriteCurve} The decoded curve.
+ * @throws {CjsFormatWriteError} When the curve is missing, unsupported or inconsistent.
+ */
 function decodeAnimationCurve(curve, animationIndex, channelIndex)
 {
     if (!curve)
@@ -1094,6 +1406,14 @@ function decodeAnimationCurve(curve, animationIndex, channelIndex)
     return { ...curve, knots, ticks, values };
 }
 
+/**
+ * Encode one component of a decoded curve as FBX key times, values and attribute flags.
+ *
+ * @param {FbxWriteCurve} curve Decoded curve.
+ * @param {number} component Component index.
+ * @returns {{ticks: number[], values: number[], flags: number[]}} FBX key data.
+ * @throws {CjsFormatWriteError} When identical-time keys cannot be represented in FBX.
+ */
 function encodeAnimationCurveComponent(curve, component)
 {
     const sourceValues = [];
@@ -1150,11 +1470,24 @@ function encodeAnimationCurveComponent(curve, component)
     return { ticks, values, flags };
 }
 
+/**
+ * Shift an angle by whole turns to the value nearest a reference.
+ *
+ * @param {number} value Angle in degrees.
+ * @param {number} reference Reference angle in degrees.
+ * @returns {number} Shifted angle in degrees.
+ */
 function nearestAngle(value, reference)
 {
     return value + 360 * Math.round((reference - value) / 360);
 }
 
+/**
+ * Convert XYZ Euler angles in degrees to a normalized quaternion.
+ *
+ * @param {number[]} values Euler angles in degrees.
+ * @returns {number[]} Quaternion as [x, y, z, w].
+ */
 function quaternionFromEulerXyz(values)
 {
     const
@@ -1176,6 +1509,13 @@ function quaternionFromEulerXyz(values)
     ], "FBX Euler rotation");
 }
 
+/**
+ * Convert a quaternion to the XYZ Euler angles closest to a previous key.
+ *
+ * @param {number[]} quaternion Quaternion as [x, y, z, w].
+ * @param {number[]|null} previous Previous Euler angles in degrees, or null for the principal angles.
+ * @returns {number[]} Euler angles in degrees.
+ */
 function closestEulerXyz(quaternion, previous)
 {
     const principal = quaternionToEulerXyz(quaternion);
@@ -1224,6 +1564,13 @@ function closestEulerXyz(quaternion, previous)
     }, null).values;
 }
 
+/**
+ * Bake a quaternion rotation curve into an XYZ Euler curve, subdividing linear segments as needed.
+ *
+ * @param {FbxWriteCurve} curve Decoded quaternion curve.
+ * @returns {FbxWriteCurve} Euler curve with `valueDimension` 3.
+ * @throws {CjsFormatWriteError} When the quaternions are invalid or a segment needs too many keys.
+ */
 function bakeQuaternionCurveToEuler(curve)
 {
     const quaternions = curve.values.slice();
@@ -1301,6 +1648,13 @@ function bakeQuaternionCurveToEuler(curve)
     };
 }
 
+/**
+ * Build the child nodes of an AnimationCurve object for one curve component.
+ *
+ * @param {FbxWriteCurve} curve Decoded curve.
+ * @param {number} component Component index.
+ * @returns {FbxWriteNode[]} AnimationCurve child nodes.
+ */
 function animationCurveNodeChildren(curve, component)
 {
     const { ticks, values, flags } = encodeAnimationCurveComponent(curve, component);
@@ -1315,11 +1669,30 @@ function animationCurveNodeChildren(curve, component)
     ];
 }
 
+/**
+ * Create a Properties70 `P` node with a KTime value.
+ *
+ * @param {string} name Property name.
+ * @param {number} tick Time in FBX ticks.
+ * @returns {FbxWriteNode} The property node.
+ */
 function timePropertyNode(name, tick)
 {
     return node("P", [ string(name), string("KTime"), string("Time"), string(""), long(tick) ]);
 }
 
+/**
+ * Append an AnimationCurve object and connect it to a curve node property.
+ *
+ * @param {FbxWriteNode[]} objects Objects list to append to.
+ * @param {FbxWriteNode[]} connections Connections list to append to.
+ * @param {function(): bigint} allocateId Object id allocator.
+ * @param {bigint} curveNodeId AnimationCurveNode object id.
+ * @param {string} label Curve object name.
+ * @param {FbxWriteCurve} curve Decoded curve.
+ * @param {number} component Component index.
+ * @param {string} property Connected curve node property, such as "d|X".
+ */
 function appendAnimationCurve(
     objects,
     connections,
@@ -1340,6 +1713,18 @@ function appendAnimationCurve(
     connections.push(node("C", [ string("OP"), long(curveId), long(curveNodeId), string(property) ]));
 }
 
+/**
+ * Append AnimationStack, AnimationLayer, curve node and curve objects for every CMF animation.
+ *
+ * @param {object} cmf Native CMF root.
+ * @param {FbxWriteNode[]} objects Objects list to append to.
+ * @param {FbxWriteNode[]} connections Connections list to append to.
+ * @param {function(): bigint} allocateId Object id allocator.
+ * @param {bigint[][]} skeletonBoneIds Bone object ids per skeleton.
+ * @param {Map<string, bigint[]>} morphChannels BlendShapeChannel ids by morph target name.
+ * @param {FbxMorphCarrier|null} morphCarrier Carbon morph animation carrier, or null.
+ * @throws {CjsFormatWriteError} When an animation, channel or curve cannot be exported.
+ */
 function appendAnimations(
     cmf,
     objects,
@@ -1515,16 +1900,36 @@ function appendAnimations(
     }
 }
 
+/**
+ * Create a Properties70 `P` node with an int value.
+ *
+ * @param {string} name Property name.
+ * @param {number} value Integer value.
+ * @returns {FbxWriteNode} The property node.
+ */
 function integerPropertyNode(name, value)
 {
     return node("P", [ string(name), string("int"), string("Integer"), string(""), integer(value) ]);
 }
 
+/**
+ * Create a Properties70 `P` node with a double value.
+ *
+ * @param {string} name Property name.
+ * @param {number} value Number value.
+ * @returns {FbxWriteNode} The property node.
+ */
 function numberPropertyNode(name, value)
 {
     return node("P", [ string(name), string("double"), string("Number"), string(""), double(value) ]);
 }
 
+/**
+ * Build the header, file id, creator and global settings root nodes.
+ *
+ * @param {number} version FBX version.
+ * @returns {FbxWriteNode[]} Header root nodes.
+ */
 function headerNodes(version)
 {
     return [
@@ -1578,6 +1983,13 @@ function headerNodes(version)
     ];
 }
 
+/**
+ * Build the Documents, References and Definitions root nodes.
+ *
+ * @param {FbxWriteNode[]} objects Object nodes counted in the definitions.
+ * @param {Array<{name?: string}>} animations CMF animations; the first names the active stack.
+ * @returns {FbxWriteNode[]} Document root nodes.
+ */
 function documentNodes(objects, animations)
 {
     const counts = new Map();
@@ -1608,6 +2020,12 @@ function documentNodes(objects, animations)
     ];
 }
 
+/**
+ * Build the Takes root node.
+ *
+ * @param {Array<{name?: string, duration?: number}>} animations CMF animations.
+ * @returns {FbxWriteNode} The Takes node.
+ */
 function takesNode(animations)
 {
     const children = [ node("Current", [ string(animations[0]?.name ?? "") ]) ];
@@ -1626,6 +2044,12 @@ function takesNode(animations)
     return node("Takes", [], children);
 }
 
+/**
+ * Collect the morph target names that CMF animations target.
+ *
+ * @param {object} cmf Native CMF root.
+ * @returns {string[]} Unique morph target names.
+ */
 function animatedMorphTargetNames(cmf)
 {
     const names = new Set();
@@ -1639,6 +2063,16 @@ function animatedMorphTargetNames(cmf)
     return Array.from(names);
 }
 
+/**
+ * Resolve the skeleton root that carries morph animation properties in Carbon compatibility mode.
+ *
+ * @param {object} cmf Native CMF root.
+ * @param {FbxWriteOptions} options Normalized write options.
+ * @param {string} options.compatibility Compatibility mode; only "carbon" uses a carrier.
+ * @param {number|string|null} [options.morphAnimationRoot] Requested skeleton index, skeleton name or root bone name.
+ * @returns {FbxMorphCarrier|null} The carrier, or null when none is needed.
+ * @throws {CjsFormatWriteError} When a target name is reserved or no single carrier skeleton resolves.
+ */
 function resolveMorphAnimationCarrier(cmf, options)
 {
     const names = animatedMorphTargetNames(cmf);
@@ -1696,6 +2130,15 @@ function resolveMorphAnimationCarrier(cmf, options)
     };
 }
 
+/**
+ * Build every root node of an FBX document from a native CMF root.
+ *
+ * @param {object} cmf Native CMF root.
+ * @param {FbxWriteOptions} options Normalized write options.
+ * @param {number} [options.version] FBX version written to the header.
+ * @returns {FbxWriteNode[]} Root nodes.
+ * @throws {CjsFormatWriteError} When the CMF root is malformed.
+ */
 function buildDocument(cmf, options)
 {
     if (!cmf || !Array.isArray(cmf.meshes))
@@ -1761,6 +2204,13 @@ function buildDocument(cmf, options)
     ];
 }
 
+/**
+ * Write one property with its type code.
+ *
+ * @param {CjsByteWriter} writer Output writer.
+ * @param {FbxWriteProperty} property Property to write.
+ * @throws {CjsFormatWriteError} When the property type is unsupported.
+ */
 function writeProperty(writer, property)
 {
     writer.u8(property.type.charCodeAt(0));
@@ -1815,6 +2265,12 @@ function writeProperty(writer, property)
     }
 }
 
+/**
+ * Encode a node's properties.
+ *
+ * @param {FbxWriteProperty[]} properties Properties to encode.
+ * @returns {Uint8Array} Encoded property bytes.
+ */
 function encodeProperties(properties)
 {
     const writer = new CjsByteWriter();
@@ -1822,6 +2278,13 @@ function encodeProperties(properties)
     return writer.toBytes();
 }
 
+/**
+ * Write a node record, its children and its end offset.
+ *
+ * @param {CjsByteWriter} writer Output writer.
+ * @param {FbxWriteNode} value Node to write.
+ * @throws {CjsFormatWriteError} When the name exceeds 255 bytes or the output exceeds 32-bit offsets.
+ */
 function writeNode(writer, value)
 {
     const name = textEncoder.encode(value.name);
@@ -1850,6 +2313,15 @@ function writeNode(writer, value)
  *
  * The output uses the standard binary document envelope and an uncompressed
  * geometry/deformation subset shared with the runtime reader.
+ *
+ * @param {object} cmf Native CMF root with a `meshes` array.
+ * @param {object} [options={}] Write options.
+ * @param {number} [options.version=7400] FBX version; only 7400 is supported.
+ * @param {string} [options.compatibility="source"] "source" or "carbon".
+ * @param {number|string|null} [options.morphAnimationRoot] Carbon morph animation carrier skeleton index or name.
+ * @param {boolean} [options.flipV] When not false, UV V coordinates are written as `1 - v`.
+ * @returns {Uint8Array} Binary FBX bytes.
+ * @throws {CjsFormatWriteError} When the version is not 7400 or the CMF root cannot be exported.
  */
 export function writeFbx(cmf, options = {})
 {
@@ -1876,6 +2348,16 @@ export function writeFbx(cmf, options = {})
     return writer.toBytes();
 }
 
+/**
+ * Validate FBX write options and fill their defaults.
+ *
+ * @param {object} options Write options.
+ * @param {number} [options.version] FBX version.
+ * @param {string} [options.compatibility="source"] "source" or "carbon".
+ * @param {number|string|null} [options.morphAnimationRoot] Carbon morph animation carrier skeleton index or name.
+ * @returns {FbxWriteOptions} Normalized options.
+ * @throws {TypeError} When an option is invalid.
+ */
 function normalizeWriteOptions(options)
 {
     if (!options || typeof options !== "object") throw new TypeError("CjsFbxFormat: options must be an object");
@@ -1898,6 +2380,13 @@ function normalizeWriteOptions(options)
     };
 }
 
+/**
+ * Copy shared vertex channels and unpack packed tangents into explicit channels.
+ *
+ * @param {Object<string, ArrayLike<number>>|undefined} source Shared vertex channels.
+ * @param {number} vertexCount Vertex count.
+ * @returns {Object<string, ArrayLike<number>>} Copied vertex channels.
+ */
 function unpackSharedVertexForFbx(source, vertexCount)
 {
     const vertex = { ...(source ?? {}) };
@@ -1916,6 +2405,12 @@ function unpackSharedVertexForFbx(source, vertexCount)
     return vertex;
 }
 
+/**
+ * Copy shared geometry with packed tangents unpacked on every mesh and morph target.
+ *
+ * @param {object} input Shared geometry root.
+ * @returns {object} Copied shared geometry root.
+ */
 function unpackSharedTangentsForFbx(input)
 {
     return {
@@ -1940,7 +2435,13 @@ function unpackSharedTangentsForFbx(input)
     };
 }
 
-/** Convert shared/GR2-shaped geometry through CMF and write binary FBX. */
+/**
+ * Convert shared/GR2-shaped geometry through CMF and write binary FBX.
+ *
+ * @param {object} input Shared or GR2-shaped geometry root.
+ * @param {object} [options={}] Options passed to `buildCmfFromShared` and `writeFbx`.
+ * @returns {Uint8Array} Binary FBX bytes.
+ */
 export function writeSharedFbx(input, options = {})
 {
     // FBX has no packed-tangent representation. CMF correctly preserves the

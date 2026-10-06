@@ -39,7 +39,7 @@ export class CjsFbxFormat extends CjsGeometryFormat
     /**
      * Create a reusable FBX format profile.
      *
-     * @param {object} [options] Default read/inspect options.
+     * @param {Partial<import("./core/helpers.js").FbxReaderValues>} [options] Default read/inspect options.
      */
     constructor(options = {})
     {
@@ -50,7 +50,7 @@ export class CjsFbxFormat extends CjsGeometryFormat
     /**
      * Merge options into this profile.
      *
-     * @param {object} [options] Values to merge.
+     * @param {Partial<import("./core/helpers.js").FbxReaderValues>} [options] Values to merge.
      * @returns {CjsFbxFormat} This format profile.
      */
     SetValues(options = {})
@@ -62,8 +62,8 @@ export class CjsFbxFormat extends CjsGeometryFormat
     /**
      * Get normalized profile values with optional per-call overrides.
      *
-     * @param {object} [options] Per-call values.
-     * @returns {object} Normalized read values.
+     * @param {Partial<import("./core/helpers.js").FbxReaderValues>} [options] Per-call values.
+     * @returns {import("./core/helpers.js").FbxReaderValues} Normalized read values.
      */
     GetValues(options = {})
     {
@@ -77,7 +77,7 @@ export class CjsFbxFormat extends CjsGeometryFormat
      * as `emit: "gr2"` and `emit: "cmf"` paths. Debug `fbxJson` output
      * remains plain data.
      *
-     * @param {object} [classes] Map of output node class keys to constructors.
+     * @param {Object<string, Function|null>} [classes] Map of output node class keys to constructors.
      * @returns {CjsFbxFormat} This format profile.
      */
     SetClasses(classes = {})
@@ -135,7 +135,7 @@ export class CjsFbxFormat extends CjsGeometryFormat
      * Read FBX bytes with this profile.
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input FBX bytes.
-     * @param {object} [options] Per-call values.
+     * @param {Partial<import("./core/helpers.js").FbxReaderValues>} [options] Per-call values.
      * @returns {object} Raw or debug payload for the selected emit target.
      */
     Read(input, options = {})
@@ -143,13 +143,25 @@ export class CjsFbxFormat extends CjsGeometryFormat
         return readWithValues(input, this.GetValues(options));
     }
 
-    /** Write a native CMF graph as deterministic binary FBX 7400 bytes. */
+    /**
+     * Write a native CMF graph as deterministic binary FBX 7400 bytes.
+     *
+     * @param {object} input Native CMF root with a `meshes` array.
+     * @param {object} [options] FBX write options, passed to `writeFbx`.
+     * @returns {Uint8Array} Binary FBX bytes.
+     */
     Write(input, options = {})
     {
         return writeFbx(input, options);
     }
 
-    /** Convert shared or GR2-shaped geometry through CMF and write FBX. */
+    /**
+     * Convert shared or GR2-shaped geometry through CMF and write FBX.
+     *
+     * @param {object} input Shared or GR2-shaped geometry root.
+     * @param {object} [options] Shared-to-CMF and FBX write options, passed to `writeSharedFbx`.
+     * @returns {Uint8Array} Binary FBX bytes.
+     */
     WriteShared(input, options = {})
     {
         return writeSharedFbx(input, options);
@@ -159,7 +171,7 @@ export class CjsFbxFormat extends CjsGeometryFormat
      * Read FBX bytes asynchronously with this profile.
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input FBX bytes.
-     * @param {object} [options] Per-call values.
+     * @param {Partial<import("./core/helpers.js").FbxReaderValues>} [options] Per-call values.
      * @returns {Promise<object>} Raw or debug payload for the selected emit target.
      */
     async ReadAsync(input, options = {})
@@ -171,8 +183,8 @@ export class CjsFbxFormat extends CjsGeometryFormat
      * Inspect FBX bytes without converting geometry.
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input FBX bytes.
-     * @param {object} [options] Per-call values.
-     * @returns {object} Lightweight FBX metadata.
+     * @param {Partial<import("./core/helpers.js").FbxReaderValues>} [options] Per-call values.
+     * @returns {import("./core/helpers.js").FbxMetadata} Lightweight FBX metadata.
      */
     Inspect(input, options = {})
     {
@@ -194,7 +206,7 @@ export class CjsFbxFormat extends CjsGeometryFormat
      * One-shot FBX read.
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input FBX bytes.
-     * @param {object} [options] Read options.
+     * @param {Partial<import("./core/helpers.js").FbxReaderValues>} [options] Read options.
      * @returns {object} Raw or debug payload for the selected emit target.
      */
     static read(input, options = {})
@@ -202,13 +214,25 @@ export class CjsFbxFormat extends CjsGeometryFormat
         return readWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "fbx", ...options }, FORMAT_NAME));
     }
 
-    /** Write a native CMF graph as deterministic binary FBX 7400 bytes. */
+    /**
+     * Write a native CMF graph as deterministic binary FBX 7400 bytes.
+     *
+     * @param {object} input Native CMF root with a `meshes` array.
+     * @param {object} [options] FBX write options, passed to `writeFbx`.
+     * @returns {Uint8Array} Binary FBX bytes.
+     */
     static write(input, options = {})
     {
         return writeFbx(input, options);
     }
 
-    /** Convert shared or GR2-shaped geometry through CMF and write FBX. */
+    /**
+     * Convert shared or GR2-shaped geometry through CMF and write FBX.
+     *
+     * @param {object} input Shared or GR2-shaped geometry root.
+     * @param {object} [options] Shared-to-CMF and FBX write options, passed to `writeSharedFbx`.
+     * @returns {Uint8Array} Binary FBX bytes.
+     */
     static writeShared(input, options = {})
     {
         return writeSharedFbx(input, options);
@@ -218,7 +242,7 @@ export class CjsFbxFormat extends CjsGeometryFormat
      * One-shot asynchronous FBX read.
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input FBX bytes.
-     * @param {object} [options] Read options.
+     * @param {Partial<import("./core/helpers.js").FbxReaderValues>} [options] Read options.
      * @returns {Promise<object>} Raw or debug payload for the selected emit target.
      */
     static async readAsync(input, options = {})
@@ -230,8 +254,8 @@ export class CjsFbxFormat extends CjsGeometryFormat
      * One-shot FBX inspection.
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input FBX bytes.
-     * @param {object} [options] Inspect options.
-     * @returns {object} Lightweight FBX metadata.
+     * @param {Partial<import("./core/helpers.js").FbxReaderValues>} [options] Inspect options.
+     * @returns {import("./core/helpers.js").FbxMetadata} Lightweight FBX metadata.
      */
     static inspect(input, options = {})
     {
@@ -242,8 +266,8 @@ export class CjsFbxFormat extends CjsGeometryFormat
      * One-shot FBX support probe.
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input FBX bytes.
-     * @param {object} [options] Probe options.
-     * @returns {object} Support/probe report.
+     * @param {Partial<import("./core/helpers.js").FbxReaderValues>} [options] Probe options.
+     * @returns {import("./core/helpers.js").FbxSupportReport} Support/probe report.
      */
     static probeSupport(input, options = {})
     {
