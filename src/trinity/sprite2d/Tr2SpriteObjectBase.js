@@ -254,7 +254,7 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
 
   /** Native non-owning auxiliary mouseover object; READ only. @type {ITr2SpriteObject|null} */
   @meta.blue.read
-  @meta.type.weakRef("ITr2SpriteObject")
+  @meta.type.rootWeak("ITr2SpriteObject")
   auxMouseover = null;
 
   /** Native READWRITE display property. @returns {boolean} */
@@ -311,7 +311,7 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
 
   /** Optional owned mask consulted by concrete sprite picking. @type {Tr2Sprite2dPickingMask|null} */
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2Sprite2dPickingMask")
+  @meta.type.rootRef("Tr2Sprite2dPickingMask")
   pickingMask = null;
 
   /** Native display backing state. @type {boolean} */

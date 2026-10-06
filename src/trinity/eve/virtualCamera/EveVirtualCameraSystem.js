@@ -18,7 +18,7 @@ export class EveVirtualCameraSystem
 {
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveVirtualCamera")
+  @meta.type.rootRef("EveVirtualCamera")
   externalCamera = null;
 
   @meta.blue.read
@@ -28,11 +28,11 @@ export class EveVirtualCameraSystem
 
   @meta.blue.read
   @meta.blue.persist
-  @meta.type.objectRef("EveVirtualCamera")
+  @meta.type.rootRef("EveVirtualCamera")
   mainCamera = null;
 
   @meta.blue.read
-  @meta.type.objectRef("EveVirtualCameraTransitionBase")
+  @meta.type.rootRef("EveVirtualCameraTransitionBase")
   transition = null;
 
   _lastUpdate = 0;

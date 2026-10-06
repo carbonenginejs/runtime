@@ -78,7 +78,7 @@ export class SeekTarget
   /** m_target (EveSpaceObject2*) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("EveSpaceObject2")
+  @meta.type.rootRef("EveSpaceObject2")
   target = null;
 
   /** m_firstSpawnAtRandomPlaces (bool) [READWRITE, PERSIST] */
@@ -111,7 +111,7 @@ export class SeekTarget
   /** m_locatorSet (EveLocatorSetsPtr) [READ, PERSIST] */
   @meta.blue.read
   @meta.blue.persist
-  @meta.type.model("EveLocatorSets")
+  @meta.type.rootRef("EveLocatorSets")
   locatorSet = null;
 
   /** m_exit (bool) [READWRITE] */

@@ -33,25 +33,25 @@ export class EveRootTransform extends EveTransform
   /** m_ballRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("ITriQuaternionFunction")
+  @meta.type.rootRef("ITriQuaternionFunction")
   rotationCurve = null;
 
   /** m_modelTranslation (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("ITriVectorFunction")
+  @meta.type.rootRef("ITriVectorFunction")
   modelTranslationCurve = null;
 
   /** m_modelRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("ITriQuaternionFunction")
+  @meta.type.rootRef("ITriQuaternionFunction")
   modelRotationCurve = null;
 
   /** m_ballPosition (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("ITriVectorFunction")
+  @meta.type.rootRef("ITriVectorFunction")
   translationCurve = null;
 
   _lastUpdateMatrix = mat4.create();

@@ -77,7 +77,7 @@ export class EveEllipseSet extends EveChildTransform
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   effect = null;
 
   /**

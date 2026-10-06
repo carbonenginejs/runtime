@@ -104,7 +104,7 @@ export class TriDevice
   /** mViewport (PTriViewport) [READ, PERSIST] */
   @meta.blue.read
   @meta.blue.persist
-  @meta.type.objectRef("TriViewport")
+  @meta.type.rootRef("TriViewport")
   viewport = null;
 
   /** mDisplayMode.width (Tr2DisplayModeInfo) [READ] */
@@ -154,7 +154,7 @@ export class TriDevice
   /** m_scene (ITr2ScenePtr) [READWRITE, NOTIFY] */
   @meta.blue.notify
   @meta.blue.readwrite
-  @meta.type.objectRef("ITr2Scene")
+  @meta.type.rootRef("ITr2Scene")
   scene = null;
 
   /** mBackBufferCount (int) [READWRITE, NOTIFY] */

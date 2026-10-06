@@ -23,7 +23,7 @@ export class EveSmartLightBaseAttributeModifier
   /** m_activationOverLifetime (Tr2CurveScalarPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2CurveScalar")
+  @meta.type.rootRef("Tr2CurveScalar")
   activationOverLifetime = null;
 
   /** m_activationValue (float) [READ] */

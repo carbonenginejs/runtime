@@ -12,7 +12,7 @@ import { TriRenderStep } from "./TriRenderStep.js";
 export class TriStepSetVisualizationMode extends TriRenderStep
 {
   @meta.blue.readwrite
-  @meta.type.objectRef("ITr2VisualizationModeRenderer")
+  @meta.type.rootRef("ITr2VisualizationModeRenderer")
   object = null;
 
   @meta.blue.readwrite

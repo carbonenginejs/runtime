@@ -58,7 +58,7 @@ export class Tr2ImpostorManager
 
   /** m_rt (Tr2RenderTargetPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("Tr2RenderTarget")
+  @meta.type.rootRef("Tr2RenderTarget")
   atlas = null;
 
   /** m_itemHeight (uint32_t) [READWRITE, PERSIST, NOTIFY] */
@@ -77,7 +77,7 @@ export class Tr2ImpostorManager
 
   /** m_effect (Tr2EffectPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   effect = null;
 
   /** m_maxUpdates (uint32_t) [READWRITE, PERSIST] */

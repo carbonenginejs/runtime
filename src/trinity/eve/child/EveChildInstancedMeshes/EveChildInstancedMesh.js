@@ -60,7 +60,7 @@ export class EveChildInstancedMesh
   ownedLocatorSets = [];
 
   @meta.blue.persist
-  @meta.type.objectRef("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   armorDamageShader = null;
 
   @meta.blue.persist

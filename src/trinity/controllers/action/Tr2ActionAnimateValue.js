@@ -36,7 +36,7 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("IRoot")
+  @meta.type.rootRef("IRoot")
   destination = null;
 
   /** Flattened adapter storage for m_destination.m_attribute. */
@@ -59,7 +59,7 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
   @meta.member("curve")
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("ITriScalarFunction")
+  @meta.type.rootRef("ITriScalarFunction")
   curve = null;
 
   /** m_delayBinding: defers a nonempty path binding to Start. */

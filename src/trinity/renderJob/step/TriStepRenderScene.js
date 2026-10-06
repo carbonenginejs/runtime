@@ -11,7 +11,7 @@ export class TriStepRenderScene extends TriRenderStep
   /** m_scene (ITr2ScenePtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("ITr2Scene")
+  @meta.type.rootRef("ITr2Scene")
   scene = null;
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */

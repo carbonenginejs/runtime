@@ -19,37 +19,37 @@ export class Tr2PostProcess2
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2PPSignalLossEffect")
+  @meta.type.rootRef("Tr2PPSignalLossEffect")
   signalLoss = null;
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2PPGodRaysEffect")
+  @meta.type.rootRef("Tr2PPGodRaysEffect")
   godRays = null;
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2PPBloomEffect")
+  @meta.type.rootRef("Tr2PPBloomEffect")
   bloom = null;
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2PPDynamicExposureEffect")
+  @meta.type.rootRef("Tr2PPDynamicExposureEffect")
   dynamicExposure = null;
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2PPFilmGrainEffect")
+  @meta.type.rootRef("Tr2PPFilmGrainEffect")
   filmGrain = null;
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2PPDesaturateEffect")
+  @meta.type.rootRef("Tr2PPDesaturateEffect")
   desaturate = null;
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2PPFadeEffect")
+  @meta.type.rootRef("Tr2PPFadeEffect")
   fade = null;
 
   @meta.blue.read
@@ -59,41 +59,41 @@ export class Tr2PostProcess2
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2PPLutEffect")
+  @meta.type.rootRef("Tr2PPLutEffect")
   lut = null;
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2PPVignetteEffect")
+  @meta.type.rootRef("Tr2PPVignetteEffect")
   vignette = null;
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2PPFogEffect")
+  @meta.type.rootRef("Tr2PPFogEffect")
   fog = null;
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2PPDepthOfFieldEffect")
+  @meta.type.rootRef("Tr2PPDepthOfFieldEffect")
   depthOfField = null;
 
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2PPTaaEffect")
+  @meta.type.rootRef("Tr2PPTaaEffect")
   taa = null;
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2PPTonemappingEffect")
+  @meta.type.rootRef("Tr2PPTonemappingEffect")
   tonemapping = null;
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2PPColorCorrectionEffect")
+  @meta.type.rootRef("Tr2PPColorCorrectionEffect")
   colorCorrection = null;
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2PPGenericEffect")
+  @meta.type.rootRef("Tr2PPGenericEffect")
   genericEffect = null;
 
   exposureAdjustment = 0;

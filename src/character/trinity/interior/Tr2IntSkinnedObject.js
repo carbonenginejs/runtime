@@ -27,7 +27,7 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
 
   /** m_variableStore (Tr2VariableStorePtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("Tr2VariableStore")
+  @meta.type.rootRef("Tr2VariableStore")
   variableStore = null;
 
   /**

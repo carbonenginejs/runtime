@@ -17,17 +17,17 @@ export class CjsCharacterColorSelection
 
     @meta.blue.readwrite
     @meta.blue.persist
-    @meta.type.model("CjsCharacterColorLocation")
+    @meta.type.rootRef("CjsCharacterColorLocation")
     colorID = null;
 
     @meta.blue.readwrite
     @meta.blue.persist
-    @meta.type.model("CjsCharacterColorName")
+    @meta.type.rootRef("CjsCharacterColorName")
     colorNameA = null;
 
     @meta.blue.readwrite
     @meta.blue.persist
-    @meta.type.model("CjsCharacterColorName")
+    @meta.type.rootRef("CjsCharacterColorName")
     colorNameBC = null;
 
 }

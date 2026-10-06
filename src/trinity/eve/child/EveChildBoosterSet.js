@@ -184,18 +184,18 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   effect = null;
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   effectFar = null;
 
   /** Sprite set rendering the glows on the boosters. */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSpriteSet")
+  @meta.type.rootRef("EveSpriteSet")
   glows = null;
 
   /**

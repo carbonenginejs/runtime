@@ -16,7 +16,7 @@ export class Tr2GpuProfiler
   timer = null;
 
   /** owner (IRootPtr) */
-  @meta.type.objectRef("IRoot")
+  @meta.type.rootRef("IRoot")
   owner = null;
 
   /** message (std::string) */

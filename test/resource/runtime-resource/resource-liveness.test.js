@@ -188,7 +188,7 @@ test("there is no completed event or OnCompleted: owners use one-shot notify tar
 
 test("isResource is declared on the class, not just the instance", () =>
 {
-  // So a schema field declared as @type.objectRef("TriGeometryRes") can be
+  // So a schema field declared as @type.rootRef("TriGeometryRes") can be
   // known to hold a resource before any instance exists.
   class Derived extends CjsResource {}
 

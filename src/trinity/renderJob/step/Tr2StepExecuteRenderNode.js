@@ -16,7 +16,7 @@ export class Tr2StepExecuteRenderNode extends TriRenderStep
 
   /** m_destinationTarget (Tr2RenderTargetPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2RenderTarget")
+  @meta.type.rootRef("Tr2RenderTarget")
   destinationTarget = null;
 
   /** m_clearTargetOnFailure (bool) [READWRITE] */
@@ -27,7 +27,7 @@ export class Tr2StepExecuteRenderNode extends TriRenderStep
   /** m_node (ITr2RenderNodePtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("ITr2RenderNode")
+  @meta.type.rootRef("ITr2RenderNode")
   node = null;
 
   /**

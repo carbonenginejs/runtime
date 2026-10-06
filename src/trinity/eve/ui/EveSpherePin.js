@@ -183,12 +183,12 @@ export class EveSpherePin
   /** m_pinEffect (Tr2EffectPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   pinEffect = null;
 
   /** m_pickEffect (Tr2EffectPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   pickEffect = null;
 
   /** m_worldTransform (EveSpherePin.cpp:46; ctor identity) - runtime state

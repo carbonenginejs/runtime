@@ -30,7 +30,7 @@ export class EvePlaneLight
   @meta.type.float32
   saturation = 1;
 
-  @meta.type.objectRef("Tr2LightProfileRes")
+  @meta.type.rootRef("Tr2LightProfileRes")
   lightProfile = null;
 
   @meta.type.int32

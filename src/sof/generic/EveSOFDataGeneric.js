@@ -103,25 +103,25 @@ export class EveSOFDataGeneric
   /** m_swarm (EveSOFDataGenericSwarmPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataGenericSwarm")
+  @meta.type.rootRef("EveSOFDataGenericSwarm")
   swarm = null;
 
   /** m_damage (EveSOFDataGenericDamagePtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataGenericDamage")
+  @meta.type.rootRef("EveSOFDataGenericDamage")
   damage = null;
 
   /** m_hullDamage (EveSOFDataGenericHullDamagePtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataGenericHullDamage")
+  @meta.type.rootRef("EveSOFDataGenericHullDamage")
   hullDamage = null;
 
   /** m_genericWreckMaterial (EveSOFDataAreaMaterialPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataAreaMaterial")
+  @meta.type.rootRef("EveSOFDataAreaMaterial")
   genericWreckMaterial = null;
 
   /** m_areaShaders (PEveSOFDataGenericShaderVector) [READ, PERSIST] */

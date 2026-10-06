@@ -132,7 +132,7 @@ export class EveSpaceObject2 extends EveEntity
    * @type {EveChildInheritProperties|null}
    */
   @meta.blue.readwrite
-  @meta.type.objectRef("EveChildInheritProperties")
+  @meta.type.rootRef("EveChildInheritProperties")
   inheritProperties = null;
 
   /** m_customMasks (PEveCustomMaskVector) [READ, PERSIST]
@@ -158,7 +158,7 @@ export class EveSpaceObject2 extends EveEntity
    * @type {Tr2BindingVector3|null}
    */
   @meta.blue.read
-  @meta.type.objectRef("Tr2BindingVector3")
+  @meta.type.rootRef("Tr2BindingVector3")
   positionDelta = null;
 
   /** m_lodLevel (Tr2Lod - enum Tr2Lod) [READ]
@@ -224,7 +224,7 @@ export class EveSpaceObject2 extends EveEntity
    * @type {Tr2GrannyAnimation}
    */
   @meta.blue.read
-  @meta.type.objectRef("Tr2GrannyAnimation")
+  @meta.type.rootRef("Tr2GrannyAnimation")
   animationUpdater = new Tr2GrannyAnimation();
 
   /** m_dna (std::string) [READ, PERSIST]
@@ -325,7 +325,7 @@ export class EveSpaceObject2 extends EveEntity
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2MeshBase")
+  @meta.type.rootRef("Tr2MeshBase")
   mesh = null;
 
   /** m_impactOverlay (EveImpactOverlayPtr) [READWRITE, PERSIST]
@@ -334,7 +334,7 @@ export class EveSpaceObject2 extends EveEntity
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveImpactOverlay")
+  @meta.type.rootRef("EveImpactOverlay")
   impactOverlay = null;
 
   /** m_clipSphereCenter (Vector3) [READWRITE, PERSIST]
@@ -387,7 +387,7 @@ export class EveSpaceObject2 extends EveEntity
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("ITriQuaternionFunction")
+  @meta.type.rootRef("ITriQuaternionFunction")
   rotationCurve = null;
 
   /** m_worldRotation (Quaternion) [READ]
@@ -536,7 +536,7 @@ export class EveSpaceObject2 extends EveEntity
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("ITriVectorFunction")
+  @meta.type.rootRef("ITriVectorFunction")
   modelTranslationCurve = null;
 
   /** m_modelRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST]
@@ -545,7 +545,7 @@ export class EveSpaceObject2 extends EveEntity
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("ITriQuaternionFunction")
+  @meta.type.rootRef("ITriQuaternionFunction")
   modelRotationCurve = null;
 
   /** m_shapeEllipsoidCenter (Vector3) [READWRITE, PERSIST]
@@ -572,7 +572,7 @@ export class EveSpaceObject2 extends EveEntity
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("ITriVectorFunction")
+  @meta.type.rootRef("ITriVectorFunction")
   translationCurve = null;
 
   /**
@@ -618,7 +618,7 @@ export class EveSpaceObject2 extends EveEntity
    * @type {ITr2AudGeometry|null}
    */
   @meta.blue.readwrite
-  @meta.type.objectRef("ITr2AudGeometry")
+  @meta.type.rootRef("ITr2AudGeometry")
   audioGeometry = null;
 
   /**
@@ -886,7 +886,7 @@ export class EveSpaceObject2 extends EveEntity
 
   /** Alias for the mesh property; reads and writes go straight to mesh. */
   @meta.blue.persist
-  @meta.type.objectRef("Tr2MeshBase")
+  @meta.type.rootRef("Tr2MeshBase")
   get meshLod()
   {
     return this.mesh;

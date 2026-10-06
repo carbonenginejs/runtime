@@ -8,7 +8,7 @@ export class Tr2CurveScalarDefinition
 {
 
   /** keys (const Tr2CurveScalarKey*) */
-  @meta.type.objectRef("Tr2CurveScalarKey")
+  @meta.type.rootRef("Tr2CurveScalarKey")
   keys = null;
 
   /** keyCount (uint32_t) */

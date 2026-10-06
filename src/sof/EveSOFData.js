@@ -16,7 +16,7 @@ export class EveSOFData
   /** m_generic (EveSOFDataGenericPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataGeneric")
+  @meta.type.rootRef("EveSOFDataGeneric")
   generic = null;
 
   /** m_hull (PEveSOFDataHullVector) [READ, PERSIST] */

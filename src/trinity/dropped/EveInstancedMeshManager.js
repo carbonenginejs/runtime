@@ -9,11 +9,11 @@ export class EveInstancedMeshManager
 {
 
   /** dynamicInstances (const DynamicPerInstanceData*) */
-  @meta.type.objectRef("DynamicPerInstanceData")
+  @meta.type.rootRef("DynamicPerInstanceData")
   dynamicInstances = null;
 
   /** owner (IRootPtr) */
-  @meta.type.objectRef("IRoot")
+  @meta.type.rootRef("IRoot")
   owner = null;
 
   /** buffer (std::unique_ptr<Tr2BufferAL>) */
@@ -57,7 +57,7 @@ export class EveInstancedMeshManager
   sphereGroups = [];
 
   /** m_perObjectDataBuffer (Tr2GpuStructuredBufferPtr) */
-  @meta.type.objectRef("Tr2GpuStructuredBuffer")
+  @meta.type.rootRef("Tr2GpuStructuredBuffer")
   perObjectDataBuffer = null;
 
   /** m_staticInstanceBuffer (InstanceBuffer) */
@@ -173,31 +173,31 @@ export class EveInstancedMeshManager
   index = 0;
 
   /** geometry (TriGeometryRes*) */
-  @meta.type.objectRef("TriGeometryRes")
+  @meta.type.rootRef("TriGeometryRes")
   geometry = null;
 
   /** handle (MeshGroupHandle*) */
-  @meta.type.objectRef("MeshGroupHandle")
+  @meta.type.rootRef("MeshGroupHandle")
   handle = null;
 
   /** staticInstances (const StaticPerInstanceData*) */
-  @meta.type.objectRef("StaticPerInstanceData")
+  @meta.type.rootRef("StaticPerInstanceData")
   staticInstances = null;
 
   /** data (uint8_t*) */
-  @meta.type.objectRef("uint8_t")
+  @meta.type.rootRef("uint8_t")
   data = null;
 
   /** mappedData (uint8_t*) */
-  @meta.type.objectRef("uint8_t")
+  @meta.type.rootRef("uint8_t")
   mappedData = null;
 
   /** material (Tr2Effect*) */
-  @meta.type.objectRef("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   material = null;
 
   /** boundingSpheres (const CcpMath::Sphere*) */
-  @meta.type.objectRef("CcpMath::Sphere")
+  @meta.type.rootRef("CcpMath::Sphere")
   boundingSpheres = null;
 
   /** combinedVertexDeclaration (uint32_t) */

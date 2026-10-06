@@ -17,7 +17,7 @@ export class EveHazeSetLight
   @meta.type.root("CjsLightData")
   lightData = new CjsLightData();
 
-  @meta.type.objectRef("Tr2LightProfileRes")
+  @meta.type.rootRef("Tr2LightProfileRes")
   lightProfile = null;
 
   @meta.type.uint32

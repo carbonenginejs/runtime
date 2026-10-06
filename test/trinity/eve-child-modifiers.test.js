@@ -249,7 +249,7 @@ test("EveUpdateContext has value-typed defaults with only reference fields null"
 
   // No field is left as @type.unknown.
   assert.equal(CjsSchema.getField(EveUpdateContext, "visibilityThreshold")?.type.kind, "float32");
-  assert.equal(CjsSchema.getField(EveUpdateContext, "renderContext")?.type.kind, "objectRef");
+  assert.equal(CjsSchema.getField(EveUpdateContext, "renderContext")?.type.kind, "rootRef");
 });
 
 test("EveChildMesh.UpdateAsyncronous folds transform modifiers in order over the world transform", () =>

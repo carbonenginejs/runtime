@@ -88,9 +88,9 @@ test("controller methods expose source-backed Carbon metadata", () =>
     assertEquals(method.impl.status, "custom");
     assertEquals(method.carbon?.method, undefined);
   }
-  assertEquals(CjsSchema.getField(Tr2ActionSetExternalControllerVariable, "destination")?.type.kind, "weakRef");
-  assertEquals(CjsSchema.getField(Tr2BindingPoint, "resolvedObject")?.type.kind, "weakRef");
-  assertEquals(CjsSchema.getField(Tr2BindingPoint, "notifyPtr")?.type.kind, "weakRef");
+  assertEquals(CjsSchema.getField(Tr2ActionSetExternalControllerVariable, "destination")?.type.kind, "rootWeak");
+  assertEquals(CjsSchema.getField(Tr2BindingPoint, "resolvedObject")?.type.kind, "rootWeak");
+  assertEquals(CjsSchema.getField(Tr2BindingPoint, "notifyPtr")?.type.kind, "rootWeak");
   assertEquals(CjsSchema.getField(Tr2ControllerExpression, "OWNER_BUFFER_INDEX"), null);
   assertEquals(Tr2ControllerExpression.OWNER_BUFFER_INDEX, 1);
   assertEquals(Tr2ControllerExpression.STATE_MACHINE_BUFFER_INDEX, 2);
@@ -610,7 +610,7 @@ test("Tr2StateMachineTransition evaluates live expression state", () =>
   assert(transition.IsExpressionValid());
   assertEquals(CjsSchema.getField(Tr2StateMachineTransition, "condition")?.type.kind, "string");
   assertEquals(CjsSchema.getField(Tr2StateMachineState, "transitions")?.type.kind, "list");
-  assertEquals(CjsSchema.getField(Tr2StateMachine, "startState")?.type.kind, "objectRef");
+  assertEquals(CjsSchema.getField(Tr2StateMachine, "startState")?.type.kind, "rootRef");
   const transitionTerms = new Set(transition.GetExpressionTermInfo().map(term => term.name));
   assert(transitionTerms.has("StateTime"));
   assert(transitionTerms.has("ServerYear"));

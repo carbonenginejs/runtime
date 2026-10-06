@@ -9,12 +9,12 @@ export class Tr2RaytracingManager
 
   /** m_shadowEffect (Tr2EffectPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   shadowEffect = null;
 
   /** m_denoiser (Tr2DenoiserPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("Tr2Denoiser")
+  @meta.type.rootRef("Tr2Denoiser")
   denoiser = null;
 
   /** m_applyDenoiser (bool) [READWRITE] */

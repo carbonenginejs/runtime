@@ -33,7 +33,7 @@ export class Tr2ManipulationTool
 
   /** m_pythonUserData (PyObject*) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("PyObject")
+  @meta.type.rootRef("PyObject")
   _userData = null;
 
   /** m_localTransform (Matrix) [READWRITE, PERSIST] */

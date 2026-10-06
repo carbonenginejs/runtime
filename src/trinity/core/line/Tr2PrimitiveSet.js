@@ -43,7 +43,7 @@ export class Tr2PrimitiveSet
 
   /** m_pythonUserData (PyObject*) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("PyObject")
+  @meta.type.rootRef("PyObject")
   _userData = null;
 
   /** m_viewOriented (bool) [READWRITE, PERSIST] */
@@ -74,14 +74,14 @@ export class Tr2PrimitiveSet
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   effect = null;
 
   /** m_pickEffect (Tr2EffectPtr) [READWRITE, NOTIFY, PERSIST] */
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   pickEffect = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */

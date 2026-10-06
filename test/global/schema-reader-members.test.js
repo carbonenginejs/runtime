@@ -97,7 +97,7 @@ test("decoded references and collection destinations retain identities", () => {
   const list = target.children;
   const map = target.byName;
   const set = target.unique;
-  applyReaderMember(target, member("child", "objectRef"), target);
+  applyReaderMember(target, member("child", "rootRef"), target);
   applyReaderMember(target, member("children", "list"), [shared, null, target, shared]);
   applyReaderMember(target, member("byName", "map"), { added: shared, empty: null });
   applyReaderMember(target, member("unique", "set"), [shared, null, shared]);

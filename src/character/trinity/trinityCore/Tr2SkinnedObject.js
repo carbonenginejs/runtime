@@ -124,7 +124,7 @@ export class Tr2SkinnedObject
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2SkinnedModel")
+  @meta.type.rootRef("Tr2SkinnedModel")
   visualModel = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
@@ -136,13 +136,13 @@ export class Tr2SkinnedObject
   /** m_animationUpdater (ITr2AnimationUpdaterPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("ITr2AnimationUpdater")
+  @meta.type.rootRef("ITr2AnimationUpdater")
   animationUpdater = null;
 
   /** m_worldTransformUpdater (ITr2WorldTransformUpdaterPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("ITr2WorldTransformUpdater")
+  @meta.type.rootRef("ITr2WorldTransformUpdater")
   worldTransformUpdater = null;
 
   // Carbon maps this exposed field directly into m_lod storage. Accessors

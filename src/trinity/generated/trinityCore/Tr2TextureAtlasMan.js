@@ -9,7 +9,7 @@ export class Tr2TextureAtlasMan
 
   /** m_atlases (PTr2TextureAtlasVectorRO) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("Tr2TextureAtlasVectorRO")
+  @meta.type.rootRef("Tr2TextureAtlasVectorRO")
   atlases = null;
 
   /** Carbon method AddAtlas -> AddAtlasWrap (MAP_METHOD_AND_WRAP). */

@@ -106,7 +106,7 @@ export class EveSOFDataHullSpriteLineSetItem
   /** m_light (EveSOFDataPointLightAttachmentPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataPointLightAttachment")
+  @meta.type.rootRef("EveSOFDataPointLightAttachment")
   light = null;
 
 }

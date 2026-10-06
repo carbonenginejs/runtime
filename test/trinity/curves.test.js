@@ -952,7 +952,7 @@ test("Tr2CurveEulerRotation composes scalar curves with Carbon rotation order", 
   assertAlmostEquals(tangentCurve.yaw.keys[0].rightTangent, 0);
   assertAlmostEquals(tangentCurve.pitch.keys[0].rightTangent, 0);
   assertAlmostEquals(tangentCurve.roll.keys[0].rightTangent, 0);
-  assertEquals(CjsSchema.getField(Tr2CurveEulerRotation, "yaw")?.type.kind, "objectRef");
+  assertEquals(CjsSchema.getField(Tr2CurveEulerRotation, "yaw")?.type.kind, "rootRef");
   assertEquals(CjsSchema.getField(Tr2CurveEulerRotation, "currentValue")?.type.kind, "quat");
 });
 test("Tr2CurveRandomAxisRotation spins between source random rotations", () =>
@@ -1049,7 +1049,7 @@ test("Tr2QuaternionLerpCurve blends child quaternion functions", () =>
   curve.GetValueAt(3, unchanged);
   assertEquals(unchanged[0], 1);
   assertEquals(CjsSchema.getField(Tr2QuaternionLerpCurve, "start")?.type.kind, "float64");
-  assertEquals(CjsSchema.getField(Tr2QuaternionLerpCurve, "startCurve")?.type.kind, "objectRef");
+  assertEquals(CjsSchema.getField(Tr2QuaternionLerpCurve, "startCurve")?.type.kind, "rootRef");
 });
 test("Tr2CurveVector3Lerp blends into a child vector function", () =>
 {
@@ -1078,7 +1078,7 @@ test("Tr2CurveVector3Lerp blends into a child vector function", () =>
   vec3.copy(noCurve.initialValue, vec3.fromValues(1, 2, 3));
   noCurve.GetValueAt(9, out);
   assertEquals(out[2], 3);
-  assertEquals(CjsSchema.getField(Tr2CurveVector3Lerp, "curve")?.type.kind, "objectRef");
+  assertEquals(CjsSchema.getField(Tr2CurveVector3Lerp, "curve")?.type.kind, "rootRef");
   assertEquals(CjsSchema.getField(Tr2CurveVector3Lerp, "startInterpolation")?.type.kind, "int32");
 });
 test("Tr2FollowCurve samples constant, linear, and hermite key segments", () =>
@@ -1149,7 +1149,7 @@ test("Tr2ObjectFollowCurveKey follows object and locator rotation", () =>
   assertAlmostEquals(out[0], 8);
   assertAlmostEquals(out[1], 21);
   assertAlmostEquals(out[2], 30);
-  assertEquals(CjsSchema.getField(Tr2ObjectFollowCurveKey, "object")?.type.kind, "objectRef");
+  assertEquals(CjsSchema.getField(Tr2ObjectFollowCurveKey, "object")?.type.kind, "rootRef");
   assertEquals(CjsSchema.getField(Tr2ObjectFollowCurveKey, "rotationSetting")?.type.kind, "int32");
 });
 test("Tr2RotationAdapter forwards curves and falls back to value", () =>
@@ -1173,7 +1173,7 @@ test("Tr2RotationAdapter forwards curves and falls back to value", () =>
   assertAlmostEquals(adapter.GetLocalTime__Ticks(120_000_000), 1);
   adapter.GetValueDotAt(2, out);
   assertAlmostEquals(out[3], 1);
-  assertEquals(CjsSchema.getField(Tr2RotationAdapter, "curve")?.type.kind, "objectRef");
+  assertEquals(CjsSchema.getField(Tr2RotationAdapter, "curve")?.type.kind, "rootRef");
   assertEquals(CjsSchema.getField(Tr2RotationAdapter, "currentValue")?.type.kind, "quat");
 });
 test("Tr2TranslationAdapter forwards curves, rotates updates, and derives", () =>
@@ -1229,7 +1229,7 @@ test("Tr2DistanceTracker measures projected and signed distances", () =>
   tracker.UpdateValue(0);
   assertAlmostEquals(tracker.value, -3);
   assert(tracker.OnModified("sourceObject"));
-  assertEquals(CjsSchema.getField(Tr2DistanceTracker, "sourceObject")?.type.kind, "objectRef");
+  assertEquals(CjsSchema.getField(Tr2DistanceTracker, "sourceObject")?.type.kind, "rootRef");
   assertEquals(CjsSchema.getField(Tr2DistanceTracker, "value")?.type.kind, "float32");
 });
 test("Tr2CurveColorMixer blends, saturates, brightens, and converts color", () =>

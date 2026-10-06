@@ -17,7 +17,7 @@ export class CjsCharacterCompositionPass
 
     @meta.blue.readwrite
     @meta.blue.persist
-    @meta.type.model("CjsCharacterAppearanceLayer")
+    @meta.type.rootRef("CjsCharacterAppearanceLayer")
     layer = null;
 
     @meta.blue.readwrite
@@ -32,7 +32,7 @@ export class CjsCharacterCompositionPass
 
     @meta.blue.readwrite
     @meta.blue.persist
-    @meta.type.model("CjsCharacterCoverage")
+    @meta.type.rootRef("CjsCharacterCoverage")
     coverage = null;
 
     @meta.blue.readwrite
@@ -57,7 +57,7 @@ export class CjsCharacterCompositionPass
 
     @meta.blue.readwrite
     @meta.blue.persist
-    @meta.type.model("CjsCharacterOrigin")
+    @meta.type.rootRef("CjsCharacterOrigin")
     origin = null;
 
 }

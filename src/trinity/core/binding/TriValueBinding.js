@@ -50,7 +50,7 @@ export class TriValueBinding extends INotify
   /** Native persisted endpoint storage; readers bypass the live setter. */
   @meta.member("sourceObject")
   @meta.blue.persistOnly
-  @meta.type.objectRef("IRoot")
+  @meta.type.rootRef("IRoot")
   _sourceObject = null;
 
   // Native MAP_ATTRIBUTE storage and MAP_PROPERTY access remain separate.
@@ -60,7 +60,7 @@ export class TriValueBinding extends INotify
    * @returns {object|null} Binding result.
    */
   @meta.blue.readwrite
-  @meta.type.objectRef("IRoot")
+  @meta.type.rootRef("IRoot")
   @meta.implemented
   get sourceObject()
   {
@@ -88,7 +88,7 @@ export class TriValueBinding extends INotify
   /** Native persisted endpoint storage; readers bypass the live setter. */
   @meta.member("destinationObject")
   @meta.blue.persistOnly
-  @meta.type.objectRef("IRoot")
+  @meta.type.rootRef("IRoot")
   _destinationObject = null;
 
   // Native MAP_ATTRIBUTE storage and MAP_PROPERTY access remain separate.
@@ -99,7 +99,7 @@ export class TriValueBinding extends INotify
    * @returns {object|null} Binding result.
    */
   @meta.blue.readwrite
-  @meta.type.objectRef("IRoot")
+  @meta.type.rootRef("IRoot")
   @meta.implemented
   get destinationObject()
   {

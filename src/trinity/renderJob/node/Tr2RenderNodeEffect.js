@@ -23,12 +23,12 @@ export class Tr2RenderNodeEffect
 
   /** m_effect (Tr2EffectPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   effect = null;
 
   /** m_viewport (TriViewportPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("TriViewport")
+  @meta.type.rootRef("TriViewport")
   viewport = null;
 
   /** m_inputNodes (PITr2RenderNodeVector) [READ, PERSIST] */

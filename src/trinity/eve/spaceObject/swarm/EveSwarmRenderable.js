@@ -22,11 +22,11 @@ export class EveSwarmRenderable extends EveEntity
 {
 
   /** m_mesh (Tr2MeshBasePtr) */
-  @meta.type.objectRef("Tr2MeshBase")
+  @meta.type.rootRef("Tr2MeshBase")
   mesh = null;
 
   /** m_owner (BlueWeakRef<EveSwarm>) */
-  @meta.type.objectRef("EveSwarm")
+  @meta.type.rootRef("EveSwarm")
   owner = null;
 
   /** m_worldTransform (Matrix) */

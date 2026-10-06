@@ -17,7 +17,7 @@ export class EveSprite2dBracket
   color = vec4.fromValues(1, 1, 1, 1);
 
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2AtlasTexture")
+  @meta.type.rootRef("Tr2AtlasTexture")
   icon = null;
 
   @meta.blue.readwrite

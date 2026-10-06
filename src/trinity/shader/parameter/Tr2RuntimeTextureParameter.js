@@ -26,7 +26,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("ITr2TextureProvider")
+  @meta.type.rootRef("ITr2TextureProvider")
   texture = null;
 
   @meta.blue.readwrite

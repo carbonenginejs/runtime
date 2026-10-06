@@ -167,7 +167,7 @@ export class CjsDocumentHydrator
         const kind = descriptor?.kind;
 
         if ((kind === "array" || kind === "list") && Array.isArray(resolved)) return resolved;
-        if ((kind === "model" || kind === "objectRef" || kind === "root" || kind === "rawStruct" || kind === "unknown") && resolved && typeof resolved === "object") return resolved;
+        if ((kind === "rootRef" || kind === "root" || kind === "rawStruct" || kind === "unknown") && resolved && typeof resolved === "object") return resolved;
         if (CjsDocumentHydrator.isShapeIncompatibleMathArray(resolved, descriptor)) return resolved;
 
         return descriptor ? normalizeCarbonValue(resolved, descriptor) : resolved;

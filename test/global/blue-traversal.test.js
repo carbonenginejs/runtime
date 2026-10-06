@@ -11,12 +11,12 @@ class Graph
 CjsSchema.define(Graph, {
     className: "BlueTraversalGraph",
     members: [
-        { name: "child", key: "child", type: { kind: "objectRef", className: Graph }, lifecycle: { ownership: "owned" } },
+        { name: "child", key: "child", type: { kind: "rootRef", className: Graph }, lifecycle: { ownership: "owned" } },
         { name: "list", key: "list", type: { kind: "list", itemType: "BlueTraversalGraph" }, lifecycle: { ownership: "owned" } },
         { name: "map", key: "map", type: { kind: "map", valueType: Graph } },
-        { name: "set", key: "set", type: { kind: "set", itemType: { kind: "objectRef", className: Graph } } },
+        { name: "set", key: "set", type: { kind: "set", itemType: { kind: "rootRef", className: Graph } } },
         { name: "embedded", key: "embedded", type: { kind: "root", className: Graph } },
-        { name: "weak", key: "weak", type: { kind: "weakRef", className: Graph } },
+        { name: "weak", key: "weak", type: { kind: "rootWeak", className: Graph } },
         { name: "raw", key: "raw", type: { kind: "rawStruct", className: Graph } },
         { name: "unknown", key: "unknown", type: { kind: "unknown" } },
         { name: "untyped", key: "untyped", type: { kind: "root" } },
@@ -84,16 +84,16 @@ test("native default is derived declarations before inherited storage, even unde
 {
     class Base {}
     CjsSchema.define(Base, { className: "BlueTraversalBase", members: [
-        { name: "child", key: "_baseChild", type: { kind: "objectRef", className: Graph } }
+        { name: "child", key: "_baseChild", type: { kind: "rootRef", className: Graph } }
     ] });
     class Derived extends Base
     {
         get child() { throw new Error("live getter was invoked"); }
     }
     CjsSchema.define(Derived, { className: "BlueTraversalDerived", members: [
-        { name: "own", key: "_ownChild", type: { kind: "objectRef", className: Graph } }
+        { name: "own", key: "_ownChild", type: { kind: "rootRef", className: Graph } }
     ], properties: [
-        { name: "child", key: "child", type: { kind: "objectRef", className: Graph } }
+        { name: "child", key: "child", type: { kind: "rootRef", className: Graph } }
     ] });
     const root = new Derived();
     root.name = "root";
@@ -111,11 +111,11 @@ test("stored aliases and indexed slots select backing data without accessor exec
         get accessorStorage() { throw new Error("incorrect stored getter"); }
     }
     CjsSchema.define(Slots, { className: "BlueTraversalSlots", members: [
-        { name: "visible", key: "slots", index: 0, type: { kind: "objectRef", className: Graph } },
-        { name: "other", key: "slots", index: 1, type: { kind: "objectRef", className: Graph } },
-        { name: "ignored", key: "accessorStorage", type: { kind: "objectRef", className: Graph } },
+        { name: "visible", key: "slots", index: 0, type: { kind: "rootRef", className: Graph } },
+        { name: "other", key: "slots", index: 1, type: { kind: "rootRef", className: Graph } },
+        { name: "ignored", key: "accessorStorage", type: { kind: "rootRef", className: Graph } },
     ], properties: [
-        { name: "visible", key: "visible", type: { kind: "objectRef", className: Graph } }
+        { name: "visible", key: "visible", type: { kind: "rootRef", className: Graph } }
     ] });
     const root = new Slots();
     root.name = "root";
@@ -212,9 +212,9 @@ test("resource references accept constructors and names without collecting impos
 {
     class Holder {}
     CjsSchema.define(Holder, { className: "BlueTraversalResourceHolder", members: [
-        { name: "ctor", key: "ctor", type: { kind: "objectRef", className: Resource } },
-        { name: "named", key: "named", type: { kind: "objectRef", className: "BlueTraversalResource" } },
-        { name: "impostor", key: "impostor", type: { kind: "objectRef", className: Resource } },
+        { name: "ctor", key: "ctor", type: { kind: "rootRef", className: Resource } },
+        { name: "named", key: "named", type: { kind: "rootRef", className: "BlueTraversalResource" } },
+        { name: "impostor", key: "impostor", type: { kind: "rootRef", className: Resource } },
     ] });
     const root = new Holder();
     root.ctor = new Resource("constructor");

@@ -20,7 +20,7 @@ export class EveVirtualCameraBehaviourVector3MoveForward extends EveVirtualCamer
 {
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2CurveScalar")
+  @meta.type.rootRef("Tr2CurveScalar")
   scaleCurve = null;
 
   @meta.blue.readwrite

@@ -4,7 +4,7 @@ import test from "node:test";
 import { CjsSchema } from "../../../src/global/schema/index.js";
 
 /*
- * An `objectRef` field holds a REFERENCE. Assigning one must alias the value,
+ * An `rootRef` field holds a REFERENCE. Assigning one must alias the value,
  * never copy it, and the distinguishing case is a reference whose declared type
  * is an interface name that no class registry can resolve — Carbon declares
  * plenty of those, and a name that does not resolve used to send the value down
@@ -34,13 +34,13 @@ CjsSchema.defineField(Observer, "name", "type", { kind: "string" });
 CjsSchema.defineField(Observer, "name", "edit", { persist: true });
 // The declared type names an interface on purpose: no registry resolves it.
 CjsSchema.defineField(Observer, "observer", "type", {
-    kind: "objectRef",
+    kind: "rootRef",
     className: "IObjectRefTestInterface"
 });
 CjsSchema.defineField(Observer, "observer", "edit", { persist: true });
 CjsSchema.define(Observer, { className: "ObjectRefTestObserver", family: "test" });
 
-test("SetValues aliases a live model in an objectRef field rather than copying it", () =>
+test("SetValues aliases a live model in a rootRef field rather than copying it", () =>
 {
     const observed = new Observed();
     observed.name = "engine";
@@ -51,7 +51,7 @@ test("SetValues aliases a live model in an objectRef field rather than copying i
     assert.equal(
         observer.observer,
         observed,
-        "an objectRef must hold the instance it was given, not a copy of it"
+        "a rootRef must hold the instance it was given, not a copy of it"
     );
     assert.equal(observer.observer.constructor.name, "Observed");
 });
@@ -118,7 +118,7 @@ test("isInstanceOf reads a class this copy has never seen", () =>
     assert.equal(CjsSchema.isInstanceOf("ForeignTr2Effect", foreign), false);
 });
 
-test("an objectRef to an interface throws on a plain bag with no class", () =>
+test("a rootRef to an interface throws on a plain bag with no class", () =>
 {
     // A plain object is data, not a reference - but a member typed as an
     // interface nothing registers has no class to build from it, and a typed
@@ -175,7 +175,7 @@ class ResourceHolder
     resources = [];
 }
 
-CjsSchema.defineField(ResourceHolder, "resource", "type", { kind: "objectRef", className: "IObjectRefTestResource" });
+CjsSchema.defineField(ResourceHolder, "resource", "type", { kind: "rootRef", className: "IObjectRefTestResource" });
 CjsSchema.defineField(ResourceHolder, "resource", "edit", { persist: true });
 CjsSchema.defineField(ResourceHolder, "resources", "type", { kind: "list", itemType: "IObjectRefTestResource" });
 CjsSchema.defineField(ResourceHolder, "resources", "edit", { persist: true });

@@ -89,7 +89,7 @@ test("Black rejects unsupported data kinds before reading or skipping object sto
 
 test("Black retains explicit object-reference and unknown-object codecs", () =>
 {
-  for (const kind of ["objectRef", "unknown"])
+  for (const kind of ["rootRef", "unknown"])
   {
     const reader = cursor([]), expected = {};
     let skipped = 0;

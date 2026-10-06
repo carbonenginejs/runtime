@@ -76,7 +76,7 @@ export class EveChildSocket extends EveChildTransform
 
   /** m_plug (EveChildPlugPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("EveChildPlug")
+  @meta.type.rootRef("EveChildPlug")
   plug = null;
 
   /**

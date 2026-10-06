@@ -47,7 +47,7 @@ export class TriTextureParameter extends CjsParameter
   positionScale = 0;
 
   @meta.blue.read
-  @meta.type.objectRef("ITr2TextureProvider")
+  @meta.type.rootRef("ITr2TextureProvider")
   resource = null;
 
   @meta.blue.read

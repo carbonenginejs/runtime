@@ -128,9 +128,9 @@ test("clone keeps a member's concrete class and ignores read-only members", () =
     CjsSchema.define(DerivedItem, { className: "CloneDerivedItem" });
 
     class Owner {}
-    CjsSchema.defineField(Owner, "view", "type", { kind: "objectRef", className: "CloneBaseItem" });
+    CjsSchema.defineField(Owner, "view", "type", { kind: "rootRef", className: "CloneBaseItem" });
     CjsSchema.defineField(Owner, "view", "edit", { read: true });
-    CjsSchema.defineField(Owner, "item", "type", { kind: "objectRef", className: "CloneBaseItem" });
+    CjsSchema.defineField(Owner, "item", "type", { kind: "rootRef", className: "CloneBaseItem" });
     CjsSchema.defineField(Owner, "item", "edit", { read: true, write: true, persist: true });
     CjsSchema.define(Owner, { className: "CloneOwner" });
 
@@ -193,7 +193,7 @@ test("Traverse is cycle-safe and GetResources visits every model", () => {
     CjsSchema.defineField(GraphModel, "children", "type", { kind: "array", itemType: "GraphModel" });
     CjsSchema.defineField(GraphModel, "children", "edit", { read: true, write: true, persist: true });
     CjsSchema.defineField(GraphModel, "children", "lifecycle", { ownership: "owned" });
-    CjsSchema.defineField(GraphModel, "peer", "type", { kind: "objectRef", className: "GraphModel" });
+    CjsSchema.defineField(GraphModel, "peer", "type", { kind: "rootRef", className: "GraphModel" });
     CjsSchema.defineField(GraphModel, "peer", "edit", { read: true, write: true, persist: true });
     CjsSchema.defineField(GraphModel, "peer", "lifecycle", { ownership: "reference" });
     CjsSchema.define(GraphModel, { className: "GraphModel" });
@@ -322,7 +322,7 @@ test("normalizes carbon values and exports plain JSON values", () => {
 test("infers source descriptors from C++ and Python type names", () => {
     assert.equal(normalizeCarbonTypeDescriptor({ cppType: "std::vector<Vector3>" }).kind, CARBON_TYPE.ARRAY);
     assert.equal(normalizeCarbonTypeDescriptor({ cppType: "TriMatrix" }).kind, CARBON_TYPE.MATRIX4);
-    assert.equal(normalizeCarbonTypeDescriptor({ cppType: "Tr2Effect*" }).kind, CARBON_TYPE.OBJECT_REF);
+    assert.equal(normalizeCarbonTypeDescriptor({ cppType: "Tr2Effect*" }).kind, CARBON_TYPE.ROOT_REF);
     assert.equal(normalizeCarbonTypeDescriptor({ pythonType: "dict" }).kind, CARBON_TYPE.MAP);
 });
 
@@ -785,21 +785,23 @@ test("registers component metadata and reads vector swizzles", () => {
 test("exposes canonical model descriptors", () => {
     class DescriptorNode {}
 
-    CjsSchema.decorateField(DescriptorNode, "child", CjsSchema.meta.type.model("DescriptorChild"));
+    CjsSchema.decorateField(DescriptorNode, "child", CjsSchema.meta.type.rootRef("DescriptorChild"));
     CjsSchema.decorateField(DescriptorNode, "payload", CjsSchema.meta.type.rawStruct("NativePayload"));
     CjsSchema.define(DescriptorNode, { className: "DescriptorNode", family: "test" });
 
-    assert.equal(CARBON_TYPE.MODEL, "model");
+    assert.equal(CARBON_TYPE.ROOT_REF, "rootRef");
+    assert.equal(CARBON_TYPE.MODEL, undefined);
+    assert.equal(CARBON_TYPE.OBJECT_REF, undefined);
     assert.deepEqual(CjsSchema.getField(DescriptorNode, "child").type, {
-        kind: "model",
+        kind: "rootRef",
         className: "DescriptorChild"
     });
     assert.deepEqual(CjsSchema.getField(DescriptorNode, "payload").type, {
         kind: "rawStruct",
         className: "NativePayload"
     });
-    assert.equal(normalizeCarbonTypeDescriptor({ kind: "model", className: "DescriptorChild" }).js, "object|null");
-    assert.equal(defaultCarbonValue({ kind: "model", className: "DescriptorChild" }), null);
+    assert.equal(normalizeCarbonTypeDescriptor({ kind: "rootRef", className: "DescriptorChild" }).js, "object|null");
+    assert.equal(defaultCarbonValue({ kind: "rootRef", className: "DescriptorChild" }), null);
 });
 
 test("stage-3 static method decorators register on the class constructor", () => {
@@ -887,9 +889,9 @@ test("preserves canonical model references while hydrating neutral document grap
 
     CjsSchema.defineField(PlainDocumentChild, "value", "type", { kind: CARBON_TYPE.FLOAT32 });
     CjsSchema.define(PlainDocumentChild, { className: "PlainDocumentChild" });
-    CjsSchema.decorateField(PlainDocumentParent, "child", CjsSchema.meta.type.model("PlainDocumentChild"));
+    CjsSchema.decorateField(PlainDocumentParent, "child", CjsSchema.meta.type.rootRef("PlainDocumentChild"));
     CjsSchema.decorateField(PlainDocumentParent, "children", CjsSchema.meta.type.list({
-        kind: "model",
+        kind: "rootRef",
         className: "PlainDocumentChild"
     }));
     CjsSchema.define(PlainDocumentParent, { className: "PlainDocumentParent" });
@@ -1055,17 +1057,17 @@ test("hydrates canonical model fields and lists without constructing raw objects
 
     CjsSchema.defineField(CanonicalChild, "label", "type", { kind: "string" });
     CjsSchema.define(CanonicalChild, { className: "CanonicalChild", family: "test-model" });
-    CjsSchema.defineField(CanonicalParent, "child", "type", { kind: "model", className: "CanonicalChild" });
+    CjsSchema.defineField(CanonicalParent, "child", "type", { kind: "rootRef", className: "CanonicalChild" });
     CjsSchema.defineField(CanonicalParent, "children", "type", {
         kind: "list",
-        itemType: { kind: "model", className: "CanonicalChild" }
+        itemType: { kind: "rootRef", className: "CanonicalChild" }
     });
     CjsSchema.defineField(CanonicalParent, "payload", "type", {
         kind: "rawStruct",
         className: "UnregisteredNativePayload"
     });
     CjsSchema.defineField(CanonicalParent, "reference", "type", {
-        kind: "objectRef",
+        kind: "rootRef",
         className: "IRoot"
     });
     CjsSchema.define(CanonicalParent, { className: "CanonicalParent", family: "test-model" });
@@ -1213,7 +1215,7 @@ test("GetValues export options control persistence, type tags and refs", () => {
         fields: [
             { name: "name", type: { kind: "string" }, edit: { read: true, write: true, persist: true } },
             { name: "runtimeFlag", type: { kind: "boolean" }, edit: { read: true, write: true } },
-            { name: "child", type: { kind: "objectRef", className: "ExportChild" }, edit: { read: true, persist: true } },
+            { name: "child", type: { kind: "rootRef", className: "ExportChild" }, edit: { read: true, persist: true } },
             { name: "children", type: { kind: "list", itemType: "ExportChild" }, edit: { read: true, persist: true } }
         ]
     });
@@ -1274,7 +1276,7 @@ test("imports _ref identity: shared children, cycles, self and forward reference
         className: "RefNode",
         fields: [
             { name: "name", type: { kind: "string" }, edit: { read: true, write: true, persist: true } },
-            { name: "next", type: { kind: "objectRef", className: "RefNode" }, edit: { read: true, write: true, persist: true } },
+            { name: "next", type: { kind: "rootRef", className: "RefNode" }, edit: { read: true, write: true, persist: true } },
             { name: "items", type: { kind: "list", itemType: "RefNode" }, edit: { read: true, write: true, persist: true } }
         ]
     });
@@ -1346,7 +1348,7 @@ test("from and singular imports honor polymorphic _type", () => {
     CjsSchema.define(PolyHost, {
         className: "PolyHost",
         fields: [
-            { name: "child", type: { kind: "objectRef", className: "PolyBase" }, edit: { read: true, write: true, persist: true } }
+            { name: "child", type: { kind: "rootRef", className: "PolyBase" }, edit: { read: true, write: true, persist: true } }
         ]
     });
 
@@ -1405,7 +1407,7 @@ test("reference import errors are loud and specific", () => {
     CjsSchema.define(StrictRefHost, {
         className: "StrictRefHost",
         fields: [
-            { name: "node", type: { kind: "objectRef", className: "StrictRefNode" }, edit: { read: true, write: true, persist: true } },
+            { name: "node", type: { kind: "rootRef", className: "StrictRefNode" }, edit: { read: true, write: true, persist: true } },
             { name: "nodes", type: { kind: "list", itemType: "StrictRefNode" }, edit: { read: true, write: true, persist: true } },
             { name: "others", type: { kind: "list", itemType: "StrictOther" }, edit: { read: true, write: true, persist: true } }
         ]

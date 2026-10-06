@@ -29,7 +29,7 @@ export class Tr2ControllerReference extends ITr2Controller
 
   /** Runtime loaded controller, exposed read-only and not persisted. */
   @meta.blue.read
-  @meta.type.objectRef("ITr2Controller")
+  @meta.type.rootRef("ITr2Controller")
   controller = null;
 
   /** Owner retained while an asynchronous load is pending. */

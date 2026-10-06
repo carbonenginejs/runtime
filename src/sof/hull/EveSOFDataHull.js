@@ -151,7 +151,7 @@ export class EveSOFDataHull
   /** m_booster (EveSOFDataHullBoosterPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataHullBooster")
+  @meta.type.rootRef("EveSOFDataHullBooster")
   booster = null;
 
   /** m_decalAreas (PEveSOFDataHullAreaVector) [READ, PERSIST] */
@@ -169,7 +169,7 @@ export class EveSOFDataHull
   /** m_defaultPattern (EveSOFDataPatternPerHullPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataPatternPerHull")
+  @meta.type.rootRef("EveSOFDataPatternPerHull")
   defaultPattern = null;
 
   /** m_distortionAreas (PEveSOFDataHullAreaVector) [READ, PERSIST] */

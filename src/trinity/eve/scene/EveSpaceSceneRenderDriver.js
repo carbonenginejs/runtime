@@ -107,7 +107,7 @@ export class EveSpaceSceneRenderDriver
   /** m_scene (EveSpaceScenePtr) [PERSISTONLY] */
   @meta.blue.readwrite
   @meta.blue.persistOnly
-  @meta.type.model("EveSpaceScene")
+  @meta.type.rootRef("EveSpaceScene")
   scene = null;
 
   /** m_name (std::string) [READWRITE] */
@@ -122,17 +122,17 @@ export class EveSpaceSceneRenderDriver
 
   /** m_projection (TriProjectionPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("TriProjection")
+  @meta.type.rootRef("TriProjection")
   projection = null;
 
   /** m_camera (EveCameraPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("EveCamera")
+  @meta.type.rootRef("EveCamera")
   camera = null;
 
   /** m_view (TriViewPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("TriView")
+  @meta.type.rootRef("TriView")
   view = null;
 
   /** m_settings.clearColor (Color) [READWRITE]; Carbon's default is opaque black (EveSpaceSceneRenderDriver.h:59). */
@@ -142,7 +142,7 @@ export class EveSpaceSceneRenderDriver
 
   /** m_distortionEffect (Tr2EffectPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   distortionEffect = null;
 
   /** m_settings.enableDistortion (bool) [READWRITE] */
@@ -172,7 +172,7 @@ export class EveSpaceSceneRenderDriver
 
   /** m_fpsRenderer (TriStepRenderFpsPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("TriStepRenderFps")
+  @meta.type.rootRef("TriStepRenderFps")
   fpsRenderer = null;
 
   /** m_mainPassRenderingEnabled (bool) [READWRITE, PERSIST] */
@@ -193,7 +193,7 @@ export class EveSpaceSceneRenderDriver
 
   /** m_postProcess (Tr2PostProcessRendererPtr) [READ], created in the constructor (cpp:151). */
   @meta.blue.read
-  @meta.type.objectRef("Tr2PostProcessRenderer")
+  @meta.type.rootRef("Tr2PostProcessRenderer")
   postProcess = new Tr2PostProcessRenderer();
 
   /** m_settings.showFPS (bool) [READWRITE] */
@@ -203,18 +203,18 @@ export class EveSpaceSceneRenderDriver
 
   /** m_sceneOverlay (ITr2RenderNodePtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("ITr2RenderNode")
+  @meta.type.rootRef("ITr2RenderNode")
   sceneOverlay = null;
 
   /** m_background (ITr2RenderNodePtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("ITr2RenderNode")
+  @meta.type.rootRef("ITr2RenderNode")
   background = null;
 
   /** m_ssao (Tr2SSAOPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2SSAO")
+  @meta.type.rootRef("Tr2SSAO")
   SSAO = null;
 
   /** m_enableRendering (bool) [READWRITE] */

@@ -438,7 +438,7 @@ test("EveBannerSet preserves the authored physical attachment graph", () =>
   assertEquals(set.key, 0);
   assertEquals(CjsSchema.getField(EveBannerSet, "banners")?.type.kind, "list");
   assertEquals(CjsSchema.getField(EveBannerSet, "lights")?.type.kind, "list");
-  assertEquals(CjsSchema.getField(EveBannerSet, "primaryTextureParameter")?.type.kind, "objectRef");
+  assertEquals(CjsSchema.getField(EveBannerSet, "primaryTextureParameter")?.type.kind, "rootRef");
   assertEquals(CjsSchema.getField(EveBannerSet, "primaryTextureParameter")?.edit?.persist, true);
   assertEquals(CjsSchema.getField(EveBannerItem, "reference")?.type.kind, "int32");
   assertEquals(CjsSchema.getField(EveBannerItem, "reference")?.edit?.persist, true);
@@ -517,7 +517,7 @@ test("EvePlaneSet preserves authored quad and SOF-light intent without GPU state
   assertEquals(EvePlaneLight.FadeType.FT_BLINK, 1);
   assertEquals(CjsSchema.getField(EvePlaneLight, "lightProfilePath")?.type.kind, "path");
   assertEquals(CjsSchema.getField(EvePlaneSet, "lights")?.type.kind, "list");
-  assertEquals(CjsSchema.getField(EvePlaneSet, "imageMapParameter")?.type.kind, "objectRef");
+  assertEquals(CjsSchema.getField(EvePlaneSet, "imageMapParameter")?.type.kind, "rootRef");
   assertEquals(CjsSchema.getField(EvePlaneSet, "maskMapParameter")?.edit?.persist, true);
   assertEquals(set.Initialize(), true);
 });

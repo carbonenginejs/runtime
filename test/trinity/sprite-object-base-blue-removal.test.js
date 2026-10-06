@@ -89,5 +89,5 @@ test("actual RenderJob gathers and picks using inherited display state without m
 test("dictionary copy persists only pickState and declared traversal excludes the parent link",()=>{
  const parent=new Tr2Sprite2dContainerBase(),value=new Tr2Sprite2dRenderJob();value.SetParent(parent);value.auxMouseover=parent;value.name="authored";value.pickState=2;value.display=false;
  const clone=new Tr2Sprite2dRenderJob();blue.classes.CopyTo(value,clone);assert.equal(clone.pickState,2);assert.equal(clone.name,"");assert.equal(clone.display,true);
- const written=new DictWriter().WriteObject(value,{}, {persistOnly:true});assert.deepEqual(written,{pickState:2});assert.equal(CjsSchema.getField(Tr2SpriteObjectBase,"auxMouseover").type.kind,"weakRef");const nodes=[];Traverse(value,node=>nodes.push(node));assert.equal(nodes.includes(parent),false);assert.equal(nodes.includes(value),true);
+ const written=new DictWriter().WriteObject(value,{}, {persistOnly:true});assert.deepEqual(written,{pickState:2});assert.equal(CjsSchema.getField(Tr2SpriteObjectBase,"auxMouseover").type.kind,"rootWeak");const nodes=[];Traverse(value,node=>nodes.push(node));assert.equal(nodes.includes(parent),false);assert.equal(nodes.includes(value),true);
 });

@@ -141,13 +141,13 @@ export class EveLensflare
 
   /** m_translationCurve (ITriVectorFunctionPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("ITriVectorFunction")
+  @meta.type.rootRef("ITriVectorFunction")
   translationCurve = null;
 
   /** m_mesh (Tr2MeshPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2Mesh")
+  @meta.type.rootRef("Tr2Mesh")
   mesh = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */

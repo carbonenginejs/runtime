@@ -57,11 +57,11 @@ export class EveDistanceField
   objects = [];
 
   @meta.blue.readwrite
-  @meta.type.objectRef("TriView")
+  @meta.type.rootRef("TriView")
   cameraView = null;
 
   @meta.blue.readwrite
-  @meta.type.objectRef("TriCurveSet")
+  @meta.type.rootRef("TriCurveSet")
   curveSet = null;
 
   @meta.blue.readwrite

@@ -70,7 +70,7 @@ export class Tr2ReflectionProbe
   /** m_customSourceTexture (ITriTextureResPtr) [READWRITE, NOTIFY] */
   @meta.blue.notify
   @meta.blue.readwrite
-  @meta.type.objectRef("ITriTextureRes")
+  @meta.type.rootRef("ITriTextureRes")
   customSourceTexture = null;
 
   /** m_backlightColor (Color) [READ] */
@@ -91,7 +91,7 @@ export class Tr2ReflectionProbe
 
   /** m_postFilterTarget (Tr2RenderTargetPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("Tr2RenderTarget")
+  @meta.type.rootRef("Tr2RenderTarget")
   reflectionTexture = null;
 
   /** m_hdrOutput (bool) [READWRITE, NOTIFY] */
@@ -118,7 +118,7 @@ export class Tr2ReflectionProbe
 
   /** m_renderTargetCube (Tr2RenderTargetPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("Tr2RenderTarget")
+  @meta.type.rootRef("Tr2RenderTarget")
   unfilteredTexture = null;
 
   /** m_initialized */

@@ -37,7 +37,7 @@ export class EveSmartLightQuad extends EveChildTransform
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   effect = null;
 
   /** m_brightness (float) [READWRITE, PERSIST] */

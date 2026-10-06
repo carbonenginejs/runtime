@@ -27,7 +27,7 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   ];
 
   @meta.blue.read
-  @meta.type.objectRef("TriTextureRes")
+  @meta.type.rootRef("TriTextureRes")
   texture = null;
 
   /** m_lightData.texturePath (std::wstring) [READWRITE, PERSIST, NOTIFY] */

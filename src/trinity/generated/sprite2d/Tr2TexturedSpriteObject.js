@@ -10,11 +10,11 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
 {
 
   /** m_texturePrimary (ITr2Sprite2dTexturePtr) */
-  @meta.type.objectRef("ITr2Sprite2dTexture")
+  @meta.type.rootRef("ITr2Sprite2dTexture")
   texturePrimary = null;
 
   /** m_textureSecondary (ITr2Sprite2dTexturePtr) */
-  @meta.type.objectRef("ITr2Sprite2dTexture")
+  @meta.type.rootRef("ITr2Sprite2dTexture")
   textureSecondary = null;
 
 }

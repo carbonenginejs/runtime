@@ -43,7 +43,7 @@ export class Tr2BindingPoint
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("IRoot")
+  @meta.type.rootRef("IRoot")
   object = null;
 
   /** Authored member name and optional component swizzle. */
@@ -54,19 +54,19 @@ export class Tr2BindingPoint
   attribute = "";
 
   /** Native weak target pointer; retained as a live JS reference in this adapter. */
-  @meta.type.weakRef("IRoot")
+  @meta.type.rootWeak("IRoot")
   resolvedObject = null;
 
   /** Native weak notification pointer; the existing JS notification adapter resolves callbacks at write time. */
-  @meta.type.weakRef("INotify")
+  @meta.type.rootWeak("INotify")
   notifyPtr = null;
 
   /** Native member descriptor represented by a property name in this adapter. */
-  @meta.type.objectRef("Be::VarEntry")
+  @meta.type.rootRef("Be::VarEntry")
   entry = null;
 
   /** Current JavaScript property value standing in for the native storage pointer. */
-  @meta.type.objectRef("Be::Var")
+  @meta.type.rootRef("Be::Var")
   destination = null;
 
   /** Vector component offset, or -1 for the whole member. */

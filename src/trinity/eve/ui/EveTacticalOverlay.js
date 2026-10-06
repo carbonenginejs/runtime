@@ -463,21 +463,21 @@ export class EveTacticalOverlay
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   anchorEffect = null;
 
   /** m_connectorEffect (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   connectorEffect = null;
 
   /** m_velocityEffect (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   velocityEffect = null;
 
   /** m_ranges.x (float) [READWRITE, PERSIST] */
@@ -561,7 +561,7 @@ export class EveTacticalOverlay
   /** m_positionCurve (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("ITriVectorFunction")
+  @meta.type.rootRef("ITriVectorFunction")
   translationCurve = null;
 
   /** m_rootPosition (Vector3) [READWRITE, PERSIST] */
@@ -572,7 +572,7 @@ export class EveTacticalOverlay
 
   /** m_interestObject (EveTacticalOverlayTrackObjectPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("EveTacticalOverlayTrackObject")
+  @meta.type.rootRef("EveTacticalOverlayTrackObject")
   interestObject = null;
 
   // Carbon's deterministic destructor detaches this local store from the three

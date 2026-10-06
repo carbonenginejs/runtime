@@ -34,7 +34,7 @@ export class EveChildAudio extends EveChildTransform
 
   @meta.blue.read
   @meta.blue.persist
-  @meta.type.model("ITr2AudEmitter")
+  @meta.type.rootRef("ITr2AudEmitter")
   audioEmitter = null;
 
   /**

@@ -35,7 +35,7 @@ export class EveVirtualCameraBehaviourVector3MoveBetween extends EveVirtualCamer
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2CurveScalar")
+  @meta.type.rootRef("Tr2CurveScalar")
   interpolationCurve = null;
 
   @meta.blue.readwrite

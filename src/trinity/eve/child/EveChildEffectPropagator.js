@@ -111,7 +111,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persistOnly
-  @meta.type.model("EveChildInstanceContainer")
+  @meta.type.rootRef("EveChildInstanceContainer")
   effect = null;
 
   /** m_stopToClearDelay (float) [READWRITE, PERSIST] */
@@ -149,13 +149,13 @@ export class EveChildEffectPropagator extends EveChildContainer
   /** m_localLocators (EveLocatorSetsPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("EveLocatorSets")
+  @meta.type.rootRef("EveLocatorSets")
   localLocators = null;
 
   /** m_triggerSphereRadiusCurve (Tr2CurveScalarPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2CurveScalar")
+  @meta.type.rootRef("Tr2CurveScalar")
   triggerSphereRadiusCurve = null;
 
   /** m_triggerSphereScalarMulti (float) [READ] */

@@ -22,7 +22,7 @@ export class CjsCharacterSculptSelection
 
     @meta.blue.readwrite
     @meta.blue.persist
-    @meta.type.model("CjsCharacterSculptingLocation")
+    @meta.type.rootRef("CjsCharacterSculptingLocation")
     sculptLocationID = null;
 
 }

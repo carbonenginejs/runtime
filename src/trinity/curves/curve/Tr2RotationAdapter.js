@@ -33,7 +33,7 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("ITriQuaternionFunction")
+  @meta.type.rootRef("ITriQuaternionFunction")
   curve = null;
 
   /**

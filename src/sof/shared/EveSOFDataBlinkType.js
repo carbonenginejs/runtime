@@ -19,7 +19,7 @@ export class EveSOFDataBlinkType
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataBlink")
+  @meta.type.rootRef("EveSOFDataBlink")
   Blink = null;
 
   /** Optional empty settings record for fade-in; native EveSOFDataBlinkPtr.
@@ -27,7 +27,7 @@ export class EveSOFDataBlinkType
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataBlink")
+  @meta.type.rootRef("EveSOFDataBlink")
   FadeIn = null;
 
   /** Optional empty settings record for fade-out; native EveSOFDataBlinkPtr.
@@ -35,7 +35,7 @@ export class EveSOFDataBlinkType
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataBlink")
+  @meta.type.rootRef("EveSOFDataBlink")
   FadeOut = null;
 
   /** Optional empty settings record for fade-in/out cycle; native EveSOFDataBlinkPtr.
@@ -43,7 +43,7 @@ export class EveSOFDataBlinkType
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataBlink")
+  @meta.type.rootRef("EveSOFDataBlink")
   Cycle = null;
 
   /** Looks up the named slot through the existing JS enum table; no native method.

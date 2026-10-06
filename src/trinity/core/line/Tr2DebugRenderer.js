@@ -38,11 +38,11 @@ export class Tr2DebugRenderer
   zFailColor = 0;
 
   /** m_effect (Tr2EffectPtr) */
-  @meta.type.objectRef("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   effect = null;
 
   /** m_pickingEffect (Tr2EffectPtr) */
-  @meta.type.objectRef("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   pickingEffect = null;
 
   /** m_lines (std::vector<Vertex>) */

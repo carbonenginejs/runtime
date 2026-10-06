@@ -62,7 +62,7 @@ export class AudioCurveSetDriver extends ICurveSetDriver
   /** m_fallbackCurve: sampled at the caller's unmodified time when audio is invalid. */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("ITriScalarFunction")
+  @meta.type.rootRef("ITriScalarFunction")
   fallbackCurve = null;
 
   /** m_audioParameterExists: the last monitored record's existence flag. */

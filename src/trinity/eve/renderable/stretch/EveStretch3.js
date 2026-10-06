@@ -51,12 +51,12 @@ export class EveStretch3 extends IEveFiringEffectElement
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.objectRef("ITriVectorFunction")
+ @meta.type.rootRef("ITriVectorFunction")
   source = null;
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.objectRef("ITriVectorFunction")
+ @meta.type.rootRef("ITriVectorFunction")
   dest = null;
   @meta.blue.readwrite
   @meta.blue.persist
@@ -64,11 +64,11 @@ export class EveStretch3 extends IEveFiringEffectElement
   name = "";
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.objectRef("TriFloat")
+ @meta.type.rootRef("TriFloat")
   moveProgression = new TriFloat();
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.objectRef("IStretchAudio")
+ @meta.type.rootRef("IStretchAudio")
   stretchAudio = null;
   @meta.blue.read
   @meta.blue.persist
@@ -80,7 +80,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   curveSets = [];
   @meta.blue.read
   @meta.blue.persist
- @meta.type.objectRef("TriFloat")
+ @meta.type.rootRef("TriFloat")
   length = new TriFloat();
   @meta.blue.read
   @meta.blue.persist
@@ -98,12 +98,12 @@ export class EveStretch3 extends IEveFiringEffectElement
   /** Hidden persisted destObject storage, distinct from the live setter. */
   @meta.member("destObject")
   @meta.blue.persistOnly
-  @meta.type.objectRef("EveSpaceObjectChild")
+  @meta.type.rootRef("EveSpaceObjectChild")
   _destObject = null;
 
   /** Live destObject property. */
   @meta.blue.readwrite
-  @meta.type.objectRef("EveSpaceObjectChild")
+  @meta.type.rootRef("EveSpaceObjectChild")
   @meta.implemented
   get destObject()
   {
@@ -119,12 +119,12 @@ export class EveStretch3 extends IEveFiringEffectElement
   /** Hidden persisted sourceObject storage, distinct from the live setter. */
   @meta.member("sourceObject")
   @meta.blue.persistOnly
-  @meta.type.objectRef("EveSpaceObjectChild")
+  @meta.type.rootRef("EveSpaceObjectChild")
   _sourceObject = null;
 
   /** Live sourceObject property. */
   @meta.blue.readwrite
-  @meta.type.objectRef("EveSpaceObjectChild")
+  @meta.type.rootRef("EveSpaceObjectChild")
   @meta.implemented
   get sourceObject()
   {
@@ -140,12 +140,12 @@ export class EveStretch3 extends IEveFiringEffectElement
   /** Hidden persisted stretchObject storage, distinct from the live setter. */
   @meta.member("stretchObject")
   @meta.blue.persistOnly
-  @meta.type.objectRef("EveSpaceObjectChild")
+  @meta.type.rootRef("EveSpaceObjectChild")
   _stretchObject = null;
 
   /** Live stretchObject property. */
   @meta.blue.readwrite
-  @meta.type.objectRef("EveSpaceObjectChild")
+  @meta.type.rootRef("EveSpaceObjectChild")
   @meta.implemented
   get stretchObject()
   {
@@ -164,17 +164,17 @@ export class EveStretch3 extends IEveFiringEffectElement
   startTime = 0;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.objectRef("ITr2Audio")
+ @meta.type.rootRef("ITr2Audio")
   audio = null;
   /** Hidden persisted moveObject storage, distinct from the live setter. */
   @meta.member("moveObject")
   @meta.blue.persistOnly
-  @meta.type.objectRef("EveSpaceObjectChild")
+  @meta.type.rootRef("EveSpaceObjectChild")
   _moveObject = null;
 
   /** Live moveObject property. */
   @meta.blue.readwrite
-  @meta.type.objectRef("EveSpaceObjectChild")
+  @meta.type.rootRef("EveSpaceObjectChild")
   @meta.implemented
   get moveObject()
   {
@@ -190,7 +190,7 @@ export class EveStretch3 extends IEveFiringEffectElement
 
   /** Live sourceSpaceObject pointer property; native backing storage is weak. */
   @meta.blue.readwrite
-  @meta.type.objectRef("IEveSpaceObject2")
+  @meta.type.rootRef("IEveSpaceObject2")
   @meta.implemented
   get sourceSpaceObject()
   {
@@ -206,7 +206,7 @@ export class EveStretch3 extends IEveFiringEffectElement
 
   /** Live destSpaceObject pointer property; native backing storage is weak. */
   @meta.blue.readwrite
-  @meta.type.objectRef("IEveSpaceObject2")
+  @meta.type.rootRef("IEveSpaceObject2")
   @meta.implemented
   get destSpaceObject()
   {

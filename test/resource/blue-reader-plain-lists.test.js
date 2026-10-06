@@ -137,7 +137,7 @@ meta.hideInherited(["inheritedHidden"])(FilterOwner);
 CjsSchema.define(FilterOwner, { className: "BlueReaderFilterOwner", fields: {
   value: { type: { kind: "int32" }, edit: { persist: true } },
   readonly: { type: { kind: "int32" }, edit: { read: true } },
-  cache: { type: { kind: "objectRef", runtimeOnly: true }, edit: { persist: true } },
+  cache: { type: { kind: "rootRef", runtimeOnly: true }, edit: { persist: true } },
   hiddenPersisted: { type: { kind: "string" }, edit: { hidden: true, persist: true, persistOnly: true } }
 } });
 

@@ -34,7 +34,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("ITriVectorFunction")
+  @meta.type.rootRef("ITriVectorFunction")
   curve = null;
 
   /**

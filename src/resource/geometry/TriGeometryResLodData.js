@@ -71,7 +71,7 @@ export class TriGeometryResLodData
 CjsSchema.define(TriGeometryResLodData, {
   className: "TriGeometryResLodData", family: "resources",
   fields: {
-    mesh: meta.type.objectRef("TriGeometryResMeshData"),
+    mesh: meta.type.rootRef("TriGeometryResMeshData"),
     grannyMeshIndex: meta.type.int32,
     name: meta.type.string,
     originalLodIndex: meta.type.int32,

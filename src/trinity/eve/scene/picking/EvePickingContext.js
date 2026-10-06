@@ -19,7 +19,7 @@ export class EvePickingContext
   @meta.type.uint32
   lastPickedY = 0;
 
-  @meta.type.objectRef("IRoot")
+  @meta.type.rootRef("IRoot")
   lastPickedObject = null;
 
   @meta.type.uint32

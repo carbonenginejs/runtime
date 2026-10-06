@@ -16,12 +16,12 @@ export class Tr2SwapChain
 
   /** m_depthStencil (Tr2DepthStencilPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("Tr2DepthStencil")
+  @meta.type.rootRef("Tr2DepthStencil")
   depthStencilBuffer = null;
 
   /** m_backBuffer (Tr2RenderTargetPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("Tr2RenderTarget")
+  @meta.type.rootRef("Tr2RenderTarget")
   backBuffer = null;
 
   /**

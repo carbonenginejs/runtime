@@ -14,12 +14,12 @@ export class TriStepSetView extends TriRenderStep
 {
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("TriView")
+  @meta.type.rootRef("TriView")
   view = null;
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveCamera")
+  @meta.type.rootRef("EveCamera")
   camera = null;
 
   /** Stores the view and camera the step chooses between at execution time. */

@@ -28,7 +28,7 @@ export class EveSOFDataGenericVariant
   /** m_hullArea (EveSOFDataHullAreaPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataHullArea")
+  @meta.type.rootRef("EveSOFDataHullArea")
   hullArea = null;
 
 }

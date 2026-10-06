@@ -56,7 +56,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2ParticleSystem")
+  @meta.type.rootRef("Tr2ParticleSystem")
   particleSystem = null;
 
   /**

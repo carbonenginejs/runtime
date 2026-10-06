@@ -425,15 +425,15 @@ export class Tr2ProjectBoundingBoxBracket
   name = "";
 
   @meta.blue.readwrite
-  @meta.type.objectRef(BOUNDING_BOX_TYPE)
+  @meta.type.rootRef(BOUNDING_BOX_TYPE)
   object = null;
 
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2Sprite2dContainer")
+  @meta.type.rootRef("Tr2Sprite2dContainer")
   parent = null;
 
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2Sprite2dContainer")
+  @meta.type.rootRef("Tr2Sprite2dContainer")
   bracket = null;
 
   @meta.blue.read

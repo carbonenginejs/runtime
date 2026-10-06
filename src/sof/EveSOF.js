@@ -329,7 +329,7 @@ export class EveSOF
    * @type {EveSOFDataMgr}
    */
   @meta.blue.read
-  @meta.type.objectRef("EveSOFDataMgr")
+  @meta.type.rootRef("EveSOFDataMgr")
   dataMgr = new EveSOFDataMgr();
 
   /**

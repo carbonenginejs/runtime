@@ -26,7 +26,7 @@ export class Tr2PyValueBinding extends INotify
   /** m_sourceObject (PyObject*) [READWRITE, NOTIFY] */
   @meta.blue.notify
   @meta.blue.readwrite
-  @meta.type.objectRef("PyObject")
+  @meta.type.rootRef("PyObject")
   sourceObject = null;
 
   /** m_sourceAttribute (std::string) [READWRITE, NOTIFY, PERSIST] */
@@ -39,7 +39,7 @@ export class Tr2PyValueBinding extends INotify
   /** m_destinationObject (PyObject*) [READWRITE, NOTIFY] */
   @meta.blue.notify
   @meta.blue.readwrite
-  @meta.type.objectRef("PyObject")
+  @meta.type.rootRef("PyObject")
   destinationObject = null;
 
   /** m_destinationAttribute (std::string) [READWRITE, NOTIFY, PERSIST] */

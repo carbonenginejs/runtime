@@ -16,7 +16,7 @@ const define = (Constructor, fields = {}, interfaces = []) => {
   CjsSchema.define(Constructor, { className, fields });
   return className;
 };
-const ref = className => ({ type: { kind: "objectRef", className } });
+const ref = className => ({ type: { kind: "rootRef", className } });
 
 test("declared mode calls the exact alias factory once and never static from", () => {
   class Child { value = 0; static from() { assert.fail("legacy from"); } }
@@ -87,7 +87,7 @@ test("declared lifecycle never reads an unrelated live property", () => {
   assert.ok(reader().CreateObject({}, Node) instanceof Node);
   assert.ok(reader({ initialize: false }).CreateObject({}, Node) instanceof Node);
   class ReadOnly { get unused() { assert.fail("read-only getter"); } }
-  define(ReadOnly, { unused: { type: { kind: "objectRef" }, edit: { read: true } } });
+  define(ReadOnly, { unused: { type: { kind: "rootRef" }, edit: { read: true } } });
   assert.ok(reader().CreateObject({ unused: null }, ReadOnly) instanceof ReadOnly);
 });
 
@@ -103,8 +103,8 @@ test("declared reference Map and Set entries share factories and forward anchors
   const childName = define(Child, { value: CjsSchema.meta.type.int32 }, [IInitialize]);
   class Parent { map = null; set = null; child = null; }
   define(Parent, {
-    map: { type: { kind: "map", valueType: { kind: "objectRef", className: childName } } },
-    set: { type: { kind: "set", itemType: { kind: "objectRef", className: childName } } }, child: ref(childName)
+    map: { type: { kind: "map", valueType: { kind: "rootRef", className: childName } } },
+    set: { type: { kind: "set", itemType: { kind: "rootRef", className: childName } } }, child: ref(childName)
   });
   const borrowed = new Child(); borrowed.initialized = 1;
   const target = reader().CreateObject({
@@ -130,7 +130,7 @@ test("nested declared collections construct nodes and preserve borrowed identiti
     Initialize() { this.initialized++; }
   }
   const childName = define(Child, { value: CjsSchema.meta.type.int32, cache: CjsSchema.meta.type.resource("Unused") }, [IInitialize]);
-  const childType = { kind: "objectRef", className: childName };
+  const childType = { kind: "rootRef", className: childName };
   const list = { kind: "list", itemType: childType };
   const cases = [
     { type: { kind: "map", valueType: list }, wrap: items => new Map([["items", items]]), read: value => value.get("items") },
@@ -192,7 +192,7 @@ test("shared and cyclic graphs initialize created identities once without a sett
   assert.equal(reused.count, 2, "operation ownership is not global object history");
 });
 
-for (const kind of ["weakRef", "int32"]) test(`a typed child in a ${kind} declaration initializes before its parent`, () => {
+for (const kind of ["rootWeak", "int32"]) test(`a typed child in a ${kind} declaration initializes before its parent`, () => {
   const order = [];
   class Child { ready = false; Initialize() { this.ready = true; order.push("child"); } }
   const childName = define(Child, {}, [IInitialize]);

@@ -472,7 +472,7 @@ export class Tr2Transform
   /** m_mesh (Tr2MeshBasePtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2MeshBase")
+  @meta.type.rootRef("Tr2MeshBase")
   mesh = null;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */

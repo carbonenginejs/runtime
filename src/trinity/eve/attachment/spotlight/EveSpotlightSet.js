@@ -76,12 +76,12 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   coneEffect = null;
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   glowEffect = null;
 
   @meta.blue.readwrite

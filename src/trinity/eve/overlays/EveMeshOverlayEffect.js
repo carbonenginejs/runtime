@@ -31,7 +31,7 @@ export class EveMeshOverlayEffect
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("TriCurveSet")
+  @meta.type.rootRef("TriCurveSet")
   curveSet = null;
 
   @meta.blue.read

@@ -5,7 +5,7 @@ import { CARBON_TYPE } from "../../../../global/schema/types/carbonTypes.js";
  * kinds that read them.
  *
  * @typedef {object} GraphDataType
- * @property {string} kind Handler or grammar kind, such as "float32", "objectRef", "array" or "custom".
+ * @property {string} kind Handler or grammar kind, such as "float32", "rootRef", "array" or "custom".
  * @property {string} [scalar] Component or enum scalar kind.
  * @property {string} [underlyingType] Enum scalar kind when `scalar` is absent.
  * @property {Function|string} [arrayType] Typed-array constructor or its name, for "typedArray".

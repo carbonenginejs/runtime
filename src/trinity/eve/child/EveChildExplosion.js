@@ -46,7 +46,7 @@ export class EveChildExplosion extends EveChildContainer
 
   /** m_globalExplosionContainer (EveChildContainerPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("EveChildContainer")
+  @meta.type.rootRef("EveChildContainer")
   generatedGlobalExplosions = null;
 
   /** m_localExplosionScaling (Vector3) [READWRITE, PERSIST] */
@@ -64,19 +64,19 @@ export class EveChildExplosion extends EveChildContainer
   /** m_globalExplosion (IEveSpaceObjectChildPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("IEveSpaceObjectChild")
+  @meta.type.rootRef("IEveSpaceObjectChild")
   globalExplosion = null;
 
   /** m_localExplosion (IEveSpaceObjectChildPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("IEveSpaceObjectChild")
+  @meta.type.rootRef("IEveSpaceObjectChild")
   localExplosion = null;
 
   /** m_localExplosionShared (IEveSpaceObjectChildPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("IEveSpaceObjectChild")
+  @meta.type.rootRef("IEveSpaceObjectChild")
   localExplosionShared = null;
 
   /** m_globalExplosions (PIEveSpaceObjectChildVector) [READ, PERSIST] */
@@ -450,7 +450,7 @@ export class EveChildExplosion extends EveChildContainer
       {
         if (!field.edit?.persist) continue;
         const kind = field.type?.kind, value = node[field.name];
-        if ((kind === "model" || kind === "objectRef" || kind === "root") && value) stack.push(value);
+        if ((kind === "rootRef" || kind === "root") && value) stack.push(value);
         else if (kind === "list" && value)
         {
           for (const item of value) if (item) stack.push(item);

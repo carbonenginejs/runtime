@@ -36,7 +36,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
   /** Runtime followed object; notified but not persisted. */
   @meta.blue.notify
   @meta.blue.readwrite
-  @meta.type.objectRef("IRoot")
+  @meta.type.rootRef("IRoot")
   object = null;
 
   /** Authored key time. */

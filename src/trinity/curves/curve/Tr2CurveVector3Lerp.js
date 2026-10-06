@@ -49,7 +49,7 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("ITriVectorFunction")
+  @meta.type.rootRef("ITriVectorFunction")
   curve = null;
 
   /**

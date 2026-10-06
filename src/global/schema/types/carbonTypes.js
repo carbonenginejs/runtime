@@ -32,9 +32,9 @@ export const CARBON_TYPE = Object.freeze({
     ARRAY: "array",
     MAP: "map",
     SET: "set",
-    MODEL: "model",
-    OBJECT_REF: "objectRef",
-    WEAK_REF: "weakRef",
+    // Carbon's IROOTPTR and IROOTWEAKREF (BlueTypes.h): a pointer to an object, and a weak one.
+    ROOT_REF: "rootRef",
+    ROOT_WEAK: "rootWeak",
     ROOT: "root",
     RAW_STRUCT: "rawStruct",
     STRUCT_LIST: "structList",
@@ -73,10 +73,9 @@ const TYPE_DEFINITIONS = {
     [CARBON_TYPE.ARRAY]: { kind: CARBON_TYPE.ARRAY, js: "Array" },
     [CARBON_TYPE.MAP]: { kind: CARBON_TYPE.MAP, js: "Map" },
     [CARBON_TYPE.SET]: { kind: CARBON_TYPE.SET, js: "Set" },
-    [CARBON_TYPE.MODEL]: { kind: CARBON_TYPE.MODEL, js: "object|null" },
-    [CARBON_TYPE.OBJECT_REF]: { kind: CARBON_TYPE.OBJECT_REF, js: "object|null" },
+    [CARBON_TYPE.ROOT_REF]: { kind: CARBON_TYPE.ROOT_REF, js: "object|null" },
     // BlueTypes.h IROOTWEAKREF describes the reference; it installs no JS lifetime policy.
-    [CARBON_TYPE.WEAK_REF]: { kind: CARBON_TYPE.WEAK_REF, js: "object|null" },
+    [CARBON_TYPE.ROOT_WEAK]: { kind: CARBON_TYPE.ROOT_WEAK, js: "object|null" },
     [CARBON_TYPE.ROOT]: { kind: CARBON_TYPE.ROOT, js: "object" },
     [CARBON_TYPE.RAW_STRUCT]: { kind: CARBON_TYPE.RAW_STRUCT, js: "object" },
     // BlueStructureList: packed records described by the item class's meta.struct layout.
@@ -286,7 +285,7 @@ export function inferCarbonTypeFromCpp(cppType, propertyName = "")
     if (type.includes("std::vector") || /(?:Vector|List)$/.test(named)) return containerDescriptor(CARBON_TYPE.ARRAY, original);
     if (type.includes("std::map") || /(?:Map)$/.test(named)) return containerDescriptor(CARBON_TYPE.MAP, original);
     if (type.includes("std::set") || /(?:Set)$/.test(named)) return containerDescriptor(CARBON_TYPE.SET, original);
-    if (/\*$/.test(type) || /^P(?:I)?[A-Z]\w+$/.test(named) || /(?:Ptr|Ref)$/.test(named)) return objectRefDescriptor(original);
+    if (/\*$/.test(type) || /^P(?:I)?[A-Z]\w+$/.test(named) || /(?:Ptr|Ref)$/.test(named)) return rootRefDescriptor(original);
 
     switch (named)
     {
@@ -372,7 +371,7 @@ export function inferCarbonTypeFromPython(pythonType)
     if (type === "list" || type === "tuple") return TYPE_DEFINITIONS[CARBON_TYPE.ARRAY];
     if (type === "dict") return TYPE_DEFINITIONS[CARBON_TYPE.MAP];
     if (type === "set") return TYPE_DEFINITIONS[CARBON_TYPE.SET];
-    if (type === "none" || type === "nonetype") return objectRefDescriptor("NoneType");
+    if (type === "none" || type === "nonetype") return rootRefDescriptor("NoneType");
     return TYPE_DEFINITIONS[CARBON_TYPE.UNKNOWN];
 }
 
@@ -446,9 +445,8 @@ export function defaultCarbonValue(type)
             const storage = typedArrayStorageFor(descriptor);
             return storage ? new storage.Ctor(0) : null;
         }
-        case CARBON_TYPE.MODEL:
-        case CARBON_TYPE.OBJECT_REF:
-        case CARBON_TYPE.WEAK_REF:
+        case CARBON_TYPE.ROOT_REF:
+        case CARBON_TYPE.ROOT_WEAK:
         case CARBON_TYPE.ROOT:
         case CARBON_TYPE.RAW_STRUCT:
         case CARBON_TYPE.UNKNOWN:
@@ -803,9 +801,9 @@ function containerDescriptor(kind, cppType)
     };
 }
 
-function objectRefDescriptor(cppType)
+function rootRefDescriptor(cppType)
 {
-    return { ...TYPE_DEFINITIONS[CARBON_TYPE.OBJECT_REF], cppType };
+    return { ...TYPE_DEFINITIONS[CARBON_TYPE.ROOT_REF], cppType };
 }
 
 function rawStructDescriptor(cppType)

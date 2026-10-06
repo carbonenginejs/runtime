@@ -30,7 +30,7 @@ export class Tr2AtlasTexture
 
   /** m_textureAtlas (Tr2TextureAtlasPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("Tr2TextureAtlas")
+  @meta.type.rootRef("Tr2TextureAtlas")
   atlas = null;
 
   /** m_textureWidth (unsigned int) [READ] */

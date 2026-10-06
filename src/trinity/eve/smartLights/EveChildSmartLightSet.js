@@ -37,7 +37,7 @@ export class EveChildSmartLightSet extends EveChildTransform
   /** m_distribution (IEveDistributionMethodPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("IEveDistributionMethod")
+  @meta.type.rootRef("IEveDistributionMethod")
   distribution = null;
 
   /** m_lightGroups (PIEveSmartLightGroupVector) [READ, PERSIST] */

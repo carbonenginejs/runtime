@@ -8,7 +8,7 @@ export class Tr2TransientTextureReference
 {
 
   /** m_texture (Tr2TextureAL*) */
-  @meta.type.objectRef("Tr2TextureAL")
+  @meta.type.rootRef("Tr2TextureAL")
   texture = null;
 
   /** m_onTextureChange (OnTextureChangeEvent) */

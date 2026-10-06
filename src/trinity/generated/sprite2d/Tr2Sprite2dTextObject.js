@@ -43,7 +43,7 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
   /** m_texturePrimary (ITr2Sprite2dTexturePtr) [READWRITE, NOTIFY] */
   @meta.blue.notify
   @meta.blue.readwrite
-  @meta.type.objectRef("ITr2Sprite2dTexture")
+  @meta.type.rootRef("ITr2Sprite2dTexture")
   texturePrimary = null;
 
   /** m_pickRadius (float) [READWRITE] */

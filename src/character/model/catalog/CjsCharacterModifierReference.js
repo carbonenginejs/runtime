@@ -17,12 +17,12 @@ export class CjsCharacterModifierReference
 
     @meta.blue.readwrite
     @meta.blue.persist
-    @meta.type.model("CjsCharacterPartSource")
+    @meta.type.rootRef("CjsCharacterPartSource")
     partSource = null;
 
     @meta.blue.readwrite
     @meta.blue.persist
-    @meta.type.model("CjsCharacterModifierLocation")
+    @meta.type.rootRef("CjsCharacterModifierLocation")
     modifierLocation = null;
 
     /** Effective weight for a proved weighted logical modifier; otherwise null. */

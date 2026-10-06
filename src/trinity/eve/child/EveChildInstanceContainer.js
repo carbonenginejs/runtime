@@ -96,7 +96,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   /** m_inheritProperties (EveChildInheritPropertiesPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("EveChildInheritProperties")
+  @meta.type.rootRef("EveChildInheritProperties")
   inheritProperties = null;
 
   /** m_reset (bool) [READWRITE] */
@@ -119,7 +119,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   /** m_source (IEveSpaceObjectChildPtr) [PERSISTONLY] */
   @meta.blue.readwrite
   @meta.blue.persistOnly
-  @meta.type.model("IEveSpaceObjectChild")
+  @meta.type.rootRef("IEveSpaceObjectChild")
   source = null;
 
   /** m_origin (Origin - enum Origin) [READ] */

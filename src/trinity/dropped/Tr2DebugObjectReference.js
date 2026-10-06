@@ -8,7 +8,7 @@ export class Tr2DebugObjectReference
 {
 
   /** m_object (IRootPtr) */
-  @meta.type.objectRef("IRoot")
+  @meta.type.rootRef("IRoot")
   object = null;
 
   /** m_area (uint32_t) */

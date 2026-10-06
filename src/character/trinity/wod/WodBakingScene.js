@@ -23,7 +23,7 @@ export class WodBakingScene
 
   /** m_skinnedObject (Tr2SkinnedObjectPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2SkinnedObject")
+  @meta.type.rootRef("Tr2SkinnedObject")
   Avatar = null;
 
   static VisualizeMethod = Object.freeze({

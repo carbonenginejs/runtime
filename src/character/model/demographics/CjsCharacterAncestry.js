@@ -13,7 +13,7 @@ export class CjsCharacterAncestry extends CjsCharacterRecord
 
     @meta.blue.readwrite
     @meta.blue.persist
-    @meta.type.model("CjsCharacterBloodline")
+    @meta.type.rootRef("CjsCharacterBloodline")
     bloodlineID = null;
 
     @meta.blue.readwrite

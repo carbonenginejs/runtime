@@ -38,7 +38,7 @@ export class Tr2StateMachine
    * @type {Tr2StateMachineState|null}
    */
   @meta.blue.read
-  @meta.type.objectRef("Tr2StateMachineState")
+  @meta.type.rootRef("Tr2StateMachineState")
   currentState = null;
 
   /**
@@ -49,7 +49,7 @@ export class Tr2StateMachine
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2StateMachineState")
+  @meta.type.rootRef("Tr2StateMachineState")
   startState = null;
 
   /**

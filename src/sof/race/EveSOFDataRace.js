@@ -29,13 +29,13 @@ export class EveSOFDataRace
   /** m_booster (EveSOFDataBoosterPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataBooster")
+  @meta.type.rootRef("EveSOFDataBooster")
   booster = null;
 
   /** m_damage (EveSOFDataRaceDamagePtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataRaceDamage")
+  @meta.type.rootRef("EveSOFDataRaceDamage")
   damage = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */

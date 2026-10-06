@@ -254,19 +254,19 @@ export class EveSpaceScene
   /** m_shLightingManager (Tr2ShLightingManagerPtr) [PERSISTONLY] */
   @meta.blue.readwrite
   @meta.blue.persistOnly
-  @meta.type.model("Tr2ShLightingManager")
+  @meta.type.rootRef("Tr2ShLightingManager")
   shLightingManager = null;
 
   /** m_combinedPostProcessAttributes (Tr2PostProcessAttributesPtr) [READ] -
    * default-constructed like Carbon's ctor CreateInstance (cpp:297); refreshed
    * by UpdatePostProcessAttributes' re-export at MEDIUM_PRIORITY (cpp:407). */
   @meta.blue.read
-  @meta.type.objectRef("Tr2PostProcessAttributes")
+  @meta.type.rootRef("Tr2PostProcessAttributes")
   combinedPostProcessAttributes = new Tr2PostProcessAttributes();
 
   /** m_dataTextureMgr (Tr2DataTextureManagerPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("Tr2DataTextureManager")
+  @meta.type.rootRef("Tr2DataTextureManager")
   dataTextureMgr = new Tr2DataTextureManager();
 
   /** m_dynamicObjectReflectionEnabled (bool) [READWRITE] */
@@ -276,14 +276,14 @@ export class EveSpaceScene
 
   /** m_componentRegistry (EveComponentRegistryPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("EveComponentRegistry")
+  @meta.type.rootRef("EveComponentRegistry")
   componentRegistry = new EveComponentRegistry();
 
   /** m_cameraAttachmentParent (EveEffectRoot2Ptr) - protected Carbon scene
    * entity, default-constructed like Carbon's ctor CreateInstance (cpp:287, no
    * further setup applied). Consumers still optional-chain - deserialization
    * may null it. */
-  @meta.type.model("EveEffectRoot2")
+  @meta.type.rootRef("EveEffectRoot2")
   cameraAttachmentParent = new EveEffectRoot2();
 
   /** m_postProcessDebug (BluePy) - protected Carbon debug payload. */
@@ -329,7 +329,7 @@ export class EveSpaceScene
   /** m_backgroundEffect (Tr2EffectPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   backgroundEffect = null;
 
   /** m_backgroundReflectionIntensity (float) [READWRITE, PERSIST] */
@@ -364,7 +364,7 @@ export class EveSpaceScene
 
   /** m_impostorManager (Tr2ImpostorManagerPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2ImpostorManager")
+  @meta.type.rootRef("Tr2ImpostorManager")
   impostorManager = null;
 
   /** m_lensflares (PEveLensflareVector) [READ, PERSIST] */
@@ -392,7 +392,7 @@ export class EveSpaceScene
 
   /** m_debugRenderer (Tr2DebugRendererPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2DebugRenderer")
+  @meta.type.rootRef("Tr2DebugRenderer")
   debugRenderer = null;
 
   /**
@@ -427,7 +427,7 @@ export class EveSpaceScene
 
   /** m_rtManager (Tr2RaytracingManagerPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2RaytracingManager")
+  @meta.type.rootRef("Tr2RaytracingManager")
   raytracingManager = null;
 
   /** m_reflectionBackLightingColor (Color) [READWRITE, PERSIST, NOTIFY] */
@@ -447,18 +447,18 @@ export class EveSpaceScene
   /** m_reflectionProbe (Tr2ReflectionProbePtr) [READWRITE, NOTIFY] */
   @meta.blue.notify
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2ReflectionProbe")
+  @meta.type.rootRef("Tr2ReflectionProbe")
   reflectionProbe = null;
 
   /** m_volumetricsRenderer (Tr2VolumetricsRendererPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("Tr2VolumetricsRenderer")
+  @meta.type.rootRef("Tr2VolumetricsRenderer")
   volumetricsRenderer = new Tr2VolumetricsRenderer();
 
   /** m_starfield (EveStarfieldPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("EveStarfield")
+  @meta.type.rootRef("EveStarfield")
   starfield = null;
 
   /** m_planetScale (float) [READWRITE, PERSIST] */
@@ -475,7 +475,7 @@ export class EveSpaceScene
 
   /** m_sssss (Tr2SSSSSPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("Tr2SSSSS")
+  @meta.type.rootRef("Tr2SSSSS")
   subSurfaceScattering = null;
 
   /** m_shadowQuality (ShadowQuality - enum ShadowQuality) [READWRITE, NOTIFY] */
@@ -505,7 +505,7 @@ export class EveSpaceScene
 
   /** m_ballpark (IEveBallparkPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("IEveBallpark")
+  @meta.type.rootRef("IEveBallpark")
   ballpark = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
@@ -517,24 +517,24 @@ export class EveSpaceScene
   /** m_sunBall (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("ITriVectorFunction")
+  @meta.type.rootRef("ITriVectorFunction")
   sunBall = null;
 
   /** m_sceneDefaultPostProcess (Tr2PostProcess2Ptr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2PostProcess2")
+  @meta.type.rootRef("Tr2PostProcess2")
   postprocess = null;
 
   /** m_virtualCameraSystem (EveVirtualCameraSystemPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("EveVirtualCameraSystem")
+  @meta.type.rootRef("EveVirtualCameraSystem")
   virtualCameraSystem = null;
 
   /** m_warpTunnel (IEveSpaceObject2Ptr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("IEveSpaceObject2")
+  @meta.type.rootRef("IEveSpaceObject2")
   warpTunnel = null;
 
   /** m_perFrameDebug (float) [READWRITE] */
@@ -545,7 +545,7 @@ export class EveSpaceScene
   /** m_cascadedShadowMap (Tr2ShadowMapPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2ShadowMap")
+  @meta.type.rootRef("Tr2ShadowMap")
   cascadedShadowMap = null;
 
   /** m_reflectionShadowMap (h:406): reflections' own cascaded map, made by EnableShadowsInReflections. */
@@ -576,17 +576,17 @@ export class EveSpaceScene
 
   /** m_envMap1 (ITr2TextureProviderPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("ITr2TextureProvider")
+  @meta.type.rootRef("ITr2TextureProvider")
   envMap1 = null;
 
   /** m_envMap2 (ITr2TextureProviderPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("ITr2TextureProvider")
+  @meta.type.rootRef("ITr2TextureProvider")
   envMap2 = null;
 
   /** m_envMap3 (ITr2TextureProviderPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("ITr2TextureProvider")
+  @meta.type.rootRef("ITr2TextureProvider")
   envMap3 = null;
 
   // Carbon m_updateContext (protected, absent from the Blue scan): the scene
@@ -600,7 +600,7 @@ export class EveSpaceScene
    * MAP_PROPERTY "gpuParticleSystem" (EveSpaceScene_Blue.cpp:472): the GPU
    * particle system, held by the update context, which hands it to emitters.
    */
-  @meta.type.objectRef("Tr2GpuParticleSystem")
+  @meta.type.rootRef("Tr2GpuParticleSystem")
   get gpuParticleSystem()
   {
     return this.GetGpuParticleSystem();

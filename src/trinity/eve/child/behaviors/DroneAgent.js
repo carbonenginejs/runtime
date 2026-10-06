@@ -11,7 +11,7 @@ export class DroneAgent
 {
 
   /** closestAgentInGroup (DroneAgent*) */
-  @meta.type.objectRef("DroneAgent")
+  @meta.type.rootRef("DroneAgent")
   closestAgentInGroup = null;
 
   /** rotation (Quaternion) */

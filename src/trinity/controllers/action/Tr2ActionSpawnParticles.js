@@ -22,7 +22,7 @@ export class Tr2ActionSpawnParticles extends ITr2ControllerAction
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2DynamicEmitter")
+  @meta.type.rootRef("Tr2DynamicEmitter")
   emitter = null;
 
   /**

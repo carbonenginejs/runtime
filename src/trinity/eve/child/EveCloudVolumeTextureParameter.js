@@ -18,7 +18,7 @@ export class EveCloudVolumeTextureParameter
   /** m_volume (EveCloudEditableVolumePtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("EveCloudEditableVolume")
+  @meta.type.rootRef("EveCloudEditableVolume")
   volume = null;
 
   /** m_isUsedByEffect (bool) [READ] */

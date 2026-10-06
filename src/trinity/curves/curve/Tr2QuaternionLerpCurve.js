@@ -56,7 +56,7 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("ITriQuaternionFunction")
+  @meta.type.rootRef("ITriQuaternionFunction")
   startCurve = null;
 
   /**
@@ -66,7 +66,7 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("ITriQuaternionFunction")
+  @meta.type.rootRef("ITriQuaternionFunction")
   endCurve = null;
 
   /**

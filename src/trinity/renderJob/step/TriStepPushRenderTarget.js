@@ -14,7 +14,7 @@ export class TriStepPushRenderTarget extends TriRenderStep
   slot = 0;
 
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2RenderTarget")
+  @meta.type.rootRef("Tr2RenderTarget")
   renderTarget = null;
 
   /** Stores the render target and the slot it is pushed for. */

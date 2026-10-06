@@ -18,7 +18,7 @@ export class EveProceduralMethodAttributeMapParameter
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("EveChildRef")
+  @meta.type.rootRef("EveChildRef")
   child = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */

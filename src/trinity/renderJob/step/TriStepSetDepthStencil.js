@@ -13,7 +13,7 @@ import { TriRenderStep } from "./TriRenderStep.js";
 export class TriStepSetDepthStencil extends TriRenderStep
 {
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2DepthStencil")
+  @meta.type.rootRef("Tr2DepthStencil")
   depthStencil = null;
 
   /** Stores the depth-stencil to bind. */

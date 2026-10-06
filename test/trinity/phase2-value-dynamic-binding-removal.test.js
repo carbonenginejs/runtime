@@ -48,7 +48,7 @@ test("dynamic declarations keep weak members and live validity properties in nat
   for (const name of ["source", "destination"])
   {
     const field = info.members.find(field => field.name === name);
-    assert.equal(field.type.kind, "weakRef");
+    assert.equal(field.type.kind, "rootWeak");
     assert.notEqual(field.edit.persist, true);
   }
   const binding = new Tr2DynamicBinding();

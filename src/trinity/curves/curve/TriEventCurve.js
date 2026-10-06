@@ -158,7 +158,7 @@ export class TriEventCurve extends ITriFunction
    * @type {IBlueEventListener|null}
    */
   @meta.blue.readwrite
-  @meta.type.objectRef("IBlueEventListener")
+  @meta.type.rootRef("IBlueEventListener")
   eventListener = null;
 
   /**

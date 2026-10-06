@@ -73,14 +73,14 @@ test("wide strings keep JavaScript string defaults and coercion", () =>
 
 test("explicit weak references remain distinct without adding a lifetime policy", () =>
 {
-    assert.equal(CARBON_TYPE.WEAK_REF, "weakRef");
-    assert.deepEqual(getCarbonTypeDefinition("weakRef"), { kind: "weakRef", js: "object|null" });
-    assert.equal(defaultCarbonValue("weakRef"), null);
-    const declaration = { kind: "weakRef", className: "IRoot", structure: true };
+    assert.equal(CARBON_TYPE.ROOT_WEAK, "rootWeak");
+    assert.deepEqual(getCarbonTypeDefinition("rootWeak"), { kind: "rootWeak", js: "object|null" });
+    assert.equal(defaultCarbonValue("rootWeak"), null);
+    const declaration = { kind: "rootWeak", className: "IRoot", structure: true };
     assert.deepEqual(normalizeCarbonTypeDescriptor(declaration), {
         ...declaration, js: "object|null"
     });
-    assert.equal(normalizeCarbonTypeDescriptor("objectRef").kind, "objectRef");
+    assert.equal(normalizeCarbonTypeDescriptor("rootRef").kind, "rootRef");
 });
 
 test("type normalization retains existing structure metadata", () =>

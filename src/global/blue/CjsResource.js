@@ -105,7 +105,7 @@ export class CjsResource
   /**
    * Identifies this class as a runtime resource.
    *
-   * Static, so a schema field declared as `@type.objectRef("TriGeometryRes")`
+   * Static, so a schema field declared as `@type.rootRef("TriGeometryRes")`
    * can be known to hold a resource without an instance existing - the
    * declaration alone is enough, resolved through `CjsSchema.GetConstructor`.
    */

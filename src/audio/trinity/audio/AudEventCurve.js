@@ -55,7 +55,7 @@ export class AudEventCurve
   /** m_sourceTriObserver (ITriObserverLocalPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("ITriObserverLocal")
+  @meta.type.rootRef("ITriObserverLocal")
   sourceTriObserver = null;
 
   /** m_keys (PAudEventKeyVector) [PERSISTONLY] */
@@ -65,7 +65,7 @@ export class AudEventCurve
 
   /** m_audioEmitter (AudEmitterPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("AudEmitter")
+  @meta.type.rootRef("AudEmitter")
   audioEmitter = null;
 
   // Playback cursor (C++ m_currentKeyIt) - runtime state, rebuildable.

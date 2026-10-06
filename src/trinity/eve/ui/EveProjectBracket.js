@@ -286,7 +286,7 @@ export class EveProjectBracket
 
   /** m_trackBall (ITriVectorFunctionPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("ITriVectorFunction")
+  @meta.type.rootRef("ITriVectorFunction")
   trackBall = null;
 
   /** m_cameraDistance (float) [READ] */
@@ -321,7 +321,7 @@ export class EveProjectBracket
 
   /** m_parent (Tr2Sprite2dContainerPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2Sprite2dContainer")
+  @meta.type.rootRef("Tr2Sprite2dContainer")
   parent = null;
 
   /** m_dock (bool) [READWRITE] */
@@ -341,17 +341,17 @@ export class EveProjectBracket
 
   /** m_trackTransform (IWorldPositionPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("IWorldPosition")
+  @meta.type.rootRef("IWorldPosition")
   trackTransform = null;
 
   /** m_bracket (Tr2Sprite2dContainerPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2Sprite2dContainer")
+  @meta.type.rootRef("Tr2Sprite2dContainer")
   bracket = null;
 
   /** m_bracketIcon (EveSprite2dBracketPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("EveSprite2dBracket")
+  @meta.type.rootRef("EveSprite2dBracket")
   bracketIcon = null;
 
   /** m_offsetY (float) [READWRITE] */

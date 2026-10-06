@@ -66,27 +66,27 @@ export class EveStretch2 extends IEveFiringEffectElement
   name = "";
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("TriCurveSet")
+ @meta.type.rootRef("TriCurveSet")
   loop = null;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("TriCurveSet")
+ @meta.type.rootRef("TriCurveSet")
   start = null;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("TriCurveSet")
+ @meta.type.rootRef("TriCurveSet")
   end = null;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("Tr2Effect")
+ @meta.type.rootRef("Tr2Effect")
   effect = null;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("Tr2GpuSharedEmitter")
+ @meta.type.rootRef("Tr2GpuSharedEmitter")
   destinationEmitter = null;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("Tr2GpuSharedEmitter")
+ @meta.type.rootRef("Tr2GpuSharedEmitter")
   sourceEmitter = null;
   @meta.blue.notify
   @meta.blue.readwrite
@@ -95,19 +95,19 @@ export class EveStretch2 extends IEveFiringEffectElement
   quadCount = 0;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("TriObserverLocal")
+ @meta.type.rootRef("TriObserverLocal")
   destinationObserver = null;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("TriObserverLocal")
+ @meta.type.rootRef("TriObserverLocal")
   sourceObserver = null;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("Tr2PointLight")
+ @meta.type.rootRef("Tr2PointLight")
   destinationLight = null;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("Tr2PointLight")
+ @meta.type.rootRef("Tr2PointLight")
   sourceLight = null;
   @meta.blue.readwrite
   @meta.blue.persist

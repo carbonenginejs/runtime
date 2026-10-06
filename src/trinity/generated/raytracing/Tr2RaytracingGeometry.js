@@ -21,23 +21,23 @@ export class Tr2RaytracingGeometry
   boneWeightsOffset = 0;
 
   /** mesh (Tr2RaytracingMesh*) */
-  @meta.type.objectRef("Tr2RaytracingMesh")
+  @meta.type.rootRef("Tr2RaytracingMesh")
   mesh = null;
 
   /** area (Tr2RaytracingMeshArea*) */
-  @meta.type.objectRef("Tr2RaytracingMeshArea")
+  @meta.type.rootRef("Tr2RaytracingMeshArea")
   area = null;
 
   /** material (const Tr2Material*) */
-  @meta.type.objectRef("Tr2Material")
+  @meta.type.rootRef("Tr2Material")
   material = null;
 
   /** perObjectData (const Tr2ConstantBufferAL*) */
-  @meta.type.objectRef("Tr2ConstantBufferAL")
+  @meta.type.rootRef("Tr2ConstantBufferAL")
   perObjectData = null;
 
   /** vertexBufferData (const Tr2ConstantBufferAL*) */
-  @meta.type.objectRef("Tr2ConstantBufferAL")
+  @meta.type.rootRef("Tr2ConstantBufferAL")
   vertexBufferData = null;
 
   /** worldTransform (Matrix) */
@@ -69,7 +69,7 @@ export class Tr2RaytracingGeometry
   tlas = null;
 
   /** m_skinVerticesEffect (Tr2EffectPtr) */
-  @meta.type.objectRef("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   skinVerticesEffect = null;
 
   /** m_skinVerticesData (Tr2ConstantBufferAL) */
@@ -93,7 +93,7 @@ export class Tr2RaytracingGeometry
   instanceCount = 1;
 
   /** worldTransforms (const Float4x3*) */
-  @meta.type.objectRef("Float4x3")
+  @meta.type.rootRef("Float4x3")
   worldTransforms = null;
 
   /** INVALID_MATERIAL (static const uint32_t) */

@@ -72,7 +72,7 @@ export class Tr2Sprite2dRenderJob extends Tr2SpriteObjectBase
 
   /** m_renderJob (TriRenderJobPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("TriRenderJob")
+  @meta.type.rootRef("TriRenderJob")
   renderJob = null;
 
   #point = vec2.create();

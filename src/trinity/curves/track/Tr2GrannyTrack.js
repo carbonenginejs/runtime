@@ -36,7 +36,7 @@ export class Tr2GrannyTrack
   duration = 0;
 
   @meta.blue.read
-  @meta.type.objectRef("TriGrannyRes")
+  @meta.type.rootRef("TriGrannyRes")
   grannyRes = null;
 
   @meta.blue.notify

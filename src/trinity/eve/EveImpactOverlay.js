@@ -43,7 +43,7 @@ export class EveImpactOverlay
   display = true;
 
   @meta.blue.read
-  @meta.type.objectRef("EveDamageOverlay")
+  @meta.type.rootRef("EveDamageOverlay")
   damageOverlay = new EveDamageOverlay();
 
   // EveImpactOverlay_Blue.cpp:33-48: armour/hull state lives on the damage overlay; these names are live properties over it.
@@ -130,7 +130,7 @@ export class EveImpactOverlay
   /** MAP_PROPERTY_PERSISTED "armorDamageShader" over Get/SetArmorDamageShaderEffect. */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   @meta.implemented
   get armorDamageShader()
   {
@@ -145,7 +145,7 @@ export class EveImpactOverlay
 
   /** MAP_PROPERTY "armorRepairing" over Get/SetArmorRepairing. */
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2ScalarFader")
+  @meta.type.rootRef("Tr2ScalarFader")
   @meta.implemented
   get armorRepairing()
   {
@@ -160,7 +160,7 @@ export class EveImpactOverlay
 
   /** MAP_PROPERTY "armorHardening" over Get/SetArmorHardening. */
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2ScalarFader")
+  @meta.type.rootRef("Tr2ScalarFader")
   @meta.implemented
   get armorHardening()
   {
@@ -175,7 +175,7 @@ export class EveImpactOverlay
 
   /** MAP_PROPERTY "hullRepairing" over Get/SetHullRepairing. */
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2ScalarFader")
+  @meta.type.rootRef("Tr2ScalarFader")
   @meta.implemented
   get hullRepairing()
   {
@@ -191,7 +191,7 @@ export class EveImpactOverlay
   /** MAP_PROPERTY_PERSISTED "hullDamageFlickerCurve" over Get/SetHullDamageFlickerCurve. */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("TriPerlinCurve")
+  @meta.type.rootRef("TriPerlinCurve")
   @meta.implemented
   get hullDamageFlickerCurve()
   {
@@ -233,7 +233,7 @@ export class EveImpactOverlay
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2MeshBase")
+  @meta.type.rootRef("Tr2MeshBase")
   mesh = null;
 
   @meta.blue.read
@@ -245,21 +245,21 @@ export class EveImpactOverlay
   overallShieldImpact = -1;
 
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2ScalarFader")
+  @meta.type.rootRef("Tr2ScalarFader")
   shieldHardening = new Tr2ScalarFader();
 
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2ScalarFader")
+  @meta.type.rootRef("Tr2ScalarFader")
   shieldBoosting = new Tr2ScalarFader();
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2GpuUniqueEmitter")
+  @meta.type.rootRef("Tr2GpuUniqueEmitter")
   armorImpactEmitter = null;
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2GpuUniqueEmitter")
+  @meta.type.rootRef("Tr2GpuUniqueEmitter")
   hullImpactEmitter = null;
 
   _armorImpactLifeTime = 10;

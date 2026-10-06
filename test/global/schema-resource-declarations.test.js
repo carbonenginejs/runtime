@@ -13,19 +13,19 @@ const poison = () => { throw new Error("resource evaluated"); };
 const incoming = key => Object.defineProperty({}, key, { enumerable: true, get: poison });
 const write = (target, options = {}) => new DictWriter().WriteObject(target, {}, options);
 
-test("resource decorator preserves the canonical objectRef fact", () => {
+test("resource decorator preserves the canonical rootRef fact", () => {
   class Resource {}
   class Owner { cache = null; }
   CjsSchema.define(Owner, { className: name(), fields: { cache: meta.type.resource(Resource) } });
   const field = CjsSchema.getSchema(Owner).members.find(field => field.name === "cache");
-  assert.deepEqual(field.type, { kind: "objectRef", className: Resource, runtimeOnly: true });
+  assert.deepEqual(field.type, { kind: "rootRef", className: Resource, runtimeOnly: true });
 });
 
 for (const edit of [undefined, {}, { read: true, write: true }, { persist: true }, { rpersist: true }, { persistOnly: true }, { hidden: true }]) {
   test(`resource exclusions precede edit flags ${JSON.stringify(edit)}`, () => {
     class Owner { path = "path"; get cache() { return poison(); } set cache(_) { poison(); } }
     CjsSchema.define(Owner, { className: name(), fields: {
-      cache: { type: { kind: "objectRef", className: "Resource", runtimeOnly: true }, ...(edit ? { edit } : {}) },
+      cache: { type: { kind: "rootRef", className: "Resource", runtimeOnly: true }, ...(edit ? { edit } : {}) },
       path: meta.type.string
     } });
     const target = new Owner();
@@ -50,7 +50,7 @@ test("selected resource claims exposed name and aliases before reading input", (
   CjsSchema.define(Base, { className: name(), members: [{ name: "cache", key: "old", type: { kind: "int32" }, edit: { persist: true } }] });
   class Owner extends Base { cache = null; real = 2; }
   CjsSchema.define(Owner, { className: name(), members: [
-    { name: "cache", key: "cache", aliases: ["cached", "real"], type: { kind: "objectRef", runtimeOnly: true }, edit: { persist: true } },
+    { name: "cache", key: "cache", aliases: ["cached", "real"], type: { kind: "rootRef", runtimeOnly: true }, edit: { persist: true } },
     { name: "real", key: "real", type: { kind: "int32" } }
   ] });
   const target = new Owner();
@@ -71,9 +71,9 @@ test("stateless recursive output excludes child resources in objects and collect
   Object.defineProperty(child, "cache", { enumerable: true, get: poison });
   class Parent { child = child; array = [child]; map = new Map([["child", child]]); set = new Set([child]); }
   CjsSchema.define(Parent, { className: name(), fields: {
-    child: meta.type.objectRef(Child), array: meta.type.array({ kind: "objectRef", className: Child }),
-    map: { type: { kind: "map", valueType: { kind: "objectRef", className: Child } } },
-    set: { type: { kind: "set", itemType: { kind: "objectRef", className: Child } } }
+    child: meta.type.rootRef(Child), array: meta.type.array({ kind: "rootRef", className: Child }),
+    map: { type: { kind: "map", valueType: { kind: "rootRef", className: Child } } },
+    set: { type: { kind: "set", itemType: { kind: "rootRef", className: Child } } }
   } });
   assert.deepEqual(CjsSchema.getValuesFromSchema(new Parent()), {
     child: { label: "child" }, array: [{ label: "child" }], map: { child: { label: "child" } }, set: [{ label: "child" }]
@@ -124,7 +124,7 @@ test("default snapshots exclude typed plain child resource getters", () => {
   class Child { cache = null; authored = 2; }
   CjsSchema.define(Child, { className: name(), fields: { cache: meta.type.resource("Resource"), authored: meta.type.int32 } });
   class Parent { child = Object.assign(incoming("cache"), { authored: 9 }); }
-  CjsSchema.define(Parent, { className: name(), fields: { child: meta.type.objectRef(Child) } });
+  CjsSchema.define(Parent, { className: name(), fields: { child: meta.type.rootRef(Child) } });
   assert.deepEqual(CjsSchema.getDefaults(Parent).child, { authored: 9 });
 });
 
@@ -143,7 +143,7 @@ test("derived ordinary type replaces resource marker while edit-only overrides r
   class Base { cache = null; }
   CjsSchema.define(Base, { className: name(), fields: { cache: meta.type.resource("Resource") } });
   class Ordinary extends Base {}
-  CjsSchema.define(Ordinary, { className: name(), fields: { cache: meta.type.objectRef("Resource") } });
+  CjsSchema.define(Ordinary, { className: name(), fields: { cache: meta.type.rootRef("Resource") } });
   assert.equal(CjsSchema.getSchema(Ordinary).fields.find(field => field.name === "cache").type.runtimeOnly, undefined);
   assert.ok(Object.hasOwn(CjsSchema.getValuesFromSchema(new Ordinary()), "cache"));
   class StillResource extends Base {}
@@ -171,7 +171,7 @@ test("metadata-only type inheritance never crosses roles, slots or explicit decl
   assert.equal(CjsSchema.getSchema(Explicit).members[0].type, undefined);
   class IndexedBase { slots = [null, null]; }
   CjsSchema.define(IndexedBase, { className: name(), fields: { slots: {
-    declaration: { name: "cache", index: 0 }, type: { kind: "objectRef", runtimeOnly: true }
+    declaration: { name: "cache", index: 0 }, type: { kind: "rootRef", runtimeOnly: true }
   } } });
   class Indexed extends IndexedBase {}
   CjsSchema.define(Indexed, { className: name(), fields: { slots: { declaration: { name: "other", index: 1 }, edit: { persist: true } } } });
@@ -200,8 +200,8 @@ test("dictionary collection routes filter nested resource state", () => {
   Object.defineProperty(child, "cache", { enumerable: true, get: poison });
   class Parent { map = new Map([["child", child]]); set = new Set([child]); raw = { nested: new Map([["child", child]]) }; }
   CjsSchema.define(Parent, { className: name(), fields: {
-    map: { type: { kind: "map", valueType: { kind: "objectRef", className: Child } } },
-    set: { type: { kind: "set", itemType: { kind: "objectRef", className: Child } } },
+    map: { type: { kind: "map", valueType: { kind: "rootRef", className: Child } } },
+    set: { type: { kind: "set", itemType: { kind: "rootRef", className: Child } } },
     raw: meta.type.rawStruct("Raw")
   } });
   const target = new Parent();
@@ -219,7 +219,7 @@ test("dictionary collection routes filter nested resource state", () => {
 test("resource filtering preserves ordinary coercion, collection identity and unary export callbacks", () => {
   class Owner { set = null; pointer = null; scalar = 0; }
   CjsSchema.define(Owner, { className: name(), fields: {
-    set: { type: { kind: "set", itemType: "unknown" } }, pointer: meta.type.objectRef(), scalar: meta.type.int32
+    set: { type: { kind: "set", itemType: "unknown" } }, pointer: meta.type.rootRef(), scalar: meta.type.int32
   } });
   const target = new Owner();
   const item = { values: [1] };
@@ -243,7 +243,7 @@ for (const kind of ["list", "array"]) {
     CjsSchema.define(Child, { className: name(), fields: { authored: meta.type.int32, cache: meta.type.resource("Resource") } });
     class Parent { items = []; pointer = null; }
     CjsSchema.define(Parent, { className: name(), fields: {
-      items: { type: { kind, itemType: { kind: "objectRef", className: Child } } }, pointer: meta.type.objectRef(Child)
+      items: { type: { kind, itemType: { kind: "rootRef", className: Child } } }, pointer: meta.type.rootRef(Child)
     } });
     const plain = Object.assign(incoming("cache"), { authored: 2 });
     const target = new Parent();
@@ -251,7 +251,7 @@ for (const kind of ["list", "array"]) {
     target.pointer = plain;
     const exported = write(target);
     assert.deepEqual(exported.items, [{ authored: 2 }]);
-    assert.deepEqual(exported.pointer, {}, "plain objectRef retains existing fieldless-object writer behavior");
+    assert.deepEqual(exported.pointer, {}, "plain rootRef retains existing fieldless-object writer behavior");
     new DictReader().ReadInto(target, { items: [plain] });
     assert.equal(target.items[0].authored, 2);
     assert.equal(Object.hasOwn(target.items[0], "cache"), false);

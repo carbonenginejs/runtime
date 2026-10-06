@@ -40,7 +40,7 @@ export class Tr2VariableStore
    * @returns {Tr2VariableStore|null} Parent searched after local lookup.
    */
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2VariableStore")
+  @meta.type.rootRef("Tr2VariableStore")
   @meta.implemented
   get parentStore()
   {

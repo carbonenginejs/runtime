@@ -32,12 +32,12 @@ export class CjsCharacterAppearanceBinding
 
     @meta.blue.readwrite
     @meta.blue.persist
-    @meta.type.model("CjsCharacterBindingAlpha")
+    @meta.type.rootRef("CjsCharacterBindingAlpha")
     alpha = null;
 
     @meta.blue.readwrite
     @meta.blue.persist
-    @meta.type.model("CjsCharacterOrigin")
+    @meta.type.rootRef("CjsCharacterOrigin")
     origin = null;
 
 }

@@ -22,7 +22,7 @@ export class CjsCharacterAppearanceDiagnostic
 
     @meta.blue.readwrite
     @meta.blue.persist
-    @meta.type.model("CjsCharacterOrigin")
+    @meta.type.rootRef("CjsCharacterOrigin")
     origin = null;
 
 }

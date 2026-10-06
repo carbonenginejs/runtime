@@ -9,15 +9,15 @@ export class TriStepRemoteUpdate extends TriRenderStep
 {
 
   /** m_view (TriViewPtr) */
-  @meta.type.objectRef("TriView")
+  @meta.type.rootRef("TriView")
   view = null;
 
   /** m_viewport (TriViewportPtr) */
-  @meta.type.objectRef("TriViewport")
+  @meta.type.rootRef("TriViewport")
   viewport = null;
 
   /** m_projection (TriProjectionPtr) */
-  @meta.type.objectRef("TriProjection")
+  @meta.type.rootRef("TriProjection")
   projection = null;
 
   /** m_sharedMemoryHandle (HANDLE) */
@@ -37,7 +37,7 @@ export class TriStepRemoteUpdate extends TriRenderStep
   writingHndl = null;
 
   /** m_sharedMemory (const char*) */
-  @meta.type.objectRef("char")
+  @meta.type.rootRef("char")
   sharedMemory = null;
 
   /** m_id (int) */

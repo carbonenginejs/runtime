@@ -34,7 +34,7 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    * @type {IRoot|null}
    */
   @meta.blue.read
-  @meta.type.weakRef("IRoot")
+  @meta.type.rootWeak("IRoot")
   destination = null;
 
   /**

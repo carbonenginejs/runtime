@@ -12,7 +12,7 @@ export class CjsCharacterCoverage
 
     @meta.blue.readwrite
     @meta.blue.persist
-    @meta.type.model("CjsCharacterTextureChannel")
+    @meta.type.rootRef("CjsCharacterTextureChannel")
     source = null;
 
     @meta.blue.readwrite
@@ -27,7 +27,7 @@ export class CjsCharacterCoverage
 
     @meta.blue.readwrite
     @meta.blue.persist
-    @meta.type.model("CjsCharacterOrigin")
+    @meta.type.rootRef("CjsCharacterOrigin")
     origin = null;
 
 }

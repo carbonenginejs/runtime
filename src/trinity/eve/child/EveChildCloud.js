@@ -93,12 +93,12 @@ export class EveChildCloud extends EveSpaceObjectChild
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2Material")
+  @meta.type.rootRef("Tr2Material")
   effect = null;
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("EveCloudEditableVolume")
+  @meta.type.rootRef("EveCloudEditableVolume")
   volume = null;
 
   @meta.blue.readwrite

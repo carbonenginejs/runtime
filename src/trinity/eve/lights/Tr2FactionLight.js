@@ -154,7 +154,7 @@ export class Tr2FactionLight extends Tr2Light
 
   /** m_lightProfile (Tr2LightProfileResPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("Tr2LightProfileRes")
+  @meta.type.rootRef("Tr2LightProfileRes")
   lightProfile = null;
 
   type = Tr2Light.POINT_LIGHT;

@@ -17,7 +17,7 @@ export class EveFiringEffectElementContainer extends EveEntity
 {
   @meta.blue.readwrite
   @meta.blue.persistOnly
- @meta.type.model("IEveFiringEffectElement")
+ @meta.type.rootRef("IEveFiringEffectElement")
   element = null;
   @meta.blue.readwrite
   @meta.type.vec3

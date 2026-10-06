@@ -23,12 +23,12 @@ export class EveShip2 extends EveMobile
   /** Hidden persisted m_boosters storage (EveShip2_Blue.cpp:21), separate from its live property. */
   @meta.member("boosters")
   @meta.blue.persistOnly
-  @meta.type.objectRef("EveBoosterSet2")
+  @meta.type.rootRef("EveBoosterSet2")
   _boosters = null;
 
   /** Live booster property; persistence reads and writes the backing member directly. */
   @meta.blue.readwrite
-  @meta.type.objectRef("EveBoosterSet2")
+  @meta.type.rootRef("EveBoosterSet2")
   @meta.implemented
   get boosters()
   {
@@ -54,12 +54,12 @@ export class EveShip2 extends EveMobile
 
   /** m_speed (TriFloatPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("TriFloat")
+  @meta.type.rootRef("TriFloat")
   speed = null;
 
   /** audioSpeedParameter (MAP_PROPERTY) - root audio value holder. */
   @meta.blue.readwrite
-  @meta.type.objectRef("IRoot")
+  @meta.type.rootRef("IRoot")
   audioSpeedParameter = null;
 
   /** m_acceleration - second derivative of the position curve, fed to boosters. */

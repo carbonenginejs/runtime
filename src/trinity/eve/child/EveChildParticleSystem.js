@@ -140,7 +140,7 @@ export class EveChildParticleSystem extends EveChildTransform
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2InstancedMesh")
+  @meta.type.rootRef("Tr2InstancedMesh")
   mesh = null;
 
   /**

@@ -27,7 +27,7 @@ export class Tr2StaticEmitter
 
   /** m_geometryResource (TriGrannyResPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("TriGrannyRes")
+  @meta.type.rootRef("TriGrannyRes")
   geometryResource = null;
 
   /** m_meshIndex (uint32_t) [READWRITE, PERSIST] */
@@ -40,7 +40,7 @@ export class Tr2StaticEmitter
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2ParticleSystem")
+  @meta.type.rootRef("Tr2ParticleSystem")
   particleSystem = null;
 
   /** m_geometryResourcePath (std::string) [READWRITE, NOTIFY, PERSIST] */

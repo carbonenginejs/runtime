@@ -16,16 +16,16 @@ import { meta } from "#schema";
 })
 export class EveChildUpdateParams
 {
-  @meta.type.objectRef("IEveSpaceObject2")
+  @meta.type.rootRef("IEveSpaceObject2")
   spaceObjectParent = null;
 
-  @meta.type.objectRef("IEveSpaceObjectChild")
+  @meta.type.rootRef("IEveSpaceObjectChild")
   childParent = null;
 
   @meta.type.uint64
   boneCount = 0;
 
-  @meta.type.objectRef("Float4x3")
+  @meta.type.rootRef("Float4x3")
   bones = null;
 
   @meta.type.float32

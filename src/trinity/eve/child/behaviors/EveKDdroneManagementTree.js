@@ -11,7 +11,7 @@ export class EveKDdroneManagementTree
 {
 
   /** m_tree (AgentRef) */
-  @meta.type.objectRef("Agent")
+  @meta.type.rootRef("Agent")
   tree = null;
 
   /** m_debugSquareSize (float) */
@@ -51,7 +51,7 @@ export class EveKDdroneManagementTree
   radius = 0;
 
   /** agent (DroneAgent*) */
-  @meta.type.objectRef("DroneAgent")
+  @meta.type.rootRef("DroneAgent")
   agent = null;
 
   /** rangeBetween (float) */
@@ -72,11 +72,11 @@ export class EveKDdroneManagementTree
   e = 0;
 
   /** left (AgentRef*) */
-  @meta.type.objectRef("Agent")
+  @meta.type.rootRef("Agent")
   left = null;
 
   /** right (AgentRef*) */
-  @meta.type.objectRef("Agent")
+  @meta.type.rootRef("Agent")
   right = null;
 
   // Reused SearchRange records ({behaviorNbr, radius}) - rebuilt each

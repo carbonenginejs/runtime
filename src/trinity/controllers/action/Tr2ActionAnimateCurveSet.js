@@ -30,7 +30,7 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
   /** m_curveSet: the curve set whose playhead this action drives. */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("TriCurveSet")
+  @meta.type.rootRef("TriCurveSet")
   curveSet = null;
 
   /** Live readonly validity of the retained expression evaluator. */

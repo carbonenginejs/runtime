@@ -23,7 +23,7 @@ test("EveShip2 preserves distinct native stored and live booster declarations", 
   assert.equal(member.declaringClass, EveShip2);
   assert.equal(member.role, "member");
   assert.deepEqual(member.edit, { persist: true, persistOnly: true, hidden: true });
-  assert.deepEqual(member.type, { kind: "objectRef", className: "EveBoosterSet2" });
+  assert.deepEqual(member.type, { kind: "rootRef", className: "EveBoosterSet2" });
   assert.equal(property.key, "boosters");
   assert.equal(property.declaringClass, EveShip2);
   assert.equal(property.role, "property");

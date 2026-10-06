@@ -113,16 +113,16 @@ function readData(value, key)
 /** Resolves a collection's constructor/name shorthand without inventing fields. */
 function descriptorOf(type)
 {
-    if (typeof type === "function") return { kind: "objectRef", className: type };
+    if (typeof type === "function") return { kind: "rootRef", className: type };
     if (typeof type !== "string") return type;
-    if (type === "weakRef") return { kind: "weakRef" };
-    if (CjsSchema.GetConstructor(type)) return { kind: "objectRef", className: type };
+    if (type === "rootWeak") return { kind: "rootWeak" };
+    if (CjsSchema.GetConstructor(type)) return { kind: "rootRef", className: type };
     const declared = getCarbonTypeDefinition(type);
     if (declared.kind !== "unknown" || type === "unknown") return declared;
     const native = inferCarbonTypeFromCpp(type);
     if (native.kind !== "unknown" && native.kind !== "enum") return native;
     // Unregistered native interface names are still explicit reference types.
-    return { kind: "objectRef", className: type };
+    return { kind: "rootRef", className: type };
 }
 
 /** Expands only the collection shapes named by the declaration. */
@@ -132,8 +132,7 @@ function enumerateValue(value, declaration, onChild, reverse, index = null)
     const type = descriptorOf(declaration);
     switch (type?.kind)
     {
-        case "model":
-        case "objectRef":
+        case "rootRef":
             onChild(value, index);
             return;
 

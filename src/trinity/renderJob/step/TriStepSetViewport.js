@@ -14,7 +14,7 @@ export class TriStepSetViewport extends TriRenderStep
 {
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("TriViewport")
+  @meta.type.rootRef("TriViewport")
   viewport = null;
 
   /** Stores the viewport this step installs. */

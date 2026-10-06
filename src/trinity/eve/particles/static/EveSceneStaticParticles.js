@@ -89,7 +89,7 @@ export class EveSceneStaticParticles
 
   /** m_mesh (Tr2InstancedMeshPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2InstancedMesh")
+  @meta.type.rootRef("Tr2InstancedMesh")
   mesh = null;
 
   /** m_maxParticleCount (size_t) [READWRITE] */

@@ -84,6 +84,28 @@ test("Stage-3, decorator calls and manual declarations agree for compound flags 
   assert.equal(packed.edit, undefined);
 });
 
+test("object pointers are Carbon's rootRef and rootWeak; the retired kinds fail where they are declared", () =>
+{
+  for (const retired of [ "model", "objectRef", "weakRef" ]) assert.equal(meta.type[retired], undefined);
+  class Pointers {}
+  CjsSchema.define(Pointers, { className: "RetiredKindsPointers", fields: {
+    strong: meta.type.rootRef("RetiredKindsPointers"), weak: meta.type.rootWeak("RetiredKindsPointers")
+  } });
+  assert.equal(CjsSchema.getField(Pointers, "strong").type.kind, "rootRef");
+  assert.equal(CjsSchema.getField(Pointers, "weak").type.kind, "rootWeak");
+  assert.equal(CjsBlackSchemaRegistry.fromDeclaredType(CjsSchema.getField(Pointers, "weak").type).black.beType, "IROOTWEAKREF");
+  for (const [ type, message ] of [
+    [ { kind: "objectRef", className: "X" }, /"objectRef" is retired; Carbon's name is "rootRef"/ ],
+    [ { kind: "model", className: "X" }, /"model" is retired; Carbon's name is "rootRef"/ ],
+    [ { kind: "weakRef", className: "X" }, /"weakRef" is retired; Carbon's name is "rootWeak"/ ],
+    [ { kind: "list", itemType: { kind: "objectRef", className: "X" } }, /"objectRef" is retired/ ]
+  ])
+  {
+    class Stale {}
+    assert.throws(() => CjsSchema.define(Stale, { className: "RetiredKindsStale", fields: [ { name: "value", type } ] }), message);
+  }
+});
+
 test("component labels require valid explicit declarations; meta.type.custom is gone", () =>
 {
   assert.equal(meta.type.custom, undefined);

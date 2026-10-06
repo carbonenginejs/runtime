@@ -280,14 +280,14 @@ export class Tr2CurveLineSet
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2Material")
+  @meta.type.rootRef("Tr2Material")
   lineEffect = null;
 
   /** m_pickEffect (Tr2MaterialPtr) [READWRITE, NOTIFY, PERSIST] */
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2Material")
+  @meta.type.rootRef("Tr2Material")
   pickEffect = null;
 
   /** Carbon method AddCurvedLineCrt (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */

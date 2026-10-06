@@ -104,7 +104,7 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * @type {Tr2SkinnedObject|null}
    */
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2SkinnedObject")
+  @meta.type.rootRef("Tr2SkinnedObject")
   skinnedObject = null;
 
   /**

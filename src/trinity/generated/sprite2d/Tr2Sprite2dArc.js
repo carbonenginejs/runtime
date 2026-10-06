@@ -31,7 +31,7 @@ export class Tr2Sprite2dArc extends Tr2SpriteObject
   /** m_texturePrimary (ITr2Sprite2dTexturePtr) [READWRITE, NOTIFY] */
   @meta.blue.notify
   @meta.blue.readwrite
-  @meta.type.objectRef("ITr2Sprite2dTexture")
+  @meta.type.rootRef("ITr2Sprite2dTexture")
   texturePrimary = null;
 
   /** m_radius (float) [READWRITE, NOTIFY] */
@@ -43,7 +43,7 @@ export class Tr2Sprite2dArc extends Tr2SpriteObject
   /** m_textureSecondary (ITr2Sprite2dTexturePtr) [READWRITE, NOTIFY] */
   @meta.blue.notify
   @meta.blue.readwrite
-  @meta.type.objectRef("ITr2Sprite2dTexture")
+  @meta.type.rootRef("ITr2Sprite2dTexture")
   textureSecondary = null;
 
   /** m_startAngle (float) [READWRITE, NOTIFY] */

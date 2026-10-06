@@ -74,7 +74,7 @@ export class EveSOFDataHullBanner
   /** m_lightOverride (EveSOFDataHullBannerLightPtr) [READ, PERSIST] */
   @meta.blue.read
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataHullBannerLight")
+  @meta.type.rootRef("EveSOFDataHullBannerLight")
   lightOverride = new EveSOFDataHullBannerLight();
 
   /** m_name (std::string) [READWRITE, PERSIST] */

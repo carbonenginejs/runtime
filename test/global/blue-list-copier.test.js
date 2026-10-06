@@ -25,7 +25,7 @@ meta.blue.inherit(ItemContract)(Leaf);
 meta.blue.interface(ItemContract)(Leaf);
 CjsSchema.define(Leaf, { className: "BlueListCopierLeaf", fields: {
   value: [ meta.type.int32, meta.blue.persist ],
-  owner: [ meta.type.objectRef("BlueListCopierHost"), meta.blue.persist ]
+  owner: [ meta.type.rootRef("BlueListCopierHost"), meta.blue.persist ]
 } });
 
 class DerivedLeaf extends Leaf
@@ -51,7 +51,7 @@ class Host
 meta.blue.interface(IInitialize)(Host);
 CjsSchema.define(Host, { className: "BlueListCopierHost", fields: {
   items: [ meta.type.list("BlueListCopierItem"), meta.blue.persist ],
-  sibling: [ meta.type.objectRef("BlueListCopierItem"), meta.blue.persist ]
+  sibling: [ meta.type.rootRef("BlueListCopierItem"), meta.blue.persist ]
 } });
 
 class Observer extends IListNotify
@@ -159,7 +159,7 @@ test("array declarations preserve explicit storage and notify the owner after li
   }
   meta.blue.interface(INotify)(ArrayHost);
   CjsSchema.define(ArrayHost, { className: "BlueListCopierArrayHost", fields: {
-    items: [ meta.type.array({ kind: "objectRef", className: "BlueListCopierItem" }), meta.blue.persist ]
+    items: [ meta.type.array({ kind: "rootRef", className: "BlueListCopierItem" }), meta.blue.persist ]
   } });
   const source = new ArrayHost(), destination = new ArrayHost(), original = destination.items;
   source.items.push(MakeLeaf(12));

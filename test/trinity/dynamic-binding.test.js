@@ -443,7 +443,7 @@ test("dynamic graph classes live only in maintained human-readable trees", () =>
   assert.equal(sourceProperty.edit.read, true);
   assert.equal(sourceProperty.edit.write, true);
   assert.equal(sourceMember.edit.persistOnly, true);
-  assert.equal(sourceMember.type.kind, "objectRef");
+  assert.equal(sourceMember.type.kind, "rootRef");
   assert.equal(sourceMember.key, "_sourceObject");
 });
 

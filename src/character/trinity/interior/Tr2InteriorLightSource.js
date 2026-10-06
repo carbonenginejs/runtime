@@ -70,7 +70,7 @@ export class Tr2InteriorLightSource
   /** m_kelvinColor (Tr2KelvinColorPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2KelvinColor")
+  @meta.type.rootRef("Tr2KelvinColor")
   kelvinColor = null;
 
   /** m_radius (float) [READWRITE, PERSIST, NOTIFY] */

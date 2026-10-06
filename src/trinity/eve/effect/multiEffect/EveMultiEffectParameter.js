@@ -29,7 +29,7 @@ export class EveMultiEffectParameter
 
   @meta.blue.notify
   @meta.blue.readwrite
-  @meta.type.objectRef("IRoot")
+  @meta.type.rootRef("IRoot")
   object = null;
 
   _owner = null;

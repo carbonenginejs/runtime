@@ -238,9 +238,8 @@ function readerMemberValue(current, value, member)
 
     switch (type.kind)
     {
-        case "model":
-        case "objectRef":
-        case "weakRef":
+        case "rootRef":
+        case "rootWeak":
         case "rawStruct":
             return value;
         case "root":

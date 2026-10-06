@@ -12,11 +12,11 @@ export class Tr2ParticleStreamIterator
   stride = null;
 
   /** offset (m_data += m_stride *) */
-  @meta.type.objectRef("m_data += m_stride")
+  @meta.type.rootRef("m_data += m_stride")
   offset = null;
 
   /** m_data (float*) */
-  @meta.type.objectRef("float")
+  @meta.type.rootRef("float")
   data = null;
 
 }

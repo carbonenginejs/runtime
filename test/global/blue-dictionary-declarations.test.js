@@ -131,11 +131,11 @@ test("visible exact names precede selected aliases and hidden or shadowed aliase
 test("indexed scalars, references, deferred references and lists keep their addressed storage", () => {
   const rootName = identity(), leafName = identity();
   class Leaf { value = 0; parent = null; }
-  CjsSchema.define(Leaf, { className: leafName, members: [scalar("value"), { name: "parent", key: "parent", type: { kind: "objectRef", className: rootName } }] });
+  CjsSchema.define(Leaf, { className: leafName, members: [scalar("value"), { name: "parent", key: "parent", type: { kind: "rootRef", className: rootName } }] });
   class Root { slots = [null, null]; numbers = new Uint32Array([1, 2]); groups = [[]]; }
   CjsSchema.define(Root, { className: rootName, members: [
-    { name: "first", key: "slots", index: 0, type: { kind: "objectRef", className: leafName } },
-    { name: "second", key: "slots", index: 1, type: { kind: "objectRef", className: leafName } },
+    { name: "first", key: "slots", index: 0, type: { kind: "rootRef", className: leafName } },
+    { name: "second", key: "slots", index: 1, type: { kind: "rootRef", className: leafName } },
     scalar("number", "numbers", { index: 1 }),
     { name: "children", key: "groups", index: 0, type: { kind: "list", itemType: leafName } }
   ] });

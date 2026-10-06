@@ -35,10 +35,10 @@ test("the public decorator surface has one namespace per vocabulary and preserve
     class Types {}
     CjsSchema.define(Types, {
         className: "DeclarationTypes",
-        fields: { text: meta.type.wstring, peer: meta.type.weakRef("DeclarationTypes") }
+        fields: { text: meta.type.wstring, peer: meta.type.rootWeak("DeclarationTypes") }
     });
     assert.deepEqual(CjsSchema.getSchema(Types).members.map(entry => entry.type),
-        [ { kind: "wstring" }, { kind: "weakRef", className: "DeclarationTypes" } ]);
+        [ { kind: "wstring" }, { kind: "rootWeak", className: "DeclarationTypes" } ]);
 });
 
 test("Stage-3 and explicit declarations produce the same separate stored and live records before construction", () =>
@@ -51,17 +51,17 @@ test("Stage-3 and explicit declarations produce the same separate stored and liv
         get boosters() { throw new Error("registration evaluated a getter"); }
         set boosters(value) {}
     }
-    applyStage3(metadata, "_boosters", "field", [ meta.member("boosters"), meta.type.objectRef("Booster"), meta.blue.persistOnly ]);
-    applyStage3(metadata, "boosters", "getter", [ meta.type.objectRef("Booster"), meta.blue.readwrite, meta.implemented ]);
+    applyStage3(metadata, "_boosters", "field", [ meta.member("boosters"), meta.type.rootRef("Booster"), meta.blue.persistOnly ]);
+    applyStage3(metadata, "boosters", "getter", [ meta.type.rootRef("Booster"), meta.blue.readwrite, meta.implemented ]);
     applyStage3(metadata, "boosters", "setter", [ meta.blue.notify ]);
     meta.define({ className: "DeclarationDecorated" })(Decorated, { kind: "class", metadata });
 
     class Explicit {}
     CjsSchema.define(Explicit, {
         className: "DeclarationExplicit",
-        members: [ { name: "boosters", key: "_boosters", type: { kind: "objectRef", className: "Booster" }, edit: { persist: true, persistOnly: true, hidden: true } } ],
+        members: [ { name: "boosters", key: "_boosters", type: { kind: "rootRef", className: "Booster" }, edit: { persist: true, persistOnly: true, hidden: true } } ],
         properties: {
-            boosters: [ meta.type.objectRef("Booster"), meta.blue.readwrite, meta.blue.notify, meta.implemented ]
+            boosters: [ meta.type.rootRef("Booster"), meta.blue.readwrite, meta.blue.notify, meta.implemented ]
         }
     });
     const decorated = CjsSchema.getSchema(Decorated);
@@ -254,7 +254,7 @@ for (const kind of [ "list", "array" ])
 
     test(kind + " keeps its original descriptor when no structure is supplied", () =>
     {
-        const itemType = { kind: "objectRef", className: "SyntheticChild" };
+        const itemType = { kind: "rootRef", className: "SyntheticChild" };
         class Legacy {}
         CjsSchema.define(Legacy, {
             className: "DeclarationStructuredLegacy" + kind,

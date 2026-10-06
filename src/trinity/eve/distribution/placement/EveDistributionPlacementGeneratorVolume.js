@@ -46,7 +46,7 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   /** m_volume (IEveVolumePtr) [PERSISTONLY] */
   @meta.blue.readwrite
   @meta.blue.persistOnly
-  @meta.type.model("IEveVolume")
+  @meta.type.rootRef("IEveVolume")
   volume = null;
 
   /**

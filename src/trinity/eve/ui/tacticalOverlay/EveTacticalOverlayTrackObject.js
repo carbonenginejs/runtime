@@ -14,7 +14,7 @@ export class EveTacticalOverlayTrackObject
 {
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("ITriVectorFunction")
+  @meta.type.rootRef("ITriVectorFunction")
   translationCurve = null;
 
   @meta.blue.readwrite

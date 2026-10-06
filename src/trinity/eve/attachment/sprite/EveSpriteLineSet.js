@@ -45,7 +45,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   effect = null;
 
   @meta.blue.readwrite

@@ -131,7 +131,7 @@ export class EveChildMesh extends EveChildTransform
   ownedLocatorSets = [];
 
   @meta.blue.persist
-  @meta.type.objectRef("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   armorDamageShader = null;
 
   /**
@@ -190,7 +190,7 @@ export class EveChildMesh extends EveChildTransform
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveDamageOverlay")
+  @meta.type.rootRef("EveDamageOverlay")
   damageOverlay = null;
 
   /** The owner record handed to damageOverlay each update (Carbon cpp:1120-1135). */
@@ -208,7 +208,7 @@ export class EveChildMesh extends EveChildTransform
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2MeshBase")
+  @meta.type.rootRef("Tr2MeshBase")
   mesh = null;
 
   @meta.blue.readwrite
@@ -253,7 +253,7 @@ export class EveChildMesh extends EveChildTransform
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2GrannyAnimation")
+  @meta.type.rootRef("Tr2GrannyAnimation")
   animationUpdater = null;
 
   @meta.blue.read

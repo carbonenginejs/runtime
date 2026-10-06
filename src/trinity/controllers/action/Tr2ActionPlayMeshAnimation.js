@@ -125,7 +125,7 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("IRoot")
+  @meta.type.rootRef("IRoot")
   destination = null;
 
   /**

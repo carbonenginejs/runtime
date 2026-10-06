@@ -76,7 +76,7 @@ export class EveSOFDataHullSpotlightSetItem
   /** m_light (EveSOFDataSpotLightAttachmentPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataSpotLightAttachment")
+  @meta.type.rootRef("EveSOFDataSpotLightAttachment")
   light = null;
 
 }

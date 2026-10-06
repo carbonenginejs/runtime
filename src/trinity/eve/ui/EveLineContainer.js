@@ -27,7 +27,7 @@ export class EveLineContainer
   /** m_lineSet (EveCurveLineSetPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("EveCurveLineSet")
+  @meta.type.rootRef("EveCurveLineSet")
   lineSet = null;
 
   /** m_display (bool) [READWRITE] */

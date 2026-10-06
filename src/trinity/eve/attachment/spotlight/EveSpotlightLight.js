@@ -20,7 +20,7 @@ export class EveSpotlightLight
   @meta.type.mat4
   boneMatrix = mat4.create();
 
-  @meta.type.objectRef("Tr2LightProfileRes")
+  @meta.type.rootRef("Tr2LightProfileRes")
   lightProfile = null;
 
   @meta.type.boolean

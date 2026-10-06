@@ -79,19 +79,19 @@ export class BackAndForth
   /** m_fxBehavior (IBehavior*) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("IBehavior")
+  @meta.type.rootRef("IBehavior")
   fxBehavior = null;
 
   /** m_target (EveSpaceObject2*) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("EveSpaceObject2")
+  @meta.type.rootRef("EveSpaceObject2")
   target = null;
 
   /** m_parent (EveSpaceObject2*) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("EveSpaceObject2")
+  @meta.type.rootRef("EveSpaceObject2")
   parent = null;
 
   /** m_seconds (float) [READWRITE] */

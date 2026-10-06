@@ -7,12 +7,12 @@ export class CjsCharacterModifierSelection
 
     @meta.blue.readwrite
     @meta.blue.persist
-    @meta.type.model("CjsCharacterModifierLocation")
+    @meta.type.rootRef("CjsCharacterModifierLocation")
     modifierLocationID = null;
 
     @meta.blue.readwrite
     @meta.blue.persist
-    @meta.type.model("CjsCharacterResource")
+    @meta.type.rootRef("CjsCharacterResource")
     paperdollResourceID = null;
 
     @meta.blue.readwrite

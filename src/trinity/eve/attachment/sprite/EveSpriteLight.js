@@ -30,7 +30,7 @@ export class EveSpriteLight
   @meta.type.float32
   maxScale = 0;
 
-  @meta.type.objectRef("Tr2LightProfileRes")
+  @meta.type.rootRef("Tr2LightProfileRes")
   lightProfile = null;
 
   @meta.type.uint32

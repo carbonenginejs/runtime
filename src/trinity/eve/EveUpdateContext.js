@@ -12,7 +12,7 @@
 // source with the same name already exists.
 //
 // Field types verified against Carbon EveUpdateContext.h. Per the engine field
-// rules: only reference fields (objectRef) default to null; scalars default to
+// rules: only reference fields (rootRef) default to null; scalars default to
 // 0 / false and fixed vectors to a zero vector.
 import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
@@ -61,24 +61,24 @@ export class EveUpdateContext
   raytracingEnabled = false;
 
   /** m_dataTextureManager (Tr2DataTextureManagerPtr) */
-  @meta.type.objectRef("Tr2DataTextureManager")
+  @meta.type.rootRef("Tr2DataTextureManager")
   dataTextureManager = null;
 
   /** m_gpuParticleSystem (Tr2GpuParticleSystemPtr) */
-  @meta.type.objectRef("Tr2GpuParticleSystem")
+  @meta.type.rootRef("Tr2GpuParticleSystem")
   gpuParticleSystem = null;
 
   /** m_ballpark (IEveBallparkPtr) */
-  @meta.type.objectRef("IEveBallpark")
+  @meta.type.rootRef("IEveBallpark")
   ballpark = null;
 
   /** m_taskGroup (Tr2ParallelTaskGroup*) */
-  @meta.type.objectRef("Tr2ParallelTaskGroup")
+  @meta.type.rootRef("Tr2ParallelTaskGroup")
   taskGroup = null;
 
   /** m_frustum (TriFrustum) - Carbon holds one by value (EveUpdateContext.h:216), so a
    * context always has a frustum; SetFrustum swaps in the per-frame one by reference. */
-  @meta.type.objectRef("TriFrustum")
+  @meta.type.rootRef("TriFrustum")
   frustum = new TriFrustum();
 
   /** m_origin (Vector3d) - double-precision world origin for camera-relative
@@ -101,11 +101,11 @@ export class EveUpdateContext
   // Both are swappable per pass; reference fields, default null.
 
   /** renderContext (Tr2RenderContext) - camera/view sub-context, swapped per pass. */
-  @meta.type.objectRef("Tr2RenderContext")
+  @meta.type.rootRef("Tr2RenderContext")
   renderContext = null;
 
   /** device (TriDevice) - GPU managers and command surface. */
-  @meta.type.objectRef("TriDevice")
+  @meta.type.rootRef("TriDevice")
   device = null;
 
   /**

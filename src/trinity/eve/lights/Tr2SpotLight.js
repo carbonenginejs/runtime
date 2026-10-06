@@ -37,7 +37,7 @@ export class Tr2SpotLight extends Tr2Light
   lightProfilePath = "";
 
   @meta.blue.read
-  @meta.type.objectRef("Tr2LightProfileRes")
+  @meta.type.rootRef("Tr2LightProfileRes")
   lightProfile = null;
 
   /** m_lightData.castsShadows (PerLightShadowSetting) [READWRITE, PERSIST, NOTIFY, ENUM] */

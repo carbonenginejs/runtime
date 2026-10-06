@@ -19,7 +19,7 @@ export class Tr2PPGenericEffect extends Tr2PPEffect
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   effect = null;
 
   /** Returns the wrapped effect, which may be null when none was authored. */

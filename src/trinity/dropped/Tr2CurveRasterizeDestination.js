@@ -16,7 +16,7 @@ export class Tr2CurveRasterizeDestination
   stride = 0;
 
   /** data (Float_16*) */
-  @meta.type.objectRef("Float_16")
+  @meta.type.rootRef("Float_16")
   data = null;
 
 }

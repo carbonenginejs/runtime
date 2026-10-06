@@ -56,7 +56,7 @@ export class Tr2VolumetricsRenderer
   quality = Tr2VolumerticQuality.High;
 
   @meta.blue.read
-  @meta.type.objectRef("Tr2TextureReference")
+  @meta.type.rootRef("Tr2TextureReference")
   mieEnvironmentMap = new Tr2TextureReference();
 
   @meta.blue.readwrite
@@ -173,13 +173,13 @@ export class Tr2VolumetricsRenderer
   _fogPerObjectData = RawData.create("FogPerObjectData");
 
   /** Native cloud pass effects (cpp:51-66). */
-  @meta.type.objectRef("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   volumeBlit = new Tr2Effect();
-  @meta.type.objectRef("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   downsampleDepth = new Tr2Effect();
-  @meta.type.objectRef("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   hBlur = new Tr2Effect();
-  @meta.type.objectRef("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   vBlur = new Tr2Effect();
   /** Native unsorted cloud accumulator. */
   batches = new TriRenderBatchAccumulator();

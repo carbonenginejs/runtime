@@ -210,7 +210,7 @@ test("CjsSchema.applyDefaults expands typed values without constructing a live g
 
     CjsSchema.defineField(SchemaDefaultRoot, "name", "type", { kind: "string" });
     CjsSchema.defineField(SchemaDefaultRoot, "child", "type", {
-        kind: "model",
+        kind: "rootRef",
         className: "SchemaDefaultChild"
     });
     CjsSchema.defineField(SchemaDefaultRoot, "children", "type", {
@@ -219,7 +219,7 @@ test("CjsSchema.applyDefaults expands typed values without constructing a live g
     });
     CjsSchema.defineField(SchemaDefaultRoot, "settings", "type", { kind: "unknown" });
     CjsSchema.defineField(SchemaDefaultRoot, "peer", "type", {
-        kind: "objectRef",
+        kind: "rootRef",
         className: "SchemaDefaultChild"
     });
     CjsSchema.define(SchemaDefaultRoot, {

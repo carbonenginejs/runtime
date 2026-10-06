@@ -235,8 +235,8 @@ test("SOF shared and race models preserve Carbon defaults and source-enum projec
   );
   assert.equal(race.booster, null);
   assert.equal(race.damage, null);
-  assert.equal(CjsSchema.getField(EveSOFDataBooster, "shape0").type.kind, "objectRef");
-  assert.equal(CjsSchema.getField(EveSOFDataRace, "damage").type.kind, "objectRef");
+  assert.equal(CjsSchema.getField(EveSOFDataBooster, "shape0").type.kind, "rootRef");
+  assert.equal(CjsSchema.getField(EveSOFDataRace, "damage").type.kind, "rootRef");
 });
 
 test("SOF logo lookup and authoring helpers produce detached configuration", () => {

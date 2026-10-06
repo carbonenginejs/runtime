@@ -42,12 +42,12 @@ export class EveCloudEditableVolume
 
   /** m_bitmap (Tr2HostBitmapPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("Tr2HostBitmap")
+  @meta.type.rootRef("Tr2HostBitmap")
   bitmap = new Tr2HostBitmap();
 
   /** m_texture (TriTextureResPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("TriTextureRes")
+  @meta.type.rootRef("TriTextureRes")
   texture = new TriTextureRes();
 
   /** m_depth (uint32_t) [READWRITE, PERSIST, NOTIFY] */

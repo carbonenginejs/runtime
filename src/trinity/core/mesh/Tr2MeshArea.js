@@ -47,7 +47,7 @@ export class Tr2MeshArea
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   effect = null;
 
   // DIVERGENCE (deliberate, precedent: EvePlaneSetItem.blinkData): Carbon

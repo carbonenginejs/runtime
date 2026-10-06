@@ -25,17 +25,17 @@ export class AudioGameObject
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("ITr2AudEmitter")
+  @meta.type.rootRef("ITr2AudEmitter")
   audioEmitter = null;
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("ITriVectorFunction")
+  @meta.type.rootRef("ITriVectorFunction")
   translationCurve = null;
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("ITriQuaternionFunction")
+  @meta.type.rootRef("ITriQuaternionFunction")
   rotationCurve = null;
 
   @meta.blue.read

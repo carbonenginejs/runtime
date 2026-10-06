@@ -28,12 +28,12 @@ export class TriEventKey
 
   /** Host callable; JavaScript GC replaces native Py_XDECREF ownership. */
   @meta.blue.readwrite
-  @meta.type.objectRef("PyObject")
+  @meta.type.rootRef("PyObject")
   callable = null;
 
   /** Host callable arguments; runtime-only and owned through ordinary JS references. */
   @meta.blue.readwrite
-  @meta.type.objectRef("PyObject")
+  @meta.type.rootRef("PyObject")
   callableArgs = null;
 }
 

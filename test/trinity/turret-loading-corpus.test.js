@@ -360,7 +360,7 @@ test("real Breacher hydration keeps stored/live child declarations separate", {s
     assert.equal(members[0].key,`_${role}`);
     assert.deepEqual(members[0].edit,{persist:true,persistOnly:true,hidden:true});
     assert.deepEqual(properties[0].edit,{read:true,write:true});
-    assert.deepEqual(members[0].type,{kind:"objectRef",className:"EveSpaceObjectChild"});
+    assert.deepEqual(members[0].type,{kind:"rootRef",className:"EveSpaceObjectChild"});
     assert.deepEqual(properties[0].type,members[0].type);
   }
   const setter=t.mock.method(EveStretch3.prototype,"SetSourceObject",()=>assert.fail("persistence must write the backing member"));

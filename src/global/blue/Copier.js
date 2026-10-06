@@ -21,7 +21,7 @@
 // |---|---|---|
 // | scalars, strings, enum, path | LONG, FLOAT, CSTRING, ... | assign |
 // | vectors, matrices, typedArray | FLOATARRAY, DOUBLEARRAY, INTARRAY | written into the existing buffer by SetValues' own in-place writers; a new buffer only when the destination has none of that shape |
-// | model, objectRef | IROOTPTR | recursive CopyTo into a NEW object (the old one is released) |
+// | rootRef | IROOTPTR | recursive CopyTo into a NEW object (the old one is released) |
 // | root | IROOT (embedded) | recursive CopyTo into the EXISTING object |
 // | list, array of objects | IROOT BlueList + AssignTo | cleared, each item CopyTo'd (BlueListUtil.h:506-540) |
 // | map of objects | IROOT BlueDict + AssignTo | cleared, each entry CopyTo'd, failures skipped (BlueDict.h:334-356) |
@@ -45,7 +45,7 @@ import { hasOwnInterfaceTable, mappedInterfaces } from "../compose/interface.js"
 
 const { OverrideResult } = ICopier;
 
-const OBJECT_KINDS = new Set([ "model", "objectRef" ]);
+const OBJECT_KINDS = new Set([ "rootRef" ]);
 const CONTAINER_KINDS = new Set([ "list", "array", "map", "set", "structList" ]);
 
 
@@ -290,7 +290,7 @@ export class Copier extends ICopier
 
     // Copy<IROOTWEAKREF> assigns the referent (BlueVariable.cpp:869-875).
     // This preserves identity without introducing a JavaScript lifetime policy.
-    storage.target[storage.key] = kind === "weakRef" ? from : cloneCarbonValue(from);
+    storage.target[storage.key] = kind === "rootWeak" ? from : cloneCarbonValue(from);
     return true;
   }
 

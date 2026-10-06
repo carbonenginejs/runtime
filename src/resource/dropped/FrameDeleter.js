@@ -21,6 +21,6 @@ export class FrameDeleter
 CjsSchema.define(FrameDeleter, {
   className: "FrameDeleter", carbon: "FrameDeleter", family: "videoPlayer",
   fields: {
-    owner: meta.type.objectRef("FrameOwner")
+    owner: meta.type.rootRef("FrameOwner")
   }
 });

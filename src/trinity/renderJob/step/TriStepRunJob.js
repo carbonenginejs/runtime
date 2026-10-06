@@ -11,7 +11,7 @@ export class TriStepRunJob extends TriRenderStep
 {
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("TriRenderJob")
+  @meta.type.rootRef("TriRenderJob")
   job = null;
 
   /** Stores the nested job this step runs. */

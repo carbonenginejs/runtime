@@ -70,13 +70,13 @@ export class EveTacticalTrails
 
   /** m_egoBall (ITriVectorFunctionPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("ITriVectorFunction")
+  @meta.type.rootRef("ITriVectorFunction")
   egoBall = null;
 
   /** m_trailEffect (Tr2EffectPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   trailEffect = null;
 
   /** m_fadeOutTime (float) [READWRITE, PERSIST]: seconds for a trail to fade out. */

@@ -12,12 +12,12 @@ export class TriStepRenderAtlas extends TriRenderStep
 
   /** m_focus (Tr2AtlasTexture*) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2AtlasTexture")
+  @meta.type.rootRef("Tr2AtlasTexture")
   focus = null;
 
   /** m_atlas (Tr2TextureAtlas*) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2TextureAtlas")
+  @meta.type.rootRef("Tr2TextureAtlas")
   atlas = null;
 
   /** m_focusColour (Vector4) [READWRITE] */

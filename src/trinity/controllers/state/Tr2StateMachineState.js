@@ -52,7 +52,7 @@ export class Tr2StateMachineState
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("ITr2StateMachineStateFinalizer")
+  @meta.type.rootRef("ITr2StateMachineStateFinalizer")
   finalizer = null;
 
   /**

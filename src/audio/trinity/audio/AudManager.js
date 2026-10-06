@@ -30,7 +30,7 @@ export class AudManager
 
   /** m_log (IAudActionLogPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("IAudActionLog")
+  @meta.type.rootRef("IAudActionLog")
   log = null;
 
   /** m_audioCullingEnabled (mutable bool) [READ] */
@@ -51,7 +51,7 @@ export class AudManager
    */
   @meta.adapted
   @meta.blue.persist
-  @meta.type.model("AudSettings")
+  @meta.type.rootRef("AudSettings")
   settings = null;
 
   // AudioState (Uninitialized/Disabled/Enabled) as lowercase strings;

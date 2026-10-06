@@ -7,7 +7,7 @@ export class CjsCharacterTextureChannel
 
     @meta.blue.readwrite
     @meta.blue.persist
-    @meta.type.model("CjsCharacterTextureAsset")
+    @meta.type.rootRef("CjsCharacterTextureAsset")
     texture = null;
 
     @meta.blue.readwrite

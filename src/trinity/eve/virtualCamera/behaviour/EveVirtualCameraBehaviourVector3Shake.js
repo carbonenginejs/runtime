@@ -30,7 +30,7 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2CurveScalar")
+  @meta.type.rootRef("Tr2CurveScalar")
   magnitudeCurve = null;
 
   @meta.blue.readwrite

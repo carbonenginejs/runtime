@@ -34,7 +34,7 @@ test("float declarations retain native member order and nonpersistent notified v
   for (const name of ["resolvedObject", "notifyPtr"])
   {
     const field = binding.find(field => field.name === name);
-    assert.equal(field.type.kind, "weakRef");
+    assert.equal(field.type.kind, "rootWeak");
     assert.notEqual(field.edit?.persist, true);
   }
 });

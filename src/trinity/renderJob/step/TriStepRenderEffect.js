@@ -12,7 +12,7 @@ export class TriStepRenderEffect extends TriRenderStep
 
   /** m_shaderBuffer (Tr2ShaderBufferPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2ShaderBuffer")
+  @meta.type.rootRef("Tr2ShaderBuffer")
   shaderBuffer = null;
 
   /** m_brTexCoord (Vector2) [READWRITE] */
@@ -22,7 +22,7 @@ export class TriStepRenderEffect extends TriRenderStep
 
   /** m_effect (Tr2EffectPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   effect = null;
 
   /** m_tlTexCoord (Vector2) [READWRITE] */

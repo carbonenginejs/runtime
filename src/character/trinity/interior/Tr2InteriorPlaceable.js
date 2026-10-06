@@ -40,7 +40,7 @@ export class Tr2InteriorPlaceable
 
   /** m_placeableRes (WodPlaceableResPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("WodPlaceableRes")
+  @meta.type.rootRef("WodPlaceableRes")
   placeableRes = null;
 
   /** m_display (bool) [READWRITE] */
@@ -61,7 +61,7 @@ export class Tr2InteriorPlaceable
 
   /** m_variableStore (Tr2VariableStorePtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("Tr2VariableStore")
+  @meta.type.rootRef("Tr2VariableStore")
   variableStore = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */

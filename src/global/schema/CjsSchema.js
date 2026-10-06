@@ -667,7 +667,8 @@ export class CjsSchema
     /**
      * Field type descriptors. The object-shaped kinds differ in how a
      * value is populated:
-     * - `model(className)` holds a registered class by reference;
+     * - `rootRef(className)` is Carbon's IROOTPTR, a registered class held by
+     *   reference; `rootWeak(className)` is IROOTWEAKREF;
      * - `root(className)` is Carbon's IROOT, an object embedded in its owner:
      *   the owner creates it, and readers and SetValues populate it in place,
      *   keeping its identity. It is not a binary struct; those are described by
@@ -730,11 +731,15 @@ export class CjsSchema
         mat3: fieldDecorator("type", { kind: "mat3" }),
         mat4: fieldDecorator("type", { kind: "mat4" }),
         map: valueType => fieldDecorator("type", { kind: "map", valueType }),
-        model: className => fieldDecorator("type", { kind: "model", className }),
-        objectRef: className => fieldDecorator("type", { kind: "objectRef", className }),
+        /**
+         * Carbon's IROOTPTR: a pointer to an object of the class, owned or
+         * not; ownership is declared separately (`meta.owned`).
+         */
+        rootRef: className => fieldDecorator("type", { kind: "rootRef", className }),
         /** Declares a live resource edge that values, persistence and copying must omit. */
-        resource: className => fieldDecorator("type", { kind: "objectRef", className, runtimeOnly: true }),
-        weakRef: className => fieldDecorator("type", { kind: "weakRef", className }),
+        resource: className => fieldDecorator("type", { kind: "rootRef", className, runtimeOnly: true }),
+        /** Carbon's IROOTWEAKREF: a weak pointer to an object of the class. */
+        rootWeak: className => fieldDecorator("type", { kind: "rootWeak", className }),
         /**
          * A path, and what it may name. `path()` accepts any file. Entries
          * narrow it, and a path is accepted when any one entry accepts it:
@@ -1503,7 +1508,7 @@ function resolveDeclaredConstructor(type)
     }
     else if (type && typeof type === "object")
     {
-        if (["model", "objectRef", "root"].includes(type.kind))
+        if (["rootRef", "root"].includes(type.kind))
         {
             className = type.className || null;
         }
@@ -1879,6 +1884,7 @@ function declarationMap(schema, role)
 
 function applyDeclarationNamespace(entry, namespace, value)
 {
+    if (namespace === "type") RejectRetiredTypeKinds(value);
     if (namespace === "declaration")
     {
         for (const key of [ "name", "role", "index" ])
@@ -1891,6 +1897,26 @@ function applyDeclarationNamespace(entry, namespace, value)
         entry[namespace] = mergeNamespace(entry[namespace], value);
     }
     return validateDeclaration(entry);
+}
+
+/** Kinds renamed to Carbon's var types: IROOTPTR is rootRef, IROOTWEAKREF is rootWeak. */
+const RETIRED_TYPE_KINDS = new Map([ [ "model", "rootRef" ], [ "objectRef", "rootRef" ], [ "weakRef", "rootWeak" ] ]);
+
+/**
+ * Refuses a retired kind anywhere in a type descriptor, so a stale spelling
+ * fails where its class is declared rather than reading as an unknown kind.
+ *
+ * @param {*} type A type descriptor, or a collection's item or value type.
+ * @throws {TypeError} When a retired kind is used.
+ */
+function RejectRetiredTypeKinds(type)
+{
+    const kind = typeof type === "string" ? type : type?.kind;
+    const replacement = RETIRED_TYPE_KINDS.get(kind);
+    if (replacement) throw new TypeError(`meta.type kind "${kind}" is retired; Carbon's name is "${replacement}".`);
+    if (!type || typeof type !== "object") return;
+    RejectRetiredTypeKinds(type.itemType);
+    RejectRetiredTypeKinds(type.valueType);
 }
 
 /** The compatibility view retains JS-key lookup and never serves native readers. */
@@ -2224,8 +2250,8 @@ function defineHiddenInheritedFields(Constructor, fieldNames)
     for (const key of resolvedKeys) schema.hiddenInherited.add(key);
 }
 
-// The state-free transport's import. A declared REFERENCE field - model or
-// objectRef, or a list or Map of them - treats a non-plain object as the
+// The state-free transport's import. A declared REFERENCE field - a
+// rootRef, or a list or Map of them - treats a non-plain object as the
 // reference itself and assigns it, Carbon's IRoot* member (operator ruling,
 // 2026-09-14). The DECLARED TYPE decides that the field holds references; the
 // value's class is never inspected. Plain bags, and every other field kind,
@@ -2236,8 +2262,7 @@ function importDeclaredValue(value, field)
     value = omitRuntimeValues(value, type);
     switch (type?.kind)
     {
-        case "model":
-        case "objectRef":
+        case "rootRef":
             if (isObjectReference(value)) return value;
             break;
         case "list":
@@ -2382,13 +2407,13 @@ function hasRuntimeValuesType(type, seen = new Set())
         findValuesDeclaration(Constructor, field.name) === field && hasRuntimeValuesType(field.type, seen));
 }
 
-// A declared item type that holds references: a model or objectRef
+// A declared item type that holds references: a rootRef
 // descriptor, or a bare name registered as a class. "string" and "unknown"
 // are not registered, so they stay values.
 function isReferenceType(type)
 {
     if (typeof type === "string") return CjsSchema.GetConstructor(type) !== null;
-    return type?.kind === "model" || type?.kind === "objectRef";
+    return type?.kind === "rootRef";
 }
 
 // Not a values bag: an object that is neither plain, an array nor a typed
@@ -2605,7 +2630,7 @@ const MANY_KINDS = new Set([ "list", "array", "set", "map" ]);
 // item type, so requiring a reference would silently stop visiting those.
 // Scalar and math kinds are excluded, which is where the saving comes from.
 const MODEL_KINDS = new Set([
-    "root", "model", "rawStruct", "objectRef", "unknown",
+    "root", "rootRef", "rawStruct", "unknown",
     "list", "array", "set", "map"
 ]);
 

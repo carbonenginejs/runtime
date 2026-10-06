@@ -29,7 +29,7 @@ CjsSchema.define(ResourceHolder, { className: "ResourceBlackCopyHolder", fields:
     count: [CjsSchema.meta.type.uint32, CjsSchema.meta.blue.persist],
     // Contradictory persistence flags must never override the runtime-only fact.
     _cache: [CjsSchema.meta.type.resource(ResourceLeaf), CjsSchema.meta.blue.persist],
-    ordinary: [CjsSchema.meta.type.objectRef(ResourceLeaf), CjsSchema.meta.blue.persist]
+    ordinary: [CjsSchema.meta.type.rootRef(ResourceLeaf), CjsSchema.meta.blue.persist]
 } });
 
 class ResourceBase
@@ -37,7 +37,7 @@ class ResourceBase
     _baseCache = new ResourceLeaf();
 }
 CjsSchema.define(ResourceBase, { className: "ResourceBlackCopyBase", members: [
-    member("cache", "objectRef", { key: "_baseCache", type: { kind: "objectRef", className: "ResourceBlackCopyLeaf" } })
+    member("cache", "rootRef", { key: "_baseCache", type: { kind: "rootRef", className: "ResourceBlackCopyLeaf" } })
 ] });
 
 class ResourceDerived extends ResourceBase
@@ -45,8 +45,8 @@ class ResourceDerived extends ResourceBase
     _cache = new ResourceLeaf();
 }
 CjsSchema.define(ResourceDerived, { className: "ResourceBlackCopyDerived", members: [
-    member("cache", "objectRef", {
-        key: "_cache", type: { kind: "objectRef", className: "ResourceBlackCopyLeaf", runtimeOnly: true }, edit: {}
+    member("cache", "rootRef", {
+        key: "_cache", type: { kind: "rootRef", className: "ResourceBlackCopyLeaf", runtimeOnly: true }, edit: {}
     })
 ] });
 
@@ -55,7 +55,7 @@ class ResourceProperty extends ResourceBase
     get cache() { throw new Error("resource property getter must not run"); }
 }
 CjsSchema.define(ResourceProperty, { className: "ResourceBlackCopyProperty", properties: [
-    member("cache", "objectRef", { type: { kind: "objectRef", runtimeOnly: true } })
+    member("cache", "rootRef", { type: { kind: "rootRef", runtimeOnly: true } })
 ] });
 
 test("Copier preserves a destination resource and clone keeps its constructor resource", () =>
@@ -74,7 +74,7 @@ test("Copier preserves a destination resource and clone keeps its constructor re
     assert.equal(destination._cache, cache);
     assert.equal(destination._cache.value, 42);
     assert.notEqual(destination.ordinary, source.ordinary);
-    assert.equal(destination.ordinary.value, 13, "ordinary objectRef is the negative control");
+    assert.equal(destination.ordinary.value, 13, "ordinary rootRef is the negative control");
 
     const clone = new Copier().CloneTo(source);
     assert.notEqual(clone._cache, source._cache);
@@ -118,7 +118,7 @@ test("canonical Black omits runtime resources even with PERSIST and refuses thei
 {
     const shape = CjsBlackSchemaRegistry.fromClassInfo(CjsSchema.getSchema(ResourceHolder));
     assert.deepEqual(shape.fields.map(field => field.name), ["count", "ordinary"]);
-    assert.throws(() => CjsBlackSchemaRegistry.fromDeclaredType({ kind: "objectRef", runtimeOnly: true }), /Runtime-only fields have no Black codec/);
+    assert.throws(() => CjsBlackSchemaRegistry.fromDeclaredType({ kind: "rootRef", runtimeOnly: true }), /Runtime-only fields have no Black codec/);
 
     const fixture = new BlackFixture();
     const bytes = fixture.Finish(fixture.Object(1, "ResourceBlackCopyHolder", [["count", u32(5)]]));

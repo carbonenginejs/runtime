@@ -29,7 +29,7 @@ CjsSchema.define(Tr2MaterialRes, {
   className: "Tr2MaterialRes",
   family: "resources",
   fields: {
-    meshes: [ meta.blue.persist, meta.type.objectRef("Tr2MaterialMeshDict") ],
+    meshes: [ meta.blue.persist, meta.type.rootRef("Tr2MaterialMeshDict") ],
     name: [ meta.blue.persist, meta.type.string ]
   }
 });

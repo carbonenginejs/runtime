@@ -60,11 +60,11 @@ export class Tr2CurveBase
   currentKeyIdx = 0;
 
   /** m_lastKey (Key*) */
-  @meta.type.objectRef("Key")
+  @meta.type.rootRef("Key")
   lastKey = null;
 
   /** m_nextKey (Key*) */
-  @meta.type.objectRef("Key")
+  @meta.type.rootRef("Key")
   nextKey = null;
 
   /** m_startOfSegment (float) */

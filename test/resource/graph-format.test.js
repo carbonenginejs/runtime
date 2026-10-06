@@ -112,7 +112,7 @@ test("runtime-only and live getters are never read during saves", () =>
     class Guarded { safe = 1; get dangerous() { throw new Error("getter evaluated"); } }
     CjsSchema.define(Guarded, { className: "GraphGuarded", members: [
         { name: "safe", key: "safe", type: { kind: "int32" }, edit: { persist: true } },
-        { name: "dangerous", key: "dangerous", type: { kind: "objectRef", runtimeOnly: true }, edit: { persist: true } }
+        { name: "dangerous", key: "dangerous", type: { kind: "rootRef", runtimeOnly: true }, edit: { persist: true } }
     ] });
     assert.deepEqual(text(Format.write(new Guarded())).root, { _type: "GraphGuarded", safe: 1 });
 });
@@ -142,7 +142,7 @@ test("mapped lifecycle runs once, after cycles resolve, and method presence alon
     CjsSchema.define(IInitialize, { className: "IInitialize" });
     let calls = 0;
     class Life { peer = null; Initialize() { assert.equal(this.peer.peer, this); calls++; } }
-    CjsSchema.define(Life, { className: "GraphLife", members: [{ name: "peer", key: "peer", type: { kind: "objectRef", className: "GraphLife" }, edit: { persist: true } }] });
+    CjsSchema.define(Life, { className: "GraphLife", members: [{ name: "peer", key: "peer", type: { kind: "rootRef", className: "GraphLife" }, edit: { persist: true } }] });
     const graph = { _type: "GraphLife", _id: 1, peer: { _type: "GraphLife", _id: 2, peer: { _ref: 1 } } };
     read(graph);
     assert.equal(calls, 0);
@@ -188,7 +188,7 @@ test("children of rejected collections are not initialized", () =>
     CjsSchema.define(Child, { className: "GraphDiscardedChild" });
     CjsSchema.meta.blue.interface(CjsSchema.GetConstructor("IInitialize"))(Child);
     CjsSchema.define(Owner, { className: "GraphDiscardedOwner", members: [
-        { name: "children", key: "children", type: { kind: "set", itemType: { kind: "objectRef", className: "GraphDiscardedChild" } }, edit: { persist: true } }
+        { name: "children", key: "children", type: { kind: "set", itemType: { kind: "rootRef", className: "GraphDiscardedChild" } }, edit: { persist: true } }
     ] });
     const result = read({ _type: "GraphDiscardedOwner", children: [{ _type: "GraphDiscardedChild" }, { _type: "Absent" }] });
     assert.equal(result.reports.length, 1);
@@ -254,7 +254,7 @@ test("native IList rejection restores previous contents and does not initialize 
     CjsSchema.define(Item, { className: "GraphNativeItem", members: [{ name: "value", key: "value", type: { kind: "int32" }, edit: { persist: true } }] });
     CjsSchema.meta.blue.interface(CjsSchema.GetConstructor("IInitialize"))(Item);
     CjsSchema.define(Owner, { className: "GraphNativeOwner", members: [
-        { name: "items", key: "items", type: { kind: "list", itemType: { kind: "objectRef", className: "GraphNativeItem" } }, edit: { persist: true } }
+        { name: "items", key: "items", type: { kind: "list", itemType: { kind: "rootRef", className: "GraphNativeItem" } }, edit: { persist: true } }
     ] });
     const result = read({ _type: "GraphNativeOwner", items: [{ _type: "GraphNativeItem", value: 1 }, { _type: "GraphNativeItem", value: 2 }] });
     assert.deepEqual(result.reports.map(item => item.path), ["/root/items"]);

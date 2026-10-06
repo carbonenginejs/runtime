@@ -14,7 +14,7 @@ CjsSchema.define(Item, {
   className: "TestBlueListItem",
   fields: {
     value: [ meta.type.float64, meta.blue.persist ],
-    peer: [ meta.type.objectRef("TestBlueListItem"), meta.blue.persist ]
+    peer: [ meta.type.rootRef("TestBlueListItem"), meta.blue.persist ]
   }
 });
 meta.blue.interface()(Item);

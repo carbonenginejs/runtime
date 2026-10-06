@@ -500,7 +500,7 @@ function wireTypeForBeType(beType)
         case "IROOT":
             return "container";
         case "IROOTPTR":
-            return "objectRef";
+            return "rootRef";
         case "BINARYBLOCK":
             return "binaryBlock";
         default:

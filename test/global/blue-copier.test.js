@@ -39,8 +39,8 @@ class CopierNode
 }
 CjsSchema.define(CopierNode, { className: "CopierNode", fields: {
   position: [ CjsSchema.meta.type.vec3, CjsSchema.meta.blue.persist ],
-  left: [ CjsSchema.meta.type.model("CopierLeaf"), CjsSchema.meta.blue.persist ],
-  right: [ CjsSchema.meta.type.model("CopierLeaf"), CjsSchema.meta.blue.persist ],
+  left: [ CjsSchema.meta.type.rootRef("CopierLeaf"), CjsSchema.meta.blue.persist ],
+  right: [ CjsSchema.meta.type.rootRef("CopierLeaf"), CjsSchema.meta.blue.persist ],
   items: [ CjsSchema.meta.type.list("CopierLeaf"), CjsSchema.meta.blue.persist ],
   byName: [ CjsSchema.meta.type.map("CopierLeaf"), CjsSchema.meta.blue.persist ]
 } });
@@ -450,7 +450,7 @@ test("mapped interface identity survives inherited mappings and other constructo
 test("cycles reuse allocated copies but existing destinations are not added to the identity map", () =>
 {
   class CopierCycle { next = null; }
-  CjsSchema.define(CopierCycle, { className: "CopierCycle", fields: { next: [ CjsSchema.meta.type.objectRef("CopierCycle"), CjsSchema.meta.blue.persist ] } });
+  CjsSchema.define(CopierCycle, { className: "CopierCycle", fields: { next: [ CjsSchema.meta.type.rootRef("CopierCycle"), CjsSchema.meta.blue.persist ] } });
   const source = new CopierCycle();
   source.next = source;
   const posted = [];
@@ -473,7 +473,7 @@ test("embedded members keep destination objects while pointer members allocate",
   }
   CjsSchema.define(CopierEmbeddedAndPointer, { className: "CopierEmbeddedAndPointer", fields: {
     embedded: [ CjsSchema.meta.type.root("CopierLeaf"), CjsSchema.meta.blue.persist ],
-    pointer: [ CjsSchema.meta.type.objectRef("CopierLeaf"), CjsSchema.meta.blue.persist ]
+    pointer: [ CjsSchema.meta.type.rootRef("CopierLeaf"), CjsSchema.meta.blue.persist ]
   } });
   const source = new CopierEmbeddedAndPointer();
   source.embedded.value = 42;
@@ -513,7 +513,7 @@ test("weak-reference members retain their referents rather than cloning them", (
 {
   class CopierWeakReference { owner = null; }
   CjsSchema.define(CopierWeakReference, { className: "CopierWeakReference", fields: {
-    owner: [ CjsSchema.meta.type.weakRef("CopierLeaf"), CjsSchema.meta.blue.persist ]
+    owner: [ CjsSchema.meta.type.rootWeak("CopierLeaf"), CjsSchema.meta.blue.persist ]
   } });
   const source = new CopierWeakReference();
   source.owner = Leaf(11);

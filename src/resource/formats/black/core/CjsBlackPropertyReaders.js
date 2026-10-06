@@ -104,7 +104,7 @@ export class CjsBlackPropertyReaders
             case CARBON_TYPE.RAW_STRUCT:
                 return reader.context.ReadEmbeddedObject(reader, destination);
 
-            case CARBON_TYPE.OBJECT_REF:
+            case CARBON_TYPE.ROOT_REF:
             case CARBON_TYPE.UNKNOWN:
                 return reader.context.ReadObject(reader);
 
@@ -256,7 +256,7 @@ export class CjsBlackPropertyReaders
             case CARBON_TYPE.RAW_STRUCT:
                 reader.context.SkipEmbeddedObject(reader);
                 return;
-            case CARBON_TYPE.OBJECT_REF:
+            case CARBON_TYPE.ROOT_REF:
             case CARBON_TYPE.UNKNOWN:
                 reader.context.SkipObject(reader);
                 return;
@@ -521,7 +521,7 @@ export class CjsBlackPropertyReaders
         const result = [];
         for (let i = 0; i < count; i++)
         {
-            if (!descriptor.elementType || elementType.kind === CARBON_TYPE.OBJECT_REF || elementType.kind === CARBON_TYPE.UNKNOWN)
+            if (!descriptor.elementType || elementType.kind === CARBON_TYPE.ROOT_REF || elementType.kind === CARBON_TYPE.UNKNOWN)
             {
                 result[i] = reader.context.ReadObject(reader);
             }
@@ -551,7 +551,7 @@ export class CjsBlackPropertyReaders
         const count = reader.ReadU32();
         for (let i = 0; i < count; i++)
         {
-            if (!descriptor.elementType || elementType.kind === CARBON_TYPE.OBJECT_REF || elementType.kind === CARBON_TYPE.UNKNOWN)
+            if (!descriptor.elementType || elementType.kind === CARBON_TYPE.ROOT_REF || elementType.kind === CARBON_TYPE.UNKNOWN)
             {
                 reader.context.SkipObject(reader);
             }

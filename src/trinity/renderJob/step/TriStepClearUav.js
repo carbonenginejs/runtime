@@ -12,7 +12,7 @@ export class TriStepClearUav extends TriRenderStep
   /** m_buffer (ITr2GpuBufferPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("ITr2GpuBuffer")
+  @meta.type.rootRef("ITr2GpuBuffer")
   buffer = null;
 
   /** m_clearWithFloat (bool) [READWRITE, PERSIST] */

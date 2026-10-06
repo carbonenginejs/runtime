@@ -49,22 +49,22 @@ export class EveSOFDNA
   @meta.type.string
   dna = "";
 
-  @meta.type.objectRef("EveSOFDataMgr")
+  @meta.type.rootRef("EveSOFDataMgr")
   dataMgr = null;
 
   @meta.type.list("EveSOFDataMgr::HullData")
   hullDatas = [];
 
-  @meta.type.objectRef("EveSOFDataMgr::FactionData")
+  @meta.type.rootRef("EveSOFDataMgr::FactionData")
   factionData = null;
 
-  @meta.type.objectRef("EveSOFDataMgr::RaceData")
+  @meta.type.rootRef("EveSOFDataMgr::RaceData")
   raceData = null;
 
-  @meta.type.objectRef("EveSOFDataMgr::GenericData")
+  @meta.type.rootRef("EveSOFDataMgr::GenericData")
   genericData = null;
 
-  @meta.type.objectRef("EveSOFDataMgr::PatternData")
+  @meta.type.rootRef("EveSOFDataMgr::PatternData")
   patternData = null;
 
   @meta.type.list("EveSOFDataMgr::LayoutData")

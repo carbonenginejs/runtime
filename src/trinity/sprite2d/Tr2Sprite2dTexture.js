@@ -410,7 +410,7 @@ export class Tr2Sprite2dTexture
 
   /** Native Blue atlasTexture property. */
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2AtlasTexture")
+  @meta.type.rootRef("Tr2AtlasTexture")
   get atlasTexture()
   {
     return this.GetAtlasTexture();

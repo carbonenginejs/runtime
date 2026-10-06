@@ -258,10 +258,10 @@ CjsSchema.define(Tr2TexturePipelineStepPack, {
   className: "Tr2TexturePipelineStepPack", family: "resources",
   fields: {
     format: [ meta.blue.persist, meta.type.int32, meta.type.enum("PixelFormat") ],
-    a: [ meta.blue.persist, meta.type.objectRef("Tr2TexturePackChannel") ],
-    b: [ meta.blue.persist, meta.type.objectRef("Tr2TexturePackChannel") ],
-    g: [ meta.blue.persist, meta.type.objectRef("Tr2TexturePackChannel") ],
-    r: [ meta.blue.persist, meta.type.objectRef("Tr2TexturePackChannel") ]
+    a: [ meta.blue.persist, meta.type.rootRef("Tr2TexturePackChannel") ],
+    b: [ meta.blue.persist, meta.type.rootRef("Tr2TexturePackChannel") ],
+    g: [ meta.blue.persist, meta.type.rootRef("Tr2TexturePackChannel") ],
+    r: [ meta.blue.persist, meta.type.rootRef("Tr2TexturePackChannel") ]
   },
   methods: {
     GetResourceDependencies: meta.implemented,

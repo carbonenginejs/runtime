@@ -115,7 +115,7 @@ export class EveSOFDataBooster
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataBoosterShape")
+  @meta.type.rootRef("EveSOFDataBoosterShape")
   shape0 = new EveSOFDataBoosterShape();
 
   /**
@@ -124,7 +124,7 @@ export class EveSOFDataBooster
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataBoosterShape")
+  @meta.type.rootRef("EveSOFDataBoosterShape")
   shape1 = new EveSOFDataBoosterShape();
 
   /**
@@ -133,7 +133,7 @@ export class EveSOFDataBooster
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataBoosterShape")
+  @meta.type.rootRef("EveSOFDataBoosterShape")
   warpShape0 = new EveSOFDataBoosterShape();
 
   /**
@@ -142,7 +142,7 @@ export class EveSOFDataBooster
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataBoosterShape")
+  @meta.type.rootRef("EveSOFDataBoosterShape")
   warpShape1 = new EveSOFDataBoosterShape();
 
   /**

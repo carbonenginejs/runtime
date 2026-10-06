@@ -8,7 +8,7 @@ export class MeshBoundsInfo
 {
 
   /** typeName (const char*) */
-  @meta.type.objectRef("char")
+  @meta.type.rootRef("char")
   typeName = null;
 
   /** bounds (BoundingBox) */
@@ -20,7 +20,7 @@ export class MeshBoundsInfo
   areaCount = null;
 
   /** areaInfos (AreaBoundsInfo*) */
-  @meta.type.objectRef("AreaBoundsInfo")
+  @meta.type.rootRef("AreaBoundsInfo")
   areaInfos = null;
 
   /** sourceMeshIndex (granny_int32) */
@@ -36,7 +36,7 @@ export class MeshBoundsInfo
   uvDensityCount = null;
 
   /** uvDensities (granny_real32*) */
-  @meta.type.objectRef("granny_real32")
+  @meta.type.rootRef("granny_real32")
   uvDensities = null;
 
 }

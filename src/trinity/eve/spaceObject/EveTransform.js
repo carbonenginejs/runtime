@@ -48,7 +48,7 @@ export class EveTransform extends Tr2Transform
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2MeshBase")
+  @meta.type.rootRef("Tr2MeshBase")
   meshLod = null;
 
   /**

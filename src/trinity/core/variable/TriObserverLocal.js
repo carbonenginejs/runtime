@@ -72,7 +72,7 @@ export class TriObserverLocal extends ITriObserverLocal
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("IBluePlacementObserver")
+  @meta.type.rootRef("IBluePlacementObserver")
   observer = null;
 
 

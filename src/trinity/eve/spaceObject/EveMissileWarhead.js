@@ -49,7 +49,7 @@ export class EveMissileWarhead extends EveTransform
   @meta.type.float32 impactSize = 0;
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSpriteSet") spriteSet = null;
+  @meta.type.rootRef("EveSpriteSet") spriteSet = null;
   @meta.blue.read
   @meta.type.int32 targetLocatorID = -1;
   @meta.blue.readwrite

@@ -17,7 +17,7 @@ export class TriStepPushDepthStencil extends TriRenderStep
   pushCurrent = false;
 
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2DepthStencil")
+  @meta.type.rootRef("Tr2DepthStencil")
   depthStencil = null;
 
   /**

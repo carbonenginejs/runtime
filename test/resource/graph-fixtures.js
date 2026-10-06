@@ -31,9 +31,9 @@ export function fixtures(prefix)
     CjsSchema.define(Node, {
         className: `${prefix}Node`,
         members: [
-            field("name", "string"), field("peer", { kind: "objectRef", className: `${prefix}Node` }),
-            field("weak", { kind: "weakRef", className: `${prefix}Node` }),
-            field("children", { kind: "list", itemType: { kind: "objectRef", className: `${prefix}Node` } }),
+            field("name", "string"), field("peer", { kind: "rootRef", className: `${prefix}Node` }),
+            field("weak", { kind: "rootWeak", className: `${prefix}Node` }),
+            field("children", { kind: "list", itemType: { kind: "rootRef", className: `${prefix}Node` } }),
             field("embedded", { kind: "root", className: `${prefix}Embedded` }),
             field("indices", { kind: "typedArray", arrayType: "Uint32Array" }), field("huge", "uint64"),
             field("choice", "int32"), field("flags", "uint32", { edit: { persist: true, flags: true } }),
@@ -42,7 +42,7 @@ export function fixtures(prefix)
             field("named", { kind: "map", valueType: { kind: "int32" } }),
             field("value", "int32", { key: "_value", index: 0, alias: "oldValue" }),
             field("loadOnly", "int32", { edit: { rpersist: true } }),
-            field("runtime", { kind: "objectRef", runtimeOnly: true }),
+            field("runtime", { kind: "rootRef", runtimeOnly: true }),
             field("derived", "int32", { edit: { read: true } }),
             field("state", { kind: "custom", name: "state" })
         ]

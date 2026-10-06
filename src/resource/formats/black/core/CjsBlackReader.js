@@ -436,7 +436,7 @@ export class CjsBlackReader extends CjsBlueReader
             {
                 const type = declaration?.type;
                 if (type?.kind === "root") destination = getReaderMemberValue(target, declaration);
-                else if (!fieldTarget.discard && type?.kind === "list" && fieldTarget.field.jsType?.elementType?.kind === "objectRef")
+                else if (!fieldTarget.discard && type?.kind === "list" && fieldTarget.field.jsType?.elementType?.kind === "rootRef")
                 {
                     const current = getReaderMemberValue(target, declaration);
                     if (isReaderIList(current)) destination = current;
@@ -1018,7 +1018,7 @@ export class CjsBlackReader extends CjsBlueReader
             readByKind("string");
         }
 
-        readByKind("objectRef");
+        readByKind("rootRef");
         readByKind("boolean");
         readByKind("float32");
         readByKind("float64");
@@ -1257,7 +1257,7 @@ export class CjsBlackReader extends CjsBlueReader
             .map(part => CJS_BLACK_INDEX_TOKEN_NAMES[part] || (part === "FX" ? "FX" : part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()))
             .join("");
 
-        if (field?.jsType?.kind === "objectRef")
+        if (field?.jsType?.kind === "rootRef")
         {
             return pascal ? pascal.charAt(0).toLowerCase() + pascal.slice(1) : text;
         }

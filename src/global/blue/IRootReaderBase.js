@@ -14,7 +14,7 @@
 // | scalars, strings, enum, path, expression | LONG, FLOAT, CSTRING, ... | `ReadValue` |
 // | vectors, matrices, color, typedArray | FLOATARRAY | into the existing buffer (`ReadFloatArray`), a new one only when the member has none of that shape |
 // | root | IROOT (embedded) | `ReadIRoot` into the EXISTING object |
-// | model, objectRef | IROOTPTR | `ReadIRootClass`: an anchor's object, or a new one |
+// | rootRef | IROOTPTR | `ReadIRootClass`: an anchor's object, or a new one |
 // | list, array | IROOT BlueList | `ReadList` |
 // | map, set, rawStruct | IROOT BlueDict | by value |
 // | structList | IROOT BlueStructureList | `ReadStructureList`: records by value, into instances of the item class |
@@ -36,7 +36,7 @@ import { InvalidAttributeException } from "./InvalidAttributeException.js";
 import { getDictionaryDeclarations, readDictionaryValue, writeDictionaryValue } from "./dictionaryDeclarations.js";
 
 /** Kinds read as an object reference (IROOTPTR). */
-const OBJECT_KINDS = new Set([ "model", "objectRef" ]);
+const OBJECT_KINDS = new Set([ "rootRef" ]);
 
 /** Kinds holding several values, where a `_type` bag is an item rather than the member. */
 const CONTAINER_KINDS = new Set([ "list", "array", "map", "set" ]);

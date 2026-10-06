@@ -12,13 +12,13 @@ export class Tr2RenderNodeSprite2dScene
   /** m_scene (Tr2Sprite2dScenePtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2Sprite2dScene")
+  @meta.type.rootRef("Tr2Sprite2dScene")
   scene = null;
 
   /** m_background (ITr2RenderNodePtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("ITr2RenderNode")
+  @meta.type.rootRef("ITr2RenderNode")
   background = null;
 
   // Carbon Tr2RenderNodeSprite2dScene.cpp:8-26. The node refuses to run

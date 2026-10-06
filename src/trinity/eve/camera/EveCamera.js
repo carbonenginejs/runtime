@@ -152,7 +152,7 @@ export class EveCamera
 
   /** m_errorListener (IBlueEventListenerPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("IBlueEventListener")
+  @meta.type.rootRef("IBlueEventListener")
   errorHandler = null;
 
   /** m_noiseScale (float) [READWRITE, PERSIST] */
@@ -163,7 +163,7 @@ export class EveCamera
 
   /** m_audio2Listener (IBluePlacementObserverPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("IBluePlacementObserver")
+  @meta.type.rootRef("IBluePlacementObserver")
   audio2Listener = null;
 
   /** m_noise (bool) [READWRITE, PERSIST] */
@@ -243,7 +243,7 @@ export class EveCamera
   /** m_interestTranslationCurve (ITriVectorFunctionPtr) [READWRITE, NOTIFY] */
   @meta.blue.notify
   @meta.blue.readwrite
-  @meta.type.objectRef("ITriVectorFunction")
+  @meta.type.rootRef("ITriVectorFunction")
   interest = null;
 
   /** m_rotationOfInterest (Quaternion) [READWRITE, PERSIST, NOTIFY] */
@@ -280,19 +280,19 @@ export class EveCamera
   /** m_noiseCurve (ITriScalarFunctionPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("ITriScalarFunction")
+  @meta.type.rootRef("ITriScalarFunction")
   noiseCurve = null;
 
   /** m_noiseScaleCurve (ITriScalarFunctionPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("ITriScalarFunction")
+  @meta.type.rootRef("ITriScalarFunction")
   noiseScaleCurve = null;
 
   /** m_noiseDampCurve (ITriScalarFunctionPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("ITriScalarFunction")
+  @meta.type.rootRef("ITriScalarFunction")
   noiseDampCurve = null;
 
   /** m_maxSpeed (float) [READWRITE, PERSIST] */
@@ -310,7 +310,7 @@ export class EveCamera
   /** m_zoomCurve (ITriScalarFunctionPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("ITriScalarFunction")
+  @meta.type.rootRef("ITriScalarFunction")
   zoomCurve = createDefaultZoomCurve();
 
   /** Blue exposes m_translationFromParent.z, not the native Vector3. */
@@ -345,7 +345,7 @@ export class EveCamera
 
   /** m_parentTranslationCurve (ITriVectorFunctionPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("ITriVectorFunction")
+  @meta.type.rootRef("ITriVectorFunction")
   parent = null;
 
   /** m_idleScale (float) [READWRITE, PERSIST] */
@@ -367,12 +367,12 @@ export class EveCamera
 
   /** m_projectionMatrix (TriProjectionPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("TriProjection")
+  @meta.type.rootRef("TriProjection")
   projectionMatrix = new TriProjection();
 
   /** m_viewMatrix (TriViewPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("TriView")
+  @meta.type.rootRef("TriView")
   viewMatrix = new TriView();
 
   /** m_idleMove (bool) [READWRITE, PERSIST] */

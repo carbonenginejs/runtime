@@ -19,7 +19,7 @@ export class Tr2TextureAnimationParameter extends CjsParameter
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2TextureAnimation")
+  @meta.type.rootRef("Tr2TextureAnimation")
   animation = null;
 
   /** m_channel (BlueSharedString) [READWRITE, PERSIST] */

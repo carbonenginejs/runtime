@@ -48,7 +48,7 @@ export class CjsCharacterBloodline extends CjsCharacterRecord
 
     @meta.blue.readwrite
     @meta.blue.persist
-    @meta.type.model("CjsCharacterRace")
+    @meta.type.rootRef("CjsCharacterRace")
     raceID = null;
 
     @meta.blue.readwrite

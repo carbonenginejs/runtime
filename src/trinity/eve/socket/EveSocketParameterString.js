@@ -22,7 +22,7 @@ export class EveSocketParameterString extends IEveSocketParameter
   value = "";
 
   /** m_valueExposure (Tr2ExternalParameterPtr) */
-  @meta.type.objectRef("Tr2ExternalParameter")
+  @meta.type.rootRef("Tr2ExternalParameter")
   valueExposure = null;
 
   /** m_externalParameters (PTr2ExternalParameterVector) */

@@ -35,7 +35,7 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
   textLabels = [];
 
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2ManipulationTool")
+  @meta.type.rootRef("Tr2ManipulationTool")
   manipulator = null;
 
   _pickBuffer = new Tr2PickBuffer(PixelFormat.PIXEL_FORMAT_R32G32B32A32_FLOAT, 1);

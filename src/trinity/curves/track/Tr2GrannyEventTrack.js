@@ -17,7 +17,7 @@ import { Tr2GrannyTrack } from "./Tr2GrannyTrack.js";
 export class Tr2GrannyEventTrack extends Tr2GrannyTrack
 {
   @meta.blue.readwrite
-  @meta.type.objectRef("IBlueEventListener")
+  @meta.type.rootRef("IBlueEventListener")
   eventListener = null;
 
   #entries = null;

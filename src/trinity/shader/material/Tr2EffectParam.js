@@ -12,7 +12,7 @@ export class Tr2EffectParam
   sourceName = "";
 
   /** m_sourceValue (ITr2EffectValuePtr) */
-  @meta.type.objectRef("ITr2EffectValue")
+  @meta.type.rootRef("ITr2EffectValue")
   sourceValue = null;
 
   /** m_registerIndex (unsigned int) */

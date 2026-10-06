@@ -30,7 +30,7 @@ class Owner {
 }
 const field = (type, notify = false) => ({ type, edit: { persist: true, notify } });
 CjsSchema.define(Item, { className: "BlackNativeListItem", fields: {
-    value: field({ kind: "uint32" }, true), parent: field({ kind: "objectRef", className: "BlackNativeListOwner" })
+    value: field({ kind: "uint32" }, true), parent: field({ kind: "rootRef", className: "BlackNativeListOwner" })
 } });
 meta.blue.interface(INotify)(Item);
 CjsSchema.define(WrongItem, { className: "BlackNativeListWrongItem" });

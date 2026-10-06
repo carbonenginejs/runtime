@@ -28,7 +28,7 @@ class Owner
 }
 CjsSchema.define(Owner, { className: "BlueListReaderOwner", fields: {
   items: { type: { kind: "list", itemType: itemName }, edit: { persist: true } },
-  target: { type: { kind: "objectRef", className: itemName }, edit: { persist: true } },
+  target: { type: { kind: "rootRef", className: itemName }, edit: { persist: true } },
   ordinary: { type: { kind: "list", itemType: itemName }, edit: { persist: true } },
   numbers: { type: { kind: "array", itemType: "int32" }, edit: { persist: true } }
 } });

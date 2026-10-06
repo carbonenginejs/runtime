@@ -61,7 +61,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
 
   @meta.blue.readwrite
   @meta.blue.persistOnly
-  @meta.type.objectRef("ITr2InstanceData")
+  @meta.type.rootRef("ITr2InstanceData")
   instanceGeometryResource = null;
 
   @meta.blue.notify

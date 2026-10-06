@@ -47,7 +47,7 @@ export class Tr2SkinnedModel extends Tr2Model
 
   /** m_geometryRes (TriGeometryResPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("TriGeometryRes")
+  @meta.type.rootRef("TriGeometryRes")
   geometryRes = null;
 
   /** m_skeletonName (std::string) [READWRITE, NOTIFY, PERSIST] */

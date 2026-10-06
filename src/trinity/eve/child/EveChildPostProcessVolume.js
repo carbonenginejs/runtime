@@ -50,7 +50,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
   /** m_postProcessAttributes (Tr2PostProcessAttributesPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2PostProcessAttributes")
+  @meta.type.rootRef("Tr2PostProcessAttributes")
   postProcessAttributes = null;
 
   // m_boundingSphere (CcpMath::Sphere) working state as a packed vec4; the

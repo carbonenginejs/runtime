@@ -28,7 +28,7 @@ CjsSchema.define(Tr2MaterialArea, {
   className: "Tr2MaterialArea",
   family: "resources",
   fields: {
-    material: [ meta.blue.persist, meta.type.objectRef("Tr2MaterialParameterStore") ],
+    material: [ meta.blue.persist, meta.type.rootRef("Tr2MaterialParameterStore") ],
     metatype: [ meta.blue.persist, meta.type.string ]
   }
 });

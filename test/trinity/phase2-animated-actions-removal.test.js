@@ -145,7 +145,7 @@ test("External preserves destination cache until notified and excludes its weak 
   assert.equal(clone.destinationIsValid, false);
   new DictReader({ declarations: true }).ReadInto(action, { destinationOwner: "child" });
   assert.equal(action.destination, second, "NOTIFY must run even when authored name is equal");
-  assert.equal(CjsSchema.getField(Tr2ActionSetExternalControllerVariable, "destination").type.kind, "weakRef");
+  assert.equal(CjsSchema.getField(Tr2ActionSetExternalControllerVariable, "destination").type.kind, "rootWeak");
   assert.throws(() => { action.destinationIsValid = false; }, TypeError);
   action.Unlink();
   assert.equal(action.destinationIsValid, false);

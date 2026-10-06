@@ -38,7 +38,7 @@ export class Tr2ExternalParameter extends IInitialize
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("IRoot")
+  @meta.type.rootRef("IRoot")
   destinationObject = null;
 
   /** m_destinationAttribute (std::string) [READWRITE, PERSIST, NOTIFY] */
@@ -323,11 +323,11 @@ export class Tr2ExternalParameter extends IInitialize
       return { category: "floatArray", kind: kind ?? "floatArray", length };
     }
     if (
-      ["objectRef", "model"].includes(kind) ||
+      kind === "rootRef" ||
       (kind === null && (value === null || typeof value === "object"))
     )
     {
-      return { category: "object", kind: kind ?? "objectRef" };
+      return { category: "object", kind: kind ?? "rootRef" };
     }
     return null;
   }

@@ -73,7 +73,7 @@ export class Tr2DistanceTracker extends ITriFunction
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("ITriVectorFunction")
+  @meta.type.rootRef("ITriVectorFunction")
   sourceObject = null;
 
   /**
@@ -83,7 +83,7 @@ export class Tr2DistanceTracker extends ITriFunction
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("ITriVectorFunction")
+  @meta.type.rootRef("ITriVectorFunction")
   targetObject = null;
 
   /**

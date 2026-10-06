@@ -32,7 +32,7 @@ export class EveMissile extends EveSpaceObject2
   @meta.blue.readwrite
   @meta.type.boolean updateWarheads = true;
   @meta.blue.readwrite
-  @meta.type.objectRef("ITriTargetable") target = null;
+  @meta.type.rootRef("ITriTargetable") target = null;
   @meta.blue.readwrite
   @meta.type.float32 targetRadius = 0;
   @meta.blue.readwrite

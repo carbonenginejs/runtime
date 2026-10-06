@@ -37,7 +37,7 @@ export class EveRemotePositionCurve extends ITriVectorFunction
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("ITriVectorFunction")
+  @meta.type.rootRef("ITriVectorFunction")
   startPositionCurve = null;
 
   @meta.blue.readwrite

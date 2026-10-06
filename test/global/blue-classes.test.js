@@ -267,7 +267,7 @@ test("registration revisions refresh schemas and defaults through both facades",
   class Holder { reference = null; }
   CjsSchema.define(Holder, {
     className: "RegistrationRevisionHolder",
-    fields: { reference: CjsSchema.meta.type.model("LateRegisteredResource") }
+    fields: { reference: CjsSchema.meta.type.rootRef("LateRegisteredResource") }
   });
   let constructions = 0;
   class Defaults { constructor() { this.value = ++constructions; } }

@@ -17,7 +17,7 @@ function fixture()
         Initialize() { calls.push(this.name); }
     }
     CjsSchema.define(Leaf, { className: `${prefix}Leaf`, fields: [
-        { name: "child", key: "child", type: { kind: "objectRef", className: Leaf }, lifecycle: { ownership: "owned" } }
+        { name: "child", key: "child", type: { kind: "rootRef", className: Leaf }, lifecycle: { ownership: "owned" } }
     ] });
     class Plain
     {
@@ -26,7 +26,7 @@ function fixture()
         Initialize() { assert.fail("plain objects must not enter legacy initialization"); }
     }
     CjsSchema.define(Plain, { className: `${prefix}Plain`, fields: [
-        { name: "child", key: "child", type: { kind: "objectRef", className: Leaf }, lifecycle: { ownership: "owned" } }
+        { name: "child", key: "child", type: { kind: "rootRef", className: Leaf }, lifecycle: { ownership: "owned" } }
     ] });
     class Resource
     {
@@ -37,7 +37,7 @@ function fixture()
         Initialize() { assert.fail("resources must not enter legacy initialization"); }
     }
     CjsSchema.define(Resource, { className: `${prefix}Resource`, fields: [
-        { name: "dependency", key: "dependency", type: { kind: "objectRef", className: Resource } }
+        { name: "dependency", key: "dependency", type: { kind: "rootRef", className: Resource } }
     ] });
     class Root
     {
@@ -52,13 +52,13 @@ function fixture()
         Initialize() { calls.push(this.name); }
     }
     CjsSchema.define(Root, { className: `${prefix}Root`, fields: [
-        { name: "child", key: "child", type: { kind: "objectRef", className: Leaf }, lifecycle: { ownership: "owned" } },
-        { name: "plain", key: "plain", type: { kind: "objectRef", className: Plain }, lifecycle: { ownership: "owned" } },
-        { name: "resource", key: "resource", type: { kind: "objectRef", className: `${prefix}Resource` }, lifecycle: { ownership: "owned" } },
+        { name: "child", key: "child", type: { kind: "rootRef", className: Leaf }, lifecycle: { ownership: "owned" } },
+        { name: "plain", key: "plain", type: { kind: "rootRef", className: Plain }, lifecycle: { ownership: "owned" } },
+        { name: "resource", key: "resource", type: { kind: "rootRef", className: `${prefix}Resource` }, lifecycle: { ownership: "owned" } },
         { name: "list", key: "list", type: { kind: "list", itemType: Leaf }, lifecycle: { ownership: "owned" } },
         { name: "map", key: "map", type: { kind: "map", valueType: Leaf }, lifecycle: { ownership: "owned" } },
         { name: "set", key: "set", type: { kind: "set", itemType: Leaf }, lifecycle: { ownership: "owned" } },
-        { name: "borrowed", key: "borrowed", type: { kind: "objectRef", className: Leaf } },
+        { name: "borrowed", key: "borrowed", type: { kind: "rootRef", className: Leaf } },
     ] });
     CjsSchema.meta.blue.interface(IInitialize)(Leaf);
     CjsSchema.meta.blue.interface(IInitialize)(Root);
@@ -120,12 +120,12 @@ test("public inherited traversal order is independent of reader ownership", () =
         Initialize() { calls.push(this.name); }
     }
     CjsSchema.define(Base, { className: `${prefix}Base`, fields: [
-        { name: "base", key: "base", type: { kind: "objectRef", className: Leaf }, lifecycle: { ownership: "owned" } }
+        { name: "base", key: "base", type: { kind: "rootRef", className: Leaf }, lifecycle: { ownership: "owned" } }
     ] });
     CjsSchema.meta.blue.interface(IInitialize)(Base);
     class Derived extends Base { derived = new Leaf("derived"); }
     CjsSchema.define(Derived, { className: `${prefix}Derived`, fields: [
-        { name: "derived", key: "derived", type: { kind: "objectRef", className: Leaf }, lifecycle: { ownership: "owned" } }
+        { name: "derived", key: "derived", type: { kind: "rootRef", className: Leaf }, lifecycle: { ownership: "owned" } }
     ] });
     const root = CjsSchema.from(CjsSchema.getClassName(Derived), {});
     assert.deepEqual(calls, ["root"]);

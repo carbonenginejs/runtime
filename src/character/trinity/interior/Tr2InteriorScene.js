@@ -101,12 +101,12 @@ export class Tr2InteriorScene
 
   /** m_debugRenderer (Tr2DebugRendererPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2DebugRenderer")
+  @meta.type.rootRef("Tr2DebugRenderer")
   debugRenderer = null;
 
   /** m_visibilityResults (Tr2VisibilityResultsPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("Tr2VisibilityResults")
+  @meta.type.rootRef("Tr2VisibilityResults")
   visibilityResults = null;
 
   /** m_ambientColor (Color) [READWRITE, PERSIST] */
@@ -152,13 +152,13 @@ export class Tr2InteriorScene
 
   /** m_backgroundCubeMapRes (TriTextureResPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("TriTextureRes")
+  @meta.type.rootRef("TriTextureRes")
   backgroundCubemapRes = null;
 
   /** m_backgroundEffect (Tr2EffectPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   backgroundEffect = null;
 
   /** Carbon method PickObject -> PickObjectOnly (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */

@@ -67,14 +67,14 @@ export class EveLineSet
   /** m_ballRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("ITriQuaternionFunction")
+  @meta.type.rootRef("ITriQuaternionFunction")
   rotationCurve = null;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, NOTIFY, PERSIST] */
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   effect = null;
 
   /** m_display (bool) [READWRITE, PERSIST] */
@@ -92,7 +92,7 @@ export class EveLineSet
   /** m_ballPosition (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("ITriVectorFunction")
+  @meta.type.rootRef("ITriVectorFunction")
   translationCurve = null;
 
   /** m_worldTransform (EveLineSet.h:119) - runtime state stamped by

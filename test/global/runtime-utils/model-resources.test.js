@@ -69,8 +69,8 @@ class DeclaredHolder
   child = null;
 }
 
-CjsSchema.decorateField(DeclaredHolder, "texture", meta.type.objectRef("TestRes"));
-CjsSchema.decorateField(DeclaredHolder, "geometry", meta.type.objectRef("TestRes"));
+CjsSchema.decorateField(DeclaredHolder, "texture", meta.type.rootRef("TestRes"));
+CjsSchema.decorateField(DeclaredHolder, "geometry", meta.type.rootRef("TestRes"));
 CjsSchema.decorateField(DeclaredHolder, "profiles", meta.type.list("TestRes"));
 CjsSchema.decorateField(DeclaredHolder, "child", meta.type.root(DeclaredHolder));
 CjsSchema.define(DeclaredHolder, { className: "DeclaredHolder", family: "test" });
@@ -78,7 +78,7 @@ CjsSchema.define(DeclaredHolder, { className: "DeclaredHolder", family: "test" }
 
 test("resources in declared fields are collected without any hook", () =>
 {
-  // @type.objectRef("TriGeometryRes") already says the field holds a resource.
+  // @type.rootRef("TriGeometryRes") already says the field holds a resource.
   // Runtime-only private slots use type.resource; both are traversable edges.
   const model = new DeclaredHolder();
   model.texture = createResource("texture");

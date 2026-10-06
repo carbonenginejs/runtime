@@ -54,7 +54,7 @@ export class Tr2RuntimeInstanceData
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2ParticleSystem")
+  @meta.type.rootRef("Tr2ParticleSystem")
   particleSystem = null;
 
   // DIVERGENCE (deliberate): Carbon only Blue-persists name/particleSystem and

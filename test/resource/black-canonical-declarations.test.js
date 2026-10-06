@@ -16,7 +16,7 @@ const member = (name, kind, extra = {}) => ({
 
 test("canonical Black selects the first persisted stored declaration without merging live flags", () =>
 {
-    const stored = member("boosters", "objectRef", { key: "_boosters", edit: { hidden: true, persist: true } });
+    const stored = member("boosters", "rootRef", { key: "_boosters", edit: { hidden: true, persist: true } });
     const shape = CjsBlackSchemaRegistry.fromClassInfo({
         className: "CanonicalSelection",
         members: [
@@ -59,9 +59,9 @@ test("canonical Black keeps declared reference, embedded and collection codec di
 {
     const codec = type => CjsBlackSchemaRegistry.fromDeclaredType(type).black;
     assert.equal(codec({ kind: "root", className: "Child" }).beType, "IROOT");
-    assert.equal(codec({ kind: "weakRef", className: "Child" }).beType, "IROOTWEAKREF");
+    assert.equal(codec({ kind: "rootWeak", className: "Child" }).beType, "IROOTWEAKREF");
     assert.equal(codec({ kind: "list", itemType: "Child" }).container, "list");
-    assert.equal(codec({ kind: "map", valueType: { kind: "objectRef", className: "Child" } }).container, "dict");
+    assert.equal(codec({ kind: "map", valueType: { kind: "rootRef", className: "Child" } }).container, "dict");
     assert.equal(codec({ kind: "set", itemType: "Child" }).container, "set");
 });
 
@@ -144,8 +144,8 @@ test("canonical runtime bypasses accessors and values, preserves cycles, and ini
     CjsSchema.define(Later, { className: "BlackCanonicalLater", members: [] });
     CjsSchema.define(Root, {
         className: "BlackCanonicalRoot",
-        members: [member("label", "string", { key: "_label" }), member("first", "objectRef"),
-            member("later", "objectRef"), member("shared", "objectRef"), member("self", "objectRef")],
+        members: [member("label", "string", { key: "_label" }), member("first", "rootRef"),
+            member("later", "rootRef"), member("shared", "rootRef"), member("self", "rootRef")],
         properties: [member("label", "string", { role: "property", edit: { read: true, write: true } })]
     });
     const fixture = new BlackFixture();
@@ -235,7 +235,7 @@ test("an explicit adapter retains its whole-graph contract with canonical declar
     class Parent {}
     carbonInterfaceDecorator([IInitialize])(Child);
     CjsSchema.define(Child, { className: "BlackCanonicalAdapterChild", members: [member("value", "uint32")] });
-    CjsSchema.define(Parent, { className: "BlackCanonicalAdapterParent", members: [member("child", "objectRef")] });
+    CjsSchema.define(Parent, { className: "BlackCanonicalAdapterParent", members: [member("child", "rootRef")] });
     const fixture = new BlackFixture();
     const bytes = fixture.Finish(fixture.Object(1, "BlackCanonicalAdapterParent", [
         ["child", fixture.Object(2, "BlackCanonicalAdapterChild", [["value", u32(4)]])]
@@ -296,13 +296,13 @@ test("complete scene graphs decode with explicit baseless test classes and canon
         name: CjsSchema.meta.struct.SHAREDSTRING_1(0), value: CjsSchema.meta.struct.FLOAT32_4(8)
     } });
     CjsSchema.define(Scene, { className: "EveSpaceScene", members: [
-        member("backgroundEffect", "objectRef"), member("backgroundRenderingEnabled", "boolean"),
+        member("backgroundEffect", "rootRef"), member("backgroundRenderingEnabled", "boolean"),
         ...["envMapResPath", "envMap1ResPath", "lowQualityNebulaResPath", "lowQualityNebulaMixResPath", "envMap2ResPath"].map(name => member(name, "string")),
         member("ambientColor", "color"), member("fogStart", "float32"), member("fogEnd", "float32"), member("reflectionIntensity", "float32")
     ] });
     CjsSchema.define(Effect, { className: "Tr2Effect", members: [
         member("effectFilePath", "string"),
-        member("resources", "list", { type: { kind: "list", itemType: { kind: "objectRef", className: "TriTextureParameter" } } }),
+        member("resources", "list", { type: { kind: "list", itemType: { kind: "rootRef", className: "TriTextureParameter" } } }),
         member("constParameters", "structList", { type: { kind: "structList", className: "Tr2ConstantEffectParameter" } })
     ] });
     CjsSchema.define(Texture, { className: "TriTextureParameter", members: [member("name", "string"), member("resourcePath", "path")] });

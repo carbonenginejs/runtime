@@ -197,7 +197,7 @@ export class CjsCharacterLibrary
 
     @meta.blue.readwrite
     @meta.blue.persist
-    @meta.type.model("CjsCharacterLibraryDocuments")
+    @meta.type.rootRef("CjsCharacterLibraryDocuments")
     documents = new CjsCharacterLibraryDocuments();
 
     /**
@@ -721,7 +721,7 @@ function ValidateFieldValue(value, fieldType, label)
         return;
     }
 
-    if (fieldType.kind === "model")
+    if (fieldType.kind === "rootRef")
     {
         if ((typeof value === "string" && value.trim()) || Number.isSafeInteger(value))
         {

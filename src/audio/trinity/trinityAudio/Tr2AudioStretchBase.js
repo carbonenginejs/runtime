@@ -19,19 +19,19 @@ export class Tr2AudioStretchBase
   /** m_stretchEmitter (ITr2AudEmitterPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("ITr2AudEmitter")
+  @meta.type.rootRef("ITr2AudEmitter")
   stretchEmitter = null;
 
   /** m_destEmitter (ITr2AudEmitterPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("ITr2AudEmitter")
+  @meta.type.rootRef("ITr2AudEmitter")
   destinationEmitter = null;
 
   /** m_sourceEmitter (ITr2AudEmitterPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("ITr2AudEmitter")
+  @meta.type.rootRef("ITr2AudEmitter")
   sourceEmitter = null;
 
   _front = new Float32Array([ 0, 1, 0 ]);

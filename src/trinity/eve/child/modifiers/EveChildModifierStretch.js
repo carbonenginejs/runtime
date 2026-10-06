@@ -17,7 +17,7 @@ export class EveChildModifierStretch extends IEveChildTransformModifier
 {
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("ITriVectorFunction")
+  @meta.type.rootRef("ITriVectorFunction")
   dest = null;
 
   /** m_destPosition - runtime fallback endpoint fed via SetDestPosition. */

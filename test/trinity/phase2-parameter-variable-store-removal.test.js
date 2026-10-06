@@ -30,7 +30,7 @@ test("material declarations retain native member order and persistence flags", (
 {
   const members = CjsSchema.getSchema(Tr2MaterialParameterStore).members;
   assert.deepEqual(members.map(field => field.name), ["name", "parentPath", "parent", "parameters"]);
-  assert.deepEqual(members.map(field => field.type.kind), ["string", "path", "objectRef", "map"]);
+  assert.deepEqual(members.map(field => field.type.kind), ["string", "path", "rootRef", "map"]);
   assert.deepEqual(members.map(field => field.edit.persist === true), [true, true, false, true]);
   assert.equal(members[1].edit.notify, true);
   assert.equal(members[2].edit.read, true);

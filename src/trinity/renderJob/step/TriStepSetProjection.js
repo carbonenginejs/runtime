@@ -15,7 +15,7 @@ export class TriStepSetProjection extends TriRenderStep
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("TriProjection")
+  @meta.type.rootRef("TriProjection")
   projection = null;
 
   /** Stores the projection this step installs. */

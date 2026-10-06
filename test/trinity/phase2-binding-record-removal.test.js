@@ -35,7 +35,7 @@ test("binding declarations preserve native order and Python endpoints do not per
   }
   const external = CjsSchema.getSchema(Tr2ExternalParameter).members;
   assert.deepEqual(external.map(field => field.name), ["name", "destinationObject", "destinationAttribute", "valid"]);
-  assert.equal(external[1].type.kind, "objectRef");
+  assert.equal(external[1].type.kind, "rootRef");
   assert.equal(external[1].edit.persist, true);
   assert.equal(external[1].edit.notify, true);
   const vector = CjsSchema.getSchema(Tr2BindingVector3).members;

@@ -31,7 +31,7 @@ export class EveTrailsSet
 
   /** m_geometryResource (TriGeometryResPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("TriGeometryRes")
+  @meta.type.rootRef("TriGeometryRes")
   geometryResource = null;
 
   /** m_fadeSpeed (float) [READWRITE, PERSIST] */
@@ -43,7 +43,7 @@ export class EveTrailsSet
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   effect = null;
 
   /** m_geometryResPath (std::string) [READWRITE, PERSIST, NOTIFY] */

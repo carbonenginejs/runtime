@@ -37,8 +37,8 @@ function declareParent(Child)
     children = [];
     byName = new Map();
   };
-  CjsSchema.decorateField(Parent, "child", CjsSchema.meta.type.model(Child.name));
-  CjsSchema.decorateField(Parent, "children", CjsSchema.meta.type.list({ kind: "model", className: Child.name }));
+  CjsSchema.decorateField(Parent, "child", CjsSchema.meta.type.rootRef(Child.name));
+  CjsSchema.decorateField(Parent, "children", CjsSchema.meta.type.list({ kind: "rootRef", className: Child.name }));
   CjsSchema.decorateField(Parent, "byName", CjsSchema.meta.type.map(Child.name));
   CjsSchema.define(Parent, { className: `HydrationParent${next++}` });
   return Parent;

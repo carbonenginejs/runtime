@@ -5,7 +5,7 @@ import { CjsSchema } from "../../src/global/schema/CjsSchema.js";
 import { CjsDocumentDehydrator } from "../../src/global/model/document/CjsDocumentDehydrator.js";
 import { CjsDocumentHydrator } from "../../src/global/model/document/CjsDocumentHydrator.js";
 
-const resourceType = { kind: "objectRef", runtimeOnly: true };
+const resourceType = { kind: "rootRef", runtimeOnly: true };
 
 function throwingField(target, key)
 {
@@ -131,7 +131,7 @@ test("document hydration omits captured resources before resolving references or
         resource = retained;
         _sourceShape = { fields: [
             { name: "resource", type: resourceType },
-            { name: "ordinary", type: { kind: "objectRef" } }
+            { name: "ordinary", type: { kind: "rootRef" } }
         ] };
     }
     const target = new Source();
@@ -176,8 +176,8 @@ test("document dehydration preserves plain registered child identity and cycles"
     class Node { value = 1; next = null; other = null; }
     CjsSchema.define(Node, { className: "DocumentPlainGraph", fields: [
         { name: "value", type: { kind: "int32" } },
-        { name: "next", type: { kind: "objectRef", className: "DocumentPlainGraph" } },
-        { name: "other", type: { kind: "objectRef", className: "DocumentPlainGraph" } }
+        { name: "next", type: { kind: "rootRef", className: "DocumentPlainGraph" } },
+        { name: "other", type: { kind: "rootRef", className: "DocumentPlainGraph" } }
     ] });
     const root = new Node(), child = new Node();
     root.next = root.other = child;

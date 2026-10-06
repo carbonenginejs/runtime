@@ -986,7 +986,7 @@ export class DictReader extends IRootReaderBase
     {
       return this._HasDeclaredReferences(type.kind === "map" ? type.valueType : type.itemType);
     }
-    return ["objectRef", "model"].includes(type?.kind) || typeof type === "function"
+    return type?.kind === "rootRef" || typeof type === "function"
       || (typeof type === "string" && !!CjsSchema.GetConstructor(type));
   }
 
@@ -1412,7 +1412,7 @@ function MatchesObjectValues(current, source)
       if (!CjsSchema.isFieldWritable(field) || field.type?.runtimeOnly === true) continue;
       const value = readDictionaryValue(current, field);
       const kind = field.type?.kind;
-      if (["model", "objectRef", "root", "list", "array", "structList"].includes(kind))
+      if (["rootRef", "root", "list", "array", "structList"].includes(kind))
       {
         if (!MatchesObjectValues(value, source[name])) return false;
       }

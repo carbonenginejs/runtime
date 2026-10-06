@@ -30,11 +30,11 @@ export class CmfVertexReader
 CjsSchema.define(CmfVertexReader, {
   className: "CmfVertexReader", family: "resources",
   fields: {
-    posElem: meta.type.objectRef("cmf::VertexElement"),
-    normElem: meta.type.objectRef("cmf::VertexElement"),
-    tanElem: meta.type.objectRef("cmf::VertexElement"),
-    binormElem: meta.type.objectRef("cmf::VertexElement"),
-    pkdTanElem: meta.type.objectRef("cmf::VertexElement"),
-    pkdLegElem: meta.type.objectRef("cmf::VertexElement")
+    posElem: meta.type.rootRef("cmf::VertexElement"),
+    normElem: meta.type.rootRef("cmf::VertexElement"),
+    tanElem: meta.type.rootRef("cmf::VertexElement"),
+    binormElem: meta.type.rootRef("cmf::VertexElement"),
+    pkdTanElem: meta.type.rootRef("cmf::VertexElement"),
+    pkdLegElem: meta.type.rootRef("cmf::VertexElement")
   }
 });

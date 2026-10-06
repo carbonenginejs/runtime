@@ -280,7 +280,7 @@ test("binding persisted endpoint storage is separate from live setters during co
     const stored = info.members.find(field => field.name === name);
     const property = info.properties.find(field => field.name === name);
     assert.equal(stored.key, "_" + name);
-    assert.equal(stored.type.kind, "objectRef");
+    assert.equal(stored.type.kind, "rootRef");
     assert.equal(stored.edit.persist, true);
     assert.equal(stored.edit.hidden, true);
     assert.equal(property.key, name);

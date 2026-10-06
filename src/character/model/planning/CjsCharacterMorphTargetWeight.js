@@ -27,12 +27,12 @@ export class CjsCharacterMorphTargetWeight
 
     @meta.blue.readwrite
     @meta.blue.persist
-    @meta.type.model("CjsCharacterAppearanceSelection")
+    @meta.type.rootRef("CjsCharacterAppearanceSelection")
     owner = null;
 
     @meta.blue.readwrite
     @meta.blue.persist
-    @meta.type.model("CjsCharacterOrigin")
+    @meta.type.rootRef("CjsCharacterOrigin")
     origin = null;
 
 }

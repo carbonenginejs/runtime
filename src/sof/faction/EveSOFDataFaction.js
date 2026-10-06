@@ -10,19 +10,19 @@ export class EveSOFDataFaction
   /** m_areaTypes (EveSOFDataAreaPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataArea")
+  @meta.type.rootRef("EveSOFDataArea")
   areaTypes = null;
 
   /** m_colorSet (EveSOFDataFactionColorSetPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataFactionColorSet")
+  @meta.type.rootRef("EveSOFDataFactionColorSet")
   colorSet = null;
 
   /** m_logoSet (EveSOFDataLogoSetPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataLogoSet")
+  @meta.type.rootRef("EveSOFDataLogoSet")
   logoSet = null;
 
   /** m_description (std::string) [READWRITE, PERSIST] */
@@ -52,7 +52,7 @@ export class EveSOFDataFaction
   /** m_visibilityGroupSet (EveSOFDataFactionVisibilityGroupSetPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataFactionVisibilityGroupSet")
+  @meta.type.rootRef("EveSOFDataFactionVisibilityGroupSet")
   visibilityGroupSet = null;
 
   /** m_resPathInsert (std::string) [READWRITE, PERSIST] */
@@ -88,7 +88,7 @@ export class EveSOFDataFaction
   /** m_defaultPattern (EveSOFDataPatternLayerPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataPatternLayer")
+  @meta.type.rootRef("EveSOFDataPatternLayer")
   defaultPattern = null;
 
   /** m_defaultPatternLayer1MaterialName (std::string) [READWRITE, PERSIST] */

@@ -35,7 +35,7 @@ export class PlayFX extends EveEntity
   /** m_firingEffect (IEveFiringEffectElementPtr) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("IEveFiringEffectElement")
+  @meta.type.rootRef("IEveFiringEffectElement")
   firingEffect = null;
 
   /** m_firingEffects (PIEveFiringEffectElementVector) [READ] */

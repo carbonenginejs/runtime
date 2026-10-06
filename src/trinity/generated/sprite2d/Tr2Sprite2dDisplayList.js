@@ -18,7 +18,7 @@ export class Tr2Sprite2dDisplayList
   indexBuffer = null;
 
   /** job (TriRenderJobPtr) */
-  @meta.type.objectRef("TriRenderJob")
+  @meta.type.rootRef("TriRenderJob")
   job = null;
 
   /** numVertices (uint32_t) */
@@ -42,15 +42,15 @@ export class Tr2Sprite2dDisplayList
   texelSize1 = vec4.create();
 
   /** texture0 (Tr2AtlasTexturePtr) */
-  @meta.type.objectRef("Tr2AtlasTexture")
+  @meta.type.rootRef("Tr2AtlasTexture")
   texture0 = null;
 
   /** texture1 (Tr2AtlasTexturePtr) */
-  @meta.type.objectRef("Tr2AtlasTexture")
+  @meta.type.rootRef("Tr2AtlasTexture")
   texture1 = null;
 
   /** effect (Tr2EffectPtr) */
-  @meta.type.objectRef("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   effect = null;
 
   /** transformArray (Matrix) */
@@ -58,7 +58,7 @@ export class Tr2Sprite2dDisplayList
   transformArray = mat4.create();
 
   /** m_uiTransformsCb (Tr2ConstantBufferAL*) */
-  @meta.type.objectRef("Tr2ConstantBufferAL")
+  @meta.type.rootRef("Tr2ConstantBufferAL")
   uiTransformsCb = null;
 
   /** entries (std::list<Entry>) */
@@ -66,7 +66,7 @@ export class Tr2Sprite2dDisplayList
   entries = null;
 
   /** m_owner (ITr2SpriteObject*) */
-  @meta.type.objectRef("ITr2SpriteObject")
+  @meta.type.rootRef("ITr2SpriteObject")
   owner = null;
 
 }

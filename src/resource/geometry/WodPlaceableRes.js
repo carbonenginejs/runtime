@@ -12,7 +12,7 @@ export class WodPlaceableRes
   /** Native visual model. */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2Model")
+  @meta.type.rootRef("Tr2Model")
   visualModel = null;
 
   /** Native squared far fade distance. */

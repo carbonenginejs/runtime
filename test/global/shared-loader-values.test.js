@@ -80,7 +80,7 @@ test("a failed dictionary operation cannot leak anchors or completion into reade
   class Record { name = ""; child = null; Initialize() { calls.push(this.name); } }
   CjsSchema.define(Record, { className: "SharedLoaderReuseRecord", fields: [
     { name: "name", key: "name", type: { kind: "string" } },
-    { name: "child", key: "child", type: { kind: "objectRef", className: Record } }
+    { name: "child", key: "child", type: { kind: "rootRef", className: Record } }
   ] });
   CjsSchema.meta.blue.interface(IInitialize)(Record);
   const reader = new DictReader();

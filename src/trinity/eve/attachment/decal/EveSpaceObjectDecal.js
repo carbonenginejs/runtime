@@ -85,7 +85,7 @@ export class EveSpaceObjectDecal
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   decalEffect = null;
 
   @meta.blue.readwrite

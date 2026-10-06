@@ -40,7 +40,7 @@ export class Tr2DynamicBinding extends INotify
 
   /** Native destination member. */
   @meta.blue.read
-  @meta.type.weakRef("IRoot")
+  @meta.type.rootWeak("IRoot")
   destination = null;
 
   /**
@@ -71,7 +71,7 @@ export class Tr2DynamicBinding extends INotify
 
   /** Native source member. */
   @meta.blue.read
-  @meta.type.weakRef("IRoot")
+  @meta.type.rootWeak("IRoot")
   source = null;
 
   /** Native scale member. */
@@ -101,7 +101,7 @@ export class Tr2DynamicBinding extends INotify
 
   /** Native binding member. */
   @meta.blue.read
-  @meta.type.objectRef("TriValueBinding")
+  @meta.type.rootRef("TriValueBinding")
   binding = null;
 
   /** Runtime binding time state for the portable binding adapter. */

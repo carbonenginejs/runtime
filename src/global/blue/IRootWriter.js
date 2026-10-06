@@ -19,7 +19,7 @@ import { getDictionaryDeclarations, readDictionaryValue } from "./dictionaryDecl
 import { ICustomPersist } from "./ICustomPersist.js";
 
 /** Kinds written as an object that may be shared (IROOTPTR). */
-const OBJECT_KINDS = new Set([ "model", "objectRef" ]);
+const OBJECT_KINDS = new Set([ "rootRef" ]);
 
 /** Kinds written as a list (BlueList). */
 const LIST_KINDS = new Set([ "list", "array" ]);

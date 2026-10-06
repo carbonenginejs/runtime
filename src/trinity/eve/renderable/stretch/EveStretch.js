@@ -44,15 +44,15 @@ export class EveStretch extends IEveFiringEffectElement
   name = "";
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("ITriVectorFunction")
+ @meta.type.rootRef("ITriVectorFunction")
   source = null;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("ITriVectorFunction")
+ @meta.type.rootRef("ITriVectorFunction")
   dest = null;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("IStretchAudio")
+ @meta.type.rootRef("IStretchAudio")
   stretchAudio = null;
   @meta.blue.read
   @meta.type.int32
@@ -60,11 +60,11 @@ export class EveStretch extends IEveFiringEffectElement
   lodLevel = 0;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("ITriScalarFunction")
+ @meta.type.rootRef("ITriScalarFunction")
   progressCurve = null;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("TriCurveSet")
+ @meta.type.rootRef("TriCurveSet")
   moveCompletion = null;
   @meta.blue.read
   @meta.blue.persist
@@ -72,7 +72,7 @@ export class EveStretch extends IEveFiringEffectElement
   curveSets = [];
   @meta.blue.read
   @meta.blue.persist
- @meta.type.model("TriFloat")
+ @meta.type.rootRef("TriFloat")
   length = new TriFloat();
   @meta.blue.readwrite
   @meta.type.boolean
@@ -99,15 +99,15 @@ export class EveStretch extends IEveFiringEffectElement
   sourceLights = [];
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("EveTransform")
+ @meta.type.rootRef("EveTransform")
   destObject = null;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("EveTransform")
+ @meta.type.rootRef("EveTransform")
   sourceObject = null;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("EveTransform")
+ @meta.type.rootRef("EveTransform")
   stretchObject = null;
   @meta.blue.readwrite
   @meta.blue.persist
@@ -118,11 +118,11 @@ export class EveStretch extends IEveFiringEffectElement
   startTime = -1;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("ITr2Audio")
+ @meta.type.rootRef("ITr2Audio")
   audio = null;
   @meta.blue.readwrite
   @meta.blue.persist
- @meta.type.model("EveTransform")
+ @meta.type.rootRef("EveTransform")
   moveObject = null;
 
   _sourcePosition = vec3.create();

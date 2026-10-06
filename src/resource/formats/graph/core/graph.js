@@ -6,7 +6,7 @@ import { mappedInterfaces } from "../../../../global/compose/interface.js";
 import { dataType, isRecord, memberPath, put } from "./dataTypes.js";
 
 const RESERVED = new Set(["_type", "_id", "_ref", "__bluemetadata__"]);
-const OBJECTS = new Set(["objectRef", "model", "weakRef", "root", "rawStruct"]);
+const OBJECTS = new Set(["rootRef", "rootWeak", "root", "rawStruct"]);
 
 /**
  * The canonical stored member projection; never use the lossy compatibility fields bag.
@@ -72,10 +72,10 @@ function storage(instance, field)
  */
 function descriptor(type, field)
 {
-    if (typeof type === "function") type = { kind: "objectRef", className: CjsSchema.getClassName(type) };
+    if (typeof type === "function") type = { kind: "rootRef", className: CjsSchema.getClassName(type) };
     // A BlueStructureList travels as a list of embedded records of its item class.
     if (type?.kind === "structList") type = { kind: "list", itemType: { kind: "rawStruct", className: type.className } };
-    if (typeof type === "string" && getClassRegistration(type)) type = { kind: "objectRef", className: type };
+    if (typeof type === "string" && getClassRegistration(type)) type = { kind: "rootRef", className: type };
     return dataType(type, field);
 }
 
@@ -125,8 +125,8 @@ function mapEntries(value)
  */
 function graphPosition(type)
 {
-    if (typeof type === "string") return getClassRegistration(type) ? "objectRef" : type;
-    if (typeof type === "function") return "objectRef";
+    if (typeof type === "string") return getClassRegistration(type) ? "rootRef" : type;
+    if (typeof type === "function") return "rootRef";
     return type?.kind;
 }
 
@@ -298,7 +298,7 @@ export function writeGraph(root, handlers, options = {})
     const selected = field => !field.type?.runtimeOnly && (field.edit?.persist || field.edit?.persistOnly);
     const scanValue = (value, type, path) =>
     {
-        if (value == null || type.kind === "weakRef" || type.runtimeOnly) return;
+        if (value == null || type.kind === "rootWeak" || type.runtimeOnly) return;
         if (OBJECTS.has(type.kind)) scan(value, path, type);
         else if (["array", "list", "set", "map"].includes(type.kind))
         {
@@ -309,7 +309,7 @@ export function writeGraph(root, handlers, options = {})
             for (const item of items) scanValue(item, itemType, memberPath(path, index++));
         }
     };
-    const scan = (instance, path, type = { kind: "objectRef" }) =>
+    const scan = (instance, path, type = { kind: "rootRef" }) =>
     {
         const Constructor = storageClass(instance, type);
         if (!Constructor || !CjsSchema.getClassName(Constructor)) throw new TypeError("Unknown registered class");
@@ -338,7 +338,7 @@ export function writeGraph(root, handlers, options = {})
         const Constructor = storageClass(instance, type);
         if (!Constructor || !CjsSchema.getClassName(Constructor)) throw new TypeError("Unknown registered class");
         if (Constructor === instance.constructor) checkClass(instance, type);
-        if (type.kind === "weakRef")
+        if (type.kind === "rootWeak")
         {
             if (!strong.has(instance) || embedded.has(instance)) throw new TypeError("Weak reference target is outside the strong graph");
             return { _ref: idFor(instance) };
@@ -399,7 +399,7 @@ export function writeGraph(root, handlers, options = {})
     };
     scan(root, "/root");
     throwReports(reports);
-    const result = object(root, { kind: "objectRef" }, "/root", true);
+    const result = object(root, { kind: "rootRef" }, "/root", true);
     throwReports(reports);
     discover(result);
     return result;
@@ -575,15 +575,15 @@ export function readGraph(root, handlers, options = {})
         {
             const target = ids.get(source._ref);
             if (!target) throw new TypeError(`Missing reference ${source._ref}`);
-            if (type.kind === "weakRef")
+            if (type.kind === "rootWeak")
             {
                 const token = {};
                 weakTokens.set(token, { source: target, type, path });
                 return token;
             }
-            return object(target, { ...type, kind: "objectRef" }, path);
+            return object(target, { ...type, kind: "rootRef" }, path);
         }
-        if (type.kind === "weakRef") throw new TypeError("Weak reference requires _ref or null");
+        if (type.kind === "rootWeak") throw new TypeError("Weak reference requires _ref or null");
         let instance = instances.get(source);
         if (instance)
         {
@@ -656,7 +656,7 @@ export function readGraph(root, handlers, options = {})
             if (!Array.isArray(input)) throw new TypeError("Expected array");
             const items = [];
             const itemType = descriptor(type.itemType);
-            const omitFailed = type.kind !== "set" && ["objectRef", "model"].includes(itemType.kind);
+            const omitFailed = type.kind !== "set" && itemType.kind === "rootRef";
             let failed = false;
             for (let index = 0; index < input.length; index++)
             {
@@ -702,7 +702,7 @@ export function readGraph(root, handlers, options = {})
         return handle(input, type, path, handlers, options, false);
     };
     let result;
-    try { result = object(root, { kind: "objectRef" }, "/root"); }
+    try { result = object(root, { kind: "rootRef" }, "/root"); }
     catch (error)
     {
         report("/root", error);

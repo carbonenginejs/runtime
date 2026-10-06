@@ -64,7 +64,7 @@ export class CjsBlackSchemaRegistry
      */
     static fromDeclaredType(type)
     {
-        if (typeof type === "function") type = { kind: "objectRef", className: type };
+        if (typeof type === "function") type = { kind: "rootRef", className: type };
         if (typeof type === "string") type = { kind: type };
         if (type?.runtimeOnly === true) throw new TypeError("Runtime-only fields have no Black codec.");
         // meta.type.binary is Carbon's BINARYBLOCK, whatever value the member holds.
@@ -84,10 +84,10 @@ export class CjsBlackSchemaRegistry
         {
             return CjsBlackSchemaRegistry.compactTypeDescriptor(scalarTypes[kind], type);
         }
-        if (kind === "model" || kind === "objectRef" || kind === "weakRef")
+        if (kind === "rootRef" || kind === "rootWeak")
         {
             return CjsBlackSchemaRegistry.compactBlackType(
-                kind === "weakRef" ? "IROOTWEAKREF" : "IROOTPTR", { ...type, kind: "objectRef" });
+                kind === "rootWeak" ? "IROOTWEAKREF" : "IROOTPTR", { ...type, kind: "rootRef" });
         }
         if (kind === "root")
         {
@@ -107,15 +107,15 @@ export class CjsBlackSchemaRegistry
         {
             let itemType = kind === "map" ? type.valueType : type.itemType;
             // list("Class") is a collection of objects; a BlueStructureList is structList("Class").
-            if (typeof itemType === "string") itemType = { kind: "objectRef", className: itemType };
-            if (typeof itemType === "function") itemType = { kind: "objectRef", className: itemType };
-            if (![ "model", "objectRef", "weakRef" ].includes(itemType?.kind))
+            if (typeof itemType === "string") itemType = { kind: "rootRef", className: itemType };
+            if (typeof itemType === "function") itemType = { kind: "rootRef", className: itemType };
+            if (![ "rootRef", "rootWeak" ].includes(itemType?.kind))
             {
                 throw new TypeError(`Unsupported canonical Black ${kind} item type: ${itemType?.kind || "missing"}`);
             }
             return CjsBlackSchemaRegistry.compactBlackType("IROOT", {
                 kind: kind === "map" ? "map" : "array",
-                elementType: { ...itemType, kind: "objectRef" }
+                elementType: { ...itemType, kind: "rootRef" }
             }, { container: kind === "map" ? "dict" : kind === "set" ? "set" : "list" });
         }
         throw new TypeError(`Unsupported canonical Black type: ${kind || "missing"}`);
@@ -573,7 +573,7 @@ export class CjsBlackSchemaRegistry
             case "dict":
                 return CjsBlackSchemaRegistry.compactBlackType("IROOT", { kind: "map" }, { container: "dict" });
             case "object":
-                return CjsBlackSchemaRegistry.compactBlackType("IROOTPTR", { kind: "objectRef" });
+                return CjsBlackSchemaRegistry.compactBlackType("IROOTPTR", { kind: "rootRef" });
             case "rawStruct":
                 return CjsBlackSchemaRegistry.compactBlackType("IROOT", { kind: "rawStruct" });
             case "structList":
@@ -662,7 +662,7 @@ export class CjsBlackSchemaRegistry
             case "BINARYBLOCK":
                 return "binaryBlock";
             case "IROOTPTR":
-                return "objectRef";
+                return "rootRef";
             case "IROOT":
                 return container ? "container" : "inlineObject";
             default:

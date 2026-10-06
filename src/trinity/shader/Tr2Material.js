@@ -46,7 +46,7 @@ export class Tr2Material
 {
 
   /** m_shader (Tr2ShaderPtr) */
-  @meta.type.objectRef("Tr2Shader")
+  @meta.type.rootRef("Tr2Shader")
   shader = null;
 
   /** m_parametersForPasses (Tr2EffectTechniqueParametersVector) */

@@ -40,7 +40,7 @@ export class EveSOFDataLogoSet
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataLogo")
+  @meta.type.rootRef("EveSOFDataLogo")
   Primary = null;
 
   /** Optional secondary logo record; native EveSOFDataLogoPtr, READWRITE/PERSIST.
@@ -48,7 +48,7 @@ export class EveSOFDataLogoSet
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataLogo")
+  @meta.type.rootRef("EveSOFDataLogo")
   Secondary = null;
 
   /** Optional tertiary logo record; native EveSOFDataLogoPtr, READWRITE/PERSIST.
@@ -56,7 +56,7 @@ export class EveSOFDataLogoSet
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataLogo")
+  @meta.type.rootRef("EveSOFDataLogo")
   Tertiary = null;
 
   /** Optional first marking logo record; native EveSOFDataLogoPtr, READWRITE/PERSIST.
@@ -64,7 +64,7 @@ export class EveSOFDataLogoSet
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataLogo")
+  @meta.type.rootRef("EveSOFDataLogo")
   Marking_01 = null;
 
   /** Optional second marking logo record; native EveSOFDataLogoPtr, READWRITE/PERSIST.
@@ -72,7 +72,7 @@ export class EveSOFDataLogoSet
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataLogo")
+  @meta.type.rootRef("EveSOFDataLogo")
   Marking_02 = null;
 
   /** Validates an enum slot and checks for a logo; a JS-only helper.

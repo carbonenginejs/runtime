@@ -219,12 +219,12 @@ export class Tr2GrannyAnimation
 
   /** m_grannyRes (TriGrannyResPtr) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("TriGrannyRes")
+  @meta.type.rootRef("TriGrannyRes")
   grannyRes = null;
 
   /** m_eventListener (IBlueEventListenerPtr) [READWRITE] */
   @meta.blue.readwrite
-  @meta.type.objectRef("IBlueEventListener")
+  @meta.type.rootRef("IBlueEventListener")
   eventListener = null;
 
   /** m_animationEnabled (bool) [READWRITE] */
@@ -244,7 +244,7 @@ export class Tr2GrannyAnimation
 
   /** m_boneOffset (PGrannyBoneOffset) [READ] */
   @meta.blue.read
-  @meta.type.objectRef("GrannyBoneOffset")
+  @meta.type.rootRef("GrannyBoneOffset")
   boneOffset = new GrannyBoneOffset();
 
   /**

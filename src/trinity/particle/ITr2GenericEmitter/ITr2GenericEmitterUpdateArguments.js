@@ -12,7 +12,7 @@ export class ITr2GenericEmitterUpdateArguments
   @meta.type.float64
   time = 0;
 
-  @meta.type.objectRef("Tr2GpuParticleSystem")
+  @meta.type.rootRef("Tr2GpuParticleSystem")
   system = null;
 
   @meta.type.mat4

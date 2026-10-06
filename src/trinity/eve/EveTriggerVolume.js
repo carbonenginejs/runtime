@@ -69,13 +69,13 @@ export class EveTriggerVolume
   /** m_ballPosition: vector function slot placing the trigger volume. */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("ITriVectorFunction")
+  @meta.type.rootRef("ITriVectorFunction")
   translationCurve = null;
 
   /** m_ballRotation: quaternion function slot rotating the trigger volume. */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("ITriQuaternionFunction")
+  @meta.type.rootRef("ITriQuaternionFunction")
   rotationCurve = null;
 
   /**
@@ -83,7 +83,7 @@ export class EveTriggerVolume
    * exposes it READWRITE but NOT PERSIST (EveTriggerVolume_Blue.cpp:58-62) -
    * destiny wires it at runtime, so it never serializes.
    */
-  @meta.type.model("ITriVectorFunction")
+  @meta.type.rootRef("ITriVectorFunction")
   trackedPositionCurve = null;
 
   /** Whether the tracked position is currently inside the trigger region. */

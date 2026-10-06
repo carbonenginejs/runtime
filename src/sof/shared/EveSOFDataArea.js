@@ -61,7 +61,7 @@ export class EveSOFDataArea
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataAreaMaterial")
+  @meta.type.rootRef("EveSOFDataAreaMaterial")
   Primary = null;
 
   /**
@@ -71,7 +71,7 @@ export class EveSOFDataArea
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataAreaMaterial")
+  @meta.type.rootRef("EveSOFDataAreaMaterial")
   Glass = null;
 
   /**
@@ -81,7 +81,7 @@ export class EveSOFDataArea
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataAreaMaterial")
+  @meta.type.rootRef("EveSOFDataAreaMaterial")
   Sails = null;
 
   /**
@@ -91,7 +91,7 @@ export class EveSOFDataArea
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataAreaMaterial")
+  @meta.type.rootRef("EveSOFDataAreaMaterial")
   Reactor = null;
 
   /**
@@ -101,7 +101,7 @@ export class EveSOFDataArea
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataAreaMaterial")
+  @meta.type.rootRef("EveSOFDataAreaMaterial")
   Darkhull = null;
 
   /**
@@ -111,7 +111,7 @@ export class EveSOFDataArea
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataAreaMaterial")
+  @meta.type.rootRef("EveSOFDataAreaMaterial")
   Rock = null;
 
   /**
@@ -121,7 +121,7 @@ export class EveSOFDataArea
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataAreaMaterial")
+  @meta.type.rootRef("EveSOFDataAreaMaterial")
   Monument = null;
 
   /**
@@ -131,7 +131,7 @@ export class EveSOFDataArea
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataAreaMaterial")
+  @meta.type.rootRef("EveSOFDataAreaMaterial")
   Ornament = null;
 
   /**
@@ -141,7 +141,7 @@ export class EveSOFDataArea
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataAreaMaterial")
+  @meta.type.rootRef("EveSOFDataAreaMaterial")
   SimplePrimary = null;
 
   /**
@@ -151,7 +151,7 @@ export class EveSOFDataArea
    */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("EveSOFDataAreaMaterial")
+  @meta.type.rootRef("EveSOFDataAreaMaterial")
   Turret = null;
 
   /**

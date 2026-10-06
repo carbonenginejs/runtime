@@ -142,7 +142,7 @@ export class EveChildTurret extends EveChildMesh
   /** The module for the firing effect of this turret. */
   @meta.blue.readwrite
   @meta.blue.hidden
-  @meta.type.objectRef("EveTurretFiringFX")
+  @meta.type.rootRef("EveTurretFiringFX")
   firingEffect = null;
 
   /** A res path to the redfile containing the primary firing effect. */
@@ -170,7 +170,7 @@ export class EveChildTurret extends EveChildMesh
   /** The observer for turret movement sounds; positioned automatically. */
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.objectRef("TriObserverLocal")
+  @meta.type.rootRef("TriObserverLocal")
   turretMovementObserver = null;
 
   /** Whether mechanical movement sounds play when events are authored. */

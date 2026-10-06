@@ -97,7 +97,7 @@ test("Tr2Sprite2dRenderJob is maintained and generator-protected", () =>
   assert.equal(CjsSchema.getMethod(Tr2Sprite2dRenderJob, "GatherSprites")?.impl?.status, "implemented");
   assert.equal(CjsSchema.getMethod(Tr2Sprite2dRenderJob, "PickPoint")?.impl?.status, "implemented");
   assert.equal(CjsSchema.getMethod(Tr2Sprite2dRenderJob, "GetVertexCount")?.impl?.status, "implemented");
-  assert.equal(CjsSchema.getField(Tr2Sprite2dRenderJob, "renderJob")?.type?.kind, "objectRef");
+  assert.equal(CjsSchema.getField(Tr2Sprite2dRenderJob, "renderJob")?.type?.kind, "rootRef");
   assert.equal(disposition?.reason, "hand-maintained source exists");
   assert.equal(existsSync(new URL(
     "../../src/trinity/generated/sprite2d/Tr2Sprite2dRenderJob.js",

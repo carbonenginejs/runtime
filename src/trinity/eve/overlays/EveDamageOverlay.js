@@ -46,7 +46,7 @@ export class EveDamageOverlay
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("Tr2Effect")
+  @meta.type.rootRef("Tr2Effect")
   armorDamageShader = null;
 
   @meta.blue.readwrite
@@ -62,15 +62,15 @@ export class EveDamageOverlay
   debugForceSpawnDebris = false;
 
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2ScalarFader")
+  @meta.type.rootRef("Tr2ScalarFader")
   armorRepairing = new Tr2ScalarFader();
 
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2ScalarFader")
+  @meta.type.rootRef("Tr2ScalarFader")
   armorHardening = new Tr2ScalarFader();
 
   @meta.blue.readwrite
-  @meta.type.objectRef("Tr2ScalarFader")
+  @meta.type.rootRef("Tr2ScalarFader")
   hullRepairing = new Tr2ScalarFader();
 
   @meta.blue.readwrite
@@ -92,7 +92,7 @@ export class EveDamageOverlay
 
   @meta.blue.readwrite
   @meta.blue.persist
-  @meta.type.model("TriPerlinCurve")
+  @meta.type.rootRef("TriPerlinCurve")
   hullDamageFlickerCurve = null;
 
   _dataTextureOffset = -1;
