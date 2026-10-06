@@ -1187,7 +1187,10 @@ function assertProof(program, proof, role)
  */
 export function particleClearSignedAtomicLayoutPolicy(program, proof = null)
 {
-    if (isParticleClearResetCandidate(program))
+    // The reset's shape (one signed buffer UAV, 1x1x1, store 0) is not unique to
+    // particles: computelightlists' Clear has it too. Only an effect that proved
+    // itself a particle-clear effect claims it; without a proof it is general compute.
+    if (isParticleClearResetCandidate(program) && proof !== null && proof !== undefined)
     {
         assertProof(program, proof, "reset");
         validateResetProgram(program);

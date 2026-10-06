@@ -1098,7 +1098,8 @@ function lowerScalarWordComputeProgram(program, options = {})
 export function lowerComputeProgram(program, options = {})
 {
     validateExactComputeEnvelope(program, "WGSL compute");
-    if (isParticleClearResetCandidate(program))
+    // Reset-shaped programs outside a proven particle-clear effect lower generally.
+    if (isParticleClearResetCandidate(program) && options.effectProfileProof)
     {
         return lowerParticleClearResetComputeProgram(program, options);
     }

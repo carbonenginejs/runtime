@@ -5392,13 +5392,21 @@ test("particle clear effect proof keeps reset effect-only and emits both exact p
     {
         const reset = particleIr(minorVersion, "reset");
         const clear = particleIr(minorVersion, "clear");
+        // Without the effect's proof the particle profile does not claim the
+        // reset shape (computelightlists' Clear shares it); the general path
+        // then refuses a signed UAV no typed-view table vouches for.
         assert.throws(
             () => CjsWebgpuFormat.buildWgsl(reset),
-            /whole-effect R32_SINT companion proof/u
+            /only typed uint buffer UAVs are supported/u
         );
         assert.throws(
             () => CjsWebgpuFormat.buildWgslBindingPlan([ reset ]),
-            /whole-effect R32_SINT companion proof/u
+            /only typed uint buffer UAVs are supported/u
+        );
+        assert.throws(
+            () => CjsWebgpuFormat.buildWgslBindingPlan([ reset ], { effectProfileProof: {} }),
+            /whole-effect R32_SINT companion proof/u,
+            "a forged proof is still refused by the particle profile"
         );
 
         const context = preflightParticleClearEffectProfile(
