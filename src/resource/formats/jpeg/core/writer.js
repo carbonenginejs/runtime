@@ -111,7 +111,9 @@ const SUBSAMPLINGS = { "4:2:0": [ 2, 2 ], "4:4:4": [ 1, 1 ] };
 class BitWriter
 {
 
-    /** An empty writer, with nothing accumulated. */
+    /**
+     * An empty writer, with nothing accumulated.
+     */
     constructor()
     {
         this.bytes = [];
@@ -148,6 +150,9 @@ class BitWriter
      * produce one has to say "this is data" - and a decoder reading a file
      * without the stuffing does not fail, it resynchronises somewhere wrong and
      * returns a picture that is mostly right.
+     *
+     * @param {number} value Code bits, right-aligned.
+     * @param {number} length Number of low bits of `value` to write, most significant first.
      */
     bits(value, length)
     {
@@ -166,7 +171,9 @@ class BitWriter
         }
     }
 
-    /** Pads the final partial byte with ones, as the standard requires. */
+    /**
+     * Pads the final partial byte with ones, as the standard requires.
+     */
     flush()
     {
         while (this.count > 0) this.bits(1, 1);
@@ -174,7 +181,13 @@ class BitWriter
 
 }
 
-/** Expands Annex K code lengths and values into a code/length lookup. */
+/**
+ * Expands Annex K code lengths and values into a code/length lookup.
+ *
+ * @param {number[]} bits Number of codes of each length 1-16.
+ * @param {number[]} values Symbol values in code order.
+ * @returns {Map<number, {code:number,length:number}>} Code and bit length per symbol value.
+ */
 function buildHuffmanTable(bits, values)
 {
     const table = new Map();
@@ -200,6 +213,10 @@ function buildHuffmanTable(bits, values)
  *
  * The scaling curve is the one libjpeg uses, so a quality here means what it
  * means everywhere else - 0.9 is the same 0.9 the renderer asks a canvas for.
+ *
+ * @param {number[]} base Quality-50 table in natural order.
+ * @param {number} quality Quality in 0..1.
+ * @returns {number[]} Scaled table entries clamped to 1-255.
  */
 function scaleQuantTable(base, quality)
 {
@@ -210,7 +227,12 @@ function scaleQuantTable(base, quality)
         Math.min(255, Math.max(1, Math.floor((entry * factor + 50) / 100))));
 }
 
-/** Number of bits needed to encode a signed coefficient, and its bit pattern. */
+/**
+ * Number of bits needed to encode a signed coefficient, and its bit pattern.
+ *
+ * @param {number} value Signed integer coefficient or DC difference.
+ * @returns {{size:number,bits:number}} Magnitude category and its bit pattern.
+ */
 function categorise(value)
 {
     const magnitude = Math.abs(value);
@@ -223,7 +245,13 @@ function categorise(value)
     return { size, bits: value < 0 ? value + (1 << size) - 1 : value };
 }
 
-/** Direct forward DCT of one 8x8 block, level-shifted by -128. */
+/**
+ * Direct forward DCT of one 8x8 block, level-shifted by -128.
+ *
+ * @param {Float32Array} block 64 samples in row-major order.
+ * @param {Float32Array} out Receives 64 coefficients in natural order.
+ * @returns {Float32Array} `out`.
+ */
 function forwardDct(block, out)
 {
     for (let v = 0; v < 8; v++)
@@ -247,7 +275,17 @@ function forwardDct(block, out)
     return out;
 }
 
-/** Huffman-codes one quantised block and returns its new DC predictor. */
+/**
+ * Huffman-codes one quantised block and returns its new DC predictor.
+ *
+ * @param {BitWriter} writer Output writer.
+ * @param {Float32Array} coefficients 64 DCT coefficients in natural order.
+ * @param {number[]} quant Quantisation table in natural order.
+ * @param {Map<number, {code:number,length:number}>} dcTable DC Huffman lookup.
+ * @param {Map<number, {code:number,length:number}>} acTable AC Huffman lookup.
+ * @param {number} previousDc DC predictor from the previous block of this component.
+ * @returns {number} This block's quantised DC value.
+ */
 function encodeBlock(writer, coefficients, quant, dcTable, acTable, previousDc)
 {
     const zigzag = new Int32Array(64);
@@ -315,7 +353,16 @@ function encodeBlock(writer, coefficients, quant, dcTable, acTable, previousDc)
     return dc;
 }
 
-/** Reads the RGBA payload into full-resolution Y, Cb and Cr planes. */
+/**
+ * Reads the RGBA payload into full-resolution Y, Cb and Cr planes.
+ *
+ * @param {Uint8Array} data RGBA8 pixels.
+ * @param {number} width Image width.
+ * @param {number} height Image height.
+ * @param {number} stride Bytes per source row.
+ * @param {boolean} flip Whether source rows are bottom-up.
+ * @returns {{y:Float32Array,cb:Float32Array,cr:Float32Array}} Top-down planes.
+ */
 function toYcbcrPlanes(data, width, height, stride, flip)
 {
     const count = width * height;
@@ -351,6 +398,15 @@ function toYcbcrPlanes(data, width, height, stride, flip)
  * an image that is not a multiple of the MCU size is padded with its own last
  * column, which is invisible, where zeroes would put a black wedge down the
  * edge of every odd-sized picture.
+ *
+ * @param {Float32Array} plane Source plane.
+ * @param {number} planeWidth Plane width.
+ * @param {number} planeHeight Plane height.
+ * @param {number} originX Block left edge in the plane.
+ * @param {number} originY Block top edge in the plane.
+ * @param {number} step Sampling step; above 1, each sample averages a 2x2 neighbourhood.
+ * @param {Float32Array} block Receives 64 samples.
+ * @returns {Float32Array} `block`.
  */
 function readBlock(plane, planeWidth, planeHeight, originX, originY, step, block)
 {
@@ -382,6 +438,13 @@ function readBlock(plane, planeWidth, planeHeight, originX, originY, step, block
     return block;
 }
 
+/**
+ * Writes a marker segment with its length prefix.
+ *
+ * @param {BitWriter} writer Output writer.
+ * @param {number} marker Marker byte after 0xff.
+ * @param {number[]} payload Segment payload bytes.
+ */
 function writeSegment(writer, marker, payload)
 {
     writer.u8(0xff);
@@ -397,9 +460,17 @@ function writeSegment(writer, marker, payload)
  *
  * @param {object} payload `{ width, height, data }`, optionally with
  *   `strideBytes` and `origin` as the image formats in this package emit them.
+ * @param {number} payload.width Image width in pixels.
+ * @param {number} payload.height Image height in pixels.
+ * @param {Uint8Array} payload.data RGBA8 pixels.
+ * @param {number} [payload.strideBytes] Bytes per row; defaults to `width * 4`.
+ * @param {string} [payload.origin] "bottom-left" flips rows; anything else is top-down.
  * @param {object} [options] `quality` 0..1 (default 0.9, matching the
  *   renderer's canvas export), and `subsampling` of "4:2:0" or "4:4:4".
+ * @param {number} [options.quality=0.9] Quality in (0, 1].
+ * @param {string} [options.subsampling="4:2:0"] "4:2:0" or "4:4:4".
  * @returns {Uint8Array} JPEG bytes, SOI through EOI.
+ * @throws {Error} On a missing or short payload, an out-of-range quality, or unknown subsampling.
  */
 export function encodeJpeg(payload, options = {})
 {

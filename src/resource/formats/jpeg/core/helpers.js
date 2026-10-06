@@ -28,8 +28,92 @@ export const DEFAULT_VALUES = {
 
 
 /**
+ * Normalized JPEG reader options.
+ *
+ * @typedef {object} JpegValues
+ * @property {string} emit Output to emit: "image", "rgba" or "raw".
+ * @property {string} inputType Lower-case expected source type without a leading dot ("jpg" becomes "jpeg"), or "".
+ * @property {string} source Diagnostic source label, or "".
+ */
+
+/**
+ * Header metadata read from a JPEG file without decoding its scans.
+ *
+ * Frame fields are present only when a SOF0-SOF3 marker was found; scan fields only
+ * when an SOS marker followed it.
+ *
+ * @typedef {object} JpegInspection
+ * @property {string} sourceFormat "jpeg", the expected type, or "" for unrecognized bytes.
+ * @property {number} [byteLength] Input length in bytes (set by `inspectWithValues`).
+ * @property {number} width Frame width, or 0 when no frame header was found.
+ * @property {number} height Frame height, or 0 when no frame header was found.
+ * @property {number} [channels] Frame component count.
+ * @property {number} [components] Frame component count.
+ * @property {number} [precision] Sample precision in bits.
+ * @property {number} [marker] SOF marker byte (0xc0-0xc3).
+ * @property {boolean} [progressive] Whether the frame or first scan is progressive.
+ * @property {string} [pixelFormat] "jpeg-ycbcr", or "jpeg" without a frame header.
+ * @property {boolean} [isCompressed] Always true for JPEG.
+ * @property {number} [appMarkerCount] Number of APPn segments before the first scan.
+ * @property {number} [commentCount] Number of COM segments before the first scan.
+ * @property {boolean} [hasExif] Whether an APP1 Exif segment was seen.
+ * @property {boolean} [hasIccProfile] Whether an APP2 ICC_PROFILE segment was seen.
+ * @property {number} [scanComponents] Component count of the first scan.
+ * @property {number} [spectralStart] Spectral selection start of the first scan.
+ * @property {number} [spectralEnd] Spectral selection end of the first scan.
+ * @property {number} [successive] Successive approximation byte of the first scan.
+ */
+
+/**
+ * RGBA8 image produced by the baseline software decoder.
+ *
+ * @typedef {object} JpegRgbaImage
+ * @property {"jpeg"} sourceFormat Always "jpeg".
+ * @property {"image/jpeg"} mimeType Always "image/jpeg".
+ * @property {number} width Image width in pixels.
+ * @property {number} height Image height in pixels.
+ * @property {"rgba8unorm"} pixelFormat Always "rgba8unorm".
+ * @property {Uint8Array} data Tightly packed RGBA8 pixels, top row first.
+ * @property {number} strideBytes `width * 4`.
+ * @property {"top-left"} origin Always "top-left".
+ * @property {"srgb"} colorSpace Always "srgb".
+ * @property {"opaque"} alphaMode Always "opaque".
+ * @property {object} metadata The caller's metadata plus `decoder: "software-baseline"`.
+ */
+
+/**
+ * One frame component tracked by the baseline decoder in `jpeg.js`.
+ *
+ * @typedef {object} JpegComponent
+ * @property {number} id Component identifier.
+ * @property {number} h Horizontal sampling factor.
+ * @property {number} v Vertical sampling factor.
+ * @property {number} quantizationId Quantization table id.
+ * @property {number} dc DC Huffman table id set by the scan header.
+ * @property {number} ac AC Huffman table id set by the scan header.
+ * @property {number} previousDc DC predictor.
+ * @property {?Uint8Array} plane Decoded samples, allocated by the scan decoder.
+ * @property {number} planeWidth Plane width in samples.
+ * @property {number} planeHeight Plane height in samples.
+ */
+
+/**
+ * Huffman lookup built by the baseline decoder: index `length` (1-16) lists the
+ * canonical codes of that bit length with their symbol values.
+ *
+ * @typedef {Array<Array<{code:number,value:number}>>} JpegHuffmanTable
+ */
+
+/**
  * Normalizes reader options against their supported defaults for the JPEG format
  * reader.
+ *
+ * @param {Partial<JpegValues>|null} [base=DEFAULT_VALUES] Values to start from.
+ * @param {Partial<JpegValues>|null} [options={}] Caller options layered over `base`.
+ * @param {string} [options.emit] Output to emit.
+ * @param {string} [options.inputType] Expected source type.
+ * @param {string} [readerName="CjsImageFormat"] Name used in error messages.
+ * @returns {JpegValues} The normalized values.
  */
 export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsImageFormat")
 {
@@ -39,7 +123,12 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName 
     return values;
 }
 
-/** Normalizes the requested input representation for the JPEG format reader. */
+/**
+ * Normalizes the requested input representation for the JPEG format reader.
+ *
+ * @param {?string} inputType Type or extension, with or without a leading dot.
+ * @returns {string} Lower-case type with "jpg" mapped to "jpeg", or "" when empty.
+ */
 export function normalizeInputType(inputType)
 {
     if (!inputType) return "";
@@ -47,7 +136,15 @@ export function normalizeInputType(inputType)
     return value === "jpg" ? "jpeg" : value;
 }
 
-/** Normalizes the requested output representation for the JPEG format reader. */
+/**
+ * Normalizes the requested output representation for the JPEG format reader.
+ *
+ * @param {?string} emit Requested output.
+ * @param {string} inputType Normalized input type.
+ * @param {string} readerName Name used in error messages.
+ * @returns {string} The emit value, or "raw" when none was given.
+ * @throws {TypeError} When `emit` is not "image", "rgba" or "raw".
+ */
 export function normalizeEmit(emit, inputType, readerName)
 {
     if (emit === undefined || emit === null) return OUTPUT_RAW;
@@ -55,8 +152,15 @@ export function normalizeEmit(emit, inputType, readerName)
     throw new TypeError(`${readerName}: unknown emit value ${JSON.stringify(emit)}`);
 }
 
-/** Returns a byte view over the supplied binary input for the JPEG format reader. */
-/** Inspects input using normalized format options for the JPEG format reader. */
+/**
+ * Inspects input using normalized format options for the JPEG format reader.
+ *
+ * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input File bytes.
+ * @param {JpegValues} [values=DEFAULT_VALUES] Normalized reader values.
+ * @param {string} [expectedType=""] Required detected type, or "" to accept any.
+ * @returns {JpegInspection} The header metadata with `byteLength`.
+ * @throws {TypeError} When the detected type does not match `expectedType`.
+ */
 export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     const bytes = asUint8Array(input, "Image input");
@@ -78,6 +182,12 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
 /**
  * Reports whether input is supported under normalized format options for the
  * JPEG format reader.
+ *
+ * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input File bytes.
+ * @param {JpegValues} [values=DEFAULT_VALUES] Normalized reader values.
+ * @param {string} [expectedType=""] Required detected type, or "" to accept any.
+ * @returns {object} Support report: "full" when the RGBA decoder accepts the frame,
+ *     "partial" for other recognized input, or "none" with the error message.
  */
 export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
@@ -120,7 +230,17 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedT
     }
 }
 
-/** Reads input using normalized format options for the JPEG format reader. */
+/**
+ * Reads input using normalized format options for the JPEG format reader.
+ *
+ * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input File bytes.
+ * @param {JpegValues} [values=DEFAULT_VALUES] Normalized reader values.
+ * @param {string} [expectedType=""] Required detected type, or "" to accept any.
+ * @returns {{sourceFormat:string,mimeType:string,metadata:JpegInspection,bytes:Uint8Array}|JpegRgbaImage}
+ *     The raw bytes with metadata for "raw", or the decoded image for "rgba"/"image".
+ * @throws {Error} With code `CJS_FORMAT_OUTPUT_NOT_SUPPORTED` when the decoder cannot
+ *     handle the frame, or `CJS_FORMAT_OUTPUT_NOT_IMPLEMENTED` for other outputs.
+ */
 export function readWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     const bytes = asUint8Array(input, "Image input");
@@ -160,6 +280,10 @@ export function readWithValues(input, values = DEFAULT_VALUES, expectedType = ""
 /**
  * Inspects the supplied bytes without decoding their payload for the JPEG format
  * reader.
+ *
+ * @param {Uint8Array} bytes File bytes.
+ * @returns {JpegInspection} JPEG header metadata, or `{ sourceFormat: "", width: 0, height: 0 }`
+ *     when the bytes do not start with SOI.
  */
 export function inspectBytes(bytes)
 {
@@ -171,6 +295,12 @@ export function inspectBytes(bytes)
 
 
 
+/**
+ * Walks the JPEG segments up to the first scan, collecting frame and marker metadata.
+ *
+ * @param {Uint8Array} bytes File bytes starting with SOI.
+ * @returns {JpegInspection} The header metadata.
+ */
 function inspectJPEG(bytes)
 {
     let offset = 2;
@@ -238,6 +368,12 @@ function inspectJPEG(bytes)
     return frame ? { ...frame, ...summary } : { sourceFormat: "jpeg", width: 0, height: 0, channels: 0, pixelFormat: "jpeg", isCompressed: true, ...summary };
 }
 
+/**
+ * Explains why the software decoder rejects a frame.
+ *
+ * @param {JpegInspection} metadata Header metadata.
+ * @returns {string} A one-sentence reason.
+ */
 function jpegDecodeReason(metadata)
 {
     if (metadata.sourceFormat !== "jpeg") return `${metadata.sourceFormat.toUpperCase()} RGBA decode is not implemented yet.`;
@@ -257,6 +393,14 @@ function jpegDecodeReason(metadata)
 
 
 
+/**
+ * Reads bytes as a Latin-1 string.
+ *
+ * @param {Uint8Array} bytes File bytes.
+ * @param {number} offset Byte offset.
+ * @param {number} length Number of bytes.
+ * @returns {string} The decoded string.
+ */
 function ascii(bytes, offset, length)
 {
     return String.fromCharCode(...bytes.subarray(offset, offset + length));

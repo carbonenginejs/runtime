@@ -33,6 +33,10 @@ const SCALE = Array.from({ length: 8 }, (_, value) => value === 0 ? 1 / Math.sqr
 /**
  * Decodes baseline JPEG bytes into a normalized RGBA payload for the JPEG format
  * reader.
+ *
+ * @param {Uint8Array} bytes JPEG file bytes.
+ * @param {import("./helpers.js").JpegInspection|object} [metadata={}] Header metadata copied into the result.
+ * @returns {import("./helpers.js").JpegRgbaImage} The decoded image.
  */
 export function decodeJpegToRgba(bytes, metadata = {})
 {
@@ -56,6 +60,9 @@ export function decodeJpegToRgba(bytes, metadata = {})
 /**
  * Reports whether JPEG metadata is supported by the software decoder for the
  * JPEG format reader.
+ *
+ * @param {import("./helpers.js").JpegInspection|object} [metadata={}] Header metadata.
+ * @returns {boolean} True for an 8-bit, 1-3 component, non-progressive SOF0/SOF1 frame.
  */
 export function canDecodeJpeg(metadata = {})
 {
@@ -86,7 +93,11 @@ class BaselineJpegDecoder
 
     _restartInterval = 0;
 
-    /** Creates a BaselineJpegDecoder with caller-provided initial state. */
+    /**
+     * Creates a BaselineJpegDecoder with caller-provided initial state.
+     *
+     * @param {Uint8Array} bytes JPEG file bytes.
+     */
     constructor(bytes)
     {
         this._bytes = bytes;
@@ -95,6 +106,9 @@ class BaselineJpegDecoder
     /**
      * Decodes the current baseline JPEG stream into RGBA pixels for the JPEG
      * decoder.
+     *
+     * @returns {{width:number,height:number,data:Uint8Array}} RGBA8 pixels of the first scan.
+     * @throws {Error} When the stream has no baseline scan.
      */
     decode()
     {
@@ -122,6 +136,9 @@ class BaselineJpegDecoder
     /**
      * Reads JPEG frame dimensions, sampling, and component metadata for the JPEG
      * decoder.
+     *
+     * @param {number} marker SOF marker byte (0xc0, 0xc1 or 0xc2).
+     * @throws {Error} On an unsupported precision, layout, sampling or a progressive frame.
      */
     readFrame(marker)
     {
@@ -168,6 +185,8 @@ class BaselineJpegDecoder
     /**
      * Reads JPEG quantization tables into natural coefficient order for the JPEG
      * decoder.
+     *
+     * @throws {Error} On a 16-bit quantization table.
      */
     readQuantizationTables()
     {
@@ -219,6 +238,8 @@ class BaselineJpegDecoder
     /**
      * Reads the JPEG restart interval declared by a DRI segment for the JPEG
      * decoder.
+     *
+     * @throws {Error} When the segment length is not 4.
      */
     readRestartInterval()
     {
@@ -230,6 +251,8 @@ class BaselineJpegDecoder
     /**
      * Reads JPEG scan component and spectral-selection metadata for the JPEG
      * decoder.
+     *
+     * @throws {Error} On a component count mismatch, unknown component or non-sequential scan.
      */
     readScanHeader()
     {
@@ -261,6 +284,8 @@ class BaselineJpegDecoder
     /**
      * Decodes the current JPEG entropy scan into component planes and RGBA
      * pixels for the JPEG decoder.
+     *
+     * @returns {{width:number,height:number,data:Uint8Array}} RGBA8 pixels; YCbCr is converted to RGB.
      */
     decodeScan()
     {
@@ -333,6 +358,11 @@ class BaselineJpegDecoder
     /**
      * Decodes one JPEG coefficient block through inverse quantization and IDCT
      * for the JPEG decoder.
+     *
+     * @param {EntropyReader} reader Entropy-coded data reader.
+     * @param {import("./helpers.js").JpegComponent} component Component whose tables and DC predictor are used.
+     * @returns {Uint8Array} 64 samples in row-major order.
+     * @throws {Error} On a missing table or an invalid AC run.
      */
     decodeBlock(reader, component)
     {
@@ -363,6 +393,9 @@ class BaselineJpegDecoder
     /**
      * Reads an unsigned 8-bit value from the JPEG byte cursor for the JPEG
      * decoder.
+     *
+     * @returns {number} The byte.
+     * @throws {Error} At the end of input.
      */
     readU8()
     {
@@ -373,13 +406,21 @@ class BaselineJpegDecoder
     /**
      * Reads an unsigned 16-bit big-endian value from the JPEG byte cursor for
      * the JPEG decoder.
+     *
+     * @returns {number} The value.
      */
     readU16()
     {
         return (this.readU8() << 8) | this.readU8();
     }
 
-    /** Consumes and validates an expected JPEG marker for the JPEG decoder. */
+    /**
+     * Consumes and validates an expected JPEG marker for the JPEG decoder.
+     *
+     * @param {?number} [expected=null] Marker byte required, or null to accept any.
+     * @returns {number} The marker byte read.
+     * @throws {Error} When the marker is not `expected`.
+     */
     readMarker(expected = null)
     {
         const marker = this.nextMarker();
@@ -387,7 +428,12 @@ class BaselineJpegDecoder
         return marker;
     }
 
-    /** Scans forward to the next valid JPEG marker byte for the JPEG decoder. */
+    /**
+     * Scans forward to the next valid JPEG marker byte for the JPEG decoder.
+     *
+     * @returns {number} The marker byte after the 0xff prefix.
+     * @throws {Error} At the end of input.
+     */
     nextMarker()
     {
         while (this._offset < this._bytes.length && this._bytes[this._offset++] !== 0xff)
@@ -402,6 +448,8 @@ class BaselineJpegDecoder
     /**
      * Advances past the payload of an unhandled JPEG segment for the JPEG
      * decoder.
+     *
+     * @throws {Error} On an invalid segment length.
      */
     skipSegment()
     {
@@ -430,6 +478,9 @@ class EntropyReader
     /**
      * Creates a EntropyReader over caller-provided JPEG bytes and reader
      * options.
+     *
+     * @param {Uint8Array} bytes JPEG file bytes.
+     * @param {number} offset Byte offset of the entropy-coded data.
      */
     constructor(bytes, offset)
     {
@@ -437,7 +488,12 @@ class EntropyReader
         this._offset = offset;
     }
 
-    /** Reads one entropy-coded bit for the JPEG binary reader. */
+    /**
+     * Reads one entropy-coded bit for the JPEG binary reader.
+     *
+     * @returns {number} 0 or 1.
+     * @throws {Error} On a marker inside entropy data or at the end of input.
+     */
     readBit()
     {
         if (!this._bits)
@@ -460,6 +516,9 @@ class EntropyReader
     /**
      * Reads the requested number of entropy-coded bits for the JPEG binary
      * reader.
+     *
+     * @param {number} count Number of bits, most significant first.
+     * @returns {number} The unsigned value.
      */
     readBits(count)
     {
@@ -480,6 +539,8 @@ class EntropyReader
     /**
      * Consumes and validates the next JPEG restart marker for the JPEG binary
      * reader.
+     *
+     * @throws {Error} When the next marker is not RST0-RST7.
      */
     consumeRestart()
     {
@@ -489,6 +550,14 @@ class EntropyReader
     }
 }
 
+/**
+ * Reads one Huffman-coded symbol.
+ *
+ * @param {EntropyReader} reader Entropy-coded data reader.
+ * @param {import("./helpers.js").JpegHuffmanTable} table Huffman lookup.
+ * @returns {number} The decoded symbol value.
+ * @throws {Error} When no code of up to 16 bits matches.
+ */
 function decodeHuffman(reader, table)
 {
     let code = 0;
@@ -501,6 +570,13 @@ function decodeHuffman(reader, table)
     throw new Error("jpeg: invalid Huffman code");
 }
 
+/**
+ * Reads `size` magnitude bits and sign-extends them into a coefficient value.
+ *
+ * @param {EntropyReader} reader Entropy-coded data reader.
+ * @param {number} size Magnitude category (bit count).
+ * @returns {number} The signed value, or 0 when `size` is 0.
+ */
 function receiveExtend(reader, size)
 {
     if (!size) return 0;
@@ -509,6 +585,12 @@ function receiveExtend(reader, size)
     return value < threshold ? value - ((1 << size) - 1) : value;
 }
 
+/**
+ * Applies the 8x8 inverse DCT and level shift to dequantized coefficients.
+ *
+ * @param {Int32Array} coefficients 64 coefficients in natural order.
+ * @returns {Uint8Array} 64 clamped samples in row-major order.
+ */
 function inverseDct(coefficients)
 {
     const output = new Uint8Array(64);
@@ -530,6 +612,15 @@ function inverseDct(coefficients)
     return output;
 }
 
+/**
+ * Copies an 8x8 sample block into a component plane, clipping at its edges.
+ *
+ * @param {Uint8Array} plane Component plane.
+ * @param {number} planeWidth Plane width in samples.
+ * @param {number} originX Block left edge in the plane.
+ * @param {number} originY Block top edge in the plane.
+ * @param {Uint8Array} block 64 samples in row-major order.
+ */
 function writeBlock(plane, planeWidth, originX, originY, block)
 {
     for (let y = 0; y < 8; y++)
@@ -544,6 +635,16 @@ function writeBlock(plane, planeWidth, originX, originY, block)
     }
 }
 
+/**
+ * Samples a component plane at an image pixel by nearest-neighbour scaling.
+ *
+ * @param {import("./helpers.js").JpegComponent} component Component with a decoded plane.
+ * @param {number} x Image column.
+ * @param {number} y Image row.
+ * @param {number} width Image width.
+ * @param {number} height Image height.
+ * @returns {number} The sample value.
+ */
 function sampleComponent(component, x, y, width, height)
 {
     const sampleX = Math.min(component.planeWidth - 1, Math.floor(x * component.planeWidth / width));
@@ -551,6 +652,12 @@ function sampleComponent(component, x, y, width, height)
     return component.plane[sampleY * component.planeWidth + sampleX];
 }
 
+/**
+ * Rounds and clamps a value to 0-255.
+ *
+ * @param {number} value Input value.
+ * @returns {number} The clamped byte value.
+ */
 function clampByte(value)
 {
     return Math.max(0, Math.min(255, Math.round(value)));

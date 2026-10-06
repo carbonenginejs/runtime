@@ -14,8 +14,50 @@ export const DEFAULT_VALUES = {
 const DEBUG_OUTPUT = "flacJson";
 
 /**
+ * Normalized FLAC reader options.
+ *
+ * @typedef {object} FlacValues
+ * @property {string} emit Output to emit: "raw", "pcm", "json" or "flacJson".
+ * @property {string} inputType Lower-case expected source type without a leading dot, or "".
+ * @property {string} source Diagnostic source label, or "".
+ */
+
+/**
+ * Stream metadata read from a FLAC file without decoding PCM.
+ *
+ * @typedef {object} FlacInspection
+ * @property {number} byteLength Input length in bytes.
+ * @property {"flac"} sourceFormat Always "flac".
+ * @property {"flac"} container Always "flac".
+ * @property {"flac"} audioFormat Always "flac".
+ * @property {number} sampleRate Samples per second from STREAMINFO.
+ * @property {number} channels Channel count from STREAMINFO.
+ * @property {number} bitsPerSample Bits per sample from STREAMINFO.
+ * @property {number} totalSamples Total samples per channel from STREAMINFO.
+ * @property {number} durationSamples Same as `totalSamples`.
+ * @property {number} durationSeconds `totalSamples / sampleRate`, or 0 without a sample rate.
+ * @property {object} streamInfo STREAMINFO fields.
+ * @property {?{vendor:string,comments:string[]}} comments Vorbis comment block, or null.
+ * @property {Array<{sampleNumber:?number,offset:?number,numberSamples:number}>} seekTable Seek points.
+ * @property {object[]} pictures PICTURE block fields.
+ * @property {number} metadataBlockCount Number of metadata blocks read.
+ * @property {boolean} hasLastMetadataBlock Whether a block flagged as last was reached.
+ * @property {number} audioDataOffset Byte offset of the first audio frame.
+ * @property {number} audioDataBytes Bytes from `audioDataOffset` to the end of input.
+ * @property {object[]} metadataBlocks Every metadata block header with its parsed fields.
+ */
+
+/**
  * Normalizes reader options against their supported defaults for the FLAC format
  * reader.
+ *
+ * @param {Partial<FlacValues>|null} [base=DEFAULT_VALUES] Values to start from.
+ * @param {Partial<FlacValues>|null} [options={}] Caller options layered over `base`.
+ * @param {string} [options.emit] Output to emit.
+ * @param {string} [options.inputType] Expected source type; a leading dot is removed.
+ * @param {string} [readerName="CjsFlacFormat"] Name used in error messages.
+ * @returns {FlacValues} The normalized values.
+ * @throws {TypeError} When `emit` is not a supported output.
  */
 export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsFlacFormat")
 {
@@ -28,14 +70,26 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName 
     return values;
 }
 
-/** Returns a byte view over the supplied binary input for the FLAC format reader. */
-/** Reports whether the current FLAC format reader satisfies FLAC. */
+/**
+ * Reports whether the bytes start with the FLAC `fLaC` signature.
+ *
+ * @param {Uint8Array} bytes File bytes.
+ * @returns {boolean} True when the signature is present.
+ */
 export function isFLAC(bytes)
 {
     return bytes.byteLength >= 4 && bytes[0] === 0x66 && bytes[1] === 0x4c && bytes[2] === 0x61 && bytes[3] === 0x43;
 }
 
-/** Inspects input using normalized format options for the FLAC format reader. */
+/**
+ * Inspects input using normalized format options for the FLAC format reader.
+ *
+ * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input File bytes.
+ * @param {FlacValues} [values=DEFAULT_VALUES] Normalized reader values.
+ * @param {string} [expectedType=""] Expected source type; overrides `values.inputType`.
+ * @returns {FlacInspection} The stream metadata.
+ * @throws {TypeError} When the input is not a FLAC stream or the expected type is not "flac".
+ */
 export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     const bytes = asUint8Array(input, "FLAC input");
@@ -48,6 +102,12 @@ export function inspectWithValues(input, values = DEFAULT_VALUES, expectedType =
 /**
  * Reports whether input is supported under normalized format options for the
  * FLAC format reader.
+ *
+ * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input File bytes.
+ * @param {FlacValues} [values=DEFAULT_VALUES] Normalized reader values.
+ * @param {string} [expectedType=""] Expected source type; overrides `values.inputType`.
+ * @returns {object} Support report with `supported` "partial" and the inspection
+ *     metadata, or `supported` "none" and the error message when inspection fails.
  */
 export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
@@ -92,7 +152,16 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES, expectedT
     }
 }
 
-/** Reads input using normalized format options for the FLAC format reader. */
+/**
+ * Reads input using normalized format options for the FLAC format reader.
+ *
+ * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input File bytes.
+ * @param {FlacValues} [values=DEFAULT_VALUES] Normalized reader values.
+ * @param {string} [expectedType=""] Expected source type; overrides `values.inputType`.
+ * @returns {FlacInspection|{sourceFormat:"flac",mimeType:"audio/flac",metadata:FlacInspection,bytes:Uint8Array}}
+ *     The inspection for "json"/"flacJson", otherwise the raw container bytes with metadata.
+ * @throws {Error} With code `CJS_FORMAT_OUTPUT_NOT_IMPLEMENTED` when `values.emit` is "pcm".
+ */
 export function readWithValues(input, values = DEFAULT_VALUES, expectedType = "")
 {
     const bytes = asUint8Array(input, "FLAC input");
@@ -114,10 +183,16 @@ export function readWithValues(input, values = DEFAULT_VALUES, expectedType = ""
     };
 }
 
-/** Converts a parsed payload into a JSON-safe value for the FLAC format reader. */
 /** The shared JSON policy for this reader, under the name its callers use. */
 export { toJsonValue };
 
+/**
+ * Walks the metadata blocks after the signature and summarises the stream.
+ *
+ * @param {Uint8Array} bytes File bytes starting with `fLaC`.
+ * @returns {Omit<FlacInspection, "byteLength">} The stream metadata.
+ * @throws {Error} When a block is truncated or there is no STREAMINFO block.
+ */
 function inspectBytes(bytes)
 {
     const blocks = [];
@@ -190,6 +265,14 @@ function inspectBytes(bytes)
     };
 }
 
+/**
+ * Reads the 34-byte STREAMINFO block body.
+ *
+ * @param {Uint8Array} bytes File bytes.
+ * @param {number} offset Byte offset of the block body.
+ * @returns {{minBlockSize:number,maxBlockSize:number,minFrameSize:number,maxFrameSize:number,sampleRate:number,channels:number,bitsPerSample:number,totalSamples:number,md5:string}}
+ *     The STREAMINFO fields; `md5` is lower-case hex.
+ */
 function readStreamInfo(bytes, offset)
 {
     const sampleRate = bytes[offset + 10] * 4096 + bytes[offset + 11] * 16 + (bytes[offset + 12] >> 4);
@@ -209,6 +292,15 @@ function readStreamInfo(bytes, offset)
     };
 }
 
+/**
+ * Reads a VORBIS_COMMENT block body.
+ *
+ * @param {Uint8Array} bytes File bytes.
+ * @param {number} start Byte offset of the block body.
+ * @param {number} end Byte offset one past the block body.
+ * @returns {{vendor:string,comments:string[]}} The vendor string and comment entries.
+ * @throws {Error} When the block is truncated.
+ */
 function readVorbisComment(bytes, start, end)
 {
     let offset = start;
@@ -233,6 +325,15 @@ function readVorbisComment(bytes, start, end)
     return { vendor, comments: result };
 }
 
+/**
+ * Reads the 18-byte seek points of a SEEKTABLE block body.
+ *
+ * @param {Uint8Array} bytes File bytes.
+ * @param {number} start Byte offset of the block body.
+ * @param {number} length Block body length in bytes.
+ * @returns {Array<{sampleNumber:?number,offset:?number,numberSamples:number}>} The seek points.
+ * @throws {Error} When the length is not a multiple of 18.
+ */
 function readSeekTable(bytes, start, length)
 {
     if (length % 18 !== 0) throw new Error("FLAC SEEKTABLE block has an invalid length");
@@ -248,6 +349,16 @@ function readSeekTable(bytes, start, length)
     return points;
 }
 
+/**
+ * Reads a PICTURE block body without copying the picture data.
+ *
+ * @param {Uint8Array} bytes File bytes.
+ * @param {number} start Byte offset of the block body.
+ * @param {number} end Byte offset one past the block body.
+ * @returns {{pictureType:number,mimeType:string,description:string,width:number,height:number,colorDepth:number,colors:number,dataByteLength:number}}
+ *     The picture fields.
+ * @throws {Error} When the block is truncated.
+ */
 function readPicture(bytes, start, end)
 {
     let offset = start;
@@ -273,6 +384,13 @@ function readPicture(bytes, start, end)
     return { pictureType, mimeType, description, width, height, colorDepth, colors, dataByteLength: dataLength };
 }
 
+/**
+ * Reads a big-endian 64-bit unsigned integer when it fits a safe integer.
+ *
+ * @param {Uint8Array} bytes File bytes.
+ * @param {number} offset Byte offset.
+ * @returns {?number} The value, or null when the high word exceeds 21 bits.
+ */
 function readU64BE(bytes, offset)
 {
     const high = readU32BE(bytes, offset);

@@ -62,7 +62,7 @@ export class CjsJpegFormat extends CjsImageFormat
 
     /**
      * Carbon Save (Tr2JpgHandler.cpp:411-484) at Carbon's quality, 90.
-
+     *
      * Beyond the conversion, Carbon writes R8 as single-component greyscale and
      * uses a float DCT; this writes three components through the existing
      * encoder. Carbon ignores metadata, as this does.
@@ -89,7 +89,7 @@ export class CjsJpegFormat extends CjsImageFormat
     /**
      * Create a reusable JPEG format profile.
      *
-     * @param {object} [options] Default read/inspect options.
+     * @param {Partial<import("./core/helpers.js").JpegValues>} [options] Default read/inspect options.
      */
     constructor(options = {})
     {
@@ -100,7 +100,9 @@ export class CjsJpegFormat extends CjsImageFormat
     /**
      * Merge options into this profile.
      *
-     * @param {object} [options] Values to merge.
+     * @param {Partial<import("./core/helpers.js").JpegValues>} [options] Values to merge.
+     * @param {string} [options.emit] Output to emit: "image", "rgba" or "raw".
+     * @param {string} [options.inputType="jpeg"] Expected source type.
      * @returns {CjsJpegFormat} This format profile.
      */
     SetValues(options = {})
@@ -112,8 +114,10 @@ export class CjsJpegFormat extends CjsImageFormat
     /**
      * Get normalized profile values with optional per-call overrides.
      *
-     * @param {object} [options] Per-call values.
-     * @returns {object} Normalized read values.
+     * @param {Partial<import("./core/helpers.js").JpegValues>} [options] Per-call values.
+     * @param {string} [options.emit] Output to emit: "image", "rgba" or "raw".
+     * @param {string} [options.inputType="jpeg"] Expected source type.
+     * @returns {import("./core/helpers.js").JpegValues} Normalized read values.
      */
     GetValues(options = {})
     {
@@ -165,8 +169,8 @@ export class CjsJpegFormat extends CjsImageFormat
      * Inspect JPEG bytes without decoding image data.
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input JPEG bytes.
-     * @param {object} [options] Per-call values.
-     * @returns {object} JPEG marker/header metadata.
+     * @param {Partial<import("./core/helpers.js").JpegValues>} [options] Per-call values.
+     * @returns {import("./core/helpers.js").JpegInspection} JPEG marker/header metadata.
      */
     Inspect(input, options = {})
     {
@@ -213,8 +217,8 @@ export class CjsJpegFormat extends CjsImageFormat
      * One-shot JPEG inspection.
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input JPEG bytes.
-     * @param {object} [options] Inspect options.
-     * @returns {object} JPEG marker/header metadata.
+     * @param {Partial<import("./core/helpers.js").JpegValues>} [options] Inspect options.
+     * @returns {import("./core/helpers.js").JpegInspection} JPEG marker/header metadata.
      */
     static inspect(input, options = {})
     {

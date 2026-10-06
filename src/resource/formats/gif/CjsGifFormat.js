@@ -28,7 +28,11 @@ export class CjsGifFormat extends CjsImageFormat
 
     _values = DEFAULT_VALUES;
 
-    /** Creates a CjsGifFormat with caller-provided reader configuration. */
+    /**
+     * Creates a CjsGifFormat with caller-provided reader configuration.
+     *
+     * @param {Partial<import("./core/helpers.js").GifValues>} [options={}] Reader options.
+     */
     constructor(options = {})
     {
         super();
@@ -38,6 +42,12 @@ export class CjsGifFormat extends CjsImageFormat
     /**
      * Applies caller-provided options after normalizing supported fields for the
      * GIF format configuration.
+     *
+     * @param {Partial<import("./core/helpers.js").GifValues>} [options={}] Reader options.
+     * @param {string} [options.emit] Output to emit.
+     * @param {string} [options.inputType="gif"] Expected source type.
+     * @param {string} [options.source] Diagnostic source label.
+     * @returns {this} This format.
      */
     SetValues(options = {})
     {
@@ -48,6 +58,12 @@ export class CjsGifFormat extends CjsImageFormat
     /**
      * Returns a snapshot of the normalized reader options for the GIF format
      * configuration.
+     *
+     * @param {Partial<import("./core/helpers.js").GifValues>} [options={}] Per-call overrides.
+     * @param {string} [options.emit] Output to emit.
+     * @param {string} [options.inputType="gif"] Expected source type.
+     * @param {string} [options.source] Diagnostic source label.
+     * @returns {import("./core/helpers.js").GifValues} The normalized values.
      */
     GetValues(options = {})
     {
@@ -57,6 +73,10 @@ export class CjsGifFormat extends CjsImageFormat
     /**
      * Reads the primary public payload representation from the supplied input
      * for the GIF format configuration.
+     *
+     * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input File bytes.
+     * @param {Partial<import("./core/helpers.js").GifValues>} [options={}] Per-call overrides.
+     * @returns {object} Raw bytes with metadata, the inspection, or the decoded RGBA image, per `emit`.
      */
     Read(input, options = {})
     {
@@ -66,6 +86,10 @@ export class CjsGifFormat extends CjsImageFormat
     /**
      * Reads the primary public payload representation asynchronously for the GIF
      * format configuration.
+     *
+     * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input File bytes.
+     * @param {Partial<import("./core/helpers.js").GifValues>} [options={}] Per-call overrides.
+     * @returns {Promise<object>} The `Read` result.
      */
     async ReadAsync(input, options = {})
     {
@@ -75,6 +99,10 @@ export class CjsGifFormat extends CjsImageFormat
     /**
      * Returns structural metadata without materializing the decoded payload for
      * the GIF format configuration.
+     *
+     * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input File bytes.
+     * @param {Partial<import("./core/helpers.js").GifValues>} [options={}] Per-call overrides.
+     * @returns {import("./core/helpers.js").GifInspection} The header and frame metadata.
      */
     Inspect(input, options = {})
     {
@@ -84,39 +112,68 @@ export class CjsGifFormat extends CjsImageFormat
     /**
      * Converts the current decoded payload into a JSON-safe representation for
      * the GIF format configuration.
+     *
+     * @param {*} value Decoded payload.
+     * @returns {*} JSON-safe copy with byte arrays reported as `{ byteLength }`.
      */
     ToJSON(value)
     {
         return toJsonValue(value);
     }
 
-    /** Provides the one-shot GIF payload reader entry point. */
+    /**
+     * Provides the one-shot GIF payload reader entry point.
+     *
+     * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input File bytes.
+     * @param {Partial<import("./core/helpers.js").GifValues>} [options={}] Reader options.
+     * @returns {object} The `Read` result.
+     */
     static read(input, options = {})
     {
         return readWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "gif", ...options }, FORMAT_NAME));
     }
 
-    /** Provides the asynchronous one-shot GIF payload reader entry point. */
+    /**
+     * Provides the asynchronous one-shot GIF payload reader entry point.
+     *
+     * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input File bytes.
+     * @param {Partial<import("./core/helpers.js").GifValues>} [options={}] Reader options.
+     * @returns {Promise<object>} The `read` result.
+     */
     static async readAsync(input, options = {})
     {
         return CjsGifFormat.read(input, options);
     }
 
-    /** Provides the one-shot GIF metadata inspection entry point. */
+    /**
+     * Provides the one-shot GIF metadata inspection entry point.
+     *
+     * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input File bytes.
+     * @param {Partial<import("./core/helpers.js").GifValues>} [options={}] Reader options.
+     * @returns {import("./core/helpers.js").GifInspection} The header and frame metadata.
+     */
     static inspect(input, options = {})
     {
         return inspectWithValues(input, normalizeValues(DEFAULT_VALUES, { inputType: "gif", ...options }, FORMAT_NAME));
     }
 
-    /** Checks one input against the GIF decoder capability contract. */
-
-    /** Provides the one-shot GIF JSON conversion entry point. */
+    /**
+     * Provides the one-shot GIF JSON conversion entry point.
+     *
+     * @param {*} value Decoded payload.
+     * @returns {*} JSON-safe copy with byte arrays reported as `{ byteLength }`.
+     */
     static toJSON(value)
     {
         return toJsonValue(value);
     }
 
-    /** Checks whether caller-provided bytes carry the expected GIF signature. */
+    /**
+     * Checks whether caller-provided bytes carry the expected GIF signature.
+     *
+     * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input File bytes.
+     * @returns {boolean} True for a GIF87a/GIF89a header; false otherwise or for non-byte input.
+     */
     static isGIF(input)
     {
         try
