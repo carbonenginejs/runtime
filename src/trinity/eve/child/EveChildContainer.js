@@ -26,6 +26,7 @@ import { EveComponentType } from "../EntityComponents.js";
 import { Origin } from "../../generated/eve/child/enums.js";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 import { TR2SHADERMODEL } from "#consts/graphics";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { Tr2Lod } from "../EveLODHelper.js";
 import { Tr2PerObjectData } from "../../core/rawData/perObjectData/Tr2PerObjectData.js";
 import {
@@ -1178,17 +1179,16 @@ export class EveChildContainer extends EveChildTransform
   }
 
   /**
-   * Carbon EveChildContainer::IsRendering (cpp:334-362): whether the current
-   * shader model passes this container's display filter.
+   * Carbon EveChildContainer::IsRendering (cpp:337-362): whether the renderer's
+   * current shader model passes this container's display filter.
    *
-   * Adapted: Carbon reads the Tr2Renderer shader-model global; the browser runtime stamps
-   * EveChildContainer.shaderModel (default TR2SM_3_0_DEPTH, the DX11 depth path EVE ships).
+   * @returns {boolean} Whether the container renders at the current shader model.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   IsRendering()
   {
-    const settings = EveChildContainer.shaderModel;
+    const settings = Tr2Renderer.GetShaderModel();
     const filter = EveChildContainer.DisplayQualityModifier;
 
     if (settings === TR2SHADERMODEL.TR2SM_AUTHORING && this.displayFilter !== filter.ONLY_REFLECTIONS)
@@ -1626,11 +1626,6 @@ export class EveChildContainer extends EveChildTransform
     }
     return next;
   }
-
-  // Carbon reads Tr2Renderer::GetShaderModel() (a renderer global); the
-  // browser runtime stamps it here. TR2SM_3_0_DEPTH is the DX11 depth path
-  // EVE ships, so every quality-gated container renders by default.
-  static shaderModel = TR2SHADERMODEL.TR2SM_3_0_DEPTH;
 
   static DisplayQualityModifier = {
     ONLY_REFLECTIONS: 6,
