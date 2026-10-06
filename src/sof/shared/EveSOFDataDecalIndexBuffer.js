@@ -53,23 +53,24 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
   // allocate storage, fill it, then retain the used prefix.
 
   /**
-   * Replaces the index storage with a zeroed buffer sized for the requested bytes.
+   * Sizes the index storage for the requested bytes and returns it for the reader to fill.
    *
-   * Adapted: Carbon resizes its vector, preserving existing elements in the
-   * retained range, and returns a byte pointer (EveSOFData.cpp:975-978).
-   * JavaScript allocates a fresh Uint32Array and returns it directly; a reader
-   * fills its bytes. An empty typed array also avoids the donor's unguarded
-   * element-zero access when the resulting vector is empty.
+   * Adapted: Carbon resizes its vector in place and returns a byte pointer
+   * (EveSOFData.cpp:980-984). A typed array cannot resize, so the existing
+   * storage is reused when it already has the requested length, and replaced
+   * only when it is null or a different length. An empty typed array also
+   * avoids the donor's unguarded element-zero access when the vector is empty.
    *
    * @param {string} _memberName Ignored, as in Carbon.
    * @param {number} byteSize Nonnegative byte count; incomplete uint32 bytes are discarded.
-   * @returns {Uint32Array} New backing storage.
+   * @returns {Uint32Array} The backing storage, reused or new.
    */
   @meta.blue.method
   @meta.adapted
   AllocateReadBuffer(_memberName, byteSize)
   {
-    this.indexBuffer = new Uint32Array(Math.floor(byteSize / 4));
+    const length = Math.floor(byteSize / 4);
+    if (this.indexBuffer === null || this.indexBuffer.length !== length) this.indexBuffer = new Uint32Array(length);
     return this.indexBuffer;
   }
 
@@ -105,13 +106,13 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
   }
 
   /**
-   * Copies the retained prefix into storage capped at the requested byte size.
+   * Trims the index storage to the requested byte size.
    *
    * Adapted: Carbon ignores the supplied pointer and resizes its vector, expecting
-   * the result to fit in the previously allocated buffer (EveSOFData.cpp:968-973).
-   * JavaScript clamps the result to the existing length and copies it into a new
-   * array; it cannot grow the store as vector.resize can. Previously returned
-   * arrays are not updated.
+   * the result to fit in the previously allocated buffer (EveSOFData.cpp:973-978).
+   * The storage is kept as it is when it already has that length, which is the
+   * normal case after AllocateReadBuffer. Otherwise the retained prefix is copied
+   * into a shorter array: a typed array cannot shrink or grow as vector.resize can.
    *
    * @param {string} _propertyName Ignored, as in Carbon.
    * @param {*} _buffer Ignored, as in Carbon.
@@ -122,9 +123,9 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
   @meta.adapted
   SetBufferAndSize(_propertyName, _buffer, byteSize)
   {
-    const elements = Math.floor(byteSize / 4);
+    const length = Math.floor(byteSize / 4);
     const source = this.indexBuffer;
-    this.indexBuffer = source.subarray(0, Math.min(elements, source.length)).slice();
+    if (source.length !== length) this.indexBuffer = source.slice(0, Math.min(length, source.length));
   }
 
 }
