@@ -102,16 +102,6 @@ export class Tr2ResourceSetDescriptionAL
     return true;
   }
 
-  /**
-   * Carbon's bare SetSrv is not supported: its buffer and texture overloads
-   * differ only in our own classes. Call SetSrv__BufferAL or SetSrv__TextureAL.
-   */
-  @meta.notSupported
-  SetSrv()
-  {
-    throw new Error("Tr2ResourceSetDescriptionAL.SetSrv is not supported; call SetSrv__BufferAL or SetSrv__TextureAL.");
-  }
-
   /** The Srv record mapped to a stage register, or null out of range. */
   _SrvRecord(stage, registerIndex)
   {
@@ -163,16 +153,6 @@ export class Tr2ResourceSetDescriptionAL
     current.texture = next;
     current.colorSpace = mip;
     return true;
-  }
-
-  /**
-   * Carbon's bare SetUav is not supported: its buffer and texture overloads
-   * differ only in our own classes. Call SetUav__BufferAL or SetUav__TextureAL.
-   */
-  @meta.notSupported
-  SetUav()
-  {
-    throw new Error("Tr2ResourceSetDescriptionAL.SetUav is not supported; call SetUav__BufferAL or SetUav__TextureAL.");
   }
 
   /** The Uav record mapped to a stage register, or null out of range. */

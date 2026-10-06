@@ -381,16 +381,6 @@ export class TriGeometryRes extends CjsResource
   }
 
   /**
-   * Carbon's bare GetMeshLod is not supported: its float screenSize and int
-   * lodIndex overloads (TriGeometryRes.h:282-283) are both JavaScript numbers.
-   * Call GetMeshLod__ScreenSize or GetMeshLod__LodIndex.
-   */
-  GetMeshLod()
-  {
-    throw new Error("TriGeometryRes.GetMeshLod is not supported; call GetMeshLod__ScreenSize or GetMeshLod__LodIndex.");
-  }
-
-  /**
    * The LOD data at an explicit index, or null when the mesh or index does not
    * exist (Carbon TriGeometryRes.cpp:281-292).
    *
@@ -1474,7 +1464,6 @@ CjsSchema.define(TriGeometryRes, {
     GetSkeletonData: [ meta.blue.method, meta.adapted ],
     GetMeshAreaCount: [ meta.blue.method, meta.adapted ],
     GetLodIndexForScreenSize: [ meta.blue.method, meta.adapted ],
-    GetMeshLod: [ meta.blue.method, meta.notSupported ],
     GetMeshLod__ScreenSize: [ meta.adapted ],
     GetMeshLod__LodIndex: [ meta.adapted ],
     GetMeshName: [ meta.blue.method, meta.adapted ],
