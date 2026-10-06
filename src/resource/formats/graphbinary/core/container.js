@@ -7,16 +7,48 @@ const MAGIC = [67, 74, 83, 66];
 const ENDIAN_WORD = Uint16Array.of(1);
 const LITTLE_ENDIAN = new Uint8Array(ENDIAN_WORD.buffer)[0] === 1;
 
-/** V1 has no byte-swapping or host-endianness option. */
+/**
+ * V1 has no byte-swapping or host-endianness option.
+ *
+ * @throws {TypeError} When the host is big-endian.
+ */
 export function requireLittleEndian()
 {
     if (!LITTLE_ENDIAN) throw new TypeError("Graph binary v1 requires a little-endian host");
 }
 
-/** Arithmetic alignment avoids signed-32-bit truncation of large offsets. */
+/**
+ * Arithmetic alignment avoids signed-32-bit truncation of large offsets.
+ *
+ * @param {number} value Byte offset.
+ * @returns {number} The offset rounded up to a multiple of 8.
+ */
 function align8(value) { return Math.ceil(value / 8) * 8; }
 
-/** Build a binary section without per-element typed-array decoding. */
+/**
+ * A binary-section writer: `write` appends one typed payload and returns its bufferView index; `finish`
+ * frames the JSON root and the payloads into one CJSB file.
+ *
+ * @typedef {object} GraphBinaryWriter
+ * @property {Array<{byteOffset: number, byteLength: number, type: string, count: number}>} bufferViews View records written so far.
+ * @property {function(ArrayBufferView, string): number} write Appends a payload of the named type.
+ * @property {function(object, string): Uint8Array} finish Encodes the file around the wire root.
+ */
+
+/**
+ * An opened CJSB file: the wire root and a reader for its bufferViews.
+ *
+ * @typedef {object} GraphBinaryReader
+ * @property {object} root Wire root from the JSON section.
+ * @property {function(number, (string|null)=): ArrayBufferView} read Copies one bufferView into an owned typed array.
+ */
+
+/**
+ * Build a binary section without per-element typed-array decoding.
+ *
+ * @returns {GraphBinaryWriter} A fresh writer.
+ * @throws {TypeError} When the host is big-endian.
+ */
 export function createBinaryWriter()
 {
     requireLittleEndian();
@@ -25,6 +57,15 @@ export function createBinaryWriter()
     let length = 0;
     return {
         bufferViews,
+        /**
+         * Appends one typed payload at the next 8-byte boundary.
+         *
+         * @param {ArrayBufferView} value Payload whose class matches the type.
+         * @param {string} type Scalar kind, or "bytes" for a Uint8Array.
+         * @returns {number} The new bufferView index.
+         * @throws {TypeError} When the payload class does not match the type.
+         * @throws {RangeError} When the binary section exceeds 4 GiB.
+         */
         write(value, type)
         {
             const Ctor = TYPES.get(type);
@@ -38,6 +79,14 @@ export function createBinaryWriter()
             chunks.push(bytes(value));
             return index;
         },
+        /**
+         * Encodes the header, JSON envelope and binary section.
+         *
+         * @param {object} root Wire root.
+         * @param {string} format Wire format identity.
+         * @returns {Uint8Array} The CJSB file bytes.
+         * @throws {RangeError} When the JSON section exceeds 4 GiB.
+         */
         finish(root, format)
         {
             const json = writeEnvelope({ format, version: 1, root, bufferViews });
@@ -56,7 +105,15 @@ export function createBinaryWriter()
     };
 }
 
-/** Validate framing once; bad individual views remain member-local failures when requested. */
+/**
+ * Validate framing once; bad individual views remain member-local failures when requested.
+ *
+ * @param {ArrayBuffer|ArrayBufferView} input CJSB file bytes.
+ * @param {string} format Required wire format identity.
+ * @returns {GraphBinaryReader} The wire root and view reader.
+ * @throws {TypeError} When the header, padding or envelope is invalid.
+ * @throws {RangeError} When the version or section lengths are invalid.
+ */
 export function openBinary(input, format)
 {
     requireLittleEndian();
@@ -76,6 +133,15 @@ export function openBinary(input, format)
     if (!Array.isArray(envelope.bufferViews)) throw new TypeError("Missing bufferViews");
     return {
         root: envelope.root,
+        /**
+         * Copies one bufferView into an owned typed array.
+         *
+         * @param {number} index bufferView index.
+         * @param {string|null} [type=null] Required view type, or null for any.
+         * @returns {ArrayBufferView} The typed array declared by the view.
+         * @throws {RangeError} When the index, range, alignment or count is invalid.
+         * @throws {TypeError} When the view type is unknown or does not match.
+         */
         read(index, type = null)
         {
             if (!Number.isSafeInteger(index) || index < 0 || index >= envelope.bufferViews.length) throw new RangeError("Invalid bufferView index");
@@ -97,7 +163,15 @@ export function openBinary(input, format)
     };
 }
 
-/** Binary's own typed-array handler never sends bulk elements through JSON scalar handlers. */
+/**
+ * Binary's own typed-array handler never sends bulk elements through JSON scalar handlers.
+ *
+ * @param {unknown} value Typed array when writing, `_view` wrapper when reading.
+ * @param {import("../../graph/core/dataTypes.js").GraphDataType} type Declared typed-array type.
+ * @param {import("../../graph/core/dataTypes.js").GraphHandlerContext} context Handler context; `context.options.binary` is the writer or reader.
+ * @returns {{_view: number}|ArrayBufferView} The view wrapper when writing, the typed array when reading.
+ * @throws {TypeError} When the value does not match the declared array.
+ */
 export function binaryArray(value, type, context)
 {
     const [Ctor, kind] = arrayType(type);
@@ -110,7 +184,14 @@ export function binaryArray(value, type, context)
     return context.options.binary.read(value._view, kind);
 }
 
-/** Explicit typed JS payloads make class-free producer storage unambiguous. */
+/**
+ * Explicit typed JS payloads make class-free producer storage unambiguous.
+ *
+ * @param {unknown} value Plain value, typed array or `{_custom, bytes}` wrapper.
+ * @param {GraphBinaryWriter} binary Writer that receives typed payloads.
+ * @returns {unknown} The value, or its `_view` wire wrapper.
+ * @throws {TypeError} When the value is a caller-authored view, a malformed wrapper or an unsupported view.
+ */
 export function writePayload(value, binary)
 {
     if (isRecord(value) && Object.hasOwn(value, "_view")) throw new TypeError("Caller-authored _view requires an owned typed payload");

@@ -1,5 +1,65 @@
 import { CARBON_TYPE } from "../../../../global/schema/types/carbonTypes.js";
 
+/**
+ * A resolved or declared graph data type. `kind` names the storage handler; the other fields apply to the
+ * kinds that read them.
+ *
+ * @typedef {object} GraphDataType
+ * @property {string} kind Handler or grammar kind, such as "float32", "objectRef", "array" or "custom".
+ * @property {string} [scalar] Component or enum scalar kind.
+ * @property {string} [underlyingType] Enum scalar kind when `scalar` is absent.
+ * @property {Function|string} [arrayType] Typed-array constructor or its name, for "typedArray".
+ * @property {Function|string} [className] Declared class, or its registered name, for object kinds.
+ * @property {GraphDataType|Function|string} [itemType] Item declaration for "array", "list" and "set".
+ * @property {GraphDataType|Function|string} [valueType] Value declaration for "map".
+ * @property {boolean} [runtimeOnly] True when the member is never transported.
+ * @property {string} [name] Custom handler name, for "custom".
+ * @property {string} [customName] Custom handler name when `name` is absent.
+ */
+
+/**
+ * Context handed to a data-type or custom handler.
+ *
+ * @typedef {object} GraphHandlerContext
+ * @property {boolean} writing True when encoding, false when decoding.
+ * @property {string} path JSON-pointer path of the value.
+ * @property {object} options The read or write options, including `binary` and `customHandlers` when set.
+ */
+
+/**
+ * Converts one stored value for a declared data type.
+ *
+ * @callback GraphHandler
+ * @param {unknown} value Value to convert.
+ * @param {GraphDataType} type Resolved data type.
+ * @param {GraphHandlerContext} context Handler context.
+ * @returns {unknown} The converted value.
+ */
+
+/**
+ * A member-local failure recorded while reading or writing a graph.
+ *
+ * @typedef {object} GraphReport
+ * @property {string} path JSON-pointer path of the failing member.
+ * @property {string} message Error message.
+ */
+
+/**
+ * Result of a graph read: the decoded root and the member reports.
+ *
+ * @typedef {object} GraphReadResult
+ * @property {unknown} root Decoded plain-value or runtime root.
+ * @property {Array<GraphReport>} reports Member-local failures.
+ */
+
+/**
+ * Header summary returned by the graph formats' `inspect`.
+ *
+ * @typedef {object} GraphInspection
+ * @property {{id: string, version: number}} format Format id and version.
+ * @property {string} wireFormat Wire identity in the envelope.
+ */
+
 /** Storage vocabulary only; meaning declarations select one of these handlers. */
 const ALIASES = {
     bool: CARBON_TYPE.BOOLEAN, float: CARBON_TYPE.FLOAT32, double: CARBON_TYPE.FLOAT64,
@@ -29,7 +89,14 @@ const RANGE = {
 };
 const LENGTH = { vector2: 2, vector3: 3, vector4: 4, quaternion: 4, matrix3: 9, matrix4: 16 };
 
-/** Resolve meanings to data types before any table lookup. */
+/**
+ * Resolve meanings to data types before any table lookup.
+ *
+ * @param {GraphDataType|string} type Declared data type, or its kind name.
+ * @param {object} [field={}] Schema member declaration; `field.edit.flags` selects uint32 storage.
+ * @returns {GraphDataType} The resolved data type.
+ * @throws {TypeError} When the declaration is missing or an enum has no integer scalar.
+ */
 export function dataType(type, field = {})
 {
     if (typeof type === "string") type = { kind: type };
@@ -48,7 +115,16 @@ export function dataType(type, field = {})
     return { ...type, kind: ALIASES[kind] ?? kind };
 }
 
-/** Validate a declared scalar without implicit coercion or integer wrapping. */
+/**
+ * Validate a declared scalar without implicit coercion or integer wrapping.
+ *
+ * @param {unknown} value Value to validate.
+ * @param {string} kind Scalar kind, such as "int32", "uint64", "float32", "boolean" or "string".
+ * @param {boolean} [writing=false] True when encoding; 64-bit integers then return decimal strings.
+ * @returns {number|bigint|string|boolean} The validated value.
+ * @throws {TypeError} When the value does not match the kind.
+ * @throws {RangeError} When a 64-bit integer or float is out of range.
+ */
 export function scalar(value, kind, writing = false)
 {
     if (RANGE[kind])
@@ -88,7 +164,13 @@ export function scalar(value, kind, writing = false)
     throw new TypeError(`Unknown scalar data type '${kind}'`);
 }
 
-/** Find the explicitly declared platform array class and scalar encoding. */
+/**
+ * Find the explicitly declared platform array class and scalar encoding.
+ *
+ * @param {GraphDataType} type Data type whose `arrayType` names the array class.
+ * @returns {[Function, string]} The typed-array constructor and its scalar kind.
+ * @throws {TypeError} When the array class is not a platform typed array.
+ */
 export function arrayType(type)
 {
     for (const [name, entry] of Object.entries(ARRAYS))
@@ -98,7 +180,12 @@ export function arrayType(type)
     throw new TypeError("Unknown typed-array declaration");
 }
 
-/** Each format owns a fresh data-type handler table, including its custom opt-ins. */
+/**
+ * Each format owns a fresh data-type handler table, including its custom opt-ins.
+ *
+ * @param {GraphHandler|null} [binary=null] Typed-array handler that replaces the JSON element encoding.
+ * @returns {Map<string, GraphHandler>} Handlers keyed by data-type kind.
+ */
 export function createHandlers(binary = null)
 {
     const handlers = new Map();
@@ -131,20 +218,37 @@ export function createHandlers(binary = null)
     return handlers;
 }
 
-/** Exact plain dictionary, never an arbitrary live instance or an accessor bag. */
+/**
+ * Exact plain dictionary, never an arbitrary live instance or an accessor bag.
+ *
+ * @param {unknown} value Value to test.
+ * @returns {boolean} True for an object whose prototype is Object.prototype or null.
+ */
 export function isRecord(value)
 {
     return value !== null && typeof value === "object"
         && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null);
 }
 
-/** JSON pointer escaping used by all format member reports. */
+/**
+ * JSON pointer escaping used by all format member reports.
+ *
+ * @param {string} path Parent JSON-pointer path.
+ * @param {string|number} name Member name or index.
+ * @returns {string} The child path.
+ */
 export function memberPath(path, name)
 {
     return `${path}/${String(name).replaceAll("~", "~0").replaceAll("/", "~1")}`;
 }
 
-/** Set data keys safely, including arbitrary string Map keys such as __proto__. */
+/**
+ * Set data keys safely, including arbitrary string Map keys such as __proto__.
+ *
+ * @param {object} target Object to write.
+ * @param {string|number} name Key to define.
+ * @param {unknown} value Value to store.
+ */
 export function put(target, name, value)
 {
     Object.defineProperty(target, name, { value, writable: true, enumerable: true, configurable: true });

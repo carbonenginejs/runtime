@@ -8,7 +8,13 @@ import { dataType, isRecord, memberPath, put } from "./dataTypes.js";
 const RESERVED = new Set(["_type", "_id", "_ref", "__bluemetadata__"]);
 const OBJECTS = new Set(["objectRef", "model", "weakRef", "struct", "rawStruct"]);
 
-/** The canonical stored member projection; never use the lossy compatibility fields bag. */
+/**
+ * The canonical stored member projection; never use the lossy compatibility fields bag.
+ *
+ * @param {Function} Constructor Registered class.
+ * @returns {Map<string, object>} Schema member declarations keyed by name.
+ * @throws {TypeError} When a member uses a reserved name.
+ */
 function declarations(Constructor)
 {
     const members = new Map();
@@ -20,7 +26,13 @@ function declarations(Constructor)
     return members;
 }
 
-/** Read interface metadata, never infer exposure from the presence of a method. */
+/**
+ * Read interface metadata, never infer exposure from the presence of a method.
+ *
+ * @param {object} instance Instance to test.
+ * @param {string} name Interface class name.
+ * @returns {boolean} True when the instance's class maps that interface.
+ */
 function mapped(instance, name)
 {
     for (const Interface of mappedInterfaces(instance.constructor))
@@ -30,7 +42,14 @@ function mapped(instance, name)
     return false;
 }
 
-/** A stored member must be data, including when its exposed name differs from its key. */
+/**
+ * A stored member must be data, including when its exposed name differs from its key.
+ *
+ * @param {object} instance Owning instance.
+ * @param {object} field Schema member declaration.
+ * @returns {{target: object, key: string|number, value: unknown}} The storage slot and its current value.
+ * @throws {TypeError} When the member is not own data or its index is out of range.
+ */
 function storage(instance, field)
 {
     const descriptor = Object.getOwnPropertyDescriptor(instance, field.key);
@@ -44,7 +63,13 @@ function storage(instance, field)
     return { target: value, key: field.index, value: value[field.index] };
 }
 
-/** Resolve declaration shorthand without turning missing types into inferred values. */
+/**
+ * Resolve declaration shorthand without turning missing types into inferred values.
+ *
+ * @param {import("./dataTypes.js").GraphDataType|Function|string} type Declared type, class, or class or kind name.
+ * @param {object} [field] Schema member declaration.
+ * @returns {import("./dataTypes.js").GraphDataType} The resolved data type.
+ */
 function descriptor(type, field)
 {
     if (typeof type === "function") type = { kind: "objectRef", className: CjsSchema.getClassName(type) };
@@ -52,7 +77,13 @@ function descriptor(type, field)
     return dataType(type, field);
 }
 
-/** Snapshot a declared Array or native IList through its native read surface. */
+/**
+ * Snapshot a declared Array or native IList through its native read surface.
+ *
+ * @param {Array<unknown>|object} value Array or IList instance.
+ * @returns {Array<unknown>} The items.
+ * @throws {TypeError} When value is neither.
+ */
 function listValues(value)
 {
     if (Array.isArray(value)) return value;
@@ -65,7 +96,13 @@ function listValues(value)
     throw new TypeError("Expected declared array or IList");
 }
 
-/** Plain map storage is data; inspecting it must never invoke a getter. */
+/**
+ * Plain map storage is data; inspecting it must never invoke a getter.
+ *
+ * @param {Map<unknown, unknown>|object} value Map or plain record.
+ * @returns {Array<[unknown, unknown]>} The key/value entries.
+ * @throws {TypeError} When value is neither, or a record entry is an accessor.
+ */
 function mapEntries(value)
 {
     if (value instanceof Map) return [...value];
@@ -78,7 +115,12 @@ function mapEntries(value)
     });
 }
 
-/** Grammar positions come from declarations when available; Map keys are never metadata. */
+/**
+ * Grammar positions come from declarations when available; Map keys are never metadata.
+ *
+ * @param {import("./dataTypes.js").GraphDataType|Function|string} [type] Declared type.
+ * @returns {string|undefined} The grammar kind.
+ */
 function graphPosition(type)
 {
     if (typeof type === "string") return getClassRegistration(type) ? "objectRef" : type;
@@ -86,7 +128,14 @@ function graphPosition(type)
     return type?.kind;
 }
 
-/** Follow collection values or declared members without interpreting data-record keys as IDs. */
+/**
+ * Follow collection values or declared members without interpreting data-record keys as IDs.
+ *
+ * @param {unknown} value Parent wire value.
+ * @param {string} key Child key.
+ * @param {import("./dataTypes.js").GraphDataType|Function|string} [type] Parent declared type.
+ * @returns {import("./dataTypes.js").GraphDataType|Function|string|undefined} The child's declared type, when known.
+ */
 function childType(value, key, type)
 {
     const kind = graphPosition(type);
@@ -107,7 +156,13 @@ function childType(value, key, type)
     return undefined;
 }
 
-/** Check graph identity grammar before touching a live destination. Duplicate IDs are fatal. */
+/**
+ * Check graph identity grammar before touching a live destination. Duplicate IDs are fatal.
+ *
+ * @param {object} root Wire root class definition.
+ * @returns {Map<number, object>} Wire objects keyed by `_id`.
+ * @throws {TypeError} When the root or any identity marker is invalid.
+ */
 export function discover(root)
 {
     const rootType = root && Object.getOwnPropertyDescriptor(root, "_type");
@@ -161,7 +216,14 @@ export function discover(root)
     return ids;
 }
 
-/** Readable plain graph copy; missing references are local member reports. */
+/**
+ * Readable plain graph copy; missing references are local member reports.
+ *
+ * @param {object} root Wire root class definition.
+ * @param {Array<import("./dataTypes.js").GraphReport>} reports Receives member-local failures.
+ * @param {function(object, string): unknown} [transform] Replaces an object value when it returns something else.
+ * @returns {unknown} The plain copy.
+ */
 export function plainGraph(root, reports, transform = value => value)
 {
     const ids = discover(root);
@@ -195,7 +257,12 @@ export function plainGraph(root, reports, transform = value => value)
     return copy(root, "/root");
 }
 
-/** A strict save never returns bytes after a reported member failure. */
+/**
+ * A strict save never returns bytes after a reported member failure.
+ *
+ * @param {Array<import("./dataTypes.js").GraphReport>} reports Member-local failures.
+ * @throws {TypeError} When reports is non-empty; the error carries `reports`.
+ */
 export function throwReports(reports)
 {
     if (!reports.length) return;
@@ -204,7 +271,16 @@ export function throwReports(reports)
     throw error;
 }
 
-/** Encode a registered graph using this format's data-type and custom handlers. */
+/**
+ * Encode a registered graph using this format's data-type and custom handlers.
+ *
+ * @param {object} root Registered root instance.
+ * @param {Map<string, import("./dataTypes.js").GraphHandler>} handlers Data-type handlers.
+ * @param {object} [options={}] Write options, passed to handlers.
+ * @param {Object<string, {read: Function, write: Function}>} [options.customHandlers] Custom handlers by name.
+ * @returns {object} The wire root.
+ * @throws {TypeError} When any member fails; the error carries `reports`.
+ */
 export function writeGraph(root, handlers, options = {})
 {
     const reports = [];
@@ -326,7 +402,13 @@ export function writeGraph(root, handlers, options = {})
     return result;
 }
 
-/** Validate an object against a declared class, including declared interface lineage. */
+/**
+ * Validate an object against a declared class, including declared interface lineage.
+ *
+ * @param {object} instance Instance to check.
+ * @param {import("./dataTypes.js").GraphDataType} type Declared type; nothing is checked without `className`.
+ * @throws {TypeError} When the instance does not satisfy the class.
+ */
 function checkClass(instance, type)
 {
     if (!type.className) return;
@@ -334,14 +416,25 @@ function checkClass(instance, type)
     if (!Constructor || !CjsSchema.cast(instance, Constructor)) throw new TypeError(`Class does not satisfy '${typeof type.className === "string" ? type.className : CjsSchema.getClassName(Constructor)}'`);
 }
 
-/** Native struct declarations, not inline layout bags, authorize logical struct transport. */
+/**
+ * Native struct declarations, not inline layout bags, authorize logical struct transport.
+ *
+ * @param {import("./dataTypes.js").GraphDataType} type Declared struct type.
+ * @returns {unknown} The class's structure definition, or a falsy value.
+ */
 function hasStructure(type)
 {
     const Constructor = typeof type.className === "function" ? type.className : CjsSchema.GetConstructor(type.className);
     return Constructor && CjsSchema.getSchema(Constructor).structureDefinition;
 }
 
-/** Native decoders may return plain struct records; only a declared class layout authorizes them. */
+/**
+ * Native decoders may return plain struct records; only a declared class layout authorizes them.
+ *
+ * @param {object} instance Instance or plain struct record.
+ * @param {import("./dataTypes.js").GraphDataType} type Declared type.
+ * @returns {Function|undefined} The class that owns the storage.
+ */
 function storageClass(instance, type)
 {
     if (isRecord(instance) && ["struct", "rawStruct"].includes(type.kind) && hasStructure(type))
@@ -351,7 +444,19 @@ function storageClass(instance, type)
     return instance?.constructor;
 }
 
-/** Dispatch a storage value, failing explicitly when a format has not opted into a custom type. */
+/**
+ * Dispatch a storage value, failing explicitly when a format has not opted into a custom type.
+ *
+ * @param {unknown} value Value to convert.
+ * @param {import("./dataTypes.js").GraphDataType} type Resolved data type.
+ * @param {string} path JSON-pointer path of the value.
+ * @param {Map<string, import("./dataTypes.js").GraphHandler>} handlers Data-type handlers.
+ * @param {object} options Read or write options.
+ * @param {Object<string, {read: Function, write: Function}>} [options.customHandlers] Custom handlers by name.
+ * @param {boolean} writing True when encoding.
+ * @returns {unknown} The converted value.
+ * @throws {TypeError} When no handler exists for the kind or custom name.
+ */
 function handle(value, type, path, handlers, options, writing)
 {
     const context = { writing, path, options };
@@ -370,7 +475,13 @@ function handle(value, type, path, handlers, options, writing)
     return handler(value, type, context);
 }
 
-/** Blue metadata is explicitly declared string data, never an arbitrary state bag. */
+/**
+ * Blue metadata is explicitly declared string data, never an arbitrary state bag.
+ *
+ * @param {unknown} value Metadata record.
+ * @returns {Object<string, string>} A key-sorted copy.
+ * @throws {TypeError} When value is not a record of own string data.
+ */
 function metadataValue(value)
 {
     if (!isRecord(value)) throw new TypeError("Expected string metadata record");
@@ -384,7 +495,17 @@ function metadataValue(value)
     return out;
 }
 
-/** Decode through declaration factories with member-local failures and operation-local identity. */
+/**
+ * Decode through declaration factories with member-local failures and operation-local identity.
+ *
+ * @param {object} root Wire root class definition.
+ * @param {Map<string, import("./dataTypes.js").GraphHandler>} handlers Data-type handlers.
+ * @param {object} [options={}] Read options, passed to handlers.
+ * @param {boolean} [options.initialize] False skips `Initialize` on created instances.
+ * @param {Object<string, {read: Function, write: Function}>} [options.customHandlers] Custom handlers by name.
+ * @returns {import("./dataTypes.js").GraphReadResult} The runtime root and member reports.
+ * @throws {TypeError} When the root itself cannot be decoded; the error carries `reports`.
+ */
 export function readGraph(root, handlers, options = {})
 {
     const ids = discover(root);
