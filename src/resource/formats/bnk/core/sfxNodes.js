@@ -30,6 +30,10 @@ const TYPE_NAMES = Object.freeze({
 /**
  * Decodes one v150 HIRC 5 Random/Sequence payload.
  *
+ * @param {Uint8Array} payload Entry payload view from `inspect()`.
+ * @param {Map<number, object|number>|Iterable<number|{id: number, type: number}>} knownObjects Objects of the related banks, by id, used to validate child identities.
+ * @param {object} [options] Decode options.
+ * @param {number} [options.bankVersion=150] Wwise bank generator version.
  * @returns {object|null} Typed node, or null when no unique exact-end anchor
  * validates.
  */
@@ -49,6 +53,10 @@ export function parseSfxRandomSequence(
 /**
  * Decodes one v150 HIRC 6 Switch payload.
  *
+ * @param {Uint8Array} payload Entry payload view from `inspect()`.
+ * @param {Map<number, object|number>|Iterable<number|{id: number, type: number}>} knownObjects Objects of the related banks, by id, used to validate child identities.
+ * @param {object} [options] Decode options.
+ * @param {number} [options.bankVersion=150] Wwise bank generator version.
  * @returns {object|null} Typed node, or null when no unique exact-end anchor
  * validates.
  */
@@ -68,6 +76,10 @@ export function parseSfxSwitch(
 /**
  * Decodes one v150 HIRC 9 Layer payload without lowering curve semantics.
  *
+ * @param {Uint8Array} payload Entry payload view from `inspect()`.
+ * @param {Map<number, object|number>|Iterable<number|{id: number, type: number}>} knownObjects Objects of the related banks, by id, used to validate child identities.
+ * @param {object} [options] Decode options.
+ * @param {number} [options.bankVersion=150] Wwise bank generator version.
  * @returns {object|null} Typed node, or null when no unique exact-end anchor
  * validates.
  */
@@ -90,6 +102,9 @@ export function parseSfxLayer(
  * Actor-Mixers carry inherited NodeBase facts and child identities, but are
  * not themselves playable container behavior.
  *
+ * @param {Uint8Array} payload Entry payload view from `inspect()`.
+ * @param {object} [options] Decode options.
+ * @param {number} [options.bankVersion=150] Wwise bank generator version.
  * @returns {object|null} Typed hierarchy object, or null when invalid.
  */
 export function parseSfxActorMixer(
@@ -104,6 +119,9 @@ export function parseSfxActorMixer(
  * Decodes one exact v150 HIRC 14 attenuation object without assigning curve
  * slots semantic names.
  *
+ * @param {Uint8Array} payload Entry payload view from `inspect()`.
+ * @param {object} [options] Decode options.
+ * @param {number} [options.bankVersion=150] Wwise bank generator version.
  * @returns {object|null} Typed attenuation object, or null when invalid.
  */
 export function parseSfxAttenuation(
@@ -119,6 +137,9 @@ export function parseSfxAttenuation(
  *
  * Raw Wwise identities and semantics are preserved. Runtime schema lowering
  * and optional authoring-name enrichment belong to the runtime audio builder.
+ *
+ * @param {import("./helpers.js").BnkInspection[]|import("./helpers.js").BnkInspection} inspections Related `CjsBnkFormat.inspect()` results.
+ * @returns {{nodes: Map<number, object>, nodeBases: Map<number, object>, actorMixers: Map<number, object>, attenuations: Map<number, object>, events: Map<number, object>, actions: Map<number, object>, diagnostics: object}} Typed objects by id and the parse diagnostics.
  */
 export function sfxNodesFromBanks(inspections)
 {
@@ -352,6 +373,14 @@ export function sfxNodesFromBanks(inspections)
     };
 }
 
+/**
+ * Parses the NodeBase of a decoded SFX entry from its exact byte range.
+ *
+ * @param {import("./helpers.js").BnkHircEntry} entry HIRC entry.
+ * @param {import("./helpers.js").BnkParseResult} result Type parse result; supplies the container anchor.
+ * @param {number} bankVersion Wwise bank generator version.
+ * @returns {{nodeBase: object|null, reason: string}} The NodeBase, or null with the reason.
+ */
 function ReadEntryNodeBase(entry, result, bankVersion)
 {
     if (entry.type === 2)
@@ -404,6 +433,12 @@ function ReadEntryNodeBase(entry, result, bankVersion)
     };
 }
 
+/**
+ * Returns the byte offset of a sound's NodeBase, after its source block.
+ *
+ * @param {import("./helpers.js").BnkHircEntry} entry HIRC 2 sound entry.
+ * @returns {number|null} The offset, or null when the payload is too short.
+ */
 function SoundNodeBaseOffset(entry)
 {
     const payload = entry?.payload;
@@ -440,6 +475,13 @@ function SoundNodeBaseOffset(entry)
         : null;
 }
 
+/**
+ * Parses an exact Actor-Mixer payload.
+ *
+ * @param {Uint8Array} payload Entry payload.
+ * @param {number} bankVersion Wwise bank generator version.
+ * @returns {import("./helpers.js").BnkParseResult} The parse result.
+ */
 function FindActorMixer(payload, bankVersion)
 {
     return ParseExact(payload, bankVersion, (cursor) =>
@@ -466,6 +508,13 @@ function FindActorMixer(payload, bankVersion)
     });
 }
 
+/**
+ * Parses an exact attenuation payload.
+ *
+ * @param {Uint8Array} payload Entry payload.
+ * @param {number} bankVersion Wwise bank generator version.
+ * @returns {import("./helpers.js").BnkParseResult} The parse result.
+ */
 function FindAttenuation(payload, bankVersion)
 {
     return ParseExact(payload, bankVersion, (cursor) =>
@@ -532,6 +581,15 @@ function FindAttenuation(payload, bankVersion)
     });
 }
 
+/**
+ * Reads one attenuation curve's points.
+ *
+ * @param {SfxCursor} cursor Cursor at the first point.
+ * @param {number} scaling Curve scaling, already read.
+ * @param {number} pointCount Number of points, already read.
+ * @returns {{scaling: number, points: import("./helpers.js").BnkCurvePoint[]}} The curve.
+ * @throws {RangeError} When the scaling is invalid.
+ */
 function ReadInitialRTPCFromCurve(cursor, scaling, pointCount)
 {
     if (![ 0, 2, 3, 4 ].includes(scaling))
@@ -545,6 +603,14 @@ function ReadInitialRTPCFromCurve(cursor, scaling, pointCount)
     };
 }
 
+/**
+ * Finds the unique exact Random/Sequence tail anchor and parses it.
+ *
+ * @param {Uint8Array} payload Entry payload.
+ * @param {Map<number, object|number>} knownObjects Known objects by id.
+ * @param {number} bankVersion Wwise bank generator version.
+ * @returns {import("./helpers.js").BnkParseResult} The parse result.
+ */
 function FindRandomSequence(payload, knownObjects, bankVersion)
 {
     return FindUnique(payload, bankVersion, (cursor) =>
@@ -613,6 +679,14 @@ function FindRandomSequence(payload, knownObjects, bankVersion)
     });
 }
 
+/**
+ * Finds the unique exact Switch tail anchor and parses it.
+ *
+ * @param {Uint8Array} payload Entry payload.
+ * @param {Map<number, object|number>} knownObjects Known objects by id.
+ * @param {number} bankVersion Wwise bank generator version.
+ * @returns {import("./helpers.js").BnkParseResult} The parse result.
+ */
 function FindSwitch(payload, knownObjects, bankVersion)
 {
     return FindUnique(payload, bankVersion, (cursor) =>
@@ -703,6 +777,14 @@ function FindSwitch(payload, knownObjects, bankVersion)
     });
 }
 
+/**
+ * Finds the unique exact Layer tail anchor and parses it.
+ *
+ * @param {Uint8Array} payload Entry payload.
+ * @param {Map<number, object|number>} knownObjects Known objects by id.
+ * @param {number} bankVersion Wwise bank generator version.
+ * @returns {import("./helpers.js").BnkParseResult} The parse result.
+ */
 function FindLayer(payload, knownObjects, bankVersion)
 {
     return FindUnique(payload, bankVersion, (cursor) =>
@@ -795,6 +877,14 @@ function FindLayer(payload, knownObjects, bankVersion)
     });
 }
 
+/**
+ * Reads a child id list whose ids must be known SFX objects.
+ *
+ * @param {SfxCursor} cursor Cursor at the child count.
+ * @param {Map<number, object|number>} knownObjects Known objects by id.
+ * @returns {number[]} The child ids.
+ * @throws {RangeError} When a child is not a known SFX object.
+ */
 function ReadChildren(cursor, knownObjects)
 {
     const count = BoundedCount(
@@ -819,6 +909,16 @@ function ReadChildren(cursor, knownObjects)
     return children;
 }
 
+/**
+ * Tries every byte as the type-specific tail anchor and keeps the parse that
+ * ends exactly at the payload end; several candidates are narrowed by an
+ * exact NodeBase.
+ *
+ * @param {Uint8Array} payload Entry payload.
+ * @param {number} bankVersion Wwise bank generator version.
+ * @param {function(SfxCursor): object} parse Tail parser.
+ * @returns {import("./helpers.js").BnkParseResult} The parse result, with the anchor on success.
+ */
 function FindUnique(payload, bankVersion, parse)
 {
     if (!(payload instanceof Uint8Array)
@@ -880,6 +980,14 @@ function FindUnique(payload, bankVersion, parse)
     };
 }
 
+/**
+ * Parses a whole payload that must be consumed exactly.
+ *
+ * @param {Uint8Array} payload Entry payload.
+ * @param {number} bankVersion Wwise bank generator version.
+ * @param {function(SfxCursor): object} parse Payload parser.
+ * @returns {import("./helpers.js").BnkParseResult} The parse result.
+ */
 function ParseExact(payload, bankVersion, parse)
 {
     if (!(payload instanceof Uint8Array)
@@ -908,6 +1016,12 @@ function ParseExact(payload, bankVersion, parse)
     }
 }
 
+/**
+ * Converts known objects to a map by id; a bare number stands for a sound.
+ *
+ * @param {Map<number, object|number>|Iterable<number|{id: number}>|null|undefined} value Known objects.
+ * @returns {Map<number, object|number>} Known objects by id.
+ */
 function NormalizeKnownObjects(value)
 {
     if (value instanceof Map)
@@ -931,6 +1045,12 @@ function NormalizeKnownObjects(value)
     return map;
 }
 
+/**
+ * Returns the HIRC type of a known object.
+ *
+ * @param {object|number|undefined} value Known object, or its type id.
+ * @returns {number|undefined} The type id.
+ */
 function KnownType(value)
 {
     return typeof value === "number" ? value : value?.type;

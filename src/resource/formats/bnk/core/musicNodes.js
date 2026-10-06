@@ -26,6 +26,14 @@
 import { WwiseCursor, parseNodeBaseRange } from "./nodeBase.js";
 
 
+/**
+ * Reports whether the bytes at an offset hold a plausible AkMeterInfo.
+ *
+ * @param {DataView} view View over the payload.
+ * @param {number} at Byte offset of the candidate meter.
+ * @param {number} byteLength Payload byte length.
+ * @returns {boolean} True when the grid, offset, tempo and time signature are in range.
+ */
 function plausibleMeter(view, at, byteLength)
 {
     if (at + 22 > byteLength) return false;
@@ -41,6 +49,14 @@ function plausibleMeter(view, at, byteLength)
         && [ 1, 2, 4, 8, 16, 32 ].includes(beatValue);
 }
 
+/**
+ * Finds every offset where a child list of known ids is followed by a
+ * plausible meter.
+ *
+ * @param {Uint8Array} bytes Entry payload.
+ * @param {Set<number>} knownIds Every HIRC object id in the same bank.
+ * @returns {number[]} Candidate anchor offsets, ascending.
+ */
 function findAnchors(bytes, knownIds)
 {
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
@@ -66,6 +82,12 @@ function findAnchors(bytes, knownIds)
     return anchors;
 }
 
+/**
+ * Reads the children, meter and stingers that follow the NodeBase.
+ *
+ * @param {WwiseCursor} cursor Cursor at the child count.
+ * @returns {{children: number[], meter: object, meterOverride: boolean, stingers: object[]}} The music node tail.
+ */
 function readMusicNodeTail(cursor)
 {
     const childCount = cursor.u32();
@@ -95,7 +117,13 @@ function readMusicNodeTail(cursor)
     return { children, meter, meterOverride, stingers };
 }
 
-/** AkMusicTransNodeParams: transition rules shared by playlist + switch containers. */
+/**
+ * AkMusicTransNodeParams: transition rules shared by playlist + switch containers.
+ *
+ * @param {WwiseCursor} cursor Cursor at the rule count.
+ * @returns {Array<{srcIds: number[], dstIds: number[], src: object, dst: object, transitionSegment: object|null}>} The transition rules.
+ * @throws {RangeError} When a rule, source or destination count is too large.
+ */
 function readTransRules(cursor)
 {
     const ruleCount = cursor.u32();

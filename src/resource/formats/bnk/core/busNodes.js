@@ -169,6 +169,13 @@ export function parseBusNode(
     }
 }
 
+/**
+ * Reads the bus ducking list.
+ *
+ * @param {WwiseCursor} cursor Bounded object cursor at the duck count.
+ * @returns {Array<{busId: number, volume: number, fadeOutTime: number, fadeInTime: number, curve: number, targetPropertyId: number}>} The ducks.
+ * @throws {RangeError} When a duck curve id is invalid.
+ */
 function ReadDucks(cursor)
 {
     const count = boundedCount(cursor.u32(), cursor.remaining, 18, 65535);
@@ -201,6 +208,12 @@ function ReadDucks(cursor)
     return ducks;
 }
 
+/**
+ * Reads the bus effect slots.
+ *
+ * @param {WwiseCursor} cursor Bounded object cursor at the slot count.
+ * @returns {{bypassAllRaw: number, bypassAll: boolean, slots: object[]}} The bypass flag and effect slots.
+ */
 function ReadEffects(cursor)
 {
     const count = boundedCount(cursor.u8(), cursor.remaining, 6, 255);
@@ -229,6 +242,12 @@ function ReadEffects(cursor)
     };
 }
 
+/**
+ * Reads the bus metadata slots.
+ *
+ * @param {WwiseCursor} cursor Bounded object cursor at the slot count.
+ * @returns {{slots: object[]}} The metadata slots.
+ */
 function ReadMetadata(cursor)
 {
     const count = boundedCount(cursor.u8(), cursor.remaining, 6, 255);

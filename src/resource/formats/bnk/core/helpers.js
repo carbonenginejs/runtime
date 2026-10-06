@@ -9,6 +9,149 @@ export const OUTPUT_JSON = "json";
 export const OUTPUT_BNK_JSON = "bnkJson";
 export const OUTPUT_MEDIA = "media";
 
+/**
+ * Normalized BNK reader values.
+ *
+ * @typedef {object} BnkValues
+ * @property {string} emit Output to emit: "raw", "bnkJson" or "media".
+ * @property {string} inputType Lowercase input type without a leading dot.
+ * @property {string} source Source label copied into inspection and probe results.
+ */
+
+/**
+ * One chunk header found by the chunk walk.
+ *
+ * @typedef {object} BnkChunk
+ * @property {string} id Chunk FourCC.
+ * @property {number} offset Byte offset of the chunk header.
+ * @property {number} dataOffset Byte offset of the chunk body.
+ * @property {number} size Body byte size.
+ * @property {boolean} [truncated] Set when the body runs past the end of the bytes.
+ */
+
+/**
+ * One embedded media entry from the DIDX index.
+ *
+ * @typedef {object} BnkMediaEntry
+ * @property {number} id Media id.
+ * @property {number} offset Byte offset within the DATA chunk.
+ * @property {number} absoluteOffset Byte offset within the bank, or 0 without a DATA chunk.
+ * @property {number} length Byte length.
+ * @property {boolean} available Whether the bytes lie inside the DATA chunk and the bank.
+ */
+
+/**
+ * One HIRC object with its version-stable typed fields.
+ *
+ * @typedef {object} BnkHircEntry
+ * @property {number} type HIRC type id.
+ * @property {string} typeName Advisory type name.
+ * @property {number} id Object id.
+ * @property {number} offset Byte offset of the object body, at its id.
+ * @property {number} size Body byte size, including the id.
+ * @property {Uint8Array} payload View over the body after the id.
+ * @property {number[]} [actionIds] Event action ids (type 4).
+ * @property {number} [actionType] Event action type (type 3).
+ * @property {number} [targetId] Event action target id (type 3).
+ * @property {object|null} [action] Decoded event action (type 3).
+ * @property {number} [pluginId] Sound plugin id (type 2).
+ * @property {number} [pluginType] Sound plugin type (type 2).
+ * @property {number} [streamType] Sound stream type (type 2).
+ * @property {number} [sourceId] Sound source id (type 2).
+ * @property {number} [inMemoryMediaSize] Sound in-memory media size (type 2).
+ * @property {number} [sourceBits] Sound source bits (type 2).
+ * @property {Array<{pluginId: number, pluginType: number, streamType: number, sourceId: number, inMemoryMediaSize: number}>} [sources] Music track sources (type 11).
+ */
+
+/**
+ * Soundbank metadata from `inspectBNK`; `inspectWithValues` adds
+ * `byteLength` and `source`.
+ *
+ * @typedef {object} BnkInspection
+ * @property {string} sourceFormat Always "bnk".
+ * @property {number} bankVersion BKHD bank version.
+ * @property {number} bankId BKHD bank id.
+ * @property {number} languageId BKHD language id.
+ * @property {BnkMediaEntry[]} media Embedded media entries.
+ * @property {BnkHircEntry[]} hirc HIRC objects.
+ * @property {Array<{bankId: number, name: string}>} names Referenced bank names from STID.
+ * @property {object|null} globalSettings Decoded STMG global settings, or null.
+ * @property {BnkChunk[]} chunks Chunk headers in file order.
+ * @property {number} mediaCount Number of media entries.
+ * @property {number} hircCount Number of HIRC objects.
+ * @property {number} [byteLength] Total byte length of the bank.
+ * @property {string} [source] Source label.
+ */
+
+/**
+ * One embedded media payload.
+ *
+ * @typedef {object} BnkMediaItem
+ * @property {number} id Media id.
+ * @property {number} length Byte length.
+ * @property {boolean} isWem Whether the payload starts with a RIFF/RIFX WAVE header.
+ * @property {Uint8Array} bytes View over the payload; not a copy.
+ */
+
+/**
+ * Support report returned by `probeSupportWithValues`.
+ *
+ * @typedef {object} BnkProbeReport
+ * @property {string} format Always "bnk".
+ * @property {string} source Source label.
+ * @property {string} supported "partial" for a soundbank, otherwise "none".
+ * @property {number} confidence 1 for a soundbank, otherwise 0.
+ * @property {string} preferredOutput Suggested output, or "" when unsupported.
+ * @property {string} reason Explanation.
+ * @property {BnkInspection|null} metadata Inspection result, or null.
+ * @property {object[]} variants Output variants with their support.
+ * @property {string[]} warnings Warnings.
+ * @property {string[]} errors Error messages.
+ */
+
+/**
+ * Result of `readWithValues` for the "raw" and "media" outputs; "bnkJson"
+ * returns the `BnkInspection` itself.
+ *
+ * @typedef {object} BnkReadResult
+ * @property {string} sourceFormat Always "bnk".
+ * @property {BnkInspection} metadata Inspection result.
+ * @property {string} [mimeType] "application/octet-stream" for the raw output.
+ * @property {Uint8Array} [bytes] The bank bytes, for the raw output.
+ * @property {BnkMediaItem[]} [items] Embedded media, for the media output.
+ */
+
+/**
+ * One Wwise graph point, read without inferring curve meaning.
+ *
+ * @typedef {object} BnkCurvePoint
+ * @property {number} from Finite x value.
+ * @property {number} to Finite y value.
+ * @property {number} interpolation Interpolation id, 0 to 9.
+ */
+
+/**
+ * One v150 initial RTPC.
+ *
+ * @typedef {object} BnkInitialRtpc
+ * @property {number} controlId Control id.
+ * @property {number} controlType Control type, 0 to 4.
+ * @property {number} accumulation Accumulation mode, 0 to 6.
+ * @property {number} parameterId Parameter id.
+ * @property {number} curveId Curve id.
+ * @property {number} scaling Curve scaling: 0, 2, 3 or 4.
+ * @property {BnkCurvePoint[]} points Curve points.
+ */
+
+/**
+ * Outcome of one exact SFX object parse.
+ *
+ * @typedef {object} BnkParseResult
+ * @property {object|null} node Decoded object, or null when the parse failed.
+ * @property {number} [anchor] Byte offset where the type-specific tail starts, for an anchored parse.
+ * @property {string} reason Failure reason, or "" on success.
+ */
+
 export const DEFAULT_VALUES = {
     emit: OUTPUT_RAW,
     inputType: "bnk",
@@ -62,6 +205,11 @@ export const HIRC_V150_TYPE_NAMES = {
 /**
  * Normalizes reader options against their supported defaults for the BNK format
  * reader.
+ *
+ * @param {Partial<BnkValues>|null} [base=DEFAULT_VALUES] Values the options are applied over.
+ * @param {Partial<BnkValues>|null} [options={}] Option overrides.
+ * @param {string} [readerName="CjsBnkFormat"] Reader name used in errors.
+ * @returns {BnkValues} A new values record.
  */
 export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName = "CjsBnkFormat")
 {
@@ -71,7 +219,14 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName 
     return values;
 }
 
-/** Normalizes the requested output representation for the BNK format reader. */
+/**
+ * Normalizes the requested output representation for the BNK format reader.
+ *
+ * @param {string|null|undefined} emit Requested output.
+ * @param {string} readerName Reader name used in errors.
+ * @returns {string} The output; "raw" when none is given.
+ * @throws {TypeError} When the output is not known.
+ */
 export function normalizeEmit(emit, readerName)
 {
     if (emit === undefined || emit === null) return OUTPUT_RAW;
@@ -79,7 +234,6 @@ export function normalizeEmit(emit, readerName)
     throw new TypeError(`${readerName}: unknown emit value ${JSON.stringify(emit)}`);
 }
 
-/** Returns a byte view over the supplied binary input for the BNK format reader. */
 /**
  * Test for a Wwise soundbank BKHD signature.
  *
@@ -103,7 +257,7 @@ export function isBNK(bytes)
  * this reader assumes little-endian data.
  *
  * @param {Uint8Array} bytes Soundbank bytes.
- * @returns {object} Soundbank metadata.
+ * @returns {BnkInspection} Soundbank metadata.
  */
 export function inspectBNK(bytes)
 {
@@ -212,6 +366,14 @@ export function inspectBNK(bytes)
     return info;
 }
 
+/**
+ * Reads the DIDX media index.
+ *
+ * @param {Uint8Array} bytes Soundbank bytes.
+ * @param {number} dataOffset Byte offset of the DIDX body.
+ * @param {number} size DIDX body byte size.
+ * @returns {Array<{id: number, offset: number, length: number}>} Media entries with offsets relative to DATA.
+ */
 function readMediaIndex(bytes, dataOffset, size)
 {
     const entries = [];
@@ -228,6 +390,15 @@ function readMediaIndex(bytes, dataOffset, size)
     return entries;
 }
 
+/**
+ * Reads the HIRC object listing and decodes each object's typed fields.
+ *
+ * @param {Uint8Array} bytes Soundbank bytes.
+ * @param {number} dataOffset Byte offset of the HIRC body.
+ * @param {number} size HIRC body byte size.
+ * @param {number} bankVersion BKHD bank version.
+ * @returns {BnkHircEntry[]} The objects read before the listing ends or runs short.
+ */
 function readHircListing(bytes, dataOffset, size, bankVersion)
 {
     const entries = [];
@@ -260,6 +431,13 @@ function readHircListing(bytes, dataOffset, size, bankVersion)
     return entries;
 }
 
+/**
+ * Returns the advisory name of a HIRC type for a bank version.
+ *
+ * @param {number} type HIRC type id.
+ * @param {number} bankVersion BKHD bank version.
+ * @returns {string} The name, or `hirc-type-<n>` for an unknown id.
+ */
 function hircTypeName(type, bankVersion)
 {
     const names = bankVersion >= 128 && bankVersion <= 154
@@ -288,6 +466,9 @@ function hircTypeName(type, bankVersion)
  *
  * Deeper structures (container children, positioning, RTPC curves) remain
  * undecoded; consumers interpret `payload` themselves.
+ *
+ * @param {BnkHircEntry} entry HIRC object to extend in place.
+ * @param {number} bankVersion BKHD bank version.
  */
 function decodeHircFields(entry, bankVersion)
 {
@@ -349,6 +530,14 @@ function decodeHircFields(entry, bankVersion)
 }
 
 
+/**
+ * Reads the STID referenced-bank name table.
+ *
+ * @param {Uint8Array} bytes Soundbank bytes.
+ * @param {number} dataOffset Byte offset of the STID body.
+ * @param {number} size STID body byte size.
+ * @returns {Array<{bankId: number, name: string}>} The names read before the table ends or runs short.
+ */
 function readNameTable(bytes, dataOffset, size)
 {
     const names = [];
@@ -373,7 +562,14 @@ function readNameTable(bytes, dataOffset, size)
     return names;
 }
 
-/** Inspects input using normalized format options for the BNK format reader. */
+/**
+ * Inspects input using normalized format options for the BNK format reader.
+ *
+ * @param {Uint8Array|ArrayBuffer|DataView} input Soundbank bytes.
+ * @param {BnkValues} [values=DEFAULT_VALUES] Normalized values; `source` labels the result.
+ * @returns {BnkInspection} Soundbank metadata with `byteLength` and `source`.
+ * @throws {TypeError} When the bytes do not start with a BKHD chunk.
+ */
 export function inspectWithValues(input, values = DEFAULT_VALUES)
 {
     const bytes = asUint8Array(input, "Bnk input");
@@ -395,9 +591,9 @@ export function inspectWithValues(input, values = DEFAULT_VALUES)
  * source buffer should copy them.
  *
  * @param {Uint8Array} bytes Soundbank bytes.
- * @param {object} metadata Inspection result for those bytes.
+ * @param {BnkInspection} metadata Inspection result for those bytes.
  * @param {number} [mediaId] Optional single media id filter.
- * @returns {Array<object>} Extracted media items.
+ * @returns {BnkMediaItem[]} Extracted media items.
  */
 export function extractMedia(bytes, metadata, mediaId)
 {
@@ -422,6 +618,10 @@ export function extractMedia(bytes, metadata, mediaId)
 /**
  * Reports whether input is supported under normalized format options for the BNK
  * format reader.
+ *
+ * @param {Uint8Array|ArrayBuffer|DataView} input Candidate soundbank bytes.
+ * @param {BnkValues} [values=DEFAULT_VALUES] Normalized values; `source` labels the report.
+ * @returns {BnkProbeReport} The support report; inspection errors are reported, not thrown.
  */
 export function probeSupportWithValues(input, values = DEFAULT_VALUES)
 {
@@ -474,7 +674,13 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES)
     }
 }
 
-/** Reads input using normalized format options for the BNK format reader. */
+/**
+ * Reads input using normalized format options for the BNK format reader.
+ *
+ * @param {Uint8Array|ArrayBuffer|DataView} input Soundbank bytes.
+ * @param {BnkValues} [values=DEFAULT_VALUES] Normalized values; `emit` selects the output.
+ * @returns {BnkReadResult|BnkInspection} The raw bank, the media items, or the inspection for "bnkJson".
+ */
 export function readWithValues(input, values = DEFAULT_VALUES)
 {
     const bytes = asUint8Array(input, "Bnk input");
@@ -496,10 +702,17 @@ export function readWithValues(input, values = DEFAULT_VALUES)
     };
 }
 
-/** Converts a parsed payload into a JSON-safe value for the BNK format reader. */
 /** The shared JSON policy for this reader, under the name its callers use. */
 export { toJsonValue };
 
+/**
+ * Decodes bytes as one character per byte.
+ *
+ * @param {Uint8Array} bytes Source bytes.
+ * @param {number} offset Byte offset of the first character.
+ * @param {number} length Character count.
+ * @returns {string} The string.
+ */
 function asciiString(bytes, offset, length)
 {
     let value = "";
@@ -508,6 +721,13 @@ function asciiString(bytes, offset, length)
 }
 
 
+/**
+ * Reads a little-endian unsigned 32-bit integer.
+ *
+ * @param {Uint8Array} bytes Source bytes.
+ * @param {number} offset Byte offset.
+ * @returns {number} The value.
+ */
 function readU32(bytes, offset)
 {
     return (bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] * 0x1000000)) >>> 0;

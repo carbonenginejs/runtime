@@ -84,7 +84,7 @@ export class CjsBnkFormat extends CjsFormat
     /**
      * Create a reusable bnk format profile.
      *
-     * @param {object} [options] Default read/inspect options.
+     * @param {Partial<import("./core/helpers.js").BnkValues>} [options] Default read/inspect options.
      */
     constructor(options = {})
     {
@@ -95,7 +95,7 @@ export class CjsBnkFormat extends CjsFormat
     /**
      * Merge options into this profile.
      *
-     * @param {object} [options] Values to merge.
+     * @param {Partial<import("./core/helpers.js").BnkValues>} [options] Values to merge.
      * @returns {CjsBnkFormat} This format profile.
      */
     SetValues(options = {})
@@ -107,8 +107,8 @@ export class CjsBnkFormat extends CjsFormat
     /**
      * Get normalized profile values with optional per-call overrides.
      *
-     * @param {object} [options] Per-call values.
-     * @returns {object} Normalized read values.
+     * @param {Partial<import("./core/helpers.js").BnkValues>} [options] Per-call values.
+     * @returns {import("./core/helpers.js").BnkValues} Normalized read values.
      */
     GetValues(options = {})
     {
@@ -119,8 +119,8 @@ export class CjsBnkFormat extends CjsFormat
      * Read soundbank bytes with this profile.
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input Soundbank bytes.
-     * @param {object} [options] Per-call values.
-     * @returns {object} GPU-free raw/debug/media payload for the selected emit target.
+     * @param {Partial<import("./core/helpers.js").BnkValues>} [options] Per-call values.
+     * @returns {import("./core/helpers.js").BnkReadResult|import("./core/helpers.js").BnkInspection} GPU-free raw/debug/media payload for the selected emit target.
      */
     Read(input, options = {})
     {
@@ -131,8 +131,8 @@ export class CjsBnkFormat extends CjsFormat
      * Read soundbank bytes asynchronously with this profile.
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input Soundbank bytes.
-     * @param {object} [options] Per-call values.
-     * @returns {Promise<object>} GPU-free raw/debug/media payload for the selected emit target.
+     * @param {Partial<import("./core/helpers.js").BnkValues>} [options] Per-call values.
+     * @returns {Promise<import("./core/helpers.js").BnkReadResult|import("./core/helpers.js").BnkInspection>} GPU-free raw/debug/media payload for the selected emit target.
      */
     async ReadAsync(input, options = {})
     {
@@ -143,8 +143,8 @@ export class CjsBnkFormat extends CjsFormat
      * Inspect soundbank bytes without copying media payloads.
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input Soundbank bytes.
-     * @param {object} [options] Per-call values.
-     * @returns {object} Soundbank metadata.
+     * @param {Partial<import("./core/helpers.js").BnkValues>} [options] Per-call values.
+     * @returns {import("./core/helpers.js").BnkInspection} Soundbank metadata.
      */
     Inspect(input, options = {})
     {
@@ -166,8 +166,8 @@ export class CjsBnkFormat extends CjsFormat
      * One-shot soundbank read.
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input Soundbank bytes.
-     * @param {object} [options] Read options.
-     * @returns {object} GPU-free raw/debug/media payload for the selected emit target.
+     * @param {Partial<import("./core/helpers.js").BnkValues>} [options] Read options.
+     * @returns {import("./core/helpers.js").BnkReadResult|import("./core/helpers.js").BnkInspection} GPU-free raw/debug/media payload for the selected emit target.
      */
     static read(input, options = {})
     {
@@ -178,8 +178,8 @@ export class CjsBnkFormat extends CjsFormat
      * One-shot asynchronous soundbank read.
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input Soundbank bytes.
-     * @param {object} [options] Read options.
-     * @returns {Promise<object>} GPU-free raw/debug/media payload for the selected emit target.
+     * @param {Partial<import("./core/helpers.js").BnkValues>} [options] Read options.
+     * @returns {Promise<import("./core/helpers.js").BnkReadResult|import("./core/helpers.js").BnkInspection>} GPU-free raw/debug/media payload for the selected emit target.
      */
     static async readAsync(input, options = {})
     {
@@ -190,8 +190,8 @@ export class CjsBnkFormat extends CjsFormat
      * One-shot soundbank inspection.
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input Soundbank bytes.
-     * @param {object} [options] Inspect options.
-     * @returns {object} Soundbank metadata.
+     * @param {Partial<import("./core/helpers.js").BnkValues>} [options] Inspect options.
+     * @returns {import("./core/helpers.js").BnkInspection} Soundbank metadata.
      */
     static inspect(input, options = {})
     {
@@ -202,8 +202,8 @@ export class CjsBnkFormat extends CjsFormat
      * One-shot soundbank support probe.
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input Soundbank bytes.
-     * @param {object} [options] Probe options.
-     * @returns {object} Support/probe report.
+     * @param {Partial<import("./core/helpers.js").BnkValues>} [options] Probe options.
+     * @returns {import("./core/helpers.js").BnkProbeReport} Support/probe report.
      */
     static probeSupport(input, options = {})
     {
@@ -215,7 +215,7 @@ export class CjsBnkFormat extends CjsFormat
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input Soundbank bytes.
      * @param {number} [mediaId] Optional single media id filter.
-     * @returns {Array<object>} Extracted media items with undecoded bytes.
+     * @returns {import("./core/helpers.js").BnkMediaItem[]} Extracted media items with undecoded bytes.
      */
     static extractMedia(input, mediaId)
     {

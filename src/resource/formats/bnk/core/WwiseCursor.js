@@ -11,6 +11,8 @@
 /**
  * Reads Wwise's MSB-first base-128 unsigned integer.
  *
+ * @param {Uint8Array} bytes Bytes holding the integer.
+ * @param {number} [offset=0] Byte offset of the first byte.
  * @returns {{value:number,nextOffset:number}|null} Decoded value and next
  * offset, or null for truncated, overflowed, or non-canonical input.
  */
@@ -61,6 +63,7 @@ export class WwiseCursor
      * @param {Uint8Array} bytes Payload bytes.
      * @param {number} [offset=0] Initial byte offset.
      * @param {number} [end=bytes.byteLength] Exclusive ending offset.
+     * @throws {TypeError} When the bytes are not a Uint8Array or the range is invalid.
      */
     constructor(bytes, offset = 0, end = bytes?.byteLength)
     {
@@ -84,7 +87,11 @@ export class WwiseCursor
         this.end = end;
     }
 
-    /** Gets the number of unread bytes in the bounded range. */
+    /**
+     * Gets the number of unread bytes in the bounded range.
+     *
+     * @returns {number} Unread byte count.
+     */
     get remaining()
     {
         return this.end - this.at;
@@ -106,21 +113,33 @@ export class WwiseCursor
         }
     }
 
-    /** Reads an unsigned 8-bit integer. */
+    /**
+     * Reads an unsigned 8-bit integer.
+     *
+     * @returns {number} The value read.
+     */
     u8()
     {
         this.ensure(1);
         return this.view.getUint8(this.at++);
     }
 
-    /** Reads a signed 8-bit integer. */
+    /**
+     * Reads a signed 8-bit integer.
+     *
+     * @returns {number} The value read.
+     */
     s8()
     {
         this.ensure(1);
         return this.view.getInt8(this.at++);
     }
 
-    /** Reads a little-endian unsigned 16-bit integer. */
+    /**
+     * Reads a little-endian unsigned 16-bit integer.
+     *
+     * @returns {number} The value read.
+     */
     u16()
     {
         this.ensure(2);
@@ -130,7 +149,11 @@ export class WwiseCursor
         return value;
     }
 
-    /** Reads a little-endian unsigned 32-bit integer. */
+    /**
+     * Reads a little-endian unsigned 32-bit integer.
+     *
+     * @returns {number} The value read.
+     */
     u32()
     {
         this.ensure(4);
@@ -140,7 +163,11 @@ export class WwiseCursor
         return value;
     }
 
-    /** Reads a little-endian signed 32-bit integer. */
+    /**
+     * Reads a little-endian signed 32-bit integer.
+     *
+     * @returns {number} The value read.
+     */
     s32()
     {
         this.ensure(4);
@@ -150,7 +177,11 @@ export class WwiseCursor
         return value;
     }
 
-    /** Reads a little-endian 32-bit floating-point value. */
+    /**
+     * Reads a little-endian 32-bit floating-point value.
+     *
+     * @returns {number} The value read.
+     */
     f32()
     {
         this.ensure(4);
@@ -160,7 +191,11 @@ export class WwiseCursor
         return value;
     }
 
-    /** Reads a little-endian signed 16-bit integer. */
+    /**
+     * Reads a little-endian signed 16-bit integer.
+     *
+     * @returns {number} The value read.
+     */
     s16()
     {
         this.ensure(2);
@@ -170,7 +205,11 @@ export class WwiseCursor
         return value;
     }
 
-    /** Reads a little-endian 64-bit floating-point value. */
+    /**
+     * Reads a little-endian 64-bit floating-point value.
+     *
+     * @returns {number} The value read.
+     */
     f64()
     {
         this.ensure(8);
@@ -256,7 +295,12 @@ export class WwiseCursor
         return value;
     }
 
-    /** Reads a Wwise variable-length unsigned integer. */
+    /**
+     * Reads a Wwise variable-length unsigned integer.
+     *
+     * @returns {number} The value read.
+     * @throws {RangeError} When the integer is truncated, overflowed or non-canonical.
+     */
     variable()
     {
         const result = readWwiseVar(

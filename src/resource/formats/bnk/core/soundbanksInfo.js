@@ -32,7 +32,13 @@ export function wwiseIdFromName(name)
     return hash;
 }
 
-/** Converts the current BNK format reader value to soundbanks info document. */
+/**
+ * Converts the current BNK format reader value to soundbanks info document.
+ *
+ * @param {Uint8Array|ArrayBuffer|DataView|string|object} input SoundbanksInfo JSON bytes, text, or object.
+ * @returns {object} The `SoundBanksInfo` document, with its `SoundBanks` array.
+ * @throws {TypeError} When the input is not valid JSON or has no SoundBanks list.
+ */
 export function toSoundbanksInfoDocument(input)
 {
     let value = input;
@@ -116,6 +122,12 @@ export function parseSoundbanksInfo(input)
     return summary;
 }
 
+/**
+ * Converts one SoundbanksInfo bank record to its camelCase summary.
+ *
+ * @param {object} bank One entry of `SoundBanks`.
+ * @returns {object} The bank id, type, language, names and path with its media, events, switch groups, state groups and game parameters.
+ */
 function normalizeBank(bank)
 {
     const media = Array.isArray(bank.Media)
@@ -288,6 +300,12 @@ export function joinSoundbanksInfo(bankInfo, catalog)
     };
 }
 
+/**
+ * Decodes bytes as UTF-8, or one character per byte without TextDecoder.
+ *
+ * @param {Uint8Array} bytes Source bytes.
+ * @returns {string} The text.
+ */
 function utf8String(bytes)
 {
     if (typeof TextDecoder !== "undefined") return new TextDecoder("utf-8").decode(bytes);

@@ -66,6 +66,12 @@ export function parseGlobalSettings(
     }
 }
 
+/**
+ * Reads the STMG state groups and their transitions.
+ *
+ * @param {WwiseCursor} cursor Cursor at the group count.
+ * @returns {Array<{id: number, defaultTransitionTimeMs: number, transitions: Array<{fromId: number, toId: number, transitionTimeMs: number}>}>} The state groups.
+ */
 function ReadStateGroups(cursor)
 {
     const count = cursor.readBoundedCount(12);
@@ -93,6 +99,12 @@ function ReadStateGroups(cursor)
     return groups;
 }
 
+/**
+ * Reads the STMG switch groups and their graph points.
+ *
+ * @param {WwiseCursor} cursor Cursor at the group count.
+ * @returns {Array<{id: number, controlId: number, controlType: number, points: import("./helpers.js").BnkCurvePoint[]}>} The switch groups.
+ */
 function ReadSwitchGroups(cursor)
 {
     const count = cursor.readBoundedCount(13);
@@ -127,6 +139,12 @@ function ReadSwitchGroups(cursor)
     return groups;
 }
 
+/**
+ * Reads the STMG RTPC parameter defaults and ramps.
+ *
+ * @param {WwiseCursor} cursor Cursor at the parameter count.
+ * @returns {Array<{id: number, defaultValue: number, rampType: number, rampUp: number, rampDown: number, builtInParameter: number}>} The RTPC parameters.
+ */
 function ReadRtpcParameters(cursor)
 {
     const count = cursor.readBoundedCount(21);
@@ -154,6 +172,12 @@ function ReadRtpcParameters(cursor)
     return parameters;
 }
 
+/**
+ * Reads the STMG acoustic textures.
+ *
+ * @param {WwiseCursor} cursor Cursor at the texture count.
+ * @returns {object[]} Texture ids with their absorption and scattering values.
+ */
 function ReadAcousticTextures(cursor)
 {
     const count = cursor.readBoundedCount(28);
@@ -174,6 +198,15 @@ function ReadAcousticTextures(cursor)
     return textures;
 }
 
+/**
+ * Returns an enum value when it is one of the allowed values.
+ *
+ * @param {number} value Decoded value.
+ * @param {Set<number>} allowed Allowed values.
+ * @param {string} label Enum name used in the error.
+ * @returns {number} The value.
+ * @throws {RangeError} When the value is not allowed.
+ */
 function ReadEnum(value, allowed, label)
 {
     if (!allowed.has(value))

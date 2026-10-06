@@ -15,6 +15,9 @@ const VALID_CURVE_SCALING = new Set([ 0, 2, 3, 4 ]);
  * Reads one v150 NodeBase from the current cursor position.
  *
  * The cursor is left at the first type-specific byte.
+ *
+ * @param {WwiseCursor} cursor Bounded object cursor at the NodeBase.
+ * @returns {object} The NodeBase fields: fx, metadata, bus and parent ids, priority, properties, ranges, attenuation id, loop count, positioning, aux, advanced settings, state chunk and RTPCs.
  */
 export function readNodeBase(cursor)
 {
@@ -53,7 +56,16 @@ export function readNodeBase(cursor)
     };
 }
 
-/** Parses one NodeBase that must consume exactly the supplied byte range. */
+/**
+ * Parses one NodeBase that must consume exactly the supplied byte range.
+ *
+ * @param {Uint8Array} bytes Object payload.
+ * @param {number} start Byte offset of the NodeBase.
+ * @param {number} end Exclusive byte offset the NodeBase must end at.
+ * @param {object} [options] Parse options.
+ * @param {number} [options.bankVersion=WWISE_NODE_BASE_VERSION] Bank version; only v150 is parsed.
+ * @returns {object|null} The NodeBase, as `readNodeBase` returns it, or null when it does not parse exactly.
+ */
 export function parseNodeBaseRange(
     bytes,
     start,
@@ -80,7 +92,12 @@ export function parseNodeBaseRange(
     }
 }
 
-/** Reads the v150 initial-RTPC list shared by NodeBase and attenuation. */
+/**
+ * Reads the v150 initial-RTPC list shared by NodeBase and attenuation.
+ *
+ * @param {WwiseCursor} cursor Bounded object cursor at the list count.
+ * @returns {import("./helpers.js").BnkInitialRtpc[]} The RTPCs.
+ */
 export function readInitialRtpcs(cursor)
 {
     const count = boundedCount(cursor.u16(), cursor.remaining, 14, 4096);
@@ -94,7 +111,13 @@ export function readInitialRtpcs(cursor)
     return rtpcs;
 }
 
-/** Reads one v150 initial RTPC. */
+/**
+ * Reads one v150 initial RTPC.
+ *
+ * @param {WwiseCursor} cursor Bounded object cursor at the RTPC.
+ * @returns {import("./helpers.js").BnkInitialRtpc} The RTPC.
+ * @throws {RangeError} When the control type, accumulation or scaling is invalid.
+ */
 export function readInitialRtpc(cursor)
 {
     const controlId = cursor.u32();
@@ -128,7 +151,14 @@ export function readInitialRtpc(cursor)
     };
 }
 
-/** Reads exact Wwise graph points without inferring curve meaning. */
+/**
+ * Reads exact Wwise graph points without inferring curve meaning.
+ *
+ * @param {WwiseCursor} cursor Bounded object cursor at the first point.
+ * @param {number} count Number of points.
+ * @returns {import("./helpers.js").BnkCurvePoint[]} The points.
+ * @throws {RangeError} When an interpolation id is invalid.
+ */
 export function readCurvePoints(cursor, count)
 {
     const points = [];
@@ -150,7 +180,16 @@ export function readCurvePoints(cursor, count)
     return points;
 }
 
-/** Validates an encoded count before allocating or iterating it. */
+/**
+ * Validates an encoded count before allocating or iterating it.
+ *
+ * @param {number} value Count read from the payload.
+ * @param {number} remaining Bytes left in the payload.
+ * @param {number} stride Smallest byte size of one element.
+ * @param {number} maximum Largest accepted count.
+ * @returns {number} The count.
+ * @throws {RangeError} When the count is invalid, above the maximum, or larger than the bytes allow.
+ */
 export function boundedCount(value, remaining, stride, maximum)
 {
     if (!Number.isSafeInteger(value)
@@ -164,7 +203,13 @@ export function boundedCount(value, remaining, stride, maximum)
     return value;
 }
 
-/** Rejects non-finite authored curve/position values. */
+/**
+ * Rejects non-finite authored curve/position values.
+ *
+ * @param {number} value Decoded value.
+ * @returns {number} The value.
+ * @throws {RangeError} When the value is NaN or infinite.
+ */
 export function finite(value)
 {
     if (!Number.isFinite(value))
@@ -175,6 +220,12 @@ export function finite(value)
     return value;
 }
 
+/**
+ * Reads the NodeBase initial effect slots.
+ *
+ * @param {WwiseCursor} cursor Bounded object cursor at the block.
+ * @returns {object} Override and bypass flags with the effect slots.
+ */
 function ReadInitialFx(cursor)
 {
     const overrideParentRaw = cursor.u8();
@@ -209,6 +260,12 @@ function ReadInitialFx(cursor)
     };
 }
 
+/**
+ * Reads the NodeBase initial metadata slots.
+ *
+ * @param {WwiseCursor} cursor Bounded object cursor at the block.
+ * @returns {object} The override flag with the metadata slots.
+ */
 function ReadInitialMetadata(cursor)
 {
     const overrideParentRaw = cursor.u8();
@@ -238,6 +295,12 @@ function ReadInitialMetadata(cursor)
     };
 }
 
+/**
+ * Reads the NodeBase priority and MIDI flags byte.
+ *
+ * @param {WwiseCursor} cursor Bounded object cursor at the byte.
+ * @returns {object} The raw flags and each decoded flag.
+ */
 function ReadPriority(cursor)
 {
     const flags = cursor.u8();
@@ -253,6 +316,13 @@ function ReadPriority(cursor)
     };
 }
 
+/**
+ * Reads the NodeBase initial property values and ranges.
+ *
+ * @param {WwiseCursor} cursor Bounded object cursor at the property count.
+ * @returns {{properties: object[], ranges: object[], attenuationId: number|null, loopCount: number|null}} The properties, ranges, attenuation id and loop count.
+ * @throws {RangeError} When the attenuation or loop-count property repeats, or the loop count is invalid.
+ */
 function ReadInitialProperties(cursor)
 {
     const propertyCount = boundedCount(
@@ -362,6 +432,7 @@ function ReadInitialProperties(cursor)
  *
  * @param {WwiseCursor} cursor Bounded object cursor.
  * @returns {object} Exact positioning flags and optional automation.
+ * @throws {RangeError} When the position type is invalid.
  */
 export function readPositioning(cursor)
 {
@@ -408,6 +479,12 @@ export function readPositioning(cursor)
     };
 }
 
+/**
+ * Reads the positioning automation path.
+ *
+ * @param {WwiseCursor} cursor Bounded object cursor at the path mode.
+ * @returns {object} The path mode, transition time, vertices, playlist and ranges.
+ */
 function ReadAutomation(cursor)
 {
     const pathMode = cursor.u8();
@@ -496,6 +573,13 @@ export function readAux(cursor)
     };
 }
 
+/**
+ * Reads the NodeBase advanced settings.
+ *
+ * @param {WwiseCursor} cursor Bounded object cursor at the block.
+ * @returns {object} Voice, instance and HDR settings with their decoded flags.
+ * @throws {RangeError} When a behavior value is invalid.
+ */
 function ReadAdvanced(cursor)
 {
     const flags = cursor.u8();
@@ -531,6 +615,7 @@ function ReadAdvanced(cursor)
  *
  * @param {WwiseCursor} cursor Bounded object cursor.
  * @returns {object} Exact state property declarations and values.
+ * @throws {RangeError} When a state property or sync type is invalid.
  */
 export function readStateChunk(cursor)
 {
@@ -616,6 +701,12 @@ export function readStateChunk(cursor)
     return { properties, groups };
 }
 
+/**
+ * Reinterprets 32 bits as a little-endian float.
+ *
+ * @param {number} value Unsigned 32-bit pattern.
+ * @returns {number} The float.
+ */
 function FloatFromBits(value)
 {
     const bytes = new ArrayBuffer(4);

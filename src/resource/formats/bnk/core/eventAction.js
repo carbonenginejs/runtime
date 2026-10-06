@@ -333,6 +333,13 @@ export function parseEventAction(
     }
 }
 
+/**
+ * Reports whether a voice-property action carries only unique delay and
+ * transition-time properties.
+ *
+ * @param {Array<{id: number}>} properties Decoded properties.
+ * @returns {boolean} True when every id is 0x39 or 0x3a and none repeats.
+ */
 function HasExactVoicePropertyActionProperties(properties)
 {
     const ids = properties.map(property => property.id);
@@ -341,6 +348,12 @@ function HasExactVoicePropertyActionProperties(properties)
         && new Set(ids).size === ids.length;
 }
 
+/**
+ * Names the value and range fields for a voice or bus property action type.
+ *
+ * @param {number} actionType Event action type.
+ * @returns {{value: string, range: string}} The value and range field names.
+ */
 function VoicePropertyFields(actionType)
 {
     if (VOICE_PITCH_ACTION_TYPES.has(actionType))
@@ -362,6 +375,13 @@ function VoicePropertyFields(actionType)
     return { value: "highPass", range: "highPassRange" };
 }
 
+/**
+ * Reports whether properties or ranges hold only unique delay and
+ * transition-time entries.
+ *
+ * @param {Array<{id: number}>} values Decoded properties or ranges.
+ * @returns {boolean} True when every id is 0x39 or 0x3a and none repeats.
+ */
 function HasExactTimingProperties(values)
 {
     const ids = values.map(value => value.id);
@@ -370,6 +390,13 @@ function HasExactTimingProperties(values)
         && new Set(ids).size === ids.length;
 }
 
+/**
+ * Reads the action exception list.
+ *
+ * @param {WwiseCursor} cursor Cursor at the exception count.
+ * @returns {Array<{targetId: number, targetIsBus: boolean, targetFlags: number}>} The exceptions.
+ * @throws {RangeError} When the count exceeds 65536.
+ */
 function ReadExceptions(cursor)
 {
     const exceptionCount = cursor.variable();
@@ -394,6 +421,13 @@ function ReadExceptions(cursor)
     return exceptions;
 }
 
+/**
+ * Reads the action property bundle.
+ *
+ * @param {WwiseCursor} cursor Cursor at the property count.
+ * @returns {Array<{id: number, name: string, value: number, rawValue: number}>} The properties.
+ * @throws {RangeError} When the bundle is truncated.
+ */
 function ReadProperties(cursor)
 {
     const count = cursor.u8();
@@ -428,6 +462,13 @@ function ReadProperties(cursor)
     });
 }
 
+/**
+ * Reads the action range bundle.
+ *
+ * @param {WwiseCursor} cursor Cursor at the range count.
+ * @returns {Array<{id: number, name: string, min: number, max: number, rawMin: number, rawMax: number}>} The ranges.
+ * @throws {RangeError} When the bundle is truncated.
+ */
 function ReadRanges(cursor)
 {
     const count = cursor.u8();
@@ -460,6 +501,14 @@ function ReadRanges(cursor)
     });
 }
 
+/**
+ * Projects the delay, transition-time and probability properties and ranges
+ * onto named fields.
+ *
+ * @param {Array<{id: number, value: number}>} properties Decoded properties.
+ * @param {Array<{id: number, min: number, max: number}>} ranges Decoded ranges.
+ * @returns {object} The named fields present: `delayTimeMs`, `transitionTimeMs`, `probability`, `delayRangeMs`, `transitionRangeMs`.
+ */
 function ProjectKnownProperties(properties, ranges)
 {
     const result = {};
@@ -488,6 +537,13 @@ function ProjectKnownProperties(properties, ranges)
     return result;
 }
 
+/**
+ * Interprets a property's raw 32 bits by its id.
+ *
+ * @param {number} id Property id.
+ * @param {number} rawValue Raw unsigned 32-bit value.
+ * @returns {number} A signed integer for delay and transition time, a float for probability, otherwise the raw value.
+ */
 function PropertyValue(id, rawValue)
 {
     if (id === 0x39 || id === 0x3a)
@@ -505,6 +561,13 @@ function PropertyValue(id, rawValue)
     return rawValue;
 }
 
+/**
+ * Interprets a range bound's raw 32 bits by its id.
+ *
+ * @param {number} id Property id.
+ * @param {number} rawValue Raw unsigned 32-bit value.
+ * @returns {number} A signed integer for delay and transition time, otherwise the raw value.
+ */
 function RangeValue(id, rawValue)
 {
     return id === 0x39 || id === 0x3a
@@ -512,6 +575,12 @@ function RangeValue(id, rawValue)
         : rawValue;
 }
 
+/**
+ * Names the target mode of an action type's low byte.
+ *
+ * @param {number} value Low byte of the action type.
+ * @returns {string} "element", "all", "all-except" or "unknown".
+ */
 function ActionMode(value)
 {
     if (value === 0x02 || value === 0x03) return "element";
@@ -520,6 +589,12 @@ function ActionMode(value)
     return "unknown";
 }
 
+/**
+ * Names the scope of an action type's low byte.
+ *
+ * @param {number} value Low byte of the action type.
+ * @returns {string} "global", "game-object" or "unknown".
+ */
 function ActionScope(value)
 {
     if (value === 0x02 || value === 0x04 || value === 0x08)
