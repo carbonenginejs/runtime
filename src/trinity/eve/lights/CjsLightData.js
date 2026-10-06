@@ -3,7 +3,7 @@
 import { color } from "#math/color";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { CjsSchema, meta } from "#schema";
+import { meta } from "#schema";
 import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
 
 
@@ -109,7 +109,9 @@ export function createCjsLightDataView(owner, fieldNames)
       },
       set(value)
       {
-        CjsSchema.setValues(owner, { [fieldName]: value });
+        // A plain LightData field assignment: vectors copy into the owner's storage.
+        if (ArrayBuffer.isView(owner[fieldName]) && owner[fieldName].length === value.length) owner[fieldName].set(value);
+        else owner[fieldName] = value;
       }
     };
   }

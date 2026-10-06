@@ -2,9 +2,12 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveLocatorSets.cpp
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { CjsSchema, meta } from "#schema";
+import { meta } from "#schema";
 import { MatrixCopyFrom3x4 } from "../lights/lightConversion.js";
 import { Locator } from "./Locator.js";
+
+/** Locator's struct members (Locator.js), copied by value. */
+const LOCATOR_FIELDS = [ "position", "direction", "scale", "boneIndex", "partTag" ];
 
 const UNIT_Y = vec3.fromValues(0, 1, 0);
 const POSE_BONE_SCRATCH = mat4.create();
@@ -95,10 +98,7 @@ export class EveLocatorSets
   {
     for (const locator of locators)
     {
-      // A value copy, live or plain: from() takes values only.
-      const copy = new Locator();
-      CjsSchema.copy(copy, locator);
-      this.locators.push(copy);
+      this.locators.push(EveLocatorSets._copyLocator(locator));
     }
   }
 
@@ -146,35 +146,28 @@ export class EveLocatorSets
   Set(name, locators)
   {
     this.SetName(name);
-    // A value copy of each locator, live or plain - Carbon copies the vector by
-    // value. from() takes values only, so a live Locator is copied explicitly.
-    this.locators = locators.map(locator =>
-    {
-      const copy = new Locator();
-      CjsSchema.copy(copy, locator);
-      return copy;
-    });
+    this.locators = locators.map(locator => EveLocatorSets._copyLocator(locator));
   }
 
   /**
-   * Overwrites the locator at an index from a plain value, defaulting a missing
-   * scale to zero and a missing bone index to 0; an index outside the list is
-   * ignored.
+   * A Locator copied by value from a Locator or any record carrying its fields,
+   * as Carbon assigns `(Locator)locators[i]` (EveLocatorSets.h:58-68). A field
+   * the record lacks keeps Locator's default.
+   *
+   * @param {object} source The locator to copy.
+   * @returns {Locator} The copy.
    */
-  @meta.blue.method
-  @meta.adapted
-  SetLocator(index, value)
+  static _copyLocator(source)
   {
-    const existing = this.locators[index];
-    if (existing)
+    const locator = new Locator();
+    for (const name of LOCATOR_FIELDS)
     {
-      CjsSchema.setValues(existing, {
-        position: value.position,
-        direction: value.direction,
-        scale: value.scale ?? [0, 0, 0],
-        boneIndex: value.boneIndex ?? 0
-      });
+      if (!(name in source)) continue;
+      const value = source[name];
+      if (ArrayBuffer.isView(locator[name])) locator[name].set(value);
+      else locator[name] = value;
     }
+    return locator;
   }
 
   /**

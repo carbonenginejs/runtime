@@ -122,14 +122,16 @@ export class TriTextureParameter extends CjsParameter
   }
 
   /**
-   * Sets the name through schema values so the effectHandles rebuild flag fires;
-   * returns whether it changed.
+   * Carbon's SetParameterName (TriTextureParameter.cpp:33-36): assigns the
+   * name and nothing else.
+   *
+   * @param {string} name The parameter name.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   SetParameterName(name)
   {
-    return CjsSchema.setValues(this, { name: String(name) }, { source: this, returnBoolean: true });
+    this.name = String(name);
   }
 
   /**
@@ -146,14 +148,20 @@ export class TriTextureParameter extends CjsParameter
   }
 
   /**
-   * Sets the authored path and raises the resource flag, so the next OnModified
-   * drops the attached texture and asks for it again.
+   * Carbon's SetResourcePath (TriTextureParameter.cpp:120-127): when the
+   * authored path is empty or different, stores it and calls OnModified, which
+   * drops the attached texture and asks for the new one.
+   *
+   * @param {string} resourcePath The authored texture path.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   SetResourcePath(resourcePath)
   {
-    CjsSchema.setValues(this, { resourcePath: String(resourcePath) }, { source: this });
+    const path = String(resourcePath);
+    if (this.resourcePath && this.resourcePath === path) return;
+    this.resourcePath = path;
+    this.OnModified("resourcePath");
   }
 
   /**

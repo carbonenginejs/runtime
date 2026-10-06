@@ -811,14 +811,11 @@ test("EveLocatorSets translates and copies locator lists", () =>
   set.Append([second]);
   assertEquals(set.GetLocators().length, 2);
   assertVec3(set.GetLocators()[1].position, [4, 5, 6]);
-  const replacement = {
-    position: [7, 8, 9],
-    direction: [0, 0, 0, 1],
-    boneIndex: 4
-  };
-  set.SetLocator(1, replacement);
+  // Carbon's Set copies records by value: (Locator)locators[i].
+  const replacement = { position: [7, 8, 9], direction: [0, 0, 0, 1], boneIndex: 4 };
+  set.Set("damage", [set.GetLocators()[0], replacement]);
   assertVec3(set.GetLocators()[1].position, [7, 8, 9]);
-  assertVec3(set.GetLocators()[1].scale, [0, 0, 0]);
+  assertVec3(set.GetLocators()[1].scale, [1, 1, 1], "a field the record lacks keeps Locator's default");
   assertEquals(set.GetLocators()[1].boneIndex, 4);
   replacement.position[0] = 99;
   assertVec3(set.GetLocators()[1].position, [7, 8, 9]);

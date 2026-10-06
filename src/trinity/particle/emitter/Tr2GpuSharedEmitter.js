@@ -6,7 +6,7 @@ import { ccpHashFnv1 } from "#utils/hash";
 import { color } from "#math/color";
 import { vec3 } from "#math/vec3";
 import { IInitialize, INotify } from "#blue";
-import { CjsSchema, meta } from "#schema";
+import { meta } from "#schema";
 import { ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 
 
@@ -589,7 +589,14 @@ export class Tr2GpuSharedEmitter
       values.attractorStrength = parameters.attractorStrength;
     }
 
-    CjsSchema.setValues(this, values, { markDirty: false, notify: false, skipEvents: true });
+    // Carbon memcpys both structs (Tr2GpuSharedEmitter.cpp:99-108); the exposed
+    // fields stand in for them here, vectors copied into their existing storage.
+    for (const [name, value] of Object.entries(values))
+    {
+      if (value === undefined) continue;
+      if (ArrayBuffer.isView(this[name])) this[name].set(value);
+      else this[name] = value;
+    }
     this._ReadParameters();
     for (const name of ["position", "positionPrevious", "direction", "directionPrevious", "velocity", "velocityPrevious", "unused"])
     {

@@ -9,6 +9,7 @@
 // EveChildMesh.cpp:1638-1652).
 import { TriTextureRes } from "../../npm/dist/resource/index.js";
 import test from "node:test";
+import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import assert from "node:assert/strict";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
@@ -179,10 +180,10 @@ test("Tr2Light.AddLight: flag validity, UNDEFINED inertness, bone*transform swap
   const manager = MakeLightManager();
 
   // Invalid flags (neither surfaces nor particles) submit nothing (cpp:126).
-  light.SetLightData({ flags: 4 });
+  CjsSchema.setValues(light, { flags: 4 });
   light.AddLight(manager, mat4.create(), 1);
   assert.equal(manager.added.length, 0, "invalid flags gate");
-  light.SetLightData({ flags: 1 });
+  CjsSchema.setValues(light, { flags: 1 });
 
   // Bone 0 CAN drive a Tr2Light (>= 0, cpp:100 - contrast the packed sets).
   // Packed Float4x3, stride 12: identity basis + translation (7, 8, 9).

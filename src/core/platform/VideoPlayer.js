@@ -160,8 +160,12 @@ export class VideoPlayer
         cpuUsage: Tr2CpuUsage.NONE });
       if (!texture) return false;
       resource.SetPayload(null);
-      resource.SetValues({ width: video.videoWidth, height: video.videoHeight,
-        depth: 1, arraySize: 1, cpuMip: 1, format: PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM });
+      resource.width = video.videoWidth;
+      resource.height = video.videoHeight;
+      resource.depth = 1;
+      resource.arraySize = 1;
+      resource.cpuMip = 1;
+      resource.format = PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM;
       resource._ownTexture = texture;
       resource.SetTexture(texture);
       resource.MarkPrepared();

@@ -49,7 +49,7 @@ test("effect path edits replace internal acquisitions and clearing releases the 
     let detached = 0;
     const remove = first.RemoveNotifyTarget.bind(first);
     first.RemoveNotifyTarget = target => { detached++; return remove(target); };
-    assert.equal(effect.SetEffectPathName("res:/b.sm_depth"), true);
+    effect.SetEffectPathName("res:/b.sm_depth");
     assert.notEqual(effect.effectResource, first);
     assert.equal(effect.effectResource.GetPath(), "res:/b.sm_depth");
     assert.equal(detached, 1);
@@ -59,10 +59,10 @@ test("effect path edits replace internal acquisitions and clearing releases the 
     let secondDetached = 0;
     const removeSecond = second.RemoveNotifyTarget.bind(second);
     second.RemoveNotifyTarget = target => { secondDetached++; return removeSecond(target); };
-    assert.equal(effect.SetEffectPathName("res:/b.sm_depth"), false);
+    effect.SetEffectPathName("res:/b.sm_depth");
     assert.equal(effect.effectResource, second);
     assert.equal(secondDetached, 0);
-    assert.equal(effect.SetEffectPathName(""), true);
+    effect.SetEffectPathName("");
     assert.equal(effect.effectResource, null);
     assert.equal(effect.shader, null);
     assert.equal(secondDetached, 1);
@@ -82,7 +82,7 @@ test("external resource replacement detaches the earlier acquisition and keeps t
     const removeManual = manual.RemoveNotifyTarget.bind(manual);
     manual.RemoveNotifyTarget = target => { manualDetached++; return removeManual(target); };
     effect.effectResource = manual;
-    assert.equal(effect.SetEffectPathName("res:/b.sm_depth"), true);
+    effect.SetEffectPathName("res:/b.sm_depth");
     assert.equal(effect.effectResource, manual);
     assert.equal(detached, 1);
     assert.equal(manualDetached, 0);

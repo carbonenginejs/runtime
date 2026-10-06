@@ -306,7 +306,7 @@ test("Tr2Effect populates and prunes shader parameters from reflection data", ()
   effect.PruneParameters();
   assertEquals(effect.FindParameterByName("Tint"), null);
 });
-test("equal effect-path writes do not initialize or emit again", () =>
+test("SetEffectPathName always initializes; equal values-door writes do not", () =>
 {
   const effect = new Tr2Effect();
   const events = [];
@@ -319,9 +319,16 @@ test("equal effect-path writes do not initialize or emit again", () =>
   };
   NOTIFY_METHODS.OnEvent.call(effect, "modified", (_name, _subject, data) => events.push(data));
 
-  assertEquals(effect.SetEffectPathName("res:/effect/test.sm_hi"), true);
-  assertEquals(effect.SetEffectPathName("res:/effect/test.sm_hi"), false);
-  assertEquals(initializeCount, 1);
+  // Carbon's setter stores and initializes on every call (Tr2Effect.cpp) and
+  // emits nothing; notifications belong to the values door.
+  effect.SetEffectPathName("res:/effect/test.sm_hi");
+  effect.SetEffectPathName("res:/effect/test.sm_hi");
+  assertEquals(initializeCount, 2);
+  assertEquals(events.length, 0);
+  // The values door skips an equal write.
+  CjsSchema.setValues(effect, { effectFilePath: "res:/effect/other.sm_hi" });
+  CjsSchema.setValues(effect, { effectFilePath: "res:/effect/other.sm_hi" });
+  assertEquals(initializeCount, 3);
   assertEquals(events.length, 1);
   assertEquals(CjsSchema.getField(Tr2Effect, "effectFilePath")?.edit?.notify, true);
   effect.effectFilePath = "res:\\effect\\Ship\\main.sm_hi";
@@ -754,8 +761,9 @@ test("TriTextureParameter stays graph-owned and backend-free", () =>
   assertEquals(parameter.resourcePath, "res:/texture/diffuse.dds");
   assertEquals(parameter.GetResourcePath(), "res:/texture/diffuse.dds");
   assert(parameter.SupportsDirtyNotification());
-  assertEquals(modified.length, 1);
-  assertEquals(modified[0].source, parameter);
+  // Carbon's SetResourcePath calls OnModified internally and tells no one else;
+  // outward "modified" events belong to the values door.
+  assertEquals(modified.length, 0);
   const resourceLods = [];
   parameter.SetResource({
     path: "res:/runtime.dds",
@@ -768,7 +776,7 @@ test("TriTextureParameter stays graph-owned and backend-free", () =>
       return 1024;
     }
   });
-  assertEquals(modified.length, 1);
+  assertEquals(modified.length, 0);
   assertEquals(parameter.GetResourcePath(), "res:/runtime.dds");
   parameter.EnableTextureLoding([2, 4, 0, 0, 0]);
   const lod = parameter.UsedWithScreenSize(512, 64, [2]);

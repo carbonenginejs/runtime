@@ -7,7 +7,7 @@ import { meta } from "#schema";
 import { ResourceRequirement } from "#resource";
 import { IsMatch, blue, IInitialize, INotify } from "#blue";
 import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
-import { createCjsLightDataView, setCjsLightDataOwnerValues } from "./CjsLightData.js";
+import { CjsLightData, createCjsLightDataView, setCjsLightDataOwnerValues } from "./CjsLightData.js";
 import {
   AreLightFlagsValid,
   AsPerPointLightData,
@@ -106,16 +106,41 @@ export class Tr2Light
   }
 
   /**
-   * Applies a whole LightData bag onto the flattened light fields.
+   * Carbon's SetLightData (Tr2Light.cpp:93-96): copies a whole LightData. A
+   * field the given record lacks takes LightData's default, as every field of
+   * a C++ struct is always present.
    *
-   * Adapted: Uses JS values coercion for the flattened light data without invoking
-   * notification or event transport.
+   * Adapted: the light keeps some LightData fields flattened onto itself
+   * (`LightDataFields`); those are written to the light, the rest to its
+   * LightData view, whose fields are Carbon's `m_lightData` storage.
+   *
+   * @param {CjsLightData|object} lightData The light data to copy.
    */
   @meta.blue.method
   @meta.adapted
   SetLightData(lightData)
   {
-    return this.SetValues({ lightData }, { markDirty: false, skipEvents: true });
+    const defaults = new CjsLightData();
+    for (const name of Object.keys(defaults))
+    {
+      this._CopyLightDataField(name, Object.hasOwn(lightData, name) ? lightData[name] : defaults[name]);
+    }
+  }
+
+  /**
+   * Writes one LightData field where this light stores it: flattened on the
+   * light, or on its LightData view. Vectors are copied into existing storage.
+   *
+   * @param {string} name The LightData field.
+   * @param {*} value The value to copy.
+   */
+  @meta.ours
+  _CopyLightDataField(name, value)
+  {
+    const target = this.constructor.LightDataFields.includes(name) ? this : this.lightData;
+    const current = target[name];
+    if (ArrayBuffer.isView(current) && current.length === value.length) current.set(value);
+    else target[name] = ArrayBuffer.isView(value) ? value.slice() : value;
   }
 
   /**
@@ -130,16 +155,15 @@ export class Tr2Light
   }
 
   /**
-   * Sets the light colour, returning whether the value actually changed.
+   * Carbon's ChangeLightColor (Tr2Light.cpp:114-117): assigns the LightData colour.
    *
-   * Adapted: Uses JS values coercion for the flattened light data without invoking
-   * notification or event transport.
+   * @param {Float32Array|number[]} color The new colour.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   ChangeLightColor(color)
   {
-    return this.SetValues({ color }, { returnBoolean: true, markDirty: false, skipEvents: true });
+    this._CopyLightDataField("color", color);
   }
 
   /**

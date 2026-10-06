@@ -1017,14 +1017,17 @@ export class Tr2Effect extends Tr2Material
   }
 
   /**
-   * Sets the authored effect path through values transport. Carbon's
-   * SetEffectPathName and OnModified always call Initialize, even for an equal
-   * path (Tr2Effect.cpp:415, :876). Our values-layer no-op rule skips equal
-   * writes and initialization; the return value reports whether the path changed.
+   * Carbon's SetEffectPathName (Tr2Effect.cpp:413-417): stores the authored
+   * path and initializes, even when the path is unchanged. An unchanged path
+   * keeps its acquired effect resource.
+   *
+   * @param {string} path The authored effect path, or empty to clear it.
    */
+  @meta.implemented
   SetEffectPathName(path)
   {
-    return this.SetValues({ effectFilePath: path ? String(path) : "" }, { source: this, returnBoolean: true });
+    this.effectFilePath = path ? String(path) : "";
+    this.Initialize();
   }
 
   /**
