@@ -2,7 +2,7 @@
 
 Status: Evolving
 Visibility: Public-safe design proposal
-Scope: Shader authoring library in tools-shader and its planned runtime resource Format integration
+Scope: The shader compiler's authoring library and its planned resource Format integration
 Audience: Director, runtime resource maintainers and Carbon effect tooling authors
 Summary: Import a readable JSON mirror of the Carbon effect container, using Carbon names, complete stage declarations, a source-agnostic program slot and isolated browser metadata.
 
@@ -14,7 +14,7 @@ This direction supersedes the compiler-EffectData-only revision. Do not require 
 
 The immediate consumers need readable JSON shader assets. Future Carbon effect tooling must be able to reuse the same format when Carbon's HLSL shaders become available. GLSL and WGSL are the first executable program languages. HLSL and compiled bytecode must fit the same program slot later, without creating another Format. Accepting or preserving an HLSL payload is distinct from being able to compile it.
 
-Implement only the resource Format, its necessary exports/tests/docs and its explicit registration helper. Do not alter the renderer, native donor, existing binary contract or unrelated runtime services. Any integration problem requiring a wider change returns to review. The shader authoring library lives at the organization root in `tools-shader/`, with this plan in `tools-shader/docs/`. It consumes the runtime resource Format and shares its schema. The library home is confirmed; the Format names below still require review.
+Implement only the resource Format, its necessary exports/tests/docs and its explicit registration helper. Do not alter the renderer, native donor, existing binary contract or unrelated runtime services. Any integration problem requiring a wider change returns to review. The shader authoring library is the runtime's shader compiler (`src/shadercompiler`), with this plan in `docs/shadercompiler/`. It consumes the resource Format and shares its schema. The Format names below still require review.
 
 The non-Carbon addition is recorded in the organization extension register. Required consumers are selection outlines and technical lines. **The names below are the complete proposal submitted for director review, not permission to implement.** No implementation starts until the director has reviewed the final names. This document change is committed by explicit path and is not pushed.
 
