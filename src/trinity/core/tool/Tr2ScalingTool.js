@@ -78,7 +78,8 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
     const mat4_3 = mat4.alloc();
     try
     {
-      if (!dx && !dy) return;
+      // Carbon Tr2ScalingTool::Move evaluates even at zero delta: its ratio
+      // reflects the preceding handle movement, which may still need applying.
       const position = vec3.set(vec3_0, this.localTransform[12], this.localTransform[13], this.localTransform[14]);
       const transformPoint = (point, solid) =>
       {

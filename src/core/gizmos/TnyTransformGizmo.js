@@ -186,6 +186,13 @@ export class TnyTransformGizmo
     }
     if (event.type === "pointerdown" && event.button === 0)
     {
+      // Shift-left drag belongs to camera pan, even over a handle. Other
+      // modified presses remain available to the host rather than picking.
+      if (event.shift || event.ctrl || event.alt || event.meta)
+      {
+        this._press = null;
+        return result.PASS;
+      }
       const generation = this._generation;
       const view = this.getView();
       this.Sync();
@@ -196,7 +203,10 @@ export class TnyTransformGizmo
         const initial = mat4.create(); // alloc: drag snapshot retained through commit or cancellation.
         this.target.readLocal(initial);
         this._drag = { initial, target: this.target };
-        this.tool.SelectAxis(handle.name);
+        // Native scale guide lines are pickable, but Move accepts x/y/z/w,
+        // not the guides' _x/_y/_z names. Route them to their matching box axis.
+        const axis = this.mode === "scaling" && /^_[xyz]$/.test(handle.name) ? handle.name.slice(1) : handle.name;
+        this.tool.SelectAxis(axis);
         this.tool.captured = true;
         return result.CAPTURE;
       }
@@ -226,14 +236,28 @@ export class TnyTransformGizmo
     }
     if (event.type === "pointermove" && this._drag)
     {
+      const drag = this._drag;
       const view = this.getView();
       this.tool.Move(event.x, event.y, event.dx, event.dy, view.viewport,
         view.view.GetTransform(), view.projection.GetMatrixWithoutViewAdjustment());
+      // Change callbacks may cancel the drag, replace its target or switch tools.
+      if (this._drag !== drag) return result.RELEASE;
+      drag.moved ||= !!(event.dx || event.dy);
       this.tool.Update(view.context);
       return result.CONSUME;
     }
     if (event.type === "pointerup" && this._drag)
     {
+      const drag = this._drag;
+      if (this.mode === "scaling" && drag.moved)
+      {
+        // Carbon computes scale before advancing its handle. A zero-delta
+        // final sample commits the last movement, including a coalesced drag.
+        const view = this.getView();
+        this.tool.Move(event.x, event.y, 0, 0, view.viewport,
+          view.view.GetTransform(), view.projection.GetMatrixWithoutViewAdjustment());
+        if (this._drag !== drag) return result.RELEASE;
+      }
       this._drag = null;
       this.tool.captured = false;
       this.Sync();

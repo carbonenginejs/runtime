@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { TnyInputMan } from "../../npm/dist/input/TnyInputMan.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { TnyTransformGizmo } from "../../npm/dist/core/gizmos/TnyTransformGizmo.js";
 import { Tr2ManipulationTool, Tr2Effect, TriDevice, TriProjection, TriView,
@@ -107,6 +108,35 @@ for (const direction of [-1, 1])
   });
 }
 
+for (const axis of ["w", "x", "_x"])
+{
+  test(`a single coalesced ${axis} scale drag commits its movement on release`, async t =>
+  {
+    const { gizmo, local } = setup(t, "scaling", axis);
+    await gizmo.HandleInput({ type: "pointerdown", button: 0, x: 700, y: 300 });
+    await gizmo.HandleInput({ type: "pointermove", x: 712, y: 300, dx: 12, dy: 0 });
+    await gizmo.HandleInput({ type: "pointerup", x: 712, y: 300 });
+    const expected = 100 * (1 + 12 * unitsPerPixel / (depth * fov / 7));
+    assert.ok(Math.abs(local[0] - expected) < 0.05, `released scale ${local[0]}, expected ${expected}`);
+    for (const index of [5, 10])
+      assert.ok(Math.abs(local[index] - (axis === "w" ? expected : 100)) < 0.05);
+    assert.equal(gizmo._drag, null);
+  });
+}
+
+test("a picked scale guide applies real axis scaling rather than a captured no-op", async t =>
+{
+  const { gizmo, local } = setup(t, "scaling", "_x");
+  await gizmo.HandleInput({ type: "pointerdown", button: 0, x: 650, y: 300 });
+  for (let i = 1; i <= 3; i++)
+    await gizmo.HandleInput({ type: "pointermove", x: 650 + i, y: 300, dx: 1, dy: 0 });
+  const expected = 100 * (1 + 2 * unitsPerPixel / (depth * fov / 7));
+  assert.ok(Math.abs(local[0] - expected) < 0.05);
+  assert.equal(local[5], 100);
+  assert.equal(local[10], 100);
+  await gizmo.HandleInput({ type: "pointerup" });
+});
+
 for (const behind of [false, true])
 {
   for (const direction of [-1, 1])
@@ -125,6 +155,38 @@ for (const behind of [false, true])
         assert.equal(local[10], 100);
       }
       await gizmo.HandleInput({ type: "pointerup" });
+    });
+  }
+}
+
+for (const eventType of ["pointermove", "pointerup"])
+{
+  for (const action of ["cancel", "clear target", "switch off"])
+  {
+    test(`scale ${eventType} releases capture when its change callback requests ${action}`, async t =>
+    {
+      const { gizmo, local } = setup(t, "scaling", "w");
+      const initial = mat4.clone(local);
+      await gizmo.HandleInput({ type: "pointerdown", button: 0, x: 700, y: 300 });
+      if (eventType === "pointerup")
+        await gizmo.HandleInput({ type: "pointermove", x: 712, y: 300, dx: 12, dy: 0 });
+      let changes = 0;
+      gizmo.onChange = (_target, phase) =>
+      {
+        if (phase !== "move") return;
+        changes++;
+        if (action === "cancel") gizmo.Cancel();
+        else if (action === "clear target") gizmo.SetTarget(null);
+        else gizmo.SetMode("off");
+      };
+      const result = await gizmo.HandleInput({ type: eventType, x: 712, y: 300, dx: 12, dy: 0 });
+      assert.equal(changes, 1);
+      assert.equal(result, TnyInputMan.Result.RELEASE);
+      assert.equal(gizmo._drag, null);
+      assert.deepEqual(local, initial, "cancellation restores the initial target transform");
+      if (gizmo.tool) assert.equal(gizmo.tool.captured, false);
+      if (action === "clear target") assert.equal(gizmo.target, null);
+      if (action === "switch off") assert.equal(gizmo.tool, null);
     });
   }
 }

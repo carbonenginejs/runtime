@@ -118,6 +118,48 @@ test("with the real camera and gizmo composed, a drag on an object orbits and a 
   input.Destroy();
 });
 
+for (const mode of ["translation", "rotation", "scaling"])
+{
+  test(`${mode} leaves Shift-left and middle drags to camera pan even over a handle`, async t =>
+  {
+    const gizmo = setupGizmo(t, mode), input = new TnyInputMan(), camera = new EveCamera();
+    const controls = new TnyCameraControls({ camera }).Install(input), pans = [];
+    t.mock.method(controls, "Pan", (...delta) => pans.push(delta));
+    const local = mat4.create();
+    gizmo.SetTarget({ readLocal: out => mat4.copy(out, local), writeLocal: () => assert.fail("pan must not transform"),
+      readParentWorld: out => mat4.identity(out) }).Install(input);
+    const pick = t.mock.method(gizmo.scene, "PickObject", async () => gizmo.tool.primitives.find(item => item.name === "x"));
+    gizmo.pickObject = () => assert.fail("pan must not select");
+    for (const modifiers of [{ shift: true }, { button: 1 }])
+    {
+      input.Enqueue(pointer("pointerdown", modifiers));
+      input.Enqueue(pointer("pointermove", { ...modifiers, dx: 12, dy: 8, buttons: modifiers.button === 1 ? 4 : 1 }));
+      input.Enqueue(pointer("pointerup", modifiers));
+      await input.Update();
+      assert.equal(input._owner, null);
+      assert.equal(gizmo._drag, null);
+      assert.equal(gizmo._press, null);
+    }
+    assert.deepEqual(pans, [[12, 8], [12, 8]]);
+    assert.equal(pick.mock.callCount(), 0, "camera pan must not wait for GPU picking");
+    controls.Destroy(); gizmo.Uninstall(); input.Destroy();
+  });
+}
+
+for (const axis of ["x", "y", "z"])
+{
+  test(`scale guide _${axis} selects the working ${axis} axis`, async t =>
+  {
+    const gizmo = setupGizmo(t, "scaling"), local = mat4.create();
+    gizmo.SetTarget({ readLocal: out => mat4.copy(out, local), writeLocal: value => mat4.copy(local, value),
+      readParentWorld: out => mat4.identity(out) });
+    t.mock.method(gizmo.scene, "PickObject", async () => gizmo.tool.primitives.find(item => item.name === `_${axis}`));
+    assert.equal(await gizmo.HandleInput(pointer("pointerdown")), TnyInputMan.Result.CAPTURE);
+    assert.equal(gizmo.tool.selectedAxis, axis);
+    assert.equal(await gizmo.HandleInput(pointer("pointerup")), TnyInputMan.Result.RELEASE);
+  });
+}
+
 function setupGizmo(t, mode)
 {
   const context = Tr2RenderContext_GetMainThreadRenderContext(), previous = context.GetRenderContextAL();
