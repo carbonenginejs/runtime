@@ -29,9 +29,6 @@ SOF uses the model/schema foundation and Black reader; callers supply resource
 acquisition. Its supported output is plain model values for headless graphs,
 inspection tools, or later rendering/audio realization.
 
-The deprecated `carbon.document` intermediate supports assembly and fragment
-import, not a new consumer-facing node-table output contract.
-
 ## Start here
 
 ```js

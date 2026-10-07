@@ -74,7 +74,6 @@ test("directory-backed internal aliases resolve to concrete foundation fronts", 
         "#consts/shader",
         "#consts/d3d",
         "#schema/types",
-        "#model/document",
         "#model/hydration",
         "#model/lifecycle"
     ];

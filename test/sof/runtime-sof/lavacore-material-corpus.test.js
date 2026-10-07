@@ -43,8 +43,8 @@ test("real Apocalypse Lavacore DNA builds with an absent authored material", {
       resources: {exists: async path => files.has(path)}
     }));
     const result = await sof.BuildFromDNAAsync(DNA);
-    assert.equal(result.schema, "carbon.document");
-    assert.ok(result.nodes.some(value => value.kind === "Tr2Mesh" && value.fields.opaqueAreas.length > 0), "the real hull emits mesh areas");
+    assert.equal(result._type, "EveShip2");
+    assert.ok(result.mesh.opaqueAreas.length > 0, "the real hull emits mesh areas");
     assert.equal(sof.dataMgr.GetMaterialData(MISSING), null, "EveSOFDataMgr.cpp:273-281 silently returns nullptr");
     assert.equal(reads.includes(absentPath), false);
     assert.equal(reads.includes(absentPath.replace("lightgray", "lightgrey")), false, "never repair authored spelling");

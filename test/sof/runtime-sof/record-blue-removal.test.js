@@ -12,7 +12,6 @@ import { EveSOFData } from "../../../npm/dist/sof/EveSOFData.js";
 import { EveSOFDataMgr } from "../../../npm/dist/sof/EveSOFDataMgr.js";
 import { EveSOFDataLogo } from "../../../npm/dist/sof/shared/EveSOFDataLogo.js";
 import { EveSOFDataHullDecalSetItem } from "../../../npm/dist/sof/hull/EveSOFDataHullDecalSetItem.js";
-import { createSofHydrationAdapter } from "../../../npm/dist/sof/createSofHydrationAdapter.js";
 
 test("SOF records construct without model APIs and expose only their native query tables", () =>
 {
@@ -43,17 +42,16 @@ test("native stored member order and flags retain existing typed index transport
   assert.notEqual(new Indices().indexBuffer,new Indices().indexBuffer);
 });
 
-test("real SOF hydration adapter reads all three model-free record declarations", () =>
+test("the values door reads all three model-free record declarations", () =>
 {
-  const adapter=createSofHydrationAdapter(),string=new StringRecord(),texture=new Texture(),indices=new Indices();
-  adapter.applyValues(string,{str:"Material1"});
-  adapter.applyValues(texture,{name:"AlbedoMap",resFilePath:"res:/hull.dds"});
+  const string=new StringRecord(),texture=new Texture(),indices=new Indices();
+  CjsSchema.setValues(string,{str:"Material1"});
+  CjsSchema.setValues(texture,{name:"AlbedoMap",resFilePath:"res:/hull.dds"});
   // indexBuffer is a binary block: DictReader refuses one (DictReader.cpp:718-721).
-  assert.throws(()=>adapter.applyValues(indices,{indexBuffer:[0,1,70000,4294967295]}),/DictReader does not support binary blocks/);
+  assert.throws(()=>CjsSchema.setValues(indices,{indexBuffer:[0,1,70000,4294967295]}),/DictReader does not support binary blocks/);
   for(const index of [0,1,70000,4294967295])indices.AddIndex(index);
   assert.equal(string.str,"Material1");assert.deepEqual(texture.Assign(),{AlbedoMap:"res:/hull.dds"});
   assert.ok(indices.indexBuffer instanceof Uint32Array);assert.deepEqual(indices.GetIndices(),[0,1,70000,4294967295]);
-  for(const record of [string,texture,indices])adapter.finalize(record,{kind:CjsSchema.getClassName(record.constructor)});
   const values=new DictWriter().WriteObject(indices,{}, {persistOnly:true});
   assert.equal(Object.hasOwn(values,"indexBuffer"),false,"a values bag carries no binary block");
 });

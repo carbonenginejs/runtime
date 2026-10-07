@@ -10,7 +10,6 @@ import { EveSOFDataHullArea } from "../../../npm/dist/sof/hull/EveSOFDataHullAre
 import { EveSOFDataGeneric } from "../../../npm/dist/sof/generic/EveSOFDataGeneric.js";
 import { EveSOFData } from "../../../npm/dist/sof/EveSOFData.js";
 import { EveSOFDataMgr } from "../../../npm/dist/sof/EveSOFDataMgr.js";
-import { createSofHydrationAdapter } from "../../../npm/dist/sof/createSofHydrationAdapter.js";
 
 // Native exposed behavior order and defaults, including the authored alias
 // weightDeceleration for BehaviorProperties::m_weightDecelerate.
@@ -38,12 +37,10 @@ const damageValues = {
 
 function records()
 {
-  const adapter = createSofHydrationAdapter();
   const swarm = new Swarm(), variant = new Variant(), damage = new Damage();
-  adapter.applyValues(swarm, swarmValues);
-  adapter.applyValues(variant, {name: "damaged", isTransparent: true, hullArea: {_type: "EveSOFDataHullArea", name: "overlay", shader: "overlay.fx", index: 7, count: 2}});
-  adapter.applyValues(damage, damageValues);
-  for (const record of [swarm, variant, damage]) adapter.finalize(record, {kind: CjsSchema.getClassName(record.constructor)});
+  CjsSchema.setValues(swarm, swarmValues);
+  CjsSchema.setValues(variant, {name: "damaged", isTransparent: true, hullArea: {_type: "EveSOFDataHullArea", name: "overlay", shader: "overlay.fx", index: 7, count: 2}});
+  CjsSchema.setValues(damage, damageValues);
   return {swarm, variant, damage};
 }
 

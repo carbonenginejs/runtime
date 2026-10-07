@@ -2,8 +2,6 @@ import { toJsonAcyclic } from "../../../format/jsonPolicies.js";
 import blackDefinitions from "./blackSchema.js";
 
 export const OUTPUT_JSON = "json";
-export const OUTPUT_RAW = "raw";
-export const OUTPUT_DOCUMENT = "document";
 export const OUTPUT_PAYLOAD = "payload";
 export const OUTPUT_RUNTIME = "runtime";
 
@@ -12,13 +10,8 @@ export const DEFAULT_VALUES = {
     schema: blackDefinitions,
     registry: null,
     sourceShapes: null,
-    rootName: "default",
-    firstId: 1,
     metadata: null,
     includeMetadata: false,
-    includeClassMetadata: false,
-    includeFieldTrace: false,
-    includeRefIndex: false,
     trace: false,
     debug: false,
     captureUnknownBlackFields: false,
@@ -47,17 +40,12 @@ export const DEFAULT_VALUES = {
  * produce them.
  *
  * @typedef {object} BlackReaderValues
- * @property {string} emit Output to emit: "json", "raw", "document", "payload" or "runtime".
+ * @property {string} emit Output to emit: "json", "payload" or "runtime".
  * @property {object|null} schema Source-shape schema, or null to use canonical class declarations.
  * @property {object|null} registry Class registry with `GetConstructor`, and optionally `GetSourceShape`.
  * @property {Map<string, object>|object|null} sourceShapes Source shapes by class name, or a provider with `GetSourceShape`.
- * @property {string} rootName Name of the document root.
- * @property {number} firstId First document node id.
- * @property {object|null} metadata Caller metadata merged into document metadata.
- * @property {boolean} includeMetadata Whether payload and document output carry Black metadata.
- * @property {boolean} includeClassMetadata Whether document nodes carry class metadata.
- * @property {boolean} includeFieldTrace Whether document nodes carry per-field Black traces.
- * @property {boolean} includeRefIndex Whether document output carries a reference index.
+ * @property {object|null} metadata Caller metadata merged into payload metadata.
+ * @property {boolean} includeMetadata Whether payload output carries Black metadata.
  * @property {boolean} trace Enables every include option.
  * @property {boolean} debug Enables every include option.
  * @property {boolean} captureUnknownBlackFields Whether unknown Black fields are captured instead of rejected.
@@ -91,7 +79,7 @@ export const DEFAULT_VALUES = {
  * @typedef {object} BlackPayload
  * @property {object[]} comments Reader reports.
  * @property {object} object Root payload object.
- * @property {object|null} [metadata] Document metadata, when requested.
+ * @property {object|null} [metadata] Black metadata, when requested.
  */
 
 /**
@@ -199,8 +187,6 @@ const OPTION_KEYS = new Set(Object.keys(DEFAULT_VALUES));
 function normalizeEmit(emit, readerName)
 {
     if (emit === undefined || emit === OUTPUT_JSON) return OUTPUT_JSON;
-    if (emit === OUTPUT_RAW) return OUTPUT_RAW;
-    if (emit === OUTPUT_DOCUMENT) return OUTPUT_DOCUMENT;
     if (emit === OUTPUT_PAYLOAD) return OUTPUT_PAYLOAD;
     if (emit === OUTPUT_RUNTIME) return OUTPUT_RUNTIME;
     throw new Error(`${readerName} unknown emit value "${emit}"`);
@@ -248,13 +234,8 @@ function cloneValues(values)
         schema: values.schema ?? null,
         registry: values.registry ?? null,
         sourceShapes: values.sourceShapes ?? null,
-        rootName: values.rootName ?? "default",
-        firstId: values.firstId ?? 1,
         metadata: values.metadata ?? null,
         includeMetadata: Boolean(values.includeMetadata),
-        includeClassMetadata: Boolean(values.includeClassMetadata),
-        includeFieldTrace: Boolean(values.includeFieldTrace),
-        includeRefIndex: Boolean(values.includeRefIndex),
         trace: Boolean(values.trace),
         debug: Boolean(values.debug),
         captureUnknownBlackFields: Boolean(values.captureUnknownBlackFields),
@@ -368,13 +349,8 @@ export function normalizeValues(base, options, classKeys, readerName)
     if (Object.hasOwn(options, "schema")) values.schema = options.schema ?? null;
     if (Object.hasOwn(options, "registry")) values.registry = options.registry ?? null;
     if (Object.hasOwn(options, "sourceShapes")) values.sourceShapes = options.sourceShapes ?? null;
-    if (Object.hasOwn(options, "rootName")) values.rootName = options.rootName ?? "default";
-    if (Object.hasOwn(options, "firstId")) values.firstId = options.firstId ?? 1;
     if (Object.hasOwn(options, "metadata")) values.metadata = options.metadata ?? null;
     if (Object.hasOwn(options, "includeMetadata")) values.includeMetadata = Boolean(options.includeMetadata);
-    if (Object.hasOwn(options, "includeClassMetadata")) values.includeClassMetadata = Boolean(options.includeClassMetadata);
-    if (Object.hasOwn(options, "includeFieldTrace")) values.includeFieldTrace = Boolean(options.includeFieldTrace);
-    if (Object.hasOwn(options, "includeRefIndex")) values.includeRefIndex = Boolean(options.includeRefIndex);
     if (Object.hasOwn(options, "trace")) values.trace = Boolean(options.trace);
     if (Object.hasOwn(options, "debug")) values.debug = Boolean(options.debug);
     if (Object.hasOwn(options, "captureUnknownBlackFields")) values.captureUnknownBlackFields = Boolean(options.captureUnknownBlackFields);

@@ -13,7 +13,6 @@ import { Tr2CurveEulerRotationExpression } from "../../npm/dist/trinity/curves/c
 import { Tr2CurveScalar } from "../../npm/dist/trinity/curves/curve/Tr2CurveScalar.js";
 import { Tr2CurveVector3 } from "../../npm/dist/trinity/curves/curve/Tr2CurveVector3.js";
 import { Tr2CurveColor } from "../../npm/dist/trinity/curves/curve/Tr2CurveColor.js";
-import { createSofHydrationAdapter } from "../../npm/dist/sof/createSofHydrationAdapter.js";
 import { TriCurveSet } from "../../npm/dist/trinity/curves/TriCurveSet.js";
 import { quat, fromYawPitchRoll } from "../../npm/dist/global/math/quat.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
@@ -89,7 +88,7 @@ test("Euler stored hydration bypasses live setter then factory Initialize compil
 });
 
 test("Euler SOF lazy compilation and typed scalar input times remain available",()=>{
- const curve=new Tr2CurveEulerRotationExpression(),adapter=createSofHydrationAdapter();adapter.applyValues(curve,{expressionYaw:"time"});adapter.finalize(curve,{kind:"Tr2CurveEulerRotationExpression"});assert.equal(curve._programs[0],null);
+ const curve=new Tr2CurveEulerRotationExpression();CjsSchema.setValues(curve,{expressionYaw:"time"});assert.equal(curve._programs[0],null);
  curve.timeScale=2;const out=quat.create();curve.GetValueAt(2,out);assert.ok(curve._programs[0]);assert.deepEqual([...out],[...fromYawPitchRoll(quat.create(),1,0,0)]);
  class Scalar extends ITriScalarFunction{GetValueAt(time){return time+3;}}meta.blue.interface(ITriScalarFunction)(Scalar);
  const input=new Scalar();curve.inputs.Append(input);assert.equal(curve.GetInputValue(0),4);assert.equal(curve.GetInputValue__Time(0,5),8);assert.equal(curve.GetInputValue(8),0);
@@ -102,10 +101,9 @@ test("Euler curve set dispatch samples the retained expression program",()=>{
 });
 
 test("Euler real SOF warm hydration replaces only successful nonempty programs",()=>{
- const curve=new Tr2CurveEulerRotationExpression(),adapter=createSofHydrationAdapter(),out=quat.create();curve.expressionYaw="0.25";
- const initial=curve._programs[0];adapter.applyValues(curve,{expressionYaw:"0.75"});adapter.finalize(curve,{kind:"Tr2CurveEulerRotationExpression"});
- assert.equal(curve._programs[0],initial);curve.GetValueAt(2,out);assert.notEqual(curve._programs[0],initial);assert.equal(curve._sources[0],"0.75");assert.deepEqual([...out],[...fromYawPitchRoll(quat.create(),0.75,0,0)]);
- const retained=curve._programs[0];adapter.applyValues(curve,{expressionYaw:"("});curve.GetValueAt(2,out);assert.equal(curve.expressionYaw,"(");assert.equal(curve._programs[0],retained);assert.equal(curve._sources[0],"0.75");assert.deepEqual([...out],[...fromYawPitchRoll(quat.create(),0.75,0,0)]);
- adapter.applyValues(curve,{expressionYaw:""});curve.GetValueAt(2,out);assert.equal(curve._programs[0],retained);assert.equal(curve.expressionYaw,"");assert.deepEqual([...out],[...fromYawPitchRoll(quat.create(),0.75,0,0)]);
+ const curve=new Tr2CurveEulerRotationExpression(),out=quat.create();curve.expressionYaw="0.25";
+ const initial=curve._programs[0];CjsSchema.setValues(curve,{expressionYaw:"0.75"}); assert.equal(curve._programs[0],initial);curve.GetValueAt(2,out);assert.notEqual(curve._programs[0],initial);assert.equal(curve._sources[0],"0.75");assert.deepEqual([...out],[...fromYawPitchRoll(quat.create(),0.75,0,0)]);
+ const retained=curve._programs[0];CjsSchema.setValues(curve,{expressionYaw:"("});curve.GetValueAt(2,out);assert.equal(curve.expressionYaw,"(");assert.equal(curve._programs[0],retained);assert.equal(curve._sources[0],"0.75");assert.deepEqual([...out],[...fromYawPitchRoll(quat.create(),0.75,0,0)]);
+ CjsSchema.setValues(curve,{expressionYaw:""});curve.GetValueAt(2,out);assert.equal(curve._programs[0],retained);assert.equal(curve.expressionYaw,"");assert.deepEqual([...out],[...fromYawPitchRoll(quat.create(),0.75,0,0)]);
  curve.SetExpressionYaw("(");assert.equal(curve.expressionYaw,"");assert.equal(curve._programs[0],retained);
 });

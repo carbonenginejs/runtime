@@ -12,8 +12,6 @@
   "src/core/platform/Tr2VideoAdapter.js": 1,
   "src/global/blue/CjsScriptCallback.js": 1,
   "src/global/compose/interface.js": 1,
-  "src/global/model/document/CjsClassRegistry.js": 1,
-  "src/global/model/document/CjsStructRegistry.js": 1,
   "src/global/model/lifecycle/CjsLifecycleState.js": 2,
   "src/input/Tr2MainWindow.js": 4,
   "src/input/Tr2MainWindowState.js": 1,

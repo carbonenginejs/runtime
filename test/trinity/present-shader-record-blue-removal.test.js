@@ -5,7 +5,6 @@ import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { blue } from "../../npm/dist/global/blue/index.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
-import { createSofHydrationAdapter } from "../../npm/dist/sof/createSofHydrationAdapter.js";
 import { Tr2ShaderOption } from "../../npm/dist/trinity/shader/reflection/Tr2ShaderOption.js";
 import { Tr2Effect } from "../../npm/dist/trinity/shader/Tr2Effect.js";
 import { Tr2PresentParameters } from "../../npm/dist/trinity/ui/Tr2PresentParameters.js";
@@ -43,7 +42,7 @@ test("shader option is a registered plain struct without model or query interfac
 });
 
 test("authored shader option persistence and SOF hydration remain available",()=>{
- const option=new Tr2ShaderOption();createSofHydrationAdapter().applyValues(option,{name:"QUALITY",value:"高"});
+ const option=new Tr2ShaderOption();CjsSchema.setValues(option,{name:"QUALITY",value:"高"});
  const serialized=new DictWriter().WriteObject(option,{}, {persistOnly:true});assert.deepEqual(serialized,{name:"QUALITY",value:"高"});
  const copy=new Tr2ShaderOption();blue.classes.CopyTo(option,copy);assert.deepEqual([copy.name,copy.value],["QUALITY","高"]);
  const hydrated=new DictReader({declarations:true}).CreateObject({_type:"Tr2ShaderOption",...serialized});assert.equal(hydrated.constructor,Tr2ShaderOption);assert.equal(hydrated.value,"高");

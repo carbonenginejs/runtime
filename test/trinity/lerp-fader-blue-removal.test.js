@@ -7,7 +7,6 @@ import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
 import { EnumerateChildren } from "../../npm/dist/global/blue/find.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
-import { createSofHydrationAdapter } from "../../npm/dist/sof/createSofHydrationAdapter.js";
 import { Tr2CurveVector3Lerp } from "../../npm/dist/trinity/curves/curve/Tr2CurveVector3Lerp.js";
 import { Tr2QuaternionLerpCurve } from "../../npm/dist/trinity/curves/curve/Tr2QuaternionLerpCurve.js";
 import { Tr2ScalarFader } from "../../npm/dist/trinity/curves/curve/Tr2ScalarFader.js";
@@ -66,14 +65,13 @@ test("SOF hydration and shared graph operations retain live lerp child reference
 {
     const child = new Tr2CurveConstant();
     child.value.set([0,0,1,0]);
-    const adapter = createSofHydrationAdapter();
     for (const [Class, values, keys] of [
         [Tr2CurveVector3Lerp, {name:"soa", curve:child, curveStartTime:2}, ["curve"]],
         [Tr2QuaternionLerpCurve, {start:1, length:4, startCurve:child, endCurve:child}, ["startCurve", "endCurve"]]
     ])
     {
         const curve = new Class();
-        assert.equal(adapter.applyValues(curve, values), curve);
+        CjsSchema.setValues(curve, values);
         for (const key of keys) assert.equal(curve[key], child);
         for (const [key,value] of Object.entries(values)) if (!keys.includes(key)) assert.equal(curve[key], value);
         const children = [];

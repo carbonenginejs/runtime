@@ -483,9 +483,6 @@ test("source-bound Blue readers reset graph state between output modes", () =>
 
     const black = new CjsBlackReader(createBlackFixture(), { schema: BLACK_SCHEMA });
     const firstBlackPayload = black.ReadPayload().object;
-    const blackDocument = black.ReadDocument();
-    assert.equal(blackDocument.schema, "carbon.document");
-    assert.equal(blackDocument.nodes[0].kind, "TestRoot");
     const blackRuntime = black.ReadRuntime().root;
     assert.equal(blackRuntime.child, blackRuntime.again);
     assert.deepEqual(black.ReadPayload().object, firstBlackPayload);
@@ -615,7 +612,7 @@ test("Black reads past object metadata and never surfaces it (privacy)", () =>
     for (const options of [ {}, { captureUnknownBlackFields: true, captureUnknownWhenNoBlackFields: true } ])
     {
         const reader = () => new CjsBlackReader(input, { schema: BLACK_SCHEMA, ...options });
-        for (const output of [ reader().ReadPayload(), reader().ReadDocument(), reader().ReadRuntime() ])
+        for (const output of [ reader().ReadPayload(), reader().ReadRuntime() ])
         {
             const serialized = text(output);
             assert.equal(serialized.includes("__bluemetadata__"), false);

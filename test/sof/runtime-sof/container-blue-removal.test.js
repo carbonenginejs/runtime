@@ -13,20 +13,18 @@ import { EveSOFDataFaction } from "../../../npm/dist/sof/faction/EveSOFDataFacti
 import { EveSOFData } from "../../../npm/dist/sof/EveSOFData.js";
 import { EveSOFDataGeneric } from "../../../npm/dist/sof/generic/EveSOFDataGeneric.js";
 import { EveSOFDataMgr } from "../../../npm/dist/sof/EveSOFDataMgr.js";
-import { createSofHydrationAdapter } from "../../../npm/dist/sof/createSofHydrationAdapter.js";
 
 const areaNames = ["Primary", "Glass", "Sails", "Reactor", "Darkhull", "Rock", "Monument", "Ornament", "SimplePrimary", "Turret"];
 
 function records()
 {
-  const adapter = createSofHydrationAdapter(), material = new Material(), area = new Area();
-  adapter.applyValues(material, {name: "testMaterial", parameters: [
+  const material = new Material(), area = new Area();
+  CjsSchema.setValues(material, {name: "testMaterial", parameters: [
     {_type: "EveSOFDataParameter", name: "Paint", value: [1, 2, 3, 4]},
     {_type: "EveSOFDataParameterFloat", name: "Roughness", value: 0.5},
     {_type: "EveSOFDataParameterVector2", name: "Scale", value: [2, 3]}
   ]});
-  adapter.applyValues(area, {Primary: {material1: "testMaterial", material2: "paint", colorType: 0}, Turret: {material4: "trim", colorType: 12}});
-  for (const record of [material, area]) adapter.finalize(record, {kind: CjsSchema.getClassName(record.constructor)});
+  CjsSchema.setValues(area, {Primary: {material1: "testMaterial", material2: "paint", colorType: 0}, Turret: {material4: "trim", colorType: 12}});
   return {material, area};
 }
 

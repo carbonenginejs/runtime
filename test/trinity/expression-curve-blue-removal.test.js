@@ -10,7 +10,6 @@ import { Tr2CurveScalarExpression as Scalar } from "../../npm/dist/trinity/curve
 import { Tr2CurveVector3Expression as Vector } from "../../npm/dist/trinity/curves/curve/Tr2CurveVector3Expression.js";
 import { CjsControllerExpressionProgram as Program } from "../../npm/dist/trinity/controllers/expression/CjsControllerExpressionProgram.js";
 import { TriCurveSet } from "../../npm/dist/trinity/curves/TriCurveSet.js";
-import { createSofHydrationAdapter } from "../../npm/dist/sof/createSofHydrationAdapter.js";
 import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
 
 test("expression curves construct without inherited model APIs", () =>
@@ -180,43 +179,41 @@ test("actual curve-set owner drives expression updates and vector color output",
 
 test("warm SOF scalar hydration recompiles changed nonempty source without initializing", t =>
 {
-  const curve = new Scalar(), adapter = createSofHydrationAdapter();
+  const curve = new Scalar();
   curve.SetExpression("time + 1");
   const initialProgram = curve._program;
   let initialized = 0;
   t.mock.method(curve,"Initialize",()=>{initialized++;return true;});
-  assert.equal(adapter.applyValues(curve,{expression:"time + 5"}),curve);
-  adapter.finalize(curve,{kind:"Tr2CurveScalarExpression"});
-  assert.equal(initialized,0);
+  CjsSchema.setValues(curve,{expression:"time + 5"});
+    assert.equal(initialized,0);
   assert.equal(curve.GetExpression(),"time + 5");
   assert.equal(new DictWriter().WriteObject(curve,{}, {persistOnly:true}).expression,"time + 5");
   assert.equal(curve._program,initialProgram,"stored hydration bypasses the live setter");
   assert.equal(curve.GetValue(2),7);
   assert.notEqual(curve._program,initialProgram);
   const warmProgram=curve._program;
-  adapter.applyValues(curve,{expression:"("});
+  CjsSchema.setValues(curve,{expression:"("});
   assert.equal(curve.GetValue(2),7,"invalid warm source preserves the last valid program");
   assert.equal(curve._program,warmProgram);
   assert.equal(curve.GetExpression(),"(","failed lazy compilation does not rewrite persisted source");
   assert.equal(curve._compiledSource,"time + 5");
-  adapter.applyValues(curve,{expression:""});
+  CjsSchema.setValues(curve,{expression:""});
   assert.equal(curve.GetValue(2),0);
   assert.equal(curve._program,warmProgram);
-  adapter.applyValues(curve,{expression:"time + 9"});
+  CjsSchema.setValues(curve,{expression:"time + 9"});
   assert.equal(curve.GetValue(2),11);
   assert.equal(initialized,0);
 });
 
 test("warm SOF vector hydration tracks each successful source while empty and invalid retain programs", t =>
 {
-  const curve=new Vector(),adapter=createSofHydrationAdapter();
+  const curve=new Vector();
   curve.SetExpressionX("time + 1");curve.SetExpressionY("2");curve.SetExpressionZ("3");
   const oldPrograms=curve._programs.slice();
   let initialized=0;
   t.mock.method(curve,"Initialize",()=>{initialized++;return true;});
-  adapter.applyValues(curve,{expressionX:"time + 5",expressionY:"",expressionZ:"("});
-  adapter.finalize(curve,{kind:"Tr2CurveVector3Expression"});
-  assert.equal(initialized,0);
+  CjsSchema.setValues(curve,{expressionX:"time + 5",expressionY:"",expressionZ:"("});
+    assert.equal(initialized,0);
   assert.deepEqual(curve._programs,oldPrograms,"stored hydration bypasses live setters");
   const written=new DictWriter().WriteObject(curve,{}, {persistOnly:true});
   assert.deepEqual([written.expressionX,written.expressionY,written.expressionZ],["time + 5","","("]);
@@ -224,7 +221,7 @@ test("warm SOF vector hydration tracks each successful source while empty and in
   assert.notEqual(curve._programs[0],oldPrograms[0]);
   assert.equal(curve._programs[1],oldPrograms[1]);assert.equal(curve._programs[2],oldPrograms[2]);
   assert.deepEqual(curve._compiledSources,["time + 5","2","3"]);
-  adapter.applyValues(curve,{expressionX:"",expressionY:"time + 8",expressionZ:"4"});
+  CjsSchema.setValues(curve,{expressionX:"",expressionY:"time + 8",expressionZ:"4"});
   assert.deepEqual(Array.from(curve.Update(2,new Float32Array(4))),[7,10,4,0]);
   assert.equal(initialized,0);
 });

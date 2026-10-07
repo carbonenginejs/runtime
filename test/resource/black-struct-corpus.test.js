@@ -52,7 +52,7 @@ for (const [family, path, size, sha256, stride, count, member, expected] of case
             return rows;
         });
         const reader = new CjsBlackReader(bytes, { schema, initialize: false });
-        reader.ReadDocument();
+        reader.ReadPayload();
         assert.ok(reader.reader.AtEnd());
         assert.deepEqual(reader.reports, []);
         assert.equal(first?.length, count);

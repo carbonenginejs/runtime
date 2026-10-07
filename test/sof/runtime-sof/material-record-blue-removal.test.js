@@ -16,7 +16,6 @@ import { EveSOFDataArea } from "../../../npm/dist/sof/shared/EveSOFDataArea.js";
 import { EveSOFDataGeneric } from "../../../npm/dist/sof/generic/EveSOFDataGeneric.js";
 import { EveSOFData } from "../../../npm/dist/sof/EveSOFData.js";
 import { EveSOFDataMgr } from "../../../npm/dist/sof/EveSOFDataMgr.js";
-import { createSofHydrationAdapter } from "../../../npm/dist/sof/createSofHydrationAdapter.js";
 
 const cases = [
   [Parameter, "vec4", [1, 2, 3, 4], [1, 2, 3, 4]],
@@ -30,18 +29,17 @@ const cases = [
 
 function parameters()
 {
-  const adapter = createSofHydrationAdapter();
   return cases.map(([Class, , value], index) => {
-    const record = new Class(); adapter.applyValues(record, {name: "P" + index, value});
-    adapter.finalize(record, {kind: CjsSchema.getClassName(Class)}); return record;
+    const record = new Class(); CjsSchema.setValues(record, {name: "P" + index, value});
+    return record;
   });
 }
 
 function areaMaterial()
 {
-  const record = new AreaMaterial(), adapter = createSofHydrationAdapter();
-  adapter.applyValues(record, {material1: "steel", material2: "paint", material3: "glass", material4: "trim", colorType: 0});
-  adapter.finalize(record, {kind: "EveSOFDataAreaMaterial"}); return record;
+  const record = new AreaMaterial();
+  CjsSchema.setValues(record, {material1: "steel", material2: "paint", material3: "glass", material4: "trim", colorType: 0});
+  return record;
 }
 
 test("plain SOF bases and all typed parameters retain exact native self and base queries", () =>

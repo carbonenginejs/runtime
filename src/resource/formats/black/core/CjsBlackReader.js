@@ -1,4 +1,3 @@
-import { CjsCarbonDocument } from "#model/document";
 import { CjsSchema } from "#schema";
 import { applyReaderMember, finalizeReaderObject, getReaderMemberValue, isReaderIList } from "#schema/hydration";
 
@@ -18,7 +17,7 @@ import { CjsBlackSchemaRegistry } from "./CjsBlackSchemaRegistry.js";
 const BLUE_OBJECT_METADATA_KEY = "__bluemetadata__";
 
 /**
- * Reads a `.black` stream into a payload/document/runtime graph.
+ * Reads a `.black` stream into a payload or runtime graph.
  *
  * This transport owns the binary buffer, string tables, numeric references,
  * and binary read cursor. `ResetReadState()` clears only per-read graph state;
@@ -45,8 +44,6 @@ export class CjsBlackReader extends CjsBlueReader
         });
         this.reader = CjsBlackBinaryReader.from(input, this);
         this.references = new Map();
-        this.nodes = [];
-        this.nextNodeId = 1;
         this.info = null;
         this.readMode = "payload";
         this.payloadDepth = 0;
@@ -99,49 +96,6 @@ export class CjsBlackReader extends CjsBlueReader
     Read()
     {
         return this.ReadPayload();
-    }
-
-    /**
-     * Reads document from the current Black object-graph reader.
-     *
-     * @returns {CjsCarbonDocument} The document graph.
-     * @throws {TypeError} When the root object is null.
-     */
-    ReadDocument()
-    {
-        const info = this.Inspect();
-        this.ResetReadState();
-        this.readMode = "document";
-        this.reader.offset = info.dataOffset;
-
-        const rootRef = this.ReadObject(this.reader);
-        if (!CjsCarbonDocument.isRef(rootRef))
-        {
-            throw new TypeError("Black root object is null");
-        }
-
-        this.reader.ExpectEnd("Black object graph did not read to end");
-
-        const includeRefIndex = this.ShouldIncludeRefIndex();
-        const refs = {};
-        if (includeRefIndex)
-        {
-            for (const node of this.nodes)
-            {
-                refs[String(node.id)] = {
-                    kind: node.kind
-                };
-            }
-        }
-
-        return CjsCarbonDocument.create({
-            format: info.format,
-            roots: [{ name: this.options.rootName || "default", ref: rootRef }],
-            nodes: this.nodes,
-            refs: includeRefIndex ? refs : null,
-            metadata: this.CreateDocumentMetadata(info),
-            reports: this.reports
-        });
     }
 
     /**
@@ -233,9 +187,9 @@ export class CjsBlackReader extends CjsBlueReader
             object
         };
 
-        if (this.ShouldIncludeDocumentMetadata())
+        if (this.ShouldIncludePayloadMetadata())
         {
-            payload.metadata = this.CreateDocumentMetadata(info);
+            payload.metadata = this.CreatePayloadMetadata(info);
         }
 
         return payload;
@@ -245,33 +199,22 @@ export class CjsBlackReader extends CjsBlueReader
      * Reads object from the current Black object-graph reader.
      *
      * @param {CjsBlackBinaryReader} reader Cursor positioned at the object reference.
-     * @returns {object|null} A document reference, payload object or runtime object for the read mode; null for a null reference.
+     * @returns {object|null} A payload object or runtime object for the read mode; null for a null reference.
      */
     ReadObject(reader)
     {
         if (this.readMode === "runtime") return this.ReadRuntimeObject(reader);
-        if (this.readMode === "payload") return this.ReadPayloadObject(reader);
-
-        const blackReference = reader.ReadU32();
-        if (blackReference === 0) return null;
-
-        const existing = this.references.get(blackReference);
-        if (existing) return CjsCarbonDocument.createRef(existing);
-
-        return this.ReadObjectPayload(reader, {
-            blackReference,
-            embedded: false
-        });
+        return this.ReadPayloadObject(reader);
     }
 
     /**
      * Reads an inline object into existing canonical runtime storage when supplied.
-     * @impl adapted Payload/document modes allocate their neutral representation;
+     * @impl adapted Payload mode allocates its neutral representation;
      * canonical runtime mode preserves Carbon's existing embedded destination.
      *
      * @param {CjsBlackBinaryReader} reader Cursor positioned at the object payload size.
      * @param {object} [destination] Existing embedded storage, used in runtime mode.
-     * @returns {object} A document reference, payload object or runtime object for the read mode.
+     * @returns {object} A payload object or runtime object for the read mode.
      */
     ReadEmbeddedObject(reader, destination = undefined)
     {
@@ -281,82 +224,10 @@ export class CjsBlackReader extends CjsBlueReader
             destination
         });
 
-        if (this.readMode === "payload") return this.ReadPayloadObjectPayload(reader, {
+        return this.ReadPayloadObjectPayload(reader, {
             blackReference: null,
             embedded: true
         });
-
-        return this.ReadObjectPayload(reader, {
-            blackReference: null,
-            embedded: true
-        });
-    }
-
-    /**
-     * Reads object payload from the current Black object-graph reader.
-     *
-     * @param {CjsBlackBinaryReader} reader Cursor positioned at the object payload size.
-     * @param {object} options Object context.
-     * @param {number|null} options.blackReference Reference id, or null for an embedded object.
-     * @param {boolean} options.embedded Whether the object is embedded.
-     * @returns {{$ref: *}} A document reference to the new node.
-     */
-    ReadObjectPayload(reader, options)
-    {
-        const payloadSize = reader.ReadU32();
-        const objectReader = reader.ReadBinaryReader(payloadSize);
-        const kind = objectReader.ReadStringRef();
-        const shape = this.ResolveSourceShape(kind);
-        const includeClassMetadata = this.ShouldIncludeClassMetadata();
-        const includeFieldTrace = this.ShouldIncludeFieldTrace();
-        const node = {
-            id: this.nextNodeId++,
-            kind,
-            fields: {},
-            ...(includeClassMetadata ? {
-                source: shape?.source || {},
-                meta: {
-                    family: shape?.family || null,
-                    hashes: shape?.hashes || null,
-                    blue: shape?.blue || null
-                }
-            } : {}),
-            ...(includeFieldTrace ? {
-                meta: {
-                    ...(includeClassMetadata ? {
-                        family: shape?.family || null,
-                        hashes: shape?.hashes || null,
-                        blue: shape?.blue || null
-                    } : {}),
-                    black: {
-                        reference: options.blackReference,
-                        embedded: options.embedded,
-                        payloadSize,
-                        fields: {}
-                    }
-                }
-            } : {}),
-            raw: null
-        };
-
-        this.nodes.push(node);
-        if (options.blackReference !== null)
-        {
-            this.references.set(options.blackReference, node.id);
-        }
-
-        let previousBlackName = null;
-        while (!objectReader.AtEnd())
-        {
-            const blackName = objectReader.ReadStringRef();
-            const target = this.ResolveFieldTargetWithContext(kind, shape, blackName, previousBlackName);
-            const value = this.ReadFieldValueWithContext(objectReader, kind, blackName, target);
-            this.AssignFieldValue(node, target, value);
-            previousBlackName = blackName;
-        }
-
-        objectReader.ExpectEnd(`${kind} did not read to end`);
-        return CjsCarbonDocument.createRef(node.id);
     }
 
     /**
@@ -654,58 +525,25 @@ export class CjsBlackReader extends CjsBlueReader
     }
 
     /**
-     * Reports whether include class metadata is enabled by the current Black
-     * object-graph reader.
-     *
-     * @returns {boolean} True when class metadata, trace or debug is enabled.
-     */
-    ShouldIncludeClassMetadata()
-    {
-        return Boolean(this.options.includeClassMetadata || this.options.trace || this.options.debug);
-    }
-
-    /**
-     * Reports whether include field trace is enabled by the current Black
-     * object-graph reader.
-     *
-     * @returns {boolean} True when field trace, trace or debug is enabled.
-     */
-    ShouldIncludeFieldTrace()
-    {
-        return Boolean(this.options.includeFieldTrace || this.options.trace || this.options.debug);
-    }
-
-    /**
-     * Reports whether include document metadata is enabled by the current Black
+     * Reports whether include payload metadata is enabled by the current Black
      * object-graph reader.
      *
      * @returns {boolean} True when metadata, trace, debug or caller metadata is set.
      */
-    ShouldIncludeDocumentMetadata()
+    ShouldIncludePayloadMetadata()
     {
         return Boolean(this.options.includeMetadata || this.options.trace || this.options.debug || this.options.metadata);
     }
 
     /**
-     * Reports whether include ref index is enabled by the current Black
-     * object-graph reader.
-     *
-     * @returns {boolean} True when the reference index, trace or debug is enabled.
-     */
-    ShouldIncludeRefIndex()
-    {
-        return Boolean(this.options.includeRefIndex || this.options.trace || this.options.debug);
-    }
-
-    /**
-     * Creates document metadata for the current Black object-graph reader.
+     * Creates payload metadata for the current Black object-graph reader.
      *
      * @param {import("./helpers.js").BlackInspection} info Header and string tables.
      * @returns {object|null} Black string-table metadata merged with caller metadata, or the caller metadata alone.
      */
-    CreateDocumentMetadata(info)
+    CreatePayloadMetadata(info)
     {
-        if (!this.ShouldIncludeDocumentMetadata()) return this.options.metadata || null;
+        if (!this.ShouldIncludePayloadMetadata()) return this.options.metadata || null;
 
         return {
             black: {
@@ -784,65 +622,6 @@ export class CjsBlackReader extends CjsBlueReader
             error.message = `${kind}.${blackName}: ${error.message}`;
             throw error;
         }
-    }
-
-    /**
-     * Assigns field value while preserving the current Black object-graph reader
-     * contract.
-     *
-     * @param {object} node Document node.
-     * @param {import("./helpers.js").BlackFieldTarget} target Resolved field.
-     * @param {*} value Decoded value.
-     */
-    AssignFieldValue(node, target, value)
-    {
-        if (target.discard) return;
-        if (target.unknown)
-        {
-            node.raw = node.raw || {};
-            node.raw[target.blackName] = value;
-            this.AssignFieldTrace(node, target);
-            return;
-        }
-
-        if (target.indexed)
-        {
-            let current = node.fields[target.field.name];
-            if (!current || typeof current !== "object" || CjsCarbonDocument.isRef(current))
-            {
-                current = Number.isInteger(target.index) ? [] : {};
-                node.fields[target.field.name] = current;
-            }
-
-            current[target.key] = value;
-        }
-        else
-        {
-            node.fields[target.field.name] = value;
-        }
-
-        this.AssignFieldTrace(node, target);
-    }
-
-    /**
-     * Assigns field trace while preserving the current Black object-graph reader
-     * contract.
-     *
-     * @param {object} node Document node.
-     * @param {import("./helpers.js").BlackFieldTarget} target Resolved field.
-     */
-    AssignFieldTrace(node, target)
-    {
-        if (!this.ShouldIncludeFieldTrace()) return;
-
-        node.meta.black.fields[target.blackName] = {
-            field: target.field.name,
-            cppName: target.field.cppName || null,
-            member: target.member,
-            indexed: target.indexed,
-            indexToken: target.indexToken,
-            key: target.key
-        };
     }
 
     /**
@@ -1186,8 +965,6 @@ export class CjsBlackReader extends CjsBlueReader
     {
         super.ResetBlueReadState();
         this.references = new Map();
-        this.nodes = [];
-        this.nextNodeId = this.options.firstId || 1;
         this.payloadDepth = 0;
         this.payloadRootFields = null;
     }

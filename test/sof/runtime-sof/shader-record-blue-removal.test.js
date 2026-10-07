@@ -11,23 +11,21 @@ import { EveSOFDataParameter } from "../../../npm/dist/sof/shared/EveSOFDataPara
 import { EveSOFDataGeneric } from "../../../npm/dist/sof/generic/EveSOFDataGeneric.js";
 import { EveSOFData } from "../../../npm/dist/sof/EveSOFData.js";
 import { EveSOFDataMgr } from "../../../npm/dist/sof/EveSOFDataMgr.js";
-import { createSofHydrationAdapter } from "../../../npm/dist/sof/createSofHydrationAdapter.js";
 
 function records()
 {
-  const adapter = createSofHydrationAdapter(), shader = new Shader(), decal = new Decal();
-  adapter.applyValues(shader, {
+  const shader = new Shader(), decal = new Decal();
+  CjsSchema.setValues(shader, {
     shader: "area.fx", transparencyTextureName: "AlphaMap", doGenerateDepthArea: false,
     parameters: [{str: "Paint"}, {str: "Fallback"}],
     defaultParameters: [{name: "Default", value: [1, 2, 3, 4]}],
     defaultTextures: [{name: "PatternMask1Map", resFilePath: "res:/mask.dds"}, {name: "AlbedoMap", resFilePath: "res:/albedo.dds"}]
   });
-  adapter.applyValues(decal, {
+  CjsSchema.setValues(decal, {
     shader: "decal.fx", additive: true, parameters: [{str: "DecalPaint"}, {str: "Fallback"}],
     defaultTextures: [{name: "AlbedoMap", resFilePath: "res:/decal.dds"}],
     parentTextures: [{str: "NormalMap"}, {str: "MissingMap"}]
   });
-  for (const record of [shader, decal]) adapter.finalize(record, {kind: CjsSchema.getClassName(record.constructor)});
   return {shader, decal};
 }
 

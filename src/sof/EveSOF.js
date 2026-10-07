@@ -20,14 +20,13 @@ import { EveSOFDataHull } from "./hull/EveSOFDataHull.js";
 import { EveSOFDataArea } from "./shared/EveSOFDataArea.js";
 import { EveSOFDataInstancedMesh } from "./shared/EveSOFDataInstancedMesh.js";
 import { EveSOFUtilsParameterName } from "./shared/EveSOFUtilsParameterName.js";
-import { CjsCarbonDocument } from "#model/document";
 import { blue, BeObjectMetadata } from "#blue";
 import { EveSOFDNA } from "./EveSOFDNA.js";
 import { EveSOFDataMgr } from "./EveSOFDataMgr.js";
 import { CjsSofLibraryBuilder } from "./CjsSofLibraryBuilder.js";
 import { planSofLayouts } from "./SofLayoutRandom.js";
-import { SofDocumentBuilder } from "./SofDocumentBuilder.js";
-import { IsModelValuesReference, IsModelValuesRoot, VALUES_LITERAL_DOLLAR_REF, remapImportedValue } from "./sofDocumentValues.js";
+import { SofValuesBuilder } from "./SofValuesBuilder.js";
+import { IsModelValuesRoot } from "./sofValues.js";
 
 
 const BUILD_CLASS_TYPES = Object.freeze({
@@ -364,7 +363,7 @@ export class EveSOF
   _childResourceResolver = null;
 
   /**
-   * Custom synchronous loader of controller and model-curve values or compatibility fragments;
+   * Custom synchronous loader of controller and model-curve values;
    * null emits deferred controller or external-reference descriptors.
    * @type {Function|null}
    */
@@ -644,9 +643,7 @@ export class EveSOF
    *
    * The resolver receives `(redFilePath, context)` and returns either null, a
    * self-describing model-values root, `{ values, target?, implements?, raw? }`,
-   * a local `{ kind, target, fields, raw }` descriptor, or
-   * `{ document, root?, target?, implements?, raw? }` for a legacy complete
-   * compatibility fragment consumed by the internal builder.
+   * or a local `{ kind, target, fields, raw }` descriptor.
    *
    * Values fragments require `_type` on every model because the SOF layer does
    * not import the class library needed to infer an untagged nested model's
@@ -664,7 +661,7 @@ export class EveSOF
     return this;
   }
 
-  /** Supplies synchronous controller and model-curve values or legacy compatibility fragments. */
+  /** Supplies synchronous controller and model-curve values. */
   async SetObjectResourceResolver(resolver)
   {
     if (resolver !== null && typeof resolver !== "function")
@@ -910,12 +907,10 @@ export class EveSOF
   }
 
   /**
-   * Builds the legacy `carbon.document` compatibility form.
+   * Carbon's three-name build: delegates to BuildFromDNA with the joined DNA.
    *
-   * Adapted: Returns internal carbon.document assembly instead of Carbon’s live
-   * space-object instance. Three-name DNA construction and delegation follow Carbon.
-   *
-   * @deprecated Use BuildValues(...).
+   * Adapted: returns what BuildFromDNA returns (model values for now), not
+   * Carbon's live space-object instance.
    */
   @meta.blue.method
   @meta.adapted
@@ -924,10 +919,7 @@ export class EveSOF
     return this.BuildFromDNA(`${hullName}:${factionName}:${raceName}`, options);
   }
 
-  /**
-   * Promise-facing legacy `carbon.document` compatibility form.
-   * @deprecated Use BuildValuesAsync(...).
-   */
+  /** Promise-facing Build. */
   async BuildAsync(hullName, factionName, raceName, options = {})
   {
     return this.BuildFromDNAAsync(`${hullName}:${factionName}:${raceName}`, options);
@@ -985,8 +977,8 @@ export class EveSOF
    */
   async BuildValuesFromDNA(dnaString, options = {})
   {
-    const document = await this.BuildFromDNA(dnaString, options);
-    return document ? EveSOF.projectDocumentValues(document, options) : null;
+    if (!await this._EnsureDnaData(dnaString, options)) return null;
+    return this._ResolveResources(() => this._BuildFromDNA(dnaString, options));
   }
 
   /**
@@ -1092,7 +1084,7 @@ export class EveSOF
     dna.SetParentBoundingSphere(null);
     dna.SetParentShapeEllipsoidInfo(null);
 
-    const document = new SofDocumentBuilder();
+    const document = new SofValuesBuilder();
     const rootRef = document.ImportValuesRoot(ownerValues);
     const root = document.GetNode(rootRef.$ref);
     if (!SPACE_OBJECT_ROOT_KINDS.has(root?.kind))
@@ -1109,10 +1101,10 @@ export class EveSOF
       placementTransform,
       options?.layout ?? options ?? {}
     );
-    return EveSOF.projectDocumentValues(document.ToJSON(), options);
+    return document.ToValues(options);
   }
 
-  /** Supported async values build; dependency collection currently reuses the deprecated internal document builder. */
+  /** Promise-facing BuildValuesFromDNA. */
   async BuildValuesFromDNAAsync(dnaString, options = {})
   {
     return this.BuildValuesFromDNA(dnaString, options);
@@ -1161,73 +1153,7 @@ export class EveSOF
     return sof;
   }
 
-  /**
-   * Internal structural projection from the builder's `carbon.document`
-   * intermediate to supported plain model values.
-   *
-   * Both forms are JSON describing one graph, so this is a structural rewrite
-   * and nothing more: a node table becomes a tree, `kind` becomes `_type`, and
-   * `{ $ref }` becomes a `{ _ref }` back-reference paired with an `_id` on the
-   * first occurrence. `fields` and `raw` are envelopes, so their contents move
-   * onto the node itself.
-   *
-   * **No class library is imported, by requirement.** The SOF layer must remain
-   * independent of Trinity classes, and sparse JSON never needs the classes it
-   * names. The previous implementation
-   * hydrated the document into live runtime objects and called `GetValues` on
-   * the root, which made a class registry mandatory and pushed a Trinity-layer
-   * dependency onto every caller. Constructing objects to serialize a graph we
-   * already hold is a round trip; building objects from these values is a thing
-   * a caller may choose to do afterwards, with `RootClass.from(values)`.
-   *
-   * The output is therefore sparse unless `options.populateDefaults` is true.
-   * That opt-in runs `CjsSchema.applyDefaults` after the structural projection,
-   * using only class families the caller has already imported and registered.
-   * It does not construct or initialize the authored graph and does not add a
-   * SOF-to-Trinity dependency.
-   *
-   * @internal The document form is not a supported consumer boundary.
-   */
-  static projectDocumentValues(document, options = {})
-  {
-    const normalized = CjsCarbonDocument.normalize(document);
-    const nodeById = new Map(normalized.nodes.map(node => [Number(node.id), node]));
-    const rootRef = normalized.roots?.[0]?.ref;
-
-    if (!CjsCarbonDocument.isRef(rootRef))
-    {
-      throw new TypeError("EveSOF values projection requires a document with one root reference.");
-    }
-
-    // A node reachable more than once is shared topology and needs an identity;
-    // one reachable once is ordinary nesting and needs none. Counting first
-    // keeps `_id` off the great majority of nodes.
-    const visits = new Map();
-    CountDocumentVisits(rootRef, nodeById, visits);
-
-    const values = ProjectDocumentNode(rootRef, nodeById, visits, new Map(), { nextId: 1 });
-    const populateDefaults = options?.populateDefaults ?? false;
-    if (typeof populateDefaults !== "boolean")
-    {
-      throw new TypeError("EveSOF populateDefaults option must be a boolean.");
-    }
-    return populateDefaults ? CjsSchema.applyDefaults(values) : values;
-  }
-
-  /**
-   * Deprecated async `carbon.document` assembly used internally by
-   * `BuildValuesFromDNAAsync`.
-   *
-   * Resolve selected child/object dependencies without converting the
-   * deterministic synchronous builder into an async state machine.
-   *
-   * A collection build records only dependencies selected by the normal SOF
-   * filters. They are fetched concurrently, then the unchanged builder runs a
-   * second time against synchronous per-call caches.
-   *
-   * Custom: asynchronous acquisition precedes Carbon's synchronous assembly.
-   * @deprecated Use BuildValuesFromDNAAsync(...).
-   */
+  /** Promise-facing BuildFromDNA. */
   @meta.ours
   async BuildFromDNAAsync(dnaString, options = {})
   {
@@ -1287,12 +1213,12 @@ export class EveSOF
       {
         this._childResourceResolver = (path, context) =>
         {
-          CollectSofRequest(documentRequests, path, "carbon.document", "child", context);
+          CollectSofRequest(documentRequests, path, "values", "child", context);
           return null;
         };
         this._objectResourceResolver = (path, context) =>
         {
-          CollectSofRequest(documentRequests, path, "carbon.document", context?.role || "object", context);
+          CollectSofRequest(documentRequests, path, "values", context?.role || "object", context);
           return null;
         };
       }
@@ -1345,8 +1271,8 @@ export class EveSOF
     {
       if (getObject)
       {
-        this._childResourceResolver = path => documentResults.get(SofRequestKey(path, "carbon.document")) ?? null;
-        this._objectResourceResolver = path => documentResults.get(SofRequestKey(path, "carbon.document")) ?? null;
+        this._childResourceResolver = path => documentResults.get(SofRequestKey(path, "values")) ?? null;
+        this._objectResourceResolver = path => documentResults.get(SofRequestKey(path, "values")) ?? null;
       }
       if (exists)
       {
@@ -1378,28 +1304,23 @@ export class EveSOF
   }
 
   /**
-   * Emits the deprecated internal `carbon.document` assembly form, including
-   * deterministic layouts. `BuildValuesFromDNA` currently projects this
-   * intermediate to the supported output. Layout options may be passed
-   * directly or under an `options.layout` object.
+   * Carbon's DNA build. Layout options may be passed directly or under an
+   * `options.layout` object.
    *
-   * Adapted: Records assembly stages as document nodes and references for values
-   * projection. Live object construction, resource realization and initialization
-   * are deferred to the consumer; layout options configure document assembly.
-   *
-   * @deprecated Use BuildValuesFromDNA(...).
+   * Adapted: returns model values (BuildValuesFromDNA), not Carbon's live
+   * space-object instance. Whether this returns values or objects is still to
+   * be decided (operator, 2026-10-07).
    */
   @meta.blue.method
   @meta.adapted
   async BuildFromDNA(dnaString, options = {})
   {
-    if (!await this._EnsureDnaData(dnaString, options)) return null;
-    return this._ResolveResources(() => this._BuildFromDNA(dnaString, options));
+    return this.BuildValuesFromDNA(dnaString, options);
   }
 
   /**
-   * Executes prepared native assembly without suspension. Adapted: produces
-   * the existing intermediate graph instead of constructing Trinity objects.
+   * Executes prepared native assembly without suspension. Adapted: assembles
+   * model values instead of constructing Trinity objects.
    */
   @meta.adapted
   _BuildFromDNA(dnaString, options)
@@ -1413,7 +1334,7 @@ export class EveSOF
     if (!typeName) return null;
     const hull = dna.hullDatas[0];
     const sphere = dna.GetHullBoundingSphere() ?? [0, 0, 0, -1];
-    const document = new SofDocumentBuilder();
+    const document = new SofValuesBuilder();
     const isExtension = buildClass === EveSOFDataHull.BuildClass.BUILDCLASS_EXTENSION;
     const hasShipInterface = typeName === "EveShip2" || typeName === "EveSwarm";
     const swarmBehavior = typeName === "EveSwarm"
@@ -1456,7 +1377,7 @@ export class EveSOF
       rootFields.inheritProperties = createInheritProperties(document, dna);
       const root = document.AddNode(typeName, rootFields);
       document.AddRoot("default", root);
-      return document.ToJSON();
+      return document.ToValues(options);
     }
     this.SetupCustomMask(document, rootFields, dna);
     // Editor provenance is currently bounded to ordinary single-hull roots.
@@ -1479,7 +1400,7 @@ export class EveSOF
     rootFields.inheritProperties = createInheritProperties(document, dna);
     const root = document.AddNode(typeName, rootFields);
     document.AddRoot("default", root);
-    return document.ToJSON();
+    return document.ToValues(options);
   }
 
   /** Ports Carbon's modular child construction into an existing document root. */
@@ -2306,9 +2227,7 @@ export class EveSOF
           resPath: String(redFilePath ?? ""),
           loadChildAutomatically: true
         },
-        raw: {},
-        fragment: null,
-        rootRef: null
+        raw: {}
       };
     }
     let descriptor = this._childResourceResolver(String(redFilePath ?? ""), { child, sof6 });
@@ -2336,26 +2255,9 @@ export class EveSOF
       throw new TypeError("EveSOF child resource resolver must return a child descriptor or null");
     }
     if (IsModelValuesRoot(descriptor)) descriptor = { values: descriptor };
-    else if (IsCarbonDocument(descriptor)) descriptor = { document: descriptor };
     let kind = descriptor.kind;
-    let fragment = null;
     let values = null;
-    let rootRef = null;
-    if (descriptor.document && descriptor.values)
-    {
-      throw new TypeError("EveSOF child resource descriptor cannot contain both document and values");
-    }
-    if (descriptor.document)
-    {
-      fragment = descriptor.document;
-      rootRef = descriptor.root ?? fragment.roots?.[0]?.ref ?? null;
-      if (!rootRef || !Number.isInteger(Number(rootRef.$ref)))
-      {
-        throw new TypeError("EveSOF child document descriptor requires a valid root ref");
-      }
-      kind = fragment.nodes?.find(node => Number(node.id) === Number(rootRef.$ref))?.kind;
-    }
-    else if (descriptor.values !== undefined)
+    if (descriptor.values !== undefined)
     {
       if (!IsModelValuesRoot(descriptor.values))
       {
@@ -2396,9 +2298,7 @@ export class EveSOF
       target,
       fields: descriptor.fields && typeof descriptor.fields === "object" ? descriptor.fields : {},
       raw: descriptor.raw && typeof descriptor.raw === "object" ? descriptor.raw : {},
-      fragment,
-      values,
-      rootRef
+      values
     };
   }
 
@@ -2419,11 +2319,9 @@ export class EveSOF
       }
       : placement;
     let ref;
-    if (descriptor.fragment || descriptor.values)
+    if (descriptor.values)
     {
-      ref = descriptor.values
-        ? document.ImportValuesRoot(descriptor.values)
-        : document.ImportRoot(descriptor.fragment, descriptor.rootRef);
+      ref = document.ImportValuesRoot(descriptor.values);
       const node = document.GetNode(ref.$ref);
       if (descriptor.raw && Object.keys(descriptor.raw).length)
       {
@@ -3266,9 +3164,7 @@ export class EveSOF
           kind: "Tr2ControllerReference",
           reference: true,
           fields: { path: String(path ?? "") },
-          raw: {},
-          fragment: null,
-          rootRef: null
+          raw: {}
         };
       }
       // Model curves have no Carbon reference node - Carbon inline-loads
@@ -3284,9 +3180,7 @@ export class EveSOF
           resPath: String(path ?? ""),
           expects: gate ? gate.interfaceName : ""
         },
-        raw: {},
-        fragment: null,
-        rootRef: null
+        raw: {}
       };
     }
     let descriptor = this._objectResourceResolver(String(path ?? ""), { role });
@@ -3311,26 +3205,9 @@ export class EveSOF
       throw new TypeError("EveSOF object resource resolver must return an object descriptor or null");
     }
     if (IsModelValuesRoot(descriptor)) descriptor = { values: descriptor };
-    else if (IsCarbonDocument(descriptor)) descriptor = { document: descriptor };
     let kind = descriptor.kind;
-    let fragment = null;
     let values = null;
-    let rootRef = null;
-    if (descriptor.document && descriptor.values)
-    {
-      throw new TypeError("EveSOF object resource descriptor cannot contain both document and values");
-    }
-    if (descriptor.document)
-    {
-      fragment = descriptor.document;
-      rootRef = descriptor.root ?? fragment.roots?.[0]?.ref ?? null;
-      if (!rootRef || !Number.isInteger(Number(rootRef.$ref)))
-      {
-        throw new TypeError("EveSOF object document descriptor requires a valid root ref");
-      }
-      kind = fragment.nodes?.find(node => Number(node.id) === Number(rootRef.$ref))?.kind;
-    }
-    else if (descriptor.values !== undefined)
+    if (descriptor.values !== undefined)
     {
       if (!IsModelValuesRoot(descriptor.values))
       {
@@ -3362,25 +3239,21 @@ export class EveSOF
       kind,
       fields: descriptor.fields && typeof descriptor.fields === "object" ? descriptor.fields : {},
       raw: descriptor.raw && typeof descriptor.raw === "object" ? descriptor.raw : {},
-      fragment,
-      values,
-      rootRef
+      values
     };
   }
 
   /**
-   * Imports a resolved values or document root into the builder, or allocates a
+   * Imports a resolved values root into the builder, or allocates a
    * standalone node, then overlays any raw fields.
    */
   _addObjectResource(document, descriptor)
   {
-    if (!descriptor.fragment && !descriptor.values)
+    if (!descriptor.values)
     {
       return document.AddNode(descriptor.kind, cloneFields(descriptor.fields), cloneValue(descriptor.raw));
     }
-    const ref = descriptor.values
-      ? document.ImportValuesRoot(descriptor.values)
-      : document.ImportRoot(descriptor.fragment, descriptor.rootRef);
+    const ref = document.ImportValuesRoot(descriptor.values);
     if (descriptor.raw && Object.keys(descriptor.raw).length)
     {
       const node = document.GetNode(ref.$ref);
@@ -5972,100 +5845,6 @@ function createImpactEmitter(document, values)
  * repeated node, which receives an identity so projection can emit a back
  * reference. Other nodes on the cycle need not have multiple visits.
  */
-function CountDocumentVisits(value, nodeById, visits)
-{
-  if (value?.[VALUES_LITERAL_DOLLAR_REF])
-  {
-    for (const item of Object.values(value)) CountDocumentVisits(item, nodeById, visits);
-    return;
-  }
-
-  if (CjsCarbonDocument.isRef(value))
-  {
-    const id = Number(value.$ref);
-    const seen = visits.get(id) ?? 0;
-    visits.set(id, seen + 1);
-    if (seen) return;
-
-    const node = nodeById.get(id);
-    if (!node) return;
-
-    CountDocumentVisits(node.fields ?? {}, nodeById, visits);
-    CountDocumentVisits(node.raw ?? {}, nodeById, visits);
-
-    return;
-  }
-
-  if (Array.isArray(value))
-  {
-    for (const item of value) CountDocumentVisits(item, nodeById, visits);
-
-    return;
-  }
-
-  if (value && typeof value === "object")
-  {
-    for (const item of Object.values(value)) CountDocumentVisits(item, nodeById, visits);
-  }
-}
-
-/**
- * Rewrites one document value into its plain-values form.
- *
- * `emitted` maps a node id to the `_id` it was given on first emission, so a
- * later occurrence becomes `{ _ref }`. Ids are allocated in emission order
- * rather than reusing document ids, so the output does not carry the node
- * table's numbering as a hidden dependency.
- */
-function ProjectDocumentNode(value, nodeById, visits, emitted, state)
-{
-  if (value?.[VALUES_LITERAL_DOLLAR_REF])
-  {
-    return Object.fromEntries(Object.entries(value)
-      .map(([key, item]) => [key, ProjectDocumentNode(item, nodeById, visits, emitted, state)]));
-  }
-
-  if (CjsCarbonDocument.isRef(value))
-  {
-    const id = Number(value.$ref);
-
-    if (emitted.has(id)) return { _ref: emitted.get(id) };
-
-    const node = nodeById.get(id);
-    if (!node) throw new TypeError(`EveSOF values projection found no node for ref ${id}.`);
-
-    const projected = { _type: node.kind };
-
-    if ((visits.get(id) ?? 0) > 1)
-    {
-      const valueId = state.nextId++;
-      emitted.set(id, valueId);
-      projected._id = valueId;
-    }
-
-    // `fields` and `raw` are transport envelopes rather than data: the reader
-    // of a values graph sees one object whose properties are the node's.
-    for (const [key, item] of Object.entries({ ...node.fields, ...node.raw }))
-    {
-      projected[key] = ProjectDocumentNode(item, nodeById, visits, emitted, state);
-    }
-
-    return projected;
-  }
-
-  if (Array.isArray(value))
-  {
-    return value.map(item => ProjectDocumentNode(item, nodeById, visits, emitted, state));
-  }
-
-  if (value && typeof value === "object")
-  {
-    return Object.fromEntries(Object.entries(value)
-      .map(([key, item]) => [key, ProjectDocumentNode(item, nodeById, visits, emitted, state)]));
-  }
-
-  return value;
-}
 
 function cloneFields(fields)
 {
@@ -6111,12 +5890,6 @@ function CollectSofRequest(requests, path, output, role, context = null)
   return key;
 }
 
-function IsCarbonDocument(value)
-{
-  return value?.schema === "carbon.document"
-    && Array.isArray(value.roots)
-    && Array.isArray(value.nodes);
-}
 
 
 

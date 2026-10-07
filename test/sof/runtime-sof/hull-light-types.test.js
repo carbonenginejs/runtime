@@ -5,7 +5,7 @@ import { EveSOFDataHullLightSetSpotLight } from "../../../npm/dist/sof/hull/EveS
 import { CjsBlackFormat } from "../../../npm/dist/resource/formats/black/index.js";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import { Tr2PointLight, Tr2TexturedPointLight, Tr2SpotLight } from "../../../npm/dist/trinity/index.js";
-import { SofDocumentBuilder } from "../../../src/sof/SofDocumentBuilder.js";
+import { SofValuesBuilder } from "../../../src/sof/SofValuesBuilder.js";
 import { clientResources } from "../../support/clientResources.js";
 
 // The client's SOF data.black through BePaths; its bytes change per build, so none are pinned.
@@ -22,7 +22,7 @@ function buildLights(rawHull)
     visibilityData: new Set(hull.hullLightSets.map(value => value.visibilityGroup)),
     colorData: { colors: Array.from({ length: 128 }, () => [ 1, 1, 1, 1 ]) }
   };
-  const document = new SofDocumentBuilder();
+  const document = new SofValuesBuilder();
   const owner = { lights: [] };
   sof.SetupLights(document, owner, dna);
   const nodes = owner.lights.map(value => document.GetNode(value.$ref));

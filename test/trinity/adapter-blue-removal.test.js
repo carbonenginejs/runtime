@@ -8,7 +8,6 @@ import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
 import { EnumerateChildren } from "../../npm/dist/global/blue/find.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
-import { createSofHydrationAdapter } from "../../npm/dist/sof/createSofHydrationAdapter.js";
 import { Tr2TranslationAdapter } from "../../npm/dist/trinity/curves/curve/Tr2TranslationAdapter.js";
 import { Tr2RotationAdapter } from "../../npm/dist/trinity/curves/curve/Tr2RotationAdapter.js";
 import { Tr2VectorFunctionModifier } from "../../npm/dist/trinity/curves/curve/Tr2VectorFunctionModifier.js";
@@ -79,7 +78,7 @@ for (const [Class,size] of [[Tr2TranslationAdapter,3],[Tr2RotationAdapter,4]])
     });
 }
 
-test("declared and SOF hydration use live adapter pointers while Copier copies persisted children",()=>
+test("declared and values-door hydration use live adapter pointers while Copier copies persisted children",()=>
 {
     const child=new Tr2CurveConstant();
     child.value.set([1,2,3,4]);
@@ -87,7 +86,7 @@ test("declared and SOF hydration use live adapter pointers while Copier copies p
     {
         const adapter=new Class();
         const value=Array(size).fill(0.5);
-        assert.equal(createSofHydrationAdapter().applyValues(adapter,{curve:child,value}),adapter);
+        CjsSchema.setValues(adapter,{curve:child,value});
         assert.equal(adapter.curve,child);
         assert.deepEqual([...adapter.value],value);
         const children=[];EnumerateChildren(adapter,item=>children.push(item));
@@ -159,7 +158,7 @@ test("modifier fields use native order and remain transient through shared copy 
     assert.deepEqual(CjsSchema.getSchema(Tr2VectorFunctionModifier).members.map(f=>f.name),names);
     const child=new Tr2TranslationAdapter();
     const source=new Tr2VectorFunctionModifier();
-    createSofHydrationAdapter().applyValues(source,{clientBall:child,offsetPosition:[1,2,3],scaleModifier:4,useViewSpace:true,useSystemCoordinates:true});
+    CjsSchema.setValues(source,{clientBall:child,offsetPosition:[1,2,3],scaleModifier:4,useViewSpace:true,useSystemCoordinates:true});
     assert.equal(source.clientBall,child);assert.deepEqual([...source.offsetPosition],[1,2,3]);assert.equal(source.scaleModifier,4);
     assert.equal(source.useViewSpace,true);assert.equal(source.useSystemCoordinates,true);
     const destination=new Tr2VectorFunctionModifier();

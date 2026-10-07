@@ -2,10 +2,8 @@ import { CjsFormat } from "../../format/CjsFormat.js";
 import { CLASS_KEYS } from "./core/schema.js";
 import {
     DEFAULT_VALUES,
-    OUTPUT_DOCUMENT,
     OUTPUT_JSON,
     OUTPUT_PAYLOAD,
-    OUTPUT_RAW,
     OUTPUT_RUNTIME,
     normalizeValues,
     toJsonValue,
@@ -41,9 +39,8 @@ export class CjsBlackFormat extends CjsFormat
     _classes = {};
 
     /**
-     * Plain payload outputs can be decoded in a browser worker. Document and
-     * runtime outputs retain class identity and therefore stay on the caller
-     * thread.
+     * Plain payload outputs can be decoded in a browser worker. Runtime output
+     * retains class identity and therefore stays on the caller thread.
      */
     static worker = {
         module: import.meta.url,
@@ -155,23 +152,11 @@ export class CjsBlackFormat extends CjsFormat
      *
      * @param {import("./core/helpers.js").BlackInput} input Black format input.
      * @param {Partial<import("./core/helpers.js").BlackReaderValues>} [options] Per-call value overrides.
-     * @returns {import("./core/helpers.js").BlackPayload|import("./core/helpers.js").BlackRuntimeResult|import("#model/document").CjsCarbonDocument} Public payload output by default.
+     * @returns {import("./core/helpers.js").BlackPayload|import("./core/helpers.js").BlackRuntimeResult} Public payload output by default.
      */
     Read(input, options = {})
     {
         return CjsBlackFormat.read(input, this.GetValues(options));
-    }
-
-    /**
-     * Read Black data as a neutral document graph for diagnostics.
-     *
-     * @param {import("./core/helpers.js").BlackInput} input Black format input.
-     * @param {Partial<import("./core/helpers.js").BlackReaderValues>} [options] Per-call value overrides.
-     * @returns {import("#model/document").CjsCarbonDocument} CarbonEngineJS document graph.
-     */
-    ReadDocument(input, options = {})
-    {
-        return CjsBlackFormat.readDocument(input, this.GetValues(options));
     }
 
     /**
@@ -226,26 +211,13 @@ export class CjsBlackFormat extends CjsFormat
      *
      * @param {import("./core/helpers.js").BlackInput} input Black format input.
      * @param {Partial<import("./core/helpers.js").BlackReaderValues>} [options] Format values.
-     * @returns {import("./core/helpers.js").BlackPayload|import("./core/helpers.js").BlackRuntimeResult|import("#model/document").CjsCarbonDocument} Format output.
+     * @returns {import("./core/helpers.js").BlackPayload|import("./core/helpers.js").BlackRuntimeResult} Format output.
      */
     static read(input, options = {})
     {
         const values = normalizeValues(DEFAULT_VALUES, options, CLASS_KEYS, FORMAT_NAME);
-        if (values.emit === OUTPUT_DOCUMENT || values.emit === OUTPUT_RAW) return CjsBlackFormat.readDocument(input, values);
         if (values.emit === OUTPUT_RUNTIME) return CjsBlackFormat.readRuntime(input, values);
         return CjsBlackFormat.readPayload(input, values);
-    }
-
-    /**
-     * Static one-shot document read.
-     *
-     * @param {import("./core/helpers.js").BlackInput} input Black format input.
-     * @param {Partial<import("./core/helpers.js").BlackReaderValues>} [options] Format values.
-     * @returns {import("#model/document").CjsCarbonDocument} CarbonEngineJS document graph.
-     */
-    static readDocument(input, options = {})
-    {
-        return new CjsBlackReader(input, normalizeValues(DEFAULT_VALUES, options, CLASS_KEYS, FORMAT_NAME)).ReadDocument();
     }
 
     /**
@@ -339,10 +311,8 @@ export class CjsBlackFormat extends CjsFormat
 
     static outputs = CjsFormat.defineOutputs({
         json: { default: true, decoded: true },
-        document: { decoded: true },
         payload: { decoded: true },
-        runtime: { decoded: true },
-        raw: { role: "debug", decoded: true }
+        runtime: { decoded: true }
     });
 
     /**

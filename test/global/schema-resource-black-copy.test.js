@@ -155,20 +155,20 @@ test("legacy runtime and payload reject resolved resource routes before decoding
     assert.throws(() => new CjsBlackReader(bytes, options).ReadPayload(), /Runtime-only member ResourceBlackCopyDerived\.cache/);
 });
 
-test("legacy document reads reject known resource conflicts before decoding", () =>
+test("payload reads reject known resource conflicts before decoding", () =>
 {
     const invalid = new BlackFixture();
     const invalidBytes = invalid.Finish(invalid.Object(1, "ResourceBlackCopyHolder", [["cachedResource", new Uint8Array()]]));
     assert.throws(() => new CjsBlackReader(invalidBytes, {
         schema: { ResourceBlackCopyHolder: { cachedResource: { type: "object", field: "_cache" } } }
-    }).ReadDocument(), /Runtime-only member ResourceBlackCopyHolder\._cache cannot be read from Black/);
+    }).ReadPayload(), /Runtime-only member ResourceBlackCopyHolder\._cache cannot be read from Black/);
 
     const fixture = new BlackFixture();
     const bytes = fixture.Finish(fixture.Object(1, "ResourceBlackCopyDocumentUnknown", [["_cache", u32(0)]]));
-    const document = new CjsBlackReader(bytes, {
+    const payload = new CjsBlackReader(bytes, {
         schema: { ResourceBlackCopyDocumentUnknown: { _cache: "object" } }
-    }).ReadDocument();
-    assert.equal(document.nodes[0].fields._cache, null, "class-free documents keep caller-defined wire fields");
+    }).ReadPayload();
+    assert.equal(payload.object._cache, null, "class-free payloads keep caller-defined wire fields");
 });
 
 test("legacy guard preserves class-free and undeclared caller-class decoding", () =>

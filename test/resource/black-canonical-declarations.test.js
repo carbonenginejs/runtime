@@ -309,11 +309,9 @@ test("complete scene graphs decode with explicit baseless test classes and canon
     const verify = bytes =>
     {
         const reader = new CjsBlackReader(bytes, { schema: null });
-        const document = reader.ReadDocument();
-        assert.equal(document.nodes.length, 6);
-        const baseline = new CjsBlackReader(bytes, { schema: blackDefinitions }).ReadDocument();
-        assert.deepEqual(document.nodes.map(({ kind, fields }) => ({ kind, fields })),
-            baseline.nodes.map(({ kind, fields }) => ({ kind, fields })));
+        const payload = reader.ReadPayload();
+        const baseline = new CjsBlackReader(bytes, { schema: blackDefinitions }).ReadPayload();
+        assert.deepEqual(payload.object, baseline.object);
         assert.deepEqual(reader.reports, []);
         assert.equal(reader.reader.AtEnd(), true);
         const scene = reader.CreateObject();

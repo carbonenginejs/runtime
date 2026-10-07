@@ -10,7 +10,6 @@ import { EveSOFDataGenericHullDamage as Damage } from "../../../npm/dist/sof/gen
 import { EveSOFDataGeneric } from "../../../npm/dist/sof/generic/EveSOFDataGeneric.js";
 import { EveSOFData } from "../../../npm/dist/sof/EveSOFData.js";
 import { EveSOFDataMgr } from "../../../npm/dist/sof/EveSOFDataMgr.js";
-import { createSofHydrationAdapter } from "../../../npm/dist/sof/createSofHydrationAdapter.js";
 
 const damageValues = {
   hullParticleRate: 7, hullParticleAngle: 2, hullParticleColorMidpoint: 0.75,
@@ -25,12 +24,10 @@ const damageValues = {
 
 function records()
 {
-  const adapter = createSofHydrationAdapter();
   const visibility = new Visibility(), category = new Category(), damage = new Damage();
-  adapter.applyValues(visibility, {name: "engine", description: "Engine geometry"});
-  adapter.applyValues(category, {name: "frigate", reflectionMode: ReflectionMode.REFLECT_HIGH});
-  adapter.applyValues(damage, damageValues);
-  for (const record of [visibility, category, damage]) adapter.finalize(record, {kind: CjsSchema.getClassName(record.constructor)});
+  CjsSchema.setValues(visibility, {name: "engine", description: "Engine geometry"});
+  CjsSchema.setValues(category, {name: "frigate", reflectionMode: ReflectionMode.REFLECT_HIGH});
+  CjsSchema.setValues(damage, damageValues);
   return {visibility, category, damage};
 }
 
@@ -87,7 +84,7 @@ test("native construction defaults include zero alpha, midpoint and frequency wi
   }
 });
 
-test("real SOF hydration adapter populates every record without model helpers", () =>
+test("the values door populates every record without model helpers", () =>
 {
   const {visibility, category, damage} = records();
   assert.equal(visibility.name, "engine");

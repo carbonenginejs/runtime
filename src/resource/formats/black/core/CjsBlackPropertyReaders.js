@@ -462,7 +462,7 @@ export class CjsBlackPropertyReaders
      * Reads a Carbon BINARYBLOCK's int32 size and raw bytes
      * (BlackReader::ReadBinaryBlock, BlackReader.cpp:599-612). The bytes are
      * not decoded here: the object reader hands them to the instance's
-     * ICustomPersist, and a document read keeps this record.
+     * ICustomPersist, and a payload read keeps this record.
      *
      * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor positioned at the block length.
      * @param {{beType: string}} black Black wire description of the block.
@@ -619,7 +619,7 @@ export class CjsBlackPropertyReaders
             const records = reader.ReadBinaryReader(count * structureSize);
             const result = [];
             // A runtime read of a declared structList builds each record as an
-            // instance of its class; payload and document reads stay plain data.
+            // instance of its class; a payload read stays plain data.
             const Item = descriptor.itemClassName && reader.context?.readMode === "runtime"
                 ? CjsSchema.GetConstructor(descriptor.itemClassName) : null;
             if (descriptor.itemClassName && reader.context?.readMode === "runtime" && !Item)

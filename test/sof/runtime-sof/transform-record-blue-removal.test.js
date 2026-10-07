@@ -11,7 +11,6 @@ import { EveSOFDataHull } from "../../../npm/dist/sof/hull/EveSOFDataHull.js";
 import { EveSOFData } from "../../../npm/dist/sof/EveSOFData.js";
 import { EveSOFDataGeneric } from "../../../npm/dist/sof/generic/EveSOFDataGeneric.js";
 import { EveSOFDataMgr } from "../../../npm/dist/sof/EveSOFDataMgr.js";
-import { createSofHydrationAdapter } from "../../../npm/dist/sof/createSofHydrationAdapter.js";
 
 const rotation = [0, 0, Math.SQRT1_2, Math.SQRT1_2];
 const position = [5, 7, 11], scaling = [2, 3, 4];
@@ -24,17 +23,16 @@ function near(actual, expected)
 
 function records()
 {
-  const adapter = createSofHydrationAdapter(), transform = new Transform(), instance = new Instance();
-  adapter.applyValues(transform, {position, rotation, scaling, boneIndex: -1});
-  adapter.applyValues(instance, {translation: position, rotation, scaling, boneIndex: 6});
-  for (const record of [transform, instance]) adapter.finalize(record, {kind: CjsSchema.getClassName(record.constructor)});
+  const transform = new Transform(), instance = new Instance();
+  CjsSchema.setValues(transform, {position, rotation, scaling, boneIndex: -1});
+  CjsSchema.setValues(instance, {translation: position, rotation, scaling, boneIndex: 6});
   return {transform, instance};
 }
 
 function catalog()
 {
   const data = new EveSOFData();
-  createSofHydrationAdapter().applyValues(data, {
+  CjsSchema.setValues(data, {
     hull: [{
       _type: "EveSOFDataHull", name: "fixtureHull",
       locatorSets: [{_type: "EveSOFDataHullLocatorSet", name: "hardpoints", locators: [
@@ -105,7 +103,7 @@ test("retained transform convenience preserves nonidentity rotation scale and ou
   near(out, [0, 2, 0, 0, -3, 0, 0, 0, 0, 0, 4, 0, 5, 7, 11, 1]);
 });
 
-test("actual hydration adapter populates the registered records through their owning hull graph", () =>
+test("the values door populates the registered records through their owning hull graph", () =>
 {
   const data = catalog(), {hull, locatorSet, mesh, transform, instance} = children(data);
   assert.equal(data.generic.constructor, EveSOFDataGeneric); assert.equal(hull.constructor, EveSOFDataHull);

@@ -3,7 +3,6 @@ import { test } from "node:test";
 
 import { CjsSchema } from "#schema";
 import { resolveHydrationAdapter } from "#schema/hydration";
-import { CjsCarbonDocument, CjsDocumentHydrator } from "../../src/global/model/document/index.js";
 import { CjsRedReader } from "../../src/resource/formats/red/core/CjsRedReader.js";
 
 // Declared classes without their own SetValues populate through the schema.
@@ -106,18 +105,6 @@ test("the Blue reader keeps raw assignment for a caller's plain class", () =>
   assert.equal(root instanceof CallerPlain, true);
   assert.equal(root.label, "kept", "no schema to populate against, so the values assign raw");
   assert.deepEqual(root.position, [ 1, 2, 3 ]);
-});
-
-test("the document hydrator reports a declared class it resolved", () =>
-{
-  const Fixture = declareBaseless();
-  const document = CjsCarbonDocument.create({
-    format: "model-reference",
-    roots: [ { ref: { $ref: 1 } } ],
-    nodes: [ { id: 1, kind: Fixture.name, fields: { position: [ 1, 2, 3 ], derived: "nope" } } ]
-  });
-
-  assertPopulatedThroughSchema(CjsDocumentHydrator.hydrate(document).root);
 });
 
 test("a declared reference field assigns a non-plain object as the reference", () =>

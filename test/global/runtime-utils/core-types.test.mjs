@@ -5,25 +5,18 @@ import { GetResources } from "../../../src/global/blue/getResources.js";
 import { ensureRuntimeState, getRuntimeState } from "../../../src/global/compose/runtimeState.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-import * as document from "../../../src/global/model/document/index.js";
 import * as lifecycle from "../../../src/global/model/lifecycle/index.js";
 import * as model from "../../../src/global/model/index.js";
 import * as schema from "../../../src/global/schema/index.js";
 import * as types from "../../../src/global/schema/types/index.js";
 
-const coreTypes = { ...document, ...lifecycle, ...model, ...schema, ...types };
+const coreTypes = { ...lifecycle, ...model, ...schema, ...types };
 const {
-    CARBON_DOCUMENT_SCHEMA,
     CARBON_TYPE,
-    CjsCarbonDocument,
-    CjsClassRegistry,
-    CjsDocumentDehydrator,
-    CjsDocumentHydrator,
     CjsEventEmitter,
     CjsLifecycleState,
     CJS_LIFECYCLE,
     CjsSchema,
-    CjsStructRegistry,
     defaultCarbonValue,
     exportCarbonValue,
     getLifecycleState,
@@ -326,41 +319,6 @@ test("infers source descriptors from C++ and Python type names", () => {
     assert.equal(normalizeCarbonTypeDescriptor({ pythonType: "dict" }).kind, CARBON_TYPE.MAP);
 });
 
-test("creates and validates neutral Carbon documents", () => {
-    const document = CjsCarbonDocument.create({
-        format: "black",
-        roots: [{ ref: { $ref: 1 } }],
-        nodes: [{
-            id: 1,
-            kind: "DemoNode",
-            fields: { name: "root" }
-        }]
-    });
-
-    assert.equal(document.schema, CARBON_DOCUMENT_SCHEMA);
-    assert.equal(document.format.id, "black");
-    assert.deepEqual(document.roots[0], { name: "default", ref: { $ref: 1 } });
-    assert.equal(CjsCarbonDocument.isDocument(document), true);
-    assert.equal(CjsCarbonDocument.isRef({ $ref: 1 }), true);
-});
-
-test("throws when a hydratable document class is not registered", () => {
-    const document = CjsCarbonDocument.create({
-        format: "example",
-        roots: [{ ref: { $ref: 1 } }],
-        nodes: [{
-            id: 1,
-            kind: "DefinitelyMissingHydratableType",
-            fields: {}
-        }]
-    });
-
-    assert.throws(
-        () => CjsDocumentHydrator.hydrate(document),
-        /No class is registered for hydratable type DefinitelyMissingHydratableType/
-    );
-});
-
 test("registers classes, structs, schema metadata, and enums", () => {
     class DemoNode {}
     const DemoEnum = Object.freeze({ A: 1, B: 2 });
@@ -375,15 +333,6 @@ test("registers classes, structs, schema metadata, and enums", () => {
     CjsSchema.defineEnum(DemoEnum, {
         name: "DemoEnum",
         members: [{ name: "A", value: 1 }]
-    });
-
-    const registry = CjsClassRegistry.fromMaps({
-        constructors: { DemoNode },
-        aliases: { LegacyDemoNode: "DemoNode" }
-    });
-    const structs = CjsStructRegistry.fromMaps({
-        constructors: { DemoStruct: class DemoStruct {} },
-        aliases: { LegacyStruct: "DemoStruct" }
     });
 
     assert.equal(CjsSchema.GetConstructor("LegacyDemoNode"), DemoNode);
@@ -402,8 +351,6 @@ test("registers classes, structs, schema metadata, and enums", () => {
         () => CjsSchema.define(InvalidPurpose, { className: "InvalidPurpose", purpose: "Invalid */ purpose." }),
         /cannot close a JSDoc comment/
     );
-    assert.equal(registry.GetConstructor("LegacyDemoNode"), DemoNode);
-    assert.equal(structs.Has("LegacyStruct"), true);
 });
 
 test("enum registration rejects a conflicting name without changing its object identity", () => {
@@ -583,70 +530,6 @@ test("schema.hideInherited registers through Stage-3 metadata and rejects typos"
     assert.throws(() => CjsSchema.hideInherited([]), /non-empty array/);
 });
 
-test("document hydration and dehydration exclude hidden inherited fields", () => {
-    class HiddenDocumentBase
-    {
-        visible = "visible-default";
-        hidden = "hidden-default";
-    }
-
-    class HiddenDocumentNode extends HiddenDocumentBase
-    {
-        own = "own-default";
-    }
-
-    CjsSchema.define(HiddenDocumentBase, {
-        className: "HiddenDocumentBase",
-        fields: [
-            { name: "visible", type: { kind: "string" }, edit: { read: true, write: true, persist: true } },
-            { name: "hidden", type: { kind: "string" }, edit: { read: true, write: true, persist: true } }
-        ]
-    });
-    CjsSchema.hideInherited(["hidden"])(HiddenDocumentNode, {
-        kind: "class",
-        metadata: Object.create(null)
-    });
-    CjsSchema.define(HiddenDocumentNode, {
-        className: "HiddenDocumentNode",
-        fields: [
-            { name: "own", type: { kind: "string" }, edit: { read: true, write: true, persist: true } }
-        ]
-    });
-
-    const registry = CjsClassRegistry.fromMaps({
-        constructors: { HiddenDocumentNode }
-    });
-    const document = CjsCarbonDocument.create({
-        format: "hidden-fields",
-        roots: [{ ref: { $ref: 1 } }],
-        nodes: [{
-            id: 1,
-            kind: "HiddenDocumentNode",
-            fields: {
-                visible: "visible-loaded",
-                hidden: "hidden-from-fields",
-                own: "own-loaded"
-            },
-            raw: {
-                hidden: "hidden-from-raw",
-                extra: "raw-extra"
-            }
-        }]
-    });
-
-    const hydrated = CjsDocumentHydrator.hydrate(document, { registry });
-    assert.equal(hydrated.root.hidden, "hidden-default");
-    assert.equal(hydrated.root.visible, "visible-loaded");
-    assert.equal(hydrated.root.own, "own-loaded");
-    assert.equal(hydrated.root.extra, "raw-extra");
-    assert.deepEqual(hydrated.reports, []);
-
-    const dehydrated = CjsDocumentDehydrator.dehydrate(hydrated.root);
-    assert.equal(Object.hasOwn(dehydrated.nodes[0].fields, "hidden"), false);
-    assert.equal(Object.hasOwn(dehydrated.nodes[0].raw || {}, "hidden"), false);
-    assert.equal(dehydrated.nodes[0].raw.extra, "raw-extra");
-});
-
 test("schema constructor registration keeps the first name until explicit deletion", () => {
     class FirstConstructor {}
     class ReplacementConstructor {}
@@ -662,32 +545,6 @@ test("schema constructor registration keeps the first name until explicit deleti
     assert.equal(CjsSchema.GetConstructor("DirectConstructorMapTest"), ReplacementConstructor);
     assert.throws(() => CjsSchema.SetConstructor("", FirstConstructor), /non-empty name/);
     assert.throws(() => CjsSchema.SetConstructor("InvalidConstructorMapTest", {}), /must be a function/);
-});
-
-test("class and struct registries never infer serialized names from constructor.name", () => {
-    class UnnamedClass {}
-    class SchemaNamedClass {}
-    class UnnamedStruct {}
-    class SourceNamedStruct
-    {
-        static sourceStruct = "StableStructName";
-    }
-
-    CjsSchema.define(SchemaNamedClass, { className: "StableClassName" });
-
-    assert.throws(
-        () => new CjsClassRegistry({ entries: [{ constructor: UnnamedClass }] }),
-        /missing a className/
-    );
-    assert.throws(
-        () => new CjsStructRegistry({ entries: [{ constructor: UnnamedStruct }] }),
-        /missing a structName/
-    );
-
-    const classes = new CjsClassRegistry({ entries: [{ constructor: SchemaNamedClass }] });
-    const structs = new CjsStructRegistry({ entries: [{ constructor: SourceNamedStruct }] });
-    assert.equal(classes.GetConstructor("StableClassName"), SchemaNamedClass);
-    assert.equal(structs.GetConstructor("StableStructName"), SourceNamedStruct);
 });
 
 test("registers Carbon method provenance and implementation metadata", () => {
@@ -840,83 +697,6 @@ test("stage-3 static method decorators register on the class constructor", () =>
     assert.equal(CjsSchema.getMethod(Function, "Rasterize"), null);
 });
 
-test("hydrates and dehydrates explicitly schema-backed runtime models", () => {
-    class HydratedSchemaNode
-    {
-        name = "";
-        position = new Float32Array([0, 0, 0]);
-    }
-
-    CjsSchema.defineField(HydratedSchemaNode, "name", "type", { kind: CARBON_TYPE.STRING });
-    CjsSchema.defineField(HydratedSchemaNode, "position", "type", { kind: CARBON_TYPE.VECTOR3 });
-    CjsSchema.define(HydratedSchemaNode, { className: "HydratedSchemaNode" });
-
-    const registry = CjsClassRegistry.fromMaps({ constructors: { HydratedSchemaNode } });
-    const document = CjsCarbonDocument.create({
-        format: "black",
-        roots: [{ ref: { $ref: 1 } }],
-        nodes: [{
-            id: 1,
-            kind: "HydratedSchemaNode",
-            fields: {
-                name: "alpha",
-                position: [3, 4, 5]
-            }
-        }]
-    });
-
-    const hydrated = CjsDocumentHydrator.hydrate(document, { registry });
-    assert.equal(hydrated.root instanceof HydratedSchemaNode, true);
-    assert.equal(hydrated.root.name, "alpha");
-    assert.deepEqual(Array.from(hydrated.root.position), [3, 4, 5]);
-
-    const dehydrated = CjsDocumentDehydrator.dehydrate(hydrated.root);
-    assert.equal(dehydrated.nodes[0].kind, "HydratedSchemaNode");
-    assert.deepEqual(dehydrated.nodes[0].fields.position, [3, 4, 5]);
-});
-
-test("preserves canonical model references while hydrating neutral document graphs", () => {
-    class PlainDocumentChild
-    {
-        value = 0;
-    }
-
-    class PlainDocumentParent
-    {
-        child = null;
-        children = [];
-    }
-
-    CjsSchema.defineField(PlainDocumentChild, "value", "type", { kind: CARBON_TYPE.FLOAT32 });
-    CjsSchema.define(PlainDocumentChild, { className: "PlainDocumentChild" });
-    CjsSchema.decorateField(PlainDocumentParent, "child", CjsSchema.meta.type.rootRef("PlainDocumentChild"));
-    CjsSchema.decorateField(PlainDocumentParent, "children", CjsSchema.meta.type.list({
-        kind: "rootRef",
-        className: "PlainDocumentChild"
-    }));
-    CjsSchema.define(PlainDocumentParent, { className: "PlainDocumentParent" });
-
-    const registry = CjsClassRegistry.fromMaps({
-        constructors: { PlainDocumentChild, PlainDocumentParent }
-    });
-    const document = CjsCarbonDocument.create({
-        format: "model-reference",
-        roots: [{ ref: { $ref: 1 } }],
-        nodes: [
-            { id: 1, kind: "PlainDocumentParent", fields: { child: { $ref: 2 }, children: [{ $ref: 2 }] } },
-            { id: 2, kind: "PlainDocumentChild", fields: { value: 7 } }
-        ]
-    });
-
-    const hydrated = CjsDocumentHydrator.hydrate(document, { registry });
-    assert.equal(hydrated.root.child, hydrated.get(2));
-    assert.equal(hydrated.root.child instanceof PlainDocumentChild, true);
-    assert.equal(hydrated.root.children[0], hydrated.get(2));
-    assert.equal(hydrated.root.children[0] instanceof PlainDocumentChild, true);
-    assert.equal(hydrated.root.child.value, 7);
-    assert.equal(typeof hydrated.root.child.value, "number");
-});
-
 test("accepts explicit singular schema aliases for model input", () => {
     class AliasedFieldNode
     {
@@ -1019,10 +799,6 @@ test("uses schema metadata as the default schema value shape", () => {
         computed: 7,
         uiLocked: "changed"
     });
-
-    const dehydrated = CjsDocumentDehydrator.dehydrate(node);
-    assert.deepEqual(dehydrated.nodes[0].fields.name, "root");
-    assert.equal(dehydrated.nodes[0].raw, undefined);
 
     const source = {};
     (ensureRuntimeState(node).dirty = false);

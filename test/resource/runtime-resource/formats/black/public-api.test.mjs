@@ -123,7 +123,6 @@ test("reader exposes the standard public profile API", () =>
         "HasClass",
         "Inspect",
         "Read",
-        "ReadDocument",
         "ReadPayload",
         "ReadRuntime",
         "SetClass",
@@ -134,7 +133,6 @@ test("reader exposes the standard public profile API", () =>
     ].sort());
 
     assert.equal(typeof CjsBlackFormat.read, "function");
-    assert.equal(typeof CjsBlackFormat.readDocument, "function");
     assert.equal(typeof CjsBlackFormat.readPayload, "function");
     assert.equal(typeof CjsBlackFormat.readRuntime, "function");
     assert.equal(typeof CjsBlackFormat.inspect, "function");
@@ -320,18 +318,13 @@ test("empty objects do not need class definitions", () =>
     assert.deepEqual(payload.object, { _type: "NoDefinitionNeeded" });
 });
 
-test("readDocument keeps a neutral debug graph when requested", () =>
+test("the removed document and raw outputs are refused", () =>
 {
     const input = createRootFixture();
-    const document = CjsBlackFormat.read(input, {
-        emit: "document",
-        schema: sampleSchema
-    });
-
-    assert.equal(document.schema, "carbon.document");
-    assert.equal(document.format.id, "black");
-    assert.equal(document.nodes[0].kind, "TestRoot");
-    assert.equal(document.nodes[0].fields.name, "root");
+    for (const emit of [ "document", "raw" ])
+    {
+        assert.throws(() => CjsBlackFormat.read(input, { emit, schema: sampleSchema }), /unknown emit value/);
+    }
 });
 
 test("all read modes include field context in unknown-property errors", () =>
@@ -347,7 +340,6 @@ test("all read modes include field context in unknown-property errors", () =>
 
     assert.throws(() => CjsBlackFormat.readPayload(input, { schema: sampleSchema }), expected);
     assert.throws(() => CjsBlackFormat.readRuntime(input, { schema: sampleSchema }), expected);
-    assert.throws(() => CjsBlackFormat.readDocument(input, { schema: sampleSchema }), expected);
 });
 
 test("payload keeps a binary block raw when no registered class decodes it", () =>
