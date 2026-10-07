@@ -352,7 +352,14 @@
     "src/trinityal/webgpu/CjsWebgpuShaderAL.js": 1,
     "src/trinityal/webgpu/CjsWebgpuTextureAL.js": 1,
     "src/trinityal/webgpu/core/CjsWebgpuUtils.js": 1,
-    "src/trinityal/webgpu/core/materialConstants.js": 3
+    "src/trinityal/webgpu/core/materialConstants.js": 3,
+    "src/shadercompiler/lemon/CjsFxLemon.js": 7,
+    "src/shadercompiler/MD5.js": 4,
+    "src/shadercompiler/EffectCompilerWebGPU/CjsFxEffectCompilerWebGPU.js": 2,
+    "src/shadercompiler/EffectData/toDescriptionRecord.js": 2,
+    "src/shadercompiler/EffectCompilerMetal/EffectCompilerMetal.js": 1,
+    "src/shadercompiler/EffectData/StageData.js": 1,
+    "src/shadercompiler/ShaderCompiler/shaderCompiler.js": 1
   },
   "scratch": {
     "src/trinity/eve/child/modifiers/EveChildModifierBooster.js": 6,

@@ -20,3 +20,10 @@ future donor import:
 
 Temporary import prefixes are migration evidence, not package contents. The
 package allow-list excludes them from npm artifacts.
+
+## Later additions
+
+- 2026-10-08: tools-shader (the shader compiler port, now
+  `src/shadercompiler`) was copied in without its Git history, by operator
+  decision: it was days old, never pushed, and its history was not worth
+  importing. Its last revision before the copy was tools-shader `8e4e524`.

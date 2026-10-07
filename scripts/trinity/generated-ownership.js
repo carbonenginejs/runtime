@@ -71,6 +71,11 @@ export async function readGeneratedOwnership({ sourceRoot, schemaRoot })
   const records = new Map();
   for (const file of await files(sourceRoot, ".js"))
   {
+    // The shader compiler is self-contained and its classes are never schema
+    // classes (operator, 2026-10-08): they are not built by readers or
+    // writers. Its Carbon names (ParameterInfo, Texture, Pass) would otherwise
+    // claim the Blue schema identities that share them.
+    if (path.relative(sourceRoot, file).split(path.sep)[0] === "shadercompiler") continue;
     const source = await fs.readFile(file, "utf8");
     const ast = parse(source, { sourceType: "module", plugins: ["decorators", "decoratorAutoAccessors", "importAttributes"] });
     const defined = definitions(ast);

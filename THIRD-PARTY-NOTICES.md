@@ -118,3 +118,89 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
+
+## CarbonEngine Trinity shader compiler
+
+`src/shadercompiler` is a JavaScript port of Carbon's HLSL effect compiler,
+`trinity/shadercompiler` in CarbonEngine. The HLSL and preprocessor grammars
+under `src/shadercompiler` are transcribed from its `HLSLParser.y` and
+`Preprocessor.y`. Each ported file names its Carbon source in its header.
+
+- Project: <https://github.com/carbonengine>
+- License: MIT
+
+```text
+MIT License
+
+Copyright (c) 2026 Fenris Creations
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## MD5 by Stephan Brumme
+
+`src/shadercompiler/MD5.js` is an altered source version: a JavaScript
+translation of CarbonEngine's modified copy of Stephan Brumme's MD5
+(`trinity/shadercompiler/md5.cpp`, `md5.h`). It is not the original software.
+
+- Original: md5.cpp, Copyright (c) 2014,2015 Stephan Brumme. All rights reserved.
+  md5.h, Copyright (c) 2014 Stephan Brumme. All rights reserved.
+- Project: <http://create.stephan-brumme.com/>
+- License: the author's zlib-like license, from
+  <http://create.stephan-brumme.com/disclaimer.html>:
+
+```text
+This software is provided 'as-is', without any express or implied warranty.
+In no event will the author be held liable for any damages arising from the use of this software.
+Permission is granted to anyone to use this software for any purpose, including commercial applications,
+and to alter it and redistribute it freely, subject to the following restrictions:
+ The origin of this software must not be misrepresented; you must not claim that you wrote the original software.
+ If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
+ Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
+```
+
+## LEMON parser generator by D. Richard Hipp
+
+`src/shadercompiler/lemon` rebuilds LEMON's LALR(1) parse tables (`CjsFxLemon.js`, after
+`tool/lemon.c`) and runs LEMON's parse loop (`CjsFxLemonParser.js`, after the
+driver template `lempar.c`), so Carbon's grammars parse as Carbon's
+LEMON-generated parsers do. LEMON was written by D. Richard Hipp and is
+distributed with SQLite.
+
+- Project: <https://sqlite.org/src/doc/trunk/doc/lemon.html>
+- License: public domain.
+
+`tool/lemon.c` (SQLite 3.39.3):
+
+```text
+The author of this program disclaims copyright.
+```
+
+`lempar.c`:
+
+```text
+2000-05-29
+
+The author disclaims copyright to this source code.  In place of
+a legal notice, here is a blessing:
+
+   May you do good and not evil.
+   May you find forgiveness for yourself and forgive others.
+   May you share freely, never taking more than you give.
+```
