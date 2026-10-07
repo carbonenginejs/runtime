@@ -22,7 +22,8 @@ for (const source of [
     'function register(type) { if (typeof type === "function") return type.name; }',
     "class Widget { static id() { return this.name; } }",
     'const id = item.constructor.name; new Error(`Bad ${id}`); save(id);',
-    'class Uint8Array {} const id = Uint8Array.name;'
+    'class Uint8Array {} const id = Uint8Array.name;',
+    "function declareName(C, B) { return B.name; }"
 ]) test(`constructor-name lint rejects ${source}`, () =>
 {
     assert.equal(findConstructorNameHits(source).length, 1);
@@ -35,7 +36,9 @@ for (const source of [
     'throw new Error(`Bad ${value.constructor.name}`);',
     'class Widget {} const name = Widget.name; throw new TypeError(`Bad ${name}`);',
     'const descriptor = { name: "Widget" }; save(descriptor.name);',
-    'function read(type) { if (typeof type === "function") type = { className: type }; return type.name; }'
+    'function read(type) { if (typeof type === "function") type = { className: type }; return type.name; }',
+    "function declareName(C, B) { B.name = C; }",
+    'const A = new SymbolAnnotation(); A.name = "Tag";'
 ]) test(`constructor-name lint permits ${source}`, () =>
 {
     assert.deepEqual(findConstructorNameHits(source), []);

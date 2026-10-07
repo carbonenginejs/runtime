@@ -15,7 +15,8 @@
 // can change without touching a call site. `instanceof` against a PLATFORM type
 // is an ordinary fact and is not this rule.
 //
-// So this counts `instanceof X` where X is not a platform global. It cannot tell
+// So this counts `instanceof X` where X is not a platform global, in the parsed
+// code: an `instanceof` written inside a string or a comment is not one. It cannot tell
 // a legitimate Carbon cast from capability discovery - that is a judgement about
 // the donor - but a legitimate cast should be spelled `CjsSchema.cast` anyway,
 // so both answers lead to the same edit.
@@ -27,13 +28,15 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
+import { parse } from "@babel/parser";
+import traverseModule from "@babel/traverse";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const sourceRoot = path.join(root, "src");
 const baselineFile = path.join(root, "scripts", "instanceof-baseline.json");
 
-const INSTANCE_OF = /\binstanceof\s+([A-Za-z_$][\w$]*)/gu;
+const traverse = traverseModule.default ?? traverseModule;
 
 const BLOCK_COMMENT = /\/\*[\s\S]*?\*\//gu;
 const LINE_COMMENT = /^[ \t]*\/\/.*$/gmu;
@@ -85,6 +88,31 @@ function withoutComments(source)
     return source.replace(BLOCK_COMMENT, "").replace(LINE_COMMENT, "");
 }
 
+/**
+ * The types an `instanceof` in `source` tests against that are not platform
+ * types. The right operand's name is the identifier itself, or for
+ * `x instanceof ns.Type` the root object `ns`.
+ *
+ * @param {string} source JavaScript module source.
+ * @param {string} [filename] For parse errors.
+ * @returns {string[]} The type names, in source order.
+ */
+export function findOwnedInstanceof(source, filename = "input.js")
+{
+    const owned = [];
+    const ast = parse(source, { sourceType: "module", plugins: ["decorators"], sourceFilename: filename });
+    traverse(ast, {
+        BinaryExpression(p)
+        {
+            if (p.node.operator !== "instanceof") return;
+            let right = p.node.right;
+            while (right.type === "MemberExpression") right = right.object;
+            if (right.type === "Identifier" && !PLATFORM.has(right.name)) owned.push(right.name);
+        }
+    });
+    return owned;
+}
+
 // THE SECOND SHAPE, and the one a platform exemption hides. A guard that
 // NEGATES an instanceof and then bails - `if (!(states instanceof Map)) return;`
 // - is the same hedge whatever the type on the right. `states` came from our
@@ -112,86 +140,90 @@ function silentBails(code)
     return found;
 }
 
-const counts = {};
-const sites = {};
-const bails = {};
-
-for (const file of await sourceFiles(sourceRoot))
+async function main()
 {
-    const relativeFile = slash(path.relative(root, file));
-    const code = withoutComments(await fs.readFile(file, "utf8"));
-    const owned = [];
+    const counts = {};
+    const sites = {};
+    const bails = {};
 
-    for (const match of code.matchAll(INSTANCE_OF))
+    for (const file of await sourceFiles(sourceRoot))
     {
-        if (!PLATFORM.has(match[1])) owned.push(match[1]);
+        const relativeFile = slash(path.relative(root, file));
+        const source = await fs.readFile(file, "utf8");
+        const code = withoutComments(source);
+        const owned = findOwnedInstanceof(source, file);
+
+        const bailed = silentBails(code);
+
+        if (owned.length)
+        {
+            counts[relativeFile] = owned.length;
+            sites[relativeFile] = owned;
+        }
+
+        if (bailed) bails[relativeFile] = bailed;
     }
 
-    const bailed = silentBails(code);
-
-    if (owned.length)
+    if (process.argv.includes("--list"))
     {
-        counts[relativeFile] = owned.length;
-        sites[relativeFile] = owned;
+        for (const [ file, types ] of Object.entries(sites))
+        {
+            console.log(`${file}: ${types.join(", ")}`);
+        }
+        process.exit(0);
     }
 
-    if (bailed) bails[relativeFile] = bailed;
-}
-
-if (process.argv.includes("--list"))
-{
-    for (const [ file, types ] of Object.entries(sites))
+    if (process.argv.includes("--write"))
     {
-        console.log(`${file}: ${types.join(", ")}`);
+        await fs.writeFile(baselineFile, `${JSON.stringify(counts, null, 2)}\n`);
+        console.log(`instanceof baseline written: ${Object.keys(counts).length} files`);
+        process.exit(0);
     }
-    process.exit(0);
-}
 
-if (process.argv.includes("--write"))
-{
-    await fs.writeFile(baselineFile, `${JSON.stringify(counts, null, 2)}\n`);
-    console.log(`instanceof baseline written: ${Object.keys(counts).length} files`);
-    process.exit(0);
-}
+    const baseline = JSON.parse(await fs.readFile(baselineFile, "utf8"));
+    const problems = [];
 
-const baseline = JSON.parse(await fs.readFile(baselineFile, "utf8"));
-const problems = [];
-
-for (const [ file, found ] of Object.entries(counts))
-{
-    const allowed = baseline[file] ?? 0;
-
-    if (found > allowed)
+    for (const [ file, found ] of Object.entries(counts))
     {
-        problems.push(
-            `${file}: ${found} instanceof against our own classes, baseline ${allowed}. `
-            + "We know what we passed. Where Carbon itself casts, use CjsSchema.cast."
+        const allowed = baseline[file] ?? 0;
+
+        if (found > allowed)
+        {
+            problems.push(
+                `${file}: ${found} instanceof against our own classes, baseline ${allowed}. `
+                + "We know what we passed. Where Carbon itself casts, use CjsSchema.cast."
+            );
+        }
+    }
+
+    if (problems.length)
+    {
+        console.error(problems.join("\n"));
+        console.error(`\n${problems.length} file(s) went up. Nothing here is a new exception to grant.`);
+        process.exit(1);
+    }
+
+    const bailTotal = Object.values(bails).reduce((sum, found) => sum + found, 0);
+    const total = Object.values(counts).reduce((sum, found) => sum + found, 0);
+    const gains = Object.entries(baseline).filter(([ file, allowed ]) => (counts[file] ?? 0) < allowed);
+
+    console.log(`instanceof against our own classes: ${total} in ${Object.keys(counts).length} files, none above baseline.`);
+
+    if (bailTotal)
+    {
+        console.log(
+            `Silent instanceof guards: ${bailTotal} in ${Object.keys(bails).length} files - `
+            + "a negated instanceof that returns instead of throwing hides the defect, whatever the type."
         );
     }
+
+    if (gains.length)
+    {
+        console.log(`${gains.length} file(s) are below baseline - re-record with --write to lock the gain in.`);
+    }
 }
 
-if (problems.length)
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url))
 {
-    console.error(problems.join("\n"));
-    console.error(`\n${problems.length} file(s) went up. Nothing here is a new exception to grant.`);
-    process.exit(1);
-}
-
-const bailTotal = Object.values(bails).reduce((sum, found) => sum + found, 0);
-const total = Object.values(counts).reduce((sum, found) => sum + found, 0);
-const gains = Object.entries(baseline).filter(([ file, allowed ]) => (counts[file] ?? 0) < allowed);
-
-console.log(`instanceof against our own classes: ${total} in ${Object.keys(counts).length} files, none above baseline.`);
-
-if (bailTotal)
-{
-    console.log(
-        `Silent instanceof guards: ${bailTotal} in ${Object.keys(bails).length} files - `
-        + "a negated instanceof that returns instead of throwing hides the defect, whatever the type."
-    );
-}
-
-if (gains.length)
-{
-    console.log(`${gains.length} file(s) are below baseline - re-record with --write to lock the gain in.`);
+    await main();
 }

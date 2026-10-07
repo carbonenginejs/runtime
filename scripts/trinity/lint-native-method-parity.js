@@ -76,14 +76,15 @@ let totalMissing = 0;
 for (const [ className, records ] of schema)
 {
   const jsClass = classes.get(className);
-  if (!jsClass)
+  const record = jsClass ? PairedRecord(jsClass, records) : null;
+  if (!record)
   {
+    if (jsClass && verbose) console.log(`unpaired (same name, another Carbon module): ${className} ${jsClass.file}`);
     unportedCarbonClasses += 1;
     continue;
   }
   portedClassCount += 1;
 
-  const record = records[0];
   const declared = new Set();
   for (const method of record.nativeMethods ?? [])
   {
@@ -196,6 +197,50 @@ async function ReadBaseline()
   }
 }
 
+/**
+ * The Carbon modules (the first path segment: `trinity`, `mesh`, `blue`) a JS
+ * file's `// Source: path[:lines]` comments name.
+ *
+ * @param {object} ast The parsed file, with its comments.
+ * @returns {string[]} The cited modules.
+ */
+function SourceHeaders(ast)
+{
+  const sources = [];
+  for (const comment of ast.comments ?? [])
+  {
+    // Some headers name the checkout folder first: `carbonengine/trinity/...`.
+    const match = /^\s*Source:\s*(?:carbonengine\/)?([\w.-]+)\//u.exec(comment.value);
+    if (match) sources.push(match[1].toLowerCase());
+  }
+  return sources;
+}
+
+/**
+ * The schema record a JS class ports. Classes are matched by name, and Carbon
+ * uses some names in more than one module: shadercompiler's EffectData
+ * `Texture` record (trinity) and the mesh viewer's Vulkan `Texture` (mesh).
+ * When the JS file has `// Source:` headers, a record pairs only if one of its
+ * sourceRefs is in a module the headers name. The match is by module, not by
+ * file: many ports cite a neighbouring file (an interface, a .cpp) rather than
+ * the header the schema records, and a file match would drop them from the
+ * ratchet. `blue/include` declares interfaces that other modules implement and
+ * expose (ITriObserverLocal is recorded from trinity's TriObserverLocal_Blue),
+ * so a `blue` header pairs with any module. A JS file without headers pairs
+ * with the first record, as before.
+ *
+ * @param {{ sources: string[] }} jsClass The JS class.
+ * @param {object[]} records Schema records of that name.
+ * @returns {object|null} The record, or null when none is the one ported.
+ */
+function PairedRecord(jsClass, records)
+{
+  if (!jsClass.sources.length || jsClass.sources.includes("blue")) return records[0];
+  const wanted = new Set(jsClass.sources);
+  return records.find(record => Object.values(record.sourceRefs ?? {})
+    .some(ref => wanted.has(String(ref).split("/")[0].toLowerCase()))) ?? null;
+}
+
 async function ReadJavaScriptClasses(directory)
 {
   const records = new Map();
@@ -300,7 +345,7 @@ async function ReadJavaScriptClasses(directory)
       // through `@carbon.inherit(A, B)`, which states the same Carbon fact.
       contracts.push(...InheritedBases(declaration));
       for (const original of defineRenamed.get(className) ?? []) methods.add(original);
-      const record = { className, baseClass, contracts, methods, file: relativeFile };
+      const record = { className, baseClass, contracts, methods, file: relativeFile, sources: SourceHeaders(ast) };
       const existing = records.get(className);
       if (!existing || existing.file.includes("/generated/")) records.set(className, record);
     }

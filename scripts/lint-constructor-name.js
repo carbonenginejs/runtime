@@ -98,6 +98,9 @@ export function findConstructorNameHits(source, filename = "input.js")
         "MemberExpression|OptionalMemberExpression"(p)
         {
             if (memberKey(p) !== "name") return;
+            // A write is not an identity read: a class's `name` is read-only,
+            // so `X.name = value` can only be an instance's own field.
+            if (p.parentPath.isAssignmentExpression() && p.key === "left") return;
             const object = p.get("object");
             if (!isConstructor(object)) return;
             // Intrinsics may be named, but an imported/local shadow is ours.
