@@ -266,11 +266,20 @@ u8  bindGroupCount
   u8 group | u8 bindingCount
     u8  resourceKind | u8 registerSpace | u8 binding | u8 visibilityMask
     u32 registerIndex | u32 structureStride (0xffffffff absent) | u8 arrayLayerCount (0 absent)
+    u8  sampleType     texture: 0 float, 1 unfilterable-float; sampler: 0 filtering, 1 non-filtering
+    u8  typedView      0 none, 1 R32_FLOAT, 2 R32_UINT, 3 R8G8B8A8_SNORM, 4 R8G8_UNORM
     str type | str generatedSymbol | str transformId (empty = none)
 u8  transformCount
   u8 familyCode | str id | u8 inputCount
     u8 registerSpace | u8 registerIndex | str parameter
+
+str = u16 byte length, then that many UTF-8 bytes
 ```
+
+`writeBackendBlock` and `readBackendBlock` in
+`src/resource/format/carbonEffect/carbonEffectBackendBlock.js` own this layout;
+the enum values are `CARBON_BACKEND_TEXTURE_SAMPLE_TYPE`,
+`CARBON_BACKEND_SAMPLER_BINDING_TYPE` and `CARBON_BACKEND_TYPED_VIEW` there.
 
 `identity` and `group` on each binding, and a transform's `kind`,
 `stage`, `representation`, `missingLayer`, `viewDimension`, `layerCount`,
