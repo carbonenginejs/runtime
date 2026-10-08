@@ -9,6 +9,137 @@ const resources = composeStubResMan();
 const originalDna = "hull:faction:race:respathinsert?none";
 const insertedDna = "hull:faction:race:respathinsert?insert";
 
+test("update requests retain complete DNA while distinguishing insert states from change flags", async () =>
+{
+  const { sof, updater } = await Fixture();
+  const command = EveSOFDNA.DnaCommand.CMD_RESPATHINSERT;
+  const selections = await Promise.all(["hull:faction:race", originalDna, insertedDna].map(dna => sof.CreateDna(dna)));
+  const values = [null, ["none"], ["insert"]];
+  for (let from = 0; from < selections.length; from++)
+  {
+    for (let to = 0; to < selections.length; to++)
+    {
+      const request = updater.CreateUpdateRequest(selections[from], selections[to]);
+      assert.equal(request.dna, selections[to]);
+      assert.deepEqual(request.dna.GetDnaCommandArgs(command), values[to]);
+      assert.equal(request.dna.GetRaceName(), "race");
+      assert.equal(request.respathinsert, from !== to);
+      assert.equal(request.refresh, from === to);
+      assert.equal(request.hull, false); assert.equal(request.faction, false);
+      assert.equal(request.materials, false); assert.equal(request.pattern, false);
+    }
+  }
+});
+
+test("update requests distinguish pattern selection from pattern materials and normalize mesh aliases", async () =>
+{
+  const { sof, ship, updater } = await PatternFixture();
+  const before = await sof.CreateDna(ship.dna);
+  const materials = await sof.CreateDna(ship.dna.replace("pattern?one;red;blue", "pattern?one;blue;red"));
+  const request = updater.CreateUpdateRequest(before, materials);
+  assert.equal(request.pattern, false); assert.equal(request.patternMaterials, true);
+  assert.equal(request.materials, false); assert.equal(request.respathinsert, false);
+  assert.equal(request.refresh, false);
+  const alias = await sof.CreateDna(ship.dna.replace("material?", "mesh?"));
+  const same = updater.CreateUpdateRequest(before, alias);
+  assert.equal(same.materials, false); assert.equal(same.refresh, true);
+  const inherited = await sof.CreateDna(originalDna);
+  const disabled = await sof.CreateDna(originalDna + ":pattern?;red;blue");
+  assert.equal(updater.CreateUpdateRequest(inherited, disabled).pattern, true);
+});
+
+test("hull and faction request flags are independent and always retain target race and insert context", async () =>
+{
+  const { sof, updater, ship } = await Fixture(options =>
+  {
+    options.black.hull.push({ ...structuredClone(options.black.hull[0]), name: "otherhull" });
+    options.black.faction.push({ ...structuredClone(options.black.faction[0]), name: "otherfaction" });
+  });
+  const before = await sof.CreateDna(ship.dna);
+  for (const [hull, faction] of [[true, false], [false, true], [true, true]])
+  {
+    const dna = `${hull ? "otherhull" : "hull"}:${faction ? "otherfaction" : "faction"}:race`;
+    const after = await sof.CreateDna(dna);
+    const request = updater.CreateUpdateRequest(before, after);
+    assert.equal(request.hull, hull); assert.equal(request.faction, faction);
+    assert.equal(request.race, false); assert.equal(request.dna.GetRaceName(), "race");
+    assert.equal(request.dna.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_RESPATHINSERT), null);
+    // Request representation does not enable unsafe partial hull/faction updates.
+    const snapshot = CjsSchema.getValues(ship);
+    assert.equal(await updater.UpdateFromDNA(ship, dna), null);
+    assert.deepEqual(CjsSchema.getValues(ship), snapshot);
+  }
+});
+
+test("material stage keeps unchanged target insert and race context without querying unrelated stages", async t =>
+{
+  const { sof, updater, ship } = await MaterialFixture();
+  const next = ship.dna.replace("material?red;none", "material?blue;none");
+  const expected = CjsSchema.getValues(CjsSchema.from("EveShip2", await sof.BuildValuesFromDNA(next)));
+  const requests = t.mock.method(updater, "CreateUpdateRequest");
+  const applies = t.mock.method(updater, "_ApplyPlan");
+  t.mock.method(sof, "ModifyTextureResPaths", () => assert.fail("material edit queried inserts"));
+  t.mock.method(sof, "BuildValuesFromDNA", () => assert.fail("material edit built a graph"));
+  assert.ok(await updater.UpdateFromDNA(ship, next));
+  assert.equal(requests.mock.callCount(), 1); assert.equal(applies.mock.callCount(), 1);
+  const request = requests.mock.calls[0].result;
+  assert.equal(request.materials, true); assert.equal(request.respathinsert, false);
+  assert.deepEqual(request.dna.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_RESPATHINSERT), ["none"]);
+  assert.equal(request.dna.GetRaceName(), "race");
+  assert.deepEqual(CjsSchema.getValues(ship), expected);
+});
+
+test("mesh and race planners leave live objects unchanged until the common apply stage", async t =>
+{
+  for (const fixture of [MaterialFixture, RaceFixture])
+  {
+    const { sof, updater, ship } = await fixture();
+    const next = fixture === RaceFixture ? ship.dna.replace(":race:", ":other:")
+      : ship.dna.replace("material?red;none", "material?blue;none");
+    const before = await sof.CreateDna(ship.dna), after = await sof.CreateDna(next);
+    const request = updater.CreateUpdateRequest(before, after);
+    const snapshot = CjsSchema.getValues(ship), resourcesBefore = resources.requests.length;
+    t.mock.method(updater, "_ApplyChange", () => assert.fail("planner applied a live mutation"));
+    const plan = request.race ? updater._PlanRace(ship, before, request)
+      : updater._PlanPreparedMesh(ship, request, await updater._PrepareMeshUpdate(ship, before, request, {}, () => true));
+    assert.ok(plan); assert.ok(plan.changes.length);
+    assert.deepEqual(CjsSchema.getValues(ship), snapshot);
+    assert.equal(resources.requests.length, resourcesBefore);
+    assert.equal(updater._ApplyPlan(ship, before, request, plan, () => false), false);
+    assert.deepEqual(CjsSchema.getValues(ship), snapshot);
+  }
+});
+
+for (const insert of [false, true]) test(`final planning catches target replacement after preparation (insert: ${insert})`, async t =>
+{
+  const { sof, updater, ship } = await MaterialFixture();
+  const next = insert ? ship.dna.replace("respathinsert?none", "respathinsert?insert")
+    : ship.dna.replace("material?red;none", "material?blue;none");
+  const expected = CjsSchema.getValues(CjsSchema.from("EveShip2", await sof.BuildValuesFromDNA(next)));
+  const detached = ship.mesh.opaqueAreas[0].effect, detachedValues = CjsSchema.getValues(detached);
+  const replacement = CjsSchema.from("EveShip2", await sof.BuildValuesFromDNA(ship.dna)).mesh.opaqueAreas[0].effect;
+  const prepare = updater._PrepareMeshUpdate.bind(updater);
+  t.mock.method(updater, "_PrepareMeshUpdate", async (...args) =>
+  {
+    const prepared = await prepare(...args);
+    queueMicrotask(() => { ship.mesh.opaqueAreas[0].effect = replacement; });
+    return prepared;
+  });
+  const result = await updater.UpdateFromDNA(ship, next);
+  assert.deepEqual(CjsSchema.getValues(detached), detachedValues, "detached targets must never receive changes");
+  if (insert)
+  {
+    assert.equal(result, null, "acquired texture results no longer belong to the current targets");
+    assert.equal(ship.dna, originalDna + ":material?red;none");
+    assert.deepEqual(CjsSchema.getValues(replacement), detachedValues);
+  }
+  else
+  {
+    assert.ok(result, "material-only work is planned against the current mesh");
+    assert.deepEqual(CjsSchema.getValues(ship), expected);
+  }
+});
+
 /** Two races with matching effect bindings but different visual settings. */
 async function RaceFixture(configure = null)
 {

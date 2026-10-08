@@ -102,6 +102,27 @@ if (changes === null) {
 The implementation supports respathinsert, mesh-material edits (`material?`
 and its `mesh?` spelling), compatible `pattern?` / pattern-material edits, and
 race-only edits on ordinary ships.
+
+The dispatcher resolves both DNA strings once and creates one update request
+with `CreateUpdateRequest(before, after)`. Its `dna` member is the complete
+prepared `EveSOFDNA` resolver, not a partial override object. Boolean flags
+`hull`, `faction`, `race`, `materials`, `pattern`, `patternMaterials` and
+`respathinsert` describe changes independently of the target values. An absent
+insert command (`GetDnaCommandArgs` returns `null`), an explicit `"none"`, and
+a named insert remain distinct even when `respathinsert` is false. Race context
+and all other commands remain available to stages that need them.
+
+Race and mesh stages return unapplied plans. Texture-path acquisition is separate
+from final mesh planning, which runs synchronously with application so a replaced
+target cannot receive a stale update between those steps. The dispatcher applies a successful
+targeted plan through one common path after checking the request's lifetime;
+mask hydration and root/decal DNA publication belong to that path. Mesh-stage
+requirements are derived from the change flags rather than positional boolean
+arguments. Equal selections use `refresh` to preserve current-catalog resolution.
+This is a reusable internal stage contract, not a new serialized request format
+or permission to bypass compatibility checks. Hull/faction replacement and shared
+definition-edit propagation are not enabled by this refactor.
+
 Ordinary hull material and insert changes use targeted calculations: material
 edits resolve shader constants through `EveSOFDNA.GetMeshAreaParameter`, while
 insert edits resolve only authored mesh textures and inherited decal textures.

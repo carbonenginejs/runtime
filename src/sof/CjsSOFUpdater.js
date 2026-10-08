@@ -63,14 +63,25 @@ export class CjsSOFUpdater
     if (!isCurrent() || this._updates.get(object) !== request || object.dna !== originalDna) return false;
     if (!this._CompatibleDNA(oldSelection, newSelection)) return null;
 
-    if (oldSelection.GetRaceName() !== newSelection.GetRaceName())
-      return this._UpdateRace(object, oldSelection, newSelection,
-        () => isCurrent() && this._updates.get(object) === request && object.dna === originalDna);
+    const update = this.CreateUpdateRequest(oldSelection, newSelection);
+    const current = () => isCurrent() && this._updates.get(object) === request && object.dna === originalDna;
+    if (update.race)
+    {
+      const plan = this._PlanRace(object, oldSelection, update);
+      return plan ? this._ApplyPlan(object, oldSelection, update, plan, current) : null;
+    }
 
     const patterns = this._CanUpdatePatterns(oldSelection, newSelection);
     if (patterns || this._CanUpdateMesh(oldSelection, newSelection))
-      return this._UpdateMesh(object, oldSelection, newSelection, options,
-        () => isCurrent() && this._updates.get(object) === request && object.dna === originalDna, patterns);
+    {
+      const prepared = await this._PrepareMeshUpdate(object, oldSelection, update, options, current, patterns);
+      if (!prepared) return prepared;
+      if (!current()) return false;
+      // Do not await between final target validation and application. Another
+      // editor operation may replace a mesh without changing the root DNA.
+      const plan = this._PlanPreparedMesh(object, update, prepared);
+      return plan ? this._ApplyPlan(object, oldSelection, update, plan, current) : null;
+    }
 
     const values = await this._sof.BuildValuesFromDNA(newDna, options);
     if (!isCurrent() || this._updates.get(object) !== request || object.dna !== originalDna) return false;
@@ -107,21 +118,76 @@ export class CjsSOFUpdater
   }
 
   /**
+   * Separates complete target DNA from the components changed by a DNA edit.
+   * This is our incremental update contract, not a source-definition event.
+   * The prepared resolver retains all commands and race context even when their
+   * flags are false. In particular an absent insert command, explicit "none"
+   * and a named insert remain distinct; no input value means "skip this component".
+   * @param {EveSOFDNA} before Previous DNA resolved against the current catalog.
+   * @param {EveSOFDNA} after Complete requested DNA resolved against that catalog.
+   * @returns {object} Target resolver and change flags for reusable update stages.
+   */
+  @meta.ours
+  CreateUpdateRequest(before, after)
+  {
+    const args = (dna, command) => dna.GetDnaCommandArgs(command);
+    const changed = command => !IRootReaderBase.areEquivalent(args(before, command), args(after, command));
+    const previousPattern = args(before, EveSOFDNA.DnaCommand.CMD_PATTERN);
+    const nextPattern = args(after, EveSOFDNA.DnaCommand.CMD_PATTERN);
+    const update = {
+      dna: after,
+      hull: !IRootReaderBase.areEquivalent(before.hullNames, after.hullNames),
+      faction: before.GetFactionName() !== after.GetFactionName(),
+      race: before.GetRaceName() !== after.GetRaceName(),
+      materials: changed(EveSOFDNA.DnaCommand.CMD_MATERIAL),
+      respathinsert: changed(EveSOFDNA.DnaCommand.CMD_RESPATHINSERT),
+      pattern: (previousPattern?.[0] ?? null) !== (nextPattern?.[0] ?? null),
+      patternMaterials: !IRootReaderBase.areEquivalent(previousPattern?.slice(1) ?? null, nextPattern?.slice(1) ?? null),
+      refresh: false
+    };
+    // Equal DNA is still a request to resolve current data, not proof that
+    // the existing object was built from today's catalog values.
+    update.refresh = !update.hull && !update.faction && !update.race
+      && !update.materials && !update.respathinsert && !update.pattern && !update.patternMaterials;
+    return update;
+  }
+
+  /**
+   * Expands changed DNA components into work owned by the mesh stage.
+   * Hull/faction reconciliation will use the same mesh calculations; their
+   * broader live-object topology is still rejected by the entry preflight.
+   * @param {object} update Complete target DNA and component change flags.
+   * @returns {object} Mesh calculations required by this request.
+   */
+  @meta.ours
+  _GetMeshStages(update)
+  {
+    const inherited = update.hull || update.faction || update.refresh;
+    return {
+      materials: inherited || update.materials || update.pattern || update.patternMaterials,
+      textures: inherited || update.respathinsert,
+      depthMaterials: inherited || update.materials,
+      raceOnly: false
+    };
+  }
+
+  /**
    * Plans ordinary ship race settings without building a complete ship graph.
    * Only booster settings/effects, damage effects and mesh heat colours change;
    * hull placements, animation, trail history and impact state remain live.
    * @param {object} object Live ship.
    * @param {EveSOFDNA} before Previous selection.
-   * @param {EveSOFDNA} after Requested selection from current catalog data.
-   * @param {Function} isCurrent Selection/lifetime guard.
-   * @returns {Array<object>|false|null} Applied changes, cancellation or fallback.
+   * @param {object} update Complete target DNA and component change flags.
+   * @returns {object|null} Unapplied validated plan, or fallback.
    */
   @meta.ours
-  _UpdateRace(object, before, after, isCurrent)
+  _PlanRace(object, before, update)
   {
+    const after = update.dna;
     if (!CjsSchema.isInstanceOf("EveShip2", object) || !this._CanUpdateMesh(before, after)
       || before.GetDnaString().split(":").slice(3).join(":") !== after.GetDnaString().split(":").slice(3).join(":")) return null;
-    const plan = this._PlanMesh(object, after, true, false, null, null, true, true);
+    const plan = this._PlanMesh(object, update,
+      { materials: true, textures: false, depthMaterials: true, raceOnly: true });
     if (!plan) return null;
     const document = new SofValuesBuilder(), fields = { locators: [], locatorSets: [] };
     if (object.boosters)
@@ -179,14 +245,7 @@ export class CjsSOFUpdater
           || !collect(liveImpact.mesh.additiveAreas[0].effect, impact.mesh.additiveAreas[0].effect)) return null;
       }
     }
-    if (!isCurrent()) return false;
-    const dna = after.GetDnaString();
-    for (const decal of object.decals ?? [])
-      if (decal.__bluemetadata__?.SofDna === before.GetDnaString())
-        plan.changes.push({ object: decal, type: getRegisteredClassName(decal.constructor), values: { __bluemetadata__: { SofDna: dna } } });
-    plan.changes.push({ object, type: getRegisteredClassName(object.constructor), values: { dna } });
-    for (const change of plan.changes) this._ApplyChange(change);
-    return plan.changes.map(change => ({ _type: change.type, ...change.values }));
+    return plan;
   }
 
   /**
@@ -263,45 +322,59 @@ export class CjsSOFUpdater
   }
 
   /**
-   * Calculates only requested mesh constants and/or inserted texture paths.
-   * The full builder remains a test oracle, not a dependency of this path.
+   * Acquires only the texture-path answers needed by the requested mesh work.
+   * Final target planning is synchronous after this preparation completes.
    * @param {object} object Live root.
    * @param {EveSOFDNA} before Previous selection.
-   * @param {EveSOFDNA} after Current prepared selection.
+   * @param {object} update Complete target DNA and component change flags.
    * @param {object} options Original build options.
    * @param {Function} isCurrent Host and request guard.
    * @param {boolean} [patterns] Also calculate ordinary projection changes.
-   * @returns {Promise<Array<object>|false|null>} Applied records or fallback.
+   * @returns {Promise<object|false|null>} Prepared inputs, cancellation or fallback.
    */
   @meta.ours
-  async _UpdateMesh(object, before, after, options, isCurrent, patterns = false)
+  async _PrepareMeshUpdate(object, before, update, options, isCurrent, patterns = false)
   {
-    const changed = command => JSON.stringify(before.GetDnaCommandArgs(command)) !== JSON.stringify(after.GetDnaCommandArgs(command));
-    let depthMaterials = changed(EveSOFDNA.DnaCommand.CMD_MATERIAL);
-    let materials = depthMaterials || changed(EveSOFDNA.DnaCommand.CMD_PATTERN);
-    let textures = changed(EveSOFDNA.DnaCommand.CMD_RESPATHINSERT);
-    // Equal selections may resolve changed catalog data; they are not snapshots.
-    if (!materials && !textures) materials = textures = depthMaterials = true;
+    const after = update.dna, stages = this._GetMeshStages(update);
     const patternTargets = patterns ? this._PatternTargets(object, before, after) : null;
     // Resolve authored insert paths before comparing pattern bindings: a hull
     // texture can also own a pattern slot, or be shared with another effect.
-    let plan = this._PlanMesh(object, after, materials, textures, textures ? null : patternTargets, null, depthMaterials);
-    if (!plan) return null;
-    if (textures)
+    let initial = null, paths = [];
+    if (stages.textures)
     {
-      const previous = plan;
-      const paths = plan.textures.length
-        ? await this._sof.ModifyTextureResPaths(after.GetDnaString(), plan.textures.map(value => value.path), options) : [];
+      initial = this._PlanMesh(object, update, stages);
+      if (!initial) return null;
+      paths = initial.textures.length
+        ? await this._sof.ModifyTextureResPaths(after.GetDnaString(), initial.textures.map(value => value.path), options) : [];
       if (!isCurrent()) return false;
-      if (!paths || paths.length !== previous.textures.length) return null;
-      const resolvedTextures = new Map(previous.textures.map((target, index) => [target.object, paths[index]]));
-      // A user may edit a mesh while file existence is pending. Revalidate the
-      // small target set before applying anything, including material changes.
-      plan = this._PlanMesh(object, after, materials, textures, patternTargets, resolvedTextures, depthMaterials);
-      if (!plan || plan.textures.length !== previous.textures.length) return null;
+      if (!paths || paths.length !== initial.textures.length) return null;
+    }
+    return { initial, paths, stages, patternTargets };
+  }
+
+  /**
+   * Calculates and validates the final mesh plan after resource acquisition.
+   * The caller applies it in the same synchronous continuation, so target
+   * replacement cannot race the final validation through an await boundary.
+   * @param {object} object Live root.
+   * @param {object} update Complete target DNA and component change flags.
+   * @param {object} prepared Stage scope and acquired texture-path answers.
+   * @returns {object|null} Unapplied plan, or fallback for changed targets.
+   */
+  @meta.ours
+  _PlanPreparedMesh(object, update, prepared)
+  {
+    const { initial, paths, stages, patternTargets } = prepared;
+    const resolvedTextures = stages.textures
+      ? new Map(initial.textures.map((target, index) => [target.object, paths[index]])) : null;
+    const plan = this._PlanMesh(object, update, stages, patternTargets, resolvedTextures);
+    if (!plan) return null;
+    if (stages.textures)
+    {
+      if (plan.textures.length !== initial.textures.length) return null;
       for (let index = 0; index < paths.length; index++)
       {
-        const target = plan.textures[index], earlier = previous.textures[index];
+        const target = plan.textures[index], earlier = initial.textures[index];
         if (target.object !== earlier.object || target.path !== earlier.path) return null;
         const existing = plan.changes.find(change => change.object === target.object);
         if (existing && existing.values.resourcePath !== paths[index]) return null;
@@ -309,10 +382,27 @@ export class CjsSOFUpdater
           plan.changes.push({ object: target.object, type: "TriTextureParameter", values: { resourcePath: paths[index] } });
       }
     }
+    return plan;
+  }
+
+  /**
+   * Applies a fully validated targeted plan and publishes its DNA last.
+   * Reusable stages collect changes first; none owns root provenance or mask
+   * hydration. Host cancellation is checked before any live changes.
+   * @param {object} object Live root.
+   * @param {EveSOFDNA} before Previous prepared selection.
+   * @param {object} update Complete target DNA and component change flags.
+   * @param {object} plan Validated changes from the requested stages.
+   * @param {Function} isCurrent Host and request lifetime guard.
+   * @returns {Array<object>|false} Applied changes or no changes/cancellation.
+   */
+  @meta.ours
+  _ApplyPlan(object, before, update, plan, isCurrent)
+  {
     if (!isCurrent()) return false;
     for (const change of plan.changes)
       if (change.masks) change.masks.added = change.masks.added.map(value => CjsSchema.from("EveCustomMask", value));
-    const dna = after.GetDnaString();
+    const dna = update.dna.GetDnaString();
     for (const decal of object.decals ?? [])
     {
       if (decal.__bluemetadata__?.SofDna === before.GetDnaString() && decal.__bluemetadata__.SofDna !== dna)
@@ -328,18 +418,16 @@ export class CjsSOFUpdater
    * Only the optional pattern branch visits masks. Controllers, boosters,
    * attachments and other unrelated live state are never traversed.
    * @param {object} object Live root.
-   * @param {EveSOFDNA} dna Current prepared selection.
-   * @param {boolean} materials Calculate constants.
-   * @param {boolean} textures Calculate authored texture insert targets.
+   * @param {object} update Complete target DNA and component change flags.
+   * @param {object} stages Required constants, textures, depth constants and race scope.
    * @param {object|null} [patternTargets] Eligible pattern binding owners/names.
    * @param {Map<object,string>|null} [resolvedTextures] Current insert query results by live texture.
-   * @param {boolean} [depthMaterials] Mesh material edits may visit depth constants; pattern edits do not.
-   * @param {boolean} [raceOnly] Restrict constants to race-owned primary/reactor heat colour.
    * @returns {object|null} Validated patches and texture targets, or fallback.
    */
   @meta.ours
-  _PlanMesh(object, dna, materials, textures, patternTargets = null, resolvedTextures = null, depthMaterials = materials, raceOnly = false)
+  _PlanMesh(object, update, stages, patternTargets = null, resolvedTextures = null)
   {
+    const dna = update.dna, { materials, textures, depthMaterials, raceOnly } = stages;
     const mesh = object.mesh;
     if (!CjsSchema.isInstanceOf("Tr2Mesh", mesh) || mesh.geometryResPath !== dna.GetHullGeometryResPath()) return null;
     const plan = { changes: [], textures: [] }, effects = new Map(), targets = new Map();
