@@ -372,6 +372,8 @@ export class CjsFxOutputWGSL
             return "";
         }
         const params = [];
+        const copies = [];
+        const assigned = assignedSymbols(node.GetChild(1));
         for (const param of header.GetChildren())
         {
             const p = param.GetSymbol();
@@ -386,12 +388,12 @@ export class CjsFxOutputWGSL
                 params.push(`${this._nameOf(p)} : ptr<function, ${type}>`);
                 continue;
             }
-            params.push(`${this._nameOf(p)} : ${type}`);
+            params.push(`${this._copiedParam(p, type, assigned, copies)} : ${type}`);
         }
         const returnType = header.GetType();
         const result = returnType.builtInType === T.OP_VOID ? "" : ` -> ${CjsFxWgslTypes.wgslType(returnType, s => this._nameOf(s))}`;
         this._returnType = returnType;
-        const body = this._block(node.GetChild(1), 1);
+        const body = withLeadingLines(this._block(node.GetChild(1), 1), copies);
         return `fn ${this._nameOf(symbol)}(${params.join(", ")})${result}\n${body}\n`;
     }
 
@@ -406,6 +408,7 @@ export class CjsFxOutputWGSL
         const header = node.GetChild(0);
         const params = [];
         const zeros = [];
+        const assigned = assignedSymbols(node.GetChild(1));
         for (const param of header.GetChildren())
         {
             const p = param.GetSymbol();
@@ -421,7 +424,8 @@ export class CjsFxOutputWGSL
                     zeros.push(`    let ${this._nameOf(p)} : ${CjsFxWgslTypes.wgslType(p.type, s => this._nameOf(s))} = 0u;`);
                     continue;
                 }
-                params.push(`${systemAttribute(reg.registerNumber)} ${this._nameOf(p)} : ${CjsFxWgslTypes.wgslType(p.type, s => this._nameOf(s))}`);
+                const type = CjsFxWgslTypes.wgslType(p.type, s => this._nameOf(s));
+                params.push(`${systemAttribute(reg.registerNumber)} ${this._copiedParam(p, type, assigned, zeros)} : ${type}`);
                 continue;
             }
             if (reg !== null && reg.registerType !== "i")
@@ -430,7 +434,8 @@ export class CjsFxOutputWGSL
                 this._moduleScopeParams.add(p);
                 continue;
             }
-            params.push(`${this._nameOf(p)} : ${CjsFxWgslTypes.wgslType(p.type, s => this._nameOf(s))}`);
+            const type = CjsFxWgslTypes.wgslType(p.type, s => this._nameOf(s));
+            params.push(`${this._copiedParam(p, type, assigned, zeros)} : ${type}`);
         }
         const returnType = header.GetType();
         let result = "";
@@ -440,8 +445,34 @@ export class CjsFxOutputWGSL
         }
         this._returnType = returnType;
         const attribute = this._stage === "vertex" ? "@vertex" : this._stage === "fragment" ? "@fragment" : "@compute";
-        const body = this._block(node.GetChild(1), 1).replace(/^\{\n/u, `{\n${zeros.map(z => `${z}\n`).join("")}`);
+        const body = withLeadingLines(this._block(node.GetChild(1), 1), zeros);
         return `${attribute}\nfn main(${params.join(", ")})${result}\n${body}\n`;
+    }
+
+    /**
+     * The name a value parameter is received under. WGSL parameters are
+     * read-only, so one the body assigns (HLSL allows it; PatchShader's
+     * `id -= base_vertex` does it) arrives as `cjs_in_<name>` and is copied
+     * into a local of its own name.
+     *
+     * @param {object} symbol The parameter's symbol.
+     * @param {string} type Its WGSL type.
+     * @param {Set<object>} assigned The symbols the body assigns.
+     * @param {string[]} copies Receives the copy, a line of the body.
+     * @returns {string} The parameter's name in the signature.
+     */
+    _copiedParam(symbol, type, assigned, copies)
+    {
+        const name = this._nameOf(symbol);
+        // By name, as WGSL resolves it: PatchShader's `id -= base_vertex`
+        // targets the source function's parameter symbol, which the wrapper's
+        // parameter only shares a name with.
+        if (![...assigned].some(other => this._nameOf(other) === name))
+        {
+            return name;
+        }
+        copies.push(`    var ${name} : ${type} = cjs_in_${name};`);
+        return `cjs_in_${name}`;
     }
 
     /**
@@ -619,6 +650,11 @@ export class CjsFxOutputWGSL
         {
             return this._expressionStatement(node.GetChild(0), pad);
         }
+        if (node.GetNodeType() === N.NT_POSTFIX_EXPRESSION && node.GetToken().type === T.OP_DOT &&
+            node.GetChild(1).GetToken().stringValue.ToString() === "GetDimensions")
+        {
+            return this._getDimensions(node.GetChild(0), node.GetChild(1).GetChildren(), pad);
+        }
         if ((node.GetNodeType() === N.NT_POSTFIX_EXPRESSION || node.GetNodeType() === N.NT_PREFIX_EXPRESSION) &&
             (node.GetToken().type === T.OP_INC_OP || node.GetToken().type === T.OP_DEC_OP))
         {
@@ -630,6 +666,35 @@ export class CjsFxOutputWGSL
             return node.GetType().builtInType === T.OP_VOID || node.GetType().builtInType === 0 ? `${pad}${call};` : `${pad}_ = ${call};`;
         }
         throw new Error(`CjsFxOutputWGSL: expression statement ${nodeName(node)} is not supported yet`);
+    }
+
+    /**
+     * HLSL's `texture.GetDimensions(out width, out height)` on a 2D texture,
+     * a statement in WGSL: each out argument is assigned its component of
+     * `textureDimensions`, converted to the argument's type as HLSL does.
+     *
+     * @param {import("../ASTNode/ASTNode.js").ASTNode} object The texture.
+     * @param {import("../ASTNode/ASTNode.js").ASTNode[]} args The out arguments.
+     * @param {string} pad Indent.
+     * @returns {string} The statements.
+     */
+    _getDimensions(object, args, pad)
+    {
+        const objectType = typeOf(object);
+        if (!objectType.IsTexture() || args.length !== 2 || objectType.IsTextureArray())
+        {
+            throw new Error("CjsFxOutputWGSL: GetDimensions with these arguments is not supported yet");
+        }
+        const temp = `cjs_t${this._temps++}`;
+        const uint = new Type();
+        uint.FromTokenType(T.OP_UINT);
+        const lines = [`${pad}{`, `${pad}    let ${temp} = textureDimensions(${this._expression(object)});`];
+        args.forEach((arg, i) =>
+        {
+            lines.push(`${pad}    ${this._lvalue(arg)} = ${this._convert(`${temp}.${"xy"[i]}`, uint, typeOf(arg))};`);
+        });
+        lines.push(`${pad}}`);
+        return lines.join("\n");
     }
 
     /**
@@ -1195,6 +1260,18 @@ export class CjsFxOutputWGSL
                 case "SampleGrad":
                     sampled = `textureSampleGrad(${target}, ${this._expression(args[0])}, ${coords(args[1])}, ${coordinate(args[2])}, ${coordinate(args[3])})`;
                     break;
+                case "Load":
+                {
+                    // HLSL's Load(int3(x, y, mip)) on a 2D texture; the offset
+                    // overload has no textureLoad equivalent.
+                    if (args.length !== 1 || isArray || objectType.builtInType === T.OP_TEXTURECUBE)
+                    {
+                        throw new Error(`CjsFxOutputWGSL: ${method} with these arguments is not supported yet`);
+                    }
+                    const location = this._coerced(args[0], withComponent(typeOf(args[0]), T.OP_INT));
+                    sampled = `textureLoad(${target}, (${location}).xy, (${location}).z)`;
+                    break;
+                }
                 default:
                     throw new Error(`CjsFxOutputWGSL: texture method ${method} is not supported yet`);
             }
@@ -1349,6 +1426,75 @@ export class CjsFxOutputWGSL
 // -------------------------------------------------------------------------
 // Helpers
 // -------------------------------------------------------------------------
+
+/**
+ * The symbols a statement tree assigns: assignment targets, increments and
+ * decrements, and arguments passed to `out`/`inout` parameters, each by the
+ * variable at the root of the target (`v.x = 1` assigns `v`).
+ *
+ * @param {import("../ASTNode/ASTNode.js").ASTNode|null} node The tree.
+ * @param {Set<object>} [out] Receives the symbols.
+ * @returns {Set<object>} The symbols.
+ */
+function assignedSymbols(node, out = new Set())
+{
+    if (node === null)
+    {
+        return out;
+    }
+    const root = target =>
+    {
+        let current = target;
+        while (current !== null && (current.GetNodeType() === N.NT_POSTFIX_EXPRESSION || (current.GetNodeType() === N.NT_EXPRESSION && current.GetToken() && current.GetToken().type === T.OP_LEFT_PAREN)))
+        {
+            current = current.GetChild(0);
+        }
+        if (current !== null && current.GetNodeType() === N.NT_VAR_IDENTIFIER && current.GetSymbol())
+        {
+            out.add(current.GetSymbol());
+        }
+    };
+    const type = node.GetNodeType();
+    const token = node.GetToken();
+    if (type === N.NT_EXPRESSION && token && ASSIGNMENT.has(token.type))
+    {
+        root(node.GetChild(0));
+    }
+    if ((type === N.NT_POSTFIX_EXPRESSION || type === N.NT_PREFIX_EXPRESSION) && token && (token.type === T.OP_INC_OP || token.type === T.OP_DEC_OP))
+    {
+        root(node.GetChild(0));
+    }
+    if (type === N.NT_FUNCTION_CALL && node.GetSymbol() && node.GetSymbol().definition)
+    {
+        const definition = node.GetSymbol().definition;
+        const header = definition.GetNodeType() === N.NT_FUNCTION_DEFINITION ? definition.GetChild(0) : definition;
+        node.GetChildren().forEach((argument, i) =>
+        {
+            const param = header.GetChildOrNull(i);
+            if (param && isReferenceParam(param))
+            {
+                root(argument);
+            }
+        });
+    }
+    for (const child of node.GetChildren())
+    {
+        assignedSymbols(child, out);
+    }
+    return out;
+}
+
+/**
+ * A block with lines inserted after its opening brace.
+ *
+ * @param {string} block The block, braces included.
+ * @param {string[]} lines The lines, indented.
+ * @returns {string} The block.
+ */
+function withLeadingLines(block, lines)
+{
+    return lines.length === 0 ? block : block.replace(/^\{\n/u, `{\n${lines.map(line => `${line}\n`).join("")}`);
+}
 
 /**
  * The register of a symbol, or null.

@@ -24,16 +24,7 @@
 #endif
 
 #ifdef SKINNED
-// One bone: a 3x4 matrix, three rows with the translation in w, 48 bytes as
-// the shipped shader declares the buffer.
-struct BoneTransform
-{
-    float4 row0;
-    float4 row1;
-    float4 row2;
-};
-
-StructuredBuffer<BoneTransform> BoneTransforms : register( t0 );
+#include "../mesh/Skinning.fxh"
 #endif
 
 struct QuadOutlineVSInput
@@ -62,9 +53,9 @@ float4 QuadOutlineVS( QuadOutlineVSInput input ) : SV_Position
 #endif
 
 #ifdef SKINNED
-    BoneTransform bone = BoneTransforms[PerObjectVS.boneOffsets.x + input.blendIndices.x];
-    position = float4( dot( bone.row0, position ), dot( bone.row1, position ), dot( bone.row2, position ), 1.0 );
-    normal = float3( dot( bone.row0.xyz, normal ), dot( bone.row1.xyz, normal ), dot( bone.row2.xyz, normal ) );
+    BoneTransform bone = GetBone( input.blendIndices );
+    position = SkinPosition( bone, position );
+    normal = SkinDirection( bone, normal );
 #endif
 
     float4 world = mul( position, PerObjectVS.worldTransform );

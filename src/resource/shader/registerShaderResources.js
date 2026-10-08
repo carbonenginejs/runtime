@@ -59,17 +59,30 @@ export const ShaderResourceExtensions = Object.freeze([
  * out. The byte source supplies the shipped `graphics/effect.dx11/...` file for
  * that path; the source belongs to composition.
  *
+ * WHICH PATHS ARE TRANSLATED. Nothing in a container's bytes says which backend
+ * it was built for (CjsCarbonEffectReader `looksLikeCarbonEffectContainer`), so
+ * only the composition knows which backend paths its source answers with a
+ * shipped container. `translates` names them; a path it rejects already holds
+ * the backend's container - an effect compiled for it, such as the shader
+ * compiler's library - and its bytes load unchanged.
+ *
  * @param {object} resourceManager Manager to register on.
  * @param {object} [options] Registration options.
  * @param {{buildEffect: Function}|null} [options.translator] Converts a shipped container into the running backend's.
  * @param {"onDemand"|"all"} [options.permutations] When a translator builds each permutation.
+ * @param {(path: string) => boolean} [options.translates] Whether a resource path's bytes need the translator; every path by default.
  * @returns {object} The same manager, for chaining.
  */
-export function RegisterShaderResources(resourceManager, { translator = null, permutations = "onDemand" } = {})
+export function RegisterShaderResources(resourceManager, { translator = null, permutations = "onDemand", translates = () => true } = {})
 {
   if (translator !== null && typeof translator?.buildEffect !== "function")
   {
     throw new TypeError("RegisterShaderResources translator must expose buildEffect.");
+  }
+
+  if (typeof translates !== "function")
+  {
+    throw new TypeError("RegisterShaderResources translates must be a function of the resource path.");
   }
 
   if (permutations !== "onDemand" && permutations !== "all")
@@ -77,8 +90,8 @@ export function RegisterShaderResources(resourceManager, { translator = null, pe
     throw new TypeError(`RegisterShaderResources permutations must be "onDemand" or "all", got ${permutations}.`);
   }
 
-  const loader = !translator
-    ? bytes => bytes
+  const translating = !translator
+    ? null
     : permutations === "all"
       ? (bytes, context) => translator.buildEffect(bytes, { source: context.path, mode: "all" }).bytes
       : (bytes, context) =>
@@ -91,6 +104,9 @@ export function RegisterShaderResources(resourceManager, { translator = null, pe
         context.resource.SetPermutationTranslator(translate, loaded.indices);
         return loaded.bytes;
       };
+  const loader = !translating
+    ? bytes => bytes
+    : (bytes, context) => (translates(context.path) ? translating(bytes, context) : bytes);
 
   for (const extension of ShaderResourceExtensions)
   {

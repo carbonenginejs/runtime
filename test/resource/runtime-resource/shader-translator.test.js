@@ -91,3 +91,34 @@ test("a translator without buildEffect is refused", () =>
 {
   assert.throws(() => RegisterShaderResources(new CjsBlueResMan(), { translator: {} }), TypeError);
 });
+
+test("a path translates rejects loads its bytes unchanged; the others still translate", async () =>
+{
+  // An effect already compiled for the backend (the shader compiler's
+  // library) has no shipped container to translate.
+  const translates = path => !path.includes("/effect.webgpu/cjs/");
+  const compiled = new Uint8Array([ 5, 5 ]);
+  const calls = [];
+  const resourceManager = RegisterShaderResources(new CjsBlueResMan({ source: { Read: path => (path.includes("/cjs/") ? compiled : SHIPPED) } }),
+    { translator: Translator(calls, new Uint8Array([ 9 ])), translates });
+
+  const own = resourceManager.GetResource("res:/graphics/effect.webgpu/cjs/selection/selectionmask.sm_hi", { requirement: ResourceRequirement.SHADER });
+  let ownLoaded = null;
+  own.DoLoad = data => { ownLoaded = data; };
+  await own.Ready().catch(() => {});
+  assert.equal(calls.length, 0, "the compiled effect is not translated");
+  assert.deepEqual(Array.from(ownLoaded), [ 5, 5 ]);
+
+  const shipped = resourceManager.GetResource(PATH, { requirement: ResourceRequirement.SHADER });
+  let shippedLoaded = null;
+  shipped.DoLoad = data => { shippedLoaded = data; };
+  shipped.SetPermutationTranslator = () => {};
+  await shipped.Ready().catch(() => {});
+  assert.equal(calls.length, 1, "the shipped effect still is");
+  assert.deepEqual(Array.from(shippedLoaded), [ 9 ]);
+});
+
+test("a translates that is not a function is refused", () =>
+{
+  assert.throws(() => RegisterShaderResources(new CjsBlueResMan(), { translator: Translator([], null), translates: "cjs" }), TypeError);
+});

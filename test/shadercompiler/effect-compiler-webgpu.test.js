@@ -9,7 +9,7 @@ import { Platform } from "../../src/shadercompiler/platforms.js";
 import { CjsFxEffectCompilerWebGPU, CjsFxHlslPacking } from "../../src/shadercompiler/EffectCompilerWebGPU/index.js";
 import { LIBRARY_ROOT } from "../../scripts/shadercompiler/cbuffer-headers.mjs";
 import { parse } from "./support/parse.js";
-import { releaseDevice, wgslErrors, pipelineError, runCompute } from "./support/dawn.js";
+import { getDevice, releaseDevice, wgslErrors, pipelineError, runCompute } from "./support/dawn.js";
 
 after(releaseDevice);
 
@@ -262,4 +262,108 @@ fn main(@builtin(global_invocation_id) id : vec3<u32>)
             assert.ok(Math.abs(output[i * 4 + k] - frame.n[k]) < 1e-3, `frame ${i}: normal ${[...output.subarray(i * 4, i * 4 + 3)]} against ${frame.n}`);
         }
     });
+});
+
+const SELECTION = ["/selection/selectionmask.fx", "/selection/skinned_selectionmask.fx", "/selection/selectionoutline.fx"];
+
+test("the selection effects compile to WGSL that Dawn accepts and links", async () =>
+{
+    for (const effect of SELECTION)
+    {
+        const { bytes, messages, results } = compile(effect);
+        assert.deepEqual(messages, [], effect);
+        assert.ok(bytes, effect);
+        for (const pass of passesOf(results))
+        {
+            for (const stage of pass.stages)
+            {
+                assert.deepEqual(await wgslErrors(stage.shaderData), [], `${effect} stage ${stage.type}:\n${stage.shaderData}`);
+            }
+            const vs = pass.stages.find(stage => stage.type === 0);
+            const ps = pass.stages.find(stage => stage.type === 1);
+            assert.equal(await pipelineError(vs.shaderData, ps.shaderData, buffersFor(vs)), null, effect);
+        }
+    }
+});
+
+test("the selection outline draws a solid line of the set width around the mask, and nothing inside it", async () =>
+{
+    const { results } = compile("/selection/selectionoutline.fx");
+    const [pass] = passesOf(results);
+    const vertexStage = pass.stages.find(stage => stage.type === 0);
+    const vs = vertexStage.shaderData;
+    const ps = pass.stages.find(stage => stage.type === 1).shaderData;
+    const bindings = readBackendBlock(pass.backendBlock).bindGroups[0].bindings;
+    // Carbon's screen quad (Tr2RenderUtils.setupScreenQuad): a strip of four
+    // clip-space corners, POSITION float4 then TEXCOORD float2.
+    const location = usage => vertexStage.pipelineInputs.find(input => input.name === usage).registerIndex;
+    const quadLayout = [{ arrayStride: 24, attributes: [
+        { shaderLocation: location(0), offset: 0, format: "float32x4" },
+        { shaderLocation: location(5), offset: 16, format: "float32x2" }
+    ] }];
+    const binding = symbol => bindings.find(b => b.generatedSymbol === symbol).binding;
+
+    const size = 64;
+    const device = await getDevice();
+    // A 20 x 20 square of mask at (22, 22)-(41, 41).
+    const mask = new Uint8Array(size * size);
+    for (let y = 22; y < 42; ++y) for (let x = 22; x < 42; ++x) mask[y * size + x] = 255;
+    const maskTexture = device.createTexture({ size: [size, size], format: "r8unorm", usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST });
+    device.queue.writeTexture({ texture: maskTexture }, mask, { bytesPerRow: size }, [size, size]);
+    // OutlineColour red, OutlineSettings brightness 1 and width 3 pixels.
+    const constants = device.createBuffer({ size: 32, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+    device.queue.writeBuffer(constants, 0, new Float32Array([1, 0, 0, 1, 1, 3, 0, 0]));
+    const target = device.createTexture({ size: [size, size], format: "rgba8unorm", usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC });
+
+    const pipeline = device.createRenderPipeline({
+        layout: "auto",
+        vertex: { module: device.createShaderModule({ code: vs }), entryPoint: "main", buffers: quadLayout },
+        fragment: {
+            module: device.createShaderModule({ code: ps }),
+            entryPoint: "main",
+            targets: [{ format: "rgba8unorm", blend: { color: { srcFactor: "src-alpha", dstFactor: "one-minus-src-alpha" }, alpha: { srcFactor: "one", dstFactor: "one-minus-src-alpha" } } }]
+        },
+        primitive: { topology: "triangle-strip" }
+    });
+    const quad = device.createBuffer({ size: 96, usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST });
+    device.queue.writeBuffer(quad, 0, new Float32Array([
+        -1, 1, 1, 1, 0, 0,
+        1, 1, 1, 1, 1, 0,
+        -1, -1, 1, 1, 0, 1,
+        1, -1, 1, 1, 1, 1
+    ]));
+    const group = device.createBindGroup({
+        layout: pipeline.getBindGroupLayout(0),
+        entries: [
+            { binding: binding("SelectionMask"), resource: maskTexture.createView() },
+            { binding: binding("cb0"), resource: { buffer: constants } }
+        ]
+    });
+    const readback = device.createBuffer({ size: size * size * 4, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+    const encoder = device.createCommandEncoder();
+    const renderPass = encoder.beginRenderPass({ colorAttachments: [{ view: target.createView(), loadOp: "clear", storeOp: "store", clearValue: { r: 0, g: 0, b: 0, a: 0 } }] });
+    renderPass.setPipeline(pipeline);
+    renderPass.setBindGroup(0, group);
+    renderPass.setVertexBuffer(0, quad);
+    renderPass.draw(4);
+    renderPass.end();
+    encoder.copyTextureToBuffer({ texture: target }, { buffer: readback, bytesPerRow: size * 4 }, [size, size]);
+    device.queue.submit([encoder.finish()]);
+    await readback.mapAsync(GPUMapMode.READ);
+    const pixels = new Uint8Array(readback.getMappedRange().slice(0));
+    readback.unmap();
+    const at = (x, y) => [...pixels.subarray((y * size + x) * 4, (y * size + x) * 4 + 4)];
+
+    assert.deepEqual(at(31, 31), [0, 0, 0, 0], "inside the mask: no line");
+    assert.deepEqual(at(5, 5), [0, 0, 0, 0], "far outside: no line");
+    // One and two pixels beyond each side: solid red.
+    for (const [x, y] of [[20, 31], [21, 31], [43, 31], [42, 31], [31, 20], [31, 43]])
+    {
+        assert.deepEqual(at(x, y), [255, 0, 0, 255], `line at ${x},${y}`);
+    }
+    // Four pixels beyond: past the 3-pixel width.
+    for (const [x, y] of [[18, 31], [45, 31], [31, 18], [31, 45]])
+    {
+        assert.deepEqual(at(x, y), [0, 0, 0, 0], `no line at ${x},${y}`);
+    }
 });
