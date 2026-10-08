@@ -440,3 +440,44 @@ test("a cancelled gizmo pick cannot attach to a replacement target", async t =>
   assert.equal(gizmo._drag, null);
   assert.equal(gizmo.tool.captured, false);
 });
+
+
+for (const mode of ["off", "translation"])
+{
+  test(`empty-space clicks clear selection in ${mode} mode; camera drags retain it`, async t =>
+  {
+    const gizmo = setupGizmo(t, mode), local = mat4.create();
+    const target = { readLocal: out => mat4.copy(out, local), writeLocal: value => mat4.copy(local, value),
+      readParentWorld: out => mat4.identity(out) };
+    gizmo.SetTarget(target);
+    t.mock.method(gizmo.scene, "PickObject", async () => null);
+    gizmo.pickObject = async () => null;
+    const selections = [];
+    gizmo.onSelect = object => { selections.push(object); gizmo.SetTarget(object); };
+    await gizmo.HandleInput(pointer("pointerdown"));
+    await gizmo.HandleInput(pointer("pointermove", { dx: 20, x: 120 }));
+    await gizmo.HandleInput(pointer("pointerup", { x: 120 }));
+    assert.equal(gizmo.target, target, "orbiting over empty space keeps the target");
+    assert.deepEqual(selections, []);
+    await gizmo.HandleInput(pointer("pointerdown"));
+    assert.equal(gizmo.target, target, "selection waits for click release");
+    await gizmo.HandleInput(pointer("pointerup"));
+    assert.deepEqual(selections, [null]);
+    assert.equal(gizmo.target, null);
+    assert.equal(gizmo.scene.manipulator, null);
+  });
+}
+
+test("a stale empty-space readback cannot clear a newer selection", async t =>
+{
+  const gizmo = setupGizmo(t, "off"), pick = deferred();
+  gizmo.pickObject = () => pick.promise;
+  gizmo.onSelect = () => assert.fail("cancelled selection must not be published");
+  await gizmo.HandleInput(pointer("pointerdown"));
+  const pending = gizmo.HandleInput(pointer("pointerup"));
+  const target = { readLocal: out => mat4.identity(out), writeLocal() {}, readParentWorld: out => mat4.identity(out) };
+  gizmo.SetTarget(target);
+  pick.resolve(null);
+  await pending;
+  assert.equal(gizmo.target, target);
+});

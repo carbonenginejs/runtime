@@ -229,7 +229,8 @@ export class TnyTransformGizmo
       {
         const generation = this._generation;
         const object = await this.pickObject(press.x, press.y, this.getView());
-        if (generation === this._generation && object && this.onSelect) this.onSelect(object);
+        // A completed miss clears the host selection just as a hit replaces it.
+        if (generation === this._generation && this.onSelect) this.onSelect(object ?? null);
       }
       // The camera still needs the release to end its drag.
       return result.PASS;
