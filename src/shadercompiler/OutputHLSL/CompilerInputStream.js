@@ -31,6 +31,7 @@ export class CompilerInputStream extends CodeStream
         this._state = state;
     }
 
+    /** Leaves line breaks to source-location changes. */
     Endl()
     {
     }
@@ -63,10 +64,12 @@ export class CompilerInputStream extends CodeStream
         }
     }
 
+    /** Preserves source formatting without adding indentation. */
     Indent()
     {
     }
 
+    /** Leaves indentation unchanged because this stream does not track it. */
     Unindent()
     {
     }

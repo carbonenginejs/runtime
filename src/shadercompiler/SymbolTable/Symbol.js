@@ -32,6 +32,7 @@ export class Symbol
 
     packOffset = new PackOffset();
 
+    /** Initializes an unused symbol with empty type and register declarations. */
     constructor()
     {
         this.packOffset.subComponent = -1;

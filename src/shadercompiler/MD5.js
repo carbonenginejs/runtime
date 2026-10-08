@@ -40,6 +40,7 @@ export class MD5
     /** Carbon's `m_hash`. */
     _hash = new Uint32Array(4);
 
+    /** Initializes an empty hash with the standard MD5 state. */
     constructor()
     {
         this.reset();

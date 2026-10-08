@@ -20,6 +20,7 @@ export class SymbolTable
 
     _root = new ScopeSymbolTable(null);
 
+    /** Starts name lookup in the root scope. */
     constructor()
     {
         this._current = this._root;
