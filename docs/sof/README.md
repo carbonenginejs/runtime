@@ -100,8 +100,9 @@ if (changes === null) {
 ```
 
 The implementation supports respathinsert, mesh-material edits (`material?`
-and its `mesh?` spelling), compatible `pattern?` / pattern-material edits, and
-race-only edits on ordinary ships.
+and its `mesh?` spelling), compatible `pattern?` / pattern-material edits,
+race-only edits on ordinary ships, and compatible SOF6 faction changes on an
+unchanged ordinary hull.
 
 The dispatcher resolves both DNA strings once and creates one update request
 with `CreateUpdateRequest(before, after)`. Its `dna` member is the complete
@@ -120,8 +121,8 @@ mask hydration and root/decal DNA publication belong to that path. Mesh-stage
 requirements are derived from the change flags rather than positional boolean
 arguments. Equal selections use `refresh` to preserve current-catalog resolution.
 This is a reusable internal stage contract, not a new serialized request format
-or permission to bypass compatibility checks. Hull/faction replacement and shared
-definition-edit propagation are not enabled by this refactor.
+or permission to bypass compatibility checks. Actual hull replacement and shared
+definition-edit propagation remain separate work.
 
 Ordinary hull material and insert changes use targeted calculations: material
 edits resolve shader constants through `EveSOFDNA.GetMeshAreaParameter`, while
@@ -159,6 +160,24 @@ offsets currently require replacement because their runtime cache has no
 non-destructive refresh; this is separate from hull locator positions. Combined
 race/command changes, layouts, instanced attachments, non-ship roots and differing
 effect binding topology also request replacement.
+
+SOF6 faction changes reuse mesh, insert and pattern planning in complete target
+DNA context. Faction defaults are resolved even when the pattern/insert commands
+did not change; explicit DNA overrides retain their normal precedence. A bounded
+attachment stage supplies colours for sprite, spotlight, plane, sprite-line and
+haze sets, their nested lights and root lights. Changed sets call their existing
+Rebuild method once; unchanged sets do not rebuild. Decal glow and logo resources
+are updated by name, while the existing inherited-colour owner propagates the
+new palette to effect children. No complete desired ship is built or hydrated.
+
+This first faction path requires unchanged source membership. Visibility changes
+that add/remove/swap source sets, actual hull/race changes, layouts and instanced
+attachments request replacement. Decals need their existing editor source stamps;
+ambiguous co-located attachments and placements edited away from the source also
+request replacement until persistent source associations are available. Shared
+resource requests must agree, including unchanged paths; shared decal effects
+request replacement. All checks finish before writes. Banner images and their
+content-derived lights, root transforms, damage, boosters and locators remain live.
 
 For material and pattern edits, layouts, hull-authored instanced meshes and
 extension roots still use the earlier

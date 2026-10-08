@@ -9,6 +9,256 @@ const resources = composeStubResMan();
 const originalDna = "hull:faction:race:respathinsert?none";
 const insertedDna = "hull:faction:race:respathinsert?insert";
 
+/** SOF6 factions with inherited materials, palette, insert and pattern defaults. */
+async function FactionFixture(configure = null, suffix = "")
+{
+  return Fixture(options =>
+  {
+    const data = options.black;
+    data.hull[0].sof6 = true;
+    data.generic.materialPrefixes = [{ str: "Mtl1" }, { str: "Mtl2" }];
+    data.generic.areaShaders[0].parameters = [{ str: "Mtl1Diffuse" }, { str: "Mtl2Diffuse" }];
+    data.material = ["red", "blue"].map((name, index) => ({ name,
+      parameters: [{ name: "Diffuse", value: index ? [0, 0, 1, 1] : [1, 0, 0, 1] }] }));
+    data.faction = ["faction", "other"].map((name, index) => ({ name,
+      resPathInsert: index ? "insert" : "", defaultPatternName: index ? "two" : "one",
+      areaTypes: { Primary: { material1: index ? "blue" : "red", material2: index ? "red" : "blue" } },
+      colorSet: { Primary: index ? [0, 0, 1, 1] : [1, 0, 0, 1] },
+      visibilityGroupSet: { visibilityGroups: [{ str: "primary" }] }
+    }));
+    data.pattern = ["one", "two"].map((name, index) => ({ name, sof6: true,
+      layer1: { materialSource: 0, textureName: "PatternMask", textureResFilePath: `res:/${name}.dds` },
+      layer2: null, applicationGroups: [{ name: "ships",
+        layer1Properties: { projectionTypeU: index, projectionTypeV: index + 1, Primary: true, isTargetMtl1: true },
+        layer2Properties: null, projections: [{ name: "hull",
+          transformLayer1: { position: [index, 0, 0], scaling: [1, 1, 1], rotation: [0, 0, 0, 1], isMirrored: false },
+          transformLayer2: null }]
+      }]
+    }));
+    data.hull[0].spriteSets = [{ visibilityGroup: "primary", items: [{
+      position: [1, 0, 0], colorType: 0, intensity: 1, saturation: 1,
+      blinkRate: 0.25, blinkPhase: 0.5, minScale: 2, maxScale: 6, boneIndex: 3,
+      light: { translation: [0, 0, 0], rotation: [0, 0, 0, 1], saturation: 1, intensity: 2 }
+    }] }];
+    if (configure) configure(options);
+  }, "hull:faction:race" + suffix);
+}
+
+test("SOF6 faction appearance matches a full build without rebuilding the ship", async t =>
+{
+  const { sof, ship, updater } = await FactionFixture();
+  const dna = "hull:other:race";
+  const values = await sof.BuildValuesFromDNA(dna), expected = CjsSchema.from(values._type, values);
+  const mesh = ship.mesh, attachments = ship.attachments, set = attachments[0], item = set.sprites[0];
+  const light = set.lights[0], lightData = light.lightData, color = item.color, mask = ship.customMasks[0];
+  t.mock.method(sof, "BuildValuesFromDNA", () => assert.fail("must not build a complete desired ship"));
+  const rebuild = t.mock.method(set, "Rebuild");
+  assert.ok(Array.isArray(await updater.UpdateFromDNA(ship, dna)));
+  assert.equal(ship.mesh, mesh); assert.equal(ship.attachments, attachments); assert.equal(attachments[0], set);
+  assert.equal(set.sprites[0], item); assert.equal(item.color, color);
+  assert.equal(set.lights[0], light); assert.equal(light.lightData, lightData);
+  assert.equal(ship.customMasks[0], mask); assert.equal(rebuild.mock.callCount(), 1);
+  assert.deepEqual(CjsSchema.getValues(ship), CjsSchema.getValues(expected));
+});
+
+test("faction edits respect explicit material, insert and pattern overrides", async t =>
+{
+  const suffix = ":material?red;none:respathinsert?none:pattern?one";
+  const { sof, ship, updater } = await FactionFixture(null, suffix);
+  const dna = "hull:other:race" + suffix, effect = ship.mesh.opaqueAreas[0].effect;
+  const values = await sof.BuildValuesFromDNA(dna), expected = CjsSchema.from(values._type, values);
+  const diffuse = effect.resources.find(value => value.name === "DiffuseMap");
+  const pattern = effect.resources.find(value => value.name === "PatternMask");
+  t.mock.method(sof, "BuildValuesFromDNA", () => assert.fail("full build"));
+  assert.ok(await updater.UpdateFromDNA(ship, dna));
+  assert.equal(diffuse.resourcePath, "res:/ship_d.dds"); assert.equal(pattern.resourcePath, "res:/one.dds");
+  assert.deepEqual(CjsSchema.getValues(ship), CjsSchema.getValues(expected));
+});
+
+test("faction palette updates preserve runtime transform, damage and attachment state", async () =>
+{
+  const { ship, updater } = await FactionFixture();
+  ship.worldTransform[12] = 9;
+  ship.impactOverlay = CjsSchema.from("EveImpactOverlay", {});
+  ship.impactOverlay.hullDamageFactor = 0.37;
+  const damage = ship.impactOverlay, set = ship.attachments[0], item = set.sprites[0];
+  item.blinkPhase = 0.75;
+  const inherit = ship.inheritProperties;
+  assert.ok(await updater.UpdateFromDNA(ship, "hull:other:race"));
+  assert.equal(ship.worldTransform[12], 9); assert.equal(ship.impactOverlay, damage);
+  assert.equal(ship.impactOverlay.hullDamageFactor, 0.37);
+  assert.equal(item.blinkPhase, 0.75); assert.equal(ship.inheritProperties, inherit);
+});
+
+test("same-sized visibility swaps request fallback before changing anything", async () =>
+{
+  const { ship, updater } = await FactionFixture(options =>
+  {
+    const data = options.black;
+    data.hull[0].spriteSets.push({ ...structuredClone(data.hull[0].spriteSets[0]), visibilityGroup: "other" });
+    data.faction[1].visibilityGroupSet.visibilityGroups[0].str = "other";
+  });
+  const before = CjsSchema.getValues(ship);
+  assert.equal(await updater.UpdateFromDNA(ship, "hull:other:race"), null);
+  assert.deepEqual(CjsSchema.getValues(ship), before);
+});
+
+test("edited attachment placement requests fallback with no partial material writes", async () =>
+{
+  const { ship, updater } = await FactionFixture();
+  ship.attachments[0].sprites[0].position[0] = 99;
+  const before = CjsSchema.getValues(ship);
+  assert.equal(await updater.UpdateFromDNA(ship, "hull:other:race"), null);
+  assert.deepEqual(CjsSchema.getValues(ship), before);
+});
+
+for (const rounded of [false, true])
+test(`co-located ambiguous attachment sets fall back, including rounded placements: ${rounded}`, async () =>
+{
+  const { ship, updater } = await FactionFixture(options =>
+  {
+    const sets = options.black.hull[0].spriteSets;
+    sets.push(structuredClone(sets[0]));
+    sets[1].items[0].colorType = 1;
+    sets[1].items[0].blinkRate = 0.8;
+    if (rounded) sets[1].items[0].position[0] += 1e-9;
+  });
+  ship.attachments.reverse();
+  const before = CjsSchema.getValues(ship);
+  assert.equal(await updater.UpdateFromDNA(ship, "hull:other:race"), null);
+  assert.deepEqual(CjsSchema.getValues(ship), before);
+});
+
+/** Adds glow and logo decals without changing the source topology. */
+function FactionDecals(options)
+{
+  options.editorMode = true;
+  const data = options.black;
+  data.hull[0].decalSets = [{ visibilityGroup: "primary", items: [5, 6].map((usage, index) => ({
+    name: `decal${index}`, usage, meshIndex: -1, boneIndex: -1, glowColorType: 0, logoType: 0,
+    position: [index, 0, 0], rotation: [0, 0, 0, 1], scaling: [1, 1, 1],
+    parameters: [], textures: [], indexBuffers: [{ indexBuffer: new Uint32Array([0, 1, 2]) }]
+  })) }];
+  data.generic.decalShaderLocation = "res:/decal";
+  data.generic.decalShaders = ["decalv5.fx", "decalglowv5.fx"].map(shader => ({ shader,
+    parameters: [], defaultTextures: [{ name: "NormalMap", resFilePath: "res:/normal.dds" }], parentTextures: [] }));
+  data.faction.forEach((faction, index) =>
+  {
+    faction.logoSet = { logos: { primary: { textures: [{ name: "PatternMask", resFilePath: index ? "res:/two.dds" : "res:/one.dds" }] } } };
+  });
+}
+
+test("faction glow and logo edits match fresh output while retaining decal identities", async t =>
+{
+  const { ship, sof, updater } = await FactionFixture(FactionDecals);
+  const decals = ship.decals.slice(), effects = decals.map(value => value.decalEffect);
+  const desired = await sof.BuildValuesFromDNA("hull:other:race");
+  const expected = CjsSchema.from(desired._type, desired);
+  t.mock.method(sof, "BuildValuesFromDNA", () => assert.fail("full build"));
+  assert.ok(await updater.UpdateFromDNA(ship, "hull:other:race"));
+  decals.forEach((decal, index) => { assert.equal(ship.decals[index], decal); assert.equal(decal.decalEffect, effects[index]); });
+  assert.deepEqual(CjsSchema.getValues(ship), CjsSchema.getValues(expected));
+});
+
+test("a logo cannot overwrite an unchanged shared pattern texture", async () =>
+{
+  const { ship, updater } = await FactionFixture(FactionDecals, ":pattern?one");
+  const effect = ship.mesh.opaqueAreas[0].effect;
+  const pattern = effect.resources.find(value => value.name === "PatternMask");
+  const logo = ship.decals[1].decalEffect;
+  logo.resources[logo.resources.findIndex(value => value.name === "PatternMask")] = pattern;
+  const before = CjsSchema.getValues(ship);
+  assert.equal(await updater.UpdateFromDNA(ship, "hull:other:race:pattern?one"), null);
+  assert.deepEqual(CjsSchema.getValues(ship), before);
+});
+
+test("shared decal effects require fallback before conflicting faction glow changes", async () =>
+{
+  const { ship, updater } = await FactionFixture(options =>
+  {
+    FactionDecals(options);
+    const items = options.black.hull[0].decalSets[0].items;
+    items[1] = { ...structuredClone(items[0]), glowColorType: 1, position: [2, 0, 0] };
+  });
+  ship.decals[1].decalEffect = ship.decals[0].decalEffect;
+  const before = CjsSchema.getValues(ship);
+  assert.equal(await updater.UpdateFromDNA(ship, "hull:other:race"), null);
+  assert.deepEqual(CjsSchema.getValues(ship), before);
+});
+
+test("unchanged faction colours do not rebuild attachment buffers", async t =>
+{
+  const { ship, updater } = await FactionFixture(options =>
+  {
+    options.black.faction[1].colorSet = structuredClone(options.black.faction[0].colorSet);
+  });
+  t.mock.method(ship.attachments[0], "Rebuild", () => assert.fail("unchanged colours rebuilt buffers"));
+  assert.ok(await updater.UpdateFromDNA(ship, "hull:other:race"));
+});
+
+test("all SOF6 attachment and hull light families match fresh faction colours", async () =>
+{
+  const { ship, sof, updater } = await FactionFixture(options =>
+  {
+    const hull = options.black.hull[0];
+    const light = { translation: [0, 1, 0], rotation: [0, 0, 0, 1], saturation: 0.5,
+      intensity: 2, innerScaleMultiplier: 1, outerScaleMultiplier: 2 };
+    const item = { position: [2, 3, 4], rotation: [0, 0, 0, 1], scaling: [2, 3, 4],
+      colorType: 0, boneIndex: 2, intensity: 2, saturation: 0.7, lights: [light] };
+    hull.spotlightSets = [{ visibilityGroup: "primary", items: [{ colorType: 0,
+      transform: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 3, 0, 0, 1],
+      coneIntensity: 2, flareIntensity: 3, spriteIntensity: 4, saturation: 0.5, light }] }];
+    hull.planeSets = [{ visibilityGroup: "primary", items: [item] }];
+    hull.spriteLineSets = [{ visibilityGroup: "primary", items: [{ ...item, light, spacing: 1 }] }];
+    hull.hazeSets = [{ visibilityGroup: "primary", hazeType: 0, items: [{ ...item, hazeBrightness: 2 }] }];
+    hull.lightSets = [{ visibilityGroup: "primary", items: [0, 1, 2].map(type => ({
+      type, lightColor: 0, position: [type, 1, 2], radius: 3, brightness: 2, texturePath: "res:/light.dds"
+    })) }];
+  });
+  const values = await sof.BuildValuesFromDNA("hull:other:race"), expected = CjsSchema.from(values._type, values);
+  assert.equal(ship.attachments.length, 5);
+  assert.equal(ship.lights.length, 3);
+  assert.ok(await updater.UpdateFromDNA(ship, "hull:other:race"));
+  assert.deepEqual(CjsSchema.getValues(ship), CjsSchema.getValues(expected));
+});
+
+test("faction edits preserve externally supplied banner images and content-derived light colours", async () =>
+{
+  const { ship, updater } = await FactionFixture(options =>
+  {
+    options.black.hull[0].bannerSets = [{ visibilityGroup: "primary", banners: [{
+      usage: 0, position: [2, 0, 0], scaling: [1, 3, 2],
+      light: { translation: [1, 0, 0], rotation: [0, 0, 0, 1], saturation: 0.5, intensity: 4 }
+    }] }];
+    options.black.generic.bannerShader = { shader: "res:/banner.fx", defaultParameters: [], defaultTextures: [] };
+  });
+  const banner = ship.attachments.find(value => CjsSchema.isInstanceOf("EveBannerSet", value));
+  const texture = ship.externalParameters[0].destinationObject;
+  texture.resourcePath = "res:/user-banner.dds";
+  banner.lights[0].lightData.color.set([0.5, 0.25, 0.75, 1]);
+  const color = banner.lights[0].lightData.color;
+  assert.ok(await updater.UpdateFromDNA(ship, "hull:other:race"));
+  assert.equal(ship.attachments.at(-1), banner);
+  assert.equal(texture.resourcePath, "res:/user-banner.dds");
+  assert.equal(banner.lights[0].lightData.color, color);
+  assert.deepEqual(Array.from(color), [0.5, 0.25, 0.75, 1]);
+});
+
+test("faction edits revalidate attachments after asynchronous path acquisition", async t =>
+{
+  const { ship, sof, updater } = await FactionFixture();
+  const original = sof.ModifyTextureResPaths.bind(sof);
+  t.mock.method(sof, "ModifyTextureResPaths", async (...args) =>
+  {
+    const paths = await original(...args);
+    ship.attachments[0].sprites[0].position[0] = 99;
+    return paths;
+  });
+  const mesh = CjsSchema.getValues(ship.mesh), dna = ship.dna;
+  assert.equal(await updater.UpdateFromDNA(ship, "hull:other:race"), null);
+  assert.equal(ship.dna, dna); assert.deepEqual(CjsSchema.getValues(ship.mesh), mesh);
+});
+
 test("update requests retain complete DNA while distinguishing insert states from change flags", async () =>
 {
   const { sof, updater } = await Fixture();

@@ -13,7 +13,7 @@ import { addChild, removeChild } from "../global/blue/children.js";
 import { SofValuesBuilder } from "./SofValuesBuilder.js";
 
 /**
- * Updates mesh materials and inserts directly from prepared SOF selections.
+ * Updates mesh materials, inserts and compatible SOF6 faction appearance.
  * Ordinary pattern changes calculate only masks and affected mesh bindings.
  * Complex layouts retain full-values comparison.
  * Live objects and unrelated state are retained; incompatible targets rebuild.
@@ -65,6 +65,20 @@ export class CjsSOFUpdater
 
     const update = this.CreateUpdateRequest(oldSelection, newSelection);
     const current = () => isCurrent() && this._updates.get(object) === request && object.dna === originalDna;
+    if (update.faction)
+    {
+      if (!this._CanUpdateHullFaction(object, oldSelection, update)) return null;
+      const prepared = await this._PrepareMeshUpdate(object, oldSelection, update, options, current, true);
+      if (!prepared) return prepared;
+      if (!current()) return false;
+      // Recheck source membership after acquisition, then plan every affected
+      // family before the shared apply stage can change the live object.
+      if (!this._CanUpdateHullFaction(object, oldSelection, update)) return null;
+      const plan = this._PlanPreparedMesh(object, update, prepared);
+      if (!plan || !this._PlanFactionAppearance(object, update, plan)
+        || !this._PlanFactionDecals(object, update, plan)) return null;
+      return this._ApplyPlan(object, oldSelection, update, plan, current);
+    }
     if (update.race)
     {
       const plan = this._PlanRace(object, oldSelection, update);
@@ -154,8 +168,8 @@ export class CjsSOFUpdater
 
   /**
    * Expands changed DNA components into work owned by the mesh stage.
-   * Hull/faction reconciliation will use the same mesh calculations; their
-   * broader live-object topology is still rejected by the entry preflight.
+   * Faction reconciliation uses these same calculations. Hull changes still
+   * require broader live-object topology reconciliation and request fallback.
    * @param {object} update Complete target DNA and component change flags.
    * @returns {object} Mesh calculations required by this request.
    */
@@ -169,6 +183,260 @@ export class CjsSOFUpdater
       depthMaterials: inherited || update.materials,
       raceOnly: false
     };
+  }
+
+  /**
+   * Checks the first supported hull/faction case: SOF6 faction appearance on an
+   * unchanged ordinary hull. Membership is compared per source set/item, since
+   * two different visible sets can have identical emitted counts and classes.
+   * Hull/race changes and membership changes still require host replacement.
+   * @param {object} object Live root.
+   * @param {EveSOFDNA} before Current-data interpretation of its previous DNA.
+   * @param {object} update Complete target DNA and change flags.
+   * @returns {boolean} Whether appearance-only reconciliation is supported.
+   */
+  @meta.ours
+  _CanUpdateHullFaction(object, before, update)
+  {
+    const after = update.dna;
+    if (update.hull || update.race || !before.UsingSof6() || !after.UsingSof6()
+      || !CjsSchema.isInstanceOf("EveSpaceObject2", object)
+      || before.GetLayoutCount() || after.GetLayoutCount()
+      || before.GetHullInstancedMeshes().length || after.GetHullInstancedMeshes().length
+      || after.GetBuildClass() === EveSOFDataHull.BuildClass.BUILDCLASS_EXTENSION) return false;
+    const visibility = set => before.IsInVisibilityData(set.visibilityGroup) === after.IsInVisibilityData(set.visibilityGroup);
+    const oldColors = before.GetColorSet(), colors = after.GetColorSet();
+    for (let hull = 0; hull < after.GetMultiHullCount(); hull++)
+    {
+      for (const method of ["GetHullSpriteSets", "GetHullSpotlightSets", "GetHullPlaneSets", "GetHullSpriteLineSets", "GetHullHazeSets", "GetHullLightSets"])
+      {
+        for (const set of after[method](hull))
+        {
+          if (!visibility(set)) return false;
+          if (!after.IsInVisibilityData(set.visibilityGroup)) continue;
+          for (const item of set.items)
+          {
+            const slot = method === "GetHullLightSets" ? item.lightColor : item.colorType;
+            if (Boolean(oldColors[slot]) !== Boolean(colors[slot])) return false;
+          }
+        }
+      }
+      for (const set of after.GetHullBannerSets(hull)) if (!visibility(set)) return false;
+      for (const set of after.GetHullDecalSets(hull))
+      {
+        if (!visibility(set)) return false;
+        if (!after.IsInVisibilityData(set.visibilityGroup)) continue;
+        for (const item of set.items)
+          if (Number(item.usage) === EveSOFDataHullDecalSetItem.Usage.USAGE_LOGO
+            && before.HasLogoSet(item.logoType) !== after.HasLogoSet(item.logoType)) return false;
+      }
+    }
+    for (const set of after.GetHullChildSets()) if (!visibility(set)) return false;
+    return true;
+  }
+
+  /**
+   * Plans SOF6 attachment/light colours from the standard appearance stage.
+   * Only whitelisted colours are copied, never placement, blink state, packed
+   * effects or banner content. Each changed set is rebuilt once after writes.
+   * Placement checks reject ambiguous reordered/edited items until those lists
+   * have persistent source associations; they are never silently reassigned.
+   * @param {object} object Live root.
+   * @param {object} update Complete requested DNA and change flags.
+   * @param {object} plan Mesh plan to extend before any live writes.
+   * @returns {boolean} Whether every appearance target was matched.
+   */
+  @meta.ours
+  _PlanFactionAppearance(object, update, plan)
+  {
+    const document = new SofValuesBuilder(), fields = { attachments: [], lights: [], externalParameters: [] };
+    this._sof.SetupAttachments(document, fields, update.dna);
+    document.AddRoot("default", document.AddNode(getRegisteredClassName(object.constructor), fields));
+    const desired = document.ToValues(), anchors = new Map();
+    if (!this._IndexValues(desired, anchors, new WeakSet())) return false;
+    const resolve = value => value && Object.hasOwn(value, "_ref") ? anchors.get(value._ref) ?? null : value;
+    const families = {
+      EveSpriteSet: ["sprites", ["color"]],
+      EveSpotlightSet: ["spotlightItems", ["coneColor", "flareColor", "spriteColor"]],
+      EvePlaneSet: ["planes", ["color"]],
+      EveSpriteLineSet: ["spriteLines", ["color"]],
+      EveHazeSet: ["hazes", ["color"]]
+    };
+    const targets = new Map();
+    const color = (live, key, value) =>
+    {
+      if (!live || !value || value.length !== 4 || live[key]?.length !== 4 || !Array.from(value).every(Number.isFinite)) return false;
+      const field = CjsSchema.getField(live.constructor, key);
+      if (!field) return false;
+      const next = normalizeCarbonValue(value, field.type);
+      let fields = targets.get(live);
+      if (!fields) { fields = new Map(); targets.set(live, fields); }
+      if (fields.has(key) && !IRootReaderBase.areEquivalent(fields.get(key), next)) return false;
+      fields.set(key, next);
+      return true;
+    };
+    const placementKeys = ["position", "position1", "position2", "rotation", "scaling", "transform", "boneIndex", "index"];
+    const signature = (value, live) => JSON.stringify([value._type,
+      ...placementKeys.map(key =>
+      {
+        if (!Object.hasOwn(value, key) || !live) return null;
+        const field = CjsSchema.getField(live.constructor, key);
+        const normalized = field ? normalizeCarbonValue(value[key], field.type) : value[key];
+        return ArrayBuffer.isView(normalized) ? Array.from(normalized) : normalized;
+      })]);
+    const matches = (live, value) =>
+    {
+      if (!value || !CjsSchema.isInstanceOf(value._type, live)) return false;
+      for (const key of placementKeys)
+      {
+        if (!Object.hasOwn(value, key)) continue;
+        const field = CjsSchema.getField(live.constructor, key);
+        if (!field || !IRootReaderBase.areEquivalent(live[key], normalizeCarbonValue(value[key], field.type))) return false;
+      }
+      return true;
+    };
+    if (object.attachments.length !== desired.attachments.length || object.lights.length !== desired.lights.length) return false;
+    const owners = new Map();
+    const setSignatures = new Set();
+    for (let index = 0; index < desired.attachments.length; index++)
+    {
+      const live = object.attachments[index], value = resolve(desired.attachments[index]);
+      if (!value || !CjsSchema.isInstanceOf(value._type, live)) return false;
+      // Banners derive their images and light colours from external content.
+      if (value._type === "EveBannerSet")
+      {
+        if (live.key !== value.key || live.banners.length !== value.banners.length || live.lights.length !== value.lights.length) return false;
+        continue;
+      }
+      const family = families[value._type];
+      if (!family) return false;
+      const [key, colors] = family;
+      if (live[key].length !== value[key].length || live.lights.length !== value.lights.length) return false;
+      const signatures = value[key].map((item, index) => signature(resolve(item), live[key][index]));
+      const setSignature = JSON.stringify([value._type, signatures]);
+      // Until source associations exist, co-located equal-shaped source items
+      // cannot prove their identity after an editor reorder. Fall back safely.
+      if (new Set(signatures).size !== signatures.length || setSignatures.has(setSignature)) return false;
+      setSignatures.add(setSignature);
+      const lights = value.lights.map(item => resolve(item));
+      const lightSignatures = lights.map((item, index) => JSON.stringify([
+        signature(item, live.lights[index]), signature(item.lightData, live.lights[index]?.lightData)]));
+      if (new Set(lightSignatures).size !== lightSignatures.length) return false;
+      for (let item = 0; item < value[key].length; item++)
+      {
+        const target = live[key][item], source = resolve(value[key][item]);
+        if (!matches(target, source)) return false;
+        if (owners.has(target) && owners.get(target) !== live) return false;
+        owners.set(target, live);
+        for (const name of colors) if (!color(target, name, source[name])) return false;
+      }
+      for (let item = 0; item < value.lights.length; item++)
+      {
+        const target = live.lights[item], source = resolve(value.lights[item]);
+        if (!matches(target, source) || !matches(target.lightData, { _type: "CjsLightData", ...source.lightData })
+          || !color(target.lightData, "color", source.lightData.color)) return false;
+      }
+    }
+    const lightSignatures = desired.lights.map((value, index) => signature(resolve(value), object.lights[index]));
+    if (new Set(lightSignatures).size !== lightSignatures.length) return false;
+    for (let index = 0; index < desired.lights.length; index++)
+    {
+      const live = object.lights[index], value = resolve(desired.lights[index]);
+      if (!matches(live, value) || !color(live, "color", value.color)) return false;
+    }
+    plan.rebuild = new Set();
+    for (const [target, fields] of targets)
+    {
+      const values = {};
+      for (const [key, value] of fields)
+        if (!IRootReaderBase.areEquivalent(target[key], value)) values[key] = value;
+      if (!Object.keys(values).length) continue;
+      plan.changes.push({ object: target, type: getRegisteredClassName(target.constructor), values });
+      if (owners.has(target)) plan.rebuild.add(owners.get(target));
+    }
+    if (!CjsSchema.isInstanceOf("EveChildInheritProperties", object.inheritProperties)) return false;
+    const current = object.inheritProperties.GetProperties();
+    const colors = current.map((value, index) => Float32Array.from(update.dna.GetColorSet()[index] ?? [0, 0, 0, 0]));
+    if (!IRootReaderBase.areEquivalent(current, colors))
+      plan.changes.push({ object, type: getRegisteredClassName(object.constructor), values: { inheritProperties: colors }, inheritColors: true });
+    return true;
+  }
+
+  /**
+   * Plans faction-owned decal glow and logo textures while preserving authored
+   * placement and runtime counters. Item, shader-default and inherited parent
+   * textures take precedence over logos exactly as in standard construction.
+   * @param {object} object Live root whose decal source membership is unchanged.
+   * @param {object} update Complete target DNA and component change flags.
+   * @param {object} plan Validated mesh plan with resolved insert requests.
+   * @returns {boolean} Whether named effect fields and shared destinations agree.
+   */
+  @meta.ours
+  _PlanFactionDecals(object, update, plan)
+  {
+    const dna = update.dna, usage = EveSOFDataHullDecalSetItem.Usage;
+    const shaders = ["decalv5.fx", "decalcounterv5.fx", "decalholev5.fx", "decalcylindricv5.fx", "decalglowcylindricv5.fx", "decalglowv5.fx", "decalv5.fx"];
+    const requests = new Map([...(plan.resolvedTextures ?? []), ...(plan.desiredTextures ?? [])]);
+    const external = new Set((object.externalParameters ?? []).map(value => value.destinationObject));
+    const effects = new Set(["opaqueAreas", "transparentAreas", "additiveAreas", "distortionAreas", "depthAreas"]
+      .flatMap(key => object.mesh[key].map(area => area.effect)));
+    let index = 0;
+    for (let hull = 0; hull < dna.GetMultiHullCount(); hull++)
+    {
+      for (const set of dna.GetHullDecalSets(hull))
+      {
+        if (!dna.IsInVisibilityData(set.visibilityGroup)) continue;
+        for (const item of set.items)
+        {
+          const kind = Number(item.usage), shaderName = shaders[kind];
+          if (!shaderName || (kind === usage.USAGE_LOGO && !dna.HasLogoSet(item.logoType))) continue;
+          const decal = object.decals[index++], effect = decal?.decalEffect;
+          // Decals can overlap at exactly the same placement with different
+          // roles. Require their existing editor source association here.
+          const sourceId = BeObjectMetadata.Get(item, "sof_source_id");
+          if (sourceId === undefined || decal?.__bluemetadata__?.sof_source_id !== sourceId
+            || decal.__bluemetadata__.SofParentHullName !== dna.GetHullNames()[hull]) return false;
+          if (!CjsSchema.isInstanceOf("Tr2Effect", effect) || effects.has(effect)) return false;
+          effects.add(effect);
+          if (kind !== usage.USAGE_STANDARD && kind !== usage.USAGE_LOGO)
+          {
+            const glow = dna.GetColorSet()[item.glowColorType] ?? item.parameters.get("DecalGlowColor") ?? null;
+            const desired = glow ? [{ name: "DecalGlowColor", value: Array.from(glow) }] : [];
+            const values = {};
+            if (!this._CollectConstants(effect.constParameters.filter(value => value.name === "DecalGlowColor"), desired, new Map(), values)) return false;
+            if (Object.keys(values).length) plan.changes.push({ object: effect, type: "Tr2Effect", values });
+          }
+          const shader = dna.GetGenericDecalShaderData(shaderName), wanted = new Map(), logoNames = new Set();
+          for (const [name, value] of item.textures) wanted.set(name, value.resFilePath);
+          for (const [name, value] of shader?.defaultTextures ?? []) if (!wanted.has(name)) wanted.set(name, value.resFilePath);
+          if (item.meshIndex !== -1)
+            for (const name of shader?.parentTextures ?? [])
+            {
+              if (wanted.has(name)) continue;
+              const path = dna.GetHullTextureWithMeshIndex(name, item.meshIndex, hull);
+              if (path !== null) wanted.set(name, path);
+            }
+          if (kind === usage.USAGE_LOGO)
+            for (const [name, value] of dna.GetLogo(item.logoType).textures)
+              if (!wanted.has(name)) { wanted.set(name, value.resFilePath); logoNames.add(name); }
+          if (effect.resources.length !== wanted.size || new Set(effect.resources.map(value => value.name)).size !== wanted.size) return false;
+          for (const texture of effect.resources)
+          {
+            if (!CjsSchema.isInstanceOf("TriTextureParameter", texture) || !wanted.has(texture.name)) return false;
+            const path = logoNames.has(texture.name) ? wanted.get(texture.name)
+              : plan.resolvedTextures?.get(texture) ?? texture.resourcePath;
+            if (requests.has(texture) && requests.get(texture) !== path) return false;
+            requests.set(texture, path);
+            if (texture.resourcePath === path) continue;
+            if (external.has(texture)) return false;
+            const existing = plan.changes.find(change => change.object === texture);
+            if (existing && existing.values.resourcePath !== path) return false;
+            if (!existing) plan.changes.push({ object: texture, type: "TriTextureParameter", values: { resourcePath: path } });
+          }
+        }
+      }
+    }
+    return index === object.decals.length;
   }
 
   /**
@@ -259,8 +527,9 @@ export class CjsSOFUpdater
   @meta.ours
   _PatternTargets(object, before, after)
   {
-    if (JSON.stringify(before.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_PATTERN))
-      === JSON.stringify(after.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_PATTERN))
+    if ((before.GetFactionName() === after.GetFactionName()
+      && JSON.stringify(before.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_PATTERN))
+        === JSON.stringify(after.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_PATTERN)))
       || before.GetLayoutCount() || after.GetLayoutCount()
       || before.GetHullInstancedMeshes().length || after.GetHullInstancedMeshes().length
       || after.GetBuildClass() === EveSOFDataHull.BuildClass.BUILDCLASS_EXTENSION) return null;
@@ -382,6 +651,7 @@ export class CjsSOFUpdater
           plan.changes.push({ object: target.object, type: "TriTextureParameter", values: { resourcePath: paths[index] } });
       }
     }
+    plan.resolvedTextures = resolvedTextures;
     return plan;
   }
 
@@ -408,8 +678,14 @@ export class CjsSOFUpdater
       if (decal.__bluemetadata__?.SofDna === before.GetDnaString() && decal.__bluemetadata__.SofDna !== dna)
         plan.changes.push({ object: decal, type: getRegisteredClassName(decal.constructor), values: { __bluemetadata__: { SofDna: dna } } });
     }
-    if (object.dna !== dna) plan.changes.push({ object, type: getRegisteredClassName(object.constructor), values: { dna } });
     for (const change of plan.changes) this._ApplyChange(change);
+    for (const owner of plan.rebuild ?? []) owner.Rebuild();
+    if (object.dna !== dna)
+    {
+      const change = { object, type: getRegisteredClassName(object.constructor), values: { dna } };
+      this._ApplyChange(change);
+      plan.changes.push(change);
+    }
     return plan.changes.length ? plan.changes.map(change => ({ _type: change.type, ...change.values })) : false;
   }
 
@@ -538,6 +814,7 @@ export class CjsSOFUpdater
       document.AddRoot("default", document.AddNode(getRegisteredClassName(object.constructor), fields));
       const desired = document.ToValues().customMasks;
       if (!this._CollectMasks(object, desired, patterns.anchors, patterns.visited, patterns.owners, plan.changes)) return null;
+      plan.desiredTextures = new Map([...patterns.records].map(([target, value]) => [target, value.resourcePath]));
     }
     return plan;
   }
@@ -668,17 +945,16 @@ export class CjsSOFUpdater
   }
 
   /**
-   * Compares parsed commands and selections, allowing insert/material/pattern/race edits.
+   * Compares parsed commands and selections, allowing insert/material/pattern/race/faction edits.
    * @param {EveSOFDNA|null} before Previous selection.
    * @param {EveSOFDNA|null} after Requested selection.
-   * @returns {boolean} Whether positional matching is supported for this edit.
+   * @returns {boolean} Whether the command scope is eligible for further stage preflight.
    */
   @meta.ours
   _CompatibleDNA(before, after)
   {
     if (!before || !after || before.GetParseError() || after.GetParseError()) return false;
-    if (before.factionName !== after.factionName
-      || JSON.stringify(before.hullNames) !== JSON.stringify(after.hullNames)) return false;
+    if (JSON.stringify(before.hullNames) !== JSON.stringify(after.hullNames)) return false;
     // Compare all authored commands, including unknown ones, without depending
     // on private parser state. Unknown commands must also remain unchanged.
     const commands = dna => dna.GetDnaString().split(":").slice(3)
@@ -1075,6 +1351,11 @@ export class CjsSOFUpdater
   _ApplyChange(change)
   {
     const { object, type, values } = change;
+    if (change.inheritColors)
+    {
+      object.SetInheritProperties(values.inheritProperties);
+      return;
+    }
     if (change.masks)
     {
       while (object.customMasks.length > change.masks.length)

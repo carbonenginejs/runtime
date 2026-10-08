@@ -119,6 +119,30 @@ test("real SOF DNA edits preserve live graphs and match standard builds", { skip
   });
   await sof.InitializeAsync();
 
+  await t.test("af1 SOF6 faction appearance retains live objects and matches full builds", async context =>
+  {
+    const initial = "af1_t1:amarrbase:amarr";
+    const initialValues = await sof.BuildValuesFromDNA(initial);
+    const live = CjsSchema.from(initialValues._type, initialValues), updater = new CjsSOFUpdater(sof);
+    const assertIdentities = Snapshot(live, initialValues);
+    const mesh = live.mesh, attachments = live.attachments, children = live.effectChildren;
+    const Build = sof.BuildValuesFromDNA.bind(sof);
+    const forbidden = context.mock.method(sof, "BuildValuesFromDNA", () => assert.fail("faction full build"));
+    for (const faction of ["amarrnavy", "khanid", "carthum", "viziam", "amarrbase"])
+    {
+      const dna = `af1_t1:${faction}:amarr`;
+      const values = await Build(dna), expected = CjsSchema.from(values._type, values);
+      const start = performance.now();
+      assert.ok(Array.isArray(await updater.UpdateFromDNA(live, dna)), faction);
+      const updateMs = performance.now() - start;
+      assert.equal(live.mesh, mesh); assert.equal(live.attachments, attachments); assert.equal(live.effectChildren, children);
+      assertIdentities();
+      assert.deepEqual(ComparableValues(live), ComparableValues(expected), faction);
+      context.diagnostic(JSON.stringify({ faction, updateMs, fullBuilds: 0 }));
+    }
+    forbidden.mock.restore();
+  });
+
   for (const name of ["Magnate", "Inquisitor", "Avatar Sanguinary Savant"])
   {
     await t.test(name, async context =>
