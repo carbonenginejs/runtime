@@ -4,13 +4,14 @@
 //
 // One body serves the effect family; the effects differ only in their vertex
 // input, as CCP's quad family does. Define SKINNED before including this for
-// the skinned variant. The vertex path follows the shipped
+// the skinned variants, and UNPACKED for hulls with unpacked tangents. The vertex path follows the shipped
 // unpackedskinned_quadv5 (graphics/effect.dx11, Depth technique): one bone per
 // vertex, BLENDINDICES.x into BoneTransforms from PerObjectVS.boneOffsets.x;
 // then worldTransform, then ViewProjectionMat.
 //
-// Unpacked tangents only: these read NORMAL as a float3. A packed variant
-// would decode the normal from TANGENT0's angles instead.
+// Tangents follow CCP's naming: the base name reads packed tangents, one
+// float4 of angles in TANGENT0 decoded by UnpackTangentsLegacy; the
+// `unpacked` names read NORMAL as a float3.
 
 #ifndef QUADOUTLINE_FXH
 #define QUADOUTLINE_FXH
@@ -18,6 +19,9 @@
 #include "../cbuffers/EveSpaceScenePerFrame.fxh"
 #include "../cbuffers/EveSpaceObject.fxh"
 #include "OutlineParameters.fxh"
+#ifndef UNPACKED
+#include "../mesh/Tangents.fxh"
+#endif
 
 #ifdef SKINNED
 // One bone: a 3x4 matrix, three rows with the translation in w, 48 bytes as
@@ -38,13 +42,24 @@ struct QuadOutlineVSInput
 #ifdef SKINNED
     uint4 blendIndices : BLENDINDICES;
 #endif
+#ifdef UNPACKED
     float3 normal : NORMAL;
+#else
+    float4 packedTangent : TANGENT;
+#endif
 };
 
 float4 QuadOutlineVS( QuadOutlineVSInput input ) : SV_Position
 {
     float4 position = float4( input.position, 1.0 );
+#ifdef UNPACKED
     float3 normal = input.normal;
+#else
+    float3 normal;
+    float3 tangent;
+    float3 bitangent;
+    UnpackTangentsLegacy( input.packedTangent, normal, tangent, bitangent );
+#endif
 
 #ifdef SKINNED
     BoneTransform bone = BoneTransforms[PerObjectVS.boneOffsets.x + input.blendIndices.x];

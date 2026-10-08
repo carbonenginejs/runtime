@@ -9,7 +9,7 @@ import { Platform } from "../../src/shadercompiler/platforms.js";
 import { CjsFxEffectCompilerWebGPU, CjsFxHlslPacking } from "../../src/shadercompiler/EffectCompilerWebGPU/index.js";
 import { LIBRARY_ROOT } from "../../scripts/shadercompiler/cbuffer-headers.mjs";
 import { parse } from "./support/parse.js";
-import { releaseDevice, wgslErrors, pipelineError } from "./support/dawn.js";
+import { releaseDevice, wgslErrors, pipelineError, runCompute } from "./support/dawn.js";
 
 after(releaseDevice);
 
@@ -75,7 +75,7 @@ float4 ps(VSOut i) : SV_Target { float4 c = DiffuseMap.Sample(DiffuseSampler, i.
 technique Main { pass P0 { VertexShader = compile vs_5_0 vs(); PixelShader = compile ps_5_0 ps(); } }
 `;
 
-const OUTLINES = ["/outline/unpacked_quadoutline.fx", "/outline/unpackedskinned_quadoutline.fx"];
+const OUTLINES = ["/outline/unpacked_quadoutline.fx", "/outline/unpackedskinned_quadoutline.fx", "/outline/quadoutline.fx", "/outline/skinned_quadoutline.fx"];
 
 test("HLSL cbuffer packing: no straddling, arrays, matrices and structs start a register", () =>
 {
@@ -191,4 +191,75 @@ test("the runtime loads the container and hands every stage its WGSL and block",
             }
         }
     }
+});
+
+/**
+ * Carbon's PackTangentsLegacy (mesh/src/cmf/tangents.cpp:394-411), in JS.
+ *
+ * @param {number[]} n The normal.
+ * @param {number[]} t The tangent.
+ * @param {number[]} b The bitangent.
+ * @returns {number[]} The packed float4.
+ */
+function PackTangentsLegacy(n, t, b)
+{
+    const clamp = x => Math.min(1, Math.max(-1, x));
+    const angles = [Math.atan2(t[1], t[0]), Math.acos(clamp(t[2])), Math.atan2(b[1], b[0]), Math.acos(clamp(b[2]))];
+    const cross = [t[1] * b[2] - t[2] * b[1], t[2] * b[0] - t[0] * b[2], t[0] * b[1] - t[1] * b[0]];
+    if (n[0] * cross[0] + n[1] * cross[1] + n[2] * cross[2] < 0)
+    {
+        angles[1] = -angles[1];
+        angles[3] = -angles[3];
+    }
+    return angles.map(a => Math.min(1, Math.max(0, (a + Math.PI) / (2 * Math.PI))));
+}
+
+test("the packed outline decodes Carbon's legacy tangent frames on the GPU", async () =>
+{
+    const { results } = compile(OUTLINES[2]);
+    const vs = passesOf(results)[0].stages.find(stage => stage.type === 0).shaderData;
+    const start = vs.indexOf("fn UnpackTangentsLegacy(");
+    assert.ok(start >= 0, "the packed variant decodes TANGENT0");
+    const decode = vs.slice(start, vs.indexOf("\n}\n", start) + 2);
+
+    // Orthonormal frames, both handednesses, none with a tangent along z (an
+    // acos of 0 loses the handedness sign in Carbon's encoding too).
+    const frames = [];
+    for (let i = 0; i < 64; ++i)
+    {
+        const a = i * 0.7 + 0.1;
+        const c = Math.cos(i * 0.37 + 0.2) * 0.9;
+        const s = Math.sqrt(1 - c * c);
+        const t = [Math.cos(a) * s, Math.sin(a) * s, c];
+        const helper = Math.abs(t[2]) < 0.9 ? [0, 0, 1] : [1, 0, 0];
+        const n0 = [t[1] * helper[2] - t[2] * helper[1], t[2] * helper[0] - t[0] * helper[2], t[0] * helper[1] - t[1] * helper[0]];
+        const length = Math.hypot(...n0);
+        const n = n0.map(v => v / length);
+        const rightHanded = [n[1] * t[2] - n[2] * t[1], n[2] * t[0] - n[0] * t[2], n[0] * t[1] - n[1] * t[0]];
+        const b = i % 2 === 0 ? rightHanded : rightHanded.map(v => -v);
+        frames.push({ n, packed: PackTangentsLegacy(n, t, b) });
+    }
+
+    const code = `@group(0) @binding(0) var<storage, read> inputs : array<vec4<f32>>;
+@group(0) @binding(1) var<storage, read_write> outputs : array<vec4<f32>>;
+${decode}
+@compute @workgroup_size(1)
+fn main(@builtin(global_invocation_id) id : vec3<u32>)
+{
+    var normal : vec3<f32>;
+    var tangent : vec3<f32>;
+    var bitangent : vec3<f32>;
+    UnpackTangentsLegacy(inputs[id.x], &normal, &tangent, &bitangent);
+    outputs[id.x] = vec4<f32>(normal, 0.0);
+}
+`;
+    assert.deepEqual(await wgslErrors(code), []);
+    const output = await runCompute(code, new Float32Array(frames.flatMap(frame => frame.packed)));
+    frames.forEach((frame, i) =>
+    {
+        for (let k = 0; k < 3; ++k)
+        {
+            assert.ok(Math.abs(output[i * 4 + k] - frame.n[k]) < 1e-3, `frame ${i}: normal ${[...output.subarray(i * 4, i * 4 + 3)]} against ${frame.n}`);
+        }
+    });
 });

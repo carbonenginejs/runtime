@@ -91,3 +91,39 @@ export async function pipelineError(vertex, fragment, buffers, targets = 1)
     const error = await device.popErrorScope();
     return error ? error.message : null;
 }
+
+/**
+ * Runs a compute shader once per vec4 of `input` and returns its vec4 results:
+ * the module's `main` reads `inputs` (binding 0) and writes `outputs`
+ * (binding 1), both `array<vec4<f32>>` storage buffers in group 0.
+ *
+ * @param {string} code The WGSL, with a `@compute @workgroup_size(1) fn main`.
+ * @param {Float32Array} input Four floats per invocation.
+ * @returns {Promise<Float32Array>} Four floats per invocation.
+ */
+export async function runCompute(code, input)
+{
+    const device = await getDevice();
+    const count = input.length / 4;
+    const inputs = device.createBuffer({ size: input.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
+    const outputs = device.createBuffer({ size: input.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC });
+    const readback = device.createBuffer({ size: input.byteLength, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+    device.queue.writeBuffer(inputs, 0, input);
+    const pipeline = device.createComputePipeline({ layout: "auto", compute: { module: device.createShaderModule({ code }), entryPoint: "main" } });
+    const group = device.createBindGroup({
+        layout: pipeline.getBindGroupLayout(0),
+        entries: [{ binding: 0, resource: { buffer: inputs } }, { binding: 1, resource: { buffer: outputs } }]
+    });
+    const encoder = device.createCommandEncoder();
+    const pass = encoder.beginComputePass();
+    pass.setPipeline(pipeline);
+    pass.setBindGroup(0, group);
+    pass.dispatchWorkgroups(count);
+    pass.end();
+    encoder.copyBufferToBuffer(outputs, 0, readback, 0, input.byteLength);
+    device.queue.submit([encoder.finish()]);
+    await readback.mapAsync(GPUMapMode.READ);
+    const result = new Float32Array(readback.getMappedRange().slice(0));
+    readback.unmap();
+    return result;
+}

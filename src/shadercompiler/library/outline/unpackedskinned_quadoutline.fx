@@ -2,4 +2,5 @@
 // this name when a hull's tangents are unpacked and it is skinned.
 
 #define SKINNED
+#define UNPACKED
 #include "QuadOutline.fxh"

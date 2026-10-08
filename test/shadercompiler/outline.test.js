@@ -55,7 +55,7 @@ function annotationsOf(symbol)
     }));
 }
 
-const EFFECTS = ["outline/unpacked_quadoutline.fx", "outline/unpackedskinned_quadoutline.fx"];
+const EFFECTS = ["outline/unpacked_quadoutline.fx", "outline/unpackedskinned_quadoutline.fx", "outline/quadoutline.fx", "outline/skinned_quadoutline.fx"];
 
 test("both quad outline effects compile", () =>
 {
