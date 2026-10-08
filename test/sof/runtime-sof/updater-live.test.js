@@ -3,7 +3,7 @@ import test from "node:test";
 import { performance } from "node:perf_hooks";
 import { EveSOF, CjsSOFUpdater } from "../../../npm/dist/sof/index.js";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
-import { TriTextureParameter } from "../../../npm/dist/trinity/index.js";
+import { TriTextureParameter, Tr2Effect } from "../../../npm/dist/trinity/index.js";
 import { AudEmitter } from "../../../npm/dist/audio/trinity/index.js";
 import { composeStubResMan } from "../../support/stubResMan.js";
 
@@ -168,6 +168,42 @@ test("real SOF insert edits preserve live graphs and match standard builds", { s
         decals: live.decals.length, updateMs, cpuBuildAndHydrateMs: rebuildMs }));
     });
   }
+
+  await t.test("Magnate mesh materials retain constants and refresh only changed effects", async context =>
+  {
+    const { dna } = await Read("/dna/resolve?name=Magnate");
+    const before = await sof.BuildValuesFromDNA(dna);
+    const live = CjsSchema.from(before._type, before), assertIdentities = Snapshot(live, before);
+    const nextDna = dna + ":material?aqua_blue_colorshift_polished;none;none;none";
+    const desired = await sof.BuildValuesFromDNA(nextDna);
+    const rebuilt = CjsSchema.from(desired._type, desired);
+    const oldConstants = new Map();
+    VisitAuthored(live, before, object =>
+    {
+      if (CjsSchema.cast(object, Tr2Effect)) oldConstants.set(object, JSON.stringify(object.constParameters.map(value => Array.from(value.value))));
+    });
+    const calls = [], rebuild = Tr2Effect.prototype.RebuildCachedDataInternal;
+    const spy = context.mock.method(Tr2Effect.prototype, "RebuildCachedDataInternal", function(...args)
+    {
+      calls.push(this);
+      return rebuild.apply(this, args);
+    });
+    const requests = resources.requests.length;
+    const updater = new CjsSOFUpdater(sof);
+    assert.ok(Array.isArray(await updater.UpdateFromDNA(live, nextDna)));
+    assertIdentities();
+    const changed = new Set([...oldConstants].filter(([effect, value]) => value !== JSON.stringify(effect.constParameters.map(record => Array.from(record.value)))).map(([effect]) => effect));
+    assert.ok(changed.size > 0);
+    assert.equal(calls.length, changed.size);
+    assert.equal(new Set(calls).size, changed.size);
+    assert.ok(calls.every(effect => changed.has(effect)));
+    assert.equal(resources.requests.length, requests);
+    assert.deepEqual(ComparableValues(live), ComparableValues(rebuilt));
+    assert.equal(await updater.UpdateFromDNA(live, nextDna), false);
+    assert.equal(calls.length, changed.size);
+    spy.mock.restore();
+    context.diagnostic(JSON.stringify({ resourceBase, changedEffects: changed.size }));
+  });
 
   await t.test("Deathless hangar retains authored slots and matches requested texture paths", async context =>
   {

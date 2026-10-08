@@ -9,6 +9,23 @@ const resources = composeStubResMan();
 const originalDna = "hull:faction:race:respathinsert?none";
 const insertedDna = "hull:faction:race:respathinsert?insert";
 
+/** Material fixture with two independently changeable constants and a fallback. */
+async function MaterialFixture()
+{
+  return Fixture(options =>
+  {
+    options.black.generic.materialPrefixes = [{ str: "Mtl1" }, { str: "Mtl2" }];
+    const shader = options.black.generic.areaShaders[0];
+    shader.parameters = [{ str: "Mtl1Diffuse" }, { str: "Mtl1Fresnel" }];
+    shader.defaultParameters = [{ name: "Mtl1Diffuse", value: [0.1, 0.2, 0.3, 1] },
+      { name: "Mtl1Fresnel", value: [0.1, 0.1, 0.1, 1] }];
+    options.black.material = [
+      { name: "red", parameters: [{ name: "Diffuse", value: [1, 0.2, 0.1, 1] }, { name: "Fresnel", value: [0.3, 0.3, 0.3, 1] }] },
+      { name: "blue", parameters: [{ name: "Diffuse", value: [0.1, 0.2, 2, 1] }, { name: "Fresnel", value: [0.6, 0.6, 0.6, 1] }] }
+    ];
+  }, originalDna + ":material?red;none");
+}
+
 /** Small authored catalog built and hydrated through the real public entry points. */
 async function Fixture(configure = null, dna = originalDna)
 {
@@ -115,12 +132,14 @@ for (const mismatch of ["name", "length", "type"])
   });
 }
 
-test("effective faction defaults are no-ops and unrelated DNA edits request rebuild", async () =>
+test("equivalent faction defaults update provenance without resource reloads; unrelated edits rebuild", async () =>
 {
   const { ship, updater, sof } = await Fixture();
   await updater.UpdateFromDNA(ship, insertedDna);
-  assert.equal(await updater.UpdateFromDNA(ship, "hull:faction:race"), false);
-  assert.equal(await updater.UpdateFromDNA(ship, "HULL:FACTION:RACE:RESPATHINSERT?INSERT"), false);
+  const requests = resources.requests.length;
+  assert.ok(await updater.UpdateFromDNA(ship, "hull:faction:race"));
+  assert.ok(await updater.UpdateFromDNA(ship, "HULL:FACTION:RACE:RESPATHINSERT?INSERT"));
+  assert.equal(resources.requests.length, requests);
   assert.equal(await updater.UpdateFromDNA(ship, insertedDna + ":class?stationary"), null);
   assert.equal(await updater.UpdateFromDNA(ship, "bad:dna"), null);
   const before = resources.requests.length;
@@ -137,10 +156,10 @@ test("an older async update cannot overwrite a newer request", async t =>
   let release, started;
   const waiting = new Promise(resolve => { release = resolve; });
   const entered = new Promise(resolve => { started = resolve; });
+  let builds = 0;
   t.mock.method(sof, "BuildValuesFromDNA", async (...args) =>
   {
-    started();
-    await waiting;
+    if (++builds === 1) { started(); await waiting; }
     return build(...args);
   });
   const pending = updater.UpdateFromDNA(ship, insertedDna);
@@ -288,3 +307,65 @@ for (const mode of ["ordinary", "instanced", "shared"])
     assert.deepEqual(CjsSchema.getValues(ship), CjsSchema.getValues(CjsSchema.from(desired._type, desired)));
   });
 }
+
+for (const command of ["material", "mesh"]) test(`${command} edits refresh only their effect and preserve packed constants`, async t =>
+{
+  const { ship, updater, sof } = await MaterialFixture();
+  const second = CjsSchema.from("EveShip2", await sof.BuildValuesFromDNA(ship.dna));
+  const secondBefore = CjsSchema.getValues(second);
+  const effect = ship.mesh.opaqueAreas[0].effect, list = effect.constParameters;
+  const records = list.slice(), vectors = list.map(record => record.value);
+  const rebuild = t.mock.method(effect, "RebuildCachedDataInternal");
+  const requestCount = resources.requests.length;
+  const nextDna = originalDna + `:${command}?blue;none`;
+  const desired = await sof.BuildValuesFromDNA(nextDna);
+  const rebuilt = CjsSchema.from(desired._type, desired);
+  assert.ok(await updater.UpdateFromDNA(ship, nextDna));
+  assert.equal(rebuild.mock.callCount(), 1);
+  assert.equal(effect.constParameters, list);
+  records.forEach((record, index) =>
+  {
+    assert.equal(list[index], record);
+    assert.equal(list[index].value, vectors[index]);
+  });
+  assert.deepEqual(CjsSchema.getValues(ship), CjsSchema.getValues(rebuilt));
+  assert.deepEqual(CjsSchema.getValues(second), secondBefore);
+  // Fresh comparison construction acquires its own resources; replay must not.
+  const requests = resources.requests.length;
+  assert.equal(await updater.UpdateFromDNA(ship, nextDna), false);
+  assert.equal(rebuild.mock.callCount(), 1);
+  assert.equal(resources.requests.length, requests);
+  assert.ok(requests >= requestCount);
+  const defaults = originalDna + ":material?none;none";
+  assert.ok(await updater.UpdateFromDNA(ship, defaults));
+  assert.equal(rebuild.mock.callCount(), 2);
+  assert.equal(await updater.UpdateFromDNA(ship, defaults), false, "float32 defaults are stable on replay");
+});
+
+test("material DNA edits use current catalog values and preflight late topology mismatches", async t =>
+{
+  const { ship, updater, sof } = await MaterialFixture();
+  const nextDna = originalDna + ":material?blue;none";
+  const material = sof.dataMgr.GetMaterialData("blue");
+  material.parameters.get("Diffuse")[2] = 7;
+  assert.ok(await updater.UpdateFromDNA(ship, nextDna));
+  assert.equal(ship.mesh.opaqueAreas[0].effect.constParameters[0].value[2], 7);
+  const desired = await sof.BuildValuesFromDNA(originalDna + ":material?red;none");
+  desired.mesh.opaqueAreas[0].effect.constParameters[1].name = "unexpected";
+  t.mock.method(sof, "BuildValuesFromDNA", async () => desired);
+  const before = CjsSchema.getValues(ship), effect = ship.mesh.opaqueAreas[0].effect;
+  const rebuild = t.mock.method(effect, "RebuildCachedDataInternal");
+  assert.equal(await updater.UpdateFromDNA(ship, originalDna + ":material?red;none"), null);
+  assert.equal(rebuild.mock.callCount(), 0);
+  assert.deepEqual(CjsSchema.getValues(ship), before);
+});
+
+test("a changed faction default cannot disguise a requested insert as a no-op", async () =>
+{
+  const { ship, updater, sof } = await Fixture(null, "hull:faction:race");
+  const texture = ship.mesh.opaqueAreas[0].effect.resources[0];
+  assert.equal(texture.resourcePath, "res:/insert/ship_insert_d.dds");
+  sof.dataMgr.GetFactionData("faction").resPathInsert = "none";
+  assert.ok(await updater.UpdateFromDNA(ship, originalDna));
+  assert.equal(texture.resourcePath, "res:/ship_d.dds");
+});

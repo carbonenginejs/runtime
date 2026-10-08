@@ -5,7 +5,7 @@ import { EveSOFDNA } from "./EveSOFDNA.js";
 
 /**
  * Updates existing SOF graphs using the standard factory's values as the oracle.
- * Phase one handles respathinsert alone. It retains lists, objects and unrelated
+ * Handles resource inserts and mesh materials. It retains lists, objects and unrelated
  * live state; structural incompatibility requests a full rebuild before writes.
  */
 @meta.define({ className: "CjsSOFUpdater", family: "sof" })
@@ -28,7 +28,7 @@ export class CjsSOFUpdater
   }
 
   /**
-   * Applies a respathinsert-only DNA edit after validating the entire graph.
+   * Applies a supported DNA edit after validating the entire graph.
    * No list is passed to the values service. Notifications are left to that
    * service, once per changed member. Build errors reject without applying edits.
    * Superseded requests return false. Application errors propagate; arbitrary
@@ -50,7 +50,6 @@ export class CjsSOFUpdater
     const newSelection = await this._sof.CreateDna(newDna, options);
     if (this._updates.get(object) !== request || object.dna !== originalDna) return false;
     if (!this._CompatibleDNA(oldSelection, newSelection)) return null;
-    if (this._EffectiveInsert(oldSelection) === this._EffectiveInsert(newSelection)) return false;
 
     const values = await this._sof.BuildValuesFromDNA(newDna, options);
     if (this._updates.get(object) !== request || object.dna !== originalDna) return false;
@@ -68,7 +67,7 @@ export class CjsSOFUpdater
   }
 
   /**
-   * Compares parsed commands and catalog selections, allowing only insert edits.
+   * Compares parsed commands and catalog selections, allowing insert/material edits.
    * @param {EveSOFDNA|null} before Previous selection.
    * @param {EveSOFDNA|null} after Requested selection.
    * @returns {boolean} Whether positional matching is supported for this edit.
@@ -82,24 +81,11 @@ export class CjsSOFUpdater
     // Compare all authored commands, including unknown ones, without depending
     // on private parser state. Unknown commands must also remain unchanged.
     const commands = dna => dna.GetDnaString().split(":").slice(3)
-      .filter(command => !command.startsWith("respathinsert?"));
+      .filter(command => !/^(respathinsert|material|mesh)\?/.test(command));
     if (JSON.stringify(commands(before)) !== JSON.stringify(commands(after))) return false;
     const insert = after.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_RESPATHINSERT);
     const previousInsert = before.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_RESPATHINSERT);
     return (!insert || insert.length === 1) && (!previousInsert || previousInsert.length === 1);
-  }
-
-  /**
-   * Resolves the insert command over the faction default, as EveSOFDNA does.
-   * @param {EveSOFDNA} dna Parsed selection.
-   * @returns {string} Lowercase effective insert, empty when disabled.
-   */
-  @meta.ours
-  _EffectiveInsert(dna)
-  {
-    const args = dna.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_RESPATHINSERT);
-    const value = args ? args[0] : (dna.factionData.resPathInsert || "");
-    return value.toLowerCase() === "none" ? "" : value.toLowerCase();
   }
 
   /**
@@ -164,6 +150,11 @@ export class CjsSOFUpdater
     for (const [key, value] of Object.entries(desired))
     {
       if (key === "_type" || key === "_id") continue;
+      if (type === "Tr2Effect" && key === "constParameters")
+      {
+        if (!this._CollectConstants(live.constParameters, value, anchors, patch)) return false;
+        continue;
+      }
       const field = type && CjsSchema.getField(live.constructor, key);
       if (field?.type?.kind === "structList")
       {
@@ -231,6 +222,40 @@ export class CjsSOFUpdater
       slots.add(live[index]);
       if (!this._CollectChanges(live[index], desired[index], anchors, new WeakMap(), new WeakMap(), changes)) return false;
     }
+    return true;
+  }
+
+  /**
+   * Collects changed packed constants into the effect's existing named setter.
+   * Records have no notification hook; SetConstParameters refreshes their owner
+   * and retains each existing record and vec4. Float32 comparison matches storage.
+   * Topology changes are left to the caller's rebuild path.
+   * @param {Array<object>} live Existing constant records.
+   * @param {Array<object>} desired Requested constant records.
+   * @param {Map} anchors Enclosing reference targets.
+   * @param {object} patch Pending effect values.
+   * @returns {boolean} Whether constants have compatible names and shapes.
+   */
+  @meta.ours
+  _CollectConstants(live, desired, anchors, patch)
+  {
+    if (!Array.isArray(live) || !Array.isArray(desired) || live.length !== desired.length) return false;
+    const names = new Set(), constants = Object.create(null);
+    for (let index = 0; index < desired.length; index++)
+    {
+      let value = desired[index];
+      if (value && Object.hasOwn(value, "_ref")) value = anchors.get(value._ref);
+      const current = live[index];
+      if (!value || !CjsSchema.isInstanceOf("Tr2ConstantEffectParameter", current)
+        || (value._type && value._type !== "Tr2ConstantEffectParameter")
+        || typeof value.name !== "string" || value.name !== current.name || names.has(value.name)
+        || !Array.isArray(value.value) || value.value.length !== 4 || current.value.length !== 4
+        || !value.value.every(Number.isFinite)) return false;
+      names.add(value.name);
+      const vector = value.value.map(Math.fround);
+      if (vector.some((component, axis) => !Object.is(current.value[axis], component))) constants[value.name] = vector;
+    }
+    if (Object.keys(constants).length) patch.constParameters = constants;
     return true;
   }
 }
