@@ -10,16 +10,15 @@
 // DELIBERATELY PARTIAL. Carbon's Execute is a forty-step frame: background,
 // reflection, depth prepass, shadows, SSAO, light lists, distortion, the main
 // colour pass, overlays, lensflare occlusion, post-process and 3D UI. This
-// implements the spine - update, gather, submit opaque and decal - and nothing
-// else. Every omitted stage is a later insertion into the SAME sequence rather
-// than a redesign, and they are listed on Execute so a reader can tell "not
-// yet" from "not needed".
+// implements the frame sequence through scene overlays and post-processing.
+// Unported upscaling, named outputs and 3D UI remain explicit limitations.
 //
 // It does not own the passes Carbon's scene owns. CarbonEngineJS splits
 // Carbon's BeginRender/GatherBatches into scene-owned CPU methods that a driver
 // calls in order; that contract is written on EveSpaceScene itself, and this is
 // the driver it describes.
 import { meta } from "#schema";
+import { ITr2RenderNode } from "#interfaces/ITr2RenderNode";
 import { CcpTime } from "#blue";
 import { vec4 } from "#math/vec4";
 import { mat4 } from "#math/mat4";
@@ -53,6 +52,7 @@ import "#consts/renderContext/formats";
 
 /** Collects camera, quality, pass-toggle, overlay, background, and post-process state for driving an EVE space-scene frame. */
 @meta.define({ className: "EveSpaceSceneRenderDriver", family: "eve/scene", purpose: "Collects camera, quality, pass-toggle, overlay, background, and post-process state for driving an EVE space-scene frame." })
+@meta.blue.inherit(ITr2RenderNode)
 export class EveSpaceSceneRenderDriver
 {
 
@@ -349,28 +349,45 @@ export class EveSpaceSceneRenderDriver
   }
 
   /**
-   * Whether this node can run against the requested destinations.
-   *
-   * Carbon guards on a scene plus either a camera or a view/projection pair
-   * (EveSpaceSceneRenderDriver.cpp:406-425) and returns rather than failing,
-   * because a driver with nothing to draw is a legitimate frame.
-   *
-   * @returns {boolean} Whether Execute would draw.
+   * Validates the frame and its child nodes before the render job executes it
+   * (EveSpaceSceneRenderDriver.cpp:299-345).
+   * Adapted: destination spans contain JS dimension records. Upscaling and
+   * named outputs are not ported, so render size is the destination size.
+   * @param {Array<object>} destinationDimensions Destination descriptions.
+   * @param {Array<string>} _outputs Named outputs, not yet supported.
+   * @param {number} realTime Real time in Blue ticks.
+   * @param {number} simTime Simulation time in Blue ticks.
+   * @returns {boolean} Whether the render-job step may execute this frame.
    */
-  Validate(_destinationDimensions = null, _outputs = null, _realTime = 0, _simTime = 0)
+  @meta.adapted
+  Validate(destinationDimensions = [], _outputs = [], realTime = 0, simTime = 0)
   {
-    if (!this.scene) return false;
+    if (!destinationDimensions.length) return false;
+    if (!this.enableRendering) return true;
+    if (!this.scene || !(this.camera || (this.view && this.projection))) return false;
 
-    return Boolean(this.camera || (this.view && this.projection));
+    const { width, height } = destinationDimensions[0];
+    // EveSpaceSceneRenderDriver.cpp:326-333: background validates first.
+    if (this.background && !this.background.Validate([
+      { width, height, depth: 1, mipCount: 1, arraySize: 1, type: TextureType.TEX_TYPE_2D, format: this.internalPixelFormat }
+    ], [], realTime, simTime)) return false;
+
+    // EveSpaceSceneRenderDriver.cpp:334-345: slot 1 describes velocity even
+    // when this frame will not allocate a velocity texture.
+    if (this.sceneOverlay && !this.sceneOverlay.Validate([
+      { width, height, depth: 1, mipCount: 1, arraySize: 1, type: TextureType.TEX_TYPE_2D, format: this.internalPixelFormat },
+      { width, height, depth: 1, mipCount: 1, arraySize: 1, type: TextureType.TEX_TYPE_2D, format: PixelFormat.PIXEL_FORMAT_R16G16_FLOAT }
+    ], [], realTime, simTime)) return false;
+
+    return true;
   }
 
   /**
    * Drives one frame of a space scene into its destination.
    *
-   * The spine of Carbon's Execute, in Carbon's order. NOT here, each an
-   * insertion into this same sequence: the background node, the reflection
-   * pass, shadows, the light-list update, the distortion map, the scene
-   * overlay and 3D UI. The scene renders into
+   * Run through a TriRenderJob containing Tr2StepExecuteRenderNode, which
+   * validates the driver and its children before executing. Direct execution
+   * is not a supported application entry point. The scene renders into
    * its own colour and depth, plus the depth pass's normal map when ambient
    * occlusion is on and TAA's velocity map and opaque copy when
    * anti-aliasing is on, and the post process draws it into the destination.
@@ -378,11 +395,15 @@ export class EveSpaceSceneRenderDriver
    * Rendering-disabled is not a no-op in Carbon either: the scene still
    * updates, so simulation keeps running while nothing is drawn (cpp:408-419).
    *
+   * Adapted: the scene's CPU gather is split across driver and scene methods;
+   * upscaling, named outputs and 3D UI remain unported. A null destination is
+   * retained only for isolated legacy tests. JS returns a submission boolean.
    * @returns {boolean} Whether anything was submitted.
    */
-  Execute(destinations = null, _outputs = null, realTime = 0, simTime = 0, _rootTimer = null, renderContext = null)
+  @meta.adapted
+  Execute(destinations = null, _outputs = null, realTime = 0, simTime = 0, rootTimer = null, renderContext = null)
   {
-    if (this._destroyed || !renderContext || !this.Validate()) return false;
+    if (this._destroyed || !renderContext || !this.scene || !(this.camera || (this.view && this.projection))) return false;
 
     const target = Array.isArray(destinations) ? destinations[0] ?? null : destinations;
 
@@ -444,9 +465,24 @@ export class EveSpaceSceneRenderDriver
 
     try
     {
-      if (offscreen) this._BeginRenderPass(esm, [ offscreen.color.Get() ], offscreen.depth.Get());
+      // EveSpaceSceneRenderDriver.cpp:463-468: background has no depth and
+      // starts with a target-only clear before executing into scene colour.
+      if (offscreen && this.background)
+      {
+        this._BeginRenderPass(esm, [ offscreen.color.Get() ], null);
+        renderContext.Clear({ clearColor: true, color: this.clearColor, depth: 0 });
+        this.background.Execute([ offscreen.color.Get() ], [], realTime, simTime, rootTimer, renderContext);
+      }
 
-      renderContext.Clear({ color: this.clearColor, depth: 0 });
+      if (offscreen)
+      {
+        offscreen.depth = this._TempTexture("depthBuffer", offscreen.size, PixelFormat.PIXEL_FORMAT_D32_FLOAT,
+          Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE);
+        this._BeginRenderPass(esm, [ offscreen.color.Get() ], offscreen.depth.Get());
+      }
+
+      // EveSpaceSceneRenderDriver.cpp:474: preserve the authored background.
+      renderContext.Clear({ clearColor: !this.background, clearDepth: true, color: this.clearColor, depth: 0 });
 
       // AFTER the scene target is bound (cpp:473-476), because the projection
       // and frustum read the bound viewport; BEFORE the update, so the scene's
@@ -484,6 +520,22 @@ export class EveSpaceSceneRenderDriver
 
       // cpp:565 - SSAOMap is emptied after the main pass.
       this._RegisterSSAOMap(null);
+
+      // EveSpaceSceneRenderDriver.cpp:579-583: outside the main-pass gate,
+      // after its opaque copy and distortion, before normal-map retirement.
+      if (offscreen && this.sceneOverlay)
+      {
+        this.sceneOverlay.Execute([ offscreen.color.Get(), offscreen.velocity?.Get() ?? null ],
+          [], realTime, simTime, rootTimer, renderContext);
+      }
+
+      // EveSpaceSceneRenderDriver.cpp:584-585: the overlay is the last reader.
+      this._normalMapReference.SetTexture(null);
+      if (offscreen?.normal)
+      {
+        this._gpuResourcePool.Free(offscreen.normal);
+        offscreen.normal = null;
+      }
 
       // LENS-FLARE OCCLUSION (cpp:587-592), after the main pass on the scene
       // target with read-only depth: each lensflare's queries, then the
@@ -524,6 +576,8 @@ export class EveSpaceSceneRenderDriver
 
       // An interrupted scene pass must also drop the opaque-map share.
       if (this._opaqueMapReference.GetTexture()) this._opaqueMapReference.SetTexture(null);
+
+      this._normalMapReference.SetTexture(null);
 
       // The normal map is an Execute local in Carbon (cpp:514), never handed
       // to the post process.
@@ -638,10 +692,13 @@ export class EveSpaceSceneRenderDriver
    * pass runs. They land on `offscreen` so the post process receives them and
    * an early exit frees them.
    *
+   * Adapted: BeginRender's CPU gather is split with the scene and native
+   * RenderMainPass batches are submitted here through the JS batch manager.
    * @param {object} renderContext Recording render context.
    * @param {object|null} offscreen The scene's borrowed targets, if any.
    * @returns {boolean} Whether anything was submitted.
    */
+  @meta.adapted
   _RenderMainPass(renderContext, offscreen)
   {
     // BeginRender's CPU half, in the order EveSpaceScene's own contract gives.
@@ -743,7 +800,24 @@ export class EveSpaceSceneRenderDriver
 
     // Carbon gates the main pass on the scene's display flag AND this switch
     // (cpp:527).
-    if (!this.mainPassRenderingEnabled || this.scene.display === false) return false;
+    if (!this.mainPassRenderingEnabled || this.scene.display === false)
+    {
+      // EveSpaceSceneRenderDriver.cpp:567-578: TAA may still need a colour
+      // copy when the main pass is skipped. It precedes the scene overlay.
+      if (offscreen)
+      {
+        offscreen.opaque = this._GetOpaqueColorMapIfNeeded(offscreen.size);
+        if (offscreen.opaque)
+        {
+          renderContext.RenderPassHint(new Tr2ColorAttachment(Tr2LoadAction.DONT_CARE, Tr2StoreAction.STORE), null);
+          const esm = renderContext.GetEffectStateManager();
+          this._BeginRenderPass(esm, [ offscreen.opaque.Get() ], null);
+          esm.ApplyStandardStates(RenderingMode.RM_FULLSCREEN);
+          Tr2Renderer.drawTexture(renderContext, offscreen.color.Get());
+        }
+      }
+      return false;
+    }
 
     // SHADOWS (cpp:529-532), after the depth pass: the cascaded shadow map and
     // its screen-space factor, held until the frame ends.
@@ -1134,9 +1208,11 @@ export class EveSpaceSceneRenderDriver
   }
 
   /**
-   * Borrows the scene's colour and depth (cpp:461, 471): the internal pixel
-   * format at the destination's size, and a 32-bit float depth.
+   * Borrows scene colour (cpp:461); Execute borrows depth after the background
+   * node (cpp:471). Adapted: JS groups the native local pool handles in one
+   * frame record for explicit cleanup instead of C++ RAII.
    */
+  @meta.ours
   _BeginOffscreen(target, renderContext)
   {
     const pool = this._gpuResourcePool;
@@ -1157,7 +1233,7 @@ export class EveSpaceSceneRenderDriver
     return {
       size,
       color: texture("customBackBuffer", this.internalPixelFormat, Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE),
-      depth: texture("depthBuffer", PixelFormat.PIXEL_FORMAT_D32_FLOAT, Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE),
+      depth: null,
       // Borrowed by the main pass when TAA needs them (_RenderMainPass).
       velocity: null,
       opaque: null,

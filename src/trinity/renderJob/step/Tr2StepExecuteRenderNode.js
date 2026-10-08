@@ -34,8 +34,9 @@ export class Tr2StepExecuteRenderNode extends TriRenderStep
    * Validates and executes the owned render-node contract. The runtime render
    * context records Carbon's failure clear as engine-consumable intents.
    *
-   * Adapted: The JS node receives the Tr2RenderTarget graph object and a null root timer;
-   * its target and timing handles are not ported yet.
+   * Adapted: dimension spans contain JS value records and the unported
+   * profile timer is null. The destination is the underlying texture, as in
+   * Tr2StepExecuteRenderNode.cpp:35-49.
    */
   @meta.blue.method
   @meta.adapted
@@ -51,7 +52,7 @@ export class Tr2StepExecuteRenderNode extends TriRenderStep
     {
       if (this.clearTargetOnFailure)
       {
-        this.#ClearOnFailure(renderContext);
+        this._ClearOnFailure(renderContext);
         return TriRenderStep.Result.RS_OK;
       }
       return TriRenderStep.Result.RS_FAILED;
@@ -73,18 +74,18 @@ export class Tr2StepExecuteRenderNode extends TriRenderStep
     {
       if (this.clearTargetOnFailure)
       {
-        this.#ClearOnFailure(renderContext);
+        this._ClearOnFailure(renderContext);
         return TriRenderStep.Result.RS_OK;
       }
       return TriRenderStep.Result.RS_FAILED;
     }
 
-    this.node.Execute([target], [], realTime, simTime, null, renderContext);
+    this.node.Execute([target.GetRenderTarget()], [], realTime, simTime, null, renderContext);
     return TriRenderStep.Result.RS_OK;
   }
 
   /** Records Carbon's black target-only clear after a recoverable failure. */
-  #ClearOnFailure(renderContext)
+  _ClearOnFailure(renderContext)
   {
     renderContext.SetRenderTarget(0, this.destinationTarget);
     renderContext.SetDepthStencil(null);

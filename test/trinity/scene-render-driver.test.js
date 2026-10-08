@@ -15,9 +15,10 @@ import {
   Tr2VariableStore,
   Tr2VolumetricsRenderer,
   TriProjection,
-  TriView
+  TriView, TriRenderJob, Tr2StepExecuteRenderNode, Tr2RenderTarget, Tr2Renderer
 } from "../../npm/dist/trinity/index.js";
 import { RenderingMode, TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
+import { PixelFormat, TextureType } from "../../npm/dist/global/consts/renderContext/index.js";
 import { StubContext, StubTarget } from "../support/stubContext.js";
 
 /**
@@ -160,7 +161,7 @@ test("a driver with no scene, or no camera and no view, does not draw", () =>
 
   driver.view = {};
   driver.projection = {};
-  assert.equal(driver.Validate(), true);
+  assert.equal(driver.Validate([{ width: 64, height: 64 }]), true);
 });
 
 test("the frame runs Carbon's order", () =>
@@ -808,4 +809,166 @@ test("the main pass runs inside its own managed-rendering span (EveSpaceScene.cp
 
   assert.ok(spans.includes("begin") && spans.includes("end"), "the main pass opens and closes a span");
   assert.equal(esm.IsManagedRendering(), false, "the main pass's span is closed when the frame ends");
+});
+
+/** Composes the supported driver entry point: a real job and render-node step. */
+function nodeJob(t, driver, context)
+{
+  const target = new Tr2RenderTarget();
+  target.Create(80, 48, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM, 1, 0, 0, TextureType.TEX_TYPE_2D, context);
+  const step = new Tr2StepExecuteRenderNode();
+  step.node = driver;
+  step.destinationTarget = target;
+  step.clearTargetOnFailure = false;
+  const job = new TriRenderJob();
+  job.steps.push(step);
+  t.after(() => { driver.Destroy(); target.Destroy(); });
+  return { job, step, target };
+}
+
+for (const skipped of [false, "disabled", "hidden"])
+{
+  test(`render job runs authored background and overlay in Carbon order; main=${skipped || "on"}`, t =>
+  {
+    const calls = [];
+    const driver = driverOver(calls);
+    const context = StubContext();
+    const { job, target } = nodeJob(t, driver, context);
+    driver.forceNormalMap = true;
+    driver.forceVelocityMap = true;
+    driver.forceOpaqueBuffer = true;
+    driver.mainPassRenderingEnabled = skipped !== "disabled";
+    driver.scene.display = skipped !== "hidden";
+    const validations = [];
+    const executions = [];
+    const trace = [];
+    const al = context.GetRenderContextAL();
+    const clear = al.Clear.bind(al);
+    t.mock.method(al, "Clear", options =>
+    {
+      trace.push({ name: "clear", options: { ...options }, depth: context.GetDepthStencil() });
+      return clear(options);
+    });
+    const main = driver._RenderMainPass.bind(driver);
+    t.mock.method(driver, "_RenderMainPass", (...args) =>
+    {
+      trace.push({ name: "main-start" });
+      const result = main(...args);
+      trace.push({ name: "main-end" });
+      return result;
+    });
+    const draw = Tr2Renderer.drawTexture;
+    t.mock.method(Tr2Renderer, "drawTexture", (...args) =>
+    {
+      trace.push({ name: "copy" });
+      return draw(...args);
+    });
+    const normal = () => driver._normalMapReference.GetTexture();
+    const node = name => ({
+      Validate(...args) { validations.push({ name, args }); return true; },
+      Execute(...args)
+      {
+        trace.push({ name });
+        executions.push({ name, args });
+        if (name === "background") assert.equal(context.GetDepthStencil(), null);
+        else if (!skipped) assert.ok(normal().IsValid(), "cpp:579-585: normals remain available to overlay");
+      }
+    });
+    driver.background = node("background");
+    driver.sceneOverlay = node("overlay");
+    const queries = driver.scene.RunLensflareOcclusionQueries;
+    driver.scene.RunLensflareOcclusionQueries = (...args) =>
+    {
+      trace.push({ name: "queries" });
+      assert.equal(normal().IsValid(), false, "cpp:584-587: normals unbound before queries");
+      return queries(...args);
+    };
+    const post = driver.postProcess.Execute.bind(driver.postProcess);
+    t.mock.method(driver.postProcess, "Execute", (...args) =>
+    {
+      trace.push({ name: "post" });
+      assert.equal(args[0], target.GetRenderTarget(), "step passes Carbon's underlying destination texture");
+      assert.equal(executions[0].args[0][0], args[1].Get());
+      assert.deepEqual(executions[1].args[0], [args[1].Get(), args[3].Get()]);
+      assert.ok(args[4], "cpp:548,570: opaque copy exists with or without main pass");
+      assert.equal(normal().IsValid(), false);
+      return post(...args);
+    });
+    assert.equal(job.Run(17, 29, context), TriRenderJob.Status.RJ_DONE);
+    const colour = { width: 80, height: 48, depth: 1, mipCount: 1, arraySize: 1, type: TextureType.TEX_TYPE_2D, format: driver.internalPixelFormat };
+    assert.deepEqual(validations, [
+      { name: "background", args: [[colour], [], 17, 29] },
+      { name: "overlay", args: [[colour, { ...colour, format: PixelFormat.PIXEL_FORMAT_R16G16_FLOAT }], [], 17, 29] }
+    ], "cpp:326-345: validate each child once, background first");
+    for (const { args } of executions) assert.deepEqual(args.slice(1), [[], 17, 29, null, context]);
+    const names = trace.map(x => x.name);
+    assert.deepEqual(names.slice(0, 4), ["clear", "background", "clear", "main-start"]);
+    assert.equal(trace[0].options.clearColor, true);
+    assert.equal(trace[0].options.clearDepth, undefined, "background preclear is TARGET only");
+    assert.equal(trace[2].options.clearColor, false);
+    assert.equal(trace[2].options.clearDepth, true);
+    assert.equal(trace[2].options.depth, 0);
+    assert.ok(names.indexOf("copy") < names.indexOf("overlay"), "cpp:548-583: copy precedes overlay");
+    assert.ok(names.indexOf("main-end") < names.indexOf("overlay"));
+    assert.ok(names.indexOf("overlay") < names.indexOf("queries"));
+    assert.ok(names.indexOf("queries") < names.indexOf("post"));
+  });
+}
+
+test("render job without background clears target and depth; overlay keeps its empty velocity slot", t =>
+{
+  const driver = driverOver([]);
+  const context = StubContext();
+  const { job } = nodeJob(t, driver, context);
+  driver.antiAliasingQuality = EveSpaceSceneRenderDriver.AntiAliasingQuality.Disabled;
+  const clears = [];
+  const al = context.GetRenderContextAL();
+  const clear = al.Clear.bind(al);
+  t.mock.method(al, "Clear", options => { clears.push(options); return clear(options); });
+  let executed = false;
+  driver.sceneOverlay = {
+    Validate() { return true; },
+    Execute(destinations) { executed = true; assert.equal(destinations.length, 2); assert.equal(destinations[1], null); }
+  };
+  assert.equal(job.Run(1, 2, context), TriRenderJob.Status.RJ_DONE);
+  assert.ok(executed);
+  assert.equal(clears[0].clearColor, true);
+  assert.equal(clears[0].clearDepth, true);
+});
+
+for (const failing of ["background", "sceneOverlay"])
+{
+  test(`render job skips the frame when ${failing} fails validation`, t =>
+  {
+    const calls = [];
+    const driver = driverOver(calls);
+    const context = StubContext();
+    const { job } = nodeJob(t, driver, context);
+    const seen = [];
+    for (const name of ["background", "sceneOverlay"])
+    {
+      driver[name] = {
+        Validate() { seen.push(name); return name !== failing; },
+        Execute() { assert.fail("failed validation must prevent all child execution"); }
+      };
+    }
+    t.mock.method(driver, "Execute", () => assert.fail("render step must not enter driver Execute"));
+    assert.equal(job.Run(3, 5, context), TriRenderJob.Status.RJ_FAILED);
+    assert.deepEqual(seen, failing === "background" ? ["background"] : ["background", "sceneOverlay"]);
+    assert.deepEqual(calls, []);
+  });
+}
+
+test("render job bypasses child validation when rendering is disabled but still updates simulation", t =>
+{
+  const calls = [];
+  const driver = driverOver(calls, { enableRendering: false });
+  const context = StubContext();
+  const { job } = nodeJob(t, driver, context);
+  driver.background = driver.sceneOverlay = {
+    Validate() { assert.fail("cpp:306-309: disabled rendering bypasses children"); },
+    Execute() { assert.fail("disabled rendering does not draw children"); }
+  };
+  assert.equal(job.Run(13, 19, context), TriRenderJob.Status.RJ_DONE);
+  assert.deepEqual(calls.map(x => x[0]), ["StampFrameContext", "Update"]);
 });

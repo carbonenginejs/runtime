@@ -4,8 +4,7 @@
 //
 // Not in Carbon: PLATFORM_WEBGPU and PLATFORM_WEBGL2, the browser targets.
 // CCP owns the platform numbers; ours are far from CCP's 2, 6 and 10 so
-// that a platform CCP adds cannot collide with them (non-Carbon extension,
-// organization docs/architecture/non-carbon-extensions.md).
+// that a platform CCP adds cannot collide with them. These are our extensions.
 
 /** Carbon's `Platform`. */
 export const Platform = Object.freeze({

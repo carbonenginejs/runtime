@@ -1,6 +1,5 @@
-// Not in Carbon: the WebGPU target, the driver's PLATFORM_WEBGPU (see
-// docs/architecture/non-carbon-extensions.md, "Browser shader compile
-// targets"). Modelled on EffectCompilerMetal.cpp's CompileEffect, whose
+// Not in Carbon: the WebGPU target, the driver's PLATFORM_WEBGPU.
+// Modelled on EffectCompilerMetal.cpp's CompileEffect, whose
 // target-independent passes it runs unchanged; it replaces only what is
 // Metal's own:
 //
