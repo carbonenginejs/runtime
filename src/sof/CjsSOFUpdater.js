@@ -8,6 +8,7 @@ import { TriBatchType } from "#consts/graphics";
 import { EveSOFDataHull } from "./hull/EveSOFDataHull.js";
 import { EveSOFDataHullDecalSetItem } from "./hull/EveSOFDataHullDecalSetItem.js";
 import { BeObjectMetadata } from "#blue";
+import { addChild, removeChild } from "../global/blue/children.js";
 
 /**
  * Updates mesh materials and inserts directly from prepared SOF selections.
@@ -71,7 +72,8 @@ export class CjsSOFUpdater
     let changes = [];
     const visited = new WeakMap();
     const owners = new WeakMap();
-    if (!this._CollectChanges(object, values, anchors, visited, owners, changes)) return null;
+    const patterns = this._PatternTargets(object, oldSelection, newSelection);
+    if (!this._CollectChanges(object, values, anchors, visited, owners, changes, false, patterns)) return null;
 
     // SOF creates banner ImageMap slots empty and exposes them through external
     // parameters. Their paths belong to the host; do not clear and reload them.
@@ -80,10 +82,55 @@ export class CjsSOFUpdater
         && parameter.destinationAttribute === "resourcePath")
       .map(parameter => parameter.destinationObject));
     changes = changes.filter(change => change.type !== "TriTextureParameter" || !externalTextures.has(change.object));
+    for (const change of changes)
+    {
+      if (change.values.textures && change.object.resources.some(texture => externalTextures.has(texture)
+        && Object.hasOwn(change.values.textures, texture.name))) return null;
+    }
+
+    // Masks have no resource lifecycle. Hydrate only new slots, after the entire
+    // graph passes preflight and before mutating any existing object.
+    for (const change of changes)
+      if (change.masks) change.masks.added = change.masks.added.map(value => CjsSchema.from("EveCustomMask", value));
 
     // Children are visited before their owner; publish the root DNA last.
     for (const change of changes) this._ApplyChange(change);
     return changes.length ? changes.map(change => ({ _type: change.type, ...change.values })) : false;
+  }
+
+  /**
+   * Restricts list edits to ordinary root masks and root mesh pattern bindings.
+   * Layouts and instanced attachments retain strict topology matching.
+   * @param {object} object Live root.
+   * @param {EveSOFDNA} before Previous selection resolved against current data.
+   * @param {EveSOFDNA} after Requested selection.
+   * @returns {object|null} Eligible owners and pattern texture names.
+   */
+  @meta.ours
+  _PatternTargets(object, before, after)
+  {
+    if (JSON.stringify(before.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_PATTERN))
+      === JSON.stringify(after.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_PATTERN))
+      || before.GetLayoutCount() || after.GetLayoutCount()
+      || before.GetHullInstancedMeshes().length || after.GetHullInstancedMeshes().length
+      || after.GetBuildClass() === EveSOFDataHull.BuildClass.BUILDCLASS_EXTENSION) return null;
+    const textures = new Set(), samplers = new Set(), effects = new Set();
+    for (const dna of [before, after])
+    {
+      const application = dna.GetPatternApplicationData();
+      for (let index = 0; index < dna.GetPatternLayerCount(); index++)
+      {
+        const layer = dna.GetPatternLayerData(application, index);
+        if (typeof layer?.textureName === "string")
+        {
+          textures.add(layer.textureName);
+          samplers.add(`${layer.textureName}Sampler`);
+        }
+      }
+    }
+    for (const category of ["opaqueAreas", "transparentAreas", "additiveAreas", "distortionAreas", "depthAreas"])
+      for (const area of object.mesh?.[category] ?? []) if (area.effect) effects.add(area.effect);
+    return { root: object, effects, textures, samplers };
   }
 
   /**
@@ -345,7 +392,7 @@ export class CjsSOFUpdater
   }
 
   /**
-   * Validates topology and collects leaf edits without mutating the live graph.
+   * Validates topology and collects leaf and permitted pattern-list edits.
    * Runtime scalar state is deliberately not compared with factory defaults.
    * @param {*} live Live field or model.
    * @param {*} desired Corresponding values field or model.
@@ -354,17 +401,18 @@ export class CjsSOFUpdater
    * @param {WeakMap} owners Live-to-values correspondence.
    * @param {Array<object>} changes Pending member-only patches.
    * @param {boolean} [boosterGlows] Sprite set whose items the booster generates.
+   * @param {object|null} [patterns] Ordinary root pattern list-edit permissions.
    * @returns {boolean} Whether every incoming structure can be matched.
    */
   @meta.ours
-  _CollectChanges(live, desired, anchors, visited, owners, changes, boosterGlows = false)
+  _CollectChanges(live, desired, anchors, visited, owners, changes, boosterGlows = false, patterns = null)
   {
     if (desired === null) return live === null || live === undefined;
     if (typeof desired !== "object") return live === null || typeof live !== "object";
     if (Object.hasOwn(desired, "_ref"))
     {
       if (!anchors.has(desired._ref)) return false;
-      return this._CollectChanges(live, anchors.get(desired._ref), anchors, visited, owners, changes, boosterGlows);
+      return this._CollectChanges(live, anchors.get(desired._ref), anchors, visited, owners, changes, boosterGlows, patterns);
     }
     if (!live || typeof live !== "object") return false;
     if (visited.has(desired)) return visited.get(desired) === live;
@@ -374,7 +422,7 @@ export class CjsSOFUpdater
     if (Array.isArray(desired))
     {
       if ((!Array.isArray(live) && !ArrayBuffer.isView(live)) || live.length !== desired.length) return false;
-      return desired.every((value, index) => this._CollectChanges(live[index], value, anchors, visited, owners, changes));
+      return desired.every((value, index) => this._CollectChanges(live[index], value, anchors, visited, owners, changes, false, patterns));
     }
 
     const type = getRegisteredClassName(live.constructor);
@@ -384,6 +432,16 @@ export class CjsSOFUpdater
     for (const [key, value] of Object.entries(desired))
     {
       if (key === "_type" || key === "_id") continue;
+      if (live === patterns?.root && key === "customMasks")
+      {
+        if (!this._CollectMasks(live, value, anchors, visited, owners, changes)) return false;
+        continue;
+      }
+      if (type === "Tr2Effect" && patterns?.effects.has(live) && (key === "resources" || key === "samplerOverrides"))
+      {
+        if (!this._CollectPatternBindings(live, key, value, anchors, visited, owners, changes, patch, patterns)) return false;
+        continue;
+      }
       if (type === "EveCustomMask")
       {
         const field = CjsSchema.getField(live.constructor, key);
@@ -443,9 +501,138 @@ export class CjsSOFUpdater
         if (value !== live[key]) patch[key] = value;
       }
       else if (!this._CollectChanges(live[key], value, anchors, visited, owners, changes,
-        key === "glows" && (type === "EveBoosterSet2" || type === "EveChildBoosterSet"))) return false;
+        key === "glows" && (type === "EveBoosterSet2" || type === "EveChildBoosterSet"), patterns)) return false;
     }
     if (Object.keys(patch).length) changes.push({ object: live, type, values: patch });
+    return true;
+  }
+
+  /**
+   * Reuses compacted mask output slots and plans only appended/removed slots.
+   * Mask index is an output slot, not a stable SOF source-layer identity.
+   * @param {object} root Ordinary SOF root.
+   * @param {Array<object>} desired Requested masks.
+   * @param {Map} anchors Values references.
+   * @param {WeakMap} visited Values-to-live correspondence.
+   * @param {WeakMap} owners Live-to-values correspondence.
+   * @param {Array<object>} changes Pending changes.
+   * @returns {boolean} Whether every mask has a supported shape.
+   */
+  @meta.ours
+  _CollectMasks(root, desired, anchors, visited, owners, changes)
+  {
+    const live = root.customMasks, Mask = CjsSchema.GetConstructor("EveCustomMask");
+    if (!Array.isArray(live) || !Array.isArray(desired)
+      || live.length > Mask.CUSTOM_MASK_COUNT || desired.length > Mask.CUSTOM_MASK_COUNT
+      || new Set(live).size !== live.length || live.some(mask => !CjsSchema.isInstanceOf("EveCustomMask", mask))) return false;
+    const added = [];
+    for (let index = 0; index < desired.length; index++)
+    {
+      let value = desired[index];
+      if (value && Object.hasOwn(value, "_ref")) value = anchors.get(value._ref);
+      if (!value || value._type !== "EveCustomMask") return false;
+      const fields = {};
+      for (const [key, incoming] of Object.entries(value))
+      {
+        if (key === "_type" || key === "_id") continue;
+        const field = CjsSchema.getField(Mask, key);
+        if (!field || !["boolean", "uint8", "vec3", "vec4", "quat"].includes(field.type?.kind)) return false;
+        fields[key] = normalizeCarbonValue(incoming, field.type);
+      }
+      if (index < live.length)
+      {
+        if (!this._CollectChanges(live[index], value, anchors, visited, owners, changes)) return false;
+      }
+      else
+      {
+        if (visited.has(value)) return false;
+        visited.set(value, null);
+        added.push(fields);
+      }
+    }
+    if (live.length !== desired.length)
+      changes.push({ object: root, type: getRegisteredClassName(root.constructor),
+        values: { customMasks: desired }, masks: { length: desired.length, added } });
+    return true;
+  }
+
+  /**
+   * Matches effect bindings by name, permitting only pattern-owned additions/removals.
+   * Desired paths already include hull/pattern/default precedence from the builder.
+   * Existing texture objects use their normal notifications; list mutations use
+   * effect setters so attachment/detachment and cache refresh remain owner-managed.
+   * @param {object} effect Live effect.
+   * @param {string} key Resource or sampler collection.
+   * @param {Array<object>} desired Requested bindings.
+   * @param {Map} anchors Values references.
+   * @param {WeakMap} visited Values-to-live correspondence.
+   * @param {WeakMap} owners Live-to-values correspondence.
+   * @param {Array<object>} changes Pending changes.
+   * @param {object} patch Pending owner values.
+   * @param {object} patterns Allowed pattern binding names.
+   * @returns {boolean} Whether bindings can be reconciled without unrelated edits.
+   */
+  @meta.ours
+  _CollectPatternBindings(effect, key, desired, anchors, visited, owners, changes, patch, patterns)
+  {
+    const texture = key === "resources", className = texture ? "TriTextureParameter" : "Tr2SamplerOverride";
+    const allowed = texture ? patterns.textures : patterns.samplers, current = new Map(), incoming = new Map(), edits = Object.create(null);
+    if (!Array.isArray(effect[key]) || !Array.isArray(desired)) return false;
+    for (const record of effect[key])
+    {
+      if (!CjsSchema.isInstanceOf(className, record) || typeof record.name !== "string" || current.has(record.name)) return false;
+      current.set(record.name, record);
+    }
+    for (let value of desired)
+    {
+      if (value && Object.hasOwn(value, "_ref")) value = anchors.get(value._ref);
+      if (!value || value._type !== className || typeof value.name !== "string" || incoming.has(value.name)) return false;
+      incoming.set(value.name, value);
+      const record = current.get(value.name);
+      if (!record && !allowed.has(value.name)) return false;
+      if (texture)
+      {
+        if (typeof value.resourcePath !== "string"
+          || Object.keys(value).some(field => !["_type", "_id", "name", "resourcePath"].includes(field))) return false;
+        if (record)
+        {
+          if (!this._CollectChanges(record, value, anchors, visited, owners, changes)) return false;
+        }
+        else
+        {
+          // Creating two named parameters cannot preserve a shared values anchor.
+          // Leave that topology to replacement rather than silently split identity.
+          if (visited.has(value)) return false;
+          visited.set(value, null);
+          edits[value.name] = value.resourcePath;
+        }
+      }
+      else if (record)
+      {
+        const fields = this._CollectPackedFields([record], [value], className, anchors);
+        if (fields === null) return false;
+        if (fields[value.name]) edits[value.name] = fields[value.name];
+      }
+      else
+      {
+        const fields = {}, Type = CjsSchema.GetConstructor(className);
+        for (const [field, scalar] of Object.entries(value))
+        {
+          if (field === "_type" || field === "_id" || field === "name") continue;
+          if (!["addressU", "addressV", "addressW", "filter", "mipFilter", "lodBias", "maxMipLevel", "maxAnisotropy"].includes(field)
+            || typeof scalar !== "number" || !Number.isFinite(scalar)) return false;
+          fields[field] = normalizeCarbonValue(scalar, CjsSchema.getField(Type, field).type);
+        }
+        edits[value.name] = fields;
+      }
+    }
+    for (const name of current.keys())
+    {
+      if (incoming.has(name)) continue;
+      if (!allowed.has(name)) return false;
+      edits[name] = null;
+    }
+    if (Object.keys(edits).length) patch[texture ? "textures" : "samplerOverrides"] = edits;
     return true;
   }
 
@@ -557,7 +744,7 @@ export class CjsSOFUpdater
   }
 
   /**
-   * Applies preflighted leaf patches using each owner's established values route.
+   * Applies preflighted leaves and pattern-list edits through owner mutation routes.
    * Effect options use SetOption; other collections use SetValues name maps.
    * Multiple owner changes share one existing update batch, without closing a
    * caller-owned batch. This class never replaces the effect's packed lists.
@@ -568,6 +755,13 @@ export class CjsSOFUpdater
   _ApplyChange(change)
   {
     const { object, type, values } = change;
+    if (change.masks)
+    {
+      while (object.customMasks.length > change.masks.length)
+        removeChild(object, "customMasks", object.customMasks[object.customMasks.length - 1]);
+      for (const mask of change.masks.added) addChild(object, "customMasks", mask);
+      return;
+    }
     if (type !== "Tr2Effect")
     {
       CjsSchema.setValues(object, values);

@@ -139,9 +139,18 @@ options, mask projections/targets and pattern material constants. Packed sampler
 and option changes use the owning effect's existing methods, batched with other
 effect changes for one cache refresh. A caller's open batch remains open. Mask
 fields use schema-normalized values while retaining their vector buffers.
-Adding/removing/reordering layers, resources, samplers, options or masks remains
-a full-rebuild fallback, detected before any writes. Duplicate packed names are
-accepted unchanged but cannot be edited through the unique-name setters.
+For ordinary root hulls, pattern changes can add/remove mask slots, pattern
+textures and sampler overrides. Retained masks keep their vector storage; slots
+follow the builder's compacted projection order. Removed textures detach through
+their effect owner, and same-name hull/default texture fallbacks remain intact.
+Named bindings retain their live order. The entire graph passes preflight before
+new masks are hydrated or any existing object is changed.
+
+Layouts, instanced attachments, unrelated list changes and newly shared texture
+bindings still require replacement. New shared bindings are rejected rather than
+split into distinct parameters. Existing shared bindings retain identity.
+Duplicate names cannot be reconciled through the unique-name setters; unchanged
+packed duplicate names remain supported by the strict comparison path.
 
 The opt-in CPU test `test/sof/runtime-sof/updater-live.test.js` reads real data
 through tools HTTP when `CJS_SOF_UPDATER_RESOURCE_BASE` names an exact EVE build.

@@ -48,7 +48,7 @@ function Snapshot(live, values)
   return () => slots.forEach(([owner, key, object]) => assert.equal(owner[key], object, key));
 }
 
-/** Normalizes process audio IDs and order-independent named constants for comparison. */
+/** Normalizes process audio IDs and order-independent named effect bindings. */
 function ComparableValues(object)
 {
   const values = CjsSchema.getValues(object);
@@ -63,8 +63,11 @@ function ComparableValues(object)
     for (const [key, value] of Object.entries(exported)) Visit(live[key], value);
     if (CjsSchema.cast(live, Tr2Effect))
     {
-      assert.equal(new Set(exported.constParameters.map(value => value.name)).size, exported.constParameters.length);
-      exported.constParameters.sort((a, b) => a.name.localeCompare(b.name));
+      for (const key of ["constParameters", "resources", "samplerOverrides", "lodTextureParameters"])
+      {
+        assert.equal(new Set(exported[key].map(value => value.name)).size, exported[key].length);
+        exported[key].sort((a, b) => a.name.localeCompare(b.name));
+      }
     }
   };
   Visit(object, values);
@@ -289,6 +292,34 @@ test("real SOF DNA edits preserve live graphs and match standard builds", { skip
         assert.deepEqual(ComparableValues(live), ComparableValues(original));
         assert.equal(resources.requests.length, requests, "material edits acquire no resources");
         spy.mock.restore();
+      });
+    }
+  });
+
+  await t.test("af1 adds and removes supported patterns while retaining the hull", async context =>
+  {
+    const base = "af1_t1:amarrbase:amarr", empty = base + ":pattern?;none;none";
+    const before = await sof.BuildValuesFromDNA(empty);
+    const live = CjsSchema.from(before._type, before), updater = new CjsSOFUpdater(sof);
+    const assertIdentities = Snapshot(live, before), masks = live.customMasks;
+    assert.equal(masks.length, 0);
+    const patterns = await Read("/sof/hulls/af1_t1/patterns");
+    for (const pattern of patterns)
+    {
+      await context.test(pattern, async () =>
+      {
+        for (const dna of [base + `:pattern?${pattern};aqua_blue_colorshift_polished;aqua_electric_enamel`, empty])
+        {
+          const desired = await sof.BuildValuesFromDNA(dna), rebuilt = CjsSchema.from(desired._type, desired);
+          assert.ok(Array.isArray(await updater.UpdateFromDNA(live, dna)), dna);
+          assertIdentities();
+          assert.equal(live.customMasks, masks);
+          assert.equal(masks.length, rebuilt.customMasks.length);
+          assert.deepEqual(ComparableValues(live), ComparableValues(rebuilt));
+          const requests = resources.requests.length;
+          assert.equal(await updater.UpdateFromDNA(live, dna), false);
+          assert.equal(resources.requests.length, requests);
+        }
       });
     }
   });
