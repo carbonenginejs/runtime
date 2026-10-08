@@ -54,15 +54,26 @@ export class ITr2PickableScene
         for (const pass of passes)
         {
           if (Failed(context.BeginScene())) continue;
+          const managed = esm.IsManagedRendering();
           let rendered = false;
           try
           {
+            // Each pick owns a submission. Discard the caller's cached bindings:
+            // EndScene clears backend state even when the managed handles match.
+            esm.BeginManagedRendering();
             this.SetPerFrameDataForPicking(context);
             rendered = this.RenderPicking(opaque, picking, pass, context);
           }
           finally
           {
-            context.EndScene();
+            esm.EndManagedRendering();
+            try { context.EndScene(); }
+            finally
+            {
+              // Resume the caller's mode with an empty cache before any readback
+              // yields; restoring old handles would suppress its next rebind.
+              if (managed) esm.BeginManagedRendering();
+            }
           }
           if (rendered) mappings.push({ pass, mapping: this.GetPickBuffer().MapForReading(context) });
         }

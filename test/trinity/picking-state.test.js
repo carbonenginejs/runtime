@@ -1,0 +1,61 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { ITr2PickableScene, Tr2PrimitiveScene, Tr2PrimitiveSet, Tr2RenderContext,
+  TriProjection, TriView, TriViewport } from "../../npm/dist/trinity/index.js";
+import { ALResult, Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
+
+for (const managed of [false, true])
+{
+  for (const fail of [false, true])
+  {
+    test(`primitive picks isolate cached bindings (managed=${managed}, failure=${fail})`, async t =>
+    {
+      const context = new Tr2RenderContext(), al = new Tr2RenderContextALStub();
+      context.SetRenderContextAL(al);
+      al.CreateDevice();
+      const esm = context.GetEffectStateManager(), scene = new Tr2PrimitiveScene();
+      const object = new Tr2PrimitiveSet(), projection = new TriProjection(), view = new TriView(), viewport = new TriViewport();
+      viewport.width = 800; viewport.height = 600;
+      projection.PerspectiveFov(Math.PI / 4, 4 / 3, 1, 10000);
+      view.SetLookAtPosition([700, 500, 1000], [0, 0, 0], [0, 1, 0]);
+      t.after(() => { scene.Destroy(); esm.EndManagedRendering(); });
+      t.mock.method(scene, "GetPickingObjectsToRender", () => [object]);
+      t.mock.method(scene, "GetBatches", () => {});
+      t.mock.method(scene, "GetRequiredPasses", () => [1, 4]);
+      t.mock.method(scene, "SetPerFrameDataForPicking", () => {});
+      t.mock.method(scene._pickBuffer, "PrepareResources", () => true);
+      const data = new Uint8Array(new Float32Array([1, 1, 1, 0]).buffer);
+      t.mock.method(scene._pickBuffer, "MapForReading", async () => ({ result: ALResult.S_OK, data }));
+      t.mock.method(scene._pickBuffer, "UnmapForReading", () => {});
+      // Any repeated handle exercises the real ESM's redundancy cache. The
+      // backend sentinel models WebGPU unbinding its program at EndScene.
+      let bound = false;
+      t.mock.method(context, "SetShaderProgram", () => { bound = true; });
+      t.mock.method(context, "EndScene", () => { bound = false; return ALResult.S_OK; });
+      t.mock.method(scene, "RenderPicking", () =>
+      {
+        esm.ApplyShaderProgram(123456);
+        assert.equal(bound, true, "each picking pass must rebind its shader");
+        if (fail) throw new Error("draw failed");
+        return true;
+      });
+      if (managed) esm.BeginManagedRendering();
+      else esm.EndManagedRendering();
+      esm.ApplyShaderProgram(123456);
+      bound = false;
+      for (let attempt = 0; attempt < 2; attempt++)
+      {
+        const results = { components: 5 };
+        const pending = ITr2PickableScene.prototype.PickObject.call(scene, context, 400, 300, projection, view, viewport, results);
+        assert.equal(esm.IsManagedRendering(), managed, "restore before awaiting readback");
+        if (fail) await assert.rejects(pending, /draw failed/u);
+        else { await pending; assert.equal(results.object, object); }
+        assert.equal(bound, false, "submission cleared the backend binding");
+        esm.ApplyShaderProgram(123456);
+        assert.equal(bound, true, "the caller must also rebind after picking");
+        bound = false;
+      }
+    });
+  }
+}
+
