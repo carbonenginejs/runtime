@@ -121,8 +121,10 @@ mask hydration and root/decal DNA publication belong to that path. Mesh-stage
 requirements are derived from the change flags rather than positional boolean
 arguments. Equal selections use `refresh` to preserve current-catalog resolution.
 This is a reusable internal stage contract, not a new serialized request format
-or permission to bypass compatibility checks. Actual hull replacement and shared
-definition-edit propagation remain separate work.
+or permission to bypass compatibility checks. A different hull always requires a
+full rebuild, including when faction or other DNA parts change at the same time.
+This is an intentional boundary, not pending incremental hull reconciliation.
+Shared definition-edit propagation remains separate work.
 
 Ordinary hull material and insert changes use targeted calculations: material
 edits resolve shader constants through `EveSOFDNA.GetMeshAreaParameter`, while

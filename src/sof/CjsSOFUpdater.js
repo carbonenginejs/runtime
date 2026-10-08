@@ -168,8 +168,8 @@ export class CjsSOFUpdater
 
   /**
    * Expands changed DNA components into work owned by the mesh stage.
-   * Faction reconciliation uses these same calculations. Hull changes still
-   * require broader live-object topology reconciliation and request fallback.
+   * Faction reconciliation uses these same calculations. Selecting a different
+   * hull intentionally requires a full rebuild, never incremental reconciliation.
    * @param {object} update Complete target DNA and component change flags.
    * @returns {object} Mesh calculations required by this request.
    */
@@ -186,7 +186,7 @@ export class CjsSOFUpdater
   }
 
   /**
-   * Checks the first supported hull/faction case: SOF6 faction appearance on an
+   * Checks compatible SOF6 faction appearance on an
    * unchanged ordinary hull. Membership is compared per source set/item, since
    * two different visible sets can have identical emitted counts and classes.
    * Hull/race changes and membership changes still require host replacement.
