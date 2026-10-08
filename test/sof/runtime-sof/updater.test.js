@@ -9,6 +9,109 @@ const resources = composeStubResMan();
 const originalDna = "hull:faction:race:respathinsert?none";
 const insertedDna = "hull:faction:race:respathinsert?insert";
 
+/** Two races with matching effect bindings but different visual settings. */
+async function RaceFixture(configure = null)
+{
+  return Fixture(options =>
+  {
+    const hull = options.black.hull[0];
+    hull.booster = { hasTrails: true, items: [{ transform: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] }] };
+    hull.impactEffectType = 1;
+    options.black.generic.damage = { armorShader: "armor.fx", shieldShaderEllipsoid: "shield.fx", shieldGeometryResFilePath: "res:/shield.gr2" };
+    options.black.generic.areaShaders[0].parameters = [{ str: "GeneralHeatGlowColor" }];
+    options.black.faction[0].colorSet = { Booster: [1, 0, 0, 1], Reactor: [0, 0, 1, 1] };
+    options.black.race = ["race", "other"].map((name, index) => ({ name,
+      hullPrimaryHeatColorType: index ? 14 : 16,
+      booster: { glowColor: [index, 0.2, 0.5, 1], glowScale: 1 + index,
+        lightRadius: 10 + index, lightColor: [0.2, index, 0.4, 1],
+        trailColor: [0, index, 1, 1], gradient0ResPath: `res:/${name}-gradient.dds`,
+        shape0: { color: [index, 0, 1, 1] } },
+      damage: {
+        armorImpactParameters: [{ name: "ArmorP", value: [index, 1, 2, 3] }],
+        armorImpactTextures: [{ name: "ArmorMap", resFilePath: `res:/${name}-armor.dds` }],
+        shieldImpactParameters: [{ name: "ShieldP", value: [index, 4, 5, 6] }],
+        shieldImpactTextures: [{ name: "ShieldMap", resFilePath: `res:/${name}-shield.dds` }]
+      }
+    }));
+    if (configure) configure(options);
+  });
+}
+
+test("race edits match fresh visuals while retaining mesh, boosters, trails and impact state", async t =>
+{
+  t.mock.method(Math, "random", () => 0.25);
+  const { ship, sof, updater } = await RaceFixture();
+  const next = originalDna.replace(":race:", ":other:");
+  const desired = CjsSchema.from("EveShip2", await sof.BuildValuesFromDNA(next));
+  const mesh = ship.mesh, boosters = ship.boosters, trails = boosters.trails, items = boosters.items;
+  const impact = ship.impactOverlay, emitter = impact.armorImpactEmitter, locators = ship.locators;
+  impact.armorRepairing = true; impact.hullDamageFactor = 0.37;
+  const damageFactor = impact.hullDamageFactor;
+  t.mock.method(impact, "SetDamageLocatorCount", () => assert.fail("race edit reset damage state"));
+  t.mock.method(trails, "Clear", () => assert.fail("race edit reset trail history"));
+  t.mock.method(sof, "BuildValuesFromDNA", () => assert.fail("race edit built a full graph"));
+  t.mock.method(sof, "CreateMesh", () => assert.fail("race edit built a mesh"));
+  t.mock.method(sof, "SetupBoosters", () => assert.fail("race edit regenerated hull booster placements"));
+  t.mock.method(sof, "ModifyTextureResPaths", () => assert.fail("race edit queried inserts"));
+  assert.ok(await updater.UpdateFromDNA(ship, next));
+  assert.equal(ship.mesh, mesh); assert.equal(ship.boosters, boosters);
+  assert.equal(boosters.trails, trails); assert.equal(boosters.items, items);
+  assert.equal(ship.impactOverlay, impact); assert.equal(impact.armorImpactEmitter, emitter);
+  assert.equal(ship.locators, locators); assert.equal(impact.armorRepairing, true);
+  assert.equal(impact.hullDamageFactor, damageFactor);
+  assert.deepEqual(CjsSchema.getValues(mesh), CjsSchema.getValues(desired.mesh));
+  assert.deepEqual(CjsSchema.getValues(boosters), CjsSchema.getValues(desired.boosters));
+  assert.deepEqual(CjsSchema.getValues(impact.armorDamageShader), CjsSchema.getValues(desired.impactOverlay.armorDamageShader));
+  assert.deepEqual(CjsSchema.getValues(impact.mesh), CjsSchema.getValues(desired.impactOverlay.mesh));
+  assert.equal(ship.dna, next);
+});
+
+test("race edits preserve unrelated live mesh constants and hull placements", async t =>
+{
+  const { ship, sof, updater } = await RaceFixture(options =>
+  {
+    options.black.generic.areaShaders[0].defaultParameters.push({ name: "CustomColor", value: [1, 1, 1, 1] });
+  });
+  const constant = ship.mesh.opaqueAreas[0].effect.constParameters.find(value => value.name === "CustomColor");
+  constant.value.set([7, 8, 9, 10]);
+  ship.boosters.items[0].transform[12] = 42;
+  ship.locators[0].transform[12] = 42;
+  const placement = CjsSchema.getValues(ship.boosters.items[0]);
+  const locator = CjsSchema.getValues(ship.locators[0]);
+  t.mock.method(sof, "SetupBoosters", () => assert.fail("race edit regenerated hull placements"));
+  assert.ok(await updater.UpdateFromDNA(ship, originalDna.replace(":race:", ":other:")));
+  assert.deepEqual(Array.from(constant.value), [7, 8, 9, 10]);
+  assert.deepEqual(CjsSchema.getValues(ship.boosters.items[0]), placement);
+  assert.deepEqual(CjsSchema.getValues(ship.locators[0]), locator);
+});
+
+for (const unsupported of ["offset", "damage-bindings", "combined"])
+{
+  test(`unsupported race ${unsupported} edit falls back without partial writes`, async () =>
+  {
+    const { ship, updater } = await RaceFixture(options =>
+    {
+      if (unsupported === "offset") options.black.race[1].booster.lightOffset = 2;
+      if (unsupported === "damage-bindings") options.black.race[1].damage.shieldImpactTextures.push({ name: "Extra", resFilePath: "res:/extra.dds" });
+    });
+    const before = CjsSchema.getValues(ship), requests = resources.requests.length;
+    let next = originalDna.replace(":race:", ":other:");
+    if (unsupported === "combined") next = next.replace("respathinsert?none", "respathinsert?insert");
+    assert.equal(await updater.UpdateFromDNA(ship, next), null);
+    assert.deepEqual(CjsSchema.getValues(ship), before);
+    assert.equal(resources.requests.length, requests);
+  });
+}
+
+test("race changes honor selection cancellation before writes", async () =>
+{
+  const { ship, updater } = await RaceFixture();
+  const before = CjsSchema.getValues(ship);
+  let checks = 0;
+  assert.equal(await updater.UpdateFromDNA(ship, originalDna.replace(":race:", ":other:"), {}, () => ++checks < 3), false);
+  assert.deepEqual(CjsSchema.getValues(ship), before);
+});
+
 test("material constants match by unique name without reordering live records", async t =>
 {
   const { ship, updater, sof } = await PatternFixture();

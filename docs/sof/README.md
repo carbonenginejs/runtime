@@ -100,7 +100,8 @@ if (changes === null) {
 ```
 
 The implementation supports respathinsert, mesh-material edits (`material?`
-and its `mesh?` spelling), and compatible `pattern?` / pattern-material edits.
+and its `mesh?` spelling), compatible `pattern?` / pattern-material edits, and
+race-only edits on ordinary ships.
 Ordinary hull material and insert changes use targeted calculations: material
 edits resolve shader constants through `EveSOFDNA.GetMeshAreaParameter`, while
 insert edits resolve only authored mesh textures and inherited decal textures.
@@ -126,7 +127,20 @@ Pattern and pattern-material edits do not inspect or update generated depth
 areas: those belong to mesh construction. A simultaneous insert edit can still
 update an inherited depth texture path, without changing depth pattern bindings.
 
-Layouts, hull-authored instanced meshes and extension roots still use the earlier
+Race-only changes update booster appearance, trail effect constants, armour and
+shield effect bindings, and primary/reactor mesh heat colours. They reuse the
+factory's small booster/damage values stages without building or hydrating a
+ship. Hull-owned booster items and locators, their positions, trail history,
+active damage/repair state, and unrelated mesh constants are retained. Booster
+appearance emission is shared with full construction but never emits placements.
+All effect bindings pass preflight before any changes are applied. Changed light
+offsets currently require replacement because their runtime cache has no
+non-destructive refresh; this is separate from hull locator positions. Combined
+race/command changes, layouts, instanced attachments, non-ship roots and differing
+effect binding topology also request replacement.
+
+For material and pattern edits, layouts, hull-authored instanced meshes and
+extension roots still use the earlier
 full-values comparison path. That fallback builds fresh
 values and validates types, names, list lengths and shared references throughout
 the supplied structure before applying leaf changes. Targeted layout matching

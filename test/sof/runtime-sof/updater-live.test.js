@@ -356,6 +356,29 @@ test("real SOF DNA edits preserve live graphs and match standard builds", { skip
     spy.mock.restore();
   });
 
+  await t.test("af1 race swaps retain the hull and match fresh builds", async context =>
+  {
+    const initial = "af1_t1:amarrbase:amarr:respathinsert?none";
+    const before = await sof.BuildValuesFromDNA(initial);
+    const live = CjsSchema.from(before._type, before), updater = new CjsSOFUpdater(sof);
+    const mesh = live.mesh, boosters = live.boosters, locators = live.locators, impact = live.impactOverlay;
+    const trails = boosters?.trails, items = boosters?.items;
+    const build = sof.BuildValuesFromDNA.bind(sof);
+    const spy = context.mock.method(sof, "BuildValuesFromDNA", () => assert.fail("race edit built a complete graph"));
+    for (const race of ["caldari", "gallente", "minmatar", "amarr"])
+    {
+      const dna = `af1_t1:amarrbase:${race}:respathinsert?none`;
+      const values = await build(dna), expected = CjsSchema.from(values._type, values);
+      assert.ok(Array.isArray(await updater.UpdateFromDNA(live, dna)), race);
+      assert.equal(live.mesh, mesh); assert.equal(live.boosters, boosters);
+      assert.equal(live.locators, locators); assert.equal(live.impactOverlay, impact);
+      assert.equal(live.boosters?.trails, trails); assert.equal(live.boosters?.items, items);
+      assert.deepEqual(ComparableValues(live), ComparableValues(expected));
+    }
+    assert.equal(spy.mock.callCount(), 0);
+    spy.mock.restore();
+  });
+
   await t.test("Deathless hangar retains authored slots and matches requested texture paths", async context =>
   {
     const originalDna = "mdeha01:deathless:deathless:layout?deathless_hangar:respathinsert?none";

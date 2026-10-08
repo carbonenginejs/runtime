@@ -2988,6 +2988,25 @@ export class EveSOF
     }
     mergeDocumentLocatorSet(document, rootFields, "boosters", boosterLocatorRefs);
 
+    rootFields.boosters = document.AddNode("EveBoosterSet2", {
+      ...this.CreateBoosterSettings(document, race, hasTrails), alwaysOn, items
+    });
+    return rootFields.boosters;
+  }
+
+  /**
+   * Emits booster appearance settings without hull placements or locators.
+   * Shared by full construction and race-only updates; trail ownership stays
+   * with the hull and callers retain live trail history during updates.
+   * @param {SofValuesBuilder} document Destination values document.
+   * @param {object} race Prepared race booster data.
+   * @param {boolean} hasTrails Whether the hull owns a trail set.
+   * @returns {object} Booster appearance fields with effect references.
+   * @internal
+   */
+  @meta.ours
+  CreateBoosterSettings(document, race, hasTrails)
+  {
     const effect = createBoosterEffect(document, race, "BOOSTER_LOD_HIGH");
     const effectFar = createBoosterEffect(document, race, "BOOSTER_LOD_LOW");
     const glowEffect = document.AddNode("Tr2Effect", {
@@ -3039,7 +3058,7 @@ export class EveSOF
       });
     }
 
-    rootFields.boosters = document.AddNode("EveBoosterSet2", {
+    return {
       glowScale: Number(race.glowScale ?? 1),
       glowColor: arrayValue(race.glowColor, [0, 0, 0, 0]),
       warpGlowColor: arrayValue(race.warpGlowColor, [0, 0, 0, 0]),
@@ -3048,7 +3067,6 @@ export class EveSOF
       haloScaleY: Number(race.haloScaleY ?? 1),
       haloColor: arrayValue(race.haloColor, [0, 0, 0, 0]),
       warpHaloColor: arrayValue(race.warpHaloColor, [0, 0, 0, 0]),
-      alwaysOn,
       lightOffset: Number(race.lightOffset ?? 0),
       lightFlickerAmplitude: Number(race.lightFlickerAmplitude ?? 0),
       lightFlickerFrequency: Number(race.lightFlickerFrequency ?? 0),
@@ -3059,10 +3077,8 @@ export class EveSOF
       effect,
       effectFar,
       glows,
-      trails,
-      items
-    });
-    return rootFields.boosters;
+      trails
+    };
   }
 
   /**

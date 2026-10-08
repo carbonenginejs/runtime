@@ -5,6 +5,7 @@ import { IRootReaderBase } from "../global/blue/IRootReaderBase.js";
 import { EveSOF } from "./EveSOF.js";
 import { EveSOFDNA } from "./EveSOFDNA.js";
 import { TriBatchType } from "#consts/graphics";
+import { EveSOFDataArea } from "./shared/EveSOFDataArea.js";
 import { EveSOFDataHull } from "./hull/EveSOFDataHull.js";
 import { EveSOFDataHullDecalSetItem } from "./hull/EveSOFDataHullDecalSetItem.js";
 import { BeObjectMetadata } from "#blue";
@@ -62,6 +63,10 @@ export class CjsSOFUpdater
     if (!isCurrent() || this._updates.get(object) !== request || object.dna !== originalDna) return false;
     if (!this._CompatibleDNA(oldSelection, newSelection)) return null;
 
+    if (oldSelection.GetRaceName() !== newSelection.GetRaceName())
+      return this._UpdateRace(object, oldSelection, newSelection,
+        () => isCurrent() && this._updates.get(object) === request && object.dna === originalDna);
+
     const patterns = this._CanUpdatePatterns(oldSelection, newSelection);
     if (patterns || this._CanUpdateMesh(oldSelection, newSelection))
       return this._UpdateMesh(object, oldSelection, newSelection, options,
@@ -99,6 +104,89 @@ export class CjsSOFUpdater
     // Children are visited before their owner; publish the root DNA last.
     for (const change of changes) this._ApplyChange(change);
     return changes.length ? changes.map(change => ({ _type: change.type, ...change.values })) : false;
+  }
+
+  /**
+   * Plans ordinary ship race settings without building a complete ship graph.
+   * Only booster settings/effects, damage effects and mesh heat colours change;
+   * hull placements, animation, trail history and impact state remain live.
+   * @param {object} object Live ship.
+   * @param {EveSOFDNA} before Previous selection.
+   * @param {EveSOFDNA} after Requested selection from current catalog data.
+   * @param {Function} isCurrent Selection/lifetime guard.
+   * @returns {Array<object>|false|null} Applied changes, cancellation or fallback.
+   */
+  @meta.ours
+  _UpdateRace(object, before, after, isCurrent)
+  {
+    if (!CjsSchema.isInstanceOf("EveShip2", object) || !this._CanUpdateMesh(before, after)
+      || before.GetDnaString().split(":").slice(3).join(":") !== after.GetDnaString().split(":").slice(3).join(":")) return null;
+    const plan = this._PlanMesh(object, after, true, false, null, null, true, true);
+    if (!plan) return null;
+    const document = new SofValuesBuilder(), fields = { locators: [], locatorSets: [] };
+    if (object.boosters)
+    {
+      const race = after.GetRaceBoosterData();
+      if (!race) return null;
+      fields.boosters = document.AddNode("EveBoosterSet2",
+        this._sof.CreateBoosterSettings(document, race, Boolean(object.boosters.trails)));
+    }
+    this._sof.SetupImpactEffects(document, fields, after);
+    document.AddRoot("default", document.AddNode(getRegisteredClassName(object.constructor), fields));
+    const desired = document.ToValues(), anchors = new Map();
+    if (!this._IndexValues(desired, anchors, new WeakSet())) return null;
+    const visited = new WeakMap(), owners = new WeakMap();
+    const collect = (live, value) =>
+    {
+      if (value?._ref !== undefined) value = anchors.get(value._ref);
+      if (value && (!CjsSchema.isInstanceOf("Tr2Effect", live) || live.effectFilePath !== value.effectFilePath)) return false;
+      return this._CollectChanges(live, value ?? null, anchors, visited, owners, plan.changes);
+    };
+    const boosters = desired.boosters;
+    if (Boolean(boosters) !== Boolean(object.boosters)) return null;
+    if (boosters)
+    {
+      const live = object.boosters;
+      if (!CjsSchema.isInstanceOf("EveBoosterSet2", live)) return null;
+      // This is a race light offset, not a hull booster/locator position.
+      // It is cached by initialization; until it has a non-destructive refresh,
+      // a different value requires fallback. Never rebuild hull placements here.
+      if (Math.fround(boosters.lightOffset) !== live.lightOffset) return null;
+      const values = {};
+      for (const name of ["glowScale", "glowColor", "warpGlowColor", "symHaloScale", "haloScaleX", "haloScaleY",
+        "haloColor", "warpHaloColor", "lightFlickerAmplitude", "lightFlickerFrequency", "lightRadius", "lightColor",
+        "lightWarpRadius", "lightWarpColor"])
+      {
+        const field = CjsSchema.getField(live.constructor, name);
+        const next = normalizeCarbonValue(boosters[name], field.type);
+        if (!IRootReaderBase.areEquivalent(live[name], next)) values[name] = next;
+      }
+      if (!collect(live.effect, boosters.effect) || !collect(live.effectFar, boosters.effectFar)) return null;
+      if (Boolean(live.trails) !== Boolean(boosters.trails)) return null;
+      if (boosters.trails && !collect(live.trails.effect, boosters.trails.effect)) return null;
+      if (Object.keys(values).length) plan.changes.push({ object: live, type: "EveBoosterSet2", values });
+    }
+    const impact = desired.impactOverlay, liveImpact = object.impactOverlay;
+    if (Boolean(impact) !== Boolean(liveImpact)) return null;
+    if (impact)
+    {
+      if (!CjsSchema.isInstanceOf("EveImpactOverlay", liveImpact)
+        || !collect(liveImpact.armorDamageShader, impact.armorDamageShader)) return null;
+      if (Boolean(liveImpact.mesh) !== Boolean(impact.mesh)) return null;
+      if (impact.mesh)
+      {
+        if (liveImpact.mesh.additiveAreas.length !== 1 || impact.mesh.additiveAreas.length !== 1
+          || !collect(liveImpact.mesh.additiveAreas[0].effect, impact.mesh.additiveAreas[0].effect)) return null;
+      }
+    }
+    if (!isCurrent()) return false;
+    const dna = after.GetDnaString();
+    for (const decal of object.decals ?? [])
+      if (decal.__bluemetadata__?.SofDna === before.GetDnaString())
+        plan.changes.push({ object: decal, type: getRegisteredClassName(decal.constructor), values: { __bluemetadata__: { SofDna: dna } } });
+    plan.changes.push({ object, type: getRegisteredClassName(object.constructor), values: { dna } });
+    for (const change of plan.changes) this._ApplyChange(change);
+    return plan.changes.map(change => ({ _type: change.type, ...change.values }));
   }
 
   /**
@@ -246,10 +334,11 @@ export class CjsSOFUpdater
    * @param {object|null} [patternTargets] Eligible pattern binding owners/names.
    * @param {Map<object,string>|null} [resolvedTextures] Current insert query results by live texture.
    * @param {boolean} [depthMaterials] Mesh material edits may visit depth constants; pattern edits do not.
+   * @param {boolean} [raceOnly] Restrict constants to race-owned primary/reactor heat colour.
    * @returns {object|null} Validated patches and texture targets, or fallback.
    */
   @meta.ours
-  _PlanMesh(object, dna, materials, textures, patternTargets = null, resolvedTextures = null, depthMaterials = materials)
+  _PlanMesh(object, dna, materials, textures, patternTargets = null, resolvedTextures = null, depthMaterials = materials, raceOnly = false)
   {
     const mesh = object.mesh;
     if (!CjsSchema.isInstanceOf("Tr2Mesh", mesh) || mesh.geometryResPath !== dna.GetHullGeometryResPath()) return null;
@@ -284,15 +373,18 @@ export class CjsSOFUpdater
       if (materials && (!depth || depthMaterials))
       {
         const desired = [], names = new Set();
+        const includes = name => !raceOnly || (name === "GeneralHeatGlowColor"
+          && (area.areaType === EveSOFDataArea.AreaType.TYPE_PRIMARY || area.areaType === EveSOFDataArea.AreaType.TYPE_REACTOR));
         if (!depth || !depthShader)
         {
           for (const name of shader.parameters)
           {
+            if (!includes(name)) continue;
             const value = dna.GetMeshAreaParameter(area.areaType, name, area.parameters, area.blockedMaterials);
             if (value) { desired.push({ name, value: Array.from(value) }); names.add(name); }
           }
           for (const name of [...shader.defaultParameters.keys()].sort())
-            if (!names.has(name)) desired.push({ name, value: Array.from(shader.defaultParameters.get(name)) });
+            if (includes(name) && !names.has(name)) desired.push({ name, value: Array.from(shader.defaultParameters.get(name)) });
         }
         const signature = JSON.stringify(desired);
         if (effects.has(effect) && effects.get(effect) !== signature) return false;
@@ -300,7 +392,7 @@ export class CjsSOFUpdater
         {
           effects.set(effect, signature);
           const values = {};
-          if (!this._CollectConstants(effect.constParameters, desired, new Map(), values)) return false;
+          if (!this._CollectConstants(raceOnly ? effect.constParameters.filter(value => includes(value.name)) : effect.constParameters, desired, new Map(), values)) return false;
           if (Object.keys(values).length) plan.changes.push({ object: effect, type: "Tr2Effect", values });
         }
       }
@@ -488,7 +580,7 @@ export class CjsSOFUpdater
   }
 
   /**
-   * Compares parsed commands and selections, allowing insert/material/pattern edits.
+   * Compares parsed commands and selections, allowing insert/material/pattern/race edits.
    * @param {EveSOFDNA|null} before Previous selection.
    * @param {EveSOFDNA|null} after Requested selection.
    * @returns {boolean} Whether positional matching is supported for this edit.
@@ -497,7 +589,7 @@ export class CjsSOFUpdater
   _CompatibleDNA(before, after)
   {
     if (!before || !after || before.GetParseError() || after.GetParseError()) return false;
-    if (before.factionName !== after.factionName || before.raceName !== after.raceName
+    if (before.factionName !== after.factionName
       || JSON.stringify(before.hullNames) !== JSON.stringify(after.hullNames)) return false;
     // Compare all authored commands, including unknown ones, without depending
     // on private parser state. Unknown commands must also remain unchanged.
