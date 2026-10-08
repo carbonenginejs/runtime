@@ -4,11 +4,15 @@ import { normalizeCarbonValue } from "../global/schema/types/index.js";
 import { IRootReaderBase } from "../global/blue/IRootReaderBase.js";
 import { EveSOF } from "./EveSOF.js";
 import { EveSOFDNA } from "./EveSOFDNA.js";
+import { TriBatchType } from "#consts/graphics";
+import { EveSOFDataHull } from "./hull/EveSOFDataHull.js";
+import { EveSOFDataHullDecalSetItem } from "./hull/EveSOFDataHullDecalSetItem.js";
+import { BeObjectMetadata } from "#blue";
 
 /**
- * Updates existing SOF graphs using the standard factory's values as the oracle.
- * Handles resource inserts, materials and compatible patterns. It retains lists, objects and unrelated
- * live state; structural incompatibility requests a full rebuild before writes.
+ * Updates mesh materials and inserts directly from prepared SOF selections.
+ * Complex layouts and pattern changes retain the full-values comparison path.
+ * Live objects and unrelated state are retained; incompatible targets rebuild.
  */
 @meta.define({ className: "CjsSOFUpdater", family: "sof" })
 export class CjsSOFUpdater
@@ -30,7 +34,7 @@ export class CjsSOFUpdater
   }
 
   /**
-   * Applies a supported DNA edit after validating the entire graph.
+   * Applies a supported DNA edit after validating its affected targets.
    * No list is passed to the values service. Notifications are left to that
    * service, once per changed member. Build errors reject without applying edits.
    * Superseded requests return false. Application errors propagate; arbitrary
@@ -55,6 +59,10 @@ export class CjsSOFUpdater
     if (!isCurrent() || this._updates.get(object) !== request || object.dna !== originalDna) return false;
     if (!this._CompatibleDNA(oldSelection, newSelection)) return null;
 
+    if (this._CanUpdateMesh(oldSelection, newSelection))
+      return this._UpdateMesh(object, oldSelection, newSelection, options,
+        () => isCurrent() && this._updates.get(object) === request && object.dna === originalDna);
+
     const values = await this._sof.BuildValuesFromDNA(newDna, options);
     if (!isCurrent() || this._updates.get(object) !== request || object.dna !== originalDna) return false;
     if (!values) return null;
@@ -76,6 +84,218 @@ export class CjsSOFUpdater
     // Children are visited before their owner; publish the root DNA last.
     for (const change of changes) this._ApplyChange(change);
     return changes.length ? changes.map(change => ({ _type: change.type, ...change.values })) : false;
+  }
+
+  /**
+   * Limits direct mesh matching to ordinary hulls with unchanged projections.
+   * Layout/shared and authored instanced meshes need separate source bindings;
+   * keep the established values comparison for those graphs until then.
+   * @param {EveSOFDNA} before Previous selection.
+   * @param {EveSOFDNA} after Current selection.
+   * @returns {boolean} Whether only root mesh and decal targets are needed.
+   */
+  @meta.ours
+  _CanUpdateMesh(before, after)
+  {
+    const pattern = dna => dna.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_PATTERN)?.[0] ?? "";
+    return pattern(before) === pattern(after)
+      && !after.GetLayoutCount() && !before.GetLayoutCount()
+      && !after.GetHullInstancedMeshes().length && !before.GetHullInstancedMeshes().length
+      && after.GetBuildClass() !== EveSOFDataHull.BuildClass.BUILDCLASS_EXTENSION;
+  }
+
+  /**
+   * Calculates only requested mesh constants and/or inserted texture paths.
+   * The full builder remains a test oracle, not a dependency of this path.
+   * @param {object} object Live root.
+   * @param {EveSOFDNA} before Previous selection.
+   * @param {EveSOFDNA} after Current prepared selection.
+   * @param {object} options Original build options.
+   * @param {Function} isCurrent Host and request guard.
+   * @returns {Promise<Array<object>|false|null>} Applied records or fallback.
+   */
+  @meta.ours
+  async _UpdateMesh(object, before, after, options, isCurrent)
+  {
+    const changed = command => JSON.stringify(before.GetDnaCommandArgs(command)) !== JSON.stringify(after.GetDnaCommandArgs(command));
+    let materials = changed(EveSOFDNA.DnaCommand.CMD_MATERIAL) || changed(EveSOFDNA.DnaCommand.CMD_PATTERN);
+    let textures = changed(EveSOFDNA.DnaCommand.CMD_RESPATHINSERT);
+    // Equal selections may resolve changed catalog data; they are not snapshots.
+    if (!materials && !textures) materials = textures = true;
+    let plan = this._PlanMesh(object, after, materials, textures);
+    if (!plan) return null;
+    if (plan.textures.length)
+    {
+      const previous = plan;
+      const paths = await this._sof.ModifyTextureResPaths(after.GetDnaString(), plan.textures.map(value => value.path), options);
+      if (!isCurrent()) return false;
+      if (!paths) return null;
+      // A user may edit a mesh while file existence is pending. Revalidate the
+      // small target set before applying anything, including material changes.
+      plan = this._PlanMesh(object, after, materials, textures);
+      if (!plan || plan.textures.length !== previous.textures.length) return null;
+      for (let index = 0; index < paths.length; index++)
+      {
+        const target = plan.textures[index], earlier = previous.textures[index];
+        if (target.object !== earlier.object || target.path !== earlier.path) return null;
+        if (target.object.resourcePath !== paths[index])
+          plan.changes.push({ object: target.object, type: "TriTextureParameter", values: { resourcePath: paths[index] } });
+      }
+    }
+    if (!isCurrent()) return false;
+    const dna = after.GetDnaString();
+    for (const decal of object.decals ?? [])
+    {
+      if (decal.__bluemetadata__?.SofDna === before.GetDnaString() && decal.__bluemetadata__.SofDna !== dna)
+        plan.changes.push({ object: decal, type: getRegisteredClassName(decal.constructor), values: { __bluemetadata__: { SofDna: dna } } });
+    }
+    if (object.dna !== dna) plan.changes.push({ object, type: getRegisteredClassName(object.constructor), values: { dna } });
+    for (const change of plan.changes) this._ApplyChange(change);
+    return plan.changes.length ? plan.changes.map(change => ({ _type: change.type, ...change.values })) : false;
+  }
+
+  /**
+   * Matches only SOF mesh areas and, for inserts, their inherited decal textures.
+   * Does not visit masks, controllers, boosters, attachments or other live state.
+   * @param {object} object Live root.
+   * @param {EveSOFDNA} dna Current prepared selection.
+   * @param {boolean} materials Calculate constants.
+   * @param {boolean} textures Calculate authored texture insert targets.
+   * @returns {object|null} Validated patches and texture targets, or fallback.
+   */
+  @meta.ours
+  _PlanMesh(object, dna, materials, textures)
+  {
+    const mesh = object.mesh;
+    if (!CjsSchema.isInstanceOf("Tr2Mesh", mesh) || mesh.geometryResPath !== dna.GetHullGeometryResPath()) return null;
+    const plan = { changes: [], textures: [] }, effects = new Map(), targets = new Map();
+    const addTexture = (texture, path) =>
+    {
+      if (!CjsSchema.isInstanceOf("TriTextureParameter", texture) || typeof path !== "string") return false;
+      if (targets.has(texture)) return targets.get(texture) === path;
+      targets.set(texture, path); plan.textures.push({ object: texture, path }); return true;
+    };
+    const categories = [
+      ["opaqueAreas", TriBatchType.TRIBATCHTYPE_OPAQUE], ["opaqueAreas", TriBatchType.TRIBATCHTYPE_DECAL],
+      ["transparentAreas", TriBatchType.TRIBATCHTYPE_TRANSPARENT], ["additiveAreas", TriBatchType.TRIBATCHTYPE_ADDITIVE],
+      ["distortionAreas", TriBatchType.TRIBATCHTYPE_DISTORTION]
+    ];
+    const positions = { opaqueAreas: 0, transparentAreas: 0, additiveAreas: 0, distortionAreas: 0, depthAreas: 0 };
+    const depthShader = dna.GetGenericAreaShaderData("depthonlyv5.fx");
+    const match = (live, area, shader, indexOffset, depth = false) =>
+    {
+      const effect = live?.effect;
+      if (!CjsSchema.isInstanceOf("Tr2MeshArea", live) || live.name !== area.name
+        || live.index !== area.index + indexOffset || live.count !== area.count
+        || !CjsSchema.isInstanceOf("Tr2Effect", effect)
+        || effect.effectFilePath !== dna.GetCompleteShaderPath(depth && depthShader ? "depthonlyv5.fx" : area.shader)) return false;
+      if (materials)
+      {
+        const desired = [], names = new Set();
+        if (!depth || !depthShader)
+        {
+          for (const name of shader.parameters)
+          {
+            const value = dna.GetMeshAreaParameter(area.areaType, name, area.parameters, area.blockedMaterials);
+            if (value) { desired.push({ name, value: Array.from(value) }); names.add(name); }
+          }
+          for (const name of [...shader.defaultParameters.keys()].sort())
+            if (!names.has(name)) desired.push({ name, value: Array.from(shader.defaultParameters.get(name)) });
+        }
+        const signature = JSON.stringify(desired);
+        if (effects.has(effect) && effects.get(effect) !== signature) return false;
+        if (!effects.has(effect))
+        {
+          effects.set(effect, signature);
+          const values = {};
+          if (!this._CollectConstants(effect.constParameters, desired, new Map(), values)) return false;
+          if (Object.keys(values).length) plan.changes.push({ object: effect, type: "Tr2Effect", values });
+        }
+      }
+      if (textures)
+      {
+        const names = new Set();
+        for (const texture of effect.resources)
+        {
+          if (names.has(texture.name)) return false;
+          names.add(texture.name);
+        }
+        for (const [name, source] of area.textures)
+        {
+          if (depth && depthShader && depthShader.transparencyTextureName !== name) continue;
+          const texture = effect.resources.find(value => value.name === name);
+          if (!addTexture(texture, source.resFilePath)) return false;
+        }
+      }
+      return true;
+    };
+    let offset = 0;
+    for (let hull = 0; hull < dna.GetMultiHullCount(); hull++)
+    {
+      let count = 0;
+      for (const [key, batch] of categories)
+      {
+        const source = dna.GetHullMeshAreas(batch, hull) ?? [];
+        count += source.length;
+        for (const area of source)
+        {
+          const shader = dna.GetGenericAreaShaderData(area.shader);
+          if (!shader || !match(mesh[key]?.[positions[key]++], area, shader, offset)) return null;
+          if (batch === TriBatchType.TRIBATCHTYPE_TRANSPARENT && shader.doGenerateDepthArea
+            && !match(mesh.depthAreas?.[positions.depthAreas++], area, shader, offset, true)) return null;
+        }
+      }
+      offset += count;
+    }
+    if (Object.keys(positions).some(key => mesh[key]?.length !== positions[key])) return null;
+    if (textures && !this._PlanDecalTextures(object, dna, addTexture)) return null;
+    return plan;
+  }
+
+  /**
+   * Inserts affect decal parent textures only; authored/default/logo slots stay put.
+   * Matches Carbon's filtered decal order without allocating effects or buffers.
+   * @param {object} object Live root.
+   * @param {EveSOFDNA} dna Prepared selection.
+   * @param {Function} addTexture Deduplicated target collector.
+   * @returns {boolean} Whether all eligible decal targets match.
+   */
+  @meta.ours
+  _PlanDecalTextures(object, dna, addTexture)
+  {
+    const shaders = ["decalv5.fx", "decalcounterv5.fx", "decalholev5.fx", "decalcylindricv5.fx",
+      "decalglowcylindricv5.fx", "decalglowv5.fx", "decalv5.fx"];
+    let index = 0;
+    for (let hull = 0; hull < dna.GetMultiHullCount(); hull++)
+    {
+      for (const set of dna.GetHullDecalSets(hull))
+      {
+        if (!dna.IsInVisibilityData(set.visibilityGroup)) continue;
+        for (const item of set.items)
+        {
+          const name = shaders[Number(item.usage)];
+          if (!name || (Number(item.usage) === EveSOFDataHullDecalSetItem.Usage.USAGE_LOGO && !dna.HasLogoSet(item.logoType))) continue;
+          const decal = object.decals?.[index++], effect = decal?.decalEffect;
+          if (!CjsSchema.isInstanceOf("EveSpaceObjectDecal", decal) || !CjsSchema.isInstanceOf("Tr2Effect", effect)
+            || effect.effectFilePath !== `${dna.GetDecalShaderLocationResPath()}/${dna.GetShaderPrefix(false)}${name}`) return false;
+          const sourceId = BeObjectMetadata.Get(item, "sof_source_id");
+          if (decal.__bluemetadata__?.sof_source_id !== undefined && decal.__bluemetadata__.sof_source_id !== sourceId) return false;
+          if (decal.__bluemetadata__?.SofParentHullName !== undefined
+            && decal.__bluemetadata__.SofParentHullName !== dna.GetHullNames()[hull]) return false;
+          const shader = dna.GetGenericDecalShaderData(name);
+          if (!shader || item.meshIndex === -1) continue;
+          for (const textureName of shader.parentTextures)
+          {
+            if (item.textures.has(textureName) || shader.defaultTextures.has(textureName)) continue;
+            const path = dna.GetHullTextureWithMeshIndex(textureName, item.meshIndex, hull);
+            if (path === null) continue;
+            const targets = effect.resources.filter(value => value.name === textureName);
+            if (targets.length !== 1 || !addTexture(targets[0], path)) return false;
+          }
+        }
+      }
+    }
+    return (object.decals?.length ?? 0) === index;
   }
 
   /**

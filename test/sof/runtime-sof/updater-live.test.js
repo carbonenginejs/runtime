@@ -190,7 +190,10 @@ test("real SOF DNA edits preserve live graphs and match standard builds", { skip
     });
     const requests = resources.requests.length;
     const updater = new CjsSOFUpdater(sof);
+    const fullBuild = context.mock.method(sof, "BuildValuesFromDNA", () => assert.fail("Magnate material edit must not build the graph"));
+    const start = performance.now();
     assert.ok(Array.isArray(await updater.UpdateFromDNA(live, nextDna)));
+    const updateMs = performance.now() - start;
     assertIdentities();
     const changed = new Set([...oldConstants].filter(([effect, value]) => value !== JSON.stringify(effect.constParameters.map(record => Array.from(record.value)))).map(([effect]) => effect));
     assert.ok(changed.size > 0);
@@ -202,7 +205,8 @@ test("real SOF DNA edits preserve live graphs and match standard builds", { skip
     assert.equal(await updater.UpdateFromDNA(live, nextDna), false);
     assert.equal(calls.length, changed.size);
     spy.mock.restore();
-    context.diagnostic(JSON.stringify({ resourceBase, changedEffects: changed.size }));
+    fullBuild.mock.restore();
+    context.diagnostic(JSON.stringify({ resourceBase, changedEffects: changed.size, updateMs, fullBuilds: 0 }));
   });
 
   await t.test("Magnate pattern swap preserves masks and matches a fresh pattern/material build", async context =>

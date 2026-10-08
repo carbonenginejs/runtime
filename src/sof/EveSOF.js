@@ -982,6 +982,25 @@ export class EveSOF
   }
 
   /**
+   * Resolves only texture inserts through the factory's configured file service.
+   * Custom: a batch query for in-place editors, with no graph construction or
+   * child-object acquisition. Carbon performs these probes during mesh assembly.
+   * @param {string} dnaString Requested selection.
+   * @param {string[]} paths Authored paths, before any insertion.
+   * @param {object} [options] Catalog readiness options.
+   * @returns {Promise<string[]|null>} Index-aligned paths, or null for invalid DNA.
+   */
+  @meta.ours
+  async ModifyTextureResPaths(dnaString, paths, options = {})
+  {
+    const dna = await this.CreateDna(dnaString, options);
+    if (!dna) return null;
+    return this._ResolveResources(() => paths.map(path => dna.ModifyTextureResPath(
+      path, this._GetResourceExists(), this.allowFileCaching ? this._existingFilesCache : null
+    )));
+  }
+
+  /**
    * Builds a modular hull into an existing space-object values graph or model.
    *
    * Adapted: Carbon mutates a live EveSpaceObject2 and accepts an armor-damage

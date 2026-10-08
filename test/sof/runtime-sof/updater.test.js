@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { EveSOF, CjsSOFUpdater } from "../../../npm/dist/sof/index.js";
+import { EveSOF, EveSOFDNA, CjsSOFUpdater } from "../../../npm/dist/sof/index.js";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import { EveShip2, TriTextureParameter } from "../../../npm/dist/trinity/index.js";
 import { composeStubResMan } from "../../support/stubResMan.js";
@@ -8,6 +8,97 @@ import { composeStubResMan } from "../../support/stubResMan.js";
 const resources = composeStubResMan();
 const originalDna = "hull:faction:race:respathinsert?none";
 const insertedDna = "hull:faction:race:respathinsert?insert";
+
+for (const depthShader of [false, true])
+{
+  test(`targeted material constants match folded/blocked/depth areas (depth shader: ${depthShader})`, async t =>
+  {
+    const { ship, updater, sof } = await MaterialFixture(options =>
+    {
+      const hull = options.black.hull[0], source = hull.opaqueAreas[0];
+      hull.decalAreas = [{ ...structuredClone(source), name: "cutout", index: 1, blockedMaterials: 1 }];
+      hull.transparentAreas = [{ ...structuredClone(source), name: "glass", index: 2 }];
+      options.black.generic.areaShaders[0].doGenerateDepthArea = true;
+      if (depthShader) options.black.generic.areaShaders.push({ shader: "depthonlyv5.fx", parameters: [],
+        defaultParameters: [], defaultTextures: [], transparencyTextureName: "DiffuseMap" });
+    });
+    const nextDna = ship.dna.replace("material?red;none", "material?blue;none");
+    const desired = await sof.BuildValuesFromDNA(nextDna);
+    const expected = CjsSchema.getValues(CjsSchema.from(desired._type, desired));
+    t.mock.method(sof, "BuildValuesFromDNA", () => assert.fail("targeted material edit built a whole graph"));
+    t.mock.method(sof, "CreateMesh", () => assert.fail("targeted material edit built a mesh"));
+    t.mock.method(sof, "ModifyTextureResPaths", () => assert.fail("material edit queried texture existence"));
+    const mesh = ship.mesh, maskList = ship.customMasks, texture = mesh.opaqueAreas[0].effect.resources[0];
+    const calls = t.mock.method(texture, "OnModified");
+    assert.ok(await updater.UpdateFromDNA(ship, nextDna));
+    assert.equal(ship.mesh, mesh); assert.equal(ship.customMasks, maskList);
+    assert.equal(calls.mock.callCount(), 0);
+    assert.deepEqual(CjsSchema.getValues(ship), expected);
+  });
+}
+
+test("targeted pattern materials avoid full builds and projection/texture queries", async t =>
+{
+  const { ship, updater, sof } = await PatternFixture();
+  const nextDna = ship.dna.replace("pattern?one;red;blue", "pattern?one;blue;red");
+  const expected = CjsSchema.getValues(CjsSchema.from("EveShip2", await sof.BuildValuesFromDNA(nextDna)));
+  t.mock.method(sof, "BuildValuesFromDNA", () => assert.fail("full build"));
+  t.mock.method(sof, "ModifyTextureResPaths", () => assert.fail("texture query"));
+  t.mock.method(EveSOFDNA.prototype, "GetPatternProjectionData", () => assert.fail("projection calculation"));
+  assert.ok(await updater.UpdateFromDNA(ship, nextDna));
+  assert.deepEqual(CjsSchema.getValues(ship), expected);
+});
+
+test("targeted respaths query only existence, using current authored paths", async t =>
+{
+  const { ship, updater, sof } = await MaterialFixture();
+  const nextDna = ship.dna.replace("respathinsert?none", "respathinsert?insert");
+  // The request must read current data instead of rewriting the live old path.
+  sof.dataMgr.GetHullData("hull").opaqueAreas[0].textures.get("DiffuseMap").resFilePath = "res:/updated_d.dds";
+  const asked = [];
+  await sof.Register({ resources: {
+    exists: async path => { asked.push(path); return path.includes("updated_insert"); },
+    getObject: () => assert.fail("respath edit acquired an unrelated object")
+  } });
+  t.mock.method(sof, "BuildValuesFromDNA", () => assert.fail("full build"));
+  t.mock.method(sof, "CreateMesh", () => assert.fail("mesh build"));
+  t.mock.method(EveSOFDNA.prototype, "GetMeshAreaParameter", () => assert.fail("respath edit calculated materials"));
+  const effect = ship.mesh.opaqueAreas[0].effect, beforeConstants = effect.constParameters;
+  assert.ok(await updater.UpdateFromDNA(ship, nextDna));
+  assert.equal(effect.resources.find(value => value.name === "DiffuseMap").resourcePath, "res:/insert/updated_insert_d.dds");
+  assert.equal(effect.constParameters, beforeConstants);
+  assert.deepEqual(asked.sort(), ["res:/insert/ship_insert_n.dds", "res:/insert/updated_insert_d.dds"]);
+});
+
+test("targeted preflight rejects a late area mismatch before changing earlier constants", async () =>
+{
+  const { ship, updater } = await MaterialFixture(options =>
+  {
+    const areas = options.black.hull[0].opaqueAreas;
+    areas.push({ ...structuredClone(areas[0]), name: "second", index: 1 });
+  });
+  ship.mesh.opaqueAreas[1].count = 999;
+  const before = CjsSchema.getValues(ship);
+  assert.equal(await updater.UpdateFromDNA(ship, ship.dna.replace("material?red;none", "material?blue;none")), null);
+  assert.deepEqual(CjsSchema.getValues(ship), before);
+});
+
+test("targeted respath revalidates targets after asynchronous existence checks", async t =>
+{
+  const { ship, updater, sof } = await Fixture();
+  const query = sof.ModifyTextureResPaths.bind(sof);
+  let entered, release;
+  const started = new Promise(resolve => { entered = resolve; });
+  const waiting = new Promise(resolve => { release = resolve; });
+  t.mock.method(sof, "ModifyTextureResPaths", async (...args) => { entered(); await waiting; return query(...args); });
+  const pending = updater.UpdateFromDNA(ship, insertedDna);
+  await started;
+  ship.mesh.opaqueAreas[0].name = "user edit";
+  const before = CjsSchema.getValues(ship);
+  release();
+  assert.equal(await pending, null);
+  assert.deepEqual(CjsSchema.getValues(ship), before);
+});
 
 test("material updates retain externally supplied banner textures without reloads", async t =>
 {
@@ -41,8 +132,8 @@ for (const reason of ["selection", "abort", "disposed", "removed"])
     let release, started, current = true, disposed = false;
     const waiting = new Promise(resolve => { release = resolve; });
     const entered = new Promise(resolve => { started = resolve; });
-    const build = sof.BuildValuesFromDNA.bind(sof);
-    t.mock.method(sof, "BuildValuesFromDNA", async (...args) =>
+    const build = sof.CreateDna.bind(sof);
+    t.mock.method(sof, "CreateDna", async (...args) =>
     {
       started(); await waiting; return build(...args);
     });
@@ -194,9 +285,10 @@ test("generated booster glows survive an insert edit without relaxing ordinary s
 
 for (const mismatch of ["name", "length", "type"])
 {
-  test(`a late ${mismatch} mismatch falls back without changing earlier textures`, async () =>
+  test(`a late ${mismatch} mismatch falls back without changing earlier textures`, async t =>
   {
     const { ship, updater } = await Fixture();
+    t.mock.method(updater, "_CanUpdateMesh", () => false); // Full-graph topology preflight.
     const slots = ship.mesh.opaqueAreas[0].effect.resources;
     const first = slots[0], oldPath = first.resourcePath;
     if (mismatch === "name") slots[1].name = "edited";
@@ -227,15 +319,15 @@ test("equivalent faction defaults update provenance without resource reloads; un
   assert.ok(sof);
 });
 
-test("an older async update cannot overwrite a newer request", async t =>
+test("an older async texture query cannot overwrite a newer request", async t =>
 {
   const { ship, updater, sof } = await Fixture();
-  const build = sof.BuildValuesFromDNA.bind(sof);
+  const build = sof.ModifyTextureResPaths.bind(sof);
   let release, started;
   const waiting = new Promise(resolve => { release = resolve; });
   const entered = new Promise(resolve => { started = resolve; });
   let builds = 0;
-  t.mock.method(sof, "BuildValuesFromDNA", async (...args) =>
+  t.mock.method(sof, "ModifyTextureResPaths", async (...args) =>
   {
     if (++builds === 1) { started(); await waiting; }
     return build(...args);
@@ -258,11 +350,11 @@ test("reordered duplicate commands cannot disguise a non-insert change", async (
   assert.equal(resources.requests.length, requests);
 });
 
-test("a rejected build makes no partial changes", async t =>
+test("a rejected texture query makes no partial changes", async t =>
 {
   const { ship, updater, sof } = await Fixture();
   const before = CjsSchema.getValues(ship);
-  t.mock.method(sof, "BuildValuesFromDNA", async () => { throw new Error("failed resource acquisition"); });
+  t.mock.method(sof, "ModifyTextureResPaths", async () => { throw new Error("failed resource acquisition"); });
   await assert.rejects(updater.UpdateFromDNA(ship, insertedDna), /failed resource acquisition/);
   assert.deepEqual(CjsSchema.getValues(ship), before);
 });
@@ -276,6 +368,7 @@ test("shared values references notify the existing texture only once", async t =
   incoming[1] = { _ref: "shared-map" };
   const live = ship.mesh.opaqueAreas[0].effect.resources;
   live[1] = live[0];
+  t.mock.method(updater, "_CanUpdateMesh", () => false); // Exercise the full-graph fallback comparator.
   t.mock.method(sof, "BuildValuesFromDNA", async () => desired);
   const notify = t.mock.method(live[0], "OnModified");
   assert.ok(await updater.UpdateFromDNA(ship, insertedDna));
@@ -288,6 +381,7 @@ test("unresolved values references fall back before writes", async t =>
   const { ship, updater, sof } = await Fixture();
   const desired = await sof.BuildValuesFromDNA(insertedDna);
   desired.mesh.opaqueAreas[0].effect.resources[1] = { _ref: "missing" };
+  t.mock.method(updater, "_CanUpdateMesh", () => false); // Exercise the full-graph fallback comparator.
   t.mock.method(sof, "BuildValuesFromDNA", async () => desired);
   const before = CjsSchema.getValues(ship);
   assert.equal(await updater.UpdateFromDNA(ship, insertedDna), null);
@@ -305,6 +399,7 @@ for (const forward of [false, true]) test(`shader option ${forward ? "forward" :
   const slots = effect.options.slice(), list = effect.options;
   assert.notEqual(slots[0], slots[1]);
   desired.mesh.opaqueAreas[0].effect.options = options;
+  t.mock.method(updater, "_CanUpdateMesh", () => false); // Exercise the full-graph fallback comparator.
   t.mock.method(sof, "BuildValuesFromDNA", async () => desired);
   assert.ok(await updater.UpdateFromDNA(ship, insertedDna));
   assert.equal(effect.options, list);
@@ -325,13 +420,14 @@ test("ordinary object references still require shared identity", async t =>
   const live = ship.mesh.opaqueAreas[0].effect.resources;
   live[1] = CjsSchema.from("TriTextureParameter", CjsSchema.getValues(live[0]));
   assert.notEqual(live[0], live[1]);
+  t.mock.method(updater, "_CanUpdateMesh", () => false); // Exercise the full-graph fallback comparator.
   t.mock.method(sof, "BuildValuesFromDNA", async () => desired);
   const before = CjsSchema.getValues(ship);
   assert.equal(await updater.UpdateFromDNA(ship, insertedDna), null);
   assert.deepEqual(CjsSchema.getValues(ship), before);
 });
 
-test("decal parent textures and editor DNA provenance update without replacing the decal", async () =>
+test("decal parent textures and editor DNA provenance update without replacing the decal", async t =>
 {
   const { ship, updater, sof } = await Fixture(options =>
   {
@@ -359,6 +455,32 @@ test("decal parent textures and editor DNA provenance update without replacing t
   assert.equal(decal.__bluemetadata__.SofDna, insertedDna);
   const desired = await sof.BuildValuesFromDNA(insertedDna);
   assert.deepEqual(CjsSchema.getValues(ship), CjsSchema.getValues(CjsSchema.from(desired._type, desired)));
+});
+
+test("targeted inserts reject reordered stamped decals before writing any textures", async () =>
+{
+  const { ship, updater } = await Fixture(options =>
+  {
+    options.editorMode = true;
+    const hull = options.black.hull[0];
+    hull.opaqueAreas.push({ ...structuredClone(hull.opaqueAreas[0]), name: "second", index: 1,
+      textures: [{ name: "DiffuseMap", resFilePath: "res:/other_d.dds" }] });
+    options.black.faction[0].visibilityGroupSet = { visibilityGroups: [{ str: "primary" }] };
+    hull.decalSets = [{ visibilityGroup: "primary", items: [0, 1].map(meshIndex => ({
+      name: `decal${meshIndex}`, usage: 0, meshIndex, boneIndex: -1,
+      position: [meshIndex, 0, 0], rotation: [0, 0, 0, 1], scaling: [1, 1, 1],
+      parameters: [], textures: [], indexBuffers: [{ indexBuffer: new Uint32Array([0, 1, 2]) }]
+    })) }];
+    options.black.generic.decalShaderLocation = "res:/decal";
+    options.black.generic.decalShaders = [{ shader: "decalv5.fx", parameters: [],
+      defaultTextures: [], parentTextures: [{ str: "DiffuseMap" }] }];
+  });
+  assert.equal(ship.decals.length, 2);
+  assert.notEqual(ship.decals[0].__bluemetadata__.sof_source_id, ship.decals[1].__bluemetadata__.sof_source_id);
+  ship.decals.reverse();
+  const before = CjsSchema.getValues(ship);
+  assert.equal(await updater.UpdateFromDNA(ship, insertedDna), null);
+  assert.deepEqual(CjsSchema.getValues(ship), before);
 });
 
 for (const mode of ["ordinary", "instanced", "shared"])
@@ -430,6 +552,7 @@ test("material DNA edits use current catalog values and preflight late topology 
   assert.equal(ship.mesh.opaqueAreas[0].effect.constParameters[0].value[2], 7);
   const desired = await sof.BuildValuesFromDNA(originalDna + ":material?red;none");
   desired.mesh.opaqueAreas[0].effect.constParameters[1].name = "unexpected";
+  t.mock.method(updater, "_CanUpdateMesh", () => false); // Exercise the full-graph fallback comparator.
   t.mock.method(sof, "BuildValuesFromDNA", async () => desired);
   const before = CjsSchema.getValues(ship), effect = ship.mesh.opaqueAreas[0].effect;
   const rebuild = t.mock.method(effect, "RebuildCachedDataInternal");
