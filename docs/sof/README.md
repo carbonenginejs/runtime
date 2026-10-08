@@ -130,7 +130,9 @@ list does not constrain the live sprite count. Ordinary sprite lists still do.
 Material constants use the effect's named `constParameters` setter, preserving
 existing records and vec4 storage while refreshing each changed effect once.
 Comparisons use float32 values so equal replay does not repeatedly refresh.
-Changed constant names, order or list length currently request a full rebuild.
+Constants match by unique name, retaining their live order even when a fresh
+build emits defaults and explicit materials in a different order. Changed names,
+duplicate names or list lengths request a full rebuild.
 
 Compatible pattern edits update changed texture paths, sampler wrapping, shader
 options, mask projections/targets and pattern material constants. Packed sampler

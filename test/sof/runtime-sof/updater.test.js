@@ -9,6 +9,35 @@ const resources = composeStubResMan();
 const originalDna = "hull:faction:race:respathinsert?none";
 const insertedDna = "hull:faction:race:respathinsert?insert";
 
+test("material constants match by unique name without reordering live records", async t =>
+{
+  const { ship, updater, sof } = await PatternFixture();
+  const effect = ship.mesh.opaqueAreas[0].effect, list = effect.constParameters;
+  list.reverse();
+  const records = list.slice(), vectors = list.map(value => value.value);
+  const dna = ship.dna.replace("pattern?one;red;blue", "pattern?one;blue;red");
+  const expected = await sof.BuildValuesFromDNA(dna);
+  const values = new Map(expected.mesh.opaqueAreas[0].effect.constParameters.map(value => [value.name, value.value.map(Math.fround)]));
+  t.mock.method(sof, "BuildValuesFromDNA", () => assert.fail("pattern material edit must not build a graph"));
+  assert.ok(await updater.UpdateFromDNA(ship, dna));
+  assert.equal(effect.constParameters, list);
+  records.forEach((record, index) =>
+  {
+    assert.equal(list[index], record); assert.equal(record.value, vectors[index]);
+    assert.deepEqual(Array.from(record.value), values.get(record.name));
+  });
+  assert.equal(await updater.UpdateFromDNA(ship, dna), false);
+});
+
+test("an inherited pattern and an explicit empty pattern are different selections", async () =>
+{
+  const { sof, updater } = await PatternFixture();
+  const inherited = await sof.CreateDna(originalDna);
+  const disabled = await sof.CreateDna(originalDna + ":pattern?;red;blue");
+  assert.equal(updater._CanUpdateMesh(inherited, disabled), false);
+  assert.equal(updater._CanUpdateMesh(disabled, await sof.CreateDna(originalDna + ":pattern?;blue;red")), true);
+});
+
 for (const depthShader of [false, true])
 {
   test(`targeted material constants match folded/blocked/depth areas (depth shader: ${depthShader})`, async t =>

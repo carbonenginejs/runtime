@@ -97,7 +97,9 @@ export class CjsSOFUpdater
   @meta.ours
   _CanUpdateMesh(before, after)
   {
-    const pattern = dna => dna.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_PATTERN)?.[0] ?? "";
+    // An absent command inherits the default pattern; an explicit empty name
+    // disables it. Those selections can have different masks/resources.
+    const pattern = dna => dna.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_PATTERN)?.[0] ?? null;
     return pattern(before) === pattern(after)
       && !after.GetLayoutCount() && !before.GetLayoutCount()
       && !after.GetHullInstancedMeshes().length && !before.GetHullInstancedMeshes().length
@@ -488,13 +490,19 @@ export class CjsSOFUpdater
   _CollectConstants(live, desired, anchors, patch)
   {
     if (!Array.isArray(live) || !Array.isArray(desired) || live.length !== desired.length) return false;
-    const names = new Set(), constants = Object.create(null);
+    const names = new Set(), constants = Object.create(null), currentByName = new Map();
+    for (const current of live)
+    {
+      if (!CjsSchema.isInstanceOf("Tr2ConstantEffectParameter", current)
+        || typeof current.name !== "string" || currentByName.has(current.name)) return false;
+      currentByName.set(current.name, current);
+    }
     for (let index = 0; index < desired.length; index++)
     {
       let value = desired[index];
       if (value && Object.hasOwn(value, "_ref")) value = anchors.get(value._ref);
-      const current = live[index];
-      if (!value || !CjsSchema.isInstanceOf("Tr2ConstantEffectParameter", current)
+      const current = value && currentByName.get(value.name);
+      if (!value || !current
         || (value._type && value._type !== "Tr2ConstantEffectParameter")
         || typeof value.name !== "string" || value.name !== current.name || names.has(value.name)
         || !Array.isArray(value.value) || value.value.length !== 4 || current.value.length !== 4

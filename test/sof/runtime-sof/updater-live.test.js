@@ -48,7 +48,7 @@ function Snapshot(live, values)
   return () => slots.forEach(([owner, key, object]) => assert.equal(owner[key], object, key));
 }
 
-/** Excludes only process-allocated audio IDs, preserving all authored/exported fields. */
+/** Normalizes process audio IDs and order-independent named constants for comparison. */
 function ComparableValues(object)
 {
   const values = CjsSchema.getValues(object);
@@ -61,6 +61,11 @@ function ComparableValues(object)
       exported.ID = "runtime-audio-id";
     }
     for (const [key, value] of Object.entries(exported)) Visit(live[key], value);
+    if (CjsSchema.cast(live, Tr2Effect))
+    {
+      assert.equal(new Set(exported.constParameters.map(value => value.name)).size, exported.constParameters.length);
+      exported.constParameters.sort((a, b) => a.name.localeCompare(b.name));
+    }
   };
   Visit(object, values);
   return values;
@@ -254,6 +259,38 @@ test("real SOF DNA edits preserve live graphs and match standard builds", { skip
     effectSpy.mock.restore();
     context.diagnostic(JSON.stringify({ resourceBase, masks: live.customMasks.length,
       changedTextures: changed.size, changedEffects: refreshCount }));
+  });
+
+  await t.test("af1 pattern materials apply and clear without rebuilding or reordering constants", async context =>
+  {
+    const patterns = await Read("/sof/hulls/af1_t1/patterns");
+    assert.ok(patterns.length);
+    for (const pattern of patterns)
+    {
+      await context.test(pattern, async sample =>
+      {
+        const base = `af1_t1:amarrbase:amarr:pattern?${pattern}`;
+        const originalDna = base + ";none;none";
+        const nextDna = base + ";aqua_blue_colorshift_polished;aqua_electric_enamel";
+        const before = await sof.BuildValuesFromDNA(originalDna);
+        const desired = await sof.BuildValuesFromDNA(nextDna);
+        const live = CjsSchema.from(before._type, before);
+        const rebuilt = CjsSchema.from(desired._type, desired);
+        const original = CjsSchema.from(before._type, before);
+        const assertIdentities = Snapshot(live, before), updater = new CjsSOFUpdater(sof);
+        const requests = resources.requests.length;
+        const spy = sample.mock.method(sof, "BuildValuesFromDNA", () => assert.fail("pattern materials must not build a graph"));
+        assert.ok(Array.isArray(await updater.UpdateFromDNA(live, nextDna)));
+        assertIdentities();
+        assert.deepEqual(ComparableValues(live), ComparableValues(rebuilt));
+        assert.equal(await updater.UpdateFromDNA(live, nextDna), false);
+        assert.ok(Array.isArray(await updater.UpdateFromDNA(live, originalDna)));
+        assertIdentities();
+        assert.deepEqual(ComparableValues(live), ComparableValues(original));
+        assert.equal(resources.requests.length, requests, "material edits acquire no resources");
+        spy.mock.restore();
+      });
+    }
   });
 
   await t.test("Deathless hangar retains authored slots and matches requested texture paths", async context =>
