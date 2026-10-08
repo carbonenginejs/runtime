@@ -9,10 +9,12 @@ import { EveSOFDataHull } from "./hull/EveSOFDataHull.js";
 import { EveSOFDataHullDecalSetItem } from "./hull/EveSOFDataHullDecalSetItem.js";
 import { BeObjectMetadata } from "#blue";
 import { addChild, removeChild } from "../global/blue/children.js";
+import { SofValuesBuilder } from "./SofValuesBuilder.js";
 
 /**
  * Updates mesh materials and inserts directly from prepared SOF selections.
- * Complex layouts and pattern changes retain the full-values comparison path.
+ * Ordinary pattern changes calculate only masks and affected mesh bindings.
+ * Complex layouts and shared depth bindings retain full-values comparison.
  * Live objects and unrelated state are retained; incompatible targets rebuild.
  */
 @meta.define({ className: "CjsSOFUpdater", family: "sof" })
@@ -60,9 +62,10 @@ export class CjsSOFUpdater
     if (!isCurrent() || this._updates.get(object) !== request || object.dna !== originalDna) return false;
     if (!this._CompatibleDNA(oldSelection, newSelection)) return null;
 
-    if (this._CanUpdateMesh(oldSelection, newSelection))
+    const patterns = this._CanUpdatePatterns(object, oldSelection, newSelection);
+    if (patterns || this._CanUpdateMesh(oldSelection, newSelection))
       return this._UpdateMesh(object, oldSelection, newSelection, options,
-        () => isCurrent() && this._updates.get(object) === request && object.dna === originalDna);
+        () => isCurrent() && this._updates.get(object) === request && object.dna === originalDna, patterns);
 
     const values = await this._sof.BuildValuesFromDNA(newDna, options);
     if (!isCurrent() || this._updates.get(object) !== request || object.dna !== originalDna) return false;
@@ -72,8 +75,8 @@ export class CjsSOFUpdater
     let changes = [];
     const visited = new WeakMap();
     const owners = new WeakMap();
-    const patterns = this._PatternTargets(object, oldSelection, newSelection);
-    if (!this._CollectChanges(object, values, anchors, visited, owners, changes, false, patterns)) return null;
+    const patternTargets = this._PatternTargets(object, oldSelection, newSelection);
+    if (!this._CollectChanges(object, values, anchors, visited, owners, changes, false, patternTargets)) return null;
 
     // SOF creates banner ImageMap slots empty and exposes them through external
     // parameters. Their paths belong to the host; do not clear and reload them.
@@ -154,6 +157,28 @@ export class CjsSOFUpdater
   }
 
   /**
+   * Selects the direct projection path without shared generated-depth resources.
+   * Combined insert edits retain full comparison until both plans share resolved
+   * hull paths. This does not alter the material-only path's query footprint.
+   * @param {object} object Live root.
+   * @param {EveSOFDNA} before Previous selection.
+   * @param {EveSOFDNA} after Requested selection.
+   * @returns {boolean} Whether ordinary pattern bindings can be planned directly.
+   */
+  @meta.ours
+  _CanUpdatePatterns(object, before, after)
+  {
+    return !before.GetLayoutCount() && !after.GetLayoutCount()
+      && !before.GetHullInstancedMeshes().length && !after.GetHullInstancedMeshes().length
+      && after.GetBuildClass() !== EveSOFDataHull.BuildClass.BUILDCLASS_EXTENSION
+      && object.mesh?.depthAreas.length === 0
+      && JSON.stringify(before.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_RESPATHINSERT))
+        === JSON.stringify(after.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_RESPATHINSERT))
+      && (before.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_PATTERN)?.[0] ?? null)
+        !== (after.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_PATTERN)?.[0] ?? null);
+  }
+
+  /**
    * Calculates only requested mesh constants and/or inserted texture paths.
    * The full builder remains a test oracle, not a dependency of this path.
    * @param {object} object Live root.
@@ -161,17 +186,19 @@ export class CjsSOFUpdater
    * @param {EveSOFDNA} after Current prepared selection.
    * @param {object} options Original build options.
    * @param {Function} isCurrent Host and request guard.
+   * @param {boolean} [patterns] Also calculate ordinary projection changes.
    * @returns {Promise<Array<object>|false|null>} Applied records or fallback.
    */
   @meta.ours
-  async _UpdateMesh(object, before, after, options, isCurrent)
+  async _UpdateMesh(object, before, after, options, isCurrent, patterns = false)
   {
     const changed = command => JSON.stringify(before.GetDnaCommandArgs(command)) !== JSON.stringify(after.GetDnaCommandArgs(command));
     let materials = changed(EveSOFDNA.DnaCommand.CMD_MATERIAL) || changed(EveSOFDNA.DnaCommand.CMD_PATTERN);
     let textures = changed(EveSOFDNA.DnaCommand.CMD_RESPATHINSERT);
     // Equal selections may resolve changed catalog data; they are not snapshots.
     if (!materials && !textures) materials = textures = true;
-    let plan = this._PlanMesh(object, after, materials, textures);
+    const patternTargets = patterns ? this._PatternTargets(object, before, after) : null;
+    let plan = this._PlanMesh(object, after, materials, textures, patternTargets);
     if (!plan) return null;
     if (plan.textures.length)
     {
@@ -181,7 +208,7 @@ export class CjsSOFUpdater
       if (!paths) return null;
       // A user may edit a mesh while file existence is pending. Revalidate the
       // small target set before applying anything, including material changes.
-      plan = this._PlanMesh(object, after, materials, textures);
+      plan = this._PlanMesh(object, after, materials, textures, patternTargets);
       if (!plan || plan.textures.length !== previous.textures.length) return null;
       for (let index = 0; index < paths.length; index++)
       {
@@ -192,6 +219,8 @@ export class CjsSOFUpdater
       }
     }
     if (!isCurrent()) return false;
+    for (const change of plan.changes)
+      if (change.masks) change.masks.added = change.masks.added.map(value => CjsSchema.from("EveCustomMask", value));
     const dna = after.GetDnaString();
     for (const decal of object.decals ?? [])
     {
@@ -205,19 +234,24 @@ export class CjsSOFUpdater
 
   /**
    * Matches only SOF mesh areas and, for inserts, their inherited decal textures.
-   * Does not visit masks, controllers, boosters, attachments or other live state.
+   * Only the optional pattern branch visits masks. Controllers, boosters,
+   * attachments and other unrelated live state are never traversed.
    * @param {object} object Live root.
    * @param {EveSOFDNA} dna Current prepared selection.
    * @param {boolean} materials Calculate constants.
    * @param {boolean} textures Calculate authored texture insert targets.
+   * @param {object|null} [patternTargets] Eligible pattern binding owners/names.
    * @returns {object|null} Validated patches and texture targets, or fallback.
    */
   @meta.ours
-  _PlanMesh(object, dna, materials, textures)
+  _PlanMesh(object, dna, materials, textures, patternTargets = null)
   {
     const mesh = object.mesh;
     if (!CjsSchema.isInstanceOf("Tr2Mesh", mesh) || mesh.geometryResPath !== dna.GetHullGeometryResPath()) return null;
     const plan = { changes: [], textures: [] }, effects = new Map(), targets = new Map();
+    const patterns = patternTargets && { ...patternTargets, processed: new Map(), records: new Map(),
+      visited: new WeakMap(), owners: new WeakMap(), anchors: new Map(),
+      external: new Set((object.externalParameters ?? []).filter(value => value.destinationAttribute === "resourcePath").map(value => value.destinationObject)) };
     const addTexture = (texture, path) =>
     {
       if (!CjsSchema.isInstanceOf("TriTextureParameter", texture) || typeof path !== "string") return false;
@@ -276,7 +310,7 @@ export class CjsSOFUpdater
           if (!addTexture(texture, source.resFilePath)) return false;
         }
       }
-      return true;
+      return !patterns || this._PlanPatternEffect(effect, area, shader, dna, patterns, plan.changes);
     };
     let offset = 0;
     for (let hull = 0; hull < dna.GetMultiHullCount(); hull++)
@@ -298,7 +332,89 @@ export class CjsSOFUpdater
     }
     if (Object.keys(positions).some(key => mesh[key]?.length !== positions[key])) return null;
     if (textures && !this._PlanDecalTextures(object, dna, addTexture)) return null;
+    if (patterns)
+    {
+      // Reuse the prepared mask stage, emitting at most two small values records.
+      // No mesh, controller, attachment or complete desired graph is constructed.
+      const document = new SofValuesBuilder(), fields = { customMasks: [] };
+      this._sof.SetupCustomMask(document, fields, dna);
+      document.AddRoot("default", document.AddNode(getRegisteredClassName(object.constructor), fields));
+      const desired = document.ToValues().customMasks;
+      if (!this._CollectMasks(object, desired, patterns.anchors, patterns.visited, patterns.owners, plan.changes)) return null;
+    }
     return plan;
+  }
+
+  /**
+   * Calculates only pattern-owned bindings and the PPT option for one mesh effect.
+   * Hull textures win over layers; the first applicable layer wins over shader
+   * defaults. Sampler selection is independent of that texture precedence.
+   * Unrelated live resource paths remain untouched, including host overrides.
+   * @param {object} effect Matched live effect.
+   * @param {object} area Authored mesh area.
+   * @param {object} shader Generic shader data.
+   * @param {EveSOFDNA} dna Prepared requested selection.
+   * @param {object} context Per-plan permissions and identity maps.
+   * @param {Array<object>} changes Deferred owner/leaf changes.
+   * @returns {boolean} Whether all affected names and shared owners agree.
+   */
+  @meta.ours
+  _PlanPatternEffect(effect, area, shader, dna, context, changes)
+  {
+    const layerCount = dna.GetPatternLayerCount(), application = dna.GetPatternApplicationData();
+    const layers = new Map();
+    for (let index = 0; index < layerCount; index++)
+    {
+      const layer = dna.GetPatternLayerData(application, index);
+      if (dna.IsPatternLayerApplicableToArea(layer, area.areaType) && !layers.has(layer.textureName)) layers.set(layer.textureName, layer);
+    }
+    const current = new Map(effect.resources.map(value => [value.name, value]));
+    if (current.size !== effect.resources.length) return false;
+    for (const name of area.textures.keys()) if (!current.has(name)) return false;
+    for (const name of shader.defaultTextures.keys()) if (!context.textures.has(name) && !current.has(name)) return false;
+    const paths = new Map(effect.resources.map(value => [value.name, value.resourcePath]));
+    for (const name of context.textures)
+    {
+      if (area.textures.has(name)) continue;
+      if (layers.has(name)) paths.set(name, layers.get(name).textureResFilePath);
+      else if (shader.defaultTextures.has(name)) paths.set(name, shader.defaultTextures.get(name).resFilePath);
+      else paths.delete(name);
+    }
+    const samplerFields = ["addressU", "addressV", "addressW", "filter", "mipFilter", "lodBias", "maxMipLevel", "maxAnisotropy"];
+    const samplers = effect.samplerOverrides.filter(value => !context.samplers.has(value.name)).map(value => ({
+      _type: "Tr2SamplerOverride", name: value.name, ...Object.fromEntries(samplerFields.map(key => [key, value[key]]))
+    }));
+    for (const layer of layers.values()) samplers.push({ _type: "Tr2SamplerOverride", name: `${layer.textureName}Sampler`,
+      addressU: layer.projectionAddressModeU, addressV: layer.projectionAddressModeV, addressW: 1,
+      filter: 3, mipFilter: 2, lodBias: 0, maxMipLevel: 0, maxAnisotropy: 4 });
+    const option = effect.options.filter(value => value.name === "SPACE_OBJECT_PPT_ENABLED");
+    if (option.length !== 1 || !CjsSchema.isInstanceOf("Tr2ShaderOption", option[0])) return false;
+    const ppt = layerCount > 0 ? "SOPPT_ENABLED" : "SOPPT_DISABLED";
+    const signature = JSON.stringify({ paths: [...paths], samplers, ppt });
+    if (context.processed.has(effect)) return context.processed.get(effect) === signature;
+    context.processed.set(effect, signature);
+    for (const [name, record] of current)
+      if (context.external.has(record) && paths.get(name) !== record.resourcePath) return false;
+    const resources = [];
+    for (const [name, resourcePath] of paths)
+    {
+      const record = current.get(name);
+      let value = record && context.records.get(record);
+      if (value && value.resourcePath !== resourcePath) return false;
+      if (!value)
+      {
+        value = { _type: "TriTextureParameter", name, resourcePath };
+        if (record) context.records.set(record, value);
+      }
+      resources.push(value);
+    }
+    const existing = changes.find(change => change.object === effect);
+    const patch = existing ? existing.values : {};
+    if (!this._CollectPatternBindings(effect, "resources", resources, context.anchors, context.visited, context.owners, changes, patch, context)
+      || !this._CollectPatternBindings(effect, "samplerOverrides", samplers, context.anchors, context.visited, context.owners, changes, patch, context)) return false;
+    if (option[0].value !== ppt) patch.options = { SPACE_OBJECT_PPT_ENABLED: { value: ppt } };
+    if (!existing && Object.keys(patch).length) changes.push({ object: effect, type: "Tr2Effect", values: patch });
+    return true;
   }
 
   /**

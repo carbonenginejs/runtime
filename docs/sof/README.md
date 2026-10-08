@@ -110,8 +110,15 @@ or traverse unrelated controllers, boosters and attachments. Target areas and
 parameters are validated before writes; async texture queries revalidate them
 after acquisition. Existing objects, lists and unrelated live state are retained.
 
-Layouts, hull-authored instanced meshes, extension roots and pattern-name changes
-still use the earlier full-values comparison path. That fallback builds fresh
+Ordinary pattern-name changes calculate only mesh constants, pattern-owned
+textures/samplers, the PPT shader option and mask projections. The prepared mask
+stage emits at most two values records; no complete graph or mesh is built.
+Unrelated live texture paths are retained without existence probes or reloads.
+Shared effects and texture targets must agree across all their owning areas.
+
+Layouts, hull-authored instanced meshes, extension roots, generated depth effects
+and simultaneous pattern-name/respathinsert edits still use the earlier
+full-values comparison path. That fallback builds fresh
 values and validates types, names, list lengths and shared references throughout
 the supplied structure before applying leaf changes. Targeted layout matching
 requires additional source associations and is not implemented yet.
@@ -143,7 +150,7 @@ For ordinary root hulls, pattern changes can add/remove mask slots, pattern
 textures and sampler overrides. Retained masks keep their vector storage; slots
 follow the builder's compacted projection order. Removed textures detach through
 their effect owner, and same-name hull/default texture fallbacks remain intact.
-Named bindings retain their live order. The entire graph passes preflight before
+Named bindings retain their live order. All targets in the selected path pass preflight before
 new masks are hydrated or any existing object is changed.
 
 Layouts, instanced attachments, unrelated list changes and newly shared texture

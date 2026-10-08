@@ -611,6 +611,9 @@ test("pattern swaps update textures, wraps, masks and materials without replacin
   const textures = effect.resources, patternTexture = textures.find(value => value.name === "PatternMask");
   const nextDna = originalDna + ":material?red;none:pattern?two;blue;red";
   const desired = await sof.BuildValuesFromDNA(nextDna), rebuilt = CjsSchema.from(desired._type, desired);
+  t.mock.method(sof, "BuildValuesFromDNA", () => assert.fail("pattern edit must not build a complete graph"));
+  t.mock.method(sof, "CreateMesh", () => assert.fail("pattern edit must not construct a mesh"));
+  t.mock.method(sof, "SetupAttachments", () => assert.fail("pattern edit must not visit attachments"));
   const refreshes = [], rebuild = effect.RebuildCachedDataInternal;
   t.mock.method(effect, "RebuildCachedDataInternal", function(...args)
   {
@@ -785,9 +788,8 @@ test("late unsupported topology cancels pending mask and pattern binding changes
 {
   const { ship, updater, sof } = await PatternFixture();
   const nextDna = originalDna + ":material?blue;none:pattern?empty;blue;red";
-  const desired = await sof.BuildValuesFromDNA(nextDna);
-  desired.mesh.opaqueAreas[0].effect.resources[0].name = "UnrelatedReplacement";
-  t.mock.method(sof, "BuildValuesFromDNA", async () => desired);
+  ship.mesh.opaqueAreas[0].effect.resources[0].name = "UnrelatedReplacement";
+  t.mock.method(sof, "BuildValuesFromDNA", () => assert.fail("pattern edit must not build a complete graph"));
   const before = CjsSchema.getValues(ship), requests = resources.requests.length;
   const mask = ship.customMasks[0], texture = ship.mesh.opaqueAreas[0].effect.resources[0];
   assert.equal(await updater.UpdateFromDNA(ship, nextDna), null);
@@ -795,6 +797,105 @@ test("late unsupported topology cancels pending mask and pattern binding changes
   assert.equal(ship.customMasks[0], mask);
   assert.equal(ship.mesh.opaqueAreas[0].effect.resources[0], texture);
   assert.equal(resources.requests.length, requests);
+});
+
+test("targeted patterns preserve unrelated live textures and acquire only their changed mask", async t =>
+{
+  const { ship, updater, sof } = await PatternFixture();
+  const effect = ship.mesh.opaqueAreas[0].effect;
+  const texture = effect.resources.find(value => value.name === "DiffuseMap");
+  assert.ok(texture);
+  texture.resourcePath = "res:/host-owned.dds";
+  const notify = t.mock.method(texture, "OnModified");
+  t.mock.method(sof, "BuildValuesFromDNA", () => assert.fail("full build"));
+  t.mock.method(sof, "ModifyTextureResPaths", () => assert.fail("unchanged hull paths must not be probed"));
+  assert.ok(await updater.UpdateFromDNA(ship, originalDna + ":material?red;none:pattern?two;red;blue"));
+  assert.equal(texture.resourcePath, "res:/host-owned.dds");
+  assert.equal(notify.mock.callCount(), 0);
+});
+
+test("PPT follows authored layers even when no projection emits a mask", async t =>
+{
+  const { ship, updater, sof } = await PatternFixture();
+  sof.dataMgr.GetPatternData("two").oldApplicationData.get("hull").layerAndProjection[0].projection.enabled = false;
+  const next = originalDna + ":material?red;none:pattern?two;red;blue";
+  const expected = CjsSchema.from("EveShip2", await sof.BuildValuesFromDNA(next));
+  t.mock.method(sof, "BuildValuesFromDNA", () => assert.fail("full build"));
+  assert.ok(await updater.UpdateFromDNA(ship, next));
+  assert.equal(ship.customMasks.length, 0);
+  assert.equal(ship.mesh.opaqueAreas[0].effect.options.find(value => value.name === "SPACE_OBJECT_PPT_ENABLED").value, "SOPPT_ENABLED");
+  assert.deepEqual(CjsSchema.getValues(ship), CjsSchema.getValues(expected));
+});
+
+test("targeted pattern preflight rejects conflicting shared effects before any writes", async () =>
+{
+  const { ship, updater } = await PatternFixture(options =>
+  {
+    const areas = options.black.hull[0].opaqueAreas;
+    const second = structuredClone(areas[0]);
+    second.name = "second"; second.index = 1;
+    second.textures.push({ name: "PatternMask", resFilePath: "res:/hull-mask.dds" });
+    areas.push(second);
+  });
+  ship.mesh.opaqueAreas[1].effect = ship.mesh.opaqueAreas[0].effect;
+  // The shared effect satisfies both areas' names but their requested bindings conflict.
+  const before = CjsSchema.getValues(ship);
+  assert.equal(await updater.UpdateFromDNA(ship, originalDna + ":material?red;none:pattern?two;red;blue"), null);
+  assert.deepEqual(CjsSchema.getValues(ship), before);
+});
+
+for (const conflict of [false, true])
+{
+  test(`targeted patterns preserve shared texture identity (conflicting paths: ${conflict})`, async t =>
+  {
+    const { ship, updater } = await PatternFixture(options =>
+    {
+      const areas = options.black.hull[0].opaqueAreas, second = structuredClone(areas[0]);
+      second.name = "second"; second.index = 1;
+      if (conflict) second.textures.push({ name: "PatternMask", resFilePath: "res:/one.dds" });
+      areas.push(second);
+    });
+    const [first, second] = ship.mesh.opaqueAreas.map(area => area.effect);
+    const texture = first.resources.find(value => value.name === "PatternMask");
+    second.SetTextures({ PatternMask: null }); second.AddResource(texture);
+    const before = CjsSchema.getValues(ship), notify = t.mock.method(texture, "OnModified");
+    const next = originalDna + ":material?red;none:pattern?two;red;blue";
+    const result = await updater.UpdateFromDNA(ship, next);
+    if (conflict)
+    {
+      assert.equal(result, null);
+      assert.deepEqual(CjsSchema.getValues(ship), before);
+      assert.equal(notify.mock.callCount(), 0);
+    }
+    else
+    {
+      assert.ok(result);
+      assert.equal(texture.resourcePath, "res:/two.dds");
+      assert.equal(notify.mock.callCount(), 1);
+      assert.equal(second.resources.find(value => value.name === "PatternMask"), texture);
+    }
+  });
+}
+
+test("invalid late mask topology leaves planned effects unchanged", async () =>
+{
+  const { ship, updater } = await PatternFixture();
+  ship.customMasks.push(ship.customMasks[0]);
+  const before = CjsSchema.getValues(ship), requests = resources.requests.length;
+  assert.equal(await updater.UpdateFromDNA(ship, originalDna + ":material?blue;none:pattern?two;blue;red"), null);
+  assert.deepEqual(CjsSchema.getValues(ship), before);
+  assert.equal(resources.requests.length, requests);
+});
+
+test("combined insert and pattern changes retain the full-values comparison", async t =>
+{
+  const { ship, updater, sof } = await PatternFixture();
+  const next = insertedDna + ":material?blue;none:pattern?two;blue;red";
+  const expected = CjsSchema.from("EveShip2", await sof.BuildValuesFromDNA(next));
+  const fullBuild = t.mock.method(sof, "BuildValuesFromDNA");
+  assert.ok(await updater.UpdateFromDNA(ship, next));
+  assert.equal(fullBuild.mock.callCount(), 1);
+  assert.deepEqual(CjsSchema.getValues(ship), CjsSchema.getValues(expected));
 });
 
 test("pattern topology edits preserve an already-open effect batch", async () =>
