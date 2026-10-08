@@ -1049,8 +1049,63 @@ test("new shared pattern textures decline before writes rather than split shared
     effect: { ...duplicate.effect, resources: duplicate.effect.resources.filter(value => !Object.hasOwn(value, "_ref")) } }));
   desired.mesh.depthAreas = [duplicate];
   t.mock.method(sof, "BuildValuesFromDNA", async () => desired);
+  // Exercise the full-values fallback's shared-anchor guard independently of
+  // targeted eligibility; depth areas no longer force pattern edits onto it.
+  t.mock.method(updater, "_CanUpdatePatterns", () => false);
   const before = CjsSchema.getValues(ship), requests = resources.requests.length;
   assert.equal(await updater.UpdateFromDNA(ship, nextDna), null);
   assert.deepEqual(CjsSchema.getValues(ship), before);
   assert.equal(resources.requests.length, requests);
+});
+
+test("pattern edits on transparent meshes retain depth areas without reading or rebuilding them", async t =>
+{
+  const { ship, updater, sof } = await PatternFixture(options =>
+  {
+    const hull = options.black.hull[0];
+    hull.transparentAreas = hull.opaqueAreas; hull.opaqueAreas = [];
+    options.black.generic.areaShaders[0].doGenerateDepthArea = true;
+    options.black.generic.areaShaders.push({ shader: "depthonlyv5.fx", parameters: [],
+      defaultParameters: [], defaultTextures: [], transparencyTextureName: "DiffuseMap" });
+  });
+  const depth = ship.mesh.depthAreas, beforeDepth = CjsSchema.getValues(depth[0]);
+  const visible = ship.mesh.transparentAreas[0].effect;
+  const build = sof.BuildValuesFromDNA.bind(sof);
+  t.mock.method(sof, "BuildValuesFromDNA", () => assert.fail("pattern edit built a complete graph"));
+  t.mock.method(sof, "ModifyTextureResPaths", () => assert.fail("pattern edit queried inserted textures"));
+  const descriptor = Object.getOwnPropertyDescriptor(ship.mesh, "depthAreas");
+  Object.defineProperty(ship.mesh, "depthAreas", { configurable: true, get() { assert.fail("pattern edit inspected depth areas"); } });
+  t.after(() => Object.defineProperty(ship.mesh, "depthAreas", descriptor));
+  for (const pattern of ["two;blue;red", "two;red;blue", "empty;none;none", "one;red;blue"])
+  {
+    const next = originalDna + ":material?red;none:pattern?" + pattern;
+    const expected = CjsSchema.from("EveShip2", await build(next));
+    assert.ok(await updater.UpdateFromDNA(ship, next));
+    assert.equal(ship.mesh.transparentAreas[0].effect, visible);
+    assert.deepEqual(CjsSchema.getValues(ship.mesh.transparentAreas[0]), CjsSchema.getValues(expected.mesh.transparentAreas[0]));
+    assert.deepEqual(CjsSchema.getValues(depth[0]), beforeDepth);
+  }
+});
+
+test("combined pattern and insert edits only change inherited depth texture paths", async t =>
+{
+  const { ship, updater, sof } = await PatternFixture(options =>
+  {
+    const hull = options.black.hull[0];
+    hull.transparentAreas = hull.opaqueAreas; hull.opaqueAreas = [];
+    options.black.generic.areaShaders[0].doGenerateDepthArea = true;
+    options.black.generic.areaShaders.push({ shader: "depthonlyv5.fx", parameters: [],
+      defaultParameters: [], defaultTextures: [], transparencyTextureName: "DiffuseMap" });
+  });
+  const depth = ship.mesh.depthAreas, effect = depth[0].effect;
+  const options = CjsSchema.getValues(effect).options;
+  const samplers = CjsSchema.getValues(effect).samplerOverrides;
+  const texture = effect.resources[0], notify = t.mock.method(texture, "OnModified");
+  t.mock.method(sof, "BuildValuesFromDNA", () => assert.fail("full build"));
+  assert.ok(await updater.UpdateFromDNA(ship, insertedDna + ":material?red;none:pattern?empty;none;none"));
+  assert.equal(ship.mesh.depthAreas, depth); assert.equal(depth[0].effect, effect);
+  assert.equal(texture.resourcePath, "res:/insert/ship_insert_d.dds");
+  assert.equal(notify.mock.callCount(), 1);
+  assert.deepEqual(CjsSchema.getValues(effect).options, options);
+  assert.deepEqual(CjsSchema.getValues(effect).samplerOverrides, samplers);
 });

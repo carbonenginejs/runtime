@@ -14,7 +14,7 @@ import { SofValuesBuilder } from "./SofValuesBuilder.js";
 /**
  * Updates mesh materials and inserts directly from prepared SOF selections.
  * Ordinary pattern changes calculate only masks and affected mesh bindings.
- * Complex layouts and shared depth bindings retain full-values comparison.
+ * Complex layouts retain full-values comparison.
  * Live objects and unrelated state are retained; incompatible targets rebuild.
  */
 @meta.define({ className: "CjsSOFUpdater", family: "sof" })
@@ -62,7 +62,7 @@ export class CjsSOFUpdater
     if (!isCurrent() || this._updates.get(object) !== request || object.dna !== originalDna) return false;
     if (!this._CompatibleDNA(oldSelection, newSelection)) return null;
 
-    const patterns = this._CanUpdatePatterns(object, oldSelection, newSelection);
+    const patterns = this._CanUpdatePatterns(oldSelection, newSelection);
     if (patterns || this._CanUpdateMesh(oldSelection, newSelection))
       return this._UpdateMesh(object, oldSelection, newSelection, options,
         () => isCurrent() && this._updates.get(object) === request && object.dna === originalDna, patterns);
@@ -131,7 +131,7 @@ export class CjsSOFUpdater
         }
       }
     }
-    for (const category of ["opaqueAreas", "transparentAreas", "additiveAreas", "distortionAreas", "depthAreas"])
+    for (const category of ["opaqueAreas", "transparentAreas", "additiveAreas", "distortionAreas"])
       for (const area of object.mesh?.[category] ?? []) if (area.effect) effects.add(area.effect);
     return { root: object, effects, textures, samplers };
   }
@@ -157,21 +157,19 @@ export class CjsSOFUpdater
   }
 
   /**
-   * Selects the direct projection path without shared generated-depth resources.
+   * Selects the direct projection path for ordinary hulls.
    * Combined insert edits share resolved hull paths with the binding planner.
    * This does not alter the material-only path's query footprint.
-   * @param {object} object Live root.
    * @param {EveSOFDNA} before Previous selection.
    * @param {EveSOFDNA} after Requested selection.
    * @returns {boolean} Whether ordinary pattern bindings can be planned directly.
    */
   @meta.ours
-  _CanUpdatePatterns(object, before, after)
+  _CanUpdatePatterns(before, after)
   {
     return !before.GetLayoutCount() && !after.GetLayoutCount()
       && !before.GetHullInstancedMeshes().length && !after.GetHullInstancedMeshes().length
       && after.GetBuildClass() !== EveSOFDataHull.BuildClass.BUILDCLASS_EXTENSION
-      && object.mesh?.depthAreas.length === 0
       && (before.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_PATTERN)?.[0] ?? null)
         !== (after.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_PATTERN)?.[0] ?? null);
   }
@@ -191,14 +189,15 @@ export class CjsSOFUpdater
   async _UpdateMesh(object, before, after, options, isCurrent, patterns = false)
   {
     const changed = command => JSON.stringify(before.GetDnaCommandArgs(command)) !== JSON.stringify(after.GetDnaCommandArgs(command));
-    let materials = changed(EveSOFDNA.DnaCommand.CMD_MATERIAL) || changed(EveSOFDNA.DnaCommand.CMD_PATTERN);
+    let depthMaterials = changed(EveSOFDNA.DnaCommand.CMD_MATERIAL);
+    let materials = depthMaterials || changed(EveSOFDNA.DnaCommand.CMD_PATTERN);
     let textures = changed(EveSOFDNA.DnaCommand.CMD_RESPATHINSERT);
     // Equal selections may resolve changed catalog data; they are not snapshots.
-    if (!materials && !textures) materials = textures = true;
+    if (!materials && !textures) materials = textures = depthMaterials = true;
     const patternTargets = patterns ? this._PatternTargets(object, before, after) : null;
     // Resolve authored insert paths before comparing pattern bindings: a hull
     // texture can also own a pattern slot, or be shared with another effect.
-    let plan = this._PlanMesh(object, after, materials, textures, textures ? null : patternTargets);
+    let plan = this._PlanMesh(object, after, materials, textures, textures ? null : patternTargets, null, depthMaterials);
     if (!plan) return null;
     if (textures)
     {
@@ -210,7 +209,7 @@ export class CjsSOFUpdater
       const resolvedTextures = new Map(previous.textures.map((target, index) => [target.object, paths[index]]));
       // A user may edit a mesh while file existence is pending. Revalidate the
       // small target set before applying anything, including material changes.
-      plan = this._PlanMesh(object, after, materials, textures, patternTargets, resolvedTextures);
+      plan = this._PlanMesh(object, after, materials, textures, patternTargets, resolvedTextures, depthMaterials);
       if (!plan || plan.textures.length !== previous.textures.length) return null;
       for (let index = 0; index < paths.length; index++)
       {
@@ -246,10 +245,11 @@ export class CjsSOFUpdater
    * @param {boolean} textures Calculate authored texture insert targets.
    * @param {object|null} [patternTargets] Eligible pattern binding owners/names.
    * @param {Map<object,string>|null} [resolvedTextures] Current insert query results by live texture.
+   * @param {boolean} [depthMaterials] Mesh material edits may visit depth constants; pattern edits do not.
    * @returns {object|null} Validated patches and texture targets, or fallback.
    */
   @meta.ours
-  _PlanMesh(object, dna, materials, textures, patternTargets = null, resolvedTextures = null)
+  _PlanMesh(object, dna, materials, textures, patternTargets = null, resolvedTextures = null, depthMaterials = materials)
   {
     const mesh = object.mesh;
     if (!CjsSchema.isInstanceOf("Tr2Mesh", mesh) || mesh.geometryResPath !== dna.GetHullGeometryResPath()) return null;
@@ -268,8 +268,12 @@ export class CjsSOFUpdater
       ["transparentAreas", TriBatchType.TRIBATCHTYPE_TRANSPARENT], ["additiveAreas", TriBatchType.TRIBATCHTYPE_ADDITIVE],
       ["distortionAreas", TriBatchType.TRIBATCHTYPE_DISTORTION]
     ];
-    const positions = { opaqueAreas: 0, transparentAreas: 0, additiveAreas: 0, distortionAreas: 0, depthAreas: 0 };
-    const depthShader = dna.GetGenericAreaShaderData("depthonlyv5.fx");
+    const positions = { opaqueAreas: 0, transparentAreas: 0, additiveAreas: 0, distortionAreas: 0 };
+    // Depth areas are generated with the mesh. A pattern edit does not own
+    // their constants, bindings, samplers or shader options.
+    const updateDepth = depthMaterials || textures;
+    if (updateDepth) positions.depthAreas = 0;
+    const depthShader = updateDepth ? dna.GetGenericAreaShaderData("depthonlyv5.fx") : null;
     const match = (live, area, shader, indexOffset, depth = false) =>
     {
       const effect = live?.effect;
@@ -277,7 +281,7 @@ export class CjsSOFUpdater
         || live.index !== area.index + indexOffset || live.count !== area.count
         || !CjsSchema.isInstanceOf("Tr2Effect", effect)
         || effect.effectFilePath !== dna.GetCompleteShaderPath(depth && depthShader ? "depthonlyv5.fx" : area.shader)) return false;
-      if (materials)
+      if (materials && (!depth || depthMaterials))
       {
         const desired = [], names = new Set();
         if (!depth || !depthShader)
@@ -315,7 +319,7 @@ export class CjsSOFUpdater
           if (!addTexture(texture, source.resFilePath)) return false;
         }
       }
-      return !patterns || this._PlanPatternEffect(effect, area, shader, dna, patterns, plan.changes);
+      return depth || !patterns || this._PlanPatternEffect(effect, area, shader, dna, patterns, plan.changes);
     };
     let offset = 0;
     for (let hull = 0; hull < dna.GetMultiHullCount(); hull++)
@@ -329,7 +333,7 @@ export class CjsSOFUpdater
         {
           const shader = dna.GetGenericAreaShaderData(area.shader);
           if (!shader || !match(mesh[key]?.[positions[key]++], area, shader, offset)) return null;
-          if (batch === TriBatchType.TRIBATCHTYPE_TRANSPARENT && shader.doGenerateDepthArea
+          if (updateDepth && batch === TriBatchType.TRIBATCHTYPE_TRANSPARENT && shader.doGenerateDepthArea
             && !match(mesh.depthAreas?.[positions.depthAreas++], area, shader, offset, true)) return null;
         }
       }

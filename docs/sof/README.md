@@ -122,8 +122,12 @@ are planned. Shared texture requests must agree on their final path, including
 requests whose values remain unchanged, and each changed texture is written once.
 Targets are revalidated after acquisition and before applying any edits.
 
-Layouts, hull-authored instanced meshes, extension roots and generated depth
-effects still use the earlier full-values comparison path. That fallback builds fresh
+Pattern and pattern-material edits do not inspect or update generated depth
+areas: those belong to mesh construction. A simultaneous insert edit can still
+update an inherited depth texture path, without changing depth pattern bindings.
+
+Layouts, hull-authored instanced meshes and extension roots still use the earlier
+full-values comparison path. That fallback builds fresh
 values and validates types, names, list lengths and shared references throughout
 the supplied structure before applying leaf changes. Targeted layout matching
 requires additional source associations and is not implemented yet.
