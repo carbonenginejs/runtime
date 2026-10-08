@@ -267,7 +267,14 @@ export class DictReader extends IRootReaderBase
     }
     else if (this._populate)
     {
-      this._populate(instance, options, recordWrite => this.ReadMembers(instance, null, recordWrite));
+      const writes = [];
+      this.ReadMembers(instance, null, (field, changed) => writes.push([field, changed]));
+      const complete = () => this._populate(instance, options, recordWrite =>
+      {
+        for (const [field, changed] of writes) recordWrite(field, changed);
+      });
+      if (this._anchors.hasListEdits()) this._anchors.deferValuesCompletion(complete);
+      else complete();
     }
     else this.ReadMembers(instance, notify);
 
@@ -304,12 +311,16 @@ export class DictReader extends IRootReaderBase
 
       this._currentSource = source[name];
       this._contextStack.push(name);
-      const didChange = this.HandleAttribute(name, instance, notify);
-      if (didChange) changed.add(name);
-      if (onWrite && field && CjsSchema.isFieldWritable(field))
+      const recordWrite = didChange =>
       {
-        onWrite(field, didChange);
-      }
+        if (didChange) changed.add(name);
+        if (onWrite && field && CjsSchema.isFieldWritable(field)) onWrite(field, didChange);
+      };
+      // Structure aliases copy by value after their source records are filled.
+      // Report the settled comparison, not a guessed change for a forward ref.
+      if (field?.type?.kind === "structList" && CjsSchema.isFieldWritable(field))
+        this.ReadStructureList(instance, field, notify, recordWrite);
+      else recordWrite(this.HandleAttribute(name, instance, notify));
       if (field && CjsSchema.isFieldWritable(field)) this._anchors.recordRead(instance, field);
       if (this._options.declarations === true && field && CjsSchema.isFieldWritable(field))
       {
@@ -321,6 +332,104 @@ export class DictReader extends IRootReaderBase
     }
 
     this._currentSource = source;
+    return changed;
+  }
+
+  /**
+   * Reads dictionary structure records using this operation's anchor table.
+   * Adapted: our _id/_ref values can name a packed Carbon struct by its fields.
+   * Resolve those fields before initialization, copying into distinct retained
+   * slots rather than turning BlueStructureList storage into object pointers.
+   * @param {object} instance List owner.
+   * @param {object} field Structure-list declaration.
+   * @param {object|null} [notify=null] Native member notification target.
+   * @param {Function|null} [onRead=null] Receives the settled changed result.
+   * @returns {boolean} Immediate changes; deferred changes reach onRead at finalization.
+   */
+  ReadStructureList(instance, field, notify = null, onRead = null)
+  {
+    const source = this._currentSource;
+    const current = readDictionaryValue(instance, field);
+    const pending = current && PENDING_LIST_READS.get(current);
+    if (pending) pending.cancel();
+    if (source === current)
+    {
+      if (notify && field.edit?.notify) notify.OnModified(field.name);
+      if (onRead) onRead(false);
+      return false;
+    }
+    const records = source ?? [];
+    if (!Array.isArray(records)) this._ThrowError(`Struct list ${field.name} requires an array`);
+    const className = field.type.className;
+    const Item = CjsSchema.GetConstructor(className);
+    if (!Item) this._ThrowError(`Struct list ${field.name}: class ${className} is not registered`);
+    const list = Array.isArray(current) ? current : [];
+    const anchors = this._anchors;
+    let changed = list !== current || list.length !== records.length;
+    const next = [], aliases = [];
+    const readRecord = (item, values) =>
+    {
+      if (values._type !== undefined && !CjsSchema.isInstanceOf(values._type, item))
+        this._ThrowError(`Struct list ${field.name} requires ${className}, not ${String(values._type)}`);
+      const previous = this._currentSource;
+      this._currentSource = values;
+      try { if (this.ReadMembers(item, null).size) changed = true; }
+      finally { this._currentSource = previous; }
+    };
+    for (let index = 0; index < records.length; index++)
+    {
+      const record = records[index];
+      if (!record || typeof record !== "object" || Array.isArray(record) || ArrayBuffer.isView(record))
+        this._ThrowError(`Struct list ${field.name}[${index}] requires a record`);
+      const reuse = CjsSchema.isInstanceOf(className, list[index]);
+      const item = reuse ? list[index] : new Item();
+      if (!reuse) changed = true;
+      next.push(item);
+      if (IsReference(record)) aliases.push({ id: record._ref, item });
+      else
+      {
+        const liveType = CjsSchema.getClassName(record.constructor);
+        if (liveType && !CjsSchema.isInstanceOf(className, record))
+          this._ThrowError(`Struct list ${field.name} requires ${className}, not ${liveType}`);
+        const values = liveType ? CjsSchema.getValues(record) : record;
+        if (values._id !== undefined && values._id !== null) anchors.register(values._id, item);
+        readRecord(item, values);
+      }
+    }
+    list.length = 0;
+    for (const item of next) list.push(item);
+    if (list !== current) writeDictionaryValue(instance, field, list);
+    const complete = () =>
+    {
+      if (notify && field.edit?.notify) notify.OnModified(field.name);
+      if (onRead) onRead(changed);
+    };
+    if (!aliases.length) complete();
+    else
+    {
+      let active = true, remaining = aliases.length;
+      // A marker keeps nested values notifications behind reference resolution.
+      // Actual population happens in finalize, BEFORE owner initialization.
+      const cancel = () =>
+      {
+        active = false;
+        if (PENDING_LIST_READS.get(list) === edit) PENDING_LIST_READS.delete(list);
+      };
+      const edit = { cancel, finish: cancel };
+      PENDING_LIST_READS.set(list, edit);
+      this._listEdits.push(edit);
+      if (this._options.declarations !== true) anchors.deferListEdit(edit);
+      for (const { id, item } of aliases) anchors.defer(id, resolved =>
+      {
+        if (!active) return;
+        if (!CjsSchema.isInstanceOf(className, resolved))
+          this._ThrowError(`Struct list ${field.name}: _ref ${JSON.stringify(id)} requires ${className}`);
+        const values = CjsSchema.getValues(resolved);
+        delete values._id;
+        readRecord(item, values);
+        if (--remaining === 0) complete();
+      });
+    }
     return changed;
   }
 
@@ -1451,6 +1560,7 @@ CjsSchema.define(DictReader, { className: "DictReader", carbon: "DictReader" });
 CjsSchema.decorateMethod(DictReader, "CreateObject", meta.adapted);
 CjsSchema.decorateMethod(DictReader, "ReadInto", meta.ours);
 CjsSchema.decorateMethod(DictReader, "ReadList", meta.adapted);
+CjsSchema.decorateMethod(DictReader, "ReadStructureList", meta.adapted);
 CjsSchema.decorateMethod(DictReader, "ReadIRootPtr", meta.adapted);
 CjsSchema.decorateMethod(DictReader, "_PrepareListPatches", meta.ours);
 CjsSchema.decorateMethod(DictReader, "_ReadListPatch", meta.ours);

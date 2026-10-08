@@ -2,7 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsSchema } from "../../npm/dist/global/schema/CjsSchema.js";
 import { Copier } from "../../npm/dist/global/blue/index.js";
+import { DictReader, CreateAnchorTable } from "../../npm/dist/global/blue/DictReader.js";
+import { IInitialize } from "../../npm/dist/global/blue/IInitialize.js";
+import { INotify } from "../../npm/dist/global/blue/INotify.js";
 import { CjsBlackSchemaRegistry } from "../../npm/dist/resource/formats/black/core/CjsBlackSchemaRegistry.js";
+import "../../npm/dist/trinity/index.js";
+import { composeStubResMan } from "../support/stubResMan.js";
 
 const { meta } = CjsSchema;
 
@@ -109,4 +114,131 @@ test("values export records as plain values that read back", () =>
     CjsSchema.setValues(back, values);
     assert.equal(back.records[0].name, "a");
     assert.deepEqual(Array.from(back.records[0].value), [1, 2, 3, 4]);
+});
+
+for (const forward of [false, true]) test(`struct-list ${forward ? "forward" : "backward"} references resolve by value and retain slots`, () =>
+{
+    const anchor = { _id: "record", name: "shared", value: [1, 2, 3, 4] };
+    const source = { records: forward ? [{ _ref: "record" }, anchor] : [anchor, { _ref: "record" }] };
+    const original = structuredClone(source);
+    const owner = CjsSchema.from("StructListOwner", source);
+    const list = owner.records, slots = [...list];
+    assert.notEqual(slots[0], slots[1], "packed struct slots are not shared pointers");
+    for (const record of slots)
+    {
+        assert.equal(record.name, "shared");
+        assert.deepEqual(Array.from(record.value), [1, 2, 3, 4]);
+    }
+    assert.equal(CjsSchema.setValues(owner, source, { returnBoolean: true }), false);
+    assert.equal(owner.records, list);
+    slots.forEach((slot, index) => assert.equal(owner.records[index], slot));
+    anchor.name = "updated";
+    assert.equal(CjsSchema.setValues(owner, source, { returnBoolean: true }), true);
+    assert.deepEqual(owner.records.map(record => record.name), ["updated", "updated"]);
+    anchor.name = "shared";
+    assert.deepEqual(source, original);
+});
+
+class StructReferenceRoot { first = null; second = null; }
+CjsSchema.define(StructReferenceRoot, { className: "StructReferenceRoot", fields: {
+    first: { type: { kind: "rootRef", className: "StructListOwner" } },
+    second: { type: { kind: "rootRef", className: "StructListOwner" } }
+} });
+
+for (const declarations of [false, true]) test(`struct references share the enclosing graph (${declarations ? "declared" : "values"})`, () =>
+{
+    const source = {
+        first: { records: [{ _ref: "other" }] },
+        second: { records: [{ _id: "other", name: "cross-owner", value: [4, 3, 2, 1] }] }
+    };
+    const root = declarations ? new DictReader({ declarations }).CreateObject(source, StructReferenceRoot)
+        : CjsSchema.from("StructReferenceRoot", source);
+    assert.equal(root.first.records[0].name, "cross-owner");
+    assert.notEqual(root.first.records[0], root.second.records[0]);
+    assert.deepEqual(Array.from(root.first.records[0].value), [4, 3, 2, 1]);
+});
+
+class StructReferenceLifecycle
+{
+    records = [];
+    initialized = [];
+    notifications = [];
+    Initialize() { this.initialized.push(this.records.map(record => record.name)); }
+    OnModified(name) { this.notifications.push([name, this.records.map(record => record.name)]); }
+}
+meta.blue.interface(IInitialize, INotify)(StructReferenceLifecycle, { kind: "class" });
+CjsSchema.define(StructReferenceLifecycle, { className: "StructReferenceLifecycle", fields: {
+    records: [meta.type.structList("StructListRecord"), meta.blue.persist, meta.blue.notify]
+} });
+
+for (const declarations of [false, true]) test(`struct references resolve before lifecycle (${declarations ? "declared" : "values"})`, () =>
+{
+    const source = { records: [{ _ref: "record" }, { _id: "record", name: "ready" }] };
+    const owner = declarations ? new DictReader({ declarations }).CreateObject(source, StructReferenceLifecycle)
+        : CjsSchema.from("StructReferenceLifecycle", source);
+    assert.deepEqual(owner.initialized, [["ready", "ready"]]);
+    for (const [, names] of owner.notifications) assert.deepEqual(names, ["ready", "ready"]);
+    owner.notifications.length = 0;
+    assert.equal(CjsSchema.setValues(owner, source, { returnBoolean: true }), false);
+    assert.deepEqual(owner.notifications, []);
+    const changed = { records: [{ _ref: "record" }, { _id: "record", name: "changed" }] };
+    assert.equal(CjsSchema.setValues(owner, changed, { returnBoolean: true }), true);
+    assert.deepEqual(owner.notifications, [["records", ["changed", "changed"]]]);
+});
+
+test("struct reference import rejects missing, duplicate and wrong-type anchors", () =>
+{
+    assert.throws(() => CjsSchema.from("StructListOwner", { records: [{ _ref: "missing" }] }), /Unresolved _ref/);
+    assert.throws(() => CjsSchema.from("StructListOwner", { records: [{ _id: "same" }, { _id: "same" }] }), /Duplicate _id/);
+    assert.throws(() => CjsSchema.from("StructListOwner", { _id: "owner", records: [{ _ref: "owner" }] }), /requires StructListRecord/);
+    assert.throws(() => CjsSchema.from("StructListOwner", { records: [{ _type: "StructListOwner" }] }), /requires StructListRecord/);
+});
+
+test("a later struct-list edit supersedes pending reference copies", () =>
+{
+    const importContext = CreateAnchorTable();
+    const owner = new StructListOwner();
+    CjsSchema.setValues(owner, { records: [{ _ref: "later" }] }, { importContext });
+    CjsSchema.setValues(owner, { records: [{ name: "new" }] }, { importContext });
+    const record = new StructListRecord();
+    record.name = "stale";
+    importContext.register("later", record);
+    importContext.finalize();
+    importContext.initializeCreated();
+    assert.equal(owner.records[0].name, "new");
+});
+
+test("new values-only owners notify after their struct references resolve", () =>
+{
+    class NotifiedStructOwner
+    {
+        records = [];
+        notifications = [];
+        OnModified(name) { this.notifications.push([name, this.records.map(record => record.name)]); }
+    }
+    meta.blue.interface(INotify)(NotifiedStructOwner, { kind: "class" });
+    CjsSchema.define(NotifiedStructOwner, { className: "NotifiedStructOwner", fields: {
+        records: [meta.type.structList("StructListRecord"), meta.blue.notify]
+    } });
+    const owner = CjsSchema.from("NotifiedStructOwner", {
+        records: [{ _ref: "record" }, { _id: "record", name: "ready" }]
+    });
+    assert.deepEqual(owner.notifications, [["records", ["ready", "ready"]]]);
+});
+
+test("Tr2Effect shader options preserve referenced name and value", t =>
+{
+    const resources = composeStubResMan();
+    t.after(() => resources.restore());
+    for (const forward of [false, true])
+    {
+        const anchor = { _type: "Tr2ShaderOption", _id: "option", name: "SPACE_OBJECT_TRANSPARENCY", value: "OPAQUE" };
+        const options = forward ? [{ _ref: "option" }, anchor] : [anchor, { _ref: "option" }];
+        const effect = CjsSchema.from("Tr2Effect", { options });
+        assert.notEqual(effect.options[0], effect.options[1]);
+        assert.deepEqual(effect.options.map(option => [option.name, option.value]), [
+            ["SPACE_OBJECT_TRANSPARENCY", "OPAQUE"], ["SPACE_OBJECT_TRANSPARENCY", "OPAQUE"]
+        ]);
+        assert.equal(CjsSchema.setValues(effect, { options }, { returnBoolean: true }), false);
+    }
 });
