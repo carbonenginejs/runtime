@@ -9,6 +9,61 @@ const resources = composeStubResMan();
 const originalDna = "hull:faction:race:respathinsert?none";
 const insertedDna = "hull:faction:race:respathinsert?insert";
 
+test("material updates retain externally supplied banner textures without reloads", async t =>
+{
+  const { ship, updater } = await MaterialFixture(options =>
+  {
+    options.black.hull[0].banners = [{ usage: 3, visibilityGroup: "primary" }];
+    options.black.faction[0].visibilityGroupSet = { visibilityGroups: [{ str: "primary" }] };
+    options.black.generic.bannerShader = { shader: "res:/banner.fx", defaultParameters: [], defaultTextures: [] };
+  });
+  assert.equal(ship.externalParameters.length, 1);
+  const binding = ship.externalParameters[0], texture = binding.destinationObject;
+  binding.SetValue("res:/host/banner.png");
+  const notify = t.mock.method(texture, "OnModified");
+  const requests = resources.requests.length;
+  assert.ok(await updater.UpdateFromDNA(ship, ship.dna.replace("material?red;none", "material?blue;none")));
+  assert.equal(binding.destinationObject, texture);
+  assert.equal(texture.resourcePath, "res:/host/banner.png");
+  assert.equal(notify.mock.callCount(), 0);
+  assert.equal(resources.requests.length, requests);
+  assert.equal(await updater.UpdateFromDNA(ship, ship.dna), false);
+  assert.equal(notify.mock.callCount(), 0);
+});
+
+for (const reason of ["selection", "abort", "disposed", "removed"])
+{
+  test(`editor ${reason} while material data loads prevents all live writes`, async t =>
+  {
+    const { ship, updater, sof } = await MaterialFixture();
+    const dna = ship.dna, snapshot = CjsSchema.getValues(ship);
+    const scene = { objects: [ship] }, controller = new AbortController();
+    let release, started, current = true, disposed = false;
+    const waiting = new Promise(resolve => { release = resolve; });
+    const entered = new Promise(resolve => { started = resolve; });
+    const build = sof.BuildValuesFromDNA.bind(sof);
+    t.mock.method(sof, "BuildValuesFromDNA", async (...args) =>
+    {
+      started(); await waiting; return build(...args);
+    });
+    const pending = updater.UpdateFromDNA(ship, dna.replace("material?red;none", "material?blue;none"), {}, () =>
+    {
+      controller.signal.throwIfAborted();
+      return current && !disposed && scene.objects.includes(ship);
+    });
+    await entered;
+    if (reason === "selection") current = false;
+    if (reason === "abort") controller.abort();
+    if (reason === "disposed") disposed = true;
+    if (reason === "removed") scene.objects.length = 0;
+    release();
+    if (reason === "abort") await assert.rejects(pending, /aborted/);
+    else assert.equal(await pending, false);
+    assert.equal(ship.dna, dna);
+    assert.deepEqual(CjsSchema.getValues(ship), snapshot);
+  });
+}
+
 /** Material fixture with two independently changeable constants and a fallback. */
 async function MaterialFixture(configure = null, suffix = "")
 {

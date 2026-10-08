@@ -38,30 +38,40 @@ export class CjsSOFUpdater
    * @param {object} object A live, schema-registered SOF root with its original DNA.
    * @param {string} newDna Requested DNA.
    * @param {object} [options] The original build options, including layout seed/time.
+   * @param {Function} [isCurrent] Host selection/lifetime guard, checked before writes.
    * @returns {Promise<Array<object>|false|null>} Changed values per object, false
    * for no changes or superseded work, null when the caller must rebuild.
    */
   @meta.ours
-  async UpdateFromDNA(object, newDna, options = {})
+  async UpdateFromDNA(object, newDna, options = {}, isCurrent = () => true)
   {
+    if (!isCurrent()) return false;
     if (!object || typeof object.dna !== "string" || typeof newDna !== "string") return null;
     const request = {};
     this._updates.set(object, request);
     const originalDna = object.dna;
     const oldSelection = await this._sof.CreateDna(originalDna, options);
     const newSelection = await this._sof.CreateDna(newDna, options);
-    if (this._updates.get(object) !== request || object.dna !== originalDna) return false;
+    if (!isCurrent() || this._updates.get(object) !== request || object.dna !== originalDna) return false;
     if (!this._CompatibleDNA(oldSelection, newSelection)) return null;
 
     const values = await this._sof.BuildValuesFromDNA(newDna, options);
-    if (this._updates.get(object) !== request || object.dna !== originalDna) return false;
+    if (!isCurrent() || this._updates.get(object) !== request || object.dna !== originalDna) return false;
     if (!values) return null;
     const anchors = new Map();
     if (!this._IndexValues(values, anchors, new WeakSet())) return null;
-    const changes = [];
+    let changes = [];
     const visited = new WeakMap();
     const owners = new WeakMap();
     if (!this._CollectChanges(object, values, anchors, visited, owners, changes)) return null;
+
+    // SOF creates banner ImageMap slots empty and exposes them through external
+    // parameters. Their paths belong to the host; do not clear and reload them.
+    const externalTextures = new Set((object.externalParameters ?? [])
+      .filter(parameter => getRegisteredClassName(parameter.constructor) === "Tr2ExternalParameter"
+        && parameter.destinationAttribute === "resourcePath")
+      .map(parameter => parameter.destinationObject));
+    changes = changes.filter(change => change.type !== "TriTextureParameter" || !externalTextures.has(change.object));
 
     // Children are visited before their owner; publish the root DNA last.
     for (const change of changes) this._ApplyChange(change);
