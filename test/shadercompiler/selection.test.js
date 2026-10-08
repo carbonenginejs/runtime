@@ -55,9 +55,9 @@ function annotationsOf(symbol)
     }));
 }
 
-const EFFECTS = ["outline/unpacked_quadoutline.fx", "outline/unpackedskinned_quadoutline.fx", "outline/quadoutline.fx", "outline/skinned_quadoutline.fx"];
+const EFFECTS = ["selection/selectionmask.fx", "selection/skinned_selectionmask.fx", "selection/selectionoutline.fx"];
 
-test("both quad outline effects compile", () =>
+test("the selection effects compile", () =>
 {
     for (const effect of EFFECTS)
     {
@@ -67,7 +67,7 @@ test("both quad outline effects compile", () =>
     }
 });
 
-test("only the skinned variant reads bones", () =>
+test("only the skinned mask reads bones", () =>
 {
     const [plain, skinned] = EFFECTS.map(effect => compileEffect(effect).state.GetSymbolTable());
     assert.equal(plain.LookupGlobal("BoneTransforms"), null);
@@ -76,26 +76,29 @@ test("only the skinned variant reads bones", () =>
 
 test("the per-frame and per-object blocks land in Carbon's slots", () =>
 {
-    const { state } = compileEffect("outline/unpackedskinned_quadoutline.fx");
+    const { state } = compileEffect("selection/skinned_selectionmask.fx");
     ParserUtils.PatchCBuffers(state);
     const slots = Object.fromEntries(findNodes(state.GetTree(), ASTNode.ASTNodeType.NT_CBUFFER)
         .map(node => [node.GetSymbol().name.ToString(), [...node.GetSymbol().registerSpecifier.values()].map(r => `${r.registerType}${r.registerNumber}`).join()]));
     assert.deepEqual(slots, { PerFrameVS: "b1", PerFramePS: "b2", PerObjectVS: "b3", PerObjectPS: "b4" });
 });
 
-test("the pass culls the opposite faces to Carbon's default, as the shipped Shadow pass does", () =>
+test("the mask is depth-tested and does not write depth", () =>
 {
-    const { state } = compileEffect("outline/unpacked_quadoutline.fx");
-    const cull = findNodes(state.GetTree(), ASTNode.ASTNodeType.NT_STATE_ASSIGNMENT).find(node => node.GetToken().stringValue.ToString() === "CullMode");
-    const blob = { value: 0 };
-    assert.equal(FXAnalyzer.ParseStateAssignment(state, cull, FXAnalyzer.g_renderStates, blob), true);
-    // D3DCULL_CCW, the value the shipped quad Shadow passes store.
-    assert.equal(blob.value, 3);
+    const { state } = compileEffect("selection/selectionmask.fx");
+    const states = Object.fromEntries(findNodes(state.GetTree(), ASTNode.ASTNodeType.NT_STATE_ASSIGNMENT).map(node =>
+    {
+        const blob = { value: 0 };
+        assert.equal(FXAnalyzer.ParseStateAssignment(state, node, FXAnalyzer.g_renderStates, blob), true);
+        return [node.GetToken().stringValue.ToString(), blob.value];
+    }));
+    assert.equal(states.ZEnable, 1);
+    assert.equal(states.ZWriteEnable, 0);
 });
 
 test("every outline parameter is exposed and fully described, every component named", () =>
 {
-    const symbols = compileEffect("outline/unpacked_quadoutline.fx").state.GetSymbolTable();
+    const symbols = compileEffect("selection/selectionoutline.fx").state.GetSymbolTable();
     for (const name of ["OutlineColour", "OutlineSettings", "OutlineAnimationSettings"])
     {
         const annotations = annotationsOf(symbols.LookupGlobal(name));

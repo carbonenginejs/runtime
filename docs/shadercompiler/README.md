@@ -182,24 +182,40 @@ unpacked tangents, and `skinned_` for animated hulls
 (`EveSOFDNA::GetCompleteShaderPath`), together `unpackedskinned_`. A family
 shares its pixel shader; the variants differ in their vertex input.
 
-### Outline
+### Selection outline
 
-`src/shadercompiler/library/outline/` draws the quad ship outline as an inverted hull: the hull
-drawn again, pushed out along its normals by a width in pixels, with only its
-back faces kept.
+`src/shadercompiler/library/selection/` draws a selection outline as Blender
+and Unreal draw theirs: a solid, even line around the selected object's
+visible shape, with no lines inside it.
 
+- `selectionmask.fx` and `skinned_selectionmask.fx` (`SelectionMask.fxh`):
+  the object drawn flat into a mask target, depth-tested against the scene
+  and not written, so only its visible pixels enter. Only the position is
+  read, so the tangent form does not matter.
+- `selectionoutline.fx`: a full-screen pass on Carbon's screen quad. Every
+  pixel outside the mask with a mask pixel within the width gets the line;
+  its outer pixel fades.
 - `OutlineParameters.fxh`: `OutlineColour`, `OutlineSettings` (brightness,
-  width in pixels, animated, unused) and `OutlineAnimationSettings`
-  (reserved), shared by every outline effect.
-- `QuadOutline.fxh`: the body, following the shipped quad vertex path.
-- `unpacked_quadoutline.fx` and `unpackedskinned_quadoutline.fx`.
+  width in pixels up to 8, animated, unused) and `OutlineAnimationSettings`
+  (reserved), fully annotated.
 
-`test/shadercompiler/outline.test.js` compiles both, checks the buffers land in Carbon's
-slots, the cull state, and that every parameter is fully described.
+The engine side draws the mask with Carbon's `TriStepRenderObject` (the
+object's batches through `RenderBatchesWithOverride`) and the outline with
+`Tr2Renderer.drawScreenQuad`. `test/shadercompiler/selection.test.js` checks
+the effects' buffers, states and parameters; the WebGPU tests render the
+outline pass over a mask with Dawn and check the line's width.
 
-Not yet: packed and other renderables' outlines, interior lines, bundling the
-library as one JSON map for the browser, writing compiled containers, and
-checking the layouts against the offsets the compiler computes.
+The library also holds `mesh/Skinning.fxh` (the shipped quad family's
+one-bone skinning) and `mesh/Tangents.fxh` (Carbon's `UnpackTangentsLegacy`,
+checked on the GPU against `PackTangentsLegacy`).
+
+`scripts/shadercompiler/compile-library.mjs <out>` writes every library
+effect as `graphics/effect.webgpu/cjs/<dir>/<name>.sm_{hi,lo,depth}`, the tree
+a tools-core overlay imports to serve them; they are referenced as
+`res:/graphics/effect/cjs/<dir>/<name>.fx`.
+
+Not yet: bundling the library as one JSON map for the browser, and checking
+the layouts against the offsets the compiler computes.
 
 ## Tests
 

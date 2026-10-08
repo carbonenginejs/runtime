@@ -11,7 +11,7 @@
 // tracing, which is not ported.
 //
 // The rest reproduces the Carbon defects found while porting, and compiles
-// the library's outline effect.
+// the library's skinned selection mask.
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -372,14 +372,15 @@ test("Carbon quirk: an explicit texture register is not kept", () =>
     assert.deepEqual([...ps.textures.keys()], [0]);
 });
 
-// The library's outline effect.
+// The library's skinned selection mask: constant buffers, a bone buffer and
+// vertex inputs through the Metal compiler.
 
 const libraryRead = path => (existsSync(join(LIBRARY_ROOT, path)) ? readFileSync(join(LIBRARY_ROOT, path), "utf8") : null);
 
-test("outline/unpacked_quadoutline.fx compiles for Metal", () =>
+test("selection/skinned_selectionmask.fx compiles for Metal", () =>
 {
     const session = new ShaderCompilerSession({ read: libraryRead, compilerFactories: new Map() });
-    const file = session.includeHandler.Open("outline/unpacked_quadoutline.fx");
+    const file = session.includeHandler.Open("selection/skinned_selectionmask.fx");
     const compiler = new EffectCompilerMetal(session);
     const data = new EffectData();
     const compiled = compiler.CompileEffect(InlineString.makeInlineString__StartEnd(file.data, 1, file.data.text.length), [new Macro("PLATFORM", "10")], data);
@@ -388,22 +389,23 @@ test("outline/unpacked_quadoutline.fx compiles for Metal", () =>
     assert.equal(compiled, true);
 
     const [vs, ps] = data.techniques[0].passes[0].stages;
-    assert.ok(vs.source.includes("constant EveSpaceObjectVSData& PerObjectVS [[ CBUFFER(3) ]]"));
-    assert.ok(vs.source.includes("constant EveSpaceScenePerFrameVSData& PerFrameVS [[ CBUFFER(1) ]]"));
-    assert.ok(vs.source.includes("constant GlobalsData& Globals [[ CBUFFER(0) ]]"));
-    assert.ok(vs.source.includes("to_float3x3( ( PerObjectVS ).worldTransform )"));
-    assert.deepEqual(vs.registerInputs.map(r => r.registerIndex), [3, 1, 0]);
-    assert.deepEqual(vs.pipelineInputs.map(input => [input.name, input.registerIndex, input.dimension]), [[0, 0, 3], [2, 1, 3]]);
-    assert.deepEqual(vs.constants.map(c => [c.name, c.offset, c.size]), [["OutlineSettings", 0, 16]]);
-    assert.deepEqual(ps.constants.map(c => [c.name, c.offset, c.size]), [["OutlineColour", 0, 16], ["OutlineSettings", 16, 16]]);
-    assert.ok(ps.source.includes(" fragment __StageOutData_"));
+    assert.ok(vs.source.includes("constant EveSpaceObjectVSData& PerObjectVS"));
+    assert.ok(vs.source.includes("constant EveSpaceScenePerFrameVSData& PerFrameVS"));
+    assert.ok(vs.source.includes("device const BoneTransform* BoneTransforms"));
+    // Carbon's AutoAssignRegisters gives the bone buffer a Metal SRV slot of its
+    // own choosing (AddUsedGlobalsAsFunctionParams drops the declared t0):
+    // SRV 4, then the per-object and per-frame buffers at b3 and b1.
+    assert.deepEqual(vs.registerInputs.map(r => [r.registerType, r.registerIndex]), [[33, 4], [0, 3], [0, 1]]);
+    // POSITION and BLENDINDICES, numbered in order.
+    assert.deepEqual(vs.pipelineInputs.map(input => [input.name, input.registerIndex, input.dimension]), [[0, 0, 3], [6, 1, 4]]);
+    assert.deepEqual(vs.constants, []);
+    assert.deepEqual(ps.constants, []);
     assert.ok(ps.source.includes("[[ color(0) ]]"));
-    assert.ok(data.annotations.has("OutlineColour"));
 });
 
-test("the driver writes a Metal container for the outline effect", () =>
+test("the driver writes a Metal container for the selection mask", () =>
 {
-    const { bytes, messages } = CompileEffectFile("outline/unpacked_quadoutline.fx", {
+    const { bytes, messages } = CompileEffectFile("selection/skinned_selectionmask.fx", {
         read: libraryRead,
         compilers: new Map([[Platform.PLATFORM_METAL, session => new EffectCompilerMetal(session)]]),
         defines: [new Macro("PLATFORM", "10")]

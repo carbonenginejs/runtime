@@ -75,7 +75,7 @@ float4 ps(VSOut i) : SV_Target { float4 c = DiffuseMap.Sample(DiffuseSampler, i.
 technique Main { pass P0 { VertexShader = compile vs_5_0 vs(); PixelShader = compile ps_5_0 ps(); } }
 `;
 
-const OUTLINES = ["/outline/unpacked_quadoutline.fx", "/outline/unpackedskinned_quadoutline.fx", "/outline/quadoutline.fx", "/outline/skinned_quadoutline.fx"];
+const OUTLINES = ["/selection/selectionmask.fx", "/selection/skinned_selectionmask.fx", "/selection/selectionoutline.fx"];
 
 test("HLSL cbuffer packing: no straddling, arrays, matrices and structs start a register", () =>
 {
@@ -106,7 +106,7 @@ test("a textured probe compiles to WGSL that Dawn accepts and links", async () =
     assert.deepEqual(ps.constants.map(c => [c.name, c.offset, c.size]), [["Tint", 0, 16]]);
 });
 
-test("the quad outlines compile, every permutation, to WGSL that Dawn accepts and links", async () =>
+test("the selection effects compile, every permutation, to WGSL that Dawn accepts and links", async () =>
 {
     for (const effect of OUTLINES)
     {
@@ -126,7 +126,7 @@ test("the quad outlines compile, every permutation, to WGSL that Dawn accepts an
     }
 });
 
-test("the skinned outline binds its bone buffer at its declared t0", () =>
+test("the skinned mask binds its bone buffer at its declared t0", () =>
 {
     const { results } = compile(OUTLINES[1]);
     const [pass] = passesOf(results);
@@ -214,9 +214,23 @@ function PackTangentsLegacy(n, t, b)
     return angles.map(a => Math.min(1, Math.max(0, (a + Math.PI) / (2 * Math.PI))));
 }
 
-test("the packed outline decodes Carbon's legacy tangent frames on the GPU", async () =>
+// A vertex shader that decodes TANGENT0 with the library's UnpackTangentsLegacy.
+const TANGENT_PROBE = `#include "mesh/Tangents.fxh"
+float4 vs( float3 position : POSITION, float4 packedTangent : TANGENT ) : SV_Position
 {
-    const { results } = compile(OUTLINES[2]);
+    float3 normal;
+    float3 tangent;
+    float3 bitangent;
+    UnpackTangentsLegacy( packedTangent, normal, tangent, bitangent );
+    return float4( position + normal, 1.0 );
+}
+float4 ps() : SV_Target { return float4( 1.0, 1.0, 1.0, 1.0 ); }
+technique Main { pass P0 { VertexShader = compile vs_5_0 vs(); PixelShader = compile ps_5_0 ps(); } }
+`;
+
+test("the library's tangent decode recovers Carbon's legacy tangent frames on the GPU", async () =>
+{
+    const { results } = compile("/tangentprobe.fx", { "/tangentprobe.fx": TANGENT_PROBE });
     const vs = passesOf(results)[0].stages.find(stage => stage.type === 0).shaderData;
     const start = vs.indexOf("fn UnpackTangentsLegacy(");
     assert.ok(start >= 0, "the packed variant decodes TANGENT0");
@@ -262,28 +276,6 @@ fn main(@builtin(global_invocation_id) id : vec3<u32>)
             assert.ok(Math.abs(output[i * 4 + k] - frame.n[k]) < 1e-3, `frame ${i}: normal ${[...output.subarray(i * 4, i * 4 + 3)]} against ${frame.n}`);
         }
     });
-});
-
-const SELECTION = ["/selection/selectionmask.fx", "/selection/skinned_selectionmask.fx", "/selection/selectionoutline.fx"];
-
-test("the selection effects compile to WGSL that Dawn accepts and links", async () =>
-{
-    for (const effect of SELECTION)
-    {
-        const { bytes, messages, results } = compile(effect);
-        assert.deepEqual(messages, [], effect);
-        assert.ok(bytes, effect);
-        for (const pass of passesOf(results))
-        {
-            for (const stage of pass.stages)
-            {
-                assert.deepEqual(await wgslErrors(stage.shaderData), [], `${effect} stage ${stage.type}:\n${stage.shaderData}`);
-            }
-            const vs = pass.stages.find(stage => stage.type === 0);
-            const ps = pass.stages.find(stage => stage.type === 1);
-            assert.equal(await pipelineError(vs.shaderData, ps.shaderData, buffersFor(vs)), null, effect);
-        }
-    }
 });
 
 test("the selection outline draws a solid line of the set width around the mask, and nothing inside it", async () =>

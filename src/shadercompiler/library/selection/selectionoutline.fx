@@ -7,7 +7,7 @@
 //
 // The width is OutlineSettings.y in pixels, at most MAX_REACH.
 
-#include "../outline/OutlineParameters.fxh"
+#include "OutlineParameters.fxh"
 
 // The furthest the search reaches, in pixels: the widest outline drawn.
 #define MAX_REACH 8
