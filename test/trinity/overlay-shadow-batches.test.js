@@ -14,6 +14,7 @@ import { CarbonVertexElements } from "../../npm/dist/trinity/core/index.js";
 import { Tr2EffectStateManager } from "../../npm/dist/trinity/shader/index.js";
 
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
+import { resolveBindingPlan } from "../../npm/dist/trinityal/vertexLayoutMatch.js";
 import { FixtureEffect } from "../support/fixtureEffect.js";
 
 const OPAQUE = TriBatchType.TRIBATCHTYPE_OPAQUE;
@@ -102,6 +103,42 @@ test("GetShadowBatches emits one batch per coalesced shared-material block", () 
     { areaIndex: batches[0].geometrySource.areaIndex, count: batches[0].geometrySource.count },
     { areaIndex: 0, count: 2 }
   );
+});
+
+test("shadow batches bind skinned mesh inputs from their own vertex declaration", () =>
+{
+  // Handle zero can belong to any earlier mesh; it is not a default layout.
+  Tr2EffectStateManager.getVertexDeclarationHandle([
+    { usage: 0, usageIndex: 7, type: "Float32", elementCount: 1, offset: 0 }
+  ]);
+  const elements = [
+    { usage: "Position", usageIndex: 0, type: "Float32", elementCount: 3, offset: 0 },
+    { usage: "TexCoord", usageIndex: 0, type: "Float32", elementCount: 2, offset: 12 },
+    { usage: "PackedTangent", usageIndex: 0, type: "UInt16", elementCount: 4, offset: 20 },
+    { usage: "BoneIndices", usageIndex: 0, type: "UInt16", elementCount: 4, offset: 44 }
+  ];
+  const object = new EveSpaceObject2();
+  object.mesh = new Tr2Mesh();
+  object.mesh.geometry = geometry();
+  object.mesh.geometry.GetMeshVertexElements = () => elements;
+  object.mesh.AddArea(OPAQUE, area({ id: "skinned-hull" }));
+  object.mesh.AddArea(OPAQUE, area({ id: "skinned-booster" }, { index: 1 }));
+
+  const accumulator = new TriRenderBatchAccumulator();
+  assert.equal(object.GetShadowBatches(accumulator, null, 512), true);
+  const expected = Tr2EffectStateManager.getVertexDeclarationHandle(CarbonVertexElements(elements));
+  assert.notEqual(expected, 0, "an unrelated declaration was interned first");
+  assert.equal(accumulator.GetBatchCount(), 2);
+  for (const batch of accumulator.GetBatches())
+  {
+    assert.equal(batch.vertexDeclaration, expected);
+    const plan = resolveBindingPlan(
+      Tr2EffectStateManager.getVertexDeclarationElements(batch.vertexDeclaration),
+      [ { usage: 6, usageIndex: 0, registerIndex: 1, type: "uint" } ]);
+    assert.equal(plan.unmatched, 0, "the shadow shader must read the mesh's bone indices");
+    assert.equal(plan.entries[0].element.offset, 44);
+    assert.equal(plan.entries[0].fallbackType, null, "constant-zero bones distort the shadow caster");
+  }
 });
 
 test("overlay effects route per batch type with the display gate; DECAL damage draws last-priority", () =>

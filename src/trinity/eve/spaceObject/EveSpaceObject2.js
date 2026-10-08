@@ -49,6 +49,8 @@ import { Tr2PerObjectData } from "../../core/rawData/perObjectData/Tr2PerObjectD
 import { Tr2PerObjectDataStandard } from "../../core/rawData/perObjectData/Tr2PerObjectDataStandard.js";
 import { ITr2Pickable } from "../../core/ITr2Pickable.js";
 import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/index.js";
+import { CarbonVertexElements } from "../../core/vertex/vertexUsage.js";
+import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { RawData } from "../../core/rawData/RawData.js";
 import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "#consts/graphics/tr2PickType";
 import { IEveSpaceObject2ParentData } from "./IEveSpaceObject2ParentData.js";
@@ -2333,6 +2335,8 @@ export class EveSpaceObject2 extends EveEntity
 
     const geometry = this.mesh.GetGeometryResource() ?? null;
     const meshIndex = this.mesh.meshIndex ?? 0;
+    const elements = geometry ? geometry.GetMeshVertexElements(meshIndex) : null;
+    const carbonElements = CarbonVertexElements(elements);
 
     let committed = false;
     for (const collector of this._shadowMeshOpaqueAreas)
@@ -2347,6 +2351,12 @@ export class EveSpaceObject2 extends EveEntity
         batch.SetMaterial(material);
         if (!batch.IsValid()) continue;
         batch.SetGeometrySource(geometry, meshIndex, block.startIndex, block.count, false);
+        // Carbon binds the caster mesh's declaration with its geometry
+        // (EveSpaceObject2.cpp:1205). Handle zero may describe another mesh.
+        if (carbonElements.length)
+        {
+          batch.SetVertexDeclaration(Tr2EffectStateManager.getVertexDeclarationHandle(carbonElements));
+        }
         batch.SetPerObjectData(perObjectData ?? null);
         committed = batches.Commit(batch) || committed;
       }
