@@ -119,3 +119,25 @@ test("every outline parameter is exposed and fully described, every component na
         ["Brightness", "Width in pixels", "Animated (0 = off, 1 = on)", "unused"]
     );
 });
+
+test("the shader footprint remains visible at 1px and reaches the requested width through 8px", () =>
+{
+    // Evaluate the shader's scalar weight expression itself, not a copied formula.
+    // This catches a zero-weight first ring without starting a hardware device.
+    const source = readFileSync(join(LIBRARY_ROOT, "selection/selectionoutline.fx"), "utf8");
+    const expression = source.match(/coverage\s*\+=\s*([^;]+);/u)[1];
+    const weight = new Function("radius", "x", "y", "smoothstep", "length", "float2", `return ${expression};`);
+    const smoothstep = (a, b, value) =>
+    {
+        const t = Math.min(1, Math.max(0, (value - a) / (b - a)));
+        return t * t * (3 - 2 * t);
+    };
+    // The float2 argument is a vector; emulate HLSL length for this expression.
+    const coverage = (radius, x, y) => weight(radius, x, y, smoothstep, v => Math.hypot(...v), (x, y) => [x, y]);
+    for (let width = 1; width <= 8; ++width)
+    {
+        assert.ok(coverage(width, 1, 0) > 0, `visible inner edge at width ${width}`);
+        assert.ok(coverage(width, width, 0) > 0, `visible requested outer ring ${width}`);
+        assert.equal(coverage(width, width + 1, 0), 0, `no extra outer ring at ${width}`);
+    }
+});

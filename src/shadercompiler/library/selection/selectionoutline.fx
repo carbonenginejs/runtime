@@ -8,6 +8,10 @@
 // The width is OutlineSettings.y in pixels, at most MAX_REACH.
 
 #include "OutlineParameters.fxh"
+#include "SelectionParameters.fxh"
+
+// Zero retains equal-resolution behavior for callers without this parameter.
+float4 OutlineTargetSize = float4( 0.0, 0.0, 0.0, 0.0 );
 
 // The furthest the search reaches, in pixels: the widest outline drawn.
 #define MAX_REACH 8
@@ -35,8 +39,11 @@ float4 SelectionOutlineVS( SelectionOutlineVSInput input ) : SV_Position
 // Whether the mask covers a pixel, clamped to the target.
 bool Covered( int2 pixel, int2 size )
 {
-    int2 clamped = clamp( pixel, int2( 0, 0 ), size - 1 );
-    return SelectionMask.Load( int3( clamped, 0 ) ).r > 0.5;
+    float2 targetSize = OutlineTargetSize.x > 0.0 && OutlineTargetSize.y > 0.0
+        ? OutlineTargetSize.xy : float2( size );
+    int2 maskPixel = int2( (float2( pixel ) + 0.5) * float2( size ) / targetSize );
+    int2 clamped = clamp( maskPixel, int2( 0, 0 ), size - 1 );
+    return dot( SelectionMask.Load( int3( clamped, 0 ) ).rg, SelectionChannel.rg ) > 0.5;
 }
 
 float4 SelectionOutlinePS( float4 position : SV_Position ) : SV_Target
@@ -53,7 +60,8 @@ float4 SelectionOutlinePS( float4 position : SV_Position ) : SV_Target
     }
 
     // How much of the mask lies within the width, each pixel weighted by
-    // distance with a one-pixel soft rim, rather than the distance to the one
+    // distance with a one-pixel soft rim centered on the radius. Centering
+    // keeps a one-pixel line visible. Use coverage rather than the distance to the one
     // nearest mask pixel: a single mask pixel flickering at the hull's edge
     // then moves the line's edge by a fraction, not by the whole width.
     float radius = clamp( OutlineSettings.y, 1.0, (float)MAX_REACH );
@@ -65,7 +73,7 @@ float4 SelectionOutlinePS( float4 position : SV_Position ) : SV_Target
         {
             if( Covered( pixel + int2( x, y ), size ) )
             {
-                coverage += 1.0 - smoothstep( radius - 1.0, radius, length( float2( x, y ) ) );
+                coverage += 1.0 - smoothstep( radius - 0.5, radius + 0.5, length( float2( x, y ) ) );
             }
         }
     }

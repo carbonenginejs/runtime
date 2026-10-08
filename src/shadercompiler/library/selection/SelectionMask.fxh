@@ -10,6 +10,7 @@
 #ifndef SELECTIONMASK_FXH
 #define SELECTIONMASK_FXH
 
+#include "SelectionParameters.fxh"
 #include "../cbuffers/EveSpaceScenePerFrame.fxh"
 #include "../cbuffers/EveSpaceObject.fxh"
 #ifdef SKINNED
@@ -47,7 +48,7 @@ float4 SelectionMaskVS( SelectionMaskVSInput input ) : SV_Position
 
 float4 SelectionMaskPS() : SV_Target
 {
-    return float4( 1.0, 1.0, 1.0, 1.0 );
+    return SelectionChannel;
 }
 
 technique Main
@@ -56,7 +57,10 @@ technique Main
     {
         ZEnable = true;
         ZWriteEnable = false;
-        AlphaBlendEnable = false;
+        // Additive UNORM union preserves the other mode and overlapping hulls.
+        AlphaBlendEnable = true;
+        SrcBlend = ONE;
+        DestBlend = ONE;
         VertexShader = compile vs_5_0 SelectionMaskVS();
         PixelShader = compile ps_5_0 SelectionMaskPS();
     }

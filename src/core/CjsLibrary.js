@@ -1,6 +1,7 @@
 import { blue, installBlueServices } from "../global/blue/blue.js";
 import { CjsSchema, meta } from "#schema";
 import { TnyInputMan } from "#input";
+import { TnyOutlineHelper } from "./outline/TnyOutlineHelper.js";
 import { TnyCameraControls } from "./cameras/TnyCameraControls.js";
 import { TnyTransformGizmo } from "./gizmos/TnyTransformGizmo.js";
 import { CjsOverlay2D } from "./overlay/CjsOverlay2D.js";
@@ -26,6 +27,12 @@ export class CjsLibrary
   CreateCameraControls(options)
   {
     return new TnyCameraControls(options);
+  }
+
+  /** Creates drawing-only hover/selection nodes using the installed resource manager. */
+  CreateOutlineHelper(options)
+  {
+    return new TnyOutlineHelper(options);
   }
 
   /** Composes native tools and a handle scene without attaching DOM listeners. */
@@ -107,7 +114,7 @@ export class CjsLibrary
 CjsSchema.define(CjsLibrary, {
   className: "CjsLibrary", fields: {},
   methods: { Initialize: [meta.ours], Shutdown: [meta.ours], Fetch: [meta.ours],
-    CreateInputManager: [meta.ours], CreateCameraControls: [meta.ours], CreateTransformGizmo: [meta.ours],
+    CreateOutlineHelper: [meta.ours], CreateInputManager: [meta.ours], CreateCameraControls: [meta.ours], CreateTransformGizmo: [meta.ours],
     CreateOverlay2D: [meta.ours] }
 });
 
