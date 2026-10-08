@@ -12,6 +12,9 @@
 // The furthest the search reaches, in pixels: the widest outline drawn.
 #define MAX_REACH 8
 
+// The weighted mask coverage that draws the line fully opaque.
+#define SOLID_COVERAGE 2.0
+
 // 1 where the selected object is visible, 0 elsewhere.
 Texture2D SelectionMask;
 
@@ -49,21 +52,28 @@ float4 SelectionOutlinePS( float4 position : SV_Position ) : SV_Target
         discard;
     }
 
+    // How much of the mask lies within the width, each pixel weighted by
+    // distance with a one-pixel soft rim, rather than the distance to the one
+    // nearest mask pixel: a single mask pixel flickering at the hull's edge
+    // then moves the line's edge by a fraction, not by the whole width.
     float radius = clamp( OutlineSettings.y, 1.0, (float)MAX_REACH );
     int reach = (int)ceil( radius );
-    float nearest = MAX_REACH * 2.0;
+    float coverage = 0.0;
     for( int y = -reach; y <= reach; ++y )
     {
         for( int x = -reach; x <= reach; ++x )
         {
             if( Covered( pixel + int2( x, y ), size ) )
             {
-                nearest = min( nearest, length( float2( x, y ) ) );
+                coverage += 1.0 - smoothstep( radius - 1.0, radius, length( float2( x, y ) ) );
             }
         }
     }
 
-    float alpha = 1.0 - smoothstep( radius - 1.0, radius, nearest );
+    // A straight edge within the width covers at least SOLID_COVERAGE weighted
+    // pixels, so the line is solid up to about one pixel short of the width
+    // and fades over the last.
+    float alpha = saturate( coverage / SOLID_COVERAGE );
     if( alpha <= 0.0 )
     {
         discard;

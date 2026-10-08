@@ -16,6 +16,10 @@
 #include "../mesh/Skinning.fxh"
 #endif
 
+// How far toward the camera the mask is pushed, in reverse-Z depth units: far
+// smaller than any gap between the hull and what is in front of it.
+#define SELECTION_DEPTH_BIAS 0.00002
+
 struct SelectionMaskVSInput
 {
     float3 position : POSITION;
@@ -31,7 +35,14 @@ float4 SelectionMaskVS( SelectionMaskVSInput input ) : SV_Position
     position = SkinPosition( GetBone( input.blendIndices ), position );
 #endif
     float4 world = mul( position, PerObjectVS.worldTransform );
-    return mul( world, PerFrameVS.ViewProjectionMat );
+    float4 clip = mul( world, PerFrameVS.ViewProjectionMat );
+    // The scene's own pass wrote these surfaces' depth with another shader,
+    // so the same pixel can land a hair either side of the test and flicker
+    // in and out of the mask. Nudge the mask toward the camera: the scene
+    // draws reverse-Z (EveSpaceSceneRenderDriver, SetInvertedDepthTest), so
+    // nearer is larger.
+    clip.z += SELECTION_DEPTH_BIAS * clip.w;
+    return clip;
 }
 
 float4 SelectionMaskPS() : SV_Target
