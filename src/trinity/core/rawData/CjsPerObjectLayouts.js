@@ -54,6 +54,7 @@ import { CjsEveChildBoosterSetLayout } from "./layouts/CjsEveChildBoosterSetLayo
 import { CjsEveChildBulletStormLayout } from "./layouts/CjsEveChildBulletStormLayout.js";
 import { CjsEveChildParticleSphereLayout } from "./layouts/CjsEveChildParticleSphereLayout.js";
 import { CjsEveStretch2Layout } from "./layouts/CjsEveStretch2Layout.js";
+import { CjsEveSpaceSceneLayout } from "./layouts/CjsEveSpaceSceneLayout.js";
 import { CjsEveSpaceObjectLayout } from "./layouts/CjsEveSpaceObjectLayout.js";
 import { CjsEveTurretSetLayout } from "./layouts/CjsEveTurretSetLayout.js";
 import { CjsEveSpacePerObjectLayout } from "./layouts/CjsEveSpacePerObjectLayout.js";
@@ -79,6 +80,7 @@ const GROUPS = Object.freeze({
     EveChildParticleSphere: CjsEveChildParticleSphereLayout.structConfig,
     EveStretch2: CjsEveStretch2Layout.structConfig,
     EveSpaceObject: CjsEveSpaceObjectLayout.structConfig,
+    EveSpaceScene: CjsEveSpaceSceneLayout.structConfig,
     EveTurretSet: CjsEveTurretSetLayout.structConfig,
     EveSpacePerObject: CjsEveSpacePerObjectLayout.structConfig,
     Tr2PerObject: CjsTr2PerObjectLayout.structConfig,

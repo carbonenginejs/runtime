@@ -20,7 +20,7 @@ import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { vec4 } from "../../npm/dist/global/math/vec4.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import * as ResourceShader from "../../npm/dist/resource/shader/index.js";
-import { Tr2RegisterMapAL, Tr2ResourceSetALStub, Tr2ResourceSetDescriptionAL, Tr2SamplerStateALStub } from "../../npm/dist/trinityal/index.js";
+import { Tr2ConstantBufferALStub, Tr2RegisterMapAL, Tr2ResourceSetALStub, Tr2ResourceSetDescriptionAL, Tr2SamplerStateALStub } from "../../npm/dist/trinityal/index.js";
 import { ResourceFlags } from "../../npm/dist/trinity/shader/index.js";
 import { Tr2EffectStateManager } from "../../npm/dist/trinity/shader/index.js";
 import { Tr2ColorSpace } from "../../npm/dist/global/consts/renderContext/index.js";
@@ -619,12 +619,26 @@ test("promoted variable, transform, and shader buffer classes expose graph behav
   buffer.SetData(new Uint8Array([1, 2, 3, 4]));
   assertEquals(buffer.size, 4);
   assertEquals(buffer.data[2], 3);
-  assertEquals(buffer.ApplyBuffer({
-    SetShaderBuffer()
-    {
-      throw new Error("runtime-trinity shader graph must not bind shader buffers");
-    }
-  }), false);
+  const constants = new Tr2ConstantBufferALStub();
+  const bindings = [];
+  const context = {
+    IsValid: () => true,
+    GetConstantBuffer: () => constants,
+    SetConstants: (value, stage, register) => bindings.push([value, stage, register])
+  };
+  assertEquals(buffer.ApplyBuffer(context), true);
+  assertEquals(bindings[0][0], constants);
+  assertEquals(bindings[0][1], 1, "pixel stage");
+  assertEquals(bindings[0][2], 4, "pixel per-object register");
+  assertEquals(Array.from(constants.Lock().data).join(","), "1,2,3,4");
+  buffer.SetShaderType(0);
+  assertEquals(buffer.ApplyBuffer(context), true);
+  assertEquals(bindings[1][1], 0, "vertex stage");
+  assertEquals(bindings[1][2], 3, "vertex per-object register");
+  buffer.SetData(null, 0);
+  assertEquals(buffer.ApplyBuffer(context), true, "empty data rebinds an existing stage buffer");
+  assertEquals(Array.from(constants.Lock().data).join(","), "1,2,3,4", "a zero-byte copy preserves the prior payload");
+  constants.Destroy();
 });
 test("shader Tr2RuntimeTextureParameter stays graph-only", () =>
 {

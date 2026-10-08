@@ -20,6 +20,7 @@ import { BLUELISTEVENT } from "#consts/blue";
 import { EveComponentRegistry } from "./components/EveComponentRegistry.js";
 import { Tr2PostProcess2 } from "../../postProcess/Tr2PostProcess2.js";
 import { Tr2PostProcessAttributes } from "../../postProcess/Tr2PostProcessAttributes.js";
+import { Tr2ShaderBuffer } from "../../shader/Tr2ShaderBuffer.js";
 import { Tr2DataTextureManager } from "../../shader/Tr2DataTextureManager.js";
 import { EveComponentType, ReflectionSetting, EntityComponents } from "../EntityComponents.js";
 import { TriSettingsRegistrar } from "../../core/TriSettingsRegistrar.js";
@@ -3098,7 +3099,7 @@ export class EveSpaceScene
         }
       }
       this.volumetricsRenderer.SetSunAngle(angle);
-      this.SetupPlanetsAsShadowCaster(this._planetShadowSpheres, 2);
+      this.SetupPlanetsAsShadowCaster__Planets(this._planetShadowSpheres, 2);
       this.volumetricsRenderer.SetPlanets(this._planetShadowSpheres);
     }
   }
@@ -3106,12 +3107,36 @@ export class EveSpaceScene
   /** Carbon's two nearest significant planet shadow spheres (cpp:2350-2354). */
   _planetShadowSpheres = [ vec4.create(), vec4.create() ];
 
+  /** m_planetPerObjData (EveSpaceScene.h:336-340), two packed float4 spheres. */
+  _planetPerObjData = RawData.create("EvePlanetPerObjData");
+
+  /** m_planetPerObjBuffer, constructed in EveSpaceScene.cpp:283. */
+  _planetPerObjBuffer = new Tr2ShaderBuffer();
+
+  /**
+   * Carbon SetupPlanetsAsShadowCaster (cpp:4028-4037): replace the previous
+   * mesh's pixel constants before the shadow resolve reads its planet spheres.
+   * Even a scene with no planets must bind two zero-radius spheres; otherwise
+   * a hull's translated world matrix is interpreted as a pair of planets.
+   * @param {Tr2RenderContext} renderContext The shadow pass context.
+   */
+  @meta.implemented
+  SetupPlanetsAsShadowCaster__RenderContext(renderContext)
+  {
+    this.SetupPlanetsAsShadowCaster__Planets(this._planetShadowSpheres, 2);
+    this._planetPerObjData.SetIndex("planetSphere", 0, this._planetShadowSpheres[0]);
+    this._planetPerObjData.SetIndex("planetSphere", 1, this._planetShadowSpheres[1]);
+    const data = this._planetPerObjData.GetData();
+    this._planetPerObjBuffer.SetData(data, data.byteLength);
+    this._planetPerObjBuffer.ApplyBuffer(renderContext);
+  }
+
   /**
    * Selects the largest on-screen planets, excluding the sun and bodies behind it
    * (cpp:3930-3980). Adapted: caller-owned vec4 values represent native spheres.
    */
   @meta.adapted
-  SetupPlanetsAsShadowCaster(planets, maxPlanets)
+  SetupPlanetsAsShadowCaster__Planets(planets, maxPlanets)
   {
     const sun = vec3.alloc();
     const position = vec3.alloc();
@@ -3392,6 +3417,8 @@ export class EveSpaceScene
 
     this.PopulatePerFramePSData__ShadowMap(this._perFramePS, shadowMap, renderContext);
     this.ApplyPerFrameData(renderContext);
+
+    this.SetupPlanetsAsShadowCaster__RenderContext(renderContext);
 
     const result = shadowMap.DrawToShadowMapResult(renderContext, gpuResourcePool, depthMap, cascadedShadowDepth.Get(), this.upscalingAmount, renderer);
     if (renderReason === Tr2RenderReason.TR2RENDERREASON_NORMAL

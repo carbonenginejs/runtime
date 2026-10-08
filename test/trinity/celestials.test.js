@@ -192,10 +192,10 @@ test('shadow spheres exclude the sun by curve identity and planets behind it; ke
   });
   scene.planets.push(planet(1000, scene.sunBall,100,5),planet(900,curve(101),101,8),planet(100,curve(10),10,4),planet(200,null,20,6),planet(50,null,30,7));
   const out = [new Float32Array(4),new Float32Array(4)];
-  scene.SetupPlanetsAsShadowCaster(out,2);
+  scene.SetupPlanetsAsShadowCaster__Planets(out,2);
   assert.deepEqual(out.map(x => [...x]),[[20,2,3,6],[10,2,3,4]]);
   scene.planets.length = 0;
-  scene.SetupPlanetsAsShadowCaster(out,2);
+  scene.SetupPlanetsAsShadowCaster__Planets(out,2);
   assert.deepEqual(out.map(x => [...x]),[[0,0,0,0],[0,0,0,0]]);
 });
 

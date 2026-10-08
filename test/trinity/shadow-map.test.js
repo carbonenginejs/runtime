@@ -540,3 +540,59 @@ test("EveSpaceScene.RenderShadows draws nothing without a cascaded map, at DISAB
     assert.equal(result.cascadedShadowDepth.IsValid(), false);
   }
 });
+
+
+test("shadow resolve replaces translated hull constants with planet spheres every frame", () =>
+{
+  const { context, pool, renderer, scene } = shadowScene(trinity.EveSpaceSceneRenderDriver.ShadowQuality.SHADOW_HIGH);
+  const depthMap = poolSurface(pool, "depth", 128, 64);
+  // A registered caster keeps the shadow pass active, even when all of its
+  // geometry is culled from these splits.
+  scene.componentRegistry.RegisterComponent("ShadowCaster", shadowCaster({
+    IsCastingShadow__ShadowFrustum: () => false, GetShadowBatches() {}, GetShadowPerObjectData: () => null
+  }));
+  const inherited = new trinity.Tr2ShaderBuffer();
+  // A prior mesh's transposed matrix: its X/Y translations occupy the lanes
+  // ShadowDepth reads as planet radii. Test both signs and successive frames.
+  const matrix = new Float32Array([1, 0, 0, 2400, 0, 1, 0, -1700, 0, 0, 1, 0, 0, 0, 0, 1]);
+  inherited.SetData(matrix);
+  inherited.ApplyBuffer(context);
+  let bound = null;
+  const setConstants = context.SetConstants.bind(context);
+  context.SetConstants = (buffer, stage, register, ...args) =>
+  {
+    if (stage === 1 && register === 4) bound = buffer;
+    return setConstants(buffer, stage, register, ...args);
+  };
+  const captured = [];
+  const resolve = scene.cascadedShadowMap.DrawToShadowMapResult.bind(scene.cascadedShadowMap);
+  scene.cascadedShadowMap.DrawToShadowMapResult = (...args) =>
+  {
+    assert.ok(bound, "PS b4 must be explicitly rebound before resolve");
+    const bytes = bound.Lock().data;
+    captured.push(Array.from(new Float32Array(bytes.buffer, bytes.byteOffset, 8)));
+    bound.Unlock(context);
+    return resolve(...args);
+  };
+  scene.RenderShadows(depthMap, null, pool, context, renderer);
+  assert.deepEqual(captured.at(-1), [0, 0, 0, 0, 0, 0, 0, 0]);
+
+  const planet = (size, centre, radius) => ({
+    GetEstimatedPixelDiameter: () => size,
+    GetTranslationCurve: () => null,
+    GetWorldPosition: out => out.set(centre),
+    GetRadius: () => radius
+  });
+  scene.planets.push(planet(80, [10, 20, 30], 40), planet(160, [-50, 60, 70], 80));
+  inherited.ApplyBuffer(context);
+  scene.RenderShadows(depthMap, null, pool, context, renderer);
+  assert.deepEqual(captured.at(-1), [-50, 60, 70, 80, 10, 20, 30, 40]);
+
+  scene.planets.length = 0;
+  matrix[3] = -2400;
+  matrix[7] = 1700;
+  inherited.SetData(matrix);
+  inherited.ApplyBuffer(context);
+  scene.RenderShadows(depthMap, null, pool, context, renderer);
+  assert.deepEqual(captured.at(-1), [0, 0, 0, 0, 0, 0, 0, 0], "removing planets clears both old spheres and the intervening mesh transform");
+});

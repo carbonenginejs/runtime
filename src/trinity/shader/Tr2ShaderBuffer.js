@@ -1,8 +1,14 @@
 // Source: trinity/trinity/Shader/Tr2ShaderBuffer.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta } from "#schema";
+import { ShaderType } from "#consts/render-context";
+import { PER_OBJECT_PS, PER_OBJECT_VS } from "../core/Tr2Renderer.js";
+import { Tr2RenderUtils } from "../core/Tr2RenderUtils.js";
 
-/** Owns a detached byte payload for one shader stage while leaving device binding to the engine. */
+const EMPTY_DATA = new Uint8Array(0); // alloc: shared empty byte payload, never allocated per upload.
+
+
+/** Owns a detached byte payload and binds it at the selected stage's per-object register. */
 @meta.define({ className: "Tr2ShaderBuffer", family: "shader" })
 export class Tr2ShaderBuffer
 {
@@ -14,7 +20,7 @@ export class Tr2ShaderBuffer
 
   data = null;
 
-  shaderType = 1;
+  shaderType = ShaderType.PIXEL_SHADER;
 
   /** Carbon method SetData -> SetDataFromScript (MAP_METHOD_AND_WRAP). */
   @meta.blue.method
@@ -42,11 +48,22 @@ export class Tr2ShaderBuffer
   }
 
   /**
-   * Always false - binding the buffer to a device is not ported yet.
+   * Carbon ApplyBuffer (Tr2ShaderBuffer.cpp:25-28): fill the context-owned
+   * stage buffer and bind it at that stage's per-object register.
+   * @param {Tr2RenderContext} renderContext The context receiving the data.
+   * @returns {boolean} Whether the upload and binding succeeded.
    */
-  ApplyBuffer()
+  @meta.implemented
+  ApplyBuffer(renderContext)
   {
-    return false;
+    return Tr2RenderUtils.fillAndSetConstants(
+      renderContext.GetConstantBuffer(this.shaderType),
+      this.data ?? EMPTY_DATA,
+      this.size,
+      1 << this.shaderType,
+      this.shaderType === ShaderType.PIXEL_SHADER ? PER_OBJECT_PS : PER_OBJECT_VS,
+      renderContext
+    );
   }
 
   /**
