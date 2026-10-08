@@ -90,7 +90,7 @@ function VisitAuthored(live, values, callback)
   Visit(live, values);
 }
 
-test("real SOF insert edits preserve live graphs and match standard builds", { skip: !resourceBase }, async t =>
+test("real SOF DNA edits preserve live graphs and match standard builds", { skip: !resourceBase }, async t =>
 {
   assert.match(resourceBase, /\/eve\/\d+$/, "pin an exact tools build");
   // Booster flare initialization uses Math.random independently of the SOF seed.
@@ -203,6 +203,53 @@ test("real SOF insert edits preserve live graphs and match standard builds", { s
     assert.equal(calls.length, changed.size);
     spy.mock.restore();
     context.diagnostic(JSON.stringify({ resourceBase, changedEffects: changed.size }));
+  });
+
+  await t.test("Magnate pattern swap preserves masks and matches a fresh pattern/material build", async context =>
+  {
+    const { dna } = await Read("/dna/resolve?name=Magnate");
+    const originalDna = dna + ":pattern?glacialdrift_amarr;aqua_blue_colorshift_polished;aqua_electric_enamel";
+    const nextDna = dna + ":pattern?igc_amarr;aqua_electric_enamel;aqua_blue_colorshift_polished";
+    const before = await sof.BuildValuesFromDNA(originalDna);
+    const live = CjsSchema.from(before._type, before), assertIdentities = Snapshot(live, before);
+    const desired = await sof.BuildValuesFromDNA(nextDna);
+    const rebuilt = CjsSchema.from(desired._type, desired);
+    const oldPaths = new Map();
+    VisitAuthored(live, before, object =>
+    {
+      if (CjsSchema.cast(object, TriTextureParameter)) oldPaths.set(object, object.resourcePath);
+    });
+    const calls = [], refreshes = [];
+    const originalModified = TriTextureParameter.prototype.OnModified, rebuild = Tr2Effect.prototype.RebuildCachedDataInternal;
+    const textureSpy = context.mock.method(TriTextureParameter.prototype, "OnModified", function(member)
+    {
+      calls.push([this, member]);
+      return originalModified.call(this, member);
+    });
+    const effectSpy = context.mock.method(Tr2Effect.prototype, "RebuildCachedDataInternal", function(...args)
+    {
+      if (!this.insideStartUpdate) refreshes.push(this);
+      return rebuild.apply(this, args);
+    });
+    const updater = new CjsSOFUpdater(sof);
+    assert.ok(Array.isArray(await updater.UpdateFromDNA(live, nextDna)));
+    assertIdentities();
+    assert.deepEqual(ComparableValues(live), ComparableValues(rebuilt));
+    const changed = new Set([...oldPaths].filter(([texture, path]) => texture.resourcePath !== path).map(([texture]) => texture));
+    assert.ok(changed.size > 0);
+    assert.equal(calls.length, changed.size);
+    assert.equal(new Set(calls.map(([texture]) => texture)).size, changed.size);
+    assert.ok(calls.every(([texture, member]) => changed.has(texture) && member === "resourcePath"));
+    assert.equal(refreshes.length, new Set(refreshes).size);
+    const requests = resources.requests.length, refreshCount = refreshes.length;
+    assert.equal(await updater.UpdateFromDNA(live, nextDna), false);
+    assert.equal(resources.requests.length, requests);
+    assert.equal(calls.length, changed.size);
+    assert.equal(refreshes.length, refreshCount);
+    textureSpy.mock.restore();
+    effectSpy.mock.restore();
+    context.diagnostic(JSON.stringify({ resourceBase, masks: live.customMasks.length,
+      changedTextures: changed.size, changedEffects: refreshCount }));
   });
 
   await t.test("Deathless hangar retains authored slots and matches requested texture paths", async context =>

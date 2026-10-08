@@ -99,8 +99,8 @@ if (changes === null) {
 }
 ```
 
-The implementation supports respathinsert and mesh-material edits (`material?`
-and its `mesh?` spelling). It builds fresh
+The implementation supports respathinsert, mesh-material edits (`material?`
+and its `mesh?` spelling), and compatible `pattern?` / pattern-material edits. It builds fresh
 values, validates types, names, list lengths and shared references throughout
 the supplied structure, then applies changed texture paths, effect constants and DNA
 provenance. Existing objects, lists and unrelated live scalar state are retained.
@@ -113,6 +113,15 @@ Material constants use the effect's named `constParameters` setter, preserving
 existing records and vec4 storage while refreshing each changed effect once.
 Comparisons use float32 values so equal replay does not repeatedly refresh.
 Changed constant names, order or list length currently request a full rebuild.
+
+Compatible pattern edits update changed texture paths, sampler wrapping, shader
+options, mask projections/targets and pattern material constants. Packed sampler
+and option changes use the owning effect's existing methods, batched with other
+effect changes for one cache refresh. A caller's open batch remains open. Mask
+fields use schema-normalized values while retaining their vector buffers.
+Adding/removing/reordering layers, resources, samplers, options or masks remains
+a full-rebuild fallback, detected before any writes. Duplicate packed names are
+accepted unchanged but cannot be edited through the unique-name setters.
 
 The opt-in CPU test `test/sof/runtime-sof/updater-live.test.js` reads real data
 through tools HTTP when `CJS_SOF_UPDATER_RESOURCE_BASE` names an exact EVE build.

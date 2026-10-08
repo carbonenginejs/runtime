@@ -10,7 +10,7 @@ const originalDna = "hull:faction:race:respathinsert?none";
 const insertedDna = "hull:faction:race:respathinsert?insert";
 
 /** Material fixture with two independently changeable constants and a fallback. */
-async function MaterialFixture()
+async function MaterialFixture(configure = null, suffix = "")
 {
   return Fixture(options =>
   {
@@ -23,7 +23,30 @@ async function MaterialFixture()
       { name: "red", parameters: [{ name: "Diffuse", value: [1, 0.2, 0.1, 1] }, { name: "Fresnel", value: [0.3, 0.3, 0.3, 1] }] },
       { name: "blue", parameters: [{ name: "Diffuse", value: [0.1, 0.2, 2, 1] }, { name: "Fresnel", value: [0.6, 0.6, 0.6, 1] }] }
     ];
-  }, originalDna + ":material?red;none");
+    if (configure) configure(options);
+  }, originalDna + ":material?red;none" + suffix);
+}
+
+/** Two same-shape patterns with different textures, addressing and projections. */
+async function PatternFixture()
+{
+  return MaterialFixture(options =>
+  {
+    options.black.generic.patternMaterialPrefixes = [{ str: "Pmtl1" }, { str: "Pmtl2" }];
+    const shader = options.black.generic.areaShaders[0];
+    shader.parameters.push({ str: "Pmtl1Diffuse" }, { str: "Pmtl2Diffuse" });
+    shader.defaultParameters.push({ name: "Pmtl1Diffuse", value: [0, 0, 0, 1] }, { name: "Pmtl2Diffuse", value: [0, 0, 0, 1] });
+    options.black.pattern = ["one", "two"].map((name, index) => ({
+      name, sof6: false,
+      layer1: { materialSource: index, textureName: "PatternMask", textureResFilePath: `res:/${name}.dds`,
+        projectionTypeU: index, projectionTypeV: index + 1, isTargetMtl1: !index, isTargetMtl2: !!index,
+        isTargetMtl3: false, isTargetMtl4: true },
+      layer2: null,
+      projections: [{ name: "hull", transformLayer1: { position: [index, 2, 3], scaling: [index + 1, 2, 1],
+        rotation: [0, 0, 0, 1], isMirrored: !!index }, transformLayer2: null }], applicationGroups: []
+    }));
+    options.black.pattern.push({ name: "empty", layer1: null, layer2: null, projections: [], applicationGroups: [] });
+  }, ":pattern?one;red;blue");
 }
 
 /** Small authored catalog built and hydrated through the real public entry points. */
@@ -368,4 +391,92 @@ test("a changed faction default cannot disguise a requested insert as a no-op", 
   sof.dataMgr.GetFactionData("faction").resPathInsert = "none";
   assert.ok(await updater.UpdateFromDNA(ship, originalDna));
   assert.equal(texture.resourcePath, "res:/ship_d.dds");
+});
+
+test("pattern swaps update textures, wraps, masks and materials without replacing their storage", async t =>
+{
+  const { ship, updater, sof } = await PatternFixture();
+  const effect = ship.mesh.opaqueAreas[0].effect;
+  assert.equal(ship.customMasks.length, 1);
+  const masks = ship.customMasks, mask = masks[0], position = mask.position, targets = mask.targetMaterials;
+  const samplers = effect.samplerOverrides, sampler = samplers[0], constants = effect.constParameters;
+  const textures = effect.resources, patternTexture = textures.find(value => value.name === "PatternMask");
+  const nextDna = originalDna + ":material?red;none:pattern?two;blue;red";
+  const desired = await sof.BuildValuesFromDNA(nextDna), rebuilt = CjsSchema.from(desired._type, desired);
+  const refreshes = [], rebuild = effect.RebuildCachedDataInternal;
+  t.mock.method(effect, "RebuildCachedDataInternal", function(...args)
+  {
+    if (!this.insideStartUpdate) refreshes.push(this);
+    return rebuild.apply(this, args);
+  });
+  const textureNotify = t.mock.method(patternTexture, "OnModified");
+  ship.worldTransform[12] = 101;
+  assert.ok(await updater.UpdateFromDNA(ship, nextDna));
+  assert.equal(refreshes.length, 1, "constants and samplers share one owner refresh");
+  assert.equal(textureNotify.mock.callCount(), 1);
+  assert.equal(ship.customMasks, masks);
+  assert.equal(masks[0], mask);
+  assert.equal(mask.position, position);
+  assert.equal(mask.targetMaterials, targets);
+  assert.equal(effect.samplerOverrides, samplers);
+  assert.equal(samplers[0], sampler);
+  assert.equal(effect.constParameters, constants);
+  assert.equal(effect.resources, textures);
+  assert.equal(textures.find(value => value.name === "PatternMask"), patternTexture);
+  assert.equal(ship.worldTransform[12], 101);
+  const actual = CjsSchema.getValues(ship), expected = CjsSchema.getValues(rebuilt);
+  expected.worldTransform[12] = 101;
+  assert.deepEqual(actual, expected, "authored values match while the user's live transform stays intact");
+  const requests = resources.requests.length;
+  assert.equal(await updater.UpdateFromDNA(ship, nextDna), false);
+  assert.equal(refreshes.length, 1);
+  assert.equal(textureNotify.mock.callCount(), 1);
+  assert.equal(resources.requests.length, requests);
+});
+
+test("pattern material-only edits do not reload textures or rewrite projection vectors", async t =>
+{
+  const { ship, updater } = await PatternFixture();
+  const effect = ship.mesh.opaqueAreas[0].effect, mask = ship.customMasks[0];
+  const position = mask.position, beforeMask = CjsSchema.getValues(mask);
+  const notify = t.mock.method(effect.resources.find(value => value.name === "PatternMask"), "OnModified");
+  const refresh = t.mock.method(effect, "RebuildCachedDataInternal");
+  const requests = resources.requests.length;
+  assert.ok(await updater.UpdateFromDNA(ship, originalDna + ":material?red;none:pattern?one;blue;red"));
+  assert.equal(refresh.mock.callCount(), 1);
+  assert.equal(notify.mock.callCount(), 0);
+  assert.equal(resources.requests.length, requests);
+  assert.equal(mask.position, position);
+  assert.deepEqual(CjsSchema.getValues(mask), beforeMask);
+});
+
+test("changed shader options use their owner and retain a caller's open batch", async t =>
+{
+  const { ship, updater } = await PatternFixture();
+  const effect = ship.mesh.opaqueAreas[0].effect, options = effect.options;
+  const option = options.find(value => value.name === "SPACE_OBJECT_PPT_ENABLED");
+  option.value = "SOPPT_DISABLED";
+  const setOption = t.mock.method(effect, "SetOption");
+  const end = t.mock.method(effect, "EndUpdate");
+  effect.StartUpdate();
+  assert.ok(await updater.UpdateFromDNA(ship, originalDna + ":material?red;none:pattern?two;blue;red"));
+  assert.equal(setOption.mock.callCount(), 1);
+  assert.equal(effect.options, options);
+  assert.equal(options.find(value => value.name === option.name), option);
+  assert.equal(option.value, "SOPPT_ENABLED");
+  assert.equal(effect.insideStartUpdate, true);
+  assert.equal(end.mock.callCount(), 0);
+  effect.EndUpdate();
+});
+
+test("pattern layer removal falls back before changing any material, texture or mask", async t =>
+{
+  const { ship, updater } = await PatternFixture();
+  const effect = ship.mesh.opaqueAreas[0].effect, before = CjsSchema.getValues(ship);
+  const refresh = t.mock.method(effect, "RebuildCachedDataInternal");
+  const requests = resources.requests.length;
+  assert.equal(await updater.UpdateFromDNA(ship, originalDna + ":material?blue;none:pattern?empty;blue;red"), null);
+  assert.deepEqual(CjsSchema.getValues(ship), before);
+  assert.equal(refresh.mock.callCount(), 0);
+  assert.equal(resources.requests.length, requests);
 });

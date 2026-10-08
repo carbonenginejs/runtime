@@ -1,11 +1,13 @@
 import { CjsSchema, meta } from "#schema";
 import { getRegisteredClassName } from "../global/compose/className.js";
+import { normalizeCarbonValue } from "../global/schema/types/index.js";
+import { IRootReaderBase } from "../global/blue/IRootReaderBase.js";
 import { EveSOF } from "./EveSOF.js";
 import { EveSOFDNA } from "./EveSOFDNA.js";
 
 /**
  * Updates existing SOF graphs using the standard factory's values as the oracle.
- * Handles resource inserts and mesh materials. It retains lists, objects and unrelated
+ * Handles resource inserts, materials and compatible patterns. It retains lists, objects and unrelated
  * live state; structural incompatibility requests a full rebuild before writes.
  */
 @meta.define({ className: "CjsSOFUpdater", family: "sof" })
@@ -62,12 +64,12 @@ export class CjsSOFUpdater
     if (!this._CollectChanges(object, values, anchors, visited, owners, changes)) return null;
 
     // Children are visited before their owner; publish the root DNA last.
-    for (const change of changes) CjsSchema.setValues(change.object, change.values);
+    for (const change of changes) this._ApplyChange(change);
     return changes.length ? changes.map(change => ({ _type: change.type, ...change.values })) : false;
   }
 
   /**
-   * Compares parsed commands and catalog selections, allowing insert/material edits.
+   * Compares parsed commands and selections, allowing insert/material/pattern edits.
    * @param {EveSOFDNA|null} before Previous selection.
    * @param {EveSOFDNA|null} after Requested selection.
    * @returns {boolean} Whether positional matching is supported for this edit.
@@ -81,7 +83,7 @@ export class CjsSOFUpdater
     // Compare all authored commands, including unknown ones, without depending
     // on private parser state. Unknown commands must also remain unchanged.
     const commands = dna => dna.GetDnaString().split(":").slice(3)
-      .filter(command => !/^(respathinsert|material|mesh)\?/.test(command));
+      .filter(command => !/^(respathinsert|material|mesh|pattern)\?/.test(command));
     if (JSON.stringify(commands(before)) !== JSON.stringify(commands(after))) return false;
     const insert = after.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_RESPATHINSERT);
     const previousInsert = before.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_RESPATHINSERT);
@@ -150,6 +152,22 @@ export class CjsSOFUpdater
     for (const [key, value] of Object.entries(desired))
     {
       if (key === "_type" || key === "_id") continue;
+      if (type === "EveCustomMask")
+      {
+        const field = CjsSchema.getField(live.constructor, key);
+        if (!field || !["boolean", "uint8", "vec3", "vec4", "quat"].includes(field.type?.kind)) return false;
+        const next = normalizeCarbonValue(value, field.type);
+        if (!IRootReaderBase.areEquivalent(live[key], next)) patch[key] = next;
+        continue;
+      }
+      if (type === "Tr2Effect" && (key === "options" || key === "samplerOverrides"))
+      {
+        const named = this._CollectPackedFields(live[key], value,
+          key === "options" ? "Tr2ShaderOption" : "Tr2SamplerOverride", anchors);
+        if (named === null) return false;
+        if (Object.keys(named).length) patch[key] = named;
+        continue;
+      }
       if (type === "Tr2Effect" && key === "constParameters")
       {
         if (!this._CollectConstants(live.constParameters, value, anchors, patch)) return false;
@@ -257,5 +275,79 @@ export class CjsSOFUpdater
     }
     if (Object.keys(constants).length) patch.constParameters = constants;
     return true;
+  }
+
+  /**
+   * Collects scalar differences in same-shape option/sampler records by name.
+   * These records require effect-owner methods rather than record notifications.
+   * @param {Array<object>} live Existing packed records.
+   * @param {Array<object>} desired Incoming packed records.
+   * @param {string} className Required registered type.
+   * @param {Map} anchors Enclosing reference targets.
+   * @returns {object|null} Changed fields by name, or null for incompatible input.
+   */
+  @meta.ours
+  _CollectPackedFields(live, desired, className, anchors)
+  {
+    if (!Array.isArray(live) || !Array.isArray(desired) || live.length !== desired.length) return null;
+    const counts = new Map(), result = Object.create(null);
+    for (const record of live) counts.set(record?.name, (counts.get(record?.name) ?? 0) + 1);
+    for (let index = 0; index < desired.length; index++)
+    {
+      let value = desired[index];
+      if (value && Object.hasOwn(value, "_ref")) value = anchors.get(value._ref);
+      const current = live[index];
+      if (!value || !CjsSchema.isInstanceOf(className, current)
+        || (value._type && value._type !== className) || typeof value.name !== "string"
+        || value.name !== current.name) return null;
+      const fields = {};
+      for (const [key, incoming] of Object.entries(value))
+      {
+        if (key === "_id" || key === "_type" || key === "name") continue;
+        const field = CjsSchema.getField(current.constructor, key);
+        if (!field || (incoming !== null && typeof incoming === "object")) return null;
+        const next = normalizeCarbonValue(incoming, field.type);
+        if (!Object.is(current[key], next)) fields[key] = next;
+      }
+      if (Object.keys(fields).length)
+      {
+        if (counts.get(value.name) !== 1) return null;
+        result[value.name] = fields;
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Applies preflighted leaf patches using each owner's established values route.
+   * Effect options use SetOption; other collections use SetValues name maps.
+   * Multiple owner changes share one existing update batch, without closing a
+   * caller-owned batch. This class never replaces the effect's packed lists.
+   * @param {object} change Collected target, type and changed fields.
+   * @returns {void}
+   */
+  @meta.ours
+  _ApplyChange(change)
+  {
+    const { object, type, values } = change;
+    if (type !== "Tr2Effect")
+    {
+      CjsSchema.setValues(object, values);
+      return;
+    }
+    const { options, ...rest } = values;
+    const optionNames = Object.keys(options ?? {});
+    const operations = optionNames.length + Object.keys(rest).length;
+    const ownBatch = operations > 1 && !object.insideStartUpdate;
+    if (ownBatch) object.StartUpdate();
+    try
+    {
+      for (const name of optionNames) object.SetOption(name, options[name].value);
+      if (Object.keys(rest).length) CjsSchema.setValues(object, rest);
+    }
+    finally
+    {
+      if (ownBatch) object.EndUpdate();
+    }
   }
 }
