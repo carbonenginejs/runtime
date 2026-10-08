@@ -333,6 +333,29 @@ test("real SOF DNA edits preserve live graphs and match standard builds", { skip
     context.diagnostic(JSON.stringify({ patternTimings: timings, fullBuildCalls: spy.mock.callCount() }));
   });
 
+  await t.test("af1 combines pattern and insert changes without full builds", async context =>
+  {
+    const base = "af1_t1:amarrbase:amarr", empty = base + ":respathinsert?none:pattern?;none;none";
+    const before = await sof.BuildValuesFromDNA(empty);
+    const live = CjsSchema.from(before._type, before), updater = new CjsSOFUpdater(sof);
+    const assertIdentities = Snapshot(live, before);
+    const patterns = await Read("/sof/hulls/af1_t1/patterns");
+    const inserts = await Read("/sof/hulls/af1_t1/respathinserts");
+    assert.ok(patterns.length); assert.ok(inserts.length);
+    const build = sof.BuildValuesFromDNA.bind(sof);
+    const spy = context.mock.method(sof, "BuildValuesFromDNA", () => assert.fail("combined edit built a full graph"));
+    for (const pattern of patterns)
+      for (const dna of [base + `:respathinsert?${inserts[0]}:pattern?${pattern};aqua_blue_colorshift_polished;aqua_electric_enamel`, empty])
+      {
+        const values = await build(dna), expected = CjsSchema.from(values._type, values);
+        assert.ok(Array.isArray(await updater.UpdateFromDNA(live, dna)), dna);
+        assertIdentities();
+        assert.deepEqual(ComparableValues(live), ComparableValues(expected));
+      }
+    assert.equal(spy.mock.callCount(), 0);
+    spy.mock.restore();
+  });
+
   await t.test("Deathless hangar retains authored slots and matches requested texture paths", async context =>
   {
     const originalDna = "mdeha01:deathless:deathless:layout?deathless_hangar:respathinsert?none";

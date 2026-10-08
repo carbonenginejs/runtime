@@ -116,9 +116,14 @@ stage emits at most two values records; no complete graph or mesh is built.
 Unrelated live texture paths are retained without existence probes or reloads.
 Shared effects and texture targets must agree across all their owning areas.
 
-Layouts, hull-authored instanced meshes, extension roots, generated depth effects
-and simultaneous pattern-name/respathinsert edits still use the earlier
-full-values comparison path. That fallback builds fresh
+Simultaneous pattern-name/respathinsert changes also use targeted calculations.
+One batch resolves authored hull and inherited decal paths before pattern bindings
+are planned. Shared texture requests must agree on their final path, including
+requests whose values remain unchanged, and each changed texture is written once.
+Targets are revalidated after acquisition and before applying any edits.
+
+Layouts, hull-authored instanced meshes, extension roots and generated depth
+effects still use the earlier full-values comparison path. That fallback builds fresh
 values and validates types, names, list lengths and shared references throughout
 the supplied structure before applying leaf changes. Targeted layout matching
 requires additional source associations and is not implemented yet.

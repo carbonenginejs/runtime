@@ -158,8 +158,8 @@ export class CjsSOFUpdater
 
   /**
    * Selects the direct projection path without shared generated-depth resources.
-   * Combined insert edits retain full comparison until both plans share resolved
-   * hull paths. This does not alter the material-only path's query footprint.
+   * Combined insert edits share resolved hull paths with the binding planner.
+   * This does not alter the material-only path's query footprint.
    * @param {object} object Live root.
    * @param {EveSOFDNA} before Previous selection.
    * @param {EveSOFDNA} after Requested selection.
@@ -172,8 +172,6 @@ export class CjsSOFUpdater
       && !before.GetHullInstancedMeshes().length && !after.GetHullInstancedMeshes().length
       && after.GetBuildClass() !== EveSOFDataHull.BuildClass.BUILDCLASS_EXTENSION
       && object.mesh?.depthAreas.length === 0
-      && JSON.stringify(before.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_RESPATHINSERT))
-        === JSON.stringify(after.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_RESPATHINSERT))
       && (before.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_PATTERN)?.[0] ?? null)
         !== (after.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_PATTERN)?.[0] ?? null);
   }
@@ -198,23 +196,29 @@ export class CjsSOFUpdater
     // Equal selections may resolve changed catalog data; they are not snapshots.
     if (!materials && !textures) materials = textures = true;
     const patternTargets = patterns ? this._PatternTargets(object, before, after) : null;
-    let plan = this._PlanMesh(object, after, materials, textures, patternTargets);
+    // Resolve authored insert paths before comparing pattern bindings: a hull
+    // texture can also own a pattern slot, or be shared with another effect.
+    let plan = this._PlanMesh(object, after, materials, textures, textures ? null : patternTargets);
     if (!plan) return null;
-    if (plan.textures.length)
+    if (textures)
     {
       const previous = plan;
-      const paths = await this._sof.ModifyTextureResPaths(after.GetDnaString(), plan.textures.map(value => value.path), options);
+      const paths = plan.textures.length
+        ? await this._sof.ModifyTextureResPaths(after.GetDnaString(), plan.textures.map(value => value.path), options) : [];
       if (!isCurrent()) return false;
-      if (!paths) return null;
+      if (!paths || paths.length !== previous.textures.length) return null;
+      const resolvedTextures = new Map(previous.textures.map((target, index) => [target.object, paths[index]]));
       // A user may edit a mesh while file existence is pending. Revalidate the
       // small target set before applying anything, including material changes.
-      plan = this._PlanMesh(object, after, materials, textures, patternTargets);
+      plan = this._PlanMesh(object, after, materials, textures, patternTargets, resolvedTextures);
       if (!plan || plan.textures.length !== previous.textures.length) return null;
       for (let index = 0; index < paths.length; index++)
       {
         const target = plan.textures[index], earlier = previous.textures[index];
         if (target.object !== earlier.object || target.path !== earlier.path) return null;
-        if (target.object.resourcePath !== paths[index])
+        const existing = plan.changes.find(change => change.object === target.object);
+        if (existing && existing.values.resourcePath !== paths[index]) return null;
+        if (!existing && target.object.resourcePath !== paths[index])
           plan.changes.push({ object: target.object, type: "TriTextureParameter", values: { resourcePath: paths[index] } });
       }
     }
@@ -241,15 +245,16 @@ export class CjsSOFUpdater
    * @param {boolean} materials Calculate constants.
    * @param {boolean} textures Calculate authored texture insert targets.
    * @param {object|null} [patternTargets] Eligible pattern binding owners/names.
+   * @param {Map<object,string>|null} [resolvedTextures] Current insert query results by live texture.
    * @returns {object|null} Validated patches and texture targets, or fallback.
    */
   @meta.ours
-  _PlanMesh(object, dna, materials, textures, patternTargets = null)
+  _PlanMesh(object, dna, materials, textures, patternTargets = null, resolvedTextures = null)
   {
     const mesh = object.mesh;
     if (!CjsSchema.isInstanceOf("Tr2Mesh", mesh) || mesh.geometryResPath !== dna.GetHullGeometryResPath()) return null;
     const plan = { changes: [], textures: [] }, effects = new Map(), targets = new Map();
-    const patterns = patternTargets && { ...patternTargets, processed: new Map(), records: new Map(),
+    const patterns = patternTargets && { ...patternTargets, resolvedTextures, processed: new Map(), records: new Map(),
       visited: new WeakMap(), owners: new WeakMap(), anchors: new Map(),
       external: new Set((object.externalParameters ?? []).filter(value => value.destinationAttribute === "resourcePath").map(value => value.destinationObject)) };
     const addTexture = (texture, path) =>
@@ -334,6 +339,14 @@ export class CjsSOFUpdater
     if (textures && !this._PlanDecalTextures(object, dna, addTexture)) return null;
     if (patterns)
     {
+      // A decal/hull insert and a pattern layer may point at the same live
+      // texture. They must agree even when one side needs no value change.
+      if (resolvedTextures)
+        for (const target of plan.textures)
+        {
+          const desired = patterns.records.get(target.object);
+          if (desired && desired.resourcePath !== resolvedTextures.get(target.object)) return null;
+        }
       // Reuse the prepared mask stage, emitting at most two small values records.
       // No mesh, controller, attachment or complete desired graph is constructed.
       const document = new SofValuesBuilder(), fields = { customMasks: [] };
@@ -373,6 +386,13 @@ export class CjsSOFUpdater
     for (const name of area.textures.keys()) if (!current.has(name)) return false;
     for (const name of shader.defaultTextures.keys()) if (!context.textures.has(name) && !current.has(name)) return false;
     const paths = new Map(effect.resources.map(value => [value.name, value.resourcePath]));
+    if (context.resolvedTextures)
+      for (const name of area.textures.keys())
+      {
+        const record = current.get(name);
+        if (!context.resolvedTextures.has(record)) return false;
+        paths.set(name, context.resolvedTextures.get(record));
+      }
     for (const name of context.textures)
     {
       if (area.textures.has(name)) continue;
