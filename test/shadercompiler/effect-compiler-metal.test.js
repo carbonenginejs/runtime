@@ -399,7 +399,7 @@ test("selection/skinned_selectionmask.fx compiles for Metal", () =>
     // POSITION and BLENDINDICES, numbered in order.
     assert.deepEqual(vs.pipelineInputs.map(input => [input.name, input.registerIndex, input.dimension]), [[0, 0, 3], [6, 1, 4]]);
     assert.deepEqual(vs.constants, []);
-    assert.deepEqual(ps.constants, []);
+    assert.deepEqual(ps.constants.map(c => [c.name, c.offset, c.size]), [["SelectionChannel", 0, 16]]);
     assert.ok(ps.source.includes("[[ color(0) ]]"));
 });
 

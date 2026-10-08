@@ -97,6 +97,12 @@ export class CjsFxOutputWGSL
     /** Generated helper functions by name. @type {Map<string, string>} */
     _helpers = new Map();
 
+    /** Compute entry dimensions from numthreads. @type {number[]|null} */
+    _threadGroupSize = null;
+
+    /** Const symbols being expanded in a texture offset, or null outside it. @type {Set<object>|null} */
+    _constantOffset = null;
+
     /** Counter for temporaries. */
     _temps = 0;
 
@@ -114,13 +120,16 @@ export class CjsFxOutputWGSL
      * @param {(resource: { symbol: object, kind: string, registerIndex: number, type: string, name: string, structureStride: number|null }) => number} options.bind
      *   Allocates the pass-level binding for a resource of this stage and returns its number.
      * @param {(semantic: string) => number} options.location The pass-level `@location` of a varying semantic.
+     * @param {number[]|null} [options.threadGroupSize] Compute entry dimensions from numthreads.
      * @param {Set<object>} [options.globalsStructs] The struct symbols laid out over used members only (`GlobalsData`, `UITransforms`).
      */
-    constructor({ state, stage, entry, bind, location, globalsStructs = new Set() })
+    constructor({ state, stage, entry, bind, location, threadGroupSize = null, globalsStructs = new Set() })
     {
         this._state = state;
 
         this._stage = stage;
+
+        this._threadGroupSize = threadGroupSize;
 
         this._entry = entry;
 
@@ -309,11 +318,17 @@ export class CjsFxOutputWGSL
             case "a":
                 return `@location(${reg.registerNumber}) `;
             case "x":
+            {
                 if (this._stage === "fragment" && isOutput)
                 {
                     break;
                 }
-                return `@location(${this._location(member.semantic.ToString().toUpperCase())}) `;
+                // These are inter-stage varyings, not vertex attributes or
+                // builtins. HLSL's `linear` is perspective (WGSL's default).
+                const interpolation = member.interpolationModifier === T.OP_NOPERSPECTIVE ? "@interpolate(linear) "
+                    : member.interpolationModifier === T.OP_NOINTERPOLATION ? "@interpolate(flat) " : "";
+                return `@location(${this._location(member.semantic.ToString().toUpperCase())}) ${interpolation}`;
+            }
             case "v":
                 return `${systemAttribute(reg.registerNumber)} `;
             default:
@@ -444,7 +459,15 @@ export class CjsFxOutputWGSL
             result = ` -> ${CjsFxWgslTypes.wgslType(returnType, s => this._nameOf(s))}`;
         }
         this._returnType = returnType;
-        const attribute = this._stage === "vertex" ? "@vertex" : this._stage === "fragment" ? "@fragment" : "@compute";
+        let attribute = this._stage === "vertex" ? "@vertex" : this._stage === "fragment" ? "@fragment" : "@compute";
+        if (this._stage === "compute")
+        {
+            if (this._threadGroupSize === null || this._threadGroupSize.length !== 3 || this._threadGroupSize.some(size => !Number.isInteger(size) || size <= 0))
+            {
+                throw new Error("CjsFxOutputWGSL: compute shaders without positive numthreads dimensions are not supported yet");
+            }
+            attribute += ` @workgroup_size(${this._threadGroupSize.join(", ")})`;
+        }
         const body = withLeadingLines(this._block(node.GetChild(1), 1), zeros);
         return `${attribute}\nfn main(${params.join(", ")})${result}\n${body}\n`;
     }
@@ -710,6 +733,10 @@ export class CjsFxOutputWGSL
         const target = node.GetChild(0);
         const targetType = typeOf(target);
         const operator = ASSIGNMENT.get(node.GetToken().type);
+        if (operator === "*" && targetType.IsMatrix() && typeOf(node.GetChild(1)).IsMatrix())
+        {
+            throw new Error("CjsFxOutputWGSL: HLSL's component-wise matrix *= is not supported yet");
+        }
         const swizzle = swizzleOf(target);
         if (swizzle !== null && swizzle.length > 1)
         {
@@ -718,12 +745,13 @@ export class CjsFxOutputWGSL
             const temp = `cjs_t${this._temps++}`;
             const base = this._lvalue(target.GetChild(0));
             const value = operator === "" ? this._coerced(node.GetChild(1), targetType) : this._operand(node.GetChild(1), targetType, operator);
+            const scalar = operator !== "" && operator !== "<<" && operator !== ">>" && typeOf(node.GetChild(1)).IsScalar();
             const lines = [`${pad}{`, `${pad}    let ${temp} = ${value};`];
             const components = "xyzw";
             for (let i = 0; i < swizzle.length; ++i)
             {
                 const field = normaliseComponent(swizzle[i]);
-                lines.push(`${pad}    ${base}.${field} ${operator}= ${temp}.${components[i]};`);
+                lines.push(`${pad}    ${base}.${field} ${operator}= ${temp}${scalar ? "" : `.${components[i]}`};`);
             }
             lines.push(`${pad}}`);
             return lines.join("\n");
@@ -890,11 +918,42 @@ export class CjsFxOutputWGSL
      */
     _expression(node)
     {
+        // WGSL offsets must be const-expressions. Mutable locals and uniforms
+        // with initializers are still runtime values; user calls and side
+        // effects cannot become constants merely by printing their arguments.
+        if (this._constantOffset !== null)
+        {
+            const kind = node.GetNodeType();
+            const token = node.GetToken()?.type;
+            if ((kind === N.NT_FUNCTION_CALL && node.GetSymbol() !== null)
+                || (kind === N.NT_PREFIX_EXPRESSION && ![T.OP_PLUS, T.OP_DASH, T.OP_BANG, T.OP_TILDE].includes(token))
+                || (kind === N.NT_POSTFIX_EXPRESSION && token !== T.OP_ID && token !== T.OP_LEFT_BRACKET))
+            {
+                throw new Error("CjsFxOutputWGSL: texture offset must be a constant expression; this expression is not supported yet");
+            }
+        }
         switch (node.GetNodeType())
         {
             case N.NT_VAR_IDENTIFIER:
             {
                 const symbol = node.GetSymbol();
+                if (this._constantOffset !== null)
+                {
+                    const initializer = symbol.definition?.GetChildOrNull(1);
+                    if (symbol.type.modifier !== T.OP_CONST || !initializer || this._constantOffset.has(symbol))
+                    {
+                        throw new Error("CjsFxOutputWGSL: texture offset must be constant; runtime or recursive offsets are not supported yet");
+                    }
+                    this._constantOffset.add(symbol);
+                    try
+                    {
+                        return this._coerced(initializer, symbol.type);
+                    }
+                    finally
+                    {
+                        this._constantOffset.delete(symbol);
+                    }
+                }
                 const name = this._nameOf(symbol);
                 return this._pointerParams.has(symbol) ? `(*${name})` : name;
             }
@@ -1030,6 +1089,10 @@ export class CjsFxOutputWGSL
         const cbuffer = this._cbufferAccess(node);
         if (cbuffer !== null)
         {
+            if (this._constantOffset !== null)
+            {
+                throw new Error("CjsFxOutputWGSL: texture offset must be constant; uniform reads are not supported yet");
+            }
             return cbuffer;
         }
         switch (token)
@@ -1246,19 +1309,21 @@ export class CjsFxOutputWGSL
                 return `(${text}).${"xyzw".slice(0, width - 1)}, i32((${text}).${"xyzw"[width - 1]})`;
             };
             let sampled;
+            const argumentCount = { Sample: 2, SampleLevel: 3, SampleBias: 3, SampleGrad: 4 }[method];
+            const offset = argumentCount === undefined ? "" : this._sampleOffset(objectType, method, args, argumentCount);
             switch (method)
             {
                 case "Sample":
-                    sampled = `textureSample(${target}, ${this._expression(args[0])}, ${coords(args[1])})`;
+                    sampled = `textureSample(${target}, ${this._expression(args[0])}, ${coords(args[1])}${offset})`;
                     break;
                 case "SampleLevel":
-                    sampled = `textureSampleLevel(${target}, ${this._expression(args[0])}, ${coords(args[1])}, ${this._coerced(args[2], float)})`;
+                    sampled = `textureSampleLevel(${target}, ${this._expression(args[0])}, ${coords(args[1])}, ${this._coerced(args[2], float)}${offset})`;
                     break;
                 case "SampleBias":
-                    sampled = `textureSampleBias(${target}, ${this._expression(args[0])}, ${coords(args[1])}, ${this._coerced(args[2], float)})`;
+                    sampled = `textureSampleBias(${target}, ${this._expression(args[0])}, ${coords(args[1])}, ${this._coerced(args[2], float)}${offset})`;
                     break;
                 case "SampleGrad":
-                    sampled = `textureSampleGrad(${target}, ${this._expression(args[0])}, ${coords(args[1])}, ${coordinate(args[2])}, ${coordinate(args[3])})`;
+                    sampled = `textureSampleGrad(${target}, ${this._expression(args[0])}, ${coords(args[1])}, ${coordinate(args[2])}, ${coordinate(args[3])}${offset})`;
                     break;
                 case "Load":
                 {
@@ -1279,6 +1344,45 @@ export class CjsFxOutputWGSL
             return resultType.width === 4 || resultType.width === 0 ? sampled : `${sampled}.${"xyzw".slice(0, resultType.width)}`;
         }
         throw new Error(`CjsFxOutputWGSL: method ${method} on ${objectType.ToString()} is not supported yet`);
+    }
+
+    /**
+     * The optional Sample* offset, expanded as a WGSL const-expression.
+     * WGSL separates an array layer from its spatial coordinates and has no
+     * cube offset or HLSL clamp/status overloads.
+     *
+     * @param {Type} texture The sampled texture.
+     * @param {string} method The HLSL method.
+     * @param {import("../ASTNode/ASTNode.js").ASTNode[]} args Its arguments.
+     * @param {number} count The argument count without an offset.
+     * @returns {string} A comma and the offset, or an empty string.
+     */
+    _sampleOffset(texture, method, args, count)
+    {
+        if (args.length !== count && args.length !== count + 1)
+        {
+            throw new Error(`CjsFxOutputWGSL: ${method} with these arguments is not supported yet`);
+        }
+        if (args.length === count)
+        {
+            return "";
+        }
+        const width = texture.builtInType === T.OP_TEXTURE2D || texture.builtInType === T.OP_TEXTURE2DARRAY ? 2
+            : texture.builtInType === T.OP_TEXTURE3D ? 3 : 0;
+        const type = typeOf(args[count]);
+        if (width === 0 || !type.IsVector() || type.width !== width)
+        {
+            throw new Error(`CjsFxOutputWGSL: ${method} offset for this texture or offset shape is not supported yet`);
+        }
+        this._constantOffset = new Set();
+        try
+        {
+            return `, ${this._coerced(args[count], withComponent(type, T.OP_INT))}`;
+        }
+        finally
+        {
+            this._constantOffset = null;
+        }
     }
 
     /**
@@ -1346,7 +1450,17 @@ export class CjsFxOutputWGSL
         switch (name)
         {
             case "mul":
-                return `(${this._expression(args[0])} * ${this._expression(args[1])})`;
+            {
+                const left = typeOf(args[0]);
+                const right = typeOf(args[1]);
+                // HLSL's vector/vector overload is a dot product. Other
+                // shapes retain WGSL multiplication with HLSL conversions.
+                const component = type.builtInType;
+                const a = this._coerced(args[0], withComponent(left, component));
+                const rightShape = left.IsVector() && right.IsVector() ? left : right;
+                const b = this._coerced(args[1], withComponent(rightShape, component));
+                return left.IsVector() && right.IsVector() ? `dot(${a}, ${b})` : `(${a} * ${b})`;
+            }
             case "mad":
                 return `(${sameAs(args[0])} * ${sameAs(args[1])} + ${sameAs(args[2])})`;
             case "rcp":
@@ -1512,7 +1626,7 @@ function registerOf(symbol)
 }
 
 /**
- * The element stride of a structured buffer, or null for a typed buffer.
+ * The storage element stride of a buffer, or null without an element type.
  * HLSL packs structured-buffer elements tightly (4-byte members, no register
  * padding); WGSL's storage layout aligns `vec3` and `vec4` to 16 bytes, so
  * an element is accepted only where both layouts put every member at the
@@ -1524,13 +1638,14 @@ function registerOf(symbol)
 function structuredStride(type)
 {
     const element = type.templateParameter;
-    if (!element || !element.IsStruct())
+    if (!element)
     {
         return null;
     }
     const tight = tightLayout(element);
     const wgsl = storageLayout(element);
-    if (tight.size !== wgsl.size || tight.offsets.some((offset, i) => offset !== wgsl.offsets[i]))
+    const stride = Math.ceil(wgsl.size / wgsl.align) * wgsl.align;
+    if (tight.size !== stride || tight.offsets.some((offset, i) => offset !== wgsl.offsets[i]))
     {
         throw new Error(`CjsFxOutputWGSL: structured buffer element ${element.ToString()} lays out differently in HLSL and WGSL storage (offsets ${tight.offsets} against ${wgsl.offsets}), which is not supported yet`);
     }

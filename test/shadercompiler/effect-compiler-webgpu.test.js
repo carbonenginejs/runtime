@@ -303,8 +303,12 @@ test("the selection outline draws a solid line of the set width around the mask,
     const maskTexture = device.createTexture({ size: [size, size], format: "r8unorm", usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST });
     device.queue.writeTexture({ texture: maskTexture }, mask, { bytesPerRow: size }, [size, size]);
     // OutlineColour red, OutlineSettings brightness 1 and width 3 pixels.
-    const constants = device.createBuffer({ size: 32, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
-    device.queue.writeBuffer(constants, 0, new Float32Array([1, 0, 0, 1, 1, 3, 0, 0]));
+    const uniform = bindings.find(b => b.generatedSymbol === "cb0");
+    const registers = Number(/^array<vec4<f32>, (\d+)>$/u.exec(uniform.type)[1]);
+    const values = new Float32Array(registers * 4);
+    values.set([1, 0, 0, 1, 1, 3, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]);
+    const constants = device.createBuffer({ size: values.byteLength, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+    device.queue.writeBuffer(constants, 0, values);
     const target = device.createTexture({ size: [size, size], format: "rgba8unorm", usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.COPY_SRC });
 
     const pipeline = device.createRenderPipeline({

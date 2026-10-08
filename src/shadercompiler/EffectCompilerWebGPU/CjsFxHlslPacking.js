@@ -135,19 +135,7 @@ export class CjsFxHlslPacking
         {
             return cached;
         }
-        const members = new Map();
-        let cursor = 0;
-        for (const memberNode of structSymbol.definition.GetChildren())
-        {
-            for (const nameNode of memberNode.GetChildren())
-            {
-                const symbol = nameNode.GetSymbol();
-                const placed = CjsFxHlslPacking.place(symbol.type, cursor);
-                members.set(symbol, { offset: placed.offset, type: symbol.type });
-                cursor = placed.end;
-            }
-        }
-        const layout = { size: cursor, members };
+        const layout = CjsFxHlslPacking.memberLayout(structSymbol, false);
         STRUCT_LAYOUTS.set(structSymbol, layout);
         return layout;
     }
@@ -164,21 +152,74 @@ export class CjsFxHlslPacking
      */
     static usedMembersLayout(structSymbol)
     {
-        const members = new Map();
-        let cursor = 0;
+        return CjsFxHlslPacking.memberLayout(structSymbol, true);
+    }
+
+    /**
+     * Places explicit packoffset declarations first, then automatic members
+     * after their highest occupied byte. Both reflection and register reads
+     * use this layout, including stage-filtered globals. Carbon's DX11 path
+     * forwards packoffset to D3D and obtains these addresses from reflection.
+     *
+     * @param {import("../SymbolTable/Symbol.js").Symbol} structSymbol The struct.
+     * @param {boolean} usedOnly Whether unused globals are omitted.
+     * @returns {{ size: number, members: Map<object, { offset: number, type: import("../Type.js").Type, size: number, stride: number }> }} The layout.
+     */
+    static memberLayout(structSymbol, usedOnly)
+    {
+        const symbols = [];
         for (const memberNode of structSymbol.definition.GetChildren())
         {
             for (const nameNode of memberNode.GetChildren())
             {
                 const symbol = nameNode.GetSymbol();
-                if (!symbol.used)
+                if (!usedOnly || symbol.used)
                 {
-                    continue;
+                    symbols.push(symbol);
                 }
-                const placed = CjsFxHlslPacking.place(symbol.type, cursor);
-                members.set(symbol, { offset: placed.offset, type: symbol.type, size: placed.size, stride: placed.stride });
+            }
+        }
+        const placements = new Map();
+        let cursor = 0;
+        for (const symbol of symbols)
+        {
+            const explicit = symbol.packOffset;
+            if (explicit.subComponent < 0)
+            {
+                continue;
+            }
+            const component = explicit.component.ToString();
+            const lane = component === "" ? 0 : "xyzw".indexOf(component);
+            const element = CjsFxHlslPacking.elementLayout(symbol.type);
+            if ((component !== "" && (component.length !== 1 || lane < 0))
+                || (lane !== 0 && (symbol.type.arrayDimensions > 0 || element.startsRegister))
+                || (!element.startsRegister && symbol.type.arrayDimensions === 0 && lane * 4 + element.size > 16))
+            {
+                throw new Error("CjsFxHlslPacking: invalid packoffset component or register crossing is not supported yet");
+            }
+            const placed = CjsFxHlslPacking.place(symbol.type, 0);
+            placed.offset = explicit.subComponent * CjsFxHlslPacking.registerBytes + lane * 4;
+            placed.end += placed.offset;
+            for (const other of placements.values())
+            {
+                if (placed.offset < other.end && other.offset < placed.end)
+                {
+                    throw new Error("CjsFxHlslPacking: overlapping packoffset declarations are not supported yet");
+                }
+            }
+            placements.set(symbol, placed);
+            cursor = Math.max(cursor, placed.end);
+        }
+        const members = new Map();
+        for (const symbol of symbols)
+        {
+            let placed = placements.get(symbol);
+            if (placed === undefined)
+            {
+                placed = CjsFxHlslPacking.place(symbol.type, cursor);
                 cursor = placed.end;
             }
+            members.set(symbol, { offset: placed.offset, type: symbol.type, size: placed.size, stride: placed.stride });
         }
         return { size: cursor, members };
     }

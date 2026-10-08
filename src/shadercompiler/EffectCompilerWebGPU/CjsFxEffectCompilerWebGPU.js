@@ -332,6 +332,7 @@ export class CjsFxEffectCompilerWebGPU
         const printer = new CjsFxOutputWGSL({
             state,
             stage: kind,
+            threadGroupSize: stage.threadGroupSize,
             entry: patchedShader,
             globalsStructs,
             bind: resource =>
