@@ -262,3 +262,9 @@ renderer or start resource services; the host owns live parameter resource loadi
 ## Documentation map
 
 - [Package README](../../README.md)
+
+## Authored definition edits
+
+See [Authored SOF editing](editing.md) for CjsSOFEditManager, the shared direct
+receiver used by editor widgets and structural actions. Definition propagation
+is separate from the single-object DNA updater above.

@@ -11,6 +11,7 @@
  * DNA and `buildTime`.
  */
 export { EveSOF } from "./EveSOF.js";
+export { CjsSOFEditManager } from "./CjsSOFEditManager.js";
 export { CjsSOFUpdater } from "./CjsSOFUpdater.js";
 export { EveSOFData } from "./EveSOFData.js";
 export { EveSOFDNA } from "./EveSOFDNA.js";
