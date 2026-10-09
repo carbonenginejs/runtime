@@ -77,7 +77,8 @@ export function createValuesTransport(services)
         for (const field of GetFields(target.constructor))
         {
             if (!isExportableField(field, options)) continue;
-            out[field.name] = Export(target[field.name], field, options);
+            const stored = target[field.key ?? field.name];
+            out[field.name] = Export(field.index === undefined ? stored : stored[field.index], field, options);
         }
         return out;
     }
@@ -99,10 +100,14 @@ export function createValuesTransport(services)
             for (const field of GetFields(target.constructor))
             {
                 if (!isWritableField(field)) continue;
-                if (!Object.hasOwn(values, field.name)) continue;
+                const inputName = Object.hasOwn(values, field.name) ? field.name
+                    : (field.aliases ?? []).find(alias => Object.hasOwn(values, alias));
+                if (inputName === undefined) continue;
 
-                const incoming = values[field.name];
-                const current = target[field.name];
+                const incoming = values[inputName];
+                const owner = field.index === undefined ? target : target[field.key ?? field.name];
+                const key = field.index ?? field.key ?? field.name;
+                const current = owner[key];
 
                 // In place first, so a typed array keeps its identity and anything
                 // holding a reference to it keeps seeing live values.
@@ -115,7 +120,7 @@ export function createValuesTransport(services)
 
                 const next = Import(incoming, field, options);
                 const didChange = !IsEquivalent(current, next);
-                target[field.name] = next;
+                owner[key] = next;
                 recordWrite(field, didChange);
             }
         });

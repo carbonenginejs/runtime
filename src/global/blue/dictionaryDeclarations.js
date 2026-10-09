@@ -28,7 +28,7 @@ export function getDictionaryDeclarations(Constructor)
       for (const field of declarations)
       {
         if (field.declaringClass !== owner || byName.has(field.name)) continue;
-        // @meta.alias getters are second names for another field, not fields.
+        // @meta.keyAlias getters are second names for another field, not fields.
         if (field.aliasOf !== undefined) { aliasesOf.push(field); continue; }
         byName.set(field.name, field);
         fields.push(field);
@@ -84,7 +84,7 @@ export function writeDictionaryValue(instance, field, value)
 function dictionaryTarget(instance, field)
 {
   let target = instance;
-  let key = field.key;
+  let key = field.key ?? field.name;
   if (field.index !== undefined)
   {
     const value = field.role === "property" ? target[key] : dataValue(target, key);

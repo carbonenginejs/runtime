@@ -14,7 +14,7 @@ CjsSchema.define(AliasRecord, {
   className: "MetaAliasRecord",
   fields: {
     storedName: [ meta.blue.readwrite, meta.blue.persist, meta.type.int32 ],
-    preferredName: [ meta.ours, meta.alias("storedName") ]
+    preferredName: [ meta.ours, meta.keyAlias("storedName") ]
   }
 });
 
@@ -33,7 +33,7 @@ test("the aliased getter is a second name, not an exposed field of its own", () 
   assert.equal(view.aliases.get("preferredName"), view.byName.get("storedName"));
 });
 
-test("meta.alias requires a target field name", () =>
+test("meta.keyAlias requires a target field name", () =>
 {
-  for (const target of [ undefined, null, "", "  ", 3 ]) assert.throws(() => meta.alias(target), TypeError);
+  for (const target of [ undefined, null, "", "  ", 3 ]) assert.throws(() => meta.keyAlias(target), TypeError);
 });

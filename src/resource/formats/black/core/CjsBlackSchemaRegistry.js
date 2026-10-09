@@ -44,7 +44,7 @@ export class CjsBlackSchemaRegistry
             }
             fields.push({
                 name: declaration.name,
-                key: declaration.key,
+                ...(declaration.key === undefined ? {} : { key: declaration.key }),
                 declaration,
                 jsType: descriptor.jsType,
                 black: { name: declaration.name, ...descriptor.black }

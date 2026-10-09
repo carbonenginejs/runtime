@@ -207,14 +207,14 @@ test("canonical reader completion honors the same table without changing member 
   ])
   {
     const target = new Constructor();
-    const member = CjsSchema.getSchema(Constructor).members.find(entry => entry.key === "value");
+    const member = CjsSchema.getSchema(Constructor).members.find(entry => (entry.key ?? entry.name) === "value");
     assert.ok(member, "interface exposure does not alter stored-member lineage");
     applyReaderMember(target, member, 5);
     finalizeReaderObject(target);
     assert.deepEqual(target.calls, expected);
   }
   const suppressed = new InterfaceLifecycleChained();
-  const member = CjsSchema.getSchema(InterfaceLifecycleChained).members.find(entry => entry.key === "value");
+  const member = CjsSchema.getSchema(InterfaceLifecycleChained).members.find(entry => (entry.key ?? entry.name) === "value");
   applyReaderMember(suppressed, member, 3);
   finalizeReaderObject(suppressed, { initialize: false });
   assert.deepEqual(suppressed.calls, [], "mapped IInitialize still suppresses notify when initialization is disabled");

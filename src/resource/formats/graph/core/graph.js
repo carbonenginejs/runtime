@@ -52,9 +52,9 @@ function mapped(instance, name)
  */
 function storage(instance, field)
 {
-    const descriptor = Object.getOwnPropertyDescriptor(instance, field.key);
+    const descriptor = Object.getOwnPropertyDescriptor(instance, field.key ?? field.name);
     if (!descriptor || !Object.hasOwn(descriptor, "value")) throw new TypeError(`Stored member '${field.name}' is not own data`);
-    if (field.index === undefined) return { target: instance, key: field.key, value: descriptor.value };
+    if (field.index === undefined) return { target: instance, key: field.key ?? field.name, value: descriptor.value };
     const value = descriptor.value;
     if ((!Array.isArray(value) && !ArrayBuffer.isView(value)) || field.index >= value.length)
     {
