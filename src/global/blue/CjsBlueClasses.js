@@ -31,8 +31,7 @@ import { registerClass, unregisterClass, getClassRegistration } from "./classes/
 import { CjsSchema, meta } from "#schema";
 import { IBlueClasses } from "./IBlueClasses.js";
 import { Copier } from "./Copier.js";
-import { mappedInterfaces } from "../compose/interface.js";
-import * as CcpLog from "../logging/ccpLog.js";
+import { IRoot } from "./IRoot.js";
 
 
 /** `CjsBlueClasses` - the class registry `blue.classes` holds, per blueexposure/BlueClasses.cpp. */
@@ -162,14 +161,7 @@ export class CjsBlueClasses extends IBlueClasses
    */
   QueryThisInterface(self, riid, options = CjsBlueClasses.BLUEQIOPT.BEQI_NONE)
   {
-    if (mappedInterfaces(self.constructor).has(riid)) return self;
-
-    if ((options & CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === 0)
-    {
-      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("blue"), "Interface %s not found on class %s",
-        CjsSchema.getClassName(riid), CjsSchema.getClassName(self.constructor));
-    }
-    return null;
+    return IRoot.prototype.QueryInterface.call(self, riid, options);
   }
 
   /**

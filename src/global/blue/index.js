@@ -66,6 +66,7 @@ export * from "./CcpDateTime.js";
 export * from "./CcpTime.js";
 export * from "./IBlueResMan.js";
 export * from "./IBlueResManNotifications.js";
+export * from "./IRoot.js";
 export * from "./IInitialize.js";
 export * from "./ICurveSetDriver.js";
 export * from "./ITriFunction.js";
