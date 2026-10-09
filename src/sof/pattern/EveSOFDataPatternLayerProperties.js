@@ -5,6 +5,7 @@ import { blue } from "#blue";
 
 /** Stores a pattern layer's projection modes, area types, and material slots. */
 @meta.define({ className: "EveSOFDataPatternLayerProperties", family: "eve" })
+@meta.blue.interface()
 export class EveSOFDataPatternLayerProperties
 {
 
