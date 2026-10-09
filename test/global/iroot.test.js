@@ -53,14 +53,14 @@ test("instance and service queries honor explicit exposure instead of method inh
   assert.equal(classes.QueryThisInterface(legacy, IRoot, 1), null);
 });
 
-test("GC lifetime adaptation adds no state and does not alter values", () =>
+test("IRoot adds no lifetime API or serialized state", () =>
 {
   const value = new RootTestObject();
   const before = CjsSchema.getValues(value);
-  value.Lock();
-  value.Unlock();
-  assert.equal(value.GetRefCount(), 0);
-  assert.equal(value.GetFlags(), 0);
+  for (const name of ["Lock", "Unlock", "GetRefCount", "GetFlags", "_FinalDelete"])
+  {
+    assert.equal(name in value, false);
+  }
   assert.deepEqual(Object.keys(value), ["value"]);
   assert.deepEqual(CjsSchema.getValues(value), before);
   CjsSchema.setValues(value, { value: 12 });

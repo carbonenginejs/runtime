@@ -9,10 +9,9 @@ import * as CcpLog from "../logging/ccpLog.js";
  * Common Blue object base. JavaScript constructors serve as ClassInfo/IID
  * identities; interface exposure remains explicitly declared by each class.
  *
- * Native reference counting is replaced by JavaScript reachability. The lifetime
- * methods do not retain, dispose or release resources. GetRefCount reports zero
- * native locks, not the number of JavaScript references. Resource owners still
- * perform their explicit cleanup separately.
+ * Native reference counting and deletion are not implemented here. Destruction
+ * and deterministic resource release belong to each class and its owner; the
+ * separate resource cache Lock/Unlock protocol is not an IRoot lifetime API.
  */
 export class IRoot
 {
@@ -41,35 +40,14 @@ export class IRoot
     return null;
   }
 
-  /** Adapted: JavaScript references retain objects; there is no native lock. */
-  Lock() {}
-
-  /** Adapted: JavaScript GC releases objects; this does not dispose resources. */
-  Unlock() {}
-
-  /** Adapted: no native automatic-variable or parent-lock ownership flags. */
-  GetFlags()
-  {
-    return 0;
-  }
-
-  /** Adapted: zero native locks; JavaScript reference counts are not observable. */
-  GetRefCount()
-  {
-    return 0;
-  }
-
   /** Adapted: JavaScript has one object identity, without base-pointer offsets. */
   GetRootObject()
   {
     return this;
   }
-
-  /** Adapted: protected native deletion is handled by JavaScript GC. */
-  _FinalDelete() {}
 }
 
-for (const name of ["ClassType", "QueryInterface", "Lock", "Unlock", "GetFlags", "GetRefCount", "GetRootObject", "_FinalDelete"])
+for (const name of ["ClassType", "QueryInterface", "GetRootObject"])
 {
   CjsSchema.decorateMethod(IRoot, name, meta.blue.method, meta.adapted);
 }
