@@ -582,8 +582,11 @@ export class CjsBlackReader extends CjsBlueReader
                     const members = CjsSchema.getSchema(Constructor).members;
                     const eligible = member => member.type?.runtimeOnly === true
                         || member.edit?.persist || member.edit?.persistOnly;
+                    // A legacy storage hint still identifies forbidden runtime resources;
+                    // it never selects the key written into decoded data.
+                    const storageName = target.field.black?.fieldName || target.field.name;
                     const declaration = members.find(member => member.name === blackName && eligible(member))
-                        ?? members.find(member => (member.name === target.field.name || member.key === target.field.name) && eligible(member));
+                        ?? members.find(member => (member.name === storageName || member.key === storageName) && eligible(member));
                     if (declaration?.type?.runtimeOnly === true)
                     {
                         throw new TypeError(`Runtime-only member ${kind}.${declaration.name} cannot be read from Black`);
@@ -674,7 +677,7 @@ export class CjsBlackReader extends CjsBlueReader
             return {
                 blackName,
                 wireName: blackName,
-                field,
+                field: { ...field, name: blackName },
                 member: blackName,
                 indexed: false,
                 indexToken: null,
@@ -689,16 +692,15 @@ export class CjsBlackReader extends CjsBlueReader
             const indexedField = fields.find(item => item.cppName === indexed.member || item.name === CjsBlackReader.toJsFieldName(indexed.member));
             if (indexedField)
             {
-                const key = CjsBlackReader.normalizeIndexedKey(indexed.indexToken, indexedField);
                 return {
                     blackName,
                     wireName: blackName,
-                    field: indexedField,
+                    field: { ...indexedField, name: blackName },
                     member: blackName,
-                    indexed: true,
-                    indexToken: indexed.indexToken,
-                    index: Number.isInteger(key) ? key : null,
-                    key
+                    indexed: false,
+                    indexToken: null,
+                    index: null,
+                    key: null
                 };
             }
         }
@@ -834,37 +836,27 @@ export class CjsBlackReader extends CjsBlueReader
                 item.cppName === blackField.memberPath ||
                 item.cppName === blackField.memberRoot))
         );
-        const fieldName = blackField.fieldName || sourceField?.name || blackField.name || CjsBlackReader.toJsFieldName(blackName);
-        const usesPayloadField = Boolean(blackField.name && blackField.name !== blackField.fieldName);
+        // A source schema describes how bytes are decoded, not a new object
+        // shape. Keep the file's exact key even when a dated snapshot records
+        // a camelCase or indexed C++ storage projection. Runtime storage is
+        // addressed separately through the class's declared members.
         const field = {
             ...(sourceField || {}),
-            name: fieldName,
+            name: blackName,
             cppName: blackField.cppName || sourceField?.cppName || null,
             cppType: blackField.cppType || sourceField?.cppType || null,
             black: blackField
         };
-        // The index aggregates only when the Black name stores into another
-        // field (EveSOFDataArea's "Glass" into `materials`). Carbon's
-        // MAP_ATTRIBUTE("color1", m_params.colors[1]) records index 1 too, but
-        // "color1" is its own attribute, so indexing it would read a colour
-        // back as [ , colour ]. A compact spec with no `field` defaults its
-        // fieldName to the Black name (CjsBlackSchemaRegistry.normalizeCompactSpec),
-        // which is what makes this comparison tell the two cases apart.
-        const hasIndex = Boolean(blackField.indexToken || blackField.indexKey !== undefined) && fieldName !== blackName;
-        const storageKey = hasIndex
-            ? blackField.indexKey ?? CjsBlackReader.normalizeIndexedKey(blackField.indexToken, field)
-            : null;
-        const indexed = Boolean(hasIndex);
 
         return {
             blackName,
             wireName: blackName,
             field,
             member: blackField.member || blackName,
-            indexed,
-            indexToken: blackField.indexToken || null,
-            index: Number.isInteger(storageKey) ? storageKey : null,
-            key: storageKey
+            indexed: false,
+            indexToken: null,
+            index: null,
+            key: null
         };
     }
 
@@ -1012,37 +1004,6 @@ export class CjsBlackReader extends CjsBlueReader
     }
 
     /**
-     * Converts indexed key into the canonical Black object-graph reader
-     * representation.
-     *
-     * @param {string|number} indexToken Index token from the member name or schema.
-     * @param {import("./helpers.js").BlackSourceField} [field] Indexed field; an object-reference field gets a camelCase key.
-     * @returns {string|number} An integer index, or a PascalCase or camelCase key.
-     */
-    static normalizeIndexedKey(indexToken, field)
-    {
-        const number = Number(indexToken);
-        if (Number.isInteger(number) && String(indexToken).trim() === String(number)) return number;
-
-        let text = String(indexToken || "").trim();
-        text = text.replace(/^.*::/, "");
-        text = text.replace(/^TYPE_/, "");
-
-        const pascal = text
-            .split(/[^A-Za-z0-9]+/)
-            .filter(Boolean)
-            .map(part => CJS_BLACK_INDEX_TOKEN_NAMES[part] || (part === "FX" ? "FX" : part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()))
-            .join("");
-
-        if (field?.jsType?.kind === "rootRef")
-        {
-            return pascal ? pascal.charAt(0).toLowerCase() + pascal.slice(1) : text;
-        }
-
-        return pascal || text;
-    }
-
-    /**
      * Parses indexed member from the current Black object-graph reader.
      *
      * @param {string|null|undefined} value Member name such as `m_items[2]`.
@@ -1070,10 +1031,6 @@ export class CjsBlackReader extends CjsBlueReader
     }
 
 }
-
-const CJS_BLACK_INDEX_TOKEN_NAMES = Object.freeze({
-    SIMPLEPRIMARY: "SimplePrimary"
-});
 
 /**
  * Whether a resolved field is a Carbon BINARYBLOCK on the wire.

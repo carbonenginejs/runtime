@@ -52,6 +52,19 @@ Formats return plain payload objects. Semantic resource classes apply them
 through `SetPayload()`, validate their own required fields, and throw
 `CJS_RESOURCE_PAYLOAD_INVALID` before replacing a previously valid payload.
 
+## Black resource names
+
+Black payload and JSON output preserve each field's exact file name and casing.
+For example, `SSAO`, `N`, and `Primary` stay those names; they are not renamed to
+`sSAO` or `n`, or folded into a `colors`/`materials` collection. Legacy schema
+snapshot storage hints select codecs but do not change the decoded object shape.
+
+Runtime loading applies those exposed names through the registered class's
+member declarations. A declaration may explicitly address a differently named
+JavaScript member or an indexed storage slot. A wire field known to the decoder
+but absent from the registered class is an error, rather than a silently skipped
+value. Custom runtime adapters remain responsible for their own value handling.
+
 ## Choosing a writer
 
 **Ask whether a format writes; do not probe for the method.** `inputs` is the

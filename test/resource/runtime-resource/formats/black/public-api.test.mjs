@@ -1,6 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import "../../../../../npm/dist/global/blue/values.js";
+import { CjsSchema } from "../../../../../npm/dist/global/schema/CjsSchema.js";
 
 import CjsBlackFormat, { CjsBlackFormat as NamedCjsBlackFormat } from "../../../../../npm/dist/resource/formats/black/index.js";
 
@@ -230,7 +232,7 @@ test("readRuntime constructs caller-supplied classes", () =>
     assert.equal(runtime.root.items[1].name, "secondary");
 });
 
-test("compact definitions can map indexed chooser fields", () =>
+test("compact storage projections do not rewrite decoded chooser keys", () =>
 {
     const schema = {
         EmptyConcrete: {},
@@ -253,10 +255,75 @@ test("compact definitions can map indexed chooser fields", () =>
     assert.deepEqual(schema.EmptyConcrete, {});
     assert.deepEqual(payload.object, {
         _type: "TestIndexed",
-        colors: {
-            primary: 0.5
-        }
+        Primary: 0.5
     });
+});
+
+test("dated schema casing projections preserve the exact Black keys", () =>
+{
+    // Independently authored wire records exercise the installed default
+    // snapshot, including its historical field-name projections.
+    for (const [kind, name, bytes, expected] of [
+        ["EveSpaceSceneRenderDriver", "SSAO", u32(0), null],
+        ["EveChildEffectPropagator", "ClosenessPreference", f32(0.75), 0.75],
+        ["TriPerlinCurve", "N", i32(17), 17],
+        ["TriRigidOrientation", "I", f32(2.5), 2.5]
+    ])
+    {
+        const builder = new BlackFixtureBuilder();
+        const input = builder.Finish(builder.Object(1, kind, [[name, bytes]]));
+        for (const object of [CjsBlackFormat.readPayload(input, { emit: "payload" }).object, CjsBlackFormat.read(input).object])
+        {
+            assert.deepEqual(Object.keys(object), ["_type", name]);
+            assert.deepEqual(ArrayBuffer.isView(object[name]) ? Array.from(object[name]) : object[name], expected);
+        }
+    }
+});
+
+test("runtime hydration applies explicit storage mappings after preserving wire keys", () =>
+{
+    class Record
+    {
+        count = 2;
+        slots = [0];
+    }
+    CjsSchema.define(Record, {
+        className: "BlackExactKeyRecord",
+        members: [
+            { name: "N", key: "count", type: { kind: "int32" }, edit: { persist: true } },
+            { name: "Primary", key: "slots", index: 0, type: { kind: "float32" }, edit: { persist: true } }
+        ]
+    });
+    const schema = { BlackExactKeyRecord: {
+        N: { type: "int", field: "n" },
+        Primary: { type: "float", field: "colors", index: "primary", token: "TYPE_PRIMARY" }
+    } };
+    const builder = new BlackFixtureBuilder();
+    const input = builder.Finish(builder.Object(1, "BlackExactKeyRecord", [["N", i32(17)], ["Primary", f32(0.5)]]));
+    for (const source of [schema, null])
+    {
+        assert.deepEqual(CjsBlackFormat.readPayload(input, { schema: source }).object, {
+            _type: "BlackExactKeyRecord", N: 17, Primary: 0.5
+        });
+        const object = CjsBlackFormat.readRuntime(input, { schema: source }).root;
+        assert.equal(object.count, 17);
+        assert.deepEqual(object.slots, [0.5]);
+        assert.equal(Object.hasOwn(object, "n"), false);
+        assert.deepEqual(CjsSchema.getValues(object, {}, { persistOnly: true }), { N: 17, Primary: 0.5 });
+    }
+});
+
+test("known wire fields missing from a runtime class fail instead of disappearing", () =>
+{
+    class Record { value = 0; }
+    CjsSchema.define(Record, { className: "BlackMissingMemberRecord", members: [
+        { name: "value", key: "value", type: { kind: "int32" }, edit: { persist: true } }
+    ] });
+    const schema = { BlackMissingMemberRecord: { Missing: "int" } };
+    const builder = new BlackFixtureBuilder();
+    const input = builder.Finish(builder.Object(1, "BlackMissingMemberRecord", [["Missing", i32(17)]]));
+    assert.deepEqual(CjsBlackFormat.readPayload(input, { schema }).object, { _type: "BlackMissingMemberRecord", Missing: 17 });
+    assert.throws(() => CjsBlackFormat.readRuntime(input, { schema }), /Invalid attribute: Missing/);
 });
 
 test("an indexed attribute that is its own field reads as a plain value", () =>

@@ -187,9 +187,10 @@ export class CjsBlueReader extends CjsReader
             for (const name of Object.keys(values))
             {
                 const field = reader.FindEntry(name, target.constructor);
-                // Preserve legacy unknown-field leniency and never transport
-                // runtime resources, including through selected aliases.
-                if (!field || field.type?.runtimeOnly === true) continue;
+                // Runtime resources do not cross the values boundary. Unknown
+                // names must reach ReadInto so a schema mismatch throws instead
+                // of silently leaving a class member at its default.
+                if (field?.type?.runtimeOnly === true) continue;
                 declaredValues[name] = values[name];
             }
             reader.ReadInto(target, declaredValues);
