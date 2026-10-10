@@ -519,7 +519,7 @@ test("core WebGPU widens RG8 UAV storage and preserves the other format conversi
 });
 
 
-test("native R8 volumes use whole-mip uploads and reject staging above the active device limit", () =>
+test("native R8 volumes reach writeTexture without an estimated staging-buffer limit", () =>
 {
   const { al, calls } = composed();
   const device = al.GetWebgpu().GetDevice();
@@ -528,9 +528,6 @@ test("native R8 volumes use whole-mip uploads and reject staging above the activ
   bitmap.CreateVolume(19, 9, 2, 1, PixelFormat.PIXEL_FORMAT_R8_UNORM);
   const { desc, initialData } = DescribeBitmap(bitmap);
   assert.equal(initialData[0].m_sysMem.byteLength, 342, "one R8 byte per voxel, no RGBA expansion");
-  assert.throws(() => new CjsWebgpuTextureAL().Create(desc, { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, initialData }, al), /needs 4608 staging bytes.*4096/);
-  assert.equal(calls.writes.length, 0);
-  device.limits.maxBufferSize = 8192;
   assert.equal(new CjsWebgpuTextureAL().Create(desc, { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, initialData }, al), ALResult.S_OK);
   assert.equal(calls.textures.at(-1).format, "r8unorm");
   assert.equal(calls.writes.length, 1);
@@ -547,7 +544,7 @@ test("BC DDS content without enabled BC support fails explicitly before texture 
 });
 
 
-test("texture factory unregisters failed BC and oversized upload implementations", () =>
+test("texture factory unregisters failed BC and throwing writeTexture implementations", () =>
 {
   const { al } = composed();
   const device = al.GetWebgpu().GetDevice();
@@ -559,7 +556,9 @@ test("texture factory unregisters failed BC and oversized upload implementations
   const bitmap = new HostBitmap();
   bitmap.CreateVolume(19, 9, 2, 1, PixelFormat.PIXEL_FORMAT_R8_UNORM);
   const { desc, initialData } = DescribeBitmap(bitmap);
-  assert.throws(() => al.CreateTexture(desc, { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, initialData }), /needs 4608 staging bytes/);
+  const uploadError = new Error("writeTexture failed");
+  device.queue.writeTexture = () => { throw uploadError; };
+  assert.throws(() => al.CreateTexture(desc, { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, initialData }), error => error === uploadError);
   assert.equal(Tr2BaseDeviceResourceAL.GetResourceCount(), count);
 });
 

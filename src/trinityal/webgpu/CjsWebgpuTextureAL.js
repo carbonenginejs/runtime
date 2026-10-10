@@ -359,12 +359,7 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
         const slicePitch = subresource.m_sysMemSlicePitch || bytes.byteLength;
         const depth = type === TextureType.TEX_TYPE_3D ? Math.max(1, desc.GetMipDepth(mip)) : 1;
 
-        const stagingBytes = Math.ceil(pitch / 256) * 256 * Math.max(1, Math.floor(slicePitch / pitch)) * depth;
-        const maxBufferSize = this.m_webgpu.GetDevice().limits.maxBufferSize;
-        if (stagingBytes > maxBufferSize)
-        {
-          throw new RangeError(`WebGPU texture upload needs ${stagingBytes} staging bytes; active maxBufferSize is ${maxBufferSize}. Set webgpuMaxBufferSize before creating the next WebGPU device, subject to adapter support.`);
-        }
+        // writeTexture owns upload validation; we do not allocate a staging buffer here.
         queue.writeTexture(
           { texture: this.m_texture, mipLevel: mip, origin: { x: 0, y: 0, z: layer } },
           bytes,
