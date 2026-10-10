@@ -100,11 +100,9 @@ export function createValuesTransport(services)
             for (const field of GetFields(target.constructor))
             {
                 if (!isWritableField(field)) continue;
-                const inputName = Object.hasOwn(values, field.name) ? field.name
-                    : (field.aliases ?? []).find(alias => Object.hasOwn(values, alias));
-                if (inputName === undefined) continue;
+                if (!Object.hasOwn(values, field.name)) continue;
 
-                const incoming = values[inputName];
+                const incoming = values[field.name];
                 const owner = field.index === undefined ? target : target[field.key];
                 const key = field.index ?? field.key;
                 const current = owner[key];

@@ -256,7 +256,7 @@ export class IRootReaderBase
   FindEntry(name, Constructor)
   {
     const declarations = getDictionaryDeclarations(Constructor);
-    return declarations.byName.get(name) ?? declarations.aliases.get(name) ?? null;
+    return declarations.byName.get(name) ?? null;
   }
 
   /** Whether the current source is a live object of a registered class; a subclass provides it. */
@@ -323,12 +323,6 @@ export class IRootReaderBase
   ReadBinaryBlock(_instance, _propertyName)
   {
     throw new Error("IRootReaderBase.ReadBinaryBlock is provided by a reader.");
-  }
-
-  /** Selected declarations by alias, refreshed with the schema revision. */
-  static aliasesOf(Constructor)
-  {
-    return getDictionaryDeclarations(Constructor).aliases;
   }
 
   /** Whether a member's old and new values are the same, element by element for arrays. */

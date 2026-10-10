@@ -45,23 +45,23 @@ for (const edit of [undefined, {}, { read: true, write: true }, { persist: true 
   });
 }
 
-test("selected resource claims exposed name and aliases before reading input", () => {
+test("selected resource claims its exposed name before reading input", () => {
   class Base { old = 1; }
   CjsSchema.define(Base, { className: name(), members: [{ name: "cache", key: "old", type: { kind: "int32" }, edit: { persist: true } }] });
   class Owner extends Base { cache = null; real = 2; }
   CjsSchema.define(Owner, { className: name(), members: [
-    { name: "cache", key: "cache", aliases: ["cached", "real"], type: { kind: "rootRef", runtimeOnly: true }, edit: { persist: true } },
+    { name: "cache", key: "cache", type: { kind: "rootRef", runtimeOnly: true }, edit: { persist: true } },
     { name: "real", key: "real", type: { kind: "int32" } }
   ] });
   const target = new Owner();
-  const values = incoming("cached");
+  const values = incoming("cache");
   values.real = 3;
   new DictReader().ReadInto(target, values);
   assert.equal(target.real, 3);
   assert.equal(target.old, 1);
   assert.deepEqual(write(target), { real: 3 });
   values._type = CjsSchema.getClassName(Owner);
-  assert.equal(Object.hasOwn(CjsSchema.applyDefaults(values), "cached"), false);
+  assert.equal(Object.hasOwn(CjsSchema.applyDefaults(values), "cache"), false);
 });
 
 test("stateless recursive output excludes child resources in objects and collections", () => {

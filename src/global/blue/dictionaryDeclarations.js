@@ -9,7 +9,7 @@ const VIEWS = new WeakMap();
  * to a shadowed declaration or merging its flags. This keeps export/import
  * addressing identical, including the unrestricted all-fields values view.
  * @param {Function} Constructor Declared class.
- * @returns {object} Selected fields and exact-name/alias lookup maps.
+ * @returns {object} Selected fields and their exact-name lookup map.
  */
 export function getDictionaryDeclarations(Constructor)
 {
@@ -20,7 +20,6 @@ export function getDictionaryDeclarations(Constructor)
 
   const fields = [];
   const byName = new Map();
-  const aliasesOf = [];
   for (let owner = Constructor; typeof owner === "function"; owner = Object.getPrototypeOf(owner))
   {
     for (const declarations of [schema.members, schema.properties])
@@ -28,29 +27,13 @@ export function getDictionaryDeclarations(Constructor)
       for (const field of declarations)
       {
         if (field.declaringClass !== owner || byName.has(field.name)) continue;
-        // @meta.keyAlias getters are second names for another field, not fields.
-        if (field.aliasOf !== undefined) { aliasesOf.push(field); continue; }
         byName.set(field.name, field);
         fields.push(field);
       }
     }
   }
 
-  const aliases = new Map();
-  for (const field of fields)
-  {
-    const declared = field.aliases ?? (field.alias === undefined ? [] : [field.alias]);
-    for (const alias of Array.isArray(declared) ? declared : [declared])
-    {
-      if (typeof alias === "string" && alias && !byName.has(alias) && !aliases.has(alias)) aliases.set(alias, field);
-    }
-  }
-  for (const field of aliasesOf)
-  {
-    const target = byName.get(field.aliasOf);
-    if (target && !byName.has(field.name) && !aliases.has(field.name)) aliases.set(field.name, target);
-  }
-  const view = { schema, fields, byName, aliases };
+  const view = { schema, fields, byName };
   VIEWS.set(Constructor, view);
   return view;
 }

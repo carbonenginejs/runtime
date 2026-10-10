@@ -254,27 +254,6 @@ export class EveSOFDataBooster
   lightWarpColor = vec4.create();
 
   /**
-   * Exposes the typo-preserved Carbon storage vector backing the public warp
-   * halo color alias.
-   * @returns {Float32Array} The existing warpHalpColor storage.
-   */
-  @meta.ours
-  @meta.keyAlias("warpHalpColor")
-  get warpHaloColor()
-  {
-    return this.warpHalpColor;
-  }
-
-  /** Copies a vector into the existing typo-preserved warp-halo storage.
-   * @param {ArrayLike<number>} value Four color components.
-   */
-  @meta.ours
-  set warpHaloColor(value)
-  {
-    vec4.copy(this.warpHalpColor, value);
-  }
-
-  /**
    * Merges scalar, vector, resource-path, light, and four shape values from base
    * and optional booster overrides into a reusable instance. This is a JS-only
    * helper; zero overrides are accepted while null/undefined/empty strings fall back.

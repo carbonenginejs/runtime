@@ -99,7 +99,7 @@ test("embedded storage and indexed members preserve their declared destinations"
 {
     let factoryResult;
     registerClass({ name: "GraphEmbeddedAlias", type: Node, createFn: () => (factoryResult = new Node()) });
-    const result = read({ _type: "GraphEmbeddedAlias", embedded: { _type: "GraphTextEmbedded", value: 82 }, oldValue: 19, loadOnly: 91 });
+    const result = read({ _type: "GraphEmbeddedAlias", embedded: { _type: "GraphTextEmbedded", value: 82 }, value: 19, loadOnly: 91 });
     assert.equal(result.root.embedded, factoryResult.embedded);
     assert.equal(result.root.embedded.value, 82);
     assert.deepEqual(result.root._value, [19]);

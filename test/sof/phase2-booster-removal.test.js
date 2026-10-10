@@ -81,14 +81,14 @@ test("Race owner hydration and copying preserve shared shapes and manager projec
   assert.equal(restored.booster.warpShape0, null);
 });
 
-test("correctly spelled aliases copy in place while persistence keeps native spellings", () =>
+test("correctly spelled shape accessors copy in place while persistence keeps native spellings", () =>
 {
   const value = new EveSOFDataBooster(), shape = value.shape0;
-  const halo = value.warpHalpColor, start = shape.noiseAmplitureStart, end = shape.noiseAmplitureEnd;
-  value.warpHaloColor = [1, 2, 3, 4];
+  const start = shape.noiseAmplitureStart, end = shape.noiseAmplitureEnd;
+  value.warpHalpColor.set([1, 2, 3, 4]);
   shape.noiseAmplitudeStart = [5, 6, 7, 8];
   shape.noiseAmplitudeEnd = [9, 10, 11, 12];
-  assert.equal(value.warpHaloColor, halo);
+  assert.equal("warpHaloColor" in value, false, "no correctly spelled accessor over Carbon's warpHalpColor");
   assert.equal(shape.noiseAmplitudeStart, start);
   assert.equal(shape.noiseAmplitudeEnd, end);
   assert.deepEqual(Array.from(start), [5, 6, 7, 8]);

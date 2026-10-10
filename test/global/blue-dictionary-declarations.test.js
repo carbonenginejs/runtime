@@ -108,21 +108,18 @@ test("indexed live properties use their getter-selected container", () => {
   assert.deepEqual(write(target), { second: 9 });
 });
 
-test("visible exact names precede selected aliases and hidden or shadowed aliases disappear", () => {
+test("derived exposed names shadow inherited ones and hidden names disappear", () => {
   class Base { base = 1; hidden = 2; }
-  CjsSchema.define(Base, { className: identity(), members: [
-    scalar("value", "base", { aliases: ["old"] }), scalar("secret", "hidden", { aliases: ["secretAlias"] })
-  ] });
+  CjsSchema.define(Base, { className: identity(), members: [scalar("value", "base"), scalar("secret", "hidden")] });
   class Derived extends Base { own = 3; exact = 4; }
   CjsSchema.hideInherited(["hidden"])(Derived);
-  CjsSchema.define(Derived, { className: identity(), members: [
-    scalar("value", "own", { aliases: ["exact", "shared"] }), scalar("exact", "exact", { aliases: ["shared"] })
-  ] });
+  CjsSchema.define(Derived, { className: identity(), members: [scalar("value", "own"), scalar("exact", "exact")] });
   const target = new Derived();
-  read(target, { exact: 6, shared: 7 });
+  read(target, { exact: 6, value: 7 });
   assert.equal(target.exact, 6);
   assert.equal(target.own, 7);
-  for (const key of ["old", "secret", "secretAlias", "hidden", "unknown"]) {
+  assert.equal(target.base, 1);
+  for (const key of ["secret", "hidden", "unknown"]) {
     assert.throws(() => read(target, { [key]: 8 }), /Invalid attribute/);
   }
   assert.deepEqual(write(target), { value: 7, exact: 6 });
@@ -170,11 +167,11 @@ test("stored accessors and invalid indexed destinations fail without side effect
 test("declaration cache follows schema revisions and fieldless custom writers still work", () => {
   class Later { value = 2; }
   const reader = new DictReader();
-  assert.equal(reader.FindEntry("alias", Later), null);
-  CjsSchema.define(Later, { className: identity(), members: [scalar("public", "value", { aliases: ["alias"] })] });
-  assert.equal(reader.FindEntry("alias", Later).name, "public");
+  assert.equal(reader.FindEntry("public", Later), null);
+  CjsSchema.define(Later, { className: identity(), members: [scalar("public", "value")] });
+  assert.equal(reader.FindEntry("public", Later).name, "public");
   const target = new Later();
-  read(target, { alias: 6 });
+  read(target, { public: 6 });
   assert.deepEqual(write(target), { public: 6 });
   class Fieldless { GetValues() { return { custom: 8 }; } }
   CjsSchema.define(Fieldless, { className: identity() });

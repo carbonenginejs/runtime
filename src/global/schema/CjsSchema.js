@@ -30,7 +30,6 @@ const SCHEMA_EXPORTS = new WeakMap();
 const DEFAULT_EXPORTS = new WeakMap();
 const FIELD_INITIAL_DEFAULTS = new WeakMap();
 const VALUES_DECLARATIONS = new WeakMap();
-const VALUES_ALIASES = new WeakMap();
 const FIELD_DECLARATION_METADATA = new WeakMap();
 let SCHEMA_GENERATION = 0;
 
@@ -976,21 +975,6 @@ export class CjsSchema
         });
     };
 
-    /**
-     * On a field, declares an accepted input name and a prototype accessor.
-     * `@meta.keyAlias("target")` on a getter: the getter's name is a second name for
-     * the field `target`, as ccpwgl's `alias` decorator declared it. Readers and
-     * the values view resolve the getter's name to `target`; the getter is not
-     * an exposed field of its own, so nothing writes the value twice.
-     */
-    static #keyAlias = target => {
-        if (typeof target !== "string" || !target.trim())
-        {
-            throw new TypeError("meta.keyAlias requires a non-empty target field name.");
-        }
-        return fieldDecorator("keyAlias", target.trim());
-    };
-
     static #carbon = {
         // Carbon's base list and Carbon's exposure table: two different facts,
         // two decorators, both factual and so both here rather than in
@@ -1064,7 +1048,6 @@ export class CjsSchema
         ...Object.fromEntries(Object.entries(this.#impl).filter(([name]) => name !== "custom")),
         ours: this.#impl.custom,
         renamed: this.#renamed,
-        keyAlias: this.#keyAlias,
         keyIndex: index => {
             if (!Number.isSafeInteger(index) || index < 0) throw new TypeError("meta.keyIndex requires a nonnegative safe integer.");
             return fieldDecorator("keyIndex", index);
@@ -1914,11 +1897,6 @@ function applyDeclarationNamespace(entry, namespace, value)
             if (Object.hasOwn(value, key)) entry[key] = value[key];
         }
     }
-    else if (namespace === "keyAlias")
-    {
-        if (entry.role === "property") entry.aliasOf = value;
-        else entry.aliases = Array.from(new Set([ ...(entry.aliases ?? []), value ]));
-    }
     else
     {
         entry[namespace] = mergeNamespace(entry[namespace], value);
@@ -2112,42 +2090,8 @@ function defineClassMetadata(Constructor, definition)
     }
 
     buildStructureDefinition(schema);
-    installKeyAliases(Constructor, schema);
     registerClassMetadata(Constructor, schema);
     sealClassSchema(Constructor, schema);
-}
-
-/**
- * Installs field aliases once on the prototype. Explicit alias accessors keep
- * their own implementation; generated writes use the same values transport as
- * the editor. No per-instance accessor or duplicate serialized field is added.
- */
-function installKeyAliases(Constructor, schema)
-{
-    const declarations = [ ...getCanonicalDeclarations(Constructor, "member"), ...getCanonicalDeclarations(Constructor, "property") ];
-    const pending = new Map();
-    for (const field of declarations)
-    {
-        if (field.declaringClass !== Constructor || field.role !== "member"
-            || !schema.declarations.some(record => record.legacy && record.entry === field)) continue;
-        for (const alias of field.aliases ?? [])
-        {
-            if (declarations.some(other => other.name === alias || (other.key ?? other.name) === alias)
-                || findPropertyDescriptor(Constructor.prototype, alias) || pending.has(alias))
-            {
-                throw new TypeError(`meta.keyAlias "${alias}" collides with an existing member.`);
-            }
-            pending.set(alias, field);
-        }
-    }
-    for (const [alias, field] of pending)
-    {
-        Object.defineProperty(Constructor.prototype, alias, {
-            configurable: true,
-            get() { return this[field.key ?? field.name]; },
-            set(value) { CjsSchema.setValues(this, { [field.name]: value }); }
-        });
-    }
 }
 
 /**
@@ -2354,7 +2298,6 @@ function findValuesDeclaration(Constructor, name, storage = false)
     if (!selected)
     {
         selected = new Map();
-        const aliasesOf = new Map();
         for (let owner = Constructor; typeof owner === "function"; owner = Object.getPrototypeOf(owner))
         {
             for (const fields of [info.members, info.properties])
@@ -2362,22 +2305,13 @@ function findValuesDeclaration(Constructor, name, storage = false)
                 for (const field of fields)
                 {
                     if (field.declaringClass !== owner || selected.has(field.name)) continue;
-                    if (field.aliasOf === undefined) selected.set(field.name, field);
-                    else if (!aliasesOf.has(field.name)) aliasesOf.set(field.name, field.aliasOf);
+                    selected.set(field.name, field);
                 }
             }
         }
         VALUES_DECLARATIONS.set(info, selected);
-        VALUES_ALIASES.set(info, aliasesOf);
     }
     if (selected.has(name)) return selected.get(name);
-    const aliasTarget = VALUES_ALIASES.get(info)?.get(name);
-    if (aliasTarget !== undefined && selected.has(aliasTarget)) return selected.get(aliasTarget);
-    for (const field of selected.values())
-    {
-        const aliases = field.aliases ?? (field.alias === undefined ? [] : [field.alias]);
-        if ((Array.isArray(aliases) ? aliases : [aliases]).includes(name)) return field;
-    }
     if (storage)
     {
         for (const field of selected.values())

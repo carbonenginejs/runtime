@@ -149,11 +149,8 @@ function childType(value, key, type)
         const registration = getClassRegistration(value._type);
         if (registration)
         {
-            for (const field of declarations(registration.type).values())
-            {
-                const aliases = field.aliases ?? field.alias ?? [];
-                if (field.name === key || (Array.isArray(aliases) ? aliases : [aliases]).includes(key)) return field.type;
-            }
+            const field = declarations(registration.type).get(key);
+            if (field) return field.type;
         }
     }
     return undefined;
@@ -610,23 +607,16 @@ export function readGraph(root, handlers, options = {})
         dependencies.set(instance, new Set());
         objectPaths.set(instance, path);
         const members = declarations(registration.type);
-        const names = new Map(members);
-        for (const field of members.values())
-        {
-            const aliases = field.aliases ?? field.alias ?? [];
-            for (const alias of Array.isArray(aliases) ? aliases : [aliases]) if (!names.has(alias)) names.set(alias, field);
-        }
         for (const key of Object.keys(source))
         {
             if (RESERVED.has(key)) continue;
             const pathToMember = memberPath(path, key);
             try
             {
-                const field = names.get(key);
+                const field = members.get(key);
                 if (!field) throw new TypeError(`Unknown member '${source._type}.${key}'`);
                 if (field.type?.runtimeOnly) throw new TypeError("Runtime-only member");
                 if (!(field.edit?.write || field.edit?.persist || field.edit?.persistOnly || field.edit?.rpersist)) throw new TypeError("Member is not writable or persistent");
-                if (key !== field.name && Object.hasOwn(source, field.name)) continue;
                 const slot = storage(instance, field);
                 const converted = value(source[key], descriptor(field.type, field), pathToMember, slot.value);
                 let hasWeak = false;

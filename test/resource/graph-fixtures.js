@@ -40,7 +40,7 @@ export function fixtures(prefix)
             field("colour", "linear"), field("scale", "scale"), field("path", "path"),
             field("tags", { kind: "set", itemType: { kind: "string" } }),
             field("named", { kind: "map", valueType: { kind: "int32" } }),
-            field("value", "int32", { key: "_value", index: 0, alias: "oldValue" }),
+            field("value", "int32", { key: "_value", index: 0 }),
             field("loadOnly", "int32", { edit: { rpersist: true } }),
             field("runtime", { kind: "rootRef", runtimeOnly: true }),
             field("derived", "int32", { edit: { read: true } }),

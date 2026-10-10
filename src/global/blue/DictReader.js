@@ -1516,7 +1516,7 @@ function MatchesObjectValues(current, source)
         if (!MatchesObjectValues(BeObjectMetadata.GetMetadata(current), source[name])) return false;
         continue;
       }
-      const field = declarations.byName.get(name) ?? declarations.aliases.get(name);
+      const field = declarations.byName.get(name);
       if (!field) return false;
       if (!CjsSchema.isFieldWritable(field) || field.type?.runtimeOnly === true) continue;
       const value = readDictionaryValue(current, field);

@@ -224,9 +224,6 @@ test("SOF shared and race models preserve Carbon defaults and source-enum projec
     [1, 1, 1, 1],
   );
   assert.equal("shapeAtlasWidth" in first, false);
-  first.warpHaloColor = [1, 2, 3, 4];
-  assert.equal(first.warpHaloColor, first.warpHalpColor);
-  assert.deepEqual([...first.warpHalpColor], [1, 2, 3, 4]);
 
   const race = new EveSOFDataRace();
   assert.deepEqual(
