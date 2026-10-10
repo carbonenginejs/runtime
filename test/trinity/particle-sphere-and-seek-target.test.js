@@ -13,6 +13,7 @@ import {
   EveUpdateContext,
   Locator,
   SeekTarget,
+  RawData,
   Tr2ParticleElementDeclaration,
   Tr2ParticleSystem
 } from "../../npm/dist/trinity/index.js";
@@ -113,4 +114,19 @@ test("a disabled or weightless seek target returns no forces", () =>
   const behavior = new SeekTarget();
   behavior.enabled = false;
   assert.equal(behavior.CalculateBehavior([ new DroneAgent() ], [ behavior.InitializeScratch() ], 0.1, new BehaviorGroup(), null, []).length, 0);
+});
+
+test("particle sphere packs Carbon's transposed world and direct inverse", () =>
+{
+  const sphere = new EveChildParticleSphere();
+  // A nonsymmetric fixture makes an accidental extra transpose observable.
+  mat4.translate(sphere._worldTransform, sphere._worldTransform, [10, 20, 30]);
+  mat4.rotateY(sphere._worldTransform, sphere._worldTransform, 0.7);
+  mat4.scale(sphere._worldTransform, sphere._worldTransform, [2, 3, 4]);
+  const data = sphere.GetPerObjectData({ Alloc: name => RawData.create(name) });
+  const world = mat4.transpose(mat4.create(), sphere._worldTransform);
+  const inverse = mat4.invert(mat4.create(), sphere._worldTransform);
+  assert.deepEqual(data.GetData().slice(0, 16), world);
+  assert.deepEqual(data.GetData().slice(16, 32), inverse);
+  assert.notDeepEqual(inverse, mat4.transpose(mat4.create(), inverse));
 });

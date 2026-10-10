@@ -129,7 +129,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
 
   static _inverseScratch = mat4.create();
 
-  static _customMaskScratch = mat4.create();
+
 
   /** EVE_SPACEOBJECT_CUSTOWMASK_MAX (EveSpaceObject2.h:49). */
   static CUSTOM_MASK_COUNT = 2;
@@ -212,10 +212,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   {
     const record = this._perObjectData;
 
-    // Recover the previous logical transform from its stored transposed bytes,
-    // then encode it into worldTransformLast.
-    mat4.transpose(EveChildInstancedMeshes._inverseScratch, record.GetTransposed("worldTransform"));
-    record.SetAndTranspose("worldTransformLast", EveChildInstancedMeshes._inverseScratch);
+    // Carbon UpdateAsyncronous copies the previous packed transform unchanged.
+    record.SetUntransposed("worldTransformLast", record.GetTransposed("worldTransform"));
     record.SetAndTranspose("worldTransform", this.worldTransform);
 
     // cpp:214 inverts the transposed matrix; by carbon-math-conventions F2 that
@@ -249,11 +247,9 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
 
     for (let slot = 0; slot < EveChildInstancedMeshes.CUSTOM_MASK_COUNT; slot++)
     {
-      mat4.transpose(
-        EveChildInstancedMeshes._customMaskScratch,
-        vs.GetTransposedIndex("customMaskMatrix", slot));
-      record.SetAndTransposeIndex(
-        "customMaskMatrix", slot, EveChildInstancedMeshes._customMaskScratch);
+      // Carbon copies customMaskMatrix from the parent's packed VS record.
+      record.SetUntransposedIndex(
+        "customMaskMatrix", slot, vs.GetTransposedIndex("customMaskMatrix", slot));
       record.SetIndex("customMaskData", slot, vs.GetIndex("customMaskData", slot));
       record.SetIndex("customMaskMaterialIDs", slot, ps.GetIndex("customMaskMaterialIDs", slot));
       record.SetIndex("customMaskTargets", slot, ps.GetIndex("customMaskTargets", slot));

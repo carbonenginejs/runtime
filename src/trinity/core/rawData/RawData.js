@@ -11,25 +11,26 @@ import { CjsPerObjectLayouts } from "./CjsPerObjectLayouts.js";
 // arena and consumed by the engine's uploader; a few are PERSISTENT, owned by
 // an object across frames via RawData.create and marked with Invalidate.
 //
-// Why matrices are stored transposed: Carbon transposes every per-object matrix
+// Why matrices are stored transposed: Carbon normally transposes per-object matrices
 // on its way to the GPU (`m_vsData.worldTransform = Transpose( m_worldTransform )`
-// and every other PopulatePerObjectData), because HLSL constant buffers pack
+// and other PopulatePerObjectData fills), because HLSL constant buffers pack
 // column_major by default while Carbon's Matrix is row-major. The requirement is
 // the shader's, not a math-library artifact, so the port pays it identically.
 //
 // Verbs (name ALWAYS first - a keyed store, not a math op):
 //   SetAndTranspose(name, value)   a MATRIX4 field; PERFORMS the transpose
+//   SetUntransposed(name, value)   a matrix field; copies WITHOUT transposing
 //   GetTransposed(name)            a MATRIX4 field; returns what is stored
 //   Set(name, value) / Get(name)   everything else; both throw on a matrix
 //   Copy(name, out)                bytes OUT into a caller-owned buffer
 //   ...Index(name, index, ...)     one element of an array field
 //
-// Every matrix is stored TRANSPOSED, so Set/Get refuse matrix fields and name
-// the pair to use instead. The orientation is stated at the call site and
-// checked at runtime rather than remembered. There is no SetRaw: its only two
-// uses computed Inverse(Transpose(M)), which equals Transpose(Inverse(M)), so
-// inverting the logical matrix gives the same bytes. See the
-// carbon-math-conventions skill, F6.
+// Set/Get refuse matrix fields: the caller must state the packing operation.
+// SetAndTranspose packs a logical matrix; SetUntransposed copies values already
+// prepared for the shader without changing their orientation. Carbon's
+// EveChildParticleSphere.cpp writes Inverse(world) directly, and
+// EveChildInstancedMeshes.cpp copies previously packed matrix fields directly.
+// Both require a copy, not another transpose.
 //
 // The indexed forms exist because Carbon fills arrays PARTIALLY - it writes
 // m_turretTranslation[i] for VISIBLE turrets only, and the unwritten tail keeps
@@ -55,7 +56,7 @@ import { CjsPerObjectLayouts } from "./CjsPerObjectLayouts.js";
  * typo throws at the lookup instead of silently packing wrong.
  */
 export const RawDataType = Object.freeze({
-  /** Square matrix, stored TRANSPOSED (HLSL column_major). N inferred from size. */
+  /** Square matrix. SetAndTranspose encodes it; SetUntransposed copies prepared values. */
   MATRIX: "matrix",
 
   /** Straight copy - float / vec2 / vec3 / vec4. */
@@ -263,7 +264,7 @@ export class RawData extends CjsConstantPayload
   /**
    * Write a non-matrix LOGICAL value, encoded per the field's kind (UINT/INT
    * bit-cast, MATRIX_3X4 column-stride packs, VECTOR copies). Matrix fields
-   * must use `SetAndTranspose*`. Pass `element` to write one array slot.
+   * must use `SetAndTranspose*` or `SetUntransposed*`. Pass `element` to write one array slot.
    */
   Set(name, value, element)
   {
@@ -292,7 +293,7 @@ export class RawData extends CjsConstantPayload
   /**
    * Write a matrix, transposing it into the buffer.
    *
-   * Carbon stores every per-object matrix transposed (`m_vsData.worldTransform
+   * Carbon normally stores logical per-object matrices transposed (`m_vsData.worldTransform
    * = Transpose( m_worldTransform )`), so the record is GPU-form and terminal.
    * This method performs the transpose, which means a producer passes its
    * LOGICAL matrix and cannot forget the step; it also transposes straight into
@@ -311,6 +312,38 @@ export class RawData extends CjsConstantPayload
   {
     this.#AssertMatrix(name);
     this.#Write(this.#Field(name, index), name, value);
+  }
+
+  /**
+   * Copy prepared matrix values WITHOUT transposing. The name describes this
+   * write operation, not the mathematical meaning of the supplied matrix.
+   * Source: EveChildParticleSphere.cpp::GetPerObjectData assigns Inverse(world)
+   * directly; EveChildInstancedMeshes.cpp::UpdateAsyncronous copies packed fields.
+   * Matrix fields only; marks the payload dirty just like SetAndTranspose.
+   */
+  SetUntransposed(name, value)
+  {
+    this.#AssertMatrix(name);
+    this.#CopyMatrix(this.#Field(name, undefined), name, value);
+  }
+
+  /** Copy one prepared matrix array element without transposing adjacent slots. */
+  SetUntransposedIndex(name, index, value)
+  {
+    this.#AssertMatrix(name);
+    this.#CopyMatrix(this.#Field(name, index), name, value);
+  }
+
+  /** Copy exactly the field's lanes; typed-array set also handles overlapping views. */
+  #CopyMatrix(field, name, value)
+  {
+    const count = field.size * field.elements;
+    if (!value || value.length !== count)
+    {
+      throw new Error(`RawData: field "${name}" requires exactly ${count} matrix lanes`);
+    }
+    this.#floats.set(value, field.offset);
+    this.#dirty = true;
   }
 
   /** Write one element of an array field. Non-matrix fields only. */
@@ -403,9 +436,9 @@ export class RawData extends CjsConstantPayload
   }
 
   /**
-   * A live reference to a stored matrix. The value IS transposed - the name
-   * says so at the call site, because doing maths with it as though it were
-   * logical is silently wrong.
+   * A live reference to a stored matrix in shader-buffer form. No decoding is
+   * performed. Normally transposed by SetAndTranspose; SetUntransposed preserves
+   * the supplied representation. Do not assume this is a logical CPU transform.
    */
   GetTransposed(name)
   {
@@ -493,7 +526,7 @@ export class RawData extends CjsConstantPayload
     if (field.encoding !== RawDataType.MATRIX)
     {
       throw new Error(
-        `RawData: field "${name}" is "${field.encoding}", not a matrix - use Set/Get, not the transposed pair`
+        `RawData: field "${name}" is "${field.encoding}", not a matrix - use Set/Get, not the matrix accessors`
       );
     }
   }
@@ -506,8 +539,9 @@ export class RawData extends CjsConstantPayload
     if (field.encoding === RawDataType.MATRIX)
     {
       throw new Error(
-        `RawData: field "${name}" is a matrix and is stored TRANSPOSED - `
-        + `use ${verb.startsWith("Set") ? "SetAndTranspose" : "GetTransposed"}, not ${verb}`
+        verb.startsWith("Set")
+          ? `RawData: field "${name}" is a matrix. Matrices must be explicitly set with or without transposing: use SetAndTranspose or SetUntransposed (indexed variants for array elements), not ${verb}.`
+          : `RawData: field "${name}" is a matrix. Use GetTransposed (GetTransposedIndex for array elements) to read stored buffer values, not ${verb}.`
       );
     }
   }

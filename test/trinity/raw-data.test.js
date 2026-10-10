@@ -455,3 +455,35 @@ test("a distinct VS+PS pair is TWO Allocs returned as a { vs, ps } record", () =
   assertClose(perObjectData.ps.GetData()[0], 1, "ps half is its own slice");
   assert.notEqual(perObjectData.vs.GetData(), perObjectData.ps.GetData(), "two independent arena slots");
 });
+
+test("SetUntransposed preserves prepared bytes, dirty tracking and matrix guards", () =>
+{
+  const data = MakeStore("Copy", [
+    { name: "matrices", size: 16, elements: 3, encoding: Type.MATRIX },
+    { name: "vector", size: 4, encoding: Type.VECTOR }
+  ]).Allocate("Copy");
+  const world = MakeWorld();
+  data.GetData().fill(99);
+  data.ClearDirty();
+  data.SetUntransposedIndex("matrices", 1, world);
+  assert.deepEqual(data.GetTransposedIndex("matrices", 1), world);
+  assert.ok(data.IsDirty());
+  assert.ok(data.GetTransposedIndex("matrices", 0).every(value => value === 99));
+  assert.ok(data.GetTransposedIndex("matrices", 2).every(value => value === 99));
+  assert.ok(data.Get("vector").every(value => value === 99));
+  const matrices = Float32Array.from({ length: 48 }, (_, index) => index + 0.5);
+  data.SetUntransposed("matrices", matrices);
+  assert.deepEqual(data.GetTransposed("matrices"), matrices);
+  data.SetUntransposedIndex("matrices", 2, data.GetTransposedIndex("matrices", 1));
+  assert.deepEqual(data.GetTransposedIndex("matrices", 2), matrices.slice(16, 32));
+  data.ClearDirty();
+  const before = data.GetData().slice();
+  assert.throws(() => data.Set("matrices", matrices), /Matrices must be explicitly set with or without transposing: use SetAndTranspose or SetUntransposed/);
+  assert.throws(() => data.SetIndex("matrices", 0, world), /matrix/);
+  assert.throws(() => data.SetUntransposed("vector", world), /not a matrix/);
+  assert.throws(() => data.SetUntransposed("missing", world), /unknown field/);
+  assert.throws(() => data.SetUntransposedIndex("matrices", 3, world), /out of range/);
+  assert.throws(() => data.SetUntransposed("matrices", world), /exactly 48/);
+  assert.deepEqual(data.GetData(), before);
+  assert.equal(data.IsDirty(), false);
+});

@@ -311,7 +311,7 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
     const data = accumulator.Alloc("EveChildParticleSpherePerObjectData");
     const { mat4_0 } = EveChildParticleSphere.scratch;
     data.SetAndTranspose("world", this._worldTransform);
-    data.Set("worldInverseTranspose", mat4.invert(mat4_0, this._worldTransform));
+    data.SetUntransposed("worldInverseTranspose", mat4.invert(mat4_0, this._worldTransform));
     return data;
   }
 
