@@ -885,16 +885,15 @@ export class CjsSchema
     };
 
     /**
-     * Editor-facing presentation hints: `group(name)`, `hidden`, `readOnly`
-     * and `widget(name)`. They change no persistence, validation or mutation:
-     * `jessica.hidden` is not `hideInherited`, and `jessica.readOnly` does not
-     * block SetValues.
+     * Editor-facing presentation hints: `group(name)`, `description(text)`,
+     * `hidden` and `widget(name)`. They change no persistence, validation or
+     * mutation: `jessica.hidden` is not `hideInherited`. Editability is Blue's
+     * WRITE flag; Carbon has no read-only annotation.
      */
     static #jessica = {
         group: name => fieldDecorator("jessica", { group: name }),
         description: text => fieldDecorator("jessica", { description: String(text) }),
         hidden: fieldDecorator("jessica", { hidden: true }),
-        readOnly: fieldDecorator("jessica", { readOnly: true }),
         widget: name => fieldDecorator("jessica", { widget: name })
     };
 

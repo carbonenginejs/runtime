@@ -36,7 +36,7 @@ export class CjsSOFEditManager
     for (const name of names)
     {
       const field = this._Field(target, name);
-      if (!field.edit?.write || field.jessica?.readOnly || field.type?.runtimeOnly)
+      if (!field.edit.write || field.type.runtimeOnly)
         throw new TypeError(`SOF field is not editable: ${name}`);
       // Structural editing has its own capability/ownership rules. A nested
       // values patch would hide which descendants changed from this receipt.

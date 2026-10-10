@@ -109,6 +109,7 @@ test("object pointers are Carbon's rootRef and rootWeak; the retired kinds fail 
 test("component labels require valid explicit declarations; meta.type.custom is gone", () =>
 {
   assert.equal(meta.type.custom, undefined);
+  assert.equal(Object.hasOwn(meta.ui, "readOnly"), false, "editability is Blue WRITE; Carbon has no read-only annotation");
   assert.throws(() => meta.ui.components(["x", 2]), /string labels/);
   assert.throws(() => meta.ui.components(["a", "b", "c", "d", "e"]), /four/);
   assert.equal(CjsBlackSchemaRegistry.fromDeclaredType({ kind: "uint32", binary: true }).black.beType, "BINARYBLOCK");
