@@ -159,6 +159,14 @@ export class EveChildInstanceContainer extends EveChildTransform
     if (this.source) this.source.SetPartTag(next);
   }
 
+  /** Carbon EveChildInstanceContainer.cpp:160-166: modifiers invalidate distributed instances. */
+  @meta.blue.method
+  @meta.implemented
+  OnListModified(_event, _key = 0, _key2 = 0, _value = null, list = null)
+  {
+    if (list === this.transformModifiers) this.reset = true;
+  }
+
   /** Replaces the source and requests native instance recreation (cpp:116). */
   @meta.blue.method
   @meta.implemented

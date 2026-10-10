@@ -11,6 +11,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { BLUELISTEVENT } from "#consts/blue";
 import { ProcessPriority } from "./enums.js";
 import { EveKDdroneManagementTree } from "../../../eve/child/behaviors/EveKDdroneManagementTree.js";
 import { PlayFX } from "./PlayFX.js";
@@ -250,6 +251,44 @@ export class BehaviorGroup extends EveEntity
       this.boosters.RebuildFlareBuffer(this.actualCount);
     }
     return true;
+  }
+
+  /**
+   * Carbon BehaviorGroup.cpp:77-118: maintain behavior scratch slots, then
+   * regenerate agents on every list notification, including load completion.
+   * Adapted: per-agent records replace native scratch-memory byte buffers.
+   */
+  @meta.blue.method
+  @meta.adapted
+  OnListModified(event, key = 0, key2 = 0, _value = null, list = null)
+  {
+    if (list === this.behaviors && (event & BLUELISTEVENT.BELIST_LOADING) === 0)
+    {
+      switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
+      {
+        case BLUELISTEVENT.BELIST_INSERTED:
+        {
+          this._scratchData.splice(key, 0, null);
+          if (this._agents.length && this.behaviors[key].GetScratchMemorySize() > 0)
+          {
+            this._scratchData[key] = this._agents.map(() => this.behaviors[key].InitializeScratch());
+          }
+          this.CreateAgentTree();
+          break;
+        }
+        case BLUELISTEVENT.BELIST_REMOVED:
+          this._scratchData.splice(key, 1);
+          this.CreateAgentTree();
+          break;
+        case BLUELISTEVENT.BELIST_SWAPPED:
+          [this._scratchData[key], this._scratchData[key2]] = [this._scratchData[key2], this._scratchData[key]];
+          break;
+        case BLUELISTEVENT.BELIST_UNLOADSTART:
+          this._scratchData.length = 0;
+          break;
+      }
+    }
+    this.InitializeGeometryResource();
   }
 
   /**
@@ -1064,8 +1103,8 @@ export class BehaviorGroup extends EveEntity
   }
 
   // Fills any missing per-agent scratch records and trims removed ones -
-  // the JS stand-in for Carbon's behavior-list OnListModified handler
-  // (cpp:77-118), which resizes scratch when behaviors join or leave.
+  // reconciliation for direct array changes between notifications. The native
+  // list-notification path is implemented by OnListModified above.
   /**
    * Adds missing per-agent scratch records and trims stale ones for every behaviour that needs scratch storage.
    */

@@ -7,7 +7,10 @@ import { EveEntity } from "../EveEntity.js";
 import { INotify } from "../../../global/blue/INotify.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
+import { BLUELISTEVENT } from "#consts/blue";
+import { BehaviorGroup } from "./behaviors/BehaviorGroup.js";
+import { SplineTunnelGroup } from "./behaviors/tunnels/SplineTunnelGroup.js";
 import { vec3 } from "#math/vec3";
 import { quat } from "#math/quat";
 import { EveChildTransform } from "./EveChildTransform.js";
@@ -156,6 +159,47 @@ export class EveChildBehaviorSystem extends EveChildTransform
     this._boosterInstanceBuffer.Destroy();
     this.ChangeBufferInstanceCount();
     return this._shipInstanceBuffer.IsValid() && this._boosterInstanceBuffer.IsValid();
+  }
+
+  /** Carbon EveChildBehaviorSystem.cpp:88-184: wire groups, tunnels and registry membership. */
+  @meta.blue.method
+  @meta.implemented
+  OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
+  {
+    const masked = event & BLUELISTEVENT.BELIST_EVENTMASK;
+    if (list === this.behaviorGroups)
+    {
+      const group = CjsSchema.cast(value, BehaviorGroup);
+      if (masked === BLUELISTEVENT.BELIST_INSERTED || masked === BLUELISTEVENT.BELIST_LOADFINISHED)
+      {
+        if (group)
+        {
+          group.SetVertexFunctionReferance(() => this.ChangeBufferInstanceCount());
+          group.InitializeGeometryResource();
+        }
+        else if (masked === BLUELISTEVENT.BELIST_LOADFINISHED) this._behaviorGroupLoaded = false;
+      }
+      else if (masked === BLUELISTEVENT.BELIST_REMOVED && group) this.ChangeBufferInstanceCount();
+    }
+    if (list === this.splineTunnels)
+    {
+      const tunnel = CjsSchema.cast(value, SplineTunnelGroup);
+      if ([BLUELISTEVENT.BELIST_INSERTED, BLUELISTEVENT.BELIST_REMOVED, BLUELISTEVENT.BELIST_LOADFINISHED].includes(masked))
+      {
+        if (tunnel) tunnel.SetSystemTunnelFunctionReferenceAndColor(() => this.UpdateTunnelRegistry(), 0xffffff00);
+        else if (masked === BLUELISTEVENT.BELIST_LOADFINISHED) this._behaviorGroupLoadedForTunnel = false;
+      }
+    }
+    if (list === this.behaviorGroups && !(event & BLUELISTEVENT.BELIST_LOADING) && this.IsInRegistry())
+    {
+      const registry = this.GetComponentRegistry();
+      if (masked === BLUELISTEVENT.BELIST_INSERTED) CjsSchema.cast(value, EveEntity)?.Register(registry);
+      else if (masked === BLUELISTEVENT.BELIST_REMOVED) CjsSchema.cast(value, EveEntity)?.UnRegister(registry);
+      else if (masked === BLUELISTEVENT.BELIST_UNLOADSTART)
+      {
+        for (const item of list) CjsSchema.cast(item, EveEntity)?.UnRegister(registry);
+      }
+    }
   }
 
   /** Carbon EveChildBehaviorSystem::Initialize (cpp:67-77). */

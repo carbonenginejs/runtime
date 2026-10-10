@@ -3,6 +3,8 @@ import { existsSync } from "node:fs";
 import { test } from "node:test";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
+import { BlueList } from "../../npm/dist/global/blue/BlueList.js";
+import { CjsBlackPropertyReaders } from "../../npm/dist/resource/formats/black/core/CjsBlackPropertyReaders.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
@@ -10,6 +12,7 @@ import {
   BehaviorGroup,
   DroneAgent,
   EveChildBehaviorSystem,
+  EveChildInstanceContainer,
   ProcessLifetime,
   ProcessLifetimeData,
   ProcessPriority,
@@ -248,4 +251,77 @@ test("spline tunnel debug output preserves Carbon transform order and option gat
   lifetime.RenderDebugInfo({ HasOption: () => true }, [], parent);
   assert.equal(delegated, 1);
   assert.ok(lifetime.GetDebugOptions().has("SplineTunnels"));
+});
+
+
+test("BehaviorGroup hydrates notified behavior lists and regenerates authored agents", () =>
+{
+  const group = CjsSchema.from("BehaviorGroup", {
+    count: 3, behaviors: [{ _type: "ProcessLifetime" }]
+  });
+  group.behaviors = new BlueList(ProcessLifetime);
+  group.behaviors.SetNotify(group);
+  CjsBlackPropertyReaders.readNativeList({ ReadU32: () => 1, context: { ReadObject: () => new ProcessLifetime() } }, group.behaviors);
+  assert.equal(group.GetSize(), 3);
+  assert.equal(group._scratchData[0].length, 3);
+  const previous = group.GetAgents()[0];
+  group.OnListModified(BLUELISTEVENT.BELIST_LOADFINISHED, 0, 0, null, group.behaviors);
+  assert.equal(group.GetSize(), 3);
+  assert.notEqual(group.GetAgents()[0], previous);
+  assert.equal(group._scratchData[0].length, 3);
+});
+
+test("BehaviorGroup list notifications maintain scratch slots and preserve Carbon reset routing", () =>
+{
+  const group = new BehaviorGroup();
+  const first = new ProcessLifetime(), second = new ProcessLifetime();
+  group.behaviors = [first];
+  group.count = 2;
+  group.InitializeGeometryResource();
+  group.behaviors.push(second);
+  group.OnListModified(BLUELISTEVENT.BELIST_INSERTED, 1, 0, second, group.behaviors);
+  assert.equal(group._scratchData.length, 2);
+  assert.ok(group._scratchData.every(records => records.length === 2));
+  group.behaviors.splice(0, 1);
+  group.OnListModified(BLUELISTEVENT.BELIST_REMOVED, 0, 0, first, group.behaviors);
+  assert.equal(group._scratchData.length, 1);
+  assert.equal(group.GetSize(), 2);
+
+  let resets = 0;
+  group.InitializeGeometryResource = () => { resets++; };
+  const a = [], b = [];
+  group._scratchData = [a, b];
+  group.OnListModified(BLUELISTEVENT.BELIST_SWAPPED, 0, 1, null, group.behaviors);
+  assert.equal(group._scratchData[0], b);
+  group.OnListModified(BLUELISTEVENT.BELIST_INSERTED | BLUELISTEVENT.BELIST_LOADING, 0, 0, null, group.behaviors);
+  assert.equal(group._scratchData.length, 2);
+  group.OnListModified(BLUELISTEVENT.BELIST_UNLOADSTART, 0, 0, null, []);
+  assert.equal(group._scratchData.length, 2);
+  group.OnListModified(BLUELISTEVENT.BELIST_UNLOADSTART, 0, 0, null, group.behaviors);
+  assert.equal(group._scratchData.length, 0);
+  assert.equal(resets, 4, "Carbon always regenerates, even for loading flags and other lists");
+});
+
+
+test("behavior system load notifications defer wiring and instance modifiers invalidate instances", t =>
+{
+  const system = new EveChildBehaviorSystem();
+  t.after(() => system.Destroy());
+  system._behaviorGroupLoaded = system._behaviorGroupLoadedForTunnel = true;
+  system.OnListModified(BLUELISTEVENT.BELIST_LOADFINISHED, 0, 0, null, system.behaviorGroups);
+  system.OnListModified(BLUELISTEVENT.BELIST_LOADFINISHED, 0, 0, null, system.splineTunnels);
+  assert.equal(system._behaviorGroupLoaded, false);
+  assert.equal(system._behaviorGroupLoadedForTunnel, false);
+  const group = new BehaviorGroup();
+  group.count = 2;
+  system.behaviorGroups.push(group);
+  system.OnListModified(BLUELISTEVENT.BELIST_INSERTED, 0, 0, group, system.behaviorGroups);
+  assert.equal(group.GetSize(), 2);
+  assert.equal(system.instanceCount, 2);
+  const instance = new EveChildInstanceContainer();
+  instance.reset = false;
+  instance.OnListModified(BLUELISTEVENT.BELIST_LOADFINISHED, 0, 0, null, instance.transforms);
+  assert.equal(instance.reset, false);
+  instance.OnListModified(BLUELISTEVENT.BELIST_LOADFINISHED, 0, 0, null, instance.transformModifiers);
+  assert.equal(instance.reset, true);
 });
