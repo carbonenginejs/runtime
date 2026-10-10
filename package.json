@@ -182,6 +182,7 @@
     "./trinityal/webgl2": "./src/trinityal/webgl2/index.js",
     "./shadercompiler": "./src/shadercompiler/index.js",
     "./core": "./src/core/index.js",
+    "./services": "./src/core/services/index.js",
     "./core/platform": "./src/core/platform/index.js",
     "./tools": "./src/tools/index.js",
     "./tools/fileindex": "./src/tools/fileindex/index.js",
