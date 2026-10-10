@@ -64,6 +64,7 @@
     "./model/hydration": "./src/global/schema/hydration.js",
     "./model/lifecycle": "./src/global/model/lifecycle/index.js",
     "./resource": "./src/resource/index.js",
+    "./resource/storage": "./src/resource/storage/index.js",
     "./resource/generated": "./src/resource/generated/index.js",
     "./resource/generated/*": "./src/resource/generated/*/index.js",
     "./resource/audio": "./src/resource/audio/index.js",
@@ -353,6 +354,7 @@
     "@rollup/plugin-babel": "^7.1.0",
     "@rollup/plugin-json": "^6.1.0",
     "esbuild": "^0.28.2",
+    "fake-indexeddb": "6.2.4",
     "playwright": "^1.61.1",
     "rollup": "^4.62.2",
     "webgpu": "^0.6.2"
