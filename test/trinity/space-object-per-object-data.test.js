@@ -11,7 +11,7 @@ import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 
-import { EveCustomMask, EveSpaceObject2, EveTurretSet, EveUpdateContext, IEveSpaceObject2ParentData, Tr2RenderContext, Tr2RingBuffer } from "../../npm/dist/trinity/index.js";
+import { EveCustomMask, EveSpaceObject2, EveStation2, EveTurretSet, EveUpdateContext, IEveSpaceObject2ParentData, Tr2RenderContext, Tr2RingBuffer } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
 
@@ -93,7 +93,7 @@ test("EveSpaceObject2 refuses to read a stored matrix as a logical one", () =>
   }
   catch (error)
   {
-    threw = /stored TRANSPOSED/u.test(error.message);
+    threw = /Use GetTransposed/u.test(error.message);
   }
 
   assert(threw, "Get must reject a matrix field and name GetTransposed");
@@ -260,4 +260,32 @@ test("EveSpaceObject2 hands attachments the typed parent-data record", () =>
   const { ps } = object.GetPerObjectData();
   ps.SetIndex("shLightingCoefficients", 0, [ 9, 0, 0, 0 ]);
   assertClose(parent.shLighting[0], 9, "the borrowed span tracks the hull");
+});
+
+
+test("EveStation2 propagates activation changes into both shader records", () =>
+{
+  const station = new EveStation2();
+  for (const strength of [ 1, 0.33, 0.12, 0, 1 ])
+  {
+    station.activationStrength = strength;
+    updated(station);
+    const { vs, ps } = station.GetPerObjectData();
+    assertClose(station.spaceObjectShipData[1], strength, "station activation");
+    assertClose(vs.Get("shipData")[1], strength, "vertex shader activation");
+    assertClose(ps.Get("shipData")[1], strength, "pixel shader activation");
+  }
+});
+
+
+test("EveStation2 multiplies damage activation without accumulating it across frames", () =>
+{
+  const station = new EveStation2();
+  station.activationStrength = 0.4;
+  station.impactOverlay = { GetActivationStrength: () => 0.5 };
+  for (let frame = 0; frame < 2; frame++)
+  {
+    station.PrepareShaderData(null);
+    assertClose(station.spaceObjectShipData[1], 0.2, "damage and station activation");
+  }
 });
