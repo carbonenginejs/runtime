@@ -185,7 +185,15 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
     // 2048 cell (Tr2ShadowMap.h:14, eight cells a row).
     const maxDimension = type === TextureType.TEX_TYPE_3D ? device.limits.maxTextureDimension3D : device.limits.maxTextureDimension2D;
 
-    if (desc.GetWidth() > maxDimension || desc.GetHeight() > maxDimension) return ALResult.E_INVALIDARG;
+    // Carbon's TriTextureRes::CreateDescription (Resources/TriTextureRes.cpp)
+    // allocates compressed textures using GetMipWidth/Height, rounded to whole
+    // blocks. Apply that sizing here too: WebGPU rejects an unaligned base
+    // extent. Keep m_desc's source dimensions for the existing mip pitches and
+    // uploads; this pads the allocation without decoding or resampling pixels.
+    const width = desc.GetMipWidth(0);
+    const height = desc.GetMipHeight(0);
+
+    if (width > maxDimension || height > maxDimension) return ALResult.E_INVALIDARG;
 
     // Native BC DDS textures require BC sampling; BC3 sun and aquapuff cloud
     // volumes additionally require sliced-3d. No decoded fallback is installed
@@ -229,7 +237,7 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
 
     this.m_texture = device.createTexture({
       label: this.m_name || "Tr2TextureAL",
-      size: { width: desc.GetWidth(), height: desc.GetHeight(), depthOrArrayLayers: layers },
+      size: { width, height, depthOrArrayLayers: layers },
       mipLevelCount: mipCount,
       sampleCount: 1,
       dimension: type === TextureType.TEX_TYPE_3D ? "3d" : "2d",

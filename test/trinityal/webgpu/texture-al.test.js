@@ -586,3 +586,53 @@ test("float32 sampled views require the active filtering feature, including cach
   assert.ok(ordinary.GetDeviceTextureView("2d", 0, "float"));
   ordinary.Destroy();
 });
+
+test("unaligned BC textures retain compressed mip data with Carbon block-rounded allocation", () =>
+{
+  for (const size of [ 627, 125, 9 ])
+  {
+    for (const [ format, gpuFormat, blockBytes ] of [
+      [ PixelFormat.PIXEL_FORMAT_BC1_UNORM, "bc1-rgba-unorm", 8 ],
+      [ PixelFormat.PIXEL_FORMAT_BC3_UNORM, "bc3-rgba-unorm", 16 ]
+    ])
+    {
+      const { al, calls } = composed();
+      const mipCount = Math.floor(Math.log2(size)) + 1;
+      const bitmap = new HostBitmap();
+      // DDS uses this creation path; ordinary HostBitmap.Create rejects odd BC sizes.
+      assert.ok(bitmap.CreateFromBitmapDimensions(Tr2BitmapDimensions.texture2D(size, size, mipCount, format)));
+      const { desc, initialData } = DescribeBitmap(bitmap);
+      const uploaded = [];
+      const device = al.GetWebgpu().GetDevice();
+      const write = device.queue.writeTexture;
+      device.queue.writeTexture = (destination, data, layout, extent) =>
+      {
+        uploaded.push(data);
+        write(destination, data, layout, extent);
+      };
+      const texture = new CjsWebgpuTextureAL();
+      assert.equal(texture.Create(desc, { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, initialData }, al), ALResult.S_OK);
+      const allocation = calls.textures[0];
+      const rounded = Math.ceil(size / 4) * 4;
+      assert.equal(allocation.format, gpuFormat);
+      assert.deepEqual(allocation.size, { width: rounded, height: rounded, depthOrArrayLayers: 1 });
+      assert.equal(allocation.mipLevelCount, mipCount);
+      assert.equal(calls.writes.length, mipCount);
+      for (let mip = 0; mip < mipCount; ++mip)
+      {
+        const blocks = Math.ceil(Math.max(1, size >> mip) / 4);
+        const physicalExtent = Math.ceil(Math.max(1, rounded >> mip) / 4) * 4;
+        const upload = calls.writes[mip];
+        assert.equal(upload.destination.mipLevel, mip);
+        assert.deepEqual(upload.size, { width: blocks * 4, height: blocks * 4, depthOrArrayLayers: 1 });
+        assert.ok(upload.size.width <= physicalExtent, "source blocks fit the padded GPU mip");
+        assert.equal(upload.layout.bytesPerRow, blocks * blockBytes);
+        assert.equal(initialData[mip].m_sysMemSlicePitch, blocks * blocks * blockBytes);
+        assert.equal(upload.layout.rowsPerImage, blocks);
+        assert.ok(upload.bytes >= blocks * blocks * blockBytes, "pointer-style mip view contains all requested blocks");
+        assert.equal(uploaded[mip], initialData[mip].m_sysMem, "original compressed bytes, no conversion or copy");
+      }
+      texture.Destroy();
+    }
+  }
+});
