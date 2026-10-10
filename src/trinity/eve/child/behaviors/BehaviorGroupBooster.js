@@ -42,9 +42,31 @@ export class BehaviorGroupBooster
 
   _haloModifier = new EveChildModifierHalo();
 
-  _haloFlare = null;
+  // Carbon constructs this Quad value before Initialize (BehaviorGroupBooster.cpp:75-76).
+  // Adapted: JS arrays start at zero; allocated storage is not initialized flare data.
+  _haloFlare = {
+    parentTransform0: vec4.create(),
+    parentTransform1: vec4.create(),
+    parentTransform2: vec4.create(),
+    localTransform0: vec4.create(),
+    localTransform1: vec4.create(),
+    localTransform2: vec4.create(),
+    color: vec4.create(),
+    brightness: vec2.create()
+  };
 
-  _ambientFlare = null;
+  // Carbon constructs this Quad value before Initialize (BehaviorGroupBooster.cpp:75-76).
+  // Adapted: JS arrays start at zero; allocated storage is not initialized flare data.
+  _ambientFlare = {
+    parentTransform0: vec4.create(),
+    parentTransform1: vec4.create(),
+    parentTransform2: vec4.create(),
+    localTransform0: vec4.create(),
+    localTransform1: vec4.create(),
+    localTransform2: vec4.create(),
+    color: vec4.create(),
+    brightness: vec2.create()
+  };
 
   _haloFlares = [];
 
@@ -336,7 +358,14 @@ export class BehaviorGroupBooster
     this.AdjustFlareLists();
   }
 
-  /** Carbon AdjustFlareLists preserves old records and copies templates on growth. */
+  /**
+   * Carbon AdjustFlareLists preserves old records and copies templates on growth.
+   * Ordering caveat: callers must establish authored templates through SetupQuads
+   * before consuming copied flare values. Native resize copies only new entries;
+   * a later SetupQuads does not refresh entries copied before initialization.
+   * This is a potential lifecycle hazard, not a confirmed native execution bug.
+   * See BehaviorGroupBooster.cpp:177-215 and BlackReader.cpp:394-405.
+   */
   @meta.blue.method
   @meta.adapted
   AdjustFlareLists()

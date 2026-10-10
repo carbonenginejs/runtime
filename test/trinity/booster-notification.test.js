@@ -115,3 +115,28 @@ test("booster mixed replacements and removals rebuild once and keep detached lis
     assert.equal(booster._ambientFlares.length, 0);
   }
 });
+
+
+test("booster owns flare records before initialization and preserves native resize semantics", () =>
+{
+  const booster = new BehaviorGroupBooster();
+  // Reproduce an effect assignment followed by a parent count callback before
+  // this nested object's Initialize, without disguising it as normal load order.
+  booster.ambientFlareEffect = effect(401);
+  assert.doesNotThrow(() => booster.RebuildFlareBuffer(2),
+    "BehaviorGroupBooster.cpp:75-76 constructs both Quad members before callbacks");
+  assert.equal(booster._ambientFlares.length, 2);
+  assert.equal(booster._haloFlares.length, 2,
+    "BehaviorGroupBooster.cpp:213-214 resizes both lists when either effect exists");
+  assert.notEqual(booster._haloFlare, booster._ambientFlare);
+  assert.notEqual(booster._ambientFlares[0].parentTransform0, booster._ambientFlare.parentTransform0);
+  assert.notEqual(booster._ambientFlares[0].color, booster._ambientFlares[1].color);
+  const retained = booster._ambientFlares[0];
+  retained.color[0] = 0.25;
+  booster.Initialize();
+  assert.equal(booster._ambientFlares[0], retained, "native resize retains existing records");
+  assert.equal(retained.color[0], 0.25, "SetupQuads does not rewrite retained copies");
+  booster.RebuildFlareBuffer(3);
+  assert.deepEqual([...booster._ambientFlares[2].parentTransform0], [1, 0, 0, 0]);
+  assert.deepEqual([...booster._ambientFlares[2].color], [...booster.ambientFlareColor]);
+});
