@@ -48,3 +48,9 @@ export * from "./ITr2VisualizationModeRenderer.js";
 export * from "./ITriTargetable.js";
 export * from "./Tr2HostBitmap.js";
 export * from "./Tr2ImpostorManager/index.js";
+
+export * from "./Tr2AtlasTexture.js";
+
+export * from "./Tr2TextureAtlas.js";
+
+export * from "./Tr2TextureAtlasMan.js";

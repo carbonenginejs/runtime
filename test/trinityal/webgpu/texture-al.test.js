@@ -321,7 +321,7 @@ test("a CPU-writable texture maps for writing and uploads on unmap (Carbon's Map
   assert.equal(texture.UnmapForWriting(al), ALResult.E_INVALIDCALL, "unmap without a map");
 });
 
-test("MapForWriting refuses a texture without CPU write, and a box it cannot preserve around", async () =>
+test("MapForWriting refuses a texture without CPU write and an incomplete box", async () =>
 {
   const { Tr2TextureSubresource } = await import("../../../npm/dist/trinityal/index.js");
   const { al } = composed();
@@ -586,6 +586,30 @@ test("float32 sampled views require the active filtering feature, including cach
   assert.ok(ordinary.GetDeviceTextureView("2d", 0, "float"));
   ordinary.Destroy();
 });
+
+test("boxed atlas writes upload only their rectangle and preserve adjacent texels", async () =>
+{
+  const { Tr2TextureSubresource } = await import("../../../npm/dist/trinityal/index.js");
+  const { al, calls } = composed();
+  const texture = new CjsWebgpuTextureAL();
+  const desc = Tr2BitmapDimensions.texture2D(32, 16, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM);
+  assert.equal(texture.Create(desc, { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, cpuUsage: Tr2CpuUsage.WRITE }, al), ALResult.S_OK);
+  calls.writes.length = 0;
+  const region = Tr2TextureSubresource.ForMipLevel(0).SetRect(7, 3, 12, 9);
+  const mapping = texture.MapForWriting(region, al);
+  assert.equal(mapping.result, ALResult.S_OK);
+  assert.equal(mapping.pitch, 20);
+  assert.equal(mapping.data.byteLength, 120);
+  mapping.data.fill(255);
+  assert.equal(texture.UnmapForWriting(al), ALResult.S_OK);
+  assert.equal(calls.writes.length, 1);
+  assert.deepEqual(calls.writes[0].destination.origin, { x: 7, y: 3, z: 0 });
+  assert.deepEqual(calls.writes[0].size, { width: 5, height: 6, depthOrArrayLayers: 1 });
+  assert.equal(calls.writes[0].layout.bytesPerRow, 20);
+  assert.equal(calls.writes[0].layout.rowsPerImage, 6);
+  assert.equal(texture.MapForWriting(Tr2TextureSubresource.ForMipLevel(0).SetRect(31, 0, 34, 1), al).result, ALResult.E_INVALIDARG);
+});
+
 
 test("unaligned BC textures retain compressed mip data with Carbon block-rounded allocation", () =>
 {

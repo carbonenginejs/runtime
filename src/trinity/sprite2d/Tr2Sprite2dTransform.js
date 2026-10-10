@@ -5,11 +5,12 @@
 import { meta } from "#schema";
 import { Tr2Sprite2dContainerBase } from "./Tr2Sprite2dContainerBase.js";
 import { vec2 } from "#math/vec2";
+import { mat4 } from "#math/mat4";
+import { Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
 
 /**
  * Applies authored Sprite2D rotation and scaling around configurable centers.
- * Native GatherSprites, PickPoint and GetTransformationMatrix remain unported;
- * inherited methods do not provide the native transform-aware renderer behavior.
+ * Traverses and picks children using Carbon's distinct bounds and content transforms.
  */
 @meta.define({ className: "Tr2Sprite2dTransform", family: "sprite2d" })
 @meta.blue.chainTo(Tr2Sprite2dContainerBase)
@@ -65,6 +66,105 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
   @meta.blue.readwrite
   @meta.type.vec2
   scale = vec2.fromValues(1, 1);
+
+  /** Gathers backgrounds then children in reverse order under the local transform and opacity. */
+  @meta.blue.method
+  @meta.implemented
+  GatherSprites(renderer)
+  {
+    if (!this.display) return;
+
+    renderer.PushTransform(this._GetTransformationMatrix());
+    const oldOpacity = renderer.GetAccumulatedAlpha();
+    renderer.SetAccumulatedAlpha(this.opacity * oldOpacity);
+
+    for (let index = this.background.length - 1; index >= 0; index--)
+    {
+      this.background[index].GatherSprites(renderer);
+    }
+
+    for (let index = this.children.length - 1; index >= 0; index--)
+    {
+      this.children[index].GatherSprites(renderer);
+    }
+
+    renderer.SetAccumulatedAlpha(oldOpacity);
+    renderer.PopTransform();
+  }
+
+  /** Picks translated bounds first, then transformed children in front-to-back order. */
+  @meta.blue.method
+  @meta.implemented
+  PickPoint(x, y, renderer)
+  {
+    if (!this.display || this.pickState === Tr2SpriteObjectPickState.TR2_SPS_OFF) return null;
+
+    renderer.PushTranslation([this.displayX, this.displayY]);
+    let isInside = renderer.IsInside([x, y], [0, 0], this.displayWidth, this.displayHeight, 0);
+    if (isInside && this.pickingMask)
+    {
+      isInside = this.pickingMask.SampleMask(renderer.InverseTransformPoint([x, y]), [0, 0], this.displayWidth, this.displayHeight);
+    }
+    renderer.PopTranslation();
+
+    if (!isInside) return null;
+
+    let object = null;
+    renderer.PushTransform(this._GetTransformationMatrix());
+
+    for (const child of this.children)
+    {
+      object = child.PickPoint(x, y, renderer);
+      if (object) break;
+    }
+
+    if (this.pickState === Tr2SpriteObjectPickState.TR2_SPS_ON)
+    {
+      this.auxMouseover = null;
+      if (!object)
+      {
+        object = this;
+      }
+      else if (object.IsAuxMouseover())
+      {
+        this.auxMouseover = object;
+        object = this;
+      }
+    }
+
+    renderer.PopTransform();
+    return object;
+  }
+
+  /**
+   * Returns Carbon's pixel-rounded pivot transform, including display translation.
+   * Adapted: Expands Transformation2DMatrix into column-vector coefficients;
+   * this preserves its scale-axis rotation, scale, final rotation and translation order.
+   * @returns {Float32Array} Owned 4x4 local transform.
+   */
+  @meta.adapted
+  _GetTransformationMatrix()
+  {
+    const sx = Math.floor(this.scalingCenter[0] * this.displayWidth + 0.5);
+    const sy = Math.floor(this.scalingCenter[1] * this.displayHeight + 0.5);
+    const rx = Math.floor(this.rotationCenter[0] * this.displayWidth + 0.5);
+    const ry = Math.floor(this.rotationCenter[1] * this.displayHeight + 0.5);
+    const c = Math.cos(this.scalingRotation), s = Math.sin(this.scalingRotation);
+    const a = this.scale[0] * c * c + this.scale[1] * s * s;
+    const b = (this.scale[0] - this.scale[1]) * c * s;
+    const d = this.scale[0] * s * s + this.scale[1] * c * c;
+    const cr = Math.cos(this.rotation), sr = Math.sin(this.rotation);
+    const tx = sx - rx - a * sx - b * sy;
+    const ty = sy - ry - b * sx - d * sy;
+    const result = mat4.create(); // alloc: native value return belongs to the caller
+    result[0] = cr * a - sr * b;
+    result[1] = sr * a + cr * b;
+    result[4] = cr * b - sr * d;
+    result[5] = sr * b + cr * d;
+    result[12] = cr * tx - sr * ty + rx + this.displayX;
+    result[13] = sr * tx + cr * ty + ry + this.displayY;
+    return result;
+  }
 
   /**
    * Transforms one local point using native rounded centers and rotation order.

@@ -61,6 +61,9 @@ export const PER_OBJECT_VS = 3;
 /** perObjectPS, owned by the object being drawn. */
 export const PER_OBJECT_PS = 4;
 
+/** GUI transform-array vertex constants, Carbon s_perObjectVSGUIStartRegister. */
+export const PER_OBJECT_VS_GUI = 6;
+
 // THERE WAS A REVERSE MAP HERE AND IT IS GONE. A register-number-to-name table
 // looked necessary because a caller reading a pipeline's DECLARED bindings has a
 // number and wants to know what it means. It is not: the numbers are fixed and
@@ -99,7 +102,7 @@ export class Tr2Renderer
   #perObjectRTVertexBufferDataRegister = 5;
 
   /** s_perObjectVSGUIStartRegister */
-  #perObjectVSGUIStartRegister = 6;
+  #perObjectVSGUIStartRegister = PER_OBJECT_VS_GUI;
 
   /**
    * The register the scene's per-frame vertex constants bind at.

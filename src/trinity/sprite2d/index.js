@@ -14,3 +14,11 @@ export * from "./Tr2Sprite2dTransform.js";
 export * from "./Tr2Sprite2dVertex.js";
 export * from "./Tr2Sprite2dVertexBase.js";
 export * from "./Tr2SpriteObjectBase.js";
+export * from "./Tr2Sprite2dContainer.js";
+export * from "./Tr2Sprite2d.js";
+export * from "./Tr2SpriteObject.js";
+export * from "./Tr2TexturedSpriteObject.js";
+export * from "./ITr2Sprite2dTexture.js";
+
+export * from "./Tr2Sprite2dTextObject.js";
+export * from "./Tr2Sprite2dDisplayList.js";

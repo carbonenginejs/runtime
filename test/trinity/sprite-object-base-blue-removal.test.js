@@ -10,8 +10,8 @@ import { Tr2SpriteObjectBase } from "../../npm/dist/trinity/sprite2d/Tr2SpriteOb
 import { Tr2Sprite2dContainerBase } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2dContainerBase.js";
 import { Tr2Sprite2dTransform } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2dTransform.js";
 import { Tr2Sprite2dRenderJob } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2dRenderJob.js";
-import { Tr2SpriteObject } from "../../npm/dist/trinity/generated/sprite2d/Tr2SpriteObject.js";
-import { Tr2Sprite2dContainer } from "../../npm/dist/trinity/generated/sprite2d/Tr2Sprite2dContainer.js";
+import { Tr2SpriteObject } from "../../npm/dist/trinity/sprite2d/Tr2SpriteObject.js";
+import { Tr2Sprite2dContainer } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2dContainer.js";
 
 const descendants=[Tr2SpriteObjectBase,Tr2Sprite2dContainerBase,Tr2Sprite2dTransform,Tr2Sprite2dRenderJob,Tr2SpriteObject,Tr2Sprite2dContainer];
 
@@ -34,6 +34,7 @@ const CARBON_TABLES=new Map([
  [Tr2Sprite2dRenderJob,[Tr2Sprite2dRenderJob,ITr2SpriteObject,Tr2SpriteObjectBase,INotify]],
 ]);
 
+// Destroy is now an explicit UI resource cleanup method, not an inherited model helper.
 test("native six-verb sprite interface stays abstract and model-free",()=>{
  assert.equal(Object.getPrototypeOf(ITr2SpriteObject.prototype),Object.prototype);
  assert.deepEqual(Object.getOwnPropertyNames(ITr2SpriteObject.prototype).filter(n=>n!=="constructor"),["GatherSprites","PickPoint","SetParent","SetDirty","SetChildDirty","IsAuxMouseover"]);
@@ -44,7 +45,7 @@ test("native six-verb sprite interface stays abstract and model-free",()=>{
 
 test("base and real descendants lose inherited model machinery while retaining exact native contracts",()=>{
  assert.equal(Object.getPrototypeOf(Tr2SpriteObjectBase.prototype),ITr2SpriteObject.prototype);
- for(const Class of descendants){const value=new Class();for(const name of ["SetValues","GetValues","Clone","Traverse","GetResources","OnEvent","Destroy"])assert.equal(name in value,false,Class.name+"."+name);assert.equal("from" in Class,false);assert.deepEqual([...mappedInterfaces(Class)],CARBON_TABLES.get(Class),Class.name);assert.equal(CjsSchema.cast(value,ITr2SpriteObject),value);assert.equal(CjsSchema.cast(value,INotify),value);}
+ for(const Class of descendants){const value=new Class();for(const name of ["SetValues","GetValues","Clone","Traverse","GetResources","OnEvent"])assert.equal(name in value,false,Class.name+"."+name);assert.equal("from" in Class,false);assert.deepEqual([...mappedInterfaces(Class)],CARBON_TABLES.get(Class),Class.name);assert.equal(CjsSchema.cast(value,ITr2SpriteObject),value);assert.equal(CjsSchema.cast(value,INotify),value);}
  const list=new BlueList(ITr2SpriteObject);assert.equal(list.Append(new Tr2Sprite2dRenderJob()),true);assert.equal(list.Append({SetDirty(){},GatherSprites(){}}),false);
 });
 

@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dContainer_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; portable child ownership is maintained here.
 import { meta } from "#schema";
-import { IListNotify } from "#blue";
+import { BlueList, IListNotify } from "#blue";
 import { ITr2SpriteObject } from "./ITr2SpriteObject.js";
 import { Tr2SpriteObjectBase } from "./Tr2SpriteObjectBase.js";
 
@@ -13,10 +13,19 @@ const BELIST_REMOVED = 0x09;
 
 /** Shared Sprite2D container state and child-parent propagation. */
 @meta.define({ className: "Tr2Sprite2dContainerBase", family: "sprite2d" })
+@meta.blue.inherit(IListNotify)
 @meta.blue.interface(ITr2SpriteObject, IListNotify)
 @meta.blue.chainTo(Tr2SpriteObjectBase)
 export class Tr2Sprite2dContainerBase extends Tr2SpriteObjectBase
 {
+
+  /** Wires native constructor-owned notifications for direct list edits. */
+  constructor()
+  {
+    super();
+    this.children.SetNotify(this);
+    this.background.SetNotify(this);
+  }
 
   /** Carbon method SetChildDirty. */
   @meta.blue.method
@@ -64,12 +73,12 @@ export class Tr2Sprite2dContainerBase extends Tr2SpriteObjectBase
   /** m_background (PITr2SpriteObjectVector) [READ] */
   @meta.blue.read
   @meta.type.list("ITr2SpriteObject")
-  background = [];
+  background = new BlueList(ITr2SpriteObject, { className: null, listOps: 0 });
 
   /** m_children (PITr2SpriteObjectVector) [READ] */
   @meta.blue.read
   @meta.type.list("ITr2SpriteObject")
-  children = [];
+  children = new BlueList(ITr2SpriteObject, { className: null, listOps: 0 });
 
   /** m_opacity (float) [READWRITE, NOTIFY] */
   @meta.blue.notify

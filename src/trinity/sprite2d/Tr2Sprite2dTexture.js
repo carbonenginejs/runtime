@@ -2,6 +2,7 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dTexture.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dTexture_Blue.cpp
 // Hand-maintained after promotion from generated schema intake.
+import { ITr2Sprite2dTexture } from "./ITr2Sprite2dTexture.js";
 import { meta } from "#schema";
 import { IInitialize, INotify } from "#blue";
 import { vec2 } from "#math/vec2";
@@ -16,7 +17,8 @@ import { Tr2Sprite2dTextureSettings } from "../generated/sprite2d/enums.js";
  */
 @meta.define({ className: "Tr2Sprite2dTexture", family: "sprite2d", purpose: "Describes a named 2D texture transform around separate rotation and scaling centers." })
 @meta.blue.inherit(IInitialize, INotify)
-export class Tr2Sprite2dTexture
+@meta.blue.interface(ITr2Sprite2dTexture, IInitialize, INotify)
+export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
 {
 
   /** m_rotationCenter (Vector2) [READWRITE, NOTIFY] */

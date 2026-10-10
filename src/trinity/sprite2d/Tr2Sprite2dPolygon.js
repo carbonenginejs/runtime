@@ -4,8 +4,9 @@ import { BlueList, IListNotify } from "#blue";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPolygon.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPolygon_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; portable value helpers are maintained here.
+import { Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
 import { meta } from "#schema";
-import { Tr2TexturedSpriteObject } from "../generated/sprite2d/Tr2TexturedSpriteObject.js";
+import { Tr2TexturedSpriteObject } from "./Tr2TexturedSpriteObject.js";
 import { Tr2Sprite2dTriangle } from "./Tr2Sprite2dTriangle.js";
 import { Tr2Sprite2dVertex } from "./Tr2Sprite2dVertex.js";
 import { vec2 } from "#math/vec2";
@@ -45,6 +46,31 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
   @meta.blue.read
   @meta.type.list("Tr2Sprite2dVertex")
   vertices = new BlueList(Tr2Sprite2dVertex, { className: "Tr2Sprite2dVertex" });
+
+  /** Picks both native triangle windings, restoring translation even on an early hit. */
+  @meta.implemented
+  PickPoint(x, y, renderer)
+  {
+    if (!this.display || this.pickState !== Tr2SpriteObjectPickState.TR2_SPS_ON) return null;
+
+    const point = [x, y], translation = [this.displayX, this.displayY];
+    if (this.pickingMask && !this.pickingMask.SampleMask(renderer.InverseTransformPoint(point), translation, this.displayWidth, this.displayHeight)) return null;
+
+    renderer.PushTranslation(translation);
+    try
+    {
+      for (const triangle of this.triangles)
+      {
+        const a = this.vertices[triangle.index0].position;
+        const b = this.vertices[triangle.index1].position;
+        const c = this.vertices[triangle.index2].position;
+        if (renderer.IsInsideTriangle(point, a, b, c) || renderer.IsInsideTriangle(point, a, c, b)) return this;
+      }
+    }
+    finally { renderer.PopTranslation(); }
+
+    return null;
+  }
 
   /** Carbon method AppendTriangles -> PyAppendTriangles (MAP_METHOD). */
   @meta.blue.method

@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema sprite2d/Tr2Sprite2dD3DVertex.json.).
+import { Tr2Sprite2dClipRect } from "./Tr2Sprite2dClipRect.js";
 import { meta } from "#schema";
 import { Tr2Sprite2dVertexBase } from "./Tr2Sprite2dVertexBase.js";
 import { vec4 } from "#math/vec4";
@@ -11,7 +12,7 @@ export class Tr2Sprite2dD3DVertex extends Tr2Sprite2dVertexBase
 
   /** clipRect (Tr2Sprite2dClipRect) */
   @meta.type.rawStruct("Tr2Sprite2dClipRect")
-  clipRect = null;
+  clipRect = new Tr2Sprite2dClipRect();
 
   /** glowBrightness (float) */
   @meta.type.float32

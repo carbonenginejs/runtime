@@ -1,8 +1,8 @@
 {
   "outRoot": "src/trinity/generated",
   "classes": {
-    "written": 26,
-    "skipped": 685
+    "written": 15,
+    "skipped": 697
   },
   "enums": {
     "written": 15,
@@ -1900,6 +1900,21 @@
       "reason": "hand-maintained source exists"
     },
     {
+      "family": "font",
+      "className": "Tr2FontManager",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "font",
+      "className": "Tr2FontMeasurer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "font",
+      "className": "Tr2SBitWrapper",
+      "reason": "hand-maintained source exists"
+    },
+    {
       "family": "include",
       "className": "ITr2Updateable",
       "reason": "hand-maintained source exists"
@@ -2671,12 +2686,27 @@
     },
     {
       "family": "sprite2d",
+      "className": "ITr2Sprite2dTexture",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
       "className": "ITr2SpriteObject",
       "reason": "hand-maintained source exists"
     },
     {
       "family": "sprite2d",
+      "className": "Tr2Sprite2d",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
       "className": "Tr2Sprite2dClipRect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dContainer",
       "reason": "hand-maintained source exists"
     },
     {
@@ -2721,6 +2751,11 @@
     },
     {
       "family": "sprite2d",
+      "className": "Tr2Sprite2dTextObject",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
       "className": "Tr2Sprite2dTexture",
       "reason": "hand-maintained source exists"
     },
@@ -2746,7 +2781,17 @@
     },
     {
       "family": "sprite2d",
+      "className": "Tr2SpriteObject",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
       "className": "Tr2SpriteObjectBase",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2TexturedSpriteObject",
       "reason": "hand-maintained source exists"
     },
     {
@@ -2872,6 +2917,11 @@
     {
       "family": "trinityCore",
       "className": "TextureSize2D",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2AtlasTexture",
       "reason": "hand-maintained source exists"
     },
     {
@@ -3202,6 +3252,16 @@
     {
       "family": "trinityCore",
       "className": "Tr2TextureArrayElement",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2TextureAtlas",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2TextureAtlasMan",
       "reason": "hand-maintained source exists"
     },
     {
@@ -6024,21 +6084,6 @@
   },
   "generatedClasses": [
     {
-      "className": "Tr2AtlasTexture",
-      "family": "trinityCore",
-      "file": "trinity/generated/trinityCore/Tr2AtlasTexture.js"
-    },
-    {
-      "className": "Tr2FontManager",
-      "family": "font",
-      "file": "trinity/generated/font/Tr2FontManager.js"
-    },
-    {
-      "className": "Tr2FontMeasurer",
-      "family": "font",
-      "file": "trinity/generated/font/Tr2FontMeasurer.js"
-    },
-    {
       "className": "Tr2GpuProfiler",
       "family": "trinityCore",
       "file": "trinity/generated/trinityCore/Tr2GpuProfiler.js"
@@ -6064,24 +6109,9 @@
       "file": "trinity/generated/raytracing/Tr2RaytracingPipelineStateManager.js"
     },
     {
-      "className": "Tr2SBitWrapper",
-      "family": "font",
-      "file": "trinity/generated/font/Tr2SBitWrapper.js"
-    },
-    {
-      "className": "Tr2Sprite2d",
-      "family": "sprite2d",
-      "file": "trinity/generated/sprite2d/Tr2Sprite2d.js"
-    },
-    {
       "className": "Tr2Sprite2dArc",
       "family": "sprite2d",
       "file": "trinity/generated/sprite2d/Tr2Sprite2dArc.js"
-    },
-    {
-      "className": "Tr2Sprite2dContainer",
-      "family": "sprite2d",
-      "file": "trinity/generated/sprite2d/Tr2Sprite2dContainer.js"
     },
     {
       "className": "Tr2Sprite2dDisplayList",
@@ -6114,34 +6144,9 @@
       "file": "trinity/generated/sprite2d/Tr2Sprite2dStretchVertical.js"
     },
     {
-      "className": "Tr2Sprite2dTextObject",
-      "family": "sprite2d",
-      "file": "trinity/generated/sprite2d/Tr2Sprite2dTextObject.js"
-    },
-    {
-      "className": "Tr2SpriteObject",
-      "family": "sprite2d",
-      "file": "trinity/generated/sprite2d/Tr2SpriteObject.js"
-    },
-    {
       "className": "Tr2SSSSS",
       "family": "trinityCore",
       "file": "trinity/generated/trinityCore/Tr2SSSSS.js"
-    },
-    {
-      "className": "Tr2TextureAtlas",
-      "family": "trinityCore",
-      "file": "trinity/generated/trinityCore/Tr2TextureAtlas.js"
-    },
-    {
-      "className": "Tr2TextureAtlasMan",
-      "family": "trinityCore",
-      "file": "trinity/generated/trinityCore/Tr2TextureAtlasMan.js"
-    },
-    {
-      "className": "Tr2TexturedSpriteObject",
-      "family": "sprite2d",
-      "file": "trinity/generated/sprite2d/Tr2TexturedSpriteObject.js"
     },
     {
       "className": "Tr2TransientTextureReference",
@@ -7301,6 +7306,21 @@
       "reason": "hand-maintained source exists"
     },
     {
+      "family": "font",
+      "className": "Tr2FontManager",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "font",
+      "className": "Tr2FontMeasurer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "font",
+      "className": "Tr2SBitWrapper",
+      "reason": "hand-maintained source exists"
+    },
+    {
       "family": "include",
       "className": "ITriColor",
       "reason": "hand-maintained source exists"
@@ -7782,7 +7802,17 @@
     },
     {
       "family": "sprite2d",
+      "className": "Tr2Sprite2d",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
       "className": "Tr2Sprite2dClipRect",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dContainer",
       "reason": "hand-maintained source exists"
     },
     {
@@ -7817,6 +7847,11 @@
     },
     {
       "family": "sprite2d",
+      "className": "Tr2Sprite2dTextObject",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
       "className": "Tr2Sprite2dTexture",
       "reason": "hand-maintained source exists"
     },
@@ -7842,12 +7877,27 @@
     },
     {
       "family": "sprite2d",
+      "className": "Tr2SpriteObject",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
       "className": "Tr2SpriteObjectBase",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2TexturedSpriteObject",
       "reason": "hand-maintained source exists"
     },
     {
       "family": "trinityCore",
       "className": "ITr2FroxelFogSettings",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2AtlasTexture",
       "reason": "hand-maintained source exists"
     },
     {
@@ -7978,6 +8028,16 @@
     {
       "family": "trinityCore",
       "className": "Tr2SwapChain",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2TextureAtlas",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2TextureAtlasMan",
       "reason": "hand-maintained source exists"
     },
     {

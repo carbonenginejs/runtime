@@ -5,7 +5,7 @@ import { BLUELISTEVENT } from "#consts/blue";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dLineTrace_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; portable value helpers are maintained here.
 import { meta } from "#schema";
-import { Tr2TexturedSpriteObject } from "../generated/sprite2d/Tr2TexturedSpriteObject.js";
+import { Tr2TexturedSpriteObject } from "./Tr2TexturedSpriteObject.js";
 import { Tr2Sprite2dLineTraceVertex } from "./Tr2Sprite2dLineTraceVertex.js";
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";

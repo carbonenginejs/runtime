@@ -677,9 +677,9 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
    * mip, uploaded by `UnmapForWriting` with `queue.writeTexture` - the shape
    * this backend's constant buffers already use. The copy starts zeroed, not
    * with the texture's contents, because WebGPU cannot read a texture back
-   * synchronously; so a region with a box is refused rather than letting the
-   * upload overwrite the texels outside it. `Tr2DataTextureManager` maps the
-   * whole of subresource 0.
+   * synchronously. A boxed mapping stages only that rectangle and uploads only
+   * that rectangle, preserving all neighbouring atlas texels. Compressed
+   * boxes remain unsupported, matching the native DX11 mapping restriction.
    *
    * @param {object} region A `Tr2TextureSubresource`.
    * @param {object} renderContext The render context, Trinity's or the AL.
@@ -692,16 +692,17 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
     const al = RenderContextALOf(renderContext);
 
     if (!this.IsValid() || !al || !al.IsValid()) return { result: ALResult.E_FAIL, data: null, pitch: 0 };
-    if (!region.IsValidForBitmap(this.m_desc) || !region.IsSingleSubresource() || region.HasBox())
+    if (!region.IsValid() || !region.IsValidForBitmap(this.m_desc) || !region.IsSingleSubresource() || (region.HasBox() && IsCompressedFormat(this.m_desc.GetFormat())))
     {
       return { result: ALResult.E_INVALIDARG, data: null, pitch: 0 };
     }
 
     const mip = region.m_startMipLevel;
-    const pitch = this.m_desc.GetMipPitch(mip);
-    // A volume maps every slice, as the dx11 staging buffer does
-    // (Tr2TextureALDx11.cpp:958-961, pitch * h * max(1, d)); non-3D depth is 1.
-    const size = pitch * this.m_desc.GetMipHeight(mip) * Math.max(1, this.m_desc.GetMipDepth(mip));
+    const box = region.HasBox() ? region.m_box : null;
+    const pitch = box ? (box.right - box.left) * GetBytesPerPixel(this.m_desc.GetFormat()) : this.m_desc.GetMipPitch(mip);
+    const rows = box ? box.bottom - box.top : this.m_desc.GetMipNumRows(mip);
+    const depth = box ? box.back - box.front : Math.max(1, this.m_desc.GetMipDepth(mip));
+    const size = pitch * rows * depth;
 
     if (size === 0) return { result: ALResult.E_FAIL, data: null, pitch: 0 };
     if (this._mappedData === null || this._mappedData.length !== size) this._mappedData = new Uint8Array(size);
@@ -727,8 +728,10 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
 
     const region = this._mappedRegion;
     const mip = region.m_startMipLevel;
-    const pitch = this.m_desc.GetMipPitch(mip);
-    const result = this.UpdateSubresource(region, this._mappedData, pitch, pitch * this.m_desc.GetMipHeight(mip), renderContext);
+    const box = region.HasBox() ? region.m_box : null;
+    const pitch = box ? (box.right - box.left) * GetBytesPerPixel(this.m_desc.GetFormat()) : this.m_desc.GetMipPitch(mip);
+    const rows = box ? box.bottom - box.top : this.m_desc.GetMipNumRows(mip);
+    const result = this.UpdateSubresource(region, this._mappedData, pitch, pitch * rows, renderContext);
 
     this._mappedRegion = null;
     if (!HasFlag(this.m_cpuUsage, Tr2CpuUsage.WRITE_OFTEN)) this._mappedData = null;
@@ -768,11 +771,18 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
       );
       return ALResult.S_OK;
     }
+    if (!region.IsValid() || !region.IsValidForBitmap(this.m_desc) || !region.IsSingleSubresource()) return ALResult.E_INVALIDARG;
+    const box = region.HasBox() ? region.m_box : null;
+    if (box && IsCompressedFormat(this.m_desc.GetFormat())) return ALResult.E_INVALIDARG;
+    const volume = this.m_desc.GetType() === TextureType.TEX_TYPE_3D;
+    if (box && !volume && (box.front !== 0 || box.back !== 1)) return ALResult.E_INVALIDARG;
     this.m_webgpu.GetDevice().queue.writeTexture(
-      { texture: this.m_texture, mipLevel: mip, origin: { x: 0, y: 0, z: layer } },
+      { texture: this.m_texture, mipLevel: mip, origin: { x: box ? box.left : 0, y: box ? box.top : 0, z: volume && box ? box.front : layer } },
       source,
       { offset: 0, bytesPerRow: pitch, rowsPerImage: pitch ? Math.max(1, Math.floor((slicePitch || source.byteLength) / pitch)) : undefined },
-      { width: this.m_desc.GetMipWidth(mip), height: this.m_desc.GetMipHeight(mip), depthOrArrayLayers: this.m_desc.GetType() === TextureType.TEX_TYPE_3D ? this.m_desc.GetMipDepth(mip) : 1 }
+      { width: box ? box.right - box.left : this.m_desc.GetMipWidth(mip),
+        height: box ? box.bottom - box.top : this.m_desc.GetMipHeight(mip),
+        depthOrArrayLayers: volume ? (box ? box.back - box.front : this.m_desc.GetMipDepth(mip)) : 1 }
     );
 
     return ALResult.S_OK;

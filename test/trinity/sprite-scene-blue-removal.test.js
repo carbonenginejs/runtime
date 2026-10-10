@@ -26,9 +26,10 @@ import { Traverse } from "../../npm/dist/global/blue/find.js";
 
 const context={GetViewTransform:()=>mat4.create()};
 
+// Destroy is now an explicit scene resource cleanup method, not an inherited model helper.
 test("Scene uses its native primary and exact query while removing model helpers",()=>{
  const scene=blue.classes.CreateInstanceFromName("Tr2Sprite2dScene");assert.equal(scene.constructor,Tr2Sprite2dScene);assert.equal(Object.getPrototypeOf(Tr2Sprite2dScene.prototype),ITr2Scene.prototype);assert.equal(Object.getPrototypeOf(ITr2Scene.prototype),ITr2Updateable.prototype);
- assert.deepEqual([...mappedInterfaces(Tr2Sprite2dScene)],[Tr2Sprite2dScene,ITr2Scene,ITr2Updateable,INotify]);for(const name of ["SetValues","GetValues","Clone","Traverse","GetResources","OnEvent","Destroy"])assert.equal(name in scene,false);
+ assert.deepEqual([...mappedInterfaces(Tr2Sprite2dScene)],[Tr2Sprite2dScene,ITr2Scene,ITr2Updateable,INotify]);for(const name of ["SetValues","GetValues","Clone","Traverse","GetResources","OnEvent"])assert.equal(name in scene,false);
  assert.equal("from" in Tr2Sprite2dScene,false);assert.equal(blue.classes.CreateInstanceFromName("ITr2Scene"),null);assert.throws(()=>new ITr2Scene().Render(context),/must be implemented/);
  const list=new BlueList(ITr2Scene);assert.equal(list.Append(scene),true);assert.equal(list.Append({Update(){},Render(){}}),false);
 });
@@ -36,7 +37,7 @@ test("Scene uses its native primary and exact query while removing model helpers
 test("Scene declaration order, stored aliases and list identities match native shape",()=>{
  const scene=new Tr2Sprite2dScene(),schema=CjsSchema.getSchema(Tr2Sprite2dScene);assert.deepEqual(schema.members.map(f=>f.name),["name","display","drawWireFrame","ignoreClip","lastPickPos","isFullscreen","is2dRender","is2dPick","translation","displayX","displayY","rotation","scaling","displayWidth","displayHeight","depthMin","depthMax","pickState","clearBackground","backgroundColor","children","background","clearFinishedCurveSets","curveSets","ubershader2d","ubershader3d","defaultTextureUpdates","maxItemsToRender","maxDrawCallsToRender","maxSpriteCount","captureIndexDataCapacity"]);assert.deepEqual(schema.properties,[]);assert.deepEqual(schema.fields,[]);assert.equal(CjsSchema.getField(Tr2Sprite2dScene,"name"),null);
  assert.equal(schema.members.find(f=>f.name==="name").type.kind,"wstring");for(const name of ["displayX","displayY"]){const f=schema.members.find(f=>f.name===name);assert.equal(f.key,"translation");assert.equal(f.index,name==="displayX"?0:1);assert.equal(f.edit.read,true);assert.equal(f.edit.write,true);assert.equal(f.edit.persist,true);}
- assert.deepEqual([...scene.backgroundColor],[0,0,1,0]);assert.equal(scene.captureIndexDataCapacity,0);assert.equal(scene.ubershader2d,null);assert.equal(scene.ubershader3d,null);
+ assert.deepEqual([...scene.backgroundColor],[0,0,1,0]);assert.equal(scene.captureIndexDataCapacity,1536);assert.equal(scene.ubershader2d,null);assert.equal(scene.ubershader3d,null);
  assert.ok(scene.children instanceof BlueList);assert.ok(scene.background instanceof BlueList);assert.ok(scene.curveSets instanceof BlueList);assert.equal(scene.children.Append(new Tr2Sprite2dRenderJob()),true);assert.equal(scene.children.Append({}),false);
  assert.equal(CjsSchema.cast(scene.children[0],ITr2SpriteObject),scene.children[0]);
 });
@@ -69,12 +70,13 @@ test("declared persisted hydration preserves aliases and actual owner scene iden
  const owner=new Tr2RenderNodeSprite2dScene();owner.scene=copy;assert.equal(owner.Validate([[32,32]],[],0,0),true);
 });
 
-test("backend-specific notifications and rendering are explicitly unsupported",()=>{
- const scene=new Tr2Sprite2dScene();assert.equal(scene.OnModified("name"),true);assert.throws(()=>new DictReader({declarations:true}).ReadInto(scene,{maxSpriteCount:20000}),/unimplemented ReleaseResources/);assert.equal(scene.maxSpriteCount,16383);assert.throws(()=>scene.OnModified("maxSpriteCount"),/unimplemented ReleaseResources/);
- assert.equal(scene.RenderDebugInfo(context),undefined);const step=new TriStepRenderScene();step.scene=scene;assert.throws(()=>step.Execute(0,0,context),/Render is not implemented/);assert.throws(()=>scene.PickObject(0,0),/PickObject is not implemented/);
+test("resource invalidation clamps the native sprite limit and an invalid context does not render",()=>{
+ const scene=new Tr2Sprite2dScene();assert.equal(scene.OnModified("name"),true);assert.doesNotThrow(()=>new DictReader({declarations:true}).ReadInto(scene,{maxSpriteCount:20000}));assert.equal(scene.maxSpriteCount,16383);assert.equal(scene.OnModified("maxSpriteCount"),true);
+ assert.equal(scene.RenderDebugInfo(context),undefined);const step=new TriStepRenderScene();step.scene=scene;assert.doesNotThrow(()=>scene.Render({IsValid:()=>false}));assert.equal(scene.PickObject(0,0),null);
 });
 
 
+// Destroy is now an explicit scene resource cleanup method, not an inherited model helper.
 test("Scene uses the main-thread view fallback and tolerates a missing shader handle", () =>
 {
   const main = Tr2RenderContext_GetMainThreadRenderContext();

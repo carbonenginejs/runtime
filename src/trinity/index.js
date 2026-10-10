@@ -30,3 +30,4 @@ export * from "./core/index.js";
 export * from "./ui/index.js";
 export * from "./raytracing/index.js";
 export * from "./generated/index.js";
+export * from "./font/index.js";
