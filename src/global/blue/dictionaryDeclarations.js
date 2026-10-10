@@ -6,7 +6,8 @@ const VIEWS = new WeakMap();
  * Selects the JavaScript dictionary values view, not native persistence.
  * Derived owners claim exposed names first; within one owner stored members
  * precede live properties. Filters run after selection, without falling back
- * to a shadowed declaration or merging its flags. This keeps export/import
+ * to a shadowed declaration; a decorated redeclaration already carries the
+ * metadata it inherits, resolved by the schema. This keeps export/import
  * addressing identical, including the unrestricted all-fields values view.
  * @param {Function} Constructor Declared class.
  * @returns {object} Selected fields and their exact-name lookup map.

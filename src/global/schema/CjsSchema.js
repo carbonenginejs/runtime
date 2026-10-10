@@ -2022,24 +2022,39 @@ function getCanonicalDeclarations(Constructor, role)
         {
             const { entry } = record;
             if (entry.role !== role || hidden.has(entry.key)) continue;
-            let inheritedType;
-            if (record.legacy && !entry.type)
-            {
-                for (const Parent of getSchemaLineage(Object.getPrototypeOf(current)).reverse())
-                {
-                    const inherited = CLASS_SCHEMA.get(Parent).declarations.find(({ entry: candidate }) =>
-                        candidate.key === entry.key && candidate.role === entry.role && candidate.index === entry.index);
-                    if (!inherited) continue;
-                    if (inherited.entry.type) inheritedType = inherited.entry.type;
-                    // Explicit declarations are complete; never borrow through
-                    // one to invent metadata for an older declaration.
-                    if (inheritedType || !inherited.legacy) break;
-                }
-            }
-            declarations.push(inheritedType ? { ...entry, type: inheritedType } : entry);
+            declarations.push(resolveInheritedDeclaration(current, record));
         }
     }
     return declarations;
+}
+
+/**
+ * A decorated redeclaration of an inherited member starts from the inherited
+ * record: each namespace merges key by key (`mergeMemberMetadata`, the rule
+ * the legacy fields view already uses), so a subclass restating only
+ * `meta.ui.description` keeps the parent's Blue flags, type and group.
+ * Identity (name, key, role, index, declaring class) stays the subclass's.
+ * Explicit `members`/`properties` declarations are complete and never merge,
+ * and the walk takes only the nearest inherited declaration, itself resolved.
+ *
+ * @param {Function} Owner Class that declared the record.
+ * @param {object} record Declaration record `{ entry, legacy }`.
+ * @returns {object} The effective declaration.
+ */
+function resolveInheritedDeclaration(Owner, record)
+{
+    const { entry } = record;
+    if (!record.legacy) return entry;
+    for (const Parent of getSchemaLineage(Object.getPrototypeOf(Owner)).reverse())
+    {
+        const inherited = CLASS_SCHEMA.get(Parent).declarations.find(({ entry: candidate }) =>
+            candidate.key === entry.key && candidate.role === entry.role && candidate.index === entry.index);
+        if (!inherited) continue;
+        const merged = mergeMemberMetadata({ ...resolveInheritedDeclaration(Parent, inherited) }, entry);
+        merged.name = entry.name;
+        return merged;
+    }
+    return entry;
 }
 
 function defineClassMetadata(Constructor, definition)
