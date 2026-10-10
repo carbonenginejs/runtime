@@ -10,7 +10,9 @@
 //     ISimTimeRebaseNotify), paths, the resource manager and file systems
 //     (IBlueResMan, CjsBlueResMan, CjsMotherLode, IBlueResFileSystem,
 //     BlueResFileSystemRemote, RemoteFileCache), object metadata, placement
-//     observers, the ITri* curve/function interfaces, ICurveSetDriver, and the
+//     observers, the lazy object holder (BlueObjectProxy, IBlueObjectProxy,
+//     IBlueObjectBuilder, IUnloadable), the ITri* curve/function interfaces,
+//     ICurveSetDriver, and the
 //     red/black readers and writers (IRootReader*, IRootWriter, DictReader,
 //     YamlWriter).
 //
@@ -68,6 +70,10 @@ export * from "./IBlueResMan.js";
 export * from "./IBlueResManNotifications.js";
 export * from "./IRoot.js";
 export * from "./IInitialize.js";
+export * from "./IUnloadable.js";
+export * from "./IBlueObjectBuilder.js";
+export * from "./IBlueObjectProxy.js";
+export * from "./BlueObjectProxy.js";
 export * from "./ICurveSetDriver.js";
 export * from "./ITriFunction.js";
 export * from "./ITriScalarFunction.js";

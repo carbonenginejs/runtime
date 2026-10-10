@@ -1,5 +1,6 @@
 // Source: core/include/CcpTime.h:38-46
-// Source: core/CcpTime.cpp:219-246 (TimeAsDouble), :271-286 (TimeIsUTC),
+// Source: core/CcpTime.cpp:219-246 (TimeAsDouble), :255-264 (TimeFromDouble),
+//         :271-286 (TimeIsUTC),
 //         :149-186 (TimeAsDateTime, TimeFromDateTime - the !_WIN32 branch)
 //
 // Carbon's clock is an integer count of 100ns ticks, and nearly every consumer
@@ -126,6 +127,22 @@ export class CcpTime
   static timeAsFloat(time)
   {
     return Math.fround(CcpTime.timeAsDouble(time));
+  }
+
+  /**
+   * `TimeFromDouble` - seconds as Blue ticks (`core/CcpTime.cpp:255-264`):
+   * the whole and fractional parts are scaled separately and each truncated,
+   * as the donor's `modf` and two integer casts do.
+   *
+   * @param {number} time Seconds.
+   * @returns {number} Blue time, in 100ns ticks.
+   */
+  static timeFromDouble(time)
+  {
+    const intpart = Math.trunc(time);
+    const fracpart = time - intpart;
+
+    return Math.trunc(fracpart * TICKS_PER_SECOND) + (intpart * TICKS_PER_SECOND);
   }
 
 

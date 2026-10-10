@@ -1,5 +1,6 @@
 import { getRegisteredClassName } from "../../../npm/dist/global/compose/className.js";
 import { blue, NotifyModified } from "../../../npm/dist/global/blue/index.js";
+import * as distBlue from "../../../npm/dist/global/blue/index.js";
 import { TriGeometryRes } from "../../../npm/dist/resource/index.js";
 import { Tr2Mesh } from "../../../npm/dist/trinity/index.js";
 import { StubResMan } from "../../support/stubResMan.js";
@@ -227,7 +228,11 @@ test("native skinned-object LOD helper selects whole models at exact thresholds"
   assert.equal(high.lod.GetCurrentLod(), 0);
 });
 
-test("native skinned-object LOD helper preserves proxy fallback and lifecycle rules", () =>
+// The unload units below are Carbon's (ticks), which arrive with BlueObjectProxy.
+const lodUnitsSkip = "BlueObjectProxy" in distBlue ? false
+  : "npm/dist predates BlueObjectProxy and the tick-based LOD unload; rebuild npm/dist";
+
+test("native skinned-object LOD helper preserves proxy fallback and lifecycle rules", { skip: lodUnitsSkip }, () =>
 {
   const lod = new Tr2SkinnedObjectLod();
   assert.equal(lod.HaveLodSetup(), false);
@@ -254,11 +259,14 @@ test("native skinned-object LOD helper preserves proxy fallback and lifecycle ru
   assert.equal(lod.IsSimulatingCloth(0), false);
   assert.equal(lod.IsSimulatingCloth(1), true);
 
-  assert.equal(lod.UnloadLodIfNeeded(20, 0.1), false);
-  assert.deepEqual(temporaryHigh.updates, [[ 20, 10 ]]);
+  // Tr2SkinnedObjectLOD.cpp:75-80: deltaTime is Blue ticks compared as float
+  // seconds against g_unloadLODMaxFrametime (0.1f, cpp:12); the timeout is
+  // TimeFromDouble(10.0) ticks (cpp:21).
+  assert.equal(lod.UnloadLodIfNeeded(20, 1000000), false);
+  assert.deepEqual(temporaryHigh.updates, [[ 20, 100000000 ]]);
   assert.deepEqual(residentMedium.updates, [[ 20, 0 ]]);
-  assert.deepEqual(residentLow.updates, [[ 20, 10 ]]);
-  assert.equal(lod.UnloadLodIfNeeded(30, 0.1001), false);
+  assert.deepEqual(residentLow.updates, [[ 20, 100000000 ]]);
+  assert.equal(lod.UnloadLodIfNeeded(30, 1001000), false);
   assert.equal(residentMedium.updates.length, 1);
 
   const changedModel = { name: "changed" };

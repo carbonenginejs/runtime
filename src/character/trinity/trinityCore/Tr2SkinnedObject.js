@@ -17,9 +17,10 @@ import { ITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
   className: "Tr2SkinnedObject",
   family: "trinityCore",
   fields: {
-    highDetailModel: [meta.type.unknown, meta.blue.notify, meta.blue.persist],
-    mediumDetailModel: [meta.type.unknown, meta.blue.notify, meta.blue.persist],
-    lowDetailModel: [meta.type.unknown, meta.blue.notify, meta.blue.persist],
+    // Tr2SkinnedObject_Blue.cpp:49-51: IBlueObjectProxyPtr, READWRITE | PERSIST | NOTIFY.
+    highDetailModel: [meta.type.rootRef("IBlueObjectProxy"), meta.blue.notify, meta.blue.readwrite, meta.blue.persist],
+    mediumDetailModel: [meta.type.rootRef("IBlueObjectProxy"), meta.blue.notify, meta.blue.readwrite, meta.blue.persist],
+    lowDetailModel: [meta.type.rootRef("IBlueObjectProxy"), meta.blue.notify, meta.blue.readwrite, meta.blue.persist],
     currentLod: [meta.type.int32, meta.blue.read]
   }
 })
