@@ -78,11 +78,11 @@ export class CjsFsd64SchemaDecoder
 
     /**
      * Decodes a schema-defined value using the established private reader
-     * contract: Maps and numeric identifier values.
+     * contract: Maps and numeric identifier values, with BigInts for wide integers.
      *
      * @param {ArrayBuffer|ArrayBufferView} bytes Container bytes.
      * @param {CjsFsdSchema} schema Dataset schema.
-     * @returns {Map<(number|string), unknown>|Object<string, unknown>} A Map for a root MAP, a plain object for a root OBJECT.
+     * @returns {Map<(number|string|bigint), unknown>|Object<string, unknown>} A Map for a root MAP, a plain object for a root OBJECT.
      */
     static read(bytes, schema)
     {
@@ -101,6 +101,35 @@ export class CjsFsd64SchemaDecoder
     {
         return DecodeRoot(bytes, schema, true);
     }
+
+    /**
+     * Decode root records incrementally without retaining decoded values.
+     * A root OBJECT is one record with key zero, not a table of its fields.
+     * @param {ArrayBuffer|ArrayBufferView} bytes Container bytes.
+     * @param {CjsFsdSchema} schema Inert dataset schema.
+     * @returns {Generator<Array<*>>} Native scalar keys and decoded values.
+     */
+    static *entries(bytes, schema)
+    {
+        ValidateSchema(schema);
+        const binary = new CjsFsd64Binary(bytes, {
+            path: schema.path,
+            schemaID: [ schema.schemaID, ...(schema.acceptedSchemaIDs ?? []) ],
+        });
+        const offset = binary.RootOffset + (schema.container.offset ?? 0);
+        if (ResolveFsdType(schema.container.type) === CjsFsd64Binary.Type.OBJECT)
+        {
+            yield [0, DecodeObject(binary, offset, schema.container, false, schema.path)];
+            return;
+        }
+        const seen = new Set();
+        for (const pair of IterateMap(binary, offset, schema.container, false, schema.path))
+        {
+            if (seen.has(pair[0])) throw DuplicateKeyError(pair[0], schema.path);
+            seen.add(pair[0]);
+            yield pair;
+        }
+    }
 }
 
 /**
@@ -109,7 +138,7 @@ export class CjsFsd64SchemaDecoder
  * @param {ArrayBuffer|ArrayBufferView} bytes Container bytes.
  * @param {CjsFsdSchema} schema Dataset schema.
  * @param {boolean} json True for plain objects and decimal-string identifiers.
- * @returns {Map<(number|string), unknown>|Object<string, unknown>} The decoded root.
+ * @returns {Map<(number|string|bigint), unknown>|Object<string, unknown>} The decoded root.
  */
 function DecodeRoot(bytes, schema, json)
 {
@@ -184,10 +213,15 @@ function DecodeValue(binary, baseOffset, descriptor, json, path, field)
             return FormatIdentifier(binary.Uint32(offset), json);
 
         case CjsFsd64Binary.Type.UINT_64:
-            return binary.Uint64(offset);
-
         case CjsFsd64Binary.Type.UINT_64_IDENTIFIER:
-            return json ? binary.Uint64Identity(offset) : binary.Uint64(offset);
+        {
+            // Payload values are not offsets. Keep wide data as BigInt for native
+            // interchange; offset/count reads still use the strict Uint64 method.
+            const value = BigInt(binary.Uint64Identity(offset));
+            if (json && (type === CjsFsd64Binary.Type.UINT_64_IDENTIFIER || value > BigInt(Number.MAX_SAFE_INTEGER)))
+                return value.toString();
+            return value <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(value) : value;
+        }
 
         default:
             throw SchemaError(`Unsupported FSD binary type: ${descriptor.type}`);
@@ -275,12 +309,27 @@ function DecodeList(binary, pointerOffset, descriptor, json, path, field)
  * @param {CjsFsdValueDescriptor} descriptor MAP descriptor.
  * @param {boolean} json True for a key-sorted plain object, false for a Map.
  * @param {string} path Logical resource path, for errors.
- * @returns {Map<(number|string), unknown>|Object<string, unknown>} The decoded entries.
+ * @returns {Map<(number|string|bigint), unknown>|Object<string, unknown>} The decoded entries.
  */
 function DecodeMap(binary, headerOffset, descriptor, json, path)
 {
-    const entries = [];
+    const entries = Array.from(IterateMap(binary, headerOffset, descriptor, json, path));
+    return json
+        ? CreateJSONObject(entries, path, descriptor.key.type)
+        : CreateMap(entries, path);
+}
 
+/**
+ * Yield decoded map entries using the same layout as eager reads.
+ * @param {CjsFsd64Binary} binary Validated container.
+ * @param {number} headerOffset Absolute map header offset.
+ * @param {CjsFsdValueDescriptor} descriptor Map layout.
+ * @param {boolean} json Whether to emit JSON-compatible values.
+ * @param {string} path Logical dataset path.
+ * @returns {Generator<Array<*>>} Decoded entries.
+ */
+function* IterateMap(binary, headerOffset, descriptor, json, path)
+{
     for (const recordOffset of binary.MapEntries(descriptor.recordSize, headerOffset))
     {
         const key = DecodeValue(binary, recordOffset, descriptor.key, json, path, "<key>");
@@ -293,12 +342,8 @@ function DecodeMap(binary, headerOffset, descriptor, json, path)
                 json,
                 path,
             );
-        entries.push([ key, value ]);
+        yield [ key, value ];
     }
-
-    return json
-        ? CreateJSONObject(entries, path, descriptor.key.type)
-        : CreateMap(entries, path);
 }
 
 /**

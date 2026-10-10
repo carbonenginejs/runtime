@@ -9,7 +9,7 @@ export class CjsFsd64SchemaReader
      * Decodes bytes to the existing private Map-based reader representation.
      *
      * @param {ArrayBuffer|ArrayBufferView} bytes Container bytes.
-     * @returns {Map<(number|string), unknown>|Object<string, unknown>} The decoded root.
+     * @returns {Map<(number|string|bigint), unknown>|Object<string, unknown>} The decoded root.
      */
     Read(bytes)
     {

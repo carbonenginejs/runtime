@@ -1,4 +1,5 @@
 import { CjsFormat } from "../../format/CjsFormat.js";
+import { CjsTableData } from "../../format/CjsTableData.js";
 import { ReadColumns } from "./core/sqliteSchema.js";
 import { ReadHeader, TableRows } from "./core/sqlitePages.js";
 import { ReadRecord, SqliteError } from "./core/sqliteRecords.js";
@@ -78,6 +79,7 @@ export class CjsSqliteFormat extends CjsFormat {
         : "The header signature is not SQLite 3.",
       variants: [
         { kind: OUTPUT_JSON, supported: recognized },
+        { kind: "cjstables", supported: recognized },
         { kind: OUTPUT_PAYLOAD, supported: recognized },
         { kind: OUTPUT_RAW, supported: recognized }
       ],
@@ -101,12 +103,18 @@ export class CjsSqliteFormat extends CjsFormat {
    *
    * @param {Uint8Array|ArrayBuffer} input Container bytes.
    * @param {object} [options] Read options.
-   * @param {string} [options.output] `json`, `payload` or `raw`.
+   * @param {string} [options.emit] `cjstables`, `json`, `payload` or `raw`.
+   * @param {string} [options.output] Legacy output alias.
    * @param {string[]} [options.tables] Read only these tables.
-   * @returns {object} Tables keyed by name, each an array of row objects.
+   * @returns {object} A cjstables document, or tables keyed by name for the legacy outputs.
    */
   static read(input, options = {}) {
     const output = options.emit ?? options.output ?? OUTPUT_JSON;
+    if (output === "cjstables") {
+      const data = new CjsTableData(options.metadata ?? {});
+      for (const batch of this.readBatches(input, options)) data.Append(batch);
+      return data.GetValues();
+    }
     const bytes = Normalize(input);
     const header = ReadHeader(bytes);
     const schema = ReadMaster(bytes, header);
@@ -136,33 +144,33 @@ export class CjsSqliteFormat extends CjsFormat {
    * Reads to plain JSON-compatible values, converting blobs to arrays.
    *
    * @param {Uint8Array|ArrayBuffer} input Container bytes.
-   * @param {object} [options={}] Read options, as for `read`; `output` is forced to `json`.
+   * @param {object} [options={}] Read options, as for `read`; `emit` is forced to `json`.
    * @returns {object} Tables keyed by name, each an array of row objects.
    */
   static readJSON(input, options = {}) {
-    return this.read(input, { ...options, output: OUTPUT_JSON });
+    return this.read(input, { ...options, emit: OUTPUT_JSON });
   }
 
   /**
    * Reads with blobs left as `Uint8Array` and wide integers as `BigInt`.
    *
    * @param {Uint8Array|ArrayBuffer} input Container bytes.
-   * @param {object} [options={}] Read options, as for `read`; `output` is forced to `payload`.
+   * @param {object} [options={}] Read options, as for `read`; `emit` is forced to `payload`.
    * @returns {object} Tables keyed by name, each an array of row objects.
    */
   static readPayload(input, options = {}) {
-    return this.read(input, { ...options, output: OUTPUT_PAYLOAD });
+    return this.read(input, { ...options, emit: OUTPUT_PAYLOAD });
   }
 
   /**
    * Returns the parsed header and `sqlite_master` entries, decoding no rows.
    *
    * @param {Uint8Array|ArrayBuffer} input Container bytes.
-   * @param {object} [options={}] Read options, as for `read`; `output` is forced to `raw`.
+   * @param {object} [options={}] Read options, as for `read`; `emit` is forced to `raw`.
    * @returns {{header: object, schema: Array<object>}} Parsed header and master entries.
    */
   static readRaw(input, options = {}) {
-    return this.read(input, { ...options, output: OUTPUT_RAW });
+    return this.read(input, { ...options, emit: OUTPUT_RAW });
   }
 
   /**
@@ -178,6 +186,43 @@ export class CjsSqliteFormat extends CjsFormat {
   }
 
 
+  /**
+   * Yield bounded tables while retaining SQLite rowids as external identities.
+   * Blobs and wide integers retain their native representations. Optional
+   * keyPaths explicitly select named identity columns for particular tables.
+   * @param {ArrayBuffer|ArrayBufferView} input Database bytes.
+   * @param {object} [options={}] tables, keyPaths, metadata and batchSize.
+   * @returns {Generator<object>} Plain cjstables documents.
+   */
+  static *readBatches(input, options = {}) {
+    const { batchSize = 256, keyPaths = {}, metadata = {} } = options;
+    if (!Number.isSafeInteger(batchSize) || batchSize < 1) throw new RangeError("Batch size must be positive");
+    const bytes = Normalize(input);
+    const header = ReadHeader(bytes);
+    const wanted = options.tables ? new Set(options.tables) : null;
+    for (const entry of ReadMaster(bytes, header)) {
+      if (entry.type !== "table" || (wanted && !wanted.has(entry.name))) continue;
+      const columns = ReadColumns(entry.sql).names;
+      const keyPath = Object.hasOwn(keyPaths, entry.name) ? keyPaths[entry.name] : null;
+      let batch = new CjsTableData(metadata).AddTable(entry.name, { columns, keyPath });
+      let count = 0;
+      let total = 0;
+      const rows = entry.rootPage ? IterateTable(bytes, header, entry, false) : [];
+      for (const [rowid, value] of rows) {
+        batch.Add(entry.name, keyPath === null ? rowid : value[keyPath], value);
+        total++;
+        if (++count === batchSize) {
+          yield batch.GetValues();
+          batch = new CjsTableData(metadata).AddTable(entry.name, { columns, keyPath });
+          count = 0;
+        }
+      }
+      if (count || total === 0) yield batch.GetValues();
+    }
+  }
+
+  static worker = { module: import.meta.url, exportName: "CjsSqliteFormat", outputTypes: [ "json", "payload", "raw", "cjstables" ], defaultOutput: "json" };
+
   static id = "CjsSqliteFormat";
 
   static extensions = [ ".sqlite", ".db", ".sqlite3" ];
@@ -185,6 +230,7 @@ export class CjsSqliteFormat extends CjsFormat {
   static outputs = CjsFormat.defineOutputs({
       json: { default: true, decoded: true },
       payload: { decoded: true },
+      cjstables: { decoded: true },
       raw: { role: "debug", decoded: true }
   });
 }
@@ -210,8 +256,12 @@ function ReadMaster(bytes, header) {
 
 /** Reads one table's rows as objects, named from its `CREATE TABLE` text. */
 function ReadTable(bytes, header, entry, json) {
+  return Array.from(IterateTable(bytes, header, entry, json), pair => pair[1]);
+}
+
+/** Decode one row at a time; the external key is SQLite's signed integer rowid. */
+function* IterateTable(bytes, header, entry, json) {
   const { names, rowidAlias } = ReadColumns(entry.sql);
-  const rows = [];
 
   for (const row of TableRows(bytes, header, entry.rootPage)) {
     const values = ReadRecord(row.payload, header.encoding);
@@ -226,10 +276,8 @@ function ReadTable(bytes, header, entry, json) {
       record[name] = json ? ToJSON(value) : value;
     }
 
-    rows.push(record);
+    yield [row.rowid, record];
   }
-
-  return rows;
 }
 
 /** Converts a decoded value to something `JSON.stringify` keeps losslessly. */

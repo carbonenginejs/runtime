@@ -1,6 +1,9 @@
 import { CjsFormat } from "../../../format/CjsFormat.js";
 import { CjsFsd64Binary } from "./core/CjsFsd64Binary.js";
 
+import { CjsFsd64SchemaDecoder } from "./core/CjsFsd64SchemaDecoder.js";
+import { CjsTableData } from "../../../format/CjsTableData.js";
+
 const VARIANT = "cfsd64";
 const OUTPUT_JSON = "json";
 const OUTPUT_PAYLOAD = "payload";
@@ -103,8 +106,8 @@ export class CjsFsd64Format extends CjsFormat
         {
             const metadata = this.describe(input, options);
             const reader = options.reader ?? options.registry;
-            const canReadPayload = typeof reader?.Read === "function";
-            const canReadJson = typeof reader?.ReadJSON === "function";
+            const canReadPayload = Boolean(options.schema) || typeof reader?.Read === "function";
+            const canReadJson = Boolean(options.schema) || typeof reader?.ReadJSON === "function";
 
             return {
                 format: VARIANT,
@@ -114,8 +117,9 @@ export class CjsFsd64Format extends CjsFormat
                 preferredOutput: canReadPayload ? OUTPUT_PAYLOAD : canReadJson ? OUTPUT_JSON : "",
                 reason: canReadPayload || canReadJson
                     ? "Recognized modern 64-bit cFSD and found a reader for the dataset layout."
-                    : "Recognized modern 64-bit cFSD; decoding requires options.reader or options.registry.",
+                    : "Recognized modern 64-bit cFSD; decoding requires options.schema, options.reader or options.registry.",
                 variants: [
+                    { kind: "cjstables", supported: Boolean(options.schema), requires: options.schema ? [] : [ "schema" ] },
                     { kind: OUTPUT_PAYLOAD, supported: canReadPayload, requires: canReadPayload ? [] : [ "reader.Read" ] },
                     { kind: OUTPUT_JSON, supported: canReadJson, requires: canReadJson ? [] : [ "reader.ReadJSON" ] }
                 ],
@@ -165,7 +169,8 @@ export class CjsFsd64Format extends CjsFormat
      * @param {string} [options.path] Source name used in errors.
      * @param {{Read?: Function, ReadJSON?: Function}} [options.reader] Dataset reader.
      * @param {{Read?: Function, ReadJSON?: Function}} [options.registry] Dataset reader registry, used when reader is absent.
-     * @param {string} [options.emit] "json" selects ReadJSON; anything else selects Read.
+     * @param {string} [options.emit] "cjstables", "json", or native "payload".
+     * @param {object} [options.schema] Inert dataset schema, required for table/worker decoding.
      * @returns {unknown} The reader's decoded payload or JSON value.
      * @throws {TypeError} When no reader exposes the selected method.
      */
@@ -175,6 +180,18 @@ export class CjsFsd64Format extends CjsFormat
         // modern bytes never surface as a misleading missing-reader failure.
         this.describe(input, options);
 
+        if (options.emit === "cjstables")
+        {
+            const result = new CjsTableData(options.metadata ?? {});
+            for (const batch of this.readBatches(input, options)) result.Append(batch);
+            return result.GetValues();
+        }
+        if (options.schema)
+        {
+            return options.emit === OUTPUT_JSON
+                ? CjsFsd64SchemaDecoder.readJSON(input, options.schema)
+                : CjsFsd64SchemaDecoder.read(input, options.schema);
+        }
         const reader = options.reader ?? options.registry;
         const method = options.emit === OUTPUT_JSON ? "ReadJSON" : "Read";
 
@@ -204,13 +221,45 @@ export class CjsFsd64Format extends CjsFormat
         return this.read(input, { ...options, emit: OUTPUT_JSON });
     }
 
+    /**
+     * Decode bounded native table batches from an inert schema. Schemas can be
+     * posted to workers; live reader instances and registries cannot.
+     * @param {ArrayBuffer|ArrayBufferView} input Container bytes.
+     * @param {object} options Inert schema, optional name, metadata and batchSize.
+     * @returns {Generator<object>} Plain cjstables documents.
+     */
+    static *readBatches(input, options)
+    {
+        const { schema, name = schema?.name ?? "records", metadata = {}, batchSize = 256 } = options;
+        if (!schema) throw new TypeError("FSD table output requires an inert options.schema");
+        if (!Number.isSafeInteger(batchSize) || batchSize < 1) throw new RangeError("Batch size must be positive");
+        let batch = new CjsTableData(metadata).AddTable(name);
+        let count = 0;
+        let total = 0;
+        for (const [key, value] of CjsFsd64SchemaDecoder.entries(input, schema))
+        {
+            batch.Add(name, key, value);
+            total++;
+            if (++count === batchSize)
+            {
+                yield batch.GetValues();
+                batch = new CjsTableData(metadata).AddTable(name);
+                count = 0;
+            }
+        }
+        if (count || total === 0) yield batch.GetValues();
+    }
+
+    static worker = { module: import.meta.url, exportName: "CjsFsd64Format", outputTypes: [ "payload", "json", "cjstables" ], defaultOutput: "payload" };
+
     static id = "CjsFsd64Format";
 
     static extensions = [ ".fsdbinary" ];
 
     static outputs = CjsFormat.defineOutputs({
         payload: { default: true, decoded: true },
-        json: { decoded: true }
+        json: { decoded: true },
+        cjstables: { decoded: true, requires: [ "schema" ] }
     });
 }
 

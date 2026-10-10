@@ -99,13 +99,16 @@ export class CjsFsdFormat extends CjsFormat
         return this.read(input, { ...options, emit: OUTPUT_JSON });
     }
 
+    static worker = { module: import.meta.url, exportName: "CjsFsdFormat", outputTypes: [ "json", "payload", "cjstables" ], defaultOutput: "payload" };
+
     static id = "CjsFsdFormat";
 
     static extensions = [ ".fsdbinary" ];
 
     static outputs = CjsFormat.defineOutputs({
         payload: { default: true, decoded: true },
-        json: { decoded: true }
+        json: { decoded: true },
+        cjstables: { decoded: true, requires: [ "schema" ] }
     });
 }
 

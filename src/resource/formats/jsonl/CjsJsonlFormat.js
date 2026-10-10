@@ -1,5 +1,8 @@
 import { CjsFormat } from "../../format/CjsFormat.js";
 
+import { CjsTableData } from "../../format/CjsTableData.js";
+import { asUint8Array } from "#utils/bytes";
+
 const FORMAT_NAME = "CjsJsonlFormat";
 const TEXT_DECODER = new TextDecoder("utf-8", { fatal: true });
 
@@ -45,7 +48,7 @@ export class CjsJsonlFormat extends CjsFormat
      * @param {string|ArrayBuffer|ArrayBufferView} input JSON Lines text or UTF-8 bytes.
      * @param {object} [options={}] Reader options.
      * @param {string} [options.source] Source name used in error messages.
-     * @returns {Array<unknown>} The parsed record values, in line order.
+     * @returns {Array<unknown>|object} Record values, or a plain document when emit is cjstables.
      */
     Read(input, options = {})
     {
@@ -66,12 +69,13 @@ export class CjsJsonlFormat extends CjsFormat
     }
 
     /**
-     * Provides the one-shot JSON Lines reader entry point.
+     * Provides the one-shot JSON Lines reader entry point. Set emit to cjstables
+     * and supply name/keyPath/metadata to select shared table output.
      *
      * @param {string|ArrayBuffer|ArrayBufferView} input JSON Lines text or UTF-8 bytes.
      * @param {object} [options={}] Reader options.
      * @param {string} [options.source] Source name used in error messages.
-     * @returns {Array<unknown>} The parsed record values, in line order.
+     * @returns {Array<unknown>|object} Record values, or a plain document when emit is cjstables.
      * @throws {TypeError} When a record is not valid JSON or the bytes are not UTF-8.
      */
     static read(input, options = {})
@@ -83,7 +87,9 @@ export class CjsJsonlFormat extends CjsFormat
             records.push(value);
         }
 
-        return records;
+        return (options.emit ?? options.output) === "cjstables"
+            ? CjsTableData.fromRecords(records, options).GetValues()
+            : records;
     }
 
     /**
@@ -164,12 +170,112 @@ export class CjsJsonlFormat extends CjsFormat
         return lines.join("\n") + (lines.length ? "\n" : "");
     }
 
+
+    /**
+     * Parse a byte or text stream without retaining earlier records. Node streams
+     * and browser ReadableStreams both supply async iterables. A stream must use
+     * either text chunks or byte chunks consistently; UTF-8 may span byte chunks.
+     * @param {AsyncIterable<*>|Iterable<*>} chunks Text or byte chunks.
+     * @param {object} [options={}] Source name for diagnostics.
+     * @returns {AsyncGenerator<Array<*>>} Pairs of parsed value and physical line number.
+     */
+    static async *iterate(chunks, options = {})
+    {
+        const decoder = new TextDecoder("utf-8", { fatal: true });
+        let pending = "";
+        let lineNumber = 0;
+        let mode = null;
+        let first = true;
+        for await (const chunk of chunks)
+        {
+            const nextMode = typeof chunk === "string" ? "text" : "bytes";
+            if (mode !== null && mode !== nextMode) throw new TypeError("JSONL streams cannot mix text and byte chunks");
+            mode = nextMode;
+            pending += mode === "text" ? chunk : decoder.decode(asUint8Array(chunk), { stream: true });
+            if (first && pending.length)
+            {
+                if (pending.charCodeAt(0) === 0xFEFF) pending = pending.slice(1);
+                first = false;
+            }
+            let start = 0;
+            let end;
+            while ((end = pending.indexOf("\n", start)) !== -1)
+            {
+                const line = pending.slice(start, end);
+                lineNumber++;
+                if (line.trim()) yield [ ParseRecord(line, lineNumber, options), lineNumber ];
+                start = end + 1;
+            }
+            pending = pending.slice(start);
+        }
+        if (mode === "bytes") pending += decoder.decode();
+        if (pending.trim()) yield [ ParseRecord(pending, lineNumber + 1, options), lineNumber + 1 ];
+    }
+
+    /**
+     * Decode bounded plain table documents, suitable for postMessage or storage.
+     * External keys are explicit fields or source ordinals, never inferred names.
+     * Duplicate keys across batches are checked by the receiving table/storage policy.
+     * @param {AsyncIterable<*>|Iterable<*>} chunks Text or byte chunks.
+     * @param {object} [options={}] Source, name, keyPath, metadata and batchSize.
+     * @returns {AsyncGenerator<object>} Version-one cjstables documents.
+     */
+    static async *readBatches(chunks, options = {})
+    {
+        const { name = "records", keyPath = null, metadata = {}, batchSize = 256 } = options;
+        if (!Number.isSafeInteger(batchSize) || batchSize < 1) throw new RangeError("Batch size must be positive");
+        let batch = new CjsTableData(metadata).AddTable(name, { keyPath });
+        let count = 0;
+        let ordinal = 0;
+        for await (const [value] of this.iterate(chunks, options))
+        {
+            batch.Add(name, keyPath === null ? ordinal : value[keyPath], value);
+            ordinal++;
+            if (++count === batchSize)
+            {
+                yield batch.GetValues();
+                batch = new CjsTableData(metadata).AddTable(name, { keyPath });
+                count = 0;
+            }
+        }
+        if (count || ordinal === 0) yield batch.GetValues();
+    }
+
+    /**
+     * Write one explicitly selected table's values as ordinary JSON Lines.
+     * External identities and metadata are not representable in JSONL: reject
+     * external keys unless they are the zero-based ordinals a reader recreates.
+     * @param {object} document A cjstables document.
+     * @param {object} options Writer options.
+     * @param {string} options.table Table to write.
+     * @returns {string} Newline-terminated JSON Lines.
+     */
+    static writeTables(document, { table })
+    {
+        const data = CjsTableData.from(document);
+        const selected = data.tables.get(table);
+        if (!selected) throw new Error(`Unknown table ${table}`);
+        let ordinal = 0;
+        const values = [];
+        for (const [key, value] of data.Entries(table))
+        {
+            if (selected.keyPath === null && key !== ordinal) throw new TypeError("JSONL cannot preserve external record keys");
+            AssertJSONValue(value);
+            values.push(value);
+            ordinal++;
+        }
+        return this.toText(values);
+    }
+
+    static worker = { module: import.meta.url, exportName: "CjsJsonlFormat", outputTypes: [ "json", "cjstables" ], defaultOutput: "json" };
+
     static id = "CjsJsonlFormat";
 
     static extensions = [ ".jsonl" ];
 
     static outputs = CjsFormat.defineOutputs({
         json: { default: true, decoded: true },
+        cjstables: { decoded: true },
     });
 }
 
@@ -183,16 +289,18 @@ export class CjsJsonlFormat extends CjsFormat
  */
 function* ParseRecords(input, options)
 {
-    const lines = NormalizeText(input).split(/\r?\n/u);
-
-    for (let index = 0; index < lines.length; index++)
+    const text = NormalizeText(input);
+    let start = 0;
+    let lineNumber = 0;
+    while (start <= text.length)
     {
-        if (!lines[index].trim())
-        {
-            continue;
-        }
-
-        yield [ ParseRecord(lines[index], index + 1, options), index + 1 ];
+        const newline = text.indexOf("\n", start);
+        const end = newline === -1 ? text.length : newline;
+        const line = text.slice(start, end);
+        lineNumber++;
+        if (line.trim()) yield [ ParseRecord(line, lineNumber, options), lineNumber ];
+        if (newline === -1) break;
+        start = end + 1;
     }
 }
 
@@ -272,6 +380,25 @@ function FormatMessage(claim, options)
         : " input";
 
     return `${FORMAT_NAME}${source} ${claim}`;
+}
+
+/**
+ * Refuse values whose native representation JSON would silently discard.
+ * @param {*} value Decoded table value.
+ * @param {Set<object>} [active=new Set()] Ancestors for cycle detection.
+ * @returns {void}
+ */
+function AssertJSONValue(value, active = new Set())
+{
+    if (value === null || typeof value === "string" || typeof value === "boolean") return;
+    if (typeof value === "number" && Number.isFinite(value)) return;
+    if (typeof value !== "object") throw new TypeError("Table contains a non-JSON value");
+    if (active.has(value)) throw new TypeError("JSONL cannot preserve graph references");
+    if (!Array.isArray(value) && Object.getPrototypeOf(value) !== Object.prototype && Object.getPrototypeOf(value) !== null)
+        throw new TypeError("JSONL cannot preserve native objects or bytes");
+    active.add(value);
+    for (const item of Array.isArray(value) ? value : Object.values(value)) AssertJSONValue(item, active);
+    active.delete(value);
 }
 
 export default CjsJsonlFormat;

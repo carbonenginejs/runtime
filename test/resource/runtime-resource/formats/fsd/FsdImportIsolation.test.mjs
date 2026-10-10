@@ -6,7 +6,16 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const PACKAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../../..");
 const FSD_ROOT = path.join(PACKAGE_ROOT, "npm", "dist", "resource", "formats", "fsd");
-const FORMAT_BASE = path.join(PACKAGE_ROOT, "npm", "dist", "resource", "format", "CjsFormat.js");
+// Table headers reuse Carbon's existing type vocabulary and its pure helpers.
+// Keep this explicit so importing engine, Blue, or bootstrap modules still fails.
+const SHARED_FORMAT_MODULES = new Set([
+    "resource/format/CjsFormat.js",
+    "resource/format/CjsTableData.js",
+    "global/schema/types/carbonTypes.js",
+    "global/utils/bytes.js",
+    "global/utils/is.js",
+    "global/math/num.js",
+].map(name => path.join(PACKAGE_ROOT, "npm", "dist", name)));
 
 test("the built FSD entry imports directly and identifies synthetic modern bytes", async () =>
 {
@@ -19,7 +28,7 @@ test("the built FSD entry imports directly and identifies synthetic modern bytes
     assert.equal(CjsFsdFormat.inspect(bytes).variant, "cfsd64");
 });
 
-test("built FSD entry graphs stay inside the FSD subtree", async () =>
+test("built FSD entry graphs use only FSD and the admitted shared format helpers", async () =>
 {
     for (const relative of [ "index.js", "64/readers/index.js" ])
     {
@@ -30,7 +39,7 @@ test("built FSD entry graphs stay inside the FSD subtree", async () =>
         for (const modulePath of graph)
         {
             assert.equal(
-                IsWithin(FSD_ROOT, modulePath) || modulePath === FORMAT_BASE,
+                IsWithin(FSD_ROOT, modulePath) || SHARED_FORMAT_MODULES.has(modulePath),
                 true,
                 `${relative} reached unrelated built module ${modulePath}`,
             );
@@ -57,7 +66,7 @@ async function ReadRelativeModuleGraph(entry)
             const resolved = path.resolve(path.dirname(modulePath), specifier);
 
             assert.equal(
-                IsWithin(FSD_ROOT, resolved) || resolved === FORMAT_BASE,
+                IsWithin(FSD_ROOT, resolved) || SHARED_FORMAT_MODULES.has(resolved),
                 true,
                 `${modulePath} imports outside the FSD subtree: ${specifier}`,
             );

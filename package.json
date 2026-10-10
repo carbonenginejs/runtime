@@ -75,6 +75,7 @@
     "./resource/imageio": "./src/resource/imageio/index.js",
     "./resource/worker": "./src/global/blue/worker/CjsResManWorker.js",
     "./resource/format": "./src/resource/format/index.js",
+    "./resource/format/tables": "./src/resource/format/CjsTableData.js",
     "./resource/formats": "./src/resource/formats/index.js",
     "./resource/formats/black": "./src/resource/formats/black/index.js",
     "./resource/formats/black/schema": "./src/resource/formats/black/core/blackSchema.js",
