@@ -1,6 +1,9 @@
+import { BlueList, IListNotify } from "#blue";
+import { BLUELISTEVENT } from "#consts/blue";
+import { ITr2GenericEmitter } from "../ITr2GenericEmitter/ITr2GenericEmitter.js";
 // Source: trinity/trinity/Particle/Tr2SphereConstraint.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { ITr2GenericParticleConstraint } from "./ITr2GenericParticleConstraint.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -8,8 +11,30 @@ import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDecl
 
 /** A collision constraint that keeps particles outside or inside a sphere, reflecting velocity and triggering generators and emitters on contact. */
 @meta.define({ className: "Tr2SphereConstraint", family: "particle" })
+@meta.blue.inherit(IListNotify)
+@meta.blue.interface(ITr2GenericParticleConstraint)
 export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
 {
+
+  /** Carbon Tr2SphereConstraint.cpp:68-80 prepares newly inserted collision emitters. */
+  @meta.blue.method
+  @meta.implemented
+  OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
+  {
+    if (!(event & BLUELISTEVENT.BELIST_LOADING) && (event & BLUELISTEVENT.BELIST_EVENTMASK) === BLUELISTEVENT.BELIST_INSERTED && list === this.onCollisionEmitters && value)
+    {
+      const emitter = CjsSchema.cast(value, ITr2GenericEmitter);
+      if (emitter) emitter.SetThreadSafeFlag();
+    }
+  }
+
+  /** Installs Carbon's constructor-owned list observers. */
+  constructor()
+  {
+    super();
+    this.onCollisionEmitters.SetNotify(this);
+  }
+
 
   #positionElement = null;
 
@@ -68,7 +93,7 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
   @meta.blue.read
   @meta.blue.persist
   @meta.type.list("ITr2GenericEmitter")
-  onCollisionEmitters = [];
+  onCollisionEmitters = new BlueList(ITr2GenericEmitter);
 
   /** m_generators (PITr2AttributeGeneratorVector) [READ, PERSIST] */
   @meta.blue.read

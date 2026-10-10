@@ -1,3 +1,6 @@
+import { BlueList, IListNotify } from "#blue";
+import { BLUELISTEVENT } from "#consts/blue";
+import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/PlayFX.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/PlayFX.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -16,8 +19,39 @@ const NO_FORCES = [];
 /** A steering-group behaviour that clones, aims, and starts or stops a firing effect on each drone as it arrives at and departs from its target. */
 @meta.define({ className: "PlayFX", family: "eve/child/behaviors" })
 @meta.blue.inherit(IBehavior)
+@meta.blue.inherit(IListNotify)
+@meta.blue.interface(IBehavior, IListNotify, EveEntity)
 export class PlayFX extends EveEntity
 {
+
+  /** Carbon PlayFX.cpp:166-200 maintains firing-effect registry membership. */
+  @meta.blue.method
+  @meta.implemented
+  OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
+  {
+    if (list !== this.generatedFiringEffects || (event & BLUELISTEVENT.BELIST_LOADING) || !this.IsInRegistry()) return;
+    const registry = this.GetComponentRegistry();
+    switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
+    {
+      case BLUELISTEVENT.BELIST_INSERTED:
+        CjsSchema.cast(value, EveEntity)?.Register(registry);
+        break;
+      case BLUELISTEVENT.BELIST_REMOVED:
+        CjsSchema.cast(value, EveEntity)?.UnRegister(registry);
+        break;
+      case BLUELISTEVENT.BELIST_UNLOADSTART:
+        for (const item of list) CjsSchema.cast(item, EveEntity)?.UnRegister(registry);
+        break;
+    }
+  }
+
+  /** Installs Carbon's constructor-owned list observers. */
+  constructor()
+  {
+    super();
+    this.generatedFiringEffects.SetNotify(this);
+  }
+
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
   @meta.blue.notify
@@ -41,7 +75,7 @@ export class PlayFX extends EveEntity
   /** m_firingEffects (PIEveFiringEffectElementVector) [READ] */
   @meta.blue.read
   @meta.type.list("IEveFiringEffectElement")
-  generatedFiringEffects = [];
+  generatedFiringEffects = new BlueList(IEveFiringEffectElement);
 
   /** m_sec (int32_t) [READWRITE, PERSIST] */
   @meta.blue.readwrite

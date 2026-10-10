@@ -7,6 +7,7 @@ import { vec2 } from "#math/vec2";
 
 /** Represents one Sprite2D polygon vertex with two validated texture-coordinate channels. */
 @meta.define({ className: "Tr2Sprite2dVertex", family: "sprite2d" })
+@meta.blue.interface()
 export class Tr2Sprite2dVertex extends Tr2Sprite2dVertexBase
 {
 

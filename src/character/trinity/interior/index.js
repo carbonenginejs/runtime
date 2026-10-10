@@ -8,3 +8,5 @@ export * from "./Tr2InteriorPerLightPSData.js";
 export * from "./Tr2InteriorPerObjectPSData.js";
 export * from "./Tr2InteriorPlaceable.js";
 export * from "./Tr2InteriorScene.js";
+export * from "./ITr2Interior.js";
+export * from "./ITr2InteriorDynamic.js";

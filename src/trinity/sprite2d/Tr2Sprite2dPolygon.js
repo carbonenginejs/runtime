@@ -1,3 +1,5 @@
+import { BlueList, IListNotify } from "#blue";
+
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPolygon.h
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPolygon.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPolygon_Blue.cpp
@@ -13,18 +15,36 @@ import { vec4 } from "#math/vec4";
 /** Stores editable Sprite2D polygon vertices and triangles and validates wrapped append input. */
 @meta.define({ className: "Tr2Sprite2dPolygon", family: "sprite2d" })
 @meta.blue.chainTo(Tr2TexturedSpriteObject)
+@meta.blue.inherit(IListNotify)
 export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
 {
+
+  /** Carbon Tr2Sprite2dPolygon.cpp:158-161 invalidates geometry for every list event. */
+  @meta.blue.method
+  @meta.implemented
+  OnListModified(_event, _key = 0, _key2 = 0, _value = null, _list = null)
+  {
+    this.SetDirty();
+  }
+
+  /** Installs Carbon's constructor-owned list observers. */
+  constructor()
+  {
+    super();
+    this.vertices.SetNotify(this);
+    this.triangles.SetNotify(this);
+  }
+
 
   /** m_triangles (PTr2Sprite2dTriangleVector) [READ] */
   @meta.blue.read
   @meta.type.list("Tr2Sprite2dTriangle")
-  triangles = [];
+  triangles = new BlueList(Tr2Sprite2dTriangle, { className: "Tr2Sprite2dTriangle" });
 
   /** m_vertices (PTr2Sprite2dVertexVector) [READ] */
   @meta.blue.read
   @meta.type.list("Tr2Sprite2dVertex")
-  vertices = [];
+  vertices = new BlueList(Tr2Sprite2dVertex, { className: "Tr2Sprite2dVertex" });
 
   /** Carbon method AppendTriangles -> PyAppendTriangles (MAP_METHOD). */
   @meta.blue.method

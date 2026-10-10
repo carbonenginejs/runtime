@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Particle/Tr2PlaneConstraint.h
-import { IsMatch } from "#blue";
+import { IsMatch, BlueList, IListNotify, INotify } from "#blue";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { CjsSchema, meta } from "#schema";
@@ -12,11 +12,17 @@ import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDecl
 
 /** A collision constraint that keeps particles on one side of a plane, reflecting velocity with elasticity, friction and noise, and triggering generators and emitters on contact. */
 @meta.define({ className: "Tr2PlaneConstraint", family: "particle" })
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(IInitialize)
-@meta.blue.chainTo(ITr2GenericParticleConstraint)
+@meta.blue.inherit(IInitialize, IListNotify, INotify)
+@meta.blue.interface(ITr2GenericParticleConstraint, INotify, IInitialize)
 export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
 {
+
+  /** Installs the collision-emitter observer, as Tr2PlaneConstraint.cpp:39 does. */
+  constructor()
+  {
+    super();
+    this.onCollisionEmitters.SetNotify(this);
+  }
 
   #normalizedPlane = vec4.fromValues(0, 1, 0, 0);
 
@@ -66,7 +72,7 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
   @meta.blue.read
   @meta.blue.persist
   @meta.type.list("ITr2GenericEmitter")
-  onCollisionEmitters = [];
+  onCollisionEmitters = new BlueList(ITr2GenericEmitter);
 
   /** m_generators (PITr2AttributeGeneratorVector) [READ, PERSIST] */
   @meta.blue.read

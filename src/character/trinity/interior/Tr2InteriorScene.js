@@ -1,7 +1,11 @@
+import { BlueList, IListNotify } from "#blue";
+import { BLUELISTEVENT } from "#consts/blue";
+import { ITr2InteriorDynamic } from "./ITr2InteriorDynamic.js";
+import { ITr2InteriorLight } from "./ITr2InteriorLight.js";
 // Source: trinity/trinity/Interior/Tr2InteriorScene.h
 // Source: trinity/trinity/Interior/Tr2InteriorScene.cpp
 // Source: trinity/trinity/Interior/Tr2InteriorScene_Blue.cpp
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { blue, IInitialize, INotify, IsMatch, ResourceRequirement } from "#blue";
 import { PixelFormat, DepthStencilFormat } from "#consts/render-context";
 import { Tr2RenderTarget } from "../../../trinity/core/device/Tr2RenderTarget.js";
@@ -15,13 +19,53 @@ import { vec4 } from "#math/vec4";
  * Interior-scene state record for authored dynamics, lights, environment, fog,
  * sun, shadows, and diagnostics. Member notifications acquire the cubemap
  * through the installed resource manager and rebuild shadow-target wrappers
- * through the supplied or installed Trinity context. List lifecycle, picking
+ * through the supplied or installed Trinity context. Picking, physics-scene creation
  * and scene rendering remain unported; allocation is not rendered shadows.
  */
 @meta.define({ className: "Tr2InteriorScene", family: "interior" })
 @meta.blue.inherit(IInitialize, INotify)
+@meta.blue.inherit(IListNotify)
 export class Tr2InteriorScene
 {
+  // Carbon m_apexScene remains empty until the physics scene is installed.
+  _apexScene = null;
+
+  // Carbon m_dynamicsPendingLoad retains dynamics awaiting AddToScene success.
+  _dynamicsPendingLoad = [];
+  /**
+   * Carbon Tr2InteriorScene.cpp:229-284 updates lights and dynamic membership.
+   * Adapted: array identity search replaces FindKey; JS has no QI reference unlock.
+   */
+  @meta.blue.method
+  @meta.adapted
+  OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
+  {
+    if (list === this.lights) this.SetupShadowMaps();
+    else if (list === this.dynamics && !(event & BLUELISTEVENT.BELIST_LOADING) && value)
+    {
+      const dynamic = CjsSchema.cast(value, ITr2InteriorDynamic);
+      if (!dynamic) return;
+      const masked = event & BLUELISTEVENT.BELIST_EVENTMASK;
+      if (masked === BLUELISTEVENT.BELIST_REMOVED)
+      {
+        dynamic.RemoveFromScene();
+        const index = this._dynamicsPendingLoad.indexOf(dynamic);
+        if (index !== -1) this._dynamicsPendingLoad.splice(index, 1);
+      }
+      else if (masked === BLUELISTEVENT.BELIST_INSERTED && !dynamic.AddToScene(this._apexScene) && !this._dynamicsPendingLoad.includes(dynamic))
+      {
+        this._dynamicsPendingLoad.push(dynamic);
+      }
+    }
+  }
+
+  /** Installs Carbon's constructor-owned list observers. */
+  constructor()
+  {
+    this.dynamics.SetNotify(this);
+    this.lights.SetNotify(this);
+  }
+
 
   /** m_backgroundCubeMapPath (std::string) [READWRITE, PERSIST, NOTIFY] */
   @meta.blue.notify
@@ -84,14 +128,14 @@ export class Tr2InteriorScene
   @meta.blue.read
   @meta.blue.persist
   @meta.type.list("ITr2InteriorDynamic")
-  dynamics = [];
+  dynamics = new BlueList(ITr2InteriorDynamic);
 
   /** m_lights (PITr2InteriorLightVector) [READ, PERSIST, NOTIFY] */
   @meta.blue.notify
   @meta.blue.read
   @meta.blue.persist
   @meta.type.list("ITr2InteriorLight")
-  lights = [];
+  lights = new BlueList(ITr2InteriorLight);
 
   /** m_maxFogAmount (float) [READWRITE, PERSIST] */
   @meta.blue.readwrite

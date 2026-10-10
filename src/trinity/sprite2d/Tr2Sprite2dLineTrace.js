@@ -1,3 +1,6 @@
+import { BlueList, IListNotify } from "#blue";
+import { BLUELISTEVENT } from "#consts/blue";
+
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dLineTrace.h
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dLineTrace_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; portable value helpers are maintained here.
@@ -10,8 +13,32 @@ import { vec4 } from "#math/vec4";
 /** Stores editable Sprite2D line-strip vertices and validates wrapped append input. */
 @meta.define({ className: "Tr2Sprite2dLineTrace", family: "sprite2d" })
 @meta.blue.chainTo(Tr2TexturedSpriteObject)
+@meta.blue.inherit(IListNotify)
 export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
 {
+
+  /** Carbon Tr2Sprite2dLineTrace.cpp:779-789 tests the unmasked event. */
+  @meta.blue.method
+  @meta.implemented
+  OnListModified(event, _key = 0, _key2 = 0, _value = null, _list = null)
+  {
+    switch (event)
+    {
+      case BLUELISTEVENT.BELIST_INSERTED:
+      case BLUELISTEVENT.BELIST_REMOVED:
+      case BLUELISTEVENT.BELIST_UNLOADSTART:
+        this.SetDirty();
+        break;
+    }
+  }
+
+  /** Installs Carbon's constructor-owned list observers. */
+  constructor()
+  {
+    super();
+    this.vertices.SetNotify(this);
+  }
+
 
   /** m_cornerType (int) [READWRITE, NOTIFY] */
   @meta.blue.notify
@@ -47,7 +74,7 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
   @meta.blue.notify
   @meta.blue.read
   @meta.type.list("Tr2Sprite2dLineTraceVertex")
-  vertices = [];
+  vertices = new BlueList(Tr2Sprite2dLineTraceVertex, { className: "Tr2Sprite2dLineTraceVertex" });
 
   /** m_lineWidth (float) [READWRITE, NOTIFY] */
   @meta.blue.notify

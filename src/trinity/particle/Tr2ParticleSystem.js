@@ -1,7 +1,10 @@
+import { BlueList, IListNotify } from "#blue";
+import { BLUELISTEVENT } from "#consts/blue";
+import { ITr2GenericParticleConstraint } from "./constraint/ITr2GenericParticleConstraint.js";
 // Source: trinity/trinity/Particle/Tr2ParticleSystem.h
 import { IInitialize, INotify, IsMatch, ISimTimeRebaseNotify, blue, CcpTime } from "#blue";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Failed } from "../../trinityal/ALResult.js";
 import { Tr2BufferDescriptionAL } from "../../trinityal/Tr2BufferAL/Tr2BufferDescriptionAL.js";
@@ -24,12 +27,27 @@ import { ITr2GenericEmitterUpdateArguments } from "./ITr2GenericEmitter/index.js
 @meta.blue.inherit(IInitialize)
 @meta.blue.inherit(ISimTimeRebaseNotify)
 @meta.blue.interface(IInitialize, INotify)
+@meta.blue.inherit(IListNotify)
 export class Tr2ParticleSystem
 {
+
+  /** Carbon Tr2ParticleSystem.cpp:220-239 binds an inserted constraint. */
+  @meta.blue.method
+  @meta.implemented
+  OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
+  {
+    if (list === this.constraints && (event & BLUELISTEVENT.BELIST_EVENTMASK) === BLUELISTEVENT.BELIST_INSERTED && value)
+    {
+      const constraint = CjsSchema.cast(value, ITr2GenericParticleConstraint);
+      if (constraint) constraint.Bind(this);
+    }
+  }
+
 
   /** Registers the inherited device-resource lifetime (Tr2DeviceResource.cpp:8-12). */
   constructor()
   {
+    this.constraints.SetNotify(this);
     TriDevice.RegisterResource(this);
   }
 
@@ -135,7 +153,7 @@ export class Tr2ParticleSystem
   @meta.blue.read
   @meta.blue.persist
   @meta.type.list("ITr2GenericParticleConstraint")
-  constraints = [];
+  constraints = new BlueList(ITr2GenericParticleConstraint);
 
   /** m_forces (PITr2ParticleForceVector) [READ, PERSIST] */
   @meta.blue.read
