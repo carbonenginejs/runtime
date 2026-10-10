@@ -397,12 +397,12 @@ export class Copier extends ICopier
   /** Resolves a stored member's JavaScript equivalent of its native offset. */
   static _memberStorage(instance, member)
   {
-    if (member.role !== "member" || typeof (member.key ?? member.name) !== "string" || !(member.key ?? member.name))
+    if (member.role !== "member" || typeof member.key !== "string" || !member.key)
     {
       throw new TypeError("Copier storage requires a canonical member and JavaScript key.");
     }
     let target = instance;
-    let key = member.key ?? member.name;
+    let key = member.key;
     let value = Copier._dataValue(target, key);
     if (member.index !== undefined)
     {

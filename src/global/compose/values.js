@@ -77,7 +77,7 @@ export function createValuesTransport(services)
         for (const field of GetFields(target.constructor))
         {
             if (!isExportableField(field, options)) continue;
-            const stored = target[field.key ?? field.name];
+            const stored = target[field.key];
             out[field.name] = Export(field.index === undefined ? stored : stored[field.index], field, options);
         }
         return out;
@@ -105,8 +105,8 @@ export function createValuesTransport(services)
                 if (inputName === undefined) continue;
 
                 const incoming = values[inputName];
-                const owner = field.index === undefined ? target : target[field.key ?? field.name];
-                const key = field.index ?? field.key ?? field.name;
+                const owner = field.index === undefined ? target : target[field.key];
+                const key = field.index ?? field.key;
                 const current = owner[key];
 
                 // In place first, so a typed array keeps its identity and anything

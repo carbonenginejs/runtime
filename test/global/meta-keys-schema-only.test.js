@@ -6,7 +6,7 @@ test("schema-only values use canonical keys and field aliases without Blue servi
 {
     class Record { value = 1; get oldValue() { return this.value; } }
     CjsSchema.define(Record, { className: "SchemaOnlyKeyRecord", fields: {
-        value: [meta.key("Value"), meta.keyAlias("alternate"), meta.type.int32, meta.blue.readwrite], oldValue: [meta.keyAlias("Value")]
+        value: [meta.member("Value"), meta.keyAlias("alternate"), meta.type.int32, meta.blue.readwrite], oldValue: [meta.keyAlias("Value")]
     } });
     const item = new Record();
     CjsSchema.setValues(item, { Value: 4 });

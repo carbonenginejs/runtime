@@ -42,7 +42,7 @@ export function EnumerateChildren(root, onChild, options = {})
         const member = members[i];
         if (member.role !== "member") continue;
         if (options.ownedOnly === true && member.lifecycle?.ownership !== "owned") continue;
-        let value = readData(root, member.key ?? member.name);
+        let value = readData(root, member.key);
         if (member.index !== undefined) value = readData(value, member.index);
         enumerateValue(value, member.type, (child, index) => onChild(child, member, index), reverse);
     }

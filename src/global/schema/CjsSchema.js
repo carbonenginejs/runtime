@@ -1065,10 +1065,6 @@ export class CjsSchema
         ours: this.#impl.custom,
         renamed: this.#renamed,
         keyAlias: this.#keyAlias,
-        key: name => {
-            if (typeof name !== "string" || !name.trim()) throw new TypeError("meta.key requires a non-empty external name.");
-            return fieldDecorator("declaration", { name: name.trim() });
-        },
         keyIndex: index => {
             if (!Number.isSafeInteger(index) || index < 0) throw new TypeError("meta.keyIndex requires a nonnegative safe integer.");
             return fieldDecorator("keyIndex", index);
@@ -1871,7 +1867,7 @@ function declarationDecorator(role, name, options = {})
 
 function validateDeclaration(entry)
 {
-    for (const key of Object.hasOwn(entry, "key") ? [ "name", "key" ] : [ "name" ])
+    for (const key of [ "name", "key" ])
     {
         if (typeof entry[key] !== "string" || !entry[key].trim())
         {
@@ -1886,7 +1882,6 @@ function validateDeclaration(entry)
     {
         throw new TypeError("CjsSchema declaration index must be a nonnegative safe integer.");
     }
-    if (entry.key === entry.name) delete entry.key;
     return entry;
 }
 
@@ -1901,7 +1896,7 @@ function inferredDeclarationRole(Constructor, key, kind)
 
 function declarationIdentity(entry)
 {
-    return JSON.stringify([ entry.key ?? entry.name, entry.name, Object.hasOwn(entry, "index") ? entry.index : null ]);
+    return JSON.stringify([ entry.key, entry.name, Object.hasOwn(entry, "index") ? entry.index : null ]);
 }
 
 function declarationMap(schema, role)
@@ -1914,12 +1909,10 @@ function applyDeclarationNamespace(entry, namespace, value)
     if (namespace === "type") RejectRetiredTypeKinds(value);
     if (namespace === "declaration")
     {
-        const storageKey = entry.key ?? entry.name;
         for (const key of [ "name", "role", "index" ])
         {
             if (Object.hasOwn(value, key)) entry[key] = value[key];
         }
-        if (storageKey !== entry.name) entry.key = storageKey;
     }
     else if (namespace === "keyAlias")
     {
@@ -1958,7 +1951,7 @@ function refreshLegacyFields(schema)
 {
     schema.fields = schema.declarations.filter(record => record.legacy).map(({ entry }) =>
     {
-        const field = { name: entry.key ?? entry.name };
+        const field = { name: entry.key };
         for (const [ namespace, value ] of Object.entries(entry))
         {
             if ([ "name", "key", "role", "index", "declaringClass" ].includes(namespace)) continue;
@@ -1977,6 +1970,7 @@ function defineFieldMetadata(Constructor, fieldName, namespace, value, options =
     const before = record?.entry;
     const entry = before ? { ...before } : {
         name: fieldName,
+        key: fieldName,
         role: inferredDeclarationRole(Constructor, fieldName, options.kind),
         declaringClass: Constructor
     };
@@ -1986,7 +1980,7 @@ function defineFieldMetadata(Constructor, fieldName, namespace, value, options =
     const collision = targetMap.get(identity);
     if (collision && collision !== record)
     {
-        throw new TypeError(`CjsSchema has duplicate ${entry.role} declaration "${entry.name}" for ${entry.key ?? entry.name}.`);
+        throw new TypeError(`CjsSchema has duplicate ${entry.role} declaration "${entry.name}" for ${entry.key}.`);
     }
     if (record)
     {
@@ -2030,7 +2024,7 @@ function defineCanonicalDeclaration(Constructor, definition, role)
     const identity = declarationIdentity(entry);
     if (map.has(identity))
     {
-        throw new TypeError(`CjsSchema has duplicate ${role} declaration "${entry.name}" for ${entry.key ?? entry.name}.`);
+        throw new TypeError(`CjsSchema has duplicate ${role} declaration "${entry.name}" for ${entry.key}.`);
     }
     const record = { entry, legacy: false };
     schema.declarations.push(record);
@@ -2050,14 +2044,14 @@ function getCanonicalDeclarations(Constructor, role)
         for (const record of CLASS_SCHEMA.get(current).declarations)
         {
             const { entry } = record;
-            if (entry.role !== role || hidden.has(entry.key ?? entry.name)) continue;
+            if (entry.role !== role || hidden.has(entry.key)) continue;
             let inheritedType;
             if (record.legacy && !entry.type)
             {
                 for (const Parent of getSchemaLineage(Object.getPrototypeOf(current)).reverse())
                 {
                     const inherited = CLASS_SCHEMA.get(Parent).declarations.find(({ entry: candidate }) =>
-                        (candidate.key ?? candidate.name) === (entry.key ?? entry.name) && candidate.role === entry.role && candidate.index === entry.index);
+                        candidate.key === entry.key && candidate.role === entry.role && candidate.index === entry.index);
                     if (!inherited) continue;
                     if (inherited.entry.type) inheritedType = inherited.entry.type;
                     // Explicit declarations are complete; never borrow through
@@ -2290,7 +2284,7 @@ function defineHiddenInheritedFields(Constructor, fieldNames)
     const Parent = Object.getPrototypeOf(Constructor);
     const inherited = [ ...getCanonicalDeclarations(Parent, "member"), ...getCanonicalDeclarations(Parent, "property") ];
     const inheritedFields = new Set(getEffectiveFields(Parent).map(field => field.name));
-    for (const entry of inherited) inheritedFields.add(entry.key ?? entry.name);
+    for (const entry of inherited) inheritedFields.add(entry.key);
     const resolvedKeys = new Set();
     // Declared name only: Constructor.name does not survive minification, and a
     // mangled name in an error reads as a real one and sends you chasing it.
@@ -2302,7 +2296,7 @@ function defineHiddenInheritedFields(Constructor, fieldNames)
         // it is not itself a JS key, and then selects every matching key.
         const keys = inheritedFields.has(fieldName)
             ? [ fieldName ]
-            : inherited.filter(entry => entry.name === fieldName).map(entry => entry.key ?? entry.name);
+            : inherited.filter(entry => entry.name === fieldName).map(entry => entry.key);
         if (!keys.length)
         {
             throw new TypeError(
@@ -2388,7 +2382,7 @@ function findValuesDeclaration(Constructor, name, storage = false)
     {
         for (const field of selected.values())
         {
-            if ((field.key ?? field.name) === name && field.index === undefined) return field;
+            if (field.key === name && field.index === undefined) return field;
         }
     }
     return null;
@@ -3470,8 +3464,7 @@ function enrichEnumField(exported, Constructor)
 /** Structural identity is never removed by a namespace projection. */
 function exportCanonicalDeclaration(entry, namespaces)
 {
-    const result = { name: entry.name, role: entry.role, declaringClass: entry.declaringClass };
-    if (entry.key !== undefined) result.key = entry.key;
+    const result = { name: entry.name, key: entry.key, role: entry.role, declaringClass: entry.declaringClass };
     if (Object.hasOwn(entry, "index")) result.index = entry.index;
     for (const [ namespace, value ] of Object.entries(entry))
     {

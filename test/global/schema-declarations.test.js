@@ -72,7 +72,7 @@ test("Stage-3 and explicit declarations produce the same separate stored and liv
     assert.equal(decorated.members[0].edit.read, undefined);
     assert.equal(decorated.properties[0].edit.persist, undefined);
     assert.equal(decorated.members[0].key, "_boosters");
-    assert.equal(Object.hasOwn(decorated.properties[0], "key"), false);
+    assert.equal(decorated.properties[0].key, "boosters");
     assert.deepEqual(decorated.fields.map(entry => entry.name), [ "_boosters", "boosters" ]);
     assert.equal(decorated.members[0].declaringClass, Decorated);
 });
@@ -174,7 +174,7 @@ test("native tables keep class occurrences and derived-first ordering while lega
         members: [ { name: "shared", key: "derivedStorage", type: { kind: "float32" } } ]
     });
     const schema = CjsSchema.getSchema(Derived);
-    assert.deepEqual(schema.members.map(entry => [ entry.name, entry.key ?? entry.name, entry.declaringClass ]), [
+    assert.deepEqual(schema.members.map(entry => [ entry.name, entry.key, entry.declaringClass ]), [
         [ "derivedOnly", "derivedOnly", Derived ], [ "shared", "derivedStorage", Derived ],
         [ "shared", "stored", Base ], [ "baseOnly", "baseOnly", Base ]
     ]);

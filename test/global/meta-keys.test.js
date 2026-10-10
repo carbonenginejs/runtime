@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { CjsSchema, meta } from "../../src/global/schema/index.js";
 import "../../src/global/blue/values.js";
 
-test("key maps external names without changing storage and keyIndex is not a storage index", () =>
+test("member maps external names without changing storage and keyIndex is not a storage index", () =>
 {
     class Record
     {
@@ -15,7 +15,7 @@ test("key maps external names without changing storage and keyIndex is not a sto
     CjsSchema.define(Record, {
         className: "KeyMetadataRecord",
         fields: {
-            ssao: [meta.key("SSAO"), meta.type.boolean, meta.blue.readwrite, meta.blue.persist],
+            ssao: [meta.member("SSAO"), meta.type.boolean, meta.blue.readwrite, meta.blue.persist],
             Primary: [meta.keyIndex(0), meta.type.int32, meta.blue.readwrite, meta.blue.persist],
             ordinary: [meta.type.int32, meta.blue.readwrite, meta.blue.persist],
             enabled: [meta.keyAlias("SSAO")]
@@ -29,7 +29,7 @@ test("key maps external names without changing storage and keyIndex is not a sto
     assert.equal(Object.hasOwn(primary, "index"), false);
     for (const field of schema.members.filter(field => field !== renamed))
     {
-        assert.equal(Object.hasOwn(field, "key"), false);
+        assert.equal(field.key, field.name, "every declaration stores its JS key");
         assert.equal(Object.hasOwn(field, "alias"), false);
     }
     const value = new Record();
@@ -42,9 +42,9 @@ test("key maps external names without changing storage and keyIndex is not a sto
     assert.deepEqual(CjsSchema.getValues(value), { SSAO: false, Primary: 19, ordinary: 3 });
 });
 
-test("key decorators reject invalid names and indexes", () =>
+test("meta has no key decorator and keyIndex rejects invalid indexes", () =>
 {
-    for (const value of [undefined, null, "", "  ", 3]) assert.throws(() => meta.key(value), TypeError);
+    assert.equal(Object.hasOwn(meta, "key"), false);
     for (const value of [undefined, null, -1, 0.5, "0", Infinity, Number.MAX_SAFE_INTEGER + 1])
         assert.throws(() => meta.keyIndex(value), TypeError);
     assert.equal(Object.hasOwn(meta, "alias"), false);
@@ -55,7 +55,7 @@ test("Stage-3 external keys preserve the JS key in either decorator order", () =
     for (const reverse of [false, true])
     {
         const metadata = {};
-        const decorators = [meta.type.boolean, meta.key("SSAO"), meta.blue.persist];
+        const decorators = [meta.type.boolean, meta.member("SSAO"), meta.blue.persist];
         if (reverse) decorators.reverse();
         for (const decorator of decorators)
             decorator(undefined, { metadata, name: "ssao", kind: "field", addInitializer() {} });
@@ -72,7 +72,7 @@ test("field aliases share prototype accessors and preserve vectors through SetVa
 {
     class Record { colour = new Float32Array([1, 2, 3, 4]); }
     CjsSchema.define(Record, { className: "FieldKeyAliasRecord", fields: {
-        colour: [meta.key("Color"), meta.keyAlias("color"), meta.type.vec4, meta.blue.readwrite, meta.blue.persist]
+        colour: [meta.member("Color"), meta.keyAlias("color"), meta.type.vec4, meta.blue.readwrite, meta.blue.persist]
     } });
     const a = new Record(), b = new Record(), original = a.colour;
     assert.equal(Object.hasOwn(a, "color"), false);

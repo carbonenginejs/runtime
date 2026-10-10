@@ -84,7 +84,7 @@ export function writeDictionaryValue(instance, field, value)
 function dictionaryTarget(instance, field)
 {
   let target = instance;
-  let key = field.key ?? field.name;
+  let key = field.key;
   if (field.index !== undefined)
   {
     const value = field.role === "property" ? target[key] : dataValue(target, key);
