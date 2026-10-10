@@ -13,6 +13,7 @@ const NO_FORCES = [];
 /** A steering behaviour that pulls each drone toward the centroid of its nearby neighbours, recomputing the pull force on a throttled schedule and reusing it between refreshes. */
 @meta.define({ className: "ApproachGroup", family: "eve/child/behaviors" })
 @meta.blue.inherit(IBehavior)
+@meta.blue.interface(IBehavior)
 export class ApproachGroup
 {
 

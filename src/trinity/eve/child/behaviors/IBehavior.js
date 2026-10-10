@@ -92,3 +92,5 @@ export class IBehavior
 }
 
 CjsSchema.decorateMethod(IBehavior, "CalculateBehavior", meta.abstract);
+
+CjsSchema.define(IBehavior, { className: "IBehavior", carbon: "IBehavior", family: "eve/child/behaviors", fields: {} });

@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroup.h
-import { IsMatch } from "#blue";
+import { IsMatch, BlueList } from "#blue";
+import { IBehavior } from "./IBehavior.js";
 import { IListNotify } from "../../../../global/blue/IListNotify.js";
 import { INotify } from "../../../../global/blue/INotify.js";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
@@ -200,7 +201,7 @@ export class BehaviorGroup extends EveEntity
   @meta.blue.read
   @meta.blue.persist
   @meta.type.list("IBehavior")
-  behaviors = [];
+  behaviors = new BlueList(IBehavior, { className: null, listOps: 0 });
 
   /** m_spawnPosition (Vector3) [READWRITE, PERSIST] */
   @meta.blue.readwrite
@@ -211,6 +212,17 @@ export class BehaviorGroup extends EveEntity
   /** m_collectForces (bool) - debug toggle read by the behaviors. */
   @meta.type.boolean
   collectForces = false;
+
+  /**
+   * Carbon BehaviorGroup.cpp:40 registers the typed behavior list's observer.
+   * Keeping IList storage lets bulk readers mute inserts and send LOADFINISHED;
+   * treating authored loading as live edits accesses incomplete scratch slots.
+   */
+  constructor()
+  {
+    super();
+    this.behaviors.SetNotify(this);
+  }
 
   /**
    * Carbon BehaviorGroup::Initialize (cpp:45-57).

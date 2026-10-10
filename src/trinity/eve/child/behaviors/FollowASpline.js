@@ -27,7 +27,7 @@ const NO_FORCES = [];
 @meta.define({ className: "FollowASpline", family: "eve/child/behaviors" })
 @meta.blue.inherit(INotify)
 @meta.blue.inherit(IBehavior)
-@meta.blue.interface(INotify)
+@meta.blue.interface(IBehavior, INotify)
 export class FollowASpline
 {
 

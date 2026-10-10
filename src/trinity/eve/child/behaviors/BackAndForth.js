@@ -21,6 +21,7 @@ const NO_FORCES = [];
 /** A steering behaviour that shuttles each drone between seek and deliver locators, slowing on approach, snapping its facing, and triggering effects on arrival. */
 @meta.define({ className: "BackAndForth", family: "eve/child/behaviors" })
 @meta.blue.inherit(IBehavior)
+@meta.blue.interface(IBehavior)
 export class BackAndForth
 {
 

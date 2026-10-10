@@ -1,4 +1,5 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/ProcessLifetime.h
+import { INotify } from "../../../../../global/blue/INotify.js";
 import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/ProcessLifetime.cpp
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -28,7 +29,7 @@ const SPAWN_POSITION = vec3.create();
 @meta.define({ className: "ProcessLifetime", family: "eve" })
 @meta.blue.inherit(IInitialize)
 @meta.blue.inherit(IBehavior)
-@meta.blue.interface(IInitialize)
+@meta.blue.interface(IBehavior, INotify, IInitialize)
 export class ProcessLifetime
 {
   static ProcessPriority = ProcessPriority;

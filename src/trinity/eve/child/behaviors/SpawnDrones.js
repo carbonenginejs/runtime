@@ -12,6 +12,7 @@ const NO_FORCES = [];
 /** A steering behaviour that populates and repopulates a drone group's agents, either regenerating a jittered spawn grid or spawning agents by count on a schedule or one-shot trigger. */
 @meta.define({ className: "SpawnDrones", family: "eve/child/behaviors" })
 @meta.blue.inherit(IBehavior)
+@meta.blue.interface(IBehavior)
 export class SpawnDrones
 {
 

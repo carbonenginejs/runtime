@@ -17,6 +17,7 @@ const NO_FORCES = [];
  */
 @meta.define({ className: "InclusionVolume", family: "eve/child/behaviors" })
 @meta.blue.inherit(IBehavior)
+@meta.blue.interface(IBehavior)
 export class InclusionVolume
 {
 

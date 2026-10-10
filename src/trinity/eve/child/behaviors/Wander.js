@@ -17,6 +17,7 @@ const NO_FORCES = [];
  */
 @meta.define({ className: "Wander", family: "eve/child/behaviors" })
 @meta.blue.inherit(IBehavior)
+@meta.blue.interface(IBehavior)
 export class Wander
 {
 

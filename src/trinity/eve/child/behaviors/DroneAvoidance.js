@@ -14,6 +14,7 @@ const NO_FORCES = [];
 /** A steering behaviour that pushes each drone away from its nearby neighbours, blended with its current velocity direction, to keep agents from clustering or overlapping. */
 @meta.define({ className: "DroneAvoidance", family: "eve/child/behaviors" })
 @meta.blue.inherit(IBehavior)
+@meta.blue.interface(IBehavior)
 export class DroneAvoidance
 {
 

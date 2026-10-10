@@ -27,6 +27,7 @@ function ClampLength(value, maxLength)
 /** A steering behaviour that smooths each agent's acceleration by rotating it toward the previous frame's direction at a limited angular speed and blending its magnitude toward the desired value. */
 @meta.define({ className: "Inertia", family: "eve/child/behaviors" })
 @meta.blue.inherit(IBehavior)
+@meta.blue.interface(IBehavior)
 export class Inertia
 {
 

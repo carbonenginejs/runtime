@@ -15,6 +15,7 @@ const NO_FORCES = [];
  */
 @meta.define({ className: "CollisionAvoidance", family: "eve/child/behaviors" })
 @meta.blue.inherit(IBehavior)
+@meta.blue.interface(IBehavior)
 export class CollisionAvoidance
 {
 

@@ -5,6 +5,8 @@ import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
 import { BlueList } from "../../npm/dist/global/blue/BlueList.js";
 import { CjsBlackPropertyReaders } from "../../npm/dist/resource/formats/black/core/CjsBlackPropertyReaders.js";
+import * as trinity from "../../npm/dist/trinity/index.js";
+import { CjsBlueReader } from "../../npm/dist/resource/format/CjsBlueReader.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
@@ -324,4 +326,38 @@ test("behavior system load notifications defer wiring and instance modifiers inv
   assert.equal(instance.reset, false);
   instance.OnListModified(BLUELISTEVENT.BELIST_LOADFINISHED, 0, 0, null, instance.transformModifiers);
   assert.equal(instance.reset, true);
+});
+
+
+test("BehaviorGroup binary-reader population mutes inserts until all behavior scratch slots exist", () =>
+{
+  const reader = new CjsBlueReader({ classes: { BehaviorGroup } });
+  const group = reader.CreateRuntimeTarget("BehaviorGroup");
+  group.count = 2;
+  group.InitializeGeometryResource();
+  const first = new ProcessLifetime(), second = new ProcessLifetime();
+  const list = group.behaviors, events = [];
+  const notify = group.OnListModified.bind(group);
+  group.OnListModified = (...args) => { events.push(args[0]); return notify(...args); };
+  reader.ApplyRuntimeValues(group, { behaviors: [first, second] }, "BehaviorGroup");
+  assert.equal(group.behaviors, list);
+  assert.deepEqual(Array.from(group.behaviors), [first, second]);
+  assert.deepEqual(events, [BLUELISTEVENT.BELIST_LOADFINISHED]);
+  assert.equal(group.GetSize(), 2);
+  assert.equal(group._scratchData.length, 2);
+  assert.ok(group._scratchData.every(records => records.length === 2));
+});
+
+
+
+test("BehaviorGroup accepts every Carbon-mapped IBehavior during bulk loading", () =>
+{
+  const names = ["Allign", "ApproachGroup", "BackAndForth", "CollisionAvoidance", "DroneAvoidance",
+    "FollowASpline", "Formation", "InclusionVolume", "Inertia", "PlayFX", "ProcessLifetime", "SeekTarget", "SpawnDrones", "Wander"];
+  const group = new BehaviorGroup(), list = group.behaviors;
+  const behaviors = names.map(name => new trinity[name]());
+  const reader = new CjsBlueReader({ classes: { BehaviorGroup } });
+  reader.ApplyRuntimeValues(group, { behaviors }, "BehaviorGroup");
+  assert.equal(group.behaviors, list);
+  assert.deepEqual(Array.from(list), behaviors, "native interface admission must not silently discard a steering behavior");
 });
