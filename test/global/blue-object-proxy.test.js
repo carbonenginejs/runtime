@@ -226,3 +226,16 @@ test("CcpTime.timeFromDouble scales whole and fractional seconds separately (Ccp
   assert.equal(CcpTime.timeFromDouble(-1.5), -15000000);
   assert.equal(CcpTime.timeFromDouble(0.00000001), 0, "sub-tick fractions truncate");
 });
+
+test("CjsBlackReader is an IBlueObjectBuilder, as Carbon's BlackReader is (BlackReader.h:16-19)", async () =>
+{
+  const { CjsBlackReader } = await import("../../src/resource/formats/black/core/CjsBlackReader.js");
+  const reader = Object.create(CjsBlackReader.prototype);
+  assert.equal(CjsSchema.cast(reader, IBlueObjectBuilder), reader);
+  // The interface's empty bodies (IBlueObjectBuilder.h:19-22); the proxy calls them directly.
+  assert.equal(reader.OnObjectDestroyed(0, null), undefined);
+  assert.equal(reader.OnSelected(0, null), undefined);
+  // Not implemented by this reader: explicit obligations, never silent.
+  assert.throws(() => reader.GetErrorMessage(), /must be implemented/);
+  assert.throws(() => reader.CreateObjectWithYield(0, null), /must be implemented/);
+});

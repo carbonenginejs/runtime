@@ -1,7 +1,8 @@
-import { CjsSchema } from "#schema";
+import { CjsSchema, meta } from "#schema";
 import { applyReaderMember, finalizeReaderObject, getReaderMemberValue, isReaderIList } from "#schema/hydration";
 
 import { CjsBlueReader } from "../../../format/CjsBlueReader.js";
+import { IBlueObjectBuilder } from "../../../../global/blue/IBlueObjectBuilder.js";
 
 import {
     CJS_BLACK_FORMAT_ID,
@@ -1062,3 +1063,10 @@ function WithClassStructure(field, className, fieldName)
     const layout = classStructureLayout(className, fieldName);
     return { ...field, black: { ...black, structure: layout } };
 }
+
+// BlackReader is Carbon's IBlueObjectBuilder (blue/src/BlackReader.h:16-19).
+// The inheritance installs the interface's empty OnObjectDestroyed and
+// OnSelected bodies (IBlueObjectBuilder.h:19-22). CreateObjectWithYield and
+// GetErrorMessage are not implemented here and stay the interface's throwing
+// obligations: this reader throws from CreateObject rather than returning null.
+meta.blue.inherit(IBlueObjectBuilder)(CjsBlackReader, { kind: "class" });
