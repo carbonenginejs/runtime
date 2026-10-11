@@ -55,7 +55,11 @@ technique Main
 {
     pass P0
     {
+        #ifdef SILHOUETTE
+        ZEnable = false;
+        #else
         ZEnable = true;
+        #endif
         ZWriteEnable = false;
         // Additive UNORM union preserves the other mode and overlapping hulls.
         AlphaBlendEnable = true;

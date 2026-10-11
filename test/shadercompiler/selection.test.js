@@ -55,7 +55,7 @@ function annotationsOf(symbol)
     }));
 }
 
-const EFFECTS = ["selection/selectionmask.fx", "selection/skinned_selectionmask.fx", "selection/selectionoutline.fx"];
+const EFFECTS = ["selection/selectionmask.fx", "selection/skinned_selectionmask.fx", "selection/selectionoutline.fx", "selection/selectionsilhouette.fx", "selection/skinned_selectionsilhouette.fx", "selection/selectionvisibleoutline.fx"];
 
 test("the selection effects compile", () =>
 {
@@ -140,4 +140,36 @@ test("the shader footprint remains visible at 1px and reaches the requested widt
         assert.ok(coverage(width, width, 0) > 0, `visible requested outer ring ${width}`);
         assert.equal(coverage(width, width + 1, 0), 0, `no extra outer ring at ${width}`);
     }
+});
+
+
+test("silhouette masks ignore scene depth without writing it", () =>
+{
+    for (const effect of ["selection/selectionsilhouette.fx", "selection/skinned_selectionsilhouette.fx"])
+    {
+        const { state } = compileEffect(effect);
+        const states = Object.fromEntries(findNodes(state.GetTree(), ASTNode.ASTNodeType.NT_STATE_ASSIGNMENT).map(node =>
+        {
+            const blob = { value: 0 };
+            assert.equal(FXAnalyzer.ParseStateAssignment(state, node, FXAnalyzer.g_renderStates, blob), true);
+            return [node.GetToken().stringValue.ToString(), blob.value];
+        }));
+        assert.equal(states.ZEnable, 0);
+        assert.equal(states.ZWriteEnable, 0);
+    }
+});
+
+test("visible silhouette distinguishes an occluder hole from the object's own edge", () =>
+{
+    const source = readFileSync(join(LIBRARY_ROOT, "selection/selectionoutline.fx"), "utf8");
+    // Evaluate the actual shader conditions against synthetic overlapping masks.
+    const gate = source.match(/#ifdef VISIBLE_SILHOUETTE\s+if\( ([^\n]+) \)/u)[1];
+    const edge = source.match(/#ifdef VISIBLE_SILHOUETTE\s+if\( (!SilhouetteCovered[^\n]+) \)/u)[1];
+    const discarded = new Function("Covered", "SilhouetteCovered", "pixel", "size", `return ${gate};`);
+    const contributes = new Function("SilhouetteCovered", "pixel", "x", "y", "size", "int2", `return ${edge};`);
+    assert.equal(discarded(() => false, () => true, 0, 0), true, "no outline on a foreground object");
+    assert.equal(discarded(() => true, () => true, 0, 0), false, "visible selected pixels may be outlined");
+    assert.equal(discarded(() => true, () => false, 0, 0), true, "jittered visibility cannot extend the stable silhouette");
+    assert.equal(contributes(() => true, 0, 0, 0, 0, () => 0), false, "occluder hole is still inside full silhouette");
+    assert.equal(contributes(() => false, 0, 0, 0, 0, () => 0), true, "background outside the full silhouette is a real edge");
 });

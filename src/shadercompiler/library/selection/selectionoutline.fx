@@ -21,6 +21,12 @@ float4 OutlineTargetSize = float4( 0.0, 0.0, 0.0, 0.0 );
 
 // 1 where the selected object is visible, 0 elsewhere.
 Texture2D SelectionMask;
+#ifdef VISIBLE_SILHOUETTE
+Texture2D SelectionSilhouette;
+// The visibility mask follows scene TAA jitter; the silhouette is unjittered.
+// xy is the visibility lookup offset in mask pixels (screen Y points down).
+float4 OutlineVisibilityOffset = float4( 0.0, 0.0, 0.0, 0.0 );
+#endif
 
 // Carbon's screen quad (Tr2Blitter, Tr2RenderUtils SetupScreenQuad): four
 // vertices already in clip space, with texture coordinates this pass does
@@ -41,10 +47,25 @@ bool Covered( int2 pixel, int2 size )
 {
     float2 targetSize = OutlineTargetSize.x > 0.0 && OutlineTargetSize.y > 0.0
         ? OutlineTargetSize.xy : float2( size );
-    int2 maskPixel = int2( (float2( pixel ) + 0.5) * float2( size ) / targetSize );
+    float2 samplePixel = (float2( pixel ) + 0.5) * float2( size ) / targetSize;
+#ifdef VISIBLE_SILHOUETTE
+    samplePixel += OutlineVisibilityOffset.xy;
+#endif
+    int2 maskPixel = int2( samplePixel );
     int2 clamped = clamp( maskPixel, int2( 0, 0 ), size - 1 );
     return dot( SelectionMask.Load( int3( clamped, 0 ) ).rg, SelectionChannel.rg ) > 0.5;
 }
+
+#ifdef VISIBLE_SILHOUETTE
+bool SilhouetteCovered( int2 pixel, int2 size )
+{
+    float2 targetSize = OutlineTargetSize.x > 0.0 && OutlineTargetSize.y > 0.0
+        ? OutlineTargetSize.xy : float2( size );
+    int2 maskPixel = int2( (float2( pixel ) + 0.5) * float2( size ) / targetSize );
+    int2 clamped = clamp( maskPixel, int2( 0, 0 ), size - 1 );
+    return dot( SelectionSilhouette.Load( int3( clamped, 0 ) ).rg, SelectionChannel.rg ) > 0.5;
+}
+#endif
 
 float4 SelectionOutlinePS( float4 position : SV_Position ) : SV_Target
 {
@@ -54,7 +75,13 @@ float4 SelectionOutlinePS( float4 position : SV_Position ) : SV_Target
     int2 size = int2( width, height );
     int2 pixel = int2( position.xy );
 
+    // The visible variant draws inward, only on the selected object itself.
+    // Its edge comes from the complete silhouette, never an occluder's cutout.
+#ifdef VISIBLE_SILHOUETTE
+    if( !Covered( pixel, size ) || !SilhouetteCovered( pixel, size ) )
+#else
     if( Covered( pixel, size ) )
+#endif
     {
         discard;
     }
@@ -71,7 +98,11 @@ float4 SelectionOutlinePS( float4 position : SV_Position ) : SV_Target
     {
         for( int x = -reach; x <= reach; ++x )
         {
+#ifdef VISIBLE_SILHOUETTE
+            if( !SilhouetteCovered( pixel + int2( x, y ), size ) )
+#else
             if( Covered( pixel + int2( x, y ), size ) )
+#endif
             {
                 coverage += 1.0 - smoothstep( radius - 0.5, radius + 0.5, length( float2( x, y ) ) );
             }
