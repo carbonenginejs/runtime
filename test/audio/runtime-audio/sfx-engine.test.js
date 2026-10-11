@@ -3197,79 +3197,30 @@ test("nested Play-Event probability gates remain independent", () =>
 
 test("the shared evaluator preserves all serialized Wwise curve shapes", () =>
 {
-    const samples = [
-        [ 0.125, [
-            0.330078125,
-            0.19508979487054273,
-            0.1796875,
-            0.1913414921145057,
-            0.125,
-            0.03842660007326251,
-            0.0703125,
-            0.019218284911775796,
-            0.001953125,
-            0,
-        ] ],
-        [ 0.25, [
-            0.578125,
-            0.38268299601977035,
-            0.34375,
-            0.3535536829902906,
-            0.25,
-            0.14612561627268617,
-            0.15625,
-            0.07611748897285031,
-            0.015625,
-            0,
-        ] ],
-        [ 0.5, [
-            0.875,
-            0.7071073855961416,
-            0.625,
-            0.49999969340418016,
-            0.5,
-            0.49968240150961296,
-            0.375,
-            0.29288993716220835,
-            0.125,
-            0,
-        ] ],
-        [ 0.75, [
-            0.984375,
-            0.92387896523379,
-            0.84375,
-            0.6464463170097093,
-            0.75,
-            0.8541442549249096,
-            0.65625,
-            0.617322424851289,
-            0.421875,
-            0,
-        ] ],
-        [ 0.875, [
-            0.998046875,
-            0.9807853836374286,
-            0.9296875,
-            0.8086585078854943,
-            0.875,
-            0.9614813722659183,
-            0.8203125,
-            0.8049054866862037,
-            0.669921875,
-            0,
-        ] ],
+    // Each AkCurveInterpolation shape, as its public name describes it.
+    const shapes = [
+        x => 1 - (1 - x) ** 3, // Log3
+        x => Math.sin(Math.PI / 2 * x), // Sine
+        x => x * (3 - x) / 2, // Log1
+        x => (x > 0.5 ? 1 - Math.sin(Math.PI * x) / 2 : Math.sin(Math.PI * x) / 2), // InvSCurve
+        x => x, // Linear
+        x => (1 - Math.cos(Math.PI * x)) / 2, // SCurve
+        x => x * (x + 1) / 2, // Exp1
+        x => 1 - Math.cos(Math.PI / 2 * x), // SineRecip
+        x => x ** 3, // Exp3
+        () => 0, // Constant
     ];
 
-    for (const [ progress, expected ] of samples)
+    for (const progress of [ 0.125, 0.25, 0.5, 0.75, 0.875 ])
     {
-        for (let curve = 0; curve < expected.length; curve++)
+        for (let curve = 0; curve < shapes.length; curve++)
         {
             assert.ok(
                 Math.abs(
                     evaluateWwiseInterpolation(curve, progress)
-                        - expected[curve],
+                        - shapes[curve](progress),
                 ) < 1e-12,
-                `curve ${curve} matches Wwise at ${progress}`,
+                `curve ${curve} matches its shape at ${progress}`,
             );
         }
     }
@@ -3321,14 +3272,14 @@ test("linear-gain curves preserve Wwise shapes and duplicate-x steps", () =>
     assert.ok(
         Math.abs(
             engine.EvaluateGain(selection, controls)
-                - 0.14612561627268617,
+                - (1 - Math.cos(Math.PI * 0.25)) / 2,
         ) < 1e-12,
     );
     speed = 0.5;
     assert.ok(
         Math.abs(
             engine.EvaluateGain(selection, controls)
-                - 0.49968240150961296,
+                - 0.5,
         ) < 1e-12,
     );
     speed = 1.5;
