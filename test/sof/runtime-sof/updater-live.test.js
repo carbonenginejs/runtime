@@ -51,7 +51,8 @@ function Snapshot(live, values)
 /** Normalizes process audio IDs and order-independent named effect bindings. */
 function ComparableValues(object)
 {
-  const values = CjsSchema.getValues(object);
+  // A flat copy: effect lists are compared by name, which a { _ref } lacks.
+  const values = CjsSchema.getValues(object, {}, { refs: false });
   const Visit = (live, exported) =>
   {
     if (!exported || typeof exported !== "object" || !live) return;
