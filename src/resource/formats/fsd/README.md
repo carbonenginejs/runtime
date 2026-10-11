@@ -47,16 +47,24 @@ optional attribute that has no variable offset, a missing child schema), the
 port throws instead.
 
 Modern reads go through an explicit dataset reader: pass `options.reader`
-(or `options.registry`), for example a `CjsFsd64Reader` populated by
-`CjsFsd64ReaderSetCharacterStaticData.registerAll`, plus `options.path`, the
-logical resource path the registry is keyed by. `emit: "json"` / `readJSON`
-returns JSON-compatible data with wide identifiers as lossless decimal
-strings; the default output keeps the readers' `Map` representation.
+(or `options.registry`, a `CjsFsd64Reader` populated with caller-supplied
+readers), plus `options.path`, the logical resource path the registry is
+keyed by, or pass a binary schema directly as `options.schema`. A dataset
+reader is usually a `CjsFsd64SchemaReader` subclass whose static
+`getFsdSchema()` returns a schema defined with
+`CjsFsd64SchemaDecoder.defineSchema`. `emit: "json"` / `readJSON` returns
+JSON-compatible data with wide identifiers as lossless decimal strings; the
+default output keeps the readers' `Map` representation.
 
-This module owns byte validation, declarative layouts, schema decoding,
-exact-path reader registration and the approved dataset readers. It does no
-filesystem discovery, network access, build selection, caching or
-localization, and ships no `.fsdbinary` data.
+This module ships no per-table schemas. The per-table FSD schemas were
+removed on 2026-10-12 until their provenance can be confirmed; the format
+reads nothing without a caller-supplied schema, and fails with
+`CJS_FSD_READER_REQUIRED` or `CJS_FSD_READER_NOT_FOUND`.
+
+This module owns byte validation, declarative layouts, schema decoding and
+exact-path reader registration. It does no filesystem discovery, network
+access, build selection, caching or localization, and ships no
+`.fsdbinary` data.
 
 Error codes (`error.code`):
 - `CJS_FSD_32_UNSUPPORTED`: JSON or table output was requested for legacy

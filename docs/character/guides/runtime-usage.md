@@ -28,10 +28,13 @@ const library = CjsCharacterLibrary.from(values);
 ```
 
 The builder is deterministic when caller metadata is deterministic. It does
-not discover a target or installation. `buildFromResources()` fetches the
-twelve required modern cFSD documents or reads them from a supplied
-`source.read(path, context)` capability, then routes them through the normal
-FSD format pipeline. `build()` and `buildFromInputs()` accept decoded values.
+not discover a target or installation. `buildFromResources()` fetches one
+modern cFSD document per caller-supplied reader in `readers` through
+blue.resMan or a supplied `source.read(path, context)` capability, then routes
+them through the normal FSD format pipeline. The runtime ships no FSD schemas;
+without `readers` nothing is read and the library is built from `documents`
+alone, so the twelve required documents must then be supplied decoded.
+`build()` and `buildFromInputs()` accept decoded values.
 Each non-empty source
 record-map key is copied into the named `recordID` field. Existing fields such
 as `typeID` remain ordinary domain data. Unknown fields and incompatible nested
@@ -41,6 +44,7 @@ during hydration.
 ```js
 const library = await CjsCharacterLibraryBuilder.buildFromResources({
     source: { read: (path, context) => localBytes(path, context) },
+    readers: characterFsdReaders,
     documents: optionalPreparedCatalogs,
     sourceTarget: "eve",
     sourceBuild: "123456"
@@ -50,8 +54,9 @@ const values = CjsSchema.getValues(library);
 ```
 
 Browser fetch callers provide `baseUrl` or `resolveUrl` for `res:/` paths.
-Passing `fsdOptions: { bitWidth: 32 }` identifies legacy FSD and currently
-throws its explicit unsupported-reader error.
+Passing `fsdOptions: { bitWidth: 32 }` with readers identifies legacy FSD and
+currently throws its explicit unsupported-reader error. `fsdOptions` or
+`resourcePaths` without readers throws `CJS_FSD_READER_REQUIRED`.
 
 Supplied `characterDefinitions` records preserve the decoder's JSON in their
 `values` field. Their typed profile catalogs are additional lookup structures;

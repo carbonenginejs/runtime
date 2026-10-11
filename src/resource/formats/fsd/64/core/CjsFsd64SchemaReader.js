@@ -30,7 +30,7 @@ export class CjsFsd64SchemaReader
     /**
      * Returns the binary-layout schema owned by a reader class: the same
      * validated JSON-shaped object on every call, defined inline on the
-     * subclass (for example `CjsFsd64SchemaRaces`) with no backing property.
+     * subclass (a caller-supplied table schema) with no backing property.
      * The explicit getFsdSchema name distinguishes binary layout data from
      * runtime class metadata.
      *

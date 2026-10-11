@@ -545,9 +545,10 @@ export class CjsAudioMan
      * Builds and installs a library from raw resources through the domain
      * builder, defaulting its byte source to the installed media provider.
      *
-     * Raw builds decode the FSD metadata and open every selected bank on the
-     * client; a prepared document through LoadLibraryAsync stays the fast
-     * path for applications.
+     * Raw builds open every selected bank on the client and decode the FSD
+     * metadata only when `options.audioMetadataReader` supplies a reader; a
+     * prepared document through LoadLibraryAsync stays the fast path for
+     * applications.
      */
     async BuildLibraryFromResources(options = {})
     {

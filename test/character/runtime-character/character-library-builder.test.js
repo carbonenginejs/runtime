@@ -27,8 +27,40 @@ import { CjsCharacterLibraryBuilder } from "../../../npm/dist/character/library-
 import * as CcpLog from "../../../npm/dist/global/logging/ccpLog.js";
 import { blue } from "../../../npm/dist/global/blue/index.js";
 import {
-    CjsFsd64ReaderSetCharacterStaticData,
-} from "../../../npm/dist/resource/formats/fsd/64/readers/index.js";
+    CjsFsd64SchemaDecoder,
+    CjsFsd64SchemaReader,
+} from "../../../npm/dist/resource/formats/fsd/index.js";
+
+/**
+ * One synthetic cFSD reader per required character document: the runtime
+ * ships no FSD schemas, so the resource tests decode empty synthetic maps.
+ */
+function CreateTestCharacterReaders()
+{
+    return CjsCharacterLibraryDocuments.listDocumentNames()
+        .filter(name => CjsCharacterLibraryDocuments.isRequiredDocument(name))
+        .map((name, index) =>
+        {
+            class TestCharacterReader extends CjsFsd64SchemaReader
+            {
+                static getFsdSchema = CjsFsd64SchemaReader.bindFsdSchema(CjsFsd64SchemaDecoder.defineSchema({
+                    schema: "carbonenginejs.fsdBinarySchema",
+                    name,
+                    schemaVersion: 1,
+                    path: `res:/test/character/${name.toLowerCase()}.fsdbinary`,
+                    schemaID: (index + 1).toString(16).padStart(32, "0"),
+                    container: {
+                        type: "MAP",
+                        recordSize: 8,
+                        key: { type: "UINT_32_IDENTIFIER", offset: 0 },
+                        fields: [ { name: "value", type: "UINT_32", offset: 4 } ],
+                    },
+                }));
+            }
+
+            return new TestCharacterReader();
+        });
+}
 
 /** Runs `run` with blue's ResMan reading through `Read`, then restores its source. */
 async function WithResManSource(Read, run)
@@ -45,9 +77,9 @@ async function WithResManSource(Read, run)
     }
 }
 
-test("resource builder fetches every required cFSD document into a hydrated library", async () =>
+test("resource builder fetches every caller-supplied cFSD document into a hydrated library", async () =>
 {
-    const readers = CjsFsd64ReaderSetCharacterStaticData.create();
+    const readers = CreateTestCharacterReaders();
     const byPath = new Map(readers.map(reader => [
         reader.constructor.path,
         reader.constructor,
@@ -61,6 +93,7 @@ test("resource builder fetches every required cFSD document into a hydrated libr
         assert.ok(Reader, `unexpected character resource ${path}`);
         return CreateEmptyMapContainer(Reader.schemaID).buffer;
     }, () => CjsCharacterLibraryBuilder.buildFromResources({
+        readers,
         sourceTarget: "example-target",
         sourceBuild: "synthetic-build"
     }));
@@ -84,7 +117,7 @@ test("resource builder fetches every required cFSD document into a hydrated libr
 
 test("resource builder accepts one injected source object", async () =>
 {
-    const readers = CjsFsd64ReaderSetCharacterStaticData.create();
+    const readers = CreateTestCharacterReaders();
     const byPath = new Map(readers.map(reader => [
         reader.constructor.path,
         reader.constructor,
@@ -98,7 +131,7 @@ test("resource builder accepts one injected source object", async () =>
             return CreateEmptyMapContainer(byPath.get(path).schemaID);
         },
     };
-    const library = await CjsCharacterLibraryBuilder.buildFromResources({ source });
+    const library = await CjsCharacterLibraryBuilder.buildFromResources({ readers, source });
 
     assert.ok(library instanceof CjsCharacterLibrary);
     assert.deepEqual(
@@ -111,12 +144,57 @@ test("resource builder accepts one injected source object", async () =>
 test("resource builder reports explicitly identified legacy 32-bit FSD", async () =>
 {
     await assert.rejects(CjsCharacterLibraryBuilder.buildFromResources({
+        readers: CreateTestCharacterReaders(),
         fsdOptions: { bitWidth: 32 },
         source()
         {
             return new Uint8Array(1);
         },
     }), error => error?.code === "CJS_FSD_32_UNSUPPORTED");
+});
+
+test("without FSD readers the resource builder reads nothing and builds from supplied documents", async () =>
+{
+    const documents = Object.fromEntries(CjsCharacterLibraryDocuments.listDocumentNames()
+        .filter(name => CjsCharacterLibraryDocuments.isRequiredDocument(name))
+        .map(name => [ name, {} ]));
+    const library = await CjsCharacterLibraryBuilder.buildFromResources({
+        documents,
+        source(path)
+        {
+            throw new Error(`no-FSD build read ${path}`);
+        },
+    });
+
+    assert.ok(library instanceof CjsCharacterLibrary);
+    for (const name of CjsCharacterLibraryDocuments.listDocumentNames())
+    {
+        assert.deepEqual(library.documents[name], []);
+    }
+});
+
+test("without FSD readers, required documents nobody supplied are still reported by build()", async () =>
+{
+    await assert.rejects(CjsCharacterLibraryBuilder.buildFromResources({
+        source(path)
+        {
+            throw new Error(`no-FSD build read ${path}`);
+        },
+    }), /Character library is missing documents: ancestries/u);
+});
+
+test("FSD options without readers are refused", async () =>
+{
+    for (const options of [ { resourcePaths: { races: "res:/x.fsdbinary" } }, { fsdOptions: {} } ])
+    {
+        await assert.rejects(CjsCharacterLibraryBuilder.buildFromResources({
+            ...options,
+            source(path)
+            {
+                throw new Error(`read ${path} before the reader check`);
+            },
+        }), error => error?.code === "CJS_FSD_READER_REQUIRED");
+    }
 });
 
 function CreateEmptyMapContainer(schemaID)

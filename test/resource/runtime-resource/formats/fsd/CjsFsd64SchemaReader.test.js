@@ -1,64 +1,62 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { CjsFsd64SchemaAncestries } from "../../../../../src/resource/formats/fsd/64/readers/CjsFsd64SchemaAncestries.js";
 import { CjsFsd64Binary } from "../../../../../src/resource/formats/fsd/64/core/CjsFsd64Binary.js";
 import { CjsFsd64SchemaDecoder } from "../../../../../src/resource/formats/fsd/64/core/CjsFsd64SchemaDecoder.js";
+import { CjsFsd64SchemaReader } from "../../../../../src/resource/formats/fsd/64/core/CjsFsd64SchemaReader.js";
 
-test("exposes an ancestry schema using FsdBinary type names", () =>
+/** Synthetic schema reader: the runtime ships no per-table FSD schemas. */
+class TestSchemaReader extends CjsFsd64SchemaReader
 {
-    const schema = CjsFsd64SchemaAncestries.getFsdSchema();
-    const bloodlineID = schema.container.fields.find(field => field.name === "bloodlineID");
+    static getFsdSchema = CjsFsd64SchemaReader.bindFsdSchema(CjsFsd64SchemaDecoder.defineSchema({
+        schema: "carbonenginejs.fsdBinarySchema",
+        name: "example",
+        schemaVersion: 1,
+        path: "res:/test/example.fsdbinary",
+        schemaID: "0123456789abcdef0123456789abcdef",
+        container: {
+            type: "MAP",
+            recordSize: 24,
+            key: { type: "UINT_64_IDENTIFIER", offset: 0 },
+            presence: { type: "UINT_32", offset: 20, allowedMask: 1 },
+            fields: [
+                { name: "count", type: "INT_32", offset: 8 },
+                { name: "linkID", type: "INT_32_IDENTIFIER", offset: 12 },
+                { name: "optionalValue", type: "INT_32", offset: 16, presenceMask: 1 },
+            ],
+        },
+    }));
+}
+
+test("a schema reader subclass exposes its inline schema through getFsdSchema", () =>
+{
+    const schema = TestSchemaReader.getFsdSchema();
+    const linkID = schema.container.fields.find(field => field.name === "linkID");
 
     assert.equal(schema.schema, "carbonenginejs.fsdBinarySchema");
-    assert.equal(schema.name, "ancestries");
-    assert.equal(schema.schemaVersion, 1);
-    assert.equal(bloodlineID.type, "INT_32_IDENTIFIER");
-    assert.equal(bloodlineID.type, CjsFsd64Binary.Type.INT_32_IDENTIFIER);
-    assert.equal(bloodlineID.offset, 16);
-    assert.equal(CjsFsd64SchemaAncestries.fsdSchema, undefined);
-    assert.equal(Object.hasOwn(CjsFsd64SchemaAncestries, "getFsdSchema"), true);
-    assert.equal(CjsFsd64SchemaAncestries.getFsdSchema(), schema);
-    assert.equal(CjsFsd64SchemaAncestries.schema, undefined);
-    assert.equal(CjsFsd64SchemaAncestries.getSchema, undefined);
+    assert.equal(schema.name, "example");
+    assert.equal(linkID.type, CjsFsd64Binary.Type.INT_32_IDENTIFIER);
+    assert.equal(TestSchemaReader.path, "res:/test/example.fsdbinary");
+    assert.equal(TestSchemaReader.schemaID, "0123456789abcdef0123456789abcdef");
+    assert.equal(Object.hasOwn(TestSchemaReader, "getFsdSchema"), true);
+    assert.equal(TestSchemaReader.getFsdSchema(), schema);
+    assert.throws(() => CjsFsd64SchemaReader.getFsdSchema(), /must define static getFsdSchema/u);
 });
 
-test("reads ancestry bytes as lossless JSON through the shared schema decoder", () =>
+test("reads bytes as lossless JSON through the shared schema decoder", () =>
 {
-    const reader = new CjsFsd64SchemaAncestries();
-    const bytes = CreateAncestryFixture(9_007_199_254_740_993n, 0x0f);
-    const result = reader.ReadJSON(bytes);
+    const result = new TestSchemaReader().ReadJSON(CreateFixture(9_007_199_254_740_993n, 1));
 
     assert.deepEqual(result, {
-        "9007199254740993": {
-            bloodlineID: "-1",
-            charisma: 11,
-            intelligence: 14,
-            memory: 15,
-            perception: 17,
-            willpower: 18,
-            descriptionID: "12",
-            iconID: "13",
-            nameID: "16",
-            shortDescription: "A short history",
-        },
+        "9007199254740993": { count: 11, linkID: "-1", optionalValue: 12 },
     });
     assert.deepEqual(JSON.parse(JSON.stringify(result)), result);
 });
 
 test("leaves absent optional schema fields absent from JSON", () =>
 {
-    const result = new CjsFsd64SchemaAncestries().ReadJSON(CreateAncestryFixture(7n, 0));
-
-    assert.deepEqual(result, {
-        7: {
-            bloodlineID: "-1",
-            charisma: 11,
-            intelligence: 14,
-            memory: 15,
-            perception: 17,
-            willpower: 18,
-        },
+    assert.deepEqual(new TestSchemaReader().ReadJSON(CreateFixture(7n, 0)), {
+        7: { count: 11, linkID: "-1" },
     });
 });
 
@@ -120,15 +118,13 @@ test("rejects fields which are not ordered by byte offset", () =>
     );
 });
 
-function CreateAncestryFixture(key, flags)
+function CreateFixture(key, flags)
 {
-    const schema = CjsFsd64SchemaAncestries.getFsdSchema();
-    const bytes = CreateContainer(512, schema.schemaID);
+    const bytes = CreateContainer(256, TestSchemaReader.schemaID);
     const view = new DataView(bytes.buffer);
     const root = 32;
     const table = 64;
     const record = 96;
-    const stringOffset = 240;
 
     SetUint64(view, root, table - root);
     SetUint64(view, root + 8, 1);
@@ -136,19 +132,10 @@ function CreateAncestryFixture(key, flags)
     SetUint64(view, table, record - root);
     SetUint64(view, record - 8, 1);
     SetUint64(view, record, key);
-    SetUint64(view, record + 8, stringOffset - root);
-
-    view.setInt32(record + 16, -1, true);
-    view.setInt32(record + 20, 11, true);
-    view.setInt32(record + 24, 12, true);
-    view.setInt32(record + 28, 13, true);
-    view.setInt32(record + 32, 14, true);
-    view.setInt32(record + 36, 15, true);
-    view.setInt32(record + 40, 16, true);
-    view.setInt32(record + 44, 17, true);
-    view.setInt32(record + 48, 18, true);
-    view.setUint32(record + 52, flags, true);
-    SetString(bytes, view, stringOffset, "A short history");
+    view.setInt32(record + 8, 11, true);
+    view.setInt32(record + 12, -1, true);
+    view.setInt32(record + 16, 12, true);
+    view.setUint32(record + 20, flags, true);
     return bytes;
 }
 
@@ -164,13 +151,6 @@ function CreateContainer(size, schemaID)
 
     SetUint64(view, 24, size - 32);
     return bytes;
-}
-
-function SetString(bytes, view, dataOffset, value)
-{
-    const encoded = new TextEncoder().encode(value);
-    SetUint64(view, dataOffset - 8, encoded.byteLength);
-    bytes.set(encoded, dataOffset);
 }
 
 function SetUint64(view, offset, value)

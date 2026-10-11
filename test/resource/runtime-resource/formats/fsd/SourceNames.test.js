@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { CamelizeFieldName, CjsFsd64SchemaDecoder } from "../../../../../src/resource/formats/fsd/64/core/CjsFsd64SchemaDecoder.js";
-import * as readerExports from "../../../../../src/resource/formats/fsd/64/readers/index.js";
 
 test("a trailing id segment becomes ID, not Id", () =>
 {
@@ -38,42 +37,3 @@ test("a schema whose field name contradicts its source is refused", () =>
     assert.doesNotThrow(() => CjsFsd64SchemaDecoder.defineSchema(build("nameID", "name", true)));
 });
 
-test("every recorded source name agrees with its field name", () =>
-{
-    let checked = 0;
-    const readerClasses = Object.values(readerExports).filter(value =>
-        typeof value === "function" && typeof value.getFsdSchema === "function"
-    );
-
-    // Non-vacuity is asserted at the end, by `checked`. This count is here for
-    // the opposite failure: a reader dropped from the barrel stops being checked
-    // without anything else noticing.
-    assert.equal(readerClasses.length, 60);
-
-    for (const Reader of readerClasses)
-    {
-        const schema = Reader.getFsdSchema();
-
-        // defineSchema enforces it; this asserts the corpus actually exercises
-        // the check rather than passing because nothing declares a source.
-        assert.doesNotThrow(() => CjsFsd64SchemaDecoder.defineSchema(schema), Reader.name);
-
-        const walk = (descriptor) =>
-        {
-            if (!descriptor || typeof descriptor !== "object") return;
-
-            for (const field of descriptor.fields ?? [])
-            {
-                if (field.sourceName !== undefined) checked += 1;
-                walk(field);
-            }
-
-            walk(descriptor.item);
-            walk(descriptor.value);
-        };
-
-        walk(schema.container);
-    }
-
-    assert.ok(checked >= 30, `expected the SKINR schemas to record source names, got ${checked}`);
-});

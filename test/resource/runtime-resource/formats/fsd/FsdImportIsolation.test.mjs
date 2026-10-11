@@ -30,7 +30,7 @@ test("the built FSD entry imports directly and identifies synthetic modern bytes
 
 test("built FSD entry graphs use only FSD and the admitted shared format helpers", async () =>
 {
-    for (const relative of [ "index.js", "64/readers/index.js" ])
+    for (const relative of [ "index.js" ])
     {
         const entry = path.join(FSD_ROOT, relative);
         const graph = await ReadRelativeModuleGraph(entry);

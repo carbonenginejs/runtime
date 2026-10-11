@@ -148,7 +148,9 @@ for meshoptimizer, yaml and black-reader-js; the ww2ogg-translated Wwise Vorbis
 repacker and codebook data (BSD 3-clause); and the stb_vorbis-derived Huffman
 setup. See THIRD-PARTY-NOTICES.md. The WEM reader's PTADPCM decoder was
 removed on 2026-10-11 until its provenance can be confirmed; PTADPCM media is
-identified but not decoded.
+identified but not decoded. The per-table FSD schemas were removed on
+2026-10-12 until their provenance can be confirmed; the format reads nothing
+without a caller-supplied schema.
 
 The bundled Black definition JSON files are generated CarbonEngineJS schema
 artifacts produced by `tools-core` from Carbon's Blue exposure declarations.
@@ -158,8 +160,9 @@ asset.
 
 The GR2/GSF reader was migrated after its EUPL-derived decoder was replaced by
 a validated clean-room implementation and the donor was relicensed MIT. The
-modern cFSD decoder and reviewed dataset schemas decode caller-supplied bytes
-and include no acquired game data, decoded tables, or native loader modules.
+modern cFSD decoder decodes caller-supplied bytes against caller-supplied
+schemas and includes no acquired game data, decoded tables, or native loader
+modules.
 The legacy 32-bit FSD loader under `src/resource/formats/fsd/32` ports
 CarbonEngine's open-source `fsd` library (MIT); it reads caller-supplied bytes
 against a caller-supplied schema and ships no schemas. See

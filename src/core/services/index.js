@@ -6,4 +6,3 @@ export { TnyStore } from "./TnyStore.js";
 
 export { TnyDatabase } from "./TnyDatabase.js";
 export { TnyServiceAPI } from "./TnyServiceAPI.js";
-export { TnyServiceFSD } from "./TnyServiceFSD.js";

@@ -91,16 +91,12 @@ representation revision. Describe and registration do not acquire records.
 Describe, List, GetByID and Find return promises. GetByID requires exactly one
 primary key and returns an owned record or null. Find accepts limit (1–1000),
 cursor (null or opaque string), and AND filters {field, operator, value}. Results
-contain entries, nextCursor and source/build identity. FSD supports eq, ne, lt,
-lte, gt, gte and in. The tools-core API supports one scalar eq predicate; other
-requests reject explicitly. There is no implicit full-table download fallback.
+contain entries, nextCursor and source/build identity. The tools-core API
+supports one scalar eq predicate; other requests reject explicitly. There is no
+implicit full-table download fallback.
 
-TnyServiceFSD receives {read, sourceID, tables}; read(path, identity) returns
-{bytes, build}. Table configuration supplies the inert binary schema and key
-field. It checks the returned build before decoding. Cold queries scan FSD
-records from the source container; a bounded response is not a bounded byte
-download. The decoder needs the container bytes. No raw-byte persistence is
-added. Hosts can inject local Node/Electron sources, HTTP, or worker bridges.
+The runtime ships no FSD table service. The FSD service and the per-table FSD
+schemas were removed on 2026-10-12 until their provenance can be confirmed.
 
 TnyServiceAPI receives {url, target, fetcher, tables} and implements tools-core's
 SDE endpoint contract. Each table explicitly names its ID field. The actual

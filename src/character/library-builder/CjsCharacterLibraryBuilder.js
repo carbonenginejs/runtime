@@ -28,8 +28,26 @@ export class CjsCharacterLibraryBuilder
     }
 
     /**
-     * Builds a hydrated library from the twelve required cFSD documents using
-     * blue.resMan by default or one caller-supplied byte source.
+     * Builds a hydrated library from cFSD documents read through blue.resMan
+     * by default or one caller-supplied byte source, plus supplied documents.
+     *
+     * The runtime ships no FSD schemas. Each caller-supplied reader in
+     * `readers` (for example a `CjsFsd64SchemaReader` subclass instance)
+     * names one document through its schema's `name` and `path`; that
+     * document is read from `resourcePaths[name]` or the schema path and
+     * decoded through the FSD format. Without `readers` nothing is read and
+     * the library is built from `documents` alone, so `build()` still
+     * reports any required document neither source supplied. Passing
+     * `resourcePaths` or `fsdOptions` without readers throws
+     * `CJS_FSD_READER_REQUIRED`.
+     *
+     * @param {object} [options={}] Builder, resource and FSD options.
+     * @param {Array<{Read: Function, ReadJSON: Function, constructor: {getFsdSchema: Function}}>} [options.readers] Caller-supplied character cFSD readers.
+     * @param {Object<string, object>} [options.documents] Decoded documents keyed by name; decoded FSD documents replace same-named entries.
+     * @param {Object<string, string>} [options.resourcePaths] Where each document's bytes are read from, by document name.
+     * @param {object} [options.fsdOptions] Extra options for the FSD format read.
+     * @returns {Promise<CjsCharacterLibrary>} The hydrated library.
+     * @throws {TypeError} `CJS_FSD_READER_REQUIRED` when FSD options are given without readers.
      */
     static async buildFromResources(options = {})
     {
@@ -39,19 +57,41 @@ export class CjsCharacterLibraryBuilder
         const signal = options.signal ?? null;
         const resourcePaths = options.resourcePaths ?? {};
         const suppliedDocuments = options.documents ?? {};
+        const readers = options.readers ?? [];
 
         RequirePlainObject(resourcePaths, "Character resource paths");
         RequirePlainObject(suppliedDocuments, "Character supplied documents");
 
-        const [ fsdModule, readerModule ] = await Promise.all([
-            import("#resource/formats/fsd"),
-            import("#resource/formats/fsd/64/readers")
-        ]);
-        const registry = readerModule.CjsFsd64ReaderSetCharacterStaticData
-            .registerAll(new fsdModule.CjsFsd64Reader());
+        if (!Array.isArray(readers))
+        {
+            throw new TypeError("Character FSD readers must be an array");
+        }
+
+        if (readers.length === 0
+            && (options.resourcePaths !== undefined || options.fsdOptions !== undefined))
+        {
+            const error = new TypeError(
+                "Character FSD options require options.readers; the runtime ships no FSD schemas."
+            );
+
+            error.code = "CJS_FSD_READER_REQUIRED";
+            throw error;
+        }
+
+        const fsdModule = readers.length === 0
+            ? null
+            : await import("#resource/formats/fsd");
+        const registry = fsdModule === null
+            ? null
+            : new fsdModule.CjsFsd64Reader();
+
+        for (const reader of readers)
+        {
+            registry.Register(reader.constructor.getFsdSchema().path, reader);
+        }
 
         const decodedEntries = await Promise.all(
-            readerModule.CjsFsd64ReaderSetCharacterStaticData.create().map(async reader =>
+            readers.map(async reader =>
             {
                 const schema = reader.constructor.getFsdSchema();
                 const path = resourcePaths[schema.name] ?? schema.path;
@@ -140,6 +180,7 @@ function OmitResourceOptions(options)
     for (const key of [
         "documents",
         "fsdOptions",
+        "readers",
         "read",
         "resourcePaths",
         "signal",

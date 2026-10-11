@@ -108,17 +108,27 @@ export class CjsAudioLibraryBuilder
      *
      * `source.read(path, context)` replaces blue.resMan. Each input has a path
      * override and a value option that skips its read:
-     * - audio metadata FSD: `audioMetadataPath` (default: the reader's own
-     *   `res:/staticdata/audiometadata.fsdbinary`) or `metadata`; the FSD is
-     *   always decoded under that canonical logical path, and the read context
-     *   carries it as `logicalPath`;
+     * - audio metadata FSD: read only when the caller supplies
+     *   `audioMetadataReader`, a cFSD dataset reader such as a
+     *   `CjsFsd64SchemaReader` subclass instance whose `constructor.path` is
+     *   the logical path (`res:/staticdata/audiometadata.fsdbinary`). The
+     *   runtime ships no such reader. `audioMetadataPath` overrides where the
+     *   bytes are read from; they are still decoded under the reader's logical
+     *   path, which the read context carries as `logicalPath`. `metadata`
+     *   supplies decoded metadata and skips the read;
      * - resource index: `indexPath` (no default) or `indexEntries`;
      * - SoundbanksInfo: `soundbanksInfoPath` (default
      *   `res:/audio/soundbanksinfo.json` without an index, otherwise found in
      *   the index) or `soundbanksInfo`.
      *
+     * Without `audioMetadataReader` or `metadata`, no FSD is read and the
+     * metadata is built from SoundbanksInfo alone. Passing
+     * `audioMetadataPath` or `fsdOptions` without a reader throws
+     * `CJS_FSD_READER_REQUIRED`.
+     *
      * The index is optional. Without one, banks and streamed media are
-     * derived from SoundbanksInfo plus the metadata `IsEssential` flag; an
+     * derived from SoundbanksInfo plus the metadata `IsEssential` flag (all
+     * streamed media resolve under `media/` when no FSD metadata is read); an
      * index still contributes storage paths, checksums and byte lengths.
      * `inspectBanks: false` returns the catalog without opening banks.
      * `includeSfx` defaults to true here; `music` defaults to on when
@@ -126,6 +136,14 @@ export class CjsAudioLibraryBuilder
      * legacy FSD, whose reader throws as unsupported. The builder never
      * discovers installations, selects providers, touches caches or uses the
      * Node filesystem.
+     *
+     * @param {object} [options={}] Builder, resource and FSD options.
+     * @param {{Read: Function, ReadJSON: Function, constructor: {path: string}}} [options.audioMetadataReader] Caller-supplied audio metadata cFSD reader.
+     * @param {object} [options.metadata] Decoded audio metadata; skips the FSD read.
+     * @param {string} [options.audioMetadataPath] Where the audio metadata FSD bytes are read from.
+     * @param {object} [options.fsdOptions] Extra options for the FSD format read.
+     * @returns {Promise<CjsAudioLibrary>} The hydrated library.
+     * @throws {TypeError} `CJS_FSD_READER_REQUIRED` when FSD options are given without a reader.
      */
     static async buildFromResources(options = {})
     {
@@ -133,32 +151,27 @@ export class CjsAudioLibraryBuilder
 
         const read = createAudioResourceReader(options);
         const signal = options.signal ?? null;
-        const [ fsdModule, readerModule ] = await Promise.all([
-            import("#resource/formats/fsd"),
-            import("#resource/formats/fsd/64/readers"),
-        ]);
-        const metadataReader = new readerModule.CjsFsd64SchemaAudioMetadata();
-        const registry = new fsdModule.CjsFsd64Reader()
-            .Register(metadataReader.constructor.path, metadataReader);
-        const metadataPath = options.audioMetadataPath
-            ?? metadataReader.constructor.path;
+        const metadataReader = options.audioMetadataReader ?? null;
+
+        if (metadataReader === null
+            && options.metadata === undefined
+            && (options.audioMetadataPath !== undefined || options.fsdOptions !== undefined))
+        {
+            const error = new TypeError(
+                "Audio metadata FSD options require options.audioMetadataReader; the runtime ships no FSD schemas.",
+            );
+
+            error.code = "CJS_FSD_READER_REQUIRED";
+            throw error;
+        }
+
         const resolvedIndexEntries = await ResolveResourceIndexEntries(
             options,
             read,
             signal,
         );
-        const metadata = options.metadata ?? await fsdModule.CjsFsdFormat.readJSON(
-            await read(metadataPath, {
-                kind: "audioMetadata",
-                logicalPath: metadataReader.constructor.path,
-                signal,
-            }),
-            {
-                ...(options.fsdOptions ?? {}),
-                path: metadataReader.constructor.path,
-                reader: registry,
-            },
-        );
+        const metadata = options.metadata
+            ?? await ReadAudioMetadataFsd(options, metadataReader, read, signal);
         const soundbanksInfo = await ResolveSoundbanksInfo(
             options,
             resolvedIndexEntries,
@@ -169,8 +182,8 @@ export class CjsAudioLibraryBuilder
             ?? DeriveDefaultPathIndexEntries(soundbanksInfo, metadata);
         const buildOptions = OmitResourceOptions(options);
 
-        // Catalog-only builds still decode the authoritative FSD metadata, but
-        // do not need to open every Wwise bank. Tools can use this path for a
+        // Catalog-only builds still decode the FSD metadata when a reader is
+        // supplied, but do not open every Wwise bank. Tools can use this path for a
         // compact prepared payload and opt into graph inspection separately.
         if (options.inspectBanks === false)
         {
@@ -1040,7 +1053,7 @@ async function ResolveResourceIndexEntries(options, read, signal)
     }
 
     // Without an explicit index the build stays on default resource paths:
-    // discovery derives from SoundbanksInfo and the FSD metadata instead,
+    // discovery derives from SoundbanksInfo and, when read, the FSD metadata,
     // which is all a plain fetch consumer can reach.
     if (options.indexPath === undefined)
     {
@@ -1152,12 +1165,49 @@ async function ResolveSoundbanksInfo(options, indexEntries, read, signal)
     );
 }
 
+/**
+ * Decodes the audio metadata cFSD through the caller's reader, or returns
+ * undefined when no reader was supplied so the build uses SoundbanksInfo alone.
+ *
+ * @param {object} options Builder options.
+ * @param {{Read: Function, ReadJSON: Function, constructor: {path: string}}|null} metadataReader Caller-supplied reader.
+ * @param {Function} read Resource byte reader.
+ * @param {AbortSignal|null} signal Abort signal.
+ * @returns {Promise<object|undefined>} Decoded metadata, or undefined without a reader.
+ */
+async function ReadAudioMetadataFsd(options, metadataReader, read, signal)
+{
+    if (metadataReader === null)
+    {
+        return undefined;
+    }
+
+    const fsdModule = await import("#resource/formats/fsd");
+    const logicalPath = metadataReader.constructor.path;
+    const registry = new fsdModule.CjsFsd64Reader()
+        .Register(logicalPath, metadataReader);
+
+    return fsdModule.CjsFsdFormat.readJSON(
+        await read(options.audioMetadataPath ?? logicalPath, {
+            kind: "audioMetadata",
+            logicalPath,
+            signal,
+        }),
+        {
+            ...(options.fsdOptions ?? {}),
+            path: logicalPath,
+            reader: registry,
+        },
+    );
+}
+
 function OmitResourceOptions(options)
 {
     const result = { ...options };
 
     for (const key of [
         "audioMetadataPath",
+        "audioMetadataReader",
         "fsdOptions",
         "indexPath",
         "inspectBanks",

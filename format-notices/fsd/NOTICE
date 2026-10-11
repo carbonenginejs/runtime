@@ -14,6 +14,9 @@ affiliated with or endorsed by CCP Games.
 The format pipeline, variant identification and error reporting in
 `src/resource/formats/fsd` are original CarbonEngineJS code.
 
+The per-table FSD schemas were removed on 2026-10-12 until their provenance
+can be confirmed; the format reads nothing without a caller-supplied schema.
+
 CarbonEngine fsd (legacy 32-bit FSD)
 ------------------------------------
 

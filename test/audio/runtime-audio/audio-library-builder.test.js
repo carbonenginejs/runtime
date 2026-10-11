@@ -8,8 +8,36 @@ import {
 import { CjsAudioLibrary } from "../../../npm/dist/audio/library/index.js";
 import { blue } from "../../../npm/dist/global/blue/index.js";
 import {
-    CjsFsd64SchemaAudioMetadata,
-} from "#resource/formats/fsd/64/readers";
+    CjsFsd64SchemaDecoder,
+    CjsFsd64SchemaReader,
+} from "../../../npm/dist/resource/formats/fsd/index.js";
+
+/**
+ * Synthetic audio metadata reader: the runtime ships no FSD schemas, so the
+ * resource tests decode an empty synthetic map and wrap it in the three
+ * metadata sections the builder expects.
+ */
+class TestAudioMetadataReader extends CjsFsd64SchemaReader
+{
+    static getFsdSchema = CjsFsd64SchemaReader.bindFsdSchema(CjsFsd64SchemaDecoder.defineSchema({
+        schema: "carbonenginejs.fsdBinarySchema",
+        name: "testAudioMetadata",
+        schemaVersion: 1,
+        path: "res:/test/audiometadata.fsdbinary",
+        schemaID: "0123456789abcdef0123456789abcdef",
+        container: {
+            type: "MAP",
+            recordSize: 8,
+            key: { type: "UINT_32_IDENTIFIER", offset: 0 },
+            fields: [ { name: "value", type: "UINT_32", offset: 4 } ],
+        },
+    }));
+
+    ReadJSON(bytes)
+    {
+        return { Events: super.ReadJSON(bytes), SoundBanks: {}, WemFileIDs: {} };
+    }
+}
 
 /** Runs `run` with blue's ResMan reading through `Read`, then restores its source. */
 async function WithResManSource(Read, run)
@@ -56,9 +84,9 @@ const INDEX_TEXT = [
     "res:/graphics/example.red,cc/example,cccccccccccccccccccccccccccccccc,10",
 ].join("\n");
 
-test("resource builder fetches FSD metadata and returns a hydrated library", async () =>
+test("resource builder fetches FSD metadata through a caller-supplied reader", async () =>
 {
-    const metadataPath = CjsFsd64SchemaAudioMetadata.path;
+    const metadataPath = TestAudioMetadataReader.path;
     const requested = [];
     const library = await WithResManSource(path =>
     {
@@ -66,6 +94,7 @@ test("resource builder fetches FSD metadata and returns a hydrated library", asy
         assert.equal(path, metadataPath);
         return CreateEmptyAudioMetadata().buffer;
     }, () => CjsAudioLibraryBuilder.buildFromResources({
+        audioMetadataReader: new TestAudioMetadataReader(),
         indexEntries: [],
     }));
 
@@ -92,6 +121,7 @@ test("resource builder can decode FSD without inspecting indexed banks", async (
 {
     const requested = [];
     const library = await CjsAudioLibraryBuilder.buildFromResources({
+        audioMetadataReader: new TestAudioMetadataReader(),
         indexEntries: [ {
             logicalPath: "res:/audio/common.bnk",
             storagePath: "audio/common.bnk",
@@ -120,8 +150,59 @@ test("resource builder can decode FSD without inspecting indexed banks", async (
     });
 
     assert.ok(library instanceof CjsAudioLibrary);
-    assert.deepEqual(requested, [ CjsFsd64SchemaAudioMetadata.path ]);
+    assert.deepEqual(requested, [ TestAudioMetadataReader.path ]);
     assert.equal(library.banks["200:0"].resPath, "res:/audio/common.bnk");
+});
+
+test("without an FSD reader the builder reads no FSD and uses SoundbanksInfo alone", async () =>
+{
+    const requested = [];
+    const library = await CjsAudioLibraryBuilder.buildFromResources({
+        soundbanksInfo: {
+            SoundBanksInfo: {
+                SoundBanks: [ {
+                    Id: "200",
+                    ShortName: "Ships",
+                    Path: "Ships.bnk",
+                    Events: [ { Id: "11", Name: "engine_loop" } ],
+                    Media: [ { Id: "101", Streaming: "true" } ],
+                } ],
+            },
+        },
+        inspectBanks: false,
+        music: false,
+        source(path)
+        {
+            requested.push(path);
+            throw new Error(`no-FSD catalog build read ${path}`);
+        },
+    });
+
+    assert.ok(library instanceof CjsAudioLibrary);
+    assert.deepEqual(requested, []);
+    assert.equal(library.metadata.Events.engine_loop.eventID, 11);
+    // The per-media IsEssential flag exists only in the FSD metadata, so
+    // streamed media resolve under media/ rather than essential_media/.
+    assert.equal(library.media["101"].resPath, "res:/audio/media/101.wem");
+    assert.equal(library.media["101"].essential, false);
+});
+
+test("FSD options without a reader are refused", async () =>
+{
+    for (const options of [
+        { audioMetadataPath: "res:/staticdata/audiometadata.fsdbinary" },
+        { fsdOptions: {} },
+    ])
+    {
+        await assert.rejects(CjsAudioLibraryBuilder.buildFromResources({
+            ...options,
+            indexEntries: [],
+            source()
+            {
+                throw new Error("read before the reader check");
+            },
+        }), error => error?.code === "CJS_FSD_READER_REQUIRED");
+    }
 });
 
 test("without an index, discovery derives from default resource paths", async () =>
@@ -305,6 +386,7 @@ test("resource builder preserves cancellation across its bank-source seam", asyn
 test("resource builder reports explicitly identified legacy 32-bit FSD", async () =>
 {
     await assert.rejects(CjsAudioLibraryBuilder.buildFromResources({
+        audioMetadataReader: new TestAudioMetadataReader(),
         indexEntries: [],
         fsdOptions: { bitWidth: 32 },
         source()
@@ -341,10 +423,10 @@ test("audio libraries load from plain or gzip JSON and detach exported values", 
 
 function CreateEmptyAudioMetadata()
 {
-    const size = 80;
+    const size = 48;
     const bytes = new Uint8Array(size);
     const view = new DataView(bytes.buffer);
-    const schemaID = CjsFsd64SchemaAudioMetadata.schemaID;
+    const schemaID = TestAudioMetadataReader.schemaID;
 
     for (let index = 0; index < schemaID.length / 2; index++)
     {
