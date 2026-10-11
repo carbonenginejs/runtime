@@ -1,7 +1,10 @@
 // Wwise PTADPCM (RIFF format tag 0x8311, "Platinum ADPCM") decoder.
 //
-// Original CarbonEngineJS implementation of the publicly documented algorithm
-// (community documentation of the codec: vgmstream/wwiser); no code copied.
+// JavaScript translation of vgmstream `src/coding/ptadpcm_decoder.c`, including
+// its step table (https://github.com/vgmstream/vgmstream), vgmstream license:
+// Copyright (c) 2008-2025 Adam Gashlin, Fastelbja, Ronny Elfert, bnnm,
+// Christopher Snowhill, NicknineTheEagle, bxaimc, Thealexbarney, CyberBotX,
+// EdnessP, et al. License text: format-notices/wem/LICENSE.
 // Verified against EVE Online media (turret/artillery SFX banks).
 //
 // Frame layout, per channel (frames externally interleaved channel-by-channel;

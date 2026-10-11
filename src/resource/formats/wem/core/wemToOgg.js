@@ -11,8 +11,12 @@ import { getPackedCodebooksAotuv603 } from "./packedCodebooksAotuv603.js";
  * 6.03 library), modified audio packets get their type/window bits restored,
  * and packets are paginated with correct granule positions computed from the
  * mode block flags — so no separate revorb pass is needed. No audio is
- * decoded or re-encoded. Algorithm behavior follows the ww2ogg reference
- * (BSD-licensed) as an original reimplementation.
+ * decoded or re-encoded.
+ *
+ * JavaScript translation of ww2ogg `src/wwriff.cpp`
+ * (https://github.com/hcs64/ww2ogg), BSD 3-clause:
+ * Copyright (c) 2002, Xiph.org Foundation; Copyright (c) 2009-2016, Adam Gashlin.
+ * License text: format-notices/wem/LICENSE.
  */
 
 const VENDOR = "converted from Audiokinetic Wwise by @carbonenginejs/runtime/resource";

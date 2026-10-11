@@ -4,7 +4,12 @@
  * Vorbis bitstreams are LSB-first within each byte; both the reader and the
  * Ogg writer here follow that convention. The writer assembles one Ogg page
  * per packet (identification, comment, setup, then one page per audio
- * packet), matching the ww2ogg reference behavior.
+ * packet).
+ *
+ * `OggPageWriter` is a JavaScript translation of ww2ogg `src/Bit_stream.h`
+ * (https://github.com/hcs64/ww2ogg), BSD 3-clause:
+ * Copyright (c) 2002, Xiph.org Foundation; Copyright (c) 2009-2016, Adam Gashlin.
+ * License text: format-notices/wem/LICENSE.
  */
 
 import { CjsBitReader } from "../../../format/CjsBitReader.js";

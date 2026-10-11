@@ -22,8 +22,39 @@ extraction from DirectXMath for `decomposeDirectX`.
 The CMF reader depends on `meshoptimizer`, and the YAML reader depends on
 `yaml`. Format-specific licenses, behavioral-reference attribution, and copied
 data notices are retained under `format-notices/`; this includes the
-black-reader-js reference notice and the BSD-licensed Wwise/Vorbis codebook
-data embedded by the WEM reader.
+black-reader-js reference notice.
+
+## ww2ogg
+
+The WEM reader's Wwise Vorbis to Ogg repacker (`wemToOgg.js`,
+`codebookLibrary.js`, `OggPageWriter` in `bitStream.js`) is a JavaScript
+translation of ww2ogg, and its packed codebook data is a byte-identical copy of
+ww2ogg's `packed_codebooks_aoTuV_603.bin`.
+
+- Project: <https://github.com/hcs64/ww2ogg>
+- Copyright (c) 2002, Xiph.org Foundation; Copyright (c) 2009-2016, Adam Gashlin
+- License: BSD 3-clause; full text in `format-notices/wem/LICENSE`
+
+## vgmstream
+
+The WEM reader's PTADPCM decoder (`ptadpcm.js`), including its step table, is a
+JavaScript translation of vgmstream's `src/coding/ptadpcm_decoder.c`.
+
+- Project: <https://github.com/vgmstream/vgmstream>
+- Copyright (c) 2008-2025 Adam Gashlin, Fastelbja, Ronny Elfert, bnnm,
+  Christopher Snowhill, NicknineTheEagle, bxaimc, Thealexbarney, CyberBotX,
+  EdnessP, et al
+- License: vgmstream license (ISC-style); full text in `format-notices/wem/LICENSE`
+
+## stb_vorbis
+
+The Ogg reader's `Codebook.buildHuffman` translates stb_vorbis's
+`compute_codewords`, and its fast lookup table follows stb_vorbis's design.
+
+- Project: <https://github.com/nothings/stb>
+- Copyright (c) 2017 Sean Barrett
+- License: MIT or public domain (Unlicense), at the user's option; full text in
+  `format-notices/ogg/LICENSE`
 
 ## ccpwgl math extraction
 

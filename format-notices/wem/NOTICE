@@ -5,28 +5,45 @@ CarbonEngine source material, formats, class names, and schema semantics remain
 copyright their original CarbonEngine authors.
 Fenris Creations (CCP Games) source material, tools, assets, shader behavior,
 and EVE-related data remain copyright their original holders.
-Wwise and the Wwise media format are property of Audiokinetic Inc.
+Wwise® is a registered trademark of Audiokinetic Inc.
 
-This reader is original CarbonEngineJS code authored directly in the resource
-capability of `@carbonenginejs/runtime`; no legacy format package was copied. The Wwise RIFF/RIFX container
-layout and codec tag meanings were implemented from publicly documented
-community knowledge of the format (ww2ogg, vgmstream, wwiser documentation);
-no code was copied from those projects and no Audiokinetic SDK material was
-used.
+The reader itself is CarbonEngineJS code in the resource capability of
+`@carbonenginejs/runtime`. The Wwise RIFF/RIFX chunk layout and codec-tag
+meanings were taken from the community tools ww2ogg, vgmstream and wwiser, and
+checked against EVE Online media. No Audiokinetic SDK or binary was used by
+this project.
 
-The Wwise-Vorbis-to-Ogg repacker is an original JavaScript reimplementation of
-the ww2ogg algorithm by Adam Gashlin (hcs), https://github.com/hcs64/ww2ogg,
-used as a behavioral reference. The bundled packed Vorbis codebook data
-(src/resource/formats/wem/core/packedCodebooksAotuv603.js) is a byte-identical copy of
-packed_codebooks_aoTuV_603.bin from the ww2ogg distribution, redistributed
-under the BSD 3-clause license terms included in this directory's LICENSE
-file:
+Third-party code
+----------------
+
+ww2ogg, by Adam Gashlin (hcs)
+Repository: https://github.com/hcs64/ww2ogg
+License: BSD 3-clause; full text in format-notices/wem/LICENSE
 
   Copyright (c) 2002, Xiph.org Foundation
   Copyright (c) 2009-2016, Adam Gashlin
 
-  The BSD conditions and warranty disclaimer for the bundled codebook data are
-  reproduced in full in format-notices/wem/LICENSE.
+The Wwise Vorbis to Ogg repacker is a JavaScript translation of ww2ogg:
+- src/resource/formats/wem/core/wemToOgg.js, from src/wwriff.cpp;
+- src/resource/formats/wem/core/codebookLibrary.js, from src/codebook.cpp;
+- the OggPageWriter in src/resource/formats/wem/core/bitStream.js, from
+  src/Bit_stream.h.
+The bundled packed codebook data
+(src/resource/formats/wem/core/packedCodebooksAotuv603.js) is a byte-identical
+copy of ww2ogg's packed_codebooks_aoTuV_603.bin, which derives from the aoTuV
+Vorbis encoder by Aoyumi.
+
+vgmstream
+Repository: https://github.com/vgmstream/vgmstream
+License: vgmstream license (ISC-style); full text in format-notices/wem/LICENSE
+
+  Copyright (c) 2008-2025 Adam Gashlin, Fastelbja, Ronny Elfert, bnnm,
+                          Christopher Snowhill, NicknineTheEagle, bxaimc,
+                          Thealexbarney, CyberBotX, EdnessP, et al
+
+The PTADPCM decoder (src/resource/formats/wem/core/ptadpcm.js), including its
+step table, is a JavaScript translation of vgmstream's
+src/coding/ptadpcm_decoder.c.
 
 Audiokinetic, CarbonEngine, and Fenris Creations (CCP Games) are mentioned for
 interoperability, provenance, and future migration context only. This package

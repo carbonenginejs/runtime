@@ -20,13 +20,19 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-Bundled ww2ogg packed Vorbis codebook data
-------------------------------------------
+ww2ogg: translated code and packed codebook data
+------------------------------------------------
 
-The file src/resource/formats/wem/core/packedCodebooksAotuv603.js contains a
-byte-identical copy of packed_codebooks_aoTuV_603.bin from the ww2ogg
-distribution. That data is redistributed under the following BSD 3-clause
-license terms from ww2ogg.
+The following files are a JavaScript translation of ww2ogg
+(https://github.com/hcs64/ww2ogg) or a copy of its data, and are redistributed
+under ww2ogg's BSD 3-clause license below:
+
+- src/resource/formats/wem/core/wemToOgg.js (from src/wwriff.cpp)
+- src/resource/formats/wem/core/codebookLibrary.js (from src/codebook.cpp)
+- the OggPageWriter in src/resource/formats/wem/core/bitStream.js
+  (from src/Bit_stream.h)
+- src/resource/formats/wem/core/packedCodebooksAotuv603.js, a byte-identical
+  copy of packed_codebooks_aoTuV_603.bin
 
 Copyright (c) 2002, Xiph.org Foundation
 Copyright (c) 2009-2016, Adam Gashlin
@@ -55,3 +61,34 @@ INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
+
+vgmstream: translated PTADPCM decoder
+--------------------------------------
+
+src/resource/formats/wem/core/ptadpcm.js is a JavaScript translation of
+vgmstream's src/coding/ptadpcm_decoder.c (https://github.com/vgmstream/vgmstream)
+and is redistributed under vgmstream's license, reproduced verbatim:
+
+Copyright (c) 2008-2025 Adam Gashlin, Fastelbja, Ronny Elfert, bnnm,
+                        Christopher Snowhill, NicknineTheEagle, bxaimc,
+                        Thealexbarney, CyberBotX, EdnessP, et al
+
+Portions Copyright (c) 2004-2008, Marko Kreen
+Portions Copyright 2001-2007  jagarl / Kazunori Ueno <jagarl@creator.club.ne.jp>
+Portions Copyright (c) 1998, Justin Frankel/Nullsoft Inc.
+Portions Copyright (C) 2006 Nullsoft, Inc.
+Portions Copyright (c) 2005-2007 Paul Hsieh
+Portions Copyright (C) 2000-2004 Leshade Entis, Entis-soft.
+Portions Public Domain originating with Sun Microsystems
+
+Permission to use, copy, modify, and distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.

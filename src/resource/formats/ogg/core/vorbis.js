@@ -8,8 +8,13 @@ import { imdct, vorbisWindowSlope } from "./imdct.js";
  * type 1 with the spec's exact integer line rendering, residue types 0/1/2,
  * square-polar channel de-coupling, IMDCT, and windowed center-aligned
  * overlap-add with final granule trimming. Behavior follows the Vorbis I
- * specification with stb_vorbis (public domain) consulted as a reference;
- * floor type 0 streams are rejected (never produced by modern encoders).
+ * specification; floor type 0 streams are rejected (never produced by modern
+ * encoders).
+ *
+ * `Codebook.buildHuffman` translates stb_vorbis's `compute_codewords`, and the
+ * fast lookup table follows stb_vorbis's design
+ * (https://github.com/nothings/stb, Copyright (c) 2017 Sean Barrett, MIT or
+ * public domain at the user's option). License text: format-notices/ogg/LICENSE.
  */
 
 const NO_CODE = 255;

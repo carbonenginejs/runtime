@@ -6,8 +6,12 @@ import { BitReader, ilog } from "./bitStream.js";
  * Wwise strips the standard Vorbis codebooks from the setup header and
  * references entries in a shared packed library by 10-bit id. Rebuilding
  * expands each packed codebook back into the standard Vorbis codebook
- * encoding. Behavior mirrors the ww2ogg reference (BSD-licensed, Xiph.org
- * Foundation / Adam Gashlin); this is an original reimplementation.
+ * encoding.
+ *
+ * JavaScript translation of ww2ogg `src/codebook.cpp`
+ * (https://github.com/hcs64/ww2ogg), BSD 3-clause:
+ * Copyright (c) 2002, Xiph.org Foundation; Copyright (c) 2009-2016, Adam Gashlin.
+ * License text: format-notices/wem/LICENSE.
  */
 
 function parseError(message)
