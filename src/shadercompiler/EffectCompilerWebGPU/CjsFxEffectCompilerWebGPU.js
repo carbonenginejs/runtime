@@ -347,6 +347,7 @@ export class CjsFxEffectCompilerWebGPU
                     structureStride: resource.structureStride ?? undefined,
                     arrayLayerCount: 0,
                     type: resource.type,
+                    ...(resource.type.startsWith("texture_depth_") ? { texture: { sampleType: "depth" } } : {}),
                     generatedSymbol: resource.name,
                     transformId: ""
                 });

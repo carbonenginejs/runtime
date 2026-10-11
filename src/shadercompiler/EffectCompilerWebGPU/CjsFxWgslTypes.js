@@ -70,6 +70,18 @@ export class CjsFxWgslTypes
      */
     static _wgslTexture(type)
     {
+        // Carbon normalises DepthTexture2D[Array] to the ordinary texture
+        // token and preserves its depth identity in this flag (HLSLParser.y).
+        if (type.isDepthTexture)
+        {
+            if (type.templateParameter && (type.templateParameter.builtInType !== T.OP_FLOAT || type.templateParameter.width !== 1))
+            {
+                throw new Error("CjsFxWgslTypes: depth textures require a scalar float element");
+            }
+            if (type.builtInType === T.OP_TEXTURE2D) return "texture_depth_2d";
+            if (type.builtInType === T.OP_TEXTURE2DARRAY) return "texture_depth_2d_array";
+            return null;
+        }
         const sampled = type.templateParameter ? CjsFxWgslTypes.wgslScalar(type.templateParameter.builtInType) : "f32";
         const component = sampled === "bool" || sampled === null ? "f32" : sampled;
         switch (type.builtInType)

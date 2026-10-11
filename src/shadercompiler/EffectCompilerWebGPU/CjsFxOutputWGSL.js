@@ -1294,6 +1294,13 @@ export class CjsFxOutputWGSL
         const args = call.GetChildren();
         if (objectType.IsTexture())
         {
+            // Only Load is currently lowered for native depth textures.
+            // SampleLevel needs an integer LOD and Bias/Grad have no depth
+            // overload in WGSL; do not emit colour-texture calls for them.
+            if (objectType.isDepthTexture && method !== "Load")
+            {
+                throw new Error(`CjsFxOutputWGSL: depth texture method ${method} is not supported yet`);
+            }
             const float = new Type();
             float.FromTokenType(T.OP_FLOAT);
             const coordinate = arg => this._coerced(arg, withComponent(typeOf(arg), T.OP_FLOAT));
@@ -1341,7 +1348,7 @@ export class CjsFxOutputWGSL
                     throw new Error(`CjsFxOutputWGSL: texture method ${method} is not supported yet`);
             }
             const resultType = typeOf(node);
-            return resultType.width === 4 || resultType.width === 0 ? sampled : `${sampled}.${"xyzw".slice(0, resultType.width)}`;
+            return objectType.isDepthTexture || resultType.width === 4 || resultType.width === 0 ? sampled : `${sampled}.${"xyzw".slice(0, resultType.width)}`;
         }
         throw new Error(`CjsFxOutputWGSL: method ${method} on ${objectType.ToString()} is not supported yet`);
     }

@@ -373,3 +373,14 @@ for (const method of ["SampleCmp", "SampleCmpLevelZero"])
             float4 ps():SV_Target { return T.${method}(S,float2(0,0),0.5,int2(1,2)); }`), /texture method.*not supported yet/u);
     });
 }
+
+test("depth textures reject non-scalar elements and unsupported sampling instead of emitting invalid WGSL", () =>
+{
+    for (const declaration of ["DepthTexture2D<float4> T;", "DepthTexture2D<uint> T;"])
+    {
+        assert.throws(() => compile(`${declaration} float4 ps():SV_Target { return T.Load(int3(0,0,0)); }`),
+            /depth textures require a scalar float element/u);
+    }
+    assert.throws(() => compile("DepthTexture2D T; SamplerState S; float4 ps():SV_Target { return T.SampleLevel(S, float2(0,0), 0); }"),
+        /depth texture method SampleLevel is not supported/u);
+});
