@@ -150,7 +150,7 @@ test("payload has nineteen registers, one GPU transpose and native clipped bound
   mat4.fromTranslation(cloud.worldTransform, [0, 0, -10]);
   const record = cloud.GetPerObjectData(accumulator), data = record.data;
   assert.equal(data.GetData().length, 76);
-  near(data.GetTransposed("world"), [1,0,0,0, 0,1,0,0, 0,0,1,-10, 0,0,0,1]);
+  near(data.Get("world"), [1,0,0,0, 0,1,0,0, 0,0,1,-10, 0,0,0,1]);
   near(data.Get("eyePosLocal"), [0, 0, 10]);
   near(data.Get("nearPlaneLocal"), [0, 0, -1, 9]);
   near(data.Get("screenSize"), [-0.5 / 9.5, -0.5 / 9.5, 0.5 / 9.5, 0.5 / 9.5]);
@@ -158,8 +158,8 @@ test("payload has nineteen registers, one GPU transpose and native clipped bound
   const q = quat.setAxisAngle(quat.create(), [0, 1, 0], 0.4);
   mat4.fromRotationTranslationScale(cloud.worldTransform, q, [0, 0, -10], [2, 3, 4]);
   const rotated = cloud.GetPerObjectData(accumulator).data;
-  near(rotated.GetTransposed("worldView"), mat4.transpose(mat4.create(), cloud.worldTransform));
-  near(rotated.GetTransposed("worldViewInv"), mat4.transpose(mat4.create(), mat4.invert(mat4.create(), cloud.worldTransform)));
+  near(rotated.Get("worldView"), mat4.transpose(mat4.create(), cloud.worldTransform));
+  near(rotated.Get("worldViewInv"), mat4.transpose(mat4.create(), mat4.invert(mat4.create(), cloud.worldTransform)));
   assert.equal(CjsPerObjectLayouts.Get("EveChildCloudPerObjectData").stride, 76);
 });
 

@@ -302,7 +302,7 @@ test("instanced per-object custom masks retain their terminal GPU orientation", 
   provider.AddMeshesToManager(manager);
 
   assert.deepEqual(
-    Array.from(manager.calls.perObject[0].data.GetTransposedIndex("customMaskMatrix", 0)),
-    Array.from(parentVs.GetTransposedIndex("customMaskMatrix", 0)),
+    Array.from(manager.calls.perObject[0].data.GetIndex("customMaskMatrix", 0)),
+    Array.from(parentVs.GetIndex("customMaskMatrix", 0)),
     "the cross-layout copy does not transpose an already-transposed matrix twice");
 });

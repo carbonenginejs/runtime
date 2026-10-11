@@ -131,9 +131,9 @@ test("decal mesh-binding indices address flat palette strides and preserve the p
   const data = decal.GetPerObjectData({ Alloc: name => store.Allocate(name) });
   const inverse = mat4.invert(mat4.create(), expected);
   const transpose = matrix => Array.from(mat4.transpose(mat4.create(), matrix));
-  assert.deepEqual(Array.from(data.vs.GetTransposed("parentBoneMatrix")), transpose(expected),
+  assert.deepEqual(Array.from(data.vs.Get("parentBoneMatrix")), transpose(expected),
     "EveSpaceObjectDecal.cpp:370 encodes one transpose");
-  assert.deepEqual(Array.from(data.vs.GetTransposed("invParentBoneMatrix")), transpose(inverse),
+  assert.deepEqual(Array.from(data.vs.Get("invParentBoneMatrix")), transpose(inverse),
     "EveSpaceObjectDecal.cpp:372 preserves inverse-bone constants");
 });
 

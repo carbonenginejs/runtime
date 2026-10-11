@@ -1,9 +1,9 @@
 ﻿// The orientation-enforcing accessor pair.
 //
 // A GPU-form record holds matrices that are transposed but indistinguishable
-// from logical ones, so the API refuses the ambiguous call rather than
-// documenting it: Set/Get throw on a matrix field, SetAndTranspose/GetTransposed
-// throw on everything else. See carbon-math-conventions F1/F6.
+// from logical ones, so a writer must choose: Set throws on a matrix field and
+// SetAndTranspose throws on everything else. Get returns what is stored, with
+// no decoding. See carbon-math-conventions F1/F6.
 import test from "node:test";
 
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
@@ -73,22 +73,28 @@ test("SetAndTranspose writes GPU-form bytes from a logical matrix", () =>
 });
 
 
-test("Set and Get refuse a matrix field, naming the method to use", () =>
+test("Set refuses a matrix field, naming the methods to use; Get returns the stored bytes", () =>
 {
   const data = decal();
+  const world = mat4.create();
+  mat4.fromTranslation(world, [ 1, 2, 3 ]);
+  data.SetAndTranspose("worldMatrix", world);
 
-  assertThrows(() => data.Get("worldMatrix"), /stored TRANSPOSED.*GetTransposed/u, "Get on a matrix");
+  assertThrows(() => data.Set("worldMatrix", mat4.create()), /SetAndTranspose or SetWithoutTransposing/u, "Set on a matrix");
   assertThrows(() => data.SetIndex("worldMatrix", 0, mat4.create()), /SetAndTranspose/u, "SetIndex on a matrix");
-  assertThrows(() => data.GetIndex("worldMatrix", 0), /GetTransposed/u, "GetIndex on a matrix");
+
+  const stored = data.Get("worldMatrix");
+  assertEquals(stored.length, 16);
+  assertEquals(stored[3], 1, "Get returns the transposed layout as written, undecoded");
+  assertEquals(data.GetIndex("worldMatrix", 0)[3], 1, "GetIndex does too");
 });
 
 
-test("the transposed pair refuses a non-matrix field", () =>
+test("SetAndTranspose refuses a non-matrix field", () =>
 {
   const data = makePerObjectStore().Allocate("DecalPSPerObjectData");
 
   assertThrows(() => data.SetAndTranspose("shipData", [ 1, 2, 3, 4 ]), /not a matrix/u, "SetAndTranspose on a vector");
-  assertThrows(() => data.GetTransposed("shipData"), /not a matrix/u, "GetTransposed on a vector");
 });
 
 
@@ -115,7 +121,7 @@ test("Get returns a live reference, so writing through it is zero-copy", () =>
 });
 
 
-test("GetTransposed hands back the stored, transposed matrix", () =>
+test("Get hands back the stored, transposed matrix", () =>
 {
   const data = decal();
   const world = mat4.create();
@@ -123,7 +129,7 @@ test("GetTransposed hands back the stored, transposed matrix", () =>
 
   data.SetAndTranspose("worldMatrix", world);
 
-  const stored = data.GetTransposed("worldMatrix");
+  const stored = data.Get("worldMatrix");
 
   assertEquals(stored.length, 16);
   // Transposed: translation in the fourth column of each row, NOT at 12..14.
@@ -243,7 +249,7 @@ test("a write marks the record dirty, so a missed Invalidate cannot go stale", (
 
   // Reading must not, or every inspection would force an upload.
   vs.ClearDirty();
-  vs.GetTransposed("worldTransform");
+  vs.Get("worldTransform");
   vs.Get("shipData");
   assertEquals(vs.IsDirty(), false, "reading is not a change");
 });
@@ -269,7 +275,6 @@ test("an unknown field throws from every verb", () =>
 
   for (const call of [
     () => data.Get("nope"),
-    () => data.GetTransposed("nope"),
     () => data.SetAndTranspose("nope", mat4.create()),
     () => data.SetIndex("nope", 0, [ 0 ])
   ])

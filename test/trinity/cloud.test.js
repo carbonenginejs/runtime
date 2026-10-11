@@ -532,7 +532,7 @@ test("PopulatePerObjectData: swapped world*view product, element-read consumers,
   const wv = mat4.multiply(mat4.create(), view, cloud.worldTransform);
   const expectedInv = mat4.invert(mat4.create(), wv);
   mat4.transpose(expectedInv, expectedInv);
-  assertVecClose(data.GetTransposed("worldViewInv"), expectedInv, "worldViewInv (swapped product + packing transpose)", 1e-4);
+  assertVecClose(data.Get("worldViewInv"), expectedInv, "worldViewInv (swapped product + packing transpose)", 1e-4);
 
   // viewDirection = -(column 2 of WV); depthSliceN = -WV[14] - slice*WV[15].
   assertVecClose(data.Get("viewDirection"), [-wv[2], -wv[6], -wv[10]], "view direction", 1e-4);

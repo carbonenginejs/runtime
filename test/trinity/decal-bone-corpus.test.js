@@ -73,8 +73,8 @@ test("real angbc2 crisis decals follow flat mesh binding 8 through the hull visi
       assert.ok(Math.abs(decal._parentBoneMatrix[14] - expectedZ) < 1e-5,
         `EveSpaceObject2.cpp:1694-1706 -> EveSpaceObjectDecal.cpp:490 ${name} binding 8`);
       const data = decal.GetPerObjectData({ Alloc: key => store.Allocate(key) });
-      const parent = data.vs.GetTransposed("parentBoneMatrix");
-      const inverse = data.vs.GetTransposed("invParentBoneMatrix");
+      const parent = data.vs.Get("parentBoneMatrix");
+      const inverse = data.vs.Get("invParentBoneMatrix");
       assert.ok(Array.from(parent).every(Number.isFinite));
       assert.ok(Array.from(inverse).every(Number.isFinite));
       assert.ok(Math.abs(parent[11] - expectedZ) < 1e-5);

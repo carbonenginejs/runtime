@@ -361,3 +361,18 @@ test("BehaviorGroup accepts every Carbon-mapped IBehavior during bulk loading", 
   assert.equal(group.behaviors, list);
   assert.deepEqual(Array.from(list), behaviors, "native interface admission must not silently discard a steering behavior");
 });
+
+
+test("invWorldTransform holds Carbon's plain Inverse(world), untransposed, in VS and PS (cpp:604, :608)", () =>
+{
+  const system = new EveChildBehaviorSystem();
+  quat.setAxisAngle(system.rotation, [ 0, 0, 1 ], Math.PI / 3);
+  vec3.set(system.translation, 4, 5, 6);
+  system.UpdateAsyncronous(new trinity.EveUpdateContext(), { localToWorldTransform: mat4.create() });
+
+  const expected = mat4.invert(mat4.create(), system.worldTransform);
+  const { vs, ps } = system.GetPerObjectData();
+  assert.deepEqual(Array.from(vs.Get("invWorldTransform")), Array.from(new Float32Array(expected)));
+  assert.deepEqual(Array.from(ps.Get("invWorldTransform")), Array.from(new Float32Array(expected)));
+  assert.notDeepEqual(Array.from(vs.Get("invWorldTransform")), Array.from(new Float32Array(mat4.transpose(mat4.create(), expected))), "a rotation tells the two layouts apart");
+});

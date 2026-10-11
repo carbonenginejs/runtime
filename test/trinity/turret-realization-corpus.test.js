@@ -422,7 +422,7 @@ test("normal hull ParentData and visible palettes share one Float4x3 upload with
   let call=0;set.UpdateVisibility({GetFrustum:()=>({IsSphereVisible:()=>call++===1,GetPixelSizeAccross:()=>12})});
   assert.equal(set.visibleCount,1);assert.equal(set.estimatedPixelDiameter,12,"cpp:1164 synchronous LOD selection consumes the prior views estimate");
   const compact=set.GetPerObjectData(accumulator);
-  assertScalars(compact.vs.GetTransposed("prevShipMatrix"),Array.from({length:16},(_,i)=>first[(i%4)*4+Math.floor(i/4)]),"normal sync+async retains previous hull placement");
+  assertScalars(compact.vs.Get("prevShipMatrix"),Array.from({length:16},(_,i)=>first[(i%4)*4+Math.floor(i/4)]),"normal sync+async retains previous hull placement");
   assert.equal(uint(compact.vs,"currentBoneOffset"),20);assert.equal(uint(compact.vs,"prevBoneOffset"),2);
   assert.equal(uploads[1].count,9);assert.deepEqual(uploads[1].data,Array.from(b.sequencer.GetMeshBoneMatrixList()));
   assertScalars(compact.vs.Get("turretTranslation").slice(0,4),b.localPosition,"hidden first mount compacts second into instance0");

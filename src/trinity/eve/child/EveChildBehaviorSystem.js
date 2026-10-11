@@ -338,8 +338,8 @@ export class EveChildBehaviorSystem extends EveChildTransform
     // Transpose(Inverse(W)). This class inverts the LOGICAL matrix instead and
     // stores Inverse(W) untransposed, the transpose of what the shader reads
     // everywhere else. It is invisible for a rotation-free placement and wrong
-    // under a rotated one. Pre-transposing here cancels against the encoding
-    // transpose, so the stored bytes match Carbon's exactly. Reported upstream;
+    // under a rotated one. Carbon writes it as a plain copy, so this does too
+    // and the stored bytes match Carbon's exactly. Reported upstream;
     // do not "fix" it without a Carbon-side decision, because art and DNA were
     // authored against the shipped behaviour.
     const inverse = EveChildBehaviorSystem._inverseScratch;
@@ -347,13 +347,10 @@ export class EveChildBehaviorSystem extends EveChildTransform
     {
       mat4.identity(inverse);
     }
-    mat4.transpose(inverse, inverse);
-    this._perObjectData.vs.SetAndTranspose("invWorldTransform", inverse);
+    this._perObjectData.vs.SetWithoutTransposing("invWorldTransform", inverse);
 
-    // Carbon copies these stored matrices into PS unchanged. Encoding the same
-    // logical inputs once preserves that; feeding GetTransposed back into the
-    // encoder would transpose them a second time.
-    this._perObjectData.ps.SetAndTranspose("invWorldTransform", inverse);
+    // Carbon copies the stored matrix into PS unchanged (cpp:608).
+    this._perObjectData.ps.SetWithoutTransposing("invWorldTransform", inverse);
 
     for (const group of this.behaviorGroups)
     {

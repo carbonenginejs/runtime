@@ -3547,9 +3547,9 @@ export class EveSpaceScene
    * is read from the scene, as Carbon does.
    *
    * Matrices are stored TRANSPOSED because the shaders are column_major, with
-   * one deliberate exception Carbon calls out at cpp:3023: the value wanted for
-   * `ViewInverseTransposeMat` is already a transpose, so transposing it again
-   * cancels and the inverse view goes in as-is.
+   * one deliberate exception Carbon calls out at cpp:3037-3038: the value wanted
+   * for `ViewInverseTransposeMat` is already a transpose, so transposing it again
+   * cancels and the inverse view is copied in as-is.
    *
    * Carbon's PopulatePerFrameVSData( data, renderContext ) (cpp:3029).
    *
@@ -3581,10 +3581,9 @@ export class EveSpaceScene
     mat4.multiply(perFrameMatrixScratch, projection, view);
     out.SetAndTranspose("ViewProjectionMat", perFrameMatrixScratch);
 
-    // Needs the transposed, but the shader also wants column_major, so it is
-    // transpose(transpose(m)) == m (cpp:3023-3024).
-    mat4.transpose(perFrameMatrixScratch, renderContext.GetInverseViewTransform());
-    out.SetAndTranspose("ViewInverseTransposeMat", perFrameMatrixScratch);
+    // "need the transposed, but shader also needs column_major, so it is
+    // transpose(transpose(m)) == m" (cpp:3037-3038): a plain copy.
+    out.SetWithoutTransposing("ViewInverseTransposeMat", renderContext.GetInverseViewTransform());
 
     // Carbon `m_projectionLast * m_jitterMatrix` then `m_viewLast * that`.
     mat4.multiply(perFrameLastProjectionScratch, this.jitterMatrix, this.projectionLast);
@@ -3718,9 +3717,8 @@ export class EveSpaceScene
 
     out.SetAndTranspose("ViewMat", renderContext.GetViewTransform());
 
-    // transpose(transpose(m)) == m, as in the vertex fill (cpp:3079-3080).
-    mat4.transpose(perFrameMatrixScratch, renderContext.GetInverseViewTransform());
-    out.SetAndTranspose("ViewInverseTransposeMat", perFrameMatrixScratch);
+    // transpose(transpose(m)) == m, as in the vertex fill (cpp:3093-3094): a plain copy.
+    out.SetWithoutTransposing("ViewInverseTransposeMat", renderContext.GetInverseViewTransform());
 
     mat4.fromQuat(perFrameMatrixScratch, this.envMapRotation);
     out.SetAndTranspose("EnvMapRotationMat", perFrameMatrixScratch);

@@ -213,7 +213,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     const record = this._perObjectData;
 
     // Carbon UpdateAsyncronous copies the previous packed transform unchanged.
-    record.SetUntransposed("worldTransformLast", record.GetTransposed("worldTransform"));
+    record.SetWithoutTransposing("worldTransformLast", record.Get("worldTransform"));
     record.SetAndTranspose("worldTransform", this.worldTransform);
 
     // cpp:214 inverts the transposed matrix; by carbon-math-conventions F2 that
@@ -248,8 +248,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     for (let slot = 0; slot < EveChildInstancedMeshes.CUSTOM_MASK_COUNT; slot++)
     {
       // Carbon copies customMaskMatrix from the parent's packed VS record.
-      record.SetUntransposedIndex(
-        "customMaskMatrix", slot, vs.GetTransposedIndex("customMaskMatrix", slot));
+      record.SetWithoutTransposingIndex(
+        "customMaskMatrix", slot, vs.GetIndex("customMaskMatrix", slot));
       record.SetIndex("customMaskData", slot, vs.GetIndex("customMaskData", slot));
       record.SetIndex("customMaskMaterialIDs", slot, ps.GetIndex("customMaskMaterialIDs", slot));
       record.SetIndex("customMaskTargets", slot, ps.GetIndex("customMaskTargets", slot));
@@ -314,7 +314,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   UpdateAsyncronous(updateContext, params)
   {
     const previousWorldTransform = mat4.create();
-    mat4.transpose(previousWorldTransform, this._perObjectData.GetTransposed("worldTransform"));
+    mat4.transpose(previousWorldTransform, this._perObjectData.Get("worldTransform"));
     const parentRecords = this._UpdatePerObjectData(params?.spaceObjectParent ?? null);
     const w = this.worldTransform;
     // cpp:240-242 - worldScale from the world transform's basis rows.

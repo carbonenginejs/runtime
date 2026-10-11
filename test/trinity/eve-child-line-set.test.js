@@ -120,15 +120,15 @@ test('child constants copy the root then encode current, previous and inverse ma
   near(c.worldTransform,expected);assert.equal(copies,1);
   const pod=c.GetPerObjectData(null);assert.equal(pod.vsData,c._vsData);assert.equal(pod.psData,c._psData);
   for(const record of pod.GetPayloads()) {
-    near(record.GetTransposed('worldTransform'),mat4.transpose(mat4.create(),expected));
-    near(record.GetTransposed('worldTransformLast'),mat4.transpose(mat4.create(),old));
-    near(record.GetTransposed('invWorldTransform'),mat4.transpose(mat4.create(),mat4.invert(mat4.create(),expected)));
+    near(record.Get('worldTransform'),mat4.transpose(mat4.create(),expected));
+    near(record.Get('worldTransformLast'),mat4.transpose(mat4.create(),old));
+    near(record.Get('invWorldTransform'),mat4.transpose(mat4.create(),mat4.invert(mat4.create(),expected)));
   }
   near(pod.vsData.Get('customData'),[1,2,3,4]);near(pod.psData.Get('customData'),[5,6,7,8]);near(pod.psData.Get('clipSphereCenter'),[3,5,7]);
   f.params.childParent={GetLocalToWorldTransform:out=>mat4.fromTranslation(out,[100,0,0])};
   c.UpdateAsyncronous(f.update,f.params);assert.equal(copies,1,'child parent wins and does not copy root constants');
   near(c.worldTransform.slice(12,15),[101,2,3]);
-  near(pod.vsData.GetTransposed('worldTransformLast'),mat4.transpose(mat4.create(),expected));
+  near(pod.vsData.Get('worldTransformLast'),mat4.transpose(mat4.create(),expected));
 });
 
 test('visibility culls world bounds but measures local bounds and still visits all paths',t=>{

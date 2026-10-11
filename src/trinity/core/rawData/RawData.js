@@ -19,14 +19,15 @@ import { CjsPerObjectLayouts } from "./CjsPerObjectLayouts.js";
 //
 // Verbs (name ALWAYS first - a keyed store, not a math op):
 //   SetAndTranspose(name, value)   a MATRIX4 field; PERFORMS the transpose
-//   SetUntransposed(name, value)   a matrix field; copies WITHOUT transposing
-//   GetTransposed(name)            a MATRIX4 field; returns what is stored
-//   Set(name, value) / Get(name)   everything else; both throw on a matrix
+//   SetWithoutTransposing(name, value)   a matrix field; copies WITHOUT transposing
+//   Set(name, value)               everything else; throws on a matrix
+//   Get(name)                      any field; returns what is stored, undecoded
 //   Copy(name, out)                bytes OUT into a caller-owned buffer
 //   ...Index(name, index, ...)     one element of an array field
 //
-// Set/Get refuse matrix fields: the caller must state the packing operation.
-// SetAndTranspose packs a logical matrix; SetUntransposed copies values already
+// Set refuses matrix fields: the caller must state the packing operation. Get
+// cannot know a stored matrix's orientation, so it returns the stored values.
+// SetAndTranspose packs a logical matrix; SetWithoutTransposing copies values already
 // prepared for the shader without changing their orientation. Carbon's
 // EveChildParticleSphere.cpp writes Inverse(world) directly, and
 // EveChildInstancedMeshes.cpp copies previously packed matrix fields directly.
@@ -56,7 +57,7 @@ import { CjsPerObjectLayouts } from "./CjsPerObjectLayouts.js";
  * typo throws at the lookup instead of silently packing wrong.
  */
 export const RawDataType = Object.freeze({
-  /** Square matrix. SetAndTranspose encodes it; SetUntransposed copies prepared values. */
+  /** Square matrix. SetAndTranspose encodes it; SetWithoutTransposing copies prepared values. */
   MATRIX: "matrix",
 
   /** Straight copy - float / vec2 / vec3 / vec4. */
@@ -264,7 +265,7 @@ export class RawData extends CjsConstantPayload
   /**
    * Write a non-matrix LOGICAL value, encoded per the field's kind (UINT/INT
    * bit-cast, MATRIX_3X4 column-stride packs, VECTOR copies). Matrix fields
-   * must use `SetAndTranspose*` or `SetUntransposed*`. Pass `element` to write one array slot.
+   * must use `SetAndTranspose*` or `SetWithoutTransposing*`. Pass `element` to write one array slot.
    */
   Set(name, value, element)
   {
@@ -321,14 +322,14 @@ export class RawData extends CjsConstantPayload
    * directly; EveChildInstancedMeshes.cpp::UpdateAsyncronous copies packed fields.
    * Matrix fields only; marks the payload dirty just like SetAndTranspose.
    */
-  SetUntransposed(name, value)
+  SetWithoutTransposing(name, value)
   {
     this.#AssertMatrix(name);
     this.#CopyMatrix(this.#Field(name, undefined), name, value);
   }
 
   /** Copy one prepared matrix array element without transposing adjacent slots. */
-  SetUntransposedIndex(name, index, value)
+  SetWithoutTransposingIndex(name, index, value)
   {
     this.#AssertMatrix(name);
     this.#CopyMatrix(this.#Field(name, index), name, value);
@@ -417,41 +418,28 @@ export class RawData extends CjsConstantPayload
    * zero-copy write, which is deliberate: Carbon hands out a raw pointer into
    * `m_psData` for exactly this (GetParentData, cpp:1877-1883).
    *
-   * Non-matrix fields only; a matrix is transposed and indistinguishable from a
-   * logical one, so it must be read through GetTransposed.
+   * Get does no decoding. A matrix field holds whatever was written: normally
+   * the shader layout SetAndTranspose produces, or the values
+   * SetWithoutTransposing copied. The record cannot know which, so a matrix
+   * read here is not necessarily a logical CPU transform.
+   *
+   * @param {string} name The field.
+   * @returns {Float32Array} A view over the field's stored lanes.
    */
   Get(name)
   {
-    this.#NotMatrix(name, "Get");
-
     return this.#View(this.#Field(name, undefined));
-  }
-
-  /** Get for one element of an array field. Non-matrix fields only. */
-  GetIndex(name, index)
-  {
-    this.#NotMatrix(name, "GetIndex");
-
-    return this.#View(this.#Field(name, index));
   }
 
   /**
-   * A live reference to a stored matrix in shader-buffer form. No decoding is
-   * performed. Normally transposed by SetAndTranspose; SetUntransposed preserves
-   * the supplied representation. Do not assume this is a logical CPU transform.
+   * Get for one element of an array field; matrix elements come back as stored.
+   *
+   * @param {string} name The array field.
+   * @param {number} index The element.
+   * @returns {Float32Array} A view over that element's stored lanes.
    */
-  GetTransposed(name)
+  GetIndex(name, index)
   {
-    this.#AssertMatrix(name);
-
-    return this.#View(this.#Field(name, undefined));
-  }
-
-  /** GetTransposed for one element of an array field. */
-  GetTransposedIndex(name, index)
-  {
-    this.#AssertMatrix(name);
-
     return this.#View(this.#Field(name, index));
   }
 
@@ -531,7 +519,7 @@ export class RawData extends CjsConstantPayload
     }
   }
 
-  /** Asserts a field is NOT a matrix, so the orientation cannot be lost. */
+  /** Asserts a field written through Set or SetIndex is NOT a matrix, so the writer chooses the orientation. */
   #NotMatrix(name, verb)
   {
     const field = this.#Field(name, undefined);
@@ -539,9 +527,7 @@ export class RawData extends CjsConstantPayload
     if (field.encoding === RawDataType.MATRIX)
     {
       throw new Error(
-        verb.startsWith("Set")
-          ? `RawData: field "${name}" is a matrix. Matrices must be explicitly set with or without transposing: use SetAndTranspose or SetUntransposed (indexed variants for array elements), not ${verb}.`
-          : `RawData: field "${name}" is a matrix. Use GetTransposed (GetTransposedIndex for array elements) to read stored buffer values, not ${verb}.`
+        `RawData: field "${name}" is a matrix. Matrices must be explicitly set with or without transposing: use SetAndTranspose or SetWithoutTransposing (indexed variants for array elements), not ${verb}.`
       );
     }
   }
@@ -589,7 +575,7 @@ export class RawData extends CjsConstantPayload
    * the values are stable across a frame AND are read back - EveSpaceObject2
    * reads its own stored matrices (cpp:3747) and hands shLighting to
    * attachments as a live pointer (cpp:1877-1883). Those are the records that
-   * want Get/GetTransposed.
+   * want Get.
    *
    * Defaults are applied once here rather than per allocation.
    *

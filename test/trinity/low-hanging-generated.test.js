@@ -898,8 +898,8 @@ test("EveSwarmRenderable copies transforms and shared ship shader data", () =>
   // The record stores the TRANSPOSED transform, so the translation lands in the
   // fourth COLUMN: flat index 3 rather than 12.
   const stored = renderable.GetPerObjectData();
-  assert.equal(stored.vs.GetTransposed("worldTransform")[3], 8);
-  assert.equal(stored.ps.GetTransposed("worldTransform")[3], 8);
+  assert.equal(stored.vs.Get("worldTransform")[3], 8);
+  assert.equal(stored.ps.Get("worldTransform")[3], 8);
 
   const sourceVs = RawData.create("EveSpaceObjectVSData");
   sourceVs.Set("clipData", [1, 2, 3, 4]);

@@ -313,19 +313,19 @@ test("EveCustomMask fills and clears both Carbon per-object mask slots", () =>
   assertVec3([debug[12], debug[13], debug[14]], [1, 2, 3]);
 
   // The mask writes into the GPU-form per-object records, so the matrix slot
-  // is read back through GetTransposedIndex and holds Transpose(inverse).
+  // is read back through GetIndex and holds Transpose(inverse).
   const vs = RawData.create("EveSpaceObjectVSData");
   const ps = RawData.create("EveSpaceObjectPSData");
   assertEquals(mask.FillPerObjectData(1, vs, ps), true);
   const expected = mat4.transpose(mat4.create(), mat4.invert(mat4.create(), mat4.fromRotationTranslationScale(mat4.create(), mask.rotation, mask.position, mask.scaling)));
-  assertMat4(vs.GetTransposedIndex("customMaskMatrix", 1), expected);
+  assertMat4(vs.GetIndex("customMaskMatrix", 1), expected);
   assertVec4(vs.GetIndex("customMaskData", 1), [1, 1, 0, 0]);
   assertVec4(ps.GetIndex("customMaskMaterialIDs", 1), [2, 0, 0, 0]);
   assertVec4(ps.GetIndex("customMaskTargets", 1), [1, 0, 1, 0]);
   assertVec4(ps.Get("customMaskClamps"), [0, 0, 1, 0]);
 
   assertEquals(EveCustomMask.ZeroPerObjectData(1, vs, ps), true);
-  assertMat4(vs.GetTransposedIndex("customMaskMatrix", 1), mat4.create());
+  assertMat4(vs.GetIndex("customMaskMatrix", 1), mat4.create());
   assertVec4(vs.GetIndex("customMaskData", 1), [0, 0, 0, 0]);
   assertVec4(ps.GetIndex("customMaskMaterialIDs", 1), [0, 0, 0, 0]);
   assertVec4(ps.GetIndex("customMaskTargets", 1), [0, 0, 0, 0]);

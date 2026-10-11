@@ -66,7 +66,7 @@ test("EveSpaceObject2 stores its world transform transposed in both records", ()
   object.UpdateAsyncronous({ GetTime: () => 1, GetHighDetailThreshold: () => 100 });
 
   const { vs, ps } = object.GetPerObjectData();
-  const stored = vs.GetTransposed("worldTransform");
+  const stored = vs.Get("worldTransform");
   const expected = mat4.transpose(mat4.create(), transform);
 
   for (let index = 0; index < 16; index++)
@@ -77,26 +77,18 @@ test("EveSpaceObject2 stores its world transform transposed in both records", ()
   // A BASIS element, not the translation: a double or missing transpose leaves
   // the translation looking correct while the rotation block flips.
   assertClose(stored[1], transform[4], "vs.worldTransform[1] is the transposed basis");
-  assertClose(ps.GetTransposed("worldTransform")[1], transform[4], "ps carries the same bytes");
+  assertClose(ps.Get("worldTransform")[1], transform[4], "ps carries the same bytes");
 });
 
 
-test("EveSpaceObject2 refuses to read a stored matrix as a logical one", () =>
+test("EveSpaceObject2's stored matrix reads back as the bytes it holds", () =>
 {
   const object = new EveSpaceObject2();
   const { vs } = object.GetPerObjectData();
+  const stored = vs.Get("worldTransform");
 
-  let threw = false;
-  try
-  {
-    vs.Get("worldTransform");
-  }
-  catch (error)
-  {
-    threw = /Use GetTransposed/u.test(error.message);
-  }
-
-  assert(threw, "Get must reject a matrix field and name GetTransposed");
+  assert(stored.length === 16, "Get returns the whole stored matrix");
+  assert(stored.buffer === vs.GetData().buffer, "as a live view of the record, with no decoding");
 });
 
 
@@ -109,7 +101,7 @@ test("EveSpaceObject2 rolls the outgoing transform into worldTransformLast", () 
   object.UpdateWorldTransform(2);
 
   const { vs } = object.GetPerObjectData();
-  const stored = vs.GetTransposed("worldTransformLast");
+  const stored = vs.Get("worldTransformLast");
   const expected = mat4.transpose(mat4.create(), first);
 
   assertClose(stored[1], expected[1], "worldTransformLast basis element");
@@ -171,7 +163,7 @@ test("EveSpaceObject2 fills and zeroes the custom-mask slots", () =>
   assertClose(ps.Get("customMaskClamps")[1], 1, "slot 0 clampV");
 
   // Slot 1 has no mask, so it is zeroed - matrix back to identity.
-  const cleared = vs.GetTransposedIndex("customMaskMatrix", 1);
+  const cleared = vs.GetIndex("customMaskMatrix", 1);
   assertClose(cleared[0], 1, "cleared slot is identity");
   assertClose(cleared[1], 0, "cleared slot is identity");
   assertClose(vs.GetIndex("customMaskData", 1)[0], 0, "slot 1 is disabled");
@@ -229,7 +221,7 @@ test("EveTurretSet fills the VS/PS pair from its turrets and parent data", t =>
 
   const { vs, ps } = set.GetPerObjectData({ Alloc: (name) => store.Allocate(name) });
 
-  assertClose(vs.GetTransposed("shipMatrix")[1], parentTransform[4], "the ship matrix is stored transposed");
+  assertClose(vs.Get("shipMatrix")[1], parentTransform[4], "the ship matrix is stored transposed");
   assertClose(vs.Get("baseCutoffData")[0], 1.5, "base cutoff height");
   assertClose(vs.Get("turretSetData")[0], 3, "default bones per turret");
   assertClose(vs.GetIndex("turretTranslation", 0)[0], 1, "a valid turret keeps its pose");

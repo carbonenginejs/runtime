@@ -329,7 +329,7 @@ test("end-to-end: a real Tr2RenderContext supplies the pool with no engine setup
     .GetAccumulator(OPAQUE).GetBatches()[0];
   assert.ok(batch.objectData instanceof RawData, "leased from the context's own pool");
 
-  const world = batch.objectData.GetTransposed("world");
+  const world = batch.objectData.Get("world");
   Tr2Renderer.EndRenderContext();
   const reused = store.Allocate("EveBasicPerObjectData");
   assert.equal(reused.GetData().byteOffset, batch.objectData.GetData().byteOffset,

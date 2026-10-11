@@ -76,7 +76,7 @@ test("the cascade matrices are Carbon's inverseView * LVP, then clip to UV, then
     const x = index % 8, y = Math.floor(index / 8);
     const cell = rowMultiply([ 1 / 8, 0, 0, 0, 0, 1 / 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ], [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, x / 8, y / 2, 0, 1 ]);
     const expected = rowMultiply(rowMultiply(rowMultiply(inverseView, split.ShadowMatrixVal[index]), clipToUv), cell);
-    near(logical(data.GetTransposedIndex("ShadowMatrix", index)), expected, `cascade ${index}`);
+    near(logical(data.GetIndex("ShadowMatrix", index)), expected, `cascade ${index}`);
   }
   near(data.GetIndex("ShadowMapValues", 2), [ 1, 2, 3, 4 ], "ShadowMapValues");
   near(data.Get("SplitInfo"), [ 4, 0, 0, 0 ], "SplitInfo");
@@ -86,15 +86,15 @@ test("the reprojection is Carbon's inverseView * originShift * viewLast: identit
 {
   const renderer = new Tr2VolumetricsRenderer();
   const still = update(renderer);
-  near(logical(still.data.GetTransposed("ReprojectionMatrix")), mat4.create(), "still camera");
+  near(logical(still.data.Get("ReprojectionMatrix")), mat4.create(), "still camera");
 
   const viewLast = skewed(0.7, [ 1, 0, 0 ], [ 1, 1, 1 ], [ -5, 6, 7 ]);
   const originShift = new Float64Array([ 3, -4, 5 ]);
   const moved = update(renderer, { viewLast, originShift });
   const inverseView = mat4.invert(mat4.create(), moved.values.view);
   const shift = [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -3, 4, -5, 1 ];
-  near(logical(moved.data.GetTransposed("ReprojectionMatrix")), rowMultiply(rowMultiply(inverseView, shift), viewLast), "moved camera");
-  near(logical(moved.data.GetTransposed("InverseViewMatrix")), inverseView, "InverseViewMatrix");
+  near(logical(moved.data.Get("ReprojectionMatrix")), rowMultiply(rowMultiply(inverseView, shift), viewLast), "moved camera");
+  near(logical(moved.data.Get("InverseViewMatrix")), inverseView, "InverseViewMatrix");
 });
 
 test("the god-ray noise realigns with a turned sun without moving the camera in noise space", () =>

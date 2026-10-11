@@ -136,7 +136,7 @@ function extractCustomMasks(object)
 
   // EveCustomMask writes GPU-form records, so the masks fill a scratch pair and
   // the plain Main values are read back out of them. The matrix slots come back
-  // through GetTransposedIndex because that is how they are stored.
+  // as stored, in the shader layout EveCustomMask wrote.
   const vsRecord = RawData.create("EveSpaceObjectVSData");
   const psRecord = RawData.create("EveSpaceObjectPSData");
 
@@ -152,7 +152,7 @@ function extractCustomMasks(object)
 
   const slots = [0, 1];
   const vs = {
-    customMaskMatrix: slots.map((slot) => Array.from(vsRecord.GetTransposedIndex("customMaskMatrix", slot))),
+    customMaskMatrix: slots.map((slot) => Array.from(vsRecord.GetIndex("customMaskMatrix", slot))),
     customMaskData: slots.map((slot) => Array.from(vsRecord.GetIndex("customMaskData", slot)))
   };
   const ps = {

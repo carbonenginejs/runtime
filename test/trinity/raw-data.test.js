@@ -276,7 +276,7 @@ test("catalog defaults are applied on Alloc, including per element", () =>
   // and it does so for EVERY slot - so the default repeats across elements.
   for (const slot of [0, 1])
   {
-    const matrix = data.GetTransposedIndex("customMaskMatrix", slot);
+    const matrix = data.GetIndex("customMaskMatrix", slot);
     assert.equal(matrix[0], 1, `slot ${slot} identity`);
     assert.equal(matrix[5], 1, `slot ${slot} identity`);
     assert.equal(matrix[1], 0, `slot ${slot} identity`);
@@ -456,7 +456,7 @@ test("a distinct VS+PS pair is TWO Allocs returned as a { vs, ps } record", () =
   assert.notEqual(perObjectData.vs.GetData(), perObjectData.ps.GetData(), "two independent arena slots");
 });
 
-test("SetUntransposed preserves prepared bytes, dirty tracking and matrix guards", () =>
+test("SetWithoutTransposing preserves prepared bytes, dirty tracking and matrix guards", () =>
 {
   const data = MakeStore("Copy", [
     { name: "matrices", size: 16, elements: 3, encoding: Type.MATRIX },
@@ -465,25 +465,25 @@ test("SetUntransposed preserves prepared bytes, dirty tracking and matrix guards
   const world = MakeWorld();
   data.GetData().fill(99);
   data.ClearDirty();
-  data.SetUntransposedIndex("matrices", 1, world);
-  assert.deepEqual(data.GetTransposedIndex("matrices", 1), world);
+  data.SetWithoutTransposingIndex("matrices", 1, world);
+  assert.deepEqual(data.GetIndex("matrices", 1), world);
   assert.ok(data.IsDirty());
-  assert.ok(data.GetTransposedIndex("matrices", 0).every(value => value === 99));
-  assert.ok(data.GetTransposedIndex("matrices", 2).every(value => value === 99));
+  assert.ok(data.GetIndex("matrices", 0).every(value => value === 99));
+  assert.ok(data.GetIndex("matrices", 2).every(value => value === 99));
   assert.ok(data.Get("vector").every(value => value === 99));
   const matrices = Float32Array.from({ length: 48 }, (_, index) => index + 0.5);
-  data.SetUntransposed("matrices", matrices);
-  assert.deepEqual(data.GetTransposed("matrices"), matrices);
-  data.SetUntransposedIndex("matrices", 2, data.GetTransposedIndex("matrices", 1));
-  assert.deepEqual(data.GetTransposedIndex("matrices", 2), matrices.slice(16, 32));
+  data.SetWithoutTransposing("matrices", matrices);
+  assert.deepEqual(data.Get("matrices"), matrices);
+  data.SetWithoutTransposingIndex("matrices", 2, data.GetIndex("matrices", 1));
+  assert.deepEqual(data.GetIndex("matrices", 2), matrices.slice(16, 32));
   data.ClearDirty();
   const before = data.GetData().slice();
-  assert.throws(() => data.Set("matrices", matrices), /Matrices must be explicitly set with or without transposing: use SetAndTranspose or SetUntransposed/);
+  assert.throws(() => data.Set("matrices", matrices), /Matrices must be explicitly set with or without transposing: use SetAndTranspose or SetWithoutTransposing/);
   assert.throws(() => data.SetIndex("matrices", 0, world), /matrix/);
-  assert.throws(() => data.SetUntransposed("vector", world), /not a matrix/);
-  assert.throws(() => data.SetUntransposed("missing", world), /unknown field/);
-  assert.throws(() => data.SetUntransposedIndex("matrices", 3, world), /out of range/);
-  assert.throws(() => data.SetUntransposed("matrices", world), /exactly 48/);
+  assert.throws(() => data.SetWithoutTransposing("vector", world), /not a matrix/);
+  assert.throws(() => data.SetWithoutTransposing("missing", world), /unknown field/);
+  assert.throws(() => data.SetWithoutTransposingIndex("matrices", 3, world), /out of range/);
+  assert.throws(() => data.SetWithoutTransposing("matrices", world), /exactly 48/);
   assert.deepEqual(data.GetData(), before);
   assert.equal(data.IsDirty(), false);
 });
