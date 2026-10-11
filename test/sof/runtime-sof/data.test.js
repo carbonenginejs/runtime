@@ -8,8 +8,6 @@ import {
   EveSOFDataTransform,
 } from "../../../npm/dist/sof/data/index.js";
 import {
-  ErrSOFLogoSetTypeNotFound,
-  ErrSOFLogoSetTypeUnknown,
   EveSOFDataArea,
   EveSOFDataAreaMaterial,
   EveSOFDataBlink,
@@ -107,9 +105,9 @@ test("SOF blink data exposes Carbon enum values and lookup behavior", () => {
     FADE_OUT: 3,
     CYCLE: 4,
   });
-  assert.equal(blinkTypes.GetByType(EveSOFDataBlinkType.Type.STATIC), null);
-  blinkTypes.Blink = blink;
-  assert.equal(blinkTypes.GetByType(EveSOFDataBlinkType.Type.BLINK), blink);
+  assert.equal(blinkTypes.blinkType[EveSOFDataBlinkType.Type.STATIC], null);
+  blinkTypes.blinkType[EveSOFDataBlinkType.Type.BLINK] = blink;
+  assert.equal(blinkTypes.blinkType[EveSOFDataBlinkType.BlinkType.TYPE_BLINK], blink);
   assert.equal(CjsSchema.GetConstructor("EveSOFDataBlink"), EveSOFDataBlink);
   assert.deepEqual(EveSOFDataBlinkType.BlinkType, {
     TYPE_STATIC: 0,
@@ -247,17 +245,15 @@ test("SOF logo lookup and authoring helpers produce detached configuration", () 
     TYPE_MAX: 5,
   });
   assert.equal("Corporation" in logos, false);
-  assert.equal(logos.Has(0), false);
-  assert.throws(() => logos.Get(0), ErrSOFLogoSetTypeNotFound);
-  assert.throws(() => logos.Has(5), ErrSOFLogoSetTypeUnknown);
+  assert.equal(logos.logos[EveSOFDataLogoSet.LogoType.TYPE_PRIMARY], null);
 
   const texture = new EveSOFDataTexture();
   texture.name = "AlbedoMap";
   texture.resFilePath = "res:/albedo.dds";
   const logo = new EveSOFDataLogo();
   logo.textures.push(texture);
-  logos.Primary = logo;
-  assert.equal(logos.Get(0), logo);
+  logos.logos[EveSOFDataLogoSet.LogoType.TYPE_PRIMARY] = logo;
+  assert.equal(logos.logos[0], logo);
   assert.deepEqual(logo.Assign(), { textures: { AlbedoMap: "res:/albedo.dds" } });
 
   const parameter = new EveSOFDataParameter();
@@ -353,12 +349,11 @@ test("SOF catalog, area, hull, and hull-area records preserve Carbon shape", () 
   }
 
   const area = new EveSOFDataArea();
-  assert.equal(EveSOFDataArea.Types[5], null);
-  assert.equal("Wreck" in area, false);
-  assert.equal(area.GetTypeByIndex(EveSOFDataArea.AreaType.TYPE_WRECK), null);
-  area.Primary = new EveSOFDataAreaMaterial();
-  assert.equal(area.Has(EveSOFDataArea.AreaType.TYPE_PRIMARY), true);
-  assert.equal(area.Get(EveSOFDataArea.AreaType.TYPE_PRIMARY), area.Primary);
+  assert.equal(area.materials.length, EveSOFDataArea.AreaType.TYPE_MAX);
+  assert.equal(area.materials[EveSOFDataArea.AreaType.TYPE_WRECK], null);
+  const primary = new EveSOFDataAreaMaterial();
+  area.materials[EveSOFDataArea.AreaType.TYPE_PRIMARY] = primary;
+  assert.equal(area.materials[0], primary);
 
   const hull = new EveSOFDataHull();
   const nextHull = new EveSOFDataHull();
@@ -400,25 +395,20 @@ test("SOF catalog, area, hull, and hull-area records preserve Carbon shape", () 
 test("SOF faction records retain Carbon color and material-usage defaults", () => {
   const colors = new EveSOFDataFactionColorSet();
   const nextColors = new EveSOFDataFactionColorSet();
-  assert.equal(EveSOFDataFactionColorSet.Types.length, 44);
-  assert.equal(EveSOFDataFactionColorSet.ColorType.TYPE_PRIMARY_DOCKED_FX, 43);
-  assert.equal(EveSOFDataFactionColorSet.ColorType.TYPE_MAX, 44);
-  for (const name of EveSOFDataFactionColorSet.Types)
+  const { ColorType } = EveSOFDataFactionColorSet;
+  assert.equal(ColorType.TYPE_PRIMARY_DOCKED_FX, 43);
+  assert.equal(ColorType.TYPE_MAX, 44);
+  assert.equal(colors.colors.length, ColorType.TYPE_MAX);
+  for (let type = 0; type < ColorType.TYPE_MAX; type++)
   {
-    if (name !== "PrimaryBillboard") assert.equal(colors[name][3], 1, name);
-    assert.notEqual(colors[name], nextColors[name], name);
+    if (type !== ColorType.TYPE_PRIMARY_BILLBOARD) assert.equal(colors.colors[type][3], 1, type);
+    assert.notEqual(colors.colors[type], nextColors.colors[type], type);
   }
-  assert.deepEqual([...colors.PrimaryBillboard], [2.5, 2.5, 2.5, 2.5]);
-  assert.ok(Math.abs(colors.PrimaryWarpFx[1] - 99 / 255) < 1e-6);
-  assert.ok(Math.abs(colors.PrimaryAttackFX[2] - 11 / 255) < 1e-6);
-  assert.ok(Math.abs(colors.PrimarySiegeFX[1] - 94 / 255) < 1e-6);
-  assert.ok(Math.abs(colors.PrimaryDockedFX[2] - 226 / 255) < 1e-6);
-  const copied = colors.Get(
-    EveSOFDataFactionColorSet.ColorType.TYPE_PRIMARY_DOCKED_FX,
-    new Float32Array(4),
-  );
-  assert.notEqual(copied, colors.PrimaryDockedFX);
-  assert.throws(() => colors.Has(44), RangeError);
+  assert.deepEqual([...colors.colors[ColorType.TYPE_PRIMARY_BILLBOARD]], [2.5, 2.5, 2.5, 2.5]);
+  assert.ok(Math.abs(colors.colors[ColorType.TYPE_PRIMARY_WARP_FX][1] - 99 / 255) < 1e-6);
+  assert.ok(Math.abs(colors.colors[ColorType.TYPE_PRIMARY_ATTACK_FX][2] - 11 / 255) < 1e-6);
+  assert.ok(Math.abs(colors.colors[ColorType.TYPE_PRIMARY_SIEGE_FX][1] - 94 / 255) < 1e-6);
+  assert.ok(Math.abs(colors.colors[ColorType.TYPE_PRIMARY_DOCKED_FX][2] - 226 / 255) < 1e-6);
 
   const faction = new EveSOFDataFaction();
   assert.deepEqual([
@@ -427,8 +417,8 @@ test("SOF faction records retain Carbon color and material-usage defaults", () =
     faction.materialUsageMtl3,
     faction.materialUsageMtl4,
   ], [0, 1, 2, 3]);
-  assert.equal(faction.GetAreaType(0), null);
-  assert.equal(faction.GetLogoType(0), null);
+  assert.equal(faction.areaTypes, null);
+  assert.equal(faction.logoSet, null);
 
   const hullArea = new EveSOFDataFactionHullArea();
   const parameter = new EveSOFDataParameter();

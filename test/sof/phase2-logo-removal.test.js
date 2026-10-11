@@ -7,8 +7,6 @@ import { EveSOFDataLogo } from "../../npm/dist/sof/shared/EveSOFDataLogo.js";
 import { EveSOFDataLogoSet } from "../../npm/dist/sof/shared/EveSOFDataLogoSet.js";
 import { EveSOFDataTexture } from "../../npm/dist/sof/shared/EveSOFDataTexture.js";
 import { EveSOFDataFaction } from "../../npm/dist/sof/faction/EveSOFDataFaction.js";
-import { ErrSOFLogoSetTypeUnknown } from "../../npm/dist/sof/shared/ErrSOFLogoSetTypeUnknown.js";
-import { ErrSOFLogoSetTypeNotFound } from "../../npm/dist/sof/shared/ErrSOFLogoSetTypeNotFound.js";
 
 for (const Type of [EveSOFDataLogo, EveSOFDataLogoSet])
 test(`${Type.name} retains only native self queries without model helpers`, () =>
@@ -22,10 +20,17 @@ test(`${Type.name} retains only native self queries without model helpers`, () =
     assert.equal(value[name], undefined);
 });
 
-test("native fields and enum identity retain null slots, persistence and lookup errors", () =>
+test("native fields and enum identity retain null slots and persistence", () =>
 {
+  const { LogoType } = EveSOFDataLogoSet;
   const names = ["Primary", "Secondary", "Tertiary", "Marking_01", "Marking_02"];
-  assert.deepEqual(CjsSchema.getSchema(EveSOFDataLogoSet).members.map(f => f.name), names);
+  assert.deepEqual(CjsSchema.getSchema(EveSOFDataLogoSet).members.map(f => [ f.name, f.key, f.index ]), [
+    [ "Primary", "logos", LogoType.TYPE_PRIMARY ],
+    [ "Secondary", "logos", LogoType.TYPE_SECONDARY ],
+    [ "Tertiary", "logos", LogoType.TYPE_TERTIARY ],
+    [ "Marking_01", "logos", LogoType.TYPE_MARKING_01 ],
+    [ "Marking_02", "logos", LogoType.TYPE_MARKING_02 ]
+  ]);
   assert.deepEqual(CjsSchema.getSchema(EveSOFDataLogo).members.map(f => f.name), ["textures"]);
   for (const Type of [EveSOFDataLogo, EveSOFDataLogoSet])
     for (const field of CjsSchema.getSchema(Type).members)
@@ -36,13 +41,10 @@ test("native fields and enum identity retain null slots, persistence and lookup 
       assert.notEqual(field.edit.notify, true);
     }
   const set = new EveSOFDataLogoSet();
-  for (const name of names) assert.equal(set[name], null);
-  assert.equal(set.Has(0), false);
-  assert.throws(() => set.Get(0), ErrSOFLogoSetTypeNotFound);
-  assert.throws(() => set.Get(5), ErrSOFLogoSetTypeUnknown);
-  assert.equal(blue.enums.GetEnum("trinity.EveSOFDataLogoSet.LogoType"), EveSOFDataLogoSet.LogoType);
-  assert.equal(Object.isFrozen(EveSOFDataLogoSet.LogoType), true);
-  assert.equal(Object.isFrozen(EveSOFDataLogoSet.Types), true);
+  assert.deepEqual(set.logos, new Array(LogoType.TYPE_MAX).fill(null));
+  for (const name of names) assert.equal(name in set, false);
+  assert.equal(blue.enums.GetEnum("trinity.EveSOFDataLogoSet.LogoType"), LogoType);
+  assert.equal(Object.isFrozen(LogoType), true);
 });
 
 test("actual Faction parent hydrates shared logo children and copies their named textures", () =>
@@ -58,22 +60,26 @@ test("actual Faction parent hydrates shared logo children and copies their named
   });
   assert.ok(faction instanceof EveSOFDataFaction);
   assert.ok(faction.logoSet instanceof EveSOFDataLogoSet);
-  assert.ok(faction.logoSet.Primary instanceof EveSOFDataLogo);
-  assert.ok(faction.logoSet.Primary.textures[0] instanceof EveSOFDataTexture);
-  assert.equal(faction.logoSet.Primary, faction.logoSet.Secondary);
-  assert.equal(faction.GetLogoType(2, 0), faction.logoSet.Primary);
-  assert.deepEqual(faction.GetLogoType(0).Assign(), { textures: { LogoMap: "res:/test/logo.dds" } });
+  const { logos } = faction.logoSet;
+  assert.ok(logos[0] instanceof EveSOFDataLogo);
+  assert.ok(logos[0].textures[0] instanceof EveSOFDataTexture);
+  assert.equal(logos[0], logos[1]);
+  assert.deepEqual(logos[0].Assign(), { textures: { LogoMap: "res:/test/logo.dds" } });
   const copy = new Copier().CloneTo(faction);
   assert.notEqual(copy.logoSet, faction.logoSet);
-  assert.notEqual(copy.logoSet.Primary, faction.logoSet.Primary);
-  assert.notEqual(copy.logoSet.Primary.textures[0], faction.logoSet.Primary.textures[0]);
-  assert.equal(copy.logoSet.Primary, copy.logoSet.Secondary);
-  assert.equal(copy.logoSet.Tertiary, null);
-  assert.deepEqual(copy.GetLogoType(0).AssignTextures(), { LogoMap: "res:/test/logo.dds" });
+  assert.notEqual(copy.logoSet.logos, logos);
+  assert.notEqual(copy.logoSet.logos[0], logos[0]);
+  assert.notEqual(copy.logoSet.logos[0].textures[0], logos[0].textures[0]);
+  assert.equal(copy.logoSet.logos[0], copy.logoSet.logos[1]);
+  assert.equal(copy.logoSet.logos[2], null);
+  assert.deepEqual(copy.logoSet.logos[0].AssignTextures(), { LogoMap: "res:/test/logo.dds" });
   const bag = new DictWriter().WriteObject(faction, {}, { persistOnly: true, refs: true });
+  // Exported keys are the slot names; empty slots are not written.
+  assert.deepEqual(Object.keys(bag.logoSet).filter(key => !key.startsWith("_")), [ "Primary", "Secondary" ]);
   const restored = new DictReader({ declarations: true }).CreateObject({ _type: "EveSOFDataFaction", ...bag });
-  assert.equal(restored.logoSet.Primary, restored.logoSet.Secondary);
-  assert.deepEqual(restored.GetLogoType(0).AssignTextures(), { LogoMap: "res:/test/logo.dds" });
+  assert.equal(restored.logoSet.logos[0], restored.logoSet.logos[1]);
+  assert.equal(restored.logoSet.logos[2], null);
+  assert.deepEqual(restored.logoSet.logos[0].AssignTextures(), { LogoMap: "res:/test/logo.dds" });
 });
 
 test("custom composition preserves reusable outputs and empty-base-slot behavior", () =>
@@ -91,10 +97,9 @@ test("custom composition preserves reusable outputs and empty-base-slot behavior
   assert.equal(EveSOFDataLogo.combine(null, base, output), output);
   assert.deepEqual(output.AssignTextures(), { LogoMap: "override" });
   const set = new EveSOFDataLogoSet();
-  set.Primary = base;
+  set.logos[EveSOFDataLogoSet.LogoType.TYPE_PRIMARY] = base;
   const result = EveSOFDataLogoSet.combine(set, null);
-  assert.deepEqual(result.Get(0).AssignTextures(), { LogoMap: "base" });
-  assert.ok(result.Secondary instanceof EveSOFDataLogo);
-  assert.deepEqual(result.Secondary.textures, []);
-  assert.equal(result.Has(1), true);
+  assert.deepEqual(result.logos[0].AssignTextures(), { LogoMap: "base" });
+  assert.ok(result.logos[1] instanceof EveSOFDataLogo);
+  assert.deepEqual(result.logos[1].textures, []);
 });

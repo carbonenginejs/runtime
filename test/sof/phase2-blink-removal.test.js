@@ -21,23 +21,29 @@ test(`${Type.name} is an IRoot-shaped record with only its native self query`, (
     assert.equal(value[method], undefined);
 });
 
-test("blink declarations retain ordered nullable persistent slots and empty child shape", () =>
+test("blink declarations name the ordered nullable persistent slots of m_blinkType", () =>
 {
-  const names = ["Blink", "FadeIn", "FadeOut", "Cycle"];
+  const { BlinkType } = EveSOFDataBlinkType;
   const fields = CjsSchema.getSchema(EveSOFDataBlinkType).members;
-  assert.deepEqual(fields.map(f => f.name), names);
+  assert.deepEqual(fields.map(f => [ f.name, f.key, f.index ]), [
+    [ "Blink", "blinkType", BlinkType.TYPE_BLINK ],
+    [ "FadeIn", "blinkType", BlinkType.TYPE_FADE_IN ],
+    [ "FadeOut", "blinkType", BlinkType.TYPE_FADE_OUT ],
+    [ "Cycle", "blinkType", BlinkType.TYPE_CYCLE ]
+  ]);
   const value = new EveSOFDataBlinkType();
+  // CE-115: Carbon's array holds TYPE_CYCLE slots but exposes Cycle at TYPE_CYCLE.
+  assert.equal(value.blinkType.length, BlinkType.TYPE_CYCLE + 1);
+  assert.deepEqual(value.blinkType, [ null, null, null, null, null ]);
   for (const field of fields)
   {
     assert.equal(field.edit.read, true);
     assert.equal(field.edit.write, true);
     assert.equal(field.edit.persist, true);
     assert.notEqual(field.edit.notify, true);
-    assert.equal(value[field.name], null);
   }
   assert.equal(CjsSchema.getSchema(EveSOFDataBlink).members.length, 0);
   assert.equal(new EveSOFDataBlink().IsEmpty(), true);
-  for (const mode of [0, -1, 5, NaN]) assert.equal(value.GetByType(mode), null);
 });
 
 test("actual BlinkType parent hydrates and copies shared Blink children through Blue operations", () =>
@@ -47,21 +53,27 @@ test("actual BlinkType parent hydrates and copies shared Blink children through 
     FadeIn: { _type: "EveSOFDataBlink", _id: "shared" },
     FadeOut: null, Cycle: { _type: "EveSOFDataBlink" }
   });
+  const [ , BLINK, FADE_IN, FADE_OUT, CYCLE ] = [ 0, 1, 2, 3, 4 ];
   assert.ok(parent instanceof EveSOFDataBlinkType);
-  assert.ok(parent.Blink instanceof EveSOFDataBlink);
-  assert.equal(parent.Blink, parent.FadeIn);
-  assert.notEqual(parent.Cycle, parent.Blink);
-  assert.equal(parent.GetByType(4), parent.Cycle);
+  assert.ok(parent.blinkType[BLINK] instanceof EveSOFDataBlink);
+  assert.equal(parent.blinkType[BLINK], parent.blinkType[FADE_IN]);
+  assert.equal(parent.blinkType[FADE_OUT], null);
+  assert.notEqual(parent.blinkType[CYCLE], parent.blinkType[BLINK]);
+  assert.equal(parent.blinkType[0], null);
   const copy = new Copier().CloneTo(parent);
   assert.notEqual(copy, parent);
-  assert.notEqual(copy.Blink, parent.Blink);
-  assert.equal(copy.Blink, copy.FadeIn);
-  assert.equal(copy.FadeOut, null);
-  assert.notEqual(copy.Cycle, copy.Blink);
+  assert.notEqual(copy.blinkType, parent.blinkType);
+  assert.notEqual(copy.blinkType[BLINK], parent.blinkType[BLINK]);
+  assert.equal(copy.blinkType[BLINK], copy.blinkType[FADE_IN]);
+  assert.equal(copy.blinkType[FADE_OUT], null);
+  assert.notEqual(copy.blinkType[CYCLE], copy.blinkType[BLINK]);
   const bag = new DictWriter().WriteObject(parent, {}, { persistOnly: true, refs: true });
+  // Exported keys are the slot names; the empty FadeOut slot is not written.
+  assert.deepEqual(Object.keys(bag).filter(key => !key.startsWith("_")), [ "Blink", "FadeIn", "Cycle" ]);
   const restored = new DictReader({ declarations: true }).CreateObject({ _type: "EveSOFDataBlinkType", ...bag });
-  assert.equal(restored.Blink, restored.FadeIn);
-  assert.ok(restored.Cycle instanceof EveSOFDataBlink);
+  assert.equal(restored.blinkType[BLINK], restored.blinkType[FADE_IN]);
+  assert.equal(restored.blinkType[FADE_OUT], null);
+  assert.ok(restored.blinkType[CYCLE] instanceof EveSOFDataBlink);
 });
 
 test("actual hull plane owner hydration and copy preserve the shared blink enum identity", () =>
@@ -70,9 +82,7 @@ test("actual hull plane owner hydration and copy preserve the shared blink enum 
   assert.equal(EveSOFDataHullPlaneSetItem.BlinkType, nativeEnum);
   assert.equal(blue.enums.GetEnum("trinity.EveSOFDataBlinkType.BlinkType"), nativeEnum);
   assert.equal(CjsSchema.getField(EveSOFDataHullPlaneSetItem, "blinkMode").enum.members, nativeEnum);
-  for (const values of [nativeEnum, EveSOFDataBlinkType.Type, EveSOFDataBlinkType.Types])
-    assert.equal(Object.isFrozen(values), true);
-  assert.deepEqual(EveSOFDataBlinkType.Types, [null, "Blink", "FadeIn", "FadeOut", "Cycle"]);
+  assert.equal(Object.isFrozen(nativeEnum), true);
   const hull = new DictReader({ declarations: true }).CreateObject({
     _type: "EveSOFDataHull", name: "authored-blink-owner", planeSets: [{
       _type: "EveSOFDataHullPlaneSet", name: "planes", items: [{

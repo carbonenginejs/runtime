@@ -1,110 +1,77 @@
-// Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
-// Maintained CarbonEngineJS implementation; generated schema is reference-only.
+// Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:301-324
+// Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:70-77, 1140-1147
 import { meta } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
 
 /**
- * Native IRoot container of optional empty blink settings records.
- * Exposure order follows EveSOFData_Blue.cpp:1137-1147. The native header
- * declares m_blinkType[TYPE_CYCLE] (four slots), yet exposure indexes
- * TYPE_CYCLE (four); the existing safe JavaScript Cycle=null slot is retained.
+ * `EveSOFDataBlinkType::BlinkType` (EveSOFData.h:312-319). Carbon sizes the
+ * slot array by TYPE_CYCLE, so the enum has no TYPE_MAX.
+ * @type {Object<string, number>}
  */
-@meta.define({ className: "EveSOFDataBlinkType", family: "eve" })
+const BlinkType = {
+  TYPE_STATIC: 0,
+  TYPE_BLINK: 1,
+  TYPE_FADE_IN: 2,
+  TYPE_FADE_OUT: 3,
+  TYPE_CYCLE: 4
+};
+
+/** One exposed `m_blinkType[type]` slot, named by its chooser key (EveSOFData_Blue.cpp:1143-1146). */
+const slot = (name, index) => ({ name, key: "blinkType", index, type: { kind: "rootRef", className: "EveSOFDataBlink" },
+  edit: { read: true, write: true, persist: true } });
+
+/**
+ * Blink settings slots: `EveSOFDataBlinkPtr m_blinkType[TYPE_CYCLE]`, exposed
+ * by chooser name. TYPE_STATIC has no exposed slot. Nothing in Carbon reads
+ * the slots. Native IRoot-only data with no lifecycle.
+ */
+@meta.define({ className: "EveSOFDataBlinkType", family: "eve", members: [
+  slot("Blink", BlinkType.TYPE_BLINK),
+  slot("FadeIn", BlinkType.TYPE_FADE_IN),
+  slot("FadeOut", BlinkType.TYPE_FADE_OUT),
+  // Adapted: Carbon's slot is one past the end of its array (CE-115); see `blinkType`.
+  { ...slot("Cycle", BlinkType.TYPE_CYCLE), impl: { adapted: true, status: "adapted" } }
+] })
 @meta.blue.interface()
 export class EveSOFDataBlinkType
 {
-
-  /** Optional empty settings record for regular blink; native EveSOFDataBlinkPtr.
-   * @type {EveSOFDataBlink|null}
-   */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataBlink")
-  Blink = null;
-
-  /** Optional empty settings record for fade-in; native EveSOFDataBlinkPtr.
-   * @type {EveSOFDataBlink|null}
-   */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataBlink")
-  FadeIn = null;
-
-  /** Optional empty settings record for fade-out; native EveSOFDataBlinkPtr.
-   * @type {EveSOFDataBlink|null}
-   */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataBlink")
-  FadeOut = null;
-
-  /** Optional empty settings record for fade-in/out cycle; native EveSOFDataBlinkPtr.
-   * @type {EveSOFDataBlink|null}
-   */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataBlink")
-  Cycle = null;
-
-  /** Looks up the named slot through the existing JS enum table; no native method.
-   * @param {number} blinkType BlinkType enum value.
-   * @returns {EveSOFDataBlink|null} Settings, or null for static/unknown modes.
-   */
-  @meta.ours
-  GetByType(blinkType)
-  {
-    const property = this.constructor.Types[blinkType];
-    return property ? this[property] ?? null : null;
-  }
-
-  // Source: EveSOFData.h, EveSOFDataBlinkType::BlinkType. Keep the donor
-  // spelling for schema choosers; Type below is the existing JS compatibility map.
-  /** Native BlinkType numeric choices, shared with plane-item enum metadata.
-   * @type {Readonly<Object<string, number>>}
-   */
-  static BlinkType = {
-    TYPE_STATIC: 0,
-    TYPE_BLINK: 1,
-    TYPE_FADE_IN: 2,
-    TYPE_FADE_OUT: 3,
-    TYPE_CYCLE: 4
-  };
+  static BlinkType = BlinkType;
 
   /** Existing JavaScript aliases for the native TYPE_* enum names.
-   * @type {Readonly<Object<string, number>>}
+   * @type {Object<string, number>}
    */
-  static Type = Object.freeze({
-    STATIC: EveSOFDataBlinkType.BlinkType.TYPE_STATIC,
-    BLINK: EveSOFDataBlinkType.BlinkType.TYPE_BLINK,
-    FADE_IN: EveSOFDataBlinkType.BlinkType.TYPE_FADE_IN,
-    FADE_OUT: EveSOFDataBlinkType.BlinkType.TYPE_FADE_OUT,
-    CYCLE: EveSOFDataBlinkType.BlinkType.TYPE_CYCLE
-  });
+  static Type = {
+    STATIC: BlinkType.TYPE_STATIC,
+    BLINK: BlinkType.TYPE_BLINK,
+    FADE_IN: BlinkType.TYPE_FADE_IN,
+    FADE_OUT: BlinkType.TYPE_FADE_OUT,
+    CYCLE: BlinkType.TYPE_CYCLE
+  };
 
-  /** Enum-indexed property names; static mode has no settings slot.
-   * @type {ReadonlyArray<string|null>}
+  /**
+   * m_blinkType: one blink settings record per BlinkType, or null.
+   *
+   * Adapted: one slot longer than Carbon's. Carbon declares
+   * `m_blinkType[TYPE_CYCLE]` (four slots) but exposes "Cycle" at
+   * `m_blinkType[TYPE_CYCLE]`, one past the end (Carbon defect CE-115,
+   * EveSOFData.h:322, EveSOFData_Blue.cpp:1146). JavaScript cannot write past an
+   * array into the next member, so slot TYPE_CYCLE exists here and authored
+   * Cycle data round-trips; Carbon's behaviour there is undefined.
+   * @type {Array<EveSOFDataBlink|null>}
    */
-  static Types = Object.freeze([
-    null,
-    "Blink",
-    "FadeIn",
-    "FadeOut",
-    "Cycle"
-  ]);
-
+  blinkType = new Array(BlinkType.TYPE_CYCLE + 1).fill(null);
 }
 
 // Native chooser labels and descriptions are distinct from C++ member names.
-blue.enums.Create("trinity.EveSOFDataBlinkType.BlinkType", EveSOFDataBlinkType.BlinkType, {
+blue.enums.Create("trinity.EveSOFDataBlinkType.BlinkType", BlinkType, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 312,
   exposedName: "EveSOFDataBlinkType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:70",
   chooser: [
-    { name: "Static", value: EveSOFDataBlinkType.BlinkType.TYPE_STATIC, description: "Static, no blinking" },
-    { name: "Blink", value: EveSOFDataBlinkType.BlinkType.TYPE_BLINK, description: "Regular blink" },
-    { name: "FadeIn", value: EveSOFDataBlinkType.BlinkType.TYPE_FADE_IN, description: "Fade in" },
-    { name: "FadeOut", value: EveSOFDataBlinkType.BlinkType.TYPE_FADE_OUT, description: "Fade out" },
-    { name: "Cycle", value: EveSOFDataBlinkType.BlinkType.TYPE_CYCLE, description: "Cycle (fade in/out)" }
+    { name: "Static", value: BlinkType.TYPE_STATIC, description: "Static, no blinking" },
+    { name: "Blink", value: BlinkType.TYPE_BLINK, description: "Regular blink" },
+    { name: "FadeIn", value: BlinkType.TYPE_FADE_IN, description: "Fade in" },
+    { name: "FadeOut", value: BlinkType.TYPE_FADE_OUT, description: "Fade out" },
+    { name: "Cycle", value: BlinkType.TYPE_CYCLE, description: "Cycle (fade in/out)" }
   ]
 });
-

@@ -15,6 +15,7 @@ import { EveSOFDataGeneric } from "../../../npm/dist/sof/generic/EveSOFDataGener
 import { EveSOFDataMgr } from "../../../npm/dist/sof/EveSOFDataMgr.js";
 
 const areaNames = ["Primary", "Glass", "Sails", "Reactor", "Darkhull", "Rock", "Monument", "Ornament", "SimplePrimary", "Turret"];
+const areaIndices = {Primary: 0, Glass: 1, Sails: 2, Reactor: 3, Darkhull: 4, Rock: 6, Monument: 7, Ornament: 8, SimplePrimary: 9, Turret: 10};
 
 function records()
 {
@@ -59,9 +60,11 @@ test("native declaration order and area chooser preserve omitted Wreck slot and 
   assert.deepEqual(CjsSchema.getSchema(Area).members.map(field => field.name), areaNames);
   for (const field of CjsSchema.getSchema(Area).members)
   {
-    assert.deepEqual(field.edit, {read: true, write: true, persist: true}); assert.equal(new Area()[field.name], null);
+    assert.deepEqual(field.edit, {read: true, write: true, persist: true});
+    assert.equal(field.key, "materials"); assert.equal(field.index, areaIndices[field.name]);
   }
-  assert.equal("Wreck" in new Area(), false); assert.equal(Area.Types[5], null); assert.equal(Object.isFrozen(Area.Types), false);
+  assert.deepEqual(new Area().materials, new Array(Area.AreaType.TYPE_MAX).fill(null));
+  assert.equal(CjsSchema.getSchema(Area).members.some(field => field.index === Area.AreaType.TYPE_WRECK), false);
   assert.equal(Area.AreaType.TYPE_WRECK, 5); assert.equal(Area.AreaType.TYPE_NO_OVERWRITE, 11); assert.equal(Area.AreaType.TYPE_MAX, 11);
   const info = blue.enums.GetEnumInfo("trinity.EveSOFDataArea.AreaType");
   assert.equal(blue.enums.GetEnum("trinity.EveSOFDataArea.AreaType"), Area.AreaType);
@@ -73,10 +76,10 @@ test("actual hydration creates model-free containers and concrete typed authored
 {
   const {material, area} = records();
   assert.deepEqual(material.parameters.map(record => record.constructor), [Parameter, Float, Vector2]);
-  assert.equal(area.Primary.constructor, AreaMaterial); assert.equal(area.Turret.constructor, AreaMaterial);
-  assert.equal(area.Primary.material1, "testMaterial"); assert.equal(area.Primary.colorType, 0);
-  assert.equal(area.Glass, null); assert.deepEqual(GetResources(area), []);
-  assert.equal("Copy" in material.parameters[0], false); assert.equal("Copy" in area.Primary, false);
+  assert.equal(area.materials[0].constructor, AreaMaterial); assert.equal(area.materials[10].constructor, AreaMaterial);
+  assert.equal(area.materials[0].material1, "testMaterial"); assert.equal(area.materials[0].colorType, 0);
+  assert.equal(area.materials[1], null); assert.deepEqual(GetResources(area), []);
+  assert.equal("Copy" in material.parameters[0], false); assert.equal("Copy" in area.materials[0], false);
 });
 
 test("retained material helper forwards prefix and virtual parameter conversion with independent output", () =>
@@ -87,16 +90,14 @@ test("retained material helper forwards prefix and virtual parameter conversion 
   out.M1Paint[0] = 99; assert.equal(material.parameters[0].value[0], 1);
 });
 
-test("actual faction lookup uses preserved area helpers and fallback behavior", () =>
+test("faction area lookup indexes m_materials by AreaType, as Carbon does", () =>
 {
-  const {area, faction} = catalog();
-  assert.equal(area.GetTypeByIndex(0), area.Primary); assert.equal(area.Has(0), true); assert.equal(area.Get(10), area.Turret);
-  for (const index of [1, 5, 11, -1, 99])
-  {
-    assert.equal(area.GetTypeByIndex(index), null); assert.equal(area.Has(index), false); assert.throws(() => area.Get(index));
-  }
-  assert.equal(faction.HasAreaType(0), true); assert.equal(faction.GetAreaType(0), area.Primary);
-  assert.equal(faction.GetAreaType(5, 10), area.Turret); assert.equal(faction.GetAreaType(5), null);
+  const {area, faction} = catalog(), {AreaType} = Area;
+  assert.equal(faction.areaTypes.materials[AreaType.TYPE_PRIMARY], area.materials[0]);
+  assert.equal(faction.areaTypes.materials[AreaType.TYPE_TURRET].material4, "trim");
+  for (const index of [1, AreaType.TYPE_WRECK]) assert.equal(faction.areaTypes.materials[index], null);
+  for (const name of ["GetTypeByIndex", "Has", "Get"]) assert.equal(name in area, false);
+  for (const name of ["HasAreaType", "GetAreaType"]) assert.equal(name in faction, false);
 });
 
 test("Blue copy and persisted roundtrip preserve material parameter types and area records", () =>
@@ -115,10 +116,17 @@ test("Blue copy and persisted roundtrip preserve material parameter types and ar
       }
       else
       {
-        assert.equal(copy.Primary.constructor, AreaMaterial); assert.notEqual(copy.Primary, record.Primary);
-        assert.deepEqual(copy.Primary.Assign(), record.Primary.Assign()); assert.equal(copy.Turret.material4, "trim");
+        assert.equal(copy.materials[0].constructor, AreaMaterial); assert.notEqual(copy.materials[0], record.materials[0]);
+        assert.deepEqual(copy.materials[0].Assign(), record.materials[0].Assign()); assert.equal(copy.materials[10].material4, "trim");
+        assert.equal(copy.materials[1], null);
       }
-      for (const field of CjsSchema.getSchema(record.constructor).members) assert.ok(Object.hasOwn(values, field.name), field.name + " is persisted");
+      // Empty area slots are not persisted; every other member is.
+      for (const field of CjsSchema.getSchema(record.constructor).members)
+      {
+        const empty = field.index !== undefined && record[field.key][field.index] === null;
+        assert.equal(Object.hasOwn(values, field.name), !empty, field.name + (empty ? " is omitted" : " is persisted"));
+      }
+      assert.equal("materials" in values, false);
     }
   }
 });
@@ -131,10 +139,11 @@ test("actual catalog schema copy and export preserve model-free containers and t
   assert.equal(copy.material[0].constructor, Material); assert.notEqual(copy.material[0], material);
   assert.equal(copy.material[0].parameters[2].constructor, Vector2); assert.notEqual(copy.material[0].parameters[2].value, material.parameters[2].value);
   assert.equal(copy.faction[0].areaTypes.constructor, Area); assert.notEqual(copy.faction[0].areaTypes, area);
-  assert.equal(copy.faction[0].GetAreaType(0).constructor, AreaMaterial); assert.notEqual(copy.faction[0].GetAreaType(0), area.Primary);
+  assert.equal(copy.faction[0].areaTypes.materials[0].constructor, AreaMaterial); assert.notEqual(copy.faction[0].areaTypes.materials[0], area.materials[0]);
   const values = CjsSchema.getValues(copy, {}, {refs: true, forceTypeTags: true});
   assert.deepEqual(values.material[0].parameters[2].value, [2, 3]); assert.equal(values.material[0].parameters[1].value, 0.5);
   assert.equal(values.faction[0].areaTypes.Primary.material1, "testMaterial"); assert.equal(values.faction[0].areaTypes.Primary.colorType, 0);
+  assert.deepEqual(Object.keys(values.faction[0].areaTypes).filter(key => !key.startsWith("_")), ["Primary", "Turret"]);
 });
 
 test("actual manager consumes model-free material and faction area containers", () =>

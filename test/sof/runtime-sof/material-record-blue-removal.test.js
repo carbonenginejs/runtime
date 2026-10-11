@@ -144,10 +144,11 @@ test("area material helpers and Blue area copy/values preserve zero selectors an
   assert.deepEqual(reused.Assign(), {colorType: 0, material1: "steel", material2: "override", material3: "glass", material4: "trim"});
   assert.equal(AreaMaterial.combine(null, overrides), null);
   assert.deepEqual(new AreaMaterial().Assign({material1: "keep"}), {material1: "keep", colorType: 12});
-  const owner = new EveSOFDataArea(); owner.Primary = reused;
+  const PRIMARY = EveSOFDataArea.AreaType.TYPE_PRIMARY;
+  const owner = new EveSOFDataArea(); owner.materials[PRIMARY] = reused;
   const copy = new EveSOFDataArea(); new Copier().CopyTo(owner, copy);
-  assert.equal(copy.Primary.constructor, AreaMaterial); assert.notEqual(copy.Primary, reused);
-  assert.equal(copy.Get(0), copy.Primary);
+  assert.equal(copy.materials[PRIMARY].constructor, AreaMaterial); assert.notEqual(copy.materials[PRIMARY], reused);
+  assert.notEqual(copy.materials, owner.materials);
   const values = new DictWriter().WriteObject(copy, {}, {refs: true, forceTypeTags: true}); assert.equal(values.Primary.material2, "override"); assert.equal(values.Primary.colorType, 0);
 });
 

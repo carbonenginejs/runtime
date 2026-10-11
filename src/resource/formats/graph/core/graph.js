@@ -355,7 +355,13 @@ export function writeGraph(root, handlers, options = {})
         {
             if (!selected(field)) continue;
             const childPath = memberPath(path, field.name);
-            try { put(out, field.name, value(storage(instance, field).value, descriptor(field.type, field), childPath)); }
+            try
+            {
+                const stored = storage(instance, field).value;
+                // An empty slot of a type-indexed array is not written.
+                if (field.index !== undefined && stored === null) continue;
+                put(out, field.name, value(stored, descriptor(field.type, field), childPath));
+            }
             catch (error) { report(childPath, error); }
         }
         const metadata = Object.getOwnPropertyDescriptor(instance, "__bluemetadata__");

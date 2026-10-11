@@ -1,221 +1,79 @@
-// Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
-// Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:130-145
+// Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:352-383
+// Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:113-145
 import { meta } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
-import { ErrSOFAreaTypeNotFound } from "./ErrSOFAreaTypeNotFound.js";
 
-/** Carbon area-material slots in canonical AreaType order.
- * Native IRoot-only data with a self-only Blue table. Owned authored records
- * are not loaded resources; native construction and empty destruction need
- * no additional initialization or update lifecycle.
+/**
+ * `EveSOFDataArea::AreaType` (EveSOFData.h:363-377). TYPE_MAX and
+ * TYPE_NO_OVERWRITE share the value 11; neither is a stored slot.
+ * @type {Object<string, number>}
  */
-@meta.define({ className: "EveSOFDataArea", family: "eve" })
+const AreaType = {
+  TYPE_PRIMARY: 0,
+  TYPE_GLASS: 1,
+  TYPE_SAILS: 2,
+  TYPE_REACTOR: 3,
+  TYPE_DARKHULL: 4,
+  TYPE_WRECK: 5,
+  TYPE_ROCK: 6,
+  TYPE_MONUMENT: 7,
+  TYPE_ORNAMENT: 8,
+  TYPE_SIMPLEPRIMARY: 9,
+  TYPE_TURRET: 10,
+  TYPE_MAX: 11,
+  TYPE_NO_OVERWRITE: 11
+};
+
+/** One exposed `m_materials[type]` slot, named by its chooser key (EveSOFData_Blue.cpp:135-144). */
+const slot = (name, index) => ({ name, key: "materials", index, type: { kind: "rootRef", className: "EveSOFDataAreaMaterial" },
+  edit: { read: true, write: true, persist: true } });
+
+/**
+ * Area-material slots: `EveSOFDataAreaMaterialPtr m_materials[TYPE_MAX]`,
+ * exposed by chooser name. TYPE_WRECK has no exposed slot, so it is never
+ * read or written and stays null. Native IRoot-only data with no lifecycle.
+ */
+@meta.define({ className: "EveSOFDataArea", family: "eve", members: [
+  slot("Primary", AreaType.TYPE_PRIMARY),
+  slot("Glass", AreaType.TYPE_GLASS),
+  slot("Sails", AreaType.TYPE_SAILS),
+  slot("Reactor", AreaType.TYPE_REACTOR),
+  slot("Darkhull", AreaType.TYPE_DARKHULL),
+  slot("Rock", AreaType.TYPE_ROCK),
+  slot("Monument", AreaType.TYPE_MONUMENT),
+  slot("Ornament", AreaType.TYPE_ORNAMENT),
+  slot("SimplePrimary", AreaType.TYPE_SIMPLEPRIMARY),
+  slot("Turret", AreaType.TYPE_TURRET)
+] })
 @meta.blue.interface()
 export class EveSOFDataArea
 {
+  static AreaType = AreaType;
 
   /**
-   * JavaScript slot-name lookup indexed by AreaType; index 5 is null because
-   * native Wreck has no exposed authored slot.
-   * @type {Array<string|null>}
+   * m_materials: one area material per AreaType, or null.
+   * @type {Array<EveSOFDataAreaMaterial|null>}
    */
-  static Types = [
-    "Primary",
-    "Glass",
-    "Sails",
-    "Reactor",
-    "Darkhull",
-    null,
-    "Rock",
-    "Monument",
-    "Ornament",
-    "SimplePrimary",
-    "Turret"
-  ];
-
-  /**
-   * Native numeric area-enum map and canonical chooser vocabulary. TYPE_MAX
-   * and TYPE_NO_OVERWRITE share the value 11; neither identifies a stored slot.
-   * @type {Object<string, number>}
-   */
-  static AreaType = {
-    TYPE_PRIMARY: 0,
-    TYPE_GLASS: 1,
-    TYPE_SAILS: 2,
-    TYPE_REACTOR: 3,
-    TYPE_DARKHULL: 4,
-    TYPE_WRECK: 5,
-    TYPE_ROCK: 6,
-    TYPE_MONUMENT: 7,
-    TYPE_ORNAMENT: 8,
-    TYPE_SIMPLEPRIMARY: 9,
-    TYPE_TURRET: 10,
-    TYPE_MAX: 11,
-    TYPE_NO_OVERWRITE: 11
-  };
-
-  /**
-   * Primary-area material names and faction color selector, or null when absent.
-   * Native m_materials[TYPE_PRIMARY], READWRITE | PERSIST.
-   * @type {EveSOFDataAreaMaterial|null}
-   */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataAreaMaterial")
-  Primary = null;
-
-  /**
-   * Glass-area material names and faction color selector, or null when absent.
-   * Native m_materials[TYPE_GLASS], READWRITE | PERSIST.
-   * @type {EveSOFDataAreaMaterial|null}
-   */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataAreaMaterial")
-  Glass = null;
-
-  /**
-   * Sails-area material names and faction color selector, or null when absent.
-   * Native m_materials[TYPE_SAILS], READWRITE | PERSIST.
-   * @type {EveSOFDataAreaMaterial|null}
-   */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataAreaMaterial")
-  Sails = null;
-
-  /**
-   * Reactor-area material names and faction color selector, or null when absent.
-   * Native m_materials[TYPE_REACTOR], READWRITE | PERSIST.
-   * @type {EveSOFDataAreaMaterial|null}
-   */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataAreaMaterial")
-  Reactor = null;
-
-  /**
-   * Darkhull-area material names and faction color selector, or null when absent.
-   * Native m_materials[TYPE_DARKHULL], READWRITE | PERSIST.
-   * @type {EveSOFDataAreaMaterial|null}
-   */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataAreaMaterial")
-  Darkhull = null;
-
-  /**
-   * Rock-area material names and faction color selector, or null when absent.
-   * Native m_materials[TYPE_ROCK], READWRITE | PERSIST.
-   * @type {EveSOFDataAreaMaterial|null}
-   */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataAreaMaterial")
-  Rock = null;
-
-  /**
-   * Monument-area material names and faction color selector, or null when absent.
-   * Native m_materials[TYPE_MONUMENT], READWRITE | PERSIST.
-   * @type {EveSOFDataAreaMaterial|null}
-   */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataAreaMaterial")
-  Monument = null;
-
-  /**
-   * Ornament-area material names and faction color selector, or null when absent.
-   * Native m_materials[TYPE_ORNAMENT], READWRITE | PERSIST.
-   * @type {EveSOFDataAreaMaterial|null}
-   */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataAreaMaterial")
-  Ornament = null;
-
-  /**
-   * Simple-primary material names and faction color selector, or null when absent.
-   * Native m_materials[TYPE_SIMPLEPRIMARY], READWRITE | PERSIST.
-   * @type {EveSOFDataAreaMaterial|null}
-   */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataAreaMaterial")
-  SimplePrimary = null;
-
-  /**
-   * Turret-area material names and faction color selector, or null when absent.
-   * Native m_materials[TYPE_TURRET], READWRITE | PERSIST.
-   * @type {EveSOFDataAreaMaterial|null}
-   */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataAreaMaterial")
-  Turret = null;
-
-  /**
-   * Maps a canonical area enum index to its stored material, returning null for
-   * unmapped or empty slots.
-   * Custom: retained JavaScript slot lookup, not a native exposed method.
-   * @param {number} type Native area index.
-   * @returns {EveSOFDataAreaMaterial|null} The selected record or null.
-   */
-  @meta.ours
-  GetTypeByIndex(type)
-  {
-    const name = this.constructor.Types[type];
-    return name ? this[name] : null;
-  }
-
-  /**
-   * Reports whether the canonical area enum slot resolves to a material.
-   * Custom: retained JavaScript SOF lookup convenience.
-   * @param {number} type Native area index.
-   * @returns {boolean} Whether the slot contains a record.
-   */
-  @meta.ours
-  Has(type)
-  {
-    return this.GetTypeByIndex(type) !== null;
-  }
-
-  /**
-   * Returns the material in a canonical area slot or throws when the slot is
-   * empty.
-   * Custom: retained JavaScript SOF lookup convenience.
-   * @param {number} type Native area index.
-   * @returns {EveSOFDataAreaMaterial} The selected record.
-   * @throws {ErrSOFAreaTypeNotFound} When the slot has no material.
-   */
-  @meta.ours
-  Get(type)
-  {
-    const value = this.GetTypeByIndex(type);
-    if (value === null) throw new ErrSOFAreaTypeNotFound(type);
-    return value;
-  }
-
+  materials = new Array(AreaType.TYPE_MAX).fill(null);
 }
 
 // Native chooser labels and descriptions are distinct from C++ member names.
-blue.enums.Create("trinity.EveSOFDataArea.AreaType", EveSOFDataArea.AreaType, {
+blue.enums.Create("trinity.EveSOFDataArea.AreaType", AreaType, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 363,
   exposedName: "EveSOFDataAreaType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:113",
   chooser: [
-    { name: "Primary", value: EveSOFDataArea.AreaType.TYPE_PRIMARY, description: "Primary Area Type" },
-    { name: "Glass", value: EveSOFDataArea.AreaType.TYPE_GLASS, description: "Area Type Glass" },
-    { name: "Sails", value: EveSOFDataArea.AreaType.TYPE_SAILS, description: "Area Type Sails" },
-    { name: "Reactor", value: EveSOFDataArea.AreaType.TYPE_REACTOR, description: "Area Type Reactor" },
-    { name: "Darkhull", value: EveSOFDataArea.AreaType.TYPE_DARKHULL, description: "Area Type Dark Hull" },
-    { name: "Wreck", value: EveSOFDataArea.AreaType.TYPE_WRECK, description: "Area Type Generic Wreck" },
-    { name: "Rock", value: EveSOFDataArea.AreaType.TYPE_ROCK, description: "Area Type Rock" },
-    { name: "Monument", value: EveSOFDataArea.AreaType.TYPE_MONUMENT, description: "Area Type Monument" },
-    { name: "Ornament", value: EveSOFDataArea.AreaType.TYPE_ORNAMENT, description: "Area Type Ornament" },
-    { name: "SimplePrimary", value: EveSOFDataArea.AreaType.TYPE_SIMPLEPRIMARY, description: "Simple Primary Area Type" },
-    { name: "Turret", value: EveSOFDataArea.AreaType.TYPE_TURRET, description: "Area Type Turrets" },
-    { name: "NoOverwrite", value: EveSOFDataArea.AreaType.TYPE_NO_OVERWRITE, description: "Area Type No Overwrite" }
+    { name: "Primary", value: AreaType.TYPE_PRIMARY, description: "Primary Area Type" },
+    { name: "Glass", value: AreaType.TYPE_GLASS, description: "Area Type Glass" },
+    { name: "Sails", value: AreaType.TYPE_SAILS, description: "Area Type Sails" },
+    { name: "Reactor", value: AreaType.TYPE_REACTOR, description: "Area Type Reactor" },
+    { name: "Darkhull", value: AreaType.TYPE_DARKHULL, description: "Area Type Dark Hull" },
+    { name: "Wreck", value: AreaType.TYPE_WRECK, description: "Area Type Generic Wreck" },
+    { name: "Rock", value: AreaType.TYPE_ROCK, description: "Area Type Rock" },
+    { name: "Monument", value: AreaType.TYPE_MONUMENT, description: "Area Type Monument" },
+    { name: "Ornament", value: AreaType.TYPE_ORNAMENT, description: "Area Type Ornament" },
+    { name: "SimplePrimary", value: AreaType.TYPE_SIMPLEPRIMARY, description: "Simple Primary Area Type" },
+    { name: "Turret", value: AreaType.TYPE_TURRET, description: "Area Type Turrets" },
+    { name: "NoOverwrite", value: AreaType.TYPE_NO_OVERWRITE, description: "Area Type No Overwrite" }
   ]
 });
-

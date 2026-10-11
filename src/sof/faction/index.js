@@ -1,7 +1,5 @@
 export { EveSOFDataFaction } from "./EveSOFDataFaction.js";
 export { EveSOFDataFactionChild } from "./EveSOFDataFactionChild.js";
-export { ErrSOFFactionColorSetTypeNotFound } from "./ErrSOFFactionColorSetTypeNotFound.js";
-export { ErrSOFFactionColorSetTypeUnknown } from "./ErrSOFFactionColorSetTypeUnknown.js";
 export { EveSOFDataFactionColorSet } from "./EveSOFDataFactionColorSet.js";
 export { EveSOFDataFactionHullArea } from "./EveSOFDataFactionHullArea.js";
 export { EveSOFDataFactionPlaneSet } from "./EveSOFDataFactionPlaneSet.js";

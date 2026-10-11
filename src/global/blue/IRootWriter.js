@@ -56,6 +56,9 @@ export class IRootWriter
 
       const kind = field.type?.kind;
       const value = readDictionaryValue(instance, field);
+      // An empty slot of a type-indexed array (an area's m_materials[type]) is
+      // not written; reading leaves it null. The slot names stay the only keys.
+      if (field.index !== undefined && value === null) continue;
       this.WriteMemberName(field.name);
 
       // An object is written as one - and so can be aliased - whatever the

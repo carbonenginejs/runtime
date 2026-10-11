@@ -78,7 +78,10 @@ export function createValuesTransport(services)
         {
             if (!isExportableField(field, options)) continue;
             const stored = target[field.key];
-            out[field.name] = Export(field.index === undefined ? stored : stored[field.index], field, options);
+            const value = field.index === undefined ? stored : stored[field.index];
+            // An empty slot of a type-indexed array is not written.
+            if (field.index !== undefined && value === null) continue;
+            out[field.name] = Export(value, field, options);
         }
         return out;
     }

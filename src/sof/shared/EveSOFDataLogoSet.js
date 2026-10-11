@@ -1,108 +1,54 @@
-// Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
-// Maintained CarbonEngineJS implementation; generated schema is reference-only.
+// Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:260-284
+// Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:60-66, 1125-1133
 import { meta } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
 import { EveSOFDataLogo } from "./EveSOFDataLogo.js";
-import { ErrSOFLogoSetTypeUnknown } from "./ErrSOFLogoSetTypeUnknown.js";
-import { ErrSOFLogoSetTypeNotFound } from "./ErrSOFLogoSetTypeNotFound.js";
 
-/** Provides enum-based primary, secondary, tertiary, and marking-logo lookup plus logo-set composition. */
-@meta.define({ className: "EveSOFDataLogoSet", family: "eve" })
+/**
+ * `EveSOFDataLogoSet::LogoType` (EveSOFData.h:271-279); TYPE_MAX is the slot count.
+ * @type {Object<string, number>}
+ */
+const LogoType = {
+  TYPE_PRIMARY: 0,
+  TYPE_SECONDARY: 1,
+  TYPE_TERTIARY: 2,
+  TYPE_MARKING_01: 3,
+  TYPE_MARKING_02: 4,
+  TYPE_MAX: 5
+};
+
+/** One exposed `m_logos[type]` slot, named by its chooser key (EveSOFData_Blue.cpp:1128-1132). */
+const slot = (name, index) => ({ name, key: "logos", index, type: { kind: "rootRef", className: "EveSOFDataLogo" },
+  edit: { read: true, write: true, persist: true } });
+
+/**
+ * Logo slots: `EveSOFDataLogoPtr m_logos[TYPE_MAX]`, exposed by chooser name.
+ * Native IRoot-only data with no lifecycle.
+ */
+@meta.define({ className: "EveSOFDataLogoSet", family: "eve", members: [
+  slot("Primary", LogoType.TYPE_PRIMARY),
+  slot("Secondary", LogoType.TYPE_SECONDARY),
+  slot("Tertiary", LogoType.TYPE_TERTIARY),
+  slot("Marking_01", LogoType.TYPE_MARKING_01),
+  slot("Marking_02", LogoType.TYPE_MARKING_02)
+] })
 @meta.blue.interface()
 export class EveSOFDataLogoSet
 {
-
-  /** Native logo-slot enum, including TYPE_MAX as the non-slot count sentinel.
-   * @type {Readonly<Object<string, number>>}
-   */
-  static LogoType = {
-    TYPE_PRIMARY: 0,
-    TYPE_SECONDARY: 1,
-    TYPE_TERTIARY: 2,
-    TYPE_MARKING_01: 3,
-    TYPE_MARKING_02: 4,
-    TYPE_MAX: 5
-  };
-
-  /** Enum-indexed slot names used by the JavaScript lookup and composition helpers.
-   * @type {ReadonlyArray<string>}
-   */
-  static Types = Object.freeze([
-    "Primary",
-    "Secondary",
-    "Tertiary",
-    "Marking_01",
-    "Marking_02"
-  ]);
-
-  /** Optional primary logo record; native EveSOFDataLogoPtr, READWRITE/PERSIST.
-   * @type {EveSOFDataLogo|null}
-   */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataLogo")
-  Primary = null;
-
-  /** Optional secondary logo record; native EveSOFDataLogoPtr, READWRITE/PERSIST.
-   * @type {EveSOFDataLogo|null}
-   */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataLogo")
-  Secondary = null;
-
-  /** Optional tertiary logo record; native EveSOFDataLogoPtr, READWRITE/PERSIST.
-   * @type {EveSOFDataLogo|null}
-   */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataLogo")
-  Tertiary = null;
-
-  /** Optional first marking logo record; native EveSOFDataLogoPtr, READWRITE/PERSIST.
-   * @type {EveSOFDataLogo|null}
-   */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataLogo")
-  Marking_01 = null;
-
-  /** Optional second marking logo record; native EveSOFDataLogoPtr, READWRITE/PERSIST.
-   * @type {EveSOFDataLogo|null}
-   */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataLogo")
-  Marking_02 = null;
-
-  /** Validates an enum slot and checks for a logo; a JS-only helper.
-   * @param {number} type LogoType slot value.
-   * @returns {boolean} Whether the slot is non-null; an unknown slot throws.
-   */
-  @meta.ours
-  Has(type)
-  {
-    const name = this.constructor.Types[type];
-    if (name === undefined) throw new ErrSOFLogoSetTypeUnknown(type);
-    return this[name] !== null;
-  }
-
-  /** Resolves a logo through the JS lookup, throwing for unknown or empty slots.
-   * @param {number} type LogoType slot value.
-   * @returns {EveSOFDataLogo} The requested logo.
-   */
-  @meta.ours
-  Get(type)
-  {
-    if (!this.Has(type)) throw new ErrSOFLogoSetTypeNotFound(type);
-    return this[this.constructor.Types[type]];
-  }
+  static LogoType = LogoType;
 
   /**
-   * Composes every logo slot from a required base set and optional per-slot
-   * overrides into a reusable result. This is a JS-only composition helper;
-   * a missing base slot creates an empty logo when no output exists, otherwise
-   * it retains the existing output unchanged.
+   * m_logos: one logo per LogoType, or null.
+   * @type {Array<EveSOFDataLogo|null>}
+   */
+  logos = new Array(LogoType.TYPE_MAX).fill(null);
+
+  /**
+   * Composes every logo slot from a base set and optional per-slot overrides
+   * into a reusable result; a missing base slot creates an empty logo when no
+   * output exists, otherwise it keeps the existing output.
+   *
+   * Custom: JavaScript composition helper over the logo slots, not a native method.
    * @param {EveSOFDataLogoSet|null} base Base set; null leaves output unchanged.
    * @param {EveSOFDataLogoSet|null} overrides Optional per-slot overrides.
    * @param {EveSOFDataLogoSet|null} [out=null] Reused output, or a new set when null.
@@ -113,27 +59,24 @@ export class EveSOFDataLogoSet
   {
     out ??= new this();
     if (!base) return out;
-    for (const name of this.Types)
+    for (let type = 0; type < LogoType.TYPE_MAX; type++)
     {
-      out[name] = EveSOFDataLogo.combine(base[name], overrides?.[name], out[name]);
+      out.logos[type] = EveSOFDataLogo.combine(base.logos[type], overrides ? overrides.logos[type] : null, out.logos[type]);
     }
     return out;
   }
-
 }
 
 // Native chooser labels and descriptions are distinct from C++ member names.
-blue.enums.Create("trinity.EveSOFDataLogoSet.LogoType", EveSOFDataLogoSet.LogoType, {
+blue.enums.Create("trinity.EveSOFDataLogoSet.LogoType", LogoType, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 271,
   exposedName: "EveSOFDataLogoSetType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:60",
   chooser: [
-    { name: "Primary", value: EveSOFDataLogoSet.LogoType.TYPE_PRIMARY, description: "Primary Logo" },
-    { name: "Secondary", value: EveSOFDataLogoSet.LogoType.TYPE_SECONDARY, description: "Secondary Logo" },
-    { name: "Tertiary", value: EveSOFDataLogoSet.LogoType.TYPE_TERTIARY, description: "Tertiary Logo" },
-    { name: "Marking_01", value: EveSOFDataLogoSet.LogoType.TYPE_MARKING_01, description: "Marking 01 Logo" },
-    { name: "Marking_02", value: EveSOFDataLogoSet.LogoType.TYPE_MARKING_02, description: "Marking 02 Logo" }
+    { name: "Primary", value: LogoType.TYPE_PRIMARY, description: "Primary Logo" },
+    { name: "Secondary", value: LogoType.TYPE_SECONDARY, description: "Secondary Logo" },
+    { name: "Tertiary", value: LogoType.TYPE_TERTIARY, description: "Tertiary Logo" },
+    { name: "Marking_01", value: LogoType.TYPE_MARKING_01, description: "Marking 01 Logo" },
+    { name: "Marking_02", value: LogoType.TYPE_MARKING_02, description: "Marking 02 Logo" }
   ]
 });
-
-// Native IRoot-only data exposes its own identity, with no lifecycle/update contract.

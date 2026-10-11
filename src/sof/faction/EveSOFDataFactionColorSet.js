@@ -1,450 +1,196 @@
-// Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
-// Maintained CarbonEngineJS implementation; generated schema is reference-only.
+// Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:177-243
+// Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.cpp:42-52
+// Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:10-56, 153-198
 import { meta } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
-import { ErrSOFFactionColorSetTypeUnknown } from "./ErrSOFFactionColorSetTypeUnknown.js";
-import { ErrSOFFactionColorSetTypeNotFound } from "./ErrSOFFactionColorSetTypeNotFound.js";
 
-/** Stores a faction's semantic color palette and resolves enum-selected colors into vectors. */
-@meta.define({ className: "EveSOFDataFactionColorSet", family: "eve" })
+/**
+ * `SOFDataFactionColorChooser::ColorType` (EveSOFData.h:177-224); TYPE_MAX is the slot count.
+ * @type {Object<string, number>}
+ */
+const ColorType = {
+  TYPE_PRIMARY: 0,
+  TYPE_SECONDARY: 1,
+  TYPE_TERTIARY: 2,
+  TYPE_BLACK: 3,
+  TYPE_WHITE: 4,
+  TYPE_YELLOW: 5,
+  TYPE_ORANGE: 6,
+  TYPE_RED: 7,
+  TYPE_BLUE: 8,
+  TYPE_GREEN: 9,
+  TYPE_CYAN: 10,
+  TYPE_FIRE: 11,
+  TYPE_HULL: 12,
+  TYPE_GLASS: 13,
+  TYPE_REACTOR: 14,
+  TYPE_DARKHULL: 15,
+  TYPE_BOOSTER: 16,
+  TYPE_KILLMARK: 17,
+  TYPE_PRIMARY_LIGHT: 18,
+  TYPE_SECONDARY_LIGHT: 19,
+  TYPE_TERTIARY_LIGHT: 20,
+  TYPE_WHITE_LIGHT: 21,
+  TYPE_PRIMARY_HOLOGRAM: 22,
+  TYPE_SECONDARY_HOLOGRAM: 23,
+  TYPE_TERTIARY_HOLOGRAM: 24,
+  TYPE_STATE_0: 25,
+  TYPE_STATE_1: 26,
+  TYPE_STATE_2: 27,
+  TYPE_STATE_3: 28,
+  TYPE_STATE_VULNERABLE: 29,
+  TYPE_STATE_INVULNERABLE: 30,
+  TYPE_PRIMARY_FORCEFIELD: 31,
+  TYPE_SECONDARY_FORCEFIELD: 32,
+  TYPE_PRIMARY_BANNER: 33,
+  TYPE_PRIMARY_FX: 34,
+  TYPE_SECONDARY_FX: 35,
+  TYPE_PRIMARY_SPOTLIGHT: 36,
+  TYPE_SECONDARY_SPOTLIGHT: 37,
+  TYPE_TERTIARY_SPOTLIGHT: 38,
+  TYPE_PRIMARY_BILLBOARD: 39,
+  TYPE_PRIMARY_WARP_FX: 40,
+  TYPE_PRIMARY_ATTACK_FX: 41,
+  TYPE_PRIMARY_SIEGE_FX: 42,
+  TYPE_PRIMARY_DOCKED_FX: 43,
+  TYPE_MAX: 44
+};
+
+/** One exposed `m_colors[type]` slot, named by its chooser key (EveSOFData_Blue.cpp:156-197). */
+const slot = (name, index) => ({ name, key: "colors", index, type: { kind: "color" },
+  edit: { read: true, write: true, persist: true } });
+
+/**
+ * A faction's colour palette: `Color m_colors[TYPE_MAX]`, exposed by chooser
+ * name. Declarations keep the order this class has always exported.
+ */
+@meta.define({ className: "EveSOFDataFactionColorSet", family: "eve", members: [
+  slot("Killmark", ColorType.TYPE_KILLMARK),
+  slot("PrimaryForcefield", ColorType.TYPE_PRIMARY_FORCEFIELD),
+  slot("SecondaryForcefield", ColorType.TYPE_SECONDARY_FORCEFIELD),
+  slot("PrimaryFx", ColorType.TYPE_PRIMARY_FX),
+  slot("SecondaryFx", ColorType.TYPE_SECONDARY_FX),
+  slot("PrimaryWarpFx", ColorType.TYPE_PRIMARY_WARP_FX),
+  slot("PrimaryAttackFX", ColorType.TYPE_PRIMARY_ATTACK_FX),
+  slot("PrimarySiegeFX", ColorType.TYPE_PRIMARY_SIEGE_FX),
+  slot("PrimaryDockedFX", ColorType.TYPE_PRIMARY_DOCKED_FX),
+  slot("Primary", ColorType.TYPE_PRIMARY),
+  slot("Secondary", ColorType.TYPE_SECONDARY),
+  slot("Tertiary", ColorType.TYPE_TERTIARY),
+  slot("Black", ColorType.TYPE_BLACK),
+  slot("White", ColorType.TYPE_WHITE),
+  slot("Yellow", ColorType.TYPE_YELLOW),
+  slot("Orange", ColorType.TYPE_ORANGE),
+  slot("Red", ColorType.TYPE_RED),
+  slot("Blue", ColorType.TYPE_BLUE),
+  slot("Green", ColorType.TYPE_GREEN),
+  slot("Cyan", ColorType.TYPE_CYAN),
+  slot("Fire", ColorType.TYPE_FIRE),
+  slot("PrimaryHologram", ColorType.TYPE_PRIMARY_HOLOGRAM),
+  slot("SecondaryHologram", ColorType.TYPE_SECONDARY_HOLOGRAM),
+  slot("TertiaryHologram", ColorType.TYPE_TERTIARY_HOLOGRAM),
+  slot("PrimaryLight", ColorType.TYPE_PRIMARY_LIGHT),
+  slot("SecondaryLight", ColorType.TYPE_SECONDARY_LIGHT),
+  slot("TertiaryLight", ColorType.TYPE_TERTIARY_LIGHT),
+  slot("WhiteLight", ColorType.TYPE_WHITE_LIGHT),
+  slot("Hull", ColorType.TYPE_HULL),
+  slot("Glass", ColorType.TYPE_GLASS),
+  slot("Reactor", ColorType.TYPE_REACTOR),
+  slot("Darkhull", ColorType.TYPE_DARKHULL),
+  slot("Booster", ColorType.TYPE_BOOSTER),
+  slot("PrimaryBanner", ColorType.TYPE_PRIMARY_BANNER),
+  slot("PrimaryBillboard", ColorType.TYPE_PRIMARY_BILLBOARD),
+  slot("PrimarySpotlight", ColorType.TYPE_PRIMARY_SPOTLIGHT),
+  slot("SecondarySpotlight", ColorType.TYPE_SECONDARY_SPOTLIGHT),
+  slot("TertiarySpotlight", ColorType.TYPE_TERTIARY_SPOTLIGHT),
+  slot("State0", ColorType.TYPE_STATE_0),
+  slot("State1", ColorType.TYPE_STATE_1),
+  slot("State2", ColorType.TYPE_STATE_2),
+  slot("State3", ColorType.TYPE_STATE_3),
+  slot("StateVulnerable", ColorType.TYPE_STATE_VULNERABLE),
+  slot("StateInvulnerable", ColorType.TYPE_STATE_INVULNERABLE)
+] })
 export class EveSOFDataFactionColorSet
 {
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_KILLMARK] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  Killmark = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_FORCEFIELD] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  PrimaryForcefield = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_SECONDARY_FORCEFIELD] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  SecondaryForcefield = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_FX] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  PrimaryFx = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_SECONDARY_FX] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  SecondaryFx = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_WARP_FX] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  PrimaryWarpFx = vec4.fromValues(1, 99 / 255, 51 / 255, 1);
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_ATTACK_FX] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  PrimaryAttackFX = vec4.fromValues(1, 24 / 255, 11 / 255, 1);
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_SIEGE_FX] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  PrimarySiegeFX = vec4.fromValues(1, 94 / 255, 45 / 255, 1);
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_DOCKED_FX] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  PrimaryDockedFX = vec4.fromValues(76 / 255, 130 / 255, 226 / 255, 1);
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  Primary = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_SECONDARY] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  Secondary = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_TERTIARY] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  Tertiary = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_BLACK] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  Black = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_WHITE] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  White = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_YELLOW] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  Yellow = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_ORANGE] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  Orange = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_RED] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  Red = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_BLUE] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  Blue = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_GREEN] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  Green = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_CYAN] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  Cyan = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_FIRE] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  Fire = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_HOLOGRAM] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  PrimaryHologram = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_SECONDARY_HOLOGRAM] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  SecondaryHologram = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_TERTIARY_HOLOGRAM] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  TertiaryHologram = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_LIGHT] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  PrimaryLight = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_SECONDARY_LIGHT] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  SecondaryLight = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_TERTIARY_LIGHT] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  TertiaryLight = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_WHITE_LIGHT] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  WhiteLight = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_HULL] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  Hull = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_GLASS] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  Glass = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_REACTOR] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  Reactor = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_DARKHULL] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  Darkhull = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_BOOSTER] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  Booster = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_BANNER] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  PrimaryBanner = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_BILLBOARD] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  PrimaryBillboard = vec4.fromValues(2.5, 2.5, 2.5, 2.5);
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_PRIMARY_SPOTLIGHT] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  PrimarySpotlight = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_SECONDARY_SPOTLIGHT] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  SecondarySpotlight = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_TERTIARY_SPOTLIGHT] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  TertiarySpotlight = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_STATE_0] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  State0 = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_STATE_1] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  State1 = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_STATE_2] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  State2 = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_STATE_3] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  State3 = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_STATE_VULNERABLE] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  StateVulnerable = color.createLinear();
-
-  /** m_colors[SOFDataFactionColorChooser::TYPE_STATE_INVULNERABLE] (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  StateInvulnerable = color.createLinear();
-
+  static ColorType = ColorType;
 
   /**
-   * Validates a color-slot enum value and reports whether its corresponding
-   * vector is assigned.
+   * m_colors: one linear colour per ColorType. The constructor fills every
+   * slot with (0, 0, 0, 1), then sets the authored defaults (EveSOFData.cpp:42-51).
+   * @type {Array<Float32Array>}
    */
-  Has(type)
-  {
-    const name = this.constructor.Types[type];
-    if (name === undefined) throw new ErrSOFFactionColorSetTypeUnknown(type);
-    return this[name] !== null && this[name] !== undefined;
-  }
+  colors = EveSOFDataFactionColorSet.createColors();
 
   /**
-   * Copies the selected faction color into a required output vector after
-   * validating its slot.
+   * Builds the default slot array.
+   *
+   * Custom: JavaScript factory for the constructor's array fill.
+   * @returns {Array<Float32Array>} One colour per ColorType.
    */
-  Get(type, out)
+  @meta.ours
+  static createColors()
   {
-    if (!out) throw new TypeError("Get requires an output vector");
-    if (!this.Has(type)) throw new ErrSOFFactionColorSetTypeNotFound(type);
-    return vec4.copy(out, this[this.constructor.Types[type]]);
+    const colors = Array.from({ length: ColorType.TYPE_MAX }, () => color.createLinear());
+    colors[ColorType.TYPE_PRIMARY_WARP_FX] = vec4.fromValues(1, 99 / 255, 51 / 255, 1);
+    colors[ColorType.TYPE_PRIMARY_ATTACK_FX] = vec4.fromValues(1, 24 / 255, 11 / 255, 1);
+    colors[ColorType.TYPE_PRIMARY_SIEGE_FX] = vec4.fromValues(1, 94 / 255, 45 / 255, 1);
+    colors[ColorType.TYPE_PRIMARY_DOCKED_FX] = vec4.fromValues(76 / 255, 130 / 255, 226 / 255, 1);
+    colors[ColorType.TYPE_PRIMARY_BILLBOARD] = vec4.fromValues(2.5, 2.5, 2.5, 2.5);
+    return colors;
   }
-
-  static ColorType = {
-    TYPE_PRIMARY: 0,
-    TYPE_SECONDARY: 1,
-    TYPE_TERTIARY: 2,
-    TYPE_BLACK: 3,
-    TYPE_WHITE: 4,
-    TYPE_YELLOW: 5,
-    TYPE_ORANGE: 6,
-    TYPE_RED: 7,
-    TYPE_BLUE: 8,
-    TYPE_GREEN: 9,
-    TYPE_CYAN: 10,
-    TYPE_FIRE: 11,
-    TYPE_HULL: 12,
-    TYPE_GLASS: 13,
-    TYPE_REACTOR: 14,
-    TYPE_DARKHULL: 15,
-    TYPE_BOOSTER: 16,
-    TYPE_KILLMARK: 17,
-    TYPE_PRIMARY_LIGHT: 18,
-    TYPE_SECONDARY_LIGHT: 19,
-    TYPE_TERTIARY_LIGHT: 20,
-    TYPE_WHITE_LIGHT: 21,
-    TYPE_PRIMARY_HOLOGRAM: 22,
-    TYPE_SECONDARY_HOLOGRAM: 23,
-    TYPE_TERTIARY_HOLOGRAM: 24,
-    TYPE_STATE_0: 25,
-    TYPE_STATE_1: 26,
-    TYPE_STATE_2: 27,
-    TYPE_STATE_3: 28,
-    TYPE_STATE_VULNERABLE: 29,
-    TYPE_STATE_INVULNERABLE: 30,
-    TYPE_PRIMARY_FORCEFIELD: 31,
-    TYPE_SECONDARY_FORCEFIELD: 32,
-    TYPE_PRIMARY_BANNER: 33,
-    TYPE_PRIMARY_FX: 34,
-    TYPE_SECONDARY_FX: 35,
-    TYPE_PRIMARY_SPOTLIGHT: 36,
-    TYPE_SECONDARY_SPOTLIGHT: 37,
-    TYPE_TERTIARY_SPOTLIGHT: 38,
-    TYPE_PRIMARY_BILLBOARD: 39,
-    TYPE_PRIMARY_WARP_FX: 40,
-    TYPE_PRIMARY_ATTACK_FX: 41,
-    TYPE_PRIMARY_SIEGE_FX: 42,
-    TYPE_PRIMARY_DOCKED_FX: 43,
-    TYPE_MAX: 44
-  };
-
-  static Types = Object.freeze([
-    "Primary",
-    "Secondary",
-    "Tertiary",
-    "Black",
-    "White",
-    "Yellow",
-    "Orange",
-    "Red",
-    "Blue",
-    "Green",
-    "Cyan",
-    "Fire",
-    "Hull",
-    "Glass",
-    "Reactor",
-    "Darkhull",
-    "Booster",
-    "Killmark",
-    "PrimaryLight",
-    "SecondaryLight",
-    "TertiaryLight",
-    "WhiteLight",
-    "PrimaryHologram",
-    "SecondaryHologram",
-    "TertiaryHologram",
-    "State0",
-    "State1",
-    "State2",
-    "State3",
-    "StateVulnerable",
-    "StateInvulnerable",
-    "PrimaryForcefield",
-    "SecondaryForcefield",
-    "PrimaryBanner",
-    "PrimaryFx",
-    "SecondaryFx",
-    "PrimarySpotlight",
-    "SecondarySpotlight",
-    "TertiarySpotlight",
-    "PrimaryBillboard",
-    "PrimaryWarpFx",
-    "PrimaryAttackFX",
-    "PrimarySiegeFX",
-    "PrimaryDockedFX"
-  ]);
-
 }
 
 // Native chooser labels and descriptions are distinct from C++ member names.
-blue.enums.Create("trinity.SOFDataFactionColorChooser.ColorType", EveSOFDataFactionColorSet.ColorType, {
+blue.enums.Create("trinity.SOFDataFactionColorChooser.ColorType", ColorType, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 177,
   exposedName: "EveSOFDataFactionColorSetType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:10",
   chooser: [
-    { name: "Primary", value: EveSOFDataFactionColorSet.ColorType.TYPE_PRIMARY, description: "Primary Color" },
-    { name: "Secondary", value: EveSOFDataFactionColorSet.ColorType.TYPE_SECONDARY, description: "Secondary Color" },
-    { name: "Tertiary", value: EveSOFDataFactionColorSet.ColorType.TYPE_TERTIARY, description: "Tertiary Color" },
-    { name: "Black", value: EveSOFDataFactionColorSet.ColorType.TYPE_BLACK, description: "Black Color" },
-    { name: "White", value: EveSOFDataFactionColorSet.ColorType.TYPE_WHITE, description: "White" },
-    { name: "Yellow", value: EveSOFDataFactionColorSet.ColorType.TYPE_YELLOW, description: "Yellow" },
-    { name: "Orange", value: EveSOFDataFactionColorSet.ColorType.TYPE_ORANGE, description: "Orange" },
-    { name: "Red", value: EveSOFDataFactionColorSet.ColorType.TYPE_RED, description: "Red" },
-    { name: "Blue", value: EveSOFDataFactionColorSet.ColorType.TYPE_BLUE, description: "Blue" },
-    { name: "Green", value: EveSOFDataFactionColorSet.ColorType.TYPE_GREEN, description: "Green" },
-    { name: "Cyan", value: EveSOFDataFactionColorSet.ColorType.TYPE_CYAN, description: "Cyan" },
-    { name: "Fire", value: EveSOFDataFactionColorSet.ColorType.TYPE_FIRE, description: "Fire" },
-    { name: "Hull", value: EveSOFDataFactionColorSet.ColorType.TYPE_HULL, description: "Material Hullarea Glow" },
-    { name: "Glass", value: EveSOFDataFactionColorSet.ColorType.TYPE_GLASS, description: "Material Glassarea Glow" },
-    { name: "Reactor", value: EveSOFDataFactionColorSet.ColorType.TYPE_REACTOR, description: "Material Reactorarea Glow" },
-    { name: "Darkhull", value: EveSOFDataFactionColorSet.ColorType.TYPE_DARKHULL, description: "Material Darkhull Glow" },
-    { name: "Booster", value: EveSOFDataFactionColorSet.ColorType.TYPE_BOOSTER, description: "Material Hullarea Heat Shimmer Glow" },
-    { name: "Killmark", value: EveSOFDataFactionColorSet.ColorType.TYPE_KILLMARK, description: "Killmark glow color" },
-    { name: "PrimaryLight", value: EveSOFDataFactionColorSet.ColorType.TYPE_PRIMARY_LIGHT, description: "Primary light color" },
-    { name: "SecondaryLight", value: EveSOFDataFactionColorSet.ColorType.TYPE_SECONDARY_LIGHT, description: "Secondary light color" },
-    { name: "TertiaryLight", value: EveSOFDataFactionColorSet.ColorType.TYPE_TERTIARY_LIGHT, description: "Tertiary light color" },
-    { name: "WhiteLight", value: EveSOFDataFactionColorSet.ColorType.TYPE_WHITE_LIGHT, description: "White light color" },
-    { name: "PrimaryHologram", value: EveSOFDataFactionColorSet.ColorType.TYPE_PRIMARY_HOLOGRAM, description: "Primary Hologram" },
-    { name: "SecondaryHologram", value: EveSOFDataFactionColorSet.ColorType.TYPE_SECONDARY_HOLOGRAM, description: "Secondary Hologram color" },
-    { name: "TertiaryHologram", value: EveSOFDataFactionColorSet.ColorType.TYPE_TERTIARY_HOLOGRAM, description: "Tertiary Hologram color" },
-    { name: "State0", value: EveSOFDataFactionColorSet.ColorType.TYPE_STATE_0, description: "State 0 color" },
-    { name: "State1", value: EveSOFDataFactionColorSet.ColorType.TYPE_STATE_1, description: "State 1 color" },
-    { name: "State2", value: EveSOFDataFactionColorSet.ColorType.TYPE_STATE_2, description: "State 2 color" },
-    { name: "State3", value: EveSOFDataFactionColorSet.ColorType.TYPE_STATE_3, description: "State 3 color" },
-    { name: "StateVulnerable", value: EveSOFDataFactionColorSet.ColorType.TYPE_STATE_VULNERABLE, description: "State Vulnerable color" },
-    { name: "StateInvulnerable", value: EveSOFDataFactionColorSet.ColorType.TYPE_STATE_INVULNERABLE, description: "State Invulnerable color" },
-    { name: "PrimaryForcefield", value: EveSOFDataFactionColorSet.ColorType.TYPE_PRIMARY_FORCEFIELD, description: "Primary Forcefield color" },
-    { name: "SecondaryForcefield", value: EveSOFDataFactionColorSet.ColorType.TYPE_SECONDARY_FORCEFIELD, description: "Secondary Forcefield color" },
-    { name: "PrimaryBanner", value: EveSOFDataFactionColorSet.ColorType.TYPE_PRIMARY_BANNER, description: "Primary Banner color" },
-    { name: "PrimaryFx", value: EveSOFDataFactionColorSet.ColorType.TYPE_PRIMARY_FX, description: "Primary Fx color" },
-    { name: "SecondaryFx", value: EveSOFDataFactionColorSet.ColorType.TYPE_SECONDARY_FX, description: "Secondary Fx color" },
-    { name: "PrimarySpotlight", value: EveSOFDataFactionColorSet.ColorType.TYPE_PRIMARY_SPOTLIGHT, description: "Primary spotlight color" },
-    { name: "SecondarySpotlight", value: EveSOFDataFactionColorSet.ColorType.TYPE_SECONDARY_SPOTLIGHT, description: "Secondary spotlight color" },
-    { name: "TertiarySpotlight", value: EveSOFDataFactionColorSet.ColorType.TYPE_TERTIARY_SPOTLIGHT, description: "Tertiary spotlight color" },
-    { name: "PrimaryBillboard", value: EveSOFDataFactionColorSet.ColorType.TYPE_PRIMARY_BILLBOARD, description: "Primary Billboard color" },
-    { name: "PrimaryWarpFx", value: EveSOFDataFactionColorSet.ColorType.TYPE_PRIMARY_WARP_FX, description: "Primary Warp FX color" },
-    { name: "PrimaryAttackFX", value: EveSOFDataFactionColorSet.ColorType.TYPE_PRIMARY_ATTACK_FX, description: "Primary Attack FX color" },
-    { name: "PrimarySiegeFX", value: EveSOFDataFactionColorSet.ColorType.TYPE_PRIMARY_SIEGE_FX, description: "Primary Siege FX color" },
-    { name: "PrimaryDockedFX", value: EveSOFDataFactionColorSet.ColorType.TYPE_PRIMARY_DOCKED_FX, description: "Primary Docked FX color" }
+    { name: "Primary", value: ColorType.TYPE_PRIMARY, description: "Primary Color" },
+    { name: "Secondary", value: ColorType.TYPE_SECONDARY, description: "Secondary Color" },
+    { name: "Tertiary", value: ColorType.TYPE_TERTIARY, description: "Tertiary Color" },
+    { name: "Black", value: ColorType.TYPE_BLACK, description: "Black Color" },
+    { name: "White", value: ColorType.TYPE_WHITE, description: "White" },
+    { name: "Yellow", value: ColorType.TYPE_YELLOW, description: "Yellow" },
+    { name: "Orange", value: ColorType.TYPE_ORANGE, description: "Orange" },
+    { name: "Red", value: ColorType.TYPE_RED, description: "Red" },
+    { name: "Blue", value: ColorType.TYPE_BLUE, description: "Blue" },
+    { name: "Green", value: ColorType.TYPE_GREEN, description: "Green" },
+    { name: "Cyan", value: ColorType.TYPE_CYAN, description: "Cyan" },
+    { name: "Fire", value: ColorType.TYPE_FIRE, description: "Fire" },
+    { name: "Hull", value: ColorType.TYPE_HULL, description: "Material Hullarea Glow" },
+    { name: "Glass", value: ColorType.TYPE_GLASS, description: "Material Glassarea Glow" },
+    { name: "Reactor", value: ColorType.TYPE_REACTOR, description: "Material Reactorarea Glow" },
+    { name: "Darkhull", value: ColorType.TYPE_DARKHULL, description: "Material Darkhull Glow" },
+    { name: "Booster", value: ColorType.TYPE_BOOSTER, description: "Material Hullarea Heat Shimmer Glow" },
+    { name: "Killmark", value: ColorType.TYPE_KILLMARK, description: "Killmark glow color" },
+    { name: "PrimaryLight", value: ColorType.TYPE_PRIMARY_LIGHT, description: "Primary light color" },
+    { name: "SecondaryLight", value: ColorType.TYPE_SECONDARY_LIGHT, description: "Secondary light color" },
+    { name: "TertiaryLight", value: ColorType.TYPE_TERTIARY_LIGHT, description: "Tertiary light color" },
+    { name: "WhiteLight", value: ColorType.TYPE_WHITE_LIGHT, description: "White light color" },
+    { name: "PrimaryHologram", value: ColorType.TYPE_PRIMARY_HOLOGRAM, description: "Primary Hologram" },
+    { name: "SecondaryHologram", value: ColorType.TYPE_SECONDARY_HOLOGRAM, description: "Secondary Hologram color" },
+    { name: "TertiaryHologram", value: ColorType.TYPE_TERTIARY_HOLOGRAM, description: "Tertiary Hologram color" },
+    { name: "State0", value: ColorType.TYPE_STATE_0, description: "State 0 color" },
+    { name: "State1", value: ColorType.TYPE_STATE_1, description: "State 1 color" },
+    { name: "State2", value: ColorType.TYPE_STATE_2, description: "State 2 color" },
+    { name: "State3", value: ColorType.TYPE_STATE_3, description: "State 3 color" },
+    { name: "StateVulnerable", value: ColorType.TYPE_STATE_VULNERABLE, description: "State Vulnerable color" },
+    { name: "StateInvulnerable", value: ColorType.TYPE_STATE_INVULNERABLE, description: "State Invulnerable color" },
+    { name: "PrimaryForcefield", value: ColorType.TYPE_PRIMARY_FORCEFIELD, description: "Primary Forcefield color" },
+    { name: "SecondaryForcefield", value: ColorType.TYPE_SECONDARY_FORCEFIELD, description: "Secondary Forcefield color" },
+    { name: "PrimaryBanner", value: ColorType.TYPE_PRIMARY_BANNER, description: "Primary Banner color" },
+    { name: "PrimaryFx", value: ColorType.TYPE_PRIMARY_FX, description: "Primary Fx color" },
+    { name: "SecondaryFx", value: ColorType.TYPE_SECONDARY_FX, description: "Secondary Fx color" },
+    { name: "PrimarySpotlight", value: ColorType.TYPE_PRIMARY_SPOTLIGHT, description: "Primary spotlight color" },
+    { name: "SecondarySpotlight", value: ColorType.TYPE_SECONDARY_SPOTLIGHT, description: "Secondary spotlight color" },
+    { name: "TertiarySpotlight", value: ColorType.TYPE_TERTIARY_SPOTLIGHT, description: "Tertiary spotlight color" },
+    { name: "PrimaryBillboard", value: ColorType.TYPE_PRIMARY_BILLBOARD, description: "Primary Billboard color" },
+    { name: "PrimaryWarpFx", value: ColorType.TYPE_PRIMARY_WARP_FX, description: "Primary Warp FX color" },
+    { name: "PrimaryAttackFX", value: ColorType.TYPE_PRIMARY_ATTACK_FX, description: "Primary Attack FX color" },
+    { name: "PrimarySiegeFX", value: ColorType.TYPE_PRIMARY_SIEGE_FX, description: "Primary Siege FX color" },
+    { name: "PrimaryDockedFX", value: ColorType.TYPE_PRIMARY_DOCKED_FX, description: "Primary Docked FX color" }
   ]
 });

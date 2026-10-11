@@ -1257,8 +1257,8 @@ function projectDecalIndexBuffers(values)
 
 function projectFaction(value)
 {
-  const logos = LOGO_KEYS.map(key => ({
-    textures: projectTextureMap(selectNamedSlot(value.logoSet, key, "logos")?.textures)
+  const logos = LOGO_KEYS.map((key, type) => ({
+    textures: projectTextureMap(selectNamedSlot(value.logoSet, key, "logos", type)?.textures)
   }));
   const visibilityGroups = (Array.isArray(value.visibilityGroupSet?.visibilityGroups)
     ? value.visibilityGroupSet.visibilityGroups
@@ -1298,7 +1298,7 @@ function projectFaction(value)
       colors: value.colorSet
         ? FACTION_COLOR_KEYS.map((key, index) =>
         {
-          const color = selectNamedSlot(value.colorSet, key, "colors");
+          const color = selectNamedSlot(value.colorSet, key, "colors", index);
           return isVector4(color) ? copyVector(color) : factionColorDefault(index);
         })
         : FACTION_COLOR_KEYS.map(() => [0, 0, 0, 0])
@@ -1988,29 +1988,31 @@ function projectAreaMaterials(areaTypes)
   const result = createAreaMaterialData();
   if (!areaTypes) return result;
   AREA_MATERIAL_KEYS.forEach((key, areaType) =>
-    mergeAreaMaterial(result, selectAreaMaterial(areaTypes, key), areaType));
+    mergeAreaMaterial(result, selectNamedSlot(areaTypes, key, "materials", areaType), areaType));
   return result;
 }
 
-function selectAreaMaterial(areaTypes, key)
-{
-  return selectNamedSlot(areaTypes, key, "materials");
-}
-
 /**
- * Carbon's generated records declare one property per slot (EveSOFDataArea's
- * AreaType properties, EveSOFDataFactionColorSet's ColorType properties), but
- * the decoded data.black record carries those slots as a lowercase-keyed child
- * map instead. Both shapes reach these projections, and reading only the
- * declared property names silently produced empty area materials and
- * all-black faction colors.
+ * Reads one type-indexed slot (an area material, faction colour or logo) from
+ * any of the three shapes that reach these projections:
+ * - a class instance stores Carbon's array (`m_materials[TYPE_MAX]` and the
+ *   like), indexed by the type enum, as Carbon reads it (EveSOFDataMgr.cpp:1284-1371);
+ * - an exported values bag carries the exposed slot names ("Primary", "Glass");
+ * - the decoded data.black payload carries a lowercase-keyed child map.
+ *
+ * @param {object|null} container Area, colour or logo set in any shape.
+ * @param {string} key Exposed slot name.
+ * @param {string} mapName Storage member name ("materials", "colors", "logos").
+ * @param {number} index Type enum value.
+ * @returns {*} The slot value, or null.
  */
-function selectNamedSlot(container, key, mapName)
+function selectNamedSlot(container, key, mapName, index)
 {
   if (!container) return null;
   if (container[key] !== undefined && container[key] !== null) return container[key];
   const slots = container[mapName];
   if (!slots) return null;
+  if (Array.isArray(slots)) return slots[index] ?? null;
   const lowercase = key.toLowerCase();
   const direct = slots instanceof Map ? slots.get(lowercase) ?? slots.get(key) : slots[lowercase] ?? slots[key];
   if (direct !== undefined && direct !== null) return direct;
