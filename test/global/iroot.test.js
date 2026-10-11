@@ -19,18 +19,23 @@ meta.blue.chainTo(RootTestObject)(RootTestChild);
 
 const classes = new CjsBlueClasses();
 
-test("IRoot exposes root identity and the actual derived class type", () =>
+test("IRoot exposes root identity and shared concrete class metadata", () =>
 {
   for (const Type of [IRoot, RootTestObject, RootTestChild])
   {
     const value = new Type();
-    assert.equal(value.ClassType(), Type);
+    const info = CjsSchema.getSchema(Type);
+    assert.equal(value.ClassType(), info);
+    assert.equal(new Type().ClassType(), info);
+    assert.notEqual(info, Type);
     assert.equal(value.GetRootObject(), value);
     assert.equal(CjsSchema.cast(value, IRoot), value);
     assert.equal(value.QueryInterface(IRoot), value);
     assert.equal(classes.QueryThisInterface(value, IRoot), value);
     assert.equal(value.QueryInterface(Type), value);
   }
+  assert.notEqual(new RootTestObject().ClassType(), new RootTestChild().ClassType());
+  assert.equal(new RootTestObject().ClassType().className, "IRootTestObject");
 });
 
 test("instance and service queries honor explicit exposure instead of method inheritance", () =>

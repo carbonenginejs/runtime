@@ -6,8 +6,8 @@ import { mappedInterfaces } from "../compose/interface.js";
 import * as CcpLog from "../logging/ccpLog.js";
 
 /**
- * Common Blue object base. JavaScript constructors serve as ClassInfo/IID
- * identities; interface exposure remains explicitly declared by each class.
+ * Common Blue object base. ClassType returns shared class metadata; JavaScript
+ * constructors identify interfaces explicitly exposed by each class.
  *
  * Native reference counting and deletion are not implemented here. Destruction
  * and deterministic resource release belong to each class and its owner; the
@@ -15,10 +15,14 @@ import * as CcpLog from "../logging/ccpLog.js";
  */
 export class IRoot
 {
-  /** Adapted: the constructor is this object's ClassInfo in JavaScript. */
+  /**
+   * Adapted: retrieves the shared CjsClassInfo record through its current owner.
+   *
+   * @returns {CjsClassInfo} Metadata for this object's concrete class.
+   */
   ClassType()
   {
-    return this.constructor;
+    return CjsSchema.getSchema(this.constructor);
   }
 
   /**
