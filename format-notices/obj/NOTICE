@@ -24,3 +24,16 @@ CarbonEngineJS-facing code is copyright cppctamber / CarbonEngineJS
 contributors.
 
 Repository license: MIT. See LICENSE.
+
+EVE content and CCP's terms
+---------------------------
+
+The MIT License covers this code only, never EVE content. This reader ships no
+game files. Using EVE files through it means the user has accepted CCP Games'
+EVE Online Content Creation Terms of Use and is bound by them: non-commercial
+use, with CCP's disclaimer.
+https://support.eveonline.com/hc/en-us/articles/8563917741084-EVE-Online-Content-Creation-Terms-of-Use
+
+CCP Games is now Fenris Creations. Wherever this notice says "CCP Games" or
+"CCP", read it as also meaning Fenris Creations. This project is not affiliated
+with or endorsed by Fenris Creations (CCP Games).

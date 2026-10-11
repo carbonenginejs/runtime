@@ -1,35 +1,43 @@
-carbonenginejs/format-webgl
-===========================
+formats/webgl
+=============
 
-A pure-JavaScript reader/builder for CarbonEngineJS `.cewg` WebGL shader
-packages, and a DXBC (Direct3D compiled shader bytecode) to GLSL ES 3.00
-emitter for the WebGL2 vertex/pixel/map-style-compute stages ccpwgl targets.
+A pure-JavaScript reader/builder for `.carbonwebgl` effect containers, and a
+DXBC (Direct3D compiled shader bytecode) to GLSL ES 3.00 emitter for WebGL2.
 
-Contains no Microsoft, CarbonEngine, or Fenris Creations (CCP Games) code. The CEWG container format (a flat
-four-byte-tagged chunk layout: `INFO`/`META`/`GLSL`/...) is a CarbonEngineJS
-invention, not a Microsoft, CarbonEngine, or Fenris Creations (CCP Games) one. The DXBC token-stream layout follows
-Microsoft's public d3d11TokenizedProgramFormat documentation (consumed here
-only through the sibling `formats/dxbc` public format; this format
-decodes no DXBC bytes itself). Unity Technologies' HLSLcc (MIT) was used as
-a behavioral reference while auditing the GLSL lowering rules this emitter
-implements; no HLSLcc source is included in this repository.
+The container is CarbonEngine's version-15 compiled-effect container, read and
+written through the shared codec in `src/resource/format/carbonEffect`. That
+codec ports CarbonEngine's `Tr2EffectRes.cpp` and the shader compiler's file
+assembly, released by Fenris Creations (CCP Games) under the MIT License
+(<https://github.com/carbonengine>); see `format-notices/hlsl`. The program
+slots carry GLSL in place of DXBC, with an optional per-pass backend block.
 
-CarbonEngine and Fenris Creations (CCP Games) are mentioned for
-interoperability and target-runtime context. This package is not affiliated with
-or endorsed by CCP Games.
+The GLSL emitter is original CarbonEngineJS work. It reads DXBC only through
+the sibling `formats/dxbc` reader, whose token format Microsoft publishes; see
+`format-notices/dxbc`. Unity Technologies' HLSLcc (MIT) was used as a
+behavioral reference while auditing the GLSL lowering rules; no HLSLcc source
+is included in this repository.
 
 Provenance
 ----------
 
-The CEWG package reader/builder and the DXBC-to-GLSL emitter were originally
-developed in this project's own prior-work repository,
-`hlslreader` (`src/carbon/webgl/CewgPackage.js`, `CewgPackageBuilder.js`, and
-`src/dxbc/glsl/*.js`), and ported here with import/error-class adjustments
-only (see README for the ported-file list). No third-party, CarbonEngine, or
-Fenris Creations (CCP Games) source was copied; both repositories are
-cppctamber / CarbonEngineJS original work.
+The DXBC-to-GLSL emitter was first developed in this project's own prior-work
+repository, `hlslreader`, and ported here. The earlier private `.cewg` chunk
+container from that repository is retired; the Carbon container replaced it.
 
 CarbonEngineJS-facing code is copyright cppctamber / CarbonEngineJS
 contributors.
 
 Repository license: MIT. See LICENSE.
+
+EVE content and CCP's terms
+---------------------------
+
+The MIT License covers this code only, never EVE content. This reader ships no
+game files. Using EVE files through it means the user has accepted CCP Games'
+EVE Online Content Creation Terms of Use and is bound by them: non-commercial
+use, with CCP's disclaimer.
+https://support.eveonline.com/hc/en-us/articles/8563917741084-EVE-Online-Content-Creation-Terms-of-Use
+
+CCP Games is now Fenris Creations. Wherever this notice says "CCP Games" or
+"CCP", read it as also meaning Fenris Creations. This project is not affiliated
+with or endorsed by Fenris Creations (CCP Games).

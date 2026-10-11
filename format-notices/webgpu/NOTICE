@@ -1,4 +1,5 @@
-format-webgpu
+formats/webgpu
+==============
 
 Copyright (c) CarbonEngineJS contributors.
 CarbonEngine source material, formats, class names, and schema semantics remain
@@ -6,18 +7,23 @@ copyright their original CarbonEngine authors.
 Fenris Creations (CCP Games) source material, tools, assets, shader behavior,
 and EVE-related data remain copyright their original holders.
 
-This package is a CarbonEngineJS-facing reader/builder for `.cewgpu` WebGPU
-package data plus offline effect-analysis helpers. It contains original project
-code only unless this notice is expanded with third-party attribution.
-CarbonEngine and Fenris Creations (CCP Games) are mentioned for
-interoperability, provenance, and future migration context only. This package is
-not affiliated with or endorsed by CCP Games.
+A pure-JavaScript reader/builder for `.carbonwebgpu` effect containers, plus
+effect analysis and a DXBC to WGSL translator.
+
+The container is CarbonEngine's version-15 compiled-effect container, read and
+written through the shared codec in `src/resource/format/carbonEffect`. That
+codec ports CarbonEngine's `Tr2EffectRes.cpp` and the shader compiler's file
+assembly, released by Fenris Creations (CCP Games) under the MIT License
+(<https://github.com/carbonengine>); see `format-notices/hlsl`. The program
+slots carry WGSL in place of DXBC, with an optional per-pass backend block.
+
+The DXBC-to-IR lowering, WGSL emitter, effect analysis and binding plan are
+original CarbonEngineJS work. They read DXBC only through the sibling
+`formats/dxbc` reader, whose token format Microsoft publishes; see
+`format-notices/dxbc`. No third-party translator source is included.
 
 Provenance and legal requirements
 ---------------------------------
-
-This scaffold currently contains CarbonEngineJS original project code only. It
-does not include copied CarbonEngine source code or third-party parser code.
 
 If future work copies, ports, translates, or derives from CarbonEngine, ccpwgl,
 Fenris Creations (CCP Games) / EVE assets or tools, or any third-party library,
@@ -29,3 +35,16 @@ update this NOTICE before committing that work with:
   redistribution obligations;
 - whether the material was copied/ported/adapted, or used only as a behavioral
   reference with no copied expression.
+
+EVE content and CCP's terms
+---------------------------
+
+The MIT License covers this code only, never EVE content. This reader ships no
+game files. Using EVE files through it means the user has accepted CCP Games'
+EVE Online Content Creation Terms of Use and is bound by them: non-commercial
+use, with CCP's disclaimer.
+https://support.eveonline.com/hc/en-us/articles/8563917741084-EVE-Online-Content-Creation-Terms-of-Use
+
+CCP Games is now Fenris Creations. Wherever this notice says "CCP Games" or
+"CCP", read it as also meaning Fenris Creations. This project is not affiliated
+with or endorsed by Fenris Creations (CCP Games).
