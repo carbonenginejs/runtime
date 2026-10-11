@@ -1,14 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema, meta } from "../../src/global/schema/index.js";
-import { defaultCarbonValue, normalizeCarbonTypeDescriptor, normalizeCarbonValue, coerceCarbonMathInto } from "../../src/global/schema/types/carbonTypes.js";
+import { normalizeCarbonValue, coerceCarbonMathInto } from "../../src/global/schema/types/carbonTypes.js";
 import { CjsBlackSchemaRegistry } from "../../src/resource/formats/black/core/CjsBlackSchemaRegistry.js";
-
-const meanings = {
-  rgb: ["vector3", 3], rgba: ["vector4", 4], linear: ["vector4", 4],
-  local: ["matrix4", 16], world: ["matrix4", 16], translation: ["vector3", 3],
-  rotation: ["quaternion", 4], scale: ["vector3", 3], mixed: ["vector4", 4]
-};
 
 test("math values compare at the declared storage precision before reporting a change", () =>
 {
@@ -24,38 +18,19 @@ test("math values compare at the declared storage precision before reporting a c
   assert.equal(coerceCarbonMathInto(precise, [0.1 + 1e-10, 0.2, 0.3], double), true);
 });
 
-test("meaning decorators resolve ordinary data kinds and preserve declared defaults", () =>
+test("semantic type decorators nothing used are gone; Carbon's math types remain", () =>
 {
-  class Record {}
-  CjsSchema.define(Record, { className: "MeaningTypeRecord", fields: Object.fromEntries(Object.keys(meanings).map(name => [name, meta.type[name]])) });
-  for (const [name, [kind, length]] of Object.entries(meanings))
-  {
-    const field = CjsSchema.getField(Record, name);
-    const descriptor = normalizeCarbonTypeDescriptor(field.type);
-    assert.equal(descriptor.kind, kind);
-    assert.equal(descriptor.semantic, name);
-    const value = defaultCarbonValue(field.type);
-    assert.ok(value instanceof Float32Array);
-    assert.equal(value.length, length);
-    if (name === "scale") assert.deepEqual([...value], [1, 1, 1]);
-    if (name === "rotation") assert.deepEqual([...value], [0, 0, 0, 1]);
-    if (name === "world" || name === "local") assert.deepEqual([...value], [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
-    const input = Array.from({ length }, (_, i) => i + 0.25);
-    assert.equal(coerceCarbonMathInto(value, input, field.type), true);
-    assert.deepEqual([...value], input);
-    assert.equal(coerceCarbonMathInto(value, input, field.type), false);
-    assert.throws(() => normalizeCarbonValue([1, 2], field.type), /declares .* elements/);
-    // A format dispatches storage, without knowing the meaning vocabulary.
-    assert.equal(CjsBlackSchemaRegistry.fromDeclaredType(field.type).black.beType, "FLOATARRAY");
-  }
+  for (const removed of [ "rgb", "rgba", "linear", "local", "world", "translation", "rotation", "scale", "mixed" ])
+    assert.equal(meta.type[removed], undefined, removed);
+  for (const kept of [ "color", "quat", "vec2", "vec3", "vec4", "mat4" ]) assert.equal(typeof meta.type[kept], "function", kept);
 });
 
-test("Stage-3, decorator calls and manual declarations agree for compound flags and meaning types", () =>
+test("Stage-3, decorator calls and manual declarations agree for compound flags and component labels", () =>
 {
-  const definitions = Object.fromEntries(Object.keys(meanings).map(name => [name, meta.type[name]]));
+  const definitions = {};
   definitions.flags = meta.type.flags({ A: 1, B: 2 });
   definitions.words = meta.type.uint32Array;
-  definitions.packed = [meta.type.mixed, meta.ui.components(["speed", "size", "opacity", "age"]), meta.ui.description("Particle channels")];
+  definitions.packed = [meta.type.vec4, meta.ui.components(["speed", "size", "opacity", "age"]), meta.ui.description("Particle channels")];
   class Manual {}
   CjsSchema.define(Manual, { className: "MeaningManual", fields: definitions });
   class Decorated {}
