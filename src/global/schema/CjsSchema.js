@@ -2680,7 +2680,6 @@ function addSchemaBuckets(schema)
             continue;
         }
 
-        entry.owned = field.lifecycle?.ownership === "owned";
         children.push(entry);
     }
 
