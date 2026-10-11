@@ -148,4 +148,33 @@ a validated clean-room implementation and the donor was relicensed MIT. The
 modern cFSD decoder and reviewed dataset schemas decode caller-supplied bytes
 and include no acquired game data, decoded tables, or native loader modules.
 
+Shader and effect pipeline
+--------------------------
+
+The runtime reads compiled EVE effect files and translates their shaders for
+WebGPU and WebGL2. Each part rests on published material:
+
+- Effect container: CarbonEngine's compiled-effect format, published by
+  Fenris Creations (CCP Games) as open source under the MIT License. The codec
+  in `src/resource/format/carbonEffect` ports `Tr2EffectRes.cpp` and the
+  shader compiler's file assembly. The layout was already known from ccpwgl.
+  See `format-notices/hlsl`.
+- Shader compiler: `src/shadercompiler` ports CarbonEngine's
+  `trinity/shadercompiler` (MIT); see THIRD-PARTY-NOTICES.md.
+- Compiled shader bytecode: Microsoft's DXBC format, which Microsoft publishes
+  in DirectX-Headers (MIT) and the DirectX Shader Compiler. See
+  `format-notices/dxbc`.
+- Translation: the WGSL and GLSL emitters re-express what a shader computes so
+  a browser can run the same effect. Game shaders' HLSL source is not used. The
+  emitters are original CarbonEngineJS code, with Unity's HLSLcc (MIT) used as a
+  behavioral reference.
+
+Game files
+----------
+
+The runtime operates on game files the user supplies, such as effects and
+shaders, textures, geometry and audio. None are included in this package. Use
+of EVE Online content is subject to CCP's EVE Online Content Creation Terms,
+which allow non-commercial player-made work and require CCP's disclaimer.
+
 License: MIT. See LICENSE.

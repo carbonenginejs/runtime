@@ -6,16 +6,20 @@ A pure-JavaScript reader for CCP's Tr2 compiled effect container format
 and pass tables, and per-stage constant/resource/sampler metadata that make
 up one compiled Carbon/Trinity effect resource.
 
-Contains no CarbonEngine or Fenris Creations (CCP Games) code. The container layout and
-data-shape model were reverse-engineered from compiled effect files, historical
-GLES shader assets, and observed CarbonEngine source-code structure. Those
-sources informed field names and layout hypotheses; the implementation here is
-original CarbonEngineJS code.
+The container layout is CarbonEngine's, which Fenris Creations (CCP Games)
+published as open source under the MIT License
+(<https://github.com/carbonengine>). This reader decodes it through the shared
+container codec in `src/resource/format/carbonEffect`, a JavaScript port of
+`trinity/trinity/Resources/Tr2EffectRes.cpp` and the file assembly in
+`trinity/shadercompiler/ShaderCompiler.cpp`. Each ported file names its Carbon
+source. The layout was already known from the open-source ccpwgl project,
+whose older version of this reader came before CarbonEngine was published. The
+Carbon port superseded it.
 
-No CarbonEngine or Fenris Creations (CCP Games) source files, tooling, proprietary documentation, or
-shader compiler code are included in this repository. Shader bytecode bodies are
-kept as opaque bytes (`CjsShaderBytecode`) — this package does not decode
-DXBC/HLSL bytecode.
+No Fenris Creations (CCP Games) client software, tools or proprietary
+documentation were used. No game files are included. Shader bytecode bodies are
+kept as opaque bytes (`CjsShaderBytecode`). This package does not decode
+DXBC/HLSL bytecode; see `format-notices/dxbc`.
 
 This package is not affiliated with or endorsed by CCP Games.
 
