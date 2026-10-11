@@ -131,7 +131,23 @@ import order, and pre-migration test evidence.
 
 ## License
 
-MIT. See [LICENSE](LICENSE) and [NOTICE](NOTICE) for provenance and attribution.
+MIT, with some third-party portions under their own permissive licences. The
+package's SPDX expression is
+`MIT AND BSD-3-Clause AND BSL-1.0 AND ISC AND blessing AND LicenseRef-Brumme-MD5`:
+
+| Licence | Covers |
+|---|---|
+| MIT | CarbonEngineJS's own code, CarbonEngine ports, and other MIT material |
+| BSD-3-Clause | the Wwise Vorbis repacker and codebook data, from ww2ogg |
+| BSL-1.0 | the GR2 Oodle1 section decompressor, from nwn2mdk |
+| ISC | the Earcut triangulation helper, from Mapbox |
+| blessing | the LEMON parser driver in the shader compiler |
+| LicenseRef-Brumme-MD5 | the shader compiler's MD5, after Stephan Brumme |
+
+Each file names its origin, and the full terms are in
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) and `format-notices/`. If you
+bundle this package, carry those notices with it. See [LICENSE](LICENSE) and
+[NOTICE](NOTICE) for provenance and attribution.
 CarbonEngineJS includes JavaScript ports and adaptations of CarbonEngine
 behavior plus independently implemented interoperability code where noted. It
 is not affiliated with or endorsed by Fenris Creations or CCP Games.

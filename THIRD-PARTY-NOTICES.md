@@ -223,7 +223,7 @@ translation of CarbonEngine's modified copy of Stephan Brumme's MD5
 - Original: md5.cpp, Copyright (c) 2014,2015 Stephan Brumme. All rights reserved.
   md5.h, Copyright (c) 2014 Stephan Brumme. All rights reserved.
 - Project: <http://create.stephan-brumme.com/>
-- License: the author's zlib-like license, from
+- License (SPDX `LicenseRef-Brumme-MD5`): the author's zlib-like license, from
   <http://create.stephan-brumme.com/disclaimer.html>:
 
 ```text
@@ -253,7 +253,7 @@ distributed with SQLite.
 The author of this program disclaims copyright.
 ```
 
-`lempar.c`:
+`lempar.c` (SPDX `blessing`):
 
 ```text
 2000-05-29

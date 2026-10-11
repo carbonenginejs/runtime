@@ -4,7 +4,7 @@
   "private": true,
   "description": "Private pre-release package for the consolidated browser-safe CarbonEngineJS runtime, renderer engines, and browser tools.",
   "type": "module",
-  "license": "MIT",
+  "license": "MIT AND BSD-3-Clause AND BSL-1.0 AND ISC AND blessing AND LicenseRef-Brumme-MD5",
   "exports": {
     ".": "./src/index.js",
     "./global": "./src/global/index.js",
