@@ -18,13 +18,31 @@
 // Where it departs, declared (see the research page `blue-values-engine.md`):
 // - YamlWriter always writes `type` and always anchors. Here `_type` is written
 //   when `typeTags` (only where the class differs from the declared one) or
-//   `forceTypeTags` asks, and anchoring when `refs` asks - the interchange
-//   contract's options; without `refs` a shared object is written each time.
+//   `forceTypeTags` asks. Anchoring is on, as YamlWriter's is, unless the
+//   caller passes `refs: false` for a flat copy: then a shared object is
+//   written at every reference, reads back as independent copies, and a cycle
+//   never ends. A flat copy of a large shared graph can be gigabytes (the
+//   mdeha01 hangar passed 12 GB).
 import { CjsSchema, meta } from "#schema";
 import { IRootWriter } from "./IRootWriter.js";
 import { BeObjectMetadata } from "./BlueObjectMetadata.js";
 import { BLUE_OBJECT_METADATA_KEY } from "./IBlueObjectMetadata.js";
 import { getDictionaryDeclarations } from "./dictionaryDeclarations.js";
+import * as CcpLog from "../logging/ccpLog.js";
+
+/**
+ * Default `sizeWarningBytes`: an export estimated past this logs a warning.
+ *
+ * Calibrated 2026-10-11 on EVE build 3599281. The largest real file, SOF
+ * `data.black` (184.4 MB), hydrates to 892,032 objects and exports to
+ * 177.1 MB of JSON (0.96x the .black); the mdeha01 hangar's 12.4 MB of DNA
+ * values export to 14.0 MB. 1 GiB is about 5.7x the largest real export, so
+ * only duplication - a shared graph written flat - or a hand-built scene of
+ * unusual size reaches it. There is no .red writer yet, so no .red ratio.
+ * The running estimate came within 0.4% (data.black) and 1.5% (hangar) of the
+ * real JSON length.
+ */
+export const DEFAULT_SIZE_WARNING_BYTES = 1024 * 1024 * 1024;
 
 
 /**
@@ -41,6 +59,17 @@ export class DictWriter extends IRootWriter
   /** m_classEventMap: each object written, to the bag written for it. */
   _written = new Map();
 
+  /**
+   * Objects first written inside a READ-only member. A reader skips those
+   * members, so an anchor there would leave later `{ _ref }`s dangling: they
+   * are aliased only from inside read-only members (which also stops a cycle
+   * there), and a writable member that reaches one writes it in full.
+   */
+  _writtenReadOnly = new Map();
+
+  /** How many READ-only member values are being written, innermost included. */
+  _readOnlyDepth = 0;
+
   /** The member names records interrupted, restored as each record ends. */
   _recordNames = [];
 
@@ -50,12 +79,18 @@ export class DictWriter extends IRootWriter
   /** The options this write was asked with. */
   _options = {};
 
+  /** A running estimate of the JSON length written, for the size warning. */
+  _estimatedBytes = 0;
+
   /**
    * Writes an object into a bag (`WriteObjectToString`, YamlWriter.cpp:76-87).
    *
    * @param {object} instance The object.
    * @param {object} [out] The bag to fill.
-   * @param {object} [options] `persistOnly`, `typeTags`, `forceTypeTags`, `refs`.
+   * @param {object} [options] `persistOnly`, `typeTags`, `forceTypeTags`, `refs`
+   *   (default true; false writes shared objects as independent copies), and
+   *   `sizeWarningBytes` (default DEFAULT_SIZE_WARNING_BYTES; 0 turns the
+   *   warning off).
    * @returns {object} The bag.
    */
   WriteObject(instance, out = {}, options = {})
@@ -65,6 +100,7 @@ export class DictWriter extends IRootWriter
     try
     {
       this._WriteObjectInto(instance, out, null);
+      this._WarnIfLarge(instance);
       return out;
     }
     finally
@@ -83,6 +119,7 @@ export class DictWriter extends IRootWriter
   WriteValue(value)
   {
     const container = this._stack[this._stack.length - 1];
+    this._estimatedBytes += EstimateJsonBytes(value) + (Array.isArray(container) ? 1 : this._pendingName.length + 4);
     if (Array.isArray(container)) container.push(value);
     else container[this._pendingName] = value;
   }
@@ -102,7 +139,12 @@ export class DictWriter extends IRootWriter
       return;
     }
 
-    const written = this._options.refs ? this._written.get(instance) : undefined;
+    let written;
+    if (this._options.refs !== false)
+    {
+      written = this._written.get(instance);
+      if (!written && this._readOnlyDepth > 0) written = this._writtenReadOnly.get(instance);
+    }
     if (written)
     {
       if (written._id === undefined) written._id = this._anchorNumber++;
@@ -153,7 +195,7 @@ export class DictWriter extends IRootWriter
    */
   _WriteObjectInto(instance, out, declaredClassName)
   {
-    this._written.set(instance, out);
+    (this._readOnlyDepth > 0 ? this._writtenReadOnly : this._written).set(instance, out);
 
     const className = CjsSchema.getClassName(instance.constructor);
     const options = this._options;
@@ -195,6 +237,38 @@ export class DictWriter extends IRootWriter
   {
   }
 
+  /**
+   * Logs one warning when the estimated export passes `sizeWarningBytes`.
+   * Real files export to well under it (see DEFAULT_SIZE_WARNING_BYTES), so
+   * passing it almost always means a shared object was written at every
+   * reference.
+   *
+   * @param {object} instance The root written.
+   * @returns {void}
+   */
+  _WarnIfLarge(instance)
+  {
+    const limit = this._options.sizeWarningBytes ?? DEFAULT_SIZE_WARNING_BYTES;
+    if (!limit || this._estimatedBytes <= limit) return;
+    CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("blue"),
+      "GetValues of %s wrote about %d MB (warning above %d MB); refs: %s",
+      CjsSchema.getClassName(instance.constructor) ?? instance.constructor.name,
+      Math.round(this._estimatedBytes / 1048576), Math.round(limit / 1048576),
+      this._options.refs === false ? "false - shared objects were written at every reference" : "on");
+  }
+
+  /** Enters a READ-only member's value. */
+  BeginReadOnlyMember()
+  {
+    this._readOnlyDepth++;
+  }
+
+  /** Leaves a READ-only member's value. */
+  EndReadOnlyMember()
+  {
+    this._readOnlyDepth--;
+  }
+
   /** `Cleanup` (YamlWriter.cpp:245-254). */
   _Cleanup()
   {
@@ -202,7 +276,37 @@ export class DictWriter extends IRootWriter
     this._recordNames.length = 0;
     this._pendingName = null;
     this._written.clear();
+    this._writtenReadOnly.clear();
+    this._readOnlyDepth = 0;
+    this._estimatedBytes = 0;
     this._anchorNumber = 1;
+  }
+}
+
+/**
+ * The approximate JSON length of one written value, not counting what a
+ * container holds (those are counted as they are written).
+ *
+ * @param {*} value The value.
+ * @returns {number} Bytes.
+ */
+function EstimateJsonBytes(value)
+{
+  switch (typeof value)
+  {
+    case "string": return value.length + 2;
+    case "number": return 8;
+    case "boolean": return 5;
+    case "object":
+      if (value === null) return 4;
+      if (Array.isArray(value)) return value.reduce((n, item) => n + EstimateJsonBytes(item) + 1, 2);
+      {
+        // A bag being filled is still empty here; a nested plain value is complete.
+        let n = 2;
+        for (const key in value) n += key.length + 4 + EstimateJsonBytes(value[key]);
+        return n;
+      }
+    default: return 4;
   }
 }
 
@@ -210,3 +314,5 @@ CjsSchema.define(DictWriter, { className: "DictWriter", modelledOn: "YamlWriter"
 CjsSchema.decorateMethod(DictWriter, "WriteIRoot", meta.adapted);
 CjsSchema.decorateMethod(DictWriter, "WriteBinaryBlock", meta.adapted);
 CjsSchema.decorateMethod(DictWriter, "WriteObject", meta.ours);
+CjsSchema.decorateMethod(DictWriter, "BeginReadOnlyMember", meta.ours);
+CjsSchema.decorateMethod(DictWriter, "EndReadOnlyMember", meta.ours);

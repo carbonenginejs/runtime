@@ -17,6 +17,7 @@ import { omitRuntimeValues } from "../schema/CjsSchema.js";
 import { exportCarbonValue } from "../schema/types/index.js";
 import { getDictionaryDeclarations, readDictionaryValue } from "./dictionaryDeclarations.js";
 import { ICustomPersist } from "./ICustomPersist.js";
+import { isWritableField } from "../compose/values.js";
 
 /** Kinds written as an object that may be shared (IROOTPTR). */
 const OBJECT_KINDS = new Set([ "rootRef" ]);
@@ -61,21 +62,50 @@ export class IRootWriter
       if (field.index !== undefined && value === null) continue;
       this.WriteMemberName(field.name);
 
-      // An object is written as one - and so can be aliased - whatever the
-      // member declares: our interchange lets any member hold one.
-      if (OBJECT_KINDS.has(kind) || kind === "root" || IsObject(value))
+      const readOnly = !isWritableField(field);
+      if (readOnly) this.BeginReadOnlyMember();
+      try
       {
-        this.WriteIRoot(value, DeclaredClassName(field.type));
+        // An object is written as one - and so can be aliased - whatever the
+        // member declares: our interchange lets any member hold one.
+        if (OBJECT_KINDS.has(kind) || kind === "root" || IsObject(value))
+        {
+          this.WriteIRoot(value, DeclaredClassName(field.type));
+        }
+        else if (Array.isArray(value) && (LIST_KINDS.has(kind) || value.some(IsObject)))
+        {
+          this.WriteList(value, DeclaredClassName(field.type), field.type?.itemType);
+        }
+        else
+        {
+          this.WriteNestedValue(value, field.type);
+        }
       }
-      else if (Array.isArray(value) && (LIST_KINDS.has(kind) || value.some(IsObject)))
+      finally
       {
-        this.WriteList(value, DeclaredClassName(field.type), field.type?.itemType);
-      }
-      else
-      {
-        this.WriteNestedValue(value, field.type);
+        if (readOnly) this.EndReadOnlyMember();
       }
     }
+  }
+
+  /**
+   * Marks the start of a READ-only member's value, which a reader skips.
+   * Carbon's writers have no such hook; a writer that aliases objects needs it
+   * so it never anchors an object where the reader will not see the anchor.
+   *
+   * @returns {void}
+   */
+  BeginReadOnlyMember()
+  {
+  }
+
+  /**
+   * Marks the end of a READ-only member's value.
+   *
+   * @returns {void}
+   */
+  EndReadOnlyMember()
+  {
   }
 
   /**
@@ -248,4 +278,6 @@ function IsObject(value)
 
 CjsSchema.define(IRootWriter, { className: "IRootWriter", carbon: "IRootWriter" });
 CjsSchema.decorateMethod(IRootWriter, "WriteMembers", meta.adapted);
+CjsSchema.decorateMethod(IRootWriter, "BeginReadOnlyMember", meta.ours);
+CjsSchema.decorateMethod(IRootWriter, "EndReadOnlyMember", meta.ours);
 CjsSchema.decorateMethod(IRootWriter, "WriteValue", meta.adapted);

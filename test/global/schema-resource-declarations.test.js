@@ -207,8 +207,9 @@ test("dictionary collection routes filter nested resource state", () => {
   const target = new Parent();
   const values = write(target);
   assert.equal(values.map.child.authored, 1);
-  assert.equal(values.set[0].authored, 1);
-  assert.equal(values.raw.nested.child.authored, 1);
+  // The set and the raw struct hold the same child, so each is a reference to it.
+  assert.deepEqual(values.set[0], { _ref: values.map.child._id });
+  assert.deepEqual(values.raw.nested.child, { _ref: values.map.child._id });
   assert.equal(JSON.stringify(values).includes("cache"), false);
   const plain = Object.assign(incoming("cache"), { authored: 2 });
   new DictReader().ReadInto(target, { map: { child: plain }, set: [plain] });

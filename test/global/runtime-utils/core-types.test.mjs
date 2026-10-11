@@ -1020,7 +1020,9 @@ test("GetValues export options control persistence, type tags and refs", () => {
     root.child = shared;
     root.children = [shared, special];
 
-    assert.deepEqual(CjsSchema.getValues(root), {
+    // refs: false is the explicit flat copy: a shared object is written at
+    // every reference.
+    assert.deepEqual(CjsSchema.getValues(root, {}, { refs: false }), {
         name: "root",
         runtimeFlag: true,
         child: { name: "shared", value: 1 },
@@ -1045,6 +1047,15 @@ test("GetValues export options control persistence, type tags and refs", () => {
     assert.equal(withRefs.child._id, 1);
     assert.deepEqual(withRefs.children[0], { _ref: 1 });
     assert.equal(withRefs.children[1]._id, undefined);
+
+    // Anchoring is the default, as YamlWriter's is: shared identity survives a
+    // round trip unless the caller asks for a flat copy.
+    assert.deepEqual(CjsSchema.getValues(root), withRefs);
+    const reloaded = CjsSchema.from("ExportRoot", CjsSchema.getValues(root));
+    assert.equal(reloaded.child, reloaded.children[0], "the shared child is one object after reload");
+    const copied = new ExportRoot();
+    CjsSchema.copy(copied, root);
+    assert.equal(copied.child, copied.children[0], "copy keeps the sharing too");
 
     // forceIDs and keyedLists are dropped: Blue's writers have neither, and
     // nothing in production asked for them (operator, 2026-09-27).
@@ -1407,4 +1418,39 @@ test("type.enum and type.hideInherited are the same decorators as their schema.*
     const names = CjsSchema.getSchema(HideViaType).fields.map(field => field.name);
     assert.equal(names.includes("kept"), true);
     assert.equal(names.includes("dropped"), false, "type.hideInherited hid the inherited field");
+});
+
+test("an export estimated past sizeWarningBytes logs one warning naming its root class", async () => {
+    const CcpLog = await import("../../../src/global/logging/ccpLog.js");
+    class SizedNode
+    {
+        name = "";
+    }
+    CjsSchema.define(SizedNode, {
+        className: "SizedNode",
+        fields: [ { name: "name", type: { kind: "string" }, edit: { read: true, write: true, persist: true } } ]
+    });
+    const node = new SizedNode();
+    node.name = "x".repeat(1000);
+
+    const records = [];
+    const sink = (channel, type, userData, message) => records.push({ channel, type, message });
+    CcpLog.UnregisterLogEcho(CcpLog.LogToDebugger);
+    CcpLog.RegisterLogEcho(sink);
+    try
+    {
+        CjsSchema.getValues(node, {}, { sizeWarningBytes: 100 });
+        assert.equal(records.length, 1);
+        assert.equal(records[0].type, CcpLog.LogType.LOGTYPE_WARN);
+        assert.match(records[0].message, /GetValues of SizedNode wrote about 0 MB/);
+
+        CjsSchema.getValues(node, {}, { sizeWarningBytes: 0 });
+        CjsSchema.getValues(node);
+        assert.equal(records.length, 1, "0 turns it off, and a small export stays under the default");
+    }
+    finally
+    {
+        CcpLog.UnregisterLogEcho(sink);
+        CcpLog.RegisterLogEcho(CcpLog.LogToDebugger);
+    }
 });

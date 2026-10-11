@@ -231,7 +231,9 @@ export class IRootReaderBase
       const reuse = CjsSchema.isInstanceOf(className, list[i]);
       const item = reuse ? list[i] : new Item();
       if (!reuse) changed = true;
-      const values = CjsSchema.getClassName(record.constructor) ? CjsSchema.getValues(record) : record;
+      // Flat (refs: false): this export is read into the document being read,
+      // whose anchor table its own _id/_ref numbering would collide with.
+      const values = CjsSchema.getClassName(record.constructor) ? CjsSchema.getValues(record, {}, { refs: false }) : record;
       if (CjsSchema.setValues(item, values, { returnBoolean: true })) changed = true;
       next[i] = item;
     }

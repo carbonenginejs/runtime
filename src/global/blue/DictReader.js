@@ -391,7 +391,9 @@ export class DictReader extends IRootReaderBase
         const liveType = CjsSchema.getClassName(record.constructor);
         if (liveType && !CjsSchema.isInstanceOf(className, record))
           this._ThrowError(`Struct list ${field.name} requires ${className}, not ${liveType}`);
-        const values = liveType ? CjsSchema.getValues(record) : record;
+        // Flat (refs: false): this export is read into the document being read,
+        // whose anchor table its own _id/_ref numbering would collide with.
+        const values = liveType ? CjsSchema.getValues(record, {}, { refs: false }) : record;
         if (values._id !== undefined && values._id !== null) anchors.register(values._id, item);
         readRecord(item, values);
       }
@@ -424,7 +426,9 @@ export class DictReader extends IRootReaderBase
         if (!active) return;
         if (!CjsSchema.isInstanceOf(className, resolved))
           this._ThrowError(`Struct list ${field.name}: _ref ${JSON.stringify(id)} requires ${className}`);
-        const values = CjsSchema.getValues(resolved);
+        // Flat (refs: false): this export is read into the document being read,
+        // whose anchor table its own _id/_ref numbering would collide with.
+        const values = CjsSchema.getValues(resolved, {}, { refs: false });
         delete values._id;
         readRecord(item, values);
         if (--remaining === 0) complete();
@@ -639,7 +643,9 @@ export class DictReader extends IRootReaderBase
         }
         source = values;
       }
-      else source = CjsSchema.getValues(source);
+      // Flat (refs: false): this export is read into the document being read,
+      // whose anchor table its own _id/_ref numbering would collide with.
+      else source = CjsSchema.getValues(source, {}, { refs: false });
     }
     if (typeof source._type === "string" && !CjsSchema.isInstanceOf(source._type, current))
     {

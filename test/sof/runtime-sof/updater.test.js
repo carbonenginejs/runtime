@@ -1234,7 +1234,8 @@ test("patterns grow and shrink compacted mask slots without replacing retained s
 /** Compares effect name maps without requiring a fresh builder's insertion order. */
 function ComparablePatternValues(object)
 {
-  const values = CjsSchema.getValues(object);
+  // A flat copy: the comparison sorts list entries by name, which a { _ref } lacks.
+  const values = CjsSchema.getValues(object, {}, { refs: false });
   const visit = value =>
   {
     if (!value || typeof value !== "object") return;
