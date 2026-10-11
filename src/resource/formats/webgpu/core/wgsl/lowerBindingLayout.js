@@ -104,6 +104,16 @@ const TEXTURE_DIMENSIONS = {
 /** Instructions that read a texture without filtering: a texel load and a size query. */
 const UNFILTERED_TEXTURE_OPCODES = new Set([ "ld", "ld_ms", "resinfo" ]);
 
+/** Instructions that read a texture through a comparison sampler. */
+const COMPARE_TEXTURE_OPCODES = new Set([ "sample_c", "sample_c_lz" ]);
+
+/** The depth texture type per view dimension, for a texture only ever depth-compared. */
+const DEPTH_TEXTURE_TYPES = {
+    "2d": "texture_depth_2d",
+    "2d-array": "texture_depth_2d_array",
+    cube: "texture_depth_cube"
+};
+
 /**
  * Whether any atomic instruction addresses this UAV register. WGSL applies
  * atomic builtins only to `atomic<T>` elements, so a typed buffer an atomic
@@ -180,6 +190,24 @@ function isUnfiltered(program, binding, nearest)
     return used;
 }
 
+/**
+ * The opcodes of every executable instruction that reads this texture, or null
+ * when some resource operand cannot be resolved to a binding.
+ */
+function textureUseOpcodes(program, binding)
+{
+    const opcodes = new Set();
+    for (const instruction of program.instructions)
+    {
+        if (instruction.isDeclaration) continue;
+        const resources = (instruction.operands ?? []).filter((operand) => operand?.typeName === "resource")
+            .map((operand) => operandBinding(program, "sampled-resource", operand));
+        if (resources.some((resource) => resource === null)) return null;
+        if (resources.some((resource) => bindingIdentity(resource) === bindingIdentity(binding))) opcodes.add(instruction.opcodeName);
+    }
+    return opcodes;
+}
+
 function textureLayout(program, binding, nearest)
 {
     const dimension = TEXTURE_DIMENSIONS[binding.resourceDimension];
@@ -188,10 +216,52 @@ function textureLayout(program, binding, nearest)
         throw new Error(`WGSL sampled resource ${binding.id} has unsupported dimension ${binding.resourceDimension}`);
     }
     const returns = binding.returnType?.returnTypeNames || [];
+    const uses = textureUseOpcodes(program, binding);
+
+    // An integer texture (Frontier's EveSpaceSceneDynamicShadowMap is R16_UINT,
+    // read with ld) is a WGSL integer texture. WGSL cannot sample one, so every
+    // use must be a load or a size query.
+    const integer = returns.length === 4 && (returns.every((entry) => entry === "uint") || returns.every((entry) => entry === "sint"))
+        ? returns[0]
+        : null;
+    if (integer)
+    {
+        const sampled = uses === null ? null : [ ...uses ].find((opcode) => !UNFILTERED_TEXTURE_OPCODES.has(opcode));
+        if (uses === null || sampled)
+        {
+            throw new Error(`WGSL sampled resource ${binding.id} is a ${integer} texture, which WGSL can only load; ${sampled ?? "an unresolved instruction"} samples it`);
+        }
+        return {
+            declaration: "var",
+            type: dimension.type.replace("<f32>", integer === "uint" ? "<u32>" : "<i32>"),
+            texture: { sampleType: integer, viewDimension: dimension.viewDimension, multisampled: false }
+        };
+    }
+
     if (returns.length !== 4 || returns.some((entry) => entry !== "float"))
     {
         throw new Error(`WGSL sampled resource ${binding.id} requires a float4 return type`);
     }
+
+    // A texture read only through a comparison sampler is a depth texture in
+    // WGSL (textureSampleCompare* takes nothing else). Frontier's ShadowMapAtlas
+    // is one. A texture both compared and read plainly needs two views, which
+    // nothing here provides yet.
+    const compared = uses === null ? [] : [ ...uses ].filter((opcode) => COMPARE_TEXTURE_OPCODES.has(opcode));
+    if (compared.length)
+    {
+        const depthType = DEPTH_TEXTURE_TYPES[dimension.viewDimension];
+        if (uses.size !== compared.length || !depthType)
+        {
+            throw new Error(`WGSL sampled resource ${binding.id} is depth-compared and also read otherwise (${[ ...uses ].join(", ")}); one binding cannot be both`);
+        }
+        return {
+            declaration: "var",
+            type: depthType,
+            texture: { sampleType: "depth", viewDimension: dimension.viewDimension, multisampled: false }
+        };
+    }
+
     return {
         declaration: "var",
         type: dimension.type,
@@ -477,6 +547,12 @@ function samplerLayout(program, binding, nearest)
 {
     const declaration = declarationFor(program, binding);
     const mode = declaration?.data?.samplerModeName;
+    // SamplerComparisonState. Its compare function is the effect's sampler
+    // state, applied by the backend's sampler descriptor.
+    if (mode === "comparison")
+    {
+        return { declaration: "var", type: "sampler_comparison", sampler: { type: "comparison" } };
+    }
     if (mode && mode !== "default")
     {
         throw new Error(`WGSL sampler ${binding.id} has unsupported mode ${mode}`);

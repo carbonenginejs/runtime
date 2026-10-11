@@ -65,7 +65,7 @@ function ruleFor(opcodeName, program, instruction)
     if (SAMPLE_OPS.has(opcodeName))
     {
         const sourceByOperand = { 1: "float32" };
-        if ([ "sample_b", "sample_c", "sample_l" ].includes(opcodeName)) sourceByOperand[4] = "float32";
+        if ([ "sample_b", "sample_c", "sample_c_lz", "sample_l" ].includes(opcodeName)) sourceByOperand[4] = "float32";
         if (opcodeName === "sample_d") Object.assign(sourceByOperand, { 4: "float32", 5: "float32" });
         return { name: "sample-resource", destination: sampleResultType(program, instruction), sourceByOperand };
     }

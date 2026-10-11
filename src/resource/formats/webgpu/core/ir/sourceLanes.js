@@ -96,7 +96,7 @@ export function fixedSourceLanes(instruction, operandIndex, program = null)
         {
             return sampleGradientLanes(instruction, program);
         }
-        if ([ "sample_b", "sample_c", "sample_l" ].includes(instruction.opcodeName) && operandIndex === 4) return [ "x" ];
+        if ([ "sample_b", "sample_c", "sample_c_lz", "sample_l" ].includes(instruction.opcodeName) && operandIndex === 4) return [ "x" ];
     }
     return null;
 }

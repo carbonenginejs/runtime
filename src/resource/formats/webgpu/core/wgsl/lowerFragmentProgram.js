@@ -30,7 +30,7 @@ const SUPPORTED_OPCODES = new Set([
     "ftou", "ge", "iadd", "ieq", "ige", "ilt", "imad", "imax", "imin", "imm_atomic_exch", "imm_atomic_iadd", "imul",
     "ine", "ineg", "ishl", "ishr", "if", "itof", "ld", "ld_raw", "ld_structured", "ld_uav_typed", "log", "lt",
     "mad", "max", "min", "mov", "movc", "mul", "ne", "not", "or", "rcp", "resinfo",
-    "round_ne", "round_ni", "round_pi", "round_z", "rsq", "sample", "sample_b", "sample_d",
+    "round_ne", "round_ni", "round_pi", "round_z", "rsq", "sample", "sample_b", "sample_c_lz", "sample_d",
     "sample_l", "sincos", "sqrt", "store_raw", "store_structured", "sync", "udiv", "uge", "ubfe", "ibfe", "countbits", "ult", "umax", "umin", "ushr",
     "utof", "xor", "endif", "ret", "store_uav_typed"
 ]);
@@ -1292,7 +1292,7 @@ function expressionFor(program, instruction, write, inputs, bindings, context = 
             const dimensions = `textureDimensions(${symbol}, ${safeLevel})`;
             const safeCoordinates = `min(${address}.xy, ${dimensions} - vec2<u32>(1u))`;
             const inBounds = `${address}.z < ${mipCount} && all(${address}.xy < ${dimensions})`;
-            loaded = `select(vec4<f32>(), textureLoad(${symbol}, ${safeCoordinates}, ${safeLevel}), ${inBounds})`;
+            loaded = `select(vec4<${TextureElement(textureBinding)}>(), textureLoad(${symbol}, ${safeCoordinates}, ${safeLevel}), ${inBounds})`;
         }
         else if (textureBinding.texture?.viewDimension === "3d")
         {
@@ -1306,7 +1306,7 @@ function expressionFor(program, instruction, write, inputs, bindings, context = 
             const dimensions = `textureDimensions(${symbol}, ${safeLevel})`;
             const safeCoordinates = `min(${address}.xyz, ${dimensions} - vec3<u32>(1u))`;
             const inBounds = `${address}.w < ${mipCount} && all(${address}.xyz < ${dimensions})`;
-            loaded = `select(vec4<f32>(), textureLoad(${symbol}, ${safeCoordinates}, ${safeLevel}), ${inBounds})`;
+            loaded = `select(vec4<${TextureElement(textureBinding)}>(), textureLoad(${symbol}, ${safeCoordinates}, ${safeLevel}), ${inBounds})`;
         }
         else
         {
@@ -1433,7 +1433,50 @@ function expressionFor(program, instruction, write, inputs, bindings, context = 
         const components = rawSelectedComponents(resource, mask, count);
         return count === 4 && components.join("") === "xyzw" ? bordered : `${bordered}.${components.join("")}`;
     }
+    if (op === "sample_c_lz")
+    {
+        // D3D sample_c_lz: compare the reference against the texel at mip 0
+        // through a comparison sampler. WGSL's textureSampleCompareLevel samples
+        // level 0 and needs no uniform control flow. The result is one float,
+        // replicated to the selected components.
+        const resource = validateFixedHandleOperand(instruction, 2, "resource", "fragment");
+        const sampler = validateFixedHandleOperand(instruction, 3, "sampler", "fragment");
+        const textureBinding = bindingForOperand(bindings, "sampled-resource", resource);
+        const samplerBinding = bindingForOperand(bindings, "sampler", sampler);
+        if (!textureBinding || !samplerBinding) throw new Error(`WGSL fragment instruction ${instruction.index} has unresolved sample bindings`);
+        if (textureBinding.texture?.sampleType !== "depth" || samplerBinding.sampler?.type !== "comparison")
+        {
+            throw new Error(`WGSL fragment instruction ${instruction.index} compares through a non-depth texture or a non-comparison sampler`);
+        }
+        if (program.emulatedAddressing?.samplerModes?.[sampler.registerIndex])
+        {
+            throw new Error(`WGSL fragment instruction ${instruction.index} needs emulated addressing on a comparison sampler, which is not supported`);
+        }
+        const viewDimension = textureBinding.texture.viewDimension;
+        let coord;
+        let arrayArg = "";
+        if (viewDimension === "2d-array")
+        {
+            const coord3 = source(1, 3);
+            coord = `${coord3}.xy`;
+            arrayArg = `, i32(round(${coord3}.z))`;
+        }
+        else
+        {
+            coord = source(1, viewDimension === "2d" ? 2 : 3);
+        }
+        const offsetArg = viewDimension === "cube" ? "" : sampleOffsetArgument(instruction, viewDimension);
+        const compared = `vec4<f32>(textureSampleCompareLevel(${textureBinding.generatedSymbol}, ${samplerBinding.generatedSymbol}, ${coord}${arrayArg}, ${source(4, 1)}${offsetArg}))`;
+        const components = rawSelectedComponents(resource, mask, count);
+        return count === 4 && components.join("") === "xyzw" ? compared : `${compared}.${components.join("")}`;
+    }
     throw new Error(`WGSL fragment opcode ${op} at instruction ${instruction.index} is not supported`);
+}
+
+/** The WGSL element type of a sampled texture binding: f32 unless declared integer. */
+function TextureElement(binding)
+{
+    return /<(u32|i32)>/u.exec(binding.type ?? "")?.[1] ?? "f32";
 }
 
 function applyResultBitcast(instruction, write, expression, type)
