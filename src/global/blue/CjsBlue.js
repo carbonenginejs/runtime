@@ -6,6 +6,11 @@
 //
 // Carbon registers the Find functions on the `blue` module; here they are
 // instance methods of the `blue` holder (operator ruling, 2026-10-11).
+// Carbon's EnumerateChildren is a free template function needing no receiver,
+// so its body is the static `CjsBlue.enumerateChildren` (free functions
+// become camelCase statics) and the instance methods delegate to it. Modules
+// the holder itself imports (getResources, CjsBlueClasses) call the static:
+// importing the `blue` instance from them would be an import cycle.
 //
 // NOTE ON DECORATORS: this folder cannot use `@` syntax (see CcpTime.js), so
 // the declarations are made imperatively at the bottom of the file.
@@ -87,7 +92,37 @@ export class CjsBlue
    */
   EnumerateChildren(obj, onChild)
   {
-    this.EnumerateChildren__Filter(
+    CjsBlue.enumerateChildren(obj, onChild);
+  }
+
+  /**
+   * `EnumerateChildren(obj, onAttribute, onListItem, onDictItem, filter)`:
+   * see `CjsBlue.enumerateChildren__Filter`.
+   *
+   * @param {object|null} obj Object whose immediate children are enumerated.
+   * @param {function(object, Function, object, number): void} onAttribute Direct member child.
+   * @param {function(object, number, object, object): void} onListItem List or set item.
+   * @param {function(object, string, object, object): void} onDictItem Map value.
+   * @param {function(object): boolean} filter Member declaration test.
+   * @returns {void}
+   */
+  EnumerateChildren__Filter(obj, onAttribute, onListItem, onDictItem, filter)
+  {
+    CjsBlue.enumerateChildren__Filter(obj, onAttribute, onListItem, onDictItem, filter);
+  }
+
+  /**
+   * Carbon's free `EnumerateChildren(obj, onChild)` (Find.h:139-148): see
+   * the instance method EnumerateChildren for the reported arguments.
+   *
+   * @param {object|null} obj Object whose immediate children are enumerated.
+   * @param {function(object, object, (number|string|null)): void} onChild
+   *   Receives the child, the member declaration, and the collection index or key.
+   * @returns {void}
+   */
+  static enumerateChildren(obj, onChild)
+  {
+    CjsBlue.enumerateChildren__Filter(
       obj,
       (child, _type, member) => onChild(child, member, null),
       (child, index, member) => onChild(child, member, index),
@@ -118,7 +153,7 @@ export class CjsBlue
    * @param {function(object): boolean} filter Member declaration test.
    * @returns {void}
    */
-  EnumerateChildren__Filter(obj, onAttribute, onListItem, onDictItem, filter)
+  static enumerateChildren__Filter(obj, onAttribute, onListItem, onDictItem, filter)
   {
     if (obj === null || typeof obj !== "object") return;
 
@@ -500,6 +535,8 @@ CjsSchema.define(CjsBlue, {
     Fetch: [ meta.ours ],
     EnumerateChildren: [ meta.adapted ],
     EnumerateChildren__Filter: [ meta.adapted ],
+    enumerateChildren: [ meta.adapted ],
+    enumerateChildren__Filter: [ meta.adapted ],
     FindRoute: [ meta.blue.method, meta.adapted ],
     FindFirstRoute: [ meta.blue.method, meta.adapted ],
     FindAllReferences: [ meta.blue.method, meta.adapted ],

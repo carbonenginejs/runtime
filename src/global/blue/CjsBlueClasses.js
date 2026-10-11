@@ -40,7 +40,9 @@ import { mappedInterfaces, exposureChainTo } from "../compose/interface.js";
 import { IBlueClasses } from "./IBlueClasses.js";
 import { Copier } from "./Copier.js";
 import { IRoot } from "./IRoot.js";
-import { blue } from "./blue.js";
+// The class, not the `blue` instance: the holder constructs this registry,
+// so importing the instance here would be an import cycle.
+import { CjsBlue } from "./CjsBlue.js";
 
 /** Be::EDITFLAGS bits (BlueTypes.h:288-303), keyed by the schema's edit flag names. */
 const EDIT_FLAG_BITS = [
@@ -375,7 +377,7 @@ export class CjsBlueClasses extends IBlueClasses
       if (maxLevel >= 0 && e.level >= maxLevel) continue;
 
       const level = e.level + 1;
-      blue.EnumerateChildren__Filter(
+      CjsBlue.enumerateChildren__Filter(
         e.obj,
         child => stack.push({ obj: child, level }),
         child => stack.push({ obj: child, level }),

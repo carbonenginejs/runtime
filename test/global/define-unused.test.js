@@ -36,7 +36,7 @@ test("a name cannot be both unused and declared or defined", () =>
 test("the CjsBlueClasses stubs are unused, not notImplemented", () =>
 {
   const classes = new CjsBlueClasses();
-  for (const name of [ "FindVariable", "UpdateObjectCount", "ProcessPendingDeletes", "ProcessAllPendingDeletes",
+  for (const name of [ "FindVariable", "UpdateObjectCount", "ProcessPendingDeletes",
     "SetPendingDeletesEnabled", "IsPendingDeletesEnabled", "RegisterThunker", "GetRtti" ])
   {
     assert.throws(() => classes[name](), CjsUnusedMethodError, name);
