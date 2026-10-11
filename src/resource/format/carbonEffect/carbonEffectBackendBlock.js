@@ -117,10 +117,10 @@ export const CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE = "cjsCoverageDiscard";
  * first is the default. Sampler records use the same byte for their filtering
  * type; other resource kinds write zero.
  */
-export const CARBON_BACKEND_TEXTURE_SAMPLE_TYPE = Object.freeze([ "float", "unfilterable-float" ]);
+export const CARBON_BACKEND_TEXTURE_SAMPLE_TYPE = Object.freeze([ "float", "unfilterable-float", "depth", "uint", "sint" ]);
 
 /** Sampler filtering types in the kind-dependent sample-type byte. */
-export const CARBON_BACKEND_SAMPLER_BINDING_TYPE = Object.freeze([ "filtering", "non-filtering" ]);
+export const CARBON_BACKEND_SAMPLER_BINDING_TYPE = Object.freeze([ "filtering", "non-filtering", "comparison" ]);
 
 /** Shader stages, as a bit position in the visibility mask. */
 export const CARBON_BACKEND_VISIBILITY = Object.freeze([ "vertex", "fragment", "compute" ]);
@@ -225,6 +225,17 @@ function deriveBindingDescriptor(binding)
         const texture = TEXTURE_DESCRIPTORS[binding.type];
         if (texture) return { texture: { ...texture, sampleType: binding.textureSampleType } };
 
+        // Anything else here is a typed or structured buffer (`array<...>`). A
+        // texture type this table does not list is refused rather than read as
+        // a storage buffer, which would decode the binding as the wrong kind.
+        if (binding.type.startsWith("texture"))
+        {
+            throw new CjsFormatReadError(
+                `Backend block sampled resource has untranslatable texture type "${binding.type}"`,
+                { type: binding.type }
+            );
+        }
+
         return {
             buffer: {
                 type: "read-only-storage",
@@ -266,6 +277,13 @@ const STORAGE_TEXTURE_ACCESS = Object.freeze({ write: "write-only", read: "read-
 
 /** Texture descriptors by WGSL type (`lowerBindingLayout.js:90-95`). */
 const TEXTURE_DESCRIPTORS = {
+    "texture_depth_2d": { sampleType: "depth", viewDimension: "2d", multisampled: false },
+    "texture_depth_2d_array": { sampleType: "depth", viewDimension: "2d-array", multisampled: false },
+    "texture_depth_cube": { sampleType: "depth", viewDimension: "cube", multisampled: false },
+    "texture_2d<u32>": { sampleType: "uint", viewDimension: "2d", multisampled: false },
+    "texture_2d<i32>": { sampleType: "sint", viewDimension: "2d", multisampled: false },
+    "texture_3d<u32>": { sampleType: "uint", viewDimension: "3d", multisampled: false },
+    "texture_3d<i32>": { sampleType: "sint", viewDimension: "3d", multisampled: false },
     "texture_2d<f32>": { sampleType: "float", viewDimension: "2d", multisampled: false },
     "texture_cube<f32>": { sampleType: "float", viewDimension: "cube", multisampled: false },
     "texture_3d<f32>": { sampleType: "float", viewDimension: "3d", multisampled: false },

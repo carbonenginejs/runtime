@@ -541,3 +541,71 @@ test("RG8 3D storage round-trips its Carbon view and physical WebGPU format", ()
     assert.deepEqual(binding.storageTexture, {access: "write-only", format: "rgba8unorm", viewDimension: "3d"});
     assert.deepEqual(writeBackendBlock(parsed), bytes);
 });
+
+/** Frontier's shadow inputs: an R16_UINT texture loaded with ld, a depth atlas compared through a comparison sampler. */
+function shadowBlock(extra = [])
+{
+    return {
+        bindGroups: [ {
+            group: 0,
+            bindings: [
+                {
+                    binding: 0, resourceKind: "sampled-resource", registerSpace: 0, registerIndex: 11,
+                    visibility: [ "fragment" ], type: "texture_2d<u32>", generatedSymbol: "t11",
+                    texture: { sampleType: "uint", viewDimension: "2d", multisampled: false }
+                },
+                {
+                    binding: 1, resourceKind: "sampled-resource", registerSpace: 0, registerIndex: 15,
+                    visibility: [ "fragment" ], type: "texture_depth_2d", generatedSymbol: "t15",
+                    texture: { sampleType: "depth", viewDimension: "2d", multisampled: false }
+                },
+                {
+                    binding: 2, resourceKind: "sampler", registerSpace: 0, registerIndex: 2,
+                    visibility: [ "fragment" ], type: "sampler_comparison", generatedSymbol: "s2",
+                    sampler: { type: "comparison" }
+                },
+                ...extra
+            ]
+        } ]
+    };
+}
+
+test("integer and depth textures and a comparison sampler round-trip as themselves", () =>
+{
+    const extra = [
+        { binding: 3, resourceKind: "sampled-resource", registerSpace: 0, registerIndex: 16, visibility: [ "fragment" ],
+            type: "texture_2d<i32>", generatedSymbol: "t16", texture: { sampleType: "sint", viewDimension: "2d", multisampled: false } },
+        { binding: 4, resourceKind: "sampled-resource", registerSpace: 0, registerIndex: 17, visibility: [ "fragment" ],
+            type: "texture_depth_cube", generatedSymbol: "t17", texture: { sampleType: "depth", viewDimension: "cube", multisampled: false } },
+        { binding: 5, resourceKind: "sampled-resource", registerSpace: 0, registerIndex: 18, visibility: [ "fragment" ],
+            type: "texture_3d<u32>", generatedSymbol: "t18", texture: { sampleType: "uint", viewDimension: "3d", multisampled: false } }
+    ];
+    const bindings = readBackendBlock(writeBackendBlock(shadowBlock(extra))).bindGroups[0].bindings;
+    assert.deepEqual(bindings[0].texture, { sampleType: "uint", viewDimension: "2d", multisampled: false });
+    assert.equal(bindings[0].buffer, undefined, "an integer texture is not mistaken for a storage buffer");
+    assert.deepEqual(bindings[1].texture, { sampleType: "depth", viewDimension: "2d", multisampled: false });
+    assert.deepEqual(bindings[2].sampler, { type: "comparison" });
+    assert.deepEqual(bindings[3].texture, { sampleType: "sint", viewDimension: "2d", multisampled: false });
+    assert.deepEqual(bindings[4].texture, { sampleType: "depth", viewDimension: "cube", multisampled: false });
+    assert.deepEqual(bindings[5].texture, { sampleType: "uint", viewDimension: "3d", multisampled: false });
+});
+
+test("the appended sample and sampler types keep every earlier wire byte", () =>
+{
+    // Append-only enums: float 0, unfilterable-float 1, depth 2, uint 3, sint 4;
+    // filtering 0, non-filtering 1, comparison 2. A block written before them
+    // still decodes unchanged (the round-trip tests above cover bytes 0 and 1).
+    const block = shadowBlock();
+    const bytes = writeBackendBlock(block);
+    const bindings = readBackendBlock(bytes).bindGroups[0].bindings;
+    assert.deepEqual(bindings.map((binding) => binding.texture?.sampleType ?? binding.sampler.type), [ "uint", "depth", "comparison" ]);
+    const before = readBackendBlock(writeBackendBlock(sampleBlock())).bindGroups[0].bindings;
+    assert.equal(before[1].texture.sampleType, "float");
+});
+
+test("a texture type the block does not know is refused, not read back as a storage buffer", () =>
+{
+    const block = shadowBlock();
+    block.bindGroups[0].bindings[0].type = "texture_multisampled_2d<u32>";
+    assert.throws(() => readBackendBlock(writeBackendBlock(block)), /untranslatable texture type "texture_multisampled_2d<u32>"/u);
+});

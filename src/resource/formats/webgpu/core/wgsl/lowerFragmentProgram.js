@@ -1065,8 +1065,10 @@ function expressionFor(program, instruction, write, inputs, bindings, context = 
     }
     if ([ "max", "imax", "umax" ].includes(op)) return `max(${source(1)}, ${source(2)})`;
     if ([ "min", "imin", "umin" ].includes(op)) return `min(${source(1)}, ${source(2)})`;
-    if (op === "ishl") return `(${source(1)} << u32(${source(2)}))`;
-    if (op === "ishr") return `(${source(1)} >> u32(${source(2)}))`;
+    // A WGSL shift amount is u32 per lane: a vector shift takes vecN<u32>.
+    const shiftAmountType = count === 1 ? "u32" : `vec${count}<u32>`;
+    if (op === "ishl") return `(${source(1)} << ${shiftAmountType}(${source(2)}))`;
+    if (op === "ishr") return `(${source(1)} >> ${shiftAmountType}(${source(2)}))`;
     if (op === "and") return `(${source(1)} & ${source(2)})`;
     if (op === "or") return `(${source(1)} | ${source(2)})`;
     if (op === "xor") return `(${source(1)} ^ ${source(2)})`;

@@ -397,16 +397,18 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
   {
     if (!this.m_texture) return null;
 
-    // A sampled depth texture is read through its float shadow.
-    const source = this._depthShadow ? this._depthShadow.texture : this.m_texture;
-    const format = this._depthShadow ? "r32float" : this.m_format;
+    // Translated colour-texture reads use Carbon's R32_FLOAT view. An
+    // authored DepthTexture2D instead requires the native depth attachment.
+    const useShadow = this._depthShadow && sampleType !== "depth";
+    const source = useShadow ? this._depthShadow.texture : this.m_texture;
+    const format = useShadow ? "r32float" : this.m_format;
     if (sampleType === "float" && [ "r32float", "rg32float", "rgba32float" ].includes(format)
       && !this.m_webgpu.GetDevice().features.has("float32-filterable"))
     {
       throw new Error(`WebGPU filtered ${format} binding for "${this.m_name || "Tr2TextureAL"}" requires active float32-filterable. Enable webgpuFloat32Filterable before creating the next WebGPU device, subject to adapter support.`);
     }
     const srgb = colorSpace !== 0 && this.m_srgbFormat !== null;
-    const key = `${viewDimension}:${srgb ? "srgb" : "linear"}`;
+    const key = `${viewDimension}:${srgb ? "srgb" : "linear"}${sampleType === "depth" ? ":depth" : ""}`;
     let view = this.m_views.get(key) ?? null;
 
     if (!view)
@@ -414,6 +416,7 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
       view = source.createView({
         label: `${this.m_name || "Tr2TextureAL"} ${key}`,
         dimension: viewDimension,
+        ...(sampleType === "depth" ? { aspect: "depth-only" } : {}),
         ...(srgb ? { format: this.m_srgbFormat } : {})
       });
       this.m_views.set(key, view);

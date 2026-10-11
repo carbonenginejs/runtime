@@ -266,7 +266,7 @@ u8  bindGroupCount
   u8 group | u8 bindingCount
     u8  resourceKind | u8 registerSpace | u8 binding | u8 visibilityMask
     u32 registerIndex | u32 structureStride (0xffffffff absent) | u8 arrayLayerCount (0 absent)
-    u8  sampleType     texture: 0 float, 1 unfilterable-float; sampler: 0 filtering, 1 non-filtering
+    u8  sampleType     texture: 0 float, 1 unfilterable-float, 2 depth, 3 uint, 4 sint; sampler: 0 filtering, 1 non-filtering, 2 comparison
     u8  typedView      0 none, 1 R32_FLOAT, 2 R32_UINT, 3 R8G8B8A8_SNORM, 4 R8G8_UNORM
     str type | str generatedSymbol | str transformId (empty = none)
 u8  transformCount

@@ -227,3 +227,17 @@ test("a mov of mixed-type lanes into an output splits into typed lane lets and p
     assert.match(shader.code, /\.x = bitcast<f32>\(value\w+_x\);/);
     assert.deepEqual(await wgslErrors(shader.code), []);
 });
+
+test("a vector shift takes a vecN<u32> amount, as WGSL requires (Frontier's shaders shift two lanes at once)", async t =>
+{
+    t.after(releaseDevice);
+    const program = pixelProgram([ texture2d(Array(4).fill("sint")) ], [
+        instruction(12, "ld", [ register("temp", 0, { mask: "xy" }), immediate([ 0, 0, 0, 0 ]), register("resource", 0, { swizzle: "xyxx" }) ]),
+        instruction(16, "ishl", [ register("temp", 1, { mask: "xy" }), register("temp", 0, { swizzle: "xyxx" }), immediate([ 3, 4, 0, 0 ]) ]),
+        instruction(20, "itof", [ register("output", 0, { mask: "xy" }), register("temp", 1, { swizzle: "xyxx" }) ]),
+        instruction(24, "mov", [ register("output", 0, { mask: "zw" }), immediate([ 0, 0, 0, 0x3f800000 ]) ])
+    ]);
+    const shader = CjsWebgpuFormat.buildWgsl(program, { source: "synthetic-vector-shift" });
+    assert.match(shader.code, /<< vec2<u32>\(/);
+    assert.deepEqual(await wgslErrors(shader.code), []);
+});

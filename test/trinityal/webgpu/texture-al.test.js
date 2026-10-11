@@ -43,6 +43,7 @@ function composed()
     limits: { maxTextureDimension2D: 8192, maxTextureDimension3D: 2048, maxBufferSize: 268435456 },
     features: new Set([ "texture-compression-bc" ]),
     queue: { writeTexture(destination, data, layout, size) { calls.writes.push({ destination, bytes: data.byteLength, layout, size }); } },
+    lost: new Promise(() => {}),
     createShaderModule: descriptor => ({ kind: "module", descriptor }),
     pushErrorScope() {},
     popErrorScope() { return Promise.resolve(null); }
@@ -352,7 +353,14 @@ test("a sampled depth texture is read through an r32float shadow copied via a ro
   assert.equal(created.format, "depth32float");
   assert.equal(depth.GetDeviceFormat(), "depth32float");
   assert.equal(shadow.format, "r32float");
-  assert.equal(depth.GetDeviceTextureView().textureFormat, "r32float", "sampled through the shadow");
+  const floatView = depth.GetDeviceTextureView();
+  assert.equal(floatView.textureFormat, "r32float", "sampled through the shadow");
+  const depthView = depth.GetDeviceTextureView("2d", 0, "depth");
+  assert.equal(depthView.textureFormat, "depth32float", "authored depth binding reads the native texture");
+  assert.equal(depthView.aspect, "depth-only");
+  assert.notEqual(depthView, floatView, "depth and colour views have distinct cache entries");
+  assert.equal(depth.GetDeviceTextureView("2d", 0, "depth"), depthView);
+  assert.equal(depth.GetDeviceTextureView(), floatView);
   assert.equal(depth.GetDeviceRenderTargetView(0).textureFormat, "depth32float", "attached as itself");
 
   const copies = [];
@@ -586,6 +594,7 @@ test("float32 sampled views require the active filtering feature, including cach
   assert.ok(ordinary.GetDeviceTextureView("2d", 0, "float"));
   ordinary.Destroy();
 });
+
 
 test("boxed atlas writes upload only their rectangle and preserve adjacent texels", async () =>
 {
