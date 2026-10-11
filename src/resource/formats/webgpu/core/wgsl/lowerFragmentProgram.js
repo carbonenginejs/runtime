@@ -2286,6 +2286,44 @@ function lowerInstruction(program, instruction, inputs, outputs, bindings, writt
                     }
                 }));
             }
+            if (instruction.opcodeName === "mov" && !instruction.saturate && destination?.typeName === "output")
+            {
+                // The same bit-moving mov into a pixel output: each lane reads
+                // its source component as its own resolved type into a lane let
+                // (valueN_x, as the temp path names them, so later reads find
+                // them), then lands in the output field reinterpreted to the
+                // field's scalar type, as a single-type output write is.
+                const field = outputs.find((entry) => entry.registerIndex === destination.registerIndex);
+                if (!field) throw new Error(`WGSL fragment instruction ${instruction.index} references undeclared output r${destination.registerIndex}`);
+                const statements = [];
+                Array.from(write.mask).forEach((component, laneIndex) =>
+                {
+                    const laneType = mixedTypes[laneIndex];
+                    const laneName = `${write.valueId}_${component}`;
+                    const laneCode = immediateSource?.typeName === "immediate32"
+                        ? immediateParts(immediateSource, component, 1, laneType)[0]
+                        : operandLaneExpression(program, instruction, 1, write.mask, laneIndex, laneType, inputs, bindings, true);
+                    statements.push({
+                        kind: "let",
+                        instructionIndex: laneIndex === 0 ? instruction.index : undefined,
+                        dxbcOffset: laneIndex === 0 ? instruction.dxbcOffset : undefined,
+                        name: laneName,
+                        type: scalarTypeName(laneType),
+                        expression: { code: laneCode, type: scalarTypeName(laneType) }
+                    });
+                    written.get(field.id).add(component);
+                    const outputType = fieldType(field.scalarType, 1);
+                    statements.push({
+                        kind: "assignment",
+                        target: { fieldId: field.id, components: [ packedComponent(field.components.join(""), component) ], type: outputType },
+                        expression: {
+                            code: reinterpretCode(laneName, laneType, field.scalarType, 1, `output ${field.semanticName}${field.semanticIndex}`),
+                            type: outputType
+                        }
+                    });
+                });
+                return statements;
+            }
             if (instruction.opcodeName !== "mov" || instruction.saturate
                 || !localSsaDestination || immediateSource?.typeName !== "immediate32")
             {

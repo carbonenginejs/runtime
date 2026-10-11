@@ -201,3 +201,29 @@ test("both shapes compile in Dawn", async t =>
         assert.deepEqual(await wgslErrors(shader.code), [], name);
     }
 });
+
+/** A uint lane from an integer texture beside a float lane, moved straight into the pixel output. */
+function mixedOutputMove()
+{
+    return pixelProgram([ texture2d(Array(4).fill("uint")) ], [
+        instruction(12, "ld", [
+            register("temp", 0, { mask: "x" }),
+            immediate([ 0, 0, 0, 0 ]),
+            register("resource", 0, { swizzle: "xxxx" })
+        ]),
+        instruction(16, "mov", [ register("temp", 0, { mask: "y" }), register("input", 1, { selected: "x" }) ]),
+        instruction(20, "mov", [ register("output", 0, { mask: "xy" }), register("temp", 0, { swizzle: "xyxx" }) ]),
+        instruction(24, "mov", [ register("output", 0, { mask: "zw" }), immediate([ 0, 0, 0, 0x3f800000 ]) ])
+    ]);
+}
+
+test("a mov of mixed-type lanes into an output splits into typed lane lets and per-lane assignments", async t =>
+{
+    t.after(releaseDevice);
+    const shader = CjsWebgpuFormat.buildWgsl(mixedOutputMove(), { source: "synthetic-mixed-output" });
+    // The uint lane keeps its bits on the way into the float target, as D3D's mov does.
+    assert.match(shader.code, /let value\w+_x: u32 = /);
+    assert.match(shader.code, /let value\w+_y: f32 = /);
+    assert.match(shader.code, /\.x = bitcast<f32>\(value\w+_x\);/);
+    assert.deepEqual(await wgslErrors(shader.code), []);
+});
