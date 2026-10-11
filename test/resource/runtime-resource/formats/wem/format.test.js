@@ -4,6 +4,22 @@ import CjsWemFormat, { CjsWemFormat as NamedCjsWemFormat } from "../../../../../
 import { BitReader, OggPageWriter, ilog, oggChecksum } from "../../../../../src/resource/formats/wem/core/bitStream.js";
 import { bookMaptype1Quantvals, parseCodebookLibrary, rebuildCodebook } from "../../../../../src/resource/formats/wem/core/codebookLibrary.js";
 import { getPackedCodebooksAotuv603 } from "../../../../../src/resource/formats/wem/core/packedCodebooksAotuv603.js";
+import { decodePtadpcm } from "../../../../../src/resource/formats/wem/core/ptadpcm.js";
+
+// PTADPCM decoding is opt-in: the reader ships no decoder. Tests that decode
+// register the in-tree one for their own duration.
+function withPtadpcm(run)
+{
+    CjsWemFormat.registerPcmDecoder("wwise-ptadpcm", { decode: decodePtadpcm });
+    try
+    {
+        return run();
+    }
+    finally
+    {
+        CjsWemFormat.unregisterPcmDecoder("wwise-ptadpcm");
+    }
+}
 
 test("exports default and named CjsWemFormat", () =>
 {
@@ -101,7 +117,7 @@ test("decodes a PTADPCM frame to the hand-computed sample vector", () =>
         blockAlign: 8,
         frames: [ [ 100, 200, 0, 0x0f, 0x77, 0x88 ] ]
     });
-    const pcm = CjsWemFormat.toPcm(bytes);
+    const pcm = withPtadpcm(() => CjsWemFormat.toPcm(bytes));
 
     assert.equal("payloadType" in pcm, false);
     assert.equal(pcm.sourceCodec, "wwise-ptadpcm");
@@ -125,7 +141,7 @@ test("decodes interleaved stereo PTADPCM frames per channel", () =>
             [ -2000, -2000, 0, 0x77, 0x77, 0x77 ]
         ]
     });
-    const pcm = CjsWemFormat.toPcm(bytes);
+    const pcm = withPtadpcm(() => CjsWemFormat.toPcm(bytes));
 
     assert.equal(pcm.channels, 2);
     assert.equal(pcm.sampleCount, 8);
@@ -135,14 +151,30 @@ test("decodes interleaved stereo PTADPCM frames per channel", () =>
 
 test("advertises the pcm variant for PTADPCM and prefers it over raw", () =>
 {
-    const support = CjsWemFormat.getSupport(makePtadpcmWem({
+    const support = withPtadpcm(() => CjsWemFormat.getSupport(makePtadpcmWem({
         channels: 1,
         blockAlign: 8,
         frames: [ [ 0, 0, 0, 0x77, 0x77, 0x77 ] ]
-    }));
+    })));
 
     assert.equal(support.preferredOutput, "pcm");
     assert.equal(support.outputs.find((variant) => variant.output === "pcm").supported, true);
+});
+
+test("identifies PTADPCM without a decoder but does not decode it", () =>
+{
+    const bytes = makePtadpcmWem({
+        channels: 1,
+        blockAlign: 8,
+        frames: [ [ 0, 0, 0, 0x77, 0x77, 0x77 ] ]
+    });
+
+    assert.equal(CjsWemFormat.inspect(bytes).codec, "wwise-ptadpcm");
+    assert.equal(CjsWemFormat.canDecodePcm("wwise-ptadpcm"), false);
+    const support = CjsWemFormat.getSupport(bytes);
+    assert.equal(support.preferredOutput, "raw");
+    assert.equal(support.outputs.find((variant) => variant.output === "pcm").supported, false);
+    assert.throws(() => CjsWemFormat.toPcm(bytes), /no PTADPCM decoder registered/u);
 });
 
 test("rejects non-wem bytes without throwing from probes", () =>

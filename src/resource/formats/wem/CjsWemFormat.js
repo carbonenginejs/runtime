@@ -17,6 +17,7 @@ import {
     toJsonValue
 } from "./core/helpers.js";
 import { probeCodecSupportWithValues } from "./core/probeCodecSupport.js";
+import { getPcmDecoder, registerPcmDecoder, unregisterPcmDecoder } from "./core/pcmDecoders.js";
 
 const FORMAT_NAME = "CjsWemFormat";
 
@@ -26,7 +27,11 @@ const FORMAT_NAME = "CjsWemFormat";
  * Inspection identifies the codec, channel/rate layout, and Vorbis duration
  * without decoding audio data. Read emits the container bytes untouched by
  * default; `emit: "ogg"` repacks Wwise Vorbis into a standard Ogg stream and
- * `emit: "pcm"` decodes PTADPCM / 16-bit PCM media to float32 samples.
+ * `emit: "pcm"` decodes 16-bit PCM media to float32 samples.
+ *
+ * PTADPCM is recognized but not decoded unless a host registers a decoder
+ * with `registerPcmDecoder`; this package ships none. Without one, PTADPCM
+ * media reports PCM output as unsupported.
  */
 export class CjsWemFormat extends CjsFormat
 {
@@ -222,7 +227,8 @@ export class CjsWemFormat extends CjsFormat
     /**
      * Decode wem audio data to per-channel float32 PCM (AudioBuffer-ready).
      *
-     * Covers Wwise PTADPCM (0x8311) and uncompressed 16-bit PCM. Wwise Vorbis
+     * Covers uncompressed 16-bit PCM and any codec with a registered decoder
+     * (`registerPcmDecoder`; Wwise PTADPCM is opt-in). Wwise Vorbis
      * is not decoded here - repack it with `toOgg()` instead. Equivalent to
      * `read(input, { emit: "pcm" })`.
      *
@@ -233,6 +239,41 @@ export class CjsWemFormat extends CjsFormat
     static toPcm(input, options = {})
     {
         return CjsWemFormat.read(input, { ...options, emit: OUTPUT_PCM });
+    }
+
+    /**
+     * Register a PCM decoder for a codec this reader recognizes but does not
+     * decode, such as "wwise-ptadpcm". Registration is per JavaScript realm.
+     *
+     * @param {string} codec Codec name as reported by `inspect`.
+     * @param {import("./core/pcmDecoders.js").CjsWemPcmDecoder} decoder Decoder implementation.
+     * @returns {void}
+     */
+    static registerPcmDecoder(codec, decoder)
+    {
+        registerPcmDecoder(codec, decoder);
+    }
+
+    /**
+     * Remove the PCM decoder registered for a codec.
+     *
+     * @param {string} codec Codec name.
+     * @returns {boolean} True when a decoder was removed.
+     */
+    static unregisterPcmDecoder(codec)
+    {
+        return unregisterPcmDecoder(codec);
+    }
+
+    /**
+     * Report whether wem media of this codec can decode to PCM.
+     *
+     * @param {string} codec Codec name as reported by `inspect`.
+     * @returns {boolean} True for 16-bit PCM codecs and registered decoders.
+     */
+    static canDecodePcm(codec)
+    {
+        return codec === "pcm" || codec === "pcm-extensible" || getPcmDecoder(codec) !== null;
     }
 
     static id = "CjsWemFormat";

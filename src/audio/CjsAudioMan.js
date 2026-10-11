@@ -1748,14 +1748,21 @@ export class CjsAudioMan
 
                 return DecodeAudioData(this._context, ogg.bytes);
             }
-            if (metadata.codec === "wwise-ptadpcm"
-                || metadata.codec === "pcm"
-                || metadata.codec === "pcm-extensible")
+            if (CjsWemFormat.canDecodePcm(metadata.codec))
             {
                 return CreatePcmAudioBuffer(
                     this._context,
                     CjsWemFormat.toPcm(bytes),
                 );
+            }
+            // PTADPCM without a registered decoder: fail this media here, so
+            // the voice resolves to no buffer, rather than handing raw Wwise
+            // bytes to the browser decoder.
+            if (metadata.codec === "wwise-ptadpcm")
+            {
+                const error = new Error("Audio media uses PTADPCM and no PTADPCM decoder is registered");
+                error.code = "CJS_FORMAT_OUTPUT_NOT_SUPPORTED";
+                throw error;
             }
         }
 

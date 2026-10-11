@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsWemFormat } from "../../../../../src/resource/formats/wem/index.js";
+import { decodePtadpcm } from "../../../../../src/resource/formats/wem/core/ptadpcm.js";
 
 // Cheap structural WEM support: the fmt tag picks the first candidate but
 // bounded content validation decides. This is advisory until readAsync runs.
@@ -55,12 +56,24 @@ test("correctly-tagged codecs validate as declared with no mismatch", async () =
     assert.equal(vorbis.metadata.mismatch, false);
     assert.equal(vorbis.preferredOutput, "ogg");
 
-    const ptadpcm = CjsWemFormat.getSupport(makeWem({
+    // PTADPCM resolves by content with no decoder; its pcm route appears
+    // only once a decoder is registered.
+    const ptadpcmWem = makeWem({
         codecTag: 0x8311, channels: 2, sampleRate: 48000, byteRate: 0, blockAlign: 0x48, bits: 4, dataBytes: 0x48 * 4
-    }));
+    });
+    const ptadpcm = CjsWemFormat.getSupport(ptadpcmWem);
     assert.equal(ptadpcm.metadata.resolved, "wwise-ptadpcm");
     assert.equal(ptadpcm.metadata.mismatch, false);
-    assert.equal(ptadpcm.preferredOutput, "pcm");
+    assert.equal(ptadpcm.preferredOutput, "raw");
+    CjsWemFormat.registerPcmDecoder("wwise-ptadpcm", { decode: decodePtadpcm });
+    try
+    {
+        assert.equal(CjsWemFormat.getSupport(ptadpcmWem).preferredOutput, "pcm");
+    }
+    finally
+    {
+        CjsWemFormat.unregisterPcmDecoder("wwise-ptadpcm");
+    }
 
     const pcm = CjsWemFormat.getSupport(makeWem({
         codecTag: 0x0001, channels: 2, sampleRate: 48000, byteRate: 48000 * 4, blockAlign: 4, bits: 16, dataBytes: 4 * 64

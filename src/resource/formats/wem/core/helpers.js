@@ -1,7 +1,7 @@
 import { toJsonWithByteSummary as toJsonValue } from "../../../format/jsonPolicies.js";
 import { asUint8Array, readFourCc } from "#utils/bytes";
 import { convertWemToOgg } from "./wemToOgg.js";
-import { decodePtadpcm } from "./ptadpcm.js";
+import { getPcmDecoder } from "./pcmDecoders.js";
 
 export const OUTPUT_RAW = "raw";
 export const OUTPUT_JSON = "json";
@@ -296,15 +296,17 @@ export function probeSupportWithValues(input, values = DEFAULT_VALUES)
     }
 }
 
-// PCM decode routing by codec: PTADPCM decodes through its own module;
-// uncompressed 16-bit PCM deinterleaves directly. Compressed codecs with
-// their own containers (Vorbis, Opus, XMA) are not decoded here - Vorbis
-// repacks to Ogg instead (OUTPUT_OGG).
+// PCM decode routing by codec: a decoder registered for the codec (see
+// pcmDecoders.js; PTADPCM is opt-in) decodes first; uncompressed 16-bit PCM
+// deinterleaves directly. Compressed codecs with their own containers
+// (Vorbis, Opus, XMA) are not decoded here - Vorbis repacks to Ogg instead
+// (OUTPUT_OGG).
 function decodeToPcm(bytes, metadata)
 {
-    if (metadata.codec === "wwise-ptadpcm")
+    const decoder = getPcmDecoder(metadata.codec);
+    if (decoder)
     {
-        return decodePtadpcm(bytes, metadata);
+        return decoder.decode(bytes, metadata);
     }
     if ((metadata.codec === "pcm" || metadata.codec === "pcm-extensible") && metadata.bitsPerSample === 16)
     {
@@ -326,7 +328,7 @@ function decodeToPcm(bytes, metadata)
         }
         return { channelData, sampleCount, sampleRate: metadata.sampleRate, channels };
     }
-    const error = new Error(`wem: pcm decode is not supported for codec ${metadata.codec || "unknown"}`);
+    const error = new Error(`wem: pcm decode is not supported for codec ${metadata.codec || "unknown"}${metadata.codec === "wwise-ptadpcm" ? " (no PTADPCM decoder registered)" : ""}`);
     error.code = "CJS_FORMAT_OUTPUT_NOT_SUPPORTED";
     error.sourceFormat = "wem";
     throw error;
@@ -334,14 +336,16 @@ function decodeToPcm(bytes, metadata)
 
 function getPcmSupport(metadata)
 {
-    if (metadata.codec === "wwise-ptadpcm") return { supported: true, reason: "" };
+    if (getPcmDecoder(metadata.codec)) return { supported: true, reason: "" };
     if ((metadata.codec === "pcm" || metadata.codec === "pcm-extensible") && metadata.bitsPerSample === 16)
     {
         return { supported: true, reason: "" };
     }
     return {
         supported: false,
-        reason: "PCM decode covers PTADPCM and 16-bit PCM; use the ogg emit for Wwise Vorbis."
+        reason: metadata.codec === "wwise-ptadpcm"
+            ? "No PTADPCM decoder is registered; see CjsWemFormat.registerPcmDecoder."
+            : "PCM decode covers 16-bit PCM and registered codecs; use the ogg emit for Wwise Vorbis."
     };
 }
 

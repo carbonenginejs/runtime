@@ -7,7 +7,8 @@
 //   fmt-0x42 layout) with a positive sample count and data payload;
 // - wwise-ptadpcm: the frame layout must satisfy the decoder's own guard
 //   (blockAlign = frameSize * channels, frameSize >= 6) with block-aligned
-//   data;
+//   data. Recognition needs no decoder; the pcm route is offered only when a
+//   PTADPCM decoder is registered (pcmDecoders.js);
 // - pcm / pcm-extensible: 16-bit with self-consistent blockAlign/byteRate
 //   and sample-aligned data.
 //
@@ -24,6 +25,7 @@
 // so a mismatch is the exception; the check makes that true per file rather
 // than assumed for the whole corpus.
 import { inspectWithValues } from "./helpers.js";
+import { getPcmDecoder } from "./pcmDecoders.js";
 
 const CANDIDATES = [ "wwise-vorbis", "wwise-ptadpcm", "pcm" ];
 
@@ -75,7 +77,7 @@ function candidateFor(codec)
 function emitFor(candidate)
 {
     if (candidate === "wwise-vorbis") return "ogg";
-    if (candidate === "wwise-ptadpcm" || candidate === "pcm") return "pcm";
+    if (candidate === "pcm" || getPcmDecoder(candidate)) return "pcm";
     return "raw";
 }
 
@@ -141,7 +143,7 @@ export function probeCodecSupportWithValues(input, values)
             {
                 kind: "pcm",
                 codec: "float32",
-                supported: resolved === "wwise-ptadpcm" || resolved === "pcm",
+                supported: resolved === "pcm" || (resolved !== null && getPcmDecoder(resolved) !== null),
             }
         ]
     };
