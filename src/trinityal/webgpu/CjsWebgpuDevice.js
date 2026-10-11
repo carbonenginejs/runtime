@@ -1209,7 +1209,6 @@ export class CjsWebgpuDevice
     this._preparedCache = new CjsWebgpuPipelineCache();
     this._renderPipelineCache = new CjsWebgpuPipelineCache();
     this._resourceRealizations = new WeakMap();
-    this._onLost = typeof options.onLost === "function" ? options.onLost : null;
     this._generation = 1;
     this._state = "ready";
     this._lostInfo = null;
@@ -2688,7 +2687,7 @@ export class CjsWebgpuDevice
     const device = options.device || await adapter.requestDevice(deviceDescriptor);
     if (this._state === "destroyed" || this._lifecycleVersion !== lifecycleVersion || this._recreateSerial !== requestSerial)
     {
-      if (device !== previous && device !== this._device && typeof device?.destroy === "function") device.destroy();
+      if (device !== previous && device !== this._device) device.destroy();
       fail("recreation was superseded by another lifecycle change");
     }
     this._gpu = gpu;
@@ -2704,7 +2703,7 @@ export class CjsWebgpuDevice
     this._state = "ready";
     this._lostInfo = null;
     this._WatchDevice(device, this._generation);
-    if (previous && previous !== device && typeof previous.destroy === "function") previous.destroy();
+    if (previous && previous !== device) previous.destroy();
     return this;
   }
 
@@ -2724,7 +2723,7 @@ export class CjsWebgpuDevice
     this._preparedCache.Clear();
     this._renderPipelineCache.Clear();
     this._device = null;
-    if (typeof device?.destroy === "function") device.destroy();
+    if (device) device.destroy();
   }
 
   /**
@@ -2757,20 +2756,27 @@ export class CjsWebgpuDevice
 
   /**
    * Tracks loss for one device generation and accepts only a still-current
-   * loss event.
+   * loss event. `GPUDevice.lost` is a spec member that resolves once, with a
+   * `GPUDeviceLostInfo`, and never rejects.
+   *
+   * Nothing is called back: the abstraction layer pulls the state through
+   * IsLost, as Carbon's TriDevice pulls `GetDeviceRemovedReason()` each tick
+   * (TriDevice12.cpp:290-304).
+   *
+   * @param {GPUDevice} device The device to watch.
+   * @param {number} generation Its generation.
+   * @returns {void}
    */
   _WatchDevice(device, generation)
   {
-    if (!device?.lost || typeof device.lost.then !== "function") return;
-    device.lost.then((info) =>
+    device.lost.then(info =>
     {
       if (this._device !== device || this._generation !== generation || this._state !== "ready") return;
       this._state = "lost";
-      this._lostInfo = info || null;
+      this._lostInfo = info;
       this._samplerCache.clear();
       this._preparedCache.Clear();
       this._renderPipelineCache.Clear();
-      this._onLost?.(this._lostInfo, generation);
-    }).catch(() => undefined);
+    });
   }
 }

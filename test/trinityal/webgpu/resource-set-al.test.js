@@ -24,6 +24,7 @@ function composed()
   const created = { buffers: 0, textures: 0, samplers: 0 };
   const device = {
     features: new Set(),
+    lost: new Promise(() => {}),
     createShaderModule: descriptor => ({ kind: "module", descriptor }),
     // WebGPU's default per-stage limits (the spec's supported-limits table).
     limits: { maxSampledTexturesPerShaderStage: 16, maxSamplersPerShaderStage: 16, maxStorageTexturesPerShaderStage: 4, maxStorageBuffersPerShaderStage: 8, maxUniformBuffersPerShaderStage: 12 },

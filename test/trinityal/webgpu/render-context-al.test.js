@@ -330,6 +330,8 @@ function composed()
 
   const al = new CjsWebgpuRenderContextAL({
     webgpu: {
+      IsLost: () => false,
+      GetGeneration: () => 1,
       GetDevice: () => ({ createCommandEncoder: () => commandEncoder }),
       Submit(buffers)
       {
@@ -550,7 +552,7 @@ test("the back buffer is the render target, and its format is Carbon's", () =>
   assert.equal(al.GetBackBufferFormat(), 0);
 
   const composedAl = new CjsWebgpuRenderContextAL({
-    webgpu: { GetDevice: () => ({ createCommandEncoder: () => ({}) }) },
+    webgpu: { IsLost: () => false, GetGeneration: () => 1, GetDevice: () => ({ createCommandEncoder: () => ({}) }) },
     renderTarget: { GetFormat: () => "bgra8unorm", Configure: () => {}, GetWidth: () => 8, GetHeight: () => 8 }
   });
 
@@ -563,7 +565,7 @@ test("present parameters reconfigure the canvas rather than allocating a buffer"
 {
   const sizes = [];
   const al = new CjsWebgpuRenderContextAL({
-    webgpu: { GetDevice: () => ({ createCommandEncoder: () => ({}) }) },
+    webgpu: { IsLost: () => false, GetGeneration: () => 1, GetDevice: () => ({ createCommandEncoder: () => ({}) }) },
     renderTarget: { GetFormat: () => "bgra8unorm", Configure: options => sizes.push(options) }
   });
 
@@ -583,7 +585,7 @@ test("CopySubBuffer encodes a real copy, and refuses outside a frame", () =>
     finish: () => "command-buffer"
   };
   const al = new CjsWebgpuRenderContextAL({
-    webgpu: { GetDevice: () => ({ createCommandEncoder: () => commandEncoder }), Submit() {} },
+    webgpu: { IsLost: () => false, GetGeneration: () => 1, GetDevice: () => ({ createCommandEncoder: () => commandEncoder }), Submit() {} },
     renderTarget: { GetFormat: () => "bgra8unorm", Configure: () => {}, GetWidth: () => 8, GetHeight: () => 8 }
   });
   const buffer = deviceBuffer;
@@ -704,7 +706,7 @@ test("BeginScene resets the render targets, as Carbon's does", () =>
 test("SetAsPrimary registers this context, and present parameters read back", () =>
 {
   const al = new CjsWebgpuRenderContextAL({
-    webgpu: { GetDevice: () => ({ createCommandEncoder: () => ({}) }) },
+    webgpu: { IsLost: () => false, GetGeneration: () => 1, GetDevice: () => ({ createCommandEncoder: () => ({}) }) },
     renderTarget: { GetFormat: () => "bgra8unorm", Configure: () => {}, GetWidth: () => 8, GetHeight: () => 8 }
   });
 
@@ -789,6 +791,8 @@ function composedWithPasses()
   const passes = [];
   const al = new CjsWebgpuRenderContextAL({
     webgpu: {
+      IsLost: () => false,
+      GetGeneration: () => 1,
       GetDevice: () => ({
         createCommandEncoder: () => ({
           beginRenderPass(descriptor)
@@ -929,6 +933,8 @@ test("ClearUav zeroes a buffer with clearBuffer, outside any pass, and refuses w
   const log = [];
   const al = new CjsWebgpuRenderContextAL({
     webgpu: {
+      IsLost: () => false,
+      GetGeneration: () => 1,
       GetDevice: () => ({
         createCommandEncoder: () => ({
           beginRenderPass()
@@ -1096,6 +1102,8 @@ for (const inFlight of [false, true])
       createCommandEncoder: () => ({ finish: () => ({}), beginRenderPass: () => ({ end() {} }) })
     };
     const al = new CjsWebgpuRenderContextAL({ webgpu: {
+      IsLost: () => false,
+      GetGeneration: () => 1,
       GetDevice: () => device, GetTextureUsage: () => ({ TEXTURE_BINDING: 1, COPY_DST: 2, STORAGE_BINDING: 4 }),
       GetBufferUsage: () => ({ VERTEX: 1, COPY_DST: 2, STORAGE: 4 }), Submit() { events.push("submit"); }
     }, renderTarget: { GetFormat: () => "bgra8unorm", GetWidth: () => 1, GetHeight: () => 1 } });

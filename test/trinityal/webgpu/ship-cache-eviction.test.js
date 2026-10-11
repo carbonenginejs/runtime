@@ -27,6 +27,7 @@ function context()
   }
   const device = {
     createTexture: d => create("textures", d), createBuffer: d => create("buffers", d),
+    lost: new Promise(() => {}),
     createShaderModule: () => ({}), pushErrorScope() {}, popErrorScope: async () => null,
     limits: { maxTextureDimension2D: 8192, maxTextureDimension3D: 2048 },
     queue: { writeTexture() {}, writeBuffer() {} }

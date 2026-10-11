@@ -12,9 +12,10 @@ import {
   convertProjectionCoordToWorldPickRay,
   screenToProjection
 } from "../view/pickRay.js";
-import { blue, EnumRegistrationType, IBlueEvents, ISimTimeRebaseNotify } from "#blue";
+import { blue, CjsScriptCallback, EnumRegistrationType, IBlueEvents, ISimTimeRebaseNotify } from "#blue";
 import { TriStorageFlags } from "#consts/graphics";
 import { ALResult, Failed } from "../../../trinityal/ALResult.js";
+import { DestroyDeviceResources } from "../../../trinityal/Tr2DeviceResourceAL/Tr2BaseDeviceResourceAL.js";
 import { TriViewport } from "../view/TriViewport.js";
 import { Tr2RenderContext } from "../context/Tr2RenderContext.js";
 import { Tr2Renderer } from "../Tr2Renderer.js";
@@ -23,7 +24,16 @@ import { ExecuteMainThreadActions } from "../continueOnMainThread.js";
 import "#consts/renderContext/presentation";
 import "#consts/renderContext/upscaling";
 
-/** TriDevice (trinityCore) - generated from schema shapeHash 1db3a492.... */
+/**
+ * TriDevice (trinityCore) - generated from schema shapeHash 1db3a492....
+ *
+ * Device loss follows Carbon's DX path (HandleRenderTick, ChangeDevice), with
+ * two divergences: the main render context and its abstraction layer are kept
+ * and replace their device rather than being destroyed and rebuilt; and the
+ * loss is read from the layer's IsValid, with the replacement spanning ticks
+ * because WebGPU creates devices asynchronously. Effects, textures and
+ * geometry do not register with this device yet, so they do not survive a loss.
+ */
 @meta.define({ className: "TriDevice", family: "trinityCore" })
 // CARBON'S BASE LIST, AND IT HAS THREE ENTRIES (`TriDevice.h:33-36`):
 //
@@ -445,6 +455,14 @@ export class TriDevice
   /** Carbon mDeviceLost. */
   #deviceLost = false;
 
+  /**
+   * Whether this device made the main context's device, standing in for
+   * Carbon's non-null `m_d3dDevice11`/`m_device`: HandleRenderTick tells a
+   * removed device (made, now invalid) from none at all by it. Set by
+   * InitD3DDevice, cleared by DestroyRenderContext.
+   */
+  #hasDevice = false;
+
   /** Carbon m_postUpdateCallbacks (TriDevice.h:313). */
   #postUpdateCallbacks = [];
 
@@ -562,12 +580,20 @@ export class TriDevice
       this.ReleaseDeviceResources(TriStorageFlags.TRISTORAGE_ALL);
       Tr2RenderContext.DestroyMainThreadRenderContext();
     }
+    this.#hasDevice = false;
     return this;
   }
 
   /**
-   * Releases every registered resource's device storage
-   * (`TriDevice.cpp:492-520`), which Carbon must do before resetting a device.
+   * Releases device storage before a device is reset or replaced
+   * (`TriDevice.cpp:493-596`): every registered resource's
+   * `ReleaseResources`, then the effect state manager's and the renderer's
+   * releases (`:528-529`), then every abstraction-layer resource of that
+   * memory class (`DestroyDeviceResources`, `:592`), then the render
+   * context's own device objects (`:594`).
+   *
+   * Carbon's Python `OnInvalidate` walk (`:531-590`) has no counterpart: there
+   * is no Python here.
    *
    * Adapted: Carbon guards against a resource unregistering itself mid-iteration with an
    * s_resourcesToBeRemoved set and an s_iteratingForRelease flag; iterating over a copy of
@@ -586,6 +612,14 @@ export class TriDevice
     {
       resource.ReleaseResources(storage);
     }
+
+    const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+    renderContext.GetEffectStateManager().ReleaseDeviceResources(storage);
+    Tr2Renderer.releaseDeviceResources(storage);
+
+    // TriStorage bits are Tr2ALMemoryType bits (VIDEO 1, MANAGED 2).
+    DestroyDeviceResources(storage);
+    renderContext.GetRenderContextAL().ReleaseDeviceResources();
     return this;
   }
 
@@ -642,6 +676,125 @@ export class TriDevice
     return true;
   }
 
+  /** Carbon's function-static s_deviceLostCount (`TriDevice11.cpp:49`). */
+  static #deviceLostCount = 0;
+
+  /**
+   * Whether the device was removed and is not yet replaced (`TriDevice.h:193-196`).
+   *
+   * @returns {boolean} Carbon's mDeviceLost.
+   */
+  @meta.implemented
+  IsDeviceLost()
+  {
+    return this.#deviceLost;
+  }
+
+  /**
+   * Replaces the device when a reset is not enough (`TriDevice.cpp:340-420`):
+   * release everything, create the device, take the new parameters, then
+   * `InitD3DDevice` and `PrepareDeviceResources`.
+   *
+   * Adapted: the render context is kept rather than destroyed and rebuilt (see
+   * HandleRenderTick), so the device is created through the kept abstraction
+   * layer's `CreateDevice`. `Tr2SyncToGpu::Flush`, `CreateUpscalingTechnique`
+   * and the display-mode read have no counterpart here. A creation still
+   * pending (`E_DEVICELOST`, WebGPU's asynchronous device request) returns
+   * false without logging, so the next tick asks again.
+   *
+   * @param {number} adapter Which adapter.
+   * @param {*} hWnd The output window; a canvas here.
+   * @param {object|null} pp Present parameters, or null for the current ones.
+   * @returns {boolean} Whether a device now exists.
+   */
+  @meta.adapted
+  ChangeDevice(adapter, hWnd, pp)
+  {
+    let resetOnly = true;
+    const adaptersChanged = adapter !== this.adapter;
+    if (!this.DeviceExists() || hWnd !== this.#hwnd || adaptersChanged)
+    {
+      resetOnly = false; // reset is not enough, we need to recreate the device.
+    }
+
+    if (!pp) pp = this.#presentParam;
+
+    if (resetOnly && this.ResetDevice(adapter, pp)) return true;
+
+    if (this.DeviceExists()) this.ReleaseDeviceResources(TriStorageFlags.TRISTORAGE_ALL);
+
+    const result = Tr2RenderContext_GetMainThreadRenderContext().GetRenderContextAL().CreateDevice(pp);
+    if (Failed(result))
+    {
+      if (result !== ALResult.E_DEVICELOST)
+      {
+        CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "Failed to create device: 0x%X", result);
+      }
+      return false;
+    }
+
+    this.adapter = adapter;
+    this.#hwnd = hWnd;
+    this.width = pp.mode.width;
+    this.height = pp.mode.height;
+    this.#presentParam = pp;
+
+    if (!this.SetPresentParameters(this.adapter, this.#presentParam)) return false;
+
+    this.InitD3DDevice();
+    if (adaptersChanged || this.supportedUpscalingTechniques.length === 0)
+    {
+      this.UpdateAvailableUpscalingTechniques();
+    }
+    this.PrepareDeviceResources();
+
+    return true;
+  }
+
+  /**
+   * Resets the existing device in place (`TriDevice.cpp:872-930`): release the
+   * video-memory resources, re-apply the present parameters, then
+   * `InitD3DDevice` and `PrepareDeviceResources`.
+   *
+   * Adapted: Carbon's reentrancy guard and `SetResourceCreationAllowed`
+   * toggling are not ported (resource creation follows device validity here,
+   * see `Tr2Renderer.IsResourceCreationAllowed`), nor is the display-mode
+   * re-read.
+   *
+   * @param {number} [adapter] Which adapter.
+   * @param {object|null} [pp] Present parameters, or null for the current ones.
+   * @returns {boolean} Whether the reset succeeded.
+   */
+  @meta.adapted
+  ResetDevice(adapter = this.adapter, pp = null)
+  {
+    this.ReleaseDeviceResources(TriStorageFlags.TRISTORAGE_VIDEOMEMORY);
+
+    if (!this.DeviceExists())
+    {
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "Device Reset: No device available");
+      return false;
+    }
+
+    if (!pp) pp = this.#presentParam;
+
+    if (!this.SetPresentParameters(adapter, pp)) return false;
+
+    this.width = pp.mode.width;
+    this.height = pp.mode.height;
+    this.#presentParam = pp;
+
+    if (!this.InitD3DDevice())
+    {
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "Device Reset: Failed to initialize device");
+      return false;
+    }
+
+    this.adapter = adapter;
+    this.PrepareDeviceResources();
+    return true;
+  }
+
   /**
    * Fills in the default viewport once a device exists
    * (`TriDevice.cpp:315-338`).
@@ -664,6 +817,7 @@ export class TriDevice
     this.viewport = viewport;
 
     this.#deviceLost = false;
+    this.#hasDevice = true;
     return true;
   }
 
@@ -886,14 +1040,55 @@ export class TriDevice
    * presented at the top of THIS tick, then the new one is rendered - which is
    * what overlaps CPU and GPU work, and why `Render` does not present.
    *
+   * DEVICE LOSS FOLLOWS CARBON'S DX PATH (`TriDevice11.cpp:43-110`,
+   * `TriDevice12.cpp:290-315`): on removal, call `onDeviceRemoved`, release
+   * every device resource and mark the device lost; every later tick tries
+   * `ChangeDevice` until a device exists again.
+   *
+   * Adapted, two divergences:
+   * 1. The main render context and its abstraction layer are KEPT, not
+   *    destroyed (Carbon calls `Tr2RenderContext::DestroyMainThreadRenderContext`
+   *    and `CreateDeviceInt` builds a new one). The host composes the WebGPU
+   *    abstraction layer and nothing in the runtime can build one again, so the
+   *    kept layer replaces its own device instead.
+   * 2. Removal is learned from the layer's `IsValid`, not from
+   *    `GetDeviceRemovedReason`, which the neutral layer does not have; and the
+   *    replacement spans ticks, because WebGPU creates devices asynchronously.
+   * The callback's reason is `E_DEVICELOST` and its message a fixed string:
+   * there is no HRESULT, `BeGetErrorMessage`, GPU marker or page-fault report
+   * here, so marker and resource description are empty.
+   *
    * @param {number} realTime Time since the client started, in 100ns ticks.
    * @param {number} simTime The same, for simulation.
    * @returns {TriDevice} This device.
    */
   @meta.blue.method
-  @meta.implemented
+  @meta.adapted
   HandleRenderTick(realTime, simTime)
   {
+    // TriDevice12.cpp:308-315: a lost device is replaced before anything else.
+    if (this.#deviceLost)
+    {
+      this.ChangeDevice(this.adapter, this.#hwnd, null);
+      return this;
+    }
+
+    // A device this one made that is no longer valid has been removed.
+    if (this.#hasDevice && !this.DeviceExists())
+    {
+      TriDevice.#deviceLostCount += 1;
+      const onDeviceRemoved = CjsScriptCallback.from(this.onDeviceRemoved);
+      if (onDeviceRemoved && onDeviceRemoved.IsValid())
+      {
+        onDeviceRemoved.CallVoid(ALResult.E_DEVICELOST, "Device lost", TriDevice.#deviceLostCount, "", "", "");
+      }
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "Device removed, reason: 0x%x", ALResult.E_DEVICELOST);
+
+      this.ReleaseDeviceResources(TriStorageFlags.TRISTORAGE_ALL);
+      this.#deviceLost = true;
+      return this;
+    }
+
     this.#renderJobs?.RunUpdate(realTime, simTime);
 
     for (const { callback, context } of [ ...this.#postUpdateCallbacks ])

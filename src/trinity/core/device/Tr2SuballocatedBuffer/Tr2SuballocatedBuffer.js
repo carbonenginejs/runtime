@@ -15,6 +15,7 @@ import { TriStorageFlags } from "#consts/graphics";
 import { CjsSchema, meta } from "#schema";
 import * as CcpLog from "../../../../global/logging/ccpLog.js";
 import { Failed } from "../../../../trinityal/ALResult.js";
+import { TriDevice } from "../TriDevice.js";
 
 /** `SHARED_BUFFER_BLOCK_SIZE` (`TriGeometryRes.h:15`). */
 export const SHARED_BUFFER_BLOCK_SIZE = 32 * 1024 * 1024;
@@ -58,6 +59,8 @@ export class Tr2SuballocatedBuffer
     this.m_gpuUsage = gpuUsage;
     this.m_blockSize = blockSize;
     this.m_maxSize = maxSize;
+    // Carbon's Tr2DeviceResource base constructor registers every resource.
+    TriDevice.RegisterResource(this);
   }
 
   /**
@@ -188,6 +191,17 @@ export class Tr2SuballocatedBuffer
     this.m_blocks = [];
     this.m_allocators = [];
   }
+
+  /**
+   * Source: trinity/trinity/Tr2SuballocatedBuffer.cpp:103-121 (OnPrepareResources).
+   * Adapted: Carbon recreates its one buffer at the allocator's size; blocks
+   * here are made on demand by Allocate, so there is nothing to create.
+   * @returns {boolean} Always true.
+   */
+  PrepareResources()
+  {
+    return true;
+  }
 }
 
 function Gcd(a, b)
@@ -208,6 +222,7 @@ CjsSchema.define(Tr2SuballocatedBuffer, {
     Free: [ meta.blue.method, meta.adapted ],
     GetBuffer: [ meta.blue.method, meta.adapted ],
     ReleaseResources: [ meta.blue.method, meta.adapted ],
+    PrepareResources: [ meta.adapted ],
     _AddBlock: [ meta.ours ],
     GetBlocks: [ meta.ours ]
   }

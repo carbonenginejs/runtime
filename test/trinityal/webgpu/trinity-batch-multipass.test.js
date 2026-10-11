@@ -69,7 +69,7 @@ class MockDevice extends CjsWebgpuDevice
 {
   constructor()
   {
-    super({ device: { createShaderModule() {} }, shaderStage: SHADER_STAGE });
+    super({ device: { lost: new Promise(() => {}), createShaderModule() {} }, shaderStage: SHADER_STAGE });
     this.encoded = [];
   }
 

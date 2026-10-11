@@ -19,7 +19,7 @@ class MockDevice extends CjsWebgpuDevice
 {
   constructor(options, calls, bindingSets)
   {
-    super({ device: { createShaderModule() {} }, shaderStage: SHADER_STAGE });
+    super({ device: { lost: new Promise(() => {}), createShaderModule() {} }, shaderStage: SHADER_STAGE });
     this.options = options;
     this.calls = calls;
     this.bindingSets = bindingSets;

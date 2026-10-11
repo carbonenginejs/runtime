@@ -74,6 +74,7 @@ import { Tr2TextureAL } from "../Tr2TextureAL/index.js";
 //   backend too, so a WebGPU spelling is the faithful thing, not a divergence.
 
 import { CjsSchema, meta } from "#schema";
+import * as CcpLog from "../../global/logging/ccpLog.js";
 import { Tr2ResourceSetAL } from "../Tr2ResourceSetAL/Tr2ResourceSetAL.js";
 import { PixelFormat, RenderState, ShaderType, Topology, Tr2LoadAction, Tr2StoreAction, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
 import { Tr2ColorAttachment, Tr2ConstantUsageAL, Tr2DepthAttachment, Tr2VertexLayoutALStub, resolveBindingPlan, ALResult, Failed, Tr2DrawUPHelper } from "#trinityal";
@@ -646,19 +647,85 @@ export class CjsWebgpuRenderContextAL
   /**
    * Creates the device. Carbon gates every resource create on this.
    *
-   * @returns {number} `S_OK`.
+   * After a device loss this is Carbon's `CreateDeviceInt` on the recovery
+   * path (`TriDevice::ChangeDevice`, TriDevice.cpp:340-420): it asks the
+   * WebGPU boundary for a replacement device.
+   *
+   * Adapted (forced by WebGPU): `requestAdapter`/`requestDevice` are
+   * asynchronous, while Carbon's device creation is synchronous. The first
+   * call after a loss starts the replacement and answers `E_DEVICELOST`;
+   * TriDevice retries `ChangeDevice` every tick while its device is lost, as
+   * Carbon's does (TriDevice12.cpp:308-315), and a later call answers `S_OK`
+   * once the new device exists. A failed replacement is logged, answered with
+   * `E_FAIL`, and retried on the next call. When it lands, the sampler
+   * factory's states are created again against the new device, keeping their
+   * identity, since pass descriptions compare them by identity.
+   *
+   * @returns {number} An `ALResult`: `S_OK`, `E_DEVICELOST` while a
+   *   replacement is pending, or `E_FAIL` when one failed.
    */
   CreateDevice()
   {
+    if (this._webgpu && this._webgpu.IsLost())
+    {
+      if (this._recreateFailure)
+      {
+        const failure = this._recreateFailure;
+        this._recreateFailure = null;
+        CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "WebGPU device recreation failed: %s", failure.message);
+        return ALResult.E_FAIL;
+      }
+
+      if (!this._recreating)
+      {
+        // No device until a CreateDevice answers S_OK again, as Carbon has
+        // none between DestroyMainThreadRenderContext and CreateDeviceInt.
+        this._isValid = false;
+        this._recreating = this._webgpu.Recreate().then(
+          () => { this._recreating = null; },
+          error => { this._recreating = null; this._recreateFailure = error; }
+        );
+      }
+      return ALResult.E_DEVICELOST;
+    }
+
+    if (this._recreating) return ALResult.E_DEVICELOST;
+
     this._isValid = true;
+
+    if (this._webgpu && this._samplerGeneration !== this._webgpu.GetGeneration())
+    {
+      // A state whose GPU object came from an earlier device generation is
+      // created again in place (its Create needs a valid context).
+      for (const state of this._samplerStates.values()) state.Create(state.GetDescription(), this);
+      this._samplerGeneration = this._webgpu.GetGeneration();
+    }
 
     return ALResult.S_OK;
   }
 
-  /** @returns {boolean} Whether a device exists. */
+  /** A device replacement in flight after a loss, or null. */
+  _recreating = null;
+
+  /** The error a finished replacement failed with, reported once by CreateDevice. */
+  _recreateFailure = null;
+
+  /** The device generation the sampler factory's GPU objects belong to. */
+  _samplerGeneration = 1;
+
+  /**
+   * Whether a device exists.
+   *
+   * Adapted: Carbon's DX backends learn of a removed device by asking it
+   * (`GetDeviceRemovedReason()`, TriDevice11.cpp:43, TriDevice12.cpp:290); the
+   * neutral abstraction layer has no such query. Here a lost WebGPU device
+   * makes the context invalid, which is how TriDevice's tick learns of it.
+   *
+   * @returns {boolean} Whether a usable device exists.
+   */
   IsValid()
   {
-    return this._isValid;
+    return this._isValid && !(this._webgpu && this._webgpu.IsLost());
   }
 
   /**
@@ -2716,6 +2783,15 @@ export class CjsWebgpuRenderContextAL
 
   /**
    * Releases what a device reset would invalidate, keeping the context alive.
+   * TriDevice calls it last in `ReleaseDeviceResources` (TriDevice.cpp:594).
+   *
+   * Besides the bound targets and pipelines, everything this context made from
+   * the device itself goes: compute pipelines, the mip generator (it holds the
+   * device it was made with), the constant arena's pages and the draw-UP
+   * helper's scratch buffers. Each is made again on first use. TriDevice calls
+   * this between frames, so no command encoder is open. The sampler factory keeps its states, which pass descriptions compare
+   * by identity; their GPU objects are created again when the device is
+   * (CreateDevice).
    *
    * @returns {boolean} True.
    */
@@ -2726,6 +2802,11 @@ export class CjsWebgpuRenderContextAL
     this._boundRenderTargets.fill(null);
     this._frame = null;
     this._ReleasePipelines();
+    this._computePipelines = new WeakMap();
+    this._mipGenerator = null;
+    if (this._constantArena) this._constantArena.Destroy();
+    this._constantArena = null;
+    this._drawUP.Destroy();
 
     return true;
   }

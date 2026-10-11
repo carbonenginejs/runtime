@@ -41,7 +41,7 @@ import { gTriDev } from "./device/gTriDev.js";
 import { Failed } from "../../trinityal/ALResult.js";
 import { Tr2SuballocatedBufferAllocation } from "./device/Tr2SuballocatedBuffer/index.js";
 import { SharedGeometryBuffer } from "./mesh/TriGeometryResAllocations.js";
-import { TR2SHADERMODEL } from "#consts/graphics";
+import { TR2SHADERMODEL, TriStorageFlags } from "#consts/graphics";
 import { ShaderType } from "#consts/render-context";
 import { TriVariableContentType } from "../generated/trinityCore/enums.js";
 
@@ -239,6 +239,28 @@ export class Tr2Renderer
     // "just call the Get* function, it will do the alloc" (cpp:1300-1301).
     Tr2Renderer.ReserveQuadListIndexBuffer(128);
     return Tr2Renderer.#blitter;
+  }
+
+  /**
+   * Carbon `ReleaseDeviceResources( s )` (`Tr2Renderer.cpp:1316-1327`), which
+   * TriDevice calls on device loss and reset: a managed-memory release frees
+   * the quad-list index buffer from the shared geometry buffer, so the next
+   * `prepareDeviceResources` makes it again.
+   *
+   * Adapted: the quad vertex buffer and the reversed quad-list index buffer
+   * are not ported (see prepareDeviceResources), so only the quad-list index
+   * buffer is freed.
+   *
+   * @param {number} s A `TriStorage` mask.
+   * @returns {void}
+   */
+  @meta.adapted
+  static releaseDeviceResources(s)
+  {
+    if (!(s & TriStorageFlags.TRISTORAGE_MANAGEDMEMORY)) return;
+
+    const allocation = Tr2Renderer.#quadListIndexBuffer;
+    if (allocation.m_parent) allocation.m_parent.Free(allocation);
   }
 
   /**

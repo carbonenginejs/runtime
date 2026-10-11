@@ -36,6 +36,7 @@ function fakeDevice()
 
       return value;
     },
+    lost: new Promise(() => {}),
     createShaderModule: descriptor => ({ kind: "module", descriptor }),
     pushErrorScope() {},
     popErrorScope() { return Promise.resolve(null); }

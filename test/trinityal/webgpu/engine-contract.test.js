@@ -18,7 +18,7 @@ import { EngineContractChecks } from "./conformance/engineContract.js";
 function boundary()
 {
   return new CjsWebgpuDevice({
-    device: { createShaderModule: () => ({}) },
+    device: { lost: new Promise(() => {}), createShaderModule: () => ({}) },
     shaderStage: { VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 }
   });
 }
@@ -59,7 +59,7 @@ const webgpu = {
     // device is the barest thing this backend accepts as ready; the suite never
     // sees it.
     const device = new CjsWebgpuDevice({
-      device: { createShaderModule: () => ({}) },
+      device: { lost: new Promise(() => {}), createShaderModule: () => ({}) },
       shaderStage: { VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 }
     });
     device.RealizeSampler(resource, { samplerKey: "s" });

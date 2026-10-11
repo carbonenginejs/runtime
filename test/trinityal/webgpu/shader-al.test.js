@@ -19,6 +19,7 @@ function fakeDevice()
   const modules = [];
   const device = {
     modules,
+    lost: new Promise(() => {}),
     createShaderModule(descriptor)
     {
       const value = { kind: "shader-module", descriptor };

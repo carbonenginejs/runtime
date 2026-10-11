@@ -23,6 +23,7 @@ function composed()
 
       return sampler;
     },
+    lost: new Promise(() => {}),
     createShaderModule: descriptor => ({ kind: "module", descriptor }),
     pushErrorScope() {},
     popErrorScope() { return Promise.resolve(null); }

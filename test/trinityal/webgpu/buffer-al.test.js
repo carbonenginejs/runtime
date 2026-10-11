@@ -27,6 +27,7 @@ function fakeDevice()
       calls.push([ "createBuffer", descriptor, value ]);
       return value;
     },
+    lost: new Promise(() => {}),
     createShaderModule(descriptor) { return { kind: "shader-module", descriptor }; },
     pushErrorScope() {},
     popErrorScope() { return Promise.resolve(null); }
@@ -259,6 +260,7 @@ test("MapForReading answers one frame late from a completed staging copy", async
       copyBufferToBuffer(...args) { calls.push([ "copy", args[4] ]); },
       finish: () => ({ kind: "commands" })
     }),
+    lost: new Promise(() => {}),
     createShaderModule(descriptor) { return { descriptor }; },
     pushErrorScope() {},
     popErrorScope() { return Promise.resolve(null); }

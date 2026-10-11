@@ -22,7 +22,7 @@ class RecordingDispatcher extends CjsWebgpuTrinityBatchDispatcher
   constructor(calls, rejectType)
   {
     super(new CjsWebgpuDevice({
-      device: { createShaderModule() {} },
+      device: { lost: new Promise(() => {}), createShaderModule() {} },
       shaderStage: { VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 }
     }), new TestResolver());
     this.calls = calls;

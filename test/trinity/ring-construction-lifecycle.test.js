@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   EveSpaceScene, Tr2Effect, TriDevice, Tr2RingBuffer, Tr2RingBufferOffsets, Tr2RenderContext,
-  Tr2RenderContext_GetMainThreadRenderContext, Tr2VariableStore
+  Tr2RenderContext_GetMainThreadRenderContext, Tr2Renderer, Tr2VariableStore
 } from "../../npm/dist/trinity/index.js";
 import { Tr2BaseDeviceResourceAL, Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { TriVariableContentType } from "../../npm/dist/trinity/generated/trinityCore/enums.js";
@@ -166,6 +166,9 @@ test("ambient context recreation preserves provider identity and realizes throug
   Tr2RenderContext.DestroyMainThreadRenderContext();
   const current = Tr2RenderContext_GetMainThreadRenderContext();
   current.GetRenderContextAL().CreateDevice();
+  // The renderer's quad-list index buffer is made on the new context first, so
+  // only the ring's buffer is counted below.
+  Tr2Renderer.prepareDeviceResources(current);
   let creations = 0;
   const create = current.CreateBuffer.bind(current);
   current.CreateBuffer = (...args) => { creations++; return create(...args); };

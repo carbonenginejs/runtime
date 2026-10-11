@@ -47,6 +47,7 @@ function fakeSetup(options = {})
   const created = [];
   const device = {
     limits: { maxTextureDimension2D: 8192, maxTextureDimension3D: 2048 },
+    lost: new Promise(() => {}),
     createShaderModule() {},
     createTexture(descriptor)
     {

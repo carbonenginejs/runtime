@@ -22,6 +22,7 @@ function fakeDevice()
   const calls = { modules: [], bindGroupLayouts: [], pipelineLayouts: [] };
   const device = {
     calls,
+    lost: new Promise(() => {}),
     createShaderModule(descriptor)
     {
       calls.modules.push(descriptor);

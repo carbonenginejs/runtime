@@ -19,7 +19,7 @@ import { Tr2BufferAL } from "../../trinityal/Tr2BufferAL/index.js";
 // an entirely unimplemented class reports clean. Do not read a green audit as
 // evidence that this file is finished.
 
-import { RenderingMode } from "#consts/graphics";
+import { RenderingMode, TriStorageFlags } from "#consts/graphics";
 import {
   BlendMode,
   BlendOperation,
@@ -813,6 +813,36 @@ export class Tr2EffectStateManager
 
     shaderProgramObjects.delete(this.#renderContext);
     vertexLayoutObjects.delete(this.#renderContext);
+  }
+
+  /**
+   * Carbon `ReleaseDeviceResources( s )` (Tr2EffectStateManager.cpp:982-1023),
+   * which TriDevice calls on device loss and replacement. Only a release of
+   * all storage does anything: unbind the streams and indices, reset the
+   * redundancy cache, clear the shared shader, program and render-state tables,
+   * and drop the per-object constant buffers.
+   *
+   * Adapted: the shared tables are the static `releaseDeviceResources`; the
+   * programs and layouts realized for this context are dropped too
+   * (`ReleaseRealizedObjects`), and the per-object constant buffers are held
+   * on the render context, so they are destroyed there.
+   *
+   * @param {number} s A `TriStorage` mask.
+   * @returns {void}
+   */
+  @meta.adapted
+  ReleaseDeviceResources(s)
+  {
+    if ((s & TriStorageFlags.TRISTORAGE_ALL) !== TriStorageFlags.TRISTORAGE_ALL) return;
+
+    this._ReleaseBufferBindings();
+    this.#currentValues = NewCurrentValues();
+    Tr2EffectStateManager.releaseDeviceResources();
+    this.ReleaseRealizedObjects();
+
+    const buffers = this.#renderContext._perObjectConstantBuffers;
+    for (const buffer of buffers) if (buffer) buffer.Destroy();
+    buffers.fill(null);
   }
 
   /**
