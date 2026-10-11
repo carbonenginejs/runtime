@@ -213,9 +213,12 @@ export class TnyCameraControls
   {
     if (!Number.isFinite(delta)) return;
     const camera = this.camera, radius = Math.max(0.001, this.getBounds ? this.getBounds().radius : 0);
-    const minimum = Math.max(0.001, radius * 0.01), maximum = Math.max(minimum, camera.backClip - radius);
+    const minimum = Math.max(1, camera.frontClip, radius * 0.01), maximum = Math.max(minimum, camera.backClip - radius);
+    // Seed multiplicative zoom from a usable distance, including poses edited to zero.
+    // Match EveCamera.Update's floor so the next frame cannot erase outward motion.
+    const start = Math.max(minimum, camera.translationFromParent);
     const distance = Math.min(maximum, Math.max(minimum,
-      camera.translationFromParent * Math.exp(Math.max(-20, Math.min(20, delta * this.preferences.dollySensitivity)))));
+      start * Math.exp(Math.max(-20, Math.min(20, delta * this.preferences.dollySensitivity)))));
     camera.Dolly(distance - camera.translationFromParent);
     this.#Changed();
   }
@@ -260,7 +263,7 @@ export class TnyCameraControls
     this.SetFieldOfView(pose.fieldOfView);
   }
 
-  /** Fits the provider's world sphere against all four native projection extents. */
+  /** Fits optional world box corners, otherwise the provider's sphere, to the projection. */
   Frame()
   {
     if (!this.getBounds) return false;
@@ -273,7 +276,27 @@ export class TnyCameraControls
       (1 - projection[9]) / projection[5], (1 + projection[9]) / projection[5]);
     if (!(tangent > 0) || !Number.isFinite(tangent)) throw new RangeError("Projection does not contain the camera axis.");
     const radius = Math.max(0.001, bounds.radius) * Math.max(1, this.preferences.frameMargin);
-    const distance = Math.max(radius / Math.sin(Math.atan(tangent)), camera.frontClip + radius);
+    let distance = Math.max(radius / Math.sin(Math.atan(tangent)), camera.frontClip + radius);
+    if (bounds.corners?.length)
+    {
+      // The editor supplies transformed local-box corners, avoiding both a
+      // loose world AABB and the empty space around a long hull's sphere.
+      const matrix = camera.viewMatrix.transform, margin = Math.max(1, this.preferences.frameMargin);
+      distance = 0.001;
+      for (const corner of bounds.corners)
+      {
+        if (corner.length !== 3 || !Array.from(corner).every(Number.isFinite)) throw new RangeError("Cannot frame invalid corners.");
+        const dx = corner[0] - bounds.centre[0], dy = corner[1] - bounds.centre[1], dz = corner[2] - bounds.centre[2];
+        const x = matrix[0] * dx + matrix[4] * dy + matrix[8] * dz;
+        const y = matrix[1] * dx + matrix[5] * dy + matrix[9] * dz;
+        const z = matrix[2] * dx + matrix[6] * dy + matrix[10] * dz;
+        distance = Math.max(distance, z + camera.frontClip,
+          z + margin * projection[0] * x / (1 + projection[8]),
+          z - margin * projection[0] * x / (1 - projection[8]),
+          z + margin * projection[5] * y / (1 + projection[9]),
+          z - margin * projection[5] * y / (1 - projection[9]));
+      }
+    }
     camera.zoomCurve = null;
     camera.backClip = Math.max(camera.backClip, (distance + radius) * 1.05);
     camera.translationFromParent = distance;
@@ -288,12 +311,17 @@ export class TnyCameraControls
     return true;
   }
 
-  /** Reframes when the host explicitly reports a viewport resize, including deferred zero-size fits. */
+  /** Records viewport size without changing the pose; completes explicitly deferred zero-size fits. */
   Resize()
   {
     if (!this.getViewport) return false;
     const view = this.getViewport();
-    return this._pendingFrame || view.width !== this._viewportWidth || view.height !== this._viewportHeight ? this.Frame() : false;
+    if (!(view.width > 0 && view.height > 0)) return false;
+    if (this._pendingFrame) return this.Frame();
+    const changed = view.width !== this._viewportWidth || view.height !== this._viewportHeight;
+    this._viewportWidth = view.width;
+    this._viewportHeight = view.height;
+    return changed;
   }
 
   /** Restores the initial pose, or the first successful framing pose. */
