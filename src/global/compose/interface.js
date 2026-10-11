@@ -335,6 +335,22 @@ export function ownMappedInterfaces(Constructor)
 }
 
 
+/**
+ * The class a class's exposure chains to: Carbon's `ClassInfo::mParentClassInfo`,
+ * set by `EXPOSURE_CHAINTO` (BlueExposureMacros.h:136-138). A class with no own
+ * table answers with its nearest JS ancestor's, as `mappedInterfaces` does.
+ *
+ * @param {Function} Constructor The class to ask about.
+ * @returns {Function|null} The chained class, or null at the end of the chain.
+ */
+export function exposureChainTo(Constructor)
+{
+    if (typeof Constructor !== "function") return null;
+    const table = Constructor[MAPPED];
+    return table ? table.chainTo : null;
+}
+
+
 /** Resolves an exposure table, optionally validating an unpublished replacement. */
 function ResolveInterfaceTable(Constructor, visiting = null, replacement = null)
 {

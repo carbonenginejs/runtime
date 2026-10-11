@@ -27,11 +27,26 @@
 // module and name, and `FindClsid` already ignores the module ("we don't allow
 // name clashes between modules", BlueClasses.cpp:340-343). With no GUIDs to
 // carry, the name is the only identity there is.
-import { registerClass, unregisterClass, getClassRegistration } from "./classes/registry.js";
+//
+// Source: blueexposure/BlueClasses_Blue.cpp:311-444 (the Python exposure:
+// GetClassTypes, LiveCount, LockCount, GetWrapperList, LiveList,
+// ProcessAllPendingDeletes, Copy, Find, GetTypeInfo, GetPersistedClassesReport),
+// blueexposure/TypeInfo.cpp:66-190 (PyGetTypeInfo), blueexposure/Find.cpp:147-246
+// (FindSingle, PyFindImpl).
+import { registerClass, unregisterClass, getClassRegistration, getClassRegistrations } from "./classes/registry.js";
 import { CjsSchema, meta } from "#schema";
+import { getCarbonTypeDefinition } from "../schema/types/carbonTypes.js";
+import { mappedInterfaces, exposureChainTo } from "../compose/interface.js";
 import { IBlueClasses } from "./IBlueClasses.js";
 import { Copier } from "./Copier.js";
 import { IRoot } from "./IRoot.js";
+import { blue } from "./blue.js";
+
+/** Be::EDITFLAGS bits (BlueTypes.h:288-303), keyed by the schema's edit flag names. */
+const EDIT_FLAG_BITS = [
+  [ "read", 0x001 ], [ "write", 0x002 ], [ "notify", 0x004 ], [ "hidden", 0x008 ],
+  [ "persist", 0x010 ], [ "rpersist", 0x020 ], [ "flags", 0x100 ], [ "enum", 0x200 ]
+];
 
 
 /** `CjsBlueClasses` - the class registry `blue.classes` holds, per blueexposure/BlueClasses.cpp. */
@@ -201,6 +216,306 @@ export class CjsBlueClasses extends IBlueClasses
     return new Copier().CloneTo(source, dest);
   }
 
+  /**
+   * `GetClassTypes` - Blue's `PyGetClassTypes` (BlueClasses_Blue.cpp:84-114):
+   * the type info of every registered class, in registration order.
+   *
+   * Not supported: the module filter. A JavaScript registration carries no
+   * module (see FindClsid), so a module name throws rather than filtering
+   * nothing.
+   *
+   * @param {string|null} [moduleName=null] Carbon's optional module filter.
+   * @returns {Array<Array<object>>} One GetTypeInfo record per class.
+   * @throws {TypeError} When a module name is given.
+   */
+  GetClassTypes(moduleName = null)
+  {
+    if (moduleName !== null)
+    {
+      throw new TypeError("GetClassTypes: registrations carry no module, so a module filter cannot be applied.");
+    }
+    return getClassRegistrations().map(registration => CjsBlueClasses._typeInfo(registration.type, 0));
+  }
+
+  /**
+   * `LiveCount` (BlueClasses_Blue.cpp:162-184): live instances per class.
+   *
+   * Not supported: Carbon counts construction and destruction in each
+   * ClassInfo. JavaScript objects are released by the garbage collector, which
+   * reports neither, so no count exists.
+   *
+   * @returns {never}
+   * @throws {Error} Always.
+   */
+  LiveCount()
+  {
+    throw new Error("LiveCount: JavaScript garbage collection does not report object lifetimes, so live counts are not kept.");
+  }
+
+  /**
+   * `LockCount` (BlueClasses_Blue.cpp:187-207): reference locks per class.
+   *
+   * Not supported: JavaScript has no reference counts (see IRoot).
+   *
+   * @returns {never}
+   * @throws {Error} Always.
+   */
+  LockCount()
+  {
+    throw new Error("LockCount: JavaScript objects carry no reference counts.");
+  }
+
+  /**
+   * `GetWrapperList` (BlueClasses_Blue.cpp:210-217): every Blue object wrapped
+   * for Python.
+   *
+   * Not supported: there are no Python wrappers. The per-object wrapper Carbon
+   * keeps (BlueWrapper, BluePyWrap.cpp) is not ported.
+   *
+   * @returns {never}
+   * @throws {Error} Always.
+   */
+  GetWrapperList()
+  {
+    throw new Error("GetWrapperList: no Python wrappers exist in JavaScript.");
+  }
+
+  /**
+   * `LiveList` (BlueClasses_Blue.cpp:116-160, `BLUE_LIVELIST_ENABLED` builds
+   * only): live and lock counts per class and per tracked instance.
+   *
+   * Not supported: it reports LiveCount's and LockCount's numbers, which
+   * JavaScript does not keep.
+   *
+   * @returns {never}
+   * @throws {Error} Always.
+   */
+  LiveList()
+  {
+    throw new Error("LiveList: JavaScript keeps no live or lock counts.");
+  }
+
+  /**
+   * `ProcessAllPendingDeletes` (BlueClasses.cpp:549-560): runs every deferred
+   * `FinalDelete`.
+   *
+   * No-op: JavaScript never defers a deletion, so the pending list is always
+   * empty.
+   *
+   * @returns {void}
+   */
+  ProcessAllPendingDeletes()
+  {
+  }
+
+  /**
+   * `Copy` - Blue's `PyCopy` (BlueClasses_Blue.cpp:219-240): a copy of an
+   * object through its persisted members, by `CopyTo`.
+   *
+   * @param {object} src The object to copy.
+   * @returns {object} The copy.
+   * @throws {TypeError} When `src` is not an object, Carbon's "Value is not a Blue object".
+   * @throws {Error} When the copy fails, Carbon's "Couldn't copy object".
+   */
+  Copy(src)
+  {
+    if (src === null || typeof src !== "object") throw new TypeError("Value is not a Blue object");
+
+    const dst = this.CopyTo(src, null);
+    if (!dst) throw new Error("Couldn't copy object");
+    return dst;
+  }
+
+  /**
+   * `Find` - Blue's `PyFind` -> `PyFindImpl` -> `FindSingle`
+   * (BlueClasses_Blue.cpp:242-264, Find.cpp:193-246, 313-349): every object
+   * below `obj`, itself included, whose class or a class its exposure chains to
+   * is one of `className`. Only persisted members are followed. `maxLevel` stops
+   * the descent at that depth; `prune` does not look below a match. Results are
+   * in Carbon's stack order.
+   *
+   * Adapted: a class id is `module.Name` as Carbon requires
+   * (`Clsid::InitFromString`, BlueTypes.cpp:55-80), but the module is ignored,
+   * as FindClsid ignores it; JavaScript registrations carry none.
+   *
+   * @param {object} obj Root object.
+   * @param {string|string[]} className Class id or ids, e.g. "trinity.Tr2Effect".
+   * @param {number} [maxLevel=-1] Maximum depth; negative is unlimited.
+   * @param {boolean} [prune=false] Do not look below a match.
+   * @returns {object[]} The matching objects.
+   * @throws {TypeError} When obj is not an object, or a class id has no module part.
+   */
+  Find(obj, className, maxLevel = -1, prune = false)
+  {
+    if (obj === null || typeof obj !== "object") throw new TypeError("First argument is not a Blue object");
+
+    const names = (Array.isArray(className) ? className : [ className ]).map(id =>
+    {
+      if (typeof id !== "string") throw new TypeError("first argument must be string or sequence of strings");
+      const dot = id.indexOf(".");
+      if (dot < 0) throw new TypeError(`Cannot convert "${id}" to a valid class id`);
+      return id.slice(dot + 1);
+    });
+
+    const result = [];
+    const stack = [ { obj, level: 0 } ];
+    const seen = new Set();
+    while (stack.length)
+    {
+      const e = stack.pop();
+      if (seen.has(e.obj)) continue;
+      seen.add(e.obj);
+
+      if (CjsBlueClasses._isMatch(e.obj, names))
+      {
+        result.push(e.obj);
+        if (prune) continue;
+      }
+
+      if (maxLevel >= 0 && e.level >= maxLevel) continue;
+
+      const level = e.level + 1;
+      blue.EnumerateChildren__Filter(
+        e.obj,
+        child => stack.push({ obj: child, level }),
+        child => stack.push({ obj: child, level }),
+        child => stack.push({ obj: child, level }),
+        member => member.edit !== undefined && member.edit.persist === true
+      );
+    }
+    return result;
+  }
+
+  /**
+   * `GetTypeInfo` - Blue's `PyTypeInfo` -> `PyGetTypeInfo`
+   * (BlueClasses_Blue.cpp:266-280, TypeInfo.cpp:66-190): four records, the
+   * class, its interfaces, its members and its methods.
+   *
+   * Adapted: a member's `type` is the schema type kind, not Carbon's numeric
+   * `Be::VarType`, which the schema does not record. `module` is empty and
+   * `autovar` is 0: registrations carry no module, and JavaScript objects
+   * have no IRoot flags. Method documentation and `signatures` are empty: no
+   * docstrings or signatures are kept.
+   *
+   * @param {object} obj The object.
+   * @returns {Array<object>} `[classInfo, interfaces, members, methods]`.
+   * @throws {TypeError} When obj is not an object, Carbon's "Value is not a Blue object".
+   */
+  GetTypeInfo(obj)
+  {
+    if (obj === null || typeof obj !== "object") throw new TypeError("Value is not a Blue object");
+    return CjsBlueClasses._typeInfo(obj.constructor, 0);
+  }
+
+  /**
+   * `GetPersistedClassesReport` (BlueClasses.cpp:607-669): every class with a
+   * persisted member, sorted by name, listing each persisted member and its type.
+   * A float-array member also lists its element count.
+   *
+   * Adapted: the type is the schema type kind, not Carbon's numeric
+   * `Be::VarType` (see GetTypeInfo); the element count is the vector or
+   * matrix length the kind defines.
+   *
+   * @returns {string} The report.
+   */
+  GetPersistedClassesReport()
+  {
+    const classes = [];
+    for (const registration of getClassRegistrations())
+    {
+      const members = CjsSchema.getSchema(registration.type).members
+        .filter(member => member.edit !== undefined && (member.edit.persist === true || member.edit.rpersist === true));
+      if (members.length) classes.push({ name: registration.name, members });
+    }
+    classes.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+
+    let result = "";
+    for (const { name, members } of classes)
+    {
+      result += `${name}:\n`;
+      for (const member of members)
+      {
+        const definition = getCarbonTypeDefinition(member.type);
+        result += `-   ${member.name}:\n`;
+        result += `    -   ${definition.kind}\n`;
+        if (definition.length !== undefined) result += `    -   ${definition.length}\n`;
+      }
+    }
+    return result;
+  }
+
+  /**
+   * `IsMatch( IRoot*, const idvector_t& )` (Find.cpp:147-156): the object's
+   * class, or any class its exposure chains to, has one of the names.
+   *
+   * @param {object} obj The object.
+   * @param {string[]} names Class names.
+   * @returns {boolean} Whether it matches.
+   */
+  static _isMatch(obj, names)
+  {
+    for (let type = obj.constructor; type; type = exposureChainTo(type))
+    {
+      if (names.includes(CjsSchema.getClassName(type))) return true;
+    }
+    return false;
+  }
+
+  /**
+   * `PyGetTypeInfo` (TypeInfo.cpp:66-190) for a class.
+   *
+   * @param {Function} Constructor The class.
+   * @param {number} flags IRoot flags; only the autovar bit is read.
+   * @returns {Array<object>} `[classInfo, interfaces, members, methods]`.
+   */
+  static _typeInfo(Constructor, flags)
+  {
+    const schema = CjsSchema.getSchema(Constructor);
+    const classInfo = {
+      module: "",
+      classname: schema.className,
+      description: CjsSchema.getClassPurpose(Constructor) || "",
+      autovar: flags & 0x1 ? 1 : 0,
+      signatures: {}
+    };
+
+    const interfaces = {};
+    for (const Interface of mappedInterfaces(Constructor)) interfaces[CjsSchema.getClassName(Interface)] = 0;
+
+    const members = {};
+    for (const member of [ ...schema.members, ...schema.properties ])
+    {
+      const type = member.type;
+      const reference = type && (type.kind === "rootRef" || type.kind === "rootWeak") ? type.className : null;
+      let editflags = 0;
+      // A member declared with no Blue flags has no edit record: Carbon's mEditFlags 0.
+      if (member.edit !== undefined) for (const [ flag, bit ] of EDIT_FLAG_BITS) if (member.edit[flag] === true) editflags |= bit;
+      members[member.name] = {
+        type: getCarbonTypeDefinition(type).kind,
+        iid_name: typeof reference === "function" ? CjsSchema.getClassName(reference) : reference || "",
+        iid_ver: 0,
+        description: member.jessica && member.jessica.description ? member.jessica.description : "",
+        editflags,
+        min: null,
+        max: null,
+        choosers: member.enum && member.enum.chooser
+          ? member.enum.chooser.map(item => [ item.name, item.value, item.description || "" ])
+          : null
+      };
+    }
+
+    const methods = {};
+    for (let type = Constructor; type; type = exposureChainTo(type))
+    {
+      for (const method of CjsSchema.getSchema(type).methods || [])
+      {
+        if (method.carbon && method.carbon.method === true) methods[method.name] = "";
+      }
+    }
+
+    return [ classInfo, interfaces, members, methods ];
+  }
+
 }
 
 
@@ -212,7 +527,7 @@ CjsSchema.define(CjsBlueClasses, {
   // JavaScript's garbage collector and reflection stand in for them.
   unused: [
     "FindVariable", "UpdateObjectCount",
-    "ProcessPendingDeletes", "ProcessAllPendingDeletes",
+    "ProcessPendingDeletes",
     "SetPendingDeletesEnabled", "IsPendingDeletesEnabled",
     "RegisterThunker", "GetRtti"
   ],
@@ -226,6 +541,16 @@ CjsSchema.define(CjsBlueClasses, {
     CreateInstanceFromName: [ meta.blue.method, meta.adapted ],
     QueryThisInterface: [ meta.blue.method, meta.adapted ],
     CopyTo: [ meta.blue.method, meta.adapted ],
-    CloneTo: [ meta.blue.method, meta.adapted ]
+    CloneTo: [ meta.blue.method, meta.adapted ],
+    GetClassTypes: [ meta.blue.method, meta.adapted ],
+    LiveCount: [ meta.blue.method, meta.notSupported ],
+    LockCount: [ meta.blue.method, meta.notSupported ],
+    GetWrapperList: [ meta.blue.method, meta.notSupported ],
+    LiveList: [ meta.blue.method, meta.notSupported ],
+    ProcessAllPendingDeletes: [ meta.blue.method, meta.noop ],
+    Copy: [ meta.blue.method, meta.implemented ],
+    Find: [ meta.blue.method, meta.adapted ],
+    GetTypeInfo: [ meta.blue.method, meta.adapted ],
+    GetPersistedClassesReport: [ meta.blue.method, meta.adapted ]
   }
 });

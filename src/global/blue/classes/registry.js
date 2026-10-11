@@ -91,6 +91,16 @@ export function getRegisteredConstructor(name)
 }
 
 /**
+ * Copies of every registration, in registration order: the walk Carbon's
+ * BlueClasses makes over `m_classes` (BlueClasses_Blue.cpp:88-104, 175-189).
+ * @returns {Array<{name: string, type: Function, createFn: Function, flags: number}>} Entries.
+ */
+export function getClassRegistrations()
+{
+    return Array.from(registrations.values(), registration => ({ ...registration }));
+}
+
+/**
  * Returns the revision changed by successful additions and removals only.
  * @returns {number} Revision used by schema and default caches.
  */
