@@ -5,7 +5,7 @@ import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { blue, ITriFunction, ITriVectorFunction, ITriQuaternionFunction, ITriCurveLength } from "../../npm/dist/global/blue/index.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
-import { EnumerateChildren } from "../../npm/dist/global/blue/find.js";
+import { CjsBlue } from "../../npm/dist/global/blue/index.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
 import { Tr2CurveVector3Lerp } from "../../npm/dist/trinity/curves/curve/Tr2CurveVector3Lerp.js";
 import { Tr2QuaternionLerpCurve } from "../../npm/dist/trinity/curves/curve/Tr2QuaternionLerpCurve.js";
@@ -75,7 +75,7 @@ test("SOF hydration and shared graph operations retain live lerp child reference
         for (const key of keys) assert.equal(curve[key], child);
         for (const [key,value] of Object.entries(values)) if (!keys.includes(key)) assert.equal(curve[key], value);
         const children = [];
-        EnumerateChildren(curve, item => children.push(item));
+        CjsBlue.enumerateChildren(curve, item => children.push(item));
         assert.ok(children.length > 0);
         for (const item of children) assert.equal(item, child);
         const copy = blue.classes.CopyTo(curve, new Class());

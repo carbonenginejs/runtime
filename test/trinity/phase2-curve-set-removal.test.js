@@ -13,7 +13,6 @@ import { ISimTimeRebaseNotify } from "../../npm/dist/global/blue/ISimTimeRebaseN
 import { ITriFunction } from "../../npm/dist/global/blue/ITriFunction.js";
 import { ITriCurveLength } from "../../npm/dist/global/blue/ITriCurveLength.js";
 import { blue } from "../../npm/dist/global/blue/blue.js";
-import { Traverse } from "../../npm/dist/global/blue/find.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
 import { ITr2Updateable } from "../../npm/dist/trinity/core/ITr2Updateable.js";
 import { TriDevice } from "../../npm/dist/trinity/core/device/TriDevice.js";
@@ -311,7 +310,7 @@ test("shared traversal reaches functions bindings and ranges without instance he
   set.bindings.Append(binding);
   set.ranges.Append(range);
   const visited = [];
-  Traverse(set, value => visited.push(value));
+  visited.push(set, ...blue.FindAllReferences(set).keys());
   for (const value of [set, curve, binding, range]) assert.equal(visited.includes(value), true);
   assert.deepEqual(GetResources(set), []);
 });

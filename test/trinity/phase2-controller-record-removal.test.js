@@ -3,7 +3,6 @@ import test from "node:test";
 import { CjsSchema, meta } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { BlueList, Copier, DictReader, IInitialize, INotify, IListNotify, blue } from "../../npm/dist/global/blue/index.js";
-import { Traverse } from "../../npm/dist/global/blue/find.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import { Tr2ControllerReference } from "../../npm/dist/trinity/controllers/Tr2ControllerReference.js";
@@ -186,7 +185,7 @@ test("handler construction and copy preserve list identity shared actions and ob
   copy.actions.GetInfo(info);
   assert.equal(info.notify, copy);
   const seen = [];
-  Traverse(copy, value => seen.push(value));
+  seen.push(copy, ...blue.FindAllReferences(copy).keys());
   assert.equal(seen.includes(copy.actions[0]), true);
   assert.deepEqual(GetResources(copy), []);
 });

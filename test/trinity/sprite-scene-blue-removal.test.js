@@ -22,7 +22,6 @@ import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/core/context/Tr2RenderContext.js";
 
 import { Copier } from "../../npm/dist/global/blue/Copier.js";
-import { Traverse } from "../../npm/dist/global/blue/find.js";
 
 const context={GetViewTransform:()=>mat4.create()};
 
@@ -116,7 +115,7 @@ test("canonical Scene declarations drive Copier and traversal without legacy fie
   scene.background.Append(background);
   scene.curveSets.Append(set);
   const visited = [];
-  Traverse(scene, value => visited.push(value));
+  visited.push(scene, ...blue.FindAllReferences(scene).keys());
   assert.equal(visited.length, 4);
   [scene, child, background, set].forEach((value, index) => assert.equal(visited[index], value));
   const clone = new Copier().CloneTo(scene);

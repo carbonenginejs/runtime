@@ -2,8 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { Copier, DictReader, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
-import { Traverse } from "../../npm/dist/global/blue/find.js";
+import { blue, Copier, DictReader, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
 import { Tr2BindingVector3, Tr2PyValueBinding, Tr2ExternalParameter, Tr2DynamicBinding } from "../../npm/dist/trinity/index.js";
 import { TriCurveSet, ITr2ValueBinding } from "../../npm/dist/trinity/curves/index.js";
@@ -112,7 +111,7 @@ test("external declared reader and Copier resolve each copied destination graph"
   assert.equal(copy.GetValue(), 8);
   assert.equal(external.GetValue(), 2);
   const seen = [];
-  Traverse(copy, value => seen.push(value));
+  seen.push(copy, ...blue.FindAllReferences(copy).keys());
   assert.equal(seen.includes(copy.destinationObject), true);
   assert.deepEqual(GetResources(copy), []);
 });

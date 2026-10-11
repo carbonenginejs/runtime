@@ -5,7 +5,7 @@ import { blue } from "../../npm/dist/global/blue/blue.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { Copier } from "../../npm/dist/global/blue/Copier.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
-import { EnumerateChildren } from "../../npm/dist/global/blue/find.js";
+import { CjsBlue } from "../../npm/dist/global/blue/index.js";
 import { Tr2CurveConstant } from "../../npm/dist/trinity/curves/curve/Tr2CurveConstant.js";
 import { Tr2CurveScalar } from "../../npm/dist/trinity/curves/curve/Tr2CurveScalar.js";
 import { Tr2CurveQuaternion } from "../../npm/dist/trinity/curves/curve/Tr2CurveQuaternion.js";
@@ -42,7 +42,7 @@ test("five curve classes construct through Blue without model state or convenien
         assert.equal(GetResources(value,out),out);
         assert.deepEqual(out,[]);
         const children=[];
-        EnumerateChildren(value,child=>children.push(child));
+        CjsBlue.enumerateChildren(value,child=>children.push(child));
         assert.deepEqual(children,[]);
     }
 });

@@ -2,8 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { Copier, DictReader, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
-import { Traverse } from "../../npm/dist/global/blue/find.js";
+import { blue, Copier, DictReader, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
 import { Tr2ControllerFloatVariable, Tr2ControllerExpression, Tr2BindingPoint, Tr2Controller, Tr2StateMachine } from "../../npm/dist/trinity/controllers/index.js";
 
@@ -117,7 +116,7 @@ test("binding copy keeps authored graph identity and leaves resolved state unlin
   assert.equal(copy.IsValid(), false);
   assert.equal(copy.resolvedObject, null);
   const seen = [];
-  Traverse(copy, value => seen.push(value));
+  seen.push(copy, ...blue.FindAllReferences(copy).keys());
   assert.equal(seen.includes(copy.object), true);
   assert.deepEqual(GetResources(copy), []);
   assert.equal(copy.Link(), true);
