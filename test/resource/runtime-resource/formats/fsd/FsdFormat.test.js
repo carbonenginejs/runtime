@@ -51,7 +51,7 @@ test("the normal format pipeline identifies and reads modern 64-bit cFSD", async
     assert.deepEqual(CjsFsdFormat.readJSON(bytes, { reader }), { json: true });
 });
 
-test("identified legacy 32-bit FSD reaches its reserved reader and fails explicitly", () =>
+test("identified legacy 32-bit FSD without a schema reaches its reader and fails explicitly", () =>
 {
     const bytes = new Uint8Array(24);
     const metadata = CjsFsdFormat.inspect(bytes, { bitWidth: 32 });
@@ -65,8 +65,12 @@ test("identified legacy 32-bit FSD reaches its reserved reader and fails explici
     assert.equal(metadata.decodable, false);
     assert.throws(
         () => route.Read(bytes, { bitWidth: 32 }),
-        error => error.code === "CJS_FSD_32_UNSUPPORTED"
+        error => error.code === "CJS_FSD_32_SCHEMA_REQUIRED"
             && error.bitWidth === 32,
+    );
+    assert.throws(
+        () => CjsFsdFormat.readJSON(bytes, { bitWidth: 32 }),
+        error => error.code === "CJS_FSD_32_UNSUPPORTED",
     );
 });
 

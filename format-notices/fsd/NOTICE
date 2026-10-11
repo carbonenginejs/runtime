@@ -1,11 +1,66 @@
-CarbonEngineJS tools-fsd
+formats/fsd
 
-This implementation provides original JavaScript infrastructure for decoding
-caller-supplied FSD bytes. No game assets, downloaded static data, proprietary
-schemas, generated game tables, or copied game reader implementations are
-included.
+Copyright (c) CarbonEngineJS contributors.
+CarbonEngine source material, formats, class names, and schema semantics remain
+copyright their original CarbonEngine authors.
+Fenris Creations (CCP Games) source material, tools, assets, shader behavior,
+and EVE-related data remain copyright their original holders.
 
-CarbonEngine and Fenris Creations (CCP Games) are named only for
-interoperability and provenance context. This project is not affiliated with,
-endorsed by, or sponsored by CCP Games or CCP ehf. EVE Online and related marks
-remain the property of their respective owners.
+This package decodes caller-supplied FSD bytes. It ships no game files, no
+static data and no decoded tables. CarbonEngine and Fenris Creations (CCP
+Games) are named for interoperability and provenance. This package is not
+affiliated with or endorsed by CCP Games.
+
+The format pipeline, variant identification and error reporting in
+`src/resource/formats/fsd` are original CarbonEngineJS code.
+
+CarbonEngine fsd (legacy 32-bit FSD)
+------------------------------------
+
+`src/resource/formats/fsd/32` is a JavaScript port of CarbonEngine's
+open-source FSD loader: BinaryLoader, BinaryLoaderHelper, FsdSchema,
+SchemaTypes, FsdObject, FsdList, FsdDict, FsdDictOffsetLookup, FsdVector and
+FsdUnsignedIntegerKeyMap. It keeps Carbon's class names, structure and
+behaviour; each ported file names its Carbon source in its header. The port
+was made from the published source only.
+
+- Project: https://github.com/carbonengine/fsd (revision 7fd6a10, v2.2.0+9)
+- License: MIT
+
+MIT License
+
+Copyright (c) 2026 CCP Games
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+Nothing in that license grants any rights to CCP Games' trademarks or game
+content.
+
+EVE content and CCP's terms
+---------------------------
+
+The MIT License covers this code only, never EVE content. This reader ships no
+game files. Using EVE files through it means the user has accepted CCP Games'
+EVE Online Content Creation Terms of Use and is bound by them: non-commercial
+use, with CCP's disclaimer.
+https://support.eveonline.com/hc/en-us/articles/8563917741084-EVE-Online-Content-Creation-Terms-of-Use
+
+CCP Games is now Fenris Creations. Wherever this notice says "CCP Games" or
+"CCP", read it as also meaning Fenris Creations. This project is not affiliated
+with or endorsed by Fenris Creations (CCP Games).

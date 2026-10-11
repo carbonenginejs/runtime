@@ -39,8 +39,8 @@ SQLite `readBatches(bytes, {tables, keyPaths, batchSize, metadata})` uses rowid 
 default; keyPaths explicitly selects another identity column for each table.
 FSD `readBatches(bytes, {schema, batchSize, metadata})` uses the root map's keys;
 a root object is one record keyed by zero. Worker options carry an inert schema
-from a reader's `getFsdSchema()`, not a reader instance. Legacy FSD32 decoding is
-still unsupported. FSD batches retain the root offset index and duplicate-key
+from a reader's `getFsdSchema()`, not a reader instance. Legacy FSD32 has no
+table output. FSD batches retain the root offset index and duplicate-key
 set, but do not retain previously decoded rows. SQLite and FSD still require the
 source container bytes in memory.
 

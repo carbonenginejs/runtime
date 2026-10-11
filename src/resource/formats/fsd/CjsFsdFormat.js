@@ -10,7 +10,8 @@ const OUTPUT_PAYLOAD = "payload";
  *
  * Modern cFSD identifies itself through its 32-byte envelope. Legacy FSD is
  * headerless and therefore must be identified by the caller/profile through
- * `bitWidth: 32` or `variant: "fsd32"` until its schema-driven reader exists.
+ * `bitWidth: 32` or `variant: "fsd32"`, with its binary schema in
+ * `options.schema`.
  */
 export class CjsFsdFormat extends CjsFormat
 {
