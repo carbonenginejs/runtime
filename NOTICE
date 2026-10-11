@@ -18,6 +18,9 @@ This project is not affiliated with, endorsed by, or sponsored by CCP Games or
 CCP ehf. "EVE Online" and related marks are the property of their respective
 owners. No game assets are redistributed in this package.
 
+CCP Games is now Fenris Creations. Wherever this package, its docs or
+its notices say "CCP Games" or "CCP", read it as also meaning Fenris Creations.
+
 Space Object Factory capability
 -------------------------------
 
@@ -62,9 +65,12 @@ under the MIT License:
     CarbonEngine - https://github.com/carbonengine
     MIT License, Copyright (c) 2026 CCP Games
 
-The source-neutral character documents, appearance plans, resolver, controls,
-library, and acquisition-free library builder are original CarbonEngineJS
-work. The historical Incarna compatibility classes include compact
+The character creator is original CarbonEngineJS work and is not taken from
+the CarbonEngine codebase. That covers the character documents, paperdoll
+assembly, appearance plans, resolver, texture and coverage policies, controls,
+library and library builder. It was put together by hand from reading the
+game's character shaders and content files. "Paperdoll" is CCP's name for
+the character content folders, and the creator uses that name to match. The historical Incarna compatibility classes include compact
 MIT-licensed adaptations identified in THIRD-PARTY-NOTICES.md. Reviewed
 generated data-only classes live under `src/character/generated`.
 
@@ -88,19 +94,22 @@ Pointer Lock, and Fullscreen adapters are original CarbonEngineJS work. No
 acquired assets, decoded datasets, or game data are redistributed with the
 input capability.
 
-WebGPU capability
------------------
+Graphics abstraction layer
+--------------------------
 
 Copyright (c) 2026 cppctamber / CarbonEngineJS contributors
 
-The WebGPU device, descriptor, resource, pipeline, binding, and draw
-realization under `src/engine/webgpu` is original CarbonEngineJS work. The
-adjacent-batch grouping behavior in `core/batchGroups.js` adapts the documented
-CarbonEngine `Tr2RenderContextBase::RenderBatchGroup` and `CanBeBinned`
-semantics; its exact source paths and deliberate WebGPU deviations are recorded
-in that file.
+The graphics abstraction layer under `src/trinityal` ports CarbonEngine's
+`trinity/trinityal`, released under the MIT License:
 
-The repository-only WebGPU verification harness uses Microsoft Playwright as a
+    CarbonEngine - https://github.com/carbonengine
+    MIT License, Copyright (c) 2026 CCP Games
+
+Each ported file names its Carbon source. The WebGPU and WebGL2 backends under
+`src/trinityal/webgpu` and `src/trinityal/webgl2` are original CarbonEngineJS
+work.
+
+Repository-only test and demo scripts use Microsoft Playwright as a
 development dependency. Playwright is licensed under the Apache License 2.0;
 it is not a runtime dependency and no Playwright source or browser binary is
 redistributed in this package. No acquired GPU packages, effect bytes,
@@ -117,16 +126,16 @@ original CarbonEngineJS work. They compose caller-supplied services and report
 platform capabilities without creating a renderer device, loading resources,
 or acquiring browser state during module import.
 
-Browser tools capability
-------------------------
+Tools capability
+----------------
 
 Copyright (c) 2026 cppctamber / CarbonEngineJS contributors
 
-The browser-safe clients, remote readers, inspectors, presentation-neutral
-controllers, optional UI, and demo composition under `src/tools` are original
-CarbonEngineJS work. They use browser-standard or injected Web APIs and bundle
-no credentials, acquired datasets, game assets, fonts, or remote media. Node.js
-and native acquisition/build tooling remain in the separate tools-core package.
+`src/tools` holds the file-index family, which reads, diffs and overlays the
+`appfileindex` and `resfileindex` listings that list a build's files. Its
+`fileindex/carbon` folder ports CarbonEngine's resources library
+(`ResourceGroup`, `ResourceInfo`), released under the MIT License. The rest is
+original CarbonEngineJS work. No index files or game data are included.
 
 Resource capability
 -------------------
@@ -135,7 +144,11 @@ The resource capability owns resource lifecycle, format selection, canonical
 GPU-free shader/reflection models, and the format readers under
 `src/resource/formats`. Copied format implementations retain their original
 license and notice files under `format-notices/<format>/`, including notices
-for meshoptimizer, yaml, black-reader-js, and bundled Wwise codebook data.
+for meshoptimizer, yaml and black-reader-js; the ww2ogg-translated Wwise Vorbis
+repacker and codebook data (BSD 3-clause); and the stb_vorbis-derived Huffman
+setup. See THIRD-PARTY-NOTICES.md. The WEM reader's PTADPCM decoder was
+removed on 2026-10-11 until its provenance can be confirmed; PTADPCM media is
+identified but not decoded.
 
 The bundled Black definition JSON files are generated CarbonEngineJS schema
 artifacts produced by `tools-core` from Carbon's Blue exposure declarations.
@@ -147,6 +160,10 @@ The GR2/GSF reader was migrated after its EUPL-derived decoder was replaced by
 a validated clean-room implementation and the donor was relicensed MIT. The
 modern cFSD decoder and reviewed dataset schemas decode caller-supplied bytes
 and include no acquired game data, decoded tables, or native loader modules.
+The legacy 32-bit FSD loader under `src/resource/formats/fsd/32` ports
+CarbonEngine's open-source `fsd` library (MIT); it reads caller-supplied bytes
+against a caller-supplied schema and ships no schemas. See
+`format-notices/fsd`.
 
 Shader and effect pipeline
 --------------------------
@@ -173,8 +190,11 @@ Game files
 ----------
 
 The runtime operates on game files the user supplies, such as effects and
-shaders, textures, geometry and audio. None are included in this package. Use
-of EVE Online content is subject to CCP's EVE Online Content Creation Terms,
-which allow non-commercial player-made work and require CCP's disclaimer.
+shaders, textures, geometry and audio. None are included in this package. The
+MIT License covers this code only, never EVE content. Using EVE files through
+this runtime means the user has accepted CCP Games' EVE Online Content Creation
+Terms of Use and is bound by them. Those terms allow non-commercial player-made
+work and require CCP's disclaimer:
+https://support.eveonline.com/hc/en-us/articles/8563917741084-EVE-Online-Content-Creation-Terms-of-Use
 
 License: MIT. See LICENSE.

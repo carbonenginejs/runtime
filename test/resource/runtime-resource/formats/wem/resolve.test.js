@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsWemFormat } from "../../../../../src/resource/formats/wem/index.js";
-import { decodePtadpcm } from "../../../../../src/resource/formats/wem/core/ptadpcm.js";
 
 // Cheap structural WEM support: the fmt tag picks the first candidate but
 // bounded content validation decides. This is advisory until readAsync runs.
@@ -65,7 +64,7 @@ test("correctly-tagged codecs validate as declared with no mismatch", async () =
     assert.equal(ptadpcm.metadata.resolved, "wwise-ptadpcm");
     assert.equal(ptadpcm.metadata.mismatch, false);
     assert.equal(ptadpcm.preferredOutput, "raw");
-    CjsWemFormat.registerPcmDecoder("wwise-ptadpcm", { decode: decodePtadpcm });
+    CjsWemFormat.registerPcmDecoder("wwise-ptadpcm", { decode: () => ({ channelData: [], sampleCount: 0 }) });
     try
     {
         assert.equal(CjsWemFormat.getSupport(ptadpcmWem).preferredOutput, "pcm");

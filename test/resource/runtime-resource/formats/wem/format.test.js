@@ -4,13 +4,22 @@ import CjsWemFormat, { CjsWemFormat as NamedCjsWemFormat } from "../../../../../
 import { BitReader, OggPageWriter, ilog, oggChecksum } from "../../../../../src/resource/formats/wem/core/bitStream.js";
 import { bookMaptype1Quantvals, parseCodebookLibrary, rebuildCodebook } from "../../../../../src/resource/formats/wem/core/codebookLibrary.js";
 import { getPackedCodebooksAotuv603 } from "../../../../../src/resource/formats/wem/core/packedCodebooksAotuv603.js";
-import { decodePtadpcm } from "../../../../../src/resource/formats/wem/core/ptadpcm.js";
 
-// PTADPCM decoding is opt-in: the reader ships no decoder. Tests that decode
-// register the in-tree one for their own duration.
+// The runtime ships no PTADPCM decoder (its step table is reverse-engineered;
+// the real decoder lives outside git). This stand-in proves the registry
+// routing without decoding anything.
+const STAND_IN_DECODER = {
+    decode: (bytes, metadata) => ({
+        channelData: [ new Float32Array(0) ],
+        sampleCount: 0,
+        sampleRate: metadata.sampleRate,
+        channels: metadata.channels
+    })
+};
+
 function withPtadpcm(run)
 {
-    CjsWemFormat.registerPcmDecoder("wwise-ptadpcm", { decode: decodePtadpcm });
+    CjsWemFormat.registerPcmDecoder("wwise-ptadpcm", STAND_IN_DECODER);
     try
     {
         return run();
@@ -105,48 +114,6 @@ test("emit json returns metadata and unsupported emits fail cleanly", () =>
     // pcm is a valid emit, but Vorbis routes through the ogg repack instead.
     assert.throws(() => CjsWemFormat.read(bytes, { emit: "pcm" }), /pcm decode is not supported/u);
     assert.throws(() => CjsWemFormat.read(bytes, { emit: "flac" }), /unknown emit value/u);
-});
-
-test("decodes a PTADPCM frame to the hand-computed sample vector", () =>
-{
-    // One mono frame, blockAlign 8 -> 8 samples: hist2=100, hist1=200,
-    // index=0, codes [15,0,7,7,8,8] (low nibble first). Prediction
-    // sample = step + 2*hist1 - hist2 walked by hand through the step table.
-    const bytes = makePtadpcmWem({
-        channels: 1,
-        blockAlign: 8,
-        frames: [ [ 100, 200, 0, 0x0f, 0x77, 0x88 ] ]
-    });
-    const pcm = withPtadpcm(() => CjsWemFormat.toPcm(bytes));
-
-    assert.equal("payloadType" in pcm, false);
-    assert.equal(pcm.sourceCodec, "wwise-ptadpcm");
-    assert.equal(pcm.channels, 1);
-    assert.equal(pcm.sampleCount, 8);
-    const expected = [ 100, 200, 314, 372, 422, 468, 516, 565 ];
-    const actual = [ ...pcm.channelData[0] ].map((value) => Math.round(value * 32768));
-    assert.deepEqual(actual, expected);
-});
-
-test("decodes interleaved stereo PTADPCM frames per channel", () =>
-{
-    // Two channels, one frame group: left all-zero codes hold a constant
-    // predictor line (2*h1 - h2 with h2 == h1 stays flat), right seeds a
-    // different history so the channels must not bleed into each other.
-    const bytes = makePtadpcmWem({
-        channels: 2,
-        blockAlign: 16,
-        frames: [
-            [ 1000, 1000, 0, 0x77, 0x77, 0x77 ],
-            [ -2000, -2000, 0, 0x77, 0x77, 0x77 ]
-        ]
-    });
-    const pcm = withPtadpcm(() => CjsWemFormat.toPcm(bytes));
-
-    assert.equal(pcm.channels, 2);
-    assert.equal(pcm.sampleCount, 8);
-    assert.ok(pcm.channelData[0].every((value) => Math.round(value * 32768) === 1000));
-    assert.ok(pcm.channelData[1].every((value) => Math.round(value * 32768) === -2000));
 });
 
 test("advertises the pcm variant for PTADPCM and prefers it over raw", () =>

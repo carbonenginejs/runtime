@@ -33,17 +33,15 @@ The bundled packed codebook data
 copy of ww2ogg's packed_codebooks_aoTuV_603.bin, which derives from the aoTuV
 Vorbis encoder by Aoyumi.
 
-vgmstream
-Repository: https://github.com/vgmstream/vgmstream
-License: vgmstream license (ISC-style); full text in format-notices/wem/LICENSE
+PTADPCM: decoder removed
+------------------------
 
-  Copyright (c) 2008-2025 Adam Gashlin, Fastelbja, Ronny Elfert, bnnm,
-                          Christopher Snowhill, NicknineTheEagle, bxaimc,
-                          Thealexbarney, CyberBotX, EdnessP, et al
-
-The PTADPCM decoder (src/resource/formats/wem/core/ptadpcm.js), including its
-step table, is a JavaScript translation of vgmstream's
-src/coding/ptadpcm_decoder.c.
+PTADPCM media is still identified, from its fmt tag and frame layout, but this
+package no longer decodes it. The former decoder was a translation of
+vgmstream's src/coding/ptadpcm_decoder.c, whose step table vgmstream reports
+was reverse-engineered from executables. It was removed on 2026-10-11 until its
+provenance can be confirmed. A host may register its own decoder with
+CjsWemFormat.registerPcmDecoder; without one, PTADPCM sounds play silence.
 
 Audiokinetic, CarbonEngine, and Fenris Creations (CCP Games) are mentioned for
 interoperability, provenance, and future migration context only. This package

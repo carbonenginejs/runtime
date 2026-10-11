@@ -30,8 +30,9 @@ const FORMAT_NAME = "CjsWemFormat";
  * `emit: "pcm"` decodes 16-bit PCM media to float32 samples.
  *
  * PTADPCM is recognized but not decoded unless a host registers a decoder
- * with `registerPcmDecoder`; this package ships none. Without one, PTADPCM
- * media reports PCM output as unsupported.
+ * with `registerPcmDecoder`. This package ships none: its former decoder was
+ * removed until its provenance can be confirmed (format-notices/wem). Without
+ * one, PTADPCM media reports PCM output as unsupported.
  */
 export class CjsWemFormat extends CjsFormat
 {

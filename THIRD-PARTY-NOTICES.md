@@ -35,16 +35,13 @@ ww2ogg's `packed_codebooks_aoTuV_603.bin`.
 - Copyright (c) 2002, Xiph.org Foundation; Copyright (c) 2009-2016, Adam Gashlin
 - License: BSD 3-clause; full text in `format-notices/wem/LICENSE`
 
-## vgmstream
+## PTADPCM decoder removed
 
-The WEM reader's PTADPCM decoder (`ptadpcm.js`), including its step table, is a
-JavaScript translation of vgmstream's `src/coding/ptadpcm_decoder.c`.
-
-- Project: <https://github.com/vgmstream/vgmstream>
-- Copyright (c) 2008-2025 Adam Gashlin, Fastelbja, Ronny Elfert, bnnm,
-  Christopher Snowhill, NicknineTheEagle, bxaimc, Thealexbarney, CyberBotX,
-  EdnessP, et al
-- License: vgmstream license (ISC-style); full text in `format-notices/wem/LICENSE`
+The WEM reader no longer decodes Wwise PTADPCM. Its former decoder translated
+vgmstream's `src/coding/ptadpcm_decoder.c`, whose step table vgmstream reports
+was reverse-engineered from executables. It was removed on 2026-10-11 until its
+provenance can be confirmed. PTADPCM media is still identified; see
+`format-notices/wem`.
 
 ## stb_vorbis
 
