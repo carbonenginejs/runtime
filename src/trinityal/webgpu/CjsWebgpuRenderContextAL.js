@@ -110,6 +110,9 @@ const BIND_GROUP_MAX_IDLE_FRAMES = 120;
 /** How often, in frames, _SweepBindGroups looks. */
 const BIND_GROUP_SWEEP_FRAMES = 60;
 
+/** The dummy texture format per binding sample type; float and unfilterable-float use rgba8unorm. */
+const DUMMY_TEXTURE_FORMAT = { uint: "r8uint", sint: "r8sint", depth: "depth32float" };
+
 /**
  * The `GPUBuffer` behind a bound stream, or null.
  *
@@ -2253,44 +2256,52 @@ export class CjsWebgpuRenderContextAL
   /** Metal's dummy for a slot no set filled; `storageIndex` picks a storage dummy of its own. */
   _DummyFor(binding, storageIndex = 0)
   {
-    if (binding.sampler) return this.GetDummySampler();
-    if (binding.texture) return this.GetDummyTexture(binding.texture.viewDimension ?? "2d");
+    if (binding.sampler) return this.GetDummySampler(binding.sampler.type);
+    if (binding.texture) return this.GetDummyTexture(binding.texture.viewDimension ?? "2d", binding.texture.sampleType);
     if (binding.storageTexture) return this.GetDummyStorageTexture(binding.storageTexture.format, binding.storageTexture.viewDimension, storageIndex);
 
     return { buffer: this.GetNullBuffer(binding.buffer?.minBindingSize ?? 16, "STORAGE") };
   }
 
   /** The dummies, created once each: `MetalContext::m_dummyTexture[]`, `m_dummySampler`. */
-  _dummies = { textures: new Map(), storageTextures: new Map(), sampler: null, buffers: new Map(), vertexBuffer: null };
+  _dummies = { textures: new Map(), storageTextures: new Map(), samplers: new Map(), buffers: new Map(), vertexBuffer: null };
 
   /**
-   * A 1x1 texture view of the given dimension, for a slot nothing filled.
+   * A 1x1 texture view of the given dimension and sample type, for a slot
+   * nothing filled.
    *
    * `MetalContext::GetDummyTexture( MTLTextureType )` (`MetalContext.mm:306-320`):
    * one per texture type, because a sampler of the wrong dimension is a
-   * validation error rather than a black texel.
+   * validation error rather than a black texel. WebGPU also checks the
+   * view's sample type against the layout, so a uint, sint or depth slot
+   * gets a format of that kind. Every dummy is zero-initialised, which is
+   * Carbon's colour-0 fallback (`Tr2Renderer.cpp:252-263`) in any format.
    *
    * @param {string} [viewDimension] A `GPUTextureViewDimension`.
+   * @param {string} [sampleType] The binding's `texture.sampleType`.
    * @returns {object} A `GPUTextureView`.
    */
-  GetDummyTexture(viewDimension = "2d")
+  GetDummyTexture(viewDimension = "2d", sampleType = "float")
   {
-    const existing = this._dummies.textures.get(viewDimension);
+    const key = `${viewDimension}:${sampleType}`;
+    const existing = this._dummies.textures.get(key);
 
     if (existing) return existing.view;
 
+    const format = DUMMY_TEXTURE_FORMAT[sampleType] ?? "rgba8unorm";
     const usage = this._webgpu.GetTextureUsage();
     const layers = viewDimension === "cube" ? 6 : 1;
     const texture = this._webgpu.GetDevice().createTexture({
-      label: `Tr2RenderContextAL dummy ${viewDimension}`,
+      label: `Tr2RenderContextAL dummy ${key}`,
       size: { width: 1, height: 1, depthOrArrayLayers: layers },
       dimension: viewDimension === "3d" ? "3d" : "2d",
-      format: "rgba8unorm",
-      usage: usage.TEXTURE_BINDING | usage.COPY_DST
+      format,
+      // A depth format cannot be a copy destination; nothing writes any dummy.
+      usage: sampleType === "depth" ? usage.TEXTURE_BINDING : usage.TEXTURE_BINDING | usage.COPY_DST
     });
     const view = texture.createView({ dimension: viewDimension });
 
-    this._dummies.textures.set(viewDimension, { texture, view });
+    this._dummies.textures.set(key, { texture, view });
 
     return view;
   }
@@ -2330,12 +2341,29 @@ export class CjsWebgpuRenderContextAL
     return view;
   }
 
-  /** `MetalContext::GetDummySampler()`: a default sampler for a slot nothing filled. */
-  GetDummySampler()
+  /**
+   * `MetalContext::GetDummySampler()`: a default sampler for a slot nothing
+   * filled. A comparison slot needs a comparison sampler, which WebGPU makes
+   * by giving the sampler a compare function.
+   *
+   * @param {string} [type] The binding's `sampler.type`.
+   * @returns {object} A `GPUSampler`.
+   */
+  GetDummySampler(type = "filtering")
   {
-    this._dummies.sampler ??= this._webgpu.GetDevice().createSampler({ label: "Tr2RenderContextAL dummy sampler" });
+    const comparison = type === "comparison";
+    const key = comparison ? "comparison" : "default";
+    let sampler = this._dummies.samplers.get(key);
 
-    return this._dummies.sampler;
+    if (!sampler)
+    {
+      sampler = this._webgpu.GetDevice().createSampler(comparison
+        ? { label: "Tr2RenderContextAL dummy comparison sampler", compare: "less" }
+        : { label: "Tr2RenderContextAL dummy sampler" });
+      this._dummies.samplers.set(key, sampler);
+    }
+
+    return sampler;
   }
 
   /**
@@ -2825,7 +2853,7 @@ export class CjsWebgpuRenderContextAL
     for (const buffer of this._dummies.buffers.values()) this.ReleaseLater(() => buffer.destroy());
     const vertexBuffer = this._dummies.vertexBuffer;
     if (vertexBuffer) this.ReleaseLater(() => vertexBuffer.destroy());
-    this._dummies = { textures: new Map(), storageTextures: new Map(), sampler: null, buffers: new Map(), vertexBuffer: null };
+    this._dummies = { textures: new Map(), storageTextures: new Map(), samplers: new Map(), buffers: new Map(), vertexBuffer: null };
     // The sampler factory is NOT cleared here: Carbon's lives for the primary
     // context's lifetime, and every seeded pass description still holds the
     // states it handed out - clearing it made an equal description create a

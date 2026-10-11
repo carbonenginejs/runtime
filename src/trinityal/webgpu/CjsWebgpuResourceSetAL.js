@@ -146,7 +146,7 @@ export class CjsWebgpuResourceSetAL
       const state = slot?.type === 1 ? slot.sampler : null;
       const sampler = state && typeof state.GetSampler === "function" ? state.GetSampler() : null;
 
-      return sampler ?? renderContext.GetDummySampler();
+      return sampler ?? renderContext.GetDummySampler(binding.sampler.type);
     }
 
     if (binding.texture)
@@ -158,7 +158,7 @@ export class CjsWebgpuResourceSetAL
         ? texture.TrinityALImpl_GetObject().GetDeviceTextureView(dimension, slot.colorSpace, binding.texture.sampleType)
         : null;
 
-      return view ?? renderContext.GetDummyTexture(dimension);
+      return view ?? renderContext.GetDummyTexture(dimension, binding.texture.sampleType);
     }
 
     // A storage texture is a UAV bound at one mip; the description keeps the mip

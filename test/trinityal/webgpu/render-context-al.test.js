@@ -1128,3 +1128,48 @@ for (const inFlight of [false, true])
     assert.deepEqual(resources.map(r => r.destroyed), Array(10).fill(1));
   });
 }
+
+test("an unfilled slot gets a dummy of its binding's sample type and sampler type", () =>
+{
+  const textures = [];
+  const samplers = [];
+  const device = {
+    createTexture: descriptor => {
+      const texture = { descriptor, destroy() {}, createView: view => ({ texture, view }) };
+      textures.push(texture);
+      return texture;
+    },
+    createSampler: descriptor => { const sampler = { descriptor }; samplers.push(sampler); return sampler; },
+    createBuffer: () => ({ destroy() {} }),
+    createCommandEncoder: () => ({ finish: () => ({}), beginRenderPass: () => ({ end() {} }) })
+  };
+  const al = new CjsWebgpuRenderContextAL({ webgpu: {
+    IsLost: () => false,
+    GetGeneration: () => 1,
+    GetDevice: () => device, GetTextureUsage: () => ({ TEXTURE_BINDING: 1, COPY_DST: 2, STORAGE_BINDING: 4 }),
+    GetBufferUsage: () => ({ VERTEX: 1, COPY_DST: 2, STORAGE: 4 }), Submit() {}
+  }, renderTarget: { GetFormat: () => "bgra8unorm", GetWidth: () => 1, GetHeight: () => 1 } });
+  al.CreateDevice();
+
+  // Frontier's EveSpaceSceneDynamicShadowMap (uint) and ShadowMapAtlas (depth, comparison sampler).
+  const uint = al._DummyFor({ texture: { sampleType: "uint", viewDimension: "2d" } });
+  const depth = al._DummyFor({ texture: { sampleType: "depth", viewDimension: "2d" } });
+  const sint = al._DummyFor({ texture: { sampleType: "sint", viewDimension: "2d" } });
+  const float = al._DummyFor({ texture: { sampleType: "float", viewDimension: "2d" } });
+  const comparison = al._DummyFor({ sampler: { type: "comparison" } });
+  const filtering = al._DummyFor({ sampler: { type: "filtering" } });
+
+  assert.deepEqual([ uint, sint, depth, float ].map(view => view.texture.descriptor.format), [ "r8uint", "r8sint", "depth32float", "rgba8unorm" ]);
+  assert.equal(depth.texture.descriptor.usage, 1, "a depth dummy is never a copy destination");
+  assert.equal(comparison.descriptor.compare, "less");
+  assert.equal(filtering.descriptor.compare, undefined);
+  assert.notEqual(comparison, filtering);
+
+  // One of each, cached by dimension and sample type.
+  assert.equal(al.GetDummyTexture("2d", "uint"), uint);
+  assert.equal(al.GetDummyTexture("2d"), float);
+  assert.equal(al.GetDummySampler("non-filtering"), filtering);
+  assert.equal(textures.length, 4);
+  assert.equal(samplers.length, 2);
+  al.Destroy();
+});
