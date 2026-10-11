@@ -21,7 +21,7 @@ import { EveChildInstanceContainer } from "../../npm/dist/trinity/eve/child/EveC
 import { EveChildPlug } from "../../npm/dist/trinity/eve/child/EveChildPlug.js";
 import { EveChildParticleSphere } from "../../npm/dist/trinity/eve/child/EveChildParticleSphere.js";
 import { EveChildRef } from "../../npm/dist/trinity/eve/child/EveChildRef.js";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { blue, BlueList } from "../../npm/dist/global/blue/index.js";
 import { EveChildSocket } from "../../npm/dist/trinity/eve/child/EveChildSocket.js";
 import { EveCloudVolumeBall } from "../../npm/dist/trinity/eve/child/EveCloudVolumeBall.js";
 import { EveSpaceObjectChild } from "../../npm/dist/trinity/eve/child/EveSpaceObjectChild.js";
@@ -284,15 +284,15 @@ test("Tr2Sprite2dContainerBase owns child parents and propagates dirty state", (
   const inner = new Tr2Sprite2dContainerBase();
   const leaf = new Tr2SpriteObjectBase();
 
-  assert.deepEqual(outer.background, []);
-  assert.deepEqual(outer.children, []);
+  // Carbon's lists are Blue lists that notify their owner (390192980).
+  assert.ok(outer.background instanceof BlueList);
+  assert.ok(outer.children instanceof BlueList);
+  assert.equal(outer.background.length, 0);
+  assert.equal(outer.children.length, 0);
   assert.equal(outer.opacity, 1);
 
-  // Existing JS arrays require explicit native list callbacks after mutation.
-  outer.children.push(inner);
-  outer.OnListModified(0x08, 0, 0, inner, outer.children);
-  inner.children.push(leaf);
-  inner.OnListModified(0x08, 0, 0, leaf, inner.children);
+  outer.children.Append(inner);
+  inner.children.Append(leaf);
   outer.isDirty = false;
   inner.isDirty = false;
   leaf.isDirty = false;
@@ -305,8 +305,7 @@ test("Tr2Sprite2dContainerBase owns child parents and propagates dirty state", (
   outer.isDirty = false;
   inner.isDirty = false;
   leaf.isDirty = false;
-  assert.equal(inner.children.splice(0, 1)[0], leaf);
-  inner.OnListModified(0x09, 0, 0, leaf, inner.children);
+  assert.equal(inner.children.Remove(0), true);
   assert.equal(inner.isDirty, true);
   assert.equal(outer.isDirty, true);
 
@@ -319,13 +318,10 @@ test("Tr2Sprite2dContainerBase owns child parents and propagates dirty state", (
 
   const first = new Tr2SpriteObjectBase();
   const second = new Tr2SpriteObjectBase();
-  inner.background.push(first);
-  inner.OnListModified(0x08, 0, 0, first, inner.background);
-  inner.background.push(second);
-  inner.OnListModified(0x08, 1, 0, second, inner.background);
-  // Native UNLOADSTART precedes clearing, while children can still be detached.
-  inner.OnListModified(0x07, 0, 0, null, inner.background);
-  inner.background.length = 0;
+  inner.background.Append(first);
+  inner.background.Append(second);
+  // Remove(-1) sends UNLOADSTART before clearing, while children can still be detached.
+  inner.background.Remove(-1);
   assert.equal(inner.background.length, 0);
   inner.isDirty = false;
   first.isDirty = false;

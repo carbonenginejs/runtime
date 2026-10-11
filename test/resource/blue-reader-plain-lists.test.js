@@ -141,13 +141,13 @@ CjsSchema.define(FilterOwner, { className: "BlueReaderFilterOwner", fields: {
   hiddenPersisted: { type: { kind: "string" }, edit: { hidden: true, persist: true, persistOnly: true } }
 } });
 
-test("plain declared hydration filters unknown, hidden-inherited and runtime-only keys before incoming getters", () =>
+test("plain declared hydration filters runtime-only keys before incoming getters, and throws on unknown and hidden-inherited ones", () =>
 {
   const kind = CjsSchema.getClassName(FilterOwner);
   const reader = new CjsBlueReader({ classes: { [kind]: FilterOwner }, strict: true, schemaOnly: true });
   const owner = reader.CreateRuntimeTarget(kind), cache = owner.cache;
   const values = { value: 8, readonly: 99, hiddenPersisted: "authored" };
-  for (const name of ["unknown", "inheritedHidden", "cache"])
+  for (const name of ["cache"])
     Object.defineProperty(values, name, { enumerable: true, get() { assert.fail(`${name} input must be ignored`); } });
   reader.ApplyRuntimeValues(owner, values, kind);
   assert.equal(owner.value, 8);
@@ -155,7 +155,15 @@ test("plain declared hydration filters unknown, hidden-inherited and runtime-onl
   assert.equal(owner.hiddenPersisted, "authored", "HIDDEN plus PERSIST is still importable");
   assert.equal(owner.inheritedHidden, "retained");
   assert.equal(owner.cache, cache);
-  assert.equal(Object.hasOwn(owner, "unknown"), false);
+
+  // IRootReader.cpp:63-67: an attribute the class does not declare is an
+  // InvalidAttributeException, not a silent skip (49c1230ac).
+  const other = reader.CreateRuntimeTarget(kind);
+  assert.throws(() => reader.ApplyRuntimeValues(other, { value: 1, unknown: 2 }, kind), /Invalid attribute: unknown/);
+  assert.equal(Object.hasOwn(other, "unknown"), false);
+  // A hidden inherited member is absent from the class's table, so it misses too.
+  assert.throws(() => reader.ApplyRuntimeValues(other, { inheritedHidden: "x" }, kind), /Invalid attribute: inheritedHidden/);
+  assert.equal(other.inheritedHidden, "retained");
 });
 
 class Notified
@@ -256,25 +264,29 @@ test("unregistered classes and unresolved kinds keep raw assignment and legacy f
   assert.equal(reader.runtimeInstances[0].instance.initializeCount, 1);
 });
 
-test("Red runtime preserves declared list ownership and shared children while retaining its lenient named-field boundary", () =>
+test("Red runtime preserves declared list ownership and shared children, and throws on an undeclared field", () =>
 {
   // An authored in-memory Red graph tests the shared backend, not an asset corpus.
   const child = { type: itemName, value: 12, unknownChild: "ignored" };
   const source = { type: ownerName, name: "red", items: [child, child], unknownOwner: 7 };
-  const owner = new CjsRedReader(source, { classes }).ReadRuntime().root;
+  // IRootReader.cpp:63-67: hydration refuses an undeclared attribute (49c1230ac).
+  assert.throws(() => new CjsRedReader(source, { classes }).ReadRuntime(), /Invalid attribute: unknown/);
+
+  const declaredChild = { type: itemName, value: 12 };
+  const declared = { type: ownerName, name: "red", items: [declaredChild, declaredChild] };
+  const owner = new CjsRedReader(declared, { classes }).ReadRuntime().root;
   AssertOwned(owner);
   assert.equal(owner.items.length, 2);
   assert.equal(owner.items[0], owner.items[1]);
   assert.ok(owner.items[0] instanceof Item);
   assert.equal(owner.items[0].value, 12);
-  assert.equal(Object.hasOwn(owner, "unknownOwner"), false);
-  assert.equal(Object.hasOwn(owner.items[0], "unknownChild"), false);
   assert.deepEqual(owner.events.map(entry => entry.event), [BELIST_LOADFINISHED]);
   assert.equal(owner.events[0].notify, owner);
   assert.deepEqual(owner.events[0].childInitializeCounts, [0, 0]);
   assert.equal(owner.initializeCount, 1);
   assert.equal(owner.items[0].initializeCount, 1);
   assert.deepEqual(owner.childInitializeCounts, [1, 1]);
+  // The payload is not hydrated, so it keeps every field the file carries.
   const payload = new CjsRedReader(source, { classes }).ReadPayload().object;
   assert.equal(payload.unknownOwner, 7);
   assert.equal(payload.items[0].unknownChild, "ignored");
