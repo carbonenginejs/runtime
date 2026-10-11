@@ -1,9 +1,8 @@
 // Serves the WebGPU demo and drives it in headless Chromium.
 //
-// Separate from run-webgpu-harness.js on purpose: that one validates shader
-// packages against fixtures, this one runs the composed frame. A failure here
-// means the FRAME is wrong - sequencing, collection, submission, resolution -
-// which is a different question from whether a container translated correctly.
+// It runs the composed frame. A failure here means the FRAME is wrong -
+// sequencing, collection, submission, resolution - which is a different
+// question from whether a container translated correctly.
 //
 //   node scripts/trinityal/webgpu/run-webgpu-demo.js            headless, exits non-zero on failure
 //   node scripts/trinityal/webgpu/run-webgpu-demo.js --headed   watch it draw

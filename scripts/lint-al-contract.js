@@ -256,13 +256,11 @@ for (const backend of backends)
     const surface = await surfaceOf(backendFiles);
     // AL CLASSES ONLY, AND BEFORE THE MAP IS BUILT. This was last-write-wins
     // over every exported class, and `contractName` collapses a DESCRIPTOR onto
-    // the same key as the device object - `CjsWebgpuTexture` and
-    // `Tr2TextureALStub` both reduce to `Texture`. Whichever the directory walk
-    // reached last won the slot, and a later `endsWith("AL")` guard then SKIPPED
-    // THE WHOLE CONTRACT when a descriptor had won it. So WebGPU's texture
-    // surface went unchecked, and the fact that it has no texture AL at all was
-    // masked rather than reported. `Buffer` was correct only by alphabetical
-    // luck: `CjsWebgpuBuffer.js` sorts before `CjsWebgpuBufferAL.js`.
+    // the same key as the device object - the batch path's `CjsWebgpuTexture`
+    // (deleted 2026-10-11) and `Tr2TextureALStub` both reduced to `Texture`.
+    // Whichever the directory walk reached last won the slot, and a later
+    // `endsWith("AL")` guard then SKIPPED THE WHOLE CONTRACT when a descriptor
+    // had won it, masking the surface it should have checked.
     const byContract = new Map(
         [ ...surface ]
             .filter(([ name ]) => name.endsWith("AL"))

@@ -1619,9 +1619,9 @@ export class CjsWebgpuRenderContextAL
    *
    * Carbon keeps this on the DEVICE (`m_ownerDevice->m_pipelineStates`,
    * `Tr2PrimaryRenderContextDx12.h:319`; Metal's `GetCachedRenderPipelineState`)
-   * so every context shares one. It lives here until `CjsWebgpuDevice` offers a
-   * synchronous cache - its `CjsWebgpuPipelineCache` resolves asynchronously,
-   * and a draw verb cannot await. Cleared with the device resources.
+   * so every context shares one. It lives here because `CjsWebgpuDevice` has no
+   * pipeline cache, and a draw verb cannot await one. Cleared with the device
+   * resources.
    */
   _pipelines = new Map();
 

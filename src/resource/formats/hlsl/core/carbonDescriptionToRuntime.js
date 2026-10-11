@@ -39,8 +39,8 @@ import { HlslSamplerSetup } from "./tr2/shader/HlslSamplerSetup.js";
  * | UAV has no `isSRGB` | `isSRGB: false` | **synthesised** — see `mapUavRecord` |
  * | `registerIndex` field | map key | consumed as the key, not a payload field |
  *
- * Three of those are silent when wrong. `arrayElements` is read at
- * `packageHelpers.js:869` and a rename yields `undefined` there. `isSRGB` as `0`
+ * Three of those are silent when wrong. A rename of `arrayElements` yields
+ * `undefined` for every reader of it. `isSRGB` as `0`
  * is *accidentally correct* — `0` is falsy, `1` is truthy — so it survives every
  * behavioural test and only a structural diff sees it. A flat sampler puts all
  * fourteen descriptor fields at the wrong depth at once.
@@ -167,8 +167,8 @@ const TEXTURE_RULES = {
     name: (target, value) => { target.name = text(value); },
     type: (target, value) => { target.type = value; },
     // RENAME: the wire calls this `count`; the runtime calls it `arrayElements`.
-    // Copying the field name yields `arrayElements: undefined`, read silently at
-    // `packageHelpers.js:869`.
+    // Copying the field name yields `arrayElements: undefined`, which readers
+    // take silently.
     count: (target, value) => { target.arrayElements = value; },
     isSRGB: (target, value) => { target.isSRGB = flag(value); },
     isAutoregister: (target, value) => { target.isAutoregister = flag(value); }

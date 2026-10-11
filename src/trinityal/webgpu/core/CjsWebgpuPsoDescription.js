@@ -18,8 +18,7 @@
 //
 // THE CACHE IS ON THE DEVICE, NOT THE CONTEXT (`Tr2PrimaryRenderContextDx12.h:319`),
 // which is why two contexts drawing the same material share one pipeline. Ours
-// is `CjsWebgpuPipelineCache`, already on `CjsWebgpuDevice` and already serving
-// the batch path - this describes, and hands the description to that.
+// is CjsWebgpuRenderContextAL's `_pipelines` map, keyed by this description.
 //
 // Carbon's fields, and where each lives here:
 //

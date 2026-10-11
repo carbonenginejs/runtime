@@ -1,9 +1,9 @@
+// The resolver and warning policy every browser bundle shares: `#` subpaths and
+// bare specifiers resolve through npm/, and an unresolved import fails the build.
 import fs from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
 const packageRequire = createRequire(new URL("./npm/package.json", import.meta.url));
 
 function isBareSpecifier(value)
@@ -48,12 +48,12 @@ function resolveBrowserModule(source)
 function runtimeResolver()
 {
     return {
-        name: "carbon-runtime-webgpu-harness-resolver",
+        name: "carbon-runtime-browser-resolver",
         resolveId(source)
         {
             if (source.startsWith("node:"))
             {
-                throw new Error(`The WebGPU browser harness cannot import ${source}`);
+                throw new Error(`A browser bundle cannot import ${source}`);
             }
             if (source.startsWith("#")) return packageRequire.resolve(source);
             if (isBareSpecifier(source)) return resolveBrowserModule(source);
@@ -62,7 +62,7 @@ function runtimeResolver()
     };
 }
 
-const shared = {
+export const shared = {
     onwarn(warning, warn)
     {
         if (warning.code === "UNRESOLVED_IMPORT")
@@ -73,13 +73,3 @@ const shared = {
     },
     plugins: [ runtimeResolver() ]
 };
-
-export default [ {
-    ...shared,
-    input: path.join(root, "test/trinityal/webgpu/harness/runtimeBoundary.js"),
-    output: {
-        file: path.join(root, ".cache/trinityal/webgpu/harness-runtime.js"),
-        format: "esm",
-        inlineDynamicImports: true
-    },
-} ];

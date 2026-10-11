@@ -12,7 +12,6 @@ import {
   validateDecalCylindricV5PackagePair,
   validateDecalCylindricV5PackageRecord
 } from "./harness/decalCylindricV5Fixture.js";
-import { buildEveSpaceObjectMainUniformData } from "./harness/spaceObjectMainUniforms.js";
 
 const UNIFORMS = [
   [ 0, 0, "fragment", 16 ],
@@ -147,16 +146,6 @@ function samplerReflection(registerIndex)
         isDynamic: false
       }
     }
-  };
-}
-
-// The layout the caller must now state; see the note in the sibling decal
-// fixtures. A fixture owns its own layout rather than reading a format record.
-function materialLayout()
-{
-  return {
-    size: 16,
-    constants: [ { name: "DecalTextureScaling", offset: 0, size: 16, type: 0, dimension: 4, elements: 0 } ]
   };
 }
 
@@ -351,12 +340,6 @@ struct FragmentOutput {
   };
 }
 
-function floatAt(bytes, offset)
-{
-  return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
-    .getFloat32(offset, true);
-}
-
 test("DecalCylindricV5 validates its exact surface and cylindrical contract", () =>
 {
   const dx11 = record("dx11");
@@ -432,19 +415,6 @@ test("DecalCylindricV5 supplies deterministic alpha axes and exact decal overrid
     Array.from(new Float32Array(decalPS.buffer, decalPS.byteOffset, decalPS.byteLength / 4)),
     [ 0, 1, 0, 0 ]
   );
-
-  for (const backend of [ "dx11", "dx12" ])
-  {
-    const packed = {
-      ...buildEveSpaceObjectMainUniformData(record(backend), fixture.bindingValues, { materialLayout: materialLayout() }),
-      ...fixture.decalUniformData
-    };
-    assert.deepEqual(
-      Object.values(packed).map((bytes) => bytes.byteLength),
-      [ 16, 736, 1888, 320, 16 ]
-    );
-    assert.equal(floatAt(packed["uniform-buffer:0:0@fragment"], 12), 1);
-  }
 });
 
 test("DecalCylindricV5 rejects provenance, interface, reflection, and pair drift", () =>

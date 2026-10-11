@@ -1,7 +1,5 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
 import test from "node:test";
-import { fileURLToPath } from "node:url";
 
 import {
   QUAD_OIL_V5_CLEAR_TARGETS,
@@ -688,28 +686,5 @@ test("QuadOilV5 rejects aliased, reordered, and identical parity inputs", () =>
   assert.throws(
     () => validateQuadOilV5PackagePair([ dx11, identical ]),
     /identical WGSL/u
-  );
-});
-
-test("QuadOilV5 launcher rejects a mixed decal-family invocation", () =>
-{
-  const script = fileURLToPath(
-    new URL("../../../scripts/trinityal/webgpu/run-webgpu-harness.js", import.meta.url)
-  );
-  const result = spawnSync(process.execPath, [
-    script,
-    "--draw-skinned-quadoilv5",
-    "oil-dx11.carbonwebgpu",
-    "oil-dx12.carbonwebgpu",
-    "--draw-decalv5",
-    "decal-dx11.carbonwebgpu",
-    "decal-dx12.carbonwebgpu"
-  ], {
-    encoding: "utf8"
-  });
-  assert.notEqual(result.status, 0);
-  assert.match(
-    `${result.stdout}\n${result.stderr}`,
-    /--draw-decalv5 cannot be combined with --draw-skinned-quadoilv5/u
   );
 });

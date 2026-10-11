@@ -12,7 +12,6 @@ import {
   validateDecalGlowCylindricV5PackagePair,
   validateDecalGlowCylindricV5PackageRecord
 } from "./harness/decalGlowCylindricV5Fixture.js";
-import { buildEveSpaceObjectMainUniformData } from "./harness/spaceObjectMainUniforms.js";
 
 const UNIFORMS = [
   [ 0, 0, "fragment", 64 ],
@@ -148,17 +147,6 @@ function samplerReflection()
         isDynamic: false
       }
     }
-  };
-}
-
-// The layout the caller must now state. It was read off the package's analysis
-// chunk until that fallback was removed; a fixture owns its own layout, and a
-// composed caller derives one from `Tr2Shader`.
-function materialLayout(backend)
-{
-  return {
-    size: 64,
-    constants: MATERIAL_LAYOUT[backend].map(([ name, offset ]) => ({ name, offset, size: 16, type: 0, dimension: 4, elements: 0 }))
   };
 }
 
@@ -331,12 +319,6 @@ struct FragmentOutput {
   };
 }
 
-function floatAt(bytes, offset)
-{
-  return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
-    .getFloat32(offset, true);
-}
-
 test("DecalGlowCylindricV5 validates its exact shared-sampler contract", () =>
 {
   const dx11 = record("dx11");
@@ -423,21 +405,6 @@ test("DecalGlowCylindricV5 supplies deterministic cylindrical inputs and control
     Array.from(new Float32Array(decalPS.buffer, decalPS.byteOffset, decalPS.byteLength / 4)),
     [ 0, 1, 0, 0, 0, 1, 0, 0 ]
   );
-
-  const dx11 = buildEveSpaceObjectMainUniformData(record("dx11"), fixture.bindingValues, { materialLayout: materialLayout("dx11") });
-  const dx12 = buildEveSpaceObjectMainUniformData(record("dx12"), fixture.bindingValues, { materialLayout: materialLayout("dx12") });
-  const dx11Material = dx11["uniform-buffer:0:0@fragment"];
-  const dx12Material = dx12["uniform-buffer:0:0@fragment"];
-  assert.equal(floatAt(dx11Material, 0), 0);
-  assert.equal(floatAt(dx11Material, 12), 1);
-  assert.equal(floatAt(dx11Material, 16), 0);
-  assert.equal(floatAt(dx11Material, 32), Math.fround(0.85));
-  assert.equal(floatAt(dx11Material, 48), Math.fround(0.78));
-  assert.equal(floatAt(dx12Material, 0), Math.fround(0.78));
-  assert.equal(floatAt(dx12Material, 16), 0);
-  assert.equal(floatAt(dx12Material, 28), 1);
-  assert.equal(floatAt(dx12Material, 32), 0);
-  assert.equal(floatAt(dx12Material, 48), Math.fround(0.85));
 });
 
 test("DecalGlowCylindricV5 rejects provenance, interface, layout, and pair drift", () =>

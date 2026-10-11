@@ -13,7 +13,6 @@ import {
   validateDecalCounterV5PackagePair,
   validateDecalCounterV5PackageRecord
 } from "./harness/decalCounterV5Fixture.js";
-import { buildEveSpaceObjectMainUniformData } from "./harness/spaceObjectMainUniforms.js";
 
 const UNIFORMS = [
   [ 0, 0, "fragment", 48 ],
@@ -111,17 +110,6 @@ function samplerReflection()
         isDynamic: false
       }
     }
-  };
-}
-
-// The layout the caller must now state. It was read off the package's analysis
-// chunk until that fallback was removed; a fixture owns its own layout, and a
-// composed caller derives one from `Tr2Shader`.
-function materialLayout(backend)
-{
-  return {
-    size: 48,
-    constants: MATERIAL_LAYOUT[backend].map(([ name, offset ]) => ({ name, offset, size: 16, type: 0, dimension: 4, elements: 0 }))
   };
 }
 
@@ -249,11 +237,6 @@ struct FragmentOutput {
   };
 }
 
-function floatAt(bytes, offset)
-{
-  return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getFloat32(offset, true);
-}
-
 test("DecalCounterV5 validates its backend-specific reflected material order", () =>
 {
   const dx11 = record("dx11");
@@ -295,15 +278,6 @@ test("DecalCounterV5 supplies semantic values that pack correctly for both backe
     Array.from(new Float32Array(decalPS.buffer, decalPS.byteOffset, decalPS.byteLength / 4)),
     [ DECAL_COUNTER_V5_KILL_COUNT, 1, 0, 0, 0, 1, 0, 0 ]
   );
-
-  const dx11 = buildEveSpaceObjectMainUniformData(record("dx11"), fixture.bindingValues, { materialLayout: materialLayout("dx11") });
-  const dx12 = buildEveSpaceObjectMainUniformData(record("dx12"), fixture.bindingValues, { materialLayout: materialLayout("dx12") });
-  assert.equal(dx11["uniform-buffer:0:0@fragment"].byteLength, 48);
-  assert.equal(dx12["uniform-buffer:0:0@fragment"].byteLength, 48);
-  assert.equal(floatAt(dx11["uniform-buffer:0:0@fragment"], 0), 1);
-  assert.equal(floatAt(dx11["uniform-buffer:0:0@fragment"], 32), Math.fround(0.95));
-  assert.equal(floatAt(dx12["uniform-buffer:0:0@fragment"], 0), Math.fround(0.95));
-  assert.equal(floatAt(dx12["uniform-buffer:0:0@fragment"], 16), 1);
 });
 
 test("DecalCounterV5 rejects provenance, material-layout, and pair drift", () =>

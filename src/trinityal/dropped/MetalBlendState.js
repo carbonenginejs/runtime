@@ -4,7 +4,7 @@
 // queue, so it needs a hashable record of it; WebGPU has no per-state setter at
 // all and folds blending into the render pipeline. Ours is projected by
 // Tr2RenderStateSetup.GetWebgpuRecipe and reaches the GPU as
-// `targets[].blend` in CjsWebgpuPsoDescription and CjsWebgpuTrinityBatchResolver.
+// `targets[].blend` in CjsWebgpuPsoDescription.
 //
 // Its hashValue member has a live counterpart too: the pipeline cache keys on
 // the whole PSO description rather than on blend state alone.

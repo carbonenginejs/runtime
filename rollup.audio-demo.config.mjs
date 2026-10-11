@@ -2,15 +2,14 @@
 //
 // Same reason as the WebGPU demo: the demo reaches the runtime through `npm/dist`,
 // whose modules import each other by `#` subpath specifiers that a browser cannot
-// resolve. The harness config's resolver and warning policy are reused so both
+// resolve. The shared browser resolver and warning policy are reused so both
 // demos fail on the same things.
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import harness from "./rollup.webgpu-harness.config.mjs";
+import { shared } from "./rollup.browser-shared.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
-const [ shared ] = harness;
 
 export default [ {
     onwarn: shared.onwarn,

@@ -46,24 +46,17 @@ test("the built WebGPU subpath is import-inert and isolated from the root", () =
 
       for (const name of [
         "CjsWebgpuBackendCandidate",
-        "CjsWebgpuBindGroup",
-        "CjsWebgpuBuffer",
         "CjsWebgpuDevice",
-        "CjsWebgpuPackage",
-        "CjsWebgpuPipeline",
-        "CjsWebgpuResource",
-        "CjsWebgpuSampler",
-        "CjsWebgpuShaderModule",
-        "CjsWebgpuTexture",
-        "CollectPerObjectUploads",
-        "CommitPerObjectUploads",
-        "MaterialLayoutFromShader",
-        "NormalizeMaterialLayout",
-        "PackMaterialConstants",
-        "UploadPerObjectData"
+        "WebgpuVertexFormat",
+        "WebgpuVertexBufferLayout"
       ])
       {
         if (engine[name] === undefined) throw new Error(\`Missing WebGPU export: \${name}\`);
+      }
+      // The batch path these named was deleted on 2026-10-11.
+      for (const name of [ "CjsWebgpuPackage", "CjsWebgpuPipeline", "PackMaterialConstants", "UploadPerObjectData", "WebgpuGeometryOptions" ])
+      {
+        if (engine[name] !== undefined) throw new Error(\`Removed WebGPU export is back: \${name}\`);
       }
 
       const candidate = new engine.CjsWebgpuBackendCandidate();

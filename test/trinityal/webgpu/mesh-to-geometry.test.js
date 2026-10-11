@@ -2,8 +2,8 @@
 // area produced a batch whose declaration no shader could match and whose draw
 // arguments were null, and no code turned a decoded mesh into device geometry.
 //
-// It is deliberately an integration test over the real classes. Every one of
-// the three defects it covers passed its own unit tests while the chain stayed
+// It is deliberately an integration test over the real classes. Each of the
+// defects it covers passed its own unit tests while the chain stayed
 // broken, because each half was correct in a vocabulary the other half did not
 // speak.
 import assert from "node:assert/strict";
@@ -13,7 +13,6 @@ import { Tr2MeshBase, Tr2MeshArea, TriRenderBatchAccumulator, Tr2PerObjectData }
 import { resolveBindingPlan } from "../../../npm/dist/trinityal/index.js";
 import { Tr2EffectStateManager } from "../../../npm/dist/trinity/shader/index.js";
 import { TriBatchType } from "../../../npm/dist/global/consts/graphics/index.js";
-import { WebgpuGeometryOptions } from "../../../npm/dist/trinityal/webgpu/index.js";
 import { FixtureEffect } from "../../support/fixtureEffect.js";
 
 /** A hull's declaration, in the producer's vocabulary. */
@@ -22,17 +21,6 @@ const DECL = [
   { usage: "Normal", usageIndex: 0, type: "Float32", elementCount: 3, offset: 12 },
   { usage: "TexCoord", usageIndex: 0, type: "Float32", elementCount: 2, offset: 24 }
 ];
-
-const MESH = {
-  decl: DECL,
-  vertex: {
-    position: [ 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0 ],
-    normal: [ 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1 ],
-    texcoord0: [ 0, 0, 1, 0, 1, 1, 0, 1 ]
-  },
-  // Two areas: a four-triangle hull and a two-triangle decal strip after it.
-  indices: [ { faces: [ 0, 1, 2, 0, 2, 3, 0, 1, 3, 1, 2, 3, 0, 1, 2, 0, 2, 3 ] } ]
-};
 
 const LOD = {
   ib: { size: 36, stride: 2 },
@@ -99,40 +87,4 @@ test("the interned declaration matches the shader that will draw it", () =>
 
   assert.equal(plan.complete, true, "every shader input is supplied by the mesh");
   assert.equal(plan.unmatched, 0);
-});
-
-test("that same declaration realizes into a device geometry request", () =>
-{
-  const [ hull ] = batchesOf(meshWithAreas());
-  const elements = Tr2EffectStateManager.getVertexDeclarationElements(hull.vertexDeclaration);
-  const plan = resolveBindingPlan(elements, INPUTS).entries;
-
-  const request = WebgpuGeometryOptions(MESH, plan, { label: "hull" });
-  const [ buffer ] = request.vertexBuffers;
-
-  assert.equal(buffer.layout.arrayStride, 32);
-  assert.deepEqual(buffer.layout.attributes.map(a => a.shaderLocation), [ 0, 1, 2 ]);
-  assert.deepEqual(buffer.layout.attributes.map(a => a.format), [ "float32x3", "float32x3", "float32x2" ]);
-  // Location 1 is NORMAL at offset 12; location 2 is TEXCOORD at offset 24.
-  assert.deepEqual(buffer.layout.attributes.map(a => a.offset), [ 0, 12, 24 ]);
-
-  // The device's two hard rules on the pairing of buffer and layout.
-  assert.equal(buffer.layout.arrayStride % 4, 0);
-  assert.equal(buffer.data.byteLength % buffer.layout.arrayStride, 0);
-});
-
-test("the draw arguments address the index buffer that is actually built", () =>
-{
-  const [ hull, decalStrip ] = batchesOf(meshWithAreas());
-  const elements = Tr2EffectStateManager.getVertexDeclarationElements(hull.vertexDeclaration);
-  const plan = resolveBindingPlan(elements, INPUTS).entries;
-  const request = WebgpuGeometryOptions(MESH, plan);
-
-  const indexCount = request.indexBuffer.data.byteLength / 2;
-
-  assert.equal(indexCount, 18);
-  assert(
-    decalStrip.startIndexLocation + decalStrip.indexCountPerInstance <= indexCount,
-    "an area's draw must fall inside the index buffer"
-  );
 });

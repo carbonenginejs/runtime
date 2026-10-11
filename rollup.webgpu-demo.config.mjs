@@ -1,10 +1,9 @@
 // The page and format-worker entries all consume the same built runtime.
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import harness from "./rollup.webgpu-harness.config.mjs";
+import { shared } from "./rollup.browser-shared.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
-const [ shared ] = harness;
 const destination = path.join(root, "test/trinityal/webgpu/demo");
 
 // In a bundle, a format's import.meta.url would otherwise name the page
