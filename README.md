@@ -20,6 +20,19 @@ and are how the renderer draws. The renderer around them is still being
 assembled: post-processing, lights and shadows are ported as classes but the
 renderer does not drive them yet, so expect unlit-looking output.
 
+## EVE content and CCP's terms
+
+**The code is MIT. EVE's content is not.** This package contains no game files.
+It reads the EVE files you point it at: ships, shaders, textures, geometry, audio
+and static data. Using those files means you have accepted CCP Games'
+[EVE Online Content Creation Terms of Use](https://support.eveonline.com/hc/en-us/articles/8563917741084-EVE-Online-Content-Creation-Terms-of-Use)
+(revision of 10 June 2026) and are bound by them. In short, work made from EVE
+content must be non-commercial and carry CCP's disclaimer. The official page
+controls, not this summary, and this is not legal advice.
+
+EVE Online and all related assets are the property of CCP hf. CarbonEngineJS is
+not affiliated with or endorsed by CCP Games or Fenris Creations.
+
 ## Install
 
 ```sh
