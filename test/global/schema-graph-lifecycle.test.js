@@ -3,7 +3,24 @@ import test from "node:test";
 import "../../src/global/blue/values.js";
 import { IInitialize } from "../../src/global/blue/IInitialize.js";
 import { CjsSchema } from "../../src/global/schema/CjsSchema.js";
-import { Traverse } from "../../src/global/blue/find.js";
+import { blue } from "../../src/global/blue/index.js";
+
+// Preorder over blue.EnumerateChildren, once per object.
+function preorder(root)
+{
+    const visited = [], seen = new Set();
+    const visit = value =>
+    {
+        if (seen.has(value)) return;
+        seen.add(value);
+        visited.push(value);
+        const children = [];
+        blue.EnumerateChildren(value, child => children.push(child));
+        for (const child of children) visit(child);
+    };
+    if (root) visit(root);
+    return visited;
+}
 import { GetResources } from "../../src/global/blue/getResources.js";
 
 let fixtureId = 0;
@@ -65,11 +82,9 @@ function fixture()
     return { prefix, Leaf, Plain, Resource, Root, calls };
 }
 
-function publicNames(root, options)
+function publicNames(root)
 {
-    const result = [];
-    assert.equal(Traverse(root, value => result.push(value.name), options), root);
-    return result;
+    return preorder(root).map(value => value.name);
 }
 
 test("public traversal crosses plain/resource/collection edges while construction initializes only newly created objects", () =>
@@ -82,32 +97,17 @@ test("public traversal crosses plain/resource/collection edges while constructio
     assert.equal(root.resource.__state, undefined);
 });
 
-test("public forwarding preserves cycle, shared visited, root exclusion, pruning and postorder contracts", () =>
+test("Find helpers follow cycles and shared objects once (Find.cpp:352-548)", () =>
 {
-    const { Root } = fixture();
+    const { prefix, Root } = fixture();
     const root = new Root();
     root.child.child = root;
     root.list = [root.child];
-    const expected = [];
-    Traverse(root, value => expected.push(value));
-    const actual = [];
-    const visited = new Set();
-    assert.equal(Traverse(root, value => actual.push(value), { visited }), root);
-    assert.deepEqual(actual, expected);
-    assert.equal(visited.size, actual.length);
-    assert.equal(visited.has(root), true);
-    assert.deepEqual(publicNames(root, { visited }), []);
-    assert.equal(publicNames(root, { includeRoot: false }).includes("root"), false);
-    const pruned = [];
-    Traverse(root, value => { pruned.push(value.name); return value !== root.plain; });
-    assert.equal(pruned.includes("plain"), true);
-    assert.equal(pruned.includes("behindPlain"), false);
-    const post = [];
-    Traverse(root, value => { post.push(value.name); return false; }, { order: "post" });
-    assert.equal(post.at(-1), "root");
-    assert.equal(post.includes("behindPlain"), true);
-    assert.equal(publicNames(root, { ownedOnly: true }).includes("borrowed"), false);
-    assert.throws(() => Traverse(root, null), TypeError);
+    const names = publicNames(root);
+    assert.equal(new Set(names).size, names.length, "each object once");
+    assert.equal(blue.FindReference(root, root.plain.child), true);
+    assert.equal(blue.FindReference(root.plain, root), false);
+    assert.deepEqual(blue.FindInterface(root, `${prefix}Leaf`).includes(root.child), true);
 });
 
 test("public inherited traversal order is independent of reader ownership", () =>
@@ -130,9 +130,6 @@ test("public inherited traversal order is independent of reader ownership", () =
     const root = CjsSchema.from(CjsSchema.getClassName(Derived), {});
     assert.deepEqual(calls, ["root"]);
     assert.deepEqual(publicNames(root), ["root", "derived", "base"]);
-    assert.deepEqual(publicNames(root, { order: "post" }), ["derived", "base", "root"]);
-    assert.deepEqual(publicNames(root, { reverse: true }), ["root", "base", "derived"]);
-    assert.deepEqual(publicNames(root, { order: "post", reverse: true }), ["base", "derived", "root"]);
 });
 
 test("values initialization is independent of public Traverse overrides", () =>
@@ -166,7 +163,8 @@ test("public resource collection forwards independently of Traverse overrides ac
     const out = ["stale"];
     assert.equal(GetResources(root, out), out);
     assert.deepEqual(out, GetResources(root));
-    assert.deepEqual(out, [dependency, root.resource]);
+    assert.deepEqual(new Set(out), new Set([dependency, root.resource]));
+    assert.equal(out.length, 2);
 });
 
 test("native initialization ignores a false return but propagates a thrown failure", () =>

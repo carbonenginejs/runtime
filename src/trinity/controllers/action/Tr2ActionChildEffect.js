@@ -5,7 +5,6 @@ import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { blue } from "#blue";
 import { meta, CjsSchema } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
-import { Traverse } from "../../../global/blue/find.js";
 
 
 /**
@@ -209,6 +208,8 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
    * cannot call its particle/mesh/behavior-system destructors. Collect before destroying a
    * mesh, which detaches its shared instance provider. Resources still reached
    * from the owner survive, as do canonical geometry and texture resources.
+   * Reachability is the walk of Carbon's Find functions (Find.cpp:352-396):
+   * an explicit stack, each object once, children from blue.EnumerateChildren.
    */
   @meta.ours
   _ReleaseChildDeviceResources(child, owner)
@@ -218,18 +219,32 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
     const particleType = CjsSchema.GetConstructor("Tr2ParticleSystem");
     const meshType = CjsSchema.GetConstructor("Tr2InstancedMesh");
     const behaviorType = CjsSchema.GetConstructor("EveChildBehaviorSystem");
+    const reach = (root, seen) =>
+    {
+      if (!root) return;
+      const stack = [ root ];
+      while (stack.length)
+      {
+        const obj = stack.pop();
+        if (seen.has(obj)) continue;
+        seen.add(obj);
+        blue.EnumerateChildren(obj, next => stack.push(next));
+      }
+    };
     const retained = new Set();
-    Traverse(owner, model => { retained.add(model); });
+    reach(owner, retained);
     // The retained structural owner adapter also accepts plain child arrays.
     for (const name of [ "children", "effectChildren", "items" ])
     {
       if (Array.isArray(owner?.[name]))
       {
-        for (const root of owner[name]) Traverse(root, model => { retained.add(model); });
+        for (const root of owner[name]) reach(root, retained);
       }
     }
+    const reachable = new Set();
+    reach(child, reachable);
     const resources = [];
-    Traverse(child, model =>
+    for (const model of reachable)
     {
       if (!retained.has(model)
         && ((particleType && CjsSchema.cast(model, particleType)) || (meshType && CjsSchema.cast(model, meshType))
@@ -237,7 +252,7 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
       {
         resources.push(model);
       }
-    });
+    }
     for (const resource of resources) resource.Destroy();
   }
 

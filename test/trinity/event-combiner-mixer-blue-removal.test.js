@@ -5,7 +5,6 @@ import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { blue, BlueList, ITriFunction, ITriVectorFunction, ITriColorFunction, ITriCurveLength, IInitialize } from "../../npm/dist/global/blue/index.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
-import { EnumerateChildren } from "../../npm/dist/global/blue/find.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
 import { TriEventCurve } from "../../npm/dist/trinity/curves/curve/TriEventCurve.js";
 import { Tr2CurveCombiner } from "../../npm/dist/trinity/curves/curve/Tr2CurveCombiner.js";
@@ -113,7 +112,7 @@ test("combiner dictionary and Copier retain owned lists and persisted child topo
     const combiner=new Tr2CurveCombiner(),list=combiner.curves;
     new DictReader({declarations:true}).ReadInto(combiner,{name:"sum",curves:[{_type:"Tr2CurveVector3",name:"first"},{_type:"Tr2CurveVector3",name:"second"}]});
     assert.equal(combiner.curves,list);assert.equal(list.length,2);assert.equal(list[0].name,"first");assert.equal(list[1].name,"second");
-    const children=[];EnumerateChildren(combiner,child=>children.push(child));assert.equal(children[0],list[0]);assert.equal(children[1],list[1]);
+    const children=[];blue.EnumerateChildren(combiner,child=>children.push(child));assert.equal(children[0],list[0]);assert.equal(children[1],list[1]);
     const copy=new Tr2CurveCombiner(),copyList=copy.curves;blue.classes.CopyTo(combiner,copy);
     assert.equal(copy.curves,copyList);assert.equal(copyList.length,2);assert.notEqual(copyList[0],list[0]);assert.equal(copyList[0].name,"first");
     assert.equal(CjsSchema.getField(Tr2CurveCombiner,"curves").type.kind,"list");

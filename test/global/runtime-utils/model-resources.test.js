@@ -95,7 +95,7 @@ test("declared list fields contribute each of their resources", () =>
   const model = new DeclaredHolder();
   model.profiles = [ createResource("a"), createResource("b") ];
 
-  assert.deepEqual(GetResources(model).map(r => r.name), [ "a", "b" ]);
+  assert.deepEqual(GetResources(model).map(r => r.name).sort(), [ "a", "b" ]);
 });
 
 

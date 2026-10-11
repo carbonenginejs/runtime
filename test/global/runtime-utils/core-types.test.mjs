@@ -1,6 +1,23 @@
 import "../../../src/global/blue/values.js";
 import { Copier } from "../../../src/global/blue/Copier.js";
-import { Traverse } from "../../../src/global/blue/find.js";
+import { blue } from "../../../src/global/blue/index.js";
+
+// Preorder over blue.EnumerateChildren, once per object.
+function preorder(root)
+{
+    const visited = [], seen = new Set();
+    const visit = value =>
+    {
+        if (seen.has(value)) return;
+        seen.add(value);
+        visited.push(value);
+        const children = [];
+        blue.EnumerateChildren(value, child => children.push(child));
+        for (const child of children) visit(child);
+    };
+    if (root) visit(root);
+    return visited;
+}
 import { GetResources } from "../../../src/global/blue/getResources.js";
 import { ensureRuntimeState, getRuntimeState } from "../../../src/global/compose/runtimeState.js";
 import assert from "node:assert/strict";
@@ -175,7 +192,7 @@ test("traversal children skip collections of values but keep interface-typed lis
     assert.deepEqual(children.sort(), ["bindings", "items", "loose"]);
 });
 
-test("Traverse is cycle-safe and GetResources visits every model", () => {
+test("EnumerateChildren walks are cycle-safe and GetResources visits every model", () => {
     class GraphResource { isResource = true; }
     CjsSchema.define(GraphResource, { className: "CoreTypesGraphResource" });
     class GraphModel {}
@@ -198,12 +215,10 @@ test("Traverse is cycle-safe and GetResources visits every model", () => {
     branch.children = [leaf];
     leaf.peer = root;
 
-    const visited = [];
-    Traverse(root, model => visited.push(model));
-    assert.deepEqual(visited, [root, branch, leaf]);
+    assert.deepEqual(preorder(root), [root, branch, leaf]);
 
     // Runtime resource declarations must not suppress descendants; shared
-    // dependencies are collected once in declaration encounter order.
+    // dependencies are collected once, in Carbon's stack-walk order.
     const resourceA = new GraphResource();
     const resourceB = new GraphResource();
     const resourceC = new GraphResource();
@@ -213,7 +228,8 @@ test("Traverse is cycle-safe and GetResources visits every model", () => {
     leaf._geometryRes = resourceC;
 
     // Prior contents are replaced, not accumulated into.
-    assert.deepEqual(GetResources(root, [resourceC]), [resourceA, resourceB, resourceC]);
+    assert.deepEqual(new Set(GetResources(root, [resourceC])), new Set([resourceA, resourceB, resourceC]));
+    assert.equal(GetResources(root).length, 3);
 });
 
 test("CjsEventEmitter normalizes names and supports external method sources", () => {

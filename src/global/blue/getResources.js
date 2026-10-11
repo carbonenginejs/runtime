@@ -1,28 +1,35 @@
-import { Traverse } from "./find.js";
+import { blue } from "./blue.js";
 
 /**
- * Collects unique resources in encounter order from a declared object graph.
- * Replaces the supplied array's contents and returns that same array. Includes
- * a resource root and recursively follows declared resource dependencies;
- * unlike legacy model traversal, resource nodes are not terminal by policy.
+ * Collects the unique resources reachable from an object, including a
+ * resource root, and follows resource dependencies, since resources are graph
+ * edges like any other. Replaces the supplied array's contents and returns it.
  *
- * Resource-bearing fields, including runtime-only type.resource references,
- * are followed through the same declarations as other graph edges. Only
- * visited objects with isResource===true are collected.
+ * Ours: Carbon has no such collector. The walk is the shape of Carbon's Find
+ * functions (`FindInterface`, Find.cpp:352-396): an explicit stack, each object
+ * visited once, children from `blue.EnumerateChildren`. Resources are listed
+ * in that visit order.
  *
  * @param {object|null} root Root whose declared graph is visited.
  * @param {Array<*>} [out=[]] Replaced output array.
  * @returns {Array<*>} The supplied output array.
- * Declared stored-reference edges participate in the same graph traversal.
  */
 export function GetResources(root, out = [])
 {
-    const resources = new Set();
-    Traverse(root, value =>
-    {
-        if (value.isResource === true) resources.add(value);
-    });
-    out.length = 0;
-    for (const resource of resources) out.push(resource);
-    return out;
+  out.length = 0;
+  if (!root) return out;
+
+  const stack = [ root ];
+  const seen = new Set();
+  while (stack.length)
+  {
+    const obj = stack.pop();
+    if (seen.has(obj)) continue;
+    seen.add(obj);
+
+    if (obj.isResource === true) out.push(obj);
+
+    blue.EnumerateChildren(obj, child => stack.push(child));
+  }
+  return out;
 }

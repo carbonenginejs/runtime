@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../src/global/schema/CjsSchema.js";
-import { EnumerateChildren, Traverse } from "../../src/global/blue/find.js";
+import { blue } from "../../src/global/blue/index.js";
 import { GetResources } from "../../src/global/blue/getResources.js";
 
 class Graph
@@ -24,10 +24,21 @@ CjsSchema.define(Graph, {
     ]
 });
 
-function names(root, options)
+// Preorder over blue.EnumerateChildren in canonical order, once per object,
+// so each test checks which edges EnumerateChildren reports and their order.
+function names(root)
 {
-    const visited = [];
-    assert.equal(Traverse(root, value => visited.push(value.name), options), root);
+    const visited = [], seen = new Set();
+    const visit = value =>
+    {
+        if (seen.has(value)) return;
+        seen.add(value);
+        visited.push(value.name);
+        const children = [];
+        blue.EnumerateChildren(value, child => children.push(child));
+        for (const child of children) visit(child);
+    };
+    visit(root);
     return visited;
 }
 
@@ -52,32 +63,33 @@ test("immediate enumeration reports repeated edges; recursive visitation handles
     root.list = [child, null, root];
     child.child = root;
     const edges = [];
-    assert.equal(EnumerateChildren(root, (value, field, index) => edges.push([value.name, field.name, index])), root);
+    blue.EnumerateChildren(root, (value, field, index) => edges.push([value.name, field.name, index]));
     assert.deepEqual(edges, [["child", "child", null], ["child", "list", 0], ["root", "list", 2]]);
     assert.deepEqual(names(root), ["root", "child"]);
-    const visited = new Set([child]);
-    assert.deepEqual(names(root, { visited }), ["root"]);
-    assert.equal(visited.has(root), true);
-    assert.deepEqual(names(root, { includeRoot: false }), ["child"]);
 });
 
-test("preorder pruning, postorder, reverse and owned filtering preserve their explicit contracts", () =>
+test("the filtered overload reports attributes, list items and map values separately (Find.h:66-137)", () =>
 {
     const root = new Graph("root");
     root.child = new Graph("a");
-    root.child.child = new Graph("b");
     root.list = [new Graph("c"), new Graph("d")];
     root.map = new Map([["borrowed", new Graph("e")]]);
-    assert.deepEqual(names(root), ["root", "a", "b", "c", "d", "e"]);
-    assert.deepEqual(names(root, { order: "post" }), ["b", "a", "c", "d", "e", "root"]);
-    assert.deepEqual(names(root, { reverse: true }), ["root", "e", "d", "c", "a", "b"]);
-    assert.deepEqual(names(root, { ownedOnly: true }), ["root", "a", "b", "c", "d"]);
-    const pre = [];
-    Traverse(root, value => { pre.push(value.name); return value.name !== "a"; });
-    assert.deepEqual(pre, ["root", "a", "c", "d", "e"]);
-    const post = [];
-    Traverse(root, value => { post.push(value.name); return false; }, { order: "post" });
-    assert.deepEqual(post, ["b", "a", "c", "d", "e", "root"]);
+    const calls = [];
+    blue.EnumerateChildren__Filter(root,
+        (child, type, member, offset) => calls.push(["attribute", child.name, type, member.name, offset]),
+        (child, index, member, list) => calls.push(["list", child.name, index, member.name, list === root.list]),
+        (child, key, member, map) => calls.push(["dict", child.name, key, member.name, map === root.map]),
+        member => member.name !== "map");
+    assert.deepEqual(calls, [
+        ["attribute", "a", Graph, "child", 0],
+        ["list", "c", 0, "list", true],
+        ["list", "d", 1, "list", true]
+    ]);
+    // Declared ownership is an ordinary member fact a filter can test.
+    const owned = [];
+    blue.EnumerateChildren__Filter(root, child => owned.push(child.name), child => owned.push(child.name),
+        child => owned.push(child.name), member => member.lifecycle !== undefined && member.lifecycle.ownership === "owned");
+    assert.deepEqual(owned, ["a", "c", "d"]);
 });
 
 test("native default is derived declarations before inherited storage, even under a live property", () =>
@@ -100,7 +112,6 @@ test("native default is derived declarations before inherited storage, even unde
     root._baseChild = new Graph("base");
     root._ownChild = new Graph("derived");
     assert.deepEqual(names(root), ["root", "derived", "base"]);
-    assert.deepEqual(names(root, { reverse: true }), ["root", "base", "derived"]);
 });
 
 test("stored aliases and indexed slots select backing data without accessor execution", () =>
@@ -130,7 +141,6 @@ test("declared Map/Set and Black record/array representations visit only data va
     root.map = new Map([[key, new Graph("map1")], ["two", new Graph("map2")]]);
     root.set = new Set([new Graph("set1"), new Graph("set2")]);
     assert.deepEqual(names(root), ["root", "map1", "map2", "set1", "set2"]);
-    assert.deepEqual(names(root, { reverse: true }), ["root", "set2", "set1", "map2", "map1"]);
     root.map = Object.create({ inherited: new Graph("never inherited") });
     root.map.first = new Graph("record1");
     Object.defineProperty(root.map, "getter", { enumerable: true, get() { throw new Error("map getter"); } });
@@ -154,17 +164,13 @@ test("explicit nested collection descriptors expand but opaque collection values
     assert.deepEqual(names(root), ["root", "nested"]);
 });
 
-test("iterative traversal handles a deep graph and validates callbacks", () =>
+test("Carbon's stack walk handles a deep graph without recursion", () =>
 {
     const root = new Graph("root");
     let tail = root;
     for (let i = 0; i < 12000; i++) tail = tail.child = new Graph("child");
-    let count = 0;
-    Traverse(root, () => count++);
-    assert.equal(count, 12001);
-    assert.equal(Traverse(null, () => assert.fail("null root")), null);
-    assert.throws(() => Traverse(root, null), TypeError);
-    assert.throws(() => EnumerateChildren(root, null), TypeError);
+    assert.equal(blue.FindReference(root, tail), true);
+    assert.equal(blue.EnumerateChildren(null, () => assert.fail("null object")), undefined);
 });
 
 class Resource extends Graph
@@ -187,7 +193,7 @@ test("resource root and recursive resource dependencies are collected once", () 
     assert.deepEqual(GetResources(null, out), []);
 });
 
-test("runtime-only resource declarations retain encounter order and descendant collection", () =>
+test("runtime-only resource declarations are followed and collected once", () =>
 {
     class Holder extends Graph {}
     CjsSchema.decorateField(Holder, "_geometryRes", CjsSchema.meta.type.resource(Resource));
@@ -205,7 +211,8 @@ test("runtime-only resource declarations retain encounter order and descendant c
     root.child.child = root;
     const out = ["stale"];
     assert.equal(GetResources(root, out), out);
-    assert.deepEqual(out, [local, shared, nested]);
+    // Carbon's stack walk visits the last-pushed child first (Find.cpp:352-396).
+    assert.deepEqual(out, [nested, shared, local]);
 });
 
 test("resource references accept constructors and names without collecting impostors", () =>
@@ -220,7 +227,7 @@ test("resource references accept constructors and names without collecting impos
     root.ctor = new Resource("constructor");
     root.named = new Resource("name");
     root.impostor = {};
-    assert.deepEqual(GetResources(root), [root.ctor, root.named]);
+    assert.deepEqual(new Set(GetResources(root)), new Set([root.ctor, root.named]));
 });
 
 test("declared resource collections do not spread unbounded results into call arguments", () =>
@@ -230,5 +237,5 @@ test("declared resource collections do not spread unbounded results into call ar
     root.list = items;
     const result = GetResources(root);
     assert.equal(result.length, items.length);
-    assert.equal(result.at(-1), items.at(-1));
+    assert.equal(new Set(result).size, items.length);
 });

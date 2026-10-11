@@ -318,6 +318,23 @@ export function mappedInterfaces(Constructor)
 }
 
 
+/**
+ * Only the class's own `MAP_INTERFACE` entries - its `ClassInfo::mInterfaceTable`
+ * - without following `chainTo`. A class with no own table answers with its
+ * nearest JS ancestor's, as `mappedInterfaces` does. Carbon's Find helpers
+ * test this table alone (`blueexposure/Find.cpp:159-173`).
+ *
+ * @param {Function} Constructor The class to ask about.
+ * @returns {Set<Function>} Empty when nothing is mapped. Do not mutate.
+ */
+export function ownMappedInterfaces(Constructor)
+{
+    if (typeof Constructor !== "function") return new Set();
+    const table = Constructor[MAPPED];
+    return table ? table.interfaces : new Set();
+}
+
+
 /** Resolves an exposure table, optionally validating an unpublished replacement. */
 function ResolveInterfaceTable(Constructor, visiting = null, replacement = null)
 {

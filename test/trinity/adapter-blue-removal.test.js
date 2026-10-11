@@ -6,7 +6,6 @@ import { blue, ITriFunction, ITriVectorFunction, ITriQuaternionFunction } from "
 import { BlueList } from "../../npm/dist/global/blue/BlueList.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
-import { EnumerateChildren } from "../../npm/dist/global/blue/find.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
 import { Tr2TranslationAdapter } from "../../npm/dist/trinity/curves/curve/Tr2TranslationAdapter.js";
 import { Tr2RotationAdapter } from "../../npm/dist/trinity/curves/curve/Tr2RotationAdapter.js";
@@ -89,7 +88,7 @@ test("declared and values-door hydration use live adapter pointers while Copier 
         CjsSchema.setValues(adapter,{curve:child,value});
         assert.equal(adapter.curve,child);
         assert.deepEqual([...adapter.value],value);
-        const children=[];EnumerateChildren(adapter,item=>children.push(item));
+        const children=[];blue.EnumerateChildren(adapter,item=>children.push(item));
         assert.equal(children.length,1);assert.equal(children[0],child);
         const copy=new Class(), storage=copy.value;
         assert.equal(blue.classes.CopyTo(adapter,copy),copy);

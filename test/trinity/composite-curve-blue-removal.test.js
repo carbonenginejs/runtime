@@ -7,7 +7,6 @@ import { blue, ITriFunction, ITriVectorFunction, ITriColorFunction, ITriCurveLen
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
-import { EnumerateChildren } from "../../npm/dist/global/blue/find.js";
 import { CjsBlackReader } from "../../npm/dist/resource/formats/black/core/CjsBlackReader.js";
 import { Tr2CurveVector2 } from "../../npm/dist/trinity/curves/curve/Tr2CurveVector2.js";
 import { Tr2CurveVector3 } from "../../npm/dist/trinity/curves/curve/Tr2CurveVector3.js";
@@ -37,7 +36,7 @@ for(const [Class,components,Base,interfaces] of cases)
         assert.equal(new Set(components.map(key=>curve[key])).size,components.length);
         for(const key of components) assert.equal(curve[key].constructor,Tr2CurveScalar);
         const children=[];
-        EnumerateChildren(curve,child=>children.push(child));
+        blue.EnumerateChildren(curve,child=>children.push(child));
         assert.deepEqual(children,components.map(key=>curve[key]));
         components.forEach((key,index)=>assert.equal(children[index],curve[key]));
         assert.deepEqual(GetResources(curve),[]);
