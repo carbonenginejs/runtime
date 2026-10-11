@@ -33,6 +33,9 @@ controls, not this summary, and this is not legal advice.
 EVE Online and all related assets are the property of CCP hf. CarbonEngineJS is
 not affiliated with or endorsed by CCP Games or Fenris Creations.
 
+CCP Games is now Fenris Creations. Wherever this package, its docs or
+its notices say "CCP Games" or "CCP", read it as also meaning Fenris Creations.
+
 ## Install
 
 ```sh
