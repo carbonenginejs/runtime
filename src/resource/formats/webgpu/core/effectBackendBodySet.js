@@ -361,7 +361,6 @@ export function buildEffectBackendBodySet(effectRes, permutationGraph, options =
 
                 unit = {
                     key: `unit${passUnits.length}`,
-                    sha256: sha256Utf8(`${JSON.stringify(wgsl)}\n`),
                     wgslSetVersion: wgsl.formatVersion,
                     shaders: wgsl.shaders,
                     layouts: wgsl.layouts,

@@ -232,11 +232,9 @@ test("buildEffect exposes structurally qualified selected-body Carbon WebGPU pac
     );
     assert.equal(result.info.translator, "dxbc-js-wgsl");
     assert.equal(result.info.translatorVersion, CjsWebgpuFormat.packageVersion);
-    assert.match(result.info.permutationGraph.sha256, /^[0-9a-f]{64}$/u);
     assert.deepEqual(result.info.permutationGraph, {
         format: "CJS_EFFECT_PERMUTATION_GRAPH",
         formatVersion: 1,
-        sha256: result.info.permutationGraph.sha256,
         permutationCount: 1,
         uniqueBodyCount: 1
     });
@@ -338,7 +336,7 @@ test("version 15 buildEffect exposes source-complete selected-backend coverage",
     // built reflection document; they now stand on the version check that
     // document was only ever a consequence of.
     assert.equal(result.permutationGraph.bodies.length, 1);
-    assert.match(result.info.permutationGraph.sha256, /^[0-9a-f]{64}$/u);
+    assert.equal(result.info.permutationGraph.uniqueBodyCount, 1);
 });
 
 test("buildEffect rejects a caller source hash that disagrees with its exact bytes", () =>

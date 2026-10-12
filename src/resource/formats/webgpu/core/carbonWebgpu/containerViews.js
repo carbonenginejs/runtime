@@ -4,7 +4,6 @@ import { hlslShaderStageName } from "../../../hlsl/core/tr2/HlslRenderContextEnu
 import { runtimeDescriptionFromCarbon } from "../../../hlsl/core/carbonDescriptionToRuntime.js";
 import { buildEffectAnalysis } from "../helpers.js";
 import { WGSL_SET_VERSION } from "../wgsl/buildWgslSet.js";
-import { sha256Utf8 } from "../../../../format/effect/sha256.js";
 
 /**
  * Derived compatibility views over a container.
@@ -275,15 +274,6 @@ export function deriveBackendBodySet(container)
         {
             const unit = {
                 key: `unit${passUnits.length}`,
-                // Hashed from the unit's own content. The chunk body set stored
-                // this digest to detect a unit drifting from what referenced it;
-                // derived from the content it identifies, it cannot.
-                sha256: sha256Utf8(`${JSON.stringify({
-                    shaders: pass.shaders,
-                    layouts: pass.layouts,
-                    resourceTransforms: pass.resourceTransforms ?? []
-                })}
-`),
                 wgslSetVersion: WGSL_SET_VERSION,
                 shaders: pass.shaders,
                 layouts: pass.layouts,

@@ -20,7 +20,7 @@ import {
 } from "../../hlsl/core/localLightFamily.js";
 import { buildGlslBackendBodySet } from "./glslBackendBodySet.js";
 import { buildGlslEffectContainer } from "./buildGlslEffectContainer.js";
-import { sha256Bytes, sha256Utf8 } from "../../../format/effect/sha256.js";
+import { sha256Bytes } from "../../../format/effect/sha256.js";
 import { resolveWriteVersion } from "../../../format/carbonEffect/carbonEffectRecords.js";
 
 /**
@@ -217,9 +217,6 @@ export function buildEffectPackage(input, options = {})
         generatedAt: values.generatedAt,
         sourcePath: values.source,
         outputPath: values.outputPath,
-        sourceByteLength: sourceIdentity.byteLength,
-        sourceMd5: sourceIdentity.md5,
-        sourceSha256: sourceIdentity.sha256,
         sourceIdentity,
         translator: "dxbc-js-emitter",
         translatorVersion: PACKAGE_VERSION,
@@ -241,7 +238,6 @@ export function buildEffectPackage(input, options = {})
         permutationGraph: {
             format: EFFECT_PERMUTATION_GRAPH_FORMAT,
             formatVersion: EFFECT_PERMUTATION_GRAPH_VERSION,
-            sha256: sha256Utf8(`${JSON.stringify(permutationGraph)}\n`),
             permutationCount: permutationGraph.variants.length,
             uniqueBodyCount: permutationGraph.bodies.length
         },

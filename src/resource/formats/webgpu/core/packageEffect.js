@@ -27,7 +27,7 @@ import {
     FORMAT_WEBGPU_PACKAGE_VERSION,
     WEBGPU_BACKEND_NAME
 } from "./packageMetadata.js";
-import { sha256Bytes, sha256Utf8 } from "../../../format/effect/sha256.js";
+import { sha256Bytes } from "../../../format/effect/sha256.js";
 import { resolveWriteVersion } from "../../../format/carbonEffect/carbonEffectRecords.js";
 import {
     isParticleClearEffectCandidate,
@@ -294,7 +294,6 @@ export function buildEffectPackage(input, options = {})
         permutationGraph: {
             format: EFFECT_PERMUTATION_GRAPH_FORMAT,
             formatVersion: EFFECT_PERMUTATION_GRAPH_VERSION,
-            sha256: sha256Utf8(`${JSON.stringify(permutationGraph)}\n`),
             permutationCount: permutationGraph.variants.length,
             uniqueBodyCount: permutationGraph.bodies.length
         },
@@ -311,7 +310,6 @@ export function buildEffectPackage(input, options = {})
                 backendBodySet: {
                     format: EFFECT_BACKEND_BODY_SET_FORMAT,
                     formatVersion: EFFECT_BACKEND_BODY_SET_VERSION,
-                    sha256: sha256Utf8(`${JSON.stringify(backendBodySet)}\n`),
                     bodyCount: backendBodySet.bodyCount,
                     translatedBodyCount: backendBodySet.translatedBodyCount,
                     passUnitCount: backendBodySet.passUnitCount
@@ -341,8 +339,9 @@ export function buildEffectPackage(input, options = {})
     // reflection; full portable source reflection remains in the rich
     // in-memory return value below.
     //
-    // The wire no longer stores cross-chunk digests. The rich return value keeps
-    // hashes as build evidence; they are not records in the emitted container.
+    // Neither the wire nor this return value carries cross-document digests: the
+    // build result is one in-memory object, so there is no second copy for a
+    // digest to compare against.
     const emittedBodySet = backendBodySet
         ?? selectedModeBodySet(permutationGraph, wgsl, analysis.bodyIndex);
     const container = buildCarbonEffectContainer(

@@ -3,7 +3,6 @@ import {
     readBackendBlock
 } from "../../../../format/carbonEffect/index.js";
 import { WGSL_ENTRY_POINT } from "../buildCarbonEffectContainer.js";
-import { sha256Bytes } from "../../../../format/effect/sha256.js";
 import {
     CARBON_BACKEND_ENGINE_ID,
     peekBackendEngineId
@@ -217,13 +216,6 @@ export class CarbonWebgpuContainer
                 key,
                 offset,
                 byteLength: record.size,
-                // Hashed from the stored description blob. The chunk graph
-                // carried a digest per body; here it is a function of the bytes
-                // it identifies, so it cannot disagree with them. It is also what
-                // Tr2EffectRes uses to prove bodies are distinct -- aliased rows
-                // share one blob and therefore one digest, which is exactly the
-                // identity the offset table already expresses.
-                sha256: sha256Bytes(this.bytes.subarray(offset, offset + record.size)),
                 permutationCount: this.carbon.records
                     .filter((entry) => entry.offset === offset).length
             });
