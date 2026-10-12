@@ -8,10 +8,10 @@ import { TnyStore } from "./TnyStore.js";
  */
 export class TnyStorage
 {
-    #storage = null;
-    #stores = new Map();
-    #closed = false;
-    #closing = null;
+    _storage = null;
+    _stores = new Map();
+    _closed = false;
+    _closing = null;
 
     /**
      * Construct the shared storage service with host namespace and backend
@@ -19,7 +19,7 @@ export class TnyStorage
      */
     constructor(options = {})
     {
-        this.#storage = new CjsStorage({ namespace: "tny", ...options });
+        this._storage = new CjsStorage({ namespace: "tny", ...options });
     }
 
     /** Stable names survive sessions; obtaining a handle does not open a database. */
@@ -28,8 +28,8 @@ export class TnyStorage
         this._GetStorage();
         if (typeof name !== "string" || !name.trim() || name !== name.trim())
             throw new TypeError("Store name must be a nonempty, trimmed string");
-        if (!this.#stores.has(name)) this.#stores.set(name, new TnyStore(this, name));
-        return this.#stores.get(name);
+        if (!this._stores.has(name)) this._stores.set(name, new TnyStore(this, name));
+        return this._stores.get(name);
     }
 
     /** Includes persisted stores that have not been requested in this session. */
@@ -41,18 +41,18 @@ export class TnyStorage
     /** Return the underlying storage service or reject use after closure. */
     _GetStorage()
     {
-        if (this.#closed) throw new Error("Storage is closed");
-        return this.#storage;
+        if (this._closed) throw new Error("Storage is closed");
+        return this._storage;
     }
 
     /** Invalidate store handles and return the shared backend shutdown promise. */
     Close()
     {
-        if (!this.#closing)
+        if (!this._closing)
         {
-            this.#closed = true;
-            this.#closing = this.#storage.Close();
+            this._closed = true;
+            this._closing = this._storage.Close();
         }
-        return this.#closing;
+        return this._closing;
     }
 }

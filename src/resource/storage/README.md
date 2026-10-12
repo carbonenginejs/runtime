@@ -2,8 +2,10 @@
 
 `CjsStorage` is an optional host-neutral service for plain records and bytes.
 It has no engine, demo, DOM, network, or filesystem dependencies. A host injects
-a backend; a browser or worker can use `CjsIndexedDBStorage`. Without persistence,
-the bounded memory store continues working. Importing the module opens nothing.
+a backend: a subclass of `CjsStorageBackend`. A browser or worker can use
+`CjsIndexedDBStorage`; Node, Electron or a bridge extends the base class. Runtime
+holds no Node or database code. Without persistence, the bounded memory store
+continues working. Importing the module opens nothing.
 
 The service is a deliberate application/derived-artifact extension, separate
 from the engine's remote resource cache and live settings registry.
@@ -35,14 +37,12 @@ actual VM heap or database overhead. The memory counter is `estimatedSize`;
 cached. Reads return `{ found, value, version, persisted, updatedAt }`, or an
 explicit missing/version/expired/unavailable result. Decode errors throw.
 
-Backends implement asynchronous `Read(address)`, `WriteBatch(records)`,
-`Delete(address)`, `List({ namespace, collection? })` (async iterable), and `Close()`.
-`Read` returns an owned envelope or null. Envelopes carry address, version, kind,
-codec, codecVersion, encoded value, `estimatedSize` (a heuristic in bytes), updatedAt and expiresAt.
+Backends extend `CjsStorageBackend` and implement `Read`, `WriteBatch`, `Delete`
+and `List`; `Close` defaults to a no-op. Each subclass declares `persistent`. The
+class JSDoc holds the rules of engagement: opaque envelopes, atomic batches,
+durability when persistent, owned copies, and failure by rejection.
 Stored envelopes are re-estimated when pruning cache data, so older estimates
-that included guessed overheads do not carry forward.
-Capabilities declare `persistent`, `atomicBatch`, and `binary`. A successful
-persistent WriteBatch must mean the backend committed it. The service queues each
+that included guessed overheads do not carry forward. The service queues each
 complete Read, Write/WriteBatch, Delete, List and Purge operation, including codec
 work and memory updates. All return promises; validation errors reject them.
 Failed operations do not poison the queue. Write inputs are cloned at invocation.
@@ -58,7 +58,7 @@ Close stops accepting work immediately, drains accepted operations, then attempt
 both adapter closes once. Repeated Close returns the same promise, including any
 shutdown error. A read cannot repopulate memory after closure.
 
-Ordering does not add rollback: backend batches retain their advertised atomicity,
+Ordering does not add rollback: backend batches are atomic,
 memory and persistence commit separately, and cache pruning and Purge can partially
 delete before a failure. Separate Read then Write calls are not an atomic update.
 Native records must be structured-cloneable; export live engine objects first.
@@ -73,7 +73,7 @@ revision, backend, tier and compilation options. Never store GPU objects.
 Workers can own a service directly. To use a host-owned backend through a bridge,
 send plain addresses/envelopes/results, never class instances, codecs, functions,
 or iterators. Electron disk/database access belongs in the privileged host;
-its bridge implements the same narrow backend methods. There is no implicit
+its bridge is a `CjsStorageBackend` subclass forwarding the same four methods. There is no implicit
 global service, browser quota, localStorage fallback, or automatic scene restore.
 
 Persistent cache data has its own configurable `maxPersistentCacheBytes` budget

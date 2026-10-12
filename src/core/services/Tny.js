@@ -5,33 +5,33 @@ import { TnyServices } from "./TnyServices.js";
 /** Our inert orchestration owner; importable without Blue, rendering or a browser. */
 export class Tny
 {
-    #storage = null;
-    #services = null;
-    #database = null;
-    #closing = null;
+    _storage = null;
+    _services = null;
+    _database = null;
+    _closing = null;
 
     /** Construct inert storage, service and database owners from host options. */
     constructor({ storage = {} } = {})
     {
-        this.#storage = new TnyStorage(storage);
-        this.#services = new TnyServices(this.#storage);
-        this.#database = new TnyDatabase(this.#services);
+        this._storage = new TnyStorage(storage);
+        this._services = new TnyServices(this._storage);
+        this._database = new TnyDatabase(this._services);
     }
 
     /** Return the table registry owned by this host. */
-    get database() { return this.#database; }
+    get database() { return this._database; }
 
     /** Return the storage manager owned by this host. */
-    get storage() { return this.#storage; }
+    get storage() { return this._storage; }
 
     /** Return the service registry owned by this host. */
-    get services() { return this.#services; }
+    get services() { return this._services; }
 
     /** Return the shared promise for closing this host once. */
     Close()
     {
-        if (!this.#closing) this.#closing = this._Close();
-        return this.#closing;
+        if (!this._closing) this._closing = this._Close();
+        return this._closing;
     }
 
     /**
@@ -41,10 +41,10 @@ export class Tny
     async _Close()
     {
         const errors = [];
-        await this.#database.Close();
-        try { await this.#services.Close(); }
+        await this._database.Close();
+        try { await this._services.Close(); }
         catch (error) { errors.push(error); }
-        try { await this.#storage.Close(); }
+        try { await this._storage.Close(); }
         catch (error) { errors.push(error); }
         if (errors.length) throw new AggregateError(errors, "Tny shutdown failed");
     }

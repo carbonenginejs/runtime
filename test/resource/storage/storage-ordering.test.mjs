@@ -14,7 +14,7 @@ test("a delayed backend read cannot refill memory after a newer write or delete"
     for (const mutation of ["write", "delete", "purge"])
     {
         const backend = new CjsMemoryStorage();
-        backend.capabilities.persistent = true;
+        backend.persistent = true;
         const storage = new CjsStorage({ namespace: "race", backend });
         await storage.Write("records", "key", "old");
         await storage.memory.Close();
@@ -44,7 +44,7 @@ test("a delayed backend read cannot refill memory after a newer write or delete"
 test("listing snapshots in queue order, independent of when its result is consumed", { timeout: 5000 }, async () =>
 {
     const backend = new CjsMemoryStorage();
-    backend.capabilities.persistent = true;
+    backend.persistent = true;
     const storage = new CjsStorage({ namespace: "list", backend });
     await storage.Write("records", "a", 1);
     await storage.memory.Close();
@@ -90,7 +90,7 @@ test("codec failures reject without poisoning the queue; inputs are captured on 
 test("close drains an accepted read and its cache fill, rejects later work and closes once", { timeout: 5000 }, async () =>
 {
     const backend = new CjsMemoryStorage();
-    backend.capabilities.persistent = true;
+    backend.persistent = true;
     const storage = new CjsStorage({ namespace: "close", backend });
     await storage.Write("records", "key", 1);
     await storage.memory.Close();

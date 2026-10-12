@@ -6,13 +6,13 @@ import { validateStoragePolicy } from "./storagePolicy.js";
  */
 export class TnyServices
 {
-    #storage = null;
-    #services = new Map();
-    #closed = false;
-    #closing = null;
+    _storage = null;
+    _services = new Map();
+    _closed = false;
+    _closing = null;
 
     /** Retain the storage manager used for service store injection. */
-    constructor(storage) { this.#storage = storage; }
+    constructor(storage) { this._storage = storage; }
 
     /** Validate and retain a named service constructor without instantiating it. */
     Register(name, Constructor, options = {})
@@ -20,12 +20,12 @@ export class TnyServices
         this._AssertOpen();
         if (typeof name !== "string" || !name.trim() || name !== name.trim())
             throw new TypeError("Service name must be a nonempty, trimmed string");
-        if (this.#services.has(name)) throw new Error("Service " + name + " is already registered");
+        if (this._services.has(name)) throw new Error("Service " + name + " is already registered");
         if (typeof Constructor !== "function") throw new TypeError("Service " + name + " requires a constructor");
         if (typeof Constructor.prototype?.Close !== "function")
             throw new TypeError("Service " + name + " must implement Close or extend TnyService");
         validateStoragePolicy(Constructor.storagePolicy, name);
-        this.#services.set(name, { Constructor, options, usesStorage: Constructor.storagePolicy !== null,
+        this._services.set(name, { Constructor, options, usesStorage: Constructor.storagePolicy !== null,
             instance: null, constructing: false });
         return this;
     }
@@ -34,14 +34,14 @@ export class TnyServices
     Get(name)
     {
         this._AssertOpen();
-        const entry = this.#services.get(name);
+        const entry = this._services.get(name);
         if (!entry) return null;
         if (entry.instance) return entry.instance;
         if (entry.constructing) throw new Error("Circular service construction: " + name);
         entry.constructing = true;
         try
         {
-            const store = entry.usesStorage ? this.#storage.CreateStore(name) : null;
+            const store = entry.usesStorage ? this._storage.CreateStore(name) : null;
             const instance = new entry.Constructor(store, entry.options);
             entry.instance = instance;
             return instance;
@@ -50,23 +50,23 @@ export class TnyServices
     }
 
     /** Return registered service names in registration order. */
-    List() { return Array.from(this.#services.keys()); }
+    List() { return Array.from(this._services.keys()); }
 
     /** Reject acquisition or registration after shutdown begins. */
     _AssertOpen()
     {
-        if (this.#closed) throw new Error("Services are closed");
+        if (this._closed) throw new Error("Services are closed");
     }
 
     /** Prevent new acquisitions and return the shared shutdown promise. */
     Close()
     {
-        if (!this.#closing)
+        if (!this._closing)
         {
-            this.#closed = true;
-            this.#closing = this._CloseServices();
+            this._closed = true;
+            this._closing = this._CloseServices();
         }
-        return this.#closing;
+        return this._closing;
     }
 
     /**
@@ -76,7 +76,7 @@ export class TnyServices
     async _CloseServices()
     {
         const errors = [];
-        for (const { instance } of Array.from(this.#services.values()).reverse())
+        for (const { instance } of Array.from(this._services.values()).reverse())
         {
             if (!instance) continue;
             try { await instance.Close(); }

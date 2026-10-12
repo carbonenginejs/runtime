@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { estimateStorageSize } from "../../../src/resource/storage/storageRecord.js";
 import { Worker } from "node:worker_threads";
 import { IDBFactory, IDBKeyRange } from "fake-indexeddb";
-import { CjsStorage, CjsMemoryStorage, CjsIndexedDBStorage, CjsStorageFormatCodec } from "../../../src/resource/storage/index.js";
+import { CjsStorage, CjsStorageBackend, CjsMemoryStorage, CjsIndexedDBStorage, CjsLocalStorage, CjsStorageFormatCodec } from "../../../src/resource/storage/index.js";
 
 function persistent(options = {})
 {
@@ -125,7 +125,7 @@ test("persistent writes acknowledge commit and survive a fresh service with zero
 test("persistence failure is visible and memory writes remain ordered", async () =>
 {
     const backend = new CjsMemoryStorage();
-    backend.capabilities.persistent = true;
+    backend.persistent = true;
     backend.WriteBatch = async () => { throw new Error("disk offline"); };
     const storage = new CjsStorage({ namespace: "test", backend });
     const writes = [storage.Write("settings", "theme", "a"), storage.Write("settings", "theme", "b")];
@@ -189,4 +189,21 @@ test("the service and IndexedDB adapter run in a worker and return transferable 
         assert.equal(result.value.id, 9007199254740993n);
     }
     finally { await worker.terminate(); }
+});
+
+test("backends extend CjsStorageBackend and declare persistence; the base requires the four record methods", async () =>
+{
+    const base = new CjsStorageBackend();
+    const address = { namespace: "test", collection: "c", key: 1 };
+    assert.equal(base.persistent, false);
+    await assert.rejects(base.Read(address), /Read must be implemented/);
+    await assert.rejects(base.WriteBatch([]), /WriteBatch must be implemented/);
+    await assert.rejects(base.Delete(address), /Delete must be implemented/);
+    await assert.rejects(base.List({ namespace: "test" }).next(), /List must be implemented/);
+    await base.Close();
+
+    const memory = new CjsMemoryStorage();
+    const indexed = new CjsIndexedDBStorage({ indexedDB: new IDBFactory(), keyRange: IDBKeyRange });
+    const local = new CjsLocalStorage({ storage: { getItem: () => null, setItem() {} } });
+    assert.deepEqual([memory.persistent, indexed.persistent, local.persistent], [false, true, true]);
 });

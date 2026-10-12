@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { Worker } from "node:worker_threads";
 import { IDBFactory, IDBKeyRange } from "fake-indexeddb";
 import { Tny, TnyService } from "../../src/core/services/index.js";
-import { CjsIndexedDBStorage } from "../../src/resource/storage/index.js";
+import { CjsIndexedDBStorage, CjsStorageBackend } from "../../src/resource/storage/index.js";
 
 class StoredService extends TnyService
 {
@@ -82,14 +82,14 @@ test("persistent data survives owners; purge reaches unopened stores but not ano
 
 test("backend failure preserves explicit memory-only acknowledgement and purge errors", async () =>
 {
-    const backend = {
-        capabilities: { persistent: true },
-        async Read() { return null; },
-        async WriteBatch() { throw Error("offline"); },
-        async Delete() { throw Error("cannot delete"); },
-        async *List() {},
-        async Close() {}
-    };
+    const backend = new class extends CjsStorageBackend
+    {
+        persistent = true;
+        async Read() { return null; }
+        async WriteBatch() { throw Error("offline"); }
+        async Delete() { throw Error("cannot delete"); }
+        async *List() {}
+    }();
     const tny = new Tny({ storage: { backend } });
     const store = tny.storage.CreateStore("save");
     const result = await store.Write("key", 5);
