@@ -72,9 +72,6 @@ test("the container sniff accepts a container and rejects junk", () =>
     assert.equal(CjsWebglFormat.isWebglEffectContainer(sampleBytes()), true);
     assert.equal(CjsWebglFormat.isWebglEffectContainer(new Uint8Array([ 1, 2, 3 ])), false);
     assert.equal(CjsWebglFormat.isWebglEffectContainer(new TextEncoder().encode("GARBAGE!")), false);
-
-    // The old chunk magic is not a container, and must not be mistaken for one.
-    assert.equal(CjsWebglFormat.isWebglEffectContainer(new TextEncoder().encode("CEWG0000")), false);
 });
 
 test("read rejects a payload that is not a container", () =>

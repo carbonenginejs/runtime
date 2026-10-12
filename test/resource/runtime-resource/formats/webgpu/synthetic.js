@@ -1,9 +1,7 @@
 /**
- * Synthetic Carbon WebGPU and DXBC builders for self-contained tests.
+ * Synthetic Tr2 effect and DXBC builders for self-contained tests.
  */
 
-const CARBON_WEBGPU_MAGIC = "CWGP";
-const CARBON_WEBGPU_VERSION = 1;
 const DXBC_MAGIC = [ 0x44, 0x58, 0x42, 0x43 ];
 const DXBC_HEADER_SIZE = 32;
 const textEncoder = new TextEncoder();
@@ -61,42 +59,6 @@ class ByteWriter
         this.length += bytes.length;
         return this;
     }
-}
-
-/**
- * Builds a Carbon WebGPU package from ordered chunk payloads.
- *
- * @param {Array<[string, string|object|Uint8Array|ArrayBuffer|ArrayBufferView]>} chunks Ordered package chunks.
- * @returns {Uint8Array} Package bytes.
- */
-export function buildCarbonWebgpuPackage(chunks)
-{
-    const encodedChunks = chunks.map(([ tag, value ]) => ({
-        tag,
-        bytes: normalizeChunkValue(value)
-    }));
-
-    const size = CARBON_WEBGPU_MAGIC.length + 8 + encodedChunks.reduce((sum, chunk) => sum + 8 + chunk.bytes.length, 0);
-    const out = new Uint8Array(size);
-    const view = new DataView(out.buffer, out.byteOffset, out.byteLength);
-    let offset = 0;
-
-    offset = writeAscii(out, offset, CARBON_WEBGPU_MAGIC);
-    view.setUint32(offset, CARBON_WEBGPU_VERSION, true);
-    offset += 4;
-    view.setUint32(offset, encodedChunks.length, true);
-    offset += 4;
-
-    for (const chunk of encodedChunks)
-    {
-        offset = writeAscii(out, offset, chunk.tag);
-        view.setUint32(offset, chunk.bytes.length, true);
-        offset += 4;
-        out.set(chunk.bytes, offset);
-        offset += chunk.bytes.length;
-    }
-
-    return out;
 }
 
 /**
@@ -501,38 +463,4 @@ export function buildMinimalStagedEffectBytes(options = {})
     for (const body of uniqueBodies) writer.raw(body.bytes);
 
     return writer.toBytes();
-}
-
-function normalizeChunkValue(value)
-{
-    if (typeof value === "string")
-    {
-        return textEncoder.encode(value);
-    }
-    if (value instanceof Uint8Array)
-    {
-        return value;
-    }
-    if (value instanceof ArrayBuffer)
-    {
-        return new Uint8Array(value);
-    }
-    if (ArrayBuffer.isView(value))
-    {
-        return new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
-    }
-    if (value && typeof value === "object")
-    {
-        return textEncoder.encode(`${JSON.stringify(value)}\n`);
-    }
-    throw new Error("Unsupported Carbon WebGPU chunk value");
-}
-
-function writeAscii(out, offset, value)
-{
-    for (let i = 0; i < value.length; i += 1)
-    {
-        out[offset + i] = value.charCodeAt(i) & 0xff;
-    }
-    return offset + value.length;
 }

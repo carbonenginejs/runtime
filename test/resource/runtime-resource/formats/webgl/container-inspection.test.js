@@ -100,7 +100,7 @@ test("container inspection reports no chunk vocabulary", () =>
 {
     const summary = inspectGlslEffectContainer(containerBytes());
 
-    for (const key of [ "chunks", "isCewg", "shaderCount", "stageCount" ])
+    for (const key of [ "chunks", "shaderCount", "stageCount" ])
     {
         assert.ok(!(key in summary), `container summary must not report "${key}"`);
     }

@@ -110,7 +110,7 @@ test("every permutation resolves to translated backend programs", () =>
     assert.equal(bodyKeys.size, result.permutationGraph.bodies.length);
 });
 
-test("the selected body's translated programs equal the WGSL chunk", () =>
+test("the selected body's translated programs equal the derived WGSL set", () =>
 {
     const result = buildAllBodyPackage();
     const pkg = readContainer(result.bytes);
@@ -123,7 +123,7 @@ test("the selected body's translated programs equal the WGSL chunk", () =>
     {
         const expected = result.wgsl.shaders.find((entry) => entry.key === shader.key);
 
-        assert.ok(expected, `WGSL chunk contains ${shader.key}`);
+        assert.ok(expected, `derived WGSL set contains ${shader.key}`);
         assert.equal(shader.code, expected.code);
         assert.equal(shader.entryPoint, expected.entryPoint);
     }
