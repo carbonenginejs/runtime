@@ -786,6 +786,55 @@ export class CjsBlueResMan
   }
 
   /**
+   * `IsOnMainThread` (BlueResMan.cpp:327) - whether the caller is on the thread
+   * that ticks the main queue.
+   *
+   * Adapted: Carbon compares thread ids. Here the manager lives only on the
+   * page's main thread and workers hold no manager, so any caller is on it.
+   *
+   * @returns {boolean} True.
+   */
+  IsOnMainThread() {
+    return true;
+  }
+
+  /**
+   * `SaveObject` (BlueResMan.cpp:885-930) - writes an object to a black or red file.
+   *
+   * Not implemented: writing goes through a host file system, and nothing
+   * here saves objects yet.
+   *
+   * @throws {Error} Always.
+   */
+  SaveObject(_object, _path) {
+    throw new Error("CjsBlueResMan.SaveObject is not implemented.");
+  }
+
+  /**
+   * `ReserveBackgroundLoadMemory` (BlueResMan.cpp:401-418).
+   *
+   * Not implemented: Carbon reserves a file's size before loading it; in the
+   * browser that size is unknown or wrong (compressed transfers, decoded and
+   * converted results), so loads are limited by counts and time instead.
+   *
+   * @throws {Error} Always.
+   */
+  ReserveBackgroundLoadMemory(_size) {
+    throw new Error("CjsBlueResMan.ReserveBackgroundLoadMemory is not implemented: loads are limited by counts and time.");
+  }
+
+  /**
+   * `ReleaseBackgroundLoadMemory` (BlueResMan.cpp:420-432).
+   *
+   * Not implemented, as `ReserveBackgroundLoadMemory`.
+   *
+   * @throws {Error} Always.
+   */
+  ReleaseBackgroundLoadMemory(_size) {
+    throw new Error("CjsBlueResMan.ReleaseBackgroundLoadMemory is not implemented: loads are limited by counts and time.");
+  }
+
+  /**
    * Reports whether any resource load or preparation remains pending for the
    * resource manager.
    */
@@ -5287,6 +5336,11 @@ function createExtensionTargetError(resource, message, cause = null)
 // carbon metadata identifies the native service whose responsibility it carries.
 CjsSchema.meta.blue.inherit(IBlueResMan, IBlueEvents)(CjsBlueResMan);
 CjsSchema.decorateMethod(CjsBlueResMan, "GetResource", meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "IsOnMainThread", meta.adapted);
+for (const method of [ "SaveObject", "ReserveBackgroundLoadMemory", "ReleaseBackgroundLoadMemory" ])
+{
+  CjsSchema.decorateMethod(CjsBlueResMan, method, meta.notImplemented);
+}
 CjsSchema.define(CjsBlueResMan, { className: "CjsBlueResMan", carbon: "BlueResMan" });
 
 /** Resolve a request to Carbon StreamType flags. */
