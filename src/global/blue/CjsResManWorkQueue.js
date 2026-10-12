@@ -1,5 +1,19 @@
+// resMan's two queues, `BlueResManQueue` (blue/include/IBlueResMan.h:12-18):
+// BRMQ_MAIN, ticked on the main thread, and BRMQ_BACKGROUND. Carbon backs each
+// with a BlueCallbackMan (BlueResMan.cpp:107-109); so does this. What stays
+// here is resMan's bookkeeping on top: the promise each task's caller awaits,
+// its metadata, the reason it was cancelled, and a pause.
+//
+// Ours: a browser fetch occupies nothing while it waits, so the background
+// queue runs in `Update` mode with several async slots on the main thread
+// instead of Carbon's blocking background threads; its slot count caps loads
+// in flight. Pausing a queue ticked by `Update` is ours too - Carbon only
+// pauses a manager running its own threads (CallbackMan.cpp:273-279).
+import { BlueCallbackMan } from "./BlueCallbackMan.js";
 import { CjsBlueOS } from "./CjsBlueOS.js";
+import { IBlueCallbackMan } from "./IBlueCallbackMan.js";
 
+/** `BlueResManQueue` names, with the load/prepare aliases resMan accepts. */
 export const CjsResManQueue = Object.freeze({
   MAIN: "main",
   BACKGROUND: "background",
@@ -8,96 +22,94 @@ export const CjsResManQueue = Object.freeze({
 });
 
 /**
- * Small FIFO executor used inside `CjsBlueResMan` that tracks item ids, pause
- * state, concurrency, cancellation, and sync/async completion while queue
- * policy stays in the manager.
- *
- * The queue deliberately does not choose task priority or resource policy.
+ * One resMan queue: a `BlueCallbackMan` ticked by `Pump`, plus the task
+ * records resMan awaits.
  */
 export class CjsResManWorkQueue
 {
+  /** Running tasks, by id. */
   _active = new Map();
-  _concurrency = 1;
-  _head = 0;
-  _items = [];
+
+  /** The callback manager the tasks run on. */
+  _manager = new BlueCallbackMan();
+
   _name;
-  _nextId = 1;
+
   _onReady;
+
   _paused = false;
+
+  /** Tasks not yet started, by id. */
   _queued = new Map();
 
-  /** Creates a CjsResManWorkQueue with caller-provided initial state. */
+  /** Creates a queue with caller-provided initial state. */
   constructor(name, options = {}) {
     this._name = CjsResManWorkQueue.normalizeName(name);
+    this._manager.SetName(this._name);
     this._onReady = typeof options.onReady === "function" ? options.onReady : null;
     this.SetConcurrency(options.concurrency ?? 1);
   }
 
   /**
-   * Updates the maximum number of tasks that may run together for the resource
-   * work queue.
+   * How many tasks may run together: the callback manager's slot count.
+   *
+   * @param {number} value Positive integer, at most 32.
+   * @returns {CjsResManWorkQueue} This queue.
    */
   SetConcurrency(value) {
     if (!Number.isInteger(value) || value < 1) {
       throw new TypeError("CjsBlueResMan queue concurrency must be a positive integer.");
     }
-    this._concurrency = value;
+    this._manager.SetThreadCount(value);
     this._NotifyReady();
     return this;
   }
 
-  /**
-   * Returns the maximum number of tasks allowed to run together for the resource
-   * work queue.
-   */
+  /** The number of tasks allowed to run together. */
   GetConcurrency() {
-    return this._concurrency;
+    return this._manager._threadCount;
   }
 
-  /**
-   * Allocates the next monotonically increasing task identifier for the resource
-   * work queue.
-   */
+  /** The id the next task will get (`IBlueCallbackMan::GetNextId`). */
   GetNextId() {
-    return this._nextId;
+    return this._manager.GetNextId();
   }
 
-  /** Returns the number of tasks waiting to start for the resource work queue. */
+  /** Tasks waiting to start. */
   GetQueuedCount() {
     return this._queued.size;
   }
 
-  /** Returns the number of tasks currently executing for the resource work queue. */
+  /** Tasks running. */
   GetActiveCount() {
     return this._active.size;
   }
 
-  /**
-   * Returns the combined number of waiting and active tasks for the resource
-   * work queue.
-   */
+  /** Tasks waiting or running. */
   GetPendingCount() {
     return this._queued.size + this._active.size;
   }
 
-  /**
-   * Reports whether the queue is prevented from starting work for the resource
-   * work queue.
-   */
+  /** Whether the queue is held from starting tasks. */
   IsPaused() {
     return this._paused;
   }
 
   /**
-   * Enqueues one task and returns its cancellation-aware promise for the
-   * resource work queue.
+   * Queues one task and returns its record, whose promise settles with the
+   * callback's outcome.
+   *
+   * @param {Function} callback Called with `{ id, queue, metadata }`, `this` being the context.
+   * @param {*} [context=null] The callback's `this`.
+   * @param {object|null} [metadata=null] Diagnostics kept on the record; `flags` holds `BCBF_*` flags.
+   * @returns {object} The task record: id, queue, state, metadata and promise.
+   * @throws {TypeError} When the callback is not a function.
    */
   Add(callback, context = null, metadata = null) {
     if (typeof callback !== "function") {
       throw new TypeError("CjsBlueResMan queue items require a callback.");
     }
 
-    const id = this._nextId++;
     let resolve;
     let reject;
     const promise = new Promise((onResolve, onReject) => {
@@ -105,7 +117,7 @@ export class CjsResManWorkQueue
       reject = onReject;
     });
     const item = {
-      id,
+      id: 0,
       queue: this._name,
       callback,
       context,
@@ -116,36 +128,41 @@ export class CjsResManWorkQueue
       state: "queued"
     };
 
-    this._items.push(item);
-    this._queued.set(id, item);
+    const id = { value: 0 };
+    const flags = metadata && Number.isInteger(metadata.flags) ? metadata.flags : IBlueCallbackMan.BCBF_NONE;
+    this._manager.Add(() => this._Start(item), null, flags, id);
+    item.id = id.value;
+
+    this._queued.set(item.id, item);
     this._NotifyReady();
     return item;
   }
 
   /**
-   * Cancels a queued task selected by its identifier for the resource work
-   * queue.
+   * Cancels a task that has not started.
+   *
+   * @param {number} id Task id.
+   * @param {string} [reason=""] Appended to the rejection message.
+   * @returns {boolean} Whether a waiting task was cancelled.
    */
   Cancel(id, reason = "") {
     const item = this._queued.get(id);
     if (!item) return false;
+
     this._queued.delete(id);
+    this._manager.Cancel(id);
     item.state = "cancelled";
     item.reject(CjsResManWorkQueue.createCancelledError(this._name, id, reason));
-    this._Compact();
     return true;
   }
 
-  /**
-   * Prevents queued tasks from starting until resumed for the resource work
-   * queue.
-   */
+  /** Holds the queue from starting tasks until resumed. */
   Pause() {
     this._paused = true;
     return this;
   }
 
-  /** Allows queued tasks to start after a pause for the resource work queue. */
+  /** Lets the queue start tasks again. */
   Resume() {
     if (!this._paused) return this;
     this._paused = false;
@@ -153,15 +170,21 @@ export class CjsResManWorkQueue
     return this;
   }
 
-  /** Cancels every task that has not started for the resource work queue. */
+  /** Cancels every task that has not started; returns how many. */
   Clear(reason = "Queue cleared.") {
     const ids = [ ...this._queued.keys() ];
     for (const id of ids) this.Cancel(id, reason);
-    this._Compact(true);
     return ids.length;
   }
 
-  /** Starts queued work while concurrency permits for the resource work queue. */
+  /**
+   * Starts waiting tasks while slots are free, within the item and time
+   * limits - `Update` called in a loop, as resMan's tick does
+   * (BlueResMan.cpp:450-464).
+   *
+   * @param {object} [options={}] `maxItems`, `maxTime` (ms) and a `now` clock.
+   * @returns {object} Processed, queued, active and pending counts, and whether paused.
+   */
   Pump(options = {}) {
     const maxItems = normalizeLimit(options.maxItems);
     const maxTime = normalizeLimit(options.maxTime);
@@ -170,16 +193,12 @@ export class CjsResManWorkQueue
     let processed = 0;
 
     if (!this._paused) {
-      while (this._active.size < this._concurrency && processed < maxItems) {
-        const item = this._TakeNext();
-        if (!item) break;
-        this._Start(item);
+      while (processed < maxItems && this._manager.Update()) {
         processed++;
-        if (processed > 0 && now() - startedAt >= maxTime) break;
+        if (now() - startedAt >= maxTime) break;
       }
     }
 
-    this._Compact();
     return {
       processed,
       queued: this.GetQueuedCount(),
@@ -189,15 +208,12 @@ export class CjsResManWorkQueue
     };
   }
 
-  /**
-   * Returns an immutable snapshot of queue counts and policy for the resource
-   * work queue.
-   */
+  /** A snapshot of the queue's counts and policy. */
   GetStats() {
     return {
       name: this._name,
-      nextId: this._nextId,
-      concurrency: this._concurrency,
+      nextId: this.GetNextId(),
+      concurrency: this.GetConcurrency(),
       queued: this.GetQueuedCount(),
       active: this.GetActiveCount(),
       pending: this.GetPendingCount(),
@@ -205,19 +221,9 @@ export class CjsResManWorkQueue
     };
   }
 
-  /** Removes and returns the next runnable work item for the resource work queue. */
-  _TakeNext() {
-    while (this._head < this._items.length) {
-      const item = this._items[this._head++];
-      if (item.state !== "queued") continue;
-      this._queued.delete(item.id);
-      return item;
-    }
-    return null;
-  }
-
-  /** Starts one queued work item for the resource work queue. */
+  /** Runs one task as the callback manager's entry; a promise holds its slot. */
   _Start(item) {
+    this._queued.delete(item.id);
     item.state = "active";
     this._active.set(item.id, item);
 
@@ -230,23 +236,20 @@ export class CjsResManWorkQueue
       });
     } catch (error) {
       this._Settle(item, false, error);
-      return;
+      return undefined;
     }
 
-    if (result && typeof result.then === "function") {
-      Promise.resolve(result).then(
+    if (result instanceof Promise) {
+      return result.then(
         value => this._Settle(item, true, value),
         error => this._Settle(item, false, error)
       );
-      return;
     }
     this._Settle(item, true, result);
+    return undefined;
   }
 
-  /**
-   * Settles one active work item and advances the queue for the resource work
-   * queue.
-   */
+  /** Settles one running task and lets waiting ones start. */
   _Settle(item, didResolve, value) {
     if (!this._active.delete(item.id)) return;
     item.state = didResolve ? "resolved" : "rejected";
@@ -255,15 +258,7 @@ export class CjsResManWorkQueue
     this._NotifyReady();
   }
 
-  /** Removes settled work items from the queue for the resource work queue. */
-  _Compact(force = false) {
-    if (force || (this._head > 256 && this._head > this._items.length * 0.5)) {
-      this._items = this._items.slice(this._head);
-      this._head = 0;
-    }
-  }
-
-  /** Notifies waiters when the queue becomes ready for the resource work queue. */
+  /** Tells the manager when there is something to start. */
   _NotifyReady() {
     if (this._onReady && !this._paused && this.GetQueuedCount() > 0) {
       this._onReady(this);
