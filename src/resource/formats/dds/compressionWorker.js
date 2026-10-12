@@ -1,7 +1,7 @@
 // Source: Tr2DxtCompressor.cpp:981-1066, browser worker adaptation.
-// One complete encoding job uses the existing ResMan message envelope. Its
-// owner terminates this dedicated worker to interrupt a synchronous block loop.
-import { Message } from "#blue/worker/protocol";
+// The worker module of the callback manager that runs DXT encoding: it
+// exports one callback, "dds.compress", through BlueCallbackManWorker.
+import { BlueCallbackManWorker } from "#blue/worker/BlueCallbackManWorker";
 import { compressBitmap, compressSurface, compressionPixelFormat } from "./core/dxtCompression.js";
 import { PixelFormat as P } from "#consts/render-context";
 
@@ -41,31 +41,14 @@ export function executeCompression(payload)
 }
 
 /**
- * Install the existing worker protocol for this DDS-owned encoding operation.
+ * Install the "dds.compress" callback on a worker scope.
  *
  * @param {object} scope Worker global scope; uses `addEventListener`, `removeEventListener` and `postMessage`.
  * @returns {Function} Removes the message listener.
  */
 export function installCompressionWorker(scope)
 {
-    const onMessage = event =>
-    {
-        const message = event.data;
-        if (message.type !== Message.EXECUTE) return;
-        try
-        {
-            if (message.operation !== "dds.compress") throw new Error("Unknown DDS worker operation");
-            const result = executeCompression(message.payload);
-            scope.postMessage({ type: Message.RESULT, id: message.id, ok: true, result }, [result.data.buffer]);
-        }
-        catch (error)
-        {
-            scope.postMessage({ type: Message.RESULT, id: message.id, ok: false,
-                error: { name: error.name, message: error.message, stack: error.stack } });
-        }
-    };
-    scope.addEventListener("message", onMessage);
-    return () => scope.removeEventListener("message", onMessage);
+    return BlueCallbackManWorker.install(scope, { "dds.compress": executeCompression });
 }
 
 if (typeof WorkerGlobalScope !== "undefined" && globalThis instanceof WorkerGlobalScope)

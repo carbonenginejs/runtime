@@ -15,11 +15,12 @@ function createFakeWorkerFactory(callbacks, log = [])
   return (_module, options) =>
   {
     const listeners = new Set();
-    const worker = { onmessage: null, terminated: false, name: options.name };
+    const workerListeners = new Set();
+    const worker = { terminated: false, name: options.name, addEventListener: (_type, listener) => workerListeners.add(listener) };
     const scope = {
       addEventListener: (_type, listener) => listeners.add(listener),
       removeEventListener: (_type, listener) => listeners.delete(listener),
-      postMessage: message => setTimeout(() => worker.onmessage({ data: structuredClone(message) }))
+      postMessage: message => setTimeout(() => { for (const listener of workerListeners) listener({ data: structuredClone(message) }); })
     };
     worker.postMessage = message =>
     {

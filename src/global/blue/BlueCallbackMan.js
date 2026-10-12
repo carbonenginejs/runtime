@@ -276,7 +276,7 @@ export class BlueCallbackMan extends IBlueCallbackMan
       const td = new BlueCallbackManThreadData(i);
       td.name = this._ThreadName(i);
       td.worker = this._workerFactory(this._workerModule, { type: "module", name: td.name });
-      td.worker.onmessage = event => this._OnWorkerMessage(td, event.data);
+      td.worker.addEventListener("message", event => this._OnWorkerMessage(td, event.data));
       this._threads.push(td);
     }
 
