@@ -23,8 +23,8 @@
 // `BlueFileStream`, and the network through `BlueRemoteStream`. Here the host
 // passes all three in:
 //
-// - `localFileSystem`: the byte store, as an `IBlueResFileSystem` plus
-//   `WriteFile(path, bytes)` and `RemoveFile(path)`. Writing must be atomic -
+// - `localFileSystem`: the byte store, as an `IBlueResFileSystem` producing
+//   bytes, plus `WriteFile(path, bytes)` and `RemoveFile(path)`. Writing must be atomic -
 //   Carbon writes a `.tmp` and renames it (cpp:507-583) - and that is the
 //   host's job, because only the host has a file system to rename on.
 // - `fetch`: a WHATWG fetch.
@@ -32,6 +32,7 @@
 //   (`global/utils/resFile.js`), so a host that verifies supplies one.
 import { CjsSchema, meta } from "#schema";
 import { normalizeResPath } from "#utils/path";
+import { BlueResFileSystemForm } from "./IBlueResFileSystem.js";
 
 /**
  * `atoi`: leading whitespace, an optional sign, then digits; 0 when there are
@@ -385,8 +386,9 @@ export class RemoteFileCache
    */
   async _CreateFileStreamForCachedFile(cachedName, checksum)
   {
-    const bytes = await this._localFileSystem.GetStreamFromPath(cachedName);
-    if (bytes === null) return null;
+    const result = await this._localFileSystem.GetStreamFromPath(cachedName, { form: BlueResFileSystemForm.BYTES, signal: null });
+    if (result === null) return null;
+    const bytes = result.data;
     if (checksum !== "" && this._Md5(bytes) !== checksum) throw new Error("File is corrupt");
     ++this.filesUsedFromCache;
     return bytes;

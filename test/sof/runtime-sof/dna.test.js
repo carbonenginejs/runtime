@@ -15,7 +15,7 @@ import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { test } from "node:test";
 import { TriBatchType } from "../../../npm/dist/global/consts/graphics/index.js";
-import { blue } from "../../../npm/dist/global/blue/index.js";
+import { blue, BlueResFileSystemForm, IBlueResFileSystem } from "../../../npm/dist/global/blue/index.js";
 import {
   CjsSofLibraryBuilder,
   EveSOF,
@@ -6134,13 +6134,16 @@ test("resPathInsert existence goes through BePaths, as Carbon's FileExists does"
   assert.equal((await diffuse(own, "rifter:minmatar:minmatar:respathinsert?missing")), "res:/x/ship_d.dds", "a missing insert falls back");
 
   // The default is the global BePaths: compose it with a file system.
-  const fileSystem = {
-    FileExists: path => files.has(path),
-    IsDirectory: () => false,
-    GetDirectoryContents: () => false,
-    GetStreamFromPath: () => null,
-    ResolvePath: path => path,
-  };
+  const fileSystem = new (class extends IBlueResFileSystem
+  {
+    static protocols = [ "res" ];
+    static forms = [ BlueResFileSystemForm.BYTES ];
+    FileExists(path) { return files.has(path); }
+    IsDirectory() { return false; }
+    GetDirectoryContents() {}
+    async GetStreamFromPath() { return null; }
+    ResolvePath(path) { return path; }
+  })();
   blue.paths.RegisterFileSystem(fileSystem);
   try
   {

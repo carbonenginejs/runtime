@@ -22,8 +22,45 @@
 // Search paths, resolution and yielding reads stay refused, from IBluePaths:
 // they belong to a local file system with search paths, which no host here
 // provides yet.
+//
+// READING ROUTES BY PROTOCOL (ours). Carbon asks every file system in turn for
+// a stream (cpp:259-266). Here each miss can cost a network round trip, so
+// `GetStreamFromPath` asks only the file systems whose class declares the
+// path's protocol (`IBlueResFileSystem.protocols`), in list order. The
+// synchronous questions (`FileExists`, `IsDirectory`...) cost nothing and
+// still ask every file system, as Carbon does.
+//
+// FORMS (ours). The caller says which forms it accepts, each file system
+// declares the forms it produces (`IBlueResFileSystem.forms`), and the paths
+// service asks for a form both sides share, or one a cheap bridge turns into
+// an accepted one: bytes to text and back, a stream to bytes or text. No
+// shared or bridgeable form is an error, never a guess.
 import { CjsSchema, meta } from "#schema";
+import { BlueFileUtil } from "./BlueFileUtil.js";
 import { IBluePaths } from "./IBluePaths.js";
+import { BlueResFileSystemForm } from "./IBlueResFileSystem.js";
+
+const { BYTES, TEXT, STREAM, VALUE } = BlueResFileSystemForm;
+
+/** Every form a file system may declare. */
+const KNOWN_FORMS = new Set([ BYTES, TEXT, STREAM, VALUE ]);
+
+/**
+ * The cheap conversions, as `produced -> accepted -> convert`. Each costs at
+ * most one pass over the bytes; nothing here decodes a file format.
+ */
+const BRIDGES = {
+  [BYTES]: {
+    [TEXT]: bytes => new TextDecoder().decode(bytes)
+  },
+  [TEXT]: {
+    [BYTES]: text => new TextEncoder().encode(text)
+  },
+  [STREAM]: {
+    [BYTES]: async stream => new Uint8Array(await new Response(stream).arrayBuffer()), // alloc: view over the read stream; does not copy
+    [TEXT]: stream => new Response(stream).text()
+  }
+};
 
 /** `BluePaths::BeforeOrAfter` (BluePaths.h:24-28) - where `RegisterFileSystem` places a file system. */
 export const BluePathsBeforeOrAfter = Object.freeze({ BEFORE: 0, AFTER: 1 });
@@ -57,6 +94,7 @@ export class CjsBluePaths extends IBluePaths
    */
   SetLocalFileSystem(fileSystem)
   {
+    if (fileSystem !== null) assertDeclared(fileSystem);
     if (this._localFileSystem !== null)
     {
       this._resFileSystems.splice(this._resFileSystems.indexOf(this._localFileSystem), 1);
@@ -111,6 +149,7 @@ export class CjsBluePaths extends IBluePaths
    */
   RegisterFileSystem(fileSystem, beforeOrAfter = BluePathsBeforeOrAfter.AFTER)
   {
+    assertDeclared(fileSystem);
     if (beforeOrAfter === BluePathsBeforeOrAfter.BEFORE) this._resFileSystems.unshift(fileSystem);
     else this._resFileSystems.push(fileSystem);
     return this;
@@ -215,22 +254,64 @@ export class CjsBluePaths extends IBluePaths
   }
 
   /**
-   * `GetStreamFromPathW` - the file's bytes from the first file system that
-   * supplies them, or `null` (cpp:227-268).
+   * `GetStreamFromPathW` - the file from the first file system that supplies
+   * it, in a form the caller accepts, or `null` when none has it
+   * (cpp:227-268).
    *
-   * Adapted: without Carbon's language-code substitution
+   * Adapted: asynchronous; routed by protocol and matched by form (see the top
+   * of this file); and without Carbon's language-code substitution
    * (`AdjustFilenameForLanguageCode`), which picks a localized sibling of a
-   * `res:` path; nothing here localizes resources.
+   * `res:` path, since nothing here localizes resources. A file system's
+   * rejection (a server error, an abort) ends the read: only "not here" moves
+   * on to the next file system.
    *
    * @param {string} path Res path.
-   * @returns {Promise<Uint8Array|null>} The bytes, or `null`.
+   * @param {object} [options={}] Read options.
+   * @param {string[]} [options.accept=["bytes"]] Accepted `BlueResFileSystemForm`s, preferred first.
+   * @param {AbortSignal|null} [options.signal=null] Cancels the read.
+   * @returns {Promise<import("./IBlueResFileSystem.js").BlueResFileSystemResult|null>} The file, or `null`.
+   * @throws {TypeError} When the path has no protocol.
+   * @throws {Error} `CJS_BEPATHS_NO_FILE_SYSTEM` when no file system serves the protocol,
+   *   `CJS_BEPATHS_NO_FORM` when none that does can produce an accepted form.
    */
-  async GetStreamFromPath(path)
+  async GetStreamFromPath(path, options = {})
   {
-    for (const fileSystem of this._resFileSystems)
+    const accept = options.accept ?? [ BYTES ];
+    const signal = options.signal ?? null;
+
+    // Route: the file systems that serve the path's protocol, in list order.
+    const protocol = BlueFileUtil.getResProtocol(path);
+    if (protocol === null) throw new TypeError(`BePaths: "${path}" has no protocol.`);
+    const key = protocol.toLowerCase();
+    const serving = this._resFileSystems.filter(fileSystem => fileSystem.constructor.protocols.includes(key));
+    if (serving.length === 0)
     {
-      const bytes = await fileSystem.GetStreamFromPath(path);
-      if (bytes !== null) return bytes;
+      throw pathsError("CJS_BEPATHS_NO_FILE_SYSTEM", path, `BePaths: no file system serves "${protocol}:" (${path}).`);
+    }
+
+    // Match: each one's form to ask for, and the bridge to an accepted form.
+    const plans = [];
+    for (const fileSystem of serving)
+    {
+      const plan = matchForm(fileSystem.constructor.forms, accept);
+      if (plan) plans.push({ fileSystem, ...plan });
+    }
+    if (plans.length === 0)
+    {
+      throw pathsError("CJS_BEPATHS_NO_FORM", path,
+        `BePaths: no file system for "${protocol}:" produces a form in [${accept.join(", ")}] (${path}).`);
+    }
+
+    // Read: the first that has the file answers.
+    for (const { fileSystem, produce, bridge } of plans)
+    {
+      const result = await fileSystem.GetStreamFromPath(path, { form: produce, signal });
+      if (result === null) continue;
+      if (result.form !== produce)
+      {
+        throw new TypeError(`BePaths: asked for "${produce}" and got "${result.form}" (${path}).`);
+      }
+      return bridge ? { form: bridge.to, data: await bridge.convert(result.data) } : result;
     }
     return null;
   }
@@ -257,3 +338,57 @@ CjsSchema.define(CjsBluePaths, {
     GetStreamFromPath: [ meta.renamed("GetStreamFromPathW"), meta.adapted ]
   }
 });
+
+/**
+ * The form to ask a file system for: the first accepted form it produces;
+ * failing that, the first accepted form a bridge reaches from one it
+ * produces; failing both, `null`.
+ *
+ * @param {string[]} produces The file system's declared forms.
+ * @param {string[]} accept The caller's accepted forms, preferred first.
+ * @returns {{produce: string, bridge: {to: string, convert: Function}|null}|null} The plan, or `null`.
+ */
+function matchForm(produces, accept)
+{
+  for (const form of accept)
+  {
+    if (produces.includes(form)) return { produce: form, bridge: null };
+  }
+
+  for (const form of accept)
+  {
+    for (const produced of produces)
+    {
+      const convert = BRIDGES[produced]?.[form];
+      if (convert) return { produce: produced, bridge: { to: form, convert } };
+    }
+  }
+  return null;
+}
+
+/**
+ * Refuses a file system whose class does not declare its protocols and forms.
+ *
+ * @throws {TypeError} Naming what is missing.
+ */
+function assertDeclared(fileSystem)
+{
+  const { protocols, forms } = fileSystem.constructor;
+  if (!Array.isArray(protocols) || protocols.length === 0)
+  {
+    throw new TypeError("BePaths: a file system's class must declare the protocols it serves (static protocols).");
+  }
+  if (!Array.isArray(forms) || forms.length === 0 || !forms.every(form => KNOWN_FORMS.has(form)))
+  {
+    throw new TypeError(`BePaths: a file system's class must declare the forms it produces from [${[ ...KNOWN_FORMS ].join(", ")}] (static forms).`);
+  }
+}
+
+/** A paths-service error with its code and path. */
+function pathsError(code, path, message)
+{
+  const error = new Error(message);
+  error.code = code;
+  error.path = path;
+  return error;
+}

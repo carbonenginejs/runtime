@@ -9,7 +9,9 @@
 //     (IBlueOS, CjsBlueOS, BeInfo, IBlueEvents, ICatchupTicks, IVariableTicker,
 //     ISimTimeRebaseNotify), paths, the resource manager and file systems
 //     (IBlueResMan, CjsBlueResMan, CjsMotherLode, IBlueResFileSystem,
-//     BlueResFileSystemRemote, RemoteFileCache), object metadata, placement
+//     BlueResFileSystemRemote, BlueResFileSystemLocal, CjsBlueResFileSystemFetch,
+//     CjsBlueResFileSystemCallback,
+//     BlueFileUtil, RemoteFileCache), object metadata, placement
 //     observers, the lazy object holder (BlueObjectProxy, IBlueObjectProxy,
 //     IBlueObjectBuilder, IUnloadable), the ITri* curve/function interfaces,
 //     ICurveSetDriver, and the
@@ -89,6 +91,10 @@ export { NotifyModified } from "../compose/values.js";
 export * from "./IBlueResFileSystem.js";
 export * from "./RemoteFileCache.js";
 export * from "./BlueResFileSystemRemote.js";
+export * from "./BlueResFileSystemLocal.js";
+export * from "./CjsBlueResFileSystemFetch.js";
+export * from "./CjsBlueResFileSystemCallback.js";
+export * from "./BlueFileUtil.js";
 export * from "./CjsBluePaths.js";
 export * from "./IBlueCallbackMan.js";
 export * from "./BlueCallbackMan.js";

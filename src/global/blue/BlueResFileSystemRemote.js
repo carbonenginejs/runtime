@@ -8,27 +8,20 @@
 // Adapted: it is given its cache, where Carbon's always asks the one global
 // `BeRemoteFileCache`, so a host serving several builds can hold one per build.
 import { CjsSchema, meta } from "#schema";
-import { IBlueResFileSystem } from "./IBlueResFileSystem.js";
+import { BlueFileUtil } from "./BlueFileUtil.js";
+import { BlueResFileSystemForm, IBlueResFileSystem } from "./IBlueResFileSystem.js";
 
-/** `SubstituteBlackForRedInFilename` (blue/src/BlueFileUtil.cpp:374-387). */
-function substituteBlackForRedInFilename(filename)
-{
-  const dot = filename.lastIndexOf(".");
-  if (dot !== -1 && filename.slice(dot) === ".red") return `${filename.slice(0, -3)}black`;
-  return filename;
-}
-
-/** `SubstituteRedForBlackInFilename` (blue/src/BlueFileUtil.cpp:390-403). */
-function substituteRedForBlackInFilename(filename)
-{
-  const dot = filename.lastIndexOf(".");
-  if (dot !== -1 && filename.slice(dot) === ".black") return `${filename.slice(0, -5)}red`;
-  return filename;
-}
+const { substituteBlackForRedInFilename, substituteRedForBlackInFilename } = BlueFileUtil;
 
 /** `BlueResFileSystemRemote` - a `RemoteFileCache` as a res file system. */
 export class BlueResFileSystemRemote extends IBlueResFileSystem
 {
+  /** Ours: the index lists `res:` paths (see IBlueResFileSystem.js). */
+  static protocols = [ "res" ];
+
+  /** Ours: the cache holds bytes (see IBlueResFileSystem.js). */
+  static forms = [ BlueResFileSystemForm.BYTES ];
+
   /** @type {import("./RemoteFileCache.js").RemoteFileCache} */
   _remoteFileCache = null;
 
@@ -77,12 +70,24 @@ export class BlueResFileSystemRemote extends IBlueResFileSystem
     for (const name of contents) results.add(substituteRedForBlackInFilename(name));
   }
 
-  /** `GetStreamFromPathW` - the file's bytes through the cache, or `null` when it fails (cpp:38-43). */
-  async GetStreamFromPath(resPath)
+  /**
+   * `GetStreamFromPathW` - the file's bytes through the cache, or `null` when
+   * the cache fails (cpp:38-43).
+   *
+   * Adapted: asynchronous, answering `{ form: "bytes", data }`, the only form
+   * this file system declares. Like Carbon, every cache failure reads as
+   * "not here", so the next file system is asked.
+   *
+   * @param {string} resPath Res path.
+   * @param {import("./IBlueResFileSystem.js").BlueResFileSystemRequest} _request Always the bytes form.
+   * @returns {Promise<import("./IBlueResFileSystem.js").BlueResFileSystemResult|null>} The bytes, or `null`.
+   */
+  async GetStreamFromPath(resPath, _request)
   {
     try
     {
-      return await this._remoteFileCache.GetStreamFromPath(substituteBlackForRedInFilename(resPath));
+      const data = await this._remoteFileCache.GetStreamFromPath(substituteBlackForRedInFilename(resPath));
+      return { form: BlueResFileSystemForm.BYTES, data };
     }
     catch
     {
@@ -118,7 +123,7 @@ CjsSchema.define(BlueResFileSystemRemote, {
     FileExists: [ meta.blue.method, meta.implemented ],
     IsDirectory: [ meta.blue.method, meta.implemented ],
     GetDirectoryContents: [ meta.blue.method, meta.implemented ],
-    GetStreamFromPath: [ meta.renamed("GetStreamFromPathW"), meta.implemented ],
+    GetStreamFromPath: [ meta.renamed("GetStreamFromPathW"), meta.adapted ],
     ResolvePath: [ meta.renamed("ResolvePathW"), meta.adapted ]
   }
 });
