@@ -1255,7 +1255,7 @@ export class Tr2RenderContext
 
     if (batch.indexBuffer)
     {
-      this._esm.ApplyIndexBuffer(batch.indexBuffer, batch.indexStride);
+      this._esm.ApplyIndexBuffer__Stride(batch.indexBuffer, batch.indexStride);
 
       return !Failed(this.DrawIndexedInstanced(
         batch.indexCountPerInstance,

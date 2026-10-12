@@ -186,11 +186,18 @@ test("an index bind is filtered the same way, and a one-byte stride fails", () =
 
   states.BeginManagedRendering();
 
-  assert.equal(states.ApplyIndexBuffer(indices, 2), true);
-  assert.equal(states.ApplyIndexBuffer(indices, 2), false);
-  assert.equal(states.ApplyIndexBuffer(indices, 4), true, "a different stride is a different bind");
+  assert.equal(states.ApplyIndexBuffer__Stride(indices, 2), true);
+  assert.equal(states.ApplyIndexBuffer__Stride(indices, 2), false);
+  assert.equal(states.ApplyIndexBuffer__Stride(indices, 4), true, "a different stride is a different bind");
 
-  assert.throws(() => states.ApplyIndexBuffer(indices, 1), /one-byte index stride/);
+  assert.throws(() => states.ApplyIndexBuffer__Stride(indices, 1), /one-byte index stride/);
+
+  // Carbon's one-argument overload takes the stride from the buffer's own description
+  // (Tr2EffectStateManager.cpp:951-954); the stub buffer's stride is 4.
+  assert.equal(states.ApplyIndexBuffer__Stride(indices, 2), true);
+  assert.equal(states.ApplyIndexBuffer(indices), true, "stride 4 from the description differs from the bound 2");
+  assert.equal(states.ApplyIndexBuffer(indices), false, "the same buffer and description stride is redundant");
+  assert.equal(states.ApplyIndexBuffer__Stride(indices, 4), false);
 });
 
 test("the binding verbs reach a backend even on a bare context", () =>
@@ -241,7 +248,7 @@ test("the batch-to-draw sequence reaches the device", () =>
 
   assert.equal(states.ApplyVertexDeclaration(declaration), true);
   assert.equal(states.ApplyStreamSource(0, { id: "vertices" }, 0, 32), true);
-  assert.equal(states.ApplyIndexBuffer({ id: "indices" }, 2), true);
+  assert.equal(states.ApplyIndexBuffer__Stride({ id: "indices" }, 2), true);
   assert.equal(context.DrawIndexedInstanced(36, 1, 0, 0, 0), ALResult.S_OK);
 
   assert.equal(al.GetDrawCount(), 1);

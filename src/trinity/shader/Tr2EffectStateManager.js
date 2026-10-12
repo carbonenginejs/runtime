@@ -1711,7 +1711,20 @@ export class Tr2EffectStateManager
   }
 
   /**
-   * Binds the index buffer unless it is already bound.
+   * Carbon's one-argument ApplyIndexBuffer( indices ) (Tr2EffectStateManager.cpp:951-954):
+   * binds the buffer with the stride its own description carries.
+   *
+   * @param {object} indices A `Tr2BufferAL`.
+   * @returns {boolean} False when the bind was filtered out as redundant.
+   */
+  ApplyIndexBuffer(indices)
+  {
+    return this.ApplyIndexBuffer__Stride(indices, indices.GetDesc().stride);
+  }
+
+  /**
+   * Carbon's ApplyIndexBuffer( indices, stride ) (Tr2EffectStateManager.cpp:961-985): binds
+   * the index buffer unless it is already bound with that stride.
    *
    * A ONE-BYTE INDEX STRIDE IS A BUG, and Carbon says so at the top of this
    * method - "Oh no! This is a big bug!" (cpp:963-966) - because no backend has
@@ -1723,7 +1736,7 @@ export class Tr2EffectStateManager
    * @param {number} stride Bytes per index.
    * @returns {boolean} False when the bind was filtered out as redundant.
    */
-  ApplyIndexBuffer(indices, stride)
+  ApplyIndexBuffer__Stride(indices, stride)
   {
     if (stride === 1) throw new Error("Tr2EffectStateManager: a one-byte index stride is never right.");
 
