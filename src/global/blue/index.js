@@ -90,6 +90,9 @@ export * from "./IBlueResFileSystem.js";
 export * from "./RemoteFileCache.js";
 export * from "./BlueResFileSystemRemote.js";
 export * from "./CjsBluePaths.js";
+export * from "./IBlueCallbackMan.js";
+export * from "./BlueCallbackMan.js";
+export * from "./worker/BlueCallbackManWorker.js";
 // The resource manager core: Carbon's BlueResMan, BlueAsyncRes and MotherLode
 // live in Blue, and so does ours. Formats and concrete resources stay in
 // resource and register with it.
