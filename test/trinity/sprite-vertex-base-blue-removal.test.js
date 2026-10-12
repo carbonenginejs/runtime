@@ -33,7 +33,7 @@ test("D3D derived vertex dictionary transport retains base and derived typed val
 });
 
 test("actual polygon consumer retains authored vertices and texture-coordinate methods",()=>{
- const polygon=new Tr2Sprite2dPolygon();polygon.AppendVertices([[1,2],[3,4]],[[1,0,0],[0,1,0],[10,20,1]],[1,0,0,1],[[0,0],[1,1]]);const vertex=polygon.vertices[0],position=vertex.position;assert.equal(vertex.constructor,Tr2Sprite2dVertex);assert.deepEqual([...position],[11,22,0]);assert.deepEqual([...vertex.color],[1,0,0,1]);
+ const polygon=new Tr2Sprite2dPolygon();polygon.AppendVertices([[1,2],[3,4]],[[1,0,0],[0,1,0],[10,20,1]],[1,0,0,1],[[0,0],[1,1]]);const vertex=polygon.vertices[0],position=vertex.position;assert.equal(vertex.constructor,Tr2Sprite2dVertex);assert.deepEqual([...position],[11,22,1]);/* Carbon positionTransform: third column is z, w = 1. */assert.deepEqual([...vertex.color],[1,0,0,1]);
  vertex.SetTexCoord(1,[0.5,0.75]);const uv=vertex.GetTexCoord(1);assert.deepEqual([...uv],[0.5,0.75]);uv[0]=9;assert.equal(vertex.texCoord[1][0],0.5);assert.throws(()=>vertex.SetTexCoord(2,[0,0]),RangeError);
  polygon.SetVertices([[5,6],[7,8]],null,[0,1,0,1]);assert.equal(polygon.vertices[0],vertex);assert.equal(vertex.position,position);assert.deepEqual([...position],[5,6,0]);assert.deepEqual([...vertex.color],[0,1,0,1]);
 });

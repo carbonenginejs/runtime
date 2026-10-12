@@ -43,6 +43,6 @@ test("actual line trace append and update retain records, transform values and d
  trace.AppendVertices([[1,2],[3,4]],[[1,0,0],[0,1,0],[10,20,1]],[[1,0,0,1],[0,1,0,1]],["a","b"]);
  assert.equal(trace.vertices,list);assert.equal(trace.isDirty,true);assert.ok(list.every(value=>value.constructor===Tr2Sprite2dLineTraceVertex));assert.deepEqual(list.map(value=>[...value.position]),[[11,22],[13,24]]);assert.deepEqual(list.map(value=>value.name),["a","b"]);
  const vertex=list[0],position=vertex.position,color=vertex.color;trace.isDirty=false;trace.SetVertices([[5,6],[7,8]],null,[0,0,1,1],"renamed");
- assert.equal(list[0],vertex);assert.equal(vertex.position,position);assert.equal(vertex.color,color);assert.deepEqual([...position],[5,6]);assert.deepEqual([...color],[0,0,1,1]);assert.equal(vertex.name,"renamed");assert.equal(trace.isDirty,true);
+ assert.equal(list[0],vertex);assert.equal(vertex.position,position);assert.equal(vertex.color,color);assert.deepEqual([...position],[5,6]);assert.deepEqual([...color],[0,0,1,1]);assert.equal(vertex.name,"");/* Carbon quirk: a constant name string is never read (Tr2Sprite2dLineTrace_Blue.cpp:232-238, 286-305). */assert.equal(trace.isDirty,true);
  assert.throws(()=>trace.AppendVertices([[1]],null,[1,1,1,1]),TypeError);assert.equal(list.length,2);
 });

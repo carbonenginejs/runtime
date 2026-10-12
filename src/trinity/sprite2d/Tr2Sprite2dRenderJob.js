@@ -16,7 +16,6 @@ export class Tr2Sprite2dRenderJob extends Tr2SpriteObjectBase
 {
 
   /** Carbon method GatherSprites. */
-  @meta.blue.method
   @meta.implemented
   GatherSprites(renderer)
   {
@@ -27,7 +26,6 @@ export class Tr2Sprite2dRenderJob extends Tr2SpriteObjectBase
   }
 
   /** Carbon method PickPoint. */
-  @meta.blue.method
   @meta.implemented
   PickPoint(x, y, renderer)
   {
@@ -36,11 +34,11 @@ export class Tr2Sprite2dRenderJob extends Tr2SpriteObjectBase
       return null;
     }
 
-    vec2.set(this.#point, x, y);
-    vec2.set(this.#translation, this.displayX, this.displayY);
+    vec2.set(this._point, x, y);
+    vec2.set(this._translation, this.displayX, this.displayY);
     if (!renderer.IsInside(
-      this.#point,
-      this.#translation,
+      this._point,
+      this._translation,
       this.displayWidth,
       this.displayHeight,
       0
@@ -50,8 +48,8 @@ export class Tr2Sprite2dRenderJob extends Tr2SpriteObjectBase
     }
 
     if (this.pickingMask && !this.pickingMask.SampleMask(
-      renderer.InverseTransformPoint(this.#point),
-      this.#translation,
+      renderer.InverseTransformPoint(this._point),
+      this._translation,
       this.displayWidth,
       this.displayHeight
     ))
@@ -63,7 +61,6 @@ export class Tr2Sprite2dRenderJob extends Tr2SpriteObjectBase
   }
 
   /** Carbon method GetVertexCount. */
-  @meta.blue.method
   @meta.implemented
   GetVertexCount()
   {
@@ -75,7 +72,10 @@ export class Tr2Sprite2dRenderJob extends Tr2SpriteObjectBase
   @meta.type.rootRef("TriRenderJob")
   renderJob = null;
 
-  #point = vec2.create();
-  #translation = vec2.create();
+  /** PickPoint's Vector2( x, y ) temporary (Tr2Sprite2dRenderJob.cpp:36); Carbon has no member. @type {Float32Array} */
+  _point = vec2.create();
+
+  /** PickPoint's m_translation as a Vector2 (Tr2Sprite2dRenderJob.cpp:36); Carbon has no member. @type {Float32Array} */
+  _translation = vec2.create();
 
 }

@@ -1,64 +1,173 @@
 // Source: trinity/trinity/Font/Tr2FontManager.h
+// Source: trinity/trinity/Font/Tr2FontManager.cpp
+// Source: trinity/trinity/Font/Tr2FontManager_Blue.cpp
 // Maintained browser-font adapter; native interfaces retain their Carbon names.
+//
+// BLUE NAMES THAT POINT AT OTHER C++ METHODS. Carbon's exposure maps four Blue
+// names onto C++ methods with different names (Tr2FontManager_Blue.cpp:88-131):
+//
+//     Blue "LookupGlyphIndex"  -> LookupFaceIDAndGlyphIndex
+//     Blue "LookupKerningXP"   -> PyLookupKerningXP
+//     Blue "LookupSBit"        -> LookupSBit
+//     Blue "LookupMetrics"     -> LookupMetricsFromScript
+//
+// A JS class holds one member per name, and engine code calls the C++ methods
+// by their C++ names, so the C++ names own the members here. The schema has no
+// way to record a Blue name that differs from the member it dispatches to, so
+// none of the three renamed Blue entries is declared with `meta.blue.method`;
+// each method's JSDoc names its Blue spelling instead.
 import { Tr2SBitWrapper } from "./Tr2SBitWrapper.js";
 import { g_textureAtlasMan } from "../core/Tr2TextureAtlasMan.js";
+import { Tr2Renderer } from "../core/Tr2Renderer.js";
 import { PixelFormat } from "#consts/render-context";
+import { blue, IBlueEvents } from "#blue";
 import { meta } from "#schema";
+
+/**
+ * Carbon's `TR2_FONT_FALLBACK` (Tr2FontManager.h:23, value at
+ * Tr2FontManager_Blue.cpp:9): the font used when none is named and for
+ * characters the named font lacks.
+ *
+ * @type {string}
+ */
+export const TR2_FONT_FALLBACK = "res:/ui/fonts/arialuni.ttf";
+
+/** Carbon's `s_cookie` for the font manager's tick registration (Tr2FontManager.cpp:59). */
+const s_cookie = "fontMan";
+
+/** Carbon's `INT_MAX`, returned by LookupKerningXP when FreeType reports an error (Tr2FontManager.cpp:255). */
+const INT_MAX = 0x7fffffff;
+
+/**
+ * One CPU glyph-cache record: Carbon's `GlyphCacheEntry` (Tr2FontManager.h:148-153)
+ * with the browser sbit in place of the idle atlas texture.
+ *
+ * @typedef {object} GlyphCacheEntry
+ * @property {object} sbit The browser-rasterized sbit record.
+ * @property {number} lastFrameUsed `Tr2Renderer.GetCurrentFrameCounter()` at the last lookup.
+ * @property {number} memoryUsage Bytes held by the sbit's coverage buffer.
+ */
 
 /** Tracks font-loading policy together with the glyph-cache memory budget and occupancy. */
 @meta.define({ className: "Tr2FontManager", family: "font", purpose: "Tracks font-loading policy together with the glyph-cache memory budget and occupancy." })
+@meta.blue.inherit(IBlueEvents)
 export class Tr2FontManager
 {
 
-  /** m_glyphCacheBudget (size_t) [READWRITE] */
+  /**
+   * m_glyphCacheBudget (size_t) [READWRITE], default 512 KiB (Tr2FontManager.cpp:101).
+   * Browser meaning: the byte budget of the CPU sbit cache (see TrimGlyphCache).
+   */
   @meta.blue.readwrite
   @meta.type.uint64
+  @meta.adapted
   glyphCacheBudget = 524288;
 
-  /** m_loadflag (int) [READWRITE] */
+  /**
+   * m_loadflag (int) [READWRITE]. FreeType load flags have no Canvas2D
+   * equivalent, so the value is stored and has no effect on rasterization.
+   */
   @meta.blue.readwrite
   @meta.type.int32
+  @meta.adapted
   loadFlag = 0;
 
-  /** m_totalGlyphsCachedSize (size_t) [READ] */
+  /**
+   * m_totalGlyphsCachedSize (size_t) [READ].
+   * Browser meaning: bytes held by the CPU sbit cache (see TrimGlyphCache).
+   */
   @meta.blue.read
   @meta.type.uint64
+  @meta.adapted
   totalGlyphsCachedSize = 0;
 
-  /** Initializes Carbon's manager singleton; browser resources are acquired lazily. */
-  @meta.adapted
+  /**
+   * Carbon `Initialize` (Tr2FontManager.cpp:65-70): creates the singleton and
+   * registers it for Blue ticks, so OnTick trims the glyph cache every frame.
+   * Browser resources (the Canvas2D context) are acquired lazily.
+   *
+   * @returns {void}
+   */
+  @meta.implemented
   static initialize()
   {
     g_fontManager = new Tr2FontManager();
+
+    blue.os.RegisterForTicks(g_fontManager, s_cookie);
   }
 
-  /** Releases manager-owned CPU caches. */
+  /**
+   * Carbon `Shutdown` (Tr2FontManager.cpp:76-84): unregisters the tick and
+   * drops the singleton.
+   *
+   * Adapted: Carbon's destructor tears down FreeType (`FTC_Manager_Done`,
+   * cpp:133-137); here clearing the CPU sbit cache stands in for it, because
+   * JS has no destructor and the browser owns the font engine.
+   *
+   * @returns {void}
+   */
   @meta.adapted
   static shutdown()
   {
-    if (g_fontManager) g_fontManager.ClearCachedGlyphs();
+    if (g_fontManager)
+    {
+      blue.os.UnregisterForTicks(g_fontManager, s_cookie);
+      g_fontManager.ClearCachedGlyphs();
+    }
+
     g_fontManager = null;
   }
 
-  /** Browser face names retain stable native-style numeric identities. */
-  _faces = [];
+  /** m_faceMap: font name to face ID. @type {Map<string, number>} */
   _faceMap = new Map();
+
+  /**
+   * m_reverseFaceMap: face ID to font name. Carbon puts a "dummy" entry first
+   * so 0 is never a valid face ID (Tr2FontManager.cpp:129-130); "dummy" is not
+   * entered in the forward map, so it never resolves to a font.
+   *
+   * @type {string[]}
+   */
+  _reverseFaceMap = [ "dummy" ];
+
+  /**
+   * The CPU sbit cache, keyed by face, size and glyph, in insertion order.
+   * Browser substitute for FreeType's `FTC_SBitCache`; see TrimGlyphCache.
+   *
+   * @type {Map<string, GlyphCacheEntry>}
+   */
   _glyphs = new Map();
+
+  /** Browser CPU canvas used for rasterization. @type {OffscreenCanvas|HTMLCanvasElement|null} */
   _canvas = null;
+
+  /** 2D context of `_canvas`. @type {CanvasRenderingContext2D|OffscreenCanvasRenderingContext2D|null} */
   _context = null;
+
+  /**
+   * Last pixel size set per face. FreeType's face keeps its current size
+   * between calls; LookupKerningXP reads it the same way.
+   *
+   * @type {Map<number, number>}
+   */
   _sizes = new Map();
 
   /**
-   * Registers a CSS font family; loading a custom font is explicitly asynchronous.
-   * Adapted: face IDs refer to browser families rather than FreeType faces.
+   * Carbon `GetFaceID` (Tr2FontManager.cpp:152-171): a stable ID per font name,
+   * starting at 1 because of the reserved "dummy" entry.
+   *
+   * Adapted: face IDs refer to browser font families rather than FreeType faces.
+   *
+   * @param {string} font Font name: a res path or a CSS family.
+   * @returns {number} The face ID.
    */
   @meta.adapted
   GetFaceID(font)
   {
     if (this._faceMap.has(font)) return this._faceMap.get(font);
 
-    const id = this._faces.length;
-    this._faces.push(font);
+    const id = this._reverseFaceMap.length;
+    this._reverseFaceMap.push(font);
     this._faceMap.set(font, id);
     return id;
   }
@@ -66,6 +175,10 @@ export class Tr2FontManager
   /**
    * Loads font bytes or a FontFace source and registers it in this browser/worker.
    * JS extension: native synchronous ResFile/FreeType loading has no browser equivalent.
+   *
+   * @param {string} family Family name to register; a res path such as TR2_FONT_FALLBACK works.
+   * @param {ArrayBuffer|ArrayBufferView|string} source FontFace source.
+   * @returns {Promise<number>} The face ID of the family.
    */
   @meta.ours
   async LoadFont(family, source)
@@ -80,7 +193,11 @@ export class Tr2FontManager
     return this.GetFaceID(family);
   }
 
-  /** Lazily acquires a browser CPU canvas; importing the engine remains headless-safe. */
+  /**
+   * Lazily acquires a browser CPU canvas; importing the engine remains headless-safe.
+   *
+   * @returns {CanvasRenderingContext2D|OffscreenCanvasRenderingContext2D} The context.
+   */
   @meta.ours
   _GetContext()
   {
@@ -95,16 +212,47 @@ export class Tr2FontManager
     return this._context;
   }
 
-  /** Restores canvas font state after a bitmap resize resets it. */
+  /**
+   * Whether a face ID names a registered font. Face 0 is Carbon's reserved
+   * "dummy" entry: FreeType fails to load it, so every lookup through it fails.
+   *
+   * @param {number} faceID Face ID.
+   * @returns {boolean} Whether the face resolves.
+   */
+  @meta.ours
+  _IsValidFace(faceID)
+  {
+    return faceID !== 0 && this._reverseFaceMap[faceID] !== undefined;
+  }
+
+  /**
+   * Restores canvas font state after a bitmap resize resets it.
+   *
+   * The CSS family list is the browser form of Carbon's fallback font: Carbon
+   * looks a missing character up again in TR2_FONT_FALLBACK
+   * (Tr2FontMeasurer.cpp:287-321), and a CSS family list makes the browser do
+   * the same per glyph. A res-path name is quoted so it is a valid CSS family
+   * (as registered by LoadFont). The trailing generic `sans-serif` stands in
+   * for an installation where the fallback font itself was never loaded,
+   * which Carbon logs as an error (Tr2FontMeasurer.cpp:190-197, 296-300).
+   *
+   * @param {number} faceID Face ID.
+   * @param {number} height Pixel size.
+   * @returns {CanvasRenderingContext2D|OffscreenCanvasRenderingContext2D} The prepared context.
+   */
   @meta.ours
   _SetFont(faceID, height)
   {
-    const family = this._faces[faceID];
-    if (family === undefined) throw new RangeError("Unknown font face ID.");
+    if (!this._IsValidFace(faceID)) throw new RangeError("Unknown font face ID.");
     if (!(height > 0) || !Number.isFinite(height)) throw new RangeError("Font height must be positive and finite.");
 
+    const family = this._reverseFaceMap[faceID];
+    const families = [ family.includes(":") ? `"${family}"` : family ];
+    if (family !== TR2_FONT_FALLBACK) families.push(`"${TR2_FONT_FALLBACK}"`);
+    families.push("sans-serif");
+
     const context = this._GetContext();
-    context.font = `${height}px ${family}`;
+    context.font = `${height}px ${families.join(", ")}`;
     context.textBaseline = "alphabetic";
     context.textAlign = "left";
     context.direction = "ltr";
@@ -114,29 +262,77 @@ export class Tr2FontManager
   }
 
   /**
-   * Returns a browser character identity. The browser does not expose font glyph IDs
-   * or missing-glyph detection; Unicode code points replace FreeType indices.
+   * Carbon `LookupGlyphIndex` (Tr2FontManager.cpp:271-289): the glyph index
+   * of a character in a face, or -1 when the face cannot be used. Not Blue
+   * exposed: the Blue name "LookupGlyphIndex" is LookupFaceIDAndGlyphIndex.
+   *
+   * Adapted: the browser exposes neither font glyph IDs nor missing-glyph
+   * detection, so the Unicode code point stands in for the FreeType index.
+   * Code point 0 therefore reads as Carbon's "no glyph" (0).
+   *
+   * @param {number} faceID Face ID.
+   * @param {number} charCode Unicode code point.
+   * @returns {number} Glyph index, or -1.
    */
   @meta.adapted
   LookupGlyphIndex(faceID, charCode)
   {
-    if (typeof faceID === "string") return this.LookupFaceIDAndGlyphIndex(faceID, charCode);
-    if (this._faces[faceID] === undefined) return -1;
+    if (!this._IsValidFace(faceID)) return -1;
+
     return Number.isInteger(charCode) && charCode >= 0 && charCode <= 0x10ffff ? charCode : -1;
   }
 
-  /** Returns the face and browser glyph identity for script callers. */
-  @meta.adapted
-  LookupFaceIDAndGlyphIndex(font, charCode)
+  /**
+   * Carbon `LookupFaceIDAndGlyphIndex` (Tr2FontManager.cpp:707-731), Blue
+   * name "LookupGlyphIndex" (Tr2FontManager_Blue.cpp:88-97): an empty name
+   * uses TR2_FONT_FALLBACK, and a glyph index of 0 or less retries the
+   * character in TR2_FONT_FALLBACK.
+   *
+   * Carbon logs "trinity.fontMan.LookupGlyphIndex - no font given, using
+   * fallback font" for the empty name; there is no log here.
+   *
+   * @param {string} faceName Font name, or "" for the fallback font.
+   * @param {number} charCode Unicode code point.
+   * @returns {[number, number]} The face ID and glyph index that were used.
+   */
+  @meta.implemented
+  LookupFaceIDAndGlyphIndex(faceName, charCode)
   {
-    const faceID = this.GetFaceID(font);
-    return [faceID, this.LookupGlyphIndex(faceID, charCode)];
+    const faceNameUsed = faceName === "" ? TR2_FONT_FALLBACK : faceName;
+
+    let faceID = g_fontManager.GetFaceID(faceNameUsed);
+    let glyphIndex = g_fontManager.LookupGlyphIndex(faceID, charCode);
+
+    if (glyphIndex <= 0)
+    {
+      faceID = g_fontManager.GetFaceID(TR2_FONT_FALLBACK);
+      glyphIndex = g_fontManager.LookupGlyphIndex(faceID, charCode);
+    }
+
+    return [ faceID, glyphIndex ];
   }
 
-  /** Browser font-box metrics converted into native 26.6 fixed-point units. */
+  /**
+   * Carbon `LookupMetrics` (Tr2FontManager.cpp:208-221): size metrics in 26.6
+   * fixed point; an unusable face returns zeroed metrics, as Carbon's
+   * `FT_Size_Metrics()` on error. Not Blue exposed: the Blue name
+   * "LookupMetrics" is LookupMetricsFromScript.
+   *
+   * Adapted: browser font-box metrics replace FT_Size_Metrics, and only
+   * ascender, descender and height are produced. `height` is ascent plus
+   * descent (no line gap), where FreeType's is the baseline-to-baseline
+   * distance. The height (or width when height is 0) picks the pixel size.
+   *
+   * @param {number} faceID Face ID.
+   * @param {number} width Pixel width.
+   * @param {number} height Pixel height.
+   * @returns {{ascender: number, descender: number, height: number}} 26.6 metrics.
+   */
   @meta.adapted
   LookupMetrics(faceID, width, height)
   {
+    if (!this._IsValidFace(faceID)) return { ascender: 0, descender: 0, height: 0 };
+
     const size = height || width, context = this._SetFont(faceID, size);
     const metrics = context.measureText("Mg");
     const ascent = metrics.fontBoundingBoxAscent ?? metrics.actualBoundingBoxAscent;
@@ -144,39 +340,100 @@ export class Tr2FontManager
     return { ascender: Math.round(ascent * 64), descender: -Math.round(descent * 64), height: Math.round((ascent + descent) * 64) };
   }
 
-  /** Returns pixel ascender/descender, as the native script wrapper does. */
+  /**
+   * Carbon `LookupMetricsFromScript` (Tr2FontManager.cpp:224-228), Blue name
+   * "LookupMetrics": pixel ascender and descender.
+   *
+   * Adapted: returns a two-element array for Carbon's `std::pair`.
+   *
+   * @param {number} faceID Face ID.
+   * @param {number} width Pixel width.
+   * @param {number} height Pixel height.
+   * @returns {[number, number]} Ascender and descender in pixels.
+   */
   @meta.adapted
   LookupMetricsFromScript(faceID, width, height)
   {
     const metrics = this.LookupMetrics(faceID, width, height);
-    return [metrics.ascender >> 6, metrics.descender >> 6];
+    return [ metrics.ascender >> 6, metrics.descender >> 6 ];
   }
 
-  /** Approximates pair kerning using browser-shaped advances at the active size. */
+  /**
+   * Carbon `LookupKerningXP` (Tr2FontManager.cpp:242-258): horizontal kerning
+   * in pixels for a glyph pair, or INT_MAX when the face cannot be used. Not
+   * Blue exposed: Blue "LookupKerningXP" is _PyLookupKerningXP.
+   *
+   * Adapted: approximated as the difference between the browser-shaped pair
+   * advance and the two single advances, at the size last set for this face
+   * (FreeType reads the face's current size the same way).
+   *
+   * @param {number} faceID Face ID.
+   * @param {number} leftIndex Left glyph index (a code point here).
+   * @param {number} rightIndex Right glyph index (a code point here).
+   * @returns {number} Kerning in pixels.
+   */
   @meta.adapted
   LookupKerningXP(faceID, leftIndex, rightIndex)
   {
+    if (!this._IsValidFace(faceID)) return INT_MAX;
+
     const context = this._SetFont(faceID, this._sizes.get(faceID) ?? 12);
     const left = String.fromCodePoint(leftIndex), right = String.fromCodePoint(rightIndex);
     return Math.round(context.measureText(left + right).width - context.measureText(left).width - context.measureText(right).width);
   }
 
   /**
-   * Rasterizes browser glyph coverage into a native-shaped 8-bit sbit record.
-   * Adapted: bitmap bounds and advances follow browser metrics, not FreeType hinting.
-   * The return value replaces the native result/output-pointer pair.
+   * Carbon `PyLookupKerningXP` (Tr2FontManager.cpp:700-705), private in
+   * Carbon, Blue name "LookupKerningXP" (Tr2FontManager_Blue.cpp:99-108).
+   *
+   * Carbon quirk CE-128, Tr2FontManager.cpp:700-705: LookupKerningXP already returns
+   * `kerning.x >> 6` (cpp:257), and this wrapper shifts by 6 again, so script
+   * callers get the 26.6 kerning divided by 4096, which is 0 for any real
+   * kerning value (and -1 for small negative ones). Reproduced here on the
+   * Blue-exposed method only; LookupKerningXP, the engine path, stays in pixels.
+   *
+   * @param {number} faceID Face ID.
+   * @param {number} charCode1 Left glyph index.
+   * @param {number} charCode2 Right glyph index.
+   * @returns {number} The doubly shifted kerning.
    */
+  @meta.implemented
+  _PyLookupKerningXP(faceID, charCode1, charCode2)
+  {
+    const kerning = g_fontManager.LookupKerningXP(faceID, charCode1, charCode2) | 0;
+
+    return kerning >> 6;
+  }
+
+  /**
+   * Carbon `LookupSBit` (Tr2FontManager.cpp:301-325), Blue name "LookupSBit":
+   * a wrapper around the sbit for a face, size and glyph.
+   *
+   * Adapted: rasterized by Canvas2D into a native-shaped 8-bit sbit record, so
+   * bitmap bounds and advances follow browser metrics, not FreeType hinting.
+   * The wrapper is returned, and Carbon's failed `Be::Result` is thrown. A
+   * cache hit refreshes the entry's frame stamp; trimming happens in OnTick.
+   *
+   * @param {number} faceID Face ID.
+   * @param {number} width Pixel width.
+   * @param {number} height Pixel height.
+   * @param {number} glyphIndex Glyph index (a code point here).
+   * @returns {Tr2SBitWrapper} The sbit wrapper, at x = y = 0.
+   * @throws {RangeError} "FTC_SBitCache_Lookup failed" for an unusable face or glyph.
+   */
+  @meta.blue.method
   @meta.adapted
   LookupSBit(faceID, width, height, glyphIndex)
   {
     const size = height || width;
-    if (this.LookupGlyphIndex(faceID, glyphIndex) < 0) throw new RangeError("Invalid browser glyph identity.");
+    if (this.LookupGlyphIndex(faceID, glyphIndex) < 0) throw new RangeError("FTC_SBitCache_Lookup failed");
+
     const key = `${faceID}:${width}:${height}:${glyphIndex}`;
-    let sbit = this._glyphs.get(key);
-    if (sbit)
+    let entry = this._glyphs.get(key);
+
+    if (entry)
     {
-      this._glyphs.delete(key);
-      this._glyphs.set(key, sbit);
+      entry.lastFrameUsed = Tr2Renderer.GetCurrentFrameCounter();
       this._sizes.set(faceID, size);
     }
     else
@@ -189,6 +446,7 @@ export class Tr2FontManager
       const bitmapWidth = Math.max(0, Math.ceil(metrics.actualBoundingBoxRight * scale) - left);
       const bitmapHeight = Math.max(0, top + Math.ceil(metrics.actualBoundingBoxDescent));
       const buffer = new Uint8Array(bitmapWidth * bitmapHeight); // alloc: variable-size glyph pixels retained by the text cache
+
       if (bitmapWidth && bitmapHeight)
       {
         this._canvas.width = bitmapWidth;
@@ -200,20 +458,29 @@ export class Tr2FontManager
         for (let i = 0; i < buffer.length; i++) buffer[i] = rgba[i * 4 + 3];
       }
 
-      sbit = { width: bitmapWidth, height: bitmapHeight, left, top, xadvance: Math.round(metrics.width * scale), yadvance: 0, pitch: bitmapWidth, format: 2, max_grays: 255, buffer };
-      this._glyphs.set(key, sbit);
-      this.totalGlyphsCachedSize += buffer.byteLength;
-      this.TrimGlyphCache(this.glyphCacheBudget);
+      const sbit = { width: bitmapWidth, height: bitmapHeight, left, top, xadvance: Math.round(metrics.width * scale), yadvance: 0, pitch: bitmapWidth, format: 2, max_grays: 255, buffer };
+      entry = { sbit, lastFrameUsed: Tr2Renderer.GetCurrentFrameCounter(), memoryUsage: buffer.byteLength };
+      this._glyphs.set(key, entry);
+      this.totalGlyphsCachedSize += entry.memoryUsage;
     }
 
     const result = new Tr2SBitWrapper();
     result.faceId = faceID;
     result.fontSize = size;
-    result.sbit = sbit;
+    result.sbit = entry.sbit;
+    result.x = 0;
+    result.y = 0;
     return result;
   }
 
-  /** Releases browser glyph cache ownership; existing wrappers retain their bitmaps. */
+  /**
+   * Carbon `ClearCachedGlyphs` (Tr2FontManager.cpp:621-629).
+   *
+   * Adapted: Carbon releases idle glyph atlas textures; this releases the CPU
+   * sbit cache. Existing wrappers keep their bitmaps.
+   *
+   * @returns {void}
+   */
   @meta.blue.method
   @meta.adapted
   ClearCachedGlyphs()
@@ -222,26 +489,79 @@ export class Tr2FontManager
     this.totalGlyphsCachedSize = 0;
   }
 
-  /** Evicts least-recently-used browser glyphs to the requested byte budget. */
+  /**
+   * Carbon `TrimGlyphCache` (Tr2FontManager.cpp:631-693), algorithm as written:
+   * nothing to do while the budget covers the total; a zero budget clears;
+   * otherwise entries are sorted by frame age and deleted oldest first until
+   * the total falls strictly below the budget.
+   *
+   * Adapted: Carbon's cache holds idle glyph atlas textures that `WeakRefNotify`
+   * resurrects as they die (cpp:560-583). JS cannot observe an object about to
+   * be collected, nor resurrect it, so that cache cannot exist. The cached
+   * objects here are the CPU sbits instead, and `glyphCacheBudget` and
+   * `totalGlyphsCachedSize` measure their coverage bytes. Evicting an sbit
+   * still in use is harmless: its wrappers keep it, and a later lookup
+   * rasterizes it again.
+   *
+   * @param {number} cacheSize Budget in bytes.
+   * @returns {void}
+   */
   @meta.blue.method
   @meta.adapted
   TrimGlyphCache(cacheSize)
   {
+    if (cacheSize >= this.totalGlyphsCachedSize) return;
+
     if (cacheSize === 0)
     {
       this.ClearCachedGlyphs();
       return;
     }
 
-    for (const [key, sbit] of this._glyphs)
+    const now = Tr2Renderer.GetCurrentFrameCounter();
+    const entries = [];
+    for (const [ key, entry ] of this._glyphs) entries.push({ age: now - entry.lastFrameUsed, key });
+    entries.sort((a, b) => a.age - b.age);
+
+    for (let i = entries.length - 1; i >= 0; i--)
     {
-      if (this.totalGlyphsCachedSize <= cacheSize) break;
-      this._glyphs.delete(key);
-      this.totalGlyphsCachedSize -= sbit.buffer.byteLength;
+      const entry = this._glyphs.get(entries[i].key);
+      this.totalGlyphsCachedSize -= entry.memoryUsage;
+      this._glyphs.delete(entries[i].key);
+
+      if (this.totalGlyphsCachedSize < cacheSize) break;
     }
   }
 
-  /** Clears a rectangular RGBA buffer, preserving row padding and view boundaries. */
+  /**
+   * Carbon `OnTick` (Tr2FontManager.cpp:695-698), IBlueEvents: trims the
+   * glyph cache to its budget once per Blue tick.
+   *
+   * @param {number} _realTime Real time, unused.
+   * @param {number} _simTime Simulation time, unused.
+   * @param {*} _cookie Registration cookie, unused.
+   * @returns {void}
+   */
+  @meta.implemented
+  OnTick(_realTime, _simTime, _cookie)
+  {
+    this.TrimGlyphCache(this.glyphCacheBudget);
+  }
+
+  /**
+   * Carbon `PyClearBuffer` (Tr2FontManager_Blue.cpp:28-75), Blue "ClearBuffer":
+   * fills a rectangular 32-bit buffer with one value.
+   *
+   * Adapted: a typed array or view replaces the Python writable buffer, and
+   * integer dimensions are validated.
+   *
+   * @param {ArrayBuffer|ArrayBufferView} buffer Destination.
+   * @param {number} width Width in pixels.
+   * @param {number} height Height in pixels.
+   * @param {number} pitch Row pitch in bytes.
+   * @param {number} [color=0] Packed 32-bit value.
+   * @returns {void}
+   */
   @meta.blue.method
   @meta.adapted
   ClearBuffer(buffer, width, height, pitch, color = 0)
@@ -257,24 +577,43 @@ export class Tr2FontManager
       for (let x = 0; x < width; x++) view.setUint32(y * pitch + x * 4, color >>> 0, true);
     }
   }
+
   /**
    * Browser adaptation: weak glyph identity replaces native weak-ref resurrection.
    * An active text run retains its atlas view; unused glyphs do not retain views.
+   *
+   * @type {WeakMap<object, WeakRef<object>>}
    */
   _sbitToTextureMap = new WeakMap();
 
-  /** Uploads grayscale glyph coverage once, including native transparent shadow row. */
+  /**
+   * Carbon `GetAtlasTextureForSbit` (Tr2FontManager.cpp:430-558): uploads
+   * grayscale coverage once as `0x00ffffff | gray << 24`, plus one transparent
+   * row for the drop shadow.
+   *
+   * Adapted: one WeakMap of WeakRefs replaces Carbon's in-use/cached map pair,
+   * since JS cannot resurrect a dying texture; the mono `format == 1` branch is
+   * absent because browser sbits are always 8-bit. Returns the texture or null
+   * instead of bool plus out pointer.
+   *
+   * @param {object} sbit The sbit record.
+   * @returns {object|null} The glyph's atlas texture, or null.
+   */
   @meta.adapted
   GetAtlasTextureForSbit(sbit)
   {
     const existing = this._sbitToTextureMap.get(sbit)?.deref();
     if (existing) return existing;
+
     const atlas = g_textureAtlasMan.FindAtlas(PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM);
     if (!atlas) return null;
+
     const texture = atlas.CreateTexture(sbit.width, sbit.height + 1);
     if (!texture) return null;
+
     const mapping = texture.LockBuffer();
     if (!mapping) return null;
+
     try
     {
       const bytes = mapping.data;
@@ -290,6 +629,7 @@ export class Tr2FontManager
       bytes.fill(0, sbit.height * mapping.pitch, sbit.height * mapping.pitch + sbit.width * 4);
     }
     finally { texture.UnlockBuffer(); }
+
     this._sbitToTextureMap.set(sbit, new WeakRef(texture));
     return texture;
   }

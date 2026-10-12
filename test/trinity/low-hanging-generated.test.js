@@ -233,7 +233,8 @@ test("Sprite2D value helpers preserve Carbon vertices, transforms, and dirty sta
   polygon.display = false;
   assert.equal(polygon.GetVertexCount(), 0);
   polygon.display = true;
-  assert.deepEqual(Array.from(polygon.vertices[0].position), [11, 22, 0]);
+  // Carbon positionTransform: z is the third column, w is 1 (Tr2Sprite2dPolygon_Blue.cpp).
+  assert.deepEqual(Array.from(polygon.vertices[0].position), [11, 22, 1]);
   assert.deepEqual(Array.from(polygon.vertices[1].texCoord[0]), [1, 1]);
   assert.equal(polygon.triangles[0].index1, 1);
 
@@ -275,7 +276,9 @@ test("Sprite2D value helpers preserve Carbon vertices, transforms, and dirty sta
   assert.equal(lineTrace.vertices[1].name, "end");
   lineTrace.SetVertices([[1, 2], [3, 4]], null, [0.5, 0.5, 0.5, 1], "point");
   assert.deepEqual(Array.from(lineTrace.vertices[0].position), [1, 2]);
-  assert.equal(lineTrace.vertices[1].name, "point");
+  // Carbon quirk: a constant name string is type-checked but never read, so names become ""
+  // (Tr2Sprite2dLineTrace_Blue.cpp:232-238, 286-305).
+  assert.equal(lineTrace.vertices[1].name, "");
 });
 
 test("Tr2Sprite2dContainerBase owns child parents and propagates dirty state", () =>

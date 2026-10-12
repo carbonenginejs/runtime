@@ -55,7 +55,7 @@ test("Blue resource traversal reaches a held image through the actual sprite own
 
 test("actual sprite PickPoint consumes the preserved nine-slice mask and strict threshold",()=>{
  const owner=new Tr2Sprite2dRenderJob(),mask=new Tr2Sprite2dPickingMask();Object.assign(owner,{display:true,pickState:1,displayX:0,displayY:0,displayWidth:8,displayHeight:8,pickingMask:mask});
- Object.assign(mask,{channel:2,leftEdge:1,topEdge:1,rightEdge:1,bottomEdge:1,mask:{IsGood:()=>true,GetWidth:()=>4,GetHeight:()=>4,GetPixelColor:(x,y)=>x===2&&y===2?[255,0,0,255]:[0,0,0,0]}});
+ Object.assign(mask,{channel:2,leftEdge:1,topEdge:1,rightEdge:1,bottomEdge:1,mask:{IsGood:()=>true,GetBitmap:()=>({GetWidth:()=>4,GetHeight:()=>4,GetFormat:()=>87,GetPixel:(x,y)=>x===2&&y===2?{r:0,g:0,b:1,a:1}:{r:0,g:0,b:0,a:0}})}});
  const renderer={IsInside:()=>true,InverseTransformPoint:point=>point};
  assert.equal(owner.PickPoint(4.5,4.5,renderer),owner);assert.equal(owner.PickPoint(0.9,0.9,renderer),null);mask.threshold=1;assert.equal(owner.PickPoint(4.5,4.5,renderer),null);
 });

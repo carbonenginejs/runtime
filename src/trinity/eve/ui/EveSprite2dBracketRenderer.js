@@ -117,6 +117,11 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
           const right = corner === 1 || corner === 2, bottom = corner >= 2;
           const offset = (visible * 4 + corner) * 88;
           // Native default vertex fields, including unused UVs and outline data.
+          // Carbon quirk, CE-131 (EveSprite2dBracketRenderer.cpp:56-107, 111): Carbon
+          // writes the constant fields and the clip rectangle only when the buffers
+          // are rebuilt for a new bracket count; later frames keep the old clip.
+          // This port rewrites them every frame. Reproduce-or-keep is the
+          // operator's decision; behaviour is unchanged until then.
           mapping.data.fill(0, offset, offset + 88);
           data.setFloat32(offset, x + (right ? icon.GetWidth() : 0), true);
           data.setFloat32(offset + 4, y + (bottom ? icon.GetHeight() : 0), true);
@@ -141,8 +146,10 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
 
     if (!visible) return;
 
+    // Carbon (EveSprite2dBracketRenderer.cpp:198-199). The buffer overload's stale
+    // start index and texture binding are CE-123 and CE-124, at the scene.
     renderer.SetTexture(0, this.iconAtlas, Tr2Sprite2dTextureSettings.S2D_TS_NONE);
-    renderer.RenderTriangleVerts__Buffers(this._vertexBuffer, visible * 4, this._indexBuffer, visible * 6);
+    renderer.RenderTriangleVerts__Tr2BufferAL(this._vertexBuffer, visible * 4, this._indexBuffer, visible * 6);
   }
 
   /** Native device-resource release; callers also use this for explicit teardown. */
@@ -156,7 +163,10 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
 
   /** Native resource preparation requires no additional work. */
   @meta.implemented
-  OnPrepareResources() { return true; }
+  OnPrepareResources()
+  {
+    return true;
+  }
 
   /** Carbon's bracket renderer is deliberately not point-pickable. */
   @meta.blue.method

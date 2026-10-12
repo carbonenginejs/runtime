@@ -1,4 +1,5 @@
-import { Tr2Sprite2dDisplayList, Tr2Sprite2dDisplayListEntry } from "./Tr2Sprite2dDisplayList.js";
+import { Tr2Sprite2dDisplayList } from "./Tr2Sprite2dDisplayList.js";
+import { Tr2Sprite2dDisplayListEntry } from "./Tr2Sprite2dDisplayListEntry.js";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
 import { Tr2EffectStateManager } from "../shader/Tr2EffectStateManager.js";
 import { Tr2RingVertexBuffer } from "../core/device/Tr2RingVertexBuffer.js";
@@ -8,8 +9,11 @@ import { Tr2RenderUtils } from "../core/Tr2RenderUtils.js";
 import { PER_OBJECT_VS_GUI } from "../core/Tr2Renderer.js";
 import { g_textureAtlasMan } from "../core/Tr2TextureAtlasMan.js";
 import { Tr2BufferAL, Tr2BufferDescriptionAL, Tr2TextureAL, Failed } from "#trinityal";
-import { PixelFormat, ShaderType, Topology, Tr2ColorSpace, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
+import { PixelFormat, RenderState, ShaderType, Topology, Tr2ColorSpace, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
+import { Tr2AtlasTexture } from "../core/Tr2AtlasTexture.js";
+import { Tr2Sprite2dD3DVertex } from "./Tr2Sprite2dD3DVertex.js";
 import { RenderingMode, TriStorageFlags } from "#consts/graphics";
+import * as CcpLog from "../../global/logging/ccpLog.js";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dScene.h
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dScene.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dScene_Blue.cpp
@@ -32,13 +36,27 @@ import { Tr2SpriteObjectPickState, Tr2SpriteObjectEffect, Tr2Sprite2dTextureSett
 import { TriVariableContentType } from "../generated/trinityCore/enums.js";
 import "./Tr2SpriteObjectBase.js";
 
+/** Carbon's effect path for the 2D UI ubershader (Tr2Sprite2dScene.cpp:52). @type {string} */
+const EFFECT_UBERSHADER_RESPATH = "res:/Graphics/Effect/UI/UberShader.fx";
+
+/** Carbon's effect path for the 3D UI ubershader (Tr2Sprite2dScene.cpp:53). @type {string} */
+const EFFECT_RENDER_UBERSHADER_RESPATH_3D = "res:/Graphics/Effect/UI/UberShader3d.fx";
+
+/** Carbon's `s_layerIndices`, the two triangles EndLayer draws (Tr2Sprite2dScene.cpp:1672). @type {number[]} */
+const s_layerIndices = [0, 1, 3, 3, 1, 2];
+
 /**
+ * Carbon's Sprite2D scene and the ITr2Sprite2dRenderer every sprite object gathers into.
  * Owns sprite declarations and CPU curve updates using raw Blue frame clocks.
- * Direct rendering and captured display lists use the effect/AL pipeline.
+ * Direct rendering, layers and captured display lists use the effect/AL pipeline.
  * Native automatic device-resource registration remains unported; resource
- * teardown is explicit.
- * Native useLinearColorSpace/gammaCorrectText properties and effect-option
- * methods remain absent; this class does not claim renderer parity.
+ * teardown is explicit (`Destroy`).
+ *
+ * Build choice: Carbon's `#if !CCP_DEPLOY` and `CCP_ASSERT` branches are ported as the
+ * shipping (deploy, NDEBUG) build compiles them: the default-texture substitution in
+ * SetTexture is absent and asserts are no-ops. `exefile/version.h:5-7` names the
+ * CCP_DEPLOY build `ExeFile_deploy`, the deployed client.
+ *
  * Complete canonical members retain native order and indexed aliases. Legacy
  * getField/getDefaults expose no Scene fields; use Blue declaration consumers.
  */
@@ -77,6 +95,11 @@ import "./Tr2SpriteObjectBase.js";
     {"name":"maxDrawCallsToRender","type":{"kind":"uint32"},"edit":{"read":true,"write":true}},
     {"name":"maxSpriteCount","type":{"kind":"uint32"},"edit":{"read":true,"write":true,"notify":true}},
     {"name":"captureIndexDataCapacity","type":{"kind":"uint32"},"edit":{"read":true}}
+  ],
+  // Tr2Sprite2dScene_Blue.cpp:229-239: MAP_PROPERTY pairs backed by the private accessors.
+  properties: [
+    {"name":"useLinearColorSpace","type":{"kind":"boolean"},"edit":{"read":true,"write":true}},
+    {"name":"gammaCorrectText","type":{"kind":"boolean"},"edit":{"read":true,"write":true}}
   ]
 })
 @meta.blue.inherit(INotify)
@@ -89,7 +112,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
   /** Whether update and rendering work is enabled; clocks are retained while hidden. @type {boolean} */
   display = true;
 
-  /** Requests wireframe rendering from the unported sprite renderer. @type {boolean} */
+  /** Requests wireframe fill while the scene renders. @type {boolean} */
   drawWireFrame = false;
 
   /** Disables scene clipping for native rendering diagnostics. @type {boolean} */
@@ -173,10 +196,10 @@ export class Tr2Sprite2dScene extends ITr2Scene
   /** Owned curve sets updated with raw real and simulation clocks in list order. @type {BlueList<TriCurveSet>} */
   curveSets = new BlueList(TriCurveSet, { className: "TriCurveSet", listOps: 0 });
 
-  /** Native 2D uber-effect slot; automatic effect construction/acquisition remains unported. @type {Tr2Effect|null} */
+  /** Carbon m_uberShader2d: the 2D UI effect, created by the constructor. @type {Tr2Effect|null} */
   ubershader2d = null;
 
-  /** Native 3D uber-effect slot; automatic effect construction/acquisition remains unported. @type {Tr2Effect|null} */
+  /** Carbon m_uberShader3d: the 3D UI effect, created by the constructor. @type {Tr2Effect|null} */
   ubershader3d = null;
 
   /** Native diagnostic flag that flashes the default texture during rendering. @type {boolean} */
@@ -188,11 +211,128 @@ export class Tr2Sprite2dScene extends ITr2Scene
   /** Maximum native draw calls submitted; UINT32_MAX means unlimited. @type {number} */
   maxDrawCallsToRender = 4294967295;
 
-  /** Maximum sprites per native draw; notified changes require unsupported resource invalidation. @type {number} */
+  /** Maximum sprites per direct draw call; a notified change clamps it and releases resources. @type {number} */
   maxSpriteCount = 1024;
 
-  /** Allocated capture-index capacity; zero because this port allocates no capture buffers. @type {number} */
+  /** Capacity, in indices, of the display-list capture index storage; grows as needed. @type {number} */
   captureIndexDataCapacity = 1536;
+
+  /** Carbon m_useLinearColorSpace, behind the Blue useLinearColorSpace property. @type {boolean} */
+  _useLinearColorSpace = false;
+
+  /** Carbon m_isGammaCorrectingText, behind the Blue gammaCorrectText property. @type {boolean} */
+  _isGammaCorrectingText = true;
+
+  /** Carbon m_defaultTextureFlash, the grey level FlashDefaultTexture writes next. @type {number} */
+  _defaultTextureFlash = 0;
+
+  /**
+   * Carbon m_stackOfStacks: the transform and clip stacks set aside by each open layer.
+   * @type {Array<{transformStack: Array<object>, depthStack: null, clipStack: Tr2Sprite2dClipRect[], renderTargetTexture: Tr2TextureAL, renderTargetWrapper: Tr2AtlasTexture}>}
+   */
+  _stackOfStacks = [];
+
+  /**
+   * EndLayer's four vertices. Carbon's are a fresh stack array per call (Tr2Sprite2dScene.cpp:1669); EndLayer
+   * resets these to that array's constructed state before every use.
+   */
+  _layerVertices = Array.from({ length: 4 }, () => new Tr2Sprite2dD3DVertex()); // alloc: retained layer quad, reused by every EndLayer
+
+  /**
+   * Carbon constructor (Tr2Sprite2dScene.cpp:58-173): creates both UI ubershaders and points
+   * them at their effect paths. The other constructor work is in field initializers; the
+   * atlas lookup (cpp:139-149) is repeated by _OnPrepareResources and is not done here.
+   */
+  constructor()
+  {
+    super();
+
+    this.ubershader2d = new Tr2Effect();
+    this.ubershader2d.SetEffectPathName(EFFECT_UBERSHADER_RESPATH);
+
+    this.ubershader3d = new Tr2Effect();
+    this.ubershader3d.SetEffectPathName(EFFECT_RENDER_UBERSHADER_RESPATH_3D);
+  }
+
+  /** Blue useLinearColorSpace (Tr2Sprite2dScene_Blue.cpp:229-233). @returns {boolean} Whether UI colour math is linear. */
+  get useLinearColorSpace()
+  {
+    return this._IsUsingLinearColorSpace();
+  }
+
+  /** Blue useLinearColorSpace setter. @param {boolean} value Whether UI colour math is linear. */
+  set useLinearColorSpace(value)
+  {
+    this._SetUseLinearColorSpace(Boolean(value));
+  }
+
+  /** Blue gammaCorrectText (Tr2Sprite2dScene_Blue.cpp:235-239). @returns {boolean} Whether font output is gamma corrected. */
+  get gammaCorrectText()
+  {
+    return this._IsGammaCorrectingText();
+  }
+
+  /** Blue gammaCorrectText setter. @param {boolean} value Whether font output is gamma corrected. */
+  set gammaCorrectText(value)
+  {
+    this._SetGammaCorrectText(Boolean(value));
+  }
+
+  /**
+   * Carbon IsUsingLinearColorSpace (Tr2Sprite2dScene.cpp:2631-2634).
+   *
+   * @returns {boolean} Whether the scene renders in linear colour space.
+   */
+  @meta.implemented
+  _IsUsingLinearColorSpace()
+  {
+    return this._useLinearColorSpace;
+  }
+
+  /**
+   * Carbon SetUseLinearColorSpace (Tr2Sprite2dScene.cpp:2636-2647): stores the flag and
+   * selects the matching COLOR_SPACE option on both ubershaders.
+   *
+   * The flag also drives two render-time effects: Render and RunJobHelper switch
+   * RS_SRGBWRITEENABLE on around the scene, and texture SRVs are bound through an sRGB view
+   * (COLOR_SPACE_SRGB) so sRGB-encoded textures are decoded into linear space.
+   *
+   * @param {boolean} use Whether to render in linear colour space.
+   * @returns {void}
+   */
+  @meta.implemented
+  _SetUseLinearColorSpace(use)
+  {
+    this._useLinearColorSpace = use;
+
+    if (this.ubershader2d) this.ubershader2d.SetOption("COLOR_SPACE", this._useLinearColorSpace ? "COLOR_SPACE_LINEAR" : "COLOR_SPACE_SRGB");
+    if (this.ubershader3d) this.ubershader3d.SetOption("COLOR_SPACE", this._useLinearColorSpace ? "COLOR_SPACE_LINEAR" : "COLOR_SPACE_SRGB");
+  }
+
+  /**
+   * Carbon SetGammaCorrectText (Tr2Sprite2dScene.cpp:2648-2652): stores the flag and selects
+   * the FONT_GAMMACORRECT option on the 2D ubershader only.
+   *
+   * @param {boolean} use Whether font output is gamma corrected.
+   * @returns {void}
+   */
+  @meta.implemented
+  _SetGammaCorrectText(use)
+  {
+    this._isGammaCorrectingText = use;
+    this.ubershader2d.SetOption("FONT_GAMMACORRECT", this._isGammaCorrectingText ? "ENABLED" : "DISABLED");
+  }
+
+  /**
+   * Carbon IsGammaCorrectingText (Tr2Sprite2dScene.cpp:2654-2657).
+   *
+   * @returns {boolean} Whether font output is gamma corrected.
+   */
+  @meta.implemented
+  _IsGammaCorrectingText()
+  {
+    return this._isGammaCorrectingText;
+  }
 
   /** Last real-time timestamp received, in raw Blue 100ns ticks. @type {number} */
   _realTime = 0;
@@ -308,15 +448,23 @@ export class Tr2Sprite2dScene extends ITr2Scene
     try
     {
       if (!mat4.invert(inverse, parent.transform)) inverse.fill(NaN);
-      this.TransformPoint(result, point, inverse);
+      this._TransformPoint(result, point, inverse);
       return result;
     }
     finally { mat4.unalloc(inverse); }
   }
 
-  /** Native Vector4(x,y,0,1) transform, deliberately without perspective division. */
+  /**
+   * Carbon's private TransformPoint (Tr2Sprite2dScene.h:176, cpp:2622-2629): the row-vector
+   * Vector4(x, y, 0, 1) * m, deliberately without perspective division.
+   *
+   * @param {Float32Array|number[]} result Receives x and y.
+   * @param {Float32Array|number[]} point The point to transform.
+   * @param {Float32Array} matrix The transform.
+   * @returns {void}
+   */
   @meta.implemented
-  TransformPoint(result, point, matrix)
+  _TransformPoint(result, point, matrix)
   {
     const x = point[0], y = point[1];
     result[0] = matrix[0] * x + matrix[4] * y + matrix[12];
@@ -411,7 +559,8 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
     if (radius === -1)
     {
-      // Preserve Carbon's major-axis-on-X convention even for tall rectangles.
+      // Carbon quirk, Tr2Sprite2dScene.cpp:1423-1438, CE-132: the long semi-axis is always
+      // divided into dX, so a tall rectangle tests against a wide ellipse. Reproduced.
       const a = Math.max(width, height) * 0.5, b = Math.min(width, height) * 0.5;
       return !(dx * dx / (a * a) + dy * dy / (b * b) > 1);
     }
@@ -434,8 +583,8 @@ export class Tr2Sprite2dScene extends ITr2Scene
     }
     else if (parent)
     {
-      this.TransformPoint(a, a, parent.transform);
-      this.TransformPoint(b, b, parent.transform);
+      this._TransformPoint(a, a, parent.transform);
+      this._TransformPoint(b, b, parent.transform);
     }
 
     const dx = b[0] - a[0], dy = b[1] - a[1];
@@ -455,6 +604,8 @@ export class Tr2Sprite2dScene extends ITr2Scene
   {
     if (!this.IsInsideClipRect(point)) return false;
 
+    // Carbon quirk, Tr2Sprite2dScene.cpp:1522-1535, CE-133: IsDegenerateTriangle never
+    // compares v1 with v2, and it tests the untransformed vertices. Reproduced.
     const epsilon = 1.1920928955078125e-7;
     if ((Math.abs(v0[0] - v1[0]) < epsilon && Math.abs(v0[1] - v1[1]) < epsilon)
       || (Math.abs(v0[0] - v2[0]) < epsilon && Math.abs(v0[1] - v2[1]) < epsilon)) return false;
@@ -470,7 +621,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
           vertex[0] += parent.translation[0];
           vertex[1] += parent.translation[1];
         }
-        else this.TransformPoint(vertex, vertex, parent.transform);
+        else this._TransformPoint(vertex, vertex, parent.transform);
       }
     }
 
@@ -598,9 +749,17 @@ export class Tr2Sprite2dScene extends ITr2Scene
     return true;
   }
 
-  /** Applies tiling, affine UV transforms, and atlas windows in native order. */
+  /**
+   * Carbon SetSpriteVerticesUVs (public, Tr2Sprite2dScene.h:106, cpp:2402-2459): applies
+   * tiling, affine UV transforms, and atlas windows in native order.
+   *
+   * @param {Array<Array<number[]>>} uv [texture][corner] UV pairs to fill.
+   * @param {number} width Sprite width, for tiling.
+   * @param {number} height Sprite height, for tiling.
+   * @returns {void}
+   */
   @meta.implemented
-  _SetSpriteVerticesUVs(uv, width, height)
+  SetSpriteVerticesUVs(uv, width, height)
   {
     const corners = [[0, 0], [1, 0], [1, 1], [0, 1]];
     for (let i = 0; i < this._numTexturesUsed; i++)
@@ -635,7 +794,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
     if (!this._TexturesReady()) return false;
 
     const uv = Array.from({ length: 2 }, () => Array.from({ length: 4 }, () => [0, 0]));
-    this._SetSpriteVerticesUVs(uv, width, height);
+    this.SetSpriteVerticesUVs(uv, width, height);
     const initial = uv[0].map(value => value.slice());
     const positions = [[position[0], position[1]], [position[0] + width, position[1]], [position[0] + width, position[1] + height], [position[0], position[1] + height]];
     const effects = Tr2SpriteObjectEffect;
@@ -670,6 +829,83 @@ export class Tr2Sprite2dScene extends ITr2Scene
       vertex.spriteEffect = this._spriteEffect;
       vertex.transformIndex = 0;
       vertex.tileMode = this._tileMode;
+    }
+
+    return true;
+  }
+
+  /**
+   * Carbon PrepareTriangleVerts (Tr2Sprite2dScene.h:108-112, cpp:925-998): converts authored
+   * vertices into renderer vertices with the current colour, texture windows and transforms,
+   * blend state and effect.
+   *
+   * Writes only what Carbon writes: position, colour (source times the current colour), the
+   * texture coordinates of the textures the effect uses (both, untouched, when
+   * anti-aliased), glow, blend mode, sprite effect, tile mode and a zero transform index.
+   * The clip rectangle, outline fields and unused texture slots keep whatever the destination
+   * held. Parent translation, alpha, depth, transform index and clip are applied later, at
+   * RenderTriangleVerts.
+   *
+   * Adapted: Carbon walks `verts` as raw memory with a byte `stride`, so one routine accepts
+   * every vertex type derived from Tr2Sprite2dVertexBase. A JS array of vertex objects is
+   * indexed by element and needs no stride, so `stride` is accepted for the donor signature
+   * and unused. A C++ pointer offset (`&m_vertices[16]`) is a `slice()` of the array here:
+   * the slice holds the same vertex objects, so the writes reach the caller's array.
+   *
+   * @param {Tr2Sprite2dD3DVertex[]} destVerts Renderer vertices to fill, from index 0.
+   * @param {Tr2Sprite2dVertexBase[]} verts Authored vertices to read, from index 0.
+   * @param {number} _stride Carbon's byte stride between source vertices; unused.
+   * @param {number} vertexCount Number of vertices to convert.
+   * @returns {boolean} False when a texture the current effect needs is not ready.
+   */
+  @meta.adapted
+  PrepareTriangleVerts(destVerts, verts, _stride, vertexCount)
+  {
+    if (!this._TexturesReady()) return false;
+
+    const color = this._color;
+    const blendMode = this._blendMode | (this._spriteTarget << 3);
+
+    for (let i = 0; i < vertexCount; i++)
+    {
+      const source = verts[i], dest = destVerts[i];
+
+      vec3.copy(dest.position, source.position);
+
+      dest.color[0] = source.color[0] * color[0];
+      dest.color[1] = source.color[1] * color[1];
+      dest.color[2] = source.color[2] * color[2];
+      dest.color[3] = source.color[3] * color[3];
+
+      for (let ix = 0; ix < this._numTexturesUsed; ix++)
+      {
+        const setting = this._textureSettings[ix], window = setting.textureWindow;
+        let x = source.texCoord[ix][0], y = source.texCoord[ix][1];
+
+        // Transform( Vector4( x, y, 0, 1 ), transform ): the row-vector product, no divide.
+        if (setting.useTransform)
+        {
+          const matrix = setting.transform;
+          const transformedX = x * matrix[0] + y * matrix[4] + matrix[12];
+          y = x * matrix[1] + y * matrix[5] + matrix[13];
+          x = transformedX;
+        }
+
+        dest.texCoord[ix][0] = x * window[2] + window[0];
+        dest.texCoord[ix][1] = y * window[3] + window[1];
+      }
+
+      if (this._isAntiAliased)
+      {
+        vec2.copy(dest.texCoord[0], source.texCoord[0]);
+        vec2.copy(dest.texCoord[1], source.texCoord[1]);
+      }
+
+      dest.glowBrightness = this._glowBrightness;
+      dest.blendMode = blendMode;
+      dest.spriteEffect = this._spriteEffect;
+      dest.tileMode = this._tileMode;
+      dest.transformIndex = 0;
     }
 
     return true;
@@ -750,9 +986,11 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @param {number} realTime Raw Blue real-time ticks (100ns).
    * @param {number} simTime Raw Blue simulation ticks (100ns).
    * @param {Tr2RenderContext|null} [renderContext=null] Relocated camera state.
+   * Not Blue-exposed: Tr2Sprite2dScene_Blue.cpp:242 maps PickObject only; Update is the
+   * ITr2Scene interface entry.
+   *
    * @returns {void}
    */
-  @meta.blue.method
   @meta.adapted
   Update(realTime, simTime, renderContext = null)
   {
@@ -780,13 +1018,17 @@ export class Tr2Sprite2dScene extends ITr2Scene
       vec3.unalloc(direction);
     }
     for (const curveSet of this.curveSets) curveSet.Update__RealTimeSimTime(realTime, simTime);
-    if (this.clearFinishedCurveSets) this.RemoveFinishedCurveSets();
+    if (this.clearFinishedCurveSets) this._RemoveFinishedCurveSets();
   }
 
-  /** Removes stopped sets in place using native Blue list removal semantics. @returns {void} */
-  @meta.blue.method
+  /**
+   * Carbon's private RemoveFinishedCurveSets (Tr2Sprite2dScene.h:163, cpp:2252-2267): removes
+   * stopped sets in place using native Blue list removal semantics.
+   *
+   * @returns {void}
+   */
   @meta.implemented
-  RemoveFinishedCurveSets()
+  _RemoveFinishedCurveSets()
   {
     for (let index = 0; index < this.curveSets.length;)
     {
@@ -795,8 +1037,13 @@ export class Tr2Sprite2dScene extends ITr2Scene
     }
   }
 
-  /** Native sprite limit clamp followed by scene resource invalidation. */
-  @meta.blue.method
+  /**
+   * Carbon OnModified (Tr2Sprite2dScene.cpp:2193-2205): clamps maxSpriteCount to
+   * SPRITE_COUNT_MAX and releases the scene resources.
+   *
+   * @param {*} value The modified Blue value.
+   * @returns {boolean} Always true.
+   */
   @meta.implemented
   OnModified(value)
   {
@@ -833,58 +1080,189 @@ export class Tr2Sprite2dScene extends ITr2Scene
     this.ubershader2d = this.ubershader3d = null;
   }
 
-  /** Draws uncached sprite traversal through Carbon's effect/AL pipeline. */
-  @meta.blue.method
+  /**
+   * Carbon Render (Tr2Sprite2dScene.cpp:223-293): draws the background and children through
+   * the effect/AL pipeline, with sRGB writes on around the scene in linear colour space.
+   *
+   * Not Blue-exposed: Tr2Sprite2dScene_Blue.cpp:242 maps PickObject only; Render is the
+   * ITr2Scene interface entry.
+   *
+   * Adapted: Carbon's Tr2RenderContext is the backend context, so its AddGpuMarker is a
+   * direct call; ours composes the backend and reaches it through GetRenderContextAL().
+   * D3DPERF_EVENT is an empty macro in Carbon (TriUtil.h:8) and has no port. m_lastViewMatrix
+   * and m_lastProjectionMatrix (cpp:249-250) are written and never read, so they are not
+   * stored.
+   *
+   * @param {Tr2RenderContext} renderContext The context to render into.
+   * @returns {void}
+   */
   @meta.adapted
   Render(renderContext)
   {
     if (!this.display || !renderContext.IsValid()) return;
-    if (!this._PrepareResourcesForRender(renderContext)) return;
-    this._renderContext = renderContext;
-    const esm = renderContext.GetEffectStateManager();
+
+    const isReady = this._PrepareResourcesForRender();
+    if (!isReady) return;
+
+    renderContext.GetRenderContextAL().AddGpuMarker("Tr2Sprite2dScene::Render"); // __FUNCTION__
+
+    if (this._useLinearColorSpace) renderContext.SetRenderState(RenderState.RS_SRGBWRITEENABLE, 1);
+
+    // Flash default texture to make it easier to spot missing textures
+    this._FlashDefaultTexture();
+
+    this._DetermineWorldTransform();
+    this._DetermineViewportSize();
+
+    renderContext.GetEffectStateManager().PushDepthStencilBuffer__TextureAL(new Tr2TextureAL());
+    this._PrepareRenderContextForRendering(renderContext);
+    this._PrepareStacksBeforeRender();
+
+    this._itemsRendered = 0;
+    this._drawCallsRendered = 0;
+
+    for (let i = this.background.length - 1; i >= 0; i--) this.background[i].GatherSprites(this);
+    for (let i = this.children.length - 1; i >= 0; i--) this.children[i].GatherSprites(this);
+
+    // CCP_ASSERT( !m_captureDisplayList ) (cpp:275) is compiled out of the shipping build.
+    this._IssueDrawCall();
+
+    this._PrepareRenderContextAfterRendering(renderContext);
+    this._CleanUpStacksAfterRender();
+    renderContext.GetEffectStateManager().PopDepthStencilBuffer();
+
+    this._is2dRenderContext = this.is2dRender;
+
+    renderContext.GetRenderContextAL().AddGpuMarker("Tr2Sprite2dScene::Render End");
+
+    if (this._useLinearColorSpace) renderContext.SetRenderState(RenderState.RS_SRGBWRITEENABLE, 0);
+  }
+
+  /**
+   * Carbon DetermineWorldTransform (Tr2Sprite2dScene.cpp:2336-2352): the 2D render context
+   * starts as the scene's setting; 2D scenes cancel the view, 3D scenes place themselves with
+   * TransformationMatrix( scaling, rotation, translation ).
+   *
+   * @returns {void}
+   */
+  @meta.implemented
+  _DetermineWorldTransform()
+  {
+    const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+
+    this._is2dRenderContext = this.is2dRender;
+
+    if (this.is2dRender) mat4.copy(this._worldTransform, renderContext.GetInverseViewTransform());
+    else mat4.fromRotationTranslationScale(this._worldTransform, this.rotation, this.translation, this.scaling);
+
+    renderContext.SetWorldTransform(this._worldTransform);
+  }
+
+  /**
+   * Carbon DetermineViewportSize (Tr2Sprite2dScene.cpp:2313-2334): a fullscreen scene takes
+   * the main viewport's size, then the size is published to UIViewportSize.
+   *
+   * @returns {void}
+   */
+  @meta.implemented
+  _DetermineViewportSize()
+  {
     if (this.isFullscreen)
     {
-      const viewport = renderContext.GetViewport();
-      this.displayWidth = viewport.width; this.displayHeight = viewport.height;
+      const viewport = Tr2RenderContext_GetMainThreadRenderContext().GetViewport();
+      this.displayWidth = viewport.width;
+      this.displayHeight = viewport.height;
     }
-    this._viewportSizeValue.set([this.displayWidth, this.displayHeight, this.is2dRender ? 1 : 0, 1]);
+
+    this._SetViewportSizeToVariableStore(this.displayWidth, this.displayHeight);
+  }
+
+  /**
+   * Carbon SetViewportSizeToVariableStore (Tr2Sprite2dScene.cpp:2303-2311).
+   *
+   * @param {number} displayWidth Width in pixels.
+   * @param {number} displayHeight Height in pixels.
+   * @returns {void}
+   */
+  @meta.implemented
+  _SetViewportSizeToVariableStore(displayWidth, displayHeight)
+  {
+    this._viewportSizeValue.set([displayWidth, displayHeight, this.is2dRender ? 1 : 0, 1]);
     this._viewportSizeVar.SetValue(this._viewportSizeValue);
-    this._is2dRenderContext = this.is2dRender;
-    if (this.is2dRender) renderContext.SetWorldTransform(renderContext.GetInverseViewTransform());
-    else
-    {
-      mat4.fromRotationTranslationScale(this._worldTransform, this.rotation, this.translation, this.scaling);
-      renderContext.SetWorldTransform(this._worldTransform);
-    }
-    esm.PushDepthStencilBuffer(new Tr2TextureAL());
+  }
+
+  /**
+   * Carbon PrepareRenderContextForRendering (Tr2Sprite2dScene.cpp:2354-2368).
+   *
+   * @param {Tr2RenderContext} renderContext The rendering context.
+   * @returns {void}
+   */
+  @meta.implemented
+  _PrepareRenderContextForRendering(renderContext)
+  {
+    const esm = renderContext.GetEffectStateManager();
+
     esm.BeginManagedRendering();
-    this._PrepareStacksBeforeRender();
-    try
+    esm.ApplyStandardStates(RenderingMode.RM_SPRITE2D);
+
+    if (this.clearBackground) renderContext.Clear({ color: Array.from(this.backgroundColor), depth: 0, stencil: 0, clearColor: true, clearDepth: false, clearStencil: false });
+
+    esm.SetWireframeRendering(this.drawWireFrame);
+    esm.ApplyVertexDeclaration(this._vertexDecl);
+    esm.ApplyIndexBuffer(this._indexBuffer.GetBuffer());
+  }
+
+  /**
+   * Carbon PrepareRenderContextAfterRendering (Tr2Sprite2dScene.cpp:2370-2380).
+   * EndManagedRendering clears the textures set on the device, so the cached ones are dropped.
+   *
+   * @param {Tr2RenderContext} renderContext The rendering context.
+   * @returns {void}
+   */
+  @meta.implemented
+  _PrepareRenderContextAfterRendering(renderContext)
+  {
+    const esm = renderContext.GetEffectStateManager();
+
+    esm.EndManagedRendering();
+    esm.SetWireframeRendering(false);
+
+    this._texture.fill(null);
+  }
+
+  /**
+   * Carbon FlashDefaultTexture (Tr2Sprite2dScene.cpp:2222-2250): with defaultTextureUpdates
+   * on, fills the 2x2 default texture with the next grey level so missing textures blink.
+   * Each pixel is the little-endian uint32 0xff000000 | f << 16 | f << 8 | f, so the
+   * B8G8R8A8 bytes are f, f, f, 0xff. Like Carbon, a failed lock is not tolerated.
+   *
+   * @returns {void}
+   */
+  @meta.implemented
+  _FlashDefaultTexture()
+  {
+    if (!this.defaultTextureUpdates) return;
+
+    const flash = this._defaultTextureFlash;
+    this._defaultTextureFlash = (this._defaultTextureFlash + 5) % 255;
+
+    const mapping = this._defaultTexture.LockBuffer();
+    for (const row of [0, mapping.pitch])
     {
-      esm.ApplyStandardStates(RenderingMode.RM_SPRITE2D);
-      if (this.clearBackground) renderContext.Clear({ color: Array.from(this.backgroundColor), depth: 0, stencil: 0, clearColor: true, clearDepth: false, clearStencil: false });
-      esm.SetWireframeRendering(this.drawWireFrame);
-      esm.ApplyVertexDeclaration(this._vertexDecl);
-      esm.ApplyIndexBuffer(this._indexBuffer.GetBuffer());
-      this._vertexCount = this._indexCount = this._transformCurrent = 0;
-      this._itemsRendered = this._drawCallsRendered = 0;
-      for (let i = this.background.length - 1; i >= 0; i--) this.background[i].GatherSprites(this);
-      for (let i = this.children.length - 1; i >= 0; i--) this.children[i].GatherSprites(this);
-      this._IssueDrawCall();
+      for (let pixel = 0; pixel < 2; pixel++)
+      {
+        const offset = row + pixel * 4;
+        mapping.data[offset] = flash;
+        mapping.data[offset + 1] = flash;
+        mapping.data[offset + 2] = flash;
+        mapping.data[offset + 3] = 0xff;
+      }
     }
-    finally
-    {
-      if (this.IsCapturing()) this._ResetCapture();
-      esm.EndManagedRendering();
-      esm.SetWireframeRendering(false);
-      this._texture.fill(null);
-      this._CleanUpStacksAfterRender();
-      esm.PopDepthStencilBuffer();
-    }
+
+    this._defaultTexture.UnlockBuffer();
   }
 
   /** Native scene debug rendering is empty. @param {Tr2RenderContext} _renderContext Active context. @returns {void} */
-  @meta.blue.method
   @meta.noop
   RenderDebugInfo(_renderContext)
   {
@@ -892,11 +1270,21 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /**
    * Picks children in native order, projecting through the scene plane in 3D mode.
+   * The only Blue-exposed method (Tr2Sprite2dScene_Blue.cpp:242-252).
+   *
    * Adapted: Uses the portable ScreenToProjection helper; debug-renderer annotations are omitted.
+   *
+   * @param {number} x Screen x.
+   * @param {number} y Screen y.
+   * @param {TriProjection|null} [projection=null] Projection, for 3D picking.
+   * @param {TriView|null} [view=null] View, for 3D picking.
+   * @param {TriViewport|null} [viewport=null] Viewport, for 3D picking.
+   * @param {number} [_pickFilter] Carbon's unused Be::Optional<int> pick filter.
+   * @returns {ITr2SpriteObject|null} The picked object.
    */
   @meta.blue.method
   @meta.adapted
-  PickObject(x, y, projection = null, view = null, viewport = null)
+  PickObject(x, y, projection = null, view = null, viewport = null, _pickFilter = undefined)
   {
     let finalX = x, finalY = y;
 
@@ -968,7 +1356,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
   _effect = null;
   _textureRegisters = [0, 1];
   _defaultTexture = null;
-  _renderContext = null;
   _drawCallStartIndex = 0;
   _drawCallsRendered = 0;
   _itemsRendered = 0;
@@ -978,23 +1365,50 @@ export class Tr2Sprite2dScene extends ITr2Scene
   _texelSizeValues = [vec4.create(), vec4.create()];
   _texelSizeVar = this._texelSizeValues.map((value, index) => Tr2VariableStore.globalStore().RegisterVariableInternal(`g_texelSizeUI${index}`, TriVariableContentType.TRIVARIABLE_FLOAT4, value));
 
-  /** Lazily prepares native resources; browser/headless construction does not acquire a GPU. */
+  /**
+   * Carbon PrepareResourcesForRender (Tr2Sprite2dScene.cpp:2272-2301): prepares the ring
+   * buffers when they are invalid, then refuses to render until the 2D ubershader's effect
+   * resource has loaded, asking a failed one to reload. Carbon gates on m_uberShader2d in 3D
+   * mode too; reproduced.
+   *
+   * Carbon quirk, Tr2Sprite2dScene.cpp:2193-2210, 1199-1210, 2275, CE-126: OnModified
+   * (maxSpriteCount) releases only the constant buffer, effect, default texture and vertex
+   * declaration, so the still-valid ring buffers keep Carbon from ever re-running
+   * OnPrepareResources and the mirrors keep their old size. This port also re-prepares when
+   * the vertex declaration is uninitialized, which resizes the buffers and restores the
+   * default texture: a silent fix, kept until the operator rules on CE-126 (reproduce or
+   * keep). That pending ruling, not a platform limit, is the reason for the adapted marker.
+   *
+   * @returns {boolean} Whether rendering can go forward.
+   */
   @meta.adapted
-  _PrepareResourcesForRender(context)
+  _PrepareResourcesForRender()
   {
-    if (this._vertexDecl === -1 || !this._vertexBuffer.IsValid() || !this._indexBuffer.IsValid())
+    // Prepare resources if we don't have valid index or vertex buffers.
+    // Carbon quirk, Tr2Sprite2dScene.cpp:2275, CE-126: Carbon tests only the buffers; the
+    // _vertexDecl test is this port's silent fix, kept pending the operator's ruling.
+    if (this._vertexDecl === -1 || !this._indexBuffer.IsValid() || !this._vertexBuffer.IsValid())
     {
-      if (!this._OnPrepareResources()) return false;
+      this._OnPrepareResources();
+
+      // Bail out if the buffers still aren't valid
+      if (!this._indexBuffer.IsValid() || !this._vertexBuffer.IsValid()) return false;
     }
-    if (!this.ubershader2d)
+
+    const effectRes = this.ubershader2d.GetEffectRes();
+
+    // Effect is still loading - can't render any UI
+    if (!effectRes || effectRes.IsLoading()) return false;
+
+    if (!effectRes.IsGood())
     {
-      this.ubershader2d = new Tr2Effect();
-      this.ubershader2d.SetEffectPathName("res:/Graphics/Effect/UI/UberShader.fx");
-      this.ubershader3d = new Tr2Effect();
-      this.ubershader3d.SetEffectPathName("res:/Graphics/Effect/UI/UberShader3d.fx");
+      // Effect load failed - can't render any UI
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s: Effect used for rendering failed to load - attempting to reload", "Tr2Sprite2dScene::PrepareResourcesForRender");
+      effectRes.Reload();
+      return false;
     }
-    this._renderContext = context;
-    return this._SelectEffect();
+
+    return true;
   }
 
   /** Creates native ring buffers, the 88-byte vertex declaration and diagnostic texture. */
@@ -1054,11 +1468,25 @@ export class Tr2Sprite2dScene extends ITr2Scene
     return true;
   }
 
-  /** Flushes when the underlying AL identity changes, including atlas relocation. */
+  /**
+   * Carbon SetTexture (Tr2Sprite2dScene.cpp:706-779): flushes when the underlying AL identity
+   * changes, including atlas relocation, and caches the window, repeat and tiling settings.
+   *
+   * Ported as the shipping build: Carbon substitutes m_defaultTexture for a null texture only
+   * under `#if !CCP_DEPLOY` (cpp:714-719), so a null texture stays null here and an effect
+   * that needs it fails TexturesReady. See the class JSDoc for the build choice.
+   *
+   * Carbon quirk (CE-166), Tr2Sprite2dScene.cpp:736: the comparison reads only GetTexture(), so a
+   * render-target texture (GetTexture() null) flushes on every call. Reproduced.
+   *
+   * @param {number} index Texture slot, 0 or 1.
+   * @param {Tr2AtlasTexture|null} texture The texture, or null.
+   * @param {number} settings Tr2Sprite2dTextureSettings bits.
+   * @returns {void}
+   */
   @meta.implemented
   SetTexture(index, texture, settings)
   {
-    texture ??= this._defaultTexture;
     const al = texture ? texture.GetTexture() ?? texture.GetRenderTarget() : null;
     if (!this._texture[index] || al !== this._texture[index].GetTexture())
     {
@@ -1080,7 +1508,10 @@ export class Tr2Sprite2dScene extends ITr2Scene
 
   /** Reports an active native display-list capture. */
   @meta.implemented
-  IsCapturing() { return this._captureDisplayList !== null; }
+  IsCapturing()
+  {
+    return this._captureDisplayList !== null;
+  }
 
   _captureDisplayList = null;
   _captureVertexDataCapacity = 1024;
@@ -1090,11 +1521,19 @@ export class Tr2Sprite2dScene extends ITr2Scene
   _captureIndexDataSize = 0;
   _captureStartIndex = 0;
 
-  /** Flushes direct geometry before recording a container's display list. */
+  /**
+   * Carbon StartCapture (Tr2Sprite2dScene.cpp:1941-1972): flushes direct geometry before
+   * recording a container's display list.
+   *
+   * CCP_ASSERT( !m_captureDisplayList ) (cpp:1946) is compiled out of the shipping build, so
+   * a capture started inside another one replaces it, as Carbon's does (which leaks it).
+   *
+   * @param {ITr2SpriteObject} owner The display list's owner.
+   * @returns {boolean} Always true; the capture storage always exists here.
+   */
   @meta.implemented
   StartCapture(owner)
   {
-    if (this._captureDisplayList) throw new Error("A sprite display-list capture is already active");
     this._IssueDrawCall();
     this._captureDisplayList = new Tr2Sprite2dDisplayList(owner);
     this._captureVertexDataSize = this._captureIndexDataSize = this._captureStartIndex = 0;
@@ -1128,7 +1567,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
   {
     if (!this._captureDisplayList) return null;
     this._IssueDrawCall();
-    const list = this._captureDisplayList, context = this._renderContext;
+    const list = this._captureDisplayList, context = Tr2RenderContext_GetMainThreadRenderContext();
     if (!this._captureVertexDataSize || !this._captureIndexDataSize)
     {
       this._ResetCapture();
@@ -1175,46 +1614,76 @@ export class Tr2Sprite2dScene extends ITr2Scene
     this._vertexCount = this._indexCount = this._transformCurrent = 0;
   }
 
-  /** Replays captured geometry with its saved effects, textures and transform arrays. */
+  /**
+   * Carbon ReplayCapture (Tr2Sprite2dScene.cpp:2073-2132): replays captured geometry with its
+   * saved effects, textures and transform arrays, running captured render jobs in sequence.
+   *
+   * Carbon quirk, Tr2Sprite2dScene.cpp:2117-2118, CE-134: replay binds
+   * `texture->GetTexture()` only, without IssueDrawCall's render-target fallback
+   * (cpp:1135-1141), so captured render-target textures replay as null. Reproduced.
+   *
+   * @param {Tr2Sprite2dDisplayList} list The display list to replay.
+   * @returns {void}
+   */
   @meta.implemented
   ReplayCapture(list)
   {
+    const context = Tr2RenderContext_GetMainThreadRenderContext(), esm = context.GetEffectStateManager();
+
     this._IssueDrawCall();
+
     if (!list.vertexBuffer.IsValid() || !list.indexBuffer.IsValid() || !list.entries.length) return;
-    const context = this._renderContext, esm = context.GetEffectStateManager();
+
     esm.ApplyIndexBuffer(list.indexBuffer);
     esm.ApplyStreamSource(0, list.vertexBuffer, 0, 88);
+
     for (const entry of list.entries)
     {
       if (++this._itemsRendered >= this.maxItemsToRender) continue;
+
       if (entry.job)
       {
-        this._RunJobHelper(entry.job);
+        this.RunJobHelper(entry.job);
+
         esm.ApplyIndexBuffer(list.indexBuffer);
         esm.ApplyStreamSource(0, list.vertexBuffer, 0, 88);
         continue;
       }
+
       this._texelSizeValues[0].set(entry.texelSize0);
       this._texelSizeValues[1].set(entry.texelSize1);
       this._texelSizeVar[0].SetValue(this._texelSizeValues[0]);
       this._texelSizeVar[1].SetValue(this._texelSizeValues[1]);
+
       const pass = entry.effect.GetPassDescription(0, 0);
+      const colorSpace = this._useLinearColorSpace ? Tr2ColorSpace.COLOR_SPACE_SRGB : Tr2ColorSpace.COLOR_SPACE_LINEAR;
       for (let i = 0; i < 2; i++)
       {
         const texture = i ? entry.texture1 : entry.texture0;
-        pass.resourceSetDirty = pass.resourceSetDesc.SetSrv__TextureAL(ShaderType.PIXEL_SHADER, this._textureRegisters[i], texture ? texture.GetTexture() : null, Tr2ColorSpace.COLOR_SPACE_LINEAR) || pass.resourceSetDirty;
+        pass.resourceSetDirty = pass.resourceSetDesc.SetSrv__TextureAL(ShaderType.PIXEL_SHADER, this._textureRegisters[i], texture ? texture.GetTexture() : null, colorSpace) || pass.resourceSetDirty;
       }
+
       entry.effect.Render(entry, context);
     }
+
     this._texture.fill(null);
     esm.ApplyIndexBuffer(this._indexBuffer.GetBuffer());
   }
 
-  /** Flushes geometry before recording or executing a native UI render job. */
+  /**
+   * Carbon RunJob (Tr2Sprite2dScene.cpp:1755-1792): flushes geometry, then records the job in
+   * an open capture or runs it now and drops the cached textures the job may have replaced.
+   *
+   * @param {TriRenderJob} job The render job.
+   * @returns {void}
+   */
   @meta.implemented
   RunJob(job)
   {
+    const context = Tr2RenderContext_GetMainThreadRenderContext();
+
     this._IssueDrawCall();
+
     if (this.IsCapturing())
     {
       const entry = new Tr2Sprite2dDisplayListEntry();
@@ -1222,45 +1691,211 @@ export class Tr2Sprite2dScene extends ITr2Scene
       this._captureDisplayList.entries.push(entry);
       return;
     }
-    this._RunJobHelper(job);
+
+    this.RunJobHelper(job);
+
+    // The render job may have set different textures - clear our state for texture settings
     this._texture.fill(null);
-    this._renderContext.GetEffectStateManager().ApplyIndexBuffer(this._indexBuffer.GetBuffer());
+    context.GetEffectStateManager().ApplyIndexBuffer(this._indexBuffer.GetBuffer());
   }
 
-  /** Native state handoff to an embedded job. Finally restores state when JS jobs throw.
-   * The scene's unported linear-color-space option remains outside this path. */
-  @meta.adapted
-  _RunJobHelper(job)
-  {
-    const esm = this._renderContext.GetEffectStateManager();
-    esm.EndManagedRendering();
-    esm.PopDepthStencilBuffer();
-    esm.PushRenderTarget__TextureAL(new Tr2TextureAL(), 1);
-    esm.PushViewport();
-    try
-    {
-      job.Run(this._realTime, this._simTime);
-    }
-    finally
-    {
-      esm.PopViewport();
-      esm.PopRenderTarget(1);
-      esm.PushDepthStencilBuffer(new Tr2TextureAL());
-      esm.BeginManagedRendering();
-      esm.ApplyStandardStates(RenderingMode.RM_SPRITE2D);
-      esm.ApplyVertexDeclaration(this._vertexDecl);
-    }
-  }
-
-  /** Native per-draw vertex capacity. */
+  /**
+   * Carbon RunJobHelper (public, Tr2Sprite2dScene.h:75, cpp:2139-2175): hands the state over
+   * to an embedded job and restores the UI state after it, with sRGB writes off during the
+   * job in linear colour space.
+   *
+   * @param {TriRenderJob} job The render job.
+   * @returns {void}
+   */
   @meta.implemented
-  GetMaxVertexCountPerDrawCall() { return this.maxSpriteCount * 4; }
+  RunJobHelper(job)
+  {
+    const context = Tr2RenderContext_GetMainThreadRenderContext(), esm = context.GetEffectStateManager();
 
-  /** Copies native vertices into the interleaved AL byte layout without mutating source caches. */
+    esm.EndManagedRendering();
+
+    if (this._useLinearColorSpace) context.SetRenderState(RenderState.RS_SRGBWRITEENABLE, 0);
+
+    // When rendering of this scene started, a NULL value was pushed for depth/stencil buffer.
+    // Pop it here, to get whatever was in use before back. The null value is pushed again
+    // after the job has finished.
+    esm.PopDepthStencilBuffer();
+
+    esm.PushRenderTarget__TextureAL(new Tr2TextureAL(), 1);
+
+    esm.PushViewport();
+    job.Run(this._realTime, this._simTime);
+    esm.PopViewport();
+
+    esm.PopRenderTarget(1);
+
+    esm.PushDepthStencilBuffer__TextureAL(new Tr2TextureAL());
+
+    esm.BeginManagedRendering();
+    esm.ApplyStandardStates(RenderingMode.RM_SPRITE2D);
+
+    if (this._useLinearColorSpace) context.SetRenderState(RenderState.RS_SRGBWRITEENABLE, 1);
+
+    esm.ApplyVertexDeclaration(this._vertexDecl);
+  }
+
+  /**
+   * Carbon StartLayer (Tr2Sprite2dScene.cpp:1593-1630): flushes, switches to 2D, renders into
+   * the layer's texture, and sets the transform and clip stacks aside for fresh ones clipped
+   * to the texture. Layers nest.
+   *
+   * @param {Tr2TextureAL} rt The layer's render-target texture.
+   * @returns {void}
+   */
+  @meta.implemented
+  StartLayer(rt)
+  {
+    const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+
+    // Finish outstanding rendering before changing render target
+    this._IssueDrawCall();
+
+    // A scene rendered in 3d renders in 2d within a layer
+    this._is2dRenderContext = true;
+
+    // Set the render target to the top level surface of the given texture
+    renderContext.GetEffectStateManager().PushRenderTarget__TextureAL(rt);
+
+    const width = rt.GetWidth(), height = rt.GetHeight();
+    this._viewportSizeValue.set([width, height, 0, 1]);
+    this._viewportSizeVar.SetValue(this._viewportSizeValue);
+
+    // Coordinate transformation and clipping is reset - push the current stacks onto a stack
+    // for later retrieval when we end the layer. Carbon leaves the entry's depthStack unset.
+    const renderTargetWrapper = new Tr2AtlasTexture(); // alloc: Carbon CreateInstance()s one wrapper per layer
+    renderTargetWrapper.SetRenderTarget(rt);
+    this._stackOfStacks.push({ transformStack: this._transformStack, depthStack: null, clipStack: this._clipStack, renderTargetTexture: rt, renderTargetWrapper });
+
+    this._transformStack = []; // alloc: Carbon CCP_NEWs a fresh stack per layer
+    this._clipStack = []; // alloc: Carbon CCP_NEWs a fresh stack per layer
+
+    const clip = new Tr2Sprite2dClipRect(); // alloc: the layer's root clip entry, owned until EndLayer
+    clip.left = 0;
+    clip.top = 0;
+    clip.right = width;
+    clip.bottom = height;
+    this._clipStack.push(clip);
+  }
+
+  /**
+   * Carbon EndLayer (Tr2Sprite2dScene.cpp:1632-1684): restores the outer stacks and render
+   * target, then draws the layer texture into the outer target as one sprite with the current
+   * colour, effect and blend mode.
+   *
+   * Carbon quirk, Tr2Sprite2dScene.cpp:1669-1673: PrepareSpriteVerts' false return is
+   * ignored, so a layer whose textures are not ready still renders its vertices. They are a
+   * fresh stack array whose Vector3, Color and Vector2 members zero-construct, so that draw is
+   * an all-zero, degenerate (invisible) quad. Reproduced: the retained _layerVertices are reset
+   * to that state on every call, so a failed EndLayer never re-draws the previous layer's quad.
+   *
+   * Adapted: the D3D vertex's scalar members (clipRect, glowBrightness, transformIndex,
+   * blendMode, spriteEffect, tileMode, outlineThreshold) are left uninitialised on Carbon's
+   * stack (ITr2Sprite2dRenderer.h:62-95); JS cannot reproduce indeterminate memory, so they
+   * reset to 0.
+   *
+   * @param {number} x Layer left, in the outer coordinates.
+   * @param {number} y Layer top.
+   * @param {number} width Layer width.
+   * @param {number} height Layer height.
+   * @param {ITr2Sprite2dTexture|null} secondaryTexture Optional secondary texture.
+   * @returns {void}
+   */
+  @meta.adapted
+  EndLayer(x, y, width, height, secondaryTexture)
+  {
+    const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+
+    // CCP_ASSERTs on the emptied stacks (cpp:1639, 1643) are compiled out of the shipping build.
+    this._clipStack.pop();
+
+    // Finish outstanding rendering before resetting render target
+    this._IssueDrawCall();
+
+    renderContext.GetEffectStateManager().PopRenderTarget();
+
+    // Set the coordinate transformations and clipping to what it was before we started this layer.
+    const entry = this._stackOfStacks.at(-1);
+    this._transformStack = entry.transformStack;
+    this._clipStack = entry.clipStack;
+
+    // Render the layer into the current one as a sprite
+    this.SetTexture(0, entry.renderTargetWrapper, Tr2Sprite2dTextureSettings.S2D_TS_NONE);
+    this.SetTextureTransform(0, null);
+    this.SetTileMode(0);
+
+    if (secondaryTexture) secondaryTexture.Apply(this, 1);
+
+    // Tr2Sprite2dD3DVertex vertices[4] (cpp:1669): a fresh, zero-constructed array every call.
+    const vertices = this._layerVertices;
+    for (const vertex of vertices)
+    {
+      vec3.set(vertex.position, 0, 0, 0);
+      vec4.set(vertex.color, 0, 0, 0, 0);
+      vec2.set(vertex.texCoord[0], 0, 0);
+      vec2.set(vertex.texCoord[1], 0, 0);
+      vertex.clipRect.left = vertex.clipRect.top = vertex.clipRect.right = vertex.clipRect.bottom = 0;
+      vertex.glowBrightness = 0;
+      vertex.transformIndex = 0;
+      vertex.blendMode = 0;
+      vertex.spriteEffect = 0;
+      vertex.tileMode = 0;
+      vec4.set(vertex.outlineColor, 0, 0, 0, 0);
+      vertex.outlineThreshold = 0;
+    }
+
+    this.PrepareSpriteVerts(vertices, [x, y], width, height, this._spriteEffect);
+    this.RenderTriangleVerts(vertices, 4, s_layerIndices, 6);
+
+    this._stackOfStacks.pop();
+
+    // Once we exit the final layer the 2d render context is determined by the scene
+    if (!this._stackOfStacks.length) this._is2dRenderContext = this.is2dRender;
+
+    this._DetermineViewportSize();
+  }
+
+  /** Carbon GetMaxVertexCountPerDrawCall (Tr2Sprite2dScene.cpp:2183-2186). @returns {number} Vertex capacity of one draw. */
+  @meta.implemented
+  GetMaxVertexCountPerDrawCall()
+  {
+    return this.maxSpriteCount * 4;
+  }
+
+  /** Carbon GetMaxIndexCountPerDrawCall (Tr2Sprite2dScene.cpp:2188-2191). @returns {number} Index capacity of one draw. */
+  @meta.implemented
+  GetMaxIndexCountPerDrawCall()
+  {
+    return this.maxSpriteCount * 6;
+  }
+
+  /**
+   * Carbon RenderTriangleVerts (Tr2Sprite2dScene.cpp:1000-1019) with EnsureBufferSpace
+   * (cpp:2511-2590), ProcessVertices (cpp:1825-1913) and CopyIndicesWithOffset
+   * (cpp:2498-2509) inlined: copies vertices into the interleaved 88-byte AL layout with the
+   * parent translation, accumulated alpha, 3D depth, transform index and clip, and offsets
+   * the indices, without mutating the source vertices.
+   *
+   * Adapted: Carbon's helpers advance raw write pointers into the mirrors; here the write
+   * position is the vertex and index count, so the pointer-keeping helpers fold into this
+   * method and EnsureBufferSpace is not a separate public method.
+   *
+   * @param {Tr2Sprite2dD3DVertex[]} vertices Renderer vertices, from index 0.
+   * @param {number} vertexCount Number of vertices.
+   * @param {number[]} indices Triangle indices relative to the first vertex.
+   * @param {number} indexCount Number of indices.
+   * @returns {void}
+   */
   @meta.adapted
   RenderTriangleVerts(vertices, vertexCount, indices, indexCount)
   {
+    // Buffers are full, kick off what we've got
     if (this._transformCurrent >= 31) this._IssueDrawCall();
+
     let vertexOffset = this._vertexCount, indexOffset = this._indexCount;
     let view = this._vertexView, indexData = this._indexData;
     if (this.IsCapturing())
@@ -1279,9 +1914,15 @@ export class Tr2Sprite2dScene extends ITr2Scene
       if (++this._itemsRendered >= this.maxItemsToRender) return;
       if (this._vertexCount + vertexCount >= this.maxSpriteCount * 4 || this._indexCount + indexCount >= this.maxSpriteCount * 6) this._IssueDrawCall();
       if (vertexCount > this.maxSpriteCount * 4 || indexCount > this.maxSpriteCount * 6 || !this._vertexBytes) return;
+
+      // Carbon quirk, Tr2Sprite2dScene.cpp:1103, 1158, 1911, 2569, CE-125: after a skipped
+      // draw Carbon's m_currentVertexData keeps advancing while vertexOffset restarts at 0.
+      // This port writes at the count, which silently fixes it; kept until the
+      // operator rules on CE-125.
       vertexOffset = this._vertexCount;
       indexOffset = this._indexCount;
     }
+
     const top = this._transformStack.at(-1), clip = this._clipStack.at(-1);
     const translation = top?.isTranslationOnly ? top.translation : [0, 0];
     let transformIndex = 0;
@@ -1290,6 +1931,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
       transformIndex = ++this._transformCurrent;
       mat4.copy(this._transformArray[transformIndex], top.transform);
     }
+
     for (let i = 0; i < vertexCount; i++)
     {
       const vertex = vertices[i];
@@ -1304,90 +1946,141 @@ export class Tr2Sprite2dScene extends ITr2Scene
       for (const value of vertex.outlineColor) put(value);
       put(vertex.outlineThreshold);
     }
+
     for (let i = 0; i < indexCount; i++) indexData[indexOffset + i] = indices[i] + vertexOffset;
     this._vertexCount += vertexCount; this._indexCount += indexCount;
   }
 
-  /** Carbon's Tr2BufferAL overload, named explicitly because JS cannot overload.
-   * Unlike CPU vertices these buffers already contain final translation and clip.
-   * Finally clears draw counts and restores the ring binding even if an effect fails. */
+  /**
+   * Carbon's Tr2BufferAL overload of RenderTriangleVerts (Tr2Sprite2dScene.h:120-124,
+   * cpp:1021-1045), split by its C++ parameter type: draws caller-owned GPU buffers whose
+   * vertices already carry their final translation and clip.
+   *
+   * CCP_ASSERT( !m_captureDisplayList ) (cpp:1023) is compiled out of the shipping build, so
+   * inside a capture this flushes into the capture and still draws directly, as Carbon does.
+   *
+   * Adapted: two silent fixes of Carbon behaviour are kept pending the operator's ruling (the
+   * reason for the marker): see CE-123 and CE-124 at their sites.
+   *
+   * @param {Tr2BufferAL} vertices Vertex buffer in the 88-byte Tr2Sprite2dD3DVertex layout.
+   * @param {number} vertexCount Number of vertices.
+   * @param {Tr2BufferAL} indices Index buffer.
+   * @param {number} indexCount Number of indices.
+   * @returns {void}
+   */
   @meta.adapted
-  RenderTriangleVerts__Buffers(vertices, vertexCount, indices, indexCount)
+  RenderTriangleVerts__Tr2BufferAL(vertices, vertexCount, indices, indexCount)
   {
-    if (this.IsCapturing()) throw new Error("Direct Sprite2D buffers cannot be captured");
+    const context = Tr2RenderContext_GetMainThreadRenderContext(), esm = context.GetEffectStateManager();
 
+    this._SelectEffect();
     this._IssueDrawCall();
-    if (!indexCount || !this._SelectEffect()) return;
 
-    const context = this._renderContext, esm = context.GetEffectStateManager();
-    const pass = this._effect.GetPassDescription(0, 0);
-    for (let i = 0; i < 2; i++)
+    // Carbon quirk, Tr2Sprite2dScene.cpp:1021-1045, CE-124: Carbon binds no
+    // textures here, so the draw samples whatever slot-0 SRV was bound last. This port binds
+    // the current textures; a silent fix kept until the operator rules on CE-124.
+    if (this._effect)
     {
-      const texture = this._texture[i];
-      const al = texture ? texture.GetTexture() ?? texture.GetRenderTarget() : null;
-      pass.resourceSetDirty = pass.resourceSetDesc.SetSrv__TextureAL(ShaderType.PIXEL_SHADER, this._textureRegisters[i], al, Tr2ColorSpace.COLOR_SPACE_LINEAR) || pass.resourceSetDirty;
+      const pass = this._effect.GetPassDescription(0, 0);
+      const colorSpace = this._useLinearColorSpace ? Tr2ColorSpace.COLOR_SPACE_SRGB : Tr2ColorSpace.COLOR_SPACE_LINEAR;
+      for (let i = 0; i < 2; i++)
+      {
+        const texture = this._texture[i];
+        const al = texture ? texture.GetTexture() ?? texture.GetRenderTarget() : null;
+        pass.resourceSetDirty = pass.resourceSetDesc.SetSrv__TextureAL(ShaderType.PIXEL_SHADER, this._textureRegisters[i], al, colorSpace) || pass.resourceSetDirty;
+      }
     }
+
     esm.ApplyIndexBuffer(indices);
     esm.ApplyStreamSource(0, vertices, 0, 88);
-    this._vertexCount = vertexCount;
+
     this._indexCount = indexCount;
+    this._vertexCount = vertexCount;
+
+    // Carbon quirk, Tr2Sprite2dScene.cpp:1034-1042, 1192, CE-123: Carbon draws
+    // from the stale ring m_drawCallStartIndex and leaves m_indexCount set afterwards. This
+    // port draws from index 0 and zeroes the index count too; a silent fix kept until the
+    // operator rules on CE-123.
     this._drawCallStartIndex = 0;
-    try
-    {
-      this._effect.Render(this, context);
-    }
-    finally
-    {
-      this._vertexCount = this._indexCount = 0;
-      esm.ApplyIndexBuffer(this._indexBuffer.GetBuffer());
-    }
+
+    if (this._effect) this._effect.Render(this, context);
+
+    this._vertexCount = 0;
+    this._indexCount = 0;
+
+    esm.ApplyIndexBuffer(this._indexBuffer.GetBuffer());
   }
 
-  /** Uploads the batch through native ring buffers and effect rendering. */
-  @meta.adapted
+  /**
+   * Carbon IssueDrawCall (Tr2Sprite2dScene.cpp:1047-1164): records the pending batch into an
+   * open capture, or uploads it through the ring buffers and renders it with the UI effect.
+   *
+   * @returns {void}
+   */
+  @meta.implemented
   _IssueDrawCall()
   {
+    const context = Tr2RenderContext_GetMainThreadRenderContext();
+
     if (!this._indexCount) return;
-    const context = this._renderContext;
+
     const effectOK = this._SelectEffect();
+
     if (this.IsCapturing())
     {
       if (effectOK)
       {
+        context.GetRenderContextAL().AddGpuMarker("Tr2Sprite2dScene::IssueDrawCall Captured");
+
         const entry = new Tr2Sprite2dDisplayListEntry();
         for (let i = 0; i < 32; i++) mat4.copy(entry.transformArray[i], this._transformArray[i]);
         entry.numVertices = this._captureVertexDataSize;
-        entry.startIndex = this._captureStartIndex;
         entry.primitiveCount = this._indexCount / 3;
+        entry.startIndex = this._captureStartIndex;
         entry.texture0 = this._texture[0];
         entry.texture1 = this._texture[1];
         entry.effect = this._effect;
         entry.texelSize0.set(this._texelSizeValues[0]);
         entry.texelSize1.set(this._texelSizeValues[1]);
         this._uiTransformsCb ??= context.CreateConstantBuffer();
-        entry._uiTransformsCb = this._uiTransformsCb;
+        entry.uiTransformsCb = this._uiTransformsCb;
         this._captureDisplayList.entries.push(entry);
       }
+
       this._vertexCount = this._indexCount = this._transformCurrent = 0;
       this._captureStartIndex = this._captureIndexDataSize;
       return;
     }
+
     ++this._drawCallsRendered;
+
     if (effectOK && this._drawCallsRendered < this.maxDrawCallsToRender)
     {
+      context.GetRenderContextAL().AddGpuMarker("Tr2Sprite2dScene::IssueDrawCall Direct");
+
       const vertex = this._vertexBuffer.PutData(this._vertexBytes, this._vertexCount * 88, 4, context);
-      if (!Failed(vertex.result))
+      if (Failed(vertex.result))
+      {
+        CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", "Failed to update stream vertex buffer for UI");
+      }
+      else
       {
         const index = this._indexBuffer.PutData(this._indexData, this._indexCount * 4, 4, context);
-        if (!Failed(index.result))
+        if (Failed(index.result))
+        {
+          CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", "Failed to update stream index buffer for UI");
+        }
+        else
         {
           const pass = this._effect.GetPassDescription(0, 0);
+          const colorSpace = this._useLinearColorSpace ? Tr2ColorSpace.COLOR_SPACE_SRGB : Tr2ColorSpace.COLOR_SPACE_LINEAR;
           for (let i = 0; i < 2; i++)
           {
             const texture = this._texture[i];
             const al = texture ? texture.GetTexture() ?? texture.GetRenderTarget() : null;
-            pass.resourceSetDirty = pass.resourceSetDesc.SetSrv__TextureAL(ShaderType.PIXEL_SHADER, this._textureRegisters[i], al, Tr2ColorSpace.COLOR_SPACE_LINEAR) || pass.resourceSetDirty;
+            pass.resourceSetDirty = pass.resourceSetDesc.SetSrv__TextureAL(ShaderType.PIXEL_SHADER, this._textureRegisters[i], al, colorSpace) || pass.resourceSetDirty;
           }
+
           this._drawCallStartIndex = index.offset / 4;
           const esm = context.GetEffectStateManager();
           esm.ApplyStreamSource(0, this._vertexBuffer.GetBuffer(), vertex.offset, 88);
@@ -1395,13 +2088,27 @@ export class Tr2Sprite2dScene extends ITr2Scene
           this._effect.Render(this, context);
           this._indexBuffer.DoneUsingData(context);
         }
+
         this._vertexBuffer.DoneUsingData(context);
       }
     }
+
+    // Carbon quirk, Tr2Sprite2dScene.cpp:1103, 1158, CE-125: Carbon calls ResetBufferPointers
+    // only inside the draw branch, so a skipped draw (effect not ready, or maxDrawCallsToRender)
+    // leaves the write pointers advanced. Write positions here are the counts, so they restart
+    // with them: a silent fix kept until the operator rules on CE-125.
     this._vertexCount = this._indexCount = this._transformCurrent = 0;
   }
 
-  /** Binds the transposed native GUI transform array and draws the current indexed batch. */
+  /**
+   * Carbon SubmitGeometry (Tr2Sprite2dScene.cpp:1166-1197): binds the transposed GUI transform
+   * array and draws the current indexed batch.
+   *
+   * Adapted: a typed-array palette replaces the native stack matrix array.
+   *
+   * @param {Tr2RenderContext} context The rendering context.
+   * @returns {void}
+   */
   @meta.adapted
   SubmitGeometry(context)
   {

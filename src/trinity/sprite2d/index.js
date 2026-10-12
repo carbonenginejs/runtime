@@ -22,3 +22,11 @@ export * from "./ITr2Sprite2dTexture.js";
 
 export * from "./Tr2Sprite2dTextObject.js";
 export * from "./Tr2Sprite2dDisplayList.js";
+export * from "./Tr2Sprite2dDisplayListEntry.js";
+export * from "./ITr2Sprite2dTextureNotifyTarget.js";
+export * from "./Tr2Sprite2dArc.js";
+export * from "./Tr2Sprite2dFrame.js";
+export * from "./Tr2Sprite2dLayer.js";
+export * from "./Tr2Sprite2dLine.js";
+export * from "./Tr2Sprite2dStretch.js";
+export * from "./Tr2Sprite2dStretchVertical.js";

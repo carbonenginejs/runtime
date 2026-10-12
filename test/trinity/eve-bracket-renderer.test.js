@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { EveSprite2dBracketRenderer, EveSprite2dBracket, Tr2Sprite2dScene } from "../../npm/dist/trinity/index.js";
+import { EveSprite2dBracketRenderer, EveSprite2dBracket, Tr2Sprite2dScene, Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";
 
 function buffer()
 {
@@ -23,7 +23,7 @@ function fixture()
     GetTranslation: () => [10, 20],
     GetClipRectangle: () => ({ left: 1, top: 2, right: 300, bottom: 400 }),
     SetTexture(...args) { calls.push(["texture", ...args]); },
-    RenderTriangleVerts__Buffers(...args) { calls.push(["draw", ...args]); }
+    RenderTriangleVerts__Tr2BufferAL(...args) { calls.push(["draw", ...args]); }
   };
   const atlas = {};
   function bracket({ display = true, loading = false, texture = atlas } = {})
@@ -85,23 +85,34 @@ test("hidden/loading batches do not draw; atlas violations unmap before throwing
   assert.equal(batch.PickPoint(0, 0, renderer), null);
 });
 
-test("direct buffer submission flushes pending sprites, binds atlas and restores after draw failure", () =>
+test("buffer submission follows Carbon order: flush, bind buffers, draw, restore the ring index buffer", t =>
 {
+  // Carbon Tr2Sprite2dScene::RenderTriangleVerts( Tr2BufferAL&, ... ) (Tr2Sprite2dScene.cpp:1021-1045):
+  // SelectEffect, IssueDrawCall, ApplyIndexBuffer(indices), ApplyStreamSource(0, vertices, 0, 88),
+  // m_indexCount = indexCount, effect Render, m_vertexCount = 0, ApplyIndexBuffer(ring).
+  // Two kept silent fixes are asserted as such: textures are bound before the draw (CE-124),
+  // and the draw starts at index 0 with the index count cleared afterwards (CE-123).
   const scene = new Tr2Sprite2dScene(), calls = [];
+  const context = Tr2RenderContext_GetMainThreadRenderContext();
+  const saved = context.GetEffectStateManager;
+  context.GetEffectStateManager = () => ({
+    ApplyIndexBuffer: value => calls.push(["index", value]), ApplyStreamSource: (...args) => calls.push(["stream", ...args])
+  });
+  t.after(() => { context.GetEffectStateManager = saved; });
+
   scene._IssueDrawCall = () => calls.push("flush");
   scene._SelectEffect = () => true;
   scene._indexBuffer = { GetBuffer: () => "ring" };
-  scene._renderContext = { GetEffectStateManager: () => ({
-    ApplyIndexBuffer: value => calls.push(value), ApplyStreamSource: (...args) => calls.push(args)
-  }) };
+  scene._drawCallStartIndex = 96;
   scene._texture[0] = { GetTexture: () => "atlas" };
   scene._effect = {
-    GetPassDescription: () => ({ resourceSetDesc: { SetSrv__TextureAL: (...args) => { calls.push(args[2]); return true; } } }),
-    Render: renderer => { assert.equal(renderer._indexCount, 6); assert.equal(renderer._drawCallStartIndex, 0); throw new Error("draw failed"); }
+    GetPassDescription: () => ({ resourceSetDesc: { SetSrv__TextureAL: (...args) => { calls.push(["srv", args[2]]); return true; } } }),
+    Render: renderer => { calls.push(["render", renderer._indexCount, renderer._drawCallStartIndex]); }
   };
-  assert.throws(() => scene.RenderTriangleVerts__Buffers("vb", 4, "ib", 6), /draw failed/);
-  assert.deepEqual(calls, ["flush", "atlas", null, "ib", [0, "vb", 0, 88], "ring"]);
-  assert.equal(scene._indexCount, 0); assert.equal(scene._vertexCount, 0);
-  scene._captureDisplayList = {};
-  assert.throws(() => scene.RenderTriangleVerts__Buffers("vb", 4, "ib", 6), /cannot be captured/);
+
+  scene.RenderTriangleVerts__Tr2BufferAL("vb", 4, "ib", 6);
+
+  assert.deepEqual(calls, ["flush", ["srv", "atlas"], ["srv", null], ["index", "ib"], ["stream", 0, "vb", 0, 88], ["render", 6, 0], ["index", "ring"]]);
+  assert.equal(scene._vertexCount, 0);
+  assert.equal(scene._indexCount, 0);
 });

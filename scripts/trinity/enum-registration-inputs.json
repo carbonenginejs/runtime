@@ -1332,6 +1332,226 @@
               }
             ]
           }
+        },
+        {
+          "exportName": "Tr2Sprite2dRenderEffect",
+          "name": "trinity.Tr2Sprite2dRenderEffect",
+          "definition": {
+            "source": "trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h",
+            "family": "sprite2d",
+            "line": 99,
+            "exposedName": "Tr2Sprite2dRenderEffect",
+            "exposure": 1,
+            "chooserSource": "trinity/trinity/Sprite2d/Tr2Sprite2dScene_Blue.cpp:12",
+            "chooser": [
+              {
+                "name": "S2D_RFX_COPY",
+                "description": "Copy primary texture",
+                "member": "S2D_RFX_COPY"
+              },
+              {
+                "name": "S2D_RFX_BLUR",
+                "description": "Blurring",
+                "member": "S2D_RFX_BLUR"
+              },
+              {
+                "name": "S2D_RFX_MODULATE",
+                "description": "Multiply primary and secondary textures",
+                "member": "S2D_RFX_MODULATE"
+              }
+            ]
+          }
+        },
+        {
+          "exportName": "Tr2SpriteObjectBlendMode",
+          "name": "trinity.Tr2SpriteObjectBlendMode",
+          "definition": {
+            "source": "trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h",
+            "family": "sprite2d",
+            "line": 15,
+            "exposedName": "Tr2SpriteObjectBlendMode",
+            "exposure": 1,
+            "chooserSource": "trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:17",
+            "chooser": [
+              {
+                "name": "TR2_SBM_NONE",
+                "description": "No blending",
+                "member": "TR2_SBM_NONE"
+              },
+              {
+                "name": "TR2_SBM_BLEND",
+                "description": "Regular alpha blending",
+                "member": "TR2_SBM_BLEND"
+              },
+              {
+                "name": "TR2_SBM_ADD",
+                "description": "Additive blending",
+                "member": "TR2_SBM_ADD"
+              },
+              {
+                "name": "TR2_SBM_ADDX2",
+                "description": "Additive blending, x2 brightness",
+                "member": "TR2_SBM_ADDX2"
+              }
+            ]
+          }
+        },
+        {
+          "exportName": "Tr2SpriteObjectEffect",
+          "name": "trinity.Tr2SpriteObjectEffect",
+          "definition": {
+            "source": "trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h",
+            "family": "sprite2d",
+            "line": 31,
+            "exposedName": "Tr2SpriteObjectEffect",
+            "exposure": 1,
+            "chooserSource": "trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:32",
+            "chooser": [
+              {
+                "name": "TR2_SFX_FILL",
+                "description": "No texture - simple fill",
+                "member": "TR2_SFX_NO_TEXTURE"
+              },
+              {
+                "name": "TR2_SFX_FILL_AA",
+                "description": "No texture - simple fill, with anti-aliasing",
+                "member": "TR2_SFX_FILL_AA"
+              },
+              {
+                "name": "TR2_SFX_COPY",
+                "description": "Primary texture copied",
+                "member": "TR2_SFX_ONE_TEXTURE"
+              },
+              {
+                "name": "TR2_SFX_FONT",
+                "description": "Font rendered by FreeType",
+                "member": "TR2_SFX_FONT"
+              },
+              {
+                "name": "TR2_SFX_DOT",
+                "description": "Dot product of primary texture and direction vector",
+                "member": "TR2_SFX_DOT"
+              },
+              {
+                "name": "TR2_SFX_DROPSHADOW",
+                "description": "Primary texture copied, plus a drop shadow",
+                "member": "TR2_SFX_DROPSHADOW"
+              },
+              {
+                "name": "TR2_SFX_OUTLINE",
+                "description": "Primary texture copied, plus an outline",
+                "member": "TR2_SFX_OUTLINE"
+              },
+              {
+                "name": "TR2_SFX_MODULATE",
+                "description": "Primary and secondary textures modulated (multiplied)",
+                "member": "TR2_SFX_TWO_TEXTURES"
+              },
+              {
+                "name": "TR2_SFX_MASK",
+                "description": "Alpha channel of secondary used as mask for primary",
+                "member": "TR2_SFX_MASK"
+              },
+              {
+                "name": "TR2_SFX_NOALPHA",
+                "description": "Primary texture copied, alpha forced to 1.0",
+                "member": "TR2_SFX_NOALPHA"
+              },
+              {
+                "name": "TR2_SFX_COLOROVERLAY",
+                "description": "Primary texture colorized with an overlay effect",
+                "member": "TR2_SFX_COLOROVERLAY"
+              },
+              {
+                "name": "TR2_SFX_SOFTLIGHT",
+                "description": "Primary texture colorized with a softlight effect",
+                "member": "TR2_SFX_SOFTLIGHT"
+              },
+              {
+                "name": "TR2_SFX_BLUR",
+                "description": "Primary texture is blurred",
+                "member": "TR2_SFX_BLUR"
+              },
+              {
+                "name": "TR2_SFX_BLURBACKGROUNDCOLORED",
+                "description": "Primary texture is blurred, uvs are calculated from screen coords",
+                "member": "TR2_SFX_BLURBACKGROUNDCOLORED"
+              },
+              {
+                "name": "TR2_SFX_BLURBACKGROUND",
+                "description": "Primary texture is blurred, uvs are calculated from screen coords",
+                "member": "TR2_SFX_BLURBACKGROUND"
+              },
+              {
+                "name": "TR2_SFX_GLOW",
+                "description": "Primary texture is blurred, used for glow effects",
+                "member": "TR2_SFX_GLOW"
+              },
+              {
+                "name": "TR2_SFX_NONE",
+                "description": "Nothing is rendered",
+                "member": "TR2_SFX_NONE"
+              }
+            ]
+          }
+        },
+        {
+          "exportName": "Tr2SpriteTarget",
+          "name": "trinity.Tr2SpriteTarget",
+          "definition": {
+            "source": "trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h",
+            "family": "sprite2d",
+            "line": 23,
+            "exposedName": "Tr2SpriteTarget",
+            "exposure": 2,
+            "chooserSource": "trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:25",
+            "chooser": [
+              {
+                "name": "COLOR",
+                "description": "Render to color target",
+                "member": "COLOR"
+              },
+              {
+                "name": "GLOW",
+                "description": "Render to glow target",
+                "member": "GLOW"
+              },
+              {
+                "name": "COLOR_AND_GLOW",
+                "description": "Render both to color and glow targets",
+                "member": "COLOR_AND_GLOW"
+              }
+            ]
+          }
+        },
+        {
+          "exportName": "Tr2StretchScaleBehavior",
+          "name": "trinity.Tr2StretchScaleBehavior",
+          "definition": {
+            "source": "trinity/trinity/Sprite2d/Tr2Sprite2dStretch.h",
+            "family": "sprite2d",
+            "line": 14,
+            "exposedName": "Tr2Sprite2dStretchDpiScaleBehaviorChooser",
+            "exposure": 1,
+            "chooserSource": "trinity/trinity/Sprite2d/Tr2Sprite2dStretch_Blue.cpp:8",
+            "chooser": [
+              {
+                "name": "S2D_SSC_ALIGN_BOTTOMRIGHT",
+                "description": "Align to bottom/right (texture is not stretched vertically for horizontal stretch spritesor horizontally for vertical stretch sprites)",
+                "member": "S2D_SSC_ALIGN_BOTTOMRIGHT"
+              },
+              {
+                "name": "S2D_SSC_ALIGN_TOPLEFT",
+                "description": "Align to top/left (texture is not stretched vertically for horizontal stretch spritesor horizontally for vertical stretch sprites)",
+                "member": "S2D_SSC_ALIGN_TOPLEFT"
+              },
+              {
+                "name": "S2D_SSC_SCALE",
+                "description": "Texture scales in both directions",
+                "member": "S2D_SSC_SCALE"
+              }
+            ]
+          }
         }
       ]
     }

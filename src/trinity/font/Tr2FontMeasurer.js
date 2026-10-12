@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Font/Tr2FontMeasurer.h
 // Source: trinity/trinity/Font/Tr2FontMeasurer.cpp
 // Browser-font adaptation: fallback families and underline metrics are browser-specific.
-import { Tr2FontManager, g_fontManager } from "./Tr2FontManager.js";
+import { Tr2FontManager, g_fontManager, TR2_FONT_FALLBACK } from "./Tr2FontManager.js";
 import { Tr2SBitWrapper } from "./Tr2SBitWrapper.js";
 import { GetBytesPerPixel } from "#consts/render-context";
 import { Tr2TextureSubresource, Failed } from "#trinityal";
@@ -48,16 +48,28 @@ export class Tr2FontMeasurer
   /** m_ascender (int) [READWRITE] */
   @meta.blue.readwrite
   @meta.type.int32
-  get asc() { return this.ascender; }
+  get asc()
+  {
+    return this.ascender;
+  }
   /** Sets the measured ascender. */
-  set asc(value) { this.ascender = value; }
+  set asc(value)
+  {
+    this.ascender = value;
+  }
 
   /** m_descender (int) [READWRITE] */
   @meta.blue.readwrite
   @meta.type.int32
-  get des() { return this.descender; }
+  get des()
+  {
+    return this.descender;
+  }
   /** Sets the measured descender. */
-  set des(value) { this.descender = value; }
+  set des(value)
+  {
+    this.descender = value;
+  }
 
   /** m_underline (bool) [READWRITE] */
   @meta.blue.readwrite
@@ -82,23 +94,45 @@ export class Tr2FontMeasurer
   /** CSS font family used by the browser backend. */
   @meta.blue.readwrite
   @meta.type.string
-  get font() { return this.GetFont(); }
+  get font()
+  {
+    return this.GetFont();
+  }
   /** Selects the font family for subsequent text. */
-  set font(value) { this.SetFont(value); }
+  set font(value)
+  {
+    this.SetFont(value);
+  }
 
   /** Requested pixel size. */
   @meta.blue.readwrite
   @meta.type.int32
-  get fontSize() { return this.GetFontSize(); }
+  get fontSize()
+  {
+    return this.GetFontSize();
+  }
   /** Sets the pixel size for subsequent text. */
-  set fontSize(value) { this.SetFontSize(value); }
+  set fontSize(value)
+  {
+    this.SetFontSize(value);
+  }
 
-  /** Packed little-endian RGBA color for subsequently added text. */
+  /**
+   * Packed ARGB color for subsequently added text, as Carbon's `Color(uint32)`
+   * reads it: alpha in bits 24-31, red 16-23, green 8-15, blue 0-7
+   * (math/include/Color_inline.h:15-21).
+   */
   @meta.blue.readwrite
   @meta.type.int32
-  get color() { return this.GetColor(); }
+  get color()
+  {
+    return this.GetColor();
+  }
   /** Sets the packed color for subsequent text. */
-  set color(value) { this.SetColor(value); }
+  set color(value)
+  {
+    this.SetColor(value);
+  }
 
   /** Selects the CSS family for subsequently added text. */
   @meta.adapted
@@ -111,7 +145,10 @@ export class Tr2FontMeasurer
 
   /** Returns the selected CSS family. */
   @meta.implemented
-  GetFont() { return this._font; }
+  GetFont()
+  {
+    return this._font;
+  }
 
   /** Selects the pixel size for subsequently added text. */
   @meta.implemented
@@ -124,39 +161,98 @@ export class Tr2FontMeasurer
 
   /** Returns the selected pixel size. */
   @meta.implemented
-  GetFontSize() { return this._fontSize; }
+  GetFontSize()
+  {
+    return this._fontSize;
+  }
 
   /** Reads the native signed packed color. */
   @meta.implemented
-  GetColor() { return this._color | 0; }
+  GetColor()
+  {
+    return this._color | 0;
+  }
 
   /** Stores the packed color for subsequently added segments. */
   @meta.implemented
-  SetColor(value) { this._color = value >>> 0; }
+  SetColor(value)
+  {
+    this._color = value >>> 0;
+  }
 
   /**
-   * Adds a cancellable segment using native advance, spacing and limit rules.
-   * Adapted: browser fallback handles missing glyphs; JS Unicode code points replace
-   * native wchar_t units. Browser fonts expose no underline metrics, so thickness
-   * and offset use pixel-size estimates. Native AddText does not apply pair kerning.
+   * m_fallbackFace: face ID of TR2_FONT_FALLBACK, looked up on the first
+   * missing character (Tr2FontMeasurer.cpp:290-308). 0 until then.
+   *
+   * @type {number}
+   */
+  _fallbackFace = 0;
+
+  /**
+   * Carbon `AddText` (Tr2FontMeasurer.cpp:168-375): adds a cancellable segment
+   * using native advance, spacing and limit rules. No font selects
+   * TR2_FONT_FALLBACK (cpp:174-181). Per character: the current face, then
+   * TR2_FONT_FALLBACK (cpp:287-321), then the fallback's U+25A1 white box
+   * (cpp:323-338), else stop (cpp:340-344). Native AddText applies no kerning.
+   *
+   * Adapted: JS Unicode code points replace native wchar_t units. The browser
+   * reports no missing glyphs, so the per-character chain only runs where
+   * LookupGlyphIndex reports none; the browser applies the same fallback per
+   * glyph through the CSS family list (Tr2FontManager._SetFont). Carbon's
+   * "font not found" retry (cpp:183-205) has no browser signal and is absent.
+   * Metrics are re-read on every call, where Carbon reads them when the face
+   * changes. Browser fonts expose no underline metrics, so thickness and offset
+   * use pixel-size estimates.
+   *
+   * Carbon quirk CE-129, Tr2FontMeasurer.cpp:243-244: Carbon shifts the face's
+   * font-unit underline metrics by 6 as if they were 26.6 pixels, so its
+   * underline does not scale with size. Not reproduced: no font-unit metrics
+   * exist in the browser; the size-scaled estimate is kept.
+   *
+   * @param {string} text Text to add.
+   * @returns {number} Number of characters added.
    */
   @meta.blue.method
   @meta.adapted
   AddText(text)
   {
-    const face = g_fontManager.GetFaceID(this._font || "sans-serif");
+    const face = g_fontManager.GetFaceID(this._font || TR2_FONT_FALLBACK);
     const metrics = g_fontManager.LookupMetricsFromScript(face, this._fontSize, this._fontSize);
     this._currentAscender = metrics[0]; this._currentDescender = metrics[1];
     this.ascender = Math.max(this.ascender, metrics[0]);
     this.descender = Math.min(this.descender, metrics[1]);
+
     const segment = { prevCursorX: this.cursorX, bitmaps: [], color: this._color, underline: this.underline,
       underlinePosition: -Math.max(1, Math.round(this._fontSize / 10)), underlineThickness: Math.max(1, Math.round(this._fontSize / 14)) };
     this._renderData.push(segment);
+
     for (const character of text)
     {
       const code = character.codePointAt(0);
       if (code === 0) break;
-      const bitmap = g_fontManager.LookupSBit(face, this._fontSize, this._fontSize, code);
+
+      // Carbon tests `if( glyphIndex )` on FTC_CMapCache_Lookup, which returns 0
+      // for a missing glyph; LookupGlyphIndex adds -1 for an unusable face.
+      let bitmap = null;
+      let glyphIndex = g_fontManager.LookupGlyphIndex(face, code);
+      if (glyphIndex > 0) bitmap = g_fontManager.LookupSBit(face, this._fontSize, this._fontSize, glyphIndex);
+
+      if (!bitmap)
+      {
+        if (!this._fallbackFace) this._fallbackFace = g_fontManager.GetFaceID(TR2_FONT_FALLBACK);
+
+        glyphIndex = g_fontManager.LookupGlyphIndex(this._fallbackFace, code);
+        if (glyphIndex > 0) bitmap = g_fontManager.LookupSBit(this._fallbackFace, this._fontSize, this._fontSize, glyphIndex);
+      }
+
+      if (!bitmap)
+      {
+        glyphIndex = g_fontManager.LookupGlyphIndex(this._fallbackFace, 0x25a1);
+        if (glyphIndex > 0) bitmap = g_fontManager.LookupSBit(this._fallbackFace, this._fontSize, this._fontSize, glyphIndex);
+      }
+
+      if (!bitmap) break;
+
       const next = this.cursorX + bitmap.GetXAdvance() + this.letterSpace;
       if (this.limit && next > this.limit) break;
       bitmap.x = this.cursorX; bitmap.y = this.cursorY;
@@ -195,12 +291,18 @@ export class Tr2FontMeasurer
   /** Returns whether committed segments exist, including empty segments. */
   @meta.blue.method
   @meta.implemented
-  HasCommittedText() { return this._committedRenderData.length !== 0; }
+  HasCommittedText()
+  {
+    return this._committedRenderData.length !== 0;
+  }
 
   /** Returns whether pending segments exist. */
   @meta.blue.method
   @meta.implemented
-  HasUncommittedText() { return this._renderData.length !== 0; }
+  HasUncommittedText()
+  {
+    return this._renderData.length !== 0;
+  }
 
   /** Clears segments and cursor/metric state, retaining font settings. */
   @meta.blue.method
@@ -260,11 +362,17 @@ export class Tr2FontMeasurer
 
   /** Registers a text-sprite invalidation listener. */
   @meta.implemented
-  RegisterForChangeNotification(target) { this._changeListeners.add(target); }
+  RegisterForChangeNotification(target)
+  {
+    this._changeListeners.add(target);
+  }
 
   /** Removes a text-sprite invalidation listener. */
   @meta.implemented
-  UnregisterForChangeNotification(target) { this._changeListeners.delete(target); }
+  UnregisterForChangeNotification(target)
+  {
+    this._changeListeners.delete(target);
+  }
 
   /** Notifies each native font-measurer target. */
   @meta.implemented
@@ -351,13 +459,22 @@ export class Tr2FontMeasurer
   /** Native text fade boundary. */
   @meta.blue.readwrite
   @meta.type.float32
-  get fadeLeftStart() { return this.GetFadeLeftStart(); }
+  get fadeLeftStart()
+  {
+    return this.GetFadeLeftStart();
+  }
   /** Sets the left fade start and invalidates committed text. */
-  set fadeLeftStart(value) { this.SetFadeLeftStart(value); }
+  set fadeLeftStart(value)
+  {
+    this.SetFadeLeftStart(value);
+  }
 
   /** Reads the fade boundary. */
   @meta.implemented
-  GetFadeLeftStart() { return this._fadeLeftStart; }
+  GetFadeLeftStart()
+  {
+    return this._fadeLeftStart;
+  }
 
   /** Changes the fade boundary and invalidates text sprites. */
   @meta.implemented
@@ -372,13 +489,22 @@ export class Tr2FontMeasurer
   /** Native text fade boundary. */
   @meta.blue.readwrite
   @meta.type.float32
-  get fadeLeftEnd() { return this.GetFadeLeftEnd(); }
+  get fadeLeftEnd()
+  {
+    return this.GetFadeLeftEnd();
+  }
   /** Sets the left fade end and invalidates committed text. */
-  set fadeLeftEnd(value) { this.SetFadeLeftEnd(value); }
+  set fadeLeftEnd(value)
+  {
+    this.SetFadeLeftEnd(value);
+  }
 
   /** Reads the fade boundary. */
   @meta.implemented
-  GetFadeLeftEnd() { return this._fadeLeftEnd; }
+  GetFadeLeftEnd()
+  {
+    return this._fadeLeftEnd;
+  }
 
   /** Changes the fade boundary and invalidates text sprites. */
   @meta.implemented
@@ -393,13 +519,22 @@ export class Tr2FontMeasurer
   /** Native text fade boundary. */
   @meta.blue.readwrite
   @meta.type.float32
-  get fadeRightStart() { return this.GetFadeRightStart(); }
+  get fadeRightStart()
+  {
+    return this.GetFadeRightStart();
+  }
   /** Sets the right fade start and invalidates committed text. */
-  set fadeRightStart(value) { this.SetFadeRightStart(value); }
+  set fadeRightStart(value)
+  {
+    this.SetFadeRightStart(value);
+  }
 
   /** Reads the fade boundary. */
   @meta.implemented
-  GetFadeRightStart() { return this._fadeRightStart; }
+  GetFadeRightStart()
+  {
+    return this._fadeRightStart;
+  }
 
   /** Changes the fade boundary and invalidates text sprites. */
   @meta.implemented
@@ -414,13 +549,22 @@ export class Tr2FontMeasurer
   /** Native text fade boundary. */
   @meta.blue.readwrite
   @meta.type.float32
-  get fadeRightEnd() { return this.GetFadeRightEnd(); }
+  get fadeRightEnd()
+  {
+    return this.GetFadeRightEnd();
+  }
   /** Sets the right fade end and invalidates committed text. */
-  set fadeRightEnd(value) { this.SetFadeRightEnd(value); }
+  set fadeRightEnd(value)
+  {
+    this.SetFadeRightEnd(value);
+  }
 
   /** Reads the fade boundary. */
   @meta.implemented
-  GetFadeRightEnd() { return this._fadeRightEnd; }
+  GetFadeRightEnd()
+  {
+    return this._fadeRightEnd;
+  }
 
   /** Changes the fade boundary and invalidates text sprites. */
   @meta.implemented
@@ -435,13 +579,22 @@ export class Tr2FontMeasurer
   /** Native text fade boundary. */
   @meta.blue.readwrite
   @meta.type.float32
-  get fadeTopStart() { return this.GetFadeTopStart(); }
+  get fadeTopStart()
+  {
+    return this.GetFadeTopStart();
+  }
   /** Sets the top fade start and invalidates committed text. */
-  set fadeTopStart(value) { this.SetFadeTopStart(value); }
+  set fadeTopStart(value)
+  {
+    this.SetFadeTopStart(value);
+  }
 
   /** Reads the fade boundary. */
   @meta.implemented
-  GetFadeTopStart() { return this._fadeTopStart; }
+  GetFadeTopStart()
+  {
+    return this._fadeTopStart;
+  }
 
   /** Changes the fade boundary and invalidates text sprites. */
   @meta.implemented
@@ -456,13 +609,22 @@ export class Tr2FontMeasurer
   /** Native text fade boundary. */
   @meta.blue.readwrite
   @meta.type.float32
-  get fadeTopEnd() { return this.GetFadeTopEnd(); }
+  get fadeTopEnd()
+  {
+    return this.GetFadeTopEnd();
+  }
   /** Sets the top fade end and invalidates committed text. */
-  set fadeTopEnd(value) { this.SetFadeTopEnd(value); }
+  set fadeTopEnd(value)
+  {
+    this.SetFadeTopEnd(value);
+  }
 
   /** Reads the fade boundary. */
   @meta.implemented
-  GetFadeTopEnd() { return this._fadeTopEnd; }
+  GetFadeTopEnd()
+  {
+    return this._fadeTopEnd;
+  }
 
   /** Changes the fade boundary and invalidates text sprites. */
   @meta.implemented
@@ -477,13 +639,22 @@ export class Tr2FontMeasurer
   /** Native text fade boundary. */
   @meta.blue.readwrite
   @meta.type.float32
-  get fadeBottomStart() { return this.GetFadeBottomStart(); }
+  get fadeBottomStart()
+  {
+    return this.GetFadeBottomStart();
+  }
   /** Sets the bottom fade start and invalidates committed text. */
-  set fadeBottomStart(value) { this.SetFadeBottomStart(value); }
+  set fadeBottomStart(value)
+  {
+    this.SetFadeBottomStart(value);
+  }
 
   /** Reads the fade boundary. */
   @meta.implemented
-  GetFadeBottomStart() { return this._fadeBottomStart; }
+  GetFadeBottomStart()
+  {
+    return this._fadeBottomStart;
+  }
 
   /** Changes the fade boundary and invalidates text sprites. */
   @meta.implemented
@@ -498,13 +669,22 @@ export class Tr2FontMeasurer
   /** Native text fade boundary. */
   @meta.blue.readwrite
   @meta.type.float32
-  get fadeBottomEnd() { return this.GetFadeBottomEnd(); }
+  get fadeBottomEnd()
+  {
+    return this.GetFadeBottomEnd();
+  }
   /** Sets the bottom fade end and invalidates committed text. */
-  set fadeBottomEnd(value) { this.SetFadeBottomEnd(value); }
+  set fadeBottomEnd(value)
+  {
+    this.SetFadeBottomEnd(value);
+  }
 
   /** Reads the fade boundary. */
   @meta.implemented
-  GetFadeBottomEnd() { return this._fadeBottomEnd; }
+  GetFadeBottomEnd()
+  {
+    return this._fadeBottomEnd;
+  }
 
   /** Changes the fade boundary and invalidates text sprites. */
   @meta.implemented
@@ -595,7 +775,10 @@ export class Tr2FontMeasurer
     {
       for (const segment of this._committedRenderData)
       {
-        const tint = [0, 8, 16, 24].map((shift, i) => ((segment.color >>> shift) & 255) / 255 * passColor[i]);
+        // Carbon: Color finalColor( rd->color ), then channel-wise times the pass
+        // colour (Tr2FontMeasurer.cpp:805-809). Color(uint32) is ARGB
+        // (Color_inline.h:15-21), so r, g, b, a sit at bits 16, 8, 0 and 24.
+        const tint = [16, 8, 0, 24].map((shift, i) => ((segment.color >>> shift) & 255) / 255 * passColor[i]);
         for (const bitmap of segment.bitmaps)
         {
           const glyph = bitmap.sbit;
@@ -643,7 +826,23 @@ export class Tr2FontMeasurer
     finishRun();
   }
 
-  /** Submits texture runs within the scene's vertex limit, rebasing each batch. */
+  /**
+   * Carbon `SubmitSprites` (Tr2FontMeasurer.cpp:1045-1123): submits texture
+   * runs within the scene's vertex limit, rebasing each batch.
+   *
+   * Carbon quirk CE-130, Tr2FontMeasurer.cpp:1077: `vertexOffset` is declared
+   * once outside the run loop and never reset, so when an earlier run was split
+   * a later split run's indices are rebased by the earlier run's offset too
+   * (AdjustIndicesIfNeeded, cpp:1342-1360) and wrap below zero. Not reproduced:
+   * the per-run rebase is kept because reproducing it breaks rendering that
+   * works today.
+   *
+   * Adapted: array slices replace pointer ranges, and a renderer that cannot
+   * fit one quad throws instead of looping.
+   *
+   * @param {object} renderer The Tr2Sprite2dScene.
+   * @returns {void}
+   */
   @meta.adapted
   SubmitSprites(renderer)
   {

@@ -1,25 +1,32 @@
 // Source: trinity/trinity/Tr2AtlasTexture.h
 // Source: trinity/trinity/Tr2AtlasTexture.cpp
-// Maintained atlas view and write-mapping implementation.
+// Source: trinity/trinity/Tr2AtlasTexture_Blue.cpp
+// Hand-maintained port. Carbon's class is a BlueAsyncRes, an ICacheable and a
+// Tr2DeviceResource; this one is none of them yet. The load path (DoLoad,
+// DoPrepare, OnPrepareResources and the six `*atlas` resource extensions) is
+// left as explicit obligations: see `DoLoad`.
 import { meta } from "#schema";
+import * as CcpLog from "../../global/logging/ccpLog.js";
+import { TriStorageFlags } from "#consts/graphics";
 import { Tr2TextureAL, Tr2TextureSubresource, Failed } from "#trinityal";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "./context/Tr2RenderContext.js";
 import { vec4 } from "#math/vec4";
 
-/** Describes one named subtexture's resource path, pixel rectangle, and owning atlas dimensions. */
-@meta.define({ className: "Tr2AtlasTexture", family: "trinityCore", purpose: "Describes one named subtexture's resource path, pixel rectangle, and owning atlas dimensions." })
+/**
+ * A texture that usually lives in a texture atlas, as a window into the
+ * atlas's shared AL texture. When the atlas is full it has its own AL texture
+ * (an "outsider") and may be pulled into the atlas later.
+ *
+ * Not registered as a device resource. Carbon's `Tr2DeviceResource` base
+ * registers every instance with `TriDevice` through a raw, non-owning pointer;
+ * the JS registry holds strong references, so registering would keep every
+ * atlas texture alive forever and the atlas's GC reclamation could never
+ * happen. A device reset therefore does not call `ReleaseResources` on atlas
+ * textures.
+ */
+@meta.define({ className: "Tr2AtlasTexture", family: "trinityCore", purpose: "A window into a shared texture atlas, or a standalone outsider texture associated with one." })
 export class Tr2AtlasTexture
 {
-
-  /** m_textureHeight (unsigned int) [READ] */
-  @meta.blue.read
-  @meta.type.uint32
-  atlasHeight = 0;
-
-  /** m_height (unsigned int) [READ] */
-  @meta.blue.read
-  @meta.type.uint32
-  height = 0;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
   @meta.blue.readwrite
@@ -32,20 +39,25 @@ export class Tr2AtlasTexture
   @meta.type.path
   resPath = "";
 
-  /** m_textureAtlas (Tr2TextureAtlasPtr) [READ] */
+  /** m_width (unsigned int) [READ] */
   @meta.blue.read
-  @meta.type.rootRef("Tr2TextureAtlas")
-  atlas = null;
+  @meta.type.uint32
+  width = 0;
+
+  /** m_height (unsigned int) [READ] */
+  @meta.blue.read
+  @meta.type.uint32
+  height = 0;
 
   /** m_textureWidth (unsigned int) [READ] */
   @meta.blue.read
   @meta.type.uint32
   atlasWidth = 0;
 
-  /** m_width (unsigned int) [READ] */
+  /** m_textureHeight (unsigned int) [READ] */
   @meta.blue.read
   @meta.type.uint32
-  width = 0;
+  atlasHeight = 0;
 
   /** m_x (unsigned int) [READ] */
   @meta.blue.read
@@ -57,230 +69,740 @@ export class Tr2AtlasTexture
   @meta.type.uint32
   y = 0;
 
+  /** m_textureAtlas (Tr2TextureAtlasPtr) [READ] */
+  @meta.blue.read
+  @meta.type.rootRef("Tr2TextureAtlas")
+  atlas = null;
+
+  /**
+   * Ours: this texture as a non-owning pointer. Carbon's atlas and its areas
+   * hold raw `Tr2AtlasTexture*` that never keep the texture alive; JavaScript's
+   * only non-owning reference is a `WeakRef`, and the atlas needs one identity
+   * per texture to key its sets, so each texture carries its own.
+   * @type {WeakRef<Tr2AtlasTexture>}
+   */
+  _selfRef = new WeakRef(this);
+
+  /** m_texture: own AL texture, used when stand-alone or outside the atlas. */
   _texture = new Tr2TextureAL();
+
+  /** m_textureRes (TriTextureResPtr), for dynamic textures. */
   _textureRes = null;
+
+  /** m_renderTarget (Tr2TextureAL*) */
   _renderTarget = null;
+
+  /** @type {import("./Tr2TextureAtlasArea.js").Tr2TextureAtlasArea|null} m_atlasArea */
   _atlasArea = null;
+
+  /** @type {import("#imageio").HostBitmap|null} m_loadedBitmap, filled by the (unported) load path. */
+  _loadedBitmap = null;
+
+  /** m_textureWindow */
   _textureWindow = vec4.create();
+
+  /** m_widthReciprocal */
   _widthReciprocal = 0;
+
+  /** m_heightReciprocal */
   _heightReciprocal = 0;
+
+  /** m_textureWidthReciprocal */
   _textureWidthReciprocal = 0;
+
+  /** m_textureHeightReciprocal */
   _textureHeightReciprocal = 0;
+
+  /** BlueAsyncRes m_isGood */
   _isGood = false;
+
+  /** BlueAsyncRes m_isPrepared */
   _isPrepared = false;
+
+  /** BlueAsyncRes loading state; nothing sets it until the load path is ported. */
   _isLoading = false;
+
+  /** m_isStandAlone */
   _isStandAlone = false;
+
+  /** m_isLocked */
   _isLocked = false;
+
+  /** m_memoryUsage */
   _memoryUsage = 0;
+
+  /** @type {Set<{AtlasTextureChanged: Function}>} m_changeListeners */
   _changeListeners = new Set();
 
-  /** Returns the shared atlas AL object, then standalone or resource storage. */
+  /**
+   * A stand-alone atlas texture is a permanent outsider
+   * (`Tr2AtlasTexture_Blue.cpp:167-174`).
+   *
+   * @returns {boolean} Whether it is stand-alone.
+   */
+  @meta.blue.readwrite
+  @meta.type.boolean
+  get isStandAlone()
+  {
+    return this.IsStandAlone();
+  }
+
+  /**
+   * Sets stand-alone; ejects the texture from its atlas when true.
+   *
+   * @param {boolean} value Stand-alone.
+   */
+  set isStandAlone(value)
+  {
+    this.SetStandAlone(value);
+  }
+
+  /**
+   * Sets a texture res directly, for dynamic textures
+   * (`Tr2AtlasTexture_Blue.cpp:176-180`).
+   *
+   * @returns {object|null} The texture resource.
+   */
+  @meta.blue.readwrite
+  @meta.type.rootRef("TriTextureRes")
+  get textureRes()
+  {
+    return this.GetTextureRes();
+  }
+
+  /**
+   * Sets the texture resource.
+   *
+   * @param {object} value The texture resource.
+   */
+  set textureRes(value)
+  {
+    this.SetTextureRes(value);
+  }
+
+  /**
+   * Returns the AL texture to draw from: the atlas's when in the atlas, else
+   * its own, else the texture resource's (`Tr2AtlasTexture.cpp:45-64`).
+   *
+   * @returns {Tr2TextureAL|null} The texture, or null.
+   */
   @meta.implemented
   GetTexture()
   {
+    // are we part of an atlas? If so, go get the texture from that to guarantee pointer identity.
     if (this.atlas && this._atlasArea) return this.atlas.GetTexture();
+
     if (this._texture.IsValid()) return this._texture;
+
     if (this._textureRes && this._textureRes.IsGood()) return this._textureRes.GetTexture();
+
     return null;
   }
 
-  /** Returns the independently attached render target. */
+  /**
+   * Returns the render target, if any (`Tr2AtlasTexture.cpp:73-76`).
+   *
+   * @returns {Tr2TextureAL|null} The render target.
+   */
   @meta.implemented
-  GetRenderTarget() { return this._renderTarget; }
-
-  /** Attaches the native render-target view without taking ownership of its AL texture. */
-  @meta.implemented
-  SetRenderTarget(texture)
+  GetRenderTarget()
   {
-    this._renderTarget = texture;
-    this._isGood = this._isPrepared = true;
-    if (!texture) return;
-    this.width = this.atlasWidth = texture.GetWidth();
-    this.height = this.atlasHeight = texture.GetHeight();
-    this._CalcReciprocals();
-    this._textureWindow.set([0, 0, 1, 1]);
+    return this._renderTarget;
   }
 
-  /** Copies the cached offset and UV extent. */
+  /**
+   * Attaches a render target and makes it the whole texture
+   * (`Tr2AtlasTexture.cpp:78-97`).
+   *
+   * @param {Tr2TextureAL|null} rt The render target.
+   * @returns {void}
+   */
   @meta.implemented
-  GetTextureWindow(out) { for (let i = 0; i < 4; i++) out[i] = this._textureWindow[i]; }
-
-  /** Calculates a subrectangle, preserving native full-window fallback. */
-  @meta.implemented
-  CalcSubTextureWindow(out, x, y, width, height)
+  SetRenderTarget(rt)
   {
-    if (!this.GetTexture())
+    this._renderTarget = rt;
+    this._isGood = true;
+    this._isPrepared = true;
+    if (this._renderTarget)
     {
-      out[0] = out[1] = 0; out[2] = out[3] = 1;
+      this.width = rt.GetWidth();
+      this.atlasWidth = this.width;
+      this.height = rt.GetHeight();
+      this.atlasHeight = this.height;
+
+      this._CalcReciprocals();
+
+      this._textureWindow[0] = 0;
+      this._textureWindow[1] = 0;
+      this._textureWindow[2] = 1;
+      this._textureWindow[3] = 1;
+    }
+  }
+
+  /**
+   * Copies the cached texture window `(u, v, du, dv)` (`Tr2AtlasTexture.cpp:99-102`).
+   *
+   * @param {Float32Array|number[]} tw Receives the window.
+   * @returns {void}
+   */
+  @meta.implemented
+  GetTextureWindow(tw)
+  {
+    tw[0] = this._textureWindow[0];
+    tw[1] = this._textureWindow[1];
+    tw[2] = this._textureWindow[2];
+    tw[3] = this._textureWindow[3];
+  }
+
+  /**
+   * Caches the window of the whole texture (`Tr2AtlasTexture.cpp:104-107`).
+   *
+   * @returns {void}
+   */
+  @meta.implemented
+  _CalcTextureWindow()
+  {
+    this.CalcSubTextureWindow(this._textureWindow, 0, 0, 0, 0);
+  }
+
+  /**
+   * Texture coordinates of a sub-rectangle; zero size means the whole texture
+   * (`Tr2AtlasTexture.cpp:109-137`).
+   *
+   * @param {Float32Array|number[]} tw Receives `(u, v, du, dv)`.
+   * @param {number} rectX Left, in texture pixels.
+   * @param {number} rectY Top, in texture pixels.
+   * @param {number} rectWidth Width, or 0 for the texture width.
+   * @param {number} rectHeight Height, or 0 for the texture height.
+   * @returns {void}
+   */
+  @meta.implemented
+  CalcSubTextureWindow(tw, rectX, rectY, rectWidth, rectHeight)
+  {
+    const tex = this.GetTexture();
+
+    if (!tex)
+    {
+      tw[0] = 0;
+      tw[1] = 0;
+      tw[3] = 1;
+      tw[2] = 1;
       return;
     }
-    out[0] = (this.x + x) * this._textureWidthReciprocal;
-    out[1] = (this.y + y) * this._textureHeightReciprocal;
-    out[2] = (width || this.width) * this._textureWidthReciprocal;
-    out[3] = (height || this.height) * this._textureHeightReciprocal;
+
+    if (rectWidth === 0) rectWidth = this.width;
+
+    if (rectHeight === 0) rectHeight = this.height;
+
+    tw[0] = (this.x + rectX) * this._textureWidthReciprocal;
+    tw[1] = (this.y + rectY) * this._textureHeightReciprocal;
+    tw[2] = rectWidth * this._textureWidthReciprocal;
+    tw[3] = rectHeight * this._textureHeightReciprocal;
   }
 
-  /** Caches the UV window after placement. */
-  @meta.implemented
-  _CalcTextureWindow() { this.CalcSubTextureWindow(this._textureWindow, 0, 0, 0, 0); }
+  /**
+   * Removes the texture from its atlas and releases its resources
+   * (`Tr2AtlasTexture.cpp:139-146`), then runs what Carbon's destructor does
+   * (`Tr2AtlasTexture.cpp:36-43`).
+   *
+   * Carbon calls `OnShutdown` when the last reference goes and the destructor
+   * right after. JavaScript has no destructors, so the caller must call this
+   * explicitly; a texture that is merely dropped is reclaimed by the atlas's
+   * `_ReclaimCollectedTextures` (ours) at some later point instead.
+   *
+   * quirk, CE-147 (`Tr2AtlasTexture.cpp:36-43` after :139-146): the destructor's
+   * unlock runs after the area and own texture are gone, so `UnlockBuffer`
+   * finds no texture and returns without unmapping. Reproduced; only the
+   * warning is effective.
+   *
+   * @returns {void}
+   */
+  @meta.adapted
+  OnShutdown()
+  {
+    if (this.atlas) this.atlas._RemoveFromAtlas(this);
+    this.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
 
-  /** Updates nonzero dimension reciprocals, as native. */
+    if (this._isLocked)
+    {
+      CcpLog.CCP_LOGWARN("Tr2AtlasTexture locked upon destruction - unlock before destroying");
+      this.UnlockBuffer();
+    }
+  }
+
+  /**
+   * Reloads the texture after a device reset (`Tr2AtlasTexture.cpp:148-157`)
+   * through `BlueAsyncRes::Initialize`.
+   *
+   * Not implemented: it needs the `BlueAsyncRes` load path, see `DoLoad`.
+   *
+   * @returns {boolean} Never returns.
+   */
+  @meta.notImplemented
+  OnPrepareResources()
+  {
+    throw new Error("Tr2AtlasTexture.OnPrepareResources is not implemented in CarbonEngineJS: it reloads through the unported BlueAsyncRes load path.");
+  }
+
+  /**
+   * Drops the own texture and the atlas area when the storage class matches
+   * (`Tr2AtlasTexture.cpp:159-183`).
+   *
+   * Carbon deletes the area while the texture stays registered with the atlas.
+   * The deleted area is marked by clearing its `tex`, so the atlas's GC
+   * reclamation never frees it a second time. `CancelPendingLoad` is skipped:
+   * no load can be pending until the load path is ported.
+   *
+   * @param {number} s A `TriStorageFlags` mask.
+   * @returns {void}
+   */
+  @meta.adapted
+  ReleaseResources(s)
+  {
+    let texture = null;
+    if (this.atlas && this._atlasArea) texture = this.atlas.GetTexture();
+    else if (this._texture.IsValid()) texture = this._texture;
+
+    if (texture && (texture.GetMemoryClass() & s))
+    {
+      // When managed memory is freed, both standalone textures and the
+      // ones resident in an atlas are purged.
+      this._texture.Destroy();
+
+      if (this._atlasArea) this._atlasArea.tex = null;
+      this._atlasArea = null;
+
+      this._isPrepared = false;
+    }
+  }
+
+  /**
+   * Reads the image file into `_loadedBitmap` (`Tr2AtlasTexture.cpp:185-205`).
+   *
+   * Not implemented, together with `DoPrepare`, `OnPrepareResources`,
+   * `ICacheable` and the `ddsatlas`/`sddatlas`/`pngatlas`/`jpgatlas`/
+   * `jpegatlas`/`ecsatlas` extensions (`Tr2AtlasTexture_Blue.cpp:10-22`).
+   * Porting them needs decisions outside this class: `Tr2AtlasTexture` would
+   * have to become a `CjsResource` (the BlueAsyncRes port), the extensions
+   * would need a registrar composed by whoever builds a resource manager (as
+   * `registerTextureResources` is), and browser image decoding is
+   * asynchronous, so the read moves into a loader as it does for
+   * `Tr2ImageRes`. The atlas side (`Tr2TextureAtlas._DoPrepare`) is ported.
+   *
+   * @returns {number} Never returns.
+   */
+  @meta.notImplemented
+  DoLoad()
+  {
+    throw new Error("Tr2AtlasTexture.DoLoad is not implemented in CarbonEngineJS: the BlueAsyncRes load path and *atlas extensions need a resource-manager design decision.");
+  }
+
+  /**
+   * Places the loaded bitmap in an atlas or a texture of its own
+   * (`Tr2AtlasTexture.cpp:207-268`). Not implemented; see `DoLoad`.
+   *
+   * @returns {boolean} Never returns.
+   */
+  @meta.notImplemented
+  DoPrepare()
+  {
+    throw new Error("Tr2AtlasTexture.DoPrepare is not implemented in CarbonEngineJS: it belongs to the unported BlueAsyncRes load path.");
+  }
+
+  /**
+   * Returns the left offset in the AL texture (`Tr2AtlasTexture.cpp:270-273`).
+   *
+   * @returns {number} X.
+   */
+  @meta.implemented
+  GetX()
+  {
+    return this.x;
+  }
+
+  /**
+   * Returns the top offset in the AL texture (`Tr2AtlasTexture.cpp:275-278`).
+   *
+   * @returns {number} Y.
+   */
+  @meta.implemented
+  GetY()
+  {
+    return this.y;
+  }
+
+  /**
+   * Returns the width (`Tr2AtlasTexture.cpp:280-283`).
+   *
+   * @returns {number} Width.
+   */
+  @meta.implemented
+  GetWidth()
+  {
+    return this.width;
+  }
+
+  /**
+   * Returns `1 / width` (`Tr2AtlasTexture.cpp:285-288`).
+   *
+   * @returns {number} The reciprocal.
+   */
+  @meta.implemented
+  GetWidthReciprocal()
+  {
+    return this._widthReciprocal;
+  }
+
+  /**
+   * Returns the height (`Tr2AtlasTexture.cpp:290-293`).
+   *
+   * @returns {number} Height.
+   */
+  @meta.implemented
+  GetHeight()
+  {
+    return this.height;
+  }
+
+  /**
+   * Returns `1 / height` (`Tr2AtlasTexture.cpp:295-298`).
+   *
+   * @returns {number} The reciprocal.
+   */
+  @meta.implemented
+  GetHeightReciprocal()
+  {
+    return this._heightReciprocal;
+  }
+
+  /**
+   * Returns the width of the AL texture this lives in (`Tr2AtlasTexture.cpp:300-303`).
+   *
+   * @returns {number} Width.
+   */
+  @meta.implemented
+  GetTextureWidth()
+  {
+    return this.atlasWidth;
+  }
+
+  /**
+   * Returns the height of the AL texture this lives in (`Tr2AtlasTexture.cpp:305-308`).
+   *
+   * @returns {number} Height.
+   */
+  @meta.implemented
+  GetTextureHeight()
+  {
+    return this.atlasHeight;
+  }
+
+  /**
+   * Maps this texture's rectangle for writing (`Tr2AtlasTexture.cpp:310-351`).
+   *
+   * Carbon returns a bool and writes the pointer and pitch through reference
+   * parameters; JS has none, so the AL mapping record is returned on success
+   * and null on failure.
+   *
+   * @returns {{result: number, data: Uint8Array, pitch: number}|null} The mapping, or null.
+   */
+  @meta.blue.method
+  @meta.adapted
+  LockBuffer()
+  {
+    const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+
+    let texture = null;
+    if (this.atlas && this._atlasArea) texture = this.atlas.GetTexture();
+    else if (this._texture.IsValid()) texture = this._texture;
+
+    if (!texture || !texture.IsValid()) return null;
+
+    if (this._isLocked)
+    {
+      CcpLog.CCP_LOGERR("Tr2AtlasTexture::LockBuffer failed - texture is already locked");
+      return null;
+    }
+
+    const region = Tr2TextureSubresource.ForMipLevel(0).SetRect(this.x, this.y, this.x + this.width, this.y + this.height);
+    const mapping = texture.MapForWriting(region, renderContext);
+
+    if (Failed(mapping.result))
+    {
+      CcpLog.CCP_LOGERR("Tr2AtlasTexture::LockBuffer failed - another atlas texture may be locked already (HR: %08lx)", mapping.result);
+      return null;
+    }
+
+    this._isLocked = true;
+
+    return mapping;
+  }
+
+  /**
+   * Maps this texture's rectangle including the atlas margin
+   * (`Tr2AtlasTexture.cpp:353-390`). Outside an atlas the margin is 0 and this
+   * is `LockBuffer`. Returns the mapping with `margin` added, or null; JS has
+   * no reference parameters.
+   *
+   * @returns {{result: number, data: Uint8Array, pitch: number, margin: number}|null} The mapping, or null.
+   */
+  @meta.blue.method
+  @meta.adapted
+  LockBufferAndMargin()
+  {
+    const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+
+    let texture = null;
+    if (this.atlas && this._atlasArea) texture = this.atlas.GetTexture();
+    else if (this._texture.IsValid()) texture = this._texture;
+
+    if (!this.atlas || !this._atlasArea || this._isLocked || !texture || !texture.IsValid())
+    {
+      const mapping = this.LockBuffer();
+      return mapping ? { result: mapping.result, data: mapping.data, pitch: mapping.pitch, margin: 0 } : null;
+    }
+
+    const margin = this.atlas.GetMargin();
+    const region = Tr2TextureSubresource.ForMipLevel(0).SetRect(this.x - margin, this.y - margin, this.x + this.width + margin, this.y + this.height + margin);
+    const mapping = texture.MapForWriting(region, renderContext);
+
+    if (Failed(mapping.result))
+    {
+      CcpLog.CCP_LOGERR("Tr2AtlasTexture::LockBufferAndMargin failed - another atlas texture may be locked already (HR: %08lx)", mapping.result);
+      return null;
+    }
+
+    this._isLocked = true;
+
+    return { result: mapping.result, data: mapping.data, pitch: mapping.pitch, margin };
+  }
+
+  /**
+   * Unmaps a rectangle mapped by `LockBuffer`, marks the texture good and
+   * notifies listeners (`Tr2AtlasTexture.cpp:392-423`).
+   *
+   * @returns {void}
+   */
+  @meta.blue.method
+  @meta.implemented
+  UnlockBuffer()
+  {
+    if (!this._isLocked)
+    {
+      CcpLog.CCP_LOGWARN("Tr2AtlasTexture::UnlockBuffer failed - texture is not locked");
+      return;
+    }
+
+    const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+
+    let texture = null;
+    if (this.atlas && this._atlasArea) texture = this.atlas.GetTexture();
+    else if (this._texture.IsValid()) texture = this._texture;
+
+    if (!texture) return;
+
+    texture.UnmapForWriting(renderContext);
+
+    this._isLocked = false;
+    this._isGood = true;
+
+    this._NotifyListenersOfChange();
+  }
+
+  /**
+   * Whether `GetMemoryUsage` is meaningful (`Tr2AtlasTexture.cpp:425-428`).
+   *
+   * @returns {boolean} True unless loading.
+   */
+  @meta.implemented
+  IsMemoryUsageKnown()
+  {
+    return !this.IsLoading();
+  }
+
+  /**
+   * Estimated memory use in bytes (`Tr2AtlasTexture.cpp:430-433`).
+   *
+   * @returns {number} Bytes.
+   */
+  @meta.implemented
+  GetMemoryUsage()
+  {
+    return this._memoryUsage;
+  }
+
+  /**
+   * Updates the non-zero reciprocals (`Tr2AtlasTexture.cpp:435-453`). Carbon
+   * stores them as float.
+   *
+   * @returns {void}
+   */
   @meta.implemented
   _CalcReciprocals()
   {
-    if (this.width) this._widthReciprocal = 1 / this.width;
-    if (this.height) this._heightReciprocal = 1 / this.height;
-    if (this.atlasWidth) this._textureWidthReciprocal = 1 / this.atlasWidth;
-    if (this.atlasHeight) this._textureHeightReciprocal = 1 / this.atlasHeight;
+    if (this.width) this._widthReciprocal = Math.fround(1 / this.width);
+    if (this.height) this._heightReciprocal = Math.fround(1 / this.height);
+    if (this.atlasWidth) this._textureWidthReciprocal = Math.fround(1 / this.atlasWidth);
+    if (this.atlasHeight) this._textureHeightReciprocal = Math.fround(1 / this.atlasHeight);
   }
 
-  /** Finishes native placement and invalidates texture users. */
+  /**
+   * Recomputes reciprocals and window, then notifies (`Tr2AtlasTexture.cpp:455-461`).
+   *
+   * @returns {void}
+   */
   @meta.implemented
   _FinalizePrepare()
   {
     this._CalcReciprocals();
     this._CalcTextureWindow();
+
     this._NotifyListenersOfChange();
   }
 
-  /** Maps this view's rectangle; JS returns the native data/pitch outputs together. */
-  @meta.blue.method
-  @meta.adapted
-  LockBuffer()
+  /**
+   * Adds a change listener (`Tr2AtlasTexture.cpp:463-466`).
+   *
+   * @param {{AtlasTextureChanged: Function}} p The listener.
+   * @returns {void}
+   */
+  @meta.implemented
+  RegisterForChangeNotification(p)
   {
-    const texture = this.atlas && this._atlasArea ? this.atlas.GetTexture() : this._texture;
-    if (!texture.IsValid() || this._isLocked) return null;
-    const context = Tr2RenderContext_GetMainThreadRenderContext();
-    const region = Tr2TextureSubresource.ForMipLevel(0).SetRect(this.x, this.y, this.x + this.width, this.y + this.height);
-    const mapping = texture.MapForWriting(region, context);
-    if (Failed(mapping.result)) return null;
-    this._isLocked = true;
-    return mapping;
+    this._changeListeners.add(p);
   }
 
-  /** Maps atlas margins too; standalone views have no margin. */
-  @meta.blue.method
-  @meta.adapted
-  LockBufferAndMargin()
+  /**
+   * Removes a change listener (`Tr2AtlasTexture.cpp:468-471`).
+   *
+   * @param {{AtlasTextureChanged: Function}} p The listener.
+   * @returns {void}
+   */
+  @meta.implemented
+  UnregisterForChangeNotification(p)
   {
-    const texture = this.atlas && this._atlasArea ? this.atlas.GetTexture() : this._texture;
-    if (!this.atlas || !this._atlasArea || this._isLocked || !texture.IsValid())
+    this._changeListeners.delete(p);
+  }
+
+  /**
+   * Makes the texture a permanent outsider, ejecting it from its atlas
+   * (`Tr2AtlasTexture.cpp:473-484`).
+   *
+   * @param {boolean} b Stand-alone.
+   * @returns {void}
+   */
+  @meta.implemented
+  SetStandAlone(b)
+  {
+    this._isStandAlone = b;
+
+    if (this._isStandAlone)
     {
-      const mapping = this.LockBuffer();
-      return mapping ? { ...mapping, margin: 0 } : null;
+      if (this.atlas) this.atlas.EjectTexture(this);
     }
-    const margin = this.atlas.GetMargin();
-    const region = Tr2TextureSubresource.ForMipLevel(0).SetRect(this.x - margin, this.y - margin, this.x + this.width + margin, this.y + this.height + margin);
-    const mapping = texture.MapForWriting(region, Tr2RenderContext_GetMainThreadRenderContext());
-    if (Failed(mapping.result)) return null;
-    this._isLocked = true;
-    return { ...mapping, margin };
   }
 
-  /** Finishes the write and publishes native readiness/change notification. */
-  @meta.blue.method
+  /**
+   * Whether the texture is a permanent outsider (`Tr2AtlasTexture.cpp:486-489`).
+   *
+   * @returns {boolean} Stand-alone.
+   */
   @meta.implemented
-  UnlockBuffer()
+  IsStandAlone()
   {
-    if (!this._isLocked) return;
-    const texture = this.atlas && this._atlasArea ? this.atlas.GetTexture() : this._texture;
-    if (!texture.IsValid()) return;
-    texture.UnmapForWriting(Tr2RenderContext_GetMainThreadRenderContext());
-    this._isLocked = false;
-    this._isGood = true;
-    this._NotifyListenersOfChange();
+    return this._isStandAlone;
   }
 
-  /** Registers one atlas change target by identity. */
-  @meta.implemented
-  RegisterForChangeNotification(target) { this._changeListeners.add(target); }
-
-  /** Removes a registered atlas change target. */
-  @meta.implemented
-  UnregisterForChangeNotification(target) { this._changeListeners.delete(target); }
-
-  /** Broadcasts native invalidation after placement or writing. */
+  /**
+   * Calls every listener's `AtlasTextureChanged` (`Tr2AtlasTexture.cpp:491-497`).
+   *
+   * @returns {void}
+   */
   @meta.implemented
   _NotifyListenersOfChange()
   {
     for (const target of this._changeListeners) target.AtlasTextureChanged(this);
   }
 
-  /** Keeps a permanent outsider outside its owning atlas. */
+  /**
+   * Chooses the atlas to load into, once (`Tr2AtlasTexture.cpp:499-506`).
+   *
+   * @param {import("./Tr2TextureAtlas.js").Tr2TextureAtlas} atlas The atlas.
+   * @returns {void}
+   */
   @meta.implemented
-  SetStandAlone(value)
+  SetTargetAtlasBeforeLoad(atlas)
   {
-    this._isStandAlone = value;
-    if (value && this.atlas) this.atlas.EjectTexture(this);
+    if (this.atlas) return;
+    this.atlas = atlas;
   }
 
-  /** Sets the intended atlas once, before loading. */
+  /**
+   * Uses a texture resource directly, for dynamic textures
+   * (`Tr2AtlasTexture.cpp:508-525`).
+   *
+   * @param {object} p A `TriTextureRes`.
+   * @returns {void}
+   */
   @meta.implemented
-  SetTargetAtlasBeforeLoad(atlas) { if (!this.atlas) this.atlas = atlas; }
-
-  /** Native GetX query. */
-  @meta.implemented
-  GetX() { return this.x; }
-
-  /** Native GetY query. */
-  @meta.implemented
-  GetY() { return this.y; }
-
-  /** Native GetWidth query. */
-  @meta.implemented
-  GetWidth() { return this.width; }
-
-  /** Native GetHeight query. */
-  @meta.implemented
-  GetHeight() { return this.height; }
-
-  /** Native GetTextureWidth query. */
-  @meta.implemented
-  GetTextureWidth() { return this.atlasWidth; }
-
-  /** Native GetTextureHeight query. */
-  @meta.implemented
-  GetTextureHeight() { return this.atlasHeight; }
-
-  /** Native GetWidthReciprocal query. */
-  @meta.implemented
-  GetWidthReciprocal() { return this._widthReciprocal; }
-
-  /** Native GetHeightReciprocal query. */
-  @meta.implemented
-  GetHeightReciprocal() { return this._heightReciprocal; }
-
-  /** Native IsGood query. */
-  @meta.implemented
-  IsGood() { return this._isGood; }
-
-  /** Native IsPrepared query. */
-  @meta.implemented
-  IsPrepared() { return this._isPrepared; }
-
-  /** Native IsLoading query. */
-  @meta.implemented
-  IsLoading() { return this._isLoading; }
-
-  /** Native IsStandAlone query. */
-  @meta.implemented
-  IsStandAlone() { return this._isStandAlone; }
-
-  /** Native GetMemoryUsage query. */
-  @meta.implemented
-  GetMemoryUsage() { return this._memoryUsage; }
-
-  /** Native IsMemoryUsageKnown query. */
-  @meta.implemented
-  IsMemoryUsageKnown() { return !this.IsLoading(); }
-
-  /** Releases this view's atlas allocation and independently owned texture. */
-  @meta.adapted
-  OnShutdown()
+  SetTextureRes(p)
   {
-    if (this._isLocked) this.UnlockBuffer();
-    if (this.atlas) this.atlas._RemoveFromAtlas(this);
-    this._texture.Destroy();
-    this._isPrepared = this._isGood = false;
+    this._textureRes = p;
+    this._isPrepared = true;
+    this._isGood = true;
+
+    this.x = 0;
+    this.y = 0;
+    this.width = this._textureRes.GetWidth();
+    this.atlasWidth = this.width;
+    this.height = this._textureRes.GetHeight();
+    this.atlasHeight = this.height;
+
+    this._CalcReciprocals();
+    this._CalcTextureWindow();
+  }
+
+  /**
+   * Returns the texture resource (`Tr2AtlasTexture.cpp:527-530`).
+   *
+   * @returns {object|null} The texture resource.
+   */
+  @meta.implemented
+  GetTextureRes()
+  {
+    return this._textureRes;
+  }
+
+  /**
+   * BlueAsyncRes `IsGood`.
+   *
+   * @returns {boolean} Whether the texture holds valid pixels.
+   */
+  @meta.implemented
+  IsGood()
+  {
+    return this._isGood;
+  }
+
+  /**
+   * BlueAsyncRes `IsPrepared`.
+   *
+   * @returns {boolean} Whether the texture is prepared.
+   */
+  @meta.implemented
+  IsPrepared()
+  {
+    return this._isPrepared;
+  }
+
+  /**
+   * BlueAsyncRes `IsLoading`. Always false until the load path is ported.
+   *
+   * @returns {boolean} Whether a load is in flight.
+   */
+  @meta.implemented
+  IsLoading()
+  {
+    return this._isLoading;
   }
 }

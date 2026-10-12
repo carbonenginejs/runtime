@@ -4,7 +4,10 @@ import { meta } from "#schema";
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
 
-/** Stores one editable Sprite2D line-trace point's position, color, and optional name. */
+/**
+ * Stores one editable Sprite2D line-trace point's position, color, and optional name
+ * (Tr2Sprite2dLineTrace.h:15-28; defaults Tr2Sprite2dLineTrace.cpp:10-14; exposure Tr2Sprite2dLineTrace_Blue.cpp:399-421).
+ */
 @meta.define({ className: "Tr2Sprite2dLineTraceVertex", family: "sprite2d" })
 @meta.blue.interface()
 export class Tr2Sprite2dLineTraceVertex

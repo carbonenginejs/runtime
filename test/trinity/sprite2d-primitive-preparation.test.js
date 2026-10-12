@@ -50,15 +50,15 @@ test('texture replacements detach old notifications and propagate dirty to ances
   assert.equal(sprite.isDirty, true); assert.equal(parent.isDirty, true);
   sprite.texturePrimary = second;
   sprite.isDirty = parent.isDirty = false;
-  first.SetDirty();
+  first._SetDirty();
   assert.equal(sprite.isDirty, false);
   sprite.texturePrimary = second;
   assert.equal(sprite.isDirty, false);
-  second.SetDirty();
+  second._SetDirty();
   assert.equal(parent.isDirty, true);
   sprite.Destroy();
   sprite.isDirty = parent.isDirty = false;
-  second.SetDirty();
+  second._SetDirty();
   assert.equal(sprite.isDirty, false);
 });
 

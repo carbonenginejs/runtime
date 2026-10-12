@@ -26,6 +26,60 @@ export class Tr2SBitWrapper
   /** Pixel size retained for browser underline metrics. */
   fontSize = 12;
 
+  /** Blue "xOffset" [READ] (Tr2Sbit_Blue.cpp:198-201): GetXOffset. @returns {number} Bitmap left offset. */
+  @meta.blue.read
+  @meta.type.int32
+  @meta.implemented
+  get xOffset()
+  {
+    return this.GetXOffset();
+  }
+
+  /** Blue "yOffset" [READ] (Tr2Sbit_Blue.cpp:203-206): GetYOffset. @returns {number} Bitmap top offset. */
+  @meta.blue.read
+  @meta.type.int32
+  @meta.implemented
+  get yOffset()
+  {
+    return this.GetYOffset();
+  }
+
+  /** Blue "width" [READ] (Tr2Sbit_Blue.cpp:208-211): GetWidth. @returns {number} Bitmap width. */
+  @meta.blue.read
+  @meta.type.int32
+  @meta.implemented
+  get width()
+  {
+    return this.GetWidth();
+  }
+
+  /** Blue "height" [READ] (Tr2Sbit_Blue.cpp:213-216): GetHeight. @returns {number} Bitmap height. */
+  @meta.blue.read
+  @meta.type.int32
+  @meta.implemented
+  get height()
+  {
+    return this.GetHeight();
+  }
+
+  /** Blue "xadvance" [READ] (Tr2Sbit_Blue.cpp:218-222): GetXAdvance. @returns {number} Horizontal advance. */
+  @meta.blue.read
+  @meta.type.int32
+  @meta.implemented
+  get xadvance()
+  {
+    return this.GetXAdvance();
+  }
+
+  /** Blue "yadvance" [READ] (Tr2Sbit_Blue.cpp:224-228): GetYAdvance. @returns {number} Vertical advance. */
+  @meta.blue.read
+  @meta.type.int32
+  @meta.implemented
+  get yadvance()
+  {
+    return this.GetYAdvance();
+  }
+
   /** Returns the cached glyph width. */
   @meta.implemented
   GetWidth()
@@ -111,6 +165,22 @@ export class Tr2SBitWrapper
    * Draws the glyph and underline with native blending and extra spacing.
    * Adapted: browsers expose no underline metrics; use the same pixel-size
    * estimate as Tr2FontMeasurer, instead of claiming FreeType equivalence.
+   *
+   * Carbon quirk CE-129, Tr2SBit.cpp:80-81: Carbon shifts the FT_Face
+   * underline_position/underline_thickness by 6 as if they were 26.6 pixels,
+   * but they are font units, so its underline offset and thickness do not
+   * scale with the font size. Not reproduced: the browser exposes no
+   * font-unit metrics, and the size-scaled estimate renders correctly today.
+   *
+   * @param {ArrayBuffer|ArrayBufferView} buffer Destination RGBA bytes.
+   * @param {number} width Destination width in pixels.
+   * @param {number} height Destination height in pixels.
+   * @param {number} pitch Destination row pitch in bytes.
+   * @param {number} x Pen x.
+   * @param {number} y Pen y, bottom-origin.
+   * @param {number} color Packed colour.
+   * @param {number} extraSpace Extra underline length after the advance.
+   * @returns {void}
    */
   @meta.blue.method
   @meta.adapted

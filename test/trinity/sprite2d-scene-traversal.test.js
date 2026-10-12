@@ -102,7 +102,7 @@ test('Sprite2D polygon picking accepts either winding and always releases its tr
 {
   const scene = new Tr2Sprite2dScene(), polygon = new Tr2Sprite2dPolygon();
   polygon.displayX = 10; polygon.displayY = 20;
-  polygon.AppendVertices([[0, 0], [10, 0], [0, 10]]);
+  polygon.AppendVertices([[0, 0], [10, 0], [0, 10]], null, [1, 1, 1, 1]); // Carbon requires colors.
   polygon.AppendTriangles([[0, 1, 2]]);
   assert.equal(polygon.PickPoint(12, 22, scene), polygon);
   assert.equal(polygon.PickPoint(19, 29, scene), null);

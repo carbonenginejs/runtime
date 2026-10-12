@@ -50,7 +50,9 @@ export * from "./Tr2HostBitmap.js";
 export * from "./Tr2ImpostorManager/index.js";
 
 export * from "./Tr2AtlasTexture.js";
+export * from "./ITr2AtlasTextureNotifyTarget.js";
 
 export * from "./Tr2TextureAtlas.js";
+export * from "./Tr2TextureAtlasArea.js";
 
 export * from "./Tr2TextureAtlasMan.js";

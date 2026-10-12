@@ -3,11 +3,13 @@
 // Maintained implementation promoted from generated metadata.
 import { meta } from "#schema";
 import { Tr2SpriteObject } from "./Tr2SpriteObject.js";
+import { ITr2FontMeasurerNotifyTarget } from "../font/ITr2FontMeasurerNotifyTarget.js";
 import { Tr2SpriteObjectEffect, Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
 
 /** Defines a 2D text sprite's measured extent, primary texture, picking radius, shadow-effect mode, and tooltip flag. */
 @meta.define({ className: "Tr2Sprite2dTextObject", family: "sprite2d", purpose: "Defines a 2D text sprite's measured extent, primary texture, picking radius, shadow-effect mode, and tooltip flag." })
 @meta.blue.chainTo(Tr2SpriteObject)
+@meta.blue.inherit(ITr2FontMeasurerNotifyTarget)
 export class Tr2Sprite2dTextObject extends Tr2SpriteObject
 {
 
@@ -66,9 +68,15 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
   /** Native mapped property routes through subscription management. */
   @meta.blue.readwrite
   @meta.type.rootRef("Tr2FontMeasurer")
-  get fontMeasurer() { return this.GetFontMeasurer(); }
+  get fontMeasurer()
+  {
+    return this.GetFontMeasurer();
+  }
   /** Replaces the measurer and its change subscription. */
-  set fontMeasurer(value) { this.SetFontMeasurer(value); }
+  set fontMeasurer(value)
+  {
+    this.SetFontMeasurer(value);
+  }
 
   /** Native text constructor selects the font shader effect. */
   constructor()
@@ -90,11 +98,17 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
 
   /** Returns the subscribed measurer. */
   @meta.implemented
-  GetFontMeasurer() { return this._fontMeasurer; }
+  GetFontMeasurer()
+  {
+    return this._fontMeasurer;
+  }
 
   /** Invalidates cached geometry after a measurer edit. */
   @meta.implemented
-  FontMeasurerChanged(_source) { this.SetDirty(); }
+  FontMeasurerChanged(_source)
+  {
+    this.SetDirty();
+  }
 
   /** Prepares dirty text then submits it within its native shadow-expanded clip. */
   @meta.implemented
@@ -129,11 +143,17 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
 
   /** Reports a tooltip-only hit target. */
   @meta.implemented
-  IsAuxMouseover() { return this.pickState !== Tr2SpriteObjectPickState.TR2_SPS_ON && this.hasAuxiliaryTooltip; }
+  IsAuxMouseover()
+  {
+    return this.pickState !== Tr2SpriteObjectPickState.TR2_SPS_ON && this.hasAuxiliaryTooltip;
+  }
 
   /** Returns the attached measurer's vertex budget. */
   @meta.implemented
-  GetVertexCount() { return this.display && this._fontMeasurer ? this._fontMeasurer.GetVertexCount() : 0; }
+  GetVertexCount()
+  {
+    return this.display && this._fontMeasurer ? this._fontMeasurer.GetVertexCount() : 0;
+  }
 
   /** Invalidates geometry and drops cached atlas references. */
   @meta.implemented
@@ -145,9 +165,22 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
 
   /** Native preparation has no extra resources of its own. */
   @meta.implemented
-  _OnPrepareResources() { return true; }
+  _OnPrepareResources()
+  {
+    return true;
+  }
 
-  /** JS explicit disposal replaces the native destructor's listener removal. */
+  /**
+   * Carbon ~Tr2Sprite2dTextObject (Tr2Sprite2dTextObject.cpp:20-26): only
+   * unregisters from the measurer, without dirtying the parent.
+   * JS has no destructors, so the body runs from this explicit call.
+   *
+   * @returns {void}
+   */
   @meta.ours
-  Destroy() { this.SetFontMeasurer(null); }
+  Destroy()
+  {
+    if (this._fontMeasurer) this._fontMeasurer.UnregisterForChangeNotification(this);
+    this._fontMeasurer = null;
+  }
 }

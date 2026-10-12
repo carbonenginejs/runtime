@@ -1,8 +1,8 @@
 {
   "outRoot": "src/trinity/generated",
   "classes": {
-    "written": 15,
-    "skipped": 697
+    "written": 8,
+    "skipped": 708
   },
   "enums": {
     "written": 15,
@@ -541,11 +541,6 @@
     },
     {
       "family": "eve",
-      "className": "IBehavior",
-      "reason": "hand-maintained source exists"
-    },
-    {
-      "family": "eve",
       "className": "IEveBallpark",
       "reason": "hand-maintained source exists"
     },
@@ -1022,6 +1017,11 @@
     {
       "family": "eve/child/behaviors",
       "className": "FormationData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "eve/child/behaviors",
+      "className": "IBehavior",
       "reason": "hand-maintained source exists"
     },
     {
@@ -1901,6 +1901,11 @@
     },
     {
       "family": "font",
+      "className": "ITr2FontMeasurerNotifyTarget",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "font",
       "className": "Tr2FontManager",
       "reason": "hand-maintained source exists"
     },
@@ -2691,12 +2696,22 @@
     },
     {
       "family": "sprite2d",
+      "className": "ITr2Sprite2dTextureNotifyTarget",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
       "className": "ITr2SpriteObject",
       "reason": "hand-maintained source exists"
     },
     {
       "family": "sprite2d",
       "className": "Tr2Sprite2d",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dArc",
       "reason": "hand-maintained source exists"
     },
     {
@@ -2717,6 +2732,26 @@
     {
       "family": "sprite2d",
       "className": "Tr2Sprite2dD3DVertex",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dDisplayList",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dFrame",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dLayer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dLine",
       "reason": "hand-maintained source exists"
     },
     {
@@ -2747,6 +2782,16 @@
     {
       "family": "sprite2d",
       "className": "Tr2Sprite2dScene",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dStretch",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dStretchVertical",
       "reason": "hand-maintained source exists"
     },
     {
@@ -2812,6 +2857,11 @@
     {
       "family": "trinityCore",
       "className": "GrannyBoneOffset",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "ITr2AtlasTextureNotifyTarget",
       "reason": "hand-maintained source exists"
     },
     {
@@ -3257,6 +3307,11 @@
     {
       "family": "trinityCore",
       "className": "Tr2TextureAtlas",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "Tr2TextureAtlasArea",
       "reason": "hand-maintained source exists"
     },
     {
@@ -6109,41 +6164,6 @@
       "file": "trinity/generated/raytracing/Tr2RaytracingPipelineStateManager.js"
     },
     {
-      "className": "Tr2Sprite2dArc",
-      "family": "sprite2d",
-      "file": "trinity/generated/sprite2d/Tr2Sprite2dArc.js"
-    },
-    {
-      "className": "Tr2Sprite2dDisplayList",
-      "family": "sprite2d",
-      "file": "trinity/generated/sprite2d/Tr2Sprite2dDisplayList.js"
-    },
-    {
-      "className": "Tr2Sprite2dFrame",
-      "family": "sprite2d",
-      "file": "trinity/generated/sprite2d/Tr2Sprite2dFrame.js"
-    },
-    {
-      "className": "Tr2Sprite2dLayer",
-      "family": "sprite2d",
-      "file": "trinity/generated/sprite2d/Tr2Sprite2dLayer.js"
-    },
-    {
-      "className": "Tr2Sprite2dLine",
-      "family": "sprite2d",
-      "file": "trinity/generated/sprite2d/Tr2Sprite2dLine.js"
-    },
-    {
-      "className": "Tr2Sprite2dStretch",
-      "family": "sprite2d",
-      "file": "trinity/generated/sprite2d/Tr2Sprite2dStretch.js"
-    },
-    {
-      "className": "Tr2Sprite2dStretchVertical",
-      "family": "sprite2d",
-      "file": "trinity/generated/sprite2d/Tr2Sprite2dStretchVertical.js"
-    },
-    {
       "className": "Tr2SSSSS",
       "family": "trinityCore",
       "file": "trinity/generated/trinityCore/Tr2SSSSS.js"
@@ -7807,6 +7827,11 @@
     },
     {
       "family": "sprite2d",
+      "className": "Tr2Sprite2dArc",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
       "className": "Tr2Sprite2dClipRect",
       "reason": "hand-maintained source exists"
     },
@@ -7827,6 +7852,26 @@
     },
     {
       "family": "sprite2d",
+      "className": "Tr2Sprite2dDisplayList",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dFrame",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dLayer",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dLine",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
       "className": "Tr2Sprite2dLineTrace",
       "reason": "hand-maintained source exists"
     },
@@ -7843,6 +7888,16 @@
     {
       "family": "sprite2d",
       "className": "Tr2Sprite2dRenderJob",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dStretch",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "sprite2d",
+      "className": "Tr2Sprite2dStretchVertical",
       "reason": "hand-maintained source exists"
     },
     {

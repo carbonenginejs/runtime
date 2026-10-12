@@ -1,6 +1,28 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Tr2Sprite2dScene, Tr2Sprite2dD3DVertex } from "../../npm/dist/trinity/index.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/core/context/Tr2RenderContext.js";
+
+/**
+ * The scene reaches the main-thread context as Carbon does (USE_MAIN_THREAD_RENDER_CONTEXT),
+ * so tests swap members on that context and restore them when the test ends.
+ */
+function mainContext(t, overrides)
+{
+  const main = Tr2RenderContext_GetMainThreadRenderContext();
+  const keys = ["GetRenderContextAL", ...Object.keys(overrides)];
+  const saved = keys.map(key => [key, Object.getOwnPropertyDescriptor(main, key)]);
+  Object.assign(main, { GetRenderContextAL: () => ({ AddGpuMarker() {} }) }, overrides);
+  t.after(() =>
+  {
+    for (const [key, descriptor] of saved)
+    {
+      if (descriptor) Object.defineProperty(main, key, descriptor);
+      else delete main[key];
+    }
+  });
+  return main;
+}
 
 function storage(scene)
 {
@@ -31,13 +53,13 @@ test("native sprite vertex bytes apply parent translation, alpha and clip withou
   scene.PopClipRectangle(); scene.PopTransform(); scene._CleanUpStacksAfterRender();
 });
 
-test("scene batches offset indices and submit through the effect with ring allocations", () =>
+test("scene batches offset indices and submit through the effect with ring allocations", t =>
 {
   const scene = new Tr2Sprite2dScene(), calls = [];
   storage(scene);
   const vertex = new Tr2Sprite2dD3DVertex();
   const esm = { ApplyStreamSource(...args) { calls.push(["vertex", ...args]); }, ApplyIndexBuffer(value) { calls.push(["index", value]); } };
-  scene._renderContext = { GetEffectStateManager: () => esm };
+  mainContext(t, { GetEffectStateManager: () => esm });
   scene._vertexBuffer = { PutData: (_data, bytes) => { calls.push(["vertexBytes", bytes]); return { result: 0, offset: 176 }; }, GetBuffer: () => "vb", DoneUsingData() { calls.push(["vertexDone"]); } };
   scene._indexBuffer = { PutData: (_data, bytes) => { calls.push(["indexBytes", bytes]); return { result: 0, offset: 24 }; }, GetBuffer: () => "ib", DoneUsingData() { calls.push(["indexDone"]); } };
   scene._effect = { GetPassDescription: () => ({ resourceSetDesc: { SetSrv__TextureAL: () => false } }), Render(callback) { calls.push(["render", callback._indexCount, callback._drawCallStartIndex]); } };
@@ -63,11 +85,14 @@ test("scene texture changes flush only across underlying atlas storage", () =>
   assert.deepEqual(Array.from(scene._texelSizeValues[0]), [1 / 32, 1 / 16, 0, 0]);
 });
 
-function captureContext()
+function captureContext(t)
 {
   const allocations = [], draws = [];
   const context = {
     GetEffectStateManager: () => ({ ApplyIndexBuffer() {}, ApplyStreamSource() {} }),
+    // Carbon's render context is the backend context; buffer creation reaches it through GetRenderContextAL.
+    GetRenderContextAL() { return this; },
+    AddGpuMarker() {},
     CreateConstantBuffer: () => ({ Destroy() {} }),
     CreateBuffer(desc, initialData)
     {
@@ -85,19 +110,19 @@ function captureContext()
   };
   const scene = new Tr2Sprite2dScene();
   storage(scene);
-  scene._renderContext = context;
+  mainContext(t, context);
   scene._indexBuffer = { GetBuffer: () => "direct" };
   scene._effect = {
     GetPassDescription: () => ({ resourceSetDesc: { SetSrv__TextureAL: () => false } }),
     Render(entry) { draws.push([entry.numVertices, entry.startIndex, entry.primitiveCount]); }
   };
   scene._SelectEffect = () => true;
-  return { scene, allocations, draws };
+  return { scene, allocations, draws, context };
 }
 
-test("capture retains global indices across texture batches and replays without ring uploads", () =>
+test("capture retains global indices across texture batches and replays without ring uploads", t =>
 {
-  const { scene, allocations, draws } = captureContext();
+  const { scene, allocations, draws } = captureContext(t);
   const vertex = new Tr2Sprite2dD3DVertex();
   scene.StartCapture({ SetDirty() {} });
   scene.RenderTriangleVerts([vertex, vertex], 2, [0, 1, 0], 3);
@@ -114,9 +139,9 @@ test("capture retains global indices across texture batches and replays without 
   scene._CleanUpStacksAfterRender();
 });
 
-test("recapture transfers fitting buffers without destroying them with the old display list", () =>
+test("recapture transfers fitting buffers without destroying them with the old display list", t =>
 {
-  const { scene, allocations } = captureContext();
+  const { scene, allocations } = captureContext(t);
   const vertex = new Tr2Sprite2dD3DVertex(), owner = { SetDirty() {} };
   scene.StartCapture(owner);
   scene.RenderTriangleVerts([vertex], 1, [0, 0, 0], 3);
@@ -131,9 +156,9 @@ test("recapture transfers fitting buffers without destroying them with the old d
   scene._CleanUpStacksAfterRender();
 });
 
-test("captured geometry grows beyond direct batch capacity and release invalidates its owner", () =>
+test("captured geometry grows beyond direct batch capacity and release invalidates its owner", t =>
 {
-  const { scene } = captureContext();
+  const { scene } = captureContext(t);
   let dirty = 0;
   scene.maxSpriteCount = 1;
   scene.StartCapture({ SetDirty() { dirty++; } });
@@ -149,11 +174,11 @@ test("captured geometry grows beyond direct batch capacity and release invalidat
   scene._CleanUpStacksAfterRender();
 });
 
-test("failed capture upload releases partial buffers and restores direct recording", () =>
+test("failed capture upload releases partial buffers and restores direct recording", t =>
 {
-  const { scene, allocations } = captureContext();
-  const create = scene._renderContext.CreateBuffer;
-  scene._renderContext.CreateBuffer = (...args) => allocations.length ? { result: -1, implementation: null } : create(...args);
+  const { scene, allocations, context } = captureContext(t);
+  const create = context.CreateBuffer;
+  Tr2RenderContext_GetMainThreadRenderContext().CreateBuffer = (...args) => allocations.length ? { result: -1, implementation: null } : create(...args);
   scene.StartCapture({ SetDirty() {} });
   scene.RenderTriangleVerts([new Tr2Sprite2dD3DVertex()], 1, [0, 0, 0], 3);
   assert.equal(scene.EndCapture(null), null);
@@ -164,21 +189,23 @@ test("failed capture upload releases partial buffers and restores direct recordi
 });
 
 
-test("embedded render jobs receive frame clocks and restore UI state after failure", () =>
+// RunJobHelper (Tr2Sprite2dScene.cpp:2139-2175) has no recovery path: Carbon runs the job between
+// the state handoff and the restore, so that is the whole sequence.
+test("embedded render jobs receive frame clocks between the UI state handoff and restore", t =>
 {
   const scene = new Tr2Sprite2dScene(), calls = [];
   const esm = {};
-  for (const name of ["EndManagedRendering", "PopDepthStencilBuffer", "PushRenderTarget__TextureAL", "PushViewport", "PopViewport", "PopRenderTarget", "PushDepthStencilBuffer", "BeginManagedRendering", "ApplyStandardStates", "ApplyVertexDeclaration"])
+  for (const name of ["EndManagedRendering", "PopDepthStencilBuffer", "PushRenderTarget__TextureAL", "PushViewport", "PopViewport", "PopRenderTarget", "PushDepthStencilBuffer__TextureAL", "BeginManagedRendering", "ApplyStandardStates", "ApplyVertexDeclaration", "ApplyIndexBuffer"])
     esm[name] = () => calls.push(name);
-  scene._renderContext = { GetEffectStateManager: () => esm };
+  mainContext(t, { GetEffectStateManager: () => esm });
   scene._realTime = 123; scene._simTime = 456;
-  assert.throws(() => scene.RunJob({ Run(real, sim) { assert.deepEqual([real, sim], [123, 456]); calls.push("job"); throw new Error("job failed"); } }), /job failed/);
-  assert.deepEqual(calls, ["EndManagedRendering", "PopDepthStencilBuffer", "PushRenderTarget__TextureAL", "PushViewport", "job", "PopViewport", "PopRenderTarget", "PushDepthStencilBuffer", "BeginManagedRendering", "ApplyStandardStates", "ApplyVertexDeclaration"]);
+  scene.RunJob({ Run(real, sim) { assert.deepEqual([real, sim], [123, 456]); calls.push("job"); } });
+  assert.deepEqual(calls, ["EndManagedRendering", "PopDepthStencilBuffer", "PushRenderTarget__TextureAL", "PushViewport", "job", "PopViewport", "PopRenderTarget", "PushDepthStencilBuffer__TextureAL", "BeginManagedRendering", "ApplyStandardStates", "ApplyVertexDeclaration", "ApplyIndexBuffer"]);
 });
 
-test("capture records embedded jobs in sequence between geometry batches", () =>
+test("capture records embedded jobs in sequence between geometry batches", t =>
 {
-  const { scene } = captureContext(), vertex = new Tr2Sprite2dD3DVertex();
+  const { scene } = captureContext(t), vertex = new Tr2Sprite2dD3DVertex();
   const job = { Run() {} };
   scene.StartCapture({ SetDirty() {} });
   scene.RenderTriangleVerts([vertex], 1, [0, 0, 0], 3);

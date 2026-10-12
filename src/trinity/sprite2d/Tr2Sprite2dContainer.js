@@ -57,12 +57,22 @@ export class Tr2Sprite2dContainer extends Tr2Sprite2dContainerBase
 
   _cachedDisplayList = null;
 
-  /** Explicit native destructor equivalent; JS has no deterministic destructors. */
-  @meta.ours
+  /**
+   * Carbon ~Tr2Sprite2dContainer: releases the cached display list, then the base
+   * destructor detaches the children.
+   *
+   * Adapted: JS has no destructors, so the destructor bodies run from an explicit
+   * Destroy, derived first and then the base, as C++ orders them.
+   *
+   * @returns {void}
+   */
+  @meta.adapted
   Destroy()
   {
     this._cachedDisplayList?.Destroy();
     this._cachedDisplayList = null;
+
+    super.Destroy();
   }
 
   /** Applies Carbon's dirty/clean-frame cache policy before gathering or replaying. */

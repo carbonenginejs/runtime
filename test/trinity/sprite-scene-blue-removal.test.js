@@ -34,9 +34,9 @@ test("Scene uses its native primary and exact query while removing model helpers
 });
 
 test("Scene declaration order, stored aliases and list identities match native shape",()=>{
- const scene=new Tr2Sprite2dScene(),schema=CjsSchema.getSchema(Tr2Sprite2dScene);assert.deepEqual(schema.members.map(f=>f.name),["name","display","drawWireFrame","ignoreClip","lastPickPos","isFullscreen","is2dRender","is2dPick","translation","displayX","displayY","rotation","scaling","displayWidth","displayHeight","depthMin","depthMax","pickState","clearBackground","backgroundColor","children","background","clearFinishedCurveSets","curveSets","ubershader2d","ubershader3d","defaultTextureUpdates","maxItemsToRender","maxDrawCallsToRender","maxSpriteCount","captureIndexDataCapacity"]);assert.deepEqual(schema.properties,[]);assert.deepEqual(schema.fields,[]);assert.equal(CjsSchema.getField(Tr2Sprite2dScene,"name"),null);
+ const scene=new Tr2Sprite2dScene(),schema=CjsSchema.getSchema(Tr2Sprite2dScene);assert.deepEqual(schema.members.map(f=>f.name),["name","display","drawWireFrame","ignoreClip","lastPickPos","isFullscreen","is2dRender","is2dPick","translation","displayX","displayY","rotation","scaling","displayWidth","displayHeight","depthMin","depthMax","pickState","clearBackground","backgroundColor","children","background","clearFinishedCurveSets","curveSets","ubershader2d","ubershader3d","defaultTextureUpdates","maxItemsToRender","maxDrawCallsToRender","maxSpriteCount","captureIndexDataCapacity"]);assert.deepEqual(schema.properties.map(p=>p.name),["useLinearColorSpace","gammaCorrectText"]);assert.deepEqual(schema.fields,[]);assert.equal(CjsSchema.getField(Tr2Sprite2dScene,"name"),null);
  assert.equal(schema.members.find(f=>f.name==="name").type.kind,"wstring");for(const name of ["displayX","displayY"]){const f=schema.members.find(f=>f.name===name);assert.equal(f.key,"translation");assert.equal(f.index,name==="displayX"?0:1);assert.equal(f.edit.read,true);assert.equal(f.edit.write,true);assert.equal(f.edit.persist,true);}
- assert.deepEqual([...scene.backgroundColor],[0,0,1,0]);assert.equal(scene.captureIndexDataCapacity,1536);assert.equal(scene.ubershader2d,null);assert.equal(scene.ubershader3d,null);
+ assert.deepEqual([...scene.backgroundColor],[0,0,1,0]);assert.equal(scene.captureIndexDataCapacity,1536);assert.equal(scene.ubershader2d.effectFilePath,"res:/Graphics/Effect/UI/UberShader.fx");assert.equal(scene.ubershader3d.effectFilePath,"res:/Graphics/Effect/UI/UberShader3d.fx");
  assert.ok(scene.children instanceof BlueList);assert.ok(scene.background instanceof BlueList);assert.ok(scene.curveSets instanceof BlueList);assert.equal(scene.children.Append(new Tr2Sprite2dRenderJob()),true);assert.equal(scene.children.Append({}),false);
  assert.equal(CjsSchema.cast(scene.children[0],ITr2SpriteObject),scene.children[0]);
 });
@@ -116,7 +116,9 @@ test("canonical Scene declarations drive Copier and traversal without legacy fie
   scene.curveSets.Append(set);
   const visited = [];
   visited.push(scene, ...blue.FindAllReferences(scene).keys());
-  assert.equal(visited.length, 4);
+  // The two ubershader effects the constructor creates (Tr2Sprite2dScene.cpp:130-134) are referenced too.
+  assert.equal(visited.length, 6);
+  assert.ok(visited.includes(scene.ubershader2d) && visited.includes(scene.ubershader3d));
   [scene, child, background, set].forEach((value, index) => assert.equal(visited[index], value));
   const clone = new Copier().CloneTo(scene);
   assert.equal(clone.constructor, Tr2Sprite2dScene);

@@ -14,11 +14,11 @@ export const TextureRepeat = Object.freeze({
   TR_Clamp: 2,
 });
 
-export const Tr2Sprite2dRenderEffect = Object.freeze({
+export const Tr2Sprite2dRenderEffect = {
   S2D_RFX_COPY: 0,
   S2D_RFX_BLUR: 1,
   S2D_RFX_MODULATE: 2,
-});
+};
 
 export const Tr2Sprite2dTextureSettings = Object.freeze({
   S2D_TS_NONE: 0,
@@ -29,17 +29,19 @@ export const Tr2Sprite2dTextureSettings = Object.freeze({
   S2D_TS_TILE_Y: 16,
 });
 
-export const Tr2SpriteObjectBlendMode = Object.freeze({
+export const Tr2SpriteObjectBlendMode = {
   TR2_SBM_NONE: 0,
   TR2_SBM_BLEND: 1,
   TR2_SBM_ADD: 2,
   TR2_SBM_ADDX2: 3,
-});
+};
 
-export const Tr2SpriteObjectEffect = Object.freeze({
+export const Tr2SpriteObjectEffect = {
   TR2_SFX_NO_TEXTURE: 0,
+  TR2_SFX_FILL: 0,
   TR2_SFX_FILL_AA: 1,
   TR2_SFX_ONE_TEXTURE: 32,
+  TR2_SFX_COPY: 32,
   TR2_SFX_DOT: 33,
   TR2_SFX_NOALPHA: 34,
   TR2_SFX_DROPSHADOW: 35,
@@ -52,11 +54,12 @@ export const Tr2SpriteObjectEffect = Object.freeze({
   TR2_SFX_GLOW: 42,
   TR2_SFX_FONT: 43,
   TR2_SFX_TWO_TEXTURES: 64,
+  TR2_SFX_MODULATE: 64,
   TR2_SFX_MASK: 65,
   TR2_SFX_COPY_DOT: 66,
   TR2_SFX_COUNT: 67,
   TR2_SFX_NONE: 4294967295,
-});
+};
 
 export const Tr2SpriteObjectPickState = {
   TR2_SPS_OFF: 0,
@@ -64,19 +67,169 @@ export const Tr2SpriteObjectPickState = {
   TR2_SPS_CHILDREN: 2,
 };
 
-export const Tr2SpriteTarget = Object.freeze({
+export const Tr2SpriteTarget = {
   COLOR: 1,
   GLOW: 2,
   COLOR_AND_GLOW: 3,
-});
+};
 
-export const Tr2StretchScaleBehavior = Object.freeze({
+export const Tr2StretchScaleBehavior = {
   S2D_SSC_ALIGN_BOTTOMRIGHT: 0,
   S2D_SSC_ALIGN_TOPLEFT: 1,
   S2D_SSC_SCALE: 2,
-});
+};
 
 // Reviewed Blue registrations; values and chooser references share the declarations above.
+blueEnums.Create("trinity.Tr2Sprite2dRenderEffect", Tr2Sprite2dRenderEffect, {
+  "source": "trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h",
+  "family": "sprite2d",
+  "line": 99,
+  "exposedName": "Tr2Sprite2dRenderEffect",
+  "exposure": 1,
+  "chooserSource": "trinity/trinity/Sprite2d/Tr2Sprite2dScene_Blue.cpp:12",
+  "chooser": [
+    {
+      "name": "S2D_RFX_COPY",
+      "value": 0,
+      "description": "Copy primary texture"
+    },
+    {
+      "name": "S2D_RFX_BLUR",
+      "value": 1,
+      "description": "Blurring"
+    },
+    {
+      "name": "S2D_RFX_MODULATE",
+      "value": 2,
+      "description": "Multiply primary and secondary textures"
+    }
+  ]
+});
+blueEnums.Create("trinity.Tr2SpriteObjectBlendMode", Tr2SpriteObjectBlendMode, {
+  "source": "trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h",
+  "family": "sprite2d",
+  "line": 15,
+  "exposedName": "Tr2SpriteObjectBlendMode",
+  "exposure": 1,
+  "chooserSource": "trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:17",
+  "chooser": [
+    {
+      "name": "TR2_SBM_NONE",
+      "value": 0,
+      "description": "No blending"
+    },
+    {
+      "name": "TR2_SBM_BLEND",
+      "value": 1,
+      "description": "Regular alpha blending"
+    },
+    {
+      "name": "TR2_SBM_ADD",
+      "value": 2,
+      "description": "Additive blending"
+    },
+    {
+      "name": "TR2_SBM_ADDX2",
+      "value": 3,
+      "description": "Additive blending, x2 brightness"
+    }
+  ]
+});
+blueEnums.Create("trinity.Tr2SpriteObjectEffect", Tr2SpriteObjectEffect, {
+  "source": "trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h",
+  "family": "sprite2d",
+  "line": 31,
+  "exposedName": "Tr2SpriteObjectEffect",
+  "exposure": 1,
+  "chooserSource": "trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:32",
+  "chooser": [
+    {
+      "name": "TR2_SFX_FILL",
+      "value": 0,
+      "description": "No texture - simple fill"
+    },
+    {
+      "name": "TR2_SFX_FILL_AA",
+      "value": 1,
+      "description": "No texture - simple fill, with anti-aliasing"
+    },
+    {
+      "name": "TR2_SFX_COPY",
+      "value": 32,
+      "description": "Primary texture copied"
+    },
+    {
+      "name": "TR2_SFX_FONT",
+      "value": 43,
+      "description": "Font rendered by FreeType"
+    },
+    {
+      "name": "TR2_SFX_DOT",
+      "value": 33,
+      "description": "Dot product of primary texture and direction vector"
+    },
+    {
+      "name": "TR2_SFX_DROPSHADOW",
+      "value": 35,
+      "description": "Primary texture copied, plus a drop shadow"
+    },
+    {
+      "name": "TR2_SFX_OUTLINE",
+      "value": 36,
+      "description": "Primary texture copied, plus an outline"
+    },
+    {
+      "name": "TR2_SFX_MODULATE",
+      "value": 64,
+      "description": "Primary and secondary textures modulated (multiplied)"
+    },
+    {
+      "name": "TR2_SFX_MASK",
+      "value": 65,
+      "description": "Alpha channel of secondary used as mask for primary"
+    },
+    {
+      "name": "TR2_SFX_NOALPHA",
+      "value": 34,
+      "description": "Primary texture copied, alpha forced to 1.0"
+    },
+    {
+      "name": "TR2_SFX_COLOROVERLAY",
+      "value": 37,
+      "description": "Primary texture colorized with an overlay effect"
+    },
+    {
+      "name": "TR2_SFX_SOFTLIGHT",
+      "value": 38,
+      "description": "Primary texture colorized with a softlight effect"
+    },
+    {
+      "name": "TR2_SFX_BLUR",
+      "value": 39,
+      "description": "Primary texture is blurred"
+    },
+    {
+      "name": "TR2_SFX_BLURBACKGROUNDCOLORED",
+      "value": 40,
+      "description": "Primary texture is blurred, uvs are calculated from screen coords"
+    },
+    {
+      "name": "TR2_SFX_BLURBACKGROUND",
+      "value": 41,
+      "description": "Primary texture is blurred, uvs are calculated from screen coords"
+    },
+    {
+      "name": "TR2_SFX_GLOW",
+      "value": 42,
+      "description": "Primary texture is blurred, used for glow effects"
+    },
+    {
+      "name": "TR2_SFX_NONE",
+      "value": 4294967295,
+      "description": "Nothing is rendered"
+    }
+  ]
+});
 blueEnums.Create("trinity.Tr2SpriteObjectPickState", Tr2SpriteObjectPickState, {
   "source": "trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h",
   "family": "sprite2d",
@@ -97,6 +250,56 @@ blueEnums.Create("trinity.Tr2SpriteObjectPickState", Tr2SpriteObjectPickState, {
       "name": "TR2_SPS_CHILDREN",
       "value": 2,
       "description": "Only children are pickable"
+    }
+  ]
+});
+blueEnums.Create("trinity.Tr2SpriteTarget", Tr2SpriteTarget, {
+  "source": "trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h",
+  "family": "sprite2d",
+  "line": 23,
+  "exposedName": "Tr2SpriteTarget",
+  "exposure": 2,
+  "chooserSource": "trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:25",
+  "chooser": [
+    {
+      "name": "COLOR",
+      "value": 1,
+      "description": "Render to color target"
+    },
+    {
+      "name": "GLOW",
+      "value": 2,
+      "description": "Render to glow target"
+    },
+    {
+      "name": "COLOR_AND_GLOW",
+      "value": 3,
+      "description": "Render both to color and glow targets"
+    }
+  ]
+});
+blueEnums.Create("trinity.Tr2StretchScaleBehavior", Tr2StretchScaleBehavior, {
+  "source": "trinity/trinity/Sprite2d/Tr2Sprite2dStretch.h",
+  "family": "sprite2d",
+  "line": 14,
+  "exposedName": "Tr2Sprite2dStretchDpiScaleBehaviorChooser",
+  "exposure": 1,
+  "chooserSource": "trinity/trinity/Sprite2d/Tr2Sprite2dStretch_Blue.cpp:8",
+  "chooser": [
+    {
+      "name": "S2D_SSC_ALIGN_BOTTOMRIGHT",
+      "value": 0,
+      "description": "Align to bottom/right (texture is not stretched vertically for horizontal stretch spritesor horizontally for vertical stretch sprites)"
+    },
+    {
+      "name": "S2D_SSC_ALIGN_TOPLEFT",
+      "value": 1,
+      "description": "Align to top/left (texture is not stretched vertically for horizontal stretch spritesor horizontally for vertical stretch sprites)"
+    },
+    {
+      "name": "S2D_SSC_SCALE",
+      "value": 2,
+      "description": "Texture scales in both directions"
     }
   ]
 });

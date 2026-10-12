@@ -4,12 +4,9 @@
 // Promoted to hand-maintained source 2026-08-22; portable child ownership is maintained here.
 import { meta } from "#schema";
 import { BlueList, IListNotify } from "#blue";
+import { BLUELISTEVENT } from "#consts/blue";
 import { ITr2SpriteObject } from "./ITr2SpriteObject.js";
 import { Tr2SpriteObjectBase } from "./Tr2SpriteObjectBase.js";
-
-const BELIST_UNLOADSTART = 0x07;
-const BELIST_INSERTED = 0x08;
-const BELIST_REMOVED = 0x09;
 
 /** Shared Sprite2D container state and child-parent propagation. */
 @meta.define({ className: "Tr2Sprite2dContainerBase", family: "sprite2d" })
@@ -27,12 +24,47 @@ export class Tr2Sprite2dContainerBase extends Tr2SpriteObjectBase
     this.background.SetNotify(this);
   }
 
-  /** Carbon method SetChildDirty. */
+  /**
+   * Carbon SetChildDirty (Tr2Sprite2dContainer.cpp:35-42): marks this
+   * container dirty and passes the change up to its parent.
+   *
+   * @param {ITr2SpriteObject} _child The child that changed.
+   * @returns {void}
+   */
   @meta.blue.method
   @meta.implemented
   SetChildDirty(_child)
   {
-    super.SetDirty();
+    this.isDirty = true;
+    if (this._parent)
+    {
+      this._parent.SetChildDirty(this);
+    }
+  }
+
+  /**
+   * Carbon ~Tr2Sprite2dContainerBase (Tr2Sprite2dContainer.cpp:18-34): detaches
+   * every background item, then every child, by setting its parent to null.
+   *
+   * Adapted: JS has no destructors and Carbon has no other teardown path for
+   * this class, so the destructor body runs from an explicit Destroy, the
+   * name this package uses for destructor stand-ins. A subclass Destroy must
+   * call this one, as a C++ derived destructor runs its base destructor.
+   *
+   * @returns {void}
+   */
+  @meta.adapted
+  Destroy()
+  {
+    for (const item of this.background)
+    {
+      if (item) item.SetParent(null);
+    }
+
+    for (const child of this.children)
+    {
+      if (child) child.SetParent(null);
+    }
   }
 
   /** Carbon IList notification callback. */
@@ -42,7 +74,7 @@ export class Tr2Sprite2dContainerBase extends Tr2SpriteObjectBase
   {
     switch (event)
     {
-      case BELIST_INSERTED:
+      case BLUELISTEVENT.BELIST_INSERTED:
         if (value)
         {
           value.SetParent(this);
@@ -50,7 +82,7 @@ export class Tr2Sprite2dContainerBase extends Tr2SpriteObjectBase
         }
         break;
 
-      case BELIST_REMOVED:
+      case BLUELISTEVENT.BELIST_REMOVED:
         if (value)
         {
           value.SetParent(null);
@@ -58,7 +90,7 @@ export class Tr2Sprite2dContainerBase extends Tr2SpriteObjectBase
         }
         break;
 
-      case BELIST_UNLOADSTART:
+      case BLUELISTEVENT.BELIST_UNLOADSTART:
         for (const child of list)
         {
           if (child)

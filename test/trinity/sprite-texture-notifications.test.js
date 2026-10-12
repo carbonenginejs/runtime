@@ -26,8 +26,8 @@ test('duplicate registration and unregister follow native identity-set semantics
   assert.equal(texture.OnModified('rotation'),true);
   assert.equal(seen.length,2);assert.ok(seen.every(entry=>entry[1]===texture));
   texture.UnregisterForChangeNotification(first);texture.UnregisterForChangeNotification(first);seen.length=0;
-  texture.SetDirty();assert.deepEqual(seen,[['second',texture]]);
-  texture.UnregisterForChangeNotification(second);texture.SetDirty();assert.equal(seen.length,1);
+  texture._SetDirty();assert.deepEqual(seen,[['second',texture]]);
+  texture.UnregisterForChangeNotification(second);texture._SetDirty();assert.equal(seen.length,1);
 });
 
 test('atlas callbacks and explicit changed-name arrays use the same listener path',()=>{

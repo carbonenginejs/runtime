@@ -3,6 +3,9 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dTexture_Blue.cpp
 // Hand-maintained after promotion from generated schema intake.
 import { ITr2Sprite2dTexture } from "./ITr2Sprite2dTexture.js";
+// Imported for the listener set's JSDoc type and so the interface is in the build graph.
+import { ITr2Sprite2dTextureNotifyTarget } from "./ITr2Sprite2dTextureNotifyTarget.js";
+import { ITr2AtlasTextureNotifyTarget } from "../core/ITr2AtlasTextureNotifyTarget.js";
 import { meta } from "#schema";
 import { IInitialize, INotify } from "#blue";
 import { vec2 } from "#math/vec2";
@@ -16,7 +19,7 @@ import { Tr2Sprite2dTextureSettings } from "../generated/sprite2d/enums.js";
  * contract, whose GPU renderer is a separate unfinished implementation.
  */
 @meta.define({ className: "Tr2Sprite2dTexture", family: "sprite2d", purpose: "Describes a named 2D texture transform around separate rotation and scaling centers." })
-@meta.blue.inherit(IInitialize, INotify)
+@meta.blue.inherit(IInitialize, INotify, ITr2AtlasTextureNotifyTarget)
 @meta.blue.interface(ITr2Sprite2dTexture, IInitialize, INotify)
 export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
 {
@@ -69,10 +72,20 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   translation = vec2.create();
 
 
-  /** Native change-target set; duplicate registrations identify one listener. */
+  /**
+   * m_changeListeners (Tr2Sprite2dTexture.h:128): the registered targets;
+   * duplicate registrations identify one listener.
+   *
+   * @type {Set<ITr2Sprite2dTextureNotifyTarget>}
+   */
   _changeListeners = new Set();
 
-  /** Registers a native ITr2Sprite2dTextureNotifyTarget by object identity. */
+  /**
+   * Carbon RegisterForChangeNotification (Tr2Sprite2dTexture.cpp:283-286).
+   *
+   * @param {ITr2Sprite2dTextureNotifyTarget} target The listener.
+   * @returns {void}
+   */
   @meta.blue.method
   @meta.implemented
   RegisterForChangeNotification(target)
@@ -80,7 +93,13 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
     this._changeListeners.add(target);
   }
 
-  /** Removes the target; native set erasure ignores an absent registration. */
+  /**
+   * Carbon UnregisterForChangeNotification (Tr2Sprite2dTexture.cpp:288-291);
+   * set erasure ignores an absent registration.
+   *
+   * @param {ITr2Sprite2dTextureNotifyTarget} target The listener.
+   * @returns {void}
+   */
   @meta.blue.method
   @meta.implemented
   UnregisterForChangeNotification(target)
@@ -93,7 +112,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   @meta.implemented
   OnModified(_name)
   {
-    this.SetDirty();
+    this._SetDirty();
     return true;
   }
 
@@ -102,13 +121,17 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   @meta.implemented
   AtlasTextureChanged(_texture)
   {
-    this.SetDirty();
+    this._SetDirty();
   }
 
-  /** Notifies each registered target with this texture as the changed identity. */
-  @meta.blue.method
+  /**
+   * Carbon protected SetDirty (Tr2Sprite2dTexture.h:83-84, cpp:299-305):
+   * calls Sprite2dTextureChanged on each registered target with this texture.
+   *
+   * @returns {void}
+   */
   @meta.implemented
-  SetDirty()
+  _SetDirty()
   {
     for (const target of this._changeListeners) target.Sprite2dTextureChanged(this);
   }
@@ -177,7 +200,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
     this._atlasTexture = texture;
     if (texture) texture.RegisterForChangeNotification(this);
     this._resPath = "";
-    this.SetDirty();
+    this._SetDirty();
   }
 
   /** Applies native texture, optional window, transform, and tile settings in order. */
@@ -253,7 +276,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   {
     const rest = this._settings & ~(Tr2Sprite2dTextureSettings.S2D_TS_REPEAT_MIRROR | Tr2Sprite2dTextureSettings.S2D_TS_REPEAT_CLAMP);
     this._settings = rest | value;
-    this.SetDirty();
+    this._SetDirty();
   }
 
   /** Returns the native source-rectangle x value. */
@@ -271,7 +294,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   {
     this._srcX = value;
     this.CheckTextureWindow();
-    this.SetDirty();
+    this._SetDirty();
   }
 
   /** Returns the native source-rectangle y value. */
@@ -289,7 +312,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   {
     this._srcY = value;
     this.CheckTextureWindow();
-    this.SetDirty();
+    this._SetDirty();
   }
 
   /** Returns the native source-rectangle width value. */
@@ -307,7 +330,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   {
     this._srcWidth = value;
     this.CheckTextureWindow();
-    this.SetDirty();
+    this._SetDirty();
   }
 
   /** Returns the native source-rectangle height value. */
@@ -325,7 +348,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   {
     this._srcHeight = value;
     this.CheckTextureWindow();
-    this.SetDirty();
+    this._SetDirty();
   }
 
   /** Delegates native width to the atlas texture when present. */
@@ -375,7 +398,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   {
     if (value) this._settings |= Tr2Sprite2dTextureSettings.S2D_TS_TILE_X;
     else this._settings &= ~Tr2Sprite2dTextureSettings.S2D_TS_TILE_X;
-    this.SetDirty();
+    this._SetDirty();
   }
 
   /** Reads the native tile-y bit. */
@@ -393,7 +416,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   {
     if (value) this._settings |= Tr2Sprite2dTextureSettings.S2D_TS_TILE_Y;
     else this._settings &= ~Tr2Sprite2dTextureSettings.S2D_TS_TILE_Y;
-    this.SetDirty();
+    this._SetDirty();
   }
 
   /** Native Blue resPath property. */

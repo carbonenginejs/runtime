@@ -3,26 +3,40 @@
 import { Tr2SpriteObjectEffect } from "../generated/sprite2d/enums.js";
 import { meta } from "#schema";
 import { Tr2SpriteObject } from "./Tr2SpriteObject.js";
+import { ITr2Sprite2dTextureNotifyTarget } from "./ITr2Sprite2dTextureNotifyTarget.js";
 
 /** Adds primary and secondary texture bindings to the shared 2D sprite render state. */
 @meta.define({ className: "Tr2TexturedSpriteObject", family: "sprite2d", purpose: "Adds primary and secondary texture bindings to the shared 2D sprite render state." })
 @meta.blue.chainTo(Tr2SpriteObject)
+@meta.blue.inherit(ITr2Sprite2dTextureNotifyTarget)
 export class Tr2TexturedSpriteObject extends Tr2SpriteObject
 {
 
   /** m_texturePrimary (ITr2Sprite2dTexturePtr) */
   @meta.blue.readwrite
   @meta.type.rootRef("ITr2Sprite2dTexture")
-  get texturePrimary() { return this.GetTexturePrimary(); }
+  get texturePrimary()
+  {
+    return this.GetTexturePrimary();
+  }
   /** Replaces the primary texture and its change subscription. */
-  set texturePrimary(value) { this.SetTexturePrimary(value); }
+  set texturePrimary(value)
+  {
+    this.SetTexturePrimary(value);
+  }
 
   /** m_textureSecondary (ITr2Sprite2dTexturePtr) */
   @meta.blue.readwrite
   @meta.type.rootRef("ITr2Sprite2dTexture")
-  get textureSecondary() { return this.GetTextureSecondary(); }
+  get textureSecondary()
+  {
+    return this.GetTextureSecondary();
+  }
   /** Replaces the secondary texture and its change subscription. */
-  set textureSecondary(value) { this.SetTextureSecondary(value); }
+  set textureSecondary(value)
+  {
+    this.SetTextureSecondary(value);
+  }
 
 
   /** Primary texture and its native change subscription. @type {ITr2Sprite2dTexture|null} */

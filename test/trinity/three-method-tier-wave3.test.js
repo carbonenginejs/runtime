@@ -34,9 +34,10 @@ function maskDuck()
 {
   return {
     IsGood: () => true,
-    GetWidth: () => 4,
-    GetHeight: () => 4,
-    GetPixelColor: (x, y) => (x === 2 && y === 2 ? [ 255, 0, 0, 255 ] : [ 0, 0, 0, 0 ])
+    // Carbon samples the mask HostBitmap: GetPixel returns r,g,b,a floats
+    // (imageio HostBitmap.cpp:1350-1353); channel 2 reads b (CE-136).
+    GetBitmap: () => ({ GetWidth: () => 4, GetHeight: () => 4, GetFormat: () => 87,
+      GetPixel: (x, y) => (x === 2 && y === 2 ? { r: 0, g: 0, b: 1, a: 1 } : { r: 0, g: 0, b: 0, a: 0 }) })
   };
 }
 
@@ -70,7 +71,7 @@ test("Tr2Sprite2dPickingMask.SampleMask: Carbon's 9-slice inverse mapping and th
   const picking = new Tr2Sprite2dPickingMask();
   picking.mask = maskDuck();
   picking.leftEdge = picking.rightEdge = picking.topEdge = picking.bottomEdge = 1;
-  picking.channel = 2; // Carbon's BGRA chooser: 2 is RED.
+  picking.channel = 2; // Carbon's chooser labels 2 "Red", but it indexes GetPixel's r,g,b,a, so it reads b (CE-136).
   picking.threshold = 0;
 
   // Sprite rect 8x8 at origin. Point (4.5,4.5) - Carbon subtracts the 0.5

@@ -7,6 +7,7 @@
 import { meta } from "#schema";
 import { ResourceRequirement } from "#resource";
 import { blue } from "#blue";
+import { PixelFormat } from "#consts/render-context";
 
 /** Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite. */
 @meta.define({ className: "Tr2Sprite2dPickingMask", family: "sprite2d", purpose: "Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite." })
@@ -17,17 +18,17 @@ export class Tr2Sprite2dPickingMask
   /** Native path backing storage; the exposed property delegates resource acquisition. @type {string} */
   _maskPath = "";
 
-  /** Native READWRITE wide-string property backed by GetMaskPath. @returns {string} */
+  /** Carbon MAP_PROPERTY "maskPath" (Tr2Sprite2dPickingMask_Blue.cpp:27-33), read through GetMaskPath. @returns {string} */
   @meta.blue.readwrite
   @meta.type.wstring
-  @meta.ours
+  @meta.implemented
   get maskPath()
   {
     return this.GetMaskPath();
   }
 
-  /** Delegates property writes to the native path method adapter. @param {string} value Image path. */
-  @meta.ours
+  /** Carbon MAP_PROPERTY "maskPath" setter, written through SetMaskPath. @param {string} value Image path. */
+  @meta.implemented
   set maskPath(value)
   {
     this.SetMaskPath(value);
@@ -110,13 +111,24 @@ export class Tr2Sprite2dPickingMask
    * and the centre stretches proportionally, guarding the degenerate case
    * where the edges consume the whole bitmap.
    *
-   * Preserves the existing RGBA byte-array adapter. Actual Tr2ImageRes.GetPixelColor
-   * returns a normalized color object, so it currently fails the array guard.
-   * Native bitmap sampling and the R8 channel override remain unresolved gaps;
-   * byte-array fixtures exercise only the existing portable adapter.
+   * The pixel comes from the mask's bitmap (`m_mask->GetBitmap().GetPixel`,
+   * cpp:39, 97-101) as four 0..1 floats in r, g, b, a order
+   * (imageio HostBitmap.cpp:1350-1353), and `channel` indexes that array
+   * directly; an R8_UNORM bitmap forces index 2 (cpp:102-107).
    *
-   * Adapted: Preserves the RGBA byte-array adapter; normalized Tr2ImageRes color objects and
-   * native R8 sampling remain unsupported.
+   * Carbon quirk CE-136, Tr2Sprite2dPickingMask.cpp:97-107 against
+   * Tr2Sprite2dPickingMask_Blue.cpp:12-18: the chooser labels 0 "Blue" and
+   * 2 "Red" (BGRA byte order), but the array is r, g, b, a, so "Blue" samples
+   * red and "Red" samples blue; alpha (the default, 3) and green agree.
+   * Reproduced.
+   *
+   * Carbon quirk CE-137, same lines with imageio HostBitmap.cpp:1314-1318, 1332-1333:
+   * Carbon's GetPixel rejects R8 before its R8 case, so an R8 mask never
+   * picks; and were it accepted, the R8 value lands in r (index 0,
+   * ImageUtility.cpp:37-40) while the override reads index 2 (b, always 0),
+   * so it still never picks. Our HostBitmap.GetPixel accepts R8 (its own
+   * marked divergence), and the override is reproduced as written, so the
+   * outcome matches Carbon: an R8 mask never passes a threshold of 0 or more.
    *
    * @param {Float32Array|number[]} point The test point, in the same space as topLeft.
    * @param {Float32Array|number[]} topLeft The sprite's top-left corner.
@@ -125,14 +137,15 @@ export class Tr2Sprite2dPickingMask
    * @returns {boolean} Whether the mask passes at the point.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   SampleMask(point, topLeft, width, height)
   {
     const mask = this.mask;
     if (!mask || !mask.IsGood()) return false;
 
-    const maskWidth = mask.GetWidth();
-    const maskHeight = mask.GetHeight();
+    const bitmap = mask.GetBitmap();
+    const maskWidth = bitmap.GetWidth();
+    const maskHeight = bitmap.GetHeight();
     if (maskWidth < this.leftEdge + this.rightEdge) return false;
     if (maskHeight < this.topEdge + this.bottomEdge) return false;
 
@@ -181,12 +194,15 @@ export class Tr2Sprite2dPickingMask
         maskHeight - 1);
     }
 
-    const pixel = mask.GetPixelColor(px, py);
-    if (!Array.isArray(pixel)) return false;
+    // HostBitmap.GetPixel answers null where Carbon's returns false.
+    const pixel = bitmap.GetPixel(px, py);
+    if (!pixel) return false;
 
-    const channel = Math.min(this.channel, 3);
-    const rgbaChannel = channel === 0 ? 2 : channel === 2 ? 0 : channel;
-    return pixel[rgbaChannel] / 255 > this.threshold;
+    const channels = [ pixel.r, pixel.g, pixel.b, pixel.a ];
+    let channel = Math.min(this.channel, 3);
+    if (bitmap.GetFormat() === PixelFormat.PIXEL_FORMAT_R8_UNORM) channel = 2;
+
+    return channels[channel] > this.threshold;
   }
 
 }

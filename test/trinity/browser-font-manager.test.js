@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Tr2FontManager } from '../../npm/dist/trinity/index.js';
+import { Tr2FontManager, Tr2Renderer } from '../../npm/dist/trinity/index.js';
+import * as fontModule from '../../npm/dist/trinity/index.js';
 
 // Deterministic Canvas2D contract fixture, not evidence of browser pixel parity.
 function browser(t)
@@ -36,7 +37,11 @@ test('browser font identities, fixed-point metrics and pair kerning', t =>
   browser(t);
   const manager = new Tr2FontManager(), id = manager.GetFaceID('evefont');
   assert.equal(manager.GetFaceID('evefont'), id);
-  assert.deepEqual(manager.LookupGlyphIndex('evefont', 65), [id, 65]);
+  // Carbon LookupFaceIDAndGlyphIndex (Blue name "LookupGlyphIndex") resolves the
+  // name through g_fontManager (Tr2FontManager.cpp:707-725).
+  Tr2FontManager.initialize();
+  t.after(() => Tr2FontManager.shutdown());
+  assert.deepEqual(manager.LookupFaceIDAndGlyphIndex('evefont', 65), [fontModule.g_fontManager.GetFaceID('evefont'), 65]);
   assert.equal(manager.LookupGlyphIndex(id, 0x1f600), 0x1f600);
   assert.equal(manager.LookupGlyphIndex(id, -1), -1);
   assert.deepEqual(manager.LookupMetrics(id, 0, 12), { ascender: 640, descender: -192, height: 832 });
@@ -65,16 +70,33 @@ test('browser glyph coverage, bearing, cache reuse and whitespace advances', t =
   assert.equal(first.sbit.buffer.length, 88);
 });
 
-test('glyph cache evicts by usage and accounts bytes while wrappers stay valid', t =>
+test('glyph cache trims oldest-first on tick until strictly under budget', t =>
 {
   browser(t);
+  const saved = Tr2Renderer.GetCurrentFrameCounter;
+  let frame = 0;
+  Tr2Renderer.GetCurrentFrameCounter = () => frame;
+  t.after(() => { Tr2Renderer.GetCurrentFrameCounter = saved; });
+
   const manager = new Tr2FontManager(), id = manager.GetFaceID('evefont');
   manager.glyphCacheBudget = 176;
-  manager.LookupSBit(id, 0, 12, 65); manager.LookupSBit(id, 0, 12, 66);
-  manager.LookupSBit(id, 0, 12, 65); manager.LookupSBit(id, 0, 12, 67);
-  assert.equal(manager.totalGlyphsCachedSize, 176);
+
+  // Each glyph's coverage is 8x11 = 88 bytes. Frames: A at 1, B at 2, A refreshed
+  // at 3, C at 4. Adding never trims; Carbon trims in OnTick (Tr2FontManager.cpp:695-698).
+  frame = 1; manager.LookupSBit(id, 0, 12, 65);
+  frame = 2; manager.LookupSBit(id, 0, 12, 66);
+  frame = 3; manager.LookupSBit(id, 0, 12, 65);
+  frame = 4; manager.LookupSBit(id, 0, 12, 67);
+  assert.equal(manager.totalGlyphsCachedSize, 264);
+
+  // Carbon TrimGlyphCache (Tr2FontManager.cpp:631-690): ages at frame 4 are
+  // C 0, A 1, B 2; delete from the oldest until the total is strictly under 176:
+  // B (264 -> 176, not under), then A (176 -> 88, under). Only C remains.
+  manager.OnTick(0, 0, null);
+  assert.equal(manager.totalGlyphsCachedSize, 88);
+  assert.equal(manager._glyphs.has(`${id}:0:12:67`), true);
+  assert.equal(manager._glyphs.has(`${id}:0:12:65`), false);
   assert.equal(manager._glyphs.has(`${id}:0:12:66`), false);
-  assert.equal(manager._glyphs.has(`${id}:0:12:65`), true);
 });
 
 test('font loading registers only after completion and clears fallback caches', async t =>
@@ -266,26 +288,8 @@ test('atlas view preserves texture identity, rectangle mapping, margins and noti
 });
 
 
-test('atlas allocation shares storage and returns space on explicit shutdown', async () =>
-{
-  const { Tr2TextureAtlas } = await import('../../npm/dist/trinity/index.js');
-  const atlas = new Tr2TextureAtlas();
-  let valid = false;
-  atlas._texture = { Destroy() { valid = false; }, Create() { valid = true; return 0; }, IsValid: () => valid };
-  atlas.Initialize(87, 64, 64);
-  atlas._createOutsiders = false;
-  const first = atlas.CreateTexture(8, 8), second = atlas.CreateTexture(8, 8);
-  assert.ok(first && second);
-  assert.equal(first.GetTexture(), second.GetTexture());
-  assert.notDeepEqual([first.x, first.y], [second.x, second.y]);
-  assert.equal(atlas.GetFreeTexels(), 64 * 64 - 2 * 16 * 16);
-  const x = first.x, y = first.y;
-  first.OnShutdown();
-  assert.equal(atlas.GetFreeTexels(), 64 * 64 - 16 * 16);
-  const reused = atlas.CreateTexture(8, 8);
-  assert.deepEqual([reused.x, reused.y], [x, y]);
-  assert.equal(atlas.CreateTexture(100, 100), null);
-});
+// Atlas allocation, shared storage and shutdown reuse are covered with donor-derived
+// values on the stub AL in texture-atlas-allocation.test.js.
 
 test('font manager uploads a glyph once and keeps its extra shadow row transparent', async t =>
 {
