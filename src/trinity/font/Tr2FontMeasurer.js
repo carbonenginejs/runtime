@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Font/Tr2FontMeasurer.h
 // Source: trinity/trinity/Font/Tr2FontMeasurer.cpp
 // Browser-font adaptation: fallback families and underline metrics are browser-specific.
-import { Tr2FontManager, g_fontManager, TR2_FONT_FALLBACK } from "./Tr2FontManager.js";
+import { g_fontManager, TR2_FONT_FALLBACK } from "./Tr2FontManager.js";
 import { Tr2SBitWrapper } from "./Tr2SBitWrapper.js";
 import { GetBytesPerPixel } from "#consts/render-context";
 import { Tr2TextureSubresource, Failed } from "#trinityal";
@@ -84,12 +84,6 @@ export class Tr2FontMeasurer
   _color = 0xffffffff;
   _currentAscender = 0;
   _currentDescender = 0;
-
-  /** Browser adapter lazily initializes the native singleton in this JS realm. */
-  constructor()
-  {
-    if (!g_fontManager) Tr2FontManager.initialize();
-  }
 
   /** CSS font family used by the browser backend. */
   @meta.blue.readwrite

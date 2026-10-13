@@ -35,7 +35,7 @@ import { meta } from "#schema";
 import { Tr2Blitter } from "./Tr2Blitter.js";
 import { TriSettingsRegistrar } from "./TriSettingsRegistrar.js";
 import { Tr2RenderUtils } from "./Tr2RenderUtils.js";
-import { Tr2RenderContext_GetMainThreadRenderContext } from "./context/Tr2RenderContext.js";
+import { Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext } from "./context/Tr2RenderContext.js";
 import { Tr2VariableStore } from "./variable/Tr2VariableStore.js";
 import { gTriDev } from "./device/gTriDev.js";
 import { Failed } from "../../trinityal/ALResult.js";
@@ -198,6 +198,29 @@ export class Tr2Renderer
 
   /** Carbon process-wide s_blitter (Tr2Renderer.cpp:25). */
   static #blitter = null;
+
+  /**
+   * Carbon `Initialize` (Tr2Renderer.cpp:330-356), called from
+   * `InitializeTrinity`: registers the renderer's global variables - `Time`,
+   * then the camera matrices and frustum planes - once, at start-up.
+   *
+   * Adapted: the variables are the same objects the render context and
+   * `BeginFrame` use, which still create them on first use for code that runs
+   * without `InitializeTrinity` (tests building a context directly). Not
+   * ported: `s_debugTextRenderer` (no debug text renderer), `s_poolAllocator`
+   * (JS allocates), and the main-thread effect state manager's `Initialize`
+   * (Tr2EffectStateManager.cpp:631-637), which registers the `ViewportSize`
+   * global; ours keeps `viewportSizeVar` as a plain array and registers none.
+   *
+   * @returns {boolean} True, as Carbon's.
+   */
+  @meta.adapted
+  static initialize()
+  {
+    Tr2Renderer.#RenderTimeVariable();
+    Tr2RenderContext._CameraVariables();
+    return true;
+  }
 
   /**
    * Releases the fullscreen blitter from native Shutdown (cpp:354-369).
