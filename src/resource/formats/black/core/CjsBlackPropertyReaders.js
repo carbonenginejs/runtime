@@ -436,22 +436,29 @@ export class CjsBlackPropertyReaders
     /**
      * Reads an embedded Blue math wrapper (TriMatrix, TriVector, ...) as its plain
      * value. Carbon's BlackReader reads the embedded object's members into the existing
-     * one, so elements the file leaves out keep the destination's values; without a
-     * destination they start from the wrapper's constructor defaults.
+     * one, so a runtime read fills the member's own typed array in place and elements
+     * the file leaves out keep their values; it never allocates a replacement. A payload
+     * read has no instance, so its output array starts from the wrapper's constructor
+     * defaults.
      *
      * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor positioned at the object payload size.
      * @param {string} className The wrapper class the member declares.
-     * @param {Float32Array|number[]} [destination] The member's current value storage.
-     * @returns {Float32Array|number[]} The destination, or a new array.
-     * @throws {TypeError} When the file holds another class or a member the wrapper does not persist.
+     * @param {Float32Array} [destination] The member's typed array; required for a runtime read.
+     * @returns {Float32Array|number[]} The filled destination, or the payload array.
+     * @throws {TypeError} When a runtime read has no typed array of the wrapper's length to fill, the file holds another class, or a member the wrapper does not persist.
      */
     static readWrapper(reader, className, destination = undefined)
     {
         const { elements, defaults } = WRAPPERS[className];
+        const runtime = reader.context.readMode === "runtime";
+        if (runtime && !(ArrayBuffer.isView(destination) && !(destination instanceof DataView) && destination.length === elements.length))
+        {
+            throw new TypeError(`Black ${className} fills the member's ${elements.length}-element typed array, but the member holds ${destination === null ? "null" : destination?.constructor?.name ?? typeof destination}.`);
+        }
         const objectReader = reader.ReadBinaryReader(reader.ReadU32());
         const kind = objectReader.ReadStringRef();
         if (kind !== className) throw new TypeError(`Black member declares ${className} but holds ${kind}.`);
-        const value = destination ?? defaults.slice();
+        const value = runtime ? destination : defaults.slice();
         while (!objectReader.AtEnd())
         {
             const name = objectReader.ReadStringRef();

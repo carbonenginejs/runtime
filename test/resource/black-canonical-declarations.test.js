@@ -207,21 +207,30 @@ test("canonical reader notifies each successful stored write and ignores unmappe
     assert.deepEqual(notifications, [["value", 7, 0], ["value", 7, 0]]);
 });
 
-test("a wrapped TriMatrix member reads the embedded elements into the existing mat4", () =>
+test("a wrapped TriMatrix member fills the instance's own mat4 and refuses a null one", () =>
 {
-    class Owner { transform = new Float32Array([ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ]); }
-    CjsSchema.define(Owner, { className: "BlackWrappedMatrixOwner", members: [
-        { ...member("transform", "mat4"), type: { kind: "mat4", wrapped: "TriMatrix" } },
-        member("after", "uint32")
-    ] });
-    const fixture = new BlackFixture();
-    // Only _11 and _33 are stored (a 180-degree turn about Y); the rest keep the identity.
-    const inline = fixture.Object(2, "TriMatrix", [["_11", floats([-1])], ["_33", floats([-1])], ["_41", floats([5])]]).subarray(4);
-    const bytes = fixture.Finish(fixture.Object(1, "BlackWrappedMatrixOwner", [["transform", inline], ["after", u32(7)]]));
-    const owner = new CjsBlackReader(bytes, { schema: null }).CreateObject();
-    assert.equal(owner.transform instanceof Float32Array, true);
-    assert.deepEqual(Array.from(owner.transform), [ -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 5, 0, 0, 1 ]);
+    let storage;
+    const identity = [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ];
+    class Owner { transform = (storage = new Float32Array(identity)); }
+    class NullOwner { transform = null; }
+    const members = [ { ...member("transform", "mat4"), type: { kind: "mat4", wrapped: "TriMatrix" } }, member("after", "uint32") ];
+    CjsSchema.define(Owner, { className: "BlackWrappedMatrixOwner", members });
+    CjsSchema.define(NullOwner, { className: "BlackWrappedMatrixNullOwner", members });
+    const file = kind =>
+    {
+        const fixture = new BlackFixture();
+        // Only _11, _33 and _41 are stored; the rest keep the identity.
+        const inline = fixture.Object(2, "TriMatrix", [["_11", floats([-1])], ["_33", floats([-1])], ["_41", floats([5])]]).subarray(4);
+        return fixture.Finish(fixture.Object(1, kind, [["transform", inline], ["after", u32(7)]]));
+    };
+    const filled = [ -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 5, 0, 0, 1 ];
+    const owner = new CjsBlackReader(file("BlackWrappedMatrixOwner"), { schema: null }).CreateObject();
+    assert.equal(owner.transform, storage, "the instance's own typed array is filled, not replaced");
+    assert.deepEqual(Array.from(owner.transform), filled);
     assert.equal(owner.after, 7);
+    assert.throws(() => new CjsBlackReader(file("BlackWrappedMatrixNullOwner"), { schema: null }).CreateObject(), /fills the member's 16-element typed array, but the member holds null/);
+    // A payload read has no instance to fill: its output starts from TriMatrix's identity.
+    assert.deepEqual(new CjsBlackReader(file("BlackWrappedMatrixOwner"), { schema: null }).ReadPayload().object.transform, filled);
     assert.throws(() => CjsBlackSchemaRegistry.fromDeclaredType({ kind: "vec3", wrapped: "TriMatrix" }), /holds mat4/);
 });
 
