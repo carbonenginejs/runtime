@@ -29,9 +29,10 @@ export class IBlueCallbackMan
    * @param {Function|string} _callback The callback, or its registered name on worker threads.
    * @param {*} _context Passed to the callback.
    * @param {number} _flags `BCBF_*` flags.
-   * @returns {number} The entry's id, for `Cancel`.
+   * @param {{value: number}|null} _id Receives the entry's id, for `Cancel`.
+   * @returns {boolean} Whether the entry was queued.
    */
-  Add(_callback, _context, _flags) {}
+  Add(_callback, _context, _flags, _id) {}
 
   /**
    * `Cancel` - removes a queued entry; for one in progress, waits for it to

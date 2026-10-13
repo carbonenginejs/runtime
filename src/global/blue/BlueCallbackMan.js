@@ -136,6 +136,12 @@ export class BlueCallbackMan extends IBlueCallbackMan
   /** Named entries handed to a worker, by id, awaiting its answer. */
   _workerEntries = new Map();
 
+  /** Set while `_Alarm` is starting entries; a nested alarm is deferred to its loop. */
+  _alarming = false;
+
+  /** A nested alarm arrived while `_Alarm` was running. */
+  _alarmAgain = false;
+
   /**
    * `Add` (CallbackMan.cpp:94-146) - queues a callback run on the caller's
    * thread by `Update`.
@@ -206,7 +212,10 @@ export class BlueCallbackMan extends IBlueCallbackMan
       completion
     };
 
-    if (this._isRunningOwnThreads && (flags & IBlueCallbackMan.BCBF_FENCE))
+    // Adapted: Carbon fences only for its own threads (cpp:113); Update mode
+    // there runs one entry at a time, so ordering holds by itself. Ours keeps
+    // several async slots in Update mode, so a fence applies there too.
+    if ((this._isRunningOwnThreads || this._threadCount > 1) && (flags & IBlueCallbackMan.BCBF_FENCE))
     {
       for (let i = 0; i < this._threadCount; ++i) entry.fenceMask |= 1 << i;
     }
@@ -266,6 +275,7 @@ export class BlueCallbackMan extends IBlueCallbackMan
   Run()
   {
     if (this._workerModule === null) throw new Error("BlueCallbackMan.Run: no worker module set (SetWorkerModule).");
+    if (this._isRunningOwnThreads) throw new Error("BlueCallbackMan.Run: the own threads are already running.");
 
     this._isRunningOwnThreads = true;
     this._stop = false;
@@ -277,6 +287,10 @@ export class BlueCallbackMan extends IBlueCallbackMan
       td.name = this._ThreadName(i);
       td.worker = this._workerFactory(this._workerModule, { type: "module", name: td.name });
       td.worker.addEventListener("message", event => this._OnWorkerMessage(td, event.data));
+      // A worker that fails to load or throws outside a callback fails the
+      // entry it holds instead of leaving its promise pending.
+      td.worker.addEventListener("error", event => this._OnWorkerFailure(td, event));
+      td.worker.addEventListener("messageerror", event => this._OnWorkerFailure(td, event));
       this._threads.push(td);
     }
 
@@ -301,6 +315,16 @@ export class BlueCallbackMan extends IBlueCallbackMan
     for (const td of this._threads) td.worker.terminate();
     this._threads = [];
     this._isRunningOwnThreads = false;
+
+    // Entries never started stay queued, as in Carbon; a named entry's
+    // promise would wait forever on a worker that no longer exists.
+    for (const queue of [ this._urgentQueue, this._queue, this._fenceQueue ])
+    {
+      for (const entry of queue)
+      {
+        if (entry.completion) entry.completion.reject(createCancelledError(entry.id));
+      }
+    }
   }
 
   /** `Pause` (CallbackMan.cpp:273-279) - no new entry starts until resumed. */
@@ -418,7 +442,18 @@ export class BlueCallbackMan extends IBlueCallbackMan
       return true;
     }
 
-    const result = entry.callback(entry.context);
+    let result;
+    try
+    {
+      result = entry.callback(entry.context);
+    }
+    catch (error)
+    {
+      // Carbon's callbacks cannot throw; a JS one can, and must still free
+      // its slot and its place in the size count.
+      finish();
+      throw error;
+    }
     if (result instanceof Promise) td.inProgress = result.then(finish, finish);
     else finish();
     return true;
@@ -452,17 +487,54 @@ export class BlueCallbackMan extends IBlueCallbackMan
     pending.settle();
   }
 
+  /** A worker failed: the entry it holds is rejected and its slot freed. */
+  _OnWorkerFailure(td, event)
+  {
+    const pending = this._workerEntries.get(td.currentId);
+    if (!pending) return;
+    this._workerEntries.delete(td.currentId);
+
+    const error = new Error(`BlueCallbackMan: worker ${td.name} failed: ${event?.message || event?.type || "error"}`);
+    error.code = "CJS_CALLBACKMAN_WORKER_FAILED";
+    pending.completion.reject(error);
+    pending.settle();
+  }
+
   /** Starts entries on every idle own thread; Carbon's `m_alarm` wake-up. */
+  //
+  // A signal only wakes waiting threads; it never runs work on the thread that
+  // raised it. Here a signal raised while slots are being filled (a fenced
+  // entry moving, cpp:557) is deferred to this loop, so the slot being filled
+  // is never handed a second entry.
   _Alarm()
   {
     if (!this._isRunningOwnThreads || this._stop) return;
-
-    for (const td of this._threads)
+    if (this._alarming)
     {
-      if (this._pauseCounter > 0) return;
-      if (td.inProgress !== null) continue;
-      if (!this._UpdateThread(td)) return;
-      this.Throttle();
+      this._alarmAgain = true;
+      return;
+    }
+
+    this._alarming = true;
+    try
+    {
+      do
+      {
+        this._alarmAgain = false;
+        for (const td of this._threads)
+        {
+          if (this._pauseCounter > 0) return;
+          if (td.inProgress !== null || td.currentId !== 0) continue;
+          // Every idle thread wakes, as on Carbon's signal; each clears its fence bit.
+          if (!this._UpdateThread(td)) continue;
+          this.Throttle();
+        }
+      }
+      while (this._alarmAgain);
+    }
+    finally
+    {
+      this._alarming = false;
     }
   }
 
@@ -506,17 +578,16 @@ export class BlueCallbackMan extends IBlueCallbackMan
   }
 
   /**
-   * `SetPriority` (CallbackMan.cpp:475-491).
+   * `SetPriority` (CallbackMan.cpp:475-491) - clamped to Carbon's range and
+   * stored.
    *
-   * Not implemented: a browser gives a worker no priority, so there is
-   * nothing to set.
+   * Adapted: a browser gives a worker no priority, so the value has no effect.
    *
-   * @param {number} _priority `CCP_THREAD_PRIORITY_*`.
-   * @throws {Error} Always.
+   * @param {number} priority `CCP_THREAD_PRIORITY_*`, -2 to 2.
    */
-  SetPriority(_priority)
+  SetPriority(priority)
   {
-    throw new Error(`BlueCallbackMan.SetPriority is not implemented: workers have no priority (range ${CCP_THREAD_PRIORITY_LOWEST}..${CCP_THREAD_PRIORITY_HIGHEST}).`);
+    this._threadPriority = Math.min(CCP_THREAD_PRIORITY_HIGHEST, Math.max(CCP_THREAD_PRIORITY_LOWEST, priority));
   }
 
   /**
@@ -642,7 +713,7 @@ CjsSchema.define(BlueCallbackMan, {
     GetTimeInQueueMax: [ meta.implemented ],
     GetTimeInQueueAverage: [ meta.implemented ],
     ResetQueueStats: [ meta.implemented ],
-    SetPriority: [ meta.notImplemented ],
+    SetPriority: [ meta.adapted ],
     SetThreadCount: [ meta.implemented ],
     SetName: [ meta.adapted ],
     SetWorkerModule: [ meta.ours ],

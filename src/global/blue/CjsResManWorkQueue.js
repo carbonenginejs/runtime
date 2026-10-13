@@ -30,6 +30,9 @@ export class CjsResManWorkQueue
   /** Running tasks, by id. */
   _active = new Map();
 
+  /** Tasks allowed to run together: the callback manager's thread count. */
+  _concurrency = 1;
+
   /** The callback manager the tasks run on. */
   _manager = new BlueCallbackMan();
 
@@ -61,13 +64,14 @@ export class CjsResManWorkQueue
       throw new TypeError("CjsBlueResMan queue concurrency must be a positive integer.");
     }
     this._manager.SetThreadCount(value);
+    this._concurrency = Math.min(value, 32);
     this._NotifyReady();
     return this;
   }
 
   /** The number of tasks allowed to run together. */
   GetConcurrency() {
-    return this._manager._threadCount;
+    return this._concurrency;
   }
 
   /** The id the next task will get (`IBlueCallbackMan::GetNextId`). */

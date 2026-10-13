@@ -5180,6 +5180,8 @@ CjsSchema.define(CjsBlueResMan, { className: "CjsBlueResMan", carbon: "BlueResMa
 /**
  * Reads a file's bytes through `blue.paths`; a file no file system has is an
  * error naming the path (Carbon's DoOpenStream fails the load the same way).
+ * The `?query` is the resource's own parameters: the file is opened without
+ * it, as `DoOpenStream` opens `m_path.substr(0, query)` (BlueAsyncRes.cpp:380-384).
  *
  * @param {import("./IBluePaths.js").IBluePaths} paths The paths service.
  * @param {string} path Resource path.
@@ -5188,7 +5190,9 @@ CjsSchema.define(CjsBlueResMan, { className: "CjsBlueResMan", carbon: "BlueResMa
  */
 async function readThroughBluePaths(paths, path, options)
 {
-  const result = await paths.GetStreamFromPath(path, { accept: [ "bytes" ], signal: options.signal });
+  const query = path.indexOf("?");
+  const filePath = query === -1 ? path : path.slice(0, query);
+  const result = await paths.GetStreamFromPath(filePath, { accept: [ "bytes" ], signal: options.signal });
   if (result === null)
   {
     const error = new Error(`CjsBlueResMan: no file system has ${path}.`);

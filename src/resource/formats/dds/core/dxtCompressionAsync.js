@@ -3,13 +3,17 @@
 // job runs on its own one-thread BlueCallbackMan whose worker module is the
 // compression worker, because that module is still separate from the shared
 // background pool. No main-thread encoding fallback.
+//
+// Cancel: the encoder is one synchronous block loop, so a cancel message
+// cannot reach it until it ends. A cancelled job therefore terminates its
+// worker - the recovery the callback manager's cancel leaves to its owner -
+// and settles at once instead of waiting for the encode.
 import { BlueCallbackMan } from "#blue/BlueCallbackMan";
 
 /**
  * Encode on a callback manager's worker thread.
  * Input is cloned, never detached. Completed output remains private until the
- * caller publishes it. Cancellation waits for the encode to stop, as Carbon's
- * Cancel waits for a callback in progress, then releases the worker.
+ * caller publishes it. Cancellation terminates the worker and settles at once.
  * @param {object} payload Clone-safe bitmap or surface request.
  * @param {object} [options] AbortSignal, Worker factory and module URL overrides.
  * @param {AbortSignal} [options.signal] Cancels the job.
@@ -27,11 +31,18 @@ export async function compressAsync(payload, options = {})
     const manager = new BlueCallbackMan();
     manager.SetName("Tr2DxtCompressor");
     manager.SetWorkerModule(options.workerUrl ?? new URL("../compressionWorker.js", import.meta.url));
-    if (options.workerFactory) manager.SetWorkerFactory(options.workerFactory);
+    const workerFactory = options.workerFactory ?? ((module, workerOptions) => new Worker(module, workerOptions));
+    let worker = null;
+    manager.SetWorkerFactory((module, workerOptions) => (worker = workerFactory(module, workerOptions)));
     manager.Run();
 
     const id = { value: 0 };
-    const cancel = () => manager.Cancel(id.value);
+    let cancelled = false;
+    const cancel = () =>
+    {
+        cancelled = true;
+        manager.Cancel(id.value);
+    };
     if (signal) signal.addEventListener("abort", cancel, { once: true });
     try
     {
@@ -55,6 +66,7 @@ export async function compressAsync(payload, options = {})
     finally
     {
         if (signal) signal.removeEventListener("abort", cancel);
-        await manager.Stop();
+        if (cancelled) worker.terminate();
+        else await manager.Stop();
     }
 }

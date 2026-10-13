@@ -117,13 +117,81 @@ test("queue statistics accumulate and reset", () =>
   assert.equal(man.GetTimeInQueueAverage(), 0);
 });
 
-test("Pause and Resume need the own threads; SetPriority is not implemented", () =>
+test("Pause and Resume need the own threads; SetPriority is clamped and stored", () =>
 {
   const man = new BlueCallbackMan();
   assert.throws(() => man.Pause(), /not running its own threads/);
   assert.throws(() => man.Resume(), /not running its own threads/);
-  assert.throws(() => man.SetPriority(1), /not implemented/);
   assert.throws(() => man.Add("name"), TypeError);
+  man.SetPriority(9);
+  assert.equal(man._threadPriority, 2);
+  man.SetPriority(-9);
+  assert.equal(man._threadPriority, -2);
+});
+
+test("a callback that throws frees its slot and its place in the size count", () =>
+{
+  const man = new BlueCallbackMan();
+  const id = { value: 0 };
+  man.Add(() => { throw new Error("boom"); }, null, 0, id);
+  man.Add(() => {});
+
+  assert.throws(() => man.Update(), /boom/);
+  assert.equal(man.GetSize(), 1);
+  assert.equal(man._threads[0].currentId, 0);
+  assert.equal(man.Update(), true);
+  assert.equal(man.IsEmpty(), true);
+});
+
+test("a fenced entry moving to the fence queue never puts a second entry on the slot being filled", async () =>
+{
+  const log = [];
+  const man = new BlueCallbackMan();
+  man.SetThreadCount(2);
+  man.SetWorkerModule("test-worker.js");
+  man.SetWorkerFactory(createFakeWorkerFactory({ work: context => new Promise(resolve => setTimeout(() => resolve(context), 5)) }, log));
+  man.Run();
+
+  const results = [ "a", "b" ].map(name => man.Add__Name("work", name));
+  results.push(man.Add__Name("work", "fence", BCBF_FENCE));
+  results.push(man.Add__Name("work", "c"), man.Add__Name("work", "d"));
+
+  assert.deepEqual(await Promise.all(results), [ "a", "b", "fence", "c", "d" ]);
+  const runs = log.filter(entry => entry.message.kind === "run").map(entry => entry.message.id);
+  assert.equal(new Set(runs).size, runs.length, "every entry ran once");
+  await tick();
+  assert.equal(man.IsEmpty(), true);
+  await man.Stop();
+});
+
+test("a failing worker rejects the entry it holds, and Stop rejects entries never started", async () =>
+{
+  let failingWorker = null;
+  const factory = createFakeWorkerFactory({ hang: () => new Promise(() => {}) });
+  const man = new BlueCallbackMan();
+  man.SetWorkerModule("test-worker.js");
+  man.SetWorkerFactory((module, options) =>
+  {
+    const worker = factory(module, options);
+    const listeners = new Map();
+    const add = worker.addEventListener;
+    worker.addEventListener = (type, listener) => { listeners.set(type, listener); if (type === "message") add(type, listener); };
+    worker.fail = () => listeners.get("error")({ type: "error", message: "script failed" });
+    failingWorker = worker;
+    return worker;
+  });
+  man.Run();
+  assert.throws(() => man.Run(), /already running/);
+
+  const held = assert.rejects(man.Add__Name("hang"), { code: "CJS_CALLBACKMAN_WORKER_FAILED" });
+  await tick();
+  failingWorker.fail();
+  await held;
+
+  man.Pause();
+  const queued = assert.rejects(man.Add__Name("hang"), { name: "AbortError" });
+  await man.Stop();
+  await queued;
 });
 
 test("own threads run named entries on workers and resolve with their results", async () =>
