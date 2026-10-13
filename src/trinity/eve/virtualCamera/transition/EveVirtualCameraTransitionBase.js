@@ -14,9 +14,11 @@ import { EveVirtualCamera } from "../EveVirtualCamera.js";
 })
 export class EveVirtualCameraTransitionBase
 {
+  @meta.reference
   @meta.type.rootRef("EveVirtualCamera")
   sourceCamera = null;
 
+  @meta.reference
   @meta.type.rootRef("EveVirtualCamera")
   targetCamera = null;
 

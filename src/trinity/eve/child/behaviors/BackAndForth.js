@@ -86,6 +86,7 @@ export class BackAndForth
   /** m_target (EveSpaceObject2*) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
+  @meta.reference
   @meta.type.rootRef("EveSpaceObject2")
   target = null;
 
