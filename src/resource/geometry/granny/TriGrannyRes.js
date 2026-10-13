@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/TriGrannyRes.h
-import { CjsSchema } from "#schema";
-import { CjsResource } from "#blue";
+import { CjsSchema, meta } from "#schema";
+import { CjsResource, ICacheable } from "#blue";
 import { assertResourcePayloadObject, resourcePayloadError } from "../../resourceBoundary.js";
 import { ResourceRequirement } from "#blue";
 
@@ -12,6 +12,12 @@ import { ResourceRequirement } from "#blue";
  */
 export class TriGrannyRes extends CjsResource
 {
+  /**
+   * m_memoryUsage: the file's expanded section sizes (TriGrannyRes.cpp:253-258),
+   * or the CMF stream's size (:213). Nothing loads this resource yet, so it
+   * stays 0 and the cache does not keep it (MotherLode.cpp:381-387).
+   */
+  _memoryUsage = 0;
   /** Updates payload in the current resource payload lifecycle. */
   SetPayload(payload = null)
   {
@@ -46,10 +52,37 @@ export class TriGrannyRes extends CjsResource
     return this;
   }
 
+
+  /**
+   * Carbon `IsMemoryUsageKnown` (TriGrannyRes.cpp:1727-1730): known once loaded.
+   *
+   * @returns {boolean}
+   */
+  IsMemoryUsageKnown()
+  {
+    return !this.IsLoading();
+  }
+
+  /**
+   * Carbon `GetMemoryUsage` (TriGrannyRes.cpp:1732-1735): `m_memoryUsage`.
+   *
+   * @returns {number} Bytes.
+   */
+  GetMemoryUsage()
+  {
+    return this._memoryUsage;
+  }
+
   static payload = ResourceRequirement.GEOMETRY;
 }
 
 CjsSchema.define(TriGrannyRes, {
   className: "TriGrannyRes",
-  family: "resources"
+  family: "resources",
+  methods: {
+    IsMemoryUsageKnown: [ meta.blue.method, meta.implemented ],
+    GetMemoryUsage: [ meta.blue.method, meta.implemented ]
+  }
 });
+meta.blue.inherit(ICacheable)(TriGrannyRes, { kind: "class" });
+meta.blue.interface(ICacheable)(TriGrannyRes);

@@ -466,7 +466,8 @@ test("depth clip off becomes unclippedDepth only on a device with depth-clip-con
 test("cache eviction reaches WebGPU AL Destroy on every texture reload without a GPU", () =>
 {
   const { al, calls } = composed();
-  const motherLode = new CjsMotherLode({ now: () => 0 });
+  // Cache size 0: expired resources are purged, not kept by the ICacheable cache.
+  const motherLode = new CjsMotherLode({ now: () => 0, cacheSize: 0 });
   const resource = new TriTextureRes();
   resource.Initialize("res:/synthetic/evict.dds");
 

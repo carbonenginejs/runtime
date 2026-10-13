@@ -53,7 +53,8 @@ test("ReleaseResources honours the storage mask and retains Carbon's loaded bitm
 
 test("each full texture cache eviction destroys its AL and releases its bitmap before reload", () =>
 {
-  const motherLode = new CjsMotherLode({ now: () => 0 });
+  // Cache size 0: expired resources are purged, not kept by the ICacheable cache.
+  const motherLode = new CjsMotherLode({ now: () => 0, cacheSize: 0 });
   const loaded = loadedTexture();
   const resource = loaded.resource;
   let destroys = 0;

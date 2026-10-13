@@ -6,6 +6,7 @@
 // DoPrepare, OnPrepareResources and the six `*atlas` resource extensions) is
 // left as explicit obligations: see `DoLoad`.
 import { meta } from "#schema";
+import { ICacheable } from "#blue";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { TriStorageFlags } from "#consts/graphics";
 import { Tr2TextureAL, Tr2TextureSubresource, Failed } from "#trinityal";
@@ -25,6 +26,8 @@ import { vec4 } from "#math/vec4";
  * textures.
  */
 @meta.define({ className: "Tr2AtlasTexture", family: "trinityCore", purpose: "A window into a shared texture atlas, or a standalone outsider texture associated with one." })
+@meta.blue.inherit(ICacheable)
+@meta.blue.interface(ICacheable)
 export class Tr2AtlasTexture
 {
 

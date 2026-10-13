@@ -154,7 +154,8 @@ test(`${source} geometry evict/reload cycles return every LOD's used bytes to th
   const live = buffer.Allocate(4, 16, null, renderContext);
   const baseline = usedBytes(buffer);
   const liveBuffer = live.GetBuffer();
-  const motherLode = new CjsMotherLode({ now: () => 0 });
+  // Cache size 0: expired resources are purged, not kept by the ICacheable cache.
+  const motherLode = new CjsMotherLode({ now: () => 0, cacheSize: 0 });
   const geometry = new Geometry();
   geometry.Initialize("res:/synthetic/eviction.cmf");
 

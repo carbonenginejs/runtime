@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/Tr2LightProfileRes.h
-import { CjsSchema } from "#schema";
-import { CjsResource } from "#blue";
+import { CjsSchema, meta } from "#schema";
+import { CjsResource, ICacheable } from "#blue";
 import { assertResourcePayloadObject } from "./resourceBoundary.js";
 import { HostBitmap } from "#imageio";
 import { PixelFormat } from "#consts/render-context";
@@ -115,10 +115,44 @@ export class Tr2LightProfileRes extends CjsResource
     return this._element ? this._element.GetElementIndex() : -1;
   }
 
+
+  /**
+   * Carbon `IsMemoryUsageKnown` (Tr2LightProfileRes.cpp:53-56): known once loaded.
+   *
+   * @returns {boolean}
+   */
+  IsMemoryUsageKnown()
+  {
+    return !this.IsLoading();
+  }
+
+  /**
+   * Carbon `GetMemoryUsage` (Tr2LightProfileRes.cpp:58-61): `PROFILE_LIGHTMAP_SIZE`
+   * once good, otherwise 0.
+   *
+   * Adapted: asks `IsPrepared`, because `IsGood` here also renews the
+   * resource, which would take it back out of the cache that is asking.
+   *
+   * @returns {number} Bytes.
+   */
+  GetMemoryUsage()
+  {
+    return this.IsPrepared() ? Tr2LightProfileRes.PROFILE_LIGHTMAP_SIZE : 0;
+  }
+
+  /** `PROFILE_LIGHTMAP_SIZE` (Tr2LightProfileRes.cpp:14): the profile strip's width. */
+  static PROFILE_LIGHTMAP_SIZE = 1024;
+
   static payload = ResourceRequirement.LIGHT_PROFILE;
 }
 
 CjsSchema.define(Tr2LightProfileRes, {
   className: "Tr2LightProfileRes",
-  family: "resources"
+  family: "resources",
+  methods: {
+    IsMemoryUsageKnown: [ meta.blue.method, meta.implemented ],
+    GetMemoryUsage: [ meta.blue.method, meta.adapted ]
+  }
 });
+meta.blue.inherit(ICacheable)(Tr2LightProfileRes, { kind: "class" });
+meta.blue.interface(ICacheable)(Tr2LightProfileRes);

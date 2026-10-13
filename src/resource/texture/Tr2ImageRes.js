@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Resources/Tr2ImageRes_Blue.cpp
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { CjsSchema, meta } from "#schema";
-import { CjsResource } from "#blue";
+import { CjsResource, ICacheable } from "#blue";
 import { HostBitmap } from "#imageio";
 import { PixelFormat } from "#consts/render-context";
 import { resourcePayloadError, validateResourcePayload } from "../resourceBoundary.js";
@@ -197,3 +197,5 @@ CjsSchema.define(Tr2ImageRes, {
     GetMemoryUsage: [ meta.blue.method, meta.adapted ]
   }
 });
+meta.blue.inherit(ICacheable)(Tr2ImageRes, { kind: "class" });
+meta.blue.interface(ICacheable)(Tr2ImageRes);

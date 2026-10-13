@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Resources/Tr2EffectRes.cpp
 // Source: trinity/trinity/Resources/Tr2EffectRes_Blue.cpp
 import { CjsSchema, meta } from "#schema";
-import { CjsResource } from "#blue";
+import { CjsResource, ICacheable } from "#blue";
 import { validateResourcePayload } from "../resourceBoundary.js";
 import { CjsCarbonEffectReader } from "../format/carbonEffect/CjsCarbonEffectReader.js";
 import { Tr2Shader } from "./Tr2Shader.js";
@@ -397,6 +397,38 @@ export class Tr2EffectRes extends CjsResource
     return super.ReleasePayload();
   }
 
+  /**
+   * Carbon `IsMemoryUsageKnown` (Tr2EffectRes.cpp:374-377): known once loaded.
+   *
+   * @returns {boolean}
+   */
+  IsMemoryUsageKnown()
+  {
+    return !this.IsLoading();
+  }
+
+  /**
+   * Carbon `GetMemoryUsage` (Tr2EffectRes.cpp:379-384): the container's bytes.
+   *
+   * Adapted: a browser translates permutations into containers of their own
+   * after the load (`SetPermutationTranslator`), and those bytes are held here
+   * too, so each one held is added once. Like Carbon, this leaves out compiled
+   * shaders and pipelines, which the render context keeps whether or not this
+   * resource lives.
+   *
+   * @returns {number} Bytes.
+   */
+  GetMemoryUsage()
+  {
+    if (!this._reader) return 0;
+    let bytes = this._reader.bytes.byteLength;
+    for (const reader of new Set(this._permutationReaders.values()))
+    {
+      bytes += reader.bytes.byteLength;
+    }
+    return bytes;
+  }
+
   static payload = ResourceRequirement.SHADER;
 
 }
@@ -560,6 +592,10 @@ CjsSchema.define(Tr2EffectRes, {
     GetShaderByIndex: [ meta.ours ],
     SetPermutationTranslator: [ meta.ours ],
     GetPermutationDescription: [ meta.blue.method, meta.adapted ],
-    ReleaseResources: [ meta.blue.method, meta.adapted ]
+    ReleaseResources: [ meta.blue.method, meta.adapted ],
+    IsMemoryUsageKnown: [ meta.blue.method, meta.implemented ],
+    GetMemoryUsage: [ meta.blue.method, meta.adapted ]
   }
 });
+meta.blue.inherit(ICacheable)(Tr2EffectRes, { kind: "class" });
+meta.blue.interface(ICacheable)(Tr2EffectRes);

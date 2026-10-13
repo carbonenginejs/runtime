@@ -6,7 +6,8 @@ import {
   getResourceExtension,
   normalizeResourcePath
 } from "#utils/path";
-import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { CjsSchema, meta } from "../../../npm/dist/global/schema/index.js";
+import { ICacheable } from "../../../npm/dist/global/blue/index.js";
 import * as runtimeResource from "../../../npm/dist/resource/index.js";
 import { CjsBlackFormat } from "../../../npm/dist/resource/formats/black/index.js";
 import { CjsRedFormat } from "../../../npm/dist/resource/formats/red/index.js";
@@ -29,6 +30,45 @@ import {
   getMotherLodeKey
 } from "../../../npm/dist/resource/index.js";
 import { LoadData } from "../../support/loadData.js";
+
+/** A resource reporting the memory use a test gives it: `ICacheable`, as Carbon's resource classes are. */
+class SizedResource extends CjsResource
+{
+  size = 0;
+  known = true;
+
+  IsMemoryUsageKnown()
+  {
+    return this.known;
+  }
+
+  GetMemoryUsage()
+  {
+    return this.size;
+  }
+}
+meta.blue.inherit(ICacheable)(SizedResource, { kind: "class" });
+meta.blue.interface(ICacheable)(SizedResource);
+
+/**
+ * A sized resource registered at time 0, so an inactivity sweep at time 10
+ * with a 5 ms limit expires it.
+ */
+function insertSized(motherLode, name, size)
+{
+  const key = getMotherLodeKey(`res:/data/${name}.bin`);
+  const resource = new SizedResource().Initialize(key);
+  resource.size = size;
+  resource.SetPayload({ name });
+  motherLode.Insert(key, resource, { time: 0 });
+  return { key, resource };
+}
+
+/** Expires every entry not used since time 5. */
+function expire(motherLode)
+{
+  return motherLode.PurgeInactive({ time: 10, maxIdleMilliseconds: 5 });
+}
 
 test("runtime-resource does not export an event scope layer", () => {
   assert.equal(runtimeResource.CjsEventEmitter, CjsEventEmitter);
@@ -826,7 +866,7 @@ test("CjsMotherLode exposes canonical identity and activity diagnostics", () =>
   });
   const resource = new CjsResource().Initialize("RES:/Texture/Ship.DDS");
   const key = getMotherLodeKey(resource.GetPath(), "texture/native@1");
-  const result = motherLode.Insert(key, resource, { bytes: 256 });
+  const result = motherLode.Insert(key, resource);
 
   assert.equal(result.key, key);
   assert.equal(result.resource, resource);
@@ -846,7 +886,6 @@ test("CjsMotherLode exposes canonical identity and activity diagnostics", () =>
 
   assert.equal(motherLode.Lock(key), 1);
   assert.equal(motherLode.Lock(key), 2);
-  motherLode.Insert(key, resource, { cached: true });
   assert.equal(motherLode.Unlock(key), 1);
   assert.equal(motherLode.KeepAlive(key), resource);
 
@@ -856,7 +895,7 @@ test("CjsMotherLode exposes canonical identity and activity diagnostics", () =>
   assert.equal(stats.live, 1);
   assert.equal(stats.cached, 0);
   assert.equal(stats.locked, 1);
-  assert.equal(stats.bytes, 256);
+  assert.equal(stats.bytes, 0);
   assert.equal(stats.cacheSize, 4096);
   assert.equal(stats.states.empty, 1);
   assert.deepEqual(stats.paths, [ "res:/texture/ship.dds" ]);
@@ -948,7 +987,7 @@ test("CjsMotherLode conditional replacement commits before displaced cleanup", (
   const unexpected = new CjsResource().Initialize(key);
   expected.SetPayload({ revision: 1 });
   candidate.SetPayload({ revision: 2 });
-  motherLode.Insert(key, expected, { bytes: 32, cached: true });
+  motherLode.Insert(key, expected);
 
   const mismatch = motherLode.ReplaceExpected(key, unexpected, candidate);
   assert.deepEqual(mismatch, {
@@ -974,24 +1013,23 @@ test("CjsMotherLode conditional replacement commits before displaced cleanup", (
       && error.result.displaced === expected
   );
   assert.equal(motherLode.Lookup(key), candidate);
-  assert.equal(motherLode.GetStats().bytes, 32);
   assert.equal(motherLode.GetStats().cached, 0);
   assert.equal(candidate.HasPayload(), true);
 });
 
-test("CjsMotherLode clears explicit cached entries and shuts down idempotently", () =>
+test("CjsMotherLode clears cached entries and shuts down idempotently", () =>
 {
   const motherLode = new CjsMotherLode();
   const live = new CjsResource().Initialize("res:/data/live.bin");
-  const cached = new CjsResource().Initialize("res:/data/cached.bin");
+  const { resource: cached } = insertSized(motherLode, "cached", 64);
   let cachedDestroyed = 0;
 
-  cached.SetPayload({ cached: true });
   cached.SetAdapterResource("test", { destroy() { cachedDestroyed += 1; } });
-  motherLode.Insert(getMotherLodeKey(live.GetPath()), live);
-  motherLode.Insert(getMotherLodeKey(cached.GetPath()), cached, { cached: true, bytes: 64 });
+  motherLode.Insert(getMotherLodeKey(live.GetPath()), live, { time: 10 });
+  assert.deepEqual(expire(motherLode).cachedKeys, [ getMotherLodeKey(cached.GetPath()) ]);
 
   assert.equal(motherLode.GetStats().cached, 1);
+  assert.equal(motherLode.GetStats().bytes, 64);
   assert.equal(motherLode.ClearCached(), 1);
   assert.equal(cachedDestroyed, 1);
   assert.equal(cached.HasPayload(), false);
@@ -1015,27 +1053,26 @@ test("CjsMotherLode clears explicit cached entries and shuts down idempotently",
   assert.equal(motherLode.Has(restarted.GetPath(), "legacy"), true);
 });
 
-test("CjsMotherLode trims explicit cached identities oldest-first by recorded bytes", () =>
+test("CjsMotherLode trims cached identities oldest-first by reported memory use", () =>
 {
-  let time = 0;
-  const motherLode = new CjsMotherLode({ cacheSize: 128, now: () => time });
+  const motherLode = new CjsMotherLode({ cacheSize: 128 });
   const destroyed = [];
 
-  const createCached = (name, frame) =>
+  const createCached = name =>
   {
-    const path = `res:/data/${name}.bin`;
-    const key = getMotherLodeKey(path);
-    const resource = new CjsResource().Initialize(path);
-    resource.SetPayload({ name });
-    resource.SetAdapterResource("test", { destroy() { destroyed.push(name); } });
-    time = frame;
-    motherLode.Insert(key, resource, { cached: true, bytes: 64, frame, time });
-    return { key, resource };
+    const entry = insertSized(motherLode, name, 64);
+    entry.resource.SetAdapterResource("test", { destroy() { destroyed.push(name); } });
+    return entry;
   };
 
-  const first = createCached("first", 1);
-  const second = createCached("second", 2);
-  const third = createCached("third", 3);
+  const first = createCached("first");
+  const second = createCached("second");
+  const third = createCached("third");
+  const sweep = expire(motherLode);
+
+  assert.equal(sweep.purged, 0);
+  assert.deepEqual(sweep.cachedKeys, [ first.key, second.key, third.key ]);
+
   const trim = motherLode.TrimCache();
 
   assert.deepEqual(trim, {
@@ -1079,103 +1116,126 @@ test("CjsMotherLode validates cache-size cleanup options before changing policy"
   assert.equal(motherLode.GetCacheSize(), 128);
 });
 
-test("CjsMotherLode byte pressure excludes live, zero-byte, and promoted locked identities", () =>
+test("CjsMotherLode caches only expired ICacheable entries that fit, and use takes them back out", () =>
 {
-  const motherLode = new CjsMotherLode({ cacheSize: 10 });
-  const liveKey = getMotherLodeKey("res:/data/live-weight.bin");
-  const zeroKey = getMotherLodeKey("res:/data/zero-weight.bin");
-  const lockedKey = getMotherLodeKey("res:/data/locked-weight.bin");
-  const pressureKey = getMotherLodeKey("res:/data/pressure-weight.bin");
-  const live = new CjsResource().Initialize(liveKey);
-  const zero = new CjsResource().Initialize(zeroKey);
-  const locked = new CjsResource().Initialize(lockedKey);
-  const pressure = new CjsResource().Initialize(pressureKey);
+  const motherLode = new CjsMotherLode({ cacheSize: 30 });
+  const plainKey = getMotherLodeKey("res:/data/plain.bin");
+  const plain = new CjsResource().Initialize(plainKey);
+  motherLode.Insert(plainKey, plain, { time: 0 });
+  const live = insertSized(motherLode, "live", 1000);
+  motherLode.KeepAlive(live.key, { time: 10 });
+  const zero = insertSized(motherLode, "zero", 0);
+  const tooBig = insertSized(motherLode, "too-big", 31);
+  const locked = insertSized(motherLode, "locked", 20);
+  motherLode.Lock(locked.key);
+  const notAllowed = insertSized(motherLode, "not-allowed", 5);
+  motherLode.Insert(notAllowed.key, notAllowed.resource, { cacheable: false, time: 0 });
+  const renewed = insertSized(motherLode, "renewed", 20);
+  const older = insertSized(motherLode, "older", 20);
+  const newer = insertSized(motherLode, "newer", 10);
 
-  motherLode.Insert(liveKey, live, { bytes: 1000 });
-  motherLode.Insert(zeroKey, zero, { cached: true, bytes: 0 });
-  motherLode.Insert(lockedKey, locked, { cached: true, bytes: 20 });
-  assert.equal(motherLode.Lock(lockedKey), 1);
-  assert.equal(motherLode.Unlock(lockedKey), 0);
-  motherLode.Insert(pressureKey, pressure, { cached: true, bytes: 20 });
+  const sweep = expire(motherLode);
+
+  // MotherLode.cpp:339-387: no ICacheable, zero size, larger than the whole
+  // budget, or caching not allowed - each is dropped rather than cached.
+  assert.deepEqual(sweep.purgedKeys, [ plainKey, zero.key, tooBig.key, notAllowed.key ]);
+  assert.deepEqual(sweep.cachedKeys, [ renewed.key, older.key, newer.key ]);
+  assert.equal(sweep.locked, 1);
+  assert.equal(motherLode.GetStats().bytes, 50);
+
+  // Use takes an entry back out of the cache (MotherLode.cpp:149-157).
+  assert.equal(motherLode.KeepAlive(renewed.key), renewed.resource);
+  assert.equal(motherLode.GetStats().bytes, 30);
+  assert.equal(motherLode.TrimCache().evicted, 0);
+
+  const pressure = insertSized(motherLode, "pressure", 10);
+  assert.deepEqual(expire(motherLode).cachedKeys, [ pressure.key ]);
 
   const trim = motherLode.TrimCache();
 
-  assert.deepEqual(trim.evictedKeys, [ pressureKey ]);
-  assert.equal(motherLode.Lookup(liveKey), live);
-  assert.equal(motherLode.Lookup(zeroKey), zero);
-  assert.equal(motherLode.Lookup(lockedKey), locked);
-  assert.equal(motherLode.Lookup(pressureKey), null);
-  assert.equal(motherLode.GetStats().cacheBytes, 0);
-  motherLode.SetCacheSize(0);
-  assert.equal(motherLode.Lookup(zeroKey), zero);
-  assert.equal(motherLode.ClearCached(), 1);
-  assert.equal(motherLode.Lookup(zeroKey), null);
+  assert.deepEqual(trim.evictedKeys, [ older.key ]);
+  assert.equal(trim.afterBytes, 20);
+  for (const kept of [ live, locked, renewed, newer, pressure ])
+  {
+    assert.equal(motherLode.Lookup(kept.key), kept.resource);
+  }
+  assert.equal(motherLode.ClearCached(), 2);
+  assert.equal(motherLode.Lookup(newer.key), null);
+  assert.equal(motherLode.Lookup(renewed.key), renewed.resource);
+});
+
+test("CjsMotherLode keeps an entry whose size is unknown pending until it is known", () =>
+{
+  const motherLode = new CjsMotherLode({ cacheSize: 100 });
+  const pending = insertSized(motherLode, "pending", 0);
+  pending.resource.known = false;
+  const unwanted = insertSized(motherLode, "unwanted", 0);
+  unwanted.resource.known = false;
+
+  assert.deepEqual(expire(motherLode).cachedKeys, [ pending.key, unwanted.key ]);
+  assert.equal(motherLode.GetStats().cached, 2);
+  assert.equal(motherLode.GetStats().bytes, 0);
+  assert.equal(motherLode.TrimCache().evicted, 0);
+
+  // MotherLode.cpp:208-249: once known, a size joins the LRU; zero is dropped.
+  pending.resource.known = true;
+  pending.resource.size = 40;
+  unwanted.resource.known = true;
+  const trim = motherLode.TrimCache();
+
+  assert.deepEqual(trim.evictedKeys, [ unwanted.key ]);
+  assert.equal(trim.afterBytes, 40);
+  assert.equal(unwanted.resource.IsPurged(), true);
+  assert.equal(motherLode.Lookup(pending.key), pending.resource);
 });
 
 test("CjsMotherLode cache trim preserves failed owners and reports partial pressure relief", () =>
 {
-  const motherLode = new CjsMotherLode({ cacheSize: 50 });
-  const failingKey = getMotherLodeKey("res:/data/failing-cache.bin");
-  const goodKey = getMotherLodeKey("res:/data/good-cache.bin");
-  const failing = new CjsResource().Initialize(failingKey);
-  const good = new CjsResource().Initialize(goodKey);
-  failing.SetPayload({ failing: true });
-  failing.SetAdapterResource("test", { destroy() { throw new Error("expected cache cleanup failure"); } });
-  good.SetPayload({ good: true });
-  motherLode.Insert(failingKey, failing, { cached: true, bytes: 80 });
-  motherLode.Insert(goodKey, good, { cached: true, bytes: 80 });
+  const motherLode = new CjsMotherLode({ cacheSize: 100 });
+  const { key: failingKey, resource: failing } = insertSized(motherLode, "failing-cache", 60);
+  const { key: stuckKey, resource: stuck } = insertSized(motherLode, "stuck-cache", 60);
+  const { key: goodKey, resource: good } = insertSized(motherLode, "good-cache", 60);
+  for (const resource of [ failing, stuck ])
+  {
+    resource.SetAdapterResource("test", { destroy() { throw new Error("expected cache cleanup failure"); } });
+  }
+  expire(motherLode);
 
   assert.throws(
     () => motherLode.TrimCache(),
     error => error instanceof AggregateError
       && error.code === "CJS_MOTHERLODE_CACHE_TRIM_FAILED"
-      && error.result.beforeBytes === 160
-      && error.result.afterBytes === 80
+      && error.result.beforeBytes === 180
+      && error.result.afterBytes === 120
       && error.result.overBudget === true
       && error.result.evicted === 1
-      && error.result.failed === 1
+      && error.result.failed === 2
       && error.result.evictedKeys[0] === goodKey
       && error.result.failedKeys[0] === failingKey
+      && error.result.failedKeys[1] === stuckKey
   );
   assert.equal(motherLode.Lookup(failingKey), failing);
+  assert.equal(motherLode.Lookup(stuckKey), stuck);
   assert.equal(motherLode.Lookup(goodKey), null);
   assert.equal(failing.IsPurged(), false);
   assert.equal(good.IsPurged(), true);
   assert.equal(motherLode.Delete(failingKey, { cleanup: false }), true);
-});
-
-test("CjsMotherLode rejects unsafe aggregate byte weights before ownership changes", () =>
-{
-  const motherLode = new CjsMotherLode();
-  const firstKey = getMotherLodeKey("res:/data/max-safe.bin");
-  const rejectedKey = getMotherLodeKey("res:/data/unsafe-total.bin");
-  const first = new CjsResource().Initialize(firstKey);
-  const rejected = new CjsResource().Initialize(rejectedKey);
-  motherLode.Insert(firstKey, first, { bytes: Number.MAX_SAFE_INTEGER });
-
-  assert.throws(
-    () => motherLode.Insert(rejectedKey, rejected, { bytes: 1 }),
-    /aggregate recorded bytes exceed Number\.MAX_SAFE_INTEGER/u
-  );
-  assert.equal(motherLode.Lookup(firstKey), first);
-  assert.equal(motherLode.Lookup(rejectedKey), null);
+  assert.equal(motherLode.Delete(stuckKey, { cleanup: false }), true);
 });
 
 test("CjsBlueResMan Update enforces cache pressure unless one update skips it", async () =>
 {
   const motherLode = new CjsMotherLode({ cacheSize: 16 });
   const resMan = new CjsBlueResMan({ motherLode });
-  const resource = resMan.GetResource("res:/data/update-cache.bin");
-  // The load fails on the resource once the read through blue.paths answers.
-  await resMan.Wait();
-  const key = getMotherLodeKey(resource.GetPath());
-  resource.SetPayload({ cached: true });
-  motherLode.Insert(key, resource, { cached: true, bytes: 32 });
+  const { key, resource } = insertSized(motherLode, "update-cache", 8);
+  const later = insertSized(motherLode, "update-cache-later", 12);
+  expire(motherLode);
 
   assert.equal(resMan.Update({ cache: false, purge: false }), false);
   assert.equal(motherLode.Lookup(key), resource);
   assert.equal(resMan.Update({ purge: false }), true);
-  assert.equal(resMan.Lookup(resource.GetPath()), null);
+  assert.equal(motherLode.Lookup(key), null);
+  assert.equal(motherLode.Lookup(later.key), later.resource);
   assert.equal(resource.HasPayload(), false);
   assert.equal(resource.IsPurged(), true);
 });

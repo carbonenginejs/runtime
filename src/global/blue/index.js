@@ -8,7 +8,7 @@
 //   - blue (blue/): the runtime services. The OS and clock interfaces
 //     (IBlueOS, CjsBlueOS, BeInfo, IBlueEvents, ICatchupTicks, IVariableTicker,
 //     ISimTimeRebaseNotify), paths, the resource manager and file systems
-//     (IBlueResMan, CjsBlueResMan, CjsMotherLode, IBlueResFileSystem,
+//     (IBlueResMan, CjsBlueResMan, CjsMotherLode, ICacheable, IBlueResFileSystem,
 //     BlueResFileSystemRemote, BlueResFileSystemLocal, CjsBlueResFileSystemFetch,
 //     CjsBlueResFileSystemCallback,
 //     BlueFileUtil, RemoteFileCache), object metadata, placement
@@ -70,6 +70,7 @@ export * from "./CcpDateTime.js";
 export * from "./CcpTime.js";
 export * from "./IBlueResMan.js";
 export * from "./IBlueResManNotifications.js";
+export * from "./ICacheable.js";
 export * from "./IRoot.js";
 export * from "./IInitialize.js";
 export * from "./IUnloadable.js";

@@ -7,16 +7,24 @@ import { assertNonNegativeInteger, assertNonNegativeNumber } from "#utils/valida
 // Source: blue/src/MotherLode.cpp
 import { normalizeResourcePath } from "#utils/path";
 import { CjsBlueOS } from "./CjsBlueOS.js";
+import { ICacheable } from "./ICacheable.js";
+import { IRoot } from "./IRoot.js";
 
+/** mMaxMemUsage's initial value (MotherLode.cpp:44). */
 const DEFAULT_CACHE_SIZE = 32 * 1024 * 1024;
-const MAX_SAFE_INTEGER_BIGINT = BigInt(Number.MAX_SAFE_INTEGER);
+
+/**
+ * `CjsBlueClasses.BLUEQIOPT.BEQI_SILENT`, written out because importing
+ * CjsBlueClasses reaches CjsBlue, which builds the resMan that owns this registry.
+ */
+const BEQI_SILENT = 0x1;
 
 /**
  * Construction options for {@link CjsMotherLode}.
  *
  * @typedef {object} CjsMotherLodeOptions
  * @property {() => number} [now] Returns a non-negative timestamp for activity diagnostics.
- * @property {number} [cacheSize] Initial recorded-byte budget for explicitly cached entries.
+ * @property {number} [cacheSize] Initial byte budget for cached entries.
  */
 
 /**
@@ -34,9 +42,8 @@ const MAX_SAFE_INTEGER_BIGINT = BigInt(Number.MAX_SAFE_INTEGER);
  * @typedef {CjsMotherLodeMutationOptions & object} CjsMotherLodeInsertOptions
  * @property {boolean} [replace=true] Whether an existing different resource may be displaced.
  * @property {string} [variant] Variant used only by the legacy resource-first insertion form.
- * @property {number} [bytes=0] Caller-supplied non-negative safe-integer eviction weight.
- * @property {boolean} [cacheable=true] Whether policy may explicitly admit the entry to the byte cache.
- * @property {boolean} [cached=false] Admit the entry to oldest-first trimming and `ClearCached()`.
+ * @property {boolean} [cacheable=true] Carbon's `allowCaching` (`IMotherLode::CACHING_ALLOWED`):
+ *   whether the entry may enter the cache once unused, if its class is `ICacheable`.
  * @property {number} [frame] Explicit non-negative activity frame; otherwise the counter advances.
  * @property {number} [time] Explicit non-negative activity timestamp; otherwise `now()` is called.
  */
@@ -70,25 +77,27 @@ const MAX_SAFE_INTEGER_BIGINT = BigInt(Number.MAX_SAFE_INTEGER);
  * @property {number} time Sweep timestamp in milliseconds.
  * @property {number} purged Number of canonical identities removed and cleaned.
  * @property {number} payloadsReleased Number of payloads released while retaining their identities.
+ * @property {number} cached Number of expired identities that entered the cache instead of being purged.
  * @property {number} locked Number of locked identities skipped by the sweep.
  * @property {readonly string[]} purgedKeys Canonical identities removed by the sweep.
  * @property {readonly string[]} payloadKeys Canonical identities whose payload lease expired.
+ * @property {readonly string[]} cachedKeys Canonical identities that entered the cache.
  */
 
 /**
- * Result from deterministic recorded-byte cache housekeeping.
+ * Result from one cache housekeeping pass (`MotherLode::Housekeeping`).
  *
- * Only explicitly cached, cacheable, unlocked records contribute to the
- * budget. Zero-byte records do not create pressure and are retained because
- * removing them cannot reduce the recorded byte total.
+ * Cached entries count their `ICacheable.GetMemoryUsage`; an entry whose size
+ * is still pending counts nothing until it is known.
  *
  * @typedef {object} CjsMotherLodeCacheTrimResult
- * @property {number} cacheSize Configured recorded-byte budget.
- * @property {number} beforeBytes Explicit cached bytes before housekeeping.
- * @property {number} afterBytes Explicit cached bytes after housekeeping.
- * @property {number} evictedBytes Recorded bytes removed successfully.
+ * @property {number} cacheSize Configured byte budget.
+ * @property {number} beforeBytes Cached bytes once pending sizes were settled, before trimming.
+ * @property {number} afterBytes Cached bytes after housekeeping.
+ * @property {number} evictedBytes Cached bytes removed successfully.
  * @property {boolean} overBudget Whether retained cached records still exceed the budget.
- * @property {number} evicted Number of complete canonical identities removed.
+ * @property {number} evicted Number of complete canonical identities removed, including
+ *   pending entries whose known size could not be cached.
  * @property {number} failed Number of candidate identities that reported cleanup or purge-state failure.
  * @property {readonly string[]} evictedKeys Canonical identities removed oldest-first.
  * @property {readonly string[]} failedKeys Canonical identities that reported a failure.
@@ -129,13 +138,13 @@ const MAX_SAFE_INTEGER_BIGINT = BigInt(Number.MAX_SAFE_INTEGER);
  * @typedef {object} CjsMotherLodeStats
  * @property {number} count Compatibility identity count.
  * @property {number} size Canonical identity count.
- * @property {number} live Number of entries not explicitly classified as cached.
- * @property {number} cached Number of explicitly cached entries.
+ * @property {number} live Number of entries in use (not cached).
+ * @property {number} cached Number of cached entries, pending ones included.
  * @property {number} locked Number of entries with at least one eviction lock.
  * @property {number} payloads Number of entries currently retaining a CPU payload.
- * @property {number} bytes Total caller-supplied eviction weight.
- * @property {number} cacheBytes Byte estimate for explicitly cached entries.
- * @property {number} cacheSize Configured recorded-byte cache budget.
+ * @property {number} bytes Memory use reported by cached entries (Carbon's `c_mem`).
+ * @property {number} cacheBytes The same total, kept under its former name.
+ * @property {number} cacheSize Configured byte budget.
  * @property {number} activityFrame Highest activity frame observed by this registry.
  * @property {Readonly<Record<string, number>>} states Resource count grouped by state name.
  * @property {readonly string[]} paths Unique resource paths in encounter order.
@@ -144,10 +153,13 @@ const MAX_SAFE_INTEGER_BIGINT = BigInt(Number.MAX_SAFE_INTEGER);
 /**
  * Strong, deterministic JavaScript resource registry.
  *
- * Carbon can move resources between weak live registration and a strong LRU
- * cache. JavaScript ownership cannot reproduce that transition reliably, so
- * entries remain strongly owned until explicit ownership removal or an
- * explicit inactivity/recorded-byte policy evicts them.
+ * Carbon moves a resource from weak live registration into a strong LRU cache
+ * when its last reference goes (`WeakRefNotify`, MotherLode.cpp:329-401).
+ * JavaScript cannot see references go, so an inactivity sweep's expiry stands
+ * in for it: an expired entry whose class maps `ICacheable` enters the cache,
+ * sized by its own `GetMemoryUsage`, and `TrimCache` drops the oldest while the
+ * total is over budget. Every other expired entry is purged. Use takes an
+ * entry back out of the cache, as Carbon's `Lookup` does (:149-157).
  */
 export class CjsMotherLode
 {
@@ -265,7 +277,6 @@ export class CjsMotherLode
     {
       const updated = { ...existing };
       this._UpdateRecord(updated, options);
-      this._AssertRecordedBytesTotal(updated, existing);
       this._TouchRecord(updated, options);
       Object.assign(existing, updated);
       return createInsertResult(key, resource, false, false, null);
@@ -275,7 +286,7 @@ export class CjsMotherLode
       return createInsertResult(key, existing.resource, false, false, null);
     }
 
-    const record = this._CreateRecord(key, resource, options, existing);
+    const record = this._CreateRecord(key, resource, options);
 
     if (existing)
     {
@@ -297,9 +308,9 @@ export class CjsMotherLode
    * result attached. When the expected owner is no longer current, no mutation
    * or cleanup occurs and `committed` is `false`.
    *
-   * Recorded bytes and cacheability inherit from the expected record unless
-   * explicitly supplied. The replacement is live by default because a
-   * successful staged reload is an activity observation.
+   * Cacheability inherits from the expected record unless explicitly
+   * supplied. The replacement is live because a successful staged reload is
+   * an activity observation.
    *
    * @param {string} key Canonical resolved identity key.
    * @param {object|Function} expected Exact resource that must still own `key`.
@@ -345,11 +356,9 @@ export class CjsMotherLode
 
     const recordOptions = {
       ...policy,
-      bytes: policy.bytes === undefined ? existing.bytes : policy.bytes,
-      cacheable: policy.cacheable === undefined ? existing.cacheable : policy.cacheable,
-      cached: policy.cached === undefined ? false : policy.cached
+      cacheable: policy.cacheable === undefined ? existing.cacheable : policy.cacheable
     };
-    const record = this._CreateRecord(resolvedKey, resource, recordOptions, existing);
+    const record = this._CreateRecord(resolvedKey, resource, recordOptions);
 
     // Re-check after clock/metadata validation, then publish with no user code
     // between the exact-record comparison and Map mutation.
@@ -480,10 +489,8 @@ export class CjsMotherLode
   }
 
   /**
-   * Remove entries explicitly classified as cached and not locked.
-   *
-   * JavaScript cannot infer external ownership, so only callers that inserted
-   * an entry with `{ cached: true }` classify it for this operation.
+   * Remove every cached entry, pending ones included (`MotherLode::ClearCached`,
+   * MotherLode.cpp:433-449).
    *
    * @param {CjsMotherLodeMutationOptions} [options={}] Cleanup policy for removed cache entries.
    * @returns {number} Number of entries removed before cleanup.
@@ -520,8 +527,7 @@ export class CjsMotherLode
     const { resolvedKey, options } = normalizeActivityArguments(key, variantOrOptions, maybeOptions);
     const record = this._entries.get(resolvedKey);
     if (!record) return null;
-    record.cached = false;
-    record.cacheSequence = 0;
+    Uncache(record);
     this._TouchRecord(record, options);
     return record.resource;
   }
@@ -555,8 +561,7 @@ export class CjsMotherLode
       const renewed = resource ? resource._lastUsedTime : undefined;
       if (typeof renewed !== "number" || !(renewed > record.lastUsedTime)) continue;
       record.lastUsedTime = renewed;
-      record.cached = false;
-      record.cacheSequence = 0;
+      Uncache(record);
     }
   }
 
@@ -578,8 +583,7 @@ export class CjsMotherLode
   {
     const record = this._entries.get(key);
     if (!record) return this.KeepAlive(key, options);
-    record.cached = false;
-    record.cacheSequence = 0;
+    Uncache(record);
     this._TouchRecord(record, options ?? EMPTY_ACTIVITY);
     return record.resource;
   }
@@ -613,8 +617,7 @@ export class CjsMotherLode
     const { resolvedKey, options } = normalizeActivityArguments(key, variantOrOptions, maybeOptions);
     const record = this._entries.get(resolvedKey);
     if (!record) return null;
-    record.cached = false;
-    record.cacheSequence = 0;
+    Uncache(record);
     this._TouchRecord(record, options);
     record.payloadLastUsedFrame = record.lastUsedFrame;
     record.payloadLastUsedTime = record.lastUsedTime;
@@ -635,8 +638,7 @@ export class CjsMotherLode
     const record = this._entries.get(normalizeLookupKey(key, variant));
     if (!record) return 0;
     record.lockCount += 1;
-    record.cached = false;
-    record.cacheSequence = 0;
+    Uncache(record);
     this._TouchRecord(record, {});
     return record.lockCount;
   }
@@ -671,6 +673,11 @@ export class CjsMotherLode
    * inactivity policy replaces Carbon's reference-counted ownership. The sweep never
    * fetches, reloads, prepares, or infers external JavaScript ownership.
    *
+   * An expired identity is Carbon's object losing its last reference: when its
+   * class maps `ICacheable` and the cache allows it, it enters the cache instead
+   * of being purged (`WeakRefNotify`, MotherLode.cpp:329-401). Cached entries are
+   * no longer in use, so the sweep leaves them to `TrimCache`.
+   *
    * Cleanup is transactional per identity: a failed cleanup leaves that record
    * canonical and reports a contextual error after all candidates are visited.
    * Successful candidates are still purged when another candidate fails.
@@ -688,6 +695,7 @@ export class CjsMotherLode
 
     const purgedKeys = [];
     const payloadKeys = [];
+    const cachedKeys = [];
     const errors = [];
     let locked = 0;
 
@@ -698,6 +706,7 @@ export class CjsMotherLode
         locked += 1;
         continue;
       }
+      if (record.cached) continue;
 
       if (isInactive(
         record.lastUsedFrame,
@@ -708,6 +717,22 @@ export class CjsMotherLode
         policy.maxIdleMilliseconds
       ))
       {
+        let admitted;
+        try
+        {
+          admitted = this._WeakRefNotify(record);
+        }
+        catch (cause)
+        {
+          errors.push(motherLodeCleanupError("cache", key, record.resource, cause));
+          continue;
+        }
+        if (admitted)
+        {
+          cachedKeys.push(key);
+          continue;
+        }
+
         try
         {
           this._CleanupRecord(record, policy, "purge inactive", true);
@@ -756,7 +781,7 @@ export class CjsMotherLode
       }
     }
 
-    const result = createPurgeResult(policy.frame, policy.time, purgedKeys, payloadKeys, locked);
+    const result = createPurgeResult(policy.frame, policy.time, purgedKeys, payloadKeys, cachedKeys, locked);
     if (errors.length)
     {
       const error = new AggregateError(errors, "CjsMotherLode inactivity purge failed.");
@@ -768,84 +793,85 @@ export class CjsMotherLode
   }
 
   /**
-   * Remove complete explicitly cached identities until their recorded byte
-   * total fits the configured budget.
+   * One cache housekeeping pass (`MotherLode::Housekeeping`, MotherLode.cpp:203-296).
    *
-   * Candidates are ordered by explicit cache admission, oldest first. Lookup
-   * is intentionally pure; callers re-admit a live identity by inserting the
-   * same handle with `{ cached: true }`. Locks and `KeepAlive()` promote an
-   * entry to live and therefore remove it from byte-budget consideration.
+   * First every cached entry renewed since it was cached goes back to live.
+   * Then each entry whose size was pending is asked again: once known, it joins
+   * the end of the LRU, or is dropped when the size is zero or larger than the
+   * whole budget (:208-249). Last, the oldest cached entries are dropped while
+   * the total is over budget (:251-291).
    *
    * Cleanup is transactional per candidate. A failure leaves that candidate
    * canonical, later candidates are still attempted, and the final aggregate
-   * error carries the partial immutable result. Successful pressure eviction
-   * destroys adapters, releases payloads, detaches lifecycle callbacks, marks
-   * compatible handles `PURGED` by default, and never fetches or reconstructs
-   * data. Explicit cleanup overrides retain their documented ownership.
+   * error carries the partial result. A dropped entry has its adapters
+   * destroyed, its payload released and its lifecycle callbacks detached, and
+   * is marked `PURGED` by default; nothing is fetched or rebuilt. Explicit
+   * cleanup overrides retain their documented ownership.
    *
-   * @param {CjsMotherLodeMutationOptions} [options={}] Cleanup policy for pressure-evicted identities.
+   * @param {CjsMotherLodeMutationOptions} [options={}] Cleanup policy for dropped identities.
    * @returns {CjsMotherLodeCacheTrimResult} Byte totals and affected canonical keys.
    * @throws {TypeError} If cleanup options are invalid.
-   * @throws {AggregateError} If cleanup or purge-state publication fails for one or more candidates.
+   * @throws {AggregateError} If sizing, cleanup or purge-state publication fails for one or more candidates.
    */
   TrimCache(options = {})
   {
     const policy = normalizeOptions(options, "cache trim");
-    const beforeBytes = this._GetCacheBytes();
     const evictedKeys = [];
     const failedKeys = [];
     const errors = [];
+    const unwanted = [];
+
+    this._SettleRenewals();
+
+    for (const record of this._entries.values())
+    {
+      if (!record.cached || !record.pending) continue;
+
+      let size;
+      try
+      {
+        const cacheable = QueryCacheable(record.resource);
+        if (!cacheable.IsMemoryUsageKnown()) continue;
+        size = this._AcceptedSize(cacheable.GetMemoryUsage());
+      }
+      catch (cause)
+      {
+        errors.push(motherLodeCleanupError("size cached entry", record.key, record.resource, cause));
+        failedKeys.push(record.key);
+        continue;
+      }
+
+      if (size)
+      {
+        // Value::Link: to the end of the LRU.
+        record.bytes = size;
+        record.pending = false;
+        record.cacheSequence = this._nextCacheSequence++;
+      }
+      else unwanted.push(record);
+    }
+
+    const beforeBytes = this._GetCacheBytes();
     let evictedBytes = 0;
+
+    for (const record of unwanted)
+    {
+      this._EvictCached(record, policy, evictedKeys, failedKeys, errors);
+    }
 
     if (beforeBytes > this._cacheSize)
     {
-      this._SettleRenewals();
-      const candidates = [ ...this._entries.values() ]
-        .filter(record => record.cacheable
-          && record.cached
-          && record.lockCount === 0
-          && record.bytes > 0)
+      const oldestFirst = [ ...this._entries.values() ]
+        .filter(record => record.cached && !record.pending)
         .sort((a, b) => a.cacheSequence - b.cacheSequence);
 
-      for (const record of candidates)
+      let bytes = beforeBytes;
+      for (const record of oldestFirst)
       {
-        if (this._GetCacheBytes() <= this._cacheSize) break;
-        if (this._entries.get(record.key) !== record
-          || !record.cacheable
-          || !record.cached
-          || record.lockCount > 0
-          || record.bytes <= 0)
-        {
-          continue;
-        }
-
-        try
-        {
-          this._CleanupRecord(record, policy, "trim cache", true);
-        }
-        catch (error)
-        {
-          errors.push(error);
-          failedKeys.push(record.key);
-          continue;
-        }
-
-        if (this._entries.get(record.key) === record)
-        {
-          this._entries.delete(record.key);
-        }
-        evictedKeys.push(record.key);
+        if (bytes <= this._cacheSize) break;
+        if (!this._EvictCached(record, policy, evictedKeys, failedKeys, errors)) continue;
+        bytes -= record.bytes;
         evictedBytes += record.bytes;
-
-        try
-        {
-          record.resource?.MarkPurged?.();
-        }
-        catch (cause)
-        {
-          errors.push(motherLodeCleanupError("mark cache eviction purged", record.key, record.resource, cause));
-          failedKeys.push(record.key);
-        }
       }
     }
 
@@ -869,9 +895,99 @@ export class CjsMotherLode
   }
 
   /**
-   * Configure and immediately enforce the recorded-byte budget for explicit
-   * cached entries. The new budget remains installed if partial cleanup fails,
-   * matching Carbon's policy-first `SetCacheSize` behavior.
+   * `MotherLode::WeakRefNotify` (MotherLode.cpp:329-401): an entry nothing uses
+   * any more enters the cache when it may be cached, the cache has a budget and
+   * its class maps `ICacheable`. A known size is counted now; an unknown one
+   * leaves the entry pending until `TrimCache` can ask again.
+   *
+   * @param {object} record Internal ownership record that just expired.
+   * @returns {boolean} Whether the entry was cached; false means drop it.
+   * @throws {TypeError} If the resource reports an invalid size.
+   */
+  _WeakRefNotify(record)
+  {
+    if (!record.cacheable || !this._cacheSize) return false;
+    const cacheable = QueryCacheable(record.resource);
+    if (!cacheable) return false;
+
+    if (cacheable.IsMemoryUsageKnown())
+    {
+      const size = this._AcceptedSize(cacheable.GetMemoryUsage());
+      if (!size) return false;
+      record.bytes = size;
+      record.pending = false;
+    }
+    else
+    {
+      record.bytes = 0;
+      record.pending = true;
+    }
+
+    // Value::Link: to the end of the LRU, or of the pending list.
+    record.cached = true;
+    record.cacheSequence = this._nextCacheSequence++;
+    return true;
+  }
+
+  /**
+   * A reported size as the cache counts it: zero, meaning "do not cache", when
+   * the one object is larger than the whole budget (MotherLode.cpp:229-238,
+   * :371-380). Carbon also refuses a size that would overflow its running
+   * total; a JavaScript number cannot overflow at any size a budget allows.
+   *
+   * @param {number} size `ICacheable.GetMemoryUsage`.
+   * @returns {number} The size to count, or 0.
+   * @throws {TypeError} If the size is not a non-negative safe integer.
+   */
+  _AcceptedSize(size)
+  {
+    assertNonNegativeInteger(size, "ICacheable.GetMemoryUsage");
+    return size > this._cacheSize ? 0 : size;
+  }
+
+  /**
+   * Drops one cached entry: `CCP_DELETE value` in Housekeeping.
+   *
+   * @param {object} record Cached record.
+   * @param {CjsMotherLodeMutationOptions} policy Cleanup policy.
+   * @param {string[]} evictedKeys Receives the key on success.
+   * @param {string[]} failedKeys Receives the key on failure.
+   * @param {Error[]} errors Receives any failure.
+   * @returns {boolean} Whether the entry was removed.
+   */
+  _EvictCached(record, policy, evictedKeys, failedKeys, errors)
+  {
+    try
+    {
+      this._CleanupRecord(record, policy, "trim cache", true);
+    }
+    catch (error)
+    {
+      errors.push(error);
+      failedKeys.push(record.key);
+      return false;
+    }
+
+    if (this._entries.get(record.key) === record) this._entries.delete(record.key);
+    evictedKeys.push(record.key);
+
+    try
+    {
+      record.resource?.MarkPurged?.();
+    }
+    catch (cause)
+    {
+      errors.push(motherLodeCleanupError("mark cache eviction purged", record.key, record.resource, cause));
+      failedKeys.push(record.key);
+    }
+    return true;
+  }
+
+  /**
+   * Configure the cache's byte budget and run housekeeping at once
+   * (MotherLode.cpp:179-183). Zero turns caching off: nothing new is cached and
+   * everything cached is dropped. The new budget remains installed if partial
+   * cleanup fails.
    *
    * @param {number} bytes Non-negative safe-integer byte budget.
    * @param {CjsMotherLodeMutationOptions} [options={}] Cleanup policy for entries displaced by the smaller budget.
@@ -889,7 +1005,7 @@ export class CjsMotherLode
   }
 
   /**
-   * Return the configured recorded-byte cache budget.
+   * Return the configured cache byte budget.
    *
    * @returns {number} Non-negative safe-integer byte budget.
    */
@@ -1033,10 +1149,9 @@ export class CjsMotherLode
    * @param {string} key Canonical resolved identity key.
    * @param {object|Function} resource Caller-supplied resource owner.
    * @param {CjsMotherLodeInsertOptions} options Validated insertion options.
-   * @param {object|null} [displaced=null] Existing record excluded from aggregate byte validation.
    * @returns {object} Mutable internal ownership record.
    */
-  _CreateRecord(key, resource, options, displaced = null)
+  _CreateRecord(key, resource, options)
   {
     const record = {
       key,
@@ -1044,6 +1159,7 @@ export class CjsMotherLode
       bytes: 0,
       cacheable: true,
       cached: false,
+      pending: false,
       cacheSequence: 0,
       lockCount: 0,
       lastUsedFrame: 0,
@@ -1052,7 +1168,6 @@ export class CjsMotherLode
       payloadLastUsedTime: 0
     };
     this._UpdateRecord(record, options);
-    this._AssertRecordedBytesTotal(record, displaced);
     this._TouchRecord(record, options);
     record.payloadLastUsedFrame = record.lastUsedFrame;
     record.payloadLastUsedTime = record.lastUsedTime;
@@ -1060,7 +1175,8 @@ export class CjsMotherLode
   }
 
   /**
-   * Apply explicit size/cache metadata while preserving lock invariants.
+   * Apply `cacheable` (Carbon's `allowCaching`); an entry that may no longer be
+   * cached, or is locked, leaves the cache.
    *
    * @param {object} record Mutable internal ownership record.
    * @param {CjsMotherLodeInsertOptions} options Metadata updates.
@@ -1068,61 +1184,23 @@ export class CjsMotherLode
    */
   _UpdateRecord(record, options)
   {
-    if (options.bytes !== undefined)
-    {
-      assertNonNegativeInteger(options.bytes, "CjsMotherLode entry bytes");
-      record.bytes = options.bytes;
-    }
     if (options.cacheable !== undefined) record.cacheable = Boolean(options.cacheable);
-    if (options.cached !== undefined)
-    {
-      record.cached = record.cacheable && record.lockCount === 0 && Boolean(options.cached);
-      record.cacheSequence = record.cached ? this._nextCacheSequence++ : 0;
-    }
-    if (!record.cacheable || record.lockCount > 0)
-    {
-      record.cached = false;
-      record.cacheSequence = 0;
-    }
+    if (!record.cacheable || record.lockCount > 0) Uncache(record);
     return record;
   }
 
   /**
-   * Reject metadata that would make aggregate recorded-byte arithmetic lose
-   * integer precision. This keeps trim results and diagnostics exact without
-   * attempting to measure JavaScript object graphs heuristically.
+   * The cache's memory use (Carbon's running `mMemUsage`): the sizes of the
+   * cached entries, pending ones counting nothing.
    *
-   * @param {object} candidate New or updated record.
-   * @param {object|null} [excluded=null] Existing record replaced by the candidate.
-   * @returns {void}
-   * @throws {RangeError} If aggregate recorded bytes exceed the safe-integer range.
-   */
-  _AssertRecordedBytesTotal(candidate, excluded = null)
-  {
-    let total = BigInt(candidate.bytes);
-    for (const record of this._entries.values())
-    {
-      if (record === excluded) continue;
-      total += BigInt(record.bytes);
-      if (total > MAX_SAFE_INTEGER_BIGINT)
-      {
-        throw new RangeError("CjsMotherLode aggregate recorded bytes exceed Number.MAX_SAFE_INTEGER.");
-      }
-    }
-  }
-
-  /**
-   * Sum exact byte weights for explicit cached entries.
-   * Aggregate safety is maintained at insertion/update time.
-   *
-   * @returns {number} Exact explicit-cache byte total.
+   * @returns {number} Bytes.
    */
   _GetCacheBytes()
   {
     let bytes = 0;
     for (const record of this._entries.values())
     {
-      if (record.cacheable && record.cached) bytes += record.bytes;
+      if (record.cached) bytes += record.bytes;
     }
     return bytes;
   }
@@ -1322,6 +1400,33 @@ function normalizePath(path)
   return normalizedPath;
 }
 
+/**
+ * `Value::Uncache` (MotherLode.h:139): the entry is back in use, and its size
+ * no longer counts against the cache.
+ *
+ * @param {object} record Internal ownership record.
+ * @returns {void}
+ */
+function Uncache(record)
+{
+  record.cached = false;
+  record.pending = false;
+  record.bytes = 0;
+  record.cacheSequence = 0;
+}
+
+/**
+ * Carbon's `QueryInterface(GetICacheableIID(), ..., BEQI_SILENT)`
+ * (MotherLode.cpp:340): the resource when its class maps `ICacheable`.
+ *
+ * @param {object|Function} resource Registered resource.
+ * @returns {ICacheable|null} The resource, or null.
+ */
+function QueryCacheable(resource)
+{
+  return IRoot.prototype.QueryInterface.call(resource, ICacheable, BEQI_SILENT);
+}
+
 /** Shared empty activity options for the canonical fast path; never mutated. */
 const EMPTY_ACTIVITY = {};
 
@@ -1498,19 +1603,22 @@ function createConditionalReplaceResult(key, committed, resource, displaced)
  * @param {number} time Sweep timestamp.
  * @param {string[]} purgedKeys Removed canonical keys.
  * @param {string[]} payloadKeys Keys whose payloads were released.
+ * @param {string[]} cachedKeys Keys that entered the cache instead of being purged.
  * @param {number} locked Number of locked entries skipped.
  * @returns {CjsMotherLodePurgeResult} Sweep result.
  */
-function createPurgeResult(frame, time, purgedKeys, payloadKeys, locked)
+function createPurgeResult(frame, time, purgedKeys, payloadKeys, cachedKeys, locked)
 {
   return {
     frame,
     time,
     purged: purgedKeys.length,
     payloadsReleased: payloadKeys.length,
+    cached: cachedKeys.length,
     locked,
     purgedKeys: purgedKeys,
-    payloadKeys: payloadKeys
+    payloadKeys: payloadKeys,
+    cachedKeys: cachedKeys
   };
 }
 

@@ -152,6 +152,11 @@ export function CreateLodAllocations(geometry, meshIndex, lod, renderContext)
     mesh.bytesPerVertex = packed.vertex.stride;
     lod.vertexCount = packed.vertex.count;
     lod.allocationsValid = true;
+
+    // Memory use is only approximate, as a hint for the resource cache: the
+    // vertices, the indices and their reversed copy (TriGeometryRes.cpp:2143-2146).
+    const indexBytes = packed.index ? packed.index.bytes.byteLength : 0;
+    geometry._memoryUse += packed.vertex.bytes.byteLength + indexBytes + indexBytes;
     return true;
   }
   finally

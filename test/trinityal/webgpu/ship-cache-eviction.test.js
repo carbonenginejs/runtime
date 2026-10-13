@@ -61,7 +61,8 @@ test("switching ships lets the idle owner's GPU objects expire while the current
 {
   let now = 0;
   const { al, render, live, destroyed } = context();
-  const manager = new CjsBlueResMan({ motherLode: new CjsMotherLode({ now: () => now }), source: { Read: () => dds() } });
+  // Cache size 0: expired resources are purged, not kept by the ICacheable cache.
+  const manager = new CjsBlueResMan({ motherLode: new CjsMotherLode({ now: () => now, cacheSize: 0 }), source: { Read: () => dds() } });
   RegisterTextureResources(manager);
   manager.SetAutoPurgePolicy({ intervalMilliseconds: 1, maxIdleMilliseconds: 10, now: () => now });
   const counts = () => [ live.textures.size, live.buffers.size ];

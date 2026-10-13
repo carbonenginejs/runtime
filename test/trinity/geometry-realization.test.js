@@ -117,10 +117,16 @@ test("a LOD's allocations are made once, with a reversed index copy, and the bat
   assert.equal(lod.reversedIndicesValid, true);
   assert.equal(lod.reversedIndexAllocation.GetStartIndex(), lod.indexAllocation.GetStartIndex() + 6);
 
+  // TriGeometryRes.cpp:2143-2146: the vertices, the indices and their reversed copy.
+  const memoryUse = lod.vertexAllocation.GetSize() + 2 * lod.indexAllocation.GetSize();
+
+  assert.equal(geometry.GetMemoryUsage(), memoryUse);
+
   const before = lod.vertexAllocation;
 
   assert.equal(CreateLodAllocations(geometry, 0, lod, renderContext), true);
   assert.equal(lod.vertexAllocation, before, "made once");
+  assert.equal(geometry.GetMemoryUsage(), memoryUse, "counted once");
 
   // The batch: descriptor in, buffers and draw arguments out.
   const batch = new Tr2RenderBatch();

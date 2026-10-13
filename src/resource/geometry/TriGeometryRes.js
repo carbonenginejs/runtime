@@ -9,7 +9,7 @@ import { ray3 } from "#math/ray3";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsResource } from "#blue";
+import { CjsResource, ICacheable } from "#blue";
 import { TriStorageFlags } from "#consts/graphics";
 import { Tr2RaycastGeometryRes } from "./Tr2RaycastGeometryRes.js";
 import { CjsGr2Format } from "../formats/gr2/index.js";
@@ -62,6 +62,12 @@ export class TriGeometryRes extends CjsResource
 
   /** The payload ReadGrannyFile returned, so SetPayload can tell it from any other. */
   _grannyPayload = null;
+
+  /**
+   * m_memoryUse: what `GetMemoryUsage` reports. Each LOD adds its buffers when
+   * its allocations are made (CreateLodAllocations).
+   */
+  _memoryUse = 0;
 
 
   /**
@@ -154,7 +160,31 @@ export class TriGeometryRes extends CjsResource
       }
     }
     this._ForgetGrannyFile();
+    this._memoryUse = 0;
     return super.ReleasePayload();
+  }
+
+  /**
+   * Carbon `IsMemoryUsageKnown` (TriGeometryRes.cpp:1835-1838): known once loaded.
+   *
+   * @returns {boolean}
+   */
+  IsMemoryUsageKnown()
+  {
+    return !this.IsLoading();
+  }
+
+  /**
+   * Carbon `GetMemoryUsage` (TriGeometryRes.cpp:1840-1843): `m_memoryUse`.
+   *
+   * Adapted: Carbon builds every LOD's buffers while preparing; they are built
+   * here when a LOD is first drawn, so the figure counts the LODs drawn so far.
+   *
+   * @returns {number} Bytes.
+   */
+  GetMemoryUsage()
+  {
+    return this._memoryUse;
   }
 
   /**
@@ -1474,6 +1504,8 @@ CjsSchema.define(TriGeometryRes, {
     DestroyRayCaster: [ meta.blue.method, meta.adapted ],
     ReleaseResources: [ meta.blue.method, meta.adapted ],
     ReleasePayload: [ meta.ours ],
+    IsMemoryUsageKnown: [ meta.blue.method, meta.implemented ],
+    GetMemoryUsage: [ meta.blue.method, meta.adapted ],
     GetIntersectionPoints: [ meta.blue.method, meta.adapted ],
     GetMeshVertexElements: [ meta.blue.method, meta.adapted ],
     IsInstanceDataReady: [ meta.blue.method, meta.implemented ],
@@ -1483,3 +1515,5 @@ CjsSchema.define(TriGeometryRes, {
     SaveMesh: [ meta.blue.method, meta.notSupported ]
   }
 });
+meta.blue.inherit(ICacheable)(TriGeometryRes, { kind: "class" });
+meta.blue.interface(ICacheable)(TriGeometryRes);

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/Tr2GrannyStateRes.h
-import { CjsSchema } from "#schema";
-import { CjsResource } from "#blue";
+import { CjsSchema, meta } from "#schema";
+import { CjsResource, ICacheable } from "#blue";
 import { assertResourcePayloadObject, resourceFormatRequiredError, resourcePayloadError } from "../../resourceBoundary.js";
 import { ResourceRequirement } from "#blue";
 
@@ -34,11 +34,15 @@ export class Tr2GrannyStateRes extends CjsResource
   /** Resolved animation path to its loaded resource, as Carbon's m_gStateAnimFiles. */
   _animations = new Map();
 
+  /** m_dataSize: the byte length of the file `DoLoad` read, or 0 when handed a document. */
+  _dataSize = 0;
+
   /** Updates payload in the current resource payload lifecycle. */
   SetPayload(payload = null)
   {
     if (payload === null)
     {
+      this._dataSize = 0;
       super.SetPayload(null);
       return this;
     }
@@ -97,6 +101,8 @@ export class Tr2GrannyStateRes extends CjsResource
 
     this._animations.clear();
     this.SetPayload(document);
+    // Tr2GrannyStateRes.cpp:59.
+    this._dataSize = data instanceof ArrayBuffer || ArrayBuffer.isView(data) ? data.byteLength : 0;
     this.SetValues(values);
     return this;
   }
@@ -226,10 +232,42 @@ export class Tr2GrannyStateRes extends CjsResource
     return this.GetGStateAnimFileRefPaths().every(path => this._animations.has(path));
   }
 
+
+  /**
+   * Carbon `IsMemoryUsageKnown` (Tr2GrannyStateRes.cpp:32-35): known once loaded.
+   *
+   * @returns {boolean}
+   */
+  IsMemoryUsageKnown()
+  {
+    return !this.IsLoading();
+  }
+
+  /**
+   * Carbon `GetMemoryUsage` (Tr2GrannyStateRes.cpp:37-47): the file's size plus
+   * the character-file pointer while a file is held, otherwise 1024.
+   *
+   * Adapted: a document decoded elsewhere arrives without its file, so it
+   * reports the 1024 Carbon reports with no file.
+   *
+   * @returns {number} Bytes.
+   */
+  GetMemoryUsage()
+  {
+    // sizeof( m_characterFile ): one 64-bit pointer.
+    return this._dataSize ? this._dataSize + 8 : 1024;
+  }
+
   static payload = ResourceRequirement.GRANNY_STATE;
 }
 
 CjsSchema.define(Tr2GrannyStateRes, {
   className: "Tr2GrannyStateRes",
-  family: "resources"
+  family: "resources",
+  methods: {
+    IsMemoryUsageKnown: [ meta.blue.method, meta.implemented ],
+    GetMemoryUsage: [ meta.blue.method, meta.adapted ]
+  }
 });
+meta.blue.inherit(ICacheable)(Tr2GrannyStateRes, { kind: "class" });
+meta.blue.interface(ICacheable)(Tr2GrannyStateRes);

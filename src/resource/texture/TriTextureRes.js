@@ -4,7 +4,7 @@
 import { CjsSchema, meta } from "#schema";
 import { HostBitmap } from "#imageio";
 import { TriStorageFlags, Tr2ALMemoryType } from "#consts/graphics";
-import { CjsResource } from "#blue";
+import { CjsResource, ICacheable } from "#blue";
 import { IsSolidColorTexturePath, RasterizeSolidColor } from "./solidColorTexture.js";
 import { ResourceRequirement } from "#blue";
 import {
@@ -118,6 +118,9 @@ export class TriTextureRes extends CjsResource
 
   /** m_loadedBitmap: the decoded image the texture is made from, or null. */
   loadedBitmap = null;
+
+  /** m_memoryUse: the estimated memory use `GetMemoryUsage` reports. */
+  _memoryUse = 0;
 
   /**
    * The live texture, or null while there is none - Carbon returns nullptr
@@ -309,10 +312,12 @@ export class TriTextureRes extends CjsResource
     if (!bitmap || !bitmap.IsValid()) {
       this.loadedBitmap = null;
       this.compression = null;
+      this._memoryUse = 0;
       return false;
     }
 
     this.loadedBitmap = bitmap;
+    this._memoryUse = TriTextureRes.EstimateMemoryUse(bitmap);
     this.SetValues({
       format: bitmap.GetFormat(),
       width: bitmap.GetWidth(),
@@ -641,6 +646,7 @@ export class TriTextureRes extends CjsResource
       this._ownTexture = null;
       this.texture = null;
       this.wrappedRenderTarget = null;
+      this._memoryUse = 0;
       this.originalMemoryUsage = 0;
       this.SetState(CjsResource.State.UNLOADED);
       if (this.videoController) this.EmitEvent("texturechange", this);
@@ -663,7 +669,44 @@ export class TriTextureRes extends CjsResource
     this.videoController = null;
     this.ReleaseResources();
     this.loadedBitmap = null;
+    this._memoryUse = 0;
     return super.ReleasePayload();
+  }
+
+  /**
+   * Carbon `IsMemoryUsageKnown` (TriTextureRes.cpp:431-434): known once loaded.
+   *
+   * @returns {boolean}
+   */
+  IsMemoryUsageKnown() {
+    return !this.IsLoading();
+  }
+
+  /**
+   * Carbon `GetMemoryUsage` (TriTextureRes.cpp:436-439): `m_memoryUse`.
+   *
+   * @returns {number} Bytes.
+   */
+  GetMemoryUsage() {
+    return this._memoryUse;
+  }
+
+  /**
+   * Carbon's memory estimate for the resource cache (TriTextureRes.cpp:1182-1189):
+   * every mip's size, times the array size.
+   *
+   * Adapted: Carbon takes it from the texture when `SetTexture` installs one.
+   * The texture here is made at first bind, so the estimate comes from the
+   * bitmap it is made from, whose dimensions it copies.
+   *
+   * @param {import("#imageio").HostBitmap} bitmap The adopted bitmap.
+   * @returns {number} Bytes.
+   */
+  static EstimateMemoryUse(bitmap) {
+    let bytes = 0;
+    const mipCount = bitmap.GetTrueMipCount();
+    for (let i = 0; i < mipCount; ++i) bytes += bitmap.GetMipSize(i);
+    return bytes * Math.max(1, bitmap.GetArraySize());
   }
 
   static payload = ResourceRequirement.TEXTURE;
@@ -729,6 +772,9 @@ CjsSchema.define(TriTextureRes, {
     SetFromRenderTarget: [ meta.blue.method, meta.notSupported ],
     CreateAndCopyFromRenderTarget: [ meta.blue.method, meta.notSupported ],
     CreateFromHostBitmap: [ meta.blue.method, meta.adapted ],
+    IsMemoryUsageKnown: [ meta.blue.method, meta.implemented ],
+    GetMemoryUsage: [ meta.blue.method, meta.implemented ],
+    EstimateMemoryUse: [ meta.adapted ],
     LoadPipeline: [ meta.adapted ],
     SetCutout: [ meta.ours ],
     GetBitmap: [ meta.ours ],
@@ -748,3 +794,5 @@ CjsSchema.define(TriTextureRes, {
     ReleasePayload: [ meta.adapted ]
   }
 });
+meta.blue.inherit(ICacheable)(TriTextureRes, { kind: "class" });
+meta.blue.interface(ICacheable)(TriTextureRes);
