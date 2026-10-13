@@ -256,3 +256,19 @@ a legal notice, here is a blessing:
    May you find forgiveness for yourself and forgive others.
    May you share freely, never taking more than you give.
 ```
+
+## FreeType CFF hinting and font metrics
+
+`src/resource/formats/opentype/core/hintCff.js` ports the hinting parts of
+FreeType's Adobe CFF engine (`src/psaux/psblues.c`, `pshints.c`, `psintrp.c`,
+`psft.c`; copyright 2007-2014 Adobe Systems Incorporated), and
+`src/resource/formats/opentype/core/freetypeMetrics.js` ports FreeType's
+size metrics, kerning and bitmap box (`ftobjs.c`, `sfobjs.c`, `ttkern.c`).
+Each file records its changes from the original.
+
+Portions of this software are copyright © The FreeType Project
+(https://freetype.org). All rights reserved.
+
+- Project: <https://freetype.org>
+- License: FreeType Project License (SPDX `FTL`)
+- Local license copy: `src/resource/formats/opentype/FTL.TXT`

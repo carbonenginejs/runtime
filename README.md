@@ -131,13 +131,14 @@ import order, and pre-migration test evidence.
 
 MIT, with some third-party portions under their own permissive licences. The
 package's SPDX expression is
-`MIT AND BSD-3-Clause AND BSL-1.0 AND blessing AND LicenseRef-Brumme-MD5`:
+`MIT AND BSD-3-Clause AND BSL-1.0 AND FTL AND blessing AND LicenseRef-Brumme-MD5`:
 
 | Licence | Covers |
 |---|---|
 | MIT | CarbonEngineJS's own code, CarbonEngine ports, and other MIT material |
 | BSD-3-Clause | the Wwise Vorbis repacker and codebook data, from ww2ogg |
 | BSL-1.0 | the GR2 Oodle1 section decompressor, from nwn2mdk |
+| FTL | the CFF glyph hinter and font metrics in the OpenType reader, from FreeType |
 | blessing | the LEMON parser driver in the shader compiler |
 | LicenseRef-Brumme-MD5 | the shader compiler's MD5, after Stephan Brumme |
 
