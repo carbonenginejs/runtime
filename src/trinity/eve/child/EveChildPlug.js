@@ -9,6 +9,7 @@ import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { EveEntity } from "../EveEntity.js";
 import { CjsSchema, meta } from "#schema";
+import { IsMatch } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { addChild, removeChild, clearChildren } from "../../../global/blue/children.js";
 import { EveChildTransform } from "./EveChildTransform.js";
@@ -62,6 +63,27 @@ export class EveChildPlug extends EveChildTransform
     for (const controller of this.controllers)
     {
       if (!controller.IsLinked()) controller.Link(this);
+    }
+    return true;
+  }
+
+  /**
+   * Carbon EveChildPlug::OnModified (EveChildPlug.cpp:111-118): a display change
+   * re-registers with the scene component registry.
+   *
+   * Adapted: compares the exposed property name where Carbon compares the
+   * member address.
+   *
+   * @param {*} [value=null] The modified member, by exposed name.
+   * @returns {boolean} Always true.
+   */
+  @meta.blue.method
+  @meta.adapted
+  OnModified(value = null)
+  {
+    if (IsMatch(value, "display"))
+    {
+      this.ReRegister();
     }
     return true;
   }

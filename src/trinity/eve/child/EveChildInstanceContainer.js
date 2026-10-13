@@ -20,7 +20,7 @@ import { EveChildModifierAttachToBone } from "./modifiers/EveChildModifierAttach
 import { EveSpaceObject2 } from "../spaceObject/EveSpaceObject2.js";
 import { EveEntity } from "../EveEntity.js";
 import { Tr2QuadRenderer } from "../../core/Tr2QuadRenderer/index.js";
-import { blue } from "#blue";
+import { blue, IsMatch } from "#blue";
 
 /** A child that instantiates a source template across a list of authored or locator-driven transforms, forwarding controller and registration calls to the instances. */
 @meta.define({ className: "EveChildInstanceContainer", family: "eve/child" })
@@ -165,6 +165,32 @@ export class EveChildInstanceContainer extends EveChildTransform
   OnListModified(_event, _key = 0, _key2 = 0, _value = null, list = null)
   {
     if (list === this.transformModifiers) this.reset = true;
+  }
+
+  /**
+   * Carbon EveChildInstanceContainer::OnModified (cpp:61-72): a new source or
+   * locator set recreates the instances on the next update; a display change
+   * re-registers with the scene component registry.
+   *
+   * Adapted: compares exposed property names where Carbon compares member
+   * addresses (Blue name `locatorSet` is m_locatorSetName).
+   *
+   * @param {*} [value=null] The modified member, by exposed name.
+   * @returns {boolean} Always true.
+   */
+  @meta.blue.method
+  @meta.adapted
+  OnModified(value = null)
+  {
+    if (IsMatch(value, "source") || IsMatch(value, "locatorSet"))
+    {
+      this.reset = true;
+    }
+    if (IsMatch(value, "display"))
+    {
+      this.ReRegister();
+    }
+    return true;
   }
 
   /** Replaces the source and requests native instance recreation (cpp:116). */

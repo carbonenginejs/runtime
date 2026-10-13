@@ -19,6 +19,7 @@ import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsSchema, meta } from "#schema";
+import { IsMatch } from "#blue";
 import { ITr2LightOwner } from "../lights/ITr2LightOwner.js";
 import { IShaderConfigurer } from "../../shader/IShaderConfigurer.js";
 import { IEveEffectChildrenOwner } from "../child/IEveEffectChildrenOwner.js";
@@ -1244,6 +1245,34 @@ export class EveEffectRoot2 extends EveEntity
   {
     this.observers.push(observer);
     return observer;
+  }
+
+  /**
+   * Carbon EveEffectRoot2::OnModified (EveEffectRoot2.cpp:76-87): a display
+   * change re-registers with the scene component registry; a mute change
+   * pushes the new state to effect children and observers. Carbon's SetMute
+   * ignores its argument and reads m_mute (cpp:1010-1020), so the written value
+   * is passed here.
+   *
+   * Adapted: compares exposed property names where Carbon compares member
+   * addresses.
+   *
+   * @param {*} [value=null] The modified member, by exposed name.
+   * @returns {boolean} Always true.
+   */
+  @meta.blue.method
+  @meta.adapted
+  OnModified(value = null)
+  {
+    if (IsMatch(value, "display"))
+    {
+      this.ReRegister();
+    }
+    else if (IsMatch(value, "mute"))
+    {
+      this.SetMute(this.mute);
+    }
+    return true;
   }
 
   /**
