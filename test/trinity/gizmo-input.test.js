@@ -496,7 +496,7 @@ test("zooming out is not capped by the far clip: a huge selection can be left, a
   controls.Destroy();
 });
 
-test("D flies to the framing pose, eased, landing where F frames; framing sizes the near clip to the target", () =>
+test("D flies to the framing pose, eased, landing where F frames; framing leaves the near clip alone", () =>
 {
   const camera = new EveCamera();
   camera.frontClip = 5; camera.backClip = 10000; camera.translationFromParent = 100;
@@ -513,11 +513,8 @@ test("D flies to the framing pose, eased, landing where F frames; framing sizes 
   controls.Frame();
   assert.ok(Math.abs(flown.distance - camera.translationFromParent) < 1e-6 * camera.translationFromParent, "lands where Frame frames");
   assert.deepEqual(flown.centre, Array.from(camera.extraTranslation));
-  assert.equal(camera.frontClip, 1100, "near clip is a thousandth of the framed radius (with the frame margin)");
-  assert.equal(flown.front, 1100);
-  bounds = { centre: [ 0, 0, 0 ], radius: 50 };
-  controls.Frame();
-  assert.equal(camera.frontClip, 5, "a small target returns to the starting near clip");
+  assert.equal(camera.frontClip, 5, "the near clip stays inside the first shadow split");
+  assert.equal(flown.front, 5);
   // Any orbit stops a flight where it is.
   bounds = { centre: [ 5e6, 0, 0 ], radius: 1e6 };
   controls.Fly(); controls.Update(0.05); controls.Orbit(1, 0);

@@ -39,9 +39,6 @@ export class TnyCameraControls
   _viewportWidth = 0;
   _viewportHeight = 0;
 
-  /** The camera's near clip when the controls were made: framing never lowers it below this. */
-  _baseFrontClip = 1;
-
   /** An eased flight to a framing pose, advanced by Update, or null. */
   _flight = null;
 
@@ -64,7 +61,6 @@ export class TnyCameraControls
     };
     this.SetKeyBindings(keyBindings);
     this._initial = this.GetPose();
-    this._baseFrontClip = camera.frontClip;
   }
 
   /** Registers below gizmos, sharing one input route and one bounded frame clock. */
@@ -356,16 +352,15 @@ export class TnyCameraControls
   }
 
   /**
-   * Sets a framing pose. The near clip follows the target's size, a
-   * thousandth of its radius but never below the camera's starting near clip,
-   * as skindr sizes it per body, so a planet keeps depth precision when the
-   * far clip reaches past it.
+   * Sets a framing pose. The near clip is left alone: Carbon's cascaded shadow
+   * splits start at the camera's near clip and end at fixed distances
+   * (Tr2ShadowMap SplitNr*), so a near clip past the first split leaves a
+   * cascade with no depth range.
    */
   #ApplyFrame({ distance, radius, centre, view })
   {
     const camera = this.camera;
     camera.zoomCurve = null;
-    camera.frontClip = Math.max(this._baseFrontClip, radius / 1000);
     camera.backClip = Math.max(camera.backClip, (distance + radius) * 1.05);
     camera.translationFromParent = distance;
     camera.useExtraTranslation = true;
