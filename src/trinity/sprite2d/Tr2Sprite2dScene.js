@@ -1062,6 +1062,9 @@ export class Tr2Sprite2dScene extends ITr2Scene
     this._uiTransformsCb?.Destroy();
     this._uiTransformsCb = null;
     this._effect = null;
+    // Carbon's m_defaultTexture = nullptr drops the scene's only reference, so
+    // the texture's OnShutdown gives its region back to the atlas at once.
+    if (this._defaultTexture) this._defaultTexture.OnShutdown();
     this._defaultTexture = null;
     if (storage & TriStorageFlags.TRISTORAGE_MANAGEDMEMORY) this._vertexDecl = -1;
   }
