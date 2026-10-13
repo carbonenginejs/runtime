@@ -136,12 +136,13 @@ export class Tr2GrannyAnimationLayer
    */
   static _getStopElapsed(request, duration, speed)
   {
+    // A finite clear-when-done play is pinned at play time, so every explicit stop is `stopAt`.
     if (request.stopAt !== undefined)
     {
       return { explicit: true, value: request.stopAt };
     }
     const natural = request.loopCount > 0 && speed > 0 ? duration * request.loopCount / speed : NEVER;
-    return { explicit: request.loopCount > 0 && !!request.clearWhenDone, value: natural };
+    return { explicit: false, value: natural };
   }
 
   /**

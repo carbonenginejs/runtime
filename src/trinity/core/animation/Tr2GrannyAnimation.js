@@ -1446,6 +1446,12 @@ export class Tr2GrannyAnimation
     {
       return;
     }
+    // A clear-when-done play pinned at play time is removed by its pinned stop
+    // above, not at the end of its last loop: Carbon's player lives until then.
+    if (request.clearWhenDone && request.stopAt !== undefined)
+    {
+      return;
+    }
     if (request.elapsed * speed < duration * request.loopCount)
     {
       return;
@@ -1672,6 +1678,11 @@ export class Tr2GrannyAnimation
       // remainder; here the queue starts it when its predecessor retires.
       for (const queued of layer.queue)
       {
+        // An explicit stop (StopAnimations, or a finite clear-when-done play's
+        // pin) survives: SetLoopCount's AdjustStopTime returns early for it
+        // (animation.cpp:602-607) and SetStopTime(now + GetDurationLeft)
+        // re-pins the same time - CE-44's mechanism.
+        if (queued.stopAt !== undefined) continue;
         const duration = queued.animation ? this._getAnimationDuration(queued.animation) : 0;
         const loopIndex = Tr2GrannyAnimationLayer._GetLoopIndex(queued, duration);
         if (loopIndex < 0) continue;
@@ -1679,7 +1690,7 @@ export class Tr2GrannyAnimation
         queued.stopAt = duration * queued.loopCount / Math.abs(queued.speed);
       }
     }
-    layer.queue.push({
+    const request = {
       name,
       animation,
       loopCount: Math.max(0, Math.trunc(Number(loopCount) || 0)),
@@ -1687,7 +1698,20 @@ export class Tr2GrannyAnimation
       speed: Number.isFinite(Number(speed)) ? Number(speed) : 1,
       clearWhenDone: !!clearWhenDone,
       held: false
-    });
+    };
+    // A finite clear-when-done play pins its stop at play time
+    // (Tr2GrannyAnimationLayer.cpp:257-260), so a later EndAnimation or
+    // enqueue leaves it where it is. Quirk CE-169: Carbon adds the delay
+    // (the caller's, plus the remainder an enqueue waits for) to a
+    // GetDurationLeft that already counts it, so the pin is that much late.
+    const duration = animation ? this._getAnimationDuration(animation) : 0;
+    const playSpeed = Math.abs(request.speed);
+    if (request.loopCount > 0 && request.clearWhenDone && duration > 0 && playSpeed > 0)
+    {
+      const waited = replace ? 0 : layer.GetAnimationRemainingTime();
+      request.stopAt = duration * request.loopCount / playSpeed + Math.max(0, Number(delay) || 0) + waited;
+    }
+    layer.queue.push(request);
     return true;
   }
 

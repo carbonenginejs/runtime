@@ -122,12 +122,51 @@ test("GetAnimationRemainingTime follows cmf loop truncation and the explicit-sto
 });
 
 
-test("a chained request is timed from the end of the one before it", () =>
+test("a chained request is timed from the end of the one before it, its pinned stop late by the wait (CE-169)", () =>
 {
   const animation = createAnimation();
   animation.PlayAnimation("Move", true, 1, 0, 1, false);
   animation.ChainAnimation("Move");
-  close(animation.GetAnimationLayer(null).GetAnimationRemainingTime(), 4, "2s current + 2s chained");
+  // Carbon starts the chained player after the 2 s remainder and pins its stop at
+  // start + 2 s + the 2 s it waited (Tr2GrannyAnimationLayer.cpp:246, 257-260).
+  close(animation.GetAnimationLayer(null).GetAnimationRemainingTime(), 6, "2s wait + 2s chained + 2s counted again");
+});
+
+
+test("a finite clear-when-done play keeps its play-time stop through EndAnimation", () =>
+{
+  const animation = createAnimation();
+  const layer = animation.GetAnimationLayer(null);
+  animation.PlayAnimation("Move", true, 3, 0, 1, true);
+  animation.Update(1);
+  animation.EndAnimation();
+  // The stop was pinned at 6 s when it played; SetLoopCount leaves an explicit stop (animation.cpp:602-607).
+  close(layer.GetAnimationRemainingTime(), 5, "pinned stop at 6 s");
+  animation.Update(1.5);
+  assert.equal(layer.queue.length, 1, "the player holds until its pinned stop");
+  animation.Update(4);
+  assert.equal(layer.queue.length, 0, "and retires there");
+});
+
+
+test("an enqueue leaves an explicit stop where it is", () =>
+{
+  const animation = createAnimation();
+  const layer = animation.GetAnimationLayer(null);
+  animation.PlayAnimation("Move", true, 0, 0, 1, false);
+  animation.Update(1);
+  layer.StopAnimations(0.5);
+  close(layer.queue[0].stopAt, 1.5, "StopAnimations pins the stop");
+  animation.ChainAnimation("Move");
+  close(layer.queue[0].stopAt, 1.5, "the chain does not move it to the loop end");
+
+  const pinned = createAnimation();
+  const pinnedLayer = pinned.GetAnimationLayer(null);
+  pinned.PlayAnimation("Move", true, 3, 0, 1, true);
+  pinned.Update(1);
+  pinned.ChainAnimation("Move");
+  close(pinnedLayer.queue[0].stopAt, 6, "a clear-when-done play keeps its play-time pin");
+  close(pinnedLayer.GetAnimationRemainingTime(), 12, "5 s wait + 2 s chained + 5 s counted again (CE-169)");
 });
 
 
