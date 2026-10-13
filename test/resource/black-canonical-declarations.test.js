@@ -207,6 +207,26 @@ test("canonical reader notifies each successful stored write and ignores unmappe
     assert.deepEqual(notifications, [["value", 7, 0], ["value", 7, 0]]);
 });
 
+test("a fixed-length member fills the instance's own array and refuses a null one", () =>
+{
+    let storage;
+    class Owner { color = (storage = new Float32Array(4)); }
+    class NullOwner { color = null; }
+    const members = [ member("color", "color") ];
+    CjsSchema.define(Owner, { className: "BlackFilledColorOwner", members });
+    CjsSchema.define(NullOwner, { className: "BlackFilledColorNullOwner", members });
+    const file = kind =>
+    {
+        const fixture = new BlackFixture();
+        return fixture.Finish(fixture.Object(1, kind, [["color", floats([.25, .5, .75, 1])]]));
+    };
+    const owner = new CjsBlackReader(file("BlackFilledColorOwner"), { schema: null }).CreateObject();
+    assert.equal(owner.color, storage, "the instance's own typed array is filled, not replaced");
+    assert.deepEqual(Array.from(owner.color), [ .25, .5, .75, 1 ]);
+    assert.throws(() => new CjsBlackReader(file("BlackFilledColorNullOwner"), { schema: null }).CreateObject(), /fills the member's 4-element array, but the member holds null/);
+    assert.deepEqual(new CjsBlackReader(file("BlackFilledColorOwner"), { schema: null }).ReadPayload().object.color, [ .25, .5, .75, 1 ]);
+});
+
 test("a wrapped TriMatrix member fills the instance's own mat4 and refuses a null one", () =>
 {
     let storage;
@@ -314,7 +334,8 @@ test("complete scene graphs decode with explicit baseless test classes and canon
 {
     // These test constructors prove reader construction, not production class
     // migration: the maintained scene/effect/parameter classes still have a base.
-    class Scene {}
+    // A declared fixed-length member needs its storage: Black fills it in place.
+    class Scene { ambientColor = new Float32Array(4); }
     class Effect {}
     class Texture {}
     class Constant { name = ""; value = [0, 0, 0, 0]; }

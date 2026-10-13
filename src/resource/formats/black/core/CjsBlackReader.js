@@ -307,7 +307,12 @@ export class CjsBlackReader extends CjsBlueReader
             if (canonical)
             {
                 const type = declaration?.type;
-                if (type?.kind === "root" || type?.wrapped) destination = getReaderMemberValue(target, declaration);
+                if (type?.kind === "root") destination = getReaderMemberValue(target, declaration);
+                // Fixed-length float and wrapped members fill the member's own array.
+                else if (!fieldTarget.discard && (type?.wrapped || fieldTarget.field.black?.beType === "FLOATARRAY"))
+                {
+                    destination = getReaderMemberValue(target, declaration) ?? null;
+                }
                 else if (!fieldTarget.discard && type?.kind === "list" && fieldTarget.field.jsType?.elementType?.kind === "rootRef")
                 {
                     const current = getReaderMemberValue(target, declaration);

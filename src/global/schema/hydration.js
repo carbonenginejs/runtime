@@ -351,6 +351,8 @@ function readerNumericStorage(current, value, type, name)
     // Runtime storage of a 64-bit integer is a number within the safe range and a
     // BigInt beyond it, as the values path stores it; Black decodes every one as BigInt.
     if (typeof value === "bigint") return value >= MIN_SAFE_BIGINT && value <= MAX_SAFE_BIGINT ? Number(value) : value;
+    // The transport already filled this array storage in place.
+    if (typeof value === "object" && value === current) return current;
     if (!fixed && descriptor.kind !== "typedArray") return value;
     if (!Array.isArray(value) && !(ArrayBuffer.isView(value) && !(value instanceof DataView)))
     {

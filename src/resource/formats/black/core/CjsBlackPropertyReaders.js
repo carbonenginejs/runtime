@@ -1,6 +1,6 @@
 import { BLUELISTEVENT } from "#consts/blue";
 import { CjsSchema } from "#schema";
-import { applyStructRecordMember } from "#schema/hydration";
+import { applyStructRecordMember, getReaderMemberValue } from "#schema/hydration";
 import {
     CARBON_TYPE,
     normalizeCarbonTypeDescriptor
@@ -12,6 +12,12 @@ import {
  * TriColor_Blue.cpp) and constructs with the given defaults (TriMatrix.cpp:72-90,
  * TriVector.cpp:203-206, TriQuaternion.cpp:53-56, TriColor.cpp:164-167).
  */
+/** Fixed-length float kinds: hydration fills the member's own array. */
+const FLOAT_ARRAY_KINDS = new Set([
+    CARBON_TYPE.VECTOR2, CARBON_TYPE.VECTOR3, CARBON_TYPE.VECTOR4, CARBON_TYPE.COLOR,
+    CARBON_TYPE.QUATERNION, CARBON_TYPE.MATRIX3, CARBON_TYPE.MATRIX4
+]);
+
 const WRAPPERS = {
     TriMatrix: {
         kinds: [ "mat4", "matrix4" ],
@@ -98,21 +104,21 @@ export class CjsBlackPropertyReaders
                 return reader.ReadU64();
 
             case CARBON_TYPE.VECTOR2:
-                return CjsBlackPropertyReaders.readFloatArray(reader, 2);
+                return CjsBlackPropertyReaders.readFloatArray(reader, 2, destination);
 
             case CARBON_TYPE.VECTOR3:
-                return CjsBlackPropertyReaders.readFloatArray(reader, 3);
+                return CjsBlackPropertyReaders.readFloatArray(reader, 3, destination);
 
             case CARBON_TYPE.VECTOR4:
             case CARBON_TYPE.COLOR:
             case CARBON_TYPE.QUATERNION:
-                return CjsBlackPropertyReaders.readFloatArray(reader, 4);
+                return CjsBlackPropertyReaders.readFloatArray(reader, 4, destination);
 
             case CARBON_TYPE.MATRIX3:
-                return CjsBlackPropertyReaders.readFloatArray(reader, 9);
+                return CjsBlackPropertyReaders.readFloatArray(reader, 9, destination);
 
             case CARBON_TYPE.MATRIX4:
-                return CjsBlackPropertyReaders.readFloatArray(reader, 16);
+                return CjsBlackPropertyReaders.readFloatArray(reader, 16, destination);
 
             case CARBON_TYPE.ARRAY:
                 return CjsBlackPropertyReaders.readArray(reader, descriptor);
@@ -197,7 +203,7 @@ export class CjsBlackPropertyReaders
                 return black.signed ? reader.ReadI16() : reader.ReadU16();
 
             case "FLOATARRAY":
-                return CjsBlackPropertyReaders.readFloatArray(reader, black.length || descriptor.length || 0);
+                return CjsBlackPropertyReaders.readFloatArray(reader, black.length || descriptor.length || 0, destination);
 
             case "BINARYBLOCK":
                 return CjsBlackPropertyReaders.readBinaryBlock(reader, black);
@@ -436,29 +442,28 @@ export class CjsBlackPropertyReaders
     /**
      * Reads an embedded Blue math wrapper (TriMatrix, TriVector, ...) as its plain
      * value. Carbon's BlackReader reads the embedded object's members into the existing
-     * one, so a runtime read fills the member's own typed array in place and elements
-     * the file leaves out keep their values; it never allocates a replacement. A payload
-     * read has no instance, so its output array starts from the wrapper's constructor
-     * defaults.
+     * one, so hydrating a class fills the member's own typed array in place and elements
+     * the file leaves out keep their values; it never allocates a replacement. With no
+     * destination (a payload read, or a discarded field) the new array starts from the
+     * wrapper's constructor defaults.
      *
      * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor positioned at the object payload size.
      * @param {string} className The wrapper class the member declares.
-     * @param {Float32Array} [destination] The member's typed array; required for a runtime read.
-     * @returns {Float32Array|number[]} The filled destination, or the payload array.
-     * @throws {TypeError} When a runtime read has no typed array of the wrapper's length to fill, the file holds another class, or a member the wrapper does not persist.
+     * @param {Float32Array|null} [destination] The member's own typed array, when hydrating.
+     * @returns {Float32Array|number[]} The filled destination, or the new array.
+     * @throws {TypeError} When hydration's destination is null or not a typed array of the wrapper's length, the file holds another class, or a member the wrapper does not persist.
      */
     static readWrapper(reader, className, destination = undefined)
     {
         const { elements, defaults } = WRAPPERS[className];
-        const runtime = reader.context.readMode === "runtime";
-        if (runtime && !(ArrayBuffer.isView(destination) && !(destination instanceof DataView) && destination.length === elements.length))
+        if (destination !== undefined && !(ArrayBuffer.isView(destination) && !(destination instanceof DataView) && destination.length === elements.length))
         {
             throw new TypeError(`Black ${className} fills the member's ${elements.length}-element typed array, but the member holds ${destination === null ? "null" : destination?.constructor?.name ?? typeof destination}.`);
         }
         const objectReader = reader.ReadBinaryReader(reader.ReadU32());
         const kind = objectReader.ReadStringRef();
         if (kind !== className) throw new TypeError(`Black member declares ${className} but holds ${kind}.`);
-        const value = runtime ? destination : defaults.slice();
+        const value = destination ?? defaults.slice();
         while (!objectReader.AtEnd())
         {
             const name = objectReader.ReadStringRef();
@@ -647,20 +652,39 @@ export class CjsBlackPropertyReaders
     }
 
     /**
-     * Reads float array from the current Black object-graph reader.
+     * Reads float array from the current Black object-graph reader. Hydrating a
+     * class fills the member's own array in place; a payload read, with no
+     * destination, returns a new array.
      *
      * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor positioned at the floats.
      * @param {number} count Number of 32-bit floats.
-     * @returns {number[]} The values.
+     * @param {Float32Array|number[]|null} [destination] The member's own array, when hydrating.
+     * @returns {Float32Array|number[]} The filled destination, or the new array.
+     * @throws {TypeError} When hydration's destination is null or not an array of `count` elements.
      */
-    static readFloatArray(reader, count)
+    static readFloatArray(reader, count, destination = undefined)
     {
-        const result = [];
+        // A payload read has no instance: its output is a new array.
+        if (destination === undefined)
+        {
+            const result = [];
+            for (let i = 0; i < count; i++)
+            {
+                result[i] = reader.ReadF32();
+            }
+            return result;
+        }
+        // Hydration fills the member's own fixed-length array, never a replacement.
+        const fillable = (ArrayBuffer.isView(destination) && !(destination instanceof DataView)) || Array.isArray(destination);
+        if (!fillable || destination.length !== count)
+        {
+            throw new TypeError(`Black fills the member's ${count}-element array, but the member holds ${destination === null ? "null" : `${destination.constructor?.name ?? typeof destination}(${destination.length})`}.`);
+        }
         for (let i = 0; i < count; i++)
         {
-            result[i] = reader.ReadF32();
+            destination[i] = reader.ReadF32();
         }
-        return result;
+        return destination;
     }
 
     /**
@@ -704,6 +728,9 @@ export class CjsBlackPropertyReaders
                 throw new TypeError(`Black struct ${descriptor.itemClassName} is not registered (import its package)`);
             }
             const declarations = Item ? CjsBlackPropertyReaders.structMemberDeclarations(Item) : null;
+            // A record instance's fixed-length float members are filled in place.
+            const fills = structure.members.map(member => Item !== null
+                && FLOAT_ARRAY_KINDS.has(normalizeCarbonTypeDescriptor({ kind: member.type }).kind));
             for (let index = 0; index < count; index++)
             {
                 const record = records.ReadBinaryReader(structureSize);
@@ -722,7 +749,7 @@ export class CjsBlackPropertyReaders
                     record.offset = member.offset;
                     const read = CjsBlackPropertyReaders.readValue(record, {
                         jsType: { kind: member.type }
-                    });
+                    }, fills[memberIndex] ? getReaderMemberValue(value, declarations.get(member.name)) ?? null : undefined);
                     if (Item) applyStructRecordMember(value, declarations.get(member.name), read);
                     else value[member.name] = read;
                 }
