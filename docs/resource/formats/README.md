@@ -36,15 +36,13 @@ Concrete formats are never imported or registered by the package root. Each
 format is an explicit tree-shakeable subpath, registered by the caller:
 
 ```js
-import { CjsBlueResMan } from "@carbonenginejs/runtime/resource";
+import { blue, CjsBlueResFileSystemCallback } from "@carbonenginejs/runtime/blue";
 import { CjsMp4Format } from "@carbonenginejs/runtime/resource/formats/mp4";
 
-const resMan = new CjsBlueResMan().Register({
-  source,
-  formats: [ CjsMp4Format ]
-});
+blue.paths.RegisterFileSystem(new CjsBlueResFileSystemCallback(path => readBytes(path)));
+blue.resMan.Register({ formats: [ CjsMp4Format ] });
 
-const resource = resMan.GetResource("res:/video/intro.mp4");
+const resource = blue.resMan.GetResource("res:/video/intro.mp4");
 const video = await resource.Ready();
 ```
 

@@ -54,17 +54,19 @@ works in one of four ways, and the caller chooses:
    nothing is fetched.
 3. **Injected getter.** The caller supplies the resource getter (one
    asynchronous `Fetch(resPath)`), backed by any service or cache.
-4. **Injected local reader.** The caller keeps the resource manager's whole
-   pipeline (routes, formats, workers, caching) and swaps only its byte
-   source: `blue.resMan.Register({ source })` with any object that has
-   `Read(path, options)`. This is how a Node.js tool reads from a local disk;
-   the reader belongs to the caller, so the runtime itself stays free of
-   Node.js code.
+4. **Injected file system.** The caller keeps the resource manager's whole
+   pipeline (formats, workers, caching) and supplies only where bytes come
+   from, as Carbon does: a file system registered with `blue.paths`
+   (`RegisterFileSystem`). `CjsBlueResFileSystemCallback` wraps a
+   `(path) => bytes | null` function; a Node.js host implements
+   `BlueResFileSystemLocal` over its disk. The file system belongs to the
+   caller, so the runtime itself stays free of Node.js code.
 
-The resource manager lives in Blue and always exists as `blue.resMan`. A
-composing wrapper configures it (sources, paths, which formats and resource
-classes to register) according to what its environment offers; it does not
-have to create it. `@carbonenginejs/tools-core` is one possible data provider,
+The resource manager lives in Blue and always exists as `blue.resMan`. It reads
+every file through `blue.paths` and never fetches by itself. A composing wrapper
+registers file systems and the formats and resource classes its environment
+supports, then calls `InitializeTrinity()` once; it does not have to create the
+manager. `@carbonenginejs/tools-core` is one possible data provider,
 never a requirement.
 
 [Browser video playback](video-playback.md) covers shared billboard and plane
