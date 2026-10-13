@@ -63,7 +63,8 @@ const OP2_FLEX1 = 37;
 
 /** Implementation limits (TN #5177 appendix B). */
 const MAX_STACK = 48;
-const MAX_SUBR_DEPTH = 10;
+// TN #5177 gives 10; FreeType's CFF engine allows 16 (CF2_MAX_SUBR, psfont.h:53), and Carbon draws through FreeType.
+const MAX_SUBR_DEPTH = 16;
 const TRANSIENT_SIZE = 32;
 
 /**

@@ -255,7 +255,11 @@ export class Tr2FontManager
     this._codePoints.delete(family);
     this._blues.delete(family);
     this.ClearCachedGlyphs();
-    return this.GetFaceID(family);
+    // A reload keeps the family's face ID, and glyph textures are keyed by it:
+    // drop the textures drawn from the old source, or they stand in for new glyphs.
+    const faceID = this.GetFaceID(family);
+    for (const key of this._sbitToTextureMap.keys()) if (key.startsWith(`${faceID}:`)) this._sbitToTextureMap.delete(key);
+    return faceID;
   }
 
   /**
@@ -597,7 +601,19 @@ export class Tr2FontManager
       let sbit;
       if (font && font.cff)
       {
-        sbit = this._RasterizeCffGlyph(faceID, font, xPpem, size, glyphIndex, key);
+        try
+        {
+          sbit = this._RasterizeCffGlyph(faceID, font, xPpem, size, glyphIndex, key);
+        }
+        catch (error)
+        {
+          if (error instanceof TypeError || error instanceof ReferenceError) throw error;
+          // FreeType's sbit cache ignores a glyph-load error and marks the sbit
+          // unavailable - width 255, height 0, no pixels, no advance
+          // (ftcsbits.c:197-207) - so a charstring this reader cannot run draws
+          // nothing instead of failing the text (Tr2FontMeasurer.cpp:818).
+          sbit = { width: 255, height: 0, left: 0, top: 0, xadvance: 0, yadvance: 0, pitch: 0, format: 2, max_grays: 255, buffer: new Uint8Array(0), key }; // alloc: empty glyph pixels
+        }
       }
       else
       {

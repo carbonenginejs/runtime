@@ -161,3 +161,31 @@ test('the measurer falls back per character when a parsed face lacks one', async
   assert.equal(latin.faceId, manager.GetFaceID(FAMILY));
   assert.equal(ideograph.faceId, manager.GetFaceID(TR2_FONT_FALLBACK));
 });
+
+test('a charstring the reader cannot run gives an unavailable glyph, as FreeType\'s sbit cache does', async t =>
+{
+  browser(t);
+  const manager = await Manager(t);
+  if (!manager) return;
+  const id = manager.GetFaceID(FAMILY);
+  // Operator 2 is reserved in Type 2 charstrings; FreeType marks the sbit unavailable (ftcsbits.c:197-207).
+  manager._fonts.get(FAMILY).cff.charStrings[37] = new Uint8Array([ 2 ]);
+  const sbit = manager.LookupSBit(id, 0, 16, 37);
+  assert.deepEqual([ sbit.GetWidth(), sbit.GetHeight(), sbit.GetXAdvance() ], [ 255, 0, 0 ]);
+});
+
+test('reloading a family drops the glyph textures drawn from its old source', async t =>
+{
+  const saved = { FontFace: globalThis.FontFace, fonts: globalThis.fonts };
+  globalThis.FontFace = class { async load() {} };
+  globalThis.fonts = { add() {} };
+  t.after(() => { globalThis.FontFace = saved.FontFace; globalThis.fonts = saved.fonts; });
+  const manager = new Tr2FontManager();
+  const reloaded = manager.GetFaceID('Reloaded'), other = manager.GetFaceID('Other');
+  const texture = {};
+  manager._sbitToTextureMap.set(`${reloaded}:0:16:37`, new WeakRef(texture));
+  manager._sbitToTextureMap.set(`${other}:0:16:37`, new WeakRef(texture));
+  assert.equal(await manager.LoadFont('Reloaded', 'url(reloaded.woff2)'), reloaded, 'a reload keeps the face ID');
+  assert.equal(manager._sbitToTextureMap.has(`${reloaded}:0:16:37`), false, 'its old glyph texture is dropped');
+  assert.equal(manager._sbitToTextureMap.has(`${other}:0:16:37`), true, 'another face keeps its textures');
+});
