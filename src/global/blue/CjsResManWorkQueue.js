@@ -49,6 +49,8 @@ export class CjsResManWorkQueue
   constructor(name, options = {}) {
     this._name = CjsResManWorkQueue.normalizeName(name);
     this._manager.SetName(this._name);
+    // A task's slot frees after its promise settles; only then can the next start.
+    this._manager.SetSlotFreeCallback(() => this._NotifyReady());
     this._onReady = typeof options.onReady === "function" ? options.onReady : null;
     this.SetConcurrency(options.concurrency ?? 1);
   }
@@ -271,7 +273,6 @@ export class CjsResManWorkQueue
     item.state = didResolve ? "resolved" : "rejected";
     if (didResolve) item.resolve(value);
     else item.reject(value);
-    this._NotifyReady();
   }
 
   /** Tells the manager when there is something to start. */

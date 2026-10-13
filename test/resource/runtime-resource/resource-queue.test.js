@@ -902,3 +902,12 @@ test("resources created in urgent mode load and prepare ahead of regular ones (B
   await Promise.all([ ...regular, urgent ]);
   assert.deepEqual(loads.slice(1).sort(), [ "res:/urgent/a.bin", "res:/urgent/b.bin" ]);
 });
+
+test("a background queue drains on its own: a finished task starts the next without a tick", async () => {
+  const resMan = new CjsBlueResMan({ maxConcurrentLoads: 1 });
+  const order = [];
+  const first = resMan.QueueTask("background", async () => { await null; order.push("first"); return 1; });
+  const second = resMan.QueueTask("background", async () => { order.push("second"); return 2; });
+  await Promise.race([ Promise.all([ first.promise, second.promise ]), new Promise((_, reject) => setTimeout(() => reject(new Error("the second task never started")), 500)) ]);
+  assert.deepEqual(order, [ "first", "second" ]);
+});

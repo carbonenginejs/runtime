@@ -332,3 +332,117 @@ test("in Update mode with several slots, a fence waits for running entries but d
   assert.deepEqual(order, [ "after", "slow", "fence" ]);
   assert.equal(man.IsEmpty(), true);
 });
+
+/** A fake worker factory whose workers can be made to fail, counting the workers it built. */
+function createFailingWorkerFactory(callbacks)
+{
+  const factory = createFakeWorkerFactory(callbacks);
+  const built = [];
+  const make = (module, options) =>
+  {
+    const worker = factory(module, options);
+    const listeners = new Map();
+    const add = worker.addEventListener;
+    worker.addEventListener = (type, listener) => { listeners.set(type, listener); if (type === "message") add(type, listener); };
+    worker.fail = () => listeners.get("error")({ type: "error", message: "script failed" });
+    built.push(worker);
+    return worker;
+  };
+  return { make, built };
+}
+
+test("a failed worker is replaced, so the next entry runs on a new one and settles", async () =>
+{
+  const { make, built } = createFailingWorkerFactory({ hang: () => new Promise(() => {}), double: value => value * 2 });
+  const man = new BlueCallbackMan();
+  man.SetWorkerModule("test-worker.js");
+  man.SetWorkerFactory(make);
+  man.Run();
+
+  const held = assert.rejects(man.Add__Name("hang"), { code: "CJS_CALLBACKMAN_WORKER_FAILED" });
+  const next = man.Add__Name("double", 21);
+  await tick();
+  built[0].fail();
+  await held;
+  assert.equal(built[0].terminated, true);
+  assert.equal(await next, 42, "the entry after the failure runs on a replacement worker");
+  assert.equal(built.length, 2);
+  await man.Stop();
+});
+
+test("a worker failing after its entry was cancelled still frees the slot, and Stop settles", async () =>
+{
+  const { make, built } = createFailingWorkerFactory({ hang: () => new Promise(() => {}) });
+  const man = new BlueCallbackMan();
+  man.SetWorkerModule("test-worker.js");
+  man.SetWorkerFactory(make);
+  man.Run();
+
+  const id = { value: 0 };
+  const cancelled = assert.rejects(man.Add__Name("hang", null, 0, id), { name: "AbortError" });
+  await tick();
+  man.Cancel(id.value);
+  built[0].fail();
+  await cancelled;
+  await man.Stop();
+  assert.equal(man.IsEmpty(), true);
+});
+
+test("Stop removes the named entries it rejects, so a later Run does not execute them", async () =>
+{
+  const { make } = createFailingWorkerFactory({ value: () => 1 });
+  const man = new BlueCallbackMan();
+  man.SetWorkerModule("test-worker.js");
+  man.SetWorkerFactory(make);
+  man.Run();
+  man.Pause();
+  const never = assert.rejects(man.Add__Name("value"), { name: "AbortError" });
+  await man.Stop();
+  await never;
+  assert.equal(man.GetSize(), 0);
+  assert.equal(man.IsEmpty(), true);
+});
+
+test("in Update mode a named entry rejects and gives up its place instead of hanging", async () =>
+{
+  const man = new BlueCallbackMan();
+  const named = assert.rejects(man.Add__Name("job"), /needs the own threads/);
+  assert.equal(man.Update(), true);
+  await named;
+  assert.equal(man.GetSize(), 0);
+});
+
+test("lowering the thread count stops surplus slots taking new entries", async () =>
+{
+  const man = new BlueCallbackMan();
+  man.SetThreadCount(4);
+  const releases = [];
+  const hold = () => new Promise(resolve => releases.push(resolve));
+  for (let i = 0; i < 4; ++i) man.Add(hold);
+  while (man.Update());
+  assert.equal(releases.length, 4);
+
+  man.SetThreadCount(1);
+  for (let i = 0; i < 4; ++i) man.Add(hold);
+  for (const release of releases.splice(0)) release();
+  await tick();
+  while (man.Update());
+  assert.equal(releases.length, 1, "only one slot takes work after the count drops to one");
+});
+
+test("an Update-mode manager reports each freed slot, after the entry has settled", async () =>
+{
+  const man = new BlueCallbackMan();
+  const events = [];
+  man.SetSlotFreeCallback(() => events.push(`free:${man.GetSize()}`));
+  let release;
+  man.Add(() => new Promise(resolve => { release = resolve; }));
+  man.Add(() => events.push("second ran"));
+  assert.equal(man.Update(), true);
+  assert.equal(man.Update(), false, "the only slot is busy");
+  release();
+  await tick();
+  assert.deepEqual(events, [ "free:1" ], "the slot is reported free, with the second entry still queued");
+  assert.equal(man.Update(), true);
+  assert.deepEqual(events, [ "free:1", "second ran", "free:0" ]);
+});

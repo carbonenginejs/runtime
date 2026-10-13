@@ -68,6 +68,9 @@ class BlueCallbackManThreadData
   /** Settles when the entry in progress has finished; Carbon's `m_cbInProgressMutex`. */
   inProgress = null;
 
+  /** Id of the entry handed to the slot's worker; unlike `currentId`, a cancel keeps it. */
+  workerEntryId = 0;
+
   /** The slot's worker, for a manager running its own threads. */
   worker = null;
 
@@ -144,6 +147,9 @@ export class BlueCallbackMan extends IBlueCallbackMan
 
   /** The `Update` slot to try first next time; slots take turns, as threads do. */
   _nextUpdateSlot = 0;
+
+  /** Called when an `Update` slot frees; see `SetSlotFreeCallback`. */
+  _onSlotFree = null;
 
   /**
    * `Add` (CallbackMan.cpp:94-146) - queues a callback run on the caller's
@@ -288,12 +294,7 @@ export class BlueCallbackMan extends IBlueCallbackMan
     {
       const td = new BlueCallbackManThreadData(i);
       td.name = this._ThreadName(i);
-      td.worker = this._workerFactory(this._workerModule, { type: "module", name: td.name });
-      td.worker.addEventListener("message", event => this._OnWorkerMessage(td, event.data));
-      // A worker that fails to load or throws outside a callback fails the
-      // entry it holds instead of leaving its promise pending.
-      td.worker.addEventListener("error", event => this._OnWorkerFailure(td, event));
-      td.worker.addEventListener("messageerror", event => this._OnWorkerFailure(td, event));
+      this._CreateWorker(td);
       this._threads.push(td);
     }
 
@@ -315,17 +316,22 @@ export class BlueCallbackMan extends IBlueCallbackMan
     this._stop = true;
     await Promise.all(this._threads.map(td => td.inProgress ? td.inProgress.then(() => {}, () => {}) : null));
 
-    for (const td of this._threads) td.worker.terminate();
+    for (const td of this._threads) if (td.worker !== null) td.worker.terminate();
     this._threads = [];
     this._isRunningOwnThreads = false;
 
-    // Entries never started stay queued, as in Carbon; a named entry's
-    // promise would wait forever on a worker that no longer exists.
+    // Entries never started stay queued, as in Carbon, except named ones: their
+    // promise would wait forever on a worker that no longer exists, so they are
+    // rejected and removed, and no later Run executes work already reported aborted.
     for (const queue of [ this._urgentQueue, this._queue, this._fenceQueue ])
     {
-      for (const entry of queue)
+      for (let i = queue.length - 1; i >= 0; --i)
       {
-        if (entry.completion) entry.completion.reject(createCancelledError(entry.id));
+        const entry = queue[i];
+        if (entry.name === null) continue;
+        queue.splice(i, 1);
+        --this._size;
+        entry.completion.reject(createCancelledError(entry.id));
       }
     }
   }
@@ -377,15 +383,19 @@ export class BlueCallbackMan extends IBlueCallbackMan
     if (this._isRunningOwnThreads) throw new Error("BlueCallbackMan.Update: the manager runs its own threads.");
 
     while (this._threads.length < this._threadCount) this._threads.push(new BlueCallbackManThreadData(this._threads.length));
+    // A lowered thread count retires the surplus slots once they are idle;
+    // until then they finish what they hold and take nothing new.
+    while (this._threads.length > this._threadCount && this._threads[this._threads.length - 1].inProgress === null) this._threads.pop();
 
-    for (let i = 0; i < this._threads.length; ++i)
+    const count = Math.min(this._threads.length, this._threadCount);
+    for (let i = 0; i < count; ++i)
     {
-      const td = this._threads[(this._nextUpdateSlot + i) % this._threads.length];
+      const td = this._threads[(this._nextUpdateSlot + i) % count];
       if (td.inProgress !== null) continue;
       // An idle slot that finds nothing it may run (a fence still waiting on
       // others) has still cleared its own fence bit; the next idle slot tries.
       if (!this._UpdateThread(td)) continue;
-      this._nextUpdateSlot = (td.threadIndex + 1) % this._threads.length;
+      this._nextUpdateSlot = (td.threadIndex + 1) % count;
       return true;
     }
     return false;
@@ -414,7 +424,8 @@ export class BlueCallbackMan extends IBlueCallbackMan
         }
       }
 
-      if (fencedEntry.fenceMask === 0)
+      // A surplus slot left by a lowered thread count has no fence bit; the fence waits for it too.
+      if (fencedEntry.fenceMask === 0 && !this._threads.some(other => other.threadIndex >= this._threadCount && other.inProgress !== null))
       {
         entry = this._fenceQueue.shift();
         processedFenceEntry = true;
@@ -448,10 +459,22 @@ export class BlueCallbackMan extends IBlueCallbackMan
       td.inProgress = null;
       --this._size;
       if (processedFenceEntry || this._isRunningOwnThreads) this._Alarm();
+      // Adapted: an Update-mode slot frees asynchronously, after the caller's
+      // Update returned; the owner is told so it can start the next entry.
+      if (!this._isRunningOwnThreads && this._onSlotFree !== null) this._onSlotFree();
     };
 
     if (entry.name !== null)
     {
+      if (!this._isRunningOwnThreads)
+      {
+        // A named entry runs on a worker; in Update mode it fails rather than hold its place.
+        entry.completion.reject(new Error(`BlueCallbackMan: named entry "${entry.name}" needs the own threads (Run).`));
+        finish();
+        return true;
+      }
+      // A worker that failed is replaced when its slot is next given work.
+      if (td.worker === null) this._CreateWorker(td);
       td.inProgress = this._RunOnWorker(td, entry).then(finish, finish);
       return true;
     }
@@ -476,10 +499,9 @@ export class BlueCallbackMan extends IBlueCallbackMan
   /** Hands a named entry to the slot's worker; settles when the worker answers. */
   _RunOnWorker(td, entry)
   {
-    if (td.worker === null) throw new Error(`BlueCallbackMan: named entry "${entry.name}" needs the own threads (Run).`);
-
     return new Promise(settle =>
     {
+      td.workerEntryId = entry.id;
       this._workerEntries.set(entry.id, { entry, completion: entry.completion, settle });
       td.worker.postMessage({ kind: "run", id: entry.id, name: entry.name, context: entry.context }, entry.transfer);
     });
@@ -491,6 +513,7 @@ export class BlueCallbackMan extends IBlueCallbackMan
     const pending = this._workerEntries.get(message.id);
     if (!pending) return;
     this._workerEntries.delete(message.id);
+    td.workerEntryId = 0;
 
     // A cancelled entry's outcome is discarded (cpp:405, m_currentId check).
     if (td.currentId === message.id)
@@ -501,14 +524,26 @@ export class BlueCallbackMan extends IBlueCallbackMan
     pending.settle();
   }
 
-  /** A worker failed: the entry it holds is rejected and its slot freed. */
+  /**
+   * A worker failed: the entry it holds is rejected and its slot freed, even
+   * when a cancel already cleared `currentId`. The worker is terminated, and
+   * the slot gets a new one when it is next given work, so no entry waits on a
+   * worker that cannot answer.
+   */
   _OnWorkerFailure(td, event)
   {
-    const pending = this._workerEntries.get(td.currentId);
+    if (td.worker !== null)
+    {
+      td.worker.terminate();
+      td.worker = null;
+    }
+    const id = td.workerEntryId;
+    td.workerEntryId = 0;
+    const pending = this._workerEntries.get(id);
     if (!pending) return;
-    this._workerEntries.delete(td.currentId);
+    this._workerEntries.delete(id);
 
-    const error = new Error(`BlueCallbackMan: worker ${td.name} failed: ${event?.message || event?.type || "error"}`);
+    const error = new Error(`BlueCallbackMan: worker ${td.name} failed: ${event.message || event.type || "error"}`);
     error.code = "CJS_CALLBACKMAN_WORKER_FAILED";
     pending.completion.reject(error);
     pending.settle();
@@ -550,6 +585,33 @@ export class BlueCallbackMan extends IBlueCallbackMan
     {
       this._alarming = false;
     }
+  }
+
+  /**
+   * Gives the owner of an `Update`-mode manager a call whenever a slot frees.
+   *
+   * Adapted: Carbon's `Update` runs one synchronous callback per call, so its
+   * caller always finds the slot free next time. An asynchronous entry here
+   * frees its slot later, after `Update` returned; the owner uses this to
+   * start the next entry then, instead of waiting for its next tick.
+   *
+   * @param {Function|null} callback Called with no arguments, or null.
+   */
+  SetSlotFreeCallback(callback)
+  {
+    if (callback !== null && typeof callback !== "function") throw new TypeError("BlueCallbackMan.SetSlotFreeCallback requires a function or null.");
+    this._onSlotFree = callback;
+  }
+
+  /** Creates one own thread's worker and routes its messages and failures. */
+  _CreateWorker(td)
+  {
+    td.worker = this._workerFactory(this._workerModule, { type: "module", name: td.name });
+    td.worker.addEventListener("message", event => this._OnWorkerMessage(td, event.data));
+    // A worker that fails to load or throws outside a callback fails the
+    // entry it holds instead of leaving its promise pending.
+    td.worker.addEventListener("error", event => this._OnWorkerFailure(td, event));
+    td.worker.addEventListener("messageerror", event => this._OnWorkerFailure(td, event));
   }
 
   /** `IsEmpty` (CallbackMan.cpp:470-473). */
