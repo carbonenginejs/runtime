@@ -117,11 +117,11 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
           const right = corner === 1 || corner === 2, bottom = corner >= 2;
           const offset = (visible * 4 + corner) * 88;
           // Native default vertex fields, including unused UVs and outline data.
-          // Carbon quirk, CE-131 (EveSprite2dBracketRenderer.cpp:56-107, 111): Carbon
-          // writes the constant fields and the clip rectangle only when the buffers
-          // are rebuilt for a new bracket count; later frames keep the old clip.
-          // This port rewrites them every frame. Reproduce-or-keep is the
-          // operator's decision; behaviour is unchanged until then.
+          // Carbon defect fixed, CE-131 (EveSprite2dBracketRenderer.cpp:56-107, 111;
+          // operator ruling 2026-10-13): Carbon writes the constant fields and the
+          // clip rectangle only when the buffers are rebuilt for a new bracket count,
+          // so a changed clip waits for the count to change. This port rewrites them
+          // every frame.
           mapping.data.fill(0, offset, offset + 88);
           data.setFloat32(offset, x + (right ? icon.GetWidth() : 0), true);
           data.setFloat32(offset + 4, y + (bottom ? icon.GetHeight() : 0), true);
