@@ -4,6 +4,37 @@
 // Maintained browser-font adapter; native interfaces retain their Carbon names.
 import { meta } from "#schema";
 
+/**
+ * Carbon's `RGBA::BlendOverAlpha` (Tr2FontMeasurer.cpp:1427-1442), for the
+ * pixel at `index`: the source colour `col` with alpha `sourceAlpha` over the
+ * destination, both straight alpha. A transparent destination or an opaque
+ * source is replaced.
+ *
+ * @param {Uint8Array} bytes Destination RGBA bytes.
+ * @param {number} index Byte offset of the pixel.
+ * @param {number} col Packed source colour; red in the low byte.
+ * @param {number} sourceAlpha Source alpha, 0-255.
+ * @returns {void}
+ */
+function blendOverAlpha(bytes, index, col, sourceAlpha)
+{
+  const red = col & 255, green = (col >>> 8) & 255, blue = (col >>> 16) & 255;
+  const destinationAlpha = bytes[index + 3];
+
+  if (!destinationAlpha || sourceAlpha === 255)
+  {
+    bytes[index] = red; bytes[index + 1] = green; bytes[index + 2] = blue; bytes[index + 3] = sourceAlpha;
+    return;
+  }
+  if (!sourceAlpha) return;
+
+  const scaledAlpha = 255 * (destinationAlpha + sourceAlpha) - destinationAlpha * sourceAlpha;
+  bytes[index] = (bytes[index] * destinationAlpha * (255 - sourceAlpha) + 255 * red * sourceAlpha) / scaledAlpha;
+  bytes[index + 1] = (bytes[index + 1] * destinationAlpha * (255 - sourceAlpha) + 255 * green * sourceAlpha) / scaledAlpha;
+  bytes[index + 2] = (bytes[index + 2] * destinationAlpha * (255 - sourceAlpha) + 255 * blue * sourceAlpha) / scaledAlpha;
+  bytes[index + 3] = scaledAlpha / 255;
+}
+
 /** Models Carbon's cached font-glyph wrapper, including placement coordinates and buffer-copy entry points. */
 @meta.define({ className: "Tr2SBitWrapper", family: "font", purpose: "Models Carbon's cached font-glyph wrapper, including placement coordinates and buffer-copy entry points." })
 export class Tr2SBitWrapper
@@ -142,31 +173,81 @@ export class Tr2SBitWrapper
   {
     const bytes = new Uint8Array(buffer.buffer ?? buffer, buffer.byteOffset ?? 0, buffer.byteLength); // alloc: byte view of caller-owned bitmap storage; does not copy pixels
     if (![width, height, pitch].every(value => Number.isInteger(value) && value >= 0) || width * 4 > pitch || height * pitch > bytes.byteLength) throw new RangeError("Invalid glyph destination dimensions.");
-    const bitmap = this.sbit;
-    const left = x + bitmap.left, top = height - (y + bitmap.top);
-    const red = color & 255, green = (color >>> 8) & 255, blue = (color >>> 16) & 255, alpha = color >>> 24;
-    for (let row = Math.max(0, -top); row < Math.min(bitmap.height, height - top); row++)
+    Tr2SBitWrapper.sBit_To_RGBABuffer(bytes, width, height, pitch, this.sbit, x, y, color);
+  }
+
+  /**
+   * Carbon's free function `SBit_To_RGBABuffer` (declared Tr2SBit.h:14,
+   * defined Tr2FontMeasurer.cpp:1459-1567): blends a glyph's coverage into a
+   * bottom-origin RGBA buffer, clipped, colour alpha modulated by coverage,
+   * blended over the destination.
+   *
+   * Adapted: a static here, as the casing rule names it; only the 8-bit
+   * grayscale branch, since browser sbits are never 1-bit.
+   *
+   * @param {Uint8Array} bytes Destination RGBA bytes.
+   * @param {number} dWidth Destination width in pixels.
+   * @param {number} dHeight Destination height in pixels.
+   * @param {number} dPitch Destination row pitch in bytes.
+   * @param {object} sbit The sbit record.
+   * @param {number} left Pen x.
+   * @param {number} top Pen y, bottom-origin.
+   * @param {number} col Packed colour, as Carbon's `RGBA::col`.
+   * @returns {void}
+   */
+  @meta.adapted
+  static sBit_To_RGBABuffer(bytes, dWidth, dHeight, dPitch, sbit, left, top, col)
+  {
+    left += sbit.left;
+    top = dHeight - (top + sbit.top);
+
+    const alpha = col >>> 24;
+    for (let row = Math.max(0, -top); row < Math.min(sbit.height, dHeight - top); row++)
     {
-      for (let column = Math.max(0, -left); column < Math.min(bitmap.width, width - left); column++)
+      for (let column = Math.max(0, -left); column < Math.min(sbit.width, dWidth - left); column++)
       {
-        const gray = bitmap.buffer[row * bitmap.pitch + column];
+        const gray = sbit.buffer[row * sbit.pitch + column];
         if (!gray) continue;
 
-        const sourceAlpha = (alpha * (gray + 1)) >> 8;
-        const index = (top + row) * pitch + (left + column) * 4;
-        const destinationAlpha = bytes[index + 3];
-        if (!destinationAlpha || sourceAlpha === 255)
-        {
-          bytes[index] = red; bytes[index + 1] = green; bytes[index + 2] = blue; bytes[index + 3] = sourceAlpha;
-        }
-        else if (sourceAlpha)
-        {
-          const scaledAlpha = 255 * (destinationAlpha + sourceAlpha) - destinationAlpha * sourceAlpha;
-          bytes[index] = (bytes[index] * destinationAlpha * (255 - sourceAlpha) + 255 * red * sourceAlpha) / scaledAlpha;
-          bytes[index + 1] = (bytes[index + 1] * destinationAlpha * (255 - sourceAlpha) + 255 * green * sourceAlpha) / scaledAlpha;
-          bytes[index + 2] = (bytes[index + 2] * destinationAlpha * (255 - sourceAlpha) + 255 * blue * sourceAlpha) / scaledAlpha;
-          bytes[index + 3] = scaledAlpha / 255;
-        }
+        blendOverAlpha(bytes, (top + row) * dPitch + (left + column) * 4, col, (alpha * (gray + 1)) >> 8);
+      }
+    }
+  }
+
+  /**
+   * Carbon's free function `Underline_To_RGBABuffer` (declared Tr2SBit.h:15,
+   * defined Tr2FontMeasurer.cpp:1569-1600): blends a solid underline of the
+   * given width and thickness into a bottom-origin RGBA buffer, clipped.
+   *
+   * Adapted: a static here, as the casing rule names it.
+   *
+   * @param {Uint8Array} bytes Destination RGBA bytes.
+   * @param {number} dWidth Destination width in pixels.
+   * @param {number} dHeight Destination height in pixels.
+   * @param {number} dPitch Destination row pitch in bytes.
+   * @param {number} left Start x.
+   * @param {number} top Top y, bottom-origin.
+   * @param {number} width Length in pixels.
+   * @param {number} thickness Thickness in pixels.
+   * @param {number} col Packed colour, as Carbon's `RGBA::col`.
+   * @returns {void}
+   */
+  @meta.adapted
+  static underline_To_RGBABuffer(bytes, dWidth, dHeight, dPitch, left, top, width, thickness, col)
+  {
+    top = dHeight - top;
+
+    for (let line = 0; line < thickness; line++)
+    {
+      const dLine = top + line;
+      if (dLine < 0 || dLine >= dHeight) continue;
+
+      for (let pixel = 0; pixel < width; pixel++)
+      {
+        const dCol = left + pixel;
+        if (dCol < 0 || dCol >= dWidth) continue;
+
+        blendOverAlpha(bytes, dLine * dPitch + dCol * 4, col, col >>> 24);
       }
     }
   }
@@ -200,10 +281,8 @@ export class Tr2SBitWrapper
     const underlineWidth = Math.max(0, this.sbit.xadvance + extraSpace);
     const thickness = Math.max(1, Math.round(this.fontSize / 14));
     const position = -Math.max(1, Math.round(this.fontSize / 10));
-    const underline = new Tr2SBitWrapper();
-    underline.sbit = { width: underlineWidth, height: thickness, left: 0, top: 0,
-      pitch: underlineWidth, buffer: new Uint8Array(underlineWidth * thickness).fill(255) }; // alloc: variable-size glyph pixels retained by the text cache
-    underline.ToBuffer(buffer, width, height, pitch, x, y + position, color);
+    const bytes = new Uint8Array(buffer.buffer ?? buffer, buffer.byteOffset ?? 0, buffer.byteLength); // alloc: byte view of caller-owned bitmap storage; does not copy pixels
+    Tr2SBitWrapper.underline_To_RGBABuffer(bytes, width, height, pitch, x, y + position, underlineWidth, thickness, color);
   }
 
 }

@@ -775,6 +775,78 @@ export class Tr2FontManager
     this.ClearCachedGlyphs();
   }
 
+  /**
+   * Carbon `FaceRequester` (Tr2FontManager.h:48): the FreeType cache manager's
+   * callback that opens a face on first use, through LoadFromDisk.
+   *
+   * Not implemented: there is no FreeType cache manager to call it. The
+   * browser opens a face when LoadFont registers its family with the page's
+   * FontFaceSet.
+   *
+   * @throws {Error} Always.
+   */
+  @meta.notImplemented
+  static faceRequester(_faceID, _library, _requestData, _face)
+  {
+    throw new Error("Tr2FontManager.FaceRequester is not implemented: no FreeType cache manager; LoadFont opens faces.");
+  }
+
+  /**
+   * Carbon `LoadFromDisk` (Tr2FontManager.cpp:335-400): reads a face's font
+   * file synchronously through ResFile and opens it with FreeType.
+   *
+   * Not implemented: a browser cannot read a file synchronously, and has no
+   * FreeType. LoadFont is the asynchronous equivalent, given the bytes.
+   *
+   * @throws {Error} Always.
+   */
+  @meta.notImplemented
+  _LoadFromDisk(_faceID)
+  {
+    throw new Error("Tr2FontManager.LoadFromDisk is not implemented: no synchronous file read or FreeType; use LoadFont.");
+  }
+
+  /**
+   * Carbon `GetManager` (Tr2FontManager.h:71-74): the FreeType cache manager.
+   *
+   * Not implemented: there is no FreeType in the browser; Canvas2D draws the
+   * glyphs and this class keeps its own sbit cache.
+   *
+   * @throws {Error} Always.
+   */
+  @meta.notImplemented
+  GetManager()
+  {
+    throw new Error("Tr2FontManager.GetManager is not implemented: no FreeType cache manager in the browser.");
+  }
+
+  /**
+   * Carbon `GetCmCache` (Tr2FontManager.h:75-78): FreeType's charmap cache.
+   *
+   * Not implemented: no FreeType; LookupGlyphIndex answers from the code point.
+   *
+   * @throws {Error} Always.
+   */
+  @meta.notImplemented
+  GetCmCache()
+  {
+    throw new Error("Tr2FontManager.GetCmCache is not implemented: no FreeType charmap cache in the browser.");
+  }
+
+  /**
+   * Carbon `GetSbitCache` (Tr2FontManager.h:79-82): FreeType's sbit cache.
+   *
+   * Not implemented: no FreeType; LookupSBit keeps its own cache (see
+   * TrimGlyphCache).
+   *
+   * @throws {Error} Always.
+   */
+  @meta.notImplemented
+  GetSbitCache()
+  {
+    throw new Error("Tr2FontManager.GetSbitCache is not implemented: no FreeType sbit cache in the browser.");
+  }
+
   /** Carbon `OnPrepareResources` (Tr2FontManager.cpp:606-609): nothing to prepare. */
   @meta.implemented
   _OnPrepareResources()

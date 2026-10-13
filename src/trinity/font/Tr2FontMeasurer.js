@@ -490,11 +490,8 @@ export class Tr2FontMeasurer
       if (!segment.underline) continue;
       for (const bitmap of segment.bitmaps)
       {
-        const underline = new Tr2SBitWrapper();
-        const underlineWidth = bitmap.sbit.xadvance;
-        underline.sbit = { width: underlineWidth, height: segment.underlineThickness, left: 0, top: 0,
-          pitch: underlineWidth, buffer: new Uint8Array(underlineWidth * segment.underlineThickness).fill(255) }; // alloc: variable-size glyph pixels retained by the text cache
-        underline.ToBuffer(bytes, width, height, pitch, bitmap.x, height - bitmap.y + segment.underlinePosition, segment.color);
+        Tr2SBitWrapper.underline_To_RGBABuffer(bytes, width, height, pitch, bitmap.x, height - bitmap.y + segment.underlinePosition,
+          bitmap.sbit.xadvance, segment.underlineThickness, segment.color);
       }
     }
   }
@@ -936,9 +933,31 @@ export class Tr2FontMeasurer
       for (let offset = 0; offset < entry.spriteCount; offset += limit)
       {
         const count = Math.min(limit, entry.spriteCount - offset), start = entry.startSprite + offset;
-        const indices = this._indices.slice(start * 6, (start + count) * 6).map(index => index - offset * 4);
+        const indices = this._AdjustIndicesIfNeeded(start, count * 6, offset * 4);
         renderer.RenderTriangleVerts(this._vertices.slice(start * 4, (start + count) * 4), count * 4, indices, count * 6);
       }
     }
+  }
+
+  /**
+   * Carbon `AdjustIndicesIfNeeded` (Tr2FontMeasurer.cpp:1342-1360): the
+   * indices of a batch that starts at `startSprite`, rebased by
+   * `vertexOffset` so they index the batch's own vertices; the batch at sprite
+   * 0 uses the indices as they are.
+   *
+   * Adapted: returns a new array, where Carbon writes into a caller-owned
+   * buffer or returns a pointer into `m_indices`.
+   *
+   * @param {number} startSprite First sprite of the batch.
+   * @param {number} indexCount Indices in the batch.
+   * @param {number} vertexOffset Subtracted from each index.
+   * @returns {number[]} The batch's indices.
+   */
+  @meta.adapted
+  _AdjustIndicesIfNeeded(startSprite, indexCount, vertexOffset)
+  {
+    const indices = this._indices.slice(startSprite * 6, startSprite * 6 + indexCount);
+    if (startSprite > 0) for (let i = 0; i < indices.length; i++) indices[i] -= vertexOffset;
+    return indices;
   }
 }
