@@ -711,6 +711,15 @@ export class CjsSchema
          * on a class that does not map ICustomPersist.
          */
         binary: fieldDecorator("type", { binary: true }),
+        /**
+         * A Carbon Blue math wrapper member (`PTriMatrix`, `PTriVector`, ...): an
+         * embedded TriMatrix/TriVector/TriQuaternion/TriColor object on the wire,
+         * held as its plain value. The member also declares that value (`mat4`,
+         * `vec3`, `quat`, `color`); readers decode the wrapper's elements into it.
+         *
+         * @param {string} className The wrapper class, e.g. "TriMatrix".
+         */
+        wrapped: className => fieldDecorator("type", { wrapped: className }),
         define: definition => classDefinitionDecorator(definition),
         expression: fieldDecorator("type", { kind: "expression", js: "string" }),
         float32: fieldDecorator("type", { kind: "float32" }),

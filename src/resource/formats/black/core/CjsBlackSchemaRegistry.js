@@ -1,4 +1,5 @@
 import { structClassLayout } from "./blackClassStructures.js";
+import { CjsBlackPropertyReaders } from "./CjsBlackPropertyReaders.js";
 
 /**
  * Registry that normalizes caller-supplied schemas into per-class source
@@ -69,6 +70,12 @@ export class CjsBlackSchemaRegistry
         if (type?.runtimeOnly === true) throw new TypeError("Runtime-only fields have no Black codec.");
         // meta.type.binary is Carbon's BINARYBLOCK, whatever value the member holds.
         if (type?.binary === true) return CjsBlackSchemaRegistry.compactBlackType("BINARYBLOCK", type);
+        // meta.type.wrapped is an embedded Blue math wrapper read into the declared value.
+        if (type?.wrapped)
+        {
+            CjsBlackPropertyReaders.getWrapperLayout(type.wrapped, type.kind);
+            return CjsBlackSchemaRegistry.compactBlackType("IROOT", type, { wrapped: type.wrapped });
+        }
         const kind = type?.kind;
         const scalarTypes = {
             boolean: "bool", string: "string", wstring: "wstring", path: "path", wpath: "wpath",

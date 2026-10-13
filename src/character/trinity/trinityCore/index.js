@@ -6,3 +6,4 @@ export * from "./Tr2Model.js";
 export * from "./Tr2SkinnedModel.js";
 export * from "./Tr2SkinnedObject.js";
 export * from "./Tr2SkinnedObjectLod.js";
+export * from "./TriMatrix.js";

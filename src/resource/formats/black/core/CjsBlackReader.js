@@ -307,7 +307,7 @@ export class CjsBlackReader extends CjsBlueReader
             if (canonical)
             {
                 const type = declaration?.type;
-                if (type?.kind === "root") destination = getReaderMemberValue(target, declaration);
+                if (type?.kind === "root" || type?.wrapped) destination = getReaderMemberValue(target, declaration);
                 else if (!fieldTarget.discard && type?.kind === "list" && fieldTarget.field.jsType?.elementType?.kind === "rootRef")
                 {
                     const current = getReaderMemberValue(target, declaration);

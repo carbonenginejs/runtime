@@ -7,6 +7,23 @@ import {
 } from "#schema/types";
 
 /**
+ * Carbon's Blue math wrappers: each persists its value's elements as FLOAT members
+ * (TriMatrix_Blue.cpp:18-33, TriVector_Blue.cpp, TriQuaternion_Blue.cpp,
+ * TriColor_Blue.cpp) and constructs with the given defaults (TriMatrix.cpp:72-90,
+ * TriVector.cpp:203-206, TriQuaternion.cpp:53-56, TriColor.cpp:164-167).
+ */
+const WRAPPERS = {
+    TriMatrix: {
+        kinds: [ "mat4", "matrix4" ],
+        elements: [ "_11", "_12", "_13", "_14", "_21", "_22", "_23", "_24", "_31", "_32", "_33", "_34", "_41", "_42", "_43", "_44" ],
+        defaults: [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ]
+    },
+    TriVector: { kinds: [ "vec3", "vector3" ], elements: [ "x", "y", "z" ], defaults: [ 0, 0, 0 ] },
+    TriQuaternion: { kinds: [ "quat", "quaternion" ], elements: [ "x", "y", "z", "w" ], defaults: [ 0, 0, 0, 1 ] },
+    TriColor: { kinds: [ "color" ], elements: [ "r", "g", "b", "a" ], defaults: [ 0, 0, 0, 0 ] }
+};
+
+/**
  * Static set of read and skip routines that decode or skip individual Black
  * property values (primitives, strings, arrays, structure lists,
  * dictionaries, and binary blocks) from their type descriptors.
@@ -391,11 +408,59 @@ export class CjsBlackPropertyReaders
      */
     static readBlackIRoot(reader, black, descriptor, destination = undefined)
     {
+        if (black.wrapped) return CjsBlackPropertyReaders.readWrapper(reader, black.wrapped, destination);
         if (black.container === "list" && destination !== undefined)
             return CjsBlackPropertyReaders.readNativeList(reader, destination);
         if (black.container === "dict") return CjsBlackPropertyReaders.readDict(reader);
         if (black.container === "list" || black.container === "set") return CjsBlackPropertyReaders.readArray(reader, descriptor);
         return reader.context.ReadEmbeddedObject(reader, destination);
+    }
+
+    /**
+     * The element layout of a Blue math wrapper class, checked against the value
+     * kind the member declares.
+     *
+     * @param {string} className Wrapper class, e.g. "TriMatrix".
+     * @param {string} kind The member's declared value kind.
+     * @returns {{kinds: string[], elements: string[], defaults: number[]}} The layout.
+     * @throws {TypeError} When the class is not a wrapper or does not hold that kind.
+     */
+    static getWrapperLayout(className, kind)
+    {
+        const layout = Object.hasOwn(WRAPPERS, className) ? WRAPPERS[className] : null;
+        if (!layout) throw new TypeError(`${className} is not a Blue math wrapper.`);
+        if (!layout.kinds.includes(kind)) throw new TypeError(`${className} holds ${layout.kinds[0]}, not ${kind}.`);
+        return layout;
+    }
+
+    /**
+     * Reads an embedded Blue math wrapper (TriMatrix, TriVector, ...) as its plain
+     * value. Carbon's BlackReader reads the embedded object's members into the existing
+     * one, so elements the file leaves out keep the destination's values; without a
+     * destination they start from the wrapper's constructor defaults.
+     *
+     * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor positioned at the object payload size.
+     * @param {string} className The wrapper class the member declares.
+     * @param {Float32Array|number[]} [destination] The member's current value storage.
+     * @returns {Float32Array|number[]} The destination, or a new array.
+     * @throws {TypeError} When the file holds another class or a member the wrapper does not persist.
+     */
+    static readWrapper(reader, className, destination = undefined)
+    {
+        const { elements, defaults } = WRAPPERS[className];
+        const objectReader = reader.ReadBinaryReader(reader.ReadU32());
+        const kind = objectReader.ReadStringRef();
+        if (kind !== className) throw new TypeError(`Black member declares ${className} but holds ${kind}.`);
+        const value = destination ?? defaults.slice();
+        while (!objectReader.AtEnd())
+        {
+            const name = objectReader.ReadStringRef();
+            const index = elements.indexOf(name);
+            if (index < 0) throw new TypeError(`${className} has no persisted member ${name}.`);
+            value[index] = objectReader.ReadF32();
+        }
+        objectReader.ExpectEnd(`${className} did not read to end`);
+        return value;
     }
 
     /**
@@ -408,6 +473,11 @@ export class CjsBlackPropertyReaders
      */
     static skipBlackIRoot(reader, black, descriptor)
     {
+        if (black.wrapped)
+        {
+            reader.Skip(reader.ReadU32());
+            return;
+        }
         if (black.container === "dict")
         {
             CjsBlackPropertyReaders.skipDict(reader);

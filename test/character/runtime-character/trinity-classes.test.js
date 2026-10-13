@@ -26,6 +26,7 @@ import {
   Tr2SkinnedModel,
   Tr2SkinnedObject,
   Tr2SkinnedObjectLod,
+  TriMatrix,
   WodBakingScene
 } from "../../../npm/dist/character/index.js";
 
@@ -585,20 +586,25 @@ test("interior light sets and sort keys expose only their real source surface", 
   assert.equal(source.IsSpotLight(), true);
 });
 
-test("current Carbon TriMatrix source lives under src/character/trinity but stays unexported", () =>
+test("TriMatrix persists its matrix elements, and PTriMatrix members hold the mat4 itself", () =>
 {
-  new Tr2InteriorPlaceable();
-  new Tr2SkinnedObject();
-  const sourceURL = new URL("../../../src/character/trinity/trinityCore/TriMatrix.js", import.meta.url);
-  const source = readFileSync(sourceURL, "utf8");
-  assert.equal(existsSync(sourceURL), true);
-  assert.equal(existsSync(new URL("../../../src/character/dropped/TriMatrix.js", import.meta.url)), false);
-  assert.match(source, /Source: trinity\/trinity\/Include\/TriMatrix\.h/u);
-  assert.match(source, /intentionally unexported/u);
-  assert.equal(CjsSchema.GetConstructor("TriMatrix"), null);
-  // Carbon's PTriMatrix members hold the matrix itself as a mat4 (same byte layout).
-  assert.equal(CjsSchema.getField(Tr2InteriorPlaceable, "transform")?.type?.kind, "mat4");
-  assert.equal(CjsSchema.getField(Tr2SkinnedObject, "transform")?.type?.kind, "mat4");
+  const matrix = new TriMatrix();
+  assert.equal(CjsSchema.GetConstructor("TriMatrix"), TriMatrix);
+  assert.deepEqual(CjsSchema.getSchema(TriMatrix).members.slice(0, 2).map(({ name, key, index }) => [ name, key, index ]),
+    [ [ "_11", "_matrix", 0 ], [ "_12", "_matrix", 1 ] ]);
+  assert.deepEqual(Array.from(matrix.GetMatrix()), [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ]);
+  matrix.Translation(1, 2, 3);
+  const other = new TriMatrix();
+  other.Scaling(2, 2, 2);
+  // Carbon this * other applies this first: the translation is then scaled.
+  matrix.Multiply(other);
+  assert.deepEqual(Array.from(matrix.GetMatrix().subarray(12, 15)), [ 2, 4, 6 ]);
+  for (const Owner of [ Tr2InteriorPlaceable, Tr2SkinnedObject ])
+  {
+    const type = CjsSchema.getField(Owner, "transform")?.type;
+    assert.equal(type?.kind, "mat4");
+    assert.equal(type?.wrapped, "TriMatrix");
+  }
 });
 
 

@@ -27,8 +27,9 @@ export function clientResources()
 
 async function compose()
 {
-  let build;
-  try
+  // CJS_CLIENT_BUILD pins the client build, e.g. while tools-core is still fetching a new one.
+  let build = process.env.CJS_CLIENT_BUILD;
+  if (!build) try
   {
     const answer = await fetch(`${SERVER}/${TARGET}/latest/build`, { signal: AbortSignal.timeout(10000) });
     if (!answer.ok) return { skip: `tools-core ${SERVER} answered ${answer.status} for the ${TARGET} build` };

@@ -98,15 +98,14 @@ export class Tr2SkinnedObject
   /**
    * m_transform (PTriMatrix) [READ, PERSIST]: the object's world transform.
    * Carbon holds a PTriMatrix (a Blue object wrapping a Matrix); the port holds the
-   * matrix itself as a mat4. TriMatrix's _11.._44 are Carbon's row-major Matrix, which
-   * has gl-matrix's byte layout, so no conversion is needed. No cached client resource
-   * persists this member (searched 2026-10-05); a loader meeting a TriMatrix object here
-   * would need to unpack it.
+   * matrix itself as a mat4, and Black reads the embedded TriMatrix's _11.._44 into it.
+   * Carbon's row-major Matrix has gl-matrix's byte layout, so no conversion is needed.
    * @type {mat4}
    */
   @meta.blue.read
   @meta.blue.persist
   @meta.type.mat4
+  @meta.type.wrapped("TriMatrix")
   transform = mat4.create();
 
   /**
