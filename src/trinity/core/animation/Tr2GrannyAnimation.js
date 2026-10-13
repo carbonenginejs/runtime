@@ -542,6 +542,13 @@ export class Tr2GrannyAnimation
       this._meshBoneIndices = Array.from({ length: count }, (_, index) => boneByName.get(bindings[index].name) ?? -1);
     }
 
+    // Carbon InitializeAnimationLayer: a layer added before the rig existed
+    // extracts its track mask now (Tr2GrannyAnimationLayer.cpp:98-101).
+    for (const layer of this._layers.values())
+    {
+      if (layer.trackMaskName) layer.ExtractTrackMask(this, layer.trackMaskName);
+    }
+
     this._resetPose();
     this._initialized = true;
     // cpp:668-672: pump once so there is a valid pose before the next update.
@@ -828,6 +835,66 @@ export class Tr2GrannyAnimation
     }
     this._layers.set(name, createLayer(name, Number(layerWeight) || 0, false));
     return true;
+  }
+
+  /**
+   * Adds, or updates, a layer masked by a named skeleton bone mask
+   * (Tr2GrannyAnimation.cpp:2190-2224). Controller actions call it for their
+   * `mask` before playing on the layer (Tr2ActionPlayMeshAnimation.cpp:56-59).
+   *
+   * Adapted: Carbon's composite-pose allocation and InitializeAnimationLayer
+   * have no counterpart; a rig built later extracts the mask again.
+   *
+   * @param {string} layerName Layer name.
+   * @param {string} trackMask Bone mask name.
+   * @returns {void}
+   */
+  @meta.adapted
+  AddAnimationLayerWithTrackMask(layerName, trackMask)
+  {
+    const name = String(layerName ?? "");
+    let layer = this._layers.get(name);
+    if (!layer)
+    {
+      layer = createLayer(name, 1, false);
+      this._layers.set(name, layer);
+    }
+    layer.ExtractTrackMask(this, trackMask);
+  }
+
+  /**
+   * A named track mask's bone weights for the built rig, by bone index, or
+   * null before a rig is built. CMF skeletons hold masks as `boneMasks`
+   * (cmf::ExtractBoneWeights, animation.cpp:467-482); Granny skeletons as a
+   * numeric extended-data member of the mask's name on each bone, which
+   * GrannyExtractTrackMask reads with 0 for bones without it
+   * (Tr2GrannyAnimationLayer.cpp:1007-1022).
+   *
+   * @param {string} name Track mask name.
+   * @returns {Float32Array|null} Weight per bone.
+   */
+  @meta.ours
+  _ExtractTrackMaskWeights(name)
+  {
+    const model = this._runtimeModel;
+    if (!model) return null;
+    const weights = new Float32Array(model.bones.length); // alloc: retained per-layer bone weights, rebuilt only when the rig or mask changes.
+    if (model.cmf)
+    {
+      const mask = (model.skeleton.boneMasks ?? []).find(item => item.name === name);
+      for (const { index, weight } of mask ? mask.weights : [])
+      {
+        if (index < weights.length) weights[index] = weight;
+      }
+      return weights;
+    }
+    const bones = model.skeleton.bones ?? [];
+    for (let index = 0; index < bones.length && index < weights.length; index++)
+    {
+      const value = bones[index].extendedData ? bones[index].extendedData[name] : undefined;
+      if (typeof value === "number" && Number.isFinite(value)) weights[index] = value;
+    }
+    return weights;
   }
 
   /** Carbon method AddAnimationLayerAllBones (MAP_METHOD_AND_WRAP). */
@@ -1596,6 +1663,22 @@ export class Tr2GrannyAnimation
     {
       layer.queue.length = 0;
     }
+    else
+    {
+      // Carbon (Tr2GrannyAnimationLayer.cpp:229-246): enqueueing caps every
+      // player at the end of its current loop - loop count to loop index + 1,
+      // stop time pinned there - so an endless loop hands over at its next
+      // loop boundary. Carbon then delays the new player by the longest
+      // remainder; here the queue starts it when its predecessor retires.
+      for (const queued of layer.queue)
+      {
+        const duration = queued.animation ? this._getAnimationDuration(queued.animation) : 0;
+        const loopIndex = Tr2GrannyAnimationLayer._GetLoopIndex(queued, duration);
+        if (loopIndex < 0) continue;
+        queued.loopCount = loopIndex + 1;
+        queued.stopAt = duration * queued.loopCount / Math.abs(queued.speed);
+      }
+    }
     layer.queue.push({
       name,
       animation,
@@ -1803,11 +1886,12 @@ export class Tr2GrannyAnimation
       {
         const boneIndex = this._runtimeModel.boneByName.get(getName(track));
         const bone = this._runtimeModel.bones[boneIndex];
-        if (!bone || (!layer.allBones && !layer.bones.has(bone.name)))
+        const mask = bone ? layer._GetBoneMaskWeight(boneIndex, bone.name) : 0;
+        if (mask === 0)
         {
           continue;
         }
-        this._sampleTrack(bone, track, time, duration, layer.weight, additive);
+        this._sampleTrack(bone, track, time, duration, layer.weight * mask, additive);
       }
     }
   }
@@ -1826,16 +1910,18 @@ export class Tr2GrannyAnimation
     for (const [ boneIndex, curves ] of this._getCmfChannels(animation))
     {
       const bone = this._runtimeModel.bones[boneIndex];
-      if (!layer.allBones && !layer.bones.has(bone.name))
+      const mask = layer._GetBoneMaskWeight(boneIndex, bone.name);
+      if (mask === 0)
       {
         continue;
       }
+      // cmf::BlendPoses: each bone by its mask weight times the layer weight (animation.cpp:485-492).
       this._blendSampledBone(
         bone,
         channel => !!curves[channel],
         (out, channel, at) => sampleCmfChannel(out, curves, channel, at),
         time,
-        layer.weight,
+        layer.weight * mask,
         additive
       );
     }

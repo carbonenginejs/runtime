@@ -36,6 +36,27 @@ const SPEED_SCRATCH = vec3.create();
  * Adapted: the controllerFunctionOverrideEnabled override (cpp:144-147) is not
  * ported; no class registers that setting yet.
  */
+/**
+ * Carbon IsAnimationPlaying (Tr2ControllerExpression.cpp:103-121): 1 while the
+ * owner's named animation layer (the base layer for "") has animation time
+ * remaining, else 0.
+ *
+ * @param {object|null} owner The controller's owner.
+ * @param {string} layerName Layer name.
+ * @returns {number} 1 or 0.
+ */
+function IsAnimationPlayingOf(owner, layerName)
+{
+  const spaceObject = CastOwner(owner, "EveSpaceObject2");
+  if (!spaceObject) return 0;
+  const animation = spaceObject.GetAnimationController();
+  if (!animation) return 0;
+  const name = String(layerName ?? "");
+  const layer = animation.GetAnimationLayer(name === "" ? null : name);
+  if (!layer) return 0;
+  return layer.GetAnimationRemainingTime() > 0 ? 1 : 0;
+}
+
 function ShipSpeedOf(owner)
 {
   const spaceObject = CastOwner(owner, "EveSpaceObject2") ?? CastOwner(owner, "EveChildContainer");
@@ -468,7 +489,7 @@ export const DEFAULT_FUNCTIONS = {
   StateTime: ctx => ctx.stateMachine ? ctx.stateMachine.GetStateRunTime() : ToNumber(ctx.stateTime),
   CurveSetTime: (ctx, name) => GetCurveSetTime(ctx, name),
   AnimationTime: (ctx, name) => CallContextFunction(ctx, "AnimationTime", name),
-  IsAnimationPlaying: (ctx, name) => CallContextFunction(ctx, "IsAnimationPlaying", name),
+  IsAnimationPlaying: (ctx, name) => IsAnimationPlayingOf(ctx.owner, name),
   GetExternalControllerVariable: (ctx, name, fallback = 0) => GetExternalControllerVariable(ctx, name, fallback),
   ShipSpeed: ctx => ShipSpeedOf(ctx.owner),
   ShipMaxSpeed: ctx => ShipMaxSpeedOf(ctx.owner),

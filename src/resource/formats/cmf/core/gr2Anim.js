@@ -181,8 +181,37 @@ export function convertGr2Skeleton(skeleton)
         parents,
         restTransforms,
         invBindTransforms,
-        boneMasks: []
+        boneMasks: gr2BoneMasks(bones)
     };
+}
+
+/**
+ * CMF bone masks from a GR2 skeleton's bone extended data. Granny keeps a
+ * track mask as a numeric extended-data member of that name on each bone
+ * (e.g. `TrackMaskStance: 1`); Carbon's Granny path reads it with
+ * GrannyExtractTrackMask, a bone without the member weighing 0
+ * (Tr2GrannyAnimationLayer.cpp, ExtractTrackMask). The CMF form is one mask
+ * per member name holding the bones that carry it, which
+ * cmf::ExtractBoneWeights reads back the same way (animation.cpp:467-482).
+ *
+ * @param {Array<object>} bones GR2 bones, with `extendedData` where the file has it.
+ * @returns {Array<import("./helpers.js").CmfBoneMask>} One mask per numeric extended-data member, in first-seen order.
+ */
+function gr2BoneMasks(bones)
+{
+    const masks = new Map();
+    for (let index = 0; index < bones.length; index++)
+    {
+        const data = bones[index].extendedData;
+        if (!data || typeof data !== "object") continue;
+        for (const [ name, value ] of Object.entries(data))
+        {
+            if (typeof value !== "number" || !Number.isFinite(value)) continue;
+            if (!masks.has(name)) masks.set(name, []);
+            masks.get(name).push({ index, weight: value });
+        }
+    }
+    return Array.from(masks, ([ name, weights ]) => ({ name, weights }));
 }
 
 /**

@@ -36,6 +36,17 @@ export class Tr2GrannyAnimationLayer
   /** Carbon m_bones: bone names the layer's mask admits. */
   bones = new Set();
 
+  /** Carbon m_trackMaskName: the skeleton bone mask this layer blends by, or "". */
+  trackMaskName = "";
+
+  /**
+   * Carbon m_boneMask's weights from the track mask, by skeleton bone index,
+   * or null before one is extracted.
+   *
+   * @type {Float32Array|null}
+   */
+  trackMaskWeights = null;
+
   /** The playing request followed by chained requests (see the class JSDoc). */
   queue = [];
 
@@ -134,28 +145,42 @@ export class Tr2GrannyAnimationLayer
   }
 
   /**
-   * Finishes the playing animation at the end of its current loop and drops
-   * the chained requests (Tr2GrannyAnimationLayer.cpp:410-441).
+   * Ends every player at the end of its current loop
+   * (Tr2GrannyAnimationLayer.cpp:410-441): each player's loop count becomes
+   * its loop index + 1. Carbon clears only m_animationQueue, the requests not
+   * yet handed to the sequencer; players chained by an enqueueing play stay
+   * and run once each.
    *
-   * Adapted: the chained requests are the JS queue's tail, so they are dropped
-   * with the pending queue; Carbon keeps already-created chained players.
+   * Adapted: Carbon's players are the JS queue, chained ones included, so
+   * nothing is dropped; this port has no separate pre-sequencer queue.
    */
   @meta.blue.method
   @meta.adapted
   EndAnimation()
   {
-    const request = this.queue[0];
-    this.queue.splice(1);
-    if (!request?.animation)
+    for (const request of this.queue)
     {
-      return;
+      const duration = request.animation ? Math.max(0, CjsGrannyCurves.getAnimationDuration(request.animation)) : 0;
+      const loopIndex = Tr2GrannyAnimationLayer._GetLoopIndex(request, duration);
+      if (loopIndex >= 0) request.loopCount = loopIndex + 1;
     }
-    const duration = Math.max(0, CjsGrannyCurves.getAnimationDuration(request.animation));
-    if (duration > 0)
-    {
-      const localTime = Math.max(0, request.elapsed) * Math.abs(request.speed);
-      request.loopCount = Math.floor(localTime / duration) + 1;
-    }
+  }
+
+  /**
+   * cmf::AnimationPlayer::GetLoopIndex (animation.cpp:702-716): the loop a
+   * request is in, clamped to its last loop once finished; 0 before it starts.
+   *
+   * @param {object} request A queue request.
+   * @param {number} duration Its animation's duration in seconds.
+   * @returns {number} The loop index, or -1 when the request has no positive duration or speed.
+   */
+  static _GetLoopIndex(request, duration)
+  {
+    const speed = Math.abs(request.speed);
+    if (!(duration > 0) || !(speed > 0)) return -1;
+    const played = Math.max(0, request.elapsed) * speed;
+    if (request.loopCount > 0 && played >= duration * request.loopCount) return request.loopCount - 1;
+    return Math.trunc(played / duration);
   }
 
   /**
@@ -313,12 +338,45 @@ export class Tr2GrannyAnimationLayer
     throw new Error("Tr2GrannyAnimationLayer.SampleAnimation is not implemented in CarbonEngineJS.");
   }
 
-  /** Not ported: track masks are not decoded. */
+  /**
+   * Reads a named bone mask from the animation's skeleton
+   * (Tr2GrannyAnimationLayer.cpp:989-1024): on the CMF branch the skeleton's
+   * bone mask (cmf::ExtractBoneWeights), on the Granny branch each bone's
+   * extended-data member of that name (GrannyExtractTrackMask). The name is
+   * kept even when there is no rig yet, and the owner extracts again when its
+   * rig is built, as Carbon's InitializeAnimationLayer does. A bone the mask
+   * does not name weighs 0.
+   *
+   * Adapted: weights are kept as a typed array by bone index rather than a
+   * cmf::BoneWeights or granny_track_mask.
+   *
+   * @param {import("./Tr2GrannyAnimation.js").Tr2GrannyAnimation} grannyAnimation The owning animation.
+   * @param {string} name Track mask name.
+   * @returns {void}
+   */
   @meta.blue.method
-  @meta.notImplemented
-  ExtractTrackMask(..._args)
+  @meta.adapted
+  ExtractTrackMask(grannyAnimation, name)
   {
-    throw new Error("Tr2GrannyAnimationLayer.ExtractTrackMask is not implemented in CarbonEngineJS.");
+    this.trackMaskName = String(name ?? "");
+    this.trackMaskWeights = grannyAnimation._ExtractTrackMaskWeights(this.trackMaskName);
+  }
+
+  /**
+   * How strongly this layer moves a bone: 1 for an unmasked layer or a bone
+   * added by name, else its track-mask weight, else 0. Carbon's m_boneMask
+   * holds the same per-bone factor (Tr2GrannyAnimationLayer.cpp:98-120,
+   * 929-970), which cmf::BlendPoses multiplies by the layer weight.
+   *
+   * @param {number} boneIndex Skeleton bone index.
+   * @param {string} boneName Bone name.
+   * @returns {number} The bone's mask weight.
+   */
+  @meta.ours
+  _GetBoneMaskWeight(boneIndex, boneName)
+  {
+    if (this.allBones || this.bones.has(boneName)) return 1;
+    return this.trackMaskWeights ? this.trackMaskWeights[boneIndex] ?? 0 : 0;
   }
 
   /** Not ported: pause is owner-wide (Tr2GrannyAnimation.TogglePauseAnimations). */
