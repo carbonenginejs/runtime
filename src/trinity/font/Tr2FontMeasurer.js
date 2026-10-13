@@ -219,11 +219,13 @@ export class Tr2FontMeasurer
    * that fails (a size of 0 or less, say) counts as no glyph, as Carbon's
    * FTC_SBitCache_Lookup error does.
    *
-   * Adapted: JS Unicode code points replace native wchar_t units. A browser
-   * font reports no missing glyphs, so within a face that works every
-   * character has a glyph, and the browser itself falls back per glyph through
-   * the CSS family list (Tr2FontManager._SetFont). Browser fonts expose no
-   * underline metrics, so thickness and offset use pixel-size estimates.
+   * Adapted: JS Unicode code points replace native wchar_t units. A face
+   * parsed from font bytes reports a missing character as glyph 0, so the
+   * per-character fallback runs as Carbon's does. A CSS face reports no
+   * missing glyphs: within it every character has a glyph, and the browser
+   * itself falls back per glyph through the CSS family list
+   * (Tr2FontManager._SetFont). Underline thickness and offset use pixel-size
+   * estimates, as browser fonts expose no underline metrics.
    *
    * Carbon bug CE-129, Tr2FontMeasurer.cpp:243-244: Carbon shifts the face's
    * font-unit underline metrics by 6 as if they were 26.6 pixels, so its
