@@ -174,6 +174,26 @@ test("the fetch file system answers in every form it declares", async () =>
   assert.equal(await new Response(stream.data).text(), "{\"a\":1}");
 });
 
+test("the default fetch is called on the global, as the browser's fetch requires", async () =>
+{
+  const browserFetch = globalThis.fetch;
+  // A browser's WebIDL fetch throws "Illegal invocation" when called on any other object.
+  globalThis.fetch = function (url)
+  {
+    if (this !== globalThis) throw new TypeError("Illegal invocation");
+    return Promise.resolve(new Response(`read ${url}`));
+  };
+  try
+  {
+    const fileSystem = new CjsBlueResFileSystemFetch({ paths: { res: "https://h/" }, retries: 0 });
+    assert.deepEqual(await fileSystem.GetStreamFromPath("res:/a", { form: TEXT }), { form: TEXT, data: "read https://h/a" });
+  }
+  finally
+  {
+    globalThis.fetch = browserFetch;
+  }
+});
+
 test("the fetch file system reads 404 as absent, retries server errors, and does not retry a client error", async () =>
 {
   const absent = new CjsBlueResFileSystemFetch({ fetch: scriptedFetch(() => new Response("", { status: 404 })).fetch, paths: { res: "https://h/" } });

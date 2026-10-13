@@ -79,7 +79,8 @@ export class CjsBlueResFileSystemFetch extends IBlueResFileSystem
   constructor(options = {})
   {
     super();
-    this._fetch = options.fetch ?? globalThis.fetch;
+    // The browser's fetch must be called on the global; called as this._fetch(...) it throws "Illegal invocation".
+    this._fetch = options.fetch ?? (typeof globalThis.fetch === "function" ? globalThis.fetch.bind(globalThis) : null);
     if (typeof this._fetch !== "function") throw new TypeError("CjsBlueResFileSystemFetch needs a fetch.");
 
     if (options.paths) this.SetPaths(options.paths);
