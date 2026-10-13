@@ -129,6 +129,7 @@ directly. See [geometry interchange](geometry-interchange.md).
 | MP4 (`.mp4`) | `CjsMp4Format` | `@carbonenginejs/runtime/resource/formats/mp4` |
 | OBJ (`.obj`) | `CjsObjFormat` | `@carbonenginejs/runtime/resource/formats/obj` |
 | Ogg (`.ogg`) | `CjsOggFormat` | `@carbonenginejs/runtime/resource/formats/ogg` |
+| OpenType and TrueType fonts (`.otf`, `.ttf`; CFF outlines and hints, metrics and cmap) | `CjsOpenTypeFormat` | `@carbonenginejs/runtime/resource/formats/opentype` |
 | Python pickle (`.pickle`, protocol 0 data subset) | `CjsPickleFormat` | `@carbonenginejs/runtime/resource/formats/pickle` |
 | PNG (`.png`) | `CjsPngFormat` | `@carbonenginejs/runtime/resource/formats/png` |
 | [PSD merged images](psd.md) (`.psd`) | `CjsPsdFormat` | `@carbonenginejs/runtime/resource/formats/psd` |

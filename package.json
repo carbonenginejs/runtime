@@ -108,6 +108,7 @@
     "./resource/formats/mp4": "./src/resource/formats/mp4/index.js",
     "./resource/formats/obj": "./src/resource/formats/obj/index.js",
     "./resource/formats/ogg": "./src/resource/formats/ogg/index.js",
+    "./resource/formats/opentype": "./src/resource/formats/opentype/index.js",
     "./resource/formats/pickle": "./src/resource/formats/pickle/index.js",
     "./resource/formats/png": "./src/resource/formats/png/index.js",
     "./resource/formats/psd": "./src/resource/formats/psd/index.js",
