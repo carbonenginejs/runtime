@@ -1,4 +1,6 @@
 // Source: trinity/trinity/Font/Tr2SBit.h
+// Source: trinity/trinity/Font/Tr2SBit.cpp
+// Source: trinity/trinity/Font/Tr2Sbit_Blue.cpp
 // Maintained browser-font adapter; native interfaces retain their Carbon names.
 import { meta } from "#schema";
 
@@ -23,10 +25,18 @@ export class Tr2SBitWrapper
   /** Face identifier owned by the font manager. */
   faceId = 0;
 
-  /** Pixel size retained for browser underline metrics. */
+  /**
+   * The pixel size the glyph was rasterized at.
+   *
+   * Ours: Carbon's wrapper has no such field (Tr2SBit.h:73-78); its
+   * `ToBufferWithUnderline` reads the face's underline metrics through
+   * `faceId` (Tr2SBit.cpp:80-81). A browser font exposes none, so the
+   * underline is estimated from this size instead.
+   */
+  @meta.ours
   fontSize = 12;
 
-  /** Blue "xOffset" [READ] (Tr2Sbit_Blue.cpp:198-201): GetXOffset. @returns {number} Bitmap left offset. */
+  /** Blue "xOffset" [READ] (Tr2Sbit_Blue.cpp:23-26): GetXOffset. @returns {number} Bitmap left offset. */
   @meta.blue.read
   @meta.type.int32
   @meta.implemented
@@ -35,7 +45,7 @@ export class Tr2SBitWrapper
     return this.GetXOffset();
   }
 
-  /** Blue "yOffset" [READ] (Tr2Sbit_Blue.cpp:203-206): GetYOffset. @returns {number} Bitmap top offset. */
+  /** Blue "yOffset" [READ] (Tr2Sbit_Blue.cpp:28-31): GetYOffset. @returns {number} Bitmap top offset. */
   @meta.blue.read
   @meta.type.int32
   @meta.implemented
@@ -44,7 +54,7 @@ export class Tr2SBitWrapper
     return this.GetYOffset();
   }
 
-  /** Blue "width" [READ] (Tr2Sbit_Blue.cpp:208-211): GetWidth. @returns {number} Bitmap width. */
+  /** Blue "width" [READ] (Tr2Sbit_Blue.cpp:33-36): GetWidth. @returns {number} Bitmap width. */
   @meta.blue.read
   @meta.type.int32
   @meta.implemented
@@ -53,7 +63,7 @@ export class Tr2SBitWrapper
     return this.GetWidth();
   }
 
-  /** Blue "height" [READ] (Tr2Sbit_Blue.cpp:213-216): GetHeight. @returns {number} Bitmap height. */
+  /** Blue "height" [READ] (Tr2Sbit_Blue.cpp:38-41): GetHeight. @returns {number} Bitmap height. */
   @meta.blue.read
   @meta.type.int32
   @meta.implemented
@@ -62,7 +72,7 @@ export class Tr2SBitWrapper
     return this.GetHeight();
   }
 
-  /** Blue "xadvance" [READ] (Tr2Sbit_Blue.cpp:218-222): GetXAdvance. @returns {number} Horizontal advance. */
+  /** Blue "xadvance" [READ] (Tr2Sbit_Blue.cpp:43-47): GetXAdvance. @returns {number} Horizontal advance. */
   @meta.blue.read
   @meta.type.int32
   @meta.implemented
@@ -71,7 +81,7 @@ export class Tr2SBitWrapper
     return this.GetXAdvance();
   }
 
-  /** Blue "yadvance" [READ] (Tr2Sbit_Blue.cpp:224-228): GetYAdvance. @returns {number} Vertical advance. */
+  /** Blue "yadvance" [READ] (Tr2Sbit_Blue.cpp:49-53): GetYAdvance. @returns {number} Vertical advance. */
   @meta.blue.read
   @meta.type.int32
   @meta.implemented
@@ -166,11 +176,11 @@ export class Tr2SBitWrapper
    * Adapted: browsers expose no underline metrics; use the same pixel-size
    * estimate as Tr2FontMeasurer, instead of claiming FreeType equivalence.
    *
-   * Carbon quirk CE-129, Tr2SBit.cpp:80-81: Carbon shifts the FT_Face
+   * Carbon bug CE-129, Tr2SBit.cpp:80-81: Carbon shifts the FT_Face
    * underline_position/underline_thickness by 6 as if they were 26.6 pixels,
    * but they are font units, so its underline offset and thickness do not
-   * scale with the font size. Not reproduced: the browser exposes no
-   * font-unit metrics, and the size-scaled estimate renders correctly today.
+   * scale with the font size. Fixed, operator ruling 2026-10-13: the
+   * underline is estimated from the pixel size, which scales.
    *
    * @param {ArrayBuffer|ArrayBufferView} buffer Destination RGBA bytes.
    * @param {number} width Destination width in pixels.

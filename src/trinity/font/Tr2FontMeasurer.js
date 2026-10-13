@@ -85,6 +85,15 @@ export class Tr2FontMeasurer
   _currentAscender = 0;
   _currentDescender = 0;
 
+  /**
+   * m_currentFace: the face AddText resolved and read metrics for; 0 until
+   * then, and again after SetFont, SetFontSize or Reset (Tr2FontMeasurer.cpp:
+   * 137, 714, 731), so the next AddText resolves it afresh.
+   *
+   * @type {number}
+   */
+  _currentFace = 0;
+
   /** CSS font family used by the browser backend. */
   @meta.blue.readwrite
   @meta.type.string
@@ -120,12 +129,12 @@ export class Tr2FontMeasurer
   @meta.type.int32
   get color()
   {
-    return this.GetColor();
+    return this._GetColor();
   }
   /** Sets the packed color for subsequent text. */
   set color(value)
   {
-    this.SetColor(value);
+    this._SetColor(value);
   }
 
   /** Selects the CSS family for subsequently added text. */
@@ -134,6 +143,7 @@ export class Tr2FontMeasurer
   {
     if (value === this._font) return;
     this._font = value;
+    this._currentFace = 0;
     this._currentAscender = this._currentDescender = 0;
   }
 
@@ -150,6 +160,7 @@ export class Tr2FontMeasurer
   {
     if (value === this._fontSize) return;
     this._fontSize = value;
+    this._currentFace = 0;
     this._currentAscender = this._currentDescender = 0;
   }
 
@@ -160,16 +171,16 @@ export class Tr2FontMeasurer
     return this._fontSize;
   }
 
-  /** Reads the native signed packed color. */
+  /** Carbon `GetColor` (protected, Tr2FontMeasurer.h:142): the native signed packed color. */
   @meta.implemented
-  GetColor()
+  _GetColor()
   {
     return this._color | 0;
   }
 
-  /** Stores the packed color for subsequently added segments. */
+  /** Carbon `SetColor` (protected, Tr2FontMeasurer.h:143): the packed color for subsequently added segments. */
   @meta.implemented
-  SetColor(value)
+  _SetColor(value)
   {
     this._color = value >>> 0;
   }
@@ -183,25 +194,41 @@ export class Tr2FontMeasurer
   _fallbackFace = 0;
 
   /**
+   * m_imgTypeFallback.width/height: the pixel size fallback glyphs are looked
+   * up at, set with `_fallbackFace` and never again.
+   *
+   * Carbon quirk CE-167, Tr2FontMeasurer.cpp:290-308: the size is taken when
+   * the fallback face is first set up, and neither SetFontSize nor Reset
+   * clears `m_fallbackFace`, so fallback glyphs keep the size in effect at
+   * the measurer's first fallback. Reproduced.
+   *
+   * @type {number}
+   */
+  _fallbackFontSize = 0;
+
+  /**
    * Carbon `AddText` (Tr2FontMeasurer.cpp:168-375): adds a cancellable segment
    * using native advance, spacing and limit rules. No font selects
    * TR2_FONT_FALLBACK (cpp:174-181). Per character: the current face, then
    * TR2_FONT_FALLBACK (cpp:287-321), then the fallback's U+25A1 white box
    * (cpp:323-338), else stop (cpp:340-344). Native AddText applies no kerning.
    *
-   * Adapted: JS Unicode code points replace native wchar_t units. The browser
-   * reports no missing glyphs, so the per-character chain only runs where
-   * LookupGlyphIndex reports none; the browser applies the same fallback per
-   * glyph through the CSS family list (Tr2FontManager._SetFont). Carbon's
-   * "font not found" retry (cpp:183-205) has no browser signal and is absent.
-   * Metrics are re-read on every call, where Carbon reads them when the face
-   * changes. Browser fonts expose no underline metrics, so thickness and offset
-   * use pixel-size estimates.
+   * A face that does not work (Tr2FontManager.LookupFace) is replaced by
+   * TR2_FONT_FALLBACK, and when that does not work either nothing is added
+   * (cpp:183-205); metrics are read when the face is resolved. A glyph lookup
+   * that fails (a size of 0 or less, say) counts as no glyph, as Carbon's
+   * FTC_SBitCache_Lookup error does.
    *
-   * Carbon quirk CE-129, Tr2FontMeasurer.cpp:243-244: Carbon shifts the face's
+   * Adapted: JS Unicode code points replace native wchar_t units. A browser
+   * font reports no missing glyphs, so within a face that works every
+   * character has a glyph, and the browser itself falls back per glyph through
+   * the CSS family list (Tr2FontManager._SetFont). Browser fonts expose no
+   * underline metrics, so thickness and offset use pixel-size estimates.
+   *
+   * Carbon bug CE-129, Tr2FontMeasurer.cpp:243-244: Carbon shifts the face's
    * font-unit underline metrics by 6 as if they were 26.6 pixels, so its
-   * underline does not scale with size. Not reproduced: no font-unit metrics
-   * exist in the browser; the size-scaled estimate is kept.
+   * underline does not scale with size. Fixed, operator ruling 2026-10-13:
+   * the size-scaled estimate is used.
    *
    * @param {string} text Text to add.
    * @returns {number} Number of characters added.
@@ -210,11 +237,34 @@ export class Tr2FontMeasurer
   @meta.adapted
   AddText(text)
   {
-    const face = g_fontManager.GetFaceID(this._font || TR2_FONT_FALLBACK);
-    const metrics = g_fontManager.LookupMetricsFromScript(face, this._fontSize, this._fontSize);
-    this._currentAscender = metrics[0]; this._currentDescender = metrics[1];
-    this.ascender = Math.max(this.ascender, metrics[0]);
-    this.descender = Math.min(this.descender, metrics[1]);
+    // Resolve the face once per font and size, falling back when it does not work.
+    let font = this._font || TR2_FONT_FALLBACK;
+    while (!this._currentFace)
+    {
+      this._currentFace = g_fontManager.GetFaceID(font);
+
+      if (g_fontManager.LookupFace(this._currentFace) === null)
+      {
+        if (font === TR2_FONT_FALLBACK)
+        {
+          console.error(`Tr2FontMeasurer.AddText: fallback font ${font} not found - check your installation`);
+          this._currentFace = 0;
+          return 0;
+        }
+
+        console.error(`Tr2FontMeasurer.AddText: font ${font} not found`);
+        font = TR2_FONT_FALLBACK;
+        this._currentFace = 0;
+        continue;
+      }
+
+      const metrics = g_fontManager.LookupMetricsFromScript(this._currentFace, this._fontSize, this._fontSize);
+      if (metrics[0] > this.ascender) this.ascender = metrics[0];
+      this._currentAscender = metrics[0];
+      if (metrics[1] < this.descender) this.descender = metrics[1];
+      this._currentDescender = metrics[1];
+    }
+    const face = this._currentFace;
 
     const segment = { prevCursorX: this.cursorX, bitmaps: [], color: this._color, underline: this.underline,
       underlinePosition: -Math.max(1, Math.round(this._fontSize / 10)), underlineThickness: Math.max(1, Math.round(this._fontSize / 14)) };
@@ -229,20 +279,30 @@ export class Tr2FontMeasurer
       // for a missing glyph; LookupGlyphIndex adds -1 for an unusable face.
       let bitmap = null;
       let glyphIndex = g_fontManager.LookupGlyphIndex(face, code);
-      if (glyphIndex > 0) bitmap = g_fontManager.LookupSBit(face, this._fontSize, this._fontSize, glyphIndex);
+      if (glyphIndex > 0) bitmap = this._LookupSBit(face, this._fontSize, glyphIndex);
 
       if (!bitmap)
       {
-        if (!this._fallbackFace) this._fallbackFace = g_fontManager.GetFaceID(TR2_FONT_FALLBACK);
+        // Set up the fallback once, for the measurer's lifetime (CE-167).
+        if (!this._fallbackFace)
+        {
+          this._fallbackFace = g_fontManager.GetFaceID(TR2_FONT_FALLBACK);
+          if (g_fontManager.LookupFace(this._fallbackFace) === null)
+          {
+            console.error(`Tr2FontMeasurer.AddText: fallback font ${TR2_FONT_FALLBACK} not found - check your installation`);
+            break;
+          }
+          this._fallbackFontSize = this._fontSize;
+        }
 
         glyphIndex = g_fontManager.LookupGlyphIndex(this._fallbackFace, code);
-        if (glyphIndex > 0) bitmap = g_fontManager.LookupSBit(this._fallbackFace, this._fontSize, this._fontSize, glyphIndex);
+        if (glyphIndex > 0) bitmap = this._LookupSBit(this._fallbackFace, this._fallbackFontSize, glyphIndex);
       }
 
       if (!bitmap)
       {
         glyphIndex = g_fontManager.LookupGlyphIndex(this._fallbackFace, 0x25a1);
-        if (glyphIndex > 0) bitmap = g_fontManager.LookupSBit(this._fallbackFace, this._fontSize, this._fontSize, glyphIndex);
+        if (glyphIndex > 0) bitmap = this._LookupSBit(this._fallbackFace, this._fallbackFontSize, glyphIndex);
       }
 
       if (!bitmap) break;
@@ -255,6 +315,29 @@ export class Tr2FontMeasurer
     }
 
     return segment.bitmaps.length;
+  }
+
+  /**
+   * One glyph's sbit, or null when the lookup fails: Carbon's AddText treats
+   * an FTC_SBitCache_Lookup error as no glyph (Tr2FontMeasurer.cpp:279-284).
+   *
+   * @param {number} face Face ID.
+   * @param {number} size Pixel size.
+   * @param {number} glyphIndex Glyph index.
+   * @returns {import("./Tr2SBitWrapper.js").Tr2SBitWrapper|null} The sbit, or null.
+   */
+  @meta.implemented
+  _LookupSBit(face, size, glyphIndex)
+  {
+    try
+    {
+      return g_fontManager.LookupSBit(face, size, size, glyphIndex);
+    }
+    catch (error)
+    {
+      if (error instanceof RangeError && error.message === "FTC_SBitCache_Lookup failed") return null;
+      throw error;
+    }
   }
 
   /** Commits pending segments with a placement offset and notifies text sprites. */
@@ -305,6 +388,7 @@ export class Tr2FontMeasurer
   {
     this.ClearSprites();
     this.cursorX = this.cursorY = this.ascender = this.descender = 0;
+    this._currentFace = 0;
     this._renderData.length = this._committedRenderData.length = 0;
     this._NotifyListenersOfChange();
   }
@@ -400,14 +484,17 @@ export class Tr2FontMeasurer
             output.setUint32((top + y) * pitch + (left + x) * 4, ((segment.color & 0xffffff) | (alpha << 24)) >>> 0, true);
           }
         }
-        if (segment.underline)
-        {
-          const underline = new Tr2SBitWrapper();
-          const underlineWidth = glyph.xadvance;
-          underline.sbit = { width: underlineWidth, height: segment.underlineThickness, left: 0, top: 0,
-            pitch: underlineWidth, buffer: new Uint8Array(underlineWidth * segment.underlineThickness).fill(255) }; // alloc: variable-size glyph pixels retained by the text cache
-          underline.ToBuffer(bytes, width, height, pitch, bitmap.x, height - bitmap.y + segment.underlinePosition, segment.color);
-        }
+      }
+
+      // A segment's underlines go on after all its glyphs, as Carbon draws them.
+      if (!segment.underline) continue;
+      for (const bitmap of segment.bitmaps)
+      {
+        const underline = new Tr2SBitWrapper();
+        const underlineWidth = bitmap.sbit.xadvance;
+        underline.sbit = { width: underlineWidth, height: segment.underlineThickness, left: 0, top: 0,
+          pitch: underlineWidth, buffer: new Uint8Array(underlineWidth * segment.underlineThickness).fill(255) }; // alloc: variable-size glyph pixels retained by the text cache
+        underline.ToBuffer(bytes, width, height, pitch, bitmap.x, height - bitmap.y + segment.underlinePosition, segment.color);
       }
     }
   }
@@ -824,12 +911,12 @@ export class Tr2FontMeasurer
    * Carbon `SubmitSprites` (Tr2FontMeasurer.cpp:1045-1123): submits texture
    * runs within the scene's vertex limit, rebasing each batch.
    *
-   * Carbon quirk CE-130, Tr2FontMeasurer.cpp:1077: `vertexOffset` is declared
+   * Carbon bug CE-130, Tr2FontMeasurer.cpp:1077: `vertexOffset` is declared
    * once outside the run loop and never reset, so when an earlier run was split
    * a later split run's indices are rebased by the earlier run's offset too
-   * (AdjustIndicesIfNeeded, cpp:1342-1360) and wrap below zero. Not reproduced:
-   * the per-run rebase is kept because reproducing it breaks rendering that
-   * works today.
+   * (AdjustIndicesIfNeeded, cpp:1342-1360) and wrap below zero: Carbon draws
+   * scrambled glyphs there, which nothing can rely on. Fixed, operator ruling
+   * 2026-10-13: each run is rebased on its own.
    *
    * Adapted: array slices replace pointer ranges, and a renderer that cannot
    * fit one quad throws instead of looping.

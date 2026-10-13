@@ -32,15 +32,23 @@ function browser(t)
   return calls;
 }
 
+// The fixtures have no FontFace: mark families loaded, as LoadFont would.
+function loaded(manager, ...families)
+{
+  for (const family of families.length ? families : [ 'evefont' ]) manager._loadedFamilies.add(family);
+  return manager;
+}
+
 test('browser font identities, fixed-point metrics and pair kerning', t =>
 {
   browser(t);
-  const manager = new Tr2FontManager(), id = manager.GetFaceID('evefont');
+  const manager = loaded(new Tr2FontManager()), id = manager.GetFaceID('evefont');
   assert.equal(manager.GetFaceID('evefont'), id);
   // Carbon LookupFaceIDAndGlyphIndex (Blue name "LookupGlyphIndex") resolves the
   // name through g_fontManager (Tr2FontManager.cpp:707-725).
   Tr2FontManager.initialize();
   t.after(() => Tr2FontManager.shutdown());
+  loaded(fontModule.g_fontManager);
   assert.deepEqual(manager.LookupFaceIDAndGlyphIndex('evefont', 65), [fontModule.g_fontManager.GetFaceID('evefont'), 65]);
   assert.equal(manager.LookupGlyphIndex(id, 0x1f600), 0x1f600);
   assert.equal(manager.LookupGlyphIndex(id, -1), -1);
@@ -51,7 +59,7 @@ test('browser font identities, fixed-point metrics and pair kerning', t =>
 
 test('browser glyph coverage, bearing, cache reuse and whitespace advances', t =>
 {
-  const calls = browser(t), manager = new Tr2FontManager(), id = manager.GetFaceID('evefont');
+  const calls = browser(t), manager = loaded(new Tr2FontManager()), id = manager.GetFaceID('evefont');
   const first = manager.LookupSBit(id, 0, 12, 65);
   assert.equal(first.GetWidth(), 8); assert.equal(first.GetHeight(), 11);
   assert.equal(first.GetXOffset(), -1); assert.equal(first.GetYOffset(), 9);
@@ -78,7 +86,7 @@ test('glyph cache trims oldest-first on tick until strictly under budget', t =>
   Tr2Renderer.GetCurrentFrameCounter = () => frame;
   t.after(() => { Tr2Renderer.GetCurrentFrameCounter = saved; });
 
-  const manager = new Tr2FontManager(), id = manager.GetFaceID('evefont');
+  const manager = loaded(new Tr2FontManager()), id = manager.GetFaceID('evefont');
   manager.glyphCacheBudget = 176;
 
   // Each glyph's coverage is 8x11 = 88 bytes. Frames: A at 1, B at 2, A refreshed
@@ -112,11 +120,18 @@ test('font loading registers only after completion and clears fallback caches', 
     if (savedFonts) Object.defineProperty(globalThis, 'fonts', savedFonts); else delete globalThis.fonts;
   });
   const manager = new Tr2FontManager(), id = manager.GetFaceID('evefont');
-  manager.LookupSBit(id, 0, 12, 65);
+  // A family no LoadFont has registered does not work, as a FreeType face whose file never loaded.
+  assert.throws(() => manager.LookupSBit(id, 0, 12, 65), /FTC_SBitCache_Lookup failed/);
+  assert.equal(manager.LookupFace(id), null);
   assert.equal(await manager.LoadFont('evefont', new ArrayBuffer(4)), id);
   assert.equal(added.length, 1); assert.equal(manager.totalGlyphsCachedSize, 0);
+  assert.equal(manager.LookupFace(id), 'evefont');
+  manager.LookupSBit(id, 0, 12, 65);
+  assert.equal(manager.totalGlyphsCachedSize, 88);
+  await manager.LoadFont('evefont', new ArrayBuffer(4));
+  assert.equal(manager.totalGlyphsCachedSize, 0, 'a load clears the glyph cache');
   await assert.rejects(manager.LoadFont('broken', 'bad'), /font failed/);
-  assert.equal(added.length, 1); assert.equal(manager._faceMap.has('broken'), false);
+  assert.equal(added.length, 2, 'the two good loads only'); assert.equal(manager._faceMap.has('broken'), false);
 });
 
 test('ClearBuffer respects a view offset and length', () =>
@@ -148,6 +163,7 @@ test('text measurer preserves segment cancellation, limits and committed index r
   browser(t);
   const { Tr2FontMeasurer } = await import('../../npm/dist/trinity/index.js');
   Tr2FontManager.initialize();
+  loaded(fontModule.g_fontManager);
   const text = new Tr2FontMeasurer();
   text.font = 'evefont'; text.letterSpace = 2;
   assert.equal(text.AddText('AB'), 2); assert.equal(text.cursorX, 20);
@@ -172,6 +188,7 @@ test('committed browser text draws into a host bitmap with top-down baseline pla
   browser(t);
   const { Tr2FontMeasurer } = await import('../../npm/dist/trinity/index.js');
   Tr2FontManager.initialize();
+  loaded(fontModule.g_fontManager, fontModule.TR2_FONT_FALLBACK);
   const text = new Tr2FontMeasurer(), bytes = new Uint8Array(20 * 20 * 4);
   text.color = 0xff030201; text.AddText('A'); text.CommitText(2, 10);
   text.DrawToHostBitmap({ IsValid: () => true, GetFormat: () => 28, GetWidth: () => 20, GetHeight: () => 20, GetPitch: () => 80, GetRawData: () => bytes });
@@ -194,7 +211,7 @@ test('font fade boundaries and underline browser metrics are retained', async t 
   measurer.fadeBottomStart = 10; measurer.fadeBottomEnd = 14;
   assert.deepEqual([1, 4, 8, 12, 15].map(y => measurer._CalcAlphaForVertical(y)), [0, 0.5, 1, 0.5, 0]);
   assert.equal(changes, 8);
-  const manager = new Tr2FontManager(), face = manager.GetFaceID('evefont');
+  const manager = loaded(new Tr2FontManager()), face = manager.GetFaceID('evefont');
   const space = manager.LookupSBit(face, 0, 12, 32), pixels = new Uint8Array(16 * 16 * 4);
   space.ToBufferWithUnderline(pixels, 16, 16, 64, 2, 6, 0xffffffff, 2);
   assert.equal(pixels[(11 * 16 + 2) * 4 + 3], 255);
@@ -205,7 +222,10 @@ test('font fade boundaries and underline browser metrics are retained', async t 
 test('text sprite runs batch by atlas identity and rebase after a split', async t =>
 {
   browser(t);
-  const { Tr2FontMeasurer, g_fontManager } = await import('../../npm/dist/trinity/index.js');
+  const { Tr2FontMeasurer } = await import('../../npm/dist/trinity/index.js');
+  Tr2FontManager.initialize();
+  t.after(() => Tr2FontManager.shutdown());
+  loaded(fontModule.g_fontManager);
   const measurer = new Tr2FontMeasurer();
   measurer.font = 'evefont';
   measurer.AddText('AAA B'); measurer.CommitText(0, 10);
@@ -305,7 +325,7 @@ test('font manager uploads a glyph once and keeps its extra shadow row transpare
       return { LockBuffer: () => ({ data: stored, pitch: width * 4 }), UnlockBuffer() { uploads++; } };
     }
   }];
-  const manager = new Tr2FontManager(), face = manager.GetFaceID('evefont');
+  const manager = loaded(new Tr2FontManager()), face = manager.GetFaceID('evefont');
   const glyph = manager.LookupSBit(face, 0, 12, 65).sbit;
   const atlas = manager.GetAtlasTextureForSbit(glyph);
   assert.ok(atlas);
@@ -313,4 +333,21 @@ test('font manager uploads a glyph once and keeps its extra shadow row transpare
   assert.equal(uploads, 1);
   assert.deepEqual(Array.from(stored.slice(0, 4)), [255, 255, 255, 127]);
   assert.ok(stored.slice(glyph.width * glyph.height * 4).every(value => value === 0));
+
+  // An sbit evicted from the cache and rasterized again finds the glyph's
+  // texture its old wrappers still draw: no second atlas allocation.
+  manager.TrimGlyphCache(0);
+  const again = manager.LookupSBit(face, 0, 12, 65).sbit;
+  assert.notEqual(again, glyph);
+  assert.equal(manager.GetAtlasTextureForSbit(again), atlas);
+  assert.equal(uploads, 1);
+  assert.equal(manager.GetNumGlyphsInUse(), 1);
+  assert.equal(manager.numGlyphsCached, 1);
+
+  // ReleaseResources forgets textures and cached glyphs for managed memory only (cpp:585-604).
+  manager.ReleaseResources(0);
+  assert.equal(manager.GetNumGlyphsCached(), 1);
+  manager.ReleaseResources(2);
+  assert.equal(manager.GetNumGlyphsCached(), 0);
+  assert.equal(manager.numGlyphsInUse, 0);
 });

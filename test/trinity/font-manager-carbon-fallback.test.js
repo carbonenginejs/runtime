@@ -33,11 +33,27 @@ function browser(t)
   return fonts;
 }
 
-function singleton(t)
+// The fixtures have no FontFace: mark families loaded, as LoadFont would.
+function loaded(manager, ...families)
+{
+  for (const family of families) manager._loadedFamilies.add(family);
+  return manager;
+}
+
+function singleton(t, families = [ 'evefont', TR2_FONT_FALLBACK ])
 {
   Tr2FontManager.initialize();
   t.after(() => Tr2FontManager.shutdown());
-  return fontModule.g_fontManager;
+  return loaded(fontModule.g_fontManager, ...families);
+}
+
+/** Collects console.error calls for one test. */
+function errors(t)
+{
+  const logged = [], saved = console.error;
+  console.error = message => logged.push(String(message));
+  t.after(() => { console.error = saved; });
+  return logged;
 }
 
 test('TR2_FONT_FALLBACK is Carbon\'s value and face ID 0 is reserved', t =>
@@ -79,8 +95,69 @@ test('LookupFaceIDAndGlyphIndex follows Carbon\'s fallback chain', t =>
   // cpp:724-728: glyph index <= 0 (code point 0 here) retries in the fallback face.
   assert.deepEqual(manager.LookupFaceIDAndGlyphIndex('evefont', 0), [ fallback, 0 ]);
 
-  // LookupGlyphIndex itself takes a face ID only (cpp:271), with no name routing.
+  // LookupGlyphIndex itself takes a face ID only (cpp:271), with no name routing;
+  // the Blue spelling's font name is refused rather than answered with -1.
   assert.equal(manager.LookupGlyphIndex(own, 65), 65);
+  assert.throws(() => manager.LookupGlyphIndex('evefont', 65), /LookupFaceIDAndGlyphIndex/);
+
+  // A registered family that never loaded does not work: -1, as Carbon's failed charmap (cpp:275-280).
+  assert.equal(manager.LookupGlyphIndex(manager.GetFaceID('never-loaded'), 65), -1);
+  assert.equal(manager.LookupFace(manager.GetFaceID('never-loaded')), null);
+});
+
+test('AddText replaces a font that does not work by TR2_FONT_FALLBACK, and gives up without one (cpp:183-205)', t =>
+{
+  browser(t);
+  const logged = errors(t);
+  const manager = singleton(t, [ TR2_FONT_FALLBACK ]);
+  const measurer = new Tr2FontMeasurer();
+
+  // cpp:199-205: the requested font is not found, so the fallback face is used.
+  measurer.font = 'never-loaded';
+  assert.equal(measurer.AddText('AB'), 2);
+  assert.equal(measurer._currentFace, manager.GetFaceID(TR2_FONT_FALLBACK));
+  assert.match(logged[0], /font never-loaded not found/);
+
+  // cpp:189-196: without a working fallback either, nothing is added.
+  manager._loadedFamilies.delete(TR2_FONT_FALLBACK);
+  const other = new Tr2FontMeasurer();
+  other.font = 'never-loaded';
+  assert.equal(other.AddText('AB'), 0);
+  assert.match(logged.at(-1), /fallback font .* not found - check your installation/);
+});
+
+test('a font size of 0 adds no glyphs and reads zeroed metrics, without throwing (cpp:208-221)', t =>
+{
+  browser(t);
+  const manager = singleton(t);
+  const face = manager.GetFaceID('evefont');
+  assert.deepEqual(manager.LookupMetrics(face, 0, 0), { ascender: 0, descender: 0, height: 0 });
+  assert.throws(() => manager.LookupSBit(face, 0, 0, 65), /FTC_SBitCache_Lookup failed/);
+
+  const measurer = new Tr2FontMeasurer();
+  measurer.font = 'evefont';
+  measurer.fontSize = 0;
+  assert.equal(measurer.AddText('A'), 0);
+  assert.equal(measurer.ascender, 0);
+});
+
+test('fallback glyphs keep the size of the first fallback (CE-167, cpp:290-308)', t =>
+{
+  browser(t);
+  singleton(t);
+  const measurer = new Tr2FontMeasurer();
+  measurer.font = 'evefont';
+
+  // A failed lookup at size 0 sets the fallback up, at size 0.
+  measurer.fontSize = 0;
+  measurer.AddText('A');
+  assert.equal(measurer._fallbackFontSize, 0);
+
+  // Neither SetFontSize nor Reset clears it.
+  measurer.fontSize = 12;
+  measurer.Reset();
+  assert.equal(measurer.AddText('A'), 1);
+  assert.equal(measurer._fallbackFontSize, 0);
 });
 
 test('Blue LookupKerningXP shifts the pixel kerning by 6 again (CE-128)', t =>
@@ -155,7 +232,7 @@ test('initialize registers for Blue ticks and OnTick trims by frame age (cpp:65-
   Tr2FontManager.initialize();
 });
 
-test('Tr2SBitWrapper exposes Carbon\'s six read-only Blue properties (Tr2Sbit_Blue.cpp:198-228)', () =>
+test('Tr2SBitWrapper exposes Carbon\'s six read-only Blue properties (Tr2Sbit_Blue.cpp:23-53)', () =>
 {
   const glyph = new Tr2SBitWrapper();
   glyph.sbit = { width: 6, height: 9, left: -1, top: 7, xadvance: 8, yadvance: 0 };
