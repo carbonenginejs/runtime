@@ -59,6 +59,12 @@ export class EveChildBehaviorSystem extends EveChildTransform
   @meta.type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
+  /** m_localTransform (Matrix) [READWRITE, PERSIST] (EveChildBehaviorSystem_Blue.cpp:21) */
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.mat4
+  localTransform = mat4.create();
+
   /** m_splineTunnels (PSplineTunnelGroupVector) [READ, PERSIST, NOTIFY] */
   @meta.blue.notify
   @meta.blue.read

@@ -45,6 +45,12 @@ export class EveChildProceduralContainer extends EveChildTransform
   @meta.type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
+  /** m_localTransform (Matrix) [READWRITE, PERSIST] (EveChildProceduralContainer_Blue.cpp:27) */
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.mat4
+  localTransform = mat4.create();
+
   _proceduralContainerVariables = new Map();
 
   /** m_transformModifiers (PIEveChildTransformModifierVector) [READ, PERSIST] */

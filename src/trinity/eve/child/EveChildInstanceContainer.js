@@ -41,6 +41,12 @@ export class EveChildInstanceContainer extends EveChildTransform
   @meta.type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
+  /** m_localTransform (Matrix) [READWRITE, PERSIST] (EveChildInstanceContainer_Blue.cpp:33) */
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.mat4
+  localTransform = mat4.create();
+
   /** m_rotation (Quaternion) [READWRITE, PERSIST] - EveChildInstanceContainer_Blue.cpp:32 */
   @meta.blue.readwrite
   @meta.blue.persist

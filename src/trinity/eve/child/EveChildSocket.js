@@ -11,6 +11,7 @@ import { IsMatch, blue } from "#blue";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { EveChildPlug } from "./EveChildPlug.js";
 import { CjsSchema, meta } from "#schema";
+import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { quat } from "#math/quat";
 import { EveChildTransform } from "./EveChildTransform.js";
@@ -40,6 +41,12 @@ export class EveChildSocket extends EveChildTransform
   @meta.blue.persist
   @meta.type.vec3
   scaling = vec3.fromValues(1, 1, 1);
+
+  /** m_localTransform (Matrix) [READWRITE, PERSIST] (EveChildSocket_Blue.cpp:31) */
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.mat4
+  localTransform = mat4.create();
 
   /** Identifies the current asynchronous native LoadObject translation. */
   _loadRequest = 0;

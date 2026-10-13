@@ -10,6 +10,7 @@ import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { IsMatch, blue } from "#blue";
 import { CjsSchema, meta } from "#schema";
+import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { quat } from "#math/quat";
 import { EveChildTransform } from "./EveChildTransform.js";
@@ -47,6 +48,12 @@ export class EveChildRef extends EveChildTransform
   @meta.blue.persist
   @meta.type.vec3
   scaling = vec3.fromValues(1, 1, 1);
+
+  /** m_localTransform (Matrix) [READWRITE, PERSIST] (EveChildRef_Blue.cpp:31) */
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.mat4
+  localTransform = mat4.create();
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
   @meta.blue.notify

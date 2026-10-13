@@ -63,6 +63,12 @@ export class EveChildParticleSystem extends EveChildTransform
   @meta.type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
+  /** m_localTransform (Matrix) [READWRITE, PERSIST] (EveChildParticleSystem_Blue.cpp:28) */
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.mat4
+  localTransform = mat4.create();
+
   /**
    * m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, NOTIFY, ENUM]
    *

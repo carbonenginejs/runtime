@@ -42,6 +42,12 @@ export class EveChildQuad extends EveChildTransform
   @meta.type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
+  /** m_localTransform (Matrix) [READWRITE, PERSIST] (EveChildQuad_Blue.cpp:27) */
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.mat4
+  localTransform = mat4.create();
+
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
   @meta.blue.readwrite
   @meta.blue.persist
