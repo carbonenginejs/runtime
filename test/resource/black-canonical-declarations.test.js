@@ -207,14 +207,16 @@ test("canonical reader notifies each successful stored write and ignores unmappe
     assert.deepEqual(notifications, [["value", 7, 0], ["value", 7, 0]]);
 });
 
-test("a fixed-length member fills the instance's own array and refuses a null one", () =>
+test("a fixed-length member fills the instance's own typed array and refuses anything else", () =>
 {
     let storage;
     class Owner { color = (storage = new Float32Array(4)); }
     class NullOwner { color = null; }
+    class ArrayOwner { color = [ 0, 0, 0, 0 ]; }
     const members = [ member("color", "color") ];
     CjsSchema.define(Owner, { className: "BlackFilledColorOwner", members });
     CjsSchema.define(NullOwner, { className: "BlackFilledColorNullOwner", members });
+    CjsSchema.define(ArrayOwner, { className: "BlackFilledColorArrayOwner", members });
     const file = kind =>
     {
         const fixture = new BlackFixture();
@@ -223,7 +225,8 @@ test("a fixed-length member fills the instance's own array and refuses a null on
     const owner = new CjsBlackReader(file("BlackFilledColorOwner"), { schema: null }).CreateObject();
     assert.equal(owner.color, storage, "the instance's own typed array is filled, not replaced");
     assert.deepEqual(Array.from(owner.color), [ .25, .5, .75, 1 ]);
-    assert.throws(() => new CjsBlackReader(file("BlackFilledColorNullOwner"), { schema: null }).CreateObject(), /fills the member's 4-element array, but the member holds null/);
+    assert.throws(() => new CjsBlackReader(file("BlackFilledColorNullOwner"), { schema: null }).CreateObject(), /fills the member's 4-element typed array, but the member holds null/);
+    assert.throws(() => new CjsBlackReader(file("BlackFilledColorArrayOwner"), { schema: null }).CreateObject(), /typed array, but the member holds Array\(4\)/);
     assert.deepEqual(new CjsBlackReader(file("BlackFilledColorOwner"), { schema: null }).ReadPayload().object.color, [ .25, .5, .75, 1 ]);
 });
 
@@ -338,7 +341,7 @@ test("complete scene graphs decode with explicit baseless test classes and canon
     class Scene { ambientColor = new Float32Array(4); }
     class Effect {}
     class Texture {}
-    class Constant { name = ""; value = [0, 0, 0, 0]; }
+    class Constant { name = ""; value = new Float32Array(4); }
     CjsSchema.define(Constant, { className: "Tr2ConstantEffectParameter", struct: { size: 24 }, fields: {
         name: CjsSchema.meta.struct.SHAREDSTRING_1(0), value: CjsSchema.meta.struct.FLOAT32_4(8)
     } });
@@ -375,7 +378,7 @@ test("complete scene graphs decode with explicit baseless test classes and canon
         assert.equal(scene.fogStart, 5);
         assert.equal(scene.fogEnd, 25);
         assert.equal(scene.backgroundEffect.constParameters[4].name, "AuthoredParameter4");
-        assert.deepEqual(scene.backgroundEffect.constParameters[4].value, [4, 4.25, 4.5, 1]);
+        assert.deepEqual(Array.from(scene.backgroundEffect.constParameters[4].value), [4, 4.25, 4.5, 1]);
     });
     const externalPath = process.env.CJS_BLACK_CANONICAL_CUBE;
     await context.test("optional external real cube is fully decoded", {

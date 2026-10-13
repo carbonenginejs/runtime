@@ -1,4 +1,5 @@
 import { meta } from "#schema";
+import { vec4 } from "#math/vec4";
 
 /** One authored character recipe selection and its material values. */
 @meta.define({ className: "CjsCharacterRecipeEntry", family: "character" })
@@ -48,7 +49,7 @@ export class CjsCharacterRecipeEntry
     @meta.blue.readwrite
     @meta.blue.persist
     @meta.type.vec4
-    patternTransform = [ 0, 0, 1, 1 ];
+    patternTransform = vec4.fromValues(0, 0, 1, 1);
 
     @meta.blue.readwrite
     @meta.blue.persist

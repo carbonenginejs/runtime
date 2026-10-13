@@ -1,4 +1,5 @@
 import { meta } from "#schema";
+import { vec4 } from "#math/vec4";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /**
@@ -36,7 +37,7 @@ export class CjsCharacterMaterialProfile extends CjsCharacterRecord
     @meta.blue.readwrite
     @meta.blue.persist
     @meta.type.vec4
-    patternTransform = [ 0, 0, 1, 1 ];
+    patternTransform = vec4.fromValues(0, 0, 1, 1);
 
     @meta.blue.readwrite
     @meta.blue.persist

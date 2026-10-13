@@ -653,14 +653,14 @@ export class CjsBlackPropertyReaders
 
     /**
      * Reads float array from the current Black object-graph reader. Hydrating a
-     * class fills the member's own array in place; a payload read, with no
+     * class fills the member's own typed array in place; a payload read, with no
      * destination, returns a new array.
      *
      * @param {import("./CjsBlackBinaryReader.js").CjsBlackBinaryReader} reader Cursor positioned at the floats.
      * @param {number} count Number of 32-bit floats.
-     * @param {Float32Array|number[]|null} [destination] The member's own array, when hydrating.
+     * @param {Float32Array|null} [destination] The member's own typed array, when hydrating.
      * @returns {Float32Array|number[]} The filled destination, or the new array.
-     * @throws {TypeError} When hydration's destination is null or not an array of `count` elements.
+     * @throws {TypeError} When hydration's destination is null or not a typed array of `count` elements.
      */
     static readFloatArray(reader, count, destination = undefined)
     {
@@ -674,11 +674,10 @@ export class CjsBlackPropertyReaders
             }
             return result;
         }
-        // Hydration fills the member's own fixed-length array, never a replacement.
-        const fillable = (ArrayBuffer.isView(destination) && !(destination instanceof DataView)) || Array.isArray(destination);
-        if (!fillable || destination.length !== count)
+        // Hydration fills the member's own fixed-length typed array, never a replacement.
+        if (!(ArrayBuffer.isView(destination) && !(destination instanceof DataView)) || destination.length !== count)
         {
-            throw new TypeError(`Black fills the member's ${count}-element array, but the member holds ${destination === null ? "null" : `${destination.constructor?.name ?? typeof destination}(${destination.length})`}.`);
+            throw new TypeError(`Black fills the member's ${count}-element typed array, but the member holds ${destination === null ? "null" : `${destination.constructor?.name ?? typeof destination}(${destination.length})`}.`);
         }
         for (let i = 0; i < count; i++)
         {

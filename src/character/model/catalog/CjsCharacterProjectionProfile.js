@@ -1,4 +1,6 @@
 import { meta } from "#schema";
+import { vec2 } from "#math/vec2";
+import { vec3 } from "#math/vec3";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /**
@@ -96,7 +98,7 @@ export class CjsCharacterProjectionProfile extends CjsCharacterRecord
     @meta.blue.readwrite
     @meta.blue.persist
     @meta.type.vec2
-    offset = [ 0, 0 ];
+    offset = vec2.create();
 
     @meta.blue.readwrite
     @meta.blue.persist
@@ -116,7 +118,7 @@ export class CjsCharacterProjectionProfile extends CjsCharacterRecord
     @meta.blue.readwrite
     @meta.blue.persist
     @meta.type.vec3
-    position = [ 0, 0, 0 ];
+    position = vec3.create();
 
     @meta.blue.readwrite
     @meta.blue.persist
