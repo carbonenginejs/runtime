@@ -20,7 +20,6 @@ export * as noise from "./noise.js";
 export * as random from "./random.js";
 export * as curve from "./curve.js";
 
-export * as geometry from "./geometry/index.js";
 export * as vertex from "./vertex.js";
 export * as mesh from "./mesh.js";
 export * as tangent from "./tangent.js";

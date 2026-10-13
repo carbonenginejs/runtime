@@ -4,7 +4,7 @@
   "private": true,
   "description": "Private pre-release package for the consolidated browser-safe CarbonEngineJS runtime, renderer engines, and browser tools.",
   "type": "module",
-  "license": "MIT AND BSD-3-Clause AND BSL-1.0 AND ISC AND blessing AND LicenseRef-Brumme-MD5",
+  "license": "MIT AND BSD-3-Clause AND BSL-1.0 AND blessing AND LicenseRef-Brumme-MD5",
   "exports": {
     ".": "./src/index.js",
     "./global": "./src/global/index.js",
@@ -32,7 +32,6 @@
     "./math/vertex": "./src/global/math/vertex.js",
     "./math/mesh": "./src/global/math/mesh.js",
     "./math/tangent": "./src/global/math/tangent.js",
-    "./math/geometry": "./src/global/math/geometry/index.js",
     "./utils": "./src/global/utils/index.js",
     "./utils/arrays": "./src/global/utils/arrays.js",
     "./utils/bytes": "./src/global/utils/bytes.js",
@@ -190,7 +189,6 @@
   "imports": {
     "#global": "./src/global/index.js",
     "#math": "./src/global/math/index.js",
-    "#math/geometry": "./src/global/math/geometry/index.js",
     "#math/*": "./src/global/math/*.js",
     "#utils": "./src/global/utils/index.js",
     "#utils/errors": "./src/global/utils/errors/index.js",

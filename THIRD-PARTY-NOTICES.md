@@ -64,15 +64,6 @@ license.
 - Copyright: 2020 ccpgames rawrafox cppctamber
 - License: MIT; terms reproduced below
 
-## Mapbox earcut helper
-
-`src/global/math/geometry/helpers/earcut.js` is an embedded copy of an Earcut-style
-triangulation helper from the ccpwgl math tree.
-
-- Copyright: 2016, Mapbox
-- License: ISC
-- Local license copy: `src/global/math/geometry/helpers/LICENSE`
-
 ## ccpwgl historical Incarna curve adaptations
 
 The historical compatibility classes `Tr2ColorCurve`, `Tr2ColorKey`,
@@ -83,9 +74,9 @@ compact adaptations of CCPWGL curve implementations.
 - Copyright: 2020 ccpgames rawrafox cppctamber
 - License: MIT; terms reproduced below
 
-## Three.js-derived geometry helpers
+## Three.js-derived math helpers
 
-Math and geometry helpers in the extracted ccpwgl tree retain source comments
+Math helpers in the extracted ccpwgl tree retain source comments
 attributing conversions to Three.js authors.
 
 - Project: <https://github.com/mrdoob/three.js>

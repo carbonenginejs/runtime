@@ -5,7 +5,6 @@ import test from "node:test";
 import * as box3 from "@carbonenginejs/runtime/math/box3";
 import * as color from "@carbonenginejs/runtime/math/color";
 import * as curve from "@carbonenginejs/runtime/math/curve";
-import * as geometry from "@carbonenginejs/runtime/math/geometry";
 import * as is from "@carbonenginejs/runtime/utils/is";
 import * as lne3 from "@carbonenginejs/runtime/math/lne3";
 import * as mat4 from "@carbonenginejs/runtime/math/mat4";
@@ -20,8 +19,6 @@ import * as tri3 from "@carbonenginejs/runtime/math/tri3";
 import { copyArrayLike } from "@carbonenginejs/runtime/math/utils";
 import * as vec3 from "@carbonenginejs/runtime/math/vec3";
 import * as vec4 from "@carbonenginejs/runtime/math/vec4";
-import { getShapeArea } from "../../../src/global/math/geometry/helpers/misc.js";
-import { toJSON } from "../../../src/global/math/geometry/json.js";
 
 function almostEqual(actual, expected, epsilon = 1e-6)
 {
@@ -35,23 +32,6 @@ function almostEqualArray(actual, expected, epsilon = 1e-6)
     {
         almostEqual(actual[i], expected[i], epsilon);
     }
-}
-
-function triangleArea2(positions, a, b, c)
-{
-    const
-        ax = positions[b * 3] - positions[a * 3],
-        ay = positions[b * 3 + 1] - positions[a * 3 + 1],
-        az = positions[b * 3 + 2] - positions[a * 3 + 2],
-        bx = positions[c * 3] - positions[a * 3],
-        by = positions[c * 3 + 1] - positions[a * 3 + 1],
-        bz = positions[c * 3 + 2] - positions[a * 3 + 2];
-
-    return Math.hypot(
-        ay * bz - az * by,
-        az * bx - ax * bz,
-        ax * by - ay * bx
-    );
 }
 
 test("advertised primitive subpaths import independently", () =>
@@ -425,27 +405,10 @@ test("overlapping array-like copies have memmove semantics", () =>
     assert.deepEqual(copyArrayLike([ 0, 0 ], "💩"), [ "\ud83d", "\udca9" ]);
 });
 
-test("polygon area and shape generation do not corrupt caller contours", () =>
-{
-    almostEqual(getShapeArea([ [ 0, 0 ], [ -3, -3 ], [ -2, -3 ] ]), 1.5);
-
-    const shapes = [ {
-        positions: [ [ 0, 0 ], [ 0, 1 ], [ 1, 0 ], [ 0, 0 ] ],
-        holes: []
-    } ];
-    const original = structuredClone(shapes);
-    geometry.createShape(shapes);
-    assert.deepEqual(shapes, original);
-});
-
 test("mesh channel validation rejects malformed topology", () =>
 {
     assert.throws(() => mesh.generateNormals([ 0, 0, 0 ], [ 0, 1, 2 ]), /Invalid vertex index/);
     assert.throws(() => mesh.generateNormals([ 0, 0, 0 ], [ 0, 0 ]), /complete triangles/);
-    assert.throws(
-        () => toJSON([ 0, 1, 2 ], [ 0, 0, 0, 1, 0, 0, 0, 1, 0 ], [ 0, 0, 1, 0 ]),
-        /channel lengths/
-    );
     assert.throws(
         () => mesh.generateBiNormals([ 0, 0, 1, 0 ], [ 1, 0, 0, 0 ]),
         /complete xyz/
@@ -465,47 +428,6 @@ test("mesh channel validation rejects malformed topology", () =>
     assert.deepEqual(
         mesh.computeBoundsFromTriangles([ { vertices: [] } ]),
         { minBounds: [ 0, 0, 0 ], maxBounds: [ 0, 0, 0 ] }
-    );
-});
-
-test("empty areas keep topology and large meshes select 32-bit indices", () =>
-{
-    const small = toJSON(
-        [ 0, 1, 2 ],
-        [ 0, 0, 0, 1, 0, 0, 0, 1, 0 ],
-        [ 0, 0, 1, 0, 0, 1 ],
-        [ 0, 0, 1, 0, 0, 1, 0, 0, 1 ],
-        []
-    );
-    assert.deepEqual(small.meshes[0].indices[0].faces, [ 0, 1, 2 ]);
-
-    const large = geometry.createPlane({ widthSegments: 256, heightSegments: 256 });
-    assert.equal(large.meshes[0].indices[0].bytesPerIndex, 4);
-
-    const
-        largeMesh = large.meshes[0],
-        largeArea = largeMesh.indices[0];
-    assert.throws(
-        () => toJSON(
-            largeArea.faces,
-            largeMesh.vertex.position,
-            largeMesh.vertex.texcoord0,
-            largeMesh.vertex.normal,
-            [ { start: 0, count: largeArea.count, bytesPerIndex: 2 } ],
-            largeMesh.vertex.tangent
-        ),
-        /bytes per index/
-    );
-    assert.throws(
-        () => toJSON(
-            [ 0, 1, 2 ],
-            [ 0, 0, 0, 1, 0, 0, 0, 1, 0 ],
-            [ 0, 0, 1, 0, 0, 1 ],
-            [ 0, 0, 1, 0, 0, 1, 0, 0, 1 ],
-            [ { start: 0, count: 3, bytesPerIndex: 3 } ],
-            [ 1, 0, 0, 1, 0, 0, 1, 0, 0 ]
-        ),
-        /bytes per index/
     );
 });
 
@@ -562,46 +484,4 @@ test("packed tangent goldens match runtime-resource GR2 shader inputs", () =>
         tangent.encodeTangentFrame([ 1, 0, 0 ], [ 0, -1, 0 ], [ 0, 0, 1 ]),
         [ 0.5, 0.25, 0.25, 0.75 ]
     );
-});
-
-test("geometry defaults are finite, nondegenerate, exported, and rebuildable", () =>
-{
-    const
-        box = geometry.createBox({ widthSegments: 0 }),
-        sphere = geometry.createSphere(),
-        cone = geometry.createCone(),
-        lathe = geometry.createLathe();
-
-    assert.ok(box.meshes[0].vertex.position.every(Number.isFinite));
-    assert.equal(box.factory, geometry.createBox);
-    assert.equal(sphere.factory, geometry.createSphere);
-    assert.equal(typeof geometry.createLathe, "function");
-
-    for (const generated of [ cone, lathe ])
-    {
-        const
-            positions = generated.meshes[0].vertex.position,
-            faces = generated.meshes[0].indices[0].faces;
-
-        for (let i = 0; i < faces.length; i += 3)
-        {
-            assert.ok(triangleArea2(positions, faces[i], faces[i + 1], faces[i + 2]) > 1e-12);
-        }
-    }
-
-    const latheNormals = lathe.meshes[0].vertex.normal;
-    for (let i = 0; i < latheNormals.length; i += 3)
-    {
-        almostEqual(Math.hypot(latheNormals[i], latheNormals[i + 1], latheNormals[i + 2]), 1);
-    }
-});
-
-test("geometry factories reject non-finite or fully degenerate inputs", () =>
-{
-    assert.throws(() => geometry.createBox({ width: Infinity }), /Box dimensions/);
-    assert.throws(() => geometry.createPlane({ height: 0 }), /Plane dimensions/);
-    assert.throws(() => geometry.createCylinder({ height: 0 }), /cylinder dimensions/);
-    assert.throws(() => geometry.createSphere({ radius: 0 }), /sphere dimensions/);
-    assert.throws(() => geometry.createTorus({ tube: 0 }), /torus dimensions/);
-    assert.throws(() => geometry.createLathe({ phiLength: 0 }), /lathe sweep/);
 });

@@ -26,7 +26,6 @@
     "src/global/logging/ccpLog.js": 1,
     "src/global/math/box3.js": 3,
     "src/global/math/color.js": 2,
-    "src/global/math/geometry/lathe.js": 3,
     "src/global/math/lne3.js": 2,
     "src/global/math/mat4.js": 7,
     "src/global/math/mesh.js": 5,

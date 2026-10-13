@@ -78,7 +78,6 @@ export * as pool from "./math/pool.js";
 export * as noise from "./math/noise.js";
 export * as curve from "./math/curve.js";
 
-export * as geometry from "./math/geometry/index.js";
 export * as vertex from "./math/vertex.js";
 export * as mesh from "./math/mesh.js";
 export * as tangent from "./math/tangent.js";

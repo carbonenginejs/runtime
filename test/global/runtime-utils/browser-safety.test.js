@@ -64,7 +64,6 @@ test("every built advertised subpath imports independently", async () =>
 test("directory-backed internal aliases resolve to concrete foundation fronts", async () =>
 {
     const aliases = [
-        "#math/geometry",
         "#utils/errors",
         "#utils/resfile",
         "#consts/media",
