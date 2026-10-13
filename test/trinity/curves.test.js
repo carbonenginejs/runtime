@@ -952,7 +952,8 @@ test("Tr2CurveEulerRotation composes scalar curves with Carbon rotation order", 
   assertAlmostEquals(tangentCurve.yaw.keys[0].rightTangent, 0);
   assertAlmostEquals(tangentCurve.pitch.keys[0].rightTangent, 0);
   assertAlmostEquals(tangentCurve.roll.keys[0].rightTangent, 0);
-  assertEquals(CjsSchema.getField(Tr2CurveEulerRotation, "yaw")?.type.kind, "rootRef");
+  // PTr2CurveScalar: an embedded curve (IROOT), not a pointer (Tr2CurveEulerRotation.h:48-50).
+  assertEquals(CjsSchema.getField(Tr2CurveEulerRotation, "yaw")?.type.kind, "root");
   assertEquals(CjsSchema.getField(Tr2CurveEulerRotation, "currentValue")?.type.kind, "quat");
 });
 test("Tr2CurveRandomAxisRotation spins between source random rotations", () =>

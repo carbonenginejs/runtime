@@ -62,7 +62,7 @@ export class EveLocatorSets
 {
   @meta.blue.read
   @meta.blue.persist
-  @meta.type.list("Locator")
+  @meta.type.structList("Locator")
   locators = [];
 
   @meta.blue.readwrite

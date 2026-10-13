@@ -42,11 +42,12 @@ test("value binding declarations distinguish persisted storage from live propert
 test("dynamic declarations keep weak members and live validity properties in native order", () =>
 {
   const info = CjsSchema.getSchema(Tr2DynamicBinding);
-  assert.deepEqual(info.members.map(field => field.name), ["name", "destinationObjectPath", "destinationObjectAttribute", "destination", "sourceObjectPath", "sourceObjectAttribute", "source", "scale", "bindingDelay", "binding"]);
-  assert.deepEqual(info.properties.map(field => field.name), ["isDestinationValid", "isSourceValid"]);
+  assert.deepEqual(info.members.map(field => field.name), ["name", "destinationObjectPath", "destinationObjectAttribute", "sourceObjectPath", "sourceObjectAttribute", "scale", "bindingDelay", "binding"]);
+  // The weak endpoints are live getters over WeakRefs, as the validity flags are.
+  assert.deepEqual(info.properties.map(field => field.name).sort(), ["destination", "isDestinationValid", "isSourceValid", "source"]);
   for (const name of ["source", "destination"])
   {
-    const field = info.members.find(field => field.name === name);
+    const field = info.properties.find(field => field.name === name);
     assert.equal(field.type.kind, "rootWeak");
     assert.notEqual(field.edit.persist, true);
   }
@@ -56,6 +57,8 @@ test("dynamic declarations keep weak members and live validity properties in nat
   binding._sourceRef = { deref: () => null };
   assert.equal(binding.isSourceValid, false, "property recomputes lifetime instead of exposing stale cached validity");
   assert.throws(() => { binding.isSourceValid = true; }, TypeError);
+  // Exporting a binding reads its stored members; the endpoints were instance accessors and made it throw.
+  assert.doesNotThrow(() => CjsSchema.getValues(new Tr2DynamicBinding()));
 });
 
 test("declared value-binding graph copies shared endpoint identity and rebuilds its plan", () =>

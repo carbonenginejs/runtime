@@ -12,6 +12,9 @@ import { TriValueBinding } from "./TriValueBinding.js";
  * A value binding described by object paths: it resolves both endpoints against
  * its owner's parameter map, builds a weak TriValueBinding and starts copying
  * after a configured delay.
+ *
+ * Held gap: native constructor/destructor OS rebase registration is absent;
+ * callers retain the established explicit-seconds boundary.
  */
 @meta.define({ className: "Tr2DynamicBinding", family: "trinityCore" })
 @meta.blue.inherit(ISimTimeRebaseNotify)
@@ -38,10 +41,18 @@ export class Tr2DynamicBinding extends INotify
   @meta.type.string
   destinationObjectAttribute = "";
 
-  /** Native destination member. */
+  /**
+   * Native destination member: the weakly held endpoint, or null once it is
+   * gone. Adapted: a WeakRef replaces native BlueWeakRef storage.
+   *
+   * @returns {object|null} The destination object.
+   */
   @meta.blue.read
   @meta.type.rootWeak("IRoot")
-  destination = null;
+  get destination()
+  {
+    return this._destinationRef ? this._destinationRef.deref() ?? null : null;
+  }
 
   /**
    * Native readonly endpoint validity property.
@@ -69,10 +80,18 @@ export class Tr2DynamicBinding extends INotify
   @meta.type.string
   sourceObjectAttribute = "";
 
-  /** Native source member. */
+  /**
+   * Native source member: the weakly held endpoint, or null once it is gone.
+   * Adapted: a WeakRef replaces native BlueWeakRef storage.
+   *
+   * @returns {object|null} The source object.
+   */
   @meta.blue.read
   @meta.type.rootWeak("IRoot")
-  source = null;
+  get source()
+  {
+    return this._sourceRef ? this._sourceRef.deref() ?? null : null;
+  }
 
   /** Native scale member. */
   @meta.blue.notify
@@ -124,27 +143,6 @@ export class Tr2DynamicBinding extends INotify
 
   /** Portable validity cache refreshed from the weak endpoint. */
   _isSourceValid = false;
-
-  /**
-   * Redefines the read-only source and destination fields as getters over the
-   * weakly held endpoint references.
-   * Adapted: JavaScript weak-reference accessors replace native BlueWeakRef storage.
-   * Held gap: native constructor/destructor OS rebase registration is absent; callers retain the established explicit-seconds boundary.
-   */
-  constructor()
-  {
-    super();
-    Object.defineProperty(this, "source", {
-      configurable: true,
-      enumerable: true,
-      get: () => this._sourceRef ? this._sourceRef.deref() ?? null : null
-    });
-    Object.defineProperty(this, "destination", {
-      configurable: true,
-      enumerable: true,
-      get: () => this._destinationRef ? this._destinationRef.deref() ?? null : null
-    });
-  }
 
   /**
    * Unlinks, resolves both object paths against the owner's parameter map and
