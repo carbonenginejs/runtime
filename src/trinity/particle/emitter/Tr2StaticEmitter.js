@@ -1,11 +1,30 @@
 // Source: trinity/trinity/Particle/Tr2StaticEmitter.h
-import { CjsResource, IsMatch } from "#blue";
+// Source: trinity/trinity/Particle/Tr2StaticEmitter.cpp
+import { blue, IsMatch } from "#blue";
+import { ResourceRequirement } from "#resource";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
+import * as CcpLog from "../../../global/logging/ccpLog.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { CjsSchema, meta } from "#schema";
+import { meta } from "#schema";
 import { ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
+import { Tr2ParticleElementDeclarationName } from "../element/Tr2ParticleElementDeclarationName.js";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
+import { CarbonUsageFromChannel, CarbonUsageFromCmf } from "../../core/vertex/vertexUsage.js";
 
-/** A one-shot particle emitter that spawns particles from a geometry resource's baked emission points on first update. */
+/**
+ * One particle element's source in the geometry: Carbon's DeclarationMapping
+ * (Tr2StaticEmitter.h:61-76).
+ *
+ * @typedef {object} Tr2StaticEmitterMapping
+ * @property {ArrayLike<number>|null} channel The vertex channel the element reads, or null.
+ * @property {number} components Components per vertex in that channel.
+ * @property {number} buffer Particle buffer index (Carbon's buffer type).
+ * @property {number} offset Element offset in the particle buffer.
+ * @property {number} length Element length (dimension).
+ * @property {boolean} isEmpty Whether the element has no source and is zero-filled.
+ */
+
+/** A one-shot particle emitter that spawns one particle per vertex of a geometry mesh on first update. */
 @meta.define({ className: "Tr2StaticEmitter", family: "particle" })
 @meta.blue.inherit(ITr2GenericEmitter)
 @meta.blue.inherit(IInitialize)
@@ -25,9 +44,15 @@ export class Tr2StaticEmitter
   @meta.type.string
   name = "";
 
-  /** m_geometryResource (TriGrannyResPtr) [READ] */
+  /**
+   * m_geometryResource (TriGrannyResPtr) [READ]
+   *
+   * Adapted: holds a TriGeometryRes. Carbon requests the "raw" variant, a
+   * TriGrannyRes; ours has no load path, and TriGeometryRes carries the same
+   * meshes in CMF form.
+   */
   @meta.blue.read
-  @meta.type.rootRef("TriGrannyRes")
+  @meta.type.rootRef("TriGeometryRes")
   geometryResource = null;
 
   /** m_meshIndex (uint32_t) [READWRITE, PERSIST] */
@@ -50,9 +75,8 @@ export class Tr2StaticEmitter
   @meta.type.path("TriGeometryRes")
   geometryResourcePath = "";
 
-  /** Carbon method Spawn (MAP_METHOD_AND_WRAP). */
   /**
-   * Resets the one-shot spawn flag so the emitter spawns again on the next update.
+   * Carbon Spawn (Tr2StaticEmitter.cpp:314-317): spawns again on the next update.
    */
   @meta.blue.method
   @meta.implemented
@@ -62,61 +86,77 @@ export class Tr2StaticEmitter
   }
 
   /**
-   * Carbon method ForceSpawn -> DoSpawn (MAP_METHOD_AND_WRAP).
+   * Carbon DoSpawn, exposed as ForceSpawn (Tr2StaticEmitter.cpp:96-262): once
+   * the particle system is valid and the geometry is good, clears the system
+   * and inserts one particle per vertex of mesh `meshIndex`. Each particle
+   * element reads the vertex element of the matching usage (LIFETIME from
+   * TANGENT, POSITION from POSITION, VELOCITY from NORMAL, MASS from
+   * BITANGENT, CUSTOM from TEXCOORD at its usage index); an element with no
+   * source is zero-filled.
    *
-   * Adapted: Accepts decoded particle rows or a host geometry SpawnParticles adapter; native
-   * CMF/Granny vertex-buffer mapping remains resource-owned. Runtime resource
-   * identity selects the required GetPayload method; decoded records remain direct inputs.
-   * Source: trinity/trinity/Particle/Tr2StaticEmitter.cpp:191-270
+   * Adapted: Carbon reads the CMF vertex buffer (or Granny's vertex data) and
+   * converts Float16 components itself. Ours reads the mesh's decoded
+   * channels, which the format has already converted to floats, and still
+   * refuses a vertex element that is neither Float32 nor Float16. An element
+   * longer than its vertex channel is zero-filled past the channel, where
+   * Carbon would read on into the next vertex element.
+   *
+   * @returns {void}
    */
   @meta.blue.method
   @meta.adapted
   ForceSpawn()
   {
-    if (!this.particleSystem?.isValid || !this.geometryResource)
+    const system = this.particleSystem;
+    const geometry = this.geometryResource;
+    if (!system || !system.IsValid() || !geometry || !geometry.IsGood() || !Tr2Renderer.IsResourceCreationAllowed())
     {
-      return false;
+      return;
     }
-    if (typeof this.geometryResource.SpawnParticles === "function")
-    {
-      this.particleSystem.ClearParticles();
-      const result = this.geometryResource.SpawnParticles(this.particleSystem, this.meshIndex);
-      this.hasSpawnedParticles = result !== false;
-      return result;
-    }
-    const resource = CjsSchema.cast(this.geometryResource, CjsResource);
-    const source = resource ? resource.GetPayload() : this.geometryResource;
-    const meshes = source?.meshes ?? source?.Meshes ?? [];
-    const mesh = meshes[this.meshIndex] ?? null;
-    const particles = mesh?.particles ?? mesh?.Particles ?? source?.particles ?? source?.Particles;
-    if (!Array.isArray(particles))
-    {
-      return false;
-    }
-    this.particleSystem.ClearParticles();
-    let spawned = 0;
-    for (const particle of particles)
-    {
-      if (this.particleSystem.SpawnParticle(particle) === null)
-      {
-        break;
-      }
-      spawned++;
-    }
+
     this.hasSpawnedParticles = true;
-    return spawned;
+
+    if (this.meshIndex >= geometry.GetMeshCount())
+    {
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "Invalid mesh index for Tr2StaticEmitter with geometry path %s", this.geometryResourcePath);
+      return;
+    }
+
+    const mesh = geometry.GetPayload().meshes[this.meshIndex];
+    const mappings = Tr2StaticEmitter.CreateDeclarationMap(mesh, system.GetElementDeclaration(), this.geometryResourcePath);
+    if (!mappings) return;
+
+    system.ClearParticles();
+
+    const vertexCount = Tr2StaticEmitter.GetVertexCount(mesh);
+    const particle = [];
+    for (let vertex = 0; vertex < vertexCount; vertex++)
+    {
+      if (!system.InsertParticle(particle)) continue;
+      for (const mapping of mappings)
+      {
+        const target = particle[mapping.buffer];
+        const available = mapping.isEmpty ? 0 : Math.min(mapping.length, mapping.components);
+        const start = vertex * mapping.components;
+        for (let i = 0; i < mapping.length; i++)
+        {
+          target[mapping.offset + i] = i < available ? mapping.channel[start + i] : 0;
+        }
+      }
+      system.DoneInsertingParticle();
+    }
   }
 
   /**
-   * IInitialize.Initialize (Tr2StaticEmitter.cpp:35-48): Carbon starts the
-   * geometry resource fetch and propagates the thread-safe contract.
+   * IInitialize.Initialize (Tr2StaticEmitter.cpp:35-48): starts loading the
+   * geometry and propagates the thread-safe flag.
    *
-   * Adapted: Resource streaming is host-owned in the browser; geometryResource arrives via
-   * the loader, so only the thread-safe propagation is mirrored.
+   * @returns {boolean} Always true.
    */
-  @meta.adapted
+  @meta.implemented
   Initialize()
   {
+    if (this.geometryResourcePath) this.geometryResource = Tr2StaticEmitter.GetGeometry(this.geometryResourcePath);
     if (this.particleSystem && this.#isThreadSafe)
     {
       this.particleSystem.SetThreadSafeFlag();
@@ -125,17 +165,20 @@ export class Tr2StaticEmitter
   }
 
   /**
-   * INotify.OnModified (Tr2StaticEmitter.cpp:60-76): geometry path changes
-   * restart the resource fetch (host-owned here); particle-system changes
-   * re-propagate the thread-safe contract.
+   * INotify.OnModified (Tr2StaticEmitter.cpp:60-76): a new geometry path
+   * starts loading it; a new particle system takes the thread-safe flag.
    *
-   * Adapted: Geometry reloads are host-owned; only Carbon's particle-system thread-safe
-   * propagation applies on the CPU side.
+   * @param {string|null} [propertyName=null] The modified member, by exposed name.
+   * @returns {boolean} Always true.
    */
-  @meta.adapted
-  OnModified(propertyName)
+  @meta.implemented
+  OnModified(propertyName = null)
   {
-    if ((IsMatch(propertyName, "particleSystem")) && this.#isThreadSafe && this.particleSystem)
+    if (IsMatch(propertyName, "geometryResourcePath"))
+    {
+      this.geometryResource = Tr2StaticEmitter.GetGeometry(this.geometryResourcePath);
+    }
+    else if (IsMatch(propertyName, "particleSystem") && this.#isThreadSafe && this.particleSystem)
     {
       this.particleSystem.SetThreadSafeFlag();
     }
@@ -171,11 +214,110 @@ export class Tr2StaticEmitter
   {
   }
 
-  /** ITr2GenericEmitter.Update (Tr2StaticEmitter.cpp:274-280): one-shot spawn. */
-  @meta.adapted
+  /**
+   * ITr2GenericEmitter.Update (Tr2StaticEmitter.cpp:274-280): spawns once.
+   *
+   * @returns {void}
+   */
+  @meta.implemented
   Update(_updateArguments)
   {
-    return this.hasSpawnedParticles ? false : this.ForceSpawn();
+    if (!this.hasSpawnedParticles) this.ForceSpawn();
+  }
+
+  /**
+   * Carbon's createDeclarationMap (Tr2StaticEmitter.cpp:100-158): for each
+   * particle element, the vertex element with the matching usage, or a
+   * zero-fill when there is none.
+   *
+   * @param {object} mesh Decoded mesh: `decl` and vertex channels.
+   * @param {Map<string, object>} elements The particle system's element declaration.
+   * @param {string} path Geometry path, for messages.
+   * @returns {Tr2StaticEmitterMapping[]|null} The mappings, or null when a vertex element has an unusable type.
+   */
+  static CreateDeclarationMap(mesh, elements, path)
+  {
+    const channels = mesh.lods?.[0]?.vertex ?? mesh.vertex ?? {};
+    const name = new Tr2ParticleElementDeclarationName();
+    const mappings = [];
+    for (const element of elements.values())
+    {
+      name.type = element.elementType;
+      name.name = element.customName;
+      const usage = name.GetD3DUsage();
+      const usageIndex = element.elementType === Tr2ParticleElementDeclarationName.Type.CUSTOM ? element.usageIndex : 0;
+      const item = (mesh.decl ?? []).find(entry => CarbonUsageFromCmf(entry.usage) === usage && (entry.usageIndex ?? 0) === usageIndex);
+      const mapping = { channel: null, components: 0, buffer: element.bufferIndex, offset: element.startOffset, length: element.dimension, isEmpty: true };
+
+      if (item)
+      {
+        if (item.type !== "Float32" && item.type !== "Float16")
+        {
+          CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "Incompatible type for particle elements \"%s\" in Tr2StaticEmitter geometry %s", name.GetName(), path);
+          return null;
+        }
+        const channel = Tr2StaticEmitter.FindChannel(channels, usage, usageIndex);
+        if (channel)
+        {
+          mapping.channel = channel;
+          mapping.components = item.elementCount;
+          mapping.isEmpty = false;
+        }
+      }
+      if (mapping.isEmpty)
+      {
+        CcpLog.CCP_LOG_CH(CcpLog.GetModuleChannel("trinity"), "No data for particle elements \"%s\" in Tr2StaticEmitter geometry %s - filling with zeroes", name.GetName(), path);
+      }
+      mappings.push(mapping);
+    }
+    return mappings;
+  }
+
+  /**
+   * The decoded channel carrying a vertex usage.
+   *
+   * @param {Object<string, ArrayLike<number>>} channels Decoded vertex channels by name.
+   * @param {number} usage Carbon usage code.
+   * @param {number} usageIndex Usage index.
+   * @returns {ArrayLike<number>|null} The channel, or null.
+   */
+  static FindChannel(channels, usage, usageIndex)
+  {
+    for (const [ key, channel ] of Object.entries(channels))
+    {
+      const pair = CarbonUsageFromChannel(key);
+      if (pair && pair.usage === usage && pair.usageIndex === usageIndex && channel?.length) return channel;
+    }
+    return null;
+  }
+
+  /**
+   * The mesh's vertex count: its first declared element's channel length over
+   * that element's components.
+   *
+   * @param {object} mesh Decoded mesh.
+   * @returns {number} Vertices.
+   */
+  static GetVertexCount(mesh)
+  {
+    const channels = mesh.lods?.[0]?.vertex ?? mesh.vertex ?? {};
+    for (const item of mesh.decl ?? [])
+    {
+      const channel = Tr2StaticEmitter.FindChannel(channels, CarbonUsageFromCmf(item.usage), item.usageIndex ?? 0);
+      if (channel && item.elementCount > 0) return Math.floor(channel.length / item.elementCount);
+    }
+    return 0;
+  }
+
+  /**
+   * Carbon's `BeResMan->GetResource( path, "raw", ... )`.
+   *
+   * @param {string} path Geometry path.
+   * @returns {object|null} The TriGeometryRes, or null for an empty path.
+   */
+  static GetGeometry(path)
+  {
+    return path ? blue.resMan.GetResource(path, { requirement: ResourceRequirement.GEOMETRY }) : null;
   }
 
 }
