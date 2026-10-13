@@ -688,7 +688,7 @@ export class CjsSchema
          */
         array: (itemType, options) => collectionDecorator("array", itemType, options),
         boolean: fieldDecorator("type", { kind: "boolean" }),
-        color: fieldDecorator("type", { kind: "color" }),
+        color: wrappableTypeDecorator("color"),
         int8Array: fieldDecorator("type", { kind: "typedArray", arrayType: "Int8Array" }),
         uint8Array: fieldDecorator("type", { kind: "typedArray", arrayType: "Uint8Array" }),
         uint8ClampedArray: fieldDecorator("type", { kind: "typedArray", arrayType: "Uint8ClampedArray" }),
@@ -711,15 +711,6 @@ export class CjsSchema
          * on a class that does not map ICustomPersist.
          */
         binary: fieldDecorator("type", { binary: true }),
-        /**
-         * A Carbon Blue math wrapper member (`PTriMatrix`, `PTriVector`, ...): an
-         * embedded TriMatrix/TriVector/TriQuaternion/TriColor object on the wire,
-         * held as its plain value. The member also declares that value (`mat4`,
-         * `vec3`, `quat`, `color`); readers decode the wrapper's elements into it.
-         *
-         * @param {string} className The wrapper class, e.g. "TriMatrix".
-         */
-        wrapped: className => fieldDecorator("type", { wrapped: className }),
         define: definition => classDefinitionDecorator(definition),
         expression: fieldDecorator("type", { kind: "expression", js: "string" }),
         float32: fieldDecorator("type", { kind: "float32" }),
@@ -733,7 +724,7 @@ export class CjsSchema
          */
         list: (itemType, options) => collectionDecorator("list", itemType, options),
         mat3: fieldDecorator("type", { kind: "mat3" }),
-        mat4: fieldDecorator("type", { kind: "mat4" }),
+        mat4: wrappableTypeDecorator("mat4"),
         map: valueType => fieldDecorator("type", { kind: "map", valueType }),
         /**
          * Carbon's IROOTPTR: a pointer to an object of the class, owned or
@@ -767,7 +758,7 @@ export class CjsSchema
          * string table.
          */
         wpath: pathDecorator("wpath"),
-        quat: fieldDecorator("type", { kind: "quat" }),
+        quat: wrappableTypeDecorator("quat"),
         rawStruct: className => fieldDecorator("type", { kind: "rawStruct", className }),
         set: itemType => fieldDecorator("type", { kind: "set", itemType }),
         string: fieldDecorator("type", { kind: "string" }),
@@ -786,7 +777,7 @@ export class CjsSchema
         uint64: fieldDecorator("type", { kind: "uint64" }),
         unknown: fieldDecorator("type", { kind: "unknown" }),
         vec2: fieldDecorator("type", { kind: "vec2" }),
-        vec3: fieldDecorator("type", { kind: "vec3" }),
+        vec3: wrappableTypeDecorator("vec3"),
         vec4: fieldDecorator("type", { kind: "vec4" }),
 
         // An enum names the vocabulary a field's values are drawn from, which
@@ -1484,6 +1475,23 @@ function createComponentsNamespace()
 // decorator, and `type.uint32` written as data in a CjsSchema.define() member.
 // Without it the object form would need its own spelling of every namespace
 // value, and two spellings of `impl.adapted` will eventually disagree.
+/**
+ * A value-type decorator that also offers `.wrapped(className)`: the same value
+ * held by a Carbon Blue math wrapper member (`PTriMatrix`, `PTriVector`,
+ * `PTriQuaternion`, `PTriColor`). On the wire that member is an embedded
+ * TriMatrix/TriVector/TriQuaternion/TriColor object; readers decode its elements
+ * into the plain value, e.g. `@meta.type.mat4.wrapped("TriMatrix")`.
+ *
+ * @param {string} kind The value kind.
+ * @returns {Function} The decorator, with `wrapped(className)`.
+ */
+function wrappableTypeDecorator(kind)
+{
+    const decorator = fieldDecorator("type", { kind });
+    decorator.wrapped = className => fieldDecorator("type", { kind, wrapped: className });
+    return decorator;
+}
+
 function describeDecorator(decorator, namespace, value)
 {
     Object.defineProperty(decorator, DECORATOR_METADATA, {

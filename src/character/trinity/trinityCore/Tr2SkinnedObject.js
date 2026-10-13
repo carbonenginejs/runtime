@@ -104,8 +104,7 @@ export class Tr2SkinnedObject
    */
   @meta.blue.read
   @meta.blue.persist
-  @meta.type.mat4
-  @meta.type.wrapped("TriMatrix")
+  @meta.type.mat4.wrapped("TriMatrix")
   transform = mat4.create();
 
   /**
