@@ -166,6 +166,18 @@ export class CjsResManWorkQueue
     return this;
   }
 
+  /**
+   * `IBlueCallbackMan::Unthrottle` on the queue's callback manager: resumes it if
+   * its `Throttle` paused it. resMan calls it on the background queue every main
+   * tick (BlueResMan.cpp:452).
+   *
+   * @returns {CjsResManWorkQueue} This queue.
+   */
+  Unthrottle() {
+    this._manager.Unthrottle();
+    return this;
+  }
+
   /** Lets the queue start tasks again. */
   Resume() {
     if (!this._paused) return this;

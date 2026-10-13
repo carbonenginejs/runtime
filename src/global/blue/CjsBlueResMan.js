@@ -583,6 +583,9 @@ export class CjsBlueResMan
    * the resource manager.
    */
   PumpMainThreadQueue(options = {}) {
+    // BlueResMan.cpp:452: each main tick first lets a throttled background
+    // queue resume.
+    this._loadQueue.Unthrottle();
     const urgent = options.urgent === true || this.urgentResourceLoads;
     const result = this._prepareQueue.Pump({
       maxItems: urgent ? 0 : (options.maxItems ?? this.maxPrepareItemsPerTick),
