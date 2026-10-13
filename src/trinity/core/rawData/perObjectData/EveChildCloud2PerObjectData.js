@@ -7,6 +7,7 @@ import { meta } from "#schema";
 import { Tr2PerObjectData } from "./Tr2PerObjectData.js";
 
 /** Cloud2's shared constant block, bound at the native vertex and pixel registers. */
+@meta.define({ className: "EveChildCloud2PerObjectData", family: "trinityCore" })
 export class EveChildCloud2PerObjectData extends Tr2PerObjectData
 {
   data = null;

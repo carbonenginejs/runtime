@@ -3,6 +3,7 @@ import { RenderBatchSortType } from "../../../generated/trinityCore/enums.js";
 import { meta } from "#schema";
 
 /** Carbon's DefaultKeyGenerator batch sorting policy. */
+@meta.define({ className: "DefaultKeyGenerator", family: "trinityCore" })
 export class DefaultKeyGenerator
 {
   /** Carbon's unsorted comparator never requests a reorder. */

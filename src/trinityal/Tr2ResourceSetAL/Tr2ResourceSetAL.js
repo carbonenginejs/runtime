@@ -14,6 +14,7 @@ const nullRS = {
 };
 
 /** Public handle; implementation selection belongs to the creating context. */
+@meta.define({ className: "Tr2ResourceSetAL", family: "trinityal" })
 export class Tr2ResourceSetAL
 {
   m_resourceSet = nullRS;

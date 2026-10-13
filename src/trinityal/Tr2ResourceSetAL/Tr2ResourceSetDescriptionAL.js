@@ -15,6 +15,7 @@ const identities = new WeakMap();
 let nextIdentity = 1;
 
 /** A program's mapped resources. Constant buffers travel SetConstants. */
+@meta.define({ className: "Tr2ResourceSetDescriptionAL", family: "trinityal" })
 export class Tr2ResourceSetDescriptionAL
 {
   static MAX_RESOURCES_IN_STAGE = MAX_RESOURCES_IN_STAGE;

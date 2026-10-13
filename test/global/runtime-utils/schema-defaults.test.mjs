@@ -4,42 +4,27 @@ import test from "node:test";
 import { CjsSchema } from "../../../src/global/schema/index.js";
 
 
-test("CjsSchema.getDefaults lazily captures field initializers without Initialize", () =>
+test("decorators install nothing per instance; getDefaults reads one instance without Initialize", () =>
 {
     const metadata = Object.create(null);
-    const extraInitializers = [];
+    const added = [];
     let constructorCount = 0;
     let initializeCount = 0;
+    const context = name => ({ kind: "field", name, static: false, metadata, addInitializer: initializer => added.push(initializer) });
 
-    const initializeID = CjsSchema.meta.type.rawStruct("AkGameObjectID")(undefined, {
-        kind: "field",
-        name: "ID",
-        static: false,
-        metadata,
-        addInitializer(initializer)
-        {
-            extraInitializers.push(initializer);
-        }
-    });
-    const initializeOptional = CjsSchema.meta.type.string(undefined, {
-        kind: "field",
-        name: "optional",
-        static: false,
-        metadata,
-        addInitializer(initializer)
-        {
-            extraInitializers.push(initializer);
-        }
-    });
+    // A decorator's cost is paid when it is applied and when the class
+    // registers: it returns no field initializer and adds no initializer.
+    assert.equal(CjsSchema.meta.type.rawStruct("AkGameObjectID")(undefined, context("ID")), undefined);
+    assert.equal(CjsSchema.meta.type.string(undefined, context("optional")), undefined);
+    assert.deepEqual(added, []);
 
     class SchemaDefaultCaptureProbe
     {
         constructor()
         {
             constructorCount++;
-            this.ID = initializeID.call(this, null);
-            this.optional = initializeOptional.call(this, undefined);
-            for (const initializer of extraInitializers) initializer.call(this);
+            this.ID = null;
+            this.optional = undefined;
             this.ID = 100 + constructorCount;
         }
 
@@ -67,10 +52,11 @@ test("CjsSchema.getDefaults lazily captures field initializers without Initializ
         family: "test"
     })(SchemaDefaultCaptureProbe, { kind: "class", metadata });
 
+    // Defaults are what a new instance holds, constructor state included.
     const first = CjsSchema.getDefaults(SchemaDefaultCaptureProbe);
     assert.deepEqual(first, {
         _type: "SchemaDefaultCaptureProbe",
-        ID: null,
+        ID: 101,
         optional: undefined
     });
     assert.equal(constructorCount, 1);
@@ -79,38 +65,25 @@ test("CjsSchema.getDefaults lazily captures field initializers without Initializ
     first.ID = 999;
     assert.deepEqual(CjsSchema.getDefaults("SchemaDefaultCaptureProbe"), {
         _type: "SchemaDefaultCaptureProbe",
-        ID: null,
+        ID: 101,
         optional: undefined
     });
     assert.equal(constructorCount, 1, "the immutable template was reused");
 });
 
-test("CjsSchema.getDefaults prefers an explicitly decorated subclass initializer", () =>
+test("CjsSchema.getDefaults reads a redeclaring subclass's own value", () =>
 {
     const baseMetadata = Object.create(null);
     const subclassMetadata = Object.create(baseMetadata);
     const addInitializer = () => {};
-    const initializeBaseType = CjsSchema.meta.type.int32(undefined, {
-        kind: "field",
-        name: "type",
-        static: false,
-        metadata: baseMetadata,
-        addInitializer
-    });
-    const initializeSubclassType = CjsSchema.meta.type.int32(undefined, {
-        kind: "field",
-        name: "type",
-        static: false,
-        metadata: subclassMetadata,
-        addInitializer
-    });
+    CjsSchema.meta.type.int32(undefined, { kind: "field", name: "type", static: false, metadata: baseMetadata, addInitializer });
+    CjsSchema.meta.type.int32(undefined, { kind: "field", name: "type", static: false, metadata: subclassMetadata, addInitializer });
 
     class SchemaDefaultBaseProbe
     {
         constructor()
         {
-
-            this.type = initializeBaseType.call(this, 0);
+            this.type = 0;
         }
     }
 
@@ -124,7 +97,7 @@ test("CjsSchema.getDefaults prefers an explicitly decorated subclass initializer
         constructor()
         {
             super();
-            this.type = initializeSubclassType.call(this, 1);
+            this.type = 1;
         }
     }
 

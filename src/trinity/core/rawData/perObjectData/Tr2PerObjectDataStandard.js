@@ -33,6 +33,7 @@ import { meta } from "#schema";
 /**
  * Per-object data with both a vertex and a pixel payload.
  */
+@meta.define({ className: "Tr2PerObjectDataStandard", family: "trinityCore" })
 export class Tr2PerObjectDataStandard extends Tr2PerObjectDataPSBuffer
 {
   /** The vertex payload, in the shape this object was leased for. */

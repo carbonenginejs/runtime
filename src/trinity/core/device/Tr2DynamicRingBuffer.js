@@ -23,6 +23,7 @@ function Align(offset, alignment)
  * it is null until created. `PutData` returns `{ result, offset }` for
  * Carbon's out-parameter.
  */
+@meta.define({ className: "Tr2DynamicRingBuffer", family: "trinityCore" })
 export class Tr2DynamicRingBuffer
 {
   /** _bufferSize - bytes. */

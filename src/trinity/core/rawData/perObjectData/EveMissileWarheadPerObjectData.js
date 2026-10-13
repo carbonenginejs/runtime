@@ -19,6 +19,7 @@ import { meta } from "#schema";
 /**
  * A warhead's transform block.
  */
+@meta.define({ className: "EveMissileWarheadPerObjectData", family: "trinityCore" })
 export class EveMissileWarheadPerObjectData extends Tr2PerObjectData
 {
   /** The vertex payload. */

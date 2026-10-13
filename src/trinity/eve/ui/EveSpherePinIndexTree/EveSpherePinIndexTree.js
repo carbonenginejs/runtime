@@ -83,6 +83,7 @@ function AddFaceToTree(node, face, spherical)
  * The decoded geometry payload replaces both native CMF and Granny streams.
  * This native helper has no Blue identity or serialized fields.
  */
+@meta.define({ className: "EveSpherePinIndexTree", family: "eve/ui" })
 export class EveSpherePinIndexTree
 {
   granny = null;

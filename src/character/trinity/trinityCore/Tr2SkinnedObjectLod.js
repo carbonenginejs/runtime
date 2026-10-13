@@ -30,6 +30,7 @@ const AVATAR_RESOURCE_UNLOADING_TIME_THRESHOLD = 10.0;
  * Each proxy is a `BlueObjectProxy` (Tr2SkinnedObjectLOD.h:75-77,
  * `IBlueObjectProxyPtr`), or null.
  */
+@meta.define({ className: "Tr2SkinnedObjectLod", family: "trinityCore" })
 export class Tr2SkinnedObjectLod
 {
   /** `m_highDetailProxy` (IBlueObjectProxyPtr). @type {import("#blue").IBlueObjectProxy|null} */

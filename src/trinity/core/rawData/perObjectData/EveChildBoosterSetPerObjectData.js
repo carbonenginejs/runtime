@@ -20,6 +20,7 @@ import { meta } from "#schema";
 /**
  * The child booster set's vertex and pixel blocks.
  */
+@meta.define({ className: "EveChildBoosterSetPerObjectData", family: "trinityCore" })
 export class EveChildBoosterSetPerObjectData extends Tr2PerObjectData
 {
   /** The vertex payload. */

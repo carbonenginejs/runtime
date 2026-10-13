@@ -6,6 +6,7 @@ import { ShaderType } from "#consts/render-context";
 export const MAX_RESOURCES_IN_STAGE = 32;
 
 /** Stage/register to dense resource index, with counts spanning all stages. */
+@meta.define({ className: "Tr2RegisterMapAL", family: "trinityal" })
 export class Tr2RegisterMapAL
 {
   static MAX_RESOURCES_IN_STAGE = MAX_RESOURCES_IN_STAGE;

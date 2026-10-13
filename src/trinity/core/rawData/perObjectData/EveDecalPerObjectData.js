@@ -20,6 +20,7 @@ import { meta } from "#schema";
 /**
  * A decal's vertex and pixel blocks.
  */
+@meta.define({ className: "EveDecalPerObjectData", family: "trinityCore" })
 export class EveDecalPerObjectData extends Tr2PerObjectData
 {
   /** The vertex payload. */

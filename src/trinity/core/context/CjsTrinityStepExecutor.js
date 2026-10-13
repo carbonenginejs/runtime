@@ -4,6 +4,7 @@ import { meta } from "#schema";
 /**
  * Nominal renderer contract driven by Trinity render contexts and jobs.
  */
+@meta.define({ className: "CjsTrinityStepExecutor", family: "trinityCore" })
 export class CjsTrinityStepExecutor
 {
 

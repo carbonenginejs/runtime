@@ -111,10 +111,10 @@ test("model, composed and resource-owned values routes omit caches", () => {
   }
 });
 
-test("Stage-3 default capture never snapshots resource initializer payload", () => {
+test("defaults never snapshot a Stage-3 resource field's payload", () => {
   const metadata = Object.create(null);
-  const initialize = meta.type.resource("Resource")(undefined, { kind: "field", name: "cache", metadata, addInitializer() {} });
-  class Owner { constructor() { this.cache = initialize.call(this, incoming("loaded")); } }
+  meta.type.resource("Resource")(undefined, { kind: "field", name: "cache", metadata, addInitializer() {} });
+  class Owner { constructor() { this.cache = incoming("loaded"); } }
   meta.define({ className: name() })(Owner, { kind: "class", metadata });
   new Owner();
   assert.deepEqual(CjsSchema.getDefaults(Owner), { _type: CjsSchema.getClassName(Owner) });
@@ -128,12 +128,12 @@ test("default snapshots exclude typed plain child resource getters", () => {
   assert.deepEqual(CjsSchema.getDefaults(Parent).child, { authored: 9 });
 });
 
-test("mapped Stage-3 resource storage never snapshots its initializer", () => {
+test("defaults never snapshot mapped Stage-3 resource storage", () => {
   const metadata = Object.create(null);
   const context = { kind: "field", name: "_cache", metadata, addInitializer() {} };
-  const initialize = meta.type.resource("Resource")(undefined, context);
+  meta.type.resource("Resource")(undefined, context);
   CjsSchema.meta.member("cache")(undefined, context);
-  class Owner { constructor() { this._cache = initialize.call(this, incoming("loaded")); } }
+  class Owner { constructor() { this._cache = incoming("loaded"); } }
   meta.define({ className: name() })(Owner, { kind: "class", metadata });
   new Owner();
   assert.deepEqual(CjsSchema.getDefaults(Owner), { _type: CjsSchema.getClassName(Owner) });

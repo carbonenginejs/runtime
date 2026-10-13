@@ -197,7 +197,8 @@ test("character interior classes retain their source-backed inheritance and scal
 test("native skinned-object LOD helper selects whole models at exact thresholds", () =>
 {
   new Tr2SkinnedObjectLod();
-  assert.equal(CjsSchema.GetConstructor("Tr2SkinnedObjectLod"), null);
+  // Every class registers its name (class-ownership.md, Class-shape rules), native helpers included.
+  assert.equal(CjsSchema.GetConstructor("Tr2SkinnedObjectLod"), Tr2SkinnedObjectLod);
   assert.equal(CjsSchema.getMethod(Tr2SkinnedObjectLod, "SetLOD")?.carbon?.method, true);
   assert.equal(CjsSchema.getMethod(Tr2SkinnedObjectLod, "SetLOD")?.impl?.status, "implemented");
 

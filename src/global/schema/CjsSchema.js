@@ -28,9 +28,7 @@ const CLASS_SCHEMA = new WeakMap();
 // buckets and defaults, regardless of which facade changed the registration.
 const SCHEMA_EXPORTS = new WeakMap();
 const DEFAULT_EXPORTS = new WeakMap();
-const FIELD_INITIAL_DEFAULTS = new WeakMap();
 const VALUES_DECLARATIONS = new WeakMap();
-const FIELD_DECLARATION_METADATA = new WeakMap();
 let SCHEMA_GENERATION = 0;
 
 // Statics described by edit.setting, in definition order (see getSettings).
@@ -628,17 +626,13 @@ export class CjsSchema
     }
 
     /**
-     * Returns a fresh plain-values copy of one schema class's declared defaults.
+     * Returns a fresh plain-values copy of one schema class's defaults: the
+     * values a new instance holds. The class is constructed once with zero
+     * arguments and read; this never calls SetValues, Initialize, UpdateValues
+     * or another lifecycle hook.
      *
-     * Decorated field initializers record their value before the constructor
-     * body can turn it into instance state (an audio game-object ID, for
-     * example). When no instance has exposed those initializers yet, the class
-     * is constructed once with zero arguments to trigger them. This never calls
-     * schema construction, SetValues, Initialize, UpdateValues, or another lifecycle
-     * hook.
-     *
-     * The canonical template is cached by constructor and kept immutable. A
-     * caller always receives a copy so it cannot poison later expansions.
+     * The template is cached by constructor and kept immutable. A caller
+     * always receives a copy so it cannot poison later expansions.
      *
      * @param {Function|string} ConstructorOrName Constructor or registered class name.
      * @returns {object} A self-describing plain model-values template.
@@ -1149,47 +1143,6 @@ function buildStructureDefinition(schema)
     refreshLegacyFields(schema);
 }
 
-function captureFieldInitialDefault(Constructor, fieldName, initialValue, declarationMetadata = null)
-{
-    if (typeof Constructor !== "function") return;
-    const field = findValuesDeclaration(Constructor, fieldName, true);
-    if (field?.type?.runtimeOnly === true) return;
-
-    let fields = FIELD_INITIAL_DEFAULTS.get(Constructor);
-    if (!fields)
-    {
-        fields = new Map();
-        FIELD_INITIAL_DEFAULTS.set(Constructor, fields);
-    }
-    const existing = fields.get(fieldName);
-    if (existing)
-    {
-        const ownDeclaration = FIELD_DECLARATION_METADATA.get(Constructor)?.get(fieldName);
-        const replacesInheritedDefault = ownDeclaration &&
-            declarationMetadata === ownDeclaration &&
-            existing.declarationMetadata !== ownDeclaration;
-        if (!replacesInheritedDefault) return;
-    }
-
-    try
-    {
-        fields.set(fieldName, {
-            value: deepFreezeDefaultValue(snapshotSchemaDefault(initialValue, new WeakSet(), field?.type)),
-            declarationMetadata
-        });
-    }
-    catch (err)
-    {
-        // Schema capture must never make ordinary class construction fail. The
-        // explicit defaults request reports the unsupported value instead.
-        fields.set(fieldName, {
-            error: err instanceof Error ? err.message : String(err),
-            declarationMetadata
-        });
-    }
-    DEFAULT_EXPORTS.delete(Constructor);
-}
-
 function getDefaultsTemplate(ConstructorOrName)
 {
     const Constructor = resolveDefaultsConstructor(ConstructorOrName);
@@ -1197,33 +1150,25 @@ function getDefaultsTemplate(ConstructorOrName)
     if (memo && memo.generation === SCHEMA_GENERATION
         && memo.registrationRevision === getClassRegistrationRevision()) return memo.defaults;
 
-    let fields = getEffectiveFields(Constructor).filter(field => field.type?.runtimeOnly !== true
-        && findValuesDeclaration(Constructor, field.name)?.type?.runtimeOnly !== true);
-    let captured = FIELD_INITIAL_DEFAULTS.get(Constructor);
-    let instance = null;
-
-    if (fields.some(field => !captured?.has(field.name)))
+    // Defaults are what a new instance holds: build one, once per class, and
+    // read it. A bare constructor runs JavaScript field/constructor setup
+    // only; Initialize and the readers are not involved.
+    let instance;
+    try
     {
-        try
-        {
-            // A bare constructor runs JavaScript field/constructor setup only.
-            // Mapped initialization is driven by the shared reader, not by
-            // `new`, and is deliberately absent from this operation.
-            instance = new Constructor();
-        }
-        catch (err)
-        {
-            const className = CjsSchema.getClassName(Constructor) || "<unregistered>";
-            throw new TypeError(
-                `CjsSchema.getDefaults could not construct ${className} with zero arguments: ` +
-                `${err instanceof Error ? err.message : String(err)}`,
-                { cause: err }
-            );
-        }
-        fields = getEffectiveFields(Constructor).filter(field => field.type?.runtimeOnly !== true
-            && findValuesDeclaration(Constructor, field.name)?.type?.runtimeOnly !== true);
-        captured = FIELD_INITIAL_DEFAULTS.get(Constructor);
+        instance = new Constructor();
     }
+    catch (err)
+    {
+        const className = CjsSchema.getClassName(Constructor) || "<unregistered>";
+        throw new TypeError(
+            `CjsSchema.getDefaults could not construct ${className} with zero arguments: ` +
+            `${err instanceof Error ? err.message : String(err)}`,
+            { cause: err }
+        );
+    }
+    const fields = getEffectiveFields(Constructor).filter(field => field.type?.runtimeOnly !== true
+        && findValuesDeclaration(Constructor, field.name)?.type?.runtimeOnly !== true);
 
     const className = CjsSchema.getClassName(Constructor);
     if (!className)
@@ -1234,32 +1179,12 @@ function getDefaultsTemplate(ConstructorOrName)
     const defaults = { _type: className };
     for (const field of fields)
     {
-        const entry = captured?.get(field.name);
-        let value;
-        let hasValue = false;
-
-        if (entry?.error)
-        {
-            throw new TypeError(
-                `CjsSchema.getDefaults could not capture ${className}.${field.name}: ${entry.error}`
-            );
-        }
-        if (entry && Object.hasOwn(entry, "value"))
-        {
-            value = cloneDefaultValue(entry.value);
-            hasValue = true;
-        }
-        else if (instance)
-        {
-            value = snapshotSchemaDefault(instance[field.name], new WeakSet(), field.type);
-            // Directly registered schema accessors are explicit declarations
-            // too. Their getter is the only authoritative default source even
-            // though the property lives on the prototype rather than as an
-            // own field (for example two Blue names sharing one color buffer).
-            hasValue = field.name in instance;
-        }
-
-        if (!hasValue)
+        let value = snapshotSchemaDefault(instance[field.name], new WeakSet(), field.type);
+        // Directly registered schema accessors are explicit declarations
+        // too. Their getter is the only authoritative default source even
+        // though the property lives on the prototype rather than as an own
+        // field (for example two Blue names sharing one color buffer).
+        if (!(field.name in instance))
         {
             value = snapshotSchemaDefault(defaultValueForCarbonField(field), new WeakSet(), field.type);
         }
@@ -1332,19 +1257,10 @@ function snapshotSchemaDefault(value, active = new WeakSet(), type = null)
         if (className)
         {
             const result = { _type: className };
-            const captured = FIELD_INITIAL_DEFAULTS.get(Constructor);
             for (const field of getEffectiveFields(Constructor))
             {
                 if (field.type?.runtimeOnly === true || findValuesDeclaration(Constructor, field.name)?.type?.runtimeOnly === true) continue;
-                const entry = captured?.get(field.name);
-                if (entry?.error)
-                {
-                    throw new TypeError(`${className}.${field.name}: ${entry.error}`);
-                }
-
-                let fieldValue = entry && Object.hasOwn(entry, "value")
-                    ? cloneDefaultValue(entry.value)
-                    : value[field.name];
+                let fieldValue = value[field.name];
                 if (fieldValue === undefined)
                 {
                     fieldValue = defaultValueForCarbonField(field);
@@ -1668,29 +1584,10 @@ function fieldDecorator(namespace, value)
                 return undefined;
             }
             if (context.kind !== "field") throw new TypeError("CjsSchema decorators only support class fields and accessors.");
+            // Recorded once, here; registration (`define`) replays it. A
+            // decorator costs nothing per instance: no initializer is returned.
             recordStage3FieldMetadata(context, namespace, value);
-
-            // Registration (`define`) replays the Stage-3 metadata recorded
-            // above, so a registered class's table is complete before any
-            // instance exists. The per-instance initializers below are the
-            // fallback for a class that never registers; for a registered one
-            // they would only restate what registration already consumed.
-            context.addInitializer(function initializeSchemaField()
-            {
-                if (!isRegisteredClass(this.constructor)) defineFieldMetadata(this.constructor, context.name, namespace, value, { kind: context.kind });
-            });
-
-            return function initializeSchemaFieldValue(initialValue)
-            {
-                if (!isRegisteredClass(this.constructor)) defineFieldMetadata(this.constructor, context.name, namespace, value, { kind: context.kind });
-                captureFieldInitialDefault(
-                    this.constructor,
-                    context.name,
-                    initialValue,
-                    context.metadata
-                );
-                return initialValue;
-            };
+            return undefined;
         }
 
         const Constructor = targetOrValue?.constructor;
@@ -1775,15 +1672,8 @@ function methodDecorator(namespace, value)
             const context = contextOrMethodName;
             if (context.kind !== "method") throw new TypeError("CjsSchema method decorators only support class methods.");
 
+            // As for fields: recorded once, replayed by registration.
             recordStage3MethodMetadata(context, namespace, value);
-
-            // As for fields: registration replays the record above, and the
-            // initializer is the fallback for a class that never registers.
-            context.addInitializer(function initializeSchemaMethod()
-            {
-                const Constructor = context.static ? this : this.constructor;
-                if (!isRegisteredClass(Constructor)) defineMethodMetadata(Constructor, context.name, namespace, value);
-            });
             return;
         }
 
@@ -2863,15 +2753,8 @@ function registerStage3FieldMetadata(Constructor, metadata)
 
     if (!Object.prototype.hasOwnProperty.call(metadata, STAGE3_FIELD_METADATA)) return;
 
-    let declarations = FIELD_DECLARATION_METADATA.get(Constructor);
-    if (!declarations)
-    {
-        declarations = new Map();
-        FIELD_DECLARATION_METADATA.set(Constructor, declarations);
-    }
     for (const field of metadata[STAGE3_FIELD_METADATA])
     {
-        declarations.set(field.name, metadata);
         defineFieldMetadata(Constructor, field.name, field.namespace, field.value, { kind: field.kind });
     }
 }

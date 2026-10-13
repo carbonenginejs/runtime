@@ -82,6 +82,7 @@ const CAPABILITY_NAMES = Object.freeze(Object.fromEntries(
 // the backend about the shading language rather than read this name.
 
 /** Browser feature report replacing Carbon's compile-time platform macros. */
+@meta.define({ className: "Tr2PlatformInfo", family: "trinityCore" })
 export class Tr2PlatformInfo
 {
     static StaticCap = PlatformStaticCap;

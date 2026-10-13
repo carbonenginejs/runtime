@@ -4,6 +4,7 @@ import { OrderOf } from "./Tr2RenderBatch.js";
 import { meta } from "#schema";
 
 /** Carbon's EffectKeyGenerator batch sorting policy. */
+@meta.define({ className: "EffectKeyGenerator", family: "trinityCore" })
 export class EffectKeyGenerator
 {
   /**

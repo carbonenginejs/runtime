@@ -49,6 +49,7 @@ export function PlaneDotNormal(plane, v)
  * from a composed view*projection matrix, plus the cached projection data used
  * for on-screen pixel-coverage estimates.
  */
+@meta.define({ className: "TriFrustum", family: "trinityCore" })
 export class TriFrustum
 {
   /** m_planes[PLANE_COUNT] - normalized world-space planes (a, b, c, d). */

@@ -21,6 +21,7 @@ import { PER_OBJECT_PS, PER_OBJECT_VS } from "../../Tr2Renderer.js";
  * Per-object render data: the object id a batch is picked and identified by,
  * and the upload of its constant payloads through the abstraction layer.
  */
+@meta.define({ className: "Tr2PerObjectData", family: "trinityCore" })
 export class Tr2PerObjectData
 {
   /** Starts with a zero object id. */

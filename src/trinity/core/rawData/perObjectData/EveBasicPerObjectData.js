@@ -19,6 +19,7 @@ import { meta } from "#schema";
 /**
  * The world, previous-world and inverse-world matrices every plain transform uploads.
  */
+@meta.define({ className: "EveBasicPerObjectData", family: "trinityCore" })
 export class EveBasicPerObjectData extends Tr2PerObjectData
 {
   /** The vertex payload. */

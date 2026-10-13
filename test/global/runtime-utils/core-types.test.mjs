@@ -685,27 +685,27 @@ test("stage-3 static method decorators register on the class constructor", () =>
     }
 
     const initializers = [];
+    const metadata = Object.create(null);
     const context = {
         kind: "method",
         name: "Rasterize",
         static: true,
+        metadata,
         addInitializer(initializer)
         {
             initializers.push(initializer);
         }
     };
 
+    // Recorded when applied, replayed when the class registers; nothing per instance.
     CjsSchema.meta.blue.method(StaticMethodNode.Rasterize, context);
     CjsSchema.meta.adapted(StaticMethodNode.Rasterize, context);
-    for (const initializer of initializers)
-    {
-        initializer.call(StaticMethodNode);
-    }
+    assert.deepEqual(initializers, []);
 
-    CjsSchema.define(StaticMethodNode, {
+    CjsSchema.meta.define({
         className: "StaticMethodNode",
         family: "test"
-    });
+    })(StaticMethodNode, { kind: "class", metadata });
 
     const rasterize = CjsSchema.getMethod(StaticMethodNode, "Rasterize");
     assert.equal(rasterize.carbon.method, true);

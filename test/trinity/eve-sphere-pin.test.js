@@ -51,7 +51,8 @@ test('spherical index waits for geometry without changing caller outputs',()=>{
   const g=new TriGeometryRes(),index=new EveSpherePinIndexTree(g),out={primitives:9,indices:[7]};
   assert.equal(index.Initialize(),0);assert.equal(index.GetIndices([1,0,0],0.2,out),0);assert.deepEqual(out,{primitives:9,indices:[7]});
   g.SetPayload(geometry().GetPayload());g.MarkPrepared();assert.equal(index.Initialize(),1);assert.equal(index.IsInitialized(),1);
-  assert.equal(CjsSchema.GetConstructor('EveSpherePinIndexTree'),null,'native helper has no Blue identity');
+  // Every class registers its name (class-ownership.md, Class-shape rules), native helpers included.
+  assert.equal(CjsSchema.GetConstructor('EveSpherePinIndexTree'),EveSpherePinIndexTree);
 });
 
 test('native tree traversal orders faces left first and deduplicates overlapping leaves',()=>{

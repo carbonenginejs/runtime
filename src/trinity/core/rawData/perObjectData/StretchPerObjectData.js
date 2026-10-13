@@ -24,6 +24,7 @@ import { meta } from "#schema";
 /**
  * A stretch's endpoint and effect block, bound to both registers.
  */
+@meta.define({ className: "StretchPerObjectData", family: "trinityCore" })
 export class StretchPerObjectData extends Tr2PerObjectData
 {
   /** The payload, bound to both per-object registers. */

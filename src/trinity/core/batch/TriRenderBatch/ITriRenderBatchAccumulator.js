@@ -13,6 +13,7 @@ import { meta } from "#schema";
  * user data and per-object-data store, and declares the collect and sort
  * contract concrete accumulators implement.
  */
+@meta.define({ className: "ITriRenderBatchAccumulator", family: "trinityCore" })
 export class ITriRenderBatchAccumulator
 {
   /**

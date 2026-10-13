@@ -21,6 +21,7 @@ import { meta } from "#schema";
 /**
  * The child sphere pin's block, bound to both registers.
  */
+@meta.define({ className: "EveChildSpherePinPerObjectData", family: "trinityCore" })
 export class EveChildSpherePinPerObjectData extends Tr2PerObjectData
 {
   /** The payload, bound to both per-object registers. */

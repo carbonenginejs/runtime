@@ -19,6 +19,7 @@ import { meta } from "#schema";
 /**
  * The static-particle field's per-draw block.
  */
+@meta.define({ className: "EveSceneStaticParticlesPerObjectData", family: "trinityCore" })
 export class EveSceneStaticParticlesPerObjectData extends Tr2PerObjectData
 {
   /** The vertex payload. */
