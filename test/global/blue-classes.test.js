@@ -262,7 +262,7 @@ test("explicit deletion and schema re-registration discard former factory extras
   assert.equal(CjsSchema.DeleteConstructor(" "), false);
 });
 
-test("registration revisions refresh schemas and defaults through both facades", () =>
+test("registration revisions refresh schemas through both facades; defaults are built once", () =>
 {
   class Holder { reference = null; }
   CjsSchema.define(Holder, {
@@ -288,21 +288,22 @@ test("registration revisions refresh schemas and defaults through both facades",
     assert.notEqual(registered.members, before.members, "canonical exports observe the shared revision too");
     assert.deepEqual(registered.resources.map(field => field.name), [ "reference" ]);
     assert.deepEqual(registered.children, []);
-    assert.equal(CjsSchema.getDefaults(Defaults).value, 2);
+    assert.equal(CjsSchema.getDefaults(Defaults).value, 1, "defaults come from one pristine instance, never rebuilt");
     CjsSchema.SetConstructor("LateRegisteredResource", Ordinary);
     assert.equal(CjsSchema.getSchema(Holder), registered, "a rejected duplicate does not mutate the registry revision");
-    assert.equal(CjsSchema.getDefaults(Defaults).value, 2);
+    assert.equal(CjsSchema.getDefaults(Defaults).value, 1);
     CjsSchema.DeleteConstructor("LateRegisteredResource");
     const removed = CjsSchema.getSchema(Holder);
     assert.deepEqual(removed.children.map(field => field.name), [ "reference" ]);
     assert.deepEqual(removed.resources, []);
-    assert.equal(CjsSchema.getDefaults(Defaults).value, 3);
+    assert.equal(CjsSchema.getDefaults(Defaults).value, 1);
     CjsSchema.SetConstructor("LateRegisteredResource", Resource);
     assert.deepEqual(CjsSchema.getSchema(Holder).resources.map(field => field.name), [ "reference" ]);
-    assert.equal(CjsSchema.getDefaults(Defaults).value, 4);
+    assert.equal(CjsSchema.getDefaults(Defaults).value, 1);
     registry.UnregisterClasses([ { name: "LateRegisteredResource" } ]);
     assert.deepEqual(CjsSchema.getSchema(Holder).resources, []);
-    assert.equal(CjsSchema.getDefaults(Defaults).value, 5);
+    assert.equal(CjsSchema.getDefaults(Defaults).value, 1);
+    assert.equal(constructions, 1);
   }
   finally
   {

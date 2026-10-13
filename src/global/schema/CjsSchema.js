@@ -25,7 +25,8 @@ const CLASS_SCHEMA = new WeakMap();
 // metadata definition (see getOrCreateClassSchema), which is what makes a stale
 // memo detectable without tracking which subclasses a base class change reaches.
 // Blue class-registration revisions independently invalidate name-dependent
-// buckets and defaults, regardless of which facade changed the registration.
+// buckets, regardless of which facade changed the registration. Defaults are
+// built once per class and never invalidated.
 const SCHEMA_EXPORTS = new WeakMap();
 const DEFAULT_EXPORTS = new WeakMap();
 const VALUES_DECLARATIONS = new WeakMap();
@@ -1146,13 +1147,13 @@ function buildStructureDefinition(schema)
 function getDefaultsTemplate(ConstructorOrName)
 {
     const Constructor = resolveDefaultsConstructor(ConstructorOrName);
+    // Defaults are what a pristine instance holds: built once per class, on
+    // first request, and kept; classes do not change after Blue boots. A bare
+    // constructor runs JavaScript field/constructor setup only; Initialize and
+    // the readers are not involved.
     const memo = DEFAULT_EXPORTS.get(Constructor);
-    if (memo && memo.generation === SCHEMA_GENERATION
-        && memo.registrationRevision === getClassRegistrationRevision()) return memo.defaults;
+    if (memo) return memo;
 
-    // Defaults are what a new instance holds: build one, once per class, and
-    // read it. A bare constructor runs JavaScript field/constructor setup
-    // only; Initialize and the readers are not involved.
     let instance;
     try
     {
@@ -1192,11 +1193,7 @@ function getDefaultsTemplate(ConstructorOrName)
     }
 
     const frozen = deepFreezeDefaultValue(defaults);
-    DEFAULT_EXPORTS.set(Constructor, {
-        generation: SCHEMA_GENERATION,
-        registrationRevision: getClassRegistrationRevision(),
-        defaults: frozen
-    });
+    DEFAULT_EXPORTS.set(Constructor, frozen);
     return frozen;
 }
 
