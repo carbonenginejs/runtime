@@ -109,7 +109,7 @@ const TRANSIENT_SIZE = 32;
  * @property {Array<CjsCffStem>} hStems Horizontal stems (edges are y values).
  * @property {Array<CjsCffStem>} vStems Vertical stems (edges are x values).
  * @property {Array<CjsCffHintMask>} hintMasks Hintmask changes in path order; empty means every stem is active throughout.
- * @property {Array<Uint8Array>} counterMasks Counter control groups (cntrmask), recorded but not applied.
+ * @property {Array<CjsCffHintMask>} counterMasks Counter control groups (cntrmask), in path order: the stems of each group are placed together before later hint maps.
  * @property {number} fontDictIndex Index into the font's `fontDicts` of the Private DICT this glyph uses.
  */
 
@@ -270,7 +270,7 @@ export function readCharstring(cff, glyphId, source = "CFF font")
                     const mask = charstring.slice(i, i + byteCount);
                     i += byteCount;
                     if (b0 === OP_HINTMASK) hintMasks.push({ commandIndex: path.length, mask });
-                    else counterMasks.push(mask);
+                    else counterMasks.push({ commandIndex: path.length, mask });
                     break;
                 }
 

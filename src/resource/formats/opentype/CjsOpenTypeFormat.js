@@ -1,6 +1,7 @@
 import { CjsFormat } from "../../format/CjsFormat.js";
 import { readOpenType, lookupGlyphIndex } from "./core/readSfnt.js";
 import { readCharstring } from "./core/readCharstring.js";
+import { hintCffGlyph, freetypeScales } from "./core/hintCff.js";
 
 /**
  * Reads OpenType and TrueType font files into plain data: metrics, the Unicode
@@ -10,8 +11,10 @@ import { readCharstring } from "./core/readCharstring.js";
  * Ours: Carbon reads fonts only through FreeType (`Tr2FontManager`), which is
  * not part of the Carbon source and cannot run in the browser without WASM.
  * This reader exists so the browser font manager can hint CFF glyphs itself;
- * see the extensions register. Written from Adobe Technical Notes #5176 (CFF)
- * and #5177 (Type 2 charstrings) and the OpenType specification.
+ * see the extensions register. The reader is written from Adobe Technical
+ * Notes #5176 (CFF) and #5177 (Type 2 charstrings) and the OpenType
+ * specification; the hinter is ported from FreeType's Adobe CFF engine, under
+ * the FreeType License (FTL.TXT).
  */
 export class CjsOpenTypeFormat extends CjsFormat
 {
@@ -104,6 +107,25 @@ export class CjsOpenTypeFormat extends CjsFormat
     {
         if (!font.cff) throw new TypeError(`${source || "OpenType font"}: ${font.outlineFormat} outlines are not read.`);
         return readCharstring(font.cff, glyphId, source);
+    }
+
+    /**
+     * Hints a CFF glyph at a pixel size as FreeType's Adobe engine does with
+     * FT_LOAD_DEFAULT: y snapped by the font's hints, x scaled, advance
+     * rounded. Ported from FreeType; see core/hintCff.js.
+     *
+     * @param {import("./core/readSfnt.js").CjsOpenTypeFont} font A parsed font with CFF outlines.
+     * @param {import("./core/readCharstring.js").CjsCffGlyph} glyph The glyph from readGlyph.
+     * @param {number} xPpem Pixels per em along x (FT_Set_Pixel_Sizes width).
+     * @param {number} yPpem Pixels per em along y (FT_Set_Pixel_Sizes height).
+     * @param {Map<number, object>} [bluesCache] Blue zones by font DICT, reused across glyphs at this size.
+     * @returns {import("./core/hintCff.js").CjsHintedGlyph} The outline in pixels, y up, and the advance.
+     * @throws {TypeError} When the font has no CFF outlines.
+     */
+    static hintGlyph(font, glyph, xPpem, yPpem, bluesCache)
+    {
+        if (!font.cff) throw new TypeError(`OpenType font: ${font.outlineFormat} outlines are not hinted.`);
+        return hintCffGlyph(font.cff, glyph, freetypeScales(xPpem, yPpem, font.unitsPerEm), bluesCache);
     }
 
     static id = "CjsOpenTypeFormat";
