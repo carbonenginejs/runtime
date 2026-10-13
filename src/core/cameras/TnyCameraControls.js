@@ -7,7 +7,7 @@ const DEFAULT_KEYS = {
   orbitLeft: "ArrowLeft", orbitRight: "ArrowRight", orbitUp: "ArrowUp", orbitDown: "ArrowDown",
   panLeft: "Shift+ArrowLeft", panRight: "Shift+ArrowRight", panUp: "Shift+ArrowUp", panDown: "Shift+ArrowDown",
   dollyIn: "Equal", dollyOut: "Minus", fovDown: "BracketLeft", fovUp: "BracketRight",
-  frame: "KeyF", reset: "Home"
+  frame: "KeyF", fly: "KeyD", reset: "Home"
 };
 const MOTION = {
   orbitLeft: [-1, 0], orbitRight: [1, 0], orbitUp: [0, -1], orbitDown: [0, 1],
@@ -39,6 +39,12 @@ export class TnyCameraControls
   _viewportWidth = 0;
   _viewportHeight = 0;
 
+  /** The camera's near clip when the controls were made: framing never lowers it below this. */
+  _baseFrontClip = 1;
+
+  /** An eased flight to a framing pose, advanced by Update, or null. */
+  _flight = null;
+
   /** Borrows a camera; viewport and world-space sphere providers enable pan and framing. */
   constructor({ camera, getViewport = null, getBounds = null, preferences = {}, keyBindings = {} } = {})
   {
@@ -52,10 +58,13 @@ export class TnyCameraControls
       minFieldOfView: 5 * Math.PI / 180, maxFieldOfView: 120 * Math.PI / 180, frameMargin: 1.1,
       // Farthest wheel/key zoom, in metres: past any solar system (~670 AU).
       maxDistance: 1e14,
+      // Seconds a fly-to (KeyD) takes.
+      flyDuration: 1.5,
       ...preferences
     };
     this.SetKeyBindings(keyBindings);
     this._initial = this.GetPose();
+    this._baseFrontClip = camera.frontClip;
   }
 
   /** Registers below gizmos, sharing one input route and one bounded frame clock. */
@@ -110,11 +119,12 @@ export class TnyCameraControls
     {
       if (event.type === "keydown" && !event.repeat)
       {
-        if (action === "frame" || action === "reset")
+        if (action === "frame" || action === "fly" || action === "reset")
         {
           if (this._input) this._input.Cancel("camera-pose-changed");
           else this.Cancel();
           if (action === "frame") this.Frame();
+          else if (action === "fly") this.Fly();
           else this.Reset();
         }
         else this._held.set(event.code, action);
@@ -175,6 +185,7 @@ export class TnyCameraControls
   Update(dt)
   {
     dt = Number.isFinite(dt) ? Math.max(0, Math.min(dt, 0.05)) : 0;
+    if (this._flight) this.#Fly(dt);
     for (const action of this._held.values())
     {
       const motion = MOTION[action];
@@ -192,6 +203,7 @@ export class TnyCameraControls
   Orbit(dx, dy)
   {
     if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
+    this._flight = null;
     const settings = this.preferences;
     this.camera.OrbitParent(dx * settings.orbitSensitivity * (settings.invertX ? -1 : 1),
       dy * settings.orbitSensitivity * (settings.invertY ? 1 : -1));
@@ -202,6 +214,7 @@ export class TnyCameraControls
   {
     const view = this.#Project(), camera = this.camera;
     if (!view || !Number.isFinite(dx) || !Number.isFinite(dy)) return false;
+    this._flight = null;
     const x = -dx * this.preferences.panSensitivity * 2 * camera.translationFromParent / (this._projection[0] * view.width);
     const y = dy * this.preferences.panSensitivity * 2 * camera.translationFromParent / (this._projection[5] * view.height);
     camera.useExtraTranslation = true;
@@ -220,6 +233,7 @@ export class TnyCameraControls
   Dolly(delta)
   {
     if (!Number.isFinite(delta)) return;
+    this._flight = null;
     const camera = this.camera, radius = Math.max(0.001, this.getBounds ? this.getBounds().radius : 0);
     const minimum = Math.max(1, camera.frontClip, radius * 0.01), maximum = Math.max(minimum, this.preferences.maxDistance);
     // Seed multiplicative zoom from a usable distance, including poses edited to zero.
@@ -272,12 +286,44 @@ export class TnyCameraControls
     this.SetFieldOfView(pose.fieldOfView);
   }
 
-  /** Fits optional world box corners, otherwise the provider's sphere, to the projection. */
+  /** Fits optional world box corners, otherwise the provider's sphere, to the projection, at once. */
   Frame()
   {
-    if (!this.getBounds) return false;
+    const target = this.#FrameTarget();
+    if (!target) return false;
+    this.Cancel();
+    this.#ApplyFrame(target);
+    return true;
+  }
+
+  /**
+   * Flies to the pose Frame would set: the orbit angles stay, and the point of
+   * interest and distance ease there over preferences.flyDuration seconds
+   * (distance in log space, so a thousandfold change reads evenly), with zero
+   * velocity, acceleration and jerk at both ends, as skindr's Universe flights
+   * ease. Orbit, pan, zoom or Cancel stops it where it is.
+   */
+  Fly()
+  {
+    const target = this.#FrameTarget();
+    if (!target) return false;
+    this.Cancel();
+    const camera = this.camera, duration = Math.max(0, this.preferences.flyDuration);
+    if (!duration) { this.#ApplyFrame(target); return true; }
+    camera.zoomCurve = null;
+    // The far clip covers the whole flight from the start.
+    camera.backClip = Math.max(camera.backClip, (Math.max(target.distance, camera.translationFromParent) + target.radius) * 1.05);
+    this._flight = { target, time: 0, duration, distance: Math.max(1e-3, camera.translationFromParent),
+      centre: camera.useExtraTranslation ? Array.from(camera.extraTranslation) : [ 0, 0, 0 ] };
+    return true;
+  }
+
+  /** The pose Frame fits to the bounds, or null when the bounds or viewport are not ready. */
+  #FrameTarget()
+  {
+    if (!this.getBounds) return null;
     const view = this.#Project();
-    if (!view) { this._pendingFrame = true; return false; }
+    if (!view) { this._pendingFrame = true; return null; }
     const bounds = this.getBounds(), projection = this._projection, camera = this.camera;
     if (!(bounds.radius >= 0) || !Number.isFinite(bounds.radius) || bounds.centre.length !== 3
       || !Array.from(bounds.centre).every(Number.isFinite)) throw new RangeError("Cannot frame invalid bounds.");
@@ -306,18 +352,44 @@ export class TnyCameraControls
           z - margin * projection[5] * y / (1 - projection[9]));
       }
     }
+    return { distance, radius, centre: Array.from(bounds.centre), view };
+  }
+
+  /**
+   * Sets a framing pose. The near clip follows the target's size, a
+   * thousandth of its radius but never below the camera's starting near clip,
+   * as skindr sizes it per body, so a planet keeps depth precision when the
+   * far clip reaches past it.
+   */
+  #ApplyFrame({ distance, radius, centre, view })
+  {
+    const camera = this.camera;
     camera.zoomCurve = null;
+    camera.frontClip = Math.max(this._baseFrontClip, radius / 1000);
     camera.backClip = Math.max(camera.backClip, (distance + radius) * 1.05);
     camera.translationFromParent = distance;
     camera.useExtraTranslation = true;
-    camera.extraTranslation.set(bounds.centre);
-    this.Cancel();
+    camera.extraTranslation.set(centre);
+    this._flight = null;
     this._viewportWidth = view.width;
     this._viewportHeight = view.height;
     this._pendingFrame = false;
     if (!this._framedOnce) { this._initial = this.GetPose(); this._framedOnce = true; }
     this.#Changed();
-    return true;
+  }
+
+  /** Advances a flight by dt seconds, landing exactly on its framing pose. */
+  #Fly(dt)
+  {
+    const flight = this._flight, camera = this.camera;
+    flight.time = Math.min(flight.duration, flight.time + dt);
+    const t = flight.time / flight.duration;
+    if (t >= 1) { this.#ApplyFrame(flight.target); return; }
+    const eased = t * t * t * t * (35 + t * (-84 + t * (70 - 20 * t)));
+    camera.translationFromParent = flight.distance * Math.pow(flight.target.distance / flight.distance, eased);
+    camera.useExtraTranslation = true;
+    for (let axis = 0; axis < 3; axis++) camera.extraTranslation[axis] = flight.centre[axis] + (flight.target.centre[axis] - flight.centre[axis]) * eased;
+    this.#Changed();
   }
 
   /** Records viewport size without changing the pose; completes explicitly deferred zero-size fits. */
@@ -358,6 +430,7 @@ export class TnyCameraControls
   Cancel()
   {
     this._gesture = null;
+    this._flight = null;
     this._gestureCaptured = false;
     this._held.clear();
     this.camera.SetOrbit(this.camera.yaw, this.camera.pitch);

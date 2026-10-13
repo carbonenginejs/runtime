@@ -495,3 +495,33 @@ test("zooming out is not capped by the far clip: a huge selection can be left, a
   assert.equal(camera.translationFromParent, controls.preferences.maxDistance);
   controls.Destroy();
 });
+
+test("D flies to the framing pose, eased, landing where F frames; framing sizes the near clip to the target", () =>
+{
+  const camera = new EveCamera();
+  camera.frontClip = 5; camera.backClip = 10000; camera.translationFromParent = 100;
+  let bounds = { centre: [ 0, 0, 0 ], radius: 50 };
+  const controls = new TnyCameraControls({ camera, getViewport: () => ({ width: 800, height: 600 }), getBounds: () => bounds });
+  camera.Update(0, 4 / 3);
+  bounds = { centre: [ 5e6, 0, 0 ], radius: 1e6 };
+  assert.equal(controls.Fly(), true);
+  controls.Update(0.05);
+  const early = camera.translationFromParent;
+  assert.ok(early > 100 && early < 1e5, "a flight starts slowly");
+  for (let step = 0; step < 100; step++) controls.Update(0.05);
+  const flown = { distance: camera.translationFromParent, centre: Array.from(camera.extraTranslation), front: camera.frontClip };
+  controls.Frame();
+  assert.ok(Math.abs(flown.distance - camera.translationFromParent) < 1e-6 * camera.translationFromParent, "lands where Frame frames");
+  assert.deepEqual(flown.centre, Array.from(camera.extraTranslation));
+  assert.equal(camera.frontClip, 1100, "near clip is a thousandth of the framed radius (with the frame margin)");
+  assert.equal(flown.front, 1100);
+  bounds = { centre: [ 0, 0, 0 ], radius: 50 };
+  controls.Frame();
+  assert.equal(camera.frontClip, 5, "a small target returns to the starting near clip");
+  // Any orbit stops a flight where it is.
+  bounds = { centre: [ 5e6, 0, 0 ], radius: 1e6 };
+  controls.Fly(); controls.Update(0.05); controls.Orbit(1, 0);
+  const stopped = camera.translationFromParent; controls.Update(0.05);
+  assert.equal(camera.translationFromParent, stopped);
+  controls.Destroy();
+});
