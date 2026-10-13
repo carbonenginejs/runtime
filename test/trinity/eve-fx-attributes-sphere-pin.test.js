@@ -257,18 +257,18 @@ test("EveChildSpherePin aliases its Blue colors and fills the Carbon per-object 
 {
   const pin = new EveChildSpherePin();
   assert.equal(pin.GetID(17), pin);
-  assert.equal(pin.color, pin.pinColor);
-  pin.color = [0.1, 0.2, 0.3, 0.4];
+  // "color" is m_pinColor's second Blue name, reached through the schema.
+  CjsSchema.setValues(pin, { color: [0.1, 0.2, 0.3, 0.4] });
   closeArray(pin.pinColor, [0.1, 0.2, 0.3, 0.4]);
   CjsSchema.setValues(pin, { pinColor: [0.5, 0.6, 0.7, 0.8] });
-  closeArray(pin.color, [0.5, 0.6, 0.7, 0.8]);
+  closeArray(CjsSchema.getValues(pin, {}).color, [0.5, 0.6, 0.7, 0.8]);
   CjsSchema.setValues(pin, { color: [0.1, 0.2, 0.3, 0.4] });
   const values = CjsSchema.getValues(pin, {});
   assert.deepEqual(values.color, values.pinColor);
-  assert.equal(CjsSchema.getField(EveChildSpherePin, "color")?.type?.kind, "color");
+  assert.equal(CjsSchema.getSchema(EveChildSpherePin).members.find(member => member.name === "color").key, "pinColor");
   assert.equal(CjsSchema.getField(EveChildSpherePin, "pinColor")?.type?.kind, "color");
   const defaults = CjsSchema.getDefaults(EveChildSpherePin);
-  assert.deepEqual(defaults.color, [1, 1, 1, 1]);
+  assert.equal(Object.hasOwn(defaults, "color"), false, "defaults list the stored key, not its second Blue name");
   assert.deepEqual(defaults.pinColor, [1, 1, 1, 1]);
 
   const curveUpdates = [];

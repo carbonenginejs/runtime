@@ -100,7 +100,7 @@ test('pin hydration and coalesced notifications apply every changed native branc
   const notify=t.mock.method(p,'OnModified'),effect=t.mock.method(p.pinEffect,'SetEffectPathName');
   CjsSchema.setValues(p,{geometryResPath:'res:/other.gr2',pinEffectResPath:'res:/other.fx',centerNormal:[0,1,0],pinRadius:0.4,color:[0.2,0.3,0.4,0.5]});
   assert.equal(notify.mock.callCount(),1);assert.equal(effect.mock.callCount(),1);assert.equal(p._geometryResource,manager.resources.get('res:/other.gr2'));
-  near(p.boundingSphere,[0,1,0,0.4]);assert.equal(p._rebuildIndices,1);assert.equal(p.pinColor,p.color);near(p.pinColor,[0.2,0.3,0.4,0.5]);
+  near(p.boundingSphere,[0,1,0,0.4]);assert.equal(p._rebuildIndices,1);near(p.pinColor,[0.2,0.3,0.4,0.5]);
   p._rebuildIndices=0;CjsSchema.setValues(p,{pinRadius:0.7});near(p.boundingSphere,[0,1,0,0.7]);assert.equal(p._rebuildIndices,0);
 });
 

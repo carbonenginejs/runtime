@@ -69,12 +69,19 @@ const TRANSPARENT_AABB_MAX = vec3.create();
 const TRANSPARENT_CENTER = vec3.create();
 
 /**
+ * m_mesh's second Blue name: EveSpaceObject2_Blue.cpp maps "meshLod" onto the
+ * same m_mesh as "mesh" (READWRITE | PERSIST, jessica-hidden).
+ */
+const meshLodMember = { name: "meshLod", key: "mesh", type: { kind: "rootRef", className: "Tr2MeshBase" },
+  edit: { read: true, write: true, persist: true } };
+
+/**
  * The hull of an EVE space object - its mesh, locators, locator sets, decals,
  * attachments, lights, effect children, overlay effects, impact overlay and
  * controllers - together with the curve-driven world transform, visibility, LOD
  * and batch submission that drive them each frame.
  */
-@meta.define({ className: "EveSpaceObject2", family: "eve/spaceObject" })
+@meta.define({ className: "EveSpaceObject2", family: "eve/spaceObject", members: [ meshLodMember ] })
 @meta.blue.inherit(IWorldPosition, ITr2BoundingBox, ITr2Renderable, IEveSpaceObject2, ITr2ShLightingReceiver, ITr2SecondaryLightSource, IEveInheritPropertiesOwner, ITriTargetable, ITr2CurveSetOwner, IEveShadowCaster)
 @meta.blue.inherit(IInitialize, INotify, IListNotify, ITr2Pickable)
 @meta.blue.interface(EveEntity, IEveShadowCaster, IInitialize, ITr2Pickable, ITr2BoundingBox, ITriTargetable, IWorldPosition, ITr2ShLightingReceiver, INotify, ITr2SecondaryLightSource, ITr2ImpostorSource, ITr2CurveSetOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner)
@@ -885,20 +892,6 @@ export class EveSpaceObject2 extends EveEntity
    * @type {RawData}
    */
   _psData = RawData.create("EveSpaceObjectPSData");
-
-  /** Alias for the mesh property; reads and writes go straight to mesh. */
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2MeshBase")
-  get meshLod()
-  {
-    return this.mesh;
-  }
-
-  /** Alias for the mesh property; reads and writes go straight to mesh. */
-  set meshLod(mesh)
-  {
-    this.mesh = mesh ?? null;
-  }
 
   /**
    * Links the authored controllers, pushes authored inherit properties down to

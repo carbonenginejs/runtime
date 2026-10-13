@@ -30,8 +30,15 @@ import { EveSpherePinIndexTree } from "./EveSpherePinIndexTree/index.js";
 // its process-lifetime owning map so retired resources can be collected.
 const treeMap = new WeakMap();
 
+/**
+ * m_pinColor's second Blue name: the _Blue.cpp maps both "pinColor" and
+ * "color" onto the one member (READWRITE | NOTIFY | PERSIST).
+ */
+const pinColorMembers = [ { name: "color", key: "pinColor", type: { kind: "color" },
+  edit: { read: true, write: true, notify: true, persist: true } } ];
+
 /** A UI sphere pin: authored SRT placement plus the pin constant record. */
-@meta.define({ className: "EveSpherePin", family: "eve/ui" })
+@meta.define({ className: "EveSpherePin", family: "eve/ui", members: pinColorMembers })
 @meta.blue.inherit(IInitialize, ITr2Renderable, IEveSpaceObject2, IEveTransform, INotify)
 @meta.blue.interface(IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2, INotify)
 export class EveSpherePin
@@ -78,39 +85,12 @@ export class EveSpherePin
   @meta.type.string
   name = "";
 
-  _pinColor = vec4.fromValues(1, 1, 1, 1);
-
-  /** Both native Blue color names address the same m_pinColor storage. */
+  /** m_pinColor (Color) [READWRITE, NOTIFY, PERSIST]; its "color" name is in pinColorMembers. */
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
   @meta.type.color
-  get pinColor()
-  {
-    return this._pinColor;
-  }
-
-  /** Copies into the shared native color storage. */
-  set pinColor(value)
-  {
-    vec4.copy(this._pinColor, value);
-  }
-
-  /** Native Blue alias for pinColor. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
-  get color()
-  {
-    return this._pinColor;
-  }
-
-  /** Writes the same storage as pinColor. */
-  set color(value)
-  {
-    vec4.copy(this._pinColor, value);
-  }
+  pinColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
   @meta.blue.read

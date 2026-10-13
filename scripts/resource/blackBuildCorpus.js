@@ -86,7 +86,9 @@ function Normalize(value, seen = new WeakSet())
 /** Every path at which two normalized values differ, up to `limit`. */
 function Differences(a, b, limit = 200, path = "", out = [])
 {
-  if (out.length >= limit || Object.is(a, b)) return out;
+  // -0 and +0 compare equal: Carbon's BlackReader copies the stored float bits (a
+  // stored -0 stays -0), while the values transport normalizes the sign.
+  if (out.length >= limit || Object.is(a, b) || (a === 0 && b === 0)) return out;
   if (typeof a !== typeof b || a === null || b === null || typeof a !== "object")
   {
     out.push({ path: path || "/", current: a, candidate: b });

@@ -555,10 +555,12 @@ test("EveSpaceObject2 owns the Carbon controller graph and mesh alias", () =>
   assert.equal(CjsSchema.GetConstructor("EveSpaceObject2"), EveSpaceObject2);
   object.SetMesh(mesh);
   assert.equal(object.GetMesh(), mesh);
-  assert.equal(object.meshLod, mesh);
-  assert.equal(CjsSchema.getField(EveSpaceObject2, "meshLod")?.edit?.persist, true);
-  assert.equal(CjsSchema.getDefaults(EveSpaceObject2).meshLod, null);
-  object.meshLod = null;
+  // "meshLod" is m_mesh's second Blue name, reached through the schema.
+  const meshLod = CjsSchema.getSchema(EveSpaceObject2).members.find(member => member.name === "meshLod");
+  assert.equal(meshLod.key, "mesh");
+  assert.equal(meshLod.edit.persist, true);
+  assert.equal(CjsSchema.getDefaults(EveSpaceObject2).mesh, null);
+  CjsSchema.setValues(object, { meshLod: null });
   assert.equal(object.mesh, null);
 
   assert.deepEqual(object.GetControllerVariables(), {

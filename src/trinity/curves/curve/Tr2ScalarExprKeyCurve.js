@@ -75,12 +75,14 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
   currentValue = 0;
 
   /**
+   * m_interpolation (uint32_t) [READWRITE, PERSIST, ENUM].
    * Default interpolation code used by AddKey and sampling without a preceding key. Native
    * choices are CONSTANT, LINEAR and HERMITE.
    * @type {number}
    */
   @meta.blue.readwrite
   @meta.blue.persist
+  @meta.type.uint32
   @meta.type.enum("trinity.Tr2CurveInterpolation")
   interpolation = Tr2CurveInterpolation.LINEAR;
 

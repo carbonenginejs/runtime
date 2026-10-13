@@ -6,52 +6,28 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
 /**
+ * m_pinColor's second Blue name: the _Blue.cpp maps both "pinColor" and
+ * "color" onto the one member (READWRITE | NOTIFY | PERSIST).
+ */
+const pinColorMembers = [ { name: "color", key: "pinColor", type: { kind: "color" },
+  edit: { read: true, write: true, notify: true, persist: true } } ];
+
+/**
  * Child mesh that draws a pin on a sphere's surface, contributing the pin's
  * centre normal, radius, rotation, alpha threshold and colour to its own
  * per-object shader data.
  */
-@meta.define({ className: "EveChildSpherePin", family: "eve/child" })
+@meta.define({ className: "EveChildSpherePin", family: "eve/child", members: pinColorMembers })
 @meta.blue.chainTo(EveChildMesh)
 export class EveChildSpherePin extends EveChildMesh
 {
 
-  _pinColor = vec4.fromValues(1, 1, 1, 1);
-
-  /** Carbon maps both Blue names to the same m_pinColor storage. */
+  /** m_pinColor (Color) [READWRITE, NOTIFY, PERSIST]; its "color" name is in pinColorMembers. */
   @meta.blue.notify
+  @meta.blue.readwrite
   @meta.blue.persist
   @meta.type.color
-  get pinColor()
-  {
-    return this._pinColor;
-  }
-
-  /**
-   * Copies a four-component colour into the owned buffer; a shorter value is
-   * ignored rather than partially applied.
-   */
-  set pinColor(value)
-  {
-    if (value?.length >= 4)
-    {
-      vec4.copy(this._pinColor, value);
-    }
-  }
-
-  /** Blue alias for pinColor. */
-  @meta.blue.notify
-  @meta.blue.persist
-  @meta.type.color
-  get color()
-  {
-    return this._pinColor;
-  }
-
-  /** Blue alias that writes through to pinColor. */
-  set color(value)
-  {
-    this.pinColor = value;
-  }
+  pinColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
   @meta.blue.read
@@ -128,7 +104,7 @@ export class EveChildSpherePin extends EveChildMesh
       this.pinRadius
     ]);
     data.Set("pinRotation", [this.pinRotation, 0, 0, 0]);
-    data.Set("pinColor", this._pinColor);
+    data.Set("pinColor", this.pinColor);
     data.Set("pinThreshold", [this.pinAlphaThreshold, 0, 0, 0]);
     data.Set("pinRadiusPrecalc", [
       Math.sin(this.pinRadius),
