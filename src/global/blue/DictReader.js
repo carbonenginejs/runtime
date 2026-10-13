@@ -1554,12 +1554,19 @@ function IsObjectItem(item)
   return item !== null && typeof item === "object" && CjsSchema.getClassName(item.constructor) !== null;
 }
 
-/** Whether a value is a plain dictionary. */
+/**
+ * Whether a value is a plain dictionary: null-prototype, or with any realm's
+ * `Object.prototype`. An editor window hands values to a runtime in another
+ * realm (Graphene's renderer iframe), and its literals are still dictionaries.
+ */
 function IsPlainObject(value)
 {
   if (!value || typeof value !== "object") return false;
   const prototype = Object.getPrototypeOf(value);
-  return prototype === Object.prototype || prototype === null;
+  if (prototype === Object.prototype || prototype === null) return true;
+  // Another realm's Object.prototype is the root of its chain; a class
+  // instance's prototype never is.
+  return Object.getPrototypeOf(prototype) === null && Object.prototype.toString.call(value) === "[object Object]";
 }
 
 CjsSchema.define(DictReader, { className: "DictReader", carbon: "DictReader" });

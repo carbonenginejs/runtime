@@ -1,6 +1,7 @@
 import "../../src/global/blue/values.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { runInNewContext } from "node:vm";
 
 import { CjsSchema } from "../../src/global/schema/index.js";
 
@@ -41,6 +42,21 @@ test("a plain values object is accepted at every top-level entry point", () =>
   assert.deepEqual([ ...CjsSchema.setValues(model, { label: "b" }) ], [ "label" ]);
   assert.deepEqual([ ...CjsSchema.setValues(model, { label: "c" }) ], [ "label" ]);
   assert.equal(CjsSchema.from("ValuesInputParent", { label: "d" }).label, "d");
+});
+
+test("a plain values object from another realm is still values", () =>
+{
+  // Graphene's panels build the bag in the editor window and hand it to the
+  // runtime in its renderer iframe.
+  const model = CjsSchema.from(CjsSchema.getClassName(ValuesInputParent), { label: "a" });
+  const foreign = runInNewContext("({ label: \"from another realm\" })");
+
+  assert.notEqual(Object.getPrototypeOf(foreign), Object.prototype);
+  assert.deepEqual([ ...CjsSchema.setValues(model, foreign) ], [ "label" ]);
+  assert.equal(model.label, "from another realm");
+  assert.equal(CjsSchema.from("ValuesInputParent", runInNewContext("({ label: \"built\" })")).label, "built");
+  assert.throws(() => CjsSchema.setValues(model, runInNewContext("new (class Live { label = \"x\"; })()")),
+    { name: "TypeError", message: /requires a plain values object/ });
 });
 
 for (const [ description, make ] of NOT_VALUES)

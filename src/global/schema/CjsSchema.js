@@ -3443,9 +3443,25 @@ function cloneSchemaValue(value)
     return value;
 }
 
+/**
+ * Whether a value is a plain object: one whose prototype is an
+ * `Object.prototype`. Any realm's counts. An editor in one window hands values
+ * to a runtime in another (Graphene's renderer iframe), and a literal built
+ * there is still data, not a live object.
+ *
+ * @param {*} value The value to test.
+ * @returns {boolean}
+ */
 function isPlainObject(value)
 {
-    return Boolean(value) && typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype;
+    if (!value || typeof value !== "object") return false;
+    const prototype = Object.getPrototypeOf(value);
+    if (prototype === Object.prototype) return true;
+    // Another realm's Object.prototype is the root of its chain and is itself
+    // an ordinary object; a class instance's prototype is never the root.
+    return prototype !== null
+        && Object.getPrototypeOf(prototype) === null
+        && Object.prototype.toString.call(value) === "[object Object]";
 }
 
 // Names what arrived where a values bag was required, for assertValues' error.
