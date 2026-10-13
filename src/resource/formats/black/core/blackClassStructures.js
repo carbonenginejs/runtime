@@ -2,11 +2,11 @@
 import { CjsSchema } from "#schema";
 
 /**
- * Returns the registered class's explicit BlueStructureDefinition and defaults.
+ * Returns the registered class's explicit BlueStructureDefinition.
  *
  * @param {string|Function} className Registered item class name, or the class itself.
- * @returns {import("./helpers.js").BlackStructureLayout} The structure definition with the class defaults.
- * @throws {TypeError} When the class is unregistered, has no structureDefinition, or lacks a member default.
+ * @returns {import("./helpers.js").BlackStructureLayout} The structure definition.
+ * @throws {TypeError} When the class is unregistered or has no structureDefinition.
  */
 export function structClassLayout(className)
 {
@@ -14,12 +14,7 @@ export function structClassLayout(className)
     if (!Item) throw new TypeError(`Black struct item class ${className} is not registered (import its package)`);
     const definition = CjsSchema.getSchema(Item).structureDefinition;
     if (!definition) throw new TypeError(`Black struct ${CjsSchema.getClassName(Item)} has no structureDefinition`);
-    const defaults = CjsSchema.getDefaults(Item);
-    for (const member of definition.members.slice(1))
-    {
-        if (defaults?.[member.name] === undefined) throw new TypeError(`Black struct ${definition.name}.${member.name} has no class default`);
-    }
-    return { ...definition, defaults };
+    return { ...definition };
 }
 
 /**

@@ -3,7 +3,6 @@ import assert from "node:assert/strict";
 import { CjsSchema } from "../../npm/dist/global/schema/CjsSchema.js";
 import { CjsBlackReader } from "../../npm/dist/resource/formats/black/core/CjsBlackReader.js";
 import { CjsBlackSchemaRegistry } from "../../npm/dist/resource/formats/black/core/CjsBlackSchemaRegistry.js";
-import { classStructureLayout } from "../../npm/dist/resource/formats/black/core/blackClassStructures.js";
 import { Tr2CurveQuaternion } from "../../npm/dist/trinity/curves/curve/Tr2CurveQuaternion.js";
 
 /** A struct record's own fields as plain data, vectors as plain arrays. */
@@ -113,7 +112,6 @@ test("quaternion keys retain verified JS short-record defaults with fresh per-re
         {
             curve.keys[0].value[0] = 99;
             assert.deepEqual(Array.from(curve.keys[1].value), [0, 0, 0, 1]);
-            assert.deepEqual(classStructureLayout("Tr2CurveQuaternion", "keys").defaults.value, [0, 0, 0, 1]);
             const next = new CjsBlackReader(curveBytes(4), { schema: null, initialize: false }).CreateObject();
             assert.deepEqual(Array.from(next.keys[0].value), [0, 0, 0, 1]);
             assert.notEqual(next.keys[0].value, curve.keys[1].value);

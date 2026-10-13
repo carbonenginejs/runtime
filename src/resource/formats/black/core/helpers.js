@@ -99,7 +99,6 @@ export const DEFAULT_VALUES = {
  * @property {number} size Record byte size.
  * @property {Array<{name: string, offset: number, type: string}>} members Members with their byte offsets.
  * @property {number[]} [boundaries] Member end offsets accepted as earlier record sizes.
- * @property {Object<string, *>} defaults Class defaults by member name.
  */
 
 /**

@@ -736,15 +736,10 @@ export class CjsBlackPropertyReaders
                 const value = Item ? new Item() : {};
                 for (const [ memberIndex, member ] of structure.members.entries())
                 {
-                    if (earlier && structure.boundaries[memberIndex] > structureSize)
-                    {
-                        // An instance already holds its class default.
-                        if (Item) continue;
-                        // A copy per record: an array default must not be shared.
-                        const fallback = structure.defaults[member.name];
-                        value[member.name] = ArrayBuffer.isView(fallback) || Array.isArray(fallback) ? fallback.slice() : fallback;
-                        continue;
-                    }
+                    // A member the record does not hold is not written, as Black reads
+                    // nothing it was not given: an instance keeps its own value, and a
+                    // payload record leaves the member out.
+                    if (earlier && structure.boundaries[memberIndex] > structureSize) continue;
                     record.offset = member.offset;
                     const read = CjsBlackPropertyReaders.readValue(record, {
                         jsType: { kind: member.type }

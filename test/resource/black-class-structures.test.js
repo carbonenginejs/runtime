@@ -80,7 +80,7 @@ test("Tr2Effect's struct lists derive with 8-byte shared strings, as Carbon's de
   assert.equal(classStructureLayout("Tr2Effect", "samplerOverrides").size, 56, "Tr2Effect.h:37 includes the trailing Tr2SamplerStateAL shared_ptr");
 });
 
-test("a record ending on a member boundary reads its members and defaults the rest; any other size throws", () =>
+test("a record ending on a member boundary reads its members and leaves out the rest; any other size throws", () =>
 {
   const layout = classStructureLayout("EveLocatorSets", "locators");
   const list = (count, size, fill) =>
@@ -95,7 +95,7 @@ test("a record ending on a member boundary reads its members and defaults the re
 
   const [ old ] = CjsBlackPropertyReaders.readStructureList(list(1, 44, view => view.setInt32(6 + 40, 7, true)), { structure: layout });
   assert.equal(old.boneIndex, 7);
-  assert.equal(old.partTag, 0, "NO_PART_TAG, the class default (EveSpaceObjectChild.h:76)");
+  assert.equal(Object.hasOwn(old, "partTag"), false, "a member the record lacks is not read");
 
   assert.throws(() => CjsBlackPropertyReaders.readStructureList(list(1, 42), { structure: layout }), /Incompatible Black structure/);
 });
@@ -146,7 +146,7 @@ test("banner, child, SOF and timeline layouts match their donor definitions", ()
   assert.ok(!classStructureLayout("EveBannerSet", "banners").members.some(member => member.name === "reference"));
 });
 
-test("short shared-string records retain independent vector defaults and padding is not a boundary", () =>
+test("short shared-string records leave out the members they lack, and padding is not a boundary", () =>
 {
   const layout = classStructureLayout("Tr2Effect", "constParameters");
   const bytes = new Uint8Array(6 + 2 * 8);
@@ -155,10 +155,7 @@ test("short shared-string records retain independent vector defaults and padding
   view.setUint16(4, 8, true);
   const reader = new CjsBlackBinaryReader(view, { info: { strings: ["constant"] } });
   const rows = CjsBlackPropertyReaders.readStructureList(reader, { structure: layout });
-  assert.deepEqual(rows, [{ name: "constant", value: [0, 0, 0, 0] }, { name: "constant", value: [0, 0, 0, 0] }]);
-  rows[0].value[0] = 9;
-  assert.equal(rows[1].value[0], 0);
-  assert.equal(layout.defaults.value[0], 0);
+  assert.deepEqual(rows, [{ name: "constant" }, { name: "constant" }]);
   for (const size of [2, 4, 7, 9, 25])
   {
     view.setUint16(4, size, true);
