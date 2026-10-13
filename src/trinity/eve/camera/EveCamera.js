@@ -150,6 +150,13 @@ export class EveCamera
 
   _zoomTime = 0;
 
+  /**
+   * Ours, JavaScript only (not exposed to Blue): true asks the caller to run
+   * StableUpdate instead of Update, for a camera far from the origin.
+   * @type {boolean}
+   */
+  stableView = false;
+
   /** m_errorListener (IBlueEventListenerPtr) [READWRITE] */
   @meta.blue.readwrite
   @meta.type.rootRef("IBlueEventListener")
@@ -852,6 +859,66 @@ export class EveCamera
     }
     this._failedLastFrame = failed;
     return !failed;
+  }
+
+  /**
+   * Carbon's Update, then the view rebuilt from the orbit itself, for a camera
+   * far from the origin.
+   *
+   * Update aims the view with a look-at from the camera position to a point
+   * 100 m ahead of it (EveCamera.cpp:376-386, 502), both float32. Far from the
+   * origin float32 steps are tens of metres, so that 100 m direction wobbles:
+   * about 0.15 degrees at 10^7 m and 2 degrees at 10^8 m, and it stops turning
+   * at all past 10^9 m (registered as a quirk in the Carbon defects register).
+   * This keeps everything Update computed (clip planes, projection, zoom, pitch
+   * and yaw limits, interest rotation) and replaces only the view: its axes are
+   * the orbit rotation's, as the look-at makes them in exact arithmetic, and
+   * its translation is taken from the interest point and the distance in
+   * float64 (view = T(0, 0, -distance) R^-1 T(-interest), as ccpwgl's orbit
+   * camera builds it). Idle sway and noise, which Carbon adds to the look-at
+   * point, are not applied.
+   *
+   * @param {number} time Simulation time in ticks, as Update takes it.
+   * @param {number} [aspectRatio=1] Viewport aspect ratio.
+   * @param {number} [realTime=time] Real time in ticks.
+   * @returns {boolean} Update's result.
+   */
+  @meta.ours
+  StableUpdate(time, aspectRatio = 1, realTime = time)
+  {
+    const result = this.Update(time, aspectRatio, realTime);
+    if (!this.update) return result;
+
+    // The orbit's +Z, the camera's back axis: rotationAroundParent applied to (0, 0, 1) in float64.
+    const [ qx, qy, qz, qw ] = this.rotationAroundParent;
+    const z = [ 2 * (qx * qz + qw * qy), 2 * (qy * qz - qw * qx), 1 - 2 * (qx * qx + qy * qy) ];
+    const zLength = Math.hypot(...z);
+    if (!(zLength > 0)) return result;
+    for (let axis = 0; axis < 3; axis++) z[axis] /= zLength;
+
+    // Side and up from Carbon's real up, as the look-at derives them.
+    const up = Array.from(CAMERA_REAL_UP);
+    const x = [ up[1] * z[2] - up[2] * z[1], up[2] * z[0] - up[0] * z[2], up[0] * z[1] - up[1] * z[0] ];
+    const xLength = Math.hypot(...x);
+    if (!(xLength > 0)) return result;
+    for (let axis = 0; axis < 3; axis++) x[axis] /= xLength;
+    const y = [ z[1] * x[2] - z[2] * x[1], z[2] * x[0] - z[0] * x[2], z[0] * x[1] - z[1] * x[0] ];
+
+    // The eye is interest + distance * z, so -(axis . eye) is -(axis . interest), less the distance on z.
+    const interest = Array.from(CAMERA_PARENT_POSITION), distance = this.translationFromParent;
+    const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+    mat4.set(CAMERA_VIEW,
+      x[0], y[0], z[0], 0,
+      x[1], y[1], z[1], 0,
+      x[2], y[2], z[2], 0,
+      -dot(x, interest), -dot(y, interest), -(dot(z, interest) + distance), 1);
+    // Carbon (row-vector): view * interestRotation - view first, as Update does.
+    mat4.multiply(CAMERA_INTEREST_VIEW, CAMERA_INTEREST_ROTATION, CAMERA_VIEW);
+    EveCamera._CopyViewBasis(CAMERA_INTEREST_VIEW, this.viewVec, this.upVec, this.rightVec);
+    this.viewMatrix.SetTransform(CAMERA_INTEREST_VIEW);
+    for (let axis = 0; axis < 3; axis++) this.pos[axis] = interest[axis] + z[axis] * distance;
+    vec3.copy(this.intr, interest);
+    return result;
   }
 
   /**

@@ -164,3 +164,32 @@ test("EveCamera notifications preserve active spring targets", () =>
 
   assert.ok(Math.abs(camera.yaw - 0.06875) < 1e-5);
 });
+
+test("StableUpdate keeps Carbon's view near the origin and stays steady far from it", () =>
+{
+  const make = distance =>
+  {
+    const camera = new EveCamera();
+    camera.translationFromParent = distance;
+    camera.useExtraTranslation = true;
+    camera.extraTranslation.set([ 1000, -500, 250 ]);
+    return camera;
+  };
+  // Near the origin the axes match Update's look-at.
+  const carbon = make(1000), stable = make(1000);
+  for (const camera of [ carbon, stable ]) camera.SetOrbit(0.5, -0.3);
+  carbon.Update(0, 1.6, 0);
+  stable.StableUpdate(0, 1.6, 0);
+  for (const index of [ 0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14 ])
+    assert.ok(Math.abs(carbon.viewMatrix.transform[index] - stable.viewMatrix.transform[index]) < 1e-3, `view[${index}]`);
+  // Far out, a small yaw turns the view by that much: Update's float32 look-at wobbles there.
+  const far = make(1e8), forward = () => { const m = far.viewMatrix.transform; return [ m[2], m[6], m[10] ]; };
+  far.SetOrbit(0.5, -0.3); far.StableUpdate(0, 1.6, 0);
+  const before = forward();
+  far.SetOrbit(0.5 + 0.01, -0.3); far.StableUpdate(0, 1.6, 0);
+  const after = forward();
+  const angle = Math.acos(Math.min(1, before[0] * after[0] + before[1] * after[1] + before[2] * after[2]));
+  assert.ok(Math.abs(angle - 0.01 * Math.cos(0.3)) < 1e-4, `turned ${angle}`);
+  // The eye sits the distance out along the orbit, from the interest point.
+  assert.ok(Math.abs(Math.hypot(...[ 0, 1, 2 ].map(axis => far.pos[axis] - far.intr[axis])) - 1e8) < 64);
+});
