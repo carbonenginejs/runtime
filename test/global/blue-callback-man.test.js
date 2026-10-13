@@ -312,3 +312,23 @@ test("BeCallbackMan is the named global background manager", () =>
   assert.ok(BeCallbackMan instanceof BlueCallbackMan);
   assert.equal(BeCallbackMan._name, "BeCallbackMan");
 });
+
+test("in Update mode with several slots, a fence waits for running entries but does not hold back later ones", async () => {
+  const order = [];
+  const man = new BlueCallbackMan();
+  man.SetThreadCount(3);
+  let release;
+  man.Add(() => new Promise(resolve => { release = () => { order.push("slow"); resolve(); }; }));
+  man.Add(() => { order.push("fence"); }, null, BCBF_FENCE);
+  man.Add(() => { order.push("after"); });
+
+  while (man.Update());
+  // CallbackMan.cpp:547-571: the fenced entry is set aside and the next entry runs.
+  assert.deepEqual(order, [ "after" ], "only the fence waits on the running slow entry");
+
+  release();
+  await tick();
+  while (man.Update());
+  assert.deepEqual(order, [ "after", "slow", "fence" ]);
+  assert.equal(man.IsEmpty(), true);
+});

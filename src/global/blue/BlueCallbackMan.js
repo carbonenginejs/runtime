@@ -142,6 +142,9 @@ export class BlueCallbackMan extends IBlueCallbackMan
   /** A nested alarm arrived while `_Alarm` was running. */
   _alarmAgain = false;
 
+  /** The `Update` slot to try first next time; slots take turns, as threads do. */
+  _nextUpdateSlot = 0;
+
   /**
    * `Add` (CallbackMan.cpp:94-146) - queues a callback run on the caller's
    * thread by `Update`.
@@ -362,7 +365,10 @@ export class BlueCallbackMan extends IBlueCallbackMan
    *
    * Adapted: an asynchronous entry holds its slot until it settles, so the
    * manager keeps `SetThreadCount` slots for `Update` too; Carbon keeps one,
-   * which a synchronous callback always frees before the next call.
+   * which a synchronous callback always frees before the next call. Idle
+   * slots take turns, so each one checks the fence queue as Carbon's threads
+   * do; always taking the first idle slot would leave the others' fence bits
+   * set while regular entries keep coming.
    *
    * @returns {boolean} Whether an entry was started.
    */
@@ -372,9 +378,17 @@ export class BlueCallbackMan extends IBlueCallbackMan
 
     while (this._threads.length < this._threadCount) this._threads.push(new BlueCallbackManThreadData(this._threads.length));
 
-    const td = this._threads.find(slot => slot.inProgress === null);
-    if (!td) return false;
-    return this._UpdateThread(td);
+    for (let i = 0; i < this._threads.length; ++i)
+    {
+      const td = this._threads[(this._nextUpdateSlot + i) % this._threads.length];
+      if (td.inProgress !== null) continue;
+      // An idle slot that finds nothing it may run (a fence still waiting on
+      // others) has still cleared its own fence bit; the next idle slot tries.
+      if (!this._UpdateThread(td)) continue;
+      this._nextUpdateSlot = (td.threadIndex + 1) % this._threads.length;
+      return true;
+    }
+    return false;
   }
 
   /**

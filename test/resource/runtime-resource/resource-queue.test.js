@@ -859,3 +859,46 @@ async function WaitUntil(predicate) {
   }
   assert.fail("Timed out waiting for the expected queue state.");
 }
+
+test("resources created in urgent mode load and prepare ahead of regular ones (BlueAsyncRes.cpp:108-111, 217-226)", async () => {
+  const loads = [];
+  const resMan = new CjsBlueResMan({
+    autoPumpMainThreadQueue: false,
+    maxConcurrentLoads: 1,
+    source: {
+      Read(path) {
+        loads.push(path);
+        return new Uint8Array([ 1 ]);
+      }
+    }
+  });
+  resMan.RegisterObjectLoader("bin", value => ({ bytes: value }));
+
+  const regular = [ LoadData(resMan, "res:/urgent/a.bin"), LoadData(resMan, "res:/urgent/b.bin") ];
+  resMan.SetUrgentResourceLoads(true);
+  const urgent = LoadData(resMan, "res:/urgent/c.bin");
+  resMan.SetUrgentResourceLoads(false);
+
+  assert.equal(resMan.Lookup("res:/urgent/a.bin").isUrgent, false);
+  assert.equal(resMan.Lookup("res:/urgent/c.bin").isUrgent, true);
+
+  // WaitUrgent fences the urgent work only: it settles once c has loaded and
+  // prepared, with a and b still to go.
+  const waited = resMan.WaitUrgent();
+  let settled = false;
+  waited.then(() => { settled = true; });
+  while (!settled)
+  {
+    resMan.PumpBackgroundQueue({ maxItems: 1 });
+    resMan.PumpMainThreadQueue({ maxItems: 1, maxTime: 0 });
+    await FlushMicrotasks();
+  }
+
+  assert.equal(loads[0], "res:/urgent/c.bin", "the urgent load ran first");
+  assert.equal(resMan.Lookup("res:/urgent/c.bin").state, "prepared");
+  assert.notEqual(resMan.Lookup("res:/urgent/b.bin").state, "prepared");
+
+  await resMan.Wait();
+  await Promise.all([ ...regular, urgent ]);
+  assert.deepEqual(loads.slice(1).sort(), [ "res:/urgent/a.bin", "res:/urgent/b.bin" ]);
+});

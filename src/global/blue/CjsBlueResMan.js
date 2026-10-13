@@ -6,6 +6,7 @@ import { StreamType } from "#consts/media";
 import { assertNonNegativeInteger, assertNonNegativeNumber, assertPositiveInteger } from "#utils/validation";
 import { CjsMotherLode, getMotherLodeKey } from "./CjsMotherLode.js";
 import { CjsBlueOS } from "./CjsBlueOS.js";
+import { IBlueCallbackMan } from "./IBlueCallbackMan.js";
 import { CjsSchema, meta } from "#schema";
 import { IBlueResMan } from "./IBlueResMan.js";
 import { IBlueEvents } from "./IBlueEvents.js";
@@ -275,6 +276,9 @@ export class CjsBlueResMan
   _queueOperations = new Map();
   _resourceOwnership = new WeakMap();
   _resourceOperations = new Map();
+
+  /** Load-and-prepare operations of resources created in urgent mode, while pending (WaitUrgent). */
+  _urgentOperations = new Set();
   _reloadCandidates = new WeakMap();
   _reloadGenerations = new Map();
   _reloadOperations = new WeakMap();
@@ -809,8 +813,11 @@ export class CjsBlueResMan
    * resource root. Direct `LoadResourceObject()`, direct
    * `PrepareResourceObject()`, standalone `ReadResource()`, and standalone
    * `ReadFormatOnce()` calls bypass the two queues and are not resource roots
-   * unless they also own a captured queue task. `WaitUrgent()` remains absent
-   * until per-item priority and urgent membership exist.
+   * unless they also own a captured queue task.
+   *
+   * Adapted: Carbon's `Wait` (BlueResMan.cpp:933-968) sends a fenced marker
+   * through the queues; here the pending operations' promises are awaited, which
+   * settles at the same point without blocking.
    *
    * @param {CjsResManWaitOptions} [options={}] Snapshot pumping and cooperative-yield controls.
    * @returns {Promise<CjsBlueResMan>} This manager after all captured work settles.
@@ -855,6 +862,26 @@ export class CjsBlueResMan
       if (!settled) await Promise.race([ fence, Promise.resolve().then(yieldQueue) ]);
     }
     await fence;
+    return this;
+  }
+
+  /**
+   * `WaitUrgent` (BlueResMan.cpp:970-980): settles once the urgent resources
+   * pending at the call have loaded and prepared.
+   *
+   * Adapted: Carbon sends a marker flagged `BCBF_FENCE | BCBF_URGENT` through the
+   * background queue and then the main queue. That works because Carbon queues a
+   * resource's prepare as one main-queue entry before its load entry finishes
+   * (BlueAsyncRes.cpp:108-120). Ours queues the prepare in stages after the load
+   * promise settles, so a marker could pass between them; the urgent
+   * load-and-prepare operations pending at the call are awaited instead, as
+   * `Wait` does for all of them.
+   *
+   * @returns {Promise<CjsBlueResMan>} This manager, once those operations have settled.
+   */
+  async WaitUrgent()
+  {
+    await Promise.allSettled([ ...this._urgentOperations ]);
     return this;
   }
 
@@ -1752,7 +1779,7 @@ export class CjsBlueResMan
       candidate.resource.MarkRequested();
       this._AssertReloadCandidate(candidate, "reload:requested-settled");
 
-      const bytes = await this._QueueReadResource(read.context, read.options);
+      const bytes = await this._QueueReadResource(read.context, read.options, urgentFlags(candidate.resource));
       this._AssertReloadCandidate(candidate, "reload:loading");
       candidate.resource.MarkLoading();
       this._AssertReloadCandidate(candidate, "reload:loading-settled");
@@ -2052,7 +2079,7 @@ export class CjsBlueResMan
       resource.error = null;
       resource.MarkRequested();
       this._AssertResourceOwnership(ownership, "queue:requested-settled");
-      load = this._QueueReadResource(read.context, read.options);
+      load = this._QueueReadResource(read.context, read.options, urgentFlags(resource));
     } catch (error) {
       releaseLock();
       finishOperation();
@@ -2072,6 +2099,12 @@ export class CjsBlueResMan
       })
       .finally(releaseLock);
     operation.then(finishOperation, finishOperation);
+    if (resource.isUrgent)
+    {
+      this._urgentOperations.add(operation);
+      const forget = () => this._urgentOperations.delete(operation);
+      operation.then(forget, forget);
+    }
     return operation;
   }
 
@@ -2090,7 +2123,8 @@ export class CjsBlueResMan
   QueueReadResource(path, options = {})
   {
     const read = this._BeginReadOperation(path, options);
-    return this._QueueReadResource(read.context, read.options);
+    return this._QueueReadResource(read.context, read.options,
+      this.urgentResourceLoads ? IBlueCallbackMan.BCBF_URGENT : IBlueCallbackMan.BCBF_NONE);
   }
 
   /**
@@ -2240,7 +2274,8 @@ export class CjsBlueResMan
       }, resource, {
         kind: "prepare",
         stage: "read",
-        path: resource.GetPath()
+        path: resource.GetPath(),
+        flags: urgentFlags(resource)
       });
       read = await readTask.promise;
     }
@@ -2256,7 +2291,8 @@ export class CjsBlueResMan
     }, resource, {
       kind: "prepare",
       stage: "publish",
-      path: resource.GetPath()
+      path: resource.GetPath(),
+      flags: urgentFlags(resource)
     });
     const published = await publishTask.promise;
     this._AssertOptionalResourceOwnership(ownership, "queue-stage:publish:settled");
@@ -2473,7 +2509,8 @@ export class CjsBlueResMan
   {
     const task = this.QueueTask(CjsResManQueue.MAIN, () => this._BuildObject(resource), resource, {
       kind: "build",
-      path: resource.GetPath()
+      path: resource.GetPath(),
+      flags: urgentFlags(resource)
     });
     this.ScheduleMainThreadQueue();
     return task.promise;
@@ -3169,7 +3206,7 @@ export class CjsBlueResMan
    * @param {object} options Detached read options.
    * @returns {Promise<*>} Promise for source bytes/data.
    */
-  _QueueReadResource(context, options)
+  _QueueReadResource(context, options, flags = IBlueCallbackMan.BCBF_NONE)
   {
     const cachePolicy = normalizeCachePolicy(options.cacheSource, "cacheSource");
     const operations = getOwnerOperations(this.queuedSourceOperations, context.source, true);
@@ -3198,7 +3235,7 @@ export class CjsBlueResMan
       CjsResManQueue.BACKGROUND,
       () => this._ReadResource(context, options, record),
       context.source,
-      { kind: "load", path: context.path }
+      { kind: "load", path: context.path, flags }
     ).promise;
     if (cachePolicy !== false) operations.set(key, record);
 
@@ -3360,6 +3397,9 @@ export class CjsBlueResMan
       this._resourceHandlerModes.set(resource, handlerMode);
     }
     resource.Initialize(path, ext, normalizeRequirement(options.requirement || options.payload || ""));
+    // BlueAsyncRes::InitializeImpl reads the manager's urgent mode once, at
+    // creation (BlueAsyncRes.cpp:217).
+    resource.isUrgent = this.urgentResourceLoads;
     const loaderOptions = getResourceLoaderOptions(options, options.source || this.source);
     resource.SetObjectLoader(
       loadOptions => this._LoadObject(
@@ -5171,6 +5211,7 @@ CjsBlueResMan.getBluePaths = () =>
 
 CjsSchema.decorateMethod(CjsBlueResMan, "GetResource", meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "IsOnMainThread", meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "WaitUrgent", meta.adapted);
 for (const method of [ "SaveObject", "ReserveBackgroundLoadMemory", "ReleaseBackgroundLoadMemory" ])
 {
   CjsSchema.decorateMethod(CjsBlueResMan, method, meta.notImplemented);
@@ -5201,6 +5242,18 @@ async function readThroughBluePaths(paths, path, options)
     throw error;
   }
   return result.data;
+}
+
+/**
+ * The callback-manager flags for a resource's tasks: urgent when the resource was
+ * created in urgent mode (BlueAsyncRes.cpp:108-111, :217-226).
+ *
+ * @param {CjsResource} resource The resource.
+ * @returns {number} `BCBF_URGENT` or `BCBF_NONE`.
+ */
+function urgentFlags(resource)
+{
+  return resource.isUrgent ? IBlueCallbackMan.BCBF_URGENT : IBlueCallbackMan.BCBF_NONE;
 }
 
 /** Resolve a request to Carbon StreamType flags. */

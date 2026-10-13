@@ -96,6 +96,14 @@ export class CjsResource
   requirement = "";
 
   /**
+   * `m_isUrgent` (BlueAsyncRes.h): whether the manager was in urgent mode when this
+   * resource was created; its load and prepare are then queued urgent, ahead of
+   * every regular entry (BlueAsyncRes.cpp:108-111, :217-226).
+   * @type {boolean}
+   */
+  isUrgent = false;
+
+  /**
    * Current JavaScript load/preparation phase from CjsResource.State.
    * SetState publishes state-change events; Initialize resets it to EMPTY.
    * @type {string}
