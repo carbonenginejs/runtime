@@ -481,3 +481,17 @@ test("a stale empty-space readback cannot clear a newer selection", async t =>
   await pending;
   assert.equal(gizmo.target, target);
 });
+
+test("zooming out is not capped by the far clip: a huge selection can be left, and the far clip follows", () =>
+{
+  const camera = new EveCamera();
+  camera.frontClip = 5; camera.backClip = 10000; camera.translationFromParent = 2e5;
+  // A selected planet: its 1% zoom floor (189 km) is past the far clip (10 km).
+  const controls = new TnyCameraControls({ camera, getBounds: () => ({ centre: [ 0, 0, 0 ], radius: 1.889e7 }) });
+  controls.Dolly(1000);
+  assert.ok(camera.translationFromParent > 2e5 * 3, "the wheel moves the camera out");
+  assert.ok(camera.backClip >= (camera.translationFromParent + 1.889e7) * 1.05 - 1, "the far clip covers the bounds from the new distance");
+  for (let step = 0; step < 200; step++) controls.Dolly(20000);
+  assert.equal(camera.translationFromParent, controls.preferences.maxDistance);
+  controls.Destroy();
+});

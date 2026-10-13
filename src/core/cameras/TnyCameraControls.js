@@ -50,6 +50,8 @@ export class TnyCameraControls
       orbitButton: 0, panButton: 1, invertX: true, invertY: true,
       orbitSensitivity: 0.1, panSensitivity: 1, dollySensitivity: 0.0015, fovSensitivity: 0.001,
       minFieldOfView: 5 * Math.PI / 180, maxFieldOfView: 120 * Math.PI / 180, frameMargin: 1.1,
+      // Farthest wheel/key zoom, in metres: past any solar system (~670 AU).
+      maxDistance: 1e14,
       ...preferences
     };
     this.SetKeyBindings(keyBindings);
@@ -208,17 +210,24 @@ export class TnyCameraControls
     return true;
   }
 
-  /** Exponential wheel zoom with bounds-aware limits, applied through native Dolly. */
+  /**
+   * Exponential wheel zoom with bounds-aware limits, applied through native
+   * Dolly. Zooming out stops at preferences.maxDistance and pushes the far clip
+   * out to keep the bounds in view, as Frame does; it is not capped by the far
+   * clip, which left a large selection (whose 1% floor passes the far clip) or
+   * a far-away body unreachable.
+   */
   Dolly(delta)
   {
     if (!Number.isFinite(delta)) return;
     const camera = this.camera, radius = Math.max(0.001, this.getBounds ? this.getBounds().radius : 0);
-    const minimum = Math.max(1, camera.frontClip, radius * 0.01), maximum = Math.max(minimum, camera.backClip - radius);
+    const minimum = Math.max(1, camera.frontClip, radius * 0.01), maximum = Math.max(minimum, this.preferences.maxDistance);
     // Seed multiplicative zoom from a usable distance, including poses edited to zero.
     // Match EveCamera.Update's floor so the next frame cannot erase outward motion.
     const start = Math.max(minimum, camera.translationFromParent);
     const distance = Math.min(maximum, Math.max(minimum,
       start * Math.exp(Math.max(-20, Math.min(20, delta * this.preferences.dollySensitivity)))));
+    camera.backClip = Math.max(camera.backClip, (distance + radius) * 1.05);
     camera.Dolly(distance - camera.translationFromParent);
     this.#Changed();
   }
