@@ -152,43 +152,9 @@ test("worker loader aborts requests and rejects every request on fatal worker fa
   assert.equal(loader.IsAvailable(), false);
 });
 
-test("CjsBlueResMan is the only built-in resource-path-to-URL resolver", () =>
-{
-  const resMan = new CjsBlueResMan({
-    paths: {
-      res: "https://cdn.example.invalid/assets"
-    }
-  });
-
-  assert.equal(resMan.HasPath("RES:/"), true);
-  assert.equal(
-    resMan.GetPath("res"),
-    "https://cdn.example.invalid/assets/"
-  );
-  assert.equal(
-    resMan.BuildUrl("RES:/Texture/Ship.DDS"),
-    "https://cdn.example.invalid/assets/texture/ship.dds"
-  );
-  assert.equal(
-    resMan.BuildUrl("https://example.invalid/Case/File.bin"),
-    "https://example.invalid/Case/File.bin"
-  );
-  assert.throws(
-    () => resMan.BuildUrl("aud:/bank/music.bnk"),
-    error => error.code === "CJS_RESMAN_PATH_PREFIX_UNREGISTERED"
-  );
-
-  resMan.SetPathResolver(path => `https://proxy.example.invalid/${encodeURIComponent(path)}`);
-  assert.equal(
-    resMan.BuildUrl("aud:/bank/music.bnk"),
-    "https://proxy.example.invalid/aud%3A%2Fbank%2Fmusic.bnk"
-  );
-});
-
 test("CjsBlueResMan loads through the worker when its source offers a worker request", async () => {
   const worker = new FakeWorker();
   const source = {
-    requiresUrl: true,
     Read() {
       throw new Error("main-thread read should not run");
     },
@@ -203,9 +169,6 @@ test("CjsBlueResMan loads through the worker when its source offers a worker req
   const resMan = new CjsBlueResMan({
     autoPumpMainThreadQueue: false,
     source,
-    paths: {
-      res: "https://example.invalid/resources/"
-    },
     workerLoader: { worker }
   });
   resMan.RegisterObjectLoader("bin", input => new Uint8Array(input));
@@ -216,10 +179,8 @@ test("CjsBlueResMan loads through the worker when its source offers a worker req
   const request = worker.messages[0].message;
   assert.equal(request.operation, CjsResManWorker.Operation.FETCH);
   assert.equal(request.payload.path, "res:/worker/default.bin");
-  assert.equal(
-    request.payload.url,
-    "https://example.invalid/resources/worker/default.bin"
-  );
+  // resMan hands sources the path; URLs belong to the file systems now.
+  assert.equal(request.payload.url, "res:/worker/default.bin");
 
   const buffer = new Uint8Array([ 6, 7 ]).buffer;
   worker.Emit("message", {

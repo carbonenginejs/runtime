@@ -16,9 +16,14 @@ import { IBluePaths } from "./IBluePaths.js";
 import { IBlueOS } from "./IBlueOS.js";
 import { ICjsWwiseSoundEngine } from "../audio/ICjsWwiseSoundEngine.js";
 import { CjsBlue } from "./CjsBlue.js";
+import { CjsBlueResMan } from "./CjsBlueResMan.js";
 
 /** The one process-wide Blue holder. Construction is inert. */
 export const blue = new CjsBlue();
+
+// resMan reads files through the holder's current paths service (Carbon's
+// global BePaths), whichever one is installed.
+CjsBlueResMan.getBluePaths = () => blue.paths;
 
 // Carbon's private s_tickCookie in BlueResMan::Initialize/Shutdown. This
 // registration belongs to composition; unrelated host cookies remain intact.

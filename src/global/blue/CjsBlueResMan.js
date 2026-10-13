@@ -301,9 +301,10 @@ export class CjsBlueResMan
    */
   constructor(options = {}) {
     this.motherLode = new CjsMotherLode();
+    // The default source: the file through blue.paths, the bytes Carbon's
+    // DoOpenStream gets from BePaths->GetStreamFromPathW.
+    this._bluePathsSource = { Read: (path, readOptions = {}) => readThroughBluePaths(CjsBlueResMan.getBluePaths(), path, readOptions) };
     this.source = null;
-    this.paths = new Map();
-    this.pathResolver = null;
     this.resourceTypes = new Map();
     this.objectLoaders = new Map();
     // Loaders registered through RegisterObjectBuilder: their result is a
@@ -397,8 +398,6 @@ export class CjsBlueResMan
       ),
       autoPurgePolicy: this.SetAutoPurgePolicy,
       source: this.SetSource,
-      paths: this.SetPaths,
-      pathResolver: this.SetPathResolver,
       mainThreadLoader: this.SetMainThreadLoader,
       workerLoader: this.SetWorkerLoader,
       useWorkerLoading: this.UseWorkerLoading,
@@ -466,122 +465,6 @@ export class CjsBlueResMan
   SetSource(source) {
     this.source = source || null;
     return this;
-  }
-
-  /**
-   * Add or replace one resource-prefix URL base.
-   *
-   * @param {string} prefix Resource scheme without `:/`.
-   * @param {string} urlBase URL base ending at the scheme root.
-   * @returns {CjsBlueResMan} This resource manager.
-   */
-  SetPath(prefix, urlBase)
-  {
-    const key = normalizePathPrefix(prefix);
-    const value = normalizeUrlBase(urlBase);
-    this.paths.set(key, value);
-    return this;
-  }
-
-  /**
-   * Add or replace resource-prefix URL bases from an object or Map.
-   *
-   * @param {object|Map<string,string>} paths Prefix/base entries.
-   * @returns {CjsBlueResMan} This resource manager.
-   */
-  SetPaths(paths)
-  {
-    if (!paths || (typeof paths !== "object" && !(paths instanceof Map)) || Array.isArray(paths))
-    {
-      throw new TypeError("CjsBlueResMan paths must be an object or Map.");
-    }
-    const entries = paths instanceof Map
-      ? paths.entries()
-      : Object.entries(paths);
-    for (const [ prefix, urlBase ] of entries)
-    {
-      this.SetPath(prefix, urlBase);
-    }
-    return this;
-  }
-
-  /**
-   * Reports whether a resource-prefix URL base is registered.
-   *
-   * @param {string} prefix Resource scheme without `:/`.
-   * @returns {boolean}
-   */
-  HasPath(prefix)
-  {
-    return this.paths.has(normalizePathPrefix(prefix));
-  }
-
-  /**
-   * Returns one registered resource-prefix URL base.
-   *
-   * @param {string} prefix Resource scheme without `:/`.
-   * @returns {string|null}
-   */
-  GetPath(prefix)
-  {
-    return this.paths.get(normalizePathPrefix(prefix)) || null;
-  }
-
-  /**
-   * Replaces the complete resource-path-to-URL resolver.
-   *
-   * @param {Function|null} resolver Resolver called as `(resourcePath, resMan)`.
-   * @returns {CjsBlueResMan} This resource manager.
-   */
-  SetPathResolver(resolver)
-  {
-    if (resolver !== null && resolver !== undefined && typeof resolver !== "function")
-    {
-      throw new TypeError("CjsBlueResMan pathResolver must be a function or null.");
-    }
-    this.pathResolver = resolver || null;
-    return this;
-  }
-
-  /**
-   * Builds the URL used by URL-backed providers while preserving the resource
-   * path as the canonical resource identity.
-   *
-   * @param {string} path Resource path or direct HTTP(S) URL.
-   * @returns {string} Resolved URL.
-   */
-  BuildUrl(path)
-  {
-    const normalized = normalizeResourcePath(path);
-    if (!normalized)
-    {
-      throw new TypeError("CjsBlueResMan resource path must be a non-empty string.");
-    }
-    if (this.pathResolver)
-    {
-      return normalizeResolvedUrl(this.pathResolver(normalized, this));
-    }
-
-    const prefixIndex = normalized.indexOf(":/");
-    if (prefixIndex === -1)
-    {
-      return normalizePath(path);
-    }
-    const prefix = normalized.slice(0, prefixIndex);
-    if (prefix === "http" || prefix === "https")
-    {
-      return normalizePath(path);
-    }
-    const urlBase = this.paths.get(prefix);
-    if (!urlBase)
-    {
-      const error = new Error(`CjsBlueResMan resource path prefix is not registered: ${prefix}`);
-      error.code = "CJS_RESMAN_PATH_PREFIX_UNREGISTERED";
-      error.path = normalized;
-      error.prefix = prefix;
-      throw error;
-    }
-    return `${urlBase}${normalized.slice(prefixIndex + 2)}`;
   }
 
   /**
@@ -3239,9 +3122,10 @@ export class CjsBlueResMan
       return { context: inherited, options };
     }
 
-    const source = options.source || this.source;
-    if (!source || (typeof source !== "object" && typeof source !== "function")
-      || typeof source.Read !== "function")
+    // Carbon reads every file through BePaths (BlueAsyncRes::DoOpenStream,
+    // BlueAsyncRes.cpp:377-387). An explicit source still overrides it.
+    const source = options.source || this.source || this._bluePathsSource;
+    if ((typeof source !== "object" && typeof source !== "function") || typeof source.Read !== "function")
     {
       throw new TypeError("CjsBlueResMan requires a source with Read(path, options) to load objects.");
     }
@@ -3255,8 +3139,7 @@ export class CjsBlueResMan
       options.ext || getResourceExtension(normalizedPath)
     );
     const fileName = getResourceFileName(normalizedPath);
-    const requiresUrl = sourceRequiresUrl(source);
-    const url = requiresUrl ? this.BuildUrl(normalizedPath) : null;
+    const url = null;
     const context = {
       resMan: this,
       source,
@@ -5094,75 +4977,12 @@ function createFormatReadOptions(descriptor, options)
 }
 
 /**
- * Reports whether a source requires CjsBlueResMan to build a URL before reading.
- *
- * @param {*} source Selected source/provider.
- * @returns {boolean}
- */
-function sourceRequiresUrl(source)
-{
-  return source?.requiresUrl === true || source?.constructor?.requiresUrl === true;
-}
-
-/**
  * Tests whether an object owns one property.
  *
  * @param {*} object Candidate object.
  * @param {string|number|symbol} property Property key.
  * @returns {boolean}
  */
-
-/**
- * Normalizes one resource-path scheme key.
- *
- * @param {*} value Candidate scheme.
- * @returns {string}
- */
-function normalizePathPrefix(value)
-{
-  const prefix = String(value ?? "")
-    .trim()
-    .replace(/:\/?$/u, "")
-    .toLowerCase();
-  if (!/^[a-z][a-z0-9+.-]*$/u.test(prefix))
-  {
-    throw new TypeError("CjsBlueResMan path prefixes must be URI scheme names.");
-  }
-  return prefix;
-}
-
-/**
- * Normalizes one registered URL base without altering case-sensitive path
- * content.
- *
- * @param {*} value Candidate URL base.
- * @returns {string}
- */
-function normalizeUrlBase(value)
-{
-  const url = normalizePath(value);
-  if (!url || url.includes("\0"))
-  {
-    throw new TypeError("CjsBlueResMan path URL bases must be non-empty strings.");
-  }
-  return url.endsWith("/") ? url : `${url}/`;
-}
-
-/**
- * Validates a URL returned by an injected path resolver.
- *
- * @param {*} value Resolver output.
- * @returns {string}
- */
-function normalizeResolvedUrl(value)
-{
-  const url = normalizePath(value);
-  if (!url || url.includes("\0"))
-  {
-    throw new TypeError("CjsBlueResMan pathResolver must return a non-empty URL string.");
-  }
-  return url;
-}
 
 /**
  * Return the timestamp used by default automatic purge cadence: blue's host
@@ -5335,6 +5155,20 @@ function createExtensionTargetError(resource, message, cause = null)
 // The Cjs prefix identifies browser adaptations (workers, fetch and routes);
 // carbon metadata identifies the native service whose responsibility it carries.
 CjsSchema.meta.blue.inherit(IBlueResMan, IBlueEvents)(CjsBlueResMan);
+/**
+ * The paths service resMan reads through: Carbon's global `BePaths`.
+ *
+ * Ours: the `blue` holder sets this (blue.js), because resMan importing the
+ * holder would be an import cycle - the holder constructs a resMan.
+ *
+ * @returns {import("./IBluePaths.js").IBluePaths} The current `blue.paths`.
+ * @throws {Error} When no holder has set it.
+ */
+CjsBlueResMan.getBluePaths = () =>
+{
+  throw new Error("CjsBlueResMan: no paths service; import the blue holder (blue.js).");
+};
+
 CjsSchema.decorateMethod(CjsBlueResMan, "GetResource", meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "IsOnMainThread", meta.adapted);
 for (const method of [ "SaveObject", "ReserveBackgroundLoadMemory", "ReleaseBackgroundLoadMemory" ])
@@ -5342,6 +5176,28 @@ for (const method of [ "SaveObject", "ReserveBackgroundLoadMemory", "ReleaseBack
   CjsSchema.decorateMethod(CjsBlueResMan, method, meta.notImplemented);
 }
 CjsSchema.define(CjsBlueResMan, { className: "CjsBlueResMan", carbon: "BlueResMan" });
+
+/**
+ * Reads a file's bytes through `blue.paths`; a file no file system has is an
+ * error naming the path (Carbon's DoOpenStream fails the load the same way).
+ *
+ * @param {import("./IBluePaths.js").IBluePaths} paths The paths service.
+ * @param {string} path Resource path.
+ * @param {object} options Read options; `signal` aborts the read.
+ * @returns {Promise<Uint8Array>} The bytes.
+ */
+async function readThroughBluePaths(paths, path, options)
+{
+  const result = await paths.GetStreamFromPath(path, { accept: [ "bytes" ], signal: options.signal });
+  if (result === null)
+  {
+    const error = new Error(`CjsBlueResMan: no file system has ${path}.`);
+    error.code = "CJS_RESMAN_FILE_NOT_FOUND";
+    error.path = path;
+    throw error;
+  }
+  return result.data;
+}
 
 /** Resolve a request to Carbon StreamType flags. */
 function getRequestedStreams(options)

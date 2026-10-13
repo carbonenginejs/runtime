@@ -12,12 +12,14 @@ import { CjsBlueResMan, CjsResource } from "../../../npm/dist/global/blue/index.
 
 
 /** A manager on a hand-driven clock, with one bound resource. */
-function managed()
+async function managed()
 {
   const clock = { now: 1000 };
   const resMan = new CjsBlueResMan();
   resMan.motherLode._now = () => clock.now;
   const resource = resMan.GetResource("res:/tick/stamp.dds");
+  // The load fails on the resource once the read through blue.paths answers.
+  await resMan.Wait();
   return { clock, resMan, resource };
 }
 
@@ -33,9 +35,9 @@ test("before the first tick, KeepAlive renews through the manager as before", ()
 });
 
 
-test("Update stamps the tick, and a plain KeepAlive only writes it", () =>
+test("Update stamps the tick, and a plain KeepAlive only writes it", async () =>
 {
-  const { clock, resMan, resource } = managed();
+  const { clock, resMan, resource } = await managed();
   let renewals = 0;
   const controller = resource.__lifecycleController;
   resource.SetLifecycleController({ ...controller, keepAlive: options => { renewals += 1; controller.keepAlive(options); } });
@@ -54,9 +56,9 @@ test("Update stamps the tick, and a plain KeepAlive only writes it", () =>
 });
 
 
-test("the sweep sees stamped renewals: a used resource is not purged, an unused one is", () =>
+test("the sweep sees stamped renewals: a used resource is not purged, an unused one is", async () =>
 {
-  const { clock, resMan, resource } = managed();
+  const { clock, resMan, resource } = await managed();
 
   clock.now = 5000;
   resMan.Update();
@@ -74,9 +76,9 @@ test("the sweep sees stamped renewals: a used resource is not purged, an unused 
 });
 
 
-test("a stamped renewal promotes a cached entry out of the byte cache, as KeepAlive did", () =>
+test("a stamped renewal promotes a cached entry out of the byte cache, as KeepAlive did", async () =>
 {
-  const { clock, resMan, resource } = managed();
+  const { clock, resMan, resource } = await managed();
   const lode = resMan.motherLode;
   const record = [ ...lode._entries.values() ].find(entry => entry.resource === resource);
   record.cached = true;

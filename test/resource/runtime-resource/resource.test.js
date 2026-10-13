@@ -603,7 +603,7 @@ test("CjsBlueResMan Register accepts composed extension route objects", async ()
   );
 });
 
-test("CjsBlueResMan exposes normalized resource paths and exact translated URLs to formats and targets", async () =>
+test("CjsBlueResMan exposes normalized resource paths to sources, formats and targets", async () =>
 {
   let formatContext = null;
   let identifyContext = null;
@@ -619,7 +619,6 @@ test("CjsBlueResMan exposes normalized resource paths and exact translated URLs 
   }
 
   const source = {
-    requiresUrl: true,
     Read(url)
     {
       sourceUrl = url;
@@ -627,9 +626,6 @@ test("CjsBlueResMan exposes normalized resource paths and exact translated URLs 
     }
   };
   const resMan = new CjsBlueResMan({
-    paths: {
-      res: "https://CDN.Example.invalid/Assets/"
-    },
     source,
     extensions: {
       yaml: {
@@ -655,10 +651,10 @@ test("CjsBlueResMan exposes normalized resource paths and exact translated URLs 
     resFilePath: "res:/character/folder/metadata.yaml",
     ext: "yaml",
     fileName: "metadata.yaml",
-    url: "https://CDN.Example.invalid/Assets/character/folder/metadata.yaml"
+    url: null
   };
 
-  assert.equal(sourceUrl, expected.url);
+  assert.equal(sourceUrl, expected.path);
   assert.deepEqual(formatContext, expected);
   assert.equal(identifyContext.path, expected.path);
   assert.equal(identifyContext.resFilePath, expected.resFilePath);
@@ -1165,11 +1161,13 @@ test("CjsMotherLode rejects unsafe aggregate byte weights before ownership chang
   assert.equal(motherLode.Lookup(rejectedKey), null);
 });
 
-test("CjsBlueResMan Update enforces cache pressure unless one update skips it", () =>
+test("CjsBlueResMan Update enforces cache pressure unless one update skips it", async () =>
 {
   const motherLode = new CjsMotherLode({ cacheSize: 16 });
   const resMan = new CjsBlueResMan({ motherLode });
   const resource = resMan.GetResource("res:/data/update-cache.bin");
+  // The load fails on the resource once the read through blue.paths answers.
+  await resMan.Wait();
   const key = getMotherLodeKey(resource.GetPath());
   resource.SetPayload({ cached: true });
   motherLode.Insert(key, resource, { cached: true, bytes: 32 });
@@ -1363,12 +1361,14 @@ test("candidate cleanup failure is aggregated without replacing the good owner",
   assert.equal(current.HasLoaded(), true);
 });
 
-test("CjsBlueResMan binds explicit resource and payload leases for deterministic purge", () =>
+test("CjsBlueResMan binds explicit resource and payload leases for deterministic purge", async () =>
 {
   let time = 0;
   const motherLode = new CjsMotherLode({ now: () => time });
   const resMan = new CjsBlueResMan({ motherLode });
   const resource = resMan.GetResource("res:/data/leased.bin");
+  // The load fails on the resource once the read through blue.paths answers.
+  await resMan.Wait();
   let destroyed = 0;
   resource.SetAdapterResource("test", { destroy() { destroyed += 1; } });
 
@@ -1435,7 +1435,7 @@ test("CjsBlueResMan binds explicit resource and payload leases for deterministic
   assert.equal(resource.Lock(), 0);
 });
 
-test("CjsBlueResMan automatic purge is opt-in and follows deterministic time cadence", () =>
+test("CjsBlueResMan automatic purge is opt-in and follows deterministic time cadence", async () =>
 {
   let time = 0;
   const motherLode = new CjsMotherLode({ now: () => time });
@@ -1450,6 +1450,8 @@ test("CjsBlueResMan automatic purge is opt-in and follows deterministic time cad
   });
   const policy = resMan.GetAutoPurgePolicy();
   const resource = resMan.GetResource("res:/data/automatic-purge.bin");
+  // The load fails on the resource once the read through blue.paths answers.
+  await resMan.Wait();
   resource.SetPayload({ revision: 1 });
 
   assert.equal(resMan.IsAutoPurgeEnabled(), true);
@@ -2843,21 +2845,25 @@ test("GetResource requests the resource; Ready() waits on that request (Carbon's
   assert.equal(reads, 1, "a cache hit requests nothing");
 });
 
-test("a resource that cannot be fetched fails on the resource, not in GetResource", () =>
+test("a resource that cannot be fetched fails on the resource, not in GetResource", async () =>
 {
   const resMan = new CjsBlueResMan();
   const resource = resMan.GetResource("res:/data/unreachable.json");
+  // The load fails on the resource once the read through blue.paths answers.
+  await resMan.Wait();
 
   assert.equal(resource.IsFailed(), true);
   assert.ok(resource.error, "the reason is kept on the resource");
 });
 
-test("an invalid GetResource call throws; only resource failures are recorded", () =>
+test("an invalid GetResource call throws; only resource failures are recorded", async () =>
 {
   const resMan = new CjsBlueResMan();
 
   assert.throws(() => resMan.GetResource(42), TypeError);
   assert.throws(() => resMan.GetResource(""), TypeError);
   assert.throws(() => resMan.GetResource("res:/data/x.json", 5), TypeError);
-  assert.equal(resMan.GetResource("res:/data/x.json").IsFailed(), true, "no source is the resource's failure");
+  const resource = resMan.GetResource("res:/data/x.json");
+  await resMan.Wait();
+  assert.equal(resource.IsFailed(), true, "no file system is the resource's failure");
 });
