@@ -9,6 +9,7 @@ import { IEveSpaceObjectChild } from "../IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "../EveSpaceObjectChild.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { CjsSchema, meta } from "#schema";
+import { IsMatch } from "#blue";
 import { quat } from "#math/quat";
 import { IEveInheritPropertiesOwner } from "../../IEveInheritPropertiesOwner.js";
 import { mat4 } from "#math/mat4";
@@ -84,17 +85,23 @@ export class EveChildProceduralContainer extends EveChildTransform
   }
 
   /**
-   * Carbon EveChildProceduralContainer::OnModified (cpp:313-320): a display
-   * change re-registers with the scene component registry (engine-owned,
-   * omitted).
+   * Carbon EveChildProceduralContainer::OnModified (cpp:306-313): a display
+   * change re-registers with the scene component registry.
    *
-   * Adapted: The native ReRegister call on display changes is not implemented in this
-   * method; it currently reports success without re-registering.
+   * Adapted: compares the exposed property name where Carbon compares the
+   * member address.
+   *
+   * @param {*} [value=null] The modified member, by exposed name.
+   * @returns {boolean} Always true.
    */
   @meta.blue.method
   @meta.adapted
-  OnModified(_value = null)
+  OnModified(value = null)
   {
+    if (IsMatch(value, "display"))
+    {
+      this.ReRegister();
+    }
     return true;
   }
 

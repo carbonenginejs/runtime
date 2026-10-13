@@ -7,6 +7,7 @@ import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { meta } from "#schema";
+import { quat } from "#math/quat";
 import { IEveLineSetPath } from "./IEveLineSetPath.js";
 
 
@@ -41,6 +42,32 @@ export class EveLineChildContainer extends IEveLineSetPath
   @meta.blue.persist
   @meta.type.boolean
   display = true;
+
+  /**
+   * m_translation (Vector3) [READWRITE, PERSIST, NOTIFY]. Inherited from
+   * EveChildTransform; this class exposes it again with NOTIFY
+   * (EveLineChildContainer_Blue.cpp:20), so moving the container regenerates
+   * its points.
+   */
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
+  translation = vec3.create();
+
+  /** m_rotation (Quaternion) [READWRITE, PERSIST, NOTIFY] (EveLineChildContainer_Blue.cpp:21). */
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.quat
+  rotation = quat.create();
+
+  /** m_scaling (Vector3) [READWRITE, PERSIST, NOTIFY] (EveLineChildContainer_Blue.cpp:22). */
+  @meta.blue.notify
+  @meta.blue.readwrite
+  @meta.blue.persist
+  @meta.type.vec3
+  scaling = vec3.fromValues(1, 1, 1);
 
   /** m_lines (PIEveLineSetPathVector) [READ, PERSIST] */
   @meta.blue.read

@@ -1779,10 +1779,10 @@ export class EveSpaceScene
       if (IsMatch(property, "reflectionBackLightingColor")) this.reflectionProbe.SetBackLightColor(this.reflectionBackLightingColor);
       if (IsMatch(property, "reflectionBackLightingContrast")) this.reflectionProbe.SetBackLightContrast(this.reflectionBackLightingContrast);
     }
-    if (IsMatch(property, "shadowQuality") && this.cascadedShadowMap)
+    if (IsMatch(property, "shadowQualitySetting") && this.cascadedShadowMap)
     {
-      if (this.shadowQuality === ShadowQuality.SHADOW_LOW) this.cascadedShadowMap.ShouldUseDenoiser(false);
-      if (this.shadowQuality === ShadowQuality.SHADOW_HIGH) this.cascadedShadowMap.ShouldUseDenoiser(true);
+      if (this.shadowQualitySetting === ShadowQuality.SHADOW_LOW) this.cascadedShadowMap.ShouldUseDenoiser(false);
+      if (this.shadowQualitySetting === ShadowQuality.SHADOW_HIGH) this.cascadedShadowMap.ShouldUseDenoiser(true);
     }
     return true;
   }
@@ -2643,10 +2643,10 @@ export class EveSpaceScene
     renderContext.RenderBatches(batches.get(TriBatchType.TRIBATCHTYPE_DEPTH), "Depth");
 
     let shadowResources = EmptyShadowResources();
-    if (this._enableShadows && this.shadowQuality !== ShadowQuality.SHADOW_DISABLED && this._reflectionShadowMap)
+    if (this._enableShadows && this.shadowQualitySetting !== ShadowQuality.SHADOW_DISABLED && this._reflectionShadowMap)
     {
       // Raytraced shadows are unported (Carbon's m_rtManager), so only the cascaded branch can run.
-      const reallyHaveShadows = this.shadowQuality === ShadowQuality.SHADOW_RAYTRACED ? false : !!this.cascadedShadowMap;
+      const reallyHaveShadows = this.shadowQualitySetting === ShadowQuality.SHADOW_RAYTRACED ? false : !!this.cascadedShadowMap;
       if (reallyHaveShadows)
       {
         esm.SetInvertedCullMode(false);

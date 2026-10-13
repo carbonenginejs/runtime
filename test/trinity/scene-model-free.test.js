@@ -54,7 +54,7 @@ test("scene probe and shadow edits retain native property-specific branches", t 
   assert.equal(scene._envMapTextureRes.path, assets.a01.object.envMapResPath);
   const modes = []; scene.cascadedShadowMap = { ShouldUseDenoiser: value => modes.push(value) };
   for (const mode of [ShadowQuality.SHADOW_LOW, ShadowQuality.SHADOW_HIGH, -1])
-  { scene.shadowQuality = mode; scene.OnModified("shadowQuality"); }
+  { scene.shadowQualitySetting = mode; scene.OnModified("shadowQualitySetting"); }
   assert.deepEqual(modes, [false, true]);
 });
 

@@ -15,6 +15,7 @@ import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { meta } from "#schema";
+import { IsMatch } from "#blue";
 import { TriBatchType } from "#consts/graphics";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
@@ -266,12 +267,24 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
     return true;
   }
 
-  /** Rebuilds the flares when a glow-group field changes (Carbon cpp:77-93). */
+  /**
+   * Carbon EveChildBoosterSet::OnModified (cpp:77-93): rebuilds the flares when
+   * a glow or halo field changes; other members (flareLodEnabled) rebuild
+   * nothing.
+   *
+   * Adapted: compares exposed property names where Carbon compares member
+   * addresses.
+   *
+   * @param {*} [value=null] The modified member, by exposed name.
+   * @returns {boolean} Always true.
+   */
   @meta.blue.method
-  @meta.implemented
-  OnModified(_value = null)
+  @meta.adapted
+  OnModified(value = null)
   {
-    if (this.glows)
+    if (this.glows && (IsMatch(value, "glowScale") || IsMatch(value, "haloScaleX") || IsMatch(value, "haloScaleY")
+      || IsMatch(value, "symHaloScale") || IsMatch(value, "glowColor") || IsMatch(value, "warpGlowColor")
+      || IsMatch(value, "haloColor") || IsMatch(value, "warpHaloColor")))
     {
       this.glows.Clear();
       for (const booster of this._singleBoosters)
