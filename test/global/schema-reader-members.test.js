@@ -167,6 +167,16 @@ test("reader preserves decoded non-finite scalars instead of applying editor nor
   }
 });
 
+test("reader stores decoded 64-bit integers as numbers within the safe range", () => {
+  for (const kind of ["int64", "uint64"]) {
+    const target = { value: 10 };
+    applyReaderMember(target, member("value", kind), 128n);
+    assert.equal(target.value, 128, kind);
+    applyReaderMember(target, member("value", kind), 2n ** 60n);
+    assert.equal(target.value, 2n ** 60n, kind);
+  }
+});
+
 test("reader fills math and typed buffers without losing signed zero or non-finite payloads", () => {
   const vector = new Float32Array(4);
   const buffer = new Float32Array(4);

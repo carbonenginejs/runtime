@@ -11,6 +11,10 @@ import { CjsSchema } from "./CjsSchema.js";
 import { hasOwnInterfaceTable, mappedInterfaces } from "../compose/interface.js";
 import { normalizeCarbonTypeDescriptor, typedArrayConstructor } from "./types/carbonTypes.js";
 
+const MAX_SAFE_BIGINT = BigInt(Number.MAX_SAFE_INTEGER);
+
+const MIN_SAFE_BIGINT = BigInt(Number.MIN_SAFE_INTEGER);
+
 /**
  * Resolves a normalized adapter from hydration options. The returned object
  * always exposes construct/applyValues/finalize with the documented defaults.
@@ -344,6 +348,9 @@ function readerNumericStorage(current, value, type, name)
 {
     const descriptor = normalizeCarbonTypeDescriptor(type);
     const fixed = Number.isInteger(descriptor.length);
+    // Runtime storage of a 64-bit integer is a number within the safe range and a
+    // BigInt beyond it, as the values path stores it; Black decodes every one as BigInt.
+    if (typeof value === "bigint") return value >= MIN_SAFE_BIGINT && value <= MAX_SAFE_BIGINT ? Number(value) : value;
     if (!fixed && descriptor.kind !== "typedArray") return value;
     if (!Array.isArray(value) && !(ArrayBuffer.isView(value) && !(value instanceof DataView)))
     {
