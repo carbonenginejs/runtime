@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Interior/Tr2InteriorLightSource.h
 //   trinity/trinity/Interior/Tr2InteriorLightSource.cpp
 import { meta } from "#schema";
-import { IInitialize, INotify } from "#blue";
+import { IInitialize, INotify, IsMatch } from "#blue";
 import { ITr2InteriorLight } from "./ITr2InteriorLight.js";
 import { color } from "#math/color";
 import { vec3 } from "#math/vec3";
@@ -130,19 +130,23 @@ export class Tr2InteriorLightSource
   }
 
   /**
-   * Carbon OnModified (cpp:77-92) rebuilds the same box for position,
-   * radius, coneAlphaOuter and coneDirection changes - both branches run the
-   * identical rebuild, so the settled-state notification just rebuilds.
+   * Carbon OnModified (cpp:77-92): a change to position, radius,
+   * coneAlphaOuter or coneDirection rebuilds the world bounding box. Carbon's
+   * two branches run the same rebuild.
    *
-   * Adapted: Schema notifications expose settled state rather than Be::Var identity;
-   * Carbon's two OnModified branches perform the same rebuild, so no per-member dispatch is
-   * needed.
+   * @param {string|null} [value=null] The modified member, by exposed name.
+   * @returns {boolean} Always true.
    */
   @meta.blue.method
-  @meta.adapted
-  OnModified()
+  @meta.implemented
+  OnModified(value = null)
   {
-    this._RebuildWorldBoundingBox();
+    if (IsMatch(value, "position") || IsMatch(value, "radius")
+      || IsMatch(value, "coneAlphaOuter") || IsMatch(value, "coneDirection"))
+    {
+      this._RebuildWorldBoundingBox();
+    }
+    return true;
   }
 
   /**
