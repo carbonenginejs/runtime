@@ -3322,8 +3322,12 @@ export class EveSpaceScene
       // The split's slice of the camera frustum, for half-space culling of
       // casters. Only the planes are read, so they are all that is made.
       const cameraFrustum = new TriFrustum();
+      // Carbon's Inverse returns its input when the determinant is zero
+      // (Matrix.cpp:13-16), as it is for a split the near clip has passed;
+      // gl-matrix returns null there.
+      const viewProj = mat4.invert(mat4.create(), splitSetup.invViewProj) ?? mat4.clone(splitSetup.invViewProj);
 
-      cameraFrustum.ExtractFrustum(mat4.invert(mat4.create(), splitSetup.invViewProj));
+      cameraFrustum.ExtractFrustum(viewProj);
       cameraFrustums.push(cameraFrustum);
       shadowFrustums.push(new TriShadowOrthoFrustum(splitSetup.shadowFrustum, shadowMapSize, sunDir));
       splitSetups.push(splitSetup);
