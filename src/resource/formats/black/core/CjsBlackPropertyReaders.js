@@ -6,18 +6,18 @@ import {
     normalizeCarbonTypeDescriptor
 } from "#schema/types";
 
-/**
- * Carbon's Blue math wrappers: each persists its value's elements as FLOAT members
- * (TriMatrix_Blue.cpp:18-33, TriVector_Blue.cpp, TriQuaternion_Blue.cpp,
- * TriColor_Blue.cpp) and constructs with the given defaults (TriMatrix.cpp:72-90,
- * TriVector.cpp:203-206, TriQuaternion.cpp:53-56, TriColor.cpp:164-167).
- */
 /** Fixed-length float kinds: hydration fills the member's own array. */
 const FLOAT_ARRAY_KINDS = new Set([
     CARBON_TYPE.VECTOR2, CARBON_TYPE.VECTOR3, CARBON_TYPE.VECTOR4, CARBON_TYPE.COLOR,
     CARBON_TYPE.QUATERNION, CARBON_TYPE.MATRIX3, CARBON_TYPE.MATRIX4
 ]);
 
+/**
+ * Carbon's Blue math wrappers: each persists its value's elements as FLOAT members
+ * (TriMatrix_Blue.cpp:18-33, TriVector_Blue.cpp, TriQuaternion_Blue.cpp,
+ * TriColor_Blue.cpp) and constructs with the given defaults (TriMatrix.cpp:72-90,
+ * TriVector.cpp:203-206, TriQuaternion.cpp:53-56, TriColor.cpp:164-167).
+ */
 const WRAPPERS = {
     TriMatrix: {
         kinds: [ "mat4", "matrix4" ],
@@ -458,7 +458,7 @@ export class CjsBlackPropertyReaders
         const { elements, defaults } = WRAPPERS[className];
         if (destination !== undefined && !(ArrayBuffer.isView(destination) && !(destination instanceof DataView) && destination.length === elements.length))
         {
-            throw new TypeError(`Black ${className} fills the member's ${elements.length}-element typed array, but the member holds ${destination === null ? "null" : destination?.constructor?.name ?? typeof destination}.`);
+            throw new TypeError(`Black ${className} fills the member's ${elements.length}-element typed array, but the member holds ${destination === null ? "null" : Object.prototype.toString.call(destination).slice(8, -1)}.`);
         }
         const objectReader = reader.ReadBinaryReader(reader.ReadU32());
         const kind = objectReader.ReadStringRef();
@@ -677,7 +677,7 @@ export class CjsBlackPropertyReaders
         // Hydration fills the member's own fixed-length typed array, never a replacement.
         if (!(ArrayBuffer.isView(destination) && !(destination instanceof DataView)) || destination.length !== count)
         {
-            throw new TypeError(`Black fills the member's ${count}-element typed array, but the member holds ${destination === null ? "null" : `${destination.constructor?.name ?? typeof destination}(${destination.length})`}.`);
+            throw new TypeError(`Black fills the member's ${count}-element typed array, but the member holds ${destination === null ? "null" : `${Object.prototype.toString.call(destination).slice(8, -1)}(${destination.length})`}.`);
         }
         for (let i = 0; i < count; i++)
         {

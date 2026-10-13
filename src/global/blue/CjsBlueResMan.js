@@ -360,9 +360,7 @@ export class CjsBlueResMan
    * @param {number} [options.cacheSize] Recorded-byte budget immediately installed on the active MotherLode.
    * @param {object} [options.cacheCleanup] Cleanup policy used if a smaller configured budget evicts cached identities.
    * @param {object} [options.mainThreadLoader] Direct execution strategy.
-   * @param {object|Map<string,string>} [options.paths] Resource-prefix URL bases.
    * @param {object|Map|object[]} [options.extensions] Extension route registrations.
-   * @param {Function|null} [options.pathResolver] Optional complete resource-path-to-URL resolver.
    * @param {object} [options.workerLoader] Worker loader instance or construction options.
    * @param {boolean} [options.useWorkerLoading=true] Whether worker-backed execution is selected.
    * @returns {CjsBlueResMan} This resource manager.
@@ -3179,7 +3177,6 @@ export class CjsBlueResMan
       options.ext || getResourceExtension(normalizedPath)
     );
     const fileName = getResourceFileName(normalizedPath);
-    const url = null;
     const context = {
       resMan: this,
       source,
@@ -3187,8 +3184,8 @@ export class CjsBlueResMan
       resFilePath: normalizedPath,
       ext,
       fileName,
-      url,
-      sourcePath: url || normalizedPath,
+      url: null,
+      sourcePath: normalizedPath,
       sourceRevision,
       revisionKey
     };

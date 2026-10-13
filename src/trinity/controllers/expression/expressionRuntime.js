@@ -24,18 +24,12 @@ import { ITr2ControllerOwner } from "../ITr2ControllerOwner.js";
 function CastOwner(owner, className)
 {
   const registration = blue.classes.GetClassRegistration(className);
-  if (!registration) throw new Error(`ShipSpeed/ShipMaxSpeed: class ${className} is not registered with Blue`);
+  if (!registration) throw new Error(`Controller expression: class ${className} is not registered with Blue`);
   return CjsSchema.cast(owner, registration.type);
 }
 
 const SPEED_SCRATCH = vec3.create();
 
-/**
- * Carbon ShipSpeed (Controllers/Tr2ControllerExpression.cpp:142-160): the
- * owner's world-velocity length, for a space object or a child container.
- * Adapted: the controllerFunctionOverrideEnabled override (cpp:144-147) is not
- * ported; no class registers that setting yet.
- */
 /**
  * Carbon IsAnimationPlaying (Tr2ControllerExpression.cpp:103-121): 1 while the
  * owner's named animation layer (the base layer for "") has animation time
@@ -57,6 +51,15 @@ function IsAnimationPlayingOf(owner, layerName)
   return layer.GetAnimationRemainingTime() > 0 ? 1 : 0;
 }
 
+/**
+ * Carbon ShipSpeed (Controllers/Tr2ControllerExpression.cpp:142-160): the
+ * owner's world-velocity length, for a space object or a child container.
+ * Adapted: the controllerFunctionOverrideEnabled override (cpp:144-147) is not
+ * ported; no class registers that setting yet.
+ *
+ * @param {object|null} owner The controller's owner.
+ * @returns {number} Speed in metres per second.
+ */
 function ShipSpeedOf(owner)
 {
   const spaceObject = CastOwner(owner, "EveSpaceObject2") ?? CastOwner(owner, "EveChildContainer");

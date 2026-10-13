@@ -8,8 +8,9 @@
 // CjsSchema.getValues: the parity and timing proof for replacing the runtime
 // read path (the BlackReader port). Values that differ between two builds on
 // the SAME path (instance counters such as an observer's ID) are measured per
-// file and left out of the comparison. `{ "schema": null }` selects the
-// class-shaped one-pass read. Files come from tools-core, as the tests'
+// file and left out of the comparison. The class-shaped read is the only
+// one since the snapshot was removed; a candidate compares other reader
+// options against it. Files come from tools-core, as the tests'
 // client resources do (test/support/clientResources.js); geometry, textures and
 // shaders are answered empty by a stub manager, so only the object build runs.
 //

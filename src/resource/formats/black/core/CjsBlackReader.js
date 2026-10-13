@@ -932,9 +932,9 @@ export class CjsBlackReader extends CjsBlueReader
     }
 
     /**
-     * Uses canonical stored declarations when the caller selects schema:null.
-     * Explicit source-shape providers retain their existing precedence. The
-     * default generated schema remains supported until its classes migrate.
+     * Takes the class's stored declarations (the default, `schema: null`):
+     * the registered classes are the Black definition. Explicit source-shape
+     * providers keep their precedence.
      *
      * @param {string} kind Serialized class name.
      * @returns {import("./helpers.js").BlackSourceShape|null} Reader-local decoder shape.
