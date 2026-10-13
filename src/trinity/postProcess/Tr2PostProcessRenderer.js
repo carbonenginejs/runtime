@@ -1513,7 +1513,13 @@ export class Tr2PostProcessRenderer
     });
   }
 
-  /** g_newBloom ("newBloom", cpp:23-24): the bloom a new renderer starts with. */
+  /**
+   * g_newBloom ("newBloom", cpp:23-24): the bloom a new renderer starts with.
+   * Carbon's default is kept, but EVE runs with it off: the game's graphics
+   * developers confirm the new bloom is never used and its content shaders
+   * support only the old one, so an EVE consumer sets it false before
+   * creating a renderer.
+   */
   @meta.setting("newBloom", { applies: meta.setting.CREATE })
   static newBloom = true;
 
