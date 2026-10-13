@@ -1,7 +1,8 @@
 import { CjsFormat } from "../../format/CjsFormat.js";
-import { readOpenType, lookupGlyphIndex } from "./core/readSfnt.js";
+import { readOpenType, lookupGlyphIndex, isOpenType, glyphCodePoints } from "./core/readSfnt.js";
 import { readCharstring } from "./core/readCharstring.js";
 import { hintCffGlyph, freetypeScales } from "./core/hintCff.js";
+import { freetypeSizeMetrics, freetypeKerning, freetypeBitmapBox } from "./core/freetypeMetrics.js";
 
 /**
  * Reads OpenType and TrueType font files into plain data: metrics, the Unicode
@@ -83,6 +84,18 @@ export class CjsOpenTypeFormat extends CjsFormat
     }
 
     /**
+     * Whether bytes are a single sfnt font this format reads.
+     *
+     * @param {string} _filename Unused; the bytes decide.
+     * @param {ArrayBuffer|ArrayBufferView} input Bytes.
+     * @returns {boolean} Whether the bytes start with an OpenType or TrueType sfnt version.
+     */
+    static is(_filename, input)
+    {
+        return isOpenType(input);
+    }
+
+    /**
      * Looks a Unicode code point up in a parsed font.
      *
      * @param {import("./core/readSfnt.js").CjsOpenTypeFont} font The parsed font.
@@ -126,6 +139,56 @@ export class CjsOpenTypeFormat extends CjsFormat
     {
         if (!font.cff) throw new TypeError(`OpenType font: ${font.outlineFormat} outlines are not hinted.`);
         return hintCffGlyph(font.cff, glyph, freetypeScales(xPpem, yPpem, font.unitsPerEm), bluesCache);
+    }
+
+    /**
+     * The first code point the character map gives each glyph.
+     *
+     * @param {import("./core/readSfnt.js").CjsOpenTypeFont} font The parsed font.
+     * @returns {Map<number, number>} Code point by glyph ID.
+     */
+    static glyphCodePoints(font)
+    {
+        return glyphCodePoints(font);
+    }
+
+    /**
+     * FreeType's size metrics at a pixel size (FT_Size_Metrics), in 26.6.
+     *
+     * @param {import("./core/readSfnt.js").CjsOpenTypeFont} font The parsed font.
+     * @param {number} xPpem Pixels per em along x.
+     * @param {number} yPpem Pixels per em along y.
+     * @returns {{ascender: number, descender: number, height: number}} 26.6 metrics.
+     */
+    static sizeMetrics(font, xPpem, yPpem)
+    {
+        return freetypeSizeMetrics(font, xPpem, yPpem);
+    }
+
+    /**
+     * FreeType's FT_Get_Kerning (FT_KERNING_DEFAULT) x value, in 26.6.
+     *
+     * @param {import("./core/readSfnt.js").CjsOpenTypeFont} font The parsed font.
+     * @param {number} leftGlyph Left glyph ID.
+     * @param {number} rightGlyph Right glyph ID.
+     * @param {number} xPpem Pixels per em along x.
+     * @param {number} yPpem Pixels per em along y.
+     * @returns {number} Kerning in 26.6.
+     */
+    static kerning(font, leftGlyph, rightGlyph, xPpem, yPpem)
+    {
+        return freetypeKerning(font, leftGlyph, rightGlyph, xPpem, yPpem);
+    }
+
+    /**
+     * The bitmap FreeType renders a hinted outline into.
+     *
+     * @param {Array<import("./core/readCharstring.js").CjsCffPathCommand>} path Outline in pixels, from hintGlyph.
+     * @returns {{left: number, top: number, width: number, height: number}} Bitmap placement and size in pixels.
+     */
+    static bitmapBox(path)
+    {
+        return freetypeBitmapBox(path);
     }
 
     static id = "CjsOpenTypeFormat";

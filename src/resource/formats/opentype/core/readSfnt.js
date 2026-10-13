@@ -45,6 +45,14 @@ const SFNT_VERSION_COLLECTION = 0x74746366;
  */
 
 /**
+ * One horizontal format 0 subtable of a version 0 'kern' table.
+ *
+ * @typedef {object} CjsOpenTypeKernSubtable
+ * @property {boolean} override Whether its value replaces, rather than adds to, earlier subtables' (coverage bit 3).
+ * @property {Map<number, number>} pairs Kerning in font units, keyed by left glyph * 65536 + right glyph.
+ */
+
+/**
  * A parsed OpenType font: plain data, in font units.
  *
  * @typedef {object} CjsOpenTypeFont
@@ -59,6 +67,7 @@ const SFNT_VERSION_COLLECTION = 0x74746366;
  * @property {Uint16Array} advanceWidths Advance width per glyph (hmtx).
  * @property {Int16Array} leftSideBearings Left side bearing per glyph (hmtx).
  * @property {CjsOpenTypeCmap|null} cmap The Unicode character map, or null when the font has none.
+ * @property {Array<CjsOpenTypeKernSubtable>} kern Horizontal format 0 subtables of the 'kern' table, in table order; empty without one.
  * @property {import("./readCff.js").CjsCffFont|null} cff CFF outlines, or null for TrueType outlines.
  */
 
@@ -147,8 +156,9 @@ export function readOpenType(input, options = {})
         }
     }
 
-    // 6. cmap and CFF outlines.
+    // 6. cmap, kern and CFF outlines.
     const cmap = tables.has("cmap") ? readCmap(Table("cmap"), source) : null;
+    const kern = tables.has("kern") ? readKern(Table("kern")) : [];
     let cff = null;
     if (outlineFormat === "cff")
     {
@@ -173,8 +183,44 @@ export function readOpenType(input, options = {})
         advanceWidths,
         leftSideBearings,
         cmap,
+        kern,
         cff
     };
+}
+
+/**
+ * Reads the subtables of a version 0 ('kern' as Microsoft defines it) table
+ * that FreeType uses: format 0, horizontal, not minimum values (FreeType's
+ * ttkern.c, tt_face_load_kern). Apple's version 1 tables yield none.
+ *
+ * @param {DataView} kern The kern table.
+ * @returns {Array<CjsOpenTypeKernSubtable>} The usable subtables.
+ */
+function readKern(kern)
+{
+    const subtables = [];
+    if (kern.byteLength < 4 || kern.getUint16(0) !== 0) return subtables;
+    const count = kern.getUint16(2);
+    let at = 4;
+    for (let i = 0; i < count && at + 6 <= kern.byteLength; i++)
+    {
+        const length = kern.getUint16(at + 2);
+        const coverage = kern.getUint16(at + 4);
+        const next = Math.min(at + Math.max(length, 6), kern.byteLength);
+        if ((coverage >> 8) === 0 && (coverage & 3) === 1 && at + 14 <= next)
+        {
+            const pairCount = Math.min(kern.getUint16(at + 6), Math.floor((next - at - 14) / 6));
+            const pairs = new Map();
+            for (let p = 0; p < pairCount; p++)
+            {
+                const pair = at + 14 + p * 6;
+                pairs.set(kern.getUint16(pair) * 65536 + kern.getUint16(pair + 2), kern.getInt16(pair + 4));
+            }
+            subtables.push({ override: (coverage & 8) !== 0, pairs });
+        }
+        at = next;
+    }
+    return subtables;
 }
 
 /**
@@ -223,6 +269,57 @@ export function lookupGlyphIndex(font, codePoint)
     const index = low + rangeOffset / 2 + (codePoint - startCodes[low]);
     const glyph = index < glyphIdTail.length ? glyphIdTail[index] : 0;
     return glyph === 0 ? 0 : (glyph + idDeltas[low]) & 0xffff;
+}
+
+/**
+ * Whether bytes start like a single sfnt font (OpenType or TrueType).
+ *
+ * @param {ArrayBuffer|ArrayBufferView} input Bytes.
+ * @returns {boolean} Whether the sfnt version is one this reader takes.
+ */
+export function isOpenType(input)
+{
+    const bytes = asUint8Array(input, "OpenType input");
+    if (bytes.byteLength < 12) return false;
+    const version = ((bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3]) >>> 0;
+    return version === SFNT_VERSION_CFF || version === SFNT_VERSION_TRUETYPE || version === SFNT_VERSION_APPLE_TRUETYPE;
+}
+
+/**
+ * The first Unicode code point the character map gives each glyph: the
+ * inverse of lookupGlyphIndex, for drawing a glyph through an API that takes
+ * text.
+ *
+ * @param {CjsOpenTypeFont} font The parsed font.
+ * @returns {Map<number, number>} Code point by glyph ID; glyphs the cmap never reaches are absent.
+ */
+export function glyphCodePoints(font)
+{
+    const codePoints = new Map();
+    const cmap = font.cmap;
+    if (!cmap) return codePoints;
+    if (cmap.format === 12)
+    {
+        const groups = cmap.groups;
+        for (let i = 0; i < groups.length; i += 3)
+        {
+            for (let code = groups[i]; code <= groups[i + 1]; code++)
+            {
+                const glyph = groups[i + 2] + (code - groups[i]);
+                if (!codePoints.has(glyph)) codePoints.set(glyph, code);
+            }
+        }
+        return codePoints;
+    }
+    for (let segment = 0; segment < cmap.endCodes.length; segment++)
+    {
+        for (let code = cmap.startCodes[segment]; code <= cmap.endCodes[segment] && code < 0xffff; code++)
+        {
+            const glyph = lookupGlyphIndex(font, code);
+            if (glyph !== 0 && !codePoints.has(glyph)) codePoints.set(glyph, code);
+        }
+    }
+    return codePoints;
 }
 
 /**

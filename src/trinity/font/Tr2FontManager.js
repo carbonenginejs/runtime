@@ -23,12 +23,23 @@
 // is what lets the measurer fall back to TR2_FONT_FALLBACK. Here a face works
 // once LoadFont has registered its family in this realm.
 //
+// GLYPHS. A face LoadFont was given font file bytes for is also parsed with
+// CjsOpenTypeFormat, as FreeType keeps its face: glyph indices, size metrics
+// and kerning are then FreeType's, and a missing character reads as glyph 0,
+// so the measurer's per-character fallback runs as Carbon's does. CFF glyphs
+// are hinted as FreeType's default CFF engine hints them and filled as
+// outlines; TrueType glyphs are still drawn by Canvas2D from their character.
+// A face given a CSS source has no font data, and the character code stands
+// in for its glyph index.
+//
 // BROWSER TEXT GAMMA. Carbon's FreeType coverage is linear, and Sprite2D's
 // ubershader corrects it (FONT_GAMMACORRECT, on by default:
-// Sprite2d/Tr2Sprite2dScene.cpp:122, 2648-2652). Canvas2D coverage already
+// Sprite2d/Tr2Sprite2dScene.cpp:122, 2648-2652). Filled CFF outlines are
+// linear coverage too. Text Canvas2D draws (TrueType and CSS faces) already
 // carries the browser's text gamma, so a scene that keeps Carbon's default
-// corrects twice and its text reads as bold. See LookupSBit.
+// corrects it twice and it reads as bold. See LookupSBit.
 import { Tr2SBitWrapper } from "./Tr2SBitWrapper.js";
+import { CjsOpenTypeFormat } from "#resource/formats/opentype";
 import { g_textureAtlasMan } from "../core/Tr2TextureAtlasMan.js";
 import { Tr2Renderer } from "../core/Tr2Renderer.js";
 import { PixelFormat } from "#consts/render-context";
@@ -77,8 +88,9 @@ export class Tr2FontManager
   glyphCacheBudget = 524288;
 
   /**
-   * m_loadflag (int) [READWRITE]. FreeType load flags have no Canvas2D
-   * equivalent, so the value is stored and has no effect on rasterization.
+   * m_loadflag (int) [READWRITE]. The value is stored and has no effect:
+   * CFF glyphs are always hinted as with Carbon's default, FT_LOAD_DEFAULT,
+   * and Canvas2D has no equivalent of the other flags.
    */
   @meta.blue.readwrite
   @meta.type.int32
@@ -166,10 +178,34 @@ export class Tr2FontManager
   _context = null;
 
   /**
-   * Last pixel size set per face. FreeType's face keeps its current size
-   * between calls; LookupKerningXP reads it the same way.
+   * The parsed font file per family, for families LoadFont was given bytes:
+   * the browser's stand-in for FreeType's face.
    *
-   * @type {Map<number, number>}
+   * @type {Map<string, import("#resource/formats/opentype").CjsOpenTypeFont>}
+   */
+  _fonts = new Map();
+
+  /**
+   * Code point by glyph ID per TrueType family, built on first use: Canvas2D
+   * draws a glyph only from its character.
+   *
+   * @type {Map<string, Map<number, number>>}
+   */
+  _codePoints = new Map();
+
+  /**
+   * Blue zones per family and pixel size, kept for the CFF hinter as the
+   * engine keeps them per size.
+   *
+   * @type {Map<string, Map<number, object>>}
+   */
+  _blues = new Map();
+
+  /**
+   * The pixel size each face was last looked up at. FreeType's face keeps its
+   * current size between calls; LookupKerningXP reads it the same way.
+   *
+   * @type {Map<number, {xPpem: number, yPpem: number}>}
    */
   _sizes = new Map();
 
@@ -196,6 +232,8 @@ export class Tr2FontManager
   /**
    * Loads font bytes or a FontFace source and registers it in this browser/worker.
    * JS extension: native synchronous ResFile/FreeType loading has no browser equivalent.
+   * OpenType and TrueType bytes are also parsed and kept for the family, as
+   * FreeType keeps its face (see the top of this file).
    *
    * @param {string} family Family name to register; a res path such as TR2_FONT_FALLBACK works.
    * @param {ArrayBuffer|ArrayBufferView|string} source FontFace source.
@@ -207,12 +245,30 @@ export class Tr2FontManager
     const fonts = globalThis.document?.fonts ?? globalThis.fonts;
     if (!fonts || !globalThis.FontFace) throw new Error("Browser FontFace loading is unavailable.");
 
+    const parsed = typeof source !== "string" && CjsOpenTypeFormat.is(family, source) ? CjsOpenTypeFormat.read(source, { source: family }) : null;
     const face = new FontFace(family, source);
     await face.load();
     fonts.add(face);
     this._loadedFamilies.add(family);
+    if (parsed) this._fonts.set(family, parsed);
+    else this._fonts.delete(family);
+    this._codePoints.delete(family);
+    this._blues.delete(family);
     this.ClearCachedGlyphs();
     return this.GetFaceID(family);
+  }
+
+  /**
+   * The parsed font of a working face, or null when its family was loaded
+   * from a CSS source.
+   *
+   * @param {number} faceID Face ID.
+   * @returns {import("#resource/formats/opentype").CjsOpenTypeFont|null} The font.
+   */
+  @meta.ours
+  _GetParsedFont(faceID)
+  {
+    return this._IsValidFace(faceID) ? this._fonts.get(this._reverseFaceMap[faceID]) ?? null : null;
   }
 
   /**
@@ -303,7 +359,6 @@ export class Tr2FontManager
     context.textAlign = "left";
     context.direction = "ltr";
     context.fillStyle = "white";
-    this._sizes.set(faceID, height);
     return context;
   }
 
@@ -312,9 +367,12 @@ export class Tr2FontManager
    * of a character in a face, or -1 when the face cannot be used. Not Blue
    * exposed: the Blue name "LookupGlyphIndex" is LookupFaceIDAndGlyphIndex.
    *
-   * Adapted: the browser exposes neither font glyph IDs nor missing-glyph
-   * detection, so the Unicode code point stands in for the FreeType index.
-   * Code point 0 therefore reads as Carbon's "no glyph" (0).
+   * A parsed face answers from its Unicode cmap, as FreeType does: 0 for a
+   * character it lacks, -1 when it has no Unicode charmap.
+   *
+   * Adapted: a face loaded from a CSS source has no font data, and the
+   * browser exposes neither glyph IDs nor missing glyphs, so the code point
+   * stands in for the index there. Code point 0 reads as Carbon's "no glyph".
    *
    * @param {number} faceID Face ID.
    * @param {number} charCode Unicode code point.
@@ -328,6 +386,9 @@ export class Tr2FontManager
       throw new TypeError("Tr2FontManager.LookupGlyphIndex takes a face ID; Blue \"LookupGlyphIndex\" (a font name) is LookupFaceIDAndGlyphIndex.");
     }
     if (!this._IsValidFace(faceID)) return -1;
+
+    const font = this._GetParsedFont(faceID);
+    if (font) return font.cmap ? CjsOpenTypeFormat.lookupGlyphIndex(font, charCode) : -1;
 
     return Number.isInteger(charCode) && charCode >= 0 && charCode <= 0x10ffff ? charCode : -1;
   }
@@ -368,10 +429,15 @@ export class Tr2FontManager
    * `FT_Size_Metrics()` on error. Not Blue exposed: the Blue name
    * "LookupMetrics" is LookupMetricsFromScript.
    *
-   * Adapted: browser font-box metrics replace FT_Size_Metrics, and only
-   * ascender, descender and height are produced. `height` is ascent plus
-   * descent (no line gap), where FreeType's is the baseline-to-baseline
-   * distance. The height (or width when height is 0) picks the pixel size.
+   * A parsed face gives FreeType's own ascender, descender and height. The
+   * lookup makes the size the face's current one, as FTC_Manager_LookupSize
+   * activates it.
+   *
+   * Adapted: only ascender, descender and height are produced. For a CSS
+   * face, browser font-box metrics replace FT_Size_Metrics, and `height` is
+   * ascent plus descent (no line gap), where FreeType's is the
+   * baseline-to-baseline distance. The height (or width when height is 0)
+   * picks the pixel size.
    * A size of 0 or less returns zeroed metrics, as Carbon does when
    * FTC_Manager_LookupSize fails; whether FreeType itself fails there or
    * clamps the size is not verified (FreeType is not part of the Carbon source).
@@ -386,6 +452,11 @@ export class Tr2FontManager
   {
     const size = height || width;
     if (!this._IsValidFace(faceID) || !(size > 0)) return { ascender: 0, descender: 0, height: 0 };
+
+    const xPpem = width || height;
+    this._sizes.set(faceID, { xPpem, yPpem: size });
+    const font = this._GetParsedFont(faceID);
+    if (font) return CjsOpenTypeFormat.sizeMetrics(font, xPpem, size);
 
     const context = this._SetFont(faceID, size);
     const metrics = context.measureText("Mg");
@@ -417,15 +488,18 @@ export class Tr2FontManager
    * in pixels for a glyph pair, or INT_MAX when the face cannot be used. Not
    * Blue exposed: Blue "LookupKerningXP" is _PyLookupKerningXP.
    *
-   * Adapted: approximated as the difference between the browser-shaped pair
-   * advance and the two single advances, at the size last set for this face
-   * (FreeType reads the face's current size the same way). Ours: before any
-   * size has been set on the face, 12 px is used, because Canvas2D needs a
-   * size where FreeType reads whatever size the face holds.
+   * A parsed face gives FreeType's FT_KERNING_DEFAULT value from its 'kern'
+   * table at the face's current size; before any size is set, FreeType's
+   * unsized face scales every value to 0.
+   *
+   * Adapted: for a CSS face, approximated as the difference between the
+   * browser-shaped pair advance and the two single advances, at the size last
+   * set for this face. Ours: before any size has been set on a CSS face,
+   * 12 px is used, because Canvas2D needs a size.
    *
    * @param {number} faceID Face ID.
-   * @param {number} leftIndex Left glyph index (a code point here).
-   * @param {number} rightIndex Right glyph index (a code point here).
+   * @param {number} leftIndex Left glyph index (a code point for a CSS face).
+   * @param {number} rightIndex Right glyph index (a code point for a CSS face).
    * @returns {number} Kerning in pixels.
    */
   @meta.adapted
@@ -433,7 +507,11 @@ export class Tr2FontManager
   {
     if (!this._IsValidFace(faceID)) return INT_MAX;
 
-    const context = this._SetFont(faceID, this._sizes.get(faceID) ?? 12);
+    const size = this._sizes.get(faceID);
+    const font = this._GetParsedFont(faceID);
+    if (font) return size ? CjsOpenTypeFormat.kerning(font, leftIndex, rightIndex, size.xPpem, size.yPpem) >> 6 : 0;
+
+    const context = this._SetFont(faceID, size ? size.yPpem : 12);
     const left = String.fromCodePoint(leftIndex), right = String.fromCodePoint(rightIndex);
     return Math.round(context.measureText(left + right).width - context.measureText(left).width - context.measureText(right).width);
   }
@@ -465,22 +543,31 @@ export class Tr2FontManager
    * Carbon `LookupSBit` (Tr2FontManager.cpp:301-325), Blue name "LookupSBit":
    * a wrapper around the sbit for a face, size and glyph.
    *
-   * Adapted: rasterized by Canvas2D into a native-shaped 8-bit sbit record, so
-   * bitmap bounds and advances follow browser metrics, not FreeType hinting.
-   * The wrapper is returned, and Carbon's failed `Be::Result` is thrown, as it
-   * is for a size of 0 or less. A cache hit refreshes the entry's frame stamp;
-   * trimming happens in OnTick.
+   * A CFF glyph of a parsed face is hinted as FreeType's default CFF engine
+   * hints it with Carbon's FT_LOAD_DEFAULT, and its outline filled on the
+   * canvas into FreeType's bitmap box; bounds and advance are FreeType's. As
+   * FreeType's sbit cache does, a glyph ID outside the face fails, and a
+   * glyph too large for the cache's 8-bit fields comes back unavailable:
+   * width 255, height 0, no pixels (ftcsbits.c, ftc_snode_load).
    *
-   * Browser text gamma: the coverage is what Canvas2D drew, which already
-   * carries the browser's text gamma, where FreeType's is linear. Sprite2D's
-   * FONT_GAMMACORRECT (on by default) corrects linear coverage, so text
-   * rasterized here reads as bold unless the scene sets
-   * `gammaCorrectText = false`. Registered in non-carbon-extensions.md.
+   * Adapted: the coverage is the browser's anti-aliased fill, not FreeType's
+   * rasterizer. TrueType glyphs and CSS faces are drawn by Canvas2D from their
+   * character, so their bounds and advances follow browser metrics, not
+   * FreeType hinting; a TrueType glyph no character maps to has no pixels and
+   * its hmtx advance. The wrapper is returned, and Carbon's failed
+   * `Be::Result` is thrown, as it is for a size of 0 or less. A cache hit
+   * refreshes the entry's frame stamp; trimming happens in OnTick.
+   *
+   * Browser text gamma: text Canvas2D draws already carries the browser's
+   * text gamma, where FreeType's coverage is linear. Sprite2D's
+   * FONT_GAMMACORRECT (on by default) corrects linear coverage, so such text
+   * reads as bold unless the scene sets `gammaCorrectText = false`. Filled
+   * CFF outlines are linear. Registered in non-carbon-extensions.md.
    *
    * @param {number} faceID Face ID.
    * @param {number} width Pixel width.
    * @param {number} height Pixel height.
-   * @param {number} glyphIndex Glyph index (a code point here).
+   * @param {number} glyphIndex Glyph index, as LookupGlyphIndex returns it.
    * @returns {Tr2SBitWrapper} The sbit wrapper, at x = y = 0.
    * @throws {RangeError} "FTC_SBitCache_Lookup failed" for an unusable face or glyph.
    */
@@ -489,45 +576,42 @@ export class Tr2FontManager
   LookupSBit(faceID, width, height, glyphIndex)
   {
     const size = height || width;
-    if (!(size > 0) || this.LookupGlyphIndex(faceID, glyphIndex) < 0) throw new RangeError("FTC_SBitCache_Lookup failed");
+    if (!(size > 0) || !this._IsValidFace(faceID)) throw new RangeError("FTC_SBitCache_Lookup failed");
 
+    const font = this._GetParsedFont(faceID);
+    const validGlyph = font
+      ? Number.isInteger(glyphIndex) && glyphIndex >= 0 && glyphIndex < font.numGlyphs
+      : this.LookupGlyphIndex(faceID, glyphIndex) >= 0;
+    if (!validGlyph) throw new RangeError("FTC_SBitCache_Lookup failed");
+
+    const xPpem = width || height;
     const key = `${faceID}:${width}:${height}:${glyphIndex}`;
     let entry = this._glyphs.get(key);
 
     if (entry)
     {
       entry.lastFrameUsed = Tr2Renderer.GetCurrentFrameCounter();
-      this._sizes.set(faceID, size);
     }
     else
     {
-      let context = this._SetFont(faceID, size);
-      const text = String.fromCodePoint(glyphIndex), metrics = context.measureText(text);
-      const scale = width > 0 && height > 0 ? width / height : 1;
-      const left = Math.floor(-metrics.actualBoundingBoxLeft * scale);
-      const top = Math.ceil(metrics.actualBoundingBoxAscent);
-      const bitmapWidth = Math.max(0, Math.ceil(metrics.actualBoundingBoxRight * scale) - left);
-      const bitmapHeight = Math.max(0, top + Math.ceil(metrics.actualBoundingBoxDescent));
-      const buffer = new Uint8Array(bitmapWidth * bitmapHeight); // alloc: variable-size glyph pixels retained by the text cache
-
-      if (bitmapWidth && bitmapHeight)
+      let sbit;
+      if (font && font.cff)
       {
-        this._canvas.width = bitmapWidth;
-        this._canvas.height = bitmapHeight;
-        context = this._SetFont(faceID, size);
-        context.setTransform(scale, 0, 0, 1, -left, top);
-        context.fillText(text, 0, 0);
-        const rgba = context.getImageData(0, 0, bitmapWidth, bitmapHeight).data;
-        for (let i = 0; i < buffer.length; i++) buffer[i] = rgba[i * 4 + 3];
+        sbit = this._RasterizeCffGlyph(faceID, font, xPpem, size, glyphIndex, key);
+      }
+      else
+      {
+        const codePoint = font ? this._GetGlyphCodePoint(faceID, font, glyphIndex) : glyphIndex;
+        sbit = codePoint === undefined
+          ? { width: 0, height: 0, left: 0, top: 0, xadvance: Math.round(font.advanceWidths[glyphIndex] * xPpem / font.unitsPerEm), yadvance: 0, pitch: 0, format: 2, max_grays: 255, buffer: new Uint8Array(0), key } // alloc: empty glyph pixels
+          : this._RasterizeText(faceID, width, height, size, String.fromCodePoint(codePoint), key);
       }
 
-      // `key` is ours: it names the glyph so its atlas texture survives the
-      // sbit's eviction (see GetAtlasTextureForSbit).
-      const sbit = { width: bitmapWidth, height: bitmapHeight, left, top, xadvance: Math.round(metrics.width * scale), yadvance: 0, pitch: bitmapWidth, format: 2, max_grays: 255, buffer, key };
-      entry = { sbit, lastFrameUsed: Tr2Renderer.GetCurrentFrameCounter(), memoryUsage: buffer.byteLength };
+      entry = { sbit, lastFrameUsed: Tr2Renderer.GetCurrentFrameCounter(), memoryUsage: sbit.buffer.byteLength };
       this._glyphs.set(key, entry);
       this.totalGlyphsCachedSize += entry.memoryUsage;
     }
+    this._sizes.set(faceID, { xPpem, yPpem: size });
 
     const result = new Tr2SBitWrapper();
     result.faceId = faceID;
@@ -536,6 +620,122 @@ export class Tr2FontManager
     result.x = 0;
     result.y = 0;
     return result;
+  }
+
+  /**
+   * Hints a CFF glyph and fills its outline into an 8-bit sbit record, placed
+   * and sized as FreeType's FT_RENDER_MODE_NORMAL bitmap and checked against
+   * the sbit cache's field sizes.
+   *
+   * @param {number} faceID Face ID.
+   * @param {import("#resource/formats/opentype").CjsOpenTypeFont} font The face's parsed font.
+   * @param {number} xPpem Pixels per em along x.
+   * @param {number} yPpem Pixels per em along y.
+   * @param {number} glyphIndex Glyph ID.
+   * @param {string} key The glyph's cache key.
+   * @returns {object} The sbit record.
+   */
+  @meta.ours
+  _RasterizeCffGlyph(faceID, font, xPpem, yPpem, glyphIndex, key)
+  {
+    const family = this._reverseFaceMap[faceID];
+    let familyBlues = this._blues.get(family);
+    if (!familyBlues) this._blues.set(family, familyBlues = new Map());
+    const sizeKey = xPpem * 65536 + yPpem;
+    let blues = familyBlues.get(sizeKey);
+    if (!blues) familyBlues.set(sizeKey, blues = new Map());
+
+    const glyph = CjsOpenTypeFormat.readGlyph(font, glyphIndex, family);
+    const hinted = CjsOpenTypeFormat.hintGlyph(font, glyph, xPpem, yPpem, blues);
+    const { left, top, width, height } = CjsOpenTypeFormat.bitmapBox(hinted.path);
+
+    // FreeType's sbit cache keeps 8-bit sizes and placements; a glyph that
+    // does not fit is stored as unavailable (ftcsbits.c, ftc_snode_load).
+    const Fits = (value, min, max) => value >= min && value <= max;
+    if (!Fits(width, 0, 255) || !Fits(height, 0, 255) || !Fits(left, -128, 127) || !Fits(top, -128, 127) || !Fits(hinted.advanceWidth, -128, 127))
+    {
+      return { width: 255, height: 0, left: 0, top: 0, xadvance: 0, yadvance: 0, pitch: 0, format: 0, max_grays: 0, buffer: new Uint8Array(0), key }; // alloc: empty glyph pixels
+    }
+
+    const buffer = new Uint8Array(width * height); // alloc: variable-size glyph pixels retained by the text cache
+    if (width && height)
+    {
+      const context = this._GetContext();
+      this._canvas.width = width;
+      this._canvas.height = height;
+      const path = new Path2D();
+      for (const command of hinted.path)
+      {
+        if (command.type === "M") path.moveTo(command.x - left, top - command.y);
+        else if (command.type === "L") path.lineTo(command.x - left, top - command.y);
+        else path.bezierCurveTo(command.x1 - left, top - command.y1, command.x2 - left, top - command.y2, command.x - left, top - command.y);
+      }
+      context.setTransform(1, 0, 0, 1, 0, 0);
+      context.fillStyle = "white";
+      context.fill(path, "nonzero");
+      const rgba = context.getImageData(0, 0, width, height).data;
+      for (let i = 0; i < buffer.length; i++) buffer[i] = rgba[i * 4 + 3];
+    }
+
+    return { width, height, left, top, xadvance: hinted.advanceWidth, yadvance: 0, pitch: width, format: 2, max_grays: 255, buffer, key };
+  }
+
+  /**
+   * Draws a character with Canvas2D into an 8-bit sbit record, with browser
+   * text metrics for its bounds and advance.
+   *
+   * @param {number} faceID Face ID.
+   * @param {number} width Pixel width (0 for the height).
+   * @param {number} height Pixel height (0 for the width).
+   * @param {number} size Pixel size: the height, or the width when it is 0.
+   * @param {string} text The character.
+   * @param {string} key The glyph's cache key.
+   * @returns {object} The sbit record.
+   */
+  @meta.ours
+  _RasterizeText(faceID, width, height, size, text, key)
+  {
+    let context = this._SetFont(faceID, size);
+    const metrics = context.measureText(text);
+    const scale = width > 0 && height > 0 ? width / height : 1;
+    const left = Math.floor(-metrics.actualBoundingBoxLeft * scale);
+    const top = Math.ceil(metrics.actualBoundingBoxAscent);
+    const bitmapWidth = Math.max(0, Math.ceil(metrics.actualBoundingBoxRight * scale) - left);
+    const bitmapHeight = Math.max(0, top + Math.ceil(metrics.actualBoundingBoxDescent));
+    const buffer = new Uint8Array(bitmapWidth * bitmapHeight); // alloc: variable-size glyph pixels retained by the text cache
+
+    if (bitmapWidth && bitmapHeight)
+    {
+      this._canvas.width = bitmapWidth;
+      this._canvas.height = bitmapHeight;
+      context = this._SetFont(faceID, size);
+      context.setTransform(scale, 0, 0, 1, -left, top);
+      context.fillText(text, 0, 0);
+      const rgba = context.getImageData(0, 0, bitmapWidth, bitmapHeight).data;
+      for (let i = 0; i < buffer.length; i++) buffer[i] = rgba[i * 4 + 3];
+    }
+
+    // `key` is ours: it names the glyph so its atlas texture survives the
+    // sbit's eviction (see GetAtlasTextureForSbit).
+    return { width: bitmapWidth, height: bitmapHeight, left, top, xadvance: Math.round(metrics.width * scale), yadvance: 0, pitch: bitmapWidth, format: 2, max_grays: 255, buffer, key };
+  }
+
+  /**
+   * The character a TrueType glyph is drawn from: the first code point the
+   * face's cmap gives it.
+   *
+   * @param {number} faceID Face ID.
+   * @param {import("#resource/formats/opentype").CjsOpenTypeFont} font The face's parsed font.
+   * @param {number} glyphIndex Glyph ID.
+   * @returns {number|undefined} The code point, or undefined when no character maps to the glyph.
+   */
+  @meta.ours
+  _GetGlyphCodePoint(faceID, font, glyphIndex)
+  {
+    const family = this._reverseFaceMap[faceID];
+    let codePoints = this._codePoints.get(family);
+    if (!codePoints) this._codePoints.set(family, codePoints = CjsOpenTypeFormat.glyphCodePoints(font));
+    return codePoints.get(glyphIndex);
   }
 
   /**
