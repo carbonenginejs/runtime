@@ -887,7 +887,8 @@ export class EveCamera
   StableUpdate(time, aspectRatio = 1, realTime = time)
   {
     const result = this.Update(time, aspectRatio, realTime);
-    if (!this.update) return result;
+    // Update is off, or fell back after invalid input: keep its view.
+    if (!result) return result;
 
     // The orbit's +Z, the camera's back axis: rotationAroundParent applied to (0, 0, 1) in float64.
     const [ qx, qy, qz, qw ] = this.rotationAroundParent;

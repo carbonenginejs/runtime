@@ -293,11 +293,15 @@ export class TnyCameraControls
   }
 
   /**
-   * Flies to the pose Frame would set: the orbit angles stay, and the point of
-   * interest and distance ease there over preferences.flyDuration seconds
-   * (distance in log space, so a thousandfold change reads evenly), with zero
-   * velocity, acceleration and jerk at both ends, as skindr's Universe flights
-   * ease. Orbit, pan, zoom or Cancel stops it where it is.
+   * Flies to the pose Frame would set over preferences.flyDuration seconds,
+   * with zero velocity, acceleration and jerk at both ends, as skindr's
+   * Universe flights ease. The orbit angles stay. The eye's offset from the
+   * target eases along an arc, its length in log space (so a thousandfold
+   * change reads evenly), and the orbit distance eases in log space too; the
+   * point of interest follows from both. The eye's distance from the target so
+   * stays between its start and end values, so the flight never passes
+   * through the target and the far clip set at the start covers it. Orbit,
+   * pan, zoom or Cancel stops it where it is.
    */
   Fly()
   {
@@ -307,10 +311,17 @@ export class TnyCameraControls
     const camera = this.camera, duration = Math.max(0, this.preferences.flyDuration);
     if (!duration) { this.#ApplyFrame(target); return true; }
     camera.zoomCurve = null;
-    // The far clip covers the whole flight from the start.
-    camera.backClip = Math.max(camera.backClip, (Math.max(target.distance, camera.translationFromParent) + target.radius) * 1.05);
-    this._flight = { target, time: 0, duration, distance: Math.max(1e-3, camera.translationFromParent),
-      centre: camera.useExtraTranslation ? Array.from(camera.extraTranslation) : [ 0, 0, 0 ] };
+    // The view's back axis in world space, the eye's direction from the point of interest.
+    const matrix = camera.viewMatrix.transform, back = [ matrix[2], matrix[6], matrix[10] ];
+    const backLength = Math.hypot(...back);
+    if (!(backLength > 0)) { this.#ApplyFrame(target); return true; }
+    for (let axis = 0; axis < 3; axis++) back[axis] /= backLength;
+    const distance = Math.max(1e-3, camera.translationFromParent);
+    const centre = camera.useExtraTranslation ? Array.from(camera.extraTranslation) : [ 0, 0, 0 ];
+    const offset = [ 0, 1, 2 ].map(axis => centre[axis] + back[axis] * distance - target.centre[axis]);
+    // The eye stays within max(start, end) of the target, so this far clip covers the whole flight.
+    camera.backClip = Math.max(camera.backClip, (Math.max(target.distance, Math.hypot(...offset)) + target.radius) * 1.05);
+    this._flight = { target, time: 0, duration, distance, back, offset };
     return true;
   }
 
@@ -381,9 +392,34 @@ export class TnyCameraControls
     const t = flight.time / flight.duration;
     if (t >= 1) { this.#ApplyFrame(flight.target); return; }
     const eased = t * t * t * t * (35 + t * (-84 + t * (70 - 20 * t)));
-    camera.translationFromParent = flight.distance * Math.pow(flight.target.distance / flight.distance, eased);
+    const { target, back, offset } = flight;
+    const distance = flight.distance * Math.pow(target.distance / flight.distance, eased);
+
+    // The eye's offset from the target: its direction slerps from the start
+    // offset to the back axis, its length eases in log space.
+    const fromLength = Math.max(1e-3, Math.hypot(...offset));
+    const from = offset.map(value => value / fromLength);
+    const angle = Math.acos(Math.max(-1, Math.min(1, from[0] * back[0] + from[1] * back[1] + from[2] * back[2])));
+    let direction;
+    if (angle < 1e-9) direction = from;
+    else if (Math.PI - angle < 1e-6)
+    {
+      // Directly behind: turn about any axis at right angles to it.
+      const side = Math.abs(from[1]) < 0.9 ? [ 0, 1, 0 ] : [ 1, 0, 0 ];
+      const cross = [ from[1] * side[2] - from[2] * side[1], from[2] * side[0] - from[0] * side[2], from[0] * side[1] - from[1] * side[0] ];
+      const crossLength = Math.hypot(...cross);
+      direction = from.map((value, axis) => value * Math.cos(angle * eased) + cross[axis] / crossLength * Math.sin(angle * eased));
+    }
+    else
+    {
+      const a = Math.sin((1 - eased) * angle) / Math.sin(angle), b = Math.sin(eased * angle) / Math.sin(angle);
+      direction = from.map((value, axis) => value * a + back[axis] * b);
+    }
+    const length = fromLength * Math.pow(target.distance / fromLength, eased);
+
+    camera.translationFromParent = distance;
     camera.useExtraTranslation = true;
-    for (let axis = 0; axis < 3; axis++) camera.extraTranslation[axis] = flight.centre[axis] + (flight.target.centre[axis] - flight.centre[axis]) * eased;
+    for (let axis = 0; axis < 3; axis++) camera.extraTranslation[axis] = target.centre[axis] + direction[axis] * length - back[axis] * distance;
     this.#Changed();
   }
 

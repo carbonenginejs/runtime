@@ -192,4 +192,10 @@ test("StableUpdate keeps Carbon's view near the origin and stays steady far from
   assert.ok(Math.abs(angle - 0.01 * Math.cos(0.3)) < 1e-4, `turned ${angle}`);
   // The eye sits the distance out along the orbit, from the interest point.
   assert.ok(Math.abs(Math.hypot(...[ 0, 1, 2 ].map(axis => far.pos[axis] - far.intr[axis])) - 1e8) < 64);
+  // When Update falls back after invalid input, its view is kept.
+  const invalid = make(1000), fallback = make(1000);
+  invalid.extraTranslation[0] = NaN; fallback.extraTranslation[0] = NaN;
+  assert.equal(invalid.StableUpdate(0, 1.6, 0), fallback.Update(0, 1.6, 0));
+  assert.deepEqual(Array.from(invalid.viewMatrix.transform), Array.from(fallback.viewMatrix.transform));
+  assert.ok(Array.from(invalid.viewMatrix.transform).every(Number.isFinite));
 });

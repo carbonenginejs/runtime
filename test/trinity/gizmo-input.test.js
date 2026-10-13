@@ -508,7 +508,14 @@ test("D flies to the framing pose, eased, landing where F frames; framing leaves
   controls.Update(0.05);
   const early = camera.translationFromParent;
   assert.ok(early > 100 && early < 1e5, "a flight starts slowly");
-  for (let step = 0; step < 100; step++) controls.Update(0.05);
+  for (let step = 0; step < 100; step++)
+  {
+    camera.Update(0, 4 / 3);
+    const range = Math.hypot(...[ 0, 1, 2 ].map(axis => camera.pos[axis] - bounds.centre[axis]));
+    assert.ok(range > bounds.radius, `the eye stays outside the target (step ${step})`);
+    assert.ok(range + bounds.radius <= camera.backClip, `the far clip covers the target (step ${step})`);
+    controls.Update(0.05);
+  }
   const flown = { distance: camera.translationFromParent, centre: Array.from(camera.extraTranslation), front: camera.frontClip };
   controls.Frame();
   assert.ok(Math.abs(flown.distance - camera.translationFromParent) < 1e-6 * camera.translationFromParent, "lands where Frame frames");
