@@ -3,7 +3,6 @@ import test from "node:test";
 import { CjsBlackBinaryReader } from "../../src/resource/formats/black/core/CjsBlackBinaryReader.js";
 import { CjsBlackPropertyReaders as Readers } from "../../src/resource/formats/black/core/CjsBlackPropertyReaders.js";
 import { CjsBlackSchemaRegistry } from "../../src/resource/formats/black/core/CjsBlackSchemaRegistry.js";
-import { classes } from "../../src/resource/formats/black/core/blackDefinitions.js";
 import { DEFAULT_VALUES, normalizeValues } from "../../src/resource/formats/black/core/helpers.js";
 import { CLASS_KEYS } from "../../src/resource/formats/black/core/schema.js";
 
@@ -45,12 +44,10 @@ test("Black binary blocks reject negative and truncated byte lengths; an odd len
   assert.equal(Readers.readValue(cursor([1,2,3]), field).byteLength, 3);
 });
 
-test("only meta.type.binary maps to BINARYBLOCK; the snapshot's binaryBlock members need no transport declaration", () =>
+test("only meta.type.binary maps to BINARYBLOCK", () =>
 {
   assert.throws(() => CjsBlackSchemaRegistry.fromDeclaredType({ kind: "typedArray", arrayType: "Uint32Array" }), /Unsupported canonical Black type: typedArray/);
   assert.throws(() => CjsBlackSchemaRegistry.fromDeclaredType({ kind: "custom", name: "Tr2ActionPython.state" }), /Unsupported canonical Black type: custom/);
-  assert.equal(classes.EveSOFDataDecalIndexBuffer.indexBuffer, "binaryBlock");
-  assert.equal(classes.Tr2ActionPython.state, "binaryBlock");
   const compact = CjsBlackSchemaRegistry.compactTypeDescriptor("binaryBlock", {});
   assert.equal(compact.black.beType, "BINARYBLOCK");
   assert.equal(compact.jsType.binary, true);

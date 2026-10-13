@@ -7,7 +7,6 @@ import "../../npm/dist/trinity/index.js";
 import "../../npm/dist/sof/index.js";
 import { CjsBlackReader } from "../../npm/dist/resource/formats/black/core/CjsBlackReader.js";
 import { CjsBlackPropertyReaders } from "../../npm/dist/resource/formats/black/core/CjsBlackPropertyReaders.js";
-import schema from "../../npm/dist/resource/formats/black/core/blackSchema.js";
 
 // Existing build3503375 cache assets; no game bytes are committed. This covers
 // six nonempty struct families. The cached3503375/3542233 corpus contains no
@@ -51,7 +50,7 @@ for (const [family, path, size, sha256, stride, count, member, expected] of case
             }
             return rows;
         });
-        const reader = new CjsBlackReader(bytes, { schema, initialize: false });
+        const reader = new CjsBlackReader(bytes, { initialize: false });
         reader.ReadPayload();
         assert.ok(reader.reader.AtEnd());
         assert.deepEqual(reader.reports, []);

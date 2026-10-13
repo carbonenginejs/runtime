@@ -8,7 +8,6 @@ import { IInitialize } from "../../src/global/blue/IInitialize.js";
 import { INotify } from "../../src/global/blue/INotify.js";
 import { CjsBlackReader } from "../../src/resource/formats/black/core/CjsBlackReader.js";
 import { CjsBlackSchemaRegistry } from "../../src/resource/formats/black/core/CjsBlackSchemaRegistry.js";
-import blackDefinitions from "../../src/resource/formats/black/core/blackSchema.js";
 
 const member = (name, kind, extra = {}) => ({
     name, key: name, role: "member", type: { kind }, edit: { persist: true }, ...extra
@@ -208,6 +207,24 @@ test("canonical reader notifies each successful stored write and ignores unmappe
     assert.deepEqual(notifications, [["value", 7, 0], ["value", 7, 0]]);
 });
 
+test("a wrapped TriMatrix member reads the embedded elements into the existing mat4", () =>
+{
+    class Owner { transform = new Float32Array([ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ]); }
+    CjsSchema.define(Owner, { className: "BlackWrappedMatrixOwner", members: [
+        { ...member("transform", "mat4"), type: { kind: "mat4", wrapped: "TriMatrix" } },
+        member("after", "uint32")
+    ] });
+    const fixture = new BlackFixture();
+    // Only _11 and _33 are stored (a 180-degree turn about Y); the rest keep the identity.
+    const inline = fixture.Object(2, "TriMatrix", [["_11", floats([-1])], ["_33", floats([-1])], ["_41", floats([5])]]).subarray(4);
+    const bytes = fixture.Finish(fixture.Object(1, "BlackWrappedMatrixOwner", [["transform", inline], ["after", u32(7)]]));
+    const owner = new CjsBlackReader(bytes, { schema: null }).CreateObject();
+    assert.equal(owner.transform instanceof Float32Array, true);
+    assert.deepEqual(Array.from(owner.transform), [ -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 5, 0, 0, 1 ]);
+    assert.equal(owner.after, 7);
+    assert.throws(() => CjsBlackSchemaRegistry.fromDeclaredType({ kind: "vec3", wrapped: "TriMatrix" }), /holds mat4/);
+});
+
 test("canonical embedded decoding populates existing storage before its initialization", () =>
 {
     let original;
@@ -310,8 +327,6 @@ test("complete scene graphs decode with explicit baseless test classes and canon
     {
         const reader = new CjsBlackReader(bytes, { schema: null });
         const payload = reader.ReadPayload();
-        const baseline = new CjsBlackReader(bytes, { schema: blackDefinitions }).ReadPayload();
-        assert.deepEqual(payload.object, baseline.object);
         assert.deepEqual(reader.reports, []);
         assert.equal(reader.reader.AtEnd(), true);
         const scene = reader.CreateObject();

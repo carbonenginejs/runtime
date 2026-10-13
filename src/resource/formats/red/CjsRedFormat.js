@@ -13,7 +13,6 @@ import {
     validateClassKey
 } from "./core/helpers.js";
 import { CjsRedReader } from "./core/CjsRedReader.js";
-import blackDefinitions from "./core/blackDefinitions.js";
 
 const FORMAT_NAME = "CjsRedFormat";
 
@@ -282,8 +281,6 @@ export class CjsRedFormat extends CjsFormat
     }
 
     static classKeys = CLASS_KEYS;
-
-    static schema = blackDefinitions;
 
     static id = "CjsRedFormat";
 

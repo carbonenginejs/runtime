@@ -70,24 +70,6 @@ test("package root exports one public class", async () =>
     assert.equal(NamedCjsRedFormat, CjsRedFormat);
 });
 
-test("published schema exposes the current Carbon class definitions", async () =>
-{
-    const schema = await import("../../../../../npm/dist/resource/formats/red/core/blackDefinitions.js");
-    const canonical = await import("../../../../../npm/dist/resource/formats/black/core/blackDefinitions.js");
-
-    assert.equal(schema.generatedAt, canonical.generatedAt);
-    assert.equal(schema.default, canonical.default);
-    assert.equal(CjsRedFormat.schema, schema.default);
-    assert.deepEqual(schema.default.Tr2SkinnedModel, {
-        name: "string",
-        meshes: "array",
-        geometryResPath: "path",
-        skeletonName: "string",
-        skinScale: "vector3"
-    });
-    assert.deepEqual(schema.default.EveSOF, {});
-});
-
 test("reader exposes the standard public profile API", () =>
 {
     assert.deepEqual(Object.getOwnPropertyNames(CjsRedFormat.prototype).sort(), [

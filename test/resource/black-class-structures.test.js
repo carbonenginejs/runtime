@@ -6,7 +6,6 @@ import test from "node:test";
 import "../../npm/dist/trinity/index.js";
 import "../../npm/dist/sof/index.js";
 import { classStructureLayout } from "../../npm/dist/resource/formats/black/core/blackClassStructures.js";
-import { definitions } from "../../npm/dist/resource/formats/black/core/blackDefinitions.js";
 import { CjsBlackPropertyReaders } from "../../npm/dist/resource/formats/black/core/CjsBlackPropertyReaders.js";
 import { CjsBlackBinaryReader } from "../../npm/dist/resource/formats/black/core/CjsBlackBinaryReader.js";
 
@@ -79,17 +78,6 @@ test("Tr2Effect's struct lists derive with 8-byte shared strings, as Carbon's de
     [ "mipFilter", 24 ], [ "lodBias", 28 ], [ "maxMipLevel", 32 ], [ "maxAnisotropy", 36 ]
   ]);
   assert.equal(classStructureLayout("Tr2Effect", "samplerOverrides").size, 56, "Tr2Effect.h:37 includes the trailing Tr2SamplerStateAL shared_ptr");
-});
-
-test("where the snapshot also has a layout, the class layout agrees with it", () =>
-{
-  for (const [ owner, field ] of [ [ "Tr2CurveScalar", "keys" ], [ "Tr2CurveQuaternion", "keys" ], [ "Tr2Effect", "options" ], [ "Tr2Effect", "constParameters" ] ])
-  {
-    const snapshot = definitions.classes[owner][field].structure;
-    const derived = classStructureLayout(owner, field);
-    assert.equal(derived.size, snapshot.size, `${owner}.${field} size`);
-    assert.deepEqual(derived.members.map(({ name, offset, type }) => ({ name, offset, type })), snapshot.members, `${owner}.${field} members`);
-  }
 });
 
 test("a record ending on a member boundary reads its members and defaults the rest; any other size throws", () =>

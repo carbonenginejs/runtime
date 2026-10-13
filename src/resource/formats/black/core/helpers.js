@@ -1,5 +1,4 @@
 import { toJsonAcyclic } from "../../../format/jsonPolicies.js";
-import blackDefinitions from "./blackSchema.js";
 
 export const OUTPUT_JSON = "json";
 export const OUTPUT_PAYLOAD = "payload";
@@ -7,7 +6,7 @@ export const OUTPUT_RUNTIME = "runtime";
 
 export const DEFAULT_VALUES = {
     emit: OUTPUT_JSON,
-    schema: blackDefinitions,
+    schema: null,
     registry: null,
     sourceShapes: null,
     metadata: null,

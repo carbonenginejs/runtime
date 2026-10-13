@@ -1,33 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import fs from "node:fs";
 import "../../../../../npm/dist/global/blue/values.js";
 import { CjsSchema } from "../../../../../npm/dist/global/schema/CjsSchema.js";
 
 import CjsBlackFormat, { CjsBlackFormat as NamedCjsBlackFormat } from "../../../../../npm/dist/resource/formats/black/index.js";
-
-// The dated schema files are snapshots; tools-core's `--black-module` points
-// blackDefinitions.js at the newest one. These tests follow whichever it is.
-const SCHEMA_DIR = new URL("../../../../../src/resource/formats/black/core/", import.meta.url);
-
-function newestSchemaFile()
-{
-    return fs.readdirSync(SCHEMA_DIR)
-        .filter(name => /^black-schema-v\d+-\d{4}-\d{2}-\d{2}\.json$/.test(name))
-        .sort()
-        .pop();
-}
-
-function newestSchema()
-{
-    return JSON.parse(fs.readFileSync(new URL(newestSchemaFile(), SCHEMA_DIR), "utf8"));
-}
-
-test("blackDefinitions.js imports the newest dated schema", () =>
-{
-    const source = fs.readFileSync(new URL("blackDefinitions.js", SCHEMA_DIR), "utf8");
-    assert.match(source, new RegExp(`"\\./${newestSchemaFile().replace(/\./g, "\\.")}"`));
-});
 
 class Root {}
 class ObjectNode {}
@@ -77,44 +53,6 @@ test("package root exports one public class", async () =>
     assert.equal(mod.default, CjsBlackFormat);
     assert.equal(mod.CjsBlackFormat, CjsBlackFormat);
     assert.equal(NamedCjsBlackFormat, CjsBlackFormat);
-});
-
-test("published schema subpaths import generated Black definitions", async () =>
-{
-    const schema = await import("../../../../../npm/dist/resource/formats/black/core/blackSchema.js");
-    const enums = await import("../../../../../npm/dist/resource/formats/black/core/blackEnums.js");
-    const version = await import("../../../../../npm/dist/resource/formats/black/core/blackVersion.js");
-    const canonical = await import("../../../../../npm/dist/resource/formats/black/core/blackDefinitions.js");
-
-    assert.equal(Object.hasOwn(schema.default, "EveSOFDataHull"), true);
-    assert.equal(Object.hasOwn(enums.default, "BuildClass"), true);
-    assert.equal(schema.default, canonical.default);
-    assert.equal(new CjsBlackFormat().GetValues().schema, canonical.default);
-    assert.equal(canonical.schema, "carbonenginejs.blackDefinitions");
-    assert.equal(canonical.version, 1);
-    assert.equal(canonical.generatedAt, newestSchema().generatedAt);
-    assert.equal(version.default.formatId, "black");
-    assert.equal(version.default.generatedAt, newestSchema().generatedAt);
-    assert.equal(version.default.version, 1);
-    assert.equal(schema.default.EveSOFDataHull.boundingSphere, "vector4");
-    assert.deepEqual(schema.default.EveSOFDataHull.buildClass, { type: "enum", enum: "BuildClass" });
-    assert.deepEqual(schema.default.EveSOFDataFactionColorSet.Primary, {
-        type: "color",
-        field: "colors",
-        index: "primary",
-        token: "SOFDataFactionColorChooser::TYPE_PRIMARY"
-    });
-    assert.deepEqual(schema.default.Tr2SkinnedModel, {
-        name: "string",
-        meshes: "array",
-        geometryResPath: "path",
-        skeletonName: "string",
-        skinScale: "vector3"
-    });
-    assert.deepEqual(schema.default.EveSOF, {});
-    assert.equal(schema.default.EveSOFDataHull.black, undefined);
-    assert.equal(schema.default.EveSOFDataHull.sourceRefs, undefined);
-    assert.equal(schema.default.EveSOFDataHull.reviewNotes, undefined);
 });
 
 test("reader exposes the standard public profile API", () =>
@@ -257,27 +195,6 @@ test("compact storage projections do not rewrite decoded chooser keys", () =>
         _type: "TestIndexed",
         Primary: 0.5
     });
-});
-
-test("dated schema casing projections preserve the exact Black keys", () =>
-{
-    // Independently authored wire records exercise the installed default
-    // snapshot, including its historical field-name projections.
-    for (const [kind, name, bytes, expected] of [
-        ["EveSpaceSceneRenderDriver", "SSAO", u32(0), null],
-        ["EveChildEffectPropagator", "ClosenessPreference", f32(0.75), 0.75],
-        ["TriPerlinCurve", "N", i32(17), 17],
-        ["TriRigidOrientation", "I", f32(2.5), 2.5]
-    ])
-    {
-        const builder = new BlackFixtureBuilder();
-        const input = builder.Finish(builder.Object(1, kind, [[name, bytes]]));
-        for (const object of [CjsBlackFormat.readPayload(input, { emit: "payload" }).object, CjsBlackFormat.read(input).object])
-        {
-            assert.deepEqual(Object.keys(object), ["_type", name]);
-            assert.deepEqual(ArrayBuffer.isView(object[name]) ? Array.from(object[name]) : object[name], expected);
-        }
-    }
 });
 
 test("runtime hydration applies explicit storage mappings after preserving wire keys", () =>
