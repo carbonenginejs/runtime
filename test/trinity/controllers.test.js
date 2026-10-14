@@ -1088,118 +1088,111 @@ test("Tr2ActionPlayMeshAnimation uses Carbon animation layer calls", () =>
   assert(!events.includes("legacy:play"));
   assert(!events.includes("legacy:stop"));
 });
-test("Tr2ActionOverlay follows Carbon overlay lifecycle", () =>
+test("Tr2ActionOverlay follows Carbon's overlay lifecycle on a space object", async () =>
 {
-  const action = new Tr2ActionOverlay();
   const overlaySchema = CjsSchema.getSchema(Tr2ActionOverlay);
   assertEquals(overlaySchema.fields.map(field => field.name).join(","), "path,overlayName,targetAnotherOwner,addOnStart,removeOnStop");
   assertEquals(CjsSchema.getField(Tr2ActionOverlay, "path")?.type?.kind, "path");
+  const { EveMeshOverlayEffect, EveMultiEffect, EveMultiEffectParameter } = await import("../../npm/dist/trinity/index.js");
+  const settle = () => new Promise(resolve => setImmediate(resolve));
   const events = [];
-  const owner = makeOverlayOwner(events, true);
-  const controller = {
-    GetOwner()
-    {
-      return owner;
-    }
+  const loadObject = blue.resMan.LoadObject;
+  blue.resMan.LoadObject = async path =>
+  {
+    events.push(`load:${path}`);
+    if (path.includes("plain_file")) return { name: "plain" };
+    const overlay = new EveMeshOverlayEffect();
+    overlay.StartControllers = () => events.push("start");
+    return overlay;
   };
-  action.overlayName = "glow";
-  action.path = "RES:/Effect.red";
-  action.Start(controller);
-  assertEquals(events.join(","), "load:res:/effect_skinned.red,add:glow,start");
-  action.Stop(controller);
-  assertEquals(events.at(-1), "remove:glow");
-  assert(!events.includes("stop"));
-  events.length = 0;
-  const existing = {
-    name: "glow",
-    StartControllers()
-    {
-      events.push("existing:start");
-    },
-    StopControllers()
-    {
-      events.push("existing:stop");
-    }
-  };
-  owner.overlays = [existing];
-  action.path = "";
-  action.Start(controller);
-  action.Stop(controller);
-  assertEquals(events.join(","), "remove:glow");
-  events.length = 0;
-  const staticOwner = makeOverlayOwner(events, false);
-  const staticController = {
-    GetOwner()
-    {
-      return staticOwner;
-    }
-  };
-  action.path = "res:/plain_skinned.red";
-  action.removeOnStop = false;
-  action.Start(staticController);
-  action.Stop(staticController);
-  action.Stop(staticController);
-  assertEquals(events.join(","), "load:res:/plain.red,add:glow,start");
-  events.length = 0;
-  const missingOwner = {
-    overlays: [],
-    LoadOverlayEffectFromPath(path)
-    {
-      events.push(`miss:${path}`);
-      return null;
-    },
-    AddOverlayEffect()
-    {
-      events.push("bad:add");
-    }
-  };
-  const missingController = {
-    GetOwner()
-    {
-      return missingOwner;
-    }
-  };
-  action.path = "res:/missing.red";
-  action.removeOnStop = true;
-  action.Start(missingController);
-  assertEquals(events.join(","), "miss:res:/missing.red");
-  assertEquals(missingOwner.overlays.length, 0);
-  events.length = 0;
-  const parameterOwner = makeOverlayOwner(events, false);
-  const parameterRoot = {
-    GetParameterByName(name)
-    {
-      if (name !== "overlayTarget")
-      {
-        return null;
-      }
-      return {
-        GetParameterObject()
-        {
-          return parameterOwner;
-        }
-      };
-    },
-    Rebind(value)
-    {
-      events.push(`rebind:${value}`);
-    }
-  };
-  const parameterController = {
-    GetOwner()
-    {
-      return parameterRoot;
-    }
-  };
-  action.targetAnotherOwner = "overlayTarget";
-  action.path = "res:/param.red";
-  action.Start(parameterController);
-  assertEquals(events.join(","), "load:res:/param.red,add:glow,start,rebind:true");
-  events.length = 0;
-  action.targetAnotherOwner = "missing";
-  action.Start(parameterController);
-  assertEquals(events.join(","), "");
+  try
+  {
+    const ship = makeOverlayShip(events, true);
+    const controller = { GetOwner: () => ship };
+    const action = new Tr2ActionOverlay();
+    action.overlayName = "glow";
+    action.path = "RES:/Effect.red";
+    // Carbon cpp:123-163: lower-case, "_skinned" before the last ".red" for an
+    // animated owner, then name, add and start the loaded overlay.
+    action.Start(controller);
+    await settle();
+    assertEquals(events.join(","), "load:res:/effect_skinned.red,add:glow,start");
+    action.Stop(controller);
+    assertEquals(events.at(-1), "remove:glow");
+
+    // An overlay of that name already on the owner is reused, not loaded.
+    events.length = 0;
+    const existing = new EveMeshOverlayEffect();
+    existing.name = "glow";
+    ship.overlayEffects.push(existing);
+    action.path = "";
+    action.Start(controller);
+    await settle();
+    action.Stop(controller);
+    assertEquals(events.join(","), "remove:glow");
+
+    // A static owner loses the first "_skinned"; without removeOnStop the
+    // overlay stays.
+    events.length = 0;
+    const staticShip = makeOverlayShip(events, false);
+    const staticController = { GetOwner: () => staticShip };
+    action.path = "res:/plain_skinned.red";
+    action.removeOnStop = false;
+    action.Start(staticController);
+    await settle();
+    action.Stop(staticController);
+    action.Stop(staticController);
+    assertEquals(events.join(","), "load:res:/plain.red,add:glow,start");
+    assertEquals(staticShip.overlayEffects.length, 1);
+
+    // A file that is not an EveMeshOverlayEffect adds nothing.
+    events.length = 0;
+    const plainShip = makeOverlayShip(events, false);
+    action.path = "res:/plain_file.red";
+    action.removeOnStop = true;
+    action.Start({ GetOwner: () => plainShip });
+    await settle();
+    assertEquals(events.join(","), "load:res:/plain_file.red");
+    assertEquals(plainShip.overlayEffects.length, 0);
+
+    // Carbon cpp:25-52, :64-74: a multi-effect parameter's space object takes
+    // the overlay, and the multi-effect is rebound.
+    events.length = 0;
+    const parameterShip = makeOverlayShip(events, false);
+    const parameterRoot = new EveMultiEffect();
+    const parameter = new EveMultiEffectParameter();
+    parameter.name = "overlayTarget";
+    parameter.object = parameterShip;
+    parameterRoot.parameters.push(parameter);
+    parameterRoot.Rebind = value => events.push(`rebind:${value}`);
+    const parameterController = { GetOwner: () => parameterRoot };
+    action.targetAnotherOwner = "overlayTarget";
+    action.path = "res:/param.red";
+    action.Start(parameterController);
+    await settle();
+    assertEquals(events.join(","), "load:res:/param.red,add:glow,start,rebind:true");
+
+    // A target the multi-effect does not have resolves no owner.
+    events.length = 0;
+    action.targetAnotherOwner = "missing";
+    action.Start(parameterController);
+    await settle();
+    assertEquals(events.join(","), "");
+
+    // A Stop before the file arrives discards the load.
+    action.targetAnotherOwner = "";
+    action.path = "res:/late.red";
+    action.Start(controller);
+    action.Stop(controller);
+    await settle();
+    assertEquals(events.join(","), "load:res:/late_skinned.red");
+  }
+  finally
+  {
+    blue.resMan.LoadObject = loadObject;
+  }
 });
+
 test("Tr2ActionPlaySound follows Carbon emitter dispatch", () =>
 {
   const action = new Tr2ActionPlaySound();
@@ -1897,50 +1890,24 @@ function makeChildOwner(name, events, EveChildContainer)
   owner.RemoveFromEffectChildrenList = child => { events.push("remove"); remove(child); };
   return owner;
 }
-function makeOverlayOwner(events, animated)
+/** A real EveSpaceObject2 whose overlay add and remove calls are recorded. */
+function makeOverlayShip(events, animated)
 {
-  return {
-    overlays: [],
-    IsAnimated()
-    {
-      return animated;
-    },
-    GetOverlayEffectByName(name)
-    {
-      return this.overlays.find(overlay => overlay.name === name) ?? null;
-    },
-    LoadOverlayEffectFromPath(path)
-    {
-      events.push(`load:${path}`);
-      return {
-        path,
-        StartControllers()
-        {
-          events.push("start");
-        },
-        StopControllers()
-        {
-          events.push("stop");
-        }
-      };
-    },
-    AddOverlayEffect(overlay)
-    {
-      const named = overlay;
-      events.push(`add:${named.name}`);
-      this.overlays.push(named);
-    },
-    RemoveOverlayEffect(overlay)
-    {
-      const named = overlay;
-      events.push(`remove:${named.name}`);
-      const index = this.overlays.indexOf(named);
-      if (index !== -1)
-      {
-        this.overlays.splice(index, 1);
-      }
-    }
+  const ship = new EveSpaceObject2();
+  ship.SetIsAnimated(animated);
+  const add = ship.AddOverlayEffect.bind(ship);
+  const remove = ship.RemoveOverlayEffect.bind(ship);
+  ship.AddOverlayEffect = overlay =>
+  {
+    events.push(`add:${overlay.name}`);
+    add(overlay);
   };
+  ship.RemoveOverlayEffect = overlay =>
+  {
+    events.push(`remove:${overlay.name}`);
+    remove(overlay);
+  };
+  return ship;
 }
 
 

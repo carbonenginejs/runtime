@@ -2,7 +2,7 @@ import { getRegisteredClassName } from "../../npm/dist/global/compose/className.
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { DictReader, DictWriter, Copier, BlueList, INotify } from "../../npm/dist/global/blue/index.js";
+import { blue, DictReader, DictWriter, Copier, BlueList, INotify } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { ITr2ControllerAction } from "../../npm/dist/trinity/controllers/action/ITr2ControllerAction.js";
 import { Tr2ActionPlayMeshAnimation } from "../../npm/dist/trinity/controllers/action/Tr2ActionPlayMeshAnimation.js";
@@ -96,30 +96,41 @@ test("Spawn delegates fresh native temporary arguments without particle simulati
   assert.throws(() => action.Start(), TypeError);
 });
 
-test("Overlay preserves cached reuse and releases its reference without loading resources", () =>
+test("Overlay reuses an overlay already on the owner and releases its reference without loading", async () =>
 {
-  const action = new Tr2ActionOverlay(), events = [];
-  const overlay = { name: "halo", StartControllers: () => events.push("start") };
-  const owner = { overlays: [overlay], LoadOverlayEffect: () => { throw new Error("must not load"); } };
+  const { EveSpaceObject2, EveMeshOverlayEffect } = await import("../../npm/dist/trinity/index.js");
+  const action = new Tr2ActionOverlay();
+  const overlay = new EveMeshOverlayEffect();
+  overlay.name = "halo";
+  const owner = new EveSpaceObject2();
+  owner.AddOverlayEffect(overlay);
   const controller = { GetOwner: () => owner };
-  action.overlayName = "halo";
-  action.path = "res:/unused.red";
-  action.addOnStart = false;
-  action.removeOnStop = false;
-  action.Start(controller);
-  assert.equal(action._overlay, overlay);
-  assert.deepEqual(events, []);
-  action.Stop(controller);
-  assert.equal(action._overlay, null);
-  assert.deepEqual(owner.overlays, [overlay]);
-  action.removeOnStop = true;
-  action.Stop(controller);
-  assert.deepEqual(owner.overlays, [overlay]);
-  action.Start(controller);
-  action.Stop(controller);
-  assert.deepEqual(owner.overlays, []);
-  action.Start(controller);
-  assert.equal(action._overlay, null);
-  assert.throws(() => action.Start({}), TypeError);
-  assert.doesNotThrow(() => action.Start({ GetOwner: () => null }));
+  const loadObject = blue.resMan.LoadObject;
+  blue.resMan.LoadObject = () => { throw new Error("must not load"); };
+  try
+  {
+    action.overlayName = "halo";
+    action.path = "res:/unused.red";
+    action.addOnStart = false;
+    action.removeOnStop = false;
+    action.Start(controller);
+    assert.equal(action._overlay, overlay);
+    action.Stop(controller);
+    assert.equal(action._overlay, null);
+    assert.deepEqual(owner.overlayEffects, [overlay]);
+    action.removeOnStop = true;
+    action.Stop(controller);
+    assert.deepEqual(owner.overlayEffects, [overlay]);
+    action.Start(controller);
+    action.Stop(controller);
+    assert.deepEqual(owner.overlayEffects, []);
+    action.Start(controller);
+    assert.equal(action._overlay, null);
+    assert.throws(() => action.Start({}), TypeError);
+    assert.doesNotThrow(() => action.Start({ GetOwner: () => null }));
+  }
+  finally
+  {
+    blue.resMan.LoadObject = loadObject;
+  }
 });

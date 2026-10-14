@@ -990,6 +990,48 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /**
+   * Appends an overlay effect (Carbon EveSpaceObject2.cpp:3310-3313); the
+   * list's INSERTED arm replays the controller variables onto it (cpp:376-389).
+   */
+  @meta.implemented
+  AddOverlayEffect(overlayEffect)
+  {
+    addChild(this, "overlayEffects", overlayEffect, { listNotify: this });
+  }
+
+  /** Removes an overlay effect when present (Carbon EveSpaceObject2.cpp:3319-3326). */
+  @meta.implemented
+  RemoveOverlayEffect(overlayEffect)
+  {
+    removeChild(this, "overlayEffects", overlayEffect, { listNotify: this });
+  }
+
+  /**
+   * The first overlay effect whose name matches, or null; null for no name
+   * (Carbon EveSpaceObject2.cpp:3332-3347).
+   */
+  @meta.implemented
+  GetOverlayEffectByName(name)
+  {
+    if (name == null) return null;
+    return this.overlayEffects.find(overlay => overlay.name === name) ?? null;
+  }
+
+  /** Whether the hull is animated, as the SOF sets it (Carbon EveSpaceObject2.cpp:2530-2533). */
+  @meta.implemented
+  IsAnimated()
+  {
+    return this.isAnimated;
+  }
+
+  /** Carbon EveSpaceObject2.cpp:2535-2538. */
+  @meta.implemented
+  SetIsAnimated(isAnimated)
+  {
+    this.isAnimated = !!isAnimated;
+  }
+
+  /**
    * Appends a controller, links it to this object when it is not already linked,
    * and replays the current controller variables onto it.
    */

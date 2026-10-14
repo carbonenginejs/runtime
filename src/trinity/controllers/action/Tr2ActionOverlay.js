@@ -1,8 +1,23 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionOverlay.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionOverlay.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionOverlay_Blue.cpp
-import { meta } from "#schema";
+import * as CcpLog from "../../../global/logging/ccpLog.js";
+import { blue } from "#blue";
+import { meta, CjsSchema } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
+
+
+/**
+ * Carbon's BlueCastPtr to a class asked of Blue by its Carbon name, so the
+ * controllers do not import Eve. An unregistered class throws: Carbon's cast
+ * target always exists.
+ */
+function CastTo(value, className)
+{
+  const registration = blue.classes.GetClassRegistration(className);
+  if (!registration) throw new Error(`Tr2ActionOverlay: class ${className} is not registered with Blue`);
+  return CjsSchema.cast(value, registration.type);
+}
 
 
 /**
@@ -60,295 +75,147 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
   @meta.type.boolean
   removeOnStop = true;
 
-  /** Native m_overlay: retained loaded or preexisting overlay until Stop. */
+  /** Carbon m_overlay: the overlay found or loaded by Start, until Stop. */
   _overlay = null;
 
+  /** Counts loads, so a Stop or a newer Start discards one still in flight. */
+  _loadRequest = 0;
+
   /**
-   * Loads and starts the target overlay through the retained JS owner adapter.
-   * Adapted: native casts to EveSpaceObject2, EveMultiEffect and EveStretch3.
-   * The current scene owners lack the complete overlay accessor/loading API,
-   * so this action retains its existing injected-owner and plain-array protocol.
+   * Carbon Start (Tr2ActionOverlay.cpp:18-75): the controller owner as an
+   * EveSpaceObject2, or else the space object targetAnotherOwner names on a
+   * multi-effect or a stretch; then load the overlay and rebind a redirected
+   * owner.
+   *
+   * Adapted: the load is asynchronous (see LoadOverlay), so a redirected
+   * owner is rebound once it settles.
    */
   @meta.blue.method
   @meta.adapted
   Start(controller)
   {
     const controllerOwner = controller.GetOwner();
-    const resolved = this._resolveOwner(controllerOwner);
-    if (!resolved.owner)
+    let owner = CastTo(controllerOwner, "EveSpaceObject2");
+    let rebind = false;
+    if (!owner)
     {
-      return;
+      if (this.targetAnotherOwner) owner = this._GetRedirectedOwner(controllerOwner);
+      if (!owner) return;
+      rebind = true;
     }
-    this._LoadOverlay(resolved.owner);
-    if (resolved.rebind)
-    {
-      ITr2ControllerAction.callTarget(controllerOwner, "Rebind", true);
-    }
+    const loading = this.LoadOverlay(owner);
+    if (!rebind) return;
+    if (loading) loading.then(() => this._Rebind(controllerOwner));
+    else this._Rebind(controllerOwner);
   }
 
   /**
-   * Stops or removes the target overlay.
-   * Adapted: resolves and removes through the same injected-owner/array protocol
-   * as Start; the concrete native scene-owner API remains an external gap.
+   * Carbon Stop (Tr2ActionOverlay.cpp:77-121): with removeOnStop, remove the
+   * overlay from the owner Start would resolve.
+   *
+   * Adapted: also discards a load still in flight.
    */
   @meta.blue.method
   @meta.adapted
   Stop(controller)
   {
-    const overlay = this._overlay;
-    if (!overlay)
-    {
-      return;
-    }
-    if (this.removeOnStop)
-    {
-      const owner = this._resolveOwner(controller.GetOwner()).owner;
-      if (owner)
-      {
-        Tr2ActionOverlay._removeOverlay(owner, overlay);
-      }
-    }
+    this._loadRequest++;
+    if (!this._overlay) return;
+    const controllerOwner = controller.GetOwner();
+    let owner = CastTo(controllerOwner, "EveSpaceObject2");
+    if (!owner && this.targetAnotherOwner) owner = this._GetRedirectedOwner(controllerOwner);
+    if (owner && this.removeOnStop) owner.RemoveOverlayEffect(this._overlay);
     this._overlay = null;
   }
 
   /**
-   * Finds the overlay already present on the owner by name, and only when it is
-   * absent and addOnStart is set loads it from the authored path, names it,
-   * attaches it, and starts its controllers.
-   * Adapted from native LoadOverlay: the injected owner loader substitutes for
-   * BeResMan urgent synchronous LoadObject<EveMeshOverlayEffect>. Urgency and
-   * nominal resource/owner contracts are not implemented by this adapter.
+   * Carbon LoadOverlay (Tr2ActionOverlay.cpp:123-163): the owner's overlay of
+   * overlayName, else - with addOnStart and a path - the path, lower-cased
+   * and given or stripped of "_skinned" to match the owner, loaded as an
+   * EveMeshOverlayEffect, named, added and started.
+   *
+   * Adapted: Carbon loads synchronously as an urgent load; the JS resource
+   * manager resolves asynchronously, so the overlay is added when the file
+   * arrives, and a Stop or a newer Start before then discards it.
+   *
+   * @param {object} owner The EveSpaceObject2.
+   * @returns {Promise<void>|null} The pending load, or null when none started.
    */
   @meta.adapted
-  _LoadOverlay(owner)
+  LoadOverlay(owner)
   {
-    this._overlay = this.overlayName ? ITr2ControllerAction.callTarget(owner, "GetOverlayEffectByName", this.overlayName) ?? Tr2ActionOverlay._findNamed(owner, "overlays", this.overlayName) : null;
-    if (!this._overlay && this.addOnStart && this.path)
-    {
-      const loaded = Tr2ActionOverlay._loadOverlayResource(owner, this._normalizePath(owner));
-      this._overlay = loaded.overlay;
-      if (this._overlay)
-      {
-        Tr2ActionOverlay._setName(this._overlay, this.overlayName);
-        if (!loaded.added)
-        {
-          Tr2ActionOverlay._addOverlay(owner, this._overlay);
-        }
-        ITr2ControllerAction.callTarget(this._overlay, "StartControllers");
-      }
-    }
-  }
+    this._overlay = null;
+    if (this.overlayName) this._overlay = owner.GetOverlayEffectByName(this.overlayName);
+    if (!this.addOnStart || this._overlay || !this.path) return null;
 
-  /**
-   * Lower-cases the authored path and switches the `_skinned` suffix on or off
-   * to match whether the owner is animated.
-   * Adapted: keeps the existing owner adapter and JS suffix string operations.
-   */
-  @meta.adapted
-  _normalizePath(owner)
-  {
     let path = this.path.toLowerCase();
-    const animated = !!ITr2ControllerAction.callTarget(owner, "IsAnimated");
-    if (animated && !path.includes("_skinned"))
+    if (owner.IsAnimated() && !path.includes("_skinned"))
     {
-      path = path.replace(/\.red$/, "_skinned.red");
+      // StringInsertStubBefore: before the LAST ".red" (StringUtils.h:11-20).
+      const index = path.lastIndexOf(".red");
+      if (index !== -1) path = path.slice(0, index) + "_skinned" + path.slice(index);
     }
-    else if (!animated && path.includes("_skinned"))
+    else if (!owner.IsAnimated() && path.includes("_skinned"))
     {
+      // StringRemove: the FIRST "_skinned" only (StringUtils.h:58-68).
       path = path.replace("_skinned", "");
     }
-    return path;
-  }
 
-  /**
-   * Picks the object the overlay is attached to, preferring the controller owner
-   * itself and otherwise following targetAnotherOwner through a named parameter
-   * or a stretch endpoint; `rebind` is set when the redirect requires the
-   * controller owner to rebind.
-   * Adapted: preserves the existing parameter/endpoint shape lookup instead of
-   * native concrete scene casts until those owners supply the required methods.
-   */
-  @meta.adapted
-  _resolveOwner(owner)
-  {
-    if (!owner)
+    const request = ++this._loadRequest;
+    return Promise.resolve(blue.resMan.LoadObject(path)).then(object =>
     {
-      return {
-        owner: null,
-        rebind: false
-      };
-    }
-    if (Tr2ActionOverlay._isOverlayOwner(owner))
-    {
-      return {
-        owner,
-        rebind: false
-      };
-    }
-    if (!this.targetAnotherOwner)
-    {
-      return {
-        owner: null,
-        rebind: false
-      };
-    }
-    const parameterOwner = ITr2ControllerAction.getParameterOwner(owner, this.targetAnotherOwner);
-    if (parameterOwner && Tr2ActionOverlay._isOverlayOwner(parameterOwner))
-    {
-      return {
-        owner: parameterOwner,
-        rebind: true
-      };
-    }
-    const stretchOwner = Tr2ActionOverlay._getStretchOwner(owner, this.targetAnotherOwner);
-    if (stretchOwner && Tr2ActionOverlay._isOverlayOwner(stretchOwner))
-    {
-      return {
-        owner: stretchOwner,
-        rebind: true
-      };
-    }
-    return {
-      owner: null,
-      rebind: false
-    };
-  }
-
-  /**
-   * Attaches an overlay through the owner's AddOverlayEffect, falling back to
-   * pushing onto a plain `overlays` array.
-   */
-  @meta.ours
-  static _addOverlay(owner, overlay)
-  {
-    if (ITr2ControllerAction.hasFunction(owner, "AddOverlayEffect"))
-    {
-      owner.AddOverlayEffect(overlay);
-      return;
-    }
-    this._addToArray(owner, "overlays", overlay);
-  }
-
-  /**
-   * Appends a value to a named array property on the owner if it is not already
-   * present.
-   */
-  @meta.ours
-  static _addToArray(owner, listName, value)
-  {
-    if (ITr2ControllerAction.hasProperty(owner, listName) && Array.isArray(owner[listName]) && !owner[listName].includes(value))
-    {
-      owner[listName].push(value);
-    }
-  }
-
-  /**
-   * Finds an entry in a named array property whose GetName() or `name` matches,
-   * or null.
-   */
-  @meta.ours
-  static _findNamed(owner, listName, name)
-  {
-    if (ITr2ControllerAction.hasProperty(owner, listName) && Array.isArray(owner[listName]))
-    {
-      return owner[listName].find(item => ITr2ControllerAction.callTarget(item, "GetName") === name || ITr2ControllerAction.hasProperty(item, "name") && item.name === name) ?? null;
-    }
-    return null;
-  }
-
-  /**
-   * Resolves the `SourceSpaceObject` and `DestSpaceObject` endpoints of a
-   * stretch owner, returning null for any other name.
-   */
-  @meta.ours
-  static _getStretchOwner(owner, name)
-  {
-    if (name === "SourceSpaceObject")
-    {
-      return ITr2ControllerAction.asObject(ITr2ControllerAction.callTarget(owner, "GetSourceSpaceObject") ?? ITr2ControllerAction.getProperty(owner, "sourceSpaceObject"));
-    }
-    if (name === "DestSpaceObject")
-    {
-      return ITr2ControllerAction.asObject(ITr2ControllerAction.callTarget(owner, "GetDestSpaceObject") ?? ITr2ControllerAction.getProperty(owner, "destSpaceObject"));
-    }
-    return null;
-  }
-
-  /**
-   * Checks whether an object can hold overlays, by exposing any of the overlay
-   * accessor methods or a plain `overlays` array.
-   */
-  @meta.ours
-  static _isOverlayOwner(owner)
-  {
-    return !!owner && typeof owner === "object" && (ITr2ControllerAction.hasFunction(owner, "GetOverlayEffectByName") || ITr2ControllerAction.hasFunction(owner, "AddOverlayEffect") || ITr2ControllerAction.hasFunction(owner, "RemoveOverlayEffect") || ITr2ControllerAction.hasProperty(owner, "overlays"));
-  }
-
-  /**
-   * Loads an overlay from a path through whichever owner loader exists,
-   * reporting in `added` whether that loader already attached it to the owner.
-   */
-  @meta.ours
-  static _loadOverlayResource(owner, path)
-  {
-    const loaded = ITr2ControllerAction.callTarget(owner, "LoadOverlayEffectFromPath", path) ?? ITr2ControllerAction.callTarget(owner, "LoadOverlayEffect", path);
-    if (loaded)
-    {
-      return { overlay: loaded, added: false };
-    }
-    const added = ITr2ControllerAction.callTarget(owner, "AddOverlayEffectFromPath", path);
-    return { overlay: added, added: !!added };
-  }
-
-  /**
-   * Removes the first occurrence of a value from a named array property on the
-   * owner.
-   */
-  @meta.ours
-  static _removeFromArray(owner, listName, value)
-  {
-    if (ITr2ControllerAction.hasProperty(owner, listName) && Array.isArray(owner[listName]))
-    {
-      const index = owner[listName].indexOf(value);
-      if (index !== -1)
+      if (request !== this._loadRequest) return;
+      const overlay = CastTo(object, "EveMeshOverlayEffect");
+      if (!overlay)
       {
-        owner[listName].splice(index, 1);
+        CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Tr2ActionOverlay: ${path} is not an EveMeshOverlayEffect`);
+        return;
       }
-    }
+      this._overlay = overlay;
+      if (this.overlayName) overlay.name = this.overlayName;
+      owner.AddOverlayEffect(overlay);
+      overlay.StartControllers();
+    }, error =>
+    {
+      if (request === this._loadRequest) CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Tr2ActionOverlay: ${path} failed to load. ${error?.message ?? error}`);
+    });
   }
 
   /**
-   * Detaches an overlay through the owner's RemoveOverlayEffect, falling back to
-   * splicing it out of a plain `overlays` array.
+   * The space object targetAnotherOwner names when the controller owner is
+   * not one (Tr2ActionOverlay.cpp:25-52, :88-113): a multi-effect parameter's
+   * object, or a stretch's source or destination space object.
+   *
+   * @param {object} controllerOwner The controller's owner.
+   * @returns {object|null} The EveSpaceObject2, or null.
    */
-  @meta.ours
-  static _removeOverlay(owner, overlay)
+  _GetRedirectedOwner(controllerOwner)
   {
-    if (ITr2ControllerAction.hasFunction(owner, "RemoveOverlayEffect"))
+    const multiEffect = CastTo(controllerOwner, "EveMultiEffect");
+    if (multiEffect)
     {
-      owner.RemoveOverlayEffect(overlay);
-      return;
+      const parameter = multiEffect.GetParameterByName(this.targetAnotherOwner);
+      return parameter ? CastTo(parameter.GetParameterObject(), "EveSpaceObject2") : null;
     }
-    this._removeFromArray(owner, "overlays", overlay);
+    const stretch = CastTo(controllerOwner, "EveStretch3");
+    if (!stretch) return null;
+    let object = null;
+    if (this.targetAnotherOwner === "SourceSpaceObject") object = stretch.GetSourceSpaceObject();
+    if (this.targetAnotherOwner === "DestSpaceObject") object = stretch.GetDestSpaceObject();
+    return object ? CastTo(object, "EveSpaceObject2") : null;
   }
 
-  /**
-   * Names a loaded overlay through SetName when available, otherwise by
-   * assigning the `name` property; an empty name is ignored.
-   */
-  @meta.ours
-  static _setName(target, name)
+  /** Carbon Start's rebind of a redirected owner (Tr2ActionOverlay.cpp:64-74). */
+  _Rebind(controllerOwner)
   {
-    if (!name || !target || typeof target !== "object")
+    const multiEffect = CastTo(controllerOwner, "EveMultiEffect");
+    if (multiEffect)
     {
+      multiEffect.Rebind(true);
       return;
     }
-    if (ITr2ControllerAction.hasFunction(target, "SetName"))
-    {
-      target.SetName(name);
-      return;
-    }
-    target.name = name;
+    const stretch = CastTo(controllerOwner, "EveStretch3");
+    if (stretch) stretch.Rebind(true);
   }
 }
 
