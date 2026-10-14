@@ -105,14 +105,15 @@ test("texture-change listeners fire on create and on destroy", () =>
   const context = stubContext();
   const ds = new Tr2DepthStencil();
   const seen = [];
-  const stop = ds.OnTextureChange(surface => seen.push(surface.IsValid()));
+  const listener = { Changed() { seen.push(ds.IsValid()); } };
+  ds.OnTextureChange().RegisterListener(listener, listener.Changed);
 
   ds.Create(64, 64, DepthStencilFormat.DSFMT_D32F, 1, 0, 0, context);
   ds.Destroy();
 
   assert.deepEqual(seen, [ true, false ]);
 
-  stop();
+  ds.OnTextureChange().UnregisterListener(listener);
   ds.Create(64, 64, DepthStencilFormat.DSFMT_D32F, 1, 0, 0, context);
 
   assert.equal(seen.length, 2);

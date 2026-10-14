@@ -1,3 +1,10 @@
+import { composeStubResMan } from "../support/stubResMan.js";
+
+// Texture parameters ask blue.resMan for their texture as Carbon asks BeResMan,
+// which always answers with the typed resource; the stub does the same. Import
+// declarations are hoisted, so this runs after every import in the file.
+composeStubResMan();
+
 import { TriRenderBatchAccumulator } from "../../npm/dist/trinity/core/batch/TriRenderBatch/TriRenderBatchAccumulator.js";
 // The frame driver. Carbon's EveSpaceScene::Render is an empty function body and
 // TriStepRenderScene calls it anyway, so that path draws nothing in Carbon

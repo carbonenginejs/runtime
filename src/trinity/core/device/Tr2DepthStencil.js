@@ -22,6 +22,7 @@
 // through USE_MAIN_THREAD_RENDER_CONTEXT(), a global we deliberately do not
 // have; the same reason Tr2Blitter takes one.
 import { meta } from "#schema";
+import { Tr2Event } from "../Tr2Event.js";
 import { ConvertDepthStencilFormat, DepthStencilFormat, ExFlag, Tr2GpuUsage } from "#consts/render-context";
 import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
 import { Tr2MsaaDesc } from "../../../trinityal/Tr2HalHelperStructures/Tr2MsaaDesc.js";
@@ -80,8 +81,8 @@ export class Tr2DepthStencil
   /** m_flags (Tr2RenderContextEnum::ExFlag), retained for the same reason. */
   #flags = ExFlag.EX_NONE;
 
-  /** Carbon's m_onTextureChange listeners. */
-  #listeners = [];
+  /** m_onTextureChange (OnTextureChangeEvent) */
+  _onTextureChange = new Tr2Event();
 
   /**
    * Creates the depth-stencil surface.
@@ -133,7 +134,7 @@ export class Tr2DepthStencil
     this.#flags = flags;
     this.SetName(this.name);
     this.#Refresh();
-    this.#Changed();
+    this._Changed();
     return true;
   }
 
@@ -179,24 +180,17 @@ export class Tr2DepthStencil
   }
 
   /**
-   * Registers a texture-change listener (Carbon's `OnTextureChange` event).
+   * Carbon OnTextureChange (ITr2TextureProvider.h:16): the event fired when the depth stencil's
+   * texture changes. Listeners register an owner and an unbound method; the
+   * event holds owners weakly.
    *
-   * Adapted: Carbon returns its event object for the caller to attach to; this takes the
-   * listener and returns the unsubscribe, matching Tr2TextureArray.
-   *
-   * @param {Function} listener Called with this surface after each change.
-   * @returns {Function} Unsubscribe.
+   * @returns {Tr2Event} m_onTextureChange.
    */
   @meta.blue.method
-  @meta.adapted
-  OnTextureChange(listener)
+  @meta.implemented
+  OnTextureChange()
   {
-    this.#listeners.push(listener);
-    return () =>
-    {
-      const at = this.#listeners.indexOf(listener);
-      if (at !== -1) this.#listeners.splice(at, 1);
-    };
+    return this._onTextureChange;
   }
 
   /** Carbon `IsValid` (`cpp:95-98`): whether the texture exists. */
@@ -234,7 +228,7 @@ export class Tr2DepthStencil
     this.#flags = ExFlag.EX_NONE;
     this.format = DepthStencilFormat.DSFMT_AUTO;
     this.#Refresh();
-    this.#Changed();
+    this._Changed();
   }
 
   /** Carbon `GetWidth` (`cpp:141-144`), read off the texture. */
@@ -331,9 +325,9 @@ export class Tr2DepthStencil
   }
 
   /** Carbon's `m_onTextureChange()`. */
-  #Changed()
+  _Changed()
   {
-    for (const listener of this.#listeners) listener(this);
+    this._onTextureChange.Broadcast();
   }
 
   static DepthStencilFormat = DepthStencilFormat;

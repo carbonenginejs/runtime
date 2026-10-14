@@ -1,3 +1,10 @@
+import { composeStubResMan } from "../support/stubResMan.js";
+
+// Texture parameters ask blue.resMan for their texture as Carbon asks BeResMan,
+// which always answers with the typed resource; the stub does the same. Import
+// declarations are hoisted, so this runs after every import in the file.
+composeStubResMan();
+
 // The renderer's settings point at the engine's own values, as Carbon's
 // TRI_REGISTER_SETTING entries do (TriSettings.h:62-76): writing a setting
 // changes what the engine reads.

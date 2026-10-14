@@ -127,7 +127,7 @@ test("a texture parameter binds the realized texture, or the resource until it i
   const description = new Tr2ResourceSetDescriptionAL({ registers: new Tr2RegisterMapAL({ stage: 1, signature: { registers: [ { registerType: 36, registerIndex: 3 } ] } }) });
   const dirtied = [];
 
-  parameter.resource = resource;
+  parameter.SetResource(resource);
   parameter.OnAddedToMaterial({ ResourceChanged: () => dirtied.push("changed"), MarkConstantBuffersDirty() {} });
 
   // Not ready: an empty AL texture selects the backend fallback.
@@ -137,7 +137,7 @@ test("a texture parameter binds the realized texture, or the resource until it i
   resource.SetPayload(bc1Bitmap());
   resource.SetState(TriTextureRes.State.PREPARED);
 
-  assert.ok(dirtied.length >= 1, "completion re-dirtied the material, as Carbon's m_onTextureChange does");
+  assert.ok(dirtied.length >= 1, "becoming prepared fired m_onTextureChange, which re-dirtied the material");
   assert.equal(parameter.CopyToResourceSet(description, 1, 3, ResourceFlags.RESOURCE_FLAG_SRGB, context), true, "the slot changed: texture replaces the fallback");
 
   const bound = description.m_srv[0];

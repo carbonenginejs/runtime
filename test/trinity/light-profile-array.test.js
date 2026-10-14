@@ -98,10 +98,11 @@ test("the texture array gates dimensions, reuses released slots, and rounds capa
     a.Release(); // idempotent
 
     let changes = 0;
-    const off = array.OnTextureChange(() => { changes += 1; });
+    const listener = { Changed() { changes += 1; } };
+    array.OnTextureChange().RegisterListener(listener, listener.Changed);
     array.AddElement(profileBitmap(3));
     assert.equal(changes, 1);
-    off();
+    array.OnTextureChange().UnregisterListener(listener);
     array.AddElement(profileBitmap(4));
     assert.equal(changes, 1, "unsubscribed listeners stay quiet");
 });

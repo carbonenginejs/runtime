@@ -15,13 +15,12 @@ export class ITr2TextureProvider
   }
 
   /**
-   * Exposes the provider's texture-change event. Existing JavaScript providers
-   * adapt this to listener registration returning an unsubscribe function.
-   * @param {Function} _listener Callback used by the JavaScript event adapter.
-   * @returns {Function} Unsubscribe function supplied by the implementation.
+   * Returns the provider's texture-change event (ITr2TextureProvider.h:16),
+   * a Tr2Event broadcast with no arguments.
+   * @returns {import("./Tr2Event.js").Tr2Event} The provider's m_onTextureChange.
    */
   @meta.abstract
-  OnTextureChange(_listener)
+  OnTextureChange()
   {
     throw new Error("ITr2TextureProvider.OnTextureChange must be implemented by a texture provider.");
   }

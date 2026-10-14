@@ -15,6 +15,7 @@ import { Tr2TextureAL } from "../../../trinityal/Tr2TextureAL/index.js";
 // The `@edit.read` properties are the Blue READ projection, refreshed wherever
 // the texture changes.
 import { meta } from "#schema";
+import { Tr2Event } from "../Tr2Event.js";
 import { ExFlag, PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { ALResult } from "#trinityal";
 import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
@@ -112,8 +113,8 @@ export class Tr2RenderTarget
   /** The creation parameters, kept so OnPrepareResources can rebuild. */
   _created = null;
 
-  /** Carbon's m_onTextureChange listeners. */
-  _listeners = [];
+  /** m_onTextureChange (OnTextureChangeEvent) */
+  _onTextureChange = new Tr2Event();
 
   /**
    * Carbon `py__init__` (`cpp:59-74`): creates when given a size and a format.
@@ -219,23 +220,17 @@ export class Tr2RenderTarget
   }
 
   /**
-   * Registers a texture-change listener (Carbon's `OnTextureChange` event).
-   * Carbon returns the event object to attach to; JavaScript takes the
-   * listener and returns its unsubscribe, as Tr2DepthStencil does.
+   * Carbon OnTextureChange (ITr2TextureProvider.h:16): the event fired when the render target's
+   * texture changes. Listeners register an owner and an unbound method; the
+   * event holds owners weakly.
    *
-   * @param {Function} listener Called with this render target after each change.
-   * @returns {Function} Unsubscribe.
+   * @returns {Tr2Event} m_onTextureChange.
    */
   @meta.blue.method
-  @meta.adapted
-  OnTextureChange(listener)
+  @meta.implemented
+  OnTextureChange()
   {
-    this._listeners.push(listener);
-    return () =>
-    {
-      const at = this._listeners.indexOf(listener);
-      if (at !== -1) this._listeners.splice(at, 1);
-    };
+    return this._onTextureChange;
   }
 
   /**
@@ -326,7 +321,6 @@ export class Tr2RenderTarget
     this._attachedRenderTarget = null;
     this._attachedOwner = null;
     this._Refresh();
-    this._listeners.length = 0;
   }
 
   /** Carbon `IsReadable` (`cpp:354-357`). */
@@ -514,7 +508,7 @@ export class Tr2RenderTarget
   /** Carbon's `m_onTextureChange()`. */
   _Changed()
   {
-    for (const listener of this._listeners) listener(this);
+    this._onTextureChange.Broadcast();
   }
 
   static PixelFormat = PixelFormat;

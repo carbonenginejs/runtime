@@ -2,6 +2,7 @@
 //   trinity/trinity/Tr2TextureArray.cpp
 
 import { meta } from "#schema";
+import { Tr2Event } from "../Tr2Event.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { BitmapDimensions, HostBitmap } from "#imageio";
 import { Tr2TextureArrayElement } from "./Tr2TextureArrayElement.js";
@@ -26,7 +27,7 @@ export class Tr2TextureArray
 
     /** m_onTextureChange (OnTextureChangeEvent) */
     @meta.type.rawStruct("OnTextureChangeEvent")
-    onTextureChange = null;
+    onTextureChange = new Tr2Event();
 
     /** m_increment (uint32_t) */
     @meta.type.uint32
@@ -42,8 +43,6 @@ export class Tr2TextureArray
     @meta.type.enum("trinity.Tr2GpuUsage")
     gpuUsage = 16;
 
-
-    #listeners = [];
 
     #revision = 0;
 
@@ -118,7 +117,7 @@ export class Tr2TextureArray
         });
 
         this.#revision += 1;
-        for (const listener of this.#listeners) listener(this);
+        this.onTextureChange.Broadcast();
         return new Tr2TextureArrayElement(this, index);
     }
 
@@ -135,24 +134,21 @@ export class Tr2TextureArray
         {
             this.elements[index] = new HostBitmap();
             this.#revision += 1;
-            for (const listener of this.#listeners) listener(this);
+            this.onTextureChange.Broadcast();
         }
     }
 
     /**
-     * Registers a texture-change listener (Carbon's OnTextureChange event).
+     * Carbon OnTextureChange (ITr2TextureProvider.h:16): the event fired when
+     * the array's texture changes. Listeners register an owner and an unbound
+     * method; the event holds owners weakly.
      *
-     * @param {Function} listener Called with this array after each change.
-     * @returns {Function} Unsubscribe.
+     * @returns {Tr2Event} m_onTextureChange.
      */
-    OnTextureChange(listener)
+    @meta.implemented
+    OnTextureChange()
     {
-        this.#listeners.push(listener);
-        return () =>
-        {
-            const at = this.#listeners.indexOf(listener);
-            if (at !== -1) this.#listeners.splice(at, 1);
-        };
+        return this.onTextureChange;
     }
 
     /** An element's bitmap, or null for a released or missing slot. */

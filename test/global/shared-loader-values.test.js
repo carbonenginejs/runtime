@@ -218,6 +218,7 @@ test("shared child creation hydrates the real Crisis graph before publishing it"
 
 test("the real Crisis effect custom setter initializes once after population, and honors initialize:false", t =>
 {
+  WithStubResMan(t);
   const values = structuredClone(host.mesh.transparentAreas[0].effect);
   const observations = [];
   const initialize = Tr2Effect.prototype.Initialize;

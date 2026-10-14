@@ -175,11 +175,11 @@ export class TriTextureParameter extends CjsParameter
   {
     if (this.resource !== resource)
     {
-      this._ReleaseCompletion(this.resource);
+      this._StopListening(this.resource);
       this.resource = resource;
-      this._ArmCompletion(resource);
+      this._Listen(resource);
     }
-    this._ReleaseCompletion(this._lowResResource);
+    this._StopListening(this._lowResResource);
     this._lowResResource = null;
     this.RebuildEffectHandles(this._cachedEffect);
     this.OnTextureChanged();
@@ -209,7 +209,7 @@ export class TriTextureParameter extends CjsParameter
     if (this._lowResResource)
     {
       if (!this.resource.IsPrepared()) return this._lowResResource;
-      this._ReleaseCompletion(this._lowResResource);
+      this._StopListening(this._lowResResource);
       this._lowResResource = null;
     }
     return this.resource;
@@ -250,7 +250,8 @@ export class TriTextureParameter extends CjsParameter
     // `DoPrepare` through a process-wide context; ours is made here, at first
     // bind, through the binding context (see `Tr2ImageIOHelpers`). Until the
     // resource is prepared an empty AL binding selects the backend fallback.
-    // Completion re-dirties the material so the realized texture replaces it
+    // The resource's texture-change event, fired when it becomes prepared,
+    // re-dirties the material so the realized texture replaces the fallback
     // on the next apply; a resource provider is never an AL texture value.
     const resource = this.GetResource();
 
@@ -262,63 +263,44 @@ export class TriTextureParameter extends CjsParameter
     if (!resource) return resourceDesc.SetSrv__TextureAL(stage, registerIndex, null, colorSpace);
 
     const texture = RealizeTexture(resource, renderContext);
-
-    if (!texture) this._ArmCompletion(resource);
-
     return resourceDesc.SetSrv__TextureAL(stage, registerIndex, texture, colorSpace);
   }
 
-  /** Resources whose texture-change event already re-dirties this parameter's materials. */
-  _armed = new WeakSet();
+  /** Providers whose texture-change event this parameter listens to (Carbon's m_resource and m_lowResResource). */
+  _listening = new WeakSet();
 
   /**
-   * Notify target that re-dirties the materials when a pending texture
-   * resource finishes. The resource releases it on completion.
-   */
-  _completionTarget = {
-    RebuildCachedData: () => this.OnTextureChanged(),
-    ReleaseCachedData: () => {}
-  };
-
-  /**
-   * Carbon's `m_onTextureChange` route: when the resource finishes, the
-   * materials binding it rebuild their resource sets.
+   * Carbon's RegisterListener<TriTextureParameter, &OnTextureChanged>
+   * (TriTextureParameter.cpp:225, :235, :258) on a provider's texture-change
+   * event. The event holds this parameter weakly, through an unbound static
+   * function, so a cached resource never keeps it alive.
    *
-   * The cast is Carbon's own `BlueCastPtr( m_resource )` to a resource
-   * (TriTextureParameter.cpp:40, :112, :237). A provider that is not a cached
-   * resource - a `Tr2TextureReference` - has no load to wait for.
-   *
-   * Only a resource that has not finished is registered. One that finished but
-   * still realizes no texture (failed, or prepared without a bitmap) would call
-   * back at once, re-dirty the material, and be asked again on the next bind:
-   * a rebuild every frame.
+   * @param {ITr2TextureProvider|null} provider The texture provider.
    */
-  _ArmCompletion(resource)
+  _Listen(provider)
   {
-    const cached = CjsSchema.cast(resource, CjsResource);
-    if (!cached) return;
-
-    if (!cached.HasCompleted()) cached.AddNotifyTarget(this._completionTarget);
-
-    if (this._armed.has(cached)) return;
-    this._armed.add(cached);
-    // Carbon m_onTextureChange persists beyond initial load: video dimensions
-    // and device recreation replace the texture without changing the resource.
-    cached.OnEvent("texturechange", () => this.OnTextureChanged(), this);
+    if (!provider || this._listening.has(provider)) return;
+    this._listening.add(provider);
+    provider.OnTextureChange().RegisterListener(this, TriTextureParameter._OnProviderTextureChange);
   }
 
-  /** Releases this parameter's pending notification and texture-change subscription. */
-  _ReleaseCompletion(resource)
+  /**
+   * Carbon's UnregisterListener( this ) (TriTextureParameter.cpp:144, :149,
+   * :202, :207, :253, :263, :279) on a provider this parameter listens to.
+   *
+   * @param {ITr2TextureProvider|null} provider The texture provider.
+   */
+  _StopListening(provider)
   {
-    const cached = CjsSchema.cast(resource, CjsResource);
-    if (!cached) return;
+    if (!provider || !this._listening.has(provider)) return;
+    this._listening.delete(provider);
+    provider.OnTextureChange().UnregisterListener(this);
+  }
 
-    cached.RemoveNotifyTarget(this._completionTarget);
-    if (this._armed.has(cached))
-    {
-      cached.OffEvent("texturechange", null, this);
-      this._armed.delete(cached);
-    }
+  /** The registered callback: `this` is the listening parameter. */
+  static _OnProviderTextureChange()
+  {
+    this.OnTextureChanged();
   }
 
   /**
@@ -418,18 +400,16 @@ export class TriTextureParameter extends CjsParameter
   }
 
   /**
-   * Carbon drops texture subscriptions and resources on every notification,
-   * then reinitializes and rebuilds effect handles.
-   *
-   * Adapted: Carbon's OnTextureChange listeners are CjsResource completion subscriptions
-   * here.
+   * Carbon OnModified (TriTextureParameter.cpp:140-159): drops the texture
+   * subscriptions and resources on every notification, then reinitializes
+   * and rebuilds effect handles.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(_propertyName)
   {
-    this._ReleaseCompletion(this.resource);
-    this._ReleaseCompletion(this._lowResResource);
+    this._StopListening(this.resource);
+    this._StopListening(this._lowResResource);
     this.resource = null;
     this._lowResResource = null;
     this.Initialize();
@@ -447,8 +427,8 @@ export class TriTextureParameter extends CjsParameter
   @meta.implemented
   Initialize()
   {
-    this._ReleaseCompletion(this.resource);
-    this._ReleaseCompletion(this._lowResResource);
+    this._StopListening(this.resource);
+    this._StopListening(this._lowResResource);
     this.resource = null;
     this._lowResResource = null;
 
@@ -468,13 +448,13 @@ export class TriTextureParameter extends CjsParameter
           if (blue.paths.FileExistsLocally(lowResPath))
           {
             this._lowResResource = request(lowResPath);
-            this._ArmCompletion(this._lowResResource);
+            this._Listen(this._lowResResource);
           }
         }
       }
 
       this.resource = request(this.resourcePath);
-      this._ArmCompletion(this.resource);
+      this._Listen(this.resource);
     }
     this.OnTextureChanged();
     return true;

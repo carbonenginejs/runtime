@@ -43,7 +43,8 @@ test("Destroy releases the texture and raises the change event; Attach reference
   const context = stubContext();
   const target = new Tr2RenderTarget();
   const changes = [];
-  target.OnTextureChange(changed => changes.push(changed));
+  const listener = { Changed() { changes.push(target); } };
+  target.OnTextureChange().RegisterListener(listener, listener.Changed);
 
   target.Create(64, 64, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM, 1, 0, ExFlag.EX_NONE, TextureType.TEX_TYPE_2D, context);
   assert.equal(target.IsValid(), true);

@@ -86,7 +86,8 @@ test("decoded frames upload once for 100 consumers; media clock, cached light co
 test("dimension changes and resource recreation upload current frame without per-frame rebinding", () =>
 {
   const f=fixture();let notifications=0;
-  f.texture.OnEvent("texturechange",()=>notifications++);
+  const listener={Changed(){notifications++;}};
+  f.texture.OnTextureChange().RegisterListener(listener,listener.Changed);
   f.player.Create(new Uint8Array([1]));const v=f.videos[0];v.frame(1,0);
   const first=f.texture.GetTexture(), count=notifications;
   v.frame(2,40);assert.equal(f.texture.GetTexture(),first);assert.equal(notifications,count);
@@ -166,9 +167,12 @@ test("prepared texture parameters retain one texture-change listener and release
   const f=fixture(),parameter=new TriTextureParameter();let dirty=0;
   parameter.OnTextureChanged=()=>dirty++;
   parameter.SetResource(f.texture);const initial=dirty;
-  f.texture.EmitEvent("texturechange",f.texture);assert.equal(dirty,initial+1);
+  // The event holds the parameter weakly, through an unbound function: no closure keeps it alive.
+  const entry=f.texture.OnTextureChange().listeners.find(item=>item.owner.deref()===parameter);
+  assert.ok(entry.owner instanceof WeakRef);assert.equal(entry.callback,TriTextureParameter._OnProviderTextureChange);
+  f.texture.OnTextureChange().Broadcast();assert.equal(dirty,initial+1);
   parameter.SetResource(null);const released=dirty;
-  f.texture.EmitEvent("texturechange",f.texture);assert.equal(dirty,released);
+  f.texture.OnTextureChange().Broadcast();assert.equal(dirty,released);
 });
 
 test("WebGPU external frame upload uses straight sRGB copy and leaves byte uploads unchanged", () =>

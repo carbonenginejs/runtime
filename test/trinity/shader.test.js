@@ -1,6 +1,7 @@
 import { NotifyModified } from "../../npm/dist/global/blue/index.js";
 import { NOTIFY_METHODS } from "../../npm/dist/global/compose/notify.js";
 import { composeStubResMan } from "../support/stubResMan.js";
+import { Tr2Event } from "../../npm/dist/trinity/core/index.js";
 
 // blue.resMan throws until something composes a manager, so a test that
 // builds an object with a res path composes one. It answers null, which is
@@ -779,8 +780,13 @@ test("TriTextureParameter stays graph-owned and backend-free", () =>
   // outward "modified" events belong to the values door.
   assertEquals(modified.length, 0);
   const resourceLods = [];
+  const textureChange = new Tr2Event();
   parameter.SetResource({
     path: "res:/runtime.dds",
+    OnTextureChange()
+    {
+      return textureChange;
+    },
     RequestResolution(lod)
     {
       resourceLods.push(lod);

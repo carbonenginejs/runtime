@@ -7,6 +7,8 @@ import { TriStorageFlags, Tr2ALMemoryType } from "#consts/graphics";
 import { CjsResource, ICacheable } from "#blue";
 import { IsSolidColorTexturePath, RasterizeSolidColor } from "./solidColorTexture.js";
 import { ResourceRequirement } from "#blue";
+// TriTextureRes moves to trinity/resources (docs: projects/resources-move.md); until then it imports the event file directly.
+import { Tr2Event } from "#trinity/core/Tr2Event";
 import {
   resourceBoundaryError,
   resourceFormatRequiredError,
@@ -50,6 +52,9 @@ export class TriTextureRes extends CjsResource
   width = 0;
   cutoutX = 0;
   cutoutY = 0;
+
+  /** m_onTextureChange (OnTextureChangeEvent, TriTextureRes.h:160) */
+  _onTextureChange = new Tr2Event();
 
 
   /**
@@ -140,17 +145,48 @@ export class TriTextureRes extends CjsResource
   /**
    * Borrows a texture (`TriTextureRes.cpp:1159-1195`); its owner retains its lifetime.
    *
-   * Adapted: Carbon also copies the texture's dimensions onto the resource and fires
-   * m_onTextureChange; the payload already carries the dimensions here, and the binding
-   * parameter arms the resource's completion instead.
+   * Fires m_onTextureChange every time, as Carbon does (`:1175`, `:1194`).
+   *
+   * Adapted: Carbon also copies the texture's dimensions onto the resource and sets
+   * prepared/good; the payload already carries the dimensions here, and the resource
+   * manager owns the state.
    *
    * @param {object|null} texture A `Tr2TextureAL`, or null to drop it.
    * @returns {TriTextureRes} This resource.
    */
   SetTexture(texture) {
-    const previous = this.texture;
     this.texture = texture ?? null;
-    if (previous !== this.texture) this.EmitEvent("texturechange", this);
+    this._onTextureChange.Broadcast();
+    return this;
+  }
+
+  /**
+   * Carbon OnTextureChange (`TriTextureRes.cpp:412-415`): the event fired when
+   * the texture changes. Listeners register an owner and an unbound method;
+   * the event holds owners weakly.
+   *
+   * @returns {Tr2Event} m_onTextureChange.
+   */
+  OnTextureChange() {
+    return this._onTextureChange;
+  }
+
+  /**
+   * Changes state, and fires m_onTextureChange when the resource becomes prepared.
+   *
+   * Adapted: Carbon fires it from DoPrepare, whose SetTexture creates the texture
+   * (`TriTextureRes.cpp:662-705`). Ours is created at first bind
+   * (Tr2ImageIOHelpers.RealizeTexture), so the event fires when the resource
+   * becomes ready to make it.
+   *
+   * @param {string} state The new state.
+   * @param {...*} details State details, passed on.
+   * @returns {TriTextureRes} This resource.
+   */
+  SetState(state, ...details) {
+    const wasPrepared = this.IsPrepared();
+    super.SetState(state, ...details);
+    if (!wasPrepared && this.IsPrepared()) this._onTextureChange.Broadcast();
     return this;
   }
 
@@ -649,7 +685,7 @@ export class TriTextureRes extends CjsResource
       this._memoryUse = 0;
       this.originalMemoryUsage = 0;
       this.SetState(CjsResource.State.UNLOADED);
-      if (this.videoController) this.EmitEvent("texturechange", this);
+      this._onTextureChange.Broadcast();
     }
     return this;
   }
@@ -762,6 +798,8 @@ CjsSchema.define(TriTextureRes, {
     GetSrvIndexInHeap: [ meta.blue.method, meta.notSupported ],
     GetTexture: [ meta.blue.method, meta.adapted ],
     SetTexture: [ meta.blue.method, meta.adapted ],
+    OnTextureChange: [ meta.implemented ],
+    SetState: [ meta.adapted ],
     SaveAsync: [ meta.blue.method, meta.notSupported ],
     Save: [ meta.blue.method, meta.notSupported ],
     IsSaving: [ meta.blue.method, meta.noop ],

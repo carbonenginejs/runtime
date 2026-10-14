@@ -30,6 +30,7 @@ import { Tr2TextureAL, Tr2BitmapDimensions, Tr2TextureSubresource, Failed, Succe
 import { Tr2AtlasTexture } from "./Tr2AtlasTexture.js";
 import { Tr2TextureAtlasArea } from "./Tr2TextureAtlasArea.js";
 import { ITr2TextureProvider } from "./ITr2TextureProvider.js";
+import { Tr2Event } from "./Tr2Event.js";
 import { Tr2Renderer } from "./Tr2Renderer.js";
 import { TriDevice } from "./device/TriDevice.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "./context/Tr2RenderContext.js";
@@ -305,8 +306,8 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
   /** m_texture */
   _texture = new Tr2TextureAL();
 
-  /** m_onTextureChange, as a listener set (see `OnTextureChange`). */
-  _onTextureChange = new Set();
+  /** m_onTextureChange (OnTextureChangeEvent) */
+  _onTextureChange = new Tr2Event();
 
   /** @type {Tr2TextureAtlasArea[]} m_freeAreas */
   _freeAreas = [];
@@ -1246,19 +1247,16 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
   }
 
   /**
-   * Subscribes to the atlas texture-change event (`Tr2TextureAtlas.cpp:952-955`).
-   * Carbon returns the event object for the caller to connect to; JS has no
-   * such event type here, so the listener is added directly and an
-   * unsubscribe function is returned.
+   * Carbon OnTextureChange (`Tr2TextureAtlas.cpp:952-955`): the event fired
+   * when the atlas texture changes. Listeners register an owner and an
+   * unbound method; the event holds owners weakly.
    *
-   * @param {Function} listener Called with no arguments when the atlas texture changes.
-   * @returns {Function} Removes the listener.
+   * @returns {Tr2Event} m_onTextureChange.
    */
-  @meta.adapted
-  OnTextureChange(listener)
+  @meta.implemented
+  OnTextureChange()
   {
-    this._onTextureChange.add(listener);
-    return () => this._onTextureChange.delete(listener);
+    return this._onTextureChange;
   }
 
   /**
@@ -1266,10 +1264,9 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    *
    * @returns {void}
    */
-  @meta.adapted
   _FireTextureChange()
   {
-    for (const listener of this._onTextureChange) listener();
+    this._onTextureChange.Broadcast();
   }
 
   /**
