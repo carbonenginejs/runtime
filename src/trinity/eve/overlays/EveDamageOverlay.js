@@ -3,6 +3,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveDamageOverlay_Blue.cpp
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { random } from "#math/random";
 import { meta } from "#schema";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2ScalarFader } from "../../curves/curve/Tr2ScalarFader.js";
@@ -493,17 +494,24 @@ export class EveDamageOverlay
     const enabledLocatorCount = this.damageLocatorCount - this._disabledDamageLocators.length;
     if (createArmorImpacts && enabledLocatorCount)
     {
-      const random = seededRandom((this.seed + this._armorImpacts.size) >>> 0);
+      // Carbon cpp:481-491: std::mt19937 seeded with m_seed plus the impact
+      // count, a uniform locator among the enabled ones and a uniform size
+      // in [0.2, 0.8).
+      const generator = random.mt19937((this.seed + this._armorImpacts.size) >>> 0);
       const firstImpact = this._armorImpacts.size;
       for (let impactIndex = firstImpact; impactIndex < this.armorImpactGoalCount; impactIndex++)
       {
-        let locator = Math.floor(random() * enabledLocatorCount);
+        // Both draws are arguments of one CreateImpact call, whose evaluation
+        // order C++ leaves unspecified. MSVC 14.50 (/O2, x64) draws the size
+        // first: the same call compiled there matches this sequence exactly.
+        const size = random.uniformRealFloat(generator, 0.2, 0.8);
+        let locator = random.uniformInt(generator, 0, enabledLocatorCount - 1);
         for (const disabled of this._disabledDamageLocators)
         {
           if (disabled > locator) break;
           locator++;
         }
-        this.CreateImpact(locator, 0.2 + random() * 0.6, this.debugForceSpawnDebris);
+        this.CreateImpact(locator, size, this.debugForceSpawnDebris);
       }
     }
 
@@ -577,16 +585,3 @@ function linearize(min, max, value)
   return clamp01((Number(value) - min) / (max - min));
 }
 
-
-function seededRandom(seed)
-{
-  let state = seed || 0x6d2b79f5;
-  return () =>
-  {
-    state = (state + 0x6d2b79f5) >>> 0;
-    let value = state;
-    value = Math.imul(value ^ value >>> 15, value | 1);
-    value ^= value + Math.imul(value ^ value >>> 7, value | 61);
-    return ((value ^ value >>> 14) >>> 0) / 4294967296;
-  };
-}

@@ -66,3 +66,62 @@ random.mt19937 = function(seed)
         return value >>> 0;
     };
 };
+
+
+/**
+ * std::uniform_int_distribution<int>( min, max ) drawing from a 32-bit engine,
+ * as MSVC's STL 14.50 (toolset v145, the one Carbon's presets name) computes
+ * it: Lemire's nearly divisionless method on one engine draw per attempt
+ * (<random> _Rng_from_urng_v2::operator(), uniform_int::_Eval). The result is
+ * the high word of draw * range; a draw whose low word falls under
+ * (2^32 - range) % range is rejected and redrawn.
+ *
+ * Adapted: the distribution is implementation-defined; this is MSVC's, which
+ * is what the Windows client runs.
+ *
+ * @param {() => number} engine A random.mt19937 engine.
+ * @param {number} min Inclusive lower bound.
+ * @param {number} max Inclusive upper bound.
+ * @returns {number} An integer in [min, max].
+ */
+random.uniformInt = function(engine, min, max)
+{
+    const range = (max - min + 1) >>> 0;
+    // The full 32-bit range takes the draw as is (_Get_all_bits).
+    if (range === 0) return (engine() + min) | 0;
+    const wideRange = BigInt(range);
+    let product = BigInt(engine()) * wideRange;
+    let low = Number(product & 0xffffffffn);
+    if (low < range)
+    {
+        const threshold = (0x100000000 - range) % range;
+        while (low < threshold)
+        {
+            product = BigInt(engine()) * wideRange;
+            low = Number(product & 0xffffffffn);
+        }
+    }
+    // The signed adjustment (_Adjust) cancels: the result is min + high word.
+    return (Number(product >> 32n) + min) | 0;
+};
+
+/**
+ * std::uniform_real_distribution<float>( min, max ) drawing from a 32-bit
+ * engine, as MSVC's STL 14.50 computes it: generate_canonical<float, 24>
+ * keeps the top 24 bits of one draw, scaled by 2^-24, then
+ * canonical * ( max - min ) + min in float (<random> generate_canonical,
+ * uniform_real::_Eval).
+ *
+ * Adapted: the distribution is implementation-defined; this is MSVC's.
+ *
+ * @param {() => number} engine A random.mt19937 engine.
+ * @param {number} min Lower bound.
+ * @param {number} max Upper bound.
+ * @returns {number} A float32 value in [min, max]; float rounding can reach max.
+ */
+random.uniformRealFloat = function(engine, min, max)
+{
+    const canonical = Math.fround((engine() >>> 8) * 2 ** -24);
+    const lower = Math.fround(min);
+    return Math.fround(Math.fround(canonical * Math.fround(Math.fround(max) - lower)) + lower);
+};
