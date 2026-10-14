@@ -18,6 +18,7 @@ import { meta } from "#schema";
 import { IsMatch } from "#blue";
 import { TriBatchType } from "#consts/graphics";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
+import { EveChildBoosterSetSingleBoosterData } from "./EveChildBoosterSetSingleBoosterData.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/index.js";
 import {
@@ -43,9 +44,9 @@ const SPHERE_SCRATCH = vec4.create();
 /**
  * The child-graph booster set: instanced booster geometry, the lensflare
  * sprite set at each exhaust point, and the flickering point lights.
- * Placement comes entirely from Add() matrices - Carbon persists no items;
- * CarbonEngineJS persists them for document delivery and replays them on
- * Initialize.
+ * Placement comes entirely from Add() matrices. Carbon keeps the resulting
+ * booster records private; they persist here, and Initialize derives the
+ * flares, bounds and max size from them.
  *
  * RENDERING SEAM: Carbon draws through the Tr2ChildBoosterInstanceData ring
  * buffer (global "ChildBoosterSetInstances", GPU buffer
@@ -200,15 +201,12 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   glows = null;
 
   /**
-   * The authored exhaust placements. Carbon rebuilds these through SOF's
-   * Add() calls and never persists them; CarbonEngineJS delivers built
-   * objects as documents, so the items persist and Initialize replays them.
+   * m_singleBoosters (h:180). Carbon does not map it; it persists here so
+   * values carry the boosters, and Initialize derives the flares, bounds and
+   * max size from it.
    */
-  @meta.blue.persist
-  @meta.type.list("EveBoosterSet2Item")
-  items = [];
-
-  // Carbon m_singleBoosters (SingleBoosterData records).
+  @meta.blue.persistOnly
+  @meta.type.list("EveChildBoosterSetSingleBoosterData")
   _singleBoosters = [];
 
   // The exact exhaust-point bounding sphere (positions only; padded in
@@ -249,20 +247,36 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   _hasUpdated = false;
 
   /**
-   * Replays authored items through Add (Carbon SOF calls Add directly).
+   * Carbon Initialize (cpp:72-75).
    *
-   * Adapted: Carbon persists no items; document-delivered placements replay through Add here.
+   * Adapted: a set whose boosters arrived as records rather than through Add
+   * derives what Add derives from them: the flares, the bounding sphere and
+   * the max size.
    */
   @meta.blue.method
   @meta.adapted
   Initialize()
   {
-    if (this.items.length && !this._singleBoosters.length)
+    if (!this._singleBoosters.length) return true;
+    if (this.glows)
     {
-      for (const item of this.items)
+      this.glows.Clear();
+      for (const booster of this._singleBoosters)
       {
-        this._AddSingleBooster(item.transform, item.atlasIndex0, item.atlasIndex1, item.lightScale);
+        CreateBoosterFlares(this.glows, booster.transform, this._GetFlareParams());
       }
+      this.glows.Rebuild();
+    }
+    this._boosterBoundingSphereInitialized = false;
+    vec4.set(this._boosterBoundingSphere, 0, 0, 0, 0);
+    this.maxSize = 0;
+    for (const booster of this._singleBoosters)
+    {
+      const transform = booster.transform;
+      this._IncludeBoundingPoint(transform[12], transform[13], transform[14]);
+      this.maxSize = Math.max(this.maxSize, Math.max(
+        Math.hypot(transform[0], transform[1], transform[2]),
+        Math.hypot(transform[4], transform[5], transform[6])));
     }
     return true;
   }
@@ -455,20 +469,19 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    */
   _AddSingleBooster(localMatrix, atlasIndex0, atlasIndex1, lightScale)
   {
-    const transform = mat4.clone(localMatrix);
+    const booster = new EveChildBoosterSetSingleBoosterData();
+    mat4.copy(booster.transform, localMatrix);
+    const transform = booster.transform;
     const scale = Math.max(
       Math.hypot(transform[0], transform[1], transform[2]),
       Math.hypot(transform[4], transform[5], transform[6])
     );
-    const booster = {
-      transform,
-      lightPosition: vec3.transformMat4(vec3.create(), [ 0, 0, -this.lightOffset ], transform),
-      lightRadius: scale * Number(lightScale),
-      lightPhase: GenerateBoosterLightPhase(),
-      atlasIndex0: Number(atlasIndex0) >>> 0,
-      atlasIndex1: Number(atlasIndex1) >>> 0,
-      wavePhase: Math.random()
-    };
+    vec3.transformMat4(booster.lightPosition, [ 0, 0, -this.lightOffset ], transform);
+    booster.lightRadius = scale * Number(lightScale);
+    booster.lightPhase = GenerateBoosterLightPhase();
+    booster.atlasIndex0 = Number(atlasIndex0) >>> 0;
+    booster.atlasIndex1 = Number(atlasIndex1) >>> 0;
+    booster.wavePhase = Math.random();
     this._singleBoosters.push(booster);
 
     if (this.glows)

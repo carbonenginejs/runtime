@@ -387,7 +387,7 @@ test("real SOF DNA edits preserve live graphs and match standard builds", { skip
     const before = await sof.BuildValuesFromDNA(initial);
     const live = CjsSchema.from(before._type, before), updater = new CjsSOFUpdater(sof);
     const mesh = live.mesh, boosters = live.boosters, locators = live.locators, impact = live.impactOverlay;
-    const trails = boosters?.trails, items = boosters?.items;
+    const trails = boosters?.trails, singleBoosters = boosters?._singleBoosters;
     const build = sof.BuildValuesFromDNA.bind(sof);
     const spy = context.mock.method(sof, "BuildValuesFromDNA", () => assert.fail("race edit built a complete graph"));
     for (const race of ["caldari", "gallente", "minmatar", "amarr"])
@@ -397,7 +397,7 @@ test("real SOF DNA edits preserve live graphs and match standard builds", { skip
       assert.ok(Array.isArray(await updater.UpdateFromDNA(live, dna)), race);
       assert.equal(live.mesh, mesh); assert.equal(live.boosters, boosters);
       assert.equal(live.locators, locators); assert.equal(live.impactOverlay, impact);
-      assert.equal(live.boosters?.trails, trails); assert.equal(live.boosters?.items, items);
+      assert.equal(live.boosters?.trails, trails); assert.equal(live.boosters?._singleBoosters, singleBoosters);
       assert.deepEqual(ComparableValues(live), ComparableValues(expected));
     }
     assert.equal(spy.mock.callCount(), 0);

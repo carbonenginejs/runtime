@@ -571,7 +571,7 @@ test("Eve effects propagate controllers, bindings, and named parameters", () =>
 });
 
 
-test("EveShip2 rebuilds booster items from Carbon locator names", () =>
+test("EveShip2 rebuilds boosters from Carbon locator names", () =>
 {
   const ship = new EveShip2();
   ship.boosters = new EveBoosterSet2();
@@ -582,9 +582,9 @@ test("EveShip2 rebuilds booster items from Carbon locator names", () =>
   weapon.name = "locator_turret_1";
   ship.locators.push(booster, weapon);
   ship.RebuildBoosterSet();
-  assert.equal(ship.boosters.items.length, 1);
-  assert.equal(ship.boosters.items[0].transform[12], 5);
-  assert.deepEqual(Array.from(ship.boosters.items[0].functionality), [0, 1, 1, 1]);
+  assert.equal(ship.boosters._singleBoosters.length, 1);
+  assert.equal(ship.boosters._singleBoosters[0].transform[12], 5);
+  assert.deepEqual(Array.from(ship.boosters._singleBoosters[0].functionality), [0, 1, 1, 1]);
 });
 
 test("EveCamera restores Carbon constructor defaults and portable controls", () =>

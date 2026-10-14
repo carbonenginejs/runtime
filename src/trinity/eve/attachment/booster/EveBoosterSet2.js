@@ -11,7 +11,7 @@ import { meta } from "#schema";
 import { IInitialize } from "#blue/IInitialize";
 import { INotify } from "#blue/INotify";
 import { EveEntity } from "../../EveEntity.js";
-import { EveBoosterSet2Item } from "./EveBoosterSet2Item.js";
+import { EveBoosterSet2SingleBoosterData } from "./EveBoosterSet2SingleBoosterData.js";
 import { EveBoosterSet2Renderable } from "./EveBoosterSet2Renderable.js";
 import { EveComponentType } from "../../EntityComponents.js";
 import { TriStorageFlags } from "#consts/graphics";
@@ -32,7 +32,7 @@ import {
 
 
 /**
- * Owns a hull's authored booster placements and derives from them the glow
+ * Owns a hull's booster records and derives from them the glow
  * flares, trails, set bounding sphere and flickering point lights that its
  * renderable instances draw.
  */
@@ -283,13 +283,13 @@ export class EveBoosterSet2 extends EveEntity
   @meta.type.rootRef("EveTrailsSet")
   trails = null;
 
-
-  @meta.blue.notify
-  @meta.blue.persist
-  @meta.type.list("EveBoosterSet2Item")
-  items = [];
-
-  /** m_singleBoosters (h:284); read by the friend EveBoosterSet2Renderable. */
+  /**
+   * m_singleBoosters (h:284); read by the friend EveBoosterSet2Renderable.
+   * Carbon does not map it; it persists here so values carry the boosters,
+   * and Initialize derives the flares, bounds and max size from it.
+   */
+  @meta.blue.persistOnly
+  @meta.type.list("EveBoosterSet2SingleBoosterData")
   _singleBoosters = [];
 
   /** m_vertexDeclHandle (h:304) */
@@ -339,15 +339,17 @@ export class EveBoosterSet2 extends EveEntity
   static eveSpaceObjectTrailsMaxLengthFade = 20000;
 
   /**
-   * Derives the runtime boosters, flares and trails from the authored items,
-   * binds every renderable instance back to this set, and prepares the device
-   * resources (Carbon Initialize, cpp:654-658).
+   * Carbon Initialize (cpp:654-658) prepares the device resources.
+   *
+   * Adapted: a set whose boosters arrived as records rather than through Add
+   * derives what Add derives from them: the flares, the bounding sphere and
+   * the max size. Every renderable instance is bound back to this set.
    */
   @meta.blue.method
   @meta.adapted
   Initialize()
   {
-    EveBoosterSet2._RebuildItems(this);
+    if (this._singleBoosters.length) EveBoosterSet2._DeriveFromBoosters(this);
     for (const renderable of this.instances)
     {
       renderable.SetBoosterSet(this);
@@ -464,24 +466,16 @@ export class EveBoosterSet2 extends EveEntity
   static _boosterInstancedVertex = null;
 
   /**
-   * Applies the changed member's native flare/trail consequence, plus the
-   * persisted JS items adaptation, and advances the CPU revision.
+   * Applies the changed member's native flare/trail consequence and advances
+   * the CPU revision.
    *
-   * Adapted: Member names replace native addresses; persisted JS items rebuild Add-derived data and retain the
-   * existing CPU revision.
+   * Adapted: Member names replace native addresses; the CPU revision is ours.
    */
   @meta.blue.method
   @meta.adapted
   @meta.invalidates("#revision")
   OnModified(propertyName)
   {
-    // Persisted items stand in for Carbon's Clear / Add... / PrepareResources
-    // sequence (EveShip2.cpp:234-259), so the prepare lands here.
-    if (IsMatch(propertyName, "items"))
-    {
-      EveBoosterSet2._RebuildItems(this);
-      this.PrepareResources();
-    }
     if (this.glows)
     {
       if (IsMatch(propertyName, "glowScale") || IsMatch(propertyName, "haloScaleX")
@@ -594,27 +588,33 @@ export class EveBoosterSet2 extends EveEntity
   }
 
   /**
-   * Drops the authored items along with everything derived from them - runtime
-   * boosters, glows, trails, bounding sphere and max size.
+   * Carbon Clear (cpp:748-767): drops the boosters, their glows and trails and
+   * the bounding sphere, and releases the device resources. Carbon leaves the
+   * max size as it was.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   Clear()
   {
-    this.items.length = 0;
-    EveBoosterSet2._ClearRuntimeItems(this);
-    // cpp:765 - also release the resources.
+    this._singleBoosters.length = 0;
+    this.glows?.Clear();
+    this.trails?.Clear();
+    vec3.set(this.boosterBoundingSphereCenter, 0, 0, 0);
+    this.boosterBoundingSphereRadius = 0;
     this.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
     this._revision++;
   }
 
   /**
-   * Appends an authored booster placement and immediately derives its runtime
-   * booster, flares and trail; returns the new item's index and throws a
-   * TypeError when localMatrix is not sixteen values.
+   * Carbon Add (cpp:770-814): records one booster - its light position pushed
+   * back along -Z by lightOffset, its light radius from the larger X/Y basis
+   * length, a random flicker phase - then creates its flares, its trail when
+   * hasTrail (offset back half a unit along the booster axis), and grows the
+   * bounding sphere and max size. Throws a TypeError when localMatrix is not
+   * sixteen values.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   Add(
     localMatrix,
     functionality,
@@ -628,92 +628,68 @@ export class EveBoosterSet2 extends EveEntity
     {
       throw new TypeError("EveBoosterSet2 transforms must contain 16 values");
     }
-    const item = new EveBoosterSet2Item();
-    mat4.copy(item.transform, localMatrix);
-    vec4.copy(item.functionality, functionality ?? EveBoosterSet2._defaultFunctionality);
-    item.hasTrail = !!hasTrail;
-    item.atlasIndex0 = Number(atlasIndex0) >>> 0;
-    item.atlasIndex1 = Number(atlasIndex1) >>> 0;
-    item.lightScale = Number(lightScale) || 0;
-    this.items.push(item);
-    EveBoosterSet2._AddRuntimeItem(this, item);
+    const booster = new EveBoosterSet2SingleBoosterData();
+    mat4.copy(booster.transform, localMatrix);
+    vec4.copy(booster.functionality, functionality ?? EveBoosterSet2._defaultFunctionality);
+    vec3.transformMat4(booster.lightPosition, [0, 0, -this.lightOffset], booster.transform);
+    const scale = EveBoosterSet2._GetBoosterScale(booster.transform);
+    booster.lightRadius = scale * Number(lightScale);
+    booster.lightPhase = GenerateBoosterLightPhase();
+    booster.atlasIndex0 = Number(atlasIndex0) >>> 0;
+    booster.atlasIndex1 = Number(atlasIndex1) >>> 0;
+    this._singleBoosters.push(booster);
+
+    if (this.glows)
+    {
+      CreateBoosterFlares(this.glows, booster.transform, EveBoosterSet2._GetFlareParams(this));
+    }
+    if (this.trails && hasTrail)
+    {
+      const offset = mat4.clone(booster.transform);
+      offset[12] -= offset[8] * 0.5;
+      offset[13] -= offset[9] * 0.5;
+      offset[14] -= offset[10] * 0.5;
+      this.trails.Add(offset, scale);
+    }
+
+    EveBoosterSet2._UpdateBoundingSphere(this, booster.transform.subarray(12, 15));
+    if (scale > this.maxSize) this.maxSize = scale;
     this._revision++;
-    return this.items.length - 1;
   }
 
   /**
-   * Empties the derived booster records, glows and trails and resets the set
-   * bounding sphere and max size, leaving the authored items alone.
+   * Re-derives from the booster records what Add derives beside them: the
+   * flares (cleared and recreated), the bounding sphere and the max size.
+   * The trails keep their own records.
    */
-  static _ClearRuntimeItems(owner)
+  static _DeriveFromBoosters(owner)
   {
-    owner._singleBoosters.length = 0;
-    owner.glows?.Clear();
-    owner.trails?.Clear();
+    if (owner.glows)
+    {
+      owner.glows.Clear();
+      for (const booster of owner._singleBoosters)
+      {
+        CreateBoosterFlares(owner.glows, booster.transform, EveBoosterSet2._GetFlareParams(owner));
+      }
+      owner.glows.Rebuild();
+    }
     vec3.set(owner.boosterBoundingSphereCenter, 0, 0, 0);
     owner.boosterBoundingSphereRadius = 0;
     owner.maxSize = 0;
-  }
-
-  /**
-   * Discards the derived state and re-derives it from every authored item, then
-   * replaces the derived booster placements and flares.
-   */
-  static _RebuildItems(owner)
-  {
-    EveBoosterSet2._ClearRuntimeItems(owner);
-    for (const item of owner.items)
+    for (const booster of owner._singleBoosters)
     {
-      EveBoosterSet2._AddRuntimeItem(owner, item);
+      EveBoosterSet2._UpdateBoundingSphere(owner, booster.transform.subarray(12, 15));
+      owner.maxSize = Math.max(owner.maxSize, EveBoosterSet2._GetBoosterScale(booster.transform));
     }
   }
 
-  /**
-   * Derives one runtime booster from an authored item - scale from the larger of
-   * the transform's X and Y basis lengths, a light position pushed back along -Z
-   * by lightOffset, and a random light flicker phase - then creates its flares
-   * and its trail (offset back half a unit along the booster axis), and grows
-   * the set bounding sphere and max size.
-   */
-  static _AddRuntimeItem(owner, item)
+  /** The larger of a booster transform's X and Y basis lengths (cpp:785). */
+  static _GetBoosterScale(transform)
   {
-    const transform = mat4.clone(item.transform);
-    const scale = Math.max(
+    return Math.max(
       Math.hypot(transform[0], transform[1], transform[2]),
       Math.hypot(transform[4], transform[5], transform[6])
     );
-    const lightPosition = vec3.transformMat4(
-      vec3.create(),
-      [0, 0, -owner.lightOffset],
-      transform
-    );
-    const booster = {
-      transform,
-      functionality: vec4.clone(item.functionality),
-      lightPosition,
-      lightRadius: scale * item.lightScale,
-      lightPhase: GenerateBoosterLightPhase(),
-      atlasIndex0: item.atlasIndex0,
-      atlasIndex1: item.atlasIndex1,
-      hasTrail: item.hasTrail
-    };
-    owner._singleBoosters.push(booster);
-
-    if (owner.glows)
-    {
-      CreateBoosterFlares(owner.glows, booster.transform, EveBoosterSet2._GetFlareParams(owner));
-    }
-    if (owner.trails && item.hasTrail)
-    {
-      const trailTransform = mat4.clone(transform);
-      trailTransform[12] -= trailTransform[8] * 0.5;
-      trailTransform[13] -= trailTransform[9] * 0.5;
-      trailTransform[14] -= trailTransform[10] * 0.5;
-      owner.trails.Add(trailTransform, scale);
-    }
-
-    EveBoosterSet2._UpdateBoundingSphere(owner, transform.subarray(12, 15));
-    owner.maxSize = Math.max(owner.maxSize, scale);
   }
 
   /**
@@ -854,7 +830,7 @@ export class EveBoosterSet2 extends EveEntity
 
   /**
    * The derived runtime boosters as deep copies - transform, functionality,
-   * light position, radius and phase, atlas indices and trail flag - safe for an
+   * light position, radius and phase, and atlas indices - safe for an
    * adapter to keep.
    */
   @meta.blue.method
@@ -868,13 +844,12 @@ export class EveBoosterSet2 extends EveEntity
       lightRadius: booster.lightRadius,
       lightPhase: booster.lightPhase,
       atlasIndex0: booster.atlasIndex0,
-      atlasIndex1: booster.atlasIndex1,
-      hasTrail: booster.hasTrail
+      atlasIndex1: booster.atlasIndex1
     }));
   }
 
   /**
-   * A counter bumped whenever the authored items or the instance list change, so
+   * A counter bumped whenever the boosters or the instance list change, so
    * an adapter can tell its packed data is stale.
    */
   @meta.blue.method

@@ -424,7 +424,7 @@ test("race edits match fresh visuals while retaining mesh, boosters, trails and 
   const { ship, sof, updater } = await RaceFixture();
   const next = originalDna.replace(":race:", ":other:");
   const desired = CjsSchema.from("EveShip2", await sof.BuildValuesFromDNA(next));
-  const mesh = ship.mesh, boosters = ship.boosters, trails = boosters.trails, items = boosters.items;
+  const mesh = ship.mesh, boosters = ship.boosters, trails = boosters.trails, singleBoosters = boosters._singleBoosters;
   const impact = ship.impactOverlay, emitter = impact.armorImpactEmitter, locators = ship.locators;
   impact.armorRepairing = true; impact.hullDamageFactor = 0.37;
   const damageFactor = impact.hullDamageFactor;
@@ -436,7 +436,7 @@ test("race edits match fresh visuals while retaining mesh, boosters, trails and 
   t.mock.method(sof, "ModifyTextureResPaths", () => assert.fail("race edit queried inserts"));
   assert.ok(await updater.UpdateFromDNA(ship, next));
   assert.equal(ship.mesh, mesh); assert.equal(ship.boosters, boosters);
-  assert.equal(boosters.trails, trails); assert.equal(boosters.items, items);
+  assert.equal(boosters.trails, trails); assert.equal(boosters._singleBoosters, singleBoosters);
   assert.equal(ship.impactOverlay, impact); assert.equal(impact.armorImpactEmitter, emitter);
   assert.equal(ship.locators, locators); assert.equal(impact.armorRepairing, true);
   assert.equal(impact.hullDamageFactor, damageFactor);
@@ -455,14 +455,14 @@ test("race edits preserve unrelated live mesh constants and hull placements", as
   });
   const constant = ship.mesh.opaqueAreas[0].effect.constParameters.find(value => value.name === "CustomColor");
   constant.value.set([7, 8, 9, 10]);
-  ship.boosters.items[0].transform[12] = 42;
+  ship.boosters._singleBoosters[0].transform[12] = 42;
   ship.locators[0].transform[12] = 42;
-  const placement = CjsSchema.getValues(ship.boosters.items[0]);
+  const placement = CjsSchema.getValues(ship.boosters._singleBoosters[0]);
   const locator = CjsSchema.getValues(ship.locators[0]);
   t.mock.method(sof, "SetupBoosters", () => assert.fail("race edit regenerated hull placements"));
   assert.ok(await updater.UpdateFromDNA(ship, originalDna.replace(":race:", ":other:")));
   assert.deepEqual(Array.from(constant.value), [7, 8, 9, 10]);
-  assert.deepEqual(CjsSchema.getValues(ship.boosters.items[0]), placement);
+  assert.deepEqual(CjsSchema.getValues(ship.boosters._singleBoosters[0]), placement);
   assert.deepEqual(CjsSchema.getValues(ship.locators[0]), locator);
 });
 

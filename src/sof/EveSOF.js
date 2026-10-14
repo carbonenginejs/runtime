@@ -2923,9 +2923,10 @@ export class EveSOF
   /**
    * Emits Carbon's ship-only booster graph and booster locator records.
    *
-   * Adapted: Emits booster effects, items, trails and locators instead of populating
-   * live sets and preparing resources. Multi-hull offsets accumulate; the last hull
-   * supplies alwaysOn, and any hull can enable trails.
+   * Adapted: Emits booster effects, trails, locators and the booster and trail
+   * records Carbon's Add calls derive (EveBoosterSet2.cpp:770-814) instead of
+   * populating live sets and preparing resources. Multi-hull offsets accumulate;
+   * the last hull supplies alwaysOn, and any hull can enable trails.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
   @meta.adapted
@@ -2938,7 +2939,9 @@ export class EveSOF
     let alwaysOn = false;
     let hasTrails = false;
     let locatorIndex = 0;
-    const items = [];
+    const lightOffset = Number(race.lightOffset ?? 0);
+    const singleBoosters = [];
+    const trailData = [];
     const boosterLocatorRefs = [];
     const hullOffset = [0, 0, 0];
     for (let hullIndex = 0; hullIndex < dna.GetMultiHullCount(); hullIndex++)
@@ -2975,21 +2978,32 @@ export class EveSOF
           scale: [0, 0, 0],
           boneIndex: -1
         }));
-        items.push(document.AddNode("EveBoosterSet2Item", {
+        const scale = boosterScale(transform);
+        singleBoosters.push(document.AddNode("EveBoosterSet2SingleBoosterData", {
           transform,
           functionality: arrayValue(item.functionality, [0, 1, 1, 1]),
-          hasTrail: item.hasTrail !== false,
+          lightPosition: boosterLightPosition(transform, lightOffset),
+          lightRadius: scale * Number(item.lightScale ?? 1),
+          lightPhase: generateBoosterLightPhase(),
           atlasIndex0: Number(item.atlasIndex0 ?? 0) >>> 0,
-          atlasIndex1: Number(item.atlasIndex1 ?? 0) >>> 0,
-          lightScale: Number(item.lightScale ?? 1)
+          atlasIndex1: Number(item.atlasIndex1 ?? 0) >>> 0
         }));
+        if (item.hasTrail !== false)
+        {
+          // EveBoosterSet2.cpp:797-800: the trail starts half a unit back along the booster axis.
+          const offset = transform.slice();
+          offset[12] -= offset[8] * 0.5;
+          offset[13] -= offset[9] * 0.5;
+          offset[14] -= offset[10] * 0.5;
+          trailData.push(document.AddNode("EveTrailsSetSingleTrailData", { transform: offset, size: scale }));
+        }
       }
       addOffset(hullOffset, dna.GetHullNextSubsystemOffset(hullIndex));
     }
     mergeDocumentLocatorSet(document, rootFields, "boosters", boosterLocatorRefs);
 
     rootFields.boosters = document.AddNode("EveBoosterSet2", {
-      ...this.CreateBoosterSettings(document, race, hasTrails), alwaysOn, items
+      ...this.CreateBoosterSettings(document, race, hasTrails, trailData), alwaysOn, _singleBoosters: singleBoosters
     });
     return rootFields.boosters;
   }
@@ -3001,11 +3015,12 @@ export class EveSOF
    * @param {SofValuesBuilder} document Destination values document.
    * @param {object} race Prepared race booster data.
    * @param {boolean} hasTrails Whether the hull owns a trail set.
+   * @param {Array<object>} [trailData=[]] The trail set's EveTrailsSetSingleTrailData records.
    * @returns {object} Booster appearance fields with effect references.
    * @internal
    */
   @meta.ours
-  CreateBoosterSettings(document, race, hasTrails)
+  CreateBoosterSettings(document, race, hasTrails, trailData = [])
   {
     const effect = createBoosterEffect(document, race, "BOOSTER_LOD_HIGH");
     const effectFar = createBoosterEffect(document, race, "BOOSTER_LOD_LOW");
@@ -3054,7 +3069,8 @@ export class EveSOF
       trails = document.AddNode("EveTrailsSet", {
         // Carbon: trail->SetMeshResPath(g_volumetricTrailPath) (EveSOF.cpp:2720).
         geometryResPath: this.volumetricTrailPath,
-        effect: trailEffect
+        effect: trailEffect,
+        _trailData: trailData
       });
     }
 
@@ -3132,7 +3148,8 @@ export class EveSOF
     });
     const glows = document.AddNode("EveSpriteSet", { sprites: [], effect: glowEffect });
 
-    const items = [];
+    const lightOffset = Number(race.lightOffset ?? 0);
+    const singleBoosters = [];
     const hullOffset = [0, 0, 0];
     for (let hullIndex = 0; hullIndex < dna.GetMultiHullCount(); hullIndex++)
     {
@@ -3143,11 +3160,15 @@ export class EveSOF
         transform[12] += hullOffset[0];
         transform[13] += hullOffset[1];
         transform[14] += hullOffset[2];
-        items.push(document.AddNode("EveBoosterSet2Item", {
+        // EveChildBoosterSet::Add (EveChildBoosterSet.cpp:162-176).
+        singleBoosters.push(document.AddNode("EveChildBoosterSetSingleBoosterData", {
           transform,
+          lightPosition: boosterLightPosition(transform, lightOffset),
+          lightRadius: boosterScale(transform) * Number(item.lightScale ?? 1),
+          lightPhase: generateBoosterLightPhase(),
           atlasIndex0: Number(item.atlasIndex0 ?? 0) >>> 0,
           atlasIndex1: Number(item.atlasIndex1 ?? 0) >>> 0,
-          lightScale: Number(item.lightScale ?? 1)
+          wavePhase: Math.random()
         }));
       }
       addOffset(hullOffset, dna.GetHullNextSubsystemOffset(hullIndex));
@@ -3164,7 +3185,7 @@ export class EveSOF
       haloScaleY: Number(race.haloScaleY ?? 1),
       haloColor: arrayValue(race.haloColor, [0, 0, 0, 0]),
       warpHaloColor: arrayValue(race.warpHaloColor, [0, 0, 0, 0]),
-      lightOffset: Number(race.lightOffset ?? 0),
+      lightOffset,
       lightFlickerAmplitude: Number(race.lightFlickerAmplitude ?? 0),
       lightFlickerFrequency: Number(race.lightFlickerFrequency ?? 0),
       lightRadius: Number(race.lightRadius ?? 0),
@@ -3174,7 +3195,7 @@ export class EveSOF
       effect,
       effectFar,
       glows,
-      items
+      _singleBoosters: singleBoosters
     });
     placementFields.objects.push(ref);
     return ref;
@@ -4695,6 +4716,31 @@ function findTurretAreaParameter(dataMgr, colors, areaMaterials, areaType, info)
 function arrayValue(value, fallback)
 {
   return value ? Array.from(value) : fallback.slice();
+}
+
+/** The larger of a booster transform's X and Y basis lengths (EveBoosterSet2.cpp:785). */
+function boosterScale(transform)
+{
+  return Math.max(
+    Math.hypot(transform[0], transform[1], transform[2]),
+    Math.hypot(transform[4], transform[5], transform[6])
+  );
+}
+
+/** A booster's light position: (0, 0, -lightOffset) through its transform (EveBoosterSet2.cpp:776-777). */
+function boosterLightPosition(transform, lightOffset)
+{
+  return Array.from(vec3.transformMat4(vec3.create(), [0, 0, -lightOffset], transform));
+}
+
+/**
+ * GenerateBoosterLightPhase (EveBoosterUtilities.cpp:158-161): an offset into the
+ * 128-entry flicker noise table. The trinity copy lives in boosterUtilities;
+ * SOF stays import-free of trinity.
+ */
+function generateBoosterLightPhase()
+{
+  return 128 * Math.random();
 }
 
 /**

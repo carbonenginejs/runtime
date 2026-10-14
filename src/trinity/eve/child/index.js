@@ -1,4 +1,5 @@
 export * from "./CjsEveChildResourceLoader.js";
+export * from "./EveChildBoosterSetSingleBoosterData.js";
 export * from "./EveChildBoosterSet.js";
 export * from "./EveChildAudio.js";
 export * from "./EveChildBehaviorSystem.js";

@@ -144,7 +144,7 @@ export class EveBoosterSet2Renderable
   }
 
   /**
-   * Binds this instance to the booster set whose authored placements, colours
+   * Binds this instance to the booster set whose booster records, colours
    * and light data it draws.
    */
   @meta.blue.method

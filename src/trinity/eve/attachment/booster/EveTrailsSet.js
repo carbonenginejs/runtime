@@ -15,6 +15,7 @@ import { CarbonVertexElements } from "../../../core/vertex/vertexUsage.js";
 import { Tr2VertexUsageCode } from "../../../core/vertex/usageCode.js";
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
 import { TriGeometryRes } from "#resource/geometry";
+import { EveTrailsSetSingleTrailData } from "./EveTrailsSetSingleTrailData.js";
 
 /** sizeof( InstanceVertex ): the booster's position and size as one float4. */
 const INSTANCE_VERTEX_SIZE = 16;
@@ -58,7 +59,12 @@ export class EveTrailsSet
   @meta.type.boolean
   display = true;
 
-  /** m_trailData: { transform, size } per booster. */
+  /**
+   * m_trailData (h:121): one record per booster with a trail. Carbon does not
+   * map it; it persists here so values carry which boosters have trails.
+   */
+  @meta.blue.persistOnly
+  @meta.type.list("EveTrailsSetSingleTrailData")
   _trailData = [];
 
   /** m_trailVertexDecl: the trail mesh's elements plus the instance float4. */
@@ -207,7 +213,10 @@ export class EveTrailsSet
     {
       throw new TypeError("EveTrailsSet transforms must contain 16 values");
     }
-    this._trailData.push({ transform: mat4.clone(localMatrix), size: Number(size) || 0 });
+    const data = new EveTrailsSetSingleTrailData();
+    mat4.copy(data.transform, localMatrix);
+    data.size = Number(size) || 0;
+    this._trailData.push(data);
     this._revision++;
   }
 

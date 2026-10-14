@@ -8,12 +8,13 @@ import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
 import {
   EveBoosterSet2,
-  EveBoosterSet2Item,
+  EveBoosterSet2SingleBoosterData,
   EveBoosterSet2Renderable,
   EveSpriteSet,
   EveSpriteSetItem,
   EveShip2,
   EveTrailsSet,
+  EveTrailsSetSingleTrailData,
   Tr2Effect,
   Tr2QuadRenderer,
   TriFrustum
@@ -87,20 +88,18 @@ test("EveBoosterSet2 builds Carbon booster, glow, trail, light, and bounds CPU d
     [10, 20, 30],
     [2, 3, 1]
   );
-  assert.equal(boosters.Add(transform, [0, 1, 1, 1], true, 6, 7, 2), 0);
+  boosters.Add(transform, [0, 1, 1, 1], true, 6, 7, 2);
+  // A booster without a trail still gets its record and flares, but no trail record.
+  boosters.Add(mat4.fromTranslation(mat4.create(), [-10, 0, 0]), [0, 1, 1, 1], false, 0, 0, 1);
   transform[12] = 999;
 
-  assert.equal(CjsSchema.getField(EveBoosterSet2, "items")?.type.itemType, "EveBoosterSet2Item");
-  assert.equal(boosters.items[0] instanceof EveBoosterSet2Item, true);
-  assert.equal(boosters.items[0].transform[12], 10);
-  assert.deepEqual(Array.from(boosters.items[0].functionality), [0, 1, 1, 1]);
-  assert.equal(boosters.items[0].hasTrail, true);
-  assert.equal(boosters.items[0].atlasIndex0, 6);
-  assert.equal(boosters.items[0].atlasIndex1, 7);
-  assert.equal(boosters.items[0].lightScale, 2);
+  assert.equal(CjsSchema.getField(EveBoosterSet2, "_singleBoosters")?.type.itemType, "EveBoosterSet2SingleBoosterData");
+  assert.equal(CjsSchema.getField(EveTrailsSet, "_trailData")?.type.itemType, "EveTrailsSetSingleTrailData");
+  assert.equal(boosters._singleBoosters[0] instanceof EveBoosterSet2SingleBoosterData, true);
+  assert.equal(trails._trailData[0] instanceof EveTrailsSetSingleTrailData, true);
 
   const data = boosters.GetBoosterData();
-  assert.equal(data.length, 1);
+  assert.equal(data.length, 2);
   assert.equal(data[0].transform[12], 10);
   assert.deepEqual(Array.from(data[0].functionality), [0, 1, 1, 1]);
   assertVecNear(data[0].lightPosition, [10, 20, 28]);
@@ -108,7 +107,7 @@ test("EveBoosterSet2 builds Carbon booster, glow, trail, light, and bounds CPU d
   assert.equal(data[0].atlasIndex0, 6);
   assert.equal(data[0].atlasIndex1, 7);
   assert.equal(boosters.maxSize, 3);
-  assert.equal(glows.sprites.length, 3);
+  assert.equal(glows.sprites.length, 6);
   assertVecNear(glows.sprites[0].position, [10, 20, 27.5]);
   assert.equal(glows.sprites[0].minScale, 6);
   assert.equal(glows.sprites[1].minScale, 9);
@@ -121,10 +120,10 @@ test("EveBoosterSet2 builds Carbon booster, glow, trail, light, and bounds CPU d
   assertVecNear(boosters.trailsStaticOffsets0, [0, 0, 0]);
   assertVecNear(boosters.trailsStaticOffsets4, [0, 0, -40]);
   CjsSchema.setValues(boosters, { glowScale: 2.5 });
-  assert.equal(glows.sprites.length, 3);
+  assert.equal(glows.sprites.length, 6);
 
   CjsSchema.setValues(boosters, { flareLodEnabled: false });
-  assert.equal(glows.sprites.length, 3);
+  assert.equal(glows.sprites.length, 6);
 
   const dataSnapshot = boosters.GetBoosterData();
   dataSnapshot[0].transform[12] = 500;
@@ -133,24 +132,25 @@ test("EveBoosterSet2 builds Carbon booster, glow, trail, light, and bounds CPU d
   assert.equal(boosters.boosterBoundingSphereCenter.length, 3);
   assert.deepEqual(EveBoosterSet2.Shape, { STAR: 0, BOX: 1, SHAPE_COUNT: 2 });
 
+  // Values carry the booster and trail records; a set built from them derives
+  // the same flares, bounds and max size as the set Add built.
   const values = CjsSchema.getValues(boosters, {}, { persistOnly: true });
-  assert.equal(values.items.length, 1);
-  assert.equal(values.items[0].lightScale, 2);
-  const restored = CjsSchema.from("EveBoosterSet2", {
-    lightOffset: values.lightOffset,
-    items: values.items
-  });
-  assert.equal(restored.items[0] instanceof EveBoosterSet2Item, true);
-  assert.equal(restored.GetBoosterData().length, 1);
-  assertVecNear(restored.GetBoosterData()[0].lightPosition, [10, 20, 28]);
-  assert.equal(restored.GetBoosterData()[0].lightRadius, 6);
+  assert.equal(values._singleBoosters.length, 2);
+  assert.equal(values.trails._trailData.length, 1);
+  const restored = CjsSchema.from("EveBoosterSet2", values);
+  assert.deepEqual(restored.GetBoosterData(), boosters.GetBoosterData());
+  assert.equal(restored.glows.sprites.length, 6);
+  assert.deepEqual(restored.trails.GetTrailData(), trails.GetTrailData());
+  assert.equal(restored.maxSize, boosters.maxSize);
+  assertVecNear(restored.boosterBoundingSphereCenter, boosters.boosterBoundingSphereCenter);
+  assert.equal(restored.boosterBoundingSphereRadius, boosters.boosterBoundingSphereRadius);
 
   boosters.Clear();
-  assert.deepEqual(boosters.items, []);
   assert.deepEqual(boosters.GetBoosterData(), []);
   assert.equal(glows.sprites.length, 0);
   assert.deepEqual(trails.GetTrailData(), []);
-  assert.equal(boosters.maxSize, 0);
+  // Carbon's Clear leaves the max size (EveBoosterSet2.cpp:748-767).
+  assert.equal(boosters.maxSize, 3);
   assert.equal(boosters.boosterBoundingSphereRadius, 0);
 });
 

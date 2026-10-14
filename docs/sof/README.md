@@ -154,7 +154,7 @@ update an inherited depth texture path, without changing depth pattern bindings.
 Race-only changes update booster appearance, trail effect constants, armour and
 shield effect bindings, and primary/reactor mesh heat colours. They reuse the
 factory's small booster/damage values stages without building or hydrating a
-ship. Hull-owned booster items and locators, their positions, trail history,
+ship. Hull-owned booster and trail records and locators, their positions, trail history,
 active damage/repair state, and unrelated mesh constants are retained. Booster
 appearance emission is shared with full construction but never emits placements.
 All effect bindings pass preflight before any changes are applied. Changed light

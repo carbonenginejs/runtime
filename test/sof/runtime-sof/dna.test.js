@@ -5292,10 +5292,13 @@ test("SOF projects, emits, and hydrates multi-hull Carbon boosters", {
   assert.equal(booster.alwaysOn, false);
   assert.equal(booster.glowScale, 6);
   assert.deepEqual(booster.warpHaloColor, [0.6, 0.7, 0.8, 0.9]);
-  assert.equal(booster.items.length, 2);
-  const boosterItems = booster.items.map(ref => referencedNode(document, ref));
-  assert.deepEqual(boosterItems.map(node => node._type), ["EveBoosterSet2Item", "EveBoosterSet2Item"]);
-  assert.deepEqual(boosterItems[1].transform.slice(12, 15), [14, 5, 6]);
+  assert.equal(booster._singleBoosters.length, 2);
+  const singleBoosters = booster._singleBoosters.map(ref => referencedNode(document, ref));
+  assert.deepEqual(singleBoosters.map(node => node._type), ["EveBoosterSet2SingleBoosterData", "EveBoosterSet2SingleBoosterData"]);
+  assert.deepEqual(singleBoosters[1].transform.slice(12, 15), [14, 5, 6]);
+  // Only the second hull item has a trail.
+  const trailData = referencedNode(document, booster.trails)._trailData.map(ref => referencedNode(document, ref));
+  assert.deepEqual(trailData.map(node => node._type), ["EveTrailsSetSingleTrailData"]);
   assert.deepEqual(
     root.locators
       .map(ref => referencedNode(document, ref))
@@ -5337,15 +5340,14 @@ test("SOF projects, emits, and hydrates multi-hull Carbon boosters", {
   assert.equal(getRegisteredClassName(hydrated.root.boosters.constructor), "EveBoosterSet2");
   assert.equal(getRegisteredClassName(hydrated.root.boosters.effect.constructor), "Tr2Effect");
   assert.equal(getRegisteredClassName(hydrated.root.boosters.glows.constructor), "EveSpriteSet");
-  assert.equal(hydrated.root.boosters.items.length, 2);
-  assert.equal(getRegisteredClassName(hydrated.root.boosters.items[0].constructor), "EveBoosterSet2Item");
+  assert.equal(hydrated.root.boosters._singleBoosters.length, 2);
+  assert.equal(getRegisteredClassName(hydrated.root.boosters._singleBoosters[0].constructor), "EveBoosterSet2SingleBoosterData");
   const boosterData = hydrated.root.boosters.GetBoosterData();
   assert.equal(boosterData.length, 2);
   assert.deepEqual(Array.from(boosterData[0].transform).slice(12, 15), [1, 2, 3]);
   assert.deepEqual(Array.from(boosterData[1].transform).slice(12, 15), [14, 5, 6]);
   assert.deepEqual(Array.from(boosterData[1].functionality), [1, 1, 1, 1]);
-  assert.equal(boosterData[0].hasTrail, false);
-  assert.equal(boosterData[1].hasTrail, true);
+  assert.equal(hydrated.root.boosters.trails.GetTrailData().length, 1);
   assert.equal(boosterData[1].atlasIndex0, 6);
   assert.equal(boosterData[1].atlasIndex1, 7);
   assert.equal(hydrated.root.boosters.glows.GetSprites().length, 6);
@@ -6526,10 +6528,10 @@ test("BuildChildValues emits the child booster set into the placement container"
     "res:/Graphics/Effect/Managed/Space/Booster/ChildBoosterVolumetric.fx");
   assert.equal(boosterSet.glowScale, 2);
   assert.equal(boosterSet.lightRadius, 2);
-  assert.equal(boosterSet.items.length, 1);
-  assert.deepEqual(boosterSet.items[0].transform.slice(12, 15), [1, 2, 3]);
-  assert.equal(boosterSet.items[0].atlasIndex0, 6);
-  assert.equal(boosterSet.items[0].lightScale, 1.25);
+  assert.equal(boosterSet._singleBoosters.length, 1);
+  assert.equal(boosterSet._singleBoosters[0]._type, "EveChildBoosterSetSingleBoosterData");
+  assert.deepEqual(boosterSet._singleBoosters[0].transform.slice(12, 15), [1, 2, 3]);
+  assert.equal(boosterSet._singleBoosters[0].atlasIndex0, 6);
   assert.ok(boosterSet.glows, "one glow sprite set rides along");
 });
 
