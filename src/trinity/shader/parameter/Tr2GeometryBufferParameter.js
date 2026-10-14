@@ -3,7 +3,9 @@
 import { IsMatch, INotify } from "#blue";
 import { IInitialize } from "#blue";
 import { ITriEffectParameter } from "./ITriEffectParameter.js";
-import { meta } from "#schema";
+import { CjsSchema, meta } from "#schema";
+import { blue } from "#blue";
+import { ITr2GpuBuffer } from "../../core/ITr2GpuBuffer.js";
 import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 
@@ -72,13 +74,24 @@ export class Tr2GeometryBufferParameter extends CjsParameter
   }
 
   /**
-   * Not ported yet - a resource path is never resolved
-   * to a buffer here; returns true.
+   * Carbon Initialize (Tr2GeometryBufferParameter.cpp:32-40): with a resource
+   * path, drop the buffer and ask the resource manager for that path as an
+   * ITr2GpuBuffer. No Carbon resource class implements the interface
+   * (TriGeometryRes declares GetGpuBuffer but neither derives nor maps it,
+   * TriGeometryRes.h:261-265), so for the resources that exist the answer is
+   * null, as in Carbon.
+   *
+   * @returns {boolean} Always true.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   Initialize()
   {
+    if (this.resourcePath)
+    {
+      this.gpuBuffer = null;
+      this.gpuBuffer = CjsSchema.cast(blue.resMan.GetResource(this.resourcePath), ITr2GpuBuffer);
+    }
     return true;
   }
 

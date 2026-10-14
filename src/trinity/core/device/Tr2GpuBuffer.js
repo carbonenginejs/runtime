@@ -8,10 +8,12 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2Rende
 import { PixelFormat, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { ALResult, Tr2BufferDescriptionAL } from "#trinityal";
 import "#consts/renderContext/formats";
+import { ITr2GpuBuffer } from "../ITr2GpuBuffer.js";
 
 /** Tr2GpuBuffer (trinityCore) - generated from schema shapeHash 7a225a45.... */
 @meta.define({ className: "Tr2GpuBuffer", family: "trinityCore" })
-@meta.blue.interface(INotify, IInitialize)
+@meta.blue.inherit(ITr2GpuBuffer)
+@meta.blue.interface(INotify, IInitialize, ITr2GpuBuffer)
 export class Tr2GpuBuffer
 {
 

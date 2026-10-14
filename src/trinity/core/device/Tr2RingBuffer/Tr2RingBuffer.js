@@ -44,6 +44,7 @@ import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { TriDevice } from "../TriDevice.js";
 import { Tr2Renderer } from "../../Tr2Renderer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../context/Tr2RenderContext.js";
+import { ITr2GpuBuffer } from "../../ITr2GpuBuffer.js";
 
 
 function failRing(message)
@@ -65,6 +66,7 @@ const INVALID_OFFSET = 0xffffffff;
  * One upload arena per data type, fenced by frame.
  */
 @meta.define({ className: "Tr2RingBuffer", family: "trinityCore" })
+@meta.blue.inherit(ITr2GpuBuffer)
 export class Tr2RingBuffer
 {
   /** One arena per data type, as Carbon's typed `GetInstance` gives. */

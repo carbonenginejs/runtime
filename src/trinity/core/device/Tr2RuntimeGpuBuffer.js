@@ -3,12 +3,15 @@
 import { Tr2BufferAL } from "../../../trinityal/Tr2BufferAL/index.js";
 // Hand-maintained from Carbon source; the AL buffer is backend-private state.
 import { meta } from "#schema";
+import { ITr2GpuBuffer } from "../ITr2GpuBuffer.js";
 
 /**
  * An ITr2GpuBuffer over one runtime AL buffer: what `Tr2Effect::SetParameter`
  * wraps a `Tr2BufferAL` in so a buffer parameter can hold it.
  */
 @meta.define({ className: "Tr2RuntimeGpuBuffer", family: "trinityCore" })
+@meta.blue.inherit(ITr2GpuBuffer)
+@meta.blue.interface(ITr2GpuBuffer)
 export class Tr2RuntimeGpuBuffer
 {
   /** m_buffer: the AL buffer, or null for Carbon's default-constructed one. */

@@ -15,6 +15,7 @@ import { meta } from "#schema";
 import { Tr2ParticleElementDeclaration } from "../../particle/element/Tr2ParticleElementDeclaration.js";
 import { Tr2VertexUsageCode } from "../vertex/usageCode.js";
 import { ITr2InstanceDataInstanceData, ITr2InstanceData } from "./ITr2InstanceData/index.js";
+import { ITr2GpuBuffer } from "../ITr2GpuBuffer.js";
 
 
 /**
@@ -23,7 +24,8 @@ import { ITr2InstanceDataInstanceData, ITr2InstanceData } from "./ITr2InstanceDa
  * particle system on demand.
  */
 @meta.define({ className: "Tr2RuntimeInstanceData", family: "trinityCore" })
-@meta.blue.inherit(ITr2InstanceData)
+@meta.blue.inherit(ITr2InstanceData, ITr2GpuBuffer)
+@meta.blue.interface(ITr2InstanceData, ITr2GpuBuffer)
 export class Tr2RuntimeInstanceData
 {
   /**

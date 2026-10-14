@@ -6,10 +6,12 @@ import { INotify, IInitialize } from "#blue";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { ALResult, Tr2BufferDescriptionAL } from "#trinityal";
+import { ITr2GpuBuffer } from "../ITr2GpuBuffer.js";
 
 /** Describes the element count, stride, and creation flags of a GPU structured buffer. */
 @meta.define({ className: "Tr2GpuStructuredBuffer", family: "trinityCore", purpose: "Describes the element count, stride, and creation flags of a GPU structured buffer." })
-@meta.blue.interface(INotify, IInitialize)
+@meta.blue.inherit(ITr2GpuBuffer)
+@meta.blue.interface(INotify, IInitialize, ITr2GpuBuffer)
 export class Tr2GpuStructuredBuffer
 {
 

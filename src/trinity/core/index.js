@@ -40,6 +40,7 @@ export * from "./Tr2TextureArray/index.js";
 export * from "./Tr2TextureReference.js";
 export * from "./Tr2Event.js";
 export * from "./ITr2TextureProvider.js";
+export * from "./ITr2GpuBuffer.js";
 export * from "./IWorldPosition.js";
 
 export * from "./ITr2Scene.js";

@@ -20,13 +20,14 @@ import { vec4 } from "#math/vec4";
 import { Tr2ParticleElementDeclaration } from "./element/Tr2ParticleElementDeclaration.js";
 import { ITr2InstanceDataInstanceData, ITr2InstanceData } from "../core/mesh/ITr2InstanceData/index.js";
 import { ITr2GenericEmitterUpdateArguments } from "./ITr2GenericEmitter/index.js";
+import { ITr2GpuBuffer } from "../core/ITr2GpuBuffer.js";
 
 /** Owns a particle system's element declaration, CPU-side attribute buffers, and per-frame simulation of aging, forces, movement, constraints and bounds. */
 @meta.define({ className: "Tr2ParticleSystem", family: "particle" })
-@meta.blue.inherit(ITr2InstanceData)
+@meta.blue.inherit(ITr2InstanceData, ITr2GpuBuffer)
 @meta.blue.inherit(IInitialize)
 @meta.blue.inherit(ISimTimeRebaseNotify)
-@meta.blue.interface(IInitialize, INotify)
+@meta.blue.interface(IInitialize, INotify, ITr2InstanceData, ITr2GpuBuffer)
 @meta.blue.inherit(IListNotify)
 export class Tr2ParticleSystem
 {
