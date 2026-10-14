@@ -239,6 +239,8 @@ export class Tr2FontMeasurer
   @meta.adapted
   AddText(text)
   {
+    // Carbon's font manager exists from InitializeTrinity on (trinity.cpp:290).
+    if (g_fontManager === null) throw new Error("Tr2FontMeasurer.AddText: there is no font manager; call InitializeTrinity first.");
     // Resolve the face once per font and size, falling back when it does not work.
     let font = this._font || TR2_FONT_FALLBACK;
     while (!this._currentFace)

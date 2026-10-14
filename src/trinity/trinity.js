@@ -9,6 +9,9 @@ import { Tr2FontManager } from "./font/Tr2FontManager.js";
 import { TriVariableContentType } from "./generated/trinityCore/enums.js";
 import { noise } from "../global/math/noise.js";
 
+/** Whether InitializeTrinity has run in this realm. */
+let initialized = false;
+
 /**
  * Carbon `InitializeTrinity` (trinity.cpp:200-296).
  *
@@ -22,10 +25,14 @@ import { noise } from "../global/math/noise.js";
  * `gpuTimers`, `bindlessRendering` and `gdpr` (:244-284), which set D3D device
  * flags and globals this port does not have; the Granny allocator (:286-288).
  *
- * Call once: as in Carbon, a second call registers the font manager again.
+ * Carbon runs it once, as the module's entry point (StartDLL); a second call
+ * here does nothing, so the first font manager stays the only one.
  */
 export function InitializeTrinity()
 {
+  if (initialized) return;
+  initialized = true;
+
   // trinity.cpp:204-206.
   const store = Tr2VariableStore.globalStore();
   store.RegisterVariableInternal("BlitOriginal", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, null);
