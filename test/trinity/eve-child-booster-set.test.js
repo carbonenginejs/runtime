@@ -95,6 +95,9 @@ test("EveChildBoosterSet packs 64-byte instance rows and gates draws on the ring
   };
   set.SetRingBuffer(ring, offsets);
   set.effect = FixtureEffect({ name: "booster-effect" });
+  // Carbon draws only once OnPrepareResources has made the vertex declaration
+  // (EveChildBoosterSet.cpp:267-286, :483-486); headless, nothing prepares it.
+  assert.equal(set.OnPrepareResources(), true);
   set.UpdateAsyncronous(null, updateParams());
   set.UpdateVisibility({
     GetFrustum: () => ({

@@ -28,6 +28,10 @@ import {
   GenerateBoosterLightPhase,
   PadBoosterBoundingSphere
 } from "../attachment/booster/boosterUtilities.js";
+import { TriStorageFlags } from "#consts/graphics";
+import { TriDevice } from "../../core/device/TriDevice.js";
+import { Tr2VertexDefinition } from "../../core/vertex/Tr2VertexDefinition/index.js";
+import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 
 // Tr2ChildBoosterInstanceData (Tr2RingBuffer.h:19-26): Float4x3 transform
 // (COLUMN-stride rows), intensity, wavePhase, atlasIndex0, atlasIndex1 -
@@ -246,8 +250,23 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
 
   _hasUpdated = false;
 
+  /** m_vertexDeclHandle: the box's declaration, made by OnPrepareResources. */
+  _vertexDeclHandle = Tr2EffectStateManager.Unknown;
+
   /**
-   * Carbon Initialize (cpp:72-75).
+   * Registers with the device, as Carbon's Tr2DeviceResource base does
+   * (EveChildBoosterSet.h:81), so a set built before the device exists is
+   * prepared when it comes up. JavaScript has no destructor, so the set is
+   * never unregistered.
+   */
+  constructor()
+  {
+    super();
+    TriDevice.RegisterResource(this);
+  }
+
+  /**
+   * Carbon Initialize (cpp:72-76) prepares the device resources.
    *
    * Adapted: a set whose boosters arrived as records rather than through Add
    * derives what Add derives from them: the flares, the bounding sphere and
@@ -257,7 +276,14 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   @meta.adapted
   Initialize()
   {
-    if (!this._singleBoosters.length) return true;
+    if (this._singleBoosters.length) this._DeriveFromBoosters();
+    this.PrepareResources();
+    return true;
+  }
+
+  /** Re-derives the flares, bounding sphere and max size from the booster records. */
+  _DeriveFromBoosters()
+  {
     if (this.glows)
     {
       this.glows.Clear();
@@ -278,8 +304,50 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
         Math.hypot(transform[0], transform[1], transform[2]),
         Math.hypot(transform[4], transform[5], transform[6])));
     }
+  }
+
+  /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32). */
+  @meta.blue.method
+  @meta.implemented
+  PrepareResources()
+  {
+    if (Tr2Renderer.IsResourceCreationAllowed())
+    {
+      if (!this.OnPrepareResources()) return false;
+    }
     return true;
   }
+
+  /** Carbon OnPrepareResources (cpp:267-286): the box's one-position vertex declaration. */
+  @meta.blue.method
+  @meta.implemented
+  OnPrepareResources()
+  {
+    this._vertexDeclHandle = Tr2EffectStateManager.getVertexDeclarationHandle(EveChildBoosterSet._BoosterVertex());
+    return this._vertexDeclHandle !== Tr2EffectStateManager.Unknown;
+  }
+
+  /** Carbon ReleaseResources (cpp:258-261): forget the declaration. */
+  @meta.blue.method
+  @meta.implemented
+  ReleaseResources(_storage)
+  {
+    this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
+  }
+
+  /** Carbon's function-local static s_boosterVertex (cpp:271-276). */
+  static _BoosterVertex()
+  {
+    if (!EveChildBoosterSet._boosterVertex)
+    {
+      const vd = new Tr2VertexDefinition();
+      vd.Add("FLOAT32_3", "POSITION");
+      EveChildBoosterSet._boosterVertex = vd;
+    }
+    return EveChildBoosterSet._boosterVertex;
+  }
+
+  static _boosterVertex = null;
 
   /**
    * Carbon EveChildBoosterSet::OnModified (cpp:77-93): rebuilds the flares when
@@ -447,6 +515,8 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
     this._boosterBoundingSphereInitialized = false;
     vec4.set(this._boosterBoundingSphere, 0, 0, 0, 0);
     this._instanceCount = 0;
+    // cpp:158 - also release the resources.
+    this.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
   }
 
   /**
@@ -726,8 +796,8 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * chooses effect vs effectFar. 36 indices per instance over the shared
    * child-booster box.
    *
-   * Adapted: The procedural box vertex buffer, quad-list index buffer and vertex declaration are not ported yets; the
-   * batch carries the material, per-object data, draw arguments and the shared buffer name.
+   * Adapted: The procedural box vertex buffer and quad-list index buffer are not ported yet; the batch carries the
+   * material, per-object data, vertex declaration, draw arguments and the shared buffer name.
    */
   @meta.blue.method
   @meta.adapted
@@ -736,6 +806,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
     if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE) return;
     if (!this.display) return;
     if (this._CurrentFrameOffset() === INVALID_RING_OFFSET) return;
+    if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
     if (!this._singleBoosters.length) return;
     if (!this._boostersVisible) return;
 
@@ -745,6 +816,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(effect);
     batch.SetPerObjectData(perObjectData);
+    batch.SetVertexDeclaration(this._vertexDeclHandle);
     batch.SetDrawIndexedInstanced(3 * 2 * 6, this._singleBoosters.length, 0, 0, 0);
     batch.proceduralVertexBufferName = CHILD_BOOSTER_BOX_BUFFER_NAME;
     batches.Commit(batch);
