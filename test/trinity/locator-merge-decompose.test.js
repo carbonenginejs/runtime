@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { EveSpaceObject2, EveLocatorSets, Locator } from "../../npm/dist/trinity/index.js";
+import { EveSpaceObject2, EveLocatorSets, EveGetLocatorPose, Locator } from "../../npm/dist/trinity/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 
 // EnsureChildLocatorMerged decomposes each child locator with Carbon's
@@ -41,4 +41,26 @@ test("a proper child transform merges to its translation and unit rotation", () 
     assert.deepEqual(Array.from(locator.position), [ 1, 2, 3 ]);
     assert.deepEqual(Array.from(locator.direction), [ 0, 0, 0, 1 ]);
     assert.deepEqual(Array.from(locator.scale), [ 1, 1, 1 ]);
+});
+
+
+test("EveGetLocatorPose moves a locator on bone binding 0 with its bone (CE-27 divergence)", () =>
+{
+  // A one-bone palette, Float4x3 column-stride: binding 0 translated by z -45, as
+  // the Bowhead MASTER binding is through Normal2Warp.
+  const palette = new Float32Array([ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, -45 ]);
+  const animation = { IsInitialized: () => true, GetMeshBoneCount: () => 1, GetMeshBoneMatrixList: () => palette };
+  const position = new Float32Array(3), direction = new Float32Array(3);
+
+  const onBone = new Locator();
+  onBone.position.set([ 1, 2, 3 ]);
+  onBone.boneIndex = 0;
+  EveGetLocatorPose(position, direction, animation, onBone);
+  assert.deepEqual(Array.from(position), [ 1, 2, -42 ]);
+
+  const noBone = new Locator();
+  noBone.position.set([ 1, 2, 3 ]);
+  noBone.boneIndex = -1;
+  EveGetLocatorPose(position, direction, animation, noBone);
+  assert.deepEqual(Array.from(position), [ 1, 2, 3 ]);
 });

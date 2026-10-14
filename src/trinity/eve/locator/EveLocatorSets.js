@@ -17,11 +17,16 @@ const POSE_BONE_SCRATCH = mat4.create();
  * animation updater's mesh bone when the locator is bone-attached.
  *
  * Carbon `EveGetLocatorPose` (EveLocatorSets.cpp:11-27). The direction is +Y
- * rotated by the authored quaternion. Carbon assumes bone 0 is unanimated for
- * performance, so only `boneIndex > 0` applies a bone matrix, and the
- * direction is deliberately NOT normalized here - the merged-damage caller in
- * EveSpaceObject2 normalizes after its own transform, and other callers take
- * the raw basis-transformed value.
+ * rotated by the authored quaternion, and is deliberately NOT normalized here -
+ * the merged-damage caller in EveSpaceObject2 normalizes after its own
+ * transform, and other callers take the raw basis-transformed value.
+ *
+ * Adapted: Carbon applies a bone only when `boneIndex > 0` (cpp:20; CE-27), so
+ * a locator on binding 0 keeps its authored place. Binding 0 is a mesh bone
+ * binding and can be animated - the Bowhead (orecs2_t1) moves its MASTER
+ * binding through Normal2Warp, and child meshes on bone 0 were seen to stay
+ * behind (operator, 2026-10-14) - so ours applies bone 0 like any other; -1
+ * stays no bone.
  *
  * @param {Float32Array} outPosition - receives the object-space position
  * @param {Float32Array} outDirection - receives the unnormalized direction
@@ -33,7 +38,7 @@ export function EveGetLocatorPose(outPosition, outDirection, animationUpdater, l
   vec3.copy(outPosition, locator.position);
   vec3.transformQuat(outDirection, UNIT_Y, locator.direction);
 
-  if (locator.boneIndex > 0 && animationUpdater && animationUpdater.IsInitialized() &&
+  if (locator.boneIndex >= 0 && animationUpdater && animationUpdater.IsInitialized() &&
     locator.boneIndex < animationUpdater.GetMeshBoneCount())
   {
     const bones = animationUpdater.GetMeshBoneMatrixList();
