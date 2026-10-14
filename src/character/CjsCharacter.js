@@ -128,6 +128,9 @@ export class CjsCharacter
         this._plan = plan;
         this._construction = construction;
         this._revision += 1;
+        // Nothing outside the tests listens to appearancechanged (checked
+        // 2026-10-14). Left for the character work, which is expected to move
+        // it onto the new event system rather than drop it.
         this.EmitEvent("appearancechanged", {
             type: "appearancechanged",
             source: this,

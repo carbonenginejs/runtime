@@ -592,6 +592,10 @@ function ThrowDuplicateRecord(documentName, recordID)
     );
 }
 
+// Nothing outside the tests listens to the record events (recordadded,
+// recordremoved, recorddeleted, documentcleared; checked 2026-10-14). Left for
+// the character work, which is expected to move them onto the new event system
+// rather than drop them.
 function EmitRecordEvent(library, eventName, documentName, record, options, extra = {})
 {
     if (options.skipEvents === true) return;

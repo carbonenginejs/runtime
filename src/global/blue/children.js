@@ -210,6 +210,10 @@ function invokeChildCallback(callback, target, payload, optionName)
     callback.call(target, payload);
 }
 
+// Nothing outside the tests listens to the child events (childadded,
+// childremoved, childdeleted, childrencleared) or the "modified" events raised
+// below (checked 2026-10-14). Left for the new event system, which is expected
+// to carry them rather than drop them.
 function emitChildEvent(target, eventName, payload, options)
 {
     if (options.skipEvents !== true)
