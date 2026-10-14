@@ -312,6 +312,19 @@ export class EveShip2 extends EveMobile
   }
 
   /**
+   * Carbon GetBoosterIntensity (EveShip2.cpp:387-395): the booster set's
+   * intensity, or 0 without boosters.
+   *
+   * @returns {number}
+   */
+  @meta.implemented
+  GetBoosterIntensity()
+  {
+    if (this.boosters) return this.boosters.GetBoosterIntensity();
+    return 0;
+  }
+
+  /**
    * Returns the ship's maximum speed, the divisor that normalizes current speed
    * into the bound audio speed parameter.
    */

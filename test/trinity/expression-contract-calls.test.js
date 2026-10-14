@@ -111,3 +111,20 @@ test("expression adapters retain explicit data, absent contexts and caller callb
   assert.equal(CallContextFunction({ functions: { KillCount: () => 3 } }, "KillCount"), 3);
   assert.equal(GetServerTimeValue({ owner: { GetServerTime: () => 100 } }), 100);
 });
+
+test("BoundingSphereRadius, KillCount and ShipBoosterIntensity read the owning ship, as Carbon's terms do", async () =>
+{
+  // Tr2ControllerExpression.cpp:123-140, :204-212. The VDS controller buckets
+  // BoundingSphereRadius() into ShipSize; a missing port read 0 for every hull.
+  const { EveShip2 } = await import("../../npm/dist/trinity/index.js");
+  const ship = new EveShip2();
+  ship.boundingSphereRadius = 1200;
+  ship.displayKillCounterValue = 4;
+  ship.boosters = { GetBoosterIntensity: () => -0.5 };
+  assert.equal(DEFAULT_FUNCTIONS.BoundingSphereRadius({ owner: ship }), ship.GetRadius());
+  assert.ok(DEFAULT_FUNCTIONS.BoundingSphereRadius({ owner: ship }) > 0);
+  assert.equal(DEFAULT_FUNCTIONS.KillCount({ owner: ship }), 4);
+  assert.equal(DEFAULT_FUNCTIONS.ShipBoosterIntensity({ owner: ship }), 0, "never negative");
+  assert.equal(DEFAULT_FUNCTIONS.BoundingSphereRadius({ owner: null }), 0);
+  assert.equal(DEFAULT_FUNCTIONS.KillCount({ owner: {} }), 0);
+});

@@ -84,6 +84,64 @@ function ShaderQuality()
 }
 
 /**
+ * Carbon AnimationTime (Tr2ControllerExpression.cpp:73-86): the duration of
+ * the owner's named animation, or 0.
+ *
+ * @param {object|null} owner The controller's owner.
+ * @param {string} name Animation name.
+ * @returns {number} Seconds.
+ */
+function AnimationTimeOf(owner, name)
+{
+  const spaceObject = CastOwner(owner, "EveSpaceObject2");
+  if (!spaceObject) return 0;
+  const animation = spaceObject.GetAnimationController();
+  if (!animation) return 0;
+  return animation.FindAnimationDurationByName(name);
+}
+
+/**
+ * Carbon KillCount (Tr2ControllerExpression.cpp:123-130): the ship's kill
+ * counter, or 0.
+ *
+ * @param {object|null} owner The controller's owner.
+ * @returns {number}
+ */
+function KillCountOf(owner)
+{
+  const ship = CastOwner(owner, "EveShip2");
+  return ship ? ship.GetKillCounterValue() : 0;
+}
+
+/**
+ * Carbon BoundingSphereRadius (Tr2ControllerExpression.cpp:133-140): the
+ * space object's radius, or 0.
+ *
+ * @param {object|null} owner The controller's owner.
+ * @returns {number}
+ */
+function BoundingSphereRadiusOf(owner)
+{
+  const spaceObject = CastOwner(owner, "EveSpaceObject2");
+  return spaceObject ? spaceObject.GetRadius() : 0;
+}
+
+/**
+ * Carbon BoosterIntensity (Tr2ControllerExpression.cpp:204-212): the ship's
+ * booster intensity, never negative; 0 for anything but a ship.
+ *
+ * @param {object|null} owner The controller's owner.
+ * @returns {number}
+ */
+function BoosterIntensityOf(owner)
+{
+  const ship = CastOwner(owner, "EveShip2");
+  if (!ship) return 0;
+  const intensity = ship.GetBoosterIntensity();
+  return intensity > 0 ? intensity : 0;
+}
+
+/**
  * Carbon ShipMaxSpeed (cpp:180-201): the ship's GetMaxSpeed, or a child or
  * instance container's GetOwnerMaxSpeed; 1 when unset or for anything else.
  * Adapted: the override (cpp:182-185) is not ported, as above.
@@ -491,14 +549,14 @@ export const DEFAULT_FUNCTIONS = {
   // Tr2ControllerExpression.cpp:31-34; action contexts separately supply elapsed stateTime.
   StateTime: ctx => ctx.stateMachine ? ctx.stateMachine.GetStateRunTime() : ToNumber(ctx.stateTime),
   CurveSetTime: (ctx, name) => GetCurveSetTime(ctx, name),
-  AnimationTime: (ctx, name) => CallContextFunction(ctx, "AnimationTime", name),
+  AnimationTime: (ctx, name) => AnimationTimeOf(ctx.owner, name),
   IsAnimationPlaying: (ctx, name) => IsAnimationPlayingOf(ctx.owner, name),
   GetExternalControllerVariable: (ctx, name, fallback = 0) => GetExternalControllerVariable(ctx, name, fallback),
   ShipSpeed: ctx => ShipSpeedOf(ctx.owner),
   ShipMaxSpeed: ctx => ShipMaxSpeedOf(ctx.owner),
-  ShipBoosterIntensity: ctx => CallContextFunction(ctx, "ShipBoosterIntensity"),
-  KillCount: ctx => CallContextFunction(ctx, "KillCount"),
-  BoundingSphereRadius: ctx => CallContextFunction(ctx, "BoundingSphereRadius"),
+  ShipBoosterIntensity: ctx => BoosterIntensityOf(ctx.owner),
+  KillCount: ctx => KillCountOf(ctx.owner),
+  BoundingSphereRadius: ctx => BoundingSphereRadiusOf(ctx.owner),
   ShaderQuality: () => ShaderQuality(),
   IsWeekend: ctx => GetServerDatePart(ctx, "dayOfWeek") % 6 === 0 ? 1 : 0,
   ServerYear: ctx => GetServerDatePart(ctx, "year"),
@@ -814,10 +872,9 @@ export function CallContextFunction(context, name, arg, fallback = 0)
 
 /**
  * Tries explicit evaluator callbacks on the context table or its owner.
- * These extension hooks are not native receiver methods. Carbon
- * Tr2ControllerExpression.cpp:74-137,204-213 implements the animation, radius,
- * kill-counter and booster terms separately; those full ports remain outside
- * this callback adapter. Returns null when neither supplies the function.
+ * These extension hooks are not native receiver methods; the animation,
+ * radius, kill-counter and booster terms are ported above instead. Returns
+ * null when neither supplies the function.
  */
 export function TryCallContextFunction(context, name, arg)
 {
