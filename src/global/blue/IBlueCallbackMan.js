@@ -2,9 +2,8 @@
 //
 // A queue of callbacks run on the callback manager's own threads, or one at a
 // time by whoever calls Update. Carbon keeps one global background instance,
-// `BeCallbackMan` (ResourceLoading.cpp:24, :81-91), which nothing here needs:
-// resMan keeps its own, ticked on the main thread (BlueResMan.cpp:107-109), and
-// DXT encoding makes one per job.
+// `BeCallbackMan` (ResourceLoading.cpp:24, :81-91), and resMan keeps a second,
+// ticked on the main thread (BlueResMan.cpp:107-109).
 //
 // The implementation is `BlueCallbackMan`; the browser differences it carries
 // (workers instead of threads, async entries, a cancel that cannot block) are
