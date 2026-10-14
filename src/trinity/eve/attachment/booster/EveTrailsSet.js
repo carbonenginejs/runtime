@@ -79,8 +79,6 @@ export class EveTrailsSet
   /** m_instanceBuffer: a shared-buffer allocation, null until built. */
   _instanceBuffer = null;
 
-  _revision = 0;
-
   /** Carbon's constructor (cpp:13-20): a Tr2DeviceResource, prepared now and whenever the device can. */
   constructor()
   {
@@ -115,7 +113,6 @@ export class EveTrailsSet
       : null;
 
     this.geometryResource?.AddNotifyTarget(this);
-    this._revision++;
   }
 
   /** Carbon Cleanup (cpp:78-82): the declaration elements are no longer valid. */
@@ -167,7 +164,6 @@ export class EveTrailsSet
     ];
     this._vertexDeclHandle = Tr2EffectStateManager.getVertexDeclarationHandle(this._trailVertexDecl);
     this._trailVertexDeclElementCount = this._trailVertexDecl.length;
-    this._revision++;
   }
 
   /** Carbon ReleaseCachedData (cpp:144-148). */
@@ -201,7 +197,6 @@ export class EveTrailsSet
   {
     this._trailData.length = 0;
     this.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
-    this._revision++;
   }
 
   /** Carbon Add (cpp:198-206): one trail at a booster's transform, with its size. */
@@ -217,7 +212,6 @@ export class EveTrailsSet
     mat4.copy(data.transform, localMatrix);
     data.size = Number(size) || 0;
     this._trailData.push(data);
-    this._revision++;
   }
 
   /**
@@ -346,7 +340,6 @@ export class EveTrailsSet
     this.Cleanup();
     this.geometryResource = resource ?? null;
     this.geometryResource?.AddNotifyTarget(this);
-    this._revision++;
   }
 
   /** The trail placements as copies, for diagnostics. */
@@ -354,13 +347,6 @@ export class EveTrailsSet
   GetTrailData()
   {
     return this._trailData.map(trail => ({ transform: mat4.clone(trail.transform), size: trail.size }));
-  }
-
-  /** A counter bumped whenever the placements, mesh or declaration change. */
-  @meta.ours
-  GetRevision()
-  {
-    return this._revision;
   }
 
 }

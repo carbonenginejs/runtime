@@ -34,7 +34,6 @@ test("canonical Black initializes the real booster before its ship and suppresse
   assert.equal(ship.name, "mapped ship");
   assert.equal(ship.boosters.staticTrailLength, 17);
   assert.deepEqual(calls, [ [ "booster", 17 ], [ "ship", "mapped ship", 17 ] ]);
-  assert.equal(ship.boosters._revision, 1, "the original booster Initialize ran");
   assert.equal(reader.reader.AtEnd(), true);
   assert.deepEqual(reader.reports, []);
 });
@@ -46,7 +45,6 @@ test("disabled canonical Black initialization still suppresses INotify on the re
   assert.equal(ship.boosters.staticTrailLength, 17);
   assert.equal(ship.name, "mapped ship");
   assert.deepEqual(calls, []);
-  assert.equal(ship.boosters._revision, 0);
 });
 
 test("Copier initializes fresh and existing production ships after their copied boosters", t =>
@@ -61,8 +59,6 @@ test("Copier initializes fresh and existing production ships after their copied 
   assert.equal(clone.constructor, EveShip2);
   assert.notEqual(clone.boosters, source.boosters);
   assert.deepEqual(calls, [ [ "booster", 29 ], [ "ship", "copied ship", 29 ] ]);
-  assert.equal(source.boosters._revision, 0, "copying does not initialize the source");
-  assert.equal(clone.boosters._revision, 1);
 
   calls.length = 0;
   const destination = new EveShip2();

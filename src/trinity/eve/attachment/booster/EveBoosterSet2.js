@@ -301,8 +301,6 @@ export class EveBoosterSet2 extends EveEntity
   /** m_instanceBuffer (h:307): invalid until RebuildInstanceData. */
   _instanceBuffer = new Tr2SuballocatedBufferAllocation();
 
-  _revision = 0;
-
   /** m_glowsVisible (cpp:682) - starts visible, recomputed by UpdateVisibility. */
   _glowsVisible = true;
 
@@ -354,7 +352,6 @@ export class EveBoosterSet2 extends EveEntity
     {
       renderable.SetBoosterSet(this);
     }
-    this._revision++;
     this.PrepareResources();
     return true;
   }
@@ -466,14 +463,11 @@ export class EveBoosterSet2 extends EveEntity
   static _boosterInstancedVertex = null;
 
   /**
-   * Applies the changed member's native flare/trail consequence and advances
-   * the CPU revision.
-   *
-   * Adapted: Member names replace native addresses; the CPU revision is ours.
+   * Carbon OnModified (cpp:660-685): a flare member rebuilds the flares, and
+   * staticTrailLength respaces the static trail offsets; both only with glows.
    */
   @meta.blue.method
-  @meta.adapted
-  @meta.invalidates("#revision")
+  @meta.implemented
   OnModified(propertyName)
   {
     if (this.glows)
@@ -495,7 +489,6 @@ export class EveBoosterSet2 extends EveEntity
         EveBoosterSet2._UpdateStaticTrailOffsets(this);
       }
     }
-    this._revision++;
     return true;
   }
 
@@ -524,7 +517,6 @@ export class EveBoosterSet2 extends EveEntity
     {
       renderable.SetBoosterSet(this);
     }
-    this._revision++;
     return this.instances.length;
   }
 
@@ -602,7 +594,6 @@ export class EveBoosterSet2 extends EveEntity
     vec3.set(this.boosterBoundingSphereCenter, 0, 0, 0);
     this.boosterBoundingSphereRadius = 0;
     this.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
-    this._revision++;
   }
 
   /**
@@ -654,7 +645,6 @@ export class EveBoosterSet2 extends EveEntity
 
     EveBoosterSet2._UpdateBoundingSphere(this, booster.transform.subarray(12, 15));
     if (scale > this.maxSize) this.maxSize = scale;
-    this._revision++;
   }
 
   /**
@@ -846,17 +836,6 @@ export class EveBoosterSet2 extends EveEntity
       atlasIndex0: booster.atlasIndex0,
       atlasIndex1: booster.atlasIndex1
     }));
-  }
-
-  /**
-   * A counter bumped whenever the boosters or the instance list change, so
-   * an adapter can tell its packed data is stale.
-   */
-  @meta.blue.method
-  @meta.implemented
-  GetRevision()
-  {
-    return this._revision;
   }
 
   /**
