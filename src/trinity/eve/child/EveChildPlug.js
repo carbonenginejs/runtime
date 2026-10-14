@@ -71,14 +71,11 @@ export class EveChildPlug extends EveChildTransform
    * Carbon EveChildPlug::OnModified (EveChildPlug.cpp:111-118): a display change
    * re-registers with the scene component registry.
    *
-   * Adapted: compares the exposed property name where Carbon compares the
-   * member address.
-   *
    * @param {*} [value=null] The modified member, by exposed name.
    * @returns {boolean} Always true.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(value = null)
   {
     if (IsMatch(value, "display"))

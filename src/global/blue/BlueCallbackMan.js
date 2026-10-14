@@ -796,11 +796,3 @@ CjsSchema.define(BlueCallbackMan, {
     SetWorkerFactory: [ meta.ours ]
   }
 });
-
-/**
- * `BeCallbackMan` (ResourceLoading.cpp:24, :81-91) - the global background
- * callback manager. Carbon creates and runs it at startup; here the
- * orchestrator gives it a worker module and a thread count, then runs it.
- */
-export const BeCallbackMan = new BlueCallbackMan();
-BeCallbackMan.SetName("BeCallbackMan");

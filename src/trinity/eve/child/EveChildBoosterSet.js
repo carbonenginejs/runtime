@@ -272,14 +272,11 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * a glow or halo field changes; other members (flareLodEnabled) rebuild
    * nothing.
    *
-   * Adapted: compares exposed property names where Carbon compares member
-   * addresses.
-   *
    * @param {*} [value=null] The modified member, by exposed name.
    * @returns {boolean} Always true.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(value = null)
   {
     if (this.glows && (IsMatch(value, "glowScale") || IsMatch(value, "haloScaleX") || IsMatch(value, "haloScaleY")

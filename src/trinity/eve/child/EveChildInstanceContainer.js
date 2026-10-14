@@ -178,16 +178,14 @@ export class EveChildInstanceContainer extends EveChildTransform
    * locator set recreates the instances on the next update; a display change
    * re-registers with the scene component registry.
    *
-   * Adapted: compares exposed property names where Carbon compares member
-   * addresses (Blue name `locatorSet` is m_locatorSetName).
-   *
    * @param {*} [value=null] The modified member, by exposed name.
    * @returns {boolean} Always true.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(value = null)
   {
+    // Blue's `locatorSet` is m_locatorSetName.
     if (IsMatch(value, "source") || IsMatch(value, "locatorSet"))
     {
       this.reset = true;

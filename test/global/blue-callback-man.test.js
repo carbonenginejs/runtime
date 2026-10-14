@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { BeCallbackMan, BlueCallbackMan, BlueCallbackManWorker, IBlueCallbackMan } from "../../src/global/blue/index.js";
+import { BlueCallbackMan, BlueCallbackManWorker, IBlueCallbackMan } from "../../src/global/blue/index.js";
 
 // blue/src/CallbackMan.cpp: urgent before regular, fences after every thread
 // drained what came before, cancel removes a queued entry and discards one in
@@ -305,12 +305,6 @@ test("a fenced entry waits until every thread has drained what was queued before
 
   assert.equal(order.at(-1), "fence");
   await man.Stop();
-});
-
-test("BeCallbackMan is the named global background manager", () =>
-{
-  assert.ok(BeCallbackMan instanceof BlueCallbackMan);
-  assert.equal(BeCallbackMan._name, "BeCallbackMan");
 });
 
 test("in Update mode with several slots, a fence waits for running entries but does not hold back later ones", async () => {

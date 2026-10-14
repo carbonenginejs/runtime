@@ -1254,14 +1254,11 @@ export class EveEffectRoot2 extends EveEntity
    * ignores its argument and reads m_mute (cpp:1010-1020), so the written value
    * is passed here.
    *
-   * Adapted: compares exposed property names where Carbon compares member
-   * addresses.
-   *
    * @param {*} [value=null] The modified member, by exposed name.
    * @returns {boolean} Always true.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(value = null)
   {
     if (IsMatch(value, "display"))

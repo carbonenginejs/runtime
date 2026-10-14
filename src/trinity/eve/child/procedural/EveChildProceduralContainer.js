@@ -94,14 +94,11 @@ export class EveChildProceduralContainer extends EveChildTransform
    * Carbon EveChildProceduralContainer::OnModified (cpp:306-313): a display
    * change re-registers with the scene component registry.
    *
-   * Adapted: compares the exposed property name where Carbon compares the
-   * member address.
-   *
    * @param {*} [value=null] The modified member, by exposed name.
    * @returns {boolean} Always true.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(value = null)
   {
     if (IsMatch(value, "display"))
