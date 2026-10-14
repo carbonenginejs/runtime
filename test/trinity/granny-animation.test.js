@@ -202,18 +202,23 @@ test("Tr2GrannyAnimation samples layers in native lexical order for morph replac
 });
 
 
-test("Tr2GrannyAnimation handles reverse, paused, and masked-layer playback", () =>
+test("Tr2GrannyAnimation freezes a negative-speed clip, and handles paused and masked-layer playback", () =>
 {
   const animation = new Tr2GrannyAnimation();
   animation.model_ = "Ship";
   animation.SetGrannyResource(createResource());
+  // cmf AnimationPlayer::SetSpeed clamps to 0 (animation.cpp:634-638): a negative speed holds the first frame for ever.
   animation.PlayAnimation("Move", true, 0, 0, -1, false);
   animation.Update(0.5);
-  assert.ok(Math.abs(animation.GetMeshBoneMatrixList()[3] - 7.5) < 1e-6);
+  assert.ok(Math.abs(animation.GetMeshBoneMatrixList()[3]) < 1e-6);
+  assert.equal(animation.GetAnimationLayer(null).GetAnimationRemainingTime(), Infinity);
 
+  animation.PlayAnimation("Move", true, 0, 0, 1, false);
+  animation.Update(0.5);
+  assert.ok(Math.abs(animation.GetMeshBoneMatrixList()[3] - 2.5) < 1e-6);
   animation.TogglePauseAnimations(true);
   animation.Update(1);
-  assert.ok(Math.abs(animation.GetMeshBoneMatrixList()[3] - 7.5) < 1e-6);
+  assert.ok(Math.abs(animation.GetMeshBoneMatrixList()[3] - 2.5) < 1e-6);
   animation.TogglePauseAnimations(false);
 
   assert.equal(animation.AddAnimationLayer("upper", 0.5), true);

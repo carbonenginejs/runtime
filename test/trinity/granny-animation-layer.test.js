@@ -228,3 +228,18 @@ test("SetSharedGeometryRes is a no-op for the bound resource (Tr2GrannyAnimation
   unbound.SetSharedGeometryRes(null);
   assert.equal(unbound.resPath_, "res:/own.gr2", "null onto null: m_resPath untouched");
 });
+
+
+test("an enqueue behind a zero-speed clip caps it at one loop that never ends (animation.cpp:688-716)", () =>
+{
+  const animation = createAnimation();
+  const layer = animation.GetAnimationLayer(null);
+  animation.PlayAnimation("Move", true, 0, 0, 0, false);
+  animation.Update(1);
+  animation.ChainAnimation("Move");
+  // GetLoopIndex is 0 at speed 0, so the loop count becomes 1; its stop and duration left are infinite.
+  assert.equal(layer.queue[0].loopCount, 1);
+  assert.equal(layer.queue[0].stopAt, Infinity);
+  animation.Update(10);
+  assert.equal(layer.queue.length, 2, "the chained clip never starts");
+});

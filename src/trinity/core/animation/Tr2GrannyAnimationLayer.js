@@ -76,9 +76,7 @@ export class Tr2GrannyAnimationLayer
    *
    * Adapted: a chained request here starts when its predecessor finishes,
    * not when Carbon's chaining truncated it, so its start is derived from the
-   * JS queue. Negative speed plays in reverse in this port where Carbon
-   * clamps it to 0 (animation.cpp:635-639), so it is timed by |speed|.
-   * A request whose animation has no positive duration contributes 0.
+   * JS queue. A request whose animation has no positive duration contributes 0.
    *
    * @returns {number} Remaining seconds; Infinity when a player never ends.
    */
@@ -94,7 +92,7 @@ export class Tr2GrannyAnimationLayer
       const request = this.queue[index];
       const elapsed = index === 0 ? request.elapsed : request.elapsed - startsIn;
       const duration = request.animation ? Math.max(0, CjsGrannyCurves.getAnimationDuration(request.animation)) : 0;
-      const speed = Math.abs(request.speed);
+      const speed = request.speed;
       const loops = request.loopCount;
       const stop = Tr2GrannyAnimationLayer._getStopElapsed(request, duration, speed);
 
@@ -173,13 +171,13 @@ export class Tr2GrannyAnimationLayer
    *
    * @param {object} request A queue request.
    * @param {number} duration Its animation's duration in seconds.
-   * @returns {number} The loop index, or -1 when the request has no positive duration or speed.
+   * @returns {number} The loop index, or -1 when the animation has no positive duration.
    */
   static _GetLoopIndex(request, duration)
   {
-    const speed = Math.abs(request.speed);
-    if (!(duration > 0) || !(speed > 0)) return -1;
-    const played = Math.max(0, request.elapsed) * speed;
+    // Carbon divides by the loop duration, undefined at 0; speed is never negative (SetSpeed clamps).
+    if (!(duration > 0)) return -1;
+    const played = Math.max(0, request.elapsed) * request.speed;
     if (request.loopCount > 0 && played >= duration * request.loopCount) return request.loopCount - 1;
     return Math.trunc(played / duration);
   }

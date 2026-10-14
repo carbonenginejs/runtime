@@ -1441,7 +1441,7 @@ export class Tr2GrannyAnimation
       return;
     }
     const duration = this._getAnimationDuration(request.animation);
-    const speed = Math.abs(request.speed);
+    const speed = request.speed;
     if (duration <= 0 || request.elapsed < 0 || request.loopCount <= 0)
     {
       return;
@@ -1687,7 +1687,7 @@ export class Tr2GrannyAnimation
         const loopIndex = Tr2GrannyAnimationLayer._GetLoopIndex(queued, duration);
         if (loopIndex < 0) continue;
         queued.loopCount = loopIndex + 1;
-        queued.stopAt = duration * queued.loopCount / Math.abs(queued.speed);
+        queued.stopAt = duration * queued.loopCount / queued.speed;
       }
     }
     const request = {
@@ -1695,7 +1695,8 @@ export class Tr2GrannyAnimation
       animation,
       loopCount: Math.max(0, Math.trunc(Number(loopCount) || 0)),
       elapsed: -Math.max(0, Number(delay) || 0),
-      speed: Number.isFinite(Number(speed)) ? Number(speed) : 1,
+      // cmf AnimationPlayer::SetSpeed clamps to 0 (animation.cpp:634-638): a negative speed freezes the clip.
+      speed: Number.isFinite(Number(speed)) ? Math.max(0, Number(speed)) : 1,
       clearWhenDone: !!clearWhenDone,
       held: false
     };
@@ -1705,7 +1706,7 @@ export class Tr2GrannyAnimation
     // (the caller's, plus the remainder an enqueue waits for) to a
     // GetDurationLeft that already counts it, so the pin is that much late.
     const duration = animation ? this._getAnimationDuration(animation) : 0;
-    const playSpeed = Math.abs(request.speed);
+    const playSpeed = request.speed;
     if (request.loopCount > 0 && request.clearWhenDone && duration > 0 && playSpeed > 0)
     {
       const waited = replace ? 0 : layer.GetAnimationRemainingTime();
@@ -1876,22 +1877,17 @@ export class Tr2GrannyAnimation
       return;
     }
     const duration = this._getAnimationDuration(animation);
-    const speed = Math.abs(request.speed);
-    let time = layer.controlParamEnabled ? layer.controlParam * duration : request.elapsed * speed;
+    let time = layer.controlParamEnabled ? layer.controlParam * duration : request.elapsed * request.speed;
     if (duration > 0)
     {
       const totalDuration = request.loopCount > 0 ? duration * request.loopCount : Infinity;
       if (time >= totalDuration)
       {
-        time = request.speed < 0 ? 0 : duration;
+        time = duration;
       }
       else
       {
         time %= duration;
-        if (request.speed < 0)
-        {
-          time = time === 0 ? duration : duration - time;
-        }
       }
     }
     if (this._runtimeModel.cmf)
