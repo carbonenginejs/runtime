@@ -18,6 +18,30 @@ import { CjsControllerExpressionProgram } from "./CjsControllerExpressionProgram
 })
 export class Tr2ControllerExpression
 {
+  /**
+   * g_controllerFunctionOverrideEnabled (cpp:18, :23): the ShipSpeed,
+   * ShipMaxSpeed and server-time terms read the three settings below instead
+   * of the owner and the frame clock.
+   */
+  @meta.setting("controllerFunctionOverrideEnabled")
+  static controllerFunctionOverrideEnabled = false;
+
+  /** g_controllerShipSpeed (cpp:19, :24): ShipSpeed while overriding. */
+  @meta.setting("controllerShipSpeed")
+  static controllerShipSpeed = 0;
+
+  /** g_controllerShipMaxSpeed (cpp:20, :25): ShipMaxSpeed while overriding. */
+  @meta.setting("controllerShipMaxSpeed")
+  static controllerShipMaxSpeed = 1;
+
+  /**
+   * g_controllerServerTime (cpp:21, :26): the server time while overriding.
+   * Blue ticks on the runtime epoch, as every Blue time here; Carbon's is
+   * absolute FILETIME (see CcpTime.timeToFileTime).
+   */
+  @meta.setting("controllerServerTime")
+  static controllerServerTime = 0;
+
   /** Compiled JavaScript parser program; not persisted. */
   @meta.type.rawStruct("CcpParser::Program")
   program = null;

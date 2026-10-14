@@ -13,11 +13,13 @@ import { IsMatch } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { addChild, removeChild, clearChildren } from "../../../global/blue/children.js";
 import { EveChildTransform } from "./EveChildTransform.js";
+import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 
 /** A container of child objects plugged into a socket, forwarding controller events, controller variables and component registration to what it contains. */
 @meta.define({ className: "EveChildPlug", family: "eve/child" })
 @meta.blue.inherit(ITr2CurveSetOwner, IInitialize, INotify, IListNotify)
 @meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, ITr2SoundEmitterOwner, EveEntity)
+@meta.blue.inherit(IEveEffectChildrenOwner)
 export class EveChildPlug extends EveChildTransform
 {
 
@@ -345,6 +347,17 @@ export class EveChildPlug extends EveChildTransform
     }
   }
 
+  /** Carbon GetEffectChildByName (EveChildPlug.cpp:422-433): the first object with that name. */
+  @meta.blue.method
+  @meta.implemented
+  GetEffectChildByName(name)
+  {
+    for (const child of this.objects)
+    {
+      if (child.GetName() === name) return child;
+    }
+    return null;
+  }
 }
 
-// EveChildPlug_Blue.cpp: native exposure; unported contracts: IEveEffectChildrenOwner, IShaderConfigurer.
+// EveChildPlug_Blue.cpp: native exposure; unported contracts: IShaderConfigurer.

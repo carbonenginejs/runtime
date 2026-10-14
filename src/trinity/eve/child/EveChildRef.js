@@ -16,6 +16,7 @@ import { quat } from "#math/quat";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
+import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 
 /**
  * A child that loads another space-object child from a red/black file by path
@@ -28,6 +29,7 @@ import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
 @meta.define({ className: "EveChildRef", family: "eve/child" })
 @meta.blue.inherit(ITr2CurveSetOwner, IInitialize, INotify)
 @meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, ITr2SoundEmitterOwner, EveEntity)
+@meta.blue.inherit(IEveEffectChildrenOwner)
 export class EveChildRef extends EveChildTransform
 {
 
@@ -455,4 +457,4 @@ export class EveChildRef extends EveChildTransform
 
 }
 
-// EveChildRef_Blue.cpp: native exposure; unported contracts: IEveEffectChildrenOwner, IShaderConfigurer.
+// EveChildRef_Blue.cpp: native exposure; unported contracts: IShaderConfigurer.

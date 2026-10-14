@@ -8,6 +8,19 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
 /**
+ * Carbon's BlueCastPtr to a class asked of Blue by its Carbon name, so the
+ * controllers do not import Eve. An unregistered class throws: Carbon's cast
+ * target always exists.
+ */
+function CastTo(value, className)
+{
+  const registration = blue.classes.GetClassRegistration(className);
+  if (!registration) throw new Error(`Tr2ActionChildEffect: class ${className} is not registered with Blue`);
+  return CjsSchema.cast(value, registration.type);
+}
+
+
+/**
  * Controller action that attaches a child effect loaded from a resource path to
  * its owner on start and detaches it on stop.
  */
@@ -99,28 +112,75 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
   }
 
   /**
-   * Adds the target child effect when Carbon would load it on action start.
-   * Adapted: preserves asynchronous resource loading and structural owner lookup
-   * rather than native synchronous loading and concrete scene/interface casts.
+   * Carbon Start (Tr2ActionChildEffect.cpp:68-135): resolve the owner, look
+   * up a child of childName on it, and load the path when there is none.
+   *
+   * Adapted: the load is asynchronous (see _loadChild).
    */
   @meta.blue.method
   @meta.adapted
   Start(controller)
   {
-    const controllerOwner = controller.GetOwner();
-    const resolved = this._resolveOwner(controllerOwner);
+    const resolved = this._ResolveOwner(controller);
+    if (!resolved) return;
     const owner = resolved.owner;
-    if (!owner)
-    {
-      return;
-    }
-    this._child = this.FindChild(owner);
+    this._child = this.childName ? owner.GetEffectChildByName(this.childName) : null;
     this._ownsChild = false;
-    if (this._child || !this.addOnStart || !this.path)
+    if (!this.addOnStart || this._child || !this.path) return;
+    this._loadChild(owner, controller.GetOwner(), resolved.rebind);
+  }
+
+  /**
+   * Carbon Start's owner (Tr2ActionChildEffect.cpp:70-108): the controller
+   * owner as an IEveEffectChildrenOwner, redirected to its effect child named
+   * targetAnotherOwner. When that finds nothing and a target is named, a
+   * multi-effect's parameter object or a stretch's source or destination
+   * space object stands in, and the multi-effect is rebound once the child
+   * is added.
+   *
+   * @param {object} controller The action controller.
+   * @returns {{owner: object, rebind: boolean}|null} The owner, or null.
+   */
+  _ResolveOwner(controller)
+  {
+    const controllerOwner = controller.GetOwner();
+    let owner = CastTo(controllerOwner, "IEveEffectChildrenOwner");
+    if (owner && this.targetAnotherOwner)
     {
-      return;
+      owner = CastTo(owner.GetEffectChildByName(this.targetAnotherOwner), "IEveEffectChildrenOwner");
     }
-    this._loadChild(owner, controllerOwner, resolved.rebind);
+    if (owner) return { owner, rebind: false };
+    if (this.targetAnotherOwner)
+    {
+      owner = this._GetRedirectedOwner(controllerOwner);
+    }
+    return owner ? { owner, rebind: true } : null;
+  }
+
+  /**
+   * The owner a named target redirects to when no effect child carries the
+   * name (Tr2ActionChildEffect.cpp:79-102, :156-192): a multi-effect's
+   * parameter object, or a stretch's source or destination space object.
+   * Returns undefined, not null, when a multi-effect has no such parameter,
+   * so Stop can return early as Carbon's does (cpp:161-164).
+   *
+   * @param {object} controllerOwner The controller's owner.
+   * @returns {object|null|undefined} The owner as an IEveEffectChildrenOwner.
+   */
+  _GetRedirectedOwner(controllerOwner)
+  {
+    const multiEffect = CastTo(controllerOwner, "EveMultiEffect");
+    if (multiEffect)
+    {
+      const parameter = multiEffect.GetParameterByName(this.targetAnotherOwner);
+      if (!parameter) return undefined;
+      return CastTo(parameter.GetParameterObject(), "IEveEffectChildrenOwner");
+    }
+    const stretch = CastTo(controllerOwner, "EveStretch3");
+    if (!stretch) return null;
+    if (this.targetAnotherOwner === "SourceSpaceObject") return CastTo(stretch.GetSourceSpaceObject(), "IEveEffectChildrenOwner");
+    if (this.targetAnotherOwner === "DestSpaceObject") return CastTo(stretch.GetDestSpaceObject(), "IEveEffectChildrenOwner");
+    return null;
   }
 
   /**
@@ -148,7 +208,7 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
       if (child)
       {
         if (this.childName) child.SetName(this.childName);
-        Tr2ActionChildEffect._addChildToOwner(owner, child);
+        owner.AddToEffectChildrenList(child);
         child.StartControllers();
         this._child = child;
         this._ownsChild = true;
@@ -160,7 +220,8 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
       }
       if (rebind)
       {
-        ITr2ControllerAction.callTarget(controllerOwner, "Rebind", true);
+        const effect = CastTo(controllerOwner, "EveMultiEffect");
+        if (effect) effect.Rebind(true);
       }
     }, error =>
     {
@@ -169,10 +230,12 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
   }
 
   /**
-   * Stops or removes the target child effect.
-   * Adapted: invalidates pending asynchronous loads and retains structural owner
-   * resolution. Native missing MultiEffect parameters can return before clearing
-   * m_child; this retained JS adapter clears its child reference.
+   * Carbon Stop (Tr2ActionChildEffect.cpp:138-199): with removeOnStop, remove
+   * the child from the owner Start would resolve; a multi-effect without the
+   * named parameter returns before the child is forgotten, as Carbon's does.
+   *
+   * Adapted: invalidates a pending asynchronous load, and releases the device
+   * resources of a child this action loaded.
    */
   @meta.blue.method
   @meta.adapted
@@ -181,16 +244,22 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
     // A load still in flight belongs to this run; drop it.
     this._loadRequest++;
     const child = this._child;
-    if (!child)
+    if (child && this.removeOnStop)
     {
-      return;
-    }
-    if (this.removeOnStop)
-    {
-      const owner = this._resolveOwner(controller.GetOwner()).owner;
+      const controllerOwner = controller.GetOwner();
+      let owner = CastTo(controllerOwner, "IEveEffectChildrenOwner");
+      if (owner && this.targetAnotherOwner)
+      {
+        owner = CastTo(owner.GetEffectChildByName(this.targetAnotherOwner), "IEveEffectChildrenOwner");
+      }
+      if (!owner && this.targetAnotherOwner)
+      {
+        owner = this._GetRedirectedOwner(controllerOwner);
+        if (owner === undefined) return;
+      }
       if (owner)
       {
-        Tr2ActionChildEffect._removeChildFromOwner(owner, child);
+        owner.RemoveFromEffectChildrenList(child);
         if (this._ownsChild) this._ReleaseChildDeviceResources(child, owner);
       }
     }
@@ -233,14 +302,6 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
     };
     const retained = new Set();
     reach(owner, retained);
-    // The retained structural owner adapter also accepts plain child arrays.
-    for (const name of [ "children", "effectChildren", "items" ])
-    {
-      if (Array.isArray(owner?.[name]))
-      {
-        for (const root of owner[name]) reach(root, retained);
-      }
-    }
     const reachable = new Set();
     reach(child, reachable);
     const resources = [];
@@ -254,176 +315,6 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
       }
     }
     for (const resource of resources) resource.Destroy();
-  }
-
-  /**
-   * Resolves the object the child effect is attached to, following
-   * targetAnotherOwner when set.
-   */
-  @meta.ours
-  ResolveOwner(owner)
-  {
-    return this._resolveOwner(owner).owner;
-  }
-
-  /**
-   * Looks up an already-present child by childName on the owner, returning null
-   * when childName is empty or no match exists.
-   */
-  @meta.ours
-  FindChild(owner)
-  {
-    return (this.childName ? ITr2ControllerAction.callTarget(owner, "GetEffectChildByName", this.childName) ?? Tr2ActionChildEffect._findNamed(owner, this.childName) : null) ?? null;
-  }
-
-  /**
-   * Redirects the action to another owner named by targetAnotherOwner, trying a
-   * named effect child, then a named parameter, then a stretch endpoint;
-   * `rebind` is set when the redirect requires the controller owner to rebind.
-   */
-  @meta.ours
-  _resolveOwner(owner)
-  {
-    if (!owner || !this.targetAnotherOwner)
-    {
-      return {
-        owner,
-        rebind: false
-      };
-    }
-    const childOwner = ITr2ControllerAction.asObject(ITr2ControllerAction.callTarget(owner, "GetEffectChildByName", this.targetAnotherOwner) ?? Tr2ActionChildEffect._findNamed(owner, this.targetAnotherOwner));
-    if (childOwner)
-    {
-      return {
-        owner: childOwner,
-        rebind: false
-      };
-    }
-    const parameterOwner = ITr2ControllerAction.getParameterOwner(owner, this.targetAnotherOwner);
-    if (parameterOwner)
-    {
-      return {
-        owner: parameterOwner,
-        rebind: true
-      };
-    }
-    const stretchOwner = Tr2ActionChildEffect._getStretchOwner(owner, this.targetAnotherOwner);
-    return {
-      owner: stretchOwner,
-      rebind: !!stretchOwner
-    };
-  }
-
-  /**
-   * Attaches a child through AddToEffectChildrenList or AddChild, falling back
-   * to pushing onto plain `effectChildren` and `children` arrays.
-   */
-  @meta.ours
-  static _addChildToOwner(owner, child)
-  {
-    if (ITr2ControllerAction.hasFunction(owner, "AddToEffectChildrenList"))
-    {
-      owner.AddToEffectChildrenList(child);
-      return;
-    }
-    if (ITr2ControllerAction.hasFunction(owner, "AddChild"))
-    {
-      owner.AddChild(child);
-      return;
-    }
-    this._addToArray(owner, "effectChildren", child);
-    this._addToArray(owner, "children", child);
-  }
-
-  /**
-   * Searches the owner's `effectChildren`, `children` and `items` arrays for an
-   * entry whose GetName() or `name` matches.
-   */
-  @meta.ours
-  static _findNamed(owner, name)
-  {
-    for (const listName of ["effectChildren", "children", "items"])
-    {
-      if (ITr2ControllerAction.hasProperty(owner, listName) && Array.isArray(owner[listName]))
-      {
-        const found = owner[listName].find(item => ITr2ControllerAction.callTarget(item, "GetName") === name || ITr2ControllerAction.hasProperty(item, "name") && item.name === name);
-        if (found)
-        {
-          return found;
-        }
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Resolves the `SourceSpaceObject` and `DestSpaceObject` endpoints of a
-   * stretch owner, returning null for any other name.
-   */
-  @meta.ours
-  static _getStretchOwner(owner, name)
-  {
-    if (name === "SourceSpaceObject")
-    {
-      return ITr2ControllerAction.asObject(ITr2ControllerAction.callTarget(owner, "GetSourceSpaceObject") ?? ITr2ControllerAction.getProperty(owner, "sourceSpaceObject"));
-    }
-    if (name === "DestSpaceObject")
-    {
-      return ITr2ControllerAction.asObject(ITr2ControllerAction.callTarget(owner, "GetDestSpaceObject") ?? ITr2ControllerAction.getProperty(owner, "destSpaceObject"));
-    }
-    return null;
-  }
-
-  /**
-   * Detaches a child through RemoveFromEffectChildrenList or RemoveChild,
-   * falling back to splicing it out of plain `effectChildren` and `children`
-   * arrays.
-   */
-  @meta.ours
-  static _removeChildFromOwner(owner, child)
-  {
-    if (ITr2ControllerAction.hasFunction(owner, "RemoveFromEffectChildrenList"))
-    {
-      owner.RemoveFromEffectChildrenList(child);
-      return;
-    }
-    if (ITr2ControllerAction.hasFunction(owner, "RemoveChild"))
-    {
-      owner.RemoveChild(child);
-      return;
-    }
-    this._removeFromArray(owner, "effectChildren", child);
-    this._removeFromArray(owner, "children", child);
-  }
-
-  /**
-   * Appends a value to a named array property on the owner if it is not already
-   * present.
-   */
-  @meta.ours
-  static _addToArray(owner, listName, value)
-  {
-    if (ITr2ControllerAction.hasProperty(owner, listName) && Array.isArray(owner[listName]) && !owner[listName].includes(value))
-    {
-      owner[listName].push(value);
-    }
-  }
-
-  /**
-   * Removes the first occurrence of a value from a named array property on the
-   * owner.
-   */
-  @meta.ours
-  static _removeFromArray(owner, listName, value)
-  {
-    if (ITr2ControllerAction.hasProperty(owner, listName) && Array.isArray(owner[listName]))
-    {
-      const index = owner[listName].indexOf(value);
-      if (index !== -1)
-      {
-        owner[listName].splice(index, 1);
-      }
-    }
   }
 }
 

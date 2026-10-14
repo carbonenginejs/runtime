@@ -52,7 +52,7 @@ test("ChildEffect retains native declaration order and forwards prefetch with a 
 
 test("ChildEffect discards an older load and releases its cache without removing a retained child", async t =>
 {
-  const pending = [], events = [], owner = { children: [] };
+  const pending = [], events = [], owner = new EveChildContainer();
   t.mock.method(blue.resMan, "LoadObject", () => new Promise(resolve => pending.push(resolve)));
   const action = new Tr2ActionChildEffect(), controller = { GetOwner: () => owner };
   action.path = "res:/child.red";
@@ -65,16 +65,16 @@ test("ChildEffect discards an older load and releases its cache without removing
   pending[0](first);
   pending[1](second);
   await new Promise(resolve => setImmediate(resolve));
-  assert.deepEqual(owner.children, [second]);
+  assert.deepEqual(owner.objects, [second]);
   assert.deepEqual(events, ["start"]);
   assert.equal(action._child, second);
   action.removeOnStop = false;
   action.Stop(controller);
   assert.equal(action._child, null);
-  assert.deepEqual(owner.children, [second]);
+  assert.deepEqual(owner.objects, [second]);
   action.removeOnStop = true;
   action.Stop(controller);
-  assert.deepEqual(owner.children, [second]);
+  assert.deepEqual(owner.objects, [second]);
 });
 
 function HostFactory(t, factory)

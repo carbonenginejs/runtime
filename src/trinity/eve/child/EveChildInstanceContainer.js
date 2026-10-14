@@ -21,11 +21,13 @@ import { EveSpaceObject2 } from "../spaceObject/EveSpaceObject2.js";
 import { EveEntity } from "../EveEntity.js";
 import { Tr2QuadRenderer } from "../../core/Tr2QuadRenderer/index.js";
 import { blue, IsMatch } from "#blue";
+import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 
 /** A child that instantiates a source template across a list of authored or locator-driven transforms, forwarding controller and registration calls to the instances. */
 @meta.define({ className: "EveChildInstanceContainer", family: "eve/child" })
 @meta.blue.inherit(ITr2CurveSetOwner, INotify, IListNotify, ITr2ControllerOwner)
 @meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, INotify, ITr2ControllerOwner, IListNotify, EveEntity)
+@meta.blue.inherit(IEveEffectChildrenOwner)
 export class EveChildInstanceContainer extends EveChildTransform
 {
 
@@ -259,6 +261,28 @@ export class EveChildInstanceContainer extends EveChildTransform
     }
     for (const transform of this.transforms)
       this.CreateInstance(transform.scale, transform.rotation, transform.translation, transform.boneIndex);
+  }
+
+  /** Carbon GetEffectChildByName (cpp:513-517): none; the instances are not named children. */
+  @meta.blue.method
+  @meta.implemented
+  GetEffectChildByName(_name)
+  {
+    return null;
+  }
+
+  /** Carbon AddToEffectChildrenList (cpp:519-522): does nothing. */
+  @meta.blue.method
+  @meta.implemented
+  AddToEffectChildrenList(_child)
+  {
+  }
+
+  /** Carbon RemoveFromEffectChildrenList (cpp:524-527): does nothing. */
+  @meta.blue.method
+  @meta.implemented
+  RemoveFromEffectChildrenList(_child)
+  {
   }
 
   /** Copies the source with Blue's copier, retaining native wrapper/registration order (cpp:234). */
@@ -656,4 +680,4 @@ export class EveChildInstanceContainer extends EveChildTransform
 
 }
 
-// EveChildInstanceContainer_Blue.cpp: native exposure; unported contracts: IEveEffectChildrenOwner, IShaderConfigurer.
+// EveChildInstanceContainer_Blue.cpp: native exposure; unported contracts: IShaderConfigurer.

@@ -16,11 +16,13 @@ import { vec3 } from "#math/vec3";
 import { quat } from "#math/quat";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { EveSocketParameterString } from "../socket/EveSocketParameterString.js";
+import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 
 /** A named attachment point on a ship that resolves and hot-reloads a plugged-in child resource, forwarding controller and registration calls to it. */
 @meta.define({ className: "EveChildSocket", family: "eve/child" })
 @meta.blue.inherit(ITr2CurveSetOwner, IInitialize, INotify)
 @meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, ITr2SoundEmitterOwner, EveEntity)
+@meta.blue.inherit(IEveEffectChildrenOwner)
 export class EveChildSocket extends EveChildTransform
 {
 
@@ -379,6 +381,29 @@ export class EveChildSocket extends EveChildTransform
     }
   }
 
+
+  /** Carbon GetEffectChildByName (EveChildSocket.cpp:239-246): asks the plug. */
+  @meta.blue.method
+  @meta.implemented
+  GetEffectChildByName(name)
+  {
+    if (this.plug) return this.plug.GetEffectChildByName(name);
+    return null;
+  }
+
+  /** Carbon AddToEffectChildrenList (EveChildSocket.cpp:248-250): does nothing. */
+  @meta.blue.method
+  @meta.implemented
+  AddToEffectChildrenList(_child)
+  {
+  }
+
+  /** Carbon RemoveFromEffectChildrenList (EveChildSocket.cpp:252-254): does nothing. */
+  @meta.blue.method
+  @meta.implemented
+  RemoveFromEffectChildrenList(_child)
+  {
+  }
 }
 
-// EveChildSocket_Blue.cpp: native exposure; unported contracts: IEveEffectChildrenOwner, IShaderConfigurer.
+// EveChildSocket_Blue.cpp: native exposure; unported contracts: IShaderConfigurer.

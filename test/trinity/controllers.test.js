@@ -500,11 +500,17 @@ test("CjsControllerExpressionProgram evaluates a safe parser subset without eval
   const unsafe = CjsControllerExpressionProgram.Compile("eval(1)");
   assert(!unsafe.IsValid());
 });
-test("controller expression program exposes Carbon controller DateTime functions", () =>
+test("controller expression program exposes Carbon controller DateTime functions", async t =>
 {
-  const context = {
-    serverTime: new Date(2026, 6, 4, 12, 34, 56)
-  };
+  // The server time is the controllerServerTime setting while overriding, in UTC
+  // parts (Tr2ControllerExpression.cpp:241-292); Saturday 2026-07-04 12:34:56 UTC.
+  const { Tr2ControllerExpression } = await import("../../npm/dist/trinity/controllers/expression/Tr2ControllerExpression.js");
+  const { CcpTime } = await import("../../npm/dist/global/blue/index.js");
+  const saved = [ Tr2ControllerExpression.controllerFunctionOverrideEnabled, Tr2ControllerExpression.controllerServerTime ];
+  t.after(() => { [ Tr2ControllerExpression.controllerFunctionOverrideEnabled, Tr2ControllerExpression.controllerServerTime ] = saved; });
+  Tr2ControllerExpression.controllerFunctionOverrideEnabled = true;
+  Tr2ControllerExpression.controllerServerTime = CcpTime.timeFromDouble((Date.UTC(2026, 6, 4, 12, 34, 56) - CcpTime.BLUE_EPOCH_UNIX_MS) / 1000);
+  const context = {};
   assertEquals(CjsControllerExpressionProgram.Compile("ServerYear()").Evaluate(context), 2026);
   assertEquals(CjsControllerExpressionProgram.Compile("ServerMonth()").Evaluate(context), 7);
   assertEquals(CjsControllerExpressionProgram.Compile("ServerDayOfWeek()").Evaluate(context), 6);
@@ -1501,7 +1507,7 @@ test("Tr2ActionChildEffect loads its child as Carbon does and adds it only on su
 {
   const pathField = CjsSchema.getField(Tr2ActionChildEffect, "path");
   assertEquals(pathField?.type?.kind, "path");
-  const { EveChildContainer } = await import("../../npm/dist/trinity/index.js");
+  const { EveChildContainer, EveMultiEffect, EveMultiEffectParameter } = await import("../../npm/dist/trinity/index.js");
   const settle = () => new Promise(resolve => setImmediate(resolve));
   const events = [];
   const makeChild = () =>
@@ -1523,18 +1529,9 @@ test("Tr2ActionChildEffect loads its child as Carbon does and adds it only on su
   };
   try
   {
-    const targetOwner = makeChildOwner("target", events);
-    const rootOwner = {
-      children: [targetOwner],
-      GetEffectChildByName(name)
-      {
-        return this.children.find(child => child.name === name) ?? null;
-      },
-      Rebind(value)
-      {
-        events.push(`rebind:${value}`);
-      }
-    };
+    const targetOwner = makeChildOwner("target", events, EveChildContainer);
+    const rootOwner = new EveChildContainer();
+    rootOwner.objects.push(targetOwner);
     const controller = { GetOwner: () => rootOwner };
     const action = new Tr2ActionChildEffect();
     action.targetAnotherOwner = "target";
@@ -1549,8 +1546,9 @@ test("Tr2ActionChildEffect loads its child as Carbon does and adds it only on su
 
     // An existing child of that name is reused, not loaded.
     events.length = 0;
-    const existing = { name: "spark" };
-    targetOwner.children = [existing];
+    const existing = new EveChildContainer();
+    existing.name = "spark";
+    targetOwner.objects.splice(0, targetOwner.objects.length, existing);
     action.Start(controller);
     await settle();
     assertEquals(events.join(","), "");
@@ -1565,14 +1563,14 @@ test("Tr2ActionChildEffect loads its child as Carbon does and adds it only on su
     assertEquals(events.join(","), "");
 
     // A file that is not an Eve child adds nothing (no placeholder).
-    targetOwner.children = [];
+    targetOwner.objects.length = 0;
     action.targetAnotherOwner = "target";
     action.childName = "plain";
     action.path = "res:/plain.red";
     action.Start(controller);
     await settle();
     assertEquals(events.join(","), "load:res:/plain.red");
-    assertEquals(targetOwner.children.length, 0);
+    assertEquals(targetOwner.objects.length, 0);
 
     // A Stop before the file arrives discards the load.
     events.length = 0;
@@ -1582,25 +1580,17 @@ test("Tr2ActionChildEffect loads its child as Carbon does and adds it only on su
     action.Stop(controller);
     await settle();
     assertEquals(events.join(","), "load:res:/spark.red");
-    assertEquals(targetOwner.children.length, 0);
+    assertEquals(targetOwner.objects.length, 0);
 
     // A parameter owner rebinds the controller owner after the add.
     events.length = 0;
-    const parameterOwner = makeChildOwner("parameterOwner", events);
-    const parameterRoot = {
-      GetEffectChildByName()
-      {
-        return null;
-      },
-      GetParameterByName(name)
-      {
-        return name === "paramOwner" ? { GetParameterObject: () => parameterOwner } : null;
-      },
-      Rebind(value)
-      {
-        events.push(`rebind:${value}`);
-      }
-    };
+    const parameterOwner = makeChildOwner("parameterOwner", events, EveChildContainer);
+    const parameterRoot = new EveMultiEffect();
+    const parameter = new EveMultiEffectParameter();
+    parameter.name = "paramOwner";
+    parameter.object = parameterOwner;
+    parameterRoot.parameters.push(parameter);
+    parameterRoot.Rebind = value => events.push(`rebind:${value}`);
     action.targetAnotherOwner = "paramOwner";
     action.childName = "beam";
     action.path = "res:/beam.red";
@@ -1896,26 +1886,16 @@ function makeAction(name, events, expectedController)
     }
   })();
 }
-function makeChildOwner(name, events)
+/** A real EveChildContainer (an IEveEffectChildrenOwner) whose add and remove calls are recorded. */
+function makeChildOwner(name, events, EveChildContainer)
 {
-  return {
-    name,
-    children: [],
-    AddToEffectChildrenList(child)
-    {
-      events.push(`add:${child.name}`);
-      this.children.push(child);
-    },
-    RemoveFromEffectChildrenList(child)
-    {
-      events.push("remove");
-      const index = this.children.indexOf(child);
-      if (index !== -1)
-      {
-        this.children.splice(index, 1);
-      }
-    }
-  };
+  const owner = new EveChildContainer();
+  owner.name = name;
+  const add = owner.AddToEffectChildrenList.bind(owner);
+  const remove = owner.RemoveFromEffectChildrenList.bind(owner);
+  owner.AddToEffectChildrenList = child => { events.push(`add:${child.name}`); add(child); };
+  owner.RemoveFromEffectChildrenList = child => { events.push("remove"); remove(child); };
+  return owner;
 }
 function makeOverlayOwner(events, animated)
 {

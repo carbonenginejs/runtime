@@ -15,6 +15,7 @@ import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { TR2SHADERMODEL } from "#consts/graphics";
 import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 import { ITr2ControllerOwner } from "../ITr2ControllerOwner.js";
+import { Tr2ControllerExpression } from "./Tr2ControllerExpression.js";
 
 /**
  * Carbon's BlueCastPtr on a controller's owner, the class asked of Blue by its
@@ -53,15 +54,15 @@ function IsAnimationPlayingOf(owner, layerName)
 
 /**
  * Carbon ShipSpeed (Controllers/Tr2ControllerExpression.cpp:142-160): the
- * owner's world-velocity length, for a space object or a child container.
- * Adapted: the controllerFunctionOverrideEnabled override (cpp:144-147) is not
- * ported; no class registers that setting yet.
+ * controllerShipSpeed setting while overriding, else the owner's
+ * world-velocity length, for a space object or a child container.
  *
  * @param {object|null} owner The controller's owner.
  * @returns {number} Speed in metres per second.
  */
 function ShipSpeedOf(owner)
 {
+  if (Tr2ControllerExpression.controllerFunctionOverrideEnabled) return Tr2ControllerExpression.controllerShipSpeed;
   const spaceObject = CastOwner(owner, "EveSpaceObject2") ?? CastOwner(owner, "EveChildContainer");
   if (!spaceObject) return 0;
   vec3.set(SPEED_SCRATCH, 0, 0, 0);
@@ -142,12 +143,13 @@ function BoosterIntensityOf(owner)
 }
 
 /**
- * Carbon ShipMaxSpeed (cpp:180-201): the ship's GetMaxSpeed, or a child or
- * instance container's GetOwnerMaxSpeed; 1 when unset or for anything else.
- * Adapted: the override (cpp:182-185) is not ported, as above.
+ * Carbon ShipMaxSpeed (cpp:180-201): the controllerShipMaxSpeed setting while
+ * overriding, else the ship's GetMaxSpeed, or a child or instance container's
+ * GetOwnerMaxSpeed; 1 when unset or for anything else.
  */
 function ShipMaxSpeedOf(owner)
 {
+  if (Tr2ControllerExpression.controllerFunctionOverrideEnabled) return Tr2ControllerExpression.controllerShipMaxSpeed;
   const ship = CastOwner(owner, "EveShip2");
   const container = ship ? null : (CastOwner(owner, "EveChildContainer") ?? CastOwner(owner, "EveChildInstanceContainer"));
   const speed = ship ? ship.GetMaxSpeed() : container ? container.GetOwnerMaxSpeed() : 0;
@@ -615,9 +617,9 @@ export function RoundInputIndex(index)
 }
 
 /**
- * Casts the owner to Carbon's curve-set contract, then queries its duration.
+ * Casts the owner to Carbon's curve-set contract, then queries its duration;
+ * 0 when the owner is not one.
  * Source: trinity/trinity/Controllers/Tr2ControllerExpression.cpp:36-54
- * Adapted: an explicit evaluator callback remains available when the cast fails.
  */
 export function GetCurveSetTime(context, name)
 {
@@ -631,7 +633,7 @@ export function GetCurveSetTime(context, name)
     }
     return owner.GetCurveSetDuration(name);
   }
-  return CallContextFunction(context, "CurveSetTime", name);
+  return 0;
 }
 
 /**
@@ -670,45 +672,64 @@ export function RandomInteger(min, max)
 }
 
 /**
- * Reads a calendar component through an override or the server date's local-time
- * accessors.
+ * The server time Carbon's terms read (Tr2ControllerExpression.cpp:241-255,
+ * :368-376): the controllerServerTime setting while overriding, else the
+ * frame time.
+ *
+ * @returns {number} Blue ticks on the runtime epoch.
  */
-export function GetServerDatePart(context, part)
+export function GetServerTime()
 {
-  const override = TryCallContextFunction(context, `Server${Capitalize(part)}`);
-  if (override !== null)
-  {
-    return override;
-  }
-  const date = GetServerDate(context);
+  if (Tr2ControllerExpression.controllerFunctionOverrideEnabled) return Tr2ControllerExpression.controllerServerTime;
+  return blue.os.GetCurrentFrameTime();
+}
+
+/**
+ * Carbon GetServerYear .. GetServerSecond and GetServerDayOfWeek
+ * (Tr2ControllerExpression.cpp:241-292): the server time broken into UTC
+ * parts, as the Windows build's FileTimeToSystemTime does (the non-Windows
+ * build uses localtime, cpp:294-307).
+ *
+ * @param {object} _context Evaluation context (unused).
+ * @param {string} part year, month, day, dayOfWeek, hour, minute or second.
+ * @returns {number}
+ */
+export function GetServerDatePart(_context, part)
+{
+  const date = new Date(CcpTime.BLUE_EPOCH_UNIX_MS + CcpTime.timeAsDouble(GetServerTime()) * 1000);
   switch (part)
   {
     case "year":
-      return date.getFullYear();
+      return date.getUTCFullYear();
     case "month":
-      return date.getMonth() + 1;
+      return date.getUTCMonth() + 1;
     case "day":
-      return date.getDate();
+      return date.getUTCDate();
     case "dayOfWeek":
-      return date.getDay();
+      return date.getUTCDay();
     case "hour":
-      return date.getHours();
+      return date.getUTCHours();
     case "minute":
-      return date.getMinutes();
+      return date.getUTCMinutes();
     case "second":
-      return date.getSeconds();
+      return date.getUTCSeconds();
   }
 }
 
-/** Returns server seconds modulo the absolute period, or zero for a zero period. */
-export function GetServerTimePhase(context, period)
+/**
+ * Carbon TimePhase (Tr2ControllerExpression.cpp:357-377): the absolute server
+ * time (FILETIME ticks) modulo the period, in seconds; 0 for a zero period.
+ *
+ * @param {object} _context Evaluation context (unused).
+ * @param {number} period Seconds.
+ * @returns {number}
+ */
+export function GetServerTimePhase(_context, period)
 {
-  const value = Math.abs(ToNumber(period));
-  if (value === 0)
-  {
-    return 0;
-  }
-  return GetServerTimeSeconds(context) % value;
+  let ticks = BigInt(CcpTime.timeFromDouble(ToNumber(period)));
+  if (ticks === 0n) return 0;
+  if (ticks < 0n) ticks = -ticks;
+  return CcpTime.timeAsDouble(Number(CcpTime.timeToFileTime(GetServerTime()) % ticks));
 }
 
 /**
@@ -764,129 +785,6 @@ export function DaysSinceServerTime(context, year, month, day)
     return Number.MIN_VALUE;
   }
   return (current - target) / (60 * 60 * 24 * 1000);
-}
-
-/**
- * Converts supplied server time into a Date, falling back to the frame time,
- * BeOS->GetCurrentFrameTime(), as Carbon's GetServerTimeParts does
- * (Tr2ControllerExpression.cpp:241-255).
- */
-export function GetServerDate(context)
-{
-  const value = GetServerTimeValue(context);
-  if (value instanceof Date)
-  {
-    return value;
-  }
-  if (typeof value === "number" && Number.isFinite(value))
-  {
-    return new Date(NormalizeServerTimeMilliseconds(value));
-  }
-  return new Date(GetFrameTimeUnixMilliseconds());
-}
-
-/**
- * Converts supplied server time into epoch seconds, falling back to the frame
- * time (see GetServerDate).
- */
-export function GetServerTimeSeconds(context)
-{
-  const value = GetServerTimeValue(context);
-  if (value instanceof Date)
-  {
-    return value.getTime() / 1000;
-  }
-  if (typeof value === "number" && Number.isFinite(value))
-  {
-    return NormalizeServerTimeMilliseconds(value) / 1000;
-  }
-  return GetFrameTimeUnixMilliseconds() / 1000;
-}
-
-/** The OS frame time, on the runtime Blue epoch, as Unix milliseconds. */
-function GetFrameTimeUnixMilliseconds()
-{
-  return CcpTime.BLUE_EPOCH_UNIX_MS + CcpTime.timeAsDouble(blue.os.GetCurrentFrameTime()) * 1000;
-}
-
-/**
- * Finds a Date or numeric timestamp in the context, its callback table, or its
- * owner. These are caller-supplied evaluator extensions; Carbon reads frame time
- * directly (Tr2ControllerExpression.cpp:241-255).
- */
-export function GetServerTimeValue(context)
-{
-  if (HasProperty(context, "serverTime"))
-  {
-    const value = context.serverTime;
-    if (value instanceof Date || typeof value === "number")
-    {
-      return value;
-    }
-  }
-  if (HasProperty(context, "functions") && context.functions && typeof context.functions === "object" && HasFunction(context.functions, "GetServerTime"))
-  {
-    const value = context.functions.GetServerTime(context);
-    if (value instanceof Date || typeof value === "number")
-    {
-      return value;
-    }
-  }
-  if (HasFunction(context.owner, "GetServerTime"))
-  {
-    const value = context.owner.GetServerTime();
-    if (value instanceof Date || typeof value === "number")
-    {
-      return value;
-    }
-  }
-  return null;
-}
-
-/**
- * Uses magnitude thresholds to interpret a timestamp as ticks, seconds, or
- * milliseconds.
- */
-export function NormalizeServerTimeMilliseconds(value)
-{
-  if (Math.abs(value) > 1e14)
-  {
-    return value / 10000;
-  }
-  if (Math.abs(value) < 1e10)
-  {
-    return value * 1000;
-  }
-  return value;
-}
-
-/**
- * Invokes a numeric context callback or returns the supplied fallback when none
- * exists.
- */
-export function CallContextFunction(context, name, arg, fallback = 0)
-{
-  const value = TryCallContextFunction(context, name, arg);
-  return value === null ? fallback : value;
-}
-
-/**
- * Tries explicit evaluator callbacks on the context table or its owner.
- * These extension hooks are not native receiver methods; the animation,
- * radius, kill-counter and booster terms are ported above instead. Returns
- * null when neither supplies the function.
- */
-export function TryCallContextFunction(context, name, arg)
-{
-  if (HasProperty(context, "functions") && context.functions && typeof context.functions === "object" && HasFunction(context.functions, name))
-  {
-    return ToNumber(context.functions[name](arg, context));
-  }
-  if (HasFunction(context.owner, name))
-  {
-    return ToNumber(context.owner[name](arg));
-  }
-  return null;
 }
 
 /** Rounds to the nearest integer, choosing the even integer for exact ties. */

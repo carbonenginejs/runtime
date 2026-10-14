@@ -3,7 +3,7 @@ import test from "node:test";
 import { Tr2Controller, Tr2TimelineController, Tr2ControllerFloatVariable, Tr2StateMachine, Tr2CurveScalarExpression, Tr2CurveVector3Expression, Tr2CurveEulerRotationExpression, Tr2CurveConstant } from "../../npm/dist/trinity/index.js";
 import { ITr2CurveSetOwner } from "../../npm/dist/trinity/curves/ITr2CurveSetOwner.js";
 import { ITr2ControllerOwner } from "../../npm/dist/trinity/controllers/ITr2ControllerOwner.js";
-import { DEFAULT_FUNCTIONS, ResolveIdentifier, GetRandomConstant, GetInputValue, GetInputValue__Time, GetCurveSetTime, GetExternalControllerVariable, GetServerTimeValue, CallContextFunction } from "../../npm/dist/trinity/controllers/expression/expressionRuntime.js";
+import { DEFAULT_FUNCTIONS, ResolveIdentifier, GetRandomConstant, GetInputValue, GetInputValue__Time, GetCurveSetTime, GetExternalControllerVariable } from "../../npm/dist/trinity/controllers/expression/expressionRuntime.js";
 
 for (const Type of [Tr2Controller, Tr2TimelineController])
 {
@@ -100,16 +100,34 @@ test("external variables require nominal controller owners and their method", ()
   assert.throws(() => GetExternalControllerVariable({ owner }, "speed", 4), TypeError);
 });
 
-test("expression adapters retain explicit data, absent contexts and caller callbacks", () =>
+test("expression adapters retain explicit data and absent contexts; CurveSetTime is 0 without a curve-set owner", () =>
 {
   assert.equal(GetRandomConstant({}), 0);
   assert.equal(GetInputValue({}, 0), 0);
   assert.equal(ResolveIdentifier("missing", {}), 0);
   assert.equal(GetExternalControllerVariable({ externalControllerVariables: { speed: 6 } }, "speed", 4), 6);
-  assert.equal(GetCurveSetTime({ functions: { CurveSetTime: () => 8 } }, "set"), 8);
-  assert.equal(CallContextFunction({ owner: { AnimationTime: () => 5 } }, "AnimationTime", "idle"), 5);
-  assert.equal(CallContextFunction({ functions: { KillCount: () => 3 } }, "KillCount"), 3);
-  assert.equal(GetServerTimeValue({ owner: { GetServerTime: () => 100 } }), 100);
+  // Tr2ControllerExpression.cpp:36-42.
+  assert.equal(GetCurveSetTime({ owner: {} }, "set"), 0);
+});
+
+test("the override settings drive ShipSpeed, ShipMaxSpeed and the UTC server-time terms, as Carbon's do", async t =>
+{
+  const { Tr2ControllerExpression } = await import("../../npm/dist/trinity/controllers/expression/Tr2ControllerExpression.js");
+  const { CcpTime } = await import("../../npm/dist/global/blue/index.js");
+  const saved = { ...Object.fromEntries([ "controllerFunctionOverrideEnabled", "controllerShipSpeed", "controllerShipMaxSpeed", "controllerServerTime" ].map(k => [ k, Tr2ControllerExpression[k] ])) };
+  t.after(() => Object.assign(Tr2ControllerExpression, saved));
+  // Saturday 2026-03-14 12:34:56 UTC, as runtime-epoch Blue ticks (Tr2ControllerExpression.cpp:241-292, Windows UTC parts).
+  const ticks = CcpTime.timeFromDouble((Date.UTC(2026, 2, 14, 12, 34, 56) - CcpTime.BLUE_EPOCH_UNIX_MS) / 1000);
+  Object.assign(Tr2ControllerExpression, { controllerFunctionOverrideEnabled: true, controllerShipSpeed: 42, controllerShipMaxSpeed: 300, controllerServerTime: ticks });
+  const ctx = { owner: null };
+  assert.equal(DEFAULT_FUNCTIONS.ShipSpeed(ctx), 42);
+  assert.equal(DEFAULT_FUNCTIONS.ShipMaxSpeed(ctx), 300);
+  assert.deepEqual([ "ServerYear", "ServerMonth", "ServerDay", "ServerHour", "ServerMinute", "ServerSecond", "ServerDayOfWeek" ].map(n => DEFAULT_FUNCTIONS[n](ctx)), [ 2026, 3, 14, 12, 34, 56, 6 ]);
+  assert.equal(DEFAULT_FUNCTIONS.IsWeekend(ctx), 1);
+  assert.equal(DEFAULT_FUNCTIONS.ServerTimeGreaterThan(ctx, 2026, 3, 13, -1, -1, -1), 1);
+  // TimePhase works on absolute FILETIME ticks (cpp:357-377): a day period leaves the UTC time of day.
+  assert.ok(Math.abs(DEFAULT_FUNCTIONS.ServerTimePhase(ctx, 86400) - (12 * 3600 + 34 * 60 + 56)) < 1e-3);
+  assert.equal(DEFAULT_FUNCTIONS.ServerTimePhase(ctx, 0), 0);
 });
 
 test("BoundingSphereRadius, KillCount and ShipBoosterIntensity read the owning ship, as Carbon's terms do", async () =>

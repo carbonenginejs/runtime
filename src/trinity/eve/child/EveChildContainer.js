@@ -40,6 +40,7 @@ import { ITr2SoundEmitterOwner } from "../ITr2SoundEmitterOwner.js";
 import { ITr2ControllerOwner } from "../../controllers/ITr2ControllerOwner.js";
 import { ITr2ActionController } from "../../controllers/ITr2Controller/ITr2ActionController.js";
 import { IsMatch, blue, EnumRegistrationType } from "#blue";
+import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 
 // Module scratch (read-only zero vector; container recursion forbids mutable
 // module scratch here - see GetBoundingSphere).
@@ -55,6 +56,7 @@ const ZERO_VEC3 = vec3.create();
 @meta.blue.inherit(ITr2Renderable, ITr2CurveSetOwner, IInitialize, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner)
 @meta.blue.inherit(IInitialize, IListNotify, INotify)
 @meta.blue.interface(EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, IListNotify, INotify, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner, ITr2Renderable)
+@meta.blue.inherit(IEveEffectChildrenOwner)
 export class EveChildContainer extends EveChildTransform
 {
   @meta.blue.notify
@@ -1655,4 +1657,4 @@ blue.enums.Create("trinity.EveChildContainer.DisplayQualityModifier", EveChildCo
 });
 
 
-// EveChildContainer_Blue.cpp: native exposure; unported contracts: ITr2LightOwner, IEveEffectChildrenOwner, IShaderConfigurer, IEveSpaceObjectAttachmentOwner.
+// EveChildContainer_Blue.cpp: native exposure; unported contracts: ITr2LightOwner, IShaderConfigurer, IEveSpaceObjectAttachmentOwner.
