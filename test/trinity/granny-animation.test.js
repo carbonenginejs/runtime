@@ -221,13 +221,61 @@ test("Tr2GrannyAnimation freezes a negative-speed clip, and handles paused and m
   assert.ok(Math.abs(animation.GetMeshBoneMatrixList()[3] - 2.5) < 1e-6);
   animation.TogglePauseAnimations(false);
 
-  assert.equal(animation.AddAnimationLayer("upper", 0.5), true);
-  assert.equal(animation.AddAnimationLayerBone("upper", "Child"), true);
+  animation.AddAnimationLayer("upper", 0.5);
+  animation.AddAnimationLayerBone("upper", "Child");
   assert.equal(animation.PlayLayerAnimation("upper", "Move", true, 0, 0, 1, false), true);
   assert.equal(animation.GetLayerWeight("upper"), 0.5);
-  assert.equal(animation.RemoveAnimationLayerBone("upper", "Child"), true);
+  animation.RemoveAnimationLayerBone("upper", "Child");
   animation.ClearAnimationLayers();
   assert.equal(animation.GetLayerWeight("upper"), 0);
+});
+
+
+test("Tr2GrannyAnimation layer bone masks follow Carbon's single weight array", () =>
+{
+  const resource = createResource();
+  // A Granny track mask is a numeric extended-data member of its name on each bone.
+  resource.models[0].skeleton.bones[1].extendedData = { Upper: 0.5 };
+  const mask = (animation, name) => Array.from(animation.GetAnimationLayer(name).boneMask);
+
+  const animation = new Tr2GrannyAnimation();
+  animation.model_ = "Ship";
+  // Before the rig: names are recorded, AddAllBones finds no bones.
+  animation.AddAnimationLayer("early", 1);
+  animation.AddAnimationLayerBone("early", "Child");
+  animation.AddAnimationLayer("all", 1);
+  animation.AddAnimationLayerAllBones("all");
+  assert.equal(animation.GetAnimationLayer("early").boneMask, null);
+  animation.SetGrannyResource(resource);
+
+  // Building the rig sets named bones to the layer's default weight, 0 for an
+  // added layer (Tr2GrannyAnimationLayer.cpp:112-119), so "early" moves nothing.
+  assert.deepEqual(mask(animation, "early"), [0, 0]);
+  assert.deepEqual(mask(animation, "all"), [0, 0]);
+  assert.deepEqual(Array.from(animation.GetAnimationLayer(null).boneMask), [1, 1]);
+
+  // After the rig: AddBone and AddAllBones set weight 1.
+  animation.AddAnimationLayer("late", 1);
+  animation.AddAnimationLayerBone("late", "Child");
+  assert.deepEqual(mask(animation, "late"), [0, 1]);
+  animation.AddAnimationLayerAllBones("all");
+  assert.deepEqual(mask(animation, "all"), [1, 1]);
+
+  // A track mask replaces the whole array; RemoveBone zeroes a masked bone too.
+  animation.AddAnimationLayerWithTrackMask("masked", "Upper");
+  assert.deepEqual(mask(animation, "masked"), [0, 0.5]);
+  animation.AddAnimationLayerBone("masked", "Root");
+  assert.deepEqual(mask(animation, "masked"), [1, 0.5]);
+  animation.AddAnimationLayerWithTrackMask("masked", "Upper");
+  assert.deepEqual(mask(animation, "masked"), [0, 0.5]);
+  animation.RemoveAnimationLayerBone("masked", "Child");
+  assert.deepEqual(mask(animation, "masked"), [0, 0]);
+
+  // A rebuilt rig re-applies the mask name, then the named bones at weight 0.
+  animation.AddAnimationLayerBone("masked", "Child");
+  assert.deepEqual(mask(animation, "masked"), [0, 1]);
+  animation.SetGrannyResource(createResource());
+  assert.deepEqual(mask(animation, "masked"), [0, 0]);
 });
 
 

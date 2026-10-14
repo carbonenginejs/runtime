@@ -30,22 +30,25 @@ export class Tr2GrannyAnimationLayer
   /** Carbon m_layerWeight. */
   weight = 1;
 
-  /** Whether the layer is unmasked (the base layer, or AddAllBones). */
-  allBones = false;
-
-  /** Carbon m_bones: bone names the layer's mask admits. */
-  bones = new Set();
-
-  /** Carbon m_trackMaskName: the skeleton bone mask this layer blends by, or "". */
-  trackMaskName = "";
+  /** Carbon m_bones (h:143): the bone names added to the layer, applied again when the rig is built. */
+  bones = [];
 
   /**
-   * Carbon m_boneMask's weights from the track mask, by skeleton bone index,
-   * or null before one is extracted.
+   * Carbon m_defaultBoneWeight (h:148): the weight every bone starts at when
+   * the rig is built - 1 for the base layer, 0 for added layers.
+   */
+  defaultBoneWeight = 0;
+
+  /** Carbon m_trackMaskName (h:164): the skeleton bone mask this layer blends by, or null. */
+  trackMaskName = null;
+
+  /**
+   * Carbon m_boneMask.boneWeights (h:166): one weight per skeleton bone, or
+   * null while the layer has no skeleton.
    *
    * @type {Float32Array|null}
    */
-  trackMaskWeights = null;
+  boneMask = null;
 
   /** The playing request followed by chained requests (see the class JSDoc). */
   queue = [];
@@ -248,37 +251,62 @@ export class Tr2GrannyAnimationLayer
   }
 
   /**
-   * Admits a bone to the layer mask (Tr2GrannyAnimationLayer.cpp:929-970).
+   * Carbon AddBone (Tr2GrannyAnimationLayer.cpp:929-970): records the name,
+   * and once the layer has a skeleton sets that bone's weight to 1.
    *
-   * Adapted: the mask is a name set resolved at sampling time, so no bone
-   * index lookup is needed here.
+   * @param {import("./Tr2GrannyAnimation.js").Tr2GrannyAnimation} grannyAnimation The owning animation.
+   * @param {string} name Bone name.
+   * @returns {void}
    */
   @meta.blue.method
-  @meta.adapted
-  AddBone(_grannyAnimation, name)
+  @meta.implemented
+  AddBone(grannyAnimation, name)
   {
-    this.bones.add(String(name ?? ""));
+    this.bones.push(name);
+    if (!this.boneMask) return;
+    const boneIndex = grannyAnimation.FindBoneByName(name);
+    if (boneIndex === -1) return;
+    this.boneMask[boneIndex] = 1;
   }
 
   /**
-   * Admits every bone (Tr2GrannyAnimationLayer.cpp:972-982).
+   * Carbon AddAllBones (Tr2GrannyAnimationLayer.cpp:972-982): AddBone for
+   * each bone the owner lists now. Before the rig is built the list is empty.
    *
-   * Adapted: a flag rather than Carbon's snapshot of the current bone list,
-   * so bones of a later-loaded rig are admitted too.
+   * @param {import("./Tr2GrannyAnimation.js").Tr2GrannyAnimation} grannyAnimation The owning animation.
+   * @returns {void}
    */
   @meta.blue.method
-  @meta.adapted
-  AddAllBones(_grannyAnimation)
+  @meta.implemented
+  AddAllBones(grannyAnimation)
   {
-    this.allBones = true;
+    for (const name of grannyAnimation.GetAnimationBoneList())
+    {
+      this.AddBone(grannyAnimation, name);
+    }
   }
 
-  /** Removes a bone from the layer mask (Tr2GrannyAnimationLayer.cpp:1029-1069). */
+  /**
+   * Carbon RemoveBone (Tr2GrannyAnimationLayer.cpp:1029-1069): forgets every
+   * copy of the name, and once the layer has a skeleton sets that bone's
+   * weight to 0, whether the weight came from AddBone or the track mask.
+   *
+   * @param {import("./Tr2GrannyAnimation.js").Tr2GrannyAnimation} grannyAnimation The owning animation.
+   * @param {string} name Bone name.
+   * @returns {void}
+   */
   @meta.blue.method
-  @meta.adapted
-  RemoveBone(_grannyAnimation, name)
+  @meta.implemented
+  RemoveBone(grannyAnimation, name)
   {
-    return this.bones.delete(String(name ?? ""));
+    for (let index = this.bones.length - 1; index >= 0; index--)
+    {
+      if (this.bones[index] === name) this.bones.splice(index, 1);
+    }
+    if (!this.boneMask) return;
+    const boneIndex = grannyAnimation.FindBoneByName(name);
+    if (boneIndex === -1) return;
+    this.boneMask[boneIndex] = 0;
   }
 
   /** Not ported: queueing lives in Tr2GrannyAnimation._playLayer. */
@@ -305,12 +333,39 @@ export class Tr2GrannyAnimationLayer
     throw new Error("Tr2GrannyAnimationLayer.GetAnimationChainCompleteTime is not implemented in CarbonEngineJS.");
   }
 
-  /** Not ported: no cmf::AnimationSequencer; the owner rebuilds rig state. */
+  /**
+   * Carbon InitializeAnimationLayer (Tr2GrannyAnimationLayer.cpp:85-150),
+   * run when the owner's rig is built and when a layer is added to a built
+   * rig: the mask comes from the track mask when the layer has one, else
+   * every bone starts at the default weight. Then each added bone is set to
+   * the DEFAULT weight, not 1 (cpp:112-119), so on an added layer a bone
+   * named before the rig was built does not move (CE-170).
+   *
+   * Adapted: the cmf::AnimationSequencer is not created; the layer's queue
+   * stands in for it and is left as it is.
+   *
+   * @param {import("./Tr2GrannyAnimation.js").Tr2GrannyAnimation} grannyAnimation The owning animation.
+   * @returns {void}
+   */
   @meta.blue.method
-  @meta.notImplemented
-  InitializeAnimationLayer(..._args)
+  @meta.adapted
+  InitializeAnimationLayer(grannyAnimation)
   {
-    throw new Error("Tr2GrannyAnimationLayer.InitializeAnimationLayer is not implemented in CarbonEngineJS.");
+    const boneCount = grannyAnimation.GetAnimationBoneList().length;
+    if (!boneCount) return;
+    if (this.trackMaskName !== null)
+    {
+      this.ExtractTrackMask(grannyAnimation, this.trackMaskName);
+    }
+    else
+    {
+      this.boneMask = new Float32Array(boneCount).fill(this.defaultBoneWeight); // alloc: once per rig build.
+    }
+    for (const name of this.bones)
+    {
+      const boneIndex = grannyAnimation.FindBoneByName(name);
+      if (boneIndex !== -1) this.boneMask[boneIndex] = this.defaultBoneWeight;
+    }
   }
 
   /** Not ported: requests are consumed by Tr2GrannyAnimation._advanceLayer. */
@@ -338,15 +393,14 @@ export class Tr2GrannyAnimationLayer
   }
 
   /**
-   * Reads a named bone mask from the animation's skeleton
-   * (Tr2GrannyAnimationLayer.cpp:989-1024): on the CMF branch the skeleton's
-   * bone mask (cmf::ExtractBoneWeights), on the Granny branch each bone's
-   * extended-data member of that name (GrannyExtractTrackMask). The name is
-   * kept even when there is no rig yet, and the owner extracts again when its
-   * rig is built, as Carbon's InitializeAnimationLayer does. A bone the mask
-   * does not name weighs 0.
+   * Carbon ExtractTrackMask (Tr2GrannyAnimationLayer.cpp:986-1024): keeps the
+   * name and, once there is a skeleton, REPLACES the whole mask with the
+   * skeleton's named mask - on the CMF branch the skeleton's bone mask
+   * (cmf::ExtractBoneWeights), on the Granny branch each bone's extended-data
+   * member of that name (GrannyExtractTrackMask). Weights set earlier by
+   * AddBone are lost; a bone the mask does not name weighs 0.
    *
-   * Adapted: weights are kept as a typed array by bone index rather than a
+   * Adapted: the weights are a Float32Array by bone index rather than a
    * cmf::BoneWeights or granny_track_mask.
    *
    * @param {import("./Tr2GrannyAnimation.js").Tr2GrannyAnimation} grannyAnimation The owning animation.
@@ -357,25 +411,10 @@ export class Tr2GrannyAnimationLayer
   @meta.adapted
   ExtractTrackMask(grannyAnimation, name)
   {
-    this.trackMaskName = String(name ?? "");
-    this.trackMaskWeights = grannyAnimation._ExtractTrackMaskWeights(this.trackMaskName);
-  }
-
-  /**
-   * How strongly this layer moves a bone: 1 for an unmasked layer or a bone
-   * added by name, else its track-mask weight, else 0. Carbon's m_boneMask
-   * holds the same per-bone factor (Tr2GrannyAnimationLayer.cpp:98-120,
-   * 929-970), which cmf::BlendPoses multiplies by the layer weight.
-   *
-   * @param {number} boneIndex Skeleton bone index.
-   * @param {string} boneName Bone name.
-   * @returns {number} The bone's mask weight.
-   */
-  @meta.ours
-  _GetBoneMaskWeight(boneIndex, boneName)
-  {
-    if (this.allBones || this.bones.has(boneName)) return 1;
-    return this.trackMaskWeights ? this.trackMaskWeights[boneIndex] ?? 0 : 0;
+    this.trackMaskName = name;
+    const weights = grannyAnimation._ExtractTrackMaskWeights(name);
+    if (!weights) return;
+    this.boneMask = weights;
   }
 
   /** Not ported: pause is owner-wide (Tr2GrannyAnimation.TogglePauseAnimations). */

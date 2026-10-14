@@ -19,12 +19,13 @@ import { GrannyBoneOffset } from "./GrannyBoneOffset.js";
 import { Tr2GrannyAnimationLayer } from "./Tr2GrannyAnimationLayer.js";
 
 
-function createLayer(name = "", weight = 1, allBones = false)
+/** Carbon's Tr2GrannyAnimationLayer( defaultBoneWeight, layerWeight ) constructor (Tr2GrannyAnimationLayer.cpp:54-75). */
+function createLayer(name, layerWeight, defaultBoneWeight)
 {
   const layer = new Tr2GrannyAnimationLayer();
   layer.name = name;
-  layer.weight = weight;
-  layer.allBones = allBones;
+  layer.weight = layerWeight;
+  layer.defaultBoneWeight = defaultBoneWeight;
   return layer;
 }
 
@@ -123,7 +124,8 @@ export class Tr2GrannyAnimation
 
   _aimingBone = false;
 
-  _baseLayer = createLayer("", 1, true);
+  /** m_baseLayer( 1.f ) (cpp:85): every bone at weight 1. */
+  _baseLayer = createLayer("", 1, 1);
 
   _curveCache = new WeakMap();
 
@@ -464,6 +466,7 @@ export class Tr2GrannyAnimation
     const bones = sourceBones.map((sourceBone, index) => this._createBone(sourceBone, index));
     const boneByName = new Map(bones.map((bone, index) => [bone.name, index]));
     this._runtimeModel = { source, model, skeleton, bones, boneByName };
+    this._InitializeAnimationLayers();
     this._rebuildRestTransforms();
     this._rebuildMeshBoneIndices();
     // Carbon cmf::RestPose(m_pose, skeleton) at setup (Tr2GrannyAnimation.cpp:624):
@@ -542,12 +545,7 @@ export class Tr2GrannyAnimation
       this._meshBoneIndices = Array.from({ length: count }, (_, index) => boneByName.get(bindings[index].name) ?? -1);
     }
 
-    // Carbon InitializeAnimationLayer: a layer added before the rig existed
-    // extracts its track mask now (Tr2GrannyAnimationLayer.cpp:98-101).
-    for (const layer of this._layers.values())
-    {
-      if (layer.trackMaskName) layer.ExtractTrackMask(this, layer.trackMaskName);
-    }
+    this._InitializeAnimationLayers();
 
     this._resetPose();
     this._initialized = true;
@@ -823,27 +821,68 @@ export class Tr2GrannyAnimation
     return this.PlayAnimation(animName, true, loopCount, delay, speed, clearWhenDone);
   }
 
-  /** Carbon method AddAnimationLayer (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon AddAnimationLayer (cpp:2051-2087): a layer whose bones all start
+   * at weight 0, initialized at once when the rig is already built.
+   *
+   * @param {string} layerName Layer name.
+   * @param {number} [layerWeight=1] Layer weight.
+   * @returns {void}
+   */
   @meta.blue.method
   @meta.implemented
   AddAnimationLayer(layerName, layerWeight = 1)
   {
     const name = String(layerName ?? "");
-    if (!name || this._layers.has(name))
+    if (!name || this._layers.has(name)) return;
+    const layer = createLayer(name, Number(layerWeight) || 0, 0);
+    this._layers.set(name, layer);
+    if (!this.IsInitialized()) return;
+    layer.InitializeAnimationLayer(this);
+  }
+
+  /**
+   * Carbon's rig-setup pass (cpp:615-620 CMF, :744-756 Granny): the base layer
+   * and every added layer build their bone masks for the new skeleton.
+   */
+  _InitializeAnimationLayers()
+  {
+    this._baseLayer.InitializeAnimationLayer(this);
+    for (const layer of this._layers.values())
     {
-      return false;
+      layer.InitializeAnimationLayer(this);
     }
-    this._layers.set(name, createLayer(name, Number(layerWeight) || 0, false));
-    return true;
+  }
+
+  /**
+   * Carbon FindBoneByName (cpp:1929-1963): the first skeleton bone with the
+   * name.
+   *
+   * Adapted: returns the index, or -1, for Carbon's bool and out parameter.
+   *
+   * @param {string} name Bone name.
+   * @returns {number} The bone index, or -1.
+   */
+  @meta.adapted
+  FindBoneByName(name)
+  {
+    const bones = this._runtimeModel ? this._runtimeModel.bones : [];
+    for (let index = 0; index < bones.length; index++)
+    {
+      if (bones[index].name === name) return index;
+    }
+    return -1;
   }
 
   /**
    * Adds, or updates, a layer masked by a named skeleton bone mask
-   * (Tr2GrannyAnimation.cpp:2190-2224). Controller actions call it for their
-   * `mask` before playing on the layer (Tr2ActionPlayMeshAnimation.cpp:56-59).
+   * (Tr2GrannyAnimation.cpp:2190-2229). An existing layer only extracts the
+   * mask; a new one (default constructor: bone weight 0, layer weight 1) is
+   * initialized at once when the rig is already built. Controller actions
+   * call it for their `mask` before playing on the layer
+   * (Tr2ActionPlayMeshAnimation.cpp:56-59).
    *
-   * Adapted: Carbon's composite-pose allocation and InitializeAnimationLayer
-   * have no counterpart; a rig built later extracts the mask again.
+   * Adapted: Carbon's composite-pose allocation has no counterpart.
    *
    * @param {string} layerName Layer name.
    * @param {string} trackMask Bone mask name.
@@ -853,13 +892,17 @@ export class Tr2GrannyAnimation
   AddAnimationLayerWithTrackMask(layerName, trackMask)
   {
     const name = String(layerName ?? "");
-    let layer = this._layers.get(name);
-    if (!layer)
+    const existing = this._layers.get(name);
+    if (existing)
     {
-      layer = createLayer(name, 1, false);
-      this._layers.set(name, layer);
+      existing.ExtractTrackMask(this, trackMask);
+      return;
     }
+    const layer = createLayer(name, 1, 0);
     layer.ExtractTrackMask(this, trackMask);
+    this._layers.set(name, layer);
+    if (!this.IsInitialized()) return;
+    layer.InitializeAnimationLayer(this);
   }
 
   /**
@@ -897,32 +940,24 @@ export class Tr2GrannyAnimation
     return weights;
   }
 
-  /** Carbon method AddAnimationLayerAllBones (MAP_METHOD_AND_WRAP). */
+  /** Carbon AddAnimationLayerAllBones (cpp:2252-2270): "" is the base layer. */
   @meta.blue.method
   @meta.implemented
   AddAnimationLayerAllBones(layerName)
   {
     const layer = this._getLayer(layerName);
-    if (!layer)
-    {
-      return false;
-    }
-    layer.allBones = true;
-    return true;
+    if (!layer) return;
+    layer.AddAllBones(this);
   }
 
-  /** Carbon method AddAnimationLayerBone (MAP_METHOD_AND_WRAP). */
+  /** Carbon AddAnimationLayerBone (cpp:2231-2249): "" is the base layer. */
   @meta.blue.method
   @meta.implemented
   AddAnimationLayerBone(layerName, boneName)
   {
     const layer = this._getLayer(layerName);
-    if (!layer)
-    {
-      return false;
-    }
-    layer.bones.add(String(boneName ?? ""));
-    return true;
+    if (!layer) return;
+    layer.AddBone(this, boneName);
   }
 
   /**
@@ -1156,13 +1191,14 @@ export class Tr2GrannyAnimation
     return this.PlayLayerAnimation(...args);
   }
 
-  /** Carbon method RemoveAnimationLayerBone (MAP_METHOD_AND_WRAP). */
+  /** Carbon RemoveAnimationLayerBone (cpp:2273-2291): "" is the base layer. */
   @meta.blue.method
   @meta.implemented
   RemoveAnimationLayerBone(layerName, boneName)
   {
     const layer = this._getLayer(layerName);
-    return layer ? layer.bones.delete(String(boneName ?? "")) : false;
+    if (!layer) return;
+    layer.RemoveBone(this, boneName);
   }
 
   /** Carbon method GetAnimationNames (MAP_METHOD_AND_WRAP). */
@@ -1906,7 +1942,7 @@ export class Tr2GrannyAnimation
       {
         const boneIndex = this._runtimeModel.boneByName.get(getName(track));
         const bone = this._runtimeModel.bones[boneIndex];
-        const mask = bone ? layer._GetBoneMaskWeight(boneIndex, bone.name) : 0;
+        const mask = bone ? this._GetLayerBoneWeight(layer, boneIndex) : 0;
         if (mask === 0)
         {
           continue;
@@ -1930,7 +1966,7 @@ export class Tr2GrannyAnimation
     for (const [ boneIndex, curves ] of this._getCmfChannels(animation))
     {
       const bone = this._runtimeModel.bones[boneIndex];
-      const mask = layer._GetBoneMaskWeight(boneIndex, bone.name);
+      const mask = this._GetLayerBoneWeight(layer, boneIndex);
       if (mask === 0)
       {
         continue;
@@ -1945,6 +1981,17 @@ export class Tr2GrannyAnimation
         additive
       );
     }
+  }
+
+  /**
+   * How strongly a layer moves a bone. The base layer is sampled without a
+   * mask (its SampleAnimation overload, Tr2GrannyAnimationLayer.cpp:663-680);
+   * an added layer blends each bone by its mask weight (cmf::BlendPoses,
+   * animation.cpp:485-492).
+   */
+  _GetLayerBoneWeight(layer, boneIndex)
+  {
+    return layer === this._baseLayer ? 1 : layer.boneMask[boneIndex];
   }
 
   /** Decodes and caches a CMF animation's bone curves, grouped by bone index. */
