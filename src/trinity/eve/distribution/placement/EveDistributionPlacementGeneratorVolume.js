@@ -59,7 +59,6 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   @meta.adapted
   GetInitialPlacements(placements, trackingID)
   {
-    this._syncVolumeCallbacks();
     if (!this.volume)
     {
       return;
@@ -159,12 +158,12 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
     return this._isRequestingRegeneration;
   }
 
-  /** Subscribes to change notifications on the assigned volume. */
+  /** Carbon Initialize (cpp:98-102): subscribe to the assigned volume's changes. */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   Initialize()
   {
-    this._syncVolumeCallbacks();
+    this.AddVolumeCallbacks();
     return true;
   }
 
@@ -175,36 +174,6 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   {
     this.RequestRegeneration();
     return true;
-  }
-
-  /**
-   * Re-checks the volume subscription each frame, so a volume swapped in at
-   * runtime is picked up and triggers regeneration.
-   */
-  @meta.blue.method
-  @meta.adapted
-  UpdateSyncronous(_updateContext, _params, _owner)
-  {
-    this._syncVolumeCallbacks();
-  }
-
-  /**
-   * Moves the change subscription onto the currently assigned volume when it
-   * differs from the subscribed one, then requests regeneration. Carbon does
-   * this eagerly in SetVolume; hydration assigns `volume` directly, so this
-   * detects the swap on use and runs the same Remove/Add pair.
-   */
-  _syncVolumeCallbacks()
-  {
-    if (this.volume === this._subscribedVolume)
-    {
-      return;
-    }
-
-    this.RemoveVolumeCallbacks();
-    this._volumeCallbackID = 0;
-    this.AddVolumeCallbacks();
-    this.RequestRegeneration();
   }
 
 }

@@ -378,7 +378,8 @@ test("volume generators consume Carbon volume points and change callbacks", () =
     sphere.innerRadius = 1;
 
     const generator = new EveDistributionPlacementGeneratorVolume();
-    generator.volume = sphere;
+    // The script path (cpp:26-31); a read object subscribes in Initialize instead.
+    generator.SetVolume(sphere);
     generator.numGenerated = 1;
     generator.hollowVolume = true;
     const placements = [];
