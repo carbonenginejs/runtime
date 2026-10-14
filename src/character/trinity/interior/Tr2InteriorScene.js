@@ -310,7 +310,7 @@ export class Tr2InteriorScene
    * changed names, so a size/count batch rebuilds once using both final values.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(name)
   {
     if (IsMatch(name, "backgroundCubemapPath")) this.SetBackgroundCubemapResPath();

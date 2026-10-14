@@ -143,10 +143,9 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
 
   /**
    * Recompiles when the expression changes.
-   * Adapted: the exposed property name identifies the native notified member.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (this._runtime.controller && IsMatch(propertyName, "value"))

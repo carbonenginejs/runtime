@@ -482,14 +482,11 @@ export class Tr2GpuParticleSystem
    * Carbon OnModified (cpp:244-288): an effect slot that changed gets the
    * local store; a changed capacity is applied.
    *
-   * Adapted: Carbon matches the changed member's address; the notification
-   * here names the Blue property.
-   *
    * @param {string} propertyName The Blue name that changed.
    * @returns {boolean} True.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     for (const slot of EFFECT_SLOTS)

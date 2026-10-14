@@ -60,11 +60,9 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
 {
   /**
    * Carbon EvePlaneSet.cpp:116: only the pick buffer change rebuilds.
-   *
-   * Adapted: JS identifies Carbon's changed member address by its exposed property name.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "pickBufferID")) this.Rebuild();

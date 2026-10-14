@@ -393,7 +393,7 @@ export class EveStretch3 extends IEveFiringEffectElement
 
   /** Refreshes modifier or registration; JS notifications name the exposed native member. */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "dest"))

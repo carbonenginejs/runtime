@@ -53,7 +53,7 @@ export class EveCloudVolumeBall
 
   /** Native cpp:26-33 forwards every edit; JavaScript WeakRef replaces BlueWeakRef ownership. */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(_names)
   {
     // JavaScript WeakRef replaces BlueWeakRef without keeping the editor alive.

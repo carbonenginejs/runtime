@@ -103,10 +103,12 @@ export class Tr2StateMachineTransition
   }
 
   /**
-   * Refreshes the condition or cached destination after an authored edit.
+   * Carbon OnModified (Tr2StateMachineTransition.cpp:17-37): refreshes the
+   * condition or the cached destination. Blue's `name` is m_destinationName.
    *
-   * Adapted: Dispatches by the exposed property name; Carbon's destinationName
-   * member is exposed as name. Conditions use the runtime AST evaluator.
+   * Adapted: on a condition change Carbon calls m_evaluator.SetExpr bound to the
+   * source state machine; ours clears the cached program and names, compiles
+   * through CjsControllerExpressionProgram, and updates the variable mask.
    * @param {string} propertyName Exposed authored member name.
    * @returns {boolean} True after the notification is handled.
    */

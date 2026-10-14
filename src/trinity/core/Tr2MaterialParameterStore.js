@@ -69,12 +69,11 @@ export class Tr2MaterialParameterStore extends IInitialize
 
   /**
    * Reloads only when the notified native parentPath member changes.
-   * Adapted: JavaScript receives the member name instead of a Be::Var pointer.
    * @param {string|null} propertyName Changed declaration name.
    * @returns {boolean} True after handling the notification.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "parentPath")) this._LoadParentResource();

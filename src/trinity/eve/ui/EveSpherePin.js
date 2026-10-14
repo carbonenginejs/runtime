@@ -234,7 +234,7 @@ export class EveSpherePin
    * into one call, so independent branches handle every field in that call.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(name)
   {
     if (IsMatch(name, "geometryResPath")) this.InitializeGeometryResource();

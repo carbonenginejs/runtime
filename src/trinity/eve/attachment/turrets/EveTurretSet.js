@@ -1122,7 +1122,7 @@ export class EveTurretSet extends EveEntity
    * Be::Var address; each arm retains the donor's single-member semantics.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "display") || IsMatch(propertyName, "geometryResPath"))

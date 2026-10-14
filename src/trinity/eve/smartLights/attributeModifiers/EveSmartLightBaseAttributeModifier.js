@@ -95,7 +95,7 @@ export class EveSmartLightBaseAttributeModifier
   // the rest is private.
 
   /** m_isChangingActivation (bool) - crossfade in progress (EveSmartLightBaseAttributeModifier.h:49). */
-  isChangingActivation = false;
+  _isChangingActivation = false;
 
   /** Last `active` value applied by an edit path (JS-only change detection for the settle hook). */
 
@@ -114,8 +114,8 @@ export class EveSmartLightBaseAttributeModifier
   @meta.implemented
   Initialize()
   {
-    this.isChangingActivation = this.active && !this.startsActive;
-    this._activationValuePreMapped = this.isChangingActivation ? 0 : (this.active ? 1 : 0);
+    this._isChangingActivation = this.active && !this.startsActive;
+    this._activationValuePreMapped = this._isChangingActivation ? 0 : (this.active ? 1 : 0);
     this.MapActivationValue();
     return true;
   }
@@ -123,17 +123,14 @@ export class EveSmartLightBaseAttributeModifier
   /**
    * Reacts to an `active` edit by restarting the crossfade from the current
    * (unmapped) position (EveSmartLightBaseAttributeModifier.cpp:35-48).
-   *
-   * Adapted: JS dispatches the native hook using the exposed member name; existing
-   * class-owned rendering/resource adaptations remain unchanged.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "active"))
     {
-      this.isChangingActivation = true;
+      this._isChangingActivation = true;
       if (this.crossFadeIntensity > 0)
       {
         this._activationValuePreMapped = Math.pow(this._activationValuePreMapped, 1 / this.crossFadeIntensity);
@@ -153,7 +150,7 @@ export class EveSmartLightBaseAttributeModifier
   {
     if (active !== this.active)
     {
-      this.isChangingActivation = true;
+      this._isChangingActivation = true;
     }
 
     this.active = active;
@@ -187,7 +184,7 @@ export class EveSmartLightBaseAttributeModifier
   @meta.implemented
   UpdateActivationStrength(parentActivationMultiplier, deltaTime)
   {
-    if (this.isChangingActivation)
+    if (this._isChangingActivation)
     {
       const activationTime = this._lastActivationTimeStamp + this.delayedActivation;
       if (this.playTime < activationTime && this.active)
@@ -217,7 +214,7 @@ export class EveSmartLightBaseAttributeModifier
 
       if (finishedActivating || finishedDeActivating)
       {
-        this.isChangingActivation = false;
+        this._isChangingActivation = false;
         if (finishedDeActivating && this.restartPlayTimeWhenInactive)
         {
           this.ResetChildren(false);

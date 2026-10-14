@@ -209,11 +209,9 @@ export class Tr2FactionLight extends Tr2Light
 
   /**
    * Switches the light between spot and point when the spotlight flag is edited, and recomputes the faction-derived colour when the faction colour or saturation changes.
-   *
-   * Adapted: Browser property notifications identify the changed field by name rather than
-   * Carbon's Be::Var pointer.
    */
-  @meta.adapted
+  @meta.blue.method
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "isSpotlight"))

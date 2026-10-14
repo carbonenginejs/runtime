@@ -56,11 +56,9 @@ export class Tr2TextureAnimationParameter extends CjsParameter
 
   /**
    * Invalidates each registered material's resource sets on an animation edit.
-   *
-   * Adapted: Dispatches by exposed property name instead of a native field pointer.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (!IsMatch(propertyName, "animation")) return true;

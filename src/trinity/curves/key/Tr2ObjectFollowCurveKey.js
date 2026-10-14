@@ -121,7 +121,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    * @returns {boolean} True.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName = null)
   {
     if (IsMatch(propertyName, "object") || IsMatch(propertyName, "offsetLocatorName"))

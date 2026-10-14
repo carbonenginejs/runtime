@@ -168,16 +168,12 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
     return true;
   }
 
-  /**
-   * Requests regeneration and re-points the volume subscription after any
-   * authored change.
-   */
+  /** Carbon OnModified (cpp:106-110): any authored change requests regeneration. */
   @meta.blue.method
-  @meta.adapted
-  OnModified(_options = {})
+  @meta.implemented
+  OnModified(_value = null)
   {
     this.RequestRegeneration();
-    this._syncVolumeCallbacks();
     return true;
   }
 

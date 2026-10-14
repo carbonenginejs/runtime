@@ -152,12 +152,9 @@ export class EveSphereVolume extends IEveVolume
   /**
    * Clamps the radii so the outer radius stays non-negative and never smaller
    * than the inner one, then notifies every registered listener.
-   *
-   * Adapted: JS identifies the changed radius member by its exposed property name; callbacks
-   * remain class-owned.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "innerRadius") && this.innerRadius > this.radius)

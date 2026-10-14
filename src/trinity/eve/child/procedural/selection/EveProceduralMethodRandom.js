@@ -76,11 +76,9 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
 
   /** Carbon EveProceduralMethodRandom::OnModified (cpp:27-35): a seed change
    * reselects. The value argument follows the repo's OnModified duck.
-   *
-   * Adapted: Field matching follows the repo OnModified duck.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(value = null)
   {
     if (IsMatch(value, "seed_temp"))

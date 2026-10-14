@@ -271,12 +271,9 @@ export class EveChildContainer extends EveChildTransform
    * Carbon EveChildContainer::OnModified (cpp:76-88): display/displayFilter
    * changes re-register with the scene component registry; a mute notification
    * fans out to children and observers.
-   *
-   * Adapted: Uses the exposed property name for native address comparisons and the runtime
-   * scene registry adapter.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(value = null)
   {
     if (IsMatch(value, "display") || IsMatch(value, "displayFilter"))

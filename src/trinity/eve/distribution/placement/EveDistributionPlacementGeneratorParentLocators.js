@@ -109,12 +109,9 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
   /**
    * Invalidates the resolved locator set after an authored change so the next
    * update re-reads it.
-   *
-   * Adapted: JS dispatches the native hook using the exposed member name; existing
-   * class-owned rendering/resource adaptations remain unchanged.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "locatorSetName")) this._regenerated = false;

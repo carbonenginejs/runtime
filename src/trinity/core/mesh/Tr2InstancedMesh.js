@@ -191,10 +191,9 @@ export class Tr2InstancedMesh extends Tr2Mesh
   /**
    * Loads changed instance paths, releases deferred loading and refreshes
    * declarations (Tr2InstancedMesh.cpp:105-138).
-   * Adapted: JS notification names identify Carbon's member addresses.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "instanceGeometryResPath"))

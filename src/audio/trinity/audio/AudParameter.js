@@ -41,10 +41,11 @@ export class AudParameter extends INotify
   }
 
   /**
-   * Pushes only value notifications when the manager is enabled and an owner is bound.
-   * Adapted: the exposed member name replaces Carbon's field-address comparison;
-   * the injected backend replaces Wwise. As in Carbon, the enabled manager and
-   * its backend remain valid throughout the backend call and following log call.
+   * Carbon OnModified (AudParameter.cpp:17-28): a value change sets the RTPC
+   * when the manager is enabled and an owner is bound.
+   *
+   * Adapted: Carbon calls AK::SoundEngine::SetRTPCValue; ours calls the injected
+   * audio backend's SetRTPCValue.
    *
    * @param {string|null} propertyName Modified member name.
    * @returns {boolean} Always true when the calls complete.

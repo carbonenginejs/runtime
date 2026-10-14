@@ -155,14 +155,11 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
   /**
    * Clamps the FOV multiplier or captures camera state for an enabled change.
    *
-   * Adapted: Uses a property name instead of Carbon's changed-field pointer.
-   * Renderer camera state lives on the ambient render context.
-   *
    * @param {string|null} [propertyName=null] Changed field name.
    * @returns {boolean} True.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName = null)
   {
     if (IsMatch(propertyName, "fovMultiplication"))

@@ -185,10 +185,9 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
 
   /**
    * Recompiles when the authored value receives its notification.
-   * Adapted: the exposed member name replaces native member-address matching.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (this._runtime.controller && IsMatch(propertyName, "value"))

@@ -393,11 +393,13 @@ export class BehaviorGroupBooster
   }
 
   /**
-   * Carbon OnModified refreshes flare templates and removes detached effects
-   * (BehaviorGroupBooster.cpp:143-175). JS coalesces changed names: rebuild once,
-   * then clear each detached list so another edit cannot regrow it in this call.
-   * Carbon registers replacements through its global quad renderer; our scene
-   * owns that renderer, so submission registers the current effect before use.
+   * Carbon OnModified (BehaviorGroupBooster.cpp:143-174) refreshes the flare
+   * templates and removes detached effects.
+   *
+   * Adapted: when a halo or ambient flare effect is set, Carbon registers it with
+   * its global quad renderer at once (InitializeHaloFlare/InitializeAmbientFlare,
+   * cpp:131-141); ours has no global quad renderer, so the effect is registered
+   * with the scene's when it is first submitted. A batched change rebuilds once.
    */
   @meta.blue.method
   @meta.adapted

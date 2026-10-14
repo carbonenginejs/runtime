@@ -1744,13 +1744,10 @@ export class EveSpaceScene
   }
 
   /**
-   * Updates only the notified scene property (EveSpaceScene.cpp:3268-3353).
-   *
-   * Adapted: Exposed member names replace native addresses; null releases references and
-   * resource requirements replace interface IIDs.
+   * Updates only the notified scene property (EveSpaceScene.cpp:3279-3366).
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(property, renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     if (IsMatch(property, "reflectionProbe") || IsMatch(property, "envMapResPath"))

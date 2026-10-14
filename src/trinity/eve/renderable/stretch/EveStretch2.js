@@ -142,33 +142,26 @@ export class EveStretch2 extends IEveFiringEffectElement
     TriDevice.RegisterResource(this);
   }
 
-  /**
-   * Carbon Initialize (cpp:96-100): prepares the device half. Adapted: Carbon
-   * asserts an authored quadCount over 128 (cpp:105); this throws.
-   */
+  /** Carbon Initialize (cpp:96-100): prepares the device half. */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   Initialize()
   {
-    if (this.quadCount > EveStretch2.MAX_QUAD_COUNT)
-    {
-      throw new RangeError(`EveStretch2.quadCount must be <= ${EveStretch2.MAX_QUAD_COUNT}`);
-    }
     this.PrepareResources();
     return true;
   }
 
-  /** Carbon OnModified (cpp:102-111): a new quad count re-prepares; over 128 throws (Carbon asserts). */
+  /**
+   * Carbon OnModified (cpp:102-111): a new quad count re-prepares. Carbon's
+   * CCP_ASSERT on more than MAX_QUAD_COUNT quads (cpp:106) is compiled out of
+   * shipping builds, so nothing stops the count there.
+   */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "quadCount"))
     {
-      if (this.quadCount > EveStretch2.MAX_QUAD_COUNT)
-      {
-        throw new RangeError(`EveStretch2.quadCount must be <= ${EveStretch2.MAX_QUAD_COUNT}`);
-      }
       this.ReleaseResources();
       this.PrepareResources();
     }

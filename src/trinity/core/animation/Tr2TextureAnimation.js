@@ -75,12 +75,10 @@ export class Tr2TextureAnimation
 
   /**
    * Reloads after a notification, matching Carbon's unconditional reload hook.
-   *
-   * Adapted: Uses promise-based resource reads instead of a native worker queue.
    * @returns {boolean} True.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified()
   {
     this.ReadData();

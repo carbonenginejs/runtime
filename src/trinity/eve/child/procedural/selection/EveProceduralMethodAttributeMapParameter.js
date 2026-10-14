@@ -44,12 +44,9 @@ export class EveProceduralMethodAttributeMapParameter
    * Carbon EveProceduralMethodAttributeMapParameter::OnModified (cpp:24-35):
    * a child assignment blocks its auto-load until the map selects it. The
    * value argument follows the repo's OnModified duck.
-   *
-   * Adapted: The Be::Var notification identity is represented by either the field name or
-   * assigned value.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(value = null)
   {
     if (IsMatch(value, "child"))

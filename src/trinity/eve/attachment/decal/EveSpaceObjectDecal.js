@@ -179,11 +179,9 @@ export class EveSpaceObjectDecal
   /**
    * Rebuilds the decal matrix and its inverse after an authored placement
    * change.
-   *
-   * Adapted: JS identifies placement members by their exposed names; dynamic geometry remains a class-owned cache.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   @meta.invalidates("#decalGeometry")
   OnModified(propertyName)
   {

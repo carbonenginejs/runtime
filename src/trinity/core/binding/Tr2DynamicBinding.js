@@ -288,12 +288,11 @@ export class Tr2DynamicBinding extends INotify
 
   /**
    * Relinks on notification when an owner is present; otherwise unlinks.
-   * Adapted: Dispatches Carbon member notifications by exposed property name; existing JS expression and resource adapters retain their owning methods.
    * @param {string|null} propertyName Changed member name.
    * @returns {boolean} Binding result.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (this._owner) this.Link(this._currentFrameTime);

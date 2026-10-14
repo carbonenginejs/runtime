@@ -85,9 +85,10 @@ test("setup, notification, and dynamic split transitions preserve Carbon behavio
   assert.equal(shadowMap.denoiser, null, "Setup never recreates a discarded denoiser");
   assert.throws(() => shadowMap.Setup(1024, 17, true), /at most 16/u);
 
+  // Carbon OnModified matches the notified members (Tr2ShadowMap.cpp:66-93).
   shadowMap.debugColorSplit = true;
   shadowMap.shadowSplitMode = core.Tr2ShadowMap.ShadowSplitMode.DYNAMIC;
-  shadowMap.OnModified();
+  shadowMap.OnModified([ "debugColorSplit", "shadowSplitMode" ]);
   assert.equal(shadowMap.cascadeEffect.GetOption("SHADOW_DEBUG_MODE"), "SDM_COLOR");
   shadowMap.UpdateSplitValues(25, 400);
   assertArrayNear(
@@ -97,16 +98,20 @@ test("setup, notification, and dynamic split transitions preserve Carbon behavio
   );
 
   shadowMap.shadowSplitMode = core.Tr2ShadowMap.ShadowSplitMode.MANUAL;
-  shadowMap.OnModified();
+  shadowMap.OnModified("shadowSplitMode");
   shadowMap.SplitNr0 = 123;
   shadowMap.UpdateSplitValues(10, 1000);
   assert.equal(shadowMap.SplitNr0, 123, "manual mode preserves authored values");
 
   shadowMap.shadowSplitMode = core.Tr2ShadowMap.ShadowSplitMode.STATIC;
   shadowMap.debugColorSplit = false;
-  shadowMap.OnModified();
+  shadowMap.OnModified([ "shadowSplitMode", "debugColorSplit" ]);
   assert.equal(shadowMap.SplitNr0, 25);
   assert.equal(shadowMap.cascadeEffect.GetOption("SHADOW_DEBUG_MODE"), "SDM_NONE");
+  // Another member's notification only refreshes the split count, as Carbon's does.
+  shadowMap.cascadeEffect.SetOption("SHADOW_DEBUG_MODE", "SDM_COLOR");
+  shadowMap.OnModified("splitCount");
+  assert.equal(shadowMap.cascadeEffect.GetOption("SHADOW_DEBUG_MODE"), "SDM_COLOR");
 });
 
 test("SetupShadowSplit keeps logical matrices and reverses Carbon compositions", () =>

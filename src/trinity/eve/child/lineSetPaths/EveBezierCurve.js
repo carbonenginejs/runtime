@@ -154,12 +154,9 @@ export class EveBezierCurve extends IEveLineSetPath
   /**
    * Clamps completeness to 0..2, segments to 1..128 and segmentOffset to 0..1,
    * then marks the point chain dirty.
-   *
-   * Adapted: JS dispatches the native hook using the exposed member name; existing
-   * class-owned rendering/resource adaptations remain unchanged.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "completeness")) this.completeness = Math.min(2, Math.max(0, this.completeness));

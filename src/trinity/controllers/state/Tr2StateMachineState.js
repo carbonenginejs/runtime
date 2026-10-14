@@ -87,13 +87,11 @@ export class Tr2StateMachineState
 
   /**
    * Relinks the finalizer after it is modified.
-   *
-   * Adapted: Dispatches by exposed property name instead of a native field pointer.
    * @param {string} propertyName Exposed member name.
    * @returns {boolean} True after the notification is handled.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "finalizer") && this.finalizer && this._stateMachine)

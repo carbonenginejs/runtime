@@ -211,9 +211,11 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
   }
 
   /**
-   * Handles authored field changes.
-   * Adapted: selects native member notifications by exposed name; expression
-   * compilation and destination binding retain their existing JS adapters.
+   * Carbon OnModified (Tr2ActionAnimateValue.cpp:106-124).
+   *
+   * Adapted: on a value change Carbon calls m_evaluator.SetExpr with the
+   * controller and its extra functions; ours drops the compiled program and
+   * recompiles through CjsControllerExpressionProgram with a Curve function.
    */
   @meta.blue.method
   @meta.adapted

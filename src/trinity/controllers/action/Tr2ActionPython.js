@@ -170,15 +170,14 @@ export class Tr2ActionPython extends ITr2ControllerAction
   }
 
   /**
-   * Recreates the action instance when authoring fields change.
-   * Adapted: exposed names select the native module/class notification. Existing
-   * stored state is replayed into the new host; queued work keeps its old host.
-   * Native swaps a callback table and does not replay an ordinary state field.
+   * Carbon OnModified (Tr2ActionPython.cpp:52-77): a module or class change
+   * stops and unlinks the action, instantiates the new class, then relinks and
+   * restarts it. Queued work keeps its old host.
    * @param {string} propertyName Modified authored member name.
    * @returns {boolean} True after successful notification.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (!IsMatch(propertyName, "module") && !IsMatch(propertyName, "className")) return true;
@@ -192,9 +191,11 @@ export class Tr2ActionPython extends ITr2ControllerAction
       }
       this.Unlink();
     }
+    // Carbon InstantiateObject (cpp:147-181) drops the old instance, then only
+    // creates the new one; the saved state is not replayed into it, now or later.
     this._instance = null;
-    this._loadedState = null;
-    this._ensureInstance();
+    this._loadedState = this.state;
+    this._instance = Tr2ActionPython.createInstance(this.module, this.className, this);
     if (controller)
     {
       this.Link(controller);

@@ -338,11 +338,9 @@ export class Tr2Light
   /**
    * Carbon OnModified (Tr2Light.cpp:177-189): a lightProfilePath change
    * re-resolves the profile.
-   *
-   * Adapted: JS identifies Carbon's changed member address by its exposed property name.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "lightProfilePath")) this._ResolveLightProfile();

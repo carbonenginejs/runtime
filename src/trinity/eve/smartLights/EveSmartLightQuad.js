@@ -209,12 +209,9 @@ export class EveSmartLightQuad extends EveChildTransform
 
   /**
    * softQuad edits swap the flare-quad effect path (EveSmartLightQuad.cpp:36-54).
-   *
-   * Adapted: JS dispatches the native hook using the exposed member name; existing
-   * class-owned rendering/resource adaptations remain unchanged.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "softQuad")) this._ApplyEffectPath();

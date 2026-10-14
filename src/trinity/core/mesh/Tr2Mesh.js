@@ -156,11 +156,9 @@ export class Tr2Mesh extends Tr2MeshBase
    * Carbon OnModified (cpp:38-58): three arms, dispatched on which member
    * changed - the path refetches, clearing the defer flag starts the load a
    * deferred mesh skipped, and the mesh index rebuilds the morph targets.
-   *
-   * Adapted: JS identifies Carbon's changed member address by its exposed property name.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "geometryResPath"))

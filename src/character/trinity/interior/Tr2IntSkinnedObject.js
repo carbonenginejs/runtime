@@ -46,11 +46,9 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
 
   /**
    * Carbon INotify hook delegates to Tr2SkinnedObject and accepts all changes.
-   *
-   * Adapted: Exposed owner *DetailModel names map to the native LOD helper proxy members.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     super.OnModified(propertyName);

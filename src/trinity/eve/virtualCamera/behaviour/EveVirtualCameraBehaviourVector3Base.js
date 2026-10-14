@@ -54,12 +54,9 @@ export class EveVirtualCameraBehaviourVector3Base
   /**
    * Re-applies the current name after a field change, which propagates it to any
    * owned curves through the subclass SetName override.
-   *
-   * Adapted: JS dispatches the native hook using the exposed member name; existing
-   * class-owned rendering/resource adaptations remain unchanged.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "name")) this.SetName(this.name);

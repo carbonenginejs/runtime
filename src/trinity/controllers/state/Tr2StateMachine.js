@@ -125,13 +125,11 @@ export class Tr2StateMachine
 
   /**
    * Relinks the start state after it is modified.
-   *
-   * Adapted: Dispatches by exposed property name instead of a native field pointer.
    * @param {string} propertyName Exposed member name.
    * @returns {boolean} True after the notification is handled.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "startState") && this.startState && this._controller) this.startState.Link(this);

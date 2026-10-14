@@ -108,12 +108,9 @@ export class EveSmartLightColorShareGroup extends EveEntity
 
   /**
    * display edits re-register the shared groups (EveSmartLightColorShareGroup.cpp:17-24).
-   *
-   * Adapted: JS dispatches the native hook using the exposed member name; existing
-   * class-owned rendering/resource adaptations remain unchanged.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "display")) this.ReRegister();

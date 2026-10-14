@@ -72,11 +72,9 @@ export class Tr2TexturedPointLight extends Tr2PointLight
 
   /**
    * Carbon OnModified (cpp:42–49): texture changes refetch, then forward base.
-   *
-   * Adapted: JS identifies Carbon's changed member address by its exposed property name.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "texturePath")) this.SetTexturePath(this.texturePath);

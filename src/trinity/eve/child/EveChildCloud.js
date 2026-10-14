@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildCloud.h
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
-import { INotify } from "../../../global/blue/INotify.js";
+import { INotify, IsMatch } from "../../../global/blue/INotify.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Hand-maintained from Carbon source.
 import { mat4 } from "#math/mat4";
@@ -154,13 +154,22 @@ export class EveChildCloud extends EveSpaceObjectChild
     return true;
   }
 
-  /** Rebuilds only for the native notified tessellation field (cpp:199-208). */
+  /**
+   * Carbon OnModified (cpp:200-209): a new tessellation level drops the vertex
+   * and index buffers and prepares them again. The vertex declaration is kept.
+   */
   @meta.blue.method
-  @meta.adapted
-  OnModified(names)
+  @meta.implemented
+  OnModified(value = null)
   {
-    // Adapted: Blue's Var pointer is delivered as a field name or name list.
-    if ((Array.isArray(names) ? names : [names]).includes("preTesselationLevel")) this.Initialize();
+    if (IsMatch(value, "preTesselationLevel"))
+    {
+      // Explicit destruction stands in for Carbon's buffer assignment and vector clear.
+      this._vertexBuffer.Destroy();
+      for (const buffer of this._indexBuffers) buffer.Destroy();
+      this._indexBuffers.length = 0;
+      this.PrepareResources();
+    }
     return true;
   }
 

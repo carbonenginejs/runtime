@@ -47,11 +47,9 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
   /** Carbon EveProceduralMethodAttributeMap::OnModified (cpp:19-27): a seed
    * change reselects. The value argument follows the repo's OnModified duck
    * (field name or field value).
-   *
-   * Adapted: Field matching follows the repo OnModified duck.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(value = null)
   {
     if (IsMatch(value, "seed_temp"))

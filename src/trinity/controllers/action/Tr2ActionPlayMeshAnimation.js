@@ -277,11 +277,9 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
 
   /**
    * Relinks after authored destination changes.
-   * Adapted: identifies native stored-member notifications by exposed names
-   * and preserves the existing flattened destination/cache adapter.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (this._controller && !this.HasDelayedBinding()

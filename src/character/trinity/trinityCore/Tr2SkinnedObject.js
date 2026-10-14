@@ -230,12 +230,9 @@ export class Tr2SkinnedObject
 
   /**
    * Carbon INotify hook: retains active model changes in the selected proxy.
-   *
-   * Adapted: JS passes the exposed member name instead of Carbon's field address; the
-   * boolean reports whether the base handled it.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "visualModel"))

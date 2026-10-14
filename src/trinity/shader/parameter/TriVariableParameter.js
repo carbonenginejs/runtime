@@ -91,12 +91,9 @@ export class TriVariableParameter extends CjsParameter
   /**
    * Consumes the two dirty flags: `variable` re-resolves the store binding,
    * `effectHandles` re-resolves usage against the cached shader.
-   *
-   * Adapted: JS identifies the changed member by its exposed property name; variable-store and effect binding
-   * adaptations remain on their owning methods.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "name"))

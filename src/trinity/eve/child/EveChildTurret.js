@@ -284,8 +284,10 @@ export class EveChildTurret extends EveChildMesh
   /**
    * Re-syncs the tracker's impact data and reloads the firing effect when
    * the notifying fields change (Carbon cpp:61-72; the path reload has no
-   * inline-effect guard, unlike Initialize). Adapted: JS loads asynchronously;
-   * a cleared path cancels only its pending load and keeps the installed effect.
+   * inline-effect guard, unlike Initialize). A cleared path does nothing.
+   *
+   * Adapted: the firing effect loads asynchronously (_LoadFiringEffectFromPath)
+   * where Carbon's LoadObject is synchronous.
    */
   @meta.blue.method
   @meta.adapted
@@ -295,16 +297,9 @@ export class EveChildTurret extends EveChildMesh
     {
       this._target.SetImpactBehaviour(this.impactSize, this.impactBehaviour);
     }
-    if (IsMatch(value, "firingEffectResPath"))
+    if (IsMatch(value, "firingEffectResPath") && this.firingEffectResPath)
     {
-      if (this.firingEffectResPath) this._LoadFiringEffectFromPath();
-      else
-      {
-        ++this._firingEffectRequest;
-        const pending = this._pendingFiringEffectCalls;
-        this._pendingFiringEffectCalls = null;
-        if (pending) for (const call of pending) call();
-      }
+      this._LoadFiringEffectFromPath();
     }
     return super.OnModified(value);
   }

@@ -112,12 +112,9 @@ export class EveTacticalOverlay
 
   /**
    * Reattaches only effect references that changed since the prior settle.
-   *
-   * Adapted: JS dispatches the native hook using the exposed member name; existing
-   * class-owned rendering/resource adaptations remain unchanged.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "anchorEffect")) this._SetVariableStore(this.anchorEffect);

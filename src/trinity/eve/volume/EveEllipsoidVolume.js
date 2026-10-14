@@ -194,7 +194,7 @@ export class EveEllipsoidVolume extends IEveVolume
    * change, and notifies every registered listener.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified()
   {
     this.Setup();

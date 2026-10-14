@@ -59,7 +59,7 @@ test("inline effect wins Initialize; notified reload retains it until a typed re
   assert.equal(turret.GetFiringEffect(),replacement,"cpp:67 does not clear an installed effect on empty path");
 });
 
-test("same-path reload, clear, explicit setter and cleanup supersede pending child turret loads", async t =>
+test("same-path reload, explicit setter and cleanup supersede pending child turret loads; a cleared path does nothing", async t =>
 {
   const requests=pendingManager(t), turret=new EveChildTurret();
   turret.firingEffectResPath="res:/same.red";
@@ -71,8 +71,10 @@ test("same-path reload, clear, explicit setter and cleanup supersede pending chi
   assert.equal(turret.GetFiringEffect(),current);
   turret.OnModified("firingEffectResPath");
   turret.firingEffectResPath=""; turret.OnModified("firingEffectResPath");
-  requests[2].resolve(new EveTurretFiringFX()); await settle();
-  assert.equal(turret.GetFiringEffect(),current);
+  // Carbon ignores a cleared path (EveChildTurret.cpp:67), and its synchronous load
+  // had already installed the effect, so the load under way still installs.
+  const reloaded=new EveTurretFiringFX(); requests[2].resolve(reloaded); await settle();
+  assert.equal(turret.GetFiringEffect(),reloaded);
   turret.firingEffectResPath="res:/pending.red"; turret.OnModified("firingEffectResPath");
   const explicit=new EveTurretFiringFX(); turret.SetFiringEffect(explicit);
   requests[3].resolve(new EveTurretFiringFX()); await settle();

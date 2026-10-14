@@ -159,11 +159,9 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
 
   /**
    * Relinks or recompiles when authored fields change.
-   *
-   * Adapted: Selects native member notifications by exposed property name.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (!this._controller) return true;

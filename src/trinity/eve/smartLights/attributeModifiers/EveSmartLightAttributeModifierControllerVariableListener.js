@@ -59,11 +59,9 @@ export class EveSmartLightAttributeModifierControllerVariableListener extends Ev
    * Reapplies the activation state when the received value or the inversion
    * flag is edited, then defers to the base active-edit handling
    * (EveSmartLightAttributeModifierControllerVariableListener.cpp:23-39).
-   *
-   * Adapted: JS identifies Carbon's changed member address by its exposed property name.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "value") || IsMatch(propertyName, "invertReceivedValue")) this._ApplyValue();

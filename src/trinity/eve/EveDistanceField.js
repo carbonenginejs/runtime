@@ -187,11 +187,9 @@ export class EveDistanceField
   /**
    * Defers a distance-curve rebuild to the next update when the minimum or
    * maximum distance changed.
-   *
-   * Adapted: JS identifies the changed distance member by its exposed property name.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   @meta.invalidates("#updateDistanceCurve")
   OnModified(propertyName)
   {

@@ -149,11 +149,9 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
 
   /**
    * Relinks the destination on the native destinationOwner notification.
-   *
-   * Adapted: Dispatches the native member notification by exposed property name.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "destinationOwner")) this._LinkToDestinationOwner();

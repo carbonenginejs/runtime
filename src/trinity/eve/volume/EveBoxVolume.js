@@ -226,12 +226,9 @@ export class EveBoxVolume extends IEveVolume
   /**
    * Re-clamps the scalings and the cached inverse rotation after an authored
    * change, then notifies every registered listener.
-   *
-   * Adapted: JS dispatches the native hook using the exposed member name; existing
-   * class-owned rendering/resource adaptations remain unchanged.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (["position", "scaling", "rotation", "innerScaling"].some(name => IsMatch(propertyName, name))) this.Setup();

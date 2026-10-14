@@ -74,7 +74,7 @@ export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpa
    * rather than through a controller.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(name)
   {
     if (IsMatch(name, "value"))

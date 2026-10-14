@@ -1717,7 +1717,10 @@ export class EveChildMesh extends EveChildTransform
    * Carbon OnModified (EveChildMesh.cpp:197-216): three independent tests, not
    * a chain - a mesh change satisfies the first two, and the third only runs
    * for a child that owns locator sets.
-   * Adapted: JS identifies Carbon's changed member address by its exposed property name; the instanced-mesh cast is performed where that interface is used.
+   *
+   * Adapted: Carbon caches m_instancedMesh = BlueCastPtr(m_mesh) here
+   * (cpp:198-217) and refreshes it only on notify or Initialize; ours keeps no
+   * cache and casts the mesh where the instanced interface is used.
    */
   @meta.blue.method
   @meta.adapted

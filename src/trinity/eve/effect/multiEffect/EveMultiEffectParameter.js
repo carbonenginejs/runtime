@@ -95,12 +95,9 @@ export class EveMultiEffectParameter
   /**
    * Rebinds the owning effect after a model update, since the bound object is
    * the slot's only notifying field.
-   *
-   * Adapted: JS dispatches the native hook using the exposed member name; existing
-   * class-owned rendering/resource adaptations remain unchanged.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "object") && this._owner) this._owner.Rebind();

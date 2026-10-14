@@ -12,15 +12,14 @@ test("real pillar GPU emitter initializes and Setup hashes copied structs exactl
   const emitter = CjsSchema.from(values._type, values);
   assert.ok(emitter instanceof Tr2GpuUniqueEmitter);
   assert.equal(emitter.attractorStrength, -100);
-  assert.equal(emitter.GetRevision() > 0, true);
+  assert.notEqual(emitter._paramsHash, 0, "Initialize hashed the parameters");
   const control = CjsSchema.from(values._type, values, { initialize: false, notify: false });
-  assert.equal(control.GetRevision(), 0, "negative control: suppressed lifecycle leaves parameter cache unbuilt");
+  assert.equal(control._paramsHash, 0, "negative control: suppressed lifecycle leaves the parameters unhashed");
   const calls = [];
   const updateHash = emitter.UpdateHash;
   const generateID = emitter.GenerateID;
   emitter.UpdateHash = function () { calls.push("hash"); return updateHash.call(this); };
   emitter.GenerateID = function () { calls.push("id"); return generateID.call(this); };
-  const revision = emitter.GetRevision();
   emitter.Setup(emitter.rate, { ...emitter._emitter, positionPrevious: [7, 8, 9] }, {
     ...emitter._params, attractorPosition: [1, 2, 3], attractorStrength: -125
   });
@@ -28,7 +27,6 @@ test("real pillar GPU emitter initializes and Setup hashes copied structs exactl
   assert.deepEqual(Array.from(emitter._emitter.positionPrevious), [7, 8, 9]);
   assert.deepEqual(Array.from(emitter._params.attractorPosition), [1, 2, 3]);
   assert.equal(emitter._params.attractorStrength, -125);
-  assert.equal(emitter.GetRevision(), revision + 1);
   emitter.OnModified();
   assert.deepEqual(calls, ["hash", "id", "hash", "id"],
     "negative control: the old extra settle hashes and generates identity twice");

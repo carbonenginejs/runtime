@@ -926,12 +926,9 @@ export class EveCamera
    * Re-derives yaw and pitch when the parent-orbit rotation quaternion changes,
    * and re-evaluates interest tracking (clearing the interest orbit speeds) when
    * the interest object changes.
-   *
-   * Adapted: JS dispatches the native hook using the exposed member name; existing
-   * class-owned rendering/resource adaptations remain unchanged.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "rotationAroundParent"))

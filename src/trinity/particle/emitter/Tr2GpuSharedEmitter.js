@@ -199,11 +199,8 @@ export class Tr2GpuSharedEmitter
 
   _previousTime = -1;
 
-  _revision = 0;
-
   /**
    * Hashes the native parameter bytes and selects the shared parameter ID.
-   * The revision counter is retained for existing JavaScript consumers.
    */
   @meta.blue.method
   @meta.adapted
@@ -212,13 +209,15 @@ export class Tr2GpuSharedEmitter
     this._ReadParameters();
     this.UpdateHash();
     this.GenerateID();
-    this._revision++;
     return true;
   }
 
   /**
-   * Rehashes changed parameters and regenerates the shared ID, retaining the
-   * JavaScript revision counter for existing consumers.
+   * Carbon OnModified (Tr2GpuSharedEmitter.cpp:41-46): rehashes the parameters
+   * and regenerates the shared ID.
+   *
+   * Adapted: the Blue members are separate JS fields, so they are first copied
+   * into the packed parameter block Carbon maps them onto directly.
    */
   @meta.blue.method
   @meta.adapted
@@ -227,7 +226,6 @@ export class Tr2GpuSharedEmitter
     this._ReadParameters();
     this.UpdateHash();
     this.GenerateID();
-    this._revision++;
     return true;
   }
 
@@ -610,18 +608,6 @@ export class Tr2GpuSharedEmitter
     if (parameters.attractorStrength !== undefined) this._params.attractorStrength = parameters.attractorStrength;
     this.UpdateHash();
     this.GenerateID();
-    this._revision++;
-  }
-
-  /**
-   * Returns the counter bumped by Initialize and OnModified, which a renderer
-   * compares against its own copy to detect parameter changes.
-   */
-  @meta.blue.method
-  @meta.adapted
-  GetRevision()
-  {
-    return this._revision;
   }
 
   /** Carbon's GPU emitter thread-safety hook is intentionally empty. */

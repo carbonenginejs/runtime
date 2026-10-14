@@ -71,7 +71,7 @@ export class TriFloatArrayParameter extends CjsParameter
    * field changes.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(_options = {})
   {
     this.RebuildEffectHandles(this.#cachedEffect);

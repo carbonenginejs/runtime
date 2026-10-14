@@ -63,10 +63,12 @@ export class Tr2ControllerReference extends ITr2Controller
   }
 
   /**
-   * Handles the authored path notification by resolving and linking the controller.
+   * Carbon OnModified (Tr2ControllerReference.cpp:21-36): a new path drops the
+   * controller, loads the new one and links it to the owner, without starting
+   * it. Start intent and values pending for the previous load do not carry over.
    *
-   * Adapted: exposed property names replace native addresses; LoadObject links
-   * the current owner when its asynchronous result arrives.
+   * Adapted: the load is asynchronous (ResolveController), and links the owner
+   * when it arrives.
    * @param {string} propertyName Native exposed member name.
    * @returns {boolean} True after handling the notification.
    */
@@ -76,6 +78,8 @@ export class Tr2ControllerReference extends ITr2Controller
   {
     if (IsMatch(propertyName, "path"))
     {
+      this._isActive = false;
+      this._pendingVariables.clear();
       this.ResolveController();
     }
     return true;

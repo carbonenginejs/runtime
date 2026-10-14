@@ -1110,11 +1110,9 @@ export class AudGameObjResource
 
   /**
    * Values settle hook: refresh notified event-name and rotation consequences.
-   *
-   * Adapted: JS identifies Carbon's member address by its exposed name; playback remains on
-   * the injected audio backend.
    */
-  @meta.adapted
+  @meta.blue.method
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "rotation"))

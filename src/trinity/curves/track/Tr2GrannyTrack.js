@@ -63,17 +63,16 @@ export class Tr2GrannyTrack
   }
 
   /**
-   * Relinks the resource when authored fields change.
-   *
-   * Adapted: Dispatches Carbon member notifications by exposed property name; existing JS
-   * expression and resource adapters retain their owning methods.
+   * Carbon OnModified (Tr2GrannyTrack.cpp:49-65): a new resource path relinks
+   * the resource; a new name or group rebuilds the curves. The two checks are
+   * independent, so a batched change runs both.
    */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "grannyResPath")) this.SetGrannyResource();
-    else if (IsMatch(propertyName, "name") || IsMatch(propertyName, "group"))
+    if (IsMatch(propertyName, "name") || IsMatch(propertyName, "group"))
     {
       this.ResetTracks();
       this.duration = 0;

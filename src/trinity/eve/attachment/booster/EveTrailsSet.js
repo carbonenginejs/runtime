@@ -172,9 +172,9 @@ export class EveTrailsSet
     this.Cleanup();
   }
 
-  /** Carbon OnModified (cpp:154-163): a new mesh path reloads. */
+  /** Carbon OnModified (cpp:175-183): a new mesh path reloads. */
   @meta.blue.method
-  @meta.adapted
+  @meta.implemented
   OnModified(propertyName)
   {
     if (IsMatch(propertyName, "geometryResPath")) this.InitializeGeometryResource();

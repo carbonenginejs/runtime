@@ -838,7 +838,8 @@ export class Tr2ParticleSystem
   }
 
   /** Carbon Tr2ParticleSystem.cpp:141; batched edits apply each independent branch. */
-  @meta.adapted
+  @meta.blue.method
+  @meta.implemented
   OnModified(names)
   {
     if (IsMatch(names, "requiresSorting"))

@@ -166,10 +166,11 @@ export class Tr2ScalarExprKey extends IInitialize
   /**
    * Re-evaluates all four expressions against one snapshot of the key's inputs.
    *
-   * Adapted: Carbon recompiles only a changed expression and evaluates retained
-   * programs. JavaScript compiles each expression on every evaluation, retains
-   * previous-key context, and keeps the prior field value on compile failure or
-   * NaN. The changed property is not used to select compilation.
+   * Carbon OnModified (Tr2ScalarExprKeyCurve.cpp:129-179).
+   *
+   * Adapted: Carbon recompiles only the changed expression and evaluates the
+   * retained programs; ours compiles each expression on every evaluation, so
+   * the changed property is not needed. The values are the same.
    *
    * @param {string} propertyName Modified property name; unused.
    * @returns {boolean} True after evaluation completes.
@@ -206,8 +207,9 @@ export class Tr2ScalarExprKey extends IInitialize
   /**
    * Updates previous-key context and evaluates the four expressions from one snapshot.
    *
-   * Adapted: Programs are compiled on evaluation instead of retained;
-   * compile failures and NaN retain each field's previous value. Missing previous-key
+   * Adapted: Programs are compiled on evaluation instead of retained; a
+   * compile failure keeps the field's previous value, as Carbon's skipped
+   * invalid program does. Missing previous-key
    * context supplies zero time and value, as in Carbon.
    *
    * @param {Tr2ScalarExprKey|null} previousKey Previous key, or null for the first key.
@@ -228,13 +230,14 @@ export class Tr2ScalarExprKey extends IInitialize
 
   /**
    * Compiles and evaluates one expression using key variables and Perlin helpers.
-   * Empty source, compilation failure or a NaN result returns the fallback.
-   * Evaluation exceptions propagate, and infinite numeric results are retained.
+   * Empty source or a compilation failure returns the fallback; any result,
+   * NaN and infinities included, is returned as Carbon stores it. Evaluation
+   * exceptions propagate.
    * Custom: the existing JS parser helper substitutes for native retained programs;
    * this class-removal pass does not change expression evaluation semantics.
    *
    * @param {string} expression Expression source.
-   * @param {number} fallback Value retained when no usable result is produced.
+   * @param {number} fallback Value kept when the expression is empty or does not compile.
    * @param {object} [variables] Input snapshot; defaults to the current key's values.
    * @returns {number} Evaluated value or fallback.
    */
@@ -259,7 +262,8 @@ export class Tr2ScalarExprKey extends IInitialize
       key: this,
       variables
     }));
-    return Number.isNaN(value) ? fallback : value;
+    // Carbon stores Eval's result as it is, NaN included (Tr2ScalarExprKeyCurve.cpp:161-176).
+    return value;
   }
 
   /**

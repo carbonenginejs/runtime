@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2ShadowMap.h
 import { Tr2Renderer } from "./Tr2Renderer.js";
-import { INotify } from "../../global/blue/INotify.js";
+import { INotify, IsMatch } from "../../global/blue/INotify.js";
 //   trinity/trinity/Tr2ShadowMap.cpp
 import { meta } from "#schema";
 import { mat4 } from "#math/mat4";
@@ -249,23 +249,19 @@ export class Tr2ShadowMap
    */
   perSplitData = createPerSplitData();
 
-  #width = SHADOW_MAP_WIDTH;
+  _width = SHADOW_MAP_WIDTH;
 
-  #height = SHADOW_MAP_HEIGHT;
+  _height = SHADOW_MAP_HEIGHT;
 
-  #oldZFar = 0;
+  _oldZFar = 0;
 
-  #useDenoiser = true;
+  _useDenoiser = true;
 
-  #lastNearClip = 0;
+  _lastNearClip = 0;
 
-  #lastFarClip = 0;
+  _lastFarClip = 0;
 
-  #lastShadowSplitMode = Tr2ShadowMap.ShadowSplitMode.STATIC;
-
-  #lastDebugColorSplit = false;
-
-  #splitSetups = Array.from({ length: SHADOW_FRUSTUM_COUNT }, () => createSplitSetup());
+  _splitSetups = Array.from({ length: SHADOW_FRUSTUM_COUNT }, () => createSplitSetup());
 
   /** Creates the logical effect/denoiser state and reserves Carbon's globals. */
   constructor()
@@ -297,43 +293,38 @@ export class Tr2ShadowMap
       this.splitCount = nextCount;
       this.perSplitData.SplitInfo[0] = nextCount;
     }
-    this.#useDenoiser = Boolean(useDenoiser);
-    if (!this.#useDenoiser)
+    this._useDenoiser = Boolean(useDenoiser);
+    if (!this._useDenoiser)
     {
       this.denoiser = null;
     }
   }
 
   /**
-   * Applies Carbon's notification consequences from the current owned state.
-   *
-   * Adapted: Property notifications expose settled values rather than Be::Var identity, so
-   * the two notify-backed settings are compared against their cached state.
+   * Carbon OnModified (Tr2ShadowMap.cpp:66-93): a debug-colour change sets the
+   * shadow effect's debug option; a split-mode change applies the static splits
+   * or resets the dynamic clip range; every notification refreshes the split count.
    */
   @meta.blue.method
-  @meta.adapted
-  OnModified()
+  @meta.implemented
+  OnModified(value = null)
   {
-    if (this.debugColorSplit !== this.#lastDebugColorSplit)
+    if (IsMatch(value, "debugColorSplit"))
     {
       this.cascadeEffect.SetOption("SHADOW_DEBUG_MODE", this.debugColorSplit ? "SDM_COLOR" : "SDM_NONE");
-      this.#lastDebugColorSplit = this.debugColorSplit;
     }
-
-    if (this.shadowSplitMode !== this.#lastShadowSplitMode)
+    if (IsMatch(value, "shadowSplitMode"))
     {
       if (this.shadowSplitMode === Tr2ShadowMap.ShadowSplitMode.STATIC)
       {
-        this.#SetStaticShadowSplits();
+        this._SetStaticShadowSplits();
       }
       else if (this.shadowSplitMode === Tr2ShadowMap.ShadowSplitMode.DYNAMIC)
       {
-        this.#lastNearClip = 0;
-        this.#lastFarClip = 0;
+        this._lastNearClip = 0;
+        this._lastFarClip = 0;
       }
-      this.#lastShadowSplitMode = this.shadowSplitMode;
     }
-
     this.perSplitData.SplitInfo[0] = this.splitCount;
     return true;
   }
@@ -343,7 +334,7 @@ export class Tr2ShadowMap
   @meta.implemented
   ShouldUseDenoiser(value)
   {
-    this.#useDenoiser = Boolean(value);
+    this._useDenoiser = Boolean(value);
   }
 
   /**
@@ -355,7 +346,7 @@ export class Tr2ShadowMap
   @meta.ours
   GetUseDenoiser()
   {
-    return this.#useDenoiser;
+    return this._useDenoiser;
   }
 
   /** Recomputes geometric dynamic split endpoints when the clip range changes. */
@@ -364,15 +355,15 @@ export class Tr2ShadowMap
   UpdateSplitValues(nearClip, farClip)
   {
     if (this.shadowSplitMode !== Tr2ShadowMap.ShadowSplitMode.DYNAMIC) return;
-    if (this.#lastNearClip === nearClip && this.#lastFarClip === farClip) return;
+    if (this._lastNearClip === nearClip && this._lastFarClip === farClip) return;
 
-    this.#lastNearClip = nearClip;
-    this.#lastFarClip = farClip;
+    this._lastNearClip = nearClip;
+    this._lastFarClip = farClip;
     const logNear = Math.log2(nearClip);
     const logFar = Math.log2(farClip);
     for (let index = 0; index < this.splitCount; index++)
     {
-      this.#SetSplitValue(index, Math.pow(2, logNear + (logFar - logNear) * ((index + 1) / this.splitCount)));
+      this._SetSplitValue(index, Math.pow(2, logNear + (logFar - logNear) * ((index + 1) / this.splitCount)));
     }
   }
 
@@ -444,17 +435,17 @@ export class Tr2ShadowMap
       throw new RangeError("Tr2ShadowMap.SetupShadowSplit received an invalid split index.");
     }
 
-    const setup = this.#splitSetups[splitIndex];
-    if (splitIndex === 0) this.#oldZFar = zNear;
-    const zFar = this.#GetSplitValue(splitIndex);
+    const setup = this._splitSetups[splitIndex];
+    if (splitIndex === 0) this._oldZFar = zNear;
+    const zFar = this._GetSplitValue(splitIndex);
     this.perSplitData.ShadowMapValues[splitIndex >> 2][splitIndex & 3] = zFar;
 
-    const left = leftDivNear * this.#oldZFar;
-    const right = rightDivNear * this.#oldZFar;
-    const top = topDivNear * this.#oldZFar;
-    const bottom = bottomDivNear * this.#oldZFar;
-    writePerspectiveOffCenter(PROJECTION_SCRATCH, left, right, bottom, top, this.#oldZFar, zFar);
-    this.#oldZFar = zFar;
+    const left = leftDivNear * this._oldZFar;
+    const right = rightDivNear * this._oldZFar;
+    const top = topDivNear * this._oldZFar;
+    const bottom = bottomDivNear * this._oldZFar;
+    writePerspectiveOffCenter(PROJECTION_SCRATCH, left, right, bottom, top, this._oldZFar, zFar);
+    this._oldZFar = zFar;
 
     mat4.invert(INVERSE_PROJECTION_SCRATCH, PROJECTION_SCRATCH);
     // Carbon inverseProjection * inverseView; gl-matrix reverses the operands.
@@ -532,8 +523,8 @@ export class Tr2ShadowMap
     // a 2D texture of one mip.
     const cascadedShadowDepth = gpuResourcePool.GetTempTexture("cascadedShadowDepth", {
       type: TextureType.TEX_TYPE_2D,
-      width: this.size * this.#width,
-      height: this.size * this.#height,
+      width: this.size * this._width,
+      height: this.size * this._height,
       depth: 1,
       mipCount: 1,
       format: PixelFormat.PIXEL_FORMAT_D32_FLOAT,
@@ -666,7 +657,7 @@ export class Tr2ShadowMap
       // Carbon gates on all three (`cpp:296`). Setup() nulls the denoiser when
       // it is disabled, so the useDenoiser flag and a present denoiser are not
       // the same question.
-      if (this.denoiser && this.#useDenoiser && depthMap.IsValid())
+      if (this.denoiser && this._useDenoiser && depthMap.IsValid())
       {
         shadowMapResult = this.denoiser.Apply(
           shadowMapResult,
@@ -714,7 +705,7 @@ export class Tr2ShadowMap
   @meta.ours
   GetShadowMapWidth()
   {
-    return this.#width;
+    return this._width;
   }
 
   /**
@@ -726,7 +717,7 @@ export class Tr2ShadowMap
   @meta.ours
   GetShadowMapHeight()
   {
-    return this.#height;
+    return this._height;
   }
 
   /**
@@ -778,22 +769,22 @@ export class Tr2ShadowMap
   }
 
   /** Restores the sixteen fixed Carbon cascade endpoints. */
-  #SetStaticShadowSplits()
+  _SetStaticShadowSplits()
   {
     for (let index = 0; index < STATIC_SPLITS.length; index++)
     {
-      this.#SetSplitValue(index, STATIC_SPLITS[index]);
+      this._SetSplitValue(index, STATIC_SPLITS[index]);
     }
   }
 
   /** Writes one authored/dynamic split endpoint to its public field. */
-  #SetSplitValue(index, value)
+  _SetSplitValue(index, value)
   {
     this[`SplitNr${index}`] = value;
   }
 
   /** Reads one split endpoint from its public field. */
-  #GetSplitValue(index)
+  _GetSplitValue(index)
   {
     return this[`SplitNr${index}`];
   }
