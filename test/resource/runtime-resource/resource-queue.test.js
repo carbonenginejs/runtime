@@ -911,3 +911,39 @@ test("a background queue drains on its own: a finished task starts the next with
   await Promise.race([ Promise.all([ first.promise, second.promise ]), new Promise((_, reject) => setTimeout(() => reject(new Error("the second task never started")), 500)) ]);
   assert.deepEqual(order, [ "first", "second" ]);
 });
+
+test("a reload reads the urgent mode again, and WaitUrgent waits for it (BlueAsyncRes.cpp:363-367, 220)", async () => {
+  const resMan = new CjsBlueResMan({ autoPumpMainThreadQueue: false, source: { Read() { return new Uint8Array([ 1 ]); } } });
+  resMan.RegisterObjectLoader("bin", value => ({ bytes: value }));
+  const first = LoadData(resMan, "res:/urgent/reloaded.bin");
+  await resMan.Wait();
+  await first;
+  assert.equal(resMan.Lookup("res:/urgent/reloaded.bin").isUrgent, false);
+
+  resMan.SetUrgentResourceLoads(true);
+  const reload = resMan.ReloadResource("res:/urgent/reloaded.bin");
+  resMan.SetUrgentResourceLoads(false);
+  const waited = resMan.WaitUrgent();
+  let settled = false;
+  waited.then(() => { settled = true; });
+  await FlushMicrotasks();
+  assert.equal(settled, false, "the urgent reload is still pending");
+  while (!settled)
+  {
+    resMan.PumpBackgroundQueue();
+    resMan.PumpMainThreadQueue();
+    await FlushMicrotasks();
+  }
+  await reload;
+  assert.equal(resMan.Lookup("res:/urgent/reloaded.bin").isUrgent, true);
+});
+
+test("urgent mode keeps the per-tick prepare budget (BlueResMan.cpp:446-465)", () => {
+  const resMan = new CjsBlueResMan({ autoPumpMainThreadQueue: false });
+  const ran = [];
+  for (const name of [ "a", "b", "c" ]) resMan.QueueTask("main", () => { ran.push(name); });
+  resMan.SetUrgentResourceLoads(true);
+  resMan.PumpMainThreadQueue({ maxItems: 1 });
+  assert.deepEqual(ran, [ "a" ]);
+  resMan.SetUrgentResourceLoads(false);
+});

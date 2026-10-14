@@ -277,7 +277,7 @@ export class CjsBlueResMan
   _resourceOwnership = new WeakMap();
   _resourceOperations = new Map();
 
-  /** Load-and-prepare operations of resources created in urgent mode, while pending (WaitUrgent). */
+  /** Urgent loads, reloads and reads while pending (WaitUrgent). */
   _urgentOperations = new Set();
   _reloadCandidates = new WeakMap();
   _reloadGenerations = new Map();
@@ -584,10 +584,11 @@ export class CjsBlueResMan
     // BlueResMan.cpp:452: each main tick first lets a throttled background
     // queue resume.
     this._loadQueue.Unthrottle();
-    const urgent = options.urgent === true || this.urgentResourceLoads;
+    // Urgent mode only flags queue entries; BlueResMan::Update keeps its time
+    // slice whatever the mode (BlueResMan.cpp:446-465).
     const result = this._prepareQueue.Pump({
-      maxItems: urgent ? 0 : (options.maxItems ?? this.maxPrepareItemsPerTick),
-      maxTime: urgent ? 0 : (options.maxTime ?? this.maxPrepareTime) * 1000,
+      maxItems: options.maxItems ?? this.maxPrepareItemsPerTick,
+      maxTime: (options.maxTime ?? this.maxPrepareTime) * 1000,
       now: options.now
     });
     if (result.queued > 0 && result.active === 0) this.ScheduleMainThreadQueue();
@@ -867,16 +868,16 @@ export class CjsBlueResMan
   }
 
   /**
-   * `WaitUrgent` (BlueResMan.cpp:970-980): settles once the urgent resources
-   * pending at the call have loaded and prepared.
+   * `WaitUrgent` (BlueResMan.cpp:970-980): settles once the urgent loads,
+   * reloads and reads pending at the call have finished.
    *
    * Adapted: Carbon sends a marker flagged `BCBF_FENCE | BCBF_URGENT` through the
    * background queue and then the main queue. That works because Carbon queues a
    * resource's prepare as one main-queue entry before its load entry finishes
    * (BlueAsyncRes.cpp:108-120). Ours queues the prepare in stages after the load
    * promise settles, so a marker could pass between them; the urgent
-   * load-and-prepare operations pending at the call are awaited instead, as
-   * `Wait` does for all of them.
+   * operations pending at the call are awaited instead, as `Wait` does for all
+   * of them.
    *
    * @returns {Promise<CjsBlueResMan>} This manager, once those operations have settled.
    */
@@ -884,6 +885,14 @@ export class CjsBlueResMan
   {
     await Promise.allSettled([ ...this._urgentOperations ]);
     return this;
+  }
+
+  /** Keeps an urgent load, reload or read for `WaitUrgent` while it is pending. */
+  _TrackUrgentOperation(operation)
+  {
+    this._urgentOperations.add(operation);
+    const forget = () => this._urgentOperations.delete(operation);
+    operation.then(forget, forget);
   }
 
   /**
@@ -1729,10 +1738,14 @@ export class CjsBlueResMan
     const existing = this._reloadOperations.get(resource);
     if (existing?.candidate === candidate) return existing.promise;
 
+    // BlueAsyncRes::Reload re-runs Initialize, which reads the manager's urgent
+    // mode again (BlueAsyncRes.cpp:363-367, :220).
+    candidate.resource.isUrgent = this.urgentResourceLoads;
     const operation = {
       candidate,
       promise: this._RunReloadCandidate(candidate, options)
     };
+    if (candidate.resource.isUrgent) this._TrackUrgentOperation(operation.promise);
     this._reloadOperations.set(resource, operation);
     operation.promise.then(() =>
     {
@@ -2100,12 +2113,7 @@ export class CjsBlueResMan
       })
       .finally(releaseLock);
     operation.then(finishOperation, finishOperation);
-    if (resource.isUrgent)
-    {
-      this._urgentOperations.add(operation);
-      const forget = () => this._urgentOperations.delete(operation);
-      operation.then(forget, forget);
-    }
+    if (resource.isUrgent) this._TrackUrgentOperation(operation);
     return operation;
   }
 
@@ -2124,8 +2132,11 @@ export class CjsBlueResMan
   QueueReadResource(path, options = {})
   {
     const read = this._BeginReadOperation(path, options);
-    return this._QueueReadResource(read.context, read.options,
-      this.urgentResourceLoads ? IBlueCallbackMan.BCBF_URGENT : IBlueCallbackMan.BCBF_NONE);
+    const urgent = this.urgentResourceLoads;
+    const operation = this._QueueReadResource(read.context, read.options,
+      urgent ? IBlueCallbackMan.BCBF_URGENT : IBlueCallbackMan.BCBF_NONE);
+    if (urgent) this._TrackUrgentOperation(operation);
+    return operation;
   }
 
   /**
@@ -3397,8 +3408,8 @@ export class CjsBlueResMan
       this._resourceHandlerModes.set(resource, handlerMode);
     }
     resource.Initialize(path, ext, normalizeRequirement(options.requirement || options.payload || ""));
-    // BlueAsyncRes::InitializeImpl reads the manager's urgent mode once, at
-    // creation (BlueAsyncRes.cpp:217).
+    // BlueAsyncRes::InitializeImpl reads the manager's urgent mode at each
+    // (re)initialisation (BlueAsyncRes.cpp:220); a reload reads it again.
     resource.isUrgent = this.urgentResourceLoads;
     const loaderOptions = getResourceLoaderOptions(options, options.source || this.source);
     resource.SetObjectLoader(
