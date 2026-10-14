@@ -40,7 +40,7 @@ import { BLUELISTEVENT } from "#consts/blue";
  */
 @meta.define({ className: "EveEffectRoot2", family: "eve/spaceObject" })
 @meta.blue.inherit(ITr2BoundingBox, IEveSpaceObject2, ITr2SecondaryLightSource, ITriTargetable, ITr2CurveSetOwner)
-@meta.blue.inherit(IInitialize, INotify, IListNotify)
+@meta.blue.inherit(IInitialize, INotify, IListNotify, ITr2ControllerOwner)
 @meta.blue.interface(IEveSpaceObject2, IInitialize, INotify, ITr2SecondaryLightSource, ITriTargetable, ITr2CurveSetOwner, IEveEffectChildrenOwner, ITr2ControllerOwner, IShaderConfigurer, ITr2SoundEmitterOwner, ITr2LightOwner, ITr2BoundingBox, IWorldPosition, EveEntity)
 export class EveEffectRoot2 extends EveEntity
 {

@@ -128,3 +128,17 @@ test("BoundingSphereRadius, KillCount and ShipBoosterIntensity read the owning s
   assert.equal(DEFAULT_FUNCTIONS.BoundingSphereRadius({ owner: null }), 0);
   assert.equal(DEFAULT_FUNCTIONS.KillCount({ owner: {} }), 0);
 });
+
+test("controller owners answer Owner in their binding roots, as ITr2ControllerOwner's default does", async () =>
+{
+  // ITr2ControllerOwner.h: GetBindingRoots defaults to variables["Owner"] = GetRootObject().
+  // Without it a Tr2ActionSetExternalControllerVariable aimed at "Owner" found
+  // nothing, so the VDS controller never handed the ship its radius.
+  const trinity = await import("../../npm/dist/trinity/index.js");
+  for (const name of [ "EveShip2", "EveEffectRoot2", "EveChildBoosterSet", "EveChildInstanceContainer", "EveMeshOverlayEffect" ])
+  {
+    const owner = new trinity[name]();
+    assert.equal(owner.GetBindingRoots().Owner, owner, name);
+    assert.equal(typeof owner.GetControllerValueByName, "function", name);
+  }
+});

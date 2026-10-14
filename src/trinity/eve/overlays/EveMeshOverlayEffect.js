@@ -2,6 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveMeshOverlayEffect.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveMeshOverlayEffect_Blue.cpp
 import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { ITr2ControllerOwner } from "../../controllers/ITr2ControllerOwner.js";
 import { TriBatchType } from "#consts/graphics";
 import { meta } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -15,7 +16,7 @@ import { CarbonVertexElements } from "../../core/vertex/vertexUsage.js";
  * together with the curve set and controllers that animate them.
  */
 @meta.define({ className: "EveMeshOverlayEffect", family: "eve/overlays" })
-@meta.blue.inherit(IInitialize)
+@meta.blue.inherit(IInitialize, ITr2ControllerOwner)
 @meta.blue.interface(IInitialize)
 export class EveMeshOverlayEffect
 {

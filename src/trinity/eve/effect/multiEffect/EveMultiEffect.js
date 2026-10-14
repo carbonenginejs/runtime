@@ -6,6 +6,7 @@ import { CjsSchema, meta } from "#schema";
 import { EveMultiEffectParameter } from "./EveMultiEffectParameter.js";
 import { Tr2DynamicBinding } from "../../../core/binding/Tr2DynamicBinding.js";
 import { ITr2Controller } from "../../../controllers/ITr2Controller/ITr2Controller.js";
+import { ITr2ControllerOwner } from "../../../controllers/ITr2ControllerOwner.js";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { BLUELISTEVENT } from "#consts/blue";
 
@@ -16,7 +17,7 @@ import { BLUELISTEVENT } from "#consts/blue";
  */
 @meta.define({ className: "EveMultiEffect", family: "eve/effect" })
 @meta.blue.inherit(IEveSpaceObject2)
-@meta.blue.inherit(IInitialize)
+@meta.blue.inherit(IInitialize, ITr2ControllerOwner)
 @meta.blue.interface(IInitialize)
 export class EveMultiEffect
 {

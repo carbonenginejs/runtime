@@ -58,7 +58,7 @@ const SPHERE_SCRATCH = vec4.create();
  */
 @meta.define({ className: "EveChildBoosterSet", family: "eve/child" })
 @meta.blue.inherit(ITr2Renderable)
-@meta.blue.inherit(INotify, IInitialize)
+@meta.blue.inherit(INotify, IInitialize, ITr2ControllerOwner)
 @meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, INotify, IInitialize, EveEntity, ITr2Renderable, ITr2ControllerOwner)
 export class EveChildBoosterSet extends EveSpaceObjectChild
 {
