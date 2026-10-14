@@ -11,10 +11,11 @@
 // (EveBoosterUtilities.cpp:139-146) - do not "fix" it into an eager init or
 // a per-set table.
 import { vec3 } from "#math/vec3";
+import { BOOSTER_LIGHT_NOISE_SIZE, GenerateBoosterLightPhase } from "#utils/boosterLightPhase";
 import { SharedGeometryBuffer } from "../../../core/mesh/TriGeometryResAllocations.js";
 import { Tr2ProceduralBuffer } from "../../../core/Tr2ProceduralBuffer.js";
 
-const LIGHT_NOISE_SIZE = 128;
+const LIGHT_NOISE_SIZE = BOOSTER_LIGHT_NOISE_SIZE;
 const LIGHT_NOISE = new Float32Array(LIGHT_NOISE_SIZE);
 let lightNoiseInitialized = false;
 
@@ -170,11 +171,8 @@ export function ComputeBoosterLightFlicker(phase, amplitude, frequency, animatio
   return 1 + amplitude * 2 * (p0 * (1 - t) + p1 * t) - amplitude;
 }
 
-/** A random flicker phase spread over the whole noise table (cpp:165-168). */
-export function GenerateBoosterLightPhase()
-{
-  return LIGHT_NOISE_SIZE * Math.random();
-}
+// GenerateBoosterLightPhase lives in #utils/boosterLightPhase, shared with SOF.
+export { GenerateBoosterLightPhase };
 
 /**
  * Adds one point light per booster item (EveBoosterUtilities.h:46-67): the

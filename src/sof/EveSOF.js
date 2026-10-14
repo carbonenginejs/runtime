@@ -1,5 +1,6 @@
 import * as CcpLog from "../global/logging/ccpLog.js";
 import { normalizeResourcePath } from "#utils/path";
+import { GenerateBoosterLightPhase } from "#utils/boosterLightPhase";
 
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOF.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOF.cpp
@@ -2984,7 +2985,7 @@ export class EveSOF
           functionality: arrayValue(item.functionality, [0, 1, 1, 1]),
           lightPosition: boosterLightPosition(transform, lightOffset),
           lightRadius: scale * Number(item.lightScale ?? 1),
-          lightPhase: generateBoosterLightPhase(),
+          lightPhase: GenerateBoosterLightPhase(),
           atlasIndex0: Number(item.atlasIndex0 ?? 0) >>> 0,
           atlasIndex1: Number(item.atlasIndex1 ?? 0) >>> 0
         }));
@@ -3165,7 +3166,7 @@ export class EveSOF
           transform,
           lightPosition: boosterLightPosition(transform, lightOffset),
           lightRadius: boosterScale(transform) * Number(item.lightScale ?? 1),
-          lightPhase: generateBoosterLightPhase(),
+          lightPhase: GenerateBoosterLightPhase(),
           atlasIndex0: Number(item.atlasIndex0 ?? 0) >>> 0,
           atlasIndex1: Number(item.atlasIndex1 ?? 0) >>> 0,
           wavePhase: Math.random()
@@ -4731,16 +4732,6 @@ function boosterScale(transform)
 function boosterLightPosition(transform, lightOffset)
 {
   return Array.from(vec3.transformMat4(vec3.create(), [0, 0, -lightOffset], transform));
-}
-
-/**
- * GenerateBoosterLightPhase (EveBoosterUtilities.cpp:158-161): an offset into the
- * 128-entry flicker noise table. The trinity copy lives in boosterUtilities;
- * SOF stays import-free of trinity.
- */
-function generateBoosterLightPhase()
-{
-  return 128 * Math.random();
 }
 
 /**
