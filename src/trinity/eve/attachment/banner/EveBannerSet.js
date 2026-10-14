@@ -863,18 +863,23 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   }
 
   /** Carbon EveBannerSet::UpdateLights (cpp:164-183): the shared packed-set
-   * bone pattern (boneIndex > 0 only; column-stride Float4x3 unpack; 4th
+   * bone pattern (boneIndex >= 0; column-stride Float4x3 unpack; 4th
    * column zeroed, [15] = 1; boneMatrix *= parentTransform - Carbon
    * row-vector, bone FIRST: gl operands SWAP; else copy the parent). Stamps
-   * the activation strength (boosterGain unused by banners). */
+   * the activation strength (boosterGain unused by banners).
+   *
+   * Adapted: Carbon skips bone 0 here (EveBannerSet.cpp:168; CE-27), so a light on binding 0
+   * gets only the parent transform. Binding 0 is a mesh bone binding and can
+   * be animated - the Bowhead (orecs2_t1) moves its MASTER binding through
+   * Normal2Warp - so ours applies bone 0 like any other. */
   @meta.blue.method
-  @meta.implemented
+  @meta.adapted
   UpdateLights(parentTransform, bones, boneCount, activationStrength, _boosterGain = 0)
   {
     for (const light of this.lights)
     {
       const boneIndex = light.lightData.boneIndex;
-      if (bones && boneIndex > 0 && boneIndex < boneCount)
+      if (bones && boneIndex >= 0 && boneIndex < boneCount)
       {
         MatrixCopyFrom3x4(light.boneMatrix, bones, boneIndex);
         light.boneMatrix[3] = 0;

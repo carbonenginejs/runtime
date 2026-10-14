@@ -297,19 +297,23 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   }
 
   /** Carbon EveSpriteLineSet::UpdateLights (cpp:152-171): byte-identical to
-   * EveSpriteSet's - boneIndex > 0 only (bone 0 never drives a packed-set
-   * light), column-stride Float4x3 unpack, 4th column zeroed with [15] = 1,
+   * EveSpriteSet's - boneIndex >= 0 (-1 is no bone), column-stride Float4x3 unpack, 4th column zeroed with [15] = 1,
    * then boneMatrix *= parentTransform - Carbon row-vector, bone FIRST: the
    * gl-matrix operands SWAP; else boneMatrix = parentTransform. Stamps the
-   * activation strength (boosterGain unused). */
+   * activation strength (boosterGain unused).
+   *
+   * Adapted: Carbon skips bone 0 here (EveSpriteLineSet.cpp:156; CE-27), so a light on binding 0
+   * gets only the parent transform. Binding 0 is a mesh bone binding and can
+   * be animated - the Bowhead (orecs2_t1) moves its MASTER binding through
+   * Normal2Warp - so ours applies bone 0 like any other. */
   @meta.blue.method
-  @meta.implemented
+  @meta.adapted
   UpdateLights(parentTransform, bones, boneCount, activationStrength, _boosterGain = 0)
   {
     for (const light of this.lights)
     {
       const boneIndex = light.lightData.boneIndex;
-      if (bones && boneIndex > 0 && boneIndex < boneCount)
+      if (bones && boneIndex >= 0 && boneIndex < boneCount)
       {
         MatrixCopyFrom3x4(light.boneMatrix, bones, boneIndex);
         light.boneMatrix[3] = 0;

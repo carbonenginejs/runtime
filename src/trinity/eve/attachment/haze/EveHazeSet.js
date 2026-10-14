@@ -339,18 +339,23 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   }
 
   /** Carbon EveHazeSet::UpdateLights (cpp:219-239): the shared packed-set
-   * bone pattern (boneIndex > 0 only; column-stride Float4x3 unpack; 4th
+   * bone pattern (boneIndex >= 0; column-stride Float4x3 unpack; 4th
    * column zeroed, [15] = 1; boneMatrix *= parentTransform - Carbon
    * row-vector, bone FIRST: gl operands SWAP; else copy the parent). Stamps
-   * BOTH activationStrength and boosterGain (cpp:237-238). */
+   * BOTH activationStrength and boosterGain (cpp:237-238).
+   *
+   * Adapted: Carbon skips bone 0 here (EveHazeSet.cpp:223; CE-27), so a light on binding 0
+   * gets only the parent transform. Binding 0 is a mesh bone binding and can
+   * be animated - the Bowhead (orecs2_t1) moves its MASTER binding through
+   * Normal2Warp - so ours applies bone 0 like any other. */
   @meta.blue.method
-  @meta.implemented
+  @meta.adapted
   UpdateLights(parentTransform, bones, boneCount, activationStrength, boosterGain = 0)
   {
     for (const light of this.lights)
     {
       const boneIndex = light.lightData.boneIndex;
-      if (bones && boneIndex > 0 && boneIndex < boneCount)
+      if (bones && boneIndex >= 0 && boneIndex < boneCount)
       {
         MatrixCopyFrom3x4(light.boneMatrix, bones, boneIndex);
         light.boneMatrix[3] = 0;

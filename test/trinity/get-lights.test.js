@@ -26,6 +26,7 @@ import {
   EveSpotlightSet,
   Tr2LightManager,
   EveSpriteSet,
+  EveSpriteLineSet,
   FadeType,
   MatrixCopyFrom3x4,
   ShadowQuality,
@@ -240,7 +241,7 @@ test("Saturate: passthrough, extrapolation above 1, low-side clamp (Color_inline
   assertVecClose(out, [gray, gray, gray, 0.5], "negative clamps to the gray");
 });
 
-test("Packed-set UpdateLights: bone-0 exclusion, bone*parent swap, black-until-updated (EveSpriteSet.cpp:142-161)", () =>
+test("Packed-set UpdateLights: bone 0 drives its light (CE-27, adapted), bone*parent swap, black-until-updated (EveSpriteSet.cpp:142-161)", () =>
 {
   const set = new EveSpriteSet();
   set.AddLightFromSOF({ lightData: { boneIndex: 0, brightness: 1, color: [1, 1, 1, 1], radius: 5, flags: 1, position: [0, 0, 0] } });
@@ -257,9 +258,10 @@ test("Packed-set UpdateLights: bone-0 exclusion, bone*parent swap, black-until-u
 
   set.UpdateLights(parent, bones, 2, 2, 0);
 
-  // boneIndex 0 can NEVER drive a packed-set light (> 0, not >= 0):
-  // boneMatrix = parentTransform verbatim.
-  assert.ok(mat4.equals(set.lights[0].boneMatrix, parent), "bone 0 falls back to the parent");
+  // Carbon skips bone 0 (CE-27); ours applies it: binding 0 can be animated.
+  // Translation (9,9,9) rotated by Y90 -> (9, 9, -9), plus (5,6,7) -> (14, 15, -2).
+  const b0 = set.lights[0].boneMatrix;
+  assertVecClose([b0[12], b0[13], b0[14]], [14, 15, -2], "a light on binding 0 follows that binding");
   // boneIndex 1: bone applies FIRST (row-vector bone * parent): translation
   // (1,2,3) rotated by Y90 -> (3, 2, -1), plus (5,6,7) -> (8, 8, 6).
   const bm = set.lights[1].boneMatrix;
@@ -270,6 +272,25 @@ test("Packed-set UpdateLights: bone-0 exclusion, bone*parent swap, black-until-u
   const manager = MakeLightManager();
   set.GetLights(manager);
   assertVecClose(manager.added[0].color, [2, 2, 2], "activation strength 2 composed");
+});
+
+test("every packed set lets binding 0 drive its lights, and -1 keeps the parent (CE-27, adapted)", () =>
+{
+  // Binding 0 moved, as the Bowhead's MASTER binding moves in Normal2Warp.
+  const bones = new Float32Array([ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, -45 ]);
+  const parent = mat4.fromTranslation(mat4.create(), [ 100, 0, 0 ]);
+  for (const Set of [ EveSpriteSet, EveSpriteLineSet, EveSpotlightSet, EvePlaneSet, EveHazeSet, EveBannerSet ])
+  {
+    const set = new Set();
+    set.lights.push(
+      { lightData: MakeLightData({ boneIndex: 0 }), boneMatrix: mat4.create(), boosterGainInfluence: false, lightProfile: null },
+      { lightData: MakeLightData({ boneIndex: -1 }), boneMatrix: mat4.create(), boosterGainInfluence: false, lightProfile: null }
+    );
+    set.UpdateLights(parent, bones, 1, 1, 0);
+    const moved = set.lights[0].boneMatrix, fixed = set.lights[1].boneMatrix;
+    assertVecClose([ moved[12], moved[13], moved[14] ], [ 100, 0, -45 ], `${Set.name}: bone 0 applies`);
+    assert.ok(mat4.equals(fixed, parent), `${Set.name}: -1 is no bone`);
+  }
 });
 
 test("EveHazeSet/EveSpotlightSet: boosterGainInfluence multiply and the spot conversion (cpp:403-418, 536-552)", () =>
