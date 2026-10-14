@@ -625,3 +625,36 @@ test("EveChildContainer links a controller through the hook, not inline", () =>
     [ "SetVariable", "Speed", 2 ]
   ]);
 });
+
+
+test("a propagated effect keeps its locator's bone, so it follows the hull's animation (CE-171)", async () =>
+{
+  const { EveShip2, EveLocatorSets, EveChildInstanceContainer, EveChildContainer, EveChildModifierAttachToBone } =
+    await import("../../npm/dist/trinity/index.js");
+  const ship = new EveShip2();
+  const set = new EveLocatorSets();
+  set.name = "vds_trail";
+  const locator = new Locator();
+  locator.position.set([ 1, 2, 3 ]);
+  locator.boneIndex = 0;
+  set.locators.push(locator);
+  ship.locatorSets.push(set);
+
+  const container = new EveChildInstanceContainer();
+  container.source = new EveChildContainer();
+  const propagator = new EveChildEffectPropagator();
+  propagator.effect = container;
+  propagator.propagationType = EveChildEffectPropagator.PropagationType.LOCATOR_SET_BY_REF;
+  propagator.locatorSetName = "vds_trail";
+  propagator.ProcessLocators(ship);
+  propagator.Play();
+  propagator.UpdateTriggerInterval({ GetDeltaT: () => 2 });
+
+  // Carbon drops the bone (EveChildEffectPropagator.cpp:465-477); ours hands it
+  // to CreateInstance, which wraps the instance in an attach-to-bone container
+  // (EveChildInstanceContainer.cpp:265-273).
+  assert.equal(container.instances.length, 1);
+  const [ modifier ] = container.instances[0].transformModifiers;
+  assert.ok(modifier instanceof EveChildModifierAttachToBone);
+  assert.equal(modifier.boneIndex, 0);
+});

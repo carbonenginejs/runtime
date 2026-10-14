@@ -45,7 +45,9 @@ function NewTransformRecord()
     rotation: quat.create(),
     position: vec3.create(),
     scale: vec3.fromValues(1, 1, 1),
-    sqrDistToSphereCenter: 0
+    sqrDistToSphereCenter: 0,
+    // Ours (CE-171): the locator bone, so the instance follows it; -1 for none.
+    boneIndex: -1
   };
 }
 
@@ -348,7 +350,7 @@ export class EveChildEffectPropagator extends EveChildContainer
       const record = records[index];
       if (record.sqrDistToSphereCenter < currentRadSqr)
       {
-        this.effect.CreateInstance(record.scale, record.rotation, record.position);
+        this.effect.CreateInstance(record.scale, record.rotation, record.position, record.boneIndex);
         this._currentTriggerIndex++;
       }
       else
@@ -418,7 +420,7 @@ export class EveChildEffectPropagator extends EveChildContainer
         {
           for (const record of this._processedTransforms)
           {
-            this.effect.CreateInstance(record.scale, record.rotation, record.position);
+            this.effect.CreateInstance(record.scale, record.rotation, record.position, record.boneIndex);
           }
           this._currentTriggerIndex++;
         }
@@ -512,7 +514,7 @@ export class EveChildEffectPropagator extends EveChildContainer
       this._lastTriggered.push(locatorIndex);
 
       const record = this._processedTransforms[locatorIndex];
-      this.effect.CreateInstance(record.scale, record.rotation, record.position);
+      this.effect.CreateInstance(record.scale, record.rotation, record.position, record.boneIndex);
       this._currentTriggerIndex++;
     }
 
@@ -688,7 +690,11 @@ export class EveChildEffectPropagator extends EveChildContainer
    * the named locator set (default "damage") from the space-object parent and
    * scale the trigger sphere by the parent's bounding-sphere radius.
    *
-   * Adapted: Math.random replaces Carbon's unseeded TriRand.
+   * Adapted: Math.random replaces Carbon's unseeded TriRand. Carbon drops the
+   * locator's bone, so a propagated effect stays where the locator was authored
+   * while the hull animates (CE-171); ours keeps it, and CreateInstance attaches
+   * the instance to that bone, as the instance container's own locator path
+   * does (EveChildInstanceContainer.cpp:211, :265-273).
    */
   @meta.blue.method
   @meta.adapted
@@ -726,6 +732,7 @@ export class EveChildEffectPropagator extends EveChildContainer
         const record = NewTransformRecord();
         vec3.copy(record.position, locator.position);
         quat.copy(record.rotation, locator.direction);
+        record.boneIndex = locator.boneIndex;
         const rand = this.randScaleMin + Math.random() * (this.randScaleMax - this.randScaleMin);
         // Carbon t.scale = m_effectScaling * rand - scalar-vector scale.
         vec3.scale(record.scale, this.effectScaling, rand);
