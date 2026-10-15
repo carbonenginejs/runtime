@@ -584,9 +584,11 @@ function normalizeShaderOptions(options)
 // expressions are reused verbatim, so the registered metadata is identical.
 // Statics belong in `methods`: decorateMethod targets the prototype and
 // would register a static as an instance field.
+CjsSchema.blue.interface(Tr2EffectRes)(Tr2EffectRes);
 CjsSchema.blue.define(Tr2EffectRes, {
   className: "Tr2EffectRes",
   methods: {
+    DoLoad: [ blue.method, meta.adapted ],
     GetShader: [ blue.method, meta.adapted ],
     GetShaderByIndex: [],
     SetPermutationTranslator: [],

@@ -1,4 +1,5 @@
 import { DictReader } from "#blue/DictReader";
+import { IRoot } from "#blue/IRoot";
 import "#blue/values";
 // Source: trinity/trinity/Shader/Tr2Shader.h
 // Source: trinity/trinity/Shader/Tr2Shader.cpp
@@ -393,6 +394,8 @@ export class Tr2Shader
 // form. Field order is key order, and it drives GetValues() export order.
 // Statics belong in `methods`: the prototype is what carries instance fields.
 
+CjsSchema.blue.inherit(IRoot)(Tr2Shader);
+CjsSchema.blue.interface(Tr2Shader)(Tr2Shader);
 CjsSchema.blue.define(Tr2Shader, {
   className: "Tr2Shader",
   fields: {
@@ -401,6 +404,7 @@ CjsSchema.blue.define(Tr2Shader, {
     hasVertexBufferAccessInRtShadow: type.boolean
   },
   methods: {
+    ApplyAllStateForPass: [ blue.method, meta.adapted ],
     GetTechniqueIndex: [ blue.method, meta.adapted ],
     GetPassCount: [ blue.method, meta.adapted ],
     GetConstant: [ blue.method, meta.implemented ],
