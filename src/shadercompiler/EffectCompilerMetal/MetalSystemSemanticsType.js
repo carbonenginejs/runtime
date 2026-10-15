@@ -1,3 +1,4 @@
+import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/EffectCompilerMetal.h
 // Source: trinity/shadercompiler/EffectCompilerMetal.cpp:4791-4838
 
@@ -99,3 +100,10 @@ export class MetalSystemSemanticsType
         base_instance: 34
     });
 }
+
+CjsSchema.blue.define(MetalSystemSemanticsType, {
+    className: "MetalSystemSemanticsType",
+    methods: {
+        getString: [meta.renamed("GetString")]
+    }
+});

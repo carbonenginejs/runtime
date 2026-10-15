@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/EffectCompilerMetal.h:7-23
 
 /**
@@ -22,3 +23,7 @@ export class MetalRegister
         System: "v" // [[position]], etc. see MetalSystemSemanticsType
     });
 }
+
+CjsSchema.blue.define(MetalRegister, {
+    className: "MetalRegister"
+});

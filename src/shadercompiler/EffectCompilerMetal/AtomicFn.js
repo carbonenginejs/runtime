@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/EffectCompilerMetal.cpp:54-58
 //
 // Carbon declares this struct in EffectCompilerMetal.cpp's anonymous
@@ -29,3 +30,7 @@ export class AtomicFn
         this.opHlsl = opHlsl;
     }
 }
+
+CjsSchema.blue.define(AtomicFn, {
+    className: "AtomicFn"
+});

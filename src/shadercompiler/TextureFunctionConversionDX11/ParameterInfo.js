@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/TextureFunctionConversionDX11.cpp:18-22
 
 /**
@@ -13,3 +14,7 @@ export class ParameterInfo
 
     argumentIndex = 0;
 }
+
+CjsSchema.blue.define(ParameterInfo, {
+    className: "ParameterInfo"
+});

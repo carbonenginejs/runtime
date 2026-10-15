@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/EffectCompilerMetal.h:78-84
 //
 // Carbon nests this struct privately in `EffectCompilerMetal`; it is not
@@ -28,3 +29,8 @@ export class SyncData
      */
     compiledCode = "";
 }
+
+CjsSchema.blue.define(SyncData, {
+    className: "SyncData",
+    donors: ["EffectCompilerMetal::SyncData"]
+});

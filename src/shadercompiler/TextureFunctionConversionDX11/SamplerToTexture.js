@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/TextureFunctionConversionDX11.cpp:12-16
 
 /**
@@ -12,3 +13,7 @@ export class SamplerToTexture
 
     processed = false;
 }
+
+CjsSchema.blue.define(SamplerToTexture, {
+    className: "SamplerToTexture"
+});

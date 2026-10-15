@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/ShaderCompiler.cpp:101-105
 
 /**
@@ -11,3 +12,7 @@ export class CompileShaderArguments
     /** @type {import("../Macro.js").Macro[]} */
     defines = [];
 }
+
+CjsSchema.blue.define(CompileShaderArguments, {
+    className: "CompileShaderArguments"
+});

@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/FXAnalyzer.h:39-45
 
 /**
@@ -36,3 +37,7 @@ export class StateDescription
         SVT_COLOR: 4
     });
 }
+
+CjsSchema.blue.define(StateDescription, {
+    className: "StateDescription"
+});

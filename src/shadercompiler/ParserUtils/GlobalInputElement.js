@@ -1,3 +1,4 @@
+import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/ParserUtils.h
 
 import { InlineString } from "../InlineString.js";
@@ -44,3 +45,10 @@ export class GlobalInputElement
         return this.type.Equals(other.type) && this.name.Equals(other.name);
     }
 }
+
+CjsSchema.blue.define(GlobalInputElement, {
+    className: "GlobalInputElement",
+    methods: {
+        Equals: [meta.renamed("operator==")]
+    }
+});

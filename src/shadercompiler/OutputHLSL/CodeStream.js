@@ -1,3 +1,4 @@
+import { CjsSchema, blue, meta } from "#schema";
 // Source: trinity/shadercompiler/OutputHLSL.h
 
 /**
@@ -135,3 +136,13 @@ export class CodeStream
         MSL: 1
     });
 }
+
+CjsSchema.blue.define(CodeStream, {
+    className: "CodeStream",
+    methods: {
+        Endl: [blue.method, meta.abstract],
+        ChangeLocation: [blue.method, meta.abstract],
+        Indent: [blue.method, meta.abstract],
+        Unindent: [blue.method, meta.abstract]
+    }
+});

@@ -1,3 +1,4 @@
+import { CjsSchema, blue, meta } from "#schema";
 // Source: trinity/shadercompiler/OutputHLSL.h
 // Source: trinity/shadercompiler/OutputHLSL.cpp:702-753
 
@@ -74,3 +75,13 @@ export class CompilerInputStream extends CodeStream
     {
     }
 }
+
+CjsSchema.blue.define(CompilerInputStream, {
+    className: "CompilerInputStream",
+    methods: {
+        Endl: [blue.method, meta.noop],
+        ChangeLocation: [blue.method, meta.adapted],
+        Indent: [blue.method, meta.noop],
+        Unindent: [blue.method, meta.noop]
+    }
+});

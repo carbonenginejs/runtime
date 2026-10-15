@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/ParserUtils.cpp:618-625
 //
 // Carbon declares this struct in an anonymous namespace of ParserUtils.cpp;
@@ -25,3 +26,7 @@ export class Registers
     /** @type {Set<number>} */
     spaces = new Set();
 }
+
+CjsSchema.blue.define(Registers, {
+    className: "Registers"
+});

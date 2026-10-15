@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/FXAnalyzer.h:15-20
 
 /**
@@ -34,3 +35,7 @@ export class ExpressionValueElement
         return copy;
     }
 }
+
+CjsSchema.blue.define(ExpressionValueElement, {
+    className: "ExpressionValueElement"
+});
