@@ -1,3 +1,6 @@
+import { ITr2LightOwner } from "../lights/ITr2LightOwner.js";
+import { IShaderConfigurer } from "../../shader/IShaderConfigurer.js";
+import { ITr2DebugRenderable } from "../../../global/interfaces/ITr2DebugRenderable.js";
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2.cpp
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2_Blue.cpp
@@ -82,11 +85,9 @@ const meshLodMember = { name: "meshLod", key: "mesh", type: { kind: "rootRef", c
  * controllers - together with the curve-driven world transform, visibility, LOD
  * and batch submission that drive them each frame.
  */
-@blue.define({ className: "EveSpaceObject2", members: [ meshLodMember ] })
-@blue.inherit(IWorldPosition, ITr2BoundingBox, ITr2Renderable, IEveSpaceObject2, ITr2ShLightingReceiver, ITr2SecondaryLightSource, IEveInheritPropertiesOwner, ITriTargetable, ITr2CurveSetOwner, IEveShadowCaster)
-@blue.inherit(IInitialize, INotify, IListNotify, ITr2Pickable, ITr2ControllerOwner)
-@blue.interface(EveEntity, IEveShadowCaster, IInitialize, ITr2Pickable, ITr2BoundingBox, ITriTargetable, IWorldPosition, ITr2ShLightingReceiver, INotify, ITr2SecondaryLightSource, ITr2ImpostorSource, ITr2CurveSetOwner, IEveEffectChildrenOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner)
-@blue.inherit(IEveEffectChildrenOwner)
+@blue.define({ className: "EveSpaceObject2", abstract: true, members: [ meshLodMember ] })
+@blue.interface(EveEntity, IEveShadowCaster, IInitialize, ITr2Pickable, ITr2BoundingBox, ITriTargetable, IWorldPosition, ITr2ShLightingReceiver, INotify, ITr2SecondaryLightSource, ITr2ImpostorSource, ITr2CurveSetOwner, IEveEffectChildrenOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner, IShaderConfigurer, ITr2LightOwner)
+@blue.inherit(IInitialize, ITr2Renderable, IEveSpaceObject2, IEveShadowCaster, ITr2Pickable, ITr2BoundingBox, ITriTargetable, IWorldPosition, ITr2ShLightingReceiver, INotify, ITr2SecondaryLightSource, ITr2ImpostorSource, ITr2DebugRenderable, IListNotify, ITr2CurveSetOwner, IEveEffectChildrenOwner, IShaderConfigurer, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner, ITr2LightOwner)
 export class EveSpaceObject2 extends EveEntity
 {
 
@@ -994,6 +995,7 @@ export class EveSpaceObject2 extends EveEntity
    * list's INSERTED arm replays the controller variables onto it (cpp:376-389).
    */
   @meta.implemented
+  @blue.method
   AddOverlayEffect(overlayEffect)
   {
     addChild(this, "overlayEffects", overlayEffect, { listNotify: this });
@@ -1001,6 +1003,7 @@ export class EveSpaceObject2 extends EveEntity
 
   /** Removes an overlay effect when present (Carbon EveSpaceObject2.cpp:3319-3326). */
   @meta.implemented
+  @blue.method
   RemoveOverlayEffect(overlayEffect)
   {
     removeChild(this, "overlayEffects", overlayEffect, { listNotify: this });
@@ -1011,6 +1014,7 @@ export class EveSpaceObject2 extends EveEntity
    * (Carbon EveSpaceObject2.cpp:3332-3347).
    */
   @meta.implemented
+  @blue.method
   GetOverlayEffectByName(name)
   {
     if (name == null) return null;
@@ -1019,6 +1023,7 @@ export class EveSpaceObject2 extends EveEntity
 
   /** Whether the hull is animated, as the SOF sets it (Carbon EveSpaceObject2.cpp:2530-2533). */
   @meta.implemented
+  @blue.method
   IsAnimated()
   {
     return this.isAnimated;
@@ -1026,6 +1031,7 @@ export class EveSpaceObject2 extends EveEntity
 
   /** Carbon EveSpaceObject2.cpp:2535-2538. */
   @meta.implemented
+  @blue.method
   SetIsAnimated(isAnimated)
   {
     this.isAnimated = !!isAnimated;
@@ -2000,6 +2006,7 @@ export class EveSpaceObject2 extends EveEntity
    * @returns {ITr2Renderable[]} out
    */
   @meta.adapted
+  @blue.method
   GetRenderables__Impostors(out = [], impostors)
   {
     this._impostorMode = this._impostorMode && impostors !== null;
@@ -2030,6 +2037,7 @@ export class EveSpaceObject2 extends EveEntity
    * @param {Map<number, object>} batches Accumulators by TriBatchType.
    */
   @meta.implemented
+  @blue.method
   GetImpostorBatches(_frustum, batches)
   {
     const renderables = [];
@@ -2043,6 +2051,7 @@ export class EveSpaceObject2 extends EveEntity
 
   /** ITr2ImpostorSource (cpp:4254-4259): how far the view has turned since the impostor was captured. */
   @meta.implemented
+  @blue.method
   GetRenderPriority(oldHash, newHash)
   {
     const dotView = vec3.dot(oldHash.viewDir, newHash.viewDir);
@@ -2052,6 +2061,7 @@ export class EveSpaceObject2 extends EveEntity
 
   /** ITr2ImpostorSource (cpp:4261-4264): the object's bounding sphere. */
   @meta.implemented
+  @blue.method
   GetImpostorBoundingSphere(sphere)
   {
     return this.GetBoundingSphere(sphere);
@@ -2059,6 +2069,7 @@ export class EveSpaceObject2 extends EveEntity
 
   /** ITr2ImpostorSource (cpp:4266-4274): the bounding sphere moved to last frame's world position. */
   @meta.implemented
+  @blue.method
   GetLastImpostorBoundingSphere(sphere)
   {
     this.GetImpostorBoundingSphere(sphere);
@@ -2080,6 +2091,7 @@ export class EveSpaceObject2 extends EveEntity
    * @param {ITr2Renderable[]} out - the frame's renderable list
    */
   @meta.implemented
+  @blue.method
   PushRenderables(out)
   {
     if (this.mesh && this._isMeshVisible && this.mesh.IsLoading() !== true)
@@ -2101,6 +2113,7 @@ export class EveSpaceObject2 extends EveEntity
    * @param {ITr2Renderable[]} out - the frame's renderable list
    */
   @meta.implemented
+  @blue.method
   PushChildrenAndDecalRenderables(out)
   {
     if (this.DisplayChildren())
@@ -2554,6 +2567,7 @@ export class EveSpaceObject2 extends EveEntity
    * out-parameter.
    */
   @meta.adapted
+  @blue.method
   IsCastingShadow__ShadowFrustum(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
   {
     if (!this.display || this._boundingSphereWorldRadius <= 0)
@@ -2696,6 +2710,7 @@ export class EveSpaceObject2 extends EveEntity
    * @param {number} t - the time to update to, in Blue ticks
    */
   @meta.implemented
+  @blue.method
   UpdateModelCenterWorldPosition(position, t)
   {
     this.UpdateWorldTransform(t);
@@ -2941,6 +2956,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Releases every active raycast preparation session used by damage filtering. */
+  @blue.method
   _ReleaseDamageFilterSessions()
   {
     if (this._damageFilterState !== 2) return;
@@ -3038,6 +3054,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Rebuilds the enabled mask by testing each locator ray against occluders. */
+  @blue.method
   _RefreshDamageLocatorMask(damageLocators)
   {
     this._damageLocatorEnabled = damageLocators.map(locator =>
@@ -3278,6 +3295,7 @@ export class EveSpaceObject2 extends EveEntity
    * @returns {void}
    */
   @meta.implemented
+  @blue.method
   ResetClipSphereCenter()
   {
     vec3.negate(this.clipSphereCenter, this.GetBoundingSphereCenter(this.clipSphereCenter));
@@ -3290,6 +3308,7 @@ export class EveSpaceObject2 extends EveEntity
    * @returns {void}
    */
   @meta.implemented
+  @blue.method
   ResetClipSphereCenterToPos(center)
   {
     vec3.copy(this.clipSphereCenter, center);
@@ -3819,6 +3838,7 @@ export class EveSpaceObject2 extends EveEntity
 
   /** Carbon EveSpaceObject2::UpdateCurveSet (cpp:3901-3924): samples matching own sets at an explicit time on both clocks, then the children. */
   @meta.implemented
+  @blue.method
   UpdateCurveSet(name, time, renderContext = null)
   {
     for (const curveSet of this.curveSets)
@@ -3830,6 +3850,7 @@ export class EveSpaceObject2 extends EveEntity
 
   /** Carbon EveSpaceObject2::PlayCurveSet (cpp:3930-3961): matching own sets play whole or a named range, then the children. */
   @meta.implemented
+  @blue.method
   PlayCurveSet(name, rangeName = "")
   {
     for (const curveSet of this.curveSets)
@@ -3850,6 +3871,7 @@ export class EveSpaceObject2 extends EveEntity
 
   /** Carbon EveSpaceObject2::StopCurveSet (cpp:3967-3990). */
   @meta.implemented
+  @blue.method
   StopCurveSet(name)
   {
     for (const curveSet of this.curveSets)
@@ -3861,6 +3883,7 @@ export class EveSpaceObject2 extends EveEntity
 
   /** Carbon EveSpaceObject2::GetCurveSetDuration (cpp:3996-4019): the longest over matching own sets and the children. */
   @meta.implemented
+  @blue.method
   GetCurveSetDuration(name)
   {
     let duration = 0;
@@ -3874,6 +3897,7 @@ export class EveSpaceObject2 extends EveEntity
 
   /** Carbon EveSpaceObject2::GetRangeDuration (cpp:4024-4047): the longest named range over own sets and the children. */
   @meta.implemented
+  @blue.method
   GetRangeDuration(name, rangeName)
   {
     let duration = 0;
@@ -3948,6 +3972,7 @@ export class EveSpaceObject2 extends EveEntity
    * Forwards a playback request to the animation updater, which owns all
    * animation state; a hull without an updater does nothing, as in Carbon.
    */
+  @blue.method
   _PlayAnimation(animName, replace, loopCount, delay, speed, clearWhenDone)
   {
     this.animationUpdater?.PlayAnimation(String(animName ?? ""), replace, loopCount, delay, speed, clearWhenDone);
@@ -4418,6 +4443,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Creates and synchronizes the damage overlay owned by one child-locator range. */
+  @blue.method
   EnsureChildDamageOverlay(range)
   {
     let overlay = range.owner.GetPartDamageOverlay(range.partTag);
@@ -4728,6 +4754,7 @@ export class EveSpaceObject2 extends EveEntity
    * world position - 0 when the set is missing, -1 when no locator faces the
    * position.
    */
+  @blue.method
   GetClosestLocatorIndex(position, locatorSetName)
   {
     const locators = this.GetLocatorsForSet(locatorSetName);

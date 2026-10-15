@@ -127,6 +127,7 @@ export class EvePlanet extends EveEffectRoot2
    * GetZOnlyRenderables (cpp:205-213). Scene call site:
    * EveSpaceScene.cpp:1458-1460 / EveSpaceScene.js UpdateVisibility. */
   @meta.implemented
+  @blue.method
   UpdateZOnlyVisibility(updateContext)
   {
     this.zOnlyModel?.UpdateVisibility(
@@ -142,6 +143,7 @@ export class EvePlanet extends EveEffectRoot2
    * the surface children use the opposite order, exactly as Carbon does.
    */
   @meta.implemented
+  @blue.method
   UpdateEffectChildren(updateContext, worldTransform, renderScale)
   {
     const params = new EveChildUpdateParams();
@@ -167,6 +169,7 @@ export class EvePlanet extends EveEffectRoot2
    * state to curve sets; JavaScript runs the native work sequentially.
    */
   @meta.adapted
+  @blue.method
   UpdatePlanetSyncronous(updateContext, renderScale)
   {
     if (!this._update) return;
@@ -193,6 +196,7 @@ export class EvePlanet extends EveEffectRoot2
    * the caller owns the output matrix instead of receiving a C++ value.
    */
   @meta.adapted
+  @blue.method
   _CalculatePlanetScaleTransform(worldTransform, renderScale, out)
   {
     const { mat4_0 } = EvePlanet.scratch;
@@ -208,6 +212,7 @@ export class EvePlanet extends EveEffectRoot2
    * size uses the renderer projection, while child culling uses the planet frustum.
    */
   @meta.adapted
+  @blue.method
   UpdatePlanetVisibility(updateContext, renderScale)
   {
     const transform = mat4.alloc();
@@ -229,6 +234,7 @@ export class EvePlanet extends EveEffectRoot2
 
   /** Renderer position is explicit instead of global (EvePlanet.cpp:180-187). */
   @meta.adapted
+  @blue.method
   _EstimatePixelDiameterPos(center, tanFOV, scale, context)
   {
     return this._EstimatePixelDiameterDist(vec3.distance(center, context.GetViewPosition()), tanFOV, scale, context);
@@ -236,6 +242,7 @@ export class EvePlanet extends EveEffectRoot2
 
   /** Renderer viewport is explicit; preserves both epsilon tests (cpp:199-221). */
   @meta.adapted
+  @blue.method
   _EstimatePixelDiameterDist(distance, tanFOV, scale, context)
   {
     const halfWidthProjection = context.GetViewport().width * 0.5 / tanFOV;
@@ -247,6 +254,7 @@ export class EvePlanet extends EveEffectRoot2
 
   /** Surface drawing requires HIGH LOD and strictly more than minScreenSize (cpp:243-263). */
   @meta.implemented
+  @blue.method
   GetRenderables(renderables = [])
   {
     if (!this.display || this.lodLevel !== Tr2Lod.TR2_LOD_HIGH) return renderables;
@@ -259,6 +267,7 @@ export class EvePlanet extends EveEffectRoot2
 
   /** The depth proxy has display/HIGH gates but no pixel-size gate (cpp:224-241). */
   @meta.implemented
+  @blue.method
   GetZOnlyRenderables(renderables = [])
   {
     if (this.display && this.lodLevel === Tr2Lod.TR2_LOD_HIGH && this.zOnlyModel)
@@ -270,6 +279,7 @@ export class EvePlanet extends EveEffectRoot2
 
   /** Returns the last visibility estimate (cpp:265-268). */
   @meta.implemented
+  @blue.method
   GetEstimatedPixelDiameter()
   {
     return this.estimatedPixelDiameter;
@@ -277,6 +287,7 @@ export class EvePlanet extends EveEffectRoot2
 
   /** Returns the ball identity used to recognize the scene sun (cpp:270-273). */
   @meta.implemented
+  @blue.method
   GetTranslationCurve()
   {
     return this.translationCurve;
@@ -284,6 +295,7 @@ export class EvePlanet extends EveEffectRoot2
 
   /** Applies the previous visibility estimate, preserving Carbon's frame ordering (cpp:275-291). */
   @meta.implemented
+  @blue.method
   UpdateLOD()
   {
     if (!this.display) return;
@@ -292,6 +304,7 @@ export class EvePlanet extends EveEffectRoot2
 
   /** Propagates LOD to surface children and the depth proxy (cpp:293-307). */
   @meta.implemented
+  @blue.method
   _SetLod(lod)
   {
     this.lodLevel = lod;
@@ -301,6 +314,7 @@ export class EvePlanet extends EveEffectRoot2
 
   /** Returns the authored rotation, not the ball-composed root rotation (cpp:147-150). */
   @meta.adapted
+  @blue.method
   GetWorldRotation(out = quat.create()) // alloc: optional output is a caller-owned return value.
   {
     // Adapted: the caller owns the returned quaternion instead of a C++ value.
@@ -309,6 +323,7 @@ export class EvePlanet extends EveEffectRoot2
 
   /** The planet radius is independent of the effect-root bounding sphere (cpp:353-356). */
   @meta.implemented
+  @blue.method
   GetRadius()
   {
     return this.radius;
@@ -316,6 +331,7 @@ export class EvePlanet extends EveEffectRoot2
 
   /** Planets expose one target point (cpp:315-318). */
   @meta.implemented
+  @blue.method
   GetDamageLocatorCount()
   {
     return 1;
@@ -323,6 +339,7 @@ export class EvePlanet extends EveEffectRoot2
 
   /** Out-last JS target point: world translation or local zero (cpp:327-331). */
   @meta.adapted
+  @blue.method
   GetDamageLocatorPosition(_index, inWorldSpace, out)
   {
     if (inWorldSpace) this.GetWorldPosition(out);
@@ -332,6 +349,7 @@ export class EvePlanet extends EveEffectRoot2
 
   /** Out-last JS miss position is always the planet center (cpp:341-344). */
   @meta.adapted
+  @blue.method
   GetMissPosition(_hit, _source, out = vec3.create()) // alloc: optional output is a caller-owned return value.
   {
     return this.GetWorldPosition(out);
@@ -339,6 +357,7 @@ export class EvePlanet extends EveEffectRoot2
 
   /** Native planet impact creation returns zero (cpp:359-362). */
   @meta.implemented
+  @blue.method
   CreateImpact(_damageLocatorIndex, _direction, _lifeTime, _size)
   {
     return 0;
@@ -346,6 +365,7 @@ export class EvePlanet extends EveEffectRoot2
 
   /** A planet never supplies an impact position (cpp:371-374). */
   @meta.implemented
+  @blue.method
   GetImpactPosition(_locator, _posPrev, _posNow, _epsilon, _out)
   {
     return false;

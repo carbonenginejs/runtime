@@ -1,3 +1,5 @@
+import { ITr2Pickable } from "../../core/ITr2Pickable.js";
+import { ITr2DebugRenderable } from "../../../global/interfaces/ITr2DebugRenderable.js";
 // Source: trinity/trinity/Eve/EveTransform.h
 // Source: trinity/trinity/Eve/EveTransform.cpp
 // Source: trinity/trinity/Eve/EveTransform_Blue.cpp
@@ -34,9 +36,9 @@ const INVERSE_PATCH_SCRATCH = mat4.create();
  * with its own frustum and LOD visibility pass.
  */
 @blue.define("EveTransform")
-@blue.inherit(IWorldPosition, ITr2BoundingBox, IEveSpaceObject2, IEveTransform, ITr2CurveSetOwner)
-@blue.interface(IEveTransform, IEveSpaceObject2, IWorldPosition, IInitialize, ITr2BoundingBox)
+@blue.interface(IEveTransform, IEveSpaceObject2, ITr2Pickable, IWorldPosition, IInitialize, ITr2BoundingBox)
 @blue.chainTo(Tr2Transform)
+@blue.inherit(IEveTransform, IEveSpaceObject2, ITr2Pickable, IWorldPosition, IInitialize, ITr2CurveSetOwner, ITr2BoundingBox, ITr2DebugRenderable)
 export class EveTransform extends Tr2Transform
 {
 
@@ -347,6 +349,7 @@ export class EveTransform extends Tr2Transform
    * off.
    */
   @meta.implemented
+  @blue.method
   GetRenderables__Impostors(out = [], _impostors)
   {
     if (!this.display) return out;

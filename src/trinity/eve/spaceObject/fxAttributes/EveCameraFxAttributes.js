@@ -16,6 +16,7 @@ const IDENTITY_TRANSFORM = mat4.create();
  * update for effect bindings to read.
  */
 @blue.define("EveCameraFxAttributes")
+@blue.interface(IEveFxAttribute)
 export class EveCameraFxAttributes extends IEveFxAttribute
 {
 

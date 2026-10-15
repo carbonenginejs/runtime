@@ -1,3 +1,4 @@
+import { ITr2Pickable } from "../../core/ITr2Pickable.js";
 // Source: trinity/trinity/Eve/EveRootTransform.h
 // Source: trinity/trinity/Eve/EveRootTransform.cpp
 // Source: trinity/trinity/Eve/EveRootTransform_Blue.cpp
@@ -19,7 +20,7 @@ import { ITriTargetable } from "../../core/ITriTargetable.js";
  */
 @blue.define("EveRootTransform")
 @blue.inherit(ITriTargetable)
-@blue.interface(IEveSpaceObject2, ITriTargetable, IWorldPosition, ITr2BoundingBox)
+@blue.interface(IEveSpaceObject2, ITriTargetable, IWorldPosition, ITr2BoundingBox, ITr2Pickable)
 @blue.chainTo(Tr2Transform)
 export class EveRootTransform extends EveTransform
 {

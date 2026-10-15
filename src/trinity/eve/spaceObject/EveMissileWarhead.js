@@ -431,6 +431,7 @@ export class EveMissileWarhead extends EveTransform
    * no GetRenderables at all - attachments render through the batch path.
    */
   @meta.implemented
+  @blue.method
   GetRenderables__Impostors(out = [], _impostors)
   {
     if (!this._isVisible || this.lodLevel <= EveTransform.Tr2Lod.TR2_LOD_LOW) return out;

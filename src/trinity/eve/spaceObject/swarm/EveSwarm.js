@@ -1,3 +1,8 @@
+import { IEveShadowCaster } from "../../IEveShadowCaster.js";
+import { EveEntity } from "../../EveEntity.js";
+import { INotify } from "../../../../global/blue/INotify.js";
+import { IInitialize } from "../../../../global/blue/IInitialize.js";
+import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.h
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.cpp
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm_Blue.cpp
@@ -30,6 +35,8 @@ const FLT_MAX = 3.4028234663852886e38;
  * draw is still kept).
  */
 @blue.define("EveSwarm")
+@blue.interface(IEveSpaceObject2, IInitialize, INotify, EveEntity, IEveShadowCaster)
+@blue.chainTo(EveShip2)
 export class EveSwarm extends EveShip2
 {
 
@@ -369,6 +376,7 @@ export class EveSwarm extends EveShip2
    * @param {number} timeDiff - seconds
    */
   @meta.adapted
+  @blue.method
   UpdateOrientation(vehicle, timeDiff)
   {
     // vec3_21 is dir, vec3_22 side, vec3_23 upDir; quat_0 the rotation.
@@ -490,6 +498,7 @@ export class EveSwarm extends EveShip2
    * @param {number} t - Blue ticks
    */
   @meta.adapted
+  @blue.method
   UpdateSwarm(t)
   {
     if (t === this._timeLast)
@@ -700,6 +709,7 @@ export class EveSwarm extends EveShip2
    * @param {ITr2Renderable[]} out - the frame's renderable list
    */
   @meta.implemented
+  @blue.method
   PushRenderables(out)
   {
     if (this.mesh && this._isMeshVisible)
@@ -786,6 +796,7 @@ export class EveSwarm extends EveShip2
    * @param {number} t - Blue ticks
    */
   @meta.implemented
+  @blue.method
   UpdateModelCenterWorldPosition(position, t)
   {
     if (this.swarmingEnabled)
@@ -1038,6 +1049,7 @@ export class EveSwarm extends EveShip2
    * @param {boolean} enable
    */
   @meta.implemented
+  @blue.method
   EnableSwarmForceDebug(enable)
   {
     this._debugInfo.length = 0;
@@ -1140,6 +1152,7 @@ export class EveSwarm extends EveShip2
    * @returns {vec3} out
    */
   @meta.adapted
+  @blue.method
   CalculateForces(i0, swarmers, followPosition, centerOfMass, alignment, formationDirection, formationSide, timeSeconds, out)
   {
     // vec3_0 is wander, vec3_1 cohesion, vec3_2 anchor, vec3_3 align, vec3_4 decelerate, vec3_5 separation,
@@ -1214,6 +1227,7 @@ export class EveSwarm extends EveShip2
    * @returns {vec3} out
    */
   @meta.adapted
+  @blue.method
   Calculate_Cohesion(p0, p1, out)
   {
     return vec3.subtract(out, p1, p0);
@@ -1227,6 +1241,7 @@ export class EveSwarm extends EveShip2
    * @returns {vec3} out
    */
   @meta.adapted
+  @blue.method
   Calculate_Separation(p0, p1, out)
   {
     vec3.subtract(out, p0, p1);
@@ -1248,6 +1263,7 @@ export class EveSwarm extends EveShip2
    * @returns {vec3} out
    */
   @meta.adapted
+  @blue.method
   Calculate_Wander(s, wanderDistance, radius, fluctuation, t, out)
   {
     // Evolve the target point on the 'sphere' around a point wanderDistance in front of our swarmer.

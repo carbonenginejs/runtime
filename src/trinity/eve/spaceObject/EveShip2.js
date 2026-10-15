@@ -172,6 +172,7 @@ export class EveShip2 extends EveMobile
 
   /** Carbon EveShip2::GetRenderables - base, then booster renderables. */
   @meta.implemented
+  @blue.method
   GetRenderables__Impostors(out, _impostors)
   {
     if (!this.display)
@@ -317,6 +318,7 @@ export class EveShip2 extends EveMobile
    * @returns {number}
    */
   @meta.implemented
+  @blue.method
   GetBoosterIntensity()
   {
     if (this.boosters) return this.boosters.GetBoosterIntensity();

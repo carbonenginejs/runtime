@@ -1,3 +1,4 @@
+import { ITr2DebugRenderable } from "../../../global/interfaces/ITr2DebugRenderable.js";
 // Source: trinity/trinity/Eve/EveEffectRoot2.h
 // Source: trinity/trinity/Eve/EveEffectRoot2.cpp
 // Source: trinity/trinity/Eve/EveEffectRoot2_Blue.cpp
@@ -39,9 +40,8 @@ import { BLUELISTEVENT } from "#consts/blue";
  * attached to a hull.
  */
 @blue.define("EveEffectRoot2")
-@blue.inherit(ITr2BoundingBox, IEveSpaceObject2, ITr2SecondaryLightSource, ITriTargetable, ITr2CurveSetOwner)
-@blue.inherit(IInitialize, INotify, IListNotify, ITr2ControllerOwner)
 @blue.interface(IEveSpaceObject2, IInitialize, INotify, ITr2SecondaryLightSource, ITriTargetable, ITr2CurveSetOwner, IEveEffectChildrenOwner, ITr2ControllerOwner, IShaderConfigurer, ITr2SoundEmitterOwner, ITr2LightOwner, ITr2BoundingBox, IWorldPosition, EveEntity)
+@blue.inherit(IWorldPosition, IEveSpaceObject2, IInitialize, ITr2SecondaryLightSource, ITriTargetable, ITr2DebugRenderable, ITr2CurveSetOwner, INotify, IListNotify, IEveEffectChildrenOwner, IShaderConfigurer, ITr2SoundEmitterOwner, ITr2ControllerOwner, ITr2LightOwner, ITr2BoundingBox)
 export class EveEffectRoot2 extends EveEntity
 {
 
@@ -356,6 +356,7 @@ export class EveEffectRoot2 extends EveEntity
 
   /** Collects child renderables after applying a pending LOD change. */
   @meta.implemented
+  @blue.method
   GetRenderables__Impostors(out = [], _impostors)
   {
     if (!this.display) return out;

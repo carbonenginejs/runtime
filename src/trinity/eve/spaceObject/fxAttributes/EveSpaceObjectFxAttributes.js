@@ -71,6 +71,7 @@ function RotationQuaternion(out, matrix)
  * bindings to read.
  */
 @blue.define("EveSpaceObjectFxAttributes")
+@blue.interface(IEveFxAttribute)
 export class EveSpaceObjectFxAttributes extends IEveFxAttribute
 {
 

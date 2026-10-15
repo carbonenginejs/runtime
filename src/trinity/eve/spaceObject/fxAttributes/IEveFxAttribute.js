@@ -1,9 +1,11 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/fxAttributes/IEveFxAttribute.h
 import { meta, blue } from "#schema";
 
 
 /** Required EVE effect-attribute update contract. */
 @blue.define("IEveFxAttribute")
+@blue.inherit(IRoot)
 export class IEveFxAttribute
 {
 

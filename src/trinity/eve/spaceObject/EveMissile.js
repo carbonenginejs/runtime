@@ -191,6 +191,7 @@ export class EveMissile extends EveSpaceObject2
    * represent Carbon's impostor-manager argument.
    */
   @meta.adapted
+  @blue.method
   GetRenderables__Impostors(out = [], _impostors)
   {
     super.GetRenderables__Impostors(out, null);

@@ -348,6 +348,7 @@ export class EveMobile extends EveSpaceObject2
    * accepts one output array; native impostor output remains unported.
    */
   @meta.adapted
+  @blue.method
   GetRenderables__Impostors(out = [], _impostors)
   {
     if (!this.display) return out;
@@ -462,6 +463,7 @@ export class EveMobile extends EveSpaceObject2
    * locators, resetting each prefix's running count and, when asked, recomputing
    * its total from the digit that follows the prefix.
    */
+  @blue.method
   _ResetTurretLocatorCounter(updateTotal)
   {
     for (const locator of this.locators)
@@ -489,6 +491,7 @@ export class EveMobile extends EveSpaceObject2
    * Returns the next locator number to allocate for a name prefix together with
    * that prefix's total, or null when the prefix is unknown.
    */
+  @blue.method
   _GetTurretLocatorCountingInfo(name)
   {
     const info = this._turretLocatorCountingInfo.get(name);
