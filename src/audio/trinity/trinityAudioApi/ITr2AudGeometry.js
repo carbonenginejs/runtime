@@ -1,5 +1,6 @@
+import { IRoot } from "#blue/IRoot";
 // Source: trinityaudioapi/include/ITr2AudGeometry.h:23-40
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 
 /** Transfers Trinity geometry and placement to the audio implementation. */
 export class ITr2AudGeometry
@@ -25,6 +26,7 @@ export class ITr2AudGeometry
 
 for (const method of [ "SetGeometry", "SetGeometryTransform", "RemoveGeometry" ])
 {
-  CjsSchema.decorateMethod(ITr2AudGeometry, method, meta.abstract);
+  CjsSchema.decorateMethod(ITr2AudGeometry, method, blue.method, meta.abstract);
 }
+blue.inherit(IRoot)(ITr2AudGeometry);
 CjsSchema.blue.define(ITr2AudGeometry, { className: "ITr2AudGeometry" });

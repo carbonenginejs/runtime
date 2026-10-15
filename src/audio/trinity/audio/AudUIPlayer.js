@@ -9,7 +9,8 @@ export const UI_GAME_OBJ_ID = 2;
 const FLOAT_MAX = 3.4028234663852886e38;
 
 /** Provides the fixed Carbon UI emitter with dialogue position and completion callbacks. */
-@blue.define("AudUIPlayer")
+@blue.define({ className: "AudUIPlayer", abstract: true })
+@blue.interface()
 @blue.chainTo(AudEmitter)
 export class AudUIPlayer extends AudEmitter
 {

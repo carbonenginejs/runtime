@@ -1,9 +1,11 @@
+import { IRoot } from "#blue/IRoot";
 // Source: trinityaudioapi/include/IStretchAudio.h
 import { meta, blue } from "#schema";
 
 
 /** Required stretch-audio component contract. */
 @blue.define("IStretchAudio")
+@blue.inherit(IRoot)
 export class IStretchAudio
 {
 

@@ -13,7 +13,8 @@ const FLOAT_MAX = 3.4028234663852886e38;
  * FLT_MAX culling weight, fixed origin pose (AudMusicPlayer.cpp:6-11); all
  * behavior is inherited from AudEmitter (SendEvent/SetSwitch/SetRTPC/...).
  */
-@blue.define("AudMusicPlayer")
+@blue.define({ className: "AudMusicPlayer", abstract: true })
+@blue.interface()
 @blue.chainTo(AudEmitter)
 export class AudMusicPlayer extends AudEmitter
 {

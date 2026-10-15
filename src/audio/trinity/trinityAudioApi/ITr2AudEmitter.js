@@ -1,3 +1,4 @@
+import { IRoot } from "#blue/IRoot";
 // Source: trinityaudioapi/include/ITr2AudEmitter.h
 //
 // The contract audio2 exposes for an audio emitter. Carbon makes all fourteen
@@ -18,7 +19,7 @@
 // - `SendEvent` returns the playing id (Carbon's unsigned int), 0 when
 //   invalid.
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 
 
 const EMITTER_METHODS = [
@@ -171,5 +172,7 @@ export class ITr2AudEmitter
 }
 
 
-for (const name of EMITTER_METHODS) CjsSchema.decorateMethod(ITr2AudEmitter, name, meta.abstract);
+for (const name of EMITTER_METHODS) CjsSchema.decorateMethod(ITr2AudEmitter, name, blue.method, meta.abstract);
+CjsSchema.decorateMethod(ITr2AudEmitter, "Initialize__WithParameters", meta.renamed("Initialize"));
+blue.inherit(IRoot)(ITr2AudEmitter);
 CjsSchema.blue.define(ITr2AudEmitter, { className: "ITr2AudEmitter" });
