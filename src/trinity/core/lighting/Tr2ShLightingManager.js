@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2ShLightingManager.h
 // Source: trinity/trinity/Tr2ShLightingManager.cpp
 import { meta, type, blue } from "#schema";
@@ -84,6 +85,8 @@ function readFloat(value)
  * position in the scene.
  */
 @blue.define("Tr2ShLightingManager")
+@blue.inherit(IRoot)
+@blue.interface()
 export class Tr2ShLightingManager
 {
 
@@ -113,15 +116,19 @@ export class Tr2ShLightingManager
   secondaryIntensity = 1;
 
   /** m_sunDirection - normalized, set through UpdateWithDirectionalLight. */
+  @type.vec3
   #sunDirection = vec3.fromValues(0, 1, 0);
 
   /** m_sunColor. */
+  @type.vec3
   #sunColor = vec3.create();
 
   /** m_sources - the registered secondary light sources, read live. */
+  @type.array({ kind: "rawStruct", className: "Tr2ShLightingManager::Source" })
   #sources = [];
 
   /** m_sourceData - the processed run UpdateSourceData rebuilds. */
+  @type.array({ kind: "rawStruct", className: "Tr2ShLightingManager::SourceData" })
   #sourceData = [];
 
   /**
@@ -289,6 +296,8 @@ export class Tr2ShLightingManager
    * @param {Number} order - 2 for L1, 3 for L2
    * @returns {Float32Array} out
    */
+  @blue.method
+  @meta.renamed("CalculateSecondaryLighting")
   #CalculateSecondaryLighting(position, intensity, cutoffRadius, out, order)
   {
     const count = order * order;

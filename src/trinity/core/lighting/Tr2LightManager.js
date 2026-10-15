@@ -25,7 +25,7 @@
 // The packing below follows Carbon's PerLightData layout, packed flag word,
 // premultiply and fade band.
 
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { CjsResource } from "#blue";
 import { num } from "#math/num";
 import { mat4 } from "#math/mat4";
@@ -144,11 +144,14 @@ export class Tr2LightManager
   // Carbon m_lightData after the TLS flatten: the frame's accepted records,
   // plain-object copies (every producer reuses a static scratch record, so
   // AddLight copies by value exactly as std::vector::push_back does).
+  @type.array({ kind: "rawStruct", className: "Tr2LightManager::PerLightData" })
   _records = [];
 
   // Carbon m_volumetricLights / m_shadowCastingLights: indices into _records.
+  @type.array("uint32")
   _volumetricLights = [];
 
+  @type.array("uint32")
   _shadowCastingLights = [];
 
   // Carbon m_frustum, by reference (SetFrustum copies by value in C++; the
@@ -157,13 +160,16 @@ export class Tr2LightManager
   _frustum = null;
 
   // Carbon m_adjustedCutoff (cpp:249-252).
+  @type.float32
   _adjustedCutoff = CUTOFF_PIXEL_SIZE;
 
   // Carbon m_currentSpaceSceneShadowQuality (h:197).
+  @type.int32
   _currentSpaceSceneShadowQuality = ShadowQuality.SHADOW_DISABLED;
 
   // Carbon nextFrameShadowQuality (h:196) - a bitmask collecting every
   // scene's requested quality during the current frame.
+  @type.uint32
   _nextFrameShadowQuality = 0;
 
   // Carbon m_currentFrameCounter (h:198; ctor sets -1, cpp:164).
@@ -184,8 +190,10 @@ export class Tr2LightManager
 
   // The packed PerLightData buffer (contract: 48 bytes / 3 RGBA32 texels per
   // light), built by ResolveLightData, uploaded by the AL.
+  @type.float32Array
   _packed = new Float32Array(LIGHT_BUFFER_SIZE * FLOATS_PER_LIGHT);
 
+  @type.uint32Array
   _packedBits = new Uint32Array(this._packed.buffer);
 
   _packedCount = 0;
@@ -735,15 +743,19 @@ export class Tr2LightManager
   // had been sampling a constant zero.
 
   /** m_effect (Tr2EffectPtr): computelightlists (EveSpaceScene.cpp:1380), Clear then Main. */
+  @type.rootRef("Tr2Effect")
   _effect = new Tr2Effect();
 
   /** m_lightBuffer (Tr2GpuStructuredBufferPtr): one PerLightData per light. */
+  @type.rootRef("Tr2GpuStructuredBuffer")
   _lightBuffer = new Tr2GpuStructuredBuffer();
 
   /** m_indexBuffer (Tr2GpuStructuredBufferPtr): tile headers, then list nodes. */
+  @type.rootRef("Tr2GpuStructuredBuffer")
   _indexBuffer = new Tr2GpuStructuredBuffer();
 
   /** m_indexBufferCounter (Tr2GpuBufferPtr): LightIndexCount, the kernel's node allocator. */
+  @type.rootRef("Tr2GpuBuffer")
   _indexBufferCounter = new Tr2GpuBuffer();
 
   /** m_perFrameData (Tr2ConstantBufferAL): PerFrameData for the dispatch. */
@@ -752,12 +764,16 @@ export class Tr2LightManager
   /** The PerFrameData record filled each dispatch, and its float and uint views. */
   _perFrameRecord = new ArrayBuffer(PER_FRAME_WORDS * 4);
 
+  @type.float32Array
   _perFrameFloats = new Float32Array(this._perFrameRecord);
 
+  @type.uint32Array
   _perFrameWords = new Uint32Array(this._perFrameRecord);
 
+  @type.mat4
   _perFrameViewInverse = this._perFrameFloats.subarray(PER_FRAME_VIEW_INVERSE, PER_FRAME_VIEW_INVERSE + 16);
 
+  @type.mat4
   _perFrameProjInverse = this._perFrameFloats.subarray(PER_FRAME_PROJ_INVERSE, PER_FRAME_PROJ_INVERSE + 16);
 
   /** m_lightBufferVariable / m_indexBufferVariable (TriVariableHandle). */
@@ -1218,3 +1234,12 @@ export class Tr2LightManager
     this._packedCount = count;
   }
 }
+
+CjsSchema.decorateMethod(Tr2LightManager, "_CreateShadowMapAtlas", blue.method, meta.renamed("CreateShadowMapAtlas"));
+CjsSchema.decorateMethod(Tr2LightManager, "_GetShadowMapAtlasEntry", blue.method, meta.renamed("GetShadowMapAtlasEntry"));
+CjsSchema.decorateMethod(Tr2LightManager, "_InsertAtlasNode", blue.method, meta.renamed("InsertAtlasNode"));
+CjsSchema.decorateMethod(Tr2LightManager, "areLightFlagsValid", blue.method, meta.renamed("AreLightFlagsValid"));
+CjsSchema.decorateMethod(Tr2LightManager, "getOrCreateInstance", blue.method, meta.renamed("GetOrCreateInstance"));
+CjsSchema.decorateMethod(Tr2LightManager, "getInstance", blue.method, meta.renamed("GetInstance"));
+CjsSchema.decorateMethod(Tr2LightManager, "deleteInstance", blue.method, meta.renamed("DeleteInstance"));
+CjsSchema.decorateMethod(Tr2LightManager, "getLightProfileArray", blue.method, meta.renamed("GetLightProfileArray"));
