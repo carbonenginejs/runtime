@@ -1,7 +1,7 @@
 // Source: videoplayer/python/videoplayer/playlistresource.py:24-165,231-254
 // One host-defined playlist owns one texture, player and colour sampler.
 import { IBlueDynamicResourceConstructor } from "#blue";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, blue, meta } from "#schema";
 import { TriTextureRes } from "../texture/TriTextureRes.js";
 import { State } from "./enums.js";
 import { ColorPrefix } from "../texture/solidColorTexture.js";
@@ -172,7 +172,7 @@ CjsSchema.blue.define(VideoPlaylistController, {
   className: "VideoPlaylistController",
   donors: [ "_VideoPlaylistController" ],
   methods: {
-  GetResource: [meta.adapted], IsCacheable: [], SetPlaylist: [], Destroy: [meta.adapted]
+  GetResource: [blue.method, meta.adapted], IsCacheable: [], SetPlaylist: [], Destroy: [meta.adapted]
 }
 });
 
