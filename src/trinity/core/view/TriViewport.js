@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/TriViewport.h
 // Source: trinity/trinity/TriViewport_Blue.cpp
 import { meta, type, blue } from "#schema";
@@ -9,6 +10,7 @@ import { meta, type, blue } from "#schema";
  * the native query table exposes only this concrete class.
  */
 @blue.define("TriViewport")
+@blue.inherit(IRoot)
 export class TriViewport
 {
   /** Horizontal raster origin; negative window coordinates are valid. */

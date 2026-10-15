@@ -1,3 +1,4 @@
+import { CjsSchema, type, blue } from "#schema";
 // Source: trinity/trinity/TriFrustumOrtho.h
 // Source: trinity/trinity/TriFrustumOrtho.cpp
 //
@@ -194,3 +195,15 @@ export class TriFrustumOrtho
     return this.#eyePos;
   }
 }
+
+CjsSchema.decorateField(TriFrustumOrtho, "view", type.mat4);
+CjsSchema.decorateField(TriFrustumOrtho, "boundsMin", type.vec3);
+CjsSchema.decorateField(TriFrustumOrtho, "boundsMax", type.vec3);
+CjsSchema.decorateMethod(TriFrustumOrtho, "DeriveFrustum", blue.method);
+CjsSchema.decorateMethod(TriFrustumOrtho, "IsSphereVisibleAndInsideNearPlane", blue.method);
+CjsSchema.decorateMethod(TriFrustumOrtho, "IsSphereVisibleAndInsideNearPlane__CenterRadius", blue.method);
+CjsSchema.decorateMethod(TriFrustumOrtho, "IsSphereVisibleIgnoreFarPlane", blue.method);
+CjsSchema.decorateMethod(TriFrustumOrtho, "SphereTestIgnoreFarPlane", blue.method);
+CjsSchema.decorateMethod(TriFrustumOrtho, "GetPixelSize", blue.method);
+CjsSchema.decorateMethod(TriFrustumOrtho, "GetEyePos", blue.method);
+CjsSchema.blue.define(TriFrustumOrtho, { className: "TriFrustumOrtho" });

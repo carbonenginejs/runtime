@@ -9,7 +9,7 @@
 // are omitted. Matrix element mapping: Carbon row-major _rc lands at flat
 // index (r-1)*4+(c-1), which is the SAME flat index in the shared gl-matrix
 // byte layout, so every _rc below is ported as m[(r-1)*4+(c-1)] unchanged.
-import { meta, blue } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -53,6 +53,7 @@ export function PlaneDotNormal(plane, v)
 export class TriFrustum
 {
   /** m_planes[PLANE_COUNT] - normalized world-space planes (a, b, c, d). */
+  @type.array("vec4")
   planes = [
     vec4.create(),
     vec4.create(),
@@ -63,27 +64,35 @@ export class TriFrustum
   ];
 
   /** m_projectionMatrix */
+  @type.mat4
   projectionMatrix = mat4.create();
 
   /** m_viewPos - camera world position supplied to DeriveFrustum. */
+  @type.vec3
   viewPos = vec3.create();
 
   /** m_viewDir - third column of the view matrix (view->_13/_23/_33). */
+  @type.vec3
   viewDir = vec3.create();
 
   /** m_halfWidthProjection = projection._11 * viewport.width * 0.5 */
+  @type.float32
   halfWidthProjection = 0;
 
   /** m_zNear */
+  @type.float32
   zNear = 0;
 
   /** m_zFar */
+  @type.float32
   zFar = 0;
 
   /** m_aspectRatio */
+  @type.float32
   aspectRatio = 1;
 
   /** m_fov */
+  @type.float32
   fov = 1;
 
   /**
@@ -94,6 +103,7 @@ export class TriFrustum
    * @param {Float32Array} projection
    * @param {Object} viewport - TriViewport duck ({ width })
    */
+  @blue.method
   DeriveFrustum(view, viewPos, projection, viewport)
   {
     this.#CacheTransformationData(view, viewPos, projection, viewport);
@@ -112,6 +122,7 @@ export class TriFrustum
    * col3 = (2, 6, 10, 14), col4 = (3, 7, 11, 15).
    * @param {Float32Array} proj - composed view*projection (or projection alone)
    */
+  @blue.method
   ExtractFrustum(proj)
   {
     const planes = this.planes;
@@ -148,6 +159,7 @@ export class TriFrustum
    * @param {Boolean} [cullBackPlane]
    * @returns {Boolean}
    */
+  @blue.method
   IsSphereVisible(sphere, cullBackPlane = false)
   {
     return this.IsSphereVisible__CenterRadius(sphere, sphere[3], cullBackPlane);
@@ -164,6 +176,7 @@ export class TriFrustum
    * @param {Boolean} [cullBackPlane]
    * @returns {Boolean}
    */
+  @blue.method
   IsSphereVisible__CenterRadius(center, radius, cullBackPlane = false)
   {
     const sphereOrCenter = center;
@@ -190,6 +203,7 @@ export class TriFrustum
    * @param {Object|Float32Array} sphere - { center, radius } or packed vec4
    * @returns {Number} TriFrustumTestResult
    */
+  @blue.method
   SphereTest(sphere)
   {
     const packed = typeof sphere?.length === "number" && sphere.length >= 4;
@@ -218,6 +232,7 @@ export class TriFrustum
    * @param {Float32Array} point
    * @returns {Boolean}
    */
+  @blue.method
   IsPointVisible(point)
   {
     return this.IsSphereVisible__CenterRadius(point, 0);
@@ -229,6 +244,7 @@ export class TriFrustum
    * @param {Float32Array} aabb - box3
    * @returns {Boolean}
    */
+  @blue.method
   IsBoxVisible(aabb)
   {
     if (box3.isEmpty(aabb))
@@ -246,6 +262,7 @@ export class TriFrustum
    * @param {Float32Array} max - boundsMax
    * @returns {Boolean}
    */
+  @blue.method
   IsBoxVisible__BoundsMinMax(min, max)
   {
     for (let i = 0; i < TriFrustum.PLANE_COUNT; i++)
@@ -270,6 +287,7 @@ export class TriFrustum
    * @param {Float32Array} sphere
    * @returns {Number}
    */
+  @blue.method
   GetPixelSizeAccross(sphere)
   {
     return this.GetPixelSizeAccross__CenterRadius(sphere, sphere[3]);
@@ -281,6 +299,7 @@ export class TriFrustum
    * @param {{ center: Float32Array, radius: Number }} sphere
    * @returns {Number}
    */
+  @blue.method
   GetPixelSizeAccross__Sphere(sphere)
   {
     return this.GetPixelSizeAccrossEst__CenterRadius(sphere.center, sphere.radius);
@@ -293,6 +312,7 @@ export class TriFrustum
    * @param {Float32Array} box - box3
    * @returns {Number}
    */
+  @blue.method
   GetPixelSizeAccross__AxisAlignedBox(box)
   {
     if (box3.isEmpty(box)) return 0;
@@ -306,6 +326,7 @@ export class TriFrustum
    * @param {Float32Array} sphere
    * @returns {Number}
    */
+  @blue.method
   GetPixelSizeAccrossEst(sphere)
   {
     return this.GetPixelSizeAccrossEst__CenterRadius(sphere, sphere[3]);
@@ -318,6 +339,7 @@ export class TriFrustum
    * @param {Number} radius
    * @returns {Number}
    */
+  @blue.method
   GetPixelSizeAccross__CenterRadius(center, radius)
   {
     // Carbon: Vector3 d(center - m_viewPos); d = -d; => d = viewPos - center.
@@ -352,6 +374,7 @@ export class TriFrustum
    * @param {Number} radius
    * @returns {Number}
    */
+  @blue.method
   GetPixelSizeAccrossEst__CenterRadius(center, radius)
   {
     if (radius <= 0)
@@ -429,3 +452,5 @@ export class TriFrustum
 
   static #boxCenterScratch = vec3.create();
 }
+
+CjsSchema.decorateMethod(TriFrustum, "#CacheTransformationData", blue.method, meta.renamed("CacheTransformationData"));

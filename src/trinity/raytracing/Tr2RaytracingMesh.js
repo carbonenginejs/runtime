@@ -59,6 +59,7 @@ export class Tr2RaytracingMesh
 
   /** Geometry changes discard transforms; screen-size changes invalidate only a changed LOD (cpp:169-205). */
   @meta.implemented
+  @blue.method
   UpdateRtMesh(geometry, meshIndex, screenSize)
   {
     if (this.geometry !== geometry || this.meshIndex !== meshIndex)
@@ -81,6 +82,7 @@ export class Tr2RaytracingMesh
 
   /** A typed-array view replaces the native Float4x3 pointer; packed bytes are copied without composition, and offset-only edits do not dirty the mesh (cpp:207-227). */
   @meta.adapted
+  @blue.method
   SetBoneTransforms(count, transforms, offset)
   {
     // Adapted: a typed-array view supplies the native pointer's packed bytes.
@@ -101,6 +103,7 @@ export class Tr2RaytracingMesh
 
   /** Copies packed uint32-index/float-weight records (Tr2RingBuffer.h:10-17); a byte view replaces the native struct pointer. */
   @meta.adapted
+  @blue.method
   SetMorphAnimations(count, morphTargets, offset)
   {
     const size = count * 8;
@@ -117,6 +120,7 @@ export class Tr2RaytracingMesh
 
   /** Requires a ready resource and the selected LOD (cpp:250-253). */
   @meta.implemented
+  @blue.method
   IsGood()
   {
     return !!(this.geometry && this.geometry.IsGood() && this.GetCurrentLodData());
@@ -124,6 +128,7 @@ export class Tr2RaytracingMesh
 
   /** Adds the selected LOD's area bound to resource readiness (cpp:255-268). */
   @meta.implemented
+  @blue.method
   IsGoodForArea(area)
   {
     if (!this.geometry || !this.geometry.IsGood()) return false;
@@ -133,6 +138,7 @@ export class Tr2RaytracingMesh
 
   /** Consumes the mesh invalidation once (cpp:270-278). */
   @meta.implemented
+  @blue.method
   GetAndResetDirtyFlag()
   {
     const dirty = this.isDirty;
@@ -142,6 +148,7 @@ export class Tr2RaytracingMesh
 
   /** Invalidates the mesh independently of geometry or animation changes (cpp:280-283). */
   @meta.implemented
+  @blue.method
   MarkDirty()
   {
     this.isDirty = true;
@@ -149,6 +156,7 @@ export class Tr2RaytracingMesh
 
   /** Uses the explicit-index equivalent of Carbon's overloaded GetMeshLod (cpp:285-288). */
   @meta.adapted
+  @blue.method
   GetCurrentLodData()
   {
     return this.geometry.GetMeshLod__LodIndex(this.meshIndex, this.lodIndex);
@@ -156,6 +164,7 @@ export class Tr2RaytracingMesh
 
   /** Selects LOD zero through the JS explicit-index overload (cpp:290-293). */
   @meta.adapted
+  @blue.method
   GetHighestLodData()
   {
     return this.geometry.GetMeshLod__LodIndex(this.meshIndex, 0);
@@ -163,6 +172,7 @@ export class Tr2RaytracingMesh
 
   /** Returns the transform allocation offset (cpp:295-298). */
   @meta.implemented
+  @blue.method
   GetTransformOffset()
   {
     return this.boneOffset;
@@ -170,6 +180,7 @@ export class Tr2RaytracingMesh
 
   /** Returns the assigned skinned buffer (cpp:300-303). */
   @meta.implemented
+  @blue.method
   GetSkinnedVertexBuffer()
   {
     return this.skinnedVertices;
@@ -177,6 +188,7 @@ export class Tr2RaytracingMesh
 
   /** Records the externally owned skinned buffer and offset without invalidating geometry (cpp:305-309). */
   @meta.implemented
+  @blue.method
   SetSkinnedVertices(buffer, offset)
   {
     this.skinnedVertices = buffer;
@@ -185,6 +197,7 @@ export class Tr2RaytracingMesh
 
   /** Returns the skinned buffer offset (cpp:311-314). */
   @meta.implemented
+  @blue.method
   GetSkinnedVertexOffset()
   {
     return this.skinnedVertexOffset;
@@ -192,6 +205,7 @@ export class Tr2RaytracingMesh
 
   /** Returns the selected LOD's allocated vertex buffer (cpp:316-319). */
   @meta.implemented
+  @blue.method
   GetVertexBuffer()
   {
     return this.GetCurrentLodData().vertexAllocation.GetBuffer();
@@ -199,6 +213,7 @@ export class Tr2RaytracingMesh
 
   /** Returns the selected LOD's allocated index buffer (cpp:321-324). */
   @meta.implemented
+  @blue.method
   GetIndexBuffer()
   {
     return this.GetCurrentLodData().indexAllocation.GetBuffer();

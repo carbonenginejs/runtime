@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/TriView.h
 //   trinity/trinity/TriView.cpp
 //   trinity/trinity/TriView_Blue.cpp
@@ -7,6 +8,7 @@ import { meta, type, blue } from "#schema";
 
 /** The camera view matrix, together with the look-at helper that builds it. */
 @blue.define("TriView")
+@blue.inherit(IRoot)
 export class TriView
 {
 
@@ -47,3 +49,5 @@ export class TriView
   }
 
 }
+
+blue.interface()(TriView);

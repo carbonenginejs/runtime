@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/TriProjection.h
 // Source: trinity/trinity/TriProjection.cpp
 // Source: trinity/trinity/TriProjection_Blue.cpp
@@ -10,6 +11,7 @@ import { meta, type, blue } from "#schema";
  * the 4x4 matrix built from them.
  */
 @blue.define("TriProjection")
+@blue.inherit(IRoot)
 export class TriProjection
 {
   static FOV = 1;
@@ -20,24 +22,34 @@ export class TriProjection
 
   static CUSTOM = 4;
 
+  @type.int8
   projectionType = 0;
 
+  @type.float32
   fov = 0;
 
+  @type.float32
   aspect = 0;
 
+  @type.float32
   left = 0;
 
+  @type.float32
   right = 0;
 
+  @type.float32
   bottom = 0;
 
+  @type.float32
   top = 0;
 
+  @type.float32
   zn = 0;
 
+  @type.float32
   zf = 0;
 
+  @type.mat4
   customTransform = mat4.create();
 
   @blue.read
@@ -200,3 +212,5 @@ export class TriProjection
     return out;
   }
 }
+
+blue.interface(IRoot)(TriProjection);

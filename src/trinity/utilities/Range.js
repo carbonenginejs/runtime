@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Utilities/Range.h
 // Source: trinity/trinity/Utilities/Range.cpp
 // Source: trinity/trinity/Utilities/Range_Blue.cpp
@@ -14,6 +15,7 @@ import { meta, type, blue } from "#schema";
  * arithmetic (rather than native float intermediates) are retained adapters.
  */
 @blue.define("Range")
+@blue.inherit(IRoot)
 export class Range
 {
   /**
