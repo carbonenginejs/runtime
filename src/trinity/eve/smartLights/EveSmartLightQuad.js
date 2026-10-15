@@ -22,7 +22,7 @@ import { packQuadInstanceData, QUAD_INSTANCE_SIZE } from "../child/packQuadInsta
 
 /** A smart-light group member that places faction-colour-aware flare quads at each distribution placement and submits them to the quad renderer. */
 @blue.define("EveSmartLightQuad")
-@blue.inherit(IInitialize, INotify, IListNotify)
+@blue.inherit(EveSmartLightBaseGroup, IInitialize, INotify)
 @blue.interface(EveSmartLightBaseGroup, IInitialize, INotify, IListNotify)
 @blue.chainTo(EveSmartLightBaseGroup)
 export class EveSmartLightQuad extends EveChildTransform
@@ -84,21 +84,25 @@ export class EveSmartLightQuad extends EveChildTransform
   @blue.notify
   @blue.persist
   @type.int32
+  @blue.readwrite
   factionColor = -1;
 
   /** m_useFactionColor (bool) [READWRITE, PERSIST] (EveSmartLightBaseGroup.h:32) */
   @blue.persist
   @type.boolean
+  @blue.readwrite
   useFactionColor = false;
 
   /** m_attributeModifiers (PIEveSmartLightGroupAttributeModifierVector) [READ, PERSIST] (EveSmartLightBaseGroup.h:29) */
   @blue.persist
   @type.list("IEveSmartLightGroupAttributeModifier")
+  @blue.read
   attributeModifiers = [];
 
   /** m_color (Color) [READWRITE, PERSIST] (EveSmartLightBaseGroup.h:30) */
   @blue.persist
   @type.color
+  @blue.readwrite
   customColor = color.createLinear();
 
   /** m_parentColorSet (const Color*) - inherited faction color set, never persisted. */
@@ -269,6 +273,7 @@ export class EveSmartLightQuad extends EveChildTransform
    * GetQuadRenderer contract.
    */
   @meta.implemented
+  @blue.method
   UpdateSyncronous__Distribution(updateContext, params, _distribution)
   {
     this._activationStrength = params.activationStrength;
@@ -302,6 +307,7 @@ export class EveSmartLightQuad extends EveChildTransform
    * space object parent.
    */
   @meta.implemented
+  @blue.method
   UpdateAsyncronous__Distribution(_updateContext, params, _distribution)
   {
     // Carbon cpp:100-114 copies the supplied matrix, then lets the parent fill it.

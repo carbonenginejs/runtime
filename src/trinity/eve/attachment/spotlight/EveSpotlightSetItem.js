@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpotlightSetItem.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpotlightSetItem.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpotlightSetItem_Blue.cpp
@@ -13,6 +14,7 @@ import { meta, type, blue } from "#schema";
  * modulates it.
  */
 @blue.define("EveSpotlightSetItem")
+@blue.inherit(IRoot)
 export class EveSpotlightSetItem
 {
   @blue.readwrite

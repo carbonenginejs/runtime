@@ -1,7 +1,8 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveSpaceObjectDecal.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveSpaceObjectDecal.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveSpaceObjectDecal_Blue.cpp
-import { IsMatch } from "#blue";
+import { ITr2Pickable } from "../../../core/ITr2Pickable.js";
+import { IsMatch, INotify } from "#blue";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
@@ -29,9 +30,8 @@ import "#consts/graphics/trinityEnums";
  * visibility ramp.
  */
 @blue.define("EveSpaceObjectDecal")
-@blue.inherit(ITr2Renderable)
-@blue.inherit(IInitialize)
-@blue.interface(IInitialize)
+@blue.inherit(IInitialize, INotify, ITr2Pickable, ITr2Renderable)
+@blue.interface(IInitialize, INotify, ITr2Renderable, ITr2Pickable)
 export class EveSpaceObjectDecal
 {
   /**
@@ -95,7 +95,7 @@ export class EveSpaceObjectDecal
   // SOF-authored per-LOD triangle indices; persisted so the values
   // interchange reproduces Carbon's hidden decal geometry selection.
 
-  @blue.persist
+  @meta.persist
   @type.array("unknown")
   staticIndexBuffers = [];
 
@@ -160,6 +160,8 @@ export class EveSpaceObjectDecal
    * Property form of HasStaticIndexBuffers: whether any LOD carries decal
    * triangle indices.
    */
+  @blue.read
+  @type.boolean
   get hasStaticIndexBuffers()
   {
     return this.HasStaticIndexBuffers();
@@ -276,7 +278,6 @@ export class EveSpaceObjectDecal
    * Copies the decal's projection matrix into out; the value is only current as
    * of the last Initialize, OnModified or placement setter.
    */
-  @blue.method
   @meta.adapted
   GetDecalMatrix(out = mat4.create())
   {
@@ -287,7 +288,6 @@ export class EveSpaceObjectDecal
    * Copies the inverse of the decal's projection matrix into out, which is what
    * maps hull-space positions into the decal's unit cube.
    */
-  @blue.method
   @meta.adapted
   GetInverseDecalMatrix(out = mat4.create())
   {
@@ -555,7 +555,6 @@ export class EveSpaceObjectDecal
    * Adapted: Carbon reads the m_isVisible member directly; JavaScript exposes the private runtime value through an
    * accessor.
    */
-  @blue.method
   @meta.adapted
   GetVisibility()
   {
@@ -880,6 +879,7 @@ export class EveSpaceObjectDecal
    * Recomposes the decal matrix from the authored rotation, position and scaling
    * and inverts it; returns whether the inverse existed.
    */
+  @blue.method
   _UpdateDecalMatrix()
   {
     mat4.fromRotationTranslationScale(this._decalMatrix, this.rotation, this.position, this.scaling);

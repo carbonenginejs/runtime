@@ -1,10 +1,12 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/EveSocketParameter.h
 // Hand-authored following the eve/socket generated pattern (SOCKET_PARAM_DECLARE macro family).
+import { IEveSocketParameter } from "./IEveSocketParameter.js";
 import { meta, type, blue } from "#schema";
 import { EveSocketParameterBindingBase } from "./EveSocketParameterBindingBase.js";
 
 /** Binds a named 32-bit integer socket value to external parameters, capturing and restoring each binding's previous value. */
 @blue.define("EveSocketParameterInt")
+@blue.interface(IEveSocketParameter)
 export class EveSocketParameterInt extends EveSocketParameterBindingBase
 {
 
@@ -47,6 +49,7 @@ export class EveSocketParameterInt extends EveSocketParameterBindingBase
    * truncating to 32 bits and substituting 0 when the read throws; always
    * succeeds, so a bind is never refused on its account.
    */
+  @blue.method
   ExtractDefault(externalParameter)
   {
     let value = 0;

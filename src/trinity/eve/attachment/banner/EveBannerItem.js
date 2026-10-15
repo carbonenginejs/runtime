@@ -50,7 +50,7 @@ export class EveBannerItem
 
   // Carbon keeps this as private structure metadata, but SOF-authored banner
   // identity is part of the editable description in CarbonEngineJS.
-  @blue.persist
+  @meta.persist
   @type.int32
   reference = 0;
 
@@ -63,7 +63,6 @@ export class EveBannerItem
    * Adapted: Carbon inlines the per-banner box inside the set rebuild; the port moves it
    * onto the item so the shared item-set builder can read it.
    */
-  @blue.method
   @meta.adapted
   GetBounds(out)
   {
@@ -83,7 +82,6 @@ export class EveBannerItem
    * Adapted: Accessor for the shared item-set bounds builder; Carbon reads jt->bone
    * directly.
    */
-  @blue.method
   @meta.adapted
   GetBoneIndex()
   {

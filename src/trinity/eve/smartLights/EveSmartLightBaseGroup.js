@@ -66,12 +66,14 @@ export class EveSmartLightBaseGroup
 
   /** IEveSmartLightGroup default: no asynchronous work. */
   @meta.noop
+  @blue.method
   UpdateAsyncronous__Distribution(_updateContext, _params, _distribution)
   {
   }
 
   /** IEveSmartLightGroup default: no synchronous work. */
   @meta.noop
+  @blue.method
   UpdateSyncronous__Distribution(_updateContext, _params, _distribution)
   {
   }

@@ -161,6 +161,7 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
    * [minimumActivation, maximumActivation] range
    * (EveSmartLightAttributeModifierCameraDependency.cpp:95-104).
    */
+  @blue.method
   _GetActivationValue(objectPosition, entityDirection)
   {
     const camPos = this._renderContext.GetViewPosition();
@@ -182,6 +183,7 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
   }
 
   /** Normalized camera-distance ramp (EveSmartLightAttributeModifierCameraDependency.cpp:36-50). */
+  @blue.method
   _GetDistanceAmplitude(vec2obj)
   {
     if (!this.useCameraDistance)
@@ -203,6 +205,7 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
    * Tr2Renderer::GetViewLookAt() is the view matrix column (_13,_23,_33),
    * which on the shared byte layout is view[2], view[6], view[10].
    */
+  @blue.method
   _GetLookAtAmplitude(vec2obj)
   {
     if (!this.useCameraLookAt)
@@ -229,6 +232,7 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
   }
 
   /** Entity-facing amplitude (EveSmartLightAttributeModifierCameraDependency.cpp:74-93). */
+  @blue.method
   _GetPlacementAmplitude(vec2obj, entityDirection)
   {
     if (!this.useCameraPlacement)

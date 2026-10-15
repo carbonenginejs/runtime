@@ -1,3 +1,4 @@
+import { blue } from "#schema";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveSpaceObjectDecal.h
 //   struct MeshBuffers, nested in struct DecalMeshCache; flattened for JS.
 
@@ -6,6 +7,7 @@
  * had flattened these two members onto DecalMeshCache itself; corrected at
  * promotion to Carbon's nested struct shape.
  */
+@blue.define({ className: "DecalMeshCacheMeshBuffers", donors: ["DecalMeshCache::MeshBuffers"] })
 export class DecalMeshCacheMeshBuffers
 {
 

@@ -3,7 +3,7 @@
 import { color } from "#math/color";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { meta, type } from "#schema";
+import { meta, type, blue } from "#schema";
 import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
 
 
@@ -13,8 +13,9 @@ import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
  * shadow setting and volumetric flag - used as the compat view over a light's
  * flattened fields.
  */
-@meta.define({
+@blue.define({
   className: "CjsLightData",
+  donors: ["LightData"],
   sourceClass: "LightData",
   aliases: ["LightData"]
 })

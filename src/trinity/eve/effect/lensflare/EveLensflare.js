@@ -25,6 +25,7 @@ const bitsAsFloat = value => new Float32Array(new Uint32Array([ value >>> 0 ]).b
 /** Represents a lens-flare graph with CPU-side visibility and controller state. */
 @blue.define("EveLensflare")
 @blue.inherit(ITr2Renderable, ITr2CurveSetOwner, ITr2ControllerOwner, IInitialize, IListNotify)
+@blue.interface(ITr2ControllerOwner, ITr2CurveSetOwner, IInitialize)
 export class EveLensflare
 {
 

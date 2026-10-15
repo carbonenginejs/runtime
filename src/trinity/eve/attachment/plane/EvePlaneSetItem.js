@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EvePlaneSetItem.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EvePlaneSetItem.cpp
 import { box3 } from "#math/box3";
@@ -13,6 +14,7 @@ import { meta, type, blue } from "#schema";
  * transformed and scrolling texture layers, mask atlas slot and blink data.
  */
 @blue.define("EvePlaneSetItem")
+@blue.inherit(IRoot)
 export class EvePlaneSetItem
 {
 
@@ -74,7 +76,7 @@ export class EvePlaneSetItem
   // Carbon omits this SOF-authored value from Blue serialization, but it is
   // part of the editable plane description and must survive values exchange.
 
-  @blue.persist
+  @meta.persist
   @type.vec4
   blinkData = vec4.fromValues(1, 0, 1, 0);
 

@@ -16,7 +16,7 @@ export class EveChildUpdateParams
   @type.rootRef("IEveSpaceObject2")
   spaceObjectParent = null;
 
-  @type.rootRef("IEveSpaceObjectChild")
+  @type.rootRef("EveSpaceObjectChild")
   childParent = null;
 
   @type.uint64

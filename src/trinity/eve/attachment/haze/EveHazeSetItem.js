@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveHazeSetItem.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveHazeSetItem.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveHazeSetItem_Blue.cpp
@@ -13,6 +14,7 @@ import { meta, type, blue } from "#schema";
  * four-component haze shaping data.
  */
 @blue.define("EveHazeSetItem")
+@blue.inherit(IRoot)
 export class EveHazeSetItem
 {
   @blue.readwrite

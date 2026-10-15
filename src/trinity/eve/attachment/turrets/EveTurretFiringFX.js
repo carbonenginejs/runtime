@@ -1,3 +1,4 @@
+import { ITr2DebugRenderable } from "#interfaces";
 // Source: trinity/trinity/Eve/Turret/EveTurretFiringFX.h
 // Source: trinity/trinity/Eve/Turret/EveTurretFiringFX.cpp
 // Source: trinity/trinity/Eve/Turret/EveTurretFiringFX_Blue.cpp
@@ -19,8 +20,7 @@ import { EveUpdateContext } from "../../EveUpdateContext.js";
 
 /** Coordinates a turret set's multi-muzzle firing effects, delays, stretch endpoints, observers, and impact timing. */
 @blue.define("EveTurretFiringFX")
-@blue.inherit(IInitialize, INotify, IListNotify, ITr2ControllerOwner)
-@blue.inherit(IInitialize, INotify, IListNotify)
+@blue.inherit(IInitialize, INotify, IListNotify, ITr2ControllerOwner, ITr2DebugRenderable)
 @blue.interface(IInitialize, INotify, IListNotify, ITr2ControllerOwner, EveEntity)
 export class EveTurretFiringFX extends EveEntity
 {

@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/IEveInheritPropertiesOwner.h
 //
 // The capability a child must CARRY to receive inherited faction colours.
@@ -12,7 +13,7 @@
 // The gate at the call sites is `instanceof IEveInheritPropertiesOwner`,
 // exactly as BehaviorGroup.SetPlayFXBehavior ports its dynamic_cast.
 
-import { CjsSchema } from "#schema";
+import { CjsSchema, blue } from "#schema";
 
 
 /** Contract for an object that accepts inherited faction colour properties. */
@@ -34,4 +35,6 @@ export class IEveInheritPropertiesOwner
 }
 
 
+CjsSchema.decorateMethod(IEveInheritPropertiesOwner, "SetInheritProperties", blue.method);
+CjsSchema.blue.inherit(IRoot)(IEveInheritPropertiesOwner);
 CjsSchema.blue.define(IEveInheritPropertiesOwner, { className: "IEveInheritPropertiesOwner" });

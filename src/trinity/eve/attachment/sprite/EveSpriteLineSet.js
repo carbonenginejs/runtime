@@ -1,3 +1,4 @@
+import { ITr2LightOwner } from "../../lights/ITr2LightOwner.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteLineSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteLineSet.cpp
 import { EveEntity } from "../../EveEntity.js";
@@ -24,8 +25,8 @@ import { EveSpriteSet } from "./EveSpriteSet.js";
  * owning their static and per-bone bounds and the point lights they emit.
  */
 @blue.define("EveSpriteLineSet")
-@blue.inherit(IInitialize)
-@blue.interface(IInitialize, IEveSpaceObjectAttachment, EveEntity)
+@blue.inherit(IInitialize, ITr2LightOwner, EveEntity)
+@blue.interface(IInitialize, IEveSpaceObjectAttachment, EveEntity, ITr2LightOwner)
 export class EveSpriteLineSet extends IEveSpaceObjectAttachment
 {
 
@@ -57,7 +58,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   @type.string
   name = "";
 
-  @blue.persist
+  @meta.persist
   @type.list("EveSpriteLight")
   lights = [];
 

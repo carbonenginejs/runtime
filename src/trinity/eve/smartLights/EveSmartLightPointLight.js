@@ -15,6 +15,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { ITr2LightOwner } from "../lights/ITr2LightOwner.js";
 import { Tr2Light } from "../lights/Tr2Light.js";
 import { EveComponentType } from "../EntityComponents.js";
 import {
@@ -25,7 +26,7 @@ import { BLUELISTEVENT } from "#consts/blue";
 
 /** A smart-light group member that places faction-colour-aware point or spot lights at each distribution placement and submits them to the light manager. */
 @blue.define("EveSmartLightPointLight")
-@blue.inherit(IInitialize, INotify, IListNotify)
+@blue.inherit(EveSmartLightBaseGroup, IInitialize, INotify, ITr2LightOwner)
 @blue.interface(EveSmartLightBaseGroup, IInitialize, INotify, IListNotify, EveEntity)
 @blue.chainTo(EveSmartLightBaseGroup)
 export class EveSmartLightPointLight extends EveEntity
@@ -98,21 +99,25 @@ export class EveSmartLightPointLight extends EveEntity
   @blue.notify
   @blue.persist
   @type.int32
+  @blue.readwrite
   factionColor = -1;
 
   /** m_useFactionColor (bool) [READWRITE, PERSIST] (EveSmartLightBaseGroup.h:32) */
   @blue.persist
   @type.boolean
+  @blue.readwrite
   useFactionColor = false;
 
   /** m_attributeModifiers (PIEveSmartLightGroupAttributeModifierVector) [READ, PERSIST] (EveSmartLightBaseGroup.h:29) */
   @blue.persist
   @type.list("IEveSmartLightGroupAttributeModifier")
+  @blue.read
   attributeModifiers = [];
 
   /** m_color (Color) [READWRITE, PERSIST] (EveSmartLightBaseGroup.h:30) */
   @blue.persist
   @type.color
+  @blue.readwrite
   customColor = color.createLinear();
 
   /** m_lightType (Tr2Light::LIGHT_TYPE) - POINT_LIGHT here, SPOT_LIGHT on the subclass (EveSmartLightPointLight.cpp:15). */
@@ -142,6 +147,7 @@ export class EveSmartLightPointLight extends EveEntity
 
   /** IEveSmartLightGroup default: point-light groups have no async work. */
   @meta.noop
+  @blue.method
   UpdateAsyncronous__Distribution(_updateContext, _params, _distribution)
   {
   }
@@ -336,6 +342,7 @@ export class EveSmartLightPointLight extends EveEntity
    * strength (EveSmartLightPointLight.cpp:43-54).
    */
   @meta.implemented
+  @blue.method
   UpdateSyncronous__Distribution(updateContext, params, distribution)
   {
     this._activationStrength = params?.activationStrength ?? 1;

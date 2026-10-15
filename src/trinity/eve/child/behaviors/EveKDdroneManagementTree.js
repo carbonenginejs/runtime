@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/EveKDdroneManagementTree.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/EveKDdroneManagementTree.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -7,6 +8,7 @@ import { vec3 } from "#math/vec3";
 
 /** A spatial index that builds and incrementally rebalances a k-d tree over a group's drone agents and answers nearest-neighbour and multi-radius range queries against it. */
 @blue.define("EveKDdroneManagementTree")
+@blue.inherit(IRoot)
 export class EveKDdroneManagementTree
 {
 

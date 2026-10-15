@@ -82,8 +82,8 @@ export class Tr2FactionLight extends Tr2Light
   outerAngle = 0;
 
   /** m_lightData.color (Color) [READWRITE, PERSIST, NOTIFY] */
-  @blue.notify
-  @blue.persist
+  @meta.notify
+  @meta.persist
   @type.color
   color = color.createLinear();
 
@@ -163,6 +163,7 @@ export class Tr2FactionLight extends Tr2Light
    * Stores an inherited faction colour palette and recomputes the light's colour from it.
    */
   @meta.implemented
+  @blue.method
   SetInheritProperties(colorSet)
   {
     if (colorSet)
@@ -176,6 +177,7 @@ export class Tr2FactionLight extends Tr2Light
    * Recolours the light by blending its palette entry's luminance with the full palette colour by the saturation factor, reporting false when no palette entry is available.
    */
   @meta.implemented
+  @blue.method
   SetLightColorFromFactionColor()
   {
     if (!hasFactionColor(this._parentColorSet, this.factionColor))
@@ -202,6 +204,7 @@ export class Tr2FactionLight extends Tr2Light
    * The light's current colour.
    */
   @meta.implemented
+  @blue.method
   GetSelectedColor()
   {
     return this.color;

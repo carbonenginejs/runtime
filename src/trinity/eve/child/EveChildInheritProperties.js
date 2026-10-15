@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInheritProperties.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInheritProperties.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInheritProperties_Blue.cpp
@@ -58,6 +59,7 @@ const COLOR_PROPERTIES = Object.freeze([
  * named material slot (Primary, Hull, Booster, State0, ...) in a fixed order.
  */
 @blue.define("EveChildInheritProperties")
+@blue.inherit(IRoot)
 export class EveChildInheritProperties
 {
   /**

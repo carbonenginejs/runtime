@@ -4,7 +4,7 @@ import { meta, type, blue } from "#schema";
 import { IEveSocketParameter } from "./IEveSocketParameter.js";
 
 /** Provides named typed socket parameters with external-value binding, default capture, and propagation hooks. */
-@blue.define("EveSocketParameterBindingBase")
+@blue.define({ className: "EveSocketParameterBindingBase", abstract: true })
 export class EveSocketParameterBindingBase extends IEveSocketParameter
 {
 
@@ -19,6 +19,7 @@ export class EveSocketParameterBindingBase extends IEveSocketParameter
   bindings = [];
 
   /** Returns the name an external parameter has to match before it can bind here. */
+  @blue.method
   GetName()
   {
     return this.name;
@@ -28,6 +29,7 @@ export class EveSocketParameterBindingBase extends IEveSocketParameter
    * Sets the name external parameters must match to bind, coercing null to an
    * empty string.
    */
+  @blue.method
   SetName(name)
   {
     this.name = String(name ?? "");

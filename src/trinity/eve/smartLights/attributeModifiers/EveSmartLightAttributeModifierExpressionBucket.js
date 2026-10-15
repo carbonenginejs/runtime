@@ -83,6 +83,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * @returns {number}
    */
   @meta.implemented
+  @blue.method
   GetInputValue__Time(index, time)
   {
     const i = index | 0;

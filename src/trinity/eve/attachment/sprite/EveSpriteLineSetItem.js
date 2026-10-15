@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteLineSetItem.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteLineSetItem.cpp
 import { quat } from "#math/quat";
@@ -12,6 +13,7 @@ import { meta, type, blue } from "#schema";
  * distributed around a circle, with the blink timing and colour they share.
  */
 @blue.define("EveSpriteLineSetItem")
+@blue.inherit(IRoot)
 export class EveSpriteLineSetItem
 {
 

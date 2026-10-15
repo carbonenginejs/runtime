@@ -1,3 +1,4 @@
+import { ITr2LightOwner } from "../../lights/ITr2LightOwner.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EvePlaneSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EvePlaneSet.cpp
 import { IsMatch } from "#blue";
@@ -54,8 +55,8 @@ const PLANE_VERTEX_SIZE = 108;
  * the four shared texture parameters and the plane lights.
  */
 @blue.define("EvePlaneSet")
-@blue.inherit(IInitialize, INotify)
-@blue.interface(IInitialize, INotify, IEveSpaceObjectAttachment, EveEntity)
+@blue.inherit(IInitialize, INotify, ITr2LightOwner, EveEntity)
+@blue.interface(IInitialize, INotify, IEveSpaceObjectAttachment, EveEntity, ITr2LightOwner)
 export class EvePlaneSet extends IEveSpaceObjectAttachment
 {
   /**
@@ -105,25 +106,25 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
   @type.list("EvePlaneSetItem")
   planes = [];
 
-  @blue.persist
+  @meta.persist
   @type.list("EvePlaneLight")
   lights = [];
 
   // SOF-authored shared texture parameters; persisted so the values
   // interchange reproduces Carbon's hidden plane-set bindings.
-  @blue.persist
+  @meta.persist
   @type.rootRef("TriTextureParameter")
   imageMapParameter = null;
 
-  @blue.persist
+  @meta.persist
   @type.rootRef("TriTextureParameter")
   layerMap1Parameter = null;
 
-  @blue.persist
+  @meta.persist
   @type.rootRef("TriTextureParameter")
   layerMap2Parameter = null;
 
-  @blue.persist
+  @meta.persist
   @type.rootRef("TriTextureParameter")
   maskMapParameter = null;
   _rebuildRevision = 0;

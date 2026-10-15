@@ -14,7 +14,7 @@ import { CjsSchema, meta, type, blue } from "#schema";
 import { EveChildMesh } from "../child/EveChildMesh.js";
 import { EveChildInstanceMeshRenderer } from "../child/EveChildInstanceMeshRenderer.js";
 import { PlacementDataWithIdentifier } from "../PlacementDataWithIdentifier.js";
-import { resolveGroupColor } from "./EveSmartLightBaseGroup.js";
+import { EveSmartLightBaseGroup, resolveGroupColor } from "./EveSmartLightBaseGroup.js";
 import { Tr2Effect } from "../../shader/Tr2Effect.js";
 import { Tr2InstancedMesh } from "../../core/mesh/Tr2InstancedMesh.js";
 import { RotationalConstraints } from "../../generated/eve/child/enums.js";
@@ -36,7 +36,7 @@ import { BLUELISTEVENT } from "#consts/blue";
   "partTag",
   "distribution"
 ])
-@blue.inherit(IInitialize, INotify, IListNotify)
+@blue.inherit(EveSmartLightBaseGroup)
 @blue.interface(EveChildInstanceMeshRenderer, ITr2Renderable, IInitialize, INotify, IEveShadowCaster)
 export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
 {
@@ -70,6 +70,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   customColor = color.createLinear();
 
   /** Carbon m_castShadow is exposed under the canonical derived key. */
+  @blue.readwrite
   get castShadows()
   {
     return this.castShadow;
@@ -193,6 +194,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * supplies the distribution.
    */
   @meta.implemented
+  @blue.method
   UpdateSyncronous__Distribution(updateContext, params, distribution)
   {
     EveChildMesh.prototype.UpdateSyncronous.call(this, updateContext, params);
@@ -286,6 +288,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * distribution ) (EveSmartLightMesh.cpp:139): updates the instance-mesh base.
    */
   @meta.implemented
+  @blue.method
   UpdateAsyncronous__Distribution(updateContext, params, _distribution)
   {
     return super.UpdateAsyncronous(updateContext, params);

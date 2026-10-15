@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/EveEntity.h
 //   trinity/trinity/Eve/EveEntity.cpp
 import { meta, blue } from "#schema";
@@ -9,6 +10,7 @@ import { meta, blue } from "#schema";
  */
 @blue.define("EveEntity")
 @blue.interface()
+@blue.inherit(IRoot)
 export class EveEntity
 {
 

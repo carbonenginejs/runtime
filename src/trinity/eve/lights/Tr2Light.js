@@ -22,7 +22,7 @@ import {
  * transform, and submits a converted point or spot record to the light manager
  * each frame.
  */
-@blue.define("Tr2Light")
+@blue.define({ className: "Tr2Light", abstract: true })
 @blue.inherit(IInitialize, INotify)
 @blue.interface()
 export class Tr2Light
@@ -41,8 +41,8 @@ export class Tr2Light
   static SPOT_LIGHT = 2;
   static COUNT = 3;
 
-  @blue.readwrite
-  @blue.persist
+  @meta.readwrite
+  @meta.persist
   @type.string
   name = "";
 
@@ -59,13 +59,13 @@ export class Tr2Light
   boneTransform = mat4.create();
 
   // Every subclass exposes it Be::READ (Tr2PointLight_Blue.cpp:44 and siblings).
-  @blue.read
+  @meta.read
   @type.rootRef("Tr2LightProfileRes")
   lightProfile = null;
 
-  @blue.notify
-  @blue.readwrite
-  @blue.persist
+  @meta.notify
+  @meta.readwrite
+  @meta.persist
   @type.wpath("Tr2LightProfileRes")
   lightProfilePath = "";
 
@@ -239,7 +239,6 @@ export class Tr2Light
    * declares and we do not. Registered rather than guessed at.
    */
   @blue.method
-  @blue.method
   @meta.noop
   Update()
   {
@@ -254,6 +253,7 @@ export class Tr2Light
    * the frame-clock seam (see lightConversion.js).
    */
   @meta.adapted
+  @blue.method
   AddLight(lightManager, transform, scale, bones = null, boneCount = 0)
   {
     if (this.isDynamic)

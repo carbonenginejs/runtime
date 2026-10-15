@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveLocatorSets.h
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveLocatorSets.cpp
 import { mat4 } from "#math/mat4";
@@ -60,6 +61,7 @@ export function EveGetLocatorPose(outPosition, outDirection, animationUpdater, l
  * distributions to attach to.
  */
 @blue.define("EveLocatorSets")
+@blue.inherit(IRoot)
 export class EveLocatorSets
 {
   @blue.read

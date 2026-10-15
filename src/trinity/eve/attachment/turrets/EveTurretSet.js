@@ -1,3 +1,5 @@
+import { IShaderConfigurer } from "../../../shader/IShaderConfigurer.js";
+import { ITr2DebugRenderable } from "#interfaces";
 // Source: trinity/trinity/Eve/Turret/EveTurretSet.h
 // Source: trinity/trinity/Eve/Turret/EveTurretSet.cpp
 
@@ -58,8 +60,7 @@ function BoundingSphereTransform(transform, sphere)
 
 /** Owns a hull's instanced turrets and drives their aiming, animation, firing, visibility, batches, shadows, and per-object data. */
 @blue.define("EveTurretSet")
-@blue.inherit(IInitialize, INotify, ITr2Renderable, ITr2ControllerOwner, IEveShadowCaster)
-@blue.inherit(IInitialize, INotify)
+@blue.inherit(IInitialize, INotify, ITr2Renderable, IShaderConfigurer, ITr2ControllerOwner, ITr2DebugRenderable, IEveShadowCaster)
 @blue.interface(EveEntity, IInitialize, INotify, ITr2Renderable)
 export class EveTurretSet extends EveEntity
 {
@@ -1778,7 +1779,6 @@ export class EveTurretSet extends EveEntity
    *
    * Adapted: The closest portable turret is selected from its world up-axis and the target tracking position.
    */
-  @blue.method
   @meta.adapted
   GetClosestTurret()
   {
@@ -2344,6 +2344,7 @@ export class EveTurretSet extends EveEntity
    * @returns {string} The fire animation name.
    */
   @meta.implemented
+  @blue.method
   _GetFireAnimationName()
   {
     let name = "Fire";
@@ -2362,6 +2363,7 @@ export class EveTurretSet extends EveEntity
    * @returns {void}
    */
   @meta.implemented
+  @blue.method
   _CalcRandomDelay()
   {
     this.randomFiringDelay = this.useRandomFiringDelay ? this.GetShotTimeVariance() * Math.random() : 0;
@@ -2385,6 +2387,7 @@ export class EveTurretSet extends EveEntity
    * @returns {{turret: number, locator: number}} The shared pair record.
    */
   @meta.adapted
+  @blue.method
   _GetClosestTurretAndLocator()
   {
     const pair = EveTurretSet._closestPair;

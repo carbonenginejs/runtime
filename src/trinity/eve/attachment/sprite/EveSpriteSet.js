@@ -1,3 +1,4 @@
+import { ITr2LightOwner } from "../../lights/ITr2LightOwner.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteSet.cpp
 import { EveEntity } from "../../EveEntity.js";
@@ -49,8 +50,8 @@ function colorByte(value)
  * and the point lights the sprites emit.
  */
 @blue.define("EveSpriteSet")
-@blue.inherit(IInitialize)
-@blue.interface(IInitialize, IEveSpaceObjectAttachment, EveEntity)
+@blue.inherit(IInitialize, ITr2LightOwner, EveEntity)
+@blue.interface(IInitialize, IEveSpaceObjectAttachment, EveEntity, ITr2LightOwner)
 export class EveSpriteSet extends IEveSpaceObjectAttachment
 {
 
@@ -86,7 +87,7 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
   @type.boolean
   display = true;
 
-  @blue.persist
+  @meta.persist
   @type.list("EveSpriteLight")
   lights = [];
 

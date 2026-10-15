@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveModularObjectModifier.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveModularObjectModifier.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveModularObjectModifier_Blue.cpp
@@ -14,6 +15,7 @@ import { Tr2Lod } from "./EveLODHelper.js";
 
 /** Transient edit session for one modular EveSpaceObject2. */
 @blue.define("EveModularObjectModifier")
+@blue.inherit(IRoot)
 export class EveModularObjectModifier
 {
   _object = null;
@@ -337,6 +339,7 @@ export class EveModularObjectModifier
   }
 
   /** Finds an unused nonzero tag across recorded parts and attached children. */
+  @blue.method
   _AllocatePartId()
   {
     let id = this._data.GetUnusedPartID();
@@ -349,6 +352,7 @@ export class EveModularObjectModifier
   }
 
   /** Refreshes the owning impact overlay after the locator graph changes. */
+  @blue.method
   _UpdateImpactOverlayLocatorCount()
   {
     if (!this._object.impactOverlay) return;

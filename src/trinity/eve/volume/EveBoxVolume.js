@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/Volume/EveBoxVolume.h
 // Source: trinity/trinity/Eve/Volume/EveBoxVolume.cpp
 // Source: trinity/trinity/Eve/Volume/EveBoxVolume_Blue.cpp
-import { IsMatch } from "#blue";
+import { IsMatch, INotify } from "#blue";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -14,9 +14,8 @@ import { meta, type, blue } from "#schema";
  * and seeding random points across its shell.
  */
 @blue.define("EveBoxVolume")
-@blue.inherit(IInitialize)
-@blue.interface(IInitialize)
-@blue.chainTo(IEveVolume)
+@blue.inherit(IInitialize, INotify)
+@blue.interface(IEveVolume, INotify, IInitialize)
 export class EveBoxVolume extends IEveVolume
 {
   @blue.notify

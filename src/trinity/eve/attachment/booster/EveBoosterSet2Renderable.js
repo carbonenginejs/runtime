@@ -23,6 +23,7 @@ import { EveBoosterSet2 } from "./EveBoosterSet2.js";
  */
 @blue.define("EveBoosterSet2Renderable")
 @blue.inherit(ITr2Renderable)
+@blue.interface(ITr2Renderable)
 export class EveBoosterSet2Renderable
 {
 
@@ -147,7 +148,6 @@ export class EveBoosterSet2Renderable
    * Binds this instance to the booster set whose booster records, colours
    * and light data it draws.
    */
-  @blue.method
   @meta.adapted
   SetBoosterSet(boosterSet)
   {
@@ -280,7 +280,6 @@ export class EveBoosterSet2Renderable
    * their normalized segment lengths, control normals carrying their length
    * factors, plus total length, intensity and world bounds.
    */
-  @blue.method
   @meta.adapted
   GetTrailSplineData()
   {
@@ -522,7 +521,6 @@ export class EveBoosterSet2Renderable
    * Adapted: Exposes the stored parent transform through an accessor where Carbon reads the
    * member directly.
    */
-  @blue.method
   @meta.adapted
   GetParentTransform()
   {
@@ -560,6 +558,7 @@ export class EveBoosterSet2Renderable
    * offsets rotated into parent space - then recomputes the spline metrics;
    * returns false for a non-positive delta.
    */
+  @blue.method
   CalculateSplineData(deltaTime)
   {
     const elapsed = Number(deltaTime);

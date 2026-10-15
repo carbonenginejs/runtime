@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveTrailsSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveTrailsSet.cpp
 import { mat4 } from "#math/mat4";
-import { type, blue } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /**
  * Carbon EveTrailsSet::SingleTrailData (h:88-94): one trail as
@@ -14,12 +14,12 @@ export class EveTrailsSetSingleTrailData
 {
 
   /** transform (Matrix): where the trail starts. */
-  @blue.persist
+  @meta.persist
   @type.mat4
   transform = mat4.create();
 
   /** size (float) */
-  @blue.persist
+  @meta.persist
   @type.float32
   size = 0;
 

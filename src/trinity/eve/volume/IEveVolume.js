@@ -1,9 +1,11 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/Volume/IEveVolume.h
 import { meta, blue } from "#schema";
 
 
 /** Required EVE volume contract. */
 @blue.define("IEveVolume")
+@blue.inherit(IRoot)
 export class IEveVolume
 {
 

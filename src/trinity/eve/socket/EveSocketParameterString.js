@@ -6,6 +6,7 @@ import { IEveSocketParameter } from "./IEveSocketParameter.js";
 
 /** Binds a named string socket value to external parameters while capturing defaults for restoration. */
 @blue.define("EveSocketParameterString")
+@blue.interface(IEveSocketParameter)
 export class EveSocketParameterString extends IEveSocketParameter
 {
 
@@ -34,6 +35,7 @@ export class EveSocketParameterString extends IEveSocketParameter
   defaults = [];
 
   /** Returns the name an external parameter has to match before it can bind here. */
+  @blue.method
   GetName()
   {
     return this.name;
@@ -43,6 +45,7 @@ export class EveSocketParameterString extends IEveSocketParameter
    * Sets the name external parameters must match to bind, coercing null to an
    * empty string.
    */
+  @blue.method
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -98,6 +101,7 @@ export class EveSocketParameterString extends IEveSocketParameter
    * Captures the external parameter's current value as a string default,
    * substituting an empty string when the read throws; always succeeds.
    */
+  @blue.method
   ExtractDefault(externalParameter)
   {
     let value = "";

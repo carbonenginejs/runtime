@@ -1,3 +1,4 @@
+import { ITr2LightOwner } from "../../lights/ITr2LightOwner.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveBoosterSet2.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveBoosterSet2.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveBoosterSet2_Blue.cpp
@@ -37,8 +38,8 @@ import {
  * renderable instances draw.
  */
 @blue.define("EveBoosterSet2")
-@blue.inherit(INotify, IInitialize)
-@blue.interface(INotify, IInitialize, EveEntity)
+@blue.inherit(IInitialize, INotify, ITr2LightOwner)
+@blue.interface(INotify, IInitialize, EveEntity, ITr2LightOwner)
 export class EveBoosterSet2 extends EveEntity
 {
 
@@ -288,7 +289,7 @@ export class EveBoosterSet2 extends EveEntity
    * Carbon does not map it; it persists here so values carry the boosters,
    * and Initialize derives the flares, bounds and max size from it.
    */
-  @blue.persistOnly
+  @meta.persistOnly
   @type.list("EveBoosterSet2SingleBoosterData")
   _singleBoosters = [];
 
@@ -823,7 +824,6 @@ export class EveBoosterSet2 extends EveEntity
    * light position, radius and phase, and atlas indices - safe for an
    * adapter to keep.
    */
-  @blue.method
   @meta.adapted
   GetBoosterData()
   {
@@ -878,6 +878,7 @@ export class EveBoosterSet2 extends EveEntity
    * @param {Tr2QuadRenderer} quadRenderer
    */
   @meta.implemented
+  @blue.method
   RegisterWithQuadRenderer(quadRenderer)
   {
     if (this.glows)
@@ -894,6 +895,7 @@ export class EveBoosterSet2 extends EveEntity
    * @param {mat4} _world - the parent's world transform
    */
   @meta.implemented
+  @blue.method
   AddToQuadRenderer(quadRenderer, _world)
   {
     if (!this.glows || !this._glowsVisible || !this.display)
@@ -1000,6 +1002,7 @@ export class EveBoosterSet2 extends EveEntity
    * The flare parameters CreateBoosterFlares consumes, in Carbon's
    * EveBoosterFlareParams shape (EveBoosterSet2.cpp:739-742).
    */
+  @blue.method
   static _GetFlareParams(owner)
   {
     return {

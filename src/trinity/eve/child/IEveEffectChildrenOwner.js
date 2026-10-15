@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/IEveEffectChildrenOwner.h:9-15
 import { CjsSchema, meta, blue } from "#schema";
 
@@ -40,4 +41,5 @@ for (const method of [ "GetEffectChildByName", "AddToEffectChildrenList", "Remov
 {
   CjsSchema.decorateMethod(IEveEffectChildrenOwner, method, blue.method, meta.abstract);
 }
+CjsSchema.blue.inherit(IRoot)(IEveEffectChildrenOwner);
 CjsSchema.blue.define(IEveEffectChildrenOwner, { className: "IEveEffectChildrenOwner" });

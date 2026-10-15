@@ -1,3 +1,4 @@
+import { ITr2LightOwner } from "../../lights/ITr2LightOwner.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveBannerSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveBannerSet.cpp
 import { EveEntity } from "../../EveEntity.js";
@@ -61,14 +62,14 @@ import {
  * largest single banner radius its LOD is measured on, and the banner lights.
  */
 @blue.define("EveBannerSet")
-@blue.inherit(IInitialize)
-@blue.interface(IInitialize, IEveSpaceObjectAttachment, EveEntity)
+@blue.inherit(IInitialize, ITr2LightOwner, EveEntity)
+@blue.interface(IInitialize, IEveSpaceObjectAttachment, EveEntity, ITr2LightOwner)
 export class EveBannerSet extends IEveSpaceObjectAttachment
 {
 
   @blue.read
   @blue.persist
-  @type.list("EveBannerItem")
+  @type.structList("EveBannerItem")
   banners = [];
 
   @blue.readwrite
@@ -95,13 +96,13 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   @type.int32
   key = 0;
 
-  @blue.persist
+  @meta.persist
   @type.list("EveBannerLight")
   lights = [];
 
   // SOF-authored primary banner texture parameter; persisted so the values
   // interchange reproduces Carbon's hidden banner binding.
-  @blue.persist
+  @meta.persist
   @type.rootRef("TriTextureParameter")
   primaryTextureParameter = null;
 
@@ -470,7 +471,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * Adapted: Carbon reads the m_maxBannerRadius member directly; JavaScript exposes it
    * through an accessor.
    */
-  @blue.method
   @meta.adapted
   GetMaxBannerRadius()
   {
@@ -483,7 +483,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * Adapted: Carbon reads the m_isVisible member directly; JavaScript exposes it through an
    * accessor.
    */
-  @blue.method
   @meta.adapted
   GetVisibility()
   {

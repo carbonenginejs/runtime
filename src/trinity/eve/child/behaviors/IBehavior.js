@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/IBehavior.h:7-79
 import { CjsSchema, meta, blue } from "#schema";
 import { ProcessPriority } from "./enums.js";
@@ -104,4 +105,5 @@ CjsSchema.decorateMethod(IBehavior, "RenderDebugInfo", blue.method);
 CjsSchema.decorateMethod(IBehavior, "GetBehaviorSearchRadius", blue.method);
 CjsSchema.decorateMethod(IBehavior, "UpdateState", blue.method);
 
+CjsSchema.blue.inherit(IRoot)(IBehavior);
 CjsSchema.blue.define(IBehavior, { className: "IBehavior", fields: {} });

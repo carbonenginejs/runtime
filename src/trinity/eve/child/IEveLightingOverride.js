@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildLightingOverride.h
 import { CjsSchema, meta, blue } from "#schema";
 
@@ -14,4 +15,5 @@ export class IEveLightingOverride
 }
 
 CjsSchema.decorateMethod(IEveLightingOverride, "GetOverrides", blue.method, meta.abstract);
+CjsSchema.blue.inherit(IRoot)(IEveLightingOverride);
 CjsSchema.blue.define(IEveLightingOverride, { className: "IEveLightingOverride" });

@@ -1,11 +1,13 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/EveSocketParameter.h
 // Hand-authored following the eve/socket generated pattern (SOCKET_PARAM_DECLARE macro family).
 import { vec4 } from "#math/vec4";
+import { IEveSocketParameter } from "./IEveSocketParameter.js";
 import { meta, type, blue } from "#schema";
 import { EveSocketParameterBindingBase } from "./EveSocketParameterBindingBase.js";
 
 /** Binds a named four-component vector socket value to external parameters, preserving defaults by copy for restoration. */
 @blue.define("EveSocketParameterVector4")
+@blue.interface(IEveSocketParameter)
 export class EveSocketParameterVector4 extends EveSocketParameterBindingBase
 {
 
@@ -48,6 +50,7 @@ export class EveSocketParameterVector4 extends EveSocketParameterBindingBase
    * keeping it at zero unless the source has at least four components; always
    * succeeds, so a bind is never refused on its account.
    */
+  @blue.method
   ExtractDefault(externalParameter)
   {
     const value = vec4.create();

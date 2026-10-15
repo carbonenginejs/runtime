@@ -1,9 +1,11 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/IEveSocketParameter.h
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { meta, blue } from "#schema";
 
 
 /** Carbon socket-parameter contract with its interface defaults. */
 @blue.define("IEveSocketParameter")
+@blue.inherit(IInitialize)
 export class IEveSocketParameter
 {
 

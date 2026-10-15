@@ -1,7 +1,9 @@
 // Source: trinity/trinity/Eve/EveMultiEffect.h
 // Source: trinity/trinity/Eve/EveMultiEffect.cpp
 // Source: trinity/trinity/Eve/EveMultiEffect_Blue.cpp
-import { IInitialize } from "../../../../global/blue/IInitialize.js";
+import { IInitialize, IListNotify } from "#blue";
+import { ITr2DynamicBindingOwner } from "../../ITr2DynamicBindingOwner.js";
+import { ITr2CurveSetOwner } from "../../../curves/ITr2CurveSetOwner.js";
 import { CjsSchema, meta, type, blue } from "#schema";
 import { EveMultiEffectParameter } from "./EveMultiEffectParameter.js";
 import { Tr2DynamicBinding } from "../../../core/binding/Tr2DynamicBinding.js";
@@ -16,9 +18,8 @@ import { BLUELISTEVENT } from "#consts/blue";
  * itself.
  */
 @blue.define("EveMultiEffect")
-@blue.inherit(IEveSpaceObject2)
-@blue.inherit(IInitialize, ITr2ControllerOwner)
-@blue.interface(IInitialize)
+@blue.inherit(IListNotify, IInitialize, IEveSpaceObject2, ITr2DynamicBindingOwner, ITr2ControllerOwner, ITr2CurveSetOwner)
+@blue.interface(IEveSpaceObject2, ITr2ControllerOwner, IInitialize, ITr2DynamicBindingOwner, ITr2CurveSetOwner)
 export class EveMultiEffect
 {
 
@@ -337,6 +338,7 @@ export class EveMultiEffect
    * objects that are collected by their own owners.
    */
   @meta.noop
+  @blue.method
   GetRenderables__Impostors(_renderables, _impostors)
   {
   }

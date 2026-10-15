@@ -5,9 +5,11 @@
 // Tr2Renderer::GetAnimationTime() inside each helper; the JS port takes the
 // animation time as the first argument instead. Callers supply their frame time;
 // the blink and fade formulas preserve Carbon's arithmetic.
+import { meta } from "#schema";
 import { be } from "#blue";
 
 /** Static attachment helpers matching Carbon's namespace. */
+@meta.define({ className: "EveSpaceObjectAttachmentUtils", donors: ["EveSpaceObjectAttachmentUtils"] })
 export class EveSpaceObjectAttachmentUtils
 {
   /** Carbon FadeType (EveSpaceObjectAttachmentUtils.h:7-14). */

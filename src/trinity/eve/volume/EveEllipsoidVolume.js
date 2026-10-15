@@ -2,6 +2,7 @@
 // Source: trinity/trinity/Eve/Volume/EveEllipsoidVolume.cpp
 // Source: trinity/trinity/Eve/Volume/EveEllipsoidVolume_Blue.cpp
 import { INotify } from "../../../global/blue/INotify.js";
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { IEveVolume } from "./IEveVolume.js";
@@ -13,7 +14,7 @@ import { meta, type, blue } from "#schema";
  * points by falloff and seeding random points between the two shells.
  */
 @blue.define("EveEllipsoidVolume")
-@blue.inherit(INotify)
+@blue.inherit(INotify, IInitialize)
 @blue.interface(IEveVolume, INotify)
 export class EveEllipsoidVolume extends IEveVolume
 {

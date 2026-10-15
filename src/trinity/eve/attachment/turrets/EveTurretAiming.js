@@ -1,3 +1,4 @@
+import { blue } from "#schema";
 // Source: trinity/trinity/Eve/Turret/EveTurretAiming.h
 // Source: trinity/trinity/Eve/Turret/EveTurretAiming.cpp
 import { quat } from "#math/quat";
@@ -44,6 +45,7 @@ const SYSTEM_BONE_SKELETON_NAMES = Object.freeze([
  * gl-matrix `quat.multiply(out, delta, rotation)` - the aiming delta goes in
  * the FIRST operand. The matrix operand-swap rule does NOT apply here.
  */
+@blue.define("EveTurretAiming")
 export class EveTurretAiming
 {
 
@@ -82,6 +84,7 @@ export class EveTurretAiming
   });
 
   /** The skeleton bone name for a system bone, "invalid" out of range. */
+  @blue.method
   static getSystemBoneName(bone)
   {
     const index = Number(bone) >>> 0;
@@ -105,6 +108,7 @@ export class EveTurretAiming
    * @param {Float32Array} position - the bone position to modify
    * @param {Float32Array} rotation - the bone rotation to modify
    */
+  @blue.method
   ModifySystemBoneTransform(bone, target, localTransform, trackingInfluence, position, rotation)
   {
     const bones = EveTurretAiming.SystemBones;
@@ -165,6 +169,7 @@ export class EveTurretAiming
    * is supplied and the target sits behind the bone along its arm, the
    * angle flips through pi. `rotation` mutates in place.
    */
+  @blue.method
   CalcTransformForPitchBone(target, minPitch, maxPitch, boneIndex, localTransform, trackingInfluence, rotation)
   {
     const pitchOffset = this.GetBonePitchOffset(boneIndex);
@@ -205,6 +210,7 @@ export class EveTurretAiming
   }
 
   /** The pitch factor for a bone; bones without a tuning member use 1 (cpp:148-165). */
+  @blue.method
   GetBonePitchFactor(boneIndex)
   {
     const bones = EveTurretAiming.SystemBones;
@@ -226,6 +232,7 @@ export class EveTurretAiming
   }
 
   /** The pitch offset in degrees for a bone; bones without a tuning member use 0 (cpp:167-183). */
+  @blue.method
   GetBonePitchOffset(boneIndex)
   {
     const bones = EveTurretAiming.SystemBones;

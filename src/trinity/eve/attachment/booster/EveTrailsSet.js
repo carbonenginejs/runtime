@@ -5,6 +5,7 @@ import { mat4 } from "#math/mat4";
 import { IsMatch, be } from "#blue";
 import { ResourceRequirement } from "#resource";
 import { TriStorageFlags } from "#consts/graphics";
+import { INotify } from "#blue";
 import { meta, type, blue } from "#schema";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
@@ -25,8 +26,8 @@ const INSTANCE_VERTEX_SIZE = 16;
  * its shape bent along each booster renderable's spline in the vertex shader.
  */
 @blue.define("EveTrailsSet")
-@blue.inherit(IInitialize)
-@blue.interface(IInitialize)
+@blue.inherit(IInitialize, INotify)
+@blue.interface(INotify, IInitialize)
 export class EveTrailsSet
 {
 
@@ -63,7 +64,7 @@ export class EveTrailsSet
    * m_trailData (h:121): one record per booster with a trail. Carbon does not
    * map it; it persists here so values carry which boosters have trails.
    */
-  @blue.persistOnly
+  @meta.persistOnly
   @type.list("EveTrailsSetSingleTrailData")
   _trailData = [];
 

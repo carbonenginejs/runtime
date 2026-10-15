@@ -1,9 +1,11 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/IEveChildTransformModifier.h
 import { meta, blue } from "#schema";
 
 
 /** Required child-transform modifier contract. */
 @blue.define("IEveChildTransformModifier")
+@blue.inherit(IRoot)
 export class IEveChildTransformModifier
 {
 

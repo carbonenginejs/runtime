@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/Turret/EveTurretTarget.h
 // Source: trinity/trinity/Eve/Turret/EveTurretTarget.cpp
 import { vec3 } from "#math/vec3";
@@ -23,6 +24,7 @@ export const EVE_TURRET_RANDOM_DELAY_MAX = 0.6;
  * server has sent.
  */
 @blue.define("EveTurretTarget")
+@blue.inherit(IRoot)
 export class EveTurretTarget
 {
   @blue.read

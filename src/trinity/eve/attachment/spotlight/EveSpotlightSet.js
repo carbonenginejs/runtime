@@ -1,3 +1,4 @@
+import { ITr2LightOwner } from "../../lights/ITr2LightOwner.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpotlightSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpotlightSet.cpp
 import { EveEntity } from "../../EveEntity.js";
@@ -54,8 +55,8 @@ const SPRITE_QUAD_COUNT = 2;
  * cone and glow effects that draw them, and the spot lights they emit.
  */
 @blue.define("EveSpotlightSet")
-@blue.inherit(IInitialize)
-@blue.interface(IInitialize, IEveSpaceObjectAttachment, EveEntity)
+@blue.inherit(IInitialize, ITr2LightOwner, EveEntity)
+@blue.interface(IInitialize, IEveSpaceObjectAttachment, EveEntity, ITr2LightOwner)
 export class EveSpotlightSet extends IEveSpaceObjectAttachment
 {
 
@@ -94,7 +95,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   @type.float32
   intensity = 1;
 
-  @blue.persist
+  @meta.persist
   @type.list("EveSpotlightLight")
   lights = [];
 

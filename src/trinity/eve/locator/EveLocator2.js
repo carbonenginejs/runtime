@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveLocator2.h
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveLocator2.cpp
 import { mat4 } from "#math/mat4";
@@ -9,6 +10,7 @@ import { meta, type, blue } from "#schema";
  * rather than decomposed components.
  */
 @blue.define("EveLocator2")
+@blue.inherit(IRoot)
 export class EveLocator2
 {
   @blue.readwrite

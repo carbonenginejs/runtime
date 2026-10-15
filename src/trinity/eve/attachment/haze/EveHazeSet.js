@@ -1,3 +1,4 @@
+import { ITr2LightOwner } from "../../lights/ITr2LightOwner.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveHazeSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveHazeSet.cpp
 import { EveEntity } from "../../EveEntity.js";
@@ -42,8 +43,8 @@ const BOX_INDICES = [ [ 0, 1, 2, 3 ], [ 7, 6, 5, 4 ], [ 0, 4, 5, 1 ], [ 3, 2, 6,
  * lights the haze emits.
  */
 @blue.define("EveHazeSet")
-@blue.inherit(IInitialize)
-@blue.interface(IInitialize, IEveSpaceObjectAttachment, EveEntity)
+@blue.inherit(IInitialize, ITr2LightOwner, EveEntity)
+@blue.interface(IInitialize, IEveSpaceObjectAttachment, EveEntity, ITr2LightOwner)
 export class EveHazeSet extends IEveSpaceObjectAttachment
 {
 
@@ -67,7 +68,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   @type.list("EveHazeSetItem")
   hazes = [];
 
-  @blue.persist
+  @meta.persist
   @type.list("EveHazeSetLight")
   lights = [];
 

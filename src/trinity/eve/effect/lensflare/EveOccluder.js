@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/EveOccluder.h
 // Source: trinity/trinity/Eve/EveOccluder.cpp
 import { meta, type, blue } from "#schema";
@@ -17,6 +18,7 @@ const bitsAsFloat = value => new Float32Array(new Uint32Array([ value >>> 0 ]).b
  * the visibility the flare and the god rays read.
  */
 @blue.define({ className: "EveOccluder", purpose: "Groups sprite occlusion elements that can be displayed as one named EVE scene effect." })
+@blue.inherit(IRoot)
 export class EveOccluder
 {
 

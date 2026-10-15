@@ -15,7 +15,7 @@ import { BLUELISTEVENT } from "#consts/blue";
 
 /** A smart-light group that computes one shared faction-aware colour, applies it to its child light groups, and fans out their per-frame updates. */
 @blue.define("EveSmartLightColorShareGroup")
-@blue.inherit(INotify, IListNotify)
+@blue.inherit(EveSmartLightBaseGroup, INotify)
 @blue.interface(EveSmartLightBaseGroup, INotify, IListNotify, EveEntity)
 @blue.chainTo(EveSmartLightBaseGroup)
 export class EveSmartLightColorShareGroup extends EveEntity
@@ -49,21 +49,25 @@ export class EveSmartLightColorShareGroup extends EveEntity
   @blue.notify
   @blue.persist
   @type.int32
+  @blue.readwrite
   factionColor = -1;
 
   /** m_useFactionColor (bool) [READWRITE, PERSIST] (EveSmartLightBaseGroup.h:32) */
   @blue.persist
   @type.boolean
+  @blue.readwrite
   useFactionColor = false;
 
   /** m_attributeModifiers (PIEveSmartLightGroupAttributeModifierVector) [READ, PERSIST] (EveSmartLightBaseGroup.h:29) */
   @blue.persist
   @type.list("IEveSmartLightGroupAttributeModifier")
+  @blue.read
   attributeModifiers = [];
 
   /** m_color (Color) [READWRITE, PERSIST] (EveSmartLightBaseGroup.h:30) */
   @blue.persist
   @type.color
+  @blue.readwrite
   customColor = color.createLinear();
 
   /** m_parentColorSet (const Color*) - inherited faction color set, never persisted. */
@@ -239,6 +243,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * full strength (EveSmartLightColorShareGroup.cpp:140-151).
    */
   @meta.implemented
+  @blue.method
   UpdateSyncronous__Distribution(updateContext, params, distribution)
   {
     for (const group of this.lightGroups)
@@ -259,6 +264,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * (EveSmartLightColorShareGroup.cpp:153-168).
    */
   @meta.implemented
+  @blue.method
   UpdateAsyncronous__Distribution(updateContext, params, distribution)
   {
     const statics = EveSmartLightColorShareGroup;
