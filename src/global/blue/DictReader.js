@@ -40,9 +40,10 @@
 // Each public operation owns fresh anchors. After references resolve, mapped
 // IInitialize runs once on its factory results, dependencies first. Existing
 // roots, embedded storage and supplied live objects remain borrowed.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { omitRuntimeValues } from "../schema/CjsSchema.js";
 import { normalizeCarbonValue } from "../schema/types/index.js";
+import { IRoot } from "./IRoot.js";
 import { IRootReaderBase } from "./IRootReaderBase.js";
 import { IRootReaderException } from "./IRootReaderException.js";
 import { BeObjectMetadata } from "./BlueObjectMetadata.js";
@@ -1569,9 +1570,20 @@ function IsPlainObject(value)
   return Object.getPrototypeOf(prototype) === null && Object.prototype.toString.call(value) === "[object Object]";
 }
 
+CjsSchema.blue.inherit(IRoot)(DictReader);
+CjsSchema.blue.interface()(DictReader);
 CjsSchema.blue.define(DictReader, { className: "DictReader" });
-CjsSchema.decorateMethod(DictReader, "CreateObject", meta.adapted);
-CjsSchema.decorateMethod(DictReader, "ReadList", meta.adapted);
-CjsSchema.decorateMethod(DictReader, "ReadStructureList", meta.adapted);
+CjsSchema.decorateMethod(DictReader, "CreateObject", blue.method, meta.adapted);
+CjsSchema.decorateMethod(DictReader, "ReadList", blue.method, meta.adapted);
+CjsSchema.decorateMethod(DictReader, "ReadStructureList", blue.method, meta.adapted);
 CjsSchema.decorateMethod(DictReader, "ReadIRootPtr", meta.adapted);
 CjsSchema.decorateMethod(DictReader, "_ReadIList", meta.adapted);
+CjsSchema.decorateMethod(DictReader, "_CreateObjectInternal", blue.method, meta.adapted);
+CjsSchema.decorateMethod(DictReader, "ReadMembers", blue.method, meta.adapted);
+CjsSchema.decorateMethod(DictReader, "ReadMetadata", blue.method, meta.adapted);
+CjsSchema.decorateMethod(DictReader, "ReadValue", blue.method, meta.adapted);
+CjsSchema.decorateMethod(DictReader, "ReadIRoot", blue.method, meta.adapted);
+CjsSchema.decorateMethod(DictReader, "ReadIRootClass", blue.method, meta.adapted);
+CjsSchema.decorateMethod(DictReader, "_CleanupAfterCreate", blue.method, meta.adapted);
+CjsSchema.decorateMethod(DictReader, "_ThrowError", blue.method, meta.adapted);
+CjsSchema.decorateMethod(DictReader, "ReadBinaryBlock", blue.method, meta.implemented);
