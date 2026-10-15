@@ -9,7 +9,6 @@ import { CjsSchema, meta, blue } from "#schema";
  * supplies only the native method obligations. Be::Time and TRIEXTRAPOLATION
  * representations remain the concrete class's responsibility.
  */
-@blue.inherit(IRoot)
 export class ITriDuration
 {
   /**
@@ -92,6 +91,7 @@ for (const method of [ "Start", "SetStartTime", "Sort", "ScaleTime", "Reverse", 
 {
   CjsSchema.decorateMethod(ITriDuration, method, blue.method, meta.requires, meta.abstract);
 }
+CjsSchema.blue.inherit(IRoot)(ITriDuration);
 CjsSchema.blue.define(ITriDuration, {
   className: "ITriDuration",
   fields: {}

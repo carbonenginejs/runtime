@@ -65,6 +65,7 @@ for (const { name, Contract, direct, base, own, abstract, ticks = [] } of contra
 {
   const required = base ? [ "UpdateValue", ...abstract ] : abstract;
   const hasReset = Contract === ITriFunction || base === ITriFunction;
+  const hasRoot = Contract === ITriDuration || Contract === ITr2ValueBinding;
 
   test(`${name} registers its exact native method inventory and empty data schema`, () =>
   {
@@ -72,7 +73,7 @@ for (const { name, Contract, direct, base, own, abstract, ticks = [] } of contra
     assert.equal(CjsSchema.getClassName(Contract), name);
     assert.equal(CjsSchema.getConstructor(name), Contract);
     assert.equal(be.classes.GetClassRegistration(name).type, Contract);
-    assert.deepEqual(Object.getOwnPropertyNames(Contract.prototype), [ "constructor", ...own ]);
+    assert.deepEqual(Object.getOwnPropertyNames(Contract.prototype), [ "constructor", ...own, ...(hasRoot ? [ "ClassType", "QueryInterface", "GetRootObject" ] : []) ]);
     assert.equal(Object.getPrototypeOf(Contract.prototype), base ? base.prototype : Object.prototype);
     assert.deepEqual(CjsSchema.getSchema(Contract).members, []);
     assert.deepEqual(CjsSchema.getSchema(Contract).properties, []);
@@ -105,12 +106,17 @@ for (const { name, Contract, direct, base, own, abstract, ticks = [] } of contra
       {
         assert.throws(() => instance[method](), /must be implemented|does not implement/u, `${name}.${method}`);
       }
+      if (hasRoot)
+      {
+        assert.equal(instance.GetRootObject(), instance);
+        assert.equal(instance.QueryInterface(Contract, 1), null);
+      }
       if (hasReset)
       {
         assert.equal(instance.Reset(), undefined);
         assert.deepEqual(Object.keys(instance), []);
       }
-      for (const method of [ "Initialize", "OnModified", "GetValues", "SetValues", "AssignTo", "QueryInterface" ])
+      for (const method of [ "Initialize", "OnModified", "GetValues", "SetValues", "AssignTo", ...(hasRoot ? [] : ["QueryInterface"]) ])
       {
         assert.equal(method in instance, false, `${name} must not install ${method}`);
       }

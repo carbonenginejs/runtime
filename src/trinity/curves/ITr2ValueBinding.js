@@ -7,7 +7,6 @@ import { CjsSchema, meta, blue } from "#schema";
  * Contract for applying a value binding. Carbon derives this interface from
  * IRoot; JavaScript uses a plain registered interface without model behavior.
  */
-@blue.inherit(IRoot)
 export class ITr2ValueBinding
 {
   /**
@@ -21,6 +20,7 @@ export class ITr2ValueBinding
 }
 
 CjsSchema.decorateMethod(ITr2ValueBinding, "CopyValue", blue.method, meta.requires, meta.abstract);
+CjsSchema.blue.inherit(IRoot)(ITr2ValueBinding);
 CjsSchema.blue.define(ITr2ValueBinding, {
   className: "ITr2ValueBinding",
   fields: {}

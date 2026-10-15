@@ -11,11 +11,12 @@ test("root constructs audio graphs without evaluating optional implementations o
     const imports = process.execArgv.flatMap((arg, index, args) =>
         arg === "--import" ? [ arg, args[index + 1] ]
             : arg.startsWith("--import=") ? [ arg ] : []);
-    // Resource media parsers are a separate, intentional root surface.
+    // Resource media parsers and the inert animation interface are intentional root dependencies.
+    // The interface declares Granny animation ancestry; character implementations remain forbidden.
     const guard = String.raw`
         export async function load(url, context, nextLoad)
         {
-            if (/\/(?:CjsWebAudioSoundEngine|CjsAudioSystem|CjsAudioMan)\.js$|\/character\//u.test(url))
+            if (/\/(?:CjsWebAudioSoundEngine|CjsAudioSystem|CjsAudioMan)\.js$|\/character\/(?!trinity\/trinityCore\/ITr2AnimationUpdater\.js$)/u.test(url))
             {
                 throw new Error("Root evaluated optional implementation: " + url);
             }

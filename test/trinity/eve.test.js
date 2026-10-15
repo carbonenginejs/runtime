@@ -436,7 +436,7 @@ test("EveBannerSet preserves the authored physical attachment graph", () =>
   assertEquals(set.display, true);
   assertEquals(set.isPickable, false);
   assertEquals(set.key, 0);
-  assertEquals(CjsSchema.getField(EveBannerSet, "banners")?.type.kind, "list");
+  assertEquals(CjsSchema.getField(EveBannerSet, "banners")?.type.kind, "structList");
   assertEquals(CjsSchema.getField(EveBannerSet, "lights")?.type.kind, "list");
   assertEquals(CjsSchema.getField(EveBannerSet, "primaryTextureParameter")?.type.kind, "rootRef");
   assertEquals(CjsSchema.getField(EveBannerSet, "primaryTextureParameter")?.edit?.persist, true);
