@@ -20,7 +20,7 @@
 //   `Stop` joins the threads; here both return promises. The semaphores
 //   (`m_alarm`, `m_pauseSemaphore`) become a dispatch on add, on completion
 //   and on resume.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { IBlueCallbackMan } from "./IBlueCallbackMan.js";
 
 /**
@@ -766,34 +766,40 @@ export class BlueCallbackMan extends IBlueCallbackMan
   }
 }
 
+CjsSchema.blue.interface(IBlueCallbackMan)(BlueCallbackMan);
 CjsSchema.blue.define(BlueCallbackMan, {
   className: "BlueCallbackMan",
   fields: {},
   methods: {
-    Add: [ meta.adapted ],
+    Add: [ blue.method, meta.adapted ],
     Add__Name: [ meta.adapted ],
-    Cancel: [ meta.adapted ],
-    Run: [ meta.adapted ],
-    Stop: [ meta.adapted ],
-    Pause: [ meta.implemented ],
-    Resume: [ meta.implemented ],
-    IsPaused: [ meta.implemented ],
-    Throttle: [ meta.implemented ],
-    Unthrottle: [ meta.implemented ],
-    Update: [ meta.adapted ],
-    IsEmpty: [ meta.implemented ],
-    GetNextId: [ meta.implemented ],
-    GetSize: [ meta.implemented ],
-    GetTimeInQueueMax: [ meta.implemented ],
-    GetTimeInQueueAverage: [ meta.implemented ],
-    ResetQueueStats: [ meta.implemented ],
-    SetPriority: [ meta.adapted ],
-    SetThreadCount: [ meta.implemented ],
-    SetName: [ meta.adapted ],
+    Cancel: [ blue.method, meta.adapted ],
+    Run: [ blue.method, meta.adapted ],
+    Stop: [ blue.method, meta.adapted ],
+    Pause: [ blue.method, meta.implemented ],
+    Resume: [ blue.method, meta.implemented ],
+    IsPaused: [ blue.method, meta.implemented ],
+    Throttle: [ blue.method, meta.implemented ],
+    Unthrottle: [ blue.method, meta.implemented ],
+    Update: [ blue.method, meta.adapted ],
+    IsEmpty: [ blue.method, meta.implemented ],
+    GetNextId: [ blue.method, meta.implemented ],
+    GetSize: [ blue.method, meta.implemented ],
+    GetTimeInQueueMax: [ blue.method, meta.implemented ],
+    GetTimeInQueueAverage: [ blue.method, meta.implemented ],
+    ResetQueueStats: [ blue.method, meta.implemented ],
+    SetPriority: [ blue.method, meta.adapted ],
+    SetThreadCount: [ blue.method, meta.implemented ],
+    SetName: [ blue.method, meta.adapted ],
     SetWorkerModule: [],
     SetWorkerFactory: []
   }
 });
+
+CjsSchema.decorateMethod(BlueCallbackMan, "_AddHelper", blue.method, meta.renamed("AddHelper"), meta.adapted);
+CjsSchema.decorateMethod(BlueCallbackMan, "_UpdateThread", blue.method, meta.renamed("UpdateThread"), meta.adapted);
+CjsSchema.decorateMethod(BlueCallbackMan, "_RemoveFromQueue", blue.method, meta.renamed("RemoveFromQueue"), meta.adapted);
+CjsSchema.decorateMethod(BlueCallbackMan, "_ExtractFromQueue", blue.method, meta.renamed("ExtractFromQueue"), meta.adapted);
 
 /**
  * `BeCallbackMan` (ResourceLoading.cpp:24, :81-91) - the global background

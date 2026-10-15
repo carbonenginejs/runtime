@@ -1,4 +1,4 @@
-import { CjsSchema } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { ResourceRequirement } from "../consts/resourceRequirement.js";
 import { assertNonNegativeInteger, assertNonNegativeNumber } from "#utils/validation";
 
@@ -1684,3 +1684,27 @@ function defaultNow()
   return CjsBlueOS.Monotonic();
 }
 
+
+CjsSchema.blue.define(CjsMotherLode, {
+  className: "CjsMotherLode",
+  donors: [ "MotherLode" ],
+  fields: {},
+  methods: {
+    Startup: [ blue.method, meta.adapted ],
+    Shutdown: [ blue.method, meta.adapted ],
+    Insert: [ blue.method, meta.adapted ],
+    HasKey: [ blue.method, meta.adapted ],
+    Lookup: [ blue.method, meta.adapted ],
+    Delete: [ blue.method, meta.adapted ],
+    Clear: [ blue.method, meta.adapted ],
+    ClearCached: [ blue.method, meta.adapted ],
+    SetCacheSize: [ blue.method, meta.adapted ],
+    GetCacheSize: [ blue.method, meta.adapted ],
+    GetStats: [ blue.method, meta.adapted ],
+    GetKeys: [ blue.method, meta.adapted ],
+    GetValues: [ blue.method, meta.adapted ],
+    GetSize: [ blue.method, meta.adapted ],
+    TrimCache: [ blue.method, meta.renamed("Housekeeping"), meta.adapted ],
+    _WeakRefNotify: [ blue.method, meta.renamed("WeakRefNotify"), meta.adapted ]
+  }
+});
