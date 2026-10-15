@@ -1,4 +1,4 @@
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /** Authored portrait resource classified by its source category and optional type identity. */
@@ -6,18 +6,18 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 export class CjsCharacterPortraitResource extends CjsCharacterRecord
 {
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.path
     resPath = "";
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.string
     resourceCategory = "";
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.string
     typeID = null;
 

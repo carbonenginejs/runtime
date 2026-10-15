@@ -1,3 +1,4 @@
+import { IRoot } from "#blue/IRoot";
 // Source: trinity/trinity/Tr2Model.h
 // Source: trinity/trinity/Tr2Model.cpp
 // Source: trinity/trinity/Tr2Model_Blue.cpp
@@ -9,6 +10,7 @@ import { CreateLodAllocations } from "../../../trinity/core/mesh/TriGeometryResA
 
 /** Named character model record grouping its Trinity mesh objects. */
 @blue.define("Tr2Model")
+@blue.inherit(IRoot)
 @blue.interface()
 export class Tr2Model
 {

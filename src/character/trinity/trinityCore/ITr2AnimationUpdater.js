@@ -1,5 +1,6 @@
+import { IRoot } from "#blue/IRoot";
 // Source: trinity/trinity/Include/ITr2AnimationUpdater.h:7-15
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 
 /** Carbon animation pose-provider interface; IRoot has no JavaScript base. */
 export class ITr2AnimationUpdater
@@ -10,6 +11,7 @@ export class ITr2AnimationUpdater
    * @param {ArrayLike<number>} _modelTransform Model-to-world transform.
    * @returns {void}
    */
+  @blue.method
   @meta.abstract
   PrePhysicsAnimation(_time, _modelTransform)
   {
@@ -22,6 +24,7 @@ export class ITr2AnimationUpdater
    * @param {ArrayLike<number>} _modelTransform Model-to-world transform.
    * @returns {void}
    */
+  @blue.method
   @meta.abstract
   PostPhysicsAnimation(_time, _modelTransform)
   {
@@ -33,6 +36,7 @@ export class ITr2AnimationUpdater
    * Adapted: JavaScript providers return an array instead of Carbon's matrix pointer.
    * @returns {Array<ArrayLike<number>>} Bone transforms supplied by the provider.
    */
+  @blue.method
   @meta.abstract
   GetAnimationTransforms()
   {
@@ -44,6 +48,7 @@ export class ITr2AnimationUpdater
    * Adapted: the returned array carries its count instead of Carbon's output reference.
    * @returns {Array<string>} Bone names supplied by the provider.
    */
+  @blue.method
   @meta.abstract
   GetAnimationBoneList()
   {
@@ -55,3 +60,5 @@ CjsSchema.blue.define(ITr2AnimationUpdater, {
   className: "ITr2AnimationUpdater",
   fields: {}
 });
+
+blue.inherit(IRoot)(ITr2AnimationUpdater);

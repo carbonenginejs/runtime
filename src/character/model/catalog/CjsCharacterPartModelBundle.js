@@ -1,4 +1,4 @@
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 
 /**
  * One producer-verified atomic configuration/geometry relationship.
@@ -12,33 +12,33 @@ import { meta, type, blue } from "#schema";
 export class CjsCharacterPartModelBundle
 {
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.path
     configurationPath = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.path
     geometryPath = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.int32
     lod = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.string
     lodOrigin = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.string
     modelFamily = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.string
     modelFamilyOrigin = null;
 

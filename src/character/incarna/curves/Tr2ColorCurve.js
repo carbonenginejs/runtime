@@ -22,56 +22,56 @@ import { Tr2ColorKey } from "./Tr2ColorKey.js";
 export class Tr2ColorCurve
 {
 
-  @blue.persist
+  @meta.persist
   @type.string
   name = "";
 
-  @blue.persist
+  @meta.persist
   @type.boolean
   cycle = false;
 
-  @blue.persist
+  @meta.persist
   @type.boolean
   reversed = false;
 
-  @blue.persist
+  @meta.persist
   @type.float32
   timeOffset = 0;
 
-  @blue.persist
+  @meta.persist
   @type.float32
   timeScale = 1;
 
-  @blue.persist
+  @meta.persist
   @type.color
   startValue = vec4.fromValues(0, 0, 0, 1);
 
-  @blue.readwrite
+  @meta.readwrite
   @type.color
   currentValue = vec4.fromValues(0, 0, 0, 1);
 
-  @blue.persist
+  @meta.persist
   @type.color
   endValue = vec4.fromValues(0, 0, 0, 1);
 
-  @blue.persist
+  @meta.persist
   @type.vec4
   startTangent = vec4.create();
 
-  @blue.persist
+  @meta.persist
   @type.vec4
   endTangent = vec4.create();
 
-  @blue.persist
+  @meta.persist
   @type.uint32
   @type.enum("Interpolation")
   interpolation = IncarnaColorCurveInterpolation.LINEAR;
 
-  @blue.persist
+  @meta.persist
   @type.list("Tr2ColorKey")
   keys = [];
 
-  @blue.persist
+  @meta.persist
   @type.float32
   length = 0;
 

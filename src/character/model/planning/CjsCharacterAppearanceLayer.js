@@ -1,4 +1,4 @@
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 
 /**
  * Appearance contribution separating selection ownership from the asset that supplies it.
@@ -11,24 +11,24 @@ import { meta, type, blue } from "#schema";
 export class CjsCharacterAppearanceLayer
 {
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.rootRef("CjsCharacterAppearanceSelection")
     owner = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.rootRef("CjsCharacterResolvedPart")
     contributor = null;
 
     /** Authored contribution weight when the dependency carries one. */
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.float64
     weight = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.rootRef("CjsCharacterOrigin")
     origin = null;
 

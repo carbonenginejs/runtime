@@ -1,4 +1,4 @@
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /** Authored character resource with explicit gender, type, and clothing-category rules. */
@@ -6,53 +6,53 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 export class CjsCharacterResource extends CjsCharacterRecord
 {
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.list("string")
     empireRestrictions = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.path
     resPath = "";
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.rootRef("CjsCharacterPartType")
     partType = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.rootRef("CjsCharacterModifierLocation")
     clothingAlsoCoversCategory = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.rootRef("CjsCharacterModifierLocation")
     clothingAlsoCoversCategory2 = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.rootRef("CjsCharacterModifierLocation")
     clothingRemovesCategory = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.rootRef("CjsCharacterModifierLocation")
     clothingRemovesCategory2 = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.string
     typeID = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.uint8
     clothingRuleException = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.uint8
     resGender = null;
 

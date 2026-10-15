@@ -1,4 +1,4 @@
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 
 /**
  * One ordered logical operation in a character texture-composition target.
@@ -15,48 +15,48 @@ import { meta, type, blue } from "#schema";
 export class CjsCharacterCompositionPass
 {
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.rootRef("CjsCharacterAppearanceLayer")
     layer = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.string
     op = "";
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.list("CjsCharacterCompositionInput")
     inputs = [];
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.rootRef("CjsCharacterCoverage")
     coverage = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.vec4
     destination = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.string
     blend = "replace";
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.string
     write = "rgba";
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.float64
     strength = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.rootRef("CjsCharacterOrigin")
     origin = null;
 

@@ -1,37 +1,37 @@
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 
 /** Provenance record classifying one appearance-plan fact or decision. */
 @meta.define("CjsCharacterOrigin")
 export class CjsCharacterOrigin
 {
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.string
     kind = "";
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.string
     document = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.string
     recordID = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.string
     jsonPointer = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.path
     resourcePath = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.string
     rule = null;
 

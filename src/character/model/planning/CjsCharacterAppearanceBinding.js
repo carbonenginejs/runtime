@@ -1,4 +1,4 @@
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 
 /**
  * Final consumer/sampler binding to a resolved texture or composition target.
@@ -10,33 +10,33 @@ import { meta, type, blue } from "#schema";
 export class CjsCharacterAppearanceBinding
 {
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.string
     consumerID = "";
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.string
     sampler = "";
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.unknown
     source = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.vec4
     sampleBounds = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.rootRef("CjsCharacterBindingAlpha")
     alpha = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.rootRef("CjsCharacterOrigin")
     origin = null;
 

@@ -1,3 +1,4 @@
+import { ITr2Scene } from "../../../trinity/core/ITr2Scene.js";
 // Source: trinity/trinity/Wod/WodBakingScene.h
 // Source: trinity/trinity/Wod/WodBakingScene.cpp
 // Source: trinity/trinity/Wod/WodBakingScene_Blue.cpp
@@ -11,6 +12,8 @@ import { meta, type, blue } from "#schema";
  * leaves render-target realization to an engine adapter.
  */
 @blue.define("WodBakingScene")
+@blue.inherit(ITr2Scene)
+@blue.interface(ITr2Scene)
 export class WodBakingScene
 {
 

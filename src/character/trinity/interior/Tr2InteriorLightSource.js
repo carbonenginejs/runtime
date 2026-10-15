@@ -1,3 +1,4 @@
+import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
 // Source: trinity/trinity/Interior/Tr2InteriorLightSource.h
 //   trinity/trinity/Interior/Tr2InteriorLightSource.cpp
 import { meta, type, blue } from "#schema";
@@ -13,7 +14,7 @@ import { mat4 } from "#math/mat4";
  * animation settings.
  */
 @blue.define("Tr2InteriorLightSource")
-@blue.inherit(IInitialize, INotify, ITr2InteriorLight)
+@blue.inherit(IInitialize, INotify, ITr2InteriorLight, ITr2DebugRenderable)
 @blue.interface(IInitialize, INotify, ITr2InteriorLight)
 export class Tr2InteriorLightSource
 {

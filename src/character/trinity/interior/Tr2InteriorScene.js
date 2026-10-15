@@ -1,3 +1,8 @@
+import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
+import { ITr2VisualizationModeRenderer } from "../../../trinity/core/ITr2VisualizationModeRenderer.js";
+import { ITr2Updateable } from "../../../trinity/core/ITr2Updateable.js";
+import { ITr2MultiPassScene } from "../../../trinity/core/ITr2MultiPassScene.js";
+import { ITr2Scene } from "../../../trinity/core/ITr2Scene.js";
 import { BlueList, IListNotify } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ITr2InteriorDynamic } from "./ITr2InteriorDynamic.js";
@@ -23,7 +28,8 @@ import { vec4 } from "#math/vec4";
  * and scene rendering remain unported; allocation is not rendered shadows.
  */
 @blue.define("Tr2InteriorScene")
-@blue.inherit(IInitialize, INotify)
+@blue.inherit(IInitialize, INotify, ITr2Scene, ITr2MultiPassScene, ITr2VisualizationModeRenderer, ITr2DebugRenderable)
+@blue.interface(ITr2Scene, ITr2MultiPassScene, IInitialize, INotify, ITr2Updateable)
 @blue.inherit(IListNotify)
 export class Tr2InteriorScene
 {
@@ -206,7 +212,7 @@ export class Tr2InteriorScene
   backgroundEffect = null;
 
   /** Carbon method PickObject -> PickObjectOnly (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @blue.method
+  @meta.renamed("PickObjectOnly")
   @meta.notImplemented
   PickObject(...args)
   {
@@ -286,7 +292,7 @@ export class Tr2InteriorScene
   }
 
   /** Carbon method UpdateScene -> UpdateSceneFromScript (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @meta.renamed("UpdateSceneFromScript")
   @meta.notImplemented
   UpdateScene(...args)
   {

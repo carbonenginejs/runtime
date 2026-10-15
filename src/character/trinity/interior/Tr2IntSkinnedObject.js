@@ -1,3 +1,8 @@
+import { IBluePlacementObserver } from "#blue/IBluePlacementObserver";
+import { ITr2Interior } from "./ITr2Interior.js";
+import { ITr2InteriorDynamic } from "./ITr2InteriorDynamic.js";
+import { ITr2Pickable } from "../../../trinity/core/ITr2Pickable.js";
+import { ITr2BoundingBox } from "#interfaces/ITr2BoundingBox";
 // Source: trinity/trinity/Interior/Tr2IntSkinnedObject.h
 import { meta, type, blue } from "#schema";
 import { IInitialize, INotify } from "#blue";
@@ -8,8 +13,8 @@ import { Tr2SkinnedObject } from "../trinityCore/Tr2SkinnedObject.js";
  * variable-store metadata.
  */
 @blue.define("Tr2IntSkinnedObject")
-@blue.inherit(IInitialize, INotify)
-@blue.interface(IInitialize, INotify)
+@blue.inherit(IInitialize, INotify, ITr2InteriorDynamic, ITr2Pickable, ITr2BoundingBox, IBluePlacementObserver)
+@blue.interface(IInitialize, INotify, ITr2Interior, ITr2InteriorDynamic, ITr2Pickable, ITr2BoundingBox, IBluePlacementObserver)
 @blue.chainTo(Tr2SkinnedObject)
 export class Tr2IntSkinnedObject extends Tr2SkinnedObject
 {

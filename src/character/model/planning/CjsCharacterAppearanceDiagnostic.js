@@ -1,27 +1,27 @@
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 
 /** Serializable diagnostic emitted while resolving a character appearance plan. */
 @meta.define("CjsCharacterAppearanceDiagnostic")
 export class CjsCharacterAppearanceDiagnostic
 {
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.string
     code = "";
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.string
     message = "";
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.string
     severity = "warning";
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.rootRef("CjsCharacterOrigin")
     origin = null;
 

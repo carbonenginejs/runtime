@@ -1,3 +1,5 @@
+import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
+import { ITr2SkinnedObject } from "./ITr2SkinnedObject.js";
 // Source: trinity/trinity/Tr2SkinnedObject.h
 import { meta, type, blue } from "#schema";
 import { IsMatch, IListNotify, INotify } from "#blue";
@@ -15,6 +17,7 @@ import { ITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
  */
 @blue.define({
   className: "Tr2SkinnedObject",
+  abstract: true,
   fields: {
     // Tr2SkinnedObject_Blue.cpp:49-51: IBlueObjectProxyPtr, READWRITE | PERSIST | NOTIFY.
     highDetailModel: [type.rootRef("IBlueObjectProxy"), blue.notify, blue.readwrite, blue.persist],
@@ -23,7 +26,7 @@ import { ITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
     currentLod: [type.int32, blue.read]
   }
 })
-@blue.inherit(ITr2Renderable, IWorldPosition, IListNotify, INotify)
+@blue.inherit(ITr2Renderable, IWorldPosition, IListNotify, INotify, ITr2SkinnedObject, ITr2DebugRenderable)
 @blue.interface(ITr2Renderable, IWorldPosition, IListNotify)
 export class Tr2SkinnedObject
 {
@@ -113,6 +116,7 @@ export class Tr2SkinnedObject
    * @returns {mat4} out
    */
   @meta.implemented
+  @blue.method
   GetTransform(out)
   {
     return mat4.copy(out, this.transform);

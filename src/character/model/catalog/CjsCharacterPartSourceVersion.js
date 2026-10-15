@@ -1,4 +1,4 @@
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 
 /**
  * One self-contained resource-version inventory with effective metadata and exact candidates.
@@ -12,33 +12,33 @@ import { meta, type, blue } from "#schema";
 export class CjsCharacterPartSourceVersion
 {
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.string
     resourceVersion = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.rootRef("CjsCharacterPartMetadata")
     metadata = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.list("string")
     configurationCandidates = [];
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.list("string")
     geometryCandidates = [];
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.list("CjsCharacterPartModelBundle")
     modelBundles = [];
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.list("string")
     textureCandidates = [];
 

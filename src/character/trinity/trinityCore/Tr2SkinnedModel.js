@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2SkinnedModel.h
 // Source: trinity/trinity/Tr2SkinnedModel.cpp
-import { be, IsMatch, IInitialize, INotify, ResourceRequirement } from "#blue";
+import { be, IsMatch, IInitialize, INotify, IListNotify, ResourceRequirement } from "#blue";
 import { meta, type, blue } from "#schema";
 import { Tr2Model } from "./Tr2Model.js";
 import { vec3 } from "#math/vec3";
@@ -20,7 +20,7 @@ const FLT_MAX = 3.4028234663852886e38;
  * Tr2PerAreaDataSkinned (see the character README); until then Tr2Model's batches are used.
  */
 @blue.define("Tr2SkinnedModel")
-@blue.inherit(IInitialize, INotify)
+@blue.inherit(IInitialize, INotify, IListNotify)
 @blue.interface(IInitialize, INotify)
 @blue.chainTo(Tr2Model)
 export class Tr2SkinnedModel extends Tr2Model
@@ -225,7 +225,7 @@ export class Tr2SkinnedModel extends Tr2Model
   }
 
   /** Carbon method ResetAnimationBindings -> ResetBindings (MAP_METHOD_AND_WRAP). */
-  @blue.method
+  @meta.renamed("ResetBindings")
   @meta.implemented
   ResetAnimationBindings()
   {
@@ -234,6 +234,7 @@ export class Tr2SkinnedModel extends Tr2Model
 
   /** Carbon SetGeometryResPath (Tr2SkinnedModel.h:72-75): sets the path without re-initialising. */
   @meta.implemented
+  @blue.method
   SetGeometryResPath(path)
   {
     this.geometryResPath = path;
@@ -241,6 +242,7 @@ export class Tr2SkinnedModel extends Tr2Model
 
   /** Carbon GetGeometryResPath (Tr2SkinnedModel.h:76-79). */
   @meta.implemented
+  @blue.method
   GetGeometryResPath()
   {
     return this.geometryResPath;
@@ -248,6 +250,7 @@ export class Tr2SkinnedModel extends Tr2Model
 
   /** Carbon SetSkeletonName (Tr2SkinnedModel.h:80-83): sets the name without re-initialising. */
   @meta.implemented
+  @blue.method
   SetSkeletonName(name)
   {
     this.skeletonName = name;
@@ -262,6 +265,7 @@ export class Tr2SkinnedModel extends Tr2Model
    * @returns {boolean} false when the model has no meshes
    */
   @meta.implemented
+  @blue.method
   GetDynamicBoundingBox(boneTransforms, minBounds, maxBounds)
   {
     if (!this.meshes.length)

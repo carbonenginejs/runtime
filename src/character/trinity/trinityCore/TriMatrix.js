@@ -37,6 +37,7 @@ export class TriMatrix
    * @returns {mat4} The stored matrix.
    */
   @meta.implemented
+  @blue.method
   GetMatrix()
   {
     return this._matrix;
@@ -48,6 +49,7 @@ export class TriMatrix
    * @returns {mat4} out
    */
   @meta.implemented
+  @blue.method
   CopyMatrix(out)
   {
     return mat4.copy(out, this._matrix);
@@ -58,6 +60,7 @@ export class TriMatrix
    * @param {mat4} m The matrix to copy in.
    */
   @meta.implemented
+  @blue.method
   SetMatrix(m)
   {
     mat4.copy(this._matrix, m);
@@ -68,6 +71,7 @@ export class TriMatrix
    * @param {...number} elements The elements.
    */
   @meta.implemented
+  @blue.method
   SetPivots(...elements)
   {
     for (let i = 0; i < 16; i++) this._matrix[i] = elements[i];

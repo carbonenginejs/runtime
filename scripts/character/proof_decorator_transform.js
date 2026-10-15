@@ -75,7 +75,7 @@ export function capture() {
 
     if (!schema?.className) continue;
 
-    const value = new Class();
+    const value = name === "CjsCharacter" ? new Class({ libraryManager: { GetLibrary: () => null, Get: () => null }, appearanceResolver: { resolvePaperdoll: () => null }, constructionResolver: { Resolve: () => null } }) : new Class();
     entries.push([name, {
       className: schema.className,
       family: schema.family,

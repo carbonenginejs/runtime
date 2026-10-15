@@ -1,3 +1,7 @@
+import { ITr2Interior } from "./ITr2Interior.js";
+import { ITr2InteriorDynamic } from "./ITr2InteriorDynamic.js";
+import { ITr2Pickable } from "../../../trinity/core/ITr2Pickable.js";
+import { ITr2BoundingBox } from "#interfaces/ITr2BoundingBox";
 // Source: trinity/trinity/Interior/Tr2InteriorPlaceable.h
 // Source: trinity/trinity/Interior/Tr2InteriorPlaceable.cpp
 // Source: trinity/trinity/Interior/Tr2InteriorPlaceable_Blue.cpp
@@ -11,8 +15,8 @@ import { ITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
 
 /** Interior placeable with typed resource loading and native uniqueness notifications. */
 @blue.define("Tr2InteriorPlaceable")
-@blue.inherit(ITr2Renderable, IInitialize, INotify)
-@blue.interface(ITr2Renderable, IInitialize, INotify)
+@blue.inherit(ITr2Renderable, IInitialize, INotify, ITr2InteriorDynamic, ITr2Pickable, ITr2BoundingBox)
+@blue.interface(ITr2Renderable, IInitialize, INotify, ITr2Interior, ITr2InteriorDynamic, ITr2Pickable, ITr2BoundingBox)
 export class Tr2InteriorPlaceable
 {
 
@@ -191,7 +195,6 @@ export class Tr2InteriorPlaceable
    * Adapted native destruction: release the object reference and invalidate any
    * pending JavaScript load so a retired owner cannot publish its result.
    */
-  @blue.method
   @meta.adapted
   Destroy()
   {

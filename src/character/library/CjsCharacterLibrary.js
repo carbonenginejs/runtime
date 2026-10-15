@@ -1,5 +1,5 @@
 import { normalizeResourcePath } from "#utils/path";
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { ReadValues } from "../../global/blue/values.js";
 import { NOTIFY_METHODS } from "../../global/compose/notify.js";
 import { CjsCharacterLibraryDocuments } from "./CjsCharacterLibraryDocuments.js";
@@ -160,43 +160,43 @@ export class CjsCharacterLibrary
         return unresolved;
     }
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.string
     schema = "carbonenginejs.characterLibrary";
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.uint32
     schemaVersion = 11;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.string
     sourceTarget = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.string
     sourceGame = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.string
     sourceProvider = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.string
     sourceBuild = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.string
     generatedAt = null;
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.rootRef("CjsCharacterLibraryDocuments")
     documents = new CjsCharacterLibraryDocuments();
 
@@ -204,8 +204,8 @@ export class CjsCharacterLibrary
      * Source relationships whose target record does not exist. Each owning
      * member holds null; the builder records here which identity it named.
      */
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.list("CjsCharacterUnresolvedRelationship")
     unresolvedRelationships = [];
 

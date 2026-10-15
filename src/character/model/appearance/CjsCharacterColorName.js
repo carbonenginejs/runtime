@@ -1,4 +1,4 @@
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /** Authored appearance-color name and hair-color classification. */
@@ -6,13 +6,13 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 export class CjsCharacterColorName extends CjsCharacterRecord
 {
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.string
     colorName = "";
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.uint8
     hairColor = 0;
 

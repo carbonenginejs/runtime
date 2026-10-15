@@ -1,5 +1,5 @@
 // Historical Incarna hydration contract reviewed from complete Black records.
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 
 /**
  * Minimal persisted cell record used by historical Incarna interior scenes.
@@ -15,12 +15,12 @@ export class Tr2InteriorCell
 {
 
   /** Persisted unbounded-cell flag observed in reviewed historical records. */
-  @blue.persist
+  @meta.persist
   @type.boolean
   isUnbounded = false;
 
   /** Optional spherical-harmonic probe resource path. */
-  @blue.persist
+  @meta.persist
   @type.path
   shProbeResPath = "";
 

@@ -21,56 +21,56 @@ import { Tr2ScalarKey } from "./Tr2ScalarKey.js";
 export class Tr2ScalarCurve
 {
 
-  @blue.persist
+  @meta.persist
   @type.string
   name = "";
 
-  @blue.persist
+  @meta.persist
   @type.boolean
   cycle = false;
 
-  @blue.persist
+  @meta.persist
   @type.boolean
   reversed = false;
 
-  @blue.persist
+  @meta.persist
   @type.float32
   timeOffset = 0;
 
-  @blue.persist
+  @meta.persist
   @type.float32
   timeScale = 1;
 
-  @blue.persist
+  @meta.persist
   @type.float32
   startValue = 0;
 
-  @blue.readwrite
+  @meta.readwrite
   @type.float32
   currentValue = 0;
 
-  @blue.persist
+  @meta.persist
   @type.float32
   endValue = 0;
 
-  @blue.persist
+  @meta.persist
   @type.float32
   startTangent = 0;
 
-  @blue.persist
+  @meta.persist
   @type.float32
   endTangent = 0;
 
-  @blue.persist
+  @meta.persist
   @type.uint32
   @type.enum("Interpolation")
   interpolation = IncarnaScalarCurveInterpolation.LINEAR;
 
-  @blue.persist
+  @meta.persist
   @type.list("Tr2ScalarKey")
   keys = [];
 
-  @blue.persist
+  @meta.persist
   @type.float32
   length = 0;
 

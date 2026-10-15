@@ -1,4 +1,4 @@
-import { meta, type, blue } from "#schema";
+import { meta, type } from "#schema";
 import { vec4 } from "#math/vec4";
 
 /** One authored RGBA character color value. */
@@ -6,8 +6,8 @@ import { vec4 } from "#math/vec4";
 export class CjsCharacterColorValue
 {
 
-    @blue.readwrite
-    @blue.persist
+    @meta.readwrite
+    @meta.persist
     @type.vec4
     value = vec4.fromValues(0, 0, 0, 1);
 

@@ -1,8 +1,12 @@
+import { IInitialize } from "#blue/IInitialize";
+import { ITr2AnimationUpdater } from "./ITr2AnimationUpdater.js";
 // Source: trinity/trinity/Tr2GStateAnimation.h
 import { meta, type, blue } from "#schema";
 
 /** Character GState animation record for an external state-machine adapter. */
 @blue.define("Tr2GStateAnimation")
+@blue.inherit(IInitialize, ITr2AnimationUpdater)
+@blue.interface(IInitialize, ITr2AnimationUpdater)
 export class Tr2GStateAnimation
 {
 
@@ -56,6 +60,8 @@ export class Tr2GStateAnimation
    * Returns the authored Granny animation resource path stored by this graph
    * shell.
    */
+  @blue.readwrite
+  @type.string
   get resPath()
   {
     return this.GetResPath();
@@ -71,6 +77,8 @@ export class Tr2GStateAnimation
   }
 
   /** Returns the authored state-graph resource path stored by this graph shell. */
+  @blue.readwrite
+  @type.string
   get gStateResPath()
   {
     return this.GetGStateResPath();
@@ -86,6 +94,8 @@ export class Tr2GStateAnimation
   }
 
   /** Returns the authored Granny model name stored by this graph shell. */
+  @blue.readwrite
+  @type.string
   get model()
   {
     return this.GetModel();
