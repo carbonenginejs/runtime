@@ -13,6 +13,7 @@
 // `options.persistOnly` asks, and never skips defaults: consumers read the
 // full shape (operator ruling 2026-09-27; research page `blue-values-engine.md`).
 import { CjsSchema, meta, blue } from "#schema";
+import { IRoot } from "./IRoot.js";
 import { omitRuntimeValues } from "../schema/CjsSchema.js";
 import { exportCarbonValue } from "../schema/types/index.js";
 import { getDictionaryDeclarations, readDictionaryValue } from "./dictionaryDeclarations.js";
@@ -276,7 +277,9 @@ function IsObject(value)
     && CjsSchema.getClassName(value.constructor) !== null;
 }
 
-CjsSchema.blue.define(IRootWriter, { className: "IRootWriter" });
+CjsSchema.blue.inherit(IRoot)(IRootWriter);
+CjsSchema.blue.interface()(IRootWriter);
+CjsSchema.blue.define(IRootWriter, { className: "IRootWriter", abstract: true });
 CjsSchema.decorateMethod(IRootWriter, "WriteMembers", blue.method, meta.adapted);
 CjsSchema.decorateMethod(IRootWriter, "WriteValue", meta.adapted);
 CjsSchema.decorateMethod(IRootWriter, "WriteList", blue.method, meta.adapted);
