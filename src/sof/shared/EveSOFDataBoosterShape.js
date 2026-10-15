@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
@@ -5,6 +6,7 @@ import { vec4 } from "#math/vec4";
 
 /** Combines the noise, frequency, speed, and color parameters that define a booster shape. */
 @blue.define("EveSOFDataBoosterShape")
+@blue.inherit(IRoot)
 @blue.interface()
 export class EveSOFDataBoosterShape
 {

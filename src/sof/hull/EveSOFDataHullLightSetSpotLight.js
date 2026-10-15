@@ -9,6 +9,7 @@ import { EveSOFDataHullLightSetItem } from "./EveSOFDataHullLightSetItem.js";
 // 1422-1429) and maps the full base surface (including lightColor) plus
 // rotation, innerAngle, and outerAngle (EveSOFData_Blue.cpp:1096-1114).
 @blue.define("EveSOFDataHullLightSetSpotLight")
+@blue.interface(EveSOFDataHullLightSetItem)
 export class EveSOFDataHullLightSetSpotLight extends EveSOFDataHullLightSetItem
 {
 

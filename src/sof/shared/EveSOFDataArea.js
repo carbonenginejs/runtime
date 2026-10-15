@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:352-383
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:113-145
 import { blue } from "#schema";
@@ -49,6 +50,7 @@ const slot = (name, index) => ({ name, key: "materials", index, type: { kind: "r
 ]
 })
 @blue.interface()
+@blue.inherit(IRoot)
 export class EveSOFDataArea
 {
   static AreaType = AreaType;

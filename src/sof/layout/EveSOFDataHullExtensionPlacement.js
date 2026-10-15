@@ -8,6 +8,7 @@ import { vec3 } from "#math/vec3";
 
 /** Defines a concrete hull extension by DNA, locator, offset, distribution, conditions, and build flags. */
 @blue.define("EveSOFDataHullExtensionPlacement")
+@blue.interface(IEveSOFDataHullExtensionPlacement)
 export class EveSOFDataHullExtensionPlacement extends IEveSOFDataHullExtensionPlacement
 {
 

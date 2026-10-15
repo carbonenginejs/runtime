@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:460-483
 import { type, blue } from "#schema";
@@ -10,6 +11,7 @@ import { vec4 } from "#math/vec4";
  * is required, and the native destructor is empty.
  */
 @blue.define("EveSOFDataGenericHullDamage")
+@blue.inherit(IRoot)
 @blue.interface()
 export class EveSOFDataGenericHullDamage
 {

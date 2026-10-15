@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
@@ -8,6 +9,7 @@ import { EveSOFDataHullBanner } from "./EveSOFDataHullBanner.js";
 
 /** Places one banner by usage, bone, and transform, with optional point-light, aspect-scale, and curvature settings. */
 @blue.define("EveSOFDataHullBannerSetItem")
+@blue.inherit(IRoot)
 export class EveSOFDataHullBannerSetItem
 {
 
@@ -100,6 +102,7 @@ export class EveSOFDataHullBannerSetItem
   maintainAspectRatio = true;
 
   /** Maps this banner usage to Carbon's canonical target width-to-height ratio. */
+  @blue.method
   GetTargetAspectRatio()
   {
     const { Usage } = EveSOFDataHullBannerSetItem;
@@ -125,6 +128,7 @@ export class EveSOFDataHullBannerSetItem
    * Computes the curved banner's current width-to-height ratio from its scale
    * and bend angles.
    */
+  @blue.method
   GetAspectRatio()
   {
     return EveSOFDataHullBanner.GetBannerAspectRatio({
@@ -137,6 +141,7 @@ export class EveSOFDataHullBannerSetItem
   }
 
   /** Reads the horizontal bend angle stored for this banner placement. */
+  @blue.method
   GetAngleX()
   {
     return this.angleX;
@@ -146,6 +151,7 @@ export class EveSOFDataHullBannerSetItem
    * Updates the horizontal bend and rescales the vertical axis when ratio
    * preservation is enabled.
    */
+  @blue.method
   SetAngleX(angle)
   {
     this.angleX = angle;
@@ -156,6 +162,7 @@ export class EveSOFDataHullBannerSetItem
   }
 
   /** Reads the vertical bend angle stored for this banner placement. */
+  @blue.method
   GetAngleY()
   {
     return this.angleY;
@@ -165,6 +172,7 @@ export class EveSOFDataHullBannerSetItem
    * Updates the vertical bend and rescales the horizontal axis when ratio
    * preservation is enabled.
    */
+  @blue.method
   SetAngleY(angle)
   {
     this.angleY = angle;
@@ -179,6 +187,7 @@ export class EveSOFDataHullBannerSetItem
   }
 
   /** Returns a detached copy of this banner placement's three-axis scale. */
+  @blue.method
   GetScaling()
   {
     return vec3.clone(this.scaling);
@@ -188,6 +197,7 @@ export class EveSOFDataHullBannerSetItem
    * Copies a three-axis scale into this placement and corrects one axis to
    * preserve its target ratio.
    */
+  @blue.method
   SetScaling(scaling)
   {
     vec3.copy(this.scaling, scaling);

@@ -27,6 +27,7 @@ export class EveSOFDataParameterBool extends EveSOFDataParameter
    * zero-or-one components.
    */
   @meta.implemented
+  @blue.method
   GetValue()
   {
     const scalar = this.value ? 1 : 0;

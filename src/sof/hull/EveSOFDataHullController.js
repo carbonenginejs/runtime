@@ -1,9 +1,11 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
 
 /** Names a controller resource path and its build filter, deriving the controller name from the path. */
 @blue.define("EveSOFDataHullController")
+@blue.inherit(IRoot)
 export class EveSOFDataHullController
 {
 
@@ -23,6 +25,7 @@ export class EveSOFDataHullController
    * Derives the controller resource's basename without its extension when a
    * forward-slash-qualified path is available.
    */
+  @blue.method
   GetName()
   {
     const slash = this.path.lastIndexOf("/");

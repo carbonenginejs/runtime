@@ -9,6 +9,7 @@ import { EveSOFDataHullLightSetItem } from "./EveSOFDataHullLightSetItem.js";
 // texturePath (EveSOFData_Blue.cpp:1076-1094): a textured point light takes
 // its color from the texture, not the faction color set.
 @blue.define("EveSOFDataHullLightSetTexturedPointLight")
+@blue.interface(EveSOFDataHullLightSetItem)
 @meta.hideInherited(["lightColor"])
 export class EveSOFDataHullLightSetTexturedPointLight extends EveSOFDataHullLightSetItem
 {

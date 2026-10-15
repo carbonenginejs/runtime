@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
@@ -6,6 +7,7 @@ import { vec3 } from "#math/vec3";
 
 /** Identifies a hull animation and records its rotation, translation, timing, and rate endpoints. */
 @blue.define("EveSOFDataHullAnimation")
+@blue.inherit(IRoot)
 export class EveSOFDataHullAnimation
 {
 
@@ -18,13 +20,13 @@ export class EveSOFDataHullAnimation
   /** m_startRotationValue (Vector4) [READWRITE, PERSIST] */
   @blue.readwrite
   @blue.persist
-  @type.quat
+  @type.vec4
   startRotationValue = quat.create();
 
   /** m_endRotationValue (Vector4) [READWRITE, PERSIST] */
   @blue.readwrite
   @blue.persist
-  @type.quat
+  @type.vec4
   endRotationValue = quat.create();
 
   /** m_startRotationTime (float) [READWRITE, PERSIST] */

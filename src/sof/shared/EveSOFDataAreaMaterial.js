@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:80-91
 import { type, blue } from "#schema";
@@ -8,6 +9,7 @@ import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.
  * construction; the empty destructor needs no resource or update lifecycle.
  */
 @blue.define("EveSOFDataAreaMaterial")
+@blue.inherit(IRoot)
 @blue.interface()
 export class EveSOFDataAreaMaterial
 {

@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:177-243
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.cpp:42-52
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:10-56, 153-198
@@ -115,6 +116,8 @@ const slot = (name, index) => ({ name, key: "colors", index, type: { kind: "colo
   slot("StateInvulnerable", ColorType.TYPE_STATE_INVULNERABLE)
 ]
 })
+@blue.inherit(IRoot)
+@blue.interface()
 export class EveSOFDataFactionColorSet
 {
   static ColorType = ColorType;

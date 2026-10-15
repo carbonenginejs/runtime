@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:428-457
 import { type, blue } from "#schema";
@@ -11,6 +12,7 @@ import { vec4 } from "#math/vec4";
  * Shader and geometry paths are authored strings, not held resources.
  */
 @blue.define("EveSOFDataGenericDamage")
+@blue.inherit(IRoot)
 @blue.interface()
 export class EveSOFDataGenericDamage
 {

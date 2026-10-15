@@ -1,3 +1,4 @@
+import { IRoot } from "../global/blue/IRoot.js";
 import { normalizeResourcePath } from "#utils/path";
 import { ccpHashFnv1 } from "#utils";
 
@@ -29,6 +30,7 @@ const LOGO_KEYS = Object.freeze(["Primary", "Secondary", "Tertiary", "Marking_01
  * plain JavaScript records here; they are not persisted fields on the manager.
  */
 @blue.define("EveSOFDataMgr")
+@blue.inherit(IRoot)
 @blue.interface()
 export class EveSOFDataMgr
 {

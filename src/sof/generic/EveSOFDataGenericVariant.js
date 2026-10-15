@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:546-555
 import { type, blue } from "#schema";
@@ -9,6 +10,7 @@ import { type, blue } from "#schema";
  * The hull area is an authored object reference, not a held resource.
  */
 @blue.define("EveSOFDataGenericVariant")
+@blue.inherit(IRoot)
 @blue.interface()
 export class EveSOFDataGenericVariant
 {

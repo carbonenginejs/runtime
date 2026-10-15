@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
@@ -9,6 +10,7 @@ import { vec3 } from "#math/vec3";
 
 /** Defines a logo or usage decal with faction color, bone and transform placement, mesh and material data, and single- or multi-hull index buffers. */
 @blue.define("EveSOFDataHullDecalSetItem")
+@blue.inherit(IRoot)
 export class EveSOFDataHullDecalSetItem
 {
   static ColorType = EveSOFDataFactionColorSet.ColorType;

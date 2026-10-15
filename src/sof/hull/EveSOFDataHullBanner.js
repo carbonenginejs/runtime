@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
@@ -9,6 +10,7 @@ import { EveSOFDataHullBannerLight } from "./EveSOFDataHullBannerLight.js";
 
 /** Defines a banner's usage, bone-relative transform, visibility, optional light override, aspect ratio, and flat or curved presentation. */
 @blue.define("EveSOFDataHullBanner")
+@blue.inherit(IRoot)
 export class EveSOFDataHullBanner
 {
 
@@ -110,6 +112,7 @@ export class EveSOFDataHullBanner
    * Maps the banner usage to its authored width-to-height target, defaulting
    * unknown usages to square.
    */
+  @blue.method
   GetTargetAspectRatio()
   {
     const { Usage } = EveSOFDataHullBanner;
@@ -135,6 +138,7 @@ export class EveSOFDataHullBanner
    * Measures the current width-to-height ratio after scaling and horizontal or
    * vertical curvature are applied.
    */
+  @blue.method
   GetAspectRatio()
   {
     return EveSOFDataHullBanner.GetBannerAspectRatio({
@@ -147,6 +151,7 @@ export class EveSOFDataHullBanner
   }
 
   /** Reads the authored horizontal curvature angle in degrees. */
+  @blue.method
   GetAngleX()
   {
     return this.angleX;
@@ -156,6 +161,7 @@ export class EveSOFDataHullBanner
    * Stores the horizontal curvature angle and adjusts vertical scale when
    * target-ratio preservation is enabled.
    */
+  @blue.method
   SetAngleX(angle)
   {
     this.angleX = angle;
@@ -166,6 +172,7 @@ export class EveSOFDataHullBanner
   }
 
   /** Reads the authored vertical curvature angle in degrees. */
+  @blue.method
   GetAngleY()
   {
     return this.angleY;
@@ -175,6 +182,7 @@ export class EveSOFDataHullBanner
    * Stores the vertical curvature angle and adjusts horizontal scale when
    * target-ratio preservation is enabled.
    */
+  @blue.method
   SetAngleY(angle)
   {
     this.angleY = angle;
@@ -189,6 +197,7 @@ export class EveSOFDataHullBanner
   }
 
   /** Returns a detached copy of the banner's three-axis scale. */
+  @blue.method
   GetScaling()
   {
     return vec3.clone(this.scaling);
@@ -198,6 +207,7 @@ export class EveSOFDataHullBanner
    * Copies a new three-axis scale and corrects one axis to preserve the
    * usage-specific target ratio.
    */
+  @blue.method
   SetScaling(scaling)
   {
     vec3.copy(this.scaling, scaling);

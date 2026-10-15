@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
@@ -9,6 +10,7 @@ import { vec3 } from "#math/vec3";
 // (EveSOFData.h:1999-2021); it is NOT a distribution condition, despite the
 // name - the distribution conditions implement the separate BLUE_INTERFACE.
 @blue.define("EveSOFDataHullExtensionPlacementDistributionPlacement")
+@blue.inherit(IRoot)
 export class EveSOFDataHullExtensionPlacementDistributionPlacement
 {
 

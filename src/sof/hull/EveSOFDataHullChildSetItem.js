@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import "#consts/trinity";
@@ -8,6 +9,7 @@ import { vec3 } from "#math/vec3";
 
 /** Places a RED child resource with build and LOD policy plus scale, rotation, and translation, deriving its name from the resource path. */
 @blue.define("EveSOFDataHullChildSetItem")
+@blue.inherit(IRoot)
 export class EveSOFDataHullChildSetItem
 {
   static Tr2Lod = Tr2Lod;
@@ -54,6 +56,7 @@ export class EveSOFDataHullChildSetItem
    * Derives a child-set item's basename without its extension only from resource
    * paths containing a forward slash.
    */
+  @blue.method
   GetName()
   {
     const slash = this.redFilePath.lastIndexOf("/");

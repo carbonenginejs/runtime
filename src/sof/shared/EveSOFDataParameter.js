@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.cpp (GetValue rules)
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:10-18
@@ -17,6 +18,7 @@ import { vec4 } from "#math/vec4";
  * construction; the empty destructor needs no resource or update lifecycle.
  */
 @blue.define("EveSOFDataParameter")
+@blue.inherit(IRoot)
 @blue.interface()
 export class EveSOFDataParameter
 {
@@ -47,6 +49,7 @@ export class EveSOFDataParameter
    * @returns {Float32Array} Independent vector, matching native return-by-value.
    */
   @meta.implemented
+  @blue.method
   GetValue()
   {
     return vec4.clone(this.value);

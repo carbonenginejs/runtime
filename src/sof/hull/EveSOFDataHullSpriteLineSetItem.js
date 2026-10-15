@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
@@ -7,6 +8,7 @@ import { vec3 } from "#math/vec3";
 
 /** Defines a faction-aware sprite line with bone-relative transform, spacing, circle mode, blink, scale, falloff, intensity, saturation, and point-light data. */
 @blue.define("EveSOFDataHullSpriteLineSetItem")
+@blue.inherit(IRoot)
 export class EveSOFDataHullSpriteLineSetItem
 {
   static ColorType = EveSOFDataFactionColorSet.ColorType;

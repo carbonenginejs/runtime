@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:752-760
 import { type, blue } from "#schema";
@@ -8,6 +9,7 @@ import { type, blue } from "#schema";
  * string, not a held resource; empty constructor/destructor need no lifecycle.
  */
 @blue.define("EveSOFDataTexture")
+@blue.inherit(IRoot)
 @blue.interface()
 export class EveSOFDataTexture
 {

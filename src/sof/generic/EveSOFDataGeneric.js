@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
@@ -10,6 +11,8 @@ import { ErrSOFPatternMaterialPrefixNotFound } from "./ErrSOFPatternMaterialPref
 
 /** Provides the top-level generic SOF configuration for shaders, material prefixes, decals, material tables, variants, categories, visibility, swarm, and damage data, with their named lookup helpers. */
 @blue.define("EveSOFDataGeneric")
+@blue.interface()
+@blue.inherit(IRoot)
 export class EveSOFDataGeneric
 {
   static AreaType = EveSOFDataArea.AreaType;

@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
@@ -5,6 +6,8 @@ import { vec4 } from "#math/vec4";
 
 /** Names a faction spotlight-set group and supplies its cone, sprite, and flare colors. */
 @blue.define("EveSOFDataFactionSpotlightSet")
+@blue.interface()
+@blue.inherit(IRoot)
 export class EveSOFDataFactionSpotlightSet
 {
 

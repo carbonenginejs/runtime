@@ -6,6 +6,7 @@ import { IEveSOFDataHullExtensionPlacementDistribution } from "./IEveSOFDataHull
 
 /** Matches a parent DNA descriptor as a condition for a hull-extension placement. */
 @blue.define("EveSOFDataHullExtensionPlacementDistributionParentMatch")
+@blue.interface(IEveSOFDataHullExtensionPlacementDistribution)
 export class EveSOFDataHullExtensionPlacementDistributionParentMatch extends IEveSOFDataHullExtensionPlacementDistribution
 {
 

@@ -1,9 +1,11 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
 
 /** Groups named sprite-line items with visibility and skinning policy. */
 @blue.define("EveSOFDataHullSpriteLineSet")
+@blue.inherit(IRoot)
 export class EveSOFDataHullSpriteLineSet
 {
 

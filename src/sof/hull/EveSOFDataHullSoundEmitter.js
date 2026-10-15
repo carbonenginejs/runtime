@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
@@ -6,6 +7,7 @@ import { vec3 } from "#math/vec3";
 
 /** Defines a named sound-emitter event prefix, position, rotation, and attenuation settings. */
 @blue.define("EveSOFDataHullSoundEmitter")
+@blue.inherit(IRoot)
 export class EveSOFDataHullSoundEmitter
 {
 

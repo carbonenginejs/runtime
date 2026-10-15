@@ -10,6 +10,7 @@ import { EveSOFDataHullExtensionPlacement } from "./EveSOFDataHullExtensionPlace
 // is not exposed for this type. The JavaScript inheritance stays real; the
 // inherited fields are hidden from this class's schema surface only.
 @blue.define("EveSOFDataHullExtensionBucket")
+@blue.interface()
 @meta.hideInherited([
   "distributionConditions",
   "extendsBoundingSphere",

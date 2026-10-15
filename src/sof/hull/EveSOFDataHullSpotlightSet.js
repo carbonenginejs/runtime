@@ -1,9 +1,11 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
 
 /** Groups spotlight items with cone, glow, and flare textures plus skinning, depth, and visibility policy. */
 @blue.define("EveSOFDataHullSpotlightSet")
+@blue.inherit(IRoot)
 export class EveSOFDataHullSpotlightSet
 {
 

@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
@@ -7,6 +8,8 @@ import { EveSOFDataRaceDamage } from "./EveSOFDataRaceDamage.js";
 
 /** Names a race, stores its heat color, and combines race-level booster and damage configuration. */
 @blue.define("EveSOFDataRace")
+@blue.interface()
+@blue.inherit(IRoot)
 export class EveSOFDataRace
 {
   static ColorType = EveSOFDataFactionColorSet.ColorType;

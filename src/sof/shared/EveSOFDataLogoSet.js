@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:260-284
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:60-66, 1125-1133
 import { blue } from "#schema";
@@ -36,6 +37,7 @@ const slot = (name, index) => ({ name, key: "logos", index, type: { kind: "rootR
 ]
 })
 @blue.interface()
+@blue.inherit(IRoot)
 export class EveSOFDataLogoSet
 {
   static LogoType = LogoType;

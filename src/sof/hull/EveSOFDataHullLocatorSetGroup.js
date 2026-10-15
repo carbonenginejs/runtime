@@ -5,6 +5,7 @@ import { IEveSOFDataHullLocatorSet } from "./IEveSOFDataHullLocatorSet.js";
 
 /** Recursively groups polymorphic locator-set records under one name. */
 @blue.define("EveSOFDataHullLocatorSetGroup")
+@blue.interface(IEveSOFDataHullLocatorSet)
 export class EveSOFDataHullLocatorSetGroup extends IEveSOFDataHullLocatorSet
 {
 

@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import "#consts/trinity";
@@ -7,6 +8,8 @@ import { Tr2Lod } from "#consts/trinity";
 
 /** Defines instanced-mesh geometry, shader, display and LOD policy, textures, and instance transforms. */
 @blue.define("EveSOFDataInstancedMesh")
+@blue.interface()
+@blue.inherit(IRoot)
 export class EveSOFDataInstancedMesh
 {
   static Tr2Lod = Tr2Lod;

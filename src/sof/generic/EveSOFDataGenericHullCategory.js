@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:557-566
 import "#consts/graphics/trinityEnums";
@@ -10,6 +11,7 @@ import { ReflectionMode } from "#consts/graphics";
  * is required, and the native destructor is empty.
  */
 @blue.define("EveSOFDataGenericHullCategory")
+@blue.inherit(IRoot)
 @blue.interface()
 export class EveSOFDataGenericHullCategory
 {

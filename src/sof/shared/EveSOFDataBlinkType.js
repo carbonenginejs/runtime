@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:301-324
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:70-77, 1140-1147
 import { blue } from "#schema";
@@ -36,6 +37,7 @@ const slot = (name, index) => ({ name, key: "blinkType", index, type: { kind: "r
 ]
 })
 @blue.interface()
+@blue.inherit(IRoot)
 export class EveSOFDataBlinkType
 {
   static BlinkType = BlinkType;

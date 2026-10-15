@@ -16,12 +16,12 @@ import { meta, type, blue } from "#schema";
 export class CjsExternalRef
 {
 
-  @blue.persist
+  @meta.persist
   @type.path
   resPath = "";
 
   /** Carbon interface name the loaded root must implement (load-time gate). */
-  @blue.persist
+  @meta.persist
   @type.string
   expects = "";
 

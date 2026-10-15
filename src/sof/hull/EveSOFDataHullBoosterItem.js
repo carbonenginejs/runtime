@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
@@ -6,6 +7,7 @@ import { vec4 } from "#math/vec4";
 
 /** Defines a booster transform, functionality, trail, atlas, and light scale. */
 @blue.define("EveSOFDataHullBoosterItem")
+@blue.inherit(IRoot)
 export class EveSOFDataHullBoosterItem
 {
 

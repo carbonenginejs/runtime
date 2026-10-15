@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
@@ -5,6 +6,7 @@ import { be, EnumRegistrationType } from "#blue";
 
 /** Groups named haze items with spherical-type, visibility, and skinning policy. */
 @blue.define("EveSOFDataHullHazeSet")
+@blue.inherit(IRoot)
 export class EveSOFDataHullHazeSet
 {
 

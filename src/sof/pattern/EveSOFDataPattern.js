@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
@@ -7,6 +8,8 @@ import { ErrSOFProjectionNotFound } from "./ErrSOFProjectionNotFound.js";
 
 /** Defines a named two-layer pattern with application groups, per-hull lookup, flip policy, and custom mask support. */
 @blue.define("EveSOFDataPattern")
+@blue.interface()
+@blue.inherit(IRoot)
 export class EveSOFDataPattern
 {
 

@@ -1,9 +1,12 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
 
 /** Names per-layer pattern properties and provides searchable per-hull projections. */
 @blue.define("EveSOFDataPatternApplicationGroup")
+@blue.interface()
+@blue.inherit(IRoot)
 export class EveSOFDataPatternApplicationGroup
 {
 

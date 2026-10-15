@@ -6,6 +6,7 @@ import { IEveSOFDataHullExtensionPlacementDistribution } from "./IEveSOFDataHull
 
 /** Tests map graphic-quality settings as a condition for a hull-extension placement. */
 @blue.define("EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings")
+@blue.interface(IEveSOFDataHullExtensionPlacementDistribution)
 export class EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings extends IEveSOFDataHullExtensionPlacementDistribution
 {
 

@@ -5,6 +5,7 @@ import { IEveSOFDataHullLocatorSet } from "./IEveSOFDataHullLocatorSet.js";
 
 /** Provides a concrete named list of hull locators. */
 @blue.define("EveSOFDataHullLocatorSet")
+@blue.interface(IEveSOFDataHullLocatorSet)
 export class EveSOFDataHullLocatorSet extends IEveSOFDataHullLocatorSet
 {
 

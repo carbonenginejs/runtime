@@ -5,6 +5,7 @@ import { IEveSOFDataHullExtensionPlacementDistribution } from "./IEveSOFDataHull
 
 /** Tests named depletion counters as a condition for a hull-extension placement. */
 @blue.define("EveSOFDataHullExtensionPlacementDistributionDepletionCounter")
+@blue.interface(IEveSOFDataHullExtensionPlacementDistribution)
 export class EveSOFDataHullExtensionPlacementDistributionDepletionCounter extends IEveSOFDataHullExtensionPlacementDistribution
 {
 

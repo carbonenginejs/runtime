@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
@@ -6,6 +7,7 @@ import { vec2 } from "#math/vec2";
 
 /** Groups plane items with usage, texture, atlas, visibility, and skinning policy. */
 @blue.define("EveSOFDataHullPlaneSet")
+@blue.inherit(IRoot)
 export class EveSOFDataHullPlaneSet
 {
 

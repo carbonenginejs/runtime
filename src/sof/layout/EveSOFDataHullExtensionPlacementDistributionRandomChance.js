@@ -5,6 +5,7 @@ import { IEveSOFDataHullExtensionPlacementDistribution } from "./IEveSOFDataHull
 
 /** Applies a probability threshold as a condition for a hull-extension placement. */
 @blue.define("EveSOFDataHullExtensionPlacementDistributionRandomChance")
+@blue.interface(IEveSOFDataHullExtensionPlacementDistribution)
 export class EveSOFDataHullExtensionPlacementDistributionRandomChance extends IEveSOFDataHullExtensionPlacementDistribution
 {
 

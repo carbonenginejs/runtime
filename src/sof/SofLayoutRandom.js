@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { EveSOFDNA } from "./EveSOFDNA.js";
@@ -759,3 +760,5 @@ function identityMatrix()
     0, 0, 0, 1
   ];
 }
+
+CjsSchema.meta.define(SofLayoutRandom, { className: "SofLayoutRandom" });

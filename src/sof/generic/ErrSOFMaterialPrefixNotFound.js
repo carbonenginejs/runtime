@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 /**
  * Reports that a requested material prefix is absent from the generic SOF
  * catalog.
@@ -16,3 +17,5 @@ export class ErrSOFMaterialPrefixNotFound extends Error
     this.index = index;
   }
 }
+
+CjsSchema.meta.define(ErrSOFMaterialPrefixNotFound, { className: "ErrSOFMaterialPrefixNotFound" });

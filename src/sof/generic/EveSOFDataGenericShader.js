@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:517-529
 import { type, blue } from "#schema";
@@ -9,6 +10,7 @@ import { type, blue } from "#schema";
  * Existing JavaScript configuration helpers remain custom conveniences.
  */
 @blue.define("EveSOFDataGenericShader")
+@blue.inherit(IRoot)
 @blue.interface()
 export class EveSOFDataGenericShader
 {

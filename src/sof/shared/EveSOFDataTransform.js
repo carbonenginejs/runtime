@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.cpp:456-463
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:815-825
@@ -13,6 +14,7 @@ import { vec3 } from "#math/vec3";
  * GetTransform remains a JavaScript convenience; native stores these fields only.
  */
 @blue.define("EveSOFDataTransform")
+@blue.inherit(IRoot)
 @blue.interface()
 export class EveSOFDataTransform
 {

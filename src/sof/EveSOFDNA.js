@@ -1,3 +1,4 @@
+import { IRoot } from "../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDNA.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDNA.cpp
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDNA_Blue.cpp
@@ -30,6 +31,7 @@ const BUILD_CLASSES = Object.freeze([
 
 /** Resolves a SOF DNA string against an EveSOFDataMgr. */
 @blue.define("EveSOFDNA")
+@blue.inherit(IRoot)
 @blue.interface()
 export class EveSOFDNA
 {
@@ -1487,6 +1489,7 @@ export class EveSOFDNA
    * Replaces the resolved hull references with resolver-owned variant hull
    * snapshots when a variant command is active.
    */
+  @blue.method
   _SetupCustomData()
   {
     const args = this.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_VARIANT);

@@ -1,9 +1,12 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
 
 /** Aggregates a faction's area, color, logo, pattern, material-slot, visibility, plane, spotlight, child, and resource-path configuration. */
 @blue.define("EveSOFDataFaction")
+@blue.interface()
+@blue.inherit(IRoot)
 export class EveSOFDataFaction
 {
 

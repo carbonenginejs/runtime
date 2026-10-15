@@ -24,6 +24,7 @@ export class EveSOFDataParameterColor extends EveSOFDataParameter
 
   /** Returns a copy of the four-component color value. */
   @meta.implemented
+  @blue.method
   GetValue()
   {
     return vec4.clone(this.value);

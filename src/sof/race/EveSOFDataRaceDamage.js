@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
@@ -6,6 +7,8 @@ import { EveSOFDataTexture } from "../shared/EveSOFDataTexture.js";
 
 /** Stores, combines, and assigns race-level armor and shield damage parameters and textures. */
 @blue.define("EveSOFDataRaceDamage")
+@blue.interface()
+@blue.inherit(IRoot)
 export class EveSOFDataRaceDamage
 {
 

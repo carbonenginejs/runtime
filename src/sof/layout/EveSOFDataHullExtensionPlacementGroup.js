@@ -1,9 +1,12 @@
+import { IEveSOFDataHullExtensionPlacement } from "./IEveSOFDataHullExtensionPlacement.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
 
 /** Groups enabled nested placements with group-level conditions and depletion counters. */
 @blue.define("EveSOFDataHullExtensionPlacementGroup")
+@blue.interface(IEveSOFDataHullExtensionPlacement)
+@blue.inherit(IEveSOFDataHullExtensionPlacement)
 export class EveSOFDataHullExtensionPlacementGroup
 {
 
