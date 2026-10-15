@@ -1144,19 +1144,20 @@ CjsSchema.meta.define(CjsResource, {
     state: type.string
   },
   methods: {
-    DoLoad: [ meta.abstract ],
+    DoLoad: [ blue.method, meta.abstract ],
+    Reload: [ blue.method, meta.adapted ],
     Initialize: [ blue.method, meta.adapted ],
     GetPath: [ blue.method, meta.adapted ],
     GetExt: [ blue.method, meta.adapted ],
     IsLoading: [ blue.method, meta.adapted ],
-    HasLoaded: [ blue.method, meta.adapted ],
+    HasLoaded: [ meta.adapted ],
     IsPrepared: [ blue.method, meta.adapted ],
     IsGood: [ blue.method, meta.adapted ],
-    IsFailed: [ blue.method, meta.adapted ],
-    AddNotifyTarget: [ meta.adapted ],
-    RemoveNotifyTarget: [ meta.implemented ],
-    NotifyRebuildCachedData: [ meta.adapted ],
-    NotifyReleaseCachedData: [ meta.adapted ],
+    IsFailed: [ meta.adapted ],
+    AddNotifyTarget: [ blue.method, meta.adapted ],
+    RemoveNotifyTarget: [ blue.method, meta.implemented ],
+    NotifyRebuildCachedData: [ blue.method, meta.adapted ],
+    NotifyReleaseCachedData: [ blue.method, meta.adapted ],
     RecordLateResult: [],
     DestroyAdapterResources: []
   }
