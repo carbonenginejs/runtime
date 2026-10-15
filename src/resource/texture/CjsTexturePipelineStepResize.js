@@ -1,5 +1,5 @@
 // Not Carbon. A texture-pipeline step of our own.
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { HostBitmap } from "#imageio";
 import { GetBytesPerPixel, IsCompressedFormat } from "#consts/render-context";
 
@@ -128,9 +128,9 @@ export class CjsTexturePipelineStepResize
 CjsSchema.meta.define(CjsTexturePipelineStepResize, {
   className: "CjsTexturePipelineStepResize",
   fields: {
-    width: [ blue.persist, type.uint32 ],
-    height: [ blue.persist, type.uint32 ],
-    paths: [ blue.persist, type.list("string") ]
+    width: [ meta.persist, type.uint32 ],
+    height: [ meta.persist, type.uint32 ],
+    paths: [ meta.persist, type.list("string") ]
   },
   methods: {
     GetResourceDependencies: [],

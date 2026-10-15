@@ -1,5 +1,5 @@
 // Not Carbon. A texture-pipeline step of our own.
-import { CjsSchema, meta, type, blue } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 
 /**
  * Stacks the named inputs, in order, into one 2D texture array: layer 0 is the
@@ -74,7 +74,7 @@ export class CjsTexturePipelineStepArray
 CjsSchema.meta.define(CjsTexturePipelineStepArray, {
   className: "CjsTexturePipelineStepArray",
   fields: {
-    paths: [ blue.persist, type.list("string") ]
+    paths: [ meta.persist, type.list("string") ]
   },
   methods: {
     GetResourceDependencies: [],

@@ -1,3 +1,4 @@
+import { IRoot } from "#blue/IRoot";
 import "#blue/values";
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipeline.h
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipeline.cpp
@@ -91,11 +92,13 @@ export class Tr2TexturePipeline
 
 }
 
+CjsSchema.blue.inherit(IRoot)(Tr2TexturePipeline);
+CjsSchema.blue.interface(Tr2TexturePipeline)(Tr2TexturePipeline);
 CjsSchema.blue.define(Tr2TexturePipeline, {
   className: "Tr2TexturePipeline",
   fields: {
-    pipelineType: [ blue.persist, type.string ],
-    steps: [ blue.persist, type.list("ITr2TexturePipelineStep") ]
+    pipelineType: [ blue.readwrite, blue.persist, type.string ],
+    steps: [ blue.read, blue.persist, type.list("ITr2TexturePipelineStep") ]
   },
   methods: {
     Execute: [ blue.method, meta.adapted ],

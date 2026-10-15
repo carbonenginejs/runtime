@@ -1,3 +1,4 @@
+import { IRoot } from "#blue/IRoot";
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepPack.h
 // Schema: format-carbon resources/Tr2TexturePackChannel.json; maintained by the runtime resource layer.
 import { CjsSchema, type, blue } from "#schema";
@@ -17,11 +18,13 @@ export class Tr2TexturePackChannel
 
 }
 
+CjsSchema.blue.inherit(IRoot)(Tr2TexturePackChannel);
+CjsSchema.blue.interface(Tr2TexturePackChannel)(Tr2TexturePackChannel);
 CjsSchema.blue.define(Tr2TexturePackChannel, {
   className: "Tr2TexturePackChannel",
   fields: {
-    channel: [ blue.persist, type.uint8 ],
-    fill: [ blue.persist, type.uint8 ],
-    path: [ blue.persist, type.wpath ]
+    channel: [ blue.readwrite, blue.persist, type.uint8 ],
+    fill: [ blue.readwrite, blue.persist, type.uint8 ],
+    path: [ blue.readwrite, blue.persist, type.wpath ]
   }
 });

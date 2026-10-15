@@ -42,6 +42,7 @@ export class Tr2TexturePipelineStepGenerateMips
 
 }
 
+CjsSchema.blue.interface(Tr2TexturePipelineStepGenerateMips)(Tr2TexturePipelineStepGenerateMips);
 CjsSchema.blue.define(Tr2TexturePipelineStepGenerateMips, {
   className: "Tr2TexturePipelineStepGenerateMips",
   fields: {

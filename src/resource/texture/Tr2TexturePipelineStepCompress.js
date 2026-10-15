@@ -88,13 +88,14 @@ export class Tr2TexturePipelineStepCompress
 
 }
 
+CjsSchema.blue.interface(Tr2TexturePipelineStepCompress)(Tr2TexturePipelineStepCompress);
 CjsSchema.blue.define(Tr2TexturePipelineStepCompress, {
   className: "Tr2TexturePipelineStepCompress",
   fields: {
-    format: [ blue.persist, type.int32, type.enum("PixelFormat") ],
-    b: [ blue.persist, type.float32 ],
-    g: [ blue.persist, type.float32 ],
-    r: [ blue.persist, type.float32 ]
+    format: [ blue.readwrite, blue.persist, type.int32, type.enum("PixelFormat") ],
+    b: [ blue.readwrite, blue.persist, type.float32 ],
+    g: [ blue.readwrite, blue.persist, type.float32 ],
+    r: [ blue.readwrite, blue.persist, type.float32 ]
   },
   methods: {
     GetResourceDependencies: [ blue.method, meta.implemented ],
