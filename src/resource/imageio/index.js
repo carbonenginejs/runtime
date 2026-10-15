@@ -4,6 +4,6 @@
 // host fills through ImageIO.registerImageHandler.
 //
 // HostBitmap needs no registration here: its define registers it with
-// blue.classes by name, so trinityal can still build one by name.
+// be.classes by name, so trinityal can still build one by name.
 export * from "#imageio";
 export * from "./ImageIO.js";

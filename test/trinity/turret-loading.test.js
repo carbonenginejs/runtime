@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { be } from "../../npm/dist/global/blue/index.js";
 import { EveChildTurret, EveTurretFiringFX, EveComponentRegistry } from "../../npm/dist/trinity/index.js";
 
 function pendingManager(t)
 {
-  const previous=blue.resMan, requests=[];
-  blue.resMan={LoadObject(path){return new Promise((resolve,reject)=>requests.push({path,resolve,reject}));}};
-  t.after(()=>{blue.resMan=previous;});
+  const previous=be.resMan, requests=[];
+  be.resMan={LoadObject(path){return new Promise((resolve,reject)=>requests.push({path,resolve,reject}));}};
+  t.after(()=>{be.resMan=previous;});
   return requests;
 }
 /** Wraps a real method: records the call, then runs the real one. */

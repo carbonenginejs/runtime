@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 // global/blue is raw source (no decorators), so its own tests import src.
-import { blue, BlueObjectProxy, CcpTime, IBlueObjectBuilder, IBlueObjectProxy, IUnloadable } from "../../src/global/blue/index.js";
+import { be, BlueObjectProxy, CcpTime, IBlueObjectBuilder, IBlueObjectProxy, IUnloadable } from "../../src/global/blue/index.js";
 import { CjsSchema, meta } from "../../src/global/schema/index.js";
 
 // The LOD holder is decorated character source, so it comes from npm/dist,
@@ -40,7 +40,7 @@ class UnloadableThing
 meta.blue.inherit(IUnloadable)(UnloadableThing, { kind: "class" });
 
 /** Drives `BeOS->GetInfo()->mRealTime` for the duration of one test. */
-function realClock(t, start = 1000, os = blue.os)
+function realClock(t, start = 1000, os = be.os)
 {
   const clock = { now: start };
   t.mock.method(os, "GetInfo", () => ({ realTime: clock.now }));
@@ -49,8 +49,8 @@ function realClock(t, start = 1000, os = blue.os)
 
 test("BlueObjectProxy is registered as Carbon's Blue class with its exposure", () =>
 {
-  assert.equal(blue.classes.FindClsid("BlueObjectProxy"), "BlueObjectProxy");
-  const proxy = blue.classes.CreateInstance("BlueObjectProxy");
+  assert.equal(be.classes.FindClsid("BlueObjectProxy"), "BlueObjectProxy");
+  const proxy = be.classes.CreateInstance("BlueObjectProxy");
   assert.equal(CjsSchema.getClassName(proxy.constructor), "BlueObjectProxy");
   assert.equal(CjsSchema.cast(proxy, IBlueObjectProxy), proxy);
   assert.equal(CjsSchema.getSchema(BlueObjectProxy).carbon, "BlueObjectProxy");
@@ -166,7 +166,7 @@ test("SetObject, ClearObject, SetObjectFromBuilder, OnSelected and temporary fol
 test("Tr2SkinnedObjectLod creates real proxies for its models (Tr2SkinnedObjectLOD.cpp:151-200)", { skip: lodSkip }, t =>
 {
   const { Tr2SkinnedModel, Tr2SkinnedObjectLod } = dist.character;
-  realClock(t, 1000, dist.blue.blue.os);
+  realClock(t, 1000, dist.blue.be.os);
   const lod = new Tr2SkinnedObjectLod();
   const high = new Tr2SkinnedModel(), medium = new Tr2SkinnedModel(), low = new Tr2SkinnedModel();
   lod.SetHighDetailModel(high);
@@ -190,7 +190,7 @@ test("Tr2SkinnedObjectLod creates real proxies for its models (Tr2SkinnedObjectL
 test("Tr2SkinnedObjectLod unloads unselected proxies after ten real seconds and rebuilds them", { skip: lodSkip }, t =>
 {
   const { Tr2SkinnedObjectLod } = dist.character;
-  const clock = realClock(t, 1000, dist.blue.blue.os);
+  const clock = realClock(t, 1000, dist.blue.be.os);
   const lod = new Tr2SkinnedObjectLod();
   const builder = new RecordingBuilder();
   for (const name of [ "highDetailProxy", "mediumDetailProxy", "lowDetailProxy" ])

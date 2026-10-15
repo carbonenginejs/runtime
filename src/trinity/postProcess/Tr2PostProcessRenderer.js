@@ -12,7 +12,7 @@
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { meta } from "#schema";
 import { BloomDebugMode, Quality } from "../generated/postProcess/enums.js";
-import { blue } from "#blue";
+import { be } from "#blue";
 import { num } from "#math/num";
 import { Tr2ColorAttachment, Tr2BufferDescriptionAL, Tr2SubresourceData } from "#trinityal";
 import {

@@ -6,7 +6,7 @@ import { IInitialize } from "#blue/IInitialize";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { Tr2StandardIlluminant } from "../../generated/trinityCore/enums.js";
-import { blue } from "#blue";
+import { be } from "#blue";
 
 /**
  * A light colour authored as a temperature in kelvin, a tint, and a white-balance

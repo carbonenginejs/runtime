@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2SkinnedModel.h
 // Source: trinity/trinity/Tr2SkinnedModel.cpp
-import { blue, IsMatch, IInitialize, INotify, ResourceRequirement } from "#blue";
+import { be, IsMatch, IInitialize, INotify, ResourceRequirement } from "#blue";
 import { meta } from "#schema";
 import { Tr2Model } from "./Tr2Model.js";
 import { vec3 } from "#math/vec3";
@@ -103,7 +103,7 @@ export class Tr2SkinnedModel extends Tr2Model
       this.geometryRes.RemoveNotifyTarget(this);
       this.geometryRes = null;
     }
-    this.geometryRes = blue.resMan.GetResource(this.geometryResPath, { requirement: ResourceRequirement.GEOMETRY });
+    this.geometryRes = be.resMan.GetResource(this.geometryResPath, { requirement: ResourceRequirement.GEOMETRY });
     if (this.geometryRes)
     {
       this.geometryRes.AddNotifyTarget(this);

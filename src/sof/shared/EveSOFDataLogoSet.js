@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:260-284
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:60-66, 1125-1133
 import { meta } from "#schema";
-import { blue, EnumRegistrationType } from "#blue";
+import { be, EnumRegistrationType } from "#blue";
 import { EveSOFDataLogo } from "./EveSOFDataLogo.js";
 
 /**
@@ -68,7 +68,7 @@ export class EveSOFDataLogoSet
 }
 
 // Native chooser labels and descriptions are distinct from C++ member names.
-blue.enums.Create("trinity.EveSOFDataLogoSet.LogoType", LogoType, {
+be.enums.Create("trinity.EveSOFDataLogoSet.LogoType", LogoType, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 271,
   exposedName: "EveSOFDataLogoSetType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:60",

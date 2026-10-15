@@ -32,7 +32,7 @@ const FORMAT_NAME = "CjsVtaFormat";
  * filesystem access, playback scheduling or GPU texture allocation.
  *
  * Tr2TextureAnimation is the playback consumer in the Trinity layer. It acquires
- * bytes through blue.resMan.ReadResource, calls CjsVtaFormat.readFrames to decode
+ * bytes through be.resMan.ReadResource, calls CjsVtaFormat.readFrames to decode
  * one frame ahead, and uses the render context to create and update a stable 3D
  * texture for each grid. Looping, pause, restart and texture disposal belong to
  * Tr2TextureAnimation; the format remains usable by tools without that class.

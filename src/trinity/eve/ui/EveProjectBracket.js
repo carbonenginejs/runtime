@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Eve/UI/EveProjectBracket_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; projection is portable CPU work.
 import { meta } from "#schema";
-import { blue } from "#blue";
+import { be } from "#blue";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 import { Vec3TransformByViewport } from "../../core/view/TriViewport.js";
@@ -61,7 +61,7 @@ export class EveProjectBracket
    * Projects the tracked position using the active frame context.
    *
    * Carbon ignores the curve-set time and samples the OS frame clock,
-   * BeOS->GetCurrentFrameTime(); so does this, through blue.os.
+   * BeOS->GetCurrentFrameTime(); so does this, through be.os.
    *
    * Adapted: Tr2Renderer camera state is supplied by the active Tr2RenderContext;
    * BlueScriptCallback accepts a host function or a Carbon callback object; Carbon's
@@ -97,7 +97,7 @@ export class EveProjectBracket
       // Carbon: m_trackBall->GetValueAt(&pos, BeOS->GetCurrentFrameTime())
       // (EveProjectBracket.cpp:72) - the Be::Time overload on the OS frame's
       // sim time, which is the scene's clock (see blue-clock epoch, CcpTime).
-      this.trackBall.GetValueAt__Ticks(blue.os.GetCurrentFrameTime(), position);
+      this.trackBall.GetValueAt__Ticks(be.os.GetCurrentFrameTime(), position);
       vec3.scale(position, position, this.ballTrackingScaling);
     }
     else if (this.trackTransform)

@@ -2,13 +2,14 @@ import { ITr2CurveSetOwner } from "../../npm/dist/trinity/curves/ITr2CurveSetOwn
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { blue, DictReader, DictWriter, Copier, BlueList, INotify } from "../../npm/dist/global/blue/index.js";
+import { be, DictReader, DictWriter, Copier, BlueList, INotify } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { ITr2ControllerAction } from "../../npm/dist/trinity/controllers/action/ITr2ControllerAction.js";
 import { ITr2Updateable } from "../../npm/dist/trinity/core/ITr2Updateable.js";
 import { Tr2ActionPlayCurveSet } from "../../npm/dist/trinity/controllers/action/Tr2ActionPlayCurveSet.js";
 import { Tr2ActionSetValue } from "../../npm/dist/trinity/controllers/action/Tr2ActionSetValue.js";
 import { Tr2Controller } from "../../npm/dist/trinity/controllers/Tr2Controller.js";
+import { Tr2ControllerFloatVariable } from "../../npm/dist/trinity/controllers/expression/Tr2ControllerFloatVariable.js";
 
 for (const [Type, values, interfaces] of [
   [Tr2ActionPlayCurveSet, { curveSetName: "warp", rangeName: "entry", syncToRange: true }, []],
@@ -53,7 +54,7 @@ test("PlayCurveSet retains nominal updateability without adding a native query e
 test("PlayCurveSet unregisters before stopping and retains frame-clock transition windows", t =>
 {
   let ticks = 100000000;
-  t.mock.method(blue.os, "GetCurrentFrameTime", () => ticks);
+  t.mock.method(be.os, "GetCurrentFrameTime", () => ticks);
   const calls = [], updates = new Set();
   const action = new Tr2ActionPlayCurveSet();
   action.curveSetName = "warp";
@@ -91,7 +92,7 @@ test("PlayCurveSet unregisters before stopping and retains frame-clock transitio
 
 test("SetValue Blue member notifications recompile linked expressions and leave copies unlinked", () =>
 {
-  const destination = { value: 0 };
+  const destination = new Tr2ControllerFloatVariable();
   const controller = new Tr2Controller();
   const action = new Tr2ActionSetValue();
   assert.equal(CjsSchema.cast(action, INotify), action);
@@ -130,10 +131,10 @@ test("SetValue forwards linked expression-term queries through the required cont
 {
   const action = new Tr2ActionSetValue();
   assert.ok(Array.isArray(action.GetExpressionTermInfo()));
-  action.Link({ GetOwner: () => ({}), GetExpressionTermInfo(result) { result.push({ name: "owned" }); } });
+  action.Link({ GetOwner: () => ({}), GetBindingPathRoots: () => [], GetExpressionTermInfo(result) { result.push({ name: "owned" }); } });
   assert.equal(action.GetExpressionTermInfo().at(-1).name, "owned");
   action.Unlink();
-  action.Link({ GetOwner: () => ({}) });
+  action.Link({ GetOwner: () => ({}), GetBindingPathRoots: () => [] });
   assert.throws(() => action.GetExpressionTermInfo(), TypeError);
 });
 
@@ -144,7 +145,7 @@ test("SetValue copy stops at a cleared object pointer in native member order", (
   const source = new Tr2ActionSetValue();
   source.value = "9";
   const target = new Tr2ActionSetValue();
-  target.destination = { value: 0 };
+  target.destination = new Tr2ControllerFloatVariable();
   target.attribute = "value";
   target.value = "7";
   target.Link(new Tr2Controller());

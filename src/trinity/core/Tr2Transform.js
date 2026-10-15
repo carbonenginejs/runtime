@@ -9,7 +9,7 @@ import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { Tr2TransformModifier } from "../generated/trinityCore/enums.js";
 import { ITr2Renderable } from "./ITr2Renderable.js";
-import { blue } from "#blue";
+import { be } from "#blue";
 
 
 // Carbon uses row vectors. A single matrix has the same flat bytes as our

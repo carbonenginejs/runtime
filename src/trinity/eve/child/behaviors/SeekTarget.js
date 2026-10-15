@@ -3,7 +3,7 @@
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";
 import { meta } from "#schema";
-import { blue } from "#blue";
+import { be } from "#blue";
 import { CjsScriptCallback } from "#blue/CjsScriptCallback";
 import { vec3 } from "#math/vec3";
 import { quat } from "#math/quat";
@@ -483,7 +483,7 @@ export class SeekTarget
 
         if (!agent.playFX)
         {
-          agent.fxStartTime = blue.os.GetActualTime();
+          agent.fxStartTime = be.os.GetActualTime();
           agent.playFX = true;
         }
 

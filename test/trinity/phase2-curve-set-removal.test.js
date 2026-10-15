@@ -12,7 +12,7 @@ import { INotify } from "../../npm/dist/global/blue/INotify.js";
 import { ISimTimeRebaseNotify } from "../../npm/dist/global/blue/ISimTimeRebaseNotify.js";
 import { ITriFunction } from "../../npm/dist/global/blue/ITriFunction.js";
 import { ITriCurveLength } from "../../npm/dist/global/blue/ITriCurveLength.js";
-import { blue } from "../../npm/dist/global/blue/blue.js";
+import { be } from "../../npm/dist/global/blue/blue.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
 import { ITr2Updateable } from "../../npm/dist/trinity/core/ITr2Updateable.js";
 import { TriDevice } from "../../npm/dist/trinity/core/device/TriDevice.js";
@@ -187,12 +187,12 @@ test("rebase converts the tick difference once and preserves pending relative st
 
 test("initialization acquires once and explicit disposal releases the acquired OS after replacement", t =>
 {
-  const previous = blue.os, calls = [], owner = {
+  const previous = be.os, calls = [], owner = {
     RegisterForSimTimeRebase(value) { calls.push(["register", value]); },
     UnregisterForSimTimeRebase(value) { calls.push(["unregister", value]); }
   };
-  blue.os = owner;
-  t.after(() => { blue.os = previous; });
+  be.os = owner;
+  t.after(() => { be.os = previous; });
   const set = new TriCurveSet();
   set.playOnLoad = false;
   set.useSimTimeRebase = true;
@@ -203,7 +203,7 @@ test("initialization acquires once and explicit disposal releases the acquired O
   assert.equal(set.IsUsingSimTimeRebase(), true, "native false reinitialization does not clear an acquired subscription");
   set.Stop();
   assert.deepEqual(calls, [["register", set]]);
-  blue.os = { UnregisterForSimTimeRebase() { assert.fail("wrong OS owner"); } };
+  be.os = { UnregisterForSimTimeRebase() { assert.fail("wrong OS owner"); } };
   set.Dispose();
   set.Dispose();
   assert.deepEqual(calls, [["register", set], ["unregister", set]]);
@@ -310,7 +310,7 @@ test("shared traversal reaches functions bindings and ranges without instance he
   set.bindings.Append(binding);
   set.ranges.Append(range);
   const visited = [];
-  visited.push(set, ...blue.FindAllReferences(set).keys());
+  visited.push(set, ...be.FindAllReferences(set).keys());
   for (const value of [set, curve, binding, range]) assert.equal(visited.includes(value), true);
   assert.deepEqual(GetResources(set), []);
 });
@@ -325,9 +325,9 @@ for (const route of ["declared dictionary", "canonical Black runtime", "default 
     const bytes = readFileSync(join(corpus, "skin_change.black"));
     assert.equal(bytes.length, 1514);
     assert.equal(createHash("sha256").update(bytes).digest("hex"), "4f5ec0fe1b7a9669f979e131bfb53bdf171d111ef46560bfdce74fb4d858c656");
-    const previous = blue.resMan;
-    blue.resMan = new StubResMan();
-    t.after(() => { blue.resMan = previous; });
+    const previous = be.resMan;
+    be.resMan = new StubResMan();
+    t.after(() => { be.resMan = previous; });
     assert.equal(CjsSchema.GetConstructor("EveMeshOverlayEffect"), EveMeshOverlayEffect);
     const overlay = route === "declared dictionary"
       ? new DictReader({ declarations: true }).CreateObject(CjsBlackFormat.readPayload(bytes).object)

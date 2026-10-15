@@ -8,7 +8,7 @@ import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
 import { EveSOFData, EveSOFDataGeneric, EveSOFDataHullDecalSetItem } from "../../npm/dist/sof/index.js";
 import { Tr2DynamicEmitter, ITr2GenericEmitter, EveThrottleable, Tr2Effect, Tr2Controller, Tr2TimelineController } from "../../npm/dist/trinity/index.js";
-import { blue, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
+import { be, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
 import { StubResMan } from "../support/stubResMan.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { clientResources } from "../support/clientResources.js";
@@ -21,9 +21,9 @@ const host = JSON.parse(readFileSync(new URL("../support/crisisParticleHost.json
 /** Hydrating the Crisis host acquires its instanced mesh's geometry; Carbon's manager always answers with a TriGeometryRes. */
 function WithStubResMan(t)
 {
-  const manager = blue.resMan;
-  blue.resMan = new StubResMan();
-  t.after(() => { blue.resMan = manager; });
+  const manager = be.resMan;
+  be.resMan = new StubResMan();
+  t.after(() => { be.resMan = manager; });
 }
 
 test("shared schema loader resolves the real Crisis particle graph before initialization", (t) =>

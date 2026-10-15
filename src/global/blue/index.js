@@ -121,7 +121,7 @@ export * from "./ICopierCustomAssignment.js";
 export * from "./ICustomPersist.js";
 export * from "./Copier.js";
 export { CjsBlue } from "./CjsBlue.js";
-export { blue } from "./blue.js";
+export { be } from "./blue.js";
 export { CjsBlueEnumRegistry, EnumRegistrationType } from "./enums/CjsBlueEnumRegistry.js";
 // The values engine: Blue's dictionary reader and a writer modelled on YamlWriter.
 export * from "./IBlueObjectMetadata.js";

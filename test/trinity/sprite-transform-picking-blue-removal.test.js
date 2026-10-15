@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { blue, GetResources } from "../../npm/dist/global/blue/index.js";
+import { be, GetResources } from "../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
@@ -17,7 +17,7 @@ const image = new Tr2ImageRes();
 const stub = composeStubResMan(() => image);
 
 test("PickingMask is an independent native IRoot record with only its own query", () => {
- const mask=blue.classes.CreateInstanceFromName("Tr2Sprite2dPickingMask");
+ const mask=be.classes.CreateInstanceFromName("Tr2Sprite2dPickingMask");
  assert.equal(mask.constructor,Tr2Sprite2dPickingMask);
  assert.equal(Object.getPrototypeOf(Tr2Sprite2dPickingMask.prototype),Object.prototype);
  for(const name of ["SetValues","GetValues","Clone","Traverse","GetResources","OnEvent"])assert.equal(name in mask,false);

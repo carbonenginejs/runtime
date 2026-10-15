@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveTrailsSet.cpp
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { mat4 } from "#math/mat4";
-import { IsMatch, blue } from "#blue";
+import { IsMatch, be } from "#blue";
 import { ResourceRequirement } from "#resource";
 import { TriStorageFlags } from "#consts/graphics";
 import { meta } from "#schema";
@@ -109,7 +109,7 @@ export class EveTrailsSet
     this.Cleanup();
 
     this.geometryResource = this.geometryResPath
-      ? blue.resMan.GetResource(this.geometryResPath, { requirement: ResourceRequirement.GEOMETRY })
+      ? be.resMan.GetResource(this.geometryResPath, { requirement: ResourceRequirement.GEOMETRY })
       : null;
 
     this.geometryResource?.AddNotifyTarget(this);

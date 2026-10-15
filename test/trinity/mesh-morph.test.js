@@ -151,9 +151,9 @@ test("morph preparation rejects invalid values, duplicate names, and unsupported
 
 test("a mesh res path loads its geometry through the resource manager", async () =>
 {
-  const { blue } = await import("../../npm/dist/global/blue/index.js");
+  const { be } = await import("../../npm/dist/global/blue/index.js");
   const { composeStubResMan } = await import("../support/stubResMan.js");
-  const previous = blue.resMan;
+  const previous = be.resMan;
   const requested = [];
   const geometry = CreateGeometry([ "Smile" ]);
   // The slot names the contract, not CjsBlueResMan, so the spy IS the manager.
@@ -181,7 +181,7 @@ test("a mesh res path loads its geometry through the resource manager", async ()
   }
   finally
   {
-    blue.resMan = previous;
+    be.resMan = previous;
   }
 });
 
@@ -192,9 +192,9 @@ test("a mesh res path loads its geometry through the resource manager", async ()
 
 test("a missing mesh falls back to its _lowdetail sibling when the index has one", async () =>
 {
-  const { blue } = await import("../../npm/dist/global/blue/index.js");
+  const { be } = await import("../../npm/dist/global/blue/index.js");
   const { composeStubResMan } = await import("../support/stubResMan.js");
-  const previousManager = blue.resMan;
+  const previousManager = be.resMan;
   const requested = [];
   // The authored mesh is still LOADING - it keeps the mesh as a notify target
   // instead of calling back at once - so the stand-in has something to stand
@@ -210,7 +210,7 @@ test("a missing mesh falls back to its _lowdetail sibling when the index has one
   };
 
   composeStubResMan(answer);
-  blue.paths.SetLocalFileSystem(localFileSystem([ "res:/hull_lowdetail.gr2" ]));
+  be.paths.SetLocalFileSystem(localFileSystem([ "res:/hull_lowdetail.gr2" ]));
   try
   {
     const mesh = new Tr2Mesh();
@@ -231,21 +231,21 @@ test("a missing mesh falls back to its _lowdetail sibling when the index has one
     // Negative control: when the authored file IS here, no
     // sibling is looked for at all.
     requested.length = 0;
-    blue.paths.SetLocalFileSystem(localFileSystem([ "res:/present.gr2", "res:/present_lowdetail.gr2" ]));
+    be.paths.SetLocalFileSystem(localFileSystem([ "res:/present.gr2", "res:/present_lowdetail.gr2" ]));
     new Tr2Mesh().SetMeshResPath("res:/present.gr2");
     assert.deepEqual(requested, [ "res:/present.gr2" ]);
 
     // Second control: with no local file system installed nothing is presumed
     // to exist, so the authored path is requested alone.
     requested.length = 0;
-    blue.paths.SetLocalFileSystem(null);
+    be.paths.SetLocalFileSystem(null);
     new Tr2Mesh().SetMeshResPath("res:/hull.gr2");
     assert.deepEqual(requested, [ "res:/hull.gr2" ]);
   }
   finally
   {
-    blue.paths.SetLocalFileSystem(null);
-    blue.resMan = previousManager;
+    be.paths.SetLocalFileSystem(null);
+    be.resMan = previousManager;
   }
 });
 

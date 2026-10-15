@@ -3,7 +3,7 @@
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { meta } from "#schema";
 import { UnlinkReason } from "../enums.js";
-import { IsMatch, blue, BlueList, IListNotify, ISimTimeRebaseNotify, INotify, CcpTime, CjsBlueClasses } from "#blue";
+import { IsMatch, be, BlueList, IListNotify, ISimTimeRebaseNotify, INotify, CcpTime, CjsBlueClasses } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { Tr2StateMachineState } from "./Tr2StateMachineState.js";
 
@@ -98,7 +98,7 @@ export class Tr2StateMachine
     {
       return;
     }
-    const state = value ? blue.classes.QueryThisInterface(value, Tr2StateMachineState, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    const state = value ? be.classes.QueryThisInterface(value, Tr2StateMachineState, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
     switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
     {
       case BLUELISTEVENT.BELIST_INSERTED:
@@ -115,7 +115,7 @@ export class Tr2StateMachine
             state.Stop();
           }
           this.currentState = this.startState;
-          this._stateStartTime = blue.os.GetCurrentFrameTime();
+          this._stateStartTime = be.os.GetCurrentFrameTime();
           this.currentState?.Start();
           state.Unlink();
         }
@@ -210,7 +210,7 @@ export class Tr2StateMachine
       return;
     }
     this.currentState = this.startState;
-    const now = blue.os.GetCurrentFrameTime();
+    const now = be.os.GetCurrentFrameTime();
     this._machineStartTime = now;
     this._stateStartTime = now;
     if (!this.currentState)
@@ -307,7 +307,7 @@ export class Tr2StateMachine
   @meta.implemented
   GetMachineRunTime()
   {
-    return this._machineStartTime ? CcpTime.timeAsFloat(blue.os.GetCurrentFrameTime() - this._machineStartTime) : 0;
+    return this._machineStartTime ? CcpTime.timeAsFloat(be.os.GetCurrentFrameTime() - this._machineStartTime) : 0;
   }
 
   /**
@@ -318,7 +318,7 @@ export class Tr2StateMachine
   @meta.implemented
   GetStateRunTime()
   {
-    return this._stateStartTime ? CcpTime.timeAsFloat(blue.os.GetCurrentFrameTime() - this._stateStartTime) : 0;
+    return this._stateStartTime ? CcpTime.timeAsFloat(be.os.GetCurrentFrameTime() - this._stateStartTime) : 0;
   }
 
   /**
@@ -374,7 +374,7 @@ export class Tr2StateMachine
       }
       this.currentState = next;
       this.currentState.Start();
-      this._stateStartTime = blue.os.GetCurrentFrameTime();
+      this._stateStartTime = be.os.GetCurrentFrameTime();
       next = this.currentState.Update(0xffffffffffffffffn) ?? null;
     }
   }

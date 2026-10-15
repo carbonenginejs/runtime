@@ -29,7 +29,7 @@ export class CcpTime
   /**
    * The runtime's Blue time epoch: 2026-01-01T00:00:00Z, in Unix milliseconds.
    *
-   * Ours (decided 2026-10-04): every Be::Time in JavaScript - blue.os, scene and
+   * Ours (decided 2026-10-04): every Be::Time in JavaScript - be.os, scene and
    * driver time, curves, Destiny - counts Carbon's 100ns ticks from here, not from
    * 1601. Absolute FILETIME (about 1.3e17 today) is past Number.MAX_SAFE_INTEGER;
    * ticks from 2026 stay exact until mid-2054, and one fixed epoch lets pages,

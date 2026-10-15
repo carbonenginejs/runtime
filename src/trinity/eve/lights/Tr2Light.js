@@ -5,7 +5,7 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { meta } from "#schema";
 import { ResourceRequirement } from "#resource";
-import { IsMatch, blue, IInitialize, INotify } from "#blue";
+import { IsMatch, be, IInitialize, INotify } from "#blue";
 import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
 import { CjsLightData, createCjsLightDataView, setCjsLightDataOwnerValues } from "./CjsLightData.js";
 import {
@@ -360,7 +360,7 @@ export class Tr2Light
       this.lightProfile = null;
       return;
     }
-    this.lightProfile = blue.resMan.GetResource(this.lightProfilePath, {
+    this.lightProfile = be.resMan.GetResource(this.lightProfilePath, {
       ext: "lp",
       requirement: ResourceRequirement.LIGHT_PROFILE
     });
@@ -391,7 +391,7 @@ export class Tr2Light
 }
 
 // Carbon neither registers this nor gives it a chooser.
-blue.enums.Create("trinity.Tr2Light.LIGHT_TYPE", Tr2Light.LightType, {
+be.enums.Create("trinity.Tr2Light.LIGHT_TYPE", Tr2Light.LightType, {
   source: "trinity/trinity/Lights/Tr2Light.h", family: "eve/lights", line: 71
 });
 

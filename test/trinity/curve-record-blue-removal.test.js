@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { blue, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
+import { be, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { Copier } from "../../npm/dist/global/blue/Copier.js";
@@ -17,7 +17,7 @@ test("three key classes construct through Blue without inherited model state", (
 {
   for (const Class of [Tr2MatrixKey, Tr2ScalarExprKey, TriEventKey])
   {
-    const key = blue.classes.CreateInstanceFromName(CjsSchema.getClassName(Class));
+    const key = be.classes.CreateInstanceFromName(CjsSchema.getClassName(Class));
     assert.equal(key.constructor, Class);
     assert.equal(Object.getPrototypeOf(Class.prototype), Class === Tr2ScalarExprKey ? IInitialize.prototype : Object.prototype);
     for (const method of ["SetValues", "GetValues", "Clone", "OnEvent", "__state"]) assert.equal(method in key, false, method);

@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta } from "#schema";
-import { blue, EnumRegistrationType } from "#blue";
+import { be, EnumRegistrationType } from "#blue";
 
 /** Defines a pattern layer's texture, material source, UV modes and slots, and helpers that populate textures and custom masks. */
 @meta.define({ className: "EveSOFDataPatternLayer", family: "eve" })
@@ -182,7 +182,7 @@ export class EveSOFDataPatternLayer
 }
 
 // Native chooser labels and selection; the enum object retains all C++ members.
-blue.enums.Create("trinity.EveSOFDataPatternLayer.ProjectionType", EveSOFDataPatternLayer.ProjectionType, {
+be.enums.Create("trinity.EveSOFDataPatternLayer.ProjectionType", EveSOFDataPatternLayer.ProjectionType, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 457,
   exposedName: "EveSOFDataPatternLayerProjectionType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:1152",
@@ -194,7 +194,7 @@ blue.enums.Create("trinity.EveSOFDataPatternLayer.ProjectionType", EveSOFDataPat
 });
 
 // Native chooser labels and selection; the enum object retains all C++ members.
-blue.enums.Create("trinity.EveSOFDataPatternLayer.MaterialSource", EveSOFDataPatternLayer.MaterialSource, {
+be.enums.Create("trinity.EveSOFDataPatternLayer.MaterialSource", EveSOFDataPatternLayer.MaterialSource, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 465,
   exposedName: "EveSOFDataPatternLayerMaterialSource", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:1185",

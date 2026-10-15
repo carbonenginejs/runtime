@@ -6,7 +6,7 @@ import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { CjsSchema, meta } from "#schema";
-import { IsMatch, blue } from "#blue";
+import { IsMatch, be } from "#blue";
 import { TriBatchType } from "#consts/graphics";
 import { EveChildMesh } from "./EveChildMesh.js";
 import { Tr2GrannyAnimation } from "../../core/animation/Tr2GrannyAnimation.js";
@@ -320,7 +320,7 @@ export class EveChildTurret extends EveChildMesh
     let object = null;
     try
     {
-      object = await blue.resMan.LoadObject(path);
+      object = await be.resMan.LoadObject(path);
     }
     catch
     {

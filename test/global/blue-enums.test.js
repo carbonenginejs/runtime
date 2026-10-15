@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { blue, CjsBlueEnumRegistry, EnumRegistrationType } from "#blue";
+import { be, CjsBlueEnumRegistry, EnumRegistrationType } from "#blue";
 import { CjsSchema } from "#schema";
 
 test("Blue enum names preserve Carbon chooser order, aliases and partial masks", () =>
@@ -100,8 +100,8 @@ test("Blue and schema share registration and resolve qualified fields after regi
         mode: [CjsSchema.meta.type.int32, CjsSchema.meta.type.enum("test.LateEnum"), CjsSchema.meta.blue.persist]
     } });
     assert.throws(() => CjsSchema.getSchema(Host), ReferenceError);
-    const values = blue.enums.RegisterEnum("test.LateEnum", { FIRST: 1, SECOND: 2 });
-    assert.equal(CjsSchema.getEnum(values), blue.enums.GetEnumInfo("test.LateEnum"));
+    const values = be.enums.RegisterEnum("test.LateEnum", { FIRST: 1, SECOND: 2 });
+    assert.equal(CjsSchema.getEnum(values), be.enums.GetEnumInfo("test.LateEnum"));
     assert.equal(CjsSchema.getEnumName(values), "test.LateEnum");
     assert.equal(CjsSchema.getField(Host, "mode").enum.members, values);
     assert.equal(CjsSchema.getSchema(Host).fields[0].enum.identity, "test.LateEnum");
@@ -119,10 +119,10 @@ test("Blue and schema share registration and resolve qualified fields after regi
     assert.equal(CjsSchema.getSchema(LegacyChild).fields[0].enum.identity, "LegacyEnumHost.Choice");
     const facadeValues = { VALUE: 3 };
     CjsSchema.defineEnum(facadeValues, { name: "test.Facade" });
-    assert.equal(blue.enums.GetEnum("test.Facade"), facadeValues);
+    assert.equal(be.enums.GetEnum("test.Facade"), facadeValues);
     const wrapper = { Type: { VALUE: 4 } };
     CjsSchema.defineEnum(wrapper, { name: "test.Wrapped" });
-    assert.equal(CjsSchema.getEnum(wrapper), blue.enums.GetEnumInfo("test.Wrapped"));
+    assert.equal(CjsSchema.getEnum(wrapper), be.enums.GetEnumInfo("test.Wrapped"));
 });
 
 test("the SOF blink enum uses one native-owned object through Blue and its static", async () =>
@@ -130,7 +130,7 @@ test("the SOF blink enum uses one native-owned object through Blue and its stati
     const { EveSOFDataBlinkType } = await import("../../npm/dist/sof/shared/EveSOFDataBlinkType.js");
     const { EveSOFDataHullPlaneSetItem } = await import("../../npm/dist/sof/hull/EveSOFDataHullPlaneSetItem.js");
     const { CjsSchema: schema } = await import("../../npm/dist/global/schema/index.js");
-    const { blue: services } = await import("../../npm/dist/global/blue/index.js");
+    const { be: services } = await import("../../npm/dist/global/blue/index.js");
     const field = schema.getSchema(EveSOFDataHullPlaneSetItem).fields.find(value => value.enum?.enumType === "trinity.EveSOFDataBlinkType.BlinkType");
     assert.ok(field);
     assert.equal(field.enum.members, EveSOFDataBlinkType.BlinkType);
@@ -143,7 +143,7 @@ test("the SOF blink enum uses one native-owned object through Blue and its stati
 test("SOF-owned enum fields resolve native choosers without merging independent types", async () =>
 {
     const { CjsSchema: schema } = await import("../../npm/dist/global/schema/index.js");
-    const { blue: services } = await import("../../npm/dist/global/blue/index.js");
+    const { be: services } = await import("../../npm/dist/global/blue/index.js");
     const cases = [
         ["hull", "EveSOFDataHull", "BuildClass", "buildClass", 5],
         ["hull", "EveSOFDataHull", "ImpactEffectType", "impactEffectType", 3],
@@ -199,7 +199,7 @@ test("SOF-owned enum fields resolve native choosers without merging independent 
 test("shared SOF enum fields resolve through Blue with native reflection labels and signed LOD values", async () =>
 {
     const { CjsSchema: schema } = await import("../../npm/dist/global/schema/index.js");
-    const { blue: services, DictReader } = await import("../../npm/dist/global/blue/index.js");
+    const { be: services, DictReader } = await import("../../npm/dist/global/blue/index.js");
     const cases = [
         ["generic", "EveSOFDataGenericHullCategory", "reflectionMode", "ReflectionMode", "trinity.EntityComponents.ReflectionMode"],
         ["hull", "EveSOFDataHullChild", "lowestLodVisible", "Tr2Lod", "trinity.Tr2Lod"],
@@ -239,7 +239,7 @@ test("shared SOF enum fields resolve through Blue with native reflection labels 
 test("Trinity shares SOF's registered reflection and LOD objects", async () =>
 {
     const { CjsSchema: schema } = await import("../../npm/dist/global/schema/index.js");
-    const { blue: services } = await import("../../npm/dist/global/blue/index.js");
+    const { be: services } = await import("../../npm/dist/global/blue/index.js");
     const cases = [
         ["child/EveChildCloud2", "reflectionMode", "ReflectionMode"],
         ["child/EveChildMesh", "reflectionMode", "ReflectionMode"],
@@ -277,7 +277,7 @@ test("Trinity shares SOF's registered reflection and LOD objects", async () =>
 test("particle enum consumers share the native owner and chooser", async () =>
 {
     const { CjsSchema: schema } = await import("../../npm/dist/global/schema/index.js");
-    const { blue: services } = await import("../../npm/dist/global/blue/index.js");
+    const { be: services } = await import("../../npm/dist/global/blue/index.js");
     const { Tr2ParticleElementDeclarationName: Name } = await import("../../npm/dist/trinity/particle/element/Tr2ParticleElementDeclarationName.js");
     const identity = "trinity.Tr2ParticleElementDeclarationName.Type";
     assert.equal(services.enums.GetEnum(identity), Name.Type);
@@ -317,7 +317,7 @@ test("particle enum consumers share the native owner and chooser", async () =>
 test("post-process enum fields resolve through Blue with Carbon's choosers", async () =>
 {
     const { CjsSchema: schema } = await import("../../npm/dist/global/schema/index.js");
-    const { blue: services } = await import("../../npm/dist/global/blue/index.js");
+    const { be: services } = await import("../../npm/dist/global/blue/index.js");
     // [ module under trinity/postProcess, field, identity, class static, Carbon exposedName ]
     const cases = [
         ["effect/Tr2PPGenericEffect", "quality", "trinity.PostProcess.Quality", "Quality", "PostProcessQuality"],
@@ -357,7 +357,7 @@ test("post-process enum fields resolve through Blue with Carbon's choosers", asy
 test("curve enum fields resolve through Blue, and audio shares Blue's TRIEXTRAPOLATION", async () =>
 {
     const { CjsSchema: schema } = await import("../../npm/dist/global/schema/index.js");
-    const { blue: services } = await import("../../npm/dist/global/blue/index.js");
+    const { be: services } = await import("../../npm/dist/global/blue/index.js");
     // [ module, field, identity, class static ]
     const cases = [
         ["trinity/curves/curve/Tr2CurveScalar", "extrapolationBefore", "trinity.Tr2CurveExtrapolation"],
@@ -405,7 +405,7 @@ test("definition-site Create stamps a hidden immutable name and preserves flat e
     assert.equal(registry.GetValueName("test.Created", 1), "FIRST | ALIAS");
     assert.equal(registry.GetValueNameAsBitMask("test.Created", 3), "FIRST | ALIAS | SECOND");
     assert.equal(CjsSchema.getEnumName(values), "test.Created", "symbol travels across registry instances");
-    assert.equal(blue.enums.HasEnum("test.Created"), false, "local registry must not publish globally");
+    assert.equal(be.enums.HasEnum("test.Created"), false, "local registry must not publish globally");
 });
 
 test("Create and Set reject conflicting registrations without freezing or naming rejected values", () =>

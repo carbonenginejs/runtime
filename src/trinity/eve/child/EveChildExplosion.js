@@ -2,7 +2,7 @@
 //   trinity/trinity/Eve/SpaceObject/Children/EveChildExplosion.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { CjsSchema, meta } from "#schema";
-import { blue, ICopier } from "#blue";
+import { be, ICopier } from "#blue";
 import { addChild, removeChild, clearChildren } from "../../../global/blue/children.js";
 import { EveChildContainer } from "./EveChildContainer.js";
 import { EveEntity } from "../EveEntity.js";
@@ -324,7 +324,7 @@ export class EveChildExplosion extends EveChildContainer
         this._countdownToGlobalExplosionStart -= dt;
         if (this._countdownToGlobalExplosionStart < 0 && !this._globalExplosionInstances.length)
         {
-          const instance = blue.classes.CopyTo(this.globalExplosion);
+          const instance = be.classes.CopyTo(this.globalExplosion);
           if (instance)
           {
             const container = new EveChildContainer();
@@ -351,7 +351,7 @@ export class EveChildExplosion extends EveChildContainer
           this.generatedGlobalExplosions = container;
           for (const globalExplosion of this.globalExplosions)
           {
-            const instance = blue.classes.CopyTo(globalExplosion);
+            const instance = be.classes.CopyTo(globalExplosion);
             if (instance)
             {
               addChild(container, "objects", instance, { listNotify: container });
@@ -537,7 +537,7 @@ export class EveChildExplosion extends EveChildContainer
     {
       localExplosion = this.localExplosions[Math.floor(Math.random() * this.localExplosions.length)];
     }
-    const instance = blue.classes.CopyTo(
+    const instance = be.classes.CopyTo(
       localExplosion,
       null,
       source => this.CopyElement(source),

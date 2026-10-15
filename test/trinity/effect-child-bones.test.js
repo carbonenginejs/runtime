@@ -8,7 +8,7 @@ import {createHash} from "node:crypto";
 import {EveShip2,EveChildContainer,EveUpdateContext,Tr2Mesh} from "../../npm/dist/trinity/index.js";
 import {TriGeometryRes} from "../../npm/dist/resource/index.js";
 import {CjsBlackFormat} from "../../npm/dist/resource/formats/black/index.js";
-import {blue} from "../../npm/dist/global/blue/index.js";
+import {be} from "../../npm/dist/global/blue/index.js";
 import {quat} from "../../npm/dist/global/math/quat.js";
 import {Tr2Lod} from "../../npm/dist/global/consts/trinity.js";
 import "../../npm/dist/audio/index.js";
@@ -29,7 +29,7 @@ const corpus=process.env.EFFECT_CHILD_BONES_CORPUS_DIR;
 test("real Crisis Angel destroyer bone children follow all warp clips through non-orthogonal parents",{
   skip:!corpus&&"set EFFECT_CHILD_BONES_CORPUS_DIR for real angde1 hull and Crisis effect"
 },async t=>{
-  const previous=blue.resMan;blue.resMan=new StubResMan();t.after(()=>{blue.resMan=previous;});
+  const previous=be.resMan;be.resMan=new StubResMan();t.after(()=>{be.resMan=previous;});
   const bytes=await readFile(join(corpus,"angde1_t1.gr2"));
   assert.equal(createHash("md5").update(bytes).digest("hex"),"bb7f52941b4bb48184b8655ac065d863");
   const fx=await readFile(join(corpus,"angde1_t1_crisis_fx.black"));

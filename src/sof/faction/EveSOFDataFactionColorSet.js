@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.cpp:42-52
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:10-56, 153-198
 import { meta } from "#schema";
-import { blue, EnumRegistrationType } from "#blue";
+import { be, EnumRegistrationType } from "#blue";
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
 
@@ -143,7 +143,7 @@ export class EveSOFDataFactionColorSet
 }
 
 // Native chooser labels and descriptions are distinct from C++ member names.
-blue.enums.Create("trinity.SOFDataFactionColorChooser.ColorType", ColorType, {
+be.enums.Create("trinity.SOFDataFactionColorChooser.ColorType", ColorType, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 177,
   exposedName: "EveSOFDataFactionColorSetType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:10",

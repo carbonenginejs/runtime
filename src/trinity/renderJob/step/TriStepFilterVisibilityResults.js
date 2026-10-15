@@ -3,7 +3,7 @@
 import { meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { FilterType } from "../../generated/renderJob/enums.js";
-import { blue } from "#blue";
+import { be } from "#blue";
 
 /** A render step that filters one visibility-result set into another by event and object filter. */
 @meta.define({ className: "TriStepFilterVisibilityResults", family: "renderJob" })

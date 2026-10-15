@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { blue, BlueList, IListNotify, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
+import { be, BlueList, IListNotify, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
 import { StubResMan } from "../support/stubResMan.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { Tr2MeshBase, Tr2Mesh, Tr2InstancedMesh, Tr2MeshArea } from "../../npm/dist/trinity/index.js";
@@ -11,9 +11,9 @@ import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 test("real Crisis mesh retains native area ownership and shared particle initialization", (t) =>
 {
   // Hydration acquires the mesh's geometry; Carbon's manager always answers with a TriGeometryRes.
-  const manager = blue.resMan;
-  blue.resMan = new StubResMan();
-  t.after(() => { blue.resMan = manager; });
+  const manager = be.resMan;
+  be.resMan = new StubResMan();
+  t.after(() => { be.resMan = manager; });
   const values = JSON.parse(readFileSync(new URL("../support/crisisParticleHost.json", import.meta.url), "utf8"));
   const host = CjsSchema.from(values._type, values);
   const mesh = host.mesh;

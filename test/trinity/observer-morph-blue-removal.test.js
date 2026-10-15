@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { blue, BlueList } from "../../npm/dist/global/blue/index.js";
+import { be, BlueList } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
@@ -50,11 +50,11 @@ test("native audio cast controls mute/event dispatch and actual container propag
 
 test("observer dictionary hydration and copying preserve value storage without serializing mute",()=>{
  const observer=new DictReader({declarations:true}).CreateObject({_type:"TriObserverLocal",name:"locator",position:[1,2,3],front:[1,0,0],mute:true});assert.equal(observer.mute,true);
- const copy=new TriObserverLocal();blue.classes.CopyTo(observer,copy);assert.equal(copy.name,"locator");assert.deepEqual([...copy.position],[1,2,3]);assert.equal(copy.mute,false);const written=new DictWriter().WriteObject(observer,{}, {persistOnly:true});assert.equal(Object.hasOwn(written,"mute"),false);
+ const copy=new TriObserverLocal();be.classes.CopyTo(observer,copy);assert.equal(copy.name,"locator");assert.deepEqual([...copy.position],[1,2,3]);assert.equal(copy.mute,false);const written=new DictWriter().WriteObject(observer,{}, {persistOnly:true});assert.equal(Object.hasOwn(written,"mute"),false);
 });
 
 test("morph record retains exact native identity and persistent-only declarations",()=>{
- const value=blue.classes.CreateInstanceFromName("Tr2SerializedMorphAnimation");assert.equal(Object.getPrototypeOf(Tr2SerializedMorphAnimation.prototype),Object.prototype);assert.deepEqual([...mappedInterfaces(Tr2SerializedMorphAnimation)],[Tr2SerializedMorphAnimation]);assert.deepEqual([value.name,value.weight],["",0]);
+ const value=be.classes.CreateInstanceFromName("Tr2SerializedMorphAnimation");assert.equal(Object.getPrototypeOf(Tr2SerializedMorphAnimation.prototype),Object.prototype);assert.deepEqual([...mappedInterfaces(Tr2SerializedMorphAnimation)],[Tr2SerializedMorphAnimation]);assert.deepEqual([value.name,value.weight],["",0]);
  assert.deepEqual(CjsSchema.getSchema(Tr2SerializedMorphAnimation).fields.map(field=>field.name),["name","weight"]);
  for(const key of ["name","weight"])assert.equal(CjsSchema.getField(Tr2SerializedMorphAnimation,key).edit.persistOnly,true);
  for(const name of ["SetValues","GetValues","Clone","OnEvent","Traverse","GetResources"])assert.equal(name in value,false);
@@ -63,7 +63,7 @@ test("morph record retains exact native identity and persistent-only declaration
 
 test("morph record declared hydration, persistence and copy preserve values",()=>{
  const value=new DictReader({declarations:true}).CreateObject({_type:"Tr2SerializedMorphAnimation",name:"Smile",weight:0.75});assert.equal(value.constructor,Tr2SerializedMorphAnimation);
- const copy=new Tr2SerializedMorphAnimation();blue.classes.CopyTo(value,copy);assert.deepEqual([copy.name,copy.weight],["Smile",0.75]);assert.deepEqual(new DictWriter().WriteObject(value,{}, {persistOnly:true}),{name:"Smile",weight:0.75});
+ const copy=new Tr2SerializedMorphAnimation();be.classes.CopyTo(value,copy);assert.deepEqual([copy.name,copy.weight],["Smile",0.75]);assert.deepEqual(new DictWriter().WriteObject(value,{}, {persistOnly:true}),{name:"Smile",weight:0.75});
 });
 
 test("actual mesh constructs and updates serialized morph records",()=>{

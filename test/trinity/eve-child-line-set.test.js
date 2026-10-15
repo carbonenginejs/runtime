@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync} from 'node:fs';
-import {blue, IInitialize, INotify, NotifyModified} from '../../npm/dist/global/blue/index.js';
+import {be, IInitialize, INotify, NotifyModified} from '../../npm/dist/global/blue/index.js';
 import {CjsSchema} from '../../npm/dist/global/schema/index.js';
 import {mat4} from '../../npm/dist/global/math/mat4.js';
 import {quat} from '../../npm/dist/global/math/quat.js';
@@ -23,17 +23,17 @@ function near(actual,expected,epsilon=1e-5) {
   actual.forEach((value,index)=>assert.ok(Math.abs(value-expected[index])<epsilon,`${index}: ${value} != ${expected[index]}`));
 }
 function setup(t) {
-  const context=Tr2RenderContext_GetMainThreadRenderContext(),prior=context.GetRenderContextAL(),manager=blue.resMan;
+  const context=Tr2RenderContext_GetMainThreadRenderContext(),prior=context.GetRenderContextAL(),manager=be.resMan;
   const registered=new Set(TriDevice.GetResourcesRegistered());
   const al=new Tr2RenderContextALStub();al.CreateDevice();al.BeginScene();context.SetRenderContextAL(al);
-  context.SetViewTransform(mat4.create());blue.resMan=new StubResMan();
+  context.SetViewTransform(mat4.create());be.resMan=new StubResMan();
   t.after(()=>{
     const resources=TriDevice.GetResourcesRegistered().filter(x=>!registered.has(x));
     for(const resource of resources) {
       if(resource.constructor===EveChildLineSet||resource.constructor===EveCurveLineSet) resource.Destroy();
       else {resource.ReleaseResources();TriDevice.UnregisterResource(resource);}
     }
-    SharedGeometryBuffer(context).ReleaseResources();context.SetRenderContextAL(prior);blue.resMan=manager;al.Destroy();
+    SharedGeometryBuffer(context).ReleaseResources();context.SetRenderContextAL(prior);be.resMan=manager;al.Destroy();
   });
   const layoutState={_vertexLayout:null,_streams:[],_shaderProgram:{GetInputs(){
     return layoutState._vertexLayout.GetDefinition().map((item,index)=>({...item,registerIndex:index}));

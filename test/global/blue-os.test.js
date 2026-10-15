@@ -4,7 +4,7 @@ import test from "node:test";
 // Everything comes from the built package, and deliberately from ONE copy of
 // it: `blue` is a holder, so a test reaching it through two module instances
 // would register a device on one holder and pump the other.
-import { BeInfo, blue, CjsBlueOS, IBlueEvents, IBlueOS, ISimTimeRebaseNotify } from "../../npm/dist/global/blue/index.js";
+import { BeInfo, be, CjsBlueOS, IBlueEvents, IBlueOS, ISimTimeRebaseNotify } from "../../npm/dist/global/blue/index.js";
 import { gTriDev, Tr2Renderer, TriDevice } from "../../npm/dist/trinity/index.js";
 
 
@@ -22,9 +22,9 @@ test("blue.os starts filled and answers its clock before anything composes it", 
 {
   // The same argument as CjsBluePaths: an unconfigured clock can answer
   // truthfully, where an unconfigured resource manager cannot.
-  assert.ok(blue.os instanceof CjsBlueOS);
+  assert.ok(be.os instanceof CjsBlueOS);
 
-  const first = blue.os.GetActualTime();
+  const first = be.os.GetActualTime();
   // Blue ticks since the runtime epoch, 2026-01-01 UTC (CcpTime
   // BLUE_EPOCH_UNIX_MS): positive after it, and an exact Number until 2054. A
   // missing epoch offset (absolute FILETIME) or a seconds/ticks mix-up lands
@@ -179,24 +179,24 @@ test("the pump drives the device tick, which is what advances the animation cloc
 
   try
   {
-    blue.os.RegisterForTicks(device, TriDevice.TICK_COOKIE);
+    be.os.RegisterForTicks(device, TriDevice.TICK_COOKIE);
 
     assert.equal(Tr2Renderer.GetCurrentFrameCounter(), 0);
     assert.equal(Tr2Renderer.GetAnimationTime(), 0);
 
-    blue.os.PumpOS();
+    be.os.PumpOS();
     assert.equal(Tr2Renderer.GetCurrentFrameCounter(), 1, "one frame per pump");
 
-    blue.os.PumpOS();
+    be.os.PumpOS();
     assert.equal(Tr2Renderer.GetCurrentFrameCounter(), 2);
 
     device.InvalidateAndUnregisterForTicks();
-    blue.os.PumpOS();
+    be.os.PumpOS();
     assert.equal(Tr2Renderer.GetCurrentFrameCounter(), 2, "and none after unregistering");
   }
   finally
   {
-    blue.os.UnregisterForTicks(device, TriDevice.TICK_COOKIE);
+    be.os.UnregisterForTicks(device, TriDevice.TICK_COOKIE);
     gTriDev.device = previousDevice;
   }
 });

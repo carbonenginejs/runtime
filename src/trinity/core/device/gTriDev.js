@@ -14,7 +14,7 @@
 // without anyone's cooperation, and there is never a null for a caller to
 // guard against.
 //
-// The slot is never empty, unlike `blue.resMan`, because a device with no
+// The slot is never empty, unlike `be.resMan`, because a device with no
 // backend is a real and useful thing here - its clock reads zero until
 // something ticks it, which is what every present caller already defaults to.
 // A device that cannot answer is a different problem from a manager that was

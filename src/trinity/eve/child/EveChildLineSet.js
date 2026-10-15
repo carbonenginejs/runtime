@@ -7,7 +7,7 @@ import { EveChildTransform } from "./EveChildTransform.js";
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
-import { blue, EnumRegistrationType, IInitialize, INotify, IsMatch } from "#blue";
+import { be, EnumRegistrationType, IInitialize, INotify, IsMatch } from "#blue";
 import { mat4 } from "#math/mat4";
 import { sph3 } from "#math/sph3";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
@@ -635,7 +635,7 @@ export class EveChildLineSet extends EveChildTransform
 }
 
 // Registered as Carbon registers it (trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet_Blue.cpp:13).
-blue.enums.Create("trinity.EveChildLineSet.lineSetType", EveChildLineSet.lineSetType, {
+be.enums.Create("trinity.EveChildLineSet.lineSetType", EveChildLineSet.lineSetType, {
   source: "trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet.h", family: "eve/child", line: 92,
   exposedName: "LineSetTypes", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet_Blue.cpp:7",

@@ -12,7 +12,7 @@ import {
   convertProjectionCoordToWorldPickRay,
   screenToProjection
 } from "../view/pickRay.js";
-import { blue, CjsScriptCallback, EnumRegistrationType, IBlueEvents, ISimTimeRebaseNotify } from "#blue";
+import { be, CjsScriptCallback, EnumRegistrationType, IBlueEvents, ISimTimeRebaseNotify } from "#blue";
 import { TriStorageFlags } from "#consts/graphics";
 import { ALResult, Failed } from "../../../trinityal/ALResult.js";
 import { DestroyDeviceResources } from "../../../trinityal/Tr2DeviceResourceAL/Tr2BaseDeviceResourceAL.js";
@@ -348,7 +348,7 @@ export class TriDevice
    * THIS IS A CALLBACK, not a method a caller invokes directly. Carbon
    * declares it under an `// IBlueEvents` banner (`TriDevice.h:154-159`) and
    * the device hands ITSELF to `BeOS->RegisterForTicks( this, TRINITY )`
-   * (`TriDevice.cpp:310`), so the pump calls it. `blue.os` is that pump here.
+   * (`TriDevice.cpp:310`), so the pump calls it. `be.os` is that pump here.
    *
    * BOTH TIMES ARE `Be::Time` - 100-nanosecond ticks since the client started,
    * not seconds. Carbon divides the delta by 10,000,000 to get the seconds the
@@ -416,7 +416,7 @@ export class TriDevice
   @meta.implemented
   InvalidateAndUnregisterForTicks()
   {
-    blue.os.UnregisterForTicks(this, TriDevice.TICK_COOKIE);
+    be.os.UnregisterForTicks(this, TriDevice.TICK_COOKIE);
     EveSpaceScene.ReleaseStaticResources();
     Tr2OcclusionBuffer.ReleaseStaticResources();
     DestroyGlobalGpuResourcePool();
@@ -916,7 +916,7 @@ export class TriDevice
 
     this.PrepareDeviceResources();
 
-    blue.os.RegisterForTicks(this, TriDevice.TICK_COOKIE);
+    be.os.RegisterForTicks(this, TriDevice.TICK_COOKIE);
 
     return true;
   }
@@ -944,7 +944,7 @@ export class TriDevice
       this.#hwnd = presentParameters.outputWindow;
       this.width = presentParameters.mode.width;
       this.height = presentParameters.mode.height;
-      blue.os.RegisterForTicks(this, TriDevice.TICK_COOKIE);
+      be.os.RegisterForTicks(this, TriDevice.TICK_COOKIE);
     }
     else
     {
@@ -1342,7 +1342,7 @@ export class TriDevice
 }
 
 // Registered as Carbon registers it (trinity/trinity/TriDevice_Blue.cpp:164).
-blue.enums.Create("trinity.TriDevice.DeviceType", TriDevice.DeviceType, {
+be.enums.Create("trinity.TriDevice.DeviceType", TriDevice.DeviceType, {
   source: "trinity/trinity/TriDevice.h", family: "trinityCore", line: 110,
   exposedName: "TriDeviceType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/TriDevice_Blue.cpp:151",

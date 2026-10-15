@@ -1,5 +1,5 @@
 import { getRegisteredClassName } from "../../../npm/dist/global/compose/className.js";
-import { blue, NotifyModified } from "../../../npm/dist/global/blue/index.js";
+import { be, NotifyModified } from "../../../npm/dist/global/blue/index.js";
 import * as distBlue from "../../../npm/dist/global/blue/index.js";
 import { TriGeometryRes } from "../../../npm/dist/resource/index.js";
 import { Tr2Mesh } from "../../../npm/dist/trinity/index.js";
@@ -630,9 +630,9 @@ test("batched model and LOD proxy replacements share native helper storage", () 
 
 test("real character model subtree survives plain skinned owner hydration and LOD initialization", (t) =>
 {
-  const manager = blue.resMan;
-  blue.resMan = new StubResMan();
-  t.after(() => { blue.resMan = manager; });
+  const manager = be.resMan;
+  be.resMan = new StubResMan();
+  t.after(() => { be.resMan = manager; });
   const modelValues = JSON.parse(readFileSync(new URL("../../support/skinnedModelAsset.json", import.meta.url), "utf8")).object;
   const owner = CjsSchema.from("Tr2IntSkinnedObject", { visualModel: modelValues });
   assert.ok(owner.visualModel instanceof Tr2SkinnedModel);

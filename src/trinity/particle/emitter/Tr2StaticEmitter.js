@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Particle/Tr2StaticEmitter.h
 // Source: trinity/trinity/Particle/Tr2StaticEmitter.cpp
-import { blue, IsMatch } from "#blue";
+import { be, IsMatch } from "#blue";
 import { ResourceRequirement } from "#resource";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
@@ -317,7 +317,7 @@ export class Tr2StaticEmitter
    */
   static GetGeometry(path)
   {
-    return path ? blue.resMan.GetResource(path, { requirement: ResourceRequirement.GEOMETRY }) : null;
+    return path ? be.resMan.GetResource(path, { requirement: ResourceRequirement.GEOMETRY }) : null;
   }
 
 }

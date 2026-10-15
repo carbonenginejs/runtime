@@ -10,7 +10,7 @@ import { SSAOQuality } from "../generated/trinityCore/enums.js";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
 import { PER_OBJECT_VS, Tr2Renderer } from "../core/Tr2Renderer.js";
 import { GpuResourceHandle } from "../core/Tr2GpuResourcePool/GpuResourceHandle.js";
-import { blue } from "#blue";
+import { be } from "#blue";
 
 /** CORTAO's effects and lookup table (`Tr2SSAO.cpp:99, 102, 108`). */
 const CORTAO_EFFECT_PATH = "res:/Graphics/Effect/Managed/Space/System/CORTAO/CORTAO.fx";
@@ -212,7 +212,7 @@ export class Tr2SSAO
       this._cortaoBlurEffect = new Tr2Effect();
       this._cortaoBlurEffect.SetEffectPathName(CORTAO_BLUR_EFFECT_PATH);
 
-      this._cortaoLookupTable = blue.resMan.GetResource(CORTAO_LOOKUP_TABLE_PATH, { requirement: ResourceRequirement.TEXTURE });
+      this._cortaoLookupTable = be.resMan.GetResource(CORTAO_LOOKUP_TABLE_PATH, { requirement: ResourceRequirement.TEXTURE });
 
       this._cortaoInitialized = true;
     }

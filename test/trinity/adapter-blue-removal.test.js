@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { blue, ITriFunction, ITriVectorFunction, ITriQuaternionFunction } from "../../npm/dist/global/blue/index.js";
+import { be, ITriFunction, ITriVectorFunction, ITriQuaternionFunction } from "../../npm/dist/global/blue/index.js";
 import { BlueList } from "../../npm/dist/global/blue/BlueList.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
@@ -23,7 +23,7 @@ for (const [name,Class,Base,table] of cases)
 {
     test(`${name} has native inheritance and exact exposure without model conveniences`, () =>
     {
-        const instance = blue.classes.CreateInstanceFromName(name);
+        const instance = be.classes.CreateInstanceFromName(name);
         assert.equal(instance.constructor,Class);
         assert.equal(Object.getPrototypeOf(Class.prototype),Base.prototype);
         assert.deepEqual([...mappedInterfaces(Class)],table);
@@ -88,10 +88,10 @@ test("declared and values-door hydration use live adapter pointers while Copier 
         CjsSchema.setValues(adapter,{curve:child,value});
         assert.equal(adapter.curve,child);
         assert.deepEqual([...adapter.value],value);
-        const children=[];blue.EnumerateChildren(adapter,item=>children.push(item));
+        const children=[];be.EnumerateChildren(adapter,item=>children.push(item));
         assert.equal(children.length,1);assert.equal(children[0],child);
         const copy=new Class(), storage=copy.value;
-        assert.equal(blue.classes.CopyTo(adapter,copy),copy);
+        assert.equal(be.classes.CopyTo(adapter,copy),copy);
         assert.equal(copy.value,storage);
         assert.deepEqual([...copy.value],value);
         assert.notEqual(copy.curve,child);
@@ -163,7 +163,7 @@ test("modifier fields use native order and remain transient through shared copy 
     const destination=new Tr2VectorFunctionModifier();
     destination.scaleModifier=9;destination.offsetPosition.set([7,8,9]);
     const offset=destination.offsetPosition;
-    assert.equal(blue.classes.CopyTo(source,destination),destination);
+    assert.equal(be.classes.CopyTo(source,destination),destination);
     assert.equal(destination.clientBall,null);assert.equal(destination.scaleModifier,9);assert.equal(destination.offsetPosition,offset);assert.deepEqual([...offset],[7,8,9]);
     assert.equal(destination.useViewSpace,false);assert.equal(destination.useSystemCoordinates,false);
     const persisted=new DictWriter().WriteObject(source,{}, {persistOnly:true});

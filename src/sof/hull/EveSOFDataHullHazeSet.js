@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta } from "#schema";
-import { blue, EnumRegistrationType } from "#blue";
+import { be, EnumRegistrationType } from "#blue";
 
 /** Groups named haze items with spherical-type, visibility, and skinning policy. */
 @meta.define({ className: "EveSOFDataHullHazeSet", family: "eve" })
@@ -47,7 +47,7 @@ export class EveSOFDataHullHazeSet
 }
 
 // Native chooser labels and selection; the enum object retains all C++ members.
-blue.enums.Create("trinity.EveSOFDataHullHazeSet.HazeType", EveSOFDataHullHazeSet.HazeType, {
+be.enums.Create("trinity.EveSOFDataHullHazeSet.HazeType", EveSOFDataHullHazeSet.HazeType, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 861,
   exposedName: "HazeType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:95",

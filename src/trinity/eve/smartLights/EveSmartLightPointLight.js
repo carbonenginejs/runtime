@@ -7,7 +7,7 @@ import { EveSmartLightBaseGroup } from "./EveSmartLightBaseGroup.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta } from "#schema";
 import { ResourceRequirement } from "#resource";
-import { IsMatch, blue } from "#blue";
+import { IsMatch, be } from "#blue";
 import { EveEntity } from "../EveEntity.js";
 import { resolveGroupColor } from "../../eve/smartLights/EveSmartLightBaseGroup.js";
 import { color } from "#math/color";
@@ -313,7 +313,7 @@ export class EveSmartLightPointLight extends EveEntity
       this.lightProfile = null;
       return;
     }
-    this.lightProfile = blue.resMan.GetResource(this.lightProfilePath, {
+    this.lightProfile = be.resMan.GetResource(this.lightProfilePath, {
       ext: "lp",
       requirement: ResourceRequirement.LIGHT_PROFILE
     });

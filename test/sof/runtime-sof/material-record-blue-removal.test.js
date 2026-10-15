@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
-import { blue, IInitialize, INotify, DictReader, DictWriter, Copier, GetResources } from "../../../npm/dist/global/blue/index.js";
+import { be, IInitialize, INotify, DictReader, DictWriter, Copier, GetResources } from "../../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../../npm/dist/global/compose/interface.js";
 import { EveSOFDataParameter as Parameter } from "../../../npm/dist/sof/shared/EveSOFDataParameter.js";
 import { EveSOFDataParameterBool as Bool } from "../../../npm/dist/sof/shared/EveSOFDataParameterBool.js";
@@ -46,7 +46,7 @@ test("plain SOF bases and all typed parameters retain exact native self and base
 {
   for (const Class of [Parameter, AreaMaterial, ...cases.slice(1).map(item => item[0])])
   {
-    const record = blue.classes.CreateInstanceFromName(CjsSchema.getClassName(Class));
+    const record = be.classes.CreateInstanceFromName(CjsSchema.getClassName(Class));
     const typed = Class !== Parameter && Class !== AreaMaterial;
     assert.equal(Object.getPrototypeOf(Class.prototype), typed ? Parameter.prototype : Object.prototype);
     assert.deepEqual([...mappedInterfaces(Class)], typed ? [Class, Parameter] : [Class]);

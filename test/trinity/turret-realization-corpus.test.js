@@ -11,7 +11,7 @@ import { clientResources } from "../support/clientResources.js";
 import "../../npm/dist/sof/index.js"; // data.black hydrates EveSOFData classes.
 import test from "node:test";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
-import { blue, ResourceRequirement } from "../../npm/dist/global/blue/index.js";
+import { be, ResourceRequirement } from "../../npm/dist/global/blue/index.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
 import { TriGeometryRes } from "../../npm/dist/resource/geometry/TriGeometryRes.js";
 import { TriGeometryResSkeletonData } from "../../npm/dist/resource/geometry/TriGeometryResSkeletonData.js";
@@ -83,12 +83,12 @@ async function assets(t)
   const hull=CjsBlackFormat.readPayload(await client.Read("res:/dx9/model/spaceobjectfactory/data.black")).object.hull.find(item=>item.name==="ab1_t1");assert.equal(hull.name,"ab1_t1");
   const turretBytes=await client.Read("res:/dx9/model/turret/energy/pulse/l/pulse_mega_t1.black");
   assert.equal(createHash("sha256").update(turretBytes).digest("hex"),"dc7be4c9cf75bd167b36f807837488ef04cab90a8c5479f86bbd7e34ae65fdd9");
-  const previous=blue.resMan,manager=new StubResMan(),base=manager.GetResource.bind(manager),resources=new Map(),requests=[];
+  const previous=be.resMan,manager=new StubResMan(),base=manager.GetResource.bind(manager),resources=new Map(),requests=[];
   manager.GetResource=(path,options)=>{
     if(options?.requirement===ResourceRequirement.GEOMETRY){requests.push(path);return resources.get(path.toLowerCase())??null;}
     return base(path,options);
   };
-  blue.resMan=manager;t.after(()=>{blue.resMan=previous;});
+  be.resMan=manager;t.after(()=>{be.resMan=previous;});
   const makeResource=(prepared=true)=>{const value=new TriGeometryRes();value.SetPayload(value.ReadGrannyFile(bytes));if(prepared)value.MarkPrepared();return value;};
   const resource=makeResource();resources.set(geometryPath,resource);
   const set=CjsSchema.from("EveTurretSet", CjsBlackFormat.readPayload(turretBytes).object);set.geometryResPath=geometryPath;set.lodLevel=EveTurretSet.LOD.LOD_HIGHEST;set.slotNumber=1;

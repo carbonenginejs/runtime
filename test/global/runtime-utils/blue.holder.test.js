@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { blue, BlueResManQueue, CjsBluePaths, CjsBlueResMan, IBlueEvents, IBlueOS, IBluePaths, IBlueResMan } from "../../../npm/dist/global/blue/index.js";
+import { be, BlueResManQueue, CjsBluePaths, CjsBlueResMan, IBlueEvents, IBlueOS, IBluePaths, IBlueResMan } from "../../../npm/dist/global/blue/index.js";
 import * as blueExports from "../../../npm/dist/global/blue/index.js";
 import { installBlueServices } from "../../../npm/dist/global/blue/blue.js";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
@@ -9,28 +9,28 @@ import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 test("the slots are filled before anything can read them", () =>
 {
   // The holder's body runs before any importer's, so there is never a null to
-  // capture, which is what lets a consumer write blue.resMan.GetResource(...)
+  // capture, which is what lets a consumer write be.resMan.GetResource(...)
   // without a guard. The manager is real by default, as Carbon's is.
-  assert.equal(blue.resMan instanceof CjsBlueResMan, true);
-  assert.ok(CjsSchema.cast(blue.resMan, IBlueResMan), "it is Carbon's IBlueResMan");
-  assert.equal(blue.paths instanceof CjsBluePaths, true);
-  assert.equal(blue.paths instanceof IBluePaths, true);
+  assert.equal(be.resMan instanceof CjsBlueResMan, true);
+  assert.ok(CjsSchema.cast(be.resMan, IBlueResMan), "it is Carbon's IBlueResMan");
+  assert.equal(be.paths instanceof CjsBluePaths, true);
+  assert.equal(be.paths instanceof IBluePaths, true);
 });
 
 test("an unconfigured manager answers: a path it cannot fetch fails on the resource", async () =>
 {
-  const resource = blue.resMan.GetResource("res:/model/holder-unconfigured.gr2");
-  // The load fails on the resource once the read through blue.paths answers.
-  await blue.resMan.Wait();
+  const resource = be.resMan.GetResource("res:/model/holder-unconfigured.gr2");
+  // The load fails on the resource once the read through be.paths answers.
+  await be.resMan.Wait();
 
   assert.equal(resource.IsFailed(), true, "no file system serves res: yet");
-  blue.resMan.Delete("res:/model/holder-unconfigured.gr2");
+  be.resMan.Delete("res:/model/holder-unconfigured.gr2");
 });
 
 test("the manager waits for explicit initialization before registering for ticks", () =>
 {
-  assert.ok(CjsSchema.cast(blue.resMan, IBlueEvents), "it is an IBlueEvents");
-  assert.equal(blue.os.IsRegisteredForTicks(blue.resMan), false);
+  assert.ok(CjsSchema.cast(be.resMan, IBlueEvents), "it is an IBlueEvents");
+  assert.equal(be.os.IsRegisteredForTicks(be.resMan), false);
 });
 
 class HolderManager extends IBlueResMan
@@ -76,8 +76,8 @@ class HolderOS extends IBlueOS
 
 function holderFixture(t)
 {
-  const old = { resMan: new HolderManager(), paths: new IBluePaths(), os: new HolderOS(), sof: blue.sof, audio: blue.audio, running: true };
-  const next = { resMan: new HolderManager(), paths: new IBluePaths(), os: new HolderOS(), sof: blue.sof, audio: blue.audio, running: true };
+  const old = { resMan: new HolderManager(), paths: new IBluePaths(), os: new HolderOS(), sof: be.sof, audio: be.audio, running: true };
+  const next = { resMan: new HolderManager(), paths: new IBluePaths(), os: new HolderOS(), sof: be.sof, audio: be.audio, running: true };
   const previous = installBlueServices(old);
   const cookie = old.os.calls[0].cookie;
   old.os.calls.length = 0;
@@ -92,20 +92,20 @@ function holderFixture(t)
 
 function assertHolder(services)
 {
-  assert.equal(blue.resMan, services.resMan);
-  assert.equal(blue.paths, services.paths);
-  assert.equal(blue.os, services.os);
+  assert.equal(be.resMan, services.resMan);
+  assert.equal(be.paths, services.paths);
+  assert.equal(be.os, services.os);
 }
 
 test("named installation is internal and retains registration owners", t =>
 {
-  const classes = blue.classes;
-  const enums = blue.enums;
+  const classes = be.classes;
+  const enums = be.enums;
   const { old } = holderFixture(t);
   assert.equal("installBlueServices" in blueExports, false);
   assert.deepEqual(installBlueServices({ classes: {}, enums: {} }), old);
-  assert.equal(blue.classes, classes);
-  assert.equal(blue.enums, enums);
+  assert.equal(be.classes, classes);
+  assert.equal(be.enums, enums);
   assert.equal(old.os.calls.length, 0);
 });
 
@@ -284,10 +284,10 @@ test("an uncomposed paths service answers rather than refusing", () =>
   // this" at all. An uncomposed paths service CAN answer "is it here": no -
   // which is what Carbon returns for a file absent from the local machine, and
   // what Tr2Mesh's low-detail probe is already written for.
-  assert.equal(blue.paths.FileExistsLocally("res:/model/ship.gr2"), false);
+  assert.equal(be.paths.FileExistsLocally("res:/model/ship.gr2"), false);
 
   // What it genuinely cannot do without a file system is still refused.
-  assert.throws(() => blue.paths.ResolvePath("res:/model/ship.gr2"),
+  assert.throws(() => be.paths.ResolvePath("res:/model/ship.gr2"),
     /^Error: CjsBluePaths does not implement IBluePaths\.ResolvePath\.$/u);
 });
 
@@ -307,18 +307,18 @@ test("an implementation is installed into the holder, never captured from it", (
   // prototype chain - so it would name the interface instead of itself.
   CjsSchema.define(RecordingResMan, { className: "RecordingResMan", fields: {} });
 
-  const previous = blue.resMan;
-  blue.resMan = new RecordingResMan();
+  const previous = be.resMan;
+  be.resMan = new RecordingResMan();
   try
   {
-    assert.deepEqual(blue.resMan.GetResource("res:/texture/a.dds"), { path: "res:/texture/a.dds" });
-    assert.deepEqual(blue.resMan.asked, [ "res:/texture/a.dds" ]);
+    assert.deepEqual(be.resMan.GetResource("res:/texture/a.dds"), { path: "res:/texture/a.dds" });
+    assert.deepEqual(be.resMan.asked, [ "res:/texture/a.dds" ]);
     // Only what it overrode answers; the rest still refuses, naming the class
     // that failed to honour the interface rather than the interface's file.
-    assert.throws(() => blue.resMan.LoadObject("res:/x.red"),
+    assert.throws(() => be.resMan.LoadObject("res:/x.red"),
       /^Error: RecordingResMan does not implement IBlueResMan\.LoadObject\.$/u);
   }
-  finally { blue.resMan = previous; }
+  finally { be.resMan = previous; }
 });
 
 test("the queue enum keeps Carbon's members and values", () =>

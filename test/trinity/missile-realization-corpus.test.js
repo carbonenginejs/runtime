@@ -5,7 +5,7 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { be } from "../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
@@ -34,10 +34,10 @@ async function realMissile(t)
   assert.equal(createHash("sha256").update(bytes).digest("hex"), "c87e3a53d250ea4f2a7733de25b4d3c6e117cd5fb12083f920557ab340e5baa6");
   if (!managers.has(t))
   {
-    const previous = blue.resMan;
+    const previous = be.resMan;
     managers.set(t, new StubResMan());
-    blue.resMan = managers.get(t);
-    t.after(() => { blue.resMan = previous; managers.delete(t); });
+    be.resMan = managers.get(t);
+    t.after(() => { be.resMan = previous; managers.delete(t); });
   }
   const missile = CjsSchema.from("EveMissile", CjsBlackFormat.readPayload(bytes).object);
   assert.equal(missile.warheads.length, 1, "one authored warhead, not an authored MIRV recipe");
@@ -476,10 +476,10 @@ async function realSvipulTarget(t)
   geometry.SetPayload(geometry.ReadGrannyFile(hull));
   geometry.MarkPrepared();
   assert.equal(managers.has(t), false, "the target installs the test's resource manager before the missile");
-  const previous = blue.resMan;
+  const previous = be.resMan;
   managers.set(t, new StubResMan(path => path.toLowerCase() === hullGeometryPath ? geometry : undefined));
-  blue.resMan = managers.get(t);
-  t.after(() => { blue.resMan = previous; managers.delete(t); });
+  be.resMan = managers.get(t);
+  t.after(() => { be.resMan = previous; managers.delete(t); });
   const sof = await new EveSOF().Register({
     lazyData: { source: async path => { assert.ok(files.has(path), path); return files.get(path); } },
     resources: { exists: async path => files.has(path) }

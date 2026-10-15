@@ -56,7 +56,7 @@ import { ShadowQuality, Tr2RenderReason } from "../../generated/trinityCore/enum
 import { TriFrustum } from "../../core/view/TriFrustum.js";
 import { TriShadowOrthoFrustum } from "./shadows/TriShadowOrthoFrustum.js";
 import { GpuResourceHandle } from "../../core/Tr2GpuResourcePool/GpuResourceHandle.js";
-import { blue } from "#blue";
+import { be } from "#blue";
 import { ExecuteMainThreadActions } from "../../core/continueOnMainThread.js";
 import { ITr2Pickable } from "../../core/ITr2Pickable.js";
 import { EvePickingContext, EvePendingPickingReadback } from "./picking/index.js";
@@ -1754,7 +1754,7 @@ export class EveSpaceScene
     {
       this._staticEnvMapTextureRes = null;
       if (this._staticEnvMapHandle)
-        this._staticEnvMapTextureRes = blue.resMan.GetResource(this.envMapResPath, { requirement: ResourceRequirement.TEXTURE });
+        this._staticEnvMapTextureRes = be.resMan.GetResource(this.envMapResPath, { requirement: ResourceRequirement.TEXTURE });
       if (this.reflectionProbe && this.reflectionProbe.IsValid(renderContext))
       {
         this._envMapTextureRes = this.reflectionProbe.GetReflection();
@@ -1768,7 +1768,7 @@ export class EveSpaceScene
       if (!IsMatch(property, field + "ResPath")) continue;
       this[field] = null;
       if (this[field + "ResPath"])
-        this[field] = blue.resMan.GetResource(this[field + "ResPath"], { requirement: ResourceRequirement.TEXTURE });
+        this[field] = be.resMan.GetResource(this[field + "ResPath"], { requirement: ResourceRequirement.TEXTURE });
     }
     if ((IsMatch(property, "reflectionBackLightingColor") || IsMatch(property, "reflectionBackLightingContrast"))
       && this.reflectionProbe && this.reflectionProbe.IsValid(renderContext))
@@ -1931,7 +1931,7 @@ export class EveSpaceScene
   Initialize(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     this._staticEnvMapTextureRes = this.envMapResPath
-      ? blue.resMan.GetResource(this.envMapResPath, { requirement: ResourceRequirement.TEXTURE })
+      ? be.resMan.GetResource(this.envMapResPath, { requirement: ResourceRequirement.TEXTURE })
       : null;
 
     if (this.reflectionProbe && this.reflectionProbe.IsValid(renderContext))
@@ -1948,15 +1948,15 @@ export class EveSpaceScene
     // cpp:3228-3239: the scene's extra environment maps.
     if (this.envMap1ResPath)
     {
-      this.envMap1 = blue.resMan.GetResource(this.envMap1ResPath, { requirement: ResourceRequirement.TEXTURE });
+      this.envMap1 = be.resMan.GetResource(this.envMap1ResPath, { requirement: ResourceRequirement.TEXTURE });
     }
     if (this.envMap2ResPath)
     {
-      this.envMap2 = blue.resMan.GetResource(this.envMap2ResPath, { requirement: ResourceRequirement.TEXTURE });
+      this.envMap2 = be.resMan.GetResource(this.envMap2ResPath, { requirement: ResourceRequirement.TEXTURE });
     }
     if (this.envMap3ResPath)
     {
-      this.envMap3 = blue.resMan.GetResource(this.envMap3ResPath, { requirement: ResourceRequirement.TEXTURE });
+      this.envMap3 = be.resMan.GetResource(this.envMap3ResPath, { requirement: ResourceRequirement.TEXTURE });
     }
 
     // cpp:3247-3263: every object entity joins the scene's component registry

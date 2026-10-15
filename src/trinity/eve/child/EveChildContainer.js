@@ -39,7 +39,7 @@ import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 import { ITr2SoundEmitterOwner } from "../ITr2SoundEmitterOwner.js";
 import { ITr2ControllerOwner } from "../../controllers/ITr2ControllerOwner.js";
 import { ITr2ActionController } from "../../controllers/ITr2Controller/ITr2ActionController.js";
-import { IsMatch, blue, EnumRegistrationType } from "#blue";
+import { IsMatch, be, EnumRegistrationType } from "#blue";
 import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 
 // Module scratch (read-only zero vector; container recursion forbids mutable
@@ -1641,7 +1641,7 @@ export class EveChildContainer extends EveChildTransform
 }
 
 // Registered as Carbon registers it (trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp:24).
-blue.enums.Create("trinity.EveChildContainer.DisplayQualityModifier", EveChildContainer.DisplayQualityModifier, {
+be.enums.Create("trinity.EveChildContainer.DisplayQualityModifier", EveChildContainer.DisplayQualityModifier, {
   source: "trinity/trinity/Eve/SpaceObject/Children/EveChildContainer.h", family: "eve/child", line: 158,
   exposedName: "SetShader", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp:14",

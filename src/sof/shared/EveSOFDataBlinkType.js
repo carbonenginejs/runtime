@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:301-324
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:70-77, 1140-1147
 import { meta } from "#schema";
-import { blue, EnumRegistrationType } from "#blue";
+import { be, EnumRegistrationType } from "#blue";
 
 /**
  * `EveSOFDataBlinkType::BlinkType` (EveSOFData.h:312-319). Carbon sizes the
@@ -63,7 +63,7 @@ export class EveSOFDataBlinkType
 }
 
 // Native chooser labels and descriptions are distinct from C++ member names.
-blue.enums.Create("trinity.EveSOFDataBlinkType.BlinkType", BlinkType, {
+be.enums.Create("trinity.EveSOFDataBlinkType.BlinkType", BlinkType, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 312,
   exposedName: "EveSOFDataBlinkType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:70",

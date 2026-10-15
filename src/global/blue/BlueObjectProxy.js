@@ -12,12 +12,12 @@
 // THE CLOCK IS REAL TIME. Update receives simulation time and ignores it
 // (BlueObjectProxy.cpp:79, "it's sim time and we're operating in real time
 // here"); both the stamp and the comparison read `BeOS->GetInfo()->mRealTime`,
-// which here is `blue.os.GetInfo().realTime` in Blue ticks.
+// which here is `be.os.GetInfo().realTime` in Blue ticks.
 //
 // NOTE ON DECORATORS: this folder cannot use `@` syntax (see CcpTime.js), so
 // the declarations are made imperatively at the bottom of the file.
 import { CjsSchema, meta } from "#schema";
-import { blue } from "./blue.js";
+import { be } from "./blue.js";
 import { IBlueObjectProxy } from "./IBlueObjectProxy.js";
 import { IUnloadable } from "./IUnloadable.js";
 
@@ -156,7 +156,7 @@ export class BlueObjectProxy extends IBlueObjectProxy
       this._object = this.builder.CreateObject(this.objectMarker, this);
     }
 
-    this._lastTimeUsed = blue.os.GetInfo().realTime;
+    this._lastTimeUsed = be.os.GetInfo().realTime;
 
     return this._object;
   }
@@ -190,7 +190,7 @@ export class BlueObjectProxy extends IBlueObjectProxy
 
     if (this._object && timeout && this.builder)
     {
-      const delta = blue.os.GetInfo().realTime - this._lastTimeUsed;
+      const delta = be.os.GetInfo().realTime - this._lastTimeUsed;
       if (delta > timeout)
       {
         this._OnObjectInvalidated();

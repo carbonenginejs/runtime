@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { be } from "../../npm/dist/global/blue/index.js";
 import {
   gTriDev,
   Tr2RenderContext_GetMainThreadRenderContext,
@@ -97,7 +97,7 @@ async function withLostCapableDevice(body)
   }
   finally
   {
-    blue.os.UnregisterForTicks(device, TriDevice.TICK_COOKIE);
+    be.os.UnregisterForTicks(device, TriDevice.TICK_COOKIE);
     gTriDev.device = previousDevice;
     renderContext.SetRenderContextAL(new Tr2RenderContextALStub());
   }

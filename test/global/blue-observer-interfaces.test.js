@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import {
-  IBlueEventListener, IBluePlacementObserver, IBlueMultiPlacementObserver, PositionDescription, blue
+  IBlueEventListener, IBluePlacementObserver, IBlueMultiPlacementObserver, PositionDescription, be
 } from "@carbonenginejs/runtime/blue";
 import { CjsSchema, meta } from "@carbonenginejs/runtime/schema";
 import { vec3 } from "@carbonenginejs/runtime/math/vec3";
@@ -24,7 +24,7 @@ test("Blue observer interfaces register one identity and only their native abstr
     assert.equal(Type, direct);
     assert.equal(CjsSchema.getClassName(Type), name);
     assert.equal(CjsSchema.GetConstructor(name), Type);
-    assert.equal(blue.classes.GetClassRegistration(name).type, Type);
+    assert.equal(be.classes.GetClassRegistration(name).type, Type);
     assert.equal(CjsSchema.getMethod(Type, method).impl.status, "abstract");
     assert.deepEqual(CjsSchema.getSchema(Type).members, []);
     assert.deepEqual(CjsSchema.getSchema(Type).properties, []);
@@ -63,7 +63,7 @@ test("PositionDescription is an unregistered native-shaped aggregate value recor
   assert.equal(Object.getPrototypeOf(PositionDescription.prototype), Object.prototype);
   assert.equal(CjsSchema.getClassName(PositionDescription), null);
   assert.equal(CjsSchema.GetConstructor("PositionDescription"), null);
-  assert.equal(blue.classes.GetClassRegistration("PositionDescription"), null);
+  assert.equal(be.classes.GetClassRegistration("PositionDescription"), null);
   position.front_z = 1;
   position.pos_x = 3.5;
   assert.equal(new PositionDescription().pos_x, 0);
@@ -188,10 +188,10 @@ test("Blue observer contracts import without domain evaluation or operational st
       assert.equal(CjsSchema.GetConstructor("IBluePlacementObserver"), shared.IBluePlacementObserver);
       assert.equal(CjsSchema.GetConstructor("IBlueMultiPlacementObserver"), shared.IBlueMultiPlacementObserver);
       assert.equal(CjsSchema.GetConstructor("PositionDescription"), null);
-      assert.equal(shared.blue.os.GetInfo().pumpTicksTotal, 0);
-      assert.equal(shared.blue.resMan.GetPendingLoads(), 0);
-      assert.equal(shared.blue.resMan.GetPendingPrepares(), 0);
-      assert.equal(shared.blue.resMan.workerLoader.worker, null);
+      assert.equal(shared.be.os.GetInfo().pumpTicksTotal, 0);
+      assert.equal(shared.be.resMan.GetPendingLoads(), 0);
+      assert.equal(shared.be.resMan.GetPendingPrepares(), 0);
+      assert.equal(shared.be.resMan.workerLoader.worker, null);
     `
   ], {
     cwd: fileURLToPath(new URL("../../", import.meta.url)),

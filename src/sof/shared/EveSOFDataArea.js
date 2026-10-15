@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:352-383
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:113-145
 import { meta } from "#schema";
-import { blue, EnumRegistrationType } from "#blue";
+import { be, EnumRegistrationType } from "#blue";
 
 /**
  * `EveSOFDataArea::AreaType` (EveSOFData.h:363-377). TYPE_MAX and
@@ -58,7 +58,7 @@ export class EveSOFDataArea
 }
 
 // Native chooser labels and descriptions are distinct from C++ member names.
-blue.enums.Create("trinity.EveSOFDataArea.AreaType", AreaType, {
+be.enums.Create("trinity.EveSOFDataArea.AreaType", AreaType, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 363,
   exposedName: "EveSOFDataAreaType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:113",

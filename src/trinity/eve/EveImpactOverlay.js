@@ -14,7 +14,7 @@ import {
   IMPACT_ARMOR_SIZE_MAX
 } from "./overlays/EveDamageOverlay.js";
 import { ITr2GenericEmitterUpdateArguments } from "../particle/ITr2GenericEmitter/index.js";
-import { blue } from "#blue";
+import { be } from "#blue";
 import { CcpTime } from "../../global/blue/CcpTime.js";
 import { EveDamageOverlayOwnerInfo } from "./overlays/EveDamageOverlayOwnerInfo.js";
 

@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { blue, BlueList, NotifyModified } from "../../npm/dist/global/blue/index.js";
+import { be, BlueList, NotifyModified } from "../../npm/dist/global/blue/index.js";
 import { addChild, removeChild, clearChildren } from "../../npm/dist/global/blue/children.js";
 import { EveSpaceScene, EveEffectRoot2 } from "../../npm/dist/trinity/index.js";
 import { ShadowQuality } from "../../npm/dist/trinity/generated/trinityCore/enums.js";
@@ -11,7 +11,7 @@ const assets = JSON.parse(readFileSync(new URL("../support/sceneAssets.json", im
 test("real nebula scene changes update only the notified texture and release emptied paths", t =>
 {
   const requests = [];
-  t.mock.method(blue.resMan, "GetResource", path => { const provider = { path }; requests.push(provider); return provider; });
+  t.mock.method(be.resMan, "GetResource", path => { const provider = { path }; requests.push(provider); return provider; });
   const scene = new EveSpaceScene();
   for (const key of ["envMapResPath", "envMap1ResPath", "envMap2ResPath"]) scene[key] = assets.a01.object[key];
   scene.Initialize();
@@ -38,7 +38,7 @@ test("real nebula scene changes update only the notified texture and release emp
 
 test("scene probe and shadow edits retain native property-specific branches", t =>
 {
-  t.mock.method(blue.resMan, "GetResource", path => ({ path }));
+  t.mock.method(be.resMan, "GetResource", path => ({ path }));
   const scene = new EveSpaceScene(), reflection = {}, calls = [];
   let valid = true;
   scene.reflectionProbe = { IsValid: () => valid, GetReflection: () => reflection,

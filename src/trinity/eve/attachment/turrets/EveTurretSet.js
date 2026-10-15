@@ -37,7 +37,7 @@ import { TriGeometryRes } from "#resource/geometry/TriGeometryRes";
 import { Tr2GrannyAnimation } from "../../../core/animation/Tr2GrannyAnimation.js";
 import { Tr2Vector4Parameter } from "../../../shader/parameter/Tr2Vector4Parameter.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
-import { IsMatch, blue, EnumRegistrationType, ResourceRequirement, CjsBlueClasses } from "#blue";
+import { IsMatch, be, EnumRegistrationType, ResourceRequirement, CjsBlueClasses } from "#blue";
 import { TriGeometryResSkeletonData } from "#resource/geometry/TriGeometryResSkeletonData";
 
 /** Carbon BoundingSphereTransform (Utilities/BoundingSphere.cpp:70-81):
@@ -1165,7 +1165,7 @@ export class EveTurretSet extends EveEntity
     this.Cleanup();
     if (this.lodLevel !== EveTurretSet.LOD.LOD_DISABLED && this.lodLevel !== EveTurretSet.LOD.LOD_HIGHEST) return;
     if (!this.geometryResPath) return;
-    const resource = blue.resMan.GetResource(this.geometryResPath, { requirement: ResourceRequirement.GEOMETRY });
+    const resource = be.resMan.GetResource(this.geometryResPath, { requirement: ResourceRequirement.GEOMETRY });
     this.geometryResource = resource;
     if (resource) resource.AddNotifyTarget(this);
   }
@@ -1176,7 +1176,7 @@ export class EveTurretSet extends EveEntity
   SetAmbientEffect(ambientEffect)
   {
     const previous = this._ambientEffect;
-    if (previous && blue.classes.QueryThisInterface(previous, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) previous.UnRegister(this.GetComponentRegistry());
+    if (previous && be.classes.QueryThisInterface(previous, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) previous.UnRegister(this.GetComponentRegistry());
     this._ambientEffect = ambientEffect;
     this.InitializeAmbientEffect();
   }
@@ -1188,7 +1188,7 @@ export class EveTurretSet extends EveEntity
   {
     const registry = this.GetComponentRegistry();
     const previous = this.generatedDistributedAmbientEffect;
-    if (previous && blue.classes.QueryThisInterface(previous, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) previous.UnRegister(registry);
+    if (previous && be.classes.QueryThisInterface(previous, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) previous.UnRegister(registry);
     this.generatedDistributedAmbientEffect = null;
     if (!this.ambientEffect) return;
     mat4.identity(this._ambientOffsetMatrix);
@@ -1199,7 +1199,7 @@ export class EveTurretSet extends EveEntity
     for (const turret of this._turrets)
       generated.AddInstanceTransform(EveTurretSet._unitScale, turret.localQuaternion, turret.localPosition);
     const ambient = this.GetAmbientEffectOrGeneratedEffect();
-    if (ambient && blue.classes.QueryThisInterface(ambient, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) ambient.Register(registry);
+    if (ambient && be.classes.QueryThisInterface(ambient, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) ambient.Register(registry);
     if (this.state === EveTurretSet.State.STATE_FIRING)
     {
       ambient.SetControllerVariable("TurretState", EveTurretSet.State.STATE_TARGETING);
@@ -1652,9 +1652,9 @@ export class EveTurretSet extends EveEntity
   {
     const registry = this.GetComponentRegistry();
     const previous = this._firingEffect;
-    if (previous && blue.classes.QueryThisInterface(previous, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) previous.UnRegister(registry);
+    if (previous && be.classes.QueryThisInterface(previous, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) previous.UnRegister(registry);
     this._firingEffect = effect;
-    if (effect && blue.classes.QueryThisInterface(effect, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) effect.Register(registry);
+    if (effect && be.classes.QueryThisInterface(effect, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) effect.Register(registry);
     this.InitializeFiringEffect();
   }
 
@@ -2031,9 +2031,9 @@ export class EveTurretSet extends EveEntity
     {
       registry.RegisterComponent(EveComponentType.ShadowCaster, this);
       const firing = this.firingEffect;
-      if (firing && blue.classes.QueryThisInterface(firing, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) firing.Register(registry);
+      if (firing && be.classes.QueryThisInterface(firing, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) firing.Register(registry);
       const ambient = this.GetAmbientEffectOrGeneratedEffect();
-      if (ambient && blue.classes.QueryThisInterface(ambient, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) ambient.Register(registry);
+      if (ambient && be.classes.QueryThisInterface(ambient, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) ambient.Register(registry);
     }
   }
 
@@ -2049,9 +2049,9 @@ export class EveTurretSet extends EveEntity
     if (registry)
     {
       const firing = this.firingEffect;
-      if (firing && blue.classes.QueryThisInterface(firing, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) firing.UnRegister(registry);
+      if (firing && be.classes.QueryThisInterface(firing, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) firing.UnRegister(registry);
       const ambient = this.GetAmbientEffectOrGeneratedEffect();
-      if (ambient && blue.classes.QueryThisInterface(ambient, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) ambient.UnRegister(registry);
+      if (ambient && be.classes.QueryThisInterface(ambient, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) ambient.UnRegister(registry);
     }
   }
 
@@ -2567,7 +2567,7 @@ export class EveTurretSet extends EveEntity
 }
 
 // Registered as Carbon registers it (trinity/trinity/Eve/Turret/EveTurretSet_Blue.cpp:27).
-blue.enums.Create("trinity.EveTurretSet.LOD", EveTurretSet.LOD, {
+be.enums.Create("trinity.EveTurretSet.LOD", EveTurretSet.LOD, {
   source: "trinity/trinity/Eve/Turret/EveTurretSet.h", family: "eve/attachment/turrets", line: 235,
   exposedName: "EveTurretSetLOD", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/Turret/EveTurretSet_Blue.cpp:11",
@@ -2580,7 +2580,7 @@ blue.enums.Create("trinity.EveTurretSet.LOD", EveTurretSet.LOD, {
 });
 
 // Carbon neither registers this nor gives it a chooser.
-blue.enums.Create("trinity.EveTurretSet.State", EveTurretSet.State, {
+be.enums.Create("trinity.EveTurretSet.State", EveTurretSet.State, {
   source: "trinity/trinity/Eve/Turret/EveTurretSet.h", family: "eve/attachment/turrets", line: 245
 });
 

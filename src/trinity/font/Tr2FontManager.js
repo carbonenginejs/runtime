@@ -44,7 +44,7 @@ import { g_textureAtlasMan } from "../core/Tr2TextureAtlasMan.js";
 import { Tr2Renderer } from "../core/Tr2Renderer.js";
 import { PixelFormat } from "#consts/render-context";
 import { TriStorageFlags } from "#consts/graphics";
-import { blue, IBlueEvents } from "#blue";
+import { be, IBlueEvents } from "#blue";
 import { meta } from "#schema";
 
 /**
@@ -118,7 +118,7 @@ export class Tr2FontManager
   {
     g_fontManager = new Tr2FontManager();
 
-    blue.os.RegisterForTicks(g_fontManager, s_cookie);
+    be.os.RegisterForTicks(g_fontManager, s_cookie);
   }
 
   /**
@@ -136,7 +136,7 @@ export class Tr2FontManager
   {
     if (g_fontManager)
     {
-      blue.os.UnregisterForTicks(g_fontManager, s_cookie);
+      be.os.UnregisterForTicks(g_fontManager, s_cookie);
       g_fontManager.ClearCachedGlyphs();
     }
 

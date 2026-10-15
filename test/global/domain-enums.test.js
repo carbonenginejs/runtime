@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { be } from "../../npm/dist/global/blue/index.js";
 import { CJS_ENUM_NAME } from "../../npm/dist/global/blue/enums/CjsBlueEnumRegistry.js";
 
 // Existing public definitions and class-static aliases must acquire the name
@@ -264,7 +264,7 @@ test("definition-site enum identity: " + name, async () =>
   let values = module;
   for (const member of exported.split(".")) values = values[member];
   assert.equal(typeof values, "object");
-  assert.equal(blue.enums.Get(name), values);
+  assert.equal(be.enums.Get(name), values);
   const property = Object.getOwnPropertyDescriptor(values, CJS_ENUM_NAME);
   assert.equal(property?.value, name);
   assert.equal(property.enumerable, false);

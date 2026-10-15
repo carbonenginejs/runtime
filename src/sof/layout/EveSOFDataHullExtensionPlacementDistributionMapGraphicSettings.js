@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta } from "#schema";
-import { blue } from "#blue";
+import { be } from "#blue";
 import { IEveSOFDataHullExtensionPlacementDistribution } from "./IEveSOFDataHullExtensionPlacementDistribution.js";
 
 /** Tests map graphic-quality settings as a condition for a hull-extension placement. */
@@ -36,7 +36,7 @@ export class EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings exte
 
 // Native chooser labels and selection; the enum object retains all C++ members.
 // Carbon reuses this chooser but declares this enum type independently.
-blue.enums.Create("trinity.EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings.DisplayQualityModifier", EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings.DisplayQualityModifier, {
+be.enums.Create("trinity.EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings.DisplayQualityModifier", EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings.DisplayQualityModifier, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 2017,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:52",
   chooser: [

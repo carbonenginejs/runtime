@@ -6,7 +6,7 @@ import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";
 import { CjsSchema, meta } from "#schema";
-import { blue } from "#blue";
+import { be } from "#blue";
 import { EveEntity } from "../../EveEntity.js";
 import { vec3 } from "#math/vec3";
 
@@ -250,7 +250,7 @@ export class PlayFX extends EveEntity
         firingEffect.SetFiringTransform(OFFSET_EFFECT_WS, AGENT_TARGET_WS);
 
         // PlayFX.cpp:125-128: Be::Time ticks against m_sec seconds.
-        const diff = blue.os.GetActualTime() - agent.fxStartTime;
+        const diff = be.os.GetActualTime() - agent.fxStartTime;
         const duration = this.sec * 10000000;
         if (diff > duration)
         {
@@ -351,7 +351,7 @@ export class PlayFX extends EveEntity
 
   /**
    * Grows or shrinks the firing-effect list (PlayFX.cpp:262-300). Carbon uses
-   * BeClasses->CloneTo, represented by blue.classes.CloneTo, rather than a
+   * BeClasses->CloneTo, represented by be.classes.CloneTo, rather than a
    * method on the authored effect. A failed clone leaves the count unchanged.
    * Adapted: CloneTo returns the copy or null instead of bool plus an out pointer.
    */
@@ -376,7 +376,7 @@ export class PlayFX extends EveEntity
       const diff = agentSize - this._count;
       for (let i = 0; i < diff; i++)
       {
-        const newFx = blue.classes.CloneTo(this.firingEffect);
+        const newFx = be.classes.CloneTo(this.firingEffect);
         if (!newFx)
         {
           return;

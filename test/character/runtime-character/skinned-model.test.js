@@ -1,8 +1,8 @@
 // Tr2SkinnedModel and the mesh rig binding it drives, on real classes: Tr2Mesh over a payload TriGeometryRes acquired
-// through blue.resMan (Tr2SkinnedModel.cpp, Tr2MeshBase.cpp:120-282).
+// through be.resMan (Tr2SkinnedModel.cpp, Tr2MeshBase.cpp:120-282).
 import assert from "node:assert/strict";
 import test from "node:test";
-import { blue } from "../../../npm/dist/global/blue/index.js";
+import { be } from "../../../npm/dist/global/blue/index.js";
 import { mat4 } from "../../../npm/dist/global/math/mat4.js";
 import { TriGeometryRes } from "../../../npm/dist/resource/index.js";
 import { Tr2Mesh, Tr2MeshArea } from "../../../npm/dist/trinity/index.js";
@@ -83,9 +83,9 @@ test("Tr2MeshBase.GetBounds skins each joint's box by its bone, and keeps the pl
 
 test("Tr2SkinnedModel acquires its geometry, selects the named skeleton, binds its meshes and skins its box", (t) =>
 {
-  const manager = blue.resMan;
-  blue.resMan = new StubResMan();
-  t.after(() => { blue.resMan = manager; });
+  const manager = be.resMan;
+  be.resMan = new StubResMan();
+  t.after(() => { be.resMan = manager; });
 
   const model = new Tr2SkinnedModel();
   model.SetSkeletonName("body");

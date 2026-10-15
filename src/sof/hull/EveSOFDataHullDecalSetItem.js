@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta } from "#schema";
-import { blue, EnumRegistrationType } from "#blue";
+import { be, EnumRegistrationType } from "#blue";
 import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.js";
 import { EveSOFDataLogoSet } from "../shared/EveSOFDataLogoSet.js";
 import { quat } from "#math/quat";
@@ -111,7 +111,7 @@ export class EveSOFDataHullDecalSetItem
 }
 
 // Native chooser labels and selection; the enum object retains all C++ members.
-blue.enums.Create("trinity.EveSOFDataHullDecalSetItem.Usage", EveSOFDataHullDecalSetItem.Usage, {
+be.enums.Create("trinity.EveSOFDataHullDecalSetItem.Usage", EveSOFDataHullDecalSetItem.Usage, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 1350,
   exposedName: "DecalUsage", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:1027",

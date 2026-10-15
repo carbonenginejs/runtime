@@ -4,7 +4,7 @@ import test from "node:test";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../../npm/dist/global/compose/interface.js";
 import { Copier, DictReader, IInitialize } from "../../../npm/dist/global/blue/index.js";
-import { blue } from "../../../npm/dist/global/blue/index.js";
+import { be } from "../../../npm/dist/global/blue/index.js";
 import { GetResources } from "../../../npm/dist/global/blue/getResources.js";
 import {
   EveSOF, EveSOFDataPointLightAttachment, EveSOFDataSpotLightAttachment,
@@ -78,7 +78,7 @@ test("declared parent references and lists construct and traverse typed light re
     assert.equal(light.constructor, Light);
     assert.equal(light.intensity, 7);
     const children = [];
-    blue.EnumerateChildren(parent, child => children.push(child));
+    be.EnumerateChildren(parent, child => children.push(child));
     assert.ok(children.includes(light));
     const visited = [];
     // Carbon's Find walk (Find.cpp:352-396): explicit stack, each object once.
@@ -88,11 +88,11 @@ test("declared parent references and lists construct and traverse typed light re
         if (seen.has(child)) continue;
         seen.add(child);
         visited.push(child);
-        blue.EnumerateChildren(child, next => stack.push(next));
+        be.EnumerateChildren(child, next => stack.push(next));
     }
     assert.equal(visited.filter(child => child === light).length, 1);
     const leafChildren = [];
-    blue.EnumerateChildren(light, child => leafChildren.push(child));
+    be.EnumerateChildren(light, child => leafChildren.push(child));
     assert.deepEqual(leafChildren, []);
     assert.deepEqual(GetResources(light), []);
   }

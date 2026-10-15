@@ -45,7 +45,7 @@ import { Tr2PPTaaEffect } from "../../postProcess/effect/Tr2PPTaaEffect.js";
 import "../../core/volumetrics/Tr2VolumetricsRenderer.js";
 // A cycle with EveSpaceScene.js; each side reads the other only inside methods.
 import { EveSpaceScene } from "./EveSpaceScene.js";
-import { blue } from "#blue";
+import { be } from "#blue";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 import "../../postProcess/effect/Tr2PPEffect.js";
 import "#consts/renderContext/formats";

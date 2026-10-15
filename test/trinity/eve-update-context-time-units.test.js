@@ -1,13 +1,13 @@
 import { composeStubResMan } from "../support/stubResMan.js";
 
-// Texture parameters ask blue.resMan for their texture as Carbon asks BeResMan,
+// Texture parameters ask be.resMan for their texture as Carbon asks BeResMan,
 // which always answers with the typed resource; the stub does the same. Import
 // declarations are hoisted, so this runs after every import in the file.
 composeStubResMan();
 
 import assert from "node:assert/strict";
 import test from "node:test";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { be } from "../../npm/dist/global/blue/index.js";
 import { PixelFormat } from "../../npm/dist/global/consts/renderContext/index.js";
 import {
   EveSpaceScene, EveSpaceSceneRenderDriver, EveTurretFiringFX, EveUpdateContext,
@@ -81,7 +81,7 @@ test("device render jobs preserve tick timestamps through the real scene context
     driver.Destroy();
     target.Destroy();
     device.InvalidateAndUnregisterForTicks();
-    blue.os.UnregisterForTicks(device, TriDevice.TICK_COOKIE);
+    be.os.UnregisterForTicks(device, TriDevice.TICK_COOKIE);
     gTriDev.device = previousDevice;
     Tr2RenderContext_GetMainThreadRenderContext().SetRenderContextAL(previousAL);
   });
@@ -138,7 +138,7 @@ test("firing cleanup passes raw Blue ticks into each fresh EveUpdateContext", t 
     return update.call(this, context);
   });
   let ticks = 25_000_000;
-  t.mock.method(blue.os, "GetCurrentFrameTime", () => ticks);
+  t.mock.method(be.os, "GetCurrentFrameTime", () => ticks);
   firing.CleanUp();
   ticks = 50_000_000;
   firing.CleanUp();

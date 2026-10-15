@@ -8,7 +8,7 @@ import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { IsMatch, blue } from "#blue";
+import { IsMatch, be } from "#blue";
 import { CjsSchema, meta } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -162,7 +162,7 @@ export class EveChildRef extends EveChildTransform
     const request = ++this._loadRequest;
     if (!path) return false;
 
-    Promise.resolve(blue.resMan.LoadObject(path)).then(object =>
+    Promise.resolve(be.resMan.LoadObject(path)).then(object =>
     {
       if (request !== this._loadRequest) return;
       const child = CjsSchema.cast(object, EveSpaceObjectChild);

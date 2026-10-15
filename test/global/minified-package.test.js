@@ -9,8 +9,8 @@ test("the min entry is ESM with renamed constructors and stable Blue registratio
     assert.equal(manifest.exports["./min"], "./dist/carbonenginejs.min.js");
     assert.ok(manifest.sideEffects.includes("./dist/carbonenginejs.min.js"));
     assert.notEqual(runtime.EveShip2.name, "EveShip2", "keepNames must not mask identity dependencies");
-    assert.equal(runtime.blue.classes.GetClassRegistration("EveShip2").type, runtime.EveShip2);
-    assert.equal(runtime.blue.classes.CreateInstanceFromName("EveShip2").constructor, runtime.EveShip2);
+    assert.equal(runtime.be.classes.GetClassRegistration("EveShip2").type, runtime.EveShip2);
+    assert.equal(runtime.be.classes.CreateInstanceFromName("EveShip2").constructor, runtime.EveShip2);
     const error = new runtime.CjsError("CJS_MINIFIED_PROOF", "Minified error identity");
     assert.equal(error.name, "CjsError");
 });

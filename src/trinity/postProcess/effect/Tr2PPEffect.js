@@ -1,7 +1,7 @@
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPEffect.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema postProcess/Tr2PPEffect.json.).
 import { meta } from "#schema";
-import { blue } from "#blue";
+import { be } from "#blue";
 import { Quality } from "../../generated/postProcess/enums.js";
 
 /** Provides the shared display gate for a post-process effect. */

@@ -28,7 +28,7 @@ export class CjsCharacterLibraryBuilder
     }
 
     /**
-     * Builds a hydrated library from cFSD documents read through blue.resMan
+     * Builds a hydrated library from cFSD documents read through be.resMan
      * by default or one caller-supplied byte source, plus supplied documents.
      *
      * The runtime ships no FSD schemas. Each caller-supplied reader in

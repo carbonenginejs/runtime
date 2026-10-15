@@ -2,7 +2,7 @@ import { getRegisteredClassName } from "../../npm/dist/global/compose/className.
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { blue, DictReader, DictWriter, Copier, BlueList, ITriFunction, ITriScalarFunction, ITriCurveLength, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
+import { be, DictReader, DictWriter, Copier, BlueList, ITriFunction, ITriScalarFunction, ITriCurveLength, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { TriPerlinCurve } from "../../npm/dist/trinity/curves/curve/TriPerlinCurve.js";
@@ -60,7 +60,7 @@ test("Perlin canonical N roundtrips through n storage while phase and cache rema
 test("Distance native notification uses frame seconds and required vector calls", t =>
 {
   const curve = new Tr2DistanceTracker(), calls = [];
-  t.mock.method(blue.os, "GetCurrentFrameTime", () => 30000000);
+  t.mock.method(be.os, "GetCurrentFrameTime", () => 30000000);
   curve.sourceObject = { GetValueAt(time, out) { calls.push(time); out.set([1, 0, 0]); } };
   curve.targetObject = { GetValueAt(time, out) { calls.push(time); out.set([4, 0, 0]); } };
   curve.direction.set([2, 0, 0]);

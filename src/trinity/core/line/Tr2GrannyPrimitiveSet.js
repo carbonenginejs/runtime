@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Tr2GrannyPrimitiveSet_Blue.cpp
 // Hand-maintained after promotion from generated intake.
 import { meta } from "#schema";
-import { blue, IInitialize, IsMatch, ResourceRequirement } from "#blue";
+import { be, IInitialize, IsMatch, ResourceRequirement } from "#blue";
 import { Tr2CpuUsage, Tr2GpuUsage, Topology } from "#consts/render-context";
 import { decodeTangentFrame } from "#math/tangent";
 import { Tr2PrimitiveSet } from "./Tr2PrimitiveSet.js";
@@ -97,7 +97,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
       this.ReleaseCachedData(null);
       return;
     }
-    const resource = blue.resMan.GetResource(this.grannyResPath, { requirement: ResourceRequirement.GEOMETRY });
+    const resource = be.resMan.GetResource(this.grannyResPath, { requirement: ResourceRequirement.GEOMETRY });
     this.grannyRes = resource;
     // Carbon registers a notify target here; a resource that has already
     // finished calls RebuildCachedData at once.

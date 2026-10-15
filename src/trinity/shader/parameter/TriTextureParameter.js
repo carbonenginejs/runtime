@@ -9,7 +9,7 @@ import { ITriEffectParameter } from "./ITriEffectParameter.js";
 
 import { ResourceRequirement } from "#resource";
 import { Tr2EffectResource, Tr2EffectParameterAnnotation } from "#resource/shader";
-import { blue, CjsResource } from "#blue";
+import { be, CjsResource } from "#blue";
 import { Tr2ColorSpace } from "#consts/render-context";
 import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectTextureParameter } from "./ITriEffectTextureParameter.js";
@@ -434,18 +434,18 @@ export class TriTextureParameter extends CjsParameter
 
     if (this.resourcePath)
     {
-      const request = path => blue.resMan.GetResource(path, { requirement: ResourceRequirement.TEXTURE });
+      const request = path => be.resMan.GetResource(path, { requirement: ResourceRequirement.TEXTURE });
 
       // Carbon cpp:214-228, asking the same service: BePaths->FileExistsLocally
-      // is blue.paths.FileExistsLocally, which in a browser means "already
+      // is be.paths.FileExistsLocally, which in a browser means "already
       // fetched".
-      if (!blue.paths.FileExistsLocally(this.resourcePath))
+      if (!be.paths.FileExistsLocally(this.resourcePath))
       {
         const dot = this.resourcePath.lastIndexOf(".");
         if (dot !== -1)
         {
           const lowResPath = `${this.resourcePath.slice(0, dot)}_lowdetail${this.resourcePath.slice(dot)}`;
-          if (blue.paths.FileExistsLocally(lowResPath))
+          if (be.paths.FileExistsLocally(lowResPath))
           {
             this._lowResResource = request(lowResPath);
             this._Listen(this._lowResResource);

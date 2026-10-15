@@ -4,7 +4,7 @@ import { removeChild, addChild } from "../../npm/dist/global/blue/children.js";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
-import { blue, CjsBlueResMan } from "../../npm/dist/global/blue/index.js";
+import { be, CjsBlueResMan } from "../../npm/dist/global/blue/index.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { EveChildTurret, EveTurretSet, EveTurretFiringFX, EveStretch3, EveLocalPositionCurve, EveUpdateContext, EveComponentRegistry, EveComponentType, TriFrustum, Tr2ControllerEventHandler, Tr2ActionSetValue, Tr2DynamicBinding } from "../../npm/dist/trinity/index.js";
@@ -36,11 +36,11 @@ test("synthetic child turrets load separate real pulse FX graphs; real set accep
 {
   const fx=await fixture("pulse_mega_fx.black",2483,"ec84e9ee2b9d9af295dff3ad7ad79551e8785027fd30a5121d4d92eaa31a1eb2");
   const turretBytes=await fixture("pulse_mega_t1.black",2290,"dc7be4c9cf75bd167b36f807837488ef04cab90a8c5479f86bbd7e34ae65fdd9");
-  const previous=blue.resMan; let reads=0;
+  const previous=be.resMan; let reads=0;
   const manager=new CjsBlueResMan({source:{Read(path){assert.equal(path,fxPath);reads++;return fx;}}});
   manager.RegisterObjectBuilder("red",bytes=>CjsBlackFormat.createObjectBuilder(bytes));
   const handles=new StubResMan(); manager.GetResource=handles.GetResource.bind(handles);
-  blue.resMan=manager; t.after(()=>{blue.resMan=previous;});
+  be.resMan=manager; t.after(()=>{be.resMan=previous;});
   const children=[new EveChildTurret(),new EveChildTurret()];
   for(const child of children){child.firingEffectResPath=fxPath;child.Initialize();}
   for(let i=0;i<100 && children.some(child=>child._pendingFiringEffectCalls);i++)
@@ -77,9 +77,9 @@ const fixtureResourceManagers=new WeakMap();
 function useFixtureResources(t)
 {
   if (fixtureResourceManagers.has(t)) return fixtureResourceManagers.get(t);
-  const previous=blue.resMan, manager=new StubResMan();
-  fixtureResourceManagers.set(t,manager);blue.resMan=manager;
-  t.after(()=>{blue.resMan=previous;fixtureResourceManagers.delete(t);});
+  const previous=be.resMan, manager=new StubResMan();
+  fixtureResourceManagers.set(t,manager);be.resMan=manager;
+  t.after(()=>{be.resMan=previous;fixtureResourceManagers.delete(t);});
   return manager;
 }
 
@@ -252,7 +252,7 @@ test("real pulse cleanup stops a started muzzle and creates a fresh context on e
     });
   }
   let frameTicks=25000000;
-  t.mock.method(blue.os,"GetCurrentFrameTime",()=>frameTicks);
+  t.mock.method(be.os,"GetCurrentFrameTime",()=>frameTicks);
   effect.CleanUp();
   assert.deepEqual(phases.map(phase=>phase.method),["StopFiring","UpdateAsynchronous","UpdateSynchronous"]);
   assert.equal(phases[0].wasFiring,true);assert.equal(phases[0].muzzleWasStarted,true);
@@ -340,7 +340,7 @@ for (const [method, args] of [
   test(`real pulse FX ${method} skips its non-controller Stretch2`, {skip}, async t =>
   {
     const bytes=await fixture("pulse_mega_fx.black",2483,"ec84e9ee2b9d9af295dff3ad7ad79551e8785027fd30a5121d4d92eaa31a1eb2");
-    const previous=blue.resMan;blue.resMan=new StubResMan();t.after(()=>{blue.resMan=previous;});
+    const previous=be.resMan;be.resMan=new StubResMan();t.after(()=>{be.resMan=previous;});
     const effect=CjsSchema.from("EveTurretFiringFX", CjsBlackFormat.readPayload(bytes).object);
     assert.equal(CjsSchema.getClassName(effect.stretch[0].constructor),"EveStretch2");
     assert.doesNotThrow(()=>effect[method](...args));
@@ -554,7 +554,7 @@ test("real Breacher FX forwards variable writes and start to its authored Stretc
   const bytes=await client.Read(CLIENT_PATHS["breacherheavy_fx.black"]);
   assert.equal(bytes.length,5470);
   assert.equal(createHash("sha256").update(bytes).digest("hex"),"706005c7b2ad7026a3ce933c4578db4e11cf4461bd95c196b87eb5e4d72da282");
-  const previous=blue.resMan;blue.resMan=new StubResMan();t.after(()=>{blue.resMan=previous;});
+  const previous=be.resMan;be.resMan=new StubResMan();t.after(()=>{be.resMan=previous;});
   const effect=CjsSchema.from("EveTurretFiringFX", CjsBlackFormat.readPayload(bytes).object);
   const stretch=effect.stretch[0];
   assert.equal(CjsSchema.getClassName(stretch.constructor),"EveStretch3");

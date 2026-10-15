@@ -2,7 +2,7 @@ import { Tr2RenderContextALStub, Tr2TextureAL } from "../../npm/dist/trinityal/i
 import test from "node:test";
 import assert from "node:assert/strict";
 import { buildVta } from "../support/vtaFixture.js";
-import { blue } from "../../npm/dist/global/blue/blue.js";
+import { be } from "../../npm/dist/global/blue/blue.js";
 import { Tr2TextureAnimation } from "../../npm/dist/trinity/core/animation/Tr2TextureAnimation.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/core/context/Tr2RenderContext.js";
 import { CjsVtaFormat } from "../../npm/dist/resource/formats/vta/CjsVtaFormat.js";
@@ -26,7 +26,7 @@ function fixture()
 function setup(t)
 {
   const textures = [];
-  t.mock.method(blue.resMan, "ReadResource", async () => fixture());
+  t.mock.method(be.resMan, "ReadResource", async () => fixture());
   t.mock.method(Tr2RenderContext_GetMainThreadRenderContext(), "CreateTexture", (desc, options) =>
   {
     const al = new Tr2RenderContextALStub();
@@ -219,7 +219,7 @@ test("reload cancellation and load failure cannot publish stale frames", async t
 {
   const { animation, textures } = setup(t);
   let resolve;
-  t.mock.method(blue.resMan, "ReadResource", () => new Promise(done => { resolve = done; }));
+  t.mock.method(be.resMan, "ReadResource", () => new Promise(done => { resolve = done; }));
   const pending = animation.ReadData();
   await Promise.resolve();
   animation.resPath = "";
@@ -230,7 +230,7 @@ test("reload cancellation and load failure cannot publish stale frames", async t
   assert.equal(textures.length, 0);
   const errors = [];
   t.mock.method(console, "error", (...args) => errors.push(args));
-  t.mock.method(blue.resMan, "ReadResource", async () => { throw new Error("unavailable"); });
+  t.mock.method(be.resMan, "ReadResource", async () => { throw new Error("unavailable"); });
   animation.resPath = "res:/missing.vta";
   assert.equal(await animation.ReadData(), false);
   assert.equal(animation._asyncState.error.message, "unavailable");
@@ -256,7 +256,7 @@ test("loaded VTA preserves duplicate channel names and returns the first texture
     grids: [0, 1].map(() => ({ name: "density", format: 61, encoding: 0, width: 1, height: 1, depth: 1 })),
     frames: [[[1], [2]]]
   });
-  t.mock.method(blue.resMan, "ReadResource", async () => bytes);
+  t.mock.method(be.resMan, "ReadResource", async () => bytes);
   await animation.ReadData();
   animation.AdvanceTime(0);
   assert.deepEqual(animation.GetChannelNames(), ["density", "density"]);

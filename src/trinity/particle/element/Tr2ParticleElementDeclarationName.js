@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Particle/Tr2ParticleElementDeclaration.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema particle/Tr2ParticleElementDeclarationName.json).
 import { meta } from "#schema";
-import { blue, EnumRegistrationType } from "#blue";
+import { be, EnumRegistrationType } from "#blue";
 
 /** Tr2ParticleElementDeclarationName (particle) - generated from schema shapeHash 115c80e5.... */
 @meta.define({ className: "Tr2ParticleElementDeclarationName", family: "particle" })
@@ -75,7 +75,7 @@ export class Tr2ParticleElementDeclarationName
 }
 
 
-blue.enums.Create("trinity.Tr2ParticleElementDeclarationName.Type", Tr2ParticleElementDeclarationName.Type, {
+be.enums.Create("trinity.Tr2ParticleElementDeclarationName.Type", Tr2ParticleElementDeclarationName.Type, {
   source: "trinity/trinity/Particle/Tr2ParticleElementDeclaration.h", family: "particle", line: 22,
   exposedName: "PARTICLE_ELEMENT_TYPE", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Particle/Tr2ParticleElementDeclaration_Blue.cpp:6",

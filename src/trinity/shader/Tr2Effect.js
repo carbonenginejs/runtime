@@ -13,7 +13,7 @@ import { Tr2EffectParam } from "./material/Tr2EffectParam.js";
 import { Tr2EffectPassParameters } from "./material/Tr2EffectPassParameters.js";
 import { Tr2EffectTechniqueInputs } from "./material/Tr2EffectTechniqueInputs.js";
 import { ResourceRequirement } from "#resource";
-import { blue, BlueList, IInitialize, INotify, IListNotify } from "#blue";
+import { be, BlueList, IInitialize, INotify, IListNotify } from "#blue";
 import { ReadValues } from "../../global/blue/values.js";
 import { ITriEffectParameter } from "./parameter/ITriEffectParameter.js";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -850,7 +850,7 @@ export class Tr2Effect extends Tr2Material
     // A caller that assigned a resource by hand owns it; do not replace it.
     if (this.effectResource !== null) return;
 
-    const resource = blue.resMan.GetResource(this.actualEffectFilePath, {
+    const resource = be.resMan.GetResource(this.actualEffectFilePath, {
       requirement: ResourceRequirement.SHADER
     });
 

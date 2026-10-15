@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayCurveSet.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayCurveSet_Blue.cpp
 import { CjsSchema, meta } from "#schema";
-import { blue, CcpTime } from "#blue";
+import { be, CcpTime } from "#blue";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 import { ITr2Updateable } from "../../core/ITr2Updateable.js";
@@ -72,7 +72,7 @@ export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
     if (this.syncToRange && this.rangeName)
     {
       this._duration = owner.GetRangeDuration(this.curveSetName, this.rangeName);
-      this._startTime = blue.os.GetCurrentFrameTime();
+      this._startTime = be.os.GetCurrentFrameTime();
       this._prevTime = this._startTime;
       controller.RegisterUpdateable(this);
     }
@@ -118,7 +118,7 @@ export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
     {
       return true;
     }
-    const now = blue.os.GetCurrentFrameTime();
+    const now = be.os.GetCurrentFrameTime();
     if (now === this._startTime)
     {
       return true;
@@ -136,7 +136,7 @@ export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
   @meta.implemented
   Update(_realTime, _simTime)
   {
-    this._prevTime = blue.os.GetCurrentFrameTime();
+    this._prevTime = be.os.GetCurrentFrameTime();
   }
 
 }

@@ -49,7 +49,7 @@ import { BeObjectMetadata } from "./BlueObjectMetadata.js";
 import { BLUE_OBJECT_METADATA_KEY } from "./IBlueObjectMetadata.js";
 import { getDictionaryDeclarations, readDictionaryValue, writeDictionaryValue } from "./dictionaryDeclarations.js";
 import { getClassRegistration } from "./classes/registry.js";
-// Exposure is read from the table directly, not through blue.classes: the standalone
+// Exposure is read from the table directly, not through be.classes: the standalone
 // format readers import this file and must load without the blue singleton
 // (test/resource/format-standalone.test.js). Carbon's DictReader has no IList query.
 import { mappedInterfaces } from "../compose/interface.js";

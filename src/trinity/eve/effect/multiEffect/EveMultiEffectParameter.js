@@ -6,7 +6,7 @@ import { CjsSchema, meta } from "#schema";
 import { EveEffectRoot2 } from "../../spaceObject/EveEffectRoot2.js";
 import { EveSpaceObject2 } from "../../spaceObject/EveSpaceObject2.js";
 import { ParameterType } from "../../../generated/eve/enums.js";
-import { IsMatch, blue } from "#blue";
+import { IsMatch, be } from "#blue";
 
 /**
  * One named slot in an EveMultiEffect, holding the object bound to that name

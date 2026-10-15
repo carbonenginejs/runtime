@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { CjsBlueResMan } from "../../npm/dist/global/blue/CjsBlueResMan.js";
-import { blue, IBlueResMan } from "../../npm/dist/global/blue/index.js";
+import { be, IBlueResMan } from "../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { RegisterShaderResources, ShaderResourceExtensions, Tr2EffectRes } from "../../npm/dist/resource/shader/index.js";
 import { Tr2Effect } from "../../npm/dist/trinity/shader/index.js";
@@ -21,15 +21,15 @@ function withGlobalManager(run)
   // the handle, not container decoding.
   const source = { Read() { return new Uint8Array(0); } };
   const resourceManager = RegisterShaderResources(new CjsBlueResMan({ source }));
-  const previous = blue.resMan;
-  blue.resMan = resourceManager;
+  const previous = be.resMan;
+  be.resMan = resourceManager;
   try
   {
     return run(resourceManager);
   }
   finally
   {
-    blue.resMan = previous;
+    be.resMan = previous;
     SetEffectPathDefaults(null);
   }
 }
@@ -179,8 +179,8 @@ test("a hand-assigned resource is not replaced, and is not fetched for", () =>
   // The intent it was reaching for is real and survives: a caller who assigns
   // the resource owns it, and Tr2Effect must not go looking. So assign one,
   // leave the manager uncomposed, and let the throw prove nothing asked.
-  const previous = blue.resMan;
-  blue.resMan = new IBlueResMan();
+  const previous = be.resMan;
+  be.resMan = new IBlueResMan();
   SetEffectPathDefaults({ platformName: "webgpu" });
 
   try
@@ -196,7 +196,7 @@ test("a hand-assigned resource is not replaced, and is not fetched for", () =>
   }
   finally
   {
-    blue.resMan = previous;
+    be.resMan = previous;
     SetEffectPathDefaults(null);
   }
 });
@@ -222,7 +222,7 @@ test("the slot names the contract, not the implementation", () =>
   // This replaces a test that asserted SetGlobal refused anything that was not
   // a CjsBlueResMan. That check was the problem: it nailed every consumer to one
   // concrete class, so no stub, recording or alternative manager could be
-  // installed without subclassing the real one. blue.resMan is typed by what
+  // installed without subclassing the real one. be.resMan is typed by what
   // it must answer, which is the whole point of naming the contract.
   class MinimalResMan extends IBlueResMan
   {
@@ -232,14 +232,14 @@ test("the slot names the contract, not the implementation", () =>
   // and an unregistered one answers with its nearest registered ancestor.
   CjsSchema.define(MinimalResMan, { className: "MinimalResMan", fields: {} });
 
-  const previous = blue.resMan;
-  blue.resMan = new MinimalResMan();
+  const previous = be.resMan;
+  be.resMan = new MinimalResMan();
   try
   {
-    assert.equal(blue.resMan.GetResource("res:/x"), null);
-    assert.throws(() => blue.resMan.LoadObject("res:/x.red"), /does not implement IBlueResMan\.LoadObject/u);
+    assert.equal(be.resMan.GetResource("res:/x"), null);
+    assert.throws(() => be.resMan.LoadObject("res:/x.red"), /does not implement IBlueResMan\.LoadObject/u);
   }
-  finally { blue.resMan = previous; }
+  finally { be.resMan = previous; }
 });
 
 test("container bytes handed to SetPayload load through DoLoad", () =>

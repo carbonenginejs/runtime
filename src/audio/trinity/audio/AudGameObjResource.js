@@ -1,5 +1,5 @@
 // Source: audio/src/AudGameObjResource.h + AudGameObjResource.cpp
-import { blue, CjsBlueOS, IsMatch } from "#blue";
+import { be, CjsBlueOS, IsMatch } from "#blue";
 import { CjsWwiseSoundEngineStub } from "../../../global/audio/CjsWwiseSoundEngineStub.js";
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/AudGameObjResource.json.
@@ -1166,13 +1166,13 @@ export class AudGameObjResource
   /** The Wwise-shaped call surface is the currently installed Blue audio slot. */
   static get backend()
   {
-    return blue.audio;
+    return be.audio;
   }
 
   /** Legacy attachment writes the same slot; detaching restores a fresh silent engine. */
   static set backend(value)
   {
-    blue.audio = value ?? new CjsWwiseSoundEngineStub();
+    be.audio = value ?? new CjsWwiseSoundEngineStub();
   }
 
 }

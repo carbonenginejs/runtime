@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Particle/Tr2ParticleElementDeclaration.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema particle/Tr2ParticleElementData.json).
 import { meta } from "#schema";
-import { blue } from "#blue";
+import { be } from "#blue";
 
 /** Tr2ParticleElementData (particle) - generated from schema shapeHash ca640653.... */
 @meta.define({ className: "Tr2ParticleElementData", family: "particle" })
@@ -65,6 +65,6 @@ export class Tr2ParticleElementData
 
 
 // This native enum has no Blue chooser or enum exposure registration.
-blue.enums.Create("trinity.Tr2ParticleElementData.BufferType", Tr2ParticleElementData.BufferType, {
+be.enums.Create("trinity.Tr2ParticleElementData.BufferType", Tr2ParticleElementData.BufferType, {
   source: "trinity/trinity/Particle/Tr2ParticleElementDeclaration.h", family: "particle", line: 62
 });

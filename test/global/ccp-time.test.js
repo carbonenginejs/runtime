@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { blue, CcpDateTime, CcpTime } from "../../npm/dist/global/blue/index.js";
+import { be, CcpDateTime, CcpTime } from "../../npm/dist/global/blue/index.js";
 
 
 // core/CcpTime.cpp:271-286. The threshold is a strict `>`, so the constant
@@ -21,8 +21,8 @@ test("TimeIsUTC splits absolute Blue UTC from a stopwatch reading", () =>
   // silently takes the wrong branch.
   // Runtime-epoch times (ticks since 2026-01-01) read as stopwatch time, so
   // TimeAsDouble keeps their full precision; absolute FILETIME still reads UTC.
-  assert.equal(CcpTime.timeIsUTC(blue.os.GetActualTime()), false);
-  assert.equal(CcpTime.timeIsUTC(Number(CcpTime.timeToFileTime(blue.os.GetActualTime()))), true);
+  assert.equal(CcpTime.timeIsUTC(be.os.GetActualTime()), false);
+  assert.equal(CcpTime.timeIsUTC(Number(CcpTime.timeToFileTime(be.os.GetActualTime()))), true);
 });
 
 
@@ -59,9 +59,9 @@ test("TimeAsDouble truncates a UTC stamp to milliseconds", () =>
 // it is not rediscovered later as a bug in this function.
 test("a present-day UTC tick count is already quantised before TimeAsDouble sees it", () =>
 {
-  // Absolute FILETIME, as Carbon holds it; blue.os itself counts from the
+  // Absolute FILETIME, as Carbon holds it; be.os itself counts from the
   // runtime epoch precisely to avoid this (CcpTime BLUE_EPOCH_UNIX_MS).
-  const now = Number(CcpTime.timeToFileTime(blue.os.GetActualTime()));
+  const now = Number(CcpTime.timeToFileTime(be.os.GetActualTime()));
 
   assert.ok(now > Number.MAX_SAFE_INTEGER, "Blue UTC exceeds exact integer range");
 

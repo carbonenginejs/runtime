@@ -7,7 +7,7 @@ import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { IsMatch, blue } from "#blue";
+import { IsMatch, be } from "#blue";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { EveChildPlug } from "./EveChildPlug.js";
 import { CjsSchema, meta } from "#schema";
@@ -236,7 +236,7 @@ export class EveChildSocket extends EveChildTransform
     let object = null;
     try
     {
-      if (path) object = await blue.resMan.LoadObject(path);
+      if (path) object = await be.resMan.LoadObject(path);
     }
     catch
     {

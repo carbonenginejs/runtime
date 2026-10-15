@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
-import { blue, IInitialize, INotify, NotifyModified } from "../../../npm/dist/global/blue/index.js";
+import { be, IInitialize, INotify, NotifyModified } from "../../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import { finalizeReaderObject } from "../../../npm/dist/global/schema/hydration.js";
 import { Tr2InteriorPlaceable, Tr2Model } from "../../../npm/dist/character/index.js";
@@ -18,11 +18,11 @@ const tick = () => new Promise(resolve => setImmediate(resolve));
 
 function setup(t, resolve)
 {
-  const old = blue.resMan;
-  blue.resMan = new StubResMan(resolve);
+  const old = be.resMan;
+  be.resMan = new StubResMan(resolve);
   const owners = [];
-  t.after(() => { for (const owner of owners) owner.Destroy(); blue.resMan = old; });
-  return { manager: blue.resMan, owner() { const value = new Tr2InteriorPlaceable(); owners.push(value); return value; } };
+  t.after(() => { for (const owner of owners) owner.Destroy(); be.resMan = old; });
+  return { manager: be.resMan, owner() { const value = new Tr2InteriorPlaceable(); owners.push(value); return value; } };
 }
 
 function deferred()
@@ -61,7 +61,7 @@ test("reader initialization uses nominal lifecycle after path population and pub
   assert.equal(CjsSchema.cast(value, IInitialize), value);
   assert.equal(CjsSchema.cast(value, INotify), value);
   assert.equal(CjsSchema.cast(result, WodPlaceableRes), result);
-  const clone = t.mock.method(blue.classes, "CloneTo");
+  const clone = t.mock.method(be.classes, "CloneTo");
   finalizeReaderObject(value);
   assert.equal(manager.requests.length, 1);
   assert.equal(manager.requests[0].path, value.placeableResPath);
@@ -109,7 +109,7 @@ test("coalesced path and unique edits reload once; unrelated edits and equal wri
 {
   const resource = new WodPlaceableRes(), { owner, manager } = setup(t, () => resource), value = owner();
   value.placeableRes = new WodPlaceableRes();
-  const clone = t.mock.method(blue.classes, "CloneTo"), notify = t.mock.method(value, "OnModified");
+  const clone = t.mock.method(be.classes, "CloneTo"), notify = t.mock.method(value, "OnModified");
   CjsSchema.setValues(value, { isUnique: true, placeableResPath: "res:/new.black" });
   assert.equal(manager.requests.length, 1); assert.equal(clone.mock.callCount(), 0);
   await tick(); assert.equal(value.placeableRes, resource);
@@ -147,12 +147,12 @@ test("wrong nominal type and failed current load leave null; stale rejection pre
   const { owner } = setup(t, () => new Tr2Model()), value = owner();
   value.placeableResPath = "res:/wrong.black";
   assert.equal(await value.LoadPlaceableRes(), null);
-  blue.resMan.resolve = () => { throw new Error("missing placeable fixture"); };
+  be.resMan.resolve = () => { throw new Error("missing placeable fixture"); };
   assert.equal(await value.LoadPlaceableRes(), null);
   const older = deferred(), current = new WodPlaceableRes();
-  blue.resMan.resolve = () => older.promise;
+  be.resMan.resolve = () => older.promise;
   const request = value.LoadPlaceableRes();
-  blue.resMan.resolve = () => current;
+  be.resMan.resolve = () => current;
   value.SetPlaceableResPath("res:/current.black"); await tick();
   older.reject(new Error("superseded"));
   assert.equal(await request, null); assert.equal(value.placeableRes, current);
@@ -162,9 +162,9 @@ test("real object manager caches a builder while repeated placeable loads constr
 {
   const { owner } = setup(t), value = owner();
   let reads = 0;
-  blue.resMan = new CjsBlueResMan({ source: { Read() { ++reads; return new Uint8Array([1]); } } });
+  be.resMan = new CjsBlueResMan({ source: { Read() { ++reads; return new Uint8Array([1]); } } });
   class Format { static read() { return { visualModel: { _type: "Tr2Model", name: "authored", meshes: [] }, nearFadeDistance: 81 }; } }
-  blue.resMan.RegisterExtension("placeable", CjsLoadingObject, { Format, Target: WodPlaceableRes });
+  be.resMan.RegisterExtension("placeable", CjsLoadingObject, { Format, Target: WodPlaceableRes });
   value.placeableResPath = "res:/fixture.placeable";
   const first = await value.LoadPlaceableRes();
   first.visualModel.name = "edited";
@@ -199,8 +199,8 @@ test("mesh prepare completion follows low-detail fallback, survives purge, and r
   const low = geometry(), full = geometry(20), replacement = geometry(30);
   low.MarkPreparing(); full.MarkLoading(); replacement.MarkPreparing();
   setup(t, path => path.includes("lowdetail") ? low : path.includes("replacement") ? replacement : full);
-  blue.paths.SetLocalFileSystem(localFileSystem(["res:/hull_lowdetail.gr2"]));
-  t.after(() => blue.paths.SetLocalFileSystem(null));
+  be.paths.SetLocalFileSystem(localFileSystem(["res:/hull_lowdetail.gr2"]));
+  t.after(() => be.paths.SetLocalFileSystem(null));
   const value = new Tr2Mesh(); value.SetMeshResPath("res:/hull.gr2");
   assert.equal(value.IsLoading(), true); low.MarkPrepared(); assert.equal(value.IsLoading(), false);
   assert.equal(full.IsLoading(), true, "full-detail request must not hold the fallback fence");

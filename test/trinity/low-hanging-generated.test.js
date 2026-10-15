@@ -21,7 +21,7 @@ import { EveChildInstanceContainer } from "../../npm/dist/trinity/eve/child/EveC
 import { EveChildPlug } from "../../npm/dist/trinity/eve/child/EveChildPlug.js";
 import { EveChildParticleSphere } from "../../npm/dist/trinity/eve/child/EveChildParticleSphere.js";
 import { EveChildRef } from "../../npm/dist/trinity/eve/child/EveChildRef.js";
-import { blue, BlueList } from "../../npm/dist/global/blue/index.js";
+import { be, BlueList } from "../../npm/dist/global/blue/index.js";
 import { EveChildSocket } from "../../npm/dist/trinity/eve/child/EveChildSocket.js";
 import { EveCloudVolumeBall } from "../../npm/dist/trinity/eve/child/EveCloudVolumeBall.js";
 import { EveSpaceObjectChild } from "../../npm/dist/trinity/eve/child/EveSpaceObjectChild.js";
@@ -386,7 +386,7 @@ test("EveChildBulletStorm rebuilds locator instances and transitions its clip sp
 
 test("EveChildExplosion schedules local and global Carbon explosion children", () =>
 {
-  // Both spawns copy their source through blue.classes.CopyTo (cpp:228, 474),
+  // Both spawns copy their source through be.classes.CopyTo (cpp:228, 474),
   // so the sources are real registered children and the spawned ones are copies.
   const local = new EveChildContainer();
   local.name = "local";
@@ -471,8 +471,8 @@ test("generated child wrappers propagate Carbon controller and socket calls", as
   ref.resPath = "res:/child.red";
   // Carbon's LoadChild goes through BeResMan->LoadObject (EveChildRef.cpp:349);
   // ours resolves later, so the child joins after the load settles.
-  const loadObject = blue.resMan.LoadObject;
-  blue.resMan.LoadObject = () => Promise.resolve(child);
+  const loadObject = be.resMan.LoadObject;
+  be.resMan.LoadObject = () => Promise.resolve(child);
   try
   {
     ref.Reload();
@@ -480,7 +480,7 @@ test("generated child wrappers propagate Carbon controller and socket calls", as
   }
   finally
   {
-    blue.resMan.LoadObject = loadObject;
+    be.resMan.LoadObject = loadObject;
   }
   assert.equal(ref.child, child);
   ref.StartControllers();
@@ -495,13 +495,13 @@ test("generated child wrappers propagate Carbon controller and socket calls", as
   socketPlug.externalParameters.push(external);
   const socket = new EveChildSocket();
   socket.resPath = "res:/plug.red";
-  blue.resMan.LoadObject = () => Promise.resolve(socketPlug);
+  be.resMan.LoadObject = () => Promise.resolve(socketPlug);
   try
   {
     socket.Reload();
     await new Promise(resolve => setImmediate(resolve));
   }
-  finally { blue.resMan.LoadObject = loadObject; }
+  finally { be.resMan.LoadObject = loadObject; }
   assert.equal(socket.parameters.length, 1);
   socket.parameters[0].value = "updated";
   socket.parameters[0].Propagate();

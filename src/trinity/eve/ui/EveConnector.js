@@ -5,7 +5,7 @@
 import { meta } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { blue, EnumRegistrationType } from "#blue";
+import { be, EnumRegistrationType } from "#blue";
 
 
 const Y_AXIS = vec3.fromValues(0, 1, 0);
@@ -427,7 +427,7 @@ export class EveConnector
 }
 
 // Registered as Carbon registers it (trinity/trinity/Eve/UI/EveConnector_Blue.cpp:34).
-blue.enums.Create("trinity.EveConnector.ConnectorType", EveConnector.ConnectorType, {
+be.enums.Create("trinity.EveConnector.ConnectorType", EveConnector.ConnectorType, {
   source: "trinity/trinity/Eve/UI/EveConnector.h", family: "eve/ui", line: 24,
   exposedName: "EveConnectorStyle", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/UI/EveConnector_Blue.cpp:6",

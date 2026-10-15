@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { ICustomPersist, blue } from "@carbonenginejs/runtime/blue";
+import { ICustomPersist, be } from "@carbonenginejs/runtime/blue";
 import { CjsSchema, meta } from "@carbonenginejs/runtime/schema";
 import { ICustomPersist as DirectPersist } from "../../src/global/blue/ICustomPersist.js";
 import { mappedInterfaces } from "../../src/global/compose/interface.js";
@@ -14,7 +14,7 @@ test("ICustomPersist registers one identity with exactly its four native abstrac
   assert.equal(ICustomPersist, DirectPersist);
   assert.equal(CjsSchema.getClassName(ICustomPersist), "ICustomPersist");
   assert.equal(CjsSchema.GetConstructor("ICustomPersist"), ICustomPersist);
-  assert.equal(blue.classes.GetClassRegistration("ICustomPersist").type, ICustomPersist);
+  assert.equal(be.classes.GetClassRegistration("ICustomPersist").type, ICustomPersist);
   assert.deepEqual(Object.getOwnPropertyNames(ICustomPersist.prototype), [ "constructor", ...methods ]);
   assert.equal(Object.getPrototypeOf(ICustomPersist.prototype), Object.prototype);
   assert.deepEqual(CjsSchema.getSchema(ICustomPersist).members, []);
@@ -165,11 +165,11 @@ test("ICustomPersist import registers without domain evaluation or operational s
       const shared = await import("@carbonenginejs/runtime/blue");
       const { CjsSchema } = await import("@carbonenginejs/runtime/schema");
       assert.equal(CjsSchema.GetConstructor("ICustomPersist"), shared.ICustomPersist);
-      assert.equal(shared.blue.classes.GetClassRegistration("ICustomPersist").type, shared.ICustomPersist);
-      assert.equal(shared.blue.os.GetInfo().pumpTicksTotal, 0);
-      assert.equal(shared.blue.resMan.GetPendingLoads(), 0);
-      assert.equal(shared.blue.resMan.GetPendingPrepares(), 0);
-      assert.equal(shared.blue.resMan.workerLoader.worker, null);
+      assert.equal(shared.be.classes.GetClassRegistration("ICustomPersist").type, shared.ICustomPersist);
+      assert.equal(shared.be.os.GetInfo().pumpTicksTotal, 0);
+      assert.equal(shared.be.resMan.GetPendingLoads(), 0);
+      assert.equal(shared.be.resMan.GetPendingPrepares(), 0);
+      assert.equal(shared.be.resMan.workerLoader.worker, null);
     `
   ], {
     cwd: fileURLToPath(new URL("../../", import.meta.url)),

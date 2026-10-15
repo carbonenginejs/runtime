@@ -20,7 +20,7 @@ import { EveChildModifierAttachToBone } from "./modifiers/EveChildModifierAttach
 import { EveSpaceObject2 } from "../spaceObject/EveSpaceObject2.js";
 import { EveEntity } from "../EveEntity.js";
 import { Tr2QuadRenderer } from "../../core/Tr2QuadRenderer/index.js";
-import { blue, IsMatch } from "#blue";
+import { be, IsMatch } from "#blue";
 import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 
 /** A child that instantiates a source template across a list of authored or locator-driven transforms, forwarding controller and registration calls to the instances. */
@@ -292,7 +292,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   {
     if (!this.source) return;
     const translationParent = new EveChildContainer();
-    const instance = blue.classes.CopyTo(this.source);
+    const instance = be.classes.CopyTo(this.source);
     if (!instance) return;
     for (const modifier of this.transformModifiers) instance.AddTransformModifier(modifier);
     translationParent.AddToEffectChildrenList(instance);

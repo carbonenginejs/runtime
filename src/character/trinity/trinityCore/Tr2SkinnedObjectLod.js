@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2SkinnedObjectLOD.h
 // Source: trinity/trinity/Tr2SkinnedObjectLOD.cpp
-import { blue, CcpTime, IsMatch } from "#blue";
+import { be, CcpTime, IsMatch } from "#blue";
 import { meta } from "#schema";
 
 const LOW_DETAIL_THRESHOLD = 150;
@@ -162,10 +162,10 @@ export class Tr2SkinnedObjectLod
   {
     if (!this.highDetailProxy)
     {
-      const clsid = blue.classes.FindClsid("BlueObjectProxy");
+      const clsid = be.classes.FindClsid("BlueObjectProxy");
       if (clsid)
       {
-        this.highDetailProxy = blue.classes.CreateInstance(clsid);
+        this.highDetailProxy = be.classes.CreateInstance(clsid);
       }
     }
 
@@ -191,10 +191,10 @@ export class Tr2SkinnedObjectLod
   {
     if (!this.mediumDetailProxy)
     {
-      const clsid = blue.classes.FindClsid("BlueObjectProxy");
+      const clsid = be.classes.FindClsid("BlueObjectProxy");
       if (clsid)
       {
-        this.mediumDetailProxy = blue.classes.CreateInstance(clsid);
+        this.mediumDetailProxy = be.classes.CreateInstance(clsid);
       }
     }
 
@@ -220,10 +220,10 @@ export class Tr2SkinnedObjectLod
   {
     if (!this.lowDetailProxy)
     {
-      const clsid = blue.classes.FindClsid("BlueObjectProxy");
+      const clsid = be.classes.FindClsid("BlueObjectProxy");
       if (clsid)
       {
-        this.lowDetailProxy = blue.classes.CreateInstance(clsid);
+        this.lowDetailProxy = be.classes.CreateInstance(clsid);
       }
     }
 

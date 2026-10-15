@@ -21,7 +21,7 @@ import { EveSOFDataHull } from "./hull/EveSOFDataHull.js";
 import { EveSOFDataArea } from "./shared/EveSOFDataArea.js";
 import { EveSOFDataInstancedMesh } from "./shared/EveSOFDataInstancedMesh.js";
 import { EveSOFUtilsParameterName } from "./shared/EveSOFUtilsParameterName.js";
-import { blue, BeObjectMetadata } from "#blue";
+import { be, BeObjectMetadata } from "#blue";
 import { EveSOFDNA } from "./EveSOFDNA.js";
 import { EveSOFDataMgr } from "./EveSOFDataMgr.js";
 import { CjsSofLibraryBuilder } from "./CjsSofLibraryBuilder.js";
@@ -350,7 +350,7 @@ export class EveSOF
 
   /**
    * Per-builder paths service for texture resPathInsert existence queries when no explicit
-   * resolver is installed; null selects blue.paths. Custom: native uses global BePaths, while
+   * resolver is installed; null selects be.paths. Custom: native uses global BePaths, while
    * tools-core can serve multiple builds with separate paths services.
    * @type {{FileExists: Function}|null}
    */
@@ -450,7 +450,7 @@ export class EveSOF
    *   factory's data manager); `false`/`null` removes it.
    * - `paths`: the paths service (an IBluePaths: `FileExists(path)`) that
    *   texture `resPathInsert` existence asks, or null for the global
-   *   `blue.paths`, which is Carbon's BePaths.
+   *   `be.paths`, which is Carbon's BePaths.
    * - `resFileIndex`: TEMPORARY host adapter, overriding `paths`: an array
    *   of file names (case-insensitive), a predicate, a Set or Map (exact
    *   `has`), or null. It exists for tools-core, whose published runtime
@@ -615,7 +615,7 @@ export class EveSOF
   _GetResourceExists()
   {
     if (this._resourceExists !== null) return this._resourceExists;
-    const paths = this._paths ?? blue.paths;
+    const paths = this._paths ?? be.paths;
     return path => paths.FileExists(path) === true;
   }
 

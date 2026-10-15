@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { be } from "../../npm/dist/global/blue/index.js";
 import { ResourceRequirement } from "../../npm/dist/resource/index.js";
 import { TriTextureParameter } from "../../npm/dist/trinity/index.js";
 import { composeStubResMan } from "../support/stubResMan.js";
@@ -16,7 +16,7 @@ import { localFileSystem } from "../support/localFileSystem.js";
 function withManager(local, run)
 {
   const stub = composeStubResMan();
-  blue.paths.SetLocalFileSystem(localFileSystem(local));
+  be.paths.SetLocalFileSystem(localFileSystem(local));
   try
   {
     return run(stub);
@@ -24,7 +24,7 @@ function withManager(local, run)
   finally
   {
     stub.restore();
-    blue.paths.SetLocalFileSystem(null);
+    be.paths.SetLocalFileSystem(null);
   }
 }
 

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../src/global/schema/CjsSchema.js";
-import { blue } from "../../src/global/blue/index.js";
+import { be } from "../../src/global/blue/index.js";
 import { GetResources } from "../../src/global/blue/getResources.js";
 
 class Graph
@@ -24,7 +24,7 @@ CjsSchema.define(Graph, {
     ]
 });
 
-// Preorder over blue.EnumerateChildren in canonical order, once per object,
+// Preorder over be.EnumerateChildren in canonical order, once per object,
 // so each test checks which edges EnumerateChildren reports and their order.
 function names(root)
 {
@@ -35,7 +35,7 @@ function names(root)
         seen.add(value);
         visited.push(value.name);
         const children = [];
-        blue.EnumerateChildren(value, child => children.push(child));
+        be.EnumerateChildren(value, child => children.push(child));
         for (const child of children) visit(child);
     };
     visit(root);
@@ -63,7 +63,7 @@ test("immediate enumeration reports repeated edges; recursive visitation handles
     root.list = [child, null, root];
     child.child = root;
     const edges = [];
-    blue.EnumerateChildren(root, (value, field, index) => edges.push([value.name, field.name, index]));
+    be.EnumerateChildren(root, (value, field, index) => edges.push([value.name, field.name, index]));
     assert.deepEqual(edges, [["child", "child", null], ["child", "list", 0], ["root", "list", 2]]);
     assert.deepEqual(names(root), ["root", "child"]);
 });
@@ -75,7 +75,7 @@ test("the filtered overload reports attributes, list items and map values separa
     root.list = [new Graph("c"), new Graph("d")];
     root.map = new Map([["borrowed", new Graph("e")]]);
     const calls = [];
-    blue.EnumerateChildren__Filter(root,
+    be.EnumerateChildren__Filter(root,
         (child, type, member, offset) => calls.push(["attribute", child.name, type, member.name, offset]),
         (child, index, member, list) => calls.push(["list", child.name, index, member.name, list === root.list]),
         (child, key, member, map) => calls.push(["dict", child.name, key, member.name, map === root.map]),
@@ -87,7 +87,7 @@ test("the filtered overload reports attributes, list items and map values separa
     ]);
     // Declared ownership is an ordinary member fact a filter can test.
     const owned = [];
-    blue.EnumerateChildren__Filter(root, child => owned.push(child.name), child => owned.push(child.name),
+    be.EnumerateChildren__Filter(root, child => owned.push(child.name), child => owned.push(child.name),
         child => owned.push(child.name), member => member.lifecycle !== undefined && member.lifecycle.ownership === "owned");
     assert.deepEqual(owned, ["a", "c", "d"]);
 });
@@ -169,8 +169,8 @@ test("Carbon's stack walk handles a deep graph without recursion", () =>
     const root = new Graph("root");
     let tail = root;
     for (let i = 0; i < 12000; i++) tail = tail.child = new Graph("child");
-    assert.equal(blue.FindReference(root, tail), true);
-    assert.equal(blue.EnumerateChildren(null, () => assert.fail("null object")), undefined);
+    assert.equal(be.FindReference(root, tail), true);
+    assert.equal(be.EnumerateChildren(null, () => assert.fail("null object")), undefined);
 });
 
 class Resource extends Graph

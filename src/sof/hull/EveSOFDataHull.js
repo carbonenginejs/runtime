@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta } from "#schema";
-import { blue, EnumRegistrationType } from "#blue";
+import { be, EnumRegistrationType } from "#blue";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
@@ -277,7 +277,7 @@ export class EveSOFDataHull
 }
 
 // Native chooser labels and selection; the enum object retains all C++ members.
-blue.enums.Create("trinity.EveSOFDataHull.BuildClass", EveSOFDataHull.BuildClass, {
+be.enums.Create("trinity.EveSOFDataHull.BuildClass", EveSOFDataHull.BuildClass, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 1536,
   exposedName: "BuildClass", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:936",
@@ -291,7 +291,7 @@ blue.enums.Create("trinity.EveSOFDataHull.BuildClass", EveSOFDataHull.BuildClass
 });
 
 // Native chooser labels and selection; the enum object retains all C++ members.
-blue.enums.Create("trinity.EveSOFDataHull.ImpactEffectType", EveSOFDataHull.ImpactEffectType, {
+be.enums.Create("trinity.EveSOFDataHull.ImpactEffectType", EveSOFDataHull.ImpactEffectType, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 1548,
   exposedName: "ImpactEffectType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:946",

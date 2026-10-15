@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Tr2TimelineController.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { meta } from "#schema";
-import { blue, CcpTime } from "#blue";
+import { be, CcpTime } from "#blue";
 import { EveThrottleable } from "../../eve/EveThrottleable.js";
 import { ITr2Controller, ITr2ActionController } from "../ITr2Controller/index.js";
 import { Tr2TimelineEntry } from "./Tr2TimelineEntry.js";
@@ -177,7 +177,7 @@ export class Tr2TimelineController extends EveThrottleable
       this.Stop();
     }
     this.isPlaying = true;
-    this._lastUpdateTime = blue.os.GetCurrentFrameTime();
+    this._lastUpdateTime = be.os.GetCurrentFrameTime();
     for (let i = 0; i < this.actions.length; i++)
     {
       const entry = this._entryAt(i);
@@ -228,11 +228,11 @@ export class Tr2TimelineController extends EveThrottleable
     {
       return;
     }
-    if (this.ShouldSkipUpdate(normalizedUpdateFrequency, CcpTime.timeAsDouble(blue.os.GetActualTime())))
+    if (this.ShouldSkipUpdate(normalizedUpdateFrequency, CcpTime.timeAsDouble(be.os.GetActualTime())))
     {
       return;
     }
-    const simTime = blue.os.GetCurrentFrameTime();
+    const simTime = be.os.GetCurrentFrameTime();
     const dt = CcpTime.timeAsFloat(simTime - this._lastUpdateTime) * this.timeScale;
     this._lastUpdateTime = simTime;
     if (!this.isPaused)
@@ -241,7 +241,7 @@ export class Tr2TimelineController extends EveThrottleable
     }
     if (this._updateables.size)
     {
-      const realTime = blue.os.GetActualTime();
+      const realTime = be.os.GetActualTime();
       for (const updateable of this._updateables)
       {
         updateable.Update(realTime, simTime);

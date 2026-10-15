@@ -3,7 +3,7 @@
 // AudActionRecord*.json schema documents.
 
 import { meta } from "#schema";
-import { blue } from "#blue";
+import { be } from "#blue";
 import { IAudActionLog } from "./IAudActionLog.js";
 import { AudActionRecordPostEvent } from "./AudActionRecordPostEvent.js";
 import { AudActionRecordExecuteActionOnPlayingID } from "./AudActionRecordExecuteActionOnPlayingID.js";
@@ -62,7 +62,7 @@ export class AudActionLogCB extends IAudActionLog
   @meta.adapted
   LogPostEvent(emitterID, playID, eventID, name)
   {
-    this._queue.push(new AudActionRecordPostEvent(blue.os.GetActualTime(), emitterID, playID, eventID, name));
+    this._queue.push(new AudActionRecordPostEvent(be.os.GetActualTime(), emitterID, playID, eventID, name));
   }
 
   /**
@@ -80,7 +80,7 @@ export class AudActionLogCB extends IAudActionLog
   @meta.adapted
   LogExecuteActionOnPlayingID(emitterID, playID, action)
   {
-    this._queue.push(new AudActionRecordExecuteActionOnPlayingID(blue.os.GetActualTime(), emitterID, playID, action));
+    this._queue.push(new AudActionRecordExecuteActionOnPlayingID(be.os.GetActualTime(), emitterID, playID, action));
   }
 
   /**
@@ -98,7 +98,7 @@ export class AudActionLogCB extends IAudActionLog
   @meta.adapted
   LogSetSwitch(emitterID, group, state)
   {
-    this._queue.push(new AudActionRecordSetSwitch(blue.os.GetActualTime(), emitterID, group, state));
+    this._queue.push(new AudActionRecordSetSwitch(be.os.GetActualTime(), emitterID, group, state));
   }
 
   /**
@@ -115,7 +115,7 @@ export class AudActionLogCB extends IAudActionLog
   @meta.adapted
   LogSetState(group, state)
   {
-    this._queue.push(new AudActionRecordSetState(blue.os.GetActualTime(), group, state));
+    this._queue.push(new AudActionRecordSetState(be.os.GetActualTime(), group, state));
   }
 
   /**
@@ -134,7 +134,7 @@ export class AudActionLogCB extends IAudActionLog
   @meta.adapted
   LogSetRTPC(emitterID, name, value, playID = 0)
   {
-    this._queue.push(new AudActionRecordSetRTPC(blue.os.GetActualTime(), emitterID, name, value, playID));
+    this._queue.push(new AudActionRecordSetRTPC(be.os.GetActualTime(), emitterID, name, value, playID));
   }
 
   /**

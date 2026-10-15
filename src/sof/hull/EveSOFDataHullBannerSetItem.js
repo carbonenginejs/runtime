@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta } from "#schema";
-import { blue, EnumRegistrationType } from "#blue";
+import { be, EnumRegistrationType } from "#blue";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { EveSOFDataHullBanner } from "./EveSOFDataHullBanner.js";
@@ -212,7 +212,7 @@ export class EveSOFDataHullBannerSetItem
 
 // Native chooser labels and selection; the enum object retains all C++ members.
 // Native chooser quirk: HorizontalBanner's description says "Vertical banner".
-blue.enums.Create("trinity.EveSOFDataHullBannerSetItem.Usage", EveSOFDataHullBannerSetItem.Usage, {
+be.enums.Create("trinity.EveSOFDataHullBannerSetItem.Usage", EveSOFDataHullBannerSetItem.Usage, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 905,
   exposedName: "HullBannerSetItemUsage", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:585",

@@ -10,7 +10,7 @@ import { vec4 } from "#math/vec4";
 import { CjsSchema, meta } from "#schema";
 import { ShaderType } from "#consts/render-context";
 import { EveTransform } from "./EveTransform.js";
-import { blue, CjsBlueClasses } from "#blue";
+import { be, CjsBlueClasses } from "#blue";
 import { Tr2GpuSharedEmitter } from "../../particle/emitter/Tr2GpuSharedEmitter.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { State, StateChangeEvent } from "../../generated/eve/spaceObject/enums.js";
@@ -375,7 +375,7 @@ export class EveMissileWarhead extends EveTransform
   {
     for (const child of this.children)
     {
-      if (blue.classes.QueryThisInterface(child, EveTransform, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === null) continue;
+      if (be.classes.QueryThisInterface(child, EveTransform, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === null) continue;
       for (const emitter of child.particleEmitters)
       {
         if (CjsSchema.cast(emitter, Tr2GpuSharedEmitter)) emitter.Enable(enable);

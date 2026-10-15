@@ -1,4 +1,4 @@
-import { blue, IBlueResMan } from "../../npm/dist/global/blue/index.js";
+import { be, IBlueResMan } from "../../npm/dist/global/blue/index.js";
 import {
   CjsAudioRes, CjsResource, ResourceRequirement, Tr2EffectRes,
   Tr2GrannyStateRes, Tr2LightProfileRes, TriGeometryRes, TriTextureRes
@@ -17,7 +17,7 @@ const RESOURCE_BY_REQUIREMENT = new Map([
   [ ResourceRequirement.AUDIO, CjsAudioRes ]
 ]);
 
-// WHY THIS EXISTS. `blue.resMan` used to be `CjsBlueResMan.GetGlobal()`, a static
+// WHY THIS EXISTS. `be.resMan` used to be `CjsBlueResMan.GetGlobal()`, a static
 // slot nothing in `src` ever filled - so every consumer received null and
 // skipped its acquisition in silence. A test that built a mesh with a res path
 // and asserted the geometry was null was asserting that the port was broken.
@@ -96,9 +96,9 @@ export class StubResMan extends IBlueResMan
  */
 export function composeStubResMan(resolve = null)
 {
-  const previous = blue.resMan;
+  const previous = be.resMan;
   const stub = new StubResMan(resolve);
-  blue.resMan = stub;
-  stub.restore = () => { blue.resMan = previous; };
+  be.resMan = stub;
+  stub.restore = () => { be.resMan = previous; };
   return stub;
 }

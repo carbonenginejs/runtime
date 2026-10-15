@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { blue, Copier, DictReader, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
+import { be, Copier, DictReader, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
 import { Tr2ControllerFloatVariable, Tr2ControllerExpression, Tr2BindingPoint, Tr2Controller, Tr2StateMachine } from "../../npm/dist/trinity/controllers/index.js";
 
@@ -29,13 +29,8 @@ test("float declarations retain native member order and nonpersistent notified v
   assert.equal(value.edit.notify, true);
   assert.notEqual(value.edit.persist, true);
   for (const field of members.filter(field => field.name !== "value")) assert.equal(field.edit.persist, true);
-  const binding = CjsSchema.getSchema(Tr2BindingPoint).members;
-  for (const name of ["resolvedObject", "notifyPtr"])
-  {
-    const field = binding.find(field => field.name === name);
-    assert.equal(field.type.kind, "rootWeak");
-    assert.notEqual(field.edit?.persist, true);
-  }
+  // Tr2BindingPoint.h: only the authored path, object and attribute are members; the rest is private.
+  assert.deepEqual(CjsSchema.getSchema(Tr2BindingPoint).members.map(field => field.name), ["path", "object", "attribute"]);
 });
 
 test("native Initialize changes value silently while equal SetValue writes publish and dirty", () =>
@@ -85,17 +80,20 @@ test("plain binding equal writes reach real FloatVariable OnModified and control
   controller.variables.Append(variable);
   controller.Link({});
   const binding = new Tr2BindingPoint();
-  assert.equal(binding.SetDestination(variable, "value"), true);
+  binding.object = variable;
+  binding.attribute = "value";
+  binding.Link([]);
+  assert.equal(binding.IsValid(), true);
   const dirty = { value: 0n };
   variable.SetDirtyMask(dirty, 16n);
   let notified = 0;
   const original = variable.OnModified;
   variable.OnModified = function(name) { notified++; return original.call(this, name); };
-  assert.equal(binding.SetValue(3), false);
+  binding.SetValue(3);
   assert.equal(notified, 1);
   assert.equal(controller.GetVariableBuffer()[0], 3);
   assert.equal(dirty.value, 16n);
-  assert.equal(binding.SetValue(8), true);
+  binding.SetValue(8);
   assert.equal(controller.GetVariableBuffer()[0], 8);
   controller.Unlink();
 });
@@ -107,19 +105,20 @@ test("binding copy keeps authored graph identity and leaves resolved state unlin
   target.Initialize();
   source.object = target;
   source.attribute = "value";
-  assert.equal(source.Link(), true);
+  source.Link([]);
+  assert.equal(source.IsValid(), true);
   const copy = new Copier().CopyTo(source);
   assert.ok(copy);
   assert.equal(copy.attribute, "value");
   assert.notEqual(copy.object, target);
   assert.equal(copy.object.value, 5);
   assert.equal(copy.IsValid(), false);
-  assert.equal(copy.resolvedObject, null);
   const seen = [];
-  seen.push(copy, ...blue.FindAllReferences(copy).keys());
+  seen.push(copy, ...be.FindAllReferences(copy).keys());
   assert.equal(seen.includes(copy.object), true);
   assert.deepEqual(GetResources(copy), []);
-  assert.equal(copy.Link(), true);
+  copy.Link([]);
+  assert.equal(copy.IsValid(), true);
   assert.equal(copy.GetValue(), 5);
 });
 
@@ -164,13 +163,19 @@ test("expression fails when an installed controller lacks its required variable-
   assert.throws(() => new Tr2ControllerExpression().SetExpr("1", controller), TypeError);
 });
 
-test("controller binding roots require both native owner methods without method fallbacks", () =>
+test("a binding path resolves against the named roots it is linked with", () =>
 {
+  // Tr2BindingPoint.cpp:281-293: Link takes the controller's GetBindingPathRoots.
+  const owner = new Tr2ControllerFloatVariable();
+  owner.defaultValue = 4;
+  owner.Initialize();
   const binding = new Tr2BindingPoint();
   binding.path = "Owner";
   binding.attribute = "value";
-  assert.throws(() => binding.Link({ GetOwner() { return { value: 1 }; } }), TypeError);
-  assert.throws(() => binding.Link({ GetBindingPathRoots() { return []; } }), TypeError);
-  assert.equal(binding.Link({ Owner: { value: 4 } }), true, "existing named-root-map adapter remains supported");
+  binding.Link([["Owner", owner]]);
+  assert.equal(binding.IsValid(), true);
+  assert.equal(binding.GetBoundObject(), owner);
   assert.equal(binding.GetValue(), 4);
+  binding.Link([["Other", owner]]);
+  assert.equal(binding.IsValid(), false);
 });

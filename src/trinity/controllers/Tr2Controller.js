@@ -4,7 +4,7 @@
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { meta } from "#schema";
 import { UnlinkReason } from "./enums.js";
-import { blue, BlueList, IListNotify, CcpTime, CjsBlueClasses } from "#blue";
+import { be, BlueList, IListNotify, CcpTime, CjsBlueClasses } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ContinueOnMainThread } from "../core/continueOnMainThread.js";
 import { EveThrottleable } from "../eve/EveThrottleable.js";
@@ -304,12 +304,12 @@ export class Tr2Controller extends EveThrottleable
     {
       return;
     }
-    if (this.ShouldSkipUpdate(normalizedUpdateFrequency, CcpTime.timeAsDouble(blue.os.GetActualTime())))
+    if (this.ShouldSkipUpdate(normalizedUpdateFrequency, CcpTime.timeAsDouble(be.os.GetActualTime())))
     {
       return;
     }
-    const currentTime = blue.os.GetActualTime();
-    this._time = CcpTime.timeAsDouble(blue.os.GetCurrentFrameTime());
+    const currentTime = be.os.GetActualTime();
+    this._time = CcpTime.timeAsDouble(be.os.GetCurrentFrameTime());
     const dirtyVariables = this._dirtyVariables.value;
     this._dirtyVariables.value = 0n;
     for (const stateMachine of this.stateMachines)
@@ -318,7 +318,7 @@ export class Tr2Controller extends EveThrottleable
     }
     if (this._updateables.size)
     {
-      const simTime = blue.os.GetCurrentFrameTime();
+      const simTime = be.os.GetCurrentFrameTime();
       for (const updateable of this._updateables)
       {
         ContinueOnMainThread(() =>
@@ -676,7 +676,7 @@ export class Tr2Controller extends EveThrottleable
   @meta.ours
   _OnStateMachineListModified(event, value)
   {
-    const stateMachine = value ? blue.classes.QueryThisInterface(value, Tr2StateMachine, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    const stateMachine = value ? be.classes.QueryThisInterface(value, Tr2StateMachine, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
     switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
     {
       case BLUELISTEVENT.BELIST_INSERTED:
@@ -712,7 +712,7 @@ export class Tr2Controller extends EveThrottleable
   @meta.ours
   _OnEventHandlerListModified(event, value)
   {
-    const handler = value ? blue.classes.QueryThisInterface(value, Tr2ControllerEventHandler, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    const handler = value ? be.classes.QueryThisInterface(value, Tr2ControllerEventHandler, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
     switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
     {
       case BLUELISTEVENT.BELIST_INSERTED:

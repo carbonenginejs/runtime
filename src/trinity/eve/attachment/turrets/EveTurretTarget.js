@@ -3,7 +3,7 @@
 import { vec3 } from "#math/vec3";
 import { meta } from "#schema";
 import { ImpactConfiguration } from "../../../generated/include/enums.js";
-import { blue, CcpTime } from "#blue";
+import { be, CcpTime } from "#blue";
 import { mappedInterfaces } from "../../../../global/compose/interface.js";
 import { ITriTargetable } from "../../../core/ITriTargetable.js";
 import { IWorldPosition } from "../../../core/IWorldPosition.js";
@@ -406,7 +406,7 @@ export class EveTurretTarget
    */
   @meta.blue.method
   @meta.adapted
-  SetShotMissed(missed, timestamp = CcpTime.timeAsDouble(blue.os.GetActualTime()))
+  SetShotMissed(missed, timestamp = CcpTime.timeAsDouble(be.os.GetActualTime()))
   {
     this._missQueue.push(!!missed);
     this._lastShotTime = Number(timestamp);
@@ -487,7 +487,7 @@ function copyOrReturn(value, out)
 
 // Carbon gives this a chooser (trinity/trinity/Eve/Turret/EveTurretSet_Blue.cpp:34) but never registers it,
 // so it takes no exposure.
-blue.enums.Create("trinity.ImpactBehaviour", EveTurretTarget.ImpactBehaviour, {
+be.enums.Create("trinity.ImpactBehaviour", EveTurretTarget.ImpactBehaviour, {
   source: "trinity/trinity/Eve/Turret/EveTurretTarget.h", family: "eve/attachment/turrets", line: 13,
   chooserSource: "trinity/trinity/Eve/Turret/EveTurretSet_Blue.cpp:34",
   chooser: [

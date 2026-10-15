@@ -14,7 +14,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { Tr2Lod } from "../EveLODHelper.js";
 import { PropagationType, TriggerType } from "../../generated/eve/child/enums.js";
-import { IsMatch, blue } from "#blue";
+import { IsMatch, be } from "#blue";
 
 // Module scratch for the trigger-driven locator paths (allocation rules:
 // copy-into, never allocate per frame; child updates run sequentially so the

@@ -3,9 +3,9 @@ import test from "node:test";
 import "../../src/global/blue/values.js";
 import { IInitialize } from "../../src/global/blue/IInitialize.js";
 import { CjsSchema } from "../../src/global/schema/CjsSchema.js";
-import { blue } from "../../src/global/blue/index.js";
+import { be } from "../../src/global/blue/index.js";
 
-// Preorder over blue.EnumerateChildren, once per object.
+// Preorder over be.EnumerateChildren, once per object.
 function preorder(root)
 {
     const visited = [], seen = new Set();
@@ -15,7 +15,7 @@ function preorder(root)
         seen.add(value);
         visited.push(value);
         const children = [];
-        blue.EnumerateChildren(value, child => children.push(child));
+        be.EnumerateChildren(value, child => children.push(child));
         for (const child of children) visit(child);
     };
     if (root) visit(root);
@@ -105,9 +105,9 @@ test("Find helpers follow cycles and shared objects once (Find.cpp:352-548)", ()
     root.list = [root.child];
     const names = publicNames(root);
     assert.equal(new Set(names).size, names.length, "each object once");
-    assert.equal(blue.FindReference(root, root.plain.child), true);
-    assert.equal(blue.FindReference(root.plain, root), false);
-    assert.deepEqual(blue.FindInterface(root, `${prefix}Leaf`).includes(root.child), true);
+    assert.equal(be.FindReference(root, root.plain.child), true);
+    assert.equal(be.FindReference(root.plain, root), false);
+    assert.deepEqual(be.FindInterface(root, `${prefix}Leaf`).includes(root.child), true);
 });
 
 test("public inherited traversal order is independent of reader ownership", () =>

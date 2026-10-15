@@ -1,5 +1,5 @@
 import { CjsSchema, meta } from "#schema";
-import { blue } from "#blue";
+import { be } from "#blue";
 import { ITr2RenderNode } from "#interfaces/ITr2RenderNode";
 import { vec4 } from "#math/vec4";
 import { PixelFormat, TextureType } from "#consts/render-context";
@@ -112,7 +112,7 @@ export class TnyOutlineHelper extends ITr2RenderNode
   {
     await Promise.all(Object.entries(EFFECTS).map(async ([name, path]) =>
     {
-      const resource = blue.resMan.GetResource(Tr2Effect.convertEffectPath(path), { requirement: ResourceRequirement.SHADER });
+      const resource = be.resMan.GetResource(Tr2Effect.convertEffectPath(path), { requirement: ResourceRequirement.SHADER });
       await resource.Ready();
       if (this._destroyed) return;
       const effect = new Tr2Effect();

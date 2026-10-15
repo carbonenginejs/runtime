@@ -3,7 +3,7 @@
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { meta } from "#schema";
-import { blue } from "#blue";
+import { be } from "#blue";
 import { BitmapDimensions } from "#imageio";
 import { GetBytesPerPixel, PixelFormat, PixelFormatFromCanonical, TextureType, Tr2GpuUsage, Tr2CpuUsage } from "#consts/render-context";
 import { CjsVtaFormat } from "../../../resource/formats/vta/CjsVtaFormat.js";
@@ -398,7 +398,7 @@ export class Tr2TextureAnimation
   @meta.adapted
   static async readFile(request)
   {
-    const bytes = await blue.resMan.ReadResource(request.filename);
+    const bytes = await be.resMan.ReadResource(request.filename);
     if (request.state.cancel) return;
     request.state.bytes = bytes;
     await this.decodeFirstFrame(request);

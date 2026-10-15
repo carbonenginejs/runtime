@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Tr2ControllerReference.h
 // Source: trinity/trinity/Controllers/Tr2ControllerReference.cpp
 // Source: trinity/trinity/Controllers/Tr2ControllerReference_Blue.cpp
-import { IsMatch, blue, INotify, IInitialize, CjsBlueClasses } from "#blue";
+import { IsMatch, be, INotify, IInitialize, CjsBlueClasses } from "#blue";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { meta } from "#schema";
 import { UnlinkReason } from "./enums.js";
@@ -48,7 +48,7 @@ export class Tr2ControllerReference extends ITr2Controller
   /**
    * Resolves a nonempty resource path, preserving an assigned controller otherwise.
    *
-   * Adapted: BeResMan is blue.resMan; its LoadObject completes asynchronously.
+   * Adapted: BeResMan is be.resMan; its LoadObject completes asynchronously.
    * @returns {boolean} True after requesting any authored load.
    */
   @meta.blue.method
@@ -236,7 +236,7 @@ export class Tr2ControllerReference extends ITr2Controller
     let object;
     try
     {
-      object = await blue.resMan.LoadObject(path);
+      object = await be.resMan.LoadObject(path);
     }
     catch (error)
     {
@@ -248,7 +248,7 @@ export class Tr2ControllerReference extends ITr2Controller
     }
     if (request !== this._loadRequest || path !== this.path) return null;
     // Native LoadObject<ITr2Controller> requires the exposed interface identity.
-    const controller = object ? blue.classes.QueryThisInterface(object, ITr2Controller, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    const controller = object ? be.classes.QueryThisInterface(object, ITr2Controller, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
     if (!controller)
     {
       CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Resource ${path} is not an ITr2Controller.`);

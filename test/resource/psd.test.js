@@ -1,4 +1,4 @@
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { be } from "../../npm/dist/global/blue/index.js";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
@@ -8,7 +8,7 @@ import { BitmapDimensions } from "../../npm/dist/global/imageio/index.js";
 import { PixelFormat as F, TextureType } from "../../npm/dist/global/consts/renderContext/index.js";
 
 ImageIO.registerImageHandler(CjsPsdFormat);
-blue.resMan.RegisterFormat(CjsPsdFormat);
+be.resMan.RegisterFormat(CjsPsdFormat);
 
 const Code = ImageIOResult.Code;
 const fixture = name => readFile(new URL(`../fixtures/psd/${name}.psd`, import.meta.url));

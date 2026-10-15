@@ -15,7 +15,7 @@ import { Tr2PPLutEffect } from "./effect/Tr2PPLutEffect.js";
 import { Tr2PPSignalLossEffect } from "./effect/Tr2PPSignalLossEffect.js";
 import { Tr2PPVignetteEffect } from "./effect/Tr2PPVignetteEffect.js";
 import { AttributeType, Priority } from "../generated/postProcess/enums.js";
-import { blue } from "#blue";
+import { be } from "#blue";
 
 
 /**

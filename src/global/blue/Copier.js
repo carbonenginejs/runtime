@@ -4,7 +4,7 @@
 //
 // Carbon's object copier: copies one object into another, or into a new
 // instance of its class, through the members its class exposes as PERSIST.
-// `blue.classes.CopyTo`/`CloneTo` construct one per call, as
+// `be.classes.CopyTo`/`CloneTo` construct one per call, as
 // BlueClasses.cpp:498-516 does.
 //
 // TOPOLOGY IS PRESERVED. The first time a source object is copied its new

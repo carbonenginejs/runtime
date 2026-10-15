@@ -1427,7 +1427,7 @@ test("CjsBlueResMan binds explicit resource and payload leases for deterministic
   const motherLode = new CjsMotherLode({ now: () => time });
   const resMan = new CjsBlueResMan({ motherLode });
   const resource = resMan.GetResource("res:/data/leased.bin");
-  // The load fails on the resource once the read through blue.paths answers.
+  // The load fails on the resource once the read through be.paths answers.
   await resMan.Wait();
   let destroyed = 0;
   resource.SetAdapterResource("test", { destroy() { destroyed += 1; } });
@@ -1510,7 +1510,7 @@ test("CjsBlueResMan automatic purge is opt-in and follows deterministic time cad
   });
   const policy = resMan.GetAutoPurgePolicy();
   const resource = resMan.GetResource("res:/data/automatic-purge.bin");
-  // The load fails on the resource once the read through blue.paths answers.
+  // The load fails on the resource once the read through be.paths answers.
   await resMan.Wait();
   resource.SetPayload({ revision: 1 });
 
@@ -2909,7 +2909,7 @@ test("a resource that cannot be fetched fails on the resource, not in GetResourc
 {
   const resMan = new CjsBlueResMan();
   const resource = resMan.GetResource("res:/data/unreachable.json");
-  // The load fails on the resource once the read through blue.paths answers.
+  // The load fails on the resource once the read through be.paths answers.
   await resMan.Wait();
 
   assert.equal(resource.IsFailed(), true);

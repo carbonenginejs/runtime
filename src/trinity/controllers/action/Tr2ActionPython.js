@@ -4,7 +4,7 @@
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { ITr2Updateable } from "../../core/ITr2Updateable.js";
 import { meta } from "#schema";
-import { IsMatch, blue, INotify, IInitialize, ICustomPersist, CcpTime } from "#blue";
+import { IsMatch, be, INotify, IInitialize, ICustomPersist, CcpTime } from "#blue";
 import { ContinueOnMainThread } from "../../core/continueOnMainThread.js";
 
 
@@ -267,8 +267,8 @@ export class Tr2ActionPython extends ITr2ControllerAction
         instance.OnStart(owner, controller);
       });
     }
-    this._prevRealTime = blue.os.GetActualTime();
-    this._prevSimTime = blue.os.GetCurrentFrameTime();
+    this._prevRealTime = be.os.GetActualTime();
+    this._prevSimTime = be.os.GetCurrentFrameTime();
   }
 
   /**

@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta } from "#schema";
-import { blue } from "#blue";
+import { be } from "#blue";
 
 /** Stores a pattern layer's projection modes, area types, and material slots. */
 @meta.define({ className: "EveSOFDataPatternLayerProperties", family: "eve" })
@@ -135,7 +135,7 @@ export class EveSOFDataPatternLayerProperties
 
 // Native chooser labels and selection; the enum object retains all C++ members.
 // Carbon reuses this chooser but declares this enum type independently.
-blue.enums.Create("trinity.EveSOFDataPatternLayerProperties.ProjectionType", EveSOFDataPatternLayerProperties.ProjectionType, {
+be.enums.Create("trinity.EveSOFDataPatternLayerProperties.ProjectionType", EveSOFDataPatternLayerProperties.ProjectionType, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 500,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:1152",
   chooser: [

@@ -1,4 +1,4 @@
-import { blue } from "#blue";
+import { be } from "#blue";
 
 const TEXT_DECODER = new TextDecoder();
 
@@ -31,7 +31,7 @@ export function createAudioResourceReader(options = {})
     }
 
     return async (path, context = {}) => normalizeAudioResourceBytes(
-        await blue.resMan.ReadResource(path, context.signal ? { signal: context.signal } : {}),
+        await be.resMan.ReadResource(path, context.signal ? { signal: context.signal } : {}),
         path,
     );
 }

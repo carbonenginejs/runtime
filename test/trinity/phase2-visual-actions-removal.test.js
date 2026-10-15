@@ -2,7 +2,7 @@ import { getRegisteredClassName } from "../../npm/dist/global/compose/className.
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { blue, DictReader, DictWriter, Copier, BlueList, INotify } from "../../npm/dist/global/blue/index.js";
+import { be, DictReader, DictWriter, Copier, BlueList, INotify } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { ITr2ControllerAction } from "../../npm/dist/trinity/controllers/action/ITr2ControllerAction.js";
 import { Tr2ActionPlayMeshAnimation } from "../../npm/dist/trinity/controllers/action/Tr2ActionPlayMeshAnimation.js";
@@ -105,8 +105,8 @@ test("Overlay reuses an overlay already on the owner and releases its reference 
   const owner = new EveSpaceObject2();
   owner.AddOverlayEffect(overlay);
   const controller = { GetOwner: () => owner };
-  const loadObject = blue.resMan.LoadObject;
-  blue.resMan.LoadObject = () => { throw new Error("must not load"); };
+  const loadObject = be.resMan.LoadObject;
+  be.resMan.LoadObject = () => { throw new Error("must not load"); };
   try
   {
     action.overlayName = "halo";
@@ -131,6 +131,6 @@ test("Overlay reuses an overlay already on the owner and releases its reference 
   }
   finally
   {
-    blue.resMan.LoadObject = loadObject;
+    be.resMan.LoadObject = loadObject;
   }
 });

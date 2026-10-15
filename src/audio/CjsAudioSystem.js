@@ -7,7 +7,7 @@
 // pass one (or a factory) only when sound should actually be realized. Without
 // it, the graph runs in Carbon's null-manager/headless mode untouched.
 import { CjsSchema } from "../global/schema/CjsSchema.js";
-import { blue } from "../global/blue/blue.js";
+import { be } from "../global/blue/blue.js";
 import { AudGameObjResource } from "./trinity/audio/AudGameObjResource.js";
 import { AudEmitter } from "./trinity/audio/AudEmitter.js";
 import { AudManager } from "./trinity/audio/AudManager.js";
@@ -574,7 +574,7 @@ export class CjsAudioSystem
      * @returns {object[]} Adopted objects, in visit order.
      * @impl custom Audio composition applies its existing adoption operations
      * over the walk of Carbon's Find functions (Find.cpp:352-396): an explicit
-     * stack, each object once, children from blue.EnumerateChildren.
+     * stack, each object once, children from be.EnumerateChildren.
      */
     AdoptGraph(root)
     {
@@ -598,7 +598,7 @@ export class CjsAudioSystem
                 adopted.push(this.AdoptCurveSetDriver(value));
             }
 
-            blue.EnumerateChildren(value, child => stack.push(child));
+            be.EnumerateChildren(value, child => stack.push(child));
         }
         return adopted;
     }
@@ -641,7 +641,7 @@ export class CjsAudioSystem
      * @param {object|null} root Root whose reachable audio objects are released.
      * @returns {object[]} Objects actually released, once each in visit order.
      * @impl custom The walk is Carbon's Find shape (Find.cpp:352-396) over
-     * blue.EnumerateChildren; the audio system keeps its existing deterministic
+     * be.EnumerateChildren; the audio system keeps its existing deterministic
      * release operations and adoption ownership checks.
      */
     ReleaseGraph(root)
@@ -666,7 +666,7 @@ export class CjsAudioSystem
                 released.push(value);
             }
 
-            blue.EnumerateChildren(value, child => stack.push(child));
+            be.EnumerateChildren(value, child => stack.push(child));
         }
         return released;
     }

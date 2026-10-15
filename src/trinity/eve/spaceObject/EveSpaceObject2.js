@@ -12,7 +12,7 @@ import { ITr2ImpostorSource } from "../../core/mesh/ITr2ImpostorSource/ITr2Impos
 import "#consts/graphics/trinityEnums";
 import "#consts/trinity";
 import { CjsSchema, meta } from "#schema";
-import { blue } from "#blue";
+import { be } from "#blue";
 import { IInitialize } from "#blue/IInitialize";
 import { INotify } from "#blue/INotify";
 import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
@@ -5061,7 +5061,7 @@ export class EveSpaceObject2 extends EveEntity
 
 }
 
-blue.enums.Create("trinity.EveSpaceObject2.LocatorType", EveSpaceObject2.LocatorType, {
+be.enums.Create("trinity.EveSpaceObject2.LocatorType", EveSpaceObject2.LocatorType, {
   source: "trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h", family: "eve/spaceObject", line: 263
 });
 

@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Tr2ExpressionTermInfo.cpp
 // Source: trinity/trinity/Tr2ExpressionTermInfo_Blue.cpp
 import { meta } from "#schema";
-import { blue } from "#blue";
+import { be } from "#blue";
 
 
 const TermType = {
@@ -130,7 +130,7 @@ export class Tr2ExpressionTermInfo
 }
 
 // Carbon neither registers this nor gives it a chooser.
-blue.enums.Create("trinity.Tr2ExpressionTermInfo.TermType", TermType, {
+be.enums.Create("trinity.Tr2ExpressionTermInfo.TermType", TermType, {
   source: "trinity/trinity/Tr2ExpressionTermInfo.h", family: "trinityCore", line: 12
 });
 

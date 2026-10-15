@@ -4,7 +4,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import {
   ITriFunction, ITriScalarFunction, ITriVectorFunction, ITriQuaternionFunction,
-  ITriColorFunction, ITriCurveLength, blue
+  ITriColorFunction, ITriCurveLength, be
 } from "@carbonenginejs/runtime/blue";
 import { CjsSchema, meta } from "@carbonenginejs/runtime/schema";
 import { ITriFunction as DirectFunction } from "../../src/global/blue/ITriFunction.js";
@@ -71,7 +71,7 @@ for (const { name, Contract, direct, base, own, abstract, ticks = [] } of contra
     if (direct) assert.equal(Contract, direct);
     assert.equal(CjsSchema.getClassName(Contract), name);
     assert.equal(CjsSchema.GetConstructor(name), Contract);
-    assert.equal(blue.classes.GetClassRegistration(name).type, Contract);
+    assert.equal(be.classes.GetClassRegistration(name).type, Contract);
     assert.deepEqual(Object.getOwnPropertyNames(Contract.prototype), [ "constructor", ...own ]);
     assert.equal(Object.getPrototypeOf(Contract.prototype), base ? base.prototype : Object.prototype);
     assert.deepEqual(CjsSchema.getSchema(Contract).members, []);
@@ -256,20 +256,20 @@ test("curve interfaces import inertly without pulling domain consumers or model 
       {
         assert.equal(typeof shared[name], "function");
         assert.equal(CjsSchema.GetConstructor(name), shared[name]);
-        assert.equal(shared.blue.classes.GetClassRegistration(name).type, shared[name]);
+        assert.equal(shared.be.classes.GetClassRegistration(name).type, shared[name]);
       }
       const { ITriDuration } = await import("./src/trinity/curves/ITriDuration.js");
       const { ITr2ValueBinding } = await import("./src/trinity/curves/ITr2ValueBinding.js");
       for (const [name, Contract] of [["ITriDuration", ITriDuration], ["ITr2ValueBinding", ITr2ValueBinding]])
       {
         assert.equal(CjsSchema.GetConstructor(name), Contract);
-        assert.equal(shared.blue.classes.GetClassRegistration(name).type, Contract);
+        assert.equal(shared.be.classes.GetClassRegistration(name).type, Contract);
       }
       assert.deepEqual(Array.from(trinityModules).sort(), ["ITr2ValueBinding", "ITriDuration"]);
-      assert.equal(shared.blue.os.GetInfo().pumpTicksTotal, 0);
-      assert.equal(shared.blue.resMan.GetPendingLoads(), 0);
-      assert.equal(shared.blue.resMan.GetPendingPrepares(), 0);
-      assert.equal(shared.blue.resMan.workerLoader.worker, null);
+      assert.equal(shared.be.os.GetInfo().pumpTicksTotal, 0);
+      assert.equal(shared.be.resMan.GetPendingLoads(), 0);
+      assert.equal(shared.be.resMan.GetPendingPrepares(), 0);
+      assert.equal(shared.be.resMan.workerLoader.worker, null);
     `
   ], {
     cwd: fileURLToPath(new URL("../../", import.meta.url)),

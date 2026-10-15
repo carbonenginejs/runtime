@@ -8,7 +8,7 @@
 import { CjsControllerExpressionCompileError } from "./CjsControllerExpressionCompileError.js";
 import { CjsControllerExpressionEvaluateError } from "./CjsControllerExpressionEvaluateError.js";
 import { CjsSchema } from "#schema";
-import { blue, CcpTime } from "#blue";
+import { be, CcpTime } from "#blue";
 import { vec3 } from "#math/vec3";
 import { carbonPerlin1D } from "#math/noise";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
@@ -24,7 +24,7 @@ import { Tr2ControllerExpression } from "./Tr2ControllerExpression.js";
  */
 function CastOwner(owner, className)
 {
-  const registration = blue.classes.GetClassRegistration(className);
+  const registration = be.classes.GetClassRegistration(className);
   if (!registration) throw new Error(`Controller expression: class ${className} is not registered with Blue`);
   return CjsSchema.cast(owner, registration.type);
 }
@@ -681,7 +681,7 @@ export function RandomInteger(min, max)
 export function GetServerTime()
 {
   if (Tr2ControllerExpression.controllerFunctionOverrideEnabled) return Tr2ControllerExpression.controllerServerTime;
-  return blue.os.GetCurrentFrameTime();
+  return be.os.GetCurrentFrameTime();
 }
 
 /**

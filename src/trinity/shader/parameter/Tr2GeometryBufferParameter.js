@@ -4,7 +4,7 @@ import { IsMatch, INotify } from "#blue";
 import { IInitialize } from "#blue";
 import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { CjsSchema, meta } from "#schema";
-import { blue } from "#blue";
+import { be } from "#blue";
 import { ITr2GpuBuffer } from "../../core/ITr2GpuBuffer.js";
 import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
@@ -90,7 +90,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
     if (this.resourcePath)
     {
       this.gpuBuffer = null;
-      this.gpuBuffer = CjsSchema.cast(blue.resMan.GetResource(this.resourcePath), ITr2GpuBuffer);
+      this.gpuBuffer = CjsSchema.cast(be.resMan.GetResource(this.resourcePath), ITr2GpuBuffer);
     }
     return true;
   }

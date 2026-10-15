@@ -5,7 +5,7 @@
 // Tr2Renderer::GetAnimationTime() inside each helper; the JS port takes the
 // animation time as the first argument instead. Callers supply their frame time;
 // the blink and fade formulas preserve Carbon's arithmetic.
-import { blue } from "#blue";
+import { be } from "#blue";
 
 /** Static attachment helpers matching Carbon's namespace. */
 export class EveSpaceObjectAttachmentUtils
@@ -124,6 +124,6 @@ export class EveSpaceObjectAttachmentUtils
 export const FadeType = EveSpaceObjectAttachmentUtils.FadeType;
 
 // Carbon neither registers this nor gives it a chooser.
-blue.enums.Create("trinity.FadeType", FadeType, {
+be.enums.Create("trinity.FadeType", FadeType, {
   source: "trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpaceObjectAttachmentUtils.h", family: "eve/attachment/planes", line: 7
 });

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { blue, ITriQuaternionFunction, ITriFunction, ITriCurveLength, IInitialize } from "../../npm/dist/global/blue/index.js";
+import { be, ITriQuaternionFunction, ITriFunction, ITriCurveLength, IInitialize } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { Copier } from "../../npm/dist/global/blue/Copier.js";
@@ -22,7 +22,7 @@ test("both rotation curves construct through Blue without model conveniences", (
 {
   for (const Class of [Tr2CurveEulerRotation, Tr2CurveRandomAxisRotation])
   {
-    const curve = blue.classes.CreateInstanceFromName(CjsSchema.getClassName(Class));
+    const curve = be.classes.CreateInstanceFromName(CjsSchema.getClassName(Class));
     assert.equal(curve.constructor, Class);
     assert.equal(Object.getPrototypeOf(Class.prototype), ITriQuaternionFunction.prototype);
     for (const name of ["SetValues", "UpdateValues", "GetValues", "OnEvent", "Clone", "__state"]) assert.equal(name in curve, false, name);

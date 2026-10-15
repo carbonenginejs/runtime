@@ -12,7 +12,7 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2Rende
 import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 import { CarbonVertexElements } from "../vertex/vertexUsage.js";
 import { CreateLodAllocations } from "./TriGeometryResAllocations.js";
-import { IsMatch, blue, EnumRegistrationType } from "#blue";
+import { IsMatch, be, EnumRegistrationType } from "#blue";
 
 
 /**
@@ -109,7 +109,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   {
     if (!this.deferGeometryLoad && this.instanceGeometryResPath)
     {
-      this._loadedGeometryResource = blue.resMan.GetResource(this.instanceGeometryResPath, { requirement: ResourceRequirement.GEOMETRY });
+      this._loadedGeometryResource = be.resMan.GetResource(this.instanceGeometryResPath, { requirement: ResourceRequirement.GEOMETRY });
     }
     return super.Initialize();
   }
@@ -201,7 +201,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
       if (!this.deferGeometryLoad)
       {
         this.SetInstanceGeometryRes(this.instanceGeometryResPath
-          ? blue.resMan.GetResource(this.instanceGeometryResPath, { requirement: ResourceRequirement.GEOMETRY })
+          ? be.resMan.GetResource(this.instanceGeometryResPath, { requirement: ResourceRequirement.GEOMETRY })
           : null);
       }
     }
@@ -515,7 +515,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
 }
 
 // Registered as Carbon registers it (trinity/trinity/Tr2InstancedMesh_Blue.cpp:21).
-blue.enums.Create("trinity.Tr2InstancedMesh.BoundsMethod", Tr2InstancedMesh.BoundsMethod, {
+be.enums.Create("trinity.Tr2InstancedMesh.BoundsMethod", Tr2InstancedMesh.BoundsMethod, {
   source: "trinity/trinity/Tr2InstancedMesh.h", family: "trinityCore", line: 29,
   exposedName: "Tr2InstanceMeshBoundsMethod", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Tr2InstancedMesh_Blue.cpp:13",

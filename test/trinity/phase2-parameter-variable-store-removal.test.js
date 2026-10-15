@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { blue, CjsBlueResMan, Copier, DictReader, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
+import { be, CjsBlueResMan, Copier, DictReader, IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
 import { Tr2MaterialParameterStore, Tr2VariableStore, TriVariable } from "../../npm/dist/trinity/core/index.js";
 import { TriVariableParameter } from "../../npm/dist/trinity/shader/parameter/TriVariableParameter.js";
 import { Tr2Effect } from "../../npm/dist/trinity/shader/Tr2Effect.js";
@@ -44,10 +44,10 @@ test("declared material initialization loads once instead of per-member notifica
   let initialized = 0, notified = 0;
   t.mock.method(Tr2MaterialParameterStore.prototype, "Initialize", function() { initialized++; return original.call(this); });
   t.mock.method(Tr2MaterialParameterStore.prototype, "OnModified", function() { notified++; return true; });
-  const previous = blue.resMan, paths = [];
+  const previous = be.resMan, paths = [];
   const parent = new Tr2MaterialParameterStore();
-  blue.resMan = { LoadObject(path) { paths.push(path); return Promise.resolve(parent); } };
-  t.after(() => { blue.resMan = previous; });
+  be.resMan = { LoadObject(path) { paths.push(path); return Promise.resolve(parent); } };
+  t.after(() => { be.resMan = previous; });
   const store = new DictReader({ declarations: true }).CreateObject({ _type: "Tr2MaterialParameterStore", name: "child", parentPath: "res:/parent.red" });
   await settle();
   assert.equal(initialized, 1);
@@ -58,9 +58,9 @@ test("declared material initialization loads once instead of per-member notifica
 
 test("material parent replacement rejects stale completion and clears immediately", async t =>
 {
-  const previous = blue.resMan, pending = [];
-  blue.resMan = { LoadObject(path) { return new Promise(resolve => pending.push({ path, resolve })); } };
-  t.after(() => { blue.resMan = previous; });
+  const previous = be.resMan, pending = [];
+  be.resMan = { LoadObject(path) { return new Promise(resolve => pending.push({ path, resolve })); } };
+  t.after(() => { be.resMan = previous; });
   const store = new Tr2MaterialParameterStore(), old = new Tr2MaterialParameterStore(), current = new Tr2MaterialParameterStore();
   store.parent = old;
   store.parentPath = "res:/same.red";
@@ -83,24 +83,24 @@ test("material parent replacement rejects stale completion and clears immediatel
 
 test("material parent accepts exposed store identity and survives load errors", async t =>
 {
-  const previous = blue.resMan;
-  t.after(() => { blue.resMan = previous; });
+  const previous = be.resMan;
+  t.after(() => { be.resMan = previous; });
   const store = new Tr2MaterialParameterStore();
   store.parentPath = "res:/wrong.red";
-  blue.resMan = { LoadObject() { return Promise.resolve({ FindParameter() {}, parameters: new Map() }); } };
+  be.resMan = { LoadObject() { return Promise.resolve({ FindParameter() {}, parameters: new Map() }); } };
   assert.equal(await store._LoadParentResource(), null);
   assert.equal(store.parent, null);
-  blue.resMan = { LoadObject() { throw new Error("fixture rejection"); } };
+  be.resMan = { LoadObject() { throw new Error("fixture rejection"); } };
   assert.equal(await store._LoadParentResource(), null);
   assert.equal(store.parent, null);
-  blue.resMan = { LoadObject() { return Promise.reject(new Error("async fixture rejection")); } };
+  be.resMan = { LoadObject() { return Promise.reject(new Error("async fixture rejection")); } };
   assert.equal(await store._LoadParentResource(), null);
 });
 
 test("real manager builder hydrates independent material parents through shared Blue reader", async t =>
 {
-  const previous = blue.resMan;
-  t.after(() => { blue.resMan = previous; });
+  const previous = be.resMan;
+  t.after(() => { be.resMan = previous; });
   let reads = 0, builds = 0;
   const payload = new TextEncoder().encode(JSON.stringify({ _type: "Tr2MaterialParameterStore", name: "loaded", parameters: { Glow: { _type: "Tr2FloatParameter", name: "Glow", value: 2 } } }));
   const manager = new CjsBlueResMan({ source: { Read() { reads++; return payload; } } });
@@ -109,7 +109,7 @@ test("real manager builder hydrates independent material parents through shared 
     const dictionary = JSON.parse(new TextDecoder().decode(bytes));
     return { CreateObject() { builds++; return new DictReader({ declarations: true }).CreateObject(dictionary); } };
   });
-  blue.resMan = manager;
+  be.resMan = manager;
   const first = new Tr2MaterialParameterStore(), second = new Tr2MaterialParameterStore();
   first.parentPath = second.parentPath = "res:/parent.storefixture";
   await first._LoadParentResource(); await second._LoadParentResource();

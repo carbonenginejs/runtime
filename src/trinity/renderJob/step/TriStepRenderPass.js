@@ -3,7 +3,7 @@
 import { meta } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { PassType } from "../../generated/include/enums.js";
-import { blue } from "#blue";
+import { be } from "#blue";
 
 /** A render step that renders one named pass of a multi-pass scene. */
 @meta.define({ className: "TriStepRenderPass", family: "renderJob" })

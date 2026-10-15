@@ -258,11 +258,11 @@ export class CjsBlueResMan
   // The manager is no longer reachable from itself. Carbon's process-wide
   // handle is an extern beside the interface it points at, not a static on
   // the implementation (`blue/include/IBlueResMan.h:135`), and the port of
-  // that is `blue.resMan`. The static slot here was never installed by
+  // that is `be.resMan`. The static slot here was never installed by
   // anything in src, so every consumer received null and silently skipped
   // its acquisition.
   //
-  // The res-file existence oracle went with it, to `blue.paths`, where
+  // The res-file existence oracle went with it, to `be.paths`, where
   // Carbon keeps it: FileExistsLocally is IBluePaths.h:38, a different
   // service behind a different extern.
 
@@ -305,7 +305,7 @@ export class CjsBlueResMan
    */
   constructor(options = {}) {
     this.motherLode = new CjsMotherLode();
-    // The default source: the file through blue.paths, the bytes Carbon's
+    // The default source: the file through be.paths, the bytes Carbon's
     // DoOpenStream gets from BePaths->GetStreamFromPathW.
     this._bluePathsSource = { Read: (path, readOptions = {}) => readThroughBluePaths(CjsBlueResMan.getBluePaths(), path, readOptions) };
     this.source = null;
@@ -782,7 +782,7 @@ export class CjsBlueResMan
   }
 
   /**
-   * The per-frame tick from `blue.os`, as Carbon's is: `BlueResMan::OnTick`
+   * The per-frame tick from `be.os`, as Carbon's is: `BlueResMan::OnTick`
    * is `Update()` (BlueResMan.cpp:434-437), and the manager registers for it
    * (`BeOS->RegisterForTicks`, BlueResMan.cpp:113). MotherLode's trimming runs
    * inside `Update`, so it ticks through the manager rather than registering
@@ -5212,7 +5212,7 @@ CjsSchema.meta.blue.inherit(IBlueResMan, IBlueEvents)(CjsBlueResMan);
  * Ours: the `blue` holder sets this (blue.js), because resMan importing the
  * holder would be an import cycle - the holder constructs a resMan.
  *
- * @returns {import("./IBluePaths.js").IBluePaths} The current `blue.paths`.
+ * @returns {import("./IBluePaths.js").IBluePaths} The current `be.paths`.
  * @throws {Error} When no holder has set it.
  */
 CjsBlueResMan.getBluePaths = () =>
@@ -5230,7 +5230,7 @@ for (const method of [ "SaveObject", "ReserveBackgroundLoadMemory", "ReleaseBack
 CjsSchema.define(CjsBlueResMan, { className: "CjsBlueResMan", carbon: "BlueResMan" });
 
 /**
- * Reads a file's bytes through `blue.paths`; a file no file system has is an
+ * Reads a file's bytes through `be.paths`; a file no file system has is an
  * error naming the path (Carbon's DoOpenStream fails the load the same way).
  * The `?query` is the resource's own parameters: the file is opened without
  * it, as `DoOpenStream` opens `m_path.substr(0, query)` (BlueAsyncRes.cpp:380-384).

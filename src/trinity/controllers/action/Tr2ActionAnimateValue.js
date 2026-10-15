@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateValue.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateValue_Blue.cpp
 import { meta } from "#schema";
-import { IsMatch, blue } from "#blue";
+import { IsMatch, be } from "#blue";
 import { INotify } from "#blue/INotify";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
@@ -147,7 +147,7 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
     {
       return;
     }
-    this._runtime.startTime = blue.os.GetCurrentFrameTime();
+    this._runtime.startTime = be.os.GetCurrentFrameTime();
     this._runtime.lastTime = this._runtime.startTime;
     controller.RegisterUpdateable(this);
   }

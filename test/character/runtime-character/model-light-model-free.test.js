@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../../npm/dist/global/compose/interface.js";
-import { blue, IInitialize, INotify } from "../../../npm/dist/global/blue/index.js";
+import { be, IInitialize, INotify } from "../../../npm/dist/global/blue/index.js";
 import { StubResMan } from "../../support/stubResMan.js";
 import { Tr2Model, Tr2SkinnedModel, Tr2InteriorLightSource, ITr2InteriorLight, ITr2InteriorCullable } from "../../../npm/dist/character/index.js";
 import { Tr2Mesh } from "../../../npm/dist/trinity/index.js";
@@ -32,9 +32,9 @@ test("real Aura lights retain derived bounds and nominal interior contracts", ()
 test("real character model retains typed meshes without a model transport base", (t) =>
 {
   // Initialize acquires the model's geometry; Carbon's manager always answers with a TriGeometryRes.
-  const manager = blue.resMan;
-  blue.resMan = new StubResMan();
-  t.after(() => { blue.resMan = manager; });
+  const manager = be.resMan;
+  be.resMan = new StubResMan();
+  t.after(() => { be.resMan = manager; });
   const values = fixture("skinnedModelAsset");
   const model = CjsSchema.from(values._type, values);
   assert.ok(model instanceof Tr2Model);

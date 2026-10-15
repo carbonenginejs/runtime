@@ -2,7 +2,7 @@
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPDepthOfFieldEffect.cpp
 import { meta } from "#schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
-import { blue, EnumRegistrationType } from "#blue";
+import { be, EnumRegistrationType } from "#blue";
 
 
 /**
@@ -94,7 +94,7 @@ export class Tr2PPDepthOfFieldEffect extends Tr2PPEffect
 
 }
 
-blue.enums.Create("trinity.Tr2Bokeh.Shape", Tr2PPDepthOfFieldEffect.Shape, {
+be.enums.Create("trinity.Tr2Bokeh.Shape", Tr2PPDepthOfFieldEffect.Shape, {
   source: "trinity/trinity/PostProcess/Effects/Tr2PPDepthOfFieldEffect.h", family: "postProcess", line: 8,
   exposedName: "BokehShapeType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/PostProcess/Effects/Tr2PPDepthOfFieldEffect_Blue.cpp:10",

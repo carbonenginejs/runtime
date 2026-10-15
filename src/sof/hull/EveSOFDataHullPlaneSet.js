@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta } from "#schema";
-import { blue, EnumRegistrationType } from "#blue";
+import { be, EnumRegistrationType } from "#blue";
 import { vec2 } from "#math/vec2";
 
 /** Groups plane items with usage, texture, atlas, visibility, and skinning policy. */
@@ -80,7 +80,7 @@ export class EveSOFDataHullPlaneSet
 }
 
 // Native chooser labels and selection; the enum object retains all C++ members.
-blue.enums.Create("trinity.EveSOFDataHullPlaneSet.Usage", EveSOFDataHullPlaneSet.Usage, {
+be.enums.Create("trinity.EveSOFDataHullPlaneSet.Usage", EveSOFDataHullPlaneSet.Usage, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 711,
   exposedName: "HullPlanesetUsage", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:375",

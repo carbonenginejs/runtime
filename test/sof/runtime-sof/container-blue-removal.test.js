@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
-import { blue, IInitialize, INotify, DictReader, DictWriter, Copier, GetResources } from "../../../npm/dist/global/blue/index.js";
+import { be, IInitialize, INotify, DictReader, DictWriter, Copier, GetResources } from "../../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../../npm/dist/global/compose/interface.js";
 import { EveSOFDataMaterial as Material } from "../../../npm/dist/sof/shared/EveSOFDataMaterial.js";
 import { EveSOFDataArea as Area } from "../../../npm/dist/sof/shared/EveSOFDataArea.js";
@@ -40,7 +40,7 @@ test("SOF material and area containers expose native self-only tables without mo
 {
   for (const Class of [Material, Area])
   {
-    const record = blue.classes.CreateInstanceFromName(CjsSchema.getClassName(Class));
+    const record = be.classes.CreateInstanceFromName(CjsSchema.getClassName(Class));
     assert.equal(record.constructor, Class); assert.equal(Object.getPrototypeOf(Class.prototype), Object.prototype);
     assert.deepEqual([...mappedInterfaces(Class)], [Class]); assert.equal(CjsSchema.cast(record, Class), record);
     assert.equal(CjsSchema.cast(record, IInitialize), null); assert.equal(CjsSchema.cast(record, INotify), null);
@@ -66,8 +66,8 @@ test("native declaration order and area chooser preserve omitted Wreck slot and 
   assert.deepEqual(new Area().materials, new Array(Area.AreaType.TYPE_MAX).fill(null));
   assert.equal(CjsSchema.getSchema(Area).members.some(field => field.index === Area.AreaType.TYPE_WRECK), false);
   assert.equal(Area.AreaType.TYPE_WRECK, 5); assert.equal(Area.AreaType.TYPE_NO_OVERWRITE, 11); assert.equal(Area.AreaType.TYPE_MAX, 11);
-  const info = blue.enums.GetEnumInfo("trinity.EveSOFDataArea.AreaType");
-  assert.equal(blue.enums.GetEnum("trinity.EveSOFDataArea.AreaType"), Area.AreaType);
+  const info = be.enums.GetEnumInfo("trinity.EveSOFDataArea.AreaType");
+  assert.equal(be.enums.GetEnum("trinity.EveSOFDataArea.AreaType"), Area.AreaType);
   assert.equal(info.exposedName, "EveSOFDataAreaType");
   assert.deepEqual(info.chooser.map(value => value.name), ["Primary", "Glass", "Sails", "Reactor", "Darkhull", "Wreck", "Rock", "Monument", "Ornament", "SimplePrimary", "Turret", "NoOverwrite"]);
 });

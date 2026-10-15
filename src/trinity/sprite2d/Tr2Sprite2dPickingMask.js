@@ -6,7 +6,7 @@
 // 2026-09-06.
 import { meta } from "#schema";
 import { ResourceRequirement } from "#resource";
-import { blue } from "#blue";
+import { be } from "#blue";
 import { PixelFormat } from "#consts/render-context";
 
 /** Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite. */
@@ -81,7 +81,7 @@ export class Tr2Sprite2dPickingMask
   /**
    * Carbon SetMaskPath (cpp:23-31): guard the redundant set, clear the mask
    * and refetch it through the process-wide manager (BeResMan's L"raw"
-   * image fetch is the IMAGE requirement here, through blue.resMan as
+   * image fetch is the IMAGE requirement here, through be.resMan as
    * Tr2TexturedPointLight does). Empty paths retain the existing no-fetch adapter.
    *
    * Adapted: Uses the composed IMAGE resource route, coerces paths to strings and clears
@@ -98,7 +98,7 @@ export class Tr2Sprite2dPickingMask
     this._maskPath = String(path ?? "");
     this.mask = null;
     if (!this._maskPath) return;
-    this.mask = blue.resMan.GetResource(this._maskPath, {
+    this.mask = be.resMan.GetResource(this._maskPath, {
       requirement: ResourceRequirement.IMAGE
     });
   }

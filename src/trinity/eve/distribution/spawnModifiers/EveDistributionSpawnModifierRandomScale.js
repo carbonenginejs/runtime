@@ -2,7 +2,7 @@
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta } from "#schema";
-import { blue } from "#blue";
+import { be } from "#blue";
 import { IEveDistributionSpawnModifier } from "./IEveDistributionSpawnModifier.js";
 import { vec3 } from "#math/vec3";
 import { CjsDistributionRandom } from "../../CjsDistributionRandom.js";
@@ -16,7 +16,7 @@ export class EveDistributionSpawnModifierRandomScale extends IEveDistributionSpa
 {
 
   /** `m_timeSeed`: uint32_t( BeOS->GetCurrentFrameTime() ) (EveDistributionSpawnModifierRandomScale.cpp). */
-  _timeSeed = blue.os.GetCurrentFrameTime() >>> 0;
+  _timeSeed = be.os.GetCurrentFrameTime() >>> 0;
 
   /** m_minScale (Vector3) [READWRITE, PERSIST] */
   @meta.blue.readwrite
@@ -56,7 +56,7 @@ export class EveDistributionSpawnModifierRandomScale extends IEveDistributionSpa
   @meta.adapted
   Initialize()
   {
-    this._timeSeed = blue.os.GetCurrentFrameTime() >>> 0;
+    this._timeSeed = be.os.GetCurrentFrameTime() >>> 0;
     return true;
   }
 

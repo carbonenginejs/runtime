@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/IBehavior.h:11-27
 // Shared behavior enums declared by Carbon's IBehavior contracts.
-import { blue, EnumRegistrationType } from "#blue";
+import { be, EnumRegistrationType } from "#blue";
 
 export const LocatorType = {
   LOCAL_LOCATORS: 0,
@@ -29,7 +29,7 @@ export const TunnelGroupType = {
 };
 
 // Registered as Carbon registers it (trinity/trinity/Eve/SpaceObject/Children/Behaviors/Allign_Blue.cpp:17).
-blue.enums.Create("trinity.IBehavior.ProcessPriority", ProcessPriority, {
+be.enums.Create("trinity.IBehavior.ProcessPriority", ProcessPriority, {
   source: "trinity/trinity/Eve/SpaceObject/Children/Behaviors/IBehavior.h", family: "eve/child/behaviors", line: 18,
   exposedName: "BehaviorPriority", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObject/Children/Behaviors/Allign_Blue.cpp:8",
@@ -42,7 +42,7 @@ blue.enums.Create("trinity.IBehavior.ProcessPriority", ProcessPriority, {
 });
 
 // Registered as Carbon registers it (trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline_Blue.cpp:14).
-blue.enums.Create("trinity.SplineTunnelGroup.TunnelGroupType", TunnelGroupType, {
+be.enums.Create("trinity.SplineTunnelGroup.TunnelGroupType", TunnelGroupType, {
   source: "trinity/trinity/Eve/SpaceObject/Children/Behaviors/SplineTunnelGroup.h", family: "eve/child/behaviors", line: 68,
   exposedName: "setTunnelType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline_Blue.cpp:8",
@@ -54,12 +54,12 @@ blue.enums.Create("trinity.SplineTunnelGroup.TunnelGroupType", TunnelGroupType, 
 });
 
 // Carbon neither registers this nor gives it a chooser.
-blue.enums.Create("trinity.EveKDdroneManagementTree.PlaneType", PlaneType, {
+be.enums.Create("trinity.EveKDdroneManagementTree.PlaneType", PlaneType, {
   source: "trinity/trinity/Eve/SpaceObject/Children/Behaviors/EveKDdroneManagementTree.h", family: "eve/child/behaviors", line: 27
 });
 
 // Carbon BackAndForth_Blue.cpp:16; shared vocabulary registers where defined.
-blue.enums.Create("trinity.BackAndForth.LocatorType", LocatorType, {
+be.enums.Create("trinity.BackAndForth.LocatorType", LocatorType, {
   source: "trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth.h", family: "eve/child/behaviors", line: 40,
   exposedName: "LocatorType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth_Blue.cpp:10",

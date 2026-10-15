@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Tr2StateMachineState.h
 // Source: trinity/trinity/Controllers/Tr2StateMachineState.cpp
 // Source: trinity/trinity/Controllers/Tr2StateMachineState_Blue.cpp
-import { IsMatch, BlueList, IListNotify, INotify, blue, CjsBlueClasses } from "#blue";
+import { IsMatch, BlueList, IListNotify, INotify, be, CjsBlueClasses } from "#blue";
 import { meta } from "#schema";
 import { UnlinkReason } from "../enums.js";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -512,7 +512,7 @@ export class Tr2StateMachineState
   @meta.ours
   static _asAction(value)
   {
-    return value ? blue.classes.QueryThisInterface(value, ITr2ControllerAction, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    return value ? be.classes.QueryThisInterface(value, ITr2ControllerAction, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
   }
 
   /**
@@ -523,7 +523,7 @@ export class Tr2StateMachineState
   @meta.ours
   static _asTransition(value)
   {
-    return value ? blue.classes.QueryThisInterface(value, Tr2StateMachineTransition, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    return value ? be.classes.QueryThisInterface(value, Tr2StateMachineTransition, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
   }
 
   /**

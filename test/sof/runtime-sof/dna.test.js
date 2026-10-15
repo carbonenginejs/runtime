@@ -2,7 +2,7 @@ import { getRegisteredClassName } from "../../../npm/dist/global/compose/classNa
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import { composeStubResMan } from "../../support/stubResMan.js";
 
-// blue.resMan has no source until something configures it, so a test that
+// be.resMan has no source until something configures it, so a test that
 // builds an object with a res path composes one. It answers null, which is
 // what these tests already asserted - previously by accident, because
 // nothing in src ever filled the old static slot.
@@ -15,7 +15,7 @@ import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { test } from "node:test";
 import { TriBatchType } from "../../../npm/dist/global/consts/graphics/index.js";
-import { blue, BlueResFileSystemForm, IBlueResFileSystem } from "../../../npm/dist/global/blue/index.js";
+import { be, BlueResFileSystemForm, IBlueResFileSystem } from "../../../npm/dist/global/blue/index.js";
 import {
   CjsSofLibraryBuilder,
   EveSOF,
@@ -6146,7 +6146,7 @@ test("resPathInsert existence goes through BePaths, as Carbon's FileExists does"
     async GetStreamFromPath() { return null; }
     ResolvePath(path) { return path; }
   })();
-  blue.paths.RegisterFileSystem(fileSystem);
+  be.paths.RegisterFileSystem(fileSystem);
   try
   {
     const global = (await EveSOF.Create({ black: makeData("insert") }));
@@ -6155,7 +6155,7 @@ test("resPathInsert existence goes through BePaths, as Carbon's FileExists does"
   }
   finally
   {
-    blue.paths.UnregisterFileSystem(fileSystem);
+    be.paths.UnregisterFileSystem(fileSystem);
   }
 
   // The temporary resFileIndex adapter still overrides paths.

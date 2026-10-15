@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { BlueList } from "../../npm/dist/global/blue/BlueList.js";
-import { blue } from "../../npm/dist/global/blue/blue.js";
+import { be } from "../../npm/dist/global/blue/blue.js";
 import { Copier } from "../../npm/dist/global/blue/Copier.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { IListNotify } from "../../npm/dist/global/blue/IListNotify.js";
@@ -175,7 +175,7 @@ test("removing the current state stops it, starts the start state, then unlinks 
     ["removed.Unlink", null], ["removed.Stop", "removed.Unlink"]
   ]);
   assert.equal(machine.currentState, start);
-  assert.equal(machine._stateStartTime, blue.os.GetCurrentFrameTime());
+  assert.equal(machine._stateStartTime, be.os.GetCurrentFrameTime());
   assert.equal(start.GetStateMachine(), machine);
   assert.equal(start._isActive, true);
   assert.equal(removed.GetStateMachine(), null);
@@ -214,7 +214,7 @@ test("unlinked removal still selects and calls Start on the start state", () =>
   assert.deepEqual(calls, [["start.Start", null], ["removed.Unlink", null]]);
   assert.equal(machine.GetController(), null);
   assert.equal(machine.currentState, start);
-  assert.equal(machine._stateStartTime, blue.os.GetCurrentFrameTime());
+  assert.equal(machine._stateStartTime, be.os.GetCurrentFrameTime());
   assert.equal(start.GetStateMachine(), null);
   assert.equal(start._isActive, false, "the real Start cannot activate an unlinked state");
 });

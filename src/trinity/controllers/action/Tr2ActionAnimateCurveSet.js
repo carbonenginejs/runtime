@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateCurveSet.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateCurveSet_Blue.cpp
 import { meta } from "#schema";
-import { IsMatch, blue, INotify } from "#blue";
+import { IsMatch, be, INotify } from "#blue";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { ITr2Updateable } from "../../core/ITr2Updateable.js";
@@ -83,7 +83,7 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
       return;
     }
     this._runtime.controller = controller;
-    this._runtime.startTime = blue.os.GetCurrentFrameTime();
+    this._runtime.startTime = be.os.GetCurrentFrameTime();
     this._runtime.lastTime = this._runtime.startTime;
     controller.RegisterUpdateable(this);
   }

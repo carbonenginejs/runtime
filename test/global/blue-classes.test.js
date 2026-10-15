@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { blue, CjsBlueClasses } from "../../src/global/blue/index.js";
+import { be, CjsBlueClasses } from "../../src/global/blue/index.js";
 import { CjsSchema } from "../../src/global/schema/index.js";
 import * as CcpLog from "../../src/global/logging/ccpLog.js";
 import * as classRegistry from "../../src/global/blue/classes/registry.js";
@@ -19,7 +19,7 @@ test("flag-only and nullish factory registrations preserve ordinary construction
   let constructions = 0;
   class FlagOnly { constructor() { constructions++; } }
   const names = ["FlagOnlyOmittedFactory", "FlagOnlyNullFactory", "FlagOnlyUndefinedFactory"];
-  blue.classes.RegisterClasses([
+  be.classes.RegisterClasses([
     {name: names[0], type: FlagOnly, flags: 1},
     {name: names[1], type: FlagOnly, createFn: null, flags: 1},
     {name: names[2], type: FlagOnly, createFn: undefined, flags: 1},
@@ -28,13 +28,13 @@ test("flag-only and nullish factory registrations preserve ordinary construction
   {
     for (const name of names)
     {
-      assert.equal(blue.classes.GetClassRegistration(name).flags, 1);
-      assert.notStrictEqual(blue.classes.GetClassRegistration(name).createFn, ClassRegistrarNullFactory);
-      assert.strictEqual(Object.getPrototypeOf(blue.classes.CreateInstance(name)), FlagOnly.prototype);
+      assert.equal(be.classes.GetClassRegistration(name).flags, 1);
+      assert.notStrictEqual(be.classes.GetClassRegistration(name).createFn, ClassRegistrarNullFactory);
+      assert.strictEqual(Object.getPrototypeOf(be.classes.CreateInstance(name)), FlagOnly.prototype);
     }
     assert.equal(constructions, 3);
   }
-  finally { blue.classes.UnregisterClasses(names.map(name => ({name}))); }
+  finally { be.classes.UnregisterClasses(names.map(name => ({name}))); }
 });
 
 test("abstract definitions preserve distinct existing canonical and alias factories atomically", () =>
@@ -47,7 +47,7 @@ test("abstract definitions preserve distinct existing canonical and alias factor
   const aliasResult = {alias: true};
   const canonical = {name: "AbstractOccupiedCanonical", type: ExistingCanonical, createFn: () => canonicalResult, flags: 8};
   const alias = {name: "AbstractOccupiedAlias", type: ExistingAlias, createFn: () => aliasResult, flags: 16};
-  blue.classes.RegisterClasses([canonical, alias]);
+  be.classes.RegisterClasses([canonical, alias]);
   const before = getClassRegistrationRevision();
   CjsSchema.define(Abstract, {
     className: canonical.name, abstract: true, aliases: [alias.name, "AbstractFreeAlias"],
@@ -55,28 +55,28 @@ test("abstract definitions preserve distinct existing canonical and alias factor
   try
   {
     assert.equal(getClassRegistrationRevision(), before + 1, "only the free alias changes revision");
-    assert.deepEqual(blue.classes.GetClassRegistration(canonical.name), canonical);
-    assert.deepEqual(blue.classes.GetClassRegistration(alias.name), alias);
-    assert.strictEqual(blue.classes.CreateInstance(canonical.name), canonicalResult);
-    assert.strictEqual(blue.classes.CreateInstance(alias.name), aliasResult);
-    assert.equal(blue.classes.CreateInstance("AbstractFreeAlias"), null);
+    assert.deepEqual(be.classes.GetClassRegistration(canonical.name), canonical);
+    assert.deepEqual(be.classes.GetClassRegistration(alias.name), alias);
+    assert.strictEqual(be.classes.CreateInstance(canonical.name), canonicalResult);
+    assert.strictEqual(be.classes.CreateInstance(alias.name), aliasResult);
+    assert.equal(be.classes.CreateInstance("AbstractFreeAlias"), null);
     assert.equal(abstractConstructions, 0);
     assert.equal(CjsSchema.getSchema(Abstract).abstract, true, "own declaration does not overwrite a pre-existing name's policy");
     assert.strictEqual(CjsSchema.GetConstructor(canonical.name), ExistingCanonical);
     assert.strictEqual(CjsSchema.GetConstructor(alias.name), ExistingAlias);
-    assert.deepEqual(blue.classes.GetClassRegistration("AbstractFreeAlias"), {
+    assert.deepEqual(be.classes.GetClassRegistration("AbstractFreeAlias"), {
       name: "AbstractFreeAlias", type: Abstract, createFn: ClassRegistrarNullFactory, flags: 1,
     });
-    blue.classes.RegisterClasses([{name: "AbstractFreeAlias", type: ExistingAlias, createFn: alias.createFn, flags: 16}]);
+    be.classes.RegisterClasses([{name: "AbstractFreeAlias", type: ExistingAlias, createFn: alias.createFn, flags: 16}]);
     assert.equal(getClassRegistrationRevision(), before + 1);
-    assert.equal(blue.classes.CreateInstance("AbstractFreeAlias"), null);
+    assert.equal(be.classes.CreateInstance("AbstractFreeAlias"), null);
     CjsSchema.DeleteConstructor(canonical.name);
     assert.strictEqual(CjsSchema.GetConstructor(alias.name), ExistingAlias);
-    assert.equal(blue.classes.CreateInstance("AbstractFreeAlias"), null);
+    assert.equal(be.classes.CreateInstance("AbstractFreeAlias"), null);
   }
   finally
   {
-    blue.classes.UnregisterClasses([canonical, alias, {name: "AbstractFreeAlias"}]);
+    be.classes.UnregisterClasses([canonical, alias, {name: "AbstractFreeAlias"}]);
   }
 });
 
@@ -87,85 +87,85 @@ test("independent aliases of an abstract type keep their explicitly selected fac
   CjsSchema.define(Abstract, {className: "AbstractFactoryIdentity", aliases: ["AbstractDefinitionAlias"], abstract: true});
   const made = {};
   const factory = () => made;
-  blue.classes.RegisterClasses([{name: "AbstractCustomAlias", type: Abstract, createFn: factory, flags: 1}]);
+  be.classes.RegisterClasses([{name: "AbstractCustomAlias", type: Abstract, createFn: factory, flags: 1}]);
   CjsSchema.SetConstructor("AbstractPlainAlias", Abstract);
   try
   {
-    assert.equal(blue.classes.CreateInstance("AbstractFactoryIdentity"), null);
-    assert.equal(blue.classes.CreateInstance("AbstractDefinitionAlias"), null);
-    assert.strictEqual(blue.classes.GetClassRegistration("AbstractCustomAlias").createFn, factory);
-    assert.strictEqual(blue.classes.CreateInstance("AbstractCustomAlias"), made);
+    assert.equal(be.classes.CreateInstance("AbstractFactoryIdentity"), null);
+    assert.equal(be.classes.CreateInstance("AbstractDefinitionAlias"), null);
+    assert.strictEqual(be.classes.GetClassRegistration("AbstractCustomAlias").createFn, factory);
+    assert.strictEqual(be.classes.CreateInstance("AbstractCustomAlias"), made);
     assert.equal(constructions, 0);
-    assert.strictEqual(Object.getPrototypeOf(blue.classes.CreateInstance("AbstractPlainAlias")), Abstract.prototype);
+    assert.strictEqual(Object.getPrototypeOf(be.classes.CreateInstance("AbstractPlainAlias")), Abstract.prototype);
     assert.equal(constructions, 1);
     assert.equal(CjsSchema.getSchema(Abstract).abstract, true);
     CjsSchema.DeleteConstructor("AbstractDefinitionAlias");
-    assert.equal(blue.classes.CreateInstance("AbstractFactoryIdentity"), null);
-    assert.strictEqual(blue.classes.CreateInstance("AbstractCustomAlias"), made);
+    assert.equal(be.classes.CreateInstance("AbstractFactoryIdentity"), null);
+    assert.strictEqual(be.classes.CreateInstance("AbstractCustomAlias"), made);
   }
   finally
   {
-    blue.classes.UnregisterClasses(["AbstractFactoryIdentity", "AbstractDefinitionAlias", "AbstractCustomAlias", "AbstractPlainAlias"].map(name => ({name})));
+    be.classes.UnregisterClasses(["AbstractFactoryIdentity", "AbstractDefinitionAlias", "AbstractCustomAlias", "AbstractPlainAlias"].map(name => ({name})));
   }
 });
 
 test("blue.classes is a CjsBlueClasses registry", () =>
 {
-  assert.equal(blue.classes.constructor, CjsBlueClasses);
+  assert.equal(be.classes.constructor, CjsBlueClasses);
 });
 
 test("an unregistered class is not found, and creating it yields null", () =>
 {
-  assert.equal(blue.classes.FindClsid("NoSuchClass"), null);
-  assert.equal(blue.classes.GetClassRegistration("NoSuchClass"), null);
-  assert.equal(blue.classes.CreateInstanceFromName("NoSuchClass"), null);
+  assert.equal(be.classes.FindClsid("NoSuchClass"), null);
+  assert.equal(be.classes.GetClassRegistration("NoSuchClass"), null);
+  assert.equal(be.classes.CreateInstanceFromName("NoSuchClass"), null);
 });
 
 test("RegisterClasses registers under the explicit name, not type.name", () =>
 {
-  blue.classes.RegisterClasses([ { name: "TestUnschemed", type: Unschemed } ]);
+  be.classes.RegisterClasses([ { name: "TestUnschemed", type: Unschemed } ]);
 
-  const registration = blue.classes.GetClassRegistration("TestUnschemed");
+  const registration = be.classes.GetClassRegistration("TestUnschemed");
   assert.equal(registration.type, Unschemed);
   assert.equal(registration.name, "TestUnschemed");
   assert.equal(registration.flags, 0);
-  assert.equal(blue.classes.FindClsid("TestUnschemed"), "TestUnschemed");
-  assert.equal(blue.classes.GetClassRegistration("Unschemed"), null);
+  assert.equal(be.classes.FindClsid("TestUnschemed"), "TestUnschemed");
+  assert.equal(be.classes.GetClassRegistration("Unschemed"), null);
 
-  const instance = blue.classes.CreateInstanceFromName("TestUnschemed");
+  const instance = be.classes.CreateInstanceFromName("TestUnschemed");
   assert.ok(instance instanceof Unschemed);
 
-  blue.classes.UnregisterClasses([ { name: "TestUnschemed" } ]);
-  assert.equal(blue.classes.GetClassRegistration("TestUnschemed"), null);
+  be.classes.UnregisterClasses([ { name: "TestUnschemed" } ]);
+  assert.equal(be.classes.GetClassRegistration("TestUnschemed"), null);
 });
 
 test("Blue and CjsSchema share registrations in both directions", () =>
 {
   class Schemed {}
   CjsSchema.define(Schemed, { className: "TestSchemed", fields: {} });
-  assert.equal(blue.classes.GetClassRegistration("TestSchemed").type, Schemed);
+  assert.equal(be.classes.GetClassRegistration("TestSchemed").type, Schemed);
 
-  blue.classes.RegisterClasses([ { name: "TestUnschemed2", type: Unschemed } ]);
+  be.classes.RegisterClasses([ { name: "TestUnschemed2", type: Unschemed } ]);
   assert.equal(CjsSchema.GetConstructor("TestUnschemed2"), Unschemed);
-  blue.classes.UnregisterClasses([ { name: "TestUnschemed2" } ]);
+  be.classes.UnregisterClasses([ { name: "TestUnschemed2" } ]);
 });
 
 test("a second registration under a taken name keeps the first (BlueClasses.cpp:272-276)", () =>
 {
   class Other {}
-  blue.classes.RegisterClasses([ { name: "TestFirst", type: Unschemed } ]);
-  blue.classes.RegisterClasses([ { name: "TestFirst", type: Other } ]);
-  assert.equal(blue.classes.GetClassRegistration("TestFirst").type, Unschemed);
-  blue.classes.UnregisterClasses([ { name: "TestFirst" } ]);
+  be.classes.RegisterClasses([ { name: "TestFirst", type: Unschemed } ]);
+  be.classes.RegisterClasses([ { name: "TestFirst", type: Other } ]);
+  assert.equal(be.classes.GetClassRegistration("TestFirst").type, Unschemed);
+  be.classes.UnregisterClasses([ { name: "TestFirst" } ]);
 });
 
 test("a custom createFn and flags are kept", () =>
 {
   const made = { made: true };
-  blue.classes.RegisterClasses([ { name: "TestCustom", type: Unschemed, createFn: () => made, flags: CjsBlueClasses.Flags.DISABLE_PYTHON_CONSTRUCTION } ]);
-  assert.equal(blue.classes.CreateInstanceFromName("TestCustom"), made);
-  assert.equal(blue.classes.GetClassRegistration("TestCustom").flags, 1);
-  blue.classes.UnregisterClasses([ { name: "TestCustom" } ]);
+  be.classes.RegisterClasses([ { name: "TestCustom", type: Unschemed, createFn: () => made, flags: CjsBlueClasses.Flags.DISABLE_PYTHON_CONSTRUCTION } ]);
+  assert.equal(be.classes.CreateInstanceFromName("TestCustom"), made);
+  assert.equal(be.classes.GetClassRegistration("TestCustom").flags, 1);
+  be.classes.UnregisterClasses([ { name: "TestCustom" } ]);
 });
 
 test("all CjsBlueClasses instances share complete factory records without exposing mutable entries", () =>

@@ -56,7 +56,7 @@ async function probe()
     ])
     {
         assert.equal(typeof root[name], "function", name);
-        assert.equal(root.blue.classes.GetClassRegistration(name).type, root[name], name);
+        assert.equal(root.be.classes.GetClassRegistration(name).type, root[name], name);
     }
     for (const name of [ "CjsWebAudioSoundEngine", "CjsAudioSystem", "CjsAudioMan" ])
     {
@@ -99,7 +99,7 @@ async function probe()
     stub.UnregisterGameObj(7);
     assert.equal(stub.GetGameObject(7), null);
     assert.equal(root.AudGameObjResource.manager, null);
-    assert.equal(root.AudGameObjResource.backend, root.blue.audio);
+    assert.equal(root.AudGameObjResource.backend, root.be.audio);
     assert.equal(root.AudGameObjResource.backend.constructor, root.CjsWwiseSoundEngineStub);
     console.log("root graph ready");
 }

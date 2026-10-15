@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { blue } from "#blue";
+import { be } from "#blue";
 
 export const DestinationType = {
   OWNER: 0,
@@ -33,7 +33,7 @@ export const UnlinkReason = Object.freeze({
 
 // Carbon gives this a chooser (trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation_Blue.cpp:11) but never registers it,
 // so it takes no exposure.
-blue.enums.Create("trinity.Tr2ActionPlayMeshAnimation.PlayAction", PlayAction, {
+be.enums.Create("trinity.Tr2ActionPlayMeshAnimation.PlayAction", PlayAction, {
   source: "trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation.h", family: "controllers", line: 14,
   chooserSource: "trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation_Blue.cpp:11",
   chooser: [
@@ -44,7 +44,7 @@ blue.enums.Create("trinity.Tr2ActionPlayMeshAnimation.PlayAction", PlayAction, {
 
 // Carbon gives this a chooser (trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation_Blue.cpp:16) but never registers it,
 // so it takes no exposure.
-blue.enums.Create("trinity.Tr2ActionPlayMeshAnimation.StopAction", StopAction, {
+be.enums.Create("trinity.Tr2ActionPlayMeshAnimation.StopAction", StopAction, {
   source: "trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation.h", family: "controllers", line: 19,
   chooserSource: "trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation_Blue.cpp:16",
   chooser: [
@@ -56,7 +56,7 @@ blue.enums.Create("trinity.Tr2ActionPlayMeshAnimation.StopAction", StopAction, {
 
 // Carbon gives this a chooser (trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation_Blue.cpp:22) but never registers it,
 // so it takes no exposure.
-blue.enums.Create("trinity.Tr2ActionPlayMeshAnimation.DestinationType", DestinationType, {
+be.enums.Create("trinity.Tr2ActionPlayMeshAnimation.DestinationType", DestinationType, {
   source: "trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation.h", family: "controllers", line: 25,
   chooserSource: "trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation_Blue.cpp:22",
   chooser: [
@@ -67,7 +67,7 @@ blue.enums.Create("trinity.Tr2ActionPlayMeshAnimation.DestinationType", Destinat
 
 // Carbon gives this a chooser (trinity/trinity/Controllers/Actions/Tr2ActionResetClipSphereCenter_Blue.cpp:10) but never registers it,
 // so it takes no exposure.
-blue.enums.Create("trinity.Tr2ActionResetClipSphereCenter.ResetBehavior", ResetBehavior, {
+be.enums.Create("trinity.Tr2ActionResetClipSphereCenter.ResetBehavior", ResetBehavior, {
   source: "trinity/trinity/Controllers/Actions/Tr2ActionResetClipSphereCenter.h", family: "controllers", line: 13,
   chooserSource: "trinity/trinity/Controllers/Actions/Tr2ActionResetClipSphereCenter_Blue.cpp:10",
   chooser: [
@@ -79,7 +79,7 @@ blue.enums.Create("trinity.Tr2ActionResetClipSphereCenter.ResetBehavior", ResetB
 
 // Carbon gives this a chooser (trinity/trinity/Controllers/Tr2ControllerFloatVariable_Blue.cpp:9) but never registers it,
 // so it takes no exposure.
-blue.enums.Create("trinity.Tr2ControllerFloatVariable.Type", Type, {
+be.enums.Create("trinity.Tr2ControllerFloatVariable.Type", Type, {
   source: "trinity/trinity/Controllers/Tr2ControllerFloatVariable.h", family: "controllers", line: 10,
   chooserSource: "trinity/trinity/Controllers/Tr2ControllerFloatVariable_Blue.cpp:9",
   chooser: [

@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionChildEffect.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionChildEffect_Blue.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { blue, CjsBlueClasses } from "#blue";
+import { be, CjsBlueClasses } from "#blue";
 import { meta, CjsSchema } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
@@ -15,10 +15,10 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
  */
 function CastTo(value, className)
 {
-  const registration = blue.classes.GetClassRegistration(className);
+  const registration = be.classes.GetClassRegistration(className);
   if (!registration) throw new Error(`Tr2ActionChildEffect: class ${className} is not registered with Blue`);
   if (!value || typeof value !== "object") return null;
-  return blue.classes.QueryThisInterface(value, registration.type, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
+  return be.classes.QueryThisInterface(value, registration.type, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
 }
 
 
@@ -199,7 +199,7 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
   {
     const path = this.path;
     const request = ++this._loadRequest;
-    Promise.resolve(blue.resMan.LoadObject(path)).then(object =>
+    Promise.resolve(be.resMan.LoadObject(path)).then(object =>
     {
       if (request !== this._loadRequest)
       {
@@ -280,7 +280,7 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
    * mesh, which detaches its shared instance provider. Resources still reached
    * from the owner survive, as do canonical geometry and texture resources.
    * Reachability is the walk of Carbon's Find functions (Find.cpp:352-396):
-   * an explicit stack, each object once, children from blue.EnumerateChildren.
+   * an explicit stack, each object once, children from be.EnumerateChildren.
    */
   @meta.ours
   _ReleaseChildDeviceResources(child, owner)
@@ -299,7 +299,7 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
         const obj = stack.pop();
         if (seen.has(obj)) continue;
         seen.add(obj);
-        blue.EnumerateChildren(obj, next => stack.push(next));
+        be.EnumerateChildren(obj, next => stack.push(next));
       }
     };
     const retained = new Set();

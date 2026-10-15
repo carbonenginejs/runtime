@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { BlueList, IList, IListNotify, ICopierCustomAssignment, Copier, ICopier, blue } from "@carbonenginejs/runtime/blue";
+import { BlueList, IList, IListNotify, ICopierCustomAssignment, Copier, ICopier, be } from "@carbonenginejs/runtime/blue";
 import { CjsSchema, meta } from "@carbonenginejs/runtime/schema";
 import { BLUELISTEVENT } from "../../src/global/consts/blue.js";
 import { mappedInterfaces } from "../../src/global/compose/interface.js";
@@ -67,7 +67,7 @@ function Events(observer)
 test("IList exposes abstract operations while BlueList keeps its generic template unregistered", () =>
 {
   assert.equal(CjsSchema.GetConstructor("IList"), IList);
-  assert.equal(blue.classes.GetClassRegistration("IList").type, IList);
+  assert.equal(be.classes.GetClassRegistration("IList").type, IList);
   assert.equal(CjsSchema.getClassName(BlueList), null);
   assert.equal(CjsSchema.GetConstructor("BlueList"), null);
   for (const name of [ "GetSize", "GetInfo", "Insert", "Remove", "Append", "GetAt", "FindKey", "Swap", "Sort", "SetNotify", "Move", "GetAllItems" ])

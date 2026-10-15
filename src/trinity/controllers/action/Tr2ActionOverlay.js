@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionOverlay.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionOverlay_Blue.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { blue, CjsBlueClasses } from "#blue";
+import { be, CjsBlueClasses } from "#blue";
 import { meta } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
@@ -15,10 +15,10 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
  */
 function CastTo(value, className)
 {
-  const registration = blue.classes.GetClassRegistration(className);
+  const registration = be.classes.GetClassRegistration(className);
   if (!registration) throw new Error(`Tr2ActionOverlay: class ${className} is not registered with Blue`);
   if (!value || typeof value !== "object") return null;
-  return blue.classes.QueryThisInterface(value, registration.type, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
+  return be.classes.QueryThisInterface(value, registration.type, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
 }
 
 
@@ -164,7 +164,7 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
     }
 
     const request = ++this._loadRequest;
-    return Promise.resolve(blue.resMan.LoadObject(path)).then(object =>
+    return Promise.resolve(be.resMan.LoadObject(path)).then(object =>
     {
       if (request !== this._loadRequest) return;
       const overlay = CastTo(object, "EveMeshOverlayEffect");

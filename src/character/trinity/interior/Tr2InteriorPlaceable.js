@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Interior/Tr2InteriorPlaceable.cpp
 // Source: trinity/trinity/Interior/Tr2InteriorPlaceable_Blue.cpp
 import { meta } from "#schema";
-import { blue, IInitialize, INotify, IsMatch, CjsBlueClasses } from "#blue";
+import { be, IInitialize, INotify, IsMatch, CjsBlueClasses } from "#blue";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { WodPlaceableRes } from "../../../resource/geometry/WodPlaceableRes.js";
 import { mat4 } from "#math/mat4";
@@ -112,8 +112,8 @@ export class Tr2InteriorPlaceable
       if (this.placeableRes && this.isUnique)
       {
         ++this._loadRequest;
-        const copy = blue.classes.CloneTo(this.placeableRes);
-        this.placeableRes = copy ? blue.classes.QueryThisInterface(copy, WodPlaceableRes) : null;
+        const copy = be.classes.CloneTo(this.placeableRes);
+        this.placeableRes = copy ? be.classes.QueryThisInterface(copy, WodPlaceableRes) : null;
       }
       else
       {
@@ -141,7 +141,7 @@ export class Tr2InteriorPlaceable
     let object;
     try
     {
-      object = await blue.resMan.LoadObject(path);
+      object = await be.resMan.LoadObject(path);
     }
     catch (error)
     {
@@ -152,7 +152,7 @@ export class Tr2InteriorPlaceable
       return null;
     }
     if (request !== this._loadRequest || path !== this.placeableResPath) return null;
-    if (!object || blue.classes.QueryThisInterface(object, WodPlaceableRes, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === null)
+    if (!object || be.classes.QueryThisInterface(object, WodPlaceableRes, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === null)
     {
       CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Resource ${path} is not a WodPlaceableRes.`);
       return null;

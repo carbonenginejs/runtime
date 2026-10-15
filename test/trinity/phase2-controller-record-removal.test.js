@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema, meta } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { BlueList, Copier, DictReader, IInitialize, INotify, IListNotify, blue } from "../../npm/dist/global/blue/index.js";
+import { BlueList, Copier, DictReader, IInitialize, INotify, IListNotify, be } from "../../npm/dist/global/blue/index.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import { Tr2ControllerReference } from "../../npm/dist/trinity/controllers/Tr2ControllerReference.js";
@@ -65,10 +65,10 @@ test("declared reference initialization loads once and replays pending owner int
     notified++;
     return originalNotify.call(this, name);
   });
-  const previous = blue.resMan, paths = [];
+  const previous = be.resMan, paths = [];
   let resolve;
-  blue.resMan = { LoadObject(path) { paths.push(path); return new Promise(done => { resolve = done; }); } };
-  t.after(() => { blue.resMan = previous; });
+  be.resMan = { LoadObject(path) { paths.push(path); return new Promise(done => { resolve = done; }); } };
+  t.after(() => { be.resMan = previous; });
   const reference = new DictReader({ declarations: true }).CreateObject({ _type: "Tr2ControllerReference", path: "res:/record.black" });
   assert.equal(initialized, 1);
   assert.equal(notified, 0, "mapped Initialize suppresses per-member notifications during construction");
@@ -89,9 +89,9 @@ test("declared reference initialization loads once and replays pending owner int
 test("typed controller loads reject nominal-only objects without exposed query identity", async t =>
 {
   class NominalController extends ITr2Controller { IsLinked() { return false; } }
-  const previous = blue.resMan;
-  blue.resMan = { async LoadObject() { return new NominalController(); } };
-  t.after(() => { blue.resMan = previous; });
+  const previous = be.resMan;
+  be.resMan = { async LoadObject() { return new NominalController(); } };
+  t.after(() => { be.resMan = previous; });
   const reference = new Tr2ControllerReference();
   reference.path = "res:/wrong.black";
   assert.equal(await reference.ResolveController(), null);
@@ -100,10 +100,10 @@ test("typed controller loads reject nominal-only objects without exposed query i
 
 test("reference copy omits runtime owner and controller and initializes the copied path", async t =>
 {
-  const previous = blue.resMan, paths = [];
+  const previous = be.resMan, paths = [];
   const loaded = new Tr2Controller();
-  blue.resMan = { async LoadObject(path) { paths.push(path); return loaded; } };
-  t.after(() => { blue.resMan = previous; });
+  be.resMan = { async LoadObject(path) { paths.push(path); return loaded; } };
+  t.after(() => { be.resMan = previous; });
   const source = new Tr2ControllerReference();
   source.path = "res:/copy.black";
   source.controller = new Tr2Controller();
@@ -185,7 +185,7 @@ test("handler construction and copy preserve list identity shared actions and ob
   copy.actions.GetInfo(info);
   assert.equal(info.notify, copy);
   const seen = [];
-  seen.push(copy, ...blue.FindAllReferences(copy).keys());
+  seen.push(copy, ...be.FindAllReferences(copy).keys());
   assert.equal(seen.includes(copy.actions[0]), true);
   assert.deepEqual(GetResources(copy), []);
 });

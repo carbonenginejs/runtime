@@ -2,7 +2,7 @@ import { getRegisteredClassName } from "../../npm/dist/global/compose/className.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsSchema, meta } from "../../npm/dist/global/schema/index.js";
-import { blue, BlueList, ITriFunction, ITriVectorFunction, ITriColorFunction, ITriQuaternionFunction, ITriScalarFunction, ITriCurveLength, IInitialize } from "../../npm/dist/global/blue/index.js";
+import { be, BlueList, ITriFunction, ITriVectorFunction, ITriColorFunction, ITriQuaternionFunction, ITriScalarFunction, ITriCurveLength, IInitialize } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
@@ -23,7 +23,7 @@ for(const [Class,Base,table] of [
  [TriColorSequencer,ITriColorFunction,[TriColorSequencer,ITriFunction,ITriColorFunction,ITriCurveLength]],
  [Tr2CurveEulerRotationExpression,ITriQuaternionFunction,[Tr2CurveEulerRotationExpression,ITriQuaternionFunction,ITriFunction,IInitialize]]
 ])test(getRegisteredClassName(Class)+" native base and exact exposure",()=>{
- const instance=blue.classes.CreateInstanceFromName(getRegisteredClassName(Class));
+ const instance=be.classes.CreateInstanceFromName(getRegisteredClassName(Class));
  assert.equal(instance.constructor,Class);assert.equal(Object.getPrototypeOf(Class.prototype),Base.prototype);
  assert.deepEqual([...mappedInterfaces(Class)],table);
  for(const method of ["SetValues","GetValues","OnEvent","Clone","Traverse","GetResources"])assert.equal(method in instance,false);
@@ -59,7 +59,7 @@ test("color length uses declared duration/length interfaces and required methods
 for(const [Class,field,Child]of [[TriVectorSequencer,"functions",Tr2CurveVector3],[TriColorSequencer,"functions",Tr2CurveColor],[Tr2CurveEulerRotationExpression,"inputs",Tr2CurveScalar]])test(getRegisteredClassName(Class)+" declared hydration and copy retain typed list identity",()=>{
  const curve=new Class(),list=curve[field];assert.equal(list instanceof BlueList,true);assert.equal(list.Append({}),false);
  new DictReader({declarations:true}).ReadInto(curve,{[field]:[{_type:getRegisteredClassName(Child),name:"child"}]});assert.equal(curve[field],list);assert.equal(list[0].constructor,Child);
- const copy=new Class(),copyList=copy[field];blue.classes.CopyTo(curve,copy);assert.equal(copy[field],copyList);assert.notEqual(copyList[0],list[0]);assert.equal(copyList[0].name,"child");
+ const copy=new Class(),copyList=copy[field];be.classes.CopyTo(curve,copy);assert.equal(copy[field],copyList);assert.notEqual(copyList[0],list[0]);assert.equal(copyList[0].name,"child");
  assert.equal(new DictWriter().WriteObject(curve,{}, {persistOnly:true})[field][0].name,"child");
  if(Class!==Tr2CurveEulerRotationExpression){assert.equal(CjsSchema.getField(Class,"name").type.kind,"wstring");assert.equal(CjsSchema.getField(Class,"start").type.kind,"int64");}
 });

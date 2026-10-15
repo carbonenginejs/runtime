@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { clientResources } from "../support/clientResources.js";
 import test from "node:test";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { be } from "../../npm/dist/global/blue/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
 import { TriGeometryRes } from "../../npm/dist/resource/geometry/TriGeometryRes.js";
@@ -58,9 +58,9 @@ async function assets(t, slots = [1, 2, 8])
   const hullGeometry = makeGeometry(data.hullBytes);
   const turretGeometry = makeGeometry(data.turretGeometry);
   const resources = new Map([[hullGeometryPath, hullGeometry], [turretGeometryPath, turretGeometry]]);
-  const previous = blue.resMan;
-  blue.resMan = new StubResMan(path => resources.get(path.toLowerCase()));
-  t.after(() => { blue.resMan = previous; });
+  const previous = be.resMan;
+  be.resMan = new StubResMan(path => resources.get(path.toLowerCase()));
+  t.after(() => { be.resMan = previous; });
   const sof = (await new EveSOF().Register({
     lazyData: { source: async path => { assert.ok(files.has(path), path); return files.get(path); } },
     resources: { exists: async path => files.has(path) }

@@ -6,7 +6,7 @@ import { ITr2InteriorLight } from "./ITr2InteriorLight.js";
 // Source: trinity/trinity/Interior/Tr2InteriorScene.cpp
 // Source: trinity/trinity/Interior/Tr2InteriorScene_Blue.cpp
 import { CjsSchema, meta } from "#schema";
-import { blue, IInitialize, INotify, IsMatch, ResourceRequirement } from "#blue";
+import { be, IInitialize, INotify, IsMatch, ResourceRequirement } from "#blue";
 import { PixelFormat, DepthStencilFormat } from "#consts/render-context";
 import { Tr2RenderTarget } from "../../../trinity/core/device/Tr2RenderTarget.js";
 import { Tr2DepthStencil } from "../../../trinity/core/device/Tr2DepthStencil.js";
@@ -325,7 +325,7 @@ export class Tr2InteriorScene
    */
   @meta.blue.method
   @meta.adapted
-  SetBackgroundCubemapResPath(resMan = blue.resMan)
+  SetBackgroundCubemapResPath(resMan = be.resMan)
   {
     this.backgroundCubemapRes = null;
     if (this.backgroundCubemapPath)

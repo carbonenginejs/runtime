@@ -18,7 +18,7 @@ async function managed()
   const resMan = new CjsBlueResMan();
   resMan.motherLode._now = () => clock.now;
   const resource = resMan.GetResource("res:/tick/stamp.dds");
-  // The load fails on the resource once the read through blue.paths answers.
+  // The load fails on the resource once the read through be.paths answers.
   await resMan.Wait();
   return { clock, resMan, resource };
 }

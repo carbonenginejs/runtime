@@ -7,7 +7,7 @@ import { IsMatch, IInitialize, INotify } from "#blue";
 // lights/Tr2TexturedPointLight.json (tools-core schema build).
 import { meta } from "#schema";
 import { ResourceRequirement } from "#resource";
-import { blue } from "#blue";
+import { be } from "#blue";
 import { color } from "#math/color";
 import { Tr2Light } from "./Tr2Light.js";
 import { Tr2PointLight } from "./Tr2PointLight.js";
@@ -57,7 +57,7 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   /**
    * Carbon Initialize (cpp:16-23): fetch the texture when a path is
    * authored, then the point-light base. The reach is the process-wide
-   * manager read at call time, which is what BeResMan is (blue.resMan).
+   * manager read at call time, which is what BeResMan is (be.resMan).
    */
   @meta.blue.method
   @meta.implemented
@@ -92,7 +92,7 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   {
     this.texture = null;
     if (!path) return;
-    this.texture = blue.resMan.GetResource(path, {
+    this.texture = be.resMan.GetResource(path, {
       requirement: ResourceRequirement.TEXTURE
     });
   }

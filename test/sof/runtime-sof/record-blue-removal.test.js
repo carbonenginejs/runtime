@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
-import { blue, ICustomPersist, IInitialize, INotify, DictReader, DictWriter, Copier, GetResources } from "../../../npm/dist/global/blue/index.js";
+import { be, ICustomPersist, IInitialize, INotify, DictReader, DictWriter, Copier, GetResources } from "../../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../../npm/dist/global/compose/interface.js";
 import { EveSOFDataGenericString as StringRecord } from "../../../npm/dist/sof/generic/EveSOFDataGenericString.js";
 import { EveSOFDataTexture as Texture } from "../../../npm/dist/sof/shared/EveSOFDataTexture.js";
@@ -17,7 +17,7 @@ test("SOF records construct without model APIs and expose only their native quer
 {
   for(const [Class,Base,table] of [[StringRecord,Object,[StringRecord]],[Texture,Object,[Texture]],[Indices,ICustomPersist,[Indices,ICustomPersist]]])
   {
-    const record=blue.classes.CreateInstanceFromName(CjsSchema.getClassName(Class));
+    const record=be.classes.CreateInstanceFromName(CjsSchema.getClassName(Class));
     assert.equal(record.constructor,Class);
     assert.equal(Object.getPrototypeOf(Class.prototype),Base.prototype);
     for(const name of ["GetValues","SetValues","Copy","Clone","OnEvent","__state"])assert.equal(name in record,false);

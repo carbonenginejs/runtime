@@ -6,7 +6,7 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
-import { blue, CjsBlueResMan } from "../../npm/dist/global/blue/index.js";
+import { be, CjsBlueResMan } from "../../npm/dist/global/blue/index.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
 import { EveChildSocket, EveChildContainer } from "../../npm/dist/trinity/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -24,13 +24,13 @@ async function fixture(name, size, md5)
 }
 function manager(t, read)
 {
-  const previous = blue.resMan;
+  const previous = be.resMan;
   const result = new CjsBlueResMan({source:{Read:read}});
   result.RegisterObjectBuilder("red", bytes => CjsBlackFormat.createObjectBuilder(bytes));
   const handles = new StubResMan();
   result.GetResource = handles.GetResource.bind(handles);
-  blue.resMan = result;
-  t.after(() => { blue.resMan = previous; });
+  be.resMan = result;
+  t.after(() => { be.resMan = previous; });
   return result;
 }
 async function settle(resMan, ready)

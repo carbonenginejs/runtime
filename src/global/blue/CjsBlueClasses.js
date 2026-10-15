@@ -2,7 +2,7 @@
 // Source: blueexposure/BlueClasses.cpp
 // Source: blueexposure/include/BlueTypes.h:409-419 (Be::ClassRegistration)
 //
-// The registry behind `blue.classes` (`BeClasses`).
+// The registry behind `be.classes` (`BeClasses`).
 //
 // The classes/registry leaf owns complete registration records for every
 // CjsBlueClasses instance and for CjsSchema. Class metadata remains schema-owned;
@@ -51,7 +51,7 @@ const EDIT_FLAG_BITS = [
 ];
 
 
-/** `CjsBlueClasses` - the class registry `blue.classes` holds, per blueexposure/BlueClasses.cpp. */
+/** `CjsBlueClasses` - the class registry `be.classes` holds, per blueexposure/BlueClasses.cpp. */
 export class CjsBlueClasses extends IBlueClasses
 {
 

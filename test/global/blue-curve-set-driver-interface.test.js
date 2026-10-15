@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { ICurveSetDriver, blue } from "@carbonenginejs/runtime/blue";
+import { ICurveSetDriver, be } from "@carbonenginejs/runtime/blue";
 import { CjsSchema, meta } from "@carbonenginejs/runtime/schema";
 import { ICurveSetDriver as DirectDriver } from "../../src/global/blue/ICurveSetDriver.js";
 import { mappedInterfaces } from "../../src/global/compose/interface.js";
@@ -12,7 +12,7 @@ test("ICurveSetDriver has one registered identity and an abstract native method"
   assert.equal(ICurveSetDriver, DirectDriver);
   assert.equal(CjsSchema.getClassName(ICurveSetDriver), "ICurveSetDriver");
   assert.equal(CjsSchema.GetConstructor("ICurveSetDriver"), ICurveSetDriver);
-  assert.equal(blue.classes.GetClassRegistration("ICurveSetDriver").type, ICurveSetDriver);
+  assert.equal(be.classes.GetClassRegistration("ICurveSetDriver").type, ICurveSetDriver);
   assert.equal(CjsSchema.getMethod(ICurveSetDriver, "GetCurveSetTime").impl.status, "abstract");
   assert.deepEqual(CjsSchema.getSchema(ICurveSetDriver).members, []);
   assert.deepEqual(CjsSchema.getSchema(ICurveSetDriver).properties, []);
@@ -80,11 +80,11 @@ test("ICurveSetDriver imports and registers without domain evaluation or operati
       const shared = await import("@carbonenginejs/runtime/blue");
       const { CjsSchema } = await import("@carbonenginejs/runtime/schema");
       assert.equal(CjsSchema.GetConstructor("ICurveSetDriver"), shared.ICurveSetDriver);
-      assert.equal(shared.blue.classes.GetClassRegistration("ICurveSetDriver").type, shared.ICurveSetDriver);
-      assert.equal(shared.blue.os.GetInfo().pumpTicksTotal, 0);
-      assert.equal(shared.blue.resMan.GetPendingLoads(), 0);
-      assert.equal(shared.blue.resMan.GetPendingPrepares(), 0);
-      assert.equal(shared.blue.resMan.workerLoader.worker, null);
+      assert.equal(shared.be.classes.GetClassRegistration("ICurveSetDriver").type, shared.ICurveSetDriver);
+      assert.equal(shared.be.os.GetInfo().pumpTicksTotal, 0);
+      assert.equal(shared.be.resMan.GetPendingLoads(), 0);
+      assert.equal(shared.be.resMan.GetPendingPrepares(), 0);
+      assert.equal(shared.be.resMan.workerLoader.worker, null);
     `
   ], {
     cwd: fileURLToPath(new URL("../../", import.meta.url)),

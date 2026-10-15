@@ -47,7 +47,7 @@ test(`Blue imports stay inert with ${first} evaluated first`, () =>
         "trinity.Tr2UpscalingAL.Setting", "trinity.Tr2CpuUsage", "trinity.Tr2GpuUsage",
         "trinity.TriBatchType"
       ];
-      for (const name of names) assert.equal(shared.blue.enums.HasEnum(name), true, name);
+      for (const name of names) assert.equal(shared.be.enums.HasEnum(name), true, name);
       const graphics = await import("@carbonenginejs/runtime/consts/graphics");
       const trinity = await import("@carbonenginejs/runtime/consts/trinity");
       const render = await import("@carbonenginejs/runtime/consts/render-context");
@@ -61,7 +61,7 @@ test(`Blue imports stay inert with ${first} evaluated first`, () =>
       ];
       for (let i = 0; i < names.length; i++)
       {
-        assert.equal(shared.blue.enums.GetEnum(names[i]), identities[i], names[i]);
+        assert.equal(shared.be.enums.GetEnum(names[i]), identities[i], names[i]);
       }
       const globals = await import("@carbonenginejs/runtime/global");
       const holder = await import("./dist/global/blue/blue.js");
@@ -70,12 +70,12 @@ test(`Blue imports stay inert with ${first} evaluated first`, () =>
       assert.equal(typeof holder.installBlueServices, "function");
       assert.equal("installBlueServices" in shared, false);
       assert.equal("installBlueServices" in globals, false);
-      assert.equal(shared.blue.classes.GetClassRegistration("CjsBlueOS").type, shared.CjsBlueOS);
-      assert.equal(shared.blue.os.GetInfo().pumpTicksTotal, 0);
-      assert.equal(shared.blue.resMan.GetPendingLoads(), 0);
-      assert.equal(shared.blue.resMan.GetPendingPrepares(), 0);
-      assert.equal(shared.blue.resMan.workerLoader.worker, null);
-      assert.equal(shared.blue.os.IsRegisteredForTicks(shared.blue.resMan), false);
+      assert.equal(shared.be.classes.GetClassRegistration("CjsBlueOS").type, shared.CjsBlueOS);
+      assert.equal(shared.be.os.GetInfo().pumpTicksTotal, 0);
+      assert.equal(shared.be.resMan.GetPendingLoads(), 0);
+      assert.equal(shared.be.resMan.GetPendingPrepares(), 0);
+      assert.equal(shared.be.resMan.workerLoader.worker, null);
+      assert.equal(shared.be.os.IsRegisteredForTicks(shared.be.resMan), false);
       const fresh = new shared.CjsBlue();
       assert.equal(fresh.os.IsRegisteredForTicks(fresh.resMan), false);
       assert.equal(fresh.resMan.workerLoader.worker, null);

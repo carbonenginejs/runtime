@@ -1,6 +1,6 @@
 import { composeStubResMan } from "../support/stubResMan.js";
 
-// Texture parameters ask blue.resMan for their texture as Carbon asks BeResMan,
+// Texture parameters ask be.resMan for their texture as Carbon asks BeResMan,
 // which always answers with the typed resource; the stub does the same. Import
 // declarations are hoisted, so this runs after every import in the file.
 composeStubResMan();
@@ -11,7 +11,7 @@ import {
   EveProceduralMethodCycling, EveProceduralMethodCyclingParameter,
   EveSpaceScene, EveSpaceSceneRenderDriver, EveUpdateContext, Tr2GpuParticleSystem
 } from "../../npm/dist/trinity/index.js";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { be } from "../../npm/dist/global/blue/index.js";
 
 test("cycling ads keep authored seconds on the Blue-tick frame clock", t =>
 {
@@ -19,7 +19,7 @@ test("cycling ads keep authored seconds on the Blue-tick frame clock", t =>
   // BeOS->GetCurrentFrameTime() and converts authored offset and elapsed time.
   // Chjita's cycling ads author 12 seconds.
   let frame = 0;
-  t.mock.method(blue.os, "GetCurrentFrameTime", () => frame);
+  t.mock.method(be.os, "GetCurrentFrameTime", () => frame);
   const cycling = new EveProceduralMethodCycling();
   for (let i = 0; i < 2; i++)
   {

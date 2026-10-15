@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { be } from "../../npm/dist/global/blue/index.js";
 import { CJS_ENUM_NAME } from "../../npm/dist/global/blue/enums/CjsBlueEnumRegistry.js";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
@@ -146,6 +146,6 @@ test("generated enum retains consumer alias: " + exported, async () =>
 {
   let value = await import("../../npm/dist/" + file);
   for (const member of exported.split(".")) value = value[member];
-  assert.equal(value, blue.enums.Get(name));
+  assert.equal(value, be.enums.Get(name));
   assert.equal(value[CJS_ENUM_NAME], name);
 });

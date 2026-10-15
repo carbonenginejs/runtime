@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { blue } from "../../../npm/dist/global/blue/index.js";
+import { be } from "../../../npm/dist/global/blue/index.js";
 import { localFileSystem } from "../../support/localFileSystem.js";
 
 // Carbon's FileExistsLocally asks whether a file's bytes are on this machine
@@ -11,23 +11,23 @@ import { localFileSystem } from "../../support/localFileSystem.js";
 
 test("FileExistsLocally is stored bytes, not what the resource manager holds", async () =>
 {
-  blue.resMan.Register({ source: { Read: () => Promise.resolve("{\"ok\":true}") } });
-  blue.resMan.RegisterObjectLoader("json", value => JSON.parse(value));
+  be.resMan.Register({ source: { Read: () => Promise.resolve("{\"ok\":true}") } });
+  be.resMan.RegisterObjectLoader("json", value => JSON.parse(value));
 
   const path = "res:/paths/fetched.json";
-  const resource = blue.resMan.GetResource(path);
+  const resource = be.resMan.GetResource(path);
   await resource.Ready();
 
-  assert.equal(blue.paths.FileExistsLocally(path), false, "loaded is not local");
+  assert.equal(be.paths.FileExistsLocally(path), false, "loaded is not local");
 
-  blue.paths.SetLocalFileSystem(localFileSystem([ path ]));
+  be.paths.SetLocalFileSystem(localFileSystem([ path ]));
   try
   {
-    assert.equal(blue.paths.FileExistsLocally(path), true, "the local file system says it is here");
-    assert.equal(blue.paths.FileExistsLocally("res:/paths/never.json"), false);
+    assert.equal(be.paths.FileExistsLocally(path), true, "the local file system says it is here");
+    assert.equal(be.paths.FileExistsLocally("res:/paths/never.json"), false);
   }
   finally
   {
-    blue.paths.SetLocalFileSystem(null);
+    be.paths.SetLocalFileSystem(null);
   }
 });

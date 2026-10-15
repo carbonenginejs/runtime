@@ -19,11 +19,11 @@ import { CjsBlue } from "./CjsBlue.js";
 import { CjsBlueResMan } from "./CjsBlueResMan.js";
 
 /** The one process-wide Blue holder. Construction is inert. */
-export const blue = new CjsBlue();
+export const be = new CjsBlue();
 
 // resMan reads files through the holder's current paths service (Carbon's
 // global BePaths), whichever one is installed.
-CjsBlueResMan.getBluePaths = () => blue.paths;
+CjsBlueResMan.getBluePaths = () => be.paths;
 
 // Carbon's private s_tickCookie in BlueResMan::Initialize/Shutdown. This
 // registration belongs to composition; unrelated host cookies remain intact.
@@ -56,8 +56,8 @@ export function installBlueServices(services = {}, running = true)
   try
   {
     const previous = {
-      resMan: blue.resMan, paths: blue.paths, os: blue.os,
-      sof: blue.sof, audio: blue.audio, running: tickPair !== null
+      resMan: be.resMan, paths: be.paths, os: be.os,
+      sof: be.sof, audio: be.audio, running: tickPair !== null
     };
     const next = { ...previous };
     for (const [name, Contract] of [["resMan", IBlueResMan], ["paths", IBluePaths], ["os", IBlueOS], ["audio", ICjsWwiseSoundEngine]])
@@ -112,11 +112,11 @@ export function installBlueServices(services = {}, running = true)
         }
       }
     }
-    blue.resMan = next.resMan;
-    blue.paths = next.paths;
-    blue.os = next.os;
-    blue.sof = next.sof;
-    blue.audio = next.audio;
+    be.resMan = next.resMan;
+    be.paths = next.paths;
+    be.os = next.os;
+    be.sof = next.sof;
+    be.audio = next.audio;
     tickPair = candidate;
     return previous;
   }

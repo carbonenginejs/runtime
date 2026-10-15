@@ -5,7 +5,7 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { be } from "../../npm/dist/global/blue/index.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { EveChildParticleSystem, Tr2EffectStateManager, ITr2GenericEmitterUpdateArguments,
@@ -25,12 +25,12 @@ test("real Crisis Dark_Front smoke emits into Carbon's physical particle layout"
     "b6818c31899f1e7d1d9204a1072b95f41c4894c934191e27f364acaf9bbc1753");
   const context = Tr2RenderContext_GetMainThreadRenderContext();
   const previousAL = context.GetRenderContextAL();
-  const previousManager = blue.resMan;
+  const previousManager = be.resMan;
   const al = new Tr2RenderContextALStub();
   context.SetRenderContextAL(al);
   al.CreateDevice();
-  blue.resMan = new StubResMan();
-  t.after(() => { context.SetRenderContextAL(previousAL); blue.resMan = previousManager; });
+  be.resMan = new StubResMan();
+  t.after(() => { context.SetRenderContextAL(previousAL); be.resMan = previousManager; });
   // Hydrate the whole child so mesh, emitter and system references stay shared.
   const authored = CjsBlackFormat.readPayload(bytes).object.objects[2].objects[0];
   assert.equal(authored.name, "Dark_Front");

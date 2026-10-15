@@ -33,7 +33,7 @@ import { Tr2Renderer } from "./Tr2Renderer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "./context/Tr2RenderContext.js";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
 import { Tr2RuntimeTextureParameter } from "../shader/parameter/Tr2RuntimeTextureParameter.js";
-import { blue, EnumRegistrationType } from "#blue";
+import { be, EnumRegistrationType } from "#blue";
 
 /** Carbon's MIP_COUNT (`cpp:15`): filtered levels below the top. */
 const MIP_COUNT = 7;
@@ -589,7 +589,7 @@ export class Tr2ReflectionProbe
 }
 
 // Registered as Carbon registers it (trinity/trinity/Tr2ReflectionProbe_Blue.cpp:14).
-blue.enums.Create("trinity.Tr2ReflectionProbe.ReflectionProbeRenderFrequency", Tr2ReflectionProbe.ReflectionProbeRenderFrequency, {
+be.enums.Create("trinity.Tr2ReflectionProbe.ReflectionProbeRenderFrequency", Tr2ReflectionProbe.ReflectionProbeRenderFrequency, {
   source: "trinity/trinity/Tr2ReflectionProbe.h", family: "trinityCore", line: 22,
   exposedName: "ReflectionProbeRenderFrequency", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Tr2ReflectionProbe_Blue.cpp:8",

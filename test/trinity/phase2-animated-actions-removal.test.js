@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { blue, DictReader, DictWriter, Copier, BlueList, INotify } from "../../npm/dist/global/blue/index.js";
+import { be, DictReader, DictWriter, Copier, BlueList, INotify } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { ITr2ControllerAction } from "../../npm/dist/trinity/controllers/action/ITr2ControllerAction.js";
 import { ITr2Updateable } from "../../npm/dist/trinity/core/ITr2Updateable.js";
@@ -42,6 +42,21 @@ for (const [Type, values, extra] of cases)
   });
 }
 
+/** A registered float destination; Carbon notifies after each write, so OnModified records the value. */
+class AnimatedTarget
+{
+  value = 0;
+  _onWrite = null;
+
+  OnModified()
+  {
+    this._onWrite(this.value);
+    return true;
+  }
+}
+CjsSchema.define(AnimatedTarget, { className: "Phase2AnimatedTarget", fields: { value: CjsSchema.meta.type.float32 } });
+CjsSchema.meta.blue.interface(INotify)(AnimatedTarget);
+
 function AnimationFixture(Type)
 {
   const action = new Type(), output = [], updates = new Set();
@@ -50,13 +65,14 @@ function AnimationFixture(Type)
     RegisterUpdateable: item => updates.add(item),
     UnRegisterUpdateable: item => updates.delete(item),
     GetFloatVariableByName: () => 3,
-    GetExpressionTermInfo: () => {}
+    GetExpressionTermInfo: () => {},
+    GetBindingPathRoots: () => []
   };
   let write = value => output.push(value);
   if (Type === Tr2ActionAnimateValue)
   {
-    const target = {};
-    Object.defineProperty(target, "value", { get: () => output.at(-1) ?? 0, set: value => write(value) });
+    const target = new AnimatedTarget();
+    target._onWrite = value => write(value);
     action.destination = target;
     action.attribute = "value";
   }
@@ -68,7 +84,7 @@ for (const Type of [Tr2ActionAnimateValue, Tr2ActionAnimateCurveSet])
 {
   test(`${CjsSchema.getClassName(Type)} updates retained expressions until a Blue notification`, t =>
   {
-    t.mock.method(blue.os, "GetCurrentFrameTime", () => 100000000);
+    t.mock.method(be.os, "GetCurrentFrameTime", () => 100000000);
     const { action, controller, output, updates } = AnimationFixture(Type);
     assert.equal(action.isExpressionValid, false);
     action.value = "2";
@@ -80,7 +96,8 @@ for (const Type of [Tr2ActionAnimateValue, Tr2ActionAnimateCurveSet])
     action.value = "7";
     assert.equal(action.isExpressionValid, true, "live validity must not recompile unnotified text");
     action.Update(0, 120000000);
-    const retainedWrites = Type === Tr2ActionAnimateValue ? [2] : [2, 2];
+    // Both write on every update; Tr2BindingPoint::SetValue writes and notifies even when equal (cpp:310-360).
+    const retainedWrites = [2, 2];
     assert.deepEqual(output, retainedWrites);
     new DictReader({ declarations: true }).ReadInto(action, { value: "7" });
     action.Update(0, 130000000);

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { BehaviorGroup, EveComponentRegistry, PlayFX, SpawnDrones, ProcessLifetime, EveStretch3 } from "../../npm/dist/trinity/index.js";
-import { blue } from "../../npm/dist/global/blue/index.js";
+import { be } from "../../npm/dist/global/blue/index.js";
 
 test("PlayFX clones authored firing effects through Blue's copier", () =>
 {
@@ -29,7 +29,7 @@ test("PlayFX preserves absent-template and failed-copy branches", t =>
   behavior._CheckCount(1);
   assert.equal(behavior.generatedFiringEffects.length, 0);
   behavior.firingEffect = new EveStretch3();
-  t.mock.method(blue.classes, "CloneTo", () => null);
+  t.mock.method(be.classes, "CloneTo", () => null);
   behavior._CheckCount(1);
   assert.equal(behavior.generatedFiringEffects.length, 0);
   assert.equal(behavior._count, 0);

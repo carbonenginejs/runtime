@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsSchema, meta } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { blue, BlueList, ITriFunction, ITriVectorFunction, ITriColorFunction, ITriCurveLength, IInitialize } from "../../npm/dist/global/blue/index.js";
+import { be, BlueList, ITriFunction, ITriVectorFunction, ITriColorFunction, ITriCurveLength, IInitialize } from "../../npm/dist/global/blue/index.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
@@ -19,7 +19,7 @@ for(const [name,Class,Base,table] of [
     ["Tr2CurveCombiner",Tr2CurveCombiner,ITriVectorFunction,[Tr2CurveCombiner,ITriFunction,ITriVectorFunction,ITriCurveLength]],
     ["Tr2CurveColorMixer",Tr2CurveColorMixer,ITriColorFunction,[Tr2CurveColorMixer,ITriColorFunction,ITriFunction,ITriCurveLength]]
 ])test(`${name} exposes the exact native table without model conveniences`,()=>{
-    const value=blue.classes.CreateInstanceFromName(name);
+    const value=be.classes.CreateInstanceFromName(name);
     assert.equal(value.constructor,Class);assert.equal(Object.getPrototypeOf(Class.prototype),Base.prototype);
     assert.deepEqual([...mappedInterfaces(Class)],table);
     for(const method of ["SetValues","GetValues","OnEvent","Clone","Traverse","GetResources"])assert.equal(method in value,false);
@@ -40,7 +40,7 @@ test("event factory hydration initializes owned typed keys while borrowed reads 
     borrowed.AddKey(3,"後");assert.equal(borrowed.keys,keys);
     borrowed.RemoveKey(0);assert.equal(borrowed.keys,keys);assert.equal(keys.length,2);
     const destination=new TriEventCurve(),destinationKeys=destination.keys;
-    assert.equal(blue.classes.CopyTo(curve,destination),destination);assert.equal(destination.keys,destinationKeys);
+    assert.equal(be.classes.CopyTo(curve,destination),destination);assert.equal(destination.keys,destinationKeys);
     assert.equal(destination.length,2);assert.notEqual(destination.keys[0],curve.keys[0]);assert.equal(destination.keys[0].value,"始");
     const serialized=new DictWriter().WriteObject(curve,{}, {persistOnly:true});
     assert.equal(serialized.keys.length,2);assert.equal(serialized.keys[0].value,"始");assert.equal(Object.hasOwn(serialized,"length"),false);
@@ -112,8 +112,8 @@ test("combiner dictionary and Copier retain owned lists and persisted child topo
     const combiner=new Tr2CurveCombiner(),list=combiner.curves;
     new DictReader({declarations:true}).ReadInto(combiner,{name:"sum",curves:[{_type:"Tr2CurveVector3",name:"first"},{_type:"Tr2CurveVector3",name:"second"}]});
     assert.equal(combiner.curves,list);assert.equal(list.length,2);assert.equal(list[0].name,"first");assert.equal(list[1].name,"second");
-    const children=[];blue.EnumerateChildren(combiner,child=>children.push(child));assert.equal(children[0],list[0]);assert.equal(children[1],list[1]);
-    const copy=new Tr2CurveCombiner(),copyList=copy.curves;blue.classes.CopyTo(combiner,copy);
+    const children=[];be.EnumerateChildren(combiner,child=>children.push(child));assert.equal(children[0],list[0]);assert.equal(children[1],list[1]);
+    const copy=new Tr2CurveCombiner(),copyList=copy.curves;be.classes.CopyTo(combiner,copy);
     assert.equal(copy.curves,copyList);assert.equal(copyList.length,2);assert.notEqual(copyList[0],list[0]);assert.equal(copyList[0].name,"first");
     assert.equal(CjsSchema.getField(Tr2CurveCombiner,"curves").type.kind,"list");
 });

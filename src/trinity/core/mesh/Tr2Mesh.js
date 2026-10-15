@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Tr2Mesh_Blue.cpp
 import { meta } from "#schema";
 import { ResourceRequirement } from "#resource";
-import { IsMatch, blue, IInitialize, INotify } from "#blue";
+import { IsMatch, be, IInitialize, INotify } from "#blue";
 import { Tr2MeshBase } from "./Tr2MeshBase.js";
 import { Tr2SerializedMorphAnimation } from "./Tr2SerializedMorphAnimation.js";
 
@@ -120,18 +120,18 @@ export class Tr2Mesh extends Tr2MeshBase
       return;
     }
 
-    const request = path => blue.resMan.GetResource(path, { requirement: ResourceRequirement.GEOMETRY });
+    const request = path => be.resMan.GetResource(path, { requirement: ResourceRequirement.GEOMETRY });
 
     // Carbon cpp:113-127: when the authored file is NOT there but a
     // <base>_lowdetail<ext> sibling is, take the low-detail one to render with
     // now and request the authored one behind it. The same question, to the
     // same service Carbon asks - BePaths->FileExistsLocally is
-    // blue.paths.FileExistsLocally.
+    // be.paths.FileExistsLocally.
     let lowRes = null;
-    if (!blue.paths.FileExistsLocally(this.geometryResPath))
+    if (!be.paths.FileExistsLocally(this.geometryResPath))
     {
       const lowResPath = Tr2Mesh._lowDetailPath(this.geometryResPath);
-      if (lowResPath && blue.paths.FileExistsLocally(lowResPath)) lowRes = request(lowResPath);
+      if (lowResPath && be.paths.FileExistsLocally(lowResPath)) lowRes = request(lowResPath);
     }
 
     const geometry = request(this.geometryResPath);

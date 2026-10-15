@@ -2,7 +2,7 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import "#consts/trinity";
 import { meta } from "#schema";
-import { blue, EnumRegistrationType } from "#blue";
+import { be, EnumRegistrationType } from "#blue";
 import { Tr2Lod } from "#consts/trinity";
 
 /** Defines instanced-mesh geometry, shader, display and LOD policy, textures, and instance transforms. */
@@ -68,7 +68,7 @@ export class EveSOFDataInstancedMesh
 }
 
 // Native chooser labels and selection; the enum object retains all C++ members.
-blue.enums.Create("trinity.EveSOFDataInstancedMesh.DisplayQualityModifier", EveSOFDataInstancedMesh.DisplayQualityModifier, {
+be.enums.Create("trinity.EveSOFDataInstancedMesh.DisplayQualityModifier", EveSOFDataInstancedMesh.DisplayQualityModifier, {
   source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 137,
   exposedName: "DisplayModifierChooser", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
   chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:52",

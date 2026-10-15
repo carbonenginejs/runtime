@@ -5,7 +5,7 @@
 import { meta } from "#schema";
 import { ITr2SpriteObject } from "./ITr2SpriteObject.js";
 import { Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
-import { blue, INotify } from "#blue";
+import { be, INotify } from "#blue";
 
 /**
  * Shared portable state and dirty propagation for Sprite2D objects.

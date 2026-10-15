@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { DictReader, DictWriter, Copier, blue } from "../../npm/dist/global/blue/index.js";
+import { DictReader, DictWriter, Copier, be } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { EveSOFDataLogo } from "../../npm/dist/sof/shared/EveSOFDataLogo.js";
 import { EveSOFDataLogoSet } from "../../npm/dist/sof/shared/EveSOFDataLogoSet.js";
@@ -43,7 +43,7 @@ test("native fields and enum identity retain null slots and persistence", () =>
   const set = new EveSOFDataLogoSet();
   assert.deepEqual(set.logos, new Array(LogoType.TYPE_MAX).fill(null));
   for (const name of names) assert.equal(name in set, false);
-  assert.equal(blue.enums.GetEnum("trinity.EveSOFDataLogoSet.LogoType"), LogoType);
+  assert.equal(be.enums.GetEnum("trinity.EveSOFDataLogoSet.LogoType"), LogoType);
   assert.equal(Object.isFrozen(LogoType), true);
 });
 

@@ -20,7 +20,7 @@ import { Tr2InstancedMesh } from "../../core/mesh/Tr2InstancedMesh.js";
 import { Tr2RuntimeInstanceData } from "../../core/mesh/Tr2RuntimeInstanceData.js";
 import { RotationalConstraints } from "../../generated/eve/child/enums.js";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
-import { blue } from "#blue";
+import { be } from "#blue";
 
 
 const UP = vec3.fromValues(0, 1, 0);
