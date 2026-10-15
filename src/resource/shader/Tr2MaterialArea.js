@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Resources/Tr2MaterialRes.h
 // Schema: format-carbon resources/Tr2MaterialArea.json; maintained by the runtime resource layer.
 import { CjsSchema, type, blue } from "#schema";
+import { IRoot } from "#blue";
 
 /**
  * Associates one material-area metatype with its persisted parameter store.
@@ -24,10 +25,12 @@ export class Tr2MaterialArea
 // expressions are reused verbatim, so the registered metadata is identical.
 // Statics belong in `methods`: decorateMethod targets the prototype and
 // would register a static as an instance field.
+CjsSchema.blue.inherit(IRoot)(Tr2MaterialArea);
+CjsSchema.blue.interface(IRoot, Tr2MaterialArea)(Tr2MaterialArea);
 CjsSchema.blue.define(Tr2MaterialArea, {
   className: "Tr2MaterialArea",
   fields: {
-    material: [ blue.persist, type.rootRef("Tr2MaterialParameterStore") ],
-    metatype: [ blue.persist, type.string ]
+    material: [ blue.readwrite, blue.persist, type.rootRef("Tr2MaterialParameterStore") ],
+    metatype: [ blue.readwrite, blue.persist, type.string ]
   }
 });
