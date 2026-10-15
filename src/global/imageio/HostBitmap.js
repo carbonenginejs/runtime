@@ -26,7 +26,7 @@
 // `diverged:` and reported upstream. Behaviour
 // that is Carbon's design rather than a defect is kept and marked `quirk:`.
 import * as CcpLog from "../logging/ccpLog.js";
-import { CjsSchema } from "#schema";
+import { CjsSchema, blue, meta } from "#schema";
 import {
   PixelFormat,
   TextureType,
@@ -1427,4 +1427,35 @@ export class HostBitmap extends BitmapDimensions
 
 
 // A call, not a decorator: see BitmapDimensions.js.
-CjsSchema.blue.define(HostBitmap, { className: "HostBitmap" });
+CjsSchema.blue.define(HostBitmap, {
+  className: "HostBitmap",
+  methods: {
+    Create: [ blue.method ],
+    Create2DArray: [ blue.method ],
+    CreateCube: [ blue.method ],
+    CreateVolume: [ blue.method ],
+    CreateFromBitmapDimensions: [ blue.method ],
+    IsValid: [ blue.method ],
+    Destroy: [ blue.method ],
+    ChangeFormat: [ blue.method ],
+    ConvertFormat: [ blue.method ],
+    GetMipRawData: [ blue.method, meta.adapted ],
+    GetPitch: [ blue.method ],
+    GetRawData: [ blue.method, meta.adapted ],
+    GetRawDataSize: [ blue.method ],
+    GetArrayElementSize: [ blue.method ],
+    PopulateMargin: [ blue.method ],
+    CopyChannel: [ blue.method ],
+    Downsample2x2: [ blue.method ],
+    Crop: [ blue.method ],
+    RotateFaceClockwise: [ blue.method ],
+    ConvertCrossmapToCubemap: [ blue.method ],
+    ConvertToVolume: [ blue.method ],
+    GenerateMipMaps: [ blue.method ],
+    DropMipMaps: [ blue.method ],
+    GetAverageColor: [ blue.method, meta.adapted ],
+    GetPixel: [ blue.method, meta.adapted ],
+    _CheckForMatch: [ blue.method, meta.renamed("CheckForMatch"), meta.adapted ],
+    _GenerateMipLevel: [ blue.method, meta.renamed("GenerateMipLevel") ]
+  }
+});

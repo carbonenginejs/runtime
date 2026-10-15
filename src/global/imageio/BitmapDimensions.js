@@ -22,7 +22,7 @@
 // the default constructor's values, and `Texture2D` names the four-argument
 // overload the render context uses.
 
-import { CjsSchema } from "#schema";
+import { CjsSchema, blue } from "#schema";
 import {
   PixelFormat,
   TextureType,
@@ -373,4 +373,25 @@ export class BitmapDimensions
 // that reaches this file without a build first. `CjsSchema.define` is the same
 // metadata through the door the schema already provides for exactly this, and
 // it keeps the layer free of the decorator chain it has never carried.
-CjsSchema.blue.define(BitmapDimensions, { className: "BitmapDimensions", aliases: [ "Tr2BitmapDimensions" ] });
+CjsSchema.blue.define(BitmapDimensions, {
+  className: "BitmapDimensions", aliases: [ "Tr2BitmapDimensions" ],
+  methods: {
+    GetWidth: [ blue.method ],
+    GetHeight: [ blue.method ],
+    GetDepth: [ blue.method ],
+    GetFormat: [ blue.method ],
+    GetType: [ blue.method ],
+    GetArraySize: [ blue.method ],
+    GetMipCount: [ blue.method ],
+    GetTrueMipCount: [ blue.method ],
+    IsCompressed: [ blue.method ],
+    HasMipmap: [ blue.method ],
+    GetMipWidth: [ blue.method ],
+    GetMipHeight: [ blue.method ],
+    GetMipDepth: [ blue.method ],
+    GetMipPitch: [ blue.method ],
+    GetMipSize: [ blue.method ],
+    GetMipNumRows: [ blue.method ],
+    Destroy: [ blue.method ]
+  }
+});

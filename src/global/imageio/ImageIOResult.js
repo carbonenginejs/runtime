@@ -6,7 +6,7 @@
 // `Result` inside the ImageIO namespace; JavaScript has no namespace to put it
 // in, so the class carries the header's name.
 
-import { CjsSchema } from "#schema";
+import { CjsSchema, blue } from "#schema";
 
 
 /** `ImageIO::Result` - an image operation's outcome. */
@@ -80,7 +80,12 @@ export class ImageIOResult
 
 
 // A call, not a decorator: see BitmapDimensions.js.
-CjsSchema.blue.define(ImageIOResult, { className: "ImageIOResult", donors: [ "Result" ] });
+CjsSchema.blue.define(ImageIOResult, {
+  className: "ImageIOResult", donors: [ "Result" ],
+  methods: {
+    GetErrorMessage: [ blue.method ]
+  }
+});
 
 
 const Code = ImageIOResult.Code;

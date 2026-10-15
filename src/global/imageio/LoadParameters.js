@@ -11,7 +11,7 @@
 // the image format converts after its native read. null asks for the native
 // format, which is Carbon's behaviour.
 
-import { CjsSchema } from "#schema";
+import { CjsSchema, blue, meta } from "#schema";
 
 /** `ImageIO::LoadParameters` - the parameters of one image read. */
 export class LoadParameters
@@ -88,4 +88,9 @@ export class LoadParameters
 
 
 // A call, not a decorator: see BitmapDimensions.js.
-CjsSchema.blue.define(LoadParameters, { className: "LoadParameters" });
+CjsSchema.blue.define(LoadParameters, {
+  className: "LoadParameters",
+  methods: {
+    GetMipLevelRange: [ blue.method, meta.adapted ]
+  }
+});
