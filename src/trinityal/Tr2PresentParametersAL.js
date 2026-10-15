@@ -1,4 +1,5 @@
 // Source: trinity/trinityal/Tr2AdapterStructures.h
+import { CjsSchema, type } from "#schema";
 import { Tr2DisplayModeInfo } from "./Tr2DisplayModeInfo.js";
 
 /**
@@ -59,3 +60,15 @@ export class Tr2PresentParametersAL
    */
   variableRefreshRateSupported = false;
 }
+
+CjsSchema.decorateField(Tr2PresentParametersAL, "mode", type.rawStruct("Tr2DisplayModeInfo"));
+CjsSchema.decorateField(Tr2PresentParametersAL, "backBufferCount", type.uint32);
+CjsSchema.decorateField(Tr2PresentParametersAL, "msaaType", type.uint32);
+CjsSchema.decorateField(Tr2PresentParametersAL, "msaaQuality", type.uint32);
+CjsSchema.decorateField(Tr2PresentParametersAL, "swapEffect", type.int32);
+CjsSchema.decorateField(Tr2PresentParametersAL, "outputWindow", type.unknown);
+CjsSchema.decorateField(Tr2PresentParametersAL, "windowed", type.boolean);
+CjsSchema.decorateField(Tr2PresentParametersAL, "software", type.boolean);
+CjsSchema.decorateField(Tr2PresentParametersAL, "presentInterval", type.int32);
+CjsSchema.decorateField(Tr2PresentParametersAL, "variableRefreshRateSupported", type.boolean);
+CjsSchema.blue.define(Tr2PresentParametersAL, { className: "Tr2PresentParametersAL" });

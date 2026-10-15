@@ -1,9 +1,10 @@
 // Source: trinity/trinityal/Tr2AdapterStructures.h
+import { CjsSchema, type } from "#schema";
 
 /**
  * Native display-mode value shape. Carbon leaves aggregate storage uninitialized;
  * JavaScript uses deterministic zero defaults until the caller supplies a mode.
- * This is a plain AL record, without Blue registration or query interfaces.
+ * This is a plain AL record with storage metadata and no Blue query interfaces.
  */
 export class Tr2DisplayModeInfo
 {
@@ -43,3 +44,12 @@ export class Tr2DisplayModeInfo
    */
   scaling = 0;
 }
+
+CjsSchema.decorateField(Tr2DisplayModeInfo, "width", type.uint32);
+CjsSchema.decorateField(Tr2DisplayModeInfo, "height", type.uint32);
+CjsSchema.decorateField(Tr2DisplayModeInfo, "refreshRateNumerator", type.uint32);
+CjsSchema.decorateField(Tr2DisplayModeInfo, "refreshRateDenominator", type.uint32);
+CjsSchema.decorateField(Tr2DisplayModeInfo, "format", type.uint32);
+CjsSchema.decorateField(Tr2DisplayModeInfo, "scanlineOrdering", type.int32);
+CjsSchema.decorateField(Tr2DisplayModeInfo, "scaling", type.int32);
+CjsSchema.blue.define(Tr2DisplayModeInfo, { className: "Tr2DisplayModeInfo" });

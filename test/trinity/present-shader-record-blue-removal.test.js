@@ -17,7 +17,7 @@ test("presentation record inherits native AL storage with concrete UI defaults a
  assert.deepEqual([value.backBufferWidth,value.backBufferHeight,value.backBufferCount,value.msaaType,value.msaaQuality,value.swapEffect,value.outputWindow,value.windowed,value.software,value.presentInterval],[0,0,0,0,0,0,0,false,false,1]);
  assert.equal(new Tr2PresentParametersAL().presentInterval,0);assert.equal(value.variableRefreshRateSupported,false);
  const software=CjsSchema.getField(Tr2PresentParameters,"software");assert.equal(software.enum.identity,"trinity.TriDevice.DeviceType");assert.equal(software.enum.members,be.enums.GetEnum(software.enum.identity));assert.equal(software.enum.members,TriDevice.DeviceType);
- assert.deepEqual(CjsSchema.getSchema(Tr2PresentParameters).fields.map(field=>field.name),["backBufferWidth","backBufferHeight","windowed","software"]);
+ assert.deepEqual(CjsSchema.getSchema(Tr2PresentParameters).fields.map(field=>field.name),["mode","backBufferCount","msaaType","msaaQuality","swapEffect","outputWindow","windowed","software","presentInterval","variableRefreshRateSupported","backBufferWidth","backBufferHeight"]);
  for(const name of ["SetValues","GetValues","Clone","OnEvent","Traverse","GetResources"])assert.equal(name in value,false);
  for(const [field,type]of [["backBufferWidth","uint32"],["backBufferHeight","uint32"],["windowed","boolean"],["software","boolean"]]){const declaration=CjsSchema.getField(Tr2PresentParameters,field);assert.equal(declaration.type.kind,type);assert.equal(declaration.edit.persist,undefined);assert.equal(declaration.edit.read,true);assert.equal(declaration.edit.write,true);}
 });
