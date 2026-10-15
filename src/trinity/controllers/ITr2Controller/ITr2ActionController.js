@@ -28,7 +28,7 @@
 // `IRoot`, Carbon's base for both, is not ported: it is Blue's reference-counted
 // object root, which a garbage-collected runtime has no use for.
 
-import { CjsSchema } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { ITr2Controller } from "./ITr2Controller.js";
 
 /** Contract for a controller that also drives controller actions. */
@@ -40,6 +40,8 @@ export class ITr2ActionController extends ITr2Controller
    *
    * @returns {object} The owner.
    */
+  @blue.method
+  @meta.abstract
   GetOwner()
   {
     throw new Error("ITr2ActionController.GetOwner must be implemented by an action controller.");
@@ -50,6 +52,8 @@ export class ITr2ActionController extends ITr2Controller
    *
    * @param {string} _callbackName The callback's name.
    */
+  @blue.method
+  @meta.abstract
   Callback(_callbackName)
   {
     throw new Error("ITr2ActionController.Callback must be implemented by an action controller.");
@@ -60,6 +64,8 @@ export class ITr2ActionController extends ITr2Controller
    *
    * @param {object} _updateable The object to update.
    */
+  @blue.method
+  @meta.abstract
   RegisterUpdateable(_updateable)
   {
     throw new Error("ITr2ActionController.RegisterUpdateable must be implemented by an action controller.");
@@ -70,6 +76,8 @@ export class ITr2ActionController extends ITr2Controller
    *
    * @param {object} _updateable The object to stop updating.
    */
+  @blue.method
+  @meta.abstract
   UnRegisterUpdateable(_updateable)
   {
     throw new Error("ITr2ActionController.UnRegisterUpdateable must be implemented by an action controller.");
@@ -80,6 +88,8 @@ export class ITr2ActionController extends ITr2Controller
    *
    * @returns {Array} Name and root pairs.
    */
+  @blue.method
+  @meta.abstract
   GetBindingPathRoots()
   {
     throw new Error("ITr2ActionController.GetBindingPathRoots must be implemented by an action controller.");
@@ -94,6 +104,8 @@ export class ITr2ActionController extends ITr2Controller
    * @param {string} _name The variable's name.
    * @returns {number|null} Its value, or null when there is no such variable.
    */
+  @blue.method
+  @meta.abstract
   GetFloatVariableByName(_name)
   {
     throw new Error("ITr2ActionController.GetFloatVariableByName must be implemented by an action controller.");
@@ -104,6 +116,8 @@ export class ITr2ActionController extends ITr2Controller
    *
    * @param {Array} _out Term info collected from every contributor.
    */
+  @blue.method
+  @meta.abstract
   GetExpressionTermInfo(_out)
   {
     throw new Error("ITr2ActionController.GetExpressionTermInfo must be implemented by an action controller.");
@@ -114,6 +128,8 @@ export class ITr2ActionController extends ITr2Controller
    *
    * @returns {Array} The variable view.
    */
+  @blue.method
+  @meta.abstract
   GetVariableView()
   {
     throw new Error("ITr2ActionController.GetVariableView must be implemented by an action controller.");
@@ -124,6 +140,8 @@ export class ITr2ActionController extends ITr2Controller
    *
    * @returns {object} The variable buffer.
    */
+  @blue.method
+  @meta.abstract
   GetVariableBuffer()
   {
     throw new Error("ITr2ActionController.GetVariableBuffer must be implemented by an action controller.");
@@ -134,6 +152,8 @@ export class ITr2ActionController extends ITr2Controller
    *
    * @param {number} _size Bytes required.
    */
+  @blue.method
+  @meta.abstract
   EnsureTempArenaSize(_size)
   {
     throw new Error("ITr2ActionController.EnsureTempArenaSize must be implemented by an action controller.");
@@ -144,6 +164,8 @@ export class ITr2ActionController extends ITr2Controller
    *
    * @returns {object} The arena.
    */
+  @blue.method
+  @meta.abstract
   GetTempArena()
   {
     throw new Error("ITr2ActionController.GetTempArena must be implemented by an action controller.");

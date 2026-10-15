@@ -302,6 +302,7 @@ export class BlueObjectProxy extends IBlueObjectProxy
 
 CjsSchema.blue.define(BlueObjectProxy, {
   className: "BlueObjectProxy",
+  members: [ { name: "object", key: "_object", type: { kind: "rootRef", className: "IRoot" }, edit: { persist: true, persistOnly: true, hidden: true }, carbon: { member: true } } ],
   fields: {
     object: [ blue.readwrite, type.rootRef("IRoot") ],
     builder: [ blue.readwrite, type.rootRef("IBlueObjectBuilder") ],

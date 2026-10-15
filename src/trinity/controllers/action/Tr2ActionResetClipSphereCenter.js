@@ -85,6 +85,7 @@ export class Tr2ActionResetClipSphereCenter extends ITr2ControllerAction
    * @param {number} locatorIndex
    * @returns {void}
    */
+  @meta.renamed("ResetClipSphereToLocator")
   @meta.adapted
   _ResetClipSphereToLocator(owner, locatorSetName, locatorIndex)
   {

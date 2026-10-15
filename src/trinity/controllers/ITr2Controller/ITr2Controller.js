@@ -28,7 +28,8 @@
 // `IRoot`, Carbon's base for both, is not ported: it is Blue's reference-counted
 // object root, which a garbage-collected runtime has no use for.
 
-import { CjsSchema } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
+import { IRoot } from "../../../global/blue/IRoot.js";
 import { UnlinkReason } from "../enums.js";
 
 export const ITR2_CONTROLLER = Symbol.for("carbonenginejs.interface.ITr2Controller");
@@ -45,6 +46,8 @@ export class ITr2Controller
    *
    * @param {object} _owner The object being controlled.
    */
+  @blue.method
+  @meta.noop
   Link(_owner)
   {
   }
@@ -54,6 +57,8 @@ export class ITr2Controller
    *
    * @param {number} [_reason] An `UnlinkReason`; DELETING means the owner is going away.
    */
+  @blue.method
+  @meta.noop
   Unlink(_reason = UnlinkReason.UNLINKING)
   {
   }
@@ -67,17 +72,23 @@ export class ITr2Controller
    *
    * @returns {boolean} Whether Link has run without a matching Unlink.
    */
+  @blue.method
+  @meta.abstract
   IsLinked()
   {
     throw new Error("ITr2Controller.IsLinked must be implemented by a controller.");
   }
 
   /** Begins controlling the owner. */
+  @blue.method
+  @meta.noop
   Start()
   {
   }
 
   /** Stops controlling the owner. */
+  @blue.method
+  @meta.noop
   Stop()
   {
   }
@@ -87,6 +98,8 @@ export class ITr2Controller
    *
    * @param {number} _normalizedUpdateFrequency Carbon's normalised frame delta.
    */
+  @blue.method
+  @meta.noop
   Update(_normalizedUpdateFrequency)
   {
   }
@@ -97,6 +110,8 @@ export class ITr2Controller
    * @param {string} _name The variable's name.
    * @param {number} _value Its new value.
    */
+  @blue.method
+  @meta.noop
   SetVariable(_name, _value)
   {
   }
@@ -106,12 +121,15 @@ export class ITr2Controller
    *
    * @param {string} _eventName The event's name.
    */
+  @blue.method
+  @meta.noop
   HandleEvent(_eventName)
   {
   }
 }
 
 
+CjsSchema.blue.inherit(IRoot)(ITr2Controller);
 CjsSchema.blue.define(ITr2Controller, { className: "ITr2Controller" });
 
 

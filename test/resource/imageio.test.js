@@ -333,9 +333,9 @@ test("ImageIO refuses non-image formats and keeps Carbon's first-registered look
   assert.equal(ImageIO.getImageHandler("order"), FirstImage, "re-registering does not reorder");
 });
 
-test("ImageIO's adaptations and its faithful lookup are recorded in schema metadata", () =>
+test("ImageIO's adaptations are recorded in schema metadata", () =>
 {
   for (const name of [ "registerImageHandler", "readImage", "readImageAsync", "isSaveSupported", "saveImage" ])
     assert.equal(CjsSchema.getMethod(ImageIO, name).impl.status, "adapted");
-  assert.equal(CjsSchema.getMethod(ImageIO, "getImageHandler").impl.status, "implemented");
+  assert.equal(CjsSchema.getMethod(ImageIO, "getImageHandler").impl.status, "adapted");
 });

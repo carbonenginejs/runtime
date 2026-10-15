@@ -176,7 +176,7 @@ CjsSchema.meta.define(ImageIO, {
   methods: {
     registerImageHandler: [meta.adapted],
     getExtension: [meta.implemented],
-    getImageHandler: [meta.implemented],
+    getImageHandler: [meta.adapted],
     readImage: [meta.adapted],
     readImageAsync: [meta.adapted],
     isSaveSupported: [meta.adapted],

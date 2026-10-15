@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Tr2TimelineController.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { meta, type, blue } from "#schema";
-import { be, CcpTime } from "#blue";
+import { be, CcpTime, ISimTimeRebaseNotify } from "#blue";
 import { EveThrottleable } from "../../eve/EveThrottleable.js";
 import { ITr2Controller, ITr2ActionController } from "../ITr2Controller/index.js";
 import { Tr2TimelineEntry } from "./Tr2TimelineEntry.js";
@@ -15,7 +15,7 @@ import { UnlinkReason } from "../enums.js";
  * start/end range on an enabled track.
  */
 @blue.define("Tr2TimelineController")
-@blue.inherit(ITr2ActionController)
+@blue.inherit(ITr2ActionController, ISimTimeRebaseNotify)
 @blue.interface(ITr2Controller, ITr2ActionController)
 @blue.chainTo(EveThrottleable)
 export class Tr2TimelineController extends EveThrottleable
@@ -25,7 +25,7 @@ export class Tr2TimelineController extends EveThrottleable
   actions = [];
 
   @blue.persistOnly
-  @type.list("Tr2TimelineEntry")
+  @type.structList("Tr2TimelineEntry")
   entries = [];
 
   @blue.readwrite
@@ -77,6 +77,8 @@ export class Tr2TimelineController extends EveThrottleable
   _bindingPathRoots = [];
 
   /** Blue property alias for the controller's runtime timeline clock. */
+  @blue.readwrite
+  @type.float32
   get time()
   {
     return this.GetTime();

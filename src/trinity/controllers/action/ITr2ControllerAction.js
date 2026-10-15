@@ -13,7 +13,8 @@
 // the concrete actions use to duck-type their OWNERS (which have no common
 // contract yet). They are unrelated to the instance surface.
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
+import { IRoot } from "../../../global/blue/IRoot.js";
 
 
 const ACTION_DEFAULTS = [ "CanTransition" ];
@@ -28,11 +29,15 @@ export class ITr2ControllerAction
    *
    * @param {object} _controller The driving action controller.
    */
+  @blue.method
+  @meta.noop
   Link(_controller)
   {
   }
 
   /** Detaches this action, dropping every reference to the controller. */
+  @blue.method
+  @meta.noop
   Unlink()
   {
   }
@@ -42,6 +47,8 @@ export class ITr2ControllerAction
    *
    * @param {object} _controller The driving action controller.
    */
+  @blue.method
+  @meta.noop
   Start(_controller)
   {
   }
@@ -51,6 +58,8 @@ export class ITr2ControllerAction
    *
    * @param {object} _controller The driving action controller.
    */
+  @blue.method
+  @meta.noop
   Stop(_controller)
   {
   }
@@ -60,6 +69,8 @@ export class ITr2ControllerAction
    *
    * @param {number} _diff Seconds added to the sim clock.
    */
+  @blue.method
+  @meta.noop
   RebaseSimTime(_diff)
   {
   }
@@ -72,6 +83,7 @@ export class ITr2ControllerAction
    *
    * @returns {boolean} True unless the action needs to finish first.
    */
+  @blue.method
   CanTransition()
   {
     return true;
@@ -186,4 +198,5 @@ export class ITr2ControllerAction
 
 
 for (const name of ACTION_DEFAULTS) CjsSchema.decorateMethod(ITr2ControllerAction, name, meta.implemented);
+CjsSchema.blue.inherit(IRoot)(ITr2ControllerAction);
 CjsSchema.blue.define(ITr2ControllerAction, { className: "ITr2ControllerAction" });

@@ -108,7 +108,9 @@ test("promoted controller families expose source-backed Carbon metadata", () =>
   {
     assertCarbonMethod(ctor, methodName, status);
   }
-  const jsOnlyMethods = [[Tr2ActionAnimateCurveSet, "CompileExpression"], [Tr2ActionAnimateValue, "CompileExpression"], [Tr2ActionBindRTPC, "CompileExpression"], [Tr2ActionOverlay, "LoadOverlay"], [Tr2ActionPlayMeshAnimation, "ResolveDestination"], [Tr2ActionPlayMeshAnimation, "IsDestinationValid"], [Tr2ActionSetExternalControllerVariable, "LinkToDestinationOwner"], [Tr2ActionSetExternalControllerVariable, "IsVariableValid"], [Tr2ActionSetValue, "CompileExpression"]];
+  assertCarbonMethod(Tr2ActionOverlay, "LoadOverlay", "adapted");
+  assertCarbonMethod(Tr2ActionSetExternalControllerVariable, "IsVariableValid", "adapted");
+  const jsOnlyMethods = [[Tr2ActionAnimateCurveSet, "CompileExpression"], [Tr2ActionAnimateValue, "CompileExpression"], [Tr2ActionBindRTPC, "CompileExpression"], [Tr2ActionPlayMeshAnimation, "ResolveDestination"], [Tr2ActionPlayMeshAnimation, "IsDestinationValid"], [Tr2ActionSetExternalControllerVariable, "LinkToDestinationOwner"], [Tr2ActionSetValue, "CompileExpression"]];
   for (const [ctor, methodName] of jsOnlyMethods)
   {
     assertEquals(CjsSchema.getMethod(ctor, methodName)?.carbon?.method, undefined);

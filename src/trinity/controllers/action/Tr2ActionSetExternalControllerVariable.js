@@ -169,6 +169,8 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    * Checks whether a target variable name is authored.
    * Custom: native declares this method but provides no body or Blue exposure.
    */
+  @blue.method
+  @meta.adapted
   IsVariableValid()
   {
     return !!this.variable;
@@ -178,6 +180,8 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    * Resolves `destination` by case-insensitively matching destinationOwner
    * against the owner's binding roots.
    */
+  @meta.renamed("LinkToDestinationOwner")
+  @meta.adapted
   _LinkToDestinationOwner()
   {
     this.destination = null;
