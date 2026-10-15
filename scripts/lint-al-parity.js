@@ -254,9 +254,11 @@ function citedSources(code)
 function declaredDonors(code)
 {
     const declared = new Map();
+    // Ruling 2026-10-15: `blue.define` donors name the Carbon class a renamed
+    // port replicates; `meta.define` donors name the classes ours is built from.
     const blocks = [
-        ...code.matchAll(/@(?:type|types|meta)\.define\(\s*\{([\s\S]*?)\}\s*\)/g),
-        ...code.matchAll(/CjsSchema\.define\(\s*[A-Za-z0-9_]+\s*,\s*\{([\s\S]*?)\}\s*\)/g)
+        ...code.matchAll(/@(?:type|types|meta|blue)\.define\(\s*\{([\s\S]*?)\}\s*\)/g),
+        ...code.matchAll(/CjsSchema\.(?:(?:blue|meta)\.)?define\(\s*[A-Za-z0-9_]+\s*,\s*\{([\s\S]*?)\}\s*\)/g)
     ];
 
     for (const block of blocks)
@@ -266,8 +268,10 @@ function declaredDonors(code)
 
         if (!className) continue;
 
-        const carbon = body.match(/\bcarbon:\s*"([^"]+)"/);
-        const modelledOn = body.match(/\bmodelledOn:\s*"([^"]+)"/);
+        const stamped = /(?:@blue|CjsSchema\.blue)\.define/.test(block[0]);
+        const donor = body.match(/\bdonors:\s*\[\s*"([^"]+)"/);
+        const carbon = body.match(/\bcarbon:\s*"([^"]+)"/) ?? (stamped ? donor : null);
+        const modelledOn = body.match(/\bmodelledOn:\s*"([^"]+)"/) ?? (stamped ? null : donor);
 
         declared.set(className[1], {
             carbon: carbon ? carbon[1].split("::").pop() : null,
