@@ -1,3 +1,4 @@
+import { CjsSchema, type } from "#schema";
 // Source: trinity/trinity/UI/Scancodes.h
 // Source: trinity/trinity/UI/Scancodes.cpp
 
@@ -148,3 +149,12 @@ export function GetUIScancode(value)
     if (typeof value === "string") return BY_CODE.get(value) ?? BY_NAME.get(value) ?? null;
     return null;
 }
+
+CjsSchema.blue.define(UIScancode, {
+    className: "UIScancode",
+    fields: {
+        mDIK: [type.uint8],
+        mName: [type.string],
+        mDescription: [type.string]
+    }
+});

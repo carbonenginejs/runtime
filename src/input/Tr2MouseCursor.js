@@ -1,3 +1,5 @@
+import { CjsSchema, blue, meta } from "#schema";
+import { IRoot } from "../global/blue/IRoot.js";
 // Source: trinity/trinity/UI/Tr2MouseCursor.h
 // Source: trinity/trinity/UI/Tr2MouseCursor.cpp
 // Source: trinity/trinity/UI/Tr2MouseCursor_Blue.cpp
@@ -131,3 +133,15 @@ export class Tr2MouseCursor
 }
 
 export default Tr2MouseCursor;
+
+blue.inherit(IRoot)(Tr2MouseCursor);
+blue.interface()(Tr2MouseCursor);
+CjsSchema.blue.define(Tr2MouseCursor, {
+    className: "Tr2MouseCursor",
+    methods: {
+        __init__: [meta.renamed("py__init__"), meta.adapted],
+        Create: [blue.method, meta.adapted],
+        IsValid: [blue.method, meta.adapted],
+        Apply: [blue.method, meta.adapted]
+    }
+});

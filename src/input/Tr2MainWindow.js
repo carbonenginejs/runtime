@@ -1,3 +1,6 @@
+import { CjsSchema, blue, meta } from "#schema";
+import { IRoot } from "../global/blue/IRoot.js";
+import { IBlueEvents } from "../global/blue/IBlueEvents.js";
 // Source: trinity/trinity/UI/Tr2MainWindow.h
 // Source: trinity/trinity/UI/Tr2MainWindow.cpp
 // Source: trinity/trinity/UI/Tr2MainWindow_Windows.cpp
@@ -446,3 +449,50 @@ function sanitizeDimension(value, maximum, minimum)
 }
 
 export default Tr2MainWindow;
+
+blue.inherit(IRoot, IBlueEvents)(Tr2MainWindow);
+blue.interface()(Tr2MainWindow);
+CjsSchema.blue.define(Tr2MainWindow, {
+    className: "Tr2MainWindow",
+    fields: {
+        onKeyDown: [blue.readwrite],
+        onKeyUp: [blue.readwrite],
+        onChar: [blue.readwrite],
+        onMouseDown: [blue.readwrite],
+        onMouseUp: [blue.readwrite],
+        onMouseMove: [blue.readwrite],
+        onMouseWheel: [blue.readwrite],
+        onClose: [blue.readwrite],
+        onFocusChange: [blue.readwrite],
+        onWindowStateChange: [blue.readwrite],
+        imeState_MacOS: [blue.readwrite]
+    },
+    methods: {
+        SetWindowState: [meta.renamed("SetStateScript"), meta.adapted],
+        GetWindowState: [meta.renamed("GetStateScript"), meta.adapted],
+        SanitizeState: [meta.renamed("SanitizeStateScript"), meta.adapted],
+        IsActive: [meta.renamed("HasFocus"), meta.adapted],
+        IsHidden: [meta.renamed("IsMinimized"), meta.adapted],
+        Key: [meta.renamed("IsKeyPressed"), meta.adapted],
+        GetKeyNameText: [meta.renamed("GetKeyName"), meta.adapted],
+        GetHwndAsLong: [meta.renamed("GetHwnd"), meta.adapted],
+        HasFocus: [blue.method, meta.adapted],
+        SetMinimumSize: [blue.method, meta.adapted],
+        GetDefaultState: [blue.method, meta.adapted],
+        StoreStateSettings: [blue.method, meta.adapted],
+        GetWindowSizeOptions: [blue.method, meta.adapted],
+        SetWindowTitle: [blue.method, meta.adapted],
+        GetWindowTitle: [blue.method, meta.adapted],
+        SetMouseCursor: [blue.method, meta.adapted],
+        GetMouseCursor: [blue.method, meta.adapted],
+        ClipCursor: [blue.method, meta.adapted],
+        UnclipCursor: [blue.method, meta.adapted],
+        GetCursorPos: [blue.method, meta.adapted],
+        SetCursorPos: [blue.method, meta.adapted],
+        IsKeyToggled: [blue.method, meta.adapted],
+        GetBackBufferFormat: [blue.method, meta.adapted],
+        SetWindowsMessageFilter: [blue.method, meta.adapted],
+        GetWindowsMessageFilter: [blue.method, meta.adapted],
+        ProcessMessages: [blue.method, meta.adapted]
+    }
+});
