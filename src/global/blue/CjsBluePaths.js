@@ -317,10 +317,11 @@ export class CjsBluePaths extends IBluePaths
   }
 }
 
+CjsSchema.blue.interface(IBluePaths)(CjsBluePaths);
 CjsSchema.blue.define(CjsBluePaths, {
   className: "CjsBluePaths",
   donors: [ "BluePaths" ],
-  fields: {},
+  members: [ { name: "cacheFileExistance", key: "_cacheFileExistance", type: { kind: "boolean" }, edit: { read: true, write: true }, carbon: { member: true } } ],
   methods: {
     SetLocalFileSystem: [],
     GetLocalFileSystem: [],
@@ -334,7 +335,7 @@ CjsSchema.blue.define(CjsBluePaths, {
     FileExists: [ blue.method, meta.implemented ],
     FileExistsLocally: [ blue.method, meta.implemented ],
     FileNeedsDownload: [ blue.method, meta.implemented ],
-    GetStreamFromPath: [ meta.renamed("GetStreamFromPathW"), meta.adapted ]
+    GetStreamFromPath: [ blue.method, meta.renamed("GetStreamFromPathW"), meta.adapted ]
   }
 });
 

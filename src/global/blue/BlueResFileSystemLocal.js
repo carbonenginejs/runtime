@@ -96,26 +96,27 @@ export class BlueResFileSystemLocal extends IBlueResFileSystem
   ListDirFromScript(_dir) { return noDisk("ListDirFromScript"); }
 }
 
+CjsSchema.blue.interface(IBlueResFileSystem)(BlueResFileSystemLocal);
 CjsSchema.blue.define(BlueResFileSystemLocal, {
   className: "BlueResFileSystemLocal",
   fields: {},
   methods: {
     FileExists: [ blue.method, meta.notImplemented ],
     IsDirectory: [ blue.method, meta.notImplemented ],
-    GetDirectoryContents: [ meta.notImplemented ],
-    GetStreamFromPath: [ meta.renamed("GetStreamFromPathW"), meta.notImplemented ],
+    GetDirectoryContents: [ blue.method, meta.notImplemented ],
+    GetStreamFromPath: [ blue.method, meta.renamed("GetStreamFromPathW"), meta.notImplemented ],
     ResolvePath: [ blue.method, meta.notImplemented ],
-    Initialize: [ meta.notImplemented ],
+    Initialize: [ blue.method, meta.notImplemented ],
     InitializeStdAppPaths: [ blue.method, meta.notImplemented ],
     SetSearchPath: [ blue.method, meta.renamed("SetSearchPathW"), meta.notImplemented ],
     GetSearchPath: [ blue.method, meta.renamed("GetSearchPathW"), meta.notImplemented ],
     ClearSearchPaths: [ blue.method, meta.notImplemented ],
     ResolvePathForWriting: [ blue.method, meta.renamed("ResolvePathForWritingW"), meta.notImplemented ],
     ResolvePathToRoot: [ blue.method, meta.renamed("ResolvePathToRootW"), meta.notImplemented ],
-    GetExpandedSearchPaths: [ meta.notImplemented ],
-    GetExpandedSearchPaths__KeyPaths: [ meta.notImplemented ],
-    LogPaths: [ meta.notImplemented ],
-    GetInitialWorkingDirectory: [ meta.notImplemented ],
+    GetExpandedSearchPaths: [ blue.method, meta.notImplemented ],
+    GetExpandedSearchPaths__KeyPaths: [ blue.method, meta.renamed("GetExpandedSearchPaths"), meta.notImplemented ],
+    LogPaths: [ blue.method, meta.notImplemented ],
+    GetInitialWorkingDirectory: [ blue.method, meta.notImplemented ],
     GetAllSearchPaths: [ blue.method, meta.notImplemented ],
     GetExpandedSearchPathsAsDict: [ blue.method, meta.notImplemented ],
     ListDirFromScript: [ blue.method, meta.notImplemented ]

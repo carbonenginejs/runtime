@@ -113,6 +113,7 @@ export class BlueResFileSystemRemote extends IBlueResFileSystem
   }
 }
 
+CjsSchema.blue.interface(IBlueResFileSystem)(BlueResFileSystemRemote);
 CjsSchema.blue.define(BlueResFileSystemRemote, {
   className: "BlueResFileSystemRemote",
   fields: {},
@@ -121,7 +122,7 @@ CjsSchema.blue.define(BlueResFileSystemRemote, {
     FileExists: [ blue.method, meta.implemented ],
     IsDirectory: [ blue.method, meta.implemented ],
     GetDirectoryContents: [ blue.method, meta.implemented ],
-    GetStreamFromPath: [ meta.renamed("GetStreamFromPathW"), meta.adapted ],
-    ResolvePath: [ meta.renamed("ResolvePathW"), meta.adapted ]
+    GetStreamFromPath: [ blue.method, meta.renamed("GetStreamFromPathW"), meta.adapted ],
+    ResolvePath: [ blue.method, meta.renamed("ResolvePathW"), meta.adapted ]
   }
 });
