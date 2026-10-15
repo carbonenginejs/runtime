@@ -1,6 +1,6 @@
 // Source: blue/include/IBlueOS.h, blue/src/BlueOS.h and BlueOS.cpp.
 // Host-driven clock and tick pump; scheduler, IO and process services remain on the interface.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { BeInfo } from "./BeInfo.js";
 import { IBlueEvents } from "./IBlueEvents.js";
 import { IBlueOS } from "./IBlueOS.js";
@@ -326,21 +326,24 @@ export class CjsBlueOS extends IBlueOS
   }
 }
 
+CjsSchema.blue.interface(IBlueOS)(CjsBlueOS);
+CjsSchema.blue.inherit(BeInfo)(CjsBlueOS);
 CjsSchema.blue.define(CjsBlueOS, {
   className: "CjsBlueOS",
   donors: [ "BlueOS" ],
-  fields: {},
+  fields: { frameClock: [ blue.readwrite ] },
   methods: {
-    GetActualTime: [ meta.adapted ],
-    GetCurrentFrameTime: [ meta.adapted ],
-    PumpOS: [ meta.adapted ],
+    GetSmoothedTime: [ blue.method, meta.adapted ],
+    GetActualTime: [ blue.method, meta.adapted ],
+    GetCurrentFrameTime: [ blue.method, meta.adapted ],
+    PumpOS: [ blue.method, meta.adapted ],
     GetRealTime: [],
-    GetInfo: [ meta.adapted ],
-    RegisterForTicks: [ meta.adapted ],
-    UnregisterForTicks: [ meta.adapted ],
+    GetInfo: [ blue.method, meta.adapted ],
+    RegisterForTicks: [ blue.method, meta.adapted ],
+    UnregisterForTicks: [ blue.method, meta.adapted ],
     IsRegisteredForTicks: [],
-    RegisterForSimTimeRebase: [ meta.adapted ],
-    UnregisterForSimTimeRebase: [ meta.adapted ],
-    RunStackless: [ meta.adapted ]
+    RegisterForSimTimeRebase: [ blue.method, meta.adapted ],
+    UnregisterForSimTimeRebase: [ blue.method, meta.adapted ],
+    RunStackless: [ blue.method, meta.adapted ]
   }
 });

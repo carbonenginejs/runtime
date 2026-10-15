@@ -527,6 +527,7 @@ export class CjsBlueClasses extends IBlueClasses
 }
 
 
+CjsSchema.blue.interface(IBlueClasses)(CjsBlueClasses);
 CjsSchema.blue.define(CjsBlueClasses, {
   className: "CjsBlueClasses",
   donors: [ "BlueClasses" ],
@@ -538,6 +539,7 @@ CjsSchema.blue.define(CjsBlueClasses, {
   ],
   fields: {},
   methods: {
+    _RegisterSingleClass: [ blue.method, meta.adapted ],
     RegisterClasses: [ blue.method, meta.adapted ],
     UnregisterClasses: [ blue.method, meta.implemented ],
     GetClassRegistration: [ blue.method, meta.adapted ],
