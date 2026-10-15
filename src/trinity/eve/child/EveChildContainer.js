@@ -195,6 +195,7 @@ export class EveChildContainer extends EveChildTransform
    */
   @meta.adapted
   @blue.read
+  @meta.persist
   @type.rootRef("ITr2GrannyAnimationOwner")
   animationOwner = null;
 
@@ -208,6 +209,7 @@ export class EveChildContainer extends EveChildTransform
    */
   @meta.adapted
   @blue.read
+  @meta.persist
   @type.int32
   @type.enum("trinity.EveSpaceObjectChild.Origin")
   origin = 0;

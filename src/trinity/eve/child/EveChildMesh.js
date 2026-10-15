@@ -319,6 +319,7 @@ export class EveChildMesh extends EveChildTransform
    */
   @meta.adapted
   @blue.read
+  @meta.persist
   @type.int32
   @type.enum("trinity.EveSpaceObjectChild.Origin")
   origin = 0;
