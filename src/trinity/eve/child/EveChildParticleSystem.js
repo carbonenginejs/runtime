@@ -1,3 +1,4 @@
+import { ITr2DebugRenderable } from "#interfaces";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildParticleSystem.h
 import { IsMatch } from "#blue";
 import { INotify } from "../../../global/blue/INotify.js";
@@ -27,6 +28,7 @@ import { CcpTime } from "../../../global/blue/CcpTime.js";
 @blue.inherit(ITr2Renderable)
 @blue.inherit(IInitialize, INotify)
 @blue.interface(EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IInitialize, INotify)
+@blue.inherit(ITr2DebugRenderable)
 export class EveChildParticleSystem extends EveChildTransform
 {
 

@@ -1,3 +1,4 @@
+import { ITr2DebugRenderable } from "#interfaces";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
@@ -32,6 +33,7 @@ import { CalculateBoundingSphereForLineSetPaths } from "./lineSetPaths/IEveLineS
 @blue.define("EveChildLineSet")
 @blue.inherit(ITr2Renderable, IInitialize, INotify)
 @blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize, INotify, ITr2Renderable)
+@blue.inherit(ITr2DebugRenderable)
 export class EveChildLineSet extends EveChildTransform
 {
 
@@ -90,14 +92,14 @@ export class EveChildLineSet extends EveChildTransform
   @blue.notify
   @blue.readwrite
   @blue.persist
-  @type.color
+  @type.vec4
   baseColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_animColor (Vector4) [READWRITE, PERSIST, NOTIFY] */
   @blue.notify
   @blue.readwrite
   @blue.persist
-  @type.color
+  @type.vec4
   animColor = color.createLinear();
 
   /** m_additiveBatch (bool) [READWRITE, PERSIST, NOTIFY] */
@@ -535,6 +537,8 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Native Blue readonly property (EveChildLineSet_Blue.cpp:29). */
+  @blue.read
+  @type.boolean
   get isUpdating()
   {
     return this.IsUpdating();

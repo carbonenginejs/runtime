@@ -12,66 +12,66 @@ import { EveChildInstancedMeshInstance } from "./EveChildInstancedMeshInstance.j
  * its instance placements, per-instance world cull spheres, instance flags and
  * manager registration handles.
  */
-@blue.define("EveChildInstancedMesh")
+@blue.define({ className: "EveChildInstancedMesh", donors: [ "EveChildInstancedMeshes::Mesh" ] })
 export class EveChildInstancedMesh
 {
-  @blue.persist
+  @meta.persist
   @type.path("TriGeometryRes")
   geometryPath = "";
 
-  @blue.persist
+  @meta.persist
   @type.boolean
   castsShadow = false;
 
-  @blue.persist
+  @meta.persist
   @type.int32
   reflectionMode = 3;
 
-  @blue.persist
+  @meta.persist
   @type.uint32
   meshIndex = 0;
 
-  @blue.persist
+  @meta.persist
   @type.list("EveChildInstancedMeshArea")
   areas = [];
 
-  @blue.persist
+  @meta.persist
   @type.list("EveChildInstancedMeshInstance")
   instances = [];
 
   /** Carbon's one-to-one modular ownership tag array for instances. */
-  @blue.persist
+  @meta.persist
   @type.array("uint32")
   partTags = [];
 
-  @blue.persist
+  @meta.persist
   @type.string
   sofHullName = "";
 
-  @blue.persist
+  @meta.persist
   @type.string
   sofLocatorSetName = "";
 
   // Carbon Mesh::ownedLocatorSets and Mesh::armorDamageShader
   // (EveChildInstancedMeshes.h:163-164), set by SOF BuildChild through AddMesh;
   // CarbonEngineJS delivers built objects as documents, so both persist.
-  @blue.persist
+  @meta.persist
   @type.list("EveLocatorSets")
   ownedLocatorSets = [];
 
-  @blue.persist
+  @meta.persist
   @type.rootRef("Tr2Effect")
   armorDamageShader = null;
 
-  @blue.persist
+  @meta.persist
   @type.boolean
   display = true;
 
-  @blue.persist
+  @meta.persist
   @type.boolean
   inheritOverlayEffects = true;
 
-  @blue.persist
+  @meta.persist
   @type.list("EveMeshOverlayEffect")
   ownOverlayEffects = [];
 

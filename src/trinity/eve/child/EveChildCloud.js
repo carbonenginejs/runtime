@@ -9,6 +9,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { meta, type, blue } from "#schema";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
+import { ITr2DebugRenderable } from "#interfaces";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { RenderingMode, TriBatchType } from "#consts/graphics";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
@@ -51,7 +52,7 @@ function updateBoundingSphere(cloud)
  * Source: trinity/trinity/Eve/SpaceObject/Children/EveChildCloud.cpp.
  */
 @blue.define({ className: "EveChildCloud", purpose: "Describes a transformable volumetric cloud child, including its effect, editable volume, tessellation, LOD, and bounds state." })
-@blue.inherit(ITr2Renderable)
+@blue.inherit(ITr2Renderable, ITr2DebugRenderable)
 @blue.inherit(IInitialize, INotify)
 @blue.interface(ITr2Renderable, IInitialize, INotify, EveSpaceObjectChild, IEveSpaceObjectChild)
 export class EveChildCloud extends EveSpaceObjectChild

@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/IEveEffectChildrenOwner.h:9-15
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 
 
 /** Contract for an object that keeps a named list of effect children, as EveEffectRoot2 does. */
@@ -38,6 +38,6 @@ export class IEveEffectChildrenOwner
 
 for (const method of [ "GetEffectChildByName", "AddToEffectChildrenList", "RemoveFromEffectChildrenList" ])
 {
-  CjsSchema.decorateMethod(IEveEffectChildrenOwner, method, meta.abstract);
+  CjsSchema.decorateMethod(IEveEffectChildrenOwner, method, blue.method, meta.abstract);
 }
 CjsSchema.blue.define(IEveEffectChildrenOwner, { className: "IEveEffectChildrenOwner" });

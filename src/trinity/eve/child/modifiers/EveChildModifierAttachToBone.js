@@ -10,6 +10,7 @@ import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
  * animation bone palette.
  */
 @blue.define("EveChildModifierAttachToBone")
+@blue.interface(IEveChildTransformModifier)
 export class EveChildModifierAttachToBone extends IEveChildTransformModifier
 {
   @blue.readwrite

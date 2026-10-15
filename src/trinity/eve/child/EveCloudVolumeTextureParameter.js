@@ -8,10 +8,13 @@
 // Tr2ResourceSetDescriptionAL/Tr2TextureAL device work and stays with the
 // engine lane.
 import { meta, type, blue } from "#schema";
+import { ITriEffectResourceParameter } from "../../shader/parameter/ITriEffectResourceParameter.js";
 import { CjsParameter } from "../../shader/parameter/CjsParameter.js";
 
 /** Binds an editable cloud volume to a named effect texture parameter and records whether the effect consumes it. */
 @blue.define({ className: "EveCloudVolumeTextureParameter", purpose: "Binds an editable cloud volume to a named effect texture parameter and records whether the effect consumes it." })
+@blue.inherit(ITriEffectResourceParameter)
+@blue.interface(ITriEffectResourceParameter)
 export class EveCloudVolumeTextureParameter
 {
 

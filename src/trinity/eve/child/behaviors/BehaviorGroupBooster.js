@@ -608,6 +608,7 @@ export class BehaviorGroupBooster
   /**
    * Builds and configures the drone booster effect, including its noise, colour and texture parameters.
    */
+  @blue.method
   static _CreateBoosterEffect(lodOption)
   {
     const effect = new Tr2Effect();
@@ -645,6 +646,7 @@ export class BehaviorGroupBooster
   /**
    * Builds the shared flare-quad effect used by both the ambient and halo flares.
    */
+  @blue.method
   static _CreateFlareEffect()
   {
     const effect = new Tr2Effect();

@@ -13,6 +13,7 @@ import { EveChildModifierTransformCommon } from "./EveChildModifierTransformComm
  * screen-aligns and then re-aligns along the camera direction.
  */
 @blue.define("EveChildModifierBillboard3D")
+@blue.interface(IEveChildTransformModifier)
 export class EveChildModifierBillboard3D extends IEveChildTransformModifier
 {
   @blue.readwrite

@@ -10,6 +10,7 @@ import { meta, blue } from "#schema";
  * facing of its local Z axis toward the camera, so a halo fades out edge-on.
  */
 @blue.define("EveChildModifierHalo")
+@blue.interface(IEveChildTransformModifier)
 export class EveChildModifierHalo extends IEveChildTransformModifier
 {
   static scratch = {

@@ -18,6 +18,7 @@ import { EveChildContainer } from "./EveChildContainer.js";
 import { EveChildInstanceTransform } from "./EveChildInstanceTransform.js";
 import { EveChildModifierAttachToBone } from "./modifiers/EveChildModifierAttachToBone.js";
 import { EveSpaceObject2 } from "../spaceObject/EveSpaceObject2.js";
+import { IShaderConfigurer } from "../../shader/IShaderConfigurer.js";
 import { EveEntity } from "../EveEntity.js";
 import { Tr2QuadRenderer } from "../../core/Tr2QuadRenderer/index.js";
 import { be, IsMatch } from "#blue";
@@ -26,7 +27,7 @@ import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 /** A child that instantiates a source template across a list of authored or locator-driven transforms, forwarding controller and registration calls to the instances. */
 @blue.define("EveChildInstanceContainer")
 @blue.inherit(ITr2CurveSetOwner, INotify, IListNotify, ITr2ControllerOwner)
-@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, INotify, IEveEffectChildrenOwner, ITr2ControllerOwner, IListNotify, EveEntity)
+@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, INotify, IEveEffectChildrenOwner, ITr2ControllerOwner, IListNotify, EveEntity, IShaderConfigurer)
 @blue.inherit(IEveEffectChildrenOwner)
 export class EveChildInstanceContainer extends EveChildTransform
 {
@@ -341,6 +342,7 @@ export class EveChildInstanceContainer extends EveChildTransform
    * instance, unregistering it first when this container is in a registry.
    * @returns {void}
    */
+  @blue.method
   @meta.implemented
   PopFront()
   {
@@ -416,6 +418,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Carbon EveChildInstanceContainer::PlayCurveSet (cpp:579-588): every curve-set-owning instance plays it. */
+  @blue.method
   @meta.implemented
   PlayCurveSet(name, rangeName = "")
   {
@@ -426,6 +429,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Carbon EveChildInstanceContainer::StopCurveSet (cpp:590-600). */
+  @blue.method
   @meta.implemented
   StopCurveSet(name)
   {
@@ -436,6 +440,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Carbon EveChildInstanceContainer::UpdateCurveSet (cpp:602-611); renderContext travels as EveChildContainer's does. */
+  @blue.method
   @meta.implemented
   UpdateCurveSet(name, time, renderContext = null)
   {
@@ -446,6 +451,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Carbon EveChildInstanceContainer::GetCurveSetDuration (cpp:613-623): the source template answers. */
+  @blue.method
   @meta.implemented
   GetCurveSetDuration(name)
   {
@@ -454,6 +460,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Carbon EveChildInstanceContainer::GetRangeDuration (cpp:625-635): the source template answers. */
+  @blue.method
   @meta.implemented
   GetRangeDuration(name, rangeName)
   {
@@ -462,6 +469,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Carbon EveChildInstanceContainer::PlayAllCurveSets (cpp:637-646): only container instances are asked. */
+  @blue.method
   @meta.implemented
   PlayAllCurveSets()
   {
@@ -472,6 +480,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Carbon EveChildInstanceContainer::StopAllCurveSets (cpp:648-657): only container instances are asked. */
+  @blue.method
   @meta.implemented
   StopAllCurveSets()
   {

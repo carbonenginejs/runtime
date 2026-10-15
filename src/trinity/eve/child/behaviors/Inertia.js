@@ -36,6 +36,7 @@ export class Inertia
   @blue.readwrite
   @blue.persist
   @type.int32
+  @type.enum("trinity.IBehavior.ProcessPriority")
   behaviorPriority = 0;
 
   /** m_minInertiaWeight (float) [READWRITE, PERSIST] */

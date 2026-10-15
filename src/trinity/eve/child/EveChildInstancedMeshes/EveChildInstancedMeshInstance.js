@@ -15,15 +15,15 @@ import { meta, type, blue } from "#schema";
  * A single placement of an instanced mesh: its transform and the index of its
  * cull sphere in the owning mesh's instance sphere list.
  */
-@blue.define("EveChildInstancedMeshInstance")
+@blue.define({ className: "EveChildInstancedMeshInstance", donors: [ "EveInstancedMeshManager::StaticPerInstanceData" ] })
 export class EveChildInstancedMeshInstance
 {
 
-  @blue.persist
+  @meta.persist
   @type.mat4
   transform = mat4.create();
 
-  @blue.persist
+  @meta.persist
   @type.uint32
   sphereIndex = 0;
 }

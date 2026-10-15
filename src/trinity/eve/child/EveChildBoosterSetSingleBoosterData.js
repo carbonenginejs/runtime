@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBoosterSet.cpp
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { type, blue } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /**
  * Carbon EveChildBoosterSet::SingleBoosterData (h:169-179): one booster as
@@ -15,37 +15,37 @@ export class EveChildBoosterSetSingleBoosterData
 {
 
   /** transform (Matrix): the booster's local matrix. */
-  @blue.persist
+  @meta.persist
   @type.mat4
   transform = mat4.create();
 
   /** lightPosition (Vector3): (0, 0, -lightOffset) through the transform. */
-  @blue.persist
+  @meta.persist
   @type.vec3
   lightPosition = vec3.create();
 
   /** lightRadius (float): the larger X/Y basis length times the light scale. */
-  @blue.persist
+  @meta.persist
   @type.float32
   lightRadius = 0;
 
   /** lightPhase (float): GenerateBoosterLightPhase, an offset into the flicker noise table. */
-  @blue.persist
+  @meta.persist
   @type.float32
   lightPhase = 0;
 
   /** atlasIndex0 (uint32_t) */
-  @blue.persist
+  @meta.persist
   @type.uint32
   atlasIndex0 = 0;
 
   /** atlasIndex1 (uint32_t) */
-  @blue.persist
+  @meta.persist
   @type.uint32
   atlasIndex1 = 0;
 
   /** wavePhase (float): rand() / RAND_MAX. */
-  @blue.persist
+  @meta.persist
   @type.float32
   wavePhase = 0;
 

@@ -58,6 +58,7 @@ export class PlayFX extends EveEntity
   @blue.readwrite
   @blue.persist
   @type.int32
+  @type.enum("trinity.IBehavior.ProcessPriority")
   behaviorPriority = 0;
 
   /** m_behaviorWeight (float) [READWRITE, PERSIST] */
@@ -355,6 +356,7 @@ export class PlayFX extends EveEntity
    * method on the authored effect. A failed clone leaves the count unchanged.
    * Adapted: CloneTo returns the copy or null instead of bool plus an out pointer.
    */
+  @blue.method
   _CheckCount(agentSize)
   {
     if (this._count > agentSize)

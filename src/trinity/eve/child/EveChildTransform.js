@@ -116,6 +116,7 @@ export class EveChildTransform extends EveSpaceObjectChild
    * @param {Number} [_lowestLodVisible] - accepted for Carbon signature parity, unused here
    * @returns {Float32Array} the child's live local transform
    */
+  @blue.method
   Setup(scale = null, rotation = null, translation = null, _lowestLodVisible = null)
   {
     if (!this.useSRT)
@@ -141,6 +142,7 @@ export class EveChildTransform extends EveSpaceObjectChild
    * Setup that also latches useStaticRotation, so from then on UpdateTransform
    * strips the parent's rotation and the child keeps a fixed world orientation.
    */
+  @blue.method
   SetupWithStaticRotation(scale = null, rotation = null, translation = null, lowestLodVisible = null)
   {
     this.useStaticRotation = true;
@@ -152,6 +154,7 @@ export class EveChildTransform extends EveSpaceObjectChild
    * reuses the local transform as-is instead of recomposing it from the SRT
    * values every frame.
    */
+  @blue.method
   SetupWithStaticTransform(scale = null, rotation = null, translation = null, lowestLodVisible = null)
   {
     this.staticTransform = true;
@@ -168,6 +171,7 @@ export class EveChildTransform extends EveSpaceObjectChild
    * @param {Float32Array} parentTransform - borrowed, read only
    * @returns {Float32Array} the child's live world transform
    */
+  @blue.method
   UpdateTransform(parentTransform)
   {
     if (this.staticTransform || !this.useSRT)

@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/IBehavior.h:7-79
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { ProcessPriority } from "./enums.js";
 
 
@@ -92,5 +92,16 @@ export class IBehavior
 }
 
 CjsSchema.decorateMethod(IBehavior, "CalculateBehavior", meta.abstract);
+
+CjsSchema.decorateMethod(IBehavior, "GetScratchMemorySize", blue.method);
+CjsSchema.decorateMethod(IBehavior, "InitializeScratch", blue.method);
+CjsSchema.decorateMethod(IBehavior, "GetProcessPriority", blue.method);
+CjsSchema.decorateMethod(IBehavior, "GetBehaviorName", blue.method);
+CjsSchema.decorateMethod(IBehavior, "Reset", blue.method);
+CjsSchema.decorateMethod(IBehavior, "CalculateBehavior", blue.method);
+CjsSchema.decorateMethod(IBehavior, "GetDebugOptions", blue.method);
+CjsSchema.decorateMethod(IBehavior, "RenderDebugInfo", blue.method);
+CjsSchema.decorateMethod(IBehavior, "GetBehaviorSearchRadius", blue.method);
+CjsSchema.decorateMethod(IBehavior, "UpdateState", blue.method);
 
 CjsSchema.blue.define(IBehavior, { className: "IBehavior", fields: {} });

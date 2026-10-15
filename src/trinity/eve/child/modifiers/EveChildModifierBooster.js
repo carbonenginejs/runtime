@@ -12,6 +12,7 @@ import { EveChildModifierTransformCommon } from "./EveChildModifierTransformComm
  * near edge stays put.
  */
 @blue.define("EveChildModifierBooster")
+@blue.interface(IEveChildTransformModifier)
 export class EveChildModifierBooster extends IEveChildTransformModifier
 {
   static scratch = {

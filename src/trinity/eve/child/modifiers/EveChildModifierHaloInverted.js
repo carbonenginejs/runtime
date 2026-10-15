@@ -12,6 +12,7 @@ import { EveChildModifierTransformCommon } from "./EveChildModifierTransformComm
  * of one.
  */
 @blue.define("EveChildModifierHaloInverted")
+@blue.interface(IEveChildTransformModifier)
 export class EveChildModifierHaloInverted extends IEveChildTransformModifier
 {
   static scratch = {

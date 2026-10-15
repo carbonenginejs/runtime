@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/EveChildProceduralContainer.h
 import { INotify } from "../../../../global/blue/INotify.js";
+import { IShaderConfigurer } from "../../../shader/IShaderConfigurer.js";
 import { EveEntity } from "../../EveEntity.js";
 import { ITr2SoundEmitterOwner } from "../../ITr2SoundEmitterOwner.js";
 import { IListNotify } from "../../../../global/blue/IListNotify.js";
@@ -23,7 +24,7 @@ import { Tr2Lod } from "../../EveLODHelper.js";
 @blue.define("EveChildProceduralContainer")
 @blue.inherit(ITr2CurveSetOwner, IEveInheritPropertiesOwner)
 @blue.inherit(IInitialize, IListNotify, INotify)
-@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, IListNotify, ITr2SoundEmitterOwner, IEveInheritPropertiesOwner, EveEntity)
+@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, IListNotify, ITr2SoundEmitterOwner, IEveInheritPropertiesOwner, EveEntity, IShaderConfigurer)
 export class EveChildProceduralContainer extends EveChildTransform
 {
 

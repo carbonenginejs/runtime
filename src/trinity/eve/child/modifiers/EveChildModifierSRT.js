@@ -12,6 +12,7 @@ import { meta, type, blue } from "#schema";
  * of the child's own transform.
  */
 @blue.define("EveChildModifierSRT")
+@blue.interface(IEveChildTransformModifier)
 export class EveChildModifierSRT extends IEveChildTransformModifier
 {
   @blue.readwrite

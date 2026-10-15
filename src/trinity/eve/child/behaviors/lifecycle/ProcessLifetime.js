@@ -444,6 +444,7 @@ export class ProcessLifetime
    * reassignment flag - the IDs agent scratch records store are indices into
    * exactly this list.
    */
+  @blue.method
   _ReassignTunnelIDsAndAddSystemTunnels(system)
   {
     const localTunnels = this._privateTunnels.slice();
@@ -468,6 +469,7 @@ export class ProcessLifetime
    * tunnel's last point. Mutates the agent's scratch tunnelPoint and the
    * behavior's shared desired vector.
    */
+  @blue.method
   _ProcessTunnel(agent, tunnel, data, boundingSphere)
   {
     const points = tunnel.splinePoints;
@@ -573,6 +575,7 @@ export class ProcessLifetime
    * or marks the exit as already used when no exit tunnel exists so the agent is
    * removed instead (Carbon FindAndAssignAnExitTunnel, cpp:301-327).
    */
+  @blue.method
   _FindAndAssignAnExitTunnel(agent, data)
   {
     let closestPointIndex = -1;
@@ -613,6 +616,7 @@ export class ProcessLifetime
    * @param {Float32Array} pos - caller-owned; receives the chosen spawn position
    * @returns {Boolean} false when no entrance tunnel with loaded curves is available
    */
+  @blue.method
   _FindInitialSpawnPoint(drone, data, pos, systemTunnels)
   {
     // if we have local tunnels use them, otherwise use system-wide ones
@@ -683,6 +687,7 @@ export class ProcessLifetime
    * cpp:390-426); the candidate lists are allocated here because this is a
    * respawn event, not the steady per-frame path.
    */
+  @blue.method
   _FindASpawnPoint(agent, data, group)
   {
     const potentialPoints = [];

@@ -11,6 +11,10 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/
 import { Tr2Light } from "../lights/Tr2Light.js";
 import { Tr2TextureReference } from "../../core/Tr2TextureReference.js";
 import { Tr2VariableStore } from "../../core/variable/Tr2VariableStore.js";
+import { ITr2DebugRenderable } from "#interfaces";
+import { ITr2LightOwner } from "../lights/ITr2LightOwner.js";
+import { EveEntity } from "../EveEntity.js";
+import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -128,9 +132,8 @@ function TransformNormal(out, v, m)
 
 /** A volumetric cloud entity that renders as a raymarched unit-cube volume with its own lightmap, shadow map and lighting, and can also contribute reflection batches. */
 @blue.define("EveChildCloud2")
-@blue.inherit(ITr2Renderable, INotify, IListNotify, IInitialize)
-@blue.interface(INotify)
-@blue.chainTo(EveSpaceObjectChild)
+@blue.inherit(ITr2Renderable, INotify, IListNotify, IInitialize, ITr2DebugRenderable, ITr2LightOwner)
+@blue.interface(IInitialize, INotify, IListNotify, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, ITr2LightOwner, EveEntity)
 export class EveChildCloud2 extends EveSpaceObjectChild
 {
 
@@ -306,6 +309,8 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   currentQuality = 2;
 
   /** m_lightmapDirty (cpp:89). */
+  @blue.readwrite
+  @type.boolean
   lightmapDirty = true;
 
   /** m_renderedLastFrame (cpp:90). */
@@ -388,6 +393,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   }
 
   /** Rebinds effects and resets the vertex buffer (EveChildCloud2.cpp:165-180). */
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -399,6 +405,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   }
 
   /** Native device-resource creation gate (Tr2DeviceResource.cpp:21-32). */
+  @blue.method
   @meta.implemented
   PrepareResources()
   {
@@ -410,6 +417,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * (EveChildCloud2.cpp:435-514). Adapted: descriptions express the AL overload.
    * Carbon does not check either buffer creation result; preserve that flow.
    */
+  @blue.method
   @meta.adapted
   OnPrepareResources()
   {
@@ -435,6 +443,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * Resets native declaration, dirty state and shadow ownership (cpp:408-425).
    * Adapted: explicitly releases the owned depth surface; cube buffers survive.
    */
+  @blue.method
   @meta.adapted
   ReleaseResources(storage = 0)
   {
@@ -466,6 +475,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * Creates Carbon's sampled 1x1x1 RG8 fallback (cpp:268-289).
    * Adapted: AL options express the native Create overload.
    */
+  @blue.method
   @meta.adapted
   CreateEmptyLightMap(context = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -481,6 +491,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   }
 
   /** Maintains light-owner membership on native list events (cpp:124-146). */
+  @blue.method
   @meta.implemented
   OnListModified(event, _key, _key2, _value, list)
   {
@@ -496,6 +507,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   }
 
   /** Clears the shared shadow binding (EveChildCloud2.cpp:427-433). */
+  @blue.method
   @meta.implemented
   ClearVariableStore()
   {
@@ -503,6 +515,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   }
 
   /** Adds Carbon's two debug choices (EveChildCloud2.cpp:692-696). */
+  @blue.method
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -515,6 +528,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * The supplied ITr2DebugRenderer2 must implement its geometry methods;
    * the runtime's option-only Tr2DebugRenderer does not yet draw geometry.
    */
+  @blue.method
   @meta.implemented
   RenderDebugInfo(renderer)
   {
@@ -531,6 +545,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   }
 
   /** Native EveChildCloud2.cpp:182-204: refresh affected registrations and effects. */
+  @blue.method
   @meta.implemented
   OnModified(names)
   {
@@ -559,6 +574,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * reflectionEffect. Note: no whole-block display gate in Carbon. No
    * UnRegisterComponents override (base no-op; EveEntity::UnRegister already
    * removes the components, EveEntity.cpp:90). */
+  @blue.method
   @meta.implemented
   RegisterComponents()
   {
@@ -585,6 +601,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * renderedLastFrame is cleared every pass (cpp:684) - the flag is only
    * re-stamped by the volumetric batch path (GetVolumetricBatches cpp:283),
    * deliberately NOT by the reflection path. */
+  @blue.method
   @meta.adapted
   UpdateSyncronous(updateContext, _params)
   {
@@ -654,6 +671,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * corrected world movement rotated into local space (cpp:697-704 - QUIRK
    * kept verbatim: the .z offset scrolls by mapTiling.y, cpp:703); adjusted
    * min screen size (cpp:706); hasUpdated stamp (cpp:707). */
+  @blue.method
   @meta.implemented
   UpdateAsyncronous(updateContext, params = {})
   {
@@ -709,6 +727,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   /** Carbon EveChildCloud2::GetBoundingSphere (cpp:226-230): the packed
    * (center, radius) cloud sphere, unconditionally true. IEveSpaceObjectChild
    * override - parent bounds unions consume it optional-chained. */
+  @blue.method
   @meta.implemented
   GetBoundingSphere(out = new Float32Array(4), _query = 0)
   {
@@ -724,6 +743,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * @param {mat4} out - receives the transform
    * @returns {mat4} out
    */
+  @blue.method
   @meta.implemented
   GetLocalToWorldTransform(out)
   {
@@ -736,6 +756,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * the LIVE lodFactor (not the adjusted stamp). Carbon's override of the
    * defaulted ITr2Renderable::IsVisible (h:47-50 returns true) - without it
    * the reflection gather would treat the cloud as always visible. */
+  @blue.method
   @meta.implemented
   IsVisible(updateContext)
   {
@@ -756,6 +777,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
 
   /** Carbon EveChildCloud2::HasValidTransform (cpp:309-317): determinant is
    * nonzero and finite. */
+  @blue.method
   @meta.implemented
   HasValidTransform()
   {
@@ -764,6 +786,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   }
 
   /** Carbon EveChildCloud2::IsLightmapDirty (cpp:748-751). */
+  @blue.method
   @meta.implemented
   IsLightmapDirty()
   {
@@ -773,6 +796,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   /** Carbon EveChildCloud2::MarkLightmapDirty (cpp:753-757): also zeroes the
    * dirty offset (contrast SetSceneInformation's scale-change path, which
    * sets the flag WITHOUT resetting the offset - cpp:398-402). */
+  @blue.method
   @meta.implemented
   MarkLightmapDirty(dirty)
   {
@@ -787,6 +811,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * transform through the supplied light manager. Inside Tr2Light::AddLight
    * Carbon composes boneTransform * transform (Tr2Light.cpp:132) - that swap
    * belongs to the Tr2Light port, not here. */
+  @blue.method
   @meta.implemented
   GetLights(lightManager)
   {
@@ -808,6 +833,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
 
   /** Carbon's ITr2Renderable GetSortValue() (cpp:896): float32 max (finite,
    * NOT Infinity), so the transparent reflection pass sorts the cloud to draw first. */
+  @blue.method
   @meta.implemented
   GetSortValue()
   {
@@ -818,6 +844,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * distance minus |authored local scaling| * sortingModifier, consumed by the
    * volumetric renderer's DESCENDING stable sort (farthest first,
    * Tr2VolumetricsRenderer.cpp:276-287). */
+  @blue.method
   @meta.implemented
   GetSortValue__Frustum(frustum)
   {
@@ -837,6 +864,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * screenSize per-object data and Carbon's 36-index draw (cpp:276-281).
    * Stamps renderedLastFrame (cpp:283) - the texture-animation keep-alive.
    * Returns whether a batch was committed (JS addition; Carbon returns void). */
+  @blue.method
   @meta.adapted
   GetVolumetricBatches(frustum, batches)
   {
@@ -886,6 +914,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * the slice count uses the scaled ones (cpp:359-361). Success advances
    * lightmapDirtyOffset by slices; reaching scaledWidth completes the map
    * (dirty false, offset 0); failure resets the offset and returns false. */
+  @blue.method
   @meta.adapted
   UpdateVolumetricLightmap(renderContext)
   {
@@ -956,6 +985,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * cos(5/180) - QUIRK verbatim: Carbon omits the degree conversion, so the
    * threshold is ~1.59 degrees, not 5 (cpp:408); stamps target dims; flips
    * the two cloud-shadow effect options (cpp:417-423). */
+  @blue.method
   @meta.implemented
   SetSceneInformation(sceneInformation)
   {
@@ -1018,6 +1048,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * Adapted: The 'Shadow' technique gate applies only when a shader-state interface is present, and the batch is
    * dropped otherwise; NULL_DECLARATION maps to declaration 0.
    */
+  @blue.method
   @meta.adapted
   GetVolumetricShadowBatches(batches)
   {
@@ -1050,6 +1081,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * delegation to SetupShadowFrustum. The scene calls this to build the
    * shadow-camera package before rendering casters into the cloud shadow map
    * (EveSpaceScene.cpp:2355-2371). */
+  @blue.method
   @meta.implemented
   GetVolumetricShadowInfo(shadowInfo, sunDir)
   {
@@ -1068,6 +1100,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * formula both preserved; DeriveFrustum(lightView, aabb.min, aabb.max)
    * (cpp:900-901); outputs aabbMax / lightViewProj copy / shadowFrustum /
    * shadowMapSize (cpp:903-906). */
+  @blue.method
   @meta.implemented
   SetupShadowFrustum(shadowInfo, sunDir)
   {
@@ -1144,6 +1177,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * (registered in the Carbon ctor, cpp:115). QUIRK: Carbon dereferences
    * m_shadowMapDS with no null guard - safe only via the
    * PrepareCloudShadowMap-first call order (see above). */
+  @blue.method
   @meta.adapted
   SetCloudShadowMapHandle()
   {
@@ -1161,6 +1195,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * (cpp:878). QUIRK: unlike GetVolumetricBatches this does NOT stamp
    * renderedLastFrame - reflection-only rendering does not keep texture
    * animations alive. Returns whether a batch was committed (JS addition). */
+  @blue.method
   @meta.adapted
   GetBatches(batches, batchType, _perObjectData, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
@@ -1191,6 +1226,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   /** Carbon EveChildCloud2::HasTransparentBatches (cpp:909-912):
    * unconditionally true - the reflection gather always routes the cloud
    * through the transparent leg that feeds GetBatches' type/reason filter. */
+  @blue.method
   @meta.implemented
   HasTransparentBatches()
   {
@@ -1199,6 +1235,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
 
   /** Carbon's ITr2Renderable GetPerObjectData( accumulator ): the cloud struct
    * filled with screen size 1 (cpp:901). */
+  @blue.method
   @meta.implemented
   GetPerObjectData(accumulator)
   {
@@ -1207,6 +1244,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
 
   /** Carbon's GetPerObjectData( accumulator, screenSize ): allocates and fills the
    * concrete cloud struct (cpp:516). */
+  @blue.method
   @meta.implemented
   GetPerObjectData__ScreenSize(accumulator, screenSize)
   {
@@ -1222,6 +1260,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * renderer camera state. Math.random replaces rand; zero noise size retains
    * the previously documented zero guard rather than native modulo-zero UB.
    */
+  @blue.method
   @meta.adapted
   PopulatePerObjectData(data, screenSize = 1, context = Tr2RenderContext_GetMainThreadRenderContext())
   {

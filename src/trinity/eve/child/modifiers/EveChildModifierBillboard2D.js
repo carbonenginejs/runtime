@@ -10,6 +10,7 @@ import { EveChildModifierTransformCommon } from "./EveChildModifierTransformComm
  * the viewer whatever the camera does.
  */
 @blue.define("EveChildModifierBillboard2D")
+@blue.interface(IEveChildTransformModifier)
 export class EveChildModifierBillboard2D extends IEveChildTransformModifier
 {
   /**

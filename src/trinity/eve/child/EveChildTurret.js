@@ -140,7 +140,6 @@ export class EveChildTurret extends EveChildMesh
   currentCyclingFiresPos = 0;
 
   /** The module for the firing effect of this turret. */
-  @blue.readwrite
   @blue.hidden
   @type.rootRef("EveTurretFiringFX")
   firingEffect = null;
@@ -193,6 +192,9 @@ export class EveChildTurret extends EveChildMesh
 
   // Carbon m_target: created in the constructor with fade-on-locator-change
   // enabled (EveChildTurret.cpp:26-27); Blue exposes it READ-only.
+  @meta.member("target")
+  @blue.read
+  @type.rootRef("EveTurretTarget")
   _target = new EveTurretTarget();
 
   _aiming = new EveTurretAiming();
@@ -231,7 +233,6 @@ export class EveChildTurret extends EveChildMesh
   }
 
   /** The turret's target tracker (Carbon exposes it as the READ attribute "target"). */
-  @blue.method
   @meta.implemented
   GetTarget()
   {
@@ -963,7 +964,6 @@ export class EveChildTurret extends EveChildMesh
    * CleanUp when discarding the turret. Pending JS resource completions and
    * their deferred calls are cancelled so disposal cannot resurrect the effect.
    */
-  @blue.method
   @meta.adapted
   CleanUp(context = { currentTime: 0, deltaTime: 0 })
   {
@@ -1076,6 +1076,7 @@ export class EveChildTurret extends EveChildMesh
    * not a second digit.
    * @returns {string} The fire animation name.
    */
+  @blue.method
   @meta.implemented
   _GetFireAnimationName()
   {

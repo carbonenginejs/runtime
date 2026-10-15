@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodThresholds.h
-import { IsMatch } from "#blue";
+import { IsMatch, INotify, IListNotify } from "#blue";
 import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { CjsSchema, meta, type, blue } from "#schema";
@@ -12,9 +12,8 @@ const BELIST_LOADING = 0x10;
 
 /** EveProceduralMethodThresholds (eve/child/procedural/selection) - generated from schema shapeHash 794abb42.... */
 @blue.define("EveProceduralMethodThresholds")
-@blue.inherit(IInitialize)
-@blue.interface(IInitialize)
-@blue.chainTo(IEveProceduralSelectionMethod)
+@blue.inherit(INotify, IListNotify, IInitialize)
+@blue.interface(IEveProceduralSelectionMethod, INotify, IListNotify, IInitialize)
 export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
 {
 

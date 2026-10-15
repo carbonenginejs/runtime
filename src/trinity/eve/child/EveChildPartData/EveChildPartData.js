@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPartData.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPartData.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPartData_Blue.cpp
-import { type, blue } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IEveSpaceObjectChild } from "../IEveSpaceObjectChild.js";
 
 import { EveSpaceObjectChild } from "../EveSpaceObjectChild.js";
@@ -21,19 +21,20 @@ import { EveChildPartDataPartData } from "./EveChildPartDataPartData.js";
 @blue.chainTo(EveSpaceObjectChild)
 export class EveChildPartData extends EveSpaceObjectChild
 {
-  @blue.persist
+  @meta.persist
   @type.string
   faction = "";
 
-  @blue.persist
+  @meta.persist
   @type.string
   race = "";
 
-  @blue.persist
+  @meta.persist
   @type.list("EveChildPartData.PartData")
   parts = [];
 
   /** Returns the first monotonically available positive Carbon part tag. */
+  @blue.method
   GetUnusedPartID()
   {
     let nextId = 1;

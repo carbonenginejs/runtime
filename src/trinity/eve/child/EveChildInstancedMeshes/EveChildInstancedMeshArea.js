@@ -11,39 +11,39 @@ import { meta, type, blue } from "#schema";
  * range within the mesh, its cached effect hash and the mesh-group handle it is
  * registered under.
  */
-@blue.define("EveChildInstancedMeshArea")
+@blue.define({ className: "EveChildInstancedMeshArea", donors: [ "EveChildInstancedMeshes::MeshArea" ] })
 export class EveChildInstancedMeshArea
 {
 
-  @blue.persist
+  @meta.persist
   @type.rootRef("Tr2Effect")
   effect = null;
 
-  @blue.persist
+  @meta.persist
   @type.uint32
   batchType = 0;
 
-  @blue.persist
+  @meta.persist
   @type.uint32
   areaIndex = 0;
 
-  @blue.persist
+  @meta.persist
   @type.uint32
   areaCount = 1;
 
   /** Carbon MeshArea::alphaCutout (h:78) - one-sided cutout areas are ignored
    * for backface classification when raycasting occluders. */
-  @blue.persist
+  @meta.persist
   @type.boolean
   alphaCutout = false;
 
   /** Carbon MeshArea::reversed (h:79) - winding-reversed areas flip the
    * backface test during occluder raycasts. */
-  @blue.persist
+  @meta.persist
   @type.boolean
   reversed = false;
 
-  @blue.read
+  @meta.read
   @type.uint64
   effectHash = 0;
 

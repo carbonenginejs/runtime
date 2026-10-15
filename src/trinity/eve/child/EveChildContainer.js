@@ -5,6 +5,8 @@ import { INotify } from "../../../global/blue/INotify.js";
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
+import { ITr2LightOwner } from "../lights/ITr2LightOwner.js";
+import { IShaderConfigurer } from "../../shader/IShaderConfigurer.js";
 import { EveEntity } from "../EveEntity.js";
 import { IInitialize } from "#blue/IInitialize";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -55,7 +57,7 @@ const ZERO_VEC3 = vec3.create();
 @blue.define("EveChildContainer")
 @blue.inherit(ITr2Renderable, ITr2CurveSetOwner, IInitialize, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner)
 @blue.inherit(IInitialize, IListNotify, INotify)
-@blue.interface(EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, IListNotify, INotify, IEveEffectChildrenOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner, ITr2Renderable)
+@blue.interface(EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, IListNotify, INotify, IEveEffectChildrenOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner, ITr2Renderable, ITr2LightOwner, IShaderConfigurer)
 @blue.inherit(IEveEffectChildrenOwner)
 export class EveChildContainer extends EveChildTransform
 {
@@ -193,7 +195,6 @@ export class EveChildContainer extends EveChildTransform
    */
   @meta.adapted
   @blue.read
-  @blue.persist
   @type.rootRef("ITr2GrannyAnimationOwner")
   animationOwner = null;
 
@@ -207,12 +208,11 @@ export class EveChildContainer extends EveChildTransform
    */
   @meta.adapted
   @blue.read
-  @blue.persist
   @type.int32
   @type.enum("trinity.EveSpaceObjectChild.Origin")
   origin = 0;
 
-  @blue.persist
+  @meta.persist
   @type.boolean
   isPlacementRoot = false;
 

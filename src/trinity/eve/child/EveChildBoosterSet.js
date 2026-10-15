@@ -2,6 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBoosterSet.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBoosterSet_Blue.cpp
 import { ITr2ControllerOwner } from "../../controllers/ITr2ControllerOwner.js";
+import { ITr2LightOwner } from "../lights/ITr2LightOwner.js";
 import { EveEntity } from "../EveEntity.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { INotify } from "../../../global/blue/INotify.js";
@@ -63,7 +64,7 @@ const SPHERE_SCRATCH = vec4.create();
 @blue.define("EveChildBoosterSet")
 @blue.inherit(ITr2Renderable)
 @blue.inherit(INotify, IInitialize, ITr2ControllerOwner)
-@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, INotify, IInitialize, EveEntity, ITr2Renderable, ITr2ControllerOwner)
+@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, INotify, IInitialize, ITr2LightOwner, EveEntity, ITr2Renderable, ITr2ControllerOwner)
 export class EveChildBoosterSet extends EveSpaceObjectChild
 {
 
@@ -209,7 +210,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * values carry the boosters, and Initialize derives the flares, bounds and
    * max size from it.
    */
-  @blue.persistOnly
+  @meta.persistOnly
   @type.list("EveChildBoosterSetSingleBoosterData")
   _singleBoosters = [];
 
@@ -376,6 +377,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Collects this booster's glow and halo settings for flare creation. */
+  @blue.method
   _GetFlareParams()
   {
     return {

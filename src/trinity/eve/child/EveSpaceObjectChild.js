@@ -41,7 +41,7 @@ export function EveCollectAreas(type, mesh, areaPool)
  * producers in EveChildMesh, EveChildInstancedMeshes and EveCollectAreas emit
  * plain records; no nominal class declarations exist for those three structs.
  */
-@blue.define("EveSpaceObjectChild")
+@blue.define({ className: "EveSpaceObjectChild", abstract: true })
 @blue.interface()
 export class EveSpaceObjectChild extends IEveSpaceObjectChild
 {
@@ -59,121 +59,144 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
   _parent = null;
 
   /** Returns the authored child name. */
+  @blue.method
   GetName()
   {
     return this.name;
   }
 
   /** Sets the authored child name. */
+  @blue.method
   SetName(name)
   {
     this.name = String(name ?? "");
   }
 
   /** Provides the Carbon default no-op visibility update. */
+  @blue.method
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
   }
 
   /** Provides the Carbon default no-op renderable collection. */
+  @blue.method
   GetRenderables(_renderables)
   {
   }
 
   /** Reports that the base child has no bounding sphere. */
+  @blue.method
   GetBoundingSphere(_sphere, _query)
   {
     return false;
   }
 
   /** Provides the Carbon default no-op quad-effect registration. */
+  @blue.method
   RegisterWithQuadRenderer(_quadRenderer)
   {
   }
 
   /** Provides the Carbon default no-op quad submission. */
+  @blue.method
   AddQuadsToQuadRenderer(_frustum, _quadRenderer)
   {
   }
 
   /** Provides the Carbon default no-op synchronous update. */
+  @blue.method
   UpdateSyncronous(_updateContext, _params)
   {
   }
 
   /** Provides the Carbon default no-op asynchronous update. */
+  @blue.method
   UpdateAsyncronous(_updateContext, _params)
   {
   }
 
   /** Provides the Carbon default no-op local-to-world query. */
+  @blue.method
   GetLocalToWorldTransform(_transform)
   {
   }
 
   /** Reports that the base child is not forced visible. */
+  @blue.method
   IsAlwaysOn()
   {
     return false;
   }
 
   /** Provides the Carbon default no-op child setup. */
+  @blue.method
   Setup(_scale, _rotation, _translation, _lowestLodVisible)
   {
   }
 
   /** Provides the Carbon default no-op LOD change. */
+  @blue.method
   ChangeLOD(_lod)
   {
   }
 
   /** Provides the Carbon default no-op controller-variable update. */
+  @blue.method
   SetControllerVariable(_name, _value)
   {
   }
 
   /** Provides the Carbon default no-op controller-event handler. */
+  @blue.method
   HandleControllerEvent(_name)
   {
   }
 
   /** Provides the Carbon default no-op controller start. */
+  @blue.method
   StartControllers()
   {
   }
 
   /** Provides the Carbon default no-op procedural-variable update. */
+  @blue.method
   SetProceduralContainerVariable(_name, _value)
   {
   }
 
   /** Provides the Carbon default no-op shader-option update. */
+  @blue.method
   SetShaderOption(_name, _value)
   {
   }
 
   /** Provides the Carbon default no-op origin update. */
+  @blue.method
   SetOrigin(_origin)
   {
   }
 
   /** Provides the Carbon default no-op transform-modifier attachment. */
+  @blue.method
   AddTransformModifier(_modifier)
   {
   }
 
   /** Provides the Carbon default no-op mute update. */
+  @blue.method
   SetMute(_isMuted)
   {
   }
 
   /** Returns the child part tag. */
+  @blue.method
   GetPartTag()
   {
     return this.partTag;
   }
 
   /** Sets the child part tag as an unsigned 32-bit value. */
+  @blue.method
   SetPartTag(tag)
   {
     this.partTag = Number(tag) >>> 0;
@@ -188,6 +211,7 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
   }
 
   /** Sets the owning space object. */
+  @blue.method
   SetOwner(owner)
   {
     this._owner = owner ?? null;
@@ -202,12 +226,14 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
   }
 
   /** Sets the parent child node. */
+  @blue.method
   SetParent(parent)
   {
     this._parent = parent ?? null;
   }
 
   /** Provides the Carbon default no-op locator-set collection. */
+  @blue.method
   CollectOwnedLocatorSets(_parentTransform, _out)
   {
   }
@@ -218,6 +244,7 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
    * {geometry, childToObject, areaStart, areaCount} and their areas in the
    * shared `areaPool`.
    */
+  @blue.method
   CollectOwnedGeometry(_type, _parentTransform, _out, _areaPool)
   {
   }
@@ -263,6 +290,7 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
   }
 
   /** Attaches one child and propagates owner and nonzero part-tag state. */
+  @blue.method
   RegisterChild(child)
   {
     if (child === null || child === undefined)
@@ -280,6 +308,7 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
   }
 
   /** Detaches one child while retaining its part tag. */
+  @blue.method
   UnregisterChild(child)
   {
     if (child === null || child === undefined)
@@ -298,6 +327,7 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
   }
 
   /** Attaches every child in an iterable. */
+  @blue.method
   RegisterChildren(children)
   {
     for (const child of children)
@@ -307,6 +337,7 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
   }
 
   /** Detaches every child in an iterable. */
+  @blue.method
   UnregisterChildren(children)
   {
     for (const child of children)

@@ -7,6 +7,7 @@ import { IInitialize } from "../../../../global/blue/IInitialize.js";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroup.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { CjsSchema, meta, type, blue } from "#schema";
+import { ITr2LightOwner } from "../../lights/ITr2LightOwner.js";
 import { EveEntity } from "../../EveEntity.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -46,8 +47,8 @@ function ClampLength(value, maxLength)
 
 /** Owns a group of drone agents, running its priority-ordered behaviours each frame to integrate their acceleration, velocity, orientation and position, and managing their count, visibility, lighting and rendering. */
 @blue.define("BehaviorGroup")
-@blue.inherit(IInitialize, INotify, IListNotify)
-@blue.interface(IInitialize, INotify, IListNotify, EveEntity)
+@blue.inherit(IInitialize, INotify, IListNotify, ITr2LightOwner)
+@blue.interface(IInitialize, INotify, IListNotify, EveEntity, ITr2LightOwner)
 export class BehaviorGroup extends EveEntity
 {
 
@@ -1096,6 +1097,7 @@ export class BehaviorGroup extends EveEntity
   /**
    * The reciprocal of the mesh-to-sprite blend screen-size range, used to interpolate an agent's crossfade.
    */
+  @blue.method
   _GetBlendModifier()
   {
     return 1 / Math.max(0.0001, this.blendScreenSizeMax - this.blendScreenSizeMin);
@@ -1169,6 +1171,7 @@ export class BehaviorGroup extends EveEntity
   /**
    * Creates and appends one agent, initialises its scratch records, and increments the live agent count.
    */
+  @blue.method
   _AddAgentPrivate()
   {
     const agent = this._createAgent();
@@ -1182,6 +1185,7 @@ export class BehaviorGroup extends EveEntity
   /**
    * Appends agents until the group reaches the requested count, initialising scratch records for each.
    */
+  @blue.method
   _AddAgentsByCount(count)
   {
     const sizeBeforeResize = this._agents.length;
@@ -1201,6 +1205,7 @@ export class BehaviorGroup extends EveEntity
   /**
    * Truncates the agent list and every behaviour's scratch array down to the requested count.
    */
+  @blue.method
   _RemoveAgentsByCount(count)
   {
     this._agents.length = count;
@@ -1246,6 +1251,7 @@ export class BehaviorGroup extends EveEntity
   /**
    * Flags the agent tree for rebuild, notifies the owner's buffer-resize callback, and resyncs the booster flare count.
    */
+  @blue.method
   _OnAgentCountChanged()
   {
     this._createAgentTree = true;

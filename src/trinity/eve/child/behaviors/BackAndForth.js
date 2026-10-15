@@ -30,6 +30,7 @@ export class BackAndForth
   @blue.readwrite
   @blue.persist
   @type.int32
+  @type.enum("trinity.IBehavior.ProcessPriority")
   behaviorPriority = 0;
 
   /** m_enabled (bool) [READWRITE, PERSIST, NOTIFY, ENUM] */
@@ -37,6 +38,7 @@ export class BackAndForth
   @blue.readwrite
   @blue.persist
   @type.boolean
+  @type.enum("trinity.IBehavior.ProcessPriority")
   enabled = true;
 
   /** m_locatorType (LocatorType - enum LocatorType) [READWRITE, PERSIST, ENUM, NOTIFY] */
@@ -347,6 +349,7 @@ export class BackAndForth
   /**
    * The locators of the first locator set matching a name, or null when none matches.
    */
+  @blue.method
   _GetLocatorsForSet(setName)
   {
     for (const set of this.locatorSet)

@@ -13,6 +13,7 @@ const UP = vec3.fromValues(0, 1, 0);
  * in the horizontal plane, leaving its authored pitch and roll intact.
  */
 @blue.define("EveChildModifierCameraOrientedRotationConstrained")
+@blue.interface(IEveChildTransformModifier)
 export class EveChildModifierCameraOrientedRotationConstrained extends IEveChildTransformModifier
 {
   static scratch = {

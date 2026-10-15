@@ -22,6 +22,7 @@ export class Allign
   @blue.readwrite
   @blue.persist
   @type.int32
+  @type.enum("trinity.IBehavior.ProcessPriority")
   behaviorPriority = 0;
 
   /** m_behaviorWeight (float) [READWRITE, PERSIST] */

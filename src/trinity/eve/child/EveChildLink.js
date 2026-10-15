@@ -14,6 +14,8 @@ import { vec4 } from "#math/vec4";
  * along the arc, keeps its own final world placement, and inherits the hull per-object values.
  */
 @blue.define("EveChildLink")
+@blue.interface(EveChildMesh)
+@blue.chainTo(EveChildMesh)
 export class EveChildLink extends EveChildMesh
 {
 
@@ -235,6 +237,7 @@ export class EveChildLink extends EveChildMesh
   }
 
   /** Links never cast shadows (EveChildLink.cpp:180-183). */
+  @blue.method
   @meta.implemented
   IsCastingShadow__ShadowFrustum(_cameraFrustum, _shadowFrustum, _renderReason, _sizeInShadow)
   {

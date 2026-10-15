@@ -43,6 +43,7 @@ export class FollowASpline
   @blue.readwrite
   @blue.persist
   @type.int32
+  @type.enum("trinity.IBehavior.ProcessPriority")
   behaviorPriority = 0;
 
   /** m_tunnelGroupType (TunnelGroupType - enum TunnelGroupType) [READWRITE, PERSIST, ENUM] */
@@ -335,6 +336,7 @@ export class FollowASpline
   /**
    * Prepends the system-wide tunnels to the private tunnel list and reassigns every tunnel a sequential identifier.
    */
+  @blue.method
   _ReassignTunnelIDsAndAddSystemTunnels(system)
   {
     const tunnels = system.GetTunnels();
@@ -372,6 +374,7 @@ export class FollowASpline
   /**
    * Tests an unassigned agent against each tunnel's entrance sphere, locking it to a tunnel once inside the point-of-no-return radius and otherwise building a pull force as it nears.
    */
+  @blue.method
   _ProcessTunnelEntrances(agent, tunnels, data)
   {
     // not associated with a tunnel
@@ -418,6 +421,7 @@ export class FollowASpline
   /**
    * Steers a locked agent toward its current spline point, blending toward the next for smooth cornering, and advances or releases the lock as it arrives or drifts away.
    */
+  @blue.method
   _ProcessAssignedTunnel(agent, tunnels, group, data)
   {
     if (data.tunnelLock > tunnels.length)
@@ -532,6 +536,7 @@ export class FollowASpline
   /**
    * Locks every agent to the same tunnel and tunnel point while the group's formation behaviour is active, so the group advances as a unit.
    */
+  @blue.method
   _CheckForAndUpdateFormation(agents, group, scratchData, tunnel, tunnelPoint)
   {
     // Carbon dynamic_cast<Formation*>( group.GetBehaviorByName( "Formation" ) ) (FollowASpline.cpp:297-304).

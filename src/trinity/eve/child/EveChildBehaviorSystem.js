@@ -743,6 +743,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * Advances every behaviour group's agents by one step (Carbon cpp:287-293).
    * @param {Number} dt - elapsed seconds
    */
+  @blue.method
   _UpdateAgents(dt)
   {
     for (const group of this.behaviorGroups)

@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildRef.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildRef.cpp
+import { IShaderConfigurer } from "../../shader/IShaderConfigurer.js";
 import { EveEntity } from "../EveEntity.js";
 import { ITr2SoundEmitterOwner } from "../ITr2SoundEmitterOwner.js";
 import { INotify } from "../../../global/blue/INotify.js";
@@ -28,7 +29,7 @@ import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
  */
 @blue.define("EveChildRef")
 @blue.inherit(ITr2CurveSetOwner, IInitialize, INotify)
-@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, IEveEffectChildrenOwner, ITr2SoundEmitterOwner, EveEntity)
+@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, IEveEffectChildrenOwner, IShaderConfigurer, ITr2SoundEmitterOwner, EveEntity)
 @blue.inherit(IEveEffectChildrenOwner)
 export class EveChildRef extends EveChildTransform
 {

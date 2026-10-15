@@ -11,6 +11,8 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
+import { ITr2LightOwner } from "../lights/ITr2LightOwner.js";
+import { ITr2Pickable } from "../../core/ITr2Pickable.js";
 import { IEveShadowCaster } from "../IEveShadowCaster.js";
 import { getBoneList } from "../../core/animation/Tr2GrannyAnimation.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
@@ -66,7 +68,7 @@ const NO_BONE_TRANSFORMS = { bones: null, boneCount: 0 };
 @blue.inherit(ITr2Renderable, IEveShadowCaster)
 @blue.inherit(IListNotify)
 @blue.inherit(IInitialize, INotify, IListNotify)
-@blue.interface(EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IInitialize, INotify, IEveShadowCaster)
+@blue.interface(EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IInitialize, INotify, IEveShadowCaster, ITr2LightOwner, ITr2Pickable)
 export class EveChildMesh extends EveChildTransform
 {
   _isMorphsBaked = false;
@@ -126,11 +128,11 @@ export class EveChildMesh extends EveChildTransform
 
   // Carbon sets these two programmatically from SOF (EveSOF.cpp:3971-3972);
   // CarbonEngineJS delivers built objects as documents, so both persist.
-  @blue.persist
+  @meta.persist
   @type.list("EveLocatorSets")
   ownedLocatorSets = [];
 
-  @blue.persist
+  @meta.persist
   @type.rootRef("Tr2Effect")
   armorDamageShader = null;
 
@@ -317,28 +319,27 @@ export class EveChildMesh extends EveChildTransform
    */
   @meta.adapted
   @blue.read
-  @blue.persist
   @type.int32
   @type.enum("trinity.EveSpaceObjectChild.Origin")
   origin = 0;
 
-  @blue.persist
+  @meta.persist
   @type.array("mat4")
   instanceTransforms = [];
 
-  @blue.persist
+  @meta.persist
   @type.string
   sofDna = "";
 
-  @blue.persist
+  @meta.persist
   @type.string
   sofParentHullName = "";
 
-  @blue.persist
+  @meta.persist
   @type.string
   sofLocatorSetName = "";
 
-  @blue.persist
+  @meta.persist
   @type.string
   sofLocatorIndex = "";
 
@@ -472,7 +473,6 @@ export class EveChildMesh extends EveChildTransform
    * Returns the live instance transform list, not a copy - mutating it changes
    * what the child renders.
    */
-  @blue.method
   @meta.adapted
   GetInstanceTransforms()
   {

@@ -3,7 +3,7 @@
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { type, blue } from "#schema";
+import { meta, type, blue } from "#schema";
 
 
 /**
@@ -12,27 +12,27 @@ import { type, blue } from "#schema";
  * Carbon declares this as EveChildPartData::PartData. The JavaScript class is
  * exported under a legal identifier while retaining that nested schema name.
  */
-@blue.define("EveChildPartData.PartData")
+@blue.define({ className: "EveChildPartData.PartData", donors: [ "EveChildPartData::PartData" ] })
 export class EveChildPartDataPartData
 {
-  @blue.persist
+  @meta.persist
   @type.uint32
   partId = 0;
 
-  @blue.persist
+  @meta.persist
   @type.vec3
   position = vec3.create();
 
-  @blue.persist
+  @meta.persist
   @type.quat
   rotation = quat.create();
 
-  @blue.persist
+  @meta.persist
   @type.vec3
   scale = vec3.fromValues(1, 1, 1);
 
   /** Packed CcpMath::Sphere: xyz center and w radius. */
-  @blue.persist
+  @meta.persist
   @type.vec4
   boundingSphere = vec4.create();
 }

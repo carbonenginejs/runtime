@@ -10,6 +10,7 @@ import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
  * translation to the view position or offsetting it by the view position.
  */
 @blue.define("EveChildModifierTranslateWithCamera")
+@blue.interface(IEveChildTransformModifier)
 export class EveChildModifierTranslateWithCamera extends IEveChildTransformModifier
 {
   @blue.readwrite

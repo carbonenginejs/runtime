@@ -71,15 +71,15 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   @type.string
   name = "";
 
-  @blue.read
+  @meta.read
   @type.mat4
   worldTransform = mat4.create();
 
-  @blue.read
+  @meta.read
   @type.boolean
   hasUpdated = false;
 
-  @blue.persist
+  @meta.persist
   @type.list("EveChildInstancedMesh")
   meshes = [];
 
@@ -989,7 +989,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * until another update pass runs; registration handles are NOT released here,
    * so call UnregisterFromMeshManager first when a manager still holds them.
    */
-  @blue.method
   @meta.adapted
   Clear()
   {
@@ -1181,7 +1180,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * Assigns one mesh's geometry resource, bumping the revision only when it
    * actually changes; registration waits for the next AddMeshesToManager pass.
    */
-  @blue.method
   @meta.adapted
   SetGeometryResource(meshId, geometry)
   {
@@ -1198,7 +1196,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * shallow-copied, geometry resource shared by reference - so callers can read
    * it without touching live registration state.
    */
-  @blue.method
   @meta.adapted
   GetMeshData(meshId)
   {
@@ -1211,7 +1208,6 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * SetMeshDisplay, SetGeometryResource, SetShaderOption), for consumers caching
    * derived data.
    */
-  @blue.method
   @meta.implemented
   GetRevision()
   {

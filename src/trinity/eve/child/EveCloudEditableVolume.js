@@ -304,6 +304,7 @@ export class EveCloudEditableVolume
   }
 
   /** Native worker entry (cpp:232-237); iterator suspension replaces its OS thread. */
+  @blue.method
   @meta.adapted
   static *threadProc(params)
   {
@@ -312,6 +313,7 @@ export class EveCloudEditableVolume
   }
 
   /** Native animated worker entry (cpp:239-243); iterator suspension replaces its OS thread. */
+  @blue.method
   @meta.adapted
   static *threadProcAnimated(params)
   {
@@ -320,6 +322,7 @@ export class EveCloudEditableVolume
   }
 
   /** Native cpp:244-267; yields between rows and conversion blocks for portable scheduling. */
+  @blue.method
   @meta.adapted
   static *rasterizeBalls(params)
   {
@@ -338,6 +341,7 @@ export class EveCloudEditableVolume
   }
 
   /** Native cpp:270-294 packs four opacity frames into R,G,B,A; yields replace worker execution. */
+  @blue.method
   @meta.adapted
   static *rasterizeBallsAnimated(params)
   {
@@ -366,6 +370,7 @@ export class EveCloudEditableVolume
    * helpers and arithmetic use JavaScript intermediates while accumulated
    * channels round to float32; native floating-point byte identity is not claimed.
    */
+  @blue.method
   @meta.adapted
   static *rasterizeBall(ball, params, pixels)
   {

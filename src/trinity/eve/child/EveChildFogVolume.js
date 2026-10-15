@@ -1,3 +1,4 @@
+import { ITr2DebugRenderable } from "#interfaces";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildFogVolume.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildFogVolume.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildFogVolume_Blue.cpp
@@ -58,6 +59,7 @@ function createFroxelFogSettings()
 @blue.define("EveChildFogVolume")
 @blue.inherit(IInitialize)
 @blue.interface(ITr2FroxelFogSettings, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize)
+@blue.inherit(ITr2DebugRenderable)
 export class EveChildFogVolume extends ITr2FroxelFogSettings
 {
   _fogIntensity = 0;
@@ -93,99 +95,123 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
   @type.float32
   intensity = 1;
 
+  @blue.readwrite
   @blue.persist
   @type.float32
   thickness = 1;
 
+  @blue.readwrite
   @blue.persist
   @type.boolean
   thicknessEnabled = false;
 
+  @blue.readwrite
   @blue.persist
   @type.float32
   lightDirectionality = 0.5;
 
+  @blue.readwrite
   @blue.persist
   @type.boolean
   lightDirectionalityEnabled = false;
 
+  @blue.readwrite
   @blue.persist
   @type.float32
   environmentIntensity = 1;
 
+  @blue.readwrite
   @blue.persist
   @type.boolean
   environmentIntensityEnabled = false;
 
+  @blue.readwrite
   @blue.persist
   @type.float32
   environmentDirectionality = 0.75;
 
+  @blue.readwrite
   @blue.persist
   @type.boolean
   environmentDirectionalityEnabled = false;
 
+  @blue.readwrite
   @blue.persist
   @type.color
   fogColor = vec4.fromValues(1, 1, 1, 1);
 
+  @blue.readwrite
   @blue.persist
   @type.boolean
   fogColorEnabled = false;
 
+  @blue.readwrite
   @blue.persist
   @type.float32
   backgroundVisibility = 0;
 
+  @blue.readwrite
   @blue.persist
   @type.boolean
   backgroundVisibilityEnabled = false;
 
+  @blue.readwrite
   @blue.persist
   @type.float32
   godRayNoiseIntensity = 0;
 
+  @blue.readwrite
   @blue.persist
   @type.boolean
   godRayNoiseIntensityEnabled = false;
 
+  @blue.readwrite
   @blue.persist
   @type.float32
   godRayNoiseFrequency = 15;
 
+  @blue.readwrite
   @blue.persist
   @type.boolean
   godRayNoiseFrequencyEnabled = false;
 
+  @blue.readwrite
   @blue.persist
   @type.float32
   godRayNoiseAnimationSpeed = 0;
 
+  @blue.readwrite
   @blue.persist
   @type.boolean
   godRayNoiseAnimationSpeedEnabled = false;
 
+  @blue.readwrite
   @blue.persist
   @type.float32
   fogNoiseIntensity = 0;
 
+  @blue.readwrite
   @blue.persist
   @type.boolean
   fogNoiseIntensityEnabled = false;
 
+  @blue.readwrite
   @blue.persist
   @type.float32
   fogNoiseFrequency = 15;
 
+  @blue.readwrite
   @blue.persist
   @type.boolean
   fogNoiseFrequencyEnabled = false;
 
   /** A colour multiplier for the fog's reflections; 1 is the realistic default (EveChildFogVolume.cpp:30). */
+  @blue.readwrite
   @blue.persist
   @type.float32
   reflectionIntensity = 1;
 
+  @blue.readwrite
   @blue.persist
   @type.boolean
   reflectionIntensityEnabled = false;
@@ -195,6 +221,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * spheres, skipping volumes with a missing centre or a non-finite/negative
    * radius; returns whether any volume contributed.
    */
+  @blue.method
   @meta.adapted
   RebuildBoundingSphere()
   {
@@ -221,12 +248,14 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * The authored name, persisted with the volume and used to identify it in the
    * parent graph.
    */
+  @blue.method
   GetName()
   {
     return this.name;
   }
 
   /** Sets the authored volume name, coercing nullish to the empty string. */
+  @blue.method
   SetName(name)
   {
     this.name = String(name ?? "");
@@ -237,6 +266,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * @param {Float32Array} [out] - caller-owned; receives (x, y, z, radius)
    * @returns {Boolean} always true
    */
+  @blue.method
   GetBoundingSphere(out = vec4.create())
   {
     vec4.set(out, this.boundingSphereCenter[0], this.boundingSphereCenter[1], this.boundingSphereCenter[2], this.boundingSphereRadius);
@@ -244,6 +274,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
   }
 
   /** No-op: a fog volume carries no sync-side frame work. */
+  @blue.method
   UpdateSyncronous(_updateContext, _params)
   {
   }
@@ -253,6 +284,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * volume ignores its own local offset chain and adopts the parent's world
    * matrix verbatim - the override that makes fog volumes track parents.
    */
+  @blue.method
   @meta.implemented
   UpdateTransformFromParent(params)
   {
@@ -267,6 +299,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * (short-circuiting at 1) is scaled by the authored intensity - a camera
    * outside leaves the intensity at zero.
    */
+  @blue.method
   @meta.adapted
   UpdateAsyncronous(updateContext, params)
   {
@@ -300,6 +333,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * @param {Float32Array} [out] - caller-owned; allocated when omitted
    * @returns {Float32Array} out
    */
+  @blue.method
   @meta.adapted
   GetLocalToWorldTransform(out = mat4.create())
   {
@@ -310,12 +344,14 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * Applies the authored scale/rotation/translation through the shared child
    * transform setup.
    */
+  @blue.method
   Setup(scale, rotation, translation, lowestLodVisible)
   {
     return super.Setup(scale, rotation, translation, lowestLodVisible);
   }
 
   /** Returns true unconditionally - a fog volume reports itself as always on. */
+  @blue.method
   IsAlwaysOn()
   {
     return true;
@@ -325,6 +361,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * Builds the initial bounding sphere from the authored volumes so the first
    * frame can already reject an outside camera.
    */
+  @blue.method
   Initialize()
   {
     this.RebuildBoundingSphere();
@@ -336,6 +373,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * (cpp:74-77) only removes this same component, which EveEntity::UnRegister
    * already did via UnRegisterAllComponents (EveEntity.cpp:90), so the JS
    * un-side keeps the base no-op. */
+  @blue.method
   @meta.implemented
   RegisterComponents()
   {
@@ -351,6 +389,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * place so per-frame fog blending neither allocates nor loses Carbon's
    * `fogNoiseMovementSpeed` and derived `logThickness` attributes.
    */
+  @blue.method
   @meta.adapted
   GetFroxelFogSettings()
   {
@@ -385,16 +424,19 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
   }
 
   /** No-op: a fog volume is not renderable and keeps no visibility state. */
+  @blue.method
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
   }
 
   /** No-op: a fog volume contributes settings, never renderables. */
+  @blue.method
   GetRenderables(_renderables)
   {
   }
 
   /** No-op: a fog volume has no LOD levels. */
+  @blue.method
   ChangeLOD(_lod)
   {
   }

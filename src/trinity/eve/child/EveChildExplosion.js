@@ -158,6 +158,8 @@ export class EveChildExplosion extends EveChildContainer
   localDuration = 0;
 
   /** Blue read-only alias for m_objects (EveChildExplosion_Blue.cpp:108): the spawned explosions. */
+  @blue.read
+  @type.list("IEveSpaceObjectChild")
   get generatedLocalExplosions()
   {
     return this.objects;

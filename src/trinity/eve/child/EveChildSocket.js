@@ -1,4 +1,5 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildSocket.h
+import { IShaderConfigurer } from "../../shader/IShaderConfigurer.js";
 import { EveEntity } from "../EveEntity.js";
 import { ITr2SoundEmitterOwner } from "../ITr2SoundEmitterOwner.js";
 import { INotify } from "../../../global/blue/INotify.js";
@@ -21,7 +22,7 @@ import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 /** A named attachment point on a ship that resolves and hot-reloads a plugged-in child resource, forwarding controller and registration calls to it. */
 @blue.define("EveChildSocket")
 @blue.inherit(ITr2CurveSetOwner, IInitialize, INotify)
-@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, IEveEffectChildrenOwner, ITr2SoundEmitterOwner, EveEntity)
+@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, IEveEffectChildrenOwner, IShaderConfigurer, ITr2SoundEmitterOwner, EveEntity)
 @blue.inherit(IEveEffectChildrenOwner)
 export class EveChildSocket extends EveChildTransform
 {
@@ -305,6 +306,7 @@ export class EveChildSocket extends EveChildTransform
    * Carbon cpp:344-350 forwards to the plug. Adapted: queued while the plug is
    * still loading, as SetControllerVariable is.
    */
+  @blue.method
   @meta.adapted
   PlayAllCurveSets()
   {
@@ -313,6 +315,7 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Carbon cpp:352-358 forwards to the plug. Adapted: queued while loading. */
+  @blue.method
   @meta.adapted
   StopAllCurveSets()
   {
@@ -321,6 +324,7 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Carbon cpp:360-366 forwards to the plug. Adapted: queued while loading. */
+  @blue.method
   @meta.adapted
   PlayCurveSet(name, rangeName = "")
   {
@@ -329,6 +333,7 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Carbon cpp:368-374 forwards to the plug. Adapted: queued while loading. */
+  @blue.method
   @meta.adapted
   StopCurveSet(name)
   {
@@ -337,6 +342,7 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Carbon cpp:376-382 forwards a sample to the plug; while it loads there is no plug and the sample is dropped. */
+  @blue.method
   @meta.implemented
   UpdateCurveSet(name, time, renderContext = null)
   {
@@ -344,6 +350,7 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Carbon cpp:384-391: the plug's duration, 0 without one. */
+  @blue.method
   @meta.implemented
   GetCurveSetDuration(name)
   {
@@ -351,6 +358,7 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Carbon cpp:393-400: the plug's range duration, 0 without one. */
+  @blue.method
   @meta.implemented
   GetRangeDuration(name, rangeName)
   {

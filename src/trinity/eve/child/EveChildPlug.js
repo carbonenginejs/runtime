@@ -7,6 +7,7 @@ import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
+import { IShaderConfigurer } from "../../shader/IShaderConfigurer.js";
 import { EveEntity } from "../EveEntity.js";
 import { CjsSchema, meta, type, blue } from "#schema";
 import { IsMatch } from "#blue";
@@ -18,7 +19,7 @@ import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 /** A container of child objects plugged into a socket, forwarding controller events, controller variables and component registration to what it contains. */
 @blue.define("EveChildPlug")
 @blue.inherit(ITr2CurveSetOwner, IInitialize, INotify, IListNotify)
-@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, IEveEffectChildrenOwner, ITr2SoundEmitterOwner, EveEntity)
+@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, IEveEffectChildrenOwner, IShaderConfigurer, ITr2SoundEmitterOwner, EveEntity)
 @blue.inherit(IEveEffectChildrenOwner)
 export class EveChildPlug extends EveChildTransform
 {
@@ -235,6 +236,7 @@ export class EveChildPlug extends EveChildTransform
   }
 
   /** Carbon EveChildPlug::PlayAllCurveSets (cpp:272-281): forwards to the curve-set-owning objects. */
+  @blue.method
   @meta.implemented
   PlayAllCurveSets()
   {
@@ -246,6 +248,7 @@ export class EveChildPlug extends EveChildTransform
   }
 
   /** Carbon EveChildPlug::StopAllCurveSets (cpp:283-292). */
+  @blue.method
   @meta.implemented
   StopAllCurveSets()
   {
@@ -257,6 +260,7 @@ export class EveChildPlug extends EveChildTransform
   }
 
   /** Carbon EveChildPlug::PlayCurveSet (cpp:294-303). */
+  @blue.method
   @meta.implemented
   PlayCurveSet(name, rangeName = "")
   {
@@ -268,6 +272,7 @@ export class EveChildPlug extends EveChildTransform
   }
 
   /** Carbon EveChildPlug::StopCurveSet (cpp:305-314). */
+  @blue.method
   @meta.implemented
   StopCurveSet(name)
   {
@@ -279,6 +284,7 @@ export class EveChildPlug extends EveChildTransform
   }
 
   /** Carbon EveChildPlug::UpdateCurveSet (cpp:316-325); renderContext travels as EveChildContainer's does. */
+  @blue.method
   @meta.implemented
   UpdateCurveSet(name, time, renderContext = null)
   {
@@ -290,6 +296,7 @@ export class EveChildPlug extends EveChildTransform
   }
 
   /** Carbon EveChildPlug::GetCurveSetDuration (cpp:327-339): the longest over the curve-set-owning objects. */
+  @blue.method
   @meta.implemented
   GetCurveSetDuration(name)
   {
@@ -303,6 +310,7 @@ export class EveChildPlug extends EveChildTransform
   }
 
   /** Carbon EveChildPlug::GetRangeDuration (cpp:341-353): the longest over the curve-set-owning objects. */
+  @blue.method
   @meta.implemented
   GetRangeDuration(name, rangeName)
   {

@@ -13,6 +13,7 @@ import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
  * it on the midpoint.
  */
 @blue.define("EveChildModifierStretch")
+@blue.interface(IEveChildTransformModifier)
 export class EveChildModifierStretch extends IEveChildTransformModifier
 {
   @blue.readwrite

@@ -1,3 +1,4 @@
+import { ITr2DebugRenderable } from "#interfaces";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPostProcessVolume.h
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
@@ -16,6 +17,7 @@ import { EveComponentType } from "../EntityComponents.js";
 @blue.define("EveChildPostProcessVolume")
 @blue.inherit(IInitialize)
 @blue.interface(EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize)
+@blue.inherit(ITr2DebugRenderable)
 export class EveChildPostProcessVolume extends EveChildTransform
 {
 
@@ -33,12 +35,12 @@ export class EveChildPostProcessVolume extends EveChildTransform
 
   /** m_boundingSphere.center (CcpMath::Sphere) [READ] */
   @blue.read
-  @type.rawStruct("CcpMath::Sphere")
+  @type.vec3
   boundingSphereCenter = null;
 
   /** m_boundingSphere.radius (CcpMath::Sphere) [READ] */
   @blue.read
-  @type.rawStruct("CcpMath::Sphere")
+  @type.float32
   boundingSphereRadius = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
