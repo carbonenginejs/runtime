@@ -314,8 +314,8 @@ function SameListType(source, dest)
 Object.defineProperty(BlueList, Symbol.species, { value: Array });
 blue.inherit(IList, ICopierCustomAssignment)(BlueList, { kind: "class" });
 blue.interface(IList, ICopierCustomAssignment)(BlueList);
-for (const name of [ "GetSize", "Clear", "Replace" ]) CjsSchema.decorateMethod(BlueList, name, meta.implemented);
+for (const name of [ "GetSize", "Clear", "Replace" ]) CjsSchema.decorateMethod(BlueList, name, blue.method, meta.implemented);
 for (const name of [ "GetInfo", "Insert", "Append", "Remove", "GetAt", "FindKey", "Swap", "Move", "Sort", "SetNotify", "GetAllItems", "AssignFrom", "AssignTo" ])
 {
-  CjsSchema.decorateMethod(BlueList, name, meta.adapted);
+  CjsSchema.decorateMethod(BlueList, name, blue.method, meta.adapted);
 }

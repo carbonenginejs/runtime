@@ -7,7 +7,7 @@ import { assertNonNegativeInteger, assertNonNegativeNumber, assertPositiveIntege
 import { CjsMotherLode, getMotherLodeKey } from "./CjsMotherLode.js";
 import { CjsBlueOS } from "./CjsBlueOS.js";
 import { IBlueCallbackMan } from "./IBlueCallbackMan.js";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { IBlueResMan } from "./IBlueResMan.js";
 import { IBlueEvents } from "./IBlueEvents.js";
 import { hasOwnThen } from "#utils/object";
@@ -5206,6 +5206,7 @@ function createExtensionTargetError(resource, message, cause = null)
 // The Cjs prefix identifies browser adaptations (workers, fetch and routes);
 // carbon metadata identifies the native service whose responsibility it carries.
 CjsSchema.blue.inherit(IBlueResMan, IBlueEvents)(CjsBlueResMan);
+CjsSchema.blue.interface(IBlueResMan)(CjsBlueResMan);
 /**
  * The paths service resMan reads through: Carbon's global `BePaths`.
  *
@@ -5220,13 +5221,29 @@ CjsBlueResMan.getBluePaths = () =>
   throw new Error("CjsBlueResMan: no paths service; import the blue holder (blue.js).");
 };
 
-CjsSchema.decorateMethod(CjsBlueResMan, "GetResource", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "IsOnMainThread", meta.adapted);
-CjsSchema.decorateMethod(CjsBlueResMan, "WaitUrgent", meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "GetResource", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "IsOnMainThread", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "WaitUrgent", blue.method, meta.adapted);
 for (const method of [ "SaveObject", "ReserveBackgroundLoadMemory", "ReleaseBackgroundLoadMemory" ])
 {
-  CjsSchema.decorateMethod(CjsBlueResMan, method, meta.notImplemented);
+  CjsSchema.decorateMethod(CjsBlueResMan, method, blue.method, meta.notImplemented);
 }
+CjsSchema.decorateMethod(CjsBlueResMan, "AddToQueue", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "CancelFromQueue", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "GetNextIdForQueue", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "PumpMainThreadQueue", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "PauseQueue", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "ResumeQueue", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "GetPendingLoads", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "GetPendingPrepares", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "SetUrgentResourceLoads", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "IsUrgentResourceLoads", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "Update", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "Wait", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "RegisterResourceConstructor", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "UnregisterResourceConstructor", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "LoadObject", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "OnTick", blue.method, meta.implemented);
 CjsSchema.blue.define(CjsBlueResMan, { className: "CjsBlueResMan", donors: [ "BlueResMan" ] });
 
 /**
