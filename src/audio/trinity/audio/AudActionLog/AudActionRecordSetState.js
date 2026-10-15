@@ -1,3 +1,4 @@
+import { CjsSchema, blue, meta } from "#schema";
 // Source: audio/src/AudActionLog.h + AudActionLog.cpp
 // Hand-owned behavior port. Verify against audio/AudActionLogCB.json and the
 // AudActionRecord*.json schema documents.
@@ -24,3 +25,8 @@ export class AudActionRecordSetState extends AudActionRecord
   }
 
 }
+
+CjsSchema.blue.define(AudActionRecordSetState, {
+    className: "AudActionRecordSetState",
+    methods: { ToPyObject: [blue.method, meta.adapted] }
+});

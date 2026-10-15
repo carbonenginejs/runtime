@@ -1,8 +1,10 @@
+import { IRoot } from "#blue/IRoot";
 // Source: audio/src/AudActionLog.h
 import { meta, blue } from "#schema";
 
 /** Required logging contract consumed by AudManager. */
 @blue.define("IAudActionLog")
+@blue.inherit(IRoot)
 export class IAudActionLog
 {
   /** Records an event post. */

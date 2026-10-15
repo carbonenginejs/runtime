@@ -16,6 +16,7 @@ import { AudActionRecordSetRTPC } from "./AudActionRecordSetRTPC.js";
  * JavaScript callback during manager processing.
  */
 @blue.define("AudActionLogCB")
+@blue.interface(IAudActionLog)
 export class AudActionLogCB extends IAudActionLog
 {
 
