@@ -712,7 +712,7 @@ export class CjsSchema
          * the block's bytes only; the class decodes them through its
          * ICustomPersist methods. It implies nothing else: the member also
          * declares the value it holds (`uint32Array`, ...) and
-         * `meta.blue.persistOnly`, and `define` refuses it without either, or
+         * `blue.persistOnly`, and `define` refuses it without either, or
          * on a class that does not map ICustomPersist.
          */
         binary: fieldDecorator("type", { binary: true }),
@@ -753,7 +753,7 @@ export class CjsSchema
          * such as the editor, which offer only files a field can use; the
          * runtime does not enforce them.
          *
-         * Bare `@meta.type.path` (or `path: meta.type.path` in a define table)
+         * Bare `@type.path` (or `path: type.path` in a define table)
          * still means any file: see `pathDecorator`.
          */
         path: pathDecorator("path"),
@@ -1012,11 +1012,9 @@ export class CjsSchema
     static meta = {
         // Ruling 2026-10-15: flags are global - they describe behaviour for any
         // member, ours included. `blue` (below) is the same flags stamped as
-        // Carbon's. `meta.blue` and `meta.type` are transitional aliases.
+        // Carbon's; `type` is the shared type vocabulary.
         ...Object.fromEntries(FLAG_NAMES.map(name => [ name, this.#edit[name] ])),
-        blue: { ...this.#edit, ...this.#carbon },
         ui: { ...this.#jessica, components: createComponentsNamespace() },
-        type: Object.fromEntries(Object.entries(this.#type).filter(([name]) => !["define", "hideInherited"].includes(name))),
         // No `ours`: a member or method without the blue stamp is ours (ruling 2026-10-15).
         ...this.#impl,
         renamed: this.#renamed,
@@ -1048,6 +1046,13 @@ export class CjsSchema
         define: (definitionOrConstructor, definition) => defineEntry(definitionOrConstructor, definition, false),
         hideInherited: this.hideInherited
     };
+
+    /**
+     * The shared type vocabulary (ruling 2026-10-15): how a member is stored.
+     * It claims nothing about Carbon; `type.enum` and `type.flags` are type
+     * definitions only.
+     */
+    static type = Object.fromEntries(Object.entries(this.#type).filter(([name]) => !["define", "hideInherited"].includes(name)));
 
     /**
      * The Carbon-stamped decorators (ruling 2026-10-15): each is the `meta`
@@ -1495,7 +1500,7 @@ function createComponentsNamespace()
  * held by a Carbon Blue math wrapper member (`PTriMatrix`, `PTriVector`,
  * `PTriQuaternion`, `PTriColor`). On the wire that member is an embedded
  * TriMatrix/TriVector/TriQuaternion/TriColor object; readers decode its elements
- * into the plain value, e.g. `@meta.type.mat4.wrapped("TriMatrix")`.
+ * into the plain value, e.g. `@type.mat4.wrapped("TriMatrix")`.
  *
  * @param {string} kind The value kind.
  * @returns {Function} The decorator, with `wrapped(className)`.
@@ -1577,7 +1582,7 @@ function settingDecorator(name, { applies = SETTING_APPLIES.ALWAYS, enum: enumTy
 /** A struct list names its item class by its registered name, resolved at read time. */
 function requireClassName(name)
 {
-    if (typeof name !== "string" || !name.trim()) throw new TypeError("meta.type.structList requires a registered class name.");
+    if (typeof name !== "string" || !name.trim()) throw new TypeError("type.structList requires a registered class name.");
     return name.trim();
 }
 
@@ -1877,7 +1882,7 @@ function RejectRetiredTypeKinds(type)
 {
     const kind = typeof type === "string" ? type : type?.kind;
     const replacement = RETIRED_TYPE_KINDS.get(kind);
-    if (replacement) throw new TypeError(`meta.type kind "${kind}" is retired; Carbon's name is "${replacement}".`);
+    if (replacement) throw new TypeError(`type kind "${kind}" is retired; Carbon's name is "${replacement}".`);
     if (!type || typeof type !== "object") return;
     RejectRetiredTypeKinds(type.itemType);
     RejectRetiredTypeKinds(type.valueType);
@@ -2093,7 +2098,7 @@ function sealClassSchema(Constructor, schema)
 }
 
 /**
- * Refuses a `meta.type.binary` member Carbon could not have. Carbon's only
+ * Refuses a `type.binary` member Carbon could not have. Carbon's only
  * binary-block macro always gives PERSISTONLY (BlueExposureMacros.h:157-161),
  * and its readers and writers reach the bytes only through the instance's
  * ICustomPersist (IRootReader.cpp:77-88, IRootWriter.cpp:56-67).
@@ -2110,13 +2115,13 @@ function RejectInvalidBinaryMembers(Constructor, schema)
     {
         if (member.edit?.persistOnly !== true)
         {
-            throw new TypeError(`${schema.className}.${member.name}: meta.type.binary requires meta.blue.persistOnly.`);
+            throw new TypeError(`${schema.className}.${member.name}: type.binary requires blue.persistOnly.`);
         }
     }
     const mapsCustomPersist = [ ...mappedInterfaces(Constructor) ].some(Interface => getRegisteredClassName(Interface) === "ICustomPersist");
     if (!mapsCustomPersist)
     {
-        throw new TypeError(`${schema.className}: meta.type.binary requires the class to map ICustomPersist.`);
+        throw new TypeError(`${schema.className}: type.binary requires the class to map ICustomPersist.`);
     }
 }
 
@@ -3135,7 +3140,7 @@ function normalizeEnumSchema(values, definition)
 }
 
 /**
- * `meta.type.path`: a factory that is also usable bare.
+ * `type.path`: a factory that is also usable bare.
  *
  * Called with entries - `path("TriTextureRes")`, `path([ ... ])` or
  * `path()` - it returns the field decorator. Used bare, the runtime applies
@@ -3157,7 +3162,7 @@ function pathDecorator(kind)
 }
 
 /**
- * Validate `meta.type.path` entries when the class is defined, so a typo
+ * Validate `type.path` entries when the class is defined, so a typo
  * fails loudly instead of quietly accepting nothing. Class names are checked
  * for shape here; whether each names a registered class is checked by test,
  * because classes register in import order.
@@ -3175,7 +3180,7 @@ function normalizePathAccepts(accepts)
         if (typeof entry !== "string"
             || !(entry === "object" || /^\.[a-z0-9]+$/.test(entry) || /^[A-Z][A-Za-z0-9_]*$/.test(entry)))
         {
-            throw new TypeError(`meta.type.path accepts a class name, "object" or a ".ext" file type, not ${JSON.stringify(entry)}.`);
+            throw new TypeError(`type.path accepts a class name, "object" or a ".ext" file type, not ${JSON.stringify(entry)}.`);
         }
         if (!out.includes(entry)) out.push(entry);
     }

@@ -1,8 +1,7 @@
 import { CJS_CLASS_NAME, CJS_ENUM_NAME, CjsSchema } from "./CjsSchema.js";
 
 /** Decorators grouped by vocabulary ownership; stored schema records are unchanged. */
-const { meta, blue } = CjsSchema;
-const type = meta.type;
+const { meta, type, blue } = CjsSchema;
 
 export { CJS_CLASS_NAME, CJS_ENUM_NAME, CjsSchema, CjsSchema as schema, meta, type, blue };
 export * from "./types/carbonTypes.js";

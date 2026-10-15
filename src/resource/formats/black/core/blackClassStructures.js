@@ -32,7 +32,7 @@ export function classStructureLayout(ownerClass, fieldName)
     if (!Owner) throw new TypeError(`Black struct ${ownerClass}.${fieldName}: class ${ownerClass} is not registered (import its package)`);
     const declaration = CjsSchema.getSchema(Owner).members.find(member => member.name === fieldName);
     const type = declaration?.type ?? CjsSchema.getField(Owner, fieldName)?.type;
-    // meta.type.structList names its record class directly.
+    // type.structList names its record class directly.
     const itemType = type?.kind === "structList" ? type.className : type?.itemType;
     const itemName = typeof itemType === "string" || typeof itemType === "function" ? itemType : itemType?.className;
     if (!itemName) throw new TypeError(`Black struct ${ownerClass}.${fieldName} has no declared item class`);

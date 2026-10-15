@@ -5,7 +5,7 @@
 // IsCastingShadow, GetShadowBatches, GetShadowPerObjectData) and gives the rest
 // defaulted bodies: the position/radius IsCastingShadow answers false, the two
 // raytracing hooks do nothing and IsShadowCastingDirty answers false. Composed
-// with meta.blue.inherit, which installs only what a caster does not define.
+// with blue.inherit, which installs only what a caster does not define.
 
 import { CjsSchema, meta, blue } from "#schema";
 import { isVector3 } from "#utils/is";

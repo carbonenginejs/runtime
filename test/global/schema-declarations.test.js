@@ -24,7 +24,8 @@ test("the public decorator surface has one namespace per vocabulary and preserve
         assert.equal(Object.hasOwn(CjsSchema, name), false, "removed class alias: " + name);
     }
     // Ruling 2026-10-15: meta (generic), type (vocabulary), blue (Carbon-stamped).
-    assert.equal(schemaExports.type, type);
+    assert.equal(schemaExports.type, CjsSchema.type);
+    for (const name of ["blue", "type"]) assert.equal(Object.hasOwn(meta, name), false, "alias dropped: meta." + name);
     assert.equal(schemaExports.blue, CjsSchema.blue);
     for (const name of ["read", "write", "readwrite", "notify", "hidden", "persist", "rpersist", "persistOnly"])
     {

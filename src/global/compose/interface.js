@@ -12,7 +12,7 @@
 // A class takes its PRIMARY Carbon base with ordinary `extends`, and declares
 // each ADDITIONAL base with this decorator:
 //
-//   @meta.blue.inherit(Tr2RenderContextAL)
+//   @blue.inherit(Tr2RenderContextAL)
 //   class Tr2RenderContext extends Tr2RenderContextBase { }
 //
 // The primary base uses the prototype chain; additional declared bases supply
@@ -255,7 +255,7 @@ export function cast(value, Contract)
  * the first base declaring a member is the one that supplies it, exactly as
  * C++ resolves an unqualified name against the base list left to right.
  *
- * INHERITING IS NOT MAPPING, and `@meta.blue.interface` below is the other
+ * INHERITING IS NOT MAPPING, and `@blue.interface` below is the other
  * half. This one is Carbon's base list: it decides which members a class has
  * and what `dynamic_cast` accepts. Mapping is the separate `_Blue.cpp`
  * exposure that `BlueCastPtr` reads, and it decides real behaviour - see that
@@ -425,7 +425,7 @@ function OwnInterfaceTable(Constructor, decoratorName)
 
 
 /**
- * The `@meta.blue.interface(X, Y, ...)` class decorator: Carbon's
+ * The `@blue.interface(X, Y, ...)` class decorator: Carbon's
  * `MAP_INTERFACE` lines (BlueExposureMacros.h:171-175). The class itself is
  * always the first entry, as `EXPOSURE_BEGIN` adds it, so it is never listed.
  * Without `chainTo` the table ends here, as `EXPOSURE_END()` does. Called with
@@ -475,7 +475,7 @@ export function carbonInterfaceDecorator(Interfaces)
 
 
 /**
- * The `@meta.blue.chainTo(Parent)` class decorator: Carbon's
+ * The `@blue.chainTo(Parent)` class decorator: Carbon's
  * `EXPOSURE_CHAINTO( Parent )` (BlueExposureMacros.h:136-138). After the
  * class's own entries, QueryInterface continues into `Parent`'s table
  * (BlueClasses.cpp:388-400). The chain is declared, not taken from `extends`.

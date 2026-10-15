@@ -68,9 +68,9 @@ export class CjsBlackSchemaRegistry
         if (typeof type === "function") type = { kind: "rootRef", className: type };
         if (typeof type === "string") type = { kind: type };
         if (type?.runtimeOnly === true) throw new TypeError("Runtime-only fields have no Black codec.");
-        // meta.type.binary is Carbon's BINARYBLOCK, whatever value the member holds.
+        // type.binary is Carbon's BINARYBLOCK, whatever value the member holds.
         if (type?.binary === true) return CjsBlackSchemaRegistry.compactBlackType("BINARYBLOCK", type);
-        // meta.type.mat4.wrapped("TriMatrix") etc.: an embedded Blue math wrapper read into the declared value.
+        // type.mat4.wrapped("TriMatrix") etc.: an embedded Blue math wrapper read into the declared value.
         if (type?.wrapped)
         {
             CjsBlackPropertyReaders.getWrapperLayout(type.wrapped, type.kind);

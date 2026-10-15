@@ -710,7 +710,7 @@ export class CjsBlueReader extends CjsReader
 }
 
 /**
- * A class's `meta.type.binary` members: Carbon's BINARYBLOCK attributes.
+ * A class's `type.binary` members: Carbon's BINARYBLOCK attributes.
  *
  * @param {Function} Constructor A registered class.
  * @returns {object[]} Its binary member declarations.

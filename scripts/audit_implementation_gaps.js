@@ -273,7 +273,7 @@ function PrintMarkdown(audit)
   console.log(`# ${audit.scope} implementation-gap audit`);
   console.log();
   console.log(`- Explicit \`@meta.notImplemented\` methods: ${methodSummary.count} across ${methodSummary.classes} classes.`);
-  console.log(`- Explicit \`@meta.type.unknown\` properties: ${propertySummary.count} across ${propertySummary.classes} classes.`);
+  console.log(`- Explicit \`@type.unknown\` properties: ${propertySummary.count} across ${propertySummary.classes} classes.`);
   console.log(`- Deliberately unused Carbon methods (\`define({ unused })\`, not gaps): ${audit.summary.unused.count} across ${audit.summary.unused.classes} classes.`);
   console.log(`- Includes \`src/**/dropped\`: ${audit.includeDropped ? "yes" : "no"}.`);
   console.log();

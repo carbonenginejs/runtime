@@ -335,7 +335,7 @@ function LintContextualMethods(file, source)
 
         if (!identifier || !CONTEXT_FIRST_NAME.test(identifier.name))
         {
-            errors.push(`${relativeFile}:${declarationLine}: @meta.blue.contextual method must be context-first (first parameter named context or updateContext)`);
+            errors.push(`${relativeFile}:${declarationLine}: @blue.contextual method must be context-first (first parameter named context or updateContext)`);
         }
     });
 
@@ -387,7 +387,7 @@ function VerifyContextualMethodPolicy()
         }
     `;
 
-    for (const namespace of ["carbon", "meta.carbon", "meta.blue"])
+    for (const namespace of ["carbon", "meta.carbon", "blue"])
     {
         if (LintContextualMethods(path.join(root, "fixture.js"), good.replaceAll("@carbon.", "@" + namespace + ".")).length !== 0 ||
             LintContextualMethods(path.join(root, "fixture.js"), bad.replaceAll("@carbon.", "@" + namespace + ".")).length !== 2)

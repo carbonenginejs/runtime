@@ -14,7 +14,7 @@
 // A JS class holds one member per name, and engine code calls the C++ methods
 // by their C++ names, so the C++ names own the members here. The schema has no
 // way to record a Blue name that differs from the member it dispatches to, so
-// none of the three is declared with `meta.blue.method`; each method's JSDoc
+// none of the three is declared with `blue.method`; each method's JSDoc
 // names its Blue spelling instead. LookupGlyphIndex refuses a font name, so a
 // caller using the Blue spelling gets an error rather than a wrong answer.
 //
