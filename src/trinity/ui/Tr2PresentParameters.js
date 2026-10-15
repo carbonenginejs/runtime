@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/UI/Tr2PresentParameters.h
 // Source: trinity/trinity/UI/Tr2PresentParameters.cpp
 // Source: trinity/trinity/UI/Tr2PresentParameters_Blue.cpp
@@ -12,6 +13,7 @@ import { Tr2PresentParametersAL } from "../../trinityal/Tr2PresentParametersAL.j
  */
 @blue.define("Tr2PresentParameters")
 @blue.interface()
+@blue.inherit(IRoot)
 export class Tr2PresentParameters extends Tr2PresentParametersAL
 {
   /** Reads mode.width. @returns {number} Back-buffer pixel width. */

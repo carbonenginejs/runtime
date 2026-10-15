@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Font/Tr2SBit.h
 // Source: trinity/trinity/Font/Tr2SBit.cpp
 // Source: trinity/trinity/Font/Tr2Sbit_Blue.cpp
@@ -37,6 +38,7 @@ function blendOverAlpha(bytes, index, col, sourceAlpha)
 
 /** Models Carbon's cached font-glyph wrapper, including placement coordinates and buffer-copy entry points. */
 @blue.define({ className: "Tr2SBitWrapper", purpose: "Models Carbon's cached font-glyph wrapper, including placement coordinates and buffer-copy entry points." })
+@blue.inherit(IRoot)
 export class Tr2SBitWrapper
 {
 
@@ -122,6 +124,7 @@ export class Tr2SBitWrapper
 
   /** Returns the cached glyph width. */
   @meta.implemented
+  @blue.method
   GetWidth()
   {
     return this.sbit.width;
@@ -129,6 +132,7 @@ export class Tr2SBitWrapper
 
   /** Returns the cached glyph height. */
   @meta.implemented
+  @blue.method
   GetHeight()
   {
     return this.sbit.height;
@@ -136,6 +140,7 @@ export class Tr2SBitWrapper
 
   /** Returns the cached glyph left. */
   @meta.implemented
+  @blue.method
   GetXOffset()
   {
     return this.sbit.left;
@@ -143,6 +148,7 @@ export class Tr2SBitWrapper
 
   /** Returns the cached glyph top. */
   @meta.implemented
+  @blue.method
   GetYOffset()
   {
     return this.sbit.top;
@@ -150,6 +156,7 @@ export class Tr2SBitWrapper
 
   /** Returns the cached glyph xadvance. */
   @meta.implemented
+  @blue.method
   GetXAdvance()
   {
     return this.sbit.xadvance;
@@ -157,6 +164,7 @@ export class Tr2SBitWrapper
 
   /** Returns the cached glyph yadvance. */
   @meta.implemented
+  @blue.method
   GetYAdvance()
   {
     return this.sbit.yadvance;

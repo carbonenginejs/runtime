@@ -26,6 +26,7 @@ export class ITr2FontMeasurerNotifyTarget
    * @returns {void}
    */
   @meta.abstract
+  @blue.method
   FontMeasurerChanged(_measurer)
   {
     throw new Error("ITr2FontMeasurerNotifyTarget.FontMeasurerChanged must be implemented by a concrete listener.");

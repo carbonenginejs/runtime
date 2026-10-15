@@ -1,3 +1,4 @@
+import { ITriFunction } from "../../global/blue/ITriFunction.js";
 // Source: trinity/trinity/Tr2ProjectBoundingBoxBracket.h
 // Source: trinity/trinity/Tr2ProjectBoundingBoxBracket.cpp
 // Source: trinity/trinity/Tr2ProjectBoundingBoxBracket_Blue.cpp
@@ -207,6 +208,8 @@ function clampProjectedSize(size, minSize, maxSize)
 
 /** Projects an owned world-space bounding box into a Sprite2D bracket. */
 @blue.define("Tr2ProjectBoundingBoxBracket")
+@blue.inherit(ITriFunction)
+@blue.interface(ITriFunction)
 export class Tr2ProjectBoundingBoxBracket
 {
   /**
@@ -306,6 +309,8 @@ export class Tr2ProjectBoundingBoxBracket
   }
 
   /** Publishes a projection covering the full active viewport. */
+  @blue.method
+  @meta.renamed("SetFullViewportProjection")
   #SetFullViewportProjection(viewport)
   {
     this.projectedX = viewport.x;
@@ -326,6 +331,8 @@ export class Tr2ProjectBoundingBoxBracket
   }
 
   /** Applies authored size and integer-coordinate constraints. */
+  @blue.method
+  @meta.renamed("ConstrainProjection")
   #ConstrainProjection(boxCenter, matrix, viewport)
   {
     let centerX = this.projectedX + this.projectedWidth * 0.5;
@@ -355,6 +362,8 @@ export class Tr2ProjectBoundingBoxBracket
   }
 
   /** Validates and publishes the current projected rectangle. */
+  @blue.method
+  @meta.renamed("PublishProjection")
   #PublishProjection(viewport)
   {
     if (this.projectedWidth <= 0 || this.projectedHeight <= 0 || !this.#ClampToScreenMargin(viewport))

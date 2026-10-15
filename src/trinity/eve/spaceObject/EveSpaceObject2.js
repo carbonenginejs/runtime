@@ -76,7 +76,7 @@ const TRANSPARENT_CENTER = vec3.create();
  * m_mesh's second Blue name: EveSpaceObject2_Blue.cpp maps "meshLod" onto the
  * same m_mesh as "mesh" (READWRITE | PERSIST, jessica-hidden).
  */
-const meshLodMember = { name: "meshLod", key: "mesh", type: { kind: "rootRef", className: "Tr2MeshBase" },
+const meshLodMember = { carbon: { member: true }, name: "meshLod", key: "mesh", type: { kind: "rootRef", className: "Tr2MeshBase" },
   edit: { read: true, write: true, persist: true } };
 
 /**
