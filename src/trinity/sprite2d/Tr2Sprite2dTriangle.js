@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPolygon.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema sprite2d/Tr2Sprite2dTriangle.json.).
 import { type, blue } from "#schema";
@@ -10,6 +11,7 @@ import { type, blue } from "#schema";
  */
 @blue.define("Tr2Sprite2dTriangle")
 @blue.interface()
+@blue.inherit(IRoot)
 export class Tr2Sprite2dTriangle
 {
 

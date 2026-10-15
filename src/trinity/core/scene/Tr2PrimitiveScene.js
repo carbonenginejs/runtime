@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2PrimitiveScene.h
 // Source: trinity/trinity/Tr2PrimitiveScene.cpp
 // Source: trinity/trinity/Tr2PrimitiveScene_Blue.cpp
-import { meta, type, blue } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { ITr2Scene } from "../ITr2Scene.js";
 import { ITr2PickableScene } from "./ITr2PickableScene.js";
@@ -22,6 +22,7 @@ import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 /** Native primitive scene and tool handles. Text rendering is a separate port. */
 @blue.define("Tr2PrimitiveScene")
 @blue.inherit(ITr2Scene)
+@blue.interface(ITr2Scene)
 export class Tr2PrimitiveScene extends ITr2PickableScene
 {
   @blue.read
@@ -38,10 +39,15 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
   @type.rootRef("Tr2ManipulationTool")
   manipulator = null;
 
+  @type.rawStruct("Tr2PickBuffer")
   _pickBuffer = new Tr2PickBuffer(PixelFormat.PIXEL_FORMAT_R32G32B32A32_FLOAT, 1);
+  @type.rawStruct("TriPoolAllocator")
   _allocator = new TriPoolAllocator().RegisterCatalog();
+  @type.rawStruct("TriRenderBatchAccumulator")
   _opaqueBatches = new TriRenderBatchAccumulator().SetTriPoolAllocator(this._allocator);
+  @type.rawStruct("TriRenderBatchAccumulator")
   _pickingBatches = new TriRenderBatchAccumulator().SetTriPoolAllocator(this._allocator);
+  @type.rawStruct("Tr2ConstantBufferAL")
   _vertexConstants = null;
   _frameData = RawData.create("Tr2PerFrameVSData");
 
@@ -307,3 +313,22 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
     finally { esm.SetInvertedDepthTest(inverted); }
   }
 }
+
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "Render", blue.method);
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "Update", blue.method);
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "RenderDebugInfo", blue.method);
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "OnPrepareResources", blue.method);
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "PrepareResources", blue.method);
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "GetDescription", blue.method);
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "ReleaseResources", blue.method);
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "SetupTransformsForPicking", blue.method);
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "SetupPerFrameData", blue.method);
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "SetPerFrameDataForPicking", blue.method);
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "GetPickingObjectsToRender", blue.method);
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "GetOpaquePickingBatchAccumulator", blue.method);
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "GetPickingBatchAccumulator", blue.method);
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "RenderPickingAreasForComponents", blue.method);
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "GetPickBuffer", blue.method);
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "GetRequiredPasses", blue.method);
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "DecodeBufferPixel", blue.method);
+CjsSchema.decorateMethod(Tr2PrimitiveScene, "RenderPicking", blue.method);

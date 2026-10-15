@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Not Carbon: the texture-array bridge is ours, a deliberate extension
 // served at `dynamic:/texturearray`.
 //
@@ -110,3 +111,5 @@ export class CjsTextureArrayBridge
     return resourceDesc.SetSrv__TextureAL(stage, registerIndex, texture, colorSpace);
   }
 }
+
+CjsSchema.meta.define(CjsTextureArrayBridge, { className: "CjsTextureArrayBridge" });

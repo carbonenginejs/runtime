@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPickingMask.h
 //   trinity/trinity/Sprite2d/Tr2Sprite2dPickingMask.cpp
 //   trinity/trinity/Sprite2d/Tr2Sprite2dPickingMask_Blue.cpp:29-30 (the
@@ -12,6 +13,7 @@ import { PixelFormat } from "#consts/render-context";
 /** Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite. */
 @blue.define({ className: "Tr2Sprite2dPickingMask", purpose: "Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite." })
 @blue.interface()
+@blue.inherit(IRoot)
 export class Tr2Sprite2dPickingMask
 {
 

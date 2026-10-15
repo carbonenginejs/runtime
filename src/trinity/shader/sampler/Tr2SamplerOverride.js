@@ -17,52 +17,52 @@ export class Tr2SamplerOverride
 {
 
   /** name (BlueSharedString) */
-  @blue.persist
+  @meta.persist
   @meta.struct.SHAREDSTRING_1(0)
   name = "";
 
   /** addressU (Tr2RenderContextEnum::TextureAddressMode - enum Tr2RenderContextEnum) */
-  @blue.persist
+  @meta.persist
   @meta.struct.UINT32_1(8)
   @type.enum("TextureAddressMode")
   addressU = 1;
 
   /** addressV (Tr2RenderContextEnum::TextureAddressMode - enum Tr2RenderContextEnum) */
-  @blue.persist
+  @meta.persist
   @meta.struct.UINT32_1(12)
   @type.enum("TextureAddressMode")
   addressV = 1;
 
   /** addressW (Tr2RenderContextEnum::TextureAddressMode - enum Tr2RenderContextEnum) */
-  @blue.persist
+  @meta.persist
   @meta.struct.UINT32_1(16)
   @type.enum("TextureAddressMode")
   addressW = 1;
 
   /** filter (Tr2RenderContextEnum::TextureFilter) */
-  @blue.persist
+  @meta.persist
   @meta.struct.UINT32_1(20)
   @type.enum("TextureFilter")
   filter = 2;
 
   /** mipFilter (Tr2RenderContextEnum::TextureFilter) */
-  @blue.persist
+  @meta.persist
   @meta.struct.UINT32_1(24)
   @type.enum("TextureFilter")
   mipFilter = 2;
 
   /** lodBias (float) */
-  @blue.persist
+  @meta.persist
   @meta.struct.FLOAT32_1(28)
   lodBias = 0;
 
   /** maxMipLevel (uint32_t) */
-  @blue.persist
+  @meta.persist
   @meta.struct.UINT32_1(32)
   maxMipLevel = 0;
 
   /** maxAnisotropy (uint32_t) */
-  @blue.persist
+  @meta.persist
   @meta.struct.UINT32_1(36)
   maxAnisotropy = 4;
 

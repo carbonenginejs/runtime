@@ -37,8 +37,9 @@ const CARBON_TABLES=new Map([
 // Destroy is now an explicit UI resource cleanup method, not an inherited model helper.
 test("native six-verb sprite interface stays abstract and model-free",()=>{
  assert.equal(Object.getPrototypeOf(ITr2SpriteObject.prototype),Object.prototype);
- assert.deepEqual(Object.getOwnPropertyNames(ITr2SpriteObject.prototype).filter(n=>n!=="constructor"),["GatherSprites","PickPoint","SetParent","SetDirty","SetChildDirty","IsAuxMouseover"]);
- const base=new ITr2SpriteObject();for(const name of Object.getOwnPropertyNames(ITr2SpriteObject.prototype).filter(n=>n!=="constructor")){assert.throws(()=>base[name](),/must be implemented/);assert.equal(CjsSchema.getMethod(ITr2SpriteObject,name).impl.status,"abstract");}
+ const nativeVerbs=["GatherSprites","PickPoint","SetParent","SetDirty","SetChildDirty","IsAuxMouseover"];
+ assert.deepEqual(Object.getOwnPropertyNames(ITr2SpriteObject.prototype).filter(n=>n!=="constructor"),[...nativeVerbs,"ClassType","QueryInterface","GetRootObject"]);
+ const base=new ITr2SpriteObject();assert.equal(base.GetRootObject(),base);assert.equal(base.ClassType(),CjsSchema.getSchema(ITr2SpriteObject));for(const name of nativeVerbs){assert.throws(()=>base[name](),/must be implemented/);assert.equal(CjsSchema.getMethod(ITr2SpriteObject,name).impl.status,"abstract");}
  assert.equal(CjsSchema.getConstructor("ITr2SpriteObject"),ITr2SpriteObject);
  assert.equal(be.classes.CreateInstanceFromName("ITr2SpriteObject"),null);assert.equal(be.classes.CreateInstanceFromName("Tr2SpriteObjectBase"),null);
 });

@@ -87,6 +87,7 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
 
   /** Changes the measurer subscription and invalidates geometry. */
   @meta.implemented
+  @blue.method
   SetFontMeasurer(value)
   {
     if (value === this._fontMeasurer) return;
@@ -98,6 +99,7 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
 
   /** Returns the subscribed measurer. */
   @meta.implemented
+  @blue.method
   GetFontMeasurer()
   {
     return this._fontMeasurer;
@@ -105,6 +107,7 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
 
   /** Invalidates cached geometry after a measurer edit. */
   @meta.implemented
+  @blue.method
   FontMeasurerChanged(_source)
   {
     this.SetDirty();
@@ -112,6 +115,7 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
 
   /** Prepares dirty text then submits it within its native shadow-expanded clip. */
   @meta.implemented
+  @blue.method
   GatherSprites(renderer)
   {
     if (!this.display || this.textWidth <= 0 || this.textHeight <= 0 || !this._fontMeasurer) return;
@@ -134,6 +138,7 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
 
   /** Includes auxiliary labels in picking even when normal picking is disabled. */
   @meta.implemented
+  @blue.method
   PickPoint(x, y, renderer)
   {
     if (!this.display) return null;
@@ -143,6 +148,7 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
 
   /** Reports a tooltip-only hit target. */
   @meta.implemented
+  @blue.method
   IsAuxMouseover()
   {
     return this.pickState !== Tr2SpriteObjectPickState.TR2_SPS_ON && this.hasAuxiliaryTooltip;
@@ -150,6 +156,7 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
 
   /** Returns the attached measurer's vertex budget. */
   @meta.implemented
+  @blue.method
   GetVertexCount()
   {
     return this.display && this._fontMeasurer ? this._fontMeasurer.GetVertexCount() : 0;
@@ -157,6 +164,7 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
 
   /** Invalidates geometry and drops cached atlas references. */
   @meta.implemented
+  @blue.method
   ReleaseResources(_storage)
   {
     this.SetDirty();
@@ -165,6 +173,7 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
 
   /** Native preparation has no extra resources of its own. */
   @meta.implemented
+  @blue.method
   _OnPrepareResources()
   {
     return true;

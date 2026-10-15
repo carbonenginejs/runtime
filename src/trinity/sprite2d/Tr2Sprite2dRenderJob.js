@@ -17,6 +17,7 @@ export class Tr2Sprite2dRenderJob extends Tr2SpriteObjectBase
 
   /** Carbon method GatherSprites. */
   @meta.implemented
+  @blue.method
   GatherSprites(renderer)
   {
     if (this.renderJob && this.display)
@@ -27,6 +28,7 @@ export class Tr2Sprite2dRenderJob extends Tr2SpriteObjectBase
 
   /** Carbon method PickPoint. */
   @meta.implemented
+  @blue.method
   PickPoint(x, y, renderer)
   {
     if (!this.display || this.pickState !== Tr2SpriteObjectPickState.TR2_SPS_ON)
@@ -62,6 +64,7 @@ export class Tr2Sprite2dRenderJob extends Tr2SpriteObjectBase
 
   /** Carbon method GetVertexCount. */
   @meta.implemented
+  @blue.method
   GetVertexCount()
   {
     return 0;

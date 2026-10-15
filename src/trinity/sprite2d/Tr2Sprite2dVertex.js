@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPolygon.h
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPolygon.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPolygon_Blue.cpp
@@ -11,8 +12,9 @@ import { vec4 } from "#math/vec4";
  * Represents one Sprite2D polygon vertex with two texture-coordinate channels
  * (Tr2Sprite2dPolygon.h:21-32; constructor Tr2Sprite2dPolygon.cpp:173-179).
  */
-@blue.define("Tr2Sprite2dVertex")
+@blue.define({ className: "Tr2Sprite2dVertex", members: [{ name: "position", carbon: { member: true }, type: { kind: "vec3" }, edit: { read: true, write: true, persist: true } }] })
 @blue.interface()
+@blue.inherit(IRoot)
 export class Tr2Sprite2dVertex extends Tr2Sprite2dVertexBase
 {
 
@@ -62,6 +64,7 @@ export class Tr2Sprite2dVertex extends Tr2Sprite2dVertexBase
    * @returns {void}
    */
   @meta.implemented
+  @blue.method
   SetColor(c)
   {
     vec4.copy(this.color, c);
@@ -72,6 +75,7 @@ export class Tr2Sprite2dVertex extends Tr2Sprite2dVertexBase
    * @returns {Float32Array} A copy of the colour.
    */
   @meta.implemented
+  @blue.method
   GetColor()
   {
     return vec4.clone(this.color); // alloc: native value return belongs to the caller

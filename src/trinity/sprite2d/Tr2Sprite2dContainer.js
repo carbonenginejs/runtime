@@ -77,6 +77,7 @@ export class Tr2Sprite2dContainer extends Tr2Sprite2dContainerBase
 
   /** Applies Carbon's dirty/clean-frame cache policy before gathering or replaying. */
   @meta.implemented
+  @blue.method
   GatherSprites(renderer)
   {
     if (!this.display || (!this.children.length && !this.background.length)) return;
@@ -139,6 +140,7 @@ export class Tr2Sprite2dContainer extends Tr2Sprite2dContainerBase
 
   /** Traverses nested content with translation, depth, opacity and optional clipping. */
   @meta.implemented
+  @blue.method
   _GatherSpritesHelper(renderer)
   {
     if (this.absoluteCoordinates) renderer.PushTransformAbsolute();
@@ -171,6 +173,7 @@ export class Tr2Sprite2dContainer extends Tr2Sprite2dContainerBase
 
   /** Picks visible children through native bounds, mask and clipping gates. */
   @meta.implemented
+  @blue.method
   PickPoint(x, y, renderer)
   {
     if (!this.display || this.pickState === Tr2SpriteObjectPickState.TR2_SPS_OFF) return null;

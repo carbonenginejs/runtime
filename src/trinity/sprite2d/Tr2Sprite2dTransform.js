@@ -143,6 +143,7 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
    * @returns {Float32Array} Owned 4x4 local transform.
    */
   @meta.adapted
+  @blue.method
   _GetTransformationMatrix()
   {
     const sx = Math.floor(this.scalingCenter[0] * this.displayWidth + 0.5);

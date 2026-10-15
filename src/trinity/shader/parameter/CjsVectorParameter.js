@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 import { CjsParameter } from "./CjsParameter.js";
 
 
@@ -53,3 +54,5 @@ export class CjsVectorParameter extends CjsParameter
   }
 
 }
+
+CjsSchema.meta.define(CjsVectorParameter, { className: "CjsVectorParameter" });

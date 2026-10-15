@@ -55,6 +55,7 @@ const srcVertexSegments = [0, 16, 32].map(start => srcVertices.slice(start, star
  */
 @blue.define({ className: "Tr2Sprite2dFrame", purpose: "Defines a textured frame with corner sizing, corner scaling, center-fill, and offset controls." })
 @blue.chainTo(Tr2TexturedSpriteObject)
+@blue.interface()
 export class Tr2Sprite2dFrame extends Tr2TexturedSpriteObject
 {
 
@@ -113,6 +114,7 @@ export class Tr2Sprite2dFrame extends Tr2TexturedSpriteObject
    * @returns {void}
    */
   @meta.implemented
+  @blue.method
   GatherSprites(renderer)
   {
     if (!this.display) return;
@@ -191,6 +193,7 @@ export class Tr2Sprite2dFrame extends Tr2TexturedSpriteObject
    * @returns {Tr2Sprite2dFrame|null} This frame when hit, otherwise null.
    */
   @meta.implemented
+  @blue.method
   PickPoint(x, y, renderer)
   {
     if (!this.display) return null;
@@ -214,6 +217,7 @@ export class Tr2Sprite2dFrame extends Tr2TexturedSpriteObject
    * @returns {number} 48.
    */
   @meta.implemented
+  @blue.method
   GetVertexCount()
   {
     return 16 * 3;
@@ -237,6 +241,7 @@ export class Tr2Sprite2dFrame extends Tr2TexturedSpriteObject
    * @returns {void}
    */
   @meta.implemented
+  @blue.method
   _PrepareVertices(v, srcWidth, srcHeight, vertOffset, scale)
   {
     const cs = Math.floor(0.5 + this.cornerScale * this.cornerSize);

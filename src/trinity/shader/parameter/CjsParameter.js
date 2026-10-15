@@ -260,3 +260,5 @@ export class CjsParameter extends ITriEffectParameter
   }
 
 }
+
+CjsSchema.meta.define(CjsParameter, { className: "CjsParameter" });

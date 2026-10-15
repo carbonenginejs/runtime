@@ -41,6 +41,7 @@ const XM_EPSILON = 1.192092896e-7;
 @blue.define("Tr2Sprite2dLineTrace")
 @blue.chainTo(Tr2TexturedSpriteObject)
 @blue.inherit(IListNotify)
+@blue.interface()
 export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
 {
 
@@ -167,6 +168,7 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @returns {void}
    */
   @meta.adapted
+  @blue.method
   GatherSprites(renderer)
   {
     if (!this.display || this.vertices.length === 0 || this.end <= this.start || this.spriteEffect === Tr2SpriteObjectEffect.TR2_SFX_NONE)
@@ -308,6 +310,7 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @returns {Tr2Sprite2dLineTrace|null} This trace when hit.
    */
   @meta.implemented
+  @blue.method
   PickPoint(x, y, renderer)
   {
     if (!this.display) return null;
@@ -346,6 +349,7 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @returns {number} Total length.
    */
   @meta.implemented
+  @blue.method
   _CalcLength()
   {
     if (this.vertices.length < 2) return 0;
@@ -375,6 +379,7 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @returns {number} Estimated vertex count.
    */
   @meta.implemented
+  @blue.method
   _GetEstimatedVertexCount()
   {
     let vertsNeeded = (this.vertices.length * 4 + 2) >>> 0;
@@ -405,6 +410,7 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @returns {void}
    */
   @meta.adapted
+  @blue.method
   _AddSegment(renderer, from, fromColor, capAngleFrom, to, toColor, capAngleTo)
   {
     // Direction and length (cpp:297-299).
@@ -580,6 +586,7 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @returns {void}
    */
   @meta.adapted
+  @blue.method
   _AddRoundJoint(renderer, capAngleTo, v2, v3, normal, color, isAA, pixelWidthInTexels, halfWidth)
   {
     // Fan base on the inner side of the turn (cpp:538-555).
@@ -674,6 +681,7 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @returns {void}
    */
   @meta.adapted
+  @blue.method
   _AddMiterJoint(renderer, capAngleTo, v2, v3, normal, color, isAA, pixelWidthInTexels, halfWidth)
   {
     // Base and top points on either side of the turn (cpp:648-666).
@@ -745,6 +753,7 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @returns {number[]} Miter point.
    */
   @meta.implemented
+  @blue.method
   _GetMiterPoint(halfWidth, basePoint, startAngle, endAngle, sign)
   {
     const k = halfWidth * 2 * sign;
@@ -761,6 +770,7 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @returns {number} Wrapped angle.
    */
   @meta.implemented
+  @blue.method
   _ClampAngle(angle)
   {
     if (angle < -Math.PI) return angle + 2 * Math.PI;
@@ -773,6 +783,7 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @returns {void}
    */
   @meta.implemented
+  @blue.method
   _ClearVertices()
   {
     this._renderVertices.length = 0;

@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dLineTrace.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema sprite2d/Tr2Sprite2dLineTraceVertex.json.).
 import { type, blue } from "#schema";
@@ -10,6 +11,7 @@ import { vec4 } from "#math/vec4";
  */
 @blue.define("Tr2Sprite2dLineTraceVertex")
 @blue.interface()
+@blue.inherit(IRoot)
 export class Tr2Sprite2dLineTraceVertex
 {
 

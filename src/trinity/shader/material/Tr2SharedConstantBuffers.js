@@ -16,7 +16,7 @@ export class Tr2SharedConstantBuffers
   hash = 0;
 
   /** contents (const void*) */
-  @type.rootRef("void")
+  @type.unknown
   contents = null;
 
   /** buffer (Tr2ConstantBufferAL) */

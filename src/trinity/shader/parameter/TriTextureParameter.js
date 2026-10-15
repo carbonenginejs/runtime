@@ -22,8 +22,7 @@ import { RealizeTexture } from "../../core/Tr2ImageIOHelpers.js";
  * texture provider and the UV-density scales that drive mip selection.
  */
 @blue.define("TriTextureParameter")
-@blue.inherit(ITriEffectTextureParameter)
-@blue.inherit(IInitialize, INotify, ICopierCustomAssignment)
+@blue.inherit(ITriEffectTextureParameter, IInitialize, INotify, ICopierCustomAssignment)
 @blue.interface(ITriEffectParameter, ITriEffectResourceParameter, ITriEffectTextureParameter, IInitialize, INotify, ICopierCustomAssignment)
 export class TriTextureParameter extends CjsParameter
 {

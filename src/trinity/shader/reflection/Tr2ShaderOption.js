@@ -19,13 +19,13 @@ export class Tr2ShaderOption
 
   /** name (BlueSharedString) */
 
-  @blue.persist
+  @meta.persist
   @meta.struct.SHAREDSTRING_1(0)
   name = "";
 
   /** value (BlueSharedString) */
 
-  @blue.persist
+  @meta.persist
   @meta.struct.SHAREDSTRING_1(8)
   value = "";
 

@@ -12,8 +12,7 @@ import { CjsParameter } from "./CjsParameter.js";
  * an external scalar destination.
  */
 @blue.define("Tr2FloatParameter")
-@blue.inherit(ITriReroutable)
-@blue.inherit(IInitialize)
+@blue.inherit(ITriReroutable, IInitialize)
 @blue.interface(ITriEffectParameter, ITriReroutable, IInitialize)
 export class Tr2FloatParameter extends CjsParameter
 {

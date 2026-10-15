@@ -23,6 +23,7 @@ export class Tr2Sprite2dDisplayList
 
   /** Native release drops geometry and dirties the owner for recapture. */
   @meta.implemented
+  @blue.method
   ReleaseResources(_storage)
   {
     this.vertexBuffer.Destroy();
@@ -39,6 +40,7 @@ export class Tr2Sprite2dDisplayList
    * @returns {boolean} Always true, as Carbon returns.
    */
   @meta.implemented
+  @blue.method
   OnPrepareResources()
   {
     return true;

@@ -9,8 +9,7 @@ import { ResourceFlags } from "./ITr2EffectValue.js";
 
 /** Exposes one named channel of a texture animation as a shader resource and invalidates attached materials as it changes. */
 @blue.define("Tr2TextureAnimationParameter")
-@blue.inherit(ITriEffectResourceParameter)
-@blue.inherit(INotify)
+@blue.inherit(ITriEffectResourceParameter, INotify)
 @blue.interface(ITriEffectResourceParameter, INotify)
 export class Tr2TextureAnimationParameter extends CjsParameter
 {

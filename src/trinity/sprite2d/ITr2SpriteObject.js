@@ -1,8 +1,10 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Sprite2d/ITr2SpriteObject.h
 import { meta, blue } from "#schema";
 
 /** Native IRoot-shaped abstract contract shared by Sprite2D objects. */
 @blue.define({ className: "ITr2SpriteObject", abstract: true })
+@blue.inherit(IRoot)
 export class ITr2SpriteObject
 {
   /**

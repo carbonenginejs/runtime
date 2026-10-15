@@ -35,6 +35,7 @@ const verts = Array.from({ length: 4 }, () => new Tr2Sprite2dVertexBase()); // a
  */
 @blue.define({ className: "Tr2Sprite2dLine", purpose: "Defines a textured 2D line segment with per-end widths and colors and texture offset controls." })
 @blue.chainTo(Tr2TexturedSpriteObject)
+@blue.interface()
 export class Tr2Sprite2dLine extends Tr2TexturedSpriteObject
 {
 
@@ -106,6 +107,7 @@ export class Tr2Sprite2dLine extends Tr2TexturedSpriteObject
    * @returns {void}
    */
   @meta.implemented
+  @blue.method
   GatherSprites(renderer)
   {
     if (!this.display || this.spriteEffect === Tr2SpriteObjectEffect.TR2_SFX_NONE) return;
@@ -198,6 +200,7 @@ export class Tr2Sprite2dLine extends Tr2TexturedSpriteObject
    * @returns {null} Always null.
    */
   @meta.implemented
+  @blue.method
   PickPoint(_x, _y, _renderer)
   {
     return null;
@@ -209,6 +212,7 @@ export class Tr2Sprite2dLine extends Tr2TexturedSpriteObject
    * @returns {number} 4.
    */
   @meta.implemented
+  @blue.method
   GetVertexCount()
   {
     return 4;

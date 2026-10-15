@@ -1,3 +1,4 @@
+import { ITr2EffectValue } from "./ITr2EffectValue.js";
 // Source: trinity/trinity/Include/ITriEffectParameter.h:10-23
 //
 // The contract every shader parameter carries. Carbon casts to it -
@@ -18,7 +19,7 @@
 // methods below are ITriEffectParameter's own. `SupportsDirtyNotification` is
 // the one Carbon DEFAULTS rather than leaving pure, so it defaults here too.
 
-import { CjsSchema } from "#schema";
+import { CjsSchema, blue, meta } from "#schema";
 
 
 /** Contract for a shader parameter: its name, its effect handles and its content hash. */
@@ -56,4 +57,9 @@ export class ITriEffectParameter
 }
 
 
+CjsSchema.blue.inherit(ITr2EffectValue)(ITriEffectParameter);
+CjsSchema.decorateMethod(ITriEffectParameter, "GetParameterName", blue.method, meta.abstract);
+CjsSchema.decorateMethod(ITriEffectParameter, "RebuildEffectHandles", blue.method, meta.abstract);
+CjsSchema.decorateMethod(ITriEffectParameter, "GetHashValue", blue.method, meta.abstract);
+CjsSchema.decorateMethod(ITriEffectParameter, "SupportsDirtyNotification", blue.method);
 CjsSchema.blue.define(ITriEffectParameter, { className: "ITriEffectParameter" });

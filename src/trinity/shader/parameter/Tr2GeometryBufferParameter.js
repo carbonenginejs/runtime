@@ -11,8 +11,7 @@ import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 
 /** Carries a named shader-buffer path for host resolution or a caller-owned GPU buffer reference. */
 @blue.define("Tr2GeometryBufferParameter")
-@blue.inherit(ITriEffectResourceParameter)
-@blue.inherit(IInitialize, INotify)
+@blue.inherit(ITriEffectResourceParameter, IInitialize, INotify)
 @blue.interface(ITriEffectParameter, ITriEffectResourceParameter, IInitialize, INotify)
 export class Tr2GeometryBufferParameter extends CjsParameter
 {

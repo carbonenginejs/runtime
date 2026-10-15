@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema sprite2d/Tr2Sprite2dVertexBase.json.).
-import { type, blue } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -22,8 +22,8 @@ export class Tr2Sprite2dVertexBase
    * Native position (Vector3).
    * @type {Float32Array}
    */
-  @blue.readwrite
-  @blue.persist
+  @meta.readwrite
+  @meta.persist
   @type.vec3
   position = vec3.create();
 

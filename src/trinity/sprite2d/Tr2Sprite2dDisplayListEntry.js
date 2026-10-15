@@ -10,7 +10,7 @@ import { Tr2RenderUtils } from "../core/Tr2RenderUtils.js";
 import { PER_OBJECT_VS_GUI } from "../core/Tr2Renderer.js";
 
 /** Carbon's nested Tr2Sprite2dDisplayList::Entry render callback. */
-@blue.define("Tr2Sprite2dDisplayListEntry")
+@blue.define({ className: "Tr2Sprite2dDisplayListEntry", donors: ["Tr2Sprite2dDisplayList::Entry"] })
 export class Tr2Sprite2dDisplayListEntry
 {
   job = null;
@@ -29,6 +29,7 @@ export class Tr2Sprite2dDisplayListEntry
 
   /** Native transpose/upload/draw; typed arrays replace the native stack matrix array. */
   @meta.adapted
+  @blue.method
   SubmitGeometry(context)
   {
     for (let i = 0; i < 32; i++) mat4.transpose(this._transposedTransforms.subarray(i * 16, (i + 1) * 16), this.transformArray[i]);

@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/ITr2EffectValue.h:14-19
 //
 // The flag word every effect parameter shares.
@@ -12,7 +13,7 @@
 // A COPY IN EACH READER WOULD HAVE WORKED AND THAT IS THE PROBLEM: nothing
 // would have caught the day one of them disagreed.
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 
 /**
  * Flags a resource is bound with, stored by a mapped resource in
@@ -84,4 +85,9 @@ export class ITr2EffectValue
   }
 }
 
+CjsSchema.blue.inherit(IRoot)(ITr2EffectValue);
+CjsSchema.decorateMethod(ITr2EffectValue, "CopyValueToEffect", blue.method);
+CjsSchema.decorateMethod(ITr2EffectValue, "CopyToResourceSet", blue.method);
+CjsSchema.decorateMethod(ITr2EffectValue, "ApplyUav", blue.method);
+CjsSchema.decorateMethod(ITr2EffectValue, "AddUsedTexture", blue.method);
 CjsSchema.blue.define(ITr2EffectValue, { className: "ITr2EffectValue", fields: {} });

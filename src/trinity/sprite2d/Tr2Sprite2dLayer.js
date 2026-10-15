@@ -37,6 +37,7 @@ function toUint32(value)
 @blue.define({ className: "Tr2Sprite2dLayer", purpose: "Defines a sprite container layer with blend and effect state plus optional background clearing." })
 @blue.chainTo(Tr2Sprite2dContainer)
 @blue.inherit(ITr2Sprite2dTextureNotifyTarget)
+@blue.interface()
 export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
 {
 
@@ -126,6 +127,7 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * @returns {void}
    */
   @meta.implemented
+  @blue.method
   SetChildDirty(_child)
   {
     this.isDirty = true;
@@ -145,6 +147,7 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * @returns {void}
    */
   @meta.implemented
+  @blue.method
   GatherSprites(renderer)
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -202,6 +205,7 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * @returns {boolean} Whether the render target exists.
    */
   @meta.implemented
+  @blue.method
   _OnPrepareResources()
   {
     if (this._renderTarget.IsValid()) return true;
@@ -228,6 +232,7 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * @returns {void}
    */
   @meta.implemented
+  @blue.method
   ReleaseResources(_storage)
   {
     this._FreeRenderTarget();
@@ -240,6 +245,7 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * @returns {void}
    */
   @meta.implemented
+  @blue.method
   _AllocateRenderTarget()
   {
     if (this._renderTarget.IsValid() && toUint32(this.displayWidth) === this._renderTarget.GetWidth() && toUint32(this.displayHeight) === this._renderTarget.GetHeight()) return;
@@ -261,6 +267,7 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * @returns {void}
    */
   @meta.adapted
+  @blue.method
   _FreeRenderTarget()
   {
     this._renderTarget.Destroy();
@@ -274,6 +281,7 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * @returns {number} 0.
    */
   @meta.implemented
+  @blue.method
   GetVertexCount()
   {
     return 0;
@@ -287,6 +295,7 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * @returns {void}
    */
   @meta.implemented
+  @blue.method
   _SetTextureSecondary(t)
   {
     if (t !== this._textureSecondary)
@@ -304,6 +313,7 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * @returns {ITr2Sprite2dTexture|null} The secondary texture.
    */
   @meta.implemented
+  @blue.method
   _GetTextureSecondary()
   {
     return this._textureSecondary;
@@ -317,6 +327,7 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * @returns {void}
    */
   @meta.implemented
+  @blue.method
   Sprite2dTextureChanged(_p)
   {
     this.SetDirty();

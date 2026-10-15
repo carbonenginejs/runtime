@@ -50,6 +50,7 @@ export class Tr2Sprite2d extends Tr2TexturedSpriteObject
    * Adapted: Array slices replace native pointers; indices stay relative to the slice.
    */
   @meta.adapted
+  @blue.method
   GatherSprites(renderer)
   {
     const effects = Tr2SpriteObjectEffect;
@@ -113,6 +114,7 @@ export class Tr2Sprite2d extends Tr2TexturedSpriteObject
 
   /** Tests authored dimensions and the optional mask in the active transform. */
   @meta.implemented
+  @blue.method
   PickPoint(x, y, renderer)
   {
     if (!this.display || this.pickState !== Tr2SpriteObjectPickState.TR2_SPS_ON) return null;
@@ -127,6 +129,7 @@ export class Tr2Sprite2d extends Tr2TexturedSpriteObject
 
   /** Budgets a quad plus optional shadow and glow quads before gathering. */
   @meta.implemented
+  @blue.method
   GetVertexCount()
   {
     if (!this.display) return 0;

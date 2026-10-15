@@ -23,13 +23,13 @@ export class Tr2ConstantEffectParameter
 
   /** name (BlueSharedString) - persisted via the constParameters structure list. */
 
-  @blue.persist
+  @meta.persist
   @meta.struct.SHAREDSTRING_1(0)
   name = "";
 
   /** value (Vector4) - persisted via the constParameters structure list. */
 
-  @blue.persist
+  @meta.persist
   @meta.struct.FLOAT32_4(8)
   value = vec4.create();
 

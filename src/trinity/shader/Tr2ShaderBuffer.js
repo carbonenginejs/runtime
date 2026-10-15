@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Shader/Tr2ShaderBuffer.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta, type, blue } from "#schema";
@@ -10,6 +11,8 @@ const EMPTY_DATA = new Uint8Array(0); // alloc: shared empty byte payload, never
 
 /** Owns a detached byte payload and binds it at the selected stage's per-object register. */
 @blue.define("Tr2ShaderBuffer")
+@blue.inherit(IRoot)
+@blue.interface()
 export class Tr2ShaderBuffer
 {
 
@@ -42,6 +45,7 @@ export class Tr2ShaderBuffer
    * Sets which shader stage this buffer belongs to; a non-numeric value becomes
    * 0.
    */
+  @blue.method
   SetShaderType(shaderType)
   {
     this.shaderType = Number(shaderType) || 0;
@@ -54,6 +58,7 @@ export class Tr2ShaderBuffer
    * @returns {boolean} Whether the upload and binding succeeded.
    */
   @meta.implemented
+  @blue.method
   ApplyBuffer(renderContext)
   {
     return Tr2RenderUtils.fillAndSetConstants(

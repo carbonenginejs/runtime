@@ -1,3 +1,4 @@
+import { IInitialize } from "../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Shader/Utils/Tr2DataTextureManager.h
 // Source: trinity/trinity/Shader/Utils/Tr2DataTextureManager.cpp
 // Source: trinity/trinity/Shader/Utils/Tr2DataTextureManager_Blue.cpp
@@ -29,6 +30,8 @@ const VEC4_BYTES = 16;
 
 /** Packs shader-readable data blocks into the shared impact data texture. */
 @blue.define("Tr2DataTextureManager")
+@blue.inherit(IInitialize)
+@blue.interface()
 export class Tr2DataTextureManager
 {
 

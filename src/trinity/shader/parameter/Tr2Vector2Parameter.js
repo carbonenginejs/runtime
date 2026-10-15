@@ -14,8 +14,7 @@ import { CjsVectorParameter } from "./CjsVectorParameter.js";
  * handling and optional rerouting into an external destination.
  */
 @blue.define("Tr2Vector2Parameter")
-@blue.inherit(ITriReroutable)
-@blue.inherit(IInitialize)
+@blue.inherit(ITriReroutable, IInitialize)
 @blue.interface(ITriEffectParameter, ITriReroutable, IInitialize)
 export class Tr2Vector2Parameter extends CjsVectorParameter
 {
@@ -49,6 +48,8 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
   #reroutedValue = null;
 
   /** Blue MAP_PROPERTY "x"/"v1" - refreshes from the rerouted value on read. */
+  @blue.readwrite
+  @type.float32
   get x()
   {
     this.#RefreshFromReroute();
@@ -65,6 +66,8 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
   }
 
   /** Blue MAP_PROPERTY "y"/"v2". */
+  @blue.readwrite
+  @type.float32
   get y()
   {
     this.#RefreshFromReroute();
@@ -81,6 +84,8 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
   }
 
   /** Blue MAP_PROPERTY alias reading `x`. */
+  @blue.readwrite
+  @type.float32
   get v1()
   {
     return this.x;
@@ -93,6 +98,8 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
   }
 
   /** Blue MAP_PROPERTY alias reading `y`. */
+  @blue.readwrite
+  @type.float32
   get v2()
   {
     return this.y;

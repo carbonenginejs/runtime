@@ -1,3 +1,4 @@
+import { CjsParameter } from "../../npm/dist/trinity/shader/parameter/CjsParameter.js";
 import { NotifyModified } from "../../npm/dist/global/blue/index.js";
 import { NOTIFY_METHODS } from "../../npm/dist/global/compose/notify.js";
 import { composeStubResMan } from "../support/stubResMan.js";
@@ -128,7 +129,7 @@ test("promoted shader parameters expose source-backed Carbon metadata", () =>
   assertEquals(CjsSchema.getConstructor("TriTextureParameter"), TriTextureParameter);
   assertEquals(CjsSchema.getConstructor("TriVector4"), TriVector4);
   assertEquals(CjsSchema.getConstructor("TriFloatArrayParameter"), TriFloatArrayParameter);
-  assertEquals(CjsSchema.getConstructor("CjsParameter"), null);
+  assertEquals(CjsSchema.getConstructor("CjsParameter"), CjsParameter);
   assertEquals(CjsSchema.getField(Tr2FloatParameter, "value")?.type.kind, "float32");
   assertEquals(CjsSchema.getField(Tr2Vector4Parameter, "value")?.type.kind, "vec4");
   assertEquals(CjsSchema.getField(Tr2Matrix4Parameter, "value")?.type.kind, "mat4");

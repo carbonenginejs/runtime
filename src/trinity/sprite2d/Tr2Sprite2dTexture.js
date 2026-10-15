@@ -131,6 +131,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @returns {void}
    */
   @meta.implemented
+  @blue.method
   _SetDirty()
   {
     for (const target of this._changeListeners) target.Sprite2dTextureChanged(this);

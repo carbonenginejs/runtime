@@ -141,6 +141,7 @@ function prepareEdgeQuad(arc, verts, current, angle, innerRadius)
  */
 @blue.define({ className: "Tr2Sprite2dArc", purpose: "Defines a filled or outlined 2D arc with angular span, radius, colors, widths, and primary and secondary textures." })
 @blue.chainTo(Tr2SpriteObject)
+@blue.interface()
 export class Tr2Sprite2dArc extends Tr2SpriteObject
 {
 
@@ -214,6 +215,7 @@ export class Tr2Sprite2dArc extends Tr2SpriteObject
    * @returns {number} The vertex capacity the next dirty gather allocates.
    */
   @meta.adapted
+  @blue.method
   GetVertexCount()
   {
     let numVerts = 0;
@@ -259,6 +261,7 @@ export class Tr2Sprite2dArc extends Tr2SpriteObject
    * @returns {void}
    */
   @meta.adapted
+  @blue.method
   GatherSprites(renderer)
   {
     const effects = Tr2SpriteObjectEffect;
@@ -427,6 +430,7 @@ export class Tr2Sprite2dArc extends Tr2SpriteObject
    * @returns {null} Always null.
    */
   @meta.implemented
+  @blue.method
   PickPoint(_x, _y, _renderer)
   {
     return null;
@@ -439,6 +443,7 @@ export class Tr2Sprite2dArc extends Tr2SpriteObject
    * @returns {void}
    */
   @meta.implemented
+  @blue.method
   _ClearVertices()
   {
     this._renderVertices = null;

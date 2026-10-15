@@ -24,6 +24,7 @@ export class ITr2Sprite2dTextureNotifyTarget
    * @returns {void}
    */
   @meta.abstract
+  @blue.method
   Sprite2dTextureChanged(_texture)
   {
     throw new Error("ITr2Sprite2dTextureNotifyTarget.Sprite2dTextureChanged must be implemented by a concrete listener.");

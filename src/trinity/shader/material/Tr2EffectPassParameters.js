@@ -10,7 +10,7 @@ export class Tr2EffectPassParameters
 {
 
   /** m_stageInput (Tr2MaterialStageInput) */
-  @type.rawStruct("Tr2MaterialStageInput")
+  @type.array({ kind: "rawStruct", className: "Tr2MaterialStageInput" })
   stageInput = Array.from({ length: 6 }, () => new Tr2MaterialStageInput());
 
   /** m_reroutedParameters (std::vector<ITriReroutable*>) */
@@ -62,6 +62,7 @@ export class Tr2EffectPassParameters
   usedTexturesDirty = false;
 
   /** Records a resource this pass binds and marks the used-texture list stale. */
+  @blue.method
   AddUsedResource(resource)
   {
     this.usedResources.push(resource);
@@ -72,6 +73,7 @@ export class Tr2EffectPassParameters
    * Records a parameter whose value destination has been rerouted into this
    * pass's storage.
    */
+  @blue.method
   AddReroutable(reroutable)
   {
     this.reroutedParameters.push(reroutable);
@@ -82,6 +84,7 @@ export class Tr2EffectPassParameters
    * @param type stage index into stageInput
    * @param size mirror size in bytes, rounded up to 16 by the stage
    */
+  @blue.method
   AllocateConstantMirror(type, size)
   {
     this.#stage(type).AllocateConstants(size);
@@ -91,6 +94,7 @@ export class Tr2EffectPassParameters
    * Fills one stage's constant mirror from already-built shared buffer contents and clears that stage's dirty flag.
    * @param type stage index into stageInput
    */
+  @blue.method
   GetSharedConstantBuffer(type, contents, size)
   {
     this.#stage(type).GetSharedConstantBuffer(contents, size);

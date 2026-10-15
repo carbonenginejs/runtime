@@ -11,7 +11,7 @@
 // interface in this header, ITriEffectTextureParameter, is quarantined in
 // src/trinity/dropped.
 
-import { CjsSchema } from "#schema";
+import { CjsSchema, blue } from "#schema";
 import { ITriEffectParameter } from "./ITriEffectParameter.js";
 
 
@@ -44,4 +44,6 @@ export class ITriEffectResourceParameter extends ITriEffectParameter
 }
 
 
+CjsSchema.decorateMethod(ITriEffectResourceParameter, "OnAddedToMaterial", blue.method);
+CjsSchema.decorateMethod(ITriEffectResourceParameter, "OnRemovedFromMaterial", blue.method);
 CjsSchema.blue.define(ITriEffectResourceParameter, { className: "ITriEffectResourceParameter" });
