@@ -7,6 +7,7 @@ import { meta, type, blue } from "#schema";
 
 
 /** Linear particle drag: a force proportional to velocity and opposing it. */
+@blue.interface(ITr2ParticleForce)
 @blue.define("Tr2ParticleDragForce")
 export class Tr2ParticleDragForce extends ITr2ParticleForce
 {

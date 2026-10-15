@@ -7,6 +7,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
 /** A time-evolving four-dimensional Perlin turbulence force applied to particle motion. */
+@blue.interface(ITr2ParticleForce)
 @blue.define("Tr2ParticleTurbulenceForce")
 export class Tr2ParticleTurbulenceForce extends ITr2ParticleForce
 {
@@ -42,6 +43,7 @@ export class Tr2ParticleTurbulenceForce extends ITr2ParticleForce
    *
    * Adapted: Uses core-math's browser port of Carbon's four-dimensional turbulence lookup.
    */
+  @blue.method
   @meta.adapted
   GetForce(position, _velocity, _dt, _mass, out = vec3.create())
   {
@@ -82,6 +84,7 @@ export class Tr2ParticleTurbulenceForce extends ITr2ParticleForce
   /**
    * Advances the time accumulator that animates the turbulence field.
    */
+  @blue.method
   @meta.implemented
   Update(dt)
   {

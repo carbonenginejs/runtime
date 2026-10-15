@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Particle/Tr2GpuParticleSystem.h
 // Source: trinity/trinity/Particle/Tr2GpuParticleSystem.cpp
 // Source: trinity/trinity/Particle/Tr2GpuParticleSystem_Blue.cpp
-import { IsMatch } from "#blue";
+import { IsMatch, INotify } from "#blue";
 import { IInitialize } from "../../global/blue/IInitialize.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 //
@@ -91,8 +91,8 @@ function CheckEffect(effect)
 
 /** Describes the GPU particle pipeline's capacity, visible-count controls, and compute and render effect stages. */
 @blue.define({ className: "Tr2GpuParticleSystem", purpose: "Describes the GPU particle pipeline's capacity, visible-count controls, and compute and render effect stages." })
-@blue.inherit(IInitialize)
-@blue.interface(IInitialize)
+@blue.inherit(IInitialize, INotify)
+@blue.interface(IInitialize, INotify)
 export class Tr2GpuParticleSystem
 {
 

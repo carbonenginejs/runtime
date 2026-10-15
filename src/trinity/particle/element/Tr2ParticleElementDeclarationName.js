@@ -40,6 +40,7 @@ export class Tr2ParticleElementDeclarationName
   }
 
   /** Carbon GetName - human-readable name; CUSTOM returns the custom name. */
+  @blue.method
   GetName()
   {
     if (this.type >= Tr2ParticleElementDeclarationName.Type.CUSTOM)
@@ -54,6 +55,7 @@ export class Tr2ParticleElementDeclarationName
    * (LIFETIME->TANGENT, POSITION->POSITION, VELOCITY->NORMAL,
    * MASS->BITANGENT, CUSTOM->TEXCOORD).
    */
+  @blue.method
   GetD3DUsage()
   {
     return Tr2ParticleElementDeclarationName.#usageCodes[this.type];

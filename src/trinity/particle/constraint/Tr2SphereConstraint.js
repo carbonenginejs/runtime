@@ -1,4 +1,4 @@
-import { BlueList, IListNotify } from "#blue";
+import { BlueList, IListNotify, IInitialize } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ITr2GenericEmitter } from "../ITr2GenericEmitter/ITr2GenericEmitter.js";
 // Source: trinity/trinity/Particle/Tr2SphereConstraint.h
@@ -11,7 +11,7 @@ import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDecl
 
 /** A collision constraint that keeps particles outside or inside a sphere, reflecting velocity and triggering generators and emitters on contact. */
 @blue.define("Tr2SphereConstraint")
-@blue.inherit(IListNotify)
+@blue.inherit(IInitialize, IListNotify)
 @blue.interface(ITr2GenericParticleConstraint)
 export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
 {
@@ -122,6 +122,7 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
   /**
    * Propagates the thread-safe flag to the on-collision emitters.
    */
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -135,6 +136,7 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
   /**
    * Resolves the position, velocity and radius elements and binds the attached generators, marking the constraint valid only when all of them resolve.
    */
+  @blue.method
   @meta.adapted
   Bind(particleSystem)
   {
@@ -172,6 +174,7 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
    * Adapted: Runs single-threaded against the CPU element views; Carbon's particle RNG is
    * replaced by Math.random.
    */
+  @blue.method
   @meta.adapted
   ApplyConstraint(arguments_, _buffers, _strides, count, dt)
   {

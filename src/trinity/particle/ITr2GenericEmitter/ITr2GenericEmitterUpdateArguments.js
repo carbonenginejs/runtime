@@ -6,7 +6,7 @@ import { meta, type, blue } from "#schema";
 
 
 /** Per-frame values passed to an ITr2GenericEmitter update or spawn call. */
-@blue.define("ITr2GenericEmitterUpdateArguments")
+@blue.define({ className: "ITr2GenericEmitterUpdateArguments", donors: ["ITr2GenericEmitter::UpdateArguments"] })
 export class ITr2GenericEmitterUpdateArguments
 {
   @type.float64

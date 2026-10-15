@@ -10,6 +10,7 @@ import { meta, type, blue } from "#schema";
  * Linear spring pulling particles toward a fixed position with a force
  * proportional to displacement.
  */
+@blue.interface(ITr2ParticleForce)
 @blue.define("Tr2ParticleSpring")
 export class Tr2ParticleSpring extends ITr2ParticleForce
 {

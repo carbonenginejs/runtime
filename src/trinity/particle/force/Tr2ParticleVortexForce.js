@@ -10,6 +10,7 @@ import { meta, type, blue } from "#schema";
  * Particle force of constant magnitude directed tangentially around an axis
  * through a fixed position, swirling particles about it.
  */
+@blue.interface(ITr2ParticleForce)
 @blue.define("Tr2ParticleVortexForce")
 export class Tr2ParticleVortexForce extends ITr2ParticleForce
 {

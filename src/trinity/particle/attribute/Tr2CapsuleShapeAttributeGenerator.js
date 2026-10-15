@@ -8,6 +8,7 @@ import { bindParticleElement } from "../element/particleElementBinding.js";
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
 
 /** Generates particle position and velocity offsets sampled within a capsule volume interpolated between a start and end transform. */
+@blue.interface(ITr2AttributeGenerator)
 @blue.define("Tr2CapsuleShapeAttributeGenerator")
 export class Tr2CapsuleShapeAttributeGenerator extends ITr2AttributeGenerator
 {
@@ -108,6 +109,7 @@ export class Tr2CapsuleShapeAttributeGenerator extends ITr2AttributeGenerator
   /**
    * Resolves the position element, and the velocity element when velocity control is enabled, marking the generator valid only when both required elements resolve.
    */
+  @blue.method
   @meta.implemented
   Bind(particleSystem, boundElements)
   {
@@ -134,6 +136,7 @@ export class Tr2CapsuleShapeAttributeGenerator extends ITr2AttributeGenerator
    * Adapted: Carbon's particle RNG is replaced by Math.random while retaining its capsule
    * sampling and interpolation order.
    */
+  @blue.method
   @meta.adapted
   Generate(parentPosition, parentVelocity, index)
   {
@@ -190,6 +193,7 @@ export class Tr2CapsuleShapeAttributeGenerator extends ITr2AttributeGenerator
   /**
    * A label saying whether the generator controls position only, or position and velocity.
    */
+  @blue.method
   @meta.implemented
   GetName()
   {
@@ -199,6 +203,7 @@ export class Tr2CapsuleShapeAttributeGenerator extends ITr2AttributeGenerator
   /**
    * Copies the given start and end positions and rotations into the capsule endpoints.
    */
+  @blue.method
   @meta.implemented
   SetPositions(startPosition, startRotation, endPosition, endRotation)
   {

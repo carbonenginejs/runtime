@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Particle/Tr2StaticEmitter.h
 // Source: trinity/trinity/Particle/Tr2StaticEmitter.cpp
-import { be, IsMatch } from "#blue";
+import { be, IsMatch, INotify } from "#blue";
 import { ResourceRequirement } from "#resource";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
@@ -26,9 +26,8 @@ import { CarbonUsageFromChannel, CarbonUsageFromCmf } from "../../core/vertex/ve
 
 /** A one-shot particle emitter that spawns one particle per vertex of a geometry mesh on first update. */
 @blue.define("Tr2StaticEmitter")
-@blue.inherit(ITr2GenericEmitter)
-@blue.inherit(IInitialize)
-@blue.interface(IInitialize)
+@blue.inherit(ITr2GenericEmitter, INotify, IInitialize)
+@blue.interface(ITr2GenericEmitter, INotify, IInitialize)
 export class Tr2StaticEmitter
 {
 
@@ -153,6 +152,7 @@ export class Tr2StaticEmitter
    *
    * @returns {boolean} Always true.
    */
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -171,6 +171,7 @@ export class Tr2StaticEmitter
    * @param {string|null} [propertyName=null] The modified member, by exposed name.
    * @returns {boolean} Always true.
    */
+  @blue.method
   @meta.implemented
   OnModified(propertyName = null)
   {
@@ -192,6 +193,7 @@ export class Tr2StaticEmitter
    * Adapted: JavaScript updates are single-threaded; the flag is retained and propagated
    * only for Carbon contract parity.
    */
+  @blue.method
   @meta.adapted
   SetThreadSafeFlag()
   {
@@ -203,12 +205,14 @@ export class Tr2StaticEmitter
    * Both Carbon SpawnParticles overloads are empty for the static emitter -
    * it only spawns once from Update (Tr2StaticEmitter.cpp:293-308).
    */
+  @blue.method
   @meta.noop
   SpawnParticles(_arguments, _position = null, _velocity = null, _rateModifier = 1)
   {
   }
 
   /** Carbon's start/end SpawnParticles overload; empty, as above. */
+  @blue.method
   @meta.noop
   SpawnParticles__StartEnd(_arguments, _positionStart, _positionEnd, _velocityStart, _velocityEnd, _deltaTime)
   {
@@ -219,6 +223,7 @@ export class Tr2StaticEmitter
    *
    * @returns {void}
    */
+  @blue.method
   @meta.implemented
   Update(_updateArguments)
   {

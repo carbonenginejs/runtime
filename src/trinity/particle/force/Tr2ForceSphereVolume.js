@@ -5,6 +5,7 @@ import { ITr2ParticleForce } from "./ITr2ParticleForce.js";
 import { vec3 } from "#math/vec3";
 
 /** Aggregates child forces within a spherical region, scaling their combined contribution by a falloff toward the sphere's edge. */
+@blue.interface(ITr2ParticleForce)
 @blue.define("Tr2ForceSphereVolume")
 export class Tr2ForceSphereVolume extends ITr2ParticleForce
 {
@@ -45,6 +46,7 @@ export class Tr2ForceSphereVolume extends ITr2ParticleForce
   /**
    * Does nothing: the contained forces are not updated through the volume.
    */
+  @blue.method
   @meta.noop
   Update(_dt)
   {
@@ -54,6 +56,7 @@ export class Tr2ForceSphereVolume extends ITr2ParticleForce
    * Child-force aggregation with (1 - d/r)^exponent falloff inside the sphere
    * (Tr2ForceSphereVolume.cpp:38-59).
    */
+  @blue.method
   @meta.adapted
   GetForce(position, velocity, dt, mass, out = vec3.create())
   {

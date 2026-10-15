@@ -10,6 +10,7 @@ import { meta, type, blue } from "#schema";
  * Quadratic fluid drag on particles, clamped so a single integration step can
  * never push a particle's velocity past zero into a reversal.
  */
+@blue.interface(ITr2ParticleForce)
 @blue.define("Tr2ParticleFluidDragForce")
 export class Tr2ParticleFluidDragForce extends ITr2ParticleForce
 {

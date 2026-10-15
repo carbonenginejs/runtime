@@ -7,6 +7,7 @@ import { meta, type, blue } from "#schema";
 
 
 /** Constant particle force vector, applied identically to every particle. */
+@blue.interface(ITr2ParticleForce)
 @blue.define("Tr2ParticleDirectForce")
 export class Tr2ParticleDirectForce extends ITr2ParticleForce
 {

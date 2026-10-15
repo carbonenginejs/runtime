@@ -1,8 +1,10 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/ITr2AttributeGenerator.h
 import { meta, blue } from "#schema";
 
 
 /** Required particle-attribute generation contract. */
+@blue.inherit(IRoot)
 @blue.define("ITr2AttributeGenerator")
 export class ITr2AttributeGenerator
 {

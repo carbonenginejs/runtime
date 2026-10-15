@@ -6,6 +6,7 @@ import { bindParticleElement } from "../element/particleElementBinding.js";
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
 
 /** Generates a per-particle attribute as a random unit vector spanning the bound element's dimension. */
+@blue.interface(ITr2AttributeGenerator)
 @blue.define("Tr2RandomDirectionAttributeGenerator")
 export class Tr2RandomDirectionAttributeGenerator extends ITr2AttributeGenerator
 {
@@ -33,6 +34,7 @@ export class Tr2RandomDirectionAttributeGenerator extends ITr2AttributeGenerator
   /**
    * Resolves the target element by semantic type or custom name, marking the generator valid only when it resolves.
    */
+  @blue.method
   @meta.implemented
   Bind(particleSystem, boundElements)
   {
@@ -49,6 +51,7 @@ export class Tr2RandomDirectionAttributeGenerator extends ITr2AttributeGenerator
    * Adapted: Carbon's particle RNG is replaced by Math.random while retaining its
    * rejection-free normalize-or-fallback sampling.
    */
+  @blue.method
   @meta.adapted
   Generate(position, velocity, index)
   {
@@ -86,6 +89,7 @@ export class Tr2RandomDirectionAttributeGenerator extends ITr2AttributeGenerator
   /**
    * The bound element's component count, or zero when unbound.
    */
+  @blue.method
   @meta.implemented
   GetDimension()
   {
@@ -95,6 +99,7 @@ export class Tr2RandomDirectionAttributeGenerator extends ITr2AttributeGenerator
   /**
    * The bound element's custom name, or its semantic type name.
    */
+  @blue.method
   @meta.implemented
   GetName()
   {

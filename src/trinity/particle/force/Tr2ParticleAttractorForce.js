@@ -10,6 +10,7 @@ import { meta, type, blue } from "#schema";
  * Particle force of constant magnitude pointing at a fixed position, regardless
  * of distance.
  */
+@blue.interface(ITr2ParticleForce)
 @blue.define("Tr2ParticleAttractorForce")
 export class Tr2ParticleAttractorForce extends ITr2ParticleForce
 {

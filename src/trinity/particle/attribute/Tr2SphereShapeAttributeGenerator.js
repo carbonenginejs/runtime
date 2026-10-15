@@ -8,6 +8,7 @@ import { bindParticleElement } from "../element/particleElementBinding.js";
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
 
 /** Generates particle position and velocity offsets sampled within a rotated spherical cone and radius range. */
+@blue.interface(ITr2AttributeGenerator)
 @blue.define("Tr2SphereShapeAttributeGenerator")
 export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
 {
@@ -108,6 +109,7 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
   /**
    * Resolves the position and velocity elements according to the control flags, marking the generator valid only when every required element resolves.
    */
+  @blue.method
   @meta.implemented
   Bind(particleSystem, boundElements)
   {
@@ -136,6 +138,7 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
    * Adapted: Carbon's particle RNG is replaced by Math.random while retaining its cone
    * sampling, rotation and distribution-exponent order.
    */
+  @blue.method
   @meta.adapted
   Generate(parentPosition, parentVelocity, index)
   {
@@ -185,6 +188,7 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
   /**
    * A label saying whether the generator controls position, velocity, both, or neither.
    */
+  @blue.method
   @meta.implemented
   GetName()
   {
@@ -199,6 +203,7 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
    *
    * Adapted: Carbon's paired reference outputs become caller-provided out arguments.
    */
+  @blue.method
   @meta.adapted
   GetTransform(outPosition, outRotation)
   {
@@ -209,6 +214,7 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
   /**
    * Copies the given position and rotation into the generator's transform.
    */
+  @blue.method
   @meta.implemented
   SetTransform(position, rotation)
   {

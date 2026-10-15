@@ -132,6 +132,7 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
    * shared spawning. The renamed entry remains available to existing callers.
    * Formerly SpawnParticlesSegment.
    */
+  @blue.method
   @meta.adapted
   SpawnParticles__StartEnd(arguments_, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime)
   {

@@ -24,11 +24,8 @@ import { ITr2GpuBuffer } from "../core/ITr2GpuBuffer.js";
 
 /** Owns a particle system's element declaration, CPU-side attribute buffers, and per-frame simulation of aging, forces, movement, constraints and bounds. */
 @blue.define("Tr2ParticleSystem")
-@blue.inherit(ITr2InstanceData, ITr2GpuBuffer)
-@blue.inherit(IInitialize)
-@blue.inherit(ISimTimeRebaseNotify)
+@blue.inherit(IInitialize, INotify, IListNotify, ITr2InstanceData, ITr2GpuBuffer, ISimTimeRebaseNotify)
 @blue.interface(IInitialize, INotify, ITr2InstanceData, ITr2GpuBuffer)
-@blue.inherit(IListNotify)
 export class Tr2ParticleSystem
 {
 
@@ -249,6 +246,7 @@ export class Tr2ParticleSystem
    * particles. Typed arrays replace aligned CPU allocations; this retained
    * JS setter returns the new capacity and clears its cached empty bounds.
    */
+  @blue.method
   @meta.adapted
   SetMaxParticleCount(value)
   {
@@ -275,6 +273,7 @@ export class Tr2ParticleSystem
   }
 
   /** Returns the currently active, possibly LOD-clamped particle budget. */
+  @blue.method
   @meta.implemented
   GetMaxParticleCount()
   {
@@ -282,6 +281,7 @@ export class Tr2ParticleSystem
   }
 
   /** Returns the particle budget captured when the declaration was built. */
+  @blue.method
   @meta.implemented
   GetOriginalMaxParticles()
   {
@@ -292,12 +292,14 @@ export class Tr2ParticleSystem
    * Carbon allocates an insertion mutex; JavaScript simulation is single
    * threaded, so the contract is an exact no-op at this layer.
    */
+  @blue.method
   @meta.noop
   SetThreadSafeFlag()
   {
   }
 
   /** Carbon IsValid (Tr2ParticleSystem.cpp:1339-1342): whether the element layout was built. */
+  @blue.method
   @meta.implemented
   IsValid()
   {
@@ -305,6 +307,7 @@ export class Tr2ParticleSystem
   }
 
   /** Carbon IsDynamic (cpp:1351-1354): a dynamic system runs its simulation, a static one does not. */
+  @blue.method
   @meta.implemented
   IsDynamic()
   {
@@ -317,6 +320,7 @@ export class Tr2ParticleSystem
    * read-only property "gpuStride" (Tr2ParticleSystem_Blue.cpp:115-118).
    * @returns {number}
    */
+  @blue.method
   @meta.implemented
   GetGpuStride()
   {
@@ -338,6 +342,7 @@ export class Tr2ParticleSystem
    * and the live count to a caller's constraint, then marks the buffers for upload.
    * @param {Function} constraint - (buffers, strides, count) => void
    */
+  @blue.method
   @meta.implemented
   ApplyConstraint(constraint)
   {
@@ -600,6 +605,7 @@ export class Tr2ParticleSystem
    * cadence, preserves previous-frame data, and advances CPU particles.
    * JS timestamps are seconds; native sorting hysteresis uses that delta.
    */
+  @blue.method
   @meta.adapted
   Update(globalArguments)
   {
@@ -648,6 +654,7 @@ export class Tr2ParticleSystem
   }
 
   /** Whether the vertex declaration is initialized (independent of buffer validity). */
+  @blue.method
   @meta.implemented
   IsInstanceDataReady()
   {
@@ -659,6 +666,7 @@ export class Tr2ParticleSystem
    * Adapted: JS reuses a mutable record; Carbon returns InstanceData by value
    * (Tr2ParticleSystem.cpp:306-309). Copy fields before retaining a snapshot.
    */
+  @blue.method
   @meta.adapted
   GetInstanceData(_bufferIndex = 0, _screenSize = 0)
   {
@@ -670,6 +678,7 @@ export class Tr2ParticleSystem
   }
 
   /** Returns Carbon's interned vertex declaration handle. */
+  @blue.method
   @meta.implemented
   GetInstanceBufferVertexDeclaration(_bufferIndex = 0)
   {
@@ -677,6 +686,7 @@ export class Tr2ParticleSystem
   }
 
   /** Returns the borrowed physical particle buffer (the index is unused). */
+  @blue.method
   @meta.implemented
   GetGpuBuffer(_bufferIndex = 0)
   {
@@ -687,6 +697,7 @@ export class Tr2ParticleSystem
    * Releases the AL allocation and declaration while retaining CPU particles.
    * JS explicitly destroys the handle instead of replacing a C++ RAII value.
    */
+  @blue.method
   @meta.adapted
   ReleaseResources()
   {
@@ -698,6 +709,7 @@ export class Tr2ParticleSystem
   }
 
   /** Recreates the declaration and buffer; Carbon reports true even if allocation fails. */
+  @blue.method
   @meta.implemented
   OnPrepareResources()
   {
@@ -711,6 +723,7 @@ export class Tr2ParticleSystem
    * JS uses the context factory and explicitly releases the prior handle;
    * null represents the AL's failed/default buffer value.
    */
+  @blue.method
   @meta.adapted
   CreateVertexBuffer()
   {
@@ -734,6 +747,7 @@ export class Tr2ParticleSystem
    * JS sorts the element values because Map preserves insertion order rather
    * than Carbon's type/name key order, and uses the AL's named data types.
    */
+  @blue.method
   @meta.adapted
   RebuildDeclaration()
   {
@@ -768,6 +782,7 @@ export class Tr2ParticleSystem
   }
 
   /** Moves POSITION and VELOCITY to four-float slots at the front of their streams. */
+  @blue.method
   @meta.implemented
   EnsureAligned()
   {
@@ -791,6 +806,7 @@ export class Tr2ParticleSystem
   }
 
   /** Shifts offsets at or after start; semantic and map entries share the same JS record. */
+  @blue.method
   @meta.adapted
   ShiftOffsets(bufferType, start, shift)
   {
@@ -804,6 +820,7 @@ export class Tr2ParticleSystem
   }
 
   /** Returns the current particle bounds, or Carbon's zero box when empty. */
+  @blue.method
   @meta.adapted
   GetInstanceBufferBoundingBox(_bufferIndex = 0)
   {
@@ -825,6 +842,7 @@ export class Tr2ParticleSystem
    * true; validity is queried separately. Registers clock rebasing and tells
    * child emitters to use their thread-safe insertion contract.
    */
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -853,6 +871,7 @@ export class Tr2ParticleSystem
   }
 
   /** Carbon stores Be::Time; this simulation's last-update timestamp uses seconds. */
+  @blue.method
   @meta.adapted
   OnSimClockRebase(oldTime, newTime)
   {
@@ -876,6 +895,7 @@ export class Tr2ParticleSystem
   /**
    * The map of resolved runtime elements, keyed by semantic or custom name.
    */
+  @blue.method
   @meta.implemented
   GetElementDeclaration()
   {
@@ -885,6 +905,7 @@ export class Tr2ParticleSystem
   /**
    * A counter that increments each time the element declaration is rebuilt, so a consumer can detect a stale binding.
    */
+  @blue.method
   @meta.implemented
   GetElementDeclarationHash()
   {
@@ -894,6 +915,7 @@ export class Tr2ParticleSystem
   /**
    * Whether an element of the given semantic type or name is present in the current declaration.
    */
+  @blue.method
   @meta.implemented
   HasElement(type)
   {
@@ -921,6 +943,7 @@ export class Tr2ParticleSystem
    * @param {{ element: Float32Array|null, stride: number }} out
    * @returns {boolean} Whether the element exists.
    */
+  @blue.method
   @meta.adapted
   GetElementStream(type, out)
   {
@@ -947,6 +970,7 @@ export class Tr2ParticleSystem
    * @param {Array<Float32Array|null>} particle Filled with one view per Tr2ParticleElementData buffer.
    * @returns {boolean} true if inserted; false if the system is full.
    */
+  @blue.method
   @meta.adapted
   InsertParticle(particle)
   {
@@ -969,6 +993,7 @@ export class Tr2ParticleSystem
    * Carbon DoneInsertingParticle (Tr2ParticleSystem.cpp:1323-1329) releases the insertion mutex taken by
    * InsertParticle. JS never creates that mutex (see SetThreadSafeFlag), so there is nothing to release.
    */
+  @blue.method
   @meta.noop
   DoneInsertingParticle()
   {
@@ -1077,6 +1102,7 @@ export class Tr2ParticleSystem
   /**
    * Copies the tracked axis-aligned bounds into the caller's vectors, reporting false when no particles are alive.
    */
+  @blue.method
   @meta.implemented
   GetBoundingBox(outMin = vec3.create(), outMax = vec3.create())
   {
@@ -1145,6 +1171,7 @@ export class Tr2ParticleSystem
    * gl-matrix returns null for a singular inverse, so NaNs explicitly retain
    * invalid coordinates instead of reusing a stale inverse.
    */
+  @blue.method
   @meta.adapted
   SortParticles()
   {
@@ -1202,6 +1229,7 @@ export class Tr2ParticleSystem
   }
 
   /** Compares squared local-space xyz distances, with Carbon's farther-first boolean result. */
+  @blue.method
   @meta.implemented
   CompareParticles(particle1, particle2)
   {

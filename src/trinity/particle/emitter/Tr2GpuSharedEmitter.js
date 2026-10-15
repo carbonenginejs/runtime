@@ -16,7 +16,7 @@ import { ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
  * turbulence and gravity terms the simulation applies.
  */
 @blue.define("Tr2GpuSharedEmitter")
-@blue.inherit(ITr2GenericEmitter, IInitialize, INotify)
+@blue.inherit(IInitialize, INotify, ITr2GenericEmitter)
 @blue.interface(IInitialize, INotify, ITr2GenericEmitter)
 export class Tr2GpuSharedEmitter
 {
@@ -242,7 +242,7 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Reports whether this emitter is currently emitting. */
-  @blue.method
+
   @meta.adapted
   IsEnabled()
   {
@@ -332,6 +332,7 @@ export class Tr2GpuSharedEmitter
    * also exposes Carbon's second overload explicitly for existing JS callers.
    * Formerly SpawnParticlesSegment.
    */
+  @blue.method
   @meta.adapted
   SpawnParticles__StartEnd(arguments_, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime)
   {
@@ -379,6 +380,7 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Carbon's protected SpawnParticles overload, with a distinct JS name. */
+  @blue.method
   @meta.adapted
   _SpawnParticles(emitter, arguments_, positionStart, positionEnd, velocityStart, velocityEnd, carryOverCount, deltaTime)
   {
@@ -606,6 +608,7 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Carbon's GPU emitter thread-safety hook is intentionally empty. */
+  @blue.method
   @meta.noop
   SetThreadSafeFlag()
   {

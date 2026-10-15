@@ -12,7 +12,7 @@ import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDecl
 
 /** A collision constraint that keeps particles on one side of a plane, reflecting velocity with elasticity, friction and noise, and triggering generators and emitters on contact. */
 @blue.define("Tr2PlaneConstraint")
-@blue.inherit(IInitialize, IListNotify, INotify)
+@blue.inherit(INotify, IInitialize, IListNotify)
 @blue.interface(ITr2GenericParticleConstraint, INotify, IInitialize)
 export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
 {
@@ -101,6 +101,7 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
   /**
    * Normalises the constraint plane and propagates the thread-safe flag to the on-collision emitters.
    */
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -115,6 +116,7 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
   /**
    * Renormalises the cached plane whenever the plane property changes.
    */
+  @blue.method
   @meta.implemented
   OnModified(propertyName)
   {
@@ -142,6 +144,7 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
   /**
    * Resolves the position, velocity and radius elements and binds the attached generators, marking the constraint valid only when all of them resolve.
    */
+  @blue.method
   @meta.adapted
   Bind(particleSystem)
   {
@@ -171,6 +174,7 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
   /**
    * Pushes particles that crossed the plane back to its surface, reflects their velocity with elasticity, friction and noise, and fires the generators and on-collision emitters.
    */
+  @blue.method
   @meta.adapted
   ApplyConstraint(arguments_, _buffers, _strides, count, _dt)
   {
