@@ -91,6 +91,9 @@ const STRUCT_TYPES = {
     BYTE_1: ["int8", "int8", 1, 1]
 };
 
+/** The member flags `meta` and `blue` share (Carbon's Be::EDITFLAGS). */
+const FLAG_NAMES = Object.freeze([ "read", "write", "readwrite", "notify", "hidden", "persist", "rpersist", "persistOnly" ]);
+
 /**
  * Reusable schema/decorator metadata surface.
  *
@@ -1027,6 +1030,10 @@ export class CjsSchema
      * decorator arrays remain JS-keyed and also populate the compatibility view.
      */
     static meta = {
+        // Ruling 2026-10-15: flags are global - they describe behaviour for any
+        // member, ours included. `blue` (below) is the same flags stamped as
+        // Carbon's. `meta.blue` and `meta.type` are transitional aliases.
+        ...Object.fromEntries(FLAG_NAMES.map(name => [ name, this.#edit[name] ])),
         blue: { ...Object.fromEntries(Object.entries(this.#edit).filter(([name]) => !["none", "enum", "setting"].includes(name))), ...this.#carbon },
         ui: { ...this.#jessica, components: createComponentsNamespace() },
         type: Object.fromEntries(Object.entries(this.#type).filter(([name]) => !["define", "hideInherited"].includes(name))),
@@ -1045,8 +1052,26 @@ export class CjsSchema
         struct: createStructNamespace(),
         member: (name, options) => declarationDecorator("member", name, options),
         property: (name, options) => declarationDecorator("property", name, options),
-        define: this.#type.define,
+        define: (definitionOrConstructor, definition) => defineEntry(definitionOrConstructor, definition, false),
         hideInherited: this.hideInherited
+    };
+
+    /**
+     * The Carbon-stamped decorators (ruling 2026-10-15): each is the `meta`
+     * decorator of the same name, and also records that the member, method or
+     * class is Carbon's. `interface`, `inherit` and `chainTo` exist only here.
+     * `define` takes a class name, a definition object (`donors` names the
+     * Carbon class a renamed port replicates) or, for a class without
+     * decorators, the constructor and its definition.
+     */
+    static blue = {
+        ...Object.fromEntries(FLAG_NAMES.map(name =>
+        {
+            const { namespace, value } = getDecoratorMetadata(this.#edit[name]);
+            return [ name, combinedFieldDecorator({ [namespace]: value, carbon: { member: true } }) ];
+        })),
+        ...this.#carbon,
+        define: (definitionOrConstructor, definition) => defineEntry(definitionOrConstructor, definition, true)
     };
 
 }
@@ -1614,6 +1639,53 @@ function fieldDecorator(namespace, value)
     }, namespace, value);
 }
 
+/**
+ * meta.define / blue.define: a decorator for a class name or definition, or -
+ * given a constructor - the explicit registration for a class without
+ * decorators. `blue` stamps the class as Carbon's; `donors` lists the Carbon
+ * classes it draws on: for `blue`, the one Carbon class a renamed port
+ * replicates; for `meta`, the classes ours is built from.
+ *
+ * @param {Function|string|object} definitionOrConstructor Constructor, class name or definition.
+ * @param {string|object} [definition] The definition, with a constructor.
+ * @param {boolean} carbon Whether the class is Carbon's.
+ * @returns {Function|typeof CjsSchema} A class decorator, or CjsSchema after an explicit registration.
+ */
+function defineEntry(definitionOrConstructor, definition, carbon)
+{
+    if (typeof definitionOrConstructor === "function")
+    {
+        const Constructor = definitionOrConstructor;
+        defineClassMetadata(Constructor, normalizeClassDefinition(Constructor, withDonors(definition, carbon)));
+        return CjsSchema;
+    }
+    return classDefinitionDecorator(withDonors(definitionOrConstructor, carbon));
+}
+
+/**
+ * Folds `donors` and the Carbon stamp into the stored definition keys.
+ *
+ * @param {string|object} definition Class name or definition.
+ * @param {boolean} carbon Whether the class is Carbon's.
+ * @returns {object} The definition with `blue`, `donors` and `carbon`/`modelledOn` set.
+ */
+function withDonors(definition, carbon)
+{
+    const result = typeof definition === "string" ? { className: definition } : { ...(definition || {}) };
+    if (result.donors !== undefined)
+    {
+        const donors = (Array.isArray(result.donors) ? result.donors : [ result.donors ])
+            .map(name => typeof name === "string" ? name.trim() : "");
+        if (!donors.length || donors.some(name => !name)) throw new TypeError("define donors must be non-empty Carbon class names.");
+        if (carbon && donors.length !== 1) throw new TypeError("blue.define donors names the one Carbon class a renamed port replicates.");
+        result.donors = donors;
+        if (carbon) result.carbon ??= donors[0];
+        else result.modelledOn ??= donors[0];
+    }
+    if (carbon) result.blue = true;
+    return result;
+}
+
 function classDefinitionDecorator(definition)
 {
     return function schemaClassDefinitionDecorator(value, context)
@@ -1980,6 +2052,8 @@ function defineClassMetadata(Constructor, definition)
     if (definition.purpose) schema.purpose = definition.purpose;
     if (definition.sourceClass) schema.sourceClass = definition.sourceClass;
     if (definition.carbon) schema.carbon = definition.carbon;
+    if (definition.blue) schema.blue = true;
+    if (definition.donors) schema.donors = [ ...definition.donors ];
     if (definition.modelledOn) schema.modelledOn = definition.modelledOn;
     if (definition.aliases) schema.aliases = [...definition.aliases];
     if (Object.hasOwn(definition, "abstract")) schema.abstract = definition.abstract;
@@ -2503,6 +2577,16 @@ function buildClassInfo(Constructor, namespaces)
     if (schema?.modelledOn)
     {
         result.modelledOn = schema.modelledOn;
+    }
+
+    if (schema?.blue)
+    {
+        result.blue = true;
+    }
+
+    if (schema?.donors?.length)
+    {
+        result.donors = [ ...schema.donors ];
     }
 
     if (schema?.aliases?.length)

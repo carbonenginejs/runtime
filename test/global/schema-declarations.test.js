@@ -18,11 +18,21 @@ test("the public decorator surface has one namespace per vocabulary and preserve
 {
     assert.equal(meta, CjsSchema.meta);
     assert.equal(meta.hideInherited, CjsSchema.hideInherited);
-    for (const name of ["type", "types", "edit", "impl", "carbon", "lifecycle", "jessica", "compose", "components"])
+    for (const name of ["types", "edit", "impl", "carbon", "lifecycle", "jessica", "compose", "components"])
     {
         assert.equal(Object.hasOwn(schemaExports, name), false, "removed export: " + name);
         assert.equal(Object.hasOwn(CjsSchema, name), false, "removed class alias: " + name);
     }
+    // Ruling 2026-10-15: meta (generic), type (vocabulary), blue (Carbon-stamped).
+    assert.equal(schemaExports.type, meta.type);
+    assert.equal(schemaExports.blue, CjsSchema.blue);
+    for (const name of ["read", "write", "readwrite", "notify", "hidden", "persist", "rpersist", "persistOnly"])
+    {
+        assert.equal(typeof meta[name], "function", "generic flag: " + name);
+        assert.equal(typeof CjsSchema.blue[name], "function", "Carbon flag: " + name);
+    }
+    for (const name of ["interface", "inherit", "chainTo", "method", "define"])
+        assert.equal(typeof CjsSchema.blue[name], "function", "Carbon declaration: " + name);
     for (const name of ["edit", "impl", "carbon", "lifecycle", "jessica", "compose", "custom"])
         assert.equal(Object.hasOwn(meta, name), false, "removed meta alias: " + name);
     for (const name of ["none", "enum", "setting"])
