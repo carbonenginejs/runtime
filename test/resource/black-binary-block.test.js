@@ -1,10 +1,10 @@
-// meta.type.binary: Carbon's BINARYBLOCK. Readers move the bytes, and the
+// type.binary: Carbon's BINARYBLOCK. Readers move the bytes, and the
 // owner decodes them through ICustomPersist (BlackReader.cpp:599-612,
 // YamlReader.cpp:539-556); DictReader refuses one (DictReader.cpp:718-721)
 // and the Copier never copies one (Copier.cpp:173-176 with a 0-size member).
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema, meta } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema, blue } from "../../npm/dist/global/schema/index.js";
 import { Copier, ICustomPersist } from "../../npm/dist/global/blue/index.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
 import { CjsRedFormat } from "../../npm/dist/resource/formats/red/index.js";
@@ -86,13 +86,13 @@ test("DictReader refuses a binary block; the values bag and the Copier carry non
   assert.deepEqual([ ...copy.indexBuffer ], [], "Carbon's Copier never copies a BINARYBLOCK");
 });
 
-test("define refuses meta.type.binary without persistOnly or without ICustomPersist", () =>
+test("define refuses type.binary without persistOnly or without ICustomPersist", () =>
 {
   const persistOnly = { persist: true, persistOnly: true, hidden: true };
   const field = edit => ({ name: "bytes", key: "bytes", type: { kind: "typedArray", arrayType: "Uint8Array", binary: true }, edit });
 
   class Persisting { bytes = new Uint8Array(0); AllocateReadBuffer() {} SetBufferAndSize() {} GetWriteBufferAndSize() {} ReleaseWriteBuffer() {} }
-  meta.blue.interface(ICustomPersist)(Persisting);
+  blue.interface(ICustomPersist)(Persisting);
   assert.throws(() => CjsSchema.define(Persisting, { className: "BinaryWithoutPersistOnly", fields: [ field({ persist: true }) ] }),
     /BinaryWithoutPersistOnly\.bytes: meta\.type\.binary requires meta\.blue\.persistOnly/);
 
@@ -101,7 +101,7 @@ test("define refuses meta.type.binary without persistOnly or without ICustomPers
     /BinaryWithoutCustomPersist: meta\.type\.binary requires the class to map ICustomPersist/);
 
   class Valid { bytes = new Uint8Array(0); AllocateReadBuffer() {} SetBufferAndSize() {} GetWriteBufferAndSize() {} ReleaseWriteBuffer() {} }
-  meta.blue.interface(ICustomPersist)(Valid);
+  blue.interface(ICustomPersist)(Valid);
   CjsSchema.define(Valid, { className: "BinaryValid", fields: [ field(persistOnly) ] });
   assert.equal(CjsSchema.getField(Valid, "bytes").type.binary, true);
 });

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/CjsSchema.js";
+import { type } from "../../npm/dist/global/schema/index.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { IInitialize } from "../../npm/dist/global/blue/IInitialize.js";
 import { INotify } from "../../npm/dist/global/blue/INotify.js";
@@ -11,7 +12,7 @@ let sequence = 0;
 const name = () => `DeclaredConstruction${++sequence}`;
 const reader = options => new DictReader({ declarations: true, ...options });
 const define = (Constructor, fields = {}, interfaces = []) => {
-  if (interfaces.length) CjsSchema.meta.blue.interface(...interfaces)(Constructor, { kind: "class" });
+  if (interfaces.length) CjsSchema.blue.interface(...interfaces)(Constructor, { kind: "class" });
   const className = name();
   CjsSchema.define(Constructor, { className, fields });
   return className;
@@ -20,7 +21,7 @@ const ref = className => ({ type: { kind: "rootRef", className } });
 
 test("declared mode calls the exact alias factory once and never static from", () => {
   class Child { value = 0; static from() { assert.fail("legacy from"); } }
-  const canonical = define(Child, { value: CjsSchema.meta.type.int32 });
+  const canonical = define(Child, { value: type.int32 });
   const alias = name();
   const supplied = new Child();
   let calls = 0;
@@ -30,7 +31,7 @@ test("declared mode calls the exact alias factory once and never static from", (
   assert.equal(calls, 1);
   assert.equal(built.value, 4);
   class Parent { child = null; list = []; raw = null; }
-  define(Parent, { child: ref(alias), list: { type: { kind: "list", itemType: alias } }, raw: CjsSchema.meta.type.rawStruct("Raw") });
+  define(Parent, { child: ref(alias), list: { type: { kind: "list", itemType: alias } }, raw: type.rawStruct("Raw") });
   const parent = reader().CreateObject({ child: { value: 5 }, list: [{ value: 6 }], raw: { deep: { _type: alias, value: 7 } } }, Parent);
   assert.equal(parent.child, supplied);
   assert.equal(parent.list[0], supplied);
@@ -41,7 +42,7 @@ test("declared mode calls the exact alias factory once and never static from", (
 
 test("explicit constructor uses only its matching canonical record and propagates factory failure", () => {
   class Value { scalar = 0; }
-  const canonical = define(Value, { scalar: CjsSchema.meta.type.int32 });
+  const canonical = define(Value, { scalar: type.int32 });
   unregisterClass(canonical);
   const alias = name();
   registerClass({ name: alias, type: Value });
@@ -93,14 +94,14 @@ test("declared lifecycle never reads an unrelated live property", () => {
 
 test("declared resources are excluded before input access and create no anchors or notifications", () => {
   class Owner { value = 0; get cache() { assert.fail("resource storage read"); } OnModified() { assert.fail("resource notify"); } }
-  define(Owner, { value: CjsSchema.meta.type.int32, cache: [CjsSchema.meta.type.resource("Unused"), CjsSchema.meta.blue.notify] }, [INotify]);
+  define(Owner, { value: type.int32, cache: [type.resource("Unused"), CjsSchema.blue.notify] }, [INotify]);
   const source = Object.defineProperty({ value: 2 }, "cache", { enumerable: true, get() { assert.fail("incoming resource read"); } });
   assert.equal(reader().CreateObject(source, Owner).value, 2);
 });
 
 test("declared reference Map and Set entries share factories and forward anchors", () => {
   class Child { value = 0; initialized = 0; static from() { assert.fail("from"); } Initialize() { this.initialized++; } }
-  const childName = define(Child, { value: CjsSchema.meta.type.int32 }, [IInitialize]);
+  const childName = define(Child, { value: type.int32 }, [IInitialize]);
   class Parent { map = null; set = null; child = null; }
   define(Parent, {
     map: { type: { kind: "map", valueType: { kind: "rootRef", className: childName } } },
@@ -129,7 +130,7 @@ test("nested declared collections construct nodes and preserve borrowed identiti
     static from() { assert.fail("legacy factory"); }
     Initialize() { this.initialized++; }
   }
-  const childName = define(Child, { value: CjsSchema.meta.type.int32, cache: CjsSchema.meta.type.resource("Unused") }, [IInitialize]);
+  const childName = define(Child, { value: type.int32, cache: type.resource("Unused") }, [IInitialize]);
   const childType = { kind: "rootRef", className: childName };
   const list = { kind: "list", itemType: childType };
   const cases = [
@@ -163,7 +164,7 @@ test("nested declared collections construct nodes and preserve borrowed identiti
 test("references resolve before dependency-first mapped initialization across borrowed nodes", () => {
   const order = [];
   class Node { label = ""; child = null; count = 0; Initialize() { if (this.child) assert.equal(this.child.count, 1); this.count++; order.push(this.label); } }
-  const nodeName = define(Node, { label: CjsSchema.meta.type.string, child: ref(null) }, [IInitialize]);
+  const nodeName = define(Node, { label: type.string, child: ref(null) }, [IInitialize]);
   class Root { nodes = []; }
   define(Root, { nodes: { type: { kind: "list", itemType: nodeName } } });
   const result = reader().CreateObject({ nodes: [
@@ -205,7 +206,7 @@ for (const kind of ["rootWeak", "int32"]) test(`a typed child in a ${kind} decla
 
 test("declared embedded storage rejects known and missing aliases without replacement", () => {
   class Child { value = 0; }
-  const childName = define(Child, { value: CjsSchema.meta.type.int32 });
+  const childName = define(Child, { value: type.int32 });
   class Parent { reference = null; embedded = new Child(); }
   define(Parent, { reference: ref(childName), embedded: { type: { kind: "root", className: childName } } });
   for (const id of ["known", "missing"]) {
@@ -223,18 +224,18 @@ test("declared embedded storage rejects known and missing aliases without replac
 
 test("only mapped lifecycle runs, and IInitialize suppresses mapped notify", () => {
   class Notify { value = 0; notices = []; Initialize() { assert.fail("unmapped Initialize"); } OnModified(key) { this.notices.push(key); } }
-  define(Notify, { value: [CjsSchema.meta.type.int32, CjsSchema.meta.blue.notify] }, [INotify]);
+  define(Notify, { value: [type.int32, CjsSchema.blue.notify] }, [INotify]);
   const value = reader().CreateObject({ value: 1 }, Notify);
   assert.deepEqual(value.notices, ["value"]);
   class Both { value = 0; calls = 0; Initialize() { this.calls++; } OnModified() { assert.fail("suppressed notify"); } }
-  define(Both, { value: [CjsSchema.meta.type.int32, CjsSchema.meta.blue.notify] }, [IInitialize, INotify]);
+  define(Both, { value: [type.int32, CjsSchema.blue.notify] }, [IInitialize, INotify]);
   assert.equal(reader().CreateObject({ value: 1 }, Both).calls, 1);
   assert.equal(reader({ initialize: false }).CreateObject({ value: 1 }, Both).calls, 0);
 });
 
 test("reader operation state is fresh after success and every failure", () => {
   class Node { child = null; value = 0; Initialize() { if (this.value === 9) throw new Error("init failure"); } }
-  const className = define(Node, { child: ref(null), value: CjsSchema.meta.type.int32 }, [IInitialize]);
+  const className = define(Node, { child: ref(null), value: type.int32 }, [IInitialize]);
   const read = reader();
   const good = () => read.CreateObject({ _id: "same", value: 1 }, Node);
   const a = good(), b = good();
@@ -264,7 +265,7 @@ test("reader operation state is fresh after success and every failure", () => {
 
 test("declared forward reference notification observes the assigned target exactly once", () => {
   class Child { value = 0; }
-  const childName = define(Child, { value: CjsSchema.meta.type.int32 });
+  const childName = define(Child, { value: type.int32 });
   class Owner {
     startState = new Child(); states = []; notices = [];
     OnModified(property) { this.notices.push([property, this.startState]); return false; }
@@ -292,7 +293,7 @@ test("resolved declared references notify immediately and unresolved failures ne
     OnModified(property) { this.notices.push([property, this.selected, this.tail]); }
   }
   define(Owner, {
-    target: ref(childName), selected: { ...ref(childName), edit: { notify: true } }, tail: CjsSchema.meta.type.int32
+    target: ref(childName), selected: { ...ref(childName), edit: { notify: true } }, tail: type.int32
   }, [INotify]);
   const target = new Owner();
   reader().ReadInto(target, { target: { _id: "known" }, selected: { _ref: "known" }, tail: 9 });
@@ -329,13 +330,13 @@ test("declared forward reference notifications retain mapped lifecycle suppressi
 
 test("legacy ReadInto retains non-plain input acceptance and immediate alias notification", () => {
   class Child { value = 0; }
-  const childName = define(Child, { value: CjsSchema.meta.type.int32 });
+  const childName = define(Child, { value: type.int32 });
   class Owner {
     child = new Child(); target = null; value = 0; notices = [];
     OnModified(property) { this.notices.push([property, this.child]); }
   }
   define(Owner, {
-    child: { ...ref(childName), edit: { notify: true } }, target: ref(childName), value: CjsSchema.meta.type.int32
+    child: { ...ref(childName), edit: { notify: true } }, target: ref(childName), value: type.int32
   }, [INotify]);
   class Input { value = 7; }
   const owner = new Owner();

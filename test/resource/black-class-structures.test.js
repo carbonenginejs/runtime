@@ -10,6 +10,7 @@ import { CjsBlackPropertyReaders } from "../../npm/dist/resource/formats/black/c
 import { CjsBlackBinaryReader } from "../../npm/dist/resource/formats/black/core/CjsBlackBinaryReader.js";
 
 import { CjsSchema } from "../../npm/dist/global/schema/CjsSchema.js";
+import { type } from "../../npm/dist/global/schema/index.js";
 
 const offsets = layout => layout.members.map(member => [ member.name, member.offset ]);
 
@@ -26,8 +27,8 @@ test("persisted fields and byteSize cannot substitute for a struct definition", 
 {
   class Item { static byteSize = 4; value = 0; }
   class Owner {}
-  CjsSchema.define(Item, { className: "BlackMissingStructItem", fields: { value: [CjsSchema.meta.type.uint32, CjsSchema.meta.blue.persist] } });
-  CjsSchema.define(Owner, { className: "BlackMissingStructOwner", fields: { records: CjsSchema.meta.type.list("BlackMissingStructItem") } });
+  CjsSchema.define(Item, { className: "BlackMissingStructItem", fields: { value: [type.uint32, CjsSchema.blue.persist] } });
+  CjsSchema.define(Owner, { className: "BlackMissingStructOwner", fields: { records: type.list("BlackMissingStructItem") } });
   assert.throws(() => classStructureLayout("BlackMissingStructOwner", "records"), /BlackMissingStructItem has no structureDefinition/);
 });
 
@@ -36,7 +37,7 @@ test("an unregistered owner or item class is reported as unregistered, not as un
   assert.throws(() => classStructureLayout("BlackNeverRegisteredOwner", "records"),
     /BlackNeverRegisteredOwner\.records: class BlackNeverRegisteredOwner is not registered \(import its package\)/);
   class Owner {}
-  CjsSchema.define(Owner, { className: "BlackUnregisteredItemOwner", fields: { records: CjsSchema.meta.type.list("BlackNeverRegisteredItem") } });
+  CjsSchema.define(Owner, { className: "BlackUnregisteredItemOwner", fields: { records: type.list("BlackNeverRegisteredItem") } });
   assert.throws(() => classStructureLayout("BlackUnregisteredItemOwner", "records"),
     /item class BlackNeverRegisteredItem is not registered \(import its package\)/);
   class Plain {}

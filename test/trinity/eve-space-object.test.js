@@ -37,7 +37,7 @@ import { EveChildMesh } from "../../npm/dist/trinity/eve/child/EveChildMesh.js";
 function WithInterfaces(Base, ...Interfaces)
 {
   const Composed = class extends Base {};
-  CjsSchema.meta.blue.inherit(...Interfaces)(Composed);
+  CjsSchema.blue.inherit(...Interfaces)(Composed);
   return Composed;
 }
 

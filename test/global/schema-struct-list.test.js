@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsSchema } from "../../npm/dist/global/schema/CjsSchema.js";
+import { type } from "../../npm/dist/global/schema/index.js";
 import { Copier } from "../../npm/dist/global/blue/index.js";
 import { DictReader, CreateAnchorTable } from "../../npm/dist/global/blue/DictReader.js";
 import { IInitialize } from "../../npm/dist/global/blue/IInitialize.js";
@@ -19,8 +20,8 @@ class StructListRecord
     value = [0, 0, 0, 0];
 }
 CjsSchema.define(StructListRecord, { className: "StructListRecord", struct: { size: 24 }, fields: {
-    name: [meta.blue.persist, meta.struct.SHAREDSTRING_1(0)],
-    value: [meta.blue.persist, meta.struct.FLOAT32_4(8)]
+    name: [CjsSchema.blue.persist, meta.struct.SHAREDSTRING_1(0)],
+    value: [CjsSchema.blue.persist, meta.struct.FLOAT32_4(8)]
 } });
 
 class StructListOwner
@@ -28,16 +29,16 @@ class StructListOwner
     records = [];
 }
 CjsSchema.define(StructListOwner, { className: "StructListOwner", fields: {
-    records: [meta.type.structList("StructListRecord"), meta.blue.persist]
+    records: [type.structList("StructListRecord"), CjsSchema.blue.persist]
 } });
 
 test("structList declares a BlueStructureList of its item class", () =>
 {
-    const type = CjsSchema.getField(StructListOwner, "records").type;
-    assert.equal(type.kind, "structList");
-    assert.equal(type.className, "StructListRecord");
+    const field = CjsSchema.getField(StructListOwner, "records").type;
+    assert.equal(field.kind, "structList");
+    assert.equal(field.className, "StructListRecord");
     assert.deepEqual(new StructListOwner().records, []);
-    assert.throws(() => meta.type.structList(""), /registered class name/);
+    assert.throws(() => type.structList(""), /registered class name/);
 });
 
 test("the Black codec takes the record layout from the item class", () =>
@@ -166,9 +167,9 @@ class StructReferenceLifecycle
     Initialize() { this.initialized.push(this.records.map(record => record.name)); }
     OnModified(name) { this.notifications.push([name, this.records.map(record => record.name)]); }
 }
-meta.blue.interface(IInitialize, INotify)(StructReferenceLifecycle, { kind: "class" });
+CjsSchema.blue.interface(IInitialize, INotify)(StructReferenceLifecycle, { kind: "class" });
 CjsSchema.define(StructReferenceLifecycle, { className: "StructReferenceLifecycle", fields: {
-    records: [meta.type.structList("StructListRecord"), meta.blue.persist, meta.blue.notify]
+    records: [type.structList("StructListRecord"), CjsSchema.blue.persist, CjsSchema.blue.notify]
 } });
 
 for (const declarations of [false, true]) test(`struct references resolve before lifecycle (${declarations ? "declared" : "values"})`, () =>
@@ -216,9 +217,9 @@ test("new values-only owners notify after their struct references resolve", () =
         notifications = [];
         OnModified(name) { this.notifications.push([name, this.records.map(record => record.name)]); }
     }
-    meta.blue.interface(INotify)(NotifiedStructOwner, { kind: "class" });
+    CjsSchema.blue.interface(INotify)(NotifiedStructOwner, { kind: "class" });
     CjsSchema.define(NotifiedStructOwner, { className: "NotifiedStructOwner", fields: {
-        records: [meta.type.structList("StructListRecord"), meta.blue.notify]
+        records: [type.structList("StructListRecord"), CjsSchema.blue.notify]
     } });
     const owner = CjsSchema.from("NotifiedStructOwner", {
         records: [{ _ref: "record" }, { _id: "record", name: "ready" }]

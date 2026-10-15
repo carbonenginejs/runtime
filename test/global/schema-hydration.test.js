@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { CjsSchema } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { resolveHydrationAdapter } from "#schema/hydration";
 import { CjsRedReader } from "../../src/resource/formats/red/core/CjsRedReader.js";
 
@@ -36,9 +36,9 @@ function declareParent(Child)
     children = [];
     byName = new Map();
   };
-  CjsSchema.decorateField(Parent, "child", CjsSchema.meta.type.rootRef(Child.name));
-  CjsSchema.decorateField(Parent, "children", CjsSchema.meta.type.list({ kind: "rootRef", className: Child.name }));
-  CjsSchema.decorateField(Parent, "byName", CjsSchema.meta.type.map(Child.name));
+  CjsSchema.decorateField(Parent, "child", type.rootRef(Child.name));
+  CjsSchema.decorateField(Parent, "children", type.list({ kind: "rootRef", className: Child.name }));
+  CjsSchema.decorateField(Parent, "byName", type.map(Child.name));
   CjsSchema.define(Parent, { className: `HydrationParent${next++}` });
   return Parent;
 }
@@ -139,7 +139,7 @@ test("a field that does not hold references copies a non-plain value", () =>
 {
   const Child = declareBaseless();
   const Holder = class { payload = null; };
-  CjsSchema.decorateField(Holder, "payload", CjsSchema.meta.type.unknown);
+  CjsSchema.decorateField(Holder, "payload", type.unknown);
   CjsSchema.define(Holder, { className: `HydrationHolder${next++}` });
 
   const live = new Child();

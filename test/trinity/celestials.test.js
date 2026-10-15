@@ -7,7 +7,7 @@ import { vec3 } from '../../npm/dist/global/math/vec3.js';
 import { Tr2Lod } from '../../npm/dist/trinity/eve/EveLODHelper.js';
 import { ITr2Controller } from '../../npm/dist/trinity/controllers/ITr2Controller/ITr2Controller.js';
 import { UnlinkReason } from '../../npm/dist/trinity/controllers/enums.js';
-import { meta } from '../../npm/dist/global/schema/index.js';
+import { blue } from '../../npm/dist/global/schema/index.js';
 import { TriBatchType } from '../../npm/dist/global/consts/graphics/index.js';
 
 function close(actual, expected, epsilon = 1e-5)
@@ -232,7 +232,7 @@ test('lensflare controller initialization, insertion replay and destruction pres
     SetVariable(name,value) { log.push([name,value]); }
     Unlink(reason) { log.push(['unlink',reason]); this.owner = undefined; }
   }
-  meta.blue.interface(ITr2Controller)(Controller,{kind:'class'});
+  blue.interface(ITr2Controller)(Controller,{kind:'class'});
   const loaded = new Controller();
   flare.controllers.push(loaded);
   flare.Initialize(); flare.Initialize();

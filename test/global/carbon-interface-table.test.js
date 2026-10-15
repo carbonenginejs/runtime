@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { transformSync } from "@babel/core";
 import decorators from "@babel/plugin-proposal-decorators";
-import { CjsSchema, meta } from "../../src/global/schema/index.js";
+import { CjsSchema, type, blue } from "../../src/global/schema/index.js";
 import { composedContracts, mappedInterfaces } from "../../src/global/compose/interface.js";
 import { Copier } from "../../src/global/blue/Copier.js";
 import { IInitialize } from "../../src/global/blue/IInitialize.js";
@@ -12,16 +12,16 @@ import { applyReaderMember, finalizeReaderObject } from "../../src/global/schema
 test("the own table holds the class first, then its interfaces in declaration order", () =>
 {
   class Mapped {}
-  meta.blue.interface(INotify, IInitialize)(Mapped);
+  blue.interface(INotify, IInitialize)(Mapped);
   assert.deepEqual([...mappedInterfaces(Mapped)], [Mapped, INotify, IInitialize]);
 
   class Bare {}
-  meta.blue.interface()(Bare);
+  blue.interface()(Bare);
   assert.deepEqual([...mappedInterfaces(Bare)], [Bare]);
 
   class Appended {}
-  meta.blue.interface(IInitialize)(Appended);
-  meta.blue.interface(INotify, IInitialize)(Appended);
+  blue.interface(IInitialize)(Appended);
+  blue.interface(INotify, IInitialize)(Appended);
   assert.deepEqual([...mappedInterfaces(Appended)], [Appended, IInitialize, INotify], "later lines append; repeats collapse");
 
   assert.deepEqual([...mappedInterfaces(null)], []);
@@ -37,13 +37,13 @@ test("without its own table a class answers with its JS parent's; its own table 
   {
     Ping() { return "composed"; }
   }
-  meta.blue.interface(IInitialize)(Parent);
+  blue.interface(IInitialize)(Parent);
   class Inheriting extends Parent {}
   assert.deepEqual([...mappedInterfaces(Inheriting)], [Parent, IInitialize]);
 
   class Child extends Parent {}
-  meta.blue.inherit(AdditionalBase)(Child);
-  meta.blue.interface(Parent)(Child);
+  blue.inherit(AdditionalBase)(Child);
+  blue.interface(Parent)(Child);
   const child = new Child();
   assert.deepEqual([...mappedInterfaces(Child)], [Child, Parent]);
   assert.equal(mappedInterfaces(Child).has(IInitialize), false, "a listed class is one IID, not an exposure parent");
@@ -63,14 +63,14 @@ test("chainTo resolves its named parent after the own entries, not the JS parent
   class JavaScriptBase {}
   class ExposureParent {}
   class Child extends JavaScriptBase {}
-  meta.blue.interface(JavaScriptInterface)(JavaScriptBase);
-  meta.blue.interface(IInitialize)(ExposureParent);
-  meta.blue.interface(OwnInterface, OwnInterface)(Child);
-  meta.blue.chainTo(ExposureParent)(Child);
+  blue.interface(JavaScriptInterface)(JavaScriptBase);
+  blue.interface(IInitialize)(ExposureParent);
+  blue.interface(OwnInterface, OwnInterface)(Child);
+  blue.chainTo(ExposureParent)(Child);
   assert.deepEqual([...mappedInterfaces(Child)], [Child, OwnInterface, ExposureParent, IInitialize]);
   mappedInterfaces(Child).add(JavaScriptInterface);
   assert.equal(mappedInterfaces(Child).has(JavaScriptInterface), false, "the resolved set is a copy");
-  meta.blue.interface(LaterInterface)(ExposureParent);
+  blue.interface(LaterInterface)(ExposureParent);
   assert.deepEqual([...mappedInterfaces(Child)], [Child, OwnInterface, ExposureParent, IInitialize, LaterInterface]);
   assert.deepEqual([...mappedInterfaces(ExposureParent)], [ExposureParent, IInitialize, LaterInterface]);
   assert.deepEqual([...mappedInterfaces(JavaScriptBase)], [JavaScriptBase, JavaScriptInterface]);
@@ -79,12 +79,12 @@ test("chainTo resolves its named parent after the own entries, not the JS parent
 test("Stage-3 and imperative declarations share the public Blue exposure facade", async () =>
 {
   const source = `
-    import { meta } from ${JSON.stringify(new URL("../../src/global/schema/index.js", import.meta.url).href)};
+    import { blue } from ${JSON.stringify(new URL("../../src/global/schema/index.js", import.meta.url).href)};
     import { INotify } from ${JSON.stringify(new URL("../../src/global/blue/INotify.js", import.meta.url).href)};
-    @meta.blue.interface()
+    @blue.interface()
     export class Parent {}
-    @meta.blue.interface(INotify)
-    @meta.blue.chainTo(Parent)
+    @blue.interface(INotify)
+    @blue.chainTo(Parent)
     export class Decorated {}
   `;
   const { code } = transformSync(source, {
@@ -94,9 +94,9 @@ test("Stage-3 and imperative declarations share the public Blue exposure facade"
   });
   const { Decorated, Parent } = await import(`data:text/javascript;base64,${Buffer.from(code).toString("base64")}`);
   class Explicit {}
-  meta.blue.interface(INotify)(Explicit);
-  meta.blue.chainTo(Parent)(Explicit);
-  assert.equal(meta.blue, CjsSchema.meta.blue);
+  blue.interface(INotify)(Explicit);
+  blue.chainTo(Parent)(Explicit);
+  assert.equal(blue, CjsSchema.blue);
   assert.deepEqual([...mappedInterfaces(Decorated)], [Decorated, INotify, Parent]);
   assert.deepEqual([...mappedInterfaces(Explicit)], [Explicit, INotify, Parent]);
 });
@@ -106,9 +106,9 @@ test("declaring chainTo twice on one class throws and keeps the first chain", ()
   class First {}
   class Second {}
   class Target {}
-  meta.blue.interface()(First);
-  meta.blue.chainTo(First)(Target);
-  assert.throws(() => meta.blue.chainTo(Second)(Target), /once per class/);
+  blue.interface()(First);
+  blue.chainTo(First)(Target);
+  assert.throws(() => blue.chainTo(Second)(Target), /once per class/);
   assert.deepEqual([...mappedInterfaces(Target)], [Target, First]);
 });
 
@@ -116,11 +116,11 @@ test("invalid interfaces, parents and decorator targets are rejected", () =>
 {
   for (const value of [null, {}, () => {}])
   {
-    assert.throws(() => meta.blue.interface(value), TypeError);
-    assert.throws(() => meta.blue.chainTo(value), TypeError);
+    assert.throws(() => blue.interface(value), TypeError);
+    assert.throws(() => blue.chainTo(value), TypeError);
   }
   class Parent {}
-  for (const decorate of [meta.blue.interface(INotify), meta.blue.chainTo(Parent)])
+  for (const decorate of [blue.interface(INotify), blue.chainTo(Parent)])
   {
     class Target {}
     for (const kind of ["field", "method", "getter", "setter", "accessor"])
@@ -134,19 +134,19 @@ test("exposure cycles are rejected", () =>
 {
   class Parent {}
   class Child extends Parent {}
-  meta.blue.interface(INotify)(Parent);
-  assert.throws(() => meta.blue.chainTo(Parent)(Parent), /cycle/);
-  assert.throws(() => meta.blue.chainTo(Child)(Parent), /cycle/,
+  blue.interface(INotify)(Parent);
+  assert.throws(() => blue.chainTo(Parent)(Parent), /cycle/);
+  assert.throws(() => blue.chainTo(Child)(Parent), /cycle/,
     "a child without its own table answers with the pending parent table");
   assert.deepEqual([...mappedInterfaces(Parent)], [Parent, INotify]);
   assert.deepEqual([...mappedInterfaces(Child)], [Parent, INotify]);
 
   class First {}
   class Second {}
-  meta.blue.interface(INotify)(Second);
-  meta.blue.interface(IInitialize)(First);
-  meta.blue.chainTo(Second)(First);
-  assert.throws(() => meta.blue.chainTo(First)(Second), /cycle/);
+  blue.interface(INotify)(Second);
+  blue.interface(IInitialize)(First);
+  blue.chainTo(Second)(First);
+  assert.throws(() => blue.chainTo(First)(Second), /cycle/);
   assert.deepEqual([...mappedInterfaces(Second)], [Second, INotify]);
   assert.deepEqual([...mappedInterfaces(First)], [First, IInitialize, Second, INotify]);
 });
@@ -156,14 +156,14 @@ test("Copier throws on an unnamed listed interface and skips an unnamed class ca
   class UnnamedInterface {}
   class ListsUnnamed { value = 1; }
   CjsSchema.define(ListsUnnamed, { className: "InterfaceTableListsUnnamed", fields: {} });
-  meta.blue.interface(UnnamedInterface)(ListsUnnamed);
+  blue.interface(UnnamedInterface)(ListsUnnamed);
   assert.throws(() => new Copier().CopyTo(new ListsUnnamed()), /declared class identity/);
 
   class UnnamedTemplate {}
-  meta.blue.interface()(UnnamedTemplate);
+  blue.interface()(UnnamedTemplate);
   class ListsTemplate { value = 2; }
   CjsSchema.define(ListsTemplate, { className: "InterfaceTableListsTemplate", fields: {} });
-  meta.blue.interface(UnnamedTemplate)(ListsTemplate);
+  blue.interface(UnnamedTemplate)(ListsTemplate);
   assert.ok(new Copier().CopyTo(new ListsTemplate()));
 });
 
@@ -176,17 +176,17 @@ class InterfaceLifecycleParent
 }
 CjsSchema.define(InterfaceLifecycleParent, {
   className: "InterfaceTableLifecycleParent",
-  fields: { value: [meta.type.int32, meta.blue.persist, meta.blue.notify] }
+  fields: { value: [type.int32, blue.persist, blue.notify] }
 });
-meta.blue.interface(IInitialize, INotify)(InterfaceLifecycleParent);
+blue.interface(IInitialize, INotify)(InterfaceLifecycleParent);
 
 class InterfaceLifecycleEnded extends InterfaceLifecycleParent {}
 CjsSchema.define(InterfaceLifecycleEnded, { className: "InterfaceTableLifecycleEnded" });
-meta.blue.interface(INotify, InterfaceLifecycleParent)(InterfaceLifecycleEnded);
+blue.interface(INotify, InterfaceLifecycleParent)(InterfaceLifecycleEnded);
 
 class InterfaceLifecycleChained extends InterfaceLifecycleParent {}
 CjsSchema.define(InterfaceLifecycleChained, { className: "InterfaceTableLifecycleChained" });
-meta.blue.chainTo(InterfaceLifecycleParent)(InterfaceLifecycleChained);
+blue.chainTo(InterfaceLifecycleParent)(InterfaceLifecycleChained);
 
 test("Copier selects notification or initialization from the exposure boundary", () =>
 {

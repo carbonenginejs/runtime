@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { IPrioritizedObject } from "../../npm/dist/audio/trinity/audio/IPrioritizedObject.js";
-import { CjsSchema, meta } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema, blue } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 
 const methods = [
@@ -37,7 +37,7 @@ test("IPrioritizedObject composes inheritance without fabricating a Blue exposur
     Cull() { this.culled = true; }
   }
   const getID = PrioritizedObject.prototype.GetID;
-  meta.blue.inherit(IPrioritizedObject)(PrioritizedObject, { kind: "class" });
+  blue.inherit(IPrioritizedObject)(PrioritizedObject, { kind: "class" });
   const object = new PrioritizedObject();
   assert.equal(PrioritizedObject.prototype.GetID, getID);
   assert.equal(CjsSchema.cast(object, IPrioritizedObject), object);

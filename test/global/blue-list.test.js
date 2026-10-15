@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { BlueList, IList, IListNotify, ICopierCustomAssignment, Copier, ICopier, be } from "@carbonenginejs/runtime/blue";
-import { CjsSchema, meta } from "@carbonenginejs/runtime/schema";
+import { CjsSchema, type, blue } from "@carbonenginejs/runtime/schema";
 import { BLUELISTEVENT } from "../../src/global/consts/blue.js";
 import { mappedInterfaces } from "../../src/global/compose/interface.js";
 
@@ -13,15 +13,15 @@ class Item
 CjsSchema.define(Item, {
   className: "TestBlueListItem",
   fields: {
-    value: [ meta.type.float64, meta.blue.persist ],
-    peer: [ meta.type.rootRef("TestBlueListItem"), meta.blue.persist ]
+    value: [ type.float64, blue.persist ],
+    peer: [ type.rootRef("TestBlueListItem"), blue.persist ]
   }
 });
-meta.blue.interface()(Item);
+blue.interface()(Item);
 
 class UnexposedItem extends Item {}
 CjsSchema.define(UnexposedItem, { className: "TestBlueListUnexposedItem" });
-meta.blue.interface()(UnexposedItem);
+blue.interface()(UnexposedItem);
 
 // This test class fixes the generic constructor arguments. Production generic
 // dispatch and stored-list preservation need their explicit Copier integration;

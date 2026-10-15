@@ -248,7 +248,7 @@ test("native exposure ends at the driver instead of traversing the primary base 
     const original = Object.getOwnPropertyDescriptor(ICurveSetDriver, record);
     try
     {
-        CjsSchema.meta.blue.interface(UnrelatedExposure)(ICurveSetDriver);
+        CjsSchema.blue.interface(UnrelatedExposure)(ICurveSetDriver);
         assert.ok(mappedInterfaces(ICurveSetDriver).has(UnrelatedExposure));
         assert.deepEqual([...mappedInterfaces(AudioCurveSetDriver)], [AudioCurveSetDriver, ICurveSetDriver, IInitialize]);
         assert.equal(CjsSchema.cast(new AudioCurveSetDriver(), ICurveSetDriver).constructor, AudioCurveSetDriver);

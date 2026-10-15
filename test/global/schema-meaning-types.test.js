@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema, meta } from "../../src/global/schema/index.js";
+import { CjsSchema, meta, type } from "../../src/global/schema/index.js";
 import { normalizeCarbonValue, coerceCarbonMathInto } from "../../src/global/schema/types/carbonTypes.js";
 import { CjsBlackSchemaRegistry } from "../../src/resource/formats/black/core/CjsBlackSchemaRegistry.js";
 
@@ -21,16 +21,16 @@ test("math values compare at the declared storage precision before reporting a c
 test("semantic type decorators nothing used are gone; Carbon's math types remain", () =>
 {
   for (const removed of [ "rgb", "rgba", "linear", "local", "world", "translation", "rotation", "scale", "mixed" ])
-    assert.equal(meta.type[removed], undefined, removed);
-  for (const kept of [ "color", "quat", "vec2", "vec3", "vec4", "mat4" ]) assert.equal(typeof meta.type[kept], "function", kept);
+    assert.equal(type[removed], undefined, removed);
+  for (const kept of [ "color", "quat", "vec2", "vec3", "vec4", "mat4" ]) assert.equal(typeof type[kept], "function", kept);
 });
 
 test("Stage-3, decorator calls and manual declarations agree for compound flags and component labels", () =>
 {
   const definitions = {};
-  definitions.flags = meta.type.flags({ A: 1, B: 2 });
-  definitions.words = meta.type.uint32Array;
-  definitions.packed = [meta.type.vec4, meta.ui.components(["speed", "size", "opacity", "age"]), meta.ui.description("Particle channels")];
+  definitions.flags = type.flags({ A: 1, B: 2 });
+  definitions.words = type.uint32Array;
+  definitions.packed = [type.vec4, meta.ui.components(["speed", "size", "opacity", "age"]), meta.ui.description("Particle channels")];
   class Manual {}
   CjsSchema.define(Manual, { className: "MeaningManual", fields: definitions });
   class Decorated {}
@@ -61,10 +61,10 @@ test("Stage-3, decorator calls and manual declarations agree for compound flags 
 
 test("object pointers are Carbon's rootRef and rootWeak; the retired kinds fail where they are declared", () =>
 {
-  for (const retired of [ "model", "objectRef", "weakRef" ]) assert.equal(meta.type[retired], undefined);
+  for (const retired of [ "model", "objectRef", "weakRef" ]) assert.equal(type[retired], undefined);
   class Pointers {}
   CjsSchema.define(Pointers, { className: "RetiredKindsPointers", fields: {
-    strong: meta.type.rootRef("RetiredKindsPointers"), weak: meta.type.rootWeak("RetiredKindsPointers")
+    strong: type.rootRef("RetiredKindsPointers"), weak: type.rootWeak("RetiredKindsPointers")
   } });
   assert.equal(CjsSchema.getField(Pointers, "strong").type.kind, "rootRef");
   assert.equal(CjsSchema.getField(Pointers, "weak").type.kind, "rootWeak");
@@ -81,9 +81,9 @@ test("object pointers are Carbon's rootRef and rootWeak; the retired kinds fail 
   }
 });
 
-test("component labels require valid explicit declarations; meta.type.custom is gone", () =>
+test("component labels require valid explicit declarations; type.custom is gone", () =>
 {
-  assert.equal(meta.type.custom, undefined);
+  assert.equal(type.custom, undefined);
   assert.equal(Object.hasOwn(meta.ui, "readOnly"), false, "editability is Blue WRITE; Carbon has no read-only annotation");
   assert.throws(() => meta.ui.components(["x", 2]), /string labels/);
   assert.throws(() => meta.ui.components(["a", "b", "c", "d", "e"]), /four/);

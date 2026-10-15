@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { ICustomPersist, be } from "@carbonenginejs/runtime/blue";
-import { CjsSchema, meta } from "@carbonenginejs/runtime/schema";
+import { CjsSchema, blue } from "@carbonenginejs/runtime/schema";
 import { ICustomPersist as DirectPersist } from "../../src/global/blue/ICustomPersist.js";
 import { mappedInterfaces } from "../../src/global/compose/interface.js";
 
@@ -43,7 +43,7 @@ test("all ICustomPersist operations remain required, including release", () =>
 test("ICustomPersist composition installs missing obligations without inventing lifecycle methods", () =>
 {
   class MissingPersist {}
-  meta.blue.inherit(ICustomPersist)(MissingPersist);
+  blue.inherit(ICustomPersist)(MissingPersist);
   CjsSchema.define(MissingPersist, { className: "TestBlueCustomPersistMissing" });
   const instance = new MissingPersist();
   assert.equal(CjsSchema.cast(instance, ICustomPersist), instance);
@@ -88,13 +88,13 @@ test("ICustomPersist preserves concrete methods and keeps nominal composition se
     }
   }
   const originals = methods.map(method => Persist.prototype[method]);
-  meta.blue.inherit(ICustomPersist)(Persist);
+  blue.inherit(ICustomPersist)(Persist);
   CjsSchema.define(Persist, { className: "TestBlueCustomPersistProvider" });
   const instance = new Persist();
   assert.deepEqual(methods.map(method => Persist.prototype[method]), originals);
   assert.equal(CjsSchema.cast(instance, ICustomPersist), instance);
   assert.equal(mappedInterfaces(Persist).has(ICustomPersist), false);
-  meta.blue.interface(ICustomPersist)(Persist);
+  blue.interface(ICustomPersist)(Persist);
   assert.deepEqual(Array.from(mappedInterfaces(Persist)), [ Persist, ICustomPersist ]);
   assert.equal(CjsSchema.cast(instance, ICustomPersist), instance);
   assert.deepEqual(calls, [], "nominal/query declarations must not invoke persistence callbacks");

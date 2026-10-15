@@ -44,7 +44,7 @@ test("Black binary blocks reject negative and truncated byte lengths; an odd len
   assert.equal(Readers.readValue(cursor([1,2,3]), field).byteLength, 3);
 });
 
-test("only meta.type.binary maps to BINARYBLOCK", () =>
+test("only type.binary maps to BINARYBLOCK", () =>
 {
   assert.throws(() => CjsBlackSchemaRegistry.fromDeclaredType({ kind: "typedArray", arrayType: "Uint32Array" }), /Unsupported canonical Black type: typedArray/);
   assert.throws(() => CjsBlackSchemaRegistry.fromDeclaredType({ kind: "custom", name: "Tr2ActionPython.state" }), /Unsupported canonical Black type: custom/);

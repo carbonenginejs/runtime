@@ -1,13 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsSchema, meta } from "../../src/global/schema/index.js";
+import { CjsSchema, meta, type, blue } from "../../src/global/schema/index.js";
 import "../../src/global/blue/values.js";
 
 test("a redeclared inherited member keeps every namespace it does not restate", () =>
 {
     class Parent { glow = 1; }
     CjsSchema.define(Parent, { className: "InheritedRedeclarationParent", fields: {
-        glow: [meta.type.float32, meta.blue.readwrite, meta.blue.persist, meta.ui.group("Lighting")]
+        glow: [type.float32, blue.readwrite, blue.persist, meta.ui.group("Lighting")]
     } });
     class Child extends Parent {}
     CjsSchema.define(Child, { className: "InheritedRedeclarationChild", fields: {
@@ -27,12 +27,12 @@ test("a restated key overrides only that key, and merging reaches through severa
 {
     class Base { level = 0; }
     CjsSchema.define(Base, { className: "InheritedRedeclarationBase", fields: {
-        level: [meta.type.int32, meta.blue.readwrite, meta.blue.persist, meta.ui.group("General"), meta.ui.widget("int")]
+        level: [type.int32, blue.readwrite, blue.persist, meta.ui.group("General"), meta.ui.widget("int")]
     } });
     class Middle extends Base {}
     CjsSchema.define(Middle, { className: "InheritedRedeclarationMiddle", fields: { level: [meta.ui.group("Advanced")] } });
     class Leaf extends Middle {}
-    CjsSchema.define(Leaf, { className: "InheritedRedeclarationLeaf", fields: { level: [meta.blue.read] } });
+    CjsSchema.define(Leaf, { className: "InheritedRedeclarationLeaf", fields: { level: [blue.read] } });
     const member = CjsSchema.getSchema(Leaf).members.find(entry => entry.declaringClass === Leaf);
     assert.deepEqual(member.jessica, { group: "Advanced", widget: "int" });
     assert.equal(member.edit.read, true);
@@ -46,7 +46,7 @@ test("explicit member declarations are complete and do not merge inherited metad
 {
     class Parent { value = 0; }
     CjsSchema.define(Parent, { className: "InheritedExplicitParent", fields: {
-        value: [meta.type.int32, meta.blue.readwrite, meta.blue.persist]
+        value: [type.int32, blue.readwrite, blue.persist]
     } });
     class Child extends Parent {}
     CjsSchema.define(Child, { className: "InheritedExplicitChild", members: [

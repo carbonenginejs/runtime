@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../src/global/schema/CjsSchema.js";
+import { type } from "../../src/global/schema/index.js";
 import { be } from "../../src/global/blue/index.js";
 
 class Effect
@@ -11,13 +12,13 @@ CjsSchema.define(Effect, {
   className: "BlueClassesManagerEffect",
   purpose: "A leaf the manager finds.",
   fields: {
-    name: [ CjsSchema.meta.blue.readwrite, CjsSchema.meta.blue.persist, CjsSchema.meta.type.string ]
+    name: [ CjsSchema.blue.readwrite, CjsSchema.blue.persist, type.string ]
   }
 });
 
 class SpecialEffect extends Effect {}
 CjsSchema.define(SpecialEffect, { className: "BlueClassesManagerSpecialEffect" });
-CjsSchema.meta.blue.chainTo(Effect)(SpecialEffect);
+CjsSchema.blue.chainTo(Effect)(SpecialEffect);
 
 class Holder
 {
@@ -29,10 +30,10 @@ class Holder
 CjsSchema.define(Holder, {
   className: "BlueClassesManagerHolder",
   fields: {
-    name: [ CjsSchema.meta.blue.readwrite, CjsSchema.meta.blue.persist, CjsSchema.meta.type.string ],
-    persisted: [ CjsSchema.meta.blue.readwrite, CjsSchema.meta.blue.persist, CjsSchema.meta.type.rootRef("IRoot") ],
-    transient: [ CjsSchema.meta.blue.readwrite, CjsSchema.meta.type.rootRef("IRoot") ],
-    items: [ CjsSchema.meta.blue.read, CjsSchema.meta.blue.persist, CjsSchema.meta.type.list("IRoot") ]
+    name: [ CjsSchema.blue.readwrite, CjsSchema.blue.persist, type.string ],
+    persisted: [ CjsSchema.blue.readwrite, CjsSchema.blue.persist, type.rootRef("IRoot") ],
+    transient: [ CjsSchema.blue.readwrite, type.rootRef("IRoot") ],
+    items: [ CjsSchema.blue.read, CjsSchema.blue.persist, type.list("IRoot") ]
   }
 });
 

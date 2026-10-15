@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../src/global/schema/CjsSchema.js";
+import { type } from "../../src/global/schema/index.js";
 import { be } from "../../src/global/blue/index.js";
 import { GetResources } from "../../src/global/blue/getResources.js";
 
@@ -196,8 +197,8 @@ test("resource root and recursive resource dependencies are collected once", () 
 test("runtime-only resource declarations are followed and collected once", () =>
 {
     class Holder extends Graph {}
-    CjsSchema.decorateField(Holder, "_geometryRes", CjsSchema.meta.type.resource(Resource));
-    CjsSchema.decorateField(Holder, "_sharedRes", CjsSchema.meta.type.resource(Resource));
+    CjsSchema.decorateField(Holder, "_geometryRes", type.resource(Resource));
+    CjsSchema.decorateField(Holder, "_sharedRes", type.resource(Resource));
     CjsSchema.define(Holder, { className: "BlueTraversalRuntimeResourceHolder" });
     const root = new Holder("root");
     const local = new Resource("local");

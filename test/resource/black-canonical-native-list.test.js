@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsSchema, meta } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema, blue } from "../../npm/dist/global/schema/index.js";
 import { BlueList } from "../../npm/dist/global/blue/BlueList.js";
 import { IList } from "../../npm/dist/global/blue/IList.js";
 import { IListNotify } from "../../npm/dist/global/blue/IListNotify.js";
@@ -32,9 +32,9 @@ const field = (type, notify = false) => ({ type, edit: { persist: true, notify }
 CjsSchema.define(Item, { className: "BlackNativeListItem", fields: {
     value: field({ kind: "uint32" }, true), parent: field({ kind: "rootRef", className: "BlackNativeListOwner" })
 } });
-meta.blue.interface(INotify)(Item);
+blue.interface(INotify)(Item);
 CjsSchema.define(WrongItem, { className: "BlackNativeListWrongItem" });
-meta.blue.interface()(WrongItem);
+blue.interface()(WrongItem);
 CjsSchema.define(Owner, { className: "BlackNativeListOwner", fields: {
     items: field({ kind: "list", itemType: "BlackNativeListItem" }, true),
     after: field({ kind: "uint32" }),
@@ -42,7 +42,7 @@ CjsSchema.define(Owner, { className: "BlackNativeListOwner", fields: {
     values: field({ kind: "array", itemType: "BlackNativeListItem" }),
     unique: field({ kind: "set", itemType: "BlackNativeListItem" })
 } });
-meta.blue.interface(INotify)(Owner);
+blue.interface(INotify)(Owner);
 
 class Observer extends IListNotify {
     events = [];
@@ -162,7 +162,7 @@ class NonArrayList {
     Append(item) { assert.equal(this.notify,null); return this.storage.Append(item); }
 }
 CjsSchema.define(NonArrayList, { className: "BlackNativeNonArrayList" });
-meta.blue.interface(IList)(NonArrayList);
+blue.interface(IList)(NonArrayList);
 
 test("a non-Array exact mapped IList is populated once and retained through shared hydration", () => {
     const { list, observer } = begin(new NonArrayList());
@@ -187,7 +187,7 @@ test("ordinary list, array and set retain their prior null and reference behavio
 
 class UnmappedList extends BlueList {}
 CjsSchema.define(UnmappedList, { className: "BlackNativeUnmappedList" });
-meta.blue.interface()(UnmappedList);
+blue.interface()(UnmappedList);
 test("Array inheritance without an exact IList mapping keeps the ordinary population path", () => {
     const list = new UnmappedList(Item);
     const { observer } = begin(list);

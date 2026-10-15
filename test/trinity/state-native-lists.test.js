@@ -7,7 +7,7 @@ import { IListNotify } from "../../npm/dist/global/blue/IListNotify.js";
 import { INotify } from "../../npm/dist/global/blue/INotify.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
-import { CjsSchema, meta } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema, blue } from "../../npm/dist/global/schema/index.js";
 import { CjsBlackReader } from "../../npm/dist/resource/formats/black/core/CjsBlackReader.js";
 import { ExecuteMainThreadActions } from "../../npm/dist/trinity/core/continueOnMainThread.js";
 import { Tr2Controller } from "../../npm/dist/trinity/controllers/Tr2Controller.js";
@@ -88,7 +88,7 @@ class StateListObservedAction extends Tr2ActionCallback
   RebaseSimTime(diff) { this.calls.push(["RebaseSimTime", diff]); }
 }
 CjsSchema.define(StateListObservedAction, { className: "StateListObservedAction" });
-meta.blue.interface(ITr2ControllerAction)(StateListObservedAction);
+blue.interface(ITr2ControllerAction)(StateListObservedAction);
 
 class StateListObservedTransition extends Tr2StateMachineTransition
 {
@@ -108,7 +108,7 @@ class StateListObservedTransition extends Tr2StateMachineTransition
   }
 }
 CjsSchema.define(StateListObservedTransition, { className: "StateListObservedTransition" });
-meta.blue.interface(Tr2StateMachineTransition)(StateListObservedTransition);
+blue.interface(Tr2StateMachineTransition)(StateListObservedTransition);
 
 class StateListFinalizer extends ITr2StateMachineStateFinalizer
 {
@@ -164,7 +164,7 @@ test("list admission and direct payload dispatch require exact query identities"
   for (const Type of [UnexposedAction, UnexposedTransition])
   {
     CjsSchema.define(Type, { className: `StateNativeLists${Type.name}` });
-    meta.blue.interface()(Type);
+    blue.interface()(Type);
   }
   const state = State();
   Linked(t, state);

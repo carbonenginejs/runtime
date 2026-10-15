@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { be, CjsBlueClasses } from "../../src/global/blue/index.js";
-import { CjsSchema } from "../../src/global/schema/index.js";
+import { CjsSchema, type } from "../../src/global/schema/index.js";
 import * as CcpLog from "../../src/global/logging/ccpLog.js";
 import * as classRegistry from "../../src/global/blue/classes/registry.js";
 
@@ -267,11 +267,11 @@ test("registration revisions refresh schemas through both facades; defaults are 
   class Holder { reference = null; }
   CjsSchema.define(Holder, {
     className: "RegistrationRevisionHolder",
-    fields: { reference: CjsSchema.meta.type.rootRef("LateRegisteredResource") }
+    fields: { reference: type.rootRef("LateRegisteredResource") }
   });
   let constructions = 0;
   class Defaults { constructor() { this.value = ++constructions; } }
-  CjsSchema.define(Defaults, { className: "RegistrationRevisionDefaults", fields: { value: CjsSchema.meta.type.uint32 } });
+  CjsSchema.define(Defaults, { className: "RegistrationRevisionDefaults", fields: { value: type.uint32 } });
   class Resource { static isResource = true; }
   class Ordinary {}
   const registry = new CjsBlueClasses();
@@ -322,7 +322,7 @@ test("canonical and alias collisions resolve independently without erasing seale
   CjsSchema.define(Original, { className: "CanonicalCollision", aliases: [ "OriginalAlias" ] });
   registry.RegisterClasses([ { name: "OccupiedAlias", type: Other } ]);
   CjsSchema.meta.define({
-    className: "CanonicalCollision", aliases: [ "OccupiedAlias", "AvailableAlias" ], fields: { declared: CjsSchema.meta.type.uint32 }
+    className: "CanonicalCollision", aliases: [ "OccupiedAlias", "AvailableAlias" ], fields: { declared: type.uint32 }
   })(Later);
   try
   {
@@ -370,16 +370,15 @@ test("registration uses explicit names without inspecting Function.name and pres
 
 test("QueryThisInterface walks the exposure table and chain, logging a miss unless silent", (t) =>
 {
-  const { meta } = CjsSchema;
   class IThing {}
   CjsSchema.define(IThing, { className: "IThing" });
   class Parent {}
   CjsSchema.define(Parent, { className: "QtiParent" });
-  meta.blue.interface(IThing)(Parent);
+  CjsSchema.blue.interface(IThing)(Parent);
   class Child extends Parent {}
   CjsSchema.define(Child, { className: "QtiChild" });
-  meta.blue.interface()(Child);
-  meta.blue.chainTo(Parent)(Child);
+  CjsSchema.blue.interface()(Child);
+  CjsSchema.blue.chainTo(Parent)(Child);
   class Unrelated {}
   CjsSchema.define(Unrelated, { className: "QtiUnrelated" });
 

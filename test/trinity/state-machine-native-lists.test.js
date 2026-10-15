@@ -6,7 +6,7 @@ import { Copier } from "../../npm/dist/global/blue/Copier.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { IListNotify } from "../../npm/dist/global/blue/IListNotify.js";
 import { INotify } from "../../npm/dist/global/blue/INotify.js";
-import { CjsSchema, meta } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema, blue } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import { CjsBlackReader } from "../../npm/dist/resource/formats/black/core/CjsBlackReader.js";
@@ -282,7 +282,7 @@ test("state payload admission requires exact query exposure even for nominal sub
 {
   class UnexposedState extends Tr2StateMachineState {}
   CjsSchema.define(UnexposedState, { className: "NativeStateListUnexposedState" });
-  meta.blue.interface()(UnexposedState);
+  blue.interface()(UnexposedState);
   const machine = new Tr2StateMachine(), state = new UnexposedState();
   Linked(t, machine, [state]);
   const calls = TraceStates([[state, "state"]]);

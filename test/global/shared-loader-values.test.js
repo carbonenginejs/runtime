@@ -82,7 +82,7 @@ test("a failed dictionary operation cannot leak anchors or completion into reade
     { name: "name", key: "name", type: { kind: "string" } },
     { name: "child", key: "child", type: { kind: "rootRef", className: Record } }
   ] });
-  CjsSchema.meta.blue.interface(IInitialize)(Record);
+  CjsSchema.blue.interface(IInitialize)(Record);
   const reader = new DictReader();
   assert.throws(() => reader.CreateObject({ _type: "SharedLoaderReuseRecord", _id: "root", name: "failed", child: { _ref: "missing" } }), /Unresolved _ref/);
   assert.deepEqual(calls, []);
@@ -144,7 +144,7 @@ test("mapped initialization suppresses construction notifications while later ed
     { name: "first", key: "first", type: { kind: "int32" }, edit: { notify: true } },
     { name: "second", key: "second", type: { kind: "int32" }, edit: { notify: true } }
   ] });
-  CjsSchema.meta.blue.interface(IInitialize)(Record);
+  CjsSchema.blue.interface(IInitialize)(Record);
   const values = { first: 1, second: 2 };
   const built = CjsSchema.from("SharedLoaderConstructionRecord", values);
   assert.deepEqual(built.calls, [["initialize", 2]]);

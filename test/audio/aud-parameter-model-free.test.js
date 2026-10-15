@@ -10,7 +10,7 @@ import { BlueList } from "../../npm/dist/global/blue/BlueList.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
 import { Copier } from "../../npm/dist/global/blue/Copier.js";
-import { CjsSchema, meta } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema, blue } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 
 function WithServices(run)
@@ -78,7 +78,7 @@ test("real BlueList admits the parameter through its native exposure and rejects
   assert.equal(list.Append({name: "lookalike", value: 1, OnModified() { return true; }}), false);
   assert.equal(list.Append(new INotify()), false);
   class UnexposedParameter extends AudParameter {}
-  meta.blue.interface()(UnexposedParameter, {kind: "class"});
+  blue.interface()(UnexposedParameter, {kind: "class"});
   assert.equal(list.Append(new UnexposedParameter()), false, "JS inheritance does not create native admission");
   assert.equal(list.length, 1);
 });

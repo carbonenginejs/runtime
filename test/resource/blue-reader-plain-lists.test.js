@@ -5,7 +5,7 @@ import { IList } from "../../npm/dist/global/blue/IList.js";
 import { IListNotify } from "../../npm/dist/global/blue/IListNotify.js";
 import { INotify } from "../../npm/dist/global/blue/INotify.js";
 import { IInitialize } from "../../npm/dist/global/blue/IInitialize.js";
-import { CjsSchema, meta } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema, meta, blue } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import { CjsBlueReader } from "../../npm/dist/resource/format/CjsBlueReader.js";
@@ -24,7 +24,7 @@ class Item
 CjsSchema.define(Item, { className: itemName, fields: {
   value: { type: { kind: "int32" }, edit: { persist: true } }
 } });
-meta.blue.interface(IInitialize)(Item);
+blue.interface(IInitialize)(Item);
 
 function Info(list)
 {
@@ -56,12 +56,12 @@ class Owner
     this.childInitializeCounts = Array.from(this.items, item => item.initializeCount);
   }
 }
-meta.blue.inherit(IListNotify)(Owner);
+blue.inherit(IListNotify)(Owner);
 CjsSchema.define(Owner, { className: ownerName, fields: {
   name: { type: { kind: "string" }, edit: { persist: true } },
   items: { type: { kind: "list", itemType: itemName }, edit: { read: true, persist: true } }
 } });
-meta.blue.interface(IListNotify, IInitialize)(Owner);
+blue.interface(IListNotify, IInitialize)(Owner);
 
 const classes = { [itemName]: Item, [ownerName]: Owner };
 
@@ -175,10 +175,10 @@ class Notified
 CjsSchema.define(Notified, { className: "BlueReaderPlainNotified", fields: {
   value: { type: { kind: "int32" }, edit: { persist: true, notify: true } }
 } });
-meta.blue.interface(INotify)(Notified);
+blue.interface(INotify)(Notified);
 class UnexposedNotify extends Notified {}
 CjsSchema.define(UnexposedNotify, { className: "BlueReaderPlainUnexposedNotify" });
-meta.blue.interface()(UnexposedNotify);
+blue.interface()(UnexposedNotify);
 
 test("the declared plain branch uses mapped notifications after assignment and rejects method-only exposure", () =>
 {

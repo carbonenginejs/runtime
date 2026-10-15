@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema, meta } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema, blue } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { BlueList, Copier, DictReader, IInitialize, INotify, IListNotify, be } from "../../npm/dist/global/blue/index.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
@@ -23,7 +23,7 @@ class Action extends ITr2ControllerAction
   Stop(owner) { this.calls.push(["stop", owner]); }
 }
 CjsSchema.define(Action, { className: "Phase2RecordAction", fields: { name: { type: "string", edit: { read: true, write: true, persist: true } } } });
-meta.blue.interface(ITr2ControllerAction)(Action, { kind: "class" });
+blue.interface(ITr2ControllerAction)(Action, { kind: "class" });
 
 test("three records have native bases without model conveniences or invented struct exposure", () =>
 {

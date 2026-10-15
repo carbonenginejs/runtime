@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsSchema, meta } from "../../src/global/schema/index.js";
+import { CjsSchema, meta, type, blue } from "../../src/global/schema/index.js";
 import "../../src/global/blue/values.js";
 
 test("member maps external names without changing storage and keyIndex is not a storage index", () =>
@@ -14,9 +14,9 @@ test("member maps external names without changing storage and keyIndex is not a 
     CjsSchema.define(Record, {
         className: "KeyMetadataRecord",
         fields: {
-            ssao: [meta.member("SSAO"), meta.type.boolean, meta.blue.readwrite, meta.blue.persist],
-            Primary: [meta.keyIndex(0), meta.type.int32, meta.blue.readwrite, meta.blue.persist],
-            ordinary: [meta.type.int32, meta.blue.readwrite, meta.blue.persist]
+            ssao: [meta.member("SSAO"), type.boolean, blue.readwrite, blue.persist],
+            Primary: [meta.keyIndex(0), type.int32, blue.readwrite, blue.persist],
+            ordinary: [type.int32, blue.readwrite, blue.persist]
         }
     });
     const schema = CjsSchema.getSchema(Record);
@@ -49,7 +49,7 @@ test("Stage-3 external keys preserve the JS key in either decorator order", () =
     for (const reverse of [false, true])
     {
         const metadata = {};
-        const decorators = [meta.type.boolean, meta.member("SSAO"), meta.blue.persist];
+        const decorators = [type.boolean, meta.member("SSAO"), blue.persist];
         if (reverse) decorators.reverse();
         for (const decorator of decorators)
             decorator(undefined, { metadata, name: "ssao", kind: "field", addInitializer() {} });

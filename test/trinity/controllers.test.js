@@ -1,6 +1,6 @@
 import { ITr2CurveSetOwner } from "../../npm/dist/trinity/curves/ITr2CurveSetOwner.js";
 import test from "node:test";
-import { meta } from "../../npm/dist/global/schema/index.js";
+import { type, blue } from "../../npm/dist/global/schema/index.js";
 import { CjsControllerExpressionProgram, ExecuteMainThreadActions, EveChildUpdateParams, ITr2ControllerAction, ITr2GenericEmitterUpdateArguments, ITr2StateMachineStateFinalizer, Tr2ActionAnimateCurveSet, Tr2ActionAnimateValue, Tr2ActionBindRTPC, Tr2ActionCallback, Tr2ActionChildEffect, Tr2ActionOverlay, Tr2ActionPlayCurveSet, Tr2ActionPlayMeshAnimation, Tr2ActionPlaySound, Tr2ActionPython, Tr2ActionResetClipSphereCenter, Tr2ActionSetAttenuationScaling, Tr2ActionSetAudioEmitterPrefix, Tr2ActionSetAudioSwitch, Tr2ActionSetExternalControllerVariable, Tr2ActionSetShaderOption, Tr2ActionSetValue, Tr2ActionSpawnParticles, Tr2BindingPoint, Tr2Controller, Tr2ControllerEventHandler, Tr2ControllerExpression, Tr2ControllerFloatVariable, Tr2ControllerReference, Tr2StateMachine, Tr2StateMachineState, Tr2StateMachineTransition, Tr2SyncToAnimation, Tr2TimelineController, PlayAction, ResetBehavior, StopAction, Type } from "../../npm/dist/trinity/index.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -180,15 +180,15 @@ class BindingTestTarget
   }
 }
 CjsSchema.define(BindingTestTarget, { className: "BindingTestTarget", fields: {
-  name: CjsSchema.meta.type.string,
-  value: CjsSchema.meta.type.float32,
-  flag: CjsSchema.meta.type.boolean,
-  vector: CjsSchema.meta.type.vec3,
-  count: CjsSchema.meta.type.int32,
-  child: CjsSchema.meta.type.rootRef("BindingTestTarget"),
-  children: CjsSchema.meta.type.list("BindingTestTarget")
+  name: type.string,
+  value: type.float32,
+  flag: type.boolean,
+  vector: type.vec3,
+  count: type.int32,
+  child: type.rootRef("BindingTestTarget"),
+  children: type.list("BindingTestTarget")
 } });
-CjsSchema.meta.blue.interface(INotify)(BindingTestTarget);
+CjsSchema.blue.interface(INotify)(BindingTestTarget);
 
 test("Tr2BindingPoint writes Carbon's admitted members and notifies through INotify", () =>
 {
@@ -388,7 +388,7 @@ test("Tr2ControllerEventHandler links and executes controller actions", () =>
   handler.name = "activate";
   for (const action of [first, second])
   {
-    meta.blue.interface(ITr2ControllerAction)(action.constructor, { kind: "class" });
+    blue.interface(ITr2ControllerAction)(action.constructor, { kind: "class" });
     handler.actions.Append(action);
   }
   assertEquals(handler.GetName(), "activate");
@@ -397,7 +397,7 @@ test("Tr2ControllerEventHandler links and executes controller actions", () =>
   handler.Execute(controller);
   assertEquals(events.join(","), "first:link,second:link,first:start,second:start,first:stop,second:stop");
   const inserted = makeAction("inserted", events, controller);
-  meta.blue.interface(ITr2ControllerAction)(inserted.constructor, { kind: "class" });
+  blue.interface(ITr2ControllerAction)(inserted.constructor, { kind: "class" });
   handler.actions.Append(inserted);
   assertEquals(events.at(-1), "inserted:link");
   handler.actions.Remove(2);
@@ -420,7 +420,7 @@ test("Tr2Controller links variables, events, callbacks, and updateables", () =>
   const action = makeAction("ignite", events, controller);
   const handler = new Tr2ControllerEventHandler();
   handler.name = "ignite";
-  meta.blue.interface(ITr2ControllerAction)(action.constructor, { kind: "class" });
+  blue.interface(ITr2ControllerAction)(action.constructor, { kind: "class" });
   handler.actions.Append(action);
   const stateMachine = {
     Link(value)

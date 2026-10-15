@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { Tr2ActionSetValue } from "../../npm/dist/trinity/controllers/action/Tr2ActionSetValue.js";
 import { CjsControllerExpressionCompileError } from "../../npm/dist/trinity/controllers/expression/CjsControllerExpressionCompileError.js";
 import { CjsControllerExpressionEvaluateError } from "../../npm/dist/trinity/controllers/expression/CjsControllerExpressionEvaluateError.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema, type } from "../../npm/dist/global/schema/index.js";
 import { INotify } from "../../npm/dist/global/blue/index.js";
 
 /** A registered float destination; OnModified follows each write (Tr2BindingPoint.cpp:356-358). */
@@ -18,8 +18,8 @@ class SetValueTarget
     return true;
   }
 }
-CjsSchema.define(SetValueTarget, { className: "SetValueFidelityTarget", fields: { value: CjsSchema.meta.type.float32 } });
-CjsSchema.meta.blue.interface(INotify)(SetValueTarget);
+CjsSchema.define(SetValueTarget, { className: "SetValueFidelityTarget", fields: { value: type.float32 } });
+CjsSchema.blue.interface(INotify)(SetValueTarget);
 
 function fixture(source = "0", variable = 1)
 {

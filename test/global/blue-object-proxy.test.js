@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 // global/blue is raw source (no decorators), so its own tests import src.
 import { be, BlueObjectProxy, CcpTime, IBlueObjectBuilder, IBlueObjectProxy, IUnloadable } from "../../src/global/blue/index.js";
-import { CjsSchema, meta } from "../../src/global/schema/index.js";
+import { CjsSchema, blue } from "../../src/global/schema/index.js";
 
 // The LOD holder is decorated character source, so it comes from npm/dist,
 // with that build's own Blue realm. Until npm/dist is rebuilt from a source
@@ -37,7 +37,7 @@ class UnloadableThing
   UnloadWhenUnreferenced() { this.unloads++; }
   ReloadWhenReferenced() { this.reloads++; }
 }
-meta.blue.inherit(IUnloadable)(UnloadableThing, { kind: "class" });
+blue.inherit(IUnloadable)(UnloadableThing, { kind: "class" });
 
 /** Drives `BeOS->GetInfo()->mRealTime` for the duration of one test. */
 function realClock(t, start = 1000, os = be.os)

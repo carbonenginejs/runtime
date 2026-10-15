@@ -1,4 +1,4 @@
-import { meta } from "../../npm/dist/global/schema/index.js";
+import { blue } from "../../npm/dist/global/schema/index.js";
 import { ITriVectorFunction } from "../../npm/dist/global/blue/index.js";
 import { HostBitmap } from "../../npm/dist/global/imageio/index.js";
 import { PixelFormat } from "../../npm/dist/global/consts/renderContext/index.js";
@@ -217,7 +217,7 @@ test("FollowASpline registry: list events wire the callback; the registry flatte
 });
 
 class SequencerFunction extends ITriVectorFunction {}
-meta.blue.interface(ITriVectorFunction)(SequencerFunction);
+blue.interface(ITriVectorFunction)(SequencerFunction);
 
 function constantCurve(x, y, z)
 {

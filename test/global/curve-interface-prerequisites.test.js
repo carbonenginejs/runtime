@@ -6,7 +6,7 @@ import {
   ITriFunction, ITriScalarFunction, ITriVectorFunction, ITriQuaternionFunction,
   ITriColorFunction, ITriCurveLength, be
 } from "@carbonenginejs/runtime/blue";
-import { CjsSchema, meta } from "@carbonenginejs/runtime/schema";
+import { CjsSchema, blue } from "@carbonenginejs/runtime/schema";
 import { ITriFunction as DirectFunction } from "../../src/global/blue/ITriFunction.js";
 import { ITriScalarFunction as DirectScalar } from "../../src/global/blue/ITriScalarFunction.js";
 import { ITriVectorFunction as DirectVector } from "../../src/global/blue/ITriVectorFunction.js";
@@ -93,7 +93,7 @@ for (const { name, Contract, direct, base, own, abstract, ticks = [] } of contra
   {
     class Derived extends Contract {}
     class Composed {}
-    meta.blue.inherit(Contract)(Composed);
+    blue.inherit(Contract)(Composed);
     CjsSchema.define(Composed, { className: `TestCurvePrerequisiteMissing${name}` });
     const composed = new Composed();
     assert.equal(CjsSchema.cast(composed, Contract), composed);
@@ -154,13 +154,13 @@ for (const { name, Contract, direct, base, own, abstract, ticks = [] } of contra
     }
     class Consumer extends Operations {}
     const methods = hasReset ? [ ...required, "Reset" ] : required;
-    meta.blue.inherit(Contract)(Consumer);
+    blue.inherit(Contract)(Consumer);
     CjsSchema.define(Consumer, { className: `TestCurvePrerequisiteConcrete${name}` });
     const instance = new Consumer();
     for (const method of methods) assert.equal(instance[method], Operations.prototype[method]);
     assert.equal(CjsSchema.cast(instance, Contract), instance);
     assert.deepEqual(Array.from(mappedInterfaces(Consumer)), []);
-    meta.blue.interface(Contract)(Consumer);
+    blue.interface(Contract)(Consumer);
     assert.deepEqual(Array.from(mappedInterfaces(Consumer)), [ Consumer, Contract ]);
     if (base)
     {

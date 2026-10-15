@@ -1,12 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsSchema, meta } from "../../src/global/schema/index.js";
+import { CjsSchema, meta, type, blue } from "../../src/global/schema/index.js";
 
 test("schema-only values use canonical member names without Blue services", () =>
 {
     class Record { value = 1; }
     CjsSchema.define(Record, { className: "SchemaOnlyKeyRecord", fields: {
-        value: [meta.member("Value"), meta.type.int32, meta.blue.readwrite]
+        value: [meta.member("Value"), type.int32, blue.readwrite]
     } });
     const item = new Record();
     CjsSchema.setValues(item, { Value: 4 });

@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { ICurveSetDriver, be } from "@carbonenginejs/runtime/blue";
-import { CjsSchema, meta } from "@carbonenginejs/runtime/schema";
+import { CjsSchema, blue } from "@carbonenginejs/runtime/schema";
 import { ICurveSetDriver as DirectDriver } from "../../src/global/blue/ICurveSetDriver.js";
 import { mappedInterfaces } from "../../src/global/compose/interface.js";
 
@@ -36,7 +36,7 @@ test("ICurveSetDriver composes without replacing the driver's numeric operation 
     }
   }
   const implementation = Driver.prototype.GetCurveSetTime;
-  meta.blue.inherit(ICurveSetDriver)(Driver, { kind: "class" });
+  blue.inherit(ICurveSetDriver)(Driver, { kind: "class" });
   CjsSchema.define(Driver, { className: "TestBlueCurveSetDriver" });
 
   const driver = new Driver();

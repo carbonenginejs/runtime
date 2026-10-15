@@ -3,7 +3,7 @@ import test from "node:test";
 import { BlueList } from "../../npm/dist/global/blue/BlueList.js";
 import { Copier } from "../../npm/dist/global/blue/Copier.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
-import { CjsSchema, meta } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema, blue } from "../../npm/dist/global/schema/index.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import { CjsBlackReader } from "../../npm/dist/resource/formats/black/core/CjsBlackReader.js";
 import { Tr2Controller } from "../../npm/dist/trinity/controllers/Tr2Controller.js";
@@ -182,7 +182,7 @@ test("notification payloads require exact self exposure even for nominal subclas
   for (const [Type, className] of [[UnexposedMachine, "ControllerListUnexposedMachine"], [UnexposedHandler, "ControllerListUnexposedHandler"]])
   {
     CjsSchema.define(Type, { className });
-    meta.blue.interface()(Type);
+    blue.interface()(Type);
   }
   const controller = new Tr2Controller(), machine = new UnexposedMachine(), handler = new UnexposedHandler(), calls = [];
   controller.Link({});

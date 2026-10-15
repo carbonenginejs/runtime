@@ -1,4 +1,4 @@
-// meta.type.wpath: a path held in a std::wstring. Black keeps narrow and wide
+// type.wpath: a path held in a std::wstring. Black keeps narrow and wide
 // string tables, and a member's declaration alone decides which one its
 // 2-byte index reads (STDWSTRING reads the wide one).
 import assert from "node:assert/strict";

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema, type } from "../../npm/dist/global/schema/index.js";
 import { be, DictReader, DictWriter, Copier, BlueList, INotify } from "../../npm/dist/global/blue/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { ITr2ControllerAction } from "../../npm/dist/trinity/controllers/action/ITr2ControllerAction.js";
@@ -54,8 +54,8 @@ class AnimatedTarget
     return true;
   }
 }
-CjsSchema.define(AnimatedTarget, { className: "Phase2AnimatedTarget", fields: { value: CjsSchema.meta.type.float32 } });
-CjsSchema.meta.blue.interface(INotify)(AnimatedTarget);
+CjsSchema.define(AnimatedTarget, { className: "Phase2AnimatedTarget", fields: { value: type.float32 } });
+CjsSchema.blue.interface(INotify)(AnimatedTarget);
 
 function AnimationFixture(Type)
 {

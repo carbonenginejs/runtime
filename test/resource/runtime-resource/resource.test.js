@@ -6,7 +6,7 @@ import {
   getResourceExtension,
   normalizeResourcePath
 } from "#utils/path";
-import { CjsSchema, meta } from "../../../npm/dist/global/schema/index.js";
+import { CjsSchema, blue } from "../../../npm/dist/global/schema/index.js";
 import { ICacheable } from "../../../npm/dist/global/blue/index.js";
 import * as runtimeResource from "../../../npm/dist/resource/index.js";
 import { CjsBlackFormat } from "../../../npm/dist/resource/formats/black/index.js";
@@ -47,8 +47,8 @@ class SizedResource extends CjsResource
     return this.size;
   }
 }
-meta.blue.inherit(ICacheable)(SizedResource, { kind: "class" });
-meta.blue.interface(ICacheable)(SizedResource);
+blue.inherit(ICacheable)(SizedResource, { kind: "class" });
+blue.interface(ICacheable)(SizedResource);
 
 /**
  * A sized resource registered at time 0, so an inactivity sweep at time 10

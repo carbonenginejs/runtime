@@ -40,7 +40,7 @@ class HolderManager extends IBlueResMan
   LoadObject() { throw new Error("installation must not load objects"); }
   Shutdown() { throw new Error("installation must not retire borrowed services"); }
 }
-CjsSchema.meta.blue.inherit(IBlueEvents)(HolderManager);
+CjsSchema.blue.inherit(IBlueEvents)(HolderManager);
 
 class HolderOS extends IBlueOS
 {

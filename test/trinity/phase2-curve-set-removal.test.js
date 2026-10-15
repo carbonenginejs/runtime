@@ -3,7 +3,7 @@ import test from "node:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { createHash } from "node:crypto";
-import { CjsSchema, meta } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema, blue } from "../../npm/dist/global/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { Copier } from "../../npm/dist/global/blue/Copier.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
@@ -37,7 +37,7 @@ class SampleFunction extends ITriFunction
 CjsSchema.define(SampleFunction, { className: "Phase2CurveSetSampleFunction", fields: {
   name: { type: "string", edit: { read: true, write: true, persist: true } }
 } });
-meta.blue.interface(ITriFunction)(SampleFunction, { kind: "class" });
+blue.interface(ITriFunction)(SampleFunction, { kind: "class" });
 
 class SampleBinding extends ITr2ValueBinding
 {
@@ -45,7 +45,7 @@ class SampleBinding extends ITr2ValueBinding
   CopyValue() { this.copies++; }
 }
 CjsSchema.define(SampleBinding, { className: "Phase2CurveSetSampleBinding" });
-meta.blue.interface(ITr2ValueBinding)(SampleBinding, { kind: "class" });
+blue.interface(ITr2ValueBinding)(SampleBinding, { kind: "class" });
 
 test("curve-set and range have native bases and exact exposure without model conveniences", () =>
 {
@@ -132,12 +132,12 @@ test("duration lookup uses mapped native interfaces and ignores a coincidental L
   class Duration extends SampleFunction { Length() { return 7; } }
   class CurveLength extends SampleFunction { Length() { return 5; } }
   class Unmapped extends SampleFunction { Length() { assert.fail("not exposed"); } }
-  meta.blue.inherit(ITriDuration)(Duration, { kind: "class" });
-  meta.blue.inherit(ITriCurveLength)(CurveLength, { kind: "class" });
-  meta.blue.inherit(ITriDuration)(Unmapped, { kind: "class" });
-  meta.blue.interface(ITriFunction, ITriDuration)(Duration, { kind: "class" });
-  meta.blue.interface(ITriFunction, ITriCurveLength)(CurveLength, { kind: "class" });
-  meta.blue.interface(ITriFunction)(Unmapped, { kind: "class" });
+  blue.inherit(ITriDuration)(Duration, { kind: "class" });
+  blue.inherit(ITriCurveLength)(CurveLength, { kind: "class" });
+  blue.inherit(ITriDuration)(Unmapped, { kind: "class" });
+  blue.interface(ITriFunction, ITriDuration)(Duration, { kind: "class" });
+  blue.interface(ITriFunction, ITriCurveLength)(CurveLength, { kind: "class" });
+  blue.interface(ITriFunction)(Unmapped, { kind: "class" });
   const set = new TriCurveSet();
   set.AddCurve(new Unmapped());
   assert.equal(set.GetMaxCurveDuration(), 0);

@@ -93,10 +93,10 @@ test("FindInterface tests only the object's own interface table, as Carbon's IsM
   CjsSchema.define(IMarker, { className: "BlueFindIMarker" });
   class Marked extends Node {}
   CjsSchema.define(Marked, { className: "BlueFindMarked" });
-  CjsSchema.meta.blue.interface(IMarker)(Marked);
+  CjsSchema.blue.interface(IMarker)(Marked);
   class Chained extends Node {}
   CjsSchema.define(Chained, { className: "BlueFindChained" });
-  CjsSchema.meta.blue.chainTo(Marked)(Chained);
+  CjsSchema.blue.chainTo(Marked)(Chained);
 
   const root = new Node("root");
   const marked = new Marked("marked");

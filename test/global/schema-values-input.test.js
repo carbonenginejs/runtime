@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { runInNewContext } from "node:vm";
 
-import { CjsSchema } from "../../src/global/schema/index.js";
+import { CjsSchema, type } from "../../src/global/schema/index.js";
 
 // The top-level values rule (operator ruling, 2026-09-14): from/set exist for
 // hydration and dehydration, so what arrives at the top is a plain values
@@ -23,7 +23,7 @@ class ValuesInputParent
   child = null;
 }
 CjsSchema.defineField(ValuesInputParent, "label", "type", { kind: "string" });
-CjsSchema.decorateField(ValuesInputParent, "child", CjsSchema.meta.type.rootRef("ValuesInputChild"));
+CjsSchema.decorateField(ValuesInputParent, "child", type.rootRef("ValuesInputChild"));
 CjsSchema.define(ValuesInputParent, { className: "ValuesInputParent" });
 
 const NOT_VALUES = [

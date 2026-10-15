@@ -146,7 +146,7 @@ test("mapped lifecycle runs once, after cycles resolve, and method presence alon
     const graph = { _type: "GraphLife", _id: 1, peer: { _type: "GraphLife", _id: 2, peer: { _ref: 1 } } };
     read(graph);
     assert.equal(calls, 0);
-    CjsSchema.meta.blue.interface(IInitialize)(Life);
+    CjsSchema.blue.interface(IInitialize)(Life);
     read(graph);
     assert.equal(calls, 2);
 });
@@ -186,7 +186,7 @@ test("children of rejected collections are not initialized", () =>
     class Child { Initialize() { calls++; } }
     class Owner { children = new Set(); }
     CjsSchema.define(Child, { className: "GraphDiscardedChild" });
-    CjsSchema.meta.blue.interface(CjsSchema.getConstructor("IInitialize"))(Child);
+    CjsSchema.blue.interface(CjsSchema.getConstructor("IInitialize"))(Child);
     CjsSchema.define(Owner, { className: "GraphDiscardedOwner", members: [
         { name: "children", key: "children", type: { kind: "set", itemType: { kind: "rootRef", className: "GraphDiscardedChild" } }, edit: { persist: true } }
     ] });
@@ -249,10 +249,10 @@ test("native IList rejection restores previous contents and does not initialize 
         Append(item) { if (item.value === 2) return false; this.push(item); return true; }
     }
     CjsSchema.define(NativeList, { className: "GraphNativeList" });
-    CjsSchema.meta.blue.interface(IList)(NativeList);
+    CjsSchema.blue.interface(IList)(NativeList);
     class Owner { items = new NativeList(); }
     CjsSchema.define(Item, { className: "GraphNativeItem", members: [{ name: "value", key: "value", type: { kind: "int32" }, edit: { persist: true } }] });
-    CjsSchema.meta.blue.interface(CjsSchema.getConstructor("IInitialize"))(Item);
+    CjsSchema.blue.interface(CjsSchema.getConstructor("IInitialize"))(Item);
     CjsSchema.define(Owner, { className: "GraphNativeOwner", members: [
         { name: "items", key: "items", type: { kind: "list", itemType: { kind: "rootRef", className: "GraphNativeItem" } }, edit: { persist: true } }
     ] });

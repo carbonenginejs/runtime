@@ -1,4 +1,4 @@
-// meta.type.path: what a path field may name, for tools such as the editor.
+// type.path: what a path field may name, for tools such as the editor.
 //
 // Ours (CjsSchema pathDecorator): Carbon's Blue types have no path kind. An
 // entry is a registered class name (a path the resource manager turns into
@@ -10,10 +10,10 @@ import { join } from "node:path";
 import test from "node:test";
 
 import "../../npm/dist/index.js";
-import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsSchema, type } from "../../npm/dist/global/schema/index.js";
 
 
-const { path, wpath } = CjsSchema.meta.type;
+const { path, wpath } = type;
 
 
 /** The type descriptor a decorator records on a fresh class. */

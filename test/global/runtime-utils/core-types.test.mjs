@@ -198,7 +198,7 @@ test("EnumerateChildren walks are cycle-safe and GetResources visits every model
     class GraphModel {}
     for (const field of ["_geometryRes", "_textureRes", "_sharedRes"])
     {
-        CjsSchema.decorateField(GraphModel, field, CjsSchema.meta.type.resource(GraphResource));
+        CjsSchema.decorateField(GraphModel, field, schema.type.resource(GraphResource));
     }
     CjsSchema.defineField(GraphModel, "children", "type", { kind: "array", itemType: "GraphModel" });
     CjsSchema.defineField(GraphModel, "children", "edit", { read: true, write: true, persist: true });
@@ -509,10 +509,10 @@ test("schema.hideInherited registers through Stage-3 metadata and rejects typos"
         });
     };
 
-    decorateField("visible", CjsSchema.meta.type.string);
-    decorateField("visible", CjsSchema.meta.blue.persist);
-    decorateField("hidden", CjsSchema.meta.type.string);
-    decorateField("hidden", CjsSchema.meta.blue.persist);
+    decorateField("visible", schema.type.string);
+    decorateField("visible", CjsSchema.blue.persist);
+    decorateField("hidden", schema.type.string);
+    decorateField("hidden", CjsSchema.blue.persist);
     CjsSchema.meta.define({ className: "Stage3HideBase" })(Stage3HideBase, {
         kind: "class",
         metadata: baseMetadata
@@ -577,13 +577,13 @@ test("registers Carbon method provenance and implementation metadata", () => {
     CjsSchema.decorateMethod(
         MethodNode,
         "Reset",
-        CjsSchema.meta.blue.method,
+        CjsSchema.blue.method,
         CjsSchema.meta.notImplemented
     );
     CjsSchema.decorateMethod(
         MethodNode,
         "GpuOnly",
-        CjsSchema.meta.blue.method,
+        CjsSchema.blue.method,
         CjsSchema.meta.notSupported,
         CjsSchema.meta.note("requires a native graphics boundary")
     );
@@ -632,7 +632,7 @@ test("registers component metadata and reads vector swizzles", () => {
     CjsSchema.decorateField(
         PackedNode,
         "shipData",
-        CjsSchema.meta.type.vec4,
+        schema.type.vec4,
         CjsSchema.meta.ui.components({
             x: { name: "boosterGlowIntensity" },
             y: { name: "activationStrength" },
@@ -658,8 +658,8 @@ test("registers component metadata and reads vector swizzles", () => {
 test("exposes canonical model descriptors", () => {
     class DescriptorNode {}
 
-    CjsSchema.decorateField(DescriptorNode, "child", CjsSchema.meta.type.rootRef("DescriptorChild"));
-    CjsSchema.decorateField(DescriptorNode, "payload", CjsSchema.meta.type.rawStruct("NativePayload"));
+    CjsSchema.decorateField(DescriptorNode, "child", schema.type.rootRef("DescriptorChild"));
+    CjsSchema.decorateField(DescriptorNode, "payload", schema.type.rawStruct("NativePayload"));
     CjsSchema.define(DescriptorNode, { className: "DescriptorNode", family: "test" });
 
     assert.equal(CARBON_TYPE.ROOT_REF, "rootRef");
@@ -698,7 +698,7 @@ test("stage-3 static method decorators register on the class constructor", () =>
     };
 
     // Recorded when applied, replayed when the class registers; nothing per instance.
-    CjsSchema.meta.blue.method(StaticMethodNode.Rasterize, context);
+    CjsSchema.blue.method(StaticMethodNode.Rasterize, context);
     CjsSchema.meta.adapted(StaticMethodNode.Rasterize, context);
     assert.deepEqual(initializers, []);
 
@@ -1301,7 +1301,7 @@ test("records carbon.contextual tier provenance", () => {
     CjsSchema.decorateMethod(
         ContextualNode,
         "ApplyTransform",
-        CjsSchema.meta.blue.contextual(["camera"]),
+        CjsSchema.blue.contextual(["camera"]),
         CjsSchema.meta.implemented
     );
 
@@ -1312,8 +1312,8 @@ test("records carbon.contextual tier provenance", () => {
     assert.equal(method.impl.implemented, true);
 
     // Rejects an empty tier list.
-    assert.throws(() => CjsSchema.meta.blue.contextual([]), TypeError);
-    assert.throws(() => CjsSchema.meta.blue.contextual(["  "]), TypeError);
+    assert.throws(() => CjsSchema.blue.contextual([]), TypeError);
+    assert.throws(() => CjsSchema.blue.contextual(["  "]), TypeError);
 
     // Runtime validation must accept mangled parameters even when a default
     // expression retains a readable property name. Source lint owns spelling.
@@ -1323,7 +1323,7 @@ test("records carbon.contextual tier provenance", () => {
     }
     CjsSchema.define(MinifiedContextual, { className: "MinifiedContextual", family: "test" });
     assert.doesNotThrow(() => CjsSchema.decorateMethod(MinifiedContextual,
-        "ApplyTransform", CjsSchema.meta.blue.contextual(["camera"])));
+        "ApplyTransform", CjsSchema.blue.contextual(["camera"])));
 
     class ZeroArgContextual
     {
@@ -1335,7 +1335,7 @@ test("records carbon.contextual tier provenance", () => {
     // context, and `fn.length` survives minification where parameter NAMES do
     // not. Source lint, rather than runtime reflection, checks parameter names.
     assert.throws(
-        () => CjsSchema.decorateMethod(ZeroArgContextual, "Tick", CjsSchema.meta.blue.contextual(["camera"])),
+        () => CjsSchema.decorateMethod(ZeroArgContextual, "Tick", CjsSchema.blue.contextual(["camera"])),
         /must take a context as its first parameter/
     );
 });
@@ -1379,8 +1379,8 @@ test("type.enum and type.hideInherited are the same decorators as their schema.*
     EnumViaSchema.EnumMode = members;
     EnumViaType.EnumMode = members;
 
-    CjsSchema.decorateField(EnumViaSchema, "mode", CjsSchema.meta.type.int32, CjsSchema.enum("EnumMode"));
-    CjsSchema.decorateField(EnumViaType, "mode", CjsSchema.meta.type.int32, CjsSchema.meta.type.enum("EnumMode"));
+    CjsSchema.decorateField(EnumViaSchema, "mode", schema.type.int32, CjsSchema.enum("EnumMode"));
+    CjsSchema.decorateField(EnumViaType, "mode", schema.type.int32, schema.type.enum("EnumMode"));
     CjsSchema.define(EnumViaSchema, { className: "EnumViaSchema" });
     CjsSchema.define(EnumViaType, { className: "EnumViaType" });
 

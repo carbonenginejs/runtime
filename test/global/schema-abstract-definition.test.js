@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsSchema, meta } from "../../src/global/schema/index.js";
+import { CjsSchema, meta, type } from "../../src/global/schema/index.js";
 import { CjsBlueClasses } from "../../src/global/blue/CjsBlueClasses.js";
 import * as classRegistry from "../../src/global/blue/classes/registry.js";
 
@@ -36,7 +36,7 @@ for (const [route, define] of routes)
     assert.equal(Object.hasOwn(before, "abstract"), false);
     define(Abstract, {
       className: name, aliases: [alias, alias], alias: secondAlias,
-      abstract: true, fields: {value: meta.type.float32},
+      abstract: true, fields: {value: type.float32},
     });
     try
     {
@@ -147,7 +147,7 @@ test("invalid Stage-3 declaration does not consume field metadata before a corre
 {
   class Staged {}
   const metadata = {};
-  meta.type.float32(undefined, {kind: "field", name: "value", metadata, addInitializer() {}});
+  type.float32(undefined, {kind: "field", name: "value", metadata, addInitializer() {}});
   const context = {kind: "class", metadata};
   assert.throws(() => meta.define({className: "InvalidAbstractStaged", abstract: null})(Staged, context), /abstract must be a boolean/);
   assert.deepEqual(CjsSchema.getSchema(Staged).members, []);

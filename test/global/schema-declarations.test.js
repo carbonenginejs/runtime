@@ -1,7 +1,7 @@
 import * as schemaExports from "../../src/global/schema/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CjsSchema, meta } from "../../src/global/schema/index.js";
+import { CjsSchema, meta, type, blue } from "../../src/global/schema/index.js";
 
 function withoutOwners(entries)
 {
@@ -24,7 +24,7 @@ test("the public decorator surface has one namespace per vocabulary and preserve
         assert.equal(Object.hasOwn(CjsSchema, name), false, "removed class alias: " + name);
     }
     // Ruling 2026-10-15: meta (generic), type (vocabulary), blue (Carbon-stamped).
-    assert.equal(schemaExports.type, meta.type);
+    assert.equal(schemaExports.type, type);
     assert.equal(schemaExports.blue, CjsSchema.blue);
     for (const name of ["read", "write", "readwrite", "notify", "hidden", "persist", "rpersist", "persistOnly"])
     {
@@ -36,15 +36,15 @@ test("the public decorator surface has one namespace per vocabulary and preserve
     for (const name of ["edit", "impl", "carbon", "lifecycle", "jessica", "compose", "custom"])
         assert.equal(Object.hasOwn(meta, name), false, "removed meta alias: " + name);
     for (const name of ["none", "enum", "setting"])
-        assert.equal(Object.hasOwn(meta.blue, name), false, "removed Blue alias: " + name);
+        assert.equal(Object.hasOwn(blue, name), false, "removed Blue alias: " + name);
     for (const name of ["define", "hideInherited"])
-        assert.equal(Object.hasOwn(meta.type, name), false, "class declaration is flat: " + name);
+        assert.equal(Object.hasOwn(type, name), false, "class declaration is flat: " + name);
     // Ruling 2026-10-15: the absence of the blue stamp means ours, so there is no meta.ours.
     assert.equal(Object.hasOwn(meta, "ours"), false);
     class Types {}
     CjsSchema.define(Types, {
         className: "DeclarationTypes",
-        fields: { text: meta.type.wstring, peer: meta.type.rootWeak("DeclarationTypes") }
+        fields: { text: type.wstring, peer: type.rootWeak("DeclarationTypes") }
     });
     assert.deepEqual(CjsSchema.getSchema(Types).members.map(entry => entry.type),
         [ { kind: "wstring" }, { kind: "rootWeak", className: "DeclarationTypes" } ]);
@@ -60,17 +60,17 @@ test("Stage-3 and explicit declarations produce the same separate stored and liv
         get boosters() { throw new Error("registration evaluated a getter"); }
         set boosters(value) {}
     }
-    applyStage3(metadata, "_boosters", "field", [ meta.member("boosters"), meta.type.rootRef("Booster"), meta.blue.persistOnly ]);
-    applyStage3(metadata, "boosters", "getter", [ meta.type.rootRef("Booster"), meta.blue.readwrite, meta.implemented ]);
-    applyStage3(metadata, "boosters", "setter", [ meta.blue.notify ]);
+    applyStage3(metadata, "_boosters", "field", [ meta.member("boosters"), type.rootRef("Booster"), blue.persistOnly ]);
+    applyStage3(metadata, "boosters", "getter", [ type.rootRef("Booster"), blue.readwrite, meta.implemented ]);
+    applyStage3(metadata, "boosters", "setter", [ blue.notify ]);
     meta.define({ className: "DeclarationDecorated" })(Decorated, { kind: "class", metadata });
 
     class Explicit {}
     CjsSchema.define(Explicit, {
         className: "DeclarationExplicit",
-        members: [ { name: "boosters", key: "_boosters", type: { kind: "rootRef", className: "Booster" }, edit: { persist: true, persistOnly: true, hidden: true } } ],
+        members: [ { name: "boosters", key: "_boosters", type: { kind: "rootRef", className: "Booster" }, edit: { persist: true, persistOnly: true, hidden: true }, carbon: { member: true } } ],
         properties: {
-            boosters: [ meta.type.rootRef("Booster"), meta.blue.readwrite, meta.blue.notify, meta.implemented ]
+            boosters: [ type.rootRef("Booster"), blue.readwrite, blue.notify, meta.implemented ]
         }
     });
     const decorated = CjsSchema.getSchema(Decorated);
@@ -95,8 +95,8 @@ test("imperative metadata and explicit fields infer accessors without evaluating
         set value(value) {}
     }
     const before = Object.getOwnPropertyDescriptor(Accessors.prototype, "value");
-    CjsSchema.decorateField(Accessors, "value", meta.implemented, meta.type.float32);
-    CjsSchema.define(Accessors, { className: "DeclarationAccessors", fields: { value: meta.blue.readwrite } });
+    CjsSchema.decorateField(Accessors, "value", meta.implemented, type.float32);
+    CjsSchema.define(Accessors, { className: "DeclarationAccessors", fields: { value: blue.readwrite } });
     assert.equal(reads, 0);
     assert.deepEqual(Object.getOwnPropertyDescriptor(Accessors.prototype, "value"), before);
     assert.equal(CjsSchema.getSchema(Accessors).properties[0].impl.status, "implemented");
@@ -104,7 +104,7 @@ test("imperative metadata and explicit fields infer accessors without evaluating
 
     const metadata = {};
     class AutoAccessor {}
-    applyStage3(metadata, "value", "accessor", [ meta.implemented, meta.type.float32 ]);
+    applyStage3(metadata, "value", "accessor", [ meta.implemented, type.float32 ]);
     meta.define({ className: "DeclarationAutoAccessor" })(AutoAccessor, { kind: "class", metadata });
     assert.equal(CjsSchema.getSchema(AutoAccessor).properties[0].role, "property");
 });
@@ -132,7 +132,7 @@ test("indexed declarations retain every route including index zero and reject ex
     class IndexedDecorator {}
     CjsSchema.define(IndexedDecorator, {
         className: "DeclarationIndexedDecorator",
-        fields: { values: [ meta.member("x", { index: 0 }), meta.type.float32 ] }
+        fields: { values: [ meta.member("x", { index: 0 }), type.float32 ] }
     });
     assert.equal(CjsSchema.getSchema(IndexedDecorator).members[0].index, 0);
 });
@@ -141,12 +141,12 @@ test("explicit field declarations do not inherit a shadowed getter's live-proper
 {
     let reads = 0;
     class Base { get value() { reads++; throw new Error("getter read"); } }
-    CjsSchema.define(Base, { className: "DeclarationShadowBase", fields: { value: [ meta.type.int32, meta.blue.read ] } });
+    CjsSchema.define(Base, { className: "DeclarationShadowBase", fields: { value: [ type.int32, blue.read ] } });
     class Explicit extends Base { value = 2; }
-    CjsSchema.define(Explicit, { className: "DeclarationShadowExplicit", fields: { value: [ meta.type.int32, meta.blue.persist ] } });
+    CjsSchema.define(Explicit, { className: "DeclarationShadowExplicit", fields: { value: [ type.int32, blue.persist ] } });
     class Decorated extends Base { value = 2; }
     const metadata = {};
-    applyStage3(metadata, "value", "field", [ meta.type.int32, meta.blue.persist ]);
+    applyStage3(metadata, "value", "field", [ type.int32, blue.persist ]);
     meta.define({ className: "DeclarationShadowDecorated" })(Decorated, { kind: "class", metadata });
     assert.deepEqual(withoutOwners(CjsSchema.getSchema(Explicit).members), withoutOwners(CjsSchema.getSchema(Decorated).members));
     assert.equal(CjsSchema.getSchema(Explicit).members[0].role, "member");
@@ -174,12 +174,12 @@ test("native tables keep class occurrences and derived-first ordering while lega
     class Base {}
     CjsSchema.define(Base, {
         className: "DeclarationBase",
-        fields: { stored: [ meta.member("shared"), meta.type.float32, meta.blue.persist ], baseOnly: meta.type.uint32 }
+        fields: { stored: [ meta.member("shared"), type.float32, blue.persist ], baseOnly: type.uint32 }
     });
     class Derived extends Base { get shared() { throw new Error("getter read"); } }
     CjsSchema.define(Derived, {
         className: "DeclarationDerived",
-        fields: { derivedOnly: meta.type.uint32, shared: [ meta.type.float32, meta.blue.readwrite ] },
+        fields: { derivedOnly: type.uint32, shared: [ type.float32, blue.readwrite ] },
         members: [ { name: "shared", key: "derivedStorage", type: { kind: "float32" } } ]
     });
     const schema = CjsSchema.getSchema(Derived);
@@ -229,7 +229,7 @@ test("hideInherited resolves exact JS keys before exposed aliases and remains mo
     CjsSchema.define(Alias, { className: "DeclarationHiddenAlias" });
     assert.equal(CjsSchema.getSchema(Alias).members.length, 0);
     class Descendant extends Alias {}
-    CjsSchema.define(Descendant, { className: "DeclarationHiddenDescendant", fields: { _left: meta.type.uint32 } });
+    CjsSchema.define(Descendant, { className: "DeclarationHiddenDescendant", fields: { _left: type.uint32 } });
     assert.equal(CjsSchema.getSchema(Descendant).members.length, 0);
     assert.equal(CjsSchema.getField(Descendant, "_left"), null);
     class Invalid extends Base {}
@@ -239,13 +239,13 @@ test("hideInherited resolves exact JS keys before exposed aliases and remains mo
 test("registration fixes canonical occurrences and invalidates cached exports without admitting later field changes", () =>
 {
     class OpenBase {}
-    CjsSchema.decorateField(OpenBase, "first", meta.type.uint32);
+    CjsSchema.decorateField(OpenBase, "first", type.uint32);
     class Registered extends OpenBase {}
-    CjsSchema.define(Registered, { className: "DeclarationRegistered", fields: { own: meta.type.uint32 } });
+    CjsSchema.define(Registered, { className: "DeclarationRegistered", fields: { own: type.uint32 } });
     const initial = CjsSchema.getSchema(Registered);
     assert.equal(CjsSchema.getSchema(Registered), initial);
-    assert.throws(() => CjsSchema.decorateField(Registered, "late", meta.type.uint32), /after it registered/u);
-    CjsSchema.decorateField(OpenBase, "later", meta.type.uint32);
+    assert.throws(() => CjsSchema.decorateField(Registered, "late", type.uint32), /after it registered/u);
+    CjsSchema.decorateField(OpenBase, "later", type.uint32);
     const refreshed = CjsSchema.getSchema(Registered);
     assert.notEqual(refreshed, initial);
     assert.deepEqual(refreshed.members.map(entry => entry.name), [ "own", "first" ], "an unregistered ancestor cannot retroactively alter a registered table");
@@ -257,7 +257,7 @@ for (const kind of [ "list", "array" ])
 {
     test(kind + " decorators reject inline native structure layouts", () =>
     {
-        assert.throws(() => meta.type[kind]({ kind: "rawStruct", className: "SyntheticPair" }, { structure: {} }),
+        assert.throws(() => type[kind]({ kind: "rawStruct", className: "SyntheticPair" }, { structure: {} }),
             /Inline structure layouts are removed/);
     });
 
@@ -268,9 +268,9 @@ for (const kind of [ "list", "array" ])
         CjsSchema.define(Legacy, {
             className: "DeclarationStructuredLegacy" + kind,
             fields: {
-                singleArgument: meta.type[kind](itemType),
-                emptyOptions: meta.type[kind](itemType, {}),
-                nonLayoutOptions: meta.type[kind](itemType, { kind: "map", itemType: "Replacement", unsupported: true })
+                singleArgument: type[kind](itemType),
+                emptyOptions: type[kind](itemType, {}),
+                nonLayoutOptions: type[kind](itemType, { kind: "map", itemType: "Replacement", unsupported: true })
             }
         });
         for (const member of CjsSchema.getSchema(Legacy).members)

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { CjsSchema } from "../../../src/global/schema/index.js";
+import { CjsSchema, type } from "../../../src/global/schema/index.js";
 
 
 test("decorators install nothing per instance; getDefaults reads one instance without Initialize", () =>
@@ -14,8 +14,8 @@ test("decorators install nothing per instance; getDefaults reads one instance wi
 
     // A decorator's cost is paid when it is applied and when the class
     // registers: it returns no field initializer and adds no initializer.
-    assert.equal(CjsSchema.meta.type.rawStruct("AkGameObjectID")(undefined, context("ID")), undefined);
-    assert.equal(CjsSchema.meta.type.string(undefined, context("optional")), undefined);
+    assert.equal(type.rawStruct("AkGameObjectID")(undefined, context("ID")), undefined);
+    assert.equal(type.string(undefined, context("optional")), undefined);
     assert.deepEqual(added, []);
 
     class SchemaDefaultCaptureProbe
@@ -76,8 +76,8 @@ test("CjsSchema.getDefaults reads a redeclaring subclass's own value", () =>
     const baseMetadata = Object.create(null);
     const subclassMetadata = Object.create(baseMetadata);
     const addInitializer = () => {};
-    CjsSchema.meta.type.int32(undefined, { kind: "field", name: "type", static: false, metadata: baseMetadata, addInitializer });
-    CjsSchema.meta.type.int32(undefined, { kind: "field", name: "type", static: false, metadata: subclassMetadata, addInitializer });
+    type.int32(undefined, { kind: "field", name: "type", static: false, metadata: baseMetadata, addInitializer });
+    type.int32(undefined, { kind: "field", name: "type", static: false, metadata: subclassMetadata, addInitializer });
 
     class SchemaDefaultBaseProbe
     {
@@ -127,7 +127,7 @@ test("CjsSchema.getDefaults reads an explicitly registered schema accessor", () 
     CjsSchema.decorateField(
         SchemaDefaultAccessorProbe,
         "color",
-        CjsSchema.meta.type.color
+        type.color
     );
     CjsSchema.define(SchemaDefaultAccessorProbe, {
         className: "SchemaDefaultAccessorProbe",
