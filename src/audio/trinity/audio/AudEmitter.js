@@ -11,7 +11,7 @@ import { ITr2AudEmitter } from "../trinityAudioApi/ITr2AudEmitter.js";
 
 /** Represents the concrete content-facing audio emitter (ITr2AudEmitter) with authored placement and attenuation controls. */
 @blue.define("AudEmitter")
-@blue.inherit(ITr2AudEmitter)
+@blue.inherit(ITr2AudEmitter, IBlueEventListener, IBluePlacementObserver, ITr2DebugRenderable)
 @blue.interface(IBlueEventListener, IBluePlacementObserver, ITr2AudEmitter, ITr2DebugRenderable)
 @blue.chainTo(AudGameObjResource)
 export class AudEmitter extends AudGameObjResource
@@ -82,7 +82,7 @@ export class AudEmitter extends AudGameObjResource
    *
    * @param {string} [name] Emitter name; Carbon defaults it to empty.
    */
-  @blue.method
+  @meta.renamed("Py__init__")
   @meta.implemented
   __init__(name = "")
   {
@@ -120,7 +120,7 @@ export class AudEmitter extends AudGameObjResource
   }
 
   /** Carbon Blue method SetPlacement -> SetPosition. */
-  @blue.method
+  @meta.renamed("SetPosition")
   @meta.implemented
   SetPlacement(front, top, position)
   {

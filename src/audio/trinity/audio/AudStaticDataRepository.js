@@ -1,3 +1,4 @@
+import { IRoot } from "#blue/IRoot";
 // Source: audio/src/AudStaticDataRepository.h + AudStaticDataRepository.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { meta, blue } from "#schema";
@@ -13,6 +14,7 @@ const INVALID_UNIQUE_ID = 0;
  * runtime (no persisted fields) from a plain audio metadata object.
  */
 @blue.define("AudStaticDataRepository")
+@blue.inherit(IRoot)
 @blue.interface()
 export class AudStaticDataRepository
 {
@@ -99,6 +101,8 @@ export class AudStaticDataRepository
   // JS's no-op, and C++ pointer-to-member projection is a keyed read.
 
   /** Carbon GetData<DataType> (h:68-78): the named record, or null. */
+  @meta.renamed("GetData")
+  @meta.adapted
   _GetData(map, name)
   {
     return map.get(String(name)) ?? null;
@@ -106,6 +110,8 @@ export class AudStaticDataRepository
 
   /** Carbon GetAttribute<DataType, AttrType> (h:82-91): one field of the
    *  named record, or the default when the record is absent. */
+  @meta.renamed("GetAttribute")
+  @meta.adapted
   _GetAttribute(map, name, attribute, defaultValue)
   {
     const data = this._GetData(map, name);

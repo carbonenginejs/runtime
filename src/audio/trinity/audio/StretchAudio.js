@@ -1,3 +1,4 @@
+import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
 // Source: audio/src/Components/StretchAudio.h + StretchAudio.cpp
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
@@ -10,9 +11,8 @@ import { AudGameObjResource } from "./AudGameObjResource.js";
 
 /** Positions source, destination, and stretch emitters along one beam segment, with the listener projected onto that segment. */
 @blue.define("StretchAudio")
-@blue.inherit(IInitialize)
-@blue.interface(IInitialize)
-@blue.chainTo(IStretchAudio)
+@blue.inherit(IInitialize, ITr2DebugRenderable)
+@blue.interface(IInitialize, ITr2DebugRenderable, IStretchAudio)
 export class StretchAudio extends IStretchAudio
 {
 
