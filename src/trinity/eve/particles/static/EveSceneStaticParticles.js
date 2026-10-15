@@ -1,3 +1,4 @@
+import { ITr2DebugRenderable } from "../../../../global/interfaces/ITr2DebugRenderable.js";
 // Source: trinity/trinity/Eve/Renderable/EveSceneStaticParticles.h
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 //   trinity/trinity/Eve/Renderable/EveSceneStaticParticles.cpp
@@ -44,8 +45,7 @@ function randomGauss(random, deviation)
  * instanced mesh.
  */
 @blue.define("EveSceneStaticParticles")
-@blue.inherit(ITr2Renderable)
-@blue.inherit(IInitialize)
+@blue.inherit(IInitialize, ITr2DebugRenderable, ITr2Renderable)
 @blue.interface(IInitialize)
 export class EveSceneStaticParticles
 {
@@ -463,6 +463,7 @@ export class EveSceneStaticParticles
    * @returns {Tr2RuntimeInstanceData|null} The accepted instance-data receiver.
    */
   @meta.adapted
+  @blue.method
   _GetInstanceDataObject()
   {
     if (!this.mesh) return null;

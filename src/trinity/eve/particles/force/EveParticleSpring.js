@@ -10,6 +10,7 @@ import { Tr2ParticleSpring } from "../../../particle/force/Tr2ParticleSpring.js"
  * the whole exposure to the Tr2 class.
  */
 @blue.define("EveParticleSpring")
+@blue.chainTo(Tr2ParticleSpring)
 export class EveParticleSpring extends Tr2ParticleSpring
 {
 }

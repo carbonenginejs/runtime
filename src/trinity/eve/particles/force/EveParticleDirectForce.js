@@ -9,6 +9,7 @@ import { Tr2ParticleDirectForce } from "../../../particle/force/Tr2ParticleDirec
  * zero attributes of its own and chains the whole exposure to the Tr2 class.
  */
 @blue.define("EveParticleDirectForce")
+@blue.chainTo(Tr2ParticleDirectForce)
 export class EveParticleDirectForce extends Tr2ParticleDirectForce
 {
 }

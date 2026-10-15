@@ -53,6 +53,7 @@ import "#consts/renderContext/formats";
 /** Collects camera, quality, pass-toggle, overlay, background, and post-process state for driving an EVE space-scene frame. */
 @blue.define({ className: "EveSpaceSceneRenderDriver", purpose: "Collects camera, quality, pass-toggle, overlay, background, and post-process state for driving an EVE space-scene frame." })
 @blue.inherit(ITr2RenderNode)
+@blue.interface(ITr2RenderNode)
 export class EveSpaceSceneRenderDriver
 {
 
@@ -358,6 +359,7 @@ export class EveSpaceSceneRenderDriver
    * @param {number} simTime Simulation time in Blue ticks.
    * @returns {boolean} Whether the render-job step may execute this frame.
    */
+  @blue.method
   @meta.adapted
   Validate(destinationDimensions = [], _outputs = [], realTime = 0, simTime = 0)
   {
@@ -399,6 +401,7 @@ export class EveSpaceSceneRenderDriver
    * retained only for isolated legacy tests. JS returns a submission boolean.
    * @returns {boolean} Whether anything was submitted.
    */
+  @blue.method
   @meta.adapted
   Execute(destinations = null, _outputs = null, realTime = 0, simTime = 0, rootTimer = null, renderContext = null)
   {
@@ -629,7 +632,6 @@ export class EveSpaceSceneRenderDriver
    * @param {Tr2GpuResourcePool} gpuResourcePool The driver's pool.
    * @returns {GpuResourceHandle} The texture.
    */
-  @blue.method
   @meta.implemented
   static getEmptySSAO(gpuResourcePool)
   {
@@ -978,6 +980,7 @@ export class EveSpaceSceneRenderDriver
    *
    * @returns {void}
    */
+  @blue.method
   _PropagateSettings()
   {
     const postprocess = this.scene.postprocess;
@@ -1049,6 +1052,7 @@ export class EveSpaceSceneRenderDriver
    * @param {object} renderContext The frame's context.
    * @returns {GpuResourceHandle} The SSAO texture.
    */
+  @blue.method
   _RenderSSAO(depthMap, normalMap, renderContext)
   {
     let ssao = new GpuResourceHandle();
@@ -1078,6 +1082,7 @@ export class EveSpaceSceneRenderDriver
    * @param {{width: number, height: number}} size The render size.
    * @returns {GpuResourceHandle|null} The map, or null.
    */
+  @blue.method
   _GetNormalMapIfNeeded(size)
   {
     const wanted = (this.aoQuality !== AmbientOcclusionQuality.Disabled || this.shadowQuality === ShadowQuality.SHADOW_RAYTRACED)
@@ -1098,6 +1103,7 @@ export class EveSpaceSceneRenderDriver
    * @param {{width: number, height: number}} size The render size.
    * @returns {GpuResourceHandle|null} The map, or null.
    */
+  @blue.method
   _GetVelocityMapIfNeeded(size)
   {
     if (this.antiAliasingQuality === AntiAliasingQuality.Disabled && !this.forceVelocityMap) return null;
@@ -1115,6 +1121,7 @@ export class EveSpaceSceneRenderDriver
    * @param {{width: number, height: number}} size The render size.
    * @returns {GpuResourceHandle|null} The copy, or null.
    */
+  @blue.method
   _GetOpaqueColorMapIfNeeded(size)
   {
     if (this.antiAliasingQuality < AntiAliasingQuality.Medium && !this.forceOpaqueBuffer) return null;
@@ -1129,6 +1136,7 @@ export class EveSpaceSceneRenderDriver
    * @param {{width: number, height: number}} size The render size.
    * @returns {GpuResourceHandle|null} The map, or null.
    */
+  @blue.method
   _GetDistortionMapIfNeeded(size)
   {
     if (!this.enableDistortion) return null;
@@ -1403,6 +1411,7 @@ export class EveSpaceSceneRenderDriver
    * @param {object} renderContext Recording render context.
    * @returns {void}
    */
+  @blue.method
   _SetCameraToRenderer(renderContext)
   {
     // Carbon (cpp:384-391): the camera's TriProjection and TriView when there

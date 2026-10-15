@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/EvePicking.h
 // Source: trinity/trinity/Eve/EvePicking.cpp
 // Source: trinity/trinity/Eve/EvePicking_Blue.cpp
@@ -8,6 +9,7 @@ import { meta, type, blue } from "#schema";
  * screen coordinates, hit object and both extra-data words - for a scene.
  */
 @blue.define("EvePickingContext")
+@blue.inherit(IRoot)
 export class EvePickingContext
 {
   @type.list("EvePendingPickingReadback")

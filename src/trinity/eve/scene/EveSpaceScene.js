@@ -181,7 +181,7 @@ function EmptyShadowResources()
 
 /** Owns and updates an Eve space scene's entities, component registry, lighting, fog, post-process state, culling, and per-frame shader data. */
 @blue.define("EveSpaceScene")
-@blue.inherit(ITr2Scene, ITr2Updateable, IInitialize, INotify, IListNotify)
+@blue.inherit(ITr2Scene, IInitialize, INotify, IListNotify)
 @blue.interface(ITr2Scene, ITr2Updateable, IInitialize, INotify)
 export class EveSpaceScene
 {
@@ -939,6 +939,7 @@ export class EveSpaceScene
    * Clears environment publications (EveSpaceScene.cpp:3018-3026). The native
    * shared-index and baked-morph handles are not owned by this scene port.
    */
+  @blue.method
   @meta.adapted
   ClearVariableStore()
   {
@@ -949,6 +950,7 @@ export class EveSpaceScene
   }
 
   /** Registers/unregisters light sources and clears receiver lighting (EveSpaceScene.cpp:3373-3432). */
+  @blue.method
   @meta.implemented
   SetShLightingManager(manager)
   {
@@ -977,6 +979,7 @@ export class EveSpaceScene
    * Our wrapper selecting one Carbon picking revision. Each request retains
    * its framework so changing the setting cannot reinterpret queued results.
    */
+  @blue.method
   PerformPicking(listener, immediate, x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT,
     renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -1237,6 +1240,7 @@ export class EveSpaceScene
   }
 
   /** Crops the current projection to one pixel; gl-matrix reverses native composition. */
+  @blue.method
   @meta.adapted
   SetupTransformsForPicking(fx, fy, projection, view, viewport, renderContext)
   {
@@ -1270,6 +1274,7 @@ export class EveSpaceScene
   }
 
   /** Native one-pixel frustum visibility gather, with the previous frustum restored. */
+  @blue.method
   @meta.adapted
   GetPickingObjectsToRender(renderContext)
   {
@@ -2341,6 +2346,7 @@ export class EveSpaceScene
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {void}
    */
+  @blue.method
   @meta.adapted
   UpdateImpostors(renderContext)
   {
@@ -2445,6 +2451,7 @@ export class EveSpaceScene
   };
 
   /** Carbon HasReflectionProbe (cpp:4106-4109). */
+  @blue.method
   @meta.implemented
   HasReflectionProbe()
   {
@@ -2759,6 +2766,7 @@ export class EveSpaceScene
    * Scales view translation only (EveSpaceScene.cpp:3908-3915).
    * Adapted: the output is caller-owned instead of returned by value.
    */
+  @blue.method
   @meta.adapted
   CreatePlanetViewMatrix(original, out)
   {
@@ -2773,6 +2781,7 @@ export class EveSpaceScene
    * Updates planet children with the scaled camera required by child modifiers
    * (cpp:3828-3841). Adapted: renderer globals are explicit on the update context.
    */
+  @blue.method
   @meta.adapted
   UpdatePlanets(updateContext)
   {
@@ -2797,6 +2806,7 @@ export class EveSpaceScene
    * Collects native opaque/decal/additive/depth batches plus the transparency list
    * (cpp:856-876,956-981). Adapted: no parallel tasks; the context carries the pool.
    */
+  @blue.method
   @meta.adapted
   GetAllBatchesFromRenderables(renderables, transparent, includeDistortions, batches, context, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
@@ -2814,6 +2824,7 @@ export class EveSpaceScene
   }
 
   /** Stable front-to-back sort, visited backwards, as cpp:838-852. */
+  @blue.method
   @meta.implemented
   PrepareTransparentBatch(transparent, batches, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
@@ -2827,6 +2838,7 @@ export class EveSpaceScene
   }
 
   /** Finalizes every accumulator in the native BatchMap (cpp:2974-2982). */
+  @blue.method
   @meta.implemented
   FinalizeBatches(batches)
   {
@@ -2834,6 +2846,7 @@ export class EveSpaceScene
   }
 
   /** Clears every accumulator in the native BatchMap (cpp:2960-2966). */
+  @blue.method
   @meta.implemented
   ClearBatches(batches)
   {
@@ -2844,6 +2857,7 @@ export class EveSpaceScene
    * Native opaque/decal order (cpp:1124-1147).
    * Adapted: shader-replacement visualizers are unported; draws ordinary materials.
    */
+  @blue.method
   @meta.adapted
   RenderOpaqueBatches(batches, context)
   {
@@ -2857,6 +2871,7 @@ export class EveSpaceScene
    * Native transparent/additive order (cpp:1156-1179).
    * Adapted: shader-replacement visualizers are unported; draws ordinary materials.
    */
+  @blue.method
   @meta.adapted
   RenderTransparentBatches(batches, context)
   {
@@ -2872,6 +2887,7 @@ export class EveSpaceScene
    * native scope guards. The background caller queries occlusion before clearing
    * this pass's depth. Per-frame constants are refilled for both camera spaces.
    */
+  @blue.method
   @meta.adapted
   RenderPlanets(context)
   {
@@ -3434,6 +3450,7 @@ export class EveSpaceScene
    * Adapted: context transforms replace the renderer's pending view statics;
    * returned pool handles require explicit release by the caller.
    */
+  @blue.method
   @meta.adapted
   RenderVolumetrics(depthMap, gpuResourcePool, renderContext)
   {
