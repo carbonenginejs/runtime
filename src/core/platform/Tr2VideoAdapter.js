@@ -1,3 +1,5 @@
+import { CjsSchema, blue, meta } from "#schema";
+import { IRoot } from "../../global/blue/IRoot.js";
 import { optionalString, snapshotFeatures, snapshotWebIdl } from "./browserHelpers.js";
 import { Tr2VideoDriver } from "./Tr2VideoDriver.js";
 
@@ -122,3 +124,25 @@ export class Tr2VideoAdapter
 }
 
 export default Tr2VideoAdapter;
+
+blue.inherit(IRoot)(Tr2VideoAdapter);
+blue.interface()(Tr2VideoAdapter);
+CjsSchema.blue.define(Tr2VideoAdapter, {
+    className: "Tr2VideoAdapter",
+    fields: {
+        index: [blue.read],
+        driver: [blue.read],
+        description: [blue.read],
+        deviceName: [blue.read],
+        driverVersion: [blue.read],
+        vendorID: [blue.read],
+        deviceID: [blue.read],
+        subSystemID: [blue.read],
+        revision: [blue.read],
+        deviceIdentifier: [blue.read]
+    },
+    methods: {
+        GetDeviceIdentifierString: [blue.method, meta.adapted],
+        GetDriverInfo: [blue.method, meta.adapted]
+    }
+});

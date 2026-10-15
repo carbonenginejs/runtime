@@ -1,7 +1,10 @@
+import { IRoot } from "../../global/blue/IRoot.js";
+import { INotify } from "../../global/blue/INotify.js";
+import { IBlueEvents } from "../../global/blue/IBlueEvents.js";
 // Source: videoplayer/VideoPlayer.h, videoplayer/VideoPlayer.cpp:104-247
 // Browser adaptation: HTML media owns decoding, presentation and audio clocks.
 // Resource paths and playlist policy remain with VideoPlaylistController.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, blue, meta } from "#schema";
 import { State } from "../../resource/video/enums.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../trinity/core/context/Tr2RenderContext.js";
 import { BitmapDimensions } from "#imageio";
@@ -421,14 +424,16 @@ export class VideoPlayer
   }
 }
 
+blue.inherit(INotify, IBlueEvents)(VideoPlayer);
+blue.interface(IRoot)(VideoPlayer);
 CjsSchema.blue.define(VideoPlayer, {
   className: "VideoPlayer",
   methods: {
-  Create: [meta.adapted], Update: [meta.adapted], Pause: [meta.adapted], Resume: [meta.adapted],
-  IsPaused: [meta.adapted], GetMediaTime: [meta.adapted], GetDuration: [meta.adapted],
-  GetDownloadedMediaTime: [meta.adapted], GetVideoInfo: [meta.adapted],
-  ClearTextures: [meta.adapted], OnModified: [meta.adapted], OnTick: [meta.adapted],
-  SetBgraTexture: [meta.adapted], GetBgraTexture: [meta.implemented],
-  Seek: [meta.adapted], GetState: [meta.adapted], Validate: [meta.adapted], Destroy: [meta.adapted]
+  Create: [blue.method, meta.adapted], Update: [blue.method, meta.adapted], Pause: [blue.method, meta.adapted], Resume: [blue.method, meta.adapted],
+  IsPaused: [blue.method, meta.adapted], GetMediaTime: [blue.method, meta.adapted], GetDuration: [blue.method, meta.adapted],
+  GetDownloadedMediaTime: [blue.method, meta.adapted], GetVideoInfo: [blue.method, meta.adapted],
+  ClearTextures: [blue.method, meta.adapted], OnModified: [blue.method, meta.adapted], OnTick: [blue.method, meta.adapted],
+  SetBgraTexture: [blue.method, meta.adapted], GetBgraTexture: [blue.method, meta.implemented],
+  Seek: [blue.method, meta.adapted], GetState: [blue.method, meta.adapted], Validate: [blue.method, meta.adapted], Destroy: [meta.adapted]
 }
 });

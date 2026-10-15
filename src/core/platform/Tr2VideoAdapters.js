@@ -1,3 +1,5 @@
+import { CjsSchema, blue, meta } from "#schema";
+import { IRoot } from "../../global/blue/IRoot.js";
 import { Tr2DisplayMode } from "./Tr2DisplayMode.js";
 import { Tr2PlatformInfo } from "./Tr2PlatformInfo.js";
 import { Tr2VideoAdapter } from "./Tr2VideoAdapter.js";
@@ -169,3 +171,24 @@ export class Tr2VideoAdapters
 }
 
 export default Tr2VideoAdapters;
+
+blue.inherit(IRoot)(Tr2VideoAdapters);
+blue.interface()(Tr2VideoAdapters);
+CjsSchema.blue.define(Tr2VideoAdapters, {
+    className: "Tr2VideoAdapters",
+    fields: {
+        DEFAULT_ADAPTER: [blue.read]
+    },
+    methods: {
+        RefreshData: [blue.method, meta.adapted],
+        GetAdapterCount: [blue.method, meta.adapted],
+        GetAdapterInfo: [blue.method, meta.adapted],
+        GetCurrentDisplayMode: [blue.method, meta.adapted],
+        GetDisplayModeCount: [blue.method, meta.adapted],
+        GetDisplayMode: [blue.method, meta.adapted],
+        SupportsBackBufferFormat: [blue.method, meta.adapted],
+        SupportsRenderTargetFormat: [blue.method, meta.adapted],
+        GetMaxTextureSize: [blue.method, meta.adapted],
+        Refresh: [meta.renamed("RefreshData"), meta.adapted]
+    }
+});

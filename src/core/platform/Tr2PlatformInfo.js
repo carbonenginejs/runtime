@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 import { meta, blue } from "#schema";
 import { CjsWebGLProbe } from "./CjsWebGLProbe.js";
 import { ResolveDeviceRequirements } from "./deviceLimits.js";
@@ -82,7 +83,9 @@ const CAPABILITY_NAMES = Object.freeze(Object.fromEntries(
 // the backend about the shading language rather than read this name.
 
 /** Browser feature report replacing Carbon's compile-time platform macros. */
-@blue.define("Tr2PlatformInfo")
+@blue.define({ className: "Tr2PlatformInfo", fields: { platformName: [blue.read], platformID: [blue.read], isLowPerformance: [blue.read] } })
+@blue.interface()
+@blue.inherit(IRoot)
 export class Tr2PlatformInfo
 {
     static StaticCap = PlatformStaticCap;
@@ -168,6 +171,8 @@ export class Tr2PlatformInfo
     #staticCaps;
 
     /** Reports one named or numeric static platform capability. */
+    @blue.method
+    @meta.adapted
     GetStaticCap(capability)
     {
         const name = typeof capability === "string"

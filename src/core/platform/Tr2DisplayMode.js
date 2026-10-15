@@ -1,3 +1,5 @@
+import { CjsSchema, blue } from "#schema";
+import { IRoot } from "../../global/blue/IRoot.js";
 import { finiteNumber } from "./browserHelpers.js";
 
 /**
@@ -90,3 +92,18 @@ export class Tr2DisplayMode
 }
 
 export default Tr2DisplayMode;
+
+blue.inherit(IRoot)(Tr2DisplayMode);
+blue.interface()(Tr2DisplayMode);
+CjsSchema.blue.define(Tr2DisplayMode, {
+    className: "Tr2DisplayMode",
+    fields: {
+        width: [blue.read],
+        height: [blue.read],
+        refreshRateNumerator: [blue.read],
+        refreshRateDenominator: [blue.read],
+        format: [blue.read],
+        scanlineOrdering: [blue.read],
+        scaling: [blue.read]
+    }
+});

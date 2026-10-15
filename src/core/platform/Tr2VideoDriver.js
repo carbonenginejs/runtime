@@ -1,3 +1,5 @@
+import { CjsSchema, blue } from "#schema";
+import { IRoot } from "../../global/blue/IRoot.js";
 import { optionalString, snapshotWebIdl } from "./browserHelpers.js";
 
 /**
@@ -63,3 +65,17 @@ export class Tr2VideoDriver
 }
 
 export default Tr2VideoDriver;
+
+blue.inherit(IRoot)(Tr2VideoDriver);
+blue.interface()(Tr2VideoDriver);
+CjsSchema.blue.define(Tr2VideoDriver, {
+    className: "Tr2VideoDriver",
+    fields: {
+        driverVersion: [blue.read],
+        driverVersionString: [blue.read],
+        driverVendor: [blue.read],
+        driverDate: [blue.read],
+        isOptimus: [blue.read],
+        isAmdDynamicSwitchable: [blue.read]
+    }
+});

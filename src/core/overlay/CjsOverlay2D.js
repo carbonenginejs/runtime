@@ -7,7 +7,7 @@
 //
 // Input is not this class's job: attach the input manager to this canvas (it
 // is on top, so it receives the pointer) and let its consumers route.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, blue, meta } from "#schema";
 import { be, IBlueEvents } from "#blue";
 
 /**
@@ -149,6 +149,7 @@ export class CjsOverlay2D extends IBlueEvents
   }
 }
 
+CjsSchema.decorateMethod(CjsOverlay2D, "OnTick", blue.method);
 CjsSchema.meta.define(CjsOverlay2D, {
   className: "CjsOverlay2D",
   methods: Object.fromEntries([ "Sync", "AddDrawer", "RemoveDrawer", "Render", "OnTick", "Destroy" ].map(name => [ name, [] ]))

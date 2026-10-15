@@ -1,4 +1,4 @@
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, blue, meta } from "#schema";
 import { be } from "#blue";
 import { ITr2RenderNode } from "#interfaces/ITr2RenderNode";
 import { vec4 } from "#math/vec4";
@@ -267,6 +267,8 @@ export class TnyOutlineHelper extends ITr2RenderNode
   }
 }
 
+CjsSchema.decorateMethod(TnyOutlineHelper, "Validate", blue.method);
+CjsSchema.decorateMethod(TnyOutlineHelper, "Execute", blue.method);
 CjsSchema.meta.define(TnyOutlineHelper, {
   className: "TnyOutlineHelper",
   methods: Object.fromEntries(["Validate", "Execute", "Destroy", "_LoadEffects", "_Modes", "_EnsureMask", "_Composite"].map(name => [name, []]))
