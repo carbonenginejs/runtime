@@ -12,7 +12,7 @@
 // Ours writes every declared field, or the persisted ones when
 // `options.persistOnly` asks, and never skips defaults: consumers read the
 // full shape (operator ruling 2026-09-27; research page `blue-values-engine.md`).
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { omitRuntimeValues } from "../schema/CjsSchema.js";
 import { exportCarbonValue } from "../schema/types/index.js";
 import { getDictionaryDeclarations, readDictionaryValue } from "./dictionaryDeclarations.js";
@@ -277,5 +277,11 @@ function IsObject(value)
 }
 
 CjsSchema.blue.define(IRootWriter, { className: "IRootWriter" });
-CjsSchema.decorateMethod(IRootWriter, "WriteMembers", meta.adapted);
+CjsSchema.decorateMethod(IRootWriter, "WriteMembers", blue.method, meta.adapted);
 CjsSchema.decorateMethod(IRootWriter, "WriteValue", meta.adapted);
+CjsSchema.decorateMethod(IRootWriter, "WriteList", blue.method, meta.adapted);
+CjsSchema.decorateMethod(IRootWriter, "WriteBinaryBlock", blue.method, meta.abstract);
+CjsSchema.decorateMethod(IRootWriter, "WriteMemberName", blue.method, meta.abstract);
+CjsSchema.decorateMethod(IRootWriter, "WriteIRoot", blue.method, meta.abstract);
+CjsSchema.decorateMethod(IRootWriter, "WriteVectorBegin", blue.method, meta.abstract);
+CjsSchema.decorateMethod(IRootWriter, "WriteVectorEnd", blue.method, meta.abstract);

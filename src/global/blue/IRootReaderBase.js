@@ -27,7 +27,7 @@
 // back what it wrote (operator ruling 2026-09-27; see the research page
 // `blue-values-engine.md`). Selection is owner-first, stored-before-live within
 // an owner, with no flag merging or filter fallback. Selected aliases name it too.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { omitRuntimeValues } from "../schema/CjsSchema.js";
 import { coerceCarbonMathInto, coerceCarbonTypedArrayInto, normalizeCarbonValue } from "../schema/types/index.js";
 import { ICustomPersist } from "./ICustomPersist.js";
@@ -351,7 +351,13 @@ export class IRootReaderBase
 }
 
 CjsSchema.blue.define(IRootReaderBase, { className: "IRootReaderBase" });
-CjsSchema.decorateMethod(IRootReaderBase, "HandleAttribute", meta.adapted);
-CjsSchema.decorateMethod(IRootReaderBase, "HandlePropertyIRoot", meta.adapted);
-CjsSchema.decorateMethod(IRootReaderBase, "ReadStructureList", meta.adapted);
-CjsSchema.decorateMethod(IRootReaderBase, "FindEntry", meta.adapted);
+CjsSchema.decorateMethod(IRootReaderBase, "HandleAttribute", blue.method, meta.adapted);
+CjsSchema.decorateMethod(IRootReaderBase, "HandlePropertyIRoot", blue.method, meta.adapted);
+CjsSchema.decorateMethod(IRootReaderBase, "ReadStructureList", blue.method, meta.adapted);
+CjsSchema.decorateMethod(IRootReaderBase, "FindEntry", blue.method, meta.adapted);
+CjsSchema.decorateMethod(IRootReaderBase, "ReadValue", blue.method, meta.abstract);
+CjsSchema.decorateMethod(IRootReaderBase, "ReadIRoot", blue.method, meta.abstract);
+CjsSchema.decorateMethod(IRootReaderBase, "ReadIRootClass", blue.method, meta.abstract);
+CjsSchema.decorateMethod(IRootReaderBase, "ReadList", blue.method, meta.abstract);
+CjsSchema.decorateMethod(IRootReaderBase, "ReadBinaryBlock", blue.method, meta.abstract);
+CjsSchema.decorateMethod(IRootReaderBase, "ReadIRootPtr", blue.method, meta.renamed("HandlePropertyIRootPtr"), meta.notImplemented);
