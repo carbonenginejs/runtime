@@ -14,7 +14,7 @@
 // the parameters - NOT the Blue UTC values that `GetActualTime` and
 // `GetCurrentFrameTime` return. The two bases are easy to confuse and the
 // difference is about four centuries.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 
 /** `IBlueEvents` - the fixed-rate tick callback, per blue/include/IBlueOS.h:229. */
 export class IBlueEvents
@@ -29,6 +29,6 @@ export class IBlueEvents
   OnTick(_realTime, _simTime, _cookie) {}
 }
 
-CjsSchema.decorateMethod(IBlueEvents, "OnTick", meta.requires, meta.abstract);
+CjsSchema.decorateMethod(IBlueEvents, "OnTick", blue.method, meta.requires, meta.abstract);
 
 CjsSchema.blue.define(IBlueEvents, { className: "IBlueEvents", fields: {} });

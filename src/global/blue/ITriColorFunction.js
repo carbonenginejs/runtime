@@ -1,5 +1,5 @@
 // Source: blue/include/ITriFunction.h:187-216
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { ITriFunction } from "./ITriFunction.js";
 import { CcpTime } from "./CcpTime.js";
 
@@ -66,10 +66,10 @@ export class ITriColorFunction extends ITriFunction
 
 for (const method of [ "Update", "GetValueAt" ])
 {
-  CjsSchema.decorateMethod(ITriColorFunction, method, meta.requires, meta.abstract);
+  CjsSchema.decorateMethod(ITriColorFunction, method, blue.method, meta.requires, meta.abstract);
 }
-CjsSchema.decorateMethod(ITriColorFunction, "Update__Ticks", meta.adapted);
-CjsSchema.decorateMethod(ITriColorFunction, "GetValueAt__Ticks", meta.adapted);
+CjsSchema.decorateMethod(ITriColorFunction, "Update__Ticks", blue.method, meta.adapted);
+CjsSchema.decorateMethod(ITriColorFunction, "GetValueAt__Ticks", blue.method, meta.adapted);
 CjsSchema.blue.define(ITriColorFunction, {
   className: "ITriColorFunction",
   fields: {}

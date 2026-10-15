@@ -1,5 +1,5 @@
 // Source: blue/include/ITriFunction.h:30-34
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 
 
 /**
@@ -29,8 +29,8 @@ export class ITriFunction
   }
 }
 
-CjsSchema.decorateMethod(ITriFunction, "UpdateValue", meta.requires, meta.abstract);
-CjsSchema.decorateMethod(ITriFunction, "Reset", meta.noop);
+CjsSchema.decorateMethod(ITriFunction, "UpdateValue", blue.method, meta.requires, meta.abstract);
+CjsSchema.decorateMethod(ITriFunction, "Reset", blue.method, meta.noop);
 CjsSchema.blue.define(ITriFunction, {
   className: "ITriFunction",
   fields: {}

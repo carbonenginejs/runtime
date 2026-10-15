@@ -9,7 +9,7 @@
 // Anything holding a simulation timestamp has to be told, or it is holding a
 // value from a clock that no longer exists. Registered through
 // `RegisterForSimTimeRebase`, which has seven call sites in Carbon.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 
 /** `ISimTimeRebaseNotify` - told when the simulation clock is moved, per blue/include/IBlueOS.h:267. */
 export class ISimTimeRebaseNotify
@@ -23,6 +23,6 @@ export class ISimTimeRebaseNotify
   OnSimClockRebase(_oldTime, _newTime) {}
 }
 
-CjsSchema.decorateMethod(ISimTimeRebaseNotify, "OnSimClockRebase", meta.requires, meta.abstract);
+CjsSchema.decorateMethod(ISimTimeRebaseNotify, "OnSimClockRebase", blue.method, meta.requires, meta.abstract);
 
 CjsSchema.blue.define(ISimTimeRebaseNotify, { className: "ISimTimeRebaseNotify", fields: {} });

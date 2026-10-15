@@ -3,7 +3,7 @@
 // A holder for one object that can be built on demand and dropped again after
 // a period of disuse. Every member is pure in Carbon; `BlueObjectProxy` is the
 // one implementation.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 
 /** `IBlueObjectProxy` - a lazily built, unloadable holder for one object. */
 export class IBlueObjectProxy
@@ -99,7 +99,7 @@ export class IBlueObjectProxy
 for (const name of [ "SetBuilder", "GetObject", "IsResident", "Freeze", "ClearObject", "Update",
   "SetObject", "SetObjectFromBuilder", "SetTemporary", "IsTemporary", "OnSelected" ])
 {
-  CjsSchema.decorateMethod(IBlueObjectProxy, name, meta.requires, meta.abstract);
+  CjsSchema.decorateMethod(IBlueObjectProxy, name, blue.method, meta.requires, meta.abstract);
 }
 
 CjsSchema.blue.define(IBlueObjectProxy, {

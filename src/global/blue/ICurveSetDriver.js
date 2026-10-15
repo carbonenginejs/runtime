@@ -1,5 +1,5 @@
 // Source: blue/include/ICurveSetDriver.h:6-8
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 
 
 /**
@@ -19,7 +19,7 @@ export class ICurveSetDriver
   }
 }
 
-CjsSchema.decorateMethod(ICurveSetDriver, "GetCurveSetTime", meta.requires, meta.abstract);
+CjsSchema.decorateMethod(ICurveSetDriver, "GetCurveSetTime", blue.method, meta.requires, meta.abstract);
 CjsSchema.blue.define(ICurveSetDriver, {
   className: "ICurveSetDriver",
   fields: {}

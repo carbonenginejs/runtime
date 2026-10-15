@@ -1,6 +1,6 @@
 // Source: blueexposure/include/ICustomPersist.h:13-20
 // Source: blueexposure/InterfaceDefinitions.cpp:23
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 
 
 /**
@@ -68,7 +68,7 @@ export class ICustomPersist
 
 for (const method of [ "GetWriteBufferAndSize", "ReleaseWriteBuffer", "AllocateReadBuffer", "SetBufferAndSize" ])
 {
-  CjsSchema.decorateMethod(ICustomPersist, method, meta.requires, meta.abstract);
+  CjsSchema.decorateMethod(ICustomPersist, method, blue.method, meta.requires, meta.abstract);
 }
 // Carbon defines an IID, not a class factory. JavaScript registers the interface
 // constructor so named declarations and nominal composition resolve one identity.

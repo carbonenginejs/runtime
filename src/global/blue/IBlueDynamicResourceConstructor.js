@@ -9,7 +9,7 @@
 //
 // Declared beside IBlueResMan in Carbon's one header; here it takes its own
 // file, because a class is found by its own name.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 
 /** `IBlueDynamicResourceConstructor` - builds a resource for a `dynamic:/<name>` path. */
 export class IBlueDynamicResourceConstructor
@@ -33,7 +33,7 @@ export class IBlueDynamicResourceConstructor
   }
 }
 
-CjsSchema.decorateMethod(IBlueDynamicResourceConstructor, "GetResource", meta.requires, meta.abstract);
+CjsSchema.decorateMethod(IBlueDynamicResourceConstructor, "GetResource", blue.method, meta.requires, meta.abstract);
 CjsSchema.blue.define(IBlueDynamicResourceConstructor, {
   className: "IBlueDynamicResourceConstructor",
   fields: {}

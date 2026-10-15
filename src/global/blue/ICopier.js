@@ -3,7 +3,7 @@
 // The copier as its CALLERS see it. `Copier` is the one implementation;
 // `be.classes.CopyTo`/`CloneTo` are how most callers reach it. The hook a
 // class implements for state outside its members is ICopierCustomAssignment.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 
 /** `ICopier` - copies a Blue object through its persisted members, per blueexposure/include/ICopier.h. */
 export class ICopier
@@ -27,7 +27,7 @@ export class ICopier
 
 for (const method of [ "SetCopyOverrideCallback", "SetPostCopyCallback", "CopyTo" ])
 {
-  CjsSchema.decorateMethod(ICopier, method, meta.requires, meta.abstract);
+  CjsSchema.decorateMethod(ICopier, method, blue.method, meta.requires, meta.abstract);
 }
 
 CjsSchema.blue.define(ICopier, { className: "ICopier", fields: {} });

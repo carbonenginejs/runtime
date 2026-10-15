@@ -9,7 +9,7 @@
 // Two members have bodies in Carbon (`{}`): OnObjectDestroyed and OnSelected.
 // They stay concrete here, so an implementer that does not care about them
 // inherits the empty body, as a C++ subclass does.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 
 /** `IBlueObjectBuilder` - creates the object a proxy stands for, from a marker. */
 export class IBlueObjectBuilder
@@ -65,10 +65,10 @@ export class IBlueObjectBuilder
 
 for (const name of [ "CreateObjectWithYield", "CreateObject", "GetErrorMessage" ])
 {
-  CjsSchema.decorateMethod(IBlueObjectBuilder, name, meta.requires, meta.abstract);
+  CjsSchema.decorateMethod(IBlueObjectBuilder, name, blue.method, meta.requires, meta.abstract);
 }
-CjsSchema.decorateMethod(IBlueObjectBuilder, "OnObjectDestroyed", meta.implemented);
-CjsSchema.decorateMethod(IBlueObjectBuilder, "OnSelected", meta.implemented);
+CjsSchema.decorateMethod(IBlueObjectBuilder, "OnObjectDestroyed", blue.method, meta.implemented);
+CjsSchema.decorateMethod(IBlueObjectBuilder, "OnSelected", blue.method, meta.implemented);
 
 CjsSchema.blue.define(IBlueObjectBuilder, {
   className: "IBlueObjectBuilder",

@@ -12,7 +12,7 @@
 //
 // The `W` variants collapse: they are Carbon's wide-character twins, and
 // JavaScript strings carry no such distinction.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 
 /** `BlueResManQueue` - the queues the manager runs work on. */
 export const BlueResManQueue = Object.freeze({
@@ -88,12 +88,12 @@ for (const method of [
   "GetPendingLoads", "GetPendingPrepares", "RegisterResourceConstructor", "UnregisterResourceConstructor"
 ])
 {
-  CjsSchema.decorateMethod(IBlueResMan, method, meta.requires, meta.abstract);
+  CjsSchema.decorateMethod(IBlueResMan, method, blue.method, meta.requires, meta.abstract);
 }
 
 // Carbon declares GetResource and SaveObject in narrow and wide forms
 // (IBlueResMan.h:49-50, :116-117); one JS method takes either string.
-CjsSchema.decorateMethod(IBlueResMan, "GetResource", meta.renamed("GetResourceW"));
-CjsSchema.decorateMethod(IBlueResMan, "SaveObject", meta.renamed("SaveObjectW"));
+CjsSchema.decorateMethod(IBlueResMan, "GetResource", blue.method, meta.renamed("GetResourceW"));
+CjsSchema.decorateMethod(IBlueResMan, "SaveObject", blue.method, meta.renamed("SaveObjectW"));
 
 CjsSchema.blue.define(IBlueResMan, { className: "IBlueResMan", fields: {} });

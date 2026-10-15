@@ -1,5 +1,5 @@
 // Source: blue/include/ITriFunction.h:65-124
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { ITriFunction } from "./ITriFunction.js";
 import { CcpTime } from "./CcpTime.js";
 
@@ -130,12 +130,12 @@ export class ITriVectorFunction extends ITriFunction
 
 for (const method of [ "Update", "GetValueAt", "GetValueDotAt", "GetValueDoubleDotAt", "InterpolatedPosition" ])
 {
-  CjsSchema.decorateMethod(ITriVectorFunction, method, meta.requires, meta.abstract);
+  CjsSchema.decorateMethod(ITriVectorFunction, method, blue.method, meta.requires, meta.abstract);
 }
-CjsSchema.decorateMethod(ITriVectorFunction, "Update__Ticks", meta.adapted);
-CjsSchema.decorateMethod(ITriVectorFunction, "GetValueAt__Ticks", meta.adapted);
-CjsSchema.decorateMethod(ITriVectorFunction, "GetValueDotAt__Ticks", meta.adapted);
-CjsSchema.decorateMethod(ITriVectorFunction, "GetValueDoubleDotAt__Ticks", meta.adapted);
+CjsSchema.decorateMethod(ITriVectorFunction, "Update__Ticks", blue.method, meta.adapted);
+CjsSchema.decorateMethod(ITriVectorFunction, "GetValueAt__Ticks", blue.method, meta.adapted);
+CjsSchema.decorateMethod(ITriVectorFunction, "GetValueDotAt__Ticks", blue.method, meta.adapted);
+CjsSchema.decorateMethod(ITriVectorFunction, "GetValueDoubleDotAt__Ticks", blue.method, meta.adapted);
 CjsSchema.blue.define(ITriVectorFunction, {
   className: "ITriVectorFunction",
   fields: {}

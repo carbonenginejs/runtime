@@ -1,6 +1,6 @@
 // Source: blue/include/IBluePlacementObserver.h:31-34
 // Source: blue/src/IBluePlacementObserver_Blue.cpp:6
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 
 
 /**
@@ -22,7 +22,7 @@ export class IBluePlacementObserver
   }
 }
 
-CjsSchema.decorateMethod(IBluePlacementObserver, "UpdatePlacement", meta.requires, meta.abstract);
+CjsSchema.decorateMethod(IBluePlacementObserver, "UpdatePlacement", blue.method, meta.requires, meta.abstract);
 // Carbon defines an IID, not a class factory. JavaScript registers the interface
 // constructor so named declarations and nominal composition resolve one identity.
 CjsSchema.blue.define(IBluePlacementObserver, {

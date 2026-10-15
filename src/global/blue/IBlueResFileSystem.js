@@ -21,7 +21,7 @@
 //   (`protocols`) and the forms it produces (`forms`). The paths service reads
 //   the declaration and never probes: Carbon asks every file system in turn,
 //   which here would cost a network round trip per miss.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 
 /**
  * The forms a file system can answer `GetStreamFromPath` in.
@@ -122,12 +122,12 @@ export class IBlueResFileSystem
 
 for (const method of [ "FileExists", "IsDirectory", "GetDirectoryContents", "GetStreamFromPath", "ResolvePath" ])
 {
-  CjsSchema.decorateMethod(IBlueResFileSystem, method, meta.requires, meta.abstract);
+  CjsSchema.decorateMethod(IBlueResFileSystem, method, blue.method, meta.requires, meta.abstract);
 }
 
 // Carbon declares only the wide-character forms; a JS string covers both.
-CjsSchema.decorateMethod(IBlueResFileSystem, "GetStreamFromPath", meta.renamed("GetStreamFromPathW"));
-CjsSchema.decorateMethod(IBlueResFileSystem, "ResolvePath", meta.renamed("ResolvePathW"));
+CjsSchema.decorateMethod(IBlueResFileSystem, "GetStreamFromPath", blue.method, meta.renamed("GetStreamFromPathW"));
+CjsSchema.decorateMethod(IBlueResFileSystem, "ResolvePath", blue.method, meta.renamed("ResolvePathW"));
 
 CjsSchema.blue.define(IBlueResFileSystem, {
   className: "IBlueResFileSystem",

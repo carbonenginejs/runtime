@@ -1,5 +1,5 @@
 // Source: blue/include/ITriFunction.h:36-63
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { ITriFunction } from "./ITriFunction.js";
 import { CcpTime } from "./CcpTime.js";
 
@@ -70,10 +70,10 @@ export class ITriScalarFunction extends ITriFunction
 
 for (const method of [ "Update", "GetValueAt", "ScaleTime" ])
 {
-  CjsSchema.decorateMethod(ITriScalarFunction, method, meta.requires, meta.abstract);
+  CjsSchema.decorateMethod(ITriScalarFunction, method, blue.method, meta.requires, meta.abstract);
 }
-CjsSchema.decorateMethod(ITriScalarFunction, "Update__Ticks", meta.adapted);
-CjsSchema.decorateMethod(ITriScalarFunction, "GetValueAt__Ticks", meta.adapted);
+CjsSchema.decorateMethod(ITriScalarFunction, "Update__Ticks", blue.method, meta.adapted);
+CjsSchema.decorateMethod(ITriScalarFunction, "GetValueAt__Ticks", blue.method, meta.adapted);
 CjsSchema.blue.define(ITriScalarFunction, {
   className: "ITriScalarFunction",
   fields: {}
