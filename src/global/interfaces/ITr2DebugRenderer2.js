@@ -1,5 +1,5 @@
 // Source: blue/include/ITr2DebugRenderer2.h:127-187
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, blue, meta } from "#schema";
 
 
 /**
@@ -209,7 +209,7 @@ for (const method of [
   "GetColorForOption", "SetColorForOption", "DrawAudioSpeaker"
 ])
 {
-  CjsSchema.decorateMethod(ITr2DebugRenderer2, method, meta.requires, meta.abstract);
+  CjsSchema.decorateMethod(ITr2DebugRenderer2, method, blue.method, meta.requires, meta.abstract);
 }
 // This JavaScript registration supplies one nominal interface identity for named
 // declarations and composition. It does not install a renderer implementation.
