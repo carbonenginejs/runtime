@@ -100,6 +100,8 @@ export class AudGeometry extends ITr2AudGeometry
 {
 
   /** Removes every registered set and instance from the current backend. */
+  @blue.method
+  @meta.adapted
   static ClearAllGeometry()
   {
     const backend = AudGameObjResource.backend;

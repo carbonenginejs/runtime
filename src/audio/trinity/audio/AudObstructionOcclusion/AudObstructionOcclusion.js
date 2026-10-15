@@ -1,3 +1,4 @@
+import { meta, blue } from "#schema";
 // Source: audio/src/AudObstructionOcclusion.h + AudObstructionOcclusion.cpp
 // Headless behavior port. The host supplies blockage; this class performs no
 // ray casting and leaves the audible obstruction/occlusion law to the backend.
@@ -22,6 +23,7 @@ function NowSeconds()
  * the Carbon-facing AudManager methods; injected backends may implement
  * SetObjectObstructionAndOcclusion to realize the values.
  */
+@blue.define("AudObstructionOcclusion")
 export class AudObstructionOcclusion
 {
   _audioManager;
@@ -46,6 +48,8 @@ export class AudObstructionOcclusion
   }
 
   /** Advances every fade and sends changed awake-emitter values. */
+  @blue.method
+  @meta.adapted
   Update(backend)
   {
     if (!this._audioManager
@@ -105,6 +109,8 @@ export class AudObstructionOcclusion
   }
 
   /** Sets the obstruction and occlusion targets for a registered emitter. */
+  @blue.method
+  @meta.adapted
   SetObstructionOcclusion(emitterID, obstruction, occlusion)
   {
     if (!this._enabled
@@ -139,6 +145,8 @@ export class AudObstructionOcclusion
   }
 
   /** Maps caller-supplied blockage to Carbon's acoustics-aware targets. */
+  @blue.method
+  @meta.adapted
   SetEmitterLineOfSightBlockage(emitterID, blockage)
   {
     // Carbon: m_audioManager != nullptr && m_audioManager->GetSpatialAudioGeometryEnabled() (cpp:127).
@@ -152,18 +160,24 @@ export class AudObstructionOcclusion
   }
 
   /** Returns the live, mid-fade occlusion value for one emitter. */
+  @blue.method
+  @meta.adapted
   GetEmitterOcclusion(emitterID)
   {
     return this._emitters.get(emitterID)?.occlusion.currentValue ?? 0;
   }
 
   /** Drops one emitter immediately when its game object is unregistered. */
+  @blue.method
+  @meta.adapted
   RemoveEmitter(emitterID)
   {
     this._emitters.delete(emitterID);
   }
 
   /** Forgets every emitter and resets the fade clock. */
+  @blue.method
+  @meta.adapted
   Reset()
   {
     this._emitters.clear();
@@ -172,6 +186,8 @@ export class AudObstructionOcclusion
   }
 
   /** Fades every tracked emitter back to clear. */
+  @blue.method
+  @meta.adapted
   ClearAll()
   {
     for (const state of this._emitters.values())
@@ -182,12 +198,16 @@ export class AudObstructionOcclusion
   }
 
   /** Returns whether new caller-supplied targets are accepted. */
+  @blue.method
+  @meta.adapted
   IsEnabled()
   {
     return this._enabled;
   }
 
   /** Enables target input or fades every existing target to clear. */
+  @blue.method
+  @meta.adapted
   SetEnabled(value)
   {
     const enabled = Boolean(value);
@@ -204,18 +224,24 @@ export class AudObstructionOcclusion
   }
 
   /** Returns the linear fade speed in value units per second. */
+  @blue.method
+  @meta.adapted
   GetFadeRate()
   {
     return this._fadeRate;
   }
 
   /** Stores Carbon's nonnegative linear fade speed. */
+  @blue.method
+  @meta.adapted
   SetFadeRate(value)
   {
     this._fadeRate = Math.max(0, Number(value));
   }
 
   /** Delivers one live value through the optional Wwise-shaped backend seam. */
+  @meta.renamed("SendToWwise")
+  @meta.adapted
   _SendToBackend(backend, emitterID, state)
   {
     if (typeof backend?.SetObjectObstructionAndOcclusion !== "function")

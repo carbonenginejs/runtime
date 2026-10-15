@@ -6,6 +6,8 @@
 // init, RenderAudio, and device concerns route through the backend seam
 // (AudGameObjResource.backend); state, bank tracking, deferred-event flush,
 // monitored-parameter refcounts, and prioritization wiring are pure logic.
+import { IRoot } from "#blue/IRoot";
+import { IBlueEvents } from "#blue/IBlueEvents";
 import { meta, type, blue } from "#schema";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 import { AudGeometry } from "./AudGeometry.js";
@@ -25,6 +27,8 @@ function BankKey(name)
 
 /** Coordinates audio lifecycle, banks, global controls, culling, and caller-supplied obstruction/occlusion. */
 @blue.define("AudManager")
+@blue.inherit(IRoot, IBlueEvents)
+@blue.interface()
 export class AudManager
 {
 
@@ -50,7 +54,7 @@ export class AudManager
    * values interchange.
    */
   @meta.adapted
-  @blue.persist
+  @meta.persist
   @type.rootRef("AudSettings")
   settings = null;
 
@@ -86,14 +90,14 @@ export class AudManager
 
   /** Carbon method GetState. */
   @blue.method
-  @meta.implemented
+  @meta.adapted
   GetState()
   {
     return this._state;
   }
 
   /** Carbon method GetStateValue: Carbon's scripting int (0/1/2). */
-  @meta.renamed("GetState")
+  @blue.method
   @meta.implemented
   GetStateValue()
   {

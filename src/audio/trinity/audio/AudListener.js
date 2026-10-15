@@ -7,7 +7,8 @@ import { LISTENER_GAME_OBJ_ID } from "./SoundPrioritization.js";
 const FLOAT_MAX = 3.4028234663852886e38;
 
 /** Represents the singleton Carbon listener and its effective orientation and position. Its id is fixed at 4 and prioritization never culls it. */
-@blue.define("AudListener")
+@blue.define({ className: "AudListener", abstract: true })
+@blue.chainTo(AudGameObjResource)
 export class AudListener extends AudGameObjResource
 {
 
@@ -41,7 +42,7 @@ export class AudListener extends AudGameObjResource
    * @param {ArrayLike<number>} position Listener position.
    * @returns {number} The placement result.
    */
-  @blue.method
+  @meta.renamed("SetPlacementFromParent")
   @meta.implemented
   SetPosition(front, top, position)
   {

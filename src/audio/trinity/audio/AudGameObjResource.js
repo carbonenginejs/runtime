@@ -19,6 +19,7 @@ import { BlueList } from "#blue/BlueList";
 import { AudParameter } from "./AudParameter.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
+import { IPrioritizedObject } from "./IPrioritizedObject.js";
 import { SoundPrioritization } from "./SoundPrioritization.js";
 
 // Wwise AK_INVALID_PLAYING_ID.
@@ -69,7 +70,7 @@ function NowMs()
  * AudEmitter, AudListener, AudUIPlayer and AudMusicPlayer build on it.
  */
 @blue.define({ className: "AudGameObjResource", abstract: true })
-@blue.inherit(IInitialize, IListNotify, INotify)
+@blue.inherit(IInitialize, IListNotify, INotify, IPrioritizedObject)
 @blue.interface(IInitialize, IListNotify, INotify)
 export class AudGameObjResource
 {
@@ -272,6 +273,7 @@ export class AudGameObjResource
    * @param {ArrayLike<number>} position World position.
    */
   @meta.adapted
+  @meta.renamed("Initialize")
   Initialize__WithParameters(name, prefix, position)
   {
     this.name = name;

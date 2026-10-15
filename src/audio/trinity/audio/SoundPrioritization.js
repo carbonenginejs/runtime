@@ -134,7 +134,6 @@ export class SoundPrioritization
   }
 
   /** Carbon method SetAudioCullingEnabled. */
-  @blue.method
   @meta.implemented
   SetAudioCullingEnabled(enabled)
   {
@@ -360,6 +359,7 @@ export class SoundPrioritization
 
   /** Carbon static CalculateObjectWeight: lower weight = higher priority; pure subtraction, no clamps. */
   @meta.implemented
+  @meta.renamed("CalculateObjectWeight")
   static calculateObjectWeight(distanceSq, isMuted, isInRange, isUsed, isVisible, isPlaying2D, isPlayingVital,
     additionalWeight, activeEventCount, waitingOneShotWeight, usedEmitterWeight, rangeWeight,
     activeSoundsWeight, visibleWeight, playing2DWeight, playingVitalSoundWeight)
