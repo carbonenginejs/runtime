@@ -1,3 +1,4 @@
+import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/InlineString.h
 
 /**
@@ -283,3 +284,10 @@ function asciiLower(text)
 {
     return text.replace(/[A-Z]/gu, c => String.fromCharCode(c.charCodeAt(0) + 32));
 }
+
+CjsSchema.blue.define(InlineString, {
+    className: "InlineString",
+    methods: {
+        IsSet: [meta.renamed("operator bool")]
+    }
+});

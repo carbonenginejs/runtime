@@ -1,3 +1,4 @@
+import { CjsSchema, blue } from "#schema";
 // Source: trinity/shadercompiler/SymbolTable.h
 // Source: trinity/shadercompiler/SymbolTable.cpp:10-30
 
@@ -57,3 +58,10 @@ export class PackOffset
         return true;
     }
 }
+
+CjsSchema.blue.define(PackOffset, {
+    className: "PackOffset",
+    methods: {
+        Create: [blue.method]
+    }
+});

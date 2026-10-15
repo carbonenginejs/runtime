@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/ParserState.h
 
 import { InlineString } from "../InlineString.js";
@@ -21,3 +22,7 @@ export class PreprocessorDefine
     /** @type {InlineString} */
     value = new InlineString();
 }
+
+CjsSchema.blue.define(PreprocessorDefine, {
+    className: "PreprocessorDefine"
+});

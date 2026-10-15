@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/ParserState.h
 
 /**
@@ -14,3 +15,7 @@ export class PreprocessorCondition
 
     seenElse = false;
 }
+
+CjsSchema.blue.define(PreprocessorCondition, {
+    className: "PreprocessorCondition"
+});

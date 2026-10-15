@@ -1,3 +1,4 @@
+import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/SymbolTable.h
 // Source: trinity/shadercompiler/SymbolTable.cpp:32-44
 
@@ -65,3 +66,10 @@ export class RegisterSpecifier
         return reg;
     }
 }
+
+CjsSchema.blue.define(RegisterSpecifier, {
+    className: "RegisterSpecifier",
+    methods: {
+        register: [meta.renamed("Register")]
+    }
+});

@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/SymbolTable.h
 // Source: trinity/shadercompiler/SymbolTable.cpp:70-89
 //
@@ -76,3 +77,7 @@ export class Symbol
         RayData: 7
     });
 }
+
+CjsSchema.blue.define(Symbol, {
+    className: "Symbol"
+});

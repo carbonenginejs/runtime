@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/ParserState.h:274-281
 //
 // Carbon nests this struct privately in `ParserState` (`ParserState::FileContents`);
@@ -32,3 +33,8 @@ export class FileContents
      */
     arguments = new Map();
 }
+
+CjsSchema.blue.define(FileContents, {
+    className: "FileContents",
+    donors: ["ParserState::FileContents"]
+});

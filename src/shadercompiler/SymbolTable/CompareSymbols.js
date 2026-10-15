@@ -1,3 +1,4 @@
+import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/SymbolTable.h
 // Source: trinity/shadercompiler/SymbolTable.cpp:47-68
 
@@ -57,3 +58,10 @@ function serialOf(node)
 {
     return node === null ? -1 : node.serial;
 }
+
+CjsSchema.blue.define(CompareSymbols, {
+    className: "CompareSymbols",
+    methods: {
+        compare: [meta.renamed("operator()")]
+    }
+});

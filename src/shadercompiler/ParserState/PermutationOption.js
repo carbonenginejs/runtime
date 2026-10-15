@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/ParserState.h
 
 /**
@@ -9,3 +10,7 @@ export class PermutationOption
 
     value = 0;
 }
+
+CjsSchema.blue.define(PermutationOption, {
+    className: "PermutationOption"
+});

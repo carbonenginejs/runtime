@@ -1,3 +1,4 @@
+import { CjsSchema, blue, meta } from "#schema";
 // Source: trinity/shadercompiler/ParserState.h
 // Source: trinity/shadercompiler/ParserState.cpp
 
@@ -1547,3 +1548,49 @@ function ConvertToPreprocessorToken(type)
 {
     return TO_PREPROCESSOR.get(type) ?? 0;
 }
+
+CjsSchema.blue.define(ParserState, {
+    className: "ParserState",
+    methods: {
+        _AddIntrinsics: [meta.renamed("AddIntrinsics")],
+        _ParseMacroArguments: [meta.renamed("ParseMacroArguments")],
+        InSkipMode: [blue.method],
+        InDiscoverMode: [blue.method],
+        _FindConcatOperator: [meta.renamed("FindConcatOperator")],
+        GetPreprocessorToken: [blue.method],
+        DiscoverPermutations: [blue.method],
+        Parse: [blue.method],
+        EvaluatePreprocessorCondition: [blue.method],
+        HasErrors: [blue.method],
+        GetTree: [blue.method],
+        GetSymbolTable: [blue.method],
+        GetCurrentLocation: [blue.method],
+        AllocateName: [blue.method],
+        AllocateName__Chars: [meta.renamed("AllocateName")],
+        AllocateName__InlineString: [meta.renamed("AllocateName")],
+        AllocateNameWithPrefix: [blue.method],
+        AllocateNameWithPrefix__InlineString: [meta.renamed("AllocateNameWithPrefix")],
+        AllocateString: [blue.method],
+        ShowMessage: [blue.method],
+        ShowMessage__Location: [meta.renamed("ShowMessage")],
+        ShowMessage__Token: [meta.renamed("ShowMessage")],
+        _ShowMessageImpl: [meta.renamed("ShowMessageImpl")],
+        AddOfflineStatement: [blue.method],
+        MoveOfflineStatements: [blue.method],
+        SetTree: [blue.method],
+        GetStreamPosition: [blue.method],
+        GetStreamEnd: [blue.method],
+        InMacro: [blue.method],
+        IncludeFile: [blue.method],
+        ParseDefine: [blue.method],
+        FindDefine: [blue.method],
+        AddPragma: [blue.method],
+        ResetPragmaUsage: [blue.method],
+        GetPragma: [blue.method],
+        GetDX9TextureFunctions: [blue.method],
+        GetDX9Functions: [blue.method],
+        NewNode: [blue.method],
+        NewNode__Token: [meta.renamed("NewNode")],
+        AddBindlessSampler: [blue.method]
+    }
+});

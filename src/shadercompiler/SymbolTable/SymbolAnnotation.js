@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/SymbolTable.h
 
 import { InlineString } from "../InlineString.js";
@@ -18,3 +19,7 @@ export class SymbolAnnotation
 
     value = new ScannerToken();
 }
+
+CjsSchema.blue.define(SymbolAnnotation, {
+    className: "SymbolAnnotation"
+});

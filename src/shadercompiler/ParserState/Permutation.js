@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/ParserState.h
 
 import { FileLocation } from "./FileLocation.js";
@@ -21,3 +22,7 @@ export class Permutation
 
     location = new FileLocation();
 }
+
+CjsSchema.blue.define(Permutation, {
+    className: "Permutation"
+});

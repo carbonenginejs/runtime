@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/ParserState.h
 
 import { InlineString } from "../InlineString.js";
@@ -29,3 +30,7 @@ export class PreprocessorToken
         this.fileLocation = fileLocation;
     }
 }
+
+CjsSchema.blue.define(PreprocessorToken, {
+    className: "PreprocessorToken"
+});

@@ -1,3 +1,4 @@
+import { CjsSchema, blue, meta } from "#schema";
 // Source: trinity/shadercompiler/Type.h
 // Source: trinity/shadercompiler/Type.cpp
 
@@ -795,3 +796,27 @@ function byteAddressLoad(method, returnType)
     }
     return true;
 }
+
+CjsSchema.blue.define(Type, {
+    className: "Type",
+    methods: {
+        Equals: [meta.renamed("operator==")],
+        FromToken: [blue.method],
+        FromTokenType: [blue.method],
+        FromSymbol: [blue.method],
+        IsScalar: [blue.method],
+        IsVector: [blue.method],
+        IsMatrix: [blue.method],
+        IsStruct: [blue.method],
+        IsBindlessHandle: [blue.method],
+        IsScalarOrVector: [blue.method],
+        IsTexture: [blue.method],
+        IsTextureArray: [blue.method],
+        IsSampler: [blue.method],
+        IsBuffer: [blue.method],
+        GetMethodType: [blue.method],
+        ToString: [blue.method],
+        CanImplicitCast: [blue.method],
+        GetIndexedType: [blue.method]
+    }
+});

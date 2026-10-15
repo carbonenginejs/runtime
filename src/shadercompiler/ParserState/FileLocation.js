@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/ParserState.h
 
 import { InlineString } from "../InlineString.js";
@@ -32,3 +33,7 @@ export class FileLocation
         return new FileLocation(this.lineNumber, this.fileName.Copy());
     }
 }
+
+CjsSchema.blue.define(FileLocation, {
+    className: "FileLocation"
+});

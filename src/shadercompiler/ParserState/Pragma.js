@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/ParserState.h:284-289
 //
 // Carbon nests this struct privately in `ParserState` (`ParserState::Pragma`);
@@ -21,3 +22,8 @@ export class Pragma
     /** @type {boolean} */
     used = false;
 }
+
+CjsSchema.blue.define(Pragma, {
+    className: "Pragma",
+    donors: ["ParserState::Pragma"]
+});

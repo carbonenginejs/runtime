@@ -1,3 +1,4 @@
+import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/ParserState.h
 // Source: trinity/shadercompiler/ParserState.cpp:29-37
 
@@ -73,3 +74,11 @@ export class ScannerToken
         return new ScannerToken(type, 0, new InlineString(), location.Copy());
     }
 }
+
+CjsSchema.blue.define(ScannerToken, {
+    className: "ScannerToken",
+    methods: {
+        id: [meta.renamed("ID")],
+        fromTokenType: [meta.renamed("FromTokenType")]
+    }
+});

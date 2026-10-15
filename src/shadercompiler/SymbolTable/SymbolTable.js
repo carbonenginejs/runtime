@@ -1,3 +1,4 @@
+import { CjsSchema, blue, meta } from "#schema";
 // Source: trinity/shadercompiler/SymbolTable.h
 // Source: trinity/shadercompiler/SymbolTable.cpp:342-469
 
@@ -228,3 +229,24 @@ export class SymbolTable
         ALLOW_OVERRIDES: 1
     });
 }
+
+CjsSchema.blue.define(SymbolTable, {
+    className: "SymbolTable",
+    methods: {
+        Lookup: [blue.method],
+        LookupFunction: [blue.method],
+        LookupFunctionDeclaration: [blue.method],
+        LookupType: [blue.method],
+        LookupBuffer: [blue.method],
+        AddSymbol: [blue.method],
+        AddTypeSymbol: [blue.method],
+        AddSymbol__Symbol: [meta.renamed("AddSymbol")],
+        AddBufferSymbol: [blue.method],
+        EnterScope: [blue.method],
+        LeaveScope: [blue.method],
+        GetCurrentScope: [blue.method],
+        ResetUsedFlag: [blue.method],
+        LookupGlobal: [blue.method],
+        IsGlobal: [blue.method]
+    }
+});

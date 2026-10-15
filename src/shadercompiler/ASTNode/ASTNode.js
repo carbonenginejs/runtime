@@ -1,3 +1,4 @@
+import { CjsSchema, blue, meta } from "#schema";
 // Source: trinity/shadercompiler/ASTNode.h
 // Source: trinity/shadercompiler/ASTNode.cpp
 
@@ -459,3 +460,36 @@ export class ASTNode
         NT_LIBRARY: 39
     });
 }
+
+CjsSchema.blue.define(ASTNode, {
+    className: "ASTNode",
+    methods: {
+        Copy: [blue.method],
+        AddChild: [blue.method],
+        InsertChild: [blue.method],
+        ReplaceChild: [blue.method],
+        ReplaceChild__Node: [meta.renamed("ReplaceChild")],
+        RemoveChild: [blue.method],
+        RemoveChild__Node: [meta.renamed("RemoveChild")],
+        GetNodeType: [blue.method],
+        SetNodeType: [blue.method],
+        GetChildrenCount: [blue.method],
+        GetChild: [blue.method],
+        GetChildOrNull: [blue.method],
+        GetChildren: [blue.method],
+        MoveChildren: [blue.method],
+        SetToken: [blue.method],
+        GetToken: [blue.method],
+        ClearToken: [blue.method],
+        GetLocation: [blue.method],
+        SetLocation: [blue.method],
+        SetSymbol: [blue.method],
+        GetSymbol: [blue.method],
+        GetScope: [blue.method],
+        SetType: [blue.method],
+        GetType: [blue.method],
+        FindNode: [blue.method],
+        FindNodes: [blue.method],
+        Map: [blue.method]
+    }
+});

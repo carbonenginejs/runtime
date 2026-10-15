@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/ParserState.h:256-260
 //
 // Carbon nests this struct publicly in `ParserState`; it is also reachable as
@@ -15,3 +16,8 @@ export class SamplerDefinition
     /** @type {import("../ASTNode/ASTNode.js").ASTNode|null} */
     definition = null;
 }
+
+CjsSchema.blue.define(SamplerDefinition, {
+    className: "SamplerDefinition",
+    donors: ["ParserState::SamplerDefinition"]
+});
