@@ -67,40 +67,43 @@ const INVALID_OFFSET = 0xffffffff;
  */
 @blue.define("Tr2RingBuffer")
 @blue.inherit(ITr2GpuBuffer)
+@blue.interface()
 export class Tr2RingBuffer
 {
   /** One arena per data type, as Carbon's typed `GetInstance` gives. */
   static _instances = new Map();
 
   /** m_name */
-  @blue.persist
+  @meta.persist
   @type.string
   name = "";
 
   /** m_stride - bytes per element; every upload must match it. */
-  @blue.persist
+  @meta.persist
   @type.uint32
   stride = 0;
 
   /** m_size - capacity in ELEMENTS, not bytes. */
-  @blue.read
+  @meta.read
   @type.uint32
   size = 0;
 
   /** m_head - where the next upload lands, in elements. */
-  @blue.read
+  @meta.read
   @type.uint32
   head = 0;
 
   /** m_tail - the oldest element the GPU may still be reading. */
-  @blue.read
+  @meta.read
   @type.uint32
   tail = 0;
 
   /** m_frame - the frame being recorded. */
+  @type.uint64
   _frame = 0;
 
   /** m_mirror - the CPU copy, and the authority until a backend uploads it. */
+  @type.uint8Array
   _mirror = new Uint8Array(0);
 
   /** m_buffer */

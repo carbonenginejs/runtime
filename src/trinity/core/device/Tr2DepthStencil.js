@@ -1,3 +1,5 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
+import { ITr2TextureProvider } from "../ITr2TextureProvider.js";
 // Source: trinity/trinity/Tr2DepthStencil.h
 //   trinity/trinity/Tr2DepthStencil.cpp
 //
@@ -30,6 +32,8 @@ import "#consts/renderContext/formats";
 
 /** Holds the depth-stencil surface a pass renders into, with the parameters it was created with. */
 @blue.define("Tr2DepthStencil")
+@blue.inherit(ITr2TextureProvider)
+@blue.interface(IRoot, ITr2TextureProvider)
 export class Tr2DepthStencil
 {
 

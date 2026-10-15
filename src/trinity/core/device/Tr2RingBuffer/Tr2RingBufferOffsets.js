@@ -1,3 +1,4 @@
+import { CjsSchema, type, blue } from "#schema";
 // Source: trinity/trinity/Tr2RingBuffer.h
 // Source: trinity/trinity/Tr2RingBuffer.cpp
 //
@@ -116,3 +117,11 @@ export class Tr2RingBufferOffsets
     this.#currentFrameOffset = INVALID_OFFSET;
   }
 }
+
+CjsSchema.decorateField(Tr2RingBufferOffsets, "#currentFrameOffset", type.uint32);
+CjsSchema.decorateField(Tr2RingBufferOffsets, "#previousFrameOffset", type.uint32);
+CjsSchema.decorateMethod(Tr2RingBufferOffsets, "GetCurrentFrameOffset", blue.method);
+CjsSchema.decorateMethod(Tr2RingBufferOffsets, "GetPreviousFrameOffset", blue.method);
+CjsSchema.decorateMethod(Tr2RingBufferOffsets, "UploadTransforms", blue.method);
+CjsSchema.decorateMethod(Tr2RingBufferOffsets, "AdvanceFrame", blue.method);
+CjsSchema.blue.define(Tr2RingBufferOffsets, { className: "Tr2RingBufferOffsets" });

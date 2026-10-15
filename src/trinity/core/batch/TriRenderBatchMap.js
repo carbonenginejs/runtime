@@ -1,3 +1,4 @@
+import { CjsSchema, type, blue, meta } from "#schema";
 // Source: trinity/Eve/EveSpaceScene.h  (BatchMap typedef)
 //   trinity/Eve/EveSpaceScene.cpp (GetBatchesFromRenderables / FinalizeBatches / ClearBatches)
 //
@@ -122,3 +123,5 @@ export class TriRenderBatchMap
     return count;
   }
 }
+
+CjsSchema.meta.define(TriRenderBatchMap, { className: "TriRenderBatchMap", donors: ["EveSpaceScene::BatchMap"] });

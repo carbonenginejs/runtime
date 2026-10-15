@@ -1,3 +1,4 @@
+import { CjsSchema, type } from "#schema";
 // Source: trinity/trinity/Tr2VolumetricsRenderer.h (FogViewDependentResources, :155-170)
 // Source: trinity/trinity/Tr2VolumetricsRenderer.cpp (its constructor, :21-45)
 // Hand-maintained: Carbon's nested struct, in its own file so it is findable by
@@ -36,3 +37,13 @@ export class Tr2VolumetricsRendererFogViewDependentResources
     this.applyFroxels.SetEffectPathName(FOG_PATH + "ApplyFroxels.fx");
   }
 }
+
+CjsSchema.decorateField(Tr2VolumetricsRendererFogViewDependentResources, "useTemporalFroxels", type.boolean);
+CjsSchema.decorateField(Tr2VolumetricsRendererFogViewDependentResources, "currentTemporalFroxels", type.boolean);
+CjsSchema.decorateField(Tr2VolumetricsRendererFogViewDependentResources, "froxelJitter", type.vec3);
+CjsSchema.decorateField(Tr2VolumetricsRendererFogViewDependentResources, "calculateFroxels", type.rootRef("Tr2Effect"));
+CjsSchema.decorateField(Tr2VolumetricsRendererFogViewDependentResources, "rtCalculateFroxels", type.rootRef("Tr2Effect"));
+CjsSchema.decorateField(Tr2VolumetricsRendererFogViewDependentResources, "filterFroxels", type.rootRef("Tr2Effect"));
+CjsSchema.decorateField(Tr2VolumetricsRendererFogViewDependentResources, "raymarchFroxels", type.rootRef("Tr2Effect"));
+CjsSchema.decorateField(Tr2VolumetricsRendererFogViewDependentResources, "applyFroxels", type.rootRef("Tr2Effect"));
+CjsSchema.blue.define(Tr2VolumetricsRendererFogViewDependentResources, { className: "Tr2VolumetricsRendererFogViewDependentResources", donors: ["Tr2VolumetricsRenderer::FogViewDependentResources"] });

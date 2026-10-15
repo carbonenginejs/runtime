@@ -108,7 +108,7 @@ export class TriDevice
 
   /** m_supportedUpscalingTechniques (PTr2UpscalingTechniqueInfoStructureList) [READ] */
   @blue.read
-  @type.list("Tr2UpscalingTechniqueInfo")
+  @type.structList("Tr2UpscalingTechniqueInfo")
   supportedUpscalingTechniques = [];
 
   /** mViewport (PTriViewport) [READ, PERSIST] */
@@ -685,6 +685,7 @@ export class TriDevice
    * @returns {boolean} Carbon's mDeviceLost.
    */
   @meta.implemented
+  @blue.method
   IsDeviceLost()
   {
     return this.#deviceLost;
@@ -708,6 +709,7 @@ export class TriDevice
    * @returns {boolean} Whether a device now exists.
    */
   @meta.adapted
+  @blue.method
   ChangeDevice(adapter, hWnd, pp)
   {
     let resetOnly = true;
@@ -766,6 +768,7 @@ export class TriDevice
    * @returns {boolean} Whether the reset succeeded.
    */
   @meta.adapted
+  @blue.method
   ResetDevice(adapter = this.adapter, pp = null)
   {
     this.ReleaseDeviceResources(TriStorageFlags.TRISTORAGE_VIDEOMEMORY);

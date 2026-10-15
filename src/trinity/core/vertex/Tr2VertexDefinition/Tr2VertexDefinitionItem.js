@@ -1,3 +1,4 @@
+import { CjsSchema, type, blue, meta } from "#schema";
 // Source: trinity/trinityal/Tr2VertexDefinition.h:14-207 (the definition and its items)
 //   trinity/trinityal/Tr2VertexDefinition.cpp:25-42 (item and definition equality)
 //
@@ -33,3 +34,11 @@ export class Tr2VertexDefinitionItem
 }
 
 
+
+CjsSchema.decorateField(Tr2VertexDefinitionItem, "usage", type.int32);
+CjsSchema.decorateField(Tr2VertexDefinitionItem, "usageIndex", type.uint32);
+CjsSchema.decorateField(Tr2VertexDefinitionItem, "offset", type.uint32);
+CjsSchema.decorateField(Tr2VertexDefinitionItem, "stream", type.uint32);
+CjsSchema.decorateField(Tr2VertexDefinitionItem, "instanceStepRate", type.uint32);
+CjsSchema.decorateField(Tr2VertexDefinitionItem, "type", type.string);
+CjsSchema.blue.define(Tr2VertexDefinitionItem, { className: "Tr2VertexDefinitionItem", donors: ["Tr2VertexDefinition::Item"] });

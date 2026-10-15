@@ -1,3 +1,4 @@
+import { CjsSchema, type, blue, meta } from "#schema";
 // Source: trinity/trinityal/Tr2VertexDefinition.h:14-207 (the definition and its items)
 //   trinity/trinityal/Tr2VertexDefinition.cpp:25-42 (item and definition equality)
 //
@@ -179,3 +180,14 @@ export class Tr2VertexDefinition
     return true;
   }
 }
+
+CjsSchema.decorateField(Tr2VertexDefinition, "items", type.array(Tr2VertexDefinitionItem));
+CjsSchema.decorateField(Tr2VertexDefinition, "nextOffset", type.array("uint32"));
+CjsSchema.decorateMethod(Tr2VertexDefinition, "empty", blue.method);
+CjsSchema.decorateMethod(Tr2VertexDefinition, "Add", blue.method);
+CjsSchema.decorateMethod(Tr2VertexDefinition, "Find", blue.method);
+CjsSchema.decorateMethod(Tr2VertexDefinition, "Find__UsageIndex", blue.method);
+CjsSchema.decorateMethod(Tr2VertexDefinition, "getDataTypeSizeInMembers", blue.method, meta.renamed("GetDataTypeSizeInMembers"));
+CjsSchema.decorateMethod(Tr2VertexDefinition, "getDataTypeSizeInBytes", blue.method, meta.renamed("GetDataTypeSizeInBytes"));
+CjsSchema.decorateMethod(Tr2VertexDefinition, "isSameDefinition", blue.method, meta.renamed("operator=="));
+CjsSchema.blue.define(Tr2VertexDefinition, { className: "Tr2VertexDefinition" });

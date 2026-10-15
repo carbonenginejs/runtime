@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2VolumetricsRenderer.h
 // Source: trinity/trinity/Tr2VolumetricsRenderer.cpp
 // Source: trinity/trinity/Tr2VolumetricsRenderer_Blue.cpp
@@ -48,6 +49,7 @@ const FOG_LIGHT_BITS = new Uint32Array(FOG_LIGHTS.buffer); // alloc: uint32 view
  * passes themselves wait on WGSL translation of their compute effects (see _RenderFog_Resources).
  */
 @blue.define("Tr2VolumetricsRenderer")
+@blue.inherit(IRoot)
 export class Tr2VolumetricsRenderer
 {
   @blue.readwrite
@@ -140,12 +142,16 @@ export class Tr2VolumetricsRenderer
   @type.float32
   scaleFactor = 0.7;
 
+  @type.float64
   _godRayNoiseAnimation = 0;
 
+  @type.float64Array
   _fogNoiseMovement = new Float64Array(3); // alloc: Carbon Vector3d; no double-precision math type
 
+  @type.array("vec4")
   _planets = [ vec4.fromValues(0, 0, 0, -1), vec4.fromValues(0, 0, 0, -1) ];
 
+  @type.float32
   _sunAngle = 0;
 
   /** m_fogResources / m_fogReflectionResources (cpp:51-52): the scene view's froxels filter temporally. */
@@ -153,19 +159,27 @@ export class Tr2VolumetricsRenderer
   _fogReflectionResources = new Tr2VolumetricsRendererFogViewDependentResources(false);
 
   /** m_froxel3DNoise (cpp:80-98): 64³ signed random noise, created in the constructor. */
+  @type.rootRef("Tr2TextureReference")
   _froxel3DNoise = new Tr2TextureReference();
 
   /** m_godRayNoiseMatrix (cpp:100-102): a double-precision matrix kept aligned with the sun. */
+  @type.float64Array
   _godRayNoiseMatrix = new Float64Array([ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ]); // alloc: Carbon double[16]; no double-precision math type
 
   /** m_updateMieEnvironmentMap and the environment map's update state (cpp:104-122). */
+  @type.rootRef("Tr2Effect")
   _updateMieEnvironmentMap = new Tr2Effect();
+  @type.vec2
   _environmentJitter = vec2.create();
+  @type.float32
   _environmentRandom = 0;
+  @type.float32
   _previousEnvironmentG = 0;
+  @type.float32
   _environmentBlendCounter = 0;
 
   /** m_isReflectionProbe (h:112-115): scales the fog by reflectionIntensity while a probe renders. */
+  @type.boolean
   _isReflectionProbe = false;
 
   /** m_fogConstantBuffer (cpp:658-661), created on first use, and the record its bytes are filled from. */
@@ -184,7 +198,9 @@ export class Tr2VolumetricsRenderer
   /** Native unsorted cloud accumulator. */
   batches = new TriRenderBatchAccumulator();
   /** Last dimensions requested, for the native empty-scene cache keepalive. */
+  @type.uint32
   lastRequestedWidth = 0;
+  @type.uint32
   lastRequestedHeight = 0;
 
   /**
@@ -321,6 +337,7 @@ export class Tr2VolumetricsRenderer
    * @param {boolean} isReflectionProbe Whether a reflection probe is rendering.
    */
   @meta.implemented
+  @blue.method
   SetIsReflectionProbe(isReflectionProbe)
   {
     this._isReflectionProbe = isReflectionProbe;
@@ -512,6 +529,8 @@ export class Tr2VolumetricsRenderer
 
   /** Native four transparent slices (cpp:125-150); options combine the pool overloads. */
   @meta.adapted
+  @blue.method
+  @meta.renamed("GetEmptyVolumetricTexture")
   static getEmptyVolumetricTexture(gpuResourcePool)
   {
     const initialData = Array.from({ length: 4 }, () => new Tr2SubresourceData(EMPTY_VOLUME_TEXEL, 4, 4));
@@ -559,6 +578,8 @@ export class Tr2VolumetricsRenderer
 
   /** Native transparent 3D fog texel (cpp:536-553); options combine the pool overloads. */
   @meta.adapted
+  @blue.method
+  @meta.renamed("GetEmptyFogTexture")
   static getEmptyFogTexture(gpuResourcePool)
   {
     return gpuResourcePool.GetPersistentTexture("EmptyFroxelFog", {
@@ -596,6 +617,8 @@ export class Tr2VolumetricsRenderer
    * @returns {GpuResourceHandle|null} The froxel texture; null where Carbon returns an empty texture.
    */
   @meta.adapted
+  @blue.method
+  @meta.renamed("RenderFog")
   _RenderFog_Resources(resources, renderContext, gpuResourcePool, originalWidth, originalHeight, cascadedShadowMap,
     raytracingGeometry, shadowQuality, sunDirection, sunColor, origin, originShift, view, projection, viewLast,
     projectionLast)
@@ -860,6 +883,7 @@ export class Tr2VolumetricsRenderer
    * @param {Tr2ShadowMap|null} cascadedShadowMap The scene's cascades, or null for no shadows.
    */
   @meta.adapted
+  @blue.method
   _UpdatePerObjectData(data, view, projection, viewLast, projectionLast, origin, originShift, sunDirection, sunColor,
     width, height, depth, jitter, cascadedShadowMap)
   {

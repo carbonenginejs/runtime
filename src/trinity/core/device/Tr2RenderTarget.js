@@ -1,3 +1,5 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
+import { ITr2TextureProvider } from "../ITr2TextureProvider.js";
 // Source: trinity/trinity/Tr2RenderTarget.h
 // Source: trinity/trinity/Tr2RenderTarget.cpp
 import { Tr2TextureAL } from "../../../trinityal/Tr2TextureAL/index.js";
@@ -50,6 +52,8 @@ function GetUsage(msaaType, flags)
 
 /** Holds a render-target texture and the parameters it was created with. */
 @blue.define("Tr2RenderTarget")
+@blue.inherit(ITr2TextureProvider)
+@blue.interface(IRoot, ITr2TextureProvider)
 export class Tr2RenderTarget
 {
 

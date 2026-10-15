@@ -12,13 +12,14 @@ import { ITr2GpuBuffer } from "../ITr2GpuBuffer.js";
 
 /** Tr2GpuBuffer (trinityCore) - generated from schema shapeHash 7a225a45.... */
 @blue.define("Tr2GpuBuffer")
-@blue.inherit(ITr2GpuBuffer)
+@blue.inherit(ITr2GpuBuffer, INotify, IInitialize)
 @blue.interface(INotify, IInitialize, ITr2GpuBuffer)
 export class Tr2GpuBuffer
 {
 
   /** Carbon Tr2GpuBuffer.cpp: create from persisted parameters on the ambient context. */
   @meta.implemented
+  @blue.method
   Initialize()
   {
     this.CreateBuffer(Tr2RenderContext_GetMainThreadRenderContext());
@@ -27,6 +28,7 @@ export class Tr2GpuBuffer
 
   /** Carbon ignores the AL result here; failed creation follows CreateBuffer's ownership rules. */
   @meta.implemented
+  @blue.method
   OnModified(_names)
   {
     this.CreateBuffer(Tr2RenderContext_GetMainThreadRenderContext());
@@ -63,6 +65,7 @@ export class Tr2GpuBuffer
   isValid = false;
 
   /** m_name - debug label; not Blue-exposed. */
+  @type.string
   #name = "";
 
   /**

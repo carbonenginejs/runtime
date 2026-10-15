@@ -10,13 +10,14 @@ import { ITr2GpuBuffer } from "../ITr2GpuBuffer.js";
 
 /** Describes the element count, stride, and creation flags of a GPU structured buffer. */
 @blue.define({ className: "Tr2GpuStructuredBuffer", purpose: "Describes the element count, stride, and creation flags of a GPU structured buffer." })
-@blue.inherit(ITr2GpuBuffer)
+@blue.inherit(ITr2GpuBuffer, INotify, IInitialize)
 @blue.interface(INotify, IInitialize, ITr2GpuBuffer)
 export class Tr2GpuStructuredBuffer
 {
 
   /** Carbon Tr2GpuStructuredBuffer.cpp: create from persisted parameters on the ambient context. */
   @meta.implemented
+  @blue.method
   Initialize()
   {
     this.CreateBuffer(Tr2RenderContext_GetMainThreadRenderContext());
@@ -25,6 +26,7 @@ export class Tr2GpuStructuredBuffer
 
   /** Carbon ignores the AL result here; failed creation follows CreateBuffer's ownership rules. */
   @meta.implemented
+  @blue.method
   OnModified(_names)
   {
     this.CreateBuffer(Tr2RenderContext_GetMainThreadRenderContext());
@@ -57,6 +59,7 @@ export class Tr2GpuStructuredBuffer
   stride = 0;
 
   /** m_name - debug label; not Blue-exposed. */
+  @type.string
   _name = "";
 
   /** m_buffer: the AL buffer, null until CreateBuffer succeeds. */

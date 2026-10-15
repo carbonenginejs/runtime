@@ -1,3 +1,4 @@
+import { CjsSchema, type, blue, meta } from "#schema";
 // CarbonEngineJS composition class (no Carbon counterpart).
 //
 // Library-level batch orchestrator: one per backend/CjsLibrary. Owns the
@@ -283,3 +284,5 @@ export class CjsBatchManager
   }
 
 }
+
+CjsSchema.meta.define(CjsBatchManager, { className: "CjsBatchManager" });

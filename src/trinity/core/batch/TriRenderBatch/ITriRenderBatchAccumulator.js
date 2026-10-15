@@ -5,7 +5,7 @@
 // (TriRenderBatchAccumulator) implement Commit/Finalize/Get*/TransferFrom. This
 // collects CPU batch data; dispatch to the device is not ported yet.
 import { RenderingMode } from "#consts/graphics";
-import { meta, blue } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 
 
 /**
@@ -13,7 +13,7 @@ import { meta, blue } from "#schema";
  * user data and per-object-data store, and declares the collect and sort
  * contract concrete accumulators implement.
  */
-@blue.define("ITriRenderBatchAccumulator")
+@blue.define({ className: "ITriRenderBatchAccumulator", abstract: true })
 export class ITriRenderBatchAccumulator
 {
   /**
@@ -169,3 +169,16 @@ export class ITriRenderBatchAccumulator
     throw new Error("ITriRenderBatchAccumulator.TransferFrom is abstract");
   }
 }
+
+CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "Allocate", blue.method);
+CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "SetUserData", blue.method);
+CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "SetRenderingMode", blue.method);
+CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "GetRenderingMode", blue.method);
+CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "Clear", blue.method);
+CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "Commit", blue.method);
+CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "GetGdprBatches", blue.method);
+CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "GetBatches", blue.method);
+CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "Finalize", blue.method);
+CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "GetBatchCount", blue.method);
+CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "IsChainedByEffect", blue.method);
+CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "TransferFrom", blue.method);

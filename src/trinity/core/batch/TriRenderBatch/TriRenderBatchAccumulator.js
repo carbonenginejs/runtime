@@ -1,3 +1,5 @@
+import { Tr2RenderBatch } from "./Tr2RenderBatch.js";
+import { CjsSchema, type, blue, meta } from "#schema";
 // Source: trinity/trinity/TriRenderBatch.h
 import { DefaultKeyGenerator } from "./DefaultKeyGenerator.js";
 import { RenderBatchSortType } from "../../../generated/trinityCore/enums.js";
@@ -162,3 +164,15 @@ export class TriRenderBatchAccumulator extends ITriRenderBatchAccumulator
     return this.keyGenerator.GetSortType() !== RenderBatchSortType.RENDERBATCHSORTTYPE_NONE;
   }
 }
+
+CjsSchema.decorateField(TriRenderBatchAccumulator, "batches", type.array(Tr2RenderBatch));
+CjsSchema.decorateField(TriRenderBatchAccumulator, "gdprBatches", type.array(Tr2RenderBatch));
+CjsSchema.decorateMethod(TriRenderBatchAccumulator, "Clear", blue.method);
+CjsSchema.decorateMethod(TriRenderBatchAccumulator, "Commit", blue.method);
+CjsSchema.decorateMethod(TriRenderBatchAccumulator, "TransferFrom", blue.method);
+CjsSchema.decorateMethod(TriRenderBatchAccumulator, "GetGdprBatches", blue.method);
+CjsSchema.decorateMethod(TriRenderBatchAccumulator, "GetBatches", blue.method);
+CjsSchema.decorateMethod(TriRenderBatchAccumulator, "Finalize", blue.method);
+CjsSchema.decorateMethod(TriRenderBatchAccumulator, "GetBatchCount", blue.method);
+CjsSchema.decorateMethod(TriRenderBatchAccumulator, "IsChainedByEffect", blue.method);
+CjsSchema.blue.define(TriRenderBatchAccumulator, { className: "TriRenderBatchAccumulator" });

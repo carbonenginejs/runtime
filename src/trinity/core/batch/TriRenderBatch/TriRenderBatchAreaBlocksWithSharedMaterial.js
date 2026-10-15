@@ -1,3 +1,4 @@
+import { CjsSchema, type, blue, meta } from "#schema";
 // Source: trinity/trinity/TriRenderBatch.h
 //   trinity/TriRenderBatch.cpp
 //
@@ -38,3 +39,9 @@ export class TriRenderBatchAreaBlocksWithSharedMaterial extends TriRenderBatchAr
     this.areaBlockVector.length = 0;
   }
 }
+
+CjsSchema.decorateField(TriRenderBatchAreaBlocksWithSharedMaterial, "shaderMaterial", type.rootRef("Tr2Effect"));
+CjsSchema.decorateField(TriRenderBatchAreaBlocksWithSharedMaterial, "areaBlockVector", type.array(TriRenderBatchAreaBlock));
+CjsSchema.decorateMethod(TriRenderBatchAreaBlocksWithSharedMaterial, "Optimize", blue.method);
+CjsSchema.decorateMethod(TriRenderBatchAreaBlocksWithSharedMaterial, "Clear", blue.method);
+CjsSchema.blue.define(TriRenderBatchAreaBlocksWithSharedMaterial, { className: "TriRenderBatchAreaBlocksWithSharedMaterial" });

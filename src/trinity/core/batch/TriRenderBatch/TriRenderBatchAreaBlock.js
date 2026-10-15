@@ -1,3 +1,4 @@
+import { CjsSchema, type, blue, meta } from "#schema";
 // Source: trinity/trinity/TriRenderBatch.h
 //   trinity/TriRenderBatch.cpp
 //
@@ -66,3 +67,8 @@ export class TriRenderBatchAreaBlock
     return areaBlockVector;
   }
 }
+
+CjsSchema.decorateField(TriRenderBatchAreaBlock, "startIndex", type.uint32);
+CjsSchema.decorateField(TriRenderBatchAreaBlock, "count", type.uint32);
+CjsSchema.decorateMethod(TriRenderBatchAreaBlock, "Optimize", blue.method);
+CjsSchema.blue.define(TriRenderBatchAreaBlock, { className: "TriRenderBatchAreaBlock" });

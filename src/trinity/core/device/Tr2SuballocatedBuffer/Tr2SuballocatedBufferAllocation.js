@@ -18,7 +18,7 @@
 //
 // Free is explicit at the owning resource's release because JavaScript has no
 // deterministic Allocation destructor. MapForReading remains unported.
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 
 
 /** `SHARED_BUFFER_BLOCK_SIZE` (`TriGeometryRes.h:15`). */
@@ -100,3 +100,14 @@ export class Tr2SuballocatedBufferAllocation
 }
 
 CjsSchema.decorateMethod(Tr2SuballocatedBufferAllocation, "IsValid", blue.method, meta.implemented);
+
+CjsSchema.decorateField(Tr2SuballocatedBufferAllocation, "m_offset", type.uint32);
+CjsSchema.decorateField(Tr2SuballocatedBufferAllocation, "m_size", type.uint32);
+CjsSchema.decorateField(Tr2SuballocatedBufferAllocation, "m_stride", type.uint32);
+CjsSchema.decorateMethod(Tr2SuballocatedBufferAllocation, "GetBuffer", blue.method);
+CjsSchema.decorateMethod(Tr2SuballocatedBufferAllocation, "GetOffset", blue.method);
+CjsSchema.decorateMethod(Tr2SuballocatedBufferAllocation, "GetSize", blue.method);
+CjsSchema.decorateMethod(Tr2SuballocatedBufferAllocation, "GetStride", blue.method);
+CjsSchema.decorateMethod(Tr2SuballocatedBufferAllocation, "GetStartIndex", blue.method);
+CjsSchema.decorateMethod(Tr2SuballocatedBufferAllocation, "Update", blue.method);
+CjsSchema.blue.define(Tr2SuballocatedBufferAllocation, { className: "Tr2SuballocatedBufferAllocation", donors: ["Tr2SuballocatedBuffer::Allocation"] });

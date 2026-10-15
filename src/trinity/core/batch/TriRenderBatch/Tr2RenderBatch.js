@@ -1,3 +1,4 @@
+import { CjsSchema, type, blue, meta } from "#schema";
 // Source: trinity/trinity/TriRenderBatch.h
 //   trinity/TriRenderBatch.cpp
 //
@@ -538,3 +539,36 @@ function PartitionBatchGroups(batches)
   }
   batches[first].groupCount = batches.length - first;
 }
+
+CjsSchema.decorateField(Tr2RenderBatch, "vertexDeclaration", type.uint32);
+CjsSchema.decorateField(Tr2RenderBatch, "indexStride", type.uint32);
+CjsSchema.decorateField(Tr2RenderBatch, "indexCountPerInstance", type.uint32);
+CjsSchema.decorateField(Tr2RenderBatch, "instanceCount", type.uint32);
+CjsSchema.decorateField(Tr2RenderBatch, "startIndexLocation", type.uint32);
+CjsSchema.decorateField(Tr2RenderBatch, "baseVertexLocation", type.uint32);
+CjsSchema.decorateField(Tr2RenderBatch, "startInstanceLocation", type.uint32);
+CjsSchema.decorateField(Tr2RenderBatch, "pickingData", type.uint32);
+CjsSchema.decorateField(Tr2RenderBatch, "depth", type.uint32);
+CjsSchema.decorateField(Tr2RenderBatch, "priority", type.uint32);
+CjsSchema.decorateField(Tr2RenderBatch, "groupCount", type.uint32);
+CjsSchema.decorateField(Tr2RenderBatch, "stride", type.array("uint32"));
+CjsSchema.decorateField(Tr2RenderBatch, "renderingMode", type.int32);
+CjsSchema.decorateField(Tr2RenderBatch, "topology", type.int32);
+CjsSchema.decorateField(Tr2RenderBatch, "material", type.rootRef("Tr2Material"));
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetMaterial", blue.method);
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetPriority", blue.method);
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetGeometry", blue.method);
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetGeometry__Allocation", blue.method);
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetGeometry__AllocationSecondStream", blue.method);
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetVertexDeclaration", blue.method);
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetStreamSource", blue.method);
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetIndices", blue.method, meta.renamed("SetInidices"));
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetTopology", blue.method);
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetPerObjectData", blue.method);
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetDrawIndexedInstanced", blue.method);
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetDrawInstanced", blue.method);
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetRenderingMode", blue.method);
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetPickingData", blue.method);
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetPickingData__MeshArea", blue.method);
+CjsSchema.decorateMethod(Tr2RenderBatch, "IsValid", blue.method);
+CjsSchema.blue.define(Tr2RenderBatch, { className: "Tr2RenderBatch" });
