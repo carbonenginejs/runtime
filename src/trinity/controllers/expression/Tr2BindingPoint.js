@@ -1,28 +1,28 @@
 // Source: trinity/trinity/Controllers/Tr2BindingPoint.h
 // Source: trinity/trinity/Controllers/Tr2BindingPoint.cpp
-import { copyArrayLike, fillArrayLike } from "#utils";
-import { isArrayLike } from "#utils/is";
-import { meta } from "#schema";
+import { blue, CjsBlueClasses, IList, INotify } from "#blue";
+import { meta, CjsSchema, CARBON_TYPE, getCarbonTypeDefinition, normalizeCarbonTypeDescriptor } from "#schema";
+import { getDictionaryDeclarations, readDictionaryValue, writeDictionaryValue } from "../../../global/blue/dictionaryDeclarations.js";
 
 
-const SWIZZLE_OFFSETS = {
-  x: 0,
-  r: 0,
-  y: 1,
-  g: 1,
-  z: 2,
-  b: 2,
-  w: 3,
-  a: 3
-};
+/** Component offsets of a one-letter swizzle (cpp:411-431). */
+const SWIZZLE_OFFSETS = { x: 0, r: 0, y: 1, g: 1, z: 2, b: 2, w: 3, a: 3 };
+
+/** Scalar kinds Carbon admits as a destination: FLOAT, DOUBLE, BOOL (cpp:446-453). */
+const SCALAR_KINDS = new Set([ CARBON_TYPE.FLOAT32, CARBON_TYPE.FLOAT64, CARBON_TYPE.BOOLEAN ]);
+
+/** Kinds that hold an IROOT or IROOTPTR a path step may pass through (cpp:38-48). */
+const OBJECT_KINDS = new Set([ CARBON_TYPE.ROOT, CARBON_TYPE.ROOT_REF, CARBON_TYPE.ARRAY, "list", CARBON_TYPE.MAP, CARBON_TYPE.STRUCT_LIST ]);
+
+/** Kinds of a `name` member GetStringAttribute reads: Carbon's narrow strings (cpp:59-75). */
+const STRING_KINDS = new Set([ CARBON_TYPE.STRING, CARBON_TYPE.PATH, CARBON_TYPE.EXPRESSION ]);
+
 
 /**
- * Resolves an authored `path`/`attribute` pair against named root objects into a
- * concrete property, optionally a single swizzled component of a vector, and
- * reads or writes it.
- * Native is a plain embedded helper; the registered JavaScript record retains
- * authored-field metadata used by existing flattened action adapters. It has
- * no native Blue query table or notification interface of its own.
+ * Resolves an authored `path`/`attribute` pair against named root objects to
+ * one float, double, bool or float-array member, optionally one component of
+ * it, and writes or reads it. A plain native helper embedded in the value
+ * actions; it has no Blue exposure of its own.
  */
 @meta.define({
   className: "Tr2BindingPoint",
@@ -30,547 +30,374 @@ const SWIZZLE_OFFSETS = {
 })
 export class Tr2BindingPoint
 {
-  /** Authored path, flattened by containing native actions. */
+  // Every embedding owner exposes these READWRITE|PERSIST|NOTIFY
+  // (Tr2ActionSetValue_Blue.cpp:18, Tr2ActionAnimateValue_Blue.cpp:19).
+
+  /** m_path: a reference from one of the roots, or empty to use `object`. */
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
   @meta.type.string
   path = "";
 
-  // Every embedding owner exposes it READWRITE|PERSIST|NOTIFY
-  // (Tr2ActionSetValue_Blue.cpp:18, Tr2ActionAnimateValue_Blue.cpp:19).
-  /** Authored direct object, used when the path is empty. */
+  /** m_object: the destination object when `path` is empty. */
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
   @meta.type.rootRef("IRoot")
   object = null;
 
-  /** Authored member name and optional component swizzle. */
+  /** m_attribute: the member name, optionally with a one-letter swizzle (`color.a`). */
   @meta.blue.notify
   @meta.blue.readwrite
   @meta.blue.persist
   @meta.type.string
   attribute = "";
 
-  /** Native weak target pointer; retained as a live JS reference in this adapter. */
-  @meta.type.rootWeak("IRoot")
-  resolvedObject = null;
+  /** m_resolvedObject: the object `path` resolved to. */
+  _resolvedObject = null;
 
-  /** Native weak notification pointer; the existing JS notification adapter resolves callbacks at write time. */
-  @meta.type.rootWeak("INotify")
-  notifyPtr = null;
+  /** m_notifyPtr: the destination object as INotify, or null. */
+  _notifyPtr = null;
 
-  /** Native member descriptor represented by a property name in this adapter. */
-  @meta.type.rootRef("Be::VarEntry")
-  entry = null;
+  /** The destination object whose member `_entry` describes (m_destination's owner). */
+  _destinationObject = null;
 
-  /** Current JavaScript property value standing in for the native storage pointer. */
-  @meta.type.rootRef("Be::Var")
-  destination = null;
+  /** m_entry: the destination member's schema declaration. */
+  _entry = null;
 
-  /** Vector component offset, or -1 for the whole member. */
-  @meta.type.int32
-  entryOffset = -1;
+  /** m_entryOffset: the component written, or -1 for every component. */
+  _entryOffset = -1;
 
-  /** Number of components in the resolved array-like value. */
-  @meta.type.int32
-  arraySize = 0;
-
-  /** Resolved destination retained by the JavaScript property adapter. */
-  _target = null;
-
-  /** Resolved property key without a component suffix. */
-  _attributeName = "";
+  /** m_arraySize: the component count of a float-array destination. */
+  _arraySize = 0;
 
   /**
-   * Resolves and links this binding against named root objects.
-   * @param {Array|object|null} [roots=null] Named roots or action controller.
-   * @param {object|null} [owner=null] Optional explicit owner.
-   * @returns {boolean} Whether the destination resolved.
+   * Carbon Link (cpp:281-293): unlink, then bind `object` when there is no
+   * path, otherwise the object the path resolves to.
+   *
+   * @param {Array<[string, object]>} roots Named roots, as a controller's GetBindingPathRoots.
    */
   @meta.blue.method
-  @meta.adapted
-  Link(roots = null, owner = null)
+  @meta.implemented
+  Link(roots)
   {
     this.Unlink();
-    const target = this.path ? Tr2BindingPoint.ResolvePath(this.path, Tr2BindingPoint._getLinkRoots(roots, owner)) : this.object ?? owner;
-    return this.SetDestination(target, this.attribute);
+    if (!this.path)
+    {
+      this.SetDestination(this.object, this.attribute);
+    }
+    else
+    {
+      this._resolvedObject = Tr2BindingPoint.ResolvePath(this.path, roots);
+      this.SetDestination(this._resolvedObject, this.attribute);
+    }
   }
 
-  /**
-   * Clears the resolved binding target.
-   * @returns {void}
-   */
+  /** Carbon Unlink (cpp:295-303). */
   @meta.blue.method
   @meta.implemented
   Unlink()
   {
-    this.resolvedObject = null;
-    this.notifyPtr = null;
-    this.entry = null;
-    this.destination = null;
-    this.entryOffset = -1;
-    this.arraySize = 0;
-    this._target = null;
-    this._attributeName = "";
+    this._entry = null;
+    this._destinationObject = null;
+    this._resolvedObject = null;
+    this._notifyPtr = null;
+    this._entryOffset = -1;
+    this._arraySize = 0;
   }
 
   /**
-   * Checks whether this binding has resolved to a writable target.
-   * @returns {boolean} Whether a target and key are retained.
+   * Carbon IsValid (cpp:305-308).
+   *
+   * @returns {boolean} Whether a destination is bound.
    */
   @meta.blue.method
   @meta.implemented
   IsValid()
   {
-    return !!this._target && !!this._attributeName;
+    return this._entry !== null && this.GetBoundObject() !== null;
   }
 
   /**
-   * Writes a value into the bound destination.
+   * Carbon SetValue (cpp:310-360): write the float into the destination - all
+   * components of a float array, or the swizzled one - then tell the object
+   * through OnModified when it is an INotify.
    *
-   * Adapted: JS returns whether a value changed; like the donor, successful writes notify
-   * regardless of equality through the existing JS notification adapter.
+   * Adapted: OnModified receives the member's exposed name; Carbon passes the
+   * member's storage address, which INotify implementations match by member.
    *
-   * @param {*} value Value accepted by the retained JS storage adapter.
-   * @param {Array|object|null} [roots=null] Roots used for lazy linking.
-   * @param {object|null} [owner=null] Explicit owner for lazy linking.
-   * @returns {boolean} Whether storage changed.
+   * @param {number} value The value; stored as a C++ float first.
    */
   @meta.blue.method
   @meta.adapted
-  SetValue(value, roots = null, owner = null)
+  SetValue(value)
   {
-    if (!this.IsValid())
+    if (!this.IsValid()) return;
+    const float = Math.fround(Number(value));
+    const kind = Tr2BindingPoint._Kind(this._entry);
+    if (kind === CARBON_TYPE.BOOLEAN)
     {
-      this.Link(roots, owner);
+      writeDictionaryValue(this._destinationObject, this._entry, float !== 0);
     }
-    if (!this._target || !this._attributeName)
+    else if (SCALAR_KINDS.has(kind))
     {
-      return false;
-    }
-    const current = this._target[this._attributeName];
-    let changed = false;
-    if (this.entryOffset === -1)
-    {
-      if (ArrayBuffer.isView(current) && isArrayLike(value))
-      {
-        const previous = Array.from(current);
-        current.set(value);
-        changed = !Tr2BindingPoint._areArrayValuesEqual(previous, current);
-      }
-      else if (Array.isArray(current) && isArrayLike(value))
-      {
-        const previous = current.slice();
-        copyArrayLike(current, value);
-        changed = !Tr2BindingPoint._areArrayValuesEqual(previous, current);
-      }
-      else if (isArrayLike(current) && typeof current !== "string" && typeof value === "number")
-      {
-        const previous = Array.from(current);
-        fillArrayLike(current, value);
-        changed = !Tr2BindingPoint._areArrayValuesEqual(previous, current);
-      }
-      else
-      {
-        if (!Object.is(current, value))
-        {
-          this._target[this._attributeName] = value;
-          changed = true;
-        }
-      }
-    }
-    else if (isArrayLike(current))
-    {
-      const next = Number(value);
-      if (!Object.is(current[this.entryOffset], next))
-      {
-        current[this.entryOffset] = next;
-        changed = true;
-      }
+      writeDictionaryValue(this._destinationObject, this._entry, float);
     }
     else
     {
-      return false;
+      const components = readDictionaryValue(this._destinationObject, this._entry);
+      if (this._entryOffset === -1)
+      {
+        for (let i = 0; i < this._arraySize; i++) components[i] = float;
+      }
+      else
+      {
+        components[this._entryOffset] = float;
+      }
     }
-    Tr2BindingPoint._notifyValueChanged(this._target, this._attributeName, value, this);
-    return changed;
+    if (this._notifyPtr) this._notifyPtr.OnModified(this._entry.name);
   }
 
   /**
-   * Reads a numeric value from the bound destination.
-   * @param {Array|object|null} [roots=null] Roots used for lazy linking.
-   * @param {object|null} [owner=null] Explicit owner for lazy linking.
-   * @param {number} [fallback=0] Value for an unresolved or nonnumeric destination.
-   * @returns {number} Sampled numeric value.
+   * Carbon GetValue (cpp:362-389).
+   *
+   * Adapted: returns the value, or null where Carbon returns false.
+   *
+   * @returns {number|null} The destination value as a float.
    */
   @meta.blue.method
   @meta.adapted
-  GetValue(roots = null, owner = null, fallback = 0)
+  GetValue()
   {
-    if (!this.IsValid())
-    {
-      this.Link(roots, owner);
-    }
-    if (!this._target || !this._attributeName)
-    {
-      return fallback;
-    }
-    const value = this._target[this._attributeName];
-    if (this.entryOffset !== -1)
-    {
-      return isArrayLike(value) && value.length > this.entryOffset ? Number(value[this.entryOffset]) : fallback;
-    }
-    const number = isArrayLike(value) && typeof value !== "string" ? Number(value[0]) : Number(value);
-    return Number.isFinite(number) ? number : fallback;
+    if (!this.IsValid()) return null;
+    const kind = Tr2BindingPoint._Kind(this._entry);
+    const value = readDictionaryValue(this._destinationObject, this._entry);
+    if (kind === CARBON_TYPE.BOOLEAN) return value ? 1 : 0;
+    if (SCALAR_KINDS.has(kind)) return Math.fround(value);
+    return Math.fround(value[Math.max(this._entryOffset, 0)]);
   }
 
   /**
-   * Gets the resolved object, or the authored direct object.
-   * @param {Array|object|null} [roots=null] Roots used for lazy linking.
-   * @param {object|null} [owner=null] Explicit owner for lazy linking.
-   * @returns {object|null} Resolved or authored object.
+   * Carbon GetBoundObject (cpp:481-488).
+   *
+   * @returns {object|null} The resolved object, else the authored one.
    */
   @meta.blue.method
   @meta.implemented
-  GetBoundObject(roots = null, owner = null)
+  GetBoundObject()
   {
-    if (!this.IsValid())
-    {
-      this.Link(roots, owner);
-    }
-    return this.resolvedObject ?? this.object;
+    return this._resolvedObject ?? this.object;
   }
 
   /**
-   * Sets the resolved destination object and attribute swizzle.
-   * Adapted: retained JS property lookup differs from native stored-member
-   * lookup/type admission (cpp:9-28,391-478); that algorithm gap is held.
-   * @param {object|null} target Candidate target.
-   * @param {string} attribute Member and optional component suffix.
-   * @returns {boolean} Whether storage resolved.
+   * Carbon SetDestination (cpp:391-479): split an optional one-letter swizzle,
+   * find the stored member, admit only FLOAT, DOUBLE, BOOL and float arrays
+   * (a swizzle only on an array, inside its size), and take the object as
+   * INotify through Blue's silent cast.
+   *
+   * @param {object|null} object The destination object.
+   * @param {string} attribute Member name with an optional `.x` swizzle.
+   * @returns {boolean} Whether a destination was bound.
    */
   @meta.blue.method
-  @meta.adapted
-  SetDestination(target, attribute)
+  @meta.implemented
+  SetDestination(object, attribute)
   {
-    this.Unlink();
-    const parsed = Tr2BindingPoint._parseAttribute(attribute);
-    if (!Tr2BindingPoint._isObjectRecord(target) || !parsed || !parsed.name)
+    this._entry = null;
+    this._destinationObject = null;
+    this._entryOffset = -1;
+    this._notifyPtr = null;
+    this._arraySize = 0;
+
+    let name = attribute;
+    let entryOffset = -1;
+    const dot = attribute.indexOf(".");
+    if (dot !== -1)
     {
-      return false;
+      name = attribute.slice(0, dot);
+      const swizzle = attribute.slice(dot + 1);
+      if (swizzle.length !== 1 || !Object.hasOwn(SWIZZLE_OFFSETS, swizzle)) return false;
+      entryOffset = SWIZZLE_OFFSETS[swizzle];
     }
-    if (!(parsed.name in target))
+
+    const entry = Tr2BindingPoint._FindEntry(object, name);
+    if (!entry) return false;
+    const kind = Tr2BindingPoint._Kind(entry);
+    let arraySize = 0;
+    if (SCALAR_KINDS.has(kind))
     {
-      return false;
+      if (entryOffset !== -1) return false;
     }
-    const current = target[parsed.name];
-    if (parsed.offset !== -1 && (!isArrayLike(current) || parsed.offset >= current.length))
+    else
     {
-      return false;
+      // FLOATARRAY; Carbon's DOUBLEARRAY has no member kind here yet.
+      arraySize = getCarbonTypeDefinition(kind)?.length ?? 0;
+      if (!arraySize || entryOffset >= arraySize) return false;
     }
-    this.resolvedObject = target;
-    this.destination = current;
-    this.entry = parsed.name;
-    this.entryOffset = parsed.offset;
-    this.arraySize = isArrayLike(current) ? current.length : 0;
-    this._target = target;
-    this._attributeName = parsed.name;
+
+    this._entry = entry;
+    this._destinationObject = object;
+    this._entryOffset = entryOffset;
+    this._arraySize = arraySize;
+    this._notifyPtr = blue.classes.QueryThisInterface(object, INotify, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
     return true;
   }
 
   /**
-   * Walks a binding path of the form `Root.child[0].other["name"]` against the
-   * supplied name/value root pairs, returning the addressed object or null if
-   * any step fails.
-   * @param {string} path Authored path.
-   * @param {Array<Array>} roots Named root pairs.
-   * @returns {object|null} Resolved object.
+   * Carbon ResolveReference (cpp:213-267), exposed as ResolveObjectPath
+   * (cpp:491-506): a root name, then any run of `.member`, `[index]` and
+   * `["name"]` steps. A failed step resolves to null.
+   *
+   * @param {string} path The reference.
+   * @param {Array<[string, object]>} roots Named roots.
+   * @returns {object|null} The object the path names.
    */
+  @meta.implemented
   static ResolvePath(path, roots)
   {
-    if (!path)
+    if (!path) return null;
+    const rootEnd = Tr2BindingPoint._MatchRoot(path, 0);
+    if (rootEnd === 0) return null;
+    const rootName = path.slice(0, rootEnd);
+    const found = roots.find(([ name ]) => name === rootName);
+    if (!found) return null;
+    let object = found[1];
+
+    let start = rootEnd;
+    while (start < path.length)
     {
-      return null;
-    }
-    const root = Tr2BindingPoint._readIdentifier(path, 0);
-    if (!root)
-    {
-      return null;
-    }
-    let object = null;
-    for (const [name, value] of roots)
-    {
-      if (name === root.value)
+      let end = Tr2BindingPoint._MatchProperty(path, start);
+      if (end !== start)
       {
-        object = value;
-        break;
-      }
-    }
-    let index = root.next;
-    while (object && index < path.length)
-    {
-      if (path[index] === ".")
-      {
-        const property = Tr2BindingPoint._readIdentifier(path, index + 1);
-        if (!property || !Tr2BindingPoint._isObjectRecord(object))
-        {
-          return null;
-        }
-        object = object[property.value];
-        index = property.next;
+        object = Tr2BindingPoint._GetIRootAttribute(object, path.slice(start + 1, end));
+        start = end;
         continue;
       }
-      const selector = Tr2BindingPoint._readIndex(path, index);
-      if (!selector)
+      end = Tr2BindingPoint._MatchNumericIndex(path, start);
+      if (end !== start)
       {
-        return null;
+        // std::atoi: an optional sign then digits; "[]" and "[-]" read as 0.
+        const index = Number.parseInt(path.slice(start + 1, end - 1), 10) || 0;
+        object = Tr2BindingPoint._GetListElementAt(object, index);
+        start = end;
+        continue;
       }
-      object = Tr2BindingPoint._getListElement(object, selector.value);
-      index = selector.next;
-    }
-    return Tr2BindingPoint._isObjectRecord(object) ? object : null;
-  }
-
-  /**
-   * Normalizes the `roots` argument into name/value pairs, accepting an array of
-   * pairs, a plain object map, or a controller whose owner is exposed as `Owner`
-   * alongside its own binding path roots.
-   * Custom: adapts JavaScript root argument forms.
-   * @param {Array|object|null} roots Root pairs, map or controller.
-   * @param {object|null} owner Explicit owner.
-   * @returns {Array<Array>} Named root pairs.
-   */
-  @meta.ours
-  static _getLinkRoots(roots, owner)
-  {
-    if (Array.isArray(roots))
-    {
-      return roots.slice();
-    }
-    if (Tr2BindingPoint._isPlainRootMap(roots))
-    {
-      return Object.entries(roots).map(([name, value]) => [name, value && typeof value === "object" ? value : null]);
-    }
-    const controller = roots;
-    const out = [];
-    const controllerOwner = owner ?? controller?.GetOwner() ?? null;
-    if (controllerOwner)
-    {
-      out.push(["Owner", controllerOwner]);
-    }
-    if (controller)
-    {
-      out.push(...(controller.GetBindingPathRoots()));
-    }
-    return out;
-  }
-
-  /**
-   * Splits `field.x` into a property name and a component offset; returns an
-   * offset of -1 for a whole-field binding and null when the suffix is not a
-   * single valid xyzw/rgba swizzle.
-   * @param {string} attribute Authored member name.
-   * @returns {object|null} Name and component offset.
-   */
-  @meta.ours
-  static _parseAttribute(attribute)
-  {
-    const dot = attribute.indexOf(".");
-    if (dot === -1)
-    {
-      return { name: attribute, offset: -1 };
-    }
-    const swizzle = attribute.slice(dot + 1);
-    if (swizzle.length !== 1 || SWIZZLE_OFFSETS[swizzle] === undefined)
-    {
+      end = Tr2BindingPoint._MatchNameIndex(path, start);
+      if (end !== start)
+      {
+        object = Tr2BindingPoint._GetListElementNamed(object, path.slice(start + 2, end - 2));
+        start = end;
+        continue;
+      }
       return null;
     }
-    return { name: attribute.slice(0, dot), offset: SWIZZLE_OFFSETS[swizzle] };
+    return object ?? null;
   }
 
   /**
-   * Reads a C-style identifier starting at an index, returning its text and the
-   * index just past it.
-   * @param {string} path Authored path.
-   * @param {number} index Character offset.
-   * @returns {object|null} Identifier and next offset.
+   * Carbon FindEntry (cpp:9-29): the stored member of that name; live
+   * properties are skipped.
+   *
+   * Adapted: the schema's members follow our class inheritance, where
+   * Carbon walks the exposure chain.
    */
-  @meta.ours
-  static _readIdentifier(path, index)
+  static _FindEntry(object, name)
   {
-    const match = /^[A-Za-z_][A-Za-z0-9_]*/.exec(path.slice(index));
-    return match ? { value: match[0], next: index + match[0].length } : null;
+    if (!object || typeof object !== "object" || !CjsSchema.getClassName(object.constructor)) return null;
+    const entry = getDictionaryDeclarations(object.constructor).byName.get(name);
+    return entry && entry.role === "member" ? entry : null;
+  }
+
+  /** The member's normalized type kind. */
+  static _Kind(entry)
+  {
+    return normalizeCarbonTypeDescriptor(entry.type ?? { kind: CARBON_TYPE.UNKNOWN }).kind;
+  }
+
+  /** Carbon GetIRootAttribute (cpp:31-50): an IROOT or IROOTPTR member's object. */
+  static _GetIRootAttribute(object, name)
+  {
+    const entry = Tr2BindingPoint._FindEntry(object, name);
+    if (!entry || !OBJECT_KINDS.has(Tr2BindingPoint._Kind(entry))) return null;
+    return readDictionaryValue(object, entry) ?? null;
+  }
+
+  /** Carbon GetStringAttribute (cpp:52-76). */
+  static _GetStringAttribute(object, name)
+  {
+    const entry = Tr2BindingPoint._FindEntry(object, name);
+    if (!entry || !STRING_KINDS.has(Tr2BindingPoint._Kind(entry))) return null;
+    return readDictionaryValue(object, entry);
   }
 
   /**
-   * Reads a bracketed selector, which is either a possibly negative integer
-   * index or a double-quoted name.
-   * @param {string} path Authored path.
-   * @param {number} index Character offset.
-   * @returns {object|null} Selector and next offset.
+   * The object as a list, by Blue's silent IList cast (cpp:80, :96).
+   *
+   * Adapted: a plain array counts as a list until every Carbon BlueList
+   * member is a BlueList.
    */
-  @meta.ours
-  static _readIndex(path, index)
+  static _AsList(object)
   {
-    if (path[index] !== "[")
+    if (Array.isArray(object)) return object;
+    if (!object || typeof object !== "object") return null;
+    return blue.classes.QueryThisInterface(object, IList, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
+  }
+
+  /** Carbon GetListElement by index (cpp:78-92); negative counts from the end. */
+  static _GetListElementAt(object, index)
+  {
+    const list = Tr2BindingPoint._AsList(object);
+    if (!list) return null;
+    const size = list.length;
+    if (index < 0) index += size;
+    return index >= 0 && index < size ? list[index] ?? null : null;
+  }
+
+  /** Carbon GetListElement by name (cpp:94-110): the first element whose `name` matches. */
+  static _GetListElementNamed(object, name)
+  {
+    const list = Tr2BindingPoint._AsList(object);
+    if (!list) return null;
+    for (const element of list)
     {
-      return null;
-    }
-    const end = path.indexOf("]", index + 1);
-    if (end === -1)
-    {
-      return null;
-    }
-    const body = path.slice(index + 1, end);
-    if (/^-?\d+$/.test(body))
-    {
-      return { value: Number(body), next: end + 1 };
-    }
-    if (body.length >= 2 && body[0] === '"' && body[body.length - 1] === '"')
-    {
-      return { value: body.slice(1, -1), next: end + 1 };
+      if (Tr2BindingPoint._GetStringAttribute(element, "name") === name) return element;
     }
     return null;
   }
 
-  /**
-   * Selects an element from a list by integer index, counting from the end for
-   * negative values, or by matching the element's `name`.
-   * @param {object|null} object List or existing JS wrapper.
-   * @param {number|string} selector Index or name.
-   * @returns {object|null} Selected item.
-   */
-  @meta.ours
-  static _getListElement(object, selector)
+  /** Carbon MatchRoot (cpp:122-137): a letter or `_`, then letters, digits or `_`. */
+  static _MatchRoot(path, index)
   {
-    if (!object)
-    {
-      return null;
-    }
-    const list = Array.isArray(object) ? object : Tr2BindingPoint._isObjectRecord(object) ? Tr2BindingPoint._findListProperty(object) : null;
-    if (!list)
-    {
-      return null;
-    }
-    if (typeof selector === "number")
-    {
-      const index = selector < 0 ? list.length + selector : selector;
-      return index >= 0 && index < list.length ? list[index] : null;
-    }
-    return list.find(item => Tr2BindingPoint._isObjectRecord(item) && item.name === selector) ?? null;
+    if (!/[A-Za-z_]/.test(path[index] ?? "")) return index;
+    index++;
+    while (/[A-Za-z0-9_]/.test(path[index] ?? "")) index++;
+    return index;
   }
 
-  /**
-   * Finds the array a bracketed selector should index into, checking `items`,
-   * `children`, `curveSets`, `controllers` and `actions` in that order.
-   * @param {object} object Existing JS list wrapper.
-   * @returns {Array|null} First recognized array.
-   */
-  @meta.ours
-  static _findListProperty(object)
+  /** Carbon MatchProperty (cpp:139-147): `.` then a root-shaped name. */
+  static _MatchProperty(path, index)
   {
-    for (const name of ["items", "children", "curveSets", "controllers", "actions"])
-    {
-      if (Array.isArray(object[name]))
-      {
-        return object[name];
-      }
-    }
-    return null;
+    if (path[index] !== ".") return index;
+    return Tr2BindingPoint._MatchRoot(path, index + 1);
   }
 
-  /**
-   * Adapted: retained JavaScript destination notification adapter. Native
-   * cpp:476-477 captures mapped INotify and cpp:356-358 calls OnModified; the
-   * target migration is separate from removing this helper's model base.
-   * Tells the target its property changed through the first of UpdateValues,
-   * OnValueChanged or OnModified that it implements, and otherwise marks the
-   * field in a `_dirty` record.
-   * @param {object} target Destination.
-   * @param {string} attribute Changed member.
-   * @param {*} value Assigned value.
-   * @param {Tr2BindingPoint} source Binding source.
-   * @returns {void}
-   */
-  @meta.ours
-  static _notifyValueChanged(target, attribute, value, source)
+  /** Carbon MatchNumericIndex (cpp:149-177): `[`, an optional `-`, digits, `]`. */
+  static _MatchNumericIndex(path, start)
   {
-    if (Tr2BindingPoint._hasFunction(target, "UpdateValues"))
-    {
-      target.UpdateValues({ property: attribute, source });
-    }
-    else if (Tr2BindingPoint._hasFunction(target, "OnValueChanged"))
-    {
-      target.OnValueChanged(attribute, value, source);
-    }
-    else if (Tr2BindingPoint._hasFunction(target, "OnModified"))
-    {
-      target.OnModified(attribute);
-    }
-    else if (Tr2BindingPoint._isObjectRecord(target._dirty))
-    {
-      target._dirty[attribute] = true;
-    }
+    if (path[start] !== "[") return start;
+    let index = start + 1;
+    if (path[index] === "-") index++;
+    while (/[0-9]/.test(path[index] ?? "")) index++;
+    return path[index] === "]" ? index + 1 : start;
   }
 
-  /**
-   * Compares two array-likes element-wise with Object.is, used to decide whether
-   * a vector write actually changed anything.
-   * @param {ArrayLike} a Previous values.
-   * @param {ArrayLike} b Current values.
-   * @returns {boolean} Whether every value matches.
-   */
-  @meta.ours
-  static _areArrayValuesEqual(a, b)
+  /** Carbon MatchNameIndex (cpp:179-211): `["`, any text without `"`, `"]`. */
+  static _MatchNameIndex(path, start)
   {
-    if (a.length !== b.length)
-    {
-      return false;
-    }
-    for (let i = 0; i < a.length; i++)
-    {
-      if (!Object.is(a[i], b[i]))
-      {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /**
-   * Distinguishes a plain name-to-object root map from a controller, by checking
-   * that it exposes neither GetOwner nor GetBindingPathRoots.
-   * @param {*} value Candidate root map.
-   * @returns {boolean} Whether it is a supported plain map.
-   */
-  @meta.ours
-  static _isPlainRootMap(value)
-  {
-    return Tr2BindingPoint._isObjectRecord(value) && !Tr2BindingPoint._hasFunction(value, "GetOwner") && !Tr2BindingPoint._hasFunction(value, "GetBindingPathRoots");
-  }
-
-  /**
-   * Checks that a value is a non-null object and so can be indexed by a path
-   * step.
-   * @param {*} value Candidate object.
-   * @returns {boolean} Whether it is non-null object storage.
-   */
-  @meta.ours
-  static _isObjectRecord(value)
-  {
-    return !!value && typeof value === "object";
-  }
-
-  /** Checks that a value is an object whose named key is callable.
-   * @param {*} value Candidate object.
-   * @param {string} key Method name.
-   * @returns {boolean} Whether the existing adapter callback is callable.
-   */
-  @meta.ours
-  static _hasFunction(value, key)
-  {
-    return Tr2BindingPoint._isObjectRecord(value) && typeof value[key] === "function";
+    if (path[start] !== "[" || path[start + 1] !== "\"") return start;
+    const close = path.indexOf("\"", start + 2);
+    if (close === -1) return start;
+    return path[close + 1] === "]" ? close + 2 : start;
   }
 }

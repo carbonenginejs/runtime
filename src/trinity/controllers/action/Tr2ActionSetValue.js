@@ -209,16 +209,12 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
     return this.IsExpressionValid();
   }
 
-  /**
-   * Gets the bound destination object.
-   * Adapted: retains the JavaScript binding adapter's optional roots/owner and
-   * lazy resolution; native GetDestination only reads m_destination.GetBoundObject.
-   */
+  /** Carbon GetDestination (Tr2ActionSetValue.cpp:81-84): the binding's bound object. */
   @meta.blue.method
-  @meta.adapted
-  GetDestination(controller = this._controller, owner = ITr2ControllerAction.getOwner(controller))
+  @meta.implemented
+  GetDestination()
   {
-    return this.GetBindingPoint().GetBoundObject(controller, owner);
+    return this.GetBindingPoint().GetBoundObject();
   }
 
   /**
@@ -354,17 +350,12 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
     return this._bindingPoint;
   }
 
-  /**
-   * Resolves the binding point against the controller's binding roots and its
-   * owner.
-   * Adapted: the retained binding adapter accepts controller/owner inputs;
-   * Carbon passes controller.GetBindingPathRoots() directly.
-   */
+  /** Carbon LinkDestination (Tr2ActionSetValue.cpp:103-106): link against the controller's roots. */
   @meta.blue.method
-  @meta.adapted
-  LinkDestination(controller = this._controller, owner = ITr2ControllerAction.getOwner(controller))
+  @meta.implemented
+  LinkDestination(controller = this._controller)
   {
-    return this.GetBindingPoint().Link(controller, owner);
+    this.GetBindingPoint().Link(controller.GetBindingPathRoots());
   }
 
   /**

@@ -2,21 +2,23 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionOverlay.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionOverlay_Blue.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { blue } from "#blue";
-import { meta, CjsSchema } from "#schema";
+import { blue, CjsBlueClasses } from "#blue";
+import { meta } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
 /**
- * Carbon's BlueCastPtr to a class asked of Blue by its Carbon name, so the
- * controllers do not import Eve. An unregistered class throws: Carbon's cast
+ * Carbon's BlueCastPtr: a silent QueryInterface for a class asked of Blue by
+ * its Carbon name (BlueSmartPtr.h:289-301), so the controllers do not import
+ * Eve; null for a null object. An unregistered class throws: Carbon's cast
  * target always exists.
  */
 function CastTo(value, className)
 {
   const registration = blue.classes.GetClassRegistration(className);
   if (!registration) throw new Error(`Tr2ActionOverlay: class ${className} is not registered with Blue`);
-  return CjsSchema.cast(value, registration.type);
+  if (!value || typeof value !== "object") return null;
+  return blue.classes.QueryThisInterface(value, registration.type, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
 }
 
 

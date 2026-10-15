@@ -21,7 +21,7 @@ import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 /** A named attachment point on a ship that resolves and hot-reloads a plugged-in child resource, forwarding controller and registration calls to it. */
 @meta.define({ className: "EveChildSocket", family: "eve/child" })
 @meta.blue.inherit(ITr2CurveSetOwner, IInitialize, INotify)
-@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, ITr2SoundEmitterOwner, EveEntity)
+@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, IEveEffectChildrenOwner, ITr2SoundEmitterOwner, EveEntity)
 @meta.blue.inherit(IEveEffectChildrenOwner)
 export class EveChildSocket extends EveChildTransform
 {

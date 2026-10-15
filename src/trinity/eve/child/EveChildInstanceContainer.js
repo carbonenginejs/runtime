@@ -26,7 +26,7 @@ import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 /** A child that instantiates a source template across a list of authored or locator-driven transforms, forwarding controller and registration calls to the instances. */
 @meta.define({ className: "EveChildInstanceContainer", family: "eve/child" })
 @meta.blue.inherit(ITr2CurveSetOwner, INotify, IListNotify, ITr2ControllerOwner)
-@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, INotify, ITr2ControllerOwner, IListNotify, EveEntity)
+@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, INotify, IEveEffectChildrenOwner, ITr2ControllerOwner, IListNotify, EveEntity)
 @meta.blue.inherit(IEveEffectChildrenOwner)
 export class EveChildInstanceContainer extends EveChildTransform
 {

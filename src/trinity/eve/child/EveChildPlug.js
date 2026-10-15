@@ -18,7 +18,7 @@ import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 /** A container of child objects plugged into a socket, forwarding controller events, controller variables and component registration to what it contains. */
 @meta.define({ className: "EveChildPlug", family: "eve/child" })
 @meta.blue.inherit(ITr2CurveSetOwner, IInitialize, INotify, IListNotify)
-@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, ITr2SoundEmitterOwner, EveEntity)
+@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, IEveEffectChildrenOwner, ITr2SoundEmitterOwner, EveEntity)
 @meta.blue.inherit(IEveEffectChildrenOwner)
 export class EveChildPlug extends EveChildTransform
 {

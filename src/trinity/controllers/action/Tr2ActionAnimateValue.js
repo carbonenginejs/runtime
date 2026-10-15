@@ -207,7 +207,7 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
     {
       return;
     }
-    this.GetBindingPoint().SetValue(value, controller, owner);
+    this.GetBindingPoint().SetValue(value);
   }
 
   /**
@@ -283,15 +283,13 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
   }
 
   /**
-   * Gets the bound destination object.
-   * Adapted: retains optional controller/owner arguments and the binding adapter's
-   * lazy resolution; native simply reads the embedded binding's current object.
+   * Carbon GetDestination (Tr2ActionAnimateValue.cpp:145-148): the binding's bound object.
    */
   @meta.blue.method
-  @meta.adapted
-  GetDestination(controller = this._runtime.controller, owner = ITr2ControllerAction.getOwner(controller))
+  @meta.implemented
+  GetDestination()
   {
-    return this.GetBindingPoint().GetBoundObject(controller, owner);
+    return this.GetBindingPoint().GetBoundObject();
   }
 
   /**
@@ -371,16 +369,13 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
   }
 
   /**
-   * Resolves the binding point against the controller's binding roots and its
-   * owner.
-   * Adapted: the binding adapter accepts controller/owner inputs instead of
-   * native controller.GetBindingPathRoots().
+   * Carbon LinkDestination (Tr2ActionAnimateValue.cpp:168-171): link against the controller's roots.
    */
   @meta.blue.method
-  @meta.adapted
-  LinkDestination(controller = this._runtime.controller, owner = ITr2ControllerAction.getOwner(controller))
+  @meta.implemented
+  LinkDestination(controller = this._runtime.controller)
   {
-    return this.GetBindingPoint().Link(controller, owner);
+    this.GetBindingPoint().Link(controller.GetBindingPathRoots());
   }
 
   /**

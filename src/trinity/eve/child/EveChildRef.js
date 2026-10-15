@@ -28,7 +28,7 @@ import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
  */
 @meta.define({ className: "EveChildRef", family: "eve/child" })
 @meta.blue.inherit(ITr2CurveSetOwner, IInitialize, INotify)
-@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, ITr2SoundEmitterOwner, EveEntity)
+@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, IEveEffectChildrenOwner, ITr2SoundEmitterOwner, EveEntity)
 @meta.blue.inherit(IEveEffectChildrenOwner)
 export class EveChildRef extends EveChildTransform
 {

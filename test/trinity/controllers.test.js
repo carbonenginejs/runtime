@@ -4,7 +4,7 @@ import { meta } from "../../npm/dist/global/schema/index.js";
 import { CjsControllerExpressionProgram, ExecuteMainThreadActions, EveChildUpdateParams, ITr2ControllerAction, ITr2GenericEmitterUpdateArguments, ITr2StateMachineStateFinalizer, Tr2ActionAnimateCurveSet, Tr2ActionAnimateValue, Tr2ActionBindRTPC, Tr2ActionCallback, Tr2ActionChildEffect, Tr2ActionOverlay, Tr2ActionPlayCurveSet, Tr2ActionPlayMeshAnimation, Tr2ActionPlaySound, Tr2ActionPython, Tr2ActionResetClipSphereCenter, Tr2ActionSetAttenuationScaling, Tr2ActionSetAudioEmitterPrefix, Tr2ActionSetAudioSwitch, Tr2ActionSetExternalControllerVariable, Tr2ActionSetShaderOption, Tr2ActionSetValue, Tr2ActionSpawnParticles, Tr2BindingPoint, Tr2Controller, Tr2ControllerEventHandler, Tr2ControllerExpression, Tr2ControllerFloatVariable, Tr2ControllerReference, Tr2StateMachine, Tr2StateMachineState, Tr2StateMachineTransition, Tr2SyncToAnimation, Tr2TimelineController, PlayAction, ResetBehavior, StopAction, Type } from "../../npm/dist/trinity/index.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
-import { blue, DictReader } from "../../npm/dist/global/blue/index.js";
+import { blue, DictReader, INotify } from "../../npm/dist/global/blue/index.js";
 import { ITr2SoundEmitterOwner } from "../../npm/dist/trinity/eve/ITr2SoundEmitterOwner.js";
 import { EveSpaceObject2 } from "../../npm/dist/trinity/eve/spaceObject/EveSpaceObject2.js";
 
@@ -89,8 +89,6 @@ test("controller methods expose source-backed Carbon metadata", () =>
     assertEquals(method.carbon?.method, undefined);
   }
   assertEquals(CjsSchema.getField(Tr2ActionSetExternalControllerVariable, "destination")?.type.kind, "rootWeak");
-  assertEquals(CjsSchema.getField(Tr2BindingPoint, "resolvedObject")?.type.kind, "rootWeak");
-  assertEquals(CjsSchema.getField(Tr2BindingPoint, "notifyPtr")?.type.kind, "rootWeak");
   assertEquals(CjsSchema.getField(Tr2ControllerExpression, "OWNER_BUFFER_INDEX"), null);
   assertEquals(Tr2ControllerExpression.OWNER_BUFFER_INDEX, 1);
   assertEquals(Tr2ControllerExpression.STATE_MACHINE_BUFFER_INDEX, 2);
@@ -105,7 +103,7 @@ test("promoted controller families expose source-backed Carbon metadata", () =>
   }
   assertEquals(CjsSchema.GetConstructor("Tr2Controller"), Tr2Controller);
   assertEquals(CjsSchema.GetConstructor("Tr2ActionPython"), Tr2ActionPython);
-  const sourceBackedMethods = [[Tr2ActionAnimateCurveSet, "Link", "adapted"], [Tr2ActionAnimateCurveSet, "Unlink", "adapted"], [Tr2ActionAnimateCurveSet, "Start", "adapted"], [Tr2ActionAnimateCurveSet, "Stop", "adapted"], [Tr2ActionAnimateCurveSet, "RebaseSimTime", "implemented"], [Tr2ActionAnimateCurveSet, "Update", "adapted"], [Tr2ActionAnimateCurveSet, "OnModified", "implemented"], [Tr2ActionAnimateCurveSet, "IsExpressionValid", "adapted"], [Tr2ActionAnimateCurveSet, "GetExpressionTermInfo", "adapted"], [Tr2ActionAnimateCurveSet, "EvaluateExpression", "adapted"], [Tr2ActionAnimateValue, "Link", "adapted"], [Tr2ActionAnimateValue, "Unlink", "adapted"], [Tr2ActionAnimateValue, "Start", "adapted"], [Tr2ActionAnimateValue, "Stop", "adapted"], [Tr2ActionAnimateValue, "RebaseSimTime", "implemented"], [Tr2ActionAnimateValue, "Update", "adapted"], [Tr2ActionAnimateValue, "OnModified", "adapted"], [Tr2ActionAnimateValue, "IsBindingValid", "implemented"], [Tr2ActionAnimateValue, "IsExpressionValid", "adapted"], [Tr2ActionAnimateValue, "GetCurveValue", "adapted"], [Tr2ActionAnimateValue, "GetDestination", "adapted"], [Tr2ActionAnimateValue, "GetExpressionTermInfo", "adapted"], [Tr2ActionAnimateValue, "EvaluateExpression", "adapted"], [Tr2ActionBindRTPC, "Link", "adapted"], [Tr2ActionBindRTPC, "Unlink", "adapted"], [Tr2ActionBindRTPC, "Start", "adapted"], [Tr2ActionBindRTPC, "StartWithController", "adapted"], [Tr2ActionBindRTPC, "Stop", "adapted"], [Tr2ActionBindRTPC, "StopWithController", "adapted"], [Tr2ActionBindRTPC, "Update", "adapted"], [Tr2ActionBindRTPC, "OnModified", "implemented"], [Tr2ActionBindRTPC, "IsExpressionValid", "adapted"], [Tr2ActionBindRTPC, "GetCurveValue", "implemented"], [Tr2ActionBindRTPC, "GetExpressionTermInfo", "adapted"], [Tr2ActionBindRTPC, "EvaluateExpression", "adapted"], [Tr2ActionCallback, "Start", "implemented"], [Tr2ActionChildEffect, "Link", "adapted"], [Tr2ActionChildEffect, "Start", "adapted"], [Tr2ActionChildEffect, "Stop", "adapted"], [Tr2ActionOverlay, "Start", "adapted"], [Tr2ActionOverlay, "Stop", "adapted"], [Tr2ActionPlayCurveSet, "Start", "implemented"], [Tr2ActionPlayCurveSet, "Stop", "implemented"], [Tr2ActionPlayCurveSet, "RebaseSimTime", "implemented"], [Tr2ActionPlayCurveSet, "CanTransition", "implemented"], [Tr2ActionPlayCurveSet, "Update", "implemented"], [Tr2ActionPlayMeshAnimation, "Link", "adapted"], [Tr2ActionPlayMeshAnimation, "Unlink", "implemented"], [Tr2ActionPlayMeshAnimation, "Start", "adapted"], [Tr2ActionPlayMeshAnimation, "Stop", "adapted"], [Tr2ActionPlayMeshAnimation, "OnModified", "implemented"], [Tr2ActionPlayMeshAnimation, "IsBindingValid", "adapted"], [Tr2ActionPlayMeshAnimation, "GetDestination", "adapted"], [Tr2ActionPlaySound, "Start", "adapted"], [Tr2ActionPlaySound, "StartWithController", "adapted"], [Tr2ActionPython, "Initialize", "adapted"], [Tr2ActionPython, "OnModified", "implemented"], [Tr2ActionPython, "Link", "adapted"], [Tr2ActionPython, "Unlink", "adapted"], [Tr2ActionPython, "Start", "adapted"], [Tr2ActionPython, "Stop", "adapted"], [Tr2ActionPython, "Update", "adapted"], [Tr2ActionPython, "GetInstance", "adapted"], [Tr2ActionPython, "GetWriteBufferAndSize", "adapted"], [Tr2ActionPython, "ReleaseWriteBuffer", "adapted"], [Tr2ActionPython, "AllocateReadBuffer", "adapted"], [Tr2ActionPython, "SetBufferAndSize", "adapted"], [Tr2ActionResetClipSphereCenter, "Start", "implemented"], [Tr2ActionSetAttenuationScaling, "Link", "implemented"], [Tr2ActionSetAttenuationScaling, "Unlink", "implemented"], [Tr2ActionSetAttenuationScaling, "Start", "implemented"], [Tr2ActionSetAttenuationScaling, "StartWithController", "adapted"], [Tr2ActionSetAttenuationScaling, "GetScalingFactor", "adapted"], [Tr2ActionSetAudioEmitterPrefix, "Start", "implemented"], [Tr2ActionSetAudioEmitterPrefix, "StartWithController", "adapted"], [Tr2ActionSetAudioSwitch, "Start", "implemented"], [Tr2ActionSetAudioSwitch, "StartWithController", "adapted"], [Tr2ActionSetExternalControllerVariable, "Link", "adapted"], [Tr2ActionSetExternalControllerVariable, "Unlink", "implemented"], [Tr2ActionSetExternalControllerVariable, "Start", "adapted"], [Tr2ActionSetExternalControllerVariable, "OnModified", "implemented"], [Tr2ActionSetExternalControllerVariable, "IsDestinationValid", "implemented"], [Tr2ActionSetShaderOption, "Start", "adapted"], [Tr2ActionSetValue, "Link", "adapted"], [Tr2ActionSetValue, "Unlink", "implemented"], [Tr2ActionSetValue, "Start", "adapted"], [Tr2ActionSetValue, "OnModified", "implemented"], [Tr2ActionSetValue, "IsBindingValid", "implemented"], [Tr2ActionSetValue, "IsExpressionValid", "implemented"], [Tr2ActionSetValue, "GetDestination", "adapted"], [Tr2ActionSetValue, "GetExpressionTermInfo", "adapted"], [Tr2ActionSetValue, "EvaluateExpression", "adapted"], [Tr2ActionSpawnParticles, "Start", "adapted"], [Tr2BindingPoint, "Link", "adapted"], [Tr2BindingPoint, "Unlink", "implemented"], [Tr2BindingPoint, "IsValid", "implemented"], [Tr2BindingPoint, "SetValue", "adapted"], [Tr2BindingPoint, "GetValue", "adapted"], [Tr2BindingPoint, "GetBoundObject", "implemented"], [Tr2BindingPoint, "SetDestination", "adapted"], [Tr2ControllerExpression, "SetExpr", "adapted"], [Tr2ControllerExpression, "Eval", "adapted"], [Tr2ControllerExpression, "Clear", "adapted"], [Tr2ControllerExpression, "IsExpressionValid", "implemented"], [Tr2ControllerExpression, "GetVariableMask", "adapted"], [Tr2ControllerExpression, "GetExpressionTermInfo", "adapted"], [Tr2ControllerReference, "Initialize", "adapted"], [Tr2ControllerReference, "OnModified", "adapted"], [Tr2ControllerReference, "Link", "adapted"], [Tr2ControllerReference, "Unlink", "adapted"], [Tr2ControllerReference, "IsLinked", "implemented"], [Tr2ControllerReference, "Start", "adapted"], [Tr2ControllerReference, "Stop", "adapted"], [Tr2ControllerReference, "Update", "implemented"], [Tr2ControllerReference, "SetVariable", "adapted"], [Tr2ControllerReference, "HandleEvent", "implemented"], [Tr2ControllerReference, "GetOwner", "implemented"], [Tr2SyncToAnimation, "CanTransition", "adapted"], [Tr2TimelineController, "Link", "adapted"], [Tr2TimelineController, "Unlink", "implemented"], [Tr2TimelineController, "IsLinked", "implemented"], [Tr2TimelineController, "Start", "adapted"], [Tr2TimelineController, "Stop", "adapted"], [Tr2TimelineController, "Update", "adapted"], [Tr2TimelineController, "SetVariable", "implemented"], [Tr2TimelineController, "HandleEvent", "implemented"], [Tr2TimelineController, "GetOwner", "implemented"], [Tr2TimelineController, "Callback", "adapted"], [Tr2TimelineController, "RegisterUpdateable", "implemented"], [Tr2TimelineController, "UnRegisterUpdateable", "implemented"], [Tr2TimelineController, "GetBindingPathRoots", "adapted"], [Tr2TimelineController, "GetFloatVariableByName", "implemented"], [Tr2TimelineController, "GetExpressionTermInfo", "implemented"], [Tr2TimelineController, "GetVariableView", "implemented"], [Tr2TimelineController, "GetVariableBuffer", "implemented"], [Tr2TimelineController, "EnsureTempArenaSize", "implemented"], [Tr2TimelineController, "GetTempArena", "implemented"], [Tr2TimelineController, "OnSimClockRebase", "adapted"], [Tr2TimelineController, "GetActionCount", "implemented"], [Tr2TimelineController, "GetAction", "adapted"], [Tr2TimelineController, "GetActionStartTime", "implemented"], [Tr2TimelineController, "GetActionEndTime", "implemented"], [Tr2TimelineController, "GetActionTrackID", "implemented"], [Tr2TimelineController, "SetActionStartTime", "adapted"], [Tr2TimelineController, "SetActionEndTime", "adapted"], [Tr2TimelineController, "SetActionTrackID", "adapted"], [Tr2TimelineController, "AddAction", "adapted"], [Tr2TimelineController, "RemoveAction", "adapted"], [Tr2TimelineController, "IsActionEnabled", "implemented"], [Tr2TimelineController, "IsTrackEnabled", "implemented"], [Tr2TimelineController, "EnableTrack", "adapted"], [Tr2TimelineController, "RegisterCallback", "adapted"], [Tr2TimelineController, "ClearCallbacks", "implemented"], [Tr2TimelineController, "GetTime", "implemented"], [Tr2TimelineController, "SetTime", "adapted"], [Tr2TimelineController, "Pause", "implemented"], [Tr2TimelineController, "Resume", "implemented"], [Tr2TimelineController, "ReLink", "implemented"]];
+  const sourceBackedMethods = [[Tr2ActionAnimateCurveSet, "Link", "adapted"], [Tr2ActionAnimateCurveSet, "Unlink", "adapted"], [Tr2ActionAnimateCurveSet, "Start", "adapted"], [Tr2ActionAnimateCurveSet, "Stop", "adapted"], [Tr2ActionAnimateCurveSet, "RebaseSimTime", "implemented"], [Tr2ActionAnimateCurveSet, "Update", "adapted"], [Tr2ActionAnimateCurveSet, "OnModified", "implemented"], [Tr2ActionAnimateCurveSet, "IsExpressionValid", "adapted"], [Tr2ActionAnimateCurveSet, "GetExpressionTermInfo", "adapted"], [Tr2ActionAnimateCurveSet, "EvaluateExpression", "adapted"], [Tr2ActionAnimateValue, "Link", "adapted"], [Tr2ActionAnimateValue, "Unlink", "adapted"], [Tr2ActionAnimateValue, "Start", "adapted"], [Tr2ActionAnimateValue, "Stop", "adapted"], [Tr2ActionAnimateValue, "RebaseSimTime", "implemented"], [Tr2ActionAnimateValue, "Update", "adapted"], [Tr2ActionAnimateValue, "OnModified", "adapted"], [Tr2ActionAnimateValue, "IsBindingValid", "implemented"], [Tr2ActionAnimateValue, "IsExpressionValid", "adapted"], [Tr2ActionAnimateValue, "GetCurveValue", "adapted"], [Tr2ActionAnimateValue, "GetDestination", "implemented"], [Tr2ActionAnimateValue, "GetExpressionTermInfo", "adapted"], [Tr2ActionAnimateValue, "EvaluateExpression", "adapted"], [Tr2ActionBindRTPC, "Link", "adapted"], [Tr2ActionBindRTPC, "Unlink", "adapted"], [Tr2ActionBindRTPC, "Start", "adapted"], [Tr2ActionBindRTPC, "StartWithController", "adapted"], [Tr2ActionBindRTPC, "Stop", "adapted"], [Tr2ActionBindRTPC, "StopWithController", "adapted"], [Tr2ActionBindRTPC, "Update", "adapted"], [Tr2ActionBindRTPC, "OnModified", "implemented"], [Tr2ActionBindRTPC, "IsExpressionValid", "adapted"], [Tr2ActionBindRTPC, "GetCurveValue", "implemented"], [Tr2ActionBindRTPC, "GetExpressionTermInfo", "adapted"], [Tr2ActionBindRTPC, "EvaluateExpression", "adapted"], [Tr2ActionCallback, "Start", "implemented"], [Tr2ActionChildEffect, "Link", "adapted"], [Tr2ActionChildEffect, "Start", "adapted"], [Tr2ActionChildEffect, "Stop", "adapted"], [Tr2ActionOverlay, "Start", "adapted"], [Tr2ActionOverlay, "Stop", "adapted"], [Tr2ActionPlayCurveSet, "Start", "implemented"], [Tr2ActionPlayCurveSet, "Stop", "implemented"], [Tr2ActionPlayCurveSet, "RebaseSimTime", "implemented"], [Tr2ActionPlayCurveSet, "CanTransition", "implemented"], [Tr2ActionPlayCurveSet, "Update", "implemented"], [Tr2ActionPlayMeshAnimation, "Link", "adapted"], [Tr2ActionPlayMeshAnimation, "Unlink", "implemented"], [Tr2ActionPlayMeshAnimation, "Start", "adapted"], [Tr2ActionPlayMeshAnimation, "Stop", "adapted"], [Tr2ActionPlayMeshAnimation, "OnModified", "implemented"], [Tr2ActionPlayMeshAnimation, "IsBindingValid", "adapted"], [Tr2ActionPlayMeshAnimation, "GetDestination", "adapted"], [Tr2ActionPlaySound, "Start", "adapted"], [Tr2ActionPlaySound, "StartWithController", "adapted"], [Tr2ActionPython, "Initialize", "adapted"], [Tr2ActionPython, "OnModified", "implemented"], [Tr2ActionPython, "Link", "adapted"], [Tr2ActionPython, "Unlink", "adapted"], [Tr2ActionPython, "Start", "adapted"], [Tr2ActionPython, "Stop", "adapted"], [Tr2ActionPython, "Update", "adapted"], [Tr2ActionPython, "GetInstance", "adapted"], [Tr2ActionPython, "GetWriteBufferAndSize", "adapted"], [Tr2ActionPython, "ReleaseWriteBuffer", "adapted"], [Tr2ActionPython, "AllocateReadBuffer", "adapted"], [Tr2ActionPython, "SetBufferAndSize", "adapted"], [Tr2ActionResetClipSphereCenter, "Start", "implemented"], [Tr2ActionSetAttenuationScaling, "Link", "implemented"], [Tr2ActionSetAttenuationScaling, "Unlink", "implemented"], [Tr2ActionSetAttenuationScaling, "Start", "implemented"], [Tr2ActionSetAttenuationScaling, "StartWithController", "adapted"], [Tr2ActionSetAttenuationScaling, "GetScalingFactor", "adapted"], [Tr2ActionSetAudioEmitterPrefix, "Start", "implemented"], [Tr2ActionSetAudioEmitterPrefix, "StartWithController", "adapted"], [Tr2ActionSetAudioSwitch, "Start", "implemented"], [Tr2ActionSetAudioSwitch, "StartWithController", "adapted"], [Tr2ActionSetExternalControllerVariable, "Link", "adapted"], [Tr2ActionSetExternalControllerVariable, "Unlink", "implemented"], [Tr2ActionSetExternalControllerVariable, "Start", "adapted"], [Tr2ActionSetExternalControllerVariable, "OnModified", "implemented"], [Tr2ActionSetExternalControllerVariable, "IsDestinationValid", "implemented"], [Tr2ActionSetShaderOption, "Start", "adapted"], [Tr2ActionSetValue, "Link", "adapted"], [Tr2ActionSetValue, "Unlink", "implemented"], [Tr2ActionSetValue, "Start", "adapted"], [Tr2ActionSetValue, "OnModified", "implemented"], [Tr2ActionSetValue, "IsBindingValid", "implemented"], [Tr2ActionSetValue, "IsExpressionValid", "implemented"], [Tr2ActionSetValue, "GetDestination", "implemented"], [Tr2ActionSetValue, "GetExpressionTermInfo", "adapted"], [Tr2ActionSetValue, "EvaluateExpression", "adapted"], [Tr2ActionSpawnParticles, "Start", "adapted"], [Tr2BindingPoint, "Link", "implemented"], [Tr2BindingPoint, "Unlink", "implemented"], [Tr2BindingPoint, "IsValid", "implemented"], [Tr2BindingPoint, "SetValue", "adapted"], [Tr2BindingPoint, "GetValue", "adapted"], [Tr2BindingPoint, "GetBoundObject", "implemented"], [Tr2BindingPoint, "SetDestination", "implemented"], [Tr2ControllerExpression, "SetExpr", "adapted"], [Tr2ControllerExpression, "Eval", "adapted"], [Tr2ControllerExpression, "Clear", "adapted"], [Tr2ControllerExpression, "IsExpressionValid", "implemented"], [Tr2ControllerExpression, "GetVariableMask", "adapted"], [Tr2ControllerExpression, "GetExpressionTermInfo", "adapted"], [Tr2ControllerReference, "Initialize", "adapted"], [Tr2ControllerReference, "OnModified", "adapted"], [Tr2ControllerReference, "Link", "adapted"], [Tr2ControllerReference, "Unlink", "adapted"], [Tr2ControllerReference, "IsLinked", "implemented"], [Tr2ControllerReference, "Start", "adapted"], [Tr2ControllerReference, "Stop", "adapted"], [Tr2ControllerReference, "Update", "implemented"], [Tr2ControllerReference, "SetVariable", "adapted"], [Tr2ControllerReference, "HandleEvent", "implemented"], [Tr2ControllerReference, "GetOwner", "implemented"], [Tr2SyncToAnimation, "CanTransition", "adapted"], [Tr2TimelineController, "Link", "adapted"], [Tr2TimelineController, "Unlink", "implemented"], [Tr2TimelineController, "IsLinked", "implemented"], [Tr2TimelineController, "Start", "adapted"], [Tr2TimelineController, "Stop", "adapted"], [Tr2TimelineController, "Update", "adapted"], [Tr2TimelineController, "SetVariable", "implemented"], [Tr2TimelineController, "HandleEvent", "implemented"], [Tr2TimelineController, "GetOwner", "implemented"], [Tr2TimelineController, "Callback", "adapted"], [Tr2TimelineController, "RegisterUpdateable", "implemented"], [Tr2TimelineController, "UnRegisterUpdateable", "implemented"], [Tr2TimelineController, "GetBindingPathRoots", "adapted"], [Tr2TimelineController, "GetFloatVariableByName", "implemented"], [Tr2TimelineController, "GetExpressionTermInfo", "implemented"], [Tr2TimelineController, "GetVariableView", "implemented"], [Tr2TimelineController, "GetVariableBuffer", "implemented"], [Tr2TimelineController, "EnsureTempArenaSize", "implemented"], [Tr2TimelineController, "GetTempArena", "implemented"], [Tr2TimelineController, "OnSimClockRebase", "adapted"], [Tr2TimelineController, "GetActionCount", "implemented"], [Tr2TimelineController, "GetAction", "adapted"], [Tr2TimelineController, "GetActionStartTime", "implemented"], [Tr2TimelineController, "GetActionEndTime", "implemented"], [Tr2TimelineController, "GetActionTrackID", "implemented"], [Tr2TimelineController, "SetActionStartTime", "adapted"], [Tr2TimelineController, "SetActionEndTime", "adapted"], [Tr2TimelineController, "SetActionTrackID", "adapted"], [Tr2TimelineController, "AddAction", "adapted"], [Tr2TimelineController, "RemoveAction", "adapted"], [Tr2TimelineController, "IsActionEnabled", "implemented"], [Tr2TimelineController, "IsTrackEnabled", "implemented"], [Tr2TimelineController, "EnableTrack", "adapted"], [Tr2TimelineController, "RegisterCallback", "adapted"], [Tr2TimelineController, "ClearCallbacks", "implemented"], [Tr2TimelineController, "GetTime", "implemented"], [Tr2TimelineController, "SetTime", "adapted"], [Tr2TimelineController, "Pause", "implemented"], [Tr2TimelineController, "Resume", "implemented"], [Tr2TimelineController, "ReLink", "implemented"]];
   for (const [ctor, methodName, status] of sourceBackedMethods)
   {
     assertCarbonMethod(ctor, methodName, status);
@@ -163,36 +161,79 @@ test("Tr2ControllerFloatVariable writes destinations and dirty masks", () =>
   assertEquals(CjsSchema.getField(Tr2ControllerFloatVariable, "value")?.type.kind, "float32");
 });
 
-test("Tr2BindingPoint settles direct and swizzled writes through explicit editing capabilities", () =>
+/** A registered class with each member kind Tr2BindingPoint meets; it maps INotify and records OnModified. */
+class BindingTestTarget
 {
-  class BindingNotificationTarget { OnModified() { return true; } }
-  CjsSchema.define(BindingNotificationTarget, { className: "BindingNotificationTarget" });
-  CjsSchema.meta.values(BindingNotificationTarget, { kind: "class" });
-  CjsSchema.meta.events(BindingNotificationTarget, { kind: "class" });
-  const target = new BindingNotificationTarget();
-  target.value = 1;
-  target.vector = new Float32Array([1, 2, 3]);
-  const events = [];
-  target.OnEvent("modified", (_name, _model, payload) => events.push(payload));
+  name = "";
+  value = 1;
+  flag = false;
+  vector = new Float32Array([ 1, 2, 3 ]);
+  count = 7;
+  child = null;
+  children = [];
+  modified = [];
 
-  const scalar = new Tr2BindingPoint();
-  assertEquals(scalar.SetDestination(target, "value"), true);
-  assertEquals(scalar.SetValue(4), true);
-  assertEquals(scalar.SetValue(4), false);
+  OnModified(name)
+  {
+    this.modified.push(name);
+    return true;
+  }
+}
+CjsSchema.define(BindingTestTarget, { className: "BindingTestTarget", fields: {
+  name: CjsSchema.meta.type.string,
+  value: CjsSchema.meta.type.float32,
+  flag: CjsSchema.meta.type.boolean,
+  vector: CjsSchema.meta.type.vec3,
+  count: CjsSchema.meta.type.int32,
+  child: CjsSchema.meta.type.rootRef("BindingTestTarget"),
+  children: CjsSchema.meta.type.list("BindingTestTarget")
+} });
+CjsSchema.meta.blue.interface(INotify)(BindingTestTarget);
 
-  const swizzle = new Tr2BindingPoint();
-  assertEquals(swizzle.SetDestination(target, "vector.y"), true);
-  assertEquals(swizzle.SetValue(8), true);
+test("Tr2BindingPoint writes Carbon's admitted members and notifies through INotify", () =>
+{
+  const target = new BindingTestTarget();
+  // SetDestination is protected in Carbon and runs only inside Link (cpp:281-293).
+  const bind = (object, attribute) =>
+  {
+    const binding = new Tr2BindingPoint();
+    binding.object = object;
+    binding.attribute = attribute;
+    binding.Link([]);
+    return binding;
+  };
 
-  assertEquals(target.value, 4);
-  assertEquals(target.vector[1], 8);
-  const vector = new Tr2BindingPoint();
-  assertEquals(vector.SetDestination(target, "vector"), true);
-  assertEquals(vector.GetValue(), 1);
-  assertEquals(events.length, 3);
-  assertEquals(events[0].source, scalar);
-  assertEquals(events[1].source, scalar);
-  assertEquals(events[2].source, swizzle);
+  // Tr2BindingPoint.cpp:310-360: a float write, then OnModified on the INotify.
+  const scalar = bind(target, "value");
+  assert(scalar.IsValid());
+  scalar.SetValue(0.1);
+  assertEquals(target.value, Math.fround(0.1));
+  assertEquals(target.modified.join(","), "value");
+
+  const flag = bind(target, "flag");
+  assert(flag.IsValid());
+  flag.SetValue(2);
+  assertEquals(target.flag, true);
+
+  // A swizzle writes one component; no swizzle writes every component.
+  const swizzle = bind(target, "vector.y");
+  assert(swizzle.IsValid());
+  swizzle.SetValue(8);
+  assertEquals(Array.from(target.vector).join(","), "1,8,3");
+  const vector = bind(target, "vector");
+  assert(vector.IsValid());
+  vector.SetValue(5);
+  assertEquals(Array.from(target.vector).join(","), "5,5,5");
+  assertEquals(vector.GetValue(), 5);
+
+  // cpp:403-470: only FLOAT, DOUBLE, BOOL and float arrays, a swizzle only inside an array.
+  for (const attribute of [ "count", "value.x", "vector.w", "vector.q", "missing" ])
+  {
+    assert(!bind(target, attribute).IsValid());
+  }
+  const refused = bind({ value: 1 }, "value");
+  assert(!refused.IsValid());
+  assertEquals(refused.GetValue(), null);
 
   const alwaysTarget = new Tr2ControllerFloatVariable();
   alwaysTarget.value = 3;
@@ -203,9 +244,9 @@ test("Tr2BindingPoint settles direct and swizzled writes through explicit editin
   let alwaysNotified = 0;
   const originalOnModified = alwaysTarget.OnModified;
   alwaysTarget.OnModified = function(name) { alwaysNotified++; return originalOnModified.call(this, name); };
-  const alwaysBinding = new Tr2BindingPoint();
-  assertEquals(alwaysBinding.SetDestination(alwaysTarget, "value"), true);
-  assertEquals(alwaysBinding.SetValue(3), false);
+  const alwaysBinding = bind(alwaysTarget, "value");
+  assert(alwaysBinding.IsValid());
+  alwaysBinding.SetValue(3);
   assertEquals(alwaysNotified, 1);
   assertEquals(alwaysCalls.length, 1);
   assertEquals(alwaysCalls[0], 3);
@@ -213,29 +254,47 @@ test("Tr2BindingPoint settles direct and swizzled writes through explicit editin
 });
 test("Tr2BindingPoint resolves Carbon root, property, index, and name paths", () =>
 {
-  const first = { name: "first", value: 1 };
-  const target = { name: "target", value: 2 };
-  const root = {
-    child: target,
-    children: [first, target]
-  };
+  const first = new BindingTestTarget();
+  first.name = "first";
+  const target = new BindingTestTarget();
+  target.name = "target";
+  target.value = 2;
+  const root = new BindingTestTarget();
+  root.child = target;
+  root.children = [first, target];
   const roots = [["Root", root]];
 
+  // Tr2BindingPoint.cpp:213-267.
   assertEquals(Tr2BindingPoint.ResolvePath("Root", roots), root);
   assertEquals(Tr2BindingPoint.ResolvePath("Root.child", roots), target);
   assertEquals(Tr2BindingPoint.ResolvePath("Root.children[1]", roots), target);
   assertEquals(Tr2BindingPoint.ResolvePath("Root.children[-1]", roots), target);
   assertEquals(Tr2BindingPoint.ResolvePath('Root.children["target"]', roots), target);
-  assertEquals(Tr2BindingPoint.ResolvePath('Root["target"]', roots), target);
+  // std::atoi reads "[]" as index 0.
+  assertEquals(Tr2BindingPoint.ResolvePath("Root.children[]", roots), first);
+  // A name index applies only to a list; Root is not one.
+  assertEquals(Tr2BindingPoint.ResolvePath('Root["target"]', roots), null);
+  // A path step passes only through object members.
+  assertEquals(Tr2BindingPoint.ResolvePath("Root.value", roots), null);
   assertEquals(Tr2BindingPoint.ResolvePath("Root.children[4]", roots), null);
   assertEquals(Tr2BindingPoint.ResolvePath("Root.children[target]", roots), null);
   assertEquals(Tr2BindingPoint.ResolvePath("Missing", roots), null);
 
   const binding = new Tr2BindingPoint();
-  binding.path = 'Root["target"]';
+  binding.path = 'Root.children["target"]';
   binding.attribute = "value";
-  assertEquals(binding.Link({ Root: root }), true);
+  binding.Link(roots);
+  assert(binding.IsValid());
+  assertEquals(binding.GetBoundObject(), target);
   assertEquals(binding.GetValue(), 2);
+
+  // An empty path binds the authored object.
+  const direct = new Tr2BindingPoint();
+  direct.object = first;
+  direct.attribute = "value";
+  direct.Link([]);
+  assert(direct.IsValid());
+  assertEquals(direct.GetBoundObject(), first);
 });
 test("registered controller actions update with sim time", t =>
 {
@@ -279,6 +338,10 @@ test("controller expression actions expose Carbon local term info", () =>
     GetOwner()
     {
       return {};
+    },
+    GetBindingPathRoots()
+    {
+      return [];
     },
     GetExpressionTermInfo(out)
     {
@@ -1287,13 +1350,16 @@ test("Tr2ActionPlaySound follows Carbon emitter dispatch", () =>
 });
 test("Tr2ActionSetValue leaves destination unchanged on failed eval", () =>
 {
-  const destination = {
-    value: 5
-  };
+  const destination = new BindingTestTarget();
+  destination.value = 5;
   const controller = {
     GetOwner()
     {
       return {};
+    },
+    GetBindingPathRoots()
+    {
+      return [];
     }
   };
   const action = new Tr2ActionSetValue();
