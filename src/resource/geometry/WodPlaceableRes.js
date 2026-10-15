@@ -2,11 +2,13 @@
 // Source: trinity/trinity/Wod/WodPlaceableRes.cpp
 // Source: trinity/trinity/Wod/WodPlaceableRes_Blue.cpp
 import { meta, type, blue } from "#schema";
+import { IRoot } from "#blue";
 import { vec3 } from "#math/vec3";
 
 /** Authored placeable geometry, animations, fade distances and cached bounds. */
 @blue.define("WodPlaceableRes")
 @blue.interface()
+@blue.inherit(IRoot)
 export class WodPlaceableRes
 {
   /** Native visual model. */

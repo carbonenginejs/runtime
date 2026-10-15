@@ -71,7 +71,7 @@ export class TriGeometryResLodData
 CjsSchema.blue.define(TriGeometryResLodData, {
   className: "TriGeometryResLodData",
   fields: {
-    mesh: type.rootRef("TriGeometryResMeshData"),
+    mesh: type.rawStruct("TriGeometryResMeshData"),
     grannyMeshIndex: type.int32,
     name: type.string,
     originalLodIndex: type.int32,
@@ -79,7 +79,7 @@ CjsSchema.blue.define(TriGeometryResLodData, {
     vertexCount: type.uint32,
     primitiveCount: type.uint32,
     uvDensities: type.list("float"),
-    areas: type.unknown,
+    areas: type.list("TriGeometryResAreaData"),
     allocationsValid: type.boolean,
     vertexAllocation: type.rawStruct("Tr2SuballocatedBuffer::Allocation"),
     indexAllocation: type.rawStruct("Tr2SuballocatedBuffer::Allocation"),

@@ -47,7 +47,7 @@ CjsSchema.blue.define(TriGeometryResAreaData, {
     primitiveCount: type.int32,
     minBounds: type.vec3,
     maxBounds: type.vec3,
-    jointBindings: type.unknown,
+    jointBindings: type.list("int"),
     staticBlas: type.rawStruct("Tr2RtBottomLevelAccelerationStructureAL"),
     isSkinned: type.boolean,
     isMorphed: type.boolean,

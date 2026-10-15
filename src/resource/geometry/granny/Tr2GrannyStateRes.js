@@ -261,9 +261,15 @@ export class Tr2GrannyStateRes extends CjsResource
   static payload = ResourceRequirement.GRANNY_STATE;
 }
 
+CjsSchema.blue.interface(Tr2GrannyStateRes)(Tr2GrannyStateRes);
 CjsSchema.blue.define(Tr2GrannyStateRes, {
   className: "Tr2GrannyStateRes",
   methods: {
+    DoLoad: [ blue.method, meta.adapted ],
+    GetCharacterInfo: [ blue.method, meta.adapted ],
+    GetGStateAnimFileRefPaths: [ blue.method, meta.adapted ],
+    IsFullyLoaded: [ blue.method, meta.adapted ],
+
     IsMemoryUsageKnown: [ blue.method, meta.implemented ],
     GetMemoryUsage: [ blue.method, meta.adapted ]
   }

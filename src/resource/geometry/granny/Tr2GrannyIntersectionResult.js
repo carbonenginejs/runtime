@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Resources/TriGrannyRes.h
 // Schema: format-carbon resources/Tr2GrannyIntersectionResult.json; maintained by the runtime resource layer.
 import { CjsSchema, type, blue } from "#schema";
+import { IRoot } from "#blue";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 
@@ -40,6 +41,7 @@ export class Tr2GrannyIntersectionResult
 
 }
 
+CjsSchema.blue.inherit(IRoot)(Tr2GrannyIntersectionResult);
 CjsSchema.blue.define(Tr2GrannyIntersectionResult, {
   className: "Tr2GrannyIntersectionResult",
   fields: {

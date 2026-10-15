@@ -33,7 +33,7 @@ CjsSchema.blue.define(TriGeometryResSkeletonData, {
   className: "TriGeometryResSkeletonData",
   fields: {
     name: type.string,
-    joints: type.unknown
+    joints: type.list("TriGeometryResJointData")
   },
   methods: {
     FindJoint: [ blue.method, meta.adapted ]

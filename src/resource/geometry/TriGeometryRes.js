@@ -1468,6 +1468,7 @@ export class TriGeometryRes extends CjsResource
 // Declared as data rather than with decorators, so the resource tree loads from
 // source without a transform. Field order is key order, and GetValues() exports
 // in that order.
+CjsSchema.blue.interface(TriGeometryRes)(TriGeometryRes);
 CjsSchema.blue.define(TriGeometryRes, {
   className: "TriGeometryRes",
   fields: {
@@ -1476,16 +1477,22 @@ CjsSchema.blue.define(TriGeometryRes, {
     name: [ type.string, blue.readwrite ]
   },
   methods: {
+    ReadCMFFile: [ blue.method, meta.adapted ],
+    GetGrannyInfo: [ blue.method, meta.adapted ],
+    GetMeshData: [ blue.method, meta.adapted ],
+    GetCMFData: [ blue.method, meta.adapted ],
+    IsUsingCMF: [ blue.method, meta.adapted ],
+
     SetPayload: [],
-    ReadGrannyFile: [ meta.adapted ],
+    ReadGrannyFile: [ blue.method, meta.adapted ],
     GetMeshCount: [ blue.method, meta.adapted ],
     GetAnimationCount: [ blue.method, meta.adapted ],
     GetSkeletonCount: [ blue.method, meta.adapted ],
     GetSkeletonData: [ blue.method, meta.adapted ],
     GetMeshAreaCount: [ blue.method, meta.adapted ],
     GetLodIndexForScreenSize: [ blue.method, meta.adapted ],
-    GetMeshLod__ScreenSize: [ meta.adapted ],
-    GetMeshLod__LodIndex: [ meta.adapted ],
+    GetMeshLod__ScreenSize: [ blue.method, meta.renamed("GetMeshLod"), meta.adapted ],
+    GetMeshLod__LodIndex: [ blue.method, meta.renamed("GetMeshLod"), meta.adapted ],
     GetMeshName: [ blue.method, meta.adapted ],
     GetMeshAreaName: [ blue.method, meta.adapted ],
     GetAreaBoundingBox: [ blue.method, meta.adapted ],
@@ -1494,8 +1501,8 @@ CjsSchema.blue.define(TriGeometryRes, {
     CalculateBoundingBoxFromTransform: [ blue.method, meta.adapted ],
     RecalculateBoundingSphere: [ blue.method, meta.adapted ],
     Reload: [ blue.method, meta.adapted ],
-    GetIntersectionPointNormalBone: [ blue.method, meta.adapted ],
-    GetAreaIntersectionPointNormalBone: [ blue.method, meta.adapted ],
+    GetIntersectionPointNormalBone: [ blue.method, meta.renamed("GetIntersectionPointNormalBoneFromScript"), meta.adapted ],
+    GetAreaIntersectionPointNormalBone: [ blue.method, meta.renamed("GetAreaIntersectionPointNormalBoneFromScript"), meta.adapted ],
     PrepareRayCaster: [ blue.method, meta.adapted ],
     ResetRayCaster: [ blue.method, meta.adapted ],
     IsRayCasterReady: [ blue.method, meta.adapted ],

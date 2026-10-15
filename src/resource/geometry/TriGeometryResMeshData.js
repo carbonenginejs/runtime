@@ -52,10 +52,10 @@ CjsSchema.blue.define(TriGeometryResMeshData, {
     minBounds: type.vec3,
     maxBounds: type.vec3,
     boundingSphere: type.vec4,
-    jointBindings: type.unknown,
+    jointBindings: type.list("TriJointBinding"),
     audioGeometry: type.rawStruct("AudioGeometryResData"),
     decals: type.list("MeshDecalData"),
     lodMask: type.uint32,
-    lods: type.rawStruct("TrackableStdVector<std::unique_ptr<TriGeometryResLodData>>")
+    lods: type.list("TriGeometryResLodData")
   }
 });
