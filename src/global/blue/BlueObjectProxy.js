@@ -310,18 +310,18 @@ CjsSchema.blue.define(BlueObjectProxy, {
     isResident: [ blue.read, type.boolean ]
   },
   methods: {
-    SetBuilder: [ meta.implemented ],
-    GetObject: [ meta.implemented ],
-    ClearObject: [ meta.implemented ],
-    Update: [ meta.implemented ],
-    IsResident: [ meta.implemented ],
-    SetTemporary: [ meta.implemented ],
-    IsTemporary: [ meta.implemented ],
-    OnSelected: [ meta.implemented ],
-    SetObject: [ meta.implemented ],
+    SetBuilder: [ blue.method, meta.implemented ],
+    GetObject: [ blue.method, meta.implemented ],
+    ClearObject: [ blue.method, meta.implemented ],
+    Update: [ blue.method, meta.implemented ],
+    IsResident: [ blue.method, meta.implemented ],
+    SetTemporary: [ blue.method, meta.implemented ],
+    IsTemporary: [ blue.method, meta.implemented ],
+    OnSelected: [ blue.method, meta.implemented ],
+    SetObject: [ blue.method, meta.implemented ],
     Freeze: [ blue.method, meta.implemented ],
     SetObjectFromBuilder: [ blue.method, meta.implemented ],
-    _OnObjectInvalidated: [ meta.implemented ]
+    _OnObjectInvalidated: [ blue.method, meta.renamed("OnObjectInvalidated"), meta.implemented ]
   }
 });
 blue.interface(IBlueObjectProxy)(BlueObjectProxy);

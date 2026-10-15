@@ -483,6 +483,7 @@ export class Copier extends ICopier
   }
 }
 
+CjsSchema.blue.interface(ICopier)(Copier);
 CjsSchema.blue.define(Copier, {
   className: "Copier",
   fields: {},
@@ -491,6 +492,6 @@ CjsSchema.blue.define(Copier, {
     SetPostCopyCallback: [ blue.method, meta.adapted ],
     CopyTo: [ blue.method, meta.adapted ],
     CloneTo: [ blue.method, meta.adapted ],
-    _CopyToInternal: [ meta.adapted ]
+    _CopyToInternal: [ blue.method, meta.renamed("CopyToInternal"), meta.adapted ]
   }
 });

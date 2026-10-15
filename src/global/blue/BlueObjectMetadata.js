@@ -12,7 +12,7 @@
 // metadata is never a member.
 //
 // `BeObjectMetadata` is the process-wide instance (:7-8).
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { BLUE_OBJECT_METADATA_KEY, IBlueObjectMetadata } from "./IBlueObjectMetadata.js";
 
 /** `BlueStdResult` codes the store answers with (`BLUE_STD_RESULT_OK`, `BLUE_STD_RESULT_KEY_ERROR`). */
@@ -128,10 +128,13 @@ export class BlueObjectMetadata extends IBlueObjectMetadata
 /** `BeObjectMetadata` - the process-wide object-metadata store. */
 export const BeObjectMetadata = new BlueObjectMetadata();
 
+CjsSchema.blue.interface(IBlueObjectMetadata)(BlueObjectMetadata);
 CjsSchema.blue.define(BlueObjectMetadata, { className: "BlueObjectMetadata", fields: {} });
-CjsSchema.decorateMethod(BlueObjectMetadata, "GetMetadata", meta.adapted);
-CjsSchema.decorateMethod(BlueObjectMetadata, "Set", meta.adapted);
-CjsSchema.decorateMethod(BlueObjectMetadata, "GetKeys", meta.adapted);
-CjsSchema.decorateMethod(BlueObjectMetadata, "Delete", meta.adapted);
-CjsSchema.decorateMethod(BlueObjectMetadata, "DeleteObject", meta.adapted);
-CjsSchema.decorateMethod(BlueObjectMetadata, "CopyDeep", meta.notImplemented);
+CjsSchema.decorateMethod(BlueObjectMetadata, "GetMetadata", blue.method, meta.adapted);
+CjsSchema.decorateMethod(BlueObjectMetadata, "Set", blue.method, meta.adapted);
+CjsSchema.decorateMethod(BlueObjectMetadata, "GetKeys", blue.method, meta.adapted);
+CjsSchema.decorateMethod(BlueObjectMetadata, "Delete", blue.method, meta.adapted);
+CjsSchema.decorateMethod(BlueObjectMetadata, "DeleteObject", blue.method, meta.adapted);
+CjsSchema.decorateMethod(BlueObjectMetadata, "CopyDeep", blue.method, meta.notImplemented);
+CjsSchema.decorateMethod(BlueObjectMetadata, "Get", blue.method, meta.adapted);
+CjsSchema.decorateMethod(BlueObjectMetadata, "CopyShallow", blue.method, meta.adapted);
