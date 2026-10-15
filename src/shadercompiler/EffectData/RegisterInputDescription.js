@@ -1,3 +1,4 @@
+import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:488-508
 
 /**
@@ -60,3 +61,10 @@ export class RegisterInputDescription
         RT_UAV_TEXTURECUBEARRAY: (1 << 6) + 10
     });
 }
+
+CjsSchema.blue.define(RegisterInputDescription, {
+    className: "RegisterInputDescription",
+    methods: {
+        Equals: [meta.renamed("operator==")]
+    }
+});

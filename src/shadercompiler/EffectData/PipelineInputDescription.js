@@ -1,3 +1,4 @@
+import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:461-485
 
 /** The HLSL semantic of each `UsageCode` (EffectData.cpp:6-21). */
@@ -69,3 +70,10 @@ export class PipelineInputDescription
         UC_NUM_USAGE_CODE: 8
     });
 }
+
+CjsSchema.blue.define(PipelineInputDescription, {
+    className: "PipelineInputDescription",
+    methods: {
+        Equals: [meta.renamed("operator==")]
+    }
+});

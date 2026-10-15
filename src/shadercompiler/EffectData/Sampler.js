@@ -1,3 +1,4 @@
+import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:366-458
 
 import { Vector4 } from "./Vector4.js";
@@ -87,3 +88,11 @@ export class Sampler
         return false;
     }
 }
+
+CjsSchema.blue.define(Sampler, {
+    className: "Sampler",
+    methods: {
+        Equals: [meta.renamed("operator==")],
+        Less: [meta.renamed("operator<")]
+    }
+});

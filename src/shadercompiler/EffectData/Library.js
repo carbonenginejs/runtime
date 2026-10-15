@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:758-785
 
 import { StageData } from "./StageData.js";
@@ -25,3 +26,7 @@ export class Library
 
     source = "";
 }
+
+CjsSchema.blue.define(Library, {
+    className: "Library"
+});

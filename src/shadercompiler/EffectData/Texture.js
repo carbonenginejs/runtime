@@ -1,3 +1,4 @@
+import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:318-340
 
 /**
@@ -63,3 +64,10 @@ export class Texture
         TEX_TYPE_INVALID: 17
     });
 }
+
+CjsSchema.blue.define(Texture, {
+    className: "Texture",
+    methods: {
+        Equals: [meta.renamed("operator==")]
+    }
+});

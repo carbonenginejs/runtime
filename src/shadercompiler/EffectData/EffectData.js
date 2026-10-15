@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:10
 // Source: trinity/shadercompiler/EffectData.h:811-854
 
@@ -28,3 +29,7 @@ export class EffectData
     /** @type {CjsFxStdMap} parameter name to `ParameterAnnotation` */
     annotations = new CjsFxStdMap();
 }
+
+CjsSchema.blue.define(EffectData, {
+    className: "EffectData"
+});

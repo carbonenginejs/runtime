@@ -1,3 +1,4 @@
+import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:510-568
 
 const FIELDS = [
@@ -53,3 +54,10 @@ export class StaticSampler
         return FIELDS.every(field => this[field] === sampler[field]);
     }
 }
+
+CjsSchema.blue.define(StaticSampler, {
+    className: "StaticSampler",
+    methods: {
+        Equals: [meta.renamed("operator==")]
+    }
+});

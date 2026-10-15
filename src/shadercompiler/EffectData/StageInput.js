@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:689-717
 
 import { StageData } from "./StageData.js";
@@ -40,3 +41,7 @@ export class StageInput extends StageData
         DOMAIN_STAGE: 5
     });
 }
+
+CjsSchema.blue.define(StageInput, {
+    className: "StageInput"
+});

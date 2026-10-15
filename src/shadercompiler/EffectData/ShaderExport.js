@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:744-755
 
 /**
@@ -23,3 +24,7 @@ export class ShaderExport
         INTERSECTION: 4
     });
 }
+
+CjsSchema.blue.define(ShaderExport, {
+    className: "ShaderExport"
+});

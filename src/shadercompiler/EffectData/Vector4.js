@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:312-315
 
 /**
@@ -13,3 +14,7 @@ export class Vector4
 
     w = 0;
 }
+
+CjsSchema.blue.define(Vector4, {
+    className: "Vector4"
+});

@@ -1,3 +1,4 @@
+import { CjsSchema, meta } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:280-310
 
 /**
@@ -71,3 +72,10 @@ export class Constant
         CONSTANT_TYPE_OTHER: 4
     });
 }
+
+CjsSchema.blue.define(Constant, {
+    className: "Constant",
+    methods: {
+        Equals: [meta.renamed("operator==")]
+    }
+});

@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:787-809
 
 /**
@@ -13,3 +14,7 @@ export class Technique
     /** @type {import("./Library.js").Library[]} */
     libraries = [];
 }
+
+CjsSchema.blue.define(Technique, {
+    className: "Technique"
+});

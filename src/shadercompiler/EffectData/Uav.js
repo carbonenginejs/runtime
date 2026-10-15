@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:343-363
 
 /**
@@ -18,3 +19,7 @@ export class Uav
 
     isAutoregister = false;
 }
+
+CjsSchema.blue.define(Uav, {
+    className: "Uav"
+});

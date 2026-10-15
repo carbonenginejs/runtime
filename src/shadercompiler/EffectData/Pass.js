@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:719-742
 
 import { CjsFxStdMap } from "../CjsFxStdMap.js";
@@ -23,3 +24,7 @@ export class Pass
      */
     backendBlock = null;
 }
+
+CjsSchema.blue.define(Pass, {
+    className: "Pass"
+});

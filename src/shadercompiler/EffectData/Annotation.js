@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/EffectData.h:572-595
 
 /**
@@ -59,3 +60,7 @@ export class Annotation
         ANNOTATION_TYPE_STRING: 3
     });
 }
+
+CjsSchema.blue.define(Annotation, {
+    className: "Annotation"
+});
