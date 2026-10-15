@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2SolidSet.h
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { Tr2PrimitiveSet } from "./Tr2PrimitiveSet.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -20,11 +20,12 @@ import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 /** A set of coloured triangles with a running centre of mass, submitted as one buffer. */
 @blue.define("Tr2SolidSet")
 @blue.inherit(IInitialize)
-@blue.interface(IInitialize)
+@blue.interface(IInitialize, Tr2PrimitiveSet)
 @blue.chainTo(Tr2PrimitiveSet)
 export class Tr2SolidSet extends Tr2PrimitiveSet
 {
 
+  @type.uint32
   _vertexDeclHandle = Tr2EffectStateManager.Unknown;
   _vertexBuffer = new Tr2BufferAL();
   _destroyed = false;
@@ -37,7 +38,7 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   }
 
   /** m_triangles (std::vector<TriangleData>) */
-  @type.list("TriangleData")
+  @type.array({ kind: "rawStruct", className: "TriangleData" })
   triangles = [];
 
   /** m_maxCurrentTriangleCount (unsigned int) */
@@ -228,3 +229,6 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   }
 
 }
+
+CjsSchema.decorateMethod(Tr2SolidSet, "SetCurrentColor", blue.method);
+CjsSchema.decorateMethod(Tr2SolidSet, "GetCenterOfMass", blue.method);

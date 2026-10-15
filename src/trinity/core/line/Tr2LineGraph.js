@@ -1,10 +1,11 @@
 // Source: trinity/trinity/Tr2LineGraph.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { vec4 } from "#math/vec4";
 
 /** A rolling sample history with named markers and running statistics, drawn as a line graph. */
 @blue.define("Tr2LineGraph")
+@blue.interface()
 export class Tr2LineGraph
 {
 
@@ -108,3 +109,7 @@ export class Tr2LineGraph
   }
 
 }
+
+CjsSchema.decorateMethod(Tr2LineGraph, "Add", blue.method);
+CjsSchema.decorateMethod(Tr2LineGraph, "GetSize", blue.method);
+CjsSchema.decorateMethod(Tr2LineGraph, "GetMaxValue", blue.method);

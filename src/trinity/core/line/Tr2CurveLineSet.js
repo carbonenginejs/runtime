@@ -105,13 +105,13 @@ function sphericalToCartesian(value, center)
 
 /** A line set that draws curved and sphere-projected lines by tessellating them into straight segments. */
 @blue.define("Tr2CurveLineSet")
-@blue.inherit(ITr2Renderable, INotify)
+@blue.inherit(ITr2Renderable, ITr2Pickable, INotify)
 @blue.interface(ITr2Renderable, INotify, ITr2Pickable)
 export class Tr2CurveLineSet
 {
 
   /** Carbon LineData records tessellated into the owned AL vertex buffer. */
-  @type.list("LineData")
+  @type.array({ kind: "rawStruct", className: "Tr2CurveLineSet::LineData" })
   lines = [];
 
   /** Reusable invalid line slots, matching Carbon's stable ID behavior. */
@@ -123,15 +123,19 @@ export class Tr2CurveLineSet
   currentSubmittedLineCount = 0;
 
   /** Logical local-to-world transform used by renderable consumers. */
+  @type.mat4
   worldTransform = mat4.create();
 
   /** Carbon's incrementally grown local-space line bound. */
+  @type.vec4
   boundingSphere = vec4.create();
 
   /** Whether the last submission changed the local bounds. */
+  @type.boolean
   boundsDirty = false;
 
   /** Selects WRITE_OFTEN rather than WRITE when allocating the vertex stream. */
+  @type.boolean
   dynamic = false;
 
   /** Native device storage and grow-only segment capacity. */
@@ -843,6 +847,8 @@ export class Tr2CurveLineSet
   /**
    * Appends one tessellated segment's vertices to the line buffer.
    */
+  @blue.method
+  @meta.renamed("addLineData")
   #addLineData(line)
   {
     if (this.emptyLineID.length === 0)
@@ -880,6 +886,8 @@ export class Tr2CurveLineSet
   /**
    * Whether a line identifier still refers to a live line.
    */
+  @blue.method
+  @meta.renamed("isValidLineID")
   #isValidLineID(id)
   {
     return Number.isInteger(id) && id >= 0 && id < this.lines.length && this.lines[id].type !== Tr2CurveLineSet.LineType.LINETYPE_INVALID;

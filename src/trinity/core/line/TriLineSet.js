@@ -1,7 +1,8 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/TriLineSet.h
 // Source: trinity/trinity/TriLineSet.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { Topology } from "#consts/render-context";
@@ -18,6 +19,8 @@ const MAX_VERTICES = 100000;
 
 /** A debug line set that builds boxes, spheres, cylinders and cones out of coloured line segments. */
 @blue.define("TriLineSet")
+@blue.inherit(IRoot)
+@blue.interface()
 export class TriLineSet
 {
 
@@ -25,7 +28,7 @@ export class TriLineSet
   defaultColor = 0xffffffff;
 
   /** m_vertices: { position, color } records, the colour already swizzled. */
-  @type.list("TriDebugVertexPosColor")
+  @type.array({ kind: "rawStruct", className: "TriDebugResourceHelper::VertexPosColor" })
   vertices = [];
 
   /** m_zEnable (bool) [READWRITE] */
@@ -357,3 +360,12 @@ export class TriLineSet
     mat4_0: mat4.create(), mat4_1: mat4.create()
   };
 }
+
+CjsSchema.decorateMethod(TriLineSet, "AddDefaultColor", blue.method);
+CjsSchema.decorateMethod(TriLineSet, "AddTransformed", blue.method);
+CjsSchema.decorateMethod(TriLineSet, "AddCylinder", blue.method);
+CjsSchema.decorateMethod(TriLineSet, "AddCone", blue.method);
+CjsSchema.decorateMethod(TriLineSet, "AddOrientedBox__MinMax", blue.method, meta.renamed("AddOrientedBox"));
+CjsSchema.decorateMethod(TriLineSet, "AddOrientedBox", blue.method);
+CjsSchema.decorateMethod(TriLineSet, "Render", blue.method);
+CjsSchema.decorateMethod(TriLineSet, "SubmitGeometry", blue.method);

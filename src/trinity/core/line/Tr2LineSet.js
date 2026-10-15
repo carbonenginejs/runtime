@@ -1,3 +1,5 @@
+import { ITr2Renderable } from "../ITr2Renderable.js";
+import { ITr2Pickable } from "../ITr2Pickable.js";
 // Source: trinity/trinity/Tr2LineSet.h
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -20,7 +22,7 @@ import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 /** A set of coloured lines with an accompanying picking-triangle list, submitted as one buffer. */
 @blue.define("Tr2LineSet")
 @blue.inherit(IInitialize)
-@blue.interface(IInitialize)
+@blue.interface(IInitialize, ITr2Renderable, Tr2PrimitiveSet, ITr2Pickable)
 @blue.chainTo(Tr2PrimitiveSet)
 export class Tr2LineSet extends Tr2PrimitiveSet
 {
@@ -37,7 +39,7 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   }
 
   /** m_lines (std::vector<LineData>) */
-  @type.list("LineData")
+  @type.array({ kind: "rawStruct", className: "LineData" })
   lines = [];
 
   /** m_maxCurrentLineCount (unsigned int) */
@@ -57,7 +59,7 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   pickingVertexBuffer = new Tr2BufferAL();
 
   /** m_triangles (std::vector<Triangle>) */
-  @type.list("Triangle")
+  @type.array({ kind: "rawStruct", className: "Triangle" })
   triangles = [];
 
   /** m_maxCurrentTriangleCount (unsigned int) */
@@ -135,6 +137,7 @@ export class Tr2LineSet extends Tr2PrimitiveSet
    * Recolors all existing vertices and submits them, as Carbon does.
    */
   @meta.adapted
+  @blue.method
   SetCurrentColor(color)
   {
     for (const line of this.lines)

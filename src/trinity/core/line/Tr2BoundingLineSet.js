@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2BoundingLineSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { IsMatch } from "#blue";
 import { Tr2LineSet } from "./Tr2LineSet.js";
 import { vec3 } from "#math/vec3";
@@ -52,6 +52,8 @@ export class Tr2BoundingLineSet extends Tr2LineSet
   /**
    * Appends the twelve edges of an axis-aligned box.
    */
+  @blue.method
+  @meta.renamed("AddBox")
   #AddBox(min, max, color)
   {
     const minA = vec3.fromValues(max[0], min[1], min[2]);
@@ -69,6 +71,8 @@ export class Tr2BoundingLineSet extends Tr2LineSet
   /**
    * Appends the box's triangles so it can be picked as a solid volume.
    */
+  @blue.method
+  @meta.renamed("AddPickingBox")
   #AddPickingBox(min, max)
   {
     const minA = vec3.fromValues(max[0], min[1], min[2]);
@@ -84,3 +88,5 @@ export class Tr2BoundingLineSet extends Tr2LineSet
   }
 
 }
+
+CjsSchema.decorateMethod(Tr2BoundingLineSet, "OnModified", blue.method);

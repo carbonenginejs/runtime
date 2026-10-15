@@ -42,12 +42,19 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   @type.rootRef("TriGeometryRes")
   grannyRes = null;
 
+  @type.float32Array
   _points = new Float32Array(0); // alloc: initially empty, owned variable-length geometry cache.
+  @type.uint32Array
   _triangleIndices = new Uint32Array(0); // alloc: initially empty, owned variable-length geometry cache.
+  @type.uint32Array
   _lineIndices = new Uint32Array(0); // alloc: initially empty, owned variable-length geometry cache.
+  @type.uint32
   _primitiveCount = 0;
+  @type.uint32
   _pickingPrimitiveCount = 0;
+  @type.uint32
   _pickingIndexOffset = 0;
+  @type.uint32
   _vertexDeclHandle = Tr2EffectStateManager.Unknown;
   _vertexBuffer = new Tr2BufferAL();
   _triangleIndexBuffer = new Tr2BufferAL();

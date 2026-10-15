@@ -1,11 +1,14 @@
+import { ITr2DebugRenderer2 } from "../../../global/interfaces/ITr2DebugRenderer2.js";
 // Source: trinity/trinity/Tr2DebugRenderer.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
 /** Resolves which debug visualisations an object draws, from per-owner options over a default set. */
 @blue.define("Tr2DebugRenderer")
+@blue.inherit(ITr2DebugRenderer2)
+@blue.interface()
 export class Tr2DebugRenderer
 {
 
@@ -46,11 +49,11 @@ export class Tr2DebugRenderer
   pickingEffect = null;
 
   /** m_lines (std::vector<Vertex>) */
-  @type.list("Vertex")
+  @type.array({ kind: "rawStruct", className: "Tr2DebugRenderer::Vertex" })
   lines = [];
 
   /** m_triangles (std::vector<Vertex>) */
-  @type.list("Vertex")
+  @type.array({ kind: "rawStruct", className: "Tr2DebugRenderer::Vertex" })
   triangles = [];
 
   /** m_defaultOptions (Tr2DebugRendererOptions) */
@@ -58,7 +61,7 @@ export class Tr2DebugRenderer
   defaultOptions = new Set();
 
   /** m_selectedObjects (std::set<Tr2DebugObjectReference>) */
-  @type.set("Tr2DebugObjectReference")
+  @type.set("unknown")
   selectedObjects = new Set();
 
   /** Carbon method SetDefaultOptions (MAP_METHOD_AND_WRAP). */
@@ -164,3 +167,7 @@ export class Tr2DebugRenderer
   }
 
 }
+
+CjsSchema.decorateMethod(Tr2DebugRenderer, "HasOption", blue.method);
+CjsSchema.decorateMethod(Tr2DebugRenderer, "IsSelected", blue.method);
+CjsSchema.decorateMethod(Tr2DebugRenderer, "Pick", blue.method);

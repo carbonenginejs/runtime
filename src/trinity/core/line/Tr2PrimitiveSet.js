@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Tr2PrimitiveSet.cpp
 // Source: trinity/trinity/Tr2PrimitiveSet_Blue.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta, type, blue } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { INotify, IsMatch } from "#blue";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -15,7 +15,7 @@ import { ITr2Renderable } from "../ITr2Renderable.js";
 import { ITr2Pickable } from "../ITr2Pickable.js";
 
 /** A drawable set of primitives with a world transform, sort value and bounding sphere. */
-@blue.define("Tr2PrimitiveSet")
+@blue.define({ className: "Tr2PrimitiveSet", abstract: true })
 @blue.inherit(ITr2Renderable, ITr2Pickable, INotify)
 @blue.interface(ITr2Renderable, ITr2Pickable, INotify)
 export class Tr2PrimitiveSet
@@ -43,7 +43,7 @@ export class Tr2PrimitiveSet
 
   /** m_pythonUserData (PyObject*) [READWRITE] */
   @blue.readwrite
-  @type.rootRef("PyObject")
+  @type.unknown
   _userData = null;
 
   /** m_viewOriented (bool) [READWRITE, PERSIST] */
@@ -98,6 +98,7 @@ export class Tr2PrimitiveSet
   }
 
   /** Native local-space bound; CleanUp in derived sets deliberately retains it. */
+  @type.vec4
   boundingSphere = vec4.create();
 
   /**
@@ -252,3 +253,5 @@ export class Tr2PrimitiveSet
 
 }
 
+
+CjsSchema.decorateMethod(Tr2PrimitiveSet, "OnModified", blue.method);
