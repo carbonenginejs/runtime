@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Per-object constant-data layouts.
 //
 // This catalog has no CarbonEngine counterpart, which is why it is Cjs* rather
@@ -169,3 +170,5 @@ export class CjsPerObjectLayouts
     }
 
 }
+
+CjsSchema.meta.define(CjsPerObjectLayouts, {"className": "CjsPerObjectLayouts"});

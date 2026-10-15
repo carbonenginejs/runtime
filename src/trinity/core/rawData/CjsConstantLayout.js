@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // The shared machinery behind the constant-data catalogs.
 //
 // C++ gets a struct's layout free from the type system, so Carbon never
@@ -232,3 +233,5 @@ export class CjsConstantLayout
         };
     }
 }
+
+CjsSchema.meta.define(CjsConstantLayout, {"className": "CjsConstantLayout"});

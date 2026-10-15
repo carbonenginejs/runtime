@@ -21,7 +21,7 @@ import { PER_OBJECT_PS, PER_OBJECT_VS } from "../../Tr2Renderer.js";
  * Per-object render data: the object id a batch is picked and identified by,
  * and the upload of its constant payloads through the abstraction layer.
  */
-@blue.define("Tr2PerObjectData")
+@blue.define({ className: "Tr2PerObjectData", abstract: true })
 export class Tr2PerObjectData
 {
   /** Starts with a zero object id. */
@@ -47,6 +47,7 @@ export class Tr2PerObjectData
 
   /** Native uint64_t, held exactly as BigInt; callers encode request-local identity. */
   @meta.adapted
+  @blue.method
   SetPickingPointer(pickingPointer)
   {
     if (typeof pickingPointer !== "bigint") throw new TypeError("Picking pointers require a BigInt.");
@@ -55,6 +56,7 @@ export class Tr2PerObjectData
 
   /** Returns all 64 bits without conversion through a JavaScript Number. */
   @meta.adapted
+  @blue.method
   GetPickingPointer()
   {
     return this.pickingPointer;

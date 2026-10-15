@@ -1,3 +1,4 @@
+import { CjsSchema, blue, meta } from "#schema";
 // Source: trinity/trinity/TriPoolAllocator.h
 // Source: trinity/trinity/TriPoolAllocator.cpp
 // Factory + arena for RawData constant-data payloads.
@@ -520,3 +521,8 @@ export class TriPoolAllocator
   }
 
 }
+
+CjsSchema.decorateMethod(TriPoolAllocator, "Allocate", blue.method);
+CjsSchema.decorateMethod(TriPoolAllocator, "Clear", blue.method);
+CjsSchema.decorateMethod(TriPoolAllocator, "#GetMoreSystemMemory", blue.method, meta.renamed("GetMoreSystemMemory"));
+CjsSchema.blue.define(TriPoolAllocator, { className: "TriPoolAllocator" });

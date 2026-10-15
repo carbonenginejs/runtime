@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 import { CjsConstantPayload } from "#interfaces";
 import { CjsPerFrameLayouts } from "./CjsPerFrameLayouts.js";
 import { CjsPerObjectLayouts } from "./CjsPerObjectLayouts.js";
@@ -616,3 +617,5 @@ export class RawData extends CjsConstantPayload
     return this.#layout;
   }
 }
+
+CjsSchema.meta.define(RawData, {"className": "RawData"});

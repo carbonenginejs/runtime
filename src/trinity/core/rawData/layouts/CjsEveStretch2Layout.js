@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Per-object constant-buffer layout for `EveStretch2PerObjectData`. See README.md.
 
 import { CjsConstantLayout } from "../CjsConstantLayout.js";
@@ -23,3 +24,5 @@ export class CjsEveStretch2Layout
     }
   });
 }
+
+CjsSchema.meta.define(CjsEveStretch2Layout, {"className": "CjsEveStretch2Layout", "donors": ["EveStretch2"]});

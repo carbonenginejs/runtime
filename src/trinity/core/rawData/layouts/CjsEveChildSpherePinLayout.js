@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Per-object constant-buffer layout for `EveChildSpherePinPerObjectData`. See README.md.
 
 import { CjsConstantLayout } from "../CjsConstantLayout.js";
@@ -24,3 +25,5 @@ export class CjsEveChildSpherePinLayout
     }
   });
 }
+
+CjsSchema.meta.define(CjsEveChildSpherePinLayout, {"className": "CjsEveChildSpherePinLayout", "donors": ["EveChildSpherePinPerObjectData"]});

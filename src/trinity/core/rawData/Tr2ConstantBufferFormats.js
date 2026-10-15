@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/trinity/Tr2ConstantBufferFormats.h
 //   trinity/trinity/Tr2ConstantBufferFormats.cpp:40-66
 //
@@ -94,3 +95,5 @@ export class Tr2ConstantBufferFormats
     return held[stage] ?? null;
   }
 }
+
+CjsSchema.meta.define(Tr2ConstantBufferFormats, {"className": "Tr2ConstantBufferFormats"});

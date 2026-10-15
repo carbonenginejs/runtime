@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Per-frame constant-data layouts.
 //
 // The twin of CjsPerObjectLayouts, one tier up: these are the buffers bound
@@ -353,3 +354,5 @@ export class CjsPerFrameLayouts
     }
 
 }
+
+CjsSchema.meta.define(CjsPerFrameLayouts, {"className": "CjsPerFrameLayouts", "donors": ["Tr2PerFrameVSData", "Tr2PerFramePSData", "Tr2PerFrameVSDataDebug", "Tr2PerFrameShadowPSData", "EveSpaceScene::PerFrameVSData", "EveSpaceScene::PerFramePSData", "EveSpaceScene::SunData"]});

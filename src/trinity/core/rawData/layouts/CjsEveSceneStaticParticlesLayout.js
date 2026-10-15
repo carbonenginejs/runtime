@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Per-object constant-buffer layout for `EveSceneStaticParticlesPerObjectData`. See README.md.
 
 import { CjsConstantLayout } from "../CjsConstantLayout.js";
@@ -19,3 +20,5 @@ export class CjsEveSceneStaticParticlesLayout
     }
   });
 }
+
+CjsSchema.meta.define(CjsEveSceneStaticParticlesLayout, {"className": "CjsEveSceneStaticParticlesLayout", "donors": ["EveSceneStaticParticlesPerObjectData::Data"]});

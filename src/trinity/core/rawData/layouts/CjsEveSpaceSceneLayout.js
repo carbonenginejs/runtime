@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/trinity/Eve/EveSpaceScene.h:336-340 (EvePlanetPerObjData).
 import { CjsConstantLayout } from "../CjsConstantLayout.js";
 
@@ -14,3 +15,5 @@ export class CjsEveSpaceSceneLayout
     }
   });
 }
+
+CjsSchema.meta.define(CjsEveSpaceSceneLayout, {"className": "CjsEveSpaceSceneLayout", "donors": ["EveSpaceScene::EvePlanetPerObjData"]});

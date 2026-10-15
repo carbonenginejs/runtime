@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Per-object constant-buffer layout for `Tr2PerObjectVSData`. See README.md.
 
 import { CjsConstantLayout } from "../CjsConstantLayout.js";
@@ -28,3 +29,5 @@ export class CjsTr2PerObjectLayout
     }
   });
 }
+
+CjsSchema.meta.define(CjsTr2PerObjectLayout, {"className": "CjsTr2PerObjectLayout", "donors": ["Tr2PerObjectVSData"]});

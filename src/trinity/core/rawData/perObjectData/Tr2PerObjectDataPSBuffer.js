@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/Tr2PerObjectData.h:42 (Tr2PerObjectDataPSBuffer)
 // Source: trinity/Tr2PerObjectData.cpp:29-37 (the base upload and apply bodies)
 //
@@ -118,3 +119,5 @@ export class Tr2PerObjectDataPSBuffer extends Tr2PerObjectData
     return data;
   }
 }
+
+CjsSchema.blue.define(Tr2PerObjectDataPSBuffer, { className: "Tr2PerObjectDataPSBuffer" });

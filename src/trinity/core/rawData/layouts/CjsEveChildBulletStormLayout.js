@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Per-object constant-buffer layout for `EveChildBulletStormPerObjectData`. See README.md.
 
 import { CjsConstantLayout } from "../CjsConstantLayout.js";
@@ -24,3 +25,5 @@ export class CjsEveChildBulletStormLayout
     }
   });
 }
+
+CjsSchema.meta.define(CjsEveChildBulletStormLayout, {"className": "CjsEveChildBulletStormLayout", "donors": ["EveChildBulletStormPerObjectData"]});

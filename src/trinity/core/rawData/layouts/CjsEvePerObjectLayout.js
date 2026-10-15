@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Per-object constant-buffer layouts for `EvePerObjectVSData` and `EvePerObjectPSData`. See README.md.
 
 import { CjsConstantLayout } from "../CjsConstantLayout.js";
@@ -24,3 +25,5 @@ export class CjsEvePerObjectLayout
     }
   });
 }
+
+CjsSchema.meta.define(CjsEvePerObjectLayout, {"className": "CjsEvePerObjectLayout", "donors": ["EvePerObjectVSData", "EvePerObjectPSData"]});

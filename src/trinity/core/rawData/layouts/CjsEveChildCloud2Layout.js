@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildCloud2.h:125-145
 import { CjsConstantLayout } from "../CjsConstantLayout.js";
 const { Types } = CjsConstantLayout;
@@ -32,3 +33,5 @@ export class CjsEveChildCloud2Layout
     }
   };
 }
+
+CjsSchema.meta.define(CjsEveChildCloud2Layout, {"className": "CjsEveChildCloud2Layout", "donors": ["EveChildCloud2::PerObjectData", "EveChildCloud2::LightData"]});

@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Per-object constant-buffer layouts for `EveTurretSetVSData` and `EveTurretSetPSData`. See README.md.
 
 import { CjsConstantLayout } from "../CjsConstantLayout.js";
@@ -41,3 +42,5 @@ export class CjsEveTurretSetLayout
     }
   });
 }
+
+CjsSchema.meta.define(CjsEveTurretSetLayout, {"className": "CjsEveTurretSetLayout", "donors": ["EveTurretSetVSData", "EveTurretSetPSData"]});

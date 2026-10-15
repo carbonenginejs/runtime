@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Per-object constant-buffer layout for `EveChildParticleSpherePerObjectData`. See README.md.
 
 import { CjsConstantLayout } from "../CjsConstantLayout.js";
@@ -22,3 +23,5 @@ export class CjsEveChildParticleSphereLayout
     }
   });
 }
+
+CjsSchema.meta.define(CjsEveChildParticleSphereLayout, {"className": "CjsEveChildParticleSphereLayout", "donors": ["EveChildParticleSpherePerObjectData::Data"]});

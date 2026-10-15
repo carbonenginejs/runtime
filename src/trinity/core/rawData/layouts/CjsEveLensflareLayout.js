@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Per-object constant-buffer layout for `EveLensflarePerObjectData`. See README.md.
 
 import { CjsConstantLayout } from "../CjsConstantLayout.js";
@@ -22,3 +23,5 @@ export class CjsEveLensflareLayout
     }
   });
 }
+
+CjsSchema.meta.define(CjsEveLensflareLayout, {"className": "CjsEveLensflareLayout", "donors": ["EveLensflarePerObjectData::Data"]});

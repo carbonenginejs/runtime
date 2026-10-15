@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildCloud.cpp:48-58
 import { CjsConstantLayout } from "../CjsConstantLayout.js";
 
@@ -22,3 +23,5 @@ export class CjsEveChildCloudLayout
     }
   };
 }
+
+CjsSchema.meta.define(CjsEveChildCloudLayout, {"className": "CjsEveChildCloudLayout", "donors": ["EveChildCloudPerObjectData::Data"]});

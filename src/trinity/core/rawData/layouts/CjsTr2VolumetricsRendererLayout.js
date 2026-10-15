@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Per-object constant-buffer layout for `FogPerObjectData`. See README.md.
 
 import { CjsConstantLayout } from "../CjsConstantLayout.js";
@@ -92,3 +93,5 @@ export class CjsTr2VolumetricsRendererLayout
   static MAX_FOG_DYNAMIC_LIGHTS = MAX_FOG_DYNAMIC_LIGHTS;
   static SHADOW_FRUSTUM_COUNT = SHADOW_FRUSTUM_COUNT;
 }
+
+CjsSchema.meta.define(CjsTr2VolumetricsRendererLayout, {"className": "CjsTr2VolumetricsRendererLayout", "donors": ["Tr2VolumetricsRenderer::FogPerObjectData"]});

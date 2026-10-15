@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Per-object constant-buffer layout for `EveMissileWarheadPerObjectData`. See README.md.
 
 import { CjsConstantLayout } from "../CjsConstantLayout.js";
@@ -19,3 +20,5 @@ export class CjsEveMissileWarheadLayout
     }
   });
 }
+
+CjsSchema.meta.define(CjsEveMissileWarheadLayout, {"className": "CjsEveMissileWarheadLayout", "donors": ["EveMissileWarhead"]});

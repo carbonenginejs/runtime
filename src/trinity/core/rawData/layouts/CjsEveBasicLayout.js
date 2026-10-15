@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Per-object constant-buffer layout for `EveBasicPerObjectData`. See README.md.
 
 import { CjsConstantLayout } from "../CjsConstantLayout.js";
@@ -20,3 +21,5 @@ export class CjsEveBasicLayout
     }
   });
 }
+
+CjsSchema.meta.define(CjsEveBasicLayout, {"className": "CjsEveBasicLayout", "donors": ["EveBasicPerObjectData"]});

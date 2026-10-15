@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Per-object constant-buffer layouts for `EveBoosterSetVSData` and `EveBoosterSetPSData`. See README.md.
 
 import { CjsConstantLayout } from "../CjsConstantLayout.js";
@@ -39,3 +40,5 @@ export class CjsEveBoosterSetLayout
     }
   });
 }
+
+CjsSchema.meta.define(CjsEveBoosterSetLayout, {"className": "CjsEveBoosterSetLayout", "donors": ["EveBoosterSetPerObjectData::VertexShaderData", "EveBoosterSetPerObjectData::PixelShaderData"]});

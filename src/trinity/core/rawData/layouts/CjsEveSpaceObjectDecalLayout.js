@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Per-object constant-buffer layouts for `DecalVSPerObjectData` and `DecalPSPerObjectData`. See README.md.
 
 import { CjsConstantLayout } from "../CjsConstantLayout.js";
@@ -40,3 +41,5 @@ export class CjsEveSpaceObjectDecalLayout
     }
   });
 }
+
+CjsSchema.meta.define(CjsEveSpaceObjectDecalLayout, {"className": "CjsEveSpaceObjectDecalLayout", "donors": ["DecalVSPerObjectData", "DecalPSPerObjectData"]});
