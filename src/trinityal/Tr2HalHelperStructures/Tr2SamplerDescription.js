@@ -1,4 +1,5 @@
 // Source: trinity/trinityal/Tr2HalHelperStructures.h:137-254 (struct Tr2SamplerDescription)
+import { CjsSchema, type } from "#schema";
 //   trinity/trinityal/Tr2HalHelperStructures.h:255-277 (struct hash<Tr2SamplerDescription>)
 //   trinity/trinityal/include/Tr2SamplerStateAL.h (forward declaration, and the factory)
 //
@@ -173,3 +174,18 @@ export function SamplerDescriptionKey(description)
 
   return normalized ? JSON.stringify(normalized) : null;
 }
+
+CjsSchema.decorateField(Tr2SamplerDescription, "m_minFilter", type.int32);
+CjsSchema.decorateField(Tr2SamplerDescription, "m_magFilter", type.int32);
+CjsSchema.decorateField(Tr2SamplerDescription, "m_mipFilter", type.int32);
+CjsSchema.decorateField(Tr2SamplerDescription, "m_isComparisonFilter", type.boolean);
+CjsSchema.decorateField(Tr2SamplerDescription, "m_addressU", type.int32);
+CjsSchema.decorateField(Tr2SamplerDescription, "m_addressV", type.int32);
+CjsSchema.decorateField(Tr2SamplerDescription, "m_addressW", type.int32);
+CjsSchema.decorateField(Tr2SamplerDescription, "m_mipLODBias", type.float32);
+CjsSchema.decorateField(Tr2SamplerDescription, "m_maxAnisotropy", type.uint32);
+CjsSchema.decorateField(Tr2SamplerDescription, "m_comparisonFunc", type.uint32);
+CjsSchema.decorateField(Tr2SamplerDescription, "m_borderColor", type.array({ kind: "float32" }));
+CjsSchema.decorateField(Tr2SamplerDescription, "m_minLOD", type.float32);
+CjsSchema.decorateField(Tr2SamplerDescription, "m_maxLOD", type.float32);
+CjsSchema.blue.define(Tr2SamplerDescription, { className: "Tr2SamplerDescription" });

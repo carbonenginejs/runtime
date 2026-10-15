@@ -1,4 +1,5 @@
 // Source: trinity/trinityal/Tr2HalHelperStructures.h
+import { CjsSchema, type, blue, meta } from "#schema";
 // Source: trinity/trinityal/Tr2HalHelperStructures.cpp
 //
 // ONE FOLDER PER DONOR HEADER. Carbon declares six types in this header, and a
@@ -369,3 +370,24 @@ export function Crop(sourceSR, sourceBD, destSR, destBD)
 
   return sourceSR.IsValid() && destSR.IsValid();
 }
+
+CjsSchema.decorateField(Tr2TextureSubresource, "m_startFace", type.uint32);
+CjsSchema.decorateField(Tr2TextureSubresource, "m_endFace", type.uint32);
+CjsSchema.decorateField(Tr2TextureSubresource, "m_startMipLevel", type.uint32);
+CjsSchema.decorateField(Tr2TextureSubresource, "m_endMipLevel", type.uint32);
+CjsSchema.decorateField(Tr2TextureSubresource, "m_box", type.rawStruct("Tr2TextureCoordBox"));
+CjsSchema.decorateMethod(Tr2TextureSubresource, "GetWidth", blue.method);
+CjsSchema.decorateMethod(Tr2TextureSubresource, "GetHeight", blue.method);
+CjsSchema.decorateMethod(Tr2TextureSubresource, "GetDepth", blue.method);
+CjsSchema.decorateMethod(Tr2TextureSubresource, "GetMipCount", blue.method);
+CjsSchema.decorateMethod(Tr2TextureSubresource, "GetFaceCount", blue.method);
+CjsSchema.decorateMethod(Tr2TextureSubresource, "HasBox", blue.method);
+CjsSchema.decorateMethod(Tr2TextureSubresource, "IsSingleSubresource", blue.method);
+CjsSchema.decorateMethod(Tr2TextureSubresource, "SetBox", blue.method);
+CjsSchema.decorateMethod(Tr2TextureSubresource, "SetRect", blue.method);
+CjsSchema.decorateMethod(Tr2TextureSubresource, "ClampToTexture", blue.method);
+CjsSchema.decorateMethod(Tr2TextureSubresource, "IsSubresourceFull", blue.method);
+CjsSchema.decorateMethod(Tr2TextureSubresource, "IsValidForBitmap", blue.method);
+CjsSchema.decorateMethod(Tr2TextureSubresource, "IsValid", blue.method);
+CjsSchema.decorateMethod(Tr2TextureSubresource, "Equals", blue.method, meta.renamed("operator=="));
+CjsSchema.blue.define(Tr2TextureSubresource, { className: "Tr2TextureSubresource" });
