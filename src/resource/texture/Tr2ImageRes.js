@@ -179,11 +179,12 @@ export class Tr2ImageRes extends CjsResource
 // Declared as data rather than with decorators, so the resource tree loads from
 // source without a transform. Field order is key order, and GetValues() exports
 // in that order.
+CjsSchema.blue.interface(Tr2ImageRes)(Tr2ImageRes);
 CjsSchema.blue.define(Tr2ImageRes, {
   className: "Tr2ImageRes",
   fields: {
-    width: [ type.uint32, blue.persist ],
-    height: [ type.uint32, blue.persist ]
+    width: [ type.int32, blue.read, meta.persist ],
+    height: [ type.int32, blue.read, meta.persist ]
   },
   methods: {
     SetPayload: [],

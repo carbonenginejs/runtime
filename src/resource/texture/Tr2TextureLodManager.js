@@ -1,3 +1,5 @@
+import { IRoot } from "#blue/IRoot";
+import { IBlueEvents } from "#blue/IBlueEvents";
 import "#blue/values";
 // Source: trinity/trinity/Resources/Tr2TextureLodManager.h
 // Source: trinity/trinity/Resources/Tr2TextureLodManager.cpp
@@ -84,16 +86,19 @@ export class Tr2TextureLodManager
 
 }
 
+CjsSchema.blue.inherit(IRoot, IBlueEvents)(Tr2TextureLodManager);
+CjsSchema.blue.interface(Tr2TextureLodManager)(Tr2TextureLodManager);
 CjsSchema.blue.define(Tr2TextureLodManager, {
   className: "Tr2TextureLodManager",
+  abstract: true,
   fields: {
     gpuMemoryUsed: type.uint64,
     gpuMemoryAllocated: type.uint64,
     cpuMemoryUsed: type.uint64,
     cpuMemoryAllocated: type.uint64,
     gpuUploadSize: type.uint64,
-    gpuMemorySize: type.unknown,
-    cpuMemorySize: type.unknown,
+    gpuMemorySize: type.uint32,
+    cpuMemorySize: type.uint32,
     currentStats: type.rawStruct("Stats"),
     lowDetailVtaFiles: type.boolean
   },

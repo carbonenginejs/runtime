@@ -763,11 +763,12 @@ function getPayloadMemoryUsage(payload)
 // Declared as data rather than with decorators, so the resource tree loads from
 // source without a transform. Field order is key order, and GetValues() exports
 // in that order.
+CjsSchema.blue.interface(TriTextureRes)(TriTextureRes);
 CjsSchema.blue.define(TriTextureRes, {
   className: "TriTextureRes",
   fields: {
-    format: [ type.unknown, blue.read ],
-    type: [ type.unknown, blue.persist ],
+    format: [ type.int32, type.enum("PixelFormat"), blue.read ],
+    type: [ type.int32, type.enum("TextureType"), blue.read, blue.persist ],
     averageColor: [ type.color, blue.read ],
     depth: [ type.uint32, blue.read ],
     cutoutHeight: [ type.float32, blue.readwrite ],
@@ -776,18 +777,19 @@ CjsSchema.blue.define(TriTextureRes, {
     hadLodRequests: [ type.boolean, blue.read ],
     cpuMip: [ type.uint32, blue.read ],
     gpuMip: [ type.uint32, blue.read ],
-    wrappedRenderTarget: [ type.unknown, blue.read ],
+    wrappedRenderTarget: [ type.rootRef("Tr2RenderTarget"), blue.read ],
     originalResolution: [ type.uint32, blue.read ],
-    originalMemoryUsage: [ type.uint64, blue.read ],
+    originalMemoryUsage: [ type.uint64, meta.read ],
     name: [ type.string, blue.readwrite ],
     arraySize: [ type.uint32, blue.read ],
     cutoutWidth: [ type.float32, blue.readwrite ],
     width: [ type.uint32, blue.read ],
     cutoutX: [ type.float32, blue.readwrite ],
     cutoutY: [ type.float32, blue.readwrite ],
-    loadedBitmap: [ type.unknown, blue.read ]
+    loadedBitmap: [ type.unknown, meta.read ]
   },
   methods: {
+    DoLoad: [ blue.method, meta.adapted ],
     SetPayload: [],
     Initialize: [ blue.method, meta.adapted ],
     GetMipCount: [ blue.method, meta.adapted ],
@@ -797,7 +799,7 @@ CjsSchema.blue.define(TriTextureRes, {
     GetSrvIndexInHeap: [ blue.method, meta.notSupported ],
     GetTexture: [ blue.method, meta.adapted ],
     SetTexture: [ blue.method, meta.adapted ],
-    OnTextureChange: [ meta.implemented ],
+    OnTextureChange: [ blue.method, meta.implemented ],
     SetState: [ meta.adapted ],
     SaveAsync: [ blue.method, meta.notSupported ],
     Save: [ blue.method, meta.notSupported ],
