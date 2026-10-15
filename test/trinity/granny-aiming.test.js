@@ -51,7 +51,8 @@ test("UpdateAimingBone is Carbon-private (Tr2GrannyAnimation.h:175,191)", () =>
   assert.equal(value.UpdateAimingBone, undefined);
   assert.equal(typeof value._UpdateAimingBone, "function");
   assert.equal(CjsSchema.getMethod(Tr2GrannyAnimation, "UpdateAimingBone")?.carbon?.method, undefined);
-  assert.equal(CjsSchema.getMethod(Tr2GrannyAnimation, "_UpdateAimingBone")?.carbon?.method, undefined);
+  assert.equal(CjsSchema.getMethod(Tr2GrannyAnimation, "_UpdateAimingBone")?.carbon?.method, true);
+  assert.equal(CjsSchema.getMethod(Tr2GrannyAnimation, "_UpdateAimingBone")?.carbon?.originalName, "UpdateAimingBone");
 });
 
 test("aiming preserves Carbon parent-transpose behavior under nonuniform scale", () =>

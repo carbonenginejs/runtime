@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/TriFloat.h
 // Source: trinity/trinity/TriFloat.cpp
 // Source: trinity/trinity/TriFloat_Blue.cpp
@@ -10,6 +11,7 @@ import { type, blue } from "#schema";
  */
 @blue.define("TriFloat")
 @blue.interface()
+@blue.inherit(IRoot)
 export class TriFloat
 {
 

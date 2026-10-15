@@ -253,6 +253,7 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * @returns {Float32Array} out
    */
   @meta.adapted
+  @meta.renamed("GetValueAt")
   GetValueAt__Ticks(time, out)
   {
     return this.GetValueAt(CcpTime.timeAsDouble(time - this.start), out);
@@ -265,6 +266,7 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * @returns {Float32Array} out
    */
   @meta.adapted
+  @meta.renamed("Update")
   Update__Ticks(time, out)
   {
     this.GetValueAt__Ticks(time, this.value);
@@ -279,6 +281,7 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * @returns {Float32Array} out
    */
   @meta.adapted
+  @meta.renamed("GetValueDotAt")
   GetValueDotAt__Ticks(time, out)
   {
     return this.GetValueDotAt(CcpTime.timeAsDouble(time - this.start), out);

@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/TriVariable.h
 // Source: trinity/trinity/TriVariable.cpp
 import { meta, type, blue } from "#schema";
@@ -18,12 +19,12 @@ import { float32FromBits } from "#utils/bytes";
 export class TriVariable extends ITr2EffectValue
 {
   /** Existing JavaScript name inspection declaration; not a native Blue member. */
-  @blue.read
+  @meta.read
   @type.string
   name = "";
 
   /** Existing JavaScript type inspection declaration; native TriVariable exposes no members. */
-  @blue.read
+  @meta.read
   @type.int32
   contentType = TriVariableContentType.TRIVARIABLE_INVALID;
 
@@ -411,6 +412,8 @@ export class TriVariable extends ITr2EffectValue
    * @returns {string} Variable result.
    */
   @meta.adapted
+  @blue.method
+  @meta.renamed("GetTypeName")
   static getTypeName(contentType)
   {
     return TriVariable._typeNames[contentType] ?? TriVariable._typeNames[0];
@@ -427,6 +430,8 @@ export class TriVariable extends ITr2EffectValue
    * @returns {number} Variable result.
    */
   @meta.adapted
+  @blue.method
+  @meta.renamed("GetTypeSize")
   static getTypeSize(contentType)
   {
     return TriVariable._typeSizes[contentType] ?? 0;
@@ -476,4 +481,4 @@ export class TriVariable extends ITr2EffectValue
 }
 
 // Native nonexposed table has only concrete/IRoot identity; ITr2EffectValue is nominal only.
-blue.interface()(TriVariable);
+blue.interface(IRoot)(TriVariable);

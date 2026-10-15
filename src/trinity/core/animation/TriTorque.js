@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/TriRigidOrientation.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema trinityCore/TriTorque.json.).
 import { type, blue } from "#schema";
@@ -7,6 +8,7 @@ import { vec3 } from "#math/vec3";
 /** Native IRoot torque key; TriRigidOrientation_Blue.cpp maps no query interfaces. */
 @blue.define("TriTorque")
 @blue.interface()
+@blue.inherit(IRoot)
 export class TriTorque
 {
 

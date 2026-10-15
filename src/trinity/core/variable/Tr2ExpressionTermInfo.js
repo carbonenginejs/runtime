@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2ExpressionTermInfo.h
 // Source: trinity/trinity/Tr2ExpressionTermInfo.cpp
 // Source: trinity/trinity/Tr2ExpressionTermInfo_Blue.cpp
@@ -17,6 +18,7 @@ const TermType = {
  * a string function - with its category, argument names and help text.
  */
 @blue.define("Tr2ExpressionTermInfo")
+@blue.inherit(IRoot)
 export class Tr2ExpressionTermInfo
 {
   /** Native term category; not persisted. */
@@ -62,6 +64,8 @@ export class Tr2ExpressionTermInfo
    * @returns {Tr2ExpressionTermInfo} New term record.
    */
   @meta.implemented
+  @blue.method
+  @meta.renamed("Variable")
   static variable(category, name, description)
   {
     return Tr2ExpressionTermInfo._create(TermType.VARIABLE, category, name, [], description);
@@ -77,6 +81,8 @@ export class Tr2ExpressionTermInfo
    * @returns {Tr2ExpressionTermInfo} New term record.
    */
   @meta.adapted
+  @blue.method
+  @meta.renamed("Function")
   static function(category, name, ...argumentsAndDescription)
   {
     const values = argumentsAndDescription.slice();
@@ -93,6 +99,8 @@ export class Tr2ExpressionTermInfo
    * @returns {Tr2ExpressionTermInfo} New term record.
    */
   @meta.implemented
+  @blue.method
+  @meta.renamed("StringFunction")
   static stringFunction(category, name, argument, description)
   {
     return Tr2ExpressionTermInfo._create(TermType.STRING_FUNCTION, category, name, [argument], description);

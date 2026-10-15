@@ -1,3 +1,4 @@
+import { INotify } from "../../../global/blue/INotify.js";
 // Source: trinity/trinity/Tr2TextureAnimation.h
 // Source: trinity/trinity/Tr2TextureAnimation.cpp
 import { IInitialize } from "../../../global/blue/IInitialize.js";
@@ -13,8 +14,8 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2Rende
 
 /** Advances a multi-channel texture flipbook, tracking frame and restart state per channel. */
 @blue.define("Tr2TextureAnimation")
-@blue.inherit(IInitialize)
-@blue.interface(IInitialize)
+@blue.inherit(IInitialize, INotify)
+@blue.interface(IInitialize, INotify)
 export class Tr2TextureAnimation
 {
   _channels = new Map();
@@ -394,6 +395,8 @@ export class Tr2TextureAnimation
    * @returns {Promise<void>} Completion of the first decode.
    */
   @meta.adapted
+  @blue.method
+  @meta.renamed("ReadFile")
   static async readFile(request)
   {
     const bytes = await be.resMan.ReadResource(request.filename);
@@ -409,6 +412,8 @@ export class Tr2TextureAnimation
    * @returns {Promise<void>} Decode completion.
    */
   @meta.adapted
+  @blue.method
+  @meta.renamed("DecodeFirstFrame")
   static async decodeFirstFrame(request)
   {
     request.state.decoder = CjsVtaFormat.readFrames(request.state.bytes);
@@ -422,6 +427,8 @@ export class Tr2TextureAnimation
    * @returns {Promise<void>} Decode completion.
    */
   @meta.adapted
+  @blue.method
+  @meta.renamed("DecodeNextFrame")
   static async decodeNextFrame(request)
   {
     const state = request.state;
@@ -445,6 +452,8 @@ export class Tr2TextureAnimation
    * @returns {Promise<void>} Decode completion.
    */
   @meta.adapted
+  @blue.method
+  @meta.renamed("RestartAndDecodeFrame")
   static async restartAndDecodeFrame(request)
   {
     await this.decodeFirstFrame(request);

@@ -427,6 +427,7 @@ export class Tr2GrannyAnimationLayer
 
   /** Carbon private GetLayerAnimationTime (cpp:183-190). Not ported: no layer clock. */
   @meta.notImplemented
+  @meta.renamed("GetLayerAnimationTime")
   _GetLayerAnimationTime()
   {
     throw new Error("Tr2GrannyAnimationLayer.GetLayerAnimationTime is not implemented in CarbonEngineJS.");
@@ -434,6 +435,7 @@ export class Tr2GrannyAnimationLayer
 
   /** Carbon private FreeCompletedControls. Not ported: _advanceLayer retires requests. */
   @meta.notImplemented
+  @meta.renamed("FreeCompletedControls")
   _FreeCompletedControls()
   {
     throw new Error("Tr2GrannyAnimationLayer.FreeCompletedControls is not implemented in CarbonEngineJS.");
@@ -441,6 +443,7 @@ export class Tr2GrannyAnimationLayer
 
   /** Carbon private IsUsingCMF. Not ported: one decoded-payload path only. */
   @meta.notImplemented
+  @meta.renamed("IsUsingCMF")
   _IsUsingCMF()
   {
     throw new Error("Tr2GrannyAnimationLayer.IsUsingCMF is not implemented in CarbonEngineJS.");
@@ -448,6 +451,7 @@ export class Tr2GrannyAnimationLayer
 
   /** Carbon private UpdateControlParam (cpp:1092-1125). Not ported: _advanceLayer skews it. */
   @meta.notImplemented
+  @meta.renamed("UpdateControlParam")
   _UpdateControlParam()
   {
     throw new Error("Tr2GrannyAnimationLayer.UpdateControlParam is not implemented in CarbonEngineJS.");
@@ -455,6 +459,7 @@ export class Tr2GrannyAnimationLayer
 
   /** Carbon private RegisterTextTracks (Granny-only). Not ported. */
   @meta.notImplemented
+  @meta.renamed("RegisterTextTracks")
   _RegisterTextTracks()
   {
     throw new Error("Tr2GrannyAnimationLayer.RegisterTextTracks is not implemented in CarbonEngineJS.");
@@ -462,6 +467,7 @@ export class Tr2GrannyAnimationLayer
 
   /** Carbon private RegisterMorphTracks. Not ported: _sampleMorphs decodes per sample. */
   @meta.notImplemented
+  @meta.renamed("RegisterMorphTracks")
   _RegisterMorphTracks()
   {
     throw new Error("Tr2GrannyAnimationLayer.RegisterMorphTracks is not implemented in CarbonEngineJS.");
@@ -469,6 +475,7 @@ export class Tr2GrannyAnimationLayer
 
   /** Carbon private ClearTextTracks (Granny-only). Not ported. */
   @meta.notImplemented
+  @meta.renamed("ClearTextTracks")
   _ClearTextTracks()
   {
     throw new Error("Tr2GrannyAnimationLayer.ClearTextTracks is not implemented in CarbonEngineJS.");
@@ -476,6 +483,7 @@ export class Tr2GrannyAnimationLayer
 
   /** Carbon private ClearMorphTracks. Not ported. */
   @meta.notImplemented
+  @meta.renamed("ClearMorphTracks")
   _ClearMorphTracks()
   {
     throw new Error("Tr2GrannyAnimationLayer.ClearMorphTracks is not implemented in CarbonEngineJS.");
@@ -483,6 +491,7 @@ export class Tr2GrannyAnimationLayer
 
   /** Carbon private SampleTextTracks (Granny-only). Not ported. */
   @meta.notImplemented
+  @meta.renamed("SampleTextTracks")
   _SampleTextTracks()
   {
     throw new Error("Tr2GrannyAnimationLayer.SampleTextTracks is not implemented in CarbonEngineJS.");
@@ -490,6 +499,7 @@ export class Tr2GrannyAnimationLayer
 
   /** Carbon private SampleMorphTracks. Not ported: _sampleMorphs on the owner. */
   @meta.notImplemented
+  @meta.renamed("SampleMorphTracks")
   _SampleMorphTracks()
   {
     throw new Error("Tr2GrannyAnimationLayer.SampleMorphTracks is not implemented in CarbonEngineJS.");

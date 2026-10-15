@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2VariableStore.h
 // Source: trinity/trinity/Tr2VariableStore.cpp
 // Source: trinity/trinity/Tr2VariableStore_Blue.cpp
@@ -18,6 +19,7 @@ import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
  * through RegisterVariable__TextureAL, the native texture-reference overload.
  */
 @blue.define("Tr2VariableStore")
+@blue.inherit(IRoot)
 export class Tr2VariableStore
 {
   /**
@@ -118,6 +120,7 @@ export class Tr2VariableStore
    * @returns {TriVariable|null} Registered variable, or null on a type conflict.
    */
   @meta.adapted
+  @blue.method
   RegisterVariableInternal(name, contentType, value)
   {
     const variable = this.RegisterVariableType(name, contentType);
@@ -138,6 +141,7 @@ export class Tr2VariableStore
    * @returns {TriVariable|null} Registered variable, or null on a type conflict.
    */
   @meta.adapted
+  @meta.renamed("RegisterVariable")
   RegisterVariable__TextureAL(name, texture)
   {
     const variable = Tr2VariableStore.globalStore().GetVariable(name);
@@ -310,6 +314,7 @@ export class Tr2VariableStore
    * @returns {TriVariable|null} Reused or created variable, or type conflict.
    */
   @meta.adapted
+  @blue.method
   RegisterVariableType(name, contentType)
   {
     const existing = this.FindLocalVariable(name);

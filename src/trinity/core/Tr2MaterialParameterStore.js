@@ -88,6 +88,7 @@ export class Tr2MaterialParameterStore extends IInitialize
    * @returns {Promise<Tr2MaterialParameterStore|null>} Accepted current parent.
    */
   @meta.adapted
+  @meta.renamed("LoadParentResource")
   async _LoadParentResource()
   {
     const path = this.parentPath;

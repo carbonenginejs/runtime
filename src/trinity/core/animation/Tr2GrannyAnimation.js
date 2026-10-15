@@ -1,3 +1,4 @@
+import { ITr2AnimationUpdater } from "../../../character/trinity/trinityCore/ITr2AnimationUpdater.js";
 // Source: trinity/trinity/Tr2GrannyAnimation.h
 // Source: trinity/trinity/Tr2GrannyAnimation.cpp
 import { IInitialize } from "../../../global/blue/IInitialize.js";
@@ -106,8 +107,8 @@ function sampleCmfChannel(out, curves, channel, time)
 
 /** Tr2GrannyAnimation (trinityCore) - promoted from generated; shapeHash 056bad2a. */
 @blue.define("Tr2GrannyAnimation")
-@blue.inherit(IInitialize)
-@blue.interface(IInitialize)
+@blue.inherit(IInitialize, ITr2AnimationUpdater)
+@blue.interface(IInitialize, ITr2AnimationUpdater)
 export class Tr2GrannyAnimation
 {
 
@@ -194,6 +195,8 @@ export class Tr2GrannyAnimation
    * separate schema field: exporting both names would create conflicting keys
    * when sparse model values author only the canonical persisted name.
    */
+  @blue.readwrite
+  @type.string
   get resPath()
   {
     return this.resPath_;
@@ -207,6 +210,8 @@ export class Tr2GrannyAnimation
   }
 
   /** Blue property alias for the persisted model_ backing field. */
+  @blue.readwrite
+  @type.string
   get model()
   {
     return this.model_;
@@ -257,6 +262,7 @@ export class Tr2GrannyAnimation
    * geometry remains authoritative until detached, as in Carbon.
    */
   @meta.adapted
+  @blue.method
   Initialize()
   {
     if (!this._sharedGeometry && (this.resPath_ || this._resolvedPath))
@@ -431,6 +437,7 @@ export class Tr2GrannyAnimation
    * cache invalidation (Tr2GrannyAnimation.cpp:1889) when the rig changes.
    */
   @meta.adapted
+  @blue.method
   RebuildCachedData(resource)
   {
     // Notify-target path (Tr2GrannyAnimation.cpp:513-520): only the borrowed
@@ -864,6 +871,7 @@ export class Tr2GrannyAnimation
    * @returns {number} The bone index, or -1.
    */
   @meta.adapted
+  @blue.method
   FindBoneByName(name)
   {
     const bones = this._runtimeModel ? this._runtimeModel.bones : [];
@@ -889,6 +897,7 @@ export class Tr2GrannyAnimation
    * @returns {void}
    */
   @meta.adapted
+  @blue.method
   AddAnimationLayerWithTrackMask(layerName, trackMask)
   {
     const name = String(layerName ?? "");
@@ -1019,6 +1028,7 @@ export class Tr2GrannyAnimation
    * @param {object} skeleton Skeleton view containing ordered bone names.
    * @returns {void}
    */
+  @meta.renamed("UpdateAimingBone")
   _UpdateAimingBone(skeleton)
   {
     if (!this._aimingBone || !this._runtimeModel)
@@ -1170,6 +1180,7 @@ export class Tr2GrannyAnimation
 
   /** Native-name alias retained for controller integrations. */
   @meta.adapted
+  @blue.method
   PlayAnimationOnce(animName)
   {
     return this.PlayAnimation(animName, true, 1, 0, 1, true);
@@ -1185,6 +1196,7 @@ export class Tr2GrannyAnimation
 
   /** Alias used by Carbon controller actions. */
   @meta.adapted
+  @blue.method
   PlayLayerAnimationByName(...args)
   {
     return this.PlayLayerAnimation(...args);
@@ -1283,6 +1295,7 @@ export class Tr2GrannyAnimation
 
   /** Returns whether a model-bearing decoded Granny payload is ready. */
   @meta.implemented
+  @blue.method
   IsInitialized()
   {
     return this._initialized;
@@ -1303,6 +1316,7 @@ export class Tr2GrannyAnimation
    * columns of the 4x4 (Utilities/MatrixUtils.cpp:6-20).
    */
   @meta.adapted
+  @blue.method
   GetMeshBoneMatrixList()
   {
     const bones = this._runtimeModel?.bones ?? [];
@@ -1359,6 +1373,7 @@ export class Tr2GrannyAnimation
    * @returns {number[]} The bound bone indices.
    */
   @meta.adapted
+  @blue.method
   GetSkeletonBoneIndices()
   {
     return this._meshBoneIndices;
@@ -1366,6 +1381,7 @@ export class Tr2GrannyAnimation
 
   /** Returns the number of mesh bones in the current palette. */
   @meta.implemented
+  @blue.method
   GetMeshBoneCount()
   {
     return this._meshBoneIndices.length;
@@ -1373,6 +1389,7 @@ export class Tr2GrannyAnimation
 
   /** Copies a named bone's world transform into an output matrix. */
   @meta.adapted
+  @blue.method
   GetBoneWorldTransform(boneName, out = mat4.create())
   {
     const index = this._runtimeModel?.boneByName.get(String(boneName ?? ""));
@@ -1410,6 +1427,7 @@ export class Tr2GrannyAnimation
 
   /** Returns the current world transforms for every animation bone. */
   @meta.implemented
+  @blue.method
   GetAnimationTransforms()
   {
     return this._runtimeModel?.bones.map(bone => bone.worldTransform) ?? [];
@@ -1417,6 +1435,7 @@ export class Tr2GrannyAnimation
 
   /** Returns the ordered names of the current animation bones. */
   @meta.implemented
+  @blue.method
   GetAnimationBoneList()
   {
     return this._runtimeModel?.bones.map(bone => bone.name) ?? [];
@@ -1424,6 +1443,7 @@ export class Tr2GrannyAnimation
 
   /** Returns a detached snapshot of morph values sampled during the last update. */
   @meta.implemented
+  @blue.method
   GetMorphAnimations()
   {
     return new Map(this._morphAnimations);
@@ -1503,6 +1523,7 @@ export class Tr2GrannyAnimation
   }
 
   /** Applies configured bone offsets to the sampled local pose. */
+  @meta.renamed("ApplyBoneOffsets")
   _ApplyBoneOffsets()
   {
     // Carbon cpp:1727-1742: rebind when the rig changed, then apply per bone.
@@ -1602,6 +1623,7 @@ export class Tr2GrannyAnimation
    * @returns {number} Its duration in seconds, or 0.
    */
   @meta.adapted
+  @blue.method
   FindAnimationDurationByName(name)
   {
     const animation = this._findAnimation(name);
