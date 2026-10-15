@@ -1875,7 +1875,6 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    *
    * @returns {void}
    */
-  @meta.ours
   _ReclaimCollectedTextures()
   {
     let freed = false;

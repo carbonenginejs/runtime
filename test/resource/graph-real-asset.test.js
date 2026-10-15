@@ -59,7 +59,7 @@ function records(root)
         if (Array.isArray(value)) return Array.from(value, item => visit(item, type.itemType));
         if (value instanceof Set) return { set: Array.from(value, item => visit(item, type.itemType)) };
         if (value instanceof Map) return { map: Array.from(value, ([key, item]) => [key, visit(item, type.valueType)]) };
-        const declared = ["root", "rawStruct"].includes(type.kind) ? CjsSchema.GetConstructor(type.className) : null;
+        const declared = ["root", "rawStruct"].includes(type.kind) ? CjsSchema.getConstructor(type.className) : null;
         const Constructor = declared || value.constructor;
         const name = CjsSchema.getClassName(Constructor);
         if (!name) return Object.fromEntries(Object.keys(value).sort().map(key => [key, visit(value[key])]));

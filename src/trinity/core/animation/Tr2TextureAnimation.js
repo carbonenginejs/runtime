@@ -326,7 +326,6 @@ export class Tr2TextureAnimation
    * @param {Map<string, object>|Object<string, object>} channels Channel adapters.
    * @returns {void}
    */
-  @meta.ours
   SetChannels(channels)
   {
     this._clear();
@@ -347,7 +346,6 @@ export class Tr2TextureAnimation
    * reclaims it after the last reference drops.
    * @returns {void}
    */
-  @meta.ours
   Destroy()
   {
     this._clear();

@@ -102,7 +102,7 @@ test("isInstanceOf reads a class this copy has never seen", () =>
     // so this copy has none. Only the stamp crosses, and the stamp is enough.
     //
     // This is the case that makes the check worth having. Resolving the name
-    // through GetConstructor and testing `instanceof` would compare identity
+    // through getConstructor and testing `instanceof` would compare identity
     // again and fail exactly here.
     const stamp = Symbol.for("carbonenginejs.className");
     class ForeignBase {}
@@ -112,7 +112,7 @@ test("isInstanceOf reads a class this copy has never seen", () =>
 
     const foreign = new ForeignShip();
 
-    assert.equal(CjsSchema.GetConstructor("ForeignEveShip2"), null, "this copy has no registration for it");
+    assert.equal(CjsSchema.getConstructor("ForeignEveShip2"), null, "this copy has no registration for it");
     assert.equal(CjsSchema.isInstanceOf("ForeignEveShip2", foreign), true);
     assert.equal(CjsSchema.isInstanceOf("ForeignTr2Mesh", foreign), true);
     assert.equal(CjsSchema.isInstanceOf("ForeignTr2Effect", foreign), false);

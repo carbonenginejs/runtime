@@ -23,12 +23,8 @@ export const TriStepResult = Object.freeze({
 
 // Reviewed Blue registrations; values and chooser references share the declarations above.
 blueEnums.Create("trinity.TriStepFilterVisibilityResults.FilterType", FilterType, {
-  "source": "trinity/trinity/RenderJob/TriStepFilterVisibilityResults.h",
-  "family": "renderJob",
-  "line": 41,
   "exposedName": "TRIVISIBILITY_FILTER_TYPE",
   "exposure": 2,
-  "chooserSource": "trinity/trinity/RenderJob/TriStepFilterVisibilityResults_Blue.cpp:44",
   "chooser": [
     {
       "name": "TRIVISIBILITY_FILTER_ONLY_OBJECTS_IN_LIST",
@@ -43,12 +39,8 @@ blueEnums.Create("trinity.TriStepFilterVisibilityResults.FilterType", FilterType
   ]
 });
 blueEnums.Create("trinity.TriRenderJobStatus", TriRenderJobStatus, {
-  "source": "trinity/trinity/RenderJob/TriRenderJob.h",
-  "family": "renderJob",
-  "line": 14,
   "exposedName": "RENDERJOB_STATUS",
   "exposure": 2,
-  "chooserSource": "trinity/trinity/RenderJob/TriRenderJob_Blue.cpp:8",
   "chooser": [
     {
       "name": "RJ_INIT",

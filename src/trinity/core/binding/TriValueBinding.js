@@ -556,7 +556,6 @@ export class TriValueBinding extends INotify
    * Custom: implements the existing portable value, path or endpoint adapter.
    * @returns {object|null} Binding result.
    */
-  @meta.ours
   _GetReroutableDestination()
   {
     return this._reroutableDestination instanceof WeakRef
@@ -571,7 +570,6 @@ export class TriValueBinding extends INotify
    * @param {string} attribute Member expression.
    * @returns {object|null} Binding result.
    */
-  @meta.ours
   static _parseAttribute(attribute)
   {
     const value = String(attribute ?? "");
@@ -590,7 +588,6 @@ export class TriValueBinding extends INotify
    * @param {ArrayLike|number} offset Component offset or four-component value offset.
    * @returns {boolean} Binding result.
    */
-  @meta.ours
   static _canUseOffset(value, offset)
   {
     return offset === -1 || (TriValueBinding._isArrayLike(value) && value.length > offset);
@@ -605,7 +602,6 @@ export class TriValueBinding extends INotify
    * @param {object|null} field Schema field metadata.
    * @returns {object|null} Binding result.
    */
-  @meta.ours
   static _describeValue(value, field)
   {
     const kind = field?.type?.kind ?? null;
@@ -652,7 +648,6 @@ export class TriValueBinding extends INotify
    * @param {number} destinationOffset Destination component offset, or -1.
    * @returns {object|null} Binding result.
    */
-  @meta.ours
   static _createCopyPlan(source, sourceOffset, destination, destinationOffset)
   {
     if (!source || !destination) return null;
@@ -764,7 +759,6 @@ export class TriValueBinding extends INotify
    * @param {ArrayLike|number} offset Component offset or four-component value offset.
    * @returns {boolean} Binding result.
    */
-  @meta.ours
   static _applyCopyPlan(plan, object, name, source, destination, scale, offset)
   {
     switch (plan.kind)
@@ -866,7 +860,6 @@ export class TriValueBinding extends INotify
    * @param {*} value Incoming value.
    * @returns {boolean} Binding result.
    */
-  @meta.ours
   static _writeScalar(object, name, destination, value)
   {
     if (typeof destination === "function")
@@ -905,7 +898,6 @@ export class TriValueBinding extends INotify
    * @param {*} value Incoming value.
    * @returns {boolean} Binding result.
    */
-  @meta.ours
   static _writeArrayComponent(destination, index, value)
   {
     if (!TriValueBinding._isArrayLike(destination) || destination.length <= index) return false;
@@ -922,7 +914,6 @@ export class TriValueBinding extends INotify
    * @param {*} value Incoming value.
    * @returns {number|boolean} Binding result.
    */
-  @meta.ours
   static _castScalar(kind, value)
   {
     switch (kind)
@@ -945,7 +936,6 @@ export class TriValueBinding extends INotify
    * @param {string} kind Declared numeric kind.
    * @returns {number} Binding result.
    */
-  @meta.ours
   static _scalarBytes(kind)
   {
     if (["int8", "uint8", "boolean"].includes(kind)) return 1;
@@ -962,7 +952,6 @@ export class TriValueBinding extends INotify
    * @param {string} name Member or root name.
    * @returns {void} No return value.
    */
-  @meta.ours
   static _notify(object, name)
   {
     const notify = CjsSchema.cast(object, INotify);
@@ -975,7 +964,6 @@ export class TriValueBinding extends INotify
    * @param {*} value Incoming value.
    * @returns {boolean} Binding result.
    */
-  @meta.ours
   static _isArrayLike(value)
   {
     return Array.isArray(value) || ArrayBuffer.isView(value);
@@ -987,7 +975,6 @@ export class TriValueBinding extends INotify
    * @param {*} value Incoming value.
    * @returns {boolean} Binding result.
    */
-  @meta.ours
   static _isReference(value)
   {
     return value !== null && (typeof value === "object" || typeof value === "function");

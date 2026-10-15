@@ -525,7 +525,7 @@ CjsSchema.blue.define(Tr2EffectStageInput, {
      * shipped corpus does not always set it to the null sentinel; the graph retains it so a
      * body re-emits as the file that produced it.
      */
-    constantValuesUnsetOffset: [ meta.ours, type.uint32 ],
+    constantValuesUnsetOffset: [ type.uint32 ],
     signature: type.rawStruct("Tr2ShaderSignatureAL"),
     annotation: type.list("Tr2EffectParameterAnnotation"),
     sourceProgram: [ meta.adapted, type.rawStruct("CjsEffectSourceProgram") ]

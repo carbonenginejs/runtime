@@ -61,8 +61,8 @@ test("curve-set and range have native bases and exact exposure without model con
       assert.equal(value[name], undefined, name);
   assert.equal(TriCurveSet.from, undefined);
   assert.equal(Tr2CurveSetRange.from, undefined);
-  assert.equal(CjsSchema.GetConstructor("TriCurveSet"), TriCurveSet);
-  assert.equal(CjsSchema.GetConstructor("Tr2CurveSetRange"), Tr2CurveSetRange);
+  assert.equal(CjsSchema.getConstructor("TriCurveSet"), TriCurveSet);
+  assert.equal(CjsSchema.getConstructor("Tr2CurveSetRange"), Tr2CurveSetRange);
 });
 
 test("stored declaration order and constructor-owned native lists retain exact element facts", () =>
@@ -328,7 +328,7 @@ for (const route of ["declared dictionary", "canonical Black runtime", "default 
     const previous = be.resMan;
     be.resMan = new StubResMan();
     t.after(() => { be.resMan = previous; });
-    assert.equal(CjsSchema.GetConstructor("EveMeshOverlayEffect"), EveMeshOverlayEffect);
+    assert.equal(CjsSchema.getConstructor("EveMeshOverlayEffect"), EveMeshOverlayEffect);
     const overlay = route === "declared dictionary"
       ? new DictReader({ declarations: true }).CreateObject(CjsBlackFormat.readPayload(bytes).object)
       : CjsBlackFormat.read(bytes, { emit: "runtime", ...(route === "canonical Black runtime" ? { schema: null } : {}) }).root;

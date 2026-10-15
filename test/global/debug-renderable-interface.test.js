@@ -15,7 +15,7 @@ test("ITr2DebugRenderable has one registered identity and its two native abstrac
 {
   assert.equal(ITr2DebugRenderable, DirectDebugRenderable);
   assert.equal(CjsSchema.getClassName(ITr2DebugRenderable), "ITr2DebugRenderable");
-  assert.equal(CjsSchema.GetConstructor("ITr2DebugRenderable"), ITr2DebugRenderable);
+  assert.equal(CjsSchema.getConstructor("ITr2DebugRenderable"), ITr2DebugRenderable);
   for (const method of ["GetDebugOptions", "RenderDebugInfo"])
   {
     assert.equal(CjsSchema.getMethod(ITr2DebugRenderable, method).impl.status, "abstract");
@@ -114,8 +114,8 @@ test("the shared debug contract imports without Trinity, audio, model or device 
       }
       const { ITr2DebugRenderable, ITr2DebugRenderer2 } = await import("@carbonenginejs/runtime/interfaces");
       const { CjsSchema } = await import("@carbonenginejs/runtime/schema");
-      assert.equal(CjsSchema.GetConstructor("ITr2DebugRenderable"), ITr2DebugRenderable);
-      assert.equal(CjsSchema.GetConstructor("ITr2DebugRenderer2"), ITr2DebugRenderer2);
+      assert.equal(CjsSchema.getConstructor("ITr2DebugRenderable"), ITr2DebugRenderable);
+      assert.equal(CjsSchema.getConstructor("ITr2DebugRenderer2"), ITr2DebugRenderer2);
     `
   ], {
     cwd: fileURLToPath(new URL("../../", import.meta.url)),
@@ -133,7 +133,7 @@ test("ITr2DebugRenderer2 declares every unique native operation as an abstract o
     "GetColorForOption", "SetColorForOption", "DrawAudioSpeaker"
   ];
   assert.equal(ITr2DebugRenderer2, DirectDebugRenderer);
-  assert.equal(CjsSchema.GetConstructor("ITr2DebugRenderer2"), ITr2DebugRenderer2);
+  assert.equal(CjsSchema.getConstructor("ITr2DebugRenderer2"), ITr2DebugRenderer2);
   assert.deepEqual(Object.getOwnPropertyNames(ITr2DebugRenderer2.prototype), ["constructor", ...methods]);
   assert.equal(Object.getPrototypeOf(ITr2DebugRenderer2.prototype), Object.prototype);
   assert.deepEqual(CjsSchema.getSchema(ITr2DebugRenderer2).members, []);

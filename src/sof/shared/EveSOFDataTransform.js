@@ -62,7 +62,6 @@ export class EveSOFDataTransform
    * @param {Float32Array} out Destination matrix.
    * @returns {Float32Array} The destination matrix.
    */
-  @meta.ours
   GetTransform(out)
   {
     return mat4.fromRotationTranslationScale(out, this.rotation, this.position, this.scaling);

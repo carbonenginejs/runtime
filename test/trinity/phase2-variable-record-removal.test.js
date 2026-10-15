@@ -28,7 +28,7 @@ test("variable records remove model behavior and retain exact native base/query 
 test("canonical effect-value interface preserves native inert defaults and resource flags", () =>
 {
   const value = new ITr2EffectValue(), bytes = [1, 2], resources = {};
-  assert.equal(CjsSchema.GetConstructor("ITr2EffectValue"), ITr2EffectValue);
+  assert.equal(CjsSchema.getConstructor("ITr2EffectValue"), ITr2EffectValue);
   assert.equal(value.CopyValueToEffect(0, bytes, 8, {}), undefined);
   assert.deepEqual(bytes, [1, 2]);
   assert.equal(value.CopyToResourceSet(resources, 0, 1, 0), false);

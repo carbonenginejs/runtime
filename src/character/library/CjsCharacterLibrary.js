@@ -574,7 +574,7 @@ function RequireDocumentName(value)
 function RequireDocumentRecord(documentName, record)
 {
     const typeName = CjsCharacterLibraryDocuments.getDocumentType(documentName);
-    const Constructor = CjsSchema.GetConstructor(typeName);
+    const Constructor = CjsSchema.getConstructor(typeName);
 
     if (!Constructor || !(record instanceof Constructor))
     {
@@ -610,7 +610,7 @@ function EmitRecordEvent(library, eventName, documentName, record, options, extr
 function CreateDocumentIndex(name, document, typeName, revision)
 {
     const records = new Map();
-    const Constructor = CjsSchema.GetConstructor(typeName);
+    const Constructor = CjsSchema.getConstructor(typeName);
 
     for (const record of document)
     {
@@ -732,7 +732,7 @@ function ValidateFieldValue(value, fieldType, label)
             return;
         }
 
-        const Constructor = CjsSchema.GetConstructor(fieldType.className);
+        const Constructor = CjsSchema.getConstructor(fieldType.className);
 
         if (!Constructor)
         {
@@ -750,7 +750,7 @@ function ValidateFieldValue(value, fieldType, label)
             throw new TypeError(`${label} must be an array`);
         }
 
-        const Constructor = CjsSchema.GetConstructor(fieldType.itemType);
+        const Constructor = CjsSchema.getConstructor(fieldType.itemType);
 
         if (Constructor)
         {

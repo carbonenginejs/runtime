@@ -56,7 +56,6 @@ export class CjsCharacterLibraryDocuments
      * Adapted: JS character library lookup indexes must observe same-length list replacements,
      * including deferred edits.
      */
-    @meta.ours
     @meta.invalidates("_documentRevisions")
     OnListModified(_event, _key, _key2, _value, list)
     {
@@ -258,7 +257,7 @@ function RequireDocumentName(value)
 function RequireDocumentRecord(documentName, record)
 {
     const typeName = CjsCharacterLibraryDocuments.getDocumentType(documentName);
-    const Constructor = CjsSchema.GetConstructor(typeName);
+    const Constructor = CjsSchema.getConstructor(typeName);
     if (!Constructor || !(record instanceof Constructor))
     {
         throw new TypeError(

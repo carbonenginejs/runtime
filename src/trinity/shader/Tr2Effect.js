@@ -252,7 +252,6 @@ export class Tr2Effect extends Tr2Material
   }
 
   /** Deterministic adaptation of the effect destructor and its owned value members. */
-  @meta.ours
   Destroy()
   {
     if (this._destroyed) return;
@@ -1816,7 +1815,7 @@ export class Tr2Effect extends Tr2Material
     {
       return explicit;
     }
-    const Registered = CjsSchema.GetConstructor(String(explicit));
+    const Registered = CjsSchema.getConstructor(String(explicit));
     if (!Registered)
     {
       throw new TypeError(`Unknown effect parameter type "${explicit}".`);

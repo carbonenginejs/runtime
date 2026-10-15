@@ -12,7 +12,7 @@ import { Tr2TextureAL } from "../../../trinityal/Tr2TextureAL/index.js";
 // the default here. Each verb also takes an optional trailing context, for a
 // caller composing its own.
 //
-// The `@edit.read` properties are the Blue READ projection, refreshed wherever
+// The `@blue.read` properties are the Blue READ projection, refreshed wherever
 // the texture changes.
 import { meta, type, blue } from "#schema";
 import { Tr2Event } from "../Tr2Event.js";
@@ -313,7 +313,6 @@ export class Tr2RenderTarget
    * Adapted: JavaScript requires an explicit counterpart to the C++ member destructors.
    * Call after the owner has stopped using this render target.
    */
-  @meta.ours
   Dispose()
   {
     this.Destroy();

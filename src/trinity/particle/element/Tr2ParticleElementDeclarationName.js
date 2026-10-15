@@ -76,9 +76,7 @@ export class Tr2ParticleElementDeclarationName
 
 
 be.enums.Create("trinity.Tr2ParticleElementDeclarationName.Type", Tr2ParticleElementDeclarationName.Type, {
-  source: "trinity/trinity/Particle/Tr2ParticleElementDeclaration.h", family: "particle", line: 22,
   exposedName: "PARTICLE_ELEMENT_TYPE", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Particle/Tr2ParticleElementDeclaration_Blue.cpp:6",
   chooser: [
     { name: "LIFETIME", value: Tr2ParticleElementDeclarationName.Type.LIFETIME, description: "Particle life time (2D float)" },
     { name: "POSITION", value: Tr2ParticleElementDeclarationName.Type.POSITION, description: "Particle position (3D vector)" },

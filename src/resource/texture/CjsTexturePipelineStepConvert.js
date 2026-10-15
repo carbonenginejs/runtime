@@ -71,7 +71,7 @@ CjsSchema.meta.define(CjsTexturePipelineStepConvert, {
     paths: [ blue.persist, type.list("string") ]
   },
   methods: {
-    GetResourceDependencies: meta.ours,
-    Execute: meta.ours
+    GetResourceDependencies: [],
+    Execute: []
   }
 });

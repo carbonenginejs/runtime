@@ -386,7 +386,6 @@ export class EveSOFDataMgr
    * @param {object} hull Prepared hull retaining its authored decalSets.
    * @returns {boolean} Whether an authored collection is available.
    */
-  @meta.ours
   EnsureHullDecalOrigins(hull)
   {
     if (!Array.isArray(hull.decalSets)) return false;

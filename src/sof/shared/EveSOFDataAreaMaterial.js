@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:80-91
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.js";
 
 /** Chooses a faction color and four material names for an area and supports assignment and override composition.
@@ -89,7 +89,6 @@ export class EveSOFDataAreaMaterial
    * @param {object} [out={}] Destination area descriptor.
    * @returns {object} The destination descriptor.
    */
-  @meta.ours
   Assign(out = {})
   {
     out.colorType = this.colorType;
@@ -109,7 +108,6 @@ export class EveSOFDataAreaMaterial
    * @param {EveSOFDataAreaMaterial|null} [out=null] Reused destination.
    * @returns {EveSOFDataAreaMaterial|null} The combined record or null.
    */
-  @meta.ours
   static combine(base, overrides, out = null)
   {
     if (!base) return null;

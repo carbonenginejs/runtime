@@ -90,10 +90,6 @@ export function HasTextureFlags(value)
 
 // Definition-site Blue registration preserves Carbon chooser order and exposure.
 // Carbon neither registers this nor gives it a chooser.
-blueEnums.Create("trinity.Tr2CpuUsage", Tr2CpuUsage, {
-  source: "trinity/trinityal/Tr2RenderContextEnum.h", family: "trinity", line: 438
-});
+blueEnums.Create("trinity.Tr2CpuUsage", Tr2CpuUsage);
 // Carbon neither registers this nor gives it a chooser.
-blueEnums.Create("trinity.Tr2GpuUsage", Tr2GpuUsage, {
-  source: "trinity/trinityal/Tr2RenderContextEnum.h", family: "trinity", line: 461
-});
+blueEnums.Create("trinity.Tr2GpuUsage", Tr2GpuUsage);

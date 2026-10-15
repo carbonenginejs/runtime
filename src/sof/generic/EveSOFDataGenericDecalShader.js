@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:532-543
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 
 /** Declares the parameters and textures accepted by a decal shader and builds its configuration record.
  * Native IRoot-only data with a self-only Blue table. Independently initialized
@@ -69,7 +69,6 @@ export class EveSOFDataGenericDecalShader
    * @param {string} key Authored usage name.
    * @returns {boolean} Whether this shader references the name.
    */
-  @meta.ours
   HasUsage(key)
   {
     if (!key) return false;
@@ -86,7 +85,6 @@ export class EveSOFDataGenericDecalShader
    * @param {object|null} [provided={}] Caller-supplied parameter and texture maps.
    * @returns {object} The populated configuration.
    */
-  @meta.ours
   Assign(config = {}, provided = {})
   {
     config = config || {};
@@ -104,7 +102,6 @@ export class EveSOFDataGenericDecalShader
    * @param {object|null} [provided=null] Caller-supplied parameter values.
    * @returns {object} The populated parameter map.
    */
-  @meta.ours
   AssignParameters(out = {}, provided = null)
   {
     out = out || {};
@@ -135,7 +132,6 @@ export class EveSOFDataGenericDecalShader
    * @param {object|null} [provided=null] Caller-supplied texture values.
    * @returns {object} The populated texture map.
    */
-  @meta.ours
   AssignTextures(out = {}, provided = null)
   {
     out = out || {};

@@ -297,10 +297,10 @@ CjsSchema.blue.define(Tr2Pass, {
     resourceSetDesc: type.rawStruct("Tr2ResourceSetDescriptionAL"),
     indirectLayout: type.rawStruct("Tr2IndirectDrawBufferLayout"),
     renderStateValues: [ meta.adapted, type.rawStruct("CjsEffectRenderStateValues") ],
-    stageOrder: [ meta.ours, type.rawStruct("CjsEffectStageOrder") ],
-    backendBlock: [ meta.ours, type.rawStruct("CjsEffectBackendBlock") ]
+    stageOrder: [ type.rawStruct("CjsEffectStageOrder") ],
+    backendBlock: [ type.rawStruct("CjsEffectBackendBlock") ]
   },
   methods: {
-    readMergedResources: meta.ours
+    readMergedResources: []
   }
 });

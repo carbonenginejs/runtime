@@ -29,7 +29,6 @@ export class TriEventCurve extends ITriFunction
    * @param {Function} callback Work to run.
    * @returns {void}
    */
-  @meta.ours
   static queuePostUpdateCallback(callback)
   {
     this._postUpdateCallbacks.push(callback);
@@ -39,7 +38,6 @@ export class TriEventCurve extends ITriFunction
    * Runs one class-local callback in JavaScript.
    * @returns {boolean} Whether one ran.
    */
-  @meta.ours
   static runNextPostUpdateCallback()
   {
     const callback = this._postUpdateCallbacks.shift();
@@ -56,7 +54,6 @@ export class TriEventCurve extends ITriFunction
    * @param {number} limit Maximum callbacks.
    * @returns {number} Callbacks run.
    */
-  @meta.ours
   static flushPostUpdateCallbacks(limit = Number.POSITIVE_INFINITY)
   {
     let count = 0;
@@ -71,7 +68,6 @@ export class TriEventCurve extends ITriFunction
    * Returns the class-local callback count.
    * @returns {number}
    */
-  @meta.ours
   static getPostUpdateCallbackCount()
   {
     return this._postUpdateCallbacks.length;
@@ -81,7 +77,6 @@ export class TriEventCurve extends ITriFunction
    * Clears the class-local JavaScript callback queue.
    * @returns {void}
    */
-  @meta.ours
   static clearPostUpdateCallbacks()
   {
     this._postUpdateCallbacks.length = 0;
@@ -409,7 +404,6 @@ export class TriEventCurve extends ITriFunction
    * @param {TriEventKey} key Event key.
    * @returns {void}
    */
-  @meta.ours
   FireKey(key)
   {
     this.value = key.value || "";
@@ -431,7 +425,6 @@ export class TriEventCurve extends ITriFunction
    * @param {TriEventKey|object} key Input record.
    * @returns {TriEventKey}
    */
-  @meta.ours
   static _ensureEventKey(key)
   {
     return CjsSchema.cast(key, TriEventKey) ? key : Object.assign(new TriEventKey(), key);
@@ -442,7 +435,6 @@ export class TriEventCurve extends ITriFunction
    * @param {*} args Input arguments.
    * @returns {Array}
    */
-  @meta.ours
   static _normalizeCallableArgs(args)
   {
     if (args === null || args === undefined)

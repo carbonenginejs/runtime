@@ -29,12 +29,12 @@ export class TriSettings
    * Adapted: Carbon takes a pointer to the value; here the owner and key of a
    * live value stand for it. With no key, the entry holds `ownerOrValue` itself.
    * `applies`, `enum`, `values` and `carbon` are ours, for a settings menu
-   * (see CjsSchema.edit.setting); Carbon records none of them.
+   * (see meta.setting); Carbon records none of them.
    *
    * @param {string} name The setting's name.
    * @param {object|boolean|number|string} ownerOrValue The value's owner, or the value.
    * @param {string} [key] The owner's property holding the value.
-   * @param {{ applies?: string, enum?: object|string|null, values?: Array|null, carbon?: boolean }} [options] See CjsSchema.edit.setting.
+   * @param {{ applies?: string, enum?: object|string|null, values?: Array|null, carbon?: boolean }} [options] See meta.setting.
    * @returns {TriSettings} This registry.
    */
   @blue.method
@@ -83,7 +83,6 @@ export class TriSettings
    *
    * @returns {string[]} The names.
    */
-  @meta.ours
   GetNames()
   {
     return [ ...this._settings.keys() ].sort();

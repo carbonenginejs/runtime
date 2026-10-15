@@ -998,4 +998,4 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
-CjsSchema.blue.define(CjsWebgpuTextureAL, { className: "CjsWebgpuTextureAL", donors: [ "Tr2TextureAL" ], methods: { RequestAverageColor: [meta.ours] } });
+CjsSchema.blue.define(CjsWebgpuTextureAL, { className: "CjsWebgpuTextureAL", donors: [ "Tr2TextureAL" ], methods: { RequestAverageColor: [] } });

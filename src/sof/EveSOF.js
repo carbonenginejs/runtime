@@ -463,7 +463,6 @@ export class EveSOF
    *
    * @throws {TypeError} for a malformed option value.
    */
-  @meta.ours
   async Register(options = {})
   {
     if (!options || typeof options !== "object" || Array.isArray(options))
@@ -698,7 +697,6 @@ export class EveSOF
    * Acquires a DNA build through the configured async SOF resource boundary.
    * Custom: Blue delegates DNA here without importing the SOF implementation.
    */
-  @meta.ours
   async Fetch(dna, options = {})
   {
     return this.BuildFromDNAAsync(dna, options);
@@ -710,7 +708,6 @@ export class EveSOF
    * loads can be retried and never count as initialized. Custom: Carbon loads
    * the catalog synchronously; JS must join asynchronous resource acquisition.
    */
-  @meta.ours
   async InitializeAsync(options = {})
   {
     if (this._dataPath)
@@ -746,7 +743,6 @@ export class EveSOF
    * Carbon's synchronous LoadData, concurrent reads join one operation and
    * successful installation supplies readiness for later asynchronous builds.
    */
-  @meta.ours
   async LoadDataAsync(filePath = this._dataPath)
   {
     const path = normalizeResourcePath(filePath);
@@ -828,7 +824,6 @@ export class EveSOF
    * Carbon exposes no equivalent query. Other build filters can still exclude sets
    * whose visibility group is enabled.
    */
-  @meta.ours
   async GetDnaVisibilityGroups(dnaString, options = {})
   {
     const dna = await this.CreateDna(dnaString, options);
@@ -880,7 +875,6 @@ export class EveSOF
   }
 
   /** Inspects a DNA selection after awaiting its catalog, without building a graph. */
-  @meta.ours
   async InspectDna(dnaString, options = {})
   {
     await this._EnsureDnaData(dnaString, options);
@@ -991,7 +985,6 @@ export class EveSOF
    * @param {object} [options] Catalog readiness options.
    * @returns {Promise<string[]|null>} Index-aligned paths, or null for invalid DNA.
    */
-  @meta.ours
   async ModifyTextureResPaths(dnaString, paths, options = {})
   {
     const dna = await this.CreateDna(dnaString, options);
@@ -1040,7 +1033,7 @@ export class EveSOF
   @meta.adapted
   _BuildChild(owner, dnaString, partTag, transform, options, collectOnly = false)
   {
-    const isModel = owner != null && CjsSchema.GetConstructor(CjsSchema.getClassName(owner.constructor)) === owner.constructor;
+    const isModel = owner != null && CjsSchema.getConstructor(CjsSchema.getClassName(owner.constructor)) === owner.constructor;
     const source = isModel
       ? CjsSchema.getValues(owner, {}, { refs: true, forceTypeTags: true })
       : owner;
@@ -1080,7 +1073,6 @@ export class EveSOF
    * @returns {Promise<object|null>} New mutable values, or null for invalid DNA.
    * @throws {TypeError|RangeError} If the owner, part tag or transform is invalid; downstream build errors also propagate.
    */
-  @meta.ours
   async BuildChildValues(ownerValues, dnaString, partTag, transform = identityMatrix(), options = {})
   {
     transform = normalizePlacementTransform(transform);
@@ -1089,7 +1081,6 @@ export class EveSOF
   }
 
   /** Composes prepared modular hull values synchronously for both resolver passes. */
-  @meta.ours
   _BuildChildValues(ownerValues, dnaString, partTag, transform, options)
   {
     if (!ownerValues || typeof ownerValues !== "object" || Array.isArray(ownerValues))
@@ -1174,7 +1165,6 @@ export class EveSOF
   }
 
   /** Promise-facing BuildFromDNA. */
-  @meta.ours
   async BuildFromDNAAsync(dnaString, options = {})
   {
     return this.BuildFromDNA(dnaString, options);
@@ -1185,7 +1175,6 @@ export class EveSOF
    * replaces Carbon's startup catalog; malformed syntax retains native invalid
    * results without attempting to fetch nonsensical resource names.
    */
-  @meta.ours
   async _EnsureDnaData(dnaString, options)
   {
     if (this._dataPath) await this.InitializeAsync(options);
@@ -1210,7 +1199,6 @@ export class EveSOF
    * Custom: callbacks let ordinary and modular builds share request-local
    * resolver state; neither callback may suspend while those bindings are set.
    */
-  @meta.ours
   async _ResolveResources(build, collect = build)
   {
     const getObject = this._asyncResources.getObject;
@@ -1316,7 +1304,6 @@ export class EveSOF
    * Custom: Exposes the JavaScript layout planner as a detached CPU plan. Carbon
    * performs selection and placement during assembly, without an equivalent query.
    */
-  @meta.ours
   async PlanLayoutFromDNA(dnaString, options = {})
   {
     const dna = await this.CreateDna(dnaString, options);
@@ -1607,7 +1594,6 @@ export class EveSOF
    * BuildFromDNA and CreatePlacement, without a method of this name.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.ours
   SetupExtensionBuild(document, rootFields, dna, layoutOptions = {})
   {
     const extensionFields = {
@@ -2832,7 +2818,6 @@ export class EveSOF
    * area ranges and cutout/winding flags.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.ours
   CreateSharedLayoutAreas(document, dna)
   {
     const result = [];
@@ -2892,7 +2877,6 @@ export class EveSOF
    * for the non-shared instanced branch of Carbon’s CreatePlacement.
    * @internal Prepared assembly; called only behind asynchronous public entries.
    */
-  @meta.ours
   CreateLayoutInstancedMesh(document, dna, instances)
   {
     if (!instances.length) return null;
@@ -3020,7 +3004,6 @@ export class EveSOF
    * @returns {object} Booster appearance fields with effect references.
    * @internal
    */
-  @meta.ours
   CreateBoosterSettings(document, race, hasTrails, trailData = [])
   {
     const effect = createBoosterEffect(document, race, "BOOSTER_LOD_HIGH");
@@ -4481,7 +4464,6 @@ export class EveSOF
   }
 
   /** Acquires generic data before returning its normalized projection. */
-  @meta.ours
   async GetGenericData(options = {})
   {
     await this.InitializeAsync(options);
@@ -4489,7 +4471,6 @@ export class EveSOF
   }
 
   /** Acquires the hull catalog before returning its normalized projection. */
-  @meta.ours
   async GetHullData(name, options = {})
   {
     name = String(name).trim().toLowerCase();
@@ -4502,7 +4483,6 @@ export class EveSOF
   }
 
   /** Acquires the faction catalog before returning its normalized projection. */
-  @meta.ours
   async GetFactionData(name, options = {})
   {
     name = String(name).trim().toLowerCase();
@@ -4516,7 +4496,6 @@ export class EveSOF
   }
 
   /** Acquires the race catalog before returning its normalized projection. */
-  @meta.ours
   async GetRaceData(name, options = {})
   {
     name = String(name).trim().toLowerCase();
@@ -4529,7 +4508,6 @@ export class EveSOF
   }
 
   /** Acquires the material catalog before returning its normalized projection. */
-  @meta.ours
   async GetMaterialData(name, options = {})
   {
     name = String(name).trim().toLowerCase();
@@ -4542,7 +4520,6 @@ export class EveSOF
   }
 
   /** Acquires the pattern catalog before returning its normalized projection. */
-  @meta.ours
   async GetPatternData(name, options = {})
   {
     name = String(name).trim().toLowerCase();
@@ -4556,7 +4533,6 @@ export class EveSOF
 
   /** Acquires one layout before returning its normalized projection; the async
    * form of EveSOFDataMgr.GetLayoutData. */
-  @meta.ours
   async GetLayoutData(name, options = {})
   {
     name = String(name).trim().toLowerCase();
@@ -4567,7 +4543,6 @@ export class EveSOF
   /** Acquires selected layouts before returning their normalized projections,
    * in request order with duplicates kept; the async form of
    * EveSOFDataMgr.GetLayoutData__Vector. */
-  @meta.ours
   async GetLayoutData__Vector(names, options = {})
   {
     names = names.map(name => String(name).trim().toLowerCase());
@@ -4746,7 +4721,7 @@ function boosterLightPosition(transform, lightOffset)
  */
 function DeclaredPlacement(kind, fields, placement)
 {
-  const Constructor = CjsSchema.GetConstructor(kind);
+  const Constructor = CjsSchema.getConstructor(kind);
   if (!Constructor) return placement;
   const usesSRT = fields?.useSRT !== false;
   const declared = {};

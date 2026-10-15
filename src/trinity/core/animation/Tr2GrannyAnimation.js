@@ -916,7 +916,6 @@ export class Tr2GrannyAnimation
    * @param {string} name Track mask name.
    * @returns {Float32Array|null} Weight per bone.
    */
-  @meta.ours
   _ExtractTrackMaskWeights(name)
   {
     const model = this._runtimeModel;

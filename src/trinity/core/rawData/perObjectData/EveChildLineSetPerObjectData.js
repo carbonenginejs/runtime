@@ -11,7 +11,6 @@ export class EveChildLineSetPerObjectData extends Tr2PerObjectData
   psData = null;
 
   /** Declares the borrowed payloads for the shared JS constant upload boundary. */
-  @meta.ours
   GetPayloads()
   {
     return [this.vsData, this.psData];

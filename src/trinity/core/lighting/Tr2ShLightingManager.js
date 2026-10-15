@@ -492,9 +492,7 @@ export class Tr2ShLightingManager
 
 // Registered as Carbon registers it (trinity/trinity/Tr2ShLightingManager_Blue.cpp:16).
 be.enums.Create("trinity.Tr2ShLightingManager.Quality", Tr2ShLightingManager.Quality, {
-  source: "trinity/trinity/Tr2ShLightingManager.h", family: "trinityCore", line: 34,
   exposedName: "ShQuality", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Tr2ShLightingManager_Blue.cpp:10",
   chooser: [
     { name: "L1", value: Tr2ShLightingManager.Quality.L1, description: "" },
     { name: "L2", value: Tr2ShLightingManager.Quality.L2, description: "" }

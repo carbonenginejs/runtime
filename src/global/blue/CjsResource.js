@@ -115,7 +115,7 @@ export class CjsResource
    *
    * Static, so a schema field declared as `@type.rootRef("TriGeometryRes")`
    * can be known to hold a resource without an instance existing - the
-   * declaration alone is enough, resolved through `CjsSchema.GetConstructor`.
+   * declaration alone is enough, resolved through `CjsSchema.getConstructor`.
    */
   static isResource = true;
 
@@ -1157,8 +1157,8 @@ CjsSchema.meta.define(CjsResource, {
     RemoveNotifyTarget: [ meta.implemented ],
     NotifyRebuildCachedData: [ meta.adapted ],
     NotifyReleaseCachedData: [ meta.adapted ],
-    RecordLateResult: [ meta.ours ],
-    DestroyAdapterResources: [ meta.ours ]
+    RecordLateResult: [],
+    DestroyAdapterResources: []
   }
 });
 

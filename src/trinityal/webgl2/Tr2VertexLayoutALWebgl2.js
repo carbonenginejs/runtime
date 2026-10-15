@@ -239,7 +239,6 @@ export class Tr2VertexLayoutALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {object[]|null} The plan.
    */
-  @meta.ours
   GetCurrentPlan()
   {
     return this._current;

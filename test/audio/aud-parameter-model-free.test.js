@@ -38,7 +38,7 @@ test("AudParameter has exactly its native INotify base and exposure without mode
   assert.strictEqual(CjsSchema.cast(parameter, INotify), parameter);
   assert.strictEqual(CjsSchema.cast(parameter, AudParameter), parameter);
   assert.equal(CjsSchema.cast(parameter, IInitialize), null);
-  assert.strictEqual(CjsSchema.GetConstructor("AudParameter"), AudParameter);
+  assert.strictEqual(CjsSchema.getConstructor("AudParameter"), AudParameter);
   assert.equal(AudParameter.from, undefined);
   for (const name of ["__state", "SetValues", "GetValues", "UpdateValues", "Traverse", "Initialize", "Dispose"])
   {

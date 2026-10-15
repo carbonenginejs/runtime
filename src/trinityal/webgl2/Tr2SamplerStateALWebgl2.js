@@ -239,7 +239,6 @@ export class Tr2SamplerStateALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {WebGLSampler|null} The sampler.
    */
-  @meta.ours
   GetGpuResource()
   {
     return this._samplerState;

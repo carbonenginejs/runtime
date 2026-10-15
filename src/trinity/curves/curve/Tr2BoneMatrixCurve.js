@@ -397,7 +397,6 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * falling back to the first key when the time precedes all of them; returns
    * null for an empty curve.
    */
-  @meta.ours
   GetKeyForTime(time)
   {
     const keys = this.keys;

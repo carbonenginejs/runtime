@@ -80,7 +80,6 @@ export class Float4x3
   }
 
   /** Packs a transform into this record's elements. */
-  @meta.ours
   SetFromMat4(matrix)
   {
     Float4x3.fromMat4(matrix, this.elements);
@@ -88,7 +87,6 @@ export class Float4x3
   }
 
   /** This record's elements unpacked into a transform, written into `out`. */
-  @meta.ours
   GetMat4(out = mat4.create())
   {
     return Float4x3.toMat4(this.elements, out);

@@ -75,6 +75,6 @@ CjsSchema.meta.define(CjsTexturePipelineStepPack, {
     format: [ blue.persist, type.int32, type.enum("PixelFormat") ]
   },
   methods: {
-    Execute: meta.ours
+    Execute: []
   }
 });

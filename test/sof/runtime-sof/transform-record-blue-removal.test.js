@@ -77,7 +77,8 @@ test("transform native declaration order and editor flags stay distinct from str
   assert.equal(CjsSchema.getField(Transform, "boneIndex").jessica.widget, "boneindex");
   assert.deepEqual(CjsSchema.getSchema(Instance).members.map(field => field.name), ["rotation", "scaling", "translation", "boneIndex"]);
   for (const field of CjsSchema.getSchema(Instance).members) assert.deepEqual(field.edit, {persist: true});
-  assert.equal(CjsSchema.getSchema(Transform).methods.find(method => method.name === "GetTransform").impl.custom, true);
+  // GetTransform is ours: it carries no blue stamp, so the schema records nothing for it.
+  assert.equal(CjsSchema.getMethod(Transform, "GetTransform"), null);
 });
 
 test("native transform defaults and retained JavaScript struct defaults own independent buffers", () =>

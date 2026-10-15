@@ -68,12 +68,8 @@ export const VisualizerType = Object.freeze({
 
 // Reviewed Blue registrations; values and chooser references share the declarations above.
 blueEnums.Create("trinity.EveSpaceSceneRenderDriver.AmbientOcclusionQuality", AmbientOcclusionQuality, {
-  "source": "trinity/trinity/Eve/EveSpaceSceneRenderDriver.h",
-  "family": "eve/scene",
-  "line": 39,
   "exposedName": "EveSpaceSceneRenderDriverAmbientOcclusionQuality",
   "exposure": 2,
-  "chooserSource": "trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:18",
   "chooser": [
     {
       "name": "Disabled",
@@ -98,12 +94,8 @@ blueEnums.Create("trinity.EveSpaceSceneRenderDriver.AmbientOcclusionQuality", Am
   ]
 });
 blueEnums.Create("trinity.EveSpaceSceneRenderDriver.AntiAliasingQuality", AntiAliasingQuality, {
-  "source": "trinity/trinity/Eve/EveSpaceSceneRenderDriver.h",
-  "family": "eve/scene",
-  "line": 32,
   "exposedName": "EveSpaceSceneRenderDriverAntiAliasingQuality",
   "exposure": 2,
-  "chooserSource": "trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:11",
   "chooser": [
     {
       "name": "Disabled",
@@ -128,12 +120,8 @@ blueEnums.Create("trinity.EveSpaceSceneRenderDriver.AntiAliasingQuality", AntiAl
   ]
 });
 blueEnums.Create("trinity.EveSpaceScene.EveVisualizeMethod", EveVisualizeMethod, {
-  "source": "trinity/trinity/Eve/EveSpaceScene.h",
-  "family": "eve/scene",
-  "line": 176,
   "exposedName": "EveVisualizeMethod",
   "exposure": 2,
-  "chooserSource": "trinity/trinity/Eve/EveSpaceScene_Blue.cpp:20",
   "chooser": [
     {
       "name": "None",
@@ -173,12 +161,8 @@ blueEnums.Create("trinity.EveSpaceScene.EveVisualizeMethod", EveVisualizeMethod,
   ]
 });
 blueEnums.Create("trinity.EveMultiEffectParameter.ParameterType", ParameterType, {
-  "source": "trinity/trinity/Eve/EveMultiEffectParameter.h",
-  "family": "eve/effect",
-  "line": 16,
   "exposedName": "EveMultiEffectParameterType",
   "exposure": 2,
-  "chooserSource": "trinity/trinity/Eve/EveMultiEffectParameter_Blue.cpp:8",
   "chooser": [
     {
       "name": "EveSpaceObject2",

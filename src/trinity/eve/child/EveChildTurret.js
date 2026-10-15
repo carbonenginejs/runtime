@@ -1144,7 +1144,6 @@ export class EveChildTurret extends EveChildMesh
    * @param {Function} resolveParameter - parameter name -> vec4 or null
    * @returns {Boolean} false when there is no mesh or no opaque area
    */
-  @meta.ours
   ApplySofTurretMaterial(resolveParameter)
   {
     const mesh = this.GetMesh();

@@ -81,12 +81,8 @@ export const Tr2StretchScaleBehavior = {
 
 // Reviewed Blue registrations; values and chooser references share the declarations above.
 blueEnums.Create("trinity.Tr2Sprite2dRenderEffect", Tr2Sprite2dRenderEffect, {
-  "source": "trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h",
-  "family": "sprite2d",
-  "line": 99,
   "exposedName": "Tr2Sprite2dRenderEffect",
   "exposure": 1,
-  "chooserSource": "trinity/trinity/Sprite2d/Tr2Sprite2dScene_Blue.cpp:12",
   "chooser": [
     {
       "name": "S2D_RFX_COPY",
@@ -106,12 +102,8 @@ blueEnums.Create("trinity.Tr2Sprite2dRenderEffect", Tr2Sprite2dRenderEffect, {
   ]
 });
 blueEnums.Create("trinity.Tr2SpriteObjectBlendMode", Tr2SpriteObjectBlendMode, {
-  "source": "trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h",
-  "family": "sprite2d",
-  "line": 15,
   "exposedName": "Tr2SpriteObjectBlendMode",
   "exposure": 1,
-  "chooserSource": "trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:17",
   "chooser": [
     {
       "name": "TR2_SBM_NONE",
@@ -136,12 +128,8 @@ blueEnums.Create("trinity.Tr2SpriteObjectBlendMode", Tr2SpriteObjectBlendMode, {
   ]
 });
 blueEnums.Create("trinity.Tr2SpriteObjectEffect", Tr2SpriteObjectEffect, {
-  "source": "trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h",
-  "family": "sprite2d",
-  "line": 31,
   "exposedName": "Tr2SpriteObjectEffect",
   "exposure": 1,
-  "chooserSource": "trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:32",
   "chooser": [
     {
       "name": "TR2_SFX_FILL",
@@ -231,10 +219,6 @@ blueEnums.Create("trinity.Tr2SpriteObjectEffect", Tr2SpriteObjectEffect, {
   ]
 });
 blueEnums.Create("trinity.Tr2SpriteObjectPickState", Tr2SpriteObjectPickState, {
-  "source": "trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h",
-  "family": "sprite2d",
-  "line": 8,
-  "chooserSource": "trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:10",
   "chooser": [
     {
       "name": "TR2_SPS_OFF",
@@ -254,12 +238,8 @@ blueEnums.Create("trinity.Tr2SpriteObjectPickState", Tr2SpriteObjectPickState, {
   ]
 });
 blueEnums.Create("trinity.Tr2SpriteTarget", Tr2SpriteTarget, {
-  "source": "trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h",
-  "family": "sprite2d",
-  "line": 23,
   "exposedName": "Tr2SpriteTarget",
   "exposure": 2,
-  "chooserSource": "trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:25",
   "chooser": [
     {
       "name": "COLOR",
@@ -279,12 +259,8 @@ blueEnums.Create("trinity.Tr2SpriteTarget", Tr2SpriteTarget, {
   ]
 });
 blueEnums.Create("trinity.Tr2StretchScaleBehavior", Tr2StretchScaleBehavior, {
-  "source": "trinity/trinity/Sprite2d/Tr2Sprite2dStretch.h",
-  "family": "sprite2d",
-  "line": 14,
   "exposedName": "Tr2Sprite2dStretchDpiScaleBehaviorChooser",
   "exposure": 1,
-  "chooserSource": "trinity/trinity/Sprite2d/Tr2Sprite2dStretch_Blue.cpp:8",
   "chooser": [
     {
       "name": "S2D_SSC_ALIGN_BOTTOMRIGHT",

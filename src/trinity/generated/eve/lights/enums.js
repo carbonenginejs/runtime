@@ -10,12 +10,8 @@ export const PerLightShadowSetting = {
 
 // Reviewed Blue registrations; values and chooser references share the declarations above.
 blueEnums.Create("trinity.PerLightShadowSetting", PerLightShadowSetting, {
-  "source": "trinity/trinity/Lights/Tr2Light.h",
-  "family": "eve/lights",
-  "line": 20,
   "exposedName": "PerLightShadowSetting",
   "exposure": 2,
-  "chooserSource": "trinity/trinity/Lights/Tr2Light_Blue.cpp:8",
   "chooser": [
     {
       "name": "Disabled",

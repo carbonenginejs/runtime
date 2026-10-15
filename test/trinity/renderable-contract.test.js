@@ -20,7 +20,7 @@ import {
 test("ITr2Renderable publishes Carbon's default and throwing required surface", () =>
 {
   const renderable = new ITr2Renderable();
-  assert.equal(CjsSchema.GetConstructor("ITr2Renderable"), ITr2Renderable);
+  assert.equal(CjsSchema.getConstructor("ITr2Renderable"), ITr2Renderable);
   assert.equal(renderable.IsVisible({}), true);
   assert.throws(() => renderable.GetBatches(), /ITr2Renderable\.GetBatches/u);
   assert.throws(() => renderable.HasTransparentBatches(), /ITr2Renderable\.HasTransparentBatches/u);

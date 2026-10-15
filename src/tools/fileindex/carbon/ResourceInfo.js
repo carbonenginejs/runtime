@@ -568,7 +568,7 @@ CjsSchema.blue.define(ResourceInfo, {
         ExportToCsv: [ blue.method, meta.adapted ],
         ImportFromYaml: [ blue.method, meta.adapted ],
         ExportToYaml: [ blue.method, meta.adapted ],
-        _Read: [ meta.ours ],
+        _Read: [],
         GetDataStream: [ blue.method, meta.notImplemented ],
         GetData: [ blue.method, meta.notImplemented ],
         PutDataStream: [ blue.method, meta.notImplemented ],

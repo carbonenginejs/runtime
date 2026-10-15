@@ -724,7 +724,7 @@ test("real Svipul is the missile's mapped ITriTargetable and keeps Carbon's last
   assert.equal(mappedInterfaces(EveTransform).has(ITriTargetable), false, "plain EveTransform is not targetable");
   const declaration = CjsSchema.getSchema(EveMissile).members.find(member => member.name === "target");
   assert.equal(declaration.type.className, "ITriTargetable");
-  assert.equal(CjsSchema.GetConstructor(declaration.type.className), ITriTargetable, "the declared target type now resolves to a registered class");
+  assert.equal(CjsSchema.getConstructor(declaration.type.className), ITriTargetable, "the declared target type now resolves to a registered class");
   missile.target = ship;
   assert.ok(missile.target === ship, "the real ship is the missile's target");
 

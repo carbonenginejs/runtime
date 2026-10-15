@@ -83,6 +83,6 @@ test("every class name used in a path label names a registered class", () =>
   assert.ok(used.size > 0, "labels exist");
   for (const [ name, file ] of used)
   {
-    assert.ok(CjsSchema.GetConstructor(name), `${name} (used in ${file}) is not a registered class`);
+    assert.ok(CjsSchema.getConstructor(name), `${name} (used in ${file}) is not a registered class`);
   }
 });

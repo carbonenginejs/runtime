@@ -226,7 +226,6 @@ export class Tr2PlatformInfo
      * Requested settings are a snapshot; active values must come from GPUDevice.
      * CREATE settings never mutate an already-created device.
      */
-    @meta.ours
     ResolveDeviceRequirements(demand = {}, backend = this.backend)
     {
         // Selection can prefer WebGL on a machine whose detected default is
@@ -278,7 +277,6 @@ export class Tr2PlatformInfo
     }
 
     /** WebGPU must negotiate capabilities; this descriptor-only helper refuses unmet content requirements. */
-    @meta.ours
     GetDeviceDescriptor(demand = {})
     {
         const result = this.ResolveDeviceRequirements(demand);

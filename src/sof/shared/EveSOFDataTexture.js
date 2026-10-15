@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:752-760
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 
 /**
  * Stores a named texture binding and supports assignment and composition.
@@ -30,7 +30,6 @@ export class EveSOFDataTexture
    * @param {object} [out={}] Destination texture map.
    * @returns {object} The supplied map.
    */
-  @meta.ours
   Assign(out = {})
   {
     out[this.name] = this.resFilePath;
@@ -46,7 +45,6 @@ export class EveSOFDataTexture
    * @param {EveSOFDataTexture[]} [out=[]] Reused output records.
    * @returns {EveSOFDataTexture[]} The output list.
    */
-  @meta.ours
   static combineArrays(base = [], overrides = null, out = [])
   {
     const validNames = new Set(base.map(value => value.name));

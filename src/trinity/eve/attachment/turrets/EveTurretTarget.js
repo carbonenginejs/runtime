@@ -488,8 +488,6 @@ function copyOrReturn(value, out)
 // Carbon gives this a chooser (trinity/trinity/Eve/Turret/EveTurretSet_Blue.cpp:34) but never registers it,
 // so it takes no exposure.
 be.enums.Create("trinity.ImpactBehaviour", EveTurretTarget.ImpactBehaviour, {
-  source: "trinity/trinity/Eve/Turret/EveTurretTarget.h", family: "eve/attachment/turrets", line: 13,
-  chooserSource: "trinity/trinity/Eve/Turret/EveTurretSet_Blue.cpp:34",
   chooser: [
     { name: "DAMAGE_LOCATOR", value: EveTurretTarget.ImpactBehaviour.DAMAGE_LOCATOR, description: "" },
     { name: "SHIELD_ELLIPSOID", value: EveTurretTarget.ImpactBehaviour.SHIELD_ELLIPSOID, description: "" },

@@ -154,7 +154,6 @@ export class EveModularObjectModifier
    * Custom: native edits cannot suspend, while JS must allocate a tag and
    * read the current owner only after preceding edits have finished.
    */
-  @meta.ours
   _QueueEdit(edit)
   {
     this._AssertReady();

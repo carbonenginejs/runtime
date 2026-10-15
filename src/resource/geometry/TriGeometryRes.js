@@ -1476,7 +1476,7 @@ CjsSchema.blue.define(TriGeometryRes, {
     name: [ type.string, blue.readwrite ]
   },
   methods: {
-    SetPayload: [ meta.ours ],
+    SetPayload: [],
     ReadGrannyFile: [ meta.adapted ],
     GetMeshCount: [ blue.method, meta.adapted ],
     GetAnimationCount: [ blue.method, meta.adapted ],
@@ -1502,7 +1502,7 @@ CjsSchema.blue.define(TriGeometryRes, {
     HasRayCasterPreparationFailed: [ blue.method, meta.adapted ],
     DestroyRayCaster: [ blue.method, meta.adapted ],
     ReleaseResources: [ blue.method, meta.adapted ],
-    ReleasePayload: [ meta.ours ],
+    ReleasePayload: [],
     IsMemoryUsageKnown: [ blue.method, meta.implemented ],
     GetMemoryUsage: [ blue.method, meta.adapted ],
     GetIntersectionPoints: [ blue.method, meta.adapted ],

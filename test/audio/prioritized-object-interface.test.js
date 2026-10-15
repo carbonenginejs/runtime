@@ -19,7 +19,7 @@ test("IPrioritizedObject requires all eight native operations without adding mod
   }
   assert.equal("SetValues" in instance, false);
   assert.equal("Initialize" in instance, false);
-  assert.equal(CjsSchema.GetConstructor("IPrioritizedObject"), null);
+  assert.equal(CjsSchema.getConstructor("IPrioritizedObject"), null);
   assert.equal(mappedInterfaces(IPrioritizedObject).size, 0);
 });
 

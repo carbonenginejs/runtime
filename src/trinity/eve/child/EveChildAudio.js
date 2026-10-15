@@ -45,7 +45,7 @@ export class EveChildAudio extends EveChildTransform
   Initialize()
   {
     if (this.audioEmitter) return true;
-    const Emitter = CjsSchema.GetConstructor("AudEmitter");
+    const Emitter = CjsSchema.getConstructor("AudEmitter");
     if (!Emitter) return false;
     this.audioEmitter = new Emitter();
     const position = mat4.getTranslation(vec3.create(), this.worldTransform);

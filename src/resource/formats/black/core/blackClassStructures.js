@@ -10,7 +10,7 @@ import { CjsSchema } from "#schema";
  */
 export function structClassLayout(className)
 {
-    const Item = typeof className === "function" ? className : CjsSchema.GetConstructor(className);
+    const Item = typeof className === "function" ? className : CjsSchema.getConstructor(className);
     if (!Item) throw new TypeError(`Black struct item class ${className} is not registered (import its package)`);
     const definition = CjsSchema.getSchema(Item).structureDefinition;
     if (!definition) throw new TypeError(`Black struct ${CjsSchema.getClassName(Item)} has no structureDefinition`);
@@ -27,7 +27,7 @@ export function structClassLayout(className)
  */
 export function classStructureLayout(ownerClass, fieldName)
 {
-    const Owner = CjsSchema.GetConstructor(ownerClass);
+    const Owner = CjsSchema.getConstructor(ownerClass);
     // Layouts live on the classes, so an owner whose package was never imported is unregistered, not undeclared.
     if (!Owner) throw new TypeError(`Black struct ${ownerClass}.${fieldName}: class ${ownerClass} is not registered (import its package)`);
     const declaration = CjsSchema.getSchema(Owner).members.find(member => member.name === fieldName);

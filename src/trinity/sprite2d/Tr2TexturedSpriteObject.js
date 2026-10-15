@@ -121,7 +121,6 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
   }
 
   /** Explicit cleanup adapts the native texture-listener destructor to JS. */
-  @meta.ours
   Destroy()
   {
     if (this._texturePrimary) this._texturePrimary.UnregisterForChangeNotification(this);

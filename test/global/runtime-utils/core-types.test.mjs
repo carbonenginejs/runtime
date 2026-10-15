@@ -351,7 +351,7 @@ test("registers classes, structs, schema metadata, and enums", () => {
         members: [{ name: "A", value: 1 }]
     });
 
-    assert.equal(CjsSchema.GetConstructor("LegacyDemoNode"), DemoNode);
+    assert.equal(CjsSchema.getConstructor("LegacyDemoNode"), DemoNode);
     assert.equal(CjsSchema.getField(DemoNode, "name").type.kind, "string");
     assert.equal(CjsSchema.getEnum(DemoEnum).name, "DemoEnum");
     assert.equal(CjsSchema.getClassPurpose(DemoNode), "Carries a reviewed demonstration purpose.");
@@ -550,17 +550,17 @@ test("schema constructor registration keeps the first name until explicit deleti
     class FirstConstructor {}
     class ReplacementConstructor {}
 
-    assert.equal(CjsSchema.GetConstructor("DirectConstructorMapTest"), null);
-    assert.equal(CjsSchema.SetConstructor(" DirectConstructorMapTest ", FirstConstructor), CjsSchema);
-    assert.equal(CjsSchema.GetConstructor("DirectConstructorMapTest"), FirstConstructor);
+    assert.equal(CjsSchema.getConstructor("DirectConstructorMapTest"), null);
+    assert.equal(CjsSchema.setConstructor(" DirectConstructorMapTest ", FirstConstructor), CjsSchema);
+    assert.equal(CjsSchema.getConstructor("DirectConstructorMapTest"), FirstConstructor);
 
-    CjsSchema.SetConstructor("DirectConstructorMapTest", ReplacementConstructor);
-    assert.equal(CjsSchema.GetConstructor("DirectConstructorMapTest"), FirstConstructor);
-    assert.equal(CjsSchema.DeleteConstructor("DirectConstructorMapTest"), true);
-    CjsSchema.SetConstructor("DirectConstructorMapTest", ReplacementConstructor);
-    assert.equal(CjsSchema.GetConstructor("DirectConstructorMapTest"), ReplacementConstructor);
-    assert.throws(() => CjsSchema.SetConstructor("", FirstConstructor), /non-empty name/);
-    assert.throws(() => CjsSchema.SetConstructor("InvalidConstructorMapTest", {}), /must be a function/);
+    CjsSchema.setConstructor("DirectConstructorMapTest", ReplacementConstructor);
+    assert.equal(CjsSchema.getConstructor("DirectConstructorMapTest"), FirstConstructor);
+    assert.equal(CjsSchema.deleteConstructor("DirectConstructorMapTest"), true);
+    CjsSchema.setConstructor("DirectConstructorMapTest", ReplacementConstructor);
+    assert.equal(CjsSchema.getConstructor("DirectConstructorMapTest"), ReplacementConstructor);
+    assert.throws(() => CjsSchema.setConstructor("", FirstConstructor), /non-empty name/);
+    assert.throws(() => CjsSchema.setConstructor("InvalidConstructorMapTest", {}), /must be a function/);
 });
 
 test("registers Carbon method provenance and implementation metadata", () => {
@@ -748,7 +748,7 @@ test("defines a complete hydratable schema from a manual JSON declaration", () =
     const node = CjsSchema.from(CjsSchema.getClassName(ManualSchemaNode), { value: "1.25" });
     const schema = CjsSchema.getSchema(ManualSchemaNode);
 
-    assert.equal(CjsSchema.GetConstructor("LegacyManualSchemaNode"), ManualSchemaNode);
+    assert.equal(CjsSchema.getConstructor("LegacyManualSchemaNode"), ManualSchemaNode);
     assert.equal(schema.className, "ManualSchemaNode");
     assert.deepEqual(schema.aliases, ["LegacyManualSchemaNode"]);
     assert.deepEqual(schema.fields, [{
@@ -1347,18 +1347,12 @@ test("marks CarbonEngineJS-original methods with implementation status", () => {
         {}
     }
 
-    CjsSchema.define(CustomMethodNode, { className: "CustomMethodNode", family: "test" });
-    CjsSchema.decorateMethod(
-        CustomMethodNode,
-        "FoldModifiers",
-        CjsSchema.meta.ours
-    );
+    CjsSchema.define(CustomMethodNode, { className: "CustomMethodNode", methods: { FoldModifiers: [] } });
 
     const method = CjsSchema.getMethod(CustomMethodNode, "FoldModifiers");
-    // No @carbon.method: this method has no Carbon counterpart.
-    assert.equal(method.carbon, undefined);
-    assert.equal(method.impl.custom, true);
-    assert.equal(method.impl.status, "custom");
+    // No blue stamp: this method has no Carbon counterpart, which is what makes it ours.
+    assert.equal(method?.carbon, undefined);
+    assert.equal(method?.impl, undefined);
 });
 
 

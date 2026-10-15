@@ -883,7 +883,6 @@ export class EveCamera
    * @param {number} [realTime=time] Real time in ticks.
    * @returns {boolean} Update's result.
    */
-  @meta.ours
   StableUpdate(time, aspectRatio = 1, realTime = time)
   {
     const result = this.Update(time, aspectRatio, realTime);

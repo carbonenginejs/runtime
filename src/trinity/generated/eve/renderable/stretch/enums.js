@@ -24,12 +24,8 @@ export const StretchState = Object.freeze({
 
 // Reviewed Blue registrations; values and chooser references share the declarations above.
 blueEnums.Create("trinity.EveLocalPositionCurve.LocalPositionBehavior", LocalPositionBehavior, {
-  "source": "trinity/trinity/Eve/Renderable/Stretch/EveLocalPositionCurve.h",
-  "family": "eve/renderable/stretch",
-  "line": 26,
   "exposedName": "EveLocalPositionBehavior",
   "exposure": 2,
-  "chooserSource": "trinity/trinity/Eve/Renderable/Stretch/EveLocalPositionCurve_Blue.cpp:8",
   "chooser": [
     {
       "name": "none",

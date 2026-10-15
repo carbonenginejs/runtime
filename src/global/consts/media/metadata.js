@@ -8,6 +8,4 @@ export const StreamType = {
 };
 
 // Carbon declares no chooser or exposure for this file-scope enum.
-blueEnums.Create("videoplayer.StreamType", StreamType, {
-    source: "videoplayer/Metadata.h", family: "videoplayer", line: 255
-});
+blueEnums.Create("videoplayer.StreamType", StreamType);

@@ -1202,7 +1202,6 @@ export class Tr2EffectStateManager
   }
 
   /** Explicitly releases values that Carbon releases with its state cache. */
-  @meta.ours
   Destroy()
   {
     this._ReleaseBufferBindings();

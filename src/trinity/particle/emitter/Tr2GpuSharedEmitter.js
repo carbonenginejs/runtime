@@ -279,7 +279,6 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Shared Update body after schema projection or unique-emitter scaling. */
-  @meta.ours
   _Update(arguments_)
   {
     if (!arguments_.system)
@@ -341,7 +340,6 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Point overload body shared with the subclass after parameter scaling. */
-  @meta.ours
   _SpawnPoint(arguments_, position, velocity, rateModifier)
   {
     if (!arguments_.system || !this._enabled) return;
@@ -356,7 +354,6 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Segment overload body shared with the subclass after parameter scaling. */
-  @meta.ours
   _SpawnSegment(arguments_, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime)
   {
     if (!arguments_.system || !this._enabled) return;
@@ -508,7 +505,6 @@ export class Tr2GpuSharedEmitter
    * projection must run at call entry, not just on notifications. It does not
    * rehash or replace native motion history and the transformed world attractor.
    */
-  @meta.ours
   _ReadParameters()
   {
     const emitter = this._emitter;
@@ -536,7 +532,6 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Native XMVector3TransformNormal, writing into caller-owned storage. */
-  @meta.ours
   _TransformNormal(out, value, matrix)
   {
     const x = value[0], y = value[1], z = value[2];
@@ -617,7 +612,6 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Allocates a native emitter record once for instance state or module scratch. */
-  @meta.ours
   static _createEmitter()
   {
     return {
@@ -629,7 +623,6 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Allocates native parameter defaults once for instance state or module scratch. */
-  @meta.ours
   static _createParams()
   {
     return {
@@ -642,7 +635,6 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Models native Emitter value assignment without allocating JS storage. */
-  @meta.ours
   static _copyEmitter(out, value)
   {
     vec3.copy(out.position, value.position);
@@ -663,7 +655,6 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Models native EmitterParams value assignment without allocating JS storage. */
-  @meta.ours
   static _copyParams(out, value)
   {
     out.minLifeTime = value.minLifeTime;

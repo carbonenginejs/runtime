@@ -112,7 +112,7 @@ for (const entry of classes.sort((a, b) =>
         kind: field.type?.kind ?? "",
         slot: key,
         identity,
-        resolved: Boolean(CjsSchema.GetConstructor(identity)) || declared.has(identity)
+        resolved: Boolean(CjsSchema.getConstructor(identity)) || declared.has(identity)
       });
     }
   }

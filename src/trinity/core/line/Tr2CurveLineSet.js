@@ -158,7 +158,6 @@ export class Tr2CurveLineSet
   }
 
   /** Explicit final-owner cleanup replaces the native destructor. */
-  @meta.ours
   Destroy()
   {
     this.ReleaseResources();

@@ -531,7 +531,6 @@ export class EveTurretSet extends EveEntity
    * not destroyed; native firing cleanup, notifications and owned allocation
    * are released. Removing one shared parent is not final ownership.
    */
-  @meta.ours
   Destroy()
   {
     this.UnRegister(this.GetComponentRegistry());
@@ -746,7 +745,6 @@ export class EveTurretSet extends EveEntity
    *
    * Adapted: The combined runtime keeps SOF independently importable by putting the nominal Tr2Effect application boundary on the owning turret class.
    */
-  @meta.ours
   ApplySofTurretMaterial(resolveParameter)
   {
     const effect = this.GetShader();
@@ -767,7 +765,6 @@ export class EveTurretSet extends EveEntity
    * @param {Function} resolveParameter - parameter name -> vec4 or null
    * @returns {Boolean} true
    */
-  @meta.ours
   static applyFactionToTurretShader(effect, resolveParameter)
   {
     if (effect.constParameters.length)
@@ -931,7 +928,7 @@ export class EveTurretSet extends EveEntity
         if (this.playMovementSound && this.targetingToIdleMovementAudioEvent !== "")
         {
           const observer = this.turretMovementObserver ? this.turretMovementObserver.GetObserver() : null;
-          const contract = CjsSchema.GetConstructor("ITr2AudEmitter");
+          const contract = CjsSchema.getConstructor("ITr2AudEmitter");
           const emitter = contract ? CjsSchema.cast(observer, contract) : null;
           if (emitter) emitter.SendEvent(this.targetingToIdleMovementAudioEvent);
         }
@@ -1676,7 +1673,7 @@ export class EveTurretSet extends EveEntity
       (this.state === EveTurretSet.State.STATE_IDLE || previous !== this.target.GetTargetable()))
     {
       const observer = this.turretMovementObserver ? this.turretMovementObserver.GetObserver() : null;
-      const contract = CjsSchema.GetConstructor("ITr2AudEmitter");
+      const contract = CjsSchema.getConstructor("ITr2AudEmitter");
       const emitter = contract ? CjsSchema.cast(observer, contract) : null;
       if (emitter) emitter.SendEvent(this.idleToTargetingMovementAudioEvent);
     }
@@ -1707,7 +1704,6 @@ export class EveTurretSet extends EveEntity
    * The live turret record list; the records are mutated in place by
    * UpdateTurretTransforms, so this is not a snapshot.
    */
-  @meta.ours
   GetTurrets()
   {
     return this._turrets;
@@ -1754,7 +1750,6 @@ export class EveTurretSet extends EveEntity
    * Stores the hull transform and immediately recomputes every turret's world
    * matrix from it.
    */
-  @meta.ours
   SetParentTransform(transform)
   {
     mat4.copy(this._parentData.transform, transform);
@@ -1796,7 +1791,6 @@ export class EveTurretSet extends EveEntity
    *
    * Adapted: This combined browser convenience update runs Carbon's explicit synchronous and asynchronous phases in order.
    */
-  @meta.ours
   Update(context)
   {
     this.UpdateSyncronous(context);
@@ -2568,9 +2562,7 @@ export class EveTurretSet extends EveEntity
 
 // Registered as Carbon registers it (trinity/trinity/Eve/Turret/EveTurretSet_Blue.cpp:27).
 be.enums.Create("trinity.EveTurretSet.LOD", EveTurretSet.LOD, {
-  source: "trinity/trinity/Eve/Turret/EveTurretSet.h", family: "eve/attachment/turrets", line: 235,
   exposedName: "EveTurretSetLOD", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Eve/Turret/EveTurretSet_Blue.cpp:11",
   chooser: [
     { name: "LOD_INVALID", value: EveTurretSet.LOD.LOD_INVALID, description: "" },
     { name: "LOD_EMPTY", value: EveTurretSet.LOD.LOD_EMPTY, description: "" },
@@ -2580,9 +2572,7 @@ be.enums.Create("trinity.EveTurretSet.LOD", EveTurretSet.LOD, {
 });
 
 // Carbon neither registers this nor gives it a chooser.
-be.enums.Create("trinity.EveTurretSet.State", EveTurretSet.State, {
-  source: "trinity/trinity/Eve/Turret/EveTurretSet.h", family: "eve/attachment/turrets", line: 245
-});
+be.enums.Create("trinity.EveTurretSet.State", EveTurretSet.State);
 
 // Native Blue explicitly maps its concrete identity.
 

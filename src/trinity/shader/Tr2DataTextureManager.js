@@ -97,7 +97,6 @@ export class Tr2DataTextureManager
    * JavaScript has no destructor, so the owner releases explicitly, as
    * Tr2GpuResourcePool handles do.
    */
-  @meta.ours
   Release()
   {
     Tr2VariableStore.globalStore().UnregisterVariable(IMPACT_SHIELD_DATA_MAP);

@@ -47,7 +47,6 @@ export class Tr2TextureAL
   }
 
   /** Ours: optional asynchronous video colour reduction; null selects the browser fallback. */
-  @meta.ours
   RequestAverageColor()
   {
     const implementation = this._texture ? this._texture.implementation : null;
@@ -317,7 +316,6 @@ export class Tr2TextureAL
   }
 
   /** Releases this value explicitly because JavaScript has no deterministic scope destructor. Copies remain valid until their own final release. */
-  @meta.ours
   Destroy()
   {
     const owned = this._texture;

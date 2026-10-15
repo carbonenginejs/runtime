@@ -329,7 +329,6 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    *
    * @returns {void}
    */
-  @meta.ours
   Destroy()
   {
     this._FreeRenderTarget();

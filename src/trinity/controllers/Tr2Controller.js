@@ -378,7 +378,6 @@ export class Tr2Controller extends EveThrottleable
    * Tr2Controller.h/.cpp have no GetTime method.
    * @returns {number} Last sampled frame time in seconds.
    */
-  @meta.ours
   GetTime()
   {
     return this._time;
@@ -418,7 +417,6 @@ export class Tr2Controller extends EveThrottleable
    * @param {*} [fallback=0] Result when the variable or its value is absent.
    * @returns {*} Variable value or fallback.
    */
-  @meta.ours
   GetVariableValue(name, fallback = 0)
   {
     const variable = this.GetVariableByName(name);
@@ -434,7 +432,6 @@ export class Tr2Controller extends EveThrottleable
    * @param {number} value New value.
    * @returns {boolean} Whether a matching variable was found.
    */
-  @meta.ours
   SetVariableValue(name, value)
   {
     const variable = this.GetVariableByName(name);
@@ -650,7 +647,6 @@ export class Tr2Controller extends EveThrottleable
    * @param {object} [extra={}] Additional expression inputs.
    * @returns {object} New context with controller, owner, state machine and time.
    */
-  @meta.ours
   GetExpressionContext(owner = this._owner, stateMachine = null, extra = {})
   {
     return {
@@ -670,7 +666,6 @@ export class Tr2Controller extends EveThrottleable
    * @param {object|null} value Event object.
    * @returns {void}
    */
-  @meta.ours
   _OnStateMachineListModified(event, value)
   {
     const stateMachine = value ? be.classes.QueryThisInterface(value, Tr2StateMachine, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
@@ -706,7 +701,6 @@ export class Tr2Controller extends EveThrottleable
    * @param {object|null} value Event object.
    * @returns {void}
    */
-  @meta.ours
   _OnEventHandlerListModified(event, value)
   {
     const handler = value ? be.classes.QueryThisInterface(value, Tr2ControllerEventHandler, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
@@ -731,7 +725,6 @@ export class Tr2Controller extends EveThrottleable
    * @param {number} event List event flags.
    * @returns {void}
    */
-  @meta.ours
   _OnVariableListModified(event)
   {
     const maskedEvent = event & BLUELISTEVENT.BELIST_EVENTMASK;

@@ -328,7 +328,6 @@ export class Tr2RenderContextALWebgl2
    *
    * @returns {WebGL2RenderingContext|null} The context.
    */
-  @meta.ours
   GetWebgl2()
   {
     return this._gl;
@@ -489,7 +488,6 @@ export class Tr2RenderContextALWebgl2
    * @param {boolean} [implementationOnly] Whether the handle is asking.
    * @returns {object|null} The set, `{ result, implementation }`, or null.
    */
-  @meta.ours
   CreateResourceSet(description, program, implementationOnly = false)
   {
     if (implementationOnly)
@@ -1064,7 +1062,6 @@ export class Tr2RenderContextALWebgl2
    *
    * @param {number} mode 0, 1 or 2.
    */
-  @meta.ours
   SetCoverageDiscard(mode)
   {
     this._coverageDiscard = mode >>> 0;
@@ -1361,7 +1358,6 @@ export class Tr2RenderContextALWebgl2
    * @param {number} startInstance Added to every instanced stream's offset.
    * @returns {boolean} Whether the draw can proceed.
    */
-  @meta.ours
   _ApplyDrawBindings(baseVertex, startInstance)
   {
     const gl = this._gl;

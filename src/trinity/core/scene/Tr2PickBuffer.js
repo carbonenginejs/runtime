@@ -132,6 +132,6 @@ CjsSchema.blue.define(Tr2PickBuffer, {
     SetSize: [meta.implemented], GetSize: [meta.implemented], GetDescription: [meta.adapted], SetClearColor: [meta.implemented],
     ReleaseResources: [meta.adapted], PrepareResources: [meta.adapted], OnPrepareResources: [meta.adapted],
     BeginRendering: [meta.adapted], EndRendering: [meta.implemented], MapForReading: [meta.adapted],
-    UnmapForReading: [meta.implemented], Destroy: [meta.adapted], CreateReadback: [meta.ours]
+    UnmapForReading: [meta.implemented], Destroy: [meta.adapted], CreateReadback: []
   }
 });

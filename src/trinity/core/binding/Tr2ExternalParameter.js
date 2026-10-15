@@ -284,7 +284,6 @@ export class Tr2ExternalParameter extends IInitialize
    * @param {object|null} field Declared schema field.
    * @returns {object|null} Portable value category.
    */
-  @meta.ours
   static _describeValue(value, field)
   {
     const kind = field?.type?.kind ?? null;
@@ -343,7 +342,6 @@ export class Tr2ExternalParameter extends IInitialize
    * @param {number} offset Component offset or -1.
    * @returns {object} Conversion result or failure message.
    */
-  @meta.ours
   static _convertValue(value, current, destinationType, offset)
   {
     if (offset !== -1)
@@ -406,7 +404,6 @@ export class Tr2ExternalParameter extends IInitialize
    * @param {number} value Incoming number.
    * @returns {number} Converted number.
    */
-  @meta.ours
   static _castNumber(kind, value)
   {
     switch (kind)
@@ -428,7 +425,6 @@ export class Tr2ExternalParameter extends IInitialize
    * @param {*} attribute Destination member expression.
    * @returns {object|null} Member name and component offset.
    */
-  @meta.ours
   static _parseAttribute(attribute)
   {
     const value = String(attribute ?? "");
@@ -445,7 +441,6 @@ export class Tr2ExternalParameter extends IInitialize
    * @param {*} value Candidate array.
    * @returns {boolean} Whether array storage is present.
    */
-  @meta.ours
   static _isArrayLike(value)
   {
     return Array.isArray(value) || ArrayBuffer.isView(value);
@@ -459,7 +454,6 @@ export class Tr2ExternalParameter extends IInitialize
    * @param {string} name Changed member name.
    * @returns {void} No return value.
    */
-  @meta.ours
   static _notify(object, name)
   {
     const notify = CjsSchema.cast(object, INotify);

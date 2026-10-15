@@ -285,7 +285,7 @@ test("Eve particle force aliases hydrate as their Tr2 bases", () =>
   assert.ok(new EveParticleDirectForce() instanceof Tr2ParticleDirectForce);
   assert.ok(new EveParticleDragForce() instanceof Tr2ParticleDragForce);
   assert.ok(new EveParticleSpring() instanceof Tr2ParticleSpring);
-  assert.equal(CjsSchema.GetConstructor("EveParticleDirectForce"), EveParticleDirectForce);
+  assert.equal(CjsSchema.getConstructor("EveParticleDirectForce"), EveParticleDirectForce);
 });
 
 test("typed socket parameters bind, default, and reset like Carbon", () =>

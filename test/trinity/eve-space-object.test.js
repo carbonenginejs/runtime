@@ -62,7 +62,7 @@ test("EveRootTransform returns its authored Carbon bounding radius", () =>
   assert.equal(root.GetBoundingSphereRadius(), -1);
   root.boundingSphereRadius = 42.5;
   assert.equal(root.GetBoundingSphereRadius(), 42.5);
-  assert.equal(CjsSchema.GetConstructor("EveRootTransform"), EveRootTransform);
+  assert.equal(CjsSchema.getConstructor("EveRootTransform"), EveRootTransform);
   assert.equal(existsSync(new URL("../../src/trinity/generated/eve/spaceObject/EveRootTransform.js", import.meta.url)), false);
 });
 
@@ -336,7 +336,7 @@ test("EveEffectRoot2 owns Carbon effect transforms, lifecycle, LOD, and target s
   assert.equal(calls.some(call => call[0] === "child-event" && call[1] === "explode"), true);
   assert.equal(calls.some(call => call[0] === "child-procedural" && call[1] === "seed" && call[2] === 7), true);
 
-  assert.equal(CjsSchema.GetConstructor("EveEffectRoot2"), EveEffectRoot2);
+  assert.equal(CjsSchema.getConstructor("EveEffectRoot2"), EveEffectRoot2);
   assert.equal(CjsSchema.getField(EveEffectRoot2, "boundingSphereCenter")?.type.kind, "vec3");
   assert.equal(CjsSchema.getField(EveEffectRoot2, "boundingSphereRadius")?.type.kind, "float32");
   assert.equal(existsSync(new URL("../../src/trinity/generated/eve/spaceObject/EveEffectRoot2.js", import.meta.url)), false);
@@ -552,7 +552,7 @@ test("EveSpaceObject2 owns the Carbon controller graph and mesh alias", () =>
   };
 
   assert.equal(object instanceof EveEntity, true);
-  assert.equal(CjsSchema.GetConstructor("EveSpaceObject2"), EveSpaceObject2);
+  assert.equal(CjsSchema.getConstructor("EveSpaceObject2"), EveSpaceObject2);
   object.SetMesh(mesh);
   assert.equal(object.GetMesh(), mesh);
   // "meshLod" is m_mesh's second Blue name, reached through the schema.
@@ -984,8 +984,7 @@ test("EveSpaceObject2 publishes its qualified native locator enum", () =>
   assert.equal(Object.isFrozen(values), true);
   assert.equal(be.enums.GetEnum("trinity.EveSpaceObject2.LocatorType"), values);
   const info = be.enums.GetEnumInfo("trinity.EveSpaceObject2.LocatorType");
-  assert.equal(info.source, "trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h");
-  assert.equal(info.line, 263);
+  assert.equal(Object.hasOwn(info, "source"), false, "the header is cited in source, not registered");
   assert.equal(info.exposedName, undefined, "the native header enum has no invented Blue module alias");
   assert.equal(be.enums.HasEnum("EveSpaceObject2.LocatorType"), false);
   assert.equal(be.enums.HasEnum("LocatorType"), false);

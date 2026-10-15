@@ -788,7 +788,7 @@ CjsSchema.blue.define(TriTextureRes, {
     loadedBitmap: [ type.unknown, blue.read ]
   },
   methods: {
-    SetPayload: [ meta.ours ],
+    SetPayload: [],
     Initialize: [ blue.method, meta.adapted ],
     GetMipCount: [ blue.method, meta.adapted ],
     GetMsaaType: [ blue.method, meta.implemented ],
@@ -813,8 +813,8 @@ CjsSchema.blue.define(TriTextureRes, {
     GetMemoryUsage: [ blue.method, meta.implemented ],
     EstimateMemoryUse: [ meta.adapted ],
     LoadPipeline: [ meta.adapted ],
-    SetCutout: [ meta.ours ],
-    GetBitmap: [ meta.ours ],
+    SetCutout: [],
+    GetBitmap: [],
     IsValid: [ blue.method, meta.implemented ],
     GetWidth: [ blue.method, meta.adapted ],
     GetHeight: [ blue.method, meta.adapted ],

@@ -128,7 +128,6 @@ export class TriDebugResourceHelper
    * with the device on import, so it is created on first request instead.
    * @returns {TriDebugResourceHelper} The shared helper.
    */
-  @meta.ours
   static g_debugResourceHelper()
   {
     if (!TriDebugResourceHelper._instance)

@@ -81,18 +81,10 @@ export const TriDebugFontStyle = Object.freeze({
 });
 
 // Reviewed Blue registrations; values and chooser references share the declarations above.
-blueEnums.Create("trinity.ITriTargetable.ImpactConfiguration", ImpactConfiguration, {
-  "source": "trinity/trinity/Include/ITriTargetable.h",
-  "family": "eve/overlays/impact",
-  "line": 9
-});
+blueEnums.Create("trinity.ITriTargetable.ImpactConfiguration", ImpactConfiguration, {});
 blueEnums.Create("trinity.ITr2MultiPassScene.PassType", PassType, {
-  "source": "trinity/trinity/Include/ITr2MultiPassScene.h",
-  "family": "renderJob",
-  "line": 25,
   "exposedName": "MULTI_PASS_SCENE_PASS",
   "exposure": 2,
-  "chooserSource": "trinity/trinity/RenderJob/TriStepRenderPass_Blue.cpp:6",
   "chooser": [
     {
       "name": "TRIPASS_BEGIN_RENDER",

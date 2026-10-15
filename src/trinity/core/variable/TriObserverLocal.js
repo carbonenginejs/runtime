@@ -193,7 +193,7 @@ export class TriObserverLocal extends ITriObserverLocal
     }
 
     this._mute = next;
-    const contract = CjsSchema.GetConstructor("ITr2AudEmitter");
+    const contract = CjsSchema.getConstructor("ITr2AudEmitter");
     const emitter = contract ? CjsSchema.cast(this.observer, contract) : null;
     if (emitter)
     {
@@ -219,7 +219,6 @@ export class TriObserverLocal extends ITriObserverLocal
    * @param {Float32Array} transform Matrix.
    * @returns {Float32Array} The destination.
    */
-  @meta.ours
   static _TransformNormal(out, value, transform)
   {
     const x = value[0];
@@ -249,7 +248,7 @@ export class TriObserverLocal extends ITriObserverLocal
 export function SendEventToAudEmitter(observer, audioEvent)
 {
   if (!observer) return;
-  const contract = CjsSchema.GetConstructor("ITr2AudEmitter");
+  const contract = CjsSchema.getConstructor("ITr2AudEmitter");
   const emitter = contract ? CjsSchema.cast(observer.GetObserver(), contract) : null;
   if (emitter) emitter.SendEvent(audioEvent);
 }

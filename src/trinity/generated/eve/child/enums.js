@@ -52,12 +52,8 @@ export const TriggerType = {
 
 // Reviewed Blue registrations; values and chooser references share the declarations above.
 blueEnums.Create("trinity.EveSpaceObjectChild.Origin", Origin, {
-  "source": "trinity/trinity/Eve/SpaceObject/Children/EveSpaceObjectChild.h",
-  "family": "eve/child",
-  "line": 66,
   "exposedName": "EveSpaceObjectChildOrigin",
   "exposure": 2,
-  "chooserSource": "trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp:7",
   "chooser": [
     {
       "name": "SPACE",
@@ -72,12 +68,8 @@ blueEnums.Create("trinity.EveSpaceObjectChild.Origin", Origin, {
   ]
 });
 blueEnums.Create("trinity.EveChildEffectPropagator.PropagationType", PropagationType, {
-  "source": "trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.h",
-  "family": "eve/child",
-  "line": 51,
   "exposedName": "EffectPropagationType",
   "exposure": 2,
-  "chooserSource": "trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator_Blue.cpp:7",
   "chooser": [
     {
       "name": "localLocators",
@@ -97,12 +89,8 @@ blueEnums.Create("trinity.EveChildEffectPropagator.PropagationType", Propagation
   ]
 });
 blueEnums.Create("trinity.EveChildInstanceMeshRenderer.RotationalConstraints", RotationalConstraints, {
-  "source": "trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceMeshRenderer.h",
-  "family": "eve/child",
-  "line": 35,
   "exposedName": "RotationalConstraint",
   "exposure": 2,
-  "chooserSource": "trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceMeshRenderer_Blue.cpp:7",
   "chooser": [
     {
       "name": "none",
@@ -122,12 +110,8 @@ blueEnums.Create("trinity.EveChildInstanceMeshRenderer.RotationalConstraints", R
   ]
 });
 blueEnums.Create("trinity.EveChildEffectPropagator.TriggerType", TriggerType, {
-  "source": "trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.h",
-  "family": "eve/child",
-  "line": 58,
   "exposedName": "EffectPropagationTriggerType",
   "exposure": 2,
-  "chooserSource": "trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator_Blue.cpp:15",
   "chooser": [
     {
       "name": "triggerSphereCurve",

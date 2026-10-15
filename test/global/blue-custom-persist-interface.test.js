@@ -13,7 +13,7 @@ test("ICustomPersist registers one identity with exactly its four native abstrac
 {
   assert.equal(ICustomPersist, DirectPersist);
   assert.equal(CjsSchema.getClassName(ICustomPersist), "ICustomPersist");
-  assert.equal(CjsSchema.GetConstructor("ICustomPersist"), ICustomPersist);
+  assert.equal(CjsSchema.getConstructor("ICustomPersist"), ICustomPersist);
   assert.equal(be.classes.GetClassRegistration("ICustomPersist").type, ICustomPersist);
   assert.deepEqual(Object.getOwnPropertyNames(ICustomPersist.prototype), [ "constructor", ...methods ]);
   assert.equal(Object.getPrototypeOf(ICustomPersist.prototype), Object.prototype);
@@ -164,7 +164,7 @@ test("ICustomPersist import registers without domain evaluation or operational s
       }
       const shared = await import("@carbonenginejs/runtime/blue");
       const { CjsSchema } = await import("@carbonenginejs/runtime/schema");
-      assert.equal(CjsSchema.GetConstructor("ICustomPersist"), shared.ICustomPersist);
+      assert.equal(CjsSchema.getConstructor("ICustomPersist"), shared.ICustomPersist);
       assert.equal(shared.be.classes.GetClassRegistration("ICustomPersist").type, shared.ICustomPersist);
       assert.equal(shared.be.os.GetInfo().pumpTicksTotal, 0);
       assert.equal(shared.be.resMan.GetPendingLoads(), 0);

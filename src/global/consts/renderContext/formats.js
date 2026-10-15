@@ -489,24 +489,20 @@ const DEPTH_STENCIL_FORMAT_CHOOSER = [
 
 // Definition-site Blue registration preserves Carbon chooser order and exposure.
 // ImageIO declares the type; Trinity registers it (Tr2RenderContext_Blue.cpp:244).
+// Source: imageio/include/PixelFormat.h
 blueEnums.Create("trinity.ImageIO.PixelFormat", PixelFormat, {
-  source: "imageio/include/PixelFormat.h", family: "trinity", line: 11,
   exposedName: "PIXEL_FORMAT", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Tr2RenderContext_Blue.cpp:141",
   chooser: PIXEL_FORMAT_CHOOSER.map(name => ({ name, value: PixelFormat["PIXEL_FORMAT_" + name], description: name }))
 });
 // Registered as Carbon registers it (trinity/trinity/Tr2RenderContext_Blue.cpp:88).
 blueEnums.Create("trinity.Tr2RenderContextEnum.DepthStencilFormat", DepthStencilFormat, {
-  source: "trinity/trinityal/Tr2RenderContextEnum.h", family: "trinity", line: 77,
   exposedName: "DEPTH_STENCIL_FORMAT", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Tr2RenderContext_Blue.cpp:65",
   chooser: DEPTH_STENCIL_FORMAT_CHOOSER.map(name => ({ name, value: DepthStencilFormat["DSFMT_" + name], description: name + " depthStencil format" }))
 });
 // ImageIO declares the type; Trinity registers it (Tr2RenderContext_Blue.cpp:103).
+// Source: imageio/include/TextureType.h
 blueEnums.Create("trinity.ImageIO.TextureType", TextureType, {
-  source: "imageio/include/TextureType.h", family: "trinity", line: 9,
   exposedName: "TEXTURE_TYPE", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Tr2RenderContext_Blue.cpp:94",
   chooser: [
     { name: "TEX_TYPE_1D", value: TextureType.TEX_TYPE_1D, description: "1D texture" },
     { name: "TEX_TYPE_2D", value: TextureType.TEX_TYPE_2D, description: "2D texture" },

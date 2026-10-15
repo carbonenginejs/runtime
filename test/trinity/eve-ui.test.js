@@ -28,7 +28,7 @@ test("EveSprite2dBracket ports Carbon's CPU-side UI contract", () =>
   {
     throw new Error("display state was not updated");
   }
-  if (CjsSchema.GetConstructor("EveSprite2dBracket") !== EveSprite2dBracket)
+  if (CjsSchema.getConstructor("EveSprite2dBracket") !== EveSprite2dBracket)
   {
     throw new Error("EveSprite2dBracket was not registered");
   }

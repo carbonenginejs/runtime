@@ -23,7 +23,7 @@ test("Blue observer interfaces register one identity and only their native abstr
   {
     assert.equal(Type, direct);
     assert.equal(CjsSchema.getClassName(Type), name);
-    assert.equal(CjsSchema.GetConstructor(name), Type);
+    assert.equal(CjsSchema.getConstructor(name), Type);
     assert.equal(be.classes.GetClassRegistration(name).type, Type);
     assert.equal(CjsSchema.getMethod(Type, method).impl.status, "abstract");
     assert.deepEqual(CjsSchema.getSchema(Type).members, []);
@@ -62,7 +62,7 @@ test("PositionDescription is an unregistered native-shaped aggregate value recor
   assert.deepEqual(Object.getOwnPropertyNames(PositionDescription.prototype), ["constructor"]);
   assert.equal(Object.getPrototypeOf(PositionDescription.prototype), Object.prototype);
   assert.equal(CjsSchema.getClassName(PositionDescription), null);
-  assert.equal(CjsSchema.GetConstructor("PositionDescription"), null);
+  assert.equal(CjsSchema.getConstructor("PositionDescription"), null);
   assert.equal(be.classes.GetClassRegistration("PositionDescription"), null);
   position.front_z = 1;
   position.pos_x = 3.5;
@@ -184,10 +184,10 @@ test("Blue observer contracts import without domain evaluation or operational st
       }
       const shared = await import("@carbonenginejs/runtime/blue");
       const { CjsSchema } = await import("@carbonenginejs/runtime/schema");
-      assert.equal(CjsSchema.GetConstructor("IBlueEventListener"), shared.IBlueEventListener);
-      assert.equal(CjsSchema.GetConstructor("IBluePlacementObserver"), shared.IBluePlacementObserver);
-      assert.equal(CjsSchema.GetConstructor("IBlueMultiPlacementObserver"), shared.IBlueMultiPlacementObserver);
-      assert.equal(CjsSchema.GetConstructor("PositionDescription"), null);
+      assert.equal(CjsSchema.getConstructor("IBlueEventListener"), shared.IBlueEventListener);
+      assert.equal(CjsSchema.getConstructor("IBluePlacementObserver"), shared.IBluePlacementObserver);
+      assert.equal(CjsSchema.getConstructor("IBlueMultiPlacementObserver"), shared.IBlueMultiPlacementObserver);
+      assert.equal(CjsSchema.getConstructor("PositionDescription"), null);
       assert.equal(shared.be.os.GetInfo().pumpTicksTotal, 0);
       assert.equal(shared.be.resMan.GetPendingLoads(), 0);
       assert.equal(shared.be.resMan.GetPendingPrepares(), 0);

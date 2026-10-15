@@ -172,7 +172,7 @@ CjsSchema.blue.define(VideoPlaylistController, {
   className: "VideoPlaylistController",
   donors: [ "_VideoPlaylistController" ],
   methods: {
-  GetResource: [meta.adapted], IsCacheable: [meta.ours], SetPlaylist: [meta.ours], Destroy: [meta.adapted]
+  GetResource: [meta.adapted], IsCacheable: [], SetPlaylist: [], Destroy: [meta.adapted]
 }
 });
 

@@ -93,7 +93,7 @@ const LENGTH = { vector2: 2, vector3: 3, vector4: 4, quaternion: 4, matrix3: 9, 
  * Resolve meanings to data types before any table lookup.
  *
  * @param {GraphDataType|string} type Declared data type, or its kind name.
- * @param {object} [field={}] Schema member declaration; `field.edit.flags` selects uint32 storage.
+ * @param {object} [field={}] Schema member declaration; a `type.flags` member stores uint32.
  * @returns {GraphDataType} The resolved data type.
  * @throws {TypeError} When the declaration is missing or an enum has no integer scalar.
  */
@@ -102,7 +102,7 @@ export function dataType(type, field = {})
     if (typeof type === "string") type = { kind: type };
     if (!type || typeof type !== "object") throw new TypeError("Missing data type declaration");
     let kind = type.kind;
-    if (kind === "flags" || field.edit?.flags) return { ...type, kind: "uint32" };
+    if (kind === "flags" || type.flags === true || field.type?.flags === true) return { ...type, kind: "uint32" };
     if (kind === "enum")
     {
         kind = type.scalar ?? type.underlyingType;

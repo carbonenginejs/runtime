@@ -55,12 +55,8 @@
           "exportName": "ShadowQuality",
           "name": "trinity.ShadowQuality",
           "definition": {
-            "source": "trinity/trinity/Tr2LightManager.h",
-            "family": "eve/scene",
-            "line": 25,
             "exposedName": "ShadowQuality",
             "exposure": 2,
-            "chooserSource": "trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:25",
             "chooser": [
               {
                 "name": "Disabled",
@@ -89,12 +85,8 @@
           "exportName": "SSAOQuality",
           "name": "trinity.SSAOQuality",
           "definition": {
-            "source": "trinity/trinity/Tr2SSAO.h",
-            "family": "postProcess",
-            "line": 9,
             "exposedName": "SSAOQuality",
             "exposure": 2,
-            "chooserSource": "trinity/trinity/Tr2SSAO_Blue.cpp:8",
             "chooser": [
               {
                 "name": "Lowest",
@@ -128,12 +120,8 @@
           "exportName": "Tr2StandardIlluminant",
           "name": "trinity.Tr2StandardIlluminant",
           "definition": {
-            "source": "trinity/trinity/Tr2KelvinColor.h",
-            "family": "trinityCore",
-            "line": 11,
             "exposedName": "Tr2StandardIlluminant",
             "exposure": 2,
-            "chooserSource": "trinity/trinity/Tr2KelvinColor_Blue.cpp:12",
             "chooser": [
               {
                 "name": "CIE_A",
@@ -232,10 +220,6 @@
           "exportName": "Tr2TransformModifier",
           "name": "trinity.Tr2TransformModifier",
           "definition": {
-            "source": "trinity/trinity/Tr2Transform.h",
-            "family": "trinityCore",
-            "line": 19,
-            "chooserSource": "trinity/trinity/Tr2Transform_Blue.cpp:8",
             "chooser": [
               {
                 "name": "None",
@@ -294,12 +278,8 @@
           "exportName": "Tr2VolumerticQuality",
           "name": "trinity.Tr2VolumerticQuality",
           "definition": {
-            "source": "trinity/trinity/ITr2VolumetricRenderable.h",
-            "family": "trinityCore",
-            "line": 11,
             "exposedName": "Tr2VolumerticQuality",
             "exposure": 2,
-            "chooserSource": "trinity/trinity/Tr2VolumetricsRenderer_Blue.cpp:8",
             "chooser": [
               {
                 "name": "Low",
@@ -375,12 +355,8 @@
           "exportName": "Origin",
           "name": "trinity.EveSpaceObjectChild.Origin",
           "definition": {
-            "source": "trinity/trinity/Eve/SpaceObject/Children/EveSpaceObjectChild.h",
-            "family": "eve/child",
-            "line": 66,
             "exposedName": "EveSpaceObjectChildOrigin",
             "exposure": 2,
-            "chooserSource": "trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp:7",
             "chooser": [
               {
                 "name": "SPACE",
@@ -399,12 +375,8 @@
           "exportName": "PropagationType",
           "name": "trinity.EveChildEffectPropagator.PropagationType",
           "definition": {
-            "source": "trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.h",
-            "family": "eve/child",
-            "line": 51,
             "exposedName": "EffectPropagationType",
             "exposure": 2,
-            "chooserSource": "trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator_Blue.cpp:7",
             "chooser": [
               {
                 "name": "localLocators",
@@ -428,12 +400,8 @@
           "exportName": "RotationalConstraints",
           "name": "trinity.EveChildInstanceMeshRenderer.RotationalConstraints",
           "definition": {
-            "source": "trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceMeshRenderer.h",
-            "family": "eve/child",
-            "line": 35,
             "exposedName": "RotationalConstraint",
             "exposure": 2,
-            "chooserSource": "trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceMeshRenderer_Blue.cpp:7",
             "chooser": [
               {
                 "name": "none",
@@ -457,12 +425,8 @@
           "exportName": "TriggerType",
           "name": "trinity.EveChildEffectPropagator.TriggerType",
           "definition": {
-            "source": "trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.h",
-            "family": "eve/child",
-            "line": 58,
             "exposedName": "EffectPropagationTriggerType",
             "exposure": 2,
-            "chooserSource": "trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator_Blue.cpp:15",
             "chooser": [
               {
                 "name": "triggerSphereCurve",
@@ -538,12 +502,8 @@
           "exportName": "AmbientOcclusionQuality",
           "name": "trinity.EveSpaceSceneRenderDriver.AmbientOcclusionQuality",
           "definition": {
-            "source": "trinity/trinity/Eve/EveSpaceSceneRenderDriver.h",
-            "family": "eve/scene",
-            "line": 39,
             "exposedName": "EveSpaceSceneRenderDriverAmbientOcclusionQuality",
             "exposure": 2,
-            "chooserSource": "trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:18",
             "chooser": [
               {
                 "name": "Disabled",
@@ -572,12 +532,8 @@
           "exportName": "AntiAliasingQuality",
           "name": "trinity.EveSpaceSceneRenderDriver.AntiAliasingQuality",
           "definition": {
-            "source": "trinity/trinity/Eve/EveSpaceSceneRenderDriver.h",
-            "family": "eve/scene",
-            "line": 32,
             "exposedName": "EveSpaceSceneRenderDriverAntiAliasingQuality",
             "exposure": 2,
-            "chooserSource": "trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:11",
             "chooser": [
               {
                 "name": "Disabled",
@@ -606,12 +562,8 @@
           "exportName": "EveVisualizeMethod",
           "name": "trinity.EveSpaceScene.EveVisualizeMethod",
           "definition": {
-            "source": "trinity/trinity/Eve/EveSpaceScene.h",
-            "family": "eve/scene",
-            "line": 176,
             "exposedName": "EveVisualizeMethod",
             "exposure": 2,
-            "chooserSource": "trinity/trinity/Eve/EveSpaceScene_Blue.cpp:20",
             "chooser": [
               {
                 "name": "None",
@@ -655,12 +607,8 @@
           "exportName": "ParameterType",
           "name": "trinity.EveMultiEffectParameter.ParameterType",
           "definition": {
-            "source": "trinity/trinity/Eve/EveMultiEffectParameter.h",
-            "family": "eve/effect",
-            "line": 16,
             "exposedName": "EveMultiEffectParameterType",
             "exposure": 2,
-            "chooserSource": "trinity/trinity/Eve/EveMultiEffectParameter_Blue.cpp:8",
             "chooser": [
               {
                 "name": "EveSpaceObject2",
@@ -740,22 +688,14 @@
         {
           "exportName": "ImpactConfiguration",
           "name": "trinity.ITriTargetable.ImpactConfiguration",
-          "definition": {
-            "source": "trinity/trinity/Include/ITriTargetable.h",
-            "family": "eve/overlays/impact",
-            "line": 9
-          }
+          "definition": {}
         },
         {
           "exportName": "PassType",
           "name": "trinity.ITr2MultiPassScene.PassType",
           "definition": {
-            "source": "trinity/trinity/Include/ITr2MultiPassScene.h",
-            "family": "renderJob",
-            "line": 25,
             "exposedName": "MULTI_PASS_SCENE_PASS",
             "exposure": 2,
-            "chooserSource": "trinity/trinity/RenderJob/TriStepRenderPass_Blue.cpp:6",
             "chooser": [
               {
                 "name": "TRIPASS_BEGIN_RENDER",
@@ -836,12 +776,8 @@
           "exportName": "PerLightShadowSetting",
           "name": "trinity.PerLightShadowSetting",
           "definition": {
-            "source": "trinity/trinity/Lights/Tr2Light.h",
-            "family": "eve/lights",
-            "line": 20,
             "exposedName": "PerLightShadowSetting",
             "exposure": 2,
-            "chooserSource": "trinity/trinity/Lights/Tr2Light_Blue.cpp:8",
             "chooser": [
               {
                 "name": "Disabled",
@@ -882,12 +818,8 @@
           "exportName": "LocalPositionBehavior",
           "name": "trinity.EveLocalPositionCurve.LocalPositionBehavior",
           "definition": {
-            "source": "trinity/trinity/Eve/Renderable/Stretch/EveLocalPositionCurve.h",
-            "family": "eve/renderable/stretch",
-            "line": 26,
             "exposedName": "EveLocalPositionBehavior",
             "exposure": 2,
-            "chooserSource": "trinity/trinity/Eve/Renderable/Stretch/EveLocalPositionCurve_Blue.cpp:8",
             "chooser": [
               {
                 "name": "none",
@@ -993,10 +925,6 @@
           "exportName": "BloomDebugMode",
           "name": "trinity.Tr2PostProcessRenderer.BloomDebugMode",
           "definition": {
-            "source": "trinity/trinity/PostProcess/Tr2PostProcessRenderer.h",
-            "family": "postProcess",
-            "line": 112,
-            "chooserSource": "trinity/trinity/PostProcess/Tr2PostProcessRenderer_Blue.cpp:9",
             "chooser": [
               {
                 "name": "None",
@@ -1044,49 +972,29 @@
         {
           "exportName": "BlurChannel",
           "name": "trinity.PostProcessBlur.BlurChannel",
-          "definition": {
-            "source": "trinity/trinity/PostProcess/Tr2PostProcessRenderer.h",
-            "family": "postProcess",
-            "line": 24
-          }
+          "definition": {}
         },
         {
           "exportName": "BlurFinalize",
           "name": "trinity.PostProcessBlur.BlurFinalize",
-          "definition": {
-            "source": "trinity/trinity/PostProcess/Tr2PostProcessRenderer.h",
-            "family": "postProcess",
-            "line": 40
-          }
+          "definition": {}
         },
         {
           "exportName": "BlurProcess",
           "name": "trinity.PostProcessBlur.BlurProcess",
-          "definition": {
-            "source": "trinity/trinity/PostProcess/Tr2PostProcessRenderer.h",
-            "family": "postProcess",
-            "line": 33
-          }
+          "definition": {}
         },
         {
           "exportName": "BlurType",
           "name": "trinity.PostProcessBlur.BlurType",
-          "definition": {
-            "source": "trinity/trinity/PostProcess/Tr2PostProcessRenderer.h",
-            "family": "postProcess",
-            "line": 18
-          }
+          "definition": {}
         },
         {
           "exportName": "Debug",
           "name": "trinity.Tr2PPTaaEffect.Debug",
           "definition": {
-            "source": "trinity/trinity/PostProcess/Effects/Tr2PPTaaEffect.h",
-            "family": "postProcess",
-            "line": 23,
             "exposedName": "TaaDebug",
             "exposure": 2,
-            "chooserSource": "trinity/trinity/PostProcess/Effects/Tr2PPTaaEffect_Blue.cpp:17",
             "chooser": [
               {
                 "name": "Off",
@@ -1110,12 +1018,8 @@
           "exportName": "Priority",
           "name": "trinity.PostProcessEnums.Priority",
           "definition": {
-            "source": "trinity/trinity/PostProcess/Tr2PostProcessEnums.h",
-            "family": "postProcess",
-            "line": 58,
             "exposedName": "Tr2PostProcessPriority",
             "exposure": 2,
-            "chooserSource": "trinity/trinity/PostProcess/Tr2PostProcessAttributes_Blue.cpp:9",
             "chooser": [
               {
                 "name": "UI",
@@ -1149,12 +1053,8 @@
           "exportName": "Quality",
           "name": "trinity.PostProcess.Quality",
           "definition": {
-            "source": "trinity/trinity/PostProcess/Effects/Tr2PPEffect.h",
-            "family": "postProcess",
-            "line": 9,
             "exposedName": "PostProcessQuality",
             "exposure": 2,
-            "chooserSource": "trinity/trinity/PostProcess/Effects/Tr2PPEffect_Blue.cpp:7",
             "chooser": [
               {
                 "name": "Low",
@@ -1200,12 +1100,8 @@
           "exportName": "FilterType",
           "name": "trinity.TriStepFilterVisibilityResults.FilterType",
           "definition": {
-            "source": "trinity/trinity/RenderJob/TriStepFilterVisibilityResults.h",
-            "family": "renderJob",
-            "line": 41,
             "exposedName": "TRIVISIBILITY_FILTER_TYPE",
             "exposure": 2,
-            "chooserSource": "trinity/trinity/RenderJob/TriStepFilterVisibilityResults_Blue.cpp:44",
             "chooser": [
               {
                 "name": "TRIVISIBILITY_FILTER_ONLY_OBJECTS_IN_LIST",
@@ -1224,12 +1120,8 @@
           "exportName": "TriRenderJobStatus",
           "name": "trinity.TriRenderJobStatus",
           "definition": {
-            "source": "trinity/trinity/RenderJob/TriRenderJob.h",
-            "family": "renderJob",
-            "line": 14,
             "exposedName": "RENDERJOB_STATUS",
             "exposure": 2,
-            "chooserSource": "trinity/trinity/RenderJob/TriRenderJob_Blue.cpp:8",
             "chooser": [
               {
                 "name": "RJ_INIT",
@@ -1310,10 +1202,6 @@
           "exportName": "Tr2SpriteObjectPickState",
           "name": "trinity.Tr2SpriteObjectPickState",
           "definition": {
-            "source": "trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h",
-            "family": "sprite2d",
-            "line": 8,
-            "chooserSource": "trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:10",
             "chooser": [
               {
                 "name": "TR2_SPS_OFF",
@@ -1337,12 +1225,8 @@
           "exportName": "Tr2Sprite2dRenderEffect",
           "name": "trinity.Tr2Sprite2dRenderEffect",
           "definition": {
-            "source": "trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h",
-            "family": "sprite2d",
-            "line": 99,
             "exposedName": "Tr2Sprite2dRenderEffect",
             "exposure": 1,
-            "chooserSource": "trinity/trinity/Sprite2d/Tr2Sprite2dScene_Blue.cpp:12",
             "chooser": [
               {
                 "name": "S2D_RFX_COPY",
@@ -1366,12 +1250,8 @@
           "exportName": "Tr2SpriteObjectBlendMode",
           "name": "trinity.Tr2SpriteObjectBlendMode",
           "definition": {
-            "source": "trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h",
-            "family": "sprite2d",
-            "line": 15,
             "exposedName": "Tr2SpriteObjectBlendMode",
             "exposure": 1,
-            "chooserSource": "trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:17",
             "chooser": [
               {
                 "name": "TR2_SBM_NONE",
@@ -1400,12 +1280,8 @@
           "exportName": "Tr2SpriteObjectEffect",
           "name": "trinity.Tr2SpriteObjectEffect",
           "definition": {
-            "source": "trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h",
-            "family": "sprite2d",
-            "line": 31,
             "exposedName": "Tr2SpriteObjectEffect",
             "exposure": 1,
-            "chooserSource": "trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:32",
             "chooser": [
               {
                 "name": "TR2_SFX_FILL",
@@ -1499,12 +1375,8 @@
           "exportName": "Tr2SpriteTarget",
           "name": "trinity.Tr2SpriteTarget",
           "definition": {
-            "source": "trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h",
-            "family": "sprite2d",
-            "line": 23,
             "exposedName": "Tr2SpriteTarget",
             "exposure": 2,
-            "chooserSource": "trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:25",
             "chooser": [
               {
                 "name": "COLOR",
@@ -1528,12 +1400,8 @@
           "exportName": "Tr2StretchScaleBehavior",
           "name": "trinity.Tr2StretchScaleBehavior",
           "definition": {
-            "source": "trinity/trinity/Sprite2d/Tr2Sprite2dStretch.h",
-            "family": "sprite2d",
-            "line": 14,
             "exposedName": "Tr2Sprite2dStretchDpiScaleBehaviorChooser",
             "exposure": 1,
-            "chooserSource": "trinity/trinity/Sprite2d/Tr2Sprite2dStretch_Blue.cpp:8",
             "chooser": [
               {
                 "name": "S2D_SSC_ALIGN_BOTTOMRIGHT",

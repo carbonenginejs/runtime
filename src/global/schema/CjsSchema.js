@@ -32,7 +32,7 @@ const DEFAULT_EXPORTS = new WeakMap();
 const VALUES_DECLARATIONS = new WeakMap();
 let SCHEMA_GENERATION = 0;
 
-// Statics described by edit.setting, in definition order (see getSettings).
+// Statics described by meta.setting, in definition order (see getSettings).
 // Declared before the class body, which reads SETTING_DECORATOR.
 const SETTINGS = [];
 const CARBON_SETTING_NAMES = new Set(TriSettingNames);
@@ -197,7 +197,7 @@ export class CjsSchema
     }
 
     /**
-     * Every static described by `edit.setting`, in definition order, as
+     * Every static described by `meta.setting`, in definition order, as
      * `{ name, owner, key, applies, enum, values, carbon }`. The list only grows.
      *
      * @returns {ReadonlyArray<object>} The described settings.
@@ -338,7 +338,7 @@ export class CjsSchema
      *
      * This is the cross-copy replacement for `value instanceof SomeClass`, and
      * the reason it is worth having is that the obvious implementation is wrong.
-     * Resolving the name through GetConstructor and testing `instanceof` against
+     * Resolving the name through getConstructor and testing `instanceof` against
      * the result reintroduces the identity comparison this exists to avoid: the
      * registry may hold a sibling's constructor, and then a perfectly good local
      * instance fails. So the check never compares constructor identity at all.
@@ -367,20 +367,20 @@ export class CjsSchema
      * are independent names. Metadata may still be declared for a constructor
      * whose name collided, but lookup continues to return the first entry.
      */
-    static SetConstructor(name, Constructor)
+    static setConstructor(name, Constructor)
     {
         registerClass({ name, type: Constructor });
         return this;
     }
 
     /** Removes one registered name without erasing aliases or sealed metadata. */
-    static DeleteConstructor(name)
+    static deleteConstructor(name)
     {
         return unregisterClass(name);
     }
 
     /** Returns the constructor registered for a serialized class name, or null. */
-    static GetConstructor(name)
+    static getConstructor(name)
     {
         return getRegisteredConstructor(name);
     }
@@ -704,7 +704,8 @@ export class CjsSchema
         float64Array: fieldDecorator("type", { kind: "typedArray", arrayType: "Float64Array" }),
         bigInt64Array: fieldDecorator("type", { kind: "typedArray", arrayType: "BigInt64Array" }),
         bigUint64Array: fieldDecorator("type", { kind: "typedArray", arrayType: "BigUint64Array" }),
-        flags: values => combinedFieldDecorator({ type: { kind: "uint32" }, enum: normalizeEnumDefinition(values), edit: { flags: true } }),
+        // A bitmask: uint32 storage whose values combine (Carbon's FLAGS bit, 0x100).
+        flags: values => combinedFieldDecorator({ type: { kind: "uint32", flags: true }, enum: normalizeEnumDefinition(values) }),
         /**
          * Carbon's BINARYBLOCK (`MAP_ATTRIBUTE_AS_CUSTOM_BINARY_BLOCK`,
          * BlueExposureMacros.h:157-161): how the member is stored. Readers move
@@ -804,21 +805,19 @@ export class CjsSchema
     // HIDDEN and FLAGS are editor hints, READ and WRITE are access control.
     /**
      * Blue edit flags, one boolean per EDITFLAGS bit: read 0x001, write 0x002,
-     * notify 0x004, hidden 0x008, persist 0x010, rpersist 0x020, flags 0x100,
-     * enum 0x200; persistOnly is HIDDEN | PERSIST. The masks and
+     * notify 0x004, hidden 0x008, persist 0x010, rpersist 0x020; persistOnly is
+     * HIDDEN | PERSIST. FLAGS 0x100 and ENUM 0x200 come from the member's type
+     * (`type.flags`, `type.enum`), not from an edit decorator. The masks and
      * EDIT_FORCELONG are not decorators. Flags combine independently, and
      * persistence does not imply script access.
      *
      * - `notify` calls `OnModified(nameOrNames)` once for changed values.
      *   Equal writes do not notify. `notify: false`, `markDirty: false` and
      *   `skipUpdate: true` suppress this call without retaining names.
-     * - `type.enum(...)` already reports `edit.enum: true` in the resolved
-     *   schema; `flags` describes a bitmask and supplies no chooser.
      * - Values transport does not enforce READ, and direct JS field access is
      *   never intercepted.
      */
     static #edit = {
-        none: fieldDecorator("edit", {}),
         // MODMASK 0x00F
         read: fieldDecorator("edit", { read: true }),
         write: fieldDecorator("edit", { write: true }),
@@ -831,24 +830,6 @@ export class CjsSchema
         // RPERSIST 0x020 - "like PERSIST but only unserialize (read only)":
         // the value loads from a document and is never written back out.
         rpersist: fieldDecorator("edit", { rpersist: true }),
-
-        flags: fieldDecorator("edit", { flags: true }),
-        enum: fieldDecorator("edit", { enum: true }),
-
-        /**
-         * Marks a static field as the value behind a named engine setting,
-         * Carbon's `TRI_REGISTER_SETTING` or one of ours. It only describes:
-         * the renderer's settings read the described statics from
-         * `CjsSchema.getSettings()`, and each entry records whether the name
-         * is one Carbon registers.
-         *
-         * `applies` is when a change takes effect: `edit.setting.ALWAYS` (read
-         * every frame), `CREATE` (copied when an object is made) or `LOAD`
-         * (read while something is built or loaded). `enum` is the enum a
-         * numeric setting takes its values from, as the enum object or its
-         * registered name; `values` lists the values any other setting takes.
-         */
-        setting: SETTING_DECORATOR,
 
         // PERSISTONLY = HIDDEN | PERSIST, for hidden attributes.
         persistOnly: fieldDecorator("edit", { persist: true, persistOnly: true, hidden: true }),
@@ -894,7 +875,6 @@ export class CjsSchema
     static #impl = {
         abstract: memberDecorator("impl", { abstract: true, status: "abstract" }),
         adapted: memberDecorator("impl", { adapted: true, status: "adapted" }),
-        custom: memberDecorator("impl", { custom: true, status: "custom" }),
         implemented: memberDecorator("impl", { implemented: true, status: "implemented" }),
         noop: memberDecorator("impl", { noop: true, status: "noop" }),
         notImplemented: memberDecorator("impl", { notImplemented: true, status: "notImplemented" }),
@@ -1034,11 +1014,11 @@ export class CjsSchema
         // member, ours included. `blue` (below) is the same flags stamped as
         // Carbon's. `meta.blue` and `meta.type` are transitional aliases.
         ...Object.fromEntries(FLAG_NAMES.map(name => [ name, this.#edit[name] ])),
-        blue: { ...Object.fromEntries(Object.entries(this.#edit).filter(([name]) => !["none", "enum", "setting"].includes(name))), ...this.#carbon },
+        blue: { ...this.#edit, ...this.#carbon },
         ui: { ...this.#jessica, components: createComponentsNamespace() },
         type: Object.fromEntries(Object.entries(this.#type).filter(([name]) => !["define", "hideInherited"].includes(name))),
-        ...Object.fromEntries(Object.entries(this.#impl).filter(([name]) => name !== "custom")),
-        ours: this.#impl.custom,
+        // No `ours`: a member or method without the blue stamp is ours (ruling 2026-10-15).
+        ...this.#impl,
         renamed: this.#renamed,
         keyIndex: index => {
             if (!Number.isSafeInteger(index) || index < 0) throw new TypeError("meta.keyIndex requires a nonnegative safe integer.");
@@ -1048,7 +1028,20 @@ export class CjsSchema
         events: this.#compose.notify,
         requires: this.#compose.abstract,
         values: this.#compose.values,
-        setting: this.#edit.setting,
+        /**
+         * Marks a static field as the value behind a named engine setting,
+         * Carbon's `TRI_REGISTER_SETTING` or one of ours. It only describes:
+         * the renderer's settings read the described statics from
+         * `CjsSchema.getSettings()`, and each entry records whether the name
+         * is one Carbon registers.
+         *
+         * `applies` is when a change takes effect: `meta.setting.ALWAYS` (read
+         * every frame), `CREATE` (copied when an object is made) or `LOAD`
+         * (read while something is built or loaded). `enum` is the enum a
+         * numeric setting takes its values from, as the enum object or its
+         * registered name; `values` lists the values any other setting takes.
+         */
+        setting: SETTING_DECORATOR,
         struct: createStructNamespace(),
         member: (name, options) => declarationDecorator("member", name, options),
         property: (name, options) => declarationDecorator("property", name, options),
@@ -1231,7 +1224,7 @@ function resolveDefaultsConstructor(ConstructorOrName)
     }
 
     const className = ConstructorOrName.trim();
-    const Constructor = CjsSchema.GetConstructor(className);
+    const Constructor = CjsSchema.getConstructor(className);
     if (!Constructor)
     {
         throw new TypeError(`No CjsSchema constructor is registered for _type "${className}".`);
@@ -1359,7 +1352,7 @@ function expandDefaultValue(value, declaredType, defaultValue, path)
 
     if (typeof value._type === "string" && value._type.trim())
     {
-        const Constructor = CjsSchema.GetConstructor(value._type.trim());
+        const Constructor = CjsSchema.getConstructor(value._type.trim());
         if (!Constructor)
         {
             throw new TypeError(`${path} names unknown _type "${value._type.trim()}".`);
@@ -1446,7 +1439,7 @@ function resolveDeclaredConstructor(type)
             className = type.className || null;
         }
     }
-    return typeof className === "function" ? className : className ? CjsSchema.GetConstructor(className) : null;
+    return typeof className === "function" ? className : className ? CjsSchema.getConstructor(className) : null;
 }
 
 function mergePlainDefaults(defaults, values, path)
@@ -1537,28 +1530,28 @@ function settingDecorator(name, { applies = SETTING_APPLIES.ALWAYS, enum: enumTy
 {
     if (typeof name !== "string" || !name)
     {
-        throw new TypeError("CjsSchema.edit.setting requires a setting name.");
+        throw new TypeError("meta.setting requires a setting name.");
     }
     if (!Object.values(SETTING_APPLIES).includes(applies))
     {
-        throw new TypeError(`CjsSchema.edit.setting "${name}": applies must be edit.setting.ALWAYS, CREATE or LOAD.`);
+        throw new TypeError(`meta.setting "${name}": applies must be meta.setting.ALWAYS, CREATE or LOAD.`);
     }
     if (enumType !== null && values !== null)
     {
-        throw new TypeError(`CjsSchema.edit.setting "${name}": give enum or values, not both.`);
+        throw new TypeError(`meta.setting "${name}": give enum or values, not both.`);
     }
     if (values !== null && !Array.isArray(values))
     {
-        throw new TypeError(`CjsSchema.edit.setting "${name}": values must be an array.`);
+        throw new TypeError(`meta.setting "${name}": values must be an array.`);
     }
     const carbon = CARBON_SETTING_NAMES.has(name);
-    const value = { setting: { name, applies, enum: enumType, values, carbon } };
+    const value = { name, applies, enum: enumType, values, carbon };
 
     return describeDecorator(function schemaSettingDecorator(_, context)
     {
         if (context?.kind !== "field" || !context.static)
         {
-            throw new TypeError(`CjsSchema.edit.setting "${name}" only describes a static class field.`);
+            throw new TypeError(`meta.setting "${name}" only describes a static class field.`);
         }
 
         // A static field's returned initializer runs once, at class
@@ -1571,14 +1564,14 @@ function settingDecorator(name, { applies = SETTING_APPLIES.ALWAYS, enum: enumTy
             const index = SETTINGS.findIndex(existing => existing.name === name);
             if (index >= 0 && SETTINGS[index].key !== entry.key)
             {
-                throw new TypeError(`CjsSchema.edit.setting "${name}" is described on two fields.`);
+                throw new TypeError(`meta.setting "${name}" is described on two fields.`);
             }
             if (index >= 0) SETTINGS[index] = entry;
             else SETTINGS.push(entry);
             getOrCreateClassSchema(this).settings.push(entry);
             return initialValue;
         };
-    }, "carbon", value);
+    }, "setting", value);
 }
 
 /** A struct list names its item class by its registered name, resolved at read time. */
@@ -2308,7 +2301,7 @@ function findValuesDeclaration(Constructor, name, storage = false)
 function getRuntimeValueField(value, key, type)
 {
     const Constructor = isPlainObject(value)
-        ? (typeof value._type === "string" && CjsSchema.GetConstructor(value._type)) || resolveDeclaredConstructor(type)
+        ? (typeof value._type === "string" && CjsSchema.getConstructor(value._type)) || resolveDeclaredConstructor(type)
         : value.constructor;
     return findValuesDeclaration(Constructor, key, true);
 }
@@ -2348,7 +2341,7 @@ export function omitRuntimeValues(value, type)
     if (!isPlainObject(value)) return value;
     // cloneCarbonValue treats opaque source-shaped carriers as references.
     if (typeof value._sourceClassName === "string") return value;
-    const Constructor = (typeof value._type === "string" && CjsSchema.GetConstructor(value._type)) || declared;
+    const Constructor = (typeof value._type === "string" && CjsSchema.getConstructor(value._type)) || declared;
     let descriptors = null;
     for (const key of Object.keys(value))
     {
@@ -2390,7 +2383,7 @@ function hasRuntimeValuesType(type, seen = new Set())
 // are not registered, so they stay values.
 function isReferenceType(type)
 {
-    if (typeof type === "string") return CjsSchema.GetConstructor(type) !== null;
+    if (typeof type === "string") return CjsSchema.getConstructor(type) !== null;
     return type?.kind === "rootRef";
 }
 
@@ -2441,13 +2434,6 @@ function computeEffectiveFields(Constructor)
         {
             hidden.add(fieldName);
         }
-    }
-
-    // Enum chooser metadata carries the same ENUM fact as Blue's flag.
-    // Keep it visible under edit for comparisons without duplicating annotations.
-    for (const field of ordered)
-    {
-        if (field.enum) field.edit = { ...field.edit, enum: true };
     }
     return ordered.filter(field => !hidden.has(field.name));
 }
@@ -3141,12 +3127,8 @@ function normalizeEnumSchema(values, definition)
         members
     };
 
-    if (definition.source) result.source = definition.source;
-    if (definition.family) result.family = definition.family;
-    if (definition.line !== undefined && definition.line !== null) result.line = definition.line;
     if (definition.exposure !== undefined) result.exposure = definition.exposure;
     if (definition.exposedName !== undefined) result.exposedName = definition.exposedName;
-    if (definition.chooserSource !== undefined) result.chooserSource = definition.chooserSource;
     if (definition.chooser !== undefined) result.chooser = definition.chooser;
 
     return result;
@@ -3391,7 +3373,6 @@ function exportCanonicalDeclaration(entry, namespaces)
         if (namespaces && !namespaces.has(namespace)) continue;
         result[namespace] = value;
     }
-    if (entry.enum && (!namespaces || namespaces.has("edit"))) result.edit = { ...result.edit, enum: true };
     return result;
 }
 

@@ -187,7 +187,6 @@ export class EveChildLineSet extends EveChildTransform
    * may supply line sets whose lifetime it manages separately, including shared
    * sets retained by another graph; JS has no BluePtr reference count.
    */
-  @meta.ours
   Destroy(managedLineSets = null)
   {
     this.ReleaseResources();
@@ -636,9 +635,7 @@ export class EveChildLineSet extends EveChildTransform
 
 // Registered as Carbon registers it (trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet_Blue.cpp:13).
 be.enums.Create("trinity.EveChildLineSet.lineSetType", EveChildLineSet.lineSetType, {
-  source: "trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet.h", family: "eve/child", line: 92,
   exposedName: "LineSetTypes", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet_Blue.cpp:7",
   chooser: [
     { name: "ObjectRender", value: EveChildLineSet.lineSetType.OBJECT_RENDER, description: "sprites or other objects are rendered at each segment" },
     { name: "LineRender", value: EveChildLineSet.lineSetType.LINE_RENDER, description: "To render a 3dLine shader between the points" },

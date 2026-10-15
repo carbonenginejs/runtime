@@ -33,5 +33,5 @@ export class TnyOutlineCompositeNode extends ITr2RenderNode
 
 CjsSchema.meta.define(TnyOutlineCompositeNode, {
   className: "TnyOutlineCompositeNode",
-  methods: { Validate: [meta.ours], Execute: [meta.ours] }
+  methods: { Validate: [], Execute: [] }
 });

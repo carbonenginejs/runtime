@@ -65,6 +65,4 @@ export class Tr2ParticleElementData
 
 
 // This native enum has no Blue chooser or enum exposure registration.
-be.enums.Create("trinity.Tr2ParticleElementData.BufferType", Tr2ParticleElementData.BufferType, {
-  source: "trinity/trinity/Particle/Tr2ParticleElementDeclaration.h", family: "particle", line: 62
-});
+be.enums.Create("trinity.Tr2ParticleElementData.BufferType", Tr2ParticleElementData.BufferType);

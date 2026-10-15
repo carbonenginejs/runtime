@@ -590,9 +590,7 @@ export class Tr2ReflectionProbe
 
 // Registered as Carbon registers it (trinity/trinity/Tr2ReflectionProbe_Blue.cpp:14).
 be.enums.Create("trinity.Tr2ReflectionProbe.ReflectionProbeRenderFrequency", Tr2ReflectionProbe.ReflectionProbeRenderFrequency, {
-  source: "trinity/trinity/Tr2ReflectionProbe.h", family: "trinityCore", line: 22,
   exposedName: "ReflectionProbeRenderFrequency", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Tr2ReflectionProbe_Blue.cpp:8",
   chooser: [
     { name: "OneSidePerFrame", value: Tr2ReflectionProbe.ReflectionProbeRenderFrequency.ONE_SIDE_PER_FRAME, description: "One side per frame" },
     { name: "AllSidesPerFrame", value: Tr2ReflectionProbe.ReflectionProbeRenderFrequency.ALL_SIDES_PER_FRAME, description: "All sides per frame" }

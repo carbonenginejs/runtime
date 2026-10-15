@@ -106,7 +106,6 @@ export class Tr2QuadRenderer
    * defines it; this is the evident intent.
    */
   @blue.method
-  @meta.ours
   UnregisterEffect(key)
   {
     this._effects.delete(key);

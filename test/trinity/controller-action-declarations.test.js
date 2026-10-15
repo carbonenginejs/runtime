@@ -123,7 +123,7 @@ for (const { name, Type, nominal, query, modelFree = false } of cases)
   {
     const item = new Type();
     assert.deepEqual([...mappedInterfaces(Type)], query);
-    assert.equal(CjsSchema.GetConstructor(name), Type);
+    assert.equal(CjsSchema.getConstructor(name), Type);
     assert.equal(CjsSchema.cast(item, Type), item);
     assert.equal("GetValues" in item, false);
     for (const Interface of [A, U, N, I, P])

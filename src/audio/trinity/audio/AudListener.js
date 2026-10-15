@@ -97,7 +97,6 @@ export class AudListener extends AudGameObjResource
    *
    * @returns {boolean} True when submitted; false when unsupported or already submitted to this backend.
    */
-  @meta.ours
   RealizePlacement()
   {
     const backend = AudGameObjResource.backend;

@@ -979,7 +979,6 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @param {*} value Candidate sequence.
    * @returns {boolean} Whether `value` is indexable as a sequence.
    */
-  @meta.ours
   static isSequence(value)
   {
     return Array.isArray(value) || ArrayBuffer.isView(value) || typeof value === "string";
@@ -1060,7 +1059,6 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @param {number} size Component count.
    * @returns {number[]} New blended value.
    */
-  @meta.ours
   static mix(from, to, t, size)
   {
     const out = new Array(size);
@@ -1080,7 +1078,6 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @param {number[]} line2Point2 Second point of line 2.
    * @returns {number[]} Intersection point.
    */
-  @meta.ours
   static xmVector2IntersectLine(line1Point1, line1Point2, line2Point1, line2Point2)
   {
     const v1 = [line1Point2[0] - line1Point1[0], line1Point2[1] - line1Point1[1]];
@@ -1105,7 +1102,6 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @param {number} size New length.
    * @returns {void}
    */
-  @meta.ours
   static resizeRenderVertices(list, size)
   {
     while (list.length < size) list.push(new Tr2Sprite2dD3DVertex());
@@ -1118,7 +1114,6 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @param {Tr2Sprite2dD3DVertex} source Vertex to copy.
    * @returns {Tr2Sprite2dD3DVertex} Independent copy.
    */
-  @meta.ours
   static copyD3DVertex(source)
   {
     const out = new Tr2Sprite2dD3DVertex();

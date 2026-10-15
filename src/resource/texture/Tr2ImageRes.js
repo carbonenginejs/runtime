@@ -186,7 +186,7 @@ CjsSchema.blue.define(Tr2ImageRes, {
     height: [ type.uint32, blue.persist ]
   },
   methods: {
-    SetPayload: [ meta.ours ],
+    SetPayload: [],
     GetWidth: [ blue.method, meta.adapted ],
     GetHeight: [ blue.method, meta.adapted ],
     GetPixelColor: [ blue.method, meta.adapted ],

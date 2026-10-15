@@ -181,7 +181,7 @@ export class EveStretch extends IEveFiringEffectElement
     if (this.moveObject) this.moveObject.Update(context);
     if (this.destObject && this._displayDestination) this.destObject.Update(context);
     // Carbon dynamic_cast<Tr2AudioStretchBase*>( m_audio ) (EveStretch.cpp:111-114); the audio layer registers the class.
-    const audioBase = CjsSchema.GetConstructor("Tr2AudioStretchBase");
+    const audioBase = CjsSchema.getConstructor("Tr2AudioStretchBase");
     const stretchAudioBase = audioBase ? CjsSchema.cast(this.audio, audioBase) : null;
     if (stretchAudioBase) stretchAudioBase.Update(this._sourcePosition, this._destinationPosition);
     if (this.stretchAudio)
@@ -655,7 +655,7 @@ export class EveStretch extends IEveFiringEffectElement
   /** The audio as Carbon's Tr2AudioStretchAuto, or null; the audio layer registers the class. */
   static _GetAutoAudio(audio)
   {
-    const autoType = CjsSchema.GetConstructor("Tr2AudioStretchAuto");
+    const autoType = CjsSchema.getConstructor("Tr2AudioStretchAuto");
     return autoType ? CjsSchema.cast(audio, autoType) : null;
   }
 

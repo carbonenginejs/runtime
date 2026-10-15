@@ -203,7 +203,6 @@ export class EveSpherePin
    * stay owned after replacement; a graph retirement walk can retain or retire
    * shared effects itself by including them in managedResources.
    */
-  @meta.ours
   Destroy(managedResources = null)
   {
     this.ReleaseResources();

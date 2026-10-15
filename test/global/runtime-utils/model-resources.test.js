@@ -57,7 +57,7 @@ class TestRes
   }
 }
 
-CjsSchema.SetConstructor("TestRes", TestRes);
+CjsSchema.setConstructor("TestRes", TestRes);
 
 
 /** Holds resources the way real classes do: declared schema fields, no hook. */

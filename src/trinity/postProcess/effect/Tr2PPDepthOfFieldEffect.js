@@ -95,9 +95,7 @@ export class Tr2PPDepthOfFieldEffect extends Tr2PPEffect
 }
 
 be.enums.Create("trinity.Tr2Bokeh.Shape", Tr2PPDepthOfFieldEffect.Shape, {
-  source: "trinity/trinity/PostProcess/Effects/Tr2PPDepthOfFieldEffect.h", family: "postProcess", line: 8,
   exposedName: "BokehShapeType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/PostProcess/Effects/Tr2PPDepthOfFieldEffect_Blue.cpp:10",
   chooser: [
     { name: "Disk", value: Tr2PPDepthOfFieldEffect.Shape.Disk, description: "A perfectly circular aperture" },
     { name: "Triangle", value: Tr2PPDepthOfFieldEffect.Shape.Triangle, description: "An aperture with 3 sides" },

@@ -196,7 +196,6 @@ export class Tr2ControllerFloatVariable extends IInitialize
    *
    * @returns {void}
    */
-  @meta.ours
   _writeDestination()
   {
     if (this._destination)
@@ -225,7 +224,6 @@ export class Tr2ControllerFloatVariable extends IInitialize
    * @returns {void}
    * @throws {RangeError|TypeError} If the holder value cannot convert to BigInt.
    */
-  @meta.ours
   _markDirty()
   {
     const destination = this._dirtyMaskDestination;

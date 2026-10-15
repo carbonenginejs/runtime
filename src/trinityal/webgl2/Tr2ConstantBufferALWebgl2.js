@@ -235,7 +235,6 @@ export class Tr2ConstantBufferALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {WebGLBuffer|null} The buffer.
    */
-  @meta.ours
   GetGpuResource()
   {
     return this._buffer;
@@ -247,7 +246,6 @@ export class Tr2ConstantBufferALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {Uint8Array} The mirror.
    */
-  @meta.ours
   GetMirror()
   {
     return this._bufferMirror;

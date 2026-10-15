@@ -32,7 +32,6 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
   static _resourcePrefetcher = null;
 
   /** Registers the runtime-owned child-effect prefetch callback. */
-  @meta.ours
   static registerResourcePrefetcher(prefetcher)
   {
     const previous = this._resourcePrefetcher;
@@ -41,14 +40,12 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
   }
 
   /** Clears the runtime-owned child-effect prefetch callback. */
-  @meta.ours
   static clearResourcePrefetcher()
   {
     this._resourcePrefetcher = null;
   }
 
   /** Requests prefetch without taking ownership of the resource lifecycle. */
-  @meta.ours
   static prefetchResource(path, owner = null)
   {
     if (path && this._resourcePrefetcher)
@@ -279,14 +276,13 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
    * Reachability is the walk of Carbon's Find functions (Find.cpp:352-396):
    * an explicit stack, each object once, children from be.EnumerateChildren.
    */
-  @meta.ours
   _ReleaseChildDeviceResources(child, owner)
   {
     // Resolve nominal types at use time, as _loadChild does: importing the
     // renderer-backed classes here closes the controller/device module cycle.
-    const particleType = CjsSchema.GetConstructor("Tr2ParticleSystem");
-    const meshType = CjsSchema.GetConstructor("Tr2InstancedMesh");
-    const behaviorType = CjsSchema.GetConstructor("EveChildBehaviorSystem");
+    const particleType = CjsSchema.getConstructor("Tr2ParticleSystem");
+    const meshType = CjsSchema.getConstructor("Tr2InstancedMesh");
+    const behaviorType = CjsSchema.getConstructor("EveChildBehaviorSystem");
     const reach = (root, seen) =>
     {
       if (!root) return;

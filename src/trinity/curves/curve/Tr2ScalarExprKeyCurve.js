@@ -155,7 +155,6 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
   /**
    * JS convenience sample returning the cached value, unlike native void UpdateValue.
    */
-  @meta.ours
   Update(time)
   {
     this.currentValue = this.GetValueAt(time);
@@ -358,7 +357,6 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
   /**
    * JS convenience tangent accessor.
    */
-  @meta.ours
   GetKeyTangent(index, left = false)
   {
     return left ? this.GetKeyLeftTangent(index) : this.GetKeyRightTangent(index);
@@ -367,7 +365,6 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
   /**
    * JS convenience tangent setter.
    */
-  @meta.ours
   SetKeyTangent(index, value, left = false)
   {
     if (left)
@@ -447,7 +444,6 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * timeOffset, reversing it when `reversed` is set and wrapping it into the
    * key-range length when `cycle` is set.
    */
-  @meta.ours
   GetLocalTime(time)
   {
     const length = this.Length();

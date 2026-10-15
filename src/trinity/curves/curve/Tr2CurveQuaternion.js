@@ -156,7 +156,6 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    *
    * @returns {string} The curve result.
    */
-  @meta.ours
   GetName()
   {
     return this.name;
@@ -168,7 +167,6 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {string} name Authored curve name.
    * @returns {void}
    */
-  @meta.ours
   SetName(name)
   {
     this.name = name;
@@ -303,7 +301,6 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {number} time Time in seconds.
    * @returns {number} The curve result.
    */
-  @meta.ours
   FindSegment(time)
   {
     const count = this.keys.length;
@@ -357,7 +354,6 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {number} time Time in seconds.
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
-  @meta.ours
   Evaluate(out, time)
   {
     const count = this.keys.length;

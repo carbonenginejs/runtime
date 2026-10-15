@@ -216,7 +216,7 @@ export class IRootReaderBase
     const current = readDictionaryValue(instance, field);
     if (source === current) return false;
     const className = field.type.className;
-    const Item = CjsSchema.GetConstructor(className);
+    const Item = CjsSchema.getConstructor(className);
     if (!Item) throw new TypeError(`Struct list ${field.name}: class ${className} is not registered`);
     const records = source ?? [];
     if (!Array.isArray(records)) throw new TypeError(`Struct list ${field.name} requires an array`);

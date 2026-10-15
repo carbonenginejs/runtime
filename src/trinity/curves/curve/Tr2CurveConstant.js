@@ -42,7 +42,6 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * Carbon exposes m_value twice; the JavaScript alias follows replacement too.
    * @returns {Float32Array|number[]} The authored value storage.
    */
-  @meta.ours
   get currentValue()
   {
     return this.value;
@@ -186,7 +185,6 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {Float32Array|number[]} value Curve parameter.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @meta.ours
   static _copyValue(out, value)
   {
     return copyArrayLike(out, value);
@@ -199,7 +197,6 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @meta.ours
   static _setDerivative(out)
   {
     if (out.length > 3)

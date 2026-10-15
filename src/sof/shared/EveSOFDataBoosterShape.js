@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { vec4 } from "#math/vec4";
 
 /** Combines the noise, frequency, speed, and color parameters that define a booster shape. */
@@ -68,7 +68,6 @@ export class EveSOFDataBoosterShape
    * amplitude.
    * @returns {Float32Array} The existing noiseAmplitureStart storage.
    */
-  @meta.ours
   get noiseAmplitudeStart()
   {
     return this.noiseAmplitureStart;
@@ -79,7 +78,6 @@ export class EveSOFDataBoosterShape
    * storage.
    * @param {ArrayLike<number>} value Four leading amplitude components.
    */
-  @meta.ours
   set noiseAmplitudeStart(value)
   {
     vec4.copy(this.noiseAmplitureStart, value);
@@ -90,7 +88,6 @@ export class EveSOFDataBoosterShape
    * amplitude.
    * @returns {Float32Array} The existing noiseAmplitureEnd storage.
    */
-  @meta.ours
   get noiseAmplitudeEnd()
   {
     return this.noiseAmplitureEnd;
@@ -101,7 +98,6 @@ export class EveSOFDataBoosterShape
    * storage.
    * @param {ArrayLike<number>} value Four trailing amplitude components.
    */
-  @meta.ours
   set noiseAmplitudeEnd(value)
   {
     vec4.copy(this.noiseAmplitureEnd, value);
@@ -116,7 +112,6 @@ export class EveSOFDataBoosterShape
    * @param {EveSOFDataBoosterShape|null} [out=null] Reused result or newly constructed shape.
    * @returns {EveSOFDataBoosterShape} The output shape.
    */
-  @meta.ours
   static combine(base, overrides, out = null)
   {
     out ??= new this();

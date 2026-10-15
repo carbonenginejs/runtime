@@ -432,7 +432,6 @@ export class EveTurretFiringFX extends EveEntity
    * @param {mat4} out Caller-owned matrix to fill; identity outside the muzzle range.
    * @returns {mat4} out.
    */
-  @meta.ours
   GetMuzzleTransform(muzzleID, out)
   {
     this._ensureMuzzleData();
@@ -472,7 +471,7 @@ export class EveTurretFiringFX extends EveEntity
     if (this.destinationObserver)
     {
       const emitter = this.destinationObserver.GetObserver();
-      const contract = CjsSchema.GetConstructor("ITr2AudEmitter");
+      const contract = CjsSchema.getConstructor("ITr2AudEmitter");
       if (emitter && contract && be.classes.QueryThisInterface(emitter, contract, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
       {
         emitter.SetAttenuationScalingFactor(radius);
@@ -734,7 +733,6 @@ export class EveTurretFiringFX extends EveEntity
    * Runs the asynchronous then synchronous phase in order and reports whether a
    * muzzle started firing.
    */
-  @meta.ours
   Update(context)
   {
     const fired = this.UpdateAsynchronous(context);
@@ -987,7 +985,7 @@ export class EveTurretFiringFX extends EveEntity
     if (configuration !== this._impactConfiguration)
     {
       const observer = this.destinationObserver ? this.destinationObserver.GetObserver() : null;
-      const contract = CjsSchema.GetConstructor("ITr2AudEmitter");
+      const contract = CjsSchema.getConstructor("ITr2AudEmitter");
       const emitter = contract ? CjsSchema.cast(observer, contract) : null;
       const value = configuration === EveTurretFiringFX.ImpactConfiguration.IMPACT_ARMOR
         ? "Armor"

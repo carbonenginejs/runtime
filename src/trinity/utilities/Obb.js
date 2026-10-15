@@ -169,7 +169,6 @@ export class Obb
   }
 
   /** Writes one corner using Carbon's ordered point table. */
-  @meta.ours
   _WritePoint(out, index)
   {
     const signs = POINT_SIGNS[index];
@@ -181,7 +180,6 @@ export class Obb
   }
 
   /** Writes one corner selected by an XYZ sign bit mask. */
-  @meta.ours
   _WriteMaskedPoint(out, mask)
   {
     vec3.copy(out, this.center);

@@ -183,7 +183,6 @@ export class Tr2ControllerExpression
    * @param {ITr2ActionController|null} controller Bound controller.
    * @returns {bigint} Cached dependency mask.
    */
-  @meta.ours
   static _getVariableMask(program, controller)
   {
     const view = controller?.GetVariableView();
@@ -210,7 +209,6 @@ export class Tr2ControllerExpression
    * @param {object|null} value Overload argument.
    * @returns {boolean} Whether the state-machine overload applies.
    */
-  @meta.ours
   static _isStateMachine(value)
   {
     return CjsSchema.cast(value, Tr2StateMachine) !== null;

@@ -64,7 +64,6 @@ export class Tr2SBitWrapper
    * `faceId` (Tr2SBit.cpp:80-81). A browser font exposes none, so the
    * underline is estimated from this size instead.
    */
-  @meta.ours
   fontSize = 12;
 
   /** Blue "xOffset" [READ] (Tr2Sbit_Blue.cpp:23-26): GetXOffset. @returns {number} Bitmap left offset. */

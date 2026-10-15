@@ -33,7 +33,7 @@ test("PickingMask declarations preserve native property order, chooser and held 
  assert.equal(schema.properties[0].role,"property");
  assert.deepEqual(members.map(m=>m.name),["maskPath","channel","threshold","leftEdge","topEdge","rightEdge","bottomEdge","mask"]);
  const path=CjsSchema.getField(Tr2Sprite2dPickingMask,"maskPath");assert.equal(path.type.kind,"wstring");assert.equal(path.edit.write,true);
- const channel=CjsSchema.getField(Tr2Sprite2dPickingMask,"channel");assert.deepEqual(channel.enum.values,{Red:2,Green:1,Blue:0,Alpha:3});assert.equal(channel.enum.enumType,undefined);assert.equal(channel.edit.enum,true);assert.equal(channel.type.kind,"uint32");
+ const channel=CjsSchema.getField(Tr2Sprite2dPickingMask,"channel");assert.deepEqual(channel.enum.values,{Red:2,Green:1,Blue:0,Alpha:3});assert.equal(channel.enum.enumType,undefined);assert.equal(channel.type.kind,"uint32");
  const resource=CjsSchema.getField(Tr2Sprite2dPickingMask,"mask");assert.equal(resource.type.runtimeOnly,true);assert.equal(resource.type.className,"Tr2ImageRes");assert.equal(resource.edit.read,true);
  for(const member of members)assert.notEqual(member.edit?.persist,true);
 });

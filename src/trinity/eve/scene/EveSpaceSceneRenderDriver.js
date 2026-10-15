@@ -265,7 +265,6 @@ export class EveSpaceSceneRenderDriver
   _destroyed = false;
 
   /** Releases this driver's values after its render job has stopped. */
-  @meta.ours
   Destroy()
   {
     if (this._destroyed) return;
@@ -1212,7 +1211,6 @@ export class EveSpaceSceneRenderDriver
    * node (cpp:471). Adapted: JS groups the native local pool handles in one
    * frame record for explicit cleanup instead of C++ RAII.
    */
-  @meta.ours
   _BeginOffscreen(target, renderContext)
   {
     const pool = this._gpuResourcePool;

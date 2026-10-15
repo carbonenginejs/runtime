@@ -62,16 +62,16 @@ test("abstract definitions preserve distinct existing canonical and alias factor
     assert.equal(be.classes.CreateInstance("AbstractFreeAlias"), null);
     assert.equal(abstractConstructions, 0);
     assert.equal(CjsSchema.getSchema(Abstract).abstract, true, "own declaration does not overwrite a pre-existing name's policy");
-    assert.strictEqual(CjsSchema.GetConstructor(canonical.name), ExistingCanonical);
-    assert.strictEqual(CjsSchema.GetConstructor(alias.name), ExistingAlias);
+    assert.strictEqual(CjsSchema.getConstructor(canonical.name), ExistingCanonical);
+    assert.strictEqual(CjsSchema.getConstructor(alias.name), ExistingAlias);
     assert.deepEqual(be.classes.GetClassRegistration("AbstractFreeAlias"), {
       name: "AbstractFreeAlias", type: Abstract, createFn: ClassRegistrarNullFactory, flags: 1,
     });
     be.classes.RegisterClasses([{name: "AbstractFreeAlias", type: ExistingAlias, createFn: alias.createFn, flags: 16}]);
     assert.equal(getClassRegistrationRevision(), before + 1);
     assert.equal(be.classes.CreateInstance("AbstractFreeAlias"), null);
-    CjsSchema.DeleteConstructor(canonical.name);
-    assert.strictEqual(CjsSchema.GetConstructor(alias.name), ExistingAlias);
+    CjsSchema.deleteConstructor(canonical.name);
+    assert.strictEqual(CjsSchema.getConstructor(alias.name), ExistingAlias);
     assert.equal(be.classes.CreateInstance("AbstractFreeAlias"), null);
   }
   finally
@@ -88,7 +88,7 @@ test("independent aliases of an abstract type keep their explicitly selected fac
   const made = {};
   const factory = () => made;
   be.classes.RegisterClasses([{name: "AbstractCustomAlias", type: Abstract, createFn: factory, flags: 1}]);
-  CjsSchema.SetConstructor("AbstractPlainAlias", Abstract);
+  CjsSchema.setConstructor("AbstractPlainAlias", Abstract);
   try
   {
     assert.equal(be.classes.CreateInstance("AbstractFactoryIdentity"), null);
@@ -99,7 +99,7 @@ test("independent aliases of an abstract type keep their explicitly selected fac
     assert.strictEqual(Object.getPrototypeOf(be.classes.CreateInstance("AbstractPlainAlias")), Abstract.prototype);
     assert.equal(constructions, 1);
     assert.equal(CjsSchema.getSchema(Abstract).abstract, true);
-    CjsSchema.DeleteConstructor("AbstractDefinitionAlias");
+    CjsSchema.deleteConstructor("AbstractDefinitionAlias");
     assert.equal(be.classes.CreateInstance("AbstractFactoryIdentity"), null);
     assert.strictEqual(be.classes.CreateInstance("AbstractCustomAlias"), made);
   }
@@ -146,7 +146,7 @@ test("Blue and CjsSchema share registrations in both directions", () =>
   assert.equal(be.classes.GetClassRegistration("TestSchemed").type, Schemed);
 
   be.classes.RegisterClasses([ { name: "TestUnschemed2", type: Unschemed } ]);
-  assert.equal(CjsSchema.GetConstructor("TestUnschemed2"), Unschemed);
+  assert.equal(CjsSchema.getConstructor("TestUnschemed2"), Unschemed);
   be.classes.UnregisterClasses([ { name: "TestUnschemed2" } ]);
 });
 
@@ -190,7 +190,7 @@ test("all CjsBlueClasses instances share complete factory records without exposi
     assert.equal(first.GetClassRegistration("SharedFactory").type, Unschemed);
     assert.equal(first.GetClassRegistration("SharedFactory").flags, 1);
     assert.equal(second.CreateInstance("SharedFactory"), made, "flags describe registration; the factory controls construction");
-    assert.equal(CjsSchema.GetConstructor(" SharedFactory "), Unschemed);
+    assert.equal(CjsSchema.getConstructor(" SharedFactory "), Unschemed);
     assert.equal(second.FindClsid(" SharedFactory "), "SharedFactory");
   }
   finally
@@ -213,13 +213,13 @@ test("duplicates through either facade keep the first whole registration and log
   try
   {
     first.RegisterClasses([ { name: "AtomicFirst", type: Unschemed, createFn: factory, flags: 1 } ]);
-    CjsSchema.SetConstructor("AtomicFirst", Other);
+    CjsSchema.setConstructor("AtomicFirst", Other);
     second.RegisterClasses([ { name: "AtomicFirst", type: Other, createFn: () => null, flags: 16 } ]);
-    assert.equal(CjsSchema.GetConstructor("AtomicFirst"), Unschemed);
+    assert.equal(CjsSchema.getConstructor("AtomicFirst"), Unschemed);
     assert.deepEqual(second.GetClassRegistration("AtomicFirst"), { name: "AtomicFirst", type: Unschemed, createFn: factory, flags: 1 });
     assert.equal(second.CreateInstance("AtomicFirst"), made);
 
-    CjsSchema.SetConstructor("SchemaFirst", Unschemed);
+    CjsSchema.setConstructor("SchemaFirst", Unschemed);
     second.RegisterClasses([ { name: "SchemaFirst", type: Other, createFn: factory, flags: 1 } ]);
     assert.equal(first.GetClassRegistration("SchemaFirst").type, Unschemed);
     assert.equal(first.GetClassRegistration("SchemaFirst").flags, 0);
@@ -241,8 +241,8 @@ test("explicit deletion and schema re-registration discard former factory extras
   const oldValue = {};
   class Replacement { value = 7; }
   first.RegisterClasses([ { name: "ReplaceAfterDelete", type: Unschemed, createFn: () => oldValue, flags: 1 } ]);
-  assert.equal(CjsSchema.DeleteConstructor(" ReplaceAfterDelete "), true);
-  assert.equal(CjsSchema.SetConstructor("ReplaceAfterDelete", Replacement), CjsSchema);
+  assert.equal(CjsSchema.deleteConstructor(" ReplaceAfterDelete "), true);
+  assert.equal(CjsSchema.setConstructor("ReplaceAfterDelete", Replacement), CjsSchema);
   try
   {
     const registration = second.GetClassRegistration("ReplaceAfterDelete");
@@ -257,9 +257,9 @@ test("explicit deletion and schema re-registration discard former factory extras
   {
     second.UnregisterClasses([ { name: "ReplaceAfterDelete" } ]);
   }
-  assert.equal(CjsSchema.DeleteConstructor("ReplaceAfterDelete"), false);
-  assert.equal(CjsSchema.GetConstructor(null), null);
-  assert.equal(CjsSchema.DeleteConstructor(" "), false);
+  assert.equal(CjsSchema.deleteConstructor("ReplaceAfterDelete"), false);
+  assert.equal(CjsSchema.getConstructor(null), null);
+  assert.equal(CjsSchema.deleteConstructor(" "), false);
 });
 
 test("registration revisions refresh schemas through both facades; defaults are built once", () =>
@@ -289,15 +289,15 @@ test("registration revisions refresh schemas through both facades; defaults are 
     assert.deepEqual(registered.resources.map(field => field.name), [ "reference" ]);
     assert.deepEqual(registered.children, []);
     assert.equal(CjsSchema.getDefaults(Defaults).value, 1, "defaults come from one pristine instance, never rebuilt");
-    CjsSchema.SetConstructor("LateRegisteredResource", Ordinary);
+    CjsSchema.setConstructor("LateRegisteredResource", Ordinary);
     assert.equal(CjsSchema.getSchema(Holder), registered, "a rejected duplicate does not mutate the registry revision");
     assert.equal(CjsSchema.getDefaults(Defaults).value, 1);
-    CjsSchema.DeleteConstructor("LateRegisteredResource");
+    CjsSchema.deleteConstructor("LateRegisteredResource");
     const removed = CjsSchema.getSchema(Holder);
     assert.deepEqual(removed.children.map(field => field.name), [ "reference" ]);
     assert.deepEqual(removed.resources, []);
     assert.equal(CjsSchema.getDefaults(Defaults).value, 1);
-    CjsSchema.SetConstructor("LateRegisteredResource", Resource);
+    CjsSchema.setConstructor("LateRegisteredResource", Resource);
     assert.deepEqual(CjsSchema.getSchema(Holder).resources.map(field => field.name), [ "reference" ]);
     assert.equal(CjsSchema.getDefaults(Defaults).value, 1);
     registry.UnregisterClasses([ { name: "LateRegisteredResource" } ]);
@@ -307,9 +307,9 @@ test("registration revisions refresh schemas through both facades; defaults are 
   }
   finally
   {
-    CjsSchema.DeleteConstructor("LateRegisteredResource");
-    CjsSchema.DeleteConstructor("RegistrationRevisionHolder");
-    CjsSchema.DeleteConstructor("RegistrationRevisionDefaults");
+    CjsSchema.deleteConstructor("LateRegisteredResource");
+    CjsSchema.deleteConstructor("RegistrationRevisionHolder");
+    CjsSchema.deleteConstructor("RegistrationRevisionDefaults");
   }
 });
 
@@ -326,19 +326,19 @@ test("canonical and alias collisions resolve independently without erasing seale
   })(Later);
   try
   {
-    assert.equal(CjsSchema.GetConstructor("CanonicalCollision"), Original);
-    assert.equal(CjsSchema.GetConstructor("OriginalAlias"), Original);
-    assert.equal(CjsSchema.GetConstructor("OccupiedAlias"), Other);
-    assert.equal(CjsSchema.GetConstructor("AvailableAlias"), Later);
+    assert.equal(CjsSchema.getConstructor("CanonicalCollision"), Original);
+    assert.equal(CjsSchema.getConstructor("OriginalAlias"), Original);
+    assert.equal(CjsSchema.getConstructor("OccupiedAlias"), Other);
+    assert.equal(CjsSchema.getConstructor("AvailableAlias"), Later);
     assert.equal(CjsSchema.getSchema(Later).members[0].name, "declared");
-    CjsSchema.DeleteConstructor("AvailableAlias");
-    assert.equal(CjsSchema.GetConstructor("CanonicalCollision"), Original);
-    assert.equal(CjsSchema.GetConstructor("OccupiedAlias"), Other);
+    CjsSchema.deleteConstructor("AvailableAlias");
+    assert.equal(CjsSchema.getConstructor("CanonicalCollision"), Original);
+    assert.equal(CjsSchema.getConstructor("OccupiedAlias"), Other);
     registry.UnregisterClasses([ { name: "CanonicalCollision" } ]);
-    assert.equal(CjsSchema.GetConstructor("OriginalAlias"), Original);
+    assert.equal(CjsSchema.getConstructor("OriginalAlias"), Original);
     assert.throws(() => CjsSchema.define(Later, { className: "AnotherName" }), /already registered/);
     assert.equal(CjsSchema.getField(Later, "declared").type.kind, "uint32");
-    CjsSchema.SetConstructor("CanonicalCollision", Later);
+    CjsSchema.setConstructor("CanonicalCollision", Later);
     assert.equal(registry.GetClassRegistration("CanonicalCollision").type, Later);
   }
   finally
@@ -352,13 +352,13 @@ test("registration uses explicit names without inspecting Function.name and pres
   class HiddenName {}
   Object.defineProperty(HiddenName, "name", { get() { throw new Error("Function.name was read"); } });
   const registry = new CjsBlueClasses();
-  assert.throws(() => CjsSchema.SetConstructor(" ", HiddenName), /non-empty name/);
+  assert.throws(() => CjsSchema.setConstructor(" ", HiddenName), /non-empty name/);
   assert.throws(() => registry.RegisterClasses([ { name: "InvalidConstructor", type: {} } ]), /must be a function/);
-  assert.equal(CjsSchema.GetConstructor("InvalidConstructor"), null);
+  assert.equal(CjsSchema.getConstructor("InvalidConstructor"), null);
   registry.RegisterClasses([ { name: " StableIdentity ", type: HiddenName } ]);
   try
   {
-    assert.equal(CjsSchema.GetConstructor("StableIdentity"), HiddenName);
+    assert.equal(CjsSchema.getConstructor("StableIdentity"), HiddenName);
     assert.equal(Object.getPrototypeOf(registry.CreateInstanceFromName("StableIdentity")), HiddenName.prototype);
   }
   finally

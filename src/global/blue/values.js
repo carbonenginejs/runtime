@@ -24,7 +24,7 @@ CjsSchema.registerValuesService({
     from(className, values = {}, options = {})
     {
         const name = typeof className === "string" ? className.trim() : "";
-        const Constructor = CjsSchema.GetConstructor(name);
+        const Constructor = CjsSchema.getConstructor(name);
         if (!Constructor)
         {
             throw new TypeError(`CjsSchema.from has no class registered for "${String(className)}".`);

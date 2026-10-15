@@ -3398,8 +3398,8 @@ test("SOF emits and operationally hydrates Carbon haze sets with SOF6 lights", {
   }
   // The registry is first-wins: the tracking class replaces EveHazeSet for
   // this hydration only.
-  CjsSchema.DeleteConstructor("EveHazeSet");
-  CjsSchema.SetConstructor("EveHazeSet", TrackingEveHazeSet);
+  CjsSchema.deleteConstructor("EveHazeSet");
+  CjsSchema.setConstructor("EveHazeSet", TrackingEveHazeSet);
   let hydrated;
   try
   {
@@ -3407,8 +3407,8 @@ test("SOF emits and operationally hydrates Carbon haze sets with SOF6 lights", {
   }
   finally
   {
-    CjsSchema.DeleteConstructor("EveHazeSet");
-    CjsSchema.SetConstructor("EveHazeSet", trinity.EveHazeSet);
+    CjsSchema.deleteConstructor("EveHazeSet");
+    CjsSchema.setConstructor("EveHazeSet", trinity.EveHazeSet);
   }
   assert.ok(hydrated.root.attachments[0] instanceof TrackingEveHazeSet);
   assert.equal(getRegisteredClassName(hydrated.root.attachments[0].hazes[0].constructor), "EveHazeSetItem");
@@ -6438,7 +6438,7 @@ test("typed EveSOFDataParameter subclasses flatten with Carbon's GetValue rules"
     "EveSOFDataParameterVector2", "EveSOFDataParameterVector3", "EveSOFDataParameterColor",
   ])
   {
-    assert.equal(typeof CjsSchema.GetConstructor(name), "function", name);
+    assert.equal(typeof CjsSchema.getConstructor(name), "function", name);
   }
 });
 

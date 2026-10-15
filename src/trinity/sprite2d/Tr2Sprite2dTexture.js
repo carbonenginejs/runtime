@@ -147,7 +147,6 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   _transform = mat4.create();
 
   /** Explicit JS destruction replaces the native atlas-listener destructor. */
-  @meta.ours
   Destroy()
   {
     if (this._atlasTexture) this._atlasTexture.UnregisterForChangeNotification(this);

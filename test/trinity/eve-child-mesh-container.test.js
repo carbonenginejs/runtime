@@ -85,7 +85,7 @@ test("EveChildMesh owns Carbon child transforms and detached instance matrices",
 {
   const child = new EveChildMesh();
   assert.equal(child instanceof EveChildTransform, true);
-  assert.equal(CjsSchema.GetConstructor("EveChildMesh"), EveChildMesh);
+  assert.equal(CjsSchema.getConstructor("EveChildMesh"), EveChildMesh);
   assert.equal(child.reflectionMode, 3);
   assert.equal(child.display, true);
   assert.equal(child.castShadow, false);
@@ -115,7 +115,7 @@ test("EveChildContainer owns Carbon quality defaults and effect-child recursion"
 {
   const container = new EveChildContainer();
   assert.equal(container instanceof EveChildTransform, true);
-  assert.equal(CjsSchema.GetConstructor("EveChildContainer"), EveChildContainer);
+  assert.equal(CjsSchema.getConstructor("EveChildContainer"), EveChildContainer);
   assert.equal(container.isRendering, container.IsRendering());
   assert.equal(container.isUpdating, container.IsUpdating());
   assert.equal(container.displayFilter, EveChildContainer.DisplayQualityModifier.SHADER_ALL);
@@ -310,9 +310,9 @@ test("EveChildPartData owns persistent modular part state", () =>
   data.parts.push(first, second);
 
   assert.equal(data instanceof EveSpaceObjectChild, true);
-  assert.equal(CjsSchema.GetConstructor("EveChildPartData"), EveChildPartData);
+  assert.equal(CjsSchema.getConstructor("EveChildPartData"), EveChildPartData);
   assert.equal(
-    CjsSchema.GetConstructor("EveChildPartData.PartData"),
+    CjsSchema.getConstructor("EveChildPartData.PartData"),
     EveChildPartDataPartData
   );
   assert.equal(

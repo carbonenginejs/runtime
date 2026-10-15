@@ -50,8 +50,8 @@ test("Stage-3, decorator calls and manual declarations agree for compound flags 
   assert.deepEqual(records(Applied), records(Manual));
   const flags = CjsSchema.getField(Manual, "flags");
   assert.equal(flags.type.kind, "uint32");
-  assert.equal(flags.edit.flags, true);
-  assert.equal(flags.edit.enum, true);
+  assert.equal(flags.type.flags, true);
+  assert.notEqual(flags.enum, undefined);
   assert.equal(normalizeCarbonValue(-1, flags.type), 4294967295);
   const packed = CjsSchema.getField(Manual, "packed");
   assert.deepEqual(packed.components, {x:{name:"speed"},y:{name:"size"},z:{name:"opacity"},w:{name:"age"}});

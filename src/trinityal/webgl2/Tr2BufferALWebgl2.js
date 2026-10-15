@@ -231,7 +231,6 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    * `ELEMENT_ARRAY_BUFFER` writes into whichever vertex array is bound; the
    * caller's bindings are put back afterwards.
    */
-  @meta.ours
   _BindTypeFixing()
   {
     const gl = this._gl;
@@ -606,7 +605,6 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    * @returns {WebGLTexture|null} The texture, or null for a buffer with no
    *   shader-resource usage.
    */
-  @meta.ours
   GetShaderResourceTexture()
   {
     if (!this._srv) return null;
@@ -615,7 +613,6 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
   }
 
   /** Rebuilds the data texture from `_writeLockMemory`. */
-  @meta.ours
   _UploadShaderResource()
   {
     const gl = this._gl;
@@ -646,7 +643,6 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {Uint8Array} The bytes.
    */
-  @meta.ours
   GetCpuBytes()
   {
     return this._writeLockMemory;

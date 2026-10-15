@@ -238,7 +238,6 @@ export class Tr2ScalarExprKey extends IInitialize
    * @param {object} [variables] Input snapshot; defaults to the current key's values.
    * @returns {number} Evaluated value or fallback.
    */
-  @meta.ours
   Evaluate(expression, fallback, variables = this._expressionVariables())
   {
     if (!expression)
@@ -270,7 +269,6 @@ export class Tr2ScalarExprKey extends IInitialize
    *
    * @returns {object} Named expression inputs.
    */
-  @meta.ours
   _expressionVariables()
   {
     return {

@@ -36,7 +36,7 @@ test("declared mode calls the exact alias factory once and never static from", (
   assert.equal(parent.list[0], supplied);
   assert.equal(parent.raw.deep, supplied);
   assert.equal(calls, 4);
-  assert.equal(CjsSchema.GetConstructor(canonical), Child);
+  assert.equal(CjsSchema.getConstructor(canonical), Child);
 });
 
 test("explicit constructor uses only its matching canonical record and propagates factory failure", () => {

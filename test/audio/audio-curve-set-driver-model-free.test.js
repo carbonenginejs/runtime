@@ -29,7 +29,7 @@ test("native driver bases and mappings require no model or values instance machi
         assert.equal(CjsSchema.cast(driver, ICurveSetDriver), driver);
         assert.equal(CjsSchema.cast(driver, IInitialize), driver);
         assert.deepEqual([...mappedInterfaces(AudioCurveSetDriver)], [AudioCurveSetDriver, ICurveSetDriver, IInitialize]);
-        assert.equal(CjsSchema.GetConstructor("AudioCurveSetDriver"), AudioCurveSetDriver);
+        assert.equal(CjsSchema.getConstructor("AudioCurveSetDriver"), AudioCurveSetDriver);
         assert.equal(AudioCurveSetDriver.from, undefined);
         for (const member of ["__state", "GetValues", "SetValues", "UpdateValues", "Traverse"])
         {

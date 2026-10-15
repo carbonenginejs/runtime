@@ -586,7 +586,6 @@ export class TriCurveSet extends IInitialize
    * Custom: exposes the native registration-state member for runtime inspection.
    * @returns {boolean} Whether rebasing was requested during initialization.
    */
-  @meta.ours
   IsUsingSimTimeRebase()
   {
     return this._isUsingSimTimeRebase;
@@ -599,7 +598,6 @@ export class TriCurveSet extends IInitialize
    * Custom: extracts the native scalar Update interval calculation.
    * @returns {void}
    */
-  @meta.ours
   ApplyTimeRange()
   {
     if (!this._hasTimeRange)
@@ -633,7 +631,6 @@ export class TriCurveSet extends IInitialize
    * stops; Carbon's BlueScriptCallbackStatus reports without throwing.
    * @returns {void}
    */
-  @meta.ours
   CallStopCallback()
   {
     if (!this._callback.IsValid())
@@ -659,7 +656,6 @@ export class TriCurveSet extends IInitialize
    * stop and PlayFrom paths.
    * @returns {void}
    */
-  @meta.ours
   DestroyStopCallback()
   {
     this._callback.Destroy();
@@ -672,7 +668,6 @@ export class TriCurveSet extends IInitialize
    * end its lifetime because the set may be shared or played again.
    * @returns {void}
    */
-  @meta.ours
   Dispose()
   {
     if (this._isUsingSimTimeRebase)

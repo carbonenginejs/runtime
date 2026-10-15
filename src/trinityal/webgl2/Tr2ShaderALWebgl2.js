@@ -254,7 +254,6 @@ export class Tr2ShaderALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {WebGLShader|null} The stage object.
    */
-  @meta.ours
   GetGpuResource()
   {
     return this._shader;
@@ -266,7 +265,6 @@ export class Tr2ShaderALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {object|null} The stage block.
    */
-  @meta.ours
   GetStageBlock()
   {
     return this._stageBlock;
@@ -277,7 +275,6 @@ export class Tr2ShaderALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {string} The log, empty after a successful compile.
    */
-  @meta.ours
   GetCompileLog()
   {
     return this._log;

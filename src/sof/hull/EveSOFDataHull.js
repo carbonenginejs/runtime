@@ -278,9 +278,7 @@ export class EveSOFDataHull
 
 // Native chooser labels and selection; the enum object retains all C++ members.
 be.enums.Create("trinity.EveSOFDataHull.BuildClass", EveSOFDataHull.BuildClass, {
-  source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 1536,
   exposedName: "BuildClass", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:936",
   chooser: [
     { name: "EveShip2", value: EveSOFDataHull.BuildClass.BUILDCLASS_SHIP, description: "Build an EveShip2" },
     { name: "EveMobile", value: EveSOFDataHull.BuildClass.BUILDCLASS_MOBILE, description: "Build an EveMobile" },
@@ -292,9 +290,7 @@ be.enums.Create("trinity.EveSOFDataHull.BuildClass", EveSOFDataHull.BuildClass, 
 
 // Native chooser labels and selection; the enum object retains all C++ members.
 be.enums.Create("trinity.EveSOFDataHull.ImpactEffectType", EveSOFDataHull.ImpactEffectType, {
-  source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 1548,
   exposedName: "ImpactEffectType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:946",
   chooser: [
     { name: "Nothing", value: EveSOFDataHull.ImpactEffectType.IMPACTEFFECT_NONE, description: "No impact effects" },
     { name: "Ellipsoid", value: EveSOFDataHull.ImpactEffectType.IMPACTEFFECT_ELLIPSOID, description: "Use ellipsoid for shield" },

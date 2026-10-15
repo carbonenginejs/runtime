@@ -335,7 +335,6 @@ export class Tr2VariableStore
    * @param {string} name Local key to reserve.
    * @returns {TriVariable} Newly reserved variable.
    */
-  @meta.ours
   _CreateReserved(name)
   {
     return this._CreateLocal(name, TriVariableContentType.TRIVARIABLE_INVALID);
@@ -350,7 +349,6 @@ export class Tr2VariableStore
    * @param {number} contentType Native TriVariableContentType.
    * @returns {TriVariable} Newly created local variable.
    */
-  @meta.ours
   _CreateLocal(name, contentType)
   {
     const variable = new TriVariable();
@@ -383,7 +381,6 @@ export class Tr2VariableStore
    * @param {Tr2VariableStore} [store] The new root; a fresh store when omitted.
    * @returns {Tr2VariableStore} The store now acting as the root.
    */
-  @meta.ours
   static setGlobalStore(store = null)
   {
     if (store)

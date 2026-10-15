@@ -67,14 +67,12 @@ export class Tr2KelvinColor extends IInitialize
   }
 
   /** The chromaticity of a standard illuminant, as Carbon's table gives it. */
-  @meta.ours
   static illuminantChromaticity(illuminant)
   {
     return Tr2KelvinColor._CHROMATICITY[illuminant] ?? Tr2KelvinColor._CHROMATICITY[2];
   }
 
   /** CIE 1931 two-degree standard observer XYZ to RGB. */
-  @meta.ours
   static xyzToRgb(x, y, z, out = vec3.create())
   {
     return vec3.set(out,
@@ -89,7 +87,6 @@ export class Tr2KelvinColor extends IInitialize
    * This retained JavaScript helper also maps NaN to black, uses decimal table
    * constants and float32 vec3 intermediates; native double arithmetic differs.
    */
-  @meta.ours
   static triColorFromKelvin(temperature, tint, whitePoint, out = vec3.create())
   {
     const T = Number(temperature);

@@ -388,9 +388,7 @@ export class EveSOFDataHullBanner
 // Native chooser labels and selection; the enum object retains all C++ members.
 // Native chooser quirk: HorizontalBanner's description says "Vertical banner".
 be.enums.Create("trinity.EveSOFDataHullBanner.Usage", EveSOFDataHullBanner.Usage, {
-  source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 990,
   exposedName: "HullBannerUsage", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:554",
   chooser: [
     { name: "AllianceLogo", value: EveSOFDataHullBanner.Usage.ALLIANCE_LOGO, description: "Alliance logo" },
     { name: "CorpLogo", value: EveSOFDataHullBanner.Usage.CORP_LOGO, description: "Corporation logo" },

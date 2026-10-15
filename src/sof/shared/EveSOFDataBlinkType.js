@@ -67,9 +67,7 @@ export class EveSOFDataBlinkType
 
 // Native chooser labels and descriptions are distinct from C++ member names.
 be.enums.Create("trinity.EveSOFDataBlinkType.BlinkType", BlinkType, {
-  source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 312,
   exposedName: "EveSOFDataBlinkType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:70",
   chooser: [
     { name: "Static", value: BlinkType.TYPE_STATIC, description: "Static, no blinking" },
     { name: "Blink", value: BlinkType.TYPE_BLINK, description: "Regular blink" },

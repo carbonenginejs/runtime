@@ -422,7 +422,6 @@ export class Tr2ImpostorManager
    * effect retirement can be supplied as for other Trinity owners. Global
    * variable bindings persist as in Carbon and may already name another manager.
    */
-  @meta.ours
   Destroy(managedResources = null)
   {
     this._quadRenderer.UnregisterEffect(this._effectKey);

@@ -266,7 +266,6 @@ export class Tr2StateMachine
    * Gets the active state for JavaScript consumers.
    * @returns {Tr2StateMachineState|null} Current state, or null while stopped.
    */
-  @meta.ours
   GetCurrentState()
   {
     return this.currentState;
@@ -277,7 +276,6 @@ export class Tr2StateMachine
    * @param {number} index State list index.
    * @returns {Tr2StateMachineState|null} State, or null outside the list.
    */
-  @meta.ours
   GetState(index)
   {
     return this.states[index] ?? null;
@@ -322,7 +320,6 @@ export class Tr2StateMachine
    * Gets state runtime through the retained JavaScript convenience name.
    * @returns {number} Elapsed seconds from GetStateRunTime.
    */
-  @meta.ours
   GetStateTime()
   {
     return this.GetStateRunTime();

@@ -30,7 +30,7 @@ import { Tr2TextureAL } from "../../Tr2TextureAL/index.js";
 // `Tr2StreamlineAL`, none of which the stub implements.
 
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ResourceSetAL } from "../../Tr2ResourceSetAL/Tr2ResourceSetAL.js";
 import { ALResult, Failed, Tr2BitmapDimensions, Tr2BufferALStub, Tr2CapsALStub, Tr2ConstantBufferALStub, Tr2ConstantUsageAL, Tr2FenceALStub, Tr2ResourceSetALStub, Tr2SamplerStateALStub, Tr2ShaderALStub, Tr2ShaderProgramALStub, Tr2TextureALStub, Tr2VertexLayoutALStub } from "../../../trinityal/index.js";
 import { SamplerDescriptionKey } from "../../Tr2HalHelperStructures/Tr2SamplerDescription.js";
@@ -315,7 +315,6 @@ export class Tr2RenderContextALStub
    * @param {object} program The shader program the bindings belong to.
    * @returns {object|null} The set, or null when it could not be created.
    */
-  @meta.ours
   CreateResourceSet(description, program, implementationOnly = false)
   {
     // JS platform selection for the public facade; the allocation branch

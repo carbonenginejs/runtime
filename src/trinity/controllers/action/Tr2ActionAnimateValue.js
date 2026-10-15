@@ -339,7 +339,6 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    * Custom: retained AST cache replaces native evaluator SetExpr; Link,
    * notifications and the existing validity-query adapter call it.
    */
-  @meta.ours
   CompileExpression()
   {
     return CjsControllerExpressionProgram.compileCached(this._runtime, this.value, 0, {
@@ -352,7 +351,6 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
    * authored path, destination object and attribute on every call.
    * Custom: preserves flattened JS storage instead of the native embedded point.
    */
-  @meta.ours
   GetBindingPoint()
   {
     if (!this._bindingPoint)

@@ -94,7 +94,6 @@ export class EveCloudEditableVolume
   }
 
   /** Cancels pending computation; shared bitmap and texture references remain usable. */
-  @meta.ours
   Destroy()
   {
     clearTimeout(this._timer);
@@ -264,7 +263,6 @@ export class EveCloudEditableVolume
   }
 
   /** Runs bounded CPU slices without moving the native publication point into the job. */
-  @meta.ours
   _RunRasterization()
   {
     this._timer = null;
@@ -279,7 +277,6 @@ export class EveCloudEditableVolume
   }
 
   /** Shared native publication body from Rasterize/Update; texture realization stays in the AL. */
-  @meta.ours
   _PublishRasterization()
   {
     const params = this._currentParams;

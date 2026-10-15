@@ -101,7 +101,6 @@ export class EveStarfield
   }
 
   /** Explicit final-owner cleanup replaces C++ resource destruction. */
-  @meta.ours
   Destroy()
   {
     this.ReleaseResources();

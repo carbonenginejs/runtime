@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { EveSOFDataTexture } from "./EveSOFDataTexture.js";
 
 /** Stores a logo texture set and supports assignment and composition with another logo value. */
@@ -21,7 +21,6 @@ export class EveSOFDataLogo
    * @param {object} [config={}] Reused logo configuration.
    * @returns {object} The supplied configuration.
    */
-  @meta.ours
   Assign(config = {})
   {
     config.textures = this.AssignTextures(config.textures);
@@ -32,7 +31,6 @@ export class EveSOFDataLogo
    * @param {Object<string, string>} [out={}] Reused texture map.
    * @returns {Object<string, string>} The supplied map.
    */
-  @meta.ours
   AssignTextures(out = {})
   {
     for (const texture of this.textures) texture.Assign(out);
@@ -47,7 +45,6 @@ export class EveSOFDataLogo
    * @param {EveSOFDataLogo|null} [out=null] Reused output, or a new logo when null.
    * @returns {EveSOFDataLogo} The output logo.
    */
-  @meta.ours
   static combine(base, overrides, out = null)
   {
     out ??= new this();

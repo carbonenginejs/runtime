@@ -81,7 +81,7 @@ test("EveSOFDataParameter: faithful defaults + schema registration", () => {
   assert.equal(p.name, "");
   assert.deepEqual([...p.value], [0, 0, 0, 0]);
   // Class registered under its Carbon name in the generated Eve schema family.
-  assert.equal(CjsSchema.GetConstructor("EveSOFDataParameter"), EveSOFDataParameter);
+  assert.equal(CjsSchema.getConstructor("EveSOFDataParameter"), EveSOFDataParameter);
   // field types mapped from carbon m_name (BlueSharedString) / m_value (Vector4)
   assert.equal(
     CjsSchema.getField(EveSOFDataParameter, "name").type.kind,
@@ -108,7 +108,7 @@ test("SOF blink data exposes Carbon enum values and lookup behavior", () => {
   assert.equal(blinkTypes.blinkType[EveSOFDataBlinkType.Type.STATIC], null);
   blinkTypes.blinkType[EveSOFDataBlinkType.Type.BLINK] = blink;
   assert.equal(blinkTypes.blinkType[EveSOFDataBlinkType.BlinkType.TYPE_BLINK], blink);
-  assert.equal(CjsSchema.GetConstructor("EveSOFDataBlink"), EveSOFDataBlink);
+  assert.equal(CjsSchema.getConstructor("EveSOFDataBlink"), EveSOFDataBlink);
   assert.deepEqual(EveSOFDataBlinkType.BlinkType, {
     TYPE_STATIC: 0,
     TYPE_BLINK: 1,
@@ -166,7 +166,7 @@ test("EveSOFDataTexture: faithful defaults + schema registration", () => {
   const t = new EveSOFDataTexture();
   assert.equal(t.resFilePath, "");
   assert.equal(t.name, "");
-  assert.equal(CjsSchema.GetConstructor("EveSOFDataTexture"), EveSOFDataTexture);
+  assert.equal(CjsSchema.getConstructor("EveSOFDataTexture"), EveSOFDataTexture);
   assert.equal(CjsSchema.getField(EveSOFDataTexture, "resFilePath").type.kind, "path");
 });
 

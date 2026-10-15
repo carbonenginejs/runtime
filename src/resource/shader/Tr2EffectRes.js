@@ -588,8 +588,8 @@ CjsSchema.blue.define(Tr2EffectRes, {
   className: "Tr2EffectRes",
   methods: {
     GetShader: [ blue.method, meta.adapted ],
-    GetShaderByIndex: [ meta.ours ],
-    SetPermutationTranslator: [ meta.ours ],
+    GetShaderByIndex: [],
+    SetPermutationTranslator: [],
     GetPermutationDescription: [ blue.method, meta.adapted ],
     ReleaseResources: [ blue.method, meta.adapted ],
     IsMemoryUsageKnown: [ blue.method, meta.implemented ],

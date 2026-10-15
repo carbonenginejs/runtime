@@ -721,7 +721,7 @@ export class CjsBlackPropertyReaders
             // A runtime read of a declared structList builds each record as an
             // instance of its class; a payload read stays plain data.
             const Item = descriptor.itemClassName && reader.context?.readMode === "runtime"
-                ? CjsSchema.GetConstructor(descriptor.itemClassName) : null;
+                ? CjsSchema.getConstructor(descriptor.itemClassName) : null;
             if (descriptor.itemClassName && reader.context?.readMode === "runtime" && !Item)
             {
                 throw new TypeError(`Black struct ${descriptor.itemClassName} is not registered (import its package)`);

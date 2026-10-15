@@ -288,8 +288,8 @@ test("metadata distinguishes custom JS helpers from renamed native UpdateDestina
   for (const name of ["Compile", "GetVariableNames", "GetFunctionNames", "_getExpressionContext", "_dirtyMaskMatches"])
   {
     const method = CjsSchema.getMethod(Type, name);
-    assert.equal(method?.impl?.status, "custom", name);
-    assert.equal(method.carbon?.method, undefined, name);
+    assert.equal(method?.carbon, undefined, name);
+    assert.equal(method?.carbon?.method, undefined, name);
   }
   const update = CjsSchema.getMethod(Type, "_UpdateDestination");
   assert.equal(update.impl.status, "adapted");

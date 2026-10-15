@@ -188,7 +188,6 @@ export class Tr2OcclusionBuffer
    * Adapted: explicit teardown replaces the C++ static shared_ptr destructor.
    * Individual scene drivers never release this device-wide owner.
    */
-  @meta.ours
   static ReleaseStaticResources()
   {
     const instance = Tr2OcclusionBuffer._instance;

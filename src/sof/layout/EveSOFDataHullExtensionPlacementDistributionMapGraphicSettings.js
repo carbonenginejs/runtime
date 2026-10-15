@@ -37,8 +37,6 @@ export class EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings exte
 // Native chooser labels and selection; the enum object retains all C++ members.
 // Carbon reuses this chooser but declares this enum type independently.
 be.enums.Create("trinity.EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings.DisplayQualityModifier", EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings.DisplayQualityModifier, {
-  source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 2017,
-  chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:52",
   chooser: [
     { name: "None_", value: EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings.DisplayQualityModifier.SHADER_ALL, description: "Visible to users with all shader settings" },
     { name: "Medium_and_High", value: EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings.DisplayQualityModifier.SHADER_HIGHMID, description: "Visible for users with shader settings on Medium or High" },

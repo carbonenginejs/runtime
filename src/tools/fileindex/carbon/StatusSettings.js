@@ -108,6 +108,6 @@ CjsSchema.blue.define(StatusSettings, {
         Update: [ blue.method, meta.implemented ],
         CalculateOverallProgress: [ blue.method, meta.implemented ],
         Dispose: [ meta.adapted ],
-        _Copy: [ meta.ours ]
+        _Copy: []
     }
 });

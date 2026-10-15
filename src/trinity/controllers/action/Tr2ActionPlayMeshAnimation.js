@@ -353,7 +353,6 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * wording.
    * Custom: retained JavaScript alias; Carbon names this query IsBindingValid.
    */
-  @meta.ours
   IsDestinationValid()
   {
     return this.IsBindingValid();
@@ -366,7 +365,6 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * binding. Direct destination precedence over path is an existing adaptation;
    * a supplied controller must implement its GetBindingPathRoots operation.
    */
-  @meta.ours
   ResolveDestination(controller)
   {
     if (this.destination)

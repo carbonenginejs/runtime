@@ -56,9 +56,7 @@ export class Tr2PPTaaEffect extends Tr2PPEffect
 }
 
 be.enums.Create("trinity.Tr2PPTaaEffect.Quality", Tr2PPTaaEffect.Quality, {
-  source: "trinity/trinity/PostProcess/Effects/Tr2PPTaaEffect.h", family: "postProcess", line: 16,
   exposedName: "TaaQuality", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/PostProcess/Effects/Tr2PPTaaEffect_Blue.cpp:9",
   chooser: [
     { name: "Low", value: Tr2PPTaaEffect.Quality.TAA_LOW, description: "Low Quality" },
     { name: "Medium", value: Tr2PPTaaEffect.Quality.TAA_MEDIUM, description: "Medium Quality" },

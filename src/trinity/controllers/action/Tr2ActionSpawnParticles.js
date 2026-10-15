@@ -52,7 +52,6 @@ export class Tr2ActionSpawnParticles extends ITr2ControllerAction
    * count factor of 1 so the authored rate is applied unscaled.
    * Custom: names the JavaScript construction of the native temporary.
    */
-  @meta.ours
   static _createEmitterUpdateArguments()
   {
     const args = new ITr2GenericEmitterUpdateArguments();

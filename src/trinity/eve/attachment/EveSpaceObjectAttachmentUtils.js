@@ -124,6 +124,4 @@ export class EveSpaceObjectAttachmentUtils
 export const FadeType = EveSpaceObjectAttachmentUtils.FadeType;
 
 // Carbon neither registers this nor gives it a chooser.
-be.enums.Create("trinity.FadeType", FadeType, {
-  source: "trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpaceObjectAttachmentUtils.h", family: "eve/attachment/planes", line: 7
-});
+be.enums.Create("trinity.FadeType", FadeType);

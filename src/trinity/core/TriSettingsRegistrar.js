@@ -8,7 +8,7 @@ import { TriSettings } from "./TriSettings.js";
  * `static TriSettingsRegistrar` that registers a global with the renderer's
  * settings.
  *
- * Here a class static is marked with `@edit.setting(name)` instead, and
+ * Here a class static is marked with `@meta.setting(name)` instead, and
  * getSettings() registers every marked static. Constructing a registrar is
  * left for a value that is not a class static, such as a module variable
  * reached through accessors.
@@ -26,7 +26,7 @@ export class TriSettingsRegistrar
    * @param {string} name Carbon's setting name.
    * @param {object} owner The object holding the value.
    * @param {string} key The owner's property holding the value.
-   * @param {{ applies?: string, enum?: object|string|null, values?: Array|null, carbon?: boolean }} [options] See CjsSchema.edit.setting.
+   * @param {{ applies?: string, enum?: object|string|null, values?: Array|null, carbon?: boolean }} [options] See meta.setting.
    */
   constructor(name, owner, key, options = {})
   {
@@ -35,7 +35,7 @@ export class TriSettingsRegistrar
 
   /**
    * The renderer's settings, created on first use as Carbon's function-local
-   * static is, with every `@edit.setting` static registered.
+   * static is, with every `@meta.setting` static registered.
    *
    * @returns {TriSettings} The registry.
    */

@@ -46,7 +46,7 @@ for (const [route, define] of routes)
         assert.deepEqual(registry.GetClassRegistration(registeredName), {
           name: registeredName, type: Abstract, createFn: ClassRegistrarNullFactory, flags: 1,
         });
-        assert.strictEqual(CjsSchema.GetConstructor(registeredName), Abstract);
+        assert.strictEqual(CjsSchema.getConstructor(registeredName), Abstract);
         assert.equal(registry.FindClsid(registeredName), registeredName);
         assert.equal(registry.CreateInstance(registeredName), null);
         assert.equal(registry.CreateInstanceFromName(registeredName), null);

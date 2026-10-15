@@ -12,7 +12,7 @@ test("nested mesh records retain flattened identities without inheriting their e
   for (const [Type, Owner] of [[ITr2InstanceDataInstanceData, ITr2InstanceData], [ITr2ImpostorSourceImpostorHash, ITr2ImpostorSource]])
   {
     assert.equal(Object.getPrototypeOf(Type.prototype), Object.prototype);
-    assert.equal(CjsSchema.GetConstructor(getRegisteredClassName(Type)), Type);
+    assert.equal(CjsSchema.getConstructor(getRegisteredClassName(Type)), Type);
     assert.deepEqual([...mappedInterfaces(Type)], []);
     assert.equal(CjsSchema.cast(new Type(), Owner), null);
     for (const method of ["SetValues", "UpdateValues", "OnEvent", "Initialize", "Traverse", "GetResources"])

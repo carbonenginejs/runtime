@@ -60,7 +60,6 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
   }
 
   /** Copies the subclass's authored strength into the CPU parameter struct. */
-  @meta.ours
   _ReadParameters()
   {
     super._ReadParameters();
@@ -160,7 +159,6 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
    * forms. Module scratch models C++ stack temporaries without allocating
    * per call or mutating authored fields. Emit must copy before returning.
    */
-  @meta.ours
   _ScaleParameters(parentTransform)
   {
     // Carbon ignores XMMatrixDecompose failure and consumes its scale output.

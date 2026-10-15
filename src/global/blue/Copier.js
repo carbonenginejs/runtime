@@ -131,7 +131,7 @@ export class Copier extends ICopier
       const existing = this._pointers?.get(source);
       if (existing) return existing;
 
-      target = className ? CjsSchema.GetConstructor(className) : null;
+      target = className ? CjsSchema.getConstructor(className) : null;
       target = target ? new target() : null;
       if (!target) return null;
 
@@ -473,7 +473,7 @@ export class Copier extends ICopier
   static _HoldsObjects(type, items)
   {
     const item = type?.valueType ?? type?.itemType;
-    if (typeof item === "string" && CjsSchema.GetConstructor(item) !== null) return true;
+    if (typeof item === "string" && CjsSchema.getConstructor(item) !== null) return true;
     if (OBJECT_KINDS.has(item?.kind) || item?.kind === "root") return true;
     for (const value of (items instanceof Map ? items.values() : items) ?? [])
     {

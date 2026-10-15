@@ -359,7 +359,6 @@ export class Tr2InteriorScene
   }
 
   /** Explicit JS final lifetime releases the shadow wrappers owned by this scene. */
-  @meta.ours
   Destroy()
   {
     for (const target of this.lightRenderTargets) target.Destroy();

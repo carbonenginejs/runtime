@@ -253,7 +253,6 @@ export class Tr2ResourceSetALWebgl2 extends Tr2DeviceResourceAL
    * @param {import("./Tr2ShaderProgramALWebgl2.js").Tr2ShaderProgramALWebgl2} program The program.
    * @returns {object[]} The placements; see `GetUnits`.
    */
-  @meta.ours
   _PlaceUnits(program)
   {
     return program.GetTextures().map(texture =>
@@ -286,7 +285,6 @@ export class Tr2ResourceSetALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {object[]} The placements.
    */
-  @meta.ours
   GetUnits()
   {
     return this._units;

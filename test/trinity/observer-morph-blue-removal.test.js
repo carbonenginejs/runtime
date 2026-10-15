@@ -33,9 +33,9 @@ test("placement uses isolated pooled values with nested-call and throw cleanup",
 });
 
 test("optional unregistered audio rejects structural lookalikes without loading an emitter",()=>{
- const original=CjsSchema.GetConstructor;CjsSchema.GetConstructor=function(name){return name==="ITr2AudEmitter"?null:original.call(this,name);};
+ const original=CjsSchema.getConstructor;CjsSchema.getConstructor=function(name){return name==="ITr2AudEmitter"?null:original.call(this,name);};
  try{const observer=new TriObserverLocal();observer.observer={Mute(){throw Error("lookalike");},SendEvent(){throw Error("lookalike");}};observer.mute=true;assert.equal(observer.GetMute(),true);SendEventToAudEmitter(observer,"event");}
- finally{CjsSchema.GetConstructor=original;}
+ finally{CjsSchema.getConstructor=original;}
 });
 
 test("native audio cast controls mute/event dispatch and actual container propagation",async()=>{

@@ -41,7 +41,7 @@ export const DEFAULT_VALUES = {
  * @typedef {object} BlackReaderValues
  * @property {string} emit Output to emit: "json", "payload" or "runtime".
  * @property {object|null} schema Source-shape schema, or null to use canonical class declarations.
- * @property {object|null} registry Class registry with `GetConstructor`, and optionally `GetSourceShape`.
+ * @property {object|null} registry Class registry with `getConstructor`, and optionally `GetSourceShape`.
  * @property {Map<string, object>|object|null} sourceShapes Source shapes by class name, or a provider with `GetSourceShape`.
  * @property {object|null} metadata Caller metadata merged into payload metadata.
  * @property {boolean} includeMetadata Whether payload output carries Black metadata.

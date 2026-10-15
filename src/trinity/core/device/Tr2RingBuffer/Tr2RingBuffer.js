@@ -175,7 +175,6 @@ export class Tr2RingBuffer
   }
 
   /** Destroys storage and unregisters arenas at test/teardown; Carbon's are process-lived. */
-  @meta.ours
   static ResetInstances()
   {
     for (const ring of Tr2RingBuffer._instances.values())

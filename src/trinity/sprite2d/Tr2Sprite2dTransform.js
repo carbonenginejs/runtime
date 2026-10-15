@@ -204,7 +204,6 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
    * @param {number} angle Rotation in radians.
    * @returns {number[]} Rotated coordinate pair.
    */
-  @meta.ours
   static _Rotate(x, y, angle)
   {
     const sine = Math.sin(angle);

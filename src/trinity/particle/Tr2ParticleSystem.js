@@ -57,7 +57,6 @@ export class Tr2ParticleSystem
    * 350-378). Adapted: explicit JS teardown replaces native destructors and
    * clears views of the owned CPU buffers; device reset retains that data.
    */
-  @meta.ours
   Destroy()
   {
     if (this._rebaseOS) this._rebaseOS.UnregisterForSimTimeRebase(this);

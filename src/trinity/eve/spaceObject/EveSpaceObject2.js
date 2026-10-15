@@ -1902,7 +1902,7 @@ export class EveSpaceObject2 extends EveEntity
       }
     }
 
-    const emitterType = CjsSchema.GetConstructor("ITr2AudEmitter");
+    const emitterType = CjsSchema.getConstructor("ITr2AudEmitter");
     for (const observer of this.observers)
     {
       // Carbon dynamic_cast<ITr2AudEmitter*>( observer->GetObserver() ) (cpp UpdateVisibility); the
@@ -5061,9 +5061,7 @@ export class EveSpaceObject2 extends EveEntity
 
 }
 
-be.enums.Create("trinity.EveSpaceObject2.LocatorType", EveSpaceObject2.LocatorType, {
-  source: "trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h", family: "eve/spaceObject", line: 263
-});
+be.enums.Create("trinity.EveSpaceObject2.LocatorType", EveSpaceObject2.LocatorType);
 
 
 // Supported native mappings; the concrete self slot enables locator queries.

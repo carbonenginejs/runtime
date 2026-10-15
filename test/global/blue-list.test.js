@@ -66,10 +66,10 @@ function Events(observer)
 
 test("IList exposes abstract operations while BlueList keeps its generic template unregistered", () =>
 {
-  assert.equal(CjsSchema.GetConstructor("IList"), IList);
+  assert.equal(CjsSchema.getConstructor("IList"), IList);
   assert.equal(be.classes.GetClassRegistration("IList").type, IList);
   assert.equal(CjsSchema.getClassName(BlueList), null);
-  assert.equal(CjsSchema.GetConstructor("BlueList"), null);
+  assert.equal(CjsSchema.getConstructor("BlueList"), null);
   for (const name of [ "GetSize", "GetInfo", "Insert", "Remove", "Append", "GetAt", "FindKey", "Swap", "Sort", "SetNotify", "Move", "GetAllItems" ])
   {
     assert.equal(CjsSchema.getMethod(IList, name).impl.status, "abstract");

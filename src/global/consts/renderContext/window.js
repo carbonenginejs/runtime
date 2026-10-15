@@ -23,9 +23,7 @@ export const Tr2ImeState_MacOS = Object.freeze({
 // Definition-site Blue registration preserves Carbon chooser order and exposure.
 
 blueEnums.Create("trinity.Tr2WindowMode", Tr2WindowMode, {
-  source: "trinity/trinity/UI/Tr2MainWindow.h", family: "trinity", line: 13,
   exposedName: "Tr2WindowMode", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/UI/Tr2MainWindow_Blue.cpp:9",
   chooser: [
     { name: "FULL_SCREEN", value: Tr2WindowMode.FULL_SCREEN, description: "" },
     { name: "WINDOWED", value: Tr2WindowMode.WINDOWED, description: "" },
@@ -34,9 +32,7 @@ blueEnums.Create("trinity.Tr2WindowMode", Tr2WindowMode, {
 });
 
 blueEnums.Create("trinity.Tr2WindowShowState", Tr2WindowShowState, {
-  source: "trinity/trinity/UI/Tr2MainWindow.h", family: "trinity", line: 26,
   exposedName: "Tr2WindowShowState", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/UI/Tr2MainWindow_Blue.cpp:22",
   chooser: [
     { name: "NORMAL", value: Tr2WindowShowState.NORMAL, description: "" },
     { name: "MAXIMIZED", value: Tr2WindowShowState.MAXIMIZED, description: "" },

@@ -123,12 +123,12 @@ test("promoted shader parameters expose source-backed Carbon metadata", () =>
   {
     new ctor();
   }
-  assertEquals(CjsSchema.GetConstructor("Tr2FloatParameter"), Tr2FloatParameter);
-  assertEquals(CjsSchema.GetConstructor("Tr2RuntimeTextureParameter"), Tr2RuntimeTextureParameter);
-  assertEquals(CjsSchema.GetConstructor("TriTextureParameter"), TriTextureParameter);
-  assertEquals(CjsSchema.GetConstructor("TriVector4"), TriVector4);
-  assertEquals(CjsSchema.GetConstructor("TriFloatArrayParameter"), TriFloatArrayParameter);
-  assertEquals(CjsSchema.GetConstructor("CjsParameter"), null);
+  assertEquals(CjsSchema.getConstructor("Tr2FloatParameter"), Tr2FloatParameter);
+  assertEquals(CjsSchema.getConstructor("Tr2RuntimeTextureParameter"), Tr2RuntimeTextureParameter);
+  assertEquals(CjsSchema.getConstructor("TriTextureParameter"), TriTextureParameter);
+  assertEquals(CjsSchema.getConstructor("TriVector4"), TriVector4);
+  assertEquals(CjsSchema.getConstructor("TriFloatArrayParameter"), TriFloatArrayParameter);
+  assertEquals(CjsSchema.getConstructor("CjsParameter"), null);
   assertEquals(CjsSchema.getField(Tr2FloatParameter, "value")?.type.kind, "float32");
   assertEquals(CjsSchema.getField(Tr2Vector4Parameter, "value")?.type.kind, "vec4");
   assertEquals(CjsSchema.getField(Tr2Matrix4Parameter, "value")?.type.kind, "mat4");

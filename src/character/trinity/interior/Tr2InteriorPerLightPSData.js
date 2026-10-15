@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Interior/Tr2InteriorConstantBufferFormats.h
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { DictReader } from "#blue/DictReader";
 import { mat4 } from "#math/mat4";
 import { vec4 } from "#math/vec4";
@@ -58,7 +58,6 @@ export class Tr2InteriorPerLightPSData
    * @param {object} [options={}] Options forwarded to the dictionary reader.
    * @returns {Set<string>|boolean} The dictionary reader's change result.
    */
-  @meta.ours
   SetValues(values = {}, options = {})
   {
     const normalized = { ...values };

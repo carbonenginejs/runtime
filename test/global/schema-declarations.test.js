@@ -39,9 +39,8 @@ test("the public decorator surface has one namespace per vocabulary and preserve
         assert.equal(Object.hasOwn(meta.blue, name), false, "removed Blue alias: " + name);
     for (const name of ["define", "hideInherited"])
         assert.equal(Object.hasOwn(meta.type, name), false, "class declaration is flat: " + name);
-    class Provenance { Method() {} }
-    CjsSchema.decorateMethod(Provenance, "Method", meta.ours);
-    assert.equal(CjsSchema.getMethod(Provenance, "Method").impl.status, "custom");
+    // Ruling 2026-10-15: the absence of the blue stamp means ours, so there is no meta.ours.
+    assert.equal(Object.hasOwn(meta, "ours"), false);
     class Types {}
     CjsSchema.define(Types, {
         className: "DeclarationTypes",
@@ -209,7 +208,7 @@ test("namespace projections preserve structural routes and filter descriptive me
         name: "wireName", key: "array", index: 0, role: "member", declaringClass: Projected, type: { kind: "uint32" }
     });
     assert.equal(CjsSchema.getSchema(Projected, { namespaces: [ "enum" ] }).members[0].edit, undefined);
-    assert.deepEqual(CjsSchema.getSchema(Projected, { namespaces: [ "edit" ] }).members[0].edit, { persist: true, enum: true });
+    assert.deepEqual(CjsSchema.getSchema(Projected, { namespaces: [ "edit" ] }).members[0].edit, { persist: true });
 });
 
 test("hideInherited resolves exact JS keys before exposed aliases and remains monotonic", () =>

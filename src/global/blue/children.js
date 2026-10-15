@@ -21,7 +21,7 @@ export function createChild(target, property, values = {}, options = {})
     // `_type`, else the declared item class.
     const importContext = CreateAnchorTable();
     const child = new DictReader({ ...options, importContext })
-        .CreateObject(values, itemClassName ? CjsSchema.GetConstructor(itemClassName) : null);
+        .CreateObject(values, itemClassName ? CjsSchema.getConstructor(itemClassName) : null);
     importContext.finalize();
     importContext.initializeCreated({ ...options, importContext });
 

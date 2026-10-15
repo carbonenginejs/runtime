@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:517-529
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 
 /** Defines a generic shader's parameters, textures, defaults, transparency and depth policy, and generated configuration.
  * Native IRoot-only data with a self-only Blue table. Independently initialized
@@ -80,7 +80,6 @@ export class EveSOFDataGenericShader
    * @param {string} key Authored usage name.
    * @returns {boolean} Whether this shader references the name.
    */
-  @meta.ours
   HasUsage(key)
   {
     if (!key) return false;
@@ -113,7 +112,6 @@ export class EveSOFDataGenericShader
    * @param {object|null} [provided={}] Caller-supplied parameter and texture maps.
    * @returns {object} The populated configuration.
    */
-  @meta.ours
   Assign(config = {}, provided = {})
   {
     config = config || {};
@@ -131,7 +129,6 @@ export class EveSOFDataGenericShader
    * @param {object|null} [provided=null] Caller-supplied parameter values.
    * @returns {object} The populated parameter map.
    */
-  @meta.ours
   AssignParameters(out = {}, provided = null)
   {
     out = out || {};
@@ -166,7 +163,6 @@ export class EveSOFDataGenericShader
    * @param {object|null} [provided=null] Caller-supplied texture values.
    * @returns {object} The populated texture map.
    */
-  @meta.ours
   AssignTextures(out = {}, provided = null)
   {
     out = out || {};

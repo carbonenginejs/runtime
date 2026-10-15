@@ -217,7 +217,6 @@ export class Tr2ControllerReference extends ITr2Controller
    *
    * @returns {Promise<ITr2Controller|null>} The current loaded controller, or null.
    */
-  @meta.ours
   async ResolveController()
   {
     const path = this.path;

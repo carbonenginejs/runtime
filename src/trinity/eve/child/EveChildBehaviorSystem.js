@@ -132,7 +132,6 @@ export class EveChildBehaviorSystem extends EveChildTransform
   }
 
   /** Explicit final ownership release replaces Carbon's member destructors. */
-  @meta.ours
   Destroy()
   {
     this._shipInstanceBuffer.Destroy();

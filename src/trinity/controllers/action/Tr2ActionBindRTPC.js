@@ -278,7 +278,6 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * this action's curve, reusing the cached program while the text is unchanged.
    * This JS-only helper owns the CSP-safe AST cache.
    */
-  @meta.ours
   CompileExpression()
   {
     return CjsControllerExpressionProgram.compileCached(this._runtime, this.value, 0, {

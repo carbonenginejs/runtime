@@ -49,9 +49,9 @@ export class CjsBlueEnumRegistry
      *
      * Freezes and returns the same object. Values may repeat as aliases; names
      * must be non-numeric. `definition.members` orders and describes members
-     * (unlisted members follow in declaration order); `source`, `family`,
-     * `line`, `exposure`, `exposedName` and `chooserSource` are provenance
-     * only and register no aliases.
+     * (unlisted members follow in declaration order); `exposure` and
+     * `exposedName` record how Carbon exposes the type and register no aliases.
+     * The Carbon header is cited by a `// Source:` comment, not a key.
      *
      * `definition.chooser` preserves the native chooser: its names may differ
      * from the identifiers and may omit sentinels, but its values must be
@@ -174,10 +174,10 @@ export class CjsBlueEnumRegistry
                 return entry;
             });
         }
-        for (const key of ["source", "family", "line", "exposure", "exposedName", "chooserSource"])
+        for (const key of ["exposure", "exposedName"])
         {
             if (definition[key] === undefined) continue;
-            if (key === "line" || key === "exposure")
+            if (key === "exposure")
             {
                 if (!Number.isInteger(definition[key]) || definition[key] < 0)
                 {

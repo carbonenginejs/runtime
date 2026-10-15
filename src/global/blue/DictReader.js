@@ -361,7 +361,7 @@ export class DictReader extends IRootReaderBase
     const records = source ?? [];
     if (!Array.isArray(records)) this._ThrowError(`Struct list ${field.name} requires an array`);
     const className = field.type.className;
-    const Item = CjsSchema.GetConstructor(className);
+    const Item = CjsSchema.getConstructor(className);
     if (!Item) this._ThrowError(`Struct list ${field.name}: class ${className} is not registered`);
     const list = Array.isArray(current) ? current : [];
     const anchors = this._anchors;
@@ -683,7 +683,7 @@ export class DictReader extends IRootReaderBase
   {
     const declared = itemClassName ?? field?.type?.className ?? null;
     if (this._options.declarations === true) return this._CreateObjectInternal(declared);
-    const Declared = declared ? CjsSchema.GetConstructor(declared) : null;
+    const Declared = declared ? CjsSchema.getConstructor(declared) : null;
     return this._CreateObjectInternal(Declared);
   }
 
@@ -720,7 +720,7 @@ export class DictReader extends IRootReaderBase
       const created = this._options.declarations === true ? this._created.has(instance) : this._anchors.isCreated(instance);
       const itemType = field.type.itemType;
       const itemClassName = typeof itemType === "string" || typeof itemType === "function" ? itemType : itemType?.className ?? null;
-      const holdsObjects = (itemClassName && CjsSchema.GetConstructor(itemClassName))
+      const holdsObjects = (itemClassName && CjsSchema.getConstructor(itemClassName))
         || (Array.isArray(current) && current.some(IsObjectItem));
       if (holdsObjects && Array.isArray(current) && !created && mappedInterfaces(instance.constructor).has(IListNotify))
       {
@@ -738,7 +738,7 @@ export class DictReader extends IRootReaderBase
     // holds objects when its items say so: an alias, a `_type` bag, or a live
     // object, which the value path would clone into a plain one.
     const holdsObjects = (this._options.declarations === true && typeof itemClassName === "function")
-      || (itemClassName && CjsSchema.GetConstructor(itemClassName)) || source.some(IsObjectItem)
+      || (itemClassName && CjsSchema.getConstructor(itemClassName)) || source.some(IsObjectItem)
       || (source.length === 0 && Array.isArray(current) && current.some(IsObjectItem));
 
     if (!holdsObjects)
@@ -815,7 +815,7 @@ export class DictReader extends IRootReaderBase
         const id = BeObjectMetadata.Get(item, key);
         if (typeof id !== "string" || !id.length || incoming.has(id)) throw new TypeError(`Patch '${name}' has a missing or duplicated incoming ${key}.`);
         incoming.add(id);
-        if (item._type !== undefined && (!CjsSchema.getClassNames(CjsSchema.GetConstructor(item._type)).includes(itemClass)
+        if (item._type !== undefined && (!CjsSchema.getClassNames(CjsSchema.getConstructor(item._type)).includes(itemClass)
           || (existing.has(id) && !CjsSchema.isInstanceOf(item._type, existing.get(id)))))
         {
           throw new TypeError(`Patch '${name}' has an incompatible item type.`);
@@ -1102,7 +1102,7 @@ export class DictReader extends IRootReaderBase
       return this._HasDeclaredReferences(type.kind === "map" ? type.valueType : type.itemType);
     }
     return type?.kind === "rootRef" || typeof type === "function"
-      || (typeof type === "string" && !!CjsSchema.GetConstructor(type));
+      || (typeof type === "string" && !!CjsSchema.getConstructor(type));
   }
 
   /** Reads only supported declared collection shapes; opaque values keep existing coercion. */
@@ -1176,7 +1176,7 @@ export class DictReader extends IRootReaderBase
   {
     if (typeof typeName === "string")
     {
-      const Named = CjsSchema.GetConstructor(typeName);
+      const Named = CjsSchema.getConstructor(typeName);
       if (!Named) this._ThrowError(`Type '${typeName}' not found in the Blue class registry`);
       return Named;
     }
@@ -1571,12 +1571,7 @@ function IsPlainObject(value)
 
 CjsSchema.blue.define(DictReader, { className: "DictReader" });
 CjsSchema.decorateMethod(DictReader, "CreateObject", meta.adapted);
-CjsSchema.decorateMethod(DictReader, "ReadInto", meta.ours);
 CjsSchema.decorateMethod(DictReader, "ReadList", meta.adapted);
 CjsSchema.decorateMethod(DictReader, "ReadStructureList", meta.adapted);
 CjsSchema.decorateMethod(DictReader, "ReadIRootPtr", meta.adapted);
-CjsSchema.decorateMethod(DictReader, "_PrepareListPatches", meta.ours);
-CjsSchema.decorateMethod(DictReader, "_ReadListPatch", meta.ours);
 CjsSchema.decorateMethod(DictReader, "_ReadIList", meta.adapted);
-CjsSchema.decorateMethod(DictReader, "_Finish", meta.ours);
-CjsSchema.decorateMethod(DictReader, "_CancelPendingListReads", meta.ours);

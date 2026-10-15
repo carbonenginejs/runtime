@@ -14,7 +14,7 @@
 // holds is a Tr2TextureAL, which is backend-agnostic and is exactly what Carbon
 // holds too.)
 //
-// The `@edit.read` properties below are that READ projection, refreshed wherever
+// The `@blue.read` properties below are that READ projection, refreshed wherever
 // the texture changes - Create and Destroy are the only two places, which is
 // what keeps them from drifting.
 //

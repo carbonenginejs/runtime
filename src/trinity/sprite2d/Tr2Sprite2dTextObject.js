@@ -177,7 +177,6 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
    *
    * @returns {void}
    */
-  @meta.ours
   Destroy()
   {
     if (this._fontMeasurer) this._fontMeasurer.UnregisterForChangeNotification(this);

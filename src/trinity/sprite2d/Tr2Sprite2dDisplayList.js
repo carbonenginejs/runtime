@@ -45,7 +45,6 @@ export class Tr2Sprite2dDisplayList
   }
 
   /** Explicit equivalent of the native destructor: JS has no deterministic destruction. */
-  @meta.ours
   Destroy()
   {
     this.vertexBuffer.Destroy();

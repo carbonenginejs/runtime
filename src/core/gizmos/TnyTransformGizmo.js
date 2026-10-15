@@ -355,5 +355,5 @@ export class TnyTransformGizmo
 
 CjsSchema.meta.define(TnyTransformGizmo, {
   className: "TnyTransformGizmo",
-  methods: Object.fromEntries(["SetKeyBindings", "GetKeyBindings", "SetMode", "SetTarget", "Install", "Uninstall", "Sync", "Render", "HandleInput", "Cancel", "Destroy"].map(name => [name, [meta.ours]]))
+  methods: Object.fromEntries(["SetKeyBindings", "GetKeyBindings", "SetMode", "SetTarget", "Install", "Uninstall", "Sync", "Render", "HandleInput", "Cancel", "Destroy"].map(name => [name, []]))
 });

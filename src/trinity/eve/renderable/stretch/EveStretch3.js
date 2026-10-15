@@ -513,7 +513,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * destination space object at its translation. JS runs the task phase serially
    * and passes seconds to the existing curve API. Skipped while update is false.
    */
-  @meta.ours
   UpdateSynchronous(context)
   {
     if (!this.update) return true;
@@ -575,7 +574,6 @@ export class EveStretch3 extends IEveFiringEffectElement
    * JS runs the task phase serially with the existing seconds-based curve API.
    * Skipped entirely while update is false.
    */
-  @meta.ours
   UpdateAsynchronous(context)
   {
     if (!this.update) return true;
@@ -618,7 +616,7 @@ export class EveStretch3 extends IEveFiringEffectElement
       mat4.scale(params.localToWorldTransform, params.localToWorldTransform, EveStretch3._destinationScale);
       this.destObject.UpdateAsyncronous(context, params);
     }
-    const audioType = CjsSchema.GetConstructor("Tr2AudioStretchBase");
+    const audioType = CjsSchema.getConstructor("Tr2AudioStretchBase");
     const audio = audioType ? CjsSchema.cast(this.audio, audioType) : null;
     if (audio) audio.Update(this.sourcePosition, this.destinationPosition);
     if (this.stretchAudio)
@@ -1046,7 +1044,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   @meta.adapted
   FindSoundEmitter(name)
   {
-    const audioType = CjsSchema.GetConstructor("Tr2AudioStretchBase");
+    const audioType = CjsSchema.getConstructor("Tr2AudioStretchBase");
     const audio = audioType ? CjsSchema.cast(this.audio, audioType) : null;
     if (audio) return audio.FindEmitterByName(name);
     if (this.stretchAudio)

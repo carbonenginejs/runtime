@@ -176,7 +176,6 @@ export class TriPerlinCurve extends ITriScalarFunction
    * [-1, 1]. Custom compatibility wrapper retains the existing static API;
    * native PerlinNoise1D is a free function in TriMath.cpp.
    */
-  @meta.ours
   static PerlinNoise1D(position, inverseAmplitude, frequency, octaves)
   {
     return carbonPerlin1D(position, inverseAmplitude, frequency, octaves);

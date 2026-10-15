@@ -94,12 +94,8 @@ export const TriVariableContentType = Object.freeze({
 
 // Reviewed Blue registrations; values and chooser references share the declarations above.
 blueEnums.Create("trinity.ShadowQuality", ShadowQuality, {
-  "source": "trinity/trinity/Tr2LightManager.h",
-  "family": "eve/scene",
-  "line": 25,
   "exposedName": "ShadowQuality",
   "exposure": 2,
-  "chooserSource": "trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:25",
   "chooser": [
     {
       "name": "Disabled",
@@ -124,12 +120,8 @@ blueEnums.Create("trinity.ShadowQuality", ShadowQuality, {
   ]
 });
 blueEnums.Create("trinity.SSAOQuality", SSAOQuality, {
-  "source": "trinity/trinity/Tr2SSAO.h",
-  "family": "postProcess",
-  "line": 9,
   "exposedName": "SSAOQuality",
   "exposure": 2,
-  "chooserSource": "trinity/trinity/Tr2SSAO_Blue.cpp:8",
   "chooser": [
     {
       "name": "Lowest",
@@ -159,12 +151,8 @@ blueEnums.Create("trinity.SSAOQuality", SSAOQuality, {
   ]
 });
 blueEnums.Create("trinity.Tr2StandardIlluminant", Tr2StandardIlluminant, {
-  "source": "trinity/trinity/Tr2KelvinColor.h",
-  "family": "trinityCore",
-  "line": 11,
   "exposedName": "Tr2StandardIlluminant",
   "exposure": 2,
-  "chooserSource": "trinity/trinity/Tr2KelvinColor_Blue.cpp:12",
   "chooser": [
     {
       "name": "CIE_A",
@@ -259,10 +247,6 @@ blueEnums.Create("trinity.Tr2StandardIlluminant", Tr2StandardIlluminant, {
   ]
 });
 blueEnums.Create("trinity.Tr2TransformModifier", Tr2TransformModifier, {
-  "source": "trinity/trinity/Tr2Transform.h",
-  "family": "trinityCore",
-  "line": 19,
-  "chooserSource": "trinity/trinity/Tr2Transform_Blue.cpp:8",
   "chooser": [
     {
       "name": "None",
@@ -317,12 +301,8 @@ blueEnums.Create("trinity.Tr2TransformModifier", Tr2TransformModifier, {
   ]
 });
 blueEnums.Create("trinity.Tr2VolumerticQuality", Tr2VolumerticQuality, {
-  "source": "trinity/trinity/ITr2VolumetricRenderable.h",
-  "family": "trinityCore",
-  "line": 11,
   "exposedName": "Tr2VolumerticQuality",
   "exposure": 2,
-  "chooserSource": "trinity/trinity/Tr2VolumetricsRenderer_Blue.cpp:8",
   "chooser": [
     {
       "name": "Low",

@@ -388,7 +388,6 @@ export class Tr2StateMachineState
    * @param {Tr2Controller|null} [controller=this._getController()] Finalizer context.
    * @returns {boolean} Whether actions and the available finalizer permit exit.
    */
-  @meta.ours
   CanTransition(controller = this._getController())
   {
     for (const action of this.actions)
@@ -428,7 +427,6 @@ export class Tr2StateMachineState
    * state is unlinked.
    * @returns {Tr2Controller|null} Linked controller, or null while unlinked.
    */
-  @meta.ours
   _getController()
   {
     return this._stateMachine?.GetController() ?? null;
@@ -441,7 +439,6 @@ export class Tr2StateMachineState
    * @param {object|null} value Notification payload.
    * @returns {void}
    */
-  @meta.ours
   _onActionListModified(event, value)
   {
     const action = Tr2StateMachineState._asAction(value);
@@ -478,7 +475,6 @@ export class Tr2StateMachineState
    * @param {object|null} value Notification payload.
    * @returns {void}
    */
-  @meta.ours
   _onTransitionListModified(event, value)
   {
     const transition = Tr2StateMachineState._asTransition(value);
@@ -506,7 +502,6 @@ export class Tr2StateMachineState
    * @param {object|null} value Notification payload.
    * @returns {ITr2ControllerAction|null} Exact Blue-query match, or null.
    */
-  @meta.ours
   static _asAction(value)
   {
     return value ? be.classes.QueryThisInterface(value, ITr2ControllerAction, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
@@ -517,7 +512,6 @@ export class Tr2StateMachineState
    * @param {object|null} value Notification payload.
    * @returns {Tr2StateMachineTransition|null} Exact Blue-query match, or null.
    */
-  @meta.ours
   static _asTransition(value)
   {
     return value ? be.classes.QueryThisInterface(value, Tr2StateMachineTransition, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
@@ -529,7 +523,6 @@ export class Tr2StateMachineState
    * @param {bigint|number} value JavaScript mask representation.
    * @returns {bigint} Mask with exact bitwise operations.
    */
-  @meta.ours
   static _toBigIntMask(value)
   {
     return typeof value === "bigint" ? value : BigInt(value);
@@ -542,7 +535,6 @@ export class Tr2StateMachineState
    * @param {bigint|number} dirtyVariables Changed controller variables.
    * @returns {boolean} Whether any relevant variable changed.
    */
-  @meta.ours
   static _dirtyMaskMatches(mask, dirtyVariables)
   {
     return (mask & Tr2StateMachineState._toBigIntMask(dirtyVariables)) !== 0n;

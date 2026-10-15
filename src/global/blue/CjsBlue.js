@@ -310,7 +310,7 @@ export class CjsBlue
     const result = [];
     if (!obj) return result;
 
-    const Interface = CjsSchema.GetConstructor(iidName);
+    const Interface = CjsSchema.getConstructor(iidName);
     const stack = [ obj ];
     const seen = new Set();
     while (stack.length)
@@ -465,7 +465,7 @@ export class CjsBlue
     if (typeof type === "function") return { kind: "rootRef", className: type };
     if (typeof type !== "string") return type;
     if (type === "rootWeak") return { kind: "rootWeak" };
-    if (CjsSchema.GetConstructor(type)) return { kind: "rootRef", className: type };
+    if (CjsSchema.getConstructor(type)) return { kind: "rootRef", className: type };
     const declared = getCarbonTypeDefinition(type);
     if (declared.kind !== "unknown" || type === "unknown") return declared;
     const native = inferCarbonTypeFromCpp(type);
@@ -533,7 +533,7 @@ CjsSchema.meta.define(CjsBlue, {
   className: "CjsBlue",
   fields: {},
   methods: {
-    Fetch: [ meta.ours ],
+    Fetch: [],
     EnumerateChildren: [ meta.adapted ],
     EnumerateChildren__Filter: [ meta.adapted ],
     enumerateChildren: [ meta.adapted ],

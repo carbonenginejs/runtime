@@ -221,26 +221,26 @@ test("promoted Eve data classes expose source-backed metadata and defaults", asy
   const playFx = new PlayFXData();
   const lifetime = new ProcessLifetimeData();
   const seekTarget = new SeekTargetData();
-  assertEquals(CjsSchema.GetConstructor("BackAndForthData"), BackAndForthData);
-  assertEquals(CjsSchema.GetConstructor("EveChildUpdateParams"), EveChildUpdateParams);
-  assertEquals(CjsSchema.GetConstructor("EveLineData"), EveLineData);
-  assertEquals(CjsSchema.GetConstructor("EveRemotePositionCurve"), EveRemotePositionCurve);
-  assertEquals(CjsSchema.GetConstructor("EveCustomMask"), EveCustomMask);
-  assertEquals(CjsSchema.GetConstructor("EveImpactOverlay"), EveImpactOverlay);
-  assertEquals(CjsSchema.GetConstructor("EveSpaceObjectDecal"), EveSpaceObjectDecal);
-  assertEquals(CjsSchema.GetConstructor("EveThrottleable"), EveThrottleable);
-  assertEquals(CjsSchema.GetConstructor("FollowASplineData"), FollowASplineData);
-  assertEquals(CjsSchema.GetConstructor("FormationData"), FormationData);
-  assertEquals(CjsSchema.GetConstructor("InertiaData"), InertiaData);
-  assertEquals(CjsSchema.GetConstructor("EveLocator2"), EveLocator2);
-  assertEquals(CjsSchema.GetConstructor("EveLocatorSets"), EveLocatorSets);
-  assertEquals(CjsSchema.GetConstructor("Locator"), Locator);
-  assertEquals(CjsSchema.GetConstructor("LocatorData"), LocatorData);
-  assertEquals(CjsSchema.GetConstructor("PlacementDataWithIdentifier"), PlacementDataWithIdentifier);
-  assertEquals(CjsSchema.GetConstructor("PlayFXData"), PlayFXData);
-  assertEquals(CjsSchema.GetConstructor("ProcessLifetimeData"), ProcessLifetimeData);
-  assertEquals(CjsSchema.GetConstructor("SeekTargetData"), SeekTargetData);
-  assertEquals(CjsSchema.GetConstructor("CjsEveThrottleableState"), null);
+  assertEquals(CjsSchema.getConstructor("BackAndForthData"), BackAndForthData);
+  assertEquals(CjsSchema.getConstructor("EveChildUpdateParams"), EveChildUpdateParams);
+  assertEquals(CjsSchema.getConstructor("EveLineData"), EveLineData);
+  assertEquals(CjsSchema.getConstructor("EveRemotePositionCurve"), EveRemotePositionCurve);
+  assertEquals(CjsSchema.getConstructor("EveCustomMask"), EveCustomMask);
+  assertEquals(CjsSchema.getConstructor("EveImpactOverlay"), EveImpactOverlay);
+  assertEquals(CjsSchema.getConstructor("EveSpaceObjectDecal"), EveSpaceObjectDecal);
+  assertEquals(CjsSchema.getConstructor("EveThrottleable"), EveThrottleable);
+  assertEquals(CjsSchema.getConstructor("FollowASplineData"), FollowASplineData);
+  assertEquals(CjsSchema.getConstructor("FormationData"), FormationData);
+  assertEquals(CjsSchema.getConstructor("InertiaData"), InertiaData);
+  assertEquals(CjsSchema.getConstructor("EveLocator2"), EveLocator2);
+  assertEquals(CjsSchema.getConstructor("EveLocatorSets"), EveLocatorSets);
+  assertEquals(CjsSchema.getConstructor("Locator"), Locator);
+  assertEquals(CjsSchema.getConstructor("LocatorData"), LocatorData);
+  assertEquals(CjsSchema.getConstructor("PlacementDataWithIdentifier"), PlacementDataWithIdentifier);
+  assertEquals(CjsSchema.getConstructor("PlayFXData"), PlayFXData);
+  assertEquals(CjsSchema.getConstructor("ProcessLifetimeData"), ProcessLifetimeData);
+  assertEquals(CjsSchema.getConstructor("SeekTargetData"), SeekTargetData);
+  assertEquals(CjsSchema.getConstructor("CjsEveThrottleableState"), null);
   assertEquals(backAndForth.locatorIndex, -1);
   assertEquals(backAndForth.seek, true);
   assertEquals(backAndForth.arrived, true);
@@ -1237,7 +1237,7 @@ test("EveChildTransform rebuilds SRT and composes Carbon child transforms", () =
   const child = new EveChildTransform();
   assertMat4(child.localTransform, mat4.create());
   assertMat4(child.worldTransform, mat4.create());
-  assertEquals(CjsSchema.GetConstructor("EveChildTransform"), EveChildTransform);
+  assertEquals(CjsSchema.getConstructor("EveChildTransform"), EveChildTransform);
   assertEquals(CjsSchema.getField(EveChildTransform, "localTransform")?.type.kind, "mat4");
 
   const scaling = vec3.fromValues(2, 3, 4);
@@ -1305,7 +1305,7 @@ test("EveCircle generates Carbon half-step circle points and line descriptions",
 {
   const circle = new EveCircle();
   assert(circle instanceof EveChildTransform);
-  assertEquals(CjsSchema.GetConstructor("EveCircle"), EveCircle);
+  assertEquals(CjsSchema.getConstructor("EveCircle"), EveCircle);
   assertEquals(circle.circleRadius, 100);
   assertEquals(circle.numSegments, 64);
   assertEquals(circle.completeness, 1);
@@ -1423,7 +1423,7 @@ test("EveBezierCurve generates Carbon quadratic points and terminal edge", () =>
 {
   const curve = new EveBezierCurve();
   assert(curve instanceof EveChildTransform);
-  assertEquals(CjsSchema.GetConstructor("EveBezierCurve"), EveBezierCurve);
+  assertEquals(CjsSchema.getConstructor("EveBezierCurve"), EveBezierCurve);
   assertEquals(curve.segments, 24);
   assertEquals(curve.scaleSegmentsByCompleteness, true);
   assertEquals(CjsSchema.getField(EveBezierCurve, "translation")?.edit?.notify, true);

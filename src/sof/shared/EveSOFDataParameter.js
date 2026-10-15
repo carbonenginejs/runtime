@@ -60,7 +60,6 @@ export class EveSOFDataParameter
    * @param {string} [prefix=""] Optional authored name prefix.
    * @returns {object} The destination map.
    */
-  @meta.ours
   Assign(out = {}, prefix = "")
   {
     out[prefix ? prefix + this.name : this.name] = Array.from(this.GetValue());
@@ -77,7 +76,6 @@ export class EveSOFDataParameter
    * @param {EveSOFDataParameter[]} [out=[]] Reused destination records.
    * @returns {EveSOFDataParameter[]} The destination list.
    */
-  @meta.ours
   static combineArrays(base = [], overrides = null, out = [])
   {
     const validNames = new Set(base.map(value => value.name));

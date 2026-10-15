@@ -239,7 +239,6 @@ export class Tr2FontManager
    * @param {ArrayBuffer|ArrayBufferView|string} source FontFace source.
    * @returns {Promise<number>} The face ID of the family.
    */
-  @meta.ours
   async LoadFont(family, source)
   {
     const fonts = globalThis.document?.fonts ?? globalThis.fonts;
@@ -269,7 +268,6 @@ export class Tr2FontManager
    * @param {number} faceID Face ID.
    * @returns {import("#resource/formats/opentype").CjsOpenTypeFont|null} The font.
    */
-  @meta.ours
   _GetParsedFont(faceID)
   {
     return this._IsValidFace(faceID) ? this._fonts.get(this._reverseFaceMap[faceID]) ?? null : null;
@@ -280,7 +278,6 @@ export class Tr2FontManager
    *
    * @returns {CanvasRenderingContext2D|OffscreenCanvasRenderingContext2D} The context.
    */
-  @meta.ours
   _GetContext()
   {
     if (this._context) return this._context;
@@ -302,7 +299,6 @@ export class Tr2FontManager
    * @param {number} faceID Face ID.
    * @returns {boolean} Whether the face resolves.
    */
-  @meta.ours
   _IsValidFace(faceID)
   {
     return faceID !== 0 && this._reverseFaceMap[faceID] !== undefined && this._loadedFamilies.has(this._reverseFaceMap[faceID]);
@@ -346,7 +342,6 @@ export class Tr2FontManager
    * @param {number} height Pixel size.
    * @returns {CanvasRenderingContext2D|OffscreenCanvasRenderingContext2D} The prepared context.
    */
-  @meta.ours
   _SetFont(faceID, height)
   {
     if (!this._IsValidFace(faceID)) throw new RangeError("Unknown font face ID.");
@@ -651,7 +646,6 @@ export class Tr2FontManager
    * @param {string} key The glyph's cache key.
    * @returns {object} The sbit record.
    */
-  @meta.ours
   _RasterizeCffGlyph(faceID, font, xPpem, yPpem, glyphIndex, key)
   {
     const family = this._reverseFaceMap[faceID];
@@ -708,7 +702,6 @@ export class Tr2FontManager
    * @param {string} key The glyph's cache key.
    * @returns {object} The sbit record.
    */
-  @meta.ours
   _RasterizeText(faceID, width, height, size, text, key)
   {
     let context = this._SetFont(faceID, size);
@@ -745,7 +738,6 @@ export class Tr2FontManager
    * @param {number} glyphIndex Glyph ID.
    * @returns {number|undefined} The code point, or undefined when no character maps to the glyph.
    */
-  @meta.ours
   _GetGlyphCodePoint(faceID, font, glyphIndex)
   {
     const family = this._reverseFaceMap[faceID];

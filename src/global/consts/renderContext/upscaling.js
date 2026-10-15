@@ -40,15 +40,11 @@ export const INVALID_UPSCALING_CONTEXT_ID = 0xffffffff;
 // Definition-site Blue registration preserves Carbon chooser order and exposure.
 // Registered as Carbon registers it (trinity/trinity/TriDevice_Blue.cpp:191).
 blueEnums.Create("trinity.Tr2UpscalingAL.Technique", UpscalingTechnique, {
-  source: "trinity/trinityal/include/upscaling/Tr2UpscalingAL.h", family: "trinity", line: 12,
   exposedName: "UPSCALING_TECHNIQUE", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/TriDevice_Blue.cpp:170",
   chooser: [ "NONE", "FSR1", "FSR2", "FSR3", "DLSS", "XESS", "METALFX" ].map(name => ({ name, value: UpscalingTechnique[name], description: "" }))
 });
 // Registered as Carbon registers it (trinity/trinity/TriDevice_Blue.cpp:197).
 blueEnums.Create("trinity.Tr2UpscalingAL.Setting", UpscalingSetting, {
-  source: "trinity/trinityal/include/upscaling/Tr2UpscalingAL.h", family: "trinity", line: 23,
   exposedName: "UPSCALING_SETTING", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/TriDevice_Blue.cpp:181",
   chooser: [ "NATIVE", "ULTRA_QUALITY", "QUALITY", "BALANCED", "PERFORMANCE", "ULTRA_PERFORMANCE" ].map(name => ({ name, value: UpscalingSetting[name], description: "" }))
 });

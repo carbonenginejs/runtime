@@ -183,9 +183,7 @@ export class EveSOFDataPatternLayer
 
 // Native chooser labels and selection; the enum object retains all C++ members.
 be.enums.Create("trinity.EveSOFDataPatternLayer.ProjectionType", EveSOFDataPatternLayer.ProjectionType, {
-  source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 457,
   exposedName: "EveSOFDataPatternLayerProjectionType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:1152",
   chooser: [
     { name: "Repeat", value: EveSOFDataPatternLayer.ProjectionType.PROJECTION_REPEAT, description: "Repeat pattern texture projection" },
     { name: "Clamp", value: EveSOFDataPatternLayer.ProjectionType.PROJECTION_CLAMP, description: "Clamp the projection" },
@@ -195,9 +193,7 @@ be.enums.Create("trinity.EveSOFDataPatternLayer.ProjectionType", EveSOFDataPatte
 
 // Native chooser labels and selection; the enum object retains all C++ members.
 be.enums.Create("trinity.EveSOFDataPatternLayer.MaterialSource", EveSOFDataPatternLayer.MaterialSource, {
-  source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 465,
   exposedName: "EveSOFDataPatternLayerMaterialSource", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:1185",
   chooser: [
     { name: "Material1", value: EveSOFDataPatternLayer.MaterialSource.SOURCE_MATERIAL1, description: "Base material #1" },
     { name: "Material2", value: EveSOFDataPatternLayer.MaterialSource.SOURCE_MATERIAL2, description: "Base material #2" },

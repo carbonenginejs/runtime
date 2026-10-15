@@ -112,9 +112,7 @@ export class EveSOFDataHullDecalSetItem
 
 // Native chooser labels and selection; the enum object retains all C++ members.
 be.enums.Create("trinity.EveSOFDataHullDecalSetItem.Usage", EveSOFDataHullDecalSetItem.Usage, {
-  source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 1350,
   exposedName: "DecalUsage", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:1027",
   chooser: [
     { name: "Standard", value: EveSOFDataHullDecalSetItem.Usage.USAGE_STANDARD, description: "Standard decal" },
     { name: "KillCounter", value: EveSOFDataHullDecalSetItem.Usage.USAGE_KILLCOUNTER, description: "The killcounter decal" },

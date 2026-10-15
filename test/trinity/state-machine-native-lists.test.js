@@ -526,8 +526,8 @@ test("state lookup requires GetName while retained accessors remain custom conve
   for (const name of ["GetCurrentState", "GetState", "GetStateTime"])
   {
     const method = CjsSchema.getMethod(Tr2StateMachine, name);
-    assert.equal(method.impl.status, "custom");
-    assert.equal(method.carbon?.method, undefined);
+    assert.equal(method?.carbon, undefined);
+    assert.equal(method?.carbon?.method, undefined);
   }
   // Deliberately bypass native admission to expose malformed legacy Array input.
   Array.prototype.push.call(machine.states, { name: "malformed" });

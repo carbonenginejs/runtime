@@ -239,7 +239,6 @@ export class Range
    * range and the slider bounds; Carbon derives these on read (Range.cpp:63-71)
    * and clamps both with min, which is reproduced here rather than corrected.
    */
-  @meta.ours
   _syncRangePoints()
   {
     this.minRangePoint = Math.min(this._minRange, this._sliderRangeMin);

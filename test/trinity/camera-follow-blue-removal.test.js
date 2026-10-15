@@ -56,7 +56,6 @@ test("camera declarations preserve native exposure order, flags, defaults and in
     if (!readonly) expected.write = true;
     if (!runtime) expected.persist = true;
     if (["fovMultiplication", "enabled"].includes(field.name)) expected.notify = true;
-    if (field.name === "interpolation") expected.enum = true;
     assert.deepEqual(field.edit, expected, field.name);
     if (field.type.kind === "vec3")
     {

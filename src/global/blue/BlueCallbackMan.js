@@ -790,8 +790,8 @@ CjsSchema.blue.define(BlueCallbackMan, {
     SetPriority: [ meta.adapted ],
     SetThreadCount: [ meta.implemented ],
     SetName: [ meta.adapted ],
-    SetWorkerModule: [ meta.ours ],
-    SetWorkerFactory: [ meta.ours ]
+    SetWorkerModule: [],
+    SetWorkerFactory: []
   }
 });
 

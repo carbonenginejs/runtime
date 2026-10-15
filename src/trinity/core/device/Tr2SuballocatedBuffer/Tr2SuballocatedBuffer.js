@@ -223,7 +223,7 @@ CjsSchema.blue.define(Tr2SuballocatedBuffer, {
     GetBuffer: [ blue.method, meta.adapted ],
     ReleaseResources: [ blue.method, meta.adapted ],
     PrepareResources: [ meta.adapted ],
-    _AddBlock: [ meta.ours ],
-    GetBlocks: [ meta.ours ]
+    _AddBlock: [],
+    GetBlocks: []
   }
 });

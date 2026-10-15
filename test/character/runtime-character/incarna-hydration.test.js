@@ -88,12 +88,12 @@ test("historical Incarna shells remain explicitly separated from current Carbon 
     assert.notEqual(CjsSchema.getSchema(Constructor).blue, true);
   }
 
-  assert.equal(CjsSchema.GetConstructor("Tr2InteriorStatic"), null);
-  assert.equal(CjsSchema.GetConstructor("Tr2InteriorFlare"), null);
-  assert.equal(CjsSchema.GetConstructor("Tr2InteriorParticleObject"), null);
-  assert.equal(CjsSchema.GetConstructor("Tr2ShaderMaterial"), null);
-  assert.equal(CjsSchema.GetConstructor("Tr2ShaderManager"), null);
-  assert.equal(CjsSchema.GetConstructor("Tr2HighLevelShader"), null);
+  assert.equal(CjsSchema.getConstructor("Tr2InteriorStatic"), null);
+  assert.equal(CjsSchema.getConstructor("Tr2InteriorFlare"), null);
+  assert.equal(CjsSchema.getConstructor("Tr2InteriorParticleObject"), null);
+  assert.equal(CjsSchema.getConstructor("Tr2ShaderMaterial"), null);
+  assert.equal(CjsSchema.getConstructor("Tr2ShaderManager"), null);
+  assert.equal(CjsSchema.getConstructor("Tr2HighLevelShader"), null);
 });
 
 

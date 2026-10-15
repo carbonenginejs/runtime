@@ -48,7 +48,7 @@ test("Tr2PostProcess owns Carbon's legacy stage graph", () =>
   postProcess.stages.push({ name: "stage" });
   assertEquals(postProcess.Initialize(), true);
   assertEquals(postProcess.stages.length, 1);
-  assertEquals(CjsSchema.GetConstructor("Tr2PostProcess"), Tr2PostProcess);
+  assertEquals(CjsSchema.getConstructor("Tr2PostProcess"), Tr2PostProcess);
   assertEquals(CjsSchema.getMethod(Tr2PostProcess, "Initialize")?.impl?.status, "implemented");
 });
 

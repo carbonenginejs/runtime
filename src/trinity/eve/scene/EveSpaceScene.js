@@ -977,7 +977,6 @@ export class EveSpaceScene
    * Our wrapper selecting one Carbon picking revision. Each request retains
    * its framework so changing the setting cannot reinterpret queued results.
    */
-  @meta.ours
   PerformPicking(listener, immediate, x, y, projection, view, viewport, pickTypes = TR2_PICK_TYPE_DEFAULT,
     renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -1193,7 +1192,6 @@ export class EveSpaceScene
   }
 
   /** Polls request-owned snapshots using their recorded framework, including mixed queues. */
-  @meta.ours
   _PollPicking(listener, renderContext)
   {
     while (listener.readbacks.length)
@@ -1212,7 +1210,6 @@ export class EveSpaceScene
   }
 
   /** Wait only on the listener's own snapshots; cancellation drops the result. */
-  @meta.ours
   async _AwaitPicking(listener, renderContext)
   {
     while (listener.readbacks.length)
@@ -1227,7 +1224,6 @@ export class EveSpaceScene
   }
 
   /** Decodes before releasing the borrowed mapping and its retained objects. */
-  @meta.ours
   _ConsumePicking(listener, pending, mapping, debug, immediate)
   {
     const mainData = mapping.result === ALResult.S_OK ? mapping.data : null;
@@ -1605,7 +1601,6 @@ export class EveSpaceScene
    * Adapted: Carbon performs this inside BeginRender; CarbonEngineJS exposes the scene-owned
    * CPU phase because the engine driver owns the surrounding frame order.
    */
-  @meta.ours
   UpdateFogSettings()
   {
     this.volumetricsRenderer.UpdateFogSettings(this.componentRegistry, this.updateContext);
@@ -1897,7 +1892,6 @@ export class EveSpaceScene
   }
 
   /** Device-owned final release of the static shadow publications. */
-  @meta.ours
   static ReleaseStaticResources()
   {
     for (const reference of Object.values(EveSpaceScene._shadowReferences)) reference.SetTexture(null);
@@ -2391,7 +2385,6 @@ export class EveSpaceScene
   }
 
   /** The per-impostor loop of Carbon UpdateImpostors (cpp:1636-1683). */
-  @meta.ours
   _CaptureImpostors(manager, renderContext)
   {
     const esm = renderContext.GetEffectStateManager();
@@ -2611,7 +2604,6 @@ export class EveSpaceScene
    * the visible ITr2Renderables, depth first, optional reflection shadows, then
    * opaque, fog and transparent batches with culling left as the cube needs it.
    */
-  @meta.ours
   _RenderReflectionDynamicObjects(face, currentFrustum, gpuResourcePool, renderContext, renderer)
   {
     const visibleRenderables = [];

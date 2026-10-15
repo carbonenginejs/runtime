@@ -118,7 +118,7 @@ test("only approved extension names are exempt from Carbon setting-name checks",
   }
 });
 
-test("edit.setting takes any name, on static fields only", () =>
+test("meta.setting takes any name, on static fields only", () =>
 {
   const described = meta.setting("demoOnlySetting");
   assert.equal(typeof described, "function", "a name Carbon lacks is ours, not an error");

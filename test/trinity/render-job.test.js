@@ -147,7 +147,7 @@ test("TriStepRemoteSync preserves its graph identity and fails unsupported brows
   assertEquals(remote.GetId(), 7);
   assertEquals(remote.Execute(0, 0, null), TriRenderStep.RS_FAILED);
   assertEquals(CjsSchema.getField(TriStepRemoteSync, "id"), null);
-  assertEquals(CjsSchema.GetConstructor("TriStepRemoteSync"), TriStepRemoteSync);
+  assertEquals(CjsSchema.getConstructor("TriStepRemoteSync"), TriStepRemoteSync);
 });
 
 test("portable generated render steps initialize and emit backend-neutral work", () =>
@@ -385,7 +385,7 @@ test("TriRenderJob exposes the ordered Carbon graph contract", () =>
   assertEquals(Array.isArray(job.steps), true);
   assertEquals(CjsSchema.getField(TriRenderJob, "steps")?.type?.kind, "list");
   assertEquals(CjsSchema.getField(TriRenderJob, "steps")?.type?.itemType, "TriRenderStep");
-  assertEquals(CjsSchema.GetConstructor("TriRenderJob"), TriRenderJob);
+  assertEquals(CjsSchema.getConstructor("TriRenderJob"), TriRenderJob);
   assertEquals(TriRenderJob.RJ_DONE, TriRenderJob.Status.RJ_DONE);
   assertEquals(TriRenderStep.RS_IN_PROGRESS, TriRenderStep.Result.RS_IN_PROGRESS);
 });

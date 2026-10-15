@@ -35,7 +35,6 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * @param {Function|null} factory Host instance factory.
    * @returns {Function|null} Previous factory.
    */
-  @meta.ours
   static registerFactory(factory)
   {
     const previous = this._factory;
@@ -46,7 +45,6 @@ export class Tr2ActionPython extends ITr2ControllerAction
   /** Clears the injected JavaScript factory; existing instances remain alive.
    * Custom: host registration has no native Python-import counterpart.
    */
-  @meta.ours
   static clearFactory()
   {
     this._factory = null;
@@ -61,7 +59,6 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * @param {Tr2ActionPython} action Requesting action.
    * @returns {object|null} The factory result, or null when unavailable.
    */
-  @meta.ours
   static createInstance(moduleName, className, action)
   {
     if (!moduleName || !className || !this._factory)
@@ -78,7 +75,6 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * @param {*} value Host persistence output.
    * @returns {Uint8Array|null} An independent byte buffer, or null.
    */
-  @meta.ours
   static stateToBytes(value)
   {
     if (value == null)
@@ -408,7 +404,6 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * callable-only VTable. Empty state skips OnLoad; hook errors remain visible.
    * @returns {object|null} The cached host instance.
    */
-  @meta.ours
   _ensureInstance()
   {
     if (!this._instance)

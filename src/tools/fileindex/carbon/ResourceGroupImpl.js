@@ -682,7 +682,7 @@ CjsSchema.blue.define(ResourceGroupImpl, {
         GetLargestResourceSize: [ blue.method, meta.adapted ],
         ImportFromFile: [ blue.method, meta.adapted ],
         ExportToFile: [ blue.method, meta.adapted ],
-        _Compare: [ meta.ours ],
+        _Compare: [],
         CreateFromDirectory: [ blue.method, meta.notImplemented ],
         CreateBundle: [ blue.method, meta.notImplemented ],
         ConstructPatchResourceInfo: [ blue.method, meta.notImplemented ],

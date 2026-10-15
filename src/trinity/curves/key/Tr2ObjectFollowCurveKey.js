@@ -229,7 +229,6 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    * Retained JavaScript helper replaces native GetLocatorRotation and
    * GetModelRotation matrices with a reusable quaternion.
    */
-  @meta.ours
   GetRotation()
   {
     switch (this.rotationSetting)
@@ -257,7 +256,6 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    * @param {Float32Array} out Caller-owned position.
    * @returns {Float32Array|null} out, or null without a positioned object.
    */
-  @meta.ours
   GetWorldPosition(out)
   {
     return this.object && be.classes.QueryThisInterface(this.object, IWorldPosition, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null
@@ -267,7 +265,6 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
   /**
    * Applies a pure rotation transform, or copies unchanged for identity.
    */
-  @meta.ours
   TransformByRotation(out, value, rotation)
   {
     if (!rotation)

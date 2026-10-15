@@ -159,7 +159,6 @@ export class CjsSofLibraryBuilder
    * Custom: async readiness is rechecked because a partial source may omit
    * materials referenced by generic data.
    */
-  @meta.ours
   SetData(data)
   {
     if (!data || typeof data !== "object" || Array.isArray(data))
@@ -216,7 +215,6 @@ export class CjsSofLibraryBuilder
    * Custom: Carbon loads one monolithic catalog; per-file JS acquisition must
    * join the complete dependency operation and retry failed material reads.
    */
-  @meta.ours
   EnsureGeneric(options = {})
   {
     const force = requireForceOption(options) || this._forceGenericRefresh;
@@ -371,7 +369,6 @@ export class CjsSofLibraryBuilder
    * a monolithic catalog; Carbon EveSOFDataMgr.cpp:273-281 returns null silently.
    * Missing materials stay absent, so native parameter fallback still applies.
    */
-  @meta.ours
   async _FetchNamed(kind, nameOrPath, options, ensureGeneric = true)
   {
     const force = requireForceOption(options);
@@ -473,7 +470,6 @@ export class CjsSofLibraryBuilder
    * Acquires dependencies of the exact projection passed to turret assembly.
    * Custom: callers can supply edited projections independently of the catalog.
    */
-  @meta.ours
   async _EnsureFactionProjectionDependencies(managedFaction, options)
   {
     await Promise.all([
@@ -493,7 +489,6 @@ export class CjsSofLibraryBuilder
    * its own operation; external named fetches always join the complete boot.
    * Custom: per-file acquisition replaces Carbon's monolithic catalog read.
    */
-  @meta.ours
   async _EnsureGenericDependencies(options)
   {
     const generic = this._dataMgr.GetGenericData();

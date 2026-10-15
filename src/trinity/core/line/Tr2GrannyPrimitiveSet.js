@@ -332,7 +332,6 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   }
 
   /** Explicit owner teardown replaces the C++ destructor and notify-target lifetime. */
-  @meta.ours
   Destroy()
   {
     this._destroyed = true;

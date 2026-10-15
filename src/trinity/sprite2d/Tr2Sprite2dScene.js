@@ -1068,7 +1068,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
   }
 
   /** Explicit native destructor equivalent: JavaScript does not destroy owned AL values on scope exit. */
-  @meta.ours
   Destroy()
   {
     this._ResetCapture();

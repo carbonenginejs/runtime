@@ -70,7 +70,7 @@ for (const { name, Contract, direct, base, own, abstract, ticks = [] } of contra
   {
     if (direct) assert.equal(Contract, direct);
     assert.equal(CjsSchema.getClassName(Contract), name);
-    assert.equal(CjsSchema.GetConstructor(name), Contract);
+    assert.equal(CjsSchema.getConstructor(name), Contract);
     assert.equal(be.classes.GetClassRegistration(name).type, Contract);
     assert.deepEqual(Object.getOwnPropertyNames(Contract.prototype), [ "constructor", ...own ]);
     assert.equal(Object.getPrototypeOf(Contract.prototype), base ? base.prototype : Object.prototype);
@@ -255,14 +255,14 @@ test("curve interfaces import inertly without pulling domain consumers or model 
       for (const name of ["ITriFunction", "ITriScalarFunction", "ITriVectorFunction", "ITriQuaternionFunction", "ITriColorFunction", "ITriCurveLength"])
       {
         assert.equal(typeof shared[name], "function");
-        assert.equal(CjsSchema.GetConstructor(name), shared[name]);
+        assert.equal(CjsSchema.getConstructor(name), shared[name]);
         assert.equal(shared.be.classes.GetClassRegistration(name).type, shared[name]);
       }
       const { ITriDuration } = await import("./src/trinity/curves/ITriDuration.js");
       const { ITr2ValueBinding } = await import("./src/trinity/curves/ITr2ValueBinding.js");
       for (const [name, Contract] of [["ITriDuration", ITriDuration], ["ITr2ValueBinding", ITr2ValueBinding]])
       {
-        assert.equal(CjsSchema.GetConstructor(name), Contract);
+        assert.equal(CjsSchema.getConstructor(name), Contract);
         assert.equal(shared.be.classes.GetClassRegistration(name).type, Contract);
       }
       assert.deepEqual(Array.from(trinityModules).sort(), ["ITr2ValueBinding", "ITriDuration"]);

@@ -82,7 +82,6 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * Adapted: explicit JS teardown replaces the native mesh and device-resource
    * destructors, including base geometry completion subscriptions.
    */
-  @meta.ours
   Destroy()
   {
     this.SetGeometryRes(null);
@@ -516,9 +515,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
 
 // Registered as Carbon registers it (trinity/trinity/Tr2InstancedMesh_Blue.cpp:21).
 be.enums.Create("trinity.Tr2InstancedMesh.BoundsMethod", Tr2InstancedMesh.BoundsMethod, {
-  source: "trinity/trinity/Tr2InstancedMesh.h", family: "trinityCore", line: 29,
   exposedName: "Tr2InstanceMeshBoundsMethod", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Tr2InstancedMesh_Blue.cpp:13",
   chooser: [
     { name: "STATIC", value: Tr2InstancedMesh.BoundsMethod.STATIC, description: "Bounds are defined explicitely on the mesh" },
     { name: "DYNAMIC", value: Tr2InstancedMesh.BoundsMethod.DYNAMIC, description: "Bounds are defined by instance geometry and max instance size" },

@@ -428,9 +428,7 @@ export class EveConnector
 
 // Registered as Carbon registers it (trinity/trinity/Eve/UI/EveConnector_Blue.cpp:34).
 be.enums.Create("trinity.EveConnector.ConnectorType", EveConnector.ConnectorType, {
-  source: "trinity/trinity/Eve/UI/EveConnector.h", family: "eve/ui", line: 24,
   exposedName: "EveConnectorStyle", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Eve/UI/EveConnector_Blue.cpp:6",
   chooser: [
     { name: "PointToPoint", value: EveConnector.ConnectorType.PointToPoint, description: "Connection between two points" },
     { name: "StraightAnchor", value: EveConnector.ConnectorType.StraightAnchor, description: "Anchor line from dest to xz plane containing source" },

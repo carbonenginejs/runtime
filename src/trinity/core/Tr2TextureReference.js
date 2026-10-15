@@ -150,7 +150,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * This method has no Tr2TextureReference donor (only Tr2TransientTextureReference
    * has SetTexture); cloud owners use GetTexture().Create/Destroy and Broadcast.
    */
-  @meta.ours
   SetTexture(texture)
   {
     const next = texture ? new Tr2TextureAL({ copy: texture }) : new Tr2TextureAL();

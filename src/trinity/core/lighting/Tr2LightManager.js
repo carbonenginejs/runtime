@@ -1052,7 +1052,6 @@ export class Tr2LightManager
    * from this view. Carbon has no such seam; Tr2DataTextureManager now writes its own
    * texture, so this has no precedent.
    */
-  @meta.ours
   GetLightBufferData()
   {
     return this._packed.subarray(0, this._packedCount * FLOATS_PER_LIGHT);
@@ -1063,7 +1062,6 @@ export class Tr2LightManager
    *
    * Adapted: AL seam companion to GetLightBufferData.
    */
-  @meta.ours
   GetLightCount()
   {
     return this._packedCount;
@@ -1075,7 +1073,6 @@ export class Tr2LightManager
    * Adapted: Non-Carbon extension: cheaper than the AL diffing a typed array; Carbon
    * re-uploads unconditionally.
    */
-  @meta.ours
   GetDataRevision()
   {
     return this._revision;

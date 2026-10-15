@@ -349,7 +349,7 @@ test("enum parity CLI credits exact definition-site registration without a modul
 {
   for (const importSource of ["#blue/enums/CjsBlueEnumRegistry", "../../global/blue/enums/CjsBlueEnumRegistry.js"])
   {
-    const files = enumFixture('blueEnums.Create("trinity.Status", Status, { source: "native/Probe.h" });');
+    const files = enumFixture('// Source: native/Probe.h\nblueEnums.Create("trinity.Status", Status);');
     files["src/trinity/generated/enums.js"] = files["src/trinity/generated/enums.js"]
       .replace('from "#blue/enums/CjsBlueEnumRegistry"', `from "${importSource}"`)
       .replace("{ blueEnums }", "{ blueEnums as registry }").replace("blueEnums.Create", "registry.Create");
@@ -361,7 +361,7 @@ test("enum parity CLI credits exact definition-site registration without a modul
 
 test("enum parity CLI still rejects wrong numeric values and renamed or missing members", () =>
 {
-  const registration = 'blueEnums.Create("trinity.Status", Status, { source: "native/Probe.h" });';
+  const registration = '// Source: native/Probe.h\nblueEnums.Create("trinity.Status", Status);';
   for (const [members, donor, diagnostic] of [
     ["Ready: 9", "enum Status { Ready = 0 };", /Ready = 9 where Carbon's Ready = 0/],
     ["Ready: 0", "enum Status { STATUS_Ready = 0 };", /spells Carbon's STATUS_Ready as Ready/],
@@ -377,7 +377,7 @@ test("enum parity CLI still rejects wrong numeric values and renamed or missing 
 test("enum parity CLI does not lend one registration's attribution to an adjacent vocabulary", () =>
 {
   const probe = runScanner("scripts/lint-enum-parity.js", enumFixture(
-    'blueEnums.Create("trinity.Status", Status, { source: "native/Probe.h" });',
+    '// Source: native/Probe.h\nblueEnums.Create("trinity.Status", Status);',
     { extra: "export const Adjacent = { Ready: 0 };", donor: "enum Status { Ready = 0 };\nenum Adjacent { Ready = 0 };" }));
   expectStatus(probe, 1);
   assert.match(probe.stderr, /Probe.h#Adjacent: enum Adjacent.*no attributable vocabulary/);
@@ -388,15 +388,15 @@ test("enum parity CLI does not lend one registration's attribution to an adjacen
 test("enum parity CLI rejects wrong donors, unrelated calls and unprovable metadata", () =>
 {
   for (const registration of [
-    'blueEnums.Create("trinity.Status", Status, { source: "other/Probe.h" });',
-    'other.Create("trinity.Status", Status, { source: "native/Probe.h" });',
-    'blueEnums["Create"]("trinity.Status", Status, { source: "native/Probe.h" });',
-    'blueEnums.Create("trinity.Status", Other, { source: "native/Probe.h" });',
-    'blueEnums.Create("trinity.Status", Status, { source: sourcePath });',
-    'blueEnums.Create("trinity.Status", Status, { source: "native/Probe.h", ...options });',
-    'blueEnums.Create("trinity.Status", Status, { source: "native/Probe.h", source: "other/Probe.h" });',
-    'function deferred(blueEnums) { blueEnums.Create("trinity.Status", Status, { source: "native/Probe.h" }); }',
-    '// blueEnums.Create("trinity.Status", Status, { source: "native/Probe.h" });'
+    '// Source: other/Probe.h\nblueEnums.Create("trinity.Status", Status);',
+    '// Source: native/Probe.h\nother.Create("trinity.Status", Status);',
+    '// Source: native/Probe.h\nblueEnums["Create"]("trinity.Status", Status);',
+    '// Source: native/Probe.h\nblueEnums.Create("trinity.Status", Other);',
+    '/* Source: native/Probe.h */ blueEnums.Create("trinity.Status", Status);',
+    '// See native/Probe.h\nblueEnums.Create("trinity.Status", Status, { ...options });',
+    '// Source: native/Probe.h\n// Source: other/Probe.h\nblueEnums.Create("trinity.Status", Status);',
+    '// Source: native/Probe.h\nfunction deferred(blueEnums) { blueEnums.Create("trinity.Status", Status); }',
+    '// Source: native/Probe.h\n// blueEnums.Create("trinity.Status", Status);'
   ])
   {
     const probe = runScanner("scripts/lint-enum-parity.js", enumFixture(registration));
@@ -404,7 +404,7 @@ test("enum parity CLI rejects wrong donors, unrelated calls and unprovable metad
     assert.match(probe.stderr, /no attributable vocabulary/);
     assert.match(probe.stdout, /1 enums declared.*0 compared.*1 recorded findings/);
   }
-  const files = enumFixture('blueEnums.Create("trinity.Status", Status, { source: "native/Probe.h" });');
+  const files = enumFixture('// Source: native/Probe.h\nblueEnums.Create("trinity.Status", Status);');
   files["src/trinity/generated/enums.js"] = files["src/trinity/generated/enums.js"].replace(
     'from "#blue/enums/CjsBlueEnumRegistry"', 'from "./unrelated.js"');
   const probe = runScanner("scripts/lint-enum-parity.js", files);

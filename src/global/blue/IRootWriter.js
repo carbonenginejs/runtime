@@ -278,6 +278,4 @@ function IsObject(value)
 
 CjsSchema.blue.define(IRootWriter, { className: "IRootWriter" });
 CjsSchema.decorateMethod(IRootWriter, "WriteMembers", meta.adapted);
-CjsSchema.decorateMethod(IRootWriter, "BeginReadOnlyMember", meta.ours);
-CjsSchema.decorateMethod(IRootWriter, "EndReadOnlyMember", meta.ours);
 CjsSchema.decorateMethod(IRootWriter, "WriteValue", meta.adapted);

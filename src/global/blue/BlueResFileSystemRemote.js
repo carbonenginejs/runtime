@@ -117,7 +117,7 @@ CjsSchema.blue.define(BlueResFileSystemRemote, {
   className: "BlueResFileSystemRemote",
   fields: {},
   methods: {
-    GetRemoteFileCache: [ meta.ours ],
+    GetRemoteFileCache: [],
     FileExists: [ blue.method, meta.implemented ],
     IsDirectory: [ blue.method, meta.implemented ],
     GetDirectoryContents: [ blue.method, meta.implemented ],

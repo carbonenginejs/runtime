@@ -12,7 +12,6 @@ test("edit decorators record Blue flags without extra access permissions", () =>
     read: { read: true }, write: { write: true },
     readwrite: { read: true, write: true }, notify: { notify: true },
     hidden: { hidden: true }, persist: { persist: true }, rpersist: { rpersist: true },
-    flags: { flags: true },
     persistOnly: { persist: true, persistOnly: true, hidden: true }
   };
   CjsSchema.define(Flags, {
@@ -33,8 +32,9 @@ test("enum chooser metadata exposes the Blue ENUM flag through inheritance", () 
     choice: [CjsSchema.meta.type.int32, CjsSchema.meta.type.enum({ First: 1, Second: 2 }), CjsSchema.meta.blue.persist]
   } });
   CjsSchema.define(Derived, { className: "EditEnumDerived" });
-  assert.deepEqual(CjsSchema.getField(Derived, "choice").edit, { persist: true, enum: true });
-  assert.equal(CjsSchema.getSchema(Derived).fields[0].edit.enum, true);
+  // ENUM is the enum record itself, not an edit bit.
+  assert.deepEqual(CjsSchema.getField(Derived, "choice").edit, { persist: true });
+  assert.notEqual(CjsSchema.getSchema(Derived).fields[0].enum, undefined);
   assert.ok(CjsSchema.getField(Derived, "choice").enum);
 });
 

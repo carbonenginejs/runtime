@@ -1077,7 +1077,6 @@ export class AudGameObjResource
    * Adapted: CarbonEngineJS-only accessor over private wake-queue state; Carbon exposes no
    * equivalent read.
    */
-  @meta.ours
   GetEventsOnWake()
   {
     return [...this._eventsOnWake];
@@ -1089,7 +1088,6 @@ export class AudGameObjResource
    * Adapted: CarbonEngineJS-only accessor over private one-shot state; Carbon exposes no
    * equivalent read.
    */
-  @meta.ours
   GetWaitingOneShot()
   {
     return this._waitingOneShotName;

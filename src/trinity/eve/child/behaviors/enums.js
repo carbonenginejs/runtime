@@ -30,9 +30,7 @@ export const TunnelGroupType = {
 
 // Registered as Carbon registers it (trinity/trinity/Eve/SpaceObject/Children/Behaviors/Allign_Blue.cpp:17).
 be.enums.Create("trinity.IBehavior.ProcessPriority", ProcessPriority, {
-  source: "trinity/trinity/Eve/SpaceObject/Children/Behaviors/IBehavior.h", family: "eve/child/behaviors", line: 18,
   exposedName: "BehaviorPriority", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Eve/SpaceObject/Children/Behaviors/Allign_Blue.cpp:8",
   chooser: [
     { name: "LEAST_PRIORITY", value: ProcessPriority.LEAST_PRIORITY, description: "Has the lowest priority" },
     { name: "LESS_PRIORITY", value: ProcessPriority.LESS_PRIORITY, description: "Second to lowest priority" },
@@ -42,10 +40,9 @@ be.enums.Create("trinity.IBehavior.ProcessPriority", ProcessPriority, {
 });
 
 // Registered as Carbon registers it (trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline_Blue.cpp:14).
+// Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SplineTunnelGroup.h
 be.enums.Create("trinity.SplineTunnelGroup.TunnelGroupType", TunnelGroupType, {
-  source: "trinity/trinity/Eve/SpaceObject/Children/Behaviors/SplineTunnelGroup.h", family: "eve/child/behaviors", line: 68,
   exposedName: "setTunnelType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline_Blue.cpp:8",
   chooser: [
     { name: "Exit_Tunnels", value: TunnelGroupType.EXIT_TUNNELS, description: "Tunnels Drones flock to when set to exit the scene" },
     { name: "Entrance_Tunnels", value: TunnelGroupType.ENTRANCE_TUNNELS, description: "Tunnels Drones flock to when entering the scene" },
@@ -54,15 +51,13 @@ be.enums.Create("trinity.SplineTunnelGroup.TunnelGroupType", TunnelGroupType, {
 });
 
 // Carbon neither registers this nor gives it a chooser.
-be.enums.Create("trinity.EveKDdroneManagementTree.PlaneType", PlaneType, {
-  source: "trinity/trinity/Eve/SpaceObject/Children/Behaviors/EveKDdroneManagementTree.h", family: "eve/child/behaviors", line: 27
-});
+// Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/EveKDdroneManagementTree.h
+be.enums.Create("trinity.EveKDdroneManagementTree.PlaneType", PlaneType);
 
 // Carbon BackAndForth_Blue.cpp:16; shared vocabulary registers where defined.
+// Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth.h
 be.enums.Create("trinity.BackAndForth.LocatorType", LocatorType, {
-  source: "trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth.h", family: "eve/child/behaviors", line: 40,
   exposedName: "LocatorType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth_Blue.cpp:10",
   chooser: [
     { name: "localLocators", value: LocatorType.LOCAL_LOCATORS, description: "Place locators manually, this is for back and forth locators." },
     { name: "parentLocatorSet", value: LocatorType.PARENT_LOCATORS, description: "use the parent's locatorSet for drones to seek. Remember to set the locatorSetName" },

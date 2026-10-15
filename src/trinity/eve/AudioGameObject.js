@@ -75,7 +75,7 @@ export class AudioGameObject
   Initialize()
   {
     if (this.audioEmitter) return true;
-    const Emitter = CjsSchema.GetConstructor("AudEmitter");
+    const Emitter = CjsSchema.getConstructor("AudEmitter");
     if (!Emitter) return false;
     this.audioEmitter = new Emitter();
     this.UpdateWorldTransform(0);

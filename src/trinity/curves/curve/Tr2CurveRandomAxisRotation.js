@@ -159,7 +159,6 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {number} time Scene time in Blue 100ns ticks.
    * @returns {number} Wrapped seconds.
    */
-  @meta.ours
   GetWrappedTime(time)
   {
     return CcpTime.timeAsDouble(time % Math.trunc(Math.abs(this.period) * 10_000_000));
@@ -219,7 +218,6 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {number} time Source time in seconds.
    * @returns {Float32Array|number[]} The same output buffer.
    */
-  @meta.ours
   Evaluate(out, time)
   {
     quat.copy(out, this.postRotation);
@@ -303,7 +301,6 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {Function} engine Existing unit-interval generator.
    * @returns {Float32Array|number[]} The same output buffer.
    */
-  @meta.ours
   static _buildCarbonRandomRotation(out, engine)
   {
     const roll = Tr2CurveRandomAxisRotation._randomAngle(engine);
@@ -333,7 +330,6 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {number} seed Unsigned 32-bit seed.
    * @returns {Function} Existing unit-interval generator.
    */
-  @meta.ours
   static _makeMsvcDefaultRandomEngine(seed)
   {
     const engine = random.mt19937(seed >>> 0);

@@ -1351,7 +1351,6 @@ export class Tr2PostProcessAttributes
    * Copies typed-array attribute values so callers never alias a shared default;
    * scalars, strings and booleans pass through unchanged.
    */
-  @meta.ours
   static CloneValue(value)
   {
     return ArrayBuffer.isView(value) ? new value.constructor(value) : value;
@@ -1361,7 +1360,6 @@ export class Tr2PostProcessAttributes
    * Writes an attribute value and its matching `<name>Enabled` flag together,
    * cloning the value first.
    */
-  @meta.ours
   static CopyValue(target, name, value, enabled = true)
   {
     target[name] = Tr2PostProcessAttributes.CloneValue(value);
@@ -1373,7 +1371,6 @@ export class Tr2PostProcessAttributes
    * @param {*} result accumulator so far, or null to start a new one
    * @returns {*} the accumulator, which for vectors is the same array on later calls
    */
-  @meta.ours
   static AddWeighted(result, value, weight)
   {
     if (ArrayBuffer.isView(value) || Array.isArray(value))
@@ -1389,7 +1386,6 @@ export class Tr2PostProcessAttributes
    * Returns the neutral starting value for an attribute, typed from its default:
    * a zeroed Float32Array, an empty string, false, or 0.
    */
-  @meta.ours
   static ZeroValue(name)
   {
     const value = Tr2PostProcessAttributes.DefaultValues[name];
@@ -1404,7 +1400,6 @@ export class Tr2PostProcessAttributes
    * attribute which sources influenced it, at what weight, and the value that
    * came out; GetDict returns that record keyed by attribute name.
    */
-  @meta.ours
   static CreateDebugObserver()
   {
     const records = {};
@@ -1435,7 +1430,6 @@ export class Tr2PostProcessAttributes
    * Snapshots a value into the debug record so later mutation of the accumulator
    * cannot rewrite what was reported.
    */
-  @meta.ours
   static CloneDebugValue(value)
   {
     if (ArrayBuffer.isView(value)) return new value.constructor(value);
@@ -1449,7 +1443,6 @@ export class Tr2PostProcessAttributes
    * Source: trinity/trinity/PriorityBlend.h:293-295
    * Custom: this JavaScript helper dispatches the native template observer call.
    */
-  @meta.ours
   static BeginDebug(observer, name)
   {
     observer?.BeginAttribute(name);
@@ -1461,7 +1454,6 @@ export class Tr2PostProcessAttributes
    * Source: trinity/trinity/PriorityBlend.h:330-332
    * Custom: this JavaScript helper dispatches the native template observer call.
    */
-  @meta.ours
   static DebugInfluence(observer, source, weight)
   {
     observer?.Influence(source, weight);
@@ -1473,7 +1465,6 @@ export class Tr2PostProcessAttributes
    * Source: trinity/trinity/PriorityBlend.h:257-260,344-346
    * Custom: this JavaScript helper passes values without native Python wrapping.
    */
-  @meta.ours
   static EndDebug(observer, value)
   {
     observer?.EndAttribute(value);

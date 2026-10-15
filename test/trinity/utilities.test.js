@@ -33,7 +33,7 @@ test("Range follows Carbon setup, center, and uniform behavior", () =>
   range.SetMaxRangePoint(18);
   assertEquals(range.minRangePoint, 0);
   assertEquals(range.maxRangePoint, 18);
-  assertEquals(CjsSchema.GetConstructor("Range"), Range);
+  assertEquals(CjsSchema.getConstructor("Range"), Range);
 });
 
 test("Range preserves Carbon slider and uniformity edge behavior", () =>
@@ -145,5 +145,5 @@ test("Obb is maintained utility source and remains generator-protected", () =>
   const disposition = summary.skipped.find(entry => entry.className === "Obb");
   assert.equal(disposition?.family, "utilities");
   assert.equal(disposition?.reason, "hand-maintained source exists");
-  assert.equal(CjsSchema.GetConstructor("Obb"), Obb);
+  assert.equal(CjsSchema.getConstructor("Obb"), Obb);
 });

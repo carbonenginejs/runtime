@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
-import { CjsSchema, meta, type } from "#schema";
+import { CjsSchema, type } from "#schema";
 import {
 } from "#utils/is";
 import { recordText, toRecordText } from "./carbonRecordFields.js";
@@ -139,7 +139,7 @@ CjsSchema.blue.define(Tr2EffectResource, {
     name: type.string,
     type: [ type.int32, type.enum("Type") ],
     arrayElements: type.uint32,
-    arrayLayers: [ meta.ours, type.list("string") ],
-    packed: [ meta.ours, type.boolean ]
+    arrayLayers: [ type.list("string") ],
+    packed: [ type.boolean ]
   }
 });

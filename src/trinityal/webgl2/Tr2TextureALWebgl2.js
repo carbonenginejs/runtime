@@ -472,7 +472,6 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * @param {number} [format] The format to resolve; the description's by default.
    * @returns {object|null} The layout, or null when it cannot be held.
    */
-  @meta.ours
   _ResolveLayout(gl, desc, gpuUsage, format = desc.GetFormat())
   {
     if (IsCompressedFormat(format))
@@ -510,7 +509,6 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
   }
 
   /** The GL texture target for a description. */
-  @meta.ours
   _TargetOf(gl, desc)
   {
     switch (desc.GetType())
@@ -527,7 +525,6 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {WebGLTexture|null} The texture.
    */
-  @meta.ours
   _CreateStorage(gl, layout, initialData)
   {
     const desc = this._desc;
@@ -570,7 +567,6 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
   }
 
   /** The `getParameter` name of a target's binding. */
-  @meta.ours
   _BindingOf(gl, target)
   {
     switch (target)
@@ -598,7 +594,6 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * @param {number} pitch Bytes per row (per block row for compressed data).
    * @param {number} slicePitch Bytes per depth slice.
    */
-  @meta.ours
   _UploadLevel(gl, layout, texture, slice, mip, box, source, pitch, slicePitch)
   {
     const desc = this._desc;
@@ -660,7 +655,6 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * @param {number} slicePitch Bytes per depth slice.
    * @returns {Uint8Array|Float32Array} The decoded pixels.
    */
-  @meta.ours
   _DecodeBlocks(canonical, bytes, width, height, depth, pitch, slicePitch)
   {
     const rowPitch = pitch || undefined;
@@ -828,7 +822,6 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {WebGLFramebuffer} The framebuffer, bound to `READ_FRAMEBUFFER`.
    */
-  @meta.ours
   _BindForRead(gl, mip, slice)
   {
     if (!this._framebuffer) this._framebuffer = gl.createFramebuffer();
@@ -962,7 +955,6 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
   }
 
   /** Binds the texture, uploads one subresource, and restores the binding. */
-  @meta.ours
   _Upload(slice, mip, box, source, pitch, slicePitch)
   {
     const gl = this._gl;
@@ -1274,7 +1266,6 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * @param {number} [colorSpace] A `Tr2ColorSpace` value.
    * @returns {WebGLTexture|null} The texture.
    */
-  @meta.ours
   GetShaderResourceTexture(colorSpace = Tr2ColorSpace.COLOR_SPACE_LINEAR)
   {
     if (colorSpace !== Tr2ColorSpace.COLOR_SPACE_SRGB || !this._texture) return this._texture;
@@ -1303,7 +1294,6 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {number} A GL target.
    */
-  @meta.ours
   GetTarget()
   {
     return this._target;
@@ -1314,7 +1304,6 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {WebGLRenderbuffer|null} The renderbuffer.
    */
-  @meta.ours
   GetRenderbuffer()
   {
     return this._renderbuffer;
@@ -1331,7 +1320,6 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * @param {number} mip The mip level.
    * @param {number} slice The array slice, cube face or depth slice.
    */
-  @meta.ours
   AttachToFramebuffer(target, attachment, mip, slice)
   {
     const gl = this._gl;
@@ -1357,7 +1345,6 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {number} `DEPTH_STENCIL_ATTACHMENT` or `DEPTH_ATTACHMENT`.
    */
-  @meta.ours
   GetDepthAttachmentPoint()
   {
     const gl = this._gl;

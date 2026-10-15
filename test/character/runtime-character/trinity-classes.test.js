@@ -140,8 +140,8 @@ test("the character layer owns ITr2InteriorLight as a field-free nominal Carbon 
     existsSync(new URL("../../../src/character/trinity/interior/ITr2InteriorLight.js", import.meta.url)),
     true
   );
-  assert.equal(getRegisteredClassName(CjsSchema.GetConstructor("ITr2InteriorLight")), "ITr2InteriorLight");
-  assert.equal(CjsSchema.getSchema(CjsSchema.GetConstructor("ITr2InteriorLight")).fields.length, 0);
+  assert.equal(getRegisteredClassName(CjsSchema.getConstructor("ITr2InteriorLight")), "ITr2InteriorLight");
+  assert.equal(CjsSchema.getSchema(CjsSchema.getConstructor("ITr2InteriorLight")).fields.length, 0);
   assert.equal(CjsSchema.getField(Tr2InteriorScene, "lights")?.type?.itemType, "ITr2InteriorLight");
 });
 
@@ -164,7 +164,7 @@ test("the character layer owns the WOD baking scene contract without engine real
 
 test("the character layer exports the nominal animation-updater contract", () =>
 {
-  assert.equal(CjsSchema.GetConstructor("ITr2AnimationUpdater"), ITr2AnimationUpdater);
+  assert.equal(CjsSchema.getConstructor("ITr2AnimationUpdater"), ITr2AnimationUpdater);
   const updater = new ITr2AnimationUpdater();
   for (const method of [ "PrePhysicsAnimation", "PostPhysicsAnimation", "GetAnimationTransforms", "GetAnimationBoneList" ])
   {
@@ -175,7 +175,7 @@ test("the character layer exports the nominal animation-updater contract", () =>
 
 test("the character layer exports the nominal skinned-object transform contract", () =>
 {
-  assert.equal(CjsSchema.GetConstructor("ITr2SkinnedObject"), ITr2SkinnedObject);
+  assert.equal(CjsSchema.getConstructor("ITr2SkinnedObject"), ITr2SkinnedObject);
   const object = new ITr2SkinnedObject();
   for (const method of [ "GetScaling", "GetRotation", "GetPosition" ])
   {
@@ -201,7 +201,7 @@ test("native skinned-object LOD helper selects whole models at exact thresholds"
 {
   new Tr2SkinnedObjectLod();
   // Every class registers its name (class-ownership.md, Class-shape rules), native helpers included.
-  assert.equal(CjsSchema.GetConstructor("Tr2SkinnedObjectLod"), Tr2SkinnedObjectLod);
+  assert.equal(CjsSchema.getConstructor("Tr2SkinnedObjectLod"), Tr2SkinnedObjectLod);
   assert.equal(CjsSchema.getMethod(Tr2SkinnedObjectLod, "SetLOD")?.carbon?.method, true);
   assert.equal(CjsSchema.getMethod(Tr2SkinnedObjectLod, "SetLOD")?.impl?.status, "implemented");
 
@@ -591,7 +591,7 @@ test("interior light sets and sort keys expose only their real source surface", 
 test("TriMatrix persists its matrix elements, and PTriMatrix members hold the mat4 itself", () =>
 {
   const matrix = new TriMatrix();
-  assert.equal(CjsSchema.GetConstructor("TriMatrix"), TriMatrix);
+  assert.equal(CjsSchema.getConstructor("TriMatrix"), TriMatrix);
   assert.deepEqual(CjsSchema.getSchema(TriMatrix).members.slice(0, 2).map(({ name, key, index }) => [ name, key, index ]),
     [ [ "_11", "_matrix", 0 ], [ "_12", "_matrix", 1 ] ]);
   assert.deepEqual(Array.from(matrix.GetMatrix()), [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ]);

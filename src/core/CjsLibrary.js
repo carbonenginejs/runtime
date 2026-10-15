@@ -114,9 +114,9 @@ export class CjsLibrary
 CjsSchema.meta.define(CjsLibrary, {
   className: "CjsLibrary",
   fields: {},
-  methods: { Initialize: [meta.ours], Shutdown: [meta.ours], Fetch: [meta.ours],
-    CreateOutlineHelper: [meta.ours], CreateInputManager: [meta.ours], CreateCameraControls: [meta.ours], CreateTransformGizmo: [meta.ours],
-    CreateOverlay2D: [meta.ours] }
+  methods: { Initialize: [], Shutdown: [], Fetch: [],
+    CreateOutlineHelper: [], CreateInputManager: [], CreateCameraControls: [], CreateTransformGizmo: [],
+    CreateOverlay2D: [] }
 });
 
 export default CjsLibrary;

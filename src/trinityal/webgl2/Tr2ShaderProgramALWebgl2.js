@@ -210,7 +210,6 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
    * uniform a texture unit, from the stages' backend blocks, and sets the
    * sampler uniforms to their units.
    */
-  @meta.ours
   _LayOutBindings(gl, program, stages)
   {
     const previous = gl.getParameter(gl.CURRENT_PROGRAM);
@@ -361,7 +360,6 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {WebGLProgram|null} The program.
    */
-  @meta.ours
   GetGpuResource()
   {
     return this._program;
@@ -373,7 +371,6 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {object[]} The records.
    */
-  @meta.ours
   GetConstantBuffers()
   {
     return this._constantBuffers;
@@ -385,7 +382,6 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {object[]} The records.
    */
-  @meta.ours
   GetTextures()
   {
     return this._textures;
@@ -397,7 +393,6 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {object[]} The inputs.
    */
-  @meta.ours
   GetVertexInputs()
   {
     return this._vertexInputs;
@@ -408,7 +403,6 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
    *
    * @returns {string} The log.
    */
-  @meta.ours
   GetLinkLog()
   {
     return this._log;

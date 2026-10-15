@@ -19,7 +19,7 @@ export const Tr2Lod = {
 // 68 names; emulateDriverReset is registered by both TriDevice11 and TriDevice12.
 
 /**
- * The names Carbon registers engine settings under. CjsSchema.edit.setting
+ * The names Carbon registers engine settings under. meta.setting
  * records whether a setting is one of these.
  */
 export const TriSettingNames = Object.freeze([
@@ -96,6 +96,5 @@ export const TriSettingNames = Object.freeze([
 // Definition-site Blue registration preserves Carbon chooser order and exposure.
 // No native chooser or BLUE_REGISTER_ENUM was found for Tr2Lod in Trinity.
 // Register its declared identifiers without inventing Python exposure metadata.
-blueEnums.Create("trinity.Tr2Lod", Tr2Lod, {
-  source: "trinity/trinity/Resources/Tr2LodResource.h", family: "trinity", line: 7
-});
+// Source: trinity/trinity/Resources/Tr2LodResource.h
+blueEnums.Create("trinity.Tr2Lod", Tr2Lod);

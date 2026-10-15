@@ -83,7 +83,6 @@ export class Tr2Sprite2dVertex extends Tr2Sprite2dVertexBase
    * @param {number} i Requested index.
    * @returns {number} The index when valid.
    */
-  @meta.ours
   static checkIndex(i)
   {
     if (i !== 0 && i !== 1) throw new RangeError("texture coordinate index must be 0 or 1");

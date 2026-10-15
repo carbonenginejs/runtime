@@ -961,7 +961,6 @@ export class TriDevice
    *
    * @returns {object|null} A `Tr2PresentParametersAL`.
    */
-  @meta.ours
   GetPresentParameters()
   {
     return this.#presentParam;
@@ -975,7 +974,6 @@ export class TriDevice
    *
    * @returns {*} The window, a canvas here.
    */
-  @meta.ours
   GetOutputWindow()
   {
     return this.#hwnd;
@@ -1240,7 +1238,6 @@ export class TriDevice
    *
    * @returns {object|null} The installed `Tr2RenderJobs`.
    */
-  @meta.ours
   GetRenderJobs()
   {
     return this.#renderJobs;
@@ -1343,9 +1340,7 @@ export class TriDevice
 
 // Registered as Carbon registers it (trinity/trinity/TriDevice_Blue.cpp:164).
 be.enums.Create("trinity.TriDevice.DeviceType", TriDevice.DeviceType, {
-  source: "trinity/trinity/TriDevice.h", family: "trinityCore", line: 110,
   exposedName: "TriDeviceType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/TriDevice_Blue.cpp:151",
   chooser: [
     { name: "HARDWARE", value: TriDevice.DeviceType.DEVICE_TYPE_HARDWARE, description: "Hardware device" },
     { name: "SOFTWARE", value: TriDevice.DeviceType.DEVICE_TYPE_SOFTWARE, description: "Software device" }

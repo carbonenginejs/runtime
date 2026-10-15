@@ -134,7 +134,6 @@ export class Tr2Light
    * @param {string} name The LightData field.
    * @param {*} value The value to copy.
    */
-  @meta.ours
   _CopyLightDataField(name, value)
   {
     const target = this.constructor.LightDataFields.includes(name) ? this : this.lightData;
@@ -391,7 +390,5 @@ export class Tr2Light
 }
 
 // Carbon neither registers this nor gives it a chooser.
-be.enums.Create("trinity.Tr2Light.LIGHT_TYPE", Tr2Light.LightType, {
-  source: "trinity/trinity/Lights/Tr2Light.h", family: "eve/lights", line: 71
-});
+be.enums.Create("trinity.Tr2Light.LIGHT_TYPE", Tr2Light.LightType);
 

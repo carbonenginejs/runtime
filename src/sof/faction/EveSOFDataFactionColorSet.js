@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:177-243
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.cpp:42-52
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:10-56, 153-198
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 import { be, EnumRegistrationType } from "#blue";
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
@@ -132,7 +132,6 @@ export class EveSOFDataFactionColorSet
    * Custom: JavaScript factory for the constructor's array fill.
    * @returns {Array<Float32Array>} One colour per ColorType.
    */
-  @meta.ours
   static createColors()
   {
     const colors = Array.from({ length: ColorType.TYPE_MAX }, () => color.createLinear());
@@ -147,9 +146,7 @@ export class EveSOFDataFactionColorSet
 
 // Native chooser labels and descriptions are distinct from C++ member names.
 be.enums.Create("trinity.SOFDataFactionColorChooser.ColorType", ColorType, {
-  source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 177,
   exposedName: "EveSOFDataFactionColorSetType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:10",
   chooser: [
     { name: "Primary", value: ColorType.TYPE_PRIMARY, description: "Primary Color" },
     { name: "Secondary", value: ColorType.TYPE_SECONDARY, description: "Secondary Color" },

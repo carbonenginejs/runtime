@@ -318,7 +318,6 @@ export class Tr2GpuParticleSystem
    * explicitly. Device ReleaseResources is a separate reset operation. This
    * does not destroy buffers or effects that may still be shared by callers.
    */
-  @meta.ours
   Destroy()
   {
     if (this._variableStore)

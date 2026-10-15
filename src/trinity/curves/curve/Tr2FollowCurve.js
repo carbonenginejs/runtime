@@ -192,7 +192,6 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * JS helper for native OnListModified's stable, in-place ordering.
    * Keeps the owned list and its observer; equal keys retain their stored order.
    */
-  @meta.ours
   Sort()
   {
     // Native stable_sort compares keys directly and does not notify the list.
@@ -248,7 +247,6 @@ export class Tr2FollowCurve extends ITriVectorFunction
    * JS helper for the native GetSegmentValue Hermite branch, using scratch
    * vectors and the existing equivalent vector Hermite helper.
    */
-  @meta.ours
   GetHermiteSegmentValue(out, time, k0, k1)
   {
     const length = k1.GetTime() - k0.GetTime();

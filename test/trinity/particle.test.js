@@ -61,7 +61,7 @@ test("particle direct and drag forces follow Carbon CPU formulas", () =>
   const dragOut = vec3.create();
   assertVector(drag.GetForce(null, vec3.fromValues(4, -8, 2), 5, 7, dragOut), [-1, 2, -0.5]);
   drag.Update(1);
-  if (CjsSchema.GetConstructor("Tr2ParticleDragForce") !== Tr2ParticleDragForce)
+  if (CjsSchema.getConstructor("Tr2ParticleDragForce") !== Tr2ParticleDragForce)
   {
     throw new Error("drag force should be schema-registered");
   }

@@ -216,7 +216,7 @@ test("generic root and embedded struct copies need no fabricated registered list
   const source = new BlueList(ItemContract), destination = new BlueList(ItemContract);
   source.push(MakeLeaf(8));
   assert.equal(CjsSchema.getClassName(BlueList), null);
-  assert.equal(CjsSchema.GetConstructor("BlueList"), null);
+  assert.equal(CjsSchema.getConstructor("BlueList"), null);
   assert.equal(new Copier().CopyTo(source), null, "no constructor configuration is guessed");
   assert.equal(new Copier().CopyTo(source, destination), destination);
   assert.equal(destination[0].value, 8);

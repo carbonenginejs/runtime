@@ -50,7 +50,6 @@ export class CjsSOFUpdater
    * @returns {Promise<Array<object>|false|null>} Changed values per object, false
    * for no changes or superseded work, null when the caller must rebuild.
    */
-  @meta.ours
   async UpdateFromDNA(object, newDna, options = {}, isCurrent = () => true)
   {
     if (!isCurrent()) return false;
@@ -141,7 +140,6 @@ export class CjsSOFUpdater
    * @param {EveSOFDNA} after Complete requested DNA resolved against that catalog.
    * @returns {object} Target resolver and change flags for reusable update stages.
    */
-  @meta.ours
   CreateUpdateRequest(before, after)
   {
     const args = (dna, command) => dna.GetDnaCommandArgs(command);
@@ -173,7 +171,6 @@ export class CjsSOFUpdater
    * @param {object} update Complete target DNA and component change flags.
    * @returns {object} Mesh calculations required by this request.
    */
-  @meta.ours
   _GetMeshStages(update)
   {
     const inherited = update.hull || update.faction || update.refresh;
@@ -195,7 +192,6 @@ export class CjsSOFUpdater
    * @param {object} update Complete target DNA and change flags.
    * @returns {boolean} Whether appearance-only reconciliation is supported.
    */
-  @meta.ours
   _CanUpdateHullFaction(object, before, update)
   {
     const after = update.dna;
@@ -246,7 +242,6 @@ export class CjsSOFUpdater
    * @param {object} plan Mesh plan to extend before any live writes.
    * @returns {boolean} Whether every appearance target was matched.
    */
-  @meta.ours
   _PlanFactionAppearance(object, update, plan)
   {
     const document = new SofValuesBuilder(), fields = { attachments: [], lights: [], externalParameters: [] };
@@ -371,7 +366,6 @@ export class CjsSOFUpdater
    * @param {object} plan Validated mesh plan with resolved insert requests.
    * @returns {boolean} Whether named effect fields and shared destinations agree.
    */
-  @meta.ours
   _PlanFactionDecals(object, update, plan)
   {
     const dna = update.dna, usage = EveSOFDataHullDecalSetItem.Usage;
@@ -448,7 +442,6 @@ export class CjsSOFUpdater
    * @param {object} update Complete target DNA and component change flags.
    * @returns {object|null} Unapplied validated plan, or fallback.
    */
-  @meta.ours
   _PlanRace(object, before, update)
   {
     const after = update.dna;
@@ -524,7 +517,6 @@ export class CjsSOFUpdater
    * @param {EveSOFDNA} after Requested selection.
    * @returns {object|null} Eligible owners and pattern texture names.
    */
-  @meta.ours
   _PatternTargets(object, before, after)
   {
     if ((before.GetFactionName() === after.GetFactionName()
@@ -560,7 +552,6 @@ export class CjsSOFUpdater
    * @param {EveSOFDNA} after Current selection.
    * @returns {boolean} Whether only root mesh and decal targets are needed.
    */
-  @meta.ours
   _CanUpdateMesh(before, after)
   {
     // An absent command inherits the default pattern; an explicit empty name
@@ -580,7 +571,6 @@ export class CjsSOFUpdater
    * @param {EveSOFDNA} after Requested selection.
    * @returns {boolean} Whether ordinary pattern bindings can be planned directly.
    */
-  @meta.ours
   _CanUpdatePatterns(before, after)
   {
     return !before.GetLayoutCount() && !after.GetLayoutCount()
@@ -601,7 +591,6 @@ export class CjsSOFUpdater
    * @param {boolean} [patterns] Also calculate ordinary projection changes.
    * @returns {Promise<object|false|null>} Prepared inputs, cancellation or fallback.
    */
-  @meta.ours
   async _PrepareMeshUpdate(object, before, update, options, isCurrent, patterns = false)
   {
     const after = update.dna, stages = this._GetMeshStages(update);
@@ -630,7 +619,6 @@ export class CjsSOFUpdater
    * @param {object} prepared Stage scope and acquired texture-path answers.
    * @returns {object|null} Unapplied plan, or fallback for changed targets.
    */
-  @meta.ours
   _PlanPreparedMesh(object, update, prepared)
   {
     const { initial, paths, stages, patternTargets } = prepared;
@@ -666,7 +654,6 @@ export class CjsSOFUpdater
    * @param {Function} isCurrent Host and request lifetime guard.
    * @returns {Array<object>|false} Applied changes or no changes/cancellation.
    */
-  @meta.ours
   _ApplyPlan(object, before, update, plan, isCurrent)
   {
     if (!isCurrent()) return false;
@@ -700,7 +687,6 @@ export class CjsSOFUpdater
    * @param {Map<object,string>|null} [resolvedTextures] Current insert query results by live texture.
    * @returns {object|null} Validated patches and texture targets, or fallback.
    */
-  @meta.ours
   _PlanMesh(object, update, stages, patternTargets = null, resolvedTextures = null)
   {
     const dna = update.dna, { materials, textures, depthMaterials, raceOnly } = stages;
@@ -832,7 +818,6 @@ export class CjsSOFUpdater
    * @param {Array<object>} changes Deferred owner/leaf changes.
    * @returns {boolean} Whether all affected names and shared owners agree.
    */
-  @meta.ours
   _PlanPatternEffect(effect, area, shader, dna, context, changes)
   {
     const layerCount = dna.GetPatternLayerCount(), application = dna.GetPatternApplicationData();
@@ -906,7 +891,6 @@ export class CjsSOFUpdater
    * @param {Function} addTexture Deduplicated target collector.
    * @returns {boolean} Whether all eligible decal targets match.
    */
-  @meta.ours
   _PlanDecalTextures(object, dna, addTexture)
   {
     const shaders = ["decalv5.fx", "decalcounterv5.fx", "decalholev5.fx", "decalcylindricv5.fx",
@@ -950,7 +934,6 @@ export class CjsSOFUpdater
    * @param {EveSOFDNA|null} after Requested selection.
    * @returns {boolean} Whether the command scope is eligible for further stage preflight.
    */
-  @meta.ours
   _CompatibleDNA(before, after)
   {
     if (!before || !after || before.GetParseError() || after.GetParseError()) return false;
@@ -972,7 +955,6 @@ export class CjsSOFUpdater
    * @param {WeakSet} seen Already indexed records.
    * @returns {boolean} False for conflicting anchors.
    */
-  @meta.ours
   _IndexValues(value, anchors, seen)
   {
     if (!value || typeof value !== "object" || seen.has(value)) return true;
@@ -1000,7 +982,6 @@ export class CjsSOFUpdater
    * @param {object|null} [patterns] Ordinary root pattern list-edit permissions.
    * @returns {boolean} Whether every incoming structure can be matched.
    */
-  @meta.ours
   _CollectChanges(live, desired, anchors, visited, owners, changes, boosterGlows = false, patterns = null)
   {
     if (desired === null) return live === null || live === undefined;
@@ -1114,10 +1095,9 @@ export class CjsSOFUpdater
    * @param {Array<object>} changes Pending changes.
    * @returns {boolean} Whether every mask has a supported shape.
    */
-  @meta.ours
   _CollectMasks(root, desired, anchors, visited, owners, changes)
   {
-    const live = root.customMasks, Mask = CjsSchema.GetConstructor("EveCustomMask");
+    const live = root.customMasks, Mask = CjsSchema.getConstructor("EveCustomMask");
     if (!Array.isArray(live) || !Array.isArray(desired)
       || live.length > Mask.CUSTOM_MASK_COUNT || desired.length > Mask.CUSTOM_MASK_COUNT
       || new Set(live).size !== live.length || live.some(mask => !CjsSchema.isInstanceOf("EveCustomMask", mask))) return false;
@@ -1168,7 +1148,6 @@ export class CjsSOFUpdater
    * @param {object} patterns Allowed pattern binding names.
    * @returns {boolean} Whether bindings can be reconciled without unrelated edits.
    */
-  @meta.ours
   _CollectPatternBindings(effect, key, desired, anchors, visited, owners, changes, patch, patterns)
   {
     const texture = key === "resources", className = texture ? "TriTextureParameter" : "Tr2SamplerOverride";
@@ -1211,7 +1190,7 @@ export class CjsSOFUpdater
       }
       else
       {
-        const fields = {}, Type = CjsSchema.GetConstructor(className);
+        const fields = {}, Type = CjsSchema.getConstructor(className);
         for (const [field, scalar] of Object.entries(value))
         {
           if (field === "_type" || field === "_id" || field === "name") continue;
@@ -1244,7 +1223,6 @@ export class CjsSOFUpdater
    * @param {Array<object>} changes Pending leaf edits.
    * @returns {boolean} Whether every structure slot is compatible.
    */
-  @meta.ours
   _CollectStructureList(live, desired, className, anchors, changes)
   {
     if (!Array.isArray(live) || !Array.isArray(desired) || live.length !== desired.length) return false;
@@ -1269,7 +1247,6 @@ export class CjsSOFUpdater
    * @param {object} patch Pending effect values.
    * @returns {boolean} Whether constants have compatible names and shapes.
    */
-  @meta.ours
   _CollectConstants(live, desired, anchors, patch)
   {
     if (!Array.isArray(live) || !Array.isArray(desired) || live.length !== desired.length) return false;
@@ -1307,7 +1284,6 @@ export class CjsSOFUpdater
    * @param {Map} anchors Enclosing reference targets.
    * @returns {object|null} Changed fields by name, or null for incompatible input.
    */
-  @meta.ours
   _CollectPackedFields(live, desired, className, anchors)
   {
     if (!Array.isArray(live) || !Array.isArray(desired) || live.length !== desired.length) return null;
@@ -1347,7 +1323,6 @@ export class CjsSOFUpdater
    * @param {object} change Collected target, type and changed fields.
    * @returns {void}
    */
-  @meta.ours
   _ApplyChange(change)
   {
     const { object, type, values } = change;

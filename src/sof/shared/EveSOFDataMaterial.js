@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:187-195
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 
 /** Stores named material parameters and assigns them to a target with an optional parameter prefix.
  * Native IRoot-only data with a self-only Blue table. Owned authored records
@@ -40,7 +40,6 @@ export class EveSOFDataMaterial
    * @param {string} [prefix=""] Optional name prefix.
    * @returns {object} The destination map.
    */
-  @meta.ours
   AssignParameters(out = {}, prefix = "")
   {
     for (const parameter of this.parameters) parameter.Assign(out, prefix);

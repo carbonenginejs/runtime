@@ -133,8 +133,8 @@ CjsSchema.meta.define(CjsTexturePipelineStepResize, {
     paths: [ blue.persist, type.list("string") ]
   },
   methods: {
-    GetResourceDependencies: meta.ours,
-    Execute: meta.ours,
-    resample: meta.ours
+    GetResourceDependencies: [],
+    Execute: [],
+    resample: []
   }
 });

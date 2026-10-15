@@ -14,7 +14,7 @@ test("the production sound emitter has only native stored members and constructo
   const emitter = new EveSOFDataHullSoundEmitter();
   const other = new EveSOFDataHullSoundEmitter();
   const schema = CjsSchema.getSchema(EveSOFDataHullSoundEmitter);
-  assert.equal(CjsSchema.GetConstructor("EveSOFDataHullSoundEmitter"), EveSOFDataHullSoundEmitter);
+  assert.equal(CjsSchema.getConstructor("EveSOFDataHullSoundEmitter"), EveSOFDataHullSoundEmitter);
   assert.equal(schema.className, "EveSOFDataHullSoundEmitter");
   assert.deepEqual(schema.members.map(member => member.name), members);
   assert.deepEqual(schema.members.map(member => member.key), members);

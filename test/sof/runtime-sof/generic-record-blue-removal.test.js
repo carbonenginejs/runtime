@@ -56,7 +56,7 @@ test("native exposure order, persistence flags and reflection chooser survive mo
   assert.deepEqual(names(Damage), Object.keys(damageValues));
   for (const Class of [Visibility, Category, Damage])
     for (const field of CjsSchema.getSchema(Class).members)
-      assert.deepEqual(field.edit, field.name === "reflectionMode" ? {read: true, write: true, persist: true, enum: true} : {read: true, write: true, persist: true});
+      assert.deepEqual(field.edit, {read: true, write: true, persist: true});
   const field = CjsSchema.getField(Category, "reflectionMode");
   assert.equal(field.enum.identity, "trinity.EntityComponents.ReflectionMode");
   assert.equal(field.enum.members, ReflectionMode);

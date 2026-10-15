@@ -1642,9 +1642,7 @@ export class EveChildContainer extends EveChildTransform
 
 // Registered as Carbon registers it (trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp:24).
 be.enums.Create("trinity.EveChildContainer.DisplayQualityModifier", EveChildContainer.DisplayQualityModifier, {
-  source: "trinity/trinity/Eve/SpaceObject/Children/EveChildContainer.h", family: "eve/child", line: 158,
   exposedName: "SetShader", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp:14",
   chooser: [
     { name: "None_", value: EveChildContainer.DisplayQualityModifier.SHADER_ALL, description: "Visible to users with all shader settings" },
     { name: "Medium_and_High", value: EveChildContainer.DisplayQualityModifier.SHADER_HIGHMID, description: "Visible for users with shader settings on Medium or High" },

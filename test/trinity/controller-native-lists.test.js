@@ -332,8 +332,8 @@ test("custom expression conveniences preserve absent-variable results without na
   for (const name of ["GetTime", "GetVariableValue", "SetVariableValue", "GetExpressionContext"])
   {
     const method = CjsSchema.getMethod(Tr2Controller, name);
-    assert.equal(method.impl.status, "custom");
-    assert.equal(method.carbon?.method, undefined);
+    assert.equal(method?.carbon, undefined);
+    assert.equal(method?.carbon?.method, undefined);
   }
   const owner = {}, stateMachine = new Tr2StateMachine();
   assert.deepEqual(controller.GetExpressionContext(owner, stateMachine, { key: 7 }), { key: 7, controller, owner, stateMachine, time: 0 });

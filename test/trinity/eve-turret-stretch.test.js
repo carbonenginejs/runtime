@@ -114,7 +114,7 @@ test("stretch and turret classes are maintained in their Carbon families", () =>
     EveTurretTarget
   ])
   {
-    assert.equal(CjsSchema.GetConstructor(getRegisteredClassName(constructor)), constructor);
+    assert.equal(CjsSchema.getConstructor(getRegisteredClassName(constructor)), constructor);
   }
 
   assert.equal(existsSync(new URL("../../src/trinity/eve/renderable/stretch/EveRemotePositionCurve.js", import.meta.url)), true);

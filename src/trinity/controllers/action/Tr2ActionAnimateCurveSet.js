@@ -222,7 +222,6 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
    * Compiles the authored time expression, reusing the cached program while the
    * expression text is unchanged. This JS-only helper owns the AST cache.
    */
-  @meta.ours
   CompileExpression()
   {
     return CjsControllerExpressionProgram.compileCached(this._runtime, this.value, 0);

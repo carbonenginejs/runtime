@@ -106,10 +106,6 @@ export const Quality = {
 
 // Reviewed Blue registrations; values and chooser references share the declarations above.
 blueEnums.Create("trinity.Tr2PostProcessRenderer.BloomDebugMode", BloomDebugMode, {
-  "source": "trinity/trinity/PostProcess/Tr2PostProcessRenderer.h",
-  "family": "postProcess",
-  "line": 112,
-  "chooserSource": "trinity/trinity/PostProcess/Tr2PostProcessRenderer_Blue.cpp:9",
   "chooser": [
     {
       "name": "None",
@@ -153,33 +149,13 @@ blueEnums.Create("trinity.Tr2PostProcessRenderer.BloomDebugMode", BloomDebugMode
     }
   ]
 });
-blueEnums.Create("trinity.PostProcessBlur.BlurChannel", BlurChannel, {
-  "source": "trinity/trinity/PostProcess/Tr2PostProcessRenderer.h",
-  "family": "postProcess",
-  "line": 24
-});
-blueEnums.Create("trinity.PostProcessBlur.BlurFinalize", BlurFinalize, {
-  "source": "trinity/trinity/PostProcess/Tr2PostProcessRenderer.h",
-  "family": "postProcess",
-  "line": 40
-});
-blueEnums.Create("trinity.PostProcessBlur.BlurProcess", BlurProcess, {
-  "source": "trinity/trinity/PostProcess/Tr2PostProcessRenderer.h",
-  "family": "postProcess",
-  "line": 33
-});
-blueEnums.Create("trinity.PostProcessBlur.BlurType", BlurType, {
-  "source": "trinity/trinity/PostProcess/Tr2PostProcessRenderer.h",
-  "family": "postProcess",
-  "line": 18
-});
+blueEnums.Create("trinity.PostProcessBlur.BlurChannel", BlurChannel, {});
+blueEnums.Create("trinity.PostProcessBlur.BlurFinalize", BlurFinalize, {});
+blueEnums.Create("trinity.PostProcessBlur.BlurProcess", BlurProcess, {});
+blueEnums.Create("trinity.PostProcessBlur.BlurType", BlurType, {});
 blueEnums.Create("trinity.Tr2PPTaaEffect.Debug", Debug, {
-  "source": "trinity/trinity/PostProcess/Effects/Tr2PPTaaEffect.h",
-  "family": "postProcess",
-  "line": 23,
   "exposedName": "TaaDebug",
   "exposure": 2,
-  "chooserSource": "trinity/trinity/PostProcess/Effects/Tr2PPTaaEffect_Blue.cpp:17",
   "chooser": [
     {
       "name": "Off",
@@ -199,12 +175,8 @@ blueEnums.Create("trinity.Tr2PPTaaEffect.Debug", Debug, {
   ]
 });
 blueEnums.Create("trinity.PostProcessEnums.Priority", Priority, {
-  "source": "trinity/trinity/PostProcess/Tr2PostProcessEnums.h",
-  "family": "postProcess",
-  "line": 58,
   "exposedName": "Tr2PostProcessPriority",
   "exposure": 2,
-  "chooserSource": "trinity/trinity/PostProcess/Tr2PostProcessAttributes_Blue.cpp:9",
   "chooser": [
     {
       "name": "UI",
@@ -234,12 +206,8 @@ blueEnums.Create("trinity.PostProcessEnums.Priority", Priority, {
   ]
 });
 blueEnums.Create("trinity.PostProcess.Quality", Quality, {
-  "source": "trinity/trinity/PostProcess/Effects/Tr2PPEffect.h",
-  "family": "postProcess",
-  "line": 9,
   "exposedName": "PostProcessQuality",
   "exposure": 2,
-  "chooserSource": "trinity/trinity/PostProcess/Effects/Tr2PPEffect_Blue.cpp:7",
   "chooser": [
     {
       "name": "Low",

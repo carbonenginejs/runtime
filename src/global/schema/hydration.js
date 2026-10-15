@@ -226,7 +226,7 @@ function readerDataValue(target, key)
 /** Exact registered IList mapping, without importing Blue into schema initialization. */
 export function isReaderIList(value)
 {
-    const Interface = CjsSchema.GetConstructor("IList");
+    const Interface = CjsSchema.getConstructor("IList");
     return value !== null && typeof value === "object" && Interface !== null
         && mappedInterfaces(value.constructor).has(Interface);
 }

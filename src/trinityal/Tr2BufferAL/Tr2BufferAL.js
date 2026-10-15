@@ -155,7 +155,6 @@ export class Tr2BufferAL
   }
 
   /** Releases this value explicitly because JavaScript has no deterministic scope destructor. Copies remain valid until their own final release. */
-  @meta.ours
   Destroy()
   {
     const owned = this._buffer;

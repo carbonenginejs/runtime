@@ -317,7 +317,7 @@ test("shader reflection classes register canonical runtime-resource metadata", (
     "boolean"
   );
   assert.equal(
-    CjsSchema.GetConstructor("Tr2Shader"),
+    CjsSchema.getConstructor("Tr2Shader"),
     Tr2Shader
   );
   assert.equal(

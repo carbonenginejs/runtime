@@ -169,7 +169,6 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    * Checks whether a target variable name is authored.
    * Custom: native declares this method but provides no body or Blue exposure.
    */
-  @meta.ours
   IsVariableValid()
   {
     return !!this.variable;

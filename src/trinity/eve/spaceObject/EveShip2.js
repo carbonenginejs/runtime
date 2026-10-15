@@ -73,7 +73,6 @@ export class EveShip2 extends EveMobile
    * @param {object} [options] `lists: "patch"` retains unmatched root decals; the default replaces lists.
    * @returns {boolean} Whether object data changed.
    */
-  @meta.ours
   SetValues(values, options = {})
   {
     return CjsSchema.setValues(this, values, {

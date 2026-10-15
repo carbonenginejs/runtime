@@ -85,7 +85,6 @@ export class Tr2ActionPlaySound extends ITr2ControllerAction
    * lookup takes precedence over effect-child lookup. Native cast/target parity
    * requires the separate owner-contract migration.
    */
-  @meta.ours
   static _resolveOwner(owner, target)
   {
     if (!owner || !target)

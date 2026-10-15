@@ -47,8 +47,12 @@ import { CjsBlue } from "./CjsBlue.js";
 /** Be::EDITFLAGS bits (BlueTypes.h:288-303), keyed by the schema's edit flag names. */
 const EDIT_FLAG_BITS = [
   [ "read", 0x001 ], [ "write", 0x002 ], [ "notify", 0x004 ], [ "hidden", 0x008 ],
-  [ "persist", 0x010 ], [ "rpersist", 0x020 ], [ "flags", 0x100 ], [ "enum", 0x200 ]
+  [ "persist", 0x010 ], [ "rpersist", 0x020 ]
 ];
+
+/** Be::EDIT_FLAGS and Be::EDIT_ENUM (BlueTypes.h:288-303): read from the member's type. */
+const EDIT_FLAGS = 0x100;
+const EDIT_ENUM = 0x200;
 
 
 /** `CjsBlueClasses` - the class registry `be.classes` holds, per blueexposure/BlueClasses.cpp. */
@@ -492,6 +496,8 @@ export class CjsBlueClasses extends IBlueClasses
       let editflags = 0;
       // A member declared with no Blue flags has no edit record: Carbon's mEditFlags 0.
       if (member.edit !== undefined) for (const [ flag, bit ] of EDIT_FLAG_BITS) if (member.edit[flag] === true) editflags |= bit;
+      if (member.type?.flags === true) editflags |= EDIT_FLAGS;
+      if (member.enum) editflags |= EDIT_ENUM;
       members[member.name] = {
         type: getCarbonTypeDefinition(type).kind,
         iid_name: typeof reference === "function" ? CjsSchema.getClassName(reference) : reference || "",

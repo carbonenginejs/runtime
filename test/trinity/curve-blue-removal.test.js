@@ -25,7 +25,7 @@ test("native private methods and JavaScript curve helpers have explicit provenan
         assert.equal(method.impl.status,"adapted");
     }
     for(const [Class,name] of [[Tr2CurveScalar,"FindSegment"],[Tr2CurveQuaternion,"Evaluate"],[Tr2CurveQuaternion,"SetName"],[Tr2CurveConstant,"_copyValue"]])
-        assert.equal(CjsSchema.getMethod(Class,name).impl.status,"custom");
+        assert.equal(CjsSchema.getMethod(Class,name)?.carbon,undefined);
 });
 test("five curve classes construct through Blue without model state or convenience methods", () =>
 {

@@ -179,7 +179,6 @@ export class AudioCurveSetDriver extends ICurveSetDriver
    *
    * @returns {void}
    */
-  @meta.ours
   Dispose()
   {
     if (this._registeredManager === null) return;

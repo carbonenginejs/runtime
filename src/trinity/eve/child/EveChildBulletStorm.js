@@ -183,7 +183,6 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   }
 
   /** Releases final ownership because JavaScript has no deterministic destructor. */
-  @meta.ours
   Destroy()
   {
     this.ReleaseResources();

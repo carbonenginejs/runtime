@@ -55,7 +55,6 @@ export class Tr2DirectInstanceData
   }
 
   /** Explicit JS teardown replaces the native resource destructor. */
-  @meta.ours
   Destroy()
   {
     this.ReleaseResources();

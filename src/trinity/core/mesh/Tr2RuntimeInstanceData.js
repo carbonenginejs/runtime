@@ -34,7 +34,6 @@ export class Tr2RuntimeInstanceData
    * Adapted: The JS values format persists private layout/rows; its factory explicitly
    * repacks them without inventing native IInitialize exposure.
    */
-  @meta.ours
   static from(values = {}, options = {})
   {
     const instance = new Tr2RuntimeInstanceData();
@@ -139,7 +138,6 @@ export class Tr2RuntimeInstanceData
   }
 
   /** Explicit final-owner teardown replaces Carbon's resource destructor. */
-  @meta.ours
   Destroy()
   {
     this.ReleaseResources();
@@ -229,7 +227,6 @@ export class Tr2RuntimeInstanceData
    * Adapted: JS persists layout and rows, unlike Carbon; edits repack CPU data while
    * UpdateData owns GPU publication.
    */
-  @meta.ours
   @meta.invalidates("#dirty")
   OnModified(propertyName)
   {

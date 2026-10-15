@@ -81,9 +81,7 @@ export class EveSOFDataHullPlaneSet
 
 // Native chooser labels and selection; the enum object retains all C++ members.
 be.enums.Create("trinity.EveSOFDataHullPlaneSet.Usage", EveSOFDataHullPlaneSet.Usage, {
-  source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 711,
   exposedName: "HullPlanesetUsage", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:375",
   chooser: [
     { name: "Standard", value: EveSOFDataHullPlaneSet.Usage.USAGE_STANDARD, description: "Standard planeset" },
     { name: "SpaceVideo", value: EveSOFDataHullPlaneSet.Usage.USAGE_SPACE_VIDEO, description: "Space Video planeset" },

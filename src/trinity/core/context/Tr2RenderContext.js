@@ -236,7 +236,6 @@ export class Tr2RenderContext
   }
 
   /** Explicit context teardown releases owned state values before its backend. */
-  @meta.ours
   Destroy()
   {
     this._esm.Destroy();
@@ -882,7 +881,6 @@ export class Tr2RenderContext
    * @param {object} program A `Tr2ShaderProgramAL`.
    * @returns {object|null} A `Tr2ResourceSetAL`, or null when Create refused.
    */
-  @meta.ours
   CreateResourceSet(description, program, implementationOnly = false)
   {
     return this._requireAL("CreateResourceSet").CreateResourceSet(description, program, implementationOnly);
@@ -1430,7 +1428,6 @@ export class Tr2RenderContext
    * @param {string} [techniqueName] Carbon's DEFAULT_TECHNIQUE.
    * @returns {number} Number of submitted batches.
    */
-  @meta.ours
   RenderBatchesForPicking(batches, techniqueName = DEFAULT_TECHNIQUE)
   {
     switch (Tr2RenderContext.eveSpacePickingFramework)
@@ -1449,7 +1446,6 @@ export class Tr2RenderContext
    * @param {number} contentType FLOAT for objectId, INT for pointer words.
    * @returns {TriVariable} The existing or newly registered area variable.
    */
-  @meta.ours
   _GetPickingAreaVariable(contentType)
   {
     const store = Tr2VariableStore.globalStore();

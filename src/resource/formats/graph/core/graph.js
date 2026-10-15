@@ -418,7 +418,7 @@ export function writeGraph(root, handlers, options = {})
 function checkClass(instance, type)
 {
     if (!type.className) return;
-    const Constructor = typeof type.className === "function" ? type.className : CjsSchema.GetConstructor(type.className);
+    const Constructor = typeof type.className === "function" ? type.className : CjsSchema.getConstructor(type.className);
     if (!Constructor || !CjsSchema.cast(instance, Constructor)) throw new TypeError(`Class does not satisfy '${typeof type.className === "string" ? type.className : CjsSchema.getClassName(Constructor)}'`);
 }
 
@@ -430,7 +430,7 @@ function checkClass(instance, type)
  */
 function hasStructure(type)
 {
-    const Constructor = typeof type.className === "function" ? type.className : CjsSchema.GetConstructor(type.className);
+    const Constructor = typeof type.className === "function" ? type.className : CjsSchema.getConstructor(type.className);
     return Constructor && CjsSchema.getSchema(Constructor).structureDefinition;
 }
 
@@ -445,7 +445,7 @@ function storageClass(instance, type)
 {
     if (isRecord(instance) && ["root", "rawStruct"].includes(type.kind) && hasStructure(type))
     {
-        return typeof type.className === "function" ? type.className : CjsSchema.GetConstructor(type.className);
+        return typeof type.className === "function" ? type.className : CjsSchema.getConstructor(type.className);
     }
     return instance?.constructor;
 }

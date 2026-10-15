@@ -343,7 +343,6 @@ export class Tr2ShadowMap
    * Adapted: The nominal engine executor needs Carbon's private denoiser-use decision
    * without reading implementation fields.
    */
-  @meta.ours
   GetUseDenoiser()
   {
     return this._useDenoiser;
@@ -702,7 +701,6 @@ export class Tr2ShadowMap
    * Adapted: The nominal engine executor needs Carbon's private fixed atlas width without
    * reading implementation fields.
    */
-  @meta.ours
   GetShadowMapWidth()
   {
     return this._width;
@@ -714,7 +712,6 @@ export class Tr2ShadowMap
    * Adapted: The nominal engine executor needs Carbon's private fixed atlas height without
    * reading implementation fields.
    */
-  @meta.ours
   GetShadowMapHeight()
   {
     return this._height;
@@ -726,7 +723,6 @@ export class Tr2ShadowMap
    * Adapted: The scene needs a nominal direct accessor to Carbon's public PerSplitData
    * without structural probing.
    */
-  @meta.ours
   GetPerSplitData()
   {
     return this.perSplitData;
@@ -798,9 +794,7 @@ export class Tr2ShadowMap
 
 // Registered as Carbon registers it (trinity/trinity/Tr2ShadowMap_Blue.cpp:14).
 be.enums.Create("trinity.Tr2ShadowMap.ShadowSplitMode", Tr2ShadowMap.ShadowSplitMode, {
-  source: "trinity/trinity/Tr2ShadowMap.h", family: "trinityCore", line: 102,
   exposedName: "ShadowSplitModeChooser", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Tr2ShadowMap_Blue.cpp:8",
   chooser: [
     { name: "Static", value: Tr2ShadowMap.ShadowSplitMode.STATIC, description: "Staticly computed splits for the shadow map" },
     { name: "Dynamic", value: Tr2ShadowMap.ShadowSplitMode.DYNAMIC, description: "Dynamic splits that are generated based on near and far planes" },

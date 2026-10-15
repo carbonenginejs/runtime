@@ -132,7 +132,6 @@ export class Tr2StateMachineTransition
    * Custom: the JavaScript AST cache recompiles after direct condition edits.
    * @returns {CjsControllerExpressionProgram} Cached condition program.
    */
-  @meta.ours
   Compile()
   {
     if (!this._program || this._programSource !== this.condition)
@@ -330,7 +329,6 @@ export class Tr2StateMachineTransition
    * Gets variable names referenced by the compiled condition.
    * @returns {Array<string>} Copy of the condition's referenced variable names.
    */
-  @meta.ours
   GetVariableNames()
   {
     this.Compile();
@@ -341,7 +339,6 @@ export class Tr2StateMachineTransition
    * Gets function names referenced by the compiled condition.
    * @returns {Array<string>} Copy of the condition's referenced function names.
    */
-  @meta.ours
   GetFunctionNames()
   {
     this.Compile();
@@ -357,7 +354,6 @@ export class Tr2StateMachineTransition
    * @param {Tr2StateMachine|null|undefined} stateMachine Linked state-machine context.
    * @returns {object} Context for the JavaScript evaluator.
    */
-  @meta.ours
   _getExpressionContext(controller, owner, stateMachine)
   {
     const runtime = controller;
@@ -399,7 +395,6 @@ export class Tr2StateMachineTransition
    * @param {bigint|number} dirtyVariables Changed controller variable bits.
    * @returns {boolean} Whether the condition must be evaluated.
    */
-  @meta.ours
   static _dirtyMaskMatches(variableMask, dirtyVariables)
   {
     if (variableMask === 0n)

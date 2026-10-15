@@ -518,7 +518,6 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @param {*} value Candidate sequence.
    * @returns {boolean} Whether `value` is indexable as a sequence.
    */
-  @meta.ours
   static isSequence(value)
   {
     return Array.isArray(value) || ArrayBuffer.isView(value) || typeof value === "string";
@@ -585,7 +584,6 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @param {Function} create Creates an empty batch.
    * @returns {void}
    */
-  @meta.ours
   static resizeBatches(list, size, create)
   {
     while (list.length < size) list.push(create());
@@ -599,7 +597,6 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @param {number} size New length.
    * @returns {void}
    */
-  @meta.ours
   static resizeRenderVertices(list, size)
   {
     while (list.length < size) list.push(new Tr2Sprite2dD3DVertex());

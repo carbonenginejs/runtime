@@ -245,7 +245,7 @@ test("Carbon device graph descriptions remain canonical runtime-trinity classes"
   for (const Class of graphClasses)
   {
     new Class();
-    assertEquals(CjsSchema.GetConstructor(getRegisteredClassName(Class)), Class);
+    assertEquals(CjsSchema.getConstructor(getRegisteredClassName(Class)), Class);
   }
 });
 
@@ -263,7 +263,7 @@ test("TriSettings adapts Carbon's registered native pointers to typed JavaScript
   assert.throws(() => settings.SetValue("quality", "high"), TypeError);
   assert.throws(() => settings.GetValue("missing"), RangeError);
   assertEquals(settings.__repr__(), "{'effectPath':'res:/effect.fx', 'enabled':True, 'quality':3, }");
-  assertEquals(CjsSchema.GetConstructor("TriSettings"), TriSettings);
+  assertEquals(CjsSchema.getConstructor("TriSettings"), TriSettings);
   assertEquals(CjsSchema.getField(TriSettings, "entry"), null);
   assertEquals(CjsSchema.getField(TriSettings, "map"), null);
 });
@@ -724,7 +724,7 @@ test("TriObserverLocal preserves Carbon's degenerate-front fallback", () =>
 test("TriProjection exposes its source-backed schema and identity default", () =>
 {
   const projection = new TriProjection();
-  assertEquals(CjsSchema.GetConstructor("TriProjection"), TriProjection);
+  assertEquals(CjsSchema.getConstructor("TriProjection"), TriProjection);
   assertEquals(CjsSchema.getField(TriProjection, "transform")?.type.kind, "mat4");
   assertEquals(CjsSchema.getField(TriProjection, "transform")?.edit?.read, true);
   for (const privateField of [
@@ -880,7 +880,7 @@ test("TriViewport preserves Carbon defaults, initialization, and aspect ratios",
 test("TriRect uses int32 fields and preserves omitted SetRect components", () =>
 {
   const rect = new TriRect();
-  assertEquals(CjsSchema.GetConstructor("TriRect"), TriRect);
+  assertEquals(CjsSchema.getConstructor("TriRect"), TriRect);
   assertEquals(CjsSchema.getField(TriRect, "left")?.type.kind, "int32");
   assertEquals(rect.left, 0);
   assertEquals(rect.top, 0);
@@ -986,8 +986,8 @@ test("Tr2VariableStore forms a global-rooted graph with Carbon lookup rules", ()
   assertEquals(child.UnregisterLocalVariable("vsTestGlobal"), false);
 
   globalStore.UnregisterLocalVariable("vsTestGlobal");
-  assertEquals(CjsSchema.GetConstructor("Tr2VariableStore"), Tr2VariableStore);
-  assertEquals(CjsSchema.GetConstructor("TriVariable"), TriVariable);
+  assertEquals(CjsSchema.getConstructor("Tr2VariableStore"), Tr2VariableStore);
+  assertEquals(CjsSchema.getConstructor("TriVariable"), TriVariable);
 });
 
 test("dropped Blue and native scanner shapes stay quarantined", () =>
@@ -1022,7 +1022,7 @@ test("dropped Blue and native scanner shapes stay quarantined", () =>
     for (const name of names)
     {
       assert.equal(barrels[family].includes(`${name}.js"`), false, name);
-      assert.equal(CjsSchema.GetConstructor(name), null, name);
+      assert.equal(CjsSchema.getConstructor(name), null, name);
     }
   }
   // The copied generator summary is provenance for its accepted upstream
@@ -1040,11 +1040,11 @@ test("dropped Blue and native scanner shapes stay quarantined", () =>
     {
       const skip = summary.generation.skipped.find(entry => entry.className === name && entry.reason === `owned by ${owner}`);
       assert.ok(skip, `${name} must remain owned by ${owner}`);
-      assert.equal(CjsSchema.GetConstructor(name), null, name);
+      assert.equal(CjsSchema.getConstructor(name), null, name);
     }
   }
   assert.equal(existsSync(new URL("../../src/trinity/generated/trinityCore/TriMatrix.js", import.meta.url)), false);
-  assert.equal(CjsSchema.GetConstructor("TriMatrix"), null);
+  assert.equal(CjsSchema.getConstructor("TriMatrix"), null);
   assert.equal(existsSync(new URL("../../src/trinity/generated/trinityCore/Tr2GStateAnimation.js", import.meta.url)), false);
   assert.equal(existsSync(new URL("../../src/trinity/generated/trinityCore/Tr2GStateParameter.js", import.meta.url)), false);
   assert.equal(existsSync(new URL("../../src/trinity/generated/eve/socket/_className.js", import.meta.url)), false);

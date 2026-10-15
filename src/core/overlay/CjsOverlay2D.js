@@ -151,5 +151,5 @@ export class CjsOverlay2D extends IBlueEvents
 
 CjsSchema.meta.define(CjsOverlay2D, {
   className: "CjsOverlay2D",
-  methods: Object.fromEntries([ "Sync", "AddDrawer", "RemoveDrawer", "Render", "OnTick", "Destroy" ].map(name => [ name, [ meta.ours ] ]))
+  methods: Object.fromEntries([ "Sync", "AddDrawer", "RemoveDrawer", "Render", "OnTick", "Destroy" ].map(name => [ name, [] ]))
 });

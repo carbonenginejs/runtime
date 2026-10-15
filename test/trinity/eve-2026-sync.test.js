@@ -742,7 +742,7 @@ test("EveChildCloud participates in the owned child contract", () =>
 test("Carbon bounding-box providers publish local, world, mesh, and planet bounds", () =>
 {
   const contract = new ITr2BoundingBox();
-  assert.equal(CjsSchema.GetConstructor("ITr2BoundingBox"), ITr2BoundingBox);
+  assert.equal(CjsSchema.getConstructor("ITr2BoundingBox"), ITr2BoundingBox);
   assert.throws(() => contract.GetWorldBoundingBox([], []), /must be implemented/);
   assert.throws(() => contract.IsBoundingBoxReady(), /must be implemented/);
 

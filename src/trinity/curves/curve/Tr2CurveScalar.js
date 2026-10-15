@@ -156,7 +156,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @param {number} extrapolationAfter Curve parameter.
    * @returns {number} The curve result.
    */
-  @meta.ours
   static getWrappedLocalTime(scaledTime, first, last, extrapolationBefore, extrapolationAfter)
   {
     const length = last - first;
@@ -696,7 +695,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @param {number} time Time in seconds.
    * @returns {number} The curve result.
    */
-  @meta.ours
   GetScaledTime(time)
   {
     return time / this.timeScale - this.timeOffset;
@@ -729,7 +727,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @param {boolean} [updateCache = true] Whether to retain the segment index.
    * @returns {number} The curve result.
    */
-  @meta.ours
   FindSegment(time, updateCache = true)
   {
     const count = this.keys.length;
@@ -811,7 +808,6 @@ export class Tr2CurveScalar extends ITriScalarFunction
    * @param {{keys: Tr2CurveScalarKey[], keyCount: number, extrapolationBefore: number, extrapolationAfter: number}} definition Authored key range and extrapolation.
    * @returns {void}
    */
-  @meta.ours
   static rasterize(destination, definition)
   {
     const curve = new Tr2CurveScalar();

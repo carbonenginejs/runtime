@@ -109,7 +109,6 @@ export class Tr2ExpressionTermInfo
    * @param {string} description Help text.
    * @returns {Tr2ExpressionTermInfo} New term record.
    */
-  @meta.ours
   static _create(termType, category, name, args, description)
   {
     const term = new Tr2ExpressionTermInfo();
@@ -127,9 +126,7 @@ export class Tr2ExpressionTermInfo
 }
 
 // Carbon neither registers this nor gives it a chooser.
-be.enums.Create("trinity.Tr2ExpressionTermInfo.TermType", TermType, {
-  source: "trinity/trinity/Tr2ExpressionTermInfo.h", family: "trinityCore", line: 12
-});
+be.enums.Create("trinity.Tr2ExpressionTermInfo.TermType", TermType);
 
 // Native IRoot record: concrete query identity with no exposure chain.
 blue.interface()(Tr2ExpressionTermInfo);

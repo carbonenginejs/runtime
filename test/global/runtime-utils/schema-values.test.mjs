@@ -43,7 +43,7 @@ test("CjsSchema.from resolves the class, applies values, and calls a mapped clas
       order.push("Initialize");
     }
   }
-  CjsSchema.SetConstructor("ProbeFromTarget", ProbeFromTarget);
+  CjsSchema.setConstructor("ProbeFromTarget", ProbeFromTarget);
   CjsSchema.meta.blue.interface(IInitialize)(ProbeFromTarget);
   const probe = CjsSchema.from("ProbeFromTarget", { name: "p" });
   assert.equal(probe.name, "p");

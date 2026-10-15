@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta, type, blue } from "#schema";
+import { type, blue } from "#schema";
 import { vec4 } from "#math/vec4";
 import { EveSOFDataBoosterShape } from "./EveSOFDataBoosterShape.js";
 
@@ -262,7 +262,6 @@ export class EveSOFDataBooster
    * @param {EveSOFDataBooster|null} [out=null] Reused result or newly constructed booster.
    * @returns {EveSOFDataBooster} The output record.
    */
-  @meta.ours
   static combine(base, overrides, out = null)
   {
     out ??= new this();

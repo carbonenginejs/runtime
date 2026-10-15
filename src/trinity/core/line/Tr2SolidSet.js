@@ -220,7 +220,6 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   }
 
   /** Owner teardown replaces the C++ destructor and automatic device unregistration. */
-  @meta.ours
   Destroy()
   {
     this._destroyed = true;

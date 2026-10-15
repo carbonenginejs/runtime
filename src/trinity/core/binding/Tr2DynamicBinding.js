@@ -308,7 +308,6 @@ export class Tr2DynamicBinding extends INotify
    * @param {string} name Member or root name.
    * @returns {object|null} Binding result.
    */
-  @meta.ours
   static _getRoot(roots, name)
   {
     if (roots instanceof Map) return roots.get(name) ?? null;
@@ -324,7 +323,6 @@ export class Tr2DynamicBinding extends INotify
    * @param {number|string} selector Index or element name.
    * @returns {object|null} Binding result.
    */
-  @meta.ours
   static _getListElement(value, selector)
   {
     const list = CjsSchema.cast(value, IList);
@@ -353,7 +351,6 @@ export class Tr2DynamicBinding extends INotify
    * @param {Map|object} roots Named parameter roots.
    * @returns {object|null} Binding result.
    */
-  @meta.ours
   static _resolveReference(reference, roots)
   {
     const value = String(reference ?? "");
@@ -400,7 +397,6 @@ export class Tr2DynamicBinding extends INotify
    * @param {*} value Incoming value.
    * @returns {WeakRef|object|null} Binding result.
    */
-  @meta.ours
   static _makeWeakRef(value)
   {
     if (!value || (typeof value !== "object" && typeof value !== "function")) return null;
@@ -413,7 +409,6 @@ export class Tr2DynamicBinding extends INotify
    * @param {*} value Incoming value.
    * @returns {boolean} Binding result.
    */
-  @meta.ours
   static _isReference(value)
   {
     return value !== null && (typeof value === "object" || typeof value === "function");

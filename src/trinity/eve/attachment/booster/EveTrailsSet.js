@@ -332,7 +332,6 @@ export class EveTrailsSet
    * Binds a resolved trail geometry resource directly, rebuilding when it has
    * loaded; for hosts that resolve the mesh themselves.
    */
-  @meta.ours
   SetGeometryResource(resource)
   {
     if (this.geometryResource === resource) return;
@@ -343,7 +342,6 @@ export class EveTrailsSet
   }
 
   /** The trail placements as copies, for diagnostics. */
-  @meta.ours
   GetTrailData()
   {
     return this._trailData.map(trail => ({ transform: mat4.clone(trail.transform), size: trail.size }));

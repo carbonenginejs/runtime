@@ -34,7 +34,6 @@ export class AudParameter extends INotify
    * @param {number} gameObjID Owner identifier; zero leaves the parameter unbound.
    * @returns {void}
    */
-  @meta.ours
   SetGameObjectID(gameObjID)
   {
     this._gameObjID = Number(gameObjID) || 0;

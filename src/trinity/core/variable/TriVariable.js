@@ -237,7 +237,6 @@ export class TriVariable extends ITr2EffectValue
    * @param {object|null} [renderContext] Optional texture realization context.
    * @returns {object|null} Variable result.
    */
-  @meta.ours
   _Texture(renderContext = null)
   {
     const provider = this.value;
@@ -256,7 +255,6 @@ export class TriVariable extends ITr2EffectValue
    * Custom: preserves the existing JavaScript provider admission and realization adapter.
    * @returns {object|null} Variable result.
    */
-  @meta.ours
   _GpuBuffer()
   {
     const provider = this.value;

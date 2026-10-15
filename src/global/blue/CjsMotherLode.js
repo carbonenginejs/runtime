@@ -1,4 +1,4 @@
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema } from "#schema";
 import { ResourceRequirement } from "../consts/resourceRequirement.js";
 import { assertNonNegativeInteger, assertNonNegativeNumber } from "#utils/validation";
 
@@ -1684,4 +1684,3 @@ function defaultNow()
   return CjsBlueOS.Monotonic();
 }
 
-CjsSchema.decorateMethod(CjsMotherLode, "PurgeInactive", meta.ours);

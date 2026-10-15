@@ -928,7 +928,7 @@ export class CjsBlackReader extends CjsBlueReader
     {
         const classes = this.options.classes || {};
         const Schema = this.options.registry || CjsSchema;
-        return classes[kind] || Schema.GetConstructor(kind);
+        return classes[kind] || Schema.getConstructor(kind);
     }
 
     /**

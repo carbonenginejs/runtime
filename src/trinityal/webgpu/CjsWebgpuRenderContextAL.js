@@ -2405,7 +2405,6 @@ export class CjsWebgpuRenderContextAL
    * @param {object} options `{ gpuUsage, cpuUsage, msaa, initialData }`.
    * @returns {object|null} The texture, or null when Create refused.
    */
-  @meta.ours
   CreateTexture(desc, options, implementationOnly = false)
   {
     if (implementationOnly)
@@ -2439,7 +2438,6 @@ export class CjsWebgpuRenderContextAL
    * @param {object} program The `CjsWebgpuShaderProgramAL` it binds against.
    * @returns {object|null} The set, or null when Create refused.
    */
-  @meta.ours
   CreateResourceSet(description, program, implementationOnly = false)
   {
     // JS platform selection for the public facade; the allocation branch

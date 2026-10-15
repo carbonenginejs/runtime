@@ -70,7 +70,6 @@ export class GaussianData
    * @param {Uint8Array} [out] Destination, at least `byteSize` long.
    * @returns {Uint8Array} `out`.
    */
-  @meta.ours
   static pack(data, out = new Uint8Array(GaussianData.byteSize))
   {
     const view = new DataView(out.buffer, out.byteOffset, GaussianData.byteSize);

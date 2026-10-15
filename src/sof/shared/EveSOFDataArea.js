@@ -62,9 +62,7 @@ export class EveSOFDataArea
 
 // Native chooser labels and descriptions are distinct from C++ member names.
 be.enums.Create("trinity.EveSOFDataArea.AreaType", AreaType, {
-  source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 363,
   exposedName: "EveSOFDataAreaType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
-  chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:113",
   chooser: [
     { name: "Primary", value: AreaType.TYPE_PRIMARY, description: "Primary Area Type" },
     { name: "Glass", value: AreaType.TYPE_GLASS, description: "Area Type Glass" },

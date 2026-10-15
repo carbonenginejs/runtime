@@ -109,14 +109,12 @@ function registeredSources(source, file)
             || call.callee.property.name !== "Create") continue;
         const [ name, vocabulary, metadata ] = call.arguments;
         if (name?.type !== "StringLiteral" || vocabulary?.type !== "Identifier" || !declarations.has(vocabulary.name)
-            || metadata?.type !== "ObjectExpression") continue;
-        // Spreads and computed keys can replace source at runtime. Only an
-        // unambiguous literal property supplies statically provable authority.
-        if (metadata.properties.some(property => property.type !== "ObjectProperty" || property.computed)) continue;
-        const sources = metadata.properties.filter(property => (property.key.name ?? property.key.value) === "source");
-        if (sources.length !== 1 || sources[0].value.type !== "StringLiteral") continue;
+            || (metadata !== undefined && metadata.type !== "ObjectExpression")) continue;
+        // The registration's own `// Source:` comment cites the header it ports.
+        const sources = (node.leadingComments || []).filter(comment => comment.type === "CommentLine").map(comment => comment.value.match(/^\s*Source:\s*(\S+)/)?.[1]).filter(Boolean);
+        if (sources.length !== 1) continue;
         if (!found.has(vocabulary.name)) found.set(vocabulary.name, new Set());
-        found.get(vocabulary.name).add(sources[0].value.value.replaceAll("\\", "/"));
+        found.get(vocabulary.name).add(sources[0].replaceAll("\\", "/"));
     }
     return found;
 }

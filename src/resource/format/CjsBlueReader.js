@@ -676,7 +676,7 @@ export class CjsBlueReader extends CjsReader
 
         const classes = this.options.classes || {};
         const Registry = this.options.registry || this.defaultRegistry;
-        return classes[kind] || (Registry ? Registry.GetConstructor(kind) : null);
+        return classes[kind] || (Registry ? Registry.getConstructor(kind) : null);
     }
 
     /**

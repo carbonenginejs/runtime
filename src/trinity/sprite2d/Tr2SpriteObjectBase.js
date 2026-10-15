@@ -236,7 +236,6 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
    * @param {number} value New scalar value.
    * @returns {void}
    */
-  @meta.ours
   _SetDisplayValue(name, value)
   {
     const next = Number(value);
@@ -260,14 +259,12 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
   /** Native READWRITE display property. @returns {boolean} */
   @blue.readwrite
   @type.boolean
-  @meta.ours
   get display()
   {
     return this.GetDisplay();
   }
 
   /** Delegates external display writes to native dirty propagation. @param {boolean} value Display state. */
-  @meta.ours
   set display(value)
   {
     this.SetDisplay(value);

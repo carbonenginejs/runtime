@@ -822,8 +822,8 @@ test("model-free State labels native GetNextState and retained custom helpers", 
   const method = CjsSchema.getMethod(Tr2StateMachineState, "_GetNextState");
   assert.equal(method.impl.status, "adapted");
   const convenience = CjsSchema.getMethod(Tr2StateMachineState, "CanTransition");
-  assert.equal(convenience.impl.status, "custom");
-  assert.equal(convenience.carbon?.method, undefined);
+  assert.equal(convenience?.carbon, undefined);
+  assert.equal(convenience?.carbon?.method, undefined);
   assert.equal(Object.getPrototypeOf(Tr2StateMachineState.prototype), Object.prototype);
   assert.equal(Object.getPrototypeOf(Tr2StateMachineTransition.prototype), Object.prototype);
   assert.equal(Object.hasOwn(Tr2StateMachineTransition.prototype, "OnModified"), true);

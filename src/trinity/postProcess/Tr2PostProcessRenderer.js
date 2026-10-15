@@ -195,7 +195,6 @@ export class Tr2PostProcessRenderer
   _bloomConstantBuffer = null;
 
   /** Final owner teardown releases effect member values and the bloom constants. */
-  @meta.ours
   Destroy()
   {
     const effects = new Set([ this.tonemappingEffect, this._reactiveMaskEffect, this._transparencyMaskEffect, this.bloomHighPassFilter, this._downSamplerLuminancePreserve, this._downSampler, this._upsamplerHorizontal, this._upsamplerVertical, this.dynamicExposureToTextureShader, this.dynamicExposureCreateHistogramShader, this.dynamicExposureMergeHistogramShader, this.dynamicExposureMeasureExposureShader, this._fidelityFxCasShader, this._downsampleDepthEffect, this.fogColorEffect, this.fogCompositeEffect, this.depthOfFieldBokehBlurShader, this.depthOfFieldBokehFillShader, this._depthOfFieldBokehTAAShader, this.depthOfFieldCoCShader, this.godrayEffect, this.signalLossEffect, this.taaEffect, this._taaCopyEffect, this._grainShader, this.bloomDebugShader, this._dynamicExposureDebugShader ]);

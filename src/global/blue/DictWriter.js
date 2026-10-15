@@ -313,6 +313,3 @@ function EstimateJsonBytes(value)
 CjsSchema.meta.define(DictWriter, { className: "DictWriter", donors: [ "YamlWriter" ] });
 CjsSchema.decorateMethod(DictWriter, "WriteIRoot", meta.adapted);
 CjsSchema.decorateMethod(DictWriter, "WriteBinaryBlock", meta.adapted);
-CjsSchema.decorateMethod(DictWriter, "WriteObject", meta.ours);
-CjsSchema.decorateMethod(DictWriter, "BeginReadOnlyMember", meta.ours);
-CjsSchema.decorateMethod(DictWriter, "EndReadOnlyMember", meta.ours);

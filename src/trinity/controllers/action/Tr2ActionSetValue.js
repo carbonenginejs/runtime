@@ -272,7 +272,6 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    * Custom: Extracts native SetExpr calls used by Link and value notification;
    * blank source is invalid. Other expression consumers keep their own policy.
    */
-  @meta.ours
   CompileExpression()
   {
     this._expression = {
@@ -286,7 +285,6 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    * Evaluates the retained program, returning zero on unavailable evaluation.
    * Custom: Retains the existing numeric convenience accessor on this action.
    */
-  @meta.ours
   GetValue()
   {
     return this._evaluateValue() ?? 0;
@@ -296,7 +294,6 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    * Evaluates retained state, returning null on failure so Start skips its write.
    * Custom: adapts the retained AST result to native evaluator success/value.
    */
-  @meta.ours
   _evaluateValue()
   {
     const program = this._expression.program;
@@ -320,7 +317,6 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    * timeline controllers use its plain context fallback. Native bytecode uses
    * bound variables and a temporary evaluation arena instead.
    */
-  @meta.ours
   _getExpressionContext()
   {
     const controller = this._controller;
@@ -334,7 +330,6 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    * Custom: preserves flattened JavaScript declarations; Carbon embeds the
    * Tr2BindingPoint and exposes its nested members directly.
    */
-  @meta.ours
   GetBindingPoint()
   {
     if (!this._bindingPoint)

@@ -29,7 +29,6 @@ export class CjsSOFEditManager
    * @param {*} context Caller-owned record context, returned untouched.
    * @returns {*} The values service's result.
    */
-  @meta.ours
   SetValues(target, values, context = null)
   {
     const names = Object.keys(values);
@@ -58,7 +57,6 @@ export class CjsSOFEditManager
    * @param {string} operation Descriptive operation such as add, delete or move.
    * @returns {*} The operation's result.
    */
-  @meta.ours
   Apply(target, names, mutate, context = null, operation = "set")
   {
     const fields = [...new Set(names)].map(name => this._Field(target, name));
@@ -86,7 +84,6 @@ export class CjsSOFEditManager
   }
 
   /** Reports a newly admitted root without inventing field changes. */
-  @meta.ours
   Added(target, context = null)
   {
     if (this._receive) this._receive({ target, context, operation: "addRoot", changes: [] });

@@ -771,7 +771,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * its native owner callback. Unload arrives before array clearing, so it clears the
    * derived bounds directly.
    */
-  @meta.ours
   OnListModified(event, _key, _key2, _value, list)
   {
     if (list !== this.banners) return;

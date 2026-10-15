@@ -250,9 +250,9 @@ test("runtime-owned Carbon resource classes are canonical CjsResource implementa
     "animation sets are walked, so a non-array is rejected before the first bind"
   );
 
-  assert.equal(CjsSchema.GetConstructor("TriGrannyRes"), TriGrannyRes);
-  assert.equal(CjsSchema.GetConstructor("Tr2GrannyStateRes"), Tr2GrannyStateRes);
-  assert.equal(CjsSchema.GetConstructor("Tr2LightProfileRes"), Tr2LightProfileRes);
+  assert.equal(CjsSchema.getConstructor("TriGrannyRes"), TriGrannyRes);
+  assert.equal(CjsSchema.getConstructor("Tr2GrannyStateRes"), Tr2GrannyStateRes);
+  assert.equal(CjsSchema.getConstructor("Tr2LightProfileRes"), Tr2LightProfileRes);
 
   const resMan = new CjsBlueResMan().RegisterResourceType(TriGrannyRes);
   assert.equal(
@@ -745,7 +745,7 @@ test("CjsResource exposes Carbon-style lifecycle methods and schema", () => {
   ]);
   assert.equal(CjsResource.State.GOOD, undefined);
   assert.throws(() => resource.SetState("cooked"), /Invalid CjsResource state/u);
-  assert.equal(CjsSchema.GetConstructor("CjsResource"), CjsResource);
+  assert.equal(CjsSchema.getConstructor("CjsResource"), CjsResource);
   assert.equal(CjsSchema.getField(CjsResource, "path").type.kind, "path");
   assert.equal(resource.GetValues().path, "res:/texture/ship.dds");
 });
@@ -1817,13 +1817,13 @@ test("TriTextureRes holds a HostBitmap, and TriGeometryRes a validated payload",
   assert.equal(texture.HasPayload(), true);
   assert.equal(texture.GetPayload(), bitmap, "the bitmap IS what the resource holds");
   assert.equal(TriTextureRes.payload, "texture");
-  assert.equal(CjsSchema.GetConstructor("TriTextureRes"), TriTextureRes);
+  assert.equal(CjsSchema.getConstructor("TriTextureRes"), TriTextureRes);
   assert.equal(CjsSchema.getField(TriTextureRes, "variants"), null);
   assert.equal(CjsSchema.getMethod(TriTextureRes, "PrepareResources").carbon.method, true);
   assert.equal(CjsSchema.getMethod(TriTextureRes, "Save").impl.status, "notSupported");
   assert.equal(CjsSchema.getMethod(TriTextureRes, "CreateEmptyTexture").impl.status, "notSupported");
-  assert.equal(CjsSchema.getMethod(TriTextureRes, "SetPayload").impl.status, "custom");
-  assert.notEqual(CjsSchema.getMethod(TriTextureRes, "SetPayload").carbon?.method, true,
+  assert.equal(CjsSchema.getMethod(TriTextureRes, "SetPayload")?.carbon, undefined);
+  assert.notEqual(CjsSchema.getMethod(TriTextureRes, "SetPayload")?.carbon?.method, true,
     "payload application is a marked JS adaptation, not a Carbon-exposed method");
 
   assert.equal(geometry.GetMeshCount(), 1);
@@ -1961,7 +1961,7 @@ test("Tr2EffectRes and Tr2ImageRes are semantic resources", () => {
     type: 0
   } ]);
   assert.equal(Tr2EffectRes.payload, "shader");
-  assert.equal(CjsSchema.GetConstructor("Tr2EffectRes"), Tr2EffectRes);
+  assert.equal(CjsSchema.getConstructor("Tr2EffectRes"), Tr2EffectRes);
   assert.equal(CjsSchema.getField(Tr2EffectRes, "permutations"), null);
 
   assert.equal(image.HasPayload(), true);

@@ -459,7 +459,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * Retained programs survive empty source and failed initialization.
    * @returns {void}
    */
-  @meta.ours
   Compile()
   {
     for (let index = 0; index < 3; index++)
@@ -476,7 +475,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @param {number} time Time in seconds.
    * @returns {object} JavaScript evaluation context.
    */
-  @meta.ours
   GetContext(time)
   {
     const scaledTime = time / this.timeScale;
@@ -502,7 +500,6 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @param {object} context Evaluation context.
    * @returns {number} Angle value.
    */
-  @meta.ours
   static _evaluate(program, context)
   {
     return program && program.IsValid() ? Number(program.Evaluate(context)) || 0 : 0;

@@ -136,8 +136,6 @@ export class EveSOFDataPatternLayerProperties
 // Native chooser labels and selection; the enum object retains all C++ members.
 // Carbon reuses this chooser but declares this enum type independently.
 be.enums.Create("trinity.EveSOFDataPatternLayerProperties.ProjectionType", EveSOFDataPatternLayerProperties.ProjectionType, {
-  source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 500,
-  chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:1152",
   chooser: [
     { name: "Repeat", value: EveSOFDataPatternLayerProperties.ProjectionType.PROJECTION_REPEAT, description: "Repeat pattern texture projection" },
     { name: "Clamp", value: EveSOFDataPatternLayerProperties.ProjectionType.PROJECTION_CLAMP, description: "Clamp the projection" },

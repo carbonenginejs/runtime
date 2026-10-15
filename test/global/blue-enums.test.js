@@ -35,14 +35,14 @@ test("enum registration is atomic, idempotent and keeps its own copy of the desc
 {
     const registry = new CjsBlueEnumRegistry();
     const values = { A: 1, B: 1 };
-    const definition = { members: [{ name: "B", value: 1, description: "Second spelling" }], source: "example.h", family: "test", line: 9, exposure: 3 };
+    const definition = { members: [{ name: "B", value: 1, description: "Second spelling" }], exposure: 3 };
     registry.RegisterEnum("test.Order", values, definition);
     assert.equal(registry.RegisterEnum("test.Order", values, definition), values);
     definition.members[0].description = "changed outside registry";
     assert.equal(registry.GetNameFromValue("test.Order", 1), "B | A");
     const info = registry.GetEnumInfo("test.Order");
     assert.equal(info.members[0].description, "Second spelling");
-    assert.equal(info.source, "example.h");
+    assert.equal(Object.hasOwn(info, "source"), false);
     assert.equal(info.exposure, 3);
     assert.throws(() => registry.RegisterEnum("test.Order", values, definition), /conflicts/);
     const other = { A: 1 };
@@ -69,7 +69,7 @@ test("native choosers preserve exposed names, selected aliases and omitted senti
         { name: "First", value: 1, description: "First choice" },
         { name: "NoOverwrite", value: 2, description: "Keep existing" }
     ];
-    registry.RegisterEnum("test.Chooser", values, { chooser, exposedName: "NativeChooser", chooserSource: "example.cpp:1" });
+    registry.RegisterEnum("test.Chooser", values, { chooser, exposedName: "NativeChooser" });
     assert.equal(registry.GetEnum("test.Chooser"), values);
     assert.equal(registry.GetNameFromValue("test.Chooser", 2), "NoOverwrite");
     assert.equal(registry.GetNameFromBitmask("test.Chooser", 3), "First | NoOverwrite");
