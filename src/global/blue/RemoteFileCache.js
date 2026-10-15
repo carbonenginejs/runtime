@@ -30,7 +30,8 @@
 // - `fetch`: a WHATWG fetch.
 // - `md5`: bytes to a lowercase hex digest. Runtime computes no digests
 //   (`global/utils/resFile.js`), so a host that verifies supplies one.
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
+import { IRoot } from "./IRoot.js";
 import { normalizeResPath } from "#utils/path";
 import { BlueResFileSystemForm } from "./IBlueResFileSystem.js";
 
@@ -518,16 +519,32 @@ export class RemoteFileCache
   }
 }
 
+CjsSchema.blue.inherit(IRoot)(RemoteFileCache);
 CjsSchema.blue.define(RemoteFileCache, {
   className: "RemoteFileCache",
-  fields: {},
+  fields: {
+    server: [ blue.readwrite, type.string ],
+    backupServer: [ blue.readwrite, type.string ],
+    prefix: [ blue.readwrite, type.string ],
+    cacheFolder: [ blue.readwrite, type.wstring ],
+    registerDownloadErrors: [ blue.readwrite, type.boolean ],
+    primaryServerFailThreshold: [ blue.readwrite, type.int32 ],
+    bytesDownloaded: [ blue.read, type.uint64 ],
+    filesDownloaded: [ blue.read, type.uint32 ],
+    bytesCached: [ blue.read, type.uint64 ],
+    filesCached: [ blue.read, type.uint32 ],
+    filesUsedFromCache: [ blue.read, type.uint32 ],
+    fullHeaderLogging: [ blue.readwrite, type.boolean ],
+    verifyContentsOnSave: [ blue.readwrite, type.boolean ],
+    verifyContentsOnLoad: [ blue.readwrite, type.boolean ]
+  },
   methods: {
     DownloadFileIndex: [ blue.method, meta.adapted ],
     AddFileIndex: [ blue.method, meta.implemented ],
     SetCacheFolder: [ blue.method, meta.implemented ],
     SetServer: [ blue.method, meta.implemented ],
     SetPrefix: [ blue.method, meta.implemented ],
-    GetStreamFromPath: [ meta.renamed("GetStreamFromPathW"), meta.adapted ],
+    GetStreamFromPath: [ blue.method, meta.renamed("GetStreamFromPathW"), meta.adapted ],
     FileExists: [ blue.method, meta.implemented ],
     IsCachedLocally: [ blue.method, meta.adapted ],
     GetLocallyCachedName: [ blue.method, meta.implemented ],
@@ -536,3 +553,10 @@ CjsSchema.blue.define(RemoteFileCache, {
     RegisterOnServerFailedCallback: [ blue.method, meta.implemented ]
   }
 });
+
+CjsSchema.decorateMethod(RemoteFileCache, "_CreateFileStreamForCachedFile", blue.method, meta.renamed("CreateFileStreamForCachedFile"), meta.adapted);
+CjsSchema.decorateMethod(RemoteFileCache, "_GetFileInfo", blue.method, meta.renamed("GetFileInfo"), meta.adapted);
+CjsSchema.decorateMethod(RemoteFileCache, "_AddFileIndexImpl", blue.method, meta.renamed("AddFileIndexImpl"), meta.adapted);
+CjsSchema.decorateMethod(RemoteFileCache, "_AddResPathToFolderIndex", blue.method, meta.renamed("AddResPathToFolderIndex"), meta.adapted);
+CjsSchema.decorateMethod(RemoteFileCache, "_CacheContentsOfRemoteStream", blue.method, meta.renamed("CacheContentsOfRemoteStream"), meta.adapted);
+CjsSchema.decorateMethod(RemoteFileCache, "_TryDownload", blue.method, meta.renamed("TryDownload"), meta.adapted);

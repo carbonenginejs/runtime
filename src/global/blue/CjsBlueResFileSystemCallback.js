@@ -8,7 +8,7 @@
 // The function gets the path and returns the bytes, or `null` when it does not
 // have the file; it may be asynchronous, and it may reject for any other
 // failure.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { BlueResFileSystemForm, IBlueResFileSystem } from "./IBlueResFileSystem.js";
 
 /** `CjsBlueResFileSystemCallback` - `res:` paths read through a page's function. */
@@ -77,10 +77,10 @@ CjsSchema.meta.define(CjsBlueResFileSystemCallback, {
   donors: [ "IBlueResFileSystem" ],
   fields: {},
   methods: {
-    FileExists: [ meta.adapted ],
-    IsDirectory: [ meta.adapted ],
-    GetDirectoryContents: [ meta.adapted ],
-    ResolvePath: [ meta.renamed("ResolvePathW"), meta.adapted ],
-    GetStreamFromPath: [ meta.renamed("GetStreamFromPathW"), meta.adapted ]
+    FileExists: [ blue.method, meta.adapted ],
+    IsDirectory: [ blue.method, meta.adapted ],
+    GetDirectoryContents: [ blue.method, meta.adapted ],
+    ResolvePath: [ blue.method, meta.renamed("ResolvePathW"), meta.adapted ],
+    GetStreamFromPath: [ blue.method, meta.renamed("GetStreamFromPathW"), meta.adapted ]
   }
 });
