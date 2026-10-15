@@ -1,12 +1,11 @@
 // Source: trinity/trinityal/include/Tr2ResourceSetAL.h:23
 // Source: trinity/trinityal/src/Tr2ResourceSetAL.cpp:27-144
-import { meta, blue } from "#schema";
+import { CjsSchema, meta, blue, type } from "#schema";
 import { ShaderType } from "#consts/render-context";
 
 export const MAX_RESOURCES_IN_STAGE = 32;
 
 /** Stage/register to dense resource index, with counts spanning all stages. */
-@blue.define("Tr2RegisterMapAL")
 export class Tr2RegisterMapAL
 {
   static MAX_RESOURCES_IN_STAGE = MAX_RESOURCES_IN_STAGE;
@@ -80,3 +79,12 @@ export class Tr2RegisterMapAL
     return true;
   }
 }
+
+CjsSchema.decorateField(Tr2RegisterMapAL, "srvCount", type.uint32);
+CjsSchema.decorateField(Tr2RegisterMapAL, "uavCount", type.uint32);
+CjsSchema.decorateField(Tr2RegisterMapAL, "samplerCount", type.uint32);
+CjsSchema.decorateField(Tr2RegisterMapAL, "srvs", type.array({ kind: "typedArray", arrayType: "Uint8Array" }));
+CjsSchema.decorateField(Tr2RegisterMapAL, "uavs", type.array({ kind: "typedArray", arrayType: "Uint8Array" }));
+CjsSchema.decorateField(Tr2RegisterMapAL, "samplers", type.array({ kind: "typedArray", arrayType: "Uint8Array" }));
+CjsSchema.decorateMethod(Tr2RegisterMapAL, "equals", blue.method, meta.renamed("operator=="));
+CjsSchema.blue.define(Tr2RegisterMapAL, { className: "Tr2RegisterMapAL" });

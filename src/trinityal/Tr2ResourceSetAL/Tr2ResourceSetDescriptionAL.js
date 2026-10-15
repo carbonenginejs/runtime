@@ -2,7 +2,7 @@ import { Tr2BufferAL } from "../Tr2BufferAL/index.js";
 import { Tr2TextureAL } from "../Tr2TextureAL/index.js";
 // Source: trinity/trinityal/include/Tr2ResourceSetAL.h:44-127
 // Source: trinity/trinityal/src/Tr2ResourceSetAL.cpp:152-543
-import { meta, blue } from "#schema";
+import { CjsSchema, meta, blue, type } from "#schema";
 import { MAX_RESOURCES_IN_STAGE, Tr2RegisterMapAL } from "./Tr2RegisterMapAL.js";
 
 // Hash identities for the three distinct native invalid implementations:
@@ -15,7 +15,6 @@ const identities = new WeakMap();
 let nextIdentity = 1;
 
 /** A program's mapped resources. Constant buffers travel SetConstants. */
-@blue.define("Tr2ResourceSetDescriptionAL")
 export class Tr2ResourceSetDescriptionAL
 {
   static MAX_RESOURCES_IN_STAGE = MAX_RESOURCES_IN_STAGE;
@@ -311,3 +310,20 @@ function sameValue(left, right)
 {
   return (left ? left.TrinityALImpl_GetObject() : null) === (right ? right.TrinityALImpl_GetObject() : null);
 }
+
+CjsSchema.decorateField(Tr2ResourceSetDescriptionAL, "m_registerMap", type.rawStruct("Tr2RegisterMapAL"));
+CjsSchema.decorateField(Tr2ResourceSetDescriptionAL, "m_srv", type.array({ kind: "rawStruct", className: "Tr2ResourceSetDescriptionAL::Resource" }));
+CjsSchema.decorateField(Tr2ResourceSetDescriptionAL, "m_uav", type.array({ kind: "rawStruct", className: "Tr2ResourceSetDescriptionAL::Resource" }));
+CjsSchema.decorateField(Tr2ResourceSetDescriptionAL, "m_samplers", type.array({ kind: "rawStruct", className: "Tr2ResourceSetDescriptionAL::Sampler" }));
+CjsSchema.decorateMethod(Tr2ResourceSetDescriptionAL, "Equals", blue.method, meta.renamed("operator=="));
+CjsSchema.decorateMethod(Tr2ResourceSetDescriptionAL, "SetSrv__BufferAL", blue.method);
+CjsSchema.decorateMethod(Tr2ResourceSetDescriptionAL, "SetSrv__TextureAL", blue.method);
+CjsSchema.decorateMethod(Tr2ResourceSetDescriptionAL, "SetUav__BufferAL", blue.method);
+CjsSchema.decorateMethod(Tr2ResourceSetDescriptionAL, "SetUav__TextureAL", blue.method);
+CjsSchema.decorateMethod(Tr2ResourceSetDescriptionAL, "SetSrvHeapView", blue.method);
+CjsSchema.decorateMethod(Tr2ResourceSetDescriptionAL, "SetUavHeapView", blue.method);
+CjsSchema.decorateMethod(Tr2ResourceSetDescriptionAL, "SetSamplerHeapView", blue.method);
+CjsSchema.decorateMethod(Tr2ResourceSetDescriptionAL, "SetSampler", blue.method);
+CjsSchema.decorateMethod(Tr2ResourceSetDescriptionAL, "ClearResources", blue.method);
+CjsSchema.decorateMethod(Tr2ResourceSetDescriptionAL, "ComputeHash", blue.method);
+CjsSchema.blue.define(Tr2ResourceSetDescriptionAL, { className: "Tr2ResourceSetDescriptionAL" });

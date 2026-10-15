@@ -1,6 +1,6 @@
 // Source: trinity/trinityal/include/Tr2BufferAL.h
 // Source: trinity/trinityal/src/Tr2BufferAL.cpp
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta, blue, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -163,4 +163,9 @@ export class Tr2BufferAL
   }
 }
 
+
+
+CjsSchema.decorateField(Tr2BufferAL, "_buffer", type.unknown);
+CjsSchema.decorateMethod(Tr2BufferAL, "Equals", meta.renamed("operator=="));
+CjsSchema.decorateMethod(Tr2BufferAL, "MapForReading__OffsetSize", blue.method);
 CjsSchema.blue.define(Tr2BufferAL, { className: "Tr2BufferAL" });

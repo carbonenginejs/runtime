@@ -1,4 +1,5 @@
 // Source: trinity/trinityal/Tr2DeviceResourceAL.h
+import { CjsSchema, blue } from "#schema";
 import { Tr2BaseDeviceResourceAL } from "./Tr2BaseDeviceResourceAL.js";
 
 /**
@@ -24,3 +25,8 @@ export class Tr2DeviceResourceAL extends Tr2BaseDeviceResourceAL
     return this.GetMemoryClass();
   }
 }
+
+blue.inherit(Tr2BaseDeviceResourceAL)(Tr2DeviceResourceAL);
+CjsSchema.decorateMethod(Tr2DeviceResourceAL, "IsResourceValid", blue.method);
+CjsSchema.decorateMethod(Tr2DeviceResourceAL, "GetResourceMemoryClass", blue.method);
+CjsSchema.blue.define(Tr2DeviceResourceAL, { className: "Tr2DeviceResourceAL" });

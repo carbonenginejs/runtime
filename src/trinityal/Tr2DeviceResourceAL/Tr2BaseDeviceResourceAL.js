@@ -1,7 +1,7 @@
 // Source: trinity/trinityal/Tr2DeviceResourceAL.h
 // Source: trinity/trinityal/Tr2DeviceResourceAL.cpp
 //
-import { meta } from "#schema";
+import { CjsSchema, meta, blue, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 
 // The base every abstraction-layer resource extends, and the registry that
@@ -201,3 +201,11 @@ export function DestroyDeviceResources(memoryTypes)
   }
   while (resourcesMutated);
 }
+
+CjsSchema.decorateMethod(Tr2BaseDeviceResourceAL, "IsResourceValid", blue.method);
+CjsSchema.decorateMethod(Tr2BaseDeviceResourceAL, "GetResourceMemoryClass", blue.method);
+CjsSchema.decorateMethod(Tr2BaseDeviceResourceAL, "Destroy", blue.method);
+CjsSchema.decorateMethod(Tr2BaseDeviceResourceAL, "Describe", blue.method);
+CjsSchema.decorateMethod(Tr2BaseDeviceResourceAL, "EnumerateResources", blue.method);
+CjsSchema.decorateField(Tr2BaseDeviceResourceAL, "_registered", type.boolean);
+CjsSchema.blue.define(Tr2BaseDeviceResourceAL, { className: "Tr2BaseDeviceResourceAL" });

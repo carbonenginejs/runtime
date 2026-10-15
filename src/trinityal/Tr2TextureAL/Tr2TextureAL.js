@@ -1,6 +1,6 @@
 // Source: trinity/trinityal/include/Tr2TextureAL.h
 // Source: trinity/trinityal/src/Tr2TextureAL.cpp
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta, blue, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -324,4 +324,9 @@ export class Tr2TextureAL
   }
 }
 
+
+
+CjsSchema.decorateField(Tr2TextureAL, "_texture", type.unknown);
+CjsSchema.decorateMethod(Tr2TextureAL, "Equals", meta.renamed("operator=="));
+CjsSchema.decorateMethod(Tr2TextureAL, "CreateReadback", blue.method);
 CjsSchema.blue.define(Tr2TextureAL, { className: "Tr2TextureAL" });

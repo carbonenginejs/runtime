@@ -1,6 +1,6 @@
 // Source: trinity/trinityal/include/Tr2ResourceSetAL.h:129
 // Source: trinity/trinityal/src/Tr2ResourceSetAL.cpp:547-607
-import { meta, blue } from "#schema";
+import { CjsSchema, meta, blue, type } from "#schema";
 import { ALResult, Failed } from "../ALResult.js";
 import { Tr2ALMemoryType } from "#consts/graphics";
 
@@ -14,7 +14,6 @@ const nullRS = {
 };
 
 /** Public handle; implementation selection belongs to the creating context. */
-@blue.define("Tr2ResourceSetAL")
 export class Tr2ResourceSetAL
 {
   m_resourceSet = nullRS;
@@ -102,3 +101,11 @@ export class Tr2ResourceSetAL
     if (--owned.owners === 0) owned.implementation.Destroy();
   }
 }
+
+CjsSchema.decorateField(Tr2ResourceSetAL, "m_resourceSet", type.unknown);
+CjsSchema.decorateMethod(Tr2ResourceSetAL, "Create__Program", blue.method);
+CjsSchema.decorateMethod(Tr2ResourceSetAL, "Create__Pipeline", blue.method);
+CjsSchema.decorateMethod(Tr2ResourceSetAL, "IsValid", blue.method);
+CjsSchema.decorateMethod(Tr2ResourceSetAL, "GetMemoryClass", blue.method);
+CjsSchema.decorateMethod(Tr2ResourceSetAL, "SetName", blue.method);
+CjsSchema.blue.define(Tr2ResourceSetAL, { className: "Tr2ResourceSetAL" });

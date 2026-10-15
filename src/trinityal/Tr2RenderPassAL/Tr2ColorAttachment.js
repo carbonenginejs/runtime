@@ -1,4 +1,5 @@
 // Source: trinity/trinityal/include/Tr2RenderPassAL.h
+import { CjsSchema, type } from "#schema";
 //
 // The two attachment descriptions `RenderPassHint` takes.
 //
@@ -32,3 +33,8 @@ export class Tr2ColorAttachment
     this.clearColor = clearColor;
   }
 }
+
+CjsSchema.decorateField(Tr2ColorAttachment, "load", type.int32);
+CjsSchema.decorateField(Tr2ColorAttachment, "store", type.int32);
+CjsSchema.decorateField(Tr2ColorAttachment, "clearColor", type.uint32);
+CjsSchema.blue.define(Tr2ColorAttachment, { className: "Tr2ColorAttachment" });

@@ -1,4 +1,5 @@
 // Source: trinity/trinityal/include/Tr2BufferAL.h
+import { CjsSchema, type } from "#schema";
 // Source: trinity/trinityal/src/Tr2BufferAL.cpp (the description constructors)
 import { GetBytesPerPixel, PixelFormat, Tr2CpuUsage, Tr2GpuUsage } from "../../global/consts/renderContext/index.js";
 
@@ -79,3 +80,10 @@ export class Tr2BufferDescriptionAL
     return this.stride * this.count;
   }
 }
+
+CjsSchema.decorateField(Tr2BufferDescriptionAL, "format", type.uint32);
+CjsSchema.decorateField(Tr2BufferDescriptionAL, "stride", type.uint32);
+CjsSchema.decorateField(Tr2BufferDescriptionAL, "count", type.uint32);
+CjsSchema.decorateField(Tr2BufferDescriptionAL, "gpuUsage", type.int32);
+CjsSchema.decorateField(Tr2BufferDescriptionAL, "cpuUsage", type.int32);
+CjsSchema.blue.define(Tr2BufferDescriptionAL, { className: "Tr2BufferDescriptionAL" });
