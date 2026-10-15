@@ -61,7 +61,7 @@ import { Tr2BufferDescriptionAL } from "../Tr2BufferAL/Tr2BufferDescriptionAL.js
 // declared only by DX11, and PRIVATE there (`Tr2BufferALDx11.h:43`) - it is an
 // implementation detail of that backend's upload path, not part of the
 // contract, and neither dx12, metal nor the stub has it.
-import { CjsSchema } from "#schema";
+import { CjsSchema, blue } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult } from "#trinityal";
 import { Tr2CpuUsage, Tr2GpuUsage, HasFlag } from "#consts/render-context";
@@ -564,4 +564,19 @@ export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
+CjsSchema.decorateMethod(CjsWebgpuBufferAL, "Create", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuBufferAL, "IsValid", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuBufferAL, "GetDesc", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuBufferAL, "MapForWriting", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuBufferAL, "UnmapForWriting", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuBufferAL, "UpdateBuffer", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuBufferAL, "Destroy", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuBufferAL, "MapForReading", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuBufferAL, "MapForReading__OffsetSize", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuBufferAL, "UnmapForReading", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuBufferAL, "GetMemoryClass", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuBufferAL, "Describe", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuBufferAL, "SetName", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuBufferAL, "GetSrvIndexInHeap", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuBufferAL, "GetUavIndexInHeap", blue.method);
 CjsSchema.blue.define(CjsWebgpuBufferAL, { className: "CjsWebgpuBufferAL", donors: [ "Tr2BufferAL" ] });

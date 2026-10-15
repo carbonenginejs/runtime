@@ -1,4 +1,5 @@
 // Not Carbon: WebGPU has no mip generator. Carbon's backends call the API's
+import { CjsSchema, meta } from "#schema";
 // own - D3D11 GenerateMips, Metal's blit encoder `generateMipmaps`
 // (Tr2TextureALMetal.mm:795-805, MetalWorkQueue GenerateMipMaps) - and this is
 // what the WebGPU AL does in their place: each level rendered from the one
@@ -116,3 +117,6 @@ export class CjsWebgpuMipGenerator
     return pipeline;
   }
 }
+
+
+CjsSchema.meta.define(CjsWebgpuMipGenerator, { className: "CjsWebgpuMipGenerator" });

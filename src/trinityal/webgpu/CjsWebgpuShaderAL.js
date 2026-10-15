@@ -29,7 +29,7 @@
 // something real: a program whose state was entirely private has no own
 // enumerable keys, canonicalised to an empty object, and would have collided
 // with every other program in the pipeline cache.
-import { CjsSchema } from "#schema";
+import { CjsSchema, blue } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult } from "#trinityal";
 import { ShaderType } from "#consts/render-context";
@@ -432,4 +432,14 @@ export class CjsWebgpuShaderAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
+CjsSchema.decorateMethod(CjsWebgpuShaderAL, "Create", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuShaderAL, "IsValid", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuShaderAL, "GetType", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuShaderAL, "GetBytecode", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuShaderAL, "GetSignature", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuShaderAL, "Destroy", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuShaderAL, "SetNullShaderType", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuShaderAL, "GetMemoryClass", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuShaderAL, "Describe", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuShaderAL, "SetName", blue.method);
 CjsSchema.blue.define(CjsWebgpuShaderAL, { className: "CjsWebgpuShaderAL", donors: [ "Tr2ShaderAL" ] });

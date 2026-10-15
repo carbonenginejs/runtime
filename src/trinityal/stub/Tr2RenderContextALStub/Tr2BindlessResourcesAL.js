@@ -1,4 +1,5 @@
 // Source: trinity/trinityal/stub/Tr2RenderContextStub.h
+import { CjsSchema, blue } from "#schema";
 //   Declared top-level beside the render context, as every backend declares it.
 
 
@@ -29,3 +30,7 @@ export class Tr2BindlessResourcesAL
   {
   }
 }
+
+CjsSchema.decorateMethod(Tr2BindlessResourcesAL, "Add", blue.method);
+CjsSchema.decorateMethod(Tr2BindlessResourcesAL, "Clear", blue.method);
+CjsSchema.blue.define(Tr2BindlessResourcesAL, { className: "Tr2BindlessResourcesAL" });

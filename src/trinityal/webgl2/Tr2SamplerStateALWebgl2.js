@@ -26,7 +26,7 @@
 // Trinity setting `forceAnisotropy`). No shared JavaScript home exists for it
 // yet, so it is the static `forceAnisotropy` on this class.
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, blue, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -245,4 +245,12 @@ export class Tr2SamplerStateALWebgl2 extends Tr2DeviceResourceAL
   }
 }
 
+CjsSchema.decorateField(Tr2SamplerStateALWebgl2, "_name", type.string);
+CjsSchema.decorateMethod(Tr2SamplerStateALWebgl2, "Create", blue.method);
+CjsSchema.decorateMethod(Tr2SamplerStateALWebgl2, "Destroy", blue.method);
+CjsSchema.decorateMethod(Tr2SamplerStateALWebgl2, "GetIndexInHeap", blue.method);
+CjsSchema.decorateMethod(Tr2SamplerStateALWebgl2, "IsValid", blue.method);
+CjsSchema.decorateMethod(Tr2SamplerStateALWebgl2, "GetMemoryClass", blue.method);
+CjsSchema.decorateMethod(Tr2SamplerStateALWebgl2, "Describe", blue.method);
+CjsSchema.decorateMethod(Tr2SamplerStateALWebgl2, "SetName", blue.method);
 CjsSchema.blue.define(Tr2SamplerStateALWebgl2, { className: "Tr2SamplerStateALWebgl2", donors: [ "Tr2SamplerStateAL" ] });

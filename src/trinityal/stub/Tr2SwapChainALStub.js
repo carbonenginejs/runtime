@@ -13,7 +13,7 @@
 // from the present parameters. Transcribed as it stands, because inventing a
 // size would make a headless test agree with a number nothing chose.
 
-import { CjsSchema } from "#schema";
+import { CjsSchema, blue } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -155,4 +155,12 @@ export class Tr2SwapChainALStub extends Tr2DeviceResourceAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
+CjsSchema.decorateMethod(Tr2SwapChainALStub, "Create", blue.method);
+CjsSchema.decorateMethod(Tr2SwapChainALStub, "Destroy", blue.method);
+CjsSchema.decorateMethod(Tr2SwapChainALStub, "IsValid", blue.method);
+CjsSchema.decorateMethod(Tr2SwapChainALStub, "Present", blue.method);
+CjsSchema.decorateMethod(Tr2SwapChainALStub, "GetWidth", blue.method);
+CjsSchema.decorateMethod(Tr2SwapChainALStub, "GetHeight", blue.method);
+CjsSchema.decorateMethod(Tr2SwapChainALStub, "GetMemoryClass", blue.method);
+CjsSchema.decorateMethod(Tr2SwapChainALStub, "SetName", blue.method);
 CjsSchema.blue.define(Tr2SwapChainALStub, { className: "Tr2SwapChainALStub", donors: [ "Tr2SwapChainAL" ] });

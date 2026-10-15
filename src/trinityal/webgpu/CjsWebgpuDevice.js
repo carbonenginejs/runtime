@@ -1,4 +1,5 @@
 const DEVICE_BUFFERS = new WeakMap();
+import { CjsSchema, meta } from "#schema";
 
 function fail(message)
 {
@@ -309,3 +310,6 @@ export class CjsWebgpuDevice
     });
   }
 }
+
+
+CjsSchema.meta.define(CjsWebgpuDevice, { className: "CjsWebgpuDevice" });

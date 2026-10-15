@@ -41,7 +41,7 @@
 // `COPY_READ_BUFFER`, which the render context never draws from; only the
 // first bind, which fixes the buffer's type, uses the real target.
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, blue, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -652,4 +652,26 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
 // The donor is NAMED: Carbon calls every backend's class `Tr2BufferAL` and
 // carries the backend in the file name; we ship backends together, so the
 // backend moves onto the class name (see Tr2BufferALStub.js).
+CjsSchema.decorateField(Tr2BufferALWebgl2, "_name", type.string);
+CjsSchema.decorateField(Tr2BufferALWebgl2, "_srvDirty", type.boolean);
+CjsSchema.decorateField(Tr2BufferALWebgl2, "_writeLockMemory", type.uint8Array);
+CjsSchema.decorateField(Tr2BufferALWebgl2, "_staging", type.uint8Array);
+CjsSchema.decorateField(Tr2BufferALWebgl2, "_desc", type.rawStruct("Tr2BufferDescriptionAL"));
+CjsSchema.decorateMethod(Tr2BufferALWebgl2, "Create", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALWebgl2, "Destroy", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALWebgl2, "IsValid", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALWebgl2, "GetMemoryClass", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALWebgl2, "GetDesc", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALWebgl2, "MapForReading", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALWebgl2, "MapForReading__OffsetSize", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALWebgl2, "CreateStagingBuffer", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALWebgl2, "UnmapForReading", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALWebgl2, "MapForWriting", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALWebgl2, "UnmapForWriting", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALWebgl2, "UpdateBuffer", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALWebgl2, "GetSrvIndexInHeap", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALWebgl2, "GetUavIndexInHeap", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALWebgl2, "Describe", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALWebgl2, "SetName", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALWebgl2, "GetGpuResource", blue.method);
 CjsSchema.blue.define(Tr2BufferALWebgl2, { className: "Tr2BufferALWebgl2", donors: [ "Tr2BufferAL" ] });

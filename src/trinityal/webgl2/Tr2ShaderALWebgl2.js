@@ -24,7 +24,7 @@
 // pass (its `computeFragment` recipe); geometry, hull and domain stages have
 // no WebGL2 counterpart and are refused.
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, blue, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -281,4 +281,18 @@ export class Tr2ShaderALWebgl2 extends Tr2DeviceResourceAL
   }
 }
 
+CjsSchema.decorateField(Tr2ShaderALWebgl2, "_name", type.string);
+CjsSchema.decorateField(Tr2ShaderALWebgl2, "_log", type.string);
+CjsSchema.decorateField(Tr2ShaderALWebgl2, "_bytecode", type.uint8Array);
+CjsSchema.decorateField(Tr2ShaderALWebgl2, "_type", type.int32);
+CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "Create", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "ReleaseShader", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "Destroy", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "IsValid", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "GetType", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "GetBytecode", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "GetSignature", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "GetMemoryClass", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "Describe", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderALWebgl2, "SetName", blue.method);
 CjsSchema.blue.define(Tr2ShaderALWebgl2, { className: "Tr2ShaderALWebgl2", donors: [ "Tr2ShaderAL" ] });

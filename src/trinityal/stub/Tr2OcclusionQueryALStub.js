@@ -1,5 +1,5 @@
 // Source: trinity/trinityal/stub/Tr2OcclusionQueryALStub.cpp
-import { CjsSchema } from "#schema";
+import { CjsSchema, blue, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -127,4 +127,14 @@ export class Tr2OcclusionQueryALStub extends Tr2DeviceResourceAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
+CjsSchema.decorateField(Tr2OcclusionQueryALStub, "_isValid", type.boolean);
+CjsSchema.decorateField(Tr2OcclusionQueryALStub, "_isRunning", type.boolean);
+CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "Create", blue.method);
+CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "IsValid", blue.method);
+CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "Destroy", blue.method);
+CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "Begin", blue.method);
+CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "End", blue.method);
+CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "GetPixelCount", blue.method);
+CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "GetMemoryClass", blue.method);
+CjsSchema.decorateMethod(Tr2OcclusionQueryALStub, "SetName", blue.method);
 CjsSchema.blue.define(Tr2OcclusionQueryALStub, { className: "Tr2OcclusionQueryALStub", donors: [ "Tr2OcclusionQueryAL" ] });

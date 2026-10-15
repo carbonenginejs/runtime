@@ -49,7 +49,7 @@
 // Carbon's stub. `MTLENCODERTYPE_BLIT` therefore has no counterpart here and
 // transfers are recorded against the command encoder itself.
 
-import { CjsSchema } from "#schema";
+import { CjsSchema, blue, meta } from "#schema";
 import { Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
 
 
@@ -1156,4 +1156,29 @@ function LoadOp(action)
 // that reaches this file without a build first. `CjsSchema.define` is the same
 // metadata through the door the schema already provides for exactly this, and
 // it keeps the layer free of the decorator chain it has never carried.
+CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "BeginFrame", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "EndFrame", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "RenderPassHint", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "EndRenderPassHint", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "ClearAttachment", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "_FlushOutstandingOperations", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "EndCurrentRenderPass", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "SetCurrentEncoder", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "GenerateMipMaps", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "CopyTextureToTexture", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "CopyTextureToMTLBuffer", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "ClearBuffer", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "_EmitComputeEncoderState", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "SetRenderAttachments", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "DrawIndexedPrimitives", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "SetViewport", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "_EmitRenderEncoderState", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "DrawPrimitives", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "GetRenderEncoder", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "_ReleaseEncoder", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "DispatchThreadgroups", blue.method, meta.renamed("Dispatch"));
+CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "DispatchThreadgroupsIndirect", blue.method, meta.renamed("Dispatch"));
+CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "DrawPrimitivesIndirect", blue.method, meta.renamed("DrawPrimitives"));
+CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "DrawIndexedPrimitivesIndirect", blue.method, meta.renamed("DrawIndexedPrimitives"));
+CjsSchema.decorateMethod(CjsWebgpuWorkQueue, "SetDepthAttachment", blue.method, meta.renamed("SetDepthStencilAttachment"));
 CjsSchema.meta.define(CjsWebgpuWorkQueue, { className: "CjsWebgpuWorkQueue", donors: [ "MetalWorkQueue" ] });

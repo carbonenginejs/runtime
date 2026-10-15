@@ -18,7 +18,7 @@
 //
 // FIELDS ARE PUBLIC AND CARBON-NAMED, for the reason recorded on
 // `CjsWebgpuShaderAL`: Carbon's impl class carries public state.
-import { CjsSchema } from "#schema";
+import { CjsSchema, blue, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Tr2ConstantUsageAL } from "#trinityal";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -211,4 +211,15 @@ export class CjsWebgpuConstantBufferAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
+CjsSchema.decorateField(CjsWebgpuConstantBufferAL, "m_size", type.uint32);
+CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Create", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Lock", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Unlock", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "SetConstants", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "IsValid", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "GetSize", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Destroy", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "GetMemoryClass", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Describe", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "SetName", blue.method);
 CjsSchema.blue.define(CjsWebgpuConstantBufferAL, { className: "CjsWebgpuConstantBufferAL", donors: [ "Tr2ConstantBufferAL" ] });

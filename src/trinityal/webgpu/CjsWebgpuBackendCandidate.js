@@ -1,4 +1,5 @@
 import { CjsBackendCandidate } from "#interfaces";
+import { CjsSchema, meta } from "#schema";
 import { CjsWebgpuDevice } from "./CjsWebgpuDevice.js";
 
 
@@ -76,3 +77,6 @@ export class CjsWebgpuBackendCandidate extends CjsBackendCandidate
   }
 
 }
+
+
+CjsSchema.meta.define(CjsWebgpuBackendCandidate, { className: "CjsWebgpuBackendCandidate" });

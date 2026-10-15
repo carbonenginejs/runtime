@@ -34,7 +34,7 @@
 // texture contributes nothing to a device inventory. That is transcribed, not
 // overlooked - a backend that reports real names is a real backend.
 
-import { CjsSchema } from "#schema";
+import { CjsSchema, blue, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -662,4 +662,32 @@ export function CopyRegion(region)
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
+CjsSchema.decorateField(Tr2TextureALStub, "_desc", type.rawStruct("Tr2BitmapDimensions"));
+CjsSchema.decorateField(Tr2TextureALStub, "_msaa", type.rawStruct("Tr2MsaaDesc"));
+CjsSchema.decorateField(Tr2TextureALStub, "_gpuUsage", type.int32);
+CjsSchema.decorateField(Tr2TextureALStub, "_cpuUsage", type.int32);
+CjsSchema.decorateField(Tr2TextureALStub, "_data", type.uint8Array);
+CjsSchema.decorateMethod(Tr2TextureALStub, "Create", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALStub, "OpenShared", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALStub, "Destroy", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALStub, "IsValid", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALStub, "GetMemoryClass", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALStub, "GetDesc", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALStub, "GetMsaaDesc", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALStub, "GetGpuUsage", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALStub, "GetCpuUsage", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALStub, "MapForReading", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALStub, "CreateReadback", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALStub, "UnmapForReading", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALStub, "MapForWriting", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALStub, "UnmapForWriting", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALStub, "UpdateSubresource", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALStub, "CopySubresourceRegion", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALStub, "GenerateMipMaps", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALStub, "Resolve", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALStub, "GetSharedHandle", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALStub, "GetSrvIndexInHeap", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALStub, "GetUavIndexInHeap", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALStub, "SetName", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALStub, "GetName", blue.method);
 CjsSchema.blue.define(Tr2TextureALStub, { className: "Tr2TextureALStub", donors: [ "Tr2TextureAL" ] });

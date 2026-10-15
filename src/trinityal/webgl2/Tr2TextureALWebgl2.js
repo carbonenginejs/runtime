@@ -47,7 +47,7 @@
 //   is not a texture, so there is nothing to attach; the swap chain draws to
 //   that framebuffer directly.
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, blue, meta, type } from "#schema";
 import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
 import { CjsDdsFormat } from "../../resource/formats/dds/CjsDdsFormat.js";
 import { Tr2ALMemoryType } from "#consts/graphics";
@@ -1352,4 +1352,34 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
   }
 }
 
+CjsSchema.decorateField(Tr2TextureALWebgl2, "_name", type.string);
+CjsSchema.decorateField(Tr2TextureALWebgl2, "_decompressed", type.boolean);
+CjsSchema.decorateField(Tr2TextureALWebgl2, "_desc", type.rawStruct("Tr2BitmapDimensions"));
+CjsSchema.decorateField(Tr2TextureALWebgl2, "_msaa", type.rawStruct("Tr2MsaaDesc"));
+CjsSchema.decorateField(Tr2TextureALWebgl2, "_gpuUsage", type.int32);
+CjsSchema.decorateField(Tr2TextureALWebgl2, "_cpuUsage", type.int32);
+CjsSchema.decorateMethod(Tr2TextureALWebgl2, "Create", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALWebgl2, "CreateViews", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALWebgl2, "OpenShared", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALWebgl2, "Destroy", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALWebgl2, "IsValid", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GetMemoryClass", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GetDesc", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GetMsaaDesc", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GetGpuUsage", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GetCpuUsage", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALWebgl2, "MapForReading", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALWebgl2, "UnmapForReading", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALWebgl2, "MapForWriting", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALWebgl2, "UnmapForWriting", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALWebgl2, "UpdateSubresource", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALWebgl2, "CopySubresourceRegion", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GenerateMipMaps", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALWebgl2, "Resolve", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GetSharedHandle", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GetSrvIndexInHeap", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GetUavIndexInHeap", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALWebgl2, "SetName", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALWebgl2, "GetName", blue.method);
+CjsSchema.decorateMethod(Tr2TextureALWebgl2, "Describe", blue.method);
 CjsSchema.blue.define(Tr2TextureALWebgl2, { className: "Tr2TextureALWebgl2", donors: [ "Tr2TextureAL" ] });

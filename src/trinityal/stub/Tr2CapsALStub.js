@@ -13,7 +13,7 @@
 // to everything would drive Trinity down paths a real device never takes, which
 // is the opposite of what a headless engine carrying correct data is for.
 
-import { CjsSchema } from "#schema";
+import { CjsSchema, blue } from "#schema";
 
 /**
  * The platform capability constants (`Tr2CapsALStub.h:10-19`).
@@ -110,4 +110,10 @@ export class Tr2CapsALStub
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
+CjsSchema.decorateMethod(Tr2CapsALStub, "SupportsFloat16", blue.method);
+CjsSchema.decorateMethod(Tr2CapsALStub, "SupportsGpuBuffer", blue.method);
+CjsSchema.decorateMethod(Tr2CapsALStub, "SupportsStandaloneSwapChain", blue.method);
+CjsSchema.decorateMethod(Tr2CapsALStub, "SupportsVertexShaderTextures", blue.method);
+CjsSchema.decorateMethod(Tr2CapsALStub, "SupportsVariableRefreshRate", blue.method);
+CjsSchema.decorateMethod(Tr2CapsALStub, "SupportsRaytracing", blue.method);
 CjsSchema.blue.define(Tr2CapsALStub, { className: "Tr2CapsALStub", donors: [ "Tr2CapsAL" ] });

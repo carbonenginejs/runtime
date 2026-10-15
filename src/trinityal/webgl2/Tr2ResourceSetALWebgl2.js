@@ -29,7 +29,7 @@ import { Tr2ResourceSetDescriptionAL } from "../Tr2ResourceSetAL/Tr2ResourceSetD
 //   binds (`:139-168`); JavaScript objects have no addresses to hash, and the
 //   render context compares sets by identity instead.
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, blue, meta, type } from "#schema";
 import { ShaderType } from "#consts/render-context";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
@@ -356,4 +356,17 @@ export class Tr2ResourceSetALWebgl2 extends Tr2DeviceResourceAL
   }
 }
 
+CjsSchema.decorateField(Tr2ResourceSetALWebgl2, "_name", type.string);
+CjsSchema.decorateField(Tr2ResourceSetALWebgl2, "_csUavs", type.boolean);
+CjsSchema.decorateField(Tr2ResourceSetALWebgl2, "_empty", type.boolean);
+CjsSchema.decorateField(Tr2ResourceSetALWebgl2, "_isValid", type.boolean);
+CjsSchema.decorateField(Tr2ResourceSetALWebgl2, "_uavOffset", type.uint32);
+CjsSchema.decorateField(Tr2ResourceSetALWebgl2, "_uavCount", type.uint32);
+CjsSchema.decorateField(Tr2ResourceSetALWebgl2, "_stages", type.array({ kind: "rawStruct", className: "Tr2ResourceSetAL::StageInput" }));
+CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "Create", blue.method);
+CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "Destroy", blue.method);
+CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "IsValid", blue.method);
+CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "GetMemoryClass", blue.method);
+CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "Describe", blue.method);
+CjsSchema.decorateMethod(Tr2ResourceSetALWebgl2, "SetName", blue.method);
 CjsSchema.blue.define(Tr2ResourceSetALWebgl2, { className: "Tr2ResourceSetALWebgl2", donors: [ "Tr2ResourceSetAL" ] });

@@ -1,4 +1,5 @@
 // Attachment and target ownership for the WebGPU backend.
+import { CjsSchema, meta } from "#schema";
 //
 // Carbon's target model is a render context that owns its swap chain and
 // depth-stencil surface. WebGPU's is a render-pass descriptor with FIXED
@@ -483,3 +484,6 @@ export class CjsWebgpuRenderTarget
     }
   }
 }
+
+
+CjsSchema.meta.define(CjsWebgpuRenderTarget, { className: "CjsWebgpuRenderTarget" });

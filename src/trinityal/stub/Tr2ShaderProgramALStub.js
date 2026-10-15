@@ -10,7 +10,7 @@
 // and draw with whichever the backend happened to keep.
 //
 // Carbon quirk: Create leaves the stub map empty (stub cpp:23-49; CE-26).
-import { CjsSchema } from "#schema";
+import { CjsSchema, blue, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -135,4 +135,12 @@ export class Tr2ShaderProgramALStub extends Tr2DeviceResourceAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
+CjsSchema.decorateField(Tr2ShaderProgramALStub, "_isValid", type.boolean);
+CjsSchema.decorateField(Tr2ShaderProgramALStub, "m_registerMap", type.rawStruct("Tr2RegisterMapAL"));
+CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "GetRegisterMap", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "Create", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "Destroy", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "IsValid", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "GetMemoryClass", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "SetName", blue.method);
 CjsSchema.blue.define(Tr2ShaderProgramALStub, { className: "Tr2ShaderProgramALStub", donors: [ "Tr2ShaderProgramAL" ] });

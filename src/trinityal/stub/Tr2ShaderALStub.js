@@ -27,7 +27,7 @@
 //   empty one; its real backends keep it. Dropping caller data is a shortcut
 //   that is harmless only while nothing reads it, and the register map will.
 
-import { CjsSchema } from "#schema";
+import { CjsSchema, blue, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -165,4 +165,16 @@ export class Tr2ShaderALStub extends Tr2DeviceResourceAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
+CjsSchema.decorateField(Tr2ShaderALStub, "_type", type.int32);
+CjsSchema.decorateField(Tr2ShaderALStub, "_bytecode", type.uint8Array);
+CjsSchema.decorateField(Tr2ShaderALStub, "_signature", type.rawStruct("Tr2ShaderSignatureAL"));
+CjsSchema.decorateMethod(Tr2ShaderALStub, "Create", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderALStub, "Destroy", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderALStub, "IsValid", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderALStub, "GetType", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderALStub, "GetBytecode", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderALStub, "GetSignature", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderALStub, "SetNullShaderType", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderALStub, "GetMemoryClass", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderALStub, "SetName", blue.method);
 CjsSchema.blue.define(Tr2ShaderALStub, { className: "Tr2ShaderALStub", donors: [ "Tr2ShaderAL" ] });

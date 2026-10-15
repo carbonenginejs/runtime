@@ -12,7 +12,7 @@
 // on a real backend - the CPU-side mirror the driver uploads from. Here there
 // is nothing to upload to, so the mirror is the whole resource.
 
-import { CjsSchema } from "#schema";
+import { CjsSchema, blue, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -158,4 +158,13 @@ export class Tr2ConstantBufferALStub extends Tr2DeviceResourceAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
+CjsSchema.decorateField(Tr2ConstantBufferALStub, "_shadowCopy", type.uint8Array);
+CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "Create", blue.method);
+CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "Lock", blue.method);
+CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "Unlock", blue.method);
+CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "Destroy", blue.method);
+CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "IsValid", blue.method);
+CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "GetSize", blue.method);
+CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "GetMemoryClass", blue.method);
+CjsSchema.decorateMethod(Tr2ConstantBufferALStub, "SetName", blue.method);
 CjsSchema.blue.define(Tr2ConstantBufferALStub, { className: "Tr2ConstantBufferALStub", donors: [ "Tr2ConstantBufferAL" ] });

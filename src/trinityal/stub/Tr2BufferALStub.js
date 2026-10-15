@@ -19,7 +19,7 @@
 //   The stub is not a memory model: the map path is what carries data. A caller
 //   that needs the write to land must map for writing.
 
-import { CjsSchema } from "#schema";
+import { CjsSchema, blue, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -279,4 +279,20 @@ export class Tr2BufferALStub extends Tr2DeviceResourceAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
+CjsSchema.decorateField(Tr2BufferALStub, "_desc", type.rawStruct("Tr2BufferDescriptionAL"));
+CjsSchema.decorateField(Tr2BufferALStub, "_buffer", type.uint8Array);
+CjsSchema.decorateMethod(Tr2BufferALStub, "Create", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALStub, "Destroy", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALStub, "IsValid", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALStub, "GetMemoryClass", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALStub, "GetDesc", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALStub, "MapForReading", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALStub, "MapForReading__OffsetSize", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALStub, "UnmapForReading", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALStub, "MapForWriting", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALStub, "UnmapForWriting", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALStub, "UpdateBuffer", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALStub, "GetSrvIndexInHeap", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALStub, "GetUavIndexInHeap", blue.method);
+CjsSchema.decorateMethod(Tr2BufferALStub, "SetName", blue.method);
 CjsSchema.blue.define(Tr2BufferALStub, { className: "Tr2BufferALStub", donors: [ "Tr2BufferAL" ] });

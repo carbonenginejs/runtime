@@ -4,7 +4,7 @@
 // its partner - why these exist at all, why bytecode here is WGSL text rather
 // than DXBC, and why fields are public and Carbon-named - is recorded in the
 // head comment of CjsWebgpuShaderAL.js, which several other files already cite.
-import { CjsSchema } from "#schema";
+import { CjsSchema, blue, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Tr2RegisterMapAL } from "#trinityal";
 import { ShaderType } from "#consts/render-context";
@@ -416,4 +416,13 @@ export class CjsWebgpuShaderProgramAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
+CjsSchema.decorateField(CjsWebgpuShaderProgramAL, "m_registerMap", type.rawStruct("Tr2RegisterMapAL"));
+CjsSchema.decorateMethod(CjsWebgpuShaderProgramAL, "GetRegisterMap", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuShaderProgramAL, "Create", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuShaderProgramAL, "IsValid", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuShaderProgramAL, "GetInputs", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuShaderProgramAL, "Destroy", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuShaderProgramAL, "GetMemoryClass", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuShaderProgramAL, "Describe", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuShaderProgramAL, "SetName", blue.method);
 CjsSchema.blue.define(CjsWebgpuShaderProgramAL, { className: "CjsWebgpuShaderProgramAL", donors: [ "Tr2ShaderProgramAL" ] });

@@ -46,7 +46,7 @@
 // pointers - and hashes it with `CcpHashFNV1`; the cache compares the block
 // itself on a hash hit, Carbon's `operator==`, so a collision cannot alias two
 // pipelines. Nothing is allocated to key a draw.
-import { CjsSchema } from "#schema";
+import { CjsSchema, blue } from "#schema";
 import { CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE, CARBON_BACKEND_UNORM_TARGET_OVERRIDE } from "#resource/format";
 import { ccpHashFnv1, identityOf } from "#utils/hash";
 import { TOPOLOGIES } from "./topology.js";
@@ -444,4 +444,5 @@ export class CjsWebgpuPsoDescription
 // that reaches this file without a build first. `CjsSchema.define` is the same
 // metadata through the door the schema already provides for exactly this, and
 // it keeps the layer free of the decorator chain it has never carried.
+CjsSchema.decorateMethod(CjsWebgpuPsoDescription, "UpdateHash", blue.method);
 CjsSchema.blue.define(CjsWebgpuPsoDescription, { className: "CjsWebgpuPsoDescription", donors: [ "PSODescription" ] });

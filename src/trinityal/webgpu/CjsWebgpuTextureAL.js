@@ -19,7 +19,7 @@ import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 // `viewFormats` at creation, so it is.
 //
 // FIELDS ARE PUBLIC AND CARBON-NAMED, for the reason recorded on `CjsWebgpuShaderAL`.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, blue, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, CopyRegion, Crop, Tr2MsaaDesc, Tr2TextureSubresource } from "#trinityal";
 import { PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage, HasFlag, IsWritable } from "#consts/render-context";
@@ -998,4 +998,31 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
+CjsSchema.decorateField(CjsWebgpuTextureAL, "m_name", type.string);
+CjsSchema.decorateField(CjsWebgpuTextureAL, "m_desc", type.rawStruct("Tr2BitmapDimensions"));
+CjsSchema.decorateField(CjsWebgpuTextureAL, "m_msaa", type.rawStruct("Tr2MsaaDesc"));
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "Create", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "IsValid", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "OpenShared", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetDesc", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetMsaaDesc", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetGpuUsage", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetCpuUsage", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "CreateReadback", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "MapForReading", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "UnmapForReading", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "MapForWriting", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "UnmapForWriting", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "UpdateSubresource", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "CopySubresourceRegion", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GenerateMipMaps", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "Resolve", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetSharedHandle", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetSrvIndexInHeap", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetUavIndexInHeap", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "Destroy", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetMemoryClass", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "Describe", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "SetName", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuTextureAL, "GetName", blue.method);
 CjsSchema.blue.define(CjsWebgpuTextureAL, { className: "CjsWebgpuTextureAL", donors: [ "Tr2TextureAL" ], methods: { RequestAverageColor: [] } });

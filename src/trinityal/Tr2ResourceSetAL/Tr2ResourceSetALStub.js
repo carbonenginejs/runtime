@@ -2,7 +2,7 @@ import { Tr2ResourceSetDescriptionAL } from "./Tr2ResourceSetDescriptionAL.js";
 // Source: trinity/trinityal/include/Tr2ResourceSetAL.h
 // Source: trinity/trinityal/stub/Tr2ResourceSetALStub.cpp
 // Source: trinity/trinityal/stub/Tr2ResourceSetALStub.h
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, blue, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -103,4 +103,10 @@ export class Tr2ResourceSetALStub extends Tr2DeviceResourceAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
+CjsSchema.decorateField(Tr2ResourceSetALStub, "_isValid", type.boolean);
+CjsSchema.decorateMethod(Tr2ResourceSetALStub, "Create", blue.method);
+CjsSchema.decorateMethod(Tr2ResourceSetALStub, "IsValid", blue.method);
+CjsSchema.decorateMethod(Tr2ResourceSetALStub, "Destroy", blue.method);
+CjsSchema.decorateMethod(Tr2ResourceSetALStub, "GetMemoryClass", blue.method);
+CjsSchema.decorateMethod(Tr2ResourceSetALStub, "SetName", blue.method);
 CjsSchema.blue.define(Tr2ResourceSetALStub, { className: "Tr2ResourceSetALStub", donors: [ "Tr2ResourceSetAL" ] });

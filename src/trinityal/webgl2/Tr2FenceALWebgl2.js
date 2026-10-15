@@ -13,7 +13,7 @@
 // (`gl.finish`), which returns once every command, the fence included, has
 // completed, and then records the fence as passed.
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, blue, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -193,4 +193,16 @@ export class Tr2FenceALWebgl2 extends Tr2DeviceResourceAL
   }
 }
 
+CjsSchema.decorateField(Tr2FenceALWebgl2, "_name", type.string);
+CjsSchema.decorateField(Tr2FenceALWebgl2, "_isValid", type.boolean);
+CjsSchema.decorateField(Tr2FenceALWebgl2, "_finished", type.boolean);
+CjsSchema.decorateMethod(Tr2FenceALWebgl2, "Create", blue.method);
+CjsSchema.decorateMethod(Tr2FenceALWebgl2, "PutFence", blue.method);
+CjsSchema.decorateMethod(Tr2FenceALWebgl2, "IsReached", blue.method);
+CjsSchema.decorateMethod(Tr2FenceALWebgl2, "Wait", blue.method);
+CjsSchema.decorateMethod(Tr2FenceALWebgl2, "Destroy", blue.method);
+CjsSchema.decorateMethod(Tr2FenceALWebgl2, "IsValid", blue.method);
+CjsSchema.decorateMethod(Tr2FenceALWebgl2, "GetMemoryClass", blue.method);
+CjsSchema.decorateMethod(Tr2FenceALWebgl2, "Describe", blue.method);
+CjsSchema.decorateMethod(Tr2FenceALWebgl2, "SetName", blue.method);
 CjsSchema.blue.define(Tr2FenceALWebgl2, { className: "Tr2FenceALWebgl2", donors: [ "Tr2FenceAL" ] });

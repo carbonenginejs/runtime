@@ -8,7 +8,7 @@
 // every other call answers as dx11 does for a query that was never created,
 // and a statistics record has no fields.
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, blue, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -168,4 +168,17 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
   }
 }
 
+CjsSchema.decorateField(Tr2PipelineStatsQueryALWebgl2, "_name", type.string);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "Create", blue.method);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "IsValid", blue.method);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "Begin", blue.method);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "End", blue.method);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetStats", blue.method);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetValueCount", blue.method);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetLabel", blue.method);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetDescription", blue.method);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetValue", blue.method);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetMemoryClass", blue.method);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "Describe", blue.method);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "SetName", blue.method);
 CjsSchema.blue.define(Tr2PipelineStatsQueryALWebgl2, { className: "Tr2PipelineStatsQueryALWebgl2", donors: [ "Tr2PipelineStatsQueryAL" ] });

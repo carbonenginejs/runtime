@@ -26,7 +26,7 @@
 // Formats: the three-component byte, short and half types have no DXGI format,
 // and dx11 asserts on them; WebGL2 can read them, so they map here.
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, blue, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -245,4 +245,12 @@ export class Tr2VertexLayoutALWebgl2 extends Tr2DeviceResourceAL
   }
 }
 
+CjsSchema.decorateField(Tr2VertexLayoutALWebgl2, "_name", type.string);
+CjsSchema.decorateMethod(Tr2VertexLayoutALWebgl2, "Create", blue.method);
+CjsSchema.decorateMethod(Tr2VertexLayoutALWebgl2, "SetLayout", blue.method);
+CjsSchema.decorateMethod(Tr2VertexLayoutALWebgl2, "Destroy", blue.method);
+CjsSchema.decorateMethod(Tr2VertexLayoutALWebgl2, "IsValid", blue.method);
+CjsSchema.decorateMethod(Tr2VertexLayoutALWebgl2, "GetMemoryClass", blue.method);
+CjsSchema.decorateMethod(Tr2VertexLayoutALWebgl2, "Describe", blue.method);
+CjsSchema.decorateMethod(Tr2VertexLayoutALWebgl2, "SetName", blue.method);
 CjsSchema.blue.define(Tr2VertexLayoutALWebgl2, { className: "Tr2VertexLayoutALWebgl2", donors: [ "Tr2VertexLayoutAL" ] });

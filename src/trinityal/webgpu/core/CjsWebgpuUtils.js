@@ -10,7 +10,7 @@
 // Only the pixel format table is ported so far. Metal's other translations
 // (vertex format, texture type, cull mode, blend, compare, stencil, colour
 // write) belong here as they are needed.
-import { CjsSchema } from "#schema";
+import { CjsSchema, blue, meta } from "#schema";
 import { PixelFormat } from "#consts/render-context";
 import { num } from "#math/num";
 
@@ -229,4 +229,6 @@ export class CjsWebgpuUtils
 
 // Declared as a call, as the other AL classes are: the layer is imported
 // straight from source by its tests.
+CjsSchema.decorateMethod(CjsWebgpuUtils, "SetupPixelFormatConversionTable", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuUtils, "GetGPUTextureFormat", blue.method, meta.renamed("GetMTLPixelFormat"));
 CjsSchema.meta.define(CjsWebgpuUtils, { className: "CjsWebgpuUtils", donors: [ "MetalUtils" ] });

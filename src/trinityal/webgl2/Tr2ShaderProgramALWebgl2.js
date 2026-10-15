@@ -29,7 +29,7 @@
 // A compute stage runs as a fragment pass (see `Tr2ShaderALWebgl2`), so a
 // compute-only program is linked with a full-screen vertex stage of its own.
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, blue, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -409,4 +409,16 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
   }
 }
 
+CjsSchema.decorateField(Tr2ShaderProgramALWebgl2, "_name", type.string);
+CjsSchema.decorateField(Tr2ShaderProgramALWebgl2, "_log", type.string);
+CjsSchema.decorateField(Tr2ShaderProgramALWebgl2, "_isValid", type.boolean);
+CjsSchema.decorateField(Tr2ShaderProgramALWebgl2, "m_registerMap", type.rawStruct("Tr2RegisterMapAL"));
+CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "GetRegisterMap", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "Create", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "Destroy", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "IsValid", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "GetMemoryClass", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "Describe", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "SetName", blue.method);
+CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "CreateCommandSignatures", blue.method);
 CjsSchema.blue.define(Tr2ShaderProgramALWebgl2, { className: "Tr2ShaderProgramALWebgl2", donors: [ "Tr2ShaderProgramAL" ] });

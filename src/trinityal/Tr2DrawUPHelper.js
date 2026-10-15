@@ -30,7 +30,7 @@
 
 import { ALResult, Failed } from "./ALResult.js";
 import { Tr2BufferDescriptionAL } from "./stub/Tr2BufferALStub.js";
-import { CjsSchema } from "#schema";
+import { CjsSchema, blue, meta, type } from "#schema";
 import { Topology, Tr2CpuUsage, Tr2GpuUsage } from "../global/consts/renderContext/index.js";
 
 
@@ -350,4 +350,15 @@ export class Tr2DrawUPHelper
 // straight from source by its tests - `#trinityal/...` resolves to `src/` - and
 // raw Node cannot parse decorator syntax, so a decorator here breaks every test
 // that reaches this file without a build first.
+CjsSchema.decorateField(Tr2DrawUPHelper, "_nextRingVB", type.uint32);
+CjsSchema.decorateField(Tr2DrawUPHelper, "_nextRingIB16", type.uint32);
+CjsSchema.decorateField(Tr2DrawUPHelper, "_nextRingIB32", type.uint32);
+CjsSchema.decorateField(Tr2DrawUPHelper, "_vertexUP", type.array({ kind: "rawStruct", className: "Tr2BufferAL" }));
+CjsSchema.decorateField(Tr2DrawUPHelper, "_indexUP16", type.array({ kind: "rawStruct", className: "Tr2BufferAL" }));
+CjsSchema.decorateField(Tr2DrawUPHelper, "_indexUP32", type.array({ kind: "rawStruct", className: "Tr2BufferAL" }));
+CjsSchema.decorateMethod(Tr2DrawUPHelper, "Destroy", blue.method);
+CjsSchema.decorateMethod(Tr2DrawUPHelper, "DrawPrimitiveUP", blue.method);
+CjsSchema.decorateMethod(Tr2DrawUPHelper, "DrawIndexedPrimitiveUP", blue.method);
+CjsSchema.decorateMethod(Tr2DrawUPHelper, "_FillVertices", blue.method, meta.renamed("FillUPVertexBuffer"));
+CjsSchema.decorateMethod(Tr2DrawUPHelper, "_FillIndices", blue.method, meta.renamed("FillUPIndexBuffer"));
 CjsSchema.blue.define(Tr2DrawUPHelper, { className: "Tr2DrawUPHelper" });

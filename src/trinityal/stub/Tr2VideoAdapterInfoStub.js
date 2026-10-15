@@ -24,7 +24,7 @@
 // answers a subset of this. That is a reason to keep the interface, not to skip
 // it: the shape of the question is what the consumer already asks.
 
-import { CjsSchema } from "#schema";
+import { CjsSchema, blue } from "#schema";
 import { PixelFormat } from "../../global/consts/renderContext/index.js";
 import { ALResult } from "../ALResult.js";
 
@@ -215,4 +215,15 @@ export class Tr2VideoAdapterInfoStub
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
+CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "GetAdapterCount", blue.method);
+CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "GetAdapterInfo", blue.method);
+CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "GetAdapterMonitor", blue.method);
+CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "GetAdapterDisplayMode", blue.method);
+CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "GetAdapterModeCount", blue.method);
+CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "GetAdapterMode", blue.method);
+CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "GetAdapterMaxTextureWidth", blue.method);
+CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "SupportsBackBufferFormat", blue.method);
+CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "SupportsRenderTargetFormat", blue.method);
+CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "AreAdaptersDifferent", blue.method);
+CjsSchema.decorateMethod(Tr2VideoAdapterInfoStub, "RefreshData", blue.method);
 CjsSchema.blue.define(Tr2VideoAdapterInfoStub, { className: "Tr2VideoAdapterInfoStub", donors: [ "Tr2VideoAdapterInfo" ] });

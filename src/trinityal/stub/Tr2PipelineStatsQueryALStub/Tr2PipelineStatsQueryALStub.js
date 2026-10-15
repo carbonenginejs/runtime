@@ -1,5 +1,5 @@
 // Source: trinity/trinityal/stub/Tr2PipelineStatsQueryALStub.cpp
-import { CjsSchema } from "#schema";
+import { CjsSchema, blue } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../../ALResult.js";
@@ -150,4 +150,17 @@ export class Tr2PipelineStatsQueryALStub extends Tr2DeviceResourceAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "Create", blue.method);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "IsValid", blue.method);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "Destroy", blue.method);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "Begin", blue.method);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "End", blue.method);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "GetStats", blue.method);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "GetValueCount", blue.method);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "GetLabel", blue.method);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "GetDescription", blue.method);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "GetValue", blue.method);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "GetMemoryClass", blue.method);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "SetName", blue.method);
+CjsSchema.decorateMethod(Tr2PipelineStatsQueryALStub, "Describe", blue.method);
 CjsSchema.blue.define(Tr2PipelineStatsQueryALStub, { className: "Tr2PipelineStatsQueryALStub", donors: [ "Tr2PipelineStatsQueryAL" ] });

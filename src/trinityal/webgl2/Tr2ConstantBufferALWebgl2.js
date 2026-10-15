@@ -18,7 +18,7 @@
 // context set the constants as plain uniform arrays for a shader emitted with
 // the `array` profile, which has no blocks.
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, blue, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -252,4 +252,18 @@ export class Tr2ConstantBufferALWebgl2 extends Tr2DeviceResourceAL
   }
 }
 
+CjsSchema.decorateField(Tr2ConstantBufferALWebgl2, "_name", type.string);
+CjsSchema.decorateField(Tr2ConstantBufferALWebgl2, "_bufferMirror", type.uint8Array);
+CjsSchema.decorateField(Tr2ConstantBufferALWebgl2, "_size", type.uint32);
+CjsSchema.decorateField(Tr2ConstantBufferALWebgl2, "_usage", type.int32);
+CjsSchema.decorateMethod(Tr2ConstantBufferALWebgl2, "Create", blue.method);
+CjsSchema.decorateMethod(Tr2ConstantBufferALWebgl2, "Lock", blue.method);
+CjsSchema.decorateMethod(Tr2ConstantBufferALWebgl2, "Unlock", blue.method);
+CjsSchema.decorateMethod(Tr2ConstantBufferALWebgl2, "Destroy", blue.method);
+CjsSchema.decorateMethod(Tr2ConstantBufferALWebgl2, "IsValid", blue.method);
+CjsSchema.decorateMethod(Tr2ConstantBufferALWebgl2, "GetUsage", blue.method);
+CjsSchema.decorateMethod(Tr2ConstantBufferALWebgl2, "GetSize", blue.method);
+CjsSchema.decorateMethod(Tr2ConstantBufferALWebgl2, "GetMemoryClass", blue.method);
+CjsSchema.decorateMethod(Tr2ConstantBufferALWebgl2, "Describe", blue.method);
+CjsSchema.decorateMethod(Tr2ConstantBufferALWebgl2, "SetName", blue.method);
 CjsSchema.blue.define(Tr2ConstantBufferALWebgl2, { className: "Tr2ConstantBufferALWebgl2", donors: [ "Tr2ConstantBufferAL" ] });

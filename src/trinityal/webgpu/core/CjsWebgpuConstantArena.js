@@ -21,7 +21,7 @@
 // dynamic offset must be a multiple of.
 
 
-import { CjsSchema } from "#schema";
+import { CjsSchema, blue, type } from "#schema";
 function fail(message)
 {
   const error = new Error(`CjsWebgpuConstantArena: ${message}`);
@@ -169,4 +169,10 @@ export class CjsWebgpuConstantArena
 // that reaches this file without a build first. `CjsSchema.define` is the same
 // metadata through the door the schema already provides for exactly this, and
 // it keeps the layer free of the decorator chain it has never carried.
+CjsSchema.decorateField(CjsWebgpuConstantArena, "m_totalUploadedSize", type.uint32);
+CjsSchema.decorateMethod(CjsWebgpuConstantArena, "Reset", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuConstantArena, "Allocate", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuConstantArena, "GetPage", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuConstantArena, "_CreatePage", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuConstantArena, "GetTotalUploadedSize", blue.method);
 CjsSchema.blue.define(CjsWebgpuConstantArena, { className: "CjsWebgpuConstantArena", donors: [ "ConstantBufferAllocator" ] });

@@ -23,7 +23,7 @@ import { Tr2ResourceSetDescriptionAL } from "../Tr2ResourceSetAL/Tr2ResourceSetD
 // views (`Tr2ResourceSetALDx12.cpp:145-146`). A WebGPU bind group with a hole
 // is a validation error, so the same substitution happens here.
 //
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, blue, meta } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult } from "#trinityal";
 import { ShaderType } from "#consts/render-context";
@@ -298,4 +298,10 @@ export class CjsWebgpuResourceSetAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
+CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "Create", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "IsValid", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "Destroy", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "GetMemoryClass", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "Describe", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuResourceSetAL, "SetName", blue.method);
 CjsSchema.blue.define(CjsWebgpuResourceSetAL, { className: "CjsWebgpuResourceSetAL", donors: [ "Tr2ResourceSetAL" ] });

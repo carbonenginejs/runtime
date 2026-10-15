@@ -18,7 +18,7 @@
 // material fills (see the handover's emulation section). The description this
 // state keeps is the AUTHORED one, border included, so the material can read
 // the real modes back.
-import { CjsSchema } from "#schema";
+import { CjsSchema, blue } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult } from "#trinityal";
 import { NormalizeSamplerDescription } from "../Tr2HalHelperStructures/Tr2SamplerDescription.js";
@@ -164,4 +164,11 @@ export class CjsWebgpuSamplerStateAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
+CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "Create", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "IsValid", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "GetIndexInHeap", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "Destroy", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "GetMemoryClass", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "Describe", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuSamplerStateAL, "SetName", blue.method);
 CjsSchema.blue.define(CjsWebgpuSamplerStateAL, { className: "CjsWebgpuSamplerStateAL", donors: [ "Tr2SamplerStateAL" ] });
