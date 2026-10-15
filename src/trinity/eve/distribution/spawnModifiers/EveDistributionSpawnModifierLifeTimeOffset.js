@@ -9,8 +9,7 @@ import { CjsDistributionRandom } from "../../CjsDistributionRandom.js";
 /** Offsets each spawned placement's initial lifetime with random, normalized, or cascading timing. */
 @blue.define("EveDistributionSpawnModifierLifeTimeOffset")
 @blue.inherit(IInitialize)
-@blue.interface(IInitialize)
-@blue.chainTo(IEveDistributionSpawnModifier)
+@blue.interface(IEveDistributionSpawnModifier, IInitialize)
 export class EveDistributionSpawnModifierLifeTimeOffset extends IEveDistributionSpawnModifier
 {
 

@@ -1,9 +1,11 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/IEveDistributionSpawner.h
 import { meta, blue } from "#schema";
 
 
 /** Distribution spawner contract with Carbon's optional no-op hooks. */
 @blue.define("IEveDistributionSpawner")
+@blue.inherit(IRoot)
 export class IEveDistributionSpawner
 {
 

@@ -7,6 +7,7 @@ import { PlacementDataWithIdentifier } from "../../PlacementDataWithIdentifier.j
 
 /** Builds distribution placements from an authored locator list and requests regeneration when that list changes. */
 @blue.define("EveDistributionPlacementGeneratorLocators")
+@blue.interface(IEveDistributionPlacementGenerators)
 export class EveDistributionPlacementGeneratorLocators extends IEveDistributionPlacementGenerators
 {
 

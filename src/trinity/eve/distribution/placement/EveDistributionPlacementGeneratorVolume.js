@@ -1,3 +1,4 @@
+import { INotify } from "../../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionPlacementGenerators/EveDistributionPlacementGeneratorVolume.h
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -10,9 +11,8 @@ import { PlacementDataWithIdentifier } from "../../PlacementDataWithIdentifier.j
 
 /** Samples a volume into oriented distribution placements and requests regeneration when the volume or sampling settings change. */
 @blue.define("EveDistributionPlacementGeneratorVolume")
-@blue.inherit(IInitialize)
-@blue.interface(IInitialize)
-@blue.chainTo(IEveDistributionPlacementGenerators)
+@blue.inherit(IInitialize, INotify)
+@blue.interface(IEveDistributionPlacementGenerators, IInitialize, INotify)
 export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPlacementGenerators
 {
 

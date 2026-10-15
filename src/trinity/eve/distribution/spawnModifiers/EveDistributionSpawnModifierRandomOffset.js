@@ -10,8 +10,7 @@ import { CjsDistributionRandom } from "../../CjsDistributionRandom.js";
 /** Adds a seeded random local translation offset to each spawned placement. */
 @blue.define("EveDistributionSpawnModifierRandomOffset")
 @blue.inherit(IInitialize)
-@blue.interface(IInitialize)
-@blue.chainTo(IEveDistributionSpawnModifier)
+@blue.interface(IEveDistributionSpawnModifier, IInitialize)
 export class EveDistributionSpawnModifierRandomOffset extends IEveDistributionSpawnModifier
 {
 

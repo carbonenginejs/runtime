@@ -10,8 +10,7 @@ import { CjsDistributionRandom } from "../../CjsDistributionRandom.js";
 /** Applies or replaces each spawned placement's scale with seeded random per-axis or uniform values. */
 @blue.define("EveDistributionSpawnModifierRandomScale")
 @blue.inherit(IInitialize)
-@blue.interface(IInitialize)
-@blue.chainTo(IEveDistributionSpawnModifier)
+@blue.interface(IEveDistributionSpawnModifier, IInitialize)
 export class EveDistributionSpawnModifierRandomScale extends IEveDistributionSpawnModifier
 {
 

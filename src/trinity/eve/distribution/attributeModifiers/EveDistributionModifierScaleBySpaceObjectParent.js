@@ -7,6 +7,7 @@ import { vec3 } from "#math/vec3";
 
 /** Multiplies a distributed placement's additional scale from its parent space object's bounding radius or an authored scale curve. */
 @blue.define("EveDistributionModifierScaleBySpaceObjectParent")
+@blue.interface(IEveDistributionModifier)
 export class EveDistributionModifierScaleBySpaceObjectParent extends IEveDistributionModifier
 {
 

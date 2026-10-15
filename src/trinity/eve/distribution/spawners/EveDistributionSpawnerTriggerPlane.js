@@ -7,6 +7,7 @@ import { quat } from "#math/quat";
 
 /** Triggers pooled placements in the order reached by a timed plane sweep. */
 @blue.define("EveDistributionSpawnerTriggerPlane")
+@blue.interface(IEveDistributionSpawner)
 export class EveDistributionSpawnerTriggerPlane extends IEveDistributionSpawner
 {
 

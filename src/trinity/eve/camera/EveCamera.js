@@ -986,6 +986,7 @@ export class EveCamera
    * Clamps pitch into the authored min/max range, and yaw as well but only when
    * a yaw range is configured, that is when minYaw and maxYaw differ.
    */
+  @blue.method
   _CapPitchAndYaw()
   {
     this.pitch = Math.max(this.minPitch, Math.min(this.maxPitch, this.pitch));

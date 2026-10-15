@@ -7,6 +7,7 @@ import { vec3 } from "#math/vec3";
 
 /** Accumulates authored or lifetime-sampled translation, rotation, and scale onto a distributed placement. */
 @blue.define("EveDistributionModifierTransformOffset")
+@blue.interface(IEveDistributionModifier)
 export class EveDistributionModifierTransformOffset extends IEveDistributionModifier
 {
 

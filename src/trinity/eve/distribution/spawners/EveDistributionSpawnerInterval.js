@@ -5,6 +5,7 @@ import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 
 /** Spawns distribution entities at configurable, optionally randomized intervals for a bounded or unlimited repeat count. */
 @blue.define("EveDistributionSpawnerInterval")
+@blue.interface(IEveDistributionSpawner)
 export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
 {
 

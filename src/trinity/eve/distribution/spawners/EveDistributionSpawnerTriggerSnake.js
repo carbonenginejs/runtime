@@ -6,6 +6,7 @@ import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 
 /** Triggers a timed chain of nearby free placements, walking forward from each previously reached destination. */
 @blue.define("EveDistributionSpawnerTriggerSnake")
+@blue.interface(IEveDistributionSpawner)
 export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
 {
 

@@ -5,6 +5,7 @@ import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 
 /** Spawns a configured fraction of the free distribution placements in one delayed burst. */
 @blue.define("EveDistributionSpawnerBurst")
+@blue.interface(IEveDistributionSpawner)
 export class EveDistributionSpawnerBurst extends IEveDistributionSpawner
 {
 

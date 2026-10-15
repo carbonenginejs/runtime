@@ -11,8 +11,7 @@ import { CjsDistributionRandom } from "../../CjsDistributionRandom.js";
 /** Applies or replaces each spawned placement's orientation with a seeded random yaw, pitch, and roll. */
 @blue.define("EveDistributionSpawnModifierRandomRotation")
 @blue.inherit(IInitialize)
-@blue.interface(IInitialize)
-@blue.chainTo(IEveDistributionSpawnModifier)
+@blue.interface(IEveDistributionSpawnModifier, IInitialize)
 export class EveDistributionSpawnModifierRandomRotation extends IEveDistributionSpawnModifier
 {
 

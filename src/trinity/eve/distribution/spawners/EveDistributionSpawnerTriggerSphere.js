@@ -6,6 +6,7 @@ import { vec3 } from "#math/vec3";
 
 /** Triggers pooled placements in the order reached by a timed sphere expansion. */
 @blue.define("EveDistributionSpawnerTriggerSphere")
+@blue.interface(IEveDistributionSpawner)
 export class EveDistributionSpawnerTriggerSphere extends IEveDistributionSpawner
 {
 

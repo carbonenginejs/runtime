@@ -1,3 +1,4 @@
+import { IListNotify } from "../../../global/blue/IListNotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/EveBaseDistributionMethod.h
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -11,9 +12,8 @@ import { DistributionEntityLifeTimeEvent } from "./attributeModifiers/enums.js";
 
 /** Manages an authored placement pool and updates its live entities through placement generators, spawners, and lifetime modifiers. */
 @blue.define("EveBaseDistributionMethod")
-@blue.inherit(IInitialize)
-@blue.interface(IInitialize)
-@blue.chainTo(IEveDistributionMethod)
+@blue.inherit(IInitialize, IListNotify)
+@blue.interface(IEveDistributionMethod, IInitialize, IListNotify)
 export class EveBaseDistributionMethod extends IEveDistributionMethod
 {
 
@@ -71,7 +71,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
 
   /** m_placementData (PPlacementDataWithIdentifierStructureList) [READ] */
   @blue.read
-  @type.list("PlacementDataWithIdentifier")
+  @type.structList("PlacementDataWithIdentifier")
   placementData = [];
 
   /** m_distributionSpawnModifiers (PIEveDistributionSpawnModifierVector) [READ, PERSIST] */
@@ -455,6 +455,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * Maps a placement unique id to its current index in the pool, or -1 when the
    * id is unknown.
    */
+  @blue.method
   _GetInitialPlacementIndexByID(entityID)
   {
     return this._uniqueIDIndices.get(entityID) ?? -1;
@@ -464,6 +465,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * Swaps two pool entries and updates the id-to-index map; this is how
    * placements move between the free and in-use partitions of the pool.
    */
+  @blue.method
   _SwapInitialPlacements(indexA, indexB)
   {
     if (indexA === indexB)
@@ -485,6 +487,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * lifetime modifier pass over the clone; returns null when that placement is
    * not free.
    */
+  @blue.method
   _GetPlacement(entityID)
   {
     if (this.freePlacements < 1 || this._initialPlacements.length === 0)
@@ -519,6 +522,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   }
 
   /** Takes a uniformly chosen free placement out of the pool. */
+  @blue.method
   _GetRandomPlacement()
   {
     if (this.freePlacements < 1 || this._initialPlacements.length === 0)
@@ -584,6 +588,8 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * the spawn modifiers reapplied, returning identity when that origin placement
    * no longer exists.
    */
+  @blue.method
+  @meta.renamed("GetInitialPlacementMatrixForPlacement")
   _getInitialPlacementMatrix(placement)
   {
     const originIndex = this._GetInitialPlacementIndexByID(placement.initialPlacementID);
@@ -606,6 +612,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * placement drawn from the distribution, from its initial position, or from
    * its current position.
    */
+  @blue.method
   _HandleDistributionEntityLifetimeEvent(index, event)
   {
     if (event === DistributionEntityLifeTimeEvent.KILL_ENTITY)

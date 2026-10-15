@@ -6,6 +6,7 @@ import { DistributionEntityLifeTimeEvent } from "./enums.js";
 
 /** Ends or respawns a distributed placement with the authored lifetime event after its lifetime duration expires. */
 @blue.define("EveDistributionModifierProcessLifetime")
+@blue.interface(IEveDistributionModifier)
 export class EveDistributionModifierProcessLifetime extends IEveDistributionModifier
 {
 
