@@ -1,5 +1,5 @@
 // Source: resources/include/ResourceGroup.h
-import { CjsSchema } from "#schema";
+import { CjsSchema, type } from "#schema";
 
 /** `CarbonResources::CallbackSettings` - the status callback and how deeply nested scopes report. */
 export class CallbackSettings
@@ -11,4 +11,6 @@ export class CallbackSettings
     verbosityLevel = -1;
 }
 
-CjsSchema.blue.define(CallbackSettings, { className: "CallbackSettings", fields: {} });
+CjsSchema.blue.define(CallbackSettings, { className: "CallbackSettings", fields: {
+        verbosityLevel: [type.int32]
+    } });

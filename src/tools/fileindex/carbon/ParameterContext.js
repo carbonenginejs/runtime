@@ -1,6 +1,6 @@
 // Source: resources/src/ParameterVersion.h:46-53
 // Source: resources/src/ParameterVersion.cpp:104-109
-import { CjsSchema } from "#schema";
+import { CjsSchema, type } from "#schema";
 
 /** `ParameterContext` - one construct a parameter appears in, and the versions it spans. */
 export class ParameterContext
@@ -26,5 +26,7 @@ export class ParameterContext
     }
 }
 
-CjsSchema.blue.define(ParameterContext, { className: "ParameterContext", fields: {} });
+CjsSchema.blue.define(ParameterContext, { className: "ParameterContext", fields: {
+        m_context: [type.string]
+    } });
 

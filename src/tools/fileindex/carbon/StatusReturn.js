@@ -1,5 +1,5 @@
 // Source: resources/src/StatusSettings.h:17-21
-import { CjsSchema } from "#schema";
+import { CjsSchema, type } from "#schema";
 
 /** `CarbonResources::StatusReturn` - overall progress and the scale a nested scope contributes. */
 export class StatusReturn
@@ -19,4 +19,7 @@ export class StatusReturn
     }
 }
 
-CjsSchema.blue.define(StatusReturn, { className: "StatusReturn", fields: {} });
+CjsSchema.blue.define(StatusReturn, { className: "StatusReturn", fields: {
+        progress: [type.float32],
+        scale: [type.float32]
+    } });

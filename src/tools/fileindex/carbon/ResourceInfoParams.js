@@ -1,5 +1,5 @@
 // Source: resources/src/ResourceInfo/ResourceInfo.h:217-234
-import { CjsSchema } from "#schema";
+import { CjsSchema, type } from "#schema";
 
 /** CarbonResources::ResourceInfoParams, preserving native aggregate defaults. */
 export class ResourceInfoParams
@@ -13,4 +13,12 @@ export class ResourceInfoParams
     prefix = "";
 }
 
-CjsSchema.blue.define(ResourceInfoParams, { className: "ResourceInfoParams", fields: {} });
+CjsSchema.blue.define(ResourceInfoParams, { className: "ResourceInfoParams", fields: {
+        relativePath: [type.string],
+        location: [type.string],
+        checksum: [type.string],
+        compressedSize: [type.uint64],
+        uncompressedSize: [type.uint64],
+        binaryOperation: [type.uint32],
+        prefix: [type.string]
+    } });

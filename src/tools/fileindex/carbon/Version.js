@@ -1,5 +1,5 @@
 // Source: resources/include/Enums.h:235-249
-import { CjsSchema } from "#schema";
+import { CjsSchema, type } from "#schema";
 
 /**
  * `CarbonResources::Version` - a plain major.minor.patch triple, the public
@@ -27,4 +27,8 @@ export class Version
     }
 }
 
-CjsSchema.blue.define(Version, { className: "Version", fields: {} });
+CjsSchema.blue.define(Version, { className: "Version", fields: {
+        major: [type.uint32],
+        minor: [type.uint32],
+        patch: [type.uint32]
+    } });

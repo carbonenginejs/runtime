@@ -657,9 +657,10 @@ export class ResourceGroupImpl
 
 CjsSchema.blue.define(ResourceGroupImpl, {
   className: "ResourceGroupImpl",
+  donors: ["ResourceGroup::ResourceGroupImpl"],
   fields: {},
   methods: {
-        typeId: [ blue.method, meta.implemented ],
+        typeId: [ meta.renamed("TypeId"), meta.implemented ],
         GetType: [ blue.method, meta.implemented ],
         GetSize: [ blue.method, meta.implemented ],
         AddResource: [ blue.method, meta.implemented ],
@@ -688,6 +689,6 @@ CjsSchema.blue.define(ResourceGroupImpl, {
         ConstructPatchResourceInfo: [ blue.method, meta.notImplemented ],
         CreatePatch: [ blue.method, meta.notImplemented ],
         Diff: [ blue.method, meta.notImplemented ],
-        createFromFilter: [ blue.method, meta.notImplemented ]
+        createFromFilter: [ meta.renamed("CreateFromFilter"), meta.notImplemented ]
     }
 });

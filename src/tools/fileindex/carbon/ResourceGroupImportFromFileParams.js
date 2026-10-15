@@ -1,6 +1,6 @@
 // Source: resources/include/ResourceGroup.h
 import { CallbackSettings } from "./CallbackSettings.js";
-import { CjsSchema } from "#schema";
+import { CjsSchema, type } from "#schema";
 
 /** Native import parameters plus the host-owned reader adaptation. */
 export class ResourceGroupImportFromFileParams
@@ -14,4 +14,6 @@ export class ResourceGroupImportFromFileParams
     read = null;
 }
 
-CjsSchema.blue.define(ResourceGroupImportFromFileParams, { className: "ResourceGroupImportFromFileParams", fields: {} });
+CjsSchema.blue.define(ResourceGroupImportFromFileParams, { className: "ResourceGroupImportFromFileParams", fields: {
+        filename: [type.string]
+    } });

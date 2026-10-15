@@ -1,7 +1,7 @@
 // Source: resources/src/VersionInternal.h
 // Source: resources/src/VersionInternal.cpp
 import { S_VALID_DOCUMENT_VERSIONS } from "./enums.js";
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, meta, blue, type } from "#schema";
 
 /** Carbon resource-document version; this is not a game build number. */
 export class VersionInternal
@@ -171,13 +171,17 @@ export class VersionInternal
 
 CjsSchema.blue.define(VersionInternal, {
   className: "VersionInternal",
-  fields: {},
+  fields: {
+        m_major: [type.uint32],
+        m_minor: [type.uint32],
+        m_patch: [type.uint32]
+    },
   methods: {
-        GreaterThan: [ meta.adapted ],
-        LessThan: [ meta.adapted ],
-        GreaterThanOrEqual: [ meta.adapted ],
-        LessThanOrEqual: [ meta.adapted ],
-        Equals: [ meta.adapted ],
+        GreaterThan: [ meta.renamed("operator>"), meta.adapted ],
+        LessThan: [ meta.renamed("operator<"), meta.adapted ],
+        GreaterThanOrEqual: [ meta.renamed("operator>="), meta.adapted ],
+        LessThanOrEqual: [ meta.renamed("operator<="), meta.adapted ],
+        Equals: [ meta.renamed("operator=="), meta.adapted ],
         ToString: [ blue.method, meta.implemented ],
         FromString: [ blue.method, meta.implemented ],
         getMajor: [ blue.method, meta.implemented ],

@@ -1,6 +1,6 @@
 // Source: resources/include/Enums.h
 import { ResultType } from "./enums.js";
-import { CjsSchema } from "#schema";
+import { CjsSchema, type } from "#schema";
 
 /** CarbonResources::Result: the native status code and optional diagnostic. */
 export class Result
@@ -21,4 +21,7 @@ export class Result
     }
 }
 
-CjsSchema.blue.define(Result, { className: "Result", fields: {} });
+CjsSchema.blue.define(Result, { className: "Result", fields: {
+        type: [type.int32, type.enum(ResultType)],
+        info: [type.string]
+    } });

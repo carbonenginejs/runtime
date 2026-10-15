@@ -2,7 +2,7 @@
 import { CallbackSettings } from "./CallbackSettings.js";
 import { S_DOCUMENT_VERSION } from "./enums.js";
 import { VersionInternal } from "./VersionInternal.js";
-import { CjsSchema } from "#schema";
+import { CjsSchema, type } from "#schema";
 
 /** Native export parameters plus the host-owned writer adaptation. */
 export class ResourceGroupExportToFileParams
@@ -17,4 +17,6 @@ export class ResourceGroupExportToFileParams
     write = null;
 }
 
-CjsSchema.blue.define(ResourceGroupExportToFileParams, { className: "ResourceGroupExportToFileParams", fields: {} });
+CjsSchema.blue.define(ResourceGroupExportToFileParams, { className: "ResourceGroupExportToFileParams", fields: {
+        filename: [type.string]
+    } });

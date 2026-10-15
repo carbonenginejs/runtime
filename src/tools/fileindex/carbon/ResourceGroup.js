@@ -153,6 +153,6 @@ CjsSchema.blue.define(ResourceGroup, {
         CreateBundle: [ blue.method, meta.notImplemented ],
         CreatePatch: [ blue.method, meta.notImplemented ],
         CreateFromDirectory: [ blue.method, meta.notImplemented ],
-        createFromFilter: [ blue.method, meta.notImplemented ]
+        createFromFilter: [ meta.renamed("CreateFromFilter"), meta.notImplemented ]
     }
 });

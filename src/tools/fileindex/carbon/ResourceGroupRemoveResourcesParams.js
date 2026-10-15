@@ -1,6 +1,6 @@
 // Source: resources/include/ResourceGroup.h
 import { CallbackSettings } from "./CallbackSettings.js";
-import { CjsSchema } from "#schema";
+import { CjsSchema, type } from "#schema";
 
 /** CarbonResources::ResourceGroupRemoveResourcesParams native parameter aggregate. */
 export class ResourceGroupRemoveResourcesParams
@@ -10,4 +10,6 @@ export class ResourceGroupRemoveResourcesParams
     callbackSettings = new CallbackSettings();
 }
 
-CjsSchema.blue.define(ResourceGroupRemoveResourcesParams, { className: "ResourceGroupRemoveResourcesParams", fields: {} });
+CjsSchema.blue.define(ResourceGroupRemoveResourcesParams, { className: "ResourceGroupRemoveResourcesParams", fields: {
+        errorIfResourceNotFound: [type.boolean]
+    } });
