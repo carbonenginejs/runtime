@@ -1,3 +1,4 @@
+import { blue } from "#schema";
 // Source: trinity/trinity/Eve/IEveSpaceObject2.h (IEveSpaceObject2::ParentData)
 // Hand-maintained. Carbon nests this struct inside the IEveSpaceObject2
 // interface; the JS identity concatenates owner and inner name
@@ -16,6 +17,7 @@ import { vec4 } from "#math/vec4";
 
 
 /** The per-frame parent state a space object hands to its attachments. */
+@blue.define({ className: "IEveSpaceObject2ParentData", donors: ["IEveSpaceObject2::ParentData"] })
 export class IEveSpaceObject2ParentData
 {
 

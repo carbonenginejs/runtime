@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveCustomMask.h
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveCustomMask.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveCustomMask_Blue.cpp
@@ -13,6 +14,8 @@ import { meta, type, blue } from "#schema";
  * chosen blend of target materials inside it.
  */
 @blue.define("EveCustomMask")
+@blue.inherit(IRoot)
+@blue.interface()
 export class EveCustomMask
 {
   static CUSTOM_MASK_COUNT = 2;

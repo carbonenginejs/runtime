@@ -1,3 +1,4 @@
+import { blue } from "#schema";
 // Source: trinity/trinity/Eve/EveLODHelper.h
 // Source: trinity/trinity/Eve/EveLODHelper.cpp
 // Source: trinity/trinity/Eve/EveSpaceScene.cpp
@@ -6,6 +7,7 @@ import { Tr2Lod } from "#consts/trinity";
 export { Tr2Lod };
 
 /** Carbon's stateless LOD decision helper. */
+@blue.define("EveLODHelper")
 export class EveLODHelper
 {
   static lowUpdateRate = 1;
@@ -17,6 +19,7 @@ export class EveLODHelper
    * seconds since its last one; unspecified and low update once a second, medium
    * ten times a second, and higher levels every frame.
    */
+  @blue.method
   static ShouldUpdate(lod, timeSinceUpdate)
   {
     switch (lod)
@@ -38,6 +41,7 @@ export class EveLODHelper
    * @param {Number} lod1
    * @returns {Number}
    */
+  @blue.method
   static MergeLOD(lod0, lod1)
   {
     if (lod0 === Tr2Lod.TR2_LOD_UNSPECIFIED || lod1 === Tr2Lod.TR2_LOD_UNSPECIFIED)
@@ -58,6 +62,7 @@ export class EveLODHelper
    * @param {EveUpdateContext} updateContext
    * @returns {Number}
    */
+  @blue.method
   static MergeLOD__SphereUpdateContext(lod0, sphere, updateContext)
   {
     const frustum = updateContext.GetFrustum();

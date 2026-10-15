@@ -1,3 +1,4 @@
+import { blue } from "#schema";
 // Source: trinity/trinity/Eve/IEveShadowCaster.h
 // Methods implemented from IEveShadowCaster.h:28-105 (TriShadowOrthoFrustum,
 // the cascaded-shadow-map IEveShadowFrustum adapter). Transient per-shadow-pass
@@ -11,6 +12,7 @@ import { PlaneDotCoord, PlaneDotNormal } from "../../../core/view/TriFrustum.js"
 import { TriFrustumTestResult } from "../../../generated/trinityCore/enums.js";
 
 /** Carbon's native orthographic-shadow frustum adapter. */
+@blue.define("TriShadowOrthoFrustum")
 export class TriShadowOrthoFrustum
 {
 
@@ -50,6 +52,7 @@ export class TriShadowOrthoFrustum
    * @param {Float32Array} boundingSphere - packed (x, y, z, radius)
    * @returns {Boolean}
    */
+  @blue.method
   IsVisible(camera, boundingSphere)
   {
     if (!this.shadow)
@@ -83,6 +86,7 @@ export class TriShadowOrthoFrustum
    * @param {Float32Array} boundingSphere - packed (x, y, z, radius)
    * @returns {Number}
    */
+  @blue.method
   GetSizeInShadow(boundingSphere)
   {
     return this.shadow ? this.shadow.GetPixelSize(boundingSphere, this.shadowMapSize) : 0;
@@ -92,6 +96,7 @@ export class TriShadowOrthoFrustum
    * Carbon TriShadowOrthoFrustum::GetEyePos (h:74-77).
    * @returns {Float32Array}
    */
+  @blue.method
   GetEyePos()
   {
     return this.shadow ? this.shadow.GetEyePos() : TriShadowOrthoFrustum.#zeroEyePos;
@@ -105,6 +110,7 @@ export class TriShadowOrthoFrustum
    * @param {Object|Float32Array} sphere - { center, radius } or packed vec4
    * @returns {Number} TriFrustumTestResult
    */
+  @blue.method
   SphereTest(camera, sphere)
   {
     if (!this.shadow)

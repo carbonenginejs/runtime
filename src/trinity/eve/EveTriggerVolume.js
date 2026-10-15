@@ -1,3 +1,5 @@
+import { ITr2DebugRenderable } from "../../global/interfaces/ITr2DebugRenderable.js";
+import { IWorldPosition } from "../core/IWorldPosition.js";
 // Source: trinity/trinity/Eve/EveTriggerVolume.h
 // Source: trinity/trinity/Eve/EveTriggerVolume.cpp
 // Source: trinity/trinity/Eve/EveTriggerVolume_Blue.cpp
@@ -30,9 +32,8 @@ const SPHERE_RADIUS_EPSILON = 1e-4;
  * evaluation runs in UpdateSyncronous.
  */
 @blue.define("EveTriggerVolume")
-@blue.inherit(IEveSpaceObject2)
-@blue.inherit(IInitialize)
-@blue.interface(IInitialize)
+@blue.inherit(IWorldPosition, IEveSpaceObject2, IInitialize, ITr2DebugRenderable)
+@blue.interface(IEveSpaceObject2, IInitialize, IWorldPosition, ITr2DebugRenderable)
 export class EveTriggerVolume
 {
 
@@ -83,6 +84,7 @@ export class EveTriggerVolume
    * exposes it READWRITE but NOT PERSIST (EveTriggerVolume_Blue.cpp:58-62) -
    * destiny wires it at runtime, so it never serializes.
    */
+  @blue.readwrite
   @type.rootRef("ITriVectorFunction")
   trackedPositionCurve = null;
 
@@ -132,6 +134,7 @@ export class EveTriggerVolume
   }
 
   /** Invokes the stored callback, isolating the update loop from callback errors. */
+  @blue.method
   _InvokeCallback(entered)
   {
     const callback = this._callback;
@@ -154,6 +157,7 @@ export class EveTriggerVolume
    * (Carbon EveTriggerVolume.cpp:71-95): row-vector
    * RotationMatrix * TranslationMatrix = rotate about the origin, then place.
    */
+  @blue.method
   _UpdateWorldTransform(time)
   {
     if (this.translationCurve) this.translationCurve.Update__Ticks(time, CURVE_TRANSLATION_SCRATCH);
@@ -169,6 +173,7 @@ export class EveTriggerVolume
    * EveTriggerVolume.cpp:21-53): volumes with no usable sphere are skipped,
    * contained spheres collapse, and the merge grows the enclosing sphere.
    */
+  @blue.method
   _RebuildBoundingSphere()
   {
     this._boundingSphereInitialized = false;
@@ -215,6 +220,7 @@ export class EveTriggerVolume
    * Returns the highest intensity any volume in the list gives the
    * object-space position, exiting early at 1 (Carbon cpp:109-122).
    */
+  @blue.method
   static _GetMaxIntensity(volumes, position)
   {
     let intensity = 0;
@@ -231,6 +237,7 @@ export class EveTriggerVolume
    * the callback on transitions (Carbon cpp:124-158). The intensity resets
    * to 0 every call; the callback fires only on threshold-crossing edges.
    */
+  @blue.method
   _UpdateTriggerState(time)
   {
     this.intensity = 0;
@@ -295,6 +302,7 @@ export class EveTriggerVolume
   }
 
   /** The trigger volume renders nothing (cpp:168-170). */
+  @blue.method
   @meta.implemented
   GetRenderables__Impostors(_renderables, _impostors)
   {
@@ -392,7 +400,6 @@ export class EveTriggerVolume
    * Whether the tracked position currently counts as inside; mirrors the
    * READ-only Blue attribute for programmatic consumers.
    */
-  @blue.method
   @meta.implemented
   IsInside()
   {

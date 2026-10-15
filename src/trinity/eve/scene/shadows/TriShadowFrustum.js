@@ -1,3 +1,4 @@
+import { blue } from "#schema";
 // Source: trinity/trinity/Eve/IEveShadowCaster.h
 // Methods implemented from IEveShadowCaster.h:107-135 (TriShadowFrustum, the
 // perspective IEveShadowFrustum adapter). Transient per-shadow-pass CPU cull
@@ -8,6 +9,7 @@ import { vec3 } from "#math/vec3";
 import { TriFrustumTestResult } from "../../../generated/trinityCore/enums.js";
 
 /** Carbon's native perspective-shadow frustum adapter. */
+@blue.define("TriShadowFrustum")
 export class TriShadowFrustum
 {
 
@@ -32,6 +34,7 @@ export class TriShadowFrustum
    * @param {Float32Array} boundingSphere - packed (x, y, z, radius)
    * @returns {Boolean}
    */
+  @blue.method
   IsVisible(_camera, boundingSphere)
   {
     return !!this.shadow?.IsSphereVisible(boundingSphere);
@@ -42,6 +45,7 @@ export class TriShadowFrustum
    * @param {Float32Array} boundingSphere - packed (x, y, z, radius)
    * @returns {Number}
    */
+  @blue.method
   GetSizeInShadow(boundingSphere)
   {
     return this.shadow ? this.shadow.GetPixelSizeAccross(boundingSphere) : 0;
@@ -52,6 +56,7 @@ export class TriShadowFrustum
    * m_viewPos.
    * @returns {Float32Array}
    */
+  @blue.method
   GetEyePos()
   {
     return this.shadow ? this.shadow.viewPos : TriShadowFrustum.#zeroEyePos;
@@ -64,6 +69,7 @@ export class TriShadowFrustum
    * @param {Object|Float32Array} sphere - { center, radius } or packed vec4
    * @returns {Number} TriFrustumTestResult
    */
+  @blue.method
   SphereTest(_camera, sphere)
   {
     return this.shadow ? this.shadow.SphereTest(sphere) : TriFrustumTestResult.Outside;

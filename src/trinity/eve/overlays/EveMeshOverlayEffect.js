@@ -1,3 +1,5 @@
+import { IListNotify } from "../../../global/blue/IListNotify.js";
+import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveMeshOverlayEffect.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveMeshOverlayEffect.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveMeshOverlayEffect_Blue.cpp
@@ -16,8 +18,8 @@ import { CarbonVertexElements } from "../../core/vertex/vertexUsage.js";
  * together with the curve set and controllers that animate them.
  */
 @blue.define("EveMeshOverlayEffect")
-@blue.inherit(IInitialize, ITr2ControllerOwner)
-@blue.interface(IInitialize)
+@blue.inherit(IInitialize, IListNotify, ITr2ControllerOwner, ITr2CurveSetOwner)
+@blue.interface(IInitialize, IListNotify, ITr2ControllerOwner, ITr2CurveSetOwner)
 export class EveMeshOverlayEffect
 {
   @blue.readwrite

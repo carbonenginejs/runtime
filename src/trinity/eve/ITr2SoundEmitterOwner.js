@@ -1,5 +1,6 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/ITr2SoundEmitterOwner.h:9-14
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 
 
 /** Contract for a scene object that finds named sound emitters. */
@@ -10,6 +11,7 @@ export class ITr2SoundEmitterOwner
    * @param {string} _name The emitter name.
    * @returns {object|null} The named ITr2AudEmitter, or null when absent.
    */
+  @blue.method
   FindSoundEmitter(_name)
   {
     throw new Error("ITr2SoundEmitterOwner.FindSoundEmitter must be implemented by a sound-emitter owner.");
@@ -20,6 +22,7 @@ export class ITr2SoundEmitterOwner
    * @param {object} _observer The TriObserverLocal supplied by the caller.
    * @returns {void}
    */
+  @blue.method
   AddObserver(_observer)
   {
   }
@@ -27,4 +30,5 @@ export class ITr2SoundEmitterOwner
 
 CjsSchema.decorateMethod(ITr2SoundEmitterOwner, "FindSoundEmitter", meta.abstract);
 CjsSchema.decorateMethod(ITr2SoundEmitterOwner, "AddObserver", meta.noop);
+CjsSchema.blue.inherit(IRoot)(ITr2SoundEmitterOwner);
 CjsSchema.blue.define(ITr2SoundEmitterOwner, { className: "ITr2SoundEmitterOwner" });

@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/IEveSpaceObject2.h
 //
 // The contract every top-level scene object answers to: everything
@@ -11,7 +12,7 @@
 // UpdateSyncronous and UpdateAsyncronous spellings; additional English-spelled
 // forwarding methods belong to the concrete classes that define them.
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 
 
@@ -27,6 +28,7 @@ export class IEveSpaceObject2
    *
    * @param {object} _updateContext The frame's EveUpdateContext.
    */
+  @blue.method
   UpdateSyncronous(_updateContext)
   {
     throw new Error("IEveSpaceObject2.UpdateSyncronous must be implemented by a space object.");
@@ -37,6 +39,7 @@ export class IEveSpaceObject2
    *
    * @param {object} _updateContext The frame's EveUpdateContext.
    */
+  @blue.method
   UpdateAsyncronous(_updateContext)
   {
     throw new Error("IEveSpaceObject2.UpdateAsyncronous must be implemented by a space object.");
@@ -48,6 +51,7 @@ export class IEveSpaceObject2
    * @param {object} _updateContext The frame's EveUpdateContext.
    * @param {Float32Array} _parentTransform The parent's world transform.
    */
+  @blue.method
   UpdateVisibility(_updateContext, _parentTransform)
   {
     throw new Error("IEveSpaceObject2.UpdateVisibility must be implemented by a space object.");
@@ -59,6 +63,7 @@ export class IEveSpaceObject2
    * @param {Array} _renderables Collected renderables.
    * @param {object} [_impostors] The impostor manager, when one exists.
    */
+  @blue.method
   GetRenderables__Impostors(_renderables, _impostors)
   {
     throw new Error("IEveSpaceObject2.GetRenderables__Impostors must be implemented by a space object.");
@@ -71,6 +76,7 @@ export class IEveSpaceObject2
    * @param {number} [_query] A BoundingSphereQuery.
    * @returns {boolean} Whether a sphere was written.
    */
+  @blue.method
   GetBoundingSphere(_sphere, _query)
   {
     throw new Error("IEveSpaceObject2.GetBoundingSphere must be implemented by a space object.");
@@ -82,6 +88,7 @@ export class IEveSpaceObject2
    * @param {Float32Array} _position Receives the position.
    * @param {number} _time Sim seconds.
    */
+  @blue.method
   UpdateModelCenterWorldPosition(_position, _time)
   {
     throw new Error("IEveSpaceObject2.UpdateModelCenterWorldPosition must be implemented by a space object.");
@@ -92,6 +99,7 @@ export class IEveSpaceObject2
    *
    * @param {Float32Array} _position Receives the position.
    */
+  @blue.method
   GetModelCenterWorldPosition(_position)
   {
     throw new Error("IEveSpaceObject2.GetModelCenterWorldPosition must be implemented by a space object.");
@@ -104,6 +112,7 @@ export class IEveSpaceObject2
    * @param {Float32Array} _max Receives the maximum corner.
    * @returns {boolean} Whether a box was written.
    */
+  @blue.method
   GetLocalBoundingBox(_min, _max)
   {
     throw new Error("IEveSpaceObject2.GetLocalBoundingBox must be implemented by a space object.");
@@ -114,6 +123,7 @@ export class IEveSpaceObject2
    *
    * @param {Float32Array} _transform Receives the matrix.
    */
+  @blue.method
   GetLocalToWorldTransform(_transform)
   {
     throw new Error("IEveSpaceObject2.GetLocalToWorldTransform must be implemented by a space object.");
@@ -124,6 +134,7 @@ export class IEveSpaceObject2
    *
    * @param {Float32Array} velocity Receives the velocity.
    */
+  @blue.method
   GetWorldVelocity(velocity)
   {
     vec3.set(velocity, 0, 0, 0);
@@ -134,6 +145,7 @@ export class IEveSpaceObject2
    *
    * @param {object} _quadRenderer The scene's quad renderer.
    */
+  @blue.method
   RegisterWithQuadRenderer(_quadRenderer)
   {
   }
@@ -144,6 +156,7 @@ export class IEveSpaceObject2
    * @param {object} _frustum The frame's frustum.
    * @param {object} _quadRenderer The scene's quad renderer.
    */
+  @blue.method
   AddQuadsToQuadRenderer(_frustum, _quadRenderer)
   {
   }
@@ -154,6 +167,7 @@ export class IEveSpaceObject2
    * @param {object} _vsData Receives EveSpaceObjectVSData.
    * @param {object} _psData Receives EveSpaceObjectPSData.
    */
+  @blue.method
   GetPerObjectStructs(_vsData, _psData)
   {
   }
@@ -163,6 +177,7 @@ export class IEveSpaceObject2
    *
    * @returns {boolean} True unless the object opts out.
    */
+  @blue.method
   IsPickable()
   {
     return true;
@@ -173,6 +188,7 @@ export class IEveSpaceObject2
    *
    * @returns {boolean} False unless the object opts in.
    */
+  @blue.method
   IsAudioOccluder()
   {
     return false;
@@ -184,6 +200,7 @@ export class IEveSpaceObject2
    * @param {string} _name The variable's name.
    * @param {number} _value Its new value.
    */
+  @blue.method
   SetProceduralContainerVariable(_name, _value)
   {
   }
@@ -193,6 +210,7 @@ export class IEveSpaceObject2
    *
    * @param {object} _parentData Receives the record.
    */
+  @blue.method
   GetParentData(_parentData)
   {
   }
@@ -202,6 +220,7 @@ export class IEveSpaceObject2
    *
    * @param {number} _reason A LocatorInvalidationReason.
    */
+  @blue.method
   InvalidateMergedLocators(_reason)
   {
   }
@@ -209,4 +228,5 @@ export class IEveSpaceObject2
 
 
 for (const name of SPACE_OBJECT_DEFAULTS) CjsSchema.decorateMethod(IEveSpaceObject2, name, meta.implemented);
+CjsSchema.blue.inherit(IRoot)(IEveSpaceObject2);
 CjsSchema.blue.define(IEveSpaceObject2, { className: "IEveSpaceObject2" });

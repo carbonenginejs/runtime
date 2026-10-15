@@ -1,3 +1,4 @@
+import { ITr2DebugRenderable } from "../../global/interfaces/ITr2DebugRenderable.js";
 // Source: trinity/trinity/Eve/EveDistanceField.h
 // Source: trinity/trinity/Eve/EveDistanceField.cpp
 import { IsMatch } from "#blue";
@@ -16,7 +17,7 @@ import { TriCurveSet } from "../curves/TriCurveSet.js";
  * a curve set from the eased camera distance to that volume.
  */
 @blue.define("EveDistanceField")
-@blue.inherit(INotify)
+@blue.inherit(IListNotify, INotify, ITr2DebugRenderable)
 @blue.interface(IListNotify, INotify)
 export class EveDistanceField
 {
@@ -236,6 +237,7 @@ export class EveDistanceField
    * Builds the curve set the field drives: a single named scalar curve falling
    * linearly from 1 to 0 across the distance range.
    */
+  @blue.method
   _CreateCurveSet()
   {
     this.curveSet = new TriCurveSet();
@@ -251,6 +253,7 @@ export class EveDistanceField
    * Moves the distance curve's two keys onto the current minimum and maximum
    * distance and clears the pending-rebuild flag.
    */
+  @blue.method
   _UpdateDistanceCurveSize()
   {
     // Carbon retains the resize request until the curve exists.
@@ -267,6 +270,7 @@ export class EveDistanceField
   }
 
   /** Zeroes the midpoint and extent once nothing is being tracked. */
+  @blue.method
   _SetNeutralValues()
   {
     vec3.zero(this.midpoint);
@@ -280,6 +284,7 @@ export class EveDistanceField
    * distanceThreshold of the mean spread, enforcing the maximum X/Z ratio and
    * the minimum Y ratio.
    */
+  @blue.method
   _CalculateFieldCoverageAndDistance(time, cameraPosition, originShift)
   {
     if (this.objects.length === 0)

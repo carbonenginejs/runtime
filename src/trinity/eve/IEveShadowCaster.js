@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/IEveShadowCaster.h:140-160
 //
 // The contract every shadow caster answers to, registered as the "ShadowCaster"
@@ -37,6 +38,7 @@ export class IEveShadowCaster
    *
    * @returns {boolean}
    */
+  @blue.method
   IsCastingShadow__ShadowFrustum(_cameraFrustum, _shadowFrustum, _renderReason, _sizeInShadow)
   {
     throw new Error("IEveShadowCaster.IsCastingShadow__ShadowFrustum must be implemented by a shadow caster.");
@@ -48,34 +50,40 @@ export class IEveShadowCaster
    *
    * @returns {boolean}
    */
+  @blue.method
   IsCastingShadow__PositionRadius(_cameraFrustum, _position, _radius, _renderReason)
   {
     return false;
   }
 
   /** Carbon's GetShadowBatches (h:149). Pure virtual. */
+  @blue.method
   GetShadowBatches(_batches, _perObjectData, _shadowPixelSize)
   {
     throw new Error("IEveShadowCaster.GetShadowBatches must be implemented by a shadow caster.");
   }
 
   /** Carbon's GetShadowPerObjectData (h:150). Pure virtual. */
+  @blue.method
   GetShadowPerObjectData(_accumulator)
   {
     throw new Error("IEveShadowCaster.GetShadowPerObjectData must be implemented by a shadow caster.");
   }
 
   /** Carbon's PushRtGeometry (h:152): raytraced shadows; empty by default. */
+  @blue.method
   PushRtGeometry(_raytracingManager)
   {
   }
 
   /** Carbon's MarkRtDirty (h:155): empty by default. */
+  @blue.method
   MarkRtDirty()
   {
   }
 
   /** Carbon's IsShadowCastingDirty (h:158): false by default. */
+  @blue.method
   IsShadowCastingDirty()
   {
     return false;
@@ -89,4 +97,5 @@ CjsSchema.decorateMethod(IEveShadowCaster, "IsCastingShadow__PositionRadius", me
 CjsSchema.decorateMethod(IEveShadowCaster, "GetShadowBatches", meta.abstract);
 CjsSchema.decorateMethod(IEveShadowCaster, "GetShadowPerObjectData", meta.abstract);
 for (const name of [ "PushRtGeometry", "MarkRtDirty", "IsShadowCastingDirty" ]) CjsSchema.decorateMethod(IEveShadowCaster, name, meta.implemented);
+CjsSchema.blue.inherit(IRoot)(IEveShadowCaster);
 CjsSchema.blue.define(IEveShadowCaster, { className: "IEveShadowCaster" });

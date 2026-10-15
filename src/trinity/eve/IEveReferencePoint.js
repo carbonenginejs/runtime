@@ -1,9 +1,12 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Include/IEveReferencePoint.h
 import { meta, blue } from "#schema";
 
 
 /** Required time-varying world reference-point contract. */
 @blue.define("IEveReferencePoint")
+@blue.inherit(IRoot)
+@blue.interface()
 export class IEveReferencePoint
 {
 

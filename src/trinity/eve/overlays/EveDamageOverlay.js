@@ -1,3 +1,4 @@
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveDamageOverlay.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveDamageOverlay.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveDamageOverlay_Blue.cpp
@@ -22,6 +23,8 @@ export const IMPACT_ARMOR_SIZE_MAX = 10;
  * and by independently rendered child meshes.
  */
 @blue.define("EveDamageOverlay")
+@blue.inherit(IInitialize)
+@blue.interface()
 export class EveDamageOverlay
 {
   @blue.read
@@ -163,144 +166,168 @@ export class EveDamageOverlay
   }
 
   /** Sets whether every armour impact requests debris. */
+  @blue.method
   SetDebugForceSpawnDebris(value)
   {
     this.debugForceSpawnDebris = !!value;
   }
 
   /** Sets the authored hull-damage multiplier. */
+  @blue.method
   SetHullDamageFactor(value)
   {
     this.hullDamageFactor = Number(value);
   }
 
   /** Sets the material used by the armour-damage pass. */
+  @blue.method
   SetArmorDamageShaderEffect(value)
   {
     this.armorDamageShader = value;
   }
 
   /** Sets the curve used to flicker hull damage. */
+  @blue.method
   SetHullDamageFlickerCurve(value)
   {
     this.hullDamageFlickerCurve = value;
   }
 
   /** Replaces the armour-repair fader. */
+  @blue.method
   SetArmorRepairing(value)
   {
     this.armorRepairing = value;
   }
 
   /** Replaces the armour-hardening fader. */
+  @blue.method
   SetArmorHardening(value)
   {
     this.armorHardening = value;
   }
 
   /** Replaces the hull-repair fader. */
+  @blue.method
   SetHullRepairing(value)
   {
     this.hullRepairing = value;
   }
 
   /** Shares impact indices with another damage overlay. */
+  @blue.method
   SetImpactIndexSource(value)
   {
     this._impactIndexSource = value;
   }
 
   /** Returns the deterministic damage seed. */
+  @blue.method
   GetSeed()
   {
     return this.seed;
   }
 
   /** Returns the next locally allocated impact index. */
+  @blue.method
   GetImpactDataNextIdx()
   {
     return this.impactDataNextIdx;
   }
 
   /** Returns the target number of live armour impacts. */
+  @blue.method
   GetArmorImpactGoalCount()
   {
     return this.armorImpactGoalCount;
   }
 
   /** Returns the parent size used to scale armour impacts. */
+  @blue.method
   GetArmorImpactParentSize()
   {
     return this.armorImpactParentSize;
   }
 
   /** Returns whether debris is forced for every impact. */
+  @blue.method
   GetDebugForceSpawnDebris()
   {
     return this.debugForceSpawnDebris;
   }
 
   /** Returns the authored hull-damage multiplier. */
+  @blue.method
   GetHullDamageFactor()
   {
     return this.hullDamageFactor;
   }
 
   /** Returns the armour-damage material. */
+  @blue.method
   GetArmorDamageShaderEffect()
   {
     return this.armorDamageShader;
   }
 
   /** Returns the hull-damage flicker curve. */
+  @blue.method
   GetHullDamageFlickerCurve()
   {
     return this.hullDamageFlickerCurve;
   }
 
   /** Returns the armour-repair fader. */
+  @blue.method
   GetArmorRepairing()
   {
     return this.armorRepairing;
   }
 
   /** Returns the armour-hardening fader. */
+  @blue.method
   GetArmorHardening()
   {
     return this.armorHardening;
   }
 
   /** Returns the hull-repair fader. */
+  @blue.method
   GetHullRepairing()
   {
     return this.hullRepairing;
   }
 
   /** Returns the damage overlay render priority. */
+  @blue.method
   GetRenderPriority()
   {
     return this.renderPriority;
   }
 
   /** Returns this overlay's first row in the shared data texture. */
+  @blue.method
   GetDataTextureOffset()
   {
     return this._dataTextureOffset;
   }
 
   /** Returns this overlay's shared data-texture block identifier. */
+  @blue.method
   GetDataTextureBlockID()
   {
     return this.dataTextureBlockID;
   }
 
   /** Returns the active armour or hull impact configuration. */
+  @blue.method
   GetImpactConfiguration()
   {
     return this.configuration;
   }
 
   /** Returns the lifetime of one armour impact. */
+  @blue.method
   GetArmorImpactLifeTime()
   {
     return this.armorImpactLifeTime;
@@ -315,18 +342,21 @@ export class EveDamageOverlay
   }
 
   /** Returns the mutable header row used by EveImpactOverlay's shield half. */
+  @blue.method
   HeaderRow()
   {
     return this._header;
   }
 
   /** Returns one mutable impact texel row. */
+  @blue.method
   TexelRow(index)
   {
     return this._texelRows[index];
   }
 
   /** Returns the live armour-impact table. */
+  @blue.method
   ArmorImpacts()
   {
     return this._armorImpacts;
@@ -425,6 +455,7 @@ export class EveDamageOverlay
   }
 
   /** Reports whether armour impacts or armour faders are active. */
+  @blue.method
   HasArmorActivity()
   {
     return EveDamageOverlay.impactEffectEnabled &&
@@ -432,12 +463,14 @@ export class EveDamageOverlay
   }
 
   /** Reports whether hull damage presentation is active. */
+  @blue.method
   HasHullActivity()
   {
     return EveDamageOverlay.impactEffectEnabled && !this.hullRepairing.IsZero();
   }
 
   /** Reports whether any armour or hull presentation is active. */
+  @blue.method
   HasGeneralActivity()
   {
     return this.HasHullActivity() || this.HasArmorActivity();

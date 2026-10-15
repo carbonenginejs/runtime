@@ -1,3 +1,6 @@
+import { INotify } from "../../global/blue/INotify.js";
+import { ITr2DebugRenderable } from "../../global/interfaces/ITr2DebugRenderable.js";
+import { IWorldPosition } from "../core/IWorldPosition.js";
 // Source: trinity/trinity/Eve/AudioGameObject.h
 // Source: trinity/trinity/Eve/AudioGameObject.cpp
 import { IsMatch } from "#blue";
@@ -16,9 +19,8 @@ import { CjsSchema, meta, type, blue } from "#schema";
  * asset.
  */
 @blue.define("AudioGameObject")
-@blue.inherit(IEveSpaceObject2)
-@blue.inherit(IInitialize)
-@blue.interface(IInitialize)
+@blue.inherit(IWorldPosition, IEveSpaceObject2, IInitialize, ITr2DebugRenderable, INotify)
+@blue.interface(IEveSpaceObject2, IInitialize, IWorldPosition, ITr2DebugRenderable, INotify)
 export class AudioGameObject
 {
   _worldTransform = mat4.create();
@@ -72,6 +74,7 @@ export class AudioGameObject
    * already, places it at the object's current world position, and reports
    * whether the emitter accepted initialization.
    */
+  @blue.method
   Initialize()
   {
     if (this.audioEmitter) return true;
@@ -125,6 +128,7 @@ export class AudioGameObject
   }
 
   /** Applies a changed mute flag or name to the emitter after a model update. */
+  @blue.method
   OnModified(value = null)
   {
     if (IsMatch(value, "mute"))
@@ -142,6 +146,7 @@ export class AudioGameObject
    * Re-evaluates the transform curves for the frame and pushes the resulting
    * position and orientation to the emitter, unless the object is muted.
    */
+  @blue.method
   UpdateSyncronous(updateContext = null)
   {
     this.UpdateWorldTransform(updateContext.GetTime());
@@ -155,16 +160,19 @@ export class AudioGameObject
    * IEveSpaceObject2 asynchronous phase; the object does all of its work
    * synchronously.
    */
+  @blue.method
   UpdateAsyncronous(_updateContext = null)
   {
   }
 
   /** IEveSpaceObject2 hook; an audio object has nothing to cull. */
+  @blue.method
   UpdateVisibility(_updateContext, _parentTransform)
   {
   }
 
   /** IEveSpaceObject2 hook; an audio object contributes no renderables. */
+  @blue.method
   @meta.noop
   GetRenderables__Impostors(_renderables, _impostors)
   {
@@ -174,6 +182,7 @@ export class AudioGameObject
    * Reports a unit sphere at the object's world position, so scene traversal has something to place it by.
    * @param {Array} out - caller-owned packed (x, y, z, radius), overwritten
    */
+  @blue.method
   GetBoundingSphere(out = vec4.create())
   {
     const position = this.GetWorldPosition(vec3.create());
@@ -186,6 +195,7 @@ export class AudioGameObject
    * @param {Array} [out] - caller-owned mat4; a fresh matrix is allocated when omitted
    * @returns {Array} out
    */
+  @blue.method
   GetLocalToWorldTransform(out = mat4.create())
   {
     return mat4.copy(out, this._worldTransform);
@@ -196,6 +206,7 @@ export class AudioGameObject
    * @param {Array} out - caller-owned vec3
    * @returns {Array} out
    */
+  @blue.method
   GetWorldPosition(out)
   {
     return mat4.getTranslation(out, this._worldTransform);
@@ -206,6 +217,7 @@ export class AudioGameObject
    * @param {Array} [out] - caller-owned quat; a fresh quaternion is allocated when omitted
    * @returns {Array} out
    */
+  @blue.method
   GetWorldRotation(out = quat.create())
   {
     return quat.normalize(out, mat4.getRotation(out, this._worldTransform));
@@ -215,6 +227,7 @@ export class AudioGameObject
    * Reports a fixed unit cube; the object has no geometry, but scene code
    * expects a box.
    */
+  @blue.method
   GetLocalBoundingBox(outMin, outMax)
   {
     vec3.set(outMin, -1, -1, -1);
@@ -226,6 +239,7 @@ export class AudioGameObject
    * Rebuilds the world transform from the authored translation and rotation after letting the transform curves overwrite them at the given time.
    * @returns {Array} the object's own matrix, valid only until the next call
    */
+  @blue.method
   UpdateWorldTransform(time)
   {
     const { vec3_0, quat_0 } = AudioGameObject.scratch;

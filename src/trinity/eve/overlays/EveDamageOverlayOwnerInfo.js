@@ -1,3 +1,4 @@
+import { blue, type } from "#schema";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveDamageOverlay.h:63-69 (EveDamageOverlay::OwnerInfo)
 // Hand-maintained. Carbon nests this struct inside EveDamageOverlay; the JS identity concatenates owner
 // and inner name, as IEveSpaceObject2ParentData does.
@@ -8,13 +9,17 @@ import { vec4 } from "#math/vec4";
 
 
 /** Supplies owner bounds, visibility and damage-locator access to a damage overlay. */
+@blue.define({ className: "EveDamageOverlayOwnerInfo", donors: ["EveDamageOverlay::OwnerInfo"] })
 export class EveDamageOverlayOwnerInfo
 {
 
+  @type.vec4
   boundingSphere = vec4.fromValues(0, 0, 0, -1);
 
+  @type.float32
   estimatedPixelDiameter = 0;
 
+  @type.boolean
   isInFrustum = false;
 
   /** std::function<bool(int, Vector3&)>; null when the owner resolves no damage locators. */

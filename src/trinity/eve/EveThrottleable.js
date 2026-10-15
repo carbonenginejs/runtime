@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveThrottleable.h
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveThrottleable.cpp
 import { meta, type, blue } from "#schema";
@@ -9,6 +10,8 @@ import { CjsEveThrottleableState } from "./CjsEveThrottleableState.js";
  * normalized detail level onto an update frequency between authored bounds.
  */
 @blue.define("EveThrottleable")
+@blue.inherit(IRoot)
+@blue.interface()
 export class EveThrottleable
 {
   @blue.read
@@ -44,5 +47,3 @@ export class EveThrottleable
     return this._throttle.ShouldSkipUpdate(this, normalizedUpdateFrequency, currentTime);
   }
 }
-
-blue.interface()(EveThrottleable);
