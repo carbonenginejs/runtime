@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/PostProcess/Tr2PostProcess2.h
 // Source: trinity/trinity/PostProcess/Tr2PostProcess2.cpp
 import { meta, type, blue } from "#schema";
@@ -11,6 +12,7 @@ import { Quality } from "../generated/postProcess/enums.js";
  * to use.
  */
 @blue.define("Tr2PostProcess2")
+@blue.inherit(IRoot)
 export class Tr2PostProcess2
 {
 
@@ -152,6 +154,7 @@ export class Tr2PostProcess2
    * Returns the signal-loss effect when it is active with a positive strength
    * and the quality setting is at least LOW, otherwise null.
    */
+  @blue.method
   GetSignalLossIfAvailable(quality = Tr2PostProcess2.HIGH)
   {
     return Tr2PostProcess2.GetIfAvailable(this.signalLoss, quality, Tr2PostProcess2.LOW, effect => Number(effect.strength) > 0);
@@ -161,6 +164,7 @@ export class Tr2PostProcess2
    * Returns the god-rays effect when it is active with a positive intensity and
    * the quality setting is HIGH, otherwise null.
    */
+  @blue.method
   GetGodRaysIfAvailable(quality = Tr2PostProcess2.HIGH)
   {
     return Tr2PostProcess2.GetIfAvailable(this.godRays, quality, Tr2PostProcess2.HIGH, effect => Number(effect.intensity) > 0);
@@ -170,6 +174,7 @@ export class Tr2PostProcess2
    * Returns the bloom effect when it is active and the quality setting is at
    * least MEDIUM, otherwise null.
    */
+  @blue.method
   GetBloomIfAvailable(quality = Tr2PostProcess2.HIGH)
   {
     return Tr2PostProcess2.GetIfAvailable(this.bloom, quality, Tr2PostProcess2.MEDIUM);
@@ -179,6 +184,7 @@ export class Tr2PostProcess2
    * Returns the dynamic-exposure effect when it is active and the quality
    * setting meets DynamicExposureQualityRequirement, otherwise null.
    */
+  @blue.method
   GetDynamicExposureIfAvailable(quality = Tr2PostProcess2.HIGH)
   {
     return Tr2PostProcess2.GetIfAvailable(this.dynamicExposure, quality, Tr2PostProcess2.DynamicExposureQualityRequirement);
@@ -188,6 +194,7 @@ export class Tr2PostProcess2
    * Returns the film-grain effect when it is active with a positive intensity
    * and the quality setting is HIGH, otherwise null.
    */
+  @blue.method
   GetFilmGrainIfAvailable(quality = Tr2PostProcess2.HIGH)
   {
     return Tr2PostProcess2.GetIfAvailable(this.filmGrain, quality, Tr2PostProcess2.HIGH, effect => Number(effect.intensity) > 0);
@@ -197,6 +204,7 @@ export class Tr2PostProcess2
    * Returns the desaturate effect when it is active and the quality setting is
    * at least MEDIUM, otherwise null.
    */
+  @blue.method
   GetDesaturateIfAvailable(quality = Tr2PostProcess2.HIGH)
   {
     return Tr2PostProcess2.GetIfAvailable(this.desaturate, quality, Tr2PostProcess2.MEDIUM);
@@ -206,6 +214,7 @@ export class Tr2PostProcess2
    * Returns the fade effect when it is active with a positive intensity and the
    * quality setting is at least LOW, otherwise null.
    */
+  @blue.method
   GetFadeIfAvailable(quality = Tr2PostProcess2.HIGH)
   {
     return Tr2PostProcess2.GetIfAvailable(this.fade, quality, Tr2PostProcess2.LOW, effect => Number(effect.intensity) > 0);
@@ -215,6 +224,7 @@ export class Tr2PostProcess2
    * Returns the vignette effect when it is active with both intensity and
    * opacity positive and the quality setting is at least MEDIUM, otherwise null.
    */
+  @blue.method
   GetVignetteIfAvailable(quality = Tr2PostProcess2.HIGH)
   {
     return Tr2PostProcess2.GetIfAvailable(this.vignette, quality, Tr2PostProcess2.MEDIUM, effect => Number(effect.intensity) > 0 && Number(effect.opacity) > 0);
@@ -224,6 +234,7 @@ export class Tr2PostProcess2
    * Returns the fog effect when it is active with a positive intensity and the
    * quality setting is HIGH, otherwise null.
    */
+  @blue.method
   GetFogIfAvailable(quality = Tr2PostProcess2.HIGH)
   {
     return Tr2PostProcess2.GetIfAvailable(this.fog, quality, Tr2PostProcess2.HIGH, effect => Number(effect.intensity) > 0);
@@ -233,6 +244,7 @@ export class Tr2PostProcess2
    * Returns the temporal anti-aliasing effect when it is active and the quality
    * setting is at least LOW, otherwise null.
    */
+  @blue.method
   GetTaaIfAvailable(quality = Tr2PostProcess2.HIGH)
   {
     return Tr2PostProcess2.GetIfAvailable(this.taa, quality, Tr2PostProcess2.LOW);
@@ -243,6 +255,7 @@ export class Tr2PostProcess2
    * switch is on, its blur scale is positive and the quality setting is HIGH,
    * otherwise null.
    */
+  @blue.method
   GetDepthOfFieldIfAvailable(quality = Tr2PostProcess2.HIGH)
   {
     return Tr2PostProcess2.GetIfAvailable(this.depthOfField, quality, Tr2PostProcess2.HIGH, effect => Tr2PostProcess2.PostProcessDofEnabled && Number(effect.scale) > 0);
@@ -252,6 +265,7 @@ export class Tr2PostProcess2
    * Returns the tonemapping effect when it is active and the quality setting is
    * at least LOW, otherwise null.
    */
+  @blue.method
   GetTonemappingIfAvailable(quality = Tr2PostProcess2.HIGH)
   {
     return Tr2PostProcess2.GetIfAvailable(this.tonemapping, quality, Tr2PostProcess2.LOW);
@@ -261,6 +275,7 @@ export class Tr2PostProcess2
    * Returns the colour-correction effect when it is active and the quality
    * setting is at least LOW, otherwise null.
    */
+  @blue.method
   GetColorCorrectionIfAvailable(quality = Tr2PostProcess2.HIGH)
   {
     return Tr2PostProcess2.GetIfAvailable(this.colorCorrection, quality, Tr2PostProcess2.LOW);
@@ -270,60 +285,70 @@ export class Tr2PostProcess2
    * Returns the generic effect when it is active and the quality setting meets
    * the floor the effect itself declares, otherwise null.
    */
+  @blue.method
   GetGenericEffectIfAvailable(quality = Tr2PostProcess2.HIGH)
   {
     return Tr2PostProcess2.GetIfAvailable(this.genericEffect, quality, Number(this.genericEffect?.quality ?? Tr2PostProcess2.MEDIUM));
   }
 
   /** Installs the signal-loss effect; a nullish value clears the slot. */
+  @blue.method
   SetSignalLoss(effect)
   {
     this.signalLoss = effect ?? null;
   }
 
   /** Installs the god-rays effect; a nullish value clears the slot. */
+  @blue.method
   SetGodRays(effect)
   {
     this.godRays = effect ?? null;
   }
 
   /** Installs the bloom effect; a nullish value clears the slot. */
+  @blue.method
   SetBloom(effect)
   {
     this.bloom = effect ?? null;
   }
 
   /** Installs the dynamic-exposure effect; a nullish value clears the slot. */
+  @blue.method
   SetDynamicExposure(effect)
   {
     this.dynamicExposure = effect ?? null;
   }
 
   /** Installs the film-grain effect; a nullish value clears the slot. */
+  @blue.method
   SetFilmGrain(effect)
   {
     this.filmGrain = effect ?? null;
   }
 
   /** Installs the desaturate effect; a nullish value clears the slot. */
+  @blue.method
   SetDesaturate(effect)
   {
     this.desaturate = effect ?? null;
   }
 
   /** Installs the fade effect; a nullish value clears the slot. */
+  @blue.method
   SetFade(effect)
   {
     this.fade = effect ?? null;
   }
 
   /** Installs the vignette effect; a nullish value clears the slot. */
+  @blue.method
   SetVignette(effect)
   {
     this.vignette = effect ?? null;
   }
 
   /** Installs the fog effect; a nullish value clears the slot. */
+  @blue.method
   SetFog(effect)
   {
     this.fog = effect ?? null;
@@ -333,30 +358,35 @@ export class Tr2PostProcess2
    * Installs the temporal anti-aliasing effect; a nullish value clears the slot,
    * which also drops the mip LOD bias.
    */
+  @blue.method
   SetTaa(effect)
   {
     this.taa = effect ?? null;
   }
 
   /** Installs the depth-of-field effect; a nullish value clears the slot. */
+  @blue.method
   SetDepthOfField(effect)
   {
     this.depthOfField = effect ?? null;
   }
 
   /** Installs the tonemapping effect; a nullish value clears the slot. */
+  @blue.method
   SetTonemapping(effect)
   {
     this.tonemapping = effect ?? null;
   }
 
   /** Installs the colour-correction effect; a nullish value clears the slot. */
+  @blue.method
   SetColorCorrection(effect)
   {
     this.colorCorrection = effect ?? null;
   }
 
   /** Installs the generic effect; a nullish value clears the slot. */
+  @blue.method
   SetGenericEffect(effect)
   {
     this.genericEffect = effect ?? null;

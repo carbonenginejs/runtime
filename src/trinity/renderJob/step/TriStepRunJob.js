@@ -7,6 +7,8 @@ import { TriRenderJob } from "../TriRenderJob.js";
 
 /** Step that runs a nested render job in place, letting job graphs compose. */
 @blue.define("TriStepRunJob")
+@blue.interface()
+@blue.chainTo(TriRenderStep)
 export class TriStepRunJob extends TriRenderStep
 {
   @blue.readwrite

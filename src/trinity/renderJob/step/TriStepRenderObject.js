@@ -24,6 +24,8 @@ const RENDERING_MODES = [
 
 /** A render step that renders a single renderable, optionally overriding its material. */
 @blue.define("TriStepRenderObject")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepRenderObject extends TriRenderStep
 {
 

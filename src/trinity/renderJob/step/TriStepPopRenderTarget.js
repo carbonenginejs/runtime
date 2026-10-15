@@ -10,6 +10,8 @@ import { TriRenderJob } from "../TriRenderJob.js";
  * earlier push.
  */
 @blue.define("TriStepPopRenderTarget")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepPopRenderTarget extends TriRenderStep
 {
   @blue.readwrite

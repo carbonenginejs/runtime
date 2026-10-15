@@ -7,6 +7,8 @@ import { be } from "#blue";
 
 /** A render step that filters one visibility-result set into another by event and object filter. */
 @blue.define("TriStepFilterVisibilityResults")
+@blue.interface()
+@blue.chainTo(TriRenderStep)
 export class TriStepFilterVisibilityResults extends TriRenderStep
 {
 

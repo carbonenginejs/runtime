@@ -10,6 +10,8 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * produced.
  */
 @blue.define("TriStepPresentSwapChain")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepPresentSwapChain extends TriRenderStep
 {
   @blue.readwrite

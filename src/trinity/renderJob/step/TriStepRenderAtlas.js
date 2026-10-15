@@ -7,6 +7,8 @@ import { vec4 } from "#math/vec4";
 
 /** A render step that draws a texture atlas for inspection, focused on one entry. */
 @blue.define("TriStepRenderAtlas")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepRenderAtlas extends TriRenderStep
 {
 

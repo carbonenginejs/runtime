@@ -30,6 +30,7 @@ export class BlurContext
   type = 0;
 
   /** Carbon BlurContext::Hash - the blur-variant cache key. */
+  @blue.method
   Hash()
   {
     return this.finalize * 1000 + this.process * 100 + this.type * 10 + this.channel;

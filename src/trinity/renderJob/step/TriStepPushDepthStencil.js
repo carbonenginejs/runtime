@@ -10,6 +10,8 @@ import { TriRenderJob } from "../TriRenderJob.js";
  * the render context's depth-stencil stack.
  */
 @blue.define("TriStepPushDepthStencil")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepPushDepthStencil extends TriRenderStep
 {
   @blue.readwrite

@@ -5,6 +5,8 @@ import { Tr2PPEffect } from "./Tr2PPEffect.js";
 
 /** Carries the luminance range, adaptation speeds, brightness limits, and influence used for dynamic exposure. */
 @blue.define("Tr2PPDynamicExposureEffect")
+@blue.chainTo(Tr2PPEffect)
+@blue.interface(Tr2PPEffect)
 export class Tr2PPDynamicExposureEffect extends Tr2PPEffect
 {
 

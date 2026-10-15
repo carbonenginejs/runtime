@@ -12,6 +12,8 @@ import { TriRenderJob } from "../TriRenderJob.js";
  * by an earlier push.
  */
 @blue.define("TriStepPopViewTransform")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepPopViewTransform extends TriRenderStep
 {
   /** Restores the view transform saved by the matching push step. */

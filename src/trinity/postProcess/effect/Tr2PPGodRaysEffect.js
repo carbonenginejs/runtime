@@ -6,6 +6,8 @@ import { vec4 } from "#math/vec4";
 
 /** Carries the color, intensity, and noise texture used for post-process god rays. */
 @blue.define("Tr2PPGodRaysEffect")
+@blue.chainTo(Tr2PPEffect)
+@blue.interface(Tr2PPEffect)
 export class Tr2PPGodRaysEffect extends Tr2PPEffect
 {
 
@@ -34,6 +36,7 @@ export class Tr2PPGodRaysEffect extends Tr2PPEffect
   grFactors = vec4.fromValues(1000, 0.2, 128, 2);
 
   /** Carbon Tr2PPGodRaysEffect::IsActive override. */
+  @blue.method
   IsActive()
   {
     return this.display && this.intensity > 0;

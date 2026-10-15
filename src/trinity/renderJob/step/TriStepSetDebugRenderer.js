@@ -5,6 +5,8 @@ import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that installs the debug renderer subsequent debug drawing routes through. */
 @blue.define("TriStepSetDebugRenderer")
+@blue.interface()
+@blue.chainTo(TriRenderStep)
 export class TriStepSetDebugRenderer extends TriRenderStep
 {
 

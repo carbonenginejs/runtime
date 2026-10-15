@@ -9,6 +9,8 @@ import { TriRenderJob } from "../TriRenderJob.js";
 
 /** Step that saves the current projection so a later pop can restore it. */
 @blue.define("TriStepPushProjection")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepPushProjection extends TriRenderStep
 {
   /**

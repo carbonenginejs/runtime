@@ -12,6 +12,8 @@ import { TriRenderJob } from "../TriRenderJob.js";
  * by an earlier push.
  */
 @blue.define("TriStepPopProjection")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepPopProjection extends TriRenderStep
 {
   /** Restores the projection saved by the matching push step. */

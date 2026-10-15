@@ -10,6 +10,8 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * is authored.
  */
 @blue.define("TriStepSetViewport")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepSetViewport extends TriRenderStep
 {
   @blue.readwrite

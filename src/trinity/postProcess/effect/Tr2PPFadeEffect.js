@@ -6,6 +6,8 @@ import { vec4 } from "#math/vec4";
 
 /** Carries the color and intensity of a display-gated post-process fade. */
 @blue.define("Tr2PPFadeEffect")
+@blue.chainTo(Tr2PPEffect)
+@blue.interface(Tr2PPEffect)
 export class Tr2PPFadeEffect extends Tr2PPEffect
 {
 
@@ -22,6 +24,7 @@ export class Tr2PPFadeEffect extends Tr2PPEffect
   intensity = 0;
 
   /** Carbon Tr2PPFadeEffect::IsActive override. */
+  @blue.method
   IsActive()
   {
     return this.display && this.intensity > 0;

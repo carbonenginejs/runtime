@@ -10,6 +10,8 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * stack.
  */
 @blue.define("TriStepSetDepthStencil")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepSetDepthStencil extends TriRenderStep
 {
   @blue.readwrite

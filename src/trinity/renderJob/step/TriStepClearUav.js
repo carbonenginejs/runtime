@@ -6,6 +6,8 @@ import { vec4 } from "#math/vec4";
 
 /** A render step that clears an unordered-access buffer to a fixed value. */
 @blue.define("TriStepClearUav")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepClearUav extends TriRenderStep
 {
 

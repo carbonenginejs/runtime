@@ -7,6 +7,8 @@ import { TriRenderJob } from "../TriRenderJob.js";
 
 /** Step that pushes a render target onto the render context's stack for a given slot. */
 @blue.define("TriStepPushRenderTarget")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepPushRenderTarget extends TriRenderStep
 {
   @blue.readwrite

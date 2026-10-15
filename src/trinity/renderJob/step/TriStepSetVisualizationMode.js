@@ -9,6 +9,8 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * remainder of the frame.
  */
 @blue.define("TriStepSetVisualizationMode")
+@blue.interface()
+@blue.chainTo(TriRenderStep)
 export class TriStepSetVisualizationMode extends TriRenderStep
 {
   @blue.readwrite
@@ -29,6 +31,7 @@ export class TriStepSetVisualizationMode extends TriRenderStep
   }
 
   /** Sets the renderer whose visualization mode this step changes. */
+  @blue.method
   SetObject(object)
   {
     this.object = object ?? null;
@@ -38,6 +41,7 @@ export class TriStepSetVisualizationMode extends TriRenderStep
    * Sets the mode value, coerced to a 32-bit integer; its meaning is defined by
    * the target renderer.
    */
+  @blue.method
   SetVisualizationMode(mode)
   {
     this.mode = Number(mode) | 0;

@@ -9,6 +9,8 @@ import { Tr2PPEffect } from "./Tr2PPEffect.js";
  * shoulder and clipping parameters that shape it.
  */
 @blue.define("Tr2PPTonemappingEffect")
+@blue.chainTo(Tr2PPEffect)
+@blue.interface(Tr2PPEffect)
 export class Tr2PPTonemappingEffect extends Tr2PPEffect
 {
 

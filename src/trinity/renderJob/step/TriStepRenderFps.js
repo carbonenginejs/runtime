@@ -5,6 +5,8 @@ import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A step that averages the frame rate over a quarter second and reports it as text with a threshold colour. */
 @blue.define("TriStepRenderFps")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepRenderFps extends TriRenderStep
 {
 
@@ -61,7 +63,6 @@ export class TriStepRenderFps extends TriRenderStep
    * debug renderer; both are host concerns, so the sample and time are supplied and the text
    * is the caller's.
    */
-  @blue.method
   @meta.adapted
   Sample(framesPerSecond, nowSeconds)
   {
@@ -84,7 +85,6 @@ export class TriStepRenderFps extends TriRenderStep
    * The text colour for the current average: green above sixty, orange down to
    * thirty, red below that.
    */
-  @blue.method
   @meta.implemented
   GetTextColor()
   {
@@ -97,7 +97,6 @@ export class TriStepRenderFps extends TriRenderStep
    * The screen rectangle the text occupies within a viewport, inset by the
    * configured display offsets.
    */
-  @blue.method
   @meta.implemented
   GetDisplayRect(viewport, out = {})
   {

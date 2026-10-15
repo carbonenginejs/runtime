@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/PostProcess/Tr2PostProcessRenderer.h
 // Source: trinity/trinity/PostProcess/Tr2PostProcessRenderer.cpp
 // Source: trinity/trinity/PostProcess/Tr2PostProcessRenderer_Blue.cpp
@@ -80,6 +81,7 @@ function effectAt(path, options = null)
  * the back buffer, driven by the scene's combined Tr2PostProcess2.
  */
 @blue.define("Tr2PostProcessRenderer")
+@blue.inherit(IRoot)
 export class Tr2PostProcessRenderer
 {
   @blue.notify

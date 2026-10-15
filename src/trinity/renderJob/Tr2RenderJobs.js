@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/RenderJob/Tr2RenderJobs.h
 // Source: trinity/trinity/RenderJob/Tr2RenderJobs.cpp
 import { meta, type, blue } from "#schema";
@@ -10,6 +11,8 @@ import { TriRenderJob } from "./TriRenderJob.js";
  * and update-recurring - and the order in which they are run.
  */
 @blue.define("Tr2RenderJobs")
+@blue.interface(IRoot)
+@blue.inherit(IRoot)
 export class Tr2RenderJobs
 {
   @blue.read

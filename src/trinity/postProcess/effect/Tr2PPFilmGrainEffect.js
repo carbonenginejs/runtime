@@ -5,6 +5,8 @@ import { Tr2PPEffect } from "./Tr2PPEffect.js";
 
 /** Carries the density, size, contrast, color, brightness, and intensity settings for post-process film grain. */
 @blue.define("Tr2PPFilmGrainEffect")
+@blue.chainTo(Tr2PPEffect)
+@blue.interface(Tr2PPEffect)
 export class Tr2PPFilmGrainEffect extends Tr2PPEffect
 {
 
@@ -51,6 +53,7 @@ export class Tr2PPFilmGrainEffect extends Tr2PPEffect
   colored = true;
 
   /** Carbon Tr2PPFilmGrainEffect::IsActive override. */
+  @blue.method
   IsActive()
   {
     return this.display && this.intensity > 0;

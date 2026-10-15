@@ -9,6 +9,8 @@ import { TriRenderStep } from "./TriRenderStep.js";
 
 /** Step that installs an authored projection for the steps that follow. */
 @blue.define("TriStepSetProjection")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepSetProjection extends TriRenderStep
 {
   #transform = mat4.create();

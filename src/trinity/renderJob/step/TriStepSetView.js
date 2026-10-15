@@ -10,6 +10,8 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * from an authored view or from a camera updated against the current viewport.
  */
 @blue.define("TriStepSetView")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepSetView extends TriRenderStep
 {
   @blue.readwrite

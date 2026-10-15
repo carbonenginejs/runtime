@@ -9,6 +9,8 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * no browser equivalent and therefore always fails.
  */
 @blue.define("TriStepRemoteSync")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepRemoteSync extends TriRenderStep
 {
   #id = -1;
@@ -22,12 +24,14 @@ export class TriStepRemoteSync extends TriRenderStep
   }
 
   /** Returns the synchronization event identifier, -1 when none was set. */
+  @blue.method
   GetId()
   {
     return this.#id;
   }
 
   /** Sets the synchronization event identifier, throwing on a non-integer. */
+  @blue.method
   SetId(id)
   {
     if (!Number.isInteger(id))
@@ -43,6 +47,7 @@ export class TriStepRemoteSync extends TriRenderStep
    * synchronization happened.
    */
   @meta.adapted
+  @blue.method
   Execute(_realTime, _simTime, _renderContext)
   {
     // Carbon implements this class only on Windows with named HANDLE events.

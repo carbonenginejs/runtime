@@ -5,6 +5,8 @@ import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A test step that reports itself in progress until its flag is cleared, so a job's resume path can be exercised. */
 @blue.define("TriStepTestBlocking")
+@blue.interface()
+@blue.chainTo(TriRenderStep)
 export class TriStepTestBlocking extends TriRenderStep
 {
 

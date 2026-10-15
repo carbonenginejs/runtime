@@ -6,6 +6,8 @@ import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 
 /** A render step that dispatches a compute shader over its configured group dimensions. */
 @blue.define("TriStepRunComputeShader")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepRunComputeShader extends TriRenderStep
 {
 

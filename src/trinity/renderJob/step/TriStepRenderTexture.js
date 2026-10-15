@@ -8,6 +8,8 @@ import { vec2 } from "#math/vec2";
 
 /** A render step that draws a provided texture into the current target. */
 @blue.define("TriStepRenderTexture")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepRenderTexture extends TriRenderStep
 {
 
@@ -69,6 +71,7 @@ export class TriStepRenderTexture extends TriRenderStep
    * @param {object} renderContext The context to clear through.
    * @returns {number} Always `RS_OK`; a failed blit is not a failed step.
    */
+  @blue.method
   ClearIfFail(result, renderContext)
   {
     if (!result) renderContext.Clear({ clearColor: true, color: this.failClearColor });

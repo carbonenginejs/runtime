@@ -7,6 +7,8 @@ import { be } from "#blue";
 
 /** A render step that renders one named pass of a multi-pass scene. */
 @blue.define("TriStepRenderPass")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepRenderPass extends TriRenderStep
 {
 

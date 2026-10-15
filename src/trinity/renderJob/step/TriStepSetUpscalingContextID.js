@@ -5,6 +5,8 @@ import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that selects which upscaling context subsequent work resolves against. */
 @blue.define("TriStepSetUpscalingContextID")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepSetUpscalingContextID extends TriRenderStep
 {
 

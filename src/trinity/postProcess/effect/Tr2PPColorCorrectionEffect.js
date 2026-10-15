@@ -6,6 +6,8 @@ import { vec3 } from "#math/vec3";
 
 /** Carries white-balance, saturation, contrast, gamma, gain, and offset settings for post-process color correction. */
 @blue.define("Tr2PPColorCorrectionEffect")
+@blue.chainTo(Tr2PPEffect)
+@blue.interface(Tr2PPEffect)
 export class Tr2PPColorCorrectionEffect extends Tr2PPEffect
 {
 

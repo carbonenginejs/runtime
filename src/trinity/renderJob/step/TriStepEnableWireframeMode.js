@@ -6,6 +6,8 @@ import { TriRenderStep } from "./TriRenderStep.js";
 
 /** Step that turns wireframe rasterization on or off for the steps that follow. */
 @blue.define("TriStepEnableWireframeMode")
+@blue.interface()
+@blue.chainTo(TriRenderStep)
 export class TriStepEnableWireframeMode extends TriRenderStep
 {
   @blue.readwrite

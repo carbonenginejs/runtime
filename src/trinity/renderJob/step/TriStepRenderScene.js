@@ -5,6 +5,8 @@ import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that renders one scene at its point in the job order. */
 @blue.define("TriStepRenderScene")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepRenderScene extends TriRenderStep
 {
 

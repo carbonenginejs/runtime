@@ -7,6 +7,8 @@ import { Tr2RenderUtils } from "../../core/Tr2RenderUtils.js";
 
 /** A render step that draws a full-screen effect with an optional shader buffer. */
 @blue.define("TriStepRenderEffect")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepRenderEffect extends TriRenderStep
 {
 

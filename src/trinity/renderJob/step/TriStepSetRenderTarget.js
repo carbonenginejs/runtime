@@ -10,6 +10,8 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * render-target stack.
  */
 @blue.define("TriStepSetRenderTarget")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepSetRenderTarget extends TriRenderStep
 {
   @blue.readwrite

@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2SSAO.h
 // Source: trinity/trinity/Tr2SSAO.cpp
 // Source: trinity/trinity/Tr2SSAO_Blue.cpp
@@ -55,6 +56,7 @@ function DispatchSize(tileSize, totalSize)
  * (`PerformPass`, AMD's FidelityFX CACAO) is not.
  */
 @blue.define("Tr2SSAO")
+@blue.inherit(IRoot)
 export class Tr2SSAO
 {
   @blue.notify
@@ -468,6 +470,8 @@ export class Tr2SSAO
    * Carbon (a file-local-style helper on the class), uint32 wrap preserved
    * with imul.
    */
+  @blue.method
+  @meta.renamed("Hash")
   static hash(n)
   {
     const value = n >>> 0;

@@ -8,6 +8,8 @@ import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
 /** A render step that writes one named value into the variable store shaders read. */
 @blue.define("TriStepSetVariableStore")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepSetVariableStore extends TriRenderStep
 {
 

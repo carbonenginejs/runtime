@@ -7,6 +7,8 @@ import { TriRenderStep } from "./TriRenderStep.js";
 
 /** Step that requests regeneration of a render target's mip chain. */
 @blue.define("TriStepGenerateMipMaps")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepGenerateMipMaps extends TriRenderStep
 {
   @blue.readwrite

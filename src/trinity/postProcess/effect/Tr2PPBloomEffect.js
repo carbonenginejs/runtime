@@ -10,6 +10,8 @@ import { Tr2PPEffect } from "./Tr2PPEffect.js";
  * result.
  */
 @blue.define("Tr2PPBloomEffect")
+@blue.chainTo(Tr2PPEffect)
+@blue.interface(Tr2PPEffect)
 export class Tr2PPBloomEffect extends Tr2PPEffect
 {
   @blue.readwrite

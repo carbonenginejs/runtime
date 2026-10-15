@@ -5,6 +5,8 @@ import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that ticks one updateable object with the frame times. */
 @blue.define("TriStepUpdate")
+@blue.interface()
+@blue.chainTo(TriRenderStep)
 export class TriStepUpdate extends TriRenderStep
 {
 

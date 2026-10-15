@@ -14,6 +14,8 @@ import { Tr2RenderTarget } from "../../core/device/Tr2RenderTarget.js";
  * into a texture resource, including the source and destination sub-rectangles.
  */
 @blue.define("TriStepCopyRenderTarget")
+@blue.interface()
+@blue.chainTo(TriRenderStep)
 export class TriStepCopyRenderTarget extends TriRenderStep
 {
   @blue.readwrite

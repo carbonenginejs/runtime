@@ -5,6 +5,8 @@ import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that draws a scene through its debug representation rather than its normal path. */
 @blue.define("TriStepRenderSceneDebug")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepRenderSceneDebug extends TriRenderStep
 {
 

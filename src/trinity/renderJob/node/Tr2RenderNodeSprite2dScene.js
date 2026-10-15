@@ -5,6 +5,7 @@ import { ITr2RenderNode } from "#interfaces/ITr2RenderNode";
 
 /** A render-graph node that draws a sprite scene into a destination texture, over an optional background node. */
 @blue.define("Tr2RenderNodeSprite2dScene")
+@blue.interface(ITr2RenderNode)
 @blue.inherit(ITr2RenderNode)
 export class Tr2RenderNodeSprite2dScene
 {

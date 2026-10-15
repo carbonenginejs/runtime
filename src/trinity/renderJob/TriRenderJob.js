@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/RenderJob/TriRenderJob.h
 // Source: trinity/trinity/RenderJob/TriRenderJob.cpp
 import { meta, type, blue } from "#schema";
@@ -12,6 +13,8 @@ import { be } from "#blue";
  * sequence pause mid-list and resume on a later frame.
  */
 @blue.define("TriRenderJob")
+@blue.interface(IRoot)
+@blue.inherit(IRoot)
 export class TriRenderJob
 {
   static Status = TriRenderJobStatus;

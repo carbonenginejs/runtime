@@ -11,6 +11,8 @@ import { RenderState } from "#consts/render-context";
  * follow.
  */
 @blue.define("TriStepSetRenderState")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepSetRenderState extends TriRenderStep
 {
   @blue.readwrite
@@ -48,6 +50,7 @@ export class TriStepSetRenderState extends TriRenderStep
    * Sets the state selector and its value together, both coerced to unsigned
    * 32-bit.
    */
+  @blue.method
   SetStateAndValue(state, value)
   {
     this.state = Number(state) >>> 0;

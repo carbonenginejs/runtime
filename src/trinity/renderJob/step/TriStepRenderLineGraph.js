@@ -5,6 +5,8 @@ import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that draws a set of line graphs with a shared scale and legend. */
 @blue.define("TriStepRenderLineGraph")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepRenderLineGraph extends TriRenderStep
 {
 

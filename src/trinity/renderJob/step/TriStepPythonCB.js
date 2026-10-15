@@ -5,6 +5,8 @@ import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that invokes a host-supplied callback at its point in the job order. */
 @blue.define("TriStepPythonCB")
+@blue.interface()
+@blue.chainTo(TriRenderStep)
 export class TriStepPythonCB extends TriRenderStep
 {
 

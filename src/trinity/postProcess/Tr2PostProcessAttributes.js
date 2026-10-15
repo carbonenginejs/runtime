@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/PostProcess/Tr2PostProcessAttributes.h
 // Source: trinity/trinity/PostProcess/Tr2PostProcessAttributes.cpp
 // Source: trinity/trinity/PostProcess/Tr2PostProcessAttributes_Blue.cpp
@@ -24,6 +25,7 @@ import { be } from "#blue";
  * volumes are blended together.
  */
 @blue.define("Tr2PostProcessAttributes")
+@blue.inherit(IRoot)
 @blue.interface()
 export class Tr2PostProcessAttributes
 {

@@ -5,6 +5,8 @@ import { Tr2PPEffect } from "./Tr2PPEffect.js";
 
 /** Carries the strength of a display-gated post-process signal-loss effect. */
 @blue.define("Tr2PPSignalLossEffect")
+@blue.chainTo(Tr2PPEffect)
+@blue.interface(Tr2PPEffect)
 export class Tr2PPSignalLossEffect extends Tr2PPEffect
 {
 
@@ -15,6 +17,7 @@ export class Tr2PPSignalLossEffect extends Tr2PPEffect
   strength = 0;
 
   /** Carbon Tr2PPSignalLossEffect::IsActive override. */
+  @blue.method
   IsActive()
   {
     return this.display && this.strength > 0;

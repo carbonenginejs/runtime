@@ -5,6 +5,8 @@ import { Tr2PPEffect } from "./Tr2PPEffect.js";
 
 /** Carries the intensity of a post-process desaturation effect. */
 @blue.define("Tr2PPDesaturateEffect")
+@blue.chainTo(Tr2PPEffect)
+@blue.interface(Tr2PPEffect)
 export class Tr2PPDesaturateEffect extends Tr2PPEffect
 {
 

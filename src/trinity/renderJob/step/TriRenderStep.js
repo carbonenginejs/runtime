@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/RenderJob/TriRenderStep.h
 // Source: trinity/trinity/RenderJob/TriRenderStep.cpp
 import { meta, type, blue } from "#schema";
@@ -7,7 +8,9 @@ import { meta, type, blue } from "#schema";
  * Base of every render-job step: an enable flag, a name, and the
  * begin/execute/end contract the owning job drives.
  */
-@blue.define("TriRenderStep")
+@blue.define({ className: "TriRenderStep", abstract: true })
+@blue.interface()
+@blue.inherit(IRoot)
 export class TriRenderStep
 {
   static Result = Object.freeze({

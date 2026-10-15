@@ -13,6 +13,8 @@ import "#consts/graphics/trinityEnums";
  * setting states individually.
  */
 @blue.define("TriStepSetStdRndStates")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepSetStdRndStates extends TriRenderStep
 {
   static RenderingMode = RenderingMode;
@@ -51,6 +53,7 @@ export class TriStepSetStdRndStates extends TriRenderStep
   }
 
   /** Sets the rendering mode, silently ignoring values at or above RM_COUNT. */
+  @blue.method
   SetState(state)
   {
     const value = Number(state) >>> 0;

@@ -11,6 +11,8 @@ import { Failed } from "#trinityal";
  * destination's mip chain afterwards.
  */
 @blue.define("TriStepResolve")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepResolve extends TriRenderStep
 {
   @blue.readwrite

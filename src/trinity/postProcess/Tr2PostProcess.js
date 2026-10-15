@@ -1,3 +1,4 @@
+import { IInitialize } from "../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Tr2PostProcess.h
 // Source: trinity/trinity/Tr2PostProcess.cpp
 import { meta, type, blue } from "#schema";
@@ -8,6 +9,7 @@ import { meta, type, blue } from "#schema";
  * to Tr2PostProcess2's named effect slots.
  */
 @blue.define("Tr2PostProcess")
+@blue.inherit(IInitialize)
 export class Tr2PostProcess
 {
   @blue.read

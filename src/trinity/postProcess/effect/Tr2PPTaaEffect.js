@@ -11,6 +11,8 @@ import { be, EnumRegistrationType } from "#blue";
  * which pixels are left alone, and the debug visualization selector.
  */
 @blue.define("Tr2PPTaaEffect")
+@blue.chainTo(Tr2PPEffect)
+@blue.interface(Tr2PPEffect)
 export class Tr2PPTaaEffect extends Tr2PPEffect
 {
 
@@ -32,6 +34,7 @@ export class Tr2PPTaaEffect extends Tr2PPEffect
    * Reports TAA as contributing whenever it is displayed; unlike the other
    * effects it has no intensity or scale to gate on.
    */
+  @blue.method
   IsActive()
   {
     return this.display !== false;

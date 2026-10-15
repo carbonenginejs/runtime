@@ -9,6 +9,8 @@ import { Quality } from "../../generated/postProcess/enums.js";
  * quality level it needs before a frame will run it.
  */
 @blue.define("Tr2PPGenericEffect")
+@blue.chainTo(Tr2PPEffect)
+@blue.interface(Tr2PPEffect)
 export class Tr2PPGenericEffect extends Tr2PPEffect
 {
   @blue.readwrite
@@ -23,6 +25,7 @@ export class Tr2PPGenericEffect extends Tr2PPEffect
   effect = null;
 
   /** Returns the wrapped effect, which may be null when none was authored. */
+  @blue.method
   GetEffect()
   {
     return this.effect;

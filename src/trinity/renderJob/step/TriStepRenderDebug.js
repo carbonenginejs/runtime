@@ -7,6 +7,8 @@ import { vec3 } from "#math/vec3";
 
 /** A render step that accumulates debug lines, boxes and 2D/3D text for one frame and hands them to the render context to draw. */
 @blue.define("TriStepRenderDebug")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepRenderDebug extends TriRenderStep
 {
 

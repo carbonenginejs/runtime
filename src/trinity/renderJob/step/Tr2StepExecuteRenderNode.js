@@ -11,6 +11,8 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * the target when the node is absent or fails validation.
  */
 @blue.define("Tr2StepExecuteRenderNode")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class Tr2StepExecuteRenderNode extends TriRenderStep
 {
 
@@ -85,6 +87,7 @@ export class Tr2StepExecuteRenderNode extends TriRenderStep
   }
 
   /** Records Carbon's black target-only clear after a recoverable failure. */
+  @blue.method
   _ClearOnFailure(renderContext)
   {
     renderContext.SetRenderTarget(0, this.destinationTarget);

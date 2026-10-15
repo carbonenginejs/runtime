@@ -7,6 +7,7 @@ import "#consts/graphics/trinityEnums";
 
 /** A render-graph node that binds named sources onto an effect and produces its output. */
 @blue.define("Tr2RenderNodeEffect")
+@blue.interface(ITr2RenderNode)
 @blue.inherit(ITr2RenderNode)
 export class Tr2RenderNodeEffect
 {

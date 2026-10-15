@@ -8,6 +8,8 @@ import { vec4 } from "#math/vec4";
 
 /** Carries the distance bands, color, nebula, brightness, and blending settings for post-process fog. */
 @blue.define("Tr2PPFogEffect")
+@blue.chainTo(Tr2PPEffect)
+@blue.interface(Tr2PPEffect)
 export class Tr2PPFogEffect extends Tr2PPEffect
 {
 
@@ -174,6 +176,7 @@ export class Tr2PPFogEffect extends Tr2PPEffect
   originalBrightenOnly = 0.5;
 
   /** Carbon Tr2PPFogEffect::IsActive override. */
+  @blue.method
   IsActive()
   {
     return this.display && this.intensity > 0;

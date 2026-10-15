@@ -7,6 +7,8 @@ import { vec4 } from "#math/vec4";
 
 /** Carries the shape, detail textures, scrolling, color, opacity, and oscillation settings for a post-process vignette. */
 @blue.define("Tr2PPVignetteEffect")
+@blue.chainTo(Tr2PPEffect)
+@blue.interface(Tr2PPEffect)
 export class Tr2PPVignetteEffect extends Tr2PPEffect
 {
 
@@ -83,6 +85,7 @@ export class Tr2PPVignetteEffect extends Tr2PPEffect
   sineMinimum = 0;
 
   /** Carbon Tr2PPVignetteEffect::IsActive override. */
+  @blue.method
   IsActive()
   {
     return this.display && this.intensity > 0 && this.opacity > 0;

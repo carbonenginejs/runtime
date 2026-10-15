@@ -12,6 +12,8 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * independently enabled with its own clear value.
  */
 @blue.define("TriStepClear")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepClear extends TriRenderStep
 {
   @blue.readwrite

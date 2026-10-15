@@ -9,6 +9,8 @@ import { TriRenderJob } from "../TriRenderJob.js";
 
 /** Step that saves the current view transform so a later pop can restore it. */
 @blue.define("TriStepPushViewTransform")
+@blue.interface(TriRenderStep)
+@blue.chainTo(TriRenderStep)
 export class TriStepPushViewTransform extends TriRenderStep
 {
   /**
