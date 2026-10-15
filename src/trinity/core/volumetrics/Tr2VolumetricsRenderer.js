@@ -884,6 +884,7 @@ export class Tr2VolumetricsRenderer
    */
   @meta.adapted
   @blue.method
+  @meta.renamed("UpdatePerObjectData")
   _UpdatePerObjectData(data, view, projection, viewLast, projectionLast, origin, originShift, sunDirection, sunColor,
     width, height, depth, jitter, cascadedShadowMap)
   {

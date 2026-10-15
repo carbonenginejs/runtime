@@ -558,8 +558,8 @@ CjsSchema.decorateField(Tr2RenderBatch, "material", type.rootRef("Tr2Material"))
 CjsSchema.decorateMethod(Tr2RenderBatch, "SetMaterial", blue.method);
 CjsSchema.decorateMethod(Tr2RenderBatch, "SetPriority", blue.method);
 CjsSchema.decorateMethod(Tr2RenderBatch, "SetGeometry", blue.method);
-CjsSchema.decorateMethod(Tr2RenderBatch, "SetGeometry__Allocation", blue.method);
-CjsSchema.decorateMethod(Tr2RenderBatch, "SetGeometry__AllocationSecondStream", blue.method);
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetGeometry__Allocation", blue.method, meta.renamed("SetGeometry"));
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetGeometry__AllocationSecondStream", blue.method, meta.renamed("SetGeometry"));
 CjsSchema.decorateMethod(Tr2RenderBatch, "SetVertexDeclaration", blue.method);
 CjsSchema.decorateMethod(Tr2RenderBatch, "SetStreamSource", blue.method);
 CjsSchema.decorateMethod(Tr2RenderBatch, "SetIndices", blue.method, meta.renamed("SetInidices"));
@@ -569,6 +569,6 @@ CjsSchema.decorateMethod(Tr2RenderBatch, "SetDrawIndexedInstanced", blue.method)
 CjsSchema.decorateMethod(Tr2RenderBatch, "SetDrawInstanced", blue.method);
 CjsSchema.decorateMethod(Tr2RenderBatch, "SetRenderingMode", blue.method);
 CjsSchema.decorateMethod(Tr2RenderBatch, "SetPickingData", blue.method);
-CjsSchema.decorateMethod(Tr2RenderBatch, "SetPickingData__MeshArea", blue.method);
+CjsSchema.decorateMethod(Tr2RenderBatch, "SetPickingData__MeshArea", blue.method, meta.renamed("SetPickingData"));
 CjsSchema.decorateMethod(Tr2RenderBatch, "IsValid", blue.method);
 CjsSchema.blue.define(Tr2RenderBatch, { className: "Tr2RenderBatch" });

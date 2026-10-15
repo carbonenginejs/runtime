@@ -186,7 +186,7 @@ CjsSchema.decorateField(Tr2VertexDefinition, "nextOffset", type.array("uint32"))
 CjsSchema.decorateMethod(Tr2VertexDefinition, "empty", blue.method);
 CjsSchema.decorateMethod(Tr2VertexDefinition, "Add", blue.method);
 CjsSchema.decorateMethod(Tr2VertexDefinition, "Find", blue.method);
-CjsSchema.decorateMethod(Tr2VertexDefinition, "Find__UsageIndex", blue.method);
+CjsSchema.decorateMethod(Tr2VertexDefinition, "Find__UsageIndex", blue.method, meta.renamed("Find"));
 CjsSchema.decorateMethod(Tr2VertexDefinition, "getDataTypeSizeInMembers", blue.method, meta.renamed("GetDataTypeSizeInMembers"));
 CjsSchema.decorateMethod(Tr2VertexDefinition, "getDataTypeSizeInBytes", blue.method, meta.renamed("GetDataTypeSizeInBytes"));
 CjsSchema.decorateMethod(Tr2VertexDefinition, "isSameDefinition", blue.method, meta.renamed("operator=="));
