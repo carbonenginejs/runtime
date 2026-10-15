@@ -1,28 +1,28 @@
 // Source: trinity/trinity/Particle/Tr2ParticleElementDeclaration.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema particle/Tr2ParticleElementData.json).
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { be } from "#blue";
 
 /** Tr2ParticleElementData (particle) - generated from schema shapeHash ca640653.... */
-@meta.define({ className: "Tr2ParticleElementData", family: "particle" })
+@blue.define("Tr2ParticleElementData")
 export class Tr2ParticleElementData
 {
 
   /** m_dimension (unsigned) */
-  @meta.type.uint32
+  @type.uint32
   dimension = 0;
 
   /** m_usageIndex (unsigned) */
-  @meta.type.uint32
+  @type.uint32
   usageIndex = 0;
 
   /** m_bufferType (BufferType - enum BufferType) */
-  @meta.type.int32
-  @meta.type.enum("trinity.Tr2ParticleElementData.BufferType")
+  @type.int32
+  @type.enum("trinity.Tr2ParticleElementData.BufferType")
   bufferType = 0;
 
   /** m_offset (unsigned) */
-  @meta.type.uint32
+  @type.uint32
   offset = 0;
 
   /**
@@ -32,7 +32,7 @@ export class Tr2ParticleElementData
    *
    * @returns {Tr2ParticleElementData} The invalid descriptor.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static Invalid()
   {

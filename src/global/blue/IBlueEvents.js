@@ -31,4 +31,4 @@ export class IBlueEvents
 
 CjsSchema.decorateMethod(IBlueEvents, "OnTick", meta.requires, meta.abstract);
 
-CjsSchema.define(IBlueEvents, { className: "IBlueEvents", carbon: "IBlueEvents", family: "blue", fields: {} });
+CjsSchema.blue.define(IBlueEvents, { className: "IBlueEvents", fields: {} });

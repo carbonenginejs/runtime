@@ -5,7 +5,7 @@ import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { box3 } from "#math/box3";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { mat4 } from "#math/mat4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveSpriteLight } from "./EveSpriteLight.js";
 import { EveComponentType } from "../../EntityComponents.js";
@@ -23,42 +23,42 @@ import { EveSpriteSet } from "./EveSpriteSet.js";
  * A hull's authored sprite runs - lines and circles of evenly spaced sprites -
  * owning their static and per-bone bounds and the point lights they emit.
  */
-@meta.define({ className: "EveSpriteLineSet", family: "eve/attachment/sprites" })
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(IInitialize, IEveSpaceObjectAttachment, EveEntity)
+@blue.define("EveSpriteLineSet")
+@blue.inherit(IInitialize)
+@blue.interface(IInitialize, IEveSpaceObjectAttachment, EveEntity)
 export class EveSpriteLineSet extends IEveSpaceObjectAttachment
 {
 
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSpriteLineSetItem")
+  @blue.read
+  @blue.persist
+  @type.list("EveSpriteLineSetItem")
   spriteLines = [];
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   skinned = false;
 
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   effectHash = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2Effect")
   effect = null;
 
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   display = true;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
-  @meta.blue.persist
-  @meta.type.list("EveSpriteLight")
+  @blue.persist
+  @type.list("EveSpriteLight")
   lights = [];
 
   _rebuildRevision = 0;
@@ -83,7 +83,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   _activationStrength = 0;
 
   /** Carbon Rebuild (cpp:74-78): the packed sprites, then the bounds. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Rebuild()
   {
@@ -100,7 +100,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    *
    * @returns {boolean} True.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ReallocateResources()
   {
@@ -142,7 +142,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   }
 
   /** Carbon RegisterWithQuadRenderer (cpp:186-190): additive, one quad per sprite. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -154,7 +154,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * through their bone when skinned and the bone exists; activation stamped
    * unscaled (unlike EveSpriteSet, no intensity).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddToQuadRenderer(quadRenderer, parentTransform, activation, _boosterGain, bones, boneCount)
   {
@@ -199,7 +199,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * Runs the first Rebuild so the set has bounds before its first visibility
    * test.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -209,7 +209,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
 
   /** Carbon EveSpriteLineSet::GetAabb (cpp:177-180): the item-set bounds, with the bone
    * list forwarded only when the set is skinned. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetAabb(out, bones = null, boneCount = 0)
   {
@@ -225,7 +225,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   /** Carbon EveSpriteLineSet::UpdateVisibility (cpp:140-150): an uninitialized set is
    * NOT visible; otherwise the bounds move into world space and take the
    * frustum box test. No LOD and no display gate. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
   {
@@ -240,7 +240,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   }
 
   /** Sets the drawing effect and the skinned flag in one call. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Setup(effect, isSkinned)
   {
@@ -252,7 +252,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * Appends an authored sprite line item; the bounds only pick it up on the next
    * Rebuild.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Add(item)
   {
@@ -262,7 +262,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   /**
    * Sets a shader option on the sprite line effect, doing nothing when no effect is attached.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetShaderOption(name, value)
   {
@@ -276,7 +276,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * Converts a SOF-authored light description into an EveSpriteLight and appends
    * it to the set.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AddLightFromSOF(light)
   {
@@ -285,7 +285,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
 
   /** Carbon EveSpriteLineSet::RegisterComponents (cpp:349-356): LightOwner
    * when lights are authored. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterComponents()
   {
@@ -306,7 +306,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * gets only the parent transform. Binding 0 is a mesh bone binding and can
    * be animated - the Bowhead (orecs2_t1) moves its MASTER binding through
    * Normal2Warp - so ours applies bone 0 like any other. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateLights(parentTransform, bones, boneCount, activationStrength, _boosterGain = 0)
   {
@@ -338,7 +338,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    *
    * Adapted: Profile-index packing is by-reference per lightConversion.js.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetLights(lightManager)
   {

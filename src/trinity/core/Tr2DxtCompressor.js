@@ -85,9 +85,9 @@ function copySurface(source, destination, width, height, format, pitch)
     for (let row = 0; row < rows; row++) destination.set(source.subarray(row * pitch, row * pitch + rowBytes), row * pitch);
 }
 
-CjsSchema.define(Tr2DxtCompressor, {
-    className: "Tr2DxtCompressor",
-    methods: { Tr2DxtCompressSurface: [meta.adapted], Tr2DxtCompressSurfaceAsync: [meta.adapted] }
+CjsSchema.meta.define(Tr2DxtCompressor, {
+  className: "Tr2DxtCompressor",
+  methods: { Tr2DxtCompressSurface: [meta.adapted], Tr2DxtCompressSurfaceAsync: [meta.adapted] }
 });
 
 /** Original Carbon free-function door, forwarded to the approved facade. */

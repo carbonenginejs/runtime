@@ -83,8 +83,9 @@ export class Tr2ReadbackALWebgpu extends Tr2DeviceResourceAL
   }
 }
 
-CjsSchema.define(Tr2ReadbackALWebgpu, {
-  className: "Tr2ReadbackALWebgpu", carbon: "Tr2ReadbackAL",
+CjsSchema.blue.define(Tr2ReadbackALWebgpu, {
+  className: "Tr2ReadbackALWebgpu",
+  donors: [ "Tr2ReadbackAL" ],
   methods: { IsReady: [meta.adapted], IsValid: [meta.implemented], Map: [meta.adapted],
     Destroy: [meta.adapted], Describe: [meta.implemented], GetMemoryClass: [meta.implemented] }
 });

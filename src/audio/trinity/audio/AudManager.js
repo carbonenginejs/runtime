@@ -6,7 +6,7 @@
 // init, RenderAudio, and device concerns route through the backend seam
 // (AudGameObjResource.backend); state, bank tracking, deferred-event flush,
 // monitored-parameter refcounts, and prioritization wiring are pure logic.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 import { AudGeometry } from "./AudGeometry.js";
 import { AudObstructionOcclusion } from "./AudObstructionOcclusion/index.js";
@@ -24,23 +24,23 @@ function BankKey(name)
 }
 
 /** Coordinates audio lifecycle, banks, global controls, culling, and caller-supplied obstruction/occlusion. */
-@meta.define({ className: "AudManager", family: "audio" })
+@blue.define("AudManager")
 export class AudManager
 {
 
   /** m_log (IAudActionLogPtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("IAudActionLog")
+  @blue.readwrite
+  @type.rootRef("IAudActionLog")
   log = null;
 
   /** m_audioCullingEnabled (mutable bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   audioCullingEnabled = true;
 
   /** m_spatialAudioEnabled (bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   spatialAudioEnabled = true;
 
   /**
@@ -50,8 +50,8 @@ export class AudManager
    * values interchange.
    */
   @meta.adapted
-  @meta.blue.persist
-  @meta.type.rootRef("AudSettings")
+  @blue.persist
+  @type.rootRef("AudSettings")
   settings = null;
 
   // AudioState (Uninitialized/Disabled/Enabled) as lowercase strings;
@@ -85,7 +85,7 @@ export class AudManager
   }
 
   /** Carbon method GetState. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetState()
   {
@@ -107,7 +107,7 @@ export class AudManager
    * InitSpatialAudioGeometry with Carbon's populated settings. The state machine, failure gate, bank loads, and wake
    * pass follow audio/src/AudManager.cpp:148-180 and 848-881.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Enable(soundBanksToLoad = [])
   {
@@ -157,7 +157,7 @@ export class AudManager
   }
 
   /** Carbon method Disable: cull everything, clear banks, drop to disabled (engine stays initialized). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Disable()
   {
@@ -176,7 +176,7 @@ export class AudManager
   }
 
   /** Carbon method LoadBank: async - tracked LOADING immediately; backend callback drives LOADED. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   LoadBank(name)
   {
@@ -211,7 +211,7 @@ export class AudManager
   }
 
   /** Carbon method UnloadBank. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UnloadBank(name)
   {
@@ -240,7 +240,7 @@ export class AudManager
   }
 
   /** Carbon method ClearBanks. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ClearBanks()
   {
@@ -254,7 +254,7 @@ export class AudManager
   // The deferred-event flush: waiting events fire with bypassPrefix=true
   // exactly on the transition to LOADED, then the queue clears.
   /** Carbon method UpdateSoundBankStatus. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateSoundBankStatus(bankID, status)
   {
@@ -275,7 +275,7 @@ export class AudManager
   }
 
   /** Carbon method RegisterEventAfterSoundBankLoad: queue an event on a LOADING bank (matched by name). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterEventAfterSoundBankLoad(soundBankName, eventName, emitter)
   {
@@ -289,7 +289,7 @@ export class AudManager
   }
 
   /** Carbon method GetSoundBankStatus: by name or key; "not_loaded" when unknown. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetSoundBankStatus(name)
   {
@@ -309,7 +309,7 @@ export class AudManager
   }
 
   /** Carbon method GetLoadedSoundBanks: names with status loaded OR loading (Carbon counts both). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLoadedSoundBanks()
   {
@@ -325,7 +325,7 @@ export class AudManager
   }
 
   /** Carbon method SetGlobalRTPC: pure backend passthrough, enabled-gated, no caching. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetGlobalRTPC(rtpcName, value)
   {
@@ -342,7 +342,7 @@ export class AudManager
   }
 
   /** Carbon method SetState (global state group): passthrough, enabled-gated. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetState(stateGroup, stateName)
   {
@@ -356,7 +356,7 @@ export class AudManager
   }
 
   /** Carbon method LogPostEvent. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   LogPostEvent(emitterID, playID, eventID, name)
   {
@@ -367,7 +367,7 @@ export class AudManager
   }
 
   /** Carbon method LogExecuteActionOnPlayingID. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   LogExecuteActionOnPlayingID(emitterID, playID, action)
   {
@@ -378,7 +378,7 @@ export class AudManager
   }
 
   /** Carbon method LogSetSwitch. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   LogSetSwitch(emitterID, group, state)
   {
@@ -389,7 +389,7 @@ export class AudManager
   }
 
   /** Carbon method LogSetState. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   LogSetState(group, state)
   {
@@ -400,7 +400,7 @@ export class AudManager
   }
 
   /** Carbon method LogSetRTPC. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   LogSetRTPC(emitterID, name, value, playID = 0)
   {
@@ -411,7 +411,7 @@ export class AudManager
   }
 
   /** Carbon method GetSpatialAudioGeometryEnabled. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetSpatialAudioGeometryEnabled()
   {
@@ -431,7 +431,7 @@ export class AudManager
    * obstruction, occlusion); an explicit false return is retried on the next
    * Process(), any other return is accepted.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetEmitterLineOfSightBlockage(emitterID, blockage)
   {
@@ -442,7 +442,7 @@ export class AudManager
   }
 
   /** Carbon method GetEmitterOcclusion: returns the live, mid-fade value. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetEmitterOcclusion(emitterID)
   {
@@ -450,7 +450,7 @@ export class AudManager
   }
 
   /** Carbon method ClearObstructionOcclusion: fades every target to clear. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ClearObstructionOcclusion()
   {
@@ -458,7 +458,7 @@ export class AudManager
   }
 
   /** Carbon Blue property getter for game-driven obstruction/occlusion. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetObstructionOcclusionEnabled()
   {
@@ -466,7 +466,7 @@ export class AudManager
   }
 
   /** Carbon Blue property setter for game-driven obstruction/occlusion. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetObstructionOcclusionEnabled(value)
   {
@@ -474,7 +474,7 @@ export class AudManager
   }
 
   /** Carbon Blue property getter for the obstruction/occlusion fade rate. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetObstructionOcclusionFadeRate()
   {
@@ -482,7 +482,7 @@ export class AudManager
   }
 
   /** Carbon Blue property setter for the obstruction/occlusion fade rate. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetObstructionOcclusionFadeRate(value)
   {
@@ -495,7 +495,7 @@ export class AudManager
    * Adapted: Browser backends may expose InitSpatialAudioGeometry; the setting and geometry lifecycle remain
    * available even though WebAudio has no native diffraction engine.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetSpatialAudioGeometryEnabled(enabled)
   {
@@ -550,7 +550,7 @@ export class AudManager
   }
 
   /** Returns the spatial-audio movement threshold. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetMovementThreshold()
   {
@@ -558,7 +558,7 @@ export class AudManager
   }
 
   /** Sets the spatial-audio movement threshold. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetMovementThreshold(value)
   {
@@ -566,7 +566,7 @@ export class AudManager
   }
 
   /** Returns the maximum number of primary spatial-audio rays. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetNumberOfPrimaryRays()
   {
@@ -574,7 +574,7 @@ export class AudManager
   }
 
   /** Sets the maximum number of primary spatial-audio rays. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetNumberOfPrimaryRays(value)
   {
@@ -582,7 +582,7 @@ export class AudManager
   }
 
   /** Returns the maximum reflection order. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetMaxReflectionOrder()
   {
@@ -590,7 +590,7 @@ export class AudManager
   }
 
   /** Sets the maximum reflection order. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetMaxReflectionOrder(value)
   {
@@ -598,7 +598,7 @@ export class AudManager
   }
 
   /** Returns the maximum diffraction order. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetMaxDiffractionOrder()
   {
@@ -606,7 +606,7 @@ export class AudManager
   }
 
   /** Sets the maximum diffraction order. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetMaxDiffractionOrder(value)
   {
@@ -614,7 +614,7 @@ export class AudManager
   }
 
   /** Returns the maximum number of emitter room auxiliary sends. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetMaxEmitterRoomAuxSends()
   {
@@ -622,7 +622,7 @@ export class AudManager
   }
 
   /** Sets the maximum number of emitter room auxiliary sends. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetMaxEmitterRoomAuxSends(value)
   {
@@ -630,7 +630,7 @@ export class AudManager
   }
 
   /** Returns the diffraction order applied at reflection endpoints. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetDiffractionOnReflectionsOrder()
   {
@@ -638,7 +638,7 @@ export class AudManager
   }
 
   /** Sets the diffraction order applied at reflection endpoints. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetDiffractionOnReflectionsOrder(value)
   {
@@ -646,7 +646,7 @@ export class AudManager
   }
 
   /** Returns the maximum spatial-audio path length. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetMaxPathLength()
   {
@@ -654,7 +654,7 @@ export class AudManager
   }
 
   /** Sets the maximum spatial-audio path length. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetMaxPathLength(value)
   {
@@ -662,7 +662,7 @@ export class AudManager
   }
 
   /** Returns the targeted spatial-audio CPU percentage. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetCPULimitPercentage()
   {
@@ -670,7 +670,7 @@ export class AudManager
   }
 
   /** Sets the targeted spatial-audio CPU percentage. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetCPULimitPercentage(value)
   {
@@ -678,7 +678,7 @@ export class AudManager
   }
 
   /** Returns the spatial-audio load-balancing spread. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLoadBalancingSpread()
   {
@@ -686,7 +686,7 @@ export class AudManager
   }
 
   /** Sets the spatial-audio load-balancing spread. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetLoadBalancingSpread(value)
   {
@@ -694,7 +694,7 @@ export class AudManager
   }
 
   /** Returns whether geometric diffraction and transmission are enabled. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetEnableDiffractionAndTransmission()
   {
@@ -702,7 +702,7 @@ export class AudManager
   }
 
   /** Enables or disables geometric diffraction and transmission. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetEnableDiffractionAndTransmission(value)
   {
@@ -710,7 +710,7 @@ export class AudManager
   }
 
   /** Returns whether Wwise calculates emitter virtual positions. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetCalcEmitterVirtualPosition()
   {
@@ -718,7 +718,7 @@ export class AudManager
   }
 
   /** Enables or disables Wwise emitter virtual-position calculation. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetCalcEmitterVirtualPosition(value)
   {
@@ -726,7 +726,7 @@ export class AudManager
   }
 
   /** Returns the geometry surface transmission loss. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetTransmissionLoss()
   {
@@ -734,7 +734,7 @@ export class AudManager
   }
 
   /** Sets the geometry surface transmission loss. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetTransmissionLoss(value)
   {
@@ -742,7 +742,7 @@ export class AudManager
   }
 
   /** Returns whether geometry diffraction is enabled. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetEnableDiffraction()
   {
@@ -750,7 +750,7 @@ export class AudManager
   }
 
   /** Enables or disables geometry diffraction. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetEnableDiffraction(value)
   {
@@ -758,7 +758,7 @@ export class AudManager
   }
 
   /** Returns whether geometry boundary-edge diffraction is enabled. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetEnableDiffractionOnBoundaryEdges()
   {
@@ -766,7 +766,7 @@ export class AudManager
   }
 
   /** Enables or disables geometry boundary-edge diffraction. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetEnableDiffractionOnBoundaryEdges(value)
   {
@@ -774,7 +774,7 @@ export class AudManager
   }
 
   /** Returns the one-shot opportunity window in milliseconds. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetOneShotWindow()
   {
@@ -782,7 +782,7 @@ export class AudManager
   }
 
   /** Sets the one-shot opportunity window in milliseconds. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetOneShotWindow(value)
   {
@@ -790,7 +790,7 @@ export class AudManager
   }
 
   /** Returns the weighted playing-2D contribution. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPlaying2DWeight()
   {
@@ -798,7 +798,7 @@ export class AudManager
   }
 
   /** Sets the raw playing-2D weight. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetPlaying2DWeight(value)
   {
@@ -806,7 +806,7 @@ export class AudManager
   }
 
   /** Returns the weighted playing-events contribution. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPlayingEventsWeight()
   {
@@ -814,7 +814,7 @@ export class AudManager
   }
 
   /** Sets the raw playing-events weight. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetPlayingEventsWeight(value)
   {
@@ -822,7 +822,7 @@ export class AudManager
   }
 
   /** Returns the weighted vital-sound contribution. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPlayingVitalSoundWeight()
   {
@@ -830,7 +830,7 @@ export class AudManager
   }
 
   /** Sets the raw vital-sound weight. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetPlayingVitalSoundWeight(value)
   {
@@ -838,7 +838,7 @@ export class AudManager
   }
 
   /** Returns the weighted range contribution. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetRangeWeight()
   {
@@ -846,7 +846,7 @@ export class AudManager
   }
 
   /** Sets the raw range weight. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetRangeWeight(value)
   {
@@ -854,7 +854,7 @@ export class AudManager
   }
 
   /** Returns the weighted used-emitter contribution. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetUsedEmitterWeight()
   {
@@ -862,7 +862,7 @@ export class AudManager
   }
 
   /** Sets the raw used-emitter weight. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetUsedEmitterWeight(value)
   {
@@ -870,7 +870,7 @@ export class AudManager
   }
 
   /** Returns the weighted visibility contribution. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetVisibleWeight()
   {
@@ -878,7 +878,7 @@ export class AudManager
   }
 
   /** Sets the raw visibility weight. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetVisibleWeight(value)
   {
@@ -886,7 +886,7 @@ export class AudManager
   }
 
   /** Returns the weighted waiting-one-shot contribution. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetWaitingOneShotWeight()
   {
@@ -894,7 +894,7 @@ export class AudManager
   }
 
   /** Sets the raw waiting-one-shot weight. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetWaitingOneShotWeight(value)
   {
@@ -902,7 +902,7 @@ export class AudManager
   }
 
   /** Returns the global prioritization weight multiplier. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetWeightMultiplier()
   {
@@ -910,7 +910,7 @@ export class AudManager
   }
 
   /** Sets the global prioritization weight multiplier. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetWeightMultiplier(value)
   {
@@ -918,7 +918,7 @@ export class AudManager
   }
 
   /** Returns the maximum number of awake audio objects. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetMaxAwakeGameObjects()
   {
@@ -926,7 +926,7 @@ export class AudManager
   }
 
   /** Sets the maximum number of awake audio objects. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetMaxAwakeGameObjects(value)
   {
@@ -934,7 +934,7 @@ export class AudManager
   }
 
   /** Returns the non-reserved awake emitters. Source: AudManager.cpp:1247-1258 (commit c9b986d). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetAwakeAudioEmitters()
   {
@@ -951,7 +951,7 @@ export class AudManager
   }
 
   /** Carbon method StopAll: every prioritized emitter stops everything. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   StopAll()
   {
@@ -965,7 +965,7 @@ export class AudManager
   }
 
   /** Carbon method RegisterGameObject: callback map + prioritization registration. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterGameObject(gameObjID, gameObject)
   {
@@ -986,7 +986,7 @@ export class AudManager
    * Adapted: Carbon keeps deferred emitters alive through strong pointers; CarbonEngineJS explicit release must
    * prevent a stale post after re-adoption.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UnregisterGameObject(gameObjID)
   {
@@ -1001,7 +1001,7 @@ export class AudManager
   }
 
   /** Carbon method RemoveCallbackGameObject. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RemoveCallbackGameObject(gameObjID)
   {
@@ -1009,7 +1009,7 @@ export class AudManager
   }
 
   /** Carbon method GetAudioEmitter (by game-object id). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetAudioEmitter(gameObjID)
   {
@@ -1021,7 +1021,7 @@ export class AudManager
    *
    * Adapted: The native locked callback map is synchronous in JavaScript's single-threaded graph runtime.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   WithCallbackGameObject(gameObjID, callback)
   {
@@ -1040,7 +1040,7 @@ export class AudManager
    * Adapted: Carbon dereferences a missing emitter in this debug helper; the JavaScript graph returns an empty name
    * when no emitter is registered.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetEventName(emitterID, playingID)
   {
@@ -1049,7 +1049,7 @@ export class AudManager
   }
 
   /** Carbon method GetListener: the fixed-id listener object. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetListener()
   {
@@ -1057,7 +1057,7 @@ export class AudManager
   }
 
   /** Carbon method RegisterParameter: watcher refcount, entry created at 1. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterParameter(name)
   {
@@ -1071,7 +1071,7 @@ export class AudManager
   }
 
   /** Carbon method UnregisterParameter: erased when watchers hit 0. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UnregisterParameter(name)
   {
@@ -1087,7 +1087,7 @@ export class AudManager
   }
 
   /** Carbon method GetParameterInfo. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetParameterInfo(name)
   {
@@ -1095,7 +1095,7 @@ export class AudManager
   }
 
   /** Carbon method UpdateMonitoredParameters: refresh every entry from the backend RTPC query. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateMonitoredParameters()
   {
@@ -1108,7 +1108,7 @@ export class AudManager
   }
 
   /** Carbon method GetAudioCullingEnabled. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetAudioCullingEnabled()
   {
@@ -1117,7 +1117,7 @@ export class AudManager
   }
 
   /** Carbon Blue property getter GetAudioCullingEnabledProperty. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetAudioCullingEnabledProperty()
   {
@@ -1125,7 +1125,7 @@ export class AudManager
   }
 
   /** Carbon method Process: cull (when enabled+flagged), render, flush the log. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Process()
   {
@@ -1155,7 +1155,7 @@ export class AudManager
   }
 
   /** Carbon method UpdateSettings. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateSettings(settings)
   {
@@ -1163,7 +1163,7 @@ export class AudManager
   }
 
   /** Carbon method DisableAudioCulling: wake all objects, then disable prioritization. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   DisableAudioCulling()
   {
@@ -1179,7 +1179,7 @@ export class AudManager
   }
 
   /** Carbon method EnableAudioCulling. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   EnableAudioCulling()
   {
@@ -1206,7 +1206,7 @@ export class AudManager
    * Adapted: Carbon's native debug renderer reads a global flag; CarbonEngineJS retains the flag for an injected
    * renderer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   EnableDebugDisplayAllEmitters()
   {
@@ -1219,7 +1219,7 @@ export class AudManager
    * Adapted: Carbon's native debug renderer reads a global flag; CarbonEngineJS retains the flag for an injected
    * renderer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   DisableDebugDisplayAllEmitters()
   {
@@ -1231,7 +1231,7 @@ export class AudManager
    *
    * Adapted: The value is available to browser renderers even though the audio layer does not draw debug geometry.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetDebugDisplayAllEmitters()
   {
@@ -1239,7 +1239,7 @@ export class AudManager
   }
 
   /** Native Wwise output-device replacement has no WebAudio equivalent. */
-  @meta.blue.method
+  @blue.method
   @meta.notSupported
   EnableSpatialAudio()
   {
@@ -1247,7 +1247,7 @@ export class AudManager
   }
 
   /** Native Wwise output-device replacement has no WebAudio equivalent. */
-  @meta.blue.method
+  @blue.method
   @meta.notSupported
   DisableSpatialAudio()
   {
@@ -1255,7 +1255,7 @@ export class AudManager
   }
 
   /** OS/Wwise spatial-output support cannot be inferred from a WebAudio panner. */
-  @meta.blue.method
+  @blue.method
   @meta.notSupported
   SpatialAudioIsSupported()
   {
@@ -1263,7 +1263,7 @@ export class AudManager
   }
 
   /** Native audio-device callbacks have no owned browser equivalent. */
-  @meta.blue.method
+  @blue.method
   @meta.notSupported
   RegisterAudioDeviceChangeCallback(callback)
   {
@@ -1271,7 +1271,7 @@ export class AudManager
   }
 
   /** Native Wwise profiler capture is unavailable in WebAudio. */
-  @meta.blue.method
+  @blue.method
   @meta.notSupported
   StartProfilerCapture()
   {
@@ -1279,7 +1279,7 @@ export class AudManager
   }
 
   /** Native Wwise profiler capture is unavailable in WebAudio. */
-  @meta.blue.method
+  @blue.method
   @meta.notSupported
   StopProfilerCapture()
   {
@@ -1287,7 +1287,7 @@ export class AudManager
   }
 
   /** Native Wwise profiler capture is unavailable in WebAudio. */
-  @meta.blue.method
+  @blue.method
   @meta.notSupported
   IsProfilerCapturing()
   {
@@ -1295,7 +1295,7 @@ export class AudManager
   }
 
   /** Carbon method ResetCullingSettings. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ResetCullingSettings()
   {

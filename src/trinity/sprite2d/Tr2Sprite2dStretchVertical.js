@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dStretchVertical.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dStretchVertical_Blue.cpp
 // Promoted to hand-maintained source 2026-10-12 from the generated property shell.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec4 } from "#math/vec4";
 import { Tr2SpriteObjectEffect, Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
 import { Tr2Sprite2dD3DVertex } from "./Tr2Sprite2dD3DVertex.js";
@@ -71,45 +71,45 @@ function setVertex(vertex, x, y, u, v)
  * Vertices are local to the sprite; the translation is pushed on the scene while they are
  * submitted.
  */
-@meta.define({ className: "Tr2Sprite2dStretchVertical", family: "sprite2d", purpose: "Defines a vertically stretchable textured sprite with independent edge heights, center fill, offset and opacity." })
-@meta.blue.chainTo(Tr2TexturedSpriteObject)
+@blue.define({ className: "Tr2Sprite2dStretchVertical", purpose: "Defines a vertically stretchable textured sprite with independent edge heights, center fill, offset and opacity." })
+@blue.chainTo(Tr2TexturedSpriteObject)
 export class Tr2Sprite2dStretchVertical extends Tr2TexturedSpriteObject
 {
 
   /** m_topEdgeSize (unsigned int) [READWRITE, NOTIFY]: fixed pixels on the texture's top edge. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.uint32
+  @blue.notify
+  @blue.readwrite
+  @type.uint32
   topEdgeSize = 0;
 
   /** m_bottomEdgeSize (unsigned int) [READWRITE, NOTIFY]: fixed pixels on the texture's bottom edge. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.uint32
+  @blue.notify
+  @blue.readwrite
+  @type.uint32
   bottomEdgeSize = 0;
 
   /** m_edgeScale (float) [READWRITE, NOTIFY]: edge scaling when rendering, for UI scaling. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   edgeScale = 1;
 
   /** m_fillCenter (bool) [READWRITE, NOTIFY]: whether the centre piece is drawn. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @type.boolean
   fillCenter = true;
 
   /** m_saturation (float) [READWRITE, NOTIFY]: used by TR2_SFX_COLOROVERLAY and TR2_SFX_SOFTLIGHT. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   saturation = 1;
 
   /** m_effectOpacity (float) [READWRITE, NOTIFY]: used by TR2_SFX_COLOROVERLAY and TR2_SFX_SOFTLIGHT. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   effectOpacity = 1;
 
   /**

@@ -3,36 +3,33 @@
 // Source: trinity/trinity/Particle/Tr2ParticleVortexForce_Blue.cpp
 import { vec3 } from "#math/vec3";
 import { ITr2ParticleForce } from "./ITr2ParticleForce.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 
 /**
  * Particle force of constant magnitude directed tangentially around an axis
  * through a fixed position, swirling particles about it.
  */
-@meta.define({
-  className: "Tr2ParticleVortexForce",
-  family: "particle"
-})
+@blue.define("Tr2ParticleVortexForce")
 export class Tr2ParticleVortexForce extends ITr2ParticleForce
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   magnitude = 1;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   axis = vec3.fromValues(0, 1, 0);
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   position = vec3.create();
 
   /** Applies Carbon's normalized tangential vortex force. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetForce(position, _velocity, _dt, _mass, out = vec3.create())
   {
@@ -46,7 +43,7 @@ export class Tr2ParticleVortexForce extends ITr2ParticleForce
    * Nothing to advance per frame: the vortex is fully described by its axis,
    * position and magnitude.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   Update(_dt)
   {

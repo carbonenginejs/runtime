@@ -5,7 +5,7 @@ import { mat4 } from "#math/mat4";
 import { IsMatch, be } from "#blue";
 import { ResourceRequirement } from "#resource";
 import { TriStorageFlags } from "#consts/graphics";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
@@ -24,47 +24,47 @@ const INSTANCE_VERTEX_SIZE = 16;
  * A booster set's trails: one trail mesh drawn once per booster, instanced,
  * its shape bent along each booster renderable's spline in the vertex shader.
  */
-@meta.define({ className: "EveTrailsSet", family: "eve/attachment/boosters" })
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(IInitialize)
+@blue.define("EveTrailsSet")
+@blue.inherit(IInitialize)
+@blue.interface(IInitialize)
 export class EveTrailsSet
 {
 
   /** m_geometryResource (TriGeometryResPtr) [READ] */
-  @meta.blue.read
-  @meta.type.rootRef("TriGeometryRes")
+  @blue.read
+  @type.rootRef("TriGeometryRes")
   geometryResource = null;
 
   /** m_fadeSpeed (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   fadeSpeed = 1;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2Effect")
   effect = null;
 
   /** m_geometryResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.path("TriGeometryRes")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.path("TriGeometryRes")
   geometryResPath = "";
 
   /** m_display (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   display = true;
 
   /**
    * m_trailData (h:121): one record per booster with a trail. Carbon does not
    * map it; it persists here so values carry which boosters have trails.
    */
-  @meta.blue.persistOnly
-  @meta.type.list("EveTrailsSetSingleTrailData")
+  @blue.persistOnly
+  @type.list("EveTrailsSetSingleTrailData")
   _trailData = [];
 
   /** m_trailVertexDecl: the trail mesh's elements plus the instance float4. */
@@ -87,7 +87,7 @@ export class EveTrailsSet
   }
 
   /** Carbon Initialize (cpp:38-43): load the trail mesh. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -101,7 +101,7 @@ export class EveTrailsSet
    *
    * The set is the resource's notify target (AddNotifyTarget), as in Carbon.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   InitializeGeometryResource()
   {
@@ -116,7 +116,7 @@ export class EveTrailsSet
   }
 
   /** Carbon Cleanup (cpp:78-82): the declaration elements are no longer valid. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Cleanup()
   {
@@ -124,7 +124,7 @@ export class EveTrailsSet
   }
 
   /** Sets the effect that draws the trails. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetEffect(effect)
   {
@@ -132,7 +132,7 @@ export class EveTrailsSet
   }
 
   /** Carbon SetMeshResPath (cpp:96-101): set the path and fire its notification by hand. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetMeshResPath(path)
   {
@@ -148,7 +148,7 @@ export class EveTrailsSet
    * Adapted: the decoded mesh keeps no declaration handle, so its elements
    * are read directly, as EveSpaceObjectDecal does.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RebuildCachedData(resource)
   {
@@ -167,7 +167,7 @@ export class EveTrailsSet
   }
 
   /** Carbon ReleaseCachedData (cpp:144-148). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ReleaseCachedData(_resource)
   {
@@ -175,7 +175,7 @@ export class EveTrailsSet
   }
 
   /** Carbon OnModified (cpp:175-183): a new mesh path reloads. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName)
   {
@@ -184,14 +184,14 @@ export class EveTrailsSet
   }
 
   /** Carbon Update (cpp:169-171): nothing; the motion lives on the booster renderables' splines. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Update(_time)
   {
   }
 
   /** Carbon Clear (cpp:177-184): drop the trails and the device half. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Clear()
   {
@@ -200,7 +200,7 @@ export class EveTrailsSet
   }
 
   /** Carbon Add (cpp:198-206): one trail at a booster's transform, with its size. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Add(localMatrix, size)
   {
@@ -220,7 +220,7 @@ export class EveTrailsSet
    * Adapted: Tr2SuballocatedBuffer has no Free, so the allocation is dropped
    * rather than returned.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ReleaseResources(_storage)
   {
@@ -229,7 +229,7 @@ export class EveTrailsSet
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources: creation only when the device allows it. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PrepareResources()
   {
@@ -237,7 +237,7 @@ export class EveTrailsSet
   }
 
   /** Carbon OnPrepareResources (cpp:224-242): the declaration once the mesh is in, then the instances. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnPrepareResources()
   {
@@ -254,7 +254,7 @@ export class EveTrailsSet
    * Carbon InitializeInstanceBuffer (cpp:249-272): each trail's position
    * (_41, _42, _43 of its transform) and size as one float4.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   InitializeInstanceBuffer()
   {
@@ -283,7 +283,7 @@ export class EveTrailsSet
    * @param {object} accumulator The batches.
    * @param {object} perObjectData The booster renderable's per-object data.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBatches(accumulator, perObjectData)
   {
@@ -321,7 +321,7 @@ export class EveTrailsSet
   }
 
   /** The authored rate at which a trail fades out behind its booster. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetFadeSpeed()
   {

@@ -2,7 +2,7 @@
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { EveChildModifierTransformCommon } from "./EveChildModifierTransformCommon.js";
 
 
@@ -11,10 +11,7 @@ import { EveChildModifierTransformCommon } from "./EveChildModifierTransformComm
  * constant apparent size as camera distance changes, then re-centres it so its
  * near edge stays put.
  */
-@meta.define({
-  className: "EveChildModifierBooster",
-  family: "eve/child/modifiers"
-})
+@blue.define("EveChildModifierBooster")
 export class EveChildModifierBooster extends IEveChildTransformModifier
 {
   static scratch = {
@@ -39,8 +36,8 @@ export class EveChildModifierBooster extends IEveChildTransformModifier
    * @param {Float32Array} out - caller-owned; receives the result
    * @returns {Float32Array} out
    */
-  @meta.blue.method
-  @meta.blue.contextual(["camera"])
+  @blue.method
+  @blue.contextual(["camera"])
   @meta.implemented
   ApplyTransform(context, transform, boneCount, bones, out)
   {

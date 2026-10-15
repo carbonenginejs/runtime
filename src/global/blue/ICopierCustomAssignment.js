@@ -22,6 +22,7 @@ export class ICopierCustomAssignment
 
 CjsSchema.decorateMethod(ICopierCustomAssignment, "AssignTo", meta.requires, meta.abstract);
 
-CjsSchema.define(ICopierCustomAssignment, {
-  className: "ICopierCustomAssignment", carbon: "ICopierCustomAssignment", family: "blue", fields: {}
+CjsSchema.blue.define(ICopierCustomAssignment, {
+  className: "ICopierCustomAssignment",
+  fields: {}
 });

@@ -358,4 +358,4 @@ export class Tr2ResourceSetALWebgl2 extends Tr2DeviceResourceAL
   }
 }
 
-CjsSchema.define(Tr2ResourceSetALWebgl2, { className: "Tr2ResourceSetALWebgl2", carbon: "Tr2ResourceSetAL" });
+CjsSchema.blue.define(Tr2ResourceSetALWebgl2, { className: "Tr2ResourceSetALWebgl2", donors: [ "Tr2ResourceSetAL" ] });

@@ -132,4 +132,4 @@ export class Tr2CapsALWebgl2
   }
 }
 
-CjsSchema.define(Tr2CapsALWebgl2, { className: "Tr2CapsALWebgl2", carbon: "Tr2CapsAL" });
+CjsSchema.blue.define(Tr2CapsALWebgl2, { className: "Tr2CapsALWebgl2", donors: [ "Tr2CapsAL" ] });

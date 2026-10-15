@@ -168,9 +168,13 @@ export class VideoPlaylistController extends IBlueDynamicResourceConstructor
   }
 }
 
-CjsSchema.define(VideoPlaylistController, { className: "VideoPlaylistController", carbon: "_VideoPlaylistController", methods: {
+CjsSchema.blue.define(VideoPlaylistController, {
+  className: "VideoPlaylistController",
+  donors: [ "_VideoPlaylistController" ],
+  methods: {
   GetResource: [meta.adapted], IsCacheable: [meta.ours], SetPlaylist: [meta.ours], Destroy: [meta.adapted]
-} });
+}
+});
 
 /**
  * Register host policy for dynamic playlist names. Shuffle once, then loop in

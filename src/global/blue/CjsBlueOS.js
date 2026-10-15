@@ -326,10 +326,9 @@ export class CjsBlueOS extends IBlueOS
   }
 }
 
-CjsSchema.define(CjsBlueOS, {
+CjsSchema.blue.define(CjsBlueOS, {
   className: "CjsBlueOS",
-  family: "blue",
-  carbon: "BlueOS",
+  donors: [ "BlueOS" ],
   fields: {},
   methods: {
     GetActualTime: [ meta.adapted ],

@@ -1,4 +1,4 @@
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec4 } from "#math/vec4";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
@@ -10,43 +10,43 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
  * read it; a consumer that needs a profile-to-part join must diagnose a
  * missing one rather than assume the catalog is populated.
  */
-@meta.define({ className: "CjsCharacterMaterialProfile", family: "character" })
+@meta.define("CjsCharacterMaterialProfile")
 export class CjsCharacterMaterialProfile extends CjsCharacterRecord
 {
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.path
+    @blue.readwrite
+    @blue.persist
+    @type.path
     sourcePath = "";
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("CjsCharacterColorValue")
+    @blue.readwrite
+    @blue.persist
+    @type.list("CjsCharacterColorValue")
     colors = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     pattern = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("CjsCharacterColorValue")
+    @blue.readwrite
+    @blue.persist
+    @type.list("CjsCharacterColorValue")
     patternColors = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.vec4
+    @blue.readwrite
+    @blue.persist
+    @type.vec4
     patternTransform = vec4.fromValues(0, 0, 1, 1);
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.float64
+    @blue.readwrite
+    @blue.persist
+    @type.float64
     patternRotation = 0;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("CjsCharacterColorValue")
+    @blue.readwrite
+    @blue.persist
+    @type.list("CjsCharacterColorValue")
     specularColors = [];
 
 }

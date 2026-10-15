@@ -8,22 +8,22 @@
 // two it would report are dropped, not missing. Record them there when the
 // coverage baseline is next free to edit.
 import { mat4 } from "#math/mat4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 
 /**
  * A single placement of an instanced mesh: its transform and the index of its
  * cull sphere in the owning mesh's instance sphere list.
  */
-@meta.define({ className: "EveChildInstancedMeshInstance", family: "eve/child" })
+@blue.define("EveChildInstancedMeshInstance")
 export class EveChildInstancedMeshInstance
 {
 
-  @meta.blue.persist
-  @meta.type.mat4
+  @blue.persist
+  @type.mat4
   transform = mat4.create();
 
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.persist
+  @type.uint32
   sphereIndex = 0;
 }

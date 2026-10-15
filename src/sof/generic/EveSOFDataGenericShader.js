@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:517-529
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /** Defines a generic shader's parameters, textures, defaults, transparency and depth policy, and generated configuration.
  * Native IRoot-only data with a self-only Blue table. Independently initialized
@@ -8,8 +8,8 @@ import { meta } from "#schema";
  * construction needs no additional lifecycle, and the destructor is empty.
  * Existing JavaScript configuration helpers remain custom conveniences.
  */
-@meta.define({ className: "EveSOFDataGenericShader", family: "eve" })
-@meta.blue.interface()
+@blue.define("EveSOFDataGenericShader")
+@blue.interface()
 export class EveSOFDataGenericShader
 {
 
@@ -18,9 +18,9 @@ export class EveSOFDataGenericShader
    * (BlueSharedString).
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   shader = "";
 
   /**
@@ -28,9 +28,9 @@ export class EveSOFDataGenericShader
    * m_transparencyTextureName (BlueSharedString).
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   transparencyTextureName = "";
 
   /**
@@ -38,9 +38,9 @@ export class EveSOFDataGenericShader
    * m_doGenerateDepthArea (bool).
    * @type {boolean}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   doGenerateDepthArea = true;
 
   /**
@@ -48,9 +48,9 @@ export class EveSOFDataGenericShader
    * Native m_parameters vector.
    * @type {Array<EveSOFDataGenericString>}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataGenericString")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataGenericString")
   parameters = [];
 
   /**
@@ -58,9 +58,9 @@ export class EveSOFDataGenericShader
    * vector.
    * @type {Array<EveSOFDataTexture>}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataTexture")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataTexture")
   defaultTextures = [];
 
   /**
@@ -68,9 +68,9 @@ export class EveSOFDataGenericShader
    * m_defaultParameters vector.
    * @type {Array<EveSOFDataParameter>}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataParameter")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataParameter")
   defaultParameters = [];
 
   /**

@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveQuaternion.cpp
 import { ITriQuaternionFunction, ITriCurveLength, ITriFunction } from "#blue";
 import { quat } from "#math/quat";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2CurveExtrapolation, Tr2CurveInterpolation } from "../enums.js";
 import { Tr2CurveQuaternionKey } from "../key/Tr2CurveQuaternionKey.js";
 
@@ -12,58 +12,55 @@ import { Tr2CurveQuaternionKey } from "../key/Tr2CurveQuaternionKey.js";
  * independent extrapolation modes before the first and after the last key.
  * JavaScript keeps time-first output-buffer calls instead of native output-first overloads.
  */
-@meta.define({
-  className: "Tr2CurveQuaternion",
-  family: "curves"
-})
-@meta.blue.inherit(ITriCurveLength)
-@meta.blue.interface(ITriQuaternionFunction, ITriFunction, ITriCurveLength)
+@blue.define("Tr2CurveQuaternion")
+@blue.inherit(ITriCurveLength)
+@blue.interface(ITriQuaternionFunction, ITriFunction, ITriCurveLength)
 export class Tr2CurveQuaternion extends ITriQuaternionFunction
 {
   /**
    * Quaternion key records containing time, rotation, identifier and interpolation mode.
    * @type {Tr2CurveQuaternionKey[]}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.structList("Tr2CurveQuaternionKey")
+  @blue.read
+  @blue.persist
+  @type.structList("Tr2CurveQuaternionKey")
   keys = [];
 
   /**
    * Authored curve label stored as native std::string.
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /**
    * Cached sampled quaternion in native x, y, z, w component order.
    * @type {Float32Array}
    */
-  @meta.blue.read
-  @meta.type.quat
+  @blue.read
+  @type.quat
   currentValue = quat.create();
 
   /**
    * Native Tr2CurveExtrapolation policy used before the first key.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
-  @meta.type.enum("trinity.Tr2CurveExtrapolation")
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
+  @type.enum("trinity.Tr2CurveExtrapolation")
   extrapolationBefore = Tr2CurveExtrapolation.CLAMP;
 
   /**
    * Native Tr2CurveExtrapolation policy used after the last key.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
-  @meta.type.enum("trinity.Tr2CurveExtrapolation")
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
+  @type.enum("trinity.Tr2CurveExtrapolation")
   extrapolationAfter = Tr2CurveExtrapolation.CLAMP;
 
   /**
@@ -78,7 +75,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateValue(time)
   {
@@ -92,7 +89,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(time, out)
   {
@@ -107,7 +104,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValueAt(time, out)
   {
@@ -121,7 +118,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetValueDotAt(_time, out)
   {
@@ -135,7 +132,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetValueDoubleDotAt(_time, out)
   {
@@ -147,7 +144,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    *
    * @returns {number} The curve result.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Length()
   {
@@ -184,7 +181,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValue(time, out)
   {
@@ -196,7 +193,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    *
    * @returns {Float32Array|number[]} The live cached quaternion storage.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetCurrentValue()
   {
@@ -208,7 +205,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    *
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnKeysChanged()
   {
@@ -224,7 +221,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {number} [interpolation = Tr2CurveInterpolation.LINEAR] Curve parameter.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AddKey(time, value, interpolation = Tr2CurveInterpolation.LINEAR)
   {
@@ -243,7 +240,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {number} extrapolation Curve parameter.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetExtrapolation(extrapolation)
   {
@@ -256,7 +253,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {number} time Time in seconds.
    * @returns {number} The curve result.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetLocalTime(time)
   {
@@ -396,7 +393,7 @@ export class Tr2CurveQuaternion extends ITriQuaternionFunction
    * @param {Tr2CurveQuaternionKey} k1 Segment end key.
    * @returns {Float32Array|number[]} The caller-owned quaternion output.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetSegmentValue(out, time, k0, k1)
   {

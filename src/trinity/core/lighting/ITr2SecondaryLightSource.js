@@ -32,4 +32,4 @@ for (const method of [ "RegisterSecondaryLightSource", "UnregisterSecondaryLight
 {
   CjsSchema.decorateMethod(ITr2SecondaryLightSource, method, meta.requires, meta.abstract);
 }
-CjsSchema.define(ITr2SecondaryLightSource, { className: "ITr2SecondaryLightSource", carbon: "ITr2SecondaryLightSource", fields: {} });
+CjsSchema.blue.define(ITr2SecondaryLightSource, { className: "ITr2SecondaryLightSource", fields: {} });

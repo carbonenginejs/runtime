@@ -17,4 +17,4 @@ export class ResourceGroupExportToFileParams
     write = null;
 }
 
-CjsSchema.define(ResourceGroupExportToFileParams, { className: "ResourceGroupExportToFileParams", carbon: "ResourceGroupExportToFileParams", family: "tools", fields: {} });
+CjsSchema.blue.define(ResourceGroupExportToFileParams, { className: "ResourceGroupExportToFileParams", fields: {} });

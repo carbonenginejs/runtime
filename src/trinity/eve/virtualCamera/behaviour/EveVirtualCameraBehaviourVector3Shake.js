@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { vec3 } from "#math/vec3";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { INotify } from "#blue";
 import { Tr2CurveScalar } from "../../../curves/curve/Tr2CurveScalar.js";
 import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
@@ -13,39 +13,36 @@ import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviou
  * Vector3 behaviour that shakes the camera with independent per-axis Perlin
  * noise applied along the camera's own right, up and forward axes.
  */
-@meta.define({
-  className: "EveVirtualCameraBehaviourVector3Shake",
-  family: "eve/virtualCamera/behaviour"
-})
-@meta.blue.interface(INotify)
-@meta.blue.chainTo(EveVirtualCameraBehaviourVector3Base)
+@blue.define("EveVirtualCameraBehaviourVector3Shake")
+@blue.interface(INotify)
+@blue.chainTo(EveVirtualCameraBehaviourVector3Base)
 export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehaviourVector3Base
 {
   static _nextPhase = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.readwrite
+  @blue.persist
+  @type.int32
   octaves = 8;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2CurveScalar")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2CurveScalar")
   magnitudeCurve = null;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   magnitude = vec3.fromValues(1, 0.6, 0.2);
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   perlineScale = 1;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   scaleByView = true;
 
   _phase = EveVirtualCameraBehaviourVector3Shake._allocatePhase();
@@ -65,7 +62,7 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
    * Sets the behaviour name and renames the owned magnitude curve to match.
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:504-507
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -82,7 +79,7 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:510-530
    * Adapted: gl-matrix writes the output vector; existing noise and allocated phase replace native noise and pointer-derived phase.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, _anchorRadius, _anchorForwardDirection, out = vec3.create())
   {

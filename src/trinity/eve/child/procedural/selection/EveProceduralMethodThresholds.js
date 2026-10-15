@@ -2,7 +2,7 @@
 import { IsMatch } from "#blue";
 import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.js";
 import { EveProceduralMethodThresholdParameter } from "./EveProceduralMethodThresholdParameter.js";
 
@@ -11,52 +11,52 @@ import { EveProceduralMethodThresholdParameter } from "./EveProceduralMethodThre
 const BELIST_LOADING = 0x10;
 
 /** EveProceduralMethodThresholds (eve/child/procedural/selection) - generated from schema shapeHash 794abb42.... */
-@meta.define({ className: "EveProceduralMethodThresholds", family: "eve/child/procedural/selection" })
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(IInitialize)
-@meta.blue.chainTo(IEveProceduralSelectionMethod)
+@blue.define("EveProceduralMethodThresholds")
+@blue.inherit(IInitialize)
+@blue.interface(IInitialize)
+@blue.chainTo(IEveProceduralSelectionMethod)
 export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
 {
 
   _selectedChildModified = false;
 
   /** m_parameters (PEveProceduralMethodThresholdParameterVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveProceduralMethodThresholdParameter")
+  @blue.read
+  @blue.persist
+  @type.list("EveProceduralMethodThresholdParameter")
   parameters = [];
 
   /** m_debugVolumes (PIEveVolumeVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("IEveVolume")
+  @blue.read
+  @blue.persist
+  @type.list("IEveVolume")
   debugVolumes = [];
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_thresholdAttribute (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   thresholdAttribute = "";
 
   /** m_selectedChildIndex (int) [READ] */
-  @meta.blue.read
-  @meta.type.int32
+  @blue.read
+  @type.int32
   selectedChild = -1;
 
   /** m_seed (float) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   seed_temp = -1;
 
   /** Carbon EveProceduralMethodThresholds::Initialize (cpp:20-24). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -66,7 +66,7 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
 
   /** Carbon EveProceduralMethodThresholds::OnModified (cpp:26-34): a seed
    * change reselects. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(value = null)
   {
@@ -80,7 +80,7 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
 
   /** Carbon EveProceduralMethodThresholds::OnListModified (cpp:36-42): a
    * non-loading change to the parameter list re-sorts. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnListModified(event, _key, _key2, _value, list)
   {
@@ -94,7 +94,7 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
    * first threshold at or above the seed wins (the list is sorted ascending);
    * a changed index flags the selected child as modified. Carbon leaves the
    * index untouched when the seed exceeds every threshold. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SelectParameter()
   {
@@ -118,7 +118,7 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
   /** Carbon EveProceduralMethodThresholds::SortParameters (cpp:74-82):
    * ascending threshold sort (JS Array.sort is stable, matching std::sort's
    * observable order for distinct thresholds). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SortParameters()
   {
@@ -132,7 +132,7 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
 
   /** Carbon EveProceduralMethodThresholds::IsSelectedChildModified
    * (cpp:84-87). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsSelectedChildModified()
   {
@@ -143,7 +143,7 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
    * bounds-check the index, clear the modified flag, then hand out the
    * parameter's child ref after loading it - only when it carries a res
    * path. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetSelectedChild()
   {
@@ -170,7 +170,7 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
   /** Carbon EveProceduralMethodThresholds::UpdateAsyncronous (cpp:111-127):
    * re-sort and reselect once any parameter reports itself modified, clearing
    * the flags on the way. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateAsyncronous(_updateContext, _params)
   {
@@ -191,7 +191,7 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
   }
 
   /** Carbon returns the owned volume vector by reference (cpp:129-132). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetDebugVolumes()
   {
@@ -201,7 +201,7 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
   /** Carbon EveProceduralMethodThresholds::SetProceduralMethodVariable
    * (cpp:134-144): only the named threshold attribute is accepted; a changed
    * value reselects. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetProceduralMethodVariable(name, value)
   {

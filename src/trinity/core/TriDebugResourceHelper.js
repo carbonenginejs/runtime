@@ -1,6 +1,6 @@
 // Source: trinity/trinity/TriDebugResourceHelper.h
 // Source: trinity/trinity/TriDebugResourceHelper.cpp
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
 import { Tr2EffectStateManager } from "../shader/Tr2EffectStateManager.js";
 import { Tr2VertexDefinition } from "./vertex/Tr2VertexDefinition/Tr2VertexDefinition.js";
@@ -17,7 +17,7 @@ const DEBUG_LINE_EFFECT_PATH = "res:/Graphics/Effect/Managed/Utility/DebugLine.f
  * declarations debug geometry uses, a position-only one and a position-and-colour one. Carbon keeps one global
  * instance, g_debugResourceHelper; it is created here on first use (TriDebugResourceHelper.g_debugResourceHelper()).
  */
-@meta.define({ className: "TriDebugResourceHelper", family: "trinityCore" })
+@blue.define("TriDebugResourceHelper")
 export class TriDebugResourceHelper
 {
   /** m_vertexPosColorDecl */

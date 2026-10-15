@@ -6,7 +6,7 @@ import { CjsSchema, meta } from "#schema";
  * this operator-requested manager reports completed edits to one consumer.
  * It neither dispatches events nor applies DNA changes to scene objects.
  */
-@meta.define({ className: "CjsSOFEditManager", family: "sof" })
+@meta.define("CjsSOFEditManager")
 export class CjsSOFEditManager
 {
   /** The schema from the edited objects' realm. */

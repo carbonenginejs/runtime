@@ -5,7 +5,7 @@
 // (TriRenderBatchAccumulator) implement Commit/Finalize/Get*/TransferFrom. This
 // collects CPU batch data; dispatch to the device is not ported yet.
 import { RenderingMode } from "#consts/graphics";
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 
 /**
@@ -13,7 +13,7 @@ import { meta } from "#schema";
  * user data and per-object-data store, and declares the collect and sort
  * contract concrete accumulators implement.
  */
-@meta.define({ className: "ITriRenderBatchAccumulator", family: "trinityCore" })
+@blue.define("ITriRenderBatchAccumulator")
 export class ITriRenderBatchAccumulator
 {
   /**

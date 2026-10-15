@@ -1,29 +1,29 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { type, blue } from "#schema";
 import { EveSOFDataPatternTransform } from "./EveSOFDataPatternTransform.js";
 
 /** Stores named per-hull transforms for both pattern layers plus flip, clear, and customization policy. */
-@meta.define({ className: "EveSOFDataPatternPerHull", family: "eve" })
+@blue.define("EveSOFDataPatternPerHull")
 export class EveSOFDataPatternPerHull
 {
 
   /** m_transformLayer1 (EveSOFDataPatternTransformPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataPatternTransform")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("EveSOFDataPatternTransform")
   transformLayer1 = null;
 
   /** m_transformLayer2 (EveSOFDataPatternTransformPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataPatternTransform")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("EveSOFDataPatternTransform")
   transformLayer2 = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /**

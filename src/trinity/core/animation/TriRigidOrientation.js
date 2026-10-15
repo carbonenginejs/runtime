@@ -1,6 +1,6 @@
 // Source: trinity/trinity/TriRigidOrientation.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { ITriFunction, ITriQuaternionFunction, CcpTime } from "#blue";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -18,8 +18,8 @@ import { vec3 } from "#math/vec3";
  * has no native query mapping for BlueList admission. Number arithmetic,
  * Float32Array intermediates and module scratch retain the JS numeric path.
  */
-@meta.define({ className: "TriRigidOrientation", family: "trinityCore" })
-@meta.blue.interface(ITriFunction, ITriQuaternionFunction)
+@blue.define("TriRigidOrientation")
+@blue.interface(ITriFunction, ITriQuaternionFunction)
 export class TriRigidOrientation extends ITriQuaternionFunction
 {
 
@@ -28,9 +28,9 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * not alter key selection or the torque integration.
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.wstring
+  @blue.readwrite
+  @blue.persist
+  @type.wstring
   name = "";
 
   /**
@@ -38,9 +38,9 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * drag it controls exponential decay of the integration rate through drag / I.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   I = 1;
 
   /**
@@ -48,9 +48,9 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * rate approaches torque / drag with exponential decay set by drag / I.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   drag = 1;
 
   /**
@@ -58,9 +58,9 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * and seeded from the first key by Sort. Returned before the first key or with no keys.
    * @type {Float32Array|Float64Array|number[]}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   value = quat.create();
 
   /**
@@ -68,9 +68,9 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * seconds methods take time already relative to it.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float64
+  @blue.readwrite
+  @blue.persist
+  @type.float64
   start = 0;
 
   /**
@@ -78,13 +78,13 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * after edits to order the keys and propagate later keys' initial states.
    * @type {TriTorque[]}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("TriTorque")
+  @blue.read
+  @blue.persist
+  @type.list("TriTorque")
   states = [];
 
   /** Sorts torque keys, resets the sampling cursor and propagates initial states. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Sort()
   {
@@ -131,7 +131,7 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * the list. The JS helper returns the cursor (native returns void) and
    * handles an empty list with -1; native callers guard before invoking Seek.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Seek(time)
   {
@@ -166,7 +166,7 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * before the first key it is the retained value. Time first and output last, as the rest of the curve family;
    * GetValueAt__Ticks is the Be::Time overload.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValueAt(time, out)
   {
@@ -199,7 +199,7 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * The angular velocity at a time measured from the start, written into
    * `out`; before the first key it is zero.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValueDotAt(time, out)
   {
@@ -224,7 +224,7 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * Samples the orientation at a time and retains it as the current value,
    * which is what a curve consumer reads back.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Update(time, out)
   {
@@ -239,7 +239,7 @@ export class TriRigidOrientation extends ITriQuaternionFunction
    * @param {number} time Seconds relative to the curve start.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateValue(time)
   {

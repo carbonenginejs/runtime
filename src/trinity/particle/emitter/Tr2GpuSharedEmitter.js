@@ -6,7 +6,7 @@ import { ccpHashFnv1 } from "#utils/hash";
 import { color } from "#math/color";
 import { vec3 } from "#math/vec3";
 import { IInitialize, INotify } from "#blue";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 
 
@@ -15,169 +15,169 @@ import { ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
  * particle lifetime and speed range, size and colour ramp, and the drag,
  * turbulence and gravity terms the simulation applies.
  */
-@meta.define({ className: "Tr2GpuSharedEmitter", family: "particle" })
-@meta.blue.inherit(ITr2GenericEmitter, IInitialize, INotify)
-@meta.blue.interface(IInitialize, INotify, ITr2GenericEmitter)
+@blue.define("Tr2GpuSharedEmitter")
+@blue.inherit(ITr2GenericEmitter, IInitialize, INotify)
+@blue.interface(IInitialize, INotify, ITr2GenericEmitter)
 export class Tr2GpuSharedEmitter
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   continuousEmitter = true;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   rate = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   emissionDensity = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   maxEmissionDensity = 10000;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   maxDisplacement = 1000;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   position = vec3.create();
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   direction = vec3.fromValues(0, 1, 0);
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   angle = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   innerAngle = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   radius = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   inheritVelocity = 1;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   minSpeed = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   maxSpeed = 0;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   minLifeTime = 0;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   maxLifeTime = 0;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   sizes = vec3.create();
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   sizeVariance = 0;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.color
   color0 = color.create();
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.color
   color1 = color.create();
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.color
   color2 = color.create();
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.color
   color3 = color.create();
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   textureIndex = 0;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   colorMidpoint = 0.5;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   velocityStretchRotation = 0;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   drag = 0;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   turbulenceAmplitude = 0;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   turbulenceFrequency = 1;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   gravity = 0;
 
   _id = 0;
@@ -202,7 +202,7 @@ export class Tr2GpuSharedEmitter
   /**
    * Hashes the native parameter bytes and selects the shared parameter ID.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -219,7 +219,7 @@ export class Tr2GpuSharedEmitter
    * Adapted: the Blue members are separate JS fields, so they are first copied
    * into the packed parameter block Carbon maps them onto directly.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnModified()
   {
@@ -233,7 +233,7 @@ export class Tr2GpuSharedEmitter
    * Turns emission on or off; disabling also clears the spawn-time cursor so
    * re-enabling restarts timing instead of catching up on the idle interval.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Enable(value)
   {
@@ -242,7 +242,7 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Reports whether this emitter is currently emitting. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   IsEnabled()
   {
@@ -250,7 +250,7 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Sets the emission cone axis in place, treating a missing value as zero. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetDirection(value)
   {
@@ -258,7 +258,7 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Sets the emitter origin in place, treating a missing value as zero. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetPosition(value)
   {
@@ -270,7 +270,7 @@ export class Tr2GpuSharedEmitter
    * JavaScript update arguments carry seconds instead of native Be::Time ticks.
    * Authored schema fields are projected onto the native structs at entry.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(arguments_)
   {
@@ -320,7 +320,7 @@ export class Tr2GpuSharedEmitter
    * overload is SpawnParticles__StartEnd. A reusable value copy preserves the
    * continuous emitter's direction history.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SpawnParticles(arguments_, position = null, velocity = null, rateModifier = 1)
   {
@@ -408,7 +408,7 @@ export class Tr2GpuSharedEmitter
    * Emits one scaled burst (cpp:236-276). Reusable scratch replaces native
    * stack value copies; the supplied velocity is already in world coordinates.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SpawnOnce(arguments_, velocity, scale = 1, rateModifier = 1)
   {
@@ -442,7 +442,7 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Selects the parameter-sharing ID from the current native-byte hash. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GenerateID()
   {
@@ -454,7 +454,7 @@ export class Tr2GpuSharedEmitter
    * cpp:74 uses sizeof(uintptr_t)-1, so the cleared bit is 7, not 63.
    * JS hashes are uint32; the unused high native bits are zero.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetID(hash)
   {
@@ -462,7 +462,7 @@ export class Tr2GpuSharedEmitter
   }
 
   /** Hashes the current CPU parameters without changing the stable ID. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateHash()
   {
@@ -475,7 +475,7 @@ export class Tr2GpuSharedEmitter
    * native struct memory to hash; integer fields retain their uint32 bit patterns.
    * All bytes in the module scratch buffer are overwritten before each hash.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetHash(params)
   {
@@ -552,7 +552,7 @@ export class Tr2GpuSharedEmitter
    * @param {object} paramsData per-particle parameters; colors may be supplied either as a colors array or as color0..color3
    * attractorStrength is only forwarded on subclasses that declare it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Setup(rate, emitterData, paramsData)
   {

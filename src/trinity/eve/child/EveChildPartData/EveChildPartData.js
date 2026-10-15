@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPartData.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPartData.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPartData_Blue.cpp
-import { meta } from "#schema";
+import { type, blue } from "#schema";
 import { IEveSpaceObjectChild } from "../IEveSpaceObjectChild.js";
 
 import { EveSpaceObjectChild } from "../EveSpaceObjectChild.js";
@@ -16,21 +16,21 @@ import { EveChildPartDataPartData } from "./EveChildPartDataPartData.js";
  * below is the JavaScript adaptation required for the documented state to
  * survive a model values round trip.
  */
-@meta.define({ className: "EveChildPartData", family: "eve/child" })
-@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild)
-@meta.blue.chainTo(EveSpaceObjectChild)
+@blue.define("EveChildPartData")
+@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild)
+@blue.chainTo(EveSpaceObjectChild)
 export class EveChildPartData extends EveSpaceObjectChild
 {
-  @meta.blue.persist
-  @meta.type.string
+  @blue.persist
+  @type.string
   faction = "";
 
-  @meta.blue.persist
-  @meta.type.string
+  @blue.persist
+  @type.string
   race = "";
 
-  @meta.blue.persist
-  @meta.type.list("EveChildPartData.PartData")
+  @blue.persist
+  @type.list("EveChildPartData.PartData")
   parts = [];
 
   /** Returns the first monotonically available positive Carbon part tag. */

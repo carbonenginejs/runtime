@@ -7,29 +7,29 @@
 // CopyToResourceSet (cpp:415-433) is deliberately NOT here: it is
 // Tr2ResourceSetDescriptionAL/Tr2TextureAL device work and stays with the
 // engine lane.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { CjsParameter } from "../../shader/parameter/CjsParameter.js";
 
 /** Binds an editable cloud volume to a named effect texture parameter and records whether the effect consumes it. */
-@meta.define({ className: "EveCloudVolumeTextureParameter", family: "eve/child", purpose: "Binds an editable cloud volume to a named effect texture parameter and records whether the effect consumes it." })
+@blue.define({ className: "EveCloudVolumeTextureParameter", purpose: "Binds an editable cloud volume to a named effect texture parameter and records whether the effect consumes it." })
 export class EveCloudVolumeTextureParameter
 {
 
   /** m_volume (EveCloudEditableVolumePtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveCloudEditableVolume")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("EveCloudEditableVolume")
   volume = null;
 
   /** m_isUsedByEffect (bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   isUsedByEffect = false;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /**
@@ -42,7 +42,7 @@ export class EveCloudVolumeTextureParameter
    * Adapted: Carbon hashes the volume pointer's bytes; the parameter library's identity hash
    * gives the same same-object-same-hash contract.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
   {
@@ -50,7 +50,7 @@ export class EveCloudVolumeTextureParameter
   }
 
   /** Carbon GetParameterName (cpp:394-397). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetParameterName()
   {
@@ -65,7 +65,7 @@ export class EveCloudVolumeTextureParameter
    * TriTextureParameter convention (donor checks resources only, not
    * constants).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RebuildEffectHandles(effectRes)
   {

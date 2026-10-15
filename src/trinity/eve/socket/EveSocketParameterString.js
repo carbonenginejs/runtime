@@ -1,36 +1,36 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/EveSocketParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2ExternalParameter } from "../../core/binding/Tr2ExternalParameter.js";
 import { IEveSocketParameter } from "./IEveSocketParameter.js";
 
 /** Binds a named string socket value to external parameters while capturing defaults for restoration. */
-@meta.define({ className: "EveSocketParameterString", family: "eve/socket" })
+@blue.define("EveSocketParameterString")
 export class EveSocketParameterString extends IEveSocketParameter
 {
 
   /** m_name (std::string) */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_value (std::string) */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   value = "";
 
   /** m_valueExposure (Tr2ExternalParameterPtr) */
-  @meta.type.rootRef("Tr2ExternalParameter")
+  @type.rootRef("Tr2ExternalParameter")
   valueExposure = null;
 
   /** m_externalParameters (PTr2ExternalParameterVector) */
-  @meta.type.list("Tr2ExternalParameter")
+  @type.list("Tr2ExternalParameter")
   externalParameters = [];
 
   /** m_defaults (std::vector<std::string>) */
-  @meta.type.list("std::string")
+  @type.list("std::string")
   defaults = [];
 
   /** Returns the name an external parameter has to match before it can bind here. */
@@ -52,7 +52,7 @@ export class EveSocketParameterString extends IEveSocketParameter
    * Creates the `valueExposure` external parameter pointing at this object's
    * `value` attribute on first call; later calls leave the existing one alone.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -71,7 +71,7 @@ export class EveSocketParameterString extends IEveSocketParameter
    * Drops the bound external parameters; unlike the typed socket parameters, the
    * captured defaults are kept.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ClearBindings()
   {
@@ -83,7 +83,7 @@ export class EveSocketParameterString extends IEveSocketParameter
    *
    * @returns {boolean} True when the external parameter was valid, name-matched and stored.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   BindToExternalParameter(externalParameter)
   {
@@ -117,7 +117,7 @@ export class EveSocketParameterString extends IEveSocketParameter
    * Restores the default captured for the first bound external parameter,
    * leaving the value untouched when none was captured.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetValueToDefault()
   {
@@ -125,7 +125,7 @@ export class EveSocketParameterString extends IEveSocketParameter
   }
 
   /** Reports whether any external parameter is bound to this one. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Used()
   {
@@ -136,7 +136,7 @@ export class EveSocketParameterString extends IEveSocketParameter
    * Reads the current value through `valueExposure` and writes it into every
    * bound external parameter.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Propagate()
   {

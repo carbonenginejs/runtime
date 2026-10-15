@@ -40,4 +40,4 @@ for (const method of [ "GetEffectChildByName", "AddToEffectChildrenList", "Remov
 {
   CjsSchema.decorateMethod(IEveEffectChildrenOwner, method, meta.abstract);
 }
-CjsSchema.define(IEveEffectChildrenOwner, { className: "IEveEffectChildrenOwner" });
+CjsSchema.blue.define(IEveEffectChildrenOwner, { className: "IEveEffectChildrenOwner" });

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { quat } from "#math/quat";
 import { EveChildTransform } from "./EveChildTransform.js";
@@ -29,113 +29,113 @@ import { EveChildLineSetPerObjectData } from "../../core/rawData/perObjectData/E
 import { CalculateBoundingSphereForLineSetPaths } from "./lineSetPaths/IEveLineSetPath.js";
 
 /** A child that renders a set of curved and sphere-projected line paths, as object geometry, as dedicated line rendering, or both. */
-@meta.define({ className: "EveChildLineSet", family: "eve/child" })
-@meta.blue.inherit(ITr2Renderable, IInitialize, INotify)
-@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize, INotify, ITr2Renderable)
+@blue.define("EveChildLineSet")
+@blue.inherit(ITr2Renderable, IInitialize, INotify)
+@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize, INotify, ITr2Renderable)
 export class EveChildLineSet extends EveChildTransform
 {
 
   /** m_translation (Vector3) [READWRITE, PERSIST] - EveChildLineSet_Blue.cpp:31 */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   translation = vec3.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] - EveChildLineSet_Blue.cpp:32 */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotation = quat.create();
 
   /** m_type (lineSetType - enum lineSetType) [READWRITE, PERSIST, ENUM, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.EveChildLineSet.lineSetType")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.EveChildLineSet.lineSetType")
   renderType = 1;
 
   /** m_lineSet (EveCurveLineSetPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveCurveLineSet")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("EveCurveLineSet")
   lineSet = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   display = true;
 
   /** m_minScreenSize (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   minScreenSize = -1;
 
   /** m_brightness (float) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   brightness = 1;
 
   /** m_baseColor (Vector4) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.color
   baseColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_animColor (Vector4) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.color
   animColor = color.createLinear();
 
   /** m_additiveBatch (bool) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   additiveBatches = false;
 
   /** m_scrollSpeed (float) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   scrollSpeed = 0;
 
   /** m_lines (PIEveLineSetPathVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("IEveLineSetPath")
+  @blue.read
+  @blue.persist
+  @type.list("IEveLineSetPath")
   lines = [];
 
   /** m_isAlwaysOn (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   alwaysOn = false;
 
   /** m_currentScreenSize (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   currentScreenSize = 1;
 
   /** m_mesh (Tr2MeshPtr) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2Mesh")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2Mesh")
   mesh = null;
 
   _worldVelocity = vec3.create();
@@ -208,7 +208,7 @@ export class EveChildLineSet extends EveChildTransform
    * replaced defaults until final destruction can account for shared graphs;
    * unlike BluePtr, assignment cannot tell whether another owner still uses one.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -224,7 +224,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Updates additive selection immediately and defers regeneration until collection. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(name)
   {
@@ -234,7 +234,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Regenerates every path beneath the current world transform, then bounds. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GenerateManagedPoints()
   {
@@ -243,7 +243,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Empty path lists intentionally retain old line geometry (native cpp:149-165). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   InitializeLineSet()
   {
@@ -262,7 +262,7 @@ export class EveChildLineSet extends EveChildTransform
    * previous bound; native's helper leaves an uninitialized local output there.
    * The resource's existing sphere accessor replaces its native inline field.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateBoundingSphere(reCalculateChildren = true)
   {
@@ -281,7 +281,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Uses gl-matrix sphere transformation for Carbon's world cull and local pixel-size threshold. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateVisibility(updateContext, _parentTransform, parentLod)
   {
@@ -300,7 +300,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Consumes pending regeneration only once an update and visibility allow collection. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetRenderables(renderables)
   {
@@ -316,7 +316,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Writes the aggregate bound transformed into world space using gl-matrix layout. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBoundingSphere(out, _query = 0)
   {
@@ -325,7 +325,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Updates every path before visibility gates, then fills the selected render modes. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
@@ -348,7 +348,7 @@ export class EveChildLineSet extends EveChildTransform
    * inverse-of-transpose is encoded as transpose-of-inverse. A singular JS
    * inverse writes nonfinite data instead of reusing an unrelated scratch value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateAsyncronous(_updateContext, params)
   {
@@ -375,7 +375,7 @@ export class EveChildLineSet extends EveChildTransform
    * Maps the owned AL buffer and passes one advancing DataView cursor through
    * all paths. The cursor replaces uint8_t*&; finally unmaps if a JS path throws.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateBuffer(renderContext)
   {
@@ -410,7 +410,7 @@ export class EveChildLineSet extends EveChildTransform
    * JS prepares the lazy geometry allocations here so its declaration exists;
    * Carbon already has that storage when UpdateSyncronous runs.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CreateSpriteVertexDeclaration()
   {
@@ -450,7 +450,7 @@ export class EveChildLineSet extends EveChildTransform
    * JS realizes its geometry descriptor before setting stream 1 and instance
    * count, otherwise deferred preparation would overwrite those native fields.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
@@ -475,7 +475,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Borrows persistent owner constants; JS constructs the native pooled wrapper. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetPerObjectData(_accumulator)
   {
@@ -486,7 +486,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Reports transparent mesh areas only when display is enabled. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasTransparentBatches()
   {
@@ -494,7 +494,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Inherited Tr2DeviceResource creation guard. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PrepareResources()
   {
@@ -502,7 +502,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Creates Carbon's initial instance capacity using the AL description overload. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnPrepareResources()
   {
@@ -512,7 +512,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Native ReleaseResources resets declaration caches, retaining the buffer. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ReleaseResources()
   {
@@ -520,7 +520,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Copies the child's current world transform into caller-owned storage. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLocalToWorldTransform(out)
   {
@@ -528,7 +528,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Returns Carbon's authored activation bypass. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsAlwaysOn()
   {
@@ -542,7 +542,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Returns whether both display and the last visibility test allow updates. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsUpdating()
   {
@@ -550,7 +550,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Returns the mesh assigned to object rendering. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetMesh()
   {
@@ -558,7 +558,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Returns the owner's most recently supplied speed. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetOwnerMaxSpeed()
   {
@@ -566,7 +566,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Copies the native world velocity (zero until another owner changes it). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetWorldVelocity(out)
   {
@@ -574,7 +574,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Native child-line objects have a constant sort value. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetSortValue()
   {
@@ -582,21 +582,21 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Native shader-option hook is empty. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   SetShaderOption(_name, _value)
   {
   }
 
   /** Native child-line LOD hook is empty. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   ChangeLOD(_lod)
   {
   }
 
   /** Adds the native line-set debug toggle. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -604,7 +604,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Path debug geometry remains unported; normal rendering uses GetBatches. */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   RenderDebugInfo(_renderer)
   {
@@ -612,7 +612,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Returns native numeric TEXCOORD usage/index pairs in JS tuples. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetVertexElementAddedThroughCode()
   {

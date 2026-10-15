@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightBaseGroup.h
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
 import { resolveFactionColor } from "../resolveFactionColor.js";
@@ -27,35 +27,35 @@ export function resolveGroupColor(customColor, useFactionColor, factionColor, pa
 }
 
 /** The shared faction-colour resolution and attribute-modifier surface flattened into every smart-light group implementation. */
-@meta.define({ className: "EveSmartLightBaseGroup", family: "eve/smartLights" })
-@meta.blue.inherit(IListNotify)
-@meta.blue.interface(IListNotify)
+@blue.define("EveSmartLightBaseGroup")
+@blue.inherit(IListNotify)
+@blue.interface(IListNotify)
 export class EveSmartLightBaseGroup
 {
 
   /** m_selectedColor (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.int32
   factionColor = -1;
 
   /** m_useFactionColor (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   useFactionColor = false;
 
   /** m_attributeModifiers (PIEveSmartLightGroupAttributeModifierVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("IEveSmartLightGroupAttributeModifier")
+  @blue.read
+  @blue.persist
+  @type.list("IEveSmartLightGroupAttributeModifier")
   attributeModifiers = [];
 
   /** m_color (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.readwrite
+  @blue.persist
+  @type.color
   customColor = color.createLinear();
 
   /** m_parentColorSet (const Color*) - inherited faction color set, never persisted. */
@@ -77,14 +77,14 @@ export class EveSmartLightBaseGroup
   }
 
   /** IEveSmartLightGroup default: no visibility state. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
   }
 
   /** IEveSmartLightGroup default: contributes no renderables. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GetRenderables(renderables = [])
   {
@@ -92,21 +92,21 @@ export class EveSmartLightBaseGroup
   }
 
   /** IEveSmartLightGroup default: contributes no quads. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   AddQuadsToQuadRenderer(_placements, _size, _frustum, _quadRenderer)
   {
   }
 
   /** IEveSmartLightGroup default: registers no quad effect. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   RegisterWithQuadRenderer(_quadRenderer)
   {
   }
 
   /** Faction-aware group color (EveSmartLightBaseGroup.cpp:43-53). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetGroupColor()
   {
@@ -123,7 +123,7 @@ export class EveSmartLightBaseGroup
    * Stores the inherited faction color set and fans it out to the attribute
    * modifiers (EveSmartLightBaseGroup.cpp:30-41).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetInheritProperties(colorSet)
   {
@@ -139,7 +139,7 @@ export class EveSmartLightBaseGroup
   }
 
   /** Overwrites the custom color (EveSmartLightBaseGroup.cpp:55-58). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetColor(color)
   {
@@ -147,7 +147,7 @@ export class EveSmartLightBaseGroup
   }
 
   /** Fans a controller variable out to the attribute modifiers (EveSmartLightBaseGroup.cpp:60-66). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetControllerVariable(name, value)
   {
@@ -161,7 +161,7 @@ export class EveSmartLightBaseGroup
    * Newly inserted attribute modifiers inherit the parent color set
    * (EveSmartLightBaseGroup.cpp:16-28).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnListModified(event, _key, _key2, value, list)
   {

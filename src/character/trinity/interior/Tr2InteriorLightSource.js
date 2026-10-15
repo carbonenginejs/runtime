@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Interior/Tr2InteriorLightSource.h
 //   trinity/trinity/Interior/Tr2InteriorLightSource.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IInitialize, INotify, IsMatch } from "#blue";
 import { ITr2InteriorLight } from "./ITr2InteriorLight.js";
 import { color } from "#math/color";
@@ -12,9 +12,9 @@ import { mat4 } from "#math/mat4";
  * Authored interior light definition with position, color, falloff, cone, and
  * animation settings.
  */
-@meta.define({ className: "Tr2InteriorLightSource", family: "interior" })
-@meta.blue.inherit(IInitialize, INotify, ITr2InteriorLight)
-@meta.blue.interface(IInitialize, INotify, ITr2InteriorLight)
+@blue.define("Tr2InteriorLightSource")
+@blue.inherit(IInitialize, INotify, ITr2InteriorLight)
+@blue.interface(IInitialize, INotify, ITr2InteriorLight)
 export class Tr2InteriorLightSource
 {
   /** PopulateLightData's AsRGB result. */
@@ -22,87 +22,87 @@ export class Tr2InteriorLightSource
 
 
   /** m_coneDirection (Vector3) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   coneDirection = vec3.fromValues(0, -1, 0);
 
   /** m_coneAlphaInner (float) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   coneAlphaInner = 180;
 
   /** m_coneAlphaOuter (float) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   coneAlphaOuter = 180;
 
   /** m_specularIntensity (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   specularIntensity = 1;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("TriCurveSet")
+  @blue.read
+  @blue.persist
+  @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_primaryLighting (bool) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   primaryLighting = true;
 
   /** m_falloff (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   falloff = 1;
 
   /** m_kelvinColor (Tr2KelvinColorPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2KelvinColor")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2KelvinColor")
   kelvinColor = null;
 
   /** m_radius (float) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   radius = 1;
 
   /** m_position (Vector3) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   position = vec3.create();
 
   /** m_color (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.readwrite
+  @blue.persist
+  @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_useKelvinColor (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   useKelvinColor = false;
 
   // m_worldBoundingBox - protected, not Blue-exposed, so constructor-derived
@@ -113,7 +113,7 @@ export class Tr2InteriorLightSource
   _boundsMax = vec3.fromValues(1, 1, 1);
 
   /** Carbon method IsSpotLight (MAP_METHOD_AND_WRAP, h:90-93). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsSpotLight()
   {
@@ -121,7 +121,7 @@ export class Tr2InteriorLightSource
   }
 
   /** Carbon Initialize (cpp:59-63): derive the world box from position ± radius. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -137,7 +137,7 @@ export class Tr2InteriorLightSource
    * @param {string|null} [value=null] The modified member, by exposed name.
    * @returns {boolean} Always true.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(value = null)
   {
@@ -161,7 +161,7 @@ export class Tr2InteriorLightSource
    * @param {object} lightData Tr2InteriorPerObjectLightData-shaped record.
    * @returns {object} lightData
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PopulateLightData(lightData)
   {
@@ -210,7 +210,7 @@ export class Tr2InteriorLightSource
    *
    * @param {number} time Seconds.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Update(time)
   {
@@ -229,7 +229,7 @@ export class Tr2InteriorLightSource
    * @param {Float32Array} [outObjectToWorld] Receives the translation matrix.
    * @returns {boolean}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsInFrustum(frustum, outObjectToWorld = null)
   {

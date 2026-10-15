@@ -2,36 +2,36 @@
 // Source: trinity/trinity/EveSprite2dBracket.cpp
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 
 /**
  * Screen-space bracket drawn from an atlas icon, carrying its own colour, 2D
  * translation and display flag.
  */
-@meta.define({ className: "EveSprite2dBracket", family: "eve/ui" })
+@blue.define("EveSprite2dBracket")
 export class EveSprite2dBracket
 {
-  @meta.blue.readwrite
-  @meta.type.color
+  @blue.readwrite
+  @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2AtlasTexture")
+  @blue.readwrite
+  @type.rootRef("Tr2AtlasTexture")
   icon = null;
 
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   display = true;
 
-  @meta.blue.readwrite
-  @meta.type.vec2
+  @blue.readwrite
+  @type.vec2
   translation = vec2.create();
 
   /**
    * Copies the bracket translation into caller-provided storage.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetTranslation(out)
   {
@@ -41,7 +41,7 @@ export class EveSprite2dBracket
   /**
    * Replaces the bracket translation while preserving field identity.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetTranslation(value)
   {
@@ -51,7 +51,7 @@ export class EveSprite2dBracket
   /**
    * Gets the authored atlas icon.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetIcon()
   {
@@ -61,7 +61,7 @@ export class EveSprite2dBracket
   /**
    * Gets the mutable authored color container.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetColor()
   {
@@ -71,7 +71,7 @@ export class EveSprite2dBracket
   /**
    * Sets whether the bracket is displayed.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetDisplay(display)
   {
@@ -81,7 +81,7 @@ export class EveSprite2dBracket
   /**
    * Gets whether the bracket is displayed.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsDisplay()
   {

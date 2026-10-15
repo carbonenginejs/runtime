@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Resources/Tr2EffectRes.h
 // Source: trinity/trinity/Resources/Tr2EffectRes.cpp
 // Source: trinity/trinity/Resources/Tr2EffectRes_Blue.cpp
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { CjsResource, ICacheable } from "#blue";
 import { validateResourcePayload } from "../resourceBoundary.js";
 import { CjsCarbonEffectReader } from "../format/carbonEffect/CjsCarbonEffectReader.js";
@@ -584,18 +584,17 @@ function normalizeShaderOptions(options)
 // expressions are reused verbatim, so the registered metadata is identical.
 // Statics belong in `methods`: decorateMethod targets the prototype and
 // would register a static as an instance field.
-CjsSchema.define(Tr2EffectRes, {
+CjsSchema.blue.define(Tr2EffectRes, {
   className: "Tr2EffectRes",
-  family: "resources",
   methods: {
-    GetShader: [ meta.blue.method, meta.adapted ],
+    GetShader: [ blue.method, meta.adapted ],
     GetShaderByIndex: [ meta.ours ],
     SetPermutationTranslator: [ meta.ours ],
-    GetPermutationDescription: [ meta.blue.method, meta.adapted ],
-    ReleaseResources: [ meta.blue.method, meta.adapted ],
-    IsMemoryUsageKnown: [ meta.blue.method, meta.implemented ],
-    GetMemoryUsage: [ meta.blue.method, meta.adapted ]
+    GetPermutationDescription: [ blue.method, meta.adapted ],
+    ReleaseResources: [ blue.method, meta.adapted ],
+    IsMemoryUsageKnown: [ blue.method, meta.implemented ],
+    GetMemoryUsage: [ blue.method, meta.adapted ]
   }
 });
-meta.blue.inherit(ICacheable)(Tr2EffectRes, { kind: "class" });
-meta.blue.interface(ICacheable)(Tr2EffectRes);
+blue.inherit(ICacheable)(Tr2EffectRes, { kind: "class" });
+blue.interface(ICacheable)(Tr2EffectRes);

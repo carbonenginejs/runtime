@@ -16,7 +16,7 @@
 //
 // NOTE ON DECORATORS: this folder cannot use `@` syntax (see CcpTime.js), so
 // the declarations are made imperatively at the bottom of the file.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { be } from "./blue.js";
 import { IBlueObjectProxy } from "./IBlueObjectProxy.js";
 import { IUnloadable } from "./IUnloadable.js";
@@ -300,16 +300,14 @@ export class BlueObjectProxy extends IBlueObjectProxy
   }
 }
 
-CjsSchema.define(BlueObjectProxy, {
+CjsSchema.blue.define(BlueObjectProxy, {
   className: "BlueObjectProxy",
-  carbon: "BlueObjectProxy",
-  family: "blue",
   fields: {
-    object: [ meta.blue.readwrite, meta.type.rootRef("IRoot") ],
-    builder: [ meta.blue.readwrite, meta.type.rootRef("IBlueObjectBuilder") ],
-    objectMarker: [ meta.blue.readwrite, meta.type.uint32 ],
-    temporary: [ meta.blue.readwrite, meta.type.boolean ],
-    isResident: [ meta.blue.read, meta.type.boolean ]
+    object: [ blue.readwrite, type.rootRef("IRoot") ],
+    builder: [ blue.readwrite, type.rootRef("IBlueObjectBuilder") ],
+    objectMarker: [ blue.readwrite, type.uint32 ],
+    temporary: [ blue.readwrite, type.boolean ],
+    isResident: [ blue.read, type.boolean ]
   },
   methods: {
     SetBuilder: [ meta.implemented ],
@@ -321,9 +319,9 @@ CjsSchema.define(BlueObjectProxy, {
     IsTemporary: [ meta.implemented ],
     OnSelected: [ meta.implemented ],
     SetObject: [ meta.implemented ],
-    Freeze: [ meta.blue.method, meta.implemented ],
-    SetObjectFromBuilder: [ meta.blue.method, meta.implemented ],
+    Freeze: [ blue.method, meta.implemented ],
+    SetObjectFromBuilder: [ blue.method, meta.implemented ],
     _OnObjectInvalidated: [ meta.implemented ]
   }
 });
-meta.blue.interface(IBlueObjectProxy)(BlueObjectProxy);
+blue.interface(IBlueObjectProxy)(BlueObjectProxy);

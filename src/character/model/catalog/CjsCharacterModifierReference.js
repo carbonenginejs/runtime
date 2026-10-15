@@ -1,34 +1,34 @@
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /** Additive typed projection beside one losslessly retained authored modifier string. */
-@meta.define({ className: "CjsCharacterModifierReference", family: "character" })
+@meta.define("CjsCharacterModifierReference")
 export class CjsCharacterModifierReference
 {
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     authoredValue = "";
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     modifierPath = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.rootRef("CjsCharacterPartSource")
+    @blue.readwrite
+    @blue.persist
+    @type.rootRef("CjsCharacterPartSource")
     partSource = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.rootRef("CjsCharacterModifierLocation")
+    @blue.readwrite
+    @blue.persist
+    @type.rootRef("CjsCharacterModifierLocation")
     modifierLocation = null;
 
     /** Effective weight for a proved weighted logical modifier; otherwise null. */
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.float64
+    @blue.readwrite
+    @blue.persist
+    @type.float64
     weight = null;
 
 }

@@ -7,7 +7,7 @@ import { IEveSpaceObject2 } from "./IEveSpaceObject2.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 
 
 /**
@@ -15,56 +15,56 @@ import { CjsSchema, meta } from "#schema";
  * curves, so a sound can sit anywhere in a scene without being attached to an
  * asset.
  */
-@meta.define({ className: "AudioGameObject", family: "eve" })
-@meta.blue.inherit(IEveSpaceObject2)
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(IInitialize)
+@blue.define("AudioGameObject")
+@blue.inherit(IEveSpaceObject2)
+@blue.inherit(IInitialize)
+@blue.interface(IInitialize)
 export class AudioGameObject
 {
   _worldTransform = mat4.create();
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITr2AudEmitter")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITr2AudEmitter")
   audioEmitter = null;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITriVectorFunction")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITriVectorFunction")
   translationCurve = null;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITriQuaternionFunction")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITriQuaternionFunction")
   rotationCurve = null;
 
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("Tr2ExternalParameter")
+  @blue.read
+  @blue.persist
+  @type.list("Tr2ExternalParameter")
   externalParameters = [];
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotation = quat.create();
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   translation = vec3.create();
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @type.boolean
   mute = false;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   display = true;
 
   /**
@@ -86,7 +86,7 @@ export class AudioGameObject
   }
 
   /** Post-hydration hook; runs Initialize. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   __init__()
   {
@@ -94,7 +94,7 @@ export class AudioGameObject
   }
 
   /** The emitter this object drives, or null before Initialize has run. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetAudioEmitter()
   {
@@ -105,7 +105,7 @@ export class AudioGameObject
    * Renames the underlying emitter without touching this object's own name
    * field.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetEmitterName(name)
   {
@@ -116,7 +116,7 @@ export class AudioGameObject
    * Sends a named event to the emitter and returns the identifier it hands back,
    * or 0 when there is no emitter or no event name.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PlayAudioEvent(eventName)
   {
@@ -243,7 +243,7 @@ export class AudioGameObject
    * not rendered, so it contributes nothing to a child's per-object records and
    * Carbon's body is empty. Present so a child parented to one can call it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GetPerObjectStructs(_vsData, _psData)
   {

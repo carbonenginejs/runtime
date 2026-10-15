@@ -124,9 +124,9 @@ test("published metadata retains early shared enums in real consumer bundles", a
   assert.ok(manifest.sideEffects.every(file => typeof file === "string" && !file.includes("*")));
   const fixtures = [
     ["named-blue", `
-      import { blue } from "@carbonenginejs/runtime/blue";
+      import { be } from "@carbonenginejs/runtime/blue";
       import { ReflectionMode } from "@carbonenginejs/runtime/consts/graphics";
-      export const ready = blue.enums.GetEnum("trinity.EntityComponents.ReflectionMode") === ReflectionMode;
+      export const ready = be.enums.GetEnum("trinity.EntityComponents.ReflectionMode") === ReflectionMode;
     `],
     ["bare-blue", `
       import "@carbonenginejs/runtime/blue";

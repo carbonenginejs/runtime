@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dStretch.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dStretch_Blue.cpp
 // Promoted to hand-maintained source 2026-10-12 from the generated property shell.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec4 } from "#math/vec4";
 import { Tr2SpriteObjectEffect, Tr2SpriteObjectPickState, Tr2StretchScaleBehavior } from "../generated/sprite2d/enums.js";
 import { Tr2Sprite2dD3DVertex } from "./Tr2Sprite2dD3DVertex.js";
@@ -47,61 +47,61 @@ const srcVertexSegments = [0, 8, 16].map(start => srcVertices.slice(start, start
  * stretching the centre piece to the display width (Tr2Sprite2dStretch.h:21-27). Vertices are
  * local to the sprite; the translation is pushed on the scene while they are submitted.
  */
-@meta.define({ className: "Tr2Sprite2dStretch", family: "sprite2d", purpose: "Defines a horizontally stretchable textured sprite with independent edge widths, center fill, offset, opacity, and DPI scaling." })
-@meta.blue.chainTo(Tr2TexturedSpriteObject)
+@blue.define({ className: "Tr2Sprite2dStretch", purpose: "Defines a horizontally stretchable textured sprite with independent edge widths, center fill, offset, opacity, and DPI scaling." })
+@blue.chainTo(Tr2TexturedSpriteObject)
 export class Tr2Sprite2dStretch extends Tr2TexturedSpriteObject
 {
 
   /** m_leftEdgeSize (unsigned int) [READWRITE, NOTIFY]: fixed pixels on the texture's left edge. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.uint32
+  @blue.notify
+  @blue.readwrite
+  @type.uint32
   leftEdgeSize = 0;
 
   /** m_rightEdgeSize (unsigned int) [READWRITE, NOTIFY]: fixed pixels on the texture's right edge. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.uint32
+  @blue.notify
+  @blue.readwrite
+  @type.uint32
   rightEdgeSize = 0;
 
   /** m_edgeScale (float) [READWRITE, NOTIFY]: edge scaling when rendering, for UI scaling. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   edgeScale = 1;
 
   /** m_offset (int) [READWRITE, NOTIFY]: shrinks the sprite horizontally and shifts it down. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.int32
+  @blue.notify
+  @blue.readwrite
+  @type.int32
   offset = 0;
 
   /** m_fillCenter (bool) [READWRITE, NOTIFY]: whether the centre piece is drawn. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @type.boolean
   fillCenter = true;
 
   /** m_saturation (float) [READWRITE, NOTIFY]: used by TR2_SFX_COLOROVERLAY and TR2_SFX_SOFTLIGHT. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   saturation = 1;
 
   /** m_effectOpacity (float) [READWRITE, NOTIFY]: used by TR2_SFX_COLOROVERLAY and TR2_SFX_SOFTLIGHT. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   effectOpacity = 1;
 
   /**
    * m_dpiScaleBehavior (Tr2StretchScaleBehavior) [READWRITE, PERSIST, ENUM]. Carbon stores and
    * exposes it but no Tr2Sprite2dStretch code reads it.
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("Tr2StretchScaleBehavior")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("Tr2StretchScaleBehavior")
   dpiScaleBehavior = Tr2StretchScaleBehavior.S2D_SSC_ALIGN_BOTTOMRIGHT;
 
   /** Carbon m_resPath: declared but never read or exposed by Tr2Sprite2dStretch.cpp. @type {string} */

@@ -2,21 +2,21 @@
 //   trinity/trinity/Tr2DynamicRingBuffer.cpp
 //
 // A ring index buffer, declared beside Tr2DynamicRingBuffer in Carbon's header.
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { Tr2BufferDescriptionAL, ALResult } from "#trinityal";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Tr2DynamicRingBuffer } from "./Tr2DynamicRingBuffer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 
 /** Carbon `Tr2RingIndexBuffer`: the ring as an index buffer. */
-@meta.define({ className: "Tr2RingIndexBuffer", family: "trinityCore" })
+@blue.define("Tr2RingIndexBuffer")
 export class Tr2RingIndexBuffer extends Tr2DynamicRingBuffer
 {
   /** _indexSize */
   _indexSize = 4;
 
   /** Carbon Create (cpp:440-447). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Create(numberOfIndices, indexSize)
   {
@@ -28,7 +28,7 @@ export class Tr2RingIndexBuffer extends Tr2DynamicRingBuffer
   }
 
   /** Carbon CreateBuffer (cpp:458-468). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   CreateBuffer(size)
   {

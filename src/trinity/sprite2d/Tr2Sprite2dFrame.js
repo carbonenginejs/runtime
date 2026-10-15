@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dFrame.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dFrame_Blue.cpp
 // Promoted to hand-maintained source 2026-10-12 from the generated property shell.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec4 } from "#math/vec4";
 import { Tr2SpriteObjectEffect, Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
 import { Tr2Sprite2dD3DVertex } from "./Tr2Sprite2dD3DVertex.js";
@@ -53,33 +53,33 @@ const srcVertexSegments = [0, 16, 32].map(start => srcVertices.slice(start, star
  * the frame's display extents (Tr2Sprite2dFrame.h:15-23). Vertices hold the sprite translation;
  * three 16-vertex segments carry the shadow, the frame and its glow.
  */
-@meta.define({ className: "Tr2Sprite2dFrame", family: "sprite2d", purpose: "Defines a textured frame with corner sizing, corner scaling, center-fill, and offset controls." })
-@meta.blue.chainTo(Tr2TexturedSpriteObject)
+@blue.define({ className: "Tr2Sprite2dFrame", purpose: "Defines a textured frame with corner sizing, corner scaling, center-fill, and offset controls." })
+@blue.chainTo(Tr2TexturedSpriteObject)
 export class Tr2Sprite2dFrame extends Tr2TexturedSpriteObject
 {
 
   /** m_offset (int) [READWRITE, NOTIFY]: positive values make the frame smaller, negative bigger. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.int32
+  @blue.notify
+  @blue.readwrite
+  @type.int32
   offset = 0;
 
   /** m_cornerSize (unsigned int) [READWRITE, NOTIFY]: size of the frame corner, in texels. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.uint32
+  @blue.notify
+  @blue.readwrite
+  @type.uint32
   cornerSize = 0;
 
   /** m_cornerScale (float) [READWRITE, NOTIFY]: corner scaling when rendering, for UI scaling. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   cornerScale = 1;
 
   /** m_fillCenter (bool) [READWRITE, NOTIFY]: whether the centre piece is drawn. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @type.boolean
   fillCenter = true;
 
   /** Carbon m_resPath: declared but never read or exposed by Tr2Sprite2dFrame.cpp. @type {string} */

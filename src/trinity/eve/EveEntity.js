@@ -1,14 +1,14 @@
 // Source: trinity/trinity/Eve/EveEntity.h
 //   trinity/trinity/Eve/EveEntity.cpp
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 /**
  * Base for Eve objects that publish themselves to a scene's component registry,
  * tracking which registry they belong to and the slot index the registry
  * assigned for each component type.
  */
-@meta.define({ className: "EveEntity", family: "eve" })
-@meta.blue.interface()
+@blue.define("EveEntity")
+@blue.interface()
 export class EveEntity
 {
 
@@ -27,7 +27,7 @@ export class EveEntity
   indexInRegistry = -1;
 
   /** Whether this entity currently belongs to a component registry. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsInRegistry()
   {
@@ -40,7 +40,7 @@ export class EveEntity
    * nothing only leaves the current registry; re-registering with the same
    * registry is a no-op.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Register(registry)
   {
@@ -64,7 +64,7 @@ export class EveEntity
    * Leaves the given registry, dropping every component it holds for this
    * entity, but only when it is the registry this entity is actually in.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UnRegister(registry)
   {
@@ -81,7 +81,7 @@ export class EveEntity
    * Asks the current registry to re-evaluate this entity's component
    * registrations, for use after state that gates them changes.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ReRegister()
   {
@@ -92,7 +92,7 @@ export class EveEntity
    * The registry this entity belongs to, or null; subclasses read it in
    * RegisterComponents to decide what to publish.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetComponentRegistry()
   {
@@ -103,7 +103,7 @@ export class EveEntity
    * The registry slot index recorded for a component bit, or undefined when this
    * entity has no component of that type.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetComponentIndex(componentBit)
   {
@@ -114,7 +114,7 @@ export class EveEntity
    * Records the slot index a registry assigned for a component bit; called by
    * the registry, not by entities.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetComponentState(componentBit, index)
   {
@@ -125,7 +125,7 @@ export class EveEntity
    * Drops the recorded slot index for a component bit; called by the registry
    * when that component is released.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RemoveComponentState(componentBit)
   {
@@ -143,7 +143,7 @@ export class EveEntity
    * Override point where a subclass publishes the components it owns; called
    * after joining a registry, and again on ReRegister.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterComponents()
   {
@@ -154,7 +154,7 @@ export class EveEntity
    * called while leaving a registry, after the registry has dropped its own
    * records.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UnRegisterComponents()
   {

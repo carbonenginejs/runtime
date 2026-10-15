@@ -1,31 +1,28 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveLocator2.h
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveLocator2.cpp
 import { mat4 } from "#math/mat4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 
 /**
  * Named attachment point on a space object, carrying a full transform matrix
  * rather than decomposed components.
  */
-@meta.define({
-  className: "EveLocator2",
-  family: "eve/utils"
-})
+@blue.define("EveLocator2")
 export class EveLocator2
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.mat4
+  @blue.readwrite
+  @blue.persist
+  @type.mat4
   transform = mat4.create();
 
   /** Returns the name consumers select this locator by. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetName()
   {
@@ -36,7 +33,7 @@ export class EveLocator2
    * Sets the name consumers select this locator by, coercing the value to a
    * string.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -47,7 +44,7 @@ export class EveLocator2
    * Returns the locator's live transform matrix, not a copy; writes through it
    * change the locator.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetTransform()
   {
@@ -55,7 +52,7 @@ export class EveLocator2
   }
 
   /** Copies a matrix into the locator's own transform storage. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetTransform(value)
   {

@@ -56,4 +56,4 @@ for (const method of [
 {
   CjsSchema.decorateMethod(ITr2Renderable, method, meta.abstract);
 }
-CjsSchema.define(ITr2Renderable, { className: "ITr2Renderable" });
+CjsSchema.blue.define(ITr2Renderable, { className: "ITr2Renderable" });

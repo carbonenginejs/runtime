@@ -6,15 +6,15 @@ import { mat4 } from "#math/mat4";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { quat } from "#math/quat";
 import { IEveLineSetPath } from "./IEveLineSetPath.js";
 
 
 /** Groups line-path children beneath a shared transform with naming and visibility state. */
-@meta.define({ className: "EveLineChildContainer", family: "eve/child/lineSetPaths", purpose: "Groups line-path children beneath an EveChildTransform with shared naming and visibility state." })
-@meta.blue.inherit(INotify, IListNotify)
-@meta.blue.interface(IEveLineSetPath, INotify, IListNotify)
+@blue.define({ className: "EveLineChildContainer", purpose: "Groups line-path children beneath an EveChildTransform with shared naming and visibility state." })
+@blue.inherit(INotify, IListNotify)
+@blue.interface(IEveLineSetPath, INotify, IListNotify)
 export class EveLineChildContainer extends IEveLineSetPath
 {
 
@@ -27,20 +27,20 @@ export class EveLineChildContainer extends IEveLineSetPath
   _regenerate = false;
 
   /** m_isVisible (bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   isVisible = true;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   display = true;
 
   /**
@@ -49,34 +49,34 @@ export class EveLineChildContainer extends IEveLineSetPath
    * (EveLineChildContainer_Blue.cpp:20), so moving the container regenerates
    * its points.
    */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   translation = vec3.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST, NOTIFY] (EveLineChildContainer_Blue.cpp:21). */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotation = quat.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST, NOTIFY] (EveLineChildContainer_Blue.cpp:22). */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_lines (PIEveLineSetPathVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("IEveLineSetPath")
+  @blue.read
+  @blue.persist
+  @type.list("IEveLineSetPath")
   lines = [];
 
   /** Carbon invalidates generated points and bounds for every authored change. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(_value = null)
   {
@@ -85,7 +85,7 @@ export class EveLineChildContainer extends IEveLineSetPath
   }
 
   /** Carbon invalidates generated points and bounds for every line-list change. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnListModified(_event = 0, _key = 0, _key2 = 0, _value = null, _list = null)
   {
@@ -93,7 +93,7 @@ export class EveLineChildContainer extends IEveLineSetPath
   }
 
   /** Updates every child and rebuilds points or aggregate bounds when required. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Update(updateContext, params)
   {
@@ -120,7 +120,7 @@ export class EveLineChildContainer extends IEveLineSetPath
   }
 
   /** Regenerates child points beneath this container's composed world transform. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GeneratePoints(parentTransform = EveLineChildContainer._identity)
   {
@@ -146,7 +146,7 @@ export class EveLineChildContainer extends IEveLineSetPath
    * data pointer to every child unchanged. The mutable byte cursor replaces
    * uint8_t*&; no extra container transform is applied (cpp:58-83).
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateBuffer(renderContext, cursor, systemLocation, stride)
   {
@@ -167,7 +167,7 @@ export class EveLineChildContainer extends IEveLineSetPath
   }
 
   /** Returns the sum of every child path's generated-point count. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPointCount()
   {
@@ -183,7 +183,7 @@ export class EveLineChildContainer extends IEveLineSetPath
    * Rebuilds Carbon's intentionally loose preliminary sphere: the mean child
    * centre plus the largest centre distance and largest child radius.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   CalculateBoundingSphere(meshSize = 0, reCalculateChildren = true)
   {
@@ -236,7 +236,7 @@ export class EveLineChildContainer extends IEveLineSetPath
   }
 
   /** Writes the aggregate sphere after applying this container's local transform. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBoundingSphere(out = vec4.create())
   {
@@ -244,7 +244,7 @@ export class EveLineChildContainer extends IEveLineSetPath
   }
 
   /** Culls the container before forwarding visibility to every child path. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateVisibility(frustum, parentLod, systemLocation)
   {
@@ -268,7 +268,7 @@ export class EveLineChildContainer extends IEveLineSetPath
   }
 
   /** Forwards line emission while both authored and computed visibility permit it. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddLinesToSet(lineSet, color, animationColor, scrollSpeed)
   {
@@ -283,7 +283,7 @@ export class EveLineChildContainer extends IEveLineSetPath
   }
 
   /** Carbon declares no container-specific debug options. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GetDebugOptions(_options)
   {

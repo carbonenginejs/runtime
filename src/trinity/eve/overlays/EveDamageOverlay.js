@@ -4,7 +4,7 @@
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { random } from "#math/random";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2ScalarFader } from "../../curves/curve/Tr2ScalarFader.js";
 import { ImpactConfiguration } from "../../generated/include/enums.js";
@@ -21,79 +21,79 @@ export const IMPACT_ARMOR_SIZE_MAX = 10;
  * Self-contained armour and hull damage state shared by a ship impact overlay
  * and by independently rendered child meshes.
  */
-@meta.define({ className: "EveDamageOverlay", family: "eve/overlays/impact" })
+@blue.define("EveDamageOverlay")
 export class EveDamageOverlay
 {
-  @meta.blue.read
-  @meta.type.int32
+  @blue.read
+  @type.int32
   impactDataNextIdx = 1;
 
-  @meta.blue.read
-  @meta.type.uint64
+  @blue.read
+  @type.uint64
   armorImpactGoalCount = 0;
 
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   armorImpactParentSize = 0;
 
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   renderPriority = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   display = true;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2Effect")
   armorDamageShader = null;
 
-  @meta.blue.readwrite
-  @meta.type.uint32
+  @blue.readwrite
+  @type.uint32
   seed = 0;
 
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   armorImpactLifeTime = 10;
 
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   debugForceSpawnDebris = false;
 
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2ScalarFader")
+  @blue.readwrite
+  @type.rootRef("Tr2ScalarFader")
   armorRepairing = new Tr2ScalarFader();
 
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2ScalarFader")
+  @blue.readwrite
+  @type.rootRef("Tr2ScalarFader")
   armorHardening = new Tr2ScalarFader();
 
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2ScalarFader")
+  @blue.readwrite
+  @type.rootRef("Tr2ScalarFader")
   hullRepairing = new Tr2ScalarFader();
 
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   hullDamageFactor = 0;
 
-  @meta.blue.read
-  @meta.type.int32
-  @meta.type.enum("trinity.ITriTargetable.ImpactConfiguration")
+  @blue.read
+  @type.int32
+  @type.enum("trinity.ITriTargetable.ImpactConfiguration")
   configuration = ImpactConfiguration.IMPACT_INVALID;
 
-  @meta.blue.readwrite
-  @meta.type.uint32
+  @blue.readwrite
+  @type.uint32
   damageLocatorCount = 0;
 
-  @meta.blue.read
-  @meta.type.int32
+  @blue.read
+  @type.int32
   dataTextureBlockID = -1;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("TriPerlinCurve")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("TriPerlinCurve")
   hullDamageFlickerCurve = null;
 
   _dataTextureOffset = -1;
@@ -121,7 +121,7 @@ export class EveDamageOverlay
   static _locatorPosition = vec3.create();
 
   /** Initializes the damage-overlay state. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -129,7 +129,7 @@ export class EveDamageOverlay
   }
 
   /** Sets the deterministic seed used to choose damage locators. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetSeed(seed)
   {
@@ -137,7 +137,7 @@ export class EveDamageOverlay
   }
 
   /** Sets the number of damage locators owned by the target. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetDamageLocatorCount(count)
   {
@@ -150,7 +150,7 @@ export class EveDamageOverlay
    * complement, the indices the filter switches off. Locators past the filter's end stay enabled.
    * @param {Array<boolean>} enabled Per-locator flags.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetEnabledDamageLocators(enabled)
   {
@@ -307,7 +307,7 @@ export class EveDamageOverlay
   }
 
   /** Copies the last shield, armour and hull values into a caller-owned vector (Carbon returns it by value, cpp:209). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetLastDamageState(out)
   {
@@ -333,7 +333,7 @@ export class EveDamageOverlay
   }
 
   /** Allocates the next impact identifier from the shared or local source. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AllocateImpactIndex()
   {
@@ -343,7 +343,7 @@ export class EveDamageOverlay
   }
 
   /** Advances armour impacts, faders, priorities and data-texture rows. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateAsyncronous(updateContext, ownerInfo, minTexelRows, hasExternalActivity)
   {
@@ -401,7 +401,7 @@ export class EveDamageOverlay
   }
 
   /** Publishes the current damage block during the synchronous update. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateSyncronous(updateContext)
   {
@@ -409,7 +409,7 @@ export class EveDamageOverlay
   }
 
   /** Requests or releases this overlay's shared data-texture block. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateBlockData(dataTextureManager, hasActivity)
   {
@@ -444,7 +444,7 @@ export class EveDamageOverlay
   }
 
   /** Calculates the current hull-flicker activation strength. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetActivationStrength(updateContext)
   {
@@ -457,7 +457,7 @@ export class EveDamageOverlay
   }
 
   /** Starts or stops a named armour or hull fader. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ToggleEffect(name, on, duration)
   {
@@ -471,7 +471,7 @@ export class EveDamageOverlay
   }
 
   /** Applies shield, armour and hull state and optionally creates armour impacts. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetDamageState(shield, armor, hull, createArmorImpacts = false)
   {
@@ -519,7 +519,7 @@ export class EveDamageOverlay
   }
 
   /** Removes every live armour impact. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Clear()
   {
@@ -527,7 +527,7 @@ export class EveDamageOverlay
   }
 
   /** Creates or enlarges an armour impact at a damage locator. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   CreateImpact(damageLocatorIndex, size, spawnEffects = false)
   {
@@ -549,7 +549,7 @@ export class EveDamageOverlay
   }
 
   /** Reports whether an armour impact identifier is live. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasImpact(impactIndex)
   {
@@ -557,7 +557,7 @@ export class EveDamageOverlay
   }
 
   /** Returns the active armour-damage material for the decal pass. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetArmorDamageShader(batchType)
   {

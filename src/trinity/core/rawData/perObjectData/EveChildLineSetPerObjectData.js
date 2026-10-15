@@ -1,9 +1,9 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet.cpp:12-40
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { Tr2PerObjectData } from "./Tr2PerObjectData.js";
 
 /** Borrows the line-set owner's persistent vertex and pixel constant records. */
-@meta.define({ className: "EveChildLineSetPerObjectData", family: "trinityCore" })
+@blue.define("EveChildLineSetPerObjectData")
 export class EveChildLineSetPerObjectData extends Tr2PerObjectData
 {
   vsData = null;
@@ -21,7 +21,7 @@ export class EveChildLineSetPerObjectData extends Tr2PerObjectData
    * Uses the family's declared-stage gate in place of Carbon's unconditional
    * VS/PS uploads; see this folder's README and documented adaptation CE-19.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetPerObjectDataToDevice(buffers, constantTypeMask, renderContext)
   {

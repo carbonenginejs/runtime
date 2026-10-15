@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Tr2StateMachineState.cpp
 // Source: trinity/trinity/Controllers/Tr2StateMachineState_Blue.cpp
 import { IsMatch, BlueList, IListNotify, INotify, be, CjsBlueClasses } from "#blue";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { UnlinkReason } from "../enums.js";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ContinueOnMainThread } from "../../core/continueOnMainThread.js";
@@ -16,12 +16,9 @@ import { Tr2StateMachineTransition } from "./Tr2StateMachineTransition.js";
  * state. Its typed BlueLists report explicit list operations to this owner; raw
  * array operations bypass admission and notification.
  */
-@meta.define({
-  className: "Tr2StateMachineState",
-  family: "controllers"
-})
-@meta.blue.inherit(IListNotify, INotify)
-@meta.blue.interface(IListNotify, INotify)
+@blue.define("Tr2StateMachineState")
+@blue.inherit(IListNotify, INotify)
+@blue.interface(IListNotify, INotify)
 export class Tr2StateMachineState
 {
   /**
@@ -29,9 +26,9 @@ export class Tr2StateMachineState
    * and stopped on exit. The same actions can veto an outgoing transition.
    * @type {BlueList}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITr2ControllerAction")
+  @blue.read
+  @blue.persist
+  @type.list("ITr2ControllerAction")
   actions = new BlueList(ITr2ControllerAction, { className: null, listOps: 0 });
 
   /**
@@ -39,9 +36,9 @@ export class Tr2StateMachineState
    * to select the next state. This state receives the list's notifications.
    * @type {BlueList}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("Tr2StateMachineTransition")
+  @blue.read
+  @blue.persist
+  @type.list("Tr2StateMachineTransition")
   transitions = new BlueList(Tr2StateMachineTransition, { className: "Tr2StateMachineTransition", listOps: 0 });
 
   /**
@@ -49,19 +46,19 @@ export class Tr2StateMachineState
    * have been requested; null permits completion without this check.
    * @type {ITr2StateMachineStateFinalizer|null}
    */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITr2StateMachineStateFinalizer")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITr2StateMachineStateFinalizer")
   finalizer = null;
 
   /**
    * State name matched by machine lookups and transition destinations.
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   _stateMachine = null;
@@ -90,7 +87,7 @@ export class Tr2StateMachineState
    * @param {string} propertyName Exposed member name.
    * @returns {boolean} True after the notification is handled.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName)
   {
@@ -112,7 +109,7 @@ export class Tr2StateMachineState
    * @param {IList|null} [list=null] Emitting list identity.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
@@ -136,7 +133,7 @@ export class Tr2StateMachineState
    * @param {Tr2StateMachine} stateMachine Owning state machine.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Link(stateMachine)
   {
@@ -162,7 +159,7 @@ export class Tr2StateMachineState
    * Recomputes the combined transition variable mask.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateVariableMask()
   {
@@ -191,7 +188,7 @@ export class Tr2StateMachineState
    * @param {number} [reason=UnlinkReason.UNLINKING] Native unlink reason.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Unlink(reason = UnlinkReason.UNLINKING)
   {
@@ -225,7 +222,7 @@ export class Tr2StateMachineState
    * was unlinked before the drain, as the donor's lambda does.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Start()
   {
@@ -257,7 +254,7 @@ export class Tr2StateMachineState
    * The finalizer is consulted before the queued Stops run, as in the donor.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Stop()
   {
@@ -295,7 +292,7 @@ export class Tr2StateMachineState
    * @param {bigint|number} [dirtyVariables=0n] Variables changed by the controller.
    * @returns {Tr2StateMachineState|null} Next state, or null while remaining here.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(dirtyVariables = 0n)
   {
@@ -353,7 +350,7 @@ export class Tr2StateMachineState
    * @param {number} diff Simulation-time offset in Blue ticks.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RebaseSimTime(diff)
   {
@@ -367,7 +364,7 @@ export class Tr2StateMachineState
    * Gets the linked state machine.
    * @returns {Tr2StateMachine|null} Owning machine, or null while unlinked.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetStateMachine()
   {
@@ -378,7 +375,7 @@ export class Tr2StateMachineState
    * Gets the authored state name.
    * @returns {string} Authored state name.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetName()
   {
@@ -412,7 +409,7 @@ export class Tr2StateMachineState
    * BigInt for the native all-bits uint64 mask.
    * @returns {Tr2StateMachineState|null} First active destination, or null.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   _GetNextState()
   {

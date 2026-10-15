@@ -11,7 +11,7 @@ import { Tr2BufferAL } from "../../../../trinityal/Tr2BufferAL/index.js";
 // BACKGROUND slot, indexed through LensflareFxOccScale (EveLensflare).
 //
 // Carbon keeps it as a function-local static singleton; getInstance is that.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { PixelFormat } from "#consts/render-context";
 import { OCCLUDER_MANAGEMENT_EFFECT_PATH } from "#consts/effectPaths";
 import { Tr2Effect } from "../../../shader/Tr2Effect.js";
@@ -30,28 +30,28 @@ const INITIAL_SIZE = 4;
 const bitsAsFloat = value => new Float32Array(new Uint32Array([ value >>> 0 ]).buffer)[0];
 
 /** Allocates GPU slots for lens-flare occlusion and runs the buffer's per-frame compute. */
-@meta.define({ className: "Tr2OcclusionBuffer", family: "eve/scene" })
+@blue.define("Tr2OcclusionBuffer")
 export class Tr2OcclusionBuffer
 {
 
   /** m_management (Tr2EffectPtr): Clear and CopyCounters (cpp:17-18). */
-  @meta.type.rootRef("Tr2Effect")
+  @type.rootRef("Tr2Effect")
   management = null;
 
   /** m_buffer (Tr2GpuBufferPtr), registered as "FlareOcclusionBuffer" (cpp:20-21). */
-  @meta.type.rootRef("Tr2GpuBuffer")
+  @type.rootRef("Tr2GpuBuffer")
   buffer = null;
 
   /** m_free (std::vector<uint32_t>): free slot bases, handed out from the back. */
-  @meta.type.list("uint32_t")
+  @type.list("uint32_t")
   free = [];
 
   /** m_clear (std::vector<uint32_t>): slots waiting for the Clear compute. */
-  @meta.type.list("uint32_t")
+  @type.list("uint32_t")
   clear = [];
 
   /** m_size (uint32_t): the buffer's element count; 0 until the first slot. */
-  @meta.type.uint32
+  @type.uint32
   size = 0;
 
   /** Carbon's constructor (cpp:15-22). */
@@ -74,7 +74,7 @@ export class Tr2OcclusionBuffer
    * @param {Tr2RenderContext} renderContext The context to create on.
    * @returns {number|null} The slot base, or null when none could be made.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AllocateOffset(renderContext)
   {
@@ -95,7 +95,7 @@ export class Tr2OcclusionBuffer
    * @param {Tr2RenderContext} renderContext The context to dispatch on.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ProcessBuffer(renderContext)
   {
@@ -123,7 +123,7 @@ export class Tr2OcclusionBuffer
    * @param {number|null} offset A slot base from AllocateOffset.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   DestroyOffset(offset)
   {
@@ -131,7 +131,7 @@ export class Tr2OcclusionBuffer
   }
 
   /** Carbon OnPrepareResources (cpp:76-79): nothing to prepare; answers true. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnPrepareResources()
   {
@@ -144,7 +144,7 @@ export class Tr2OcclusionBuffer
    *
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ReleaseResources()
   {
@@ -160,7 +160,7 @@ export class Tr2OcclusionBuffer
    * @param {Tr2RenderContext} renderContext The context to create on.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ResizeBuffer(renderContext)
   {
@@ -205,7 +205,7 @@ export class Tr2OcclusionBuffer
   }
 
   /** Carbon GetInstance (cpp:59-63). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static getInstance()
   {
@@ -221,7 +221,7 @@ export class Tr2OcclusionBuffer
    * @param {number} index The occluder index, 0-3.
    * @returns {number} The element index.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static getOccluderOffset(offset, index)
   {

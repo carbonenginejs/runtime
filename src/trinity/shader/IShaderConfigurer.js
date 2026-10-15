@@ -18,4 +18,4 @@ export class IShaderConfigurer
 }
 
 CjsSchema.decorateMethod(IShaderConfigurer, "SetShaderOption", meta.abstract);
-CjsSchema.define(IShaderConfigurer, { className: "IShaderConfigurer" });
+CjsSchema.blue.define(IShaderConfigurer, { className: "IShaderConfigurer" });

@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Resources/Tr2LightProfileRes.h
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { CjsResource, ICacheable } from "#blue";
 import { assertResourcePayloadObject } from "./resourceBoundary.js";
 import { HostBitmap } from "#imageio";
@@ -146,13 +146,12 @@ export class Tr2LightProfileRes extends CjsResource
   static payload = ResourceRequirement.LIGHT_PROFILE;
 }
 
-CjsSchema.define(Tr2LightProfileRes, {
+CjsSchema.blue.define(Tr2LightProfileRes, {
   className: "Tr2LightProfileRes",
-  family: "resources",
   methods: {
-    IsMemoryUsageKnown: [ meta.blue.method, meta.implemented ],
-    GetMemoryUsage: [ meta.blue.method, meta.adapted ]
+    IsMemoryUsageKnown: [ blue.method, meta.implemented ],
+    GetMemoryUsage: [ blue.method, meta.adapted ]
   }
 });
-meta.blue.inherit(ICacheable)(Tr2LightProfileRes, { kind: "class" });
-meta.blue.interface(ICacheable)(Tr2LightProfileRes);
+blue.inherit(ICacheable)(Tr2LightProfileRes, { kind: "class" });
+blue.interface(ICacheable)(Tr2LightProfileRes);

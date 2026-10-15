@@ -4,7 +4,7 @@ import { vec4 } from "#math/vec4";
 import { ITriFunction, ITriColorFunction, BlueList, ITriCurveLength } from "#blue";
 import { ITriDuration } from "../ITriDuration.js";
 import { mappedInterfaces } from "../../../global/compose/interface.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { TRIOPERATOR } from "#consts/graphics";
 import "#consts/graphics/trinityEnums";
 
@@ -15,18 +15,18 @@ import "#consts/graphics/trinityEnums";
  * offset by white. Sampling retains the existing instance child scratch; native
  * sampling uses local temporaries. Numeric tick overloads remain unimplemented.
  */
-@meta.define({ className: "TriColorSequencer", family: "curves" })
-@meta.blue.inherit(ITriCurveLength)
-@meta.blue.interface(ITriFunction, ITriColorFunction, ITriCurveLength)
+@blue.define("TriColorSequencer")
+@blue.inherit(ITriCurveLength)
+@blue.interface(ITriFunction, ITriColorFunction, ITriCurveLength)
 export class TriColorSequencer extends ITriColorFunction
 {
   /**
    * Authored name identifying the color sequencer; native wide string.
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.wstring
+  @blue.readwrite
+  @blue.persist
+  @type.wstring
   name = "";
 
   /**
@@ -34,9 +34,9 @@ export class TriColorSequencer extends ITriColorFunction
    * does not apply it.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int64
+  @blue.readwrite
+  @blue.persist
+  @type.int64
   start = 0;
 
   /**
@@ -44,9 +44,9 @@ export class TriColorSequencer extends ITriColorFunction
    * here.
    * @type {Float32Array}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.readwrite
+  @blue.persist
+  @type.color
   value = vec4.create();
 
   /**
@@ -54,19 +54,19 @@ export class TriColorSequencer extends ITriColorFunction
    * the current sampler.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("blue.TRIOPERATOR")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("blue.TRIOPERATOR")
   operator = TRIOPERATOR.TRIOP_MULTIPLY;
 
   /**
    * Ordered child color functions sampled and combined at the supplied time.
    * @type {BlueList<ITriColorFunction>}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITriColorFunction")
+  @blue.read
+  @blue.persist
+  @type.list("ITriColorFunction")
   functions = new BlueList(ITriColorFunction, { className: null, listOps: 0 });
 
   /**
@@ -82,7 +82,7 @@ export class TriColorSequencer extends ITriColorFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateValue(time)
   {
@@ -104,7 +104,7 @@ export class TriColorSequencer extends ITriColorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(time, out)
   {
@@ -120,7 +120,7 @@ export class TriColorSequencer extends ITriColorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValueAt(time, out)
   {
@@ -194,7 +194,7 @@ export class TriColorSequencer extends ITriColorFunction
    * JavaScript queries exact native ITriDuration before ITriCurveLength; an advertised method is required.
    * @returns {number} Greatest child duration.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Length()
   {

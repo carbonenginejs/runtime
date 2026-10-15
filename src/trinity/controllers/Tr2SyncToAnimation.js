@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Finalizers/Tr2SyncToAnimation.h
 // Source: trinity/trinity/Controllers/Finalizers/Tr2SyncToAnimation.cpp
 // Source: trinity/trinity/Controllers/Finalizers/Tr2SyncToAnimation_Blue.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { ITr2ControllerAction } from "./action/ITr2ControllerAction.js";
 import { ITr2StateMachineStateFinalizer } from "./state/ITr2StateMachineStateFinalizer.js";
 
@@ -10,12 +10,9 @@ import { ITr2StateMachineStateFinalizer } from "./state/ITr2StateMachineStateFin
  * State finalizer that holds a state machine in its current state until the
  * animation layer named by `mask` has finished playing.
  */
-@meta.define({
-  className: "Tr2SyncToAnimation",
-  family: "controllers"
-})
-@meta.blue.inherit(ITr2StateMachineStateFinalizer)
-@meta.blue.interface(ITr2StateMachineStateFinalizer)
+@blue.define("Tr2SyncToAnimation")
+@blue.inherit(ITr2StateMachineStateFinalizer)
+@blue.interface(ITr2StateMachineStateFinalizer)
 export class Tr2SyncToAnimation
 {
   /**
@@ -23,9 +20,9 @@ export class Tr2SyncToAnimation
    * An empty string selects the animation controller's base layer.
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   mask = "";
 
   /**
@@ -38,7 +35,7 @@ export class Tr2SyncToAnimation
    * @param {Tr2Controller} controller Controller owning the animated object.
    * @returns {boolean} Whether the layer is absent or complete.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CanTransition(controller)
   {

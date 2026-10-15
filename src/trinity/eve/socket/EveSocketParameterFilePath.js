@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/EveSocketParameter.h
 // Hand-authored following the eve/socket generated pattern.
-import { meta } from "#schema";
+import { blue } from "#schema";
 import { EveSocketParameterString } from "./EveSocketParameterString.js";
 
 /**
@@ -9,7 +9,7 @@ import { EveSocketParameterString } from "./EveSocketParameterString.js";
  * EveSocketParameterString without adding members; only the editor widget
  * differs.
  */
-@meta.define({ className: "EveSocketParameterFilePath", family: "eve/socket" })
+@blue.define("EveSocketParameterFilePath")
 export class EveSocketParameterFilePath extends EveSocketParameterString
 {
 }

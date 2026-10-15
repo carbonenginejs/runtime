@@ -1,19 +1,19 @@
 // Source: trinity/trinity/RenderJob/TriStepPythonCB.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that invokes a host-supplied callback at its point in the job order. */
-@meta.define({ className: "TriStepPythonCB", family: "renderJob" })
+@blue.define("TriStepPythonCB")
 export class TriStepPythonCB extends TriRenderStep
 {
 
   /** m_callback (BlueScriptCallback) */
-  @meta.type.rawStruct("BlueScriptCallback")
+  @type.rawStruct("BlueScriptCallback")
   callback = null;
 
   /** Carbon method __init__ -> SetCallback (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   __init__(callback = null)
   {
@@ -21,7 +21,7 @@ export class TriStepPythonCB extends TriRenderStep
   }
 
   /** Carbon method SetCallback (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetCallback(callback)
   {
@@ -35,7 +35,7 @@ export class TriStepPythonCB extends TriRenderStep
   /**
    * Invokes the host callback and reports the step complete.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Execute(_realTime, _simTime, renderContext)
   {

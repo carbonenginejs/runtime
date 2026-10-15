@@ -1,37 +1,37 @@
 // Source: trinity/trinity/Shader/Parameter/Tr2TextureAnimationParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { IsMatch, INotify } from "#blue";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2ColorSpace } from "#consts/render-context";
 import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 import { ResourceFlags } from "./ITr2EffectValue.js";
 
 /** Exposes one named channel of a texture animation as a shader resource and invalidates attached materials as it changes. */
-@meta.define({ className: "Tr2TextureAnimationParameter", family: "shader" })
-@meta.blue.inherit(ITriEffectResourceParameter)
-@meta.blue.inherit(INotify)
-@meta.blue.interface(ITriEffectResourceParameter, INotify)
+@blue.define("Tr2TextureAnimationParameter")
+@blue.inherit(ITriEffectResourceParameter)
+@blue.inherit(INotify)
+@blue.interface(ITriEffectResourceParameter, INotify)
 export class Tr2TextureAnimationParameter extends CjsParameter
 {
 
   /** m_animation (Tr2TextureAnimationPtr) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2TextureAnimation")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2TextureAnimation")
   animation = null;
 
   /** m_channel (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   channel = "";
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   resourceType = 0;
@@ -39,7 +39,7 @@ export class Tr2TextureAnimationParameter extends CjsParameter
   _materials = [];
 
   /** The shader resource name the animated texture binds to. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetParameterName()
   {
@@ -47,7 +47,7 @@ export class Tr2TextureAnimationParameter extends CjsParameter
   }
 
   /** Content hash: the animation object's identity (Carbon hashes its pointer). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
   {
@@ -57,7 +57,7 @@ export class Tr2TextureAnimationParameter extends CjsParameter
   /**
    * Invalidates each registered material's resource sets on an animation edit.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName)
   {
@@ -74,7 +74,7 @@ export class Tr2TextureAnimationParameter extends CjsParameter
    * one, and leaves the previous type in place otherwise; no GPU binding is
    * created.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RebuildEffectHandles(effectRes)
   {
@@ -100,7 +100,7 @@ export class Tr2TextureAnimationParameter extends CjsParameter
    * @param {number} [flags] A `ResourceFlags` word; bit 0 is sRGB.
    * @returns {boolean} Whether the slot took the binding.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0)
   {
@@ -117,7 +117,7 @@ export class Tr2TextureAnimationParameter extends CjsParameter
    *
    * @returns {boolean} False, always.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ApplyUav()
   {
@@ -127,7 +127,7 @@ export class Tr2TextureAnimationParameter extends CjsParameter
   /**
    * Registers one material occurrence for animation-reference invalidation.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnAddedToMaterial(material)
   {
@@ -137,7 +137,7 @@ export class Tr2TextureAnimationParameter extends CjsParameter
   /**
    * Removes the first matching material registration, retaining duplicates.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnRemovedFromMaterial(material)
   {
@@ -152,7 +152,7 @@ export class Tr2TextureAnimationParameter extends CjsParameter
    * The animation's texture for this parameter's channel, or null when no
    * animation is attached.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetTexture()
   {

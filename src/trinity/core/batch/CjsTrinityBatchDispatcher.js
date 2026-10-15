@@ -5,7 +5,7 @@ import { meta } from "#schema";
  * Minimum renderer contract for a finalized Trinity batch map.
  * Backend-private preparation and encoding details do not belong here.
  */
-@meta.define({ className: "CjsTrinityBatchDispatcher", family: "trinityCore" })
+@meta.define("CjsTrinityBatchDispatcher")
 export class CjsTrinityBatchDispatcher
 {
 

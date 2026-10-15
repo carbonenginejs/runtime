@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/Tr2MaterialRes.h
 // Schema: format-carbon resources/Tr2MaterialMesh.json; maintained by the runtime resource layer.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 
 /**
  * Holds the persisted material-area dictionary for one material mesh.
@@ -21,10 +21,9 @@ export class Tr2MaterialMesh
 // expressions are reused verbatim, so the registered metadata is identical.
 // Statics belong in `methods`: decorateMethod targets the prototype and
 // would register a static as an instance field.
-CjsSchema.define(Tr2MaterialMesh, {
+CjsSchema.blue.define(Tr2MaterialMesh, {
   className: "Tr2MaterialMesh",
-  family: "resources",
   fields: {
-    areas: [ meta.blue.persist, meta.type.rootRef("Tr2MaterialAreaDict") ]
+    areas: [ blue.persist, type.rootRef("Tr2MaterialAreaDict") ]
   }
 });

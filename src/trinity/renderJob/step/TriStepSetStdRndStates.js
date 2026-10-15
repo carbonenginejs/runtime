@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepSetStandardRenderStates.h
 // Source: trinity/trinity/RenderJob/TriStepSetStandardRenderStates.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { RenderingMode } from "#consts/graphics";
@@ -12,7 +12,7 @@ import "#consts/graphics/trinityEnums";
  * opaque, decal, alpha, additive, depth-only, picking and so on - instead of
  * setting states individually.
  */
-@meta.define({ className: "TriStepSetStdRndStates", family: "renderJob" })
+@blue.define("TriStepSetStdRndStates")
 export class TriStepSetStdRndStates extends TriRenderStep
 {
   static RenderingMode = RenderingMode;
@@ -33,17 +33,17 @@ export class TriStepSetStdRndStates extends TriRenderStep
   static RM_PREPASS_COLOR = 13;
   static RM_COUNT = 14;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.Tr2EffectStateManager.RenderingMode")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.Tr2EffectStateManager.RenderingMode")
   renderingMode = TriStepSetStdRndStates.RM_OPAQUE;
 
   /**
    * Sets the rendering mode when one is supplied, otherwise leaves the default
    * opaque mode in place.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   __init__(state)
   {
@@ -64,7 +64,7 @@ export class TriStepSetStdRndStates extends TriRenderStep
    * Asks the render context to apply the standard state block for the selected
    * rendering mode; which states that block contains is the render context's concern.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

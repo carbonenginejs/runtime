@@ -209,4 +209,4 @@ export class IEveSpaceObject2
 
 
 for (const name of SPACE_OBJECT_DEFAULTS) CjsSchema.decorateMethod(IEveSpaceObject2, name, meta.implemented);
-CjsSchema.define(IEveSpaceObject2, { className: "IEveSpaceObject2" });
+CjsSchema.blue.define(IEveSpaceObject2, { className: "IEveSpaceObject2" });

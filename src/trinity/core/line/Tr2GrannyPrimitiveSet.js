@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Tr2GrannyPrimitiveSet.cpp
 // Source: trinity/trinity/Tr2GrannyPrimitiveSet_Blue.cpp
 // Hand-maintained after promotion from generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { be, IInitialize, IsMatch, ResourceRequirement } from "#blue";
 import { Tr2CpuUsage, Tr2GpuUsage, Topology } from "#consts/render-context";
 import { decodeTangentFrame } from "#math/tangent";
@@ -18,28 +18,28 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2Rende
 import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 
 /** Granny/CMF debug geometry rendered as colored triangle edges, solids, or picking triangles. */
-@meta.define({ className: "Tr2GrannyPrimitiveSet", family: "trinityCore" })
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(IInitialize)
-@meta.blue.chainTo(Tr2PrimitiveSet)
+@blue.define("Tr2GrannyPrimitiveSet")
+@blue.inherit(IInitialize)
+@blue.interface(IInitialize)
+@blue.chainTo(Tr2PrimitiveSet)
 export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
 {
   /** Native resource path (Blue READWRITE | PERSIST | NOTIFY). */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.path("TriGeometryRes")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.path("TriGeometryRes")
   grannyResPath = "";
 
   /** Native solid-versus-wire draw switch. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   renderSolid = false;
 
   /** The GEOMETRY route supplies TriGeometryRes in JS, replacing the raw SDK handle. */
-  @meta.blue.read
-  @meta.type.rootRef("TriGeometryRes")
+  @blue.read
+  @type.rootRef("TriGeometryRes")
   grannyRes = null;
 
   _points = new Float32Array(0); // alloc: initially empty, owned variable-length geometry cache.
@@ -62,7 +62,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   }
 
   /** Acquires the authored resource after reader population (cpp:38-44). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -72,7 +72,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   }
 
   /** Resource replacement precedes the base's color notification (cpp:174-182). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(names)
   {
@@ -85,7 +85,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
    * place of Blue notify targets (cpp:214-237). A pending nonempty replacement
    * retains the old primitive buffers until it succeeds, as native does.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetGrannyResource()
   {
@@ -112,7 +112,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   }
 
   /** Releases only the current resource's derived data (cpp:185-191). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ReleaseCachedData(resource)
   {
@@ -120,7 +120,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   }
 
   /** Rebuilds only a successfully prepared current resource (cpp:194-202). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RebuildCachedData(resource)
   {
@@ -131,7 +131,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   }
 
   /** Clears cached geometry and GPU storage, retaining the native last bound (cpp:205-212). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CleanUp()
   {
@@ -143,7 +143,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   }
 
   /** Keeps source-format provenance despite the common decoded payload shape (cpp:240-253). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   CreatePrimitive()
   {
@@ -153,7 +153,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   }
 
   /** Decoded CPU channels replace native CMF streams; exact picking name is preserved. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CreatePrimitiveFromCMF()
   {
@@ -165,7 +165,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
    * is preserved. The shared projection retains the complete topology stream,
    * including triangles outside material groups, as the native SDK does.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CreatePrimitiveFromGranny()
   {
@@ -222,7 +222,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   }
 
   /** Updates cached vertex colors, without reassigning the authored color field (cpp:519-526). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetCurrentColor(color)
   {
@@ -231,7 +231,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   }
 
   /** Inherited native device-resource creation guard. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PrepareResources()
   {
@@ -239,7 +239,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   }
 
   /** Explicit destruction replaces native empty-handle assignment (cpp:47-53). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ReleaseResources()
   {
@@ -250,7 +250,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   }
 
   /** Creates and uploads native buffers through existing AL descriptions (cpp:54-133). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnPrepareResources()
   {
@@ -299,7 +299,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
    * when it last completed; the rebuild on completion replaces the data. A
    * failed source is not re-registered, or it would call back every frame.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBatchesImpl(accumulator, perObjectData, effect, reason)
   {
@@ -324,7 +324,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
   }
 
   /** Native development resource description, returned instead of an output string. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetDescription()
   {

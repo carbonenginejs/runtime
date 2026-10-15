@@ -10,7 +10,7 @@ import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { IsMatch, be } from "#blue";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { EveChildPlug } from "./EveChildPlug.js";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { quat } from "#math/quat";
@@ -19,35 +19,35 @@ import { EveSocketParameterString } from "../socket/EveSocketParameterString.js"
 import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 
 /** A named attachment point on a ship that resolves and hot-reloads a plugged-in child resource, forwarding controller and registration calls to it. */
-@meta.define({ className: "EveChildSocket", family: "eve/child" })
-@meta.blue.inherit(ITr2CurveSetOwner, IInitialize, INotify)
-@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, IEveEffectChildrenOwner, ITr2SoundEmitterOwner, EveEntity)
-@meta.blue.inherit(IEveEffectChildrenOwner)
+@blue.define("EveChildSocket")
+@blue.inherit(ITr2CurveSetOwner, IInitialize, INotify)
+@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, IEveEffectChildrenOwner, ITr2SoundEmitterOwner, EveEntity)
+@blue.inherit(IEveEffectChildrenOwner)
 export class EveChildSocket extends EveChildTransform
 {
 
   /** m_translation (Vector3) [READWRITE, PERSIST] - EveChildSocket_Blue.cpp:28 */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   translation = vec3.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] - EveChildSocket_Blue.cpp:29 */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotation = quat.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] - EveChildSocket_Blue.cpp:30 */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_localTransform (Matrix) [READWRITE, PERSIST] (EveChildSocket_Blue.cpp:31) */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.mat4
+  @blue.readwrite
+  @blue.persist
+  @type.mat4
   localTransform = mat4.create();
 
   /** Identifies the current asynchronous native LoadObject translation. */
@@ -57,42 +57,42 @@ export class EveChildSocket extends EveChildTransform
   _pendingPlugCalls = null;
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   display = true;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_parameters (PIEveSocketParameterVector) [READ, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("IEveSocketParameter")
+  @blue.notify
+  @blue.read
+  @blue.persist
+  @type.list("IEveSocketParameter")
   parameters = [];
 
   /** m_plugResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.path("object")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.path("object")
   resPath = "";
 
   /** m_plug (EveChildPlugPtr) [READ] */
-  @meta.blue.read
-  @meta.type.rootRef("EveChildPlug")
+  @blue.read
+  @type.rootRef("EveChildPlug")
   plug = null;
 
   /**
    * Carbon EveChildSocket.cpp:431-437 forwards an event. Adapted: retain calls
    * made while the synchronous native load is pending in JavaScript.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   HandleControllerEvent(name)
   {
@@ -105,7 +105,7 @@ export class EveChildSocket extends EveChildTransform
    * EveChildSocket_Blue.cpp:67-72. Adapted: the existing partial port creates
    * string bindings only; already-authored parameter classes bind directly.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   BindParameters()
   {
@@ -130,7 +130,7 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Blue-exposed alias for Carbon BindParameters (EveChildSocket_Blue.cpp:67). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Rebind()
   {
@@ -138,7 +138,7 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Carbon EveChildSocket.cpp:174-183 propagates each bound parameter. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Propogate()
   {
@@ -149,7 +149,7 @@ export class EveChildSocket extends EveChildTransform
    * Carbon Initialize (cpp:185-191) always succeeds. Adapted: binding,
    * propagation, and deferred forwarding follow asynchronous LoadChild.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -168,7 +168,7 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Carbon EveChildSocket.cpp:28-31 returns the authored plug path. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPlugResPath()
   {
@@ -180,7 +180,7 @@ export class EveChildSocket extends EveChildTransform
    * Adapted: forward calls made during the asynchronous load after arrival;
    * unlike Initialize, this setter does not bind or propagate parameters.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetPlugResPath(path)
   {
@@ -198,7 +198,7 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Carbon EveChildSocket.cpp:42-45 reloads by initializing again. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Reload()
   {
@@ -206,7 +206,7 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Carbon EveChildSocket.cpp:194-206 reacts to path and display changes. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName = null)
   {
@@ -221,7 +221,7 @@ export class EveChildSocket extends EveChildTransform
    * let the caller finish native binding and deferred forwarding. The promise
    * resolves to the native success boolean; failure logs and leaves no plug.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   async LoadChild()
   {
@@ -257,7 +257,7 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Propagates the owning space object to the loaded plug. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetOwner(owner)
   {
@@ -267,7 +267,7 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Propagates a modular part tag to the loaded plug. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetPartTag(tag)
   {
@@ -281,7 +281,7 @@ export class EveChildSocket extends EveChildTransform
    * Carbon cpp:423-429 forwards a variable. Adapted: replay calls made during
    * asynchronous loading after the plug has been registered and bound.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetControllerVariable(name, value)
   {
@@ -293,7 +293,7 @@ export class EveChildSocket extends EveChildTransform
    * Carbon cpp:447-453 starts the plug controllers. Adapted: defer starts made
    * during loading until the native registration/binding order is complete.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   StartControllers()
   {
@@ -359,7 +359,7 @@ export class EveChildSocket extends EveChildTransform
 
   /** Carbon EveChildSocket::RegisterComponents (cpp:212-221): forward-only to
    * the plug. Gate IsInRegistry() && plug && m_display. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterComponents()
   {
@@ -371,7 +371,7 @@ export class EveChildSocket extends EveChildTransform
 
   /** Carbon EveChildSocket::UnRegisterComponents (cpp:227-236): forwards to
    * the plug; no display re-check. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UnRegisterComponents()
   {
@@ -383,7 +383,7 @@ export class EveChildSocket extends EveChildTransform
 
 
   /** Carbon GetEffectChildByName (EveChildSocket.cpp:239-246): asks the plug. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetEffectChildByName(name)
   {
@@ -392,14 +392,14 @@ export class EveChildSocket extends EveChildTransform
   }
 
   /** Carbon AddToEffectChildrenList (EveChildSocket.cpp:248-250): does nothing. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddToEffectChildrenList(_child)
   {
   }
 
   /** Carbon RemoveFromEffectChildrenList (EveChildSocket.cpp:252-254): does nothing. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RemoveFromEffectChildrenList(_child)
   {

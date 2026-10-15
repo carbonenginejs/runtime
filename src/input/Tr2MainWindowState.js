@@ -2,7 +2,7 @@
 // Source: trinity/trinity/UI/Tr2MainWindow.cpp
 // Source: trinity/trinity/UI/Tr2MainWindow_Blue.cpp
 import { PresentInterval, Tr2WindowMode, Tr2WindowShowState } from "#consts/render-context";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import "#consts/renderContext/presentation";
 import "#consts/renderContext/window";
 
@@ -124,19 +124,17 @@ function presentIntervalName(value)
 // Tr2MainWindow_Blue.cpp:59-76, in Carbon's order. `input` ships as raw
 // source (package.json "./input"), so the schema is defined here rather than
 // with decorator syntax.
-CjsSchema.define(Tr2MainWindowState, {
-    className: "Tr2MainWindowState",
-    carbon: "Tr2MainWindowState",
-    family: "input",
-    fields: {
-        windowMode: [ meta.type.int32, meta.type.enum("trinity.Tr2WindowMode"), meta.blue.readwrite, meta.blue.persist ],
-        adapter: [ meta.type.uint32, meta.blue.readwrite, meta.blue.persist ],
-        width: [ meta.type.uint32, meta.blue.readwrite, meta.blue.persist ],
-        height: [ meta.type.uint32, meta.blue.readwrite, meta.blue.persist ],
-        presentInterval: [ meta.type.int32, meta.type.enum("trinity.Tr2RenderContextEnum.PresentInterval"), meta.blue.readwrite, meta.blue.persist ],
-        left: [ meta.type.int32, meta.blue.readwrite, meta.blue.persist ],
-        top: [ meta.type.int32, meta.blue.readwrite, meta.blue.persist ],
-        showState: [ meta.type.int32, meta.type.enum("trinity.Tr2WindowShowState"), meta.blue.readwrite, meta.blue.persist ]
+CjsSchema.blue.define(Tr2MainWindowState, {
+  className: "Tr2MainWindowState",
+  fields: {
+        windowMode: [ type.int32, type.enum("trinity.Tr2WindowMode"), blue.readwrite, blue.persist ],
+        adapter: [ type.uint32, blue.readwrite, blue.persist ],
+        width: [ type.uint32, blue.readwrite, blue.persist ],
+        height: [ type.uint32, blue.readwrite, blue.persist ],
+        presentInterval: [ type.int32, type.enum("trinity.Tr2RenderContextEnum.PresentInterval"), blue.readwrite, blue.persist ],
+        left: [ type.int32, blue.readwrite, blue.persist ],
+        top: [ type.int32, blue.readwrite, blue.persist ],
+        showState: [ type.int32, type.enum("trinity.Tr2WindowShowState"), blue.readwrite, blue.persist ]
     }
 });
 

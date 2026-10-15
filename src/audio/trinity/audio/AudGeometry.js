@@ -1,6 +1,6 @@
 // Source: audio/src/AudGeometry.h + AudGeometry.cpp
 // Hand-owned browser/backend adaptation. Verify against audio/AudGeometry.json.
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { ITr2AudGeometry } from "../trinityAudioApi/ITr2AudGeometry.js";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 
@@ -94,8 +94,8 @@ function MakeGeometryParams(geometryData, manager)
  * Maintains Carbon geometry-set reference counts and routes Wwise-shaped
  * geometry lifecycle values to an optional browser backend.
  */
-@meta.define({ className: "AudGeometry", family: "audio" })
-@meta.blue.interface(ITr2AudGeometry)
+@blue.define("AudGeometry")
+@blue.interface(ITr2AudGeometry)
 export class AudGeometry extends ITr2AudGeometry
 {
 
@@ -121,7 +121,7 @@ export class AudGeometry extends ITr2AudGeometry
    * Adapted: Wwise geometry calls route through optional SetGeometry/SetGeometryInstance
    * backend methods using plain browser-safe parameter objects.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetGeometry(geometrySetId, instanceId, geometryData, worldTransform)
   {
@@ -165,7 +165,7 @@ export class AudGeometry extends ITr2AudGeometry
    * Adapted: The Wwise transform call routes through an optional browser backend with a
    * plain parameter object.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetGeometryTransform(geometrySetId, instanceId, worldTransform)
   {
@@ -190,7 +190,7 @@ export class AudGeometry extends ITr2AudGeometry
    * Adapted: Wwise geometry removal routes through optional browser backend methods while
    * retaining Carbon's set reference counts.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RemoveGeometry(geometrySetId, instanceId)
   {

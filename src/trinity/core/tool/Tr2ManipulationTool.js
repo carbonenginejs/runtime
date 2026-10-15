@@ -1,59 +1,59 @@
 // Source: trinity/trinity/Tr2ManipulationTool.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { quat } from "#math/quat";
 
 /** The interactive manipulator base: axis selection, drag handling and the callback a move reports through. */
-@meta.define({ className: "Tr2ManipulationTool", family: "trinityCore" })
+@blue.define("Tr2ManipulationTool")
 export class Tr2ManipulationTool
 {
   _moved = false;
   _movement = vec3.create();
 
   /** Carbon's selected primitive/axis name. */
-  @meta.type.string
+  @type.string
   selectedAxis = "";
 
   /** Browser callback replacing BlueScriptCallback. */
-  @meta.type.rawStruct("BlueScriptCallback")
+  @type.rawStruct("BlueScriptCallback")
   moveCallback = null;
 
   /** m_captured (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   captured = false;
 
   /** m_primitives (PTr2PrimitiveSetVector) [READ] */
-  @meta.blue.read
-  @meta.type.list("Tr2PrimitiveSet")
+  @blue.read
+  @type.list("Tr2PrimitiveSet")
   primitives = [];
 
   /** m_pythonUserData (PyObject*) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("PyObject")
+  @blue.readwrite
+  @type.rootRef("PyObject")
   _userData = null;
 
   /** m_localTransform (Matrix) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.mat4
+  @blue.readwrite
+  @blue.persist
+  @type.mat4
   localTransform = mat4.create();
 
   /** m_pivot (Vector3) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.vec3
+  @blue.readwrite
+  @type.vec3
   pivot = vec3.create();
 
   /** m_worldTransform (Matrix) [READ] */
-  @meta.blue.read
-  @meta.type.mat4
+  @blue.read
+  @type.mat4
   worldTransform = mat4.create();
 
   /** Carbon method SetMoveCallback (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetMoveCallback(callback)
   {
@@ -61,7 +61,7 @@ export class Tr2ManipulationTool
   }
 
   /** Carbon method SelectAxis (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SelectAxis(axisName)
   {
@@ -89,7 +89,7 @@ export class Tr2ManipulationTool
   }
 
   /** Carbon method Init (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Init(initialTransform)
   {
@@ -106,7 +106,7 @@ export class Tr2ManipulationTool
    * @param {Float32Array} [outZ]
    * @returns {[Float32Array, Float32Array, Float32Array]} The three axes.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBaseVectors(outX = vec3.create(), outY = vec3.create(), outZ = vec3.create())
   {
@@ -146,7 +146,7 @@ export class Tr2ManipulationTool
   }
 
   /** Carbon's pure-virtual Move contract, exposed through PyMove. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   Move(..._args)
   {

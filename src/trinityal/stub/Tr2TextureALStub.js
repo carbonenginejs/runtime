@@ -662,4 +662,4 @@ export function CopyRegion(region)
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
-CjsSchema.define(Tr2TextureALStub, { className: "Tr2TextureALStub", carbon: "Tr2TextureAL" });
+CjsSchema.blue.define(Tr2TextureALStub, { className: "Tr2TextureALStub", donors: [ "Tr2TextureAL" ] });

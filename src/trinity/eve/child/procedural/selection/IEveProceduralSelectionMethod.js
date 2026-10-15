@@ -1,14 +1,14 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/IEveProceduralSelectionMethod.h
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 
 /** Required procedural-child selection contract. */
-@meta.define({ className: "IEveProceduralSelectionMethod", family: "eve/child/procedural" })
+@blue.define("IEveProceduralSelectionMethod")
 export class IEveProceduralSelectionMethod
 {
 
   /** Updates the procedural selection method during the asynchronous phase. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   UpdateAsyncronous(_updateContext)
   {
@@ -16,7 +16,7 @@ export class IEveProceduralSelectionMethod
   }
 
   /** Reports whether the selected child changed. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   IsSelectedChildModified()
   {
@@ -24,7 +24,7 @@ export class IEveProceduralSelectionMethod
   }
 
   /** Returns the volumes used to visualize this selection method. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GetDebugVolumes(_out)
   {
@@ -32,7 +32,7 @@ export class IEveProceduralSelectionMethod
   }
 
   /** Returns the currently selected child reference. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GetSelectedChild()
   {
@@ -40,14 +40,14 @@ export class IEveProceduralSelectionMethod
   }
 
   /** Accepts an optional procedural-selection variable. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   SetProceduralMethodVariable(_name, _value)
   {
   }
 
   /** Returns Carbon's default procedural-selection variable result. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetProceduralMethodVariable(_name)
   {

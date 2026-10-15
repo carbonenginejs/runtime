@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Curves/Tr2ScalarExprKeyCurve_Blue.cpp
 import { num } from "#math/num";
 import { BlueList, ITriFunction, IInitialize, ITriCurveLength } from "#blue";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2CurveInterpolation } from "../enums.js";
 import { Tr2ScalarExprKey } from "../key/Tr2ScalarExprKey.js";
 
@@ -13,65 +13,62 @@ import { Tr2ScalarExprKey } from "../key/Tr2ScalarExprKey.js";
  * expressions re-evaluated on every sample, with optional cycling and reversed
  * playback over the key range.
  */
-@meta.define({
-  className: "Tr2ScalarExprKeyCurve",
-  family: "curves"
-})
-@meta.blue.inherit(IInitialize, ITriCurveLength)
-@meta.blue.interface(ITriFunction, IInitialize, ITriCurveLength)
+@blue.define("Tr2ScalarExprKeyCurve")
+@blue.inherit(IInitialize, ITriCurveLength)
+@blue.interface(ITriFunction, IInitialize, ITriCurveLength)
 export class Tr2ScalarExprKeyCurve extends ITriFunction
 {
   /**
    * Authored name identifying the expression-key scalar curve.
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /**
    * Enables repeated sampling after remapped time passes the evaluated key range.
    * @type {boolean}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   cycle = false;
 
   /**
    * Enables the native reverse-playback branch over the evaluated key span.
    * @type {boolean}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   reversed = false;
 
   /**
    * Offset in seconds subtracted after dividing sample time by timeScale.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   timeOffset = 0;
 
   /**
    * Dimensionless divisor converting input seconds to curve-local time.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   timeScale = 1;
 
   /**
    * Scalar cached by UpdateValue or the JavaScript Update convenience; native float.
    * @type {number}
    */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   currentValue = 0;
 
   /**
@@ -80,10 +77,10 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * choices are CONSTANT, LINEAR and HERMITE.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
-  @meta.type.enum("trinity.Tr2CurveInterpolation")
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
+  @type.enum("trinity.Tr2CurveInterpolation")
   interpolation = Tr2CurveInterpolation.LINEAR;
 
   /**
@@ -91,9 +88,9 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * and tangents.
    * @type {BlueList<Tr2ScalarExprKey>}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("Tr2ScalarExprKey")
+  @blue.read
+  @blue.persist
+  @type.list("Tr2ScalarExprKey")
   keys = new BlueList(Tr2ScalarExprKey, { className: "Tr2ScalarExprKey", listOps: 0 });
 
   /**
@@ -101,8 +98,8 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * list. Reading this accessor does not reevaluate expressions.
    * @type {number}
    */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   get length()
   {
     return this.Length();
@@ -123,7 +120,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
   /**
    * Re-evaluates expressions in stored key order without sorting.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -134,7 +131,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
   /**
    * Gets authored duration.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Length()
   {
@@ -148,7 +145,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
   /**
    * Updates cached value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateValue(time)
   {
@@ -170,7 +167,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * Adapted: JS Number arithmetic and the existing scalar Hermite helper replace
    * native float temporaries. Native key-value-based cycling/reversal is retained.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValueAt(time)
   {
@@ -229,7 +226,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * Gets a key time.
    * Adapted: retains the existing JS out-of-range zero fallback instead of native unchecked indexing.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetKeyTime(index)
   {
@@ -240,7 +237,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * Sets a key time.
    * Adapted: retains the existing JS out-of-range no-op instead of native unchecked indexing.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetKeyTime(index, time)
   {
@@ -254,7 +251,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * Gets a key value.
    * Adapted: retains the existing JS out-of-range zero fallback instead of native unchecked indexing.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetKeyValue(index)
   {
@@ -265,7 +262,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * Sets a key value.
    * Adapted: retains the existing JS out-of-range no-op instead of native unchecked indexing.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetKeyValue(index, value)
   {
@@ -278,7 +275,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
   /**
    * Gets the number of keys.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetKeyCount()
   {
@@ -289,7 +286,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * Gets a key interpolation value.
    * Adapted: retains the existing JS out-of-range zero fallback instead of native unchecked indexing.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetKeyInterpolation(index)
   {
@@ -300,7 +297,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * Sets a key interpolation value.
    * Adapted: retains the existing JS out-of-range no-op instead of native unchecked indexing.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetKeyInterpolation(index, interpolation)
   {
@@ -313,7 +310,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
   /**
    * Gets a key left tangent.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetKeyLeftTangent(index)
   {
@@ -324,7 +321,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
   /**
    * Sets a key left tangent.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetKeyLeftTangent(index, tangent)
   {
@@ -337,7 +334,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
   /**
    * Gets a key right tangent.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetKeyRightTangent(index)
   {
@@ -348,7 +345,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
   /**
    * Sets a key right tangent.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetKeyRightTangent(index, tangent)
   {
@@ -388,7 +385,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * Adapted: construction uses new and retains JS optional defaults and the existing
    * insertion scan (NaN inserts first); native instance creation can fail.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AddKey(time, value, leftTangent = 0, rightTangent = 0, interpolation = this.interpolation)
   {
@@ -412,7 +409,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
    * Adapted: invalid JS indexes are ignored; a negative index must not become the
    * BlueList clear sentinel because the native method receives an unsigned index.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RemoveKey(index)
   {
@@ -422,7 +419,7 @@ export class Tr2ScalarExprKeyCurve extends ITriFunction
   /**
    * Re-evaluates expressions; the native editor compatibility name does not sort.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Sort()
   {

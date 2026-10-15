@@ -2,19 +2,19 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierAttachToBone.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierAttachToBone_Blue.cpp
 import { mat4 } from "#math/mat4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 
 /**
  * Transform modifier that rigidly attaches a child to one bone of the parent's
  * animation bone palette.
  */
-@meta.define({ className: "EveChildModifierAttachToBone", family: "eve/child/modifiers" })
+@blue.define("EveChildModifierAttachToBone")
 export class EveChildModifierAttachToBone extends IEveChildTransformModifier
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.readwrite
+  @blue.persist
+  @type.int32
   boneIndex = -1;
 
   /**
@@ -31,7 +31,7 @@ export class EveChildModifierAttachToBone extends IEveChildTransformModifier
    * @param {Float32Array} out - caller-owned; receives the result
    * @returns {Float32Array} out
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ApplyTransform(_context, transform, boneCount = 0, bones = null, out)
   {
@@ -63,7 +63,7 @@ export class EveChildModifierAttachToBone extends IEveChildTransformModifier
    * index, or one past the palette length, leaves the incoming transform
    * untouched.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetBoneIndex(index)
   {

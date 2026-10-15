@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/PlayFX.h
 import { vec3 } from "#math/vec3";
-import { meta } from "#schema";
+import { type, blue } from "#schema";
 
 
 /**
@@ -9,18 +9,15 @@ import { meta } from "#schema";
  * behaviour allocates one record per agent and rewrites it on every behaviour
  * update.
  */
-@meta.define({
-  className: "PlayFXData",
-  family: "eve/child/behaviors"
-})
+@blue.define("PlayFXData")
 export class PlayFXData
 {
-  @meta.type.boolean
+  @type.boolean
   effectPlaying = false;
 
-  @meta.type.boolean
+  @type.boolean
   droneArrived = false;
 
-  @meta.type.vec3
+  @type.vec3
   oldTarget = vec3.create();
 }

@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EvePlaneSet.cpp
 import { DictReader } from "#blue/DictReader";
 import { mat4 } from "#math/mat4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { CjsLightData } from "../../lights/CjsLightData.js";
 import { FadeType } from "../EveSpaceObjectAttachmentUtils.js";
 
@@ -12,7 +12,7 @@ import { FadeType } from "../EveSpaceObjectAttachmentUtils.js";
  * phase, fade type, light profile and the bone matrix resolved for it each
  * frame.
  */
-@meta.define({ className: "EvePlaneLight", family: "eve/attachment/planes" })
+@blue.define("EvePlaneLight")
 export class EvePlaneLight
 {
   static FadeType = FadeType;
@@ -24,32 +24,32 @@ export class EvePlaneLight
   static FT_FADEINOUT = 4;
 
   @meta.owned
-  @meta.type.root("CjsLightData")
+  @type.root("CjsLightData")
   lightData = new CjsLightData();
 
-  @meta.type.float32
+  @type.float32
   saturation = 1;
 
-  @meta.type.rootRef("Tr2LightProfileRes")
+  @type.rootRef("Tr2LightProfileRes")
   lightProfile = null;
 
-  @meta.type.int32
-  @meta.type.enum("trinity.FadeType")
+  @type.int32
+  @type.enum("trinity.FadeType")
   fadeType = EvePlaneLight.FT_NONE;
 
-  @meta.type.float32
+  @type.float32
   blinkPhase = 0;
 
-  @meta.type.float32
+  @type.float32
   blinkRate = 0;
 
-  @meta.type.uint32
+  @type.uint32
   index = 0;
 
-  @meta.type.mat4
+  @type.mat4
   boneMatrix = mat4.create();
 
-  @meta.type.wpath("Tr2LightProfileRes")
+  @type.wpath("Tr2LightProfileRes")
   lightProfilePath = "";
 
   /**

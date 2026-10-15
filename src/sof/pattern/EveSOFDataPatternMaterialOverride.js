@@ -1,34 +1,34 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { type, blue } from "#schema";
 
 /** Defines a four-slot target mask for overriding pattern materials. */
-@meta.define({ className: "EveSOFDataPatternMaterialOverride", family: "eve" })
+@blue.define("EveSOFDataPatternMaterialOverride")
 export class EveSOFDataPatternMaterialOverride
 {
 
   /** m_isTargetMtl1 (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   isTargetMtl1 = true;
 
   /** m_isTargetMtl2 (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   isTargetMtl2 = true;
 
   /** m_isTargetMtl3 (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   isTargetMtl3 = true;
 
   /** m_isTargetMtl4 (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   isTargetMtl4 = true;
 
   /**

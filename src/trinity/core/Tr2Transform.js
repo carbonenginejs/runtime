@@ -5,7 +5,7 @@
 import { TriBatchType } from "#consts/graphics";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { Tr2TransformModifier } from "../generated/trinityCore/enums.js";
 import { ITr2Renderable } from "./ITr2Renderable.js";
@@ -72,8 +72,8 @@ function setViewBasis(out, inverseView, scale)
 
 
 /** Common transform, curve, mesh, sorting, and camera-modifier behavior. */
-@meta.define({ className: "Tr2Transform", family: "trinityCore" })
-@meta.blue.inherit(ITr2Renderable)
+@blue.define("Tr2Transform")
+@blue.inherit(ITr2Renderable)
 export class Tr2Transform
 {
 
@@ -83,7 +83,7 @@ export class Tr2Transform
    * Adapted: The active render context is threaded to context-dependent curve functions
    * instead of read from a process-global renderer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(time, renderContext = null)
   {
@@ -107,8 +107,8 @@ export class Tr2Transform
    * Adapted: Carbon renderer globals are supplied explicitly as the active render context;
    * matrix products reverse for gl-matrix semantics.
    */
-  @meta.blue.method
-  @meta.blue.contextual(["camera"])
+  @blue.method
+  @blue.contextual(["camera"])
   @meta.adapted
   UpdateViewDependentData(context, parentTransform = Tr2Transform.#identity)
   {
@@ -175,7 +175,7 @@ export class Tr2Transform
   }
 
   /** Copies a new authored scale into the stable schema vector. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetScaling(value)
   {
@@ -183,7 +183,7 @@ export class Tr2Transform
   }
 
   /** Copies a new authored rotation into the stable schema quaternion. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetRotation(value)
   {
@@ -191,7 +191,7 @@ export class Tr2Transform
   }
 
   /** Copies a new authored translation into the stable schema vector. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetTranslation(value)
   {
@@ -199,7 +199,7 @@ export class Tr2Transform
   }
 
   /** Carbon's default ITr2Renderable visibility contract. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsVisible(_updateContext)
   {
@@ -207,7 +207,7 @@ export class Tr2Transform
   }
 
   /** Abstract ITr2Renderable per-object-data obligation. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GetPerObjectData(..._args)
   {
@@ -215,7 +215,7 @@ export class Tr2Transform
   }
 
   /** Returns whether the displayed mesh has transparent areas. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasTransparentBatches()
   {
@@ -232,7 +232,7 @@ export class Tr2Transform
    * Adapted: Returns whether JavaScript mesh delegation committed a batch; Carbon's void
    * method exposes no result.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
@@ -252,8 +252,8 @@ export class Tr2Transform
    *
    * Adapted: The active render context replaces Carbon's Tr2Renderer view-position global.
    */
-  @meta.blue.method
-  @meta.blue.contextual(["camera"])
+  @blue.method
+  @blue.contextual(["camera"])
   @meta.adapted
   GetSortValue(context)
   {
@@ -265,7 +265,7 @@ export class Tr2Transform
   }
 
   /** Returns the authored mesh reference. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetMesh()
   {
@@ -414,95 +414,95 @@ export class Tr2Transform
   }
 
   /** m_modifier (Tr2TransformModifier - enum Tr2TransformModifier) [READWRITE, PERSIST, ENUM] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.Tr2TransformModifier")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.Tr2TransformModifier")
   modifier = Tr2TransformModifier.TR2TM_NONE;
 
   /** m_localTransform (Matrix) [READ] */
-  @meta.blue.read
-  @meta.type.mat4
+  @blue.read
+  @type.mat4
   localTransform = mat4.create();
 
   /** m_worldTransform (Matrix) [READ] */
-  @meta.blue.read
-  @meta.type.mat4
+  @blue.read
+  @type.mat4
   worldTransform = mat4.create();
 
   /** Protected Carbon motion-history state; not part of the Blue schema. */
   lastWorldTransform = mat4.create();
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotation = quat.create();
 
   /** m_translation (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   translation = vec3.create();
 
   /** m_distanceBasedScaleArg1 (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   distanceBasedScaleArg1 = 0.2;
 
   /** m_distanceBasedScaleArg2 (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   distanceBasedScaleArg2 = 0.63;
 
   /** m_mesh (Tr2MeshBasePtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2MeshBase")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2MeshBase")
   mesh = null;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("TriCurveSet")
+  @blue.read
+  @blue.persist
+  @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_useDistanceBasedScale (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   useDistanceBasedScale = false;
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   display = true;
 
   /** m_update (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   update = true;
 
   /** m_sortValueMultiplier (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   sortValueMultiplier = 1;
 
   static Tr2TransformModifier = Tr2TransformModifier;

@@ -1,40 +1,40 @@
 // Source: trinity/trinity/Particle/Tr2ParticleTurbulenceForce.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { ITr2ParticleForce } from "./ITr2ParticleForce.js";
 import { noise } from "#math/noise";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
 /** A time-evolving four-dimensional Perlin turbulence force applied to particle motion. */
-@meta.define({ className: "Tr2ParticleTurbulenceForce", family: "particle" })
+@blue.define("Tr2ParticleTurbulenceForce")
 export class Tr2ParticleTurbulenceForce extends ITr2ParticleForce
 {
 
   #time = 0;
 
   /** m_amplitude (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   amplitude = vec3.fromValues(1, 1, 1);
 
   /** m_frequency (Vector4) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   frequency = vec4.fromValues(1, 1, 1, 1);
 
   /** m_noiseLevel (uint32_t) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   noiseLevel = 3;
 
   /** m_noiseRatio (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   noiseRatio = 0.5;
 
   /**

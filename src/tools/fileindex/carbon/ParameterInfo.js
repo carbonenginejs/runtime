@@ -7,7 +7,7 @@
 // (VersionedParameter::IsParameterExpectedInDocumentVersion,
 // ResourceInfo.h:37-40). Ported as the same table, so a version gate is data,
 // not a condition written out by hand at each field.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { ParameterContext } from "./ParameterContext.js";
 import { VersionInternal } from "./VersionInternal.js";
 
@@ -175,14 +175,12 @@ const PARAMETERS = new Map([
     new ParameterInfo(Parameter.REMOVED_RESOURCE_RELATIVE_PATHS, "RemovedResourceRelativePaths", [ span(CONTEXT_PATCH_GROUP, VERSION_0_1_0) ])
 ].map(info => [ info.m_id, info ]));
 
-CjsSchema.define(ParameterInfo, {
-    className: "ParameterInfo",
-    carbon: "ParameterInfo",
-    family: "tools",
-    fields: {},
-    methods: {
-        getParameterInfo: [ meta.blue.method, meta.adapted ],
-        isParameterExpected: [ meta.blue.method, meta.implemented ],
-        isParameterRequired: [ meta.blue.method, meta.implemented ]
+CjsSchema.blue.define(ParameterInfo, {
+  className: "ParameterInfo",
+  fields: {},
+  methods: {
+        getParameterInfo: [ blue.method, meta.adapted ],
+        isParameterExpected: [ blue.method, meta.implemented ],
+        isParameterRequired: [ blue.method, meta.implemented ]
     }
 });

@@ -3,31 +3,28 @@
 // Source: trinity/trinity/Particle/Tr2ParticleSpring_Blue.cpp
 import { vec3 } from "#math/vec3";
 import { ITr2ParticleForce } from "./ITr2ParticleForce.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 
 /**
  * Linear spring pulling particles toward a fixed position with a force
  * proportional to displacement.
  */
-@meta.define({
-  className: "Tr2ParticleSpring",
-  family: "particle"
-})
+@blue.define("Tr2ParticleSpring")
 export class Tr2ParticleSpring extends ITr2ParticleForce
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   position = vec3.create();
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   springConstant = 0;
 
   /** Applies Carbon's linear spring force toward the configured origin. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetForce(position, _velocity, _dt, _mass, out = vec3.create())
   {
@@ -39,7 +36,7 @@ export class Tr2ParticleSpring extends ITr2ParticleForce
    * Nothing to advance per frame: the spring force depends only on each
    * particle's current position.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   Update(_dt)
   {

@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildCloud2.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import "#consts/graphics/trinityEnums";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { BlueList, IListNotify, IInitialize, INotify, IsMatch } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { DepthStencilFormat, ExFlag, Tr2GpuUsage, Tr2CpuUsage, TextureType, PixelFormat, ShaderType } from "#consts/render-context";
@@ -127,162 +127,162 @@ function TransformNormal(out, v, m)
 }
 
 /** A volumetric cloud entity that renders as a raymarched unit-cube volume with its own lightmap, shadow map and lighting, and can also contribute reflection batches. */
-@meta.define({ className: "EveChildCloud2", family: "eve/child" })
-@meta.blue.inherit(ITr2Renderable, INotify, IListNotify, IInitialize)
-@meta.blue.interface(INotify)
-@meta.blue.chainTo(EveSpaceObjectChild)
+@blue.define("EveChildCloud2")
+@blue.inherit(ITr2Renderable, INotify, IListNotify, IInitialize)
+@blue.interface(INotify)
+@blue.chainTo(EveSpaceObjectChild)
 export class EveChildCloud2 extends EveSpaceObjectChild
 {
 
   /** m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.EntityComponents.ReflectionMode")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.EntityComponents.ReflectionMode")
   reflectionMode = ReflectionMode.REFLECT_NEVER;
 
   /** m_minVisibleQuality (Tr2VolumerticQuality - enum Tr2VolumerticQuality) [READWRITE, PERSIST, ENUM] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.Tr2VolumerticQuality")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.Tr2VolumerticQuality")
   minVisibleQuality = 0;
 
   /** m_sortingModifier (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   sortingModifier = 1;
 
   /** m_animation (Tr2TextureAnimationPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2TextureAnimation")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2TextureAnimation")
   animation = null;
 
   /** m_shadowMapDS (Tr2DepthStencilPtr) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2DepthStencil")
+  @blue.notify
+  @blue.readwrite
+  @type.rootRef("Tr2DepthStencil")
   shadowMapDS = null;
 
   /** m_lightMap (Tr2TextureReferencePtr) [READ] */
-  @meta.blue.read
-  @meta.type.rootRef("Tr2TextureReference")
+  @blue.read
+  @type.rootRef("Tr2TextureReference")
   lightmap = new Tr2TextureReference();
 
   /** m_lightmapSizeScale (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   lightmapSizeScale = 0.5;
 
   /** m_lights (PTr2LightVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("Tr2Light")
+  @blue.read
+  @blue.persist
+  @type.list("Tr2Light")
   lights = new BlueList(Tr2Light);
 
   /** m_minScreenSize (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   minScreenSize = 0;
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotation = quat.create();
 
   /** m_translation (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   translation = vec3.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_reflectionEffect (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2Effect")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2Effect")
   reflectionEffect = null;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2Effect")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2Effect")
   effect = null;
 
   /** m_noiseTextureSize (uint32_t) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   noiseTextureSize = 32;
 
   /** m_mapOffsets[0] (Vector3) [READ] */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   mapOffset0 = vec3.create();
 
   /** m_mapOffsets[1] (Vector3) [READ] */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   mapOffset1 = vec3.create();
 
   /** m_mapOffsets[2] (Vector3) [READ] */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   mapOffset2 = vec3.create();
 
   /** m_castShadows (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   castShadows = true;
 
   /** m_receiveShadows (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   receiveShadows = true;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_mapTiling[1] (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   detailTiling1 = vec3.fromValues(1, 1, 1);
 
   /** m_mapTiling[2] (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   detailTiling2 = vec3.fromValues(1, 1, 1);
 
   /** m_mapTiling[0] (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   textureTiling = vec3.fromValues(1, 1, 1);
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   display = true;
 
   // Runtime state follows EveChildCloud2.cpp:72-118.
@@ -1118,7 +1118,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * Adapted: pass the explicit context to Tr2DepthStencil.Create; the AL owns
    * the surface. The caller restores the three pushed states after rendering.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   PrepareCloudShadowMap(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {

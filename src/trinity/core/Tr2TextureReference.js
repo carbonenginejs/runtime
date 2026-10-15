@@ -6,7 +6,7 @@
 // Carbon holds its AL texture by value. Create/Destroy mutate that value;
 // owners broadcast its native event after each change.
 import { Tr2Event } from "./Tr2Event.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { ITr2TextureProvider } from "./ITr2TextureProvider.js";
 import { Tr2TextureAL } from "../../trinityal/Tr2TextureAL/index.js";
 
@@ -14,8 +14,8 @@ import { Tr2TextureAL } from "../../trinityal/Tr2TextureAL/index.js";
  * Holds one engine texture so it can be published through a variable store
  * and observed for replacement.
  */
-@meta.define({ className: "Tr2TextureReference", family: "trinityCore" })
-@meta.blue.interface(ITr2TextureProvider)
+@blue.define("Tr2TextureReference")
+@blue.interface(ITr2TextureProvider)
 export class Tr2TextureReference extends ITr2TextureProvider
 {
 
@@ -23,22 +23,22 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * Native by-value AL share; opaque storage, not a Blue resource edge.
    * @type {Tr2TextureAL|null}
    */
-  @meta.type.rawStruct("Tr2TextureAL")
+  @type.rawStruct("Tr2TextureAL")
   texture = new Tr2TextureAL();
 
   /**
    * Native event storage declaration; the existing JS listeners carry subscriptions.
    * @type {object|null}
    */
-  @meta.type.rawStruct("OnTextureChangeEvent")
+  @type.rawStruct("OnTextureChangeEvent")
   onTextureChange = new Tr2Event();
 
   /**
    * Texture width; native readonly Blue property.
    * @returns {number} Current texture description value.
    */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   @meta.implemented
   get width()
   {
@@ -49,8 +49,8 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * Texture height; native readonly Blue property.
    * @returns {number} Current texture description value.
    */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   @meta.implemented
   get height()
   {
@@ -61,8 +61,8 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * Texture depth; native readonly Blue property.
    * @returns {number} Current texture description value.
    */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   @meta.implemented
   get depth()
   {
@@ -73,8 +73,8 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * Texture type; native readonly Blue property.
    * @returns {number} Current texture description value.
    */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   @meta.implemented
   get type()
   {
@@ -85,8 +85,8 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * Number of mip levels; native readonly Blue property.
    * @returns {number} Current texture description value.
    */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   @meta.implemented
   get mipCount()
   {
@@ -97,8 +97,8 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * Pixel format; native readonly Blue property.
    * @returns {number} Current texture description value.
    */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   @meta.implemented
   get format()
   {
@@ -109,8 +109,8 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * Number of textures in the array; native readonly Blue property.
    * @returns {number} Current texture description value.
    */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   @meta.implemented
   get arraySize()
   {
@@ -121,8 +121,8 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * Texture name; native readonly Blue property.
    * @returns {string} Current texture description value.
    */
-  @meta.blue.read
-  @meta.type.string
+  @blue.read
+  @type.string
   @meta.implemented
   get name()
   {
@@ -130,7 +130,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
   }
 
   /** Returns the borrowed native by-value texture (Tr2TextureReference.cpp:11-14). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetTexture()
   {
@@ -138,7 +138,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
   }
 
   /** Returns the owned native change event (Tr2TextureReference.cpp:16-19). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnTextureChange()
   {
@@ -160,7 +160,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
   }
 
   /** Texture width, or 0 with no texture (Carbon GetWidth, cpp:65-68). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetWidth()
   {
@@ -168,7 +168,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
   }
 
   /** Texture height, or 0 with no texture (Carbon GetHeight, cpp:70-73). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetHeight()
   {
@@ -176,7 +176,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
   }
 
   /** Texture depth, or 0 with no texture (Carbon GetDepth, cpp:75-78). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetDepth()
   {
@@ -184,7 +184,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
   }
 
   /** Texture type, or 0 with no texture (Carbon GetType, cpp:80-83). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetType()
   {
@@ -192,7 +192,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
   }
 
   /** Mip level count, or 0 with no texture (Carbon GetMipCount, cpp:85-88). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetMipCount()
   {
@@ -200,7 +200,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
   }
 
   /** Array size, or 0 with no texture (Carbon GetArraySize, cpp:90-93). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetArraySize()
   {
@@ -208,7 +208,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
   }
 
   /** Pixel format, or 0 with no texture (Carbon GetFormat, cpp:95-98). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetFormat()
   {
@@ -216,7 +216,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
   }
 
   /** Texture debug name, or "" with no texture (Carbon GetName, cpp:100-104). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetName()
   {
@@ -224,7 +224,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
   }
 
   /** Saves the referenced texture to disk; needs texture readback and ImageIO saving, neither ported here. */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   Save(..._args)
   {

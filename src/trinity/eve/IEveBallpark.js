@@ -1,15 +1,15 @@
 // Source: trinity/trinity/Include/IEveBallpark.h
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { IEveReferencePoint } from "./IEveReferencePoint.js";
 
 
 /** Required host ballpark contract used by EVE scene updates. */
-@meta.define({ className: "IEveBallpark", family: "eve" })
+@blue.define("IEveBallpark")
 export class IEveBallpark extends IEveReferencePoint
 {
 
   /** Writes the current and smoothed reference-point deltas for a time. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   Delta(_time, _referencePoint, _smoothedReferencePoint)
   {
@@ -17,7 +17,7 @@ export class IEveBallpark extends IEveReferencePoint
   }
 
   /** Writes the reference-point velocity delta for a time. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   DeltaVel(_time, _velocity)
   {
@@ -25,7 +25,7 @@ export class IEveBallpark extends IEveReferencePoint
   }
 
   /** Returns the ballpark unit scale. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GetUnitBase()
   {
@@ -33,7 +33,7 @@ export class IEveBallpark extends IEveReferencePoint
   }
 
   /** Sets the ballpark unit scale. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   SetUnitBase(_unit)
   {

@@ -2,17 +2,14 @@
 // Source: trinity/trinity/TriProjection.cpp
 // Source: trinity/trinity/TriProjection_Blue.cpp
 import { mat4 } from "#math/mat4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 
 /**
  * The camera projection: the selected projection mode with its parameters, plus
  * the 4x4 matrix built from them.
  */
-@meta.define({
-  className: "TriProjection",
-  family: "trinityCore"
-})
+@blue.define("TriProjection")
 export class TriProjection
 {
   static FOV = 1;
@@ -43,15 +40,15 @@ export class TriProjection
 
   customTransform = mat4.create();
 
-  @meta.blue.read
-  @meta.type.mat4
+  @blue.read
+  @type.mat4
   transform = mat4.create();
 
   /**
    * Selects the field-of-view perspective mode, storing fov (in radians), aspect
    * and the near/far planes, and rebuilds the transform.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PerspectiveFov(fov, aspect, zn, zf)
   {
@@ -67,7 +64,7 @@ export class TriProjection
    * Selects the off-centre perspective mode from explicit frustum edges measured
    * at the near plane, and rebuilds the transform.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PerspectiveOffCenter(left, right, bottom, top, zn, zf)
   {
@@ -85,7 +82,7 @@ export class TriProjection
    * Selects the orthographic mode; width and height are stored in the left and
    * top slots and front/back in the near and far slots.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PerspectiveOrthographic(width, height, front, back)
   {
@@ -101,7 +98,7 @@ export class TriProjection
    * Adopts a caller-supplied matrix verbatim as the projection, copying it
    * rather than retaining the caller's buffer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CustomProjection(value)
   {
@@ -111,7 +108,7 @@ export class TriProjection
   }
 
   /** The active mode, one of the FOV, OFF_CENTER, ORTHO or CUSTOM constants. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetProjectionType()
   {
@@ -123,7 +120,7 @@ export class TriProjection
    * @param {mat4} [out] Caller-owned destination; a new matrix is allocated when omitted.
    * @returns {mat4} The destination matrix.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetMatrixWithoutViewAdjustment(out = mat4.create())
   {
@@ -146,7 +143,7 @@ export class TriProjection
    * Rebuilds the cached transform field from the current parameters, then copies
    * it into out (a fresh matrix when omitted) and returns it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetTransform(out = mat4.create())
   {

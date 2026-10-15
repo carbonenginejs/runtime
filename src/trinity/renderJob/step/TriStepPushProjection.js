@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepPushProjection.h
 // Source: trinity/trinity/RenderJob/TriStepPushProjection.cpp
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
 
@@ -8,14 +8,14 @@ import { TriRenderJob } from "../TriRenderJob.js";
 // projection (Tr2Renderer::PushProjection).
 
 /** Step that saves the current projection so a later pop can restore it. */
-@meta.define({ className: "TriStepPushProjection", family: "renderJob" })
+@blue.define("TriStepPushProjection")
 export class TriStepPushProjection extends TriRenderStep
 {
   /**
    * Pushes the render context's current projection; the value is not supplied by the
    * step, only the intent to save it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

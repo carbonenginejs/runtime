@@ -38,7 +38,7 @@ export class Tr2DxtCompressControl
     }
 }
 
-CjsSchema.define(Tr2DxtCompressControl, {
-    className: "Tr2DxtCompressControl", carbon: "Tr2DxtCompressControl",
-    methods: { Cancel: [meta.adapted], IsDone: [meta.implemented], IsCanceling: [meta.implemented], Done: [meta.implemented] }
+CjsSchema.blue.define(Tr2DxtCompressControl, {
+  className: "Tr2DxtCompressControl",
+  methods: { Cancel: [meta.adapted], IsDone: [meta.implemented], IsCanceling: [meta.implemented], Done: [meta.implemented] }
 });

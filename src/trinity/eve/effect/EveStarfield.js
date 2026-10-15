@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/EveStarfield.cpp
 // Source: trinity/trinity/Eve/EveStarfield_Blue.cpp
 // Hand-maintained after promotion from generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IInitialize, INotify } from "#blue";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Failed } from "../../../trinityal/ALResult.js";
@@ -16,71 +16,71 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/
 import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/index.js";
 
 /** Defines a procedurally seeded starfield with distance, flashing, effect, and star-count controls. */
-@meta.define({ className: "EveStarfield", family: "eve/effect", purpose: "Defines a procedurally seeded starfield with distance, flashing, effect, and star-count controls." })
-@meta.blue.inherit(IInitialize, INotify)
-@meta.blue.interface(IInitialize, INotify)
+@blue.define({ className: "EveStarfield", purpose: "Defines a procedurally seeded starfield with distance, flashing, effect, and star-count controls." })
+@blue.inherit(IInitialize, INotify)
+@blue.interface(IInitialize, INotify)
 export class EveStarfield
 {
 
   /** m_seed (int32_t) [READWRITE, NOTIFY, PERSIST] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.int32
   seed = 0;
 
   /** m_minFlashIntensity (float) [READWRITE, NOTIFY, PERSIST] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   minFlashIntensity = 0;
 
   /** m_maxDistance (float) [READWRITE, NOTIFY, PERSIST] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   maxDist = 300;
 
   /** m_minDistance (float) [READWRITE, NOTIFY, PERSIST] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   minDist = 100;
 
   /** m_minFlashRate (float) [READWRITE, NOTIFY, PERSIST] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   minFlashRate = 0.5;
 
   /** m_maxFlashRate (float) [READWRITE, NOTIFY, PERSIST] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   maxFlashRate = 1;
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   display = true;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2Effect")
   effect = null;
 
   /** m_starCount (int32_t) [READWRITE, NOTIFY, PERSIST] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.int32
   numStars = 500;
 
 
@@ -109,7 +109,7 @@ export class EveStarfield
   }
 
   /** Initializes device storage when creation is allowed (cpp:98-102). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -118,7 +118,7 @@ export class EveStarfield
   }
 
   /** Inherited Tr2DeviceResource.cpp:21-32 creation guard. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PrepareResources()
   {
@@ -126,7 +126,7 @@ export class EveStarfield
   }
 
   /** Explicit AL destruction replaces native assignment to an empty buffer. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ReleaseResources()
   {
@@ -139,7 +139,7 @@ export class EveStarfield
    * The AL description replaces the C++ stride/count overload. The local
    * TriRand sequence preserves seeded stars without reseeding unrelated JS code.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnPrepareResources()
   {
@@ -166,7 +166,7 @@ export class EveStarfield
   }
 
   /** All notified changes request a regenerated seeded stream (cpp:176-181). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(_name)
   {
@@ -175,7 +175,7 @@ export class EveStarfield
   }
 
   /** Regenerates dirty storage, retaining the retry flag after failure (cpp:183-193). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Update(_time)
   {
@@ -185,7 +185,7 @@ export class EveStarfield
   }
 
   /** Returns the assigned star material (header:78-81). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetEffect()
   {
@@ -193,7 +193,7 @@ export class EveStarfield
   }
 
   /** Assigns the material without regenerating vertices (header:83-86). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetEffect(effect)
   {
@@ -201,7 +201,7 @@ export class EveStarfield
   }
 
   /** Submits the sprite quads through the existing shared index allocation (cpp:62-95). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBatches(accumulator, perObjectData)
   {

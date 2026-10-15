@@ -129,9 +129,7 @@ for (const method of [ "FileExists", "IsDirectory", "GetDirectoryContents", "Get
 CjsSchema.decorateMethod(IBlueResFileSystem, "GetStreamFromPath", meta.renamed("GetStreamFromPathW"));
 CjsSchema.decorateMethod(IBlueResFileSystem, "ResolvePath", meta.renamed("ResolvePathW"));
 
-CjsSchema.define(IBlueResFileSystem, {
+CjsSchema.blue.define(IBlueResFileSystem, {
   className: "IBlueResFileSystem",
-  carbon: "IBlueResFileSystem",
-  family: "blue",
   fields: {}
 });

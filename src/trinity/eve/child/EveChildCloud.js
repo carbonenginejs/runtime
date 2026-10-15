@@ -7,7 +7,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { RenderingMode, TriBatchType } from "#consts/graphics";
@@ -50,68 +50,68 @@ function updateBoundingSphere(cloud)
  * state, SRT composition, visibility, tessellated screen grid and draw data.
  * Source: trinity/trinity/Eve/SpaceObject/Children/EveChildCloud.cpp.
  */
-@meta.define({ className: "EveChildCloud", family: "eve/child", purpose: "Describes a transformable volumetric cloud child, including its effect, editable volume, tessellation, LOD, and bounds state." })
-@meta.blue.inherit(ITr2Renderable)
-@meta.blue.inherit(IInitialize, INotify)
-@meta.blue.interface(ITr2Renderable, IInitialize, INotify, EveSpaceObjectChild, IEveSpaceObjectChild)
+@blue.define({ className: "EveChildCloud", purpose: "Describes a transformable volumetric cloud child, including its effect, editable volume, tessellation, LOD, and bounds state." })
+@blue.inherit(ITr2Renderable)
+@blue.inherit(IInitialize, INotify)
+@blue.interface(ITr2Renderable, IInitialize, INotify, EveSpaceObjectChild, IEveSpaceObjectChild)
 export class EveChildCloud extends EveSpaceObjectChild
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   sortingModifier = 1;
 
-  @meta.blue.read
-  @meta.type.uint64
+  @blue.read
+  @type.uint64
   currentLod = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   minScreenSize = 0;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   preTesselationLevel = 32;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotation = quat.create();
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   translation = vec3.create();
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2Material")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2Material")
   effect = null;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveCloudEditableVolume")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("EveCloudEditableVolume")
   volume = null;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   cellScreenSize = 0.3;
 
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   display = true;
 
-  @meta.blue.read
-  @meta.type.vec4
+  @blue.read
+  @type.vec4
   boundingSphere = vec4.create();
 
   /** Runtime-local authored SRT transform. */
@@ -144,7 +144,7 @@ export class EveChildCloud extends EveSpaceObjectChild
   }
 
   /** Recreates native geometry; explicit destruction replaces C++ buffer assignment. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -158,7 +158,7 @@ export class EveChildCloud extends EveSpaceObjectChild
    * Carbon OnModified (cpp:200-209): a new tessellation level drops the vertex
    * and index buffers and prepares them again. The vertex declaration is kept.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(value = null)
   {
@@ -174,7 +174,7 @@ export class EveChildCloud extends EveSpaceObjectChild
   }
 
   /** Inherited Tr2DeviceResource.cpp:21-32 resource-creation gate. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PrepareResources()
   {
@@ -182,7 +182,7 @@ export class EveChildCloud extends EveSpaceObjectChild
   }
 
   /** Explicit buffer destruction replaces native index-vector clear (cpp:275-279). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ReleaseResources()
   {
@@ -205,7 +205,7 @@ export class EveChildCloud extends EveSpaceObjectChild
    * Adapted: the AL description replaces the native stride/count overload.
    * Native quirks retained: LODs stop ABOVE 16, and uint16 indices wrap.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnPrepareResources()
   {
@@ -268,7 +268,7 @@ export class EveChildCloud extends EveSpaceObjectChild
   }
 
   /** Collects only visible, updated clouds with prepared geometry (cpp:218-230). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetRenderables(renderables)
   {
@@ -278,7 +278,7 @@ export class EveChildCloud extends EveSpaceObjectChild
   }
 
   /** Camera globals live on the ambient context in this runtime (cpp:247-252). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetSortValue(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -292,7 +292,7 @@ export class EveChildCloud extends EveSpaceObjectChild
    * Carbon creates a local batch and Commit copies it (TriRenderBatch.h:333-349).
    * The JS accumulator retains ownership, so each submission needs a fresh batch.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBatches(batches, batchType, perObjectData)
   {
@@ -316,7 +316,7 @@ export class EveChildCloud extends EveSpaceObjectChild
    * single GPU transpose. Empty clipped bounds use a zero-area rectangle,
    * replacing the donor's uninitialized points[0] read when every point is clipped.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetPerObjectData(accumulator)
   {
@@ -364,7 +364,7 @@ export class EveChildCloud extends EveSpaceObjectChild
   }
 
   /** Adds the cloud box and editable volume options (cpp:438-445). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -373,7 +373,7 @@ export class EveChildCloud extends EveSpaceObjectChild
   }
 
   /** The native debug box requires the unported debug geometry renderer. */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   RenderDebugInfo()
   {
@@ -381,7 +381,7 @@ export class EveChildCloud extends EveSpaceObjectChild
   }
 
   /** Advances the editable volume, composes local SRT with its live parent and refreshes bounds. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
@@ -401,7 +401,7 @@ export class EveChildCloud extends EveSpaceObjectChild
   }
 
   /** Refreshes bounds from the transform finalized by the sync pass. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateAsyncronous(_updateContext, _params)
   {
@@ -409,7 +409,7 @@ export class EveChildCloud extends EveSpaceObjectChild
   }
 
   /** Applies Carbon's display, frustum and minimum-screen-size visibility gate. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateVisibility(updateContext, _parentTransform, _parentLod)
   {
@@ -422,7 +422,7 @@ export class EveChildCloud extends EveSpaceObjectChild
   }
 
   /** Copies the current world-space sphere and always reports it available. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBoundingSphere(out = vec4.create(), _query = 0)
   {
@@ -431,7 +431,7 @@ export class EveChildCloud extends EveSpaceObjectChild
   }
 
   /** Copies the transform composed during the last sync pass. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLocalToWorldTransform(out = mat4.create())
   {
@@ -439,7 +439,7 @@ export class EveChildCloud extends EveSpaceObjectChild
   }
 
   /** Carbon always routes this legacy cloud through transparent rendering. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasTransparentBatches()
   {

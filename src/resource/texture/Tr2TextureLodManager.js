@@ -2,7 +2,7 @@ import "#blue/values";
 // Source: trinity/trinity/Resources/Tr2TextureLodManager.h
 // Source: trinity/trinity/Resources/Tr2TextureLodManager.cpp
 // Source: trinity/trinity/Resources/Tr2TextureLodManager_Blue.cpp
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 
 /**
  * CPU-side registry for texture resources participating in LOD management.
@@ -84,22 +84,22 @@ export class Tr2TextureLodManager
 
 }
 
-CjsSchema.define(Tr2TextureLodManager, {
-  className: "Tr2TextureLodManager", family: "resources",
+CjsSchema.blue.define(Tr2TextureLodManager, {
+  className: "Tr2TextureLodManager",
   fields: {
-    gpuMemoryUsed: meta.type.uint64,
-    gpuMemoryAllocated: meta.type.uint64,
-    cpuMemoryUsed: meta.type.uint64,
-    cpuMemoryAllocated: meta.type.uint64,
-    gpuUploadSize: meta.type.uint64,
-    gpuMemorySize: meta.type.unknown,
-    cpuMemorySize: meta.type.unknown,
-    currentStats: meta.type.rawStruct("Stats"),
-    lowDetailVtaFiles: meta.type.boolean
+    gpuMemoryUsed: type.uint64,
+    gpuMemoryAllocated: type.uint64,
+    cpuMemoryUsed: type.uint64,
+    cpuMemoryAllocated: type.uint64,
+    gpuUploadSize: type.uint64,
+    gpuMemorySize: type.unknown,
+    cpuMemorySize: type.unknown,
+    currentStats: type.rawStruct("Stats"),
+    lowDetailVtaFiles: type.boolean
   },
   methods: {
-    RegisterTexture: [ meta.blue.method, meta.implemented ],
-    UnregisterTexture: [ meta.blue.method, meta.implemented ],
-    GetManagedTextures: [ meta.blue.method, meta.implemented ]
+    RegisterTexture: [ blue.method, meta.implemented ],
+    UnregisterTexture: [ blue.method, meta.implemented ],
+    GetManagedTextures: [ blue.method, meta.implemented ]
   }
 });

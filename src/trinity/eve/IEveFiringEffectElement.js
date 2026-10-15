@@ -1,15 +1,15 @@
 // Source: trinity/trinity/Eve/IEveFiringEffectElement.h
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { EveEntity } from "./EveEntity.js";
 
 
 /** Required EVE firing-effect element contract. */
-@meta.define({ className: "IEveFiringEffectElement", family: "eve" })
+@blue.define("IEveFiringEffectElement")
 export class IEveFiringEffectElement extends EveEntity
 {
 
   /** Sets the destination-object scale applied by this firing element. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   SetDestObjectScale(_scale)
   {
@@ -17,7 +17,7 @@ export class IEveFiringEffectElement extends EveEntity
   }
 
   /** Starts movement owned by this firing element. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   StartMoving()
   {
@@ -25,7 +25,7 @@ export class IEveFiringEffectElement extends EveEntity
   }
 
   /** Returns the duration of the firing element's authored curves. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GetCurveDuration()
   {
@@ -33,7 +33,7 @@ export class IEveFiringEffectElement extends EveEntity
   }
 
   /** Starts firing after the supplied delay. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   StartFiring(_delay)
   {
@@ -41,7 +41,7 @@ export class IEveFiringEffectElement extends EveEntity
   }
 
   /** Stops the active firing sequence. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   StopFiring()
   {
@@ -49,7 +49,7 @@ export class IEveFiringEffectElement extends EveEntity
   }
 
   /** Sets the firing source transform and destination position. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   SetFiringTransform(_source, _destination)
   {
@@ -57,7 +57,7 @@ export class IEveFiringEffectElement extends EveEntity
   }
 
   /** Sets whether the source and destination endpoints are displayed. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   DisplayEndPoints(_displaySource, _displayDestination)
   {
@@ -65,7 +65,7 @@ export class IEveFiringEffectElement extends EveEntity
   }
 
   /** Performs the asynchronous firing-effect update phase. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   UpdateEffectAsync(_updateContext)
   {
@@ -73,7 +73,7 @@ export class IEveFiringEffectElement extends EveEntity
   }
 
   /** Performs the synchronous firing-effect update phase. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   UpdateEffectSync(_updateContext)
   {
@@ -81,7 +81,7 @@ export class IEveFiringEffectElement extends EveEntity
   }
 
   /** Updates visibility beneath the supplied parent transform. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   UpdateVisibility(_updateContext, _parentTransform)
   {
@@ -89,7 +89,7 @@ export class IEveFiringEffectElement extends EveEntity
   }
 
   /** Appends this element's renderer-neutral renderables. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GetRenderables(_renderables)
   {
@@ -97,35 +97,35 @@ export class IEveFiringEffectElement extends EveEntity
   }
 
   /** Runs the optional general update hook. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   Update(_updateContext)
   {
   }
 
   /** Registers optional content with a quad renderer. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   RegisterWithQuadRenderer(_quadRenderer)
   {
   }
 
   /** Adds optional quad records to a quad renderer. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   AddQuadsToQuadRenderer(_frustum, _quadRenderer)
   {
   }
 
   /** Applies an optional intensity multiplier. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   SetIntensity(_intensity)
   {
   }
 
   /** Applies an optional display state. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   SetDisplay(_display)
   {

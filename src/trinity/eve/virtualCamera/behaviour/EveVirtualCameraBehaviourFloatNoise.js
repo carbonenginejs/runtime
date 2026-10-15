@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { INotify } from "#blue";
 import { Tr2CurveScalar } from "../../../curves/curve/Tr2CurveScalar.js";
 import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
@@ -12,34 +12,31 @@ import { EveVirtualCameraBehaviourFloatBase } from "./EveVirtualCameraBehaviourF
  * Float behaviour that adds a Perlin-noise wobble to a scalar camera value such
  * as field of view or roll.
  */
-@meta.define({
-  className: "EveVirtualCameraBehaviourFloatNoise",
-  family: "eve/virtualCamera/behaviour"
-})
-@meta.blue.interface(INotify)
-@meta.blue.chainTo(EveVirtualCameraBehaviourFloatBase)
+@blue.define("EveVirtualCameraBehaviourFloatNoise")
+@blue.interface(INotify)
+@blue.chainTo(EveVirtualCameraBehaviourFloatBase)
 export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehaviourFloatBase
 {
   static _nextPhase = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.readwrite
+  @blue.persist
+  @type.int32
   octaves = 8;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2CurveScalar")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2CurveScalar")
   magnitudeCurve = null;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   magnitude = 1;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   perlineScale = 1;
 
   _phase = EveVirtualCameraBehaviourFloatNoise._allocatePhase();
@@ -59,7 +56,7 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
    * Sets the behaviour name and renames the owned magnitude curve to match.
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:164-167
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -74,7 +71,7 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:170-181
    * Adapted: the existing Perlin implementation and allocated instance phase replace native noise and pointer-derived phase.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(camera, _current, _deltaTime, localElapsedTime)
   {

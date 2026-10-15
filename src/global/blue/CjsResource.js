@@ -3,7 +3,7 @@ import {
   normalizeResourceExtension,
   normalizeResourcePath
 } from "#utils/path";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { CjsFormatRoute } from "./CjsFormatStore.js";
 import { ResourceHandlerMode } from "../consts/resourceHandlerMode.js";
 
@@ -1135,25 +1135,24 @@ meta.events(CjsResource);
 // graph nodes - there is no Copy or Clone here, and SetValues/GetValues are a
 // flat schema-driven property copy - so nothing here needed the decorator form.
 // Field order is key order, and GetValues() exports in that order.
-CjsSchema.define(CjsResource, {
+CjsSchema.meta.define(CjsResource, {
   className: "CjsResource",
-  family: "resource",
   fields: {
-    path: meta.type.path,
-    ext: meta.type.string,
-    requirement: meta.type.string,
-    state: meta.type.string
+    path: type.path,
+    ext: type.string,
+    requirement: type.string,
+    state: type.string
   },
   methods: {
     DoLoad: [ meta.abstract ],
-    Initialize: [ meta.blue.method, meta.adapted ],
-    GetPath: [ meta.blue.method, meta.adapted ],
-    GetExt: [ meta.blue.method, meta.adapted ],
-    IsLoading: [ meta.blue.method, meta.adapted ],
-    HasLoaded: [ meta.blue.method, meta.adapted ],
-    IsPrepared: [ meta.blue.method, meta.adapted ],
-    IsGood: [ meta.blue.method, meta.adapted ],
-    IsFailed: [ meta.blue.method, meta.adapted ],
+    Initialize: [ blue.method, meta.adapted ],
+    GetPath: [ blue.method, meta.adapted ],
+    GetExt: [ blue.method, meta.adapted ],
+    IsLoading: [ blue.method, meta.adapted ],
+    HasLoaded: [ blue.method, meta.adapted ],
+    IsPrepared: [ blue.method, meta.adapted ],
+    IsGood: [ blue.method, meta.adapted ],
+    IsFailed: [ blue.method, meta.adapted ],
     AddNotifyTarget: [ meta.adapted ],
     RemoveNotifyTarget: [ meta.implemented ],
     NotifyRebuildCachedData: [ meta.adapted ],

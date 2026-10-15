@@ -53,7 +53,7 @@ test("BlueObjectProxy is registered as Carbon's Blue class with its exposure", (
   const proxy = be.classes.CreateInstance("BlueObjectProxy");
   assert.equal(CjsSchema.getClassName(proxy.constructor), "BlueObjectProxy");
   assert.equal(CjsSchema.cast(proxy, IBlueObjectProxy), proxy);
-  assert.equal(CjsSchema.getSchema(BlueObjectProxy).carbon, "BlueObjectProxy");
+  assert.equal(CjsSchema.getSchema(BlueObjectProxy).blue, true);
   // BlueObjectProxy_Blue.cpp:17-59: object/builder/objectMarker/temporary read-write, isResident read-only.
   const info = CjsSchema.getSchema(BlueObjectProxy);
   const edit = name => [ ...info.members, ...info.properties ].find(field => field.name === name).edit;

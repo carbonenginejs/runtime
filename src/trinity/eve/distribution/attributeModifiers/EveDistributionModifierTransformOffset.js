@@ -1,56 +1,56 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionAttributeModifiers/EveDistributionModifierTransformOffset.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IEveDistributionModifier } from "./IEveDistributionModifier.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
 /** Accumulates authored or lifetime-sampled translation, rotation, and scale onto a distributed placement. */
-@meta.define({ className: "EveDistributionModifierTransformOffset", family: "eve/distribution/attributeModifiers" })
+@blue.define("EveDistributionModifierTransformOffset")
 export class EveDistributionModifierTransformOffset extends IEveDistributionModifier
 {
 
   /** m_rotationCurve (ITriQuaternionFunctionPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITriQuaternionFunction")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITriQuaternionFunction")
   rotationCurve = null;
 
   /** m_translation (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   translation = vec3.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotation = quat.create();
 
   /** m_scale (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_scaleCurve (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITriVectorFunction")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITriVectorFunction")
   scaleCurve = null;
 
   /** m_translationCurve (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITriVectorFunction")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITriVectorFunction")
   translationCurve = null;
 
   /**
    * Always reports a transform effect, which puts the distribution into its
    * per-frame reset-and-reaccumulate mode.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AffectsTransform()
   {
@@ -62,7 +62,7 @@ export class EveDistributionModifierTransformOffset extends IEveDistributionModi
    *
    * @returns {number} Always DO_NOTHING; this modifier never ends an entity's life.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ProcessDistributionModifier(placement, _deltaTime, _params)
   {

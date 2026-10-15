@@ -1,46 +1,46 @@
 // Source: trinity/trinity/RenderJob/TriStepRunComputeShader.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 
 /** A render step that dispatches a compute shader over its configured group dimensions. */
-@meta.define({ className: "TriStepRunComputeShader", family: "renderJob" })
+@blue.define("TriStepRunComputeShader")
 export class TriStepRunComputeShader extends TriRenderStep
 {
 
   /** m_groupDimX (unsigned) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.uint32
+  @blue.readwrite
+  @type.uint32
   groupDimX = 1;
 
   /** m_groupDimY (unsigned) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.uint32
+  @blue.readwrite
+  @type.uint32
   groupDimY = 1;
 
   /** m_groupDimZ (unsigned) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.uint32
+  @blue.readwrite
+  @type.uint32
   groupDimZ = 1;
 
   /** m_effect (Tr2MaterialPtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2Material")
+  @blue.readwrite
+  @type.rootRef("Tr2Material")
   effect = null;
 
   /** m_indirectionBuffer (ITr2GpuBufferPtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("ITr2GpuBuffer")
+  @blue.readwrite
+  @type.rootRef("ITr2GpuBuffer")
   indirectionBuffer = null;
 
   /** m_offsetForArgs (uint32_t) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.uint32
+  @blue.readwrite
+  @type.uint32
   offsetForArgs = 0;
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   __init__(effect = null, groupDimX = 1, groupDimY = 1, groupDimZ = 1)
   {
@@ -54,7 +54,7 @@ export class TriStepRunComputeShader extends TriRenderStep
    * Carbon Execute (TriStepRunComputeShader.cpp:37-55): dispatches through
    * Tr2Renderer, indirectly from the provider's buffer when one is bound.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

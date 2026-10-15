@@ -5,77 +5,77 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 
 /**
  * One authored plane: its bone attachment, placement, colour, two independently
  * transformed and scrolling texture layers, mask atlas slot and blink data.
  */
-@meta.define({ className: "EvePlaneSetItem", family: "eve/attachment/planes" })
+@blue.define("EvePlaneSetItem")
 export class EvePlaneSetItem
 {
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.readwrite
+  @blue.persist
+  @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   layer1Transform = vec4.fromValues(1, 1, 0, 0);
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   layer2Transform = vec4.fromValues(1, 1, 0, 0);
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   layer1Scroll = vec4.create();
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   layer2Scroll = vec4.create();
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotation = quat.create();
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   maskAtlasID = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.readwrite
+  @blue.persist
+  @type.int32
   boneIndex = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   position = vec3.create();
 
   // Carbon omits this SOF-authored value from Blue serialization, but it is
   // part of the editable plane description and must survive values exchange.
 
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.persist
+  @type.vec4
   blinkData = vec4.fromValues(1, 0, 1, 0);
 
   /**
@@ -85,7 +85,7 @@ export class EvePlaneSetItem
    * Adapted: Carbon returns AxisAlignedBox by value; JavaScript fills a caller-supplied
    * box3.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBounds(out)
   {
@@ -100,7 +100,7 @@ export class EvePlaneSetItem
   }
 
   /** The parent bone this plane rides. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBoneIndex()
   {

@@ -1,35 +1,35 @@
 // Source: trinity/trinity/Tr2Model.h
 // Source: trinity/trinity/Tr2Model.cpp
 // Source: trinity/trinity/Tr2Model_Blue.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../trinity/core/context/Tr2RenderContext.js";
 import { CreateLodAllocations } from "../../../trinity/core/mesh/TriGeometryResAllocations.js";
 
 /** Named character model record grouping its Trinity mesh objects. */
-@meta.define({ className: "Tr2Model", family: "trinityCore" })
-@meta.blue.interface()
+@blue.define("Tr2Model")
+@blue.interface()
 export class Tr2Model
 {
 
   /** m_meshes (PTr2MeshVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("Tr2Mesh")
+  @blue.read
+  @blue.persist
+  @type.list("Tr2Mesh")
   meshes = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** Scratch is used only inside this model, never across another model call. */
   static scratch = { vec3_0: vec3.create(), vec3_1: vec3.create(), vec3_2: vec3.create() };
 
   /** Returns the authored mesh count. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetNumOfMeshes()
   {
@@ -37,7 +37,7 @@ export class Tr2Model
   }
 
   /** Returns the mesh at the requested index. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetMesh(index)
   {
@@ -45,7 +45,7 @@ export class Tr2Model
   }
 
   /** Returns the live mesh collection. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetMeshes()
   {
@@ -53,7 +53,7 @@ export class Tr2Model
   }
 
   /** Appends a mesh to the authored collection. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddMesh(mesh)
   {
@@ -61,7 +61,7 @@ export class Tr2Model
   }
 
   /** Includes hidden meshes, matching Carbon's area-list test. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasTransparency()
   {
@@ -69,7 +69,7 @@ export class Tr2Model
   }
 
   /** Reports pending preparation in any mesh. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsLoading()
   {
@@ -77,7 +77,7 @@ export class Tr2Model
   }
 
   /** Copies aggregate bounds only when every mesh has finished and has bounds. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBoundingBox(min, max)
   {
@@ -102,7 +102,7 @@ export class Tr2Model
    * Adapted: the Blue pair becomes an array of vectors, and the native error
    * result becomes an exception when no mesh supplies bounds.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBoundingBoxInLocalSpace()
   {
@@ -126,7 +126,7 @@ export class Tr2Model
    * Adapted: view state lives on the installed Trinity context; JS batches own
    * their references so Carbon's accumulator matrix allocation is unnecessary.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBatches(batches, batchType, matrix, data)
   {
@@ -167,7 +167,7 @@ export class Tr2Model
    * Adapted: AL allocations are lazy in JavaScript, so the shared geometry owner
    * realizes the selected LOD here before applying the native allocation gate.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBatchesFromMesh(mesh, batchType, batches, matrix, data)
   {

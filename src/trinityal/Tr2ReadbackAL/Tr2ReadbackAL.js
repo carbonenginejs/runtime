@@ -47,7 +47,7 @@ export class Tr2ReadbackAL
   }
 }
 
-CjsSchema.define(Tr2ReadbackAL, {
+CjsSchema.blue.define(Tr2ReadbackAL, {
   className: "Tr2ReadbackAL",
   methods: { IsReady: [meta.implemented], IsValid: [meta.implemented], Map: [meta.adapted], Destroy: [meta.adapted] }
 });

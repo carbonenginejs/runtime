@@ -1,82 +1,82 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/EveKDdroneManagementTree.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/EveKDdroneManagementTree.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { PlaneType } from "./enums.js";
 import { vec3 } from "#math/vec3";
 
 /** A spatial index that builds and incrementally rebalances a k-d tree over a group's drone agents and answers nearest-neighbour and multi-radius range queries against it. */
-@meta.define({ className: "EveKDdroneManagementTree", family: "eve/child/behaviors" })
+@blue.define("EveKDdroneManagementTree")
 export class EveKDdroneManagementTree
 {
 
   /** m_tree (AgentRef) */
-  @meta.type.rootRef("Agent")
+  @type.rootRef("Agent")
   tree = null;
 
   /** m_debugSquareSize (float) */
-  @meta.type.float32
+  @type.float32
   debugSquareSize = 0;
 
   /** m_updateTimeCounter (float) */
-  @meta.type.float32
+  @type.float32
   updateTimeCounter = 0;
 
   /** m_maxFoundPerAgent (size_t) */
-  @meta.type.uint64
+  @type.uint64
   maxFoundPerAgent = 5;
 
   /** m_timeBetweenUpdate (float) */
-  @meta.type.float32
+  @type.float32
   timeBetweenUpdate = 1;
 
   /** m_agentRefs (std::vector<AgentRef>) */
-  @meta.type.list("Agent")
+  @type.list("Agent")
   agentRefs = [];
 
   /** m_groupSearchReturnInfoBlock (std::vector<std::vector<std::vector<DroneAgent*>>>) */
-  @meta.type.list("std::vector<std::vector<DroneAgent>>")
+  @type.list("std::vector<std::vector<DroneAgent>>")
   groupSearchReturnInfoBlock = [];
 
   /** agents (std::vector<DroneAgent> &) */
-  @meta.type.list("DroneAgent")
+  @type.list("DroneAgent")
   agents = [];
 
   /** behaviorNbr (int) */
-  @meta.type.int32
+  @type.int32
   behaviorNbr = 0;
 
   /** radius (float) */
-  @meta.type.float32
+  @type.float32
   radius = 0;
 
   /** agent (DroneAgent*) */
-  @meta.type.rootRef("DroneAgent")
+  @type.rootRef("DroneAgent")
   agent = null;
 
   /** rangeBetween (float) */
-  @meta.type.float32
+  @type.float32
   rangeBetween = 0;
 
   /** planeType (PlaneType - enum PlaneType) */
-  @meta.type.int32
-  @meta.type.enum("trinity.EveKDdroneManagementTree.PlaneType")
+  @type.int32
+  @type.enum("trinity.EveKDdroneManagementTree.PlaneType")
   planeType = 0;
 
   /** b (int) */
-  @meta.type.int32
+  @type.int32
   b = 0;
 
   /** e (int) */
-  @meta.type.int32
+  @type.int32
   e = 0;
 
   /** left (AgentRef*) */
-  @meta.type.rootRef("Agent")
+  @type.rootRef("Agent")
   left = null;
 
   /** right (AgentRef*) */
-  @meta.type.rootRef("Agent")
+  @type.rootRef("Agent")
   right = null;
 
   // Reused SearchRange records ({behaviorNbr, radius}) - rebuilt each
@@ -97,7 +97,7 @@ export class EveKDdroneManagementTree
    * @param {Array} agents - DroneAgent records
    * @param {Number} numberOfBehaviors
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CreateTree(agents, numberOfBehaviors)
   {
@@ -128,7 +128,7 @@ export class EveKDdroneManagementTree
    * invariant broke (Carbon UpdateTree, cpp:44-55).
    * @param {Number} dt - delta time in seconds
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateTree(dt)
   {
@@ -149,7 +149,7 @@ export class EveKDdroneManagementTree
    * @param {Float32Array} pos
    * @returns {Object|null} the closest DroneAgent record
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   FindClosestAgent(pos)
   {
@@ -176,7 +176,7 @@ export class EveKDdroneManagementTree
    * @param {Number} behaviorGroupBoundingSphereRadius
    * @returns {Array} groupSearchReturnInfoBlock
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   FindDronesInRange(agents, ranges, behaviorGroupBoundingSphereRadius)
   {

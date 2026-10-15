@@ -2274,4 +2274,4 @@ export class Tr2RenderContextALWebgl2
   }
 }
 
-CjsSchema.define(Tr2RenderContextALWebgl2, { className: "Tr2RenderContextALWebgl2", carbon: "Tr2RenderContextAL" });
+CjsSchema.blue.define(Tr2RenderContextALWebgl2, { className: "Tr2RenderContextALWebgl2", donors: [ "Tr2RenderContextAL" ] });

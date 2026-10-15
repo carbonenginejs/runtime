@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Tr2SkinnedObject.h
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IsMatch, IListNotify, INotify } from "#blue";
 import { IWorldPosition } from "../../../trinity/core/IWorldPosition.js";
 import { mat4 } from "#math/mat4";
@@ -13,44 +13,43 @@ import { ITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
  * Skinned character object managing whole-model LOD selection and an immediate
  * CPU skinning palette.
  */
-@meta.define({
+@blue.define({
   className: "Tr2SkinnedObject",
-  family: "trinityCore",
   fields: {
     // Tr2SkinnedObject_Blue.cpp:49-51: IBlueObjectProxyPtr, READWRITE | PERSIST | NOTIFY.
-    highDetailModel: [meta.type.rootRef("IBlueObjectProxy"), meta.blue.notify, meta.blue.readwrite, meta.blue.persist],
-    mediumDetailModel: [meta.type.rootRef("IBlueObjectProxy"), meta.blue.notify, meta.blue.readwrite, meta.blue.persist],
-    lowDetailModel: [meta.type.rootRef("IBlueObjectProxy"), meta.blue.notify, meta.blue.readwrite, meta.blue.persist],
-    currentLod: [meta.type.int32, meta.blue.read]
+    highDetailModel: [type.rootRef("IBlueObjectProxy"), blue.notify, blue.readwrite, blue.persist],
+    mediumDetailModel: [type.rootRef("IBlueObjectProxy"), blue.notify, blue.readwrite, blue.persist],
+    lowDetailModel: [type.rootRef("IBlueObjectProxy"), blue.notify, blue.readwrite, blue.persist],
+    currentLod: [type.int32, blue.read]
   }
 })
-@meta.blue.inherit(ITr2Renderable, IWorldPosition, IListNotify, INotify)
-@meta.blue.interface(ITr2Renderable, IWorldPosition, IListNotify)
+@blue.inherit(ITr2Renderable, IWorldPosition, IListNotify, INotify)
+@blue.interface(ITr2Renderable, IWorldPosition, IListNotify)
 export class Tr2SkinnedObject
 {
 
   /** Native base list observer intentionally does nothing (Tr2SkinnedObject.cpp:743). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnListModified(_event, _key, _key2, _value, _theList) {}
 
   /** Native base has no transparent-sort offset. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetSortValue() { return 0; }
 
   /** Native base supplies no per-object render data. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPerObjectData(_accumulator) { return null; }
 
   /** World position awaits the maintained TriMatrix storage conversion contract. */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   GetWorldPosition(_out) { throw new Error("Tr2SkinnedObject.GetWorldPosition requires the TriMatrix conversion port."); }
 
   /** World rotation awaits the maintained TriMatrix storage conversion contract. */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   GetWorldRotation() { throw new Error("Tr2SkinnedObject.GetWorldRotation requires the TriMatrix conversion port."); }
 
@@ -66,33 +65,33 @@ export class Tr2SkinnedObject
   _rigBinding = new CjsCharacterRigBinding();
 
   /** m_skinningMatrixFrameDelay (unsigned int) [READ] */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   frameDelay = 0;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("TriCurveSet")
+  @blue.read
+  @blue.persist
+  @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_maxBounds (Vector3) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   explicitMaxBounds = vec3.create();
 
   /** m_minBounds (Vector3) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   explicitMinBounds = vec3.create();
 
   /** m_updatePeriod (float) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   updatePeriod = 0;
 
   /**
@@ -102,9 +101,9 @@ export class Tr2SkinnedObject
    * Carbon's row-major Matrix has gl-matrix's byte layout, so no conversion is needed.
    * @type {mat4}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.mat4.wrapped("TriMatrix")
+  @blue.read
+  @blue.persist
+  @type.mat4.wrapped("TriMatrix")
   transform = mat4.create();
 
   /**
@@ -120,28 +119,28 @@ export class Tr2SkinnedObject
   }
 
   /** m_visualModel (Tr2SkinnedModelPtr) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2SkinnedModel")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2SkinnedModel")
   visualModel = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_animationUpdater (ITr2AnimationUpdaterPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITr2AnimationUpdater")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITr2AnimationUpdater")
   animationUpdater = null;
 
   /** m_worldTransformUpdater (ITr2WorldTransformUpdaterPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITr2WorldTransformUpdater")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITr2WorldTransformUpdater")
   worldTransformUpdater = null;
 
   // Carbon maps this exposed field directly into m_lod storage. Accessors
@@ -196,42 +195,42 @@ export class Tr2SkinnedObject
   }
 
   /** m_numRenderRigBones (unsigned int) [READ] */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   renderRigBoneCount = 0;
 
   /** m_skinningMatrixCount (unsigned int) [READ] */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   skinningMatrixCount = 0;
 
   /** m_useDynamicBounds (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   useDynamicBounds = true;
 
   /** m_useExplicitBounds (bool) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   useExplicitBounds = false;
 
   /** m_estimatedPixelDiameter (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   estimatedPixelDiameter = 0;
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   display = true;
 
   /**
    * Carbon INotify hook: retains active model changes in the selected proxy.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName)
   {
@@ -244,7 +243,7 @@ export class Tr2SkinnedObject
   }
 
   /** Carbon method GetCurrentLod. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetCurrentLod()
   {
@@ -257,7 +256,7 @@ export class Tr2SkinnedObject
    * Adapted: Proxy construction belongs to the outer runtime adapter; this delegates to an
    * already supplied proxy.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetHighDetailModel(model)
   {
@@ -270,7 +269,7 @@ export class Tr2SkinnedObject
    * Adapted: Proxy construction belongs to the outer runtime adapter; this delegates to an
    * already supplied proxy.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetMediumDetailModel(model)
   {
@@ -283,7 +282,7 @@ export class Tr2SkinnedObject
    * Adapted: Proxy construction belongs to the outer runtime adapter; this delegates to an
    * already supplied proxy.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetLowDetailModel(model)
   {
@@ -291,7 +290,7 @@ export class Tr2SkinnedObject
   }
 
   /** Carbon's base bounds implementation is deliberately an inline false stub. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBoundingSphere(_out)
   {
@@ -299,7 +298,7 @@ export class Tr2SkinnedObject
   }
 
   /** Carbon's base world-bounds implementation is deliberately an inline false stub. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetWorldBoundingBox(_min, _max)
   {
@@ -312,7 +311,7 @@ export class Tr2SkinnedObject
    * Adapted: The caller supplies the frustum and the LOD proxy. A changed visual model is
    * posed immediately through this class's CPU UpdateBones implementation.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetLOD(frustum)
   {
@@ -343,7 +342,7 @@ export class Tr2SkinnedObject
   }
 
   /** Carbon method GetBoundingBoxInLocalSpace (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   GetBoundingBoxInLocalSpace(...args)
   {
@@ -351,7 +350,7 @@ export class Tr2SkinnedObject
   }
 
   /** Carbon method ResetAnimationBindings (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ResetAnimationBindings()
   {
@@ -362,7 +361,7 @@ export class Tr2SkinnedObject
   }
 
   /** Carbon method GetSkeletonTag (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetSkeletonTag()
   {
@@ -376,7 +375,7 @@ export class Tr2SkinnedObject
    * synchronization, delayed queues, dynamic bounds, and backend upload remain outside the
    * character layer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateBones(_time = 0, _apexScene = null)
   {
@@ -452,7 +451,7 @@ export class Tr2SkinnedObject
    * Adapted: Returns a detached immediate CPU palette rather than a pointer into the native
    * delayed skinning queue.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetSkinningMatrices()
   {
@@ -465,7 +464,7 @@ export class Tr2SkinnedObject
    * Adapted: Consumes the CarbonEngineJS animation updater's bone-name array because
    * JavaScript has no output-count reference.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBoneIndex(boneName)
   {
@@ -487,7 +486,7 @@ export class Tr2SkinnedObject
    * Adapted: Reads the CarbonEngineJS animation updater's matrix array and supports
    * caller-provided vector output.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBonePosition(joint, out = vec3.create())
   {
@@ -507,7 +506,7 @@ export class Tr2SkinnedObject
    * Adapted: Returns a matrix from the CarbonEngineJS animation updater's transform array
    * rather than a native pointer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBoneTransform(joint)
   {
@@ -527,7 +526,7 @@ export class Tr2SkinnedObject
   }
 
   /** Carbon method PrintAllBones (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   PrintAllBones(...args)
   {

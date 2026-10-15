@@ -88,4 +88,4 @@ export class LoadParameters
 
 
 // A call, not a decorator: see BitmapDimensions.js.
-CjsSchema.define(LoadParameters, { className: "LoadParameters", carbon: "LoadParameters" });
+CjsSchema.blue.define(LoadParameters, { className: "LoadParameters" });

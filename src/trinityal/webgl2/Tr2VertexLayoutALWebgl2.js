@@ -246,4 +246,4 @@ export class Tr2VertexLayoutALWebgl2 extends Tr2DeviceResourceAL
   }
 }
 
-CjsSchema.define(Tr2VertexLayoutALWebgl2, { className: "Tr2VertexLayoutALWebgl2", carbon: "Tr2VertexLayoutAL" });
+CjsSchema.blue.define(Tr2VertexLayoutALWebgl2, { className: "Tr2VertexLayoutALWebgl2", donors: [ "Tr2VertexLayoutAL" ] });

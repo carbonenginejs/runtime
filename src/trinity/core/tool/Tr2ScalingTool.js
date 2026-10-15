@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2ScalingTool.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2ManipulationTool } from "./Tr2ManipulationTool.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -20,7 +20,7 @@ const AXIS_COLORS = Object.freeze({
 });
 
 /** An interactive scaling manipulator that turns pointer drags along a selected axis into a scale. */
-@meta.define({ className: "Tr2ScalingTool", family: "trinityCore" })
+@blue.define("Tr2ScalingTool")
 export class Tr2ScalingTool extends Tr2ManipulationTool
 {
   _initialLength = 1;
@@ -228,12 +228,12 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
   }
 
   /** m_scale (Vector3) [READ] */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   scale = vec3.fromValues(1, 1, 1);
 
   /** Carbon method ResetPrimitives (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ResetPrimitives()
   {
@@ -255,7 +255,7 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
    * Adapted: JavaScript returns a fresh array instead of Carbon's reused private
    * visible-object vector.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetPrimitivesToRender()
   {
@@ -270,7 +270,7 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
   }
 
   /** Restores Carbon's authored axis and centre colours. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ResetPrimitiveColors()
   {

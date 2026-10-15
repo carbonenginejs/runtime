@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { type, blue } from "#schema";
 import { be, EnumRegistrationType } from "#blue";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -8,7 +8,7 @@ import { vec3 } from "#math/vec3";
 import { EveSOFDataHullBannerLight } from "./EveSOFDataHullBannerLight.js";
 
 /** Defines a banner's usage, bone-relative transform, visibility, optional light override, aspect ratio, and flat or curved presentation. */
-@meta.define({ className: "EveSOFDataHullBanner", family: "eve" })
+@blue.define("EveSOFDataHullBanner")
 export class EveSOFDataHullBanner
 {
 
@@ -41,69 +41,69 @@ export class EveSOFDataHullBanner
   };
 
   /** m_usage (Usage - enum Usage) [READWRITE, PERSIST, ENUM] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.EveSOFDataHullBanner.Usage")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.EveSOFDataHullBanner.Usage")
   usage = 3;
 
   /** m_boneIndex (int32_t) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.readwrite
+  @blue.persist
+  @type.int32
   boneIndex = -1;
 
   /** m_scaling (Vector3) [PERSISTONLY] */
-  @meta.blue.readwrite
-  @meta.blue.persistOnly
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persistOnly
+  @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_angleX (float) [PERSISTONLY] */
-  @meta.blue.readwrite
-  @meta.blue.persistOnly
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persistOnly
+  @type.float32
   angleX = 0;
 
   /** m_angleY (float) [PERSISTONLY] */
-  @meta.blue.readwrite
-  @meta.blue.persistOnly
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persistOnly
+  @type.float32
   angleY = 0;
 
   /** m_lightOverride (EveSOFDataHullBannerLightPtr) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataHullBannerLight")
+  @blue.read
+  @blue.persist
+  @type.rootRef("EveSOFDataHullBannerLight")
   lightOverride = new EveSOFDataHullBannerLight();
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_position (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   position = vec3.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotation = quat.create();
 
   /** m_maintainAspectRatio (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   maintainAspectRatio = true;
 
   /** m_visibilityGroup (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   visibilityGroup = "primary";
 
   /**

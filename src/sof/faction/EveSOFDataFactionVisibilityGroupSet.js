@@ -1,16 +1,16 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { type, blue } from "#schema";
 
 /** Defines faction visibility-group membership and object-visibility policy. */
-@meta.define({ className: "EveSOFDataFactionVisibilityGroupSet", family: "eve" })
+@blue.define("EveSOFDataFactionVisibilityGroupSet")
 export class EveSOFDataFactionVisibilityGroupSet
 {
 
   /** m_visibilityGroups (PEveSOFDataGenericStringVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataGenericString")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataGenericString")
   visibilityGroups = [];
 
   /**

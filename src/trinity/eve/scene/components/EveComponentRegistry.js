@@ -1,25 +1,25 @@
 // Source: trinity/trinity/Eve/EveComponentRegistry.h
 // Source: trinity/trinity/Eve/EveComponentRegistry.cpp
 // Hand-maintained after promotion from generated schema intake.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { EveComponentCollection } from "./EveComponentCollection.js";
 import { EveComponentRequiredMethods, EveComponentType } from "../../EntityComponents.js";
 import { ITr2FroxelFogSettings } from "../../child/ITr2FroxelFogSettings.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 
 /** Indexes Eve entities and their component collections for scene processing. */
-@meta.define({ className: "EveComponentRegistry", family: "eve/scene" })
+@blue.define("EveComponentRegistry")
 export class EveComponentRegistry
 {
 
   #componentCollections = [];
 
   /** m_componentCollectionLoopGuard (mutable std::shared_mutex) */
-  @meta.type.rawStruct("std::shared_mutex")
+  @type.rawStruct("std::shared_mutex")
   componentCollectionLoopGuard = null;
 
   /** m_registeredEntities (std::vector<EveEntity*>) */
-  @meta.type.list("EveEntity")
+  @type.list("EveEntity")
   registeredEntities = [];
 
   /**
@@ -314,7 +314,7 @@ export class EveComponentRegistry
    *
    * Adapted: Returns Carbon's vector of name/count pairs as JavaScript tuple arrays.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetComponentInfo()
   {

@@ -1,45 +1,45 @@
 // Source: trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema sprite2d/Tr2Sprite2dD3DVertex.json.).
 import { Tr2Sprite2dClipRect } from "./Tr2Sprite2dClipRect.js";
-import { meta } from "#schema";
+import { type, blue } from "#schema";
 import { Tr2Sprite2dVertexBase } from "./Tr2Sprite2dVertexBase.js";
 import { vec4 } from "#math/vec4";
 
 /** Extends a Sprite2D vertex with the clip, glow, transform, blend, tiling, and outline data consumed by the renderer. */
-@meta.define({ className: "Tr2Sprite2dD3DVertex", family: "sprite2d" })
+@blue.define("Tr2Sprite2dD3DVertex")
 export class Tr2Sprite2dD3DVertex extends Tr2Sprite2dVertexBase
 {
 
   /** clipRect (Tr2Sprite2dClipRect) */
-  @meta.type.rawStruct("Tr2Sprite2dClipRect")
+  @type.rawStruct("Tr2Sprite2dClipRect")
   clipRect = new Tr2Sprite2dClipRect();
 
   /** glowBrightness (float) */
-  @meta.type.float32
+  @type.float32
   glowBrightness = 0;
 
   /** transformIndex (uint8_t) */
-  @meta.type.uint8
+  @type.uint8
   transformIndex = 0;
 
   /** blendMode (uint8_t) */
-  @meta.type.uint8
+  @type.uint8
   blendMode = 0;
 
   /** spriteEffect (uint8_t) */
-  @meta.type.uint8
+  @type.uint8
   spriteEffect = 0;
 
   /** tileMode (uint8_t) */
-  @meta.type.uint8
+  @type.uint8
   tileMode = 0;
 
   /** outlineColor (Color) */
-  @meta.type.color
+  @type.color
   outlineColor = vec4.create();
 
   /** outlineThreshold (float) */
-  @meta.type.float32
+  @type.float32
   outlineThreshold = 0;
 
 }

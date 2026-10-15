@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Audio/Tr2AudioStretchBase.h
 // Promoted from generated output 2026-07-18; now hand-owned by the audio
 // layer. Verify against trinityAudio/Tr2AudioStretchBase.json.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { IInitialize } from "#blue/IInitialize";
 import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
 import { ITr2Audio } from "../trinityAudioApi/ITr2Audio.js";
@@ -10,28 +10,28 @@ import { AudGameObjResource } from "../audio/AudGameObjResource.js";
 import { StretchAudio } from "../audio/StretchAudio.js";
 
 /** Creates and updates the three Carbon emitters used by a Trinity audio stretch. */
-@meta.define({ className: "Tr2AudioStretchBase", family: "trinityAudio" })
-@meta.blue.inherit(IInitialize, ITr2DebugRenderable, ITr2Audio)
-@meta.blue.interface(IInitialize, ITr2DebugRenderable, ITr2Audio)
+@blue.define("Tr2AudioStretchBase")
+@blue.inherit(IInitialize, ITr2DebugRenderable, ITr2Audio)
+@blue.interface(IInitialize, ITr2DebugRenderable, ITr2Audio)
 export class Tr2AudioStretchBase
 {
 
   /** m_stretchEmitter (ITr2AudEmitterPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITr2AudEmitter")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITr2AudEmitter")
   stretchEmitter = null;
 
   /** m_destEmitter (ITr2AudEmitterPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITr2AudEmitter")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITr2AudEmitter")
   destinationEmitter = null;
 
   /** m_sourceEmitter (ITr2AudEmitterPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITr2AudEmitter")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITr2AudEmitter")
   sourceEmitter = null;
 
   _front = new Float32Array([ 0, 1, 0 ]);
@@ -45,7 +45,7 @@ export class Tr2AudioStretchBase
   }
 
   /** Carbon method Initialize: create the three standard emitters when absent. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -75,7 +75,7 @@ export class Tr2AudioStretchBase
    * is registered. Present listeners must supply GetPosition. Carbon Update is
    * Tr2AudioStretchBase.cpp:38-62.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(sourcePosition, destPosition)
   {
@@ -97,7 +97,7 @@ export class Tr2AudioStretchBase
    * @param {string} name Emitter name.
    * @returns {ITr2AudEmitter|null} Matching emitter, or null.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   FindEmitterByName(name)
   {
@@ -112,7 +112,7 @@ export class Tr2AudioStretchBase
   }
 
   /** Forwards supported debug options to the three nominal emitter interfaces. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -124,7 +124,7 @@ export class Tr2AudioStretchBase
   }
 
   /** Forwards debug drawing to the three nominal emitter interfaces. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RenderDebugInfo(renderer)
   {

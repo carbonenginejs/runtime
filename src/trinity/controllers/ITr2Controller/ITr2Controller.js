@@ -112,7 +112,7 @@ export class ITr2Controller
 }
 
 
-CjsSchema.define(ITr2Controller, { className: "ITr2Controller" });
+CjsSchema.blue.define(ITr2Controller, { className: "ITr2Controller" });
 
 
 /**

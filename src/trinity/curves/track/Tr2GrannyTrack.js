@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2GrannyTrack.cpp
 import { IsMatch } from "#blue";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { INotify, ITriFunction } from "#blue";
 import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
 
@@ -12,49 +12,46 @@ import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
  * resource path, group and track name plus the cycle flag and resolved duration;
  * subclasses supply the track binding and sampling.
  */
-@meta.define({
-  className: "Tr2GrannyTrack",
-  family: "curves"
-})
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(ITriFunction, IInitialize, INotify)
+@blue.define("Tr2GrannyTrack")
+@blue.inherit(IInitialize)
+@blue.interface(ITriFunction, IInitialize, INotify)
 export class Tr2GrannyTrack
 {
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.path
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.path
   grannyResPath = "";
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   cycle = false;
 
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   duration = 0;
 
-  @meta.blue.read
-  @meta.type.rootRef("TriGrannyRes")
+  @blue.read
+  @type.rootRef("TriGrannyRes")
   grannyRes = null;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   group = "";
 
   /**
    * Initializes the resource-backed track.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -67,7 +64,7 @@ export class Tr2GrannyTrack
    * the resource; a new name or group rebuilds the curves. The two checks are
    * independent, so a batched change runs both.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName)
   {
@@ -84,7 +81,7 @@ export class Tr2GrannyTrack
   /**
    * Relinks the authored Granny resource path.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetGrannyResource()
   {
@@ -101,7 +98,7 @@ export class Tr2GrannyTrack
   /**
    * Updates the track value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateValue(time)
   {
@@ -120,7 +117,7 @@ export class Tr2GrannyTrack
   /**
    * Gets track duration.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Length()
   {
@@ -130,7 +127,7 @@ export class Tr2GrannyTrack
   /**
    * Locates resource curves.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetCurves()
   {
@@ -160,7 +157,7 @@ export class Tr2GrannyTrack
   /**
    * Subclass hook for sampled value updates.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   UpdateValueImpl(_time)
   {
@@ -169,7 +166,7 @@ export class Tr2GrannyTrack
   /**
    * Subclass hook for clearing resource track handles.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   ResetTracks()
   {
@@ -178,7 +175,7 @@ export class Tr2GrannyTrack
   /**
    * Subclass hook for applying resource track handles.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   ApplyTracks(_group, _duration, _timeStep)
   {
@@ -187,7 +184,7 @@ export class Tr2GrannyTrack
   /**
    * Checks whether resource track handles are ready.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   TracksReady()
   {

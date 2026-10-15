@@ -1,8 +1,8 @@
 // Source: trinity/trinity/Sprite2d/ITr2SpriteObject.h
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 /** Native IRoot-shaped abstract contract shared by Sprite2D objects. */
-@meta.define({ className: "ITr2SpriteObject", family: "sprite2d", abstract: true })
+@blue.define({ className: "ITr2SpriteObject", abstract: true })
 export class ITr2SpriteObject
 {
   /**
@@ -10,7 +10,7 @@ export class ITr2SpriteObject
    * @param {object} _renderer Sprite scene renderer.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GatherSprites(_renderer)
   {
@@ -24,7 +24,7 @@ export class ITr2SpriteObject
    * @param {object} _renderer Sprite scene renderer.
    * @returns {ITr2SpriteObject|null}
    */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   PickPoint(_x, _y, _renderer)
   {
@@ -36,7 +36,7 @@ export class ITr2SpriteObject
    * @param {ITr2SpriteObject|null} _parent New parent.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   SetParent(_parent)
   {
@@ -47,7 +47,7 @@ export class ITr2SpriteObject
    * Required native SetDirty contract.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   SetDirty()
   {
@@ -59,7 +59,7 @@ export class ITr2SpriteObject
    * @param {ITr2SpriteObject|null} _child Changed child.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   SetChildDirty(_child)
   {
@@ -70,7 +70,7 @@ export class ITr2SpriteObject
    * Required native IsAuxMouseover contract.
    * @returns {boolean}
    */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   IsAuxMouseover()
   {

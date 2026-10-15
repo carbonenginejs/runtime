@@ -1,30 +1,30 @@
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPGodRaysEffect.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema postProcess/Tr2PPGodRaysEffect.json.).
-import { meta } from "#schema";
+import { type, blue } from "#schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 import { vec4 } from "#math/vec4";
 
 /** Carries the color, intensity, and noise texture used for post-process god rays. */
-@meta.define({ className: "Tr2PPGodRaysEffect", family: "postProcess" })
+@blue.define("Tr2PPGodRaysEffect")
 export class Tr2PPGodRaysEffect extends Tr2PPEffect
 {
 
   /** m_godRayColor (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.readwrite
+  @blue.persist
+  @type.color
   godRayColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_intensity (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   intensity = 0;
 
   /** m_noiseTexturePath (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.path("TriTextureRes")
+  @blue.readwrite
+  @blue.persist
+  @type.path("TriTextureRes")
   noiseTexturePath = "res:/Texture/Global/noise.dds";
 
   /**

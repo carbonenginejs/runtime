@@ -1,40 +1,40 @@
 // Source: trinity/trinity/Tr2RenderNodeEffect.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { RenderingMode } from "#consts/graphics";
 import { ITr2RenderNode } from "#interfaces/ITr2RenderNode";
 import "#consts/graphics/trinityEnums";
 
 /** A render-graph node that binds named sources onto an effect and produces its output. */
-@meta.define({ className: "Tr2RenderNodeEffect", family: "renderJob" })
-@meta.blue.inherit(ITr2RenderNode)
+@blue.define("Tr2RenderNodeEffect")
+@blue.inherit(ITr2RenderNode)
 export class Tr2RenderNodeEffect
 {
 
   /** Carbon's grouped source/parameter bindings. */
-  @meta.type.list("Tr2RenderNodeEffectSource")
+  @type.list("Tr2RenderNodeEffectSource")
   sources = [];
 
   /** m_renderingMode (Tr2EffectStateManager::RenderingMode - enum RenderingMode) [READWRITE, ENUM] */
-  @meta.blue.readwrite
-  @meta.type.int32
-  @meta.type.enum("trinity.Tr2EffectStateManager.RenderingMode")
+  @blue.readwrite
+  @type.int32
+  @type.enum("trinity.Tr2EffectStateManager.RenderingMode")
   renderingMode = 8;
 
   /** m_effect (Tr2EffectPtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @type.rootRef("Tr2Effect")
   effect = null;
 
   /** m_viewport (TriViewportPtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("TriViewport")
+  @blue.readwrite
+  @type.rootRef("TriViewport")
   viewport = null;
 
   /** m_inputNodes (PITr2RenderNodeVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITr2RenderNode")
+  @blue.read
+  @blue.persist
+  @type.list("ITr2RenderNode")
   inputNodes = [];
 
   /**
@@ -43,7 +43,7 @@ export class Tr2RenderNodeEffect
    * Adapted: Tr2BitmapDimensions spans are represented by JavaScript arrays of value
    * records.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Validate(destinationDimensions, outputs, realTime, simTime)
   {
@@ -82,7 +82,7 @@ export class Tr2RenderNodeEffect
   }
 
   /** Carbon method AddSource (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AddSource(name, source, outputName = "")
   {

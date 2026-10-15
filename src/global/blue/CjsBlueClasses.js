@@ -34,7 +34,7 @@
 // blueexposure/TypeInfo.cpp:66-190 (PyGetTypeInfo), blueexposure/Find.cpp:147-246
 // (FindSingle, PyFindImpl).
 import { registerClass, unregisterClass, getClassRegistration, getClassRegistrations } from "./classes/registry.js";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { getCarbonTypeDefinition } from "../schema/types/carbonTypes.js";
 import { mappedInterfaces, exposureChainTo } from "../compose/interface.js";
 import { IBlueClasses } from "./IBlueClasses.js";
@@ -521,12 +521,9 @@ export class CjsBlueClasses extends IBlueClasses
 }
 
 
-CjsSchema.define(CjsBlueClasses, {
+CjsSchema.blue.define(CjsBlueClasses, {
   className: "CjsBlueClasses",
-  carbon: "BlueClasses",
-  family: "blue",
-  // Carbon's object-count, deferred-deletion, script-thunk and RTTI services:
-  // JavaScript's garbage collector and reflection stand in for them.
+  donors: [ "BlueClasses" ],
   unused: [
     "FindVariable", "UpdateObjectCount",
     "ProcessPendingDeletes",
@@ -535,24 +532,24 @@ CjsSchema.define(CjsBlueClasses, {
   ],
   fields: {},
   methods: {
-    RegisterClasses: [ meta.blue.method, meta.adapted ],
-    UnregisterClasses: [ meta.blue.method, meta.implemented ],
-    GetClassRegistration: [ meta.blue.method, meta.adapted ],
-    FindClsid: [ meta.blue.method, meta.adapted ],
-    CreateInstance: [ meta.blue.method, meta.adapted ],
-    CreateInstanceFromName: [ meta.blue.method, meta.adapted ],
-    QueryThisInterface: [ meta.blue.method, meta.adapted ],
-    CopyTo: [ meta.blue.method, meta.adapted ],
-    CloneTo: [ meta.blue.method, meta.adapted ],
-    GetClassTypes: [ meta.blue.method, meta.adapted ],
-    LiveCount: [ meta.blue.method, meta.notSupported ],
-    LockCount: [ meta.blue.method, meta.notSupported ],
-    GetWrapperList: [ meta.blue.method, meta.notSupported ],
-    LiveList: [ meta.blue.method, meta.notSupported ],
-    ProcessAllPendingDeletes: [ meta.blue.method, meta.noop ],
-    Copy: [ meta.blue.method, meta.implemented ],
-    Find: [ meta.blue.method, meta.adapted ],
-    GetTypeInfo: [ meta.blue.method, meta.adapted ],
-    GetPersistedClassesReport: [ meta.blue.method, meta.adapted ]
+    RegisterClasses: [ blue.method, meta.adapted ],
+    UnregisterClasses: [ blue.method, meta.implemented ],
+    GetClassRegistration: [ blue.method, meta.adapted ],
+    FindClsid: [ blue.method, meta.adapted ],
+    CreateInstance: [ blue.method, meta.adapted ],
+    CreateInstanceFromName: [ blue.method, meta.adapted ],
+    QueryThisInterface: [ blue.method, meta.adapted ],
+    CopyTo: [ blue.method, meta.adapted ],
+    CloneTo: [ blue.method, meta.adapted ],
+    GetClassTypes: [ blue.method, meta.adapted ],
+    LiveCount: [ blue.method, meta.notSupported ],
+    LockCount: [ blue.method, meta.notSupported ],
+    GetWrapperList: [ blue.method, meta.notSupported ],
+    LiveList: [ blue.method, meta.notSupported ],
+    ProcessAllPendingDeletes: [ blue.method, meta.noop ],
+    Copy: [ blue.method, meta.implemented ],
+    Find: [ blue.method, meta.adapted ],
+    GetTypeInfo: [ blue.method, meta.adapted ],
+    GetPersistedClassesReport: [ blue.method, meta.adapted ]
   }
 });

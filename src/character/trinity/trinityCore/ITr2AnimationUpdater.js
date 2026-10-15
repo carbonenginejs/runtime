@@ -51,6 +51,7 @@ export class ITr2AnimationUpdater
   }
 }
 
-CjsSchema.define(ITr2AnimationUpdater, {
-  className: "ITr2AnimationUpdater", carbon: "ITr2AnimationUpdater", family: "trinityCore", fields: {}
+CjsSchema.blue.define(ITr2AnimationUpdater, {
+  className: "ITr2AnimationUpdater",
+  fields: {}
 });

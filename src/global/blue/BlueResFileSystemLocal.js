@@ -13,7 +13,7 @@
 //
 // Carbon's paths service creates its local file system itself (BluePaths.cpp:
 // 52-64); here the orchestrator registers one, or none.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { BlueResFileSystemForm, IBlueResFileSystem } from "./IBlueResFileSystem.js";
 
 /** Throws the "no disk" error for one member. */
@@ -96,30 +96,28 @@ export class BlueResFileSystemLocal extends IBlueResFileSystem
   ListDirFromScript(_dir) { return noDisk("ListDirFromScript"); }
 }
 
-CjsSchema.define(BlueResFileSystemLocal, {
+CjsSchema.blue.define(BlueResFileSystemLocal, {
   className: "BlueResFileSystemLocal",
-  carbon: "BlueResFileSystemLocal",
-  family: "blue",
   fields: {},
   methods: {
-    FileExists: [ meta.blue.method, meta.notImplemented ],
-    IsDirectory: [ meta.blue.method, meta.notImplemented ],
+    FileExists: [ blue.method, meta.notImplemented ],
+    IsDirectory: [ blue.method, meta.notImplemented ],
     GetDirectoryContents: [ meta.notImplemented ],
     GetStreamFromPath: [ meta.renamed("GetStreamFromPathW"), meta.notImplemented ],
-    ResolvePath: [ meta.blue.method, meta.notImplemented ],
+    ResolvePath: [ blue.method, meta.notImplemented ],
     Initialize: [ meta.notImplemented ],
-    InitializeStdAppPaths: [ meta.blue.method, meta.notImplemented ],
-    SetSearchPath: [ meta.blue.method, meta.renamed("SetSearchPathW"), meta.notImplemented ],
-    GetSearchPath: [ meta.blue.method, meta.renamed("GetSearchPathW"), meta.notImplemented ],
-    ClearSearchPaths: [ meta.blue.method, meta.notImplemented ],
-    ResolvePathForWriting: [ meta.blue.method, meta.renamed("ResolvePathForWritingW"), meta.notImplemented ],
-    ResolvePathToRoot: [ meta.blue.method, meta.renamed("ResolvePathToRootW"), meta.notImplemented ],
+    InitializeStdAppPaths: [ blue.method, meta.notImplemented ],
+    SetSearchPath: [ blue.method, meta.renamed("SetSearchPathW"), meta.notImplemented ],
+    GetSearchPath: [ blue.method, meta.renamed("GetSearchPathW"), meta.notImplemented ],
+    ClearSearchPaths: [ blue.method, meta.notImplemented ],
+    ResolvePathForWriting: [ blue.method, meta.renamed("ResolvePathForWritingW"), meta.notImplemented ],
+    ResolvePathToRoot: [ blue.method, meta.renamed("ResolvePathToRootW"), meta.notImplemented ],
     GetExpandedSearchPaths: [ meta.notImplemented ],
     GetExpandedSearchPaths__KeyPaths: [ meta.notImplemented ],
     LogPaths: [ meta.notImplemented ],
     GetInitialWorkingDirectory: [ meta.notImplemented ],
-    GetAllSearchPaths: [ meta.blue.method, meta.notImplemented ],
-    GetExpandedSearchPathsAsDict: [ meta.blue.method, meta.notImplemented ],
-    ListDirFromScript: [ meta.blue.method, meta.notImplemented ]
+    GetAllSearchPaths: [ blue.method, meta.notImplemented ],
+    GetExpandedSearchPathsAsDict: [ blue.method, meta.notImplemented ],
+    ListDirFromScript: [ blue.method, meta.notImplemented ]
   }
 });

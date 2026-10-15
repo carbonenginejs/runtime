@@ -72,6 +72,7 @@ for (const method of [ "GetWriteBufferAndSize", "ReleaseWriteBuffer", "AllocateR
 }
 // Carbon defines an IID, not a class factory. JavaScript registers the interface
 // constructor so named declarations and nominal composition resolve one identity.
-CjsSchema.define(ICustomPersist, {
-  className: "ICustomPersist", carbon: "ICustomPersist", family: "blue", fields: {}
+CjsSchema.blue.define(ICustomPersist, {
+  className: "ICustomPersist",
+  fields: {}
 });

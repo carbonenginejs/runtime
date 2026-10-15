@@ -60,6 +60,7 @@ for (const method of [ "GetValue", "GetTime", "GetInterpolationType", "GetLeftTa
 {
   CjsSchema.decorateMethod(ITr2FollowCurveKey, method, meta.requires, meta.abstract);
 }
-CjsSchema.define(ITr2FollowCurveKey, {
-  className: "ITr2FollowCurveKey", carbon: "ITr2FollowCurveKey", family: "curves", fields: {}
+CjsSchema.blue.define(ITr2FollowCurveKey, {
+  className: "ITr2FollowCurveKey",
+  fields: {}
 });

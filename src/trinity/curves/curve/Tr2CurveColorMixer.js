@@ -4,7 +4,7 @@ import { color } from "#math/color";
 import { num } from "#math/num";
 import { vec4 } from "#math/vec4";
 import { ITriFunction, ITriColorFunction, ITriCurveLength } from "#blue";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 
 /**
@@ -12,66 +12,63 @@ import { meta } from "#schema";
  * applies saturation and brightness, exposing both the mixed color and its
  * linear-space conversion.
  */
-@meta.define({
-  className: "Tr2CurveColorMixer",
-  family: "curves"
-})
-@meta.blue.inherit(ITriCurveLength)
-@meta.blue.interface(ITriColorFunction, ITriFunction, ITriCurveLength)
+@blue.define("Tr2CurveColorMixer")
+@blue.inherit(ITriCurveLength)
+@blue.interface(ITriColorFunction, ITriFunction, ITriCurveLength)
 export class Tr2CurveColorMixer extends ITriColorFunction
 {
   /**
    * Name identifying this color-mixing function (native std::string m_name).
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /**
    * First authored RGBA endpoint, selected when lerpValue is zero (native Color m_color1).
    * @type {Float32Array}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.readwrite
+  @blue.persist
+  @type.color
   color1 = color.createLinear();
 
   /**
    * Second authored RGBA endpoint, selected when lerpValue is one (native Color m_color2).
    * @type {Float32Array}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.readwrite
+  @blue.persist
+  @type.color
   color2 = color.createLinear();
 
   /**
    * Interpolation factor from color1 to color2, without clamping (native float m_lerpValue).
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   lerpValue = 0;
 
   /**
    * Blend away from grayscale: zero gives grayscale and one preserves the mixed color (native float m_saturation).
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   saturation = 1;
 
   /**
    * Multiplier applied to all four mixed-color components (native float m_brightness).
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   brightness = 1;
 
   /**
@@ -79,25 +76,25 @@ export class Tr2CurveColorMixer extends ITriColorFunction
    * override (native float m_alphaOverride).
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   alphaOverride = -1;
 
   /**
    * Mixed RGBA color cached by the last Update or UpdateValue call (native Color m_currentValue).
    * @type {Float32Array}
    */
-  @meta.blue.read
-  @meta.type.color
+  @blue.read
+  @type.color
   currentValue = color.createLinear();
 
   /**
    * currentValue converted from sRGB to linear by UpdateValue, alpha copied unchanged (native Color m_convertedLinearValue).
    * @type {Float32Array}
    */
-  @meta.blue.read
-  @meta.type.color
+  @blue.read
+  @type.color
   convertedLinearValue = color.createLinear();
 
   /**
@@ -111,7 +108,7 @@ export class Tr2CurveColorMixer extends ITriColorFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateValue(time)
   {
@@ -155,7 +152,7 @@ export class Tr2CurveColorMixer extends ITriColorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(time, out)
   {
@@ -170,7 +167,7 @@ export class Tr2CurveColorMixer extends ITriColorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValueAt(time, out)
   {
@@ -197,7 +194,7 @@ export class Tr2CurveColorMixer extends ITriColorFunction
    * Returns the native zero mixer duration.
    * @returns {number} Duration in seconds.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Length()
   {
@@ -210,7 +207,7 @@ export class Tr2CurveColorMixer extends ITriColorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValue(time, out)
   {

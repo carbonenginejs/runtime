@@ -171,7 +171,7 @@ export class ImageIO
 
 // Apply the same @meta.adapted metadata without decorator syntax, retaining
 // direct source imports for resource modules and their consumers.
-CjsSchema.define(ImageIO, {
+CjsSchema.meta.define(ImageIO, {
   className: "ImageIO",
   methods: {
     registerImageHandler: [meta.adapted],

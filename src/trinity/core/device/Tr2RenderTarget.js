@@ -14,7 +14,7 @@ import { Tr2TextureAL } from "../../../trinityal/Tr2TextureAL/index.js";
 //
 // The `@edit.read` properties are the Blue READ projection, refreshed wherever
 // the texture changes.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2Event } from "../Tr2Event.js";
 import { ExFlag, PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { ALResult } from "#trinityal";
@@ -49,56 +49,56 @@ function GetUsage(msaaType, flags)
 }
 
 /** Holds a render-target texture and the parameters it was created with. */
-@meta.define({ className: "Tr2RenderTarget", family: "trinityCore" })
+@blue.define("Tr2RenderTarget")
 export class Tr2RenderTarget
 {
 
   /** m_name (std::string) [PERSISTONLY] */
-  @meta.blue.readwrite
-  @meta.blue.persistOnly
-  @meta.type.string
+  @blue.readwrite
+  @blue.persistOnly
+  @type.string
   name = "";
 
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   width = 0;
 
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   height = 0;
 
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   arraySize = 0;
 
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   mipCount = 0;
 
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   multiSampleType = 0;
 
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   multiSampleQuality = 0;
 
-  @meta.blue.read
-  @meta.type.int32
-  @meta.type.enum("trinity.ImageIO.PixelFormat")
+  @blue.read
+  @type.int32
+  @type.enum("trinity.ImageIO.PixelFormat")
   format = 0;
 
-  @meta.blue.read
-  @meta.type.int32
-  @meta.type.enum("trinity.ImageIO.TextureType")
+  @blue.read
+  @type.int32
+  @type.enum("trinity.ImageIO.TextureType")
   type = 6;
 
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   isValid = false;
 
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   isReadable = false;
 
   /** m_renderTarget (Tr2TextureAL), owned. */
@@ -119,7 +119,7 @@ export class Tr2RenderTarget
   /**
    * Carbon `py__init__` (`cpp:59-74`): creates when given a size and a format.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   __init__(width = 0, height = 0, mipCount = 1, format = PixelFormat.PIXEL_FORMAT_UNKNOWN, msaaType = 1, msaaQuality = 0, flags = ExFlag.EX_NONE, type = TextureType.TEX_TYPE_2D)
   {
@@ -134,7 +134,7 @@ export class Tr2RenderTarget
    *
    * @returns {number} An `ALResult` value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Create(width, height, mipLevelCount, format, msaaType = 1, msaaQuality = 0, flags = ExFlag.EX_NONE, type = TextureType.TEX_TYPE_2D, renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -153,7 +153,7 @@ export class Tr2RenderTarget
    *
    * @returns {number} An `ALResult` value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   CreateArray(width, height, arraySize, mipLevelCount, format, flags = ExFlag.EX_NONE, type = TextureType.TEX_TYPE_2D, renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -173,7 +173,7 @@ export class Tr2RenderTarget
    *
    * @returns {number} An `ALResult` value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   CreateManual(width, height, mipLevelCount, format, msaaType, msaaQuality, flags, type, cpuUsage, gpuUsage, renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -211,7 +211,7 @@ export class Tr2RenderTarget
    * Carbon `GetTexture` (`cpp:237-245`): the texture, only when it can be
    * sampled.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetTexture()
   {
@@ -226,7 +226,7 @@ export class Tr2RenderTarget
    *
    * @returns {Tr2Event} m_onTextureChange.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnTextureChange()
   {
@@ -237,7 +237,7 @@ export class Tr2RenderTarget
    * Carbon `Attach` (`cpp:262-271`): reference an AL render target someone
    * else owns, such as a swap-chain back buffer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Attach(renderTarget, owner)
   {
@@ -251,7 +251,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `Detach` (`cpp:277-285`). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Detach()
   {
@@ -265,7 +265,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `IsAttached` (`cpp:294-297`). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsAttached()
   {
@@ -278,7 +278,7 @@ export class Tr2RenderTarget
    *
    * @returns {object|null} The `Tr2TextureAL`.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetRenderTarget()
   {
@@ -286,7 +286,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `IsValid` (`cpp:328-331`). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsValid()
   {
@@ -294,7 +294,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `Destroy` (`cpp:333-352`): releases the owned texture and resets. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Destroy()
   {
@@ -324,7 +324,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `IsReadable` (`cpp:354-357`). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsReadable()
   {
@@ -337,7 +337,7 @@ export class Tr2RenderTarget
    *
    * @returns {number} An `ALResult` value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GenerateMipMaps(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -350,7 +350,7 @@ export class Tr2RenderTarget
    * @param {Tr2RenderTarget} destination The render target to resolve into.
    * @returns {number} An `ALResult` value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Resolve(destination, renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -359,7 +359,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon Tr2RenderTarget::HasALObject always reports false (cpp:389-392). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasALObject(_type, _object)
   {
@@ -367,7 +367,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `GetSharedHandle` (`cpp:400-403`), exposed as `sharedHandle`. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   sharedHandle()
   {
@@ -375,7 +375,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `GetWidth` (`cpp:411-414`). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetWidth()
   {
@@ -383,7 +383,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `GetHeight` (`cpp:422-425`). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetHeight()
   {
@@ -391,7 +391,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `GetMipCount` (`cpp:433-436`). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetMipCount()
   {
@@ -399,7 +399,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `GetArraySize` (`cpp:444-447`). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetArraySize()
   {
@@ -407,7 +407,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `GetMsaaType` (`cpp:455-458`). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetMsaaType()
   {
@@ -415,7 +415,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `GetMsaaQuality` (`cpp:466-469`). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetMsaaQuality()
   {
@@ -423,7 +423,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `GetFormat` (`cpp:477-480`). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetFormat()
   {
@@ -431,7 +431,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `GetType` (`cpp:482-485`). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetType()
   {
@@ -439,7 +439,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `SetName` (`cpp:44-48`), which names the texture too. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -448,7 +448,7 @@ export class Tr2RenderTarget
   }
 
   /** Carbon `GetName` (`cpp:50-53`). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetName()
   {
@@ -459,7 +459,7 @@ export class Tr2RenderTarget
    * Carbon `ReleaseResources` (`cpp:488-495`): drop the owned texture when its
    * memory class is being released.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ReleaseResources(storage)
   {
@@ -476,7 +476,7 @@ export class Tr2RenderTarget
    * Carbon `OnPrepareResources` (`cpp:498-508`): recreate a released texture
    * from the parameters it was made with.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnPrepareResources(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {

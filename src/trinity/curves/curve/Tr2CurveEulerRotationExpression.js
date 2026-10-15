@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveEulerRotationExpression.cpp
 import { fromYawPitchRoll, quat } from "#math/quat";
 import { ITriFunction, ITriQuaternionFunction, ITriScalarFunction, IInitialize, BlueList } from "#blue";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { CjsControllerExpressionProgram } from "../../controllers/expression/CjsControllerExpressionProgram.js";
 
 
@@ -10,21 +10,18 @@ import { CjsControllerExpressionProgram } from "../../controllers/expression/Cjs
  * Quaternion curve built from three independently compiled expressions producing
  * yaw, pitch and roll in radians at time divided by timeScale.
  */
-@meta.define({
-  className: "Tr2CurveEulerRotationExpression",
-  family: "curves"
-})
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(ITriQuaternionFunction, ITriFunction, IInitialize)
+@blue.define("Tr2CurveEulerRotationExpression")
+@blue.inherit(IInitialize)
+@blue.interface(ITriQuaternionFunction, ITriFunction, IInitialize)
 export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
 {
   /**
    * Authored curve label stored as native std::string.
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /**
@@ -32,13 +29,13 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @type {string}
    */
   @meta.member("expressionYaw")
-  @meta.blue.persistOnly
-  @meta.type.expression
+  @blue.persistOnly
+  @type.expression
   _expressionYaw = "";
 
   /** Gets the live yaw expression text. @returns {string} Source text. */
-  @meta.blue.readwrite
-  @meta.type.expression
+  @blue.readwrite
+  @type.expression
   @meta.implemented
   get expressionYaw()
   {
@@ -57,13 +54,13 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @type {string}
    */
   @meta.member("expressionPitch")
-  @meta.blue.persistOnly
-  @meta.type.expression
+  @blue.persistOnly
+  @type.expression
   _expressionPitch = "";
 
   /** Gets the live pitch expression text. @returns {string} Source text. */
-  @meta.blue.readwrite
-  @meta.type.expression
+  @blue.readwrite
+  @type.expression
   @meta.implemented
   get expressionPitch()
   {
@@ -82,13 +79,13 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @type {string}
    */
   @meta.member("expressionRoll")
-  @meta.blue.persistOnly
-  @meta.type.expression
+  @blue.persistOnly
+  @type.expression
   _expressionRoll = "";
 
   /** Gets the live roll expression text. @returns {string} Source text. */
-  @meta.blue.readwrite
-  @meta.type.expression
+  @blue.readwrite
+  @type.expression
   @meta.implemented
   get expressionRoll()
   {
@@ -106,53 +103,53 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * Cached orientation quaternion produced from yaw, pitch and roll in radians.
    * @type {Float32Array}
    */
-  @meta.blue.read
-  @meta.type.quat
+  @blue.read
+  @type.quat
   currentValue = quat.create();
 
   /**
    * Owned native scalar-function input list sampled by expression input lookup.
    * @type {BlueList<ITriScalarFunction>}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITriScalarFunction")
+  @blue.read
+  @blue.persist
+  @type.list("ITriScalarFunction")
   inputs = new BlueList(ITriScalarFunction, { className: null, listOps: 0 });
 
   /**
    * First authored scalar argument exposed to each rotation expression.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   input1 = 0;
 
   /**
    * Second authored scalar argument exposed to each rotation expression.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   input2 = 0;
 
   /**
    * Third authored scalar argument exposed to each rotation expression.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   input3 = 0;
 
   /**
    * Fourth authored scalar argument exposed to each rotation expression.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   input4 = 0;
 
   /**
@@ -190,7 +187,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * Uses the existing JavaScript parser; a failed compile retains its old program.
    * @returns {boolean} True.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -211,7 +208,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateValue(time)
   {
@@ -224,7 +221,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @param {Float32Array} out Destination.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(time, out)
   {
@@ -238,7 +235,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @param {Float32Array} out Destination.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValueAt(time, out)
   {
@@ -252,7 +249,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @param {Float32Array} out Destination.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValue(time, out)
   {
@@ -267,7 +264,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @param {Float32Array} out Destination.
    * @returns {Float32Array} Unchanged destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GetValueDotAt(_time, out)
   {
@@ -280,7 +277,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @param {Float32Array} out Destination.
    * @returns {Float32Array} Unchanged destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GetValueDoubleDotAt(_time, out)
   {
@@ -288,7 +285,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
   }
 
   /** Reads one stored component expression. @param {number} index Component index. @returns {string} Source. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetExpression(index)
   {
@@ -302,7 +299,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @param {string} expression Source text.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetExpression(index, expression)
   {
@@ -320,7 +317,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
   }
 
   /** Gets the stored yaw expression text. @returns {string} Source text. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetExpressionYaw()
   {
@@ -328,7 +325,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
   }
 
   /** Gets the stored pitch expression text. @returns {string} Source text. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetExpressionPitch()
   {
@@ -336,7 +333,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
   }
 
   /** Gets the stored roll expression text. @returns {string} Source text. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetExpressionRoll()
   {
@@ -348,7 +345,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @param {string} expression Source text.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetExpressionYaw(expression)
   {
@@ -360,7 +357,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @param {string} expression Source text.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetExpressionPitch(expression)
   {
@@ -372,7 +369,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @param {string} expression Source text.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetExpressionRoll(expression)
   {
@@ -385,7 +382,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @param {number} index Input index.
    * @returns {number}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetInputValue(index)
   {
@@ -411,7 +408,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * over time. Native fake-random override is not implemented.
    * @returns {number} Cached random constant.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetRandomConstant()
   {
@@ -419,7 +416,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
   }
 
   /** Draws via Math.random rather than the native RNG. @returns {void} */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ResetRandomConstant()
   {
@@ -431,7 +428,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * because this curve's outputs are angles. Uses the shared JavaScript term schema.
    * @returns {Array} Editor term descriptors.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetExpressionTermInfo()
   {
@@ -446,7 +443,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
    * @param {string} expression Source text.
    * @returns {number} Evaluation result or zero.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   EvaluateExpression(expression)
   {

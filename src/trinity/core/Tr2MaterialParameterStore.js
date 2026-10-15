@@ -1,23 +1,23 @@
 // Source: trinity/trinity/Tr2MaterialParameterStore.h
 // Source: trinity/trinity/Tr2MaterialParameterStore.cpp
 // Source: trinity/trinity/Tr2MaterialParameterStore_Blue.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IsMatch, be, IInitialize, INotify, CjsBlueClasses } from "#blue";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 
 /** Local shader parameter overrides with an optional resource-loaded parent store. */
-@meta.define({ className: "Tr2MaterialParameterStore", family: "trinityCore" })
-@meta.blue.inherit(INotify)
-@meta.blue.interface(INotify, IInitialize)
+@blue.define("Tr2MaterialParameterStore")
+@blue.inherit(INotify)
+@blue.interface(INotify, IInitialize)
 export class Tr2MaterialParameterStore extends IInitialize
 {
   /**
    * Native m_name: authored material name.
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /**
@@ -25,27 +25,27 @@ export class Tr2MaterialParameterStore extends IInitialize
    * Retains the existing JavaScript path declaration for resource addressing.
    * @type {string}
    */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.path("object")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.path("object")
   parentPath = "";
 
   /**
    * Native m_parentStore: loaded parent searched after local overrides.
    * @type {Tr2MaterialParameterStore|null}
    */
-  @meta.blue.read
-  @meta.type.rootRef("Tr2MaterialParameterStore")
+  @blue.read
+  @type.rootRef("Tr2MaterialParameterStore")
   parent = null;
 
   /**
    * Native m_parameters: named local effect parameters, including null shadows.
    * @type {Map<string, import("../shader/parameter/ITriEffectParameter.js").ITriEffectParameter|null>}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.map("ITriEffectParameter")
+  @blue.read
+  @blue.persist
+  @type.map("ITriEffectParameter")
   parameters = new Map();
 
   /**
@@ -59,7 +59,7 @@ export class Tr2MaterialParameterStore extends IInitialize
    * Adapted: the existing resource manager completes LoadObject asynchronously.
    * @returns {boolean} True after starting or clearing the parent request.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -72,7 +72,7 @@ export class Tr2MaterialParameterStore extends IInitialize
    * @param {string|null} propertyName Changed declaration name.
    * @returns {boolean} True after handling the notification.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName)
   {
@@ -124,7 +124,7 @@ export class Tr2MaterialParameterStore extends IInitialize
    * @param {string} name Parameter name.
    * @returns {object|null} First entry, including a local null shadow, or null.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   FindParameter(name)
   {

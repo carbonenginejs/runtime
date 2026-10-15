@@ -10,4 +10,4 @@ export class ResourceGroupMergeParams
     callbackSettings = new CallbackSettings();
 }
 
-CjsSchema.define(ResourceGroupMergeParams, { className: "ResourceGroupMergeParams", carbon: "ResourceGroupMergeParams", family: "tools", fields: {} });
+CjsSchema.blue.define(ResourceGroupMergeParams, { className: "ResourceGroupMergeParams", fields: {} });

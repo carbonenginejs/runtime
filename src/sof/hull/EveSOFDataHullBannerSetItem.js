@@ -1,13 +1,13 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { type, blue } from "#schema";
 import { be, EnumRegistrationType } from "#blue";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { EveSOFDataHullBanner } from "./EveSOFDataHullBanner.js";
 
 /** Places one banner by usage, bone, and transform, with optional point-light, aspect-scale, and curvature settings. */
-@meta.define({ className: "EveSOFDataHullBannerSetItem", family: "eve" })
+@blue.define("EveSOFDataHullBannerSetItem")
 export class EveSOFDataHullBannerSetItem
 {
 
@@ -40,63 +40,63 @@ export class EveSOFDataHullBannerSetItem
   };
 
   /** m_usage (Usage - enum Usage) [READWRITE, PERSIST, ENUM] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.EveSOFDataHullBannerSetItem.Usage")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.EveSOFDataHullBannerSetItem.Usage")
   usage = 3;
 
   /** m_boneIndex (int32_t) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.readwrite
+  @blue.persist
+  @type.int32
   boneIndex = -1;
 
   /** m_scaling (Vector3) [PERSISTONLY] */
-  @meta.blue.readwrite
-  @meta.blue.persistOnly
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persistOnly
+  @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_angleX (float) [PERSISTONLY] */
-  @meta.blue.readwrite
-  @meta.blue.persistOnly
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persistOnly
+  @type.float32
   angleX = 0;
 
   /** m_angleY (float) [PERSISTONLY] */
-  @meta.blue.readwrite
-  @meta.blue.persistOnly
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persistOnly
+  @type.float32
   angleY = 0;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_position (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   position = vec3.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotation = quat.create();
 
   /** m_light (EveSOFDataPointLightAttachmentPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataPointLightAttachment")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("EveSOFDataPointLightAttachment")
   light = null;
 
   /** m_maintainAspectRatio (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   maintainAspectRatio = true;
 
   /** Maps this banner usage to Carbon's canonical target width-to-height ratio. */

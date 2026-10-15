@@ -1,35 +1,35 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionAttributeModifiers/EveDistributionModifierScaleBySpaceObjectParent.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IEveDistributionModifier } from "./IEveDistributionModifier.js";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 
 /** Multiplies a distributed placement's additional scale from its parent space object's bounding radius or an authored scale curve. */
-@meta.define({ className: "EveDistributionModifierScaleBySpaceObjectParent", family: "eve/distribution/attributeModifiers" })
+@blue.define("EveDistributionModifierScaleBySpaceObjectParent")
 export class EveDistributionModifierScaleBySpaceObjectParent extends IEveDistributionModifier
 {
 
   /** m_scaleFactor (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   scaleFactor = 1;
 
   /** m_authoredForBoundingRadius (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   authoredForBoundingRadius = 1000;
 
   /** m_scaleCurve (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITriVectorFunction")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITriVectorFunction")
   scaleCurve = null;
 
   /** Reports a transform effect whenever a non-zero scale factor is authored. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AffectsTransform()
   {
@@ -41,7 +41,7 @@ export class EveDistributionModifierScaleBySpaceObjectParent extends IEveDistrib
    *
    * @returns {number} Always DO_NOTHING; this modifier never ends an entity's life.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ProcessDistributionModifier(placement, _deltaTime, params)
   {

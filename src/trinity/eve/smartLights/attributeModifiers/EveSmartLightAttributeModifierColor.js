@@ -1,59 +1,59 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierColor.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { EveSmartLightBaseAttributeModifier } from "./EveSmartLightBaseAttributeModifier.js";
 import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttributeModifier.js";
 import { color } from "#math/color";
 import { resolveFactionColor } from "../../resolveFactionColor.js";
 
 /** EveSmartLightAttributeModifierColor (eve/smartLights/attributeModifiers) - generated from schema shapeHash 1d22dfd5.... */
-@meta.define({ className: "EveSmartLightAttributeModifierColor", family: "eve/smartLights/attributeModifiers" })
-@meta.blue.interface(IEveSmartLightGroupAttributeModifier)
-@meta.blue.chainTo(EveSmartLightBaseAttributeModifier)
+@blue.define("EveSmartLightAttributeModifierColor")
+@blue.interface(IEveSmartLightGroupAttributeModifier)
+@blue.chainTo(EveSmartLightBaseAttributeModifier)
 export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttributeModifier
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_selectedColor (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.int32
   factionColor = -1;
 
   /** m_blendValue (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   blendValue = 1;
 
   /** m_useFactionColor (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   useFactionColor = false;
 
   /** m_blendColor (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.readwrite
+  @blue.persist
+  @type.color
   blendColor = color.createLinear();
 
   /** m_brightnessMultiplier (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   brightnessMultiplier = 1;
 
   /** m_saturationMultiplier (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   saturationMultiplier = 1;
 
   /** m_parentColorSet (const Color*) - inherited faction color set, never persisted. */
@@ -63,7 +63,7 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
   _resolvedGroupColor = color.createLinear();
 
   /** Stores the inherited faction color set (EveSmartLightAttributeModifierColor.cpp:18-24). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetInheritProperties(colorSet)
   {
@@ -83,7 +83,7 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
    * Adapted: JS accepts Carbon's indexed colour array and the combined runtime's named SOF
    * colour-set model through one direct two-representation boundary.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetGroupColor()
   {
@@ -97,7 +97,7 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
   }
 
   /** Advances the crossfade state machine (EveSmartLightAttributeModifierColor.cpp:38-41). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateSyncronous(updateContext, _params, activationMultiplier)
   {
@@ -110,7 +110,7 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
    * [0, 1] (EveSmartLightAttributeModifierColor.cpp:43-69). Component math
    * only - no allocation.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ProcessAttributeModifier(attribute, placement, _entityPosition, _entityDirection, modifierStrength)
   {

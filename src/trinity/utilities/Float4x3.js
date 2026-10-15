@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Utilities/MatrixUtils.h:9-17 (the struct)
 //   trinity/trinity/Utilities/MatrixUtils.cpp:6-26 (both conversions)
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { mat4 } from "#math/mat4";
 
 /**
@@ -12,7 +12,7 @@ import { mat4 } from "#math/mat4";
  * aggregate storage. The typed-array initializer fixes the runtime width at 12;
  * the existing dictionary array declaration does not enforce that width.
  */
-@meta.define({ className: "Float4x3", family: "utilities" })
+@blue.define("Float4x3")
 export class Float4x3
 {
 
@@ -23,7 +23,7 @@ export class Float4x3
    * to this record; dictionary array input can replace it with a number array.
    * @type {Float32Array|number[]}
    */
-  @meta.type.array("float32")
+  @type.array("float32")
   elements = new Float32Array(12);
 
   // Carbon MatrixUtils.cpp:6-20 writes elements[0..3] from _11,_21,_31,_41 -
@@ -41,7 +41,7 @@ export class Float4x3
    * Packs a transform into the twelve floats, writing into `out`. The static
    * helper and optional output buffer adapt the native Matrix constructor.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   static fromMat4(matrix, out = new Float32Array(12))
   {
@@ -60,7 +60,7 @@ export class Float4x3
    * Carbon reconstructs as (0, 0, 0, 1); writes into `out`. The static helper
    * and optional output buffer adapt the native Matrix conversion operator.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   static toMat4(elements, out = mat4.create())
   {

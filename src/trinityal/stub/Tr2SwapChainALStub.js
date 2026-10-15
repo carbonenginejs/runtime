@@ -155,4 +155,4 @@ export class Tr2SwapChainALStub extends Tr2DeviceResourceAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
-CjsSchema.define(Tr2SwapChainALStub, { className: "Tr2SwapChainALStub", carbon: "Tr2SwapChainAL" });
+CjsSchema.blue.define(Tr2SwapChainALStub, { className: "Tr2SwapChainALStub", donors: [ "Tr2SwapChainAL" ] });

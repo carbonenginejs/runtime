@@ -9969,7 +9969,7 @@ function EvaluateCrossfadeGain(from, to, progress, mode)
     return from + (to - from) * ratio;
 }
 
-CjsSchema.define(CjsWebAudioSoundEngine, { className: "CjsWebAudioSoundEngine", family: "audio", fields: {} });
+CjsSchema.meta.define(CjsWebAudioSoundEngine, { className: "CjsWebAudioSoundEngine", fields: {} });
 for (const method of [ "InitSpatialAudioGeometry", "SetGeometry", "SetGeometryInstance", "RemoveGeometry", "RemoveGeometryInstance" ])
 {
     CjsSchema.decorateMethod(CjsWebAudioSoundEngine, method, meta.notImplemented);

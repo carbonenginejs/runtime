@@ -5,15 +5,15 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { IInitialize } from "#blue/IInitialize";
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 
 /**
  * Per-bone rotation and translation offsets layered on top of an animated rig,
  * keyed by bone name until bound into the rig's joint order.
  */
-@meta.define({ className: "GrannyBoneOffset", family: "trinityCore" })
-@meta.blue.interface(IInitialize)
+@blue.define("GrannyBoneOffset")
+@blue.interface(IInitialize)
 export class GrannyBoneOffset extends IInitialize
 {
   /** Runtime name-to-offset storage; not exposed or persisted. */
@@ -22,7 +22,7 @@ export class GrannyBoneOffset extends IInitialize
   _riggedTransforms = [];
 
   /** Nothing to prepare; always succeeds. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -30,7 +30,7 @@ export class GrannyBoneOffset extends IInitialize
   }
 
   /** Whether any bone offset has been set. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HaveTransforms()
   {
@@ -41,7 +41,7 @@ export class GrannyBoneOffset extends IInitialize
    * True when offsets exist but the cached rig binding does not cover the given
    * bone count, so BindToRig must run again.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   NeedRebind(numBones)
   {
@@ -52,7 +52,7 @@ export class GrannyBoneOffset extends IInitialize
    * Drops the joint-order cache, forcing the next BindToRig to rebuild it; the
    * named offsets are kept.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ClearRigBindings()
   {
@@ -60,7 +60,7 @@ export class GrannyBoneOffset extends IInitialize
   }
 
   /** Drops every named bone offset along with the rig binding. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ClearTransforms()
   {
@@ -74,7 +74,7 @@ export class GrannyBoneOffset extends IInitialize
    * rig binding. JavaScript string coercion and falsy-name rejection preserve
    * the existing name adapter; gl-matrix stores the native quaternion layout.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetRotation(bone, r, i, j, k)
   {
@@ -89,7 +89,7 @@ export class GrannyBoneOffset extends IInitialize
    * stored for it, and invalidates the rig binding. The existing JavaScript
    * adapter coerces truthy names to strings and rejects falsy names.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetOffset(bone, x, y, z)
   {
@@ -109,7 +109,7 @@ export class GrannyBoneOffset extends IInitialize
    * adapter defaults the count and rebuilds all slots, unlike native resize
    * which can retain unmatched slots when rebinding an unchanged size.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   BindToRig(bones, numBones = bones?.length ?? 0)
   {
@@ -125,7 +125,7 @@ export class GrannyBoneOffset extends IInitialize
    * (bone * offset)` here, and the translation is added component-wise rather
    * than transformed.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Apply(out, joint, boneMatrix, parentMatrix)
   {
@@ -149,7 +149,7 @@ export class GrannyBoneOffset extends IInitialize
    * that joint has no offset. JavaScript treats an absent/out-of-range slot
    * as unbound and uses gl-matrix decomposition and reversed composition.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ApplyToLocal(joint, rotation, position)
   {

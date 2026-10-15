@@ -1,17 +1,17 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/LineSetPaths/IEveLineSetPath.h
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { EveChildTransform } from "../EveChildTransform.js";
 
 
 /** Required line-set path contract on the shared child-transform spine. */
-@meta.define({ className: "IEveLineSetPath", family: "eve/child/lineSetPaths" })
+@blue.define("IEveLineSetPath")
 export class IEveLineSetPath extends EveChildTransform
 {
 
   /** Updates the authored line path for the current child context. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   Update(_updateContext, _params)
   {
@@ -22,7 +22,7 @@ export class IEveLineSetPath extends EveChildTransform
    * Writes instance transforms to a mutable { view: DataView, offset: bytes }
    * cursor. The cursor replaces Carbon's advancing uint8_t*&; stride is bytes.
    */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   UpdateBuffer(_renderContext, _cursor, _transform, _stride)
   {
@@ -30,7 +30,7 @@ export class IEveLineSetPath extends EveChildTransform
   }
 
   /** Regenerates the path points beneath the supplied transform. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GeneratePoints(_transform)
   {
@@ -38,7 +38,7 @@ export class IEveLineSetPath extends EveChildTransform
   }
 
   /** Returns the number of generated points in the path. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GetPointCount()
   {
@@ -46,7 +46,7 @@ export class IEveLineSetPath extends EveChildTransform
   }
 
   /** Adds this path's lines to a maintained curve-line set. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   AddLinesToSet(_lineSet, _color, _animationColor, _scrollSpeed)
   {
@@ -54,7 +54,7 @@ export class IEveLineSetPath extends EveChildTransform
   }
 
   /** Recalculates the path's bounding sphere. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   CalculateBoundingSphere(_radius = 0, _updateLines = true)
   {
@@ -62,7 +62,7 @@ export class IEveLineSetPath extends EveChildTransform
   }
 
   /** Writes the path's current bounding sphere. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GetBoundingSphere(_out)
   {
@@ -70,7 +70,7 @@ export class IEveLineSetPath extends EveChildTransform
   }
 
   /** Updates path visibility for the current frustum and LOD. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   UpdateVisibility(_frustum, _lod, _parentTransform)
   {
@@ -78,7 +78,7 @@ export class IEveLineSetPath extends EveChildTransform
   }
 
   /** Adds line-path debug controls. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GetDebugOptions(_options)
   {
@@ -86,7 +86,7 @@ export class IEveLineSetPath extends EveChildTransform
   }
 
   /** Renders line-path debug information. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   RenderDebugInfo(_renderer, _parentTransform)
   {

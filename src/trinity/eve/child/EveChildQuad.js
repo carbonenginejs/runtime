@@ -3,7 +3,7 @@ import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { quat } from "#math/quat";
 import { EveChildTransform } from "./EveChildTransform.js";
@@ -17,87 +17,87 @@ import { Tr2QuadRenderer } from "../../core/Tr2QuadRenderer/index.js";
 import { Tr2VertexDefinition } from "../../core/vertex/Tr2VertexDefinition/index.js";
 
 /** A billboard quad child that renders through the shared quad renderer's additive instance batch rather than the normal render-batch path. */
-@meta.define({ className: "EveChildQuad", family: "eve/child" })
-@meta.blue.inherit(ITr2Renderable)
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize)
+@blue.define("EveChildQuad")
+@blue.inherit(ITr2Renderable)
+@blue.inherit(IInitialize)
+@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize)
 export class EveChildQuad extends EveChildTransform
 {
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] - EveChildQuad_Blue.cpp:23 */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotation = quat.create();
 
   /** m_translation (Vector3) [READWRITE, PERSIST] - EveChildQuad_Blue.cpp:24 */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   translation = vec3.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] - EveChildQuad_Blue.cpp:25 */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_localTransform (Matrix) [READWRITE, PERSIST] (EveChildQuad_Blue.cpp:27) */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.mat4
+  @blue.readwrite
+  @blue.persist
+  @type.mat4
   localTransform = mat4.create();
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2Effect")
   effect = null;
 
   /** m_minScreenSize (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   minScreenSize = 0;
 
   /** m_brightness (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   brightness = 1;
 
   /** m_color (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.readwrite
+  @blue.persist
+  @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
   /** m_viewRotation (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   viewRotation = 0;
 
   /** m_currentScreenSize (mutable float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   currentScreenSize = -1;
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   display = true;
 
   /** m_editMode (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   editMode = false;
 
   /** m_effectKey (unsigned) - cached Tr2Effect hash used as the quad-renderer bucket key. */
@@ -131,7 +131,7 @@ export class EveChildQuad extends EveChildTransform
    * Caches the effect key and rebuilds static local transforms
    * (EveChildQuad.cpp:53-65).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -152,7 +152,7 @@ export class EveChildQuad extends EveChildTransform
   /**
    * The quad's name.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetName()
   {
@@ -162,7 +162,7 @@ export class EveChildQuad extends EveChildTransform
   /**
    * Sets the quad's name, coercing the value to a string.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -170,7 +170,7 @@ export class EveChildQuad extends EveChildTransform
   }
 
   /** Forwards to the base transform setup (EveChildQuad.cpp:82-85). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Setup(scale = null, rotation = null, translation = null, lowestLodVisible = null)
   {
@@ -178,7 +178,7 @@ export class EveChildQuad extends EveChildTransform
   }
 
   /** Registers the effect bucket with a quad renderer (EveChildQuad.cpp:87-93). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -200,7 +200,7 @@ export class EveChildQuad extends EveChildTransform
    * Adapted: Trinity packs Carbon's mixed float32/float16 record into terminal
    * bytes before direct submission to the injected renderer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AddQuadsToQuadRenderer(_frustum, quadRenderer)
   {
@@ -211,7 +211,7 @@ export class EveChildQuad extends EveChildTransform
   }
 
   /** Quads render through the quad renderer, never as renderables (EveChildQuad.cpp:103-105). */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GetRenderables(renderables = [])
   {
@@ -222,7 +222,7 @@ export class EveChildQuad extends EveChildTransform
    * Unit quad bound: sphere (0,0,0,sqrt(2)) transformed by the world transform
    * (EveChildQuad.cpp:107-112).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBoundingSphere(out = vec4.create(), _query = 0)
   {
@@ -234,7 +234,7 @@ export class EveChildQuad extends EveChildTransform
   /**
    * Always false: a quad renders only through the quad renderer, never as a transparent batch.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasTransparentBatches()
   {
@@ -242,7 +242,7 @@ export class EveChildQuad extends EveChildTransform
   }
 
   /** Carbon's batch hook is empty - quads only draw through the quad renderer (EveChildQuad.cpp:119-121). */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GetBatches(_batches, _batchType, _perObjectData, _reason)
   {
@@ -254,7 +254,7 @@ export class EveChildQuad extends EveChildTransform
    * Adapted: Carbon reads the Tr2Renderer view-position global; the relocated
    * camera state arrives via the threaded render context.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetSortValue(renderContext = null)
   {
@@ -269,7 +269,7 @@ export class EveChildQuad extends EveChildTransform
    * Edit-mode effect-key refresh (EveChildQuad.cpp:131-149): when the effect
    * hash changes the quad re-registers its renderer bucket.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateSyncronous(_updateContext, _params)
   {
@@ -299,7 +299,7 @@ export class EveChildQuad extends EveChildTransform
    * D3D-row-major / GL-column-major byte layout is the column-stride pattern
    * (m[0],m[4],m[8],m[12]) etc. - matching the Carbon Float4x3 packing rule.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateAsyncronous(_updateContext, params)
   {
@@ -322,7 +322,7 @@ export class EveChildQuad extends EveChildTransform
    * Frustum/screen-size visibility for the unit quad bound
    * (EveChildQuad.cpp:173-196).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateVisibility(updateContext, _parentTransform, _parentLod)
   {
@@ -353,7 +353,7 @@ export class EveChildQuad extends EveChildTransform
    * @param {mat4} out - receives the transform
    * @returns {mat4} out
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLocalToWorldTransform(out)
   {
@@ -361,14 +361,14 @@ export class EveChildQuad extends EveChildTransform
   }
 
   /** Carbon declares ChangeLOD inline empty (EveChildQuad.h:40). */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   ChangeLOD(_lod)
   {
   }
 
   /** Quads carry no per-object data (EveChildQuad.cpp:203-206). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPerObjectData(_accumulator)
   {
@@ -385,7 +385,7 @@ export class EveChildQuad extends EveChildTransform
    * are published as a frozen descriptor list though the draw itself is not
    * ported yet.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   static GetQuadDefinition()
   {

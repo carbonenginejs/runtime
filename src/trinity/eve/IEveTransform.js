@@ -63,4 +63,4 @@ export class IEveTransform
 }
 
 
-CjsSchema.define(IEveTransform, { className: "IEveTransform" });
+CjsSchema.blue.define(IEveTransform, { className: "IEveTransform" });

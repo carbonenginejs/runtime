@@ -19,4 +19,4 @@ export class StatusReturn
     }
 }
 
-CjsSchema.define(StatusReturn, { className: "StatusReturn", carbon: "StatusReturn", family: "tools", fields: {} });
+CjsSchema.blue.define(StatusReturn, { className: "StatusReturn", fields: {} });

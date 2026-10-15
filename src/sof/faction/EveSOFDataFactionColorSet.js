@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:177-243
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.cpp:42-52
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:10-56, 153-198
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { be, EnumRegistrationType } from "#blue";
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
@@ -66,7 +66,9 @@ const slot = (name, index) => ({ name, key: "colors", index, type: { kind: "colo
  * A faction's colour palette: `Color m_colors[TYPE_MAX]`, exposed by chooser
  * name. Declarations keep the order this class has always exported.
  */
-@meta.define({ className: "EveSOFDataFactionColorSet", family: "eve", members: [
+@blue.define({
+  className: "EveSOFDataFactionColorSet",
+  members: [
   slot("Killmark", ColorType.TYPE_KILLMARK),
   slot("PrimaryForcefield", ColorType.TYPE_PRIMARY_FORCEFIELD),
   slot("SecondaryForcefield", ColorType.TYPE_SECONDARY_FORCEFIELD),
@@ -111,7 +113,8 @@ const slot = (name, index) => ({ name, key: "colors", index, type: { kind: "colo
   slot("State3", ColorType.TYPE_STATE_3),
   slot("StateVulnerable", ColorType.TYPE_STATE_VULNERABLE),
   slot("StateInvulnerable", ColorType.TYPE_STATE_INVULNERABLE)
-] })
+]
+})
 export class EveSOFDataFactionColorSet
 {
   static ColorType = ColorType;

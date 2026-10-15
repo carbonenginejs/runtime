@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepPresentSwapChain.h
 // Source: trinity/trinity/RenderJob/TriStepPresentSwapChain.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
@@ -9,15 +9,15 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * Step that presents a swap chain, publishing the frame that the preceding steps
  * produced.
  */
-@meta.define({ className: "TriStepPresentSwapChain", family: "renderJob" })
+@blue.define("TriStepPresentSwapChain")
 export class TriStepPresentSwapChain extends TriRenderStep
 {
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2SwapChain")
+  @blue.readwrite
+  @type.rootRef("Tr2SwapChain")
   swapChain = null;
 
   /** Stores the swap chain to present. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   __init__(swapChain = null)
   {
@@ -31,7 +31,7 @@ export class TriStepPresentSwapChain extends TriRenderStep
    * 2026-09-09 this called `renderContext.PresentSwapChain(...)`, a method
    * Carbon does not have, which reached an AL present that ignored the argument.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

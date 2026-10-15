@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/Tr2EffectRes.h
 // Schema: format-carbon resources/Tr2ShaderPermutation.json; maintained by the runtime resource layer.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, type } from "#schema";
 
 /**
  * Describes one authored effect permutation and the option values a shader
@@ -34,14 +34,13 @@ export class Tr2ShaderPermutation
 // expressions are reused verbatim, so the registered metadata is identical.
 // Statics belong in `methods`: decorateMethod targets the prototype and
 // would register a static as an instance field.
-CjsSchema.define(Tr2ShaderPermutation, {
+CjsSchema.blue.define(Tr2ShaderPermutation, {
   className: "Tr2ShaderPermutation",
-  family: "resources",
   fields: {
-    name: meta.type.string,
-    options: meta.type.list("BlueSharedString"),
-    defaultOption: meta.type.uint64,
-    description: meta.type.string,
-    type: meta.type.uint8
+    name: type.string,
+    options: type.list("BlueSharedString"),
+    defaultOption: type.uint64,
+    description: type.string,
+    type: type.uint8
   }
 });

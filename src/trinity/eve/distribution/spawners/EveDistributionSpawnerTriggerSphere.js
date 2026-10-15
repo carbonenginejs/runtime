@@ -1,11 +1,11 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerTriggerSphere.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 import { vec3 } from "#math/vec3";
 
 /** Triggers pooled placements in the order reached by a timed sphere expansion. */
-@meta.define({ className: "EveDistributionSpawnerTriggerSphere", family: "eve/distribution/spawners" })
+@blue.define("EveDistributionSpawnerTriggerSphere")
 export class EveDistributionSpawnerTriggerSphere extends IEveDistributionSpawner
 {
 
@@ -16,39 +16,39 @@ export class EveDistributionSpawnerTriggerSphere extends IEveDistributionSpawner
   _currentTrigger = 0;
 
   /** m_triggerChance (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   triggerChance = 1;
 
   /** m_startSequenceAtFirstTrigger (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   startSequenceAtFirstTrigger = true;
 
   /** m_sphereOffset (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   sphereOffset = vec3.create();
 
   /** m_playDuration (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   playDuration = 1;
 
   /** m_delayBeforeActivation (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   delayBeforeActivation = 0;
 
   /** m_reverseSphereAnimation (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   reverseSphereAnimation = false;
 
   /**
@@ -56,7 +56,7 @@ export class EveDistributionSpawnerTriggerSphere extends IEveDistributionSpawner
    * normalizes those distances into the 0..1 expansion order the update walks,
    * then restarts.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Reset(placements)
   {
@@ -86,7 +86,7 @@ export class EveDistributionSpawnerTriggerSphere extends IEveDistributionSpawner
    * Rewinds the expansion to its first placement, or its last when the animation
    * is reversed, and clears the play time.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Restart()
   {
@@ -99,7 +99,7 @@ export class EveDistributionSpawnerTriggerSphere extends IEveDistributionSpawner
    * reached, each subject to triggerChance, ending once the sorted order is
    * exhausted or the play duration elapses.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateSyncronous(updateContext, _params, owner)
   {
@@ -152,7 +152,7 @@ export class EveDistributionSpawnerTriggerSphere extends IEveDistributionSpawner
   }
 
   /** Ignores controller variables; the expansion is purely time-driven. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   SetControllerVariable(_name, _value)
   {

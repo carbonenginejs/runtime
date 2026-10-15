@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2VectorFunctionModifier.h
 // Source: trinity/trinity/Tr2VectorFunctionModifier.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { ITriVectorFunction } from "#blue";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -10,34 +10,34 @@ const OFFSET_SCRATCH = vec3.create();
 const DIRECTION_SCRATCH = vec4.create();
 
 /** Wraps a position source, offsetting and scaling what it reports, optionally in view space. */
-@meta.define({ className: "Tr2VectorFunctionModifier", family: "curves" })
-@meta.blue.interface(ITriVectorFunction)
+@blue.define("Tr2VectorFunctionModifier")
+@blue.interface(ITriVectorFunction)
 export class Tr2VectorFunctionModifier extends ITriVectorFunction
 {
 
   /** m_clientBall (ITriVectorFunctionPtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("ITriVectorFunction")
+  @blue.readwrite
+  @type.rootRef("ITriVectorFunction")
   clientBall = null;
 
   /** m_offsetPosition (Vector3) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.vec3
+  @blue.readwrite
+  @type.vec3
   offsetPosition = vec3.create();
 
   /** m_scaleModifier (float) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   scaleModifier = 1;
 
   /** m_useViewSpace (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   useViewSpace = false;
 
   /** m_useSystemCoordinates (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   useSystemCoordinates = false;
 
   // Carbon Tr2VectorFunctionModifier.cpp:35-141. The modifier wraps a position
@@ -63,7 +63,7 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Float32Array} out Destination vector; defaults to shared scratch.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetOffsetPosition(renderContext = null, out = OFFSET_SCRATCH)
   {
@@ -90,7 +90,7 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Tr2RenderContext|null} renderContext Optional renderer context.
    * @returns {Float32Array} The position buffer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetTransformedPosition(inOut, renderContext = null)
   {
@@ -107,7 +107,7 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Float32Array} inOut Destination, returned unchanged.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Update(_time, inOut)
   {
@@ -121,7 +121,7 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Float32Array} inOut Destination, returned unchanged.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetValueAt(_time, inOut)
   {
@@ -135,7 +135,7 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Float32Array} inOut Destination, returned unchanged.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetValueDotAt(_time, inOut)
   {
@@ -149,7 +149,7 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Float32Array} inOut Destination, returned unchanged.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetValueDoubleDotAt(_time, inOut)
   {
@@ -236,7 +236,7 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {Float32Array|Float64Array} out Destination position.
    * @returns {Float32Array|Float64Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   InterpolatedPosition(time, out)
   {
@@ -252,7 +252,7 @@ export class Tr2VectorFunctionModifier extends ITriVectorFunction
    * @param {number} _time Unused time.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   UpdateValue(_time)
   {

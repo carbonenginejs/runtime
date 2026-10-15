@@ -40,4 +40,4 @@ export class ITr2LightOwner
 CjsSchema.decorateMethod(ITr2LightOwner, "GetLights", meta.abstract);
 CjsSchema.decorateMethod(ITr2LightOwner, "AddLight", meta.noop);
 CjsSchema.decorateMethod(ITr2LightOwner, "ClearLights", meta.noop);
-CjsSchema.define(ITr2LightOwner, { className: "ITr2LightOwner" });
+CjsSchema.blue.define(ITr2LightOwner, { className: "ITr2LightOwner" });

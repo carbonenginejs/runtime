@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetValue_Blue.cpp
 import { IsMatch } from "#blue";
 import { INotify } from "#blue/INotify";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { CjsControllerExpressionEvaluateError } from "../expression/CjsControllerExpressionEvaluateError.js";
@@ -16,57 +16,54 @@ import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
  * Controller action that evaluates a value expression once on start and writes
  * the result into a bound destination property.
  */
-@meta.define({
-  className: "Tr2ActionSetValue",
-  family: "controllers"
-})
-@meta.blue.inherit(INotify)
-@meta.blue.interface(ITr2ControllerAction, INotify)
+@blue.define("Tr2ActionSetValue")
+@blue.inherit(INotify)
+@blue.interface(ITr2ControllerAction, INotify)
 export class Tr2ActionSetValue extends ITr2ControllerAction
 {
   /** Flattened adapter storage for m_destination.m_path. */
   @meta.member("path")
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   path = "";
 
   /** Flattened adapter storage for m_destination.m_object. */
   @meta.member("destination")
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("IRoot")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("IRoot")
   destination = null;
 
   /** Flattened adapter storage for m_destination.m_attribute. */
   @meta.member("attribute")
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   attribute = "";
 
   /** m_value: expression compiled when linked or notified. */
   @meta.member("value")
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   value = "";
 
   /** m_delayBinding: delays a nonempty path binding until Start. */
   @meta.member("delayBinding")
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   delayBinding = false;
 
   /** Live native READ property; does not compile the expression. */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   @meta.implemented
   get isExpressionValid()
   {
@@ -74,8 +71,8 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
   }
 
   /** Live native READ property; does not resolve a destination. */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   @meta.implemented
   get isBindingValid()
   {
@@ -97,7 +94,7 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    * program replaces native bytecode and is retained until a value notification,
    * relink or unlink.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Link(controller)
   {
@@ -112,7 +109,7 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
   /**
    * Unlinks the destination binding.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Unlink()
   {
@@ -133,7 +130,7 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    * The existing no-argument/unlinked JavaScript convenience remains; Carbon
    * requires an invocation controller reference.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Start(controller = this._controller)
   {
@@ -160,7 +157,7 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
   /**
    * Relinks or recompiles when authored fields change.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName)
   {
@@ -180,7 +177,7 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
   /**
    * Checks whether the binding currently resolves.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsBindingValid()
   {
@@ -190,7 +187,7 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
   /**
    * Reports retained compilation validity without compiling or rebinding.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsExpressionValid()
   {
@@ -202,7 +199,7 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    * forward all four action classes carry): takes and discards the
    * attribute name. Same forward here for nominal parity.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsAttrExpressionValid(_attributeName)
   {
@@ -210,7 +207,7 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
   }
 
   /** Carbon GetDestination (Tr2ActionSetValue.cpp:81-84): the binding's bound object. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetDestination()
   {
@@ -222,7 +219,7 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    * Adapted: shared AST term records replace native evaluator term metadata;
    * a linked controller supplies its required GetExpressionTermInfo operation.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetExpressionTermInfo()
   {
@@ -244,7 +241,7 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    * @throws {CjsControllerExpressionCompileError} If parsing fails.
    * @throws {CjsControllerExpressionEvaluateError} If unlinked or evaluation fails.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   EvaluateExpression(expression)
   {
@@ -351,7 +348,7 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
   }
 
   /** Carbon LinkDestination (Tr2ActionSetValue.cpp:103-106): link against the controller's roots. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   LinkDestination(controller = this._controller)
   {
@@ -362,7 +359,7 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
    * Checks whether binding is deferred to Start, which requires both the
    * delayBinding flag and an authored path.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasDelayedBinding()
   {

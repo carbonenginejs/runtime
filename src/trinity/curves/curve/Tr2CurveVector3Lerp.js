@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveVector3Lerp.cpp
 import { vec3 } from "#math/vec3";
 import { ITriFunction, ITriVectorFunction } from "#blue";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2CurveVector3LerpKeyInterpolation } from "../enums.js";
 
 
@@ -11,62 +11,59 @@ import { Tr2CurveVector3LerpKeyInterpolation } from "../enums.js";
  * blending over the interval ending at curveStartTime with the configured start
  * interpolation.
  */
-@meta.define({
-  className: "Tr2CurveVector3Lerp",
-  family: "curves"
-})
+@blue.define("Tr2CurveVector3Lerp")
 export class Tr2CurveVector3Lerp extends ITriVectorFunction
 {
   /**
    * Authored curve label stored as native std::string.
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /**
    * Starting vector for the blend into the child curve; copied to output when no child exists.
    * @type {Float32Array}
    */
-  @meta.blue.readwrite
-  @meta.type.vec3
+  @blue.readwrite
+  @type.vec3
   initialValue = vec3.create();
 
   /**
    * Native LINEAR or HERMITE mode used during the initial blend interval.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.type.int32
-  @meta.type.enum("trinity.Tr2CurveVector3LerpKeyInterpolation")
+  @blue.readwrite
+  @type.int32
+  @type.enum("trinity.Tr2CurveVector3LerpKeyInterpolation")
   startInterpolation = Tr2CurveVector3LerpKeyInterpolation.HERMITE;
 
   /**
    * Child vector function sampled at time minus curveStartTime after the initial blend.
    * @type {ITriVectorFunction|null}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITriVectorFunction")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITriVectorFunction")
   curve = null;
 
   /**
    * Seconds subtracted from child sampling time; positive values also define the initial blend duration.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   curveStartTime = 1;
 
   /**
    * Cached vector produced by the most recent update.
    * @type {Float32Array}
    */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   currentValue = vec3.create();
 
   /**
@@ -86,7 +83,7 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateValue(time)
   {
@@ -99,7 +96,7 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * @param {Float32Array} out Destination vector.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValue(time, out)
   {
@@ -113,7 +110,7 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(time, out)
   {
@@ -128,7 +125,7 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValueAt(time, out)
   {
@@ -149,7 +146,7 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The unchanged destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GetValueDotAt(_time, out)
   {
@@ -162,7 +159,7 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The unchanged destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GetValueDoubleDotAt(_time, out)
   {
@@ -175,7 +172,7 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * @param {Float32Array|Float64Array} out Destination position.
    * @returns {Float32Array|Float64Array} The unchanged destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   InterpolatedPosition(_time, out)
   {
@@ -189,7 +186,7 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
    * @param {number} time Time in seconds.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   LerpToFirstKey(out, time)
   {
@@ -219,4 +216,4 @@ export class Tr2CurveVector3Lerp extends ITriVectorFunction
 }
 
 // Exact native exposure table; no inherited or implicit entries.
-meta.blue.interface(ITriFunction, ITriVectorFunction)(Tr2CurveVector3Lerp);
+blue.interface(ITriFunction, ITriVectorFunction)(Tr2CurveVector3Lerp);

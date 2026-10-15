@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.cpp:456-463
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:815-825
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -12,45 +12,45 @@ import { vec3 } from "#math/vec3";
  * constructor-owned vectors require no update or resource lifecycle.
  * GetTransform remains a JavaScript convenience; native stores these fields only.
  */
-@meta.define({ className: "EveSOFDataTransform", family: "eve" })
-@meta.blue.interface()
+@blue.define("EveSOFDataTransform")
+@blue.interface()
 export class EveSOFDataTransform
 {
   /**
    * Locator translation in the owning hull or bone's coordinate space; native m_position (Vector3).
    * @type {Float32Array}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   position = vec3.create();
 
   /**
    * Locator orientation quaternion (x, y, z, w); native m_rotation (Quaternion).
    * @type {Float32Array}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotation = quat.create();
 
   /**
    * Independent locator scale along each local axis; native m_scaling (Vector3).
    * @type {Float32Array}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /**
    * Owning bone index, or -1 for an unbound locator; native m_boneIndex (int32_t).
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
+  @blue.readwrite
+  @blue.persist
   @meta.ui.widget("boneindex")
-  @meta.type.int32
+  @type.int32
   boneIndex = -1;
 
   /**

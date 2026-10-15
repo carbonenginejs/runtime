@@ -2,7 +2,7 @@
 import { IsMatch, BlueList, IListNotify, INotify } from "#blue";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ITr2GenericEmitter } from "../ITr2GenericEmitter/ITr2GenericEmitter.js";
 import { ITr2GenericParticleConstraint } from "./ITr2GenericParticleConstraint.js";
@@ -11,9 +11,9 @@ import { vec4 } from "#math/vec4";
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
 
 /** A collision constraint that keeps particles on one side of a plane, reflecting velocity with elasticity, friction and noise, and triggering generators and emitters on contact. */
-@meta.define({ className: "Tr2PlaneConstraint", family: "particle" })
-@meta.blue.inherit(IInitialize, IListNotify, INotify)
-@meta.blue.interface(ITr2GenericParticleConstraint, INotify, IInitialize)
+@blue.define("Tr2PlaneConstraint")
+@blue.inherit(IInitialize, IListNotify, INotify)
+@blue.interface(ITr2GenericParticleConstraint, INotify, IInitialize)
 export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
 {
 
@@ -33,69 +33,69 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
   #radiusElement = null;
 
   /** m_affectPosition (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   affectPosition = true;
 
   /** m_affectVelocity (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   affectVelocity = true;
 
   /** m_plane (Vector4) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   plane = vec4.fromValues(0, 1, 0, 0);
 
   /** m_elasticity (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   elasticity = 1;
 
   /** m_friction (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   friction = 1;
 
   /** m_isValid (bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   isValid = false;
 
   /** m_onCollisionEmitters (PITr2GenericEmitterVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITr2GenericEmitter")
+  @blue.read
+  @blue.persist
+  @type.list("ITr2GenericEmitter")
   onCollisionEmitters = new BlueList(ITr2GenericEmitter);
 
   /** m_generators (PITr2AttributeGeneratorVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITr2AttributeGenerator")
+  @blue.read
+  @blue.persist
+  @type.list("ITr2AttributeGenerator")
   generators = [];
 
   /** m_particleRadiusComponent (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   particleRadiusComponent = "";
 
   /** m_reflectionNoise (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   reflectionNoise = 0;
 
   /** m_particleRadiusCoefficient (Vector4) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   particleRadiusCoefficient = vec4.fromValues(1, 0, 0, 0);
 
   /**
@@ -126,7 +126,7 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
   }
 
   /** Disables multithreaded updates on emitters inserted outside loading. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnListModified(event, _key, _key2, value, list)
   {

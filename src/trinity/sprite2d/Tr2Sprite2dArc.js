@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dArc.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dArc_Blue.cpp
 // Promoted to hand-maintained source 2026-10-12 from the generated property shell.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -139,57 +139,57 @@ function prepareEdgeQuad(arc, verts, current, angle, innerRadius)
  * pie, or both. Carbon builds the vertices only when dirty, in a heap buffer sized by
  * `GetVertexCount`, and draws them with its own index list.
  */
-@meta.define({ className: "Tr2Sprite2dArc", family: "sprite2d", purpose: "Defines a filled or outlined 2D arc with angular span, radius, colors, widths, and primary and secondary textures." })
-@meta.blue.chainTo(Tr2SpriteObject)
+@blue.define({ className: "Tr2Sprite2dArc", purpose: "Defines a filled or outlined 2D arc with angular span, radius, colors, widths, and primary and secondary textures." })
+@blue.chainTo(Tr2SpriteObject)
 export class Tr2Sprite2dArc extends Tr2SpriteObject
 {
 
   /** m_radius (float) [READWRITE, NOTIFY]. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   radius = 0;
 
   /** m_lineWidth (float) [READWRITE, NOTIFY]: width of the outline; 0 or less draws none. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   lineWidth = 1;
 
   /** m_lineColor (Color) [READWRITE, NOTIFY]: colour of the outline. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.color
+  @blue.notify
+  @blue.readwrite
+  @type.color
   lineColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_startAngle (float) [READWRITE, NOTIFY]: start angle in radians. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   startAngle = 0;
 
   /** m_endAngle (float) [READWRITE, NOTIFY]: end angle in radians. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   endAngle = 0;
 
   /** m_fill (bool) [READWRITE, NOTIFY]: whether the arc is filled; otherwise only the line is drawn. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @type.boolean
   fill = false;
 
   /** m_texturePrimary (ITr2Sprite2dTexturePtr) [READWRITE, NOTIFY]. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.rootRef("ITr2Sprite2dTexture")
+  @blue.notify
+  @blue.readwrite
+  @type.rootRef("ITr2Sprite2dTexture")
   texturePrimary = null;
 
   /** m_textureSecondary (ITr2Sprite2dTexturePtr) [READWRITE, NOTIFY]. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.rootRef("ITr2Sprite2dTexture")
+  @blue.notify
+  @blue.readwrite
+  @type.rootRef("ITr2Sprite2dTexture")
   textureSecondary = null;
 
   /** Carbon m_renderVertices: prepared vertices, or null when cleared. @type {Tr2Sprite2dD3DVertex[]|null} */

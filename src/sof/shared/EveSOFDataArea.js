@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:352-383
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:113-145
-import { meta } from "#schema";
+import { blue } from "#schema";
 import { be, EnumRegistrationType } from "#blue";
 
 /**
@@ -33,7 +33,9 @@ const slot = (name, index) => ({ name, key: "materials", index, type: { kind: "r
  * exposed by chooser name. TYPE_WRECK has no exposed slot, so it is never
  * read or written and stays null. Native IRoot-only data with no lifecycle.
  */
-@meta.define({ className: "EveSOFDataArea", family: "eve", members: [
+@blue.define({
+  className: "EveSOFDataArea",
+  members: [
   slot("Primary", AreaType.TYPE_PRIMARY),
   slot("Glass", AreaType.TYPE_GLASS),
   slot("Sails", AreaType.TYPE_SAILS),
@@ -44,8 +46,9 @@ const slot = (name, index) => ({ name, key: "materials", index, type: { kind: "r
   slot("Ornament", AreaType.TYPE_ORNAMENT),
   slot("SimplePrimary", AreaType.TYPE_SIMPLEPRIMARY),
   slot("Turret", AreaType.TYPE_TURRET)
-] })
-@meta.blue.interface()
+]
+})
+@blue.interface()
 export class EveSOFDataArea
 {
   static AreaType = AreaType;

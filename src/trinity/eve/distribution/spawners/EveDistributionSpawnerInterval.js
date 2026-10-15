@@ -1,10 +1,10 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerInterval.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 
 /** Spawns distribution entities at configurable, optionally randomized intervals for a bounded or unlimited repeat count. */
-@meta.define({ className: "EveDistributionSpawnerInterval", family: "eve/distribution/spawners" })
+@blue.define("EveDistributionSpawnerInterval")
 export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
 {
 
@@ -13,37 +13,37 @@ export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
   _numTriggered = 0;
 
   /** m_delayBetweenRepeats (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   delayBetweenRepeats = 1;
 
   /** m_numberOfTriggers (uint32_t) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   numberOfRepeats = 0;
 
   /** m_useRandomStartOffset (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   useRandomStartOffset = true;
 
   /** m_maxRandomizedIntervalDelta (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   maxRandomizedIntervalDelta = 0;
 
   /** m_delayBeforeInitialSpawn (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   delayBeforeInitialSpawn = 0;
 
   /** Restarts the interval timer; the placement pool is not used by this spawner. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Reset(_placements)
   {
@@ -55,7 +55,7 @@ export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
    * random point inside one interval and backing the timer off by the initial
    * spawn delay.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Restart()
   {
@@ -69,7 +69,7 @@ export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
    * numberOfRepeats (unlimited when it is zero), reseeding the timer with a
    * randomized interval delta.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateSyncronous(updateContext, _params, owner)
   {
@@ -89,7 +89,7 @@ export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
   }
 
   /** Ignores controller variables; the interval is purely time-driven. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetControllerVariable(_name, _value)
   {

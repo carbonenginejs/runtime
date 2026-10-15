@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSpawnParticles.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSpawnParticles_Blue.cpp
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmitter/index.js";
 
 
@@ -10,28 +10,25 @@ import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmi
  * Controller action that emits a one-shot burst of particles from a dynamic
  * emitter when it starts.
  */
-@meta.define({
-  className: "Tr2ActionSpawnParticles",
-  family: "controllers"
-})
+@blue.define("Tr2ActionSpawnParticles")
 export class Tr2ActionSpawnParticles extends ITr2ControllerAction
 {
   /**
    * Dynamic emitter receiving the one-shot SpawnParticles request.
    * @type {Tr2DynamicEmitter|null}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2DynamicEmitter")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2DynamicEmitter")
   emitter = null;
 
   /**
    * Float multiplier applied to the emitter's rate for this Start, with emitCountFactor set to one.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   rate = 1;
 
   /**
@@ -39,7 +36,7 @@ export class Tr2ActionSpawnParticles extends ITr2ControllerAction
    * Adapted: a fresh JavaScript update-arguments object represents the native
    * temporary value; the emitter owns all particle allocation and algorithms.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Start(_controller)
   {
@@ -65,4 +62,4 @@ export class Tr2ActionSpawnParticles extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionSpawnParticles_Blue.cpp:12-13,17).
-meta.blue.interface(ITr2ControllerAction)(Tr2ActionSpawnParticles);
+blue.interface(ITr2ControllerAction)(Tr2ActionSpawnParticles);

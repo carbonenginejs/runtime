@@ -25,6 +25,7 @@ export class IListNotify
 
 CjsSchema.decorateMethod(IListNotify, "OnListModified", meta.requires, meta.abstract);
 
-CjsSchema.define(IListNotify, {
-  className: "IListNotify", carbon: "IListNotify", family: "blue", fields: {}
+CjsSchema.blue.define(IListNotify, {
+  className: "IListNotify",
+  fields: {}
 });

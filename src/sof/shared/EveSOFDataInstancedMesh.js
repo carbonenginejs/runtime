@@ -1,59 +1,59 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import "#consts/trinity";
-import { meta } from "#schema";
+import { type, blue } from "#schema";
 import { be, EnumRegistrationType } from "#blue";
 import { Tr2Lod } from "#consts/trinity";
 
 /** Defines instanced-mesh geometry, shader, display and LOD policy, textures, and instance transforms. */
-@meta.define({ className: "EveSOFDataInstancedMesh", family: "eve" })
+@blue.define("EveSOFDataInstancedMesh")
 export class EveSOFDataInstancedMesh
 {
   static Tr2Lod = Tr2Lod;
 
 
   /** m_displayModifier (DisplayQualityModifier - enum DisplayQualityModifier) [READWRITE, PERSIST, ENUM] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.EveSOFDataInstancedMesh.DisplayQualityModifier")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.EveSOFDataInstancedMesh.DisplayQualityModifier")
   displayModifier = 5;
 
   /** m_instances (PEveSofDataMeshInstanceStructureList) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.structList("EveSofDataMeshInstance")
+  @blue.read
+  @blue.persist
+  @type.structList("EveSofDataMeshInstance")
   instances = [];
 
   /** m_textures (PEveSOFDataTextureVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataTexture")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataTexture")
   textures = [];
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_lowestLodVisible (Tr2Lod - enum Tr2Lod) [READWRITE, PERSIST, ENUM] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.Tr2Lod")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.Tr2Lod")
   lowestLodVisible = 0;
 
   /** m_geometryResPath (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.path("TriGeometryRes")
+  @blue.readwrite
+  @blue.persist
+  @type.path("TriGeometryRes")
   geometryResPath = "";
 
   /** m_shader (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   shader = "";
 
   static DisplayQualityModifier = {

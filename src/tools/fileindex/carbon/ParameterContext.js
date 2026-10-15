@@ -26,5 +26,5 @@ export class ParameterContext
     }
 }
 
-CjsSchema.define(ParameterContext, { className: "ParameterContext", carbon: "ParameterContext", family: "tools", fields: {} });
+CjsSchema.blue.define(ParameterContext, { className: "ParameterContext", fields: {} });
 

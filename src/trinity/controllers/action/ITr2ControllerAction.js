@@ -186,4 +186,4 @@ export class ITr2ControllerAction
 
 
 for (const name of ACTION_DEFAULTS) CjsSchema.decorateMethod(ITr2ControllerAction, name, meta.implemented);
-CjsSchema.define(ITr2ControllerAction, { className: "ITr2ControllerAction" });
+CjsSchema.blue.define(ITr2ControllerAction, { className: "ITr2ControllerAction" });

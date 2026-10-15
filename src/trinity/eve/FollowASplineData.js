@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline.h
-import { meta } from "#schema";
+import { type, blue } from "#schema";
 
 
 /**
@@ -8,15 +8,12 @@ import { meta } from "#schema";
  * behaviour allocates one record per agent and rewrites it on every behaviour
  * update.
  */
-@meta.define({
-  className: "FollowASplineData",
-  family: "eve/child/behaviors"
-})
+@blue.define("FollowASplineData")
 export class FollowASplineData
 {
-  @meta.type.int32
+  @type.int32
   tunnelLock = -1;
 
-  @meta.type.int32
+  @type.int32
   tunnelPoint = 0;
 }

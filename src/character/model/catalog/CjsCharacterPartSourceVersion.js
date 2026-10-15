@@ -1,4 +1,4 @@
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /**
  * One self-contained resource-version inventory with effective metadata and exact candidates.
@@ -8,38 +8,38 @@ import { meta } from "#schema";
  * candidates. Producers must materialize them, and the resolver never merges
  * version records.
  */
-@meta.define({ className: "CjsCharacterPartSourceVersion", family: "character" })
+@meta.define("CjsCharacterPartSourceVersion")
 export class CjsCharacterPartSourceVersion
 {
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     resourceVersion = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.rootRef("CjsCharacterPartMetadata")
+    @blue.readwrite
+    @blue.persist
+    @type.rootRef("CjsCharacterPartMetadata")
     metadata = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("string")
+    @blue.readwrite
+    @blue.persist
+    @type.list("string")
     configurationCandidates = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("string")
+    @blue.readwrite
+    @blue.persist
+    @type.list("string")
     geometryCandidates = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("CjsCharacterPartModelBundle")
+    @blue.readwrite
+    @blue.persist
+    @type.list("CjsCharacterPartModelBundle")
     modelBundles = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("string")
+    @blue.readwrite
+    @blue.persist
+    @type.list("string")
     textureCandidates = [];
 
 }

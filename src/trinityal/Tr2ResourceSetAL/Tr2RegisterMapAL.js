@@ -1,12 +1,12 @@
 // Source: trinity/trinityal/include/Tr2ResourceSetAL.h:23
 // Source: trinity/trinityal/src/Tr2ResourceSetAL.cpp:27-144
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { ShaderType } from "#consts/render-context";
 
 export const MAX_RESOURCES_IN_STAGE = 32;
 
 /** Stage/register to dense resource index, with counts spanning all stages. */
-@meta.define({ className: "Tr2RegisterMapAL", family: "trinityal" })
+@blue.define("Tr2RegisterMapAL")
 export class Tr2RegisterMapAL
 {
   static MAX_RESOURCES_IN_STAGE = MAX_RESOURCES_IN_STAGE;

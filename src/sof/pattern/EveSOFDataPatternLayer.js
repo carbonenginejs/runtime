@@ -1,10 +1,10 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { type, blue } from "#schema";
 import { be, EnumRegistrationType } from "#blue";
 
 /** Defines a pattern layer's texture, material source, UV modes and slots, and helpers that populate textures and custom masks. */
-@meta.define({ className: "EveSOFDataPatternLayer", family: "eve" })
+@blue.define("EveSOFDataPatternLayer")
 export class EveSOFDataPatternLayer
 {
 
@@ -26,60 +26,60 @@ export class EveSOFDataPatternLayer
   static EMPTY_TEXTURE_RES_FILE_PATH = "";
 
   /** m_materialSource (MaterialSource - enum MaterialSource) [READWRITE, PERSIST, ENUM] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.EveSOFDataPatternLayer.MaterialSource")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.EveSOFDataPatternLayer.MaterialSource")
   materialSource = 0;
 
   /** m_projectionTypeU (ProjectionType - enum ProjectionType) [READWRITE, PERSIST, ENUM] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.EveSOFDataPatternLayer.ProjectionType")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.EveSOFDataPatternLayer.ProjectionType")
   projectionTypeU = 0;
 
   /** m_projectionTypeV (ProjectionType - enum ProjectionType) [READWRITE, PERSIST, ENUM] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.EveSOFDataPatternLayer.ProjectionType")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.EveSOFDataPatternLayer.ProjectionType")
   projectionTypeV = 0;
 
   /** m_textureName (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   textureName = "";
 
   /** m_textureResFilePath (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.path("TriTextureRes")
+  @blue.readwrite
+  @blue.persist
+  @type.path("TriTextureRes")
   textureResFilePath = "";
 
   /** m_isTargetMtl1 (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   isTargetMtl1 = true;
 
   /** m_isTargetMtl2 (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   isTargetMtl2 = true;
 
   /** m_isTargetMtl3 (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   isTargetMtl3 = true;
 
   /** m_isTargetMtl4 (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   isTargetMtl4 = true;
 
   /** Creates a pattern layer associated with the supplied texture parameter name. */

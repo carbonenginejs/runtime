@@ -152,4 +152,4 @@ export class ITr2ActionController extends ITr2Controller
 
 
 
-CjsSchema.define(ITr2ActionController, { className: "ITr2ActionController" });
+CjsSchema.blue.define(ITr2ActionController, { className: "ITr2ActionController" });

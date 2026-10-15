@@ -3,7 +3,7 @@ import "#blue/values";
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 // Source: trinity/trinity/Shader/Tr2EffectDescription.cpp
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { Tr2EffectParameterAnnotation } from "./Tr2EffectParameterAnnotation.js";
 import { Tr2EffectTechnique } from "./Tr2EffectTechnique.js";
 import { recordText, toRecordText } from "./carbonRecordFields.js";
@@ -131,11 +131,10 @@ export class Tr2EffectDescription
 // expressions are reused verbatim, so the registered metadata is identical.
 // Statics belong in `methods`: decorateMethod targets the prototype and
 // would register a static as an instance field.
-CjsSchema.define(Tr2EffectDescription, {
+CjsSchema.blue.define(Tr2EffectDescription, {
   className: "Tr2EffectDescription",
-  family: "shader",
   fields: {
-    techniques: meta.type.list("Tr2EffectTechnique"),
-    annotations: meta.type.map("Tr2EffectParameterAnnotationMap")
+    techniques: type.list("Tr2EffectTechnique"),
+    annotations: type.map("Tr2EffectParameterAnnotationMap")
   }
 });

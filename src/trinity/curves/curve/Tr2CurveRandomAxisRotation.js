@@ -4,7 +4,7 @@
 import { random } from "#math/random";
 import { fromYawPitchRoll, quat } from "#math/quat";
 import { ITriQuaternionFunction, ITriFunction, IInitialize } from "#blue";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { CcpTime } from "#blue";
 
 
@@ -13,35 +13,32 @@ import { CcpTime } from "#blue";
  * seconds about an axis fixed by two seed-derived random rotations applied
  * before and after the spin.
  */
-@meta.define({
-  className: "Tr2CurveRandomAxisRotation",
-  family: "curves"
-})
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(ITriFunction, ITriQuaternionFunction)
+@blue.define("Tr2CurveRandomAxisRotation")
+@blue.inherit(IInitialize)
+@blue.interface(ITriFunction, ITriQuaternionFunction)
 export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
 {
   /** Authored narrow-string name. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** Full rotation period in seconds; zero disables the middle spin. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   period = 1;
 
   /** Native PERSISTONLY seed storage; readers bypass the live setter. */
   @meta.member("seed")
-  @meta.blue.persistOnly
-  @meta.type.uint32
+  @blue.persistOnly
+  @type.uint32
   _seed = 0;
 
   /** Live Blue seed property, separate from persisted backing storage. */
-  @meta.blue.readwrite
-  @meta.type.uint32
+  @blue.readwrite
+  @type.uint32
   @meta.implemented
   get seed()
   {
@@ -56,8 +53,8 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
   }
 
   /** Cached quaternion; exposed read-only without persistence. */
-  @meta.blue.read
-  @meta.type.quat
+  @blue.read
+  @type.quat
   currentValue = quat.create();
 
   /**
@@ -90,7 +87,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {number} time Source time in seconds.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateValue(time)
   {
@@ -106,7 +103,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(time, out)
   {
@@ -123,7 +120,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValueAt(time, out)
   {
@@ -175,7 +172,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The unchanged output buffer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GetValueDotAt(_time, out)
   {
@@ -189,7 +186,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The unchanged output buffer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GetValueDoubleDotAt(_time, out)
   {
@@ -204,7 +201,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValue(time, out)
   {
@@ -242,7 +239,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    *
    * @returns {boolean} True.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -258,7 +255,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    *
    * @returns {number} Unsigned 32-bit seed.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetSeed()
   {
@@ -273,7 +270,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    * @param {number} seed Unsigned 32-bit seed.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetSeed(seed)
   {
@@ -289,7 +286,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
    *
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SeedChanged()
   {

@@ -4,7 +4,7 @@ import { ccpHashFnv1 } from "#utils";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDataMgr.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDataMgr.cpp
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDataMgr_Blue.cpp
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { BeObjectMetadata } from "#blue";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -28,8 +28,8 @@ const LOGO_KEYS = Object.freeze(["Primary", "Secondary", "Tertiary", "Marking_01
  * Carbon declares its many projection records as nested C++ structs. They are
  * plain JavaScript records here; they are not persisted fields on the manager.
  */
-@meta.define({ className: "EveSOFDataMgr", family: "eve" })
-@meta.blue.interface()
+@blue.define("EveSOFDataMgr")
+@blue.interface()
 export class EveSOFDataMgr
 {
 
@@ -72,7 +72,7 @@ export class EveSOFDataMgr
   }
 
   /** Loads an EveSOFData graph through the configured synchronous loader. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   LoadData(filePath)
   {
@@ -107,7 +107,7 @@ export class EveSOFDataMgr
   }
 
   /** Rebuilds the manager's lookup tables from a hydrated EveSOFData graph. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetData(data)
   {
@@ -127,7 +127,7 @@ export class EveSOFDataMgr
   }
 
   /** Tests the exact hull key in the manager's normalized projection table. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasHullData(name)
   {
@@ -138,7 +138,7 @@ export class EveSOFDataMgr
    * Returns the normalized hull projection for an exact key, or null when
    * absent.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetHullData(name)
   {
@@ -146,7 +146,7 @@ export class EveSOFDataMgr
   }
 
   /** Tests the exact faction key in the manager's normalized projection table. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasFactionData(name)
   {
@@ -157,7 +157,7 @@ export class EveSOFDataMgr
    * Returns the normalized faction projection for an exact key, or null when
    * absent.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetFactionData(name)
   {
@@ -165,7 +165,7 @@ export class EveSOFDataMgr
   }
 
   /** Tests the exact race key in the manager's normalized projection table. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasRaceData(name)
   {
@@ -176,7 +176,7 @@ export class EveSOFDataMgr
    * Returns the normalized race projection for an exact key, or null when
    * absent.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetRaceData(name)
   {
@@ -184,7 +184,7 @@ export class EveSOFDataMgr
   }
 
   /** Tests the exact material key in the manager's normalized projection table. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasMaterialData(name)
   {
@@ -195,7 +195,7 @@ export class EveSOFDataMgr
    * Returns the normalized material projection for an exact key, or null when
    * absent.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetMaterialData(name)
   {
@@ -203,7 +203,7 @@ export class EveSOFDataMgr
   }
 
   /** Tests the exact pattern key in the manager's normalized projection table. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasPatternData(name)
   {
@@ -214,7 +214,7 @@ export class EveSOFDataMgr
    * Returns the normalized pattern projection for an exact key, or null when
    * absent.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPatternData(name)
   {
@@ -222,7 +222,7 @@ export class EveSOFDataMgr
   }
 
   /** Tests the exact layout key in the manager's normalized projection table. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasLayoutData(name)
   {
@@ -230,7 +230,7 @@ export class EveSOFDataMgr
   }
 
   /** Carbon's GetLayoutData( name ) (EveSOFDataMgr.cpp:321): one layout, or null. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLayoutData(name)
   {
@@ -260,7 +260,7 @@ export class EveSOFDataMgr
    * Exposes the current normalized generic projection used by DNA and SOF
    * assembly.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetGenericData()
   {
@@ -368,7 +368,7 @@ export class EveSOFDataMgr
    * Normalizes a supplied hull graph and stores its projection under the
    * requested key.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateHull(name, value)
   {
@@ -414,7 +414,7 @@ export class EveSOFDataMgr
    * Normalizes a supplied faction graph and stores its projection under the
    * requested key.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateFaction(name, value)
   {
@@ -425,7 +425,7 @@ export class EveSOFDataMgr
    * Normalizes a supplied race graph and stores its projection under the
    * requested key.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateRace(name, value)
   {
@@ -436,7 +436,7 @@ export class EveSOFDataMgr
    * Normalizes a supplied material graph and stores its projection under the
    * requested key.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateMaterial(name, value)
   {
@@ -447,7 +447,7 @@ export class EveSOFDataMgr
    * Rejects a missing value, otherwise normalizes and replaces the keyed pattern
    * projection.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdatePattern(name, value)
   {
@@ -459,7 +459,7 @@ export class EveSOFDataMgr
    * Rejects a missing value, otherwise normalizes and replaces the keyed layout
    * projection.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateLayout(name, value)
   {
@@ -471,7 +471,7 @@ export class EveSOFDataMgr
    * Rejects a missing value, otherwise replaces the manager's normalized generic
    * projection.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateGeneric(value)
   {

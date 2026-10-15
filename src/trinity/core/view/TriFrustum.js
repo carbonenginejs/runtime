@@ -9,7 +9,7 @@
 // are omitted. Matrix element mapping: Carbon row-major _rc lands at flat
 // index (r-1)*4+(c-1), which is the SAME flat index in the shared gl-matrix
 // byte layout, so every _rc below is ported as m[(r-1)*4+(c-1)] unchanged.
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -49,7 +49,7 @@ export function PlaneDotNormal(plane, v)
  * from a composed view*projection matrix, plus the cached projection data used
  * for on-screen pixel-coverage estimates.
  */
-@meta.define({ className: "TriFrustum", family: "trinityCore" })
+@blue.define("TriFrustum")
 export class TriFrustum
 {
   /** m_planes[PLANE_COUNT] - normalized world-space planes (a, b, c, d). */

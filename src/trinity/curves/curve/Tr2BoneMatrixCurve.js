@@ -5,7 +5,7 @@
 import { mat4 } from "#math/mat4";
 import { isArrayLike } from "#utils/is";
 import { ITriFunction, ITriCurveLength, IInitialize } from "#blue";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2MatrixKey } from "../key/Tr2MatrixKey.js";
 
 
@@ -17,12 +17,9 @@ const SPHERICAL_LINEAR = 4;
  * authored transform composed with that bone's current matrix and the object's
  * world transform rather than sampling its own keys.
  */
-@meta.define({
-  className: "Tr2BoneMatrixCurve",
-  family: "curves"
-})
-@meta.blue.inherit(IInitialize, ITriCurveLength)
-@meta.blue.interface(ITriFunction, IInitialize, ITriCurveLength)
+@blue.define("Tr2BoneMatrixCurve")
+@blue.inherit(IInitialize, ITriCurveLength)
+@blue.interface(ITriFunction, IInitialize, ITriCurveLength)
 export class Tr2BoneMatrixCurve extends ITriFunction
 {
   /**
@@ -41,92 +38,92 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * Native curve-template name identifying this bone-matrix function (std::string m_name).
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /**
    * Authored duration in seconds used by endpoint sampling and key sorting (native float m_length).
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   length = 1;
 
   /**
    * Native repetition flag; sampling past length continues tracking the bone when enabled.
    * @type {boolean}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   cycle = true;
 
   /**
    * Native reverse flag; noncycling samples past length select startValue when enabled.
    * @type {boolean}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   reversed = false;
 
   /**
    * Initial matrix returned for nonpositive sample time or duration (native Matrix m_startValue).
    * @type {Float32Array}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.mat4
+  @blue.readwrite
+  @blue.persist
+  @type.mat4
   startValue = mat4.create();
 
   /**
    * Matrix cached by the last UpdateValue call (native Matrix m_currentValue).
    * @type {Float32Array}
    */
-  @meta.blue.read
-  @meta.type.mat4
+  @blue.read
+  @type.mat4
   currentValue = mat4.create();
 
   /**
    * Final matrix returned past the duration of a noncycling forward curve (native Matrix m_endValue).
    * @type {Float32Array}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.mat4
+  @blue.readwrite
+  @blue.persist
+  @type.mat4
   endValue = mat4.create();
 
   /**
    * Source of the tracked bone matrix and world transform (native Tr2SkinnedObjectPtr).
    * @type {Tr2SkinnedObject|null}
    */
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2SkinnedObject")
+  @blue.readwrite
+  @type.rootRef("Tr2SkinnedObject")
   skinnedObject = null;
 
   /**
    * Persisted matrix-key sequence retained for editing and endpoint rollover; bone tracking ignores key interpolation.
    * @type {Tr2MatrixKey[]}
    */
-  @meta.blue.persistOnly
-  @meta.type.list("Tr2MatrixKey")
+  @blue.persistOnly
+  @type.list("Tr2MatrixKey")
   keys = [];
 
   /**
    * Additional transform applied in bone-local space before the bone and world transforms (native Matrix m_transform).
    * @type {Float32Array}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.mat4
+  @blue.readwrite
+  @blue.persist
+  @type.mat4
   transform = mat4.create();
 
   /** Native live bone property; setting it uses the retained name lookup adapter. */
-  @meta.blue.readwrite
-  @meta.type.string
+  @blue.readwrite
+  @type.string
   get bone()
   {
     return this.GetBone();
@@ -156,7 +153,7 @@ export class Tr2BoneMatrixCurve extends ITriFunction
   _skeletonTag = 0xffffffff;
 
   /** Gets the native curve template's name. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetName()
   {
@@ -164,7 +161,7 @@ export class Tr2BoneMatrixCurve extends ITriFunction
   }
 
   /** Sets the native curve template's name. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetName(value)
   {
@@ -175,7 +172,7 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * Initializes sorted keys and cached value.
    * Adapted: native Initialize only sorts; the existing JS adapter also samples zero.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -188,7 +185,7 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * Gets authored duration.
    * Adapted: retains the JS last-key fallback when authored length is zero.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Length()
   {
@@ -200,7 +197,7 @@ export class Tr2BoneMatrixCurve extends ITriFunction
   /**
    * Updates cached matrix value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateValue(time)
   {
@@ -211,7 +208,7 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * Gets matrix value at a time.
    * Adapted: the matrix is written into out rather than returned by value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValueAt(time, out)
   {
@@ -228,7 +225,7 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * Gets matrix value at a time.
    * Adapted: the matrix is written into out rather than returned by value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValue(time, out)
   {
@@ -238,7 +235,7 @@ export class Tr2BoneMatrixCurve extends ITriFunction
   /**
    * Sorts keys by time.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Sort()
   {
@@ -264,7 +261,7 @@ export class Tr2BoneMatrixCurve extends ITriFunction
    * Adds a matrix key.
    * Adapted: retains the JS direct key insertion and endpoint rollover helper.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AddKey(time, value = null)
   {
@@ -289,7 +286,7 @@ export class Tr2BoneMatrixCurve extends ITriFunction
   }
 
   /** Gets the number of matrix keys. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetKeyCount()
   {
@@ -297,7 +294,7 @@ export class Tr2BoneMatrixCurve extends ITriFunction
   }
 
   /** Gets a key time, or the curve length when the index is out of range. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetKeyTime(index)
   {
@@ -305,7 +302,7 @@ export class Tr2BoneMatrixCurve extends ITriFunction
   }
 
   /** Sets a key time without reordering; Carbon requires an explicit Sort call. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetKeyTime(index, time)
   {
@@ -316,7 +313,7 @@ export class Tr2BoneMatrixCurve extends ITriFunction
   }
 
   /** Adapted: returns a detached matrix rather than the native const reference. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetKeyValue(index)
   {
@@ -324,7 +321,7 @@ export class Tr2BoneMatrixCurve extends ITriFunction
   }
 
   /** Adapted: validates and copies caller matrices into existing key storage. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetKeyValue(index, value)
   {
@@ -339,7 +336,7 @@ export class Tr2BoneMatrixCurve extends ITriFunction
   }
 
   /** Gets a key interpolation, or Carbon's spherical-linear curve default. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetKeyInterpolation(index)
   {
@@ -350,7 +347,7 @@ export class Tr2BoneMatrixCurve extends ITriFunction
   }
 
   /** Sets the unpersisted interpolation mode on an existing matrix key. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetKeyInterpolation(index, interpolation)
   {
@@ -364,7 +361,7 @@ export class Tr2BoneMatrixCurve extends ITriFunction
   /**
    * Removes a matrix key.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RemoveKey(index)
   {
@@ -377,7 +374,7 @@ export class Tr2BoneMatrixCurve extends ITriFunction
   }
 
   /** Carbon SetBone (Tr2BoneMatrixCurve.cpp:51-55): the bone name, and the joint caches reset. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetBone(bone)
   {
@@ -388,7 +385,7 @@ export class Tr2BoneMatrixCurve extends ITriFunction
   /**
    * Gets the source bone name.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBone()
   {

@@ -2,41 +2,41 @@
 import { IsMatch } from "#blue";
 import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { EveChildRef } from "../../../../eve/child/EveChildRef.js";
 
 /** EveProceduralMethodRandomParameter (eve/child/procedural/selection) - generated from schema shapeHash 8b32e583.... */
-@meta.define({ className: "EveProceduralMethodRandomParameter", family: "eve/child/procedural/selection" })
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(IInitialize)
+@blue.define("EveProceduralMethodRandomParameter")
+@blue.inherit(IInitialize)
+@blue.interface(IInitialize)
 export class EveProceduralMethodRandomParameter
 {
 
   _modified = false;
 
   /** m_child (EveChildRefPtr) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveChildRef")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("EveChildRef")
   child = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_weighting (int) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.int32
   weighting = 1;
 
   /** Carbon EveProceduralMethodRandomParameter::Initialize (cpp:26-33):
    * lazily create the child ref. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -53,7 +53,7 @@ export class EveProceduralMethodRandomParameter
    * assignment blocks its auto-load. The value argument follows the repo's
    * OnModified duck.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(value = null)
   {
@@ -75,7 +75,7 @@ export class EveProceduralMethodRandomParameter
   }
 
   /** Carbon method GetName (cpp:16-19). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetName()
   {
@@ -83,7 +83,7 @@ export class EveProceduralMethodRandomParameter
   }
 
   /** Carbon method SetName (cpp:21-24). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -91,7 +91,7 @@ export class EveProceduralMethodRandomParameter
   }
 
   /** Carbon method SetModified (cpp:54-57). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetModified(isModified)
   {
@@ -99,7 +99,7 @@ export class EveProceduralMethodRandomParameter
   }
 
   /** Carbon method IsModified (cpp:59-62). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsModified()
   {
@@ -107,7 +107,7 @@ export class EveProceduralMethodRandomParameter
   }
 
   /** Carbon method GetWeighting (cpp:64-67). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetWeighting()
   {
@@ -115,7 +115,7 @@ export class EveProceduralMethodRandomParameter
   }
 
   /** Carbon method GetChild (cpp:69-72). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetChild()
   {
@@ -124,7 +124,7 @@ export class EveProceduralMethodRandomParameter
 
   /** Carbon EveProceduralMethodRandomParameter::Load (cpp:74-80): one-line
    * bypass-blocker reload delegate. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Load()
   {

@@ -18,7 +18,7 @@ import { SofValuesBuilder } from "./SofValuesBuilder.js";
  * Complex layouts retain full-values comparison.
  * Live objects and unrelated state are retained; incompatible targets rebuild.
  */
-@meta.define({ className: "CjsSOFUpdater", family: "sof" })
+@meta.define("CjsSOFUpdater")
 export class CjsSOFUpdater
 {
   /** The caller's factory, including its catalog, resource resolvers and options. */

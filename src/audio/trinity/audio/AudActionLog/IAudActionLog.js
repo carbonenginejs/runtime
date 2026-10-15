@@ -1,12 +1,12 @@
 // Source: audio/src/AudActionLog.h
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 /** Required logging contract consumed by AudManager. */
-@meta.define({ className: "IAudActionLog", family: "audio" })
+@blue.define("IAudActionLog")
 export class IAudActionLog
 {
   /** Records an event post. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   LogPostEvent(emitterID, playID, eventID, name)
   {
@@ -14,7 +14,7 @@ export class IAudActionLog
   }
 
   /** Records an action applied to a playing event. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   LogExecuteActionOnPlayingID(emitterID, playID, action)
   {
@@ -22,7 +22,7 @@ export class IAudActionLog
   }
 
   /** Records an emitter switch change. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   LogSetSwitch(emitterID, group, state)
   {
@@ -30,7 +30,7 @@ export class IAudActionLog
   }
 
   /** Records a global state change. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   LogSetState(group, state)
   {
@@ -38,7 +38,7 @@ export class IAudActionLog
   }
 
   /** Records a real-time parameter change. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   LogSetRTPC(emitterID, name, value, playID = 0)
   {
@@ -46,7 +46,7 @@ export class IAudActionLog
   }
 
   /** Delivers pending records. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   Flush()
   {

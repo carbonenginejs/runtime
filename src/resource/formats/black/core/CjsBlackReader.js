@@ -1,4 +1,4 @@
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, blue } from "#schema";
 import { applyReaderMember, finalizeReaderObject, getReaderMemberValue, isReaderIList } from "#schema/hydration";
 
 import { CjsBlueReader } from "../../../format/CjsBlueReader.js";
@@ -1074,4 +1074,4 @@ function WithClassStructure(field, className, fieldName)
 // OnSelected bodies (IBlueObjectBuilder.h:19-22). CreateObjectWithYield and
 // GetErrorMessage are not implemented here and stay the interface's throwing
 // obligations: this reader throws from CreateObject rather than returning null.
-meta.blue.inherit(IBlueObjectBuilder)(CjsBlackReader, { kind: "class" });
+blue.inherit(IBlueObjectBuilder)(CjsBlackReader, { kind: "class" });

@@ -14,7 +14,7 @@
 //   pointer as a `WeakRef`, and runs no code when the last reference goes. So
 //   the two sets are keyed by each texture's `_selfRef`, and
 //   `_ReclaimCollectedTextures` (ours) returns what a collected texture held.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import {
   PixelFormat,
@@ -253,45 +253,45 @@ function CopyToTexture(bitmap, texture, x, y, margin, renderContext)
  * do not fit become "outsiders" with their own AL texture and are pulled in when
  * space opens.
  */
-@meta.define({ className: "Tr2TextureAtlas", family: "trinityCore", purpose: "Shares one AL texture between many atlas textures, allocating best-fit rectangles and tracking textures that did not fit." })
-@meta.blue.interface(ITr2TextureProvider)
+@blue.define({ className: "Tr2TextureAtlas", purpose: "Shares one AL texture between many atlas textures, allocating best-fit rectangles and tracking textures that did not fit." })
+@blue.interface(ITr2TextureProvider)
 export class Tr2TextureAtlas extends ITr2TextureProvider
 {
 
   /** m_format (Tr2RenderContextEnum::PixelFormat) [READ, ENUM] */
-  @meta.blue.read
-  @meta.type.int32
-  @meta.type.enum("PixelFormat")
+  @blue.read
+  @type.int32
+  @type.enum("PixelFormat")
   format = PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM;
 
   /** m_width (unsigned int) [READ] */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   width = 2048;
 
   /** m_height (unsigned int) [READ] */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   height = 2048;
 
   /** m_mipLevels (unsigned) [READ] */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   mipCount = 0;
 
   /** m_optimizeOnRemoval (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   optimizeOnRemoval = true;
 
   /** m_paintEmptyAreas (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   paintEmptyAreas = false;
 
   /** m_margin (unsigned int) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.uint32
+  @blue.readwrite
+  @type.uint32
   margin = 2;
 
   /** Carbon `AtlasTextureType` (`Tr2TextureAtlas.h:47-51`). */
@@ -376,32 +376,32 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
   }
 
   /** How many textures are in the atlas texture? Counts live textures only. */
-  @meta.blue.read
-  @meta.type.int32
+  @blue.read
+  @type.int32
   get texturesInAtlasCount()
   {
     return this.GetTexturesInAtlasCount();
   }
 
   /** How many textures are registered with the atlas but didn't fit? Counts live textures only. */
-  @meta.blue.read
-  @meta.type.int32
+  @blue.read
+  @type.int32
   get texturesOutsideAtlasCount()
   {
     return this.GetTexturesOutsideAtlasCount();
   }
 
   /** multiSampleType: always 1 (`Tr2TextureAtlas.cpp:1582-1585`). */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   get multiSampleType()
   {
     return this.GetMsaaSamples();
   }
 
   /** multiSampleQuality: always 0 (`Tr2TextureAtlas.cpp:1587-1590`). */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   get multiSampleQuality()
   {
     return this.GetMsaaQuality();
@@ -630,7 +630,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    *
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ConsolidateFreeAreas()
   {
@@ -824,7 +824,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    *
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   CollapseFreeAreas()
   {
@@ -1313,7 +1313,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @param {boolean} [optimiseInsertion] Sort smallest area first.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PullInOutsiders(optimiseInsertion = false)
   {
@@ -1438,7 +1438,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @param {number} [type] A `Tr2TextureAtlas.AtlasTextureType` value.
    * @returns {Tr2AtlasTexture|null} The texture, or null.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CreateTexture(width, height, type = Tr2TextureAtlas.AtlasTextureType.ATT_DEFAULT)
   {
@@ -1534,7 +1534,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    *
    * @returns {Tr2AtlasTexture[]} The textures.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetTexturesOutsideAtlas()
   {
@@ -1795,7 +1795,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    *
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   EjectAllTextures()
   {
@@ -2066,7 +2066,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    * @param {Tr2TextureAL} object The AL object.
    * @returns {boolean} True when it is the atlas texture.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   HasALObject(type, object)
   {
@@ -2105,7 +2105,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    *
    * @returns {number} Free texels.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetFreeTexels()
   {
@@ -2117,7 +2117,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    *
    * @returns {number} Free texels over total texels, as a float.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetFreeTexelPercentage()
   {
@@ -2129,7 +2129,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    *
    * @returns {number} Width.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetFreeMaxWidth()
   {
@@ -2141,7 +2141,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
    *
    * @returns {number} Height.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetFreeMaxHeight()
   {

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriRenderJob.h
 // Source: trinity/trinity/RenderJob/TriRenderJob.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2RenderContext.js";
 import { TriRenderStep } from "./step/TriRenderStep.js";
 import { TriRenderJobStatus } from "../generated/renderJob/enums.js";
@@ -11,7 +11,7 @@ import { be } from "#blue";
  * An ordered list of render steps plus the cursor and status that let the
  * sequence pause mid-list and resume on a later frame.
  */
-@meta.define({ className: "TriRenderJob", family: "renderJob" })
+@blue.define("TriRenderJob")
 export class TriRenderJob
 {
   static Status = TriRenderJobStatus;
@@ -23,30 +23,30 @@ export class TriRenderJob
 
   static StepResult = TriRenderStep.Result;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.TriRenderJobStatus")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.TriRenderJobStatus")
   status = TriRenderJob.Status.RJ_INIT;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   stackGuard = true;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   enabled = true;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("TriRenderStep")
+  @blue.read
+  @blue.persist
+  @type.list("TriRenderStep")
   steps = [];
 
   #currentStep = 0;
@@ -56,7 +56,7 @@ export class TriRenderJob
    * Run snapshots the list precisely BECAUSE a step may mutate it mid-run
    * through this accessor ("lists can change when executed").
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Steps()
   {
@@ -71,7 +71,7 @@ export class TriRenderJob
    * @param {Tr2RenderContext|null} [executor] the render context the steps run against; null selects the main-thread render context, and anything that is not a Tr2RenderContext throws. Step dispatch is taken over through that context's SetStepExecutor. Nested jobs receive the same context.
    * @returns {number} the resulting TriRenderJob.Status
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Run(realTime, simTime, executor = null)
   {

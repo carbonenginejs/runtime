@@ -125,6 +125,7 @@ CjsSchema.decorateMethod(ITriQuaternionFunction, "Update__Ticks", meta.adapted);
 CjsSchema.decorateMethod(ITriQuaternionFunction, "GetValueAt__Ticks", meta.adapted);
 CjsSchema.decorateMethod(ITriQuaternionFunction, "GetValueDotAt__Ticks", meta.adapted);
 CjsSchema.decorateMethod(ITriQuaternionFunction, "GetValueDoubleDotAt__Ticks", meta.adapted);
-CjsSchema.define(ITriQuaternionFunction, {
-  className: "ITriQuaternionFunction", carbon: "ITriQuaternionFunction", family: "blue", fields: {}
+CjsSchema.blue.define(ITriQuaternionFunction, {
+  className: "ITriQuaternionFunction",
+  fields: {}
 });

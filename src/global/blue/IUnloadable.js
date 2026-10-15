@@ -27,6 +27,7 @@ export class IUnloadable
 CjsSchema.decorateMethod(IUnloadable, "UnloadWhenUnreferenced", meta.requires, meta.abstract);
 CjsSchema.decorateMethod(IUnloadable, "ReloadWhenReferenced", meta.requires, meta.abstract);
 
-CjsSchema.define(IUnloadable, {
-  className: "IUnloadable", carbon: "IUnloadable", family: "blue", fields: {}
+CjsSchema.blue.define(IUnloadable, {
+  className: "IUnloadable",
+  fields: {}
 });

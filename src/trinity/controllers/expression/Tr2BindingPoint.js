@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Tr2BindingPoint.h
 // Source: trinity/trinity/Controllers/Tr2BindingPoint.cpp
 import { be, CjsBlueClasses, IList, INotify } from "#blue";
-import { meta, CjsSchema, CARBON_TYPE, getCarbonTypeDefinition, normalizeCarbonTypeDescriptor } from "#schema";
+import { meta, CjsSchema, CARBON_TYPE, getCarbonTypeDefinition, normalizeCarbonTypeDescriptor, type, blue } from "#schema";
 import { getDictionaryDeclarations, readDictionaryValue, writeDictionaryValue } from "../../../global/blue/dictionaryDeclarations.js";
 
 
@@ -24,34 +24,31 @@ const STRING_KINDS = new Set([ CARBON_TYPE.STRING, CARBON_TYPE.PATH, CARBON_TYPE
  * it, and writes or reads it. A plain native helper embedded in the value
  * actions; it has no Blue exposure of its own.
  */
-@meta.define({
-  className: "Tr2BindingPoint",
-  family: "controllers"
-})
+@blue.define("Tr2BindingPoint")
 export class Tr2BindingPoint
 {
   // Every embedding owner exposes these READWRITE|PERSIST|NOTIFY
   // (Tr2ActionSetValue_Blue.cpp:18, Tr2ActionAnimateValue_Blue.cpp:19).
 
   /** m_path: a reference from one of the roots, or empty to use `object`. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   path = "";
 
   /** m_object: the destination object when `path` is empty. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("IRoot")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("IRoot")
   object = null;
 
   /** m_attribute: the member name, optionally with a one-letter swizzle (`color.a`). */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   attribute = "";
 
   /** m_resolvedObject: the object `path` resolved to. */
@@ -78,7 +75,7 @@ export class Tr2BindingPoint
    *
    * @param {Array<[string, object]>} roots Named roots, as a controller's GetBindingPathRoots.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Link(roots)
   {
@@ -95,7 +92,7 @@ export class Tr2BindingPoint
   }
 
   /** Carbon Unlink (cpp:295-303). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Unlink()
   {
@@ -112,7 +109,7 @@ export class Tr2BindingPoint
    *
    * @returns {boolean} Whether a destination is bound.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsValid()
   {
@@ -129,7 +126,7 @@ export class Tr2BindingPoint
    *
    * @param {number} value The value; stored as a C++ float first.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetValue(value)
   {
@@ -166,7 +163,7 @@ export class Tr2BindingPoint
    *
    * @returns {number|null} The destination value as a float.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValue()
   {
@@ -183,7 +180,7 @@ export class Tr2BindingPoint
    *
    * @returns {object|null} The resolved object, else the authored one.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBoundObject()
   {
@@ -200,7 +197,7 @@ export class Tr2BindingPoint
    * @param {string} attribute Member name with an optional `.x` swizzle.
    * @returns {boolean} Whether a destination was bound.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetDestination(object, attribute)
   {

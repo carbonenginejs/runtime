@@ -5,7 +5,7 @@
 // Tr2DeviceResource; this one is none of them yet. The load path (DoLoad,
 // DoPrepare, OnPrepareResources and the six `*atlas` resource extensions) is
 // left as explicit obligations: see `DoLoad`.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { ICacheable } from "#blue";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { TriStorageFlags } from "#consts/graphics";
@@ -25,56 +25,56 @@ import { vec4 } from "#math/vec4";
  * happen. A device reset therefore does not call `ReleaseResources` on atlas
  * textures.
  */
-@meta.define({ className: "Tr2AtlasTexture", family: "trinityCore", purpose: "A window into a shared texture atlas, or a standalone outsider texture associated with one." })
-@meta.blue.inherit(ICacheable)
-@meta.blue.interface(ICacheable)
+@blue.define({ className: "Tr2AtlasTexture", purpose: "A window into a shared texture atlas, or a standalone outsider texture associated with one." })
+@blue.inherit(ICacheable)
+@blue.interface(ICacheable)
 export class Tr2AtlasTexture
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_resPath (std::string) [READ] */
-  @meta.blue.read
-  @meta.type.path
+  @blue.read
+  @type.path
   resPath = "";
 
   /** m_width (unsigned int) [READ] */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   width = 0;
 
   /** m_height (unsigned int) [READ] */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   height = 0;
 
   /** m_textureWidth (unsigned int) [READ] */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   atlasWidth = 0;
 
   /** m_textureHeight (unsigned int) [READ] */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   atlasHeight = 0;
 
   /** m_x (unsigned int) [READ] */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   x = 0;
 
   /** m_y (unsigned int) [READ] */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   y = 0;
 
   /** m_textureAtlas (Tr2TextureAtlasPtr) [READ] */
-  @meta.blue.read
-  @meta.type.rootRef("Tr2TextureAtlas")
+  @blue.read
+  @type.rootRef("Tr2TextureAtlas")
   atlas = null;
 
   /**
@@ -143,8 +143,8 @@ export class Tr2AtlasTexture
    *
    * @returns {boolean} Whether it is stand-alone.
    */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   get isStandAlone()
   {
     return this.IsStandAlone();
@@ -166,8 +166,8 @@ export class Tr2AtlasTexture
    *
    * @returns {object|null} The texture resource.
    */
-  @meta.blue.readwrite
-  @meta.type.rootRef("TriTextureRes")
+  @blue.readwrite
+  @type.rootRef("TriTextureRes")
   get textureRes()
   {
     return this.GetTextureRes();
@@ -509,7 +509,7 @@ export class Tr2AtlasTexture
    *
    * @returns {{result: number, data: Uint8Array, pitch: number}|null} The mapping, or null.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   LockBuffer()
   {
@@ -549,7 +549,7 @@ export class Tr2AtlasTexture
    *
    * @returns {{result: number, data: Uint8Array, pitch: number, margin: number}|null} The mapping, or null.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   LockBufferAndMargin()
   {
@@ -586,7 +586,7 @@ export class Tr2AtlasTexture
    *
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UnlockBuffer()
   {

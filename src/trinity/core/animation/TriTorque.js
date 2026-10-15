@@ -1,12 +1,12 @@
 // Source: trinity/trinity/TriRigidOrientation.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema trinityCore/TriTorque.json.).
-import { meta } from "#schema";
+import { type, blue } from "#schema";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
 /** Native IRoot torque key; TriRigidOrientation_Blue.cpp maps no query interfaces. */
-@meta.define({ className: "TriTorque", family: "trinityCore" })
-@meta.blue.interface()
+@blue.define("TriTorque")
+@blue.interface()
 export class TriTorque
 {
 
@@ -15,9 +15,9 @@ export class TriTorque
    * Sort orders the keys by this value before propagating their initial states.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   time = 0;
 
   /**
@@ -25,9 +25,9 @@ export class TriTorque
    * Sort propagates this buffer from the previous key for every key after the first.
    * @type {Float32Array|Float64Array|number[]}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rot0 = quat.create();
 
   /**
@@ -35,9 +35,9 @@ export class TriTorque
    * the torque-and-drag integrator. Sort propagates it for keys after the first.
    * @type {Float32Array|Float64Array|number[]}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   omega0 = vec3.create();
 
   /**
@@ -45,9 +45,9 @@ export class TriTorque
    * key's interval, integrated using the curve's inertia and drag coefficients.
    * @type {Float32Array|Float64Array|number[]}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   torque = vec3.create();
 
 }

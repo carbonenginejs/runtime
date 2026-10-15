@@ -7,7 +7,7 @@ import { quat } from "#math/quat";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
 import { IsMatch, INotify, IInitialize } from "#blue";
 import { ITr2FollowCurveKey } from "../ITr2FollowCurveKey.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2FollowCurveKeyInterpolation } from "../enums.js";
 
 
@@ -21,94 +21,91 @@ import { Tr2FollowCurveKeyInterpolation } from "../enums.js";
  * is empty. Cached camera values and scratch buffers own no resources.
  * Existing ambient-context and gl-matrix framing adaptations are unchanged.
  */
-@meta.define({
-  className: "Tr2CameraFollowCurveKey",
-  family: "curves"
-})
-@meta.blue.inherit(INotify, IInitialize)
-@meta.blue.interface(ITr2FollowCurveKey, INotify, IInitialize)
+@blue.define("Tr2CameraFollowCurveKey")
+@blue.inherit(INotify, IInitialize)
+@blue.interface(ITr2FollowCurveKey, INotify, IInitialize)
 export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
 {
   /** Authored shared-string key name. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** Authored key time. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   time = 0;
 
   /** Native follow-key segment interpolation. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.Tr2FollowCurveKeyInterpolation")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.Tr2FollowCurveKeyInterpolation")
   interpolation = Tr2FollowCurveKeyInterpolation.LINEAR;
 
   /** Authored incoming tangent. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   leftTangent = vec3.create();
 
   /** Authored outgoing tangent. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   rightTangent = vec3.create();
 
   /** Last incoming tangent after the inverse-view coordinate transform. */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   rotatedLeftTangent = vec3.create();
 
   /** Last outgoing tangent after the inverse-view coordinate transform. */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   rotatedRightTangent = vec3.create();
 
   /** Runtime object bounds used for framing. */
-  @meta.blue.readwrite
-  @meta.type.vec3
+  @blue.readwrite
+  @type.vec3
   objectBounds = vec3.create();
 
   /** Authored angle around the view axis. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   angle = 0;
 
   /** Authored zero-angle reference, initially PI/2. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   angleZero = Math.PI / 2;
 
   /** Authored fraction of the field of view reserved inside the frame. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   fovMultiplication = 0.5;
 
   /** Authored camera-box offset. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   offset = vec3.create();
 
   /** Last calculated camera-box position. */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   boxPosition = vec3.create();
 
   /** Runtime switch between live and captured camera state. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @type.boolean
   enabled = true;
 
   /** Native cached half-FOV and near plane used by the framing calculation. */
@@ -144,7 +141,7 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
    * Adapted: Reads Carbon's renderer camera state from the ambient render context.
    * @returns {boolean} True after calculating the camera box.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -158,7 +155,7 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
    * @param {string|null} [propertyName=null] Changed field name.
    * @returns {boolean} True.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName = null)
   {
@@ -187,7 +184,7 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
    *
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CalculateBoxPosition()
   {
@@ -244,7 +241,7 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
    * @param {Float32Array} out Destination vector.
    * @returns {Float32Array} The destination vector.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValue(out)
   {
@@ -256,7 +253,7 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
    * Gets key time.
    * @returns {number} Authored key time.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetTime()
   {
@@ -267,7 +264,7 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
    * Gets key interpolation.
    * @returns {number} Native follow-key interpolation enum value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetInterpolationType()
   {
@@ -282,7 +279,7 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
    * @param {Float32Array} out Destination vector.
    * @returns {Float32Array} The destination vector.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetLeftTangent(out)
   {
@@ -297,7 +294,7 @@ export class Tr2CameraFollowCurveKey extends ITr2FollowCurveKey
    * @param {Float32Array} out Destination vector.
    * @returns {Float32Array} The destination vector.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetRightTangent(out)
   {

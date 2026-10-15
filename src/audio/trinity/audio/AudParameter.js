@@ -2,24 +2,24 @@
 // Source: audio/src/AudParameter.cpp
 // Source: audio/src/AudParameter_Blue.cpp
 import { IsMatch } from "#blue";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { INotify } from "#blue/INotify";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 
 /** Binds a real-time parameter value to its owning audio game object. */
-@meta.define({ className: "AudParameter", family: "audio" })
-@meta.blue.interface(INotify)
+@blue.define("AudParameter")
+@blue.interface(INotify)
 export class AudParameter extends INotify
 {
   /** m_name: std::wstring, READWRITE without persistence. */
-  @meta.blue.readwrite
-  @meta.type.wstring
+  @blue.readwrite
+  @type.wstring
   name = "";
 
   /** m_value: float, READWRITE and NOTIFY without persistence. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   value = 0;
 
   /** m_ID: unexposed owner identifier; zero means unbound. */
@@ -50,7 +50,7 @@ export class AudParameter extends INotify
    * @param {string|null} propertyName Modified member name.
    * @returns {boolean} Always true when the calls complete.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnModified(propertyName)
   {

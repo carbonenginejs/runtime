@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Controllers/Tr2StateMachineTransition_Blue.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { IsMatch, INotify } from "#blue";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 
 
@@ -11,12 +11,9 @@ import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpre
  * One outgoing edge of a state machine state: evaluates a boolean condition
  * expression and, when it passes, names the destination state to switch to.
  */
-@meta.define({
-  className: "Tr2StateMachineTransition",
-  family: "controllers"
-})
-@meta.blue.inherit(INotify)
-@meta.blue.interface(INotify)
+@blue.define("Tr2StateMachineTransition")
+@blue.inherit(INotify)
+@blue.interface(INotify)
 export class Tr2StateMachineTransition
 {
   /**
@@ -24,10 +21,10 @@ export class Tr2StateMachineTransition
    * Changing it refreshes the linked transition's destination reference.
    * @type {string}
    */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /**
@@ -35,10 +32,10 @@ export class Tr2StateMachineTransition
    * evaluation with a nonzero result permits activation.
    * @type {string}
    */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   condition = "";
 
   /**
@@ -47,8 +44,8 @@ export class Tr2StateMachineTransition
    * this property does not introduce native eager evaluator binding.
    * @returns {boolean} Whether the current condition compiles successfully.
    */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   @meta.adapted
   get isConditionValid()
   {
@@ -74,7 +71,7 @@ export class Tr2StateMachineTransition
    * @param {Tr2StateMachineState} state Source state whose machine owns the transition.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Link(state)
   {
@@ -90,7 +87,7 @@ export class Tr2StateMachineTransition
    * Unlinks this transition from its source state.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Unlink()
   {
@@ -112,7 +109,7 @@ export class Tr2StateMachineTransition
    * @param {string} propertyName Exposed authored member name.
    * @returns {boolean} True after the notification is handled.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnModified(propertyName)
   {
@@ -159,7 +156,7 @@ export class Tr2StateMachineTransition
    * @param {bigint|number} [variableDirtyMask=0] Changed controller variable bits.
    * @returns {boolean} Whether the current linked condition activates.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CanActivate(variableDirtyMask = 0)
   {
@@ -189,7 +186,7 @@ export class Tr2StateMachineTransition
    * Gets the cached destination last resolved by Link or a name notification.
    * @returns {Tr2StateMachineState|null} Cached destination, or null when unresolved.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetDestination()
   {
@@ -200,7 +197,7 @@ export class Tr2StateMachineTransition
    * Gets the source state.
    * @returns {Tr2StateMachineState|null} Source state, or null while unlinked.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetSource()
   {
@@ -212,7 +209,7 @@ export class Tr2StateMachineTransition
    * Adapted: native Blue exposes GetSource under this wrapper name.
    * @returns {Tr2StateMachineState|null} Source state, or null while unlinked.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetState()
   {
@@ -226,7 +223,7 @@ export class Tr2StateMachineTransition
    * missing or beyond the 64-bit mask.
    * @returns {bigint} Relevant variable bits, or zero when evaluation cannot be skipped.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetVariableMask()
   {
@@ -262,7 +259,7 @@ export class Tr2StateMachineTransition
    * inspection, rather than introducing native eager evaluator lifetime here.
    * @returns {boolean} Whether the authored condition compiles successfully.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   IsConditionValid()
   {
@@ -274,7 +271,7 @@ export class Tr2StateMachineTransition
    * @param {string} [_attributeName] Ignored native attribute-name argument.
    * @returns {boolean} Current condition validity.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   IsExpressionValid(_attributeName)
   {
@@ -286,7 +283,7 @@ export class Tr2StateMachineTransition
    * @param {string} expression Expression to evaluate in the current JS context.
    * @returns {number} Evaluated number, or the retained zero result for invalid compilation.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   EvaluateExpression(expression)
   {
@@ -312,7 +309,7 @@ export class Tr2StateMachineTransition
    * Gets expression term metadata known by the linked controller.
    * @returns {Array<object>} New collection of supported functions and linked variables.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetExpressionTermInfo()
   {
@@ -384,7 +381,7 @@ export class Tr2StateMachineTransition
    * Adapted: native UpdateDestination retains its private JavaScript name.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   _UpdateDestination()
   {

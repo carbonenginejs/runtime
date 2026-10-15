@@ -1,42 +1,42 @@
 // Source: trinity/trinity/Wod/WodPlaceableRes.h
 // Source: trinity/trinity/Wod/WodPlaceableRes.cpp
 // Source: trinity/trinity/Wod/WodPlaceableRes_Blue.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 
 /** Authored placeable geometry, animations, fade distances and cached bounds. */
-@meta.define({ className: "WodPlaceableRes", family: "wod" })
-@meta.blue.interface()
+@blue.define("WodPlaceableRes")
+@blue.interface()
 export class WodPlaceableRes
 {
   /** Native visual model. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2Model")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2Model")
   visualModel = null;
 
   /** Native squared far fade distance. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   farFadeDistance = 10000;
 
   /** Native squared near fade distance. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   nearFadeDistance = 2500;
 
   /** Curves animating the placeable graph. */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("TriCurveSet")
+  @blue.read
+  @blue.persist
+  @type.list("TriCurveSet")
   curveSets = [];
 
   /** Whether this resource participates in shadow casting. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   isShadowCaster = true;
 
   _minBounds = vec3.create();
@@ -44,7 +44,7 @@ export class WodPlaceableRes
   _isReady = false;
 
   /** Returns the squared near fade distance. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetNearFadeDistance()
   {
@@ -52,7 +52,7 @@ export class WodPlaceableRes
   }
 
   /** Returns the squared far fade distance. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetFarFadeDistance()
   {
@@ -60,7 +60,7 @@ export class WodPlaceableRes
   }
 
   /** Returns the visual model. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetVisualModel()
   {
@@ -68,7 +68,7 @@ export class WodPlaceableRes
   }
 
   /** Returns the live curve set collection. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetCurveSets()
   {
@@ -76,7 +76,7 @@ export class WodPlaceableRes
   }
 
   /** Returns the native shadow-caster flag. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsShadowCaster()
   {
@@ -84,7 +84,7 @@ export class WodPlaceableRes
   }
 
   /** Delegates batch construction to the assigned model. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBatches(batches, batchType, matrix, data)
   {
@@ -92,7 +92,7 @@ export class WodPlaceableRes
   }
 
   /** Reports transparent areas, including hidden meshes as Carbon does. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasTransparency()
   {
@@ -104,7 +104,7 @@ export class WodPlaceableRes
    * here; an incomplete authored graph is a contract error, not a ready resource.
    * Subsequent calls retain the native cache even if visualModel changes.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsReady()
   {
@@ -115,7 +115,7 @@ export class WodPlaceableRes
   }
 
   /** Copies cached bounds, attempting readiness first as in the native header. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBoundingBox(min, max)
   {

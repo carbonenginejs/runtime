@@ -10,7 +10,7 @@ import { color } from "#math/color";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { EveChildMesh } from "../child/EveChildMesh.js";
 import { EveChildInstanceMeshRenderer } from "../child/EveChildInstanceMeshRenderer.js";
 import { PlacementDataWithIdentifier } from "../PlacementDataWithIdentifier.js";
@@ -26,48 +26,47 @@ import { BLUELISTEVENT } from "#consts/blue";
  * Carbon's EveSmartLightBaseGroup secondary base is flattened because
  * JavaScript has single inheritance.
  */
-@meta.define({
+@blue.define({
   className: "EveSmartLightMesh",
-  family: "eve/smartLights",
   fields: {
-    castShadows: [ meta.type.boolean, meta.blue.persist ]
+    castShadows: [ type.boolean, blue.persist ]
   }
 })
 @meta.hideInherited([
   "partTag",
   "distribution"
 ])
-@meta.blue.inherit(IInitialize, INotify, IListNotify)
-@meta.blue.interface(EveChildInstanceMeshRenderer, ITr2Renderable, IInitialize, INotify, IEveShadowCaster)
+@blue.inherit(IInitialize, INotify, IListNotify)
+@blue.interface(EveChildInstanceMeshRenderer, ITr2Renderable, IInitialize, INotify, IEveShadowCaster)
 export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   shaderParamColorName = "";
 
   // Flattened EveSmartLightBaseGroup secondary base.
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.int32
   factionColor = -1;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   useFactionColor = false;
 
-  @meta.blue.notify
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("IEveSmartLightGroupAttributeModifier")
+  @blue.notify
+  @blue.read
+  @blue.persist
+  @type.list("IEveSmartLightGroupAttributeModifier")
   attributeModifiers = [];
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.readwrite
+  @blue.persist
+  @type.color
   customColor = color.createLinear();
 
   /** Carbon m_castShadow is exposed under the canonical derived key. */
@@ -97,7 +96,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * Adapted: Carbon multiply-inherits EveSmartLightBaseGroup; JS flattens that base through
    * its shared resolver.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetGroupColor()
   {
@@ -115,7 +114,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    *
    * Adapted: Carbon multiply-inherits EveSmartLightBaseGroup; JS flattens that base surface.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetColor(color)
   {
@@ -127,7 +126,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    *
    * Adapted: Carbon multiply-inherits EveSmartLightBaseGroup; JS flattens that base surface.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetInheritProperties(colorSet)
   {
@@ -146,7 +145,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    *
    * Adapted: Carbon multiply-inherits EveSmartLightBaseGroup; JS flattens that base surface.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetControllerVariable(name, value)
   {
@@ -162,7 +161,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * Adapted: Receives the Blue list event, inserted value and owning array explicitly; only
    * an inserted modifier inherits the current colour set.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnListModified(event, _key, _key2, value, list)
   {
@@ -182,7 +181,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * empty override (EveSmartLightMesh.h:23); the owning EveChildSmartLightSet
    * drives this mesh through UpdateSyncronous__Distribution instead.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   UpdateSyncronous(_updateContext, _params)
   {
@@ -276,7 +275,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   }
 
   /** Carbon's EveChildMesh overload UpdateAsyncronous( context, params ): an empty override (EveSmartLightMesh.h:24). */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   UpdateAsyncronous(_updateContext, _params)
   {
@@ -293,7 +292,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   }
 
   /** Forward to the instance renderer's two-stage visibility pass. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform, parentLod)
   {
@@ -301,7 +300,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   }
 
   /** Forward renderable collection to the instance renderer. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetRenderables(renderables = [])
   {
@@ -309,7 +308,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   }
 
   /** Smart groups report the last set-owned distribution count. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetNumberOfEntities()
   {
@@ -322,7 +321,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * Adapted: The inherited Carbon method is exposed on this derived Blue class; JS also arms
    * the derived distribution path's explicit deferred-work latch.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RefreshStaticGeometry()
   {
@@ -337,7 +336,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * Adapted: TriGeometryRes exposes mesh validity through its maintained count contract
    * instead of Carbon's native GetMeshData pointer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetMeshColorParameter(meshColor)
   {

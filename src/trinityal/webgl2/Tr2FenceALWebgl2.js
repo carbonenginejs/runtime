@@ -193,4 +193,4 @@ export class Tr2FenceALWebgl2 extends Tr2DeviceResourceAL
   }
 }
 
-CjsSchema.define(Tr2FenceALWebgl2, { className: "Tr2FenceALWebgl2", carbon: "Tr2FenceAL" });
+CjsSchema.blue.define(Tr2FenceALWebgl2, { className: "Tr2FenceALWebgl2", donors: [ "Tr2FenceAL" ] });

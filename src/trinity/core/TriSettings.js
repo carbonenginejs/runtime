@@ -1,6 +1,6 @@
 // Source: trinity/trinity/TriSettings.h
 //   trinity/trinity/TriSettings_Blue.cpp
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 
 /**
@@ -14,7 +14,7 @@ import { meta } from "#schema";
  * `RegisterSetting(name, value)` keeps its own value, for settings that have
  * no engine global (ccpwgl registers its switches this way).
  */
-@meta.define({ className: "TriSettings", family: "trinityCore" })
+@blue.define("TriSettings")
 export class TriSettings
 {
   /** m_map: name -> { valueType, owner, key }; the value is owner[key]. */
@@ -37,7 +37,7 @@ export class TriSettings
    * @param {{ applies?: string, enum?: object|string|null, values?: Array|null, carbon?: boolean }} [options] See CjsSchema.edit.setting.
    * @returns {TriSettings} This registry.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RegisterSetting(name, ownerOrValue, key, { applies = "always", enum: enumType = null, values = null, carbon = false } = {})
   {
@@ -69,7 +69,7 @@ export class TriSettings
    * @param {string} name The setting's name.
    * @returns {{ valueType: string, owner: object, key: string, applies: string, enum: object|string|null, values: Array|null, carbon: boolean }|null} The entry.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   FindSetting(name)
   {
@@ -94,7 +94,7 @@ export class TriSettings
    * registered setting; an unknown name throws RangeError, as Python's
    * LookupError.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetValue(name)
   {
@@ -107,7 +107,7 @@ export class TriSettings
    * through to the value it names. An unknown name throws RangeError; a value
    * whose type differs from the registered one throws TypeError.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetValue(name, value)
   {
@@ -120,7 +120,7 @@ export class TriSettings
   }
 
   /** Carbon GetReprString (TriSettings.h:44-57): a Python dict literal of every setting, in name order. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetReprString()
   {
@@ -139,7 +139,7 @@ export class TriSettings
    * Adapted: Carbon formats by Be::VARTYPE (%d for integers, %f for floats);
    * JavaScript has one number type, so numbers format as JavaScript does.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetSettingReprString(setting)
   {
@@ -154,7 +154,7 @@ export class TriSettings
    *
    * @returns {string} The settings representation.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   __repr__()
   {

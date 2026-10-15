@@ -2,41 +2,41 @@
 import { IsMatch } from "#blue";
 import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { EveChildRef } from "../../../../eve/child/EveChildRef.js";
 
 /** EveProceduralMethodThresholdParameter (eve/child/procedural/selection) - generated from schema shapeHash e31926d9.... */
-@meta.define({ className: "EveProceduralMethodThresholdParameter", family: "eve/child/procedural/selection" })
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(IInitialize)
+@blue.define("EveProceduralMethodThresholdParameter")
+@blue.inherit(IInitialize)
+@blue.interface(IInitialize)
 export class EveProceduralMethodThresholdParameter
 {
 
   _modified = false;
 
   /** m_child (EveChildRefPtr) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveChildRef")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("EveChildRef")
   child = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_threshold (float) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   threshold = 1;
 
   /** Carbon EveProceduralMethodThresholdParameter::Initialize (cpp:16-23):
    * lazily create the child ref. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -53,7 +53,7 @@ export class EveProceduralMethodThresholdParameter
    * assignment blocks its auto-load. The value argument follows the repo's
    * OnModified duck.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(value = null)
   {
@@ -75,7 +75,7 @@ export class EveProceduralMethodThresholdParameter
   }
 
   /** Carbon method SetModified (cpp:44-47). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetModified(isModified)
   {
@@ -83,7 +83,7 @@ export class EveProceduralMethodThresholdParameter
   }
 
   /** Carbon method IsModified (cpp:49-52). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsModified()
   {
@@ -91,7 +91,7 @@ export class EveProceduralMethodThresholdParameter
   }
 
   /** Carbon method GetThreshold (cpp:54-57). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetThreshold()
   {
@@ -99,7 +99,7 @@ export class EveProceduralMethodThresholdParameter
   }
 
   /** Carbon method GetChild (cpp:59-62). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetChild()
   {
@@ -108,7 +108,7 @@ export class EveProceduralMethodThresholdParameter
 
   /** Carbon EveProceduralMethodThresholdParameter::Load (cpp:64-70): one-line
    * bypass-blocker reload delegate. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Load()
   {

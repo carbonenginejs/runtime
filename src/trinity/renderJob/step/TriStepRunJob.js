@@ -1,21 +1,21 @@
 // Source: trinity/trinity/RenderJob/TriStepRunJob.h
 // Source: trinity/trinity/RenderJob/TriStepRunJob.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
 
 
 /** Step that runs a nested render job in place, letting job graphs compose. */
-@meta.define({ className: "TriStepRunJob", family: "renderJob" })
+@blue.define("TriStepRunJob")
 export class TriStepRunJob extends TriRenderStep
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("TriRenderJob")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("TriRenderJob")
   job = null;
 
   /** Stores the nested job this step runs. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   __init__(job = null)
   {
@@ -23,7 +23,7 @@ export class TriStepRunJob extends TriRenderStep
   }
 
   /** Replaces the nested job; null makes the step a no-op. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetRenderJob(job)
   {
@@ -35,7 +35,7 @@ export class TriStepRunJob extends TriRenderStep
    * step result, so a nested job that is still in progress leaves the owning job
    * in progress too and resumes at this same step next frame.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Execute(realTime, simTime, renderContext)
   {

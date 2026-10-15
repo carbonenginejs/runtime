@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/UI/EveLineSet.cpp
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Hand-maintained after promotion from generated schema intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { IEveTransform } from "../../IEveTransform.js";
 import { mat4 } from "#math/mat4";
@@ -35,64 +35,64 @@ const EVE_LINE_DATA_SIZE = EVE_LINE_DATA_FLOATS * 4;
  * uploads. Each line is two vertices of a position and a colour, drawn as a line list, additive unless
  * renderTransparent.
  */
-@meta.define({ className: "EveLineSet", family: "eve/ui" })
-@meta.blue.inherit(ITr2Renderable, IEveSpaceObject2, IEveTransform)
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(IInitialize)
+@blue.define("EveLineSet")
+@blue.inherit(ITr2Renderable, IEveSpaceObject2, IEveTransform)
+@blue.inherit(IInitialize)
+@blue.interface(IInitialize)
 export class EveLineSet
 {
 
   /** Carbon's pending CPU line records (m_lines). */
-  @meta.type.list("EveLineData")
+  @type.list("EveLineData")
   lines = [];
 
-  @meta.type.uint32
+  @type.uint32
   maxCurrentLineCount = 0;
 
-  @meta.type.uint32
+  @type.uint32
   currentSubmittedLineCount = 0;
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_ballRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITriQuaternionFunction")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITriQuaternionFunction")
   rotationCurve = null;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, NOTIFY, PERSIST] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2Effect")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2Effect")
   effect = null;
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   display = true;
 
   /** m_isRenderedAsTransparent (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   renderTransparent = false;
 
   /** m_ballPosition (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITriVectorFunction")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITriVectorFunction")
   translationCurve = null;
 
   /** m_worldTransform (EveLineSet.h:119) - runtime state stamped by
@@ -121,7 +121,7 @@ export class EveLineSet
    * Carbon Initialize (cpp:35-42): seeds the line capacity at 100 and prepares the resources. Carbon also reserves
    * the line vector; a JavaScript array needs no reserve.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -185,7 +185,7 @@ export class EveLineSet
    * Carbon UpdateSyncronous (cpp:97-114): samples the position and rotation curves, then m_worldTransform =
    * TransformationMatrix( scaling, rotation, translation ), which is gl's fromRotationTranslationScale( r, t, s ).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateSyncronous(updateContext)
   {
@@ -201,14 +201,14 @@ export class EveLineSet
   }
 
   /** Carbon UpdateAsyncronous (cpp:117-119): nothing to do. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateAsyncronous(_updateContext)
   {
   }
 
   /** Carbon EveLineSet::Update forwards to UpdateSyncronous (cpp:120-123). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Update(updateContext)
   {
@@ -216,14 +216,14 @@ export class EveLineSet
   }
 
   /** Carbon UpdateViewDependentData (cpp:130-132): nothing to do. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateViewDependentData(_frustum, _parentTransform)
   {
   }
 
   /** Carbon UpdateVisibility (cpp:134-136): nothing to do; a line set is never culled. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateVisibility(_updateContext, _parentTransform)
   {
@@ -239,7 +239,7 @@ export class EveLineSet
   }
 
   /** Carbon's GetRenderables( renderables ) (cpp:148-151): forwards with no impostor manager. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetRenderables(out = [])
   {
@@ -247,7 +247,7 @@ export class EveLineSet
   }
 
   /** Carbon GetBoundingSphere (cpp:153-157): the sphere SubmitChanges last built; always valid. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBoundingSphere(out = vec4.create(), _query = 0)
   {
@@ -256,7 +256,7 @@ export class EveLineSet
   }
 
   /** Carbon AddLine (cpp:233-244): appends a line without submitting it, and returns its index. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddLine(position1, color1, position2, color2)
   {
@@ -270,7 +270,7 @@ export class EveLineSet
   }
 
   /** Carbon ChangeLineColor (cpp:305-313): an out-of-range id is ignored. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ChangeLineColor(id, color1, color2)
   {
@@ -283,7 +283,7 @@ export class EveLineSet
   }
 
   /** Carbon ChangeLine (cpp:293-303): an out-of-range id is ignored. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ChangeLine(id, position1, color1, position2, color2)
   {
@@ -298,7 +298,7 @@ export class EveLineSet
   }
 
   /** Carbon ChangeLinePosition (cpp:315-323): an out-of-range id is ignored. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ChangeLinePosition(id, position1, position2)
   {
@@ -311,7 +311,7 @@ export class EveLineSet
   }
 
   /** Carbon ClearLines (cpp:325-327): needs SubmitChanges to take effect. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ClearLines()
   {
@@ -319,7 +319,7 @@ export class EveLineSet
   }
 
   /** Carbon RemoveLine (cpp:285-291): an out-of-range id is ignored; later ids shift down. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RemoveLine(id)
   {
@@ -333,7 +333,7 @@ export class EveLineSet
    * Adapted: Carbon grows to the line vector's capacity, which its allocator chooses; a JavaScript array has none, so
    * the buffer grows to the line count.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SubmitChanges()
   {
@@ -364,7 +364,7 @@ export class EveLineSet
   }
 
   /** Carbon EveLineSet::HasTransparentBatches is always true (cpp:161-164). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasTransparentBatches()
   {
@@ -375,7 +375,7 @@ export class EveLineSet
    * Carbon GetBatches (cpp:166-201): transparent when renderTransparent, otherwise additive; while displayed, with a
    * vertex buffer and a declaration, one line-list draw of the submitted lines' vertices.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBatches(accumulator, batchType, perObjectData, _reason)
   {
@@ -402,7 +402,7 @@ export class EveLineSet
    * Adapted: Carbon reads Tr2Renderer's view-position static; the batch collector passes the render context, and
    * without one the value is 0.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetSortValue(renderContext = null)
   {
@@ -426,7 +426,7 @@ export class EveLineSet
    * layouts, so the writes below land where the copy would have put them.
    * SetAndTranspose is Carbon's `Transpose( m_worldTransform )`.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPerObjectData(accumulator)
   {

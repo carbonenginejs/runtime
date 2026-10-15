@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Tr2Material.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2Shader } from "#resource/shader";
 import { ShaderType, CompareFunc } from "#consts/render-context";
 import { FNV1_INITIAL, hashFnv1Floats } from "../../global/utils/hash.js";
@@ -40,33 +40,33 @@ function SamplerDescriptionFromOverride(override)
 }
 
 /** Owns a resolved shader's per-technique pass and library bindings, resource invalidation, texture LOD forwarding, and draw-sort state. */
-@meta.define({ className: "Tr2Material", family: "shader" })
-@meta.blue.interface()
+@blue.define("Tr2Material")
+@blue.interface()
 export class Tr2Material
 {
 
   /** m_shader (Tr2ShaderPtr) */
-  @meta.type.rootRef("Tr2Shader")
+  @type.rootRef("Tr2Shader")
   shader = null;
 
   /** m_parametersForPasses (Tr2EffectTechniqueParametersVector) */
-  @meta.type.list("Tr2EffectTechniqueInputs")
+  @type.list("Tr2EffectTechniqueInputs")
   parametersForPasses = [];
 
   /** m_parametersForLibraries (Tr2EffectTechniqueParametersVector) */
-  @meta.type.list("Tr2EffectTechniqueInputs")
+  @type.list("Tr2EffectTechniqueInputs")
   parametersForLibraries = [];
 
   /** m_lodTextureParameters (std::vector<ITriEffectTextureParameterPtr>) */
-  @meta.type.list("ITriEffectTextureParameter")
+  @type.list("ITriEffectTextureParameter")
   lodTextureParameters = [];
 
   /** m_resourceSetHash (mutable uint32_t) */
-  @meta.type.uint32
+  @type.uint32
   resourceSetHash = 0;
 
   /** m_compatibleWithGdr (bool) */
-  @meta.type.boolean
+  @type.boolean
   compatibleWithGdr = false;
 
   /**

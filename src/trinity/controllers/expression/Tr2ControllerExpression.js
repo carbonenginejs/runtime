@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Controllers/Tr2ControllerExpression.h
 // Source: trinity/trinity/Controllers/Tr2ControllerExpression.cpp
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { Tr2StateMachine } from "../state/Tr2StateMachine.js";
 import { CjsControllerExpressionProgram } from "./CjsControllerExpressionProgram.js";
 
@@ -12,10 +12,7 @@ import { CjsControllerExpressionProgram } from "./CjsControllerExpressionProgram
  * existing JavaScript bindings, without a native Blue query table. The AST
  * evaluator adapter and its recorded parser gaps remain unchanged.
  */
-@meta.define({
-  className: "Tr2ControllerExpression",
-  family: "controllers"
-})
+@blue.define("Tr2ControllerExpression")
 export class Tr2ControllerExpression
 {
   /**
@@ -43,19 +40,19 @@ export class Tr2ControllerExpression
   static controllerServerTime = 0;
 
   /** Compiled JavaScript parser program; not persisted. */
-  @meta.type.rawStruct("CcpParser::Program")
+  @type.rawStruct("CcpParser::Program")
   program = null;
 
   /** State-machine overload context, or null. */
-  @meta.type.rootRef("Tr2StateMachine")
+  @type.rootRef("Tr2StateMachine")
   stateMachine = null;
 
   /** Action controller whose expression buffer and owner are read. */
-  @meta.type.rootRef("ITr2ActionController")
+  @type.rootRef("ITr2ActionController")
   controller = null;
 
   /** Cached variable dirty mask used to avoid unnecessary evaluation. */
-  @meta.type.uint64
+  @type.uint64
   variableMask = 0n;
 
   /** Source text retained by the JavaScript parser adapter. */
@@ -68,7 +65,7 @@ export class Tr2ControllerExpression
    * @param {object} [functions] Extra JavaScript parser functions.
    * @returns {string} Empty on success, otherwise the compile error.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetExpr(expression, source, functions)
   {
@@ -98,7 +95,7 @@ export class Tr2ControllerExpression
    * @param {object|null} [extra=null] Additional evaluator context.
    * @returns {Array<boolean|number>} Success and numeric result.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Eval(extra = null)
   {
@@ -130,7 +127,7 @@ export class Tr2ControllerExpression
    * leaves that cached mask unchanged. This existing evaluator gap is held.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Clear()
   {
@@ -145,7 +142,7 @@ export class Tr2ControllerExpression
    * Checks whether the expression compiled successfully.
    * @returns {boolean} Whether a valid program is retained.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsExpressionValid()
   {
@@ -156,7 +153,7 @@ export class Tr2ControllerExpression
    * Gets the variable dirty mask referenced by this expression.
    * @returns {bigint} Cached variable bit mask.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetVariableMask()
   {
@@ -168,7 +165,7 @@ export class Tr2ControllerExpression
    * @param {Array} [out=[]] Output metadata list.
    * @returns {Array} The supplied list.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetExpressionTermInfo(out = [])
   {

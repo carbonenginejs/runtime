@@ -126,8 +126,9 @@ export class Tr2PickBuffer
   }
 }
 
-CjsSchema.define(Tr2PickBuffer, {
-  className: "Tr2PickBuffer", methods: {
+CjsSchema.blue.define(Tr2PickBuffer, {
+  className: "Tr2PickBuffer",
+  methods: {
     SetSize: [meta.implemented], GetSize: [meta.implemented], GetDescription: [meta.adapted], SetClearColor: [meta.implemented],
     ReleaseResources: [meta.adapted], PrepareResources: [meta.adapted], OnPrepareResources: [meta.adapted],
     BeginRendering: [meta.adapted], EndRendering: [meta.implemented], MapForReading: [meta.adapted],

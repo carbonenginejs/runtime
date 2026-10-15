@@ -1,28 +1,28 @@
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /** One authored three-axis paper-doll sculpt selection. */
-@meta.define({ className: "CjsCharacterSculptSelection", family: "character" })
+@meta.define("CjsCharacterSculptSelection")
 export class CjsCharacterSculptSelection
 {
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.float64
+    @blue.readwrite
+    @blue.persist
+    @type.float64
     weightForwardBack = 0;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.float64
+    @blue.readwrite
+    @blue.persist
+    @type.float64
     weightLeftRight = 0;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.float64
+    @blue.readwrite
+    @blue.persist
+    @type.float64
     weightUpDown = 0;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.rootRef("CjsCharacterSculptingLocation")
+    @blue.readwrite
+    @blue.persist
+    @type.rootRef("CjsCharacterSculptingLocation")
     sculptLocationID = null;
 
 }

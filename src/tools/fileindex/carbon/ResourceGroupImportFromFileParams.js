@@ -14,4 +14,4 @@ export class ResourceGroupImportFromFileParams
     read = null;
 }
 
-CjsSchema.define(ResourceGroupImportFromFileParams, { className: "ResourceGroupImportFromFileParams", carbon: "ResourceGroupImportFromFileParams", family: "tools", fields: {} });
+CjsSchema.blue.define(ResourceGroupImportFromFileParams, { className: "ResourceGroupImportFromFileParams", fields: {} });

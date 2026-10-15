@@ -1,16 +1,16 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawnModifiers/EveDistributionSpawnModifierLifeTimeOffset.h
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { be } from "#blue";
 import { IEveDistributionSpawnModifier } from "./IEveDistributionSpawnModifier.js";
 import { CjsDistributionRandom } from "../../CjsDistributionRandom.js";
 
 /** Offsets each spawned placement's initial lifetime with random, normalized, or cascading timing. */
-@meta.define({ className: "EveDistributionSpawnModifierLifeTimeOffset", family: "eve/distribution/spawnModifiers" })
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(IInitialize)
-@meta.blue.chainTo(IEveDistributionSpawnModifier)
+@blue.define("EveDistributionSpawnModifierLifeTimeOffset")
+@blue.inherit(IInitialize)
+@blue.interface(IInitialize)
+@blue.chainTo(IEveDistributionSpawnModifier)
 export class EveDistributionSpawnModifierLifeTimeOffset extends IEveDistributionSpawnModifier
 {
 
@@ -20,40 +20,40 @@ export class EveDistributionSpawnModifierLifeTimeOffset extends IEveDistribution
   _currentCascadingOffset = 0;
 
   /** m_minOffset (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   minOffset = 0;
 
   /** m_maxOffset (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   maxOffset = 0;
 
   /** m_consistentRandom (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   consistentRandom = false;
 
   /** m_cascadingLifetimeOffset (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   cascadingLifetimeOffset = 0;
 
   /** m_normalizeOffsets (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   normalizeOffsets = false;
 
   /**
    * Reseeds the random stream from the wall clock, so offsets differ between
    * runs unless consistentRandom pins them to the placement id.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -67,7 +67,7 @@ export class EveDistributionSpawnModifierLifeTimeOffset extends IEveDistribution
    * range across the pool, otherwise it adds a random offset in that range plus
    * a per-placement cascade.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ProcessSpawnModifier(placement, numPlacements)
   {

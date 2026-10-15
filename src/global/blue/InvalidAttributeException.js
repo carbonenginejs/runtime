@@ -15,4 +15,4 @@ export class InvalidAttributeException extends IRootReaderException
   }
 }
 
-CjsSchema.define(InvalidAttributeException, { className: "InvalidAttributeException", carbon: "InvalidAttributeException" });
+CjsSchema.blue.define(InvalidAttributeException, { className: "InvalidAttributeException" });

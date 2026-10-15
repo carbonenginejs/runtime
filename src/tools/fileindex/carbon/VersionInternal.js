@@ -1,7 +1,7 @@
 // Source: resources/src/VersionInternal.h
 // Source: resources/src/VersionInternal.cpp
 import { S_VALID_DOCUMENT_VERSIONS } from "./enums.js";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 
 /** Carbon resource-document version; this is not a game build number. */
 export class VersionInternal
@@ -169,22 +169,20 @@ export class VersionInternal
 }
 
 
-CjsSchema.define(VersionInternal, {
-    className: "VersionInternal",
-    carbon: "VersionInternal",
-    family: "tools",
-    fields: {},
-    methods: {
+CjsSchema.blue.define(VersionInternal, {
+  className: "VersionInternal",
+  fields: {},
+  methods: {
         GreaterThan: [ meta.adapted ],
         LessThan: [ meta.adapted ],
         GreaterThanOrEqual: [ meta.adapted ],
         LessThanOrEqual: [ meta.adapted ],
         Equals: [ meta.adapted ],
-        ToString: [ meta.blue.method, meta.implemented ],
-        FromString: [ meta.blue.method, meta.implemented ],
-        getMajor: [ meta.blue.method, meta.implemented ],
-        getMinor: [ meta.blue.method, meta.implemented ],
-        getPatch: [ meta.blue.method, meta.implemented ],
-        isVersionValid: [ meta.blue.method, meta.implemented ]
+        ToString: [ blue.method, meta.implemented ],
+        FromString: [ blue.method, meta.implemented ],
+        getMajor: [ blue.method, meta.implemented ],
+        getMinor: [ blue.method, meta.implemented ],
+        getPatch: [ blue.method, meta.implemented ],
+        isVersionValid: [ blue.method, meta.implemented ]
     }
 });

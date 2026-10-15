@@ -1,13 +1,13 @@
 // Source: trinity/trinity/Interior/Tr2InteriorRenderBatch.h
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 /** Stable-sort policy for interior render batches. */
-@meta.define({ className: "Tr2IntKeyGenerator", family: "interior" })
+@blue.define("Tr2IntKeyGenerator")
 export class Tr2IntKeyGenerator
 {
 
   /** Carbon static comparator for interior render batches. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static Less(batch1, batch2)
   {
@@ -17,7 +17,7 @@ export class Tr2IntKeyGenerator
   }
 
   /** Carbon requests stable sorting so authored decal order is preserved. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static GetSortType()
   {

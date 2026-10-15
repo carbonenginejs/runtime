@@ -1,14 +1,14 @@
 // Source: trinity/trinity/Tr2RenderContext.h
 // Hand-maintained from Carbon source; the back buffer is backend-private state.
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 /** Tr2PrimaryRenderContext (trinityCore) - generated from schema shapeHash 92b87061.... */
-@meta.define({ className: "Tr2PrimaryRenderContext", family: "trinityCore" })
+@blue.define("Tr2PrimaryRenderContext")
 export class Tr2PrimaryRenderContext
 {
 
   /** Carbon method GetDefaultBackBuffer -> GetBackBuffer (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   GetDefaultBackBuffer(...args)
   {
@@ -16,7 +16,7 @@ export class Tr2PrimaryRenderContext
   }
 
   /** Carbon method GetBackBufferFormat (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   GetBackBufferFormat(...args)
   {

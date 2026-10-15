@@ -48,4 +48,4 @@ for (const method of [
 {
   CjsSchema.decorateMethod(ITr2ImpostorSource, method, meta.abstract);
 }
-CjsSchema.define(ITr2ImpostorSource, { className: "ITr2ImpostorSource" });
+CjsSchema.blue.define(ITr2ImpostorSource, { className: "ITr2ImpostorSource" });

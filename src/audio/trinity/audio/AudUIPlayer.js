@@ -1,7 +1,7 @@
 // Source: audio/src/AudUIPlayer.h + AudUIPlayer.cpp
 // Hand-owned since 2026-07-23 (behavior port); the generator skips this file.
 // Verify against audio/AudUIPlayer.json.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { AudEmitter } from "./AudEmitter.js";
 
 export const UI_GAME_OBJ_ID = 2;
@@ -9,14 +9,14 @@ export const UI_GAME_OBJ_ID = 2;
 const FLOAT_MAX = 3.4028234663852886e38;
 
 /** Provides the fixed Carbon UI emitter with dialogue position and completion callbacks. */
-@meta.define({ className: "AudUIPlayer", family: "audio" })
-@meta.blue.chainTo(AudEmitter)
+@blue.define("AudUIPlayer")
+@blue.chainTo(AudEmitter)
 export class AudUIPlayer extends AudEmitter
 {
 
   /** m_callback (BlueScriptCallback) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rawStruct("BlueScriptCallback")
+  @blue.readwrite
+  @type.rawStruct("BlueScriptCallback")
   eventSenderCallback = null;
 
   _callbackEvents = new Map();
@@ -31,7 +31,7 @@ export class AudUIPlayer extends AudEmitter
   }
 
   /** The UI player has no world placement. Source: AudUIPlayer.cpp:20-23 (commit 2756050). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasUsableWorldPosition()
   {
@@ -48,7 +48,7 @@ export class AudUIPlayer extends AudEmitter
    * @param {number} playingID Event playing identifier.
    * @returns {number} Elapsed milliseconds, or -1.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetEventPlayPosition(playingID)
   {
@@ -61,7 +61,7 @@ export class AudUIPlayer extends AudEmitter
   }
 
   /** Carbon method PostDialogueEvent (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PostDialogueEvent(eventName)
   {
@@ -86,7 +86,7 @@ export class AudUIPlayer extends AudEmitter
    * @param {string} name Event name.
    * @returns {number} Playing identifier, or zero when not posted.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SendEventWithCallback(name)
   {
@@ -117,7 +117,7 @@ export class AudUIPlayer extends AudEmitter
    * @param {number} playingID Completed event identifier.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   EventFinishedCallback(playingID)
   {

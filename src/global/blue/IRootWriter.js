@@ -276,7 +276,7 @@ function IsObject(value)
     && CjsSchema.getClassName(value.constructor) !== null;
 }
 
-CjsSchema.define(IRootWriter, { className: "IRootWriter", carbon: "IRootWriter" });
+CjsSchema.blue.define(IRootWriter, { className: "IRootWriter" });
 CjsSchema.decorateMethod(IRootWriter, "WriteMembers", meta.adapted);
 CjsSchema.decorateMethod(IRootWriter, "BeginReadOnlyMember", meta.ours);
 CjsSchema.decorateMethod(IRootWriter, "EndReadOnlyMember", meta.ours);

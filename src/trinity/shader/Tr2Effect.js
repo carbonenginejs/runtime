@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Tr2Effect.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { CjsSchema, normalizeCarbonValue, meta } from "#schema";
+import { CjsSchema, normalizeCarbonValue, meta, type, blue } from "#schema";
 import { Tr2RegisterMapAL, Tr2ResourceSetDescriptionAL } from "#trinityal";
 import { Tr2Material } from "./Tr2Material.js";
 import { vec4 } from "#math/vec4";
@@ -69,9 +69,9 @@ function requireShader(shader)
 const VECTOR4_PAD = vec4.create();
 
 /** Owns the mutable effect facade: shader path and options, authored parameters and resources, sampler overrides, variable-store resolution, and rebuild state. */
-@meta.define({ className: "Tr2Effect", family: "shader" })
-@meta.blue.inherit(IInitialize, INotify, IListNotify)
-@meta.blue.interface(Tr2Material, INotify, IInitialize, IListNotify)
+@blue.define("Tr2Effect")
+@blue.inherit(IInitialize, INotify, IListNotify)
+@blue.interface(Tr2Material, INotify, IInitialize, IListNotify)
 export class Tr2Effect extends Tr2Material
 {
   /** Subscribes the two native pointer lists (Tr2Effect.cpp:255-256). */
@@ -88,11 +88,11 @@ export class Tr2Effect extends Tr2Material
    * Authored shader effect path used to resolve the effect resource.
    * @type {string}
    */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
 
-  @meta.type.path("Tr2EffectRes")
+  @type.path("Tr2EffectRes")
   effectFilePath = "";
 
   /**
@@ -101,9 +101,9 @@ export class Tr2Effect extends Tr2Material
    * @type {Array<Tr2ShaderOption>}
    */
 
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.structList("Tr2ShaderOption")
+  @blue.read
+  @blue.persist
+  @type.structList("Tr2ShaderOption")
   options = [];
 
   /**
@@ -111,9 +111,9 @@ export class Tr2Effect extends Tr2Material
    * Authored name identifying this effect instance.
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /**
@@ -122,9 +122,9 @@ export class Tr2Effect extends Tr2Material
    * @type {Array<Tr2ConstantEffectParameter>}
    */
 
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.structList("Tr2ConstantEffectParameter")
+  @blue.read
+  @blue.persist
+  @type.structList("Tr2ConstantEffectParameter")
   constParameters = [];
 
   /**
@@ -133,9 +133,9 @@ export class Tr2Effect extends Tr2Material
    * @type {Array<import("./parameter/ITriEffectParameter.js").ITriEffectParameter>}
    */
 
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITriEffectParameter")
+  @blue.read
+  @blue.persist
+  @type.list("ITriEffectParameter")
   parameters = new BlueList(ITriEffectParameter);
 
   /**
@@ -144,9 +144,9 @@ export class Tr2Effect extends Tr2Material
    * @type {Array<ITriEffectResourceParameter>}
    */
 
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITriEffectResourceParameter")
+  @blue.read
+  @blue.persist
+  @type.list("ITriEffectResourceParameter")
   resources = new BlueList(ITriEffectResourceParameter);
 
   /**
@@ -154,8 +154,8 @@ export class Tr2Effect extends Tr2Material
    * Loaded effect resource whose shader variations this instance uses.
    * @type {Tr2EffectRes|null}
    */
-  @meta.blue.read
-  @meta.type.rootRef("Tr2EffectRes")
+  @blue.read
+  @type.rootRef("Tr2EffectRes")
   effectResource = null;
 
   /** JS acquisition ownership, separate from a resource assigned by the caller. */
@@ -169,8 +169,8 @@ export class Tr2Effect extends Tr2Material
    * Resolved shader path after applying the effect-path defaults.
    * @type {string}
    */
-  @meta.blue.read
-  @meta.type.path("Tr2EffectRes")
+  @blue.read
+  @type.path("Tr2EffectRes")
   actualEffectFilePath = "";
 
   /**
@@ -179,9 +179,9 @@ export class Tr2Effect extends Tr2Material
    * @type {Array<Tr2SamplerOverride>}
    */
 
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.structList("Tr2SamplerOverride")
+  @blue.read
+  @blue.persist
+  @type.structList("Tr2SamplerOverride")
   samplerOverrides = [];
 
   /**
@@ -285,7 +285,7 @@ export class Tr2Effect extends Tr2Material
    *
    * @param {object} [resource] Resource that finished loading.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RebuildCachedData(resource)
   {
@@ -305,7 +305,7 @@ export class Tr2Effect extends Tr2Material
    * Overrides the store this effect's TriVariableParameter values resolve
    * against; passing null restores the fallback to the global store.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetVariableStore(store)
   {
@@ -330,7 +330,7 @@ export class Tr2Effect extends Tr2Material
   }
 
   /** The effect's store, falling back to the global store at call time. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetVariableStore()
   {
@@ -341,7 +341,7 @@ export class Tr2Effect extends Tr2Material
    * The authored constant-parameter list itself, not a copy - callers that
    * mutate it mutate the effect.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetConstParameters()
   {
@@ -354,7 +354,7 @@ export class Tr2Effect extends Tr2Material
    * hashes authored content; values coming from a variable store are not
    * included. Not lightweight - do not call every frame.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetHashValue()
   {
@@ -386,7 +386,7 @@ export class Tr2Effect extends Tr2Material
   }
 
   /** Carbon method GetParameterAnnotations -> PyGetParameterAnnotations (MAP_METHOD). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetParameterAnnotations(parameterName)
   {
@@ -394,7 +394,7 @@ export class Tr2Effect extends Tr2Material
   }
 
   /** Carbon method PopulateParameters (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   PopulateParameters()
   {
@@ -438,7 +438,7 @@ export class Tr2Effect extends Tr2Material
   }
 
   /** Carbon method EndUpdate (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   EndUpdate()
   {
@@ -450,7 +450,7 @@ export class Tr2Effect extends Tr2Material
   }
 
   /** Carbon method PruneParameters (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   PruneParameters()
   {
@@ -466,7 +466,7 @@ export class Tr2Effect extends Tr2Material
   }
 
   /** Carbon method IsParameterUsedByTechnique (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsParameterUsedByTechnique(parameterName)
   {
@@ -484,7 +484,7 @@ export class Tr2Effect extends Tr2Material
    * @param {object} renderContext The context to draw on.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Render(callback, renderContext)
   {
@@ -503,7 +503,7 @@ export class Tr2Effect extends Tr2Material
   }
 
   /** Carbon method StartUpdate (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   StartUpdate()
   {
@@ -873,7 +873,7 @@ export class Tr2Effect extends Tr2Material
    * destination cleared and is detached from the material, an inserted one is
    * attached, and cached data is rebuilt either way.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnListModified(event, _key, _key2, value)
   {
@@ -1098,7 +1098,7 @@ export class Tr2Effect extends Tr2Material
    * Carbon's SetResourceTexture2D - assigns the texture path on the named
    * resource, creating the TriTextureParameter when absent.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetResourceTexture2D(name, resourcePath = "")
   {
@@ -1246,7 +1246,7 @@ export class Tr2Effect extends Tr2Material
    * @param {number} value Float value.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetParameter(name, value)
   {

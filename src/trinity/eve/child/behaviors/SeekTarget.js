@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SeekTarget.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { be } from "#blue";
 import { CjsScriptCallback } from "#blue/CjsScriptCallback";
 import { vec3 } from "#math/vec3";
@@ -13,9 +13,9 @@ const Z_AXIS = vec3.fromValues(0, 0, 1);
 const UP_AXIS = vec3.fromValues(0, 1, 0);
 
 /** A steering behaviour that assigns drones to repair locators on a target ship, splitting the target's bounding box into buckets so damage-seeking agents distribute evenly across it. */
-@meta.define({ className: "SeekTarget", family: "eve/child/behaviors" })
-@meta.blue.inherit(IBehavior)
-@meta.blue.interface(IBehavior)
+@blue.define("SeekTarget")
+@blue.inherit(IBehavior)
+@blue.interface(IBehavior)
 export class SeekTarget
 {
 
@@ -46,94 +46,94 @@ export class SeekTarget
   _forcePool = [];
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.int32
   behaviorPriority = 0;
 
   /** m_behaviorWeight (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   behaviorWeight = 1200;
 
   /** m_distFromOrigin (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   distFromOrigin = 10;
 
   /** m_arrivedRadius (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   arrivedRadius = 10;
 
   /** m_slowDownRadius (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   slowDownRadius = 33;
 
   /** m_target (EveSpaceObject2*) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
+  @blue.readwrite
+  @blue.persist
   @meta.reference
-  @meta.type.rootRef("EveSpaceObject2")
+  @type.rootRef("EveSpaceObject2")
   target = null;
 
   /** m_firstSpawnAtRandomPlaces (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   firstSpawnAtRandomPlaces = false;
 
   /** m_onFirstDroneArrivedCallback (BlueScriptCallback) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rawStruct("BlueScriptCallback")
+  @blue.readwrite
+  @type.rawStruct("BlueScriptCallback")
   onFirstDroneArrivedCallback = null;
 
   /** m_totalRepairTime (float) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   totalRepairTime = -1;
 
   /** m_seconds (float) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   secondsToTurn = 0.35;
 
   /** m_locatorSetName (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   locatorSetName = "damage";
 
   /** m_locatorSet (EveLocatorSetsPtr) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.rootRef("EveLocatorSets")
+  @blue.read
+  @blue.persist
+  @type.rootRef("EveLocatorSets")
   locatorSet = null;
 
   /** m_exit (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   exit = false;
 
   /** m_repair (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   repair = false;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   enabled = true;
 
   /** Carbon method AddLocatorSet (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddLocatorSet()
   {
@@ -143,7 +143,7 @@ export class SeekTarget
   }
 
   /** Carbon method SetTarget (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetTarget(target)
   {
@@ -151,7 +151,7 @@ export class SeekTarget
   }
 
   /** Carbon method ResetBehavior (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ResetBehavior()
   {
@@ -163,7 +163,7 @@ export class SeekTarget
   }
 
   /** Carbon method SetBehaviorWeight (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetBehaviorWeight(value)
   {
@@ -171,7 +171,7 @@ export class SeekTarget
   }
 
   /** Carbon method SetExit (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetExit(value)
   {
@@ -179,7 +179,7 @@ export class SeekTarget
   }
 
   /** Carbon method SetTotalRepairTime (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetTotalRepairTime(seconds)
   {
@@ -187,7 +187,7 @@ export class SeekTarget
   }
 
   /** Carbon method SetupShipRepair (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetupShipRepair()
   {
@@ -207,7 +207,7 @@ export class SeekTarget
    * - Carbon counts boxes as int( largest ) / int( desiredLength ) with no last-box clamp; here the count rounds and
    *   the last box ends at the box maximum.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SplitBoundingBox()
   {

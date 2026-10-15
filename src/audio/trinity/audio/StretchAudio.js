@@ -2,60 +2,60 @@
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/StretchAudio.json.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { IStretchAudio } from "../trinityAudioApi/IStretchAudio.js";
 import { AudEmitter } from "./AudEmitter.js";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 
 /** Positions source, destination, and stretch emitters along one beam segment, with the listener projected onto that segment. */
-@meta.define({ className: "StretchAudio", family: "audio" })
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(IInitialize)
-@meta.blue.chainTo(IStretchAudio)
+@blue.define("StretchAudio")
+@blue.inherit(IInitialize)
+@blue.interface(IInitialize)
+@blue.chainTo(IStretchAudio)
 export class StretchAudio extends IStretchAudio
 {
 
   /** m_stretchEmitter (AudEmitterPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("AudEmitter")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("AudEmitter")
   stretchEmitter = null;
 
   /** m_destEmitter (AudEmitterPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("AudEmitter")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("AudEmitter")
   destinationEmitter = null;
 
   /** m_sourceEmitter (AudEmitterPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("AudEmitter")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("AudEmitter")
   sourceEmitter = null;
 
   /** m_impactEvent (std::wstring) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.wstring
+  @blue.readwrite
+  @blue.persist
+  @type.wstring
   impactEvent = "";
 
   /** m_outburstEvent (std::wstring) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.wstring
+  @blue.readwrite
+  @blue.persist
+  @type.wstring
   outburstEvent = "";
 
   /** m_stretchEvent (std::wstring) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.wstring
+  @blue.readwrite
+  @blue.persist
+  @type.wstring
   stretchEvent = "";
 
   /** m_shotMissedEvent (std::wstring) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.wstring
+  @blue.readwrite
+  @blue.persist
+  @type.wstring
   shotMissedEvent = "";
 
   _shotMissed = false;
@@ -67,7 +67,7 @@ export class StretchAudio extends IStretchAudio
   _top = vec3.fromValues(0, 0, 1);
 
   /** Carbon method Initialize: create the three named emitters when absent. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -90,7 +90,7 @@ export class StretchAudio extends IStretchAudio
   }
 
   /** Carbon method Start: outburst on source, impact on dest, (shot-missed then) stretch on mid. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Start()
   {
@@ -107,7 +107,7 @@ export class StretchAudio extends IStretchAudio
   }
 
   /** Carbon method Stop: StopAll on each emitter. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Stop()
   {
@@ -117,7 +117,7 @@ export class StretchAudio extends IStretchAudio
   }
 
   /** Carbon method Update: position source/dest, project the listener onto the segment for the mid emitter. Events fire only in Start/Stop. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Update(sourcePosition, destPosition)
   {
@@ -185,7 +185,7 @@ export class StretchAudio extends IStretchAudio
   // t = dot(L-S, D-S) / |D-S|^2 clamped to [0,1]; degenerate segment
   // (|D-S|^2 < 1e-6) returns the source; no listener returns (0,0,0).
   /** Carbon method ProjectListenerOntoSegment. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ProjectListenerOntoSegment(sourcePosition, destPosition)
   {
@@ -215,7 +215,7 @@ export class StretchAudio extends IStretchAudio
   }
 
   /** Carbon method SetShotMissed. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetShotMissed(missed)
   {
@@ -223,7 +223,7 @@ export class StretchAudio extends IStretchAudio
   }
 
   /** Carbon method FindEmitterByName: source, then dest, then stretch; first name match or null. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   FindEmitterByName(name)
   {

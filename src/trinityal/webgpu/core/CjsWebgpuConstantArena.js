@@ -169,4 +169,4 @@ export class CjsWebgpuConstantArena
 // that reaches this file without a build first. `CjsSchema.define` is the same
 // metadata through the door the schema already provides for exactly this, and
 // it keeps the layer free of the decorator chain it has never carried.
-CjsSchema.define(CjsWebgpuConstantArena, { className: "CjsWebgpuConstantArena", carbon: "ConstantBufferAllocator" });
+CjsSchema.blue.define(CjsWebgpuConstantArena, { className: "CjsWebgpuConstantArena", donors: [ "ConstantBufferAllocator" ] });

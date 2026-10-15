@@ -2,41 +2,41 @@
 // Source: trinity/trinity/Eve/UI/EveLineContainer.cpp
 // Source: trinity/trinity/Eve/UI/EveLineContainer_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; this is portable CPU graph policy.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 
 
 /** Owns and updates a connector-built EveCurveLineSet. */
-@meta.define({ className: "EveLineContainer", family: "eve/ui" })
-@meta.blue.inherit(IEveSpaceObject2)
+@blue.define("EveLineContainer")
+@blue.inherit(IEveSpaceObject2)
 export class EveLineContainer
 {
 
   /** m_connectors (PEveConnectorVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveConnector")
+  @blue.read
+  @blue.persist
+  @type.list("EveConnector")
   connectors = [];
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_lineSet (EveCurveLineSetPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveCurveLineSet")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("EveCurveLineSet")
   lineSet = null;
 
   /** m_display (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   display = true;
 
   /** Rebuilds the complete logical line set from the authored connectors. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Update(context)
   {
@@ -55,7 +55,7 @@ export class EveLineContainer
   }
 
   /** Carbon's synchronous phase owns the connector rebuild. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateSyncronous(updateContext)
   {
@@ -63,15 +63,15 @@ export class EveLineContainer
   }
 
   /** Carbon performs no asynchronous work for this container. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateAsyncronous(_updateContext)
   {
   }
 
   /** Delegates transformed visibility only while this container is displayed. */
-  @meta.blue.method
-  @meta.blue.contextual(["camera"])
+  @blue.method
+  @blue.contextual(["camera"])
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform)
   {
@@ -92,7 +92,7 @@ export class EveLineContainer
   }
 
   /** Delegates the line set's local bound when one is authored. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBoundingSphere(sphere, query = 0)
   {
@@ -100,7 +100,7 @@ export class EveLineContainer
   }
 
   /** Delegates Carbon's model-center update hook. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateModelCenterWorldPosition(position, time)
   {
@@ -111,7 +111,7 @@ export class EveLineContainer
   }
 
   /** Delegates Carbon's non-updating model-center query. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetModelCenterWorldPosition(position)
   {
@@ -122,7 +122,7 @@ export class EveLineContainer
   }
 
   /** Delegates a local AABB query when the line set can supply one. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLocalBoundingBox(minBounds, maxBounds)
   {
@@ -130,7 +130,7 @@ export class EveLineContainer
   }
 
   /** Delegates Carbon's local-to-world query without inventing a fallback. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLocalToWorldTransform(transform)
   {

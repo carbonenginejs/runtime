@@ -164,4 +164,4 @@ export class CjsWebgpuSamplerStateAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
-CjsSchema.define(CjsWebgpuSamplerStateAL, { className: "CjsWebgpuSamplerStateAL", carbon: "Tr2SamplerStateAL" });
+CjsSchema.blue.define(CjsWebgpuSamplerStateAL, { className: "CjsWebgpuSamplerStateAL", donors: [ "Tr2SamplerStateAL" ] });

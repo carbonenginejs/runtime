@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Tr2ControllerFloatVariable.h
 // Source: trinity/trinity/Controllers/Tr2ControllerFloatVariable.cpp
 // Source: trinity/trinity/Controllers/Tr2ControllerFloatVariable_Blue.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IInitialize } from "#blue/IInitialize";
 import { INotify } from "#blue/INotify";
 import { Type } from "../enums.js";
@@ -22,43 +22,40 @@ import { Type } from "../enums.js";
  * marks changes; it does not evaluate expressions or clear consumed dirty bits.
  * The destination storage remains caller-owned.
  */
-@meta.define({
-  className: "Tr2ControllerFloatVariable",
-  family: "controllers"
-})
-@meta.blue.inherit(INotify)
-@meta.blue.interface(IInitialize, INotify)
+@blue.define("Tr2ControllerFloatVariable")
+@blue.inherit(INotify)
+@blue.interface(IInitialize, INotify)
 export class Tr2ControllerFloatVariable extends IInitialize
 {
   /** Authored variable name. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** Editor presentation type; runtime storage remains float32. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.Tr2ControllerFloatVariable.Type")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.Tr2ControllerFloatVariable.Type")
   variableType = Type.FLOAT;
 
   /** Current runtime value; changes notify but do not persist. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   value = 0;
 
   /** Authored value assigned by Initialize without publishing. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   defaultValue = 0;
 
   /** Comma-separated editor value/name choices. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   enumValues = "";
 
   /** Caller-owned storage or callback for the live float. */
@@ -81,7 +78,7 @@ export class Tr2ControllerFloatVariable extends IInitialize
    *
    * @returns {boolean} Always true.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -98,7 +95,7 @@ export class Tr2ControllerFloatVariable extends IInitialize
    * @param {string|null} _propertyName Unused modified member name.
    * @returns {boolean} Always true after both operations succeed.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(_propertyName)
   {
@@ -112,7 +109,7 @@ export class Tr2ControllerFloatVariable extends IInitialize
    *
    * @returns {string} Name used by the controller to expose this expression slot.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetName()
   {
@@ -124,7 +121,7 @@ export class Tr2ControllerFloatVariable extends IInitialize
    *
    * @returns {number} Current value, without reading the destination back.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetValue()
   {
@@ -140,7 +137,7 @@ export class Tr2ControllerFloatVariable extends IInitialize
    * @param {number} value New value for the float32 schema field.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetValue(value)
   {
@@ -161,7 +158,7 @@ export class Tr2ControllerFloatVariable extends IInitialize
    * @param {number} [index=0] Slot used only for an indexed destination.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetDestinationBuffer(buffer, index = 0)
   {
@@ -183,7 +180,7 @@ export class Tr2ControllerFloatVariable extends IInitialize
    * @returns {void}
    * @throws {RangeError|TypeError} If mask cannot be converted to BigInt.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetDirtyMask(maskDestination, mask)
   {

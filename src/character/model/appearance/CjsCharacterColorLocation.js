@@ -1,24 +1,24 @@
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /** Authored color-control location and its supported scalar controls. */
-@meta.define({ className: "CjsCharacterColorLocation", family: "character" })
+@meta.define("CjsCharacterColorLocation")
 export class CjsCharacterColorLocation extends CjsCharacterRecord
 {
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     colorKey = "";
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.uint8
+    @blue.readwrite
+    @blue.persist
+    @type.uint8
     hasGloss = 0;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.uint8
+    @blue.readwrite
+    @blue.persist
+    @type.uint8
     hasWeight = 0;
 
 }

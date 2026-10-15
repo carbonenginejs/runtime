@@ -1,18 +1,18 @@
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /** Plan-local resolved character choice with explicit selection-group ownership. */
-@meta.define({ className: "CjsCharacterAppearanceSelection", family: "character" })
+@meta.define("CjsCharacterAppearanceSelection")
 export class CjsCharacterAppearanceSelection
 {
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     groupID = "";
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.rootRef("CjsCharacterOrigin")
+    @blue.readwrite
+    @blue.persist
+    @type.rootRef("CjsCharacterOrigin")
     origin = null;
 
 }

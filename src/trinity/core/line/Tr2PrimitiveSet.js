@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Tr2PrimitiveSet.cpp
 // Source: trinity/trinity/Tr2PrimitiveSet_Blue.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { INotify, IsMatch } from "#blue";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -15,9 +15,9 @@ import { ITr2Renderable } from "../ITr2Renderable.js";
 import { ITr2Pickable } from "../ITr2Pickable.js";
 
 /** A drawable set of primitives with a world transform, sort value and bounding sphere. */
-@meta.define({ className: "Tr2PrimitiveSet", family: "trinityCore" })
-@meta.blue.inherit(ITr2Renderable, ITr2Pickable, INotify)
-@meta.blue.interface(ITr2Renderable, ITr2Pickable, INotify)
+@blue.define("Tr2PrimitiveSet")
+@blue.inherit(ITr2Renderable, ITr2Pickable, INotify)
+@blue.interface(ITr2Renderable, ITr2Pickable, INotify)
 export class Tr2PrimitiveSet
 {
 
@@ -31,67 +31,67 @@ export class Tr2PrimitiveSet
 
 
   /** m_localTransform (Matrix) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.mat4
+  @blue.readwrite
+  @blue.persist
+  @type.mat4
   localTransform = mat4.create();
 
   /** m_worldTransform (Matrix) [READ] */
-  @meta.blue.read
-  @meta.type.mat4
+  @blue.read
+  @type.mat4
   worldTransform = mat4.create();
 
   /** m_pythonUserData (PyObject*) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("PyObject")
+  @blue.readwrite
+  @type.rootRef("PyObject")
   _userData = null;
 
   /** m_viewOriented (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   viewOriented = false;
 
   /** m_scaleByDistanceToView (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   scaleByDistanceToView = false;
 
   /** m_color (Color) [READWRITE, NOTIFY, PERSIST] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.color
   color = vec4.fromValues(0.5, 0.5, 0.5, 1);
 
   /** m_scale (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   scale = 1;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, NOTIFY, PERSIST] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2Effect")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2Effect")
   effect = null;
 
   /** m_pickEffect (Tr2EffectPtr) [READWRITE, NOTIFY, PERSIST] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2Effect")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2Effect")
   pickEffect = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** Carbon method SetCurrentColor (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   SetCurrentColor(_color)
   {
@@ -105,7 +105,7 @@ export class Tr2PrimitiveSet
    * Adapted: the effect is asked `IsGood()` first, which renews what it holds
    * and skips it while its resource is not good (Tr2Effect.IsGood).
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBatches(accumulator, batchType, perObjectData, _reason)
   {
@@ -116,7 +116,7 @@ export class Tr2PrimitiveSet
   }
 
   /** Native subclasses supply their own geometry. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GetBatchesImpl(_accumulator, _perObjectData, _effect, _reason)
   {
@@ -124,7 +124,7 @@ export class Tr2PrimitiveSet
   }
 
   /** Native primitive sets participate in transparent sorting (cpp:47). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasTransparentBatches()
   {
@@ -132,8 +132,8 @@ export class Tr2PrimitiveSet
   }
 
   /** Renderer-global camera state is supplied by the active JS render context. */
-  @meta.blue.method
-  @meta.blue.contextual(["camera"])
+  @blue.method
+  @blue.contextual(["camera"])
   @meta.adapted
   GetSortValue(context)
   {
@@ -144,7 +144,7 @@ export class Tr2PrimitiveSet
   }
 
   /** An optional output replaces Carbon's value-returned world sphere (cpp:82). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBoundingSphere(out = vec4.create()) // alloc: value-returned sphere belongs to the caller.
   {
@@ -154,7 +154,7 @@ export class Tr2PrimitiveSet
   }
 
   /** Native transform reference (header:29). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetWorldTransform()
   {
@@ -165,7 +165,7 @@ export class Tr2PrimitiveSet
    * The JS object is Carbon's raw-root picking identity (header:39).
    * GetID/GetPickingBatches implement the native ITr2Pickable contract.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetID(_areaId)
   {
@@ -173,7 +173,7 @@ export class Tr2PrimitiveSet
   }
 
   /** Both cpp-local native structs contain exactly one WorldMat (cpp:93-114). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetPerObjectData(accumulator)
   {
@@ -194,8 +194,8 @@ export class Tr2PrimitiveSet
    * Native view-facing and distance-scaled transform (cpp:117-167). Camera
    * state lives on the JS context; matrix composition reverses Carbon order.
    */
-  @meta.blue.method
-  @meta.blue.contextual(["camera"])
+  @blue.method
+  @blue.contextual(["camera"])
   @meta.adapted
   UpdateTransform(context)
   {
@@ -227,7 +227,7 @@ export class Tr2PrimitiveSet
   }
 
   /** Native bit-mask dispatch through the regular batch gates (cpp:182). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPickingBatches(accumulator, pickTypes, perObjectData)
   {

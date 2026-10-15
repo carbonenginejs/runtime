@@ -2,7 +2,7 @@
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/ApproachGroup.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 
 // Module scratch for the per-agent loop (behavior updates run sequentially).
@@ -11,41 +11,41 @@ const FORCE_OFFSET = vec3.create();
 const NO_FORCES = [];
 
 /** A steering behaviour that pulls each drone toward the centroid of its nearby neighbours, recomputing the pull force on a throttled schedule and reusing it between refreshes. */
-@meta.define({ className: "ApproachGroup", family: "eve/child/behaviors" })
-@meta.blue.inherit(IBehavior)
-@meta.blue.interface(IBehavior)
+@blue.define("ApproachGroup")
+@blue.inherit(IBehavior)
+@blue.interface(IBehavior)
 export class ApproachGroup
 {
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.int32
   behaviorPriority = 0;
 
   /** m_behaviorWeight (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   behaviorWeight = 60;
 
   /** m_visionRange (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   visionRange = 150;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   enabled = true;
 
   /** m_framesBetweenUpdates (int32_t) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.readwrite
+  @blue.persist
+  @type.int32
   framesBetweenUpdates = 83;
 
   // Carbon m_frameCounter/m_lastPullForces runtime state.
@@ -56,7 +56,7 @@ export class ApproachGroup
   _returnForces = [];
 
   /** Carbon ApproachGroup::GetProcessPriority (cpp:22-25). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetProcessPriority()
   {
@@ -79,7 +79,7 @@ export class ApproachGroup
    * @param {Array} dronesInSearchRadius - per-agent neighbour lists
    * @returns {Array} debug force pairs when group.collectForces is on
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CalculateBehavior(agents, _scratchData, _deltaTime, group, _system, dronesInSearchRadius)
   {
@@ -173,7 +173,7 @@ export class ApproachGroup
   }
 
   /** Carbon ApproachGroup::GetBehaviorSearchRadius (cpp:108-120). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBehaviorSearchRadius()
   {

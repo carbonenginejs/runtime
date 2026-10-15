@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/Wander.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/Wander.cpp
 import { IBehavior } from "./IBehavior.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { carbonPerlin1D } from "#math/noise";
 import { ProcessPriority } from "./enums.js";
@@ -15,62 +15,62 @@ const NO_FORCES = [];
  * Drone behavior that adds a per-agent Perlin-noise wander force seeded from the
  * agent's lifetime and id, so each drone drifts on its own path.
  */
-@meta.define({ className: "Wander", family: "eve/child/behaviors" })
-@meta.blue.inherit(IBehavior)
-@meta.blue.interface(IBehavior)
+@blue.define("Wander")
+@blue.inherit(IBehavior)
+@blue.interface(IBehavior)
 export class Wander
 {
 
   static ProcessPriority = ProcessPriority;
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.IBehavior.ProcessPriority")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.IBehavior.ProcessPriority")
   behaviorPriority = 0;
 
   /** rand1 (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   rand1 = 0.2;
 
   /** rand2 (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   rand2 = 0.8;
 
   /** rand3 (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   rand3 = 1.2;
 
   /** m_freq (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   freq = 2;
 
   /** m_weightWander (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   weightWander = 240;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   enabled = true;
 
   _returnForces = [];
 
   /** Carbon Wander::GetProcessPriority (cpp:23-26). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetProcessPriority()
   {
@@ -93,7 +93,7 @@ export class Wander
    * @param {Array} _dronesInSearchRadius - unused
    * @returns {Array} debug force pairs when group.collectForces is on
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CalculateBehavior(agents, _scratchData, _deltaTime, group, _system, _dronesInSearchRadius)
   {

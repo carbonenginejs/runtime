@@ -2,7 +2,7 @@ import { ResourceRequirement } from "#blue";
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Source: trinity/trinity/Resources/TriGeometryRes.cpp
 // Source: trinity/trinity/Resources/TriGeometryRes_Blue.cpp
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { box3 } from "#math/box3";
 import { triangleNormalTo } from "#math/mesh";
 import { ray3 } from "#math/ray3";
@@ -1468,52 +1468,51 @@ export class TriGeometryRes extends CjsResource
 // Declared as data rather than with decorators, so the resource tree loads from
 // source without a transform. Field order is key order, and GetValues() exports
 // in that order.
-CjsSchema.define(TriGeometryRes, {
+CjsSchema.blue.define(TriGeometryRes, {
   className: "TriGeometryRes",
-  family: "resources",
   fields: {
-    forceLod: [ meta.type.boolean, meta.blue.readwrite ],
-    forcedLodIndex: [ meta.type.int32, meta.blue.readwrite ],
-    name: [ meta.type.string, meta.blue.readwrite ]
+    forceLod: [ type.boolean, blue.readwrite ],
+    forcedLodIndex: [ type.int32, blue.readwrite ],
+    name: [ type.string, blue.readwrite ]
   },
   methods: {
     SetPayload: [ meta.ours ],
     ReadGrannyFile: [ meta.adapted ],
-    GetMeshCount: [ meta.blue.method, meta.adapted ],
-    GetAnimationCount: [ meta.blue.method, meta.adapted ],
-    GetSkeletonCount: [ meta.blue.method, meta.adapted ],
-    GetSkeletonData: [ meta.blue.method, meta.adapted ],
-    GetMeshAreaCount: [ meta.blue.method, meta.adapted ],
-    GetLodIndexForScreenSize: [ meta.blue.method, meta.adapted ],
+    GetMeshCount: [ blue.method, meta.adapted ],
+    GetAnimationCount: [ blue.method, meta.adapted ],
+    GetSkeletonCount: [ blue.method, meta.adapted ],
+    GetSkeletonData: [ blue.method, meta.adapted ],
+    GetMeshAreaCount: [ blue.method, meta.adapted ],
+    GetLodIndexForScreenSize: [ blue.method, meta.adapted ],
     GetMeshLod__ScreenSize: [ meta.adapted ],
     GetMeshLod__LodIndex: [ meta.adapted ],
-    GetMeshName: [ meta.blue.method, meta.adapted ],
-    GetMeshAreaName: [ meta.blue.method, meta.adapted ],
-    GetAreaBoundingBox: [ meta.blue.method, meta.adapted ],
-    GetBoundingBox: [ meta.blue.method, meta.adapted ],
-    GetBoundingSphere: [ meta.blue.method, meta.adapted ],
-    CalculateBoundingBoxFromTransform: [ meta.blue.method, meta.adapted ],
-    RecalculateBoundingSphere: [ meta.blue.method, meta.adapted ],
-    Reload: [ meta.blue.method, meta.adapted ],
-    GetIntersectionPointNormalBone: [ meta.blue.method, meta.adapted ],
-    GetAreaIntersectionPointNormalBone: [ meta.blue.method, meta.adapted ],
-    PrepareRayCaster: [ meta.blue.method, meta.adapted ],
-    ResetRayCaster: [ meta.blue.method, meta.adapted ],
-    IsRayCasterReady: [ meta.blue.method, meta.adapted ],
-    HasRayCasterPreparationFailed: [ meta.blue.method, meta.adapted ],
-    DestroyRayCaster: [ meta.blue.method, meta.adapted ],
-    ReleaseResources: [ meta.blue.method, meta.adapted ],
+    GetMeshName: [ blue.method, meta.adapted ],
+    GetMeshAreaName: [ blue.method, meta.adapted ],
+    GetAreaBoundingBox: [ blue.method, meta.adapted ],
+    GetBoundingBox: [ blue.method, meta.adapted ],
+    GetBoundingSphere: [ blue.method, meta.adapted ],
+    CalculateBoundingBoxFromTransform: [ blue.method, meta.adapted ],
+    RecalculateBoundingSphere: [ blue.method, meta.adapted ],
+    Reload: [ blue.method, meta.adapted ],
+    GetIntersectionPointNormalBone: [ blue.method, meta.adapted ],
+    GetAreaIntersectionPointNormalBone: [ blue.method, meta.adapted ],
+    PrepareRayCaster: [ blue.method, meta.adapted ],
+    ResetRayCaster: [ blue.method, meta.adapted ],
+    IsRayCasterReady: [ blue.method, meta.adapted ],
+    HasRayCasterPreparationFailed: [ blue.method, meta.adapted ],
+    DestroyRayCaster: [ blue.method, meta.adapted ],
+    ReleaseResources: [ blue.method, meta.adapted ],
     ReleasePayload: [ meta.ours ],
-    IsMemoryUsageKnown: [ meta.blue.method, meta.implemented ],
-    GetMemoryUsage: [ meta.blue.method, meta.adapted ],
-    GetIntersectionPoints: [ meta.blue.method, meta.adapted ],
-    GetMeshVertexElements: [ meta.blue.method, meta.adapted ],
-    IsInstanceDataReady: [ meta.blue.method, meta.implemented ],
-    GetInstanceData: [ meta.blue.method, meta.adapted ],
-    GetInstanceBufferVertexDeclaration: [ meta.blue.method, meta.adapted ],
-    GetInstanceBufferBoundingBox: [ meta.blue.method, meta.adapted ],
-    SaveMesh: [ meta.blue.method, meta.notSupported ]
+    IsMemoryUsageKnown: [ blue.method, meta.implemented ],
+    GetMemoryUsage: [ blue.method, meta.adapted ],
+    GetIntersectionPoints: [ blue.method, meta.adapted ],
+    GetMeshVertexElements: [ blue.method, meta.adapted ],
+    IsInstanceDataReady: [ blue.method, meta.implemented ],
+    GetInstanceData: [ blue.method, meta.adapted ],
+    GetInstanceBufferVertexDeclaration: [ blue.method, meta.adapted ],
+    GetInstanceBufferBoundingBox: [ blue.method, meta.adapted ],
+    SaveMesh: [ blue.method, meta.notSupported ]
   }
 });
-meta.blue.inherit(ICacheable)(TriGeometryRes, { kind: "class" });
-meta.blue.interface(ICacheable)(TriGeometryRes);
+blue.inherit(ICacheable)(TriGeometryRes, { kind: "class" });
+blue.interface(ICacheable)(TriGeometryRes);

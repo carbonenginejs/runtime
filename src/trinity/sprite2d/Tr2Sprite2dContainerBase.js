@@ -2,17 +2,17 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dContainer.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dContainer_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; portable child ownership is maintained here.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { BlueList, IListNotify } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ITr2SpriteObject } from "./ITr2SpriteObject.js";
 import { Tr2SpriteObjectBase } from "./Tr2SpriteObjectBase.js";
 
 /** Shared Sprite2D container state and child-parent propagation. */
-@meta.define({ className: "Tr2Sprite2dContainerBase", family: "sprite2d" })
-@meta.blue.inherit(IListNotify)
-@meta.blue.interface(ITr2SpriteObject, IListNotify)
-@meta.blue.chainTo(Tr2SpriteObjectBase)
+@blue.define("Tr2Sprite2dContainerBase")
+@blue.inherit(IListNotify)
+@blue.interface(ITr2SpriteObject, IListNotify)
+@blue.chainTo(Tr2SpriteObjectBase)
 export class Tr2Sprite2dContainerBase extends Tr2SpriteObjectBase
 {
 
@@ -31,7 +31,7 @@ export class Tr2Sprite2dContainerBase extends Tr2SpriteObjectBase
    * @param {ITr2SpriteObject} _child The child that changed.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetChildDirty(_child)
   {
@@ -68,7 +68,7 @@ export class Tr2Sprite2dContainerBase extends Tr2SpriteObjectBase
   }
 
   /** Carbon IList notification callback. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnListModified(event, _key, _key2, value, list)
   {
@@ -103,19 +103,19 @@ export class Tr2Sprite2dContainerBase extends Tr2SpriteObjectBase
   }
 
   /** m_background (PITr2SpriteObjectVector) [READ] */
-  @meta.blue.read
-  @meta.type.list("ITr2SpriteObject")
+  @blue.read
+  @type.list("ITr2SpriteObject")
   background = new BlueList(ITr2SpriteObject, { className: null, listOps: 0 });
 
   /** m_children (PITr2SpriteObjectVector) [READ] */
-  @meta.blue.read
-  @meta.type.list("ITr2SpriteObject")
+  @blue.read
+  @type.list("ITr2SpriteObject")
   children = new BlueList(ITr2SpriteObject, { className: null, listOps: 0 });
 
   /** m_opacity (float) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   opacity = 1;
 
 }

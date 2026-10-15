@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepLimitSize.h
 // Schema: format-carbon resources/Tr2TexturePipelineStepLimitSize.json; maintained by the runtime resource layer.
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { HostBitmap } from "#imageio";
 
 // Source: trinity/trinity/Resources/TexturePipeline/ITr2TexturePipelineStep.h:26
@@ -118,15 +118,15 @@ export class Tr2TexturePipelineStepLimitSize
 
 }
 
-CjsSchema.define(Tr2TexturePipelineStepLimitSize, {
-  className: "Tr2TexturePipelineStepLimitSize", family: "resources",
+CjsSchema.blue.define(Tr2TexturePipelineStepLimitSize, {
+  className: "Tr2TexturePipelineStepLimitSize",
   fields: {
-    maxHeight: [ meta.blue.persist, meta.type.uint32 ],
-    maxWidth: [ meta.blue.persist, meta.type.uint32 ]
+    maxHeight: [ blue.persist, type.uint32 ],
+    maxWidth: [ blue.persist, type.uint32 ]
   },
   methods: {
-    GetResourceDependencies: [ meta.blue.method, meta.implemented ],
-    Execute: [ meta.blue.method, meta.implemented ],
-    limitSize: [ meta.blue.method, meta.adapted ]
+    GetResourceDependencies: [ blue.method, meta.implemented ],
+    Execute: [ blue.method, meta.implemented ],
+    limitSize: [ blue.method, meta.adapted ]
   }
 });

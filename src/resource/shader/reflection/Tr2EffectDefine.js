@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, type } from "#schema";
 
 /** Effect compile define retained as source metadata. */
 export class Tr2EffectDefine
@@ -18,11 +18,10 @@ export class Tr2EffectDefine
 // expressions are reused verbatim, so the registered metadata is identical.
 // Statics belong in `methods`: decorateMethod targets the prototype and
 // would register a static as an instance field.
-CjsSchema.define(Tr2EffectDefine, {
+CjsSchema.blue.define(Tr2EffectDefine, {
   className: "Tr2EffectDefine",
-  family: "shader",
   fields: {
-    name: meta.type.string,
-    value: meta.type.string
+    name: type.string,
+    value: type.string
   }
 });

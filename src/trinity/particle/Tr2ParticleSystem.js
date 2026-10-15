@@ -4,7 +4,7 @@ import { ITr2GenericParticleConstraint } from "./constraint/ITr2GenericParticleC
 // Source: trinity/trinity/Particle/Tr2ParticleSystem.h
 import { IInitialize, INotify, IsMatch, ISimTimeRebaseNotify, be, CcpTime } from "#blue";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Failed } from "../../trinityal/ALResult.js";
 import { Tr2BufferDescriptionAL } from "../../trinityal/Tr2BufferAL/Tr2BufferDescriptionAL.js";
@@ -23,17 +23,17 @@ import { ITr2GenericEmitterUpdateArguments } from "./ITr2GenericEmitter/index.js
 import { ITr2GpuBuffer } from "../core/ITr2GpuBuffer.js";
 
 /** Owns a particle system's element declaration, CPU-side attribute buffers, and per-frame simulation of aging, forces, movement, constraints and bounds. */
-@meta.define({ className: "Tr2ParticleSystem", family: "particle" })
-@meta.blue.inherit(ITr2InstanceData, ITr2GpuBuffer)
-@meta.blue.inherit(IInitialize)
-@meta.blue.inherit(ISimTimeRebaseNotify)
-@meta.blue.interface(IInitialize, INotify, ITr2InstanceData, ITr2GpuBuffer)
-@meta.blue.inherit(IListNotify)
+@blue.define("Tr2ParticleSystem")
+@blue.inherit(ITr2InstanceData, ITr2GpuBuffer)
+@blue.inherit(IInitialize)
+@blue.inherit(ISimTimeRebaseNotify)
+@blue.interface(IInitialize, INotify, ITr2InstanceData, ITr2GpuBuffer)
+@blue.inherit(IListNotify)
 export class Tr2ParticleSystem
 {
 
   /** Carbon Tr2ParticleSystem.cpp:220-239 binds an inserted constraint. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
@@ -78,7 +78,7 @@ export class Tr2ParticleSystem
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PrepareResources()
   {
@@ -134,115 +134,115 @@ export class Tr2ParticleSystem
   _mappedData = null;
 
   /** m_elements (PTr2ParticleElementDeclarationVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("Tr2ParticleElementDeclaration")
+  @blue.read
+  @blue.persist
+  @type.list("Tr2ParticleElementDeclaration")
   elements = [];
 
   /** m_isValid (bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   isValid = false;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_constraints (PITr2GenericParticleConstraintVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITr2GenericParticleConstraint")
+  @blue.read
+  @blue.persist
+  @type.list("ITr2GenericParticleConstraint")
   constraints = new BlueList(ITr2GenericParticleConstraint);
 
   /** m_forces (PITr2ParticleForceVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITr2ParticleForce")
+  @blue.read
+  @blue.persist
+  @type.list("ITr2ParticleForce")
   forces = [];
 
   /** m_emissionOnDeathEmitter (ITr2GenericEmitterPtr) [READWRITE, NOTIFY, PERSIST] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITr2GenericEmitter")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITr2GenericEmitter")
   emitParticleOnDeathEmitter = null;
 
   /** m_emissionWhileAliveEmitter (ITr2GenericEmitterPtr) [READWRITE, NOTIFY, PERSIST] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITr2GenericEmitter")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITr2GenericEmitter")
   emitParticleDuringLifeEmitter = null;
 
   /** m_applyForce (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   applyForce = true;
 
   /** m_applyAging (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   applyAging = true;
 
   /** m_isGlobal (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   isGlobal = false;
 
   /** m_updateSimulation (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   updateSimulation = true;
 
   /** m_requiresSorting (bool) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   requiresSorting = false;
 
   /** m_AabbMax (Vector3) [READ] */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   aabbMax = vec3.create();
 
   /** m_AabbMin (Vector3) [READ] */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   aabbMin = vec3.create();
 
   /** m_peakAliveCount (unsigned) [READ] */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   peakAliveCount = 0;
 
   /** m_useSimTimeRebase (bool) [READWRITE, NOTIFY, PERSIST] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   useSimTimeRebase = false;
 
   /** m_maxParticleCount (unsigned) [PERSISTONLY] */
-  @meta.blue.readwrite
-  @meta.blue.persistOnly
-  @meta.type.uint32
+  @blue.readwrite
+  @blue.persistOnly
+  @type.uint32
   maxParticleCount = 0;
 
   /** m_aliveCount (unsigned) [READ] */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   aliveCount = 0;
 
   /** m_originalMaxParticles (unsigned) [READ] */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   originalMaxParticles = 0;
 
   /**
@@ -325,7 +325,7 @@ export class Tr2ParticleSystem
   }
 
   /** Carbon method ClearParticles (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ClearParticles()
   {
@@ -352,7 +352,7 @@ export class Tr2ParticleSystem
    * Adapted: JavaScript has no particle-system pointer binding; constraints receive the
    * owning model directly.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RebindConstraints()
   {
@@ -363,7 +363,7 @@ export class Tr2ParticleSystem
   }
 
   /** Carbon method SaveToCMF (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   SaveToCMF(...args)
   {
@@ -371,7 +371,7 @@ export class Tr2ParticleSystem
   }
 
   /** Carbon method SaveToGranny (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   SaveToGranny(...args)
   {
@@ -384,7 +384,7 @@ export class Tr2ParticleSystem
    * existing duplicate-name check; global dynamic-particle budgeting is not
    * ported. The AL owns the physical allocation, including in headless runs.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateElementDeclaration()
   {
@@ -483,7 +483,7 @@ export class Tr2ParticleSystem
    * follow Tr2ParticleSystem.cpp:615,713-726. Retained scratch replaces native
    * stack copies of pre-integration position/velocity for segment emission.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateSimulation(dt, updateArguments = Tr2ParticleSystem._defaultUpdateArguments)
   {
@@ -839,7 +839,7 @@ export class Tr2ParticleSystem
   }
 
   /** Carbon Tr2ParticleSystem.cpp:141; batched edits apply each independent branch. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(names)
   {
@@ -1095,7 +1095,7 @@ export class Tr2ParticleSystem
    * sorting visibility state from the current CPU bounds. JS uses gl-matrix
    * vectors with Carbon-identical single-transform layout.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateViewDependentData(frustum, worldTransform)
   {
@@ -1217,7 +1217,7 @@ export class Tr2ParticleSystem
   }
 
   /** Copies the owning world transform without evaluating view state. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateTransform(worldTransform)
   {

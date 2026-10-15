@@ -5,56 +5,56 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 
 /**
  * One oriented box projected onto a hull that replaces a source material with a
  * chosen blend of target materials inside it.
  */
-@meta.define({ className: "EveCustomMask", family: "eve/spaceObject" })
+@blue.define("EveCustomMask")
 export class EveCustomMask
 {
   static CUSTOM_MASK_COUNT = 2;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   clampU = false;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   clampV = false;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   position = vec3.create();
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotation = quat.create();
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint8
+  @blue.readwrite
+  @blue.persist
+  @type.uint8
   materialIndex = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   isMirrored = false;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   targetMaterials = vec4.fromValues(1, 1, 1, 1);
 
   /**
@@ -62,7 +62,7 @@ export class EveCustomMask
    * and target material weights in one call, substituting neutral defaults for
    * any argument that is missing.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Setup(position, scaling, rotation, isMirrored, clampU, clampV, sourceMaterialID, targets)
   {
@@ -82,7 +82,7 @@ export class EveCustomMask
    * @param {Array} [out] - caller-owned mat4; a fresh matrix is allocated when omitted
    * @returns {Array} out
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetDebugDrawMatrix(out = mat4.create(), objectRadius = 0)
   {
@@ -96,7 +96,7 @@ export class EveCustomMask
    * @param {Number} index - custom-mask slot, 0 or 1
    * @returns {Boolean} false for an out-of-range slot, a missing struct, or a placement that cannot be inverted
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   FillPerObjectData(index, vsData, psData)
   {
@@ -132,7 +132,7 @@ export class EveCustomMask
    * @param {Number} index - custom-mask slot, 0 or 1
    * @returns {Boolean} false for an out-of-range slot or a missing struct
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   static ZeroPerObjectData(index, vsData, psData)
   {

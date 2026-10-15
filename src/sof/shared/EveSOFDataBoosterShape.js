@@ -1,11 +1,11 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec4 } from "#math/vec4";
 
 /** Combines the noise, frequency, speed, and color parameters that define a booster shape. */
-@meta.define({ className: "EveSOFDataBoosterShape", family: "eve" })
-@meta.blue.interface()
+@blue.define("EveSOFDataBoosterShape")
+@blue.interface()
 export class EveSOFDataBoosterShape
 {
 
@@ -13,54 +13,54 @@ export class EveSOFDataBoosterShape
    * Numeric noise-function selector retained in authored and projected shape data (native float).
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   noiseFunction = 0;
 
   /**
    * Animation-speed control for the shape noise; shader-domain units are not converted here.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   noiseSpeed = 0;
 
   /**
    * Four-component noise amplitude at the start of the plume; native member and exposure retain the Ampliture spelling.
    * @type {Float32Array}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   noiseAmplitureStart = vec4.create();
 
   /**
    * Four-component noise amplitude at the end of the plume; native member and exposure retain the Ampliture spelling.
    * @type {Float32Array}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   noiseAmplitureEnd = vec4.create();
 
   /**
    * Four-component frequency control for the plume noise; forwarded unchanged to the shape parameters.
    * @type {Float32Array}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   noiseFrequency = vec4.create();
 
   /**
    * Color weight for this booster plume shape.
    * @type {Float32Array}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.readwrite
+  @blue.persist
+  @type.color
   color = vec4.create();
 
   /**

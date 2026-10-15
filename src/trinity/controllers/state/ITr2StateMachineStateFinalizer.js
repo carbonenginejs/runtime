@@ -44,4 +44,4 @@ export class ITr2StateMachineStateFinalizer
 }
 
 
-CjsSchema.define(ITr2StateMachineStateFinalizer, { className: "ITr2StateMachineStateFinalizer" });
+CjsSchema.blue.define(ITr2StateMachineStateFinalizer, { className: "ITr2StateMachineStateFinalizer" });

@@ -1,17 +1,17 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/EveSocketParameter.h
 // Hand-authored following the eve/socket generated pattern (SOCKET_PARAM_DECLARE macro family).
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { EveSocketParameterBindingBase } from "./EveSocketParameterBindingBase.js";
 
 /** Binds a named float socket value to external parameters, capturing and restoring each binding's previous value. */
-@meta.define({ className: "EveSocketParameterFloat", family: "eve/socket" })
+@blue.define("EveSocketParameterFloat")
 export class EveSocketParameterFloat extends EveSocketParameterBindingBase
 {
 
   /** m_value (float) */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   value = 0;
 
   /** m_defaults - one default captured per bound external parameter. */
@@ -21,7 +21,7 @@ export class EveSocketParameterFloat extends EveSocketParameterBindingBase
    * Discards the captured defaults along with the bindings, so nothing can be
    * restored afterwards.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ClearBindings()
   {
@@ -30,7 +30,7 @@ export class EveSocketParameterFloat extends EveSocketParameterBindingBase
   }
 
   /** Restores every binding's default and copies it out, then clears. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Reset()
   {
@@ -66,7 +66,7 @@ export class EveSocketParameterFloat extends EveSocketParameterBindingBase
    * Restores the first captured default, falling back to 0 when nothing was
    * captured.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetValueToDefault()
   {

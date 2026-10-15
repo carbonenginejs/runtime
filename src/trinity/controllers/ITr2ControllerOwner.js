@@ -102,4 +102,4 @@ const OWNER_METHODS = [
 
 for (const name of OWNER_METHODS) CjsSchema.decorateMethod(ITr2ControllerOwner, name, meta.noop);
 
-CjsSchema.define(ITr2ControllerOwner, { className: "ITr2ControllerOwner" });
+CjsSchema.blue.define(ITr2ControllerOwner, { className: "ITr2ControllerOwner" });

@@ -19,6 +19,7 @@ export class ITr2ValueBinding
 }
 
 CjsSchema.decorateMethod(ITr2ValueBinding, "CopyValue", meta.requires, meta.abstract);
-CjsSchema.define(ITr2ValueBinding, {
-  className: "ITr2ValueBinding", carbon: "ITr2ValueBinding", family: "curves", fields: {}
+CjsSchema.blue.define(ITr2ValueBinding, {
+  className: "ITr2ValueBinding",
+  fields: {}
 });

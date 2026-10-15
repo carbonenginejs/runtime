@@ -38,6 +38,7 @@ export class IInitialize
 
 CjsSchema.decorateMethod(IInitialize, "Initialize", meta.requires, meta.abstract);
 
-CjsSchema.define(IInitialize, {
-  className: "IInitialize", carbon: "IInitialize", family: "blue", fields: {}
+CjsSchema.blue.define(IInitialize, {
+  className: "IInitialize",
+  fields: {}
 });

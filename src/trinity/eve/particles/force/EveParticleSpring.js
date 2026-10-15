@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/EveParticleSpringAttractor.h
 // Source: trinity/trinity/Eve/EveParticleSpringAttractor_Blue.cpp
-import { meta } from "#schema";
+import { blue } from "#schema";
 import { Tr2ParticleSpring } from "../../../particle/force/Tr2ParticleSpring.js";
 
 
@@ -9,7 +9,7 @@ import { Tr2ParticleSpring } from "../../../particle/force/Tr2ParticleSpring.js"
  * ...SpringAttractor source files) with zero attributes of its own and chains
  * the whole exposure to the Tr2 class.
  */
-@meta.define({ className: "EveParticleSpring", family: "eve" })
+@blue.define("EveParticleSpring")
 export class EveParticleSpring extends Tr2ParticleSpring
 {
 }

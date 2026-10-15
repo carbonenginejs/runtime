@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2ProceduralResources.h
 // Source: trinity/trinity/Tr2ProceduralResources.cpp
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { Tr2Renderer } from "./Tr2Renderer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "./context/Tr2RenderContext.js";
 import { TriDevice } from "./device/TriDevice.js";
@@ -76,7 +76,7 @@ const s_buffers = {
  * A named procedural vertex or index allocation shared by every holder of the
  * same name, made once a device exists.
  */
-@meta.define({ className: "Tr2ProceduralBuffer", family: "trinityCore" })
+@blue.define("Tr2ProceduralBuffer")
 export class Tr2ProceduralBuffer
 {
   /** m_resource (h:19): the registry entry every same-named buffer shares. */
@@ -102,7 +102,7 @@ export class Tr2ProceduralBuffer
    *
    * @returns {object|null} A `Tr2SuballocatedBufferAllocation`, or null.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetSharedResource()
   {

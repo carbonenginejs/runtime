@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Tr2ControllerEventHandler.h
 // Source: trinity/trinity/Controllers/Tr2ControllerEventHandler.cpp
 // Source: trinity/trinity/Controllers/Tr2ControllerEventHandler_Blue.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { BlueList, be, CjsBlueClasses } from "#blue";
 import { ITr2ControllerAction } from "./action/ITr2ControllerAction.js";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -22,22 +22,19 @@ import { IListNotify } from "#blue/IListNotify";
  * does not schedule updates or keep actions active across frames. Blue declarations
  * provide persistence for the authored name and action list.
  */
-@meta.define({
-  className: "Tr2ControllerEventHandler",
-  family: "controllers"
-})
+@blue.define("Tr2ControllerEventHandler")
 export class Tr2ControllerEventHandler extends IListNotify
 {
   /** Authored event name compared by the owning controller. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** Ordered native interface vector, observed by this handler. */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITr2ControllerAction")
+  @blue.read
+  @blue.persist
+  @type.list("ITr2ControllerAction")
   actions = new BlueList(ITr2ControllerAction, { className: null, listOps: 0 });
 
   /** Retained controller; native Unlink deliberately leaves this pointer intact. */
@@ -64,7 +61,7 @@ export class Tr2ControllerEventHandler extends IListNotify
    * @param {BlueList} [list=this.actions] List that emitted the notification.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = this.actions)
   {
@@ -96,7 +93,7 @@ export class Tr2ControllerEventHandler extends IListNotify
    * @param {ITr2ActionController} controller Controller used to resolve bindings.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Link(controller)
   {
@@ -117,7 +114,7 @@ export class Tr2ControllerEventHandler extends IListNotify
    *
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Unlink()
   {
@@ -136,7 +133,7 @@ export class Tr2ControllerEventHandler extends IListNotify
    *
    * @returns {string} Name compared with incoming controller event names.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetName()
   {
@@ -153,7 +150,7 @@ export class Tr2ControllerEventHandler extends IListNotify
    * @param {ITr2ActionController} controller Controller passed to Start and Stop.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Execute(controller)
   {
@@ -171,4 +168,4 @@ export class Tr2ControllerEventHandler extends IListNotify
 }
 
 // Native exposure ends at this concrete table (Tr2ControllerEventHandler_Blue.cpp).
-meta.blue.interface(IListNotify)(Tr2ControllerEventHandler);
+blue.interface(IListNotify)(Tr2ControllerEventHandler);

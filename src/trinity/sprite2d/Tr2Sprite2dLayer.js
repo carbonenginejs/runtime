@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dLayer.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dLayer_Blue.cpp
 // Promoted to hand-maintained source 2026-10-12 from the generated property shell.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec4 } from "#math/vec4";
 import { CCP_LOGERR } from "../../global/logging/ccpLog.js";
 import { PixelFormat, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
@@ -34,9 +34,9 @@ function toUint32(value)
  * has one base class, so the device resource is the `TriDevice` registration in the constructor
  * plus `PrepareResources`/`ReleaseResources` here, as on the other Trinity device resources.
  */
-@meta.define({ className: "Tr2Sprite2dLayer", family: "sprite2d", purpose: "Defines a sprite container layer with blend and effect state plus optional background clearing." })
-@meta.blue.chainTo(Tr2Sprite2dContainer)
-@meta.blue.inherit(ITr2Sprite2dTextureNotifyTarget)
+@blue.define({ className: "Tr2Sprite2dLayer", purpose: "Defines a sprite container layer with blend and effect state plus optional background clearing." })
+@blue.chainTo(Tr2Sprite2dContainer)
+@blue.inherit(ITr2Sprite2dTextureNotifyTarget)
 export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
 {
 
@@ -48,43 +48,43 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
   }
 
   /** m_backgroundColor (Color) [READWRITE, PERSIST, NOTIFY]: clear colour when `clearBackground` is set. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.color
   backgroundColor = vec4.fromValues(0, 0, 0, 0);
 
   /** m_color (Color) [READWRITE, PERSIST, NOTIFY]: tint of the layer sprite. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
   /** m_clearBackground (bool) [READWRITE, PERSIST, NOTIFY]: whether the target is cleared before the children draw. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   clearBackground = true;
 
   /** m_blendMode (Tr2SpriteObjectBlendMode) [READWRITE, ENUM, NOTIFY]: how the layer blends with the background. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.int32
-  @meta.type.enum("Tr2SpriteObjectBlendMode")
+  @blue.notify
+  @blue.readwrite
+  @type.int32
+  @type.enum("Tr2SpriteObjectBlendMode")
   blendMode = Tr2SpriteObjectBlendMode.TR2_SBM_NONE;
 
   /** m_spriteEffect (Tr2SpriteObjectEffect) [READWRITE, ENUM, NOTIFY]: Carbon's constructor sets TR2_SFX_COPY (Tr2Sprite2dLayer.cpp:16). */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.int32
-  @meta.type.enum("Tr2SpriteObjectEffect")
+  @blue.notify
+  @blue.readwrite
+  @type.int32
+  @type.enum("Tr2SpriteObjectEffect")
   spriteEffect = Tr2SpriteObjectEffect.TR2_SFX_COPY;
 
   /** textureSecondary (MAP_PROPERTY GetTextureSecondary/SetTextureSecondary): secondary texture for the layer sprite. */
-  @meta.blue.readwrite
-  @meta.type.rootRef("ITr2Sprite2dTexture")
+  @blue.readwrite
+  @type.rootRef("ITr2Sprite2dTexture")
   get textureSecondary()
   {
     return this._GetTextureSecondary();
@@ -104,9 +104,9 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * PERSIST, where Tr2Sprite2dContainerBase exposes it READ only. The redeclaration keeps the
    * list the base constructor created and wired for notifications.
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITr2SpriteObject")
+  @blue.read
+  @blue.persist
+  @type.list("ITr2SpriteObject")
   children = this.children;
 
   /** Carbon m_renderTarget: the layer's render target, uncreated until gathered. @type {Tr2TextureAL} */

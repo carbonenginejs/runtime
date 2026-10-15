@@ -3,13 +3,13 @@
 //   parameters through one macro beside their base.
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:20-38
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.cpp:85-102
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec4 } from "#math/vec4";
 import { EveSOFDataParameter } from "./EveSOFDataParameter.js";
 
 /** Boolean shader parameter: broadcasts 1/0 to all four components. */
-@meta.define({ className: "EveSOFDataParameterBool", family: "eve" })
-@meta.blue.interface(EveSOFDataParameter)
+@blue.define("EveSOFDataParameterBool")
+@blue.interface(EveSOFDataParameter)
 export class EveSOFDataParameterBool extends EveSOFDataParameter
 {
   /**
@@ -17,9 +17,9 @@ export class EveSOFDataParameterBool extends EveSOFDataParameter
    * Native m_value (bool) replaces the base vector in authored values.
    * @type {boolean}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   value = false;
 
   /**

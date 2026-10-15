@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Interior/Tr2InteriorPlaceable.h
 // Source: trinity/trinity/Interior/Tr2InteriorPlaceable.cpp
 // Source: trinity/trinity/Interior/Tr2InteriorPlaceable_Blue.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { be, IInitialize, INotify, IsMatch, CjsBlueClasses } from "#blue";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { WodPlaceableRes } from "../../../resource/geometry/WodPlaceableRes.js";
@@ -10,17 +10,17 @@ import { vec3 } from "#math/vec3";
 import { ITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
 
 /** Interior placeable with typed resource loading and native uniqueness notifications. */
-@meta.define({ className: "Tr2InteriorPlaceable", family: "interior" })
-@meta.blue.inherit(ITr2Renderable, IInitialize, INotify)
-@meta.blue.interface(ITr2Renderable, IInitialize, INotify)
+@blue.define("Tr2InteriorPlaceable")
+@blue.inherit(ITr2Renderable, IInitialize, INotify)
+@blue.interface(ITr2Renderable, IInitialize, INotify)
 export class Tr2InteriorPlaceable
 {
 
   /** m_placeableResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.path("object")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.path("object")
   placeableResPath = "";
 
   /**
@@ -30,62 +30,62 @@ export class Tr2InteriorPlaceable
    * Carbon's row-major Matrix has gl-matrix's byte layout, so no conversion is needed.
    * @type {mat4}
    */
-  @meta.blue.notify
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.mat4.wrapped("TriMatrix")
+  @blue.notify
+  @blue.read
+  @blue.persist
+  @type.mat4.wrapped("TriMatrix")
   transform = mat4.create();
 
   /** m_placeableRes (WodPlaceableResPtr) [READ] */
-  @meta.blue.read
-  @meta.type.rootRef("WodPlaceableRes")
+  @blue.read
+  @type.rootRef("WodPlaceableRes")
   placeableRes = null;
 
   /** m_display (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   display = true;
 
   /** m_boundingSphere[3] (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   boundingSphereRadius = 0;
 
   /** m_depthOffset (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   depthOffset = 0;
 
   /** m_variableStore (Tr2VariableStorePtr) [READ] */
-  @meta.blue.read
-  @meta.type.rootRef("Tr2VariableStore")
+  @blue.read
+  @type.rootRef("Tr2VariableStore")
   variableStore = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_probeOffset (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   probeOffset = vec3.create();
 
   /** m_isUniqueInstance (bool) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   isUnique = false;
 
   /** Monotonic request identity prevents superseded asynchronous publication. */
   _loadRequest = 0;
 
   /** Starts the native resource load after persisted fields have been populated. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -99,7 +99,7 @@ export class Tr2InteriorPlaceable
    * Adapted: changed declaration names replace native member addresses; the path
    * branch retains precedence when a single notification contains both names.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnModified(propertyName)
   {
@@ -130,7 +130,7 @@ export class Tr2InteriorPlaceable
    * are logged and leave the resource empty, matching failed native loads.
    * @returns {Promise<WodPlaceableRes|null>} The current accepted resource.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   async LoadPlaceableRes()
   {
@@ -162,7 +162,7 @@ export class Tr2InteriorPlaceable
   }
 
   /** Returns the authored resource path. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPlaceableResPath()
   {
@@ -170,7 +170,7 @@ export class Tr2InteriorPlaceable
   }
 
   /** Assigns the path and starts loading, as the native direct setter does. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetPlaceableResPath(path)
   {
@@ -180,7 +180,7 @@ export class Tr2InteriorPlaceable
   }
 
   /** Reports whether the loaded visual model contains transparent areas. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasTransparentBatches()
   {
@@ -191,7 +191,7 @@ export class Tr2InteriorPlaceable
    * Adapted native destruction: release the object reference and invalidate any
    * pending JavaScript load so a retired owner cannot publish its result.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Destroy()
   {
@@ -200,7 +200,7 @@ export class Tr2InteriorPlaceable
   }
 
   /** Carbon method GetBoundingBoxInLocalSpace (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   GetBoundingBoxInLocalSpace(...args)
   {
@@ -208,7 +208,7 @@ export class Tr2InteriorPlaceable
   }
 
   /** Carbon method GetBoundingBoxInWorldSpace (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   GetBoundingBoxInWorldSpace(...args)
   {
@@ -216,7 +216,7 @@ export class Tr2InteriorPlaceable
   }
 
   /** Carbon method BoundingBoxOverride (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   BoundingBoxOverride(...args)
   {
@@ -224,7 +224,7 @@ export class Tr2InteriorPlaceable
   }
 
   /** Carbon method BoundingBoxReset (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   BoundingBoxReset(...args)
   {

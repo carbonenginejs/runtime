@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraTransition.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraTransition.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { EveVirtualCamera } from "../EveVirtualCamera.js";
 
 
@@ -8,28 +8,25 @@ import { EveVirtualCamera } from "../EveVirtualCamera.js";
  * Base for camera hand-overs, owning the source and target cameras plus the
  * temporary camera that is rendered while the hand-over runs.
  */
-@meta.define({
-  className: "EveVirtualCameraTransitionBase",
-  family: "eve/virtualCamera/transition"
-})
+@blue.define("EveVirtualCameraTransitionBase")
 export class EveVirtualCameraTransitionBase
 {
   @meta.reference
-  @meta.type.rootRef("EveVirtualCamera")
+  @type.rootRef("EveVirtualCamera")
   sourceCamera = null;
 
   @meta.reference
-  @meta.type.rootRef("EveVirtualCamera")
+  @type.rootRef("EveVirtualCamera")
   targetCamera = null;
 
-  @meta.type.rootRef("EveVirtualCamera")
+  @type.rootRef("EveVirtualCamera")
   transitionCamera = null;
 
   /**
    * Returns the camera to render from: the target once the transition has
    * completed, otherwise the temporary transition camera.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetCamera()
   {
@@ -40,7 +37,7 @@ export class EveVirtualCameraTransitionBase
    * Sets the camera the transition starts from; it is paused when the transition
    * stops.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetSource(camera)
   {
@@ -51,7 +48,7 @@ export class EveVirtualCameraTransitionBase
    * Sets the camera the transition hands control to; its timeline is reset on
    * Play and it is resumed on Stop.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetTarget(camera)
   {
@@ -63,7 +60,7 @@ export class EveVirtualCameraTransitionBase
    * the source camera's transform, rewinds the target camera's timeline, and
    * starts the transition camera running.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Play()
   {
@@ -81,7 +78,7 @@ export class EveVirtualCameraTransitionBase
    * Ends the transition by resuming the target camera and pausing the source and
    * transition cameras.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Stop()
   {
@@ -94,7 +91,7 @@ export class EveVirtualCameraTransitionBase
    * Advances the transition camera and stops the transition as soon as the
    * subclass reports it complete.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Update(deltaTime)
   {

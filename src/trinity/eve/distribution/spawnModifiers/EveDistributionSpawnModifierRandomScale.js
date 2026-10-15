@@ -1,17 +1,17 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawnModifiers/EveDistributionSpawnModifierRandomScale.h
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { be } from "#blue";
 import { IEveDistributionSpawnModifier } from "./IEveDistributionSpawnModifier.js";
 import { vec3 } from "#math/vec3";
 import { CjsDistributionRandom } from "../../CjsDistributionRandom.js";
 
 /** Applies or replaces each spawned placement's scale with seeded random per-axis or uniform values. */
-@meta.define({ className: "EveDistributionSpawnModifierRandomScale", family: "eve/distribution/spawnModifiers" })
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(IInitialize)
-@meta.blue.chainTo(IEveDistributionSpawnModifier)
+@blue.define("EveDistributionSpawnModifierRandomScale")
+@blue.inherit(IInitialize)
+@blue.interface(IInitialize)
+@blue.chainTo(IEveDistributionSpawnModifier)
 export class EveDistributionSpawnModifierRandomScale extends IEveDistributionSpawnModifier
 {
 
@@ -19,40 +19,40 @@ export class EveDistributionSpawnModifierRandomScale extends IEveDistributionSpa
   _timeSeed = be.os.GetCurrentFrameTime() >>> 0;
 
   /** m_minScale (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   minScale = vec3.fromValues(1, 1, 1);
 
   /** m_maxScale (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   maxScale = vec3.fromValues(1, 1, 1);
 
   /** m_consistentRandom (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   consistentRandom = false;
 
   /** m_uniformScale (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   uniformScale = false;
 
   /** m_overrideScale (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   overrideScale = false;
 
   /**
    * Reseeds the random stream from the wall clock, so scales differ between runs
    * unless consistentRandom pins them to the placement id.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -65,7 +65,7 @@ export class EveDistributionSpawnModifierRandomScale extends IEveDistributionSpa
    * shared factor when uniformScale is set - and either replaces the placement's
    * initial scale or multiplies into it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ProcessSpawnModifier(placement, _numPlacements)
   {

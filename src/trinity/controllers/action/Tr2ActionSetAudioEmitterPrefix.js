@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAudioEmitterPrefix.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAudioEmitterPrefix.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAudioEmitterPrefix_Blue.cpp
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { ITr2SoundEmitterOwner } from "../../eve/ITr2SoundEmitterOwner.js";
 
@@ -9,27 +9,27 @@ import { ITr2SoundEmitterOwner } from "../../eve/ITr2SoundEmitterOwner.js";
  * Controller action that sets the event-name prefix on a named audio emitter
  * when it starts, changing which bank events later sounds resolve to.
  */
-@meta.define({ className: "Tr2ActionSetAudioEmitterPrefix", family: "controllers" })
-@meta.blue.interface(ITr2ControllerAction)
+@blue.define("Tr2ActionSetAudioEmitterPrefix")
+@blue.interface(ITr2ControllerAction)
 export class Tr2ActionSetAudioEmitterPrefix extends ITr2ControllerAction
 {
   /** m_emitterName: narrow emitter lookup name. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   emitter = "";
 
   /** m_prefix: wide event prefix. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.wstring
+  @blue.readwrite
+  @blue.persist
+  @type.wstring
   prefix = "";
 
   /**
    * Sets the prefix when the controller owner exposes a named sound emitter.
    * @param {ITr2ActionController} controller The invoking controller.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Start(controller)
   {
@@ -44,7 +44,7 @@ export class Tr2ActionSetAudioEmitterPrefix extends ITr2ControllerAction
    * Adapted: JavaScript TypeError represents native PyErr_SetString for null.
    * @param {ITr2ActionController} controller The invoking controller.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   StartWithController(controller)
   {

@@ -1,19 +1,19 @@
 // Source: trinity/trinity/RenderJob/TriStepEnableWireframeMode.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 
 /** Step that turns wireframe rasterization on or off for the steps that follow. */
-@meta.define({ className: "TriStepEnableWireframeMode", family: "renderJob" })
+@blue.define("TriStepEnableWireframeMode")
 export class TriStepEnableWireframeMode extends TriRenderStep
 {
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   enableWireframe = false;
 
   /** Stores the wireframe flag, defaulting to off. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   __init__(value = false)
   {
@@ -24,7 +24,7 @@ export class TriStepEnableWireframeMode extends TriRenderStep
    * Forwards the flag to the render context; nothing restores the previous mode, so a
    * matching step is needed to turn wireframe back off.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

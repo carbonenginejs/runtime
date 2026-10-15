@@ -3,58 +3,58 @@
 import { IsMatch, INotify } from "#blue";
 import { IInitialize } from "#blue";
 import { ITriEffectParameter } from "./ITriEffectParameter.js";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { be } from "#blue";
 import { ITr2GpuBuffer } from "../../core/ITr2GpuBuffer.js";
 import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 
 /** Carries a named shader-buffer path for host resolution or a caller-owned GPU buffer reference. */
-@meta.define({ className: "Tr2GeometryBufferParameter", family: "shader" })
-@meta.blue.inherit(ITriEffectResourceParameter)
-@meta.blue.inherit(IInitialize, INotify)
-@meta.blue.interface(ITriEffectParameter, ITriEffectResourceParameter, IInitialize, INotify)
+@blue.define("Tr2GeometryBufferParameter")
+@blue.inherit(ITriEffectResourceParameter)
+@blue.inherit(IInitialize, INotify)
+@blue.interface(ITriEffectParameter, ITriEffectResourceParameter, IInitialize, INotify)
 export class Tr2GeometryBufferParameter extends CjsParameter
 {
 
   /** m_resourcePath (std::wstring) [READWRITE, NOTIFY, PERSIST] */
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.wpath
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.wpath
   resourcePath = "";
 
   /** m_gpuBuffer (ITr2GpuBufferPtr) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITr2GpuBuffer")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITr2GpuBuffer")
   gpuBuffer = null;
 
   /** m_isUsedByEffect (bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   usedByCurrentEffect = false;
 
   /** m_meshIndex (int32_t) [READWRITE, NOTIFY, PERSIST] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.int32
   meshIndex = 0;
 
   /** m_name (BlueSharedString) [READWRITE, NOTIFY, PERSIST] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   cachedEffect = null;
 
   /** The shader resource name this buffer binds to. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetParameterName()
   {
@@ -62,7 +62,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
   }
 
   /** Content hash: resource path (when set) then name. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
   {
@@ -83,7 +83,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
    *
    * @returns {boolean} Always true.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -99,7 +99,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
    * Consumes the `resource` dirty flag by re-initializing and re-resolving
    * handles against the cached shader.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName)
   {
@@ -116,7 +116,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
    * Caches the shader and records whether it reflects a resource of this name;
    * no GPU buffer is bound.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RebuildEffectHandles(effectRes)
   {
@@ -142,7 +142,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
    * @param {number} [_flags] A `ResourceFlags` word; unread for a buffer.
    * @returns {boolean} Whether the slot took the binding.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   CopyToResourceSet(resourceDesc, stage, registerIndex, _flags = 0)
   {
@@ -164,7 +164,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
    * @param {number} registerIndex The register.
    * @returns {boolean} Whether the slot took the binding.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ApplyUav(resourceDesc, stage, registerIndex)
   {
@@ -175,7 +175,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
    * Whether a buffer object has actually been attached; an authored resourcePath
    * alone does not make the parameter valid.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsValid()
   {
@@ -186,7 +186,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
    * Attaches a buffer object directly and clears the authored resource path, so
    * the path can no longer override it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetGpuBuffer(buffer)
   {
@@ -198,7 +198,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
    * The attached buffer object, or null; held by reference and never created
    * here.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetGpuBuffer()
   {

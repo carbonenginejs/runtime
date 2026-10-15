@@ -1,5 +1,5 @@
 // Source: trinity/Include/ITr2PoseModifier.h (created by 6b7e9e5c, 2026-09-01)
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 
 /**
@@ -9,7 +9,7 @@ import { meta } from "#schema";
  * character look-at/IK fixups implement THIS rather than inventing a
  * parallel hook.
  */
-@meta.define({ className: "ITr2PoseModifier", family: "trinityCore/animation" })
+@blue.define("ITr2PoseModifier")
 export class ITr2PoseModifier
 {
 
@@ -18,7 +18,7 @@ export class ITr2PoseModifier
    * @param {Object} _skeleton - the mesh skeleton (cmf.Skeleton shape)
    * @param {Object} _pose - the sampled pose to modify in place
    */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   ModifyPose(_skeleton, _pose)
   {

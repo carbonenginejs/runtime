@@ -135,4 +135,4 @@ export class Tr2ShaderProgramALStub extends Tr2DeviceResourceAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
-CjsSchema.define(Tr2ShaderProgramALStub, { className: "Tr2ShaderProgramALStub", carbon: "Tr2ShaderProgramAL" });
+CjsSchema.blue.define(Tr2ShaderProgramALStub, { className: "Tr2ShaderProgramALStub", donors: [ "Tr2ShaderProgramAL" ] });

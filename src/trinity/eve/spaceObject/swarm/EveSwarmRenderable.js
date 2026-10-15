@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.h
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.cpp
 import { IEveShadowCaster } from "../../IEveShadowCaster.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 import { EveComponentType } from "../../EntityComponents.js";
 import { mat4 } from "#math/mat4";
@@ -16,33 +16,33 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/conte
 import { EveSpaceObjectDecal } from "../../attachment/decal/EveSpaceObjectDecal.js";
 
 /** Carbon's EveSwarmRenderable (EveSwarm.h:20-95): one fighter of an EveSwarm, drawing the squad's shared mesh at its own world transform. */
-@meta.define({ className: "EveSwarmRenderable", family: "eve/spaceObject/swarm" })
-@meta.blue.inherit(ITr2Renderable, IEveShadowCaster)
+@blue.define("EveSwarmRenderable")
+@blue.inherit(ITr2Renderable, IEveShadowCaster)
 export class EveSwarmRenderable extends EveEntity
 {
 
   /** m_mesh (Tr2MeshBasePtr) */
-  @meta.type.rootRef("Tr2MeshBase")
+  @type.rootRef("Tr2MeshBase")
   mesh = null;
 
   /** m_owner (BlueWeakRef<EveSwarm>) */
-  @meta.type.rootRef("EveSwarm")
+  @type.rootRef("EveSwarm")
   owner = null;
 
   /** m_worldTransform (Matrix) */
-  @meta.type.mat4
+  @type.mat4
   worldTransform = mat4.create();
 
   /** m_decals (PEveSpaceObjectDecalVector) */
-  @meta.type.list("EveSpaceObjectDecal")
+  @type.list("EveSpaceObjectDecal")
   decals = [];
 
   /** m_perObjectDataVs (Tr2PersistentPerObjectData<EveSwarmRenderable>) */
-  @meta.type.rawStruct("Tr2PersistentPerObjectData")
+  @type.rawStruct("Tr2PersistentPerObjectData")
   perObjectDataVs = null;
 
   /** m_perObjectDataPs (Tr2PersistentPerObjectData<EveSwarmRenderable>) */
-  @meta.type.rawStruct("Tr2PersistentPerObjectData")
+  @type.rawStruct("Tr2PersistentPerObjectData")
   perObjectDataPs = null;
 
   /** m_vsData / m_psData - this renderable PERSISTENT per-object pair. */
@@ -245,7 +245,7 @@ export class EveSwarmRenderable extends EveEntity
    * GetSortedBatchesFromMeshAreaVector, and the view position comes from the render context, which defaults to the
    * main-thread context Carbon's Tr2Renderer::GetViewPosition reads. Returns whether a batch was committed.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason, renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -304,7 +304,7 @@ export class EveSwarmRenderable extends EveEntity
   }
 
   /** Carbon reports whether the shared fighter mesh has transparent areas. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasTransparentBatches()
   {
@@ -318,7 +318,7 @@ export class EveSwarmRenderable extends EveEntity
    * Adapted: the view position comes from the render context, which defaults to the main-thread context Carbon's
    * Tr2Renderer::GetViewPosition reads.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetSortValue(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {

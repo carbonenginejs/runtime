@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBulletStorm.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBulletStorm.cpp
 // Hand-maintained after promotion from generated schema intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { INotify, IsMatch } from "#blue";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -28,11 +28,11 @@ const CORNER_STRIDE = 4;
 const INSTANCE_STRIDE = 40;
 
 /** Locator-driven bullet-storm child: instances, target blobs, and the clip-sphere state machine. */
-@meta.define({ className: "EveChildBulletStorm", family: "eve/child" })
-@meta.blue.inherit(ITr2Renderable)
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(INotify)
-@meta.blue.chainTo(EveSpaceObjectChild)
+@blue.define("EveChildBulletStorm")
+@blue.inherit(ITr2Renderable)
+@blue.inherit(IInitialize)
+@blue.interface(INotify)
+@blue.chainTo(EveSpaceObjectChild)
 export class EveChildBulletStorm extends EveSpaceObjectChild
 {
 
@@ -70,88 +70,88 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
 
   _clipSphereMultiplier = 0;
 
-  @meta.type.list("EveChildBulletStormInstance")
+  @type.list("EveChildBulletStormInstance")
   instances = [];
 
-  @meta.type.array("vec4")
+  @type.array("vec4")
   targetBlobs = [];
 
-  @meta.type.mat4
+  @type.mat4
   worldTransform = mat4.create();
 
   /** m_targetObjects (PIEveSpaceObject2Vector) [READ, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.read
-  @meta.type.list("IEveSpaceObject2")
+  @blue.notify
+  @blue.read
+  @type.list("IEveSpaceObject2")
   targetObjects = [];
 
   /** m_objectCount (unsigned int) [READ] */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   objectCount = 0;
 
   /** m_clipSphere (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   clipSphere = 1;
 
   /** m_sourceRadius (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   sourceRadius = 0;
 
   /** m_sourceObject (EveSpaceObject2Ptr) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.rootRef("EveSpaceObject2")
+  @blue.notify
+  @blue.readwrite
+  @type.rootRef("EveSpaceObject2")
   sourceObject = null;
 
   /** m_multiplier (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   multiplier = 1;
 
   /** m_speed (float) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   speed = 1000;
 
   /** m_sourceLocatorSet (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   sourceLocatorSet = "";
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_range (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   range = 1000;
 
   /** m_display (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   display = true;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2Effect")
   effect = null;
 
   /** Carbon method CanChangeState (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   CanChangeState()
   {
@@ -218,7 +218,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * Adapted: Math.random stands in for TriRand; instances keeps the CPU copy, and the per-instance buffer is created only
    * while resource creation is allowed.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Rebuild()
   {
@@ -286,7 +286,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   }
 
   /** Carbon method StartEffect (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   StartEffect()
   {
@@ -296,7 +296,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   }
 
   /** Carbon method StopEffect (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   StopEffect()
   {
@@ -306,7 +306,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   }
 
   /** Carbon EveChildBulletStorm::HasTransparentBatches is always false. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasTransparentBatches()
   {
@@ -314,7 +314,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   }
 
   /** Carbon EveChildBulletStorm::GetSortValue is the constant zero. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetSortValue()
   {
@@ -326,7 +326,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * instance from stream 1 over the shared quad-list index buffer. Adapted: the effect is asked IsGood before drawing,
    * as the other instanced draws do.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
@@ -354,7 +354,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
    * sourceRadius + range, clipSphere, speed), then targetPositionsWS[i] per
    * target blob. Slots past targetBlobs.length are NEVER written - the
    * per-element writes keep Carbon's arena-garbage tail. VS-only payload. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPerObjectData(accumulator)
   {

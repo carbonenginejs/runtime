@@ -14,4 +14,4 @@ export class IRootReaderException extends TypeError
   }
 }
 
-CjsSchema.define(IRootReaderException, { className: "IRootReaderException", carbon: "IRootReaderException" });
+CjsSchema.blue.define(IRootReaderException, { className: "IRootReaderException" });

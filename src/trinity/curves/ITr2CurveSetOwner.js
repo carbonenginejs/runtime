@@ -82,4 +82,4 @@ for (const name of [ "UpdateCurveSet", "PlayAllCurveSets", "StopAllCurveSets" ])
 {
   CjsSchema.decorateMethod(ITr2CurveSetOwner, name, meta.noop);
 }
-CjsSchema.define(ITr2CurveSetOwner, { className: "ITr2CurveSetOwner" });
+CjsSchema.blue.define(ITr2CurveSetOwner, { className: "ITr2CurveSetOwner" });

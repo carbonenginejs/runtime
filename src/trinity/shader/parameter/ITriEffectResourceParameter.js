@@ -44,4 +44,4 @@ export class ITriEffectResourceParameter extends ITriEffectParameter
 }
 
 
-CjsSchema.define(ITriEffectResourceParameter, { className: "ITriEffectResourceParameter" });
+CjsSchema.blue.define(ITriEffectResourceParameter, { className: "ITriEffectResourceParameter" });

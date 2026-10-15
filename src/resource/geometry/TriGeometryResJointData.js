@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Schema: format-carbon resources/TriGeometryResJointData.json; maintained by the runtime resource layer.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { mat4 } from "#math/mat4";
 
 /** Data record mirroring Carbon's geometry joint entry: a joint name, parent-joint index, and inverse world transform. */
@@ -18,11 +18,11 @@ export class TriGeometryResJointData
 
 }
 
-CjsSchema.define(TriGeometryResJointData, {
-  className: "TriGeometryResJointData", family: "resources",
+CjsSchema.blue.define(TriGeometryResJointData, {
+  className: "TriGeometryResJointData",
   fields: {
-    name: meta.type.string,
-    parentJoint: meta.type.uint32,
-    inverseWorldTransform: meta.type.mat4
+    name: type.string,
+    parentJoint: type.uint32,
+    inverseWorldTransform: type.mat4
   }
 });

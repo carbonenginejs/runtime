@@ -1,22 +1,22 @@
 // Source: trinity/trinity/Eve/EveComponentRegistry.h
 // Hand-maintained after promotion from generated schema intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /** Stores entities belonging to one Eve component type. */
-@meta.define({ className: "EveComponentCollection", family: "eve/scene" })
+@blue.define("EveComponentCollection")
 export class EveComponentCollection
 {
 
   /** m_name (const char*) */
-  @meta.type.string
+  @type.string
   name = "";
 
   /** m_bit (uint32_t) */
-  @meta.type.uint32
+  @type.uint32
   bit = 0;
 
   /** m_collection (std::vector<T*>) */
-  @meta.type.list("T")
+  @type.list("T")
   collection = [];
 
   /**

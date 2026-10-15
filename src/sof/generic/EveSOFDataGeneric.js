@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { type, blue } from "#schema";
 import { EveSOFDataArea } from "../shared/EveSOFDataArea.js";
 import { EveSOFDataGenericShader } from "./EveSOFDataGenericShader.js";
 import { ErrSOFAreaShaderNotFound } from "./ErrSOFAreaShaderNotFound.js";
@@ -9,179 +9,179 @@ import { ErrSOFMaterialPrefixNotFound } from "./ErrSOFMaterialPrefixNotFound.js"
 import { ErrSOFPatternMaterialPrefixNotFound } from "./ErrSOFPatternMaterialPrefixNotFound.js";
 
 /** Provides the top-level generic SOF configuration for shaders, material prefixes, decals, material tables, variants, categories, visibility, swarm, and damage data, with their named lookup helpers. */
-@meta.define({ className: "EveSOFDataGeneric", family: "eve" })
+@blue.define("EveSOFDataGeneric")
 export class EveSOFDataGeneric
 {
   static AreaType = EveSOFDataArea.AreaType;
 
 
   /** m_turretAreaType (EveSOFDataArea::AreaType - enum AreaType) [READ, PERSIST, ENUM] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.EveSOFDataArea.AreaType")
+  @blue.read
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.EveSOFDataArea.AreaType")
   turretAreaType = 0;
 
   /** m_decalMinScreenSizes[EveSOFDataHullDecalSetItem::USAGE_STANDARD] (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   decalMinScreenSizeSTANDARD = 0;
 
   /** m_decalMinScreenSizes[EveSOFDataHullDecalSetItem::USAGE_KILLCOUNTER] (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   decalMinScreenSizeKILLCOUNTER = 0;
 
   /** m_decalMinScreenSizes[EveSOFDataHullDecalSetItem::USAGE_HOLE] (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   decalMinScreenSizeHOLE = 0;
 
   /** m_decalMinScreenSizes[EveSOFDataHullDecalSetItem::USAGE_CYLINDRICAL] (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   decalMinScreenSizeCYLINDRICAL = 0;
 
   /** m_decalMinScreenSizes[EveSOFDataHullDecalSetItem::USAGE_GLOWCYLINDRICAL] (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   decalMinScreenSizeGLOWCYLINDRICAL = 0;
 
   /** m_decalMinScreenSizes[EveSOFDataHullDecalSetItem::USAGE_GLOWSTANDARD] (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   decalMinScreenSizeGLOWSTANDARD = 0;
 
   /** m_decalMinScreenSizes[EveSOFDataHullDecalSetItem::USAGE_LOGO] (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   decalMinScreenSizeLOGO = 0;
 
   /** m_shaderPrefix (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   shaderPrefix = "";
 
   /** m_shaderPrefixAnimated (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   shaderPrefixAnimated = "";
 
   /** m_variants (PEveSOFDataGenericVariantVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataGenericVariant")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataGenericVariant")
   variants = [];
 
   /** m_hullCategories (PEveSOFDataGenericStringVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataGenericString")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataGenericString")
   hullCategories = [];
 
   /** m_visibilityGroups (PEveSOFDataVisibilityGroupVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataVisibilityGroup")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataVisibilityGroup")
   visibilityGroups = [];
 
   /** m_bannerShader (PEveSOFDataGenericShader) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.root("EveSOFDataGenericShader")
+  @blue.read
+  @blue.persist
+  @type.root("EveSOFDataGenericShader")
   bannerShader = new EveSOFDataGenericShader();
 
   /** m_swarm (EveSOFDataGenericSwarmPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataGenericSwarm")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("EveSOFDataGenericSwarm")
   swarm = null;
 
   /** m_damage (EveSOFDataGenericDamagePtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataGenericDamage")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("EveSOFDataGenericDamage")
   damage = null;
 
   /** m_hullDamage (EveSOFDataGenericHullDamagePtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataGenericHullDamage")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("EveSOFDataGenericHullDamage")
   hullDamage = null;
 
   /** m_genericWreckMaterial (EveSOFDataAreaMaterialPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataAreaMaterial")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("EveSOFDataAreaMaterial")
   genericWreckMaterial = null;
 
   /** m_areaShaders (PEveSOFDataGenericShaderVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataGenericShader")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataGenericShader")
   areaShaders = [];
 
   /** m_decalShaders (PEveSOFDataGenericDecalShaderVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataGenericDecalShader")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataGenericDecalShader")
   decalShaders = [];
 
   /** m_materialPrefixes (PEveSOFDataGenericStringVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataGenericString")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataGenericString")
   materialPrefixes = [];
 
   /** m_patternMaterialPrefixes (PEveSOFDataGenericStringVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataGenericString")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataGenericString")
   patternMaterialPrefixes = [];
 
   /** m_hullCategoryData (PEveSOFDataGenericHullCategoryVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataGenericHullCategory")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataGenericHullCategory")
   hullCategoriesData = [];
 
   /** m_areaShaderLocation (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   areaShaderLocation = "";
 
   /** m_decalShaderLocation (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   decalShaderLocation = "";
 
   /** m_resPathDefaultAlliance (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   resPathDefaultAlliance = "";
 
   /** m_resPathDefaultCeo (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   resPathDefaultCeo = "";
 
   /** m_resPathDefaultCorp (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   resPathDefaultCorp = "";
 
   /**

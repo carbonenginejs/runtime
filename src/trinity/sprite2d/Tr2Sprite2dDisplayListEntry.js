@@ -3,14 +3,14 @@
 // Carbon's nested struct Tr2Sprite2dDisplayList::Entry; split out of
 // Tr2Sprite2dDisplayList.js so the class is findable by its own name.
 import { vec4 } from "#math/vec4";
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { ShaderType, Topology } from "#consts/render-context";
 import { Tr2RenderUtils } from "../core/Tr2RenderUtils.js";
 import { PER_OBJECT_VS_GUI } from "../core/Tr2Renderer.js";
 
 /** Carbon's nested Tr2Sprite2dDisplayList::Entry render callback. */
-@meta.define({ className: "Tr2Sprite2dDisplayListEntry", family: "sprite2d" })
+@blue.define("Tr2Sprite2dDisplayListEntry")
 export class Tr2Sprite2dDisplayListEntry
 {
   job = null;

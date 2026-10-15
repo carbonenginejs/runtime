@@ -1365,4 +1365,4 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
   }
 }
 
-CjsSchema.define(Tr2TextureALWebgl2, { className: "Tr2TextureALWebgl2", carbon: "Tr2TextureAL" });
+CjsSchema.blue.define(Tr2TextureALWebgl2, { className: "Tr2TextureALWebgl2", donors: [ "Tr2TextureAL" ] });

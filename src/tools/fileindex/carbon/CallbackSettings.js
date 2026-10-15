@@ -11,4 +11,4 @@ export class CallbackSettings
     verbosityLevel = -1;
 }
 
-CjsSchema.define(CallbackSettings, { className: "CallbackSettings", carbon: "CallbackSettings", family: "tools", fields: {} });
+CjsSchema.blue.define(CallbackSettings, { className: "CallbackSettings", fields: {} });

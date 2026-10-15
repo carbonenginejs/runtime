@@ -1,11 +1,11 @@
 // Source: trinity/trinity/Particle/Tr2ForceSphereVolume.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { ITr2ParticleForce } from "./ITr2ParticleForce.js";
 import { vec3 } from "#math/vec3";
 
 /** Aggregates child forces within a spherical region, scaling their combined contribution by a falloff toward the sphere's edge. */
-@meta.define({ className: "Tr2ForceSphereVolume", family: "particle" })
+@blue.define("Tr2ForceSphereVolume")
 export class Tr2ForceSphereVolume extends ITr2ParticleForce
 {
 
@@ -14,27 +14,27 @@ export class Tr2ForceSphereVolume extends ITr2ParticleForce
   #contribution = vec3.create();
 
   /** m_exponent (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   exponent = 1;
 
   /** m_forces (PITr2ParticleForceVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITr2ParticleForce")
+  @blue.read
+  @blue.persist
+  @type.list("ITr2ParticleForce")
   forces = [];
 
   /** m_position (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   position = vec3.create();
 
   /** m_radius (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   radius = 1;
 
   /**

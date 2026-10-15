@@ -86,4 +86,4 @@ export class BeInfo
   buildno = 0;
 }
 
-CjsSchema.define(BeInfo, { className: "BeInfo", family: "blue", carbon: "BeInfo" });
+CjsSchema.blue.define(BeInfo, { className: "BeInfo" });

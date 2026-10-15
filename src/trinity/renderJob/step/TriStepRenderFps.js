@@ -1,31 +1,31 @@
 // Source: trinity/trinity/RenderJob/TriStepRenderFps.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A step that averages the frame rate over a quarter second and reports it as text with a threshold colour. */
-@meta.define({ className: "TriStepRenderFps", family: "renderJob" })
+@blue.define("TriStepRenderFps")
 export class TriStepRenderFps extends TriRenderStep
 {
 
   /** m_alignBottom (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   alignBottom = true;
 
   /** m_alignRight (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   alignRight = true;
 
   /** m_displayX (int) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.int32
+  @blue.readwrite
+  @type.int32
   displayX = 0;
 
   /** m_displayY (int) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.int32
+  @blue.readwrite
+  @type.int32
   displayY = 0;
 
   /** m_averageFPS - the last computed average, held between recalculations. */
@@ -61,7 +61,7 @@ export class TriStepRenderFps extends TriRenderStep
    * debug renderer; both are host concerns, so the sample and time are supplied and the text
    * is the caller's.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Sample(framesPerSecond, nowSeconds)
   {
@@ -84,7 +84,7 @@ export class TriStepRenderFps extends TriRenderStep
    * The text colour for the current average: green above sixty, orange down to
    * thirty, red below that.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetTextColor()
   {
@@ -97,7 +97,7 @@ export class TriStepRenderFps extends TriRenderStep
    * The screen rectangle the text occupies within a viewport, inset by the
    * configured display offsets.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetDisplayRect(viewport, out = {})
   {

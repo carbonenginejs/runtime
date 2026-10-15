@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { vec3 } from "#math/vec3";
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { INotify } from "#blue";
 import { EveVirtualCameraBehaviourVector3MoveForward } from "./EveVirtualCameraBehaviourVector3MoveForward.js";
 
@@ -10,12 +10,9 @@ import { EveVirtualCameraBehaviourVector3MoveForward } from "./EveVirtualCameraB
  * Vector3 behaviour that displaces the camera sideways along its own right axis
  * by a curve-shaped distance.
  */
-@meta.define({
-  className: "EveVirtualCameraBehaviourVector3MoveRight",
-  family: "eve/virtualCamera/behaviour"
-})
-@meta.blue.interface(INotify)
-@meta.blue.chainTo(EveVirtualCameraBehaviourVector3MoveForward)
+@blue.define("EveVirtualCameraBehaviourVector3MoveRight")
+@blue.interface(INotify)
+@blue.chainTo(EveVirtualCameraBehaviourVector3MoveForward)
 export class EveVirtualCameraBehaviourVector3MoveRight extends EveVirtualCameraBehaviourVector3MoveForward
 {
   /**
@@ -28,7 +25,7 @@ export class EveVirtualCameraBehaviourVector3MoveRight extends EveVirtualCameraB
   }
 
   /** Returns the camera's right direction scaled by the current distance. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, anchorRadius, _anchorForwardDirection, out = vec3.create())
   {

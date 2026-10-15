@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dLine.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dLine_Blue.cpp
 // Promoted to hand-maintained source 2026-10-12 from the generated property shell.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
 import { Tr2Sprite2dTextureSettings, Tr2SpriteObjectEffect } from "../generated/sprite2d/enums.js";
@@ -33,63 +33,63 @@ const verts = Array.from({ length: 4 }, () => new Tr2Sprite2dVertexBase()); // a
  * Tr2Sprite2dLine draws one textured quad from `translationFrom` to `translationTo`, with its
  * width and colour interpolated between the ends. The texture tiles along the line.
  */
-@meta.define({ className: "Tr2Sprite2dLine", family: "sprite2d", purpose: "Defines a textured 2D line segment with per-end widths and colors and texture offset controls." })
-@meta.blue.chainTo(Tr2TexturedSpriteObject)
+@blue.define({ className: "Tr2Sprite2dLine", purpose: "Defines a textured 2D line segment with per-end widths and colors and texture offset controls." })
+@blue.chainTo(Tr2TexturedSpriteObject)
 export class Tr2Sprite2dLine extends Tr2TexturedSpriteObject
 {
 
   /** m_translationFrom (Vector2) [READWRITE, NOTIFY]: start point, relative to the translation. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.vec2
+  @blue.notify
+  @blue.readwrite
+  @type.vec2
   translationFrom = vec2.create();
 
   /** m_translationTo (Vector2) [READWRITE, NOTIFY]: end point, relative to the translation. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.vec2
+  @blue.notify
+  @blue.readwrite
+  @type.vec2
   translationTo = vec2.create();
 
   /** m_widthFrom (float) [READWRITE, NOTIFY]: line width at the start point. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   widthFrom = 0;
 
   /** m_colorFrom (Color) [READWRITE, NOTIFY]: line colour at the start point. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.color
+  @blue.notify
+  @blue.readwrite
+  @type.color
   colorFrom = vec4.fromValues(1, 1, 1, 1);
 
   /** m_widthTo (float) [READWRITE, NOTIFY]: line width at the end point. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   widthTo = 0;
 
   /** m_textureWidth (float) [READWRITE, NOTIFY]: texture repeat length along the line. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   textureWidth = 1;
 
   /** m_textureOffsetBase (float) [READWRITE, NOTIFY]: base texture offset, to hide seams between lines. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   textureOffsetBase = 0;
 
   /** m_textureOffset (float) [READWRITE, NOTIFY]: texture offset along the line, for animation. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   textureOffset = 0;
 
   /** m_colorTo (Color) [READWRITE, NOTIFY]: line colour at the end point. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.color
+  @blue.notify
+  @blue.readwrite
+  @type.color
   colorTo = vec4.fromValues(1, 1, 1, 1);
 
   /** Carbon m_vertices[4]: the prepared quad. @type {Tr2Sprite2dD3DVertex[]} */

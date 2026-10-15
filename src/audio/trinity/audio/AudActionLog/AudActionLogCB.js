@@ -2,7 +2,7 @@
 // Hand-owned behavior port. Verify against audio/AudActionLogCB.json and the
 // AudActionRecord*.json schema documents.
 
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { be } from "#blue";
 import { IAudActionLog } from "./IAudActionLog.js";
 import { AudActionRecordPostEvent } from "./AudActionRecordPostEvent.js";
@@ -15,7 +15,7 @@ import { AudActionRecordSetRTPC } from "./AudActionRecordSetRTPC.js";
  * Queues Carbon-shaped audio action records and flushes them to a registered
  * JavaScript callback during manager processing.
  */
-@meta.define({ className: "AudActionLogCB", family: "audio" })
+@blue.define("AudActionLogCB")
 export class AudActionLogCB extends IAudActionLog
 {
 
@@ -34,7 +34,7 @@ export class AudActionLogCB extends IAudActionLog
    * @returns {void}
    * @throws {TypeError} If the callback cannot be invoked.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RegisterCallback(callback)
   {
@@ -58,7 +58,7 @@ export class AudActionLogCB extends IAudActionLog
    * @param {string} name Event name.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   LogPostEvent(emitterID, playID, eventID, name)
   {
@@ -76,7 +76,7 @@ export class AudActionLogCB extends IAudActionLog
    * @param {string} action Action name.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   LogExecuteActionOnPlayingID(emitterID, playID, action)
   {
@@ -94,7 +94,7 @@ export class AudActionLogCB extends IAudActionLog
    * @param {string} state Selected state.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   LogSetSwitch(emitterID, group, state)
   {
@@ -111,7 +111,7 @@ export class AudActionLogCB extends IAudActionLog
    * @param {string} state Selected state.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   LogSetState(group, state)
   {
@@ -130,7 +130,7 @@ export class AudActionLogCB extends IAudActionLog
    * @param {number} [playID=0] Playing identifier.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   LogSetRTPC(emitterID, name, value, playID = 0)
   {
@@ -148,7 +148,7 @@ export class AudActionLogCB extends IAudActionLog
    * @returns {void}
    * @throws {*} Propagates callback exceptions without removing the current record.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Flush()
   {

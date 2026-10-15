@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/UI/EveConnector.cpp
 // Source: trinity/trinity/Eve/UI/EveConnector_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; this is portable CPU graph policy.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { be, EnumRegistrationType } from "#blue";
@@ -59,93 +59,93 @@ function rotateToPlane(out, point, planePoint, normal)
 
 
 /** Builds authored tactical connector curves into an EveCurveLineSet. */
-@meta.define({ className: "EveConnector", family: "eve/ui" })
+@blue.define("EveConnector")
 export class EveConnector
 {
 
   /** m_type (ConnectorType - enum ConnectorType) [READWRITE, PERSIST, ENUM] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.EveConnector.ConnectorType")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.EveConnector.ConnectorType")
   type = ConnectorType.PointToPoint;
 
   /** m_color (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.readwrite
+  @blue.persist
+  @type.color
   color = vec4.fromValues(0.5, 0.5, 0.5, 1);
 
   /** m_width (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   lineWidth = 1;
 
   /** m_animationColor (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.readwrite
+  @blue.persist
+  @type.color
   animationColor = vec4.fromValues(1, 0, 0, 1);
 
   /** m_animationScale (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   animationScale = 1;
 
   /** m_animationSpeed (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   animationSpeed = 0;
 
   /** m_isAnimated (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   isAnimated = false;
 
   /** m_autoScaleAnimation (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   autoScaleAnimation = false;
 
   /** m_destPosition (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   destPosition = vec3.create();
 
   /** m_sourcePosition (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   sourcePosition = vec3.create();
 
   /** m_destObject (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITriVectorFunction")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITriVectorFunction")
   destObject = null;
 
   /** m_sourceObject (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITriVectorFunction")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITriVectorFunction")
   sourceObject = null;
 
   /** m_normal (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   planeNormal = vec3.fromValues(0, 1, 0);
 
   /** m_length (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   length = 0;
 
   /** Carbon's animation normalization length. */
@@ -157,7 +157,7 @@ export class EveConnector
    * Adapted: JavaScript vector functions use GetValueAt(time, out); Carbon's pointer-first
    * spelling is a native calling convention.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(context)
   {
@@ -173,7 +173,7 @@ export class EveConnector
   }
 
   /** Adds the connector's selected logical line records to an owned line set. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddLine(lineSet)
   {

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepPopViewTransform.h
 // Source: trinity/trinity/RenderJob/TriStepPopViewTransform.cpp
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
 
@@ -11,11 +11,11 @@ import { TriRenderJob } from "../TriRenderJob.js";
  * Step that pops the render context's view-transform stack, restoring the view saved
  * by an earlier push.
  */
-@meta.define({ className: "TriStepPopViewTransform", family: "renderJob" })
+@blue.define("TriStepPopViewTransform")
 export class TriStepPopViewTransform extends TriRenderStep
 {
   /** Restores the view transform saved by the matching push step. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

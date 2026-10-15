@@ -27,4 +27,4 @@ for (const method of [ "SetGeometry", "SetGeometryTransform", "RemoveGeometry" ]
 {
   CjsSchema.decorateMethod(ITr2AudGeometry, method, meta.abstract);
 }
-CjsSchema.define(ITr2AudGeometry, { className: "ITr2AudGeometry", family: "trinityAudioApi" });
+CjsSchema.blue.define(ITr2AudGeometry, { className: "ITr2AudGeometry" });

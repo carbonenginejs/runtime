@@ -2,7 +2,7 @@
 import { IsMatch } from "#blue";
 import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { EveProceduralMethodRandomParameter } from "./EveProceduralMethodRandomParameter.js";
 import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.js";
 import { CjsDistributionRandom } from "../../../CjsDistributionRandom.js";
@@ -12,10 +12,10 @@ import { CjsDistributionRandom } from "../../../CjsDistributionRandom.js";
 const BELIST_LOADING = 0x10;
 
 /** EveProceduralMethodRandom (eve/child/procedural/selection) - generated from schema shapeHash 9e2d2332.... */
-@meta.define({ className: "EveProceduralMethodRandom", family: "eve/child/procedural/selection" })
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(IInitialize)
-@meta.blue.chainTo(IEveProceduralSelectionMethod)
+@blue.define("EveProceduralMethodRandom")
+@blue.inherit(IInitialize)
+@blue.interface(IInitialize)
+@blue.chainTo(IEveProceduralSelectionMethod)
 export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
 {
 
@@ -26,47 +26,47 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
   _parameterMapping = [];
 
   /** m_parameters (PEveProceduralMethodRandomParameterVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveProceduralMethodRandomParameter")
+  @blue.read
+  @blue.persist
+  @type.list("EveProceduralMethodRandomParameter")
   parameters = [];
 
   /** m_debugVolumes (PIEveVolumeVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("IEveVolume")
+  @blue.read
+  @blue.persist
+  @type.list("IEveVolume")
   debugVolumes = [];
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_totalWeight (int) [READ] */
-  @meta.blue.read
-  @meta.type.int32
+  @blue.read
+  @type.int32
   totalWeight = 0;
 
   /** m_seedName (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   seedName = "";
 
   /** m_selectedChildIndex (int) [READ] */
-  @meta.blue.read
-  @meta.type.int32
+  @blue.read
+  @type.int32
   selectedChild = -1;
 
   /** m_seed (float) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   seed_temp = -1;
 
   /** Carbon EveProceduralMethodRandom::Initialize (cpp:21-25). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -77,7 +77,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
   /** Carbon EveProceduralMethodRandom::OnModified (cpp:27-35): a seed change
    * reselects. The value argument follows the repo's OnModified duck.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(value = null)
   {
@@ -94,7 +94,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
    *
    * Adapted: The list argument defaults to the parameters list.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnListModified(event = 0, _key = 0, _key2 = 0, _value = null, list = null)
   {
@@ -106,7 +106,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
 
   /** Carbon EveProceduralMethodRandom::GenerateParameterMapping (cpp:45-55):
    * cumulative weight thresholds over the parameter list. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GenerateParameterMapping()
   {
@@ -129,7 +129,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
    * deterministic per seed like Carbon, though the exact integer sequence
    * differs.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SelectARandomParameter()
   {
@@ -159,7 +159,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
   }
 
   /** Carbon EveProceduralMethodRandom::IsSelectedChildModified (cpp:84-87). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsSelectedChildModified()
   {
@@ -170,7 +170,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
    * bounds-check the index, clear the modified flag, then hand out the
    * parameter's child ref after loading it - only when it carries a res
    * path. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetSelectedChild()
   {
@@ -197,7 +197,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
   /** Carbon EveProceduralMethodRandom::UpdateAsyncronous (cpp:111-127):
    * regenerate the weight map and reselect once any parameter reports itself
    * modified, clearing the flags on the way. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateAsyncronous(_updateContext, _params)
   {
@@ -218,7 +218,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
   }
 
   /** Carbon returns the owned volume vector by reference (cpp:129-132). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetDebugVolumes()
   {
@@ -228,7 +228,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
   /** Carbon EveProceduralMethodRandom::SetProceduralMethodVariable
    * (cpp:134-144): only the named seed variable is accepted; a changed value
    * reselects. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetProceduralMethodVariable(name, value)
   {
@@ -245,7 +245,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
 
   /** Carbon EveProceduralMethodRandom::GetProceduralMethodVariable
    * (cpp:146-154). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetProceduralMethodVariable()
   {

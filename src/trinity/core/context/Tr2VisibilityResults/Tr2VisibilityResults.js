@@ -2,13 +2,13 @@
 //   trinity/trinity/Tr2VisibilityResults.cpp
 //   trinity/trinity/Tr2VisibilityResults_Blue.cpp
 
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 /**
  * Collects the visibility events a visibility executor emits, for the interior
  * and portal consumers to read back.
  */
-@meta.define({ className: "Tr2VisibilityResults", family: "trinityCore" })
+@blue.define("Tr2VisibilityResults")
 export class Tr2VisibilityResults
 {
 
@@ -16,7 +16,7 @@ export class Tr2VisibilityResults
   #events = [];
 
   /** Adds the value-like visibility event emitted by a visibility executor. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AddVisibilityEvent(event)
   {
@@ -24,7 +24,7 @@ export class Tr2VisibilityResults
   }
 
   /** Returns a detached container view of the current visibility events. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetEvents()
   {
@@ -32,7 +32,7 @@ export class Tr2VisibilityResults
   }
 
   /** Clears the result set. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Clear()
   {
@@ -40,7 +40,7 @@ export class Tr2VisibilityResults
   }
 
   /** Gets the number of visibility events in the result set. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetNumVisibilityEvents()
   {

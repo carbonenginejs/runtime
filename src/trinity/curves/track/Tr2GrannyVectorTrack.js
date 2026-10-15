@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Curves/Tr2GrannyVectorTrack.h
 // Source: trinity/trinity/Curves/Tr2GrannyVectorTrack.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
 import { Tr2GrannyTrack } from "./Tr2GrannyTrack.js";
 
@@ -9,15 +9,12 @@ import { Tr2GrannyTrack } from "./Tr2GrannyTrack.js";
  * Granny track that samples a named one-dimensional vector track and exposes it
  * as a scalar value.
  */
-@meta.define({
-  className: "Tr2GrannyVectorTrack",
-  family: "curves"
-})
-@meta.blue.chainTo(Tr2GrannyTrack)
+@blue.define("Tr2GrannyVectorTrack")
+@blue.chainTo(Tr2GrannyTrack)
 export class Tr2GrannyVectorTrack extends Tr2GrannyTrack
 {
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   value = 0;
 
   #valueCurve = null;
@@ -27,7 +24,7 @@ export class Tr2GrannyVectorTrack extends Tr2GrannyTrack
   /**
    * Checks whether vector track handles are ready.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   TracksReady()
   {
@@ -37,7 +34,7 @@ export class Tr2GrannyVectorTrack extends Tr2GrannyTrack
   /**
    * Clears vector track handles.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ResetTracks()
   {
@@ -47,7 +44,7 @@ export class Tr2GrannyVectorTrack extends Tr2GrannyTrack
   /**
    * Applies vector track handles.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ApplyTracks(group, duration, _timeStep)
   {
@@ -69,7 +66,7 @@ export class Tr2GrannyVectorTrack extends Tr2GrannyTrack
   /**
    * Updates sampled vector value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateValueImpl(time)
   {

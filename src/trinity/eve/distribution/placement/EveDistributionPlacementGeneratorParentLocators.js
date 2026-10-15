@@ -2,15 +2,15 @@
 import { IsMatch } from "#blue";
 import { INotify } from "../../../../global/blue/INotify.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IEveDistributionPlacementGenerators } from "./IEveDistributionPlacementGenerators.js";
 import { InitialPlacement } from "../attributeModifiers/InitialPlacement.js";
 import { PlacementDataWithIdentifier } from "../../PlacementDataWithIdentifier.js";
 
 /** Builds distribution placements from a named locator set resolved on the parent space object. */
-@meta.define({ className: "EveDistributionPlacementGeneratorParentLocators", family: "eve/distribution/placement" })
-@meta.blue.inherit(INotify)
-@meta.blue.interface(IEveDistributionPlacementGenerators, INotify)
+@blue.define("EveDistributionPlacementGeneratorParentLocators")
+@blue.inherit(INotify)
+@blue.interface(IEveDistributionPlacementGenerators, INotify)
 export class EveDistributionPlacementGeneratorParentLocators extends IEveDistributionPlacementGenerators
 {
 
@@ -26,10 +26,10 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
   _locatorSetName = null;
 
   /** m_locatorSetName (BlueSharedString) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   locatorSetName = "damage";
 
   /**
@@ -38,7 +38,7 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
    * @param placements Caller-owned pool array that is appended to.
    * @param trackingID Mutable counter shared across all generators; each placement consumes one unique id from it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetInitialPlacements(placements, trackingID)
   {
@@ -68,7 +68,7 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
    * Reports whether a locator set has just been resolved from the parent and the
    * pool therefore needs rebuilding.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsRequestingRegeneration()
   {
@@ -80,7 +80,7 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
    * update params, re-resolving whenever the parent or the set name changes, and
    * requests regeneration once locators are found.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateSyncronous(_updateContext, params, _owner)
   {
@@ -110,7 +110,7 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
    * Invalidates the resolved locator set after an authored change so the next
    * update re-reads it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName)
   {
@@ -125,7 +125,7 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
    * Adapted: JavaScript retains explicit invalidation state in place of native
    * structure-list notifier ownership.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnStructureListModified(_event, _item, _index, _list)
   {

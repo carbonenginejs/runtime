@@ -2,7 +2,7 @@ import { DictReader } from "#blue/DictReader";
 import "#blue/values";
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import {
   recordRawBits,
   recordText,
@@ -147,13 +147,12 @@ export class Tr2SamplerSetup
 // expressions are reused verbatim, so the registered metadata is identical.
 // Statics belong in `methods`: decorateMethod targets the prototype and
 // would register a static as an instance field.
-CjsSchema.define(Tr2SamplerSetup, {
+CjsSchema.blue.define(Tr2SamplerSetup, {
   className: "Tr2SamplerSetup",
-  family: "shader",
   fields: {
-    name: meta.type.string,
-    hasName: [ meta.adapted, meta.type.boolean ],
-    sampler: meta.type.rawStruct("Tr2SamplerStateAL"),
-    isDynamic: [ meta.adapted, meta.type.boolean ]
+    name: type.string,
+    hasName: [ meta.adapted, type.boolean ],
+    sampler: type.rawStruct("Tr2SamplerStateAL"),
+    isDynamic: [ meta.adapted, type.boolean ]
   }
 });

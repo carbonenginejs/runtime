@@ -246,4 +246,4 @@ export class Tr2SamplerStateALWebgl2 extends Tr2DeviceResourceAL
   }
 }
 
-CjsSchema.define(Tr2SamplerStateALWebgl2, { className: "Tr2SamplerStateALWebgl2", carbon: "Tr2SamplerStateAL" });
+CjsSchema.blue.define(Tr2SamplerStateALWebgl2, { className: "Tr2SamplerStateALWebgl2", donors: [ "Tr2SamplerStateAL" ] });

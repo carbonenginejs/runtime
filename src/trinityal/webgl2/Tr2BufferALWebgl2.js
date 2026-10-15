@@ -656,4 +656,4 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
 // The donor is NAMED: Carbon calls every backend's class `Tr2BufferAL` and
 // carries the backend in the file name; we ship backends together, so the
 // backend moves onto the class name (see Tr2BufferALStub.js).
-CjsSchema.define(Tr2BufferALWebgl2, { className: "Tr2BufferALWebgl2", carbon: "Tr2BufferAL" });
+CjsSchema.blue.define(Tr2BufferALWebgl2, { className: "Tr2BufferALWebgl2", donors: [ "Tr2BufferAL" ] });

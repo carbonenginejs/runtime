@@ -1,28 +1,28 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { type, blue } from "#schema";
 
 /** Groups named decal items and their visibility policy. */
-@meta.define({ className: "EveSOFDataHullDecalSet", family: "eve" })
+@blue.define("EveSOFDataHullDecalSet")
 export class EveSOFDataHullDecalSet
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_visibilityGroup (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   visibilityGroup = "primary";
 
   /** m_items (PEveSOFDataHullDecalSetItemVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataHullDecalSetItem")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataHullDecalSetItem")
   items = [];
 
 }

@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepLoad.h
 // Schema: format-carbon resources/Tr2TexturePipelineStepLoad.json; maintained by the runtime resource layer.
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 
 // Source: trinity/trinity/Resources/TexturePipeline/ITr2TexturePipelineStep.h:26
 const s_texturePipelineChannel = CcpLog.CCP_LOG_DEFINE_CHANNEL("TexturePipeline", "trinity");
@@ -58,13 +58,13 @@ export class Tr2TexturePipelineStepLoad
 
 }
 
-CjsSchema.define(Tr2TexturePipelineStepLoad, {
-  className: "Tr2TexturePipelineStepLoad", family: "resources",
+CjsSchema.blue.define(Tr2TexturePipelineStepLoad, {
+  className: "Tr2TexturePipelineStepLoad",
   fields: {
-    path: [ meta.blue.persist, meta.type.wpath ]
+    path: [ blue.persist, type.wpath ]
   },
   methods: {
-    GetResourceDependencies: [ meta.blue.method, meta.implemented ],
-    Execute: [ meta.blue.method, meta.implemented ]
+    GetResourceDependencies: [ blue.method, meta.implemented ],
+    Execute: [ blue.method, meta.implemented ]
   }
 });

@@ -34,4 +34,4 @@ export class IEveInheritPropertiesOwner
 }
 
 
-CjsSchema.define(IEveInheritPropertiesOwner, { className: "IEveInheritPropertiesOwner" });
+CjsSchema.blue.define(IEveInheritPropertiesOwner, { className: "IEveInheritPropertiesOwner" });

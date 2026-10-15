@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:101-111
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { ICustomPersist } from "#blue";
 
 /**
@@ -9,15 +9,15 @@ import { ICustomPersist } from "#blue";
  * this class decodes them through its ICustomPersist methods.
  * Empty native constructor/destructor require no additional lifecycle.
  */
-@meta.define({ className: "EveSOFDataDecalIndexBuffer", family: "eve" })
-@meta.blue.interface(ICustomPersist)
+@blue.define("EveSOFDataDecalIndexBuffer")
+@blue.interface(ICustomPersist)
 export class EveSOFDataDecalIndexBuffer extends ICustomPersist
 {
 
   /** m_indexBuffer (std::vector<uint32_t>), persisted as the custom binary block "indexBuffer" [PERSISTONLY] */
-  @meta.blue.persistOnly
-  @meta.type.binary
-  @meta.type.uint32Array
+  @blue.persistOnly
+  @type.binary
+  @type.uint32Array
   indexBuffer = new Uint32Array(0);
 
   /**
@@ -26,7 +26,7 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
    * @param {number} index Unsigned 32-bit index.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddIndex(index)
   {
@@ -42,7 +42,7 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
    *
    * @returns {number[]} Copied indices.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetIndices()
   {
@@ -65,7 +65,7 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
    * @param {number} byteSize Nonnegative byte count; incomplete uint32 bytes are discarded.
    * @returns {Uint32Array} The backing storage, reused or new.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AllocateReadBuffer(_memberName, byteSize)
   {
@@ -85,7 +85,7 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
    * @param {string} [_propertyName] Ignored, as in Carbon.
    * @returns {{buffer: Uint32Array, byteSize: number}} Storage and byte count.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetWriteBufferAndSize(_propertyName)
   {
@@ -99,7 +99,7 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
    *
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   ReleaseWriteBuffer()
   {
@@ -119,7 +119,7 @@ export class EveSOFDataDecalIndexBuffer extends ICustomPersist
    * @param {number} byteSize Nonnegative byte count; incomplete uint32 bytes are discarded.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetBufferAndSize(_propertyName, _buffer, byteSize)
   {

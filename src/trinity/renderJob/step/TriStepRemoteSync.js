@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepRemoteSync.h
 // Source: trinity/trinity/RenderJob/TriStepRemoteSync.cpp
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 
@@ -8,13 +8,13 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * Step for Carbon's Windows-only cross-process render synchronization, which has
  * no browser equivalent and therefore always fails.
  */
-@meta.define({ className: "TriStepRemoteSync", family: "renderJob" })
+@blue.define("TriStepRemoteSync")
 export class TriStepRemoteSync extends TriRenderStep
 {
   #id = -1;
 
   /** Stores the identifier of the synchronization event this step would wait on. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   __init__(id = -1)
   {

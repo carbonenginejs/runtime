@@ -5,7 +5,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { EveChildPartData, EveChildPartDataPartData } from "./child/EveChildPartData/index.js";
 import { EveChildInstancedMeshes } from "./child/EveChildInstancedMeshes/index.js";
 import { EveStation2 } from "./spaceObject/EveStation2.js";
@@ -13,7 +13,7 @@ import { Tr2Lod } from "./EveLODHelper.js";
 
 
 /** Transient edit session for one modular EveSpaceObject2. */
-@meta.define({ className: "EveModularObjectModifier", family: "eve" })
+@blue.define("EveModularObjectModifier")
 export class EveModularObjectModifier
 {
   _object = null;
@@ -30,7 +30,7 @@ export class EveModularObjectModifier
   static _pendingEdits = new WeakMap();
 
   /** Opens an edit session and creates persistent part data when absent. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Create(object, sof, objectLoader = null)
   {
@@ -57,7 +57,7 @@ export class EveModularObjectModifier
    * Adapted: async SOF acquisition requires serialization per owner so IDs
    * and composed graphs cannot be overwritten by concurrent edit sessions.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   async AddHull(hullName, factionName, raceName, position, rotation, scale)
   {
@@ -109,7 +109,7 @@ export class EveModularObjectModifier
    * Loads and attaches one resource child, returning its unique part tag.
    * Adapted: promise-capable browser acquisition shares the owner's edit order.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   async AddChild(resourcePath, position, rotation, scale)
   {
@@ -172,7 +172,7 @@ export class EveModularObjectModifier
   }
 
   /** Removes a modular part and every child carrying its tag. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Remove(partId)
   {
@@ -196,7 +196,7 @@ export class EveModularObjectModifier
   }
 
   /** Replaces a modular part transform and updates its attached children. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetTransform(partId, position, rotation, scale)
   {
@@ -245,7 +245,7 @@ export class EveModularObjectModifier
   }
 
   /** Recomputes culling bounds from the current modular part spheres. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ApplyBounds()
   {
@@ -288,7 +288,7 @@ export class EveModularObjectModifier
   }
 
   /** Copies a modular part's authored position. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPosition(partId, out = vec3.create())
   {
@@ -296,7 +296,7 @@ export class EveModularObjectModifier
   }
 
   /** Copies a modular part's authored rotation. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetRotation(partId, out = quat.create())
   {
@@ -304,7 +304,7 @@ export class EveModularObjectModifier
   }
 
   /** Copies a modular part's authored scale. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetScale(partId, out = vec3.create())
   {

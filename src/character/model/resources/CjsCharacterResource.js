@@ -1,59 +1,59 @@
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /** Authored character resource with explicit gender, type, and clothing-category rules. */
-@meta.define({ className: "CjsCharacterResource", family: "character" })
+@meta.define("CjsCharacterResource")
 export class CjsCharacterResource extends CjsCharacterRecord
 {
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("string")
+    @blue.readwrite
+    @blue.persist
+    @type.list("string")
     empireRestrictions = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.path
+    @blue.readwrite
+    @blue.persist
+    @type.path
     resPath = "";
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.rootRef("CjsCharacterPartType")
+    @blue.readwrite
+    @blue.persist
+    @type.rootRef("CjsCharacterPartType")
     partType = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.rootRef("CjsCharacterModifierLocation")
+    @blue.readwrite
+    @blue.persist
+    @type.rootRef("CjsCharacterModifierLocation")
     clothingAlsoCoversCategory = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.rootRef("CjsCharacterModifierLocation")
+    @blue.readwrite
+    @blue.persist
+    @type.rootRef("CjsCharacterModifierLocation")
     clothingAlsoCoversCategory2 = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.rootRef("CjsCharacterModifierLocation")
+    @blue.readwrite
+    @blue.persist
+    @type.rootRef("CjsCharacterModifierLocation")
     clothingRemovesCategory = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.rootRef("CjsCharacterModifierLocation")
+    @blue.readwrite
+    @blue.persist
+    @type.rootRef("CjsCharacterModifierLocation")
     clothingRemovesCategory2 = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     typeID = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.uint8
+    @blue.readwrite
+    @blue.persist
+    @type.uint8
     clothingRuleException = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.uint8
+    @blue.readwrite
+    @blue.persist
+    @type.uint8
     resGender = null;
 
 }

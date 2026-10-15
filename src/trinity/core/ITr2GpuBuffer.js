@@ -17,4 +17,4 @@ export class ITr2GpuBuffer
   }
 }
 
-CjsSchema.define(ITr2GpuBuffer, { className: "ITr2GpuBuffer", carbon: "ITr2GpuBuffer", family: "trinityCore", fields: {} });
+CjsSchema.blue.define(ITr2GpuBuffer, { className: "ITr2GpuBuffer", fields: {} });

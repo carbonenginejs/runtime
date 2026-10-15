@@ -8,7 +8,7 @@ import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 
 
@@ -16,25 +16,25 @@ import { EveChildTransform } from "./EveChildTransform.js";
  * Space-object child that owns a positional audio emitter and keeps its position
  * and orientation tracking the child's world transform.
  */
-@meta.define({ className: "EveChildAudio", family: "eve/child" })
-@meta.blue.inherit(IInitialize, INotify)
-@meta.blue.interface(IEveSpaceObjectChild, EveSpaceObjectChild, IInitialize, INotify)
+@blue.define("EveChildAudio")
+@blue.inherit(IInitialize, INotify)
+@blue.interface(IEveSpaceObjectChild, EveSpaceObjectChild, IInitialize, INotify)
 export class EveChildAudio extends EveChildTransform
 {
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "EveChildAudio";
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @type.boolean
   mute = false;
 
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.rootRef("ITr2AudEmitter")
+  @blue.read
+  @blue.persist
+  @type.rootRef("ITr2AudEmitter")
   audioEmitter = null;
 
   /**
@@ -54,7 +54,7 @@ export class EveChildAudio extends EveChildTransform
   }
 
   /** Construction hook; forwards to Initialize. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   __init__()
   {
@@ -62,7 +62,7 @@ export class EveChildAudio extends EveChildTransform
   }
 
   /** Renames the underlying emitter without touching this child's own name field. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetEmitterName(name)
   {

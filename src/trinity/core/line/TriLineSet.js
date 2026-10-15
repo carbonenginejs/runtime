@@ -1,7 +1,7 @@
 // Source: trinity/trinity/TriLineSet.h
 // Source: trinity/trinity/TriLineSet.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { Topology } from "#consts/render-context";
@@ -17,25 +17,25 @@ const MAX_VERTICES = 100000;
 
 
 /** A debug line set that builds boxes, spheres, cylinders and cones out of coloured line segments. */
-@meta.define({ className: "TriLineSet", family: "trinityCore" })
+@blue.define("TriLineSet")
 export class TriLineSet
 {
 
-  @meta.type.uint32
+  @type.uint32
   defaultColor = 0xffffffff;
 
   /** m_vertices: { position, color } records, the colour already swizzled. */
-  @meta.type.list("TriDebugVertexPosColor")
+  @type.list("TriDebugVertexPosColor")
   vertices = [];
 
   /** m_zEnable (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   zEnable = true;
 
   /** m_transform (Matrix) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.mat4
+  @blue.readwrite
+  @type.mat4
   transform = mat4.create();
 
   /** The VertexPosColor bytes SubmitGeometry draws from, grown with the vertex count. */
@@ -49,7 +49,7 @@ export class TriLineSet
   }
 
   /** Carbon Add (cpp:49-66): one line with a colour at each end; ignored past the vertex cap. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Add(from, colorFrom, to, colorTo)
   {
@@ -69,7 +69,7 @@ export class TriLineSet
   }
 
   /** Carbon AddSphere (cpp:77-143): rings of latitude and longitude, at least four segments, even. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddSphere(center, radius, segments, color = 0xffffffff)
   {
@@ -169,7 +169,7 @@ export class TriLineSet
   }
 
   /** Carbon AddBox (cpp:305-328): the twelve edges of an axis-aligned box. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddBox(min, max, color = 0xffffffff)
   {
@@ -207,7 +207,7 @@ export class TriLineSet
   }
 
   /** Carbon Clear (cpp:391-394). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Clear()
   {
@@ -215,7 +215,7 @@ export class TriLineSet
   }
 
   /** Carbon SetCurrentColor (cpp:396-404): recolours every vertex. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetCurrentColor(color)
   {
@@ -224,7 +224,7 @@ export class TriLineSet
   }
 
   /** Carbon SetDefaultColor (TriLineSet.h:42-45). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetDefaultColor(color)
   {
@@ -256,7 +256,7 @@ export class TriLineSet
   }
 
   /** Carbon AddLines (cpp:432-438): each pair in the default colour. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddLines(lines)
   {

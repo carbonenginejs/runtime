@@ -1,49 +1,49 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { type, blue } from "#schema";
 import { EveSOFDataPatternLayer } from "./EveSOFDataPatternLayer.js";
 import { EveSOFDataPatternPerHull } from "./EveSOFDataPatternPerHull.js";
 import { ErrSOFProjectionNotFound } from "./ErrSOFProjectionNotFound.js";
 
 /** Defines a named two-layer pattern with application groups, per-hull lookup, flip policy, and custom mask support. */
-@meta.define({ className: "EveSOFDataPattern", family: "eve" })
+@blue.define("EveSOFDataPattern")
 export class EveSOFDataPattern
 {
 
   /** m_projections (PEveSOFDataPatternPerHullVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataPatternPerHull")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataPatternPerHull")
   projections = [];
 
   /** m_applicationGroups (PEveSOFDataPatternApplicationGroupVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataPatternApplicationGroup")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataPatternApplicationGroup")
   applicationGroups = [];
 
   /** m_layer1 (EveSOFDataPatternLayerPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataPatternLayer")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("EveSOFDataPatternLayer")
   layer1 = null;
 
   /** m_layer2 (EveSOFDataPatternLayerPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataPatternLayer")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("EveSOFDataPatternLayer")
   layer2 = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_sof6 (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   sof6 = false;
 
   /** Tests for a case-insensitive hull projection within this pattern. */

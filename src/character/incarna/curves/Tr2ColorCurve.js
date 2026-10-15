@@ -2,7 +2,7 @@
 // ccpgames rawrafox cppctamber) and corroborated by historical Tr2ColorCurve
 // Black records.
 import { IInitialize } from "../../../global/blue/IInitialize.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec4 } from "#math/vec4";
 import { IncarnaColorCurveInterpolation } from "./enums.js";
 import { Tr2ColorKey } from "./Tr2ColorKey.js";
@@ -13,66 +13,66 @@ import { Tr2ColorKey } from "./Tr2ColorKey.js";
  * This is distinct from the Trinity layer's current Carbon `Tr2CurveColor`,
  * whose persisted representation is four component scalar curves.
  */
-@meta.define({ className: "Tr2ColorCurve", family: "incarna" })
+@meta.define("Tr2ColorCurve")
 // Historical Incarna compatibility: loaded Curve2 keys must be sorted once.
 // This explicit contract preserves the legacy asset behavior; it is not a
 // declaration from the current Carbon curve exposure table.
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(IInitialize)
+@blue.inherit(IInitialize)
+@blue.interface(IInitialize)
 export class Tr2ColorCurve
 {
 
-  @meta.blue.persist
-  @meta.type.string
+  @blue.persist
+  @type.string
   name = "";
 
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.persist
+  @type.boolean
   cycle = false;
 
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.persist
+  @type.boolean
   reversed = false;
 
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.persist
+  @type.float32
   timeOffset = 0;
 
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.persist
+  @type.float32
   timeScale = 1;
 
-  @meta.blue.persist
-  @meta.type.color
+  @blue.persist
+  @type.color
   startValue = vec4.fromValues(0, 0, 0, 1);
 
-  @meta.blue.readwrite
-  @meta.type.color
+  @blue.readwrite
+  @type.color
   currentValue = vec4.fromValues(0, 0, 0, 1);
 
-  @meta.blue.persist
-  @meta.type.color
+  @blue.persist
+  @type.color
   endValue = vec4.fromValues(0, 0, 0, 1);
 
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.persist
+  @type.vec4
   startTangent = vec4.create();
 
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.persist
+  @type.vec4
   endTangent = vec4.create();
 
-  @meta.blue.persist
-  @meta.type.uint32
-  @meta.type.enum("Interpolation")
+  @blue.persist
+  @type.uint32
+  @type.enum("Interpolation")
   interpolation = IncarnaColorCurveInterpolation.LINEAR;
 
-  @meta.blue.persist
-  @meta.type.list("Tr2ColorKey")
+  @blue.persist
+  @type.list("Tr2ColorKey")
   keys = [];
 
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.persist
+  @type.float32
   length = 0;
 
   /** Sorts keys and reconciles a last key beyond the authored end. */

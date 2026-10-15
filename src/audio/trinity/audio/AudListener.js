@@ -1,5 +1,5 @@
 // Source: audio/src/AudListener.h + AudListener.cpp
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 import { LISTENER_GAME_OBJ_ID } from "./SoundPrioritization.js";
@@ -7,7 +7,7 @@ import { LISTENER_GAME_OBJ_ID } from "./SoundPrioritization.js";
 const FLOAT_MAX = 3.4028234663852886e38;
 
 /** Represents the singleton Carbon listener and its effective orientation and position. Its id is fixed at 4 and prioritization never culls it. */
-@meta.define({ className: "AudListener", family: "audio" })
+@blue.define("AudListener")
 export class AudListener extends AudGameObjResource
 {
 
@@ -41,7 +41,7 @@ export class AudListener extends AudGameObjResource
    * @param {ArrayLike<number>} position Listener position.
    * @returns {number} The placement result.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetPosition(front, top, position)
   {
@@ -62,7 +62,7 @@ export class AudListener extends AudGameObjResource
    * @param {ArrayLike<number>} positionValue Listener position.
    * @returns {number} AK_Success (1).
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetPlacementFromParent(front, top, positionValue)
   {

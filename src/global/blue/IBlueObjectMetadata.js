@@ -38,4 +38,4 @@ for (const method of [ "GetMetadata", "Set", "Get", "Delete", "DeleteObject", "C
   CjsSchema.decorateMethod(IBlueObjectMetadata, method, meta.requires, meta.abstract);
 }
 
-CjsSchema.define(IBlueObjectMetadata, { className: "IBlueObjectMetadata", carbon: "IBlueObjectMetadata", family: "blue", fields: {} });
+CjsSchema.blue.define(IBlueObjectMetadata, { className: "IBlueObjectMetadata", fields: {} });

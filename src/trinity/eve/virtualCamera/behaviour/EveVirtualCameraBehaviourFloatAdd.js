@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { INotify } from "#blue";
 import { Tr2CurveScalar } from "../../../curves/curve/Tr2CurveScalar.js";
 import { Tr2CurveExtrapolation, Tr2CurveInterpolation, Tr2CurveTangentType } from "../../../curves/enums.js";
@@ -11,22 +11,19 @@ import { EveVirtualCameraBehaviourFloatBase } from "./EveVirtualCameraBehaviourF
  * Float behaviour that adds an authored constant, optionally shaped across the
  * timeline by a scale curve.
  */
-@meta.define({
-  className: "EveVirtualCameraBehaviourFloatAdd",
-  family: "eve/virtualCamera/behaviour"
-})
-@meta.blue.interface(INotify)
-@meta.blue.chainTo(EveVirtualCameraBehaviourFloatBase)
+@blue.define("EveVirtualCameraBehaviourFloatAdd")
+@blue.interface(INotify)
+@blue.chainTo(EveVirtualCameraBehaviourFloatBase)
 export class EveVirtualCameraBehaviourFloatAdd extends EveVirtualCameraBehaviourFloatBase
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2CurveScalar")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2CurveScalar")
   scaleCurve = null;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   value = 0;
 
   /**
@@ -47,7 +44,7 @@ export class EveVirtualCameraBehaviourFloatAdd extends EveVirtualCameraBehaviour
    * Sets the behaviour name and renames the owned scale curve to match.
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:119-122
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -60,7 +57,7 @@ export class EveVirtualCameraBehaviourFloatAdd extends EveVirtualCameraBehaviour
    * time when one is set, and returned as-is when it is not.
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:125-134
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Update(camera, _current, _deltaTime, localElapsedTime)
   {

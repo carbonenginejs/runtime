@@ -1,12 +1,12 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { type, blue } from "#schema";
 import { be, EnumRegistrationType } from "#blue";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
 /** Carbon-authored hull record. */
-@meta.define({ className: "EveSOFDataHull", family: "eve" })
+@blue.define("EveSOFDataHull")
 export class EveSOFDataHull
 {
 
@@ -33,245 +33,245 @@ export class EveSOFDataHull
   });
 
   /** m_buildClass (BuildClass - enum BuildClass) [READWRITE, PERSIST, ENUM] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.EveSOFDataHull.BuildClass")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.EveSOFDataHull.BuildClass")
   buildClass = 0;
 
   /** m_impactEffectType (ImpactEffectType - enum ImpactEffectType) [READWRITE, PERSIST, ENUM] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.EveSOFDataHull.ImpactEffectType")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.EveSOFDataHull.ImpactEffectType")
   impactEffectType = 0;
 
   /** m_banners (PEveSOFDataHullBannerVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataHullBanner")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataHullBanner")
   banners = [];
 
   /** m_soundEmitters (PEveSOFDataHullSoundEmitterVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataHullSoundEmitter")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataHullSoundEmitter")
   soundEmitters = [];
 
   /** m_category (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   category = "";
 
   /** m_description (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   description = "";
 
   /** m_locatorSets (PIEveSOFDataHullLocatorSetVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("IEveSOFDataHullLocatorSet")
+  @blue.read
+  @blue.persist
+  @type.list("IEveSOFDataHullLocatorSet")
   locatorSets = [];
 
   /** m_isSkinned (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   isSkinned = false;
 
   /** m_animations (PEveSOFDataHullAnimationVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataHullAnimation")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataHullAnimation")
   animations = [];
 
   /** m_children (PEveSOFDataHullChildVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataHullChild")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataHullChild")
   children = [];
 
   /** m_controllers (PEveSOFDataHullControllerVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataHullController")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataHullController")
   controllers = [];
 
   /** m_instancedMeshes (PEveSOFDataInstancedMeshVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataInstancedMesh")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataInstancedMesh")
   instancedMeshes = [];
 
   /** m_modelRotationCurvePath (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.path
+  @blue.readwrite
+  @blue.persist
+  @type.path
   modelRotationCurvePath = "";
 
   /** m_modelTranslationCurvePath (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.path
+  @blue.readwrite
+  @blue.persist
+  @type.path
   modelTranslationCurvePath = "";
 
   /** m_childSets (PEveSOFDataHullChildSetVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataHullChildSet")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataHullChildSet")
   childSets = [];
 
   /** m_boundingSphere (Vector4) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   boundingSphere = vec4.create();
 
   /** m_additiveAreas (PEveSOFDataHullAreaVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataHullArea")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataHullArea")
   additiveAreas = [];
 
   /** m_audioPosition (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   audioPosition = vec3.create();
 
   /** m_bannerSets (PEveSOFDataHullBannerSetVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataHullBannerSet")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataHullBannerSet")
   bannerSets = [];
 
   /** m_booster (EveSOFDataHullBoosterPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataHullBooster")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("EveSOFDataHullBooster")
   booster = null;
 
   /** m_decalAreas (PEveSOFDataHullAreaVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataHullArea")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataHullArea")
   decalAreas = [];
 
   /** m_decalSets (PEveSOFDataHullDecalSetVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataHullDecalSet")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataHullDecalSet")
   decalSets = [];
 
   /** m_defaultPattern (EveSOFDataPatternPerHullPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataPatternPerHull")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("EveSOFDataPatternPerHull")
   defaultPattern = null;
 
   /** m_distortionAreas (PEveSOFDataHullAreaVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataHullArea")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataHullArea")
   distortionAreas = [];
 
   /** m_shapeEllipsoidCenter (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   shapeEllipsoidCenter = vec3.create();
 
   /** m_shapeEllipsoidRadius (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   shapeEllipsoidRadius = vec3.fromValues(-1, -1, -1);
 
   /** m_hazeSets (PEveSOFDataHullHazeSetVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataHullHazeSet")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataHullHazeSet")
   hazeSets = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_lightSets (PEveSOFDataHullLightSetVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataHullLightSet")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataHullLightSet")
   lightSets = [];
 
   /** m_opaqueAreas (PEveSOFDataHullAreaVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataHullArea")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataHullArea")
   opaqueAreas = [];
 
   /** m_planeSets (PEveSOFDataHullPlaneSetVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataHullPlaneSet")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataHullPlaneSet")
   planeSets = [];
 
   /** m_geometryResFilePath (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.path("TriGeometryRes")
+  @blue.readwrite
+  @blue.persist
+  @type.path("TriGeometryRes")
   geometryResFilePath = "";
 
   /** m_spotlightSets (PEveSOFDataHullSpotlightSetVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataHullSpotlightSet")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataHullSpotlightSet")
   spotlightSets = [];
 
   /** m_spriteLineSets (PEveSOFDataHullSpriteLineSetVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataHullSpriteLineSet")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataHullSpriteLineSet")
   spriteLineSets = [];
 
   /** m_spriteSets (PEveSOFDataHullSpriteSetVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataHullSpriteSet")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataHullSpriteSet")
   spriteSets = [];
 
   /** m_transparentAreas (PEveSOFDataHullAreaVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataHullArea")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataHullArea")
   transparentAreas = [];
 
   /** m_locatorTurrets (PEveSOFDataHullLocatorVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataHullLocator")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataHullLocator")
   locatorTurrets = [];
 
   /** m_sof6 (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   sof6 = false;
 
   /** m_enableDynamicBoundingSphere (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   enableDynamicBoundingSphere = false;
 
   /** m_castShadow (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   castShadow = true;
 
 }

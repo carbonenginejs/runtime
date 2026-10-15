@@ -7,7 +7,7 @@
 // raytracing hooks do nothing and IsShadowCastingDirty answers false. Composed
 // with meta.blue.inherit, which installs only what a caster does not define.
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { isVector3 } from "#utils/is";
 
 
@@ -83,10 +83,10 @@ export class IEveShadowCaster
 }
 
 
-CjsSchema.decorateMethod(IEveShadowCaster, "IsCastingShadow", meta.blue.method, meta.adapted);
+CjsSchema.decorateMethod(IEveShadowCaster, "IsCastingShadow", blue.method, meta.adapted);
 CjsSchema.decorateMethod(IEveShadowCaster, "IsCastingShadow__ShadowFrustum", meta.abstract);
 CjsSchema.decorateMethod(IEveShadowCaster, "IsCastingShadow__PositionRadius", meta.implemented);
 CjsSchema.decorateMethod(IEveShadowCaster, "GetShadowBatches", meta.abstract);
 CjsSchema.decorateMethod(IEveShadowCaster, "GetShadowPerObjectData", meta.abstract);
 for (const name of [ "PushRtGeometry", "MarkRtDirty", "IsShadowCastingDirty" ]) CjsSchema.decorateMethod(IEveShadowCaster, name, meta.implemented);
-CjsSchema.define(IEveShadowCaster, { className: "IEveShadowCaster" });
+CjsSchema.blue.define(IEveShadowCaster, { className: "IEveShadowCaster" });

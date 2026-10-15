@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveScalarExpression.cpp
 // Source: trinity/trinity/Curves/Tr2CurveScalarExpression_Blue.cpp
 import { ITriScalarFunction, ITriFunction, IInitialize } from "#blue";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { CjsControllerExpressionProgram } from "../../controllers/expression/CjsControllerExpressionProgram.js";
 
 
@@ -17,29 +17,26 @@ import { CjsControllerExpressionProgram } from "../../controllers/expression/Cjs
  * is claimed. Sampling retains the seconds overloads and returns numbers;
  * Be::Time overloads remain unimplemented. Programs are local state, not resources.
  */
-@meta.define({
-  className: "Tr2CurveScalarExpression",
-  family: "curves"
-})
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(ITriFunction, ITriScalarFunction, IInitialize)
+@blue.define("Tr2CurveScalarExpression")
+@blue.inherit(IInitialize)
+@blue.interface(ITriFunction, ITriScalarFunction, IInitialize)
 export class Tr2CurveScalarExpression extends ITriScalarFunction
 {
   /** Authored narrow-string name. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** Native PERSISTONLY expression storage; readers bypass the live setter. */
   @meta.member("expression")
-  @meta.blue.persistOnly
-  @meta.type.expression
+  @blue.persistOnly
+  @type.expression
   _expression = "";
 
   /** Live expression property, separate from persisted backing storage. */
-  @meta.blue.readwrite
-  @meta.type.expression
+  @blue.readwrite
+  @type.expression
   @meta.implemented
   get expression()
   {
@@ -54,8 +51,8 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   }
 
   /** Cached value after the last update. */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   currentValue = 0;
 
   /** Compiled JavaScript expression program; no held resource. */
@@ -65,33 +62,33 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   _compiledSource = "";
 
   /** Owned scalar input functions in native declaration order. */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITriScalarFunction")
+  @blue.read
+  @blue.persist
+  @type.list("ITriScalarFunction")
   inputs = [];
 
   /** First authored scalar argument. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   input1 = 0;
 
   /** Second authored scalar argument. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   input2 = 0;
 
   /** Third authored scalar argument. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   input3 = 0;
 
   /** Fourth authored scalar argument. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   input4 = 0;
 
   /** Native runtime time scale; not an exposed member. */
@@ -108,7 +105,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * Adapted: uses the existing JavaScript expression program.
    * @returns {boolean} True.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -124,7 +121,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   /**
    * Updates the cached scalar value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateValue(time)
   {
@@ -134,7 +131,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   /**
    * Updates and returns the scalar value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Update(time)
   {
@@ -145,7 +142,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   /**
    * Gets the scalar value at a time.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetValueAt(time)
   {
@@ -155,7 +152,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   /**
    * Scales expression time.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ScaleTime(scale)
   {
@@ -166,7 +163,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * Evaluates the expression.
    * Adapted: retains the JavaScript program and evaluation-result fallback.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValue(time)
   {
@@ -198,7 +195,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   /**
    * Gets the authored expression.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetExpression()
   {
@@ -212,7 +209,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * @param {string} expression Authored source text.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetExpression(expression)
   {
@@ -231,7 +228,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   /**
    * Gets this curve's random constant.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetRandomConstant()
   {
@@ -244,7 +241,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * @param {number} index Input index.
    * @returns {number}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetInputValue(index)
   {
@@ -271,7 +268,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   /**
    * Regenerates the random constant.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ResetRandomConstant()
   {
@@ -282,7 +279,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * Gets expression terms exposed by this curve.
    * Adapted: returns the existing JavaScript expression-term records.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetExpressionTermInfo()
   {
@@ -293,7 +290,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
    * Evaluates an arbitrary expression with this curve's context.
    * Adapted: retains the JavaScript compiler and zero-on-invalid result contract.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   EvaluateExpression(expression)
   {

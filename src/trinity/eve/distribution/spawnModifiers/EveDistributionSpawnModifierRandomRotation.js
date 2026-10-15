@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawnModifiers/EveDistributionSpawnModifierRandomRotation.h
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { be } from "#blue";
 import { IEveDistributionSpawnModifier } from "./IEveDistributionSpawnModifier.js";
 import { quat } from "#math/quat";
@@ -9,10 +9,10 @@ import { vec3 } from "#math/vec3";
 import { CjsDistributionRandom } from "../../CjsDistributionRandom.js";
 
 /** Applies or replaces each spawned placement's orientation with a seeded random yaw, pitch, and roll. */
-@meta.define({ className: "EveDistributionSpawnModifierRandomRotation", family: "eve/distribution/spawnModifiers" })
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(IInitialize)
-@meta.blue.chainTo(IEveDistributionSpawnModifier)
+@blue.define("EveDistributionSpawnModifierRandomRotation")
+@blue.inherit(IInitialize)
+@blue.interface(IInitialize)
+@blue.chainTo(IEveDistributionSpawnModifier)
 export class EveDistributionSpawnModifierRandomRotation extends IEveDistributionSpawnModifier
 {
 
@@ -20,34 +20,34 @@ export class EveDistributionSpawnModifierRandomRotation extends IEveDistribution
   _timeSeed = be.os.GetCurrentFrameTime() >>> 0;
 
   /** m_minRotation (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   minRotation = vec3.create();
 
   /** m_maxRotation (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   maxRotation = vec3.create();
 
   /** m_consistentRandom (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   consistentRandom = false;
 
   /** m_overrideRotation (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   overrideRotation = false;
 
   /**
    * Reseeds the random stream from the wall clock, so rotations differ between
    * runs unless consistentRandom pins them to the placement id.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -60,7 +60,7 @@ export class EveDistributionSpawnModifierRandomRotation extends IEveDistribution
    * maxRotation, then either replaces the placement's initial rotation or
    * combines it with the authored one.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ProcessSpawnModifier(placement, _numPlacements)
   {

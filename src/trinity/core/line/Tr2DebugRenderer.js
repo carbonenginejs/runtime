@@ -1,11 +1,11 @@
 // Source: trinity/trinity/Tr2DebugRenderer.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
 /** Resolves which debug visualisations an object draws, from per-owner options over a default set. */
-@meta.define({ className: "Tr2DebugRenderer", family: "trinityCore" })
+@blue.define("Tr2DebugRenderer")
 export class Tr2DebugRenderer
 {
 
@@ -14,55 +14,55 @@ export class Tr2DebugRenderer
   #optionColors = new Map();
 
   /** m_position (Vector3) */
-  @meta.type.vec3
+  @type.vec3
   position = vec3.create();
 
   /** m_normal (Vector3) */
-  @meta.type.vec3
+  @type.vec3
   normal = vec3.create();
 
   /** m_object (float) */
-  @meta.type.float32
+  @type.float32
   object = 0;
 
   /** m_line (float) */
-  @meta.type.float32
+  @type.float32
   line = 0;
 
   /** m_color (uint32_t) */
-  @meta.type.uint32
+  @type.uint32
   color = 0;
 
   /** m_zFailColor (uint32_t) */
-  @meta.type.uint32
+  @type.uint32
   zFailColor = 0;
 
   /** m_effect (Tr2EffectPtr) */
-  @meta.type.rootRef("Tr2Effect")
+  @type.rootRef("Tr2Effect")
   effect = null;
 
   /** m_pickingEffect (Tr2EffectPtr) */
-  @meta.type.rootRef("Tr2Effect")
+  @type.rootRef("Tr2Effect")
   pickingEffect = null;
 
   /** m_lines (std::vector<Vertex>) */
-  @meta.type.list("Vertex")
+  @type.list("Vertex")
   lines = [];
 
   /** m_triangles (std::vector<Vertex>) */
-  @meta.type.list("Vertex")
+  @type.list("Vertex")
   triangles = [];
 
   /** m_defaultOptions (Tr2DebugRendererOptions) */
-  @meta.type.set("string")
+  @type.set("string")
   defaultOptions = new Set();
 
   /** m_selectedObjects (std::set<Tr2DebugObjectReference>) */
-  @meta.type.set("Tr2DebugObjectReference")
+  @type.set("Tr2DebugObjectReference")
   selectedObjects = new Set();
 
   /** Carbon method SetDefaultOptions (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetDefaultOptions(options)
   {
@@ -70,7 +70,7 @@ export class Tr2DebugRenderer
   }
 
   /** Carbon method SetSelectedObjects (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetSelectedObjects(objects)
   {
@@ -83,7 +83,7 @@ export class Tr2DebugRenderer
   }
 
   /** Carbon method SetOptions (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetOptions(owner, options)
   {
@@ -93,7 +93,7 @@ export class Tr2DebugRenderer
   }
 
   /** Carbon method GetColorForOption -> PyGetColorForOption (MAP_METHOD). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetColorForOption(option)
   {
@@ -102,7 +102,7 @@ export class Tr2DebugRenderer
   }
 
   /** Carbon method GetOptions (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetOptions(owner)
   {
@@ -110,7 +110,7 @@ export class Tr2DebugRenderer
   }
 
   /** Carbon method GetDefaultOptions (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetDefaultOptions()
   {
@@ -118,7 +118,7 @@ export class Tr2DebugRenderer
   }
 
   /** Carbon method SetColorForOption (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetColorForOption(option, color)
   {

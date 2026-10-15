@@ -12,7 +12,7 @@ import { Tr2VirtualAllocator } from "../Tr2VirtualAllocator.js";
 import { Tr2BufferDescriptionAL } from "../../../../trinityal/stub/Tr2BufferALStub.js";
 import { Tr2CpuUsage } from "#consts/render-context";
 import { TriStorageFlags } from "#consts/graphics";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import * as CcpLog from "../../../../global/logging/ccpLog.js";
 import { Failed } from "../../../../trinityal/ALResult.js";
 import { TriDevice } from "../TriDevice.js";
@@ -215,13 +215,13 @@ function Lcm(a, b)
   return (a * b) / Gcd(a, b);
 }
 
-CjsSchema.define(Tr2SuballocatedBuffer, {
+CjsSchema.blue.define(Tr2SuballocatedBuffer, {
   className: "Tr2SuballocatedBuffer",
   methods: {
-    Allocate: [ meta.blue.method, meta.adapted ],
-    Free: [ meta.blue.method, meta.adapted ],
-    GetBuffer: [ meta.blue.method, meta.adapted ],
-    ReleaseResources: [ meta.blue.method, meta.adapted ],
+    Allocate: [ blue.method, meta.adapted ],
+    Free: [ blue.method, meta.adapted ],
+    GetBuffer: [ blue.method, meta.adapted ],
+    ReleaseResources: [ blue.method, meta.adapted ],
     PrepareResources: [ meta.adapted ],
     _AddBlock: [ meta.ours ],
     GetBlocks: [ meta.ours ]

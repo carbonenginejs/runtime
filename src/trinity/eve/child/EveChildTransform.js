@@ -3,7 +3,7 @@
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 
 
@@ -33,46 +33,43 @@ import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
  * transforms, and the rules by which a child's world transform is derived from
  * its parent's each frame.
  */
-@meta.define({
-  className: "EveChildTransform",
-  family: "eve/child"
-})
+@blue.define("EveChildTransform")
 export class EveChildTransform extends EveSpaceObjectChild
 {
-  @meta.type.vec3
+  @type.vec3
   translation = vec3.create();
 
-  @meta.type.vec3
+  @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  @meta.type.quat
+  @type.quat
   rotation = quat.create();
 
-  @meta.type.mat4
+  @type.mat4
   localTransform = mat4.create();
 
-  @meta.blue.read
-  @meta.type.mat4
+  @blue.read
+  @type.mat4
   worldTransform = mat4.create();
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   staticTransform = false;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   useSRT = true;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   useStaticRotation = false;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   useStaticScale = false;
 
   /**
@@ -88,7 +85,7 @@ export class EveChildTransform extends EveSpaceObjectChild
    * staticTransform. Carbon returns Matrix by value; the org out-last
    * convention receives it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ComputeLocalTransform(out = mat4.create())
   {
@@ -103,7 +100,7 @@ export class EveChildTransform extends EveSpaceObjectChild
    * Rebuilds the local matrix from scale, rotation, and translation when useSRT
    * is enabled, then returns it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RebuildLocalTransform()
   {

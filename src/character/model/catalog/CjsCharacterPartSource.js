@@ -1,4 +1,4 @@
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /**
@@ -8,38 +8,38 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
  * deterministic first entry for single-path consumers and is never used to
  * choose a source for rendering.
  */
-@meta.define({ className: "CjsCharacterPartSource", family: "character" })
+@meta.define("CjsCharacterPartSource")
 export class CjsCharacterPartSource extends CjsCharacterRecord
 {
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.path
+    @blue.readwrite
+    @blue.persist
+    @type.path
     sourcePath = "";
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("string")
+    @blue.readwrite
+    @blue.persist
+    @type.list("string")
     sourcePaths = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     sex = "";
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     partPath = "";
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("CjsCharacterPartSourceVersion")
+    @blue.readwrite
+    @blue.persist
+    @type.list("CjsCharacterPartSourceVersion")
     versions = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.rootRef("CjsCharacterPartMetadata")
+    @blue.readwrite
+    @blue.persist
+    @type.rootRef("CjsCharacterPartMetadata")
     metadata = null;
 
 }

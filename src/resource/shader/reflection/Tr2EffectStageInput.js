@@ -3,7 +3,7 @@ import "#blue/values";
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 // Source: trinity/trinity/Shader/Tr2EffectDescription.cpp
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { copyBytes } from "#utils/bytes";
 import {
   isUint32
@@ -508,27 +508,26 @@ export class Tr2EffectStageInput
 // expressions are reused verbatim, so the registered metadata is identical.
 // Statics belong in `methods`: decorateMethod targets the prototype and
 // would register a static as an instance field.
-CjsSchema.define(Tr2EffectStageInput, {
+CjsSchema.blue.define(Tr2EffectStageInput, {
   className: "Tr2EffectStageInput",
-  family: "shader",
   fields: {
-    stageType: [ meta.adapted, meta.type.int32 ],
-    exists: meta.type.boolean,
-    resources: meta.type.map("Tr2EffectResource"),
-    uavs: meta.type.map("Tr2EffectResource"),
-    samplers: meta.type.map("Tr2SamplerSetup"),
-    shader: meta.type.uint32,
-    constants: meta.type.list("Tr2EffectConstant"),
-    constantValueSize: meta.type.uint32,
-    constantValues: meta.type.typedArray("Uint8Array"),
+    stageType: [ meta.adapted, type.int32 ],
+    exists: type.boolean,
+    resources: type.map("Tr2EffectResource"),
+    uavs: type.map("Tr2EffectResource"),
+    samplers: type.map("Tr2SamplerSetup"),
+    shader: type.uint32,
+    constants: type.list("Tr2EffectConstant"),
+    constantValueSize: type.uint32,
+    constantValues: type.typedArray("Uint8Array"),
     /**
      * Adapted: A zero-size blob's offset word is passed through rather than interned, and the
      * shipped corpus does not always set it to the null sentinel; the graph retains it so a
      * body re-emits as the file that produced it.
      */
-    constantValuesUnsetOffset: [ meta.ours, meta.type.uint32 ],
-    signature: meta.type.rawStruct("Tr2ShaderSignatureAL"),
-    annotation: meta.type.list("Tr2EffectParameterAnnotation"),
-    sourceProgram: [ meta.adapted, meta.type.rawStruct("CjsEffectSourceProgram") ]
+    constantValuesUnsetOffset: [ meta.ours, type.uint32 ],
+    signature: type.rawStruct("Tr2ShaderSignatureAL"),
+    annotation: type.list("Tr2EffectParameterAnnotation"),
+    sourceProgram: [ meta.adapted, type.rawStruct("CjsEffectSourceProgram") ]
   }
 });

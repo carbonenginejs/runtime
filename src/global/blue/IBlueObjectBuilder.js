@@ -70,6 +70,7 @@ for (const name of [ "CreateObjectWithYield", "CreateObject", "GetErrorMessage" 
 CjsSchema.decorateMethod(IBlueObjectBuilder, "OnObjectDestroyed", meta.implemented);
 CjsSchema.decorateMethod(IBlueObjectBuilder, "OnSelected", meta.implemented);
 
-CjsSchema.define(IBlueObjectBuilder, {
-  className: "IBlueObjectBuilder", carbon: "IBlueObjectBuilder", family: "blue", fields: {}
+CjsSchema.blue.define(IBlueObjectBuilder, {
+  className: "IBlueObjectBuilder",
+  fields: {}
 });

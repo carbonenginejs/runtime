@@ -1,4 +1,4 @@
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /**
  * Logical output texture and its authoritative ordered composition passes.
@@ -8,38 +8,38 @@ import { meta } from "#schema";
  * order are independent of it, and the order does not serialize the
  * renderer's own resource/shader transaction.
  */
-@meta.define({ className: "CjsCharacterCompositionTarget", family: "character" })
+@meta.define("CjsCharacterCompositionTarget")
 export class CjsCharacterCompositionTarget
 {
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     scope = "";
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     region = "";
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     output = "";
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.vec2
+    @blue.readwrite
+    @blue.persist
+    @type.vec2
     size = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("CjsCharacterCompositionPass")
+    @blue.readwrite
+    @blue.persist
+    @type.list("CjsCharacterCompositionPass")
     passes = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.rootRef("CjsCharacterOrigin")
+    @blue.readwrite
+    @blue.persist
+    @type.rootRef("CjsCharacterOrigin")
     origin = null;
 
 }

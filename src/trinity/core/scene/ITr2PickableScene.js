@@ -227,4 +227,4 @@ export class ITr2PickableScene
   }
 }
 
-CjsSchema.define(ITr2PickableScene, { className: "ITr2PickableScene" });
+CjsSchema.blue.define(ITr2PickableScene, { className: "ITr2PickableScene" });

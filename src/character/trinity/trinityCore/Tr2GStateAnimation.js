@@ -1,55 +1,55 @@
 // Source: trinity/trinity/Tr2GStateAnimation.h
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /** Character GState animation record for an external state-machine adapter. */
-@meta.define({ className: "Tr2GStateAnimation", family: "trinityCore" })
+@blue.define("Tr2GStateAnimation")
 export class Tr2GStateAnimation
 {
 
   /** m_resPath (std::string) [PERSISTONLY] */
-  @meta.blue.persistOnly
-  @meta.type.string
+  @blue.persistOnly
+  @type.string
   resPath_ = "";
 
   /** m_gStateResPath (std::string) [PERSISTONLY] */
-  @meta.blue.persistOnly
-  @meta.type.string
+  @blue.persistOnly
+  @type.string
   gStateResPath_ = "";
 
   /** m_model (std::string) [PERSISTONLY] */
-  @meta.blue.persistOnly
-  @meta.type.string
+  @blue.persistOnly
+  @type.string
   model_ = "";
 
   /** m_gStateParameterList (PTr2GStateParameterVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("Tr2GStateParameter")
+  @blue.read
+  @blue.persist
+  @type.list("Tr2GStateParameter")
   parameters = [];
 
   /** m_grannyRes (TriGrannyResPtr) [READ] */
-  @meta.blue.read
-  @meta.type.rootRef("TriGrannyRes")
+  @blue.read
+  @type.rootRef("TriGrannyRes")
   grannyRes = null;
 
   /** m_eventListener (IBlueEventListenerPtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("IBlueEventListener")
+  @blue.readwrite
+  @type.rootRef("IBlueEventListener")
   eventListener = null;
 
   /** m_animationEnabled (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   animationEnabled = true;
 
   /** m_debugRenderJointNames (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   debugRenderJointNames = false;
 
   /** m_debugRenderSkeleton (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   debugRenderSkeleton = false;
 
   /**
@@ -101,7 +101,7 @@ export class Tr2GStateAnimation
   }
 
   /** Returns the persisted Granny animation path without resolving a resource. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetResPath()
   {
@@ -115,7 +115,7 @@ export class Tr2GStateAnimation
    * Adapted: Stores the authored path; Granny resource loading belongs to the
    * resource/state-machine adapter.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetResPath(value)
   {
@@ -123,7 +123,7 @@ export class Tr2GStateAnimation
   }
 
   /** Returns the persisted state-graph path without resolving a resource. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetGStateResPath()
   {
@@ -137,7 +137,7 @@ export class Tr2GStateAnimation
    * Adapted: Stores the authored path; state-graph loading belongs to the
    * resource/state-machine adapter.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetGStateResPath(value)
   {
@@ -145,7 +145,7 @@ export class Tr2GStateAnimation
   }
 
   /** Returns the persisted authored model name without instantiating it. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetModel()
   {
@@ -158,7 +158,7 @@ export class Tr2GStateAnimation
    * Adapted: Stores the authored model name; native model instantiation belongs to the
    * Granny runtime adapter.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetModel(value)
   {
@@ -166,7 +166,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method ClearScrub (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   ClearScrub(...args)
   {
@@ -174,7 +174,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method ForceChangeToState (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   ForceChangeToState(...args)
   {
@@ -182,7 +182,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method GetActiveMachineElementName (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   GetActiveMachineElementName(...args)
   {
@@ -190,7 +190,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method GetAnimationTime (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   GetAnimationTime(...args)
   {
@@ -198,7 +198,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method GetGStateAnimFileRefPaths (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   GetGStateAnimFileRefPaths(...args)
   {
@@ -206,7 +206,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method GetParameter (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   GetParameter(...args)
   {
@@ -214,7 +214,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method GetParameterByName (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   GetParameterByName(...args)
   {
@@ -222,7 +222,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method GetParameterIndexByName (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   GetParameterIndexByName(...args)
   {
@@ -230,7 +230,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method GetParameterRange (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   GetParameterRange(...args)
   {
@@ -238,7 +238,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method GetParameters (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   GetParameters(...args)
   {
@@ -246,7 +246,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method GetScrubOffset (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   GetScrubOffset(...args)
   {
@@ -254,7 +254,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method GetStartStateIdx (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   GetStartStateIdx(...args)
   {
@@ -262,7 +262,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method GetTopLevelNodeNames (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   GetTopLevelNodeNames(...args)
   {
@@ -270,7 +270,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method GetTopLevelParameterNodeNames (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   GetTopLevelParameterNodeNames(...args)
   {
@@ -278,7 +278,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method GetTopLevelStateNodeNames (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   GetTopLevelStateNodeNames(...args)
   {
@@ -286,7 +286,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method InstantiateCharacter (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   InstantiateCharacter(...args)
   {
@@ -294,7 +294,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method IsFullyLoaded (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   IsFullyLoaded(...args)
   {
@@ -302,7 +302,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method LoadModelFromGstate (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   LoadModelFromGstate(...args)
   {
@@ -310,7 +310,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method PlayFromScrub (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   PlayFromScrub(...args)
   {
@@ -318,7 +318,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method RequestChangeToState (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   RequestChangeToState(...args)
   {
@@ -326,7 +326,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method RequestParameter (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   RequestParameter(...args)
   {
@@ -334,7 +334,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method RequestParameterByName (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   RequestParameterByName(...args)
   {
@@ -342,7 +342,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method ResetParamsToDefault (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   ResetParamsToDefault(...args)
   {
@@ -350,7 +350,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method SetParameter (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   SetParameter(...args)
   {
@@ -358,7 +358,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method SetScrubOffset (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   SetScrubOffset(...args)
   {
@@ -366,7 +366,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method SetStartStateByName (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   SetStartStateByName(...args)
   {
@@ -374,7 +374,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method SetStartStateIdx (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   SetStartStateIdx(...args)
   {
@@ -382,7 +382,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method StartScrub (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   StartScrub(...args)
   {
@@ -390,7 +390,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method StartTransitionByName (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   StartTransitionByName(...args)
   {
@@ -398,7 +398,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method StopPlayFromScrub (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   StopPlayFromScrub(...args)
   {
@@ -406,7 +406,7 @@ export class Tr2GStateAnimation
   }
 
   /** Carbon method TogglePauseAnimations (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   TogglePauseAnimations(...args)
   {

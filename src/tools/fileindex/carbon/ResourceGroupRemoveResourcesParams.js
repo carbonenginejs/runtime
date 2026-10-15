@@ -10,4 +10,4 @@ export class ResourceGroupRemoveResourcesParams
     callbackSettings = new CallbackSettings();
 }
 
-CjsSchema.define(ResourceGroupRemoveResourcesParams, { className: "ResourceGroupRemoveResourcesParams", carbon: "ResourceGroupRemoveResourcesParams", family: "tools", fields: {} });
+CjsSchema.blue.define(ResourceGroupRemoveResourcesParams, { className: "ResourceGroupRemoveResourcesParams", fields: {} });

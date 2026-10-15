@@ -28,8 +28,9 @@ export class IBlueResManNotifications
   OnResourceFromCache(_resource) {}
 }
 
-CjsSchema.define(IBlueResManNotifications, {
-  className: "IBlueResManNotifications", carbon: "IBlueResManNotifications", family: "blue", fields: {}
+CjsSchema.blue.define(IBlueResManNotifications, {
+  className: "IBlueResManNotifications",
+  fields: {}
 });
 
 // BOTH CALLBACKS ARE EMPTY IN THE DONOR, NOT PURE VIRTUAL:

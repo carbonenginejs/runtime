@@ -6,7 +6,7 @@ import { ITr2SoundEmitterOwner } from "../../ITr2SoundEmitterOwner.js";
 import { ITr2CurveSetOwner } from "../../../curves/ITr2CurveSetOwner.js";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 // Hand-maintained after promotion from generated schema intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IShaderConfigurer } from "../../../shader/IShaderConfigurer.js";
 import { IEveEffectChildrenOwner } from "../../child/IEveEffectChildrenOwner.js";
 import { EveEffectRoot2 } from "../EveEffectRoot2.js";
@@ -19,9 +19,9 @@ import { Tr2Lod } from "../../EveLODHelper.js";
 import { vec4 } from "#math/vec4";
 
 /** A celestial effect root with scaled surface rendering and an ordinary-world depth proxy. */
-@meta.define({ className: "EvePlanet", family: "eve/spaceObject" })
-@meta.blue.interface(IEveSpaceObject2, ITr2SecondaryLightSource, ITr2CurveSetOwner, IEveEffectChildrenOwner, IShaderConfigurer, ITr2SoundEmitterOwner, IWorldPosition, ITr2BoundingBox)
-@meta.blue.chainTo(EveEffectRoot2)
+@blue.define("EvePlanet")
+@blue.interface(IEveSpaceObject2, ITr2SecondaryLightSource, ITr2CurveSetOwner, IEveEffectChildrenOwner, IShaderConfigurer, ITr2SoundEmitterOwner, IWorldPosition, ITr2BoundingBox)
+@blue.chainTo(EveEffectRoot2)
 export class EvePlanet extends EveEffectRoot2
 {
   /**
@@ -34,7 +34,7 @@ export class EvePlanet extends EveEffectRoot2
    * @param {import("../../../core/lighting/Tr2ShLightingManager.js").Tr2ShLightingManager} manager The scene's manager.
    * @returns {boolean} Whether the manager registered it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RegisterSecondaryLightSource(manager)
   {
@@ -50,43 +50,43 @@ export class EvePlanet extends EveEffectRoot2
   _estimatedMaxPixelDiameter = 0;
 
   /** m_zOnlyModel (EveChildMeshPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveChildMesh")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("EveChildMesh")
   zOnlyModel = null;
 
   /** m_emissiveColor (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.readwrite
+  @blue.persist
+  @type.color
   emissiveColor = vec4.create();
 
   /** m_minScreenSize (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   minScreenSize = 2;
 
   /** m_albedoColor (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.readwrite
+  @blue.persist
+  @type.color
   albedoColor = vec4.create();
 
   /** m_estimatedPixelDiameter (float) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.read
+  @blue.persist
+  @type.float32
   estimatedPixelDiameter = 0;
 
   /** m_radius (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   radius = 1;
 
   /** Stores the world-to-render scale used by Carbon's planet render path. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetRenderScale(value)
   {
@@ -94,7 +94,7 @@ export class EvePlanet extends EveEffectRoot2
   }
 
   /** Writes the render-scaled world-space bounds of the planet sphere. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetWorldBoundingBox(min, max)
   {
@@ -111,7 +111,7 @@ export class EvePlanet extends EveEffectRoot2
   }
 
   /** Reports whether the planet radius can currently supply a bounding box. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsBoundingBoxReady()
   {

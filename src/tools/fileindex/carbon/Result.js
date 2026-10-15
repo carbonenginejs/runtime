@@ -21,4 +21,4 @@ export class Result
     }
 }
 
-CjsSchema.define(Result, { className: "Result", carbon: "Result", family: "tools", fields: {} });
+CjsSchema.blue.define(Result, { className: "Result", fields: {} });

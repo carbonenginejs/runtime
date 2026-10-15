@@ -2,7 +2,7 @@
 // Hand-maintained from Carbon source. Unimplemented backend methods here are
 // unported Carbon behaviour, not a boundary: Carbon holds its handles on this
 // class and calls the AL from it.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { INotify, IInitialize } from "#blue";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { PixelFormat, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
@@ -11,9 +11,9 @@ import "#consts/renderContext/formats";
 import { ITr2GpuBuffer } from "../ITr2GpuBuffer.js";
 
 /** Tr2GpuBuffer (trinityCore) - generated from schema shapeHash 7a225a45.... */
-@meta.define({ className: "Tr2GpuBuffer", family: "trinityCore" })
-@meta.blue.inherit(ITr2GpuBuffer)
-@meta.blue.interface(INotify, IInitialize, ITr2GpuBuffer)
+@blue.define("Tr2GpuBuffer")
+@blue.inherit(ITr2GpuBuffer)
+@blue.interface(INotify, IInitialize, ITr2GpuBuffer)
 export class Tr2GpuBuffer
 {
 
@@ -37,29 +37,29 @@ export class Tr2GpuBuffer
   static CreationFlags = Object.freeze({ CPU_WRITABLE: 1, GPU_WRITABLE: 2, DRAW_INDIRECT: 4 });
 
   /** m_creationFlags (CreationFlags) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   creationFlags = 0;
 
   /** m_format (Tr2RenderContextEnum::PixelFormat - enum PixelFormat) [READWRITE, ENUM, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.ImageIO.PixelFormat")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.ImageIO.PixelFormat")
   format = 0;
 
   /** m_count (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   count = 0;
 
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   isValid = false;
 
   /** m_name - debug label; not Blue-exposed. */
@@ -69,7 +69,7 @@ export class Tr2GpuBuffer
    * Sets the debug label, coercing null to an empty string; Carbon keeps this
    * private with no getter, so the paired GetName is a JS addition.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -100,7 +100,7 @@ export class Tr2GpuBuffer
    * @param {Tr2RenderContext} renderContext The context to create on.
    * @returns {number} An `ALResult`.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Create(count, format, creationFlags, renderContext)
   {
@@ -118,7 +118,7 @@ export class Tr2GpuBuffer
    * @param {Tr2RenderContext} renderContext The context to create on.
    * @returns {number} An `ALResult`.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CreateBuffer(renderContext)
   {
@@ -166,7 +166,7 @@ export class Tr2GpuBuffer
    * @param {number} [_index] Unused, as in Carbon.
    * @returns {object|null} The AL buffer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetGpuBuffer(_index = 0)
   {
@@ -174,7 +174,7 @@ export class Tr2GpuBuffer
   }
 
   /** Carbon IsValid (cpp:130-133). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsValid()
   {
@@ -182,7 +182,7 @@ export class Tr2GpuBuffer
   }
 
   /** Carbon GetCount (cpp:190-193): the created buffer's element count. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetCount()
   {
@@ -190,7 +190,7 @@ export class Tr2GpuBuffer
   }
 
   /** Carbon method __init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   __init__(...args)
   {
@@ -198,7 +198,7 @@ export class Tr2GpuBuffer
   }
 
   /** Carbon method DebugGetData -> PyGetData (MAP_METHOD). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   DebugGetData(...args)
   {

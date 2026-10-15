@@ -76,7 +76,7 @@ const CATALOGS = {
  * The once-per-name warning is a custom lazy-fetch diagnostic; Carbon
  * GetMaterialData itself is silent.
  */
-@meta.define({ className: "CjsSofLibraryBuilder", family: "eve" })
+@meta.define("CjsSofLibraryBuilder")
 export class CjsSofLibraryBuilder
 {
 

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Schema: format-carbon resources/TriGeometryResSkeletonData.json; maintained by the runtime resource layer.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 
 /** Data record mirroring Carbon's geometry skeleton block, pairing a skeleton name with its joint list. */
 export class TriGeometryResSkeletonData
@@ -29,13 +29,13 @@ export class TriGeometryResSkeletonData
 
 }
 
-CjsSchema.define(TriGeometryResSkeletonData, {
-  className: "TriGeometryResSkeletonData", family: "resources",
+CjsSchema.blue.define(TriGeometryResSkeletonData, {
+  className: "TriGeometryResSkeletonData",
   fields: {
-    name: meta.type.string,
-    joints: meta.type.unknown
+    name: type.string,
+    joints: type.unknown
   },
   methods: {
-    FindJoint: [ meta.blue.method, meta.adapted ]
+    FindJoint: [ blue.method, meta.adapted ]
   }
 });

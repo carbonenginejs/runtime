@@ -6,53 +6,50 @@ import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { IEveVolume } from "./IEveVolume.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 
 /**
  * Oriented box of influence with a hollow inner box, weighting points by falloff
  * and seeding random points across its shell.
  */
-@meta.define({
-  className: "EveBoxVolume",
-  family: "eve/volume"
-})
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(IInitialize)
-@meta.blue.chainTo(IEveVolume)
+@blue.define("EveBoxVolume")
+@blue.inherit(IInitialize)
+@blue.interface(IInitialize)
+@blue.chainTo(IEveVolume)
 export class EveBoxVolume extends IEveVolume
 {
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   position = vec3.create();
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   scaling = vec3.create();
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   innerScaling = vec3.create();
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotation = quat.create();
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   debugShowIntersection = false;
 
   _callbacks = new Map();
@@ -65,7 +62,7 @@ export class EveBoxVolume extends IEveVolume
    * Clamps the authored scalings and caches the inverse rotation the intensity
    * test needs.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -77,7 +74,7 @@ export class EveBoxVolume extends IEveVolume
    * Returns a fresh sphere centred on the box position whose radius is half the
    * length of the scaling vector.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBoundingSphere()
   {
@@ -93,7 +90,7 @@ export class EveBoxVolume extends IEveVolume
    * compared radially against the inner and outer boxes - 1 inside the inner
    * box, 0 outside the outer one, and a squared ramp between them.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetIntensity(position)
   {
@@ -120,7 +117,7 @@ export class EveBoxVolume extends IEveVolume
    * @param points Caller-owned array the new points are pushed onto.
    * @param excludeInnerVolume Drops the inner box from the choice, keeping every point in the shell.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GeneratePointsInVolume(points, howManyToAdd, excludeInnerVolume, fallOffFactor)
   {
@@ -206,7 +203,7 @@ export class EveBoxVolume extends IEveVolume
    * Registers a callback fired whenever the volume changes, returning the id
    * needed to unregister it again.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RegisterForChanges(callback)
   {
@@ -216,7 +213,7 @@ export class EveBoxVolume extends IEveVolume
   }
 
   /** Drops a change callback by the id RegisterForChanges returned. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UnregisterForChanges(callbackId)
   {
@@ -227,7 +224,7 @@ export class EveBoxVolume extends IEveVolume
    * Re-clamps the scalings and the cached inverse rotation after an authored
    * change, then notifies every registered listener.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName)
   {
@@ -240,7 +237,7 @@ export class EveBoxVolume extends IEveVolume
   }
 
   /** No debug drawing in this port. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   RenderDebugInfo()
   {
@@ -259,7 +256,7 @@ export class EveBoxVolume extends IEveVolume
    * this port derives them on demand, so Setup refreshes the clamps and the cached inverse
    * rotation.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Setup()
   {

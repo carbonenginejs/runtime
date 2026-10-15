@@ -25,7 +25,7 @@
 // The packing below follows Carbon's PerLightData layout, packed flag word,
 // premultiply and fade band.
 
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { CjsResource } from "#blue";
 import { num } from "#math/num";
 import { mat4 } from "#math/mat4";
@@ -137,7 +137,7 @@ function calculateShadowMapAtlasSettings(shadowQuality)
 const toHalf = num.toHalfFloat;
 
 /** Owns the frame's local-light records, their selection, and the packed light-buffer bytes the abstraction layer uploads. */
-@meta.define({ className: "Tr2LightManager", family: "trinityCore" })
+@blue.define("Tr2LightManager")
 export class Tr2LightManager
 {
 
@@ -226,7 +226,7 @@ export class Tr2LightManager
    * Carbon Tr2LightManager::AreLightFlagsValid (cpp:677-680): a light must
    * affect surfaces or particles to exist at all.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static areLightFlagsValid(flags)
   {
@@ -242,7 +242,7 @@ export class Tr2LightManager
    * may request different qualities in one frame and the texture must fit
    * the largest.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetShadowQuality(quality, frameCounter = 0)
   {
@@ -281,7 +281,7 @@ export class Tr2LightManager
   }
 
   /** Carbon GetShadowMapAtlasSettings (cpp:708-711). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetShadowMapAtlasSettings()
   {
@@ -296,7 +296,7 @@ export class Tr2LightManager
    * @param {object} [out] Receives scale/offsetX/offsetY.
    * @returns {object} out
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetUnpackedShadowMapData(record, out = {})
   {
@@ -315,7 +315,7 @@ export class Tr2LightManager
    * Without a render context (a CPU-only caller) the index clear is skipped;
    * there is no buffer to clear then.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Clear(renderContext = null)
   {
@@ -332,7 +332,7 @@ export class Tr2LightManager
   }
 
   /** Carbon SetFrustum (cpp:244-247). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetFrustum(frustum)
   {
@@ -340,7 +340,7 @@ export class Tr2LightManager
   }
 
   /** Carbon AdjustLightCutoff (cpp:249-252): the cull threshold is 7px * lodFactor. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AdjustLightCutoff(lodFactor)
   {
@@ -355,7 +355,7 @@ export class Tr2LightManager
    * is a legal bit pattern the shader normalises into NaN (contract §"third
    * texel").
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddPointLight(position, radius, color, innerRadius = 0, flags = Tr2LightManager.Flags.DEFAULT)
   {
@@ -393,7 +393,7 @@ export class Tr2LightManager
    * record is a by-value copy: every producer reuses a static scratch record,
    * exactly as Carbon's std::vector push copies.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddLight(record)
   {
@@ -445,7 +445,7 @@ export class Tr2LightManager
    * buffer: byte layout per the contract, profile slots biased by one into
    * flag bits 4-15, the shadow union in word 11.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ResolveLightData()
   {
@@ -696,7 +696,7 @@ export class Tr2LightManager
   }
 
   /** Carbon GetCurrentSpaceSceneShadowQuality (cpp:713-716): a bare field read; every record producer asks it before building. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetCurrentSpaceSceneShadowQuality()
   {
@@ -704,7 +704,7 @@ export class Tr2LightManager
   }
 
   /** Carbon GetLightData (cpp:695-698): the frame's resolved records, borrowed. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLightData()
   {
@@ -712,7 +712,7 @@ export class Tr2LightManager
   }
 
   /** Carbon GetVolumetricLights (cpp:707-710): indices into GetLightData, borrowed. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetVolumetricLights()
   {
@@ -720,7 +720,7 @@ export class Tr2LightManager
   }
 
   /** Carbon GetShadowCastingLights (cpp:688-691): empty under the shipping pin, kept for signature parity. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetShadowCastingLights()
   {
@@ -789,7 +789,7 @@ export class Tr2LightManager
   }
 
   /** Carbon GetOrCreateInstance (cpp:192-200): the process-wide manager. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static getOrCreateInstance(effectPath)
   {
@@ -798,7 +798,7 @@ export class Tr2LightManager
   }
 
   /** Carbon GetInstance (cpp:202-205): the manager, or null when none exists. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static getInstance()
   {
@@ -815,7 +815,7 @@ export class Tr2LightManager
    * LightProfileArray and ShadowMapAtlas re-registrations are not made; the
    * manager does not publish either.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   static deleteInstance()
   {
@@ -833,7 +833,7 @@ export class Tr2LightManager
   static scratch = { words4_0: new Uint32Array(4), mat4_0: mat4.create() };
 
   /** Carbon SetVariableStore (cpp:214-218): the globals name this manager's buffers. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetVariableStore()
   {
@@ -842,7 +842,7 @@ export class Tr2LightManager
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PrepareResources()
   {
@@ -861,7 +861,7 @@ export class Tr2LightManager
    *
    * @returns {boolean} True.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnPrepareResources()
   {
@@ -889,7 +889,7 @@ export class Tr2LightManager
    *
    * @param {number} storage The TriStorage classes being released.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ReleaseResources(storage)
   {
@@ -903,7 +903,7 @@ export class Tr2LightManager
    * @param {Tr2RenderContext} renderContext The context to clear through.
    * @returns {boolean} Whether the clear succeeded, or there was no buffer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ClearLightIndices(renderContext)
   {
@@ -921,7 +921,7 @@ export class Tr2LightManager
    * @param {Tr2RenderContext} renderContext The context to write through.
    * @returns {boolean} Whether the upload succeeded.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateLightBuffer(renderContext)
   {
@@ -946,7 +946,7 @@ export class Tr2LightManager
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {boolean} Whether the lists were built.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateLists(depthMap, renderContext)
   {
@@ -975,7 +975,7 @@ export class Tr2LightManager
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {boolean} Whether both dispatches ran.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   DoUpdateLists(depthMap, renderContext)
   {

@@ -17,4 +17,4 @@ export class ITr2VisualizationModeRenderer
   }
 }
 
-CjsSchema.define(ITr2VisualizationModeRenderer, { className: "ITr2VisualizationModeRenderer", carbon: "ITr2VisualizationModeRenderer", family: "trinityCore", fields: {} });
+CjsSchema.blue.define(ITr2VisualizationModeRenderer, { className: "ITr2VisualizationModeRenderer", fields: {} });

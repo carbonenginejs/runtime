@@ -14,4 +14,4 @@ export class StatusUpdate
     info = "";
 }
 
-CjsSchema.define(StatusUpdate, { className: "StatusUpdate", carbon: "StatusUpdate", family: "tools", fields: {} });
+CjsSchema.blue.define(StatusUpdate, { className: "StatusUpdate", fields: {} });

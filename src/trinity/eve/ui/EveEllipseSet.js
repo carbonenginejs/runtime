@@ -4,7 +4,7 @@ import { IEveSpaceObjectChild } from "../child/IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "../child/EveSpaceObjectChild.js";
 //   trinity/trinity/Eve/UI/EveEllipseSet.cpp
 import { vec3 } from "#math/vec3";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { quat } from "#math/quat";
 import { BLUELISTEVENT } from "#consts/blue";
 import { IListNotify } from "../../../global/blue/IListNotify.js";
@@ -17,67 +17,67 @@ import { ITr2Renderable } from "../../core/ITr2Renderable.js";
  * Transform child that owns a list of ellipse definitions and the effect they
  * are drawn with, used for the ribbon rings of UI overlays.
  */
-@meta.define({ className: "EveEllipseSet", family: "eve/ui" })
-@meta.blue.inherit(ITr2Renderable)
-@meta.blue.inherit(IListNotify)
-@meta.blue.inherit(IListNotify, INotify)
-@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IListNotify, INotify)
+@blue.define("EveEllipseSet")
+@blue.inherit(ITr2Renderable)
+@blue.inherit(IListNotify)
+@blue.inherit(IListNotify, INotify)
+@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IListNotify, INotify)
 export class EveEllipseSet extends EveChildTransform
 {
 
   /** m_translation (Vector3) [READWRITE, PERSIST] - EveEllipseSet_Blue.cpp:22 */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   translation = vec3.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] - EveEllipseSet_Blue.cpp:23 */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotation = quat.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] - EveEllipseSet_Blue.cpp:24 */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
   _geometryDirty = true;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   ribbonSegmentCount = 128;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   display = true;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   enablePicking = true;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   depthOffset = 0;
 
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveEllipseDefinition")
+  @blue.read
+  @blue.persist
+  @type.list("EveEllipseDefinition")
   ellipses = [];
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2Effect")
   effect = null;
 
   /**
@@ -94,7 +94,7 @@ export class EveEllipseSet extends EveChildTransform
    * @param {number} rotationDegrees In-plane rotation in degrees.
    * @returns {boolean} True after insertion.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AddEllipse(center, semiMajor, semiMinor, planeNormal, rotationDegrees)
   {
@@ -119,7 +119,7 @@ export class EveEllipseSet extends EveChildTransform
    *
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   __init__()
   {
@@ -141,7 +141,7 @@ export class EveEllipseSet extends EveChildTransform
    *
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ClearEllipses()
   {
@@ -169,7 +169,7 @@ export class EveEllipseSet extends EveChildTransform
    * Adapted: JavaScript represents the owner's dirty-flag pointer with a callback; list
    * event ordering follows Carbon.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   @meta.invalidates("#geometryDirty")
   OnListModified(event, _key, _key2, value, list)

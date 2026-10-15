@@ -3,11 +3,11 @@
 // to distinguish it from the separate legacy cloud's anonymous class.
 import { Tr2RenderUtils } from "../../Tr2RenderUtils.js";
 import { PER_OBJECT_VS, PER_OBJECT_PS } from "../../Tr2Renderer.js";
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { Tr2PerObjectData } from "./Tr2PerObjectData.js";
 
 /** Cloud2's shared constant block, bound at the native vertex and pixel registers. */
-@meta.define({ className: "EveChildCloud2PerObjectData", family: "trinityCore" })
+@blue.define("EveChildCloud2PerObjectData")
 export class EveChildCloud2PerObjectData extends Tr2PerObjectData
 {
   data = null;

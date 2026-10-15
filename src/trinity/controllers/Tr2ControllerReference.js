@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Controllers/Tr2ControllerReference_Blue.cpp
 import { IsMatch, be, INotify, IInitialize, CjsBlueClasses } from "#blue";
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { UnlinkReason } from "./enums.js";
 import { ITr2Controller } from "./ITr2Controller/index.js";
 
@@ -12,24 +12,21 @@ import { ITr2Controller } from "./ITr2Controller/index.js";
  * Stands in for a controller loaded from a resource path, forwarding the full
  * controller lifecycle to whichever controller the path resolves to.
  */
-@meta.define({
-  className: "Tr2ControllerReference",
-  family: "controllers"
-})
-@meta.blue.inherit(INotify, IInitialize)
-@meta.blue.interface(IInitialize, INotify, ITr2Controller)
+@blue.define("Tr2ControllerReference")
+@blue.inherit(INotify, IInitialize)
+@blue.interface(IInitialize, INotify, ITr2Controller)
 export class Tr2ControllerReference extends ITr2Controller
 {
   /** Authored controller resource path; notifications reload the reference. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.path("object")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.path("object")
   path = "";
 
   /** Runtime loaded controller, exposed read-only and not persisted. */
-  @meta.blue.read
-  @meta.type.rootRef("ITr2Controller")
+  @blue.read
+  @type.rootRef("ITr2Controller")
   controller = null;
 
   /** Owner retained while an asynchronous load is pending. */
@@ -51,7 +48,7 @@ export class Tr2ControllerReference extends ITr2Controller
    * Adapted: BeResMan is be.resMan; its LoadObject completes asynchronously.
    * @returns {boolean} True after requesting any authored load.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -72,7 +69,7 @@ export class Tr2ControllerReference extends ITr2Controller
    * @param {string} propertyName Native exposed member name.
    * @returns {boolean} True after handling the notification.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnModified(propertyName)
   {
@@ -92,7 +89,7 @@ export class Tr2ControllerReference extends ITr2Controller
    * @param {object} owner Owner forwarded to the loaded controller.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Link(owner)
   {
@@ -112,7 +109,7 @@ export class Tr2ControllerReference extends ITr2Controller
    * @param {number} [reason=UnlinkReason.UNLINKING] Native unlink reason.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Unlink(reason = UnlinkReason.UNLINKING)
   {
@@ -126,7 +123,7 @@ export class Tr2ControllerReference extends ITr2Controller
    * Checks whether this reference is linked to an owner.
    * @returns {boolean} Whether an owner is retained.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsLinked()
   {
@@ -138,7 +135,7 @@ export class Tr2ControllerReference extends ITr2Controller
    * Adapted: retain start intent until the asynchronous load is linked.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Start()
   {
@@ -151,7 +148,7 @@ export class Tr2ControllerReference extends ITr2Controller
    * Adapted: cancel pending start intent before the asynchronous load completes.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Stop()
   {
@@ -164,7 +161,7 @@ export class Tr2ControllerReference extends ITr2Controller
    * @param {number} [normalizedUpdateFrequency=0] Update frequency forwarded unchanged.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Update(normalizedUpdateFrequency = 0)
   {
@@ -179,7 +176,7 @@ export class Tr2ControllerReference extends ITr2Controller
    * @param {number} value Latest value to forward or replay.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetVariable(name, value)
   {
@@ -192,7 +189,7 @@ export class Tr2ControllerReference extends ITr2Controller
    * @param {string} eventName Event forwarded to the loaded controller.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HandleEvent(eventName)
   {
@@ -203,7 +200,7 @@ export class Tr2ControllerReference extends ITr2Controller
    * Gets the linked owner.
    * @returns {object|null} Current owner.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetOwner()
   {

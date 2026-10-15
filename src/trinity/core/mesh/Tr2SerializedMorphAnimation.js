@@ -1,10 +1,10 @@
 // Source: trinity/trinity/Tr2Mesh.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema trinityCore/Tr2SerializedMorphAnimation.json.).
-import { meta } from "#schema";
+import { type, blue } from "#schema";
 
 /** Persistent-only native morph target name and weight record owned by a mesh. */
-@meta.define({ className: "Tr2SerializedMorphAnimation", family: "trinityCore" })
-@meta.blue.interface()
+@blue.define("Tr2SerializedMorphAnimation")
+@blue.interface()
 export class Tr2SerializedMorphAnimation
 {
 
@@ -13,8 +13,8 @@ export class Tr2SerializedMorphAnimation
    * Native m_name (std::string) [PERSISTONLY].
    * @type {string}
    */
-  @meta.blue.persistOnly
-  @meta.type.string
+  @blue.persistOnly
+  @type.string
   name = "";
 
   /**
@@ -22,8 +22,8 @@ export class Tr2SerializedMorphAnimation
    * Native m_weight (float) [PERSISTONLY].
    * @type {number}
    */
-  @meta.blue.persistOnly
-  @meta.type.float32
+  @blue.persistOnly
+  @type.float32
   weight = 0;
 
 }

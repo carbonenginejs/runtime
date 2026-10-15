@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2ScalarExprKeyCurve.cpp
 // Source: trinity/trinity/Curves/Tr2ScalarExprKeyCurve_Blue.cpp
 import { finiteNumberOr } from "#utils/validation";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IInitialize, INotify } from "#blue";
 import { noise } from "#math/noise";
 import { CjsControllerExpressionProgram } from "../../controllers/expression/CjsControllerExpressionProgram.js";
@@ -14,125 +14,122 @@ import { Tr2CurveInterpolation } from "../enums.js";
  * produced by an expression over the key's inputs, its random constant and the
  * previous key.
  */
-@meta.define({
-  className: "Tr2ScalarExprKey",
-  family: "curves"
-})
-@meta.blue.inherit(INotify)
-@meta.blue.interface(IInitialize, INotify)
+@blue.define("Tr2ScalarExprKey")
+@blue.inherit(INotify)
+@blue.interface(IInitialize, INotify)
 export class Tr2ScalarExprKey extends IInitialize
 {
   /** Key time in seconds. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   time = 0;
 
   /** Scalar sample value. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   value = 0;
 
   /** Incoming tangent value. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   left = 0;
 
   /** Outgoing tangent value. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   right = 0;
 
   /** Authored expression source for time. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.expression
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.expression
   timeExpression = "";
 
   /** Authored expression source for value. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.expression
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.expression
   valueExpression = "";
 
   /** Authored expression source for leftTangent. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.expression
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.expression
   leftTangentExpression = "";
 
   /** Authored expression source for rightTangent. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.expression
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.expression
   rightTangentExpression = "";
 
   /** Authored expression input 1. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   input1 = 0;
 
   /** Authored expression input 2. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   input2 = 0;
 
   /** Authored expression input 3. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   input3 = 0;
 
   /** Authored expression input 4. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   input4 = 0;
 
   /** Runtime random constant; readable without persistence. */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   randomConstant = 0;
 
   /** Minimum authored random range. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   randomMin = 0;
 
   /** Maximum authored random range. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   randomMax = 0;
 
   /** Runtime previous-key time; zero for the first key. */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   prevKeyTime = 0;
 
   /** Runtime previous-key value; zero for the first key. */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   prevKeyValue = 0;
 
   /**
@@ -140,10 +137,10 @@ export class Tr2ScalarExprKey extends IInitialize
    * Adapted: the existing Tr2CurveInterpolation vocabulary has the same three
    * CONSTANT/LINEAR/HERMITE choices as ScalarInterpolationChooser.
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.Tr2CurveInterpolation")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.Tr2CurveInterpolation")
   interpolation = Tr2CurveInterpolation.LINEAR;
 
   /**
@@ -155,7 +152,7 @@ export class Tr2ScalarExprKey extends IInitialize
    *
    * @returns {boolean} True.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -175,7 +172,7 @@ export class Tr2ScalarExprKey extends IInitialize
    * @param {string} propertyName Modified property name; unused.
    * @returns {boolean} True after evaluation completes.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnModified(propertyName)
   {
@@ -197,7 +194,7 @@ export class Tr2ScalarExprKey extends IInitialize
    *
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RegenRandomConstant()
   {
@@ -215,7 +212,7 @@ export class Tr2ScalarExprKey extends IInitialize
    * @param {Tr2ScalarExprKey|null} previousKey Previous key, or null for the first key.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateValues(previousKey)
   {

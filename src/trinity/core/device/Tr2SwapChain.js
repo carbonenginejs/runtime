@@ -5,23 +5,23 @@
 // Carbon's swap chain HOLDS its AL object (`m_swapChain`) and forwards to it:
 // `Present` is `m_swapChain.Present(...)`, and `GetWidth`/`GetHeight` ask the
 // AL rather than reporting stored numbers. This class does the same.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Succeeded } from "../../../trinityal/ALResult.js";
 import { Tr2SwapChainALStub } from "../../../trinityal/stub/Tr2SwapChainALStub.js";
 
 /** Tr2SwapChain (trinityCore) - generated from schema shapeHash 955529ab.... */
-@meta.define({ className: "Tr2SwapChain", family: "trinityCore" })
+@blue.define("Tr2SwapChain")
 export class Tr2SwapChain
 {
 
   /** m_depthStencil (Tr2DepthStencilPtr) [READ] */
-  @meta.blue.read
-  @meta.type.rootRef("Tr2DepthStencil")
+  @blue.read
+  @type.rootRef("Tr2DepthStencil")
   depthStencilBuffer = null;
 
   /** m_backBuffer (Tr2RenderTargetPtr) [READ] */
-  @meta.blue.read
-  @meta.type.rootRef("Tr2RenderTarget")
+  @blue.read
+  @type.rootRef("Tr2RenderTarget")
   backBuffer = null;
 
   /**
@@ -35,8 +35,8 @@ export class Tr2SwapChain
    * Adapted: Carbon exposes width as MAP_PROPERTY_READONLY over GetWidth with no backing
    * member; the field mirrors the AL to keep the emitted schema shape.
    */
-  @meta.blue.read
-  @meta.type.int32
+  @blue.read
+  @type.int32
   @meta.adapted
   width = 0;
 
@@ -46,8 +46,8 @@ export class Tr2SwapChain
    * Adapted: Carbon exposes height as MAP_PROPERTY_READONLY over GetHeight with no backing
    * member; the field mirrors the AL to keep the emitted schema shape.
    */
-  @meta.blue.read
-  @meta.type.int32
+  @blue.read
+  @type.int32
   @meta.adapted
   height = 0;
 
@@ -77,7 +77,7 @@ export class Tr2SwapChain
    * @param {object} renderContext The context to create against.
    * @returns {boolean} Whether the chain came up.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CreateForWindow(windowHandle, renderContext)
   {
@@ -93,7 +93,7 @@ export class Tr2SwapChain
    * @param {object} renderContext The context to create against.
    * @returns {boolean} Whether the chain came up.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PrepareResources(renderContext)
   {
@@ -109,7 +109,7 @@ export class Tr2SwapChain
    * @param {Tr2RenderContext} renderContext The context to create against.
    * @returns {boolean} Whether the AL chain came up.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnPrepareResources(renderContext)
   {
@@ -132,7 +132,7 @@ export class Tr2SwapChain
    * @param {object} renderContext The context presenting the frame.
    * @returns {boolean} Carbon's `SUCCEEDED( m_swapChain.Present(...) )`.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Present(renderContext)
   {
@@ -144,7 +144,7 @@ export class Tr2SwapChain
    *
    * @returns {number} Width in pixels.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetWidth()
   {
@@ -156,7 +156,7 @@ export class Tr2SwapChain
    *
    * @returns {number} Height in pixels.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetHeight()
   {
@@ -171,7 +171,7 @@ export class Tr2SwapChain
    * @param {number} _storage Carbon's `TriStorage` mask; every AL surface here
    *   belongs to video memory, so there is nothing to select between.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ReleaseResources(_storage)
   {

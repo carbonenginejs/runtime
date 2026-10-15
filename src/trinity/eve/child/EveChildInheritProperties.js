@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInheritProperties.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInheritProperties_Blue.cpp
 import { vec4 } from "#math/vec4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 
 const COLOR_PROPERTIES = Object.freeze([
@@ -57,7 +57,7 @@ const COLOR_PROPERTIES = Object.freeze([
  * The SOF colour set a space object hands down to its children: one colour per
  * named material slot (Primary, Hull, Booster, State0, ...) in a fixed order.
  */
-@meta.define({ className: "EveChildInheritProperties", family: "eve/child" })
+@blue.define("EveChildInheritProperties")
 export class EveChildInheritProperties
 {
   /**
@@ -69,9 +69,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   Primary = vec4.create();
 
   /**
@@ -83,9 +83,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   Secondary = vec4.create();
 
   /**
@@ -97,9 +97,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   Tertiary = vec4.create();
 
   /**
@@ -111,9 +111,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   Black = vec4.create();
 
   /**
@@ -125,9 +125,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   White = vec4.create();
 
   /**
@@ -139,9 +139,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   Yellow = vec4.create();
 
   /**
@@ -153,9 +153,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   Orange = vec4.create();
 
   /**
@@ -167,9 +167,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   Red = vec4.create();
 
   /**
@@ -181,9 +181,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   Blue = vec4.create();
 
   /**
@@ -195,9 +195,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   Green = vec4.create();
 
   /**
@@ -209,9 +209,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   Cyan = vec4.create();
 
   /**
@@ -223,9 +223,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   Fire = vec4.create();
 
   /**
@@ -237,9 +237,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   Hull = vec4.create();
 
   /**
@@ -251,9 +251,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   Glass = vec4.create();
 
   /**
@@ -265,9 +265,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   Reactor = vec4.create();
 
   /**
@@ -279,9 +279,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   Darkhull = vec4.create();
 
   /**
@@ -293,9 +293,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   Booster = vec4.create();
 
   /**
@@ -307,9 +307,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   Killmark = vec4.create();
 
   /**
@@ -321,9 +321,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   PrimaryLight = vec4.create();
 
   /**
@@ -335,9 +335,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   SecondaryLight = vec4.create();
 
   /**
@@ -349,9 +349,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   TertiaryLight = vec4.create();
 
   /**
@@ -363,9 +363,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   WhiteLight = vec4.create();
 
   /**
@@ -377,9 +377,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   PrimarySpotlight = vec4.create();
 
   /**
@@ -391,9 +391,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   SecondarySpotlight = vec4.create();
 
   /**
@@ -405,9 +405,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   TertiarySpotlight = vec4.create();
 
   /**
@@ -419,9 +419,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   PrimaryHologram = vec4.create();
 
   /**
@@ -433,9 +433,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   SecondaryHologram = vec4.create();
 
   /**
@@ -447,9 +447,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   TertiaryHologram = vec4.create();
 
   /**
@@ -461,9 +461,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   State0 = vec4.create();
 
   /**
@@ -475,9 +475,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   State1 = vec4.create();
 
   /**
@@ -489,9 +489,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   State2 = vec4.create();
 
   /**
@@ -503,9 +503,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   State3 = vec4.create();
 
   /**
@@ -517,9 +517,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   StateVulnerable = vec4.create();
 
   /**
@@ -531,9 +531,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   StateInvulnerable = vec4.create();
 
   /**
@@ -545,9 +545,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   PrimaryForcefield = vec4.create();
 
   /**
@@ -559,9 +559,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   SecondaryForcefield = vec4.create();
 
   /**
@@ -573,9 +573,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   PrimaryBanner = vec4.create();
 
   /**
@@ -587,9 +587,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   PrimaryBillboard = vec4.create();
 
   /**
@@ -601,9 +601,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   PrimaryFx = vec4.create();
 
   /**
@@ -615,9 +615,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   SecondaryFx = vec4.create();
 
   /**
@@ -629,9 +629,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   PrimaryWarpFx = vec4.create();
 
   /**
@@ -643,9 +643,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   PrimaryAttackFx = vec4.create();
 
   /**
@@ -657,9 +657,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   PrimarySiegeFx = vec4.create();
 
   /**
@@ -671,9 +671,9 @@ export class EveChildInheritProperties
    * @type {vec4}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.color
+  @blue.read
+  @blue.persist
+  @type.color
   PrimaryDockedFx = vec4.create();
 
   _properties = COLOR_PROPERTIES.map(name => this[name]);
@@ -683,7 +683,7 @@ export class EveChildInheritProperties
    * property order; a nullish set is ignored, and the set must hold at least as
    * many entries as there are properties.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetProperties(colorSet)
   {
@@ -699,7 +699,7 @@ export class EveChildInheritProperties
    * are this object's live storage, not copies, so writes through it change the
    * inherited colours.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetProperties()
   {

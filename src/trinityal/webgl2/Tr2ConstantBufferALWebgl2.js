@@ -254,4 +254,4 @@ export class Tr2ConstantBufferALWebgl2 extends Tr2DeviceResourceAL
   }
 }
 
-CjsSchema.define(Tr2ConstantBufferALWebgl2, { className: "Tr2ConstantBufferALWebgl2", carbon: "Tr2ConstantBufferAL" });
+CjsSchema.blue.define(Tr2ConstantBufferALWebgl2, { className: "Tr2ConstantBufferALWebgl2", donors: [ "Tr2ConstantBufferAL" ] });

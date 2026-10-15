@@ -1,14 +1,14 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:80-91
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.js";
 
 /** Chooses a faction color and four material names for an area and supports assignment and override composition.
  * Native IRoot-only data with a self-only Blue table. Defaults retain native
  * construction; the empty destructor needs no resource or update lifecycle.
  */
-@meta.define({ className: "EveSOFDataAreaMaterial", family: "eve" })
-@meta.blue.interface()
+@blue.define("EveSOFDataAreaMaterial")
+@blue.interface()
 export class EveSOFDataAreaMaterial
 {
   /**
@@ -36,9 +36,9 @@ export class EveSOFDataAreaMaterial
    * (std::string).
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   material1 = "";
 
   /**
@@ -46,9 +46,9 @@ export class EveSOFDataAreaMaterial
    * (std::string).
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   material2 = "";
 
   /**
@@ -56,9 +56,9 @@ export class EveSOFDataAreaMaterial
    * (std::string).
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   material3 = "";
 
   /**
@@ -66,9 +66,9 @@ export class EveSOFDataAreaMaterial
    * (std::string).
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   material4 = "";
 
   /**
@@ -76,10 +76,10 @@ export class EveSOFDataAreaMaterial
    * (SOFDataFactionColorChooser.ColorType), defaulting to TYPE_HULL.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.SOFDataFactionColorChooser.ColorType")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.SOFDataFactionColorChooser.ColorType")
   colorType = 12;
 
   /**

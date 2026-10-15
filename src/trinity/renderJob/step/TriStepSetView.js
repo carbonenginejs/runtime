@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepSetView.h
 // Source: trinity/trinity/RenderJob/TriStepSetView.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
@@ -9,21 +9,21 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * Step that installs the view transform for the steps that follow, taken either
  * from an authored view or from a camera updated against the current viewport.
  */
-@meta.define({ className: "TriStepSetView", family: "renderJob" })
+@blue.define("TriStepSetView")
 export class TriStepSetView extends TriRenderStep
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("TriView")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("TriView")
   view = null;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveCamera")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("EveCamera")
   camera = null;
 
   /** Stores the view and camera the step chooses between at execution time. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   __init__(view = null, camera = null)
   {
@@ -34,7 +34,7 @@ export class TriStepSetView extends TriRenderStep
    * Replaces both operands; either may be null, and the view takes precedence
    * when both are set.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetViewCameraParent(view, camera)
   {
@@ -49,7 +49,7 @@ export class TriStepSetView extends TriRenderStep
    * The second argument to SetViewTransform identifies the source object the
    * render context should associate with the transform.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Execute(realTime, simTime, renderContext)
   {

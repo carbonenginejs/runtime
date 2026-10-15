@@ -124,7 +124,9 @@ test("verified Trinity classes are exported from src/character/trinity with thei
   for (const [Constructor, className, family] of expectations)
   {
     assert.equal(CjsSchema.getClassName(Constructor), className, `${className} schema className`);
-    assert.equal(CjsSchema.getClassFamily(Constructor), family, `${className} family`);
+    // Families are gone (ruling 2026-10-15); a Carbon class carries the blue stamp.
+    assert.equal(CjsSchema.getSchema(Constructor).blue, true, `${className} is stamped Carbon's`);
+    void family;
   }
 
   // Tr2SkinnedModel keeps its base-class relationship after the move.

@@ -2,7 +2,7 @@ import { DictReader } from "#blue/DictReader";
 import "#blue/values";
 // Source: trinity/trinity/Shader/Tr2Shader.h
 // Source: trinity/trinity/Shader/Tr2Shader.cpp
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { Tr2EffectDescription } from "./reflection/Tr2EffectDescription.js";
 
 /** GPU-free selected shader and its complete source reflection graph. */
@@ -393,25 +393,24 @@ export class Tr2Shader
 // form. Field order is key order, and it drives GetValues() export order.
 // Statics belong in `methods`: the prototype is what carries instance fields.
 
-CjsSchema.define(Tr2Shader, {
+CjsSchema.blue.define(Tr2Shader, {
   className: "Tr2Shader",
-  family: "shader",
   fields: {
-    sortValue: meta.type.uint32,
-    effect: meta.type.rawStruct("Tr2EffectDescription"),
-    hasVertexBufferAccessInRtShadow: meta.type.boolean
+    sortValue: type.uint32,
+    effect: type.rawStruct("Tr2EffectDescription"),
+    hasVertexBufferAccessInRtShadow: type.boolean
   },
   methods: {
-    GetTechniqueIndex: [ meta.blue.method, meta.adapted ],
-    GetPassCount: [ meta.blue.method, meta.adapted ],
-    GetConstant: [ meta.blue.method, meta.implemented ],
-    GetResource: [ meta.blue.method, meta.implemented ],
-    GetParameterAnnotations: [ meta.blue.method, meta.implemented ],
-    GetSortValue: [ meta.blue.method, meta.implemented ],
-    GetEffectDescription: [ meta.blue.method, meta.implemented ],
-    GetEffect: [ meta.blue.method, meta.implemented ],
-    GetShaderTypeMask: [ meta.blue.method, meta.adapted ],
-    ProcessEffect: [ meta.blue.method, meta.adapted ],
-    HasVertexBufferAccessInRtShadow: [ meta.blue.method, meta.implemented ]
+    GetTechniqueIndex: [ blue.method, meta.adapted ],
+    GetPassCount: [ blue.method, meta.adapted ],
+    GetConstant: [ blue.method, meta.implemented ],
+    GetResource: [ blue.method, meta.implemented ],
+    GetParameterAnnotations: [ blue.method, meta.implemented ],
+    GetSortValue: [ blue.method, meta.implemented ],
+    GetEffectDescription: [ blue.method, meta.implemented ],
+    GetEffect: [ blue.method, meta.implemented ],
+    GetShaderTypeMask: [ blue.method, meta.adapted ],
+    ProcessEffect: [ blue.method, meta.adapted ],
+    HasVertexBufferAccessInRtShadow: [ blue.method, meta.implemented ]
   }
 });

@@ -1,33 +1,33 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierNoise.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { EveSmartLightBaseAttributeModifier } from "./EveSmartLightBaseAttributeModifier.js";
 import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttributeModifier.js";
 import { carbonPerlin1D } from "#math/noise";
 
 /** EveSmartLightAttributeModifierNoise (eve/smartLights/attributeModifiers) - generated from schema shapeHash 60b52eeb.... */
-@meta.define({ className: "EveSmartLightAttributeModifierNoise", family: "eve/smartLights/attributeModifiers" })
-@meta.blue.interface(IEveSmartLightGroupAttributeModifier)
-@meta.blue.chainTo(EveSmartLightBaseAttributeModifier)
+@blue.define("EveSmartLightAttributeModifierNoise")
+@blue.interface(IEveSmartLightGroupAttributeModifier)
+@blue.chainTo(EveSmartLightBaseAttributeModifier)
 export class EveSmartLightAttributeModifierNoise extends IEveSmartLightGroupAttributeModifier
 {
 
   /** m_noiseAmplitude (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   noiseAmplitude = 0;
 
   /** m_noiseFrequency (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   noiseFrequency = 1;
 
   /** m_noiseOctaves (uint32_t) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   noiseOctaves = 1;
 
   /** Frame time captured per update; Carbon reads BeOS->GetCurrentFrameTime(). */
@@ -42,7 +42,7 @@ export class EveSmartLightAttributeModifierNoise extends IEveSmartLightGroupAttr
    * frame time is captured from the update context here because ProcessAttributeModifier
    * carries no context.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateSyncronous(updateContext, _params, activationMultiplier)
   {
@@ -55,7 +55,7 @@ export class EveSmartLightAttributeModifierNoise extends IEveSmartLightGroupAttr
    * (EveSmartLightAttributeModifierNoise.cpp:19-30). PerlinNoise1D(x, 2, 2, n)
    * maps to the shared carbonPerlin1D port.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ProcessAttributeModifier(attribute, placement, _entityPosition, _entityDirection, modifierStrength)
   {

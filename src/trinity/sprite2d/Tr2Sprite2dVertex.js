@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPolygon.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPolygon_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; texture-coordinate accessors are maintained here.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2Sprite2dVertexBase } from "./Tr2Sprite2dVertexBase.js";
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
@@ -11,8 +11,8 @@ import { vec4 } from "#math/vec4";
  * Represents one Sprite2D polygon vertex with two texture-coordinate channels
  * (Tr2Sprite2dPolygon.h:21-32; constructor Tr2Sprite2dPolygon.cpp:173-179).
  */
-@meta.define({ className: "Tr2Sprite2dVertex", family: "sprite2d" })
-@meta.blue.interface()
+@blue.define("Tr2Sprite2dVertex")
+@blue.interface()
 export class Tr2Sprite2dVertex extends Tr2Sprite2dVertexBase
 {
 
@@ -24,8 +24,8 @@ export class Tr2Sprite2dVertex extends Tr2Sprite2dVertexBase
    * Carbon property methods do.
    * @type {Float32Array}
    */
-  @meta.blue.readwrite
-  @meta.type.color
+  @blue.readwrite
+  @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
   /**
@@ -35,7 +35,7 @@ export class Tr2Sprite2dVertex extends Tr2Sprite2dVertexBase
    * @param {number} i Texture coordinate index, 0 or 1.
    * @returns {Float32Array} A copy of the coordinate.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetTexCoord(i)
   {
@@ -49,7 +49,7 @@ export class Tr2Sprite2dVertex extends Tr2Sprite2dVertexBase
    * @param {Float32Array|number[]} uv New coordinate.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetTexCoord(i, uv)
   {

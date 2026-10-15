@@ -102,4 +102,4 @@ export class Tr2GpuTimerALStub extends Tr2DeviceResourceAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
-CjsSchema.define(Tr2GpuTimerALStub, { className: "Tr2GpuTimerALStub", carbon: "Tr2GpuTimerAL" });
+CjsSchema.blue.define(Tr2GpuTimerALStub, { className: "Tr2GpuTimerALStub", donors: [ "Tr2GpuTimerAL" ] });

@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Tr2VolumetricsRenderer.h
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 
 
@@ -11,12 +11,12 @@ import { EveChildTransform } from "./EveChildTransform.js";
  * EveChildTransform so registry composition can validate the owned identity
  * once and hot paths can call it directly.
  */
-@meta.define({ className: "ITr2FroxelFogSettings", family: "trinityCore" })
+@blue.define("ITr2FroxelFogSettings")
 export class ITr2FroxelFogSettings extends EveChildTransform
 {
 
   /** Returns the provider's stable FroxelFogSettings value record. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GetFroxelFogSettings()
   {

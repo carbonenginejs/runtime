@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:260-284
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:60-66, 1125-1133
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { be, EnumRegistrationType } from "#blue";
 import { EveSOFDataLogo } from "./EveSOFDataLogo.js";
 
@@ -25,14 +25,17 @@ const slot = (name, index) => ({ name, key: "logos", index, type: { kind: "rootR
  * Logo slots: `EveSOFDataLogoPtr m_logos[TYPE_MAX]`, exposed by chooser name.
  * Native IRoot-only data with no lifecycle.
  */
-@meta.define({ className: "EveSOFDataLogoSet", family: "eve", members: [
+@blue.define({
+  className: "EveSOFDataLogoSet",
+  members: [
   slot("Primary", LogoType.TYPE_PRIMARY),
   slot("Secondary", LogoType.TYPE_SECONDARY),
   slot("Tertiary", LogoType.TYPE_TERTIARY),
   slot("Marking_01", LogoType.TYPE_MARKING_01),
   slot("Marking_02", LogoType.TYPE_MARKING_02)
-] })
-@meta.blue.interface()
+]
+})
+@blue.interface()
 export class EveSOFDataLogoSet
 {
   static LogoType = LogoType;

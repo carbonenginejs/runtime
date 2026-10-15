@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepSetRenderTarget.h
 // Source: trinity/trinity/RenderJob/TriStepSetRenderTarget.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
@@ -9,16 +9,16 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * Step that binds a render target to slot 0 directly, without touching the
  * render-target stack.
  */
-@meta.define({ className: "TriStepSetRenderTarget", family: "renderJob" })
+@blue.define("TriStepSetRenderTarget")
 export class TriStepSetRenderTarget extends TriRenderStep
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2RenderTarget")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2RenderTarget")
   renderTarget = null;
 
   /** Stores the render target to bind. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   __init__(renderTarget = null)
   {
@@ -29,7 +29,7 @@ export class TriStepSetRenderTarget extends TriRenderStep
    * Binds the render target to slot 0; with none set the current binding is left
    * alone rather than cleared.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

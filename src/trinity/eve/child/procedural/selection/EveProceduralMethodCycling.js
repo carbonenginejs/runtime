@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodCycling.h
 import { INotify } from "../../../../../global/blue/INotify.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { EveProceduralMethodCyclingParameter } from "./EveProceduralMethodCyclingParameter.js";
 import { be, CcpTime } from "#blue";
 import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.js";
@@ -11,9 +11,9 @@ import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.j
 const BELIST_LOADING = 0x10;
 
 /** EveProceduralMethodCycling (eve/child/procedural/selection) - generated from schema shapeHash 2014815d.... */
-@meta.define({ className: "EveProceduralMethodCycling", family: "eve/child/procedural/selection" })
-@meta.blue.inherit(INotify)
-@meta.blue.interface(IEveProceduralSelectionMethod, INotify)
+@blue.define("EveProceduralMethodCycling")
+@blue.inherit(INotify)
+@blue.interface(IEveProceduralSelectionMethod, INotify)
 export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
 {
 
@@ -25,32 +25,32 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
   _startTime = 0;
 
   /** m_parameters (PEveProceduralMethodCyclingParameterVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveProceduralMethodCyclingParameter")
+  @blue.read
+  @blue.persist
+  @type.list("EveProceduralMethodCyclingParameter")
   parameters = [];
 
   /** m_debugVolumes (PIEveVolumeVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("IEveVolume")
+  @blue.read
+  @blue.persist
+  @type.list("IEveVolume")
   debugVolumes = [];
 
   /** m_startTimeOffset (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   startTimeOffset = 0;
 
   /** m_randomizeOrder (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   randomizeOrder = false;
 
   /** m_selectedChildIndex (int) [READ] */
-  @meta.blue.read
-  @meta.type.int32
+  @blue.read
+  @type.int32
   selectedChild = -1;
 
   /** Carbon method restart -> SelectParameter (MAP_METHOD_AND_WRAP,
@@ -60,7 +60,7 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
    * Adapted: An optional timestamp provides Carbon's current-frame clock
    * deterministically in browser tests.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   restart(timestamp = CcpTime.timeAsDouble(be.os.GetCurrentFrameTime()))
   {
@@ -91,7 +91,7 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
 
   /** Carbon EveProceduralMethodCycling::OnModified (cpp:23-26) is an
    * intentional no-op notify. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(_value = null)
   {
@@ -105,7 +105,7 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
    * uses restart's default wall clock (no frame context reaches list
    * notifies).
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnListModified(event = 0, _key = 0, _key2 = 0, _value = null, list = null)
   {
@@ -117,7 +117,7 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
 
   /** Carbon EveProceduralMethodCycling::IsSelectedChildModified
    * (cpp:62-65). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsSelectedChildModified()
   {
@@ -128,7 +128,7 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
    * bounds-check the index, clear the modified flag, then hand out the
    * parameter's child ref after loading it - only when it carries a res
    * path. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetSelectedChild()
   {
@@ -157,7 +157,7 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
    * duration has elapsed on the frame clock, BeOS->GetCurrentFrameTime() (cpp:100).
    * Adapted: the JS restart cursor, offset and durations use seconds, so the
    * frame time is converted once here (native cpp:57,101 converts offset/delta). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateAsyncronous(_updateContext, _params)
   {
@@ -181,7 +181,7 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
   }
 
   /** Carbon returns the owned volume vector by reference (cpp:108-111). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetDebugVolumes()
   {

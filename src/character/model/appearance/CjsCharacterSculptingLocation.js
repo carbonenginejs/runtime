@@ -1,19 +1,19 @@
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /** Authored sculpt-control location naming its weight category and prefix. */
-@meta.define({ className: "CjsCharacterSculptingLocation", family: "character" })
+@meta.define("CjsCharacterSculptingLocation")
 export class CjsCharacterSculptingLocation extends CjsCharacterRecord
 {
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     weightKeyCategory = "";
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     weightKeyPrefix = "";
 
 }

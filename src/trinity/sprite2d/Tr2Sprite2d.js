@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2d.h
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2d.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2Sprite2dD3DVertex } from "./Tr2Sprite2dD3DVertex.js";
 import { Tr2SpriteObjectPickState, Tr2SpriteObjectEffect } from "../generated/sprite2d/enums.js";
 import { INotify } from "#blue";
@@ -9,33 +9,33 @@ import { Tr2TexturedSpriteObject } from "./Tr2TexturedSpriteObject.js";
 const spriteIndices = new Uint16Array([0, 1, 3, 3, 1, 2, 4, 5, 7, 7, 5, 6, 8, 9, 11, 11, 9, 10]); // alloc: immutable module-level triangle index table
 
 /** Prepares and gathers sprite quads through the native Sprite2D renderer contract. */
-@meta.define({ className: "Tr2Sprite2d", family: "sprite2d", purpose: "Adds opacity, saturation, texture-sized dimensions, and picking radius to a textured 2D sprite." })
-@meta.blue.interface(INotify)
-@meta.blue.chainTo(Tr2TexturedSpriteObject)
+@blue.define({ className: "Tr2Sprite2d", purpose: "Adds opacity, saturation, texture-sized dimensions, and picking radius to a textured 2D sprite." })
+@blue.interface(INotify)
+@blue.chainTo(Tr2TexturedSpriteObject)
 export class Tr2Sprite2d extends Tr2TexturedSpriteObject
 {
 
   /** m_effectOpacity (float) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   effectOpacity = 1;
 
   /** m_useSizeFromTexture (bool) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @type.boolean
   useSizeFromTexture = false;
 
   /** m_pickRadius (float) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   pickRadius = 0;
 
   /** m_saturation (float) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   saturation = 1;
 
 

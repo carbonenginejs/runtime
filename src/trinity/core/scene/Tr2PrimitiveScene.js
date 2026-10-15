@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2PrimitiveScene.h
 // Source: trinity/trinity/Tr2PrimitiveScene.cpp
 // Source: trinity/trinity/Tr2PrimitiveScene_Blue.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { ITr2Scene } from "../ITr2Scene.js";
 import { ITr2PickableScene } from "./ITr2PickableScene.js";
@@ -20,22 +20,22 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2Rende
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
 /** Native primitive scene and tool handles. Text rendering is a separate port. */
-@meta.define({ className: "Tr2PrimitiveScene", family: "trinityCore" })
-@meta.blue.inherit(ITr2Scene)
+@blue.define("Tr2PrimitiveScene")
+@blue.inherit(ITr2Scene)
 export class Tr2PrimitiveScene extends ITr2PickableScene
 {
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("Tr2PrimitiveSet")
+  @blue.read
+  @blue.persist
+  @type.list("Tr2PrimitiveSet")
   primitives = [];
 
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("Tr2PrimitiveText")
+  @blue.read
+  @blue.persist
+  @type.list("Tr2PrimitiveText")
   textLabels = [];
 
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2ManipulationTool")
+  @blue.readwrite
+  @type.rootRef("Tr2ManipulationTool")
   manipulator = null;
 
   _pickBuffer = new Tr2PickBuffer(PixelFormat.PIXEL_FORMAT_R32G32B32A32_FLOAT, 1);
@@ -53,7 +53,7 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
   }
 
   /** Immediate object picking becomes awaitable on browser backends. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   @meta.renamed("PickObjectOnly")
   async PickObject(x, y, projection, view, viewport, _flags = 0)
@@ -64,7 +64,7 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
   }
 
   /** Native object/point tuple, with an awaitable readback. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   async PickPointAndObject(x, y, projection, view, viewport)
   {

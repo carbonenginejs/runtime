@@ -1,14 +1,14 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionPlacementGenerators/IEveDistributionPlacementGenerators.h
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 
 /** Required distribution placement-generator contract. */
-@meta.define({ className: "IEveDistributionPlacementGenerators", family: "eve/distribution" })
+@blue.define("IEveDistributionPlacementGenerators")
 export class IEveDistributionPlacementGenerators
 {
 
   /** Writes the generator's initial placement records. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GetInitialPlacements(_out)
   {
@@ -16,7 +16,7 @@ export class IEveDistributionPlacementGenerators
   }
 
   /** Reports whether this generator requests placement regeneration. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   IsRequestingRegeneration()
   {
@@ -24,7 +24,7 @@ export class IEveDistributionPlacementGenerators
   }
 
   /** Runs the optional synchronous placement-generator update hook. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   UpdateSyncronous(_updateContext)
   {

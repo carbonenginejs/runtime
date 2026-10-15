@@ -1,38 +1,38 @@
 // Source: trinity/trinity/Eve/EvePicking.h
 // Source: trinity/trinity/Eve/EvePicking.cpp
 // Source: trinity/trinity/Eve/EvePicking_Blue.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /**
  * Holds the outstanding picking readbacks and the most recent pick result -
  * screen coordinates, hit object and both extra-data words - for a scene.
  */
-@meta.define({ className: "EvePickingContext", family: "eve/scene" })
+@blue.define("EvePickingContext")
 export class EvePickingContext
 {
-  @meta.type.list("EvePendingPickingReadback")
+  @type.list("EvePendingPickingReadback")
   readbacks = [];
 
-  @meta.type.uint32
+  @type.uint32
   lastPickedX = 0;
 
-  @meta.type.uint32
+  @type.uint32
   lastPickedY = 0;
 
-  @meta.type.rootRef("IRoot")
+  @type.rootRef("IRoot")
   lastPickedObject = null;
 
-  @meta.type.uint32
+  @type.uint32
   lastPickedExtraData1 = 0;
 
-  @meta.type.uint32
+  @type.uint32
   lastPickedExtraData2 = 0;
 
   /**
    * Records the outcome of a resolved pick: the sampled screen coordinates, the
    * object hit (null for none) and its area index.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateResult(x, y, object, extraData1, extraData2)
   {
@@ -47,7 +47,7 @@ export class EvePickingContext
    * Returns the object from the last resolved pick, or null if nothing was hit;
    * the reference is borrowed and replaced by the next pick.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetObject()
   {
@@ -55,7 +55,7 @@ export class EvePickingContext
   }
 
   /** Returns the area index from the last resolved pick. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetExtraData1()
   {
@@ -63,7 +63,7 @@ export class EvePickingContext
   }
 
   /** Returns the second extra-data word from the last resolved pick. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetExtraData2()
   {

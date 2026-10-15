@@ -38,7 +38,7 @@
 // Carbon only erases it when an incomplete region follows. The tail is the
 // same, but the JS list stays bounded (documented native quirk).
 
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2BufferDescriptionAL } from "../../../../trinityal/index.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { TriDevice } from "../TriDevice.js";
@@ -65,36 +65,36 @@ const INVALID_OFFSET = 0xffffffff;
 /**
  * One upload arena per data type, fenced by frame.
  */
-@meta.define({ className: "Tr2RingBuffer", family: "trinityCore" })
-@meta.blue.inherit(ITr2GpuBuffer)
+@blue.define("Tr2RingBuffer")
+@blue.inherit(ITr2GpuBuffer)
 export class Tr2RingBuffer
 {
   /** One arena per data type, as Carbon's typed `GetInstance` gives. */
   static _instances = new Map();
 
   /** m_name */
-  @meta.blue.persist
-  @meta.type.string
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_stride - bytes per element; every upload must match it. */
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.persist
+  @type.uint32
   stride = 0;
 
   /** m_size - capacity in ELEMENTS, not bytes. */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   size = 0;
 
   /** m_head - where the next upload lands, in elements. */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   head = 0;
 
   /** m_tail - the oldest element the GPU may still be reading. */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   tail = 0;
 
   /** m_frame - the frame being recorded. */
@@ -138,7 +138,7 @@ export class Tr2RingBuffer
    * @param {object} renderContext The context to create the buffer through.
    * @returns {Tr2RingBuffer} The arena.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   static GetInstance(key, stride, renderContext)
   {
@@ -221,7 +221,7 @@ export class Tr2RingBuffer
    * @param {string} name The debug label.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -235,7 +235,7 @@ export class Tr2RingBuffer
    *
    * @returns {object|null} The buffer, or null until backend creation succeeds.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetGpuBuffer()
   {
@@ -254,7 +254,7 @@ export class Tr2RingBuffer
    * @param {number} count How many rows.
    * @returns {number} The element offset the rows landed at.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UploadTransforms(data, count)
   {
@@ -301,7 +301,7 @@ export class Tr2RingBuffer
    * @param {object} renderContext The context to update through.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   PrepareBuffer(renderContext)
   {
@@ -335,7 +335,7 @@ export class Tr2RingBuffer
    * @param {number} completedFrame The frame the device reports finished.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetFrameNumbers(recordingFrame, completedFrame)
   {
@@ -372,7 +372,7 @@ export class Tr2RingBuffer
    * @param {number} size The new capacity, in elements.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Resize(size)
   {
@@ -399,7 +399,7 @@ export class Tr2RingBuffer
    *
    * @returns {boolean} Whether preparation succeeded or was deferred.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PrepareResources()
   {
@@ -414,7 +414,7 @@ export class Tr2RingBuffer
    * @param {number} _storage Storage mask.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ReleaseResources(_storage)
   {
@@ -433,7 +433,7 @@ export class Tr2RingBuffer
    *
    * @returns {boolean} True, matching Carbon even if allocation fails.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnPrepareResources()
   {

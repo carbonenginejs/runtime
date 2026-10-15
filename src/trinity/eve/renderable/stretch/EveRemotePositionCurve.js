@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveRemotePositionCurve.cpp
 import { num } from "#math/num";
 import { vec3 } from "#math/vec3";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { ITriVectorFunction, CcpTime } from "#blue";
 
 
@@ -10,44 +10,41 @@ import { ITriVectorFunction, CcpTime } from "#blue";
  * A vector function that offsets a start-point curve by a vector sweeping from
  * one authored direction to another over a fixed time, once or repeatedly.
  */
-@meta.define({
-  className: "EveRemotePositionCurve",
-  family: "eve/renderable/stretch"
-})
+@blue.define("EveRemotePositionCurve")
 export class EveRemotePositionCurve extends ITriVectorFunction
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   delayTime = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   cycle = false;
 
-  @meta.blue.readwrite
-  @meta.type.vec3
+  @blue.readwrite
+  @type.vec3
   value = vec3.create();
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   offsetDir2 = vec3.create();
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITriVectorFunction")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITriVectorFunction")
   startPositionCurve = null;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   offsetDir1 = vec3.create();
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   sweepTime = 1;
 
   _startTime = 0;
@@ -61,7 +58,7 @@ export class EveRemotePositionCurve extends ITriVectorFunction
    * advances only through Update__Ticks.
    * @param {number} time Seconds.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateValue(time)
   {
@@ -75,7 +72,7 @@ export class EveRemotePositionCurve extends ITriVectorFunction
    * @param {Float32Array} out Caller-owned vec3, returned unchanged.
    * @returns {Float32Array} out
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Update(_time, out)
   {
@@ -125,7 +122,7 @@ export class EveRemotePositionCurve extends ITriVectorFunction
    * Reports the value computed by the last Update; the time argument is ignored
    * and nothing is re-evaluated.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetValueAt(_time, out)
   {
@@ -136,7 +133,7 @@ export class EveRemotePositionCurve extends ITriVectorFunction
    * The first derivative is not modelled for this curve; out is returned
    * untouched.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GetValueDotAt(_time, out)
   {
@@ -147,7 +144,7 @@ export class EveRemotePositionCurve extends ITriVectorFunction
    * The second derivative is not modelled for this curve; out is returned
    * untouched.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GetValueDoubleDotAt(_time, out)
   {
@@ -158,7 +155,7 @@ export class EveRemotePositionCurve extends ITriVectorFunction
    * Copies the value computed by the last Update; the time argument is ignored
    * and nothing is re-evaluated.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   InterpolatedPosition(_time, out)
   {

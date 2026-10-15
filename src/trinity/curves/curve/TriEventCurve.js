@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Curves/TriEventCurve.h
 // Source: trinity/trinity/Curves/TriEventCurve.cpp
 import { ITriFunction, IInitialize, ITriCurveLength, BlueList } from "#blue";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { TRIEXTRAPOLATION } from "#consts/graphics";
 import { TriEventKey } from "../key/TriEventKey.js";
 import "#consts/graphics/trinityEnums";
@@ -12,12 +12,9 @@ import "#consts/graphics/trinityEnums";
  * dispatching either a named event to a listener or a queued callable, and
  * restarting the key cursor when time rewinds or a cycle wraps.
  */
-@meta.define({
-  className: "TriEventCurve",
-  family: "curves"
-})
-@meta.blue.inherit(IInitialize, ITriCurveLength)
-@meta.blue.interface(ITriFunction, IInitialize, ITriCurveLength)
+@blue.define("TriEventCurve")
+@blue.inherit(IInitialize, ITriCurveLength)
+@blue.interface(ITriFunction, IInitialize, ITriCurveLength)
 export class TriEventCurve extends ITriFunction
 {
   /**
@@ -94,25 +91,25 @@ export class TriEventCurve extends ITriFunction
    * Authored name identifying the event track.
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /**
    * Last accepted update time in seconds, retained to detect rewinds; native float64 metadata.
    * @type {number}
    */
-  @meta.blue.read
-  @meta.type.float64
+  @blue.read
+  @type.float64
   time = 0;
 
   /**
    * Cached final key time in seconds; zero prevents event advancement. Native float32 metadata.
    * @type {number}
    */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   length = 0;
 
   /**
@@ -120,25 +117,25 @@ export class TriEventCurve extends ITriFunction
    * Rewind updates leave this cached value unchanged.
    * @type {number}
    */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   localTime = 0;
 
   /**
    * Stored string value of the most recently triggered key; native wide string.
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.wstring
+  @blue.readwrite
+  @blue.persist
+  @type.wstring
   value = "";
 
   /**
    * Owned event keys, sorted by key time by initialization and editing helpers.
    * @type {BlueList<TriEventKey>}
    */
-  @meta.blue.persistOnly
-  @meta.type.list("TriEventKey")
+  @blue.persistOnly
+  @type.list("TriEventKey")
   keys = new BlueList(TriEventKey, { className: "TriEventKey", listOps: 0 });
 
   /**
@@ -146,10 +143,10 @@ export class TriEventCurve extends ITriFunction
    * time unchanged.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("blue.TRIEXTRAPOLATION")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("blue.TRIEXTRAPOLATION")
   extrapolation = TRIEXTRAPOLATION.TRIEXT_NONE;
 
   /**
@@ -157,8 +154,8 @@ export class TriEventCurve extends ITriFunction
    * branch.
    * @type {IBlueEventListener|null}
    */
-  @meta.blue.readwrite
-  @meta.type.rootRef("IBlueEventListener")
+  @blue.readwrite
+  @type.rootRef("IBlueEventListener")
   eventListener = null;
 
   /**
@@ -173,7 +170,7 @@ export class TriEventCurve extends ITriFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateValue(time)
   {
@@ -213,7 +210,7 @@ export class TriEventCurve extends ITriFunction
    * The helper resets an empty track length to zero, unlike the native empty-list branch.
    * @returns {boolean} True.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -225,7 +222,7 @@ export class TriEventCurve extends ITriFunction
    * Returns the cached track length.
    * @returns {number} Duration in seconds.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Length()
   {
@@ -237,7 +234,7 @@ export class TriEventCurve extends ITriFunction
    * Native declares Sort without a donor body; this retained JavaScript helper also resets empty length to zero.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Sort()
   {
@@ -252,7 +249,7 @@ export class TriEventCurve extends ITriFunction
    * @param {string} eventName Event name.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddKey(time, eventName)
   {
@@ -270,7 +267,7 @@ export class TriEventCurve extends ITriFunction
    * @param {*} args Callable arguments.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AddCallableKey(time, callable, args)
   {
@@ -287,7 +284,7 @@ export class TriEventCurve extends ITriFunction
    * @param {TriEventKey|object} key Key or compatible record.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   InsertKey(key)
   {
@@ -301,7 +298,7 @@ export class TriEventCurve extends ITriFunction
    * @param {number} index Key index.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RemoveKey(index)
   {
@@ -316,7 +313,7 @@ export class TriEventCurve extends ITriFunction
    * Returns the number of event keys.
    * @returns {number}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetKeyCount()
   {
@@ -328,7 +325,7 @@ export class TriEventCurve extends ITriFunction
    * @param {number} index Key index.
    * @returns {number}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetKeyTime(index)
   {
@@ -340,7 +337,7 @@ export class TriEventCurve extends ITriFunction
    * @param {number} index Key index.
    * @returns {string}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetKeyValue(index)
   {
@@ -354,7 +351,7 @@ export class TriEventCurve extends ITriFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetKeyTime(index, time)
   {
@@ -372,7 +369,7 @@ export class TriEventCurve extends ITriFunction
    * @param {string|null} value Event name.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetKeyValue(index, value)
   {
@@ -387,7 +384,7 @@ export class TriEventCurve extends ITriFunction
    * @param {number} index Key index.
    * @returns {Function|null}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetCallableKeyValue(index)
   {
@@ -399,7 +396,7 @@ export class TriEventCurve extends ITriFunction
    * @param {number} index Key index.
    * @returns {*}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetCallableKeyArgs(index)
   {

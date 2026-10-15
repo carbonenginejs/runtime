@@ -1,20 +1,20 @@
 // Source: trinity/trinity/RenderJob/TriStepSetDebugRenderer.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that installs the debug renderer subsequent debug drawing routes through. */
-@meta.define({ className: "TriStepSetDebugRenderer", family: "renderJob" })
+@blue.define("TriStepSetDebugRenderer")
 export class TriStepSetDebugRenderer extends TriRenderStep
 {
 
   /** m_debugRenderer (ITr2DebugRendererPtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("ITr2DebugRenderer")
+  @blue.readwrite
+  @type.rootRef("ITr2DebugRenderer")
   renderer = null;
 
   /** Carbon method __init__ -> SetDebugRenderer (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   __init__(renderer = null)
   {
@@ -24,7 +24,7 @@ export class TriStepSetDebugRenderer extends TriRenderStep
   /**
    * Binds the debug renderer this step installs; null detaches it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetDebugRenderer(renderer)
   {
@@ -34,7 +34,7 @@ export class TriStepSetDebugRenderer extends TriRenderStep
   /**
    * Installs the bound debug renderer on the render context.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Execute(_realTime, _simTime, renderContext)
   {

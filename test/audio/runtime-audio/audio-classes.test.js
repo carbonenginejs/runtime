@@ -48,7 +48,9 @@ test("real Carbon audio classes are exported with their Carbon families", () =>
   for (const [Constructor, className, family] of expectations)
   {
     assert.equal(CjsSchema.getClassName(Constructor), className, `${className} schema className`);
-    assert.equal(CjsSchema.getClassFamily(Constructor), family, `${className} family`);
+    // Families are gone (ruling 2026-10-15); a Carbon class carries the blue stamp.
+    assert.equal(CjsSchema.getSchema(Constructor).blue, true, `${className} is stamped Carbon's`);
+    void family;
   }
 
   // Carbon base-class relationships survive generation.

@@ -27,6 +27,7 @@ for (const method of [ "GetWorldPosition", "GetWorldRotation" ])
 {
   CjsSchema.decorateMethod(IWorldPosition, method, meta.requires, meta.abstract);
 }
-CjsSchema.define(IWorldPosition, {
-  className: "IWorldPosition", carbon: "IWorldPosition", family: "core", fields: {}
+CjsSchema.blue.define(IWorldPosition, {
+  className: "IWorldPosition",
+  fields: {}
 });

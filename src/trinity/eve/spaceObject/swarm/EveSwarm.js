@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.h
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.cpp
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm_Blue.cpp
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { IsMatch, CcpTime } from "#blue";
 import { EveShip2 } from "../EveShip2.js";
 import { EveSpaceObject2 } from "../EveSpaceObject2.js";
@@ -29,195 +29,195 @@ const FLT_MAX = 3.4028234663852886e38;
  * GetDebugOptions and RenderDebugInfo (our space objects have no debug renderer; the per-vehicle force record they
  * draw is still kept).
  */
-@meta.define({ className: "EveSwarm", family: "eve/spaceObject/swarm" })
+@blue.define("EveSwarm")
 export class EveSwarm extends EveShip2
 {
 
   /** CPU SwarmVehicle state; live draw resources remain renderer-owned. */
-  @meta.type.list("SwarmVehicle")
+  @type.list("SwarmVehicle")
   vehicles = [];
 
-  @meta.type.list("EveSwarmRenderable")
+  @type.list("EveSwarmRenderable")
   renderables = [];
 
-  @meta.type.int32
+  @type.int32
   targetIndex = 0;
 
-  @meta.type.int32
+  @type.int32
   firingIndex = 0;
 
-  @meta.type.vec3
+  @type.vec3
   squadBoundsMin = vec3.create();
 
-  @meta.type.vec3
+  @type.vec3
   squadBoundsMax = vec3.create();
 
   /** m_behavior.m_weightFormation (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   weightFormation = 1;
 
   /** m_behavior.m_weightCohesion (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   weightCohesion = 0.1;
 
   /** m_behavior.m_weightSeparation (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   weightSeparation = 0.1;
 
   /** m_behavior.m_weightWander (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   weightWander = 0.33;
 
   /** m_behavior.m_weightAnchor (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   weightAnchor = 0.5;
 
   /** m_behavior.m_anchorRadius0 (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   anchorRadius0 = 75;
 
   /** m_behavior.m_anchorRadius1 (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   anchorRadius1 = 250;
 
   /** m_behavior.m_weightDecelerate (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   weightDeceleration = 0.1;
 
   /** m_behavior.m_maxDeceleration (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   maxDeceleration = 200;
 
   /** m_behavior.m_separationDistance (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   separationDistance = 250;
 
   /** m_behavior.m_formationDistance (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   formationDistance = 50;
 
   /** m_behavior.m_wanderFluctuation (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   wanderFluctuation = 0.05;
 
   /** m_behavior.m_wanderDistance (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   wanderDistance = 100;
 
   /** m_behavior.m_wanderRadius (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   wanderRadius = 80;
 
   /** m_debugShowForces (bool) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   debugShowForces = false;
 
   /** m_count (int32_t) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.read
+  @blue.persist
+  @type.int32
   count = 1;
 
   /** m_swarmingEnabled (bool) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.read
+  @blue.persist
+  @type.boolean
   swarmingEnabled = false;
 
   /** m_behavior.m_mass (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   mass = 1;
 
   /** m_behavior.m_speedMultiplier (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   speedMultiplier = 1.1;
 
   /** m_behavior.m_speedMinimum (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   speedMinimum = 10;
 
   /** m_behavior.m_maxDistance0 (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   maxDistance0 = 500;
 
   /** m_behavior.m_maxDistance1 (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   maxDistance1 = 125;
 
   /** m_behavior.m_maxTime (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   maxTime = 0.2;
 
   /** m_behavior.m_agility (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   agility = 2;
 
   /** m_behavior.m_speed0 (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   speed0 = 700;
 
   /** m_behavior.m_speed1 (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   speed1 = 1000;
 
   /** m_behavior.m_timeMultiplier (float) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   timeMultiplier = 1;
 
   /** m_behavior.m_weightAlign (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   weightAlign = 50;
 
   /** m_debugInfo: one force record per vehicle while debugShowForces is on. */
@@ -248,7 +248,7 @@ export class EveSwarm extends EveShip2
    * registration "to register all the turrets and things", then
    * UnRegisterAllComponents(this) because the swarm itself is container-only,
    * then forwards the per-swarmer renderables. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterComponents()
   {
@@ -266,7 +266,7 @@ export class EveSwarm extends EveShip2
 
   /** Carbon EveSwarm::UnRegisterComponents (EveSwarm.cpp:1019-1030): base,
    * then forwards the renderables. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UnRegisterComponents()
   {
@@ -289,7 +289,7 @@ export class EveSwarm extends EveShip2
    * @param {mat4} out - receives the transform
    * @returns {mat4} out
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetObserverTransform(out)
   {
@@ -306,7 +306,7 @@ export class EveSwarm extends EveShip2
    * @param {number} swarmID - the turret set's GetSwarmID()
    * @returns {mat4} the live transform, not a copy
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetTurretTransform(swarmID)
   {
@@ -318,7 +318,7 @@ export class EveSwarm extends EveShip2
   }
 
   /** Carbon RebuildCachedData (EveSwarm.cpp:371-378): the base, then every fighter rebinds to the rebuilt mesh. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RebuildCachedData(asyncRes)
   {
@@ -330,7 +330,7 @@ export class EveSwarm extends EveShip2
   }
 
   /** Carbon UpdateSyncronous (EveSwarm.cpp:384-391): the swarm steps before the ship. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateSyncronous(updateContext)
   {
@@ -347,7 +347,7 @@ export class EveSwarm extends EveShip2
    * @param {number} time - Blue ticks
    * @returns {boolean} the base's result
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateWorldTransform(time)
   {
@@ -395,7 +395,7 @@ export class EveSwarm extends EveShip2
    *
    * Adapted: EveMobile's reusable parent-data record is refilled per set instead of a fresh zeroed stack record.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateTurretsAsyncronous(updateContext)
   {
@@ -419,7 +419,7 @@ export class EveSwarm extends EveShip2
    * the ship's boosters; with it, each fighter takes its vehicle's rotation and position, and drives its own booster
    * instance. Then the base update, whose UpdateBoosters call this class leaves empty.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateAsyncronous(updateContext)
   {
@@ -473,7 +473,7 @@ export class EveSwarm extends EveShip2
    * Carbon UpdateBoosters (EveSwarm.h:261-263): empty. UpdateAsyncronous drives the boosters per fighter instead.
    * @param {EveUpdateContext} _updateContext
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateBoosters(_updateContext)
   {
@@ -654,7 +654,7 @@ export class EveSwarm extends EveShip2
    * Carbon RegisterWithQuadRenderer (EveSwarm.cpp:651-661): the attachments' sprites and spotlights, then the booster
    * glows. Carbon does not call the base, so turret quads are not registered.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -673,7 +673,7 @@ export class EveSwarm extends EveShip2
    * transform, at full activation and booster gain; then the booster glows, whose instances carry their own
    * fighters' transforms, so the world passed is the identity.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
@@ -713,7 +713,7 @@ export class EveSwarm extends EveShip2
   }
 
   /** Carbon UpdateVisibility (EveSwarm.cpp:754-770): the base, then each fighter places its own decals. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform)
   {
@@ -734,7 +734,7 @@ export class EveSwarm extends EveShip2
    * root of the fighter count while swarming, roughly one fighter's share.
    * @returns {number} the estimate
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   EstimatePixelDiameter(frustum)
   {
@@ -749,7 +749,7 @@ export class EveSwarm extends EveShip2
   }
 
   /** Carbon UpdateWorldBounds (EveSwarm.cpp:787-795): the squad box's sphere, grown by the model's own radius. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateWorldBounds()
   {
@@ -767,7 +767,7 @@ export class EveSwarm extends EveShip2
    * sphere's RADIUS added on top (the ship sphere's center is discarded).
    * Always returns true. Feeds EveSwarmRenderable.IsCastingShadow's
    * squad-radius-at-the-fighter cull sphere. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBoundingSphere(sphere, query = 0)
   {
@@ -801,7 +801,7 @@ export class EveSwarm extends EveShip2
   }
 
   /** Carbon GetModelCenterWorldPosition (EveSwarm.cpp:833-843): the squad box's centre while swarming. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetModelCenterWorldPosition(out)
   {
@@ -824,7 +824,7 @@ export class EveSwarm extends EveShip2
    * @param {vec3} max - receives the box maximum
    * @returns {boolean} true
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLocalBoundingBox(min, max)
   {
@@ -863,7 +863,7 @@ export class EveSwarm extends EveShip2
   }
 
   /** Carbon Initialize (EveSwarm.cpp:883-891): the base, then the persisted count of fighters is created. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -876,7 +876,7 @@ export class EveSwarm extends EveShip2
   }
 
   /** Carbon OnModified (EveSwarm.cpp:897-906): the base, then debugShowForces resizes the force record. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName = null)
   {
@@ -892,7 +892,7 @@ export class EveSwarm extends EveShip2
    * Carbon AddSwarmer (EveSwarm.cpp:912-940): a new fighter on the shared mesh with its own decals, registered with
    * the component registry, and a vehicle at the ball's position.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddSwarmer()
   {
@@ -934,7 +934,7 @@ export class EveSwarm extends EveShip2
    * Adapted: Carbon's TriRandInt is Math.random, as in the behaviors; the position is returned as a new vector.
    * @returns {vec3} the removed vehicle's position
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RemoveSwarmer()
   {
@@ -979,7 +979,7 @@ export class EveSwarm extends EveShip2
    * Adapted: Carbon's TriRandInt is Math.random, as in the behaviors.
    * @param {number} count
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetCount(count)
   {
@@ -1002,7 +1002,7 @@ export class EveSwarm extends EveShip2
    * behaves as a normal space object.
    * @param {boolean} enable
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   EnableSwarming(enable)
   {
@@ -1026,7 +1026,7 @@ export class EveSwarm extends EveShip2
    *
    * Adapted: Carbon's TriRandInt is Math.random, as in the behaviors.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   PickFiringOrigin()
   {
@@ -1059,7 +1059,7 @@ export class EveSwarm extends EveShip2
    * invisible aggregate hull. Row-vector renderableWorld * invWorld maps to
    * gl multiply(out, inverseWorldTransform, renderableWorld).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLocatorInObjectSpace(outPosition, outDirection, locator, mergedDamageIndex = -1)
   {
@@ -1088,7 +1088,7 @@ export class EveSwarm extends EveShip2
    * @param {vec3} out - receives the position
    * @returns {boolean} whether a locator was found
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetDamageLocatorPosition(index, inWorldSpace, out = vec3.create())
   {

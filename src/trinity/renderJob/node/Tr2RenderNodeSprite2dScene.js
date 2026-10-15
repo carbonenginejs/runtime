@@ -1,24 +1,24 @@
 // Source: trinity/trinity/Tr2RenderNodeSprite2dScene.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { ITr2RenderNode } from "#interfaces/ITr2RenderNode";
 
 /** A render-graph node that draws a sprite scene into a destination texture, over an optional background node. */
-@meta.define({ className: "Tr2RenderNodeSprite2dScene", family: "renderJob" })
-@meta.blue.inherit(ITr2RenderNode)
+@blue.define("Tr2RenderNodeSprite2dScene")
+@blue.inherit(ITr2RenderNode)
 export class Tr2RenderNodeSprite2dScene
 {
 
   /** m_scene (Tr2Sprite2dScenePtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2Sprite2dScene")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2Sprite2dScene")
   scene = null;
 
   /** m_background (ITr2RenderNodePtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITr2RenderNode")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITr2RenderNode")
   background = null;
 
   // Carbon Tr2RenderNodeSprite2dScene.cpp:8-26. The node refuses to run
@@ -39,7 +39,7 @@ export class Tr2RenderNodeSprite2dScene
    * Adapted: Carbon asserts before returning false on an empty destination list; the port
    * returns false without asserting and lets the caller decide.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Validate(destinationDimensions, outputs, realTime, simTime)
   {

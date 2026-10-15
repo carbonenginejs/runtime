@@ -1,19 +1,19 @@
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /** Authored modifier location naming one category and variation. */
-@meta.define({ className: "CjsCharacterModifierLocation", family: "character" })
+@meta.define("CjsCharacterModifierLocation")
 export class CjsCharacterModifierLocation extends CjsCharacterRecord
 {
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     modifierKey = "";
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     variationKey = "";
 
 }

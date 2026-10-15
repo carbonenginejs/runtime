@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Source: trinity/trinity/Resources/TriGeometryRes.cpp
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, type } from "#schema";
 import { CjsResource } from "#blue";
 
 
@@ -55,11 +55,10 @@ export class Tr2RaycastGeometryRes extends CjsResource
 }
 
 
-CjsSchema.define(Tr2RaycastGeometryRes, {
+CjsSchema.blue.define(Tr2RaycastGeometryRes, {
   className: "Tr2RaycastGeometryRes",
-  family: "resources",
   fields: {
-    lodIndices: meta.type.list("int32_t"),
-    bvh: meta.type.rawStruct("BVH::BoundingVolumeHierarchy")
+    lodIndices: type.list("int32_t"),
+    bvh: type.rawStruct("BVH::BoundingVolumeHierarchy")
   }
 });

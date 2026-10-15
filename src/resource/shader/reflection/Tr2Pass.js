@@ -1,7 +1,7 @@
 import "#blue/values";
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import {
 } from "#utils/is";
 import { requireShaderStageType, SHADER_STAGE_COUNT, ShaderStageType } from "./shaderStage.js";
@@ -287,19 +287,18 @@ export class Tr2Pass
 // expressions are reused verbatim, so the registered metadata is identical.
 // Statics belong in `methods`: decorateMethod targets the prototype and
 // would register a static as an instance field.
-CjsSchema.define(Tr2Pass, {
+CjsSchema.blue.define(Tr2Pass, {
   className: "Tr2Pass",
-  family: "shader",
   fields: {
-    stageInputs: meta.type.list("Tr2EffectStageInput"),
-    renderStates: meta.type.uint32,
-    shaderTypeMask: meta.type.uint32,
-    shaderProgram: meta.type.uint32,
-    resourceSetDesc: meta.type.rawStruct("Tr2ResourceSetDescriptionAL"),
-    indirectLayout: meta.type.rawStruct("Tr2IndirectDrawBufferLayout"),
-    renderStateValues: [ meta.adapted, meta.type.rawStruct("CjsEffectRenderStateValues") ],
-    stageOrder: [ meta.ours, meta.type.rawStruct("CjsEffectStageOrder") ],
-    backendBlock: [ meta.ours, meta.type.rawStruct("CjsEffectBackendBlock") ]
+    stageInputs: type.list("Tr2EffectStageInput"),
+    renderStates: type.uint32,
+    shaderTypeMask: type.uint32,
+    shaderProgram: type.uint32,
+    resourceSetDesc: type.rawStruct("Tr2ResourceSetDescriptionAL"),
+    indirectLayout: type.rawStruct("Tr2IndirectDrawBufferLayout"),
+    renderStateValues: [ meta.adapted, type.rawStruct("CjsEffectRenderStateValues") ],
+    stageOrder: [ meta.ours, type.rawStruct("CjsEffectStageOrder") ],
+    backendBlock: [ meta.ours, type.rawStruct("CjsEffectBackendBlock") ]
   },
   methods: {
     readMergedResources: meta.ours

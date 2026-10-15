@@ -14,7 +14,7 @@
 //
 // NOTE ON DECORATORS: this folder cannot use `@` syntax (see CcpTime.js), so
 // the declarations are made imperatively at the bottom of the file.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { getCarbonTypeDefinition, inferCarbonTypeFromCpp } from "../schema/types/carbonTypes.js";
 import { ownMappedInterfaces } from "../compose/interface.js";
 import { CjsBlueResMan } from "./CjsBlueResMan.js";
@@ -529,19 +529,20 @@ export class CjsBlue
   }
 }
 
-CjsSchema.define(CjsBlue, {
-  className: "CjsBlue", family: "blue", fields: {},
+CjsSchema.meta.define(CjsBlue, {
+  className: "CjsBlue",
+  fields: {},
   methods: {
     Fetch: [ meta.ours ],
     EnumerateChildren: [ meta.adapted ],
     EnumerateChildren__Filter: [ meta.adapted ],
     enumerateChildren: [ meta.adapted ],
     enumerateChildren__Filter: [ meta.adapted ],
-    FindRoute: [ meta.blue.method, meta.adapted ],
-    FindFirstRoute: [ meta.blue.method, meta.adapted ],
-    FindAllReferences: [ meta.blue.method, meta.adapted ],
-    FindInterface: [ meta.blue.method, meta.implemented ],
-    FindReference: [ meta.blue.method, meta.implemented ],
+    FindRoute: [ blue.method, meta.adapted ],
+    FindFirstRoute: [ blue.method, meta.adapted ],
+    FindAllReferences: [ blue.method, meta.adapted ],
+    FindInterface: [ blue.method, meta.implemented ],
+    FindReference: [ blue.method, meta.implemented ],
     _EnumerateRoutes: [ meta.adapted ]
   }
 });

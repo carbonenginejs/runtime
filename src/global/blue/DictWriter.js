@@ -310,7 +310,7 @@ function EstimateJsonBytes(value)
   }
 }
 
-CjsSchema.define(DictWriter, { className: "DictWriter", modelledOn: "YamlWriter" });
+CjsSchema.meta.define(DictWriter, { className: "DictWriter", donors: [ "YamlWriter" ] });
 CjsSchema.decorateMethod(DictWriter, "WriteIRoot", meta.adapted);
 CjsSchema.decorateMethod(DictWriter, "WriteBinaryBlock", meta.adapted);
 CjsSchema.decorateMethod(DictWriter, "WriteObject", meta.ours);

@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Wod/WodBakingScene.cpp
 // Source: trinity/trinity/Wod/WodBakingScene_Blue.cpp
 // CarbonEngineJS maintained source.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /**
  * Baking-scene record pairing a skinned avatar with a diagnostic visualization
@@ -10,20 +10,20 @@ import { meta } from "#schema";
  * skinned-object batches; CarbonEngineJS keeps the scene contract here and
  * leaves render-target realization to an engine adapter.
  */
-@meta.define({ className: "WodBakingScene", family: "wod" })
+@blue.define("WodBakingScene")
 export class WodBakingScene
 {
 
   /** m_visualizeMethod (VisualizeMethod - enum VisualizeMethod) [READWRITE, ENUM, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.int32
-  @meta.type.enum("VisualizeMethod")
+  @blue.notify
+  @blue.readwrite
+  @type.int32
+  @type.enum("VisualizeMethod")
   visualizeMethod = 0;
 
   /** m_skinnedObject (Tr2SkinnedObjectPtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2SkinnedObject")
+  @blue.readwrite
+  @type.rootRef("Tr2SkinnedObject")
   Avatar = null;
 
   static VisualizeMethod = Object.freeze({
@@ -59,7 +59,7 @@ export class WodBakingScene
    * Adapted: Requires a Tr2RenderContext, effect-state manager, constant buffers, and GPU
    * batch rendering owned by an engine adapter.
    */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   Render()
   {
@@ -72,7 +72,7 @@ export class WodBakingScene
    * Adapted: Carbon leaves this hook empty; the JavaScript hook throws its explicit
    * unimplemented error instead.
    */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   RenderDebugInfo()
   {
@@ -85,7 +85,7 @@ export class WodBakingScene
    * Adapted: The native method calls PrePhysicsUpdate and PostPhysicsUpdate on the skinned
    * object; frame ownership stays with the outer runtime adapter.
    */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   Update()
   {

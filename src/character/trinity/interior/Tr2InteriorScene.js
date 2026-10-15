@@ -5,7 +5,7 @@ import { ITr2InteriorLight } from "./ITr2InteriorLight.js";
 // Source: trinity/trinity/Interior/Tr2InteriorScene.h
 // Source: trinity/trinity/Interior/Tr2InteriorScene.cpp
 // Source: trinity/trinity/Interior/Tr2InteriorScene_Blue.cpp
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { be, IInitialize, INotify, IsMatch, ResourceRequirement } from "#blue";
 import { PixelFormat, DepthStencilFormat } from "#consts/render-context";
 import { Tr2RenderTarget } from "../../../trinity/core/device/Tr2RenderTarget.js";
@@ -22,9 +22,9 @@ import { vec4 } from "#math/vec4";
  * through the supplied or installed Trinity context. Picking, physics-scene creation
  * and scene rendering remain unported; allocation is not rendered shadows.
  */
-@meta.define({ className: "Tr2InteriorScene", family: "interior" })
-@meta.blue.inherit(IInitialize, INotify)
-@meta.blue.inherit(IListNotify)
+@blue.define("Tr2InteriorScene")
+@blue.inherit(IInitialize, INotify)
+@blue.inherit(IListNotify)
 export class Tr2InteriorScene
 {
   // Carbon m_apexScene remains empty until the physics scene is installed.
@@ -36,7 +36,7 @@ export class Tr2InteriorScene
    * Carbon Tr2InteriorScene.cpp:229-284 updates lights and dynamic membership.
    * Adapted: array identity search replaces FindKey; JS has no QI reference unlock.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
@@ -68,145 +68,145 @@ export class Tr2InteriorScene
 
 
   /** m_backgroundCubeMapPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.path("TriTextureRes")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.path("TriTextureRes")
   backgroundCubemapPath = "";
 
   /** m_visualizeMethod (VisualizeMethod - enum VisualizeMethod) [READWRITE, ENUM, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.int32
-  @meta.type.enum("VisualizeMethod")
+  @blue.notify
+  @blue.readwrite
+  @type.int32
+  @type.enum("VisualizeMethod")
   visualizeMethod = 0;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("TriCurveSet")
+  @blue.read
+  @blue.persist
+  @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_renderShadows (bool) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @type.boolean
   renderShadows = true;
 
   /** m_debugRenderShadowMaps (bool) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @type.boolean
   debugRenderShadowMaps = false;
 
   /** m_shadowCount (int) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.int32
+  @blue.notify
+  @blue.readwrite
+  @type.int32
   shadowCount = 4;
 
   /** m_minFogDistance (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   minFogDistance = 0;
 
   /** m_maxFogDistance (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   maxFogDistance = 1000;
 
   /** m_fogColor (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.readwrite
+  @blue.persist
+  @type.color
   fogColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_dynamics (PITr2InteriorDynamicVector) [READ, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITr2InteriorDynamic")
+  @blue.notify
+  @blue.read
+  @blue.persist
+  @type.list("ITr2InteriorDynamic")
   dynamics = new BlueList(ITr2InteriorDynamic);
 
   /** m_lights (PITr2InteriorLightVector) [READ, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITr2InteriorLight")
+  @blue.notify
+  @blue.read
+  @blue.persist
+  @type.list("ITr2InteriorLight")
   lights = new BlueList(ITr2InteriorLight);
 
   /** m_maxFogAmount (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   maxFogAmount = 0;
 
   /** m_debugRenderer (Tr2DebugRendererPtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2DebugRenderer")
+  @blue.readwrite
+  @type.rootRef("Tr2DebugRenderer")
   debugRenderer = null;
 
   /** m_visibilityResults (Tr2VisibilityResultsPtr) [READ] */
-  @meta.blue.read
-  @meta.type.rootRef("Tr2VisibilityResults")
+  @blue.read
+  @type.rootRef("Tr2VisibilityResults")
   visibilityResults = null;
 
   /** m_ambientColor (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.readwrite
+  @blue.persist
+  @type.color
   ambientColor = vec4.create();
 
   /** m_optimizeShadows (bool) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @type.boolean
   optimizeShadows = true;
 
   /** m_shadowSize (int) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.int32
+  @blue.notify
+  @blue.readwrite
+  @type.int32
   shadowSize = 1024;
 
   /** m_lightRenderTargets (PTr2RenderTargetVector) [READ] */
-  @meta.blue.read
-  @meta.type.list("Tr2RenderTarget")
+  @blue.read
+  @type.list("Tr2RenderTarget")
   lightRenderTargets = [];
 
   /** m_sunDiffuseColor (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.readwrite
+  @blue.persist
+  @type.color
   sunDiffuseColor = color.createLinear();
 
   /** m_sunDirection (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   sunDirection = vec3.fromValues(0, 0, 1);
 
   /** m_sunSpecularColor (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.readwrite
+  @blue.persist
+  @type.color
   sunSpecularColor = vec4.fromValues(0.8, 0.8, 0.8, 1);
 
   /** m_backgroundCubeMapRes (TriTextureResPtr) [READ] */
-  @meta.blue.read
-  @meta.type.rootRef("TriTextureRes")
+  @blue.read
+  @type.rootRef("TriTextureRes")
   backgroundCubemapRes = null;
 
   /** m_backgroundEffect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2Effect")
   backgroundEffect = null;
 
   /** Carbon method PickObject -> PickObjectOnly (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   PickObject(...args)
   {
@@ -214,7 +214,7 @@ export class Tr2InteriorScene
   }
 
   /** Carbon method AddDynamic (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   AddDynamic(...args)
   {
@@ -222,7 +222,7 @@ export class Tr2InteriorScene
   }
 
   /** Carbon method AddLightSource (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   AddLightSource(...args)
   {
@@ -230,7 +230,7 @@ export class Tr2InteriorScene
   }
 
   /** Carbon method Pick -> PyPick (MAP_METHOD). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   Pick(...args)
   {
@@ -238,7 +238,7 @@ export class Tr2InteriorScene
   }
 
   /** Carbon method PickObjectAndArea -> PyPickObjectAndArea (MAP_METHOD). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   PickObjectAndArea(...args)
   {
@@ -246,7 +246,7 @@ export class Tr2InteriorScene
   }
 
   /** Carbon method PickPointAndObject -> PyInteriorPickPointAndObject (MAP_METHOD). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   PickPointAndObject(...args)
   {
@@ -254,7 +254,7 @@ export class Tr2InteriorScene
   }
 
   /** Carbon method PickObjectUV (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   PickObjectUV(...args)
   {
@@ -262,7 +262,7 @@ export class Tr2InteriorScene
   }
 
   /** Carbon method RebuildSceneData (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   RebuildSceneData(...args)
   {
@@ -270,7 +270,7 @@ export class Tr2InteriorScene
   }
 
   /** Carbon method RemoveDynamic (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   RemoveDynamic(...args)
   {
@@ -278,7 +278,7 @@ export class Tr2InteriorScene
   }
 
   /** Carbon method RemoveLightSource (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   RemoveLightSource(...args)
   {
@@ -286,7 +286,7 @@ export class Tr2InteriorScene
   }
 
   /** Carbon method UpdateScene -> UpdateSceneFromScript (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   UpdateScene(...args)
   {
@@ -297,7 +297,7 @@ export class Tr2InteriorScene
   _lightDepthStencil = null;
 
   /** Native initialization acquires the background, without allocating shadows. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -309,7 +309,7 @@ export class Tr2InteriorScene
    * Applies the native background and shadow member branches. JS coalesces
    * changed names, so a size/count batch rebuilds once using both final values.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(name)
   {
@@ -323,7 +323,7 @@ export class Tr2InteriorScene
    * An empty native path clears the pointer; JS omits that request because its
    * resource manager rejects empty paths. The background effect is unchanged.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetBackgroundCubemapResPath(resMan = be.resMan)
   {
@@ -340,7 +340,7 @@ export class Tr2InteriorScene
    * JS explicitly destroys replaced wrappers instead of releasing BluePtrs.
    * Carbon ignores Create results here; failed wrappers remain visibly invalid.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetupShadowMaps(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {

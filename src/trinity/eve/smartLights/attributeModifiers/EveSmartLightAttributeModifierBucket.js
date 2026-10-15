@@ -1,34 +1,34 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierBucket.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IInitialize, INotify } from "#blue";
 import { EveSmartLightBaseAttributeModifier } from "./EveSmartLightBaseAttributeModifier.js";
 import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttributeModifier.js";
 
 /** EveSmartLightAttributeModifierBucket (eve/smartLights/attributeModifiers) - generated from schema shapeHash cade668b.... */
-@meta.define({ className: "EveSmartLightAttributeModifierBucket", family: "eve/smartLights/attributeModifiers" })
-@meta.blue.interface(IEveSmartLightGroupAttributeModifier, EveSmartLightBaseAttributeModifier, IInitialize, INotify)
+@blue.define("EveSmartLightAttributeModifierBucket")
+@blue.interface(IEveSmartLightGroupAttributeModifier, EveSmartLightBaseAttributeModifier, IInitialize, INotify)
 export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAttributeModifier
 {
 
   /** m_attributeModifiers (PIEveSmartLightGroupAttributeModifierVector) [READ, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("IEveSmartLightGroupAttributeModifier")
+  @blue.notify
+  @blue.read
+  @blue.persist
+  @type.list("IEveSmartLightGroupAttributeModifier")
   attributeModifiers = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "bucket";
 
   /**
    * Toggles the bucket, resetting the children only on an actual state change
    * (EveSmartLightAttributeModifierBucket.cpp:13-21).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetActive(isActive)
   {
@@ -45,7 +45,7 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
    * touching the bucket's own timers
    * (EveSmartLightAttributeModifierBucket.cpp:23-26).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ResetPlayTime(active)
   {
@@ -53,7 +53,7 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
   }
 
   /** Fans the inherited color set out to the child modifiers (EveSmartLightAttributeModifierBucket.cpp:28-34). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetInheritProperties(colorSet)
   {
@@ -67,7 +67,7 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
    * Advances the bucket's crossfade, then updates the children with the
    * compounded multiplier (EveSmartLightAttributeModifierBucket.cpp:36-45).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateSyncronous(updateContext, params, activationMultiplier)
   {
@@ -84,7 +84,7 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
    * Runs the child modifiers with the bucket's per-placement activation
    * strength folded in (EveSmartLightAttributeModifierBucket.cpp:47-55).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ProcessAttributeModifier(attribute, placement, entityPosition, entityDirection, modifierStrength)
   {
@@ -102,7 +102,7 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
    * (EveSmartLightAttributeModifierBucket.cpp:57-67). Carbon BlueCasts to
    * EveSmartLightBaseAttributeModifier; the JS children share that nominal base.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ResetChildren(parentActive = true)
   {

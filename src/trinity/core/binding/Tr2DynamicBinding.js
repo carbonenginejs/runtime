@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2DynamicBinding.h
 // Source: trinity/trinity/Tr2DynamicBinding.cpp
 // Source: trinity/trinity/Tr2DynamicBinding_Blue.cpp
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { IList } from "#blue/IList";
 import { INotify } from "#blue/INotify";
 import { ISimTimeRebaseNotify } from "#blue/ISimTimeRebaseNotify";
@@ -16,29 +16,29 @@ import { TriValueBinding } from "./TriValueBinding.js";
  * Held gap: native constructor/destructor OS rebase registration is absent;
  * callers retain the established explicit-seconds boundary.
  */
-@meta.define({ className: "Tr2DynamicBinding", family: "trinityCore" })
-@meta.blue.inherit(ISimTimeRebaseNotify)
-@meta.blue.interface(INotify)
+@blue.define("Tr2DynamicBinding")
+@blue.inherit(ISimTimeRebaseNotify)
+@blue.interface(INotify)
 export class Tr2DynamicBinding extends INotify
 {
   /** Native name member. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** Native destination object path member. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   destinationObjectPath = "";
 
   /** Native destination object attribute member. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   destinationObjectAttribute = "";
 
   /**
@@ -47,8 +47,8 @@ export class Tr2DynamicBinding extends INotify
    *
    * @returns {object|null} The destination object.
    */
-  @meta.blue.read
-  @meta.type.rootWeak("IRoot")
+  @blue.read
+  @type.rootWeak("IRoot")
   get destination()
   {
     return this._destinationRef ? this._destinationRef.deref() ?? null : null;
@@ -58,8 +58,8 @@ export class Tr2DynamicBinding extends INotify
    * Native readonly endpoint validity property.
    * @returns {boolean} Whether the endpoint is alive.
    */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   @meta.implemented
   get isDestinationValid()
   {
@@ -67,17 +67,17 @@ export class Tr2DynamicBinding extends INotify
   }
 
   /** Native source object path member. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   sourceObjectPath = "";
 
   /** Native source object attribute member. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   sourceObjectAttribute = "";
 
   /**
@@ -86,32 +86,32 @@ export class Tr2DynamicBinding extends INotify
    *
    * @returns {object|null} The source object.
    */
-  @meta.blue.read
-  @meta.type.rootWeak("IRoot")
+  @blue.read
+  @type.rootWeak("IRoot")
   get source()
   {
     return this._sourceRef ? this._sourceRef.deref() ?? null : null;
   }
 
   /** Native scale member. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   scale = 1;
 
   /** Native binding delay member. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.readwrite
+  @blue.persist
+  @type.int32
   bindingDelay = 0;
 
   /**
    * Native readonly endpoint validity property.
    * @returns {boolean} Whether the endpoint is alive.
    */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   @meta.implemented
   get isSourceValid()
   {
@@ -119,8 +119,8 @@ export class Tr2DynamicBinding extends INotify
   }
 
   /** Native binding member. */
-  @meta.blue.read
-  @meta.type.rootRef("TriValueBinding")
+  @blue.read
+  @type.rootRef("TriValueBinding")
   binding = null;
 
   /** Runtime binding time state for the portable binding adapter. */
@@ -153,7 +153,7 @@ export class Tr2DynamicBinding extends INotify
    * @param {number|undefined} [currentFrameTime] Explicit frame time in seconds when supplied.
    * @returns {boolean} Binding result.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Link(currentFrameTime = undefined)
   {
@@ -197,7 +197,7 @@ export class Tr2DynamicBinding extends INotify
    * Adapted: Explicitly detaches the held JavaScript binding destination before dropping it, replacing native reference-counted cleanup.
    * @returns {void} No return value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Unlink()
   {
@@ -217,7 +217,7 @@ export class Tr2DynamicBinding extends INotify
    * @param {object|null} owner Owner supplying GetParameterMap.
    * @returns {void} No return value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetOwner(owner)
   {
@@ -231,7 +231,7 @@ export class Tr2DynamicBinding extends INotify
    * @param {number} time Frame time in seconds.
    * @returns {boolean} Binding result.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(time)
   {
@@ -251,7 +251,7 @@ export class Tr2DynamicBinding extends INotify
    * @param {number} newTime New simulation time in seconds.
    * @returns {void} No return value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnSimClockRebase(oldTime, newTime)
   {
@@ -265,7 +265,7 @@ export class Tr2DynamicBinding extends INotify
    * read-only flag.
    * @returns {boolean} Binding result.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsDestinationValid()
   {
@@ -278,7 +278,7 @@ export class Tr2DynamicBinding extends INotify
    * read-only flag.
    * @returns {boolean} Binding result.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsSourceValid()
   {
@@ -291,7 +291,7 @@ export class Tr2DynamicBinding extends INotify
    * @param {string|null} propertyName Changed member name.
    * @returns {boolean} Binding result.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName)
   {

@@ -2,53 +2,53 @@
 import { IsMatch } from "#blue";
 import { INotify } from "../../../../../global/blue/INotify.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { EveProceduralMethodAttributeMapParameter } from "./EveProceduralMethodAttributeMapParameter.js";
 import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.js";
 
 /** EveProceduralMethodAttributeMap (eve/child/procedural/selection) - generated from schema shapeHash 691cb5f9.... */
-@meta.define({ className: "EveProceduralMethodAttributeMap", family: "eve/child/procedural/selection" })
-@meta.blue.inherit(INotify)
-@meta.blue.interface(IEveProceduralSelectionMethod, INotify)
+@blue.define("EveProceduralMethodAttributeMap")
+@blue.inherit(INotify)
+@blue.interface(IEveProceduralSelectionMethod, INotify)
 export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMethod
 {
 
   _selectedChildModified = false;
 
   /** m_parameters (PEveProceduralMethodAttributeMapParameterVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveProceduralMethodAttributeMapParameter")
+  @blue.read
+  @blue.persist
+  @type.list("EveProceduralMethodAttributeMapParameter")
   parameters = [];
 
   /** m_debugVolumes (PIEveVolumeVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("IEveVolume")
+  @blue.read
+  @blue.persist
+  @type.list("IEveVolume")
   debugVolumes = [];
 
   /** m_mappedAttribute (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   thresholdAttribute = "";
 
   /** m_selectedChildIndex (int) [READ] */
-  @meta.blue.read
-  @meta.type.int32
+  @blue.read
+  @type.int32
   selectedChild = -1;
 
   /** m_seed (BlueSharedString) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @type.string
   seed_temp = "";
 
   /** Carbon EveProceduralMethodAttributeMap::OnModified (cpp:19-27): a seed
    * change reselects. The value argument follows the repo's OnModified duck
    * (field name or field value).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(value = null)
   {
@@ -64,7 +64,7 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
    * first parameter whose name equals the seed string wins; a changed index
    * flags the selected child as modified. Carbon leaves the index untouched
    * when no name matches. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SelectParameter()
   {
@@ -87,7 +87,7 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
 
   /** Carbon EveProceduralMethodAttributeMap::IsSelectedChildModified
    * (cpp:49-52). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsSelectedChildModified()
   {
@@ -98,7 +98,7 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
    * bounds-check the index, clear the modified flag, then hand out the
    * parameter's child ref after loading it - only when it carries a res
    * path. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetSelectedChild()
   {
@@ -125,7 +125,7 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
   /** Carbon EveProceduralMethodAttributeMap::UpdateAsyncronous (cpp:76-91):
    * reselect once any parameter reports itself modified, clearing the flags
    * on the way. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateAsyncronous(_updateContext, _params)
   {
@@ -145,7 +145,7 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
   }
 
   /** Carbon returns the owned volume vector by reference (cpp:93-96). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetDebugVolumes()
   {

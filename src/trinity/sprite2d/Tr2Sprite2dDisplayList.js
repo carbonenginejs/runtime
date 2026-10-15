@@ -2,12 +2,12 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dDisplayList.cpp
 // Carbon's nested Tr2Sprite2dDisplayList::Entry is ported in
 // Tr2Sprite2dDisplayListEntry.js.
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { Tr2BufferAL } from "#trinityal";
 
 /** Carbon's captured UI geometry. Device reset callers must explicitly release it;
  * the native Tr2DeviceResource registration base has not been ported yet. */
-@meta.define({ className: "Tr2Sprite2dDisplayList", family: "sprite2d" })
+@blue.define("Tr2Sprite2dDisplayList")
 export class Tr2Sprite2dDisplayList
 {
   vertexBuffer = new Tr2BufferAL();

@@ -3,7 +3,7 @@
 import { num } from "#math/num";
 import { quat } from "#math/quat";
 import { ITriFunction, ITriQuaternionFunction, ITriCurveLength } from "#blue";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { CcpTime } from "#blue";
 
 
@@ -12,12 +12,9 @@ import { CcpTime } from "#blue";
  * curves, ramping the blend from 0 to 1 over `length` seconds starting at
  * `start` and clamping outside that window.
  */
-@meta.define({
-  className: "Tr2QuaternionLerpCurve",
-  family: "curves"
-})
-@meta.blue.inherit(ITriCurveLength)
-@meta.blue.interface(ITriFunction, ITriQuaternionFunction, ITriCurveLength)
+@blue.define("Tr2QuaternionLerpCurve")
+@blue.inherit(ITriCurveLength)
+@blue.interface(ITriFunction, ITriQuaternionFunction, ITriCurveLength)
 export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
 {
   /**
@@ -25,18 +22,18 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * Be::Time ticks.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float64
+  @blue.readwrite
+  @blue.persist
+  @type.float64
   start = 0;
 
   /**
    * Blend duration in seconds; a nonpositive duration leaves the sampling destination unchanged.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   length = 0;
 
   /**
@@ -44,9 +41,9 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * cannot produce a sample.
    * @type {Float32Array}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   value = quat.create();
 
   /**
@@ -54,9 +51,9 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * sample time.
    * @type {ITriQuaternionFunction|null}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITriQuaternionFunction")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITriQuaternionFunction")
   startCurve = null;
 
   /**
@@ -64,9 +61,9 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * time.
    * @type {ITriQuaternionFunction|null}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITriQuaternionFunction")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITriQuaternionFunction")
   endCurve = null;
 
   /**
@@ -86,7 +83,7 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateValue(time)
   {
@@ -100,7 +97,7 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(time, out)
   {
@@ -116,7 +113,7 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValueAt(time, out)
   {
@@ -171,7 +168,7 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The unchanged destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GetValueDotAt(_time, out)
   {
@@ -184,7 +181,7 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The unchanged destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GetValueDoubleDotAt(_time, out)
   {
@@ -195,7 +192,7 @@ export class Tr2QuaternionLerpCurve extends ITriQuaternionFunction
    * Gets the authored blend duration.
    * @returns {number} Duration in seconds.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Length()
   {

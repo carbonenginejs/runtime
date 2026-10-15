@@ -7,7 +7,7 @@ import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { EveEntity } from "../EveEntity.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import "#consts/graphics/trinityEnums";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { quat } from "#math/quat";
 import { EveChildTransform, applyTransformModifiers } from "./EveChildTransform.js";
 import { mat4 } from "#math/mat4";
@@ -23,10 +23,10 @@ import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmi
 import { CcpTime } from "../../../global/blue/CcpTime.js";
 
 /** A child that hosts particle systems and emitters, driving their transforms, LOD-based particle budgets, and per-frame visibility and render submission. */
-@meta.define({ className: "EveChildParticleSystem", family: "eve/child" })
-@meta.blue.inherit(ITr2Renderable)
-@meta.blue.inherit(IInitialize, INotify)
-@meta.blue.interface(EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IInitialize, INotify)
+@blue.define("EveChildParticleSystem")
+@blue.inherit(ITr2Renderable)
+@blue.inherit(IInitialize, INotify)
+@blue.interface(EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IInitialize, INotify)
 export class EveChildParticleSystem extends EveChildTransform
 {
 
@@ -36,9 +36,9 @@ export class EveChildParticleSystem extends EveChildTransform
    * Local rotation used when rebuilding the child transform from SRT.
    * @type {quat}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotation = quat.create();
 
   /**
@@ -47,9 +47,9 @@ export class EveChildParticleSystem extends EveChildTransform
    * Local position used when rebuilding the child transform from SRT.
    * @type {vec3}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   translation = vec3.create();
 
   /**
@@ -58,15 +58,15 @@ export class EveChildParticleSystem extends EveChildTransform
    * Local scale used when rebuilding the child transform from SRT.
    * @type {vec3}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_localTransform (Matrix) [READWRITE, PERSIST] (EveChildParticleSystem_Blue.cpp:28) */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.mat4
+  @blue.readwrite
+  @blue.persist
+  @type.mat4
   localTransform = mat4.create();
 
   /**
@@ -75,11 +75,11 @@ export class EveChildParticleSystem extends EveChildTransform
    * Reflection policy controlling registration for cubemap rendering.
    * @type {number}
    */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.EntityComponents.ReflectionMode")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.EntityComponents.ReflectionMode")
   reflectionMode = 3;
 
   /**
@@ -88,9 +88,9 @@ export class EveChildParticleSystem extends EveChildTransform
    * Emitters updated with this child's world transform and emission factor.
    * @type {ITr2GenericEmitter[]}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITr2GenericEmitter")
+  @blue.read
+  @blue.persist
+  @type.list("ITr2GenericEmitter")
   particleEmitters = [];
 
   /**
@@ -99,9 +99,9 @@ export class EveChildParticleSystem extends EveChildTransform
    * Particle systems whose transforms, budgets, visibility and simulation this child updates.
    * @type {Tr2ParticleSystem[]}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("Tr2ParticleSystem")
+  @blue.read
+  @blue.persist
+  @type.list("Tr2ParticleSystem")
   particleSystems = [];
 
   /**
@@ -110,9 +110,9 @@ export class EveChildParticleSystem extends EveChildTransform
    * Modifiers applied to the child transform during asynchronous updates.
    * @type {IEveChildTransformModifier[]}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("IEveChildTransformModifier")
+  @blue.read
+  @blue.persist
+  @type.list("IEveChildTransformModifier")
   transformModifiers = [];
 
   /**
@@ -121,10 +121,10 @@ export class EveChildParticleSystem extends EveChildTransform
    * Whether the child participates in visibility and render submission.
    * @type {boolean}
    */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   display = true;
 
   /**
@@ -133,9 +133,9 @@ export class EveChildParticleSystem extends EveChildTransform
    * Authored name returned by GetName.
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /**
@@ -144,9 +144,9 @@ export class EveChildParticleSystem extends EveChildTransform
    * Instanced mesh supplying particle geometry and local bounds.
    * @type {Tr2InstancedMesh|null}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2InstancedMesh")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2InstancedMesh")
   mesh = null;
 
   /**
@@ -155,9 +155,9 @@ export class EveChildParticleSystem extends EveChildTransform
    * Maximum particle count allowed per system at low LOD.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   lodClampLow = 5;
 
   /**
@@ -166,9 +166,9 @@ export class EveChildParticleSystem extends EveChildTransform
    * Local radius of the sphere used to estimate screen size for LOD visibility.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   lodSphereRadius = 0;
 
   /**
@@ -177,9 +177,9 @@ export class EveChildParticleSystem extends EveChildTransform
    * Whether LOD changes adjust each system's maximum particle count.
    * @type {boolean}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   useDynamicLod = false;
 
   /**
@@ -188,9 +188,9 @@ export class EveChildParticleSystem extends EveChildTransform
    * Fraction of each system's original particle budget used at low LOD before clamping.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   lodFactorLow = 0.125;
 
   /**
@@ -199,9 +199,9 @@ export class EveChildParticleSystem extends EveChildTransform
    * Fraction of each system's original particle budget used at medium LOD.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   lodFactorMedium = 0.25;
 
   /**
@@ -210,9 +210,9 @@ export class EveChildParticleSystem extends EveChildTransform
    * Minimum projected size for visibility, scaled by the update context's LOD factor.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   minScreenSize = 0;
 
   /**
@@ -221,8 +221,8 @@ export class EveChildParticleSystem extends EveChildTransform
    * Most recent projected LOD-sphere size, or -1 when the initial visibility gate rejects the child.
    * @type {number}
    */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   currentScreenSize = -1;
 
   /**
@@ -266,7 +266,7 @@ export class EveChildParticleSystem extends EveChildTransform
   _hasUpdated = false;
 
   /** Rebuilds static local transforms (EveChildParticleSystem.cpp:43-50). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -281,7 +281,7 @@ export class EveChildParticleSystem extends EveChildTransform
    * Carbon re-registers the renderable component when m_reflectionMode or
    * m_display change (EveChildParticleSystem.cpp:71-78).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(value)
   {
@@ -295,7 +295,7 @@ export class EveChildParticleSystem extends EveChildTransform
   /**
    * The particle system child's name.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetName()
   {
@@ -305,7 +305,7 @@ export class EveChildParticleSystem extends EveChildTransform
   /**
    * Sets the particle system child's name, coercing the value to a string.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -313,7 +313,7 @@ export class EveChildParticleSystem extends EveChildTransform
   }
 
   /** Forwards to the base transform setup (EveChildParticleSystem.cpp:95-98). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Setup(scale = null, rotation = null, translation = null, lowestLodVisible = null)
   {
@@ -325,7 +325,7 @@ export class EveChildParticleSystem extends EveChildTransform
    * sphere, then per-system view-dependent updates
    * (EveChildParticleSystem.cpp:100-121).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateVisibility(updateContext, _parentTransform, _parentLod)
   {
@@ -353,7 +353,7 @@ export class EveChildParticleSystem extends EveChildTransform
    * Stateless visibility probe used by the entity layer
    * (EveChildParticleSystem.cpp:123-127).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsVisible(updateContext)
   {
@@ -367,7 +367,7 @@ export class EveChildParticleSystem extends EveChildTransform
    * (EveChildParticleSystem.cpp:130-143).
    * Adapted: returns the caller-owned array for JS chaining; Carbon returns void.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetRenderables(renderables = [])
   {
@@ -384,7 +384,7 @@ export class EveChildParticleSystem extends EveChildTransform
   }
 
   /** Copies the world-space mesh bound when built (EveChildParticleSystem.cpp:145-153). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBoundingSphere(out = vec4.create(), _query = 0)
   {
@@ -399,7 +399,7 @@ export class EveChildParticleSystem extends EveChildTransform
   /**
    * Whether the assigned mesh has transparent areas, when the child is displayed and a mesh is set.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasTransparentBatches()
   {
@@ -417,7 +417,7 @@ export class EveChildParticleSystem extends EveChildTransform
    * Adapted: Returns whether JavaScript mesh delegation committed a batch; Carbon's void
    * method exposes no result.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBatches(batches, batchType, perObjectData, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
@@ -447,7 +447,7 @@ export class EveChildParticleSystem extends EveChildTransform
    * Adapted: Carbon reads the Tr2Renderer view-position global; the relocated camera state
    * arrives via the threaded render context.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetSortValue(renderContext = null)
   {
@@ -466,7 +466,7 @@ export class EveChildParticleSystem extends EveChildTransform
    * accumulator's store and Sets logical values by name (the store transposes per the engine
    * layout).
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetPerObjectData(accumulator)
   {
@@ -483,7 +483,7 @@ export class EveChildParticleSystem extends EveChildTransform
   }
 
   /** Carbon's synchronous pass is empty (EveChildParticleSystem.cpp:197-199). */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   UpdateSyncronous(_updateContext, _params)
   {
@@ -501,8 +501,8 @@ export class EveChildParticleSystem extends EveChildTransform
    * Adapted: Renderer-global frustum state is read from the update context, and
    * emitter/system updates use the backend-neutral argument record.
    */
-  @meta.blue.method
-  @meta.blue.contextual(["camera"])
+  @blue.method
+  @blue.contextual(["camera"])
   @meta.adapted
   UpdateAsyncronous(updateContext, params)
   {
@@ -593,7 +593,7 @@ export class EveChildParticleSystem extends EveChildTransform
    * @param {mat4} out - receives the transform
    * @returns {mat4} out
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLocalToWorldTransform(out)
   {
@@ -604,7 +604,7 @@ export class EveChildParticleSystem extends EveChildTransform
    * Clamps each system's particle budget when the parent's LOD changed
    * (EveChildParticleSystem.cpp:295-318).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ChangeLOD(lod)
   {
@@ -629,7 +629,7 @@ export class EveChildParticleSystem extends EveChildTransform
   }
 
   /** Carbon method AddTransformModifier (EveChildParticleSystem.cpp:344-347). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddTransformModifier(modifier)
   {
@@ -639,7 +639,7 @@ export class EveChildParticleSystem extends EveChildTransform
   /** Carbon EveChildParticleSystem::RegisterComponents (cpp:58-68):
    * ReflectionRenderable leaf self-registration behind ShouldReflect (Carbon
    * redundantly re-checks m_display inside the outer display gate). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterComponents()
   {

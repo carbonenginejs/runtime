@@ -415,4 +415,4 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
   }
 }
 
-CjsSchema.define(Tr2ShaderProgramALWebgl2, { className: "Tr2ShaderProgramALWebgl2", carbon: "Tr2ShaderProgramAL" });
+CjsSchema.blue.define(Tr2ShaderProgramALWebgl2, { className: "Tr2ShaderProgramALWebgl2", donors: [ "Tr2ShaderProgramAL" ] });

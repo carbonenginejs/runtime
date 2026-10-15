@@ -30,7 +30,7 @@
 // - `fetch`: a WHATWG fetch.
 // - `md5`: bytes to a lowercase hex digest. Runtime computes no digests
 //   (`global/utils/resFile.js`), so a host that verifies supplies one.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { normalizeResPath } from "#utils/path";
 import { BlueResFileSystemForm } from "./IBlueResFileSystem.js";
 
@@ -518,23 +518,21 @@ export class RemoteFileCache
   }
 }
 
-CjsSchema.define(RemoteFileCache, {
+CjsSchema.blue.define(RemoteFileCache, {
   className: "RemoteFileCache",
-  carbon: "RemoteFileCache",
-  family: "blue",
   fields: {},
   methods: {
-    DownloadFileIndex: [ meta.blue.method, meta.adapted ],
-    AddFileIndex: [ meta.blue.method, meta.implemented ],
-    SetCacheFolder: [ meta.blue.method, meta.implemented ],
-    SetServer: [ meta.blue.method, meta.implemented ],
-    SetPrefix: [ meta.blue.method, meta.implemented ],
+    DownloadFileIndex: [ blue.method, meta.adapted ],
+    AddFileIndex: [ blue.method, meta.implemented ],
+    SetCacheFolder: [ blue.method, meta.implemented ],
+    SetServer: [ blue.method, meta.implemented ],
+    SetPrefix: [ blue.method, meta.implemented ],
     GetStreamFromPath: [ meta.renamed("GetStreamFromPathW"), meta.adapted ],
-    FileExists: [ meta.blue.method, meta.implemented ],
-    IsCachedLocally: [ meta.blue.method, meta.adapted ],
-    GetLocallyCachedName: [ meta.blue.method, meta.implemented ],
-    IsDirectory: [ meta.blue.method, meta.implemented ],
-    ListDir: [ meta.blue.method, meta.adapted ],
-    RegisterOnServerFailedCallback: [ meta.blue.method, meta.implemented ]
+    FileExists: [ blue.method, meta.implemented ],
+    IsCachedLocally: [ blue.method, meta.adapted ],
+    GetLocallyCachedName: [ blue.method, meta.implemented ],
+    IsDirectory: [ blue.method, meta.implemented ],
+    ListDir: [ blue.method, meta.adapted ],
+    RegisterOnServerFailedCallback: [ blue.method, meta.implemented ]
   }
 });

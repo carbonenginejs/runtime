@@ -1,4 +1,4 @@
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /**
@@ -8,23 +8,23 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
  * source evidence even when no typed catalog projection exists; typed
  * projections are additive, never replacements.
  */
-@meta.define({ className: "CjsCharacterDefinition", family: "character" })
+@meta.define("CjsCharacterDefinition")
 export class CjsCharacterDefinition extends CjsCharacterRecord
 {
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.path
+    @blue.readwrite
+    @blue.persist
+    @type.path
     sourcePath = "";
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     extension = "";
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.unknown
+    @blue.readwrite
+    @blue.persist
+    @type.unknown
     values = null;
 
 }

@@ -1,4 +1,4 @@
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { CjsWebGLProbe } from "./CjsWebGLProbe.js";
 import { ResolveDeviceRequirements } from "./deviceLimits.js";
 import { ResolveEffectPath } from "#utils/effectPath";
@@ -82,7 +82,7 @@ const CAPABILITY_NAMES = Object.freeze(Object.fromEntries(
 // the backend about the shading language rather than read this name.
 
 /** Browser feature report replacing Carbon's compile-time platform macros. */
-@meta.define({ className: "Tr2PlatformInfo", family: "trinityCore" })
+@blue.define("Tr2PlatformInfo")
 export class Tr2PlatformInfo
 {
     static StaticCap = PlatformStaticCap;

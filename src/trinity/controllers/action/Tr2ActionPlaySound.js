@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlaySound.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlaySound.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlaySound_Blue.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
@@ -9,38 +9,35 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
  * Controller action that fires a one-shot audio event on a named emitter when
  * the action starts; it has no stop behaviour.
  */
-@meta.define({
-  className: "Tr2ActionPlaySound",
-  family: "controllers"
-})
+@blue.define("Tr2ActionPlaySound")
 export class Tr2ActionPlaySound extends ITr2ControllerAction
 {
   /** m_emitterName: narrow BlueSharedString emitter lookup name. */
   @meta.member("emitter")
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   emitter = "";
 
   /** m_soundEvent: narrow BlueSharedString, converted to wide text by native SendEvent. */
   @meta.member("event")
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   event = "";
 
   /** m_target: optional parameter or effect-child name. */
   @meta.member("target")
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   target = "";
 
   /** m_bypassPrefix: whether SendEvent bypasses the emitter prefix. */
   @meta.member("bypassPrefix")
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   bypassPrefix = false;
 
   /**
@@ -52,7 +49,7 @@ export class Tr2ActionPlaySound extends ITr2ControllerAction
    * strings replace the native narrow-to-wide conversion, and absent owners
    * remain silent rather than emitting the native diagnostic.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Start(controller)
   {
@@ -71,7 +68,7 @@ export class Tr2ActionPlaySound extends ITr2ControllerAction
    * timeline controllers. Native BluePythonCast accepts Tr2Controller specifically
    * (Tr2ActionPlaySound.cpp:52-61); narrowing this entry point is deferred.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   StartWithController(controller)
   {
@@ -108,4 +105,4 @@ export class Tr2ActionPlaySound extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionPlaySound_Blue.cpp:13-14,25).
-meta.blue.interface(ITr2ControllerAction)(Tr2ActionPlaySound);
+blue.interface(ITr2ControllerAction)(Tr2ActionPlaySound);

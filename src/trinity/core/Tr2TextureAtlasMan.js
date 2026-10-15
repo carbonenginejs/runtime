@@ -4,17 +4,17 @@
 // Hand-maintained port. Carbon guards `m_atlases` with a mutex because
 // `FindAtlas` may run on a loading thread; JavaScript runs this single-threaded,
 // so the mutex has nothing to guard and is not ported.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2TextureAtlas } from "./Tr2TextureAtlas.js";
 
 /** Holds texture atlases and finds one for a given pixel format. */
-@meta.define({ className: "Tr2TextureAtlasMan", family: "trinityCore", purpose: "Holds texture atlases and finds one for a given pixel format." })
+@blue.define({ className: "Tr2TextureAtlasMan", purpose: "Holds texture atlases and finds one for a given pixel format." })
 export class Tr2TextureAtlasMan
 {
 
   /** m_atlases (PTr2TextureAtlasVectorRO) [READ] */
-  @meta.blue.read
-  @meta.type.list("Tr2TextureAtlas")
+  @blue.read
+  @type.list("Tr2TextureAtlas")
   atlases = [];
 
   /**
@@ -52,7 +52,7 @@ export class Tr2TextureAtlasMan
    * @param {number} height Atlas height.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddAtlas(fmt, width, height)
   {
@@ -72,7 +72,7 @@ export class Tr2TextureAtlasMan
    * @param {number} fmt A `PixelFormat` value.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RemoveAtlas(fmt)
   {

@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Shader/Tr2EffectStateManager.h
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2BufferAL } from "../../trinityal/Tr2BufferAL/index.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 //
@@ -312,16 +312,16 @@ function failState(message)
 }
 
 /** Tracks the portable render, stream, buffer, viewport, and override state used while applying an effect, owns the process-wide shader, shader-program and render-state registration tables its handle fields index, and filters redundant binds out of the Apply* surface that carries those handles to the abstraction layer. */
-@meta.define({ className: "Tr2EffectStateManager", family: "shader" })
+@blue.define("Tr2EffectStateManager")
 export class Tr2EffectStateManager
 {
 
   /** m_renderContext (Tr2RenderContext&) */
-  @meta.type.rawStruct("Tr2RenderContext")
+  @type.rawStruct("Tr2RenderContext")
   renderContext = null;
 
   /** m_perObjectConstantBuffers (Tr2ConstantBufferAL) */
-  @meta.type.rawStruct("Tr2ConstantBufferAL")
+  @type.rawStruct("Tr2ConstantBufferAL")
   perObjectConstantBuffers = null;
 
   // Carbon's CurrentValues and RenderStates are PRIVATE nested structs
@@ -376,27 +376,27 @@ export class Tr2EffectStateManager
   #overrides = { invertedDepthTest: false, invertedCullMode: false, wireframe: false };
 
   /** m_renderTargetWidth (int) */
-  @meta.type.int32
+  @type.int32
   renderTargetWidth = 0;
 
   /** m_renderTargetHeight (int) */
-  @meta.type.int32
+  @type.int32
   renderTargetHeight = 0;
 
   /** m_viewport (CTriViewport) */
-  @meta.type.rawStruct("CTriViewport")
+  @type.rawStruct("CTriViewport")
   viewport = null;
 
   /** m_viewportOnDevice (Tr2Viewport) */
-  @meta.type.rawStruct("Tr2Viewport")
+  @type.rawStruct("Tr2Viewport")
   viewportOnDevice = null;
 
   /** m_viewportStack (std::list<CTriViewport>) */
-  @meta.type.rawStruct("std::list<CTriViewport>")
+  @type.rawStruct("std::list<CTriViewport>")
   viewportStack = null;
 
   /** m_viewportSizeVar (Tr2Variable) */
-  @meta.type.rawStruct("Tr2Variable")
+  @type.rawStruct("Tr2Variable")
   viewportSizeVar = null;
 
   static RenderingMode = RenderingMode;

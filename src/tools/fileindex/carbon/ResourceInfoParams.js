@@ -13,4 +13,4 @@ export class ResourceInfoParams
     prefix = "";
 }
 
-CjsSchema.define(ResourceInfoParams, { className: "ResourceInfoParams", carbon: "ResourceInfoParams", family: "tools", fields: {} });
+CjsSchema.blue.define(ResourceInfoParams, { className: "ResourceInfoParams", fields: {} });

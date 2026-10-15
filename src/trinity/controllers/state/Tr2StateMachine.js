@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Tr2StateMachine.h
 // Source: trinity/trinity/Controllers/Tr2StateMachine.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { UnlinkReason } from "../enums.js";
 import { IsMatch, be, BlueList, IListNotify, ISimTimeRebaseNotify, INotify, CcpTime, CjsBlueClasses } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -14,12 +14,9 @@ import { Tr2StateMachineState } from "./Tr2StateMachineState.js";
  * change. Its typed BlueList reports explicit list operations to this owner;
  * raw array operations bypass admission and notification.
  */
-@meta.define({
-  className: "Tr2StateMachine",
-  family: "controllers"
-})
-@meta.blue.inherit(IListNotify, ISimTimeRebaseNotify, INotify)
-@meta.blue.interface(IListNotify, INotify)
+@blue.define("Tr2StateMachine")
+@blue.inherit(IListNotify, ISimTimeRebaseNotify, INotify)
+@blue.interface(IListNotify, INotify)
 export class Tr2StateMachine
 {
   /**
@@ -27,9 +24,9 @@ export class Tr2StateMachine
    * notify this machine so it can maintain state linkage.
    * @type {BlueList}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("Tr2StateMachineState")
+  @blue.read
+  @blue.persist
+  @type.list("Tr2StateMachineState")
   states = new BlueList(Tr2StateMachineState, { className: "Tr2StateMachineState", listOps: 0 });
 
   /**
@@ -37,8 +34,8 @@ export class Tr2StateMachine
    * This reference is not persisted with the authored machine.
    * @type {Tr2StateMachineState|null}
    */
-  @meta.blue.read
-  @meta.type.rootRef("Tr2StateMachineState")
+  @blue.read
+  @type.rootRef("Tr2StateMachineState")
   currentState = null;
 
   /**
@@ -46,19 +43,19 @@ export class Tr2StateMachine
    * restarts the machine; it refers to the state itself rather than a copy.
    * @type {Tr2StateMachineState|null}
    */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2StateMachineState")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2StateMachineState")
   startState = null;
 
   /**
    * Authored identifier for this state machine within a controller.
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   _controller = null;
@@ -90,7 +87,7 @@ export class Tr2StateMachine
    * @param {IList|null} [list=this.states] Emitting list identity.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = this.states)
   {
@@ -128,7 +125,7 @@ export class Tr2StateMachine
    * @param {string} propertyName Exposed member name.
    * @returns {boolean} True after the notification is handled.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName)
   {
@@ -142,7 +139,7 @@ export class Tr2StateMachine
    * @param {number} newTime Replacement simulation time in Blue ticks.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnSimClockRebase(oldTime, newTime)
   {
@@ -160,7 +157,7 @@ export class Tr2StateMachine
    * @param {Tr2Controller} controller Controller owning this machine.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Link(controller)
   {
@@ -177,7 +174,7 @@ export class Tr2StateMachine
    * @param {number} [reason=UnlinkReason.UNLINKING] Native unlink reason.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Unlink(reason = UnlinkReason.UNLINKING)
   {
@@ -201,7 +198,7 @@ export class Tr2StateMachine
    * Adapted: BigInt preserves the native all-bits uint64 dirty mask.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Start()
   {
@@ -225,7 +222,7 @@ export class Tr2StateMachine
    * Stops the current state.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Stop()
   {
@@ -244,7 +241,7 @@ export class Tr2StateMachine
    * @param {bigint} [dirtyVariables=0n] Variables changed by the controller.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(dirtyVariables = 0n)
   {
@@ -258,7 +255,7 @@ export class Tr2StateMachine
    * Gets the linked controller.
    * @returns {Tr2Controller|null} Linked controller, or null while unlinked.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetController()
   {
@@ -291,7 +288,7 @@ export class Tr2StateMachine
    * @param {string} name Authored state name.
    * @returns {Tr2StateMachineState|null} Matching state, or null when absent.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetStateByName(name)
   {
@@ -303,7 +300,7 @@ export class Tr2StateMachine
    * difference in ticks, converted with TimeAsFloat (`Tr2StateMachine.cpp:206-209`).
    * @returns {number} Elapsed seconds, or zero when the timestamp is zero.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetMachineRunTime()
   {
@@ -314,7 +311,7 @@ export class Tr2StateMachine
    * Gets seconds since the current state started (`Tr2StateMachine.cpp:211-214`).
    * @returns {number} Elapsed seconds, or zero when the timestamp is zero.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetStateRunTime()
   {
@@ -340,7 +337,7 @@ export class Tr2StateMachine
    * @param {bigint} dirtyVariables Variables changed for the first transition.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   _FollowTransitions(dirtyVariables)
   {

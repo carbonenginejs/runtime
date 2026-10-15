@@ -1,15 +1,15 @@
 // Source: trinity/trinity/Particle/Tr2DynamicEmitter.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IsMatch, IInitialize, INotify } from "#blue";
 import { hasUnboundParticleElements } from "../element/particleElementBinding.js";
 import { ITr2GenericEmitterUpdateArguments, ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 
 /** A continuous-rate particle emitter that binds attribute generators to a particle system and spawns particles over time from an accumulated emission rate. */
-@meta.define({ className: "Tr2DynamicEmitter", family: "particle" })
-@meta.blue.inherit(IInitialize)
-@meta.blue.inherit(INotify)
-@meta.blue.interface(ITr2GenericEmitter, INotify, IInitialize)
+@blue.define("Tr2DynamicEmitter")
+@blue.inherit(IInitialize)
+@blue.inherit(INotify)
+@blue.interface(ITr2GenericEmitter, INotify, IInitialize)
 export class Tr2DynamicEmitter extends ITr2GenericEmitter
 {
 
@@ -24,39 +24,39 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   #lastUpdate = 0;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_isValid (bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   isValid = false;
 
   /** m_generators (PITr2AttributeGeneratorVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITr2AttributeGenerator")
+  @blue.read
+  @blue.persist
+  @type.list("ITr2AttributeGenerator")
   generators = [];
 
   /** m_maxParticles (int32_t) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.readwrite
+  @blue.persist
+  @type.int32
   maxParticles = -1;
 
   /** m_rate (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   rate = 0;
 
   /** m_particleSystem (Tr2ParticleSystemPtr) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2ParticleSystem")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2ParticleSystem")
   particleSystem = null;
 
   /**
@@ -65,7 +65,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
    * Adapted: Browser attribute generators bind directly to the CPU particle-system adapter
    * rather than native declaration pointers.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Rebind()
   {
@@ -94,7 +94,7 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   }
 
   /** Carbon method UpdateSimulation (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateSimulation(dt)
   {

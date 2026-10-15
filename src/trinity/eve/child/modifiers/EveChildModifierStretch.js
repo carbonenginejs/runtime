@@ -4,7 +4,7 @@
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 
 /**
@@ -12,12 +12,12 @@ import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
  * position to a destination point, scaling it to the stretch length and centring
  * it on the midpoint.
  */
-@meta.define({ className: "EveChildModifierStretch", family: "eve/child/modifiers" })
+@blue.define("EveChildModifierStretch")
 export class EveChildModifierStretch extends IEveChildTransformModifier
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITriVectorFunction")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITriVectorFunction")
   dest = null;
 
   /** m_destPosition - runtime fallback endpoint fed via SetDestPosition. */
@@ -40,7 +40,7 @@ export class EveChildModifierStretch extends IEveChildTransformModifier
    * @param {Float32Array} out - caller-owned; receives the result
    * @returns {Float32Array} out
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ApplyTransform(context, transform, _boneCount = 0, _bones = null, out)
   {
@@ -69,7 +69,7 @@ export class EveChildModifierStretch extends IEveChildTransformModifier
    * endpoint; a nullish value clears it and leaves the SetDestPosition fallback
    * in effect.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetDest(dest)
   {
@@ -80,7 +80,7 @@ export class EveChildModifierStretch extends IEveChildTransformModifier
    * Copies the fallback stretch endpoint used when no destination vector
    * function is bound, or before one yields a value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetDestPosition(destPosition)
   {

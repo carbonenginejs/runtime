@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/UI/EveTacticalTrails.h
 // Source: trinity/trinity/Eve/UI/EveTacticalTrails.cpp
 // Hand-maintained after promotion from generated schema intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { CcpTime } from "#blue";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -43,8 +43,8 @@ const LINE_VERTEX_BYTES = TRAIL_VERTEX_DEFINITION.nextOffset[0];
  * Carbon's EveTacticalTrails: fading trails behind registered objects (destiny balls), sampled each frame as control
  * points relative to the ego ball and drawn as a strip of quads with connectors, transparent under RM_ALPHA.
  */
-@meta.define({ className: "EveTacticalTrails", family: "eve/ui" })
-@meta.blue.inherit(ITr2Renderable, IEveSpaceObject2)
+@blue.define("EveTacticalTrails")
+@blue.inherit(ITr2Renderable, IEveSpaceObject2)
 export class EveTacticalTrails
 {
   /** m_vertexDeclHandle, interned on first need. */
@@ -60,29 +60,29 @@ export class EveTacticalTrails
   _egoBallPosition = new Float64Array(3); // alloc: Carbon Vector3d; no double-precision math type
 
   /** m_trackedObjects: { ball: WeakRef (Carbon's BlueWeakRef) or null, positions: [ { position, time } ] }. */
-  @meta.type.list("EveTacticalTrailTrackedObject")
+  @type.list("EveTacticalTrailTrackedObject")
   trackedObjects = [];
 
   /** m_segmentCount (uint32_t) [READ] */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   segments = 0;
 
   /** m_egoBall (ITriVectorFunctionPtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("ITriVectorFunction")
+  @blue.readwrite
+  @type.rootRef("ITriVectorFunction")
   egoBall = null;
 
   /** m_trailEffect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2Effect")
   trailEffect = null;
 
   /** m_fadeOutTime (float) [READWRITE, PERSIST]: seconds for a trail to fade out. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   fadeOutTime = 5;
 
   /** Registers the device-resource lifetime, as Carbon's Tr2DeviceResource base does. */
@@ -92,7 +92,7 @@ export class EveTacticalTrails
   }
 
   /** Carbon ReleaseResources (cpp:73-76): drops the interned declaration; the buffer is kept. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ReleaseResources(_storage)
   {
@@ -126,7 +126,7 @@ export class EveTacticalTrails
    * Carbon RegisterObject (cpp:84-102): tracks a ball that will leave a trail as it moves. A null object or one
    * already tracked is logged and ignored. The ball is held weakly, as Carbon's BlueWeakRef holds it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterObject(object)
   {
@@ -145,7 +145,7 @@ export class EveTacticalTrails
   }
 
   /** Carbon UnregisterObject (cpp:104-111): stops tracking a ball; its trail fades out first. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UnregisterObject(object)
   {
@@ -160,7 +160,7 @@ export class EveTacticalTrails
    * back, or the last segment is over 10 km long; otherwise it moves the last point. Finally it samples the ego ball
    * and rebuilds the vertices.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateSyncronous(updateContext)
   {
@@ -299,14 +299,14 @@ export class EveTacticalTrails
   }
 
   /** Carbon UpdateAsyncronous (cpp:261-263): nothing to do. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateAsyncronous(_updateContext)
   {
   }
 
   /** Carbon UpdateVisibility (cpp:265-267): nothing to do; the trails are never culled. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateVisibility(_updateContext, _parentTransform)
   {
@@ -321,7 +321,7 @@ export class EveTacticalTrails
   }
 
   /** Carbon GetBoundingSphere (cpp:274-277): the trails have none. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBoundingSphere(_sphere, _query = 0)
   {
@@ -329,7 +329,7 @@ export class EveTacticalTrails
   }
 
   /** Carbon UpdateModelCenterWorldPosition (cpp:279-282): the origin. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateModelCenterWorldPosition(position, _time)
   {
@@ -337,7 +337,7 @@ export class EveTacticalTrails
   }
 
   /** Carbon GetModelCenterWorldPosition (cpp:284-287): the origin. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetModelCenterWorldPosition(position)
   {
@@ -345,7 +345,7 @@ export class EveTacticalTrails
   }
 
   /** Carbon GetLocalBoundingBox (cpp:289-292): the trails have none. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLocalBoundingBox(_min, _max)
   {
@@ -353,7 +353,7 @@ export class EveTacticalTrails
   }
 
   /** Carbon GetLocalToWorldTransform (cpp:294-297): the identity. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLocalToWorldTransform(transform)
   {
@@ -364,7 +364,7 @@ export class EveTacticalTrails
    * Carbon GetBatches (cpp:299-317): transparent only; with segments, a vertex buffer and a declaration, one draw of
    * twelve vertices per segment under RM_ALPHA.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBatches(batches, batchType, perObjectData, _reason)
   {
@@ -381,7 +381,7 @@ export class EveTacticalTrails
   }
 
   /** Carbon EveTacticalTrails::HasTransparentBatches is always true (cpp:319-322). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasTransparentBatches()
   {
@@ -389,7 +389,7 @@ export class EveTacticalTrails
   }
 
   /** Carbon EveTacticalTrails::GetSortValue is zero (cpp:324-327). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetSortValue()
   {
@@ -397,7 +397,7 @@ export class EveTacticalTrails
   }
 
   /** Carbon EveTacticalTrails::GetPerObjectData returns null (cpp:329-332). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPerObjectData(_accumulator)
   {

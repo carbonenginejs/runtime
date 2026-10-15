@@ -2,56 +2,56 @@
 import { IsMatch } from "#blue";
 import { INotify } from "../../../../global/blue/INotify.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 
 /** Gates a nested set of distribution spawners from a named controller variable. */
-@meta.define({ className: "EveDistributionSpawnerControllerTrigger", family: "eve/distribution/spawners" })
-@meta.blue.inherit(INotify)
-@meta.blue.interface(IEveDistributionSpawner, INotify)
+@blue.define("EveDistributionSpawnerControllerTrigger")
+@blue.inherit(INotify)
+@blue.interface(IEveDistributionSpawner, INotify)
 export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpawner
 {
 
   /** m_variableName (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   variableName = "";
 
   /** m_value (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   value = 0;
 
   /** m_invertReceivedValue (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   invertTrigger = false;
 
   /** m_isActive (bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   isActive = false;
 
   /** m_distributionSpawners (PIEveDistributionSpawnerVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("IEveDistributionSpawner")
+  @blue.read
+  @blue.persist
+  @type.list("IEveDistributionSpawner")
   spawners = [];
 
   /** m_restartOnReceivingValue (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   restartOnReceivingValue = false;
 
   /**
    * Restarts the wrapped spawners; the placement pool is not used by this
    * trigger.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Reset(_placements)
   {
@@ -59,7 +59,7 @@ export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpa
   }
 
   /** Restarts every wrapped spawner, leaving the active state untouched. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Restart()
   {
@@ -73,7 +73,7 @@ export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpa
    * Re-evaluates the active state when the `value` property is written directly
    * rather than through a controller.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(name)
   {
@@ -85,7 +85,7 @@ export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpa
   }
 
   /** Ticks the wrapped spawners only while the trigger is active. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateSyncronous(updateContext, params, owner)
   {
@@ -104,7 +104,7 @@ export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpa
    * Adopts the value when the name matches this trigger's variable and
    * re-evaluates the active state; other names are ignored.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetControllerVariable(name, value)
   {

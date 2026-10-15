@@ -69,7 +69,7 @@ test("every class name used in a path label names a registered class", () =>
       if (entry.isDirectory()) walk(full);
       else if (entry.name.endsWith(".js"))
       {
-        for (const match of readFileSync(full, "utf8").matchAll(/@meta\.type\.w?path\(([^)]*)\)/g))
+        for (const match of readFileSync(full, "utf8").matchAll(/@(?:meta\.)?type\.w?path\(([^)]*)\)/g))
         {
           for (const name of match[1].match(/"([A-Z][A-Za-z0-9_]*)"/g) ?? [])
           {

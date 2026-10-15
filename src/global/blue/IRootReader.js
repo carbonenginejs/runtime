@@ -33,4 +33,4 @@ for (const method of [ "ReadFromStream", "ReadForCachingFromStream", "SetFileNam
   CjsSchema.decorateMethod(IRootReader, method, meta.requires, meta.abstract);
 }
 
-CjsSchema.define(IRootReader, { className: "IRootReader", carbon: "IRootReader", family: "blue", fields: {} });
+CjsSchema.blue.define(IRootReader, { className: "IRootReader", fields: {} });

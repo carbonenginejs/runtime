@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Particle/Tr2SphereShapeAttributeGenerator.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { ITr2AttributeGenerator } from "./ITr2AttributeGenerator.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -8,7 +8,7 @@ import { bindParticleElement } from "../element/particleElementBinding.js";
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
 
 /** Generates particle position and velocity offsets sampled within a rotated spherical cone and radius range. */
-@meta.define({ className: "Tr2SphereShapeAttributeGenerator", family: "particle" })
+@blue.define("Tr2SphereShapeAttributeGenerator")
 export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
 {
 
@@ -17,92 +17,92 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
   #velocityElement = null;
 
   /** m_minPhi (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   minPhi = 0;
 
   /** m_maxPhi (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   maxPhi = 360;
 
   /** m_minTheta (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   minTheta = 0;
 
   /** m_maxTheta (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   maxTheta = 360;
 
   /** m_distributionExponent (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   distributionExponent = 1;
 
   /** m_controlPosition (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   controlPosition = true;
 
   /** m_controlVelocity (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   controlVelocity = true;
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotation = quat.create();
 
   /** m_position (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   position = vec3.create();
 
   /** m_parentVelocityFactor (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   parentVelocityFactor = 1;
 
   /** m_maxSpeed (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   maxSpeed = 0;
 
   /** m_minSpeed (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   minSpeed = 0;
 
   /** m_maxRadius (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   maxRadius = 0;
 
   /** m_minRadius (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   minRadius = 0;
 
   /** m_valid (bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   valid = false;
 
   /**

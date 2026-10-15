@@ -6,7 +6,7 @@ import { ITr2Sprite2dTexture } from "./ITr2Sprite2dTexture.js";
 // Imported for the listener set's JSDoc type and so the interface is in the build graph.
 import { ITr2Sprite2dTextureNotifyTarget } from "./ITr2Sprite2dTextureNotifyTarget.js";
 import { ITr2AtlasTextureNotifyTarget } from "../core/ITr2AtlasTextureNotifyTarget.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IInitialize, INotify } from "#blue";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
@@ -18,57 +18,57 @@ import { Tr2Sprite2dTextureSettings } from "../generated/sprite2d/enums.js";
  * Atlas resource acquisition remains unported; Apply uses the native scene
  * contract, whose GPU renderer is a separate unfinished implementation.
  */
-@meta.define({ className: "Tr2Sprite2dTexture", family: "sprite2d", purpose: "Describes a named 2D texture transform around separate rotation and scaling centers." })
-@meta.blue.inherit(IInitialize, INotify, ITr2AtlasTextureNotifyTarget)
-@meta.blue.interface(ITr2Sprite2dTexture, IInitialize, INotify)
+@blue.define({ className: "Tr2Sprite2dTexture", purpose: "Describes a named 2D texture transform around separate rotation and scaling centers." })
+@blue.inherit(IInitialize, INotify, ITr2AtlasTextureNotifyTarget)
+@blue.interface(ITr2Sprite2dTexture, IInitialize, INotify)
 export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
 {
 
   /** m_rotationCenter (Vector2) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.vec2
+  @blue.notify
+  @blue.readwrite
+  @type.vec2
   rotationCenter = vec2.fromValues(0.5, 0.5);
 
   /** m_scalingCenter (Vector2) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.vec2
+  @blue.notify
+  @blue.readwrite
+  @type.vec2
   scalingCenter = vec2.fromValues(0.5, 0.5);
 
   /** m_useTransform (bool) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @type.boolean
   useTransform = false;
 
   /** m_name (std::wstring) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.wstring
+  @blue.readwrite
+  @type.wstring
   name = "";
 
   /** m_rotation (float) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   rotation = 0;
 
   /** m_scale (Vector2) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.vec2
+  @blue.notify
+  @blue.readwrite
+  @type.vec2
   scale = vec2.fromValues(1, 1);
 
   /** m_scalingRotation (float) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   scalingRotation = 0;
 
   /** m_translation (Vector2) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.vec2
+  @blue.notify
+  @blue.readwrite
+  @type.vec2
   translation = vec2.create();
 
 
@@ -86,7 +86,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @param {ITr2Sprite2dTextureNotifyTarget} target The listener.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterForChangeNotification(target)
   {
@@ -100,7 +100,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * @param {ITr2Sprite2dTextureNotifyTarget} target The listener.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UnregisterForChangeNotification(target)
   {
@@ -108,7 +108,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Every mapped transform edit invalidates listeners, regardless of its name. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(_name)
   {
@@ -117,7 +117,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Forwards the native atlas-change callback through the same invalidation. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AtlasTextureChanged(_texture)
   {
@@ -156,7 +156,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Initializes the authored resource path; directly supplied atlas textures need no load. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -165,7 +165,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Returns the authored resource path, cleared by direct atlas assignment. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetResPath()
   {
@@ -176,7 +176,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * Native acquisition requires the atlas modifier and a live Tr2AtlasTexture
    * resource owner. Neither is implemented; a plain texture is not a substitute.
    */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   SetResPath(_path)
   {
@@ -184,7 +184,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Returns the supplied native atlas texture. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetAtlasTexture()
   {
@@ -192,7 +192,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Replaces the atlas listener, clears the path, and notifies texture users. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetAtlasTexture(texture)
   {
@@ -204,7 +204,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Applies native texture, optional window, transform, and tile settings in order. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Apply(renderer, index)
   {
@@ -215,7 +215,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Zero rectangles and exact full-texture rectangles need no texture window. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   CheckTextureWindow()
   {
@@ -238,7 +238,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * Carbon Matrix.cpp:147-220 applies m1..m7 in row-vector order; gl's
    * post-multiplies are reversed here, m7 through m1, without per-call vectors.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetTransform()
   {
@@ -259,7 +259,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Reads the native repeat bits shifted down by one. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetTextureRepeatMode()
   {
@@ -270,7 +270,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
    * Preserves the native quirk: cpp:238-243 writes the input without shifting,
    * although GetTextureRepeatMode shifts its result. Other bits are retained.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetTextureRepeatMode(value)
   {
@@ -280,7 +280,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Returns the native source-rectangle x value. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetSrcX()
   {
@@ -288,7 +288,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Updates the native source rectangle and invalidates texture listeners. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetSrcX(value)
   {
@@ -298,7 +298,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Returns the native source-rectangle y value. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetSrcY()
   {
@@ -306,7 +306,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Updates the native source rectangle and invalidates texture listeners. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetSrcY(value)
   {
@@ -316,7 +316,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Returns the native source-rectangle width value. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetSrcWidth()
   {
@@ -324,7 +324,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Updates the native source rectangle and invalidates texture listeners. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetSrcWidth(value)
   {
@@ -334,7 +334,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Returns the native source-rectangle height value. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetSrcHeight()
   {
@@ -342,7 +342,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Updates the native source rectangle and invalidates texture listeners. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetSrcHeight(value)
   {
@@ -352,7 +352,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Delegates native width to the atlas texture when present. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetWidth()
   {
@@ -360,7 +360,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Delegates native height to the atlas texture when present. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetHeight()
   {
@@ -368,7 +368,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Delegates native isloading to the atlas texture when present. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsLoading()
   {
@@ -376,7 +376,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Delegates native isgood to the atlas texture when present. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsGood()
   {
@@ -384,7 +384,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Reads the native tile-x bit. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetTileX()
   {
@@ -392,7 +392,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Changes only the tile-x bit and notifies listeners. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetTileX(value)
   {
@@ -402,7 +402,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Reads the native tile-y bit. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetTileY()
   {
@@ -410,7 +410,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Changes only the tile-y bit and notifies listeners. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetTileY(value)
   {
@@ -420,8 +420,8 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Native Blue resPath property. */
-  @meta.blue.readwrite
-  @meta.type.path
+  @blue.readwrite
+  @type.path
   get resPath()
   {
     return this.GetResPath();
@@ -434,8 +434,8 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Native Blue atlasTexture property. */
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2AtlasTexture")
+  @blue.readwrite
+  @type.rootRef("Tr2AtlasTexture")
   get atlasTexture()
   {
     return this.GetAtlasTexture();
@@ -448,8 +448,8 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Native Blue repeatMode property. */
-  @meta.blue.readwrite
-  @meta.type.int32
+  @blue.readwrite
+  @type.int32
   get repeatMode()
   {
     return this.GetTextureRepeatMode();
@@ -462,8 +462,8 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Native Blue srcX property. */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   get srcX()
   {
     return this.GetSrcX();
@@ -476,8 +476,8 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Native Blue srcY property. */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   get srcY()
   {
     return this.GetSrcY();
@@ -490,8 +490,8 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Native Blue srcWidth property. */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   get srcWidth()
   {
     return this.GetSrcWidth();
@@ -504,8 +504,8 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Native Blue srcHeight property. */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   get srcHeight()
   {
     return this.GetSrcHeight();
@@ -518,8 +518,8 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Native Blue tileX property. */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   get tileX()
   {
     return this.GetTileX();
@@ -532,8 +532,8 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Native Blue tileY property. */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   get tileY()
   {
     return this.GetTileY();

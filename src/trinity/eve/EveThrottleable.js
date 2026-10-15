@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveThrottleable.h
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveThrottleable.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { CjsEveThrottleableState } from "./CjsEveThrottleableState.js";
 
 
@@ -8,29 +8,26 @@ import { CjsEveThrottleableState } from "./CjsEveThrottleableState.js";
  * Update-rate state for objects that run at less than frame rate, mapping a
  * normalized detail level onto an update frequency between authored bounds.
  */
-@meta.define({
-  className: "EveThrottleable",
-  family: "eve/utils"
-})
+@blue.define("EveThrottleable")
 export class EveThrottleable
 {
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   currentUpdateFrequency = 10;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   updateThrottle = true;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   maxUpdateFrequency = 20;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   minUpdateFrequency = 2;
 
   _throttle = new CjsEveThrottleableState();
@@ -40,7 +37,7 @@ export class EveThrottleable
    * allowed also picks the next update time from the detail level, so callers
    * must not call this more than once per intended update.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ShouldSkipUpdate(normalizedUpdateFrequency = 0.5, currentTime = 0)
   {
@@ -48,4 +45,4 @@ export class EveThrottleable
   }
 }
 
-meta.blue.interface()(EveThrottleable);
+blue.interface()(EveThrottleable);

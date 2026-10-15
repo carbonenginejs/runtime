@@ -4020,5 +4020,5 @@ export class CjsMusicEngine extends ICjsMusicEngine
     }
 }
 
-CjsSchema.define(CjsMusicEngine, { className: "CjsMusicEngine", family: "audio", fields: {} });
+CjsSchema.meta.define(CjsMusicEngine, { className: "CjsMusicEngine", fields: {} });
 CjsSchema.decorateMethod(CjsMusicEngine, "GetSourcePlayPosition", meta.notImplemented);

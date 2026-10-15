@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepCompress.h
 // Schema: format-carbon resources/Tr2TexturePipelineStepCompress.json; maintained by the runtime resource layer.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { CjsDdsFormat } from "#resource/formats/dds";
 import { createDdsBitmap } from "./ddsBitmap.js";
 import { PixelFormat as P } from "#consts/render-context";
@@ -88,16 +88,16 @@ export class Tr2TexturePipelineStepCompress
 
 }
 
-CjsSchema.define(Tr2TexturePipelineStepCompress, {
-  className: "Tr2TexturePipelineStepCompress", family: "resources",
+CjsSchema.blue.define(Tr2TexturePipelineStepCompress, {
+  className: "Tr2TexturePipelineStepCompress",
   fields: {
-    format: [ meta.blue.persist, meta.type.int32, meta.type.enum("PixelFormat") ],
-    b: [ meta.blue.persist, meta.type.float32 ],
-    g: [ meta.blue.persist, meta.type.float32 ],
-    r: [ meta.blue.persist, meta.type.float32 ]
+    format: [ blue.persist, type.int32, type.enum("PixelFormat") ],
+    b: [ blue.persist, type.float32 ],
+    g: [ blue.persist, type.float32 ],
+    r: [ blue.persist, type.float32 ]
   },
   methods: {
-    GetResourceDependencies: [ meta.blue.method, meta.implemented ],
-    Execute: [ meta.blue.method, meta.adapted ]
+    GetResourceDependencies: [ blue.method, meta.implemented ],
+    Execute: [ blue.method, meta.adapted ]
   }
 });

@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildExplosion.h
 //   trinity/trinity/Eve/SpaceObject/Children/EveChildExplosion.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { be, ICopier } from "#blue";
 import { addChild, removeChild, clearChildren } from "../../../global/blue/children.js";
 import { EveChildContainer } from "./EveChildContainer.js";
@@ -15,8 +15,8 @@ import { vec3 } from "#math/vec3";
 import { Tr2SphereShapeAttributeGenerator } from "../../particle/attribute/Tr2SphereShapeAttributeGenerator.js";
 
 /** A container child that sequences and spawns local and global explosion instances over time from authored transforms and delays. */
-@meta.define({ className: "EveChildExplosion", family: "eve/child" })
-@meta.blue.interface(EveChildContainer, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild)
+@blue.define("EveChildExplosion")
+@blue.interface(EveChildContainer, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild)
 export class EveChildExplosion extends EveChildContainer
 {
 
@@ -45,116 +45,116 @@ export class EveChildExplosion extends EveChildContainer
   _globalExplosionInstances = [];
 
   /** m_globalExplosionContainer (EveChildContainerPtr) [READ] */
-  @meta.blue.read
-  @meta.type.rootRef("EveChildContainer")
+  @blue.read
+  @type.rootRef("EveChildContainer")
   generatedGlobalExplosions = null;
 
   /** m_localExplosionScaling (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   localScaling = vec3.fromValues(1, 1, 1);
 
   /** m_globalExplosionScaling (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   globalScaling = vec3.fromValues(1, 1, 1);
 
   /** m_globalExplosion (IEveSpaceObjectChildPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("IEveSpaceObjectChild")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("IEveSpaceObjectChild")
   globalExplosion = null;
 
   /** m_localExplosion (IEveSpaceObjectChildPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("IEveSpaceObjectChild")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("IEveSpaceObjectChild")
   localExplosion = null;
 
   /** m_localExplosionShared (IEveSpaceObjectChildPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("IEveSpaceObjectChild")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("IEveSpaceObjectChild")
   localExplosionShared = null;
 
   /** m_globalExplosions (PIEveSpaceObjectChildVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("IEveSpaceObjectChild")
+  @blue.read
+  @blue.persist
+  @type.list("IEveSpaceObjectChild")
   globalExplosions = [];
 
   /** m_localExplosionIntervalFactor (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   localExplosionIntervalFactor = 1;
 
   /** m_localExplosionDelay (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   localExplosionDelay = 0;
 
   /** m_globalExplosionDelay (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   globalExplosionDelay = 0;
 
   /** m_totalDuration (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   totalDuration = 0;
 
   /** m_globalDuration (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   globalDuration = 0;
 
   /** m_isPlaying (bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   isPlaying = false;
 
   /** m_localExplosions (PIEveSpaceObjectChildVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("IEveSpaceObjectChild")
+  @blue.read
+  @blue.persist
+  @type.list("IEveSpaceObjectChild")
   localExplosions = [];
 
   /** m_localExplosionInterval (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   localExplosionInterval = 1;
 
   /** m_globalExplosionTime (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   globalExplosionTime = 0;
 
   /** m_wreckSwitchTime (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   wreckSwitchTime = 0;
 
   /** m_wreckSwitchOffsetFromGlobalStart (float) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   wreckSwitchOffsetFromGlobalStart = 0;
 
   /** m_playTime (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   playTime = 0;
 
   /** m_localDuration (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   localDuration = 0;
 
   /** Blue read-only alias for m_objects (EveChildExplosion_Blue.cpp:108): the spawned explosions. */
@@ -167,7 +167,7 @@ export class EveChildExplosion extends EveChildContainer
    * Carbon SetLocalExplosionTransforms (cpp:149-157): replaces the local explosion transforms.
    * @param {Iterable<mat4>} transforms Local explosion transforms.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetLocalExplosionTransforms(transforms)
   {
@@ -178,7 +178,7 @@ export class EveChildExplosion extends EveChildContainer
    * Carbon SetGlobalExplosionOffset (cpp:167-173): stores the offset divided by the explosion's own scaling.
    * @param {vec3} offset Offset in local coordinates.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetGlobalExplosionOffset(offset)
   {
@@ -189,7 +189,7 @@ export class EveChildExplosion extends EveChildContainer
   }
 
   /** Carbon RegisterComponents (cpp:45-48): base container registration only. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterComponents()
   {
@@ -200,7 +200,7 @@ export class EveChildExplosion extends EveChildContainer
    * Carbon UnRegisterComponents (cpp:54-65): unregisters the generated global explosion container, then the
    * base container's children. The container is always an EveChildContainer, so Carbon's EveEntity cast holds.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UnRegisterComponents()
   {
@@ -216,7 +216,7 @@ export class EveChildExplosion extends EveChildContainer
    * the shared subgraph, schedules the explosions and starts playback. A null shared child is not appended:
    * Carbon's BlueList Append rejects null (BlueListUtil.h:594-599).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Play()
   {
@@ -243,7 +243,7 @@ export class EveChildExplosion extends EveChildContainer
    * (the explosion itself stays registered), clears the spawned children, and drops the shared set, the
    * global instances and the global container.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Stop()
   {
@@ -272,7 +272,7 @@ export class EveChildExplosion extends EveChildContainer
    * @param {EveUpdateContext} updateContext Frame context; GetDeltaT is in seconds.
    * @param {object} params Child update params from the owner.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
@@ -379,7 +379,7 @@ export class EveChildExplosion extends EveChildContainer
    * not the base container's children. Quirk, reproduced: the singular localExplosion is not registered.
    * @param {Tr2QuadRenderer} quadRenderer Quad renderer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -397,7 +397,7 @@ export class EveChildExplosion extends EveChildContainer
    * no C library generator.
    * @param {number} localExplosionCount Number of local explosions.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CalculateExplosionTimes(localExplosionCount)
   {
@@ -432,7 +432,7 @@ export class EveChildExplosion extends EveChildContainer
    * persisted IROOT/IROOTPTR members, list items and dictionary values. The schema field table stands in for
    * the Blue member table; Carbon's extra push of the current object (cpp:360) is a no-op on the visited set.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   FindSharedObjects()
   {
@@ -472,7 +472,7 @@ export class EveChildExplosion extends EveChildContainer
    * @param {object} source Object being copied.
    * @returns {{result: number, dest?: object}} Copier override result.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CopyElement(source)
   {
@@ -519,7 +519,7 @@ export class EveChildExplosion extends EveChildContainer
    * Adapted: C rand() % n becomes Math.floor(Math.random() * n); JavaScript has no C library generator.
    * @param {mat4} transform Local explosion transform in this child's local frame.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SpawnLocalExplosion(transform)
   {

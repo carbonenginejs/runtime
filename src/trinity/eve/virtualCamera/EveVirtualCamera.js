@@ -4,7 +4,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 
 const SCRUB_INCREMENT_DT = 1 / 60;
@@ -15,103 +15,100 @@ const SCRUB_MAX_ITERATIONS = 20;
  * and a roll, each rebuilt every update from its own list of behaviours over a
  * local timeline.
  */
-@meta.define({
-  className: "EveVirtualCamera",
-  family: "eve/virtualCamera"
-})
+@blue.define("EveVirtualCamera")
 export class EveVirtualCamera
 {
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   position = vec3.create();
 
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   pointOfInterestAnchorCenter = vec3.create();
 
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   positionAnchorCenter = vec3.create();
 
-  @meta.blue.read
-  @meta.type.list("IEveSpaceObject2")
+  @blue.read
+  @type.list("IEveSpaceObject2")
   pointOfInterestAnchors = [];
 
-  @meta.blue.read
-  @meta.type.list("IEveSpaceObject2")
+  @blue.read
+  @type.list("IEveSpaceObject2")
   positionAnchors = [];
 
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   localElapsedTime = 0;
 
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   pointOfInterest = vec3.create();
 
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   pointOfInterestAnchorRadius = 0;
 
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   positionAnchorRadius = 0;
 
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   positionAnchorForwardDirection = vec3.create();
 
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   pointOfInterestAnchorForwardDirection = vec3.create();
 
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveVirtualCameraBehaviourFloatBase")
+  @blue.read
+  @blue.persist
+  @type.list("EveVirtualCameraBehaviourFloatBase")
   fovBehaviours = [];
 
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveVirtualCameraBehaviourVector3Base")
+  @blue.read
+  @blue.persist
+  @type.list("EveVirtualCameraBehaviourVector3Base")
   pointOfInterestBehaviours = [];
 
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveVirtualCameraBehaviourVector3Base")
+  @blue.read
+  @blue.persist
+  @type.list("EveVirtualCameraBehaviourVector3Base")
   positionBehaviours = [];
 
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveVirtualCameraBehaviourFloatBase")
+  @blue.read
+  @blue.persist
+  @type.list("EveVirtualCameraBehaviourFloatBase")
   rollBehaviours = [];
 
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   roll = 0;
 
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   fov = 1;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   animationTimelineLength = 10;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "Virtual Camera";
 
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   running = false;
 
   /**
    * Builds a D3D-handed look-at view matrix from the current position, point of
    * interest and roll-adjusted up direction.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetViewMatrix(out = mat4.create())
   {
@@ -126,7 +123,7 @@ export class EveVirtualCamera
    * @param {mat4} [out]
    * @returns {mat4}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetProjectionMatrix(aspectRatio, frontClip, backClip, out = mat4.create())
   {
@@ -137,7 +134,7 @@ export class EveVirtualCamera
    * Returns the normalized direction from the camera position towards its point
    * of interest.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetViewDirection(out = vec3.create())
   {
@@ -148,7 +145,7 @@ export class EveVirtualCamera
    * Returns the view direction, as a virtual camera always faces its point of
    * interest.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetForwardDirection(out = vec3.create())
   {
@@ -160,7 +157,7 @@ export class EveVirtualCamera
    * direction and then rotating it about the view axis by the roll angle, which
    * is authored in degrees.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetUpDirection(out = vec3.create())
   {
@@ -172,7 +169,7 @@ export class EveVirtualCamera
   }
 
   /** Returns the normalized cross product of the forward and up directions. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetRightDirection(out = vec3.create())
   {
@@ -186,7 +183,7 @@ export class EveVirtualCamera
    * written back only when its behaviour list is non-empty, so an unauthored
    * channel keeps whatever was set externally.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(deltaTime)
   {
@@ -221,7 +218,7 @@ export class EveVirtualCamera
   }
 
   /** Starts the local timeline advancing on subsequent updates. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Play()
   {
@@ -232,7 +229,7 @@ export class EveVirtualCamera
    * Freezes the local timeline without resetting it, so updates leave the
    * evaluated transform where it is.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Pause()
   {
@@ -240,7 +237,7 @@ export class EveVirtualCamera
   }
 
   /** Rewinds the local timeline to zero and stops it advancing. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Stop()
   {
@@ -249,7 +246,7 @@ export class EveVirtualCamera
   }
 
   /** Rewinds the local timeline to zero, leaving the running state alone. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Reset()
   {
@@ -260,7 +257,7 @@ export class EveVirtualCamera
    * Scrubs the camera to an absolute local time by replaying Update in fixed 1/60s steps so that stateful behaviours see a plausible history; the step count is capped at 20 and the step size grows to cover longer jumps. The camera is forced running for the scrub and its previous running state is restored afterwards.
    * @param {Number} time Target local elapsed time in seconds; may be negative
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateToLocalTime(time)
   {
@@ -290,7 +287,7 @@ export class EveVirtualCamera
    * Copies field of view, roll, position and point of interest from another
    * camera, leaving behaviours, name and timeline untouched.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   CopyTransform(source)
   {
@@ -304,7 +301,7 @@ export class EveVirtualCamera
    * Writes a transform supplied from outside directly onto the camera, used to
    * drive it from a host application or a transition instead of from behaviours.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateExternal(position, pointOfInterest, fov, roll)
   {
@@ -315,7 +312,7 @@ export class EveVirtualCamera
   }
 
   /** Returns the camera name used to look it up in the camera system. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetName()
   {
@@ -323,7 +320,7 @@ export class EveVirtualCamera
   }
 
   /** Sets the camera name, coercing the argument to a string. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -334,7 +331,7 @@ export class EveVirtualCamera
    * Returns the timeline length in seconds that behaviours divide local elapsed
    * time by to get their normalized curve time.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetAnimationTimelineLength()
   {
@@ -345,7 +342,7 @@ export class EveVirtualCamera
    * Sets the timeline length in seconds; a length of zero makes behaviours treat
    * their normalized time as zero.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetAnimationTimelineLength(value)
   {
@@ -353,7 +350,7 @@ export class EveVirtualCamera
   }
 
   /** Returns the vertical field of view in radians. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetFov()
   {
@@ -364,7 +361,7 @@ export class EveVirtualCamera
    * Sets the vertical field of view in radians; field-of-view behaviours
    * overwrite it on the next update.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetFov(value)
   {
@@ -372,7 +369,7 @@ export class EveVirtualCamera
   }
 
   /** Returns the roll about the view axis in degrees. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetRoll()
   {
@@ -383,7 +380,7 @@ export class EveVirtualCamera
    * Sets the roll about the view axis in degrees; roll behaviours overwrite it
    * on the next update.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetRoll(value)
   {
@@ -391,7 +388,7 @@ export class EveVirtualCamera
   }
 
   /** Copies the world-space camera position into out. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetPosition(out = vec3.create())
   {
@@ -402,7 +399,7 @@ export class EveVirtualCamera
    * Copies a world-space position into the camera, preserving the identity of
    * the backing vector.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetPosition(value)
   {
@@ -410,7 +407,7 @@ export class EveVirtualCamera
   }
 
   /** Copies the world-space point the camera looks at into out. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetPointOfInterest(out = vec3.create())
   {
@@ -421,7 +418,7 @@ export class EveVirtualCamera
    * Copies a world-space look-at point into the camera, preserving the identity
    * of the backing vector.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetPointOfInterest(value)
   {
@@ -432,7 +429,7 @@ export class EveVirtualCamera
    * Appends a vector3 behaviour whose returned offset is accumulated into the
    * camera position, starting from the position anchor centre.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddPositionBehaviour(behaviour)
   {
@@ -443,7 +440,7 @@ export class EveVirtualCamera
    * Appends a vector3 behaviour whose returned offset is accumulated into the
    * point of interest, starting from the point-of-interest anchor centre.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddPointOfInterestBehaviour(behaviour)
   {
@@ -454,7 +451,7 @@ export class EveVirtualCamera
    * Appends a float behaviour whose returned delta is accumulated into the field
    * of view, which restarts from 1 radian each update.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddFOVBehaviour(behaviour)
   {
@@ -465,7 +462,7 @@ export class EveVirtualCamera
    * Appends a float behaviour whose returned delta is accumulated into the roll,
    * which restarts from 0 degrees each update.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddRollBehaviour(behaviour)
   {

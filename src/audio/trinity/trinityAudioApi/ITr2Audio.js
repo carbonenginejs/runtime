@@ -15,6 +15,7 @@ for (const method of [ "Update", "FindEmitterByName" ])
 {
   CjsSchema.decorateMethod(ITr2Audio, method, meta.requires, meta.abstract);
 }
-CjsSchema.define(ITr2Audio, {
-  className: "ITr2Audio", carbon: "ITr2Audio", family: "trinityAudioApi", fields: {}
+CjsSchema.blue.define(ITr2Audio, {
+  className: "ITr2Audio",
+  fields: {}
 });

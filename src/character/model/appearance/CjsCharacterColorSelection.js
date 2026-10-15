@@ -1,33 +1,33 @@
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /** One authored paper-doll color selection with resolved catalog references. */
-@meta.define({ className: "CjsCharacterColorSelection", family: "character" })
+@meta.define("CjsCharacterColorSelection")
 export class CjsCharacterColorSelection
 {
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.float64
+    @blue.readwrite
+    @blue.persist
+    @type.float64
     gloss = 0;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.float64
+    @blue.readwrite
+    @blue.persist
+    @type.float64
     weight = 0;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.rootRef("CjsCharacterColorLocation")
+    @blue.readwrite
+    @blue.persist
+    @type.rootRef("CjsCharacterColorLocation")
     colorID = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.rootRef("CjsCharacterColorName")
+    @blue.readwrite
+    @blue.persist
+    @type.rootRef("CjsCharacterColorName")
     colorNameA = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.rootRef("CjsCharacterColorName")
+    @blue.readwrite
+    @blue.persist
+    @type.rootRef("CjsCharacterColorName")
     colorNameBC = null;
 
 }

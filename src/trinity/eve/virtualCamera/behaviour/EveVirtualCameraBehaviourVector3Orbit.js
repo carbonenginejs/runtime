@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { INotify } from "#blue";
 import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviourVector3Base.js";
 
@@ -11,48 +11,45 @@ import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviou
  * Vector3 behaviour that places the camera on a horizontal circle about the
  * anchor, sweeping from a start to an end angle over the timeline.
  */
-@meta.define({
-  className: "EveVirtualCameraBehaviourVector3Orbit",
-  family: "eve/virtualCamera/behaviour"
-})
-@meta.blue.interface(INotify)
-@meta.blue.chainTo(EveVirtualCameraBehaviourVector3Base)
+@blue.define("EveVirtualCameraBehaviourVector3Orbit")
+@blue.interface(INotify)
+@blue.chainTo(EveVirtualCameraBehaviourVector3Base)
 export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehaviourVector3Base
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2CurveScalar")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2CurveScalar")
   orbitCurve = null;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2CurveScalar")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2CurveScalar")
   distanceScalarCurve = null;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   end = 180;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   proportional = true;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   world = false;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   start = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   distance = 1;
 
   /**
@@ -71,7 +68,7 @@ export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehav
    * Sets the behaviour name and renames both owned curves to match.
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:364-368
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -89,7 +86,7 @@ export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehav
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:371-404
    * Adapted: gl-matrix writes the output vector. The existing zero-direction fallback remains an unresolved difference from native normalization.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, anchorRadius, anchorForwardDirection, out = vec3.create())
   {

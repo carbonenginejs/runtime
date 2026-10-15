@@ -8,6 +8,7 @@ export class ITr2InteriorCullable
   IsInFrustum(_frustum, _objectToWorld) {}
 }
 CjsSchema.decorateMethod(ITr2InteriorCullable, "IsInFrustum", meta.requires, meta.abstract);
-CjsSchema.define(ITr2InteriorCullable, {
-  className: "ITr2InteriorCullable", carbon: "ITr2InteriorCullable", family: "interior", fields: {}
+CjsSchema.blue.define(ITr2InteriorCullable, {
+  className: "ITr2InteriorCullable",
+  fields: {}
 });

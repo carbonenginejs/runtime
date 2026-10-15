@@ -1,58 +1,58 @@
 // Source: trinity/trinity/RenderJob/TriStepClearUav.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { vec4 } from "#math/vec4";
 
 /** A render step that clears an unordered-access buffer to a fixed value. */
-@meta.define({ className: "TriStepClearUav", family: "renderJob" })
+@blue.define("TriStepClearUav")
 export class TriStepClearUav extends TriRenderStep
 {
 
   /** m_buffer (ITr2GpuBufferPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITr2GpuBuffer")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITr2GpuBuffer")
   buffer = null;
 
   /** m_clearWithFloat (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   clearWithFloat = false;
 
   /** m_floatValue (Vector4) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   floatValue = vec4.create();
 
   /** m_uintValue[0] (uint32_t) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   bitValue0 = 0;
 
   /** m_uintValue[1] (uint32_t) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   bitValue1 = 0;
 
   /** m_uintValue[2] (uint32_t) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   bitValue2 = 0;
 
   /** m_uintValue[3] (uint32_t) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   bitValue3 = 0;
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   __init__(buffer = null, values = null)
   {
@@ -77,7 +77,7 @@ export class TriStepClearUav extends TriRenderStep
   /**
    * Clears the bound unordered-access buffer to its configured value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Execute(_realTime, _simTime, renderContext)
   {

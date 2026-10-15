@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/EveStation2.h
 // Source: trinity/trinity/Eve/SpaceObject/EveStation2.cpp
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 
@@ -11,9 +11,9 @@ import { EveSpaceObject2 } from "./EveSpaceObject2.js";
  * activation scales the prepared shader data; the native GetBatches override
  * only forwards to the inherited implementation.
  */
-@meta.define({ className: "EveStation2", family: "eve/spaceObject" })
-@meta.blue.interface(IEveSpaceObject2, ITr2Renderable)
-@meta.blue.chainTo(EveSpaceObject2)
+@blue.define("EveStation2")
+@blue.interface(IEveSpaceObject2, ITr2Renderable)
+@blue.chainTo(EveSpaceObject2)
 export class EveStation2 extends EveSpaceObject2
 {
   /**

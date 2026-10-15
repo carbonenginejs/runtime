@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Tr2ImpostorManager.cpp
 // Source: trinity/trinity/Tr2ImpostorManager_Blue.cpp
 // Hand-maintained after promotion from generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IInitialize, INotify } from "#blue";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -37,58 +37,58 @@ function copyHash(out, value)
 }
 
 /** Carries an impostor atlas, tile dimensions, capture effect, and per-frame update budget. */
-@meta.define({ className: "Tr2ImpostorManager", family: "trinityCore", purpose: "Carries an impostor atlas, tile dimensions, capture effect, and per-frame update budget." })
-@meta.blue.inherit(IInitialize, INotify)
+@blue.define({ className: "Tr2ImpostorManager", purpose: "Carries an impostor atlas, tile dimensions, capture effect, and per-frame update budget." })
+@blue.inherit(IInitialize, INotify)
 export class Tr2ImpostorManager
 {
 
   /** m_height (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   height = 1024;
 
   /** m_width (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   width = 1024;
 
   /** m_rt (Tr2RenderTargetPtr) [READ] */
-  @meta.blue.read
-  @meta.type.rootRef("Tr2RenderTarget")
+  @blue.read
+  @type.rootRef("Tr2RenderTarget")
   atlas = null;
 
   /** m_itemHeight (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   itemHeight = 32;
 
   /** m_itemWidth (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   itemWidth = 32;
 
   /** m_effect (Tr2EffectPtr) [READ] */
-  @meta.blue.read
-  @meta.type.rootRef("Tr2Effect")
+  @blue.read
+  @type.rootRef("Tr2Effect")
   effect = null;
 
   /** m_maxUpdates (uint32_t) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   maxUpdates = 16;
 
   /** Native READ projection of the live impostor table. */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   get count()
   {
     return this.GetImpostorCount();
@@ -135,7 +135,7 @@ export class Tr2ImpostorManager
   }
 
   /** Native initialization resets slots and prepares resources; creation failures remain on the wrappers. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -145,7 +145,7 @@ export class Tr2ImpostorManager
   }
 
   /** Every native member notification performs one complete initialization. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified()
   {
@@ -154,14 +154,14 @@ export class Tr2ImpostorManager
   }
 
   /** Native ReleaseResources is empty; wrapper owners retain their resources until recreation or destruction. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ReleaseResources()
   {
   }
 
   /** The supplied context replaces the native main-thread device-creation gate. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   PrepareResources(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -169,7 +169,7 @@ export class Tr2ImpostorManager
   }
 
   /** Recreates native atlas/capture surfaces through existing wrappers and an explicit JS context. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnPrepareResources(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -184,7 +184,7 @@ export class Tr2ImpostorManager
   }
 
   /** Native script constructor alias; its tile default differs from the C++ constructor. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   __init__(width = 1024, height = 1024, itemWidth = 16, itemHeight = 16)
   {
@@ -192,7 +192,7 @@ export class Tr2ImpostorManager
   }
 
   /** Stores native unsigned sizes and initializes the manager. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Create(width = 1024, height = 1024, itemWidth = 16, itemHeight = 16)
   {
@@ -204,7 +204,7 @@ export class Tr2ImpostorManager
   }
 
   /** Reinitializes only when the native billboard dimensions change. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetItemSize(width, height)
   {
@@ -217,7 +217,7 @@ export class Tr2ImpostorManager
   }
 
   /** Native Reset clears objects and rebuilds slots; the render queue survives until BeginUpdate. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Reset()
   {
@@ -226,7 +226,7 @@ export class Tr2ImpostorManager
   }
 
   /** Registers an object or updates its value-copied hash, respecting new-object capture and atlas capacity. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Add(object, hash)
   {
@@ -252,7 +252,7 @@ export class Tr2ImpostorManager
   }
 
   /** Clears this frame's queue and marks existing objects unused until Add. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   BeginUpdate()
   {
@@ -269,7 +269,7 @@ export class Tr2ImpostorManager
    * highest-priority recaptures. JS Map order breaks equal-priority ties;
    * native unordered-map iteration does not promise an ordering.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   EndUpdate()
   {
@@ -309,7 +309,7 @@ export class Tr2ImpostorManager
   }
 
   /** Returns the current native capture queue length. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetRenderQueueLength()
   {
@@ -317,7 +317,7 @@ export class Tr2ImpostorManager
   }
 
   /** Native comparison is descending despite its ascending-order comment. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static compareImpostors(first, second)
   {
@@ -328,7 +328,7 @@ export class Tr2ImpostorManager
    * Clears a dirty atlas only with queued captures, then binds and clears the
    * capture strip. JS context options replace native Clear bit flags.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   BeginUpdateAtlas(renderContext)
   {
@@ -354,7 +354,7 @@ export class Tr2ImpostorManager
    * before each copy, including failed copies, as in Carbon. A failed JS
    * wrapper has null storage, represented by the native empty AL value here.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   EndUpdateAtlas(renderContext)
   {
@@ -376,7 +376,7 @@ export class Tr2ImpostorManager
   }
 
   /** Native viewport selection; rejects index equal to length instead of native out-of-bounds access. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   BeginImpostorUpdate(index, renderContext)
   {
@@ -386,14 +386,14 @@ export class Tr2ImpostorManager
   }
 
   /** Native EndImpostorUpdate is intentionally empty. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   EndImpostorUpdate()
   {
   }
 
   /** Native live count. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetImpostorCount()
   {
@@ -401,7 +401,7 @@ export class Tr2ImpostorManager
   }
 
   /** Returns the native capture depth owner. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetItemDepthStencil()
   {
@@ -409,7 +409,7 @@ export class Tr2ImpostorManager
   }
 
   /** Declared without a native definition; billboard draws belong to Tr2QuadRenderer. */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   Render()
   {

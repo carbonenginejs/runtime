@@ -3,15 +3,15 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dRenderJob_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; all portable behavior is implemented here.
 import { vec2 } from "#math/vec2";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { ITr2SpriteObject } from "./ITr2SpriteObject.js";
 import { Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
 import { Tr2SpriteObjectBase } from "./Tr2SpriteObjectBase.js";
 
 /** A Sprite2D leaf that executes an authored render job. */
-@meta.define({ className: "Tr2Sprite2dRenderJob", family: "sprite2d" })
-@meta.blue.interface(ITr2SpriteObject)
-@meta.blue.chainTo(Tr2SpriteObjectBase)
+@blue.define("Tr2Sprite2dRenderJob")
+@blue.interface(ITr2SpriteObject)
+@blue.chainTo(Tr2SpriteObjectBase)
 export class Tr2Sprite2dRenderJob extends Tr2SpriteObjectBase
 {
 
@@ -68,8 +68,8 @@ export class Tr2Sprite2dRenderJob extends Tr2SpriteObjectBase
   }
 
   /** m_renderJob (TriRenderJobPtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("TriRenderJob")
+  @blue.readwrite
+  @type.rootRef("TriRenderJob")
   renderJob = null;
 
   /** PickPoint's Vector2( x, y ) temporary (Tr2Sprite2dRenderJob.cpp:36); Carbon has no member. @type {Float32Array} */

@@ -1,7 +1,7 @@
 // Source: trinity/trinity/TriValueBinding.h
 // Source: trinity/trinity/TriValueBinding.cpp
 // Source: trinity/trinity/TriValueBinding_Blue.cpp
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { INotify } from "#blue/INotify";
 import { ITriReroutable } from "../ITriReroutable.js";
 import { ITr2ValueBinding } from "../../curves/ITr2ValueBinding.js";
@@ -12,25 +12,23 @@ import { vec4 } from "#math/vec4";
  * object, applying a scale and per-component offset through a type-checked copy
  * plan built when the endpoints resolve.
  */
-@meta.define({
-  className: "TriValueBinding", family: "trinityCore"
-})
-@meta.blue.inherit(ITr2ValueBinding)
-@meta.blue.interface(ITr2ValueBinding, INotify)
+@blue.define("TriValueBinding")
+@blue.inherit(ITr2ValueBinding)
+@blue.interface(ITr2ValueBinding, INotify)
 export class TriValueBinding extends INotify
 {
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /**
    * Native readonly validity property.
    * @returns {boolean} Whether a copy plan exists.
    */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   @meta.implemented
   get isValid()
   {
@@ -38,19 +36,19 @@ export class TriValueBinding extends INotify
   }
 
   /** m_isWeak (bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   isWeak = false;
 
   /** m_isEnabled (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   isEnabled = true;
 
   /** Native persisted endpoint storage; readers bypass the live setter. */
   @meta.member("sourceObject")
-  @meta.blue.persistOnly
-  @meta.type.rootRef("IRoot")
+  @blue.persistOnly
+  @type.rootRef("IRoot")
   _sourceObject = null;
 
   // Native MAP_ATTRIBUTE storage and MAP_PROPERTY access remain separate.
@@ -59,8 +57,8 @@ export class TriValueBinding extends INotify
    * Reads the current source endpoint, resolving a weak reference when used.
    * @returns {object|null} Binding result.
    */
-  @meta.blue.readwrite
-  @meta.type.rootRef("IRoot")
+  @blue.readwrite
+  @type.rootRef("IRoot")
   @meta.implemented
   get sourceObject()
   {
@@ -79,16 +77,16 @@ export class TriValueBinding extends INotify
   }
 
   /** m_sourceAttribute (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   sourceAttribute = "";
 
   /** Native persisted endpoint storage; readers bypass the live setter. */
   @meta.member("destinationObject")
-  @meta.blue.persistOnly
-  @meta.type.rootRef("IRoot")
+  @blue.persistOnly
+  @type.rootRef("IRoot")
   _destinationObject = null;
 
   // Native MAP_ATTRIBUTE storage and MAP_PROPERTY access remain separate.
@@ -98,8 +96,8 @@ export class TriValueBinding extends INotify
    * used.
    * @returns {object|null} Binding result.
    */
-  @meta.blue.readwrite
-  @meta.type.rootRef("IRoot")
+  @blue.readwrite
+  @type.rootRef("IRoot")
   @meta.implemented
   get destinationObject()
   {
@@ -118,28 +116,28 @@ export class TriValueBinding extends INotify
   }
 
   /** m_destinationAttribute (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   destinationAttribute = "";
 
   /** m_scale (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   scale = 1;
 
   /** m_offset (Vector4) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   offset = vec4.create();
 
   /** m_copyValueCallable (BlueScriptCallback) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.rawStruct("BlueScriptCallback")
+  @blue.notify
+  @blue.readwrite
+  @type.rawStruct("BlueScriptCallback")
   copyValueCallable = null;
 
   /** Runtime source state for the portable binding adapter. */
@@ -188,7 +186,7 @@ export class TriValueBinding extends INotify
    * Adapted: Resolves Blue field metadata through JavaScript properties and supports the portable runtime's numeric, vector, boolean, and callback value families.
    * @returns {void} No return value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -260,7 +258,7 @@ export class TriValueBinding extends INotify
    * Adapted: Copies portable JavaScript values instead of invoking Carbon's native typed copy-function table; scalar reroute records synchronize the exposed value property.
    * @returns {boolean} Binding result.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CopyValue()
   {
@@ -315,7 +313,7 @@ export class TriValueBinding extends INotify
    * @param {string|null} [_value] Changed member name.
    * @returns {boolean} Binding result.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(_value = null)
   {
@@ -327,7 +325,7 @@ export class TriValueBinding extends INotify
    * The destination attribute string, including any .x/.r component suffix.
    * @returns {string} Binding result.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetDestinationAttributeName()
   {
@@ -342,7 +340,7 @@ export class TriValueBinding extends INotify
    * @param {object|null} sourceObject Source endpoint.
    * @returns {void} No return value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetSource(sourceAttribute, sourceObject)
   {
@@ -364,7 +362,7 @@ export class TriValueBinding extends INotify
    * @param {object|null} destinationObject Destination endpoint.
    * @returns {void} No return value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetDestination(destinationAttribute, destinationObject)
   {
@@ -384,7 +382,7 @@ export class TriValueBinding extends INotify
    * @param {number} scale Source multiplier.
    * @returns {void} No return value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetScale(scale)
   {
@@ -404,7 +402,7 @@ export class TriValueBinding extends INotify
    * @param {ArrayLike|number} [offset] Component offset or four-component value offset.
    * @returns {boolean} Binding result.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CreateWeakBinding(source, sourceAttribute, destination, destinationAttribute, scale = 1, offset = [0, 0, 0, 0])
   {
@@ -435,7 +433,7 @@ export class TriValueBinding extends INotify
    * Whether the last Initialize produced a usable copy plan.
    * @returns {boolean} Binding result.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsValid()
   {
@@ -447,7 +445,7 @@ export class TriValueBinding extends INotify
    * held source has been collected.
    * @returns {object|null} Binding result.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetCurrentSourceObject()
   {
@@ -459,7 +457,7 @@ export class TriValueBinding extends INotify
    * weakly held destination has been collected.
    * @returns {object|null} Binding result.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetCurrentDestinationObject()
   {
@@ -470,7 +468,7 @@ export class TriValueBinding extends INotify
    * Carbon's second name for GetCurrentSourceObject.
    * @returns {object|null} Binding result.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetSourceObject()
   {
@@ -484,7 +482,7 @@ export class TriValueBinding extends INotify
    * @param {object|null} sourceObject Source endpoint.
    * @returns {void} No return value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetSourceObject(sourceObject)
   {
@@ -505,7 +503,7 @@ export class TriValueBinding extends INotify
    * Carbon's second name for GetCurrentDestinationObject.
    * @returns {object|null} Binding result.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetDestinationObject()
   {
@@ -519,7 +517,7 @@ export class TriValueBinding extends INotify
    * @param {object|null} destinationObject Destination endpoint.
    * @returns {void} No return value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetDestinationObject(destinationObject)
   {
@@ -545,7 +543,7 @@ export class TriValueBinding extends INotify
    * @param {*} destination Destination storage or endpoint.
    * @returns {void} No return value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RerouteDestination(destination)
   {

@@ -2,7 +2,7 @@
 // Source: trinity/trinity/TriSequencer.cpp
 import { vec3 } from "#math/vec3";
 import { ITriFunction, ITriVectorFunction, BlueList } from "#blue";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { TRIOPERATOR } from "#consts/graphics";
 import "#consts/graphics/trinityEnums";
 
@@ -13,17 +13,17 @@ import "#consts/graphics/trinityEnums";
  * zero. Sampling retains the existing instance child scratch; native sampling
  * uses local temporaries. Numeric tick overloads remain unimplemented.
  */
-@meta.define({ className: "TriVectorSequencer", family: "curves" })
-@meta.blue.interface(ITriFunction, ITriVectorFunction)
+@blue.define("TriVectorSequencer")
+@blue.interface(ITriFunction, ITriVectorFunction)
 export class TriVectorSequencer extends ITriVectorFunction
 {
   /**
    * Authored name identifying the vector sequencer; native wide string.
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.wstring
+  @blue.readwrite
+  @blue.persist
+  @type.wstring
   name = "";
 
   /**
@@ -31,9 +31,9 @@ export class TriVectorSequencer extends ITriVectorFunction
    * does not apply it.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int64
+  @blue.readwrite
+  @blue.persist
+  @type.int64
   start = 0;
 
   /**
@@ -41,9 +41,9 @@ export class TriVectorSequencer extends ITriVectorFunction
    * depend on the child functions and selected operator.
    * @type {Float32Array}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   value = vec3.create();
 
   /**
@@ -51,19 +51,19 @@ export class TriVectorSequencer extends ITriVectorFunction
    * values also take the average branch.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("blue.TRIOPERATOR")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("blue.TRIOPERATOR")
   operator = TRIOPERATOR.TRIOP_MULTIPLY;
 
   /**
    * Ordered child vector functions sampled and combined at the supplied time.
    * @type {BlueList<ITriVectorFunction>}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITriVectorFunction")
+  @blue.read
+  @blue.persist
+  @type.list("ITriVectorFunction")
   functions = new BlueList(ITriVectorFunction, { className: null, listOps: 0 });
 
   /**
@@ -78,7 +78,7 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateValue(time)
   {
@@ -100,7 +100,7 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(time, out)
   {
@@ -119,7 +119,7 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValueAt(time, out)
   {
@@ -166,7 +166,7 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValueAtMult(time, out, ticks)
   {
@@ -188,7 +188,7 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValueAtAdd(time, out, ticks)
   {
@@ -213,7 +213,7 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValueAtAverage(time, out, ticks)
   {
@@ -235,7 +235,7 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValueDotAt(time, out)
   {
@@ -255,7 +255,7 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValueDoubleDotAt(time, out)
   {
@@ -311,7 +311,7 @@ export class TriVectorSequencer extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   InterpolatedPosition(_time, out)
   {

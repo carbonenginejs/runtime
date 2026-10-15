@@ -76,4 +76,4 @@ for (const method of [
   CjsSchema.decorateMethod(IBlueClasses, method, meta.requires, meta.abstract);
 }
 
-CjsSchema.define(IBlueClasses, { className: "IBlueClasses", carbon: "IBlueClasses", family: "blue", fields: {} });
+CjsSchema.blue.define(IBlueClasses, { className: "IBlueClasses", fields: {} });

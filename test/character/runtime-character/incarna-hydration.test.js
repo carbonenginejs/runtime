@@ -83,7 +83,9 @@ test("historical Incarna shells remain explicitly separated from current Carbon 
     Tr2ScalarKey
   ])
   {
-    assert.equal(CjsSchema.getSchema(Constructor).family, "incarna");
+    // Adapted from ccpwgl and historical Black records, not ported from Carbon source:
+    // registered as ours, without the Carbon stamp the current classes carry.
+    assert.notEqual(CjsSchema.getSchema(Constructor).blue, true);
   }
 
   assert.equal(CjsSchema.GetConstructor("Tr2InteriorStatic"), null);

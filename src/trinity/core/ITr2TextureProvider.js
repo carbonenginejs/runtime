@@ -26,4 +26,4 @@ export class ITr2TextureProvider
   }
 }
 
-CjsSchema.define(ITr2TextureProvider, { className: "ITr2TextureProvider", carbon: "ITr2TextureProvider", family: "trinityCore", fields: {} });
+CjsSchema.blue.define(ITr2TextureProvider, { className: "ITr2TextureProvider", fields: {} });

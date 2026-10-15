@@ -35,4 +35,4 @@ for (const method of ["Update", "SpawnParticles", "SetThreadSafeFlag"])
 {
   CjsSchema.decorateMethod(ITr2GenericEmitter, method, meta.abstract);
 }
-CjsSchema.define(ITr2GenericEmitter, { className: "ITr2GenericEmitter" });
+CjsSchema.blue.define(ITr2GenericEmitter, { className: "ITr2GenericEmitter" });

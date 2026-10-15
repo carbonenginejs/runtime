@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraTransition.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraTransition.cpp
 import { vec3 } from "#math/vec3";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2CurveScalar } from "../../../curves/curve/Tr2CurveScalar.js";
 import { EveVirtualCameraTransitionBase } from "./EveVirtualCameraTransitionBase.js";
 
@@ -10,15 +10,12 @@ import { EveVirtualCameraTransitionBase } from "./EveVirtualCameraTransitionBase
  * Transition that blends position, point of interest, field of view and roll
  * from the source camera to the target camera over a fixed duration.
  */
-@meta.define({
-  className: "EveVirtualCameraTransitionLerp",
-  family: "eve/virtualCamera/transition"
-})
+@blue.define("EveVirtualCameraTransitionLerp")
 export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBase
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   tansitionTime = 1;
 
   _localTime = 0;
@@ -40,7 +37,7 @@ export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBa
    * Reports whether the elapsed blend time has passed the configured transition
    * time.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsComplete()
   {
@@ -52,7 +49,7 @@ export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBa
    * transition time, so its own timeline reaches zero exactly as the blend
    * finishes.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Play()
   {
@@ -70,7 +67,7 @@ export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBa
    * the source and target transforms interpolated by the transition curve,
    * clamped to 0..1; a zero transition time jumps straight to the target.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(deltaTime)
   {
@@ -96,7 +93,7 @@ export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBa
    * Returns the blend duration in seconds; the backing field keeps Carbon's
    * misspelled attribute name "tansitionTime" so persisted data round-trips.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetTransitionTime()
   {
@@ -107,7 +104,7 @@ export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBa
    * Sets the blend duration in seconds; the camera system calls this before
    * playing the transition.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetTransitionTime(value)
   {

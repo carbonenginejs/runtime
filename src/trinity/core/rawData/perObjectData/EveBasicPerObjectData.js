@@ -13,13 +13,13 @@
 // shape - which is all that distinguishes it from its siblings in Carbon either.
 
 import { Tr2PerObjectData } from "./Tr2PerObjectData.js";
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 
 /**
  * The world, previous-world and inverse-world matrices every plain transform uploads.
  */
-@meta.define({ className: "EveBasicPerObjectData", family: "trinityCore" })
+@blue.define("EveBasicPerObjectData")
 export class EveBasicPerObjectData extends Tr2PerObjectData
 {
   /** The vertex payload. */
@@ -66,7 +66,7 @@ export class EveBasicPerObjectData extends Tr2PerObjectData
    * @param {object} renderContext The context to upload and bind against.
    * @returns {number} How many payloads were uploaded.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetPerObjectDataToDevice(buffers, constantTypeMask, renderContext)
   {

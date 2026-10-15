@@ -23,4 +23,4 @@ export class ITr2BoundingBox
 
 CjsSchema.decorateMethod(ITr2BoundingBox, "GetWorldBoundingBox", meta.abstract);
 CjsSchema.decorateMethod(ITr2BoundingBox, "IsBoundingBoxReady", meta.abstract);
-CjsSchema.define(ITr2BoundingBox, { className: "ITr2BoundingBox" });
+CjsSchema.blue.define(ITr2BoundingBox, { className: "ITr2BoundingBox" });

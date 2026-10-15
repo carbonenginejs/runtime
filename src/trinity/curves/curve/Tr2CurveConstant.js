@@ -5,7 +5,7 @@ import { quat } from "#math/quat";
 import { copyArrayLike } from "#utils";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 
 /**
@@ -14,17 +14,16 @@ import { meta } from "#schema";
  * (identity for quaternions). JavaScript combines native overloads into time-first
  * calls with an optional output buffer; the mapped interfaces retain their identities.
  */
-@meta.define({
+@blue.define({
   className: "Tr2CurveConstant",
-  family: "curves",
   members: [
     { name: "name", key: "name", type: { kind: "string" }, edit: { read: true, write: true, persist: true } },
     { name: "currentValue", key: "value", type: { kind: "vec4" }, edit: { read: true } },
     { name: "value", key: "value", type: { kind: "vec4" }, edit: { read: true, write: true, persist: true } }
   ]
 })
-@meta.blue.inherit(ITriVectorFunction, ITriQuaternionFunction, ITriColorFunction)
-@meta.blue.interface(ITriScalarFunction, ITriVectorFunction, ITriQuaternionFunction, ITriColorFunction, ITriFunction)
+@blue.inherit(ITriVectorFunction, ITriQuaternionFunction, ITriColorFunction)
+@blue.interface(ITriScalarFunction, ITriVectorFunction, ITriQuaternionFunction, ITriColorFunction, ITriFunction)
 export class Tr2CurveConstant extends ITriScalarFunction
 {
   /**
@@ -55,7 +54,7 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {number} _time Time in seconds.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   UpdateValue(_time)
   {
@@ -68,7 +67,7 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {Float32Array|number[]} [out] Caller-owned output storage.
    * @returns {number|Float32Array|number[]} The supplied output or scalar value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(time, out)
   {
@@ -87,7 +86,7 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {Float32Array|number[]} [out] Caller-owned output storage.
    * @returns {number|Float32Array|number[]} The supplied output or scalar value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValueAt(time, out)
   {
@@ -131,7 +130,7 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {number} _scale Curve parameter.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   ScaleTime(_scale)
   {
@@ -144,7 +143,7 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetValueDotAt(_time, out)
   {
@@ -158,7 +157,7 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetValueDoubleDotAt(_time, out)
   {
@@ -172,7 +171,7 @@ export class Tr2CurveConstant extends ITriScalarFunction
    * @param {Float32Array|number[]} out Caller-owned output storage.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   InterpolatedPosition(_time, out)
   {

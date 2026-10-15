@@ -1,6 +1,6 @@
 // Source: trinity/trinity/TriVariable.h
 // Source: trinity/trinity/TriVariable.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2ColorSpace } from "#consts/render-context";
 import { ITr2EffectValue, ResourceFlags } from "../../shader/parameter/ITr2EffectValue.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
@@ -14,20 +14,17 @@ import { float32FromBits } from "#utils/bytes";
  * Carbon uses BLUE_DEFINE_NONEXPOSED; the existing JavaScript catalog keeps
  * construction available to the variable store and direct consumers.
  */
-@meta.define({
-  className: "TriVariable",
-  family: "trinityCore"
-})
+@blue.define("TriVariable")
 export class TriVariable extends ITr2EffectValue
 {
   /** Existing JavaScript name inspection declaration; not a native Blue member. */
-  @meta.blue.read
-  @meta.type.string
+  @blue.read
+  @type.string
   name = "";
 
   /** Existing JavaScript type inspection declaration; native TriVariable exposes no members. */
-  @meta.blue.read
-  @meta.type.int32
+  @blue.read
+  @type.int32
   contentType = TriVariableContentType.TRIVARIABLE_INVALID;
 
   /**
@@ -42,7 +39,7 @@ export class TriVariable extends ITr2EffectValue
    * The registered variable name, which the store also uses as its key.
    * @returns {string} Variable result.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetName()
   {
@@ -53,7 +50,7 @@ export class TriVariable extends ITr2EffectValue
    * The TriVariableContentType fixed at registration; SetValue never changes it.
    * @returns {number} Variable result.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetType()
   {
@@ -73,7 +70,7 @@ export class TriVariable extends ITr2EffectValue
    * @param {*} value Portable value payload.
    * @returns {boolean} Variable result.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetValue(value)
   {
@@ -104,7 +101,7 @@ export class TriVariable extends ITr2EffectValue
    * @param {ArrayLike|undefined} [out] Optional destination for array components.
    * @returns {*} Variable result.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValue(out = undefined)
   {
@@ -127,7 +124,7 @@ export class TriVariable extends ITr2EffectValue
    * Adapted: Releases the single JavaScript payload and invalidates its type; native Clear separately releases resource fields and clears union storage.
    * @returns {void} No return value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Invalidate()
   {
@@ -142,7 +139,7 @@ export class TriVariable extends ITr2EffectValue
    * Adapted: Preserves the portable array/scalar/reference clearing rules instead of zeroing the native union and separate resource pointers.
    * @returns {void} No return value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Clear()
   {
@@ -184,7 +181,7 @@ export class TriVariable extends ITr2EffectValue
    * @returns {boolean} Whether the slot took the binding.
    * Adapted: Retains the existing JavaScript provider representation and optional texture realization context, with direct resource-set calls.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0, renderContext = null)
   {
@@ -217,7 +214,7 @@ export class TriVariable extends ITr2EffectValue
    * @returns {boolean} Whether the slot took the binding.
    * Adapted: Retains the existing JavaScript provider representation when selecting a texture or GPU buffer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ApplyUav(resourceDesc, stage, registerIndex)
   {
@@ -272,7 +269,7 @@ export class TriVariable extends ITr2EffectValue
    * name. The static ( t ) form is TriVariable.getTypeName.
    * @returns {string}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetTypeName()
   {
@@ -284,7 +281,7 @@ export class TriVariable extends ITr2EffectValue
    * constant-buffer byte size. The static ( t ) form is TriVariable.getTypeSize.
    * @returns {number}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetTypeSize()
   {
@@ -295,7 +292,7 @@ export class TriVariable extends ITr2EffectValue
    * Native constant-buffer value size.
    * @returns {number} Byte size for this variable's registered type.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetValueSize()
   {
@@ -370,7 +367,7 @@ export class TriVariable extends ITr2EffectValue
    * @returns {boolean} Whether anything was written.
    * Adapted: Copies JavaScript scalar/array storage into a bounded constant destination, transposing matrices for shaders and returning whether data was written.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CopyValueToEffect(_inputType, destination, size = Number.POSITIVE_INFINITY)
   {
@@ -481,4 +478,4 @@ export class TriVariable extends ITr2EffectValue
 }
 
 // Native nonexposed table has only concrete/IRoot identity; ITr2EffectValue is nominal only.
-meta.blue.interface()(TriVariable);
+blue.interface()(TriVariable);

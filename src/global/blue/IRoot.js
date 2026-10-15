@@ -1,7 +1,7 @@
 // Source: blueexposure/include/BlueTypes.h:483-510 (IRoot).
 // Source: blueexposure/include/BlueClass.h (RootQIImpl and lifetime wrappers).
 // Source: blueexposure/BlueClasses.cpp:376-415 (interface query).
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { mappedInterfaces } from "../compose/interface.js";
 import * as CcpLog from "../logging/ccpLog.js";
 
@@ -53,7 +53,7 @@ export class IRoot
 
 for (const name of ["ClassType", "QueryInterface", "GetRootObject"])
 {
-  CjsSchema.decorateMethod(IRoot, name, meta.blue.method, meta.adapted);
+  CjsSchema.decorateMethod(IRoot, name, blue.method, meta.adapted);
 }
-CjsSchema.define(IRoot, { className: "IRoot", carbon: "IRoot", fields: {} });
-meta.blue.interface()(IRoot);
+CjsSchema.blue.define(IRoot, { className: "IRoot", fields: {} });
+blue.interface()(IRoot);

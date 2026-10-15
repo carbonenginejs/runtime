@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Include/TriMatrix.h, TriMatrix.cpp, TriMatrix_Blue.cpp
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 
@@ -18,9 +18,8 @@ const ELEMENTS = [
  * Matrix has gl-matrix's byte layout, so `_41.._43` is the translation at [12..14].
  * Compositions swap operands, since Carbon is row-vector and gl-matrix column-vector.
  */
-@meta.define({
+@blue.define({
   className: "TriMatrix",
-  family: "trinityCore",
   members: ELEMENTS.map((name, index) => ({
     name, key: "_matrix", index, type: { kind: "float32" }, edit: { read: true, write: true, persist: true }
   }))
@@ -78,7 +77,7 @@ export class TriMatrix
    * Carbon Determinant (TriMatrix.cpp:172-175).
    * @returns {number} The determinant.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Determinant()
   {
@@ -86,7 +85,7 @@ export class TriMatrix
   }
 
   /** Carbon Identity (TriMatrix.cpp:177-180). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Identity()
   {
@@ -97,7 +96,7 @@ export class TriMatrix
    * Carbon Inverse (TriMatrix.cpp:182-187): inverts in place and returns the determinant.
    * @returns {number} The determinant of the matrix before inversion.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Inverse()
   {
@@ -113,7 +112,7 @@ export class TriMatrix
    * @param {vec3} at Target position.
    * @param {vec3} up Up direction.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   LookAtRH(eye, at, up)
   {
@@ -124,7 +123,7 @@ export class TriMatrix
    * Carbon Multiply (TriMatrix.cpp:197-201): `this = this * other`, this applied first.
    * @param {TriMatrix} other The matrix applied after this one.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Multiply(other)
   {
@@ -136,7 +135,7 @@ export class TriMatrix
    * @param {vec3} axis Rotation axis; normalized as Carbon does.
    * @param {number} angle Angle in radians.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RotationAxis(axis, angle)
   {
@@ -147,7 +146,7 @@ export class TriMatrix
    * Carbon RotationQuaternion (TriMatrix.cpp:210-214).
    * @param {quat} rotation The rotation.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RotationQuaternion(rotation)
   {
@@ -158,7 +157,7 @@ export class TriMatrix
    * Carbon RotationX (TriMatrix.cpp:216-220).
    * @param {number} angle Angle in radians.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RotationX(angle)
   {
@@ -169,7 +168,7 @@ export class TriMatrix
    * Carbon RotationY (TriMatrix.cpp:222-226).
    * @param {number} angle Angle in radians.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RotationY(angle)
   {
@@ -182,7 +181,7 @@ export class TriMatrix
    * @param {number} pitch Pitch in radians.
    * @param {number} roll Roll in radians.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RotationYawPitchRoll(yaw, pitch, roll)
   {
@@ -193,7 +192,7 @@ export class TriMatrix
    * Carbon RotationZ (TriMatrix.cpp:236-240).
    * @param {number} angle Angle in radians.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RotationZ(angle)
   {
@@ -206,7 +205,7 @@ export class TriMatrix
    * @param {number} sy Y scale.
    * @param {number} sz Z scale.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Scaling(sx, sy, sz)
   {
@@ -224,7 +223,7 @@ export class TriMatrix
    * @param {quat} rotation Rotation.
    * @param {vec3} translation Translation.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Transformation(scalingCenter, scalingRotation, scaling, rotationCenter, rotation, translation)
   {
@@ -254,7 +253,7 @@ export class TriMatrix
    * @param {number} y Y translation.
    * @param {number} z Z translation.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Translation(x, y, z)
   {
@@ -262,7 +261,7 @@ export class TriMatrix
   }
 
   /** Carbon Transpose (TriMatrix.cpp:276-279). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Transpose()
   {

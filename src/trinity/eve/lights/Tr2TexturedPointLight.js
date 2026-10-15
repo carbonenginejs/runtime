@@ -5,7 +5,7 @@ import { IsMatch, IInitialize, INotify } from "#blue";
 // Flattened LightData surface (2026-07-23 decision): texturePath joins the
 // flat fields inherited from Tr2PointLight, verified against
 // lights/Tr2TexturedPointLight.json (tools-core schema build).
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { ResourceRequirement } from "#resource";
 import { be } from "#blue";
 import { color } from "#math/color";
@@ -17,8 +17,8 @@ import { Tr2PointLight } from "./Tr2PointLight.js";
  * Point light that projects a texture, adding the texture path and its resolved
  * resource to the point-light attribute set and updating dynamically.
  */
-@meta.define({ className: "Tr2TexturedPointLight", family: "eve/lights" })
-@meta.blue.interface(Tr2Light, IInitialize, INotify)
+@blue.define("Tr2TexturedPointLight")
+@blue.interface(Tr2Light, IInitialize, INotify)
 export class Tr2TexturedPointLight extends Tr2PointLight
 {
   static LightDataFields = [
@@ -26,28 +26,28 @@ export class Tr2TexturedPointLight extends Tr2PointLight
     "texturePath"
   ];
 
-  @meta.blue.read
-  @meta.type.rootRef("TriTextureRes")
+  @blue.read
+  @type.rootRef("TriTextureRes")
   texture = null;
 
   /** m_lightData.texturePath (std::wstring) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.wpath("TriTextureRes")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.wpath("TriTextureRes")
   texturePath = "";
 
-  @meta.type.boolean
+  @type.boolean
   isDynamic = true;
 
-  @meta.type.int32
-  @meta.type.enum("trinity.Tr2Light.LIGHT_TYPE")
+  @type.int32
+  @type.enum("trinity.Tr2Light.LIGHT_TYPE")
   type = Tr2Light.POINT_LIGHT;
 
   _saturation = 1;
 
   /** Carbon SetSaturation (cpp:37-40); consumed by Update below. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetSaturation(saturation)
   {
@@ -59,7 +59,7 @@ export class Tr2TexturedPointLight extends Tr2PointLight
    * authored, then the point-light base. The reach is the process-wide
    * manager read at call time, which is what BeResMan is (be.resMan).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -73,7 +73,7 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   /**
    * Carbon OnModified (cpp:42–49): texture changes refetch, then forward base.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName)
   {
@@ -86,7 +86,7 @@ export class Tr2TexturedPointLight extends Tr2PointLight
    *
    * @param {string} path Texture resource path.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetTexturePath(path)
   {
@@ -103,7 +103,7 @@ export class Tr2TexturedPointLight extends Tr2PointLight
    *
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Update()
   {

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/Tr2RenderJobs.h
 // Source: trinity/trinity/RenderJob/Tr2RenderJobs.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2RenderContext.js";
 import { TriRenderJob } from "./TriRenderJob.js";
 
@@ -9,27 +9,27 @@ import { TriRenderJob } from "./TriRenderJob.js";
  * The four render-job schedules a frame draws from - recurring, one-off, chained
  * and update-recurring - and the order in which they are run.
  */
-@meta.define({ className: "Tr2RenderJobs", family: "renderJob" })
+@blue.define("Tr2RenderJobs")
 export class Tr2RenderJobs
 {
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("TriRenderJob")
+  @blue.read
+  @blue.persist
+  @type.list("TriRenderJob")
   recurring = [];
 
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("TriRenderJob")
+  @blue.read
+  @blue.persist
+  @type.list("TriRenderJob")
   once = [];
 
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("TriRenderJob")
+  @blue.read
+  @blue.persist
+  @type.list("TriRenderJob")
   chained = [];
 
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("TriRenderJob")
+  @blue.read
+  @blue.persist
+  @type.list("TriRenderJob")
   updateRecurring = [];
 
   /**
@@ -37,7 +37,7 @@ export class Tr2RenderJobs
    * The whole pass is bracketed by a render-target/depth-stencil batch so no job can leak a binding past the frame.
    * @param {object} [executor] performs the work the jobs describe; defaults to the shared Tr2RenderContext
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Run(realTime, simTime, executor = null)
   {
@@ -86,7 +86,7 @@ export class Tr2RenderJobs
    * jobs only; unlike Run this pass reschedules nothing and is not bracketed by
    * a batch.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RunUpdate(realTime, simTime, executor = null)
   {

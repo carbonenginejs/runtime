@@ -7,7 +7,7 @@ import "#blue/values";
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepCompress.cpp
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepPack.cpp
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { Tr2TexturePipelineParams } from "./Tr2TexturePipelineParams.js";
 import { Tr2TexturePipelineStepLimitSize } from "./Tr2TexturePipelineStepLimitSize.js";
 
@@ -91,14 +91,14 @@ export class Tr2TexturePipeline
 
 }
 
-CjsSchema.define(Tr2TexturePipeline, {
-  className: "Tr2TexturePipeline", family: "resources",
+CjsSchema.blue.define(Tr2TexturePipeline, {
+  className: "Tr2TexturePipeline",
   fields: {
-    pipelineType: [ meta.blue.persist, meta.type.string ],
-    steps: [ meta.blue.persist, meta.type.list("ITr2TexturePipelineStep") ]
+    pipelineType: [ blue.persist, type.string ],
+    steps: [ blue.persist, type.list("ITr2TexturePipelineStep") ]
   },
   methods: {
-    Execute: [ meta.blue.method, meta.adapted ],
-    GetResourceDependencies: [ meta.blue.method, meta.adapted ]
+    Execute: [ blue.method, meta.adapted ],
+    GetResourceDependencies: [ blue.method, meta.adapted ]
   }
 });

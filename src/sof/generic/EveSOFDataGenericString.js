@@ -1,21 +1,21 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:409-416
-import { meta } from "#schema";
+import { type, blue } from "#schema";
 
 /**
  * Provides the persisted wrapper used for a generic SOF string value.
  * Native IRoot-only data with a self-only Blue table. Constructor/destructor
  * are empty; no initialization, update or resource lifecycle is required.
  */
-@meta.define({ className: "EveSOFDataGenericString", family: "eve" })
-@meta.blue.interface()
+@blue.define("EveSOFDataGenericString")
+@blue.interface()
 export class EveSOFDataGenericString
 {
 
   /** m_str (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   str = "";
 
 }

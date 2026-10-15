@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/Renderable/EveSceneStaticParticles.h
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 //   trinity/trinity/Eve/Renderable/EveSceneStaticParticles.cpp
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import * as CcpLog from "../../../../global/logging/ccpLog.js";
 import { Tr2RuntimeInstanceData } from "../../../core/mesh/Tr2RuntimeInstanceData.js";
 import { mat4 } from "#math/mat4";
@@ -43,63 +43,63 @@ function randomGauss(random, deviation)
  * around a double-precision aggregate origin and drawn through a single
  * instanced mesh.
  */
-@meta.define({ className: "EveSceneStaticParticles", family: "eve/scene" })
-@meta.blue.inherit(ITr2Renderable)
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(IInitialize)
+@blue.define("EveSceneStaticParticles")
+@blue.inherit(ITr2Renderable)
+@blue.inherit(IInitialize)
+@blue.interface(IInitialize)
 export class EveSceneStaticParticles
 {
 
   /** Carbon ClusterData records retained on the CPU. */
-  @meta.type.list("ClusterData")
+  @type.list("ClusterData")
   clusters = [];
 
   /** Double-precision aggregate origin used for camera-relative placement. */
-  @meta.type.rawStruct("Vector3d")
+  @type.rawStruct("Vector3d")
   centerOfClusters = new Float64Array(3);
 
   /** Local particle bounds rebuilt with the CPU instance data. */
-  @meta.type.vec4
+  @type.vec4
   boundingSphere = new Float32Array(4);
 
   /** m_clusterParticleDensityAdjust (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   clusterParticleDensityAdjust = 1;
 
   /** m_estimatedSize (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   estimatedSize = 0;
 
   /** m_clusterParticleDensity (float) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   clusterParticleDensity = 100;
 
   /** m_maxSize (float) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   maxSize = 200;
 
   /** m_minSize (float) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   minSize = 5;
 
   /** m_mesh (Tr2InstancedMeshPtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2InstancedMesh")
+  @blue.readwrite
+  @type.rootRef("Tr2InstancedMesh")
   mesh = null;
 
   /** m_maxParticleCount (size_t) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.uint64
+  @blue.readwrite
+  @type.uint64
   maxParticleCount = 100000;
 
   /** m_visible (bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   visible = false;
 
   /** m_worldMatrix (EveSceneStaticParticles.h:93; ctor identity, cpp:27) -
@@ -115,7 +115,7 @@ export class EveSceneStaticParticles
   center = vec3.create();
 
   /** Carbon's post-hydration initializer has no additional work. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -128,7 +128,7 @@ export class EveSceneStaticParticles
    * the DOUBLE-precision offset centerOfClusters - origin (narrowed to
    * float32 per component only when it enters the matrix, Carbon's
    * float(offset.x) casts), and stamps the world-space sphere center. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Update(updateContext)
   {
@@ -160,7 +160,7 @@ export class EveSceneStaticParticles
    * and the size gate; the size gate is strict > against
    * PARTICLE_CLUSTER_MIN_SIZE * lodFactor. estimatedSize is stamped even
    * when invisible - GetBatches consumes it as the LOD size (cpp:139). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateVisibility(updateContext)
   {
@@ -186,7 +186,7 @@ export class EveSceneStaticParticles
   /** Carbon EveSceneStaticParticles::IsVisible (cpp:170-174): the world-space
    * center with the local radius through the ONE-ARG IsSphereVisible - the
    * back-plane-ignored TriFrustum quirk applies (cullBackPlane false). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsVisible(updateContext)
   {
@@ -197,7 +197,7 @@ export class EveSceneStaticParticles
   /** Carbon EveSceneStaticParticles::GetRenderables (cpp:129-135): pushes the
    * object ITSELF when visible; the frustum parameter is deliberately unused
    * (kept for the scene call-site contract, EveSpaceScene.cpp:1504-1507). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetRenderables(_frustum, out = [])
   {
@@ -211,7 +211,7 @@ export class EveSceneStaticParticles
   /** Carbon EveSceneStaticParticles::GetBatches (cpp:137-140): the mesh's
    * areas of the requested type with the stamped estimatedSize as the LOD
    * screen size. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBatches(batches, batchType, perObjectData, _reason)
   {
@@ -220,7 +220,7 @@ export class EveSceneStaticParticles
 
   /** Carbon EveSceneStaticParticles::GetShadowBatches (cpp:142-145): the
    * particle clusters never cast shadows. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetShadowBatches(_batches, _perObjectData, _shadowPixelSize)
   {
@@ -233,7 +233,7 @@ export class EveSceneStaticParticles
    *
    * Adapted: the accumulator allocates the catalogued record by name, and
    * SetAndTranspose writes the stored layout. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetPerObjectData(accumulator)
   {
@@ -248,7 +248,7 @@ export class EveSceneStaticParticles
   }
 
   /** Carbon EveSceneStaticParticles::HasTransparentBatches (cpp:160-163). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasTransparentBatches()
   {
@@ -256,7 +256,7 @@ export class EveSceneStaticParticles
   }
 
   /** Carbon EveSceneStaticParticles::GetSortValue (cpp:165-168). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetSortValue()
   {
@@ -269,7 +269,7 @@ export class EveSceneStaticParticles
    * Adapted: Adds option strings through the supplied collection's add or insert method; the
    * debug adapter retains its capability checks.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetDebugOptions(options = new Set())
   {
@@ -290,7 +290,7 @@ export class EveSceneStaticParticles
    * Adapted: ITr2DebugRenderer2 is an injected engine-owned capability; its
    * Effect::Wireframe value is retained as 0.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RenderDebugInfo(renderer)
   {
@@ -315,7 +315,7 @@ export class EveSceneStaticParticles
    * Adapted: Carbon's native ClusterData/Vector3d value is represented by a plain record
    * with a Float64Array position.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AddCluster(position, radius, color1, color2, randomSeed)
   {
@@ -337,7 +337,7 @@ export class EveSceneStaticParticles
    * remain unresolved parity differences from Carbon's global randomness,
    * void return and unguarded empty-cluster calculation.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Rebuild()
   {
@@ -443,7 +443,7 @@ export class EveSceneStaticParticles
    * Clears clusters and destroys data only on the runtime instance-data class.
    * Source: trinity/trinity/Eve/Renderable/EveSceneStaticParticles.cpp:64-74
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ClearClusters()
   {

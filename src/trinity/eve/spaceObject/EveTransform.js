@@ -11,7 +11,7 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2Transform } from "../../core/Tr2Transform.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
@@ -33,10 +33,10 @@ const INVERSE_PATCH_SCRATCH = mat4.create();
  * particle systems and emitters, curve sets, observers and child transforms,
  * with its own frustum and LOD visibility pass.
  */
-@meta.define({ className: "EveTransform", family: "eve/spaceObject" })
-@meta.blue.inherit(IWorldPosition, ITr2BoundingBox, IEveSpaceObject2, IEveTransform, ITr2CurveSetOwner)
-@meta.blue.interface(IEveTransform, IEveSpaceObject2, IWorldPosition, IInitialize, ITr2BoundingBox)
-@meta.blue.chainTo(Tr2Transform)
+@blue.define("EveTransform")
+@blue.inherit(IWorldPosition, ITr2BoundingBox, IEveSpaceObject2, IEveTransform, ITr2CurveSetOwner)
+@blue.interface(IEveTransform, IEveSpaceObject2, IWorldPosition, IInitialize, ITr2BoundingBox)
+@blue.chainTo(Tr2Transform)
 export class EveTransform extends Tr2Transform
 {
 
@@ -46,9 +46,9 @@ export class EveTransform extends Tr2Transform
    * Fallback mesh adopted during initialization when the primary mesh is unset.
    * @type {Tr2MeshBase|null}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2MeshBase")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2MeshBase")
   meshLod = null;
 
   /**
@@ -57,9 +57,9 @@ export class EveTransform extends Tr2Transform
    * Child transforms visited for updates, visibility, bounds and render submission.
    * @type {IEveTransform[]}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("IEveTransform")
+  @blue.read
+  @blue.persist
+  @type.list("IEveTransform")
   children = [];
 
   /**
@@ -68,9 +68,9 @@ export class EveTransform extends Tr2Transform
    * Local minimum of the override bounds, enabled when it differs from overrideBoundsMax.
    * @type {vec3}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   overrideBoundsMin = vec3.create();
 
   /**
@@ -79,9 +79,9 @@ export class EveTransform extends Tr2Transform
    * Local maximum of the override bounds, enabled when it differs from overrideBoundsMin.
    * @type {vec3}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   overrideBoundsMax = vec3.create();
 
   /**
@@ -90,9 +90,9 @@ export class EveTransform extends Tr2Transform
    * Emitters advanced with the node's world transform and current update context.
    * @type {ITr2GenericEmitter[]}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITr2GenericEmitter")
+  @blue.read
+  @blue.persist
+  @type.list("ITr2GenericEmitter")
   particleEmitters = [];
 
   /**
@@ -101,9 +101,9 @@ export class EveTransform extends Tr2Transform
    * Particle systems updated, sorted and transformed with this node.
    * @type {Tr2ParticleSystem[]}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("Tr2ParticleSystem")
+  @blue.read
+  @blue.persist
+  @type.list("Tr2ParticleSystem")
   particleSystems = [];
 
   /**
@@ -112,9 +112,9 @@ export class EveTransform extends Tr2Transform
    * Current LOD selected by visibility testing and merged with the children's LOD levels.
    * @type {number}
    */
-  @meta.blue.read
-  @meta.type.int32
-  @meta.type.enum("trinity.Tr2Lod")
+  @blue.read
+  @type.int32
+  @type.enum("trinity.Tr2Lod")
   lodLevel = Tr2Lod.TR2_LOD_LOW;
 
   /**
@@ -123,9 +123,9 @@ export class EveTransform extends Tr2Transform
    * Whether low-quality rendering suppresses this node's visibility.
    * @type {boolean}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   hideOnLowQuality = false;
 
   /**
@@ -134,9 +134,9 @@ export class EveTransform extends Tr2Transform
    * Projected mesh-size threshold for visibility; a negative value bypasses sphere rejection.
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   visibilityThreshold = 2;
 
   /**
@@ -145,9 +145,9 @@ export class EveTransform extends Tr2Transform
    * Observers updated from the node's world transform during view-dependent updates.
    * @type {TriObserverLocal[]}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("TriObserverLocal")
+  @blue.read
+  @blue.persist
+  @type.list("TriObserverLocal")
   observers = [];
 
   /**
@@ -156,9 +156,9 @@ export class EveTransform extends Tr2Transform
    * Whether curve-set updates are throttled according to the current LOD.
    * @type {boolean}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   useLodLevel = true;
 
   /**
@@ -181,7 +181,7 @@ export class EveTransform extends Tr2Transform
    * Adopts an authored meshLod as the node's mesh when no mesh was set, so a
    * graph that only authored the LOD mesh still renders.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -200,8 +200,8 @@ export class EveTransform extends Tr2Transform
    * Adapted: Renderer-owned modifier state is supplied through the update
    * context; standard SRT and parent composition stay in Trinity.
   */
-  @meta.blue.method
-  @meta.blue.contextual(["camera"])
+  @blue.method
+  @blue.contextual(["camera"])
   @meta.adapted
   UpdateViewDependentData(context, parentTransform = EveTransform._identity)
   {
@@ -213,7 +213,7 @@ export class EveTransform extends Tr2Transform
   }
 
   /** Runs the synchronous pass then the asynchronous pass, in Carbon's order. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Update(context)
   {
@@ -225,7 +225,7 @@ export class EveTransform extends Tr2Transform
    * Does nothing: EveTransform performs all of its per-frame work in
    * UpdateAsyncronous.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateSyncronous(_context)
   {
@@ -246,7 +246,7 @@ export class EveTransform extends Tr2Transform
    * and system argument records carry time in seconds, the unit every
    * JavaScript emitter reads.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateAsyncronous(context)
   {
@@ -294,7 +294,7 @@ export class EveTransform extends Tr2Transform
    * Refreshes the world transform, then derives visibility and LOD from the mesh bounding sphere: the sphere is frustum-tested and its on-screen size in pixels is compared against the context's medium and low detail thresholds for the LOD level and against visibilityThreshold for visibility; a node with no mesh is always visible, any particle system forces high LOD, and children's LOD levels are merged in.
    * @returns {boolean} Whether this node itself is visible.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateVisibility(context, parentTransform = EveTransform._identity)
   {
@@ -334,7 +334,7 @@ export class EveTransform extends Tr2Transform
   }
 
   /** Carbon's GetRenderables( renderables ): forwards with no impostor manager. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetRenderables(out)
   {
@@ -370,7 +370,7 @@ export class EveTransform extends Tr2Transform
    * fields into the canonical stored layout; the engine owns GPU allocation,
    * upload, and binding.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetPerObjectData(accumulator)
   {
@@ -414,7 +414,7 @@ export class EveTransform extends Tr2Transform
    * @param {Number} pickTypes - a Tr2PickType mask
    * @param {Object} perObjectData - this transform's per-object record
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPickingBatches(batches, pickTypes = TR2_PICK_TYPE_DEFAULT, perObjectData = null)
   {
@@ -443,7 +443,7 @@ export class EveTransform extends Tr2Transform
    * @param {Number} [_areaID] - the picked area, unused by this class
    * @returns {EveTransform} this
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetID(_areaID = 0)
   {
@@ -451,7 +451,7 @@ export class EveTransform extends Tr2Transform
   }
 
   /** Writes the override bounds, or the displayed mesh's local bounds when no override exists. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLocalBoundingBox(min, max)
   {
@@ -465,7 +465,7 @@ export class EveTransform extends Tr2Transform
   }
 
   /** Writes the direct local bounds transformed by the current world matrix. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetWorldBoundingBox(min, max)
   {
@@ -479,7 +479,7 @@ export class EveTransform extends Tr2Transform
   }
 
   /** Reports whether override or mesh bounds are currently available. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsBoundingBoxReady()
   {
@@ -491,7 +491,7 @@ export class EveTransform extends Tr2Transform
    * @param {vec4} out Caller-owned sphere; left untouched when no source produced one.
    * @returns {boolean} Whether a sphere was written.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBoundingSphere(out = vec4.create(), query = 0)
   {
@@ -528,7 +528,7 @@ export class EveTransform extends Tr2Transform
    * @param {Float32Array} out Caller-owned position.
    * @returns {Float32Array} out
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetWorldPosition(out)
   {
@@ -539,7 +539,7 @@ export class EveTransform extends Tr2Transform
    * Returns the node's local rotation quaternion; called without an out
    * parameter it returns the live field rather than a copy.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetWorldRotation(out)
   {
@@ -547,7 +547,7 @@ export class EveTransform extends Tr2Transform
   }
 
   /** Returns the LOD level chosen by the last visibility pass. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLODLevel()
   {
@@ -555,7 +555,7 @@ export class EveTransform extends Tr2Transform
   }
 
   /** Turns rendering of this node and its subtree on or off. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetDisplay(value)
   {
@@ -563,7 +563,7 @@ export class EveTransform extends Tr2Transform
   }
 
   /** Starts playback on every curve set on this node. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PlayCurveSets()
   {
@@ -574,7 +574,7 @@ export class EveTransform extends Tr2Transform
    * Starts every curve set carrying the given name, playing a named time range
    * when one is supplied and otherwise resetting to the full range first.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PlayCurveSet(name, rangeName = "")
   {
@@ -594,7 +594,7 @@ export class EveTransform extends Tr2Transform
   }
 
   /** Stops every curve set carrying the given name. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   StopCurveSet(name)
   {
@@ -605,7 +605,7 @@ export class EveTransform extends Tr2Transform
    * Returns the longest curve duration across the curve sets carrying the given
    * name, or 0 when none match.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetCurveSetDuration(name)
   {
@@ -618,7 +618,7 @@ export class EveTransform extends Tr2Transform
    * Returns the longest duration of a named time range across the curve sets
    * carrying the given name, or 0 when none match.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetRangeDuration(name, rangeName)
   {

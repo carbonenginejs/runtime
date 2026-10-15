@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveSpaceObjectChild.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveSpaceObjectChild.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Origin } from "../../generated/eve/child/enums.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 
@@ -41,17 +41,17 @@ export function EveCollectAreas(type, mesh, areaPool)
  * producers in EveChildMesh, EveChildInstancedMeshes and EveCollectAreas emit
  * plain records; no nominal class declarations exist for those three structs.
  */
-@meta.define({ className: "EveSpaceObjectChild", family: "eve/child" })
-@meta.blue.interface()
+@blue.define("EveSpaceObjectChild")
+@blue.interface()
 export class EveSpaceObjectChild extends IEveSpaceObjectChild
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   partTag = 0;
 
   _owner = null;
@@ -180,7 +180,7 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
   }
 
   /** Returns the owning space object. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetOwner()
   {
@@ -194,7 +194,7 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
   }
 
   /** Returns the parent child node. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetParent()
   {
@@ -226,7 +226,7 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
    * Returns the damage overlay of one part of this child, or null while the
    * part has none (Carbon EveSpaceObjectChild.cpp:138-141 base default).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPartDamageOverlay(_partTag)
   {
@@ -234,7 +234,7 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
   }
 
   /** Creates the damage overlay of one part (Carbon cpp:143-145 base no-op). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   CreatePartDamageOverlay(_partTag)
   {
@@ -244,7 +244,7 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
    * Returns the armour damage shader of one part, or null when the child has
    * none (Carbon cpp:147-150 base default).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPartArmorDamageShaderEffect(_partTag)
   {
@@ -255,7 +255,7 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
    * Writes the animated child-local pose of one of a part's damage locators;
    * the base child owns none, so nothing is written (Carbon cpp:152-155).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPartDamageLocatorAnimatedLocal(_partTag, _index, _position, _direction)
   {

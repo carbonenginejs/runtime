@@ -40,4 +40,4 @@ for (const method of [
 {
   CjsSchema.decorateMethod(ITr2InstanceData, method, meta.abstract);
 }
-CjsSchema.define(ITr2InstanceData, { className: "ITr2InstanceData" });
+CjsSchema.blue.define(ITr2InstanceData, { className: "ITr2InstanceData" });

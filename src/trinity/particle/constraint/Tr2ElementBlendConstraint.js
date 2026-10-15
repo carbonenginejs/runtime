@@ -1,45 +1,45 @@
 // Source: trinity/trinity/Particle/Tr2ElementBlendConstraint.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { ITr2GenericParticleConstraint } from "./ITr2GenericParticleConstraint.js";
 import { vec4 } from "#math/vec4";
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
 
 /** A constraint that rescales and offsets a single bound particle element by a constant factor and value each frame. */
-@meta.define({ className: "Tr2ElementBlendConstraint", family: "particle" })
+@blue.define("Tr2ElementBlendConstraint")
 export class Tr2ElementBlendConstraint extends ITr2GenericParticleConstraint
 {
 
   #element = null;
 
   /** m_name.m_type (Tr2ParticleElementDeclarationName::Type) [READWRITE, PERSIST, ENUM] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.Tr2ParticleElementDeclarationName.Type")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.Tr2ParticleElementDeclarationName.Type")
   elementType = Tr2ParticleElementDeclaration.Type.CUSTOM;
 
   /** m_name.m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   customName = "";
 
   /** m_value (Vector4) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   value = vec4.create();
 
   /** m_originalFactor (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   originalFactor = 1;
 
   /** m_isValid (bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   isValid = false;
 
   /**

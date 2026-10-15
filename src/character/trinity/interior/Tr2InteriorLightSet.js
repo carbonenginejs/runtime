@@ -1,16 +1,16 @@
 // Source: trinity/trinity/Interior/Tr2InteriorLightSet.h
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { Tr2InteriorPerObjectLightData } from "../../generated/interior/Tr2InteriorPerObjectLightData.js";
 
 /** Transient collection of active interior light sources and packed records. */
-@meta.define({ className: "Tr2InteriorLightSet", family: "interior" })
+@blue.define("Tr2InteriorLightSet")
 export class Tr2InteriorLightSet
 {
 
   _lightInstances = [];
 
   /** Adds one native light identity to the transient active-light set. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddLight(lightSource, _viewPosition)
   {
@@ -22,7 +22,7 @@ export class Tr2InteriorLightSet
   }
 
   /** Clears every transient light instance. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Clear()
   {
@@ -30,7 +30,7 @@ export class Tr2InteriorLightSet
   }
 
   /** Returns the source-backed active-light count. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetNumOfActiveLights()
   {
@@ -38,7 +38,7 @@ export class Tr2InteriorLightSet
   }
 
   /** Requires the maintained light-data population contract before it can run. */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   PopulateLightData(_perObjectPSData)
   {

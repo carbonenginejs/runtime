@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/TriGrannyRes.h
 // Schema: format-carbon resources/Tr2GrannyIntersectionResult.json; maintained by the runtime resource layer.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, type, blue } from "#schema";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 
@@ -40,18 +40,18 @@ export class Tr2GrannyIntersectionResult
 
 }
 
-CjsSchema.define(Tr2GrannyIntersectionResult, {
-  className: "Tr2GrannyIntersectionResult", family: "resources",
+CjsSchema.blue.define(Tr2GrannyIntersectionResult, {
+  className: "Tr2GrannyIntersectionResult",
   fields: {
-    position: [ meta.blue.readwrite, meta.type.vec3 ],
-    hasPosition: [ meta.blue.readwrite, meta.type.boolean ],
-    normal: [ meta.blue.readwrite, meta.type.vec3 ],
-    hasNormal: [ meta.blue.readwrite, meta.type.boolean ],
-    uv: [ meta.blue.readwrite, meta.type.vec2 ],
-    hasUv: [ meta.blue.readwrite, meta.type.boolean ],
-    boneIndex: [ meta.blue.readwrite, meta.type.int32 ],
-    hasBoneIndex: [ meta.blue.readwrite, meta.type.boolean ],
-    meshIndex: [ meta.blue.readwrite, meta.type.int32 ],
-    areaIndex: [ meta.blue.readwrite, meta.type.int32 ]
+    position: [ blue.readwrite, type.vec3 ],
+    hasPosition: [ blue.readwrite, type.boolean ],
+    normal: [ blue.readwrite, type.vec3 ],
+    hasNormal: [ blue.readwrite, type.boolean ],
+    uv: [ blue.readwrite, type.vec2 ],
+    hasUv: [ blue.readwrite, type.boolean ],
+    boneIndex: [ blue.readwrite, type.int32 ],
+    hasBoneIndex: [ blue.readwrite, type.boolean ],
+    meshIndex: [ blue.readwrite, type.int32 ],
+    areaIndex: [ blue.readwrite, type.int32 ]
   }
 });

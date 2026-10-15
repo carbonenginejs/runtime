@@ -131,4 +131,4 @@ for (const method of [
   CjsSchema.decorateMethod(IBlueOS, method, meta.requires, meta.abstract);
 }
 
-CjsSchema.define(IBlueOS, { className: "IBlueOS", carbon: "IBlueOS", family: "blue", fields: {} });
+CjsSchema.blue.define(IBlueOS, { className: "IBlueOS", fields: {} });

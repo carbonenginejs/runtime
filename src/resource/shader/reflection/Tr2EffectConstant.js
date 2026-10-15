@@ -96,9 +96,8 @@ export class Tr2EffectConstant
 // Field order matters: it drives GetValues() export order. Statics belong in
 // `methods` here rather than in a decorateMethod() call, which targets the
 // prototype and would register a static as an instance field.
-CjsSchema.define(Tr2EffectConstant, {
+CjsSchema.blue.define(Tr2EffectConstant, {
   className: "Tr2EffectConstant",
-  family: "shader",
   fields: [
     { name: "name", type: { kind: "string" } },
     { name: "offset", type: { kind: "uint32" } },

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/fxAttributes/EveSpaceObjectFxAttributes.h
 //   trinity/trinity/Eve/SpaceObject/Utils/fxAttributes/EveSpaceObjectFxAttributes.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IEveFxAttribute } from "./IEveFxAttribute.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -70,66 +70,66 @@ function RotationQuaternion(out, matrix)
  * active turret and kill counts - refreshed each child update for effect
  * bindings to read.
  */
-@meta.define({ className: "EveSpaceObjectFxAttributes", family: "eve/fxAttributes" })
+@blue.define("EveSpaceObjectFxAttributes")
 export class EveSpaceObjectFxAttributes extends IEveFxAttribute
 {
 
   _initialized = false;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_activationStrength (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   activationStrength = 1;
 
   /** m_activeTurretCount (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   activeTurretCount = 0;
 
   /** m_distanceToChildParent (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   childParent = 0;
 
   /** m_generatedShapeEllipsoidCenter (Vector3) [READ] */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   generatedShapeEllipsoidCenter = vec3.create();
 
   /** m_generatedShapeEllipsoidRadius (Vector3) [READ] */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   generatedShapeEllipsoidRadius = vec3.create();
 
   /** m_killCount (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   killCount = 0;
 
   /** m_distanceToShip (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   ship = 0;
 
   /** m_boundingSphereRadius (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   boundingSphereRadius = 0;
 
   /** m_parentWorldRotation (Quaternion) [READ] */
-  @meta.blue.read
-  @meta.type.quat
+  @blue.read
+  @type.quat
   parentWorldRotation = quat.fromValues(0, 0, 0, 0);
 
   /** m_parentWorldTranslation (Vector3) [READ] */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   parentWorldTranslation = vec3.create();
 
   /**
@@ -139,7 +139,7 @@ export class EveSpaceObjectFxAttributes extends IEveFxAttribute
    * Adapted: Carbon BlueCastPtr checks become JavaScript instanceof checks; native out
    * parameters are typed-array copy-outs.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateAsyncronous(_updateContext, params)
   {

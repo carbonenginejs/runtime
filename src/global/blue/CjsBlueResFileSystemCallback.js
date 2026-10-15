@@ -72,10 +72,9 @@ export class CjsBlueResFileSystemCallback extends IBlueResFileSystem
   }
 }
 
-CjsSchema.define(CjsBlueResFileSystemCallback, {
+CjsSchema.meta.define(CjsBlueResFileSystemCallback, {
   className: "CjsBlueResFileSystemCallback",
-  modelledOn: "IBlueResFileSystem",
-  family: "blue",
+  donors: [ "IBlueResFileSystem" ],
   fields: {},
   methods: {
     FileExists: [ meta.adapted ],

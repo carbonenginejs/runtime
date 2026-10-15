@@ -7,28 +7,28 @@ import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 // Hand-maintained after promotion from generated schema intake.
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { EveMobile } from "./EveMobile.js";
 import { EveEntity } from "../EveEntity.js";
 import { TriFloat } from "../../core/variable/TriFloat.js";
 
 /** A ship space object: booster drive, speed state, and ship shader data. */
-@meta.define({ className: "EveShip2", family: "eve/spaceObject" })
-@meta.blue.inherit(IListNotify, IInitialize)
-@meta.blue.interface(IEveSpaceObject2, ITr2Renderable, IListNotify)
-@meta.blue.chainTo(EveMobile)
+@blue.define("EveShip2")
+@blue.inherit(IListNotify, IInitialize)
+@blue.interface(IEveSpaceObject2, ITr2Renderable, IListNotify)
+@blue.chainTo(EveMobile)
 export class EveShip2 extends EveMobile
 {
 
   /** Hidden persisted m_boosters storage (EveShip2_Blue.cpp:21), separate from its live property. */
   @meta.member("boosters")
-  @meta.blue.persistOnly
-  @meta.type.rootRef("EveBoosterSet2")
+  @blue.persistOnly
+  @type.rootRef("EveBoosterSet2")
   _boosters = null;
 
   /** Live booster property; persistence reads and writes the backing member directly. */
-  @meta.blue.readwrite
-  @meta.type.rootRef("EveBoosterSet2")
+  @blue.readwrite
+  @type.rootRef("EveBoosterSet2")
   @meta.implemented
   get boosters()
   {
@@ -43,23 +43,23 @@ export class EveShip2 extends EveMobile
   }
 
   /** m_displayKillCounterValue (uint32_t) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.uint32
+  @blue.readwrite
+  @type.uint32
   displayKillCounterValue = 0;
 
   /** m_maxSpeed (float) [READWRITE] - the maximum speed of the ship. */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   maxSpeed = 0;
 
   /** m_speed (TriFloatPtr) [READ] */
-  @meta.blue.read
-  @meta.type.rootRef("TriFloat")
+  @blue.read
+  @type.rootRef("TriFloat")
   speed = null;
 
   /** audioSpeedParameter (MAP_PROPERTY) - root audio value holder. */
-  @meta.blue.readwrite
-  @meta.type.rootRef("IRoot")
+  @blue.readwrite
+  @type.rootRef("IRoot")
   audioSpeedParameter = null;
 
   /** m_acceleration - second derivative of the position curve, fed to boosters. */
@@ -88,7 +88,7 @@ export class EveShip2 extends EveMobile
    * velocity, audio speed parameter, and booster acceleration from the
    * position curve's second derivative (EveShip2.cpp:16-45).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateSyncronous(updateContext)
   {
@@ -121,7 +121,7 @@ export class EveShip2 extends EveMobile
   }
 
   /** Carbon EveShip2::UpdateAsyncronous - base async, then boosters. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateAsyncronous(updateContext)
   {
@@ -134,7 +134,7 @@ export class EveShip2 extends EveMobile
   }
 
   /** Carbon EveShip2::UpdateBoosters (EveShip2.cpp:55-64). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateBoosters(updateContext)
   {
@@ -156,7 +156,7 @@ export class EveShip2 extends EveMobile
   }
 
   /** Carbon EveShip2::UpdateVisibility - base, then booster visibility. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform)
   {
@@ -188,7 +188,7 @@ export class EveShip2 extends EveMobile
   }
 
   /** Carbon EveShip2::RegisterWithQuadRenderer (EveShip2.cpp:165-172): EveMobile's, then the booster glows. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -200,7 +200,7 @@ export class EveShip2 extends EveMobile
   }
 
   /** Carbon EveShip2::AddQuadsToQuadRenderer (EveShip2.cpp:174-185): EveMobile's, then the booster glows. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
@@ -216,7 +216,7 @@ export class EveShip2 extends EveMobile
   }
 
   /** Returns the attached booster set, or null when the ship has none. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBoosters()
   {
@@ -230,7 +230,7 @@ export class EveShip2 extends EveMobile
    * JavaScript uses the shared cast for the native EveEntity casts and treats
    * an omitted pointer as null; replacing a reference does not destroy it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetBoosters(boosters)
   {
@@ -250,7 +250,7 @@ export class EveShip2 extends EveMobile
 
   /** Carbon EveShip2::RegisterComponents (cpp:145-153): base registration,
    * then forwards the booster set (no display gate of its own). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterComponents()
   {
@@ -264,7 +264,7 @@ export class EveShip2 extends EveMobile
 
   /** Carbon EveShip2::UnRegisterComponents (cpp:155-163): base, then forwards
    * the booster set. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UnRegisterComponents()
   {
@@ -277,7 +277,7 @@ export class EveShip2 extends EveMobile
   }
 
   /** Carbon EveShip2::DisplayBoosters - boosters render with the children. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   DisplayBoosters()
   {
@@ -291,7 +291,7 @@ export class EveShip2 extends EveMobile
    * @param {IEveSpaceObject2ParentData} [out] Caller-owned record, refreshed in place.
    * @returns {IEveSpaceObject2ParentData} out
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetParentData(out)
   {
@@ -304,7 +304,7 @@ export class EveShip2 extends EveMobile
    * Returns the kill count displayed on the hull, which the space-object effect
    * attributes expose to effect bindings.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetKillCounterValue()
   {
@@ -328,7 +328,7 @@ export class EveShip2 extends EveMobile
    * Returns the ship's maximum speed, the divisor that normalizes current speed
    * into the bound audio speed parameter.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetMaxSpeed()
   {
@@ -342,7 +342,7 @@ export class EveShip2 extends EveMobile
    * Adapted: Blue FindEntry member binding becomes a duck-typed value holder; the runtime
    * audio layer owns the emitter side.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateShipSpeedForAudio()
   {
@@ -361,7 +361,7 @@ export class EveShip2 extends EveMobile
    * Carbon EveShip2::RebuildCachedData - after geometry load, re-attach
    * turrets to the freshly loaded locators (EveShip2.cpp:169-174).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RebuildCachedData(asyncRes)
   {
@@ -373,7 +373,7 @@ export class EveShip2 extends EveMobile
    * Carbon RebuildBoosterSet (EveShip2.cpp:234-258): one booster per
    * "locator_booster" locator, then the set prepares its resources.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RebuildBoosterSet()
   {
@@ -396,7 +396,7 @@ export class EveShip2 extends EveMobile
    * Runs the base space-object initialization; the ship adds no setup of its
    * own.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -410,7 +410,7 @@ export class EveShip2 extends EveMobile
    * (EveShip2.cpp:275-289). The ship-data vec4 is exposed for the
    * per-object values builder.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPerObjectData(accumulator = null)
   {

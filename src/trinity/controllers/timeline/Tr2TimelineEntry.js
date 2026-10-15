@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Controllers/Tr2TimelineController.h
 // Source: trinity/trinity/Controllers/Tr2TimelineController.cpp:24-28
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 
 /**
@@ -12,10 +12,7 @@ import { meta } from "#schema";
  * Native 64-bit size 12; offsets and storage types: trinity/trinity/
  * Controllers/Tr2TimelineController.h:17-22; Controllers/Tr2TimelineController.cpp:24-28.
  */
-@meta.define({
-  className: "Tr2TimelineEntry",
-  family: "controllers"
-})
+@blue.define("Tr2TimelineEntry")
 @meta.struct.define({ size: 12 })
 export class Tr2TimelineEntry
 {

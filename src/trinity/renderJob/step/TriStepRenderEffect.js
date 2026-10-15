@@ -1,37 +1,37 @@
 // Source: trinity/trinity/RenderJob/TriStepRenderEffect.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { vec2 } from "#math/vec2";
 import { Tr2RenderUtils } from "../../core/Tr2RenderUtils.js";
 
 /** A render step that draws a full-screen effect with an optional shader buffer. */
-@meta.define({ className: "TriStepRenderEffect", family: "renderJob" })
+@blue.define("TriStepRenderEffect")
 export class TriStepRenderEffect extends TriRenderStep
 {
 
   /** m_shaderBuffer (Tr2ShaderBufferPtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2ShaderBuffer")
+  @blue.readwrite
+  @type.rootRef("Tr2ShaderBuffer")
   shaderBuffer = null;
 
   /** m_brTexCoord (Vector2) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.vec2
+  @blue.readwrite
+  @type.vec2
   brTexCoord = vec2.fromValues(1, 1);
 
   /** m_effect (Tr2EffectPtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @type.rootRef("Tr2Effect")
   effect = null;
 
   /** m_tlTexCoord (Vector2) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.vec2
+  @blue.readwrite
+  @type.vec2
   tlTexCoord = vec2.create();
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   __init__(effect = null, shaderBuffer = null)
   {
@@ -52,7 +52,7 @@ export class TriStepRenderEffect extends TriRenderStep
    * draw, because the draw runs every pass of the effect and each pass reads
    * whatever the buffer bound.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Execute(_realTime, _simTime, renderContext)
   {

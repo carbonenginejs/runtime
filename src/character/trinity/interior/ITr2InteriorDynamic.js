@@ -31,4 +31,4 @@ for (const method of ["GetWorldBoundingBox","IsBoundingBoxReady","PrePhysicsUpda
 {
   CjsSchema.decorateMethod(ITr2InteriorDynamic, method, meta.requires, meta.abstract);
 }
-CjsSchema.define(ITr2InteriorDynamic, { className: "ITr2InteriorDynamic", carbon: "ITr2InteriorDynamic", family: "interior", fields: {} });
+CjsSchema.blue.define(ITr2InteriorDynamic, { className: "ITr2InteriorDynamic", fields: {} });

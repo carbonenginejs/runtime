@@ -1,15 +1,15 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/IEveSmartLightGroupAttributeModifier.h
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { EveSmartLightBaseAttributeModifier } from "./EveSmartLightBaseAttributeModifier.js";
 
 
 /** Required smart-light group attribute-modifier contract. */
-@meta.define({ className: "IEveSmartLightGroupAttributeModifier", family: "eve/smartLights/attributeModifiers" })
+@blue.define("IEveSmartLightGroupAttributeModifier")
 export class IEveSmartLightGroupAttributeModifier extends EveSmartLightBaseAttributeModifier
 {
 
   /** Updates modifier state for the current smart-light group activation. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   UpdateSyncronous(_updateContext, _params, _activationMultiplier)
   {
@@ -17,7 +17,7 @@ export class IEveSmartLightGroupAttributeModifier extends EveSmartLightBaseAttri
   }
 
   /** Applies this modifier to one smart-light attribute. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   ProcessAttributeModifier(_attribute, _placement, _entityPosition, _entityDirection, _modifierStrength)
   {
@@ -25,14 +25,14 @@ export class IEveSmartLightGroupAttributeModifier extends EveSmartLightBaseAttri
   }
 
   /** Accepts an optional controller variable. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   SetControllerVariable(_name, _value)
   {
   }
 
   /** Accepts optional inherited colour properties. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   SetInheritProperties(_colorSet)
   {

@@ -1,14 +1,14 @@
 // Source: trinityaudioapi/include/IStretchAudio.h
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 
 /** Required stretch-audio component contract. */
-@meta.define({ className: "IStretchAudio", family: "trinityAudioApi" })
+@blue.define("IStretchAudio")
 export class IStretchAudio
 {
 
   /** Starts playback for the stretch-audio component. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   Start()
   {
@@ -16,7 +16,7 @@ export class IStretchAudio
   }
 
   /** Stops playback for the stretch-audio component. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   Stop()
   {
@@ -24,7 +24,7 @@ export class IStretchAudio
   }
 
   /** Updates the source and destination positions used by the stretch effect. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   Update(_sourcePosition, _destinationPosition)
   {
@@ -32,7 +32,7 @@ export class IStretchAudio
   }
 
   /** Finds an owned audio emitter by name. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   FindEmitterByName(_name)
   {

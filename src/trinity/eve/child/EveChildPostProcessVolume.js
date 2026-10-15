@@ -4,7 +4,7 @@ import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { EveEntity } from "../EveEntity.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -13,44 +13,44 @@ import { Tr2PostProcessAttributes } from "../../postProcess/Tr2PostProcessAttrib
 import { EveComponentType } from "../EntityComponents.js";
 
 /** A child that unions a set of inclusion and exclusion volumes into a bounding sphere and drives a post-process effect's intensity from the camera's position relative to them. */
-@meta.define({ className: "EveChildPostProcessVolume", family: "eve/child" })
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize)
+@blue.define("EveChildPostProcessVolume")
+@blue.inherit(IInitialize)
+@blue.interface(EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize)
 export class EveChildPostProcessVolume extends EveChildTransform
 {
 
   /** m_volumes (PIEveVolumeVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("IEveVolume")
+  @blue.read
+  @blue.persist
+  @type.list("IEveVolume")
   volumes = [];
 
   /** m_exclusionVolumes (PIEveVolumeVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("IEveVolume")
+  @blue.read
+  @blue.persist
+  @type.list("IEveVolume")
   exclusionVolumes = [];
 
   /** m_boundingSphere.center (CcpMath::Sphere) [READ] */
-  @meta.blue.read
-  @meta.type.rawStruct("CcpMath::Sphere")
+  @blue.read
+  @type.rawStruct("CcpMath::Sphere")
   boundingSphereCenter = null;
 
   /** m_boundingSphere.radius (CcpMath::Sphere) [READ] */
-  @meta.blue.read
-  @meta.type.rawStruct("CcpMath::Sphere")
+  @blue.read
+  @type.rawStruct("CcpMath::Sphere")
   boundingSphereRadius = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_postProcessAttributes (Tr2PostProcessAttributesPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2PostProcessAttributes")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2PostProcessAttributes")
   postProcessAttributes = null;
 
   // m_boundingSphere (CcpMath::Sphere) working state as a packed vec4; the
@@ -69,7 +69,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
    * Adapted: Volume bounds use { center, radius } records instead of CcpMath::Sphere values;
    * missing centres and negative or invalid radii are skipped.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RebuildBoundingSphere()
   {
@@ -115,7 +115,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
   /**
    * The volume's name.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetName()
   {
@@ -125,7 +125,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
   /**
    * Sets the volume's name, coercing the value to a string.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -133,14 +133,14 @@ export class EveChildPostProcessVolume extends EveChildTransform
   }
 
   /** Carbon's visibility pass is empty (EveChildPostProcessVolume.cpp:84-86). */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
   }
 
   /** Post-process volumes publish no renderables (EveChildPostProcessVolume.h:40). */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GetRenderables(renderables = [])
   {
@@ -148,7 +148,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
   }
 
   /** Copies the object-space bound (EveChildPostProcessVolume.cpp:88-94). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBoundingSphere(out = vec4.create(), _query = 0)
   {
@@ -157,7 +157,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
   }
 
   /** Carbon's synchronous pass is empty (EveChildPostProcessVolume.cpp:96-98). */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   UpdateSyncronous(_updateContext, _params)
   {
@@ -171,8 +171,8 @@ export class EveChildPostProcessVolume extends EveChildTransform
    * Adapted: Carbon reads the Tr2Renderer view-position global; the relocated camera state
    * arrives via the threaded render context.
    */
-  @meta.blue.method
-  @meta.blue.contextual(["camera"])
+  @blue.method
+  @blue.contextual(["camera"])
   @meta.adapted
   UpdateAsyncronous(updateContext, params)
   {
@@ -239,14 +239,14 @@ export class EveChildPostProcessVolume extends EveChildTransform
   }
 
   /** Carbon's implementation is empty (EveChildPostProcessVolume.cpp:143-145): the argument is left as it was. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GetLocalToWorldTransform(_out = null)
   {
   }
 
   /** Forwards to the base transform setup (EveChildPostProcessVolume.cpp:164-168). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Setup(scale = null, rotation = null, translation = null, lowestLodVisible = null)
   {
@@ -256,7 +256,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
   /**
    * Always true: the volume stays active regardless of where the camera is.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsAlwaysOn()
   {
@@ -269,7 +269,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
    * Adapted: The Carbon constructor's attribute-instance creation (cpp:11-18) is deferred to
    * first use because the generated field default stays null.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -283,7 +283,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
    * UnRegisterComponents (cpp:67-70) only removes this same component, which
    * EveEntity::UnRegister already did via UnRegisterAllComponents
    * (EveEntity.cpp:90), so the JS un-side keeps the base no-op. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterComponents()
   {
@@ -295,7 +295,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
   }
 
   /** Returns the owned attribute record (EveChildPostProcessVolume.cpp:217-220). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPostProcessAttributes()
   {

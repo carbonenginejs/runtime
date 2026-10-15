@@ -3,7 +3,7 @@ import { vec4 } from "#math/vec4";
 // Source: trinity/trinity/EveSprite2dBracketRenderer.cpp
 // Source: trinity/trinity/EveSprite2dBracketRenderer_Blue.cpp
 // Derives from Carbon's Tr2SpriteObject to inherit its Sprite2D contract.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2BufferAL, Tr2BufferDescriptionAL, Failed } from "#trinityal";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
@@ -15,23 +15,23 @@ import { Tr2SpriteObject } from "../../sprite2d/Tr2SpriteObject.js";
  * Binds a bracket collection and icon atlas for rendering EVE UI markers in a
  * Sprite2D scene.
  */
-@meta.define({ className: "EveSprite2dBracketRenderer", family: "eve/ui" })
-@meta.blue.chainTo(Tr2SpriteObject)
+@blue.define("EveSprite2dBracketRenderer")
+@blue.chainTo(Tr2SpriteObject)
 export class EveSprite2dBracketRenderer extends Tr2SpriteObject
 {
 
   /** m_iconAtlas (Tr2AtlasTexturePtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2AtlasTexture")
+  @blue.readwrite
+  @type.rootRef("Tr2AtlasTexture")
   iconAtlas = null;
 
   /** m_brackets (PEveSprite2dBracketVector) [READ] */
-  @meta.blue.read
-  @meta.type.list("EveSprite2dBracket")
+  @blue.read
+  @type.list("EveSprite2dBracket")
   brackets = [];
 
   /** Carbon submits its own buffers directly rather than joining sprite vertices. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetVertexCount()
   {
@@ -45,7 +45,7 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
 
   /** Native atlas batch. DataView replaces writes through C++ vertex pointers.
    * Resource release is explicit until Tr2DeviceResource registration is ported. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GatherSprites(renderer)
   {
@@ -169,7 +169,7 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
   }
 
   /** Carbon's bracket renderer is deliberately not point-pickable. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PickPoint(_x, _y, _renderer)
   {

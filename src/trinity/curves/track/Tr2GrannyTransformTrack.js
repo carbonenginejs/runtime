@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2GrannyTransformTrack.cpp
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
 import { Tr2GrannyTrack } from "./Tr2GrannyTrack.js";
 
@@ -12,27 +12,24 @@ import { Tr2GrannyTrack } from "./Tr2GrannyTrack.js";
  * curves together, exposing them as a translation vector, rotation quaternion
  * and scale vector.
  */
-@meta.define({
-  className: "Tr2GrannyTransformTrack",
-  family: "curves"
-})
-@meta.blue.chainTo(Tr2GrannyTrack)
+@blue.define("Tr2GrannyTransformTrack")
+@blue.chainTo(Tr2GrannyTrack)
 export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
 {
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   compressCurves = false;
 
-  @meta.blue.read
-  @meta.type.quat
+  @blue.read
+  @type.quat
   rotation = quat.create();
 
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   translation = vec3.create();
 
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   scale = vec3.create();
 
   #positionCurve = null;
@@ -46,7 +43,7 @@ export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
   /**
    * Checks whether transform track handles are ready.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   TracksReady()
   {
@@ -56,7 +53,7 @@ export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
   /**
    * Clears transform track handles.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ResetTracks()
   {
@@ -68,7 +65,7 @@ export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
   /**
    * Applies transform track handles.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ApplyTracks(group, duration, _timeStep)
   {
@@ -94,7 +91,7 @@ export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
   /**
    * Updates sampled transform values.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateValueImpl(time)
   {

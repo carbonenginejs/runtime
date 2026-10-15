@@ -9,15 +9,15 @@
 // can carry these node types. Bool/Int/Float broadcast the scalar to all four
 // components; Vector2 zero-pads z and w; Vector3 zero-pads w (0, not 1);
 // Color passes through unchanged.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec4 } from "#math/vec4";
 
 /** Stores a named vector parameter and supports assignment and composition; the typed subclasses flatten to a shader vec4 through `GetValue()`.
  * Native IRoot-only data with a self-only Blue table. Defaults retain native
  * construction; the empty destructor needs no resource or update lifecycle.
  */
-@meta.define({ className: "EveSOFDataParameter", family: "eve" })
-@meta.blue.interface()
+@blue.define("EveSOFDataParameter")
+@blue.interface()
 export class EveSOFDataParameter
 {
 
@@ -26,9 +26,9 @@ export class EveSOFDataParameter
    * (BlueSharedString).
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /**
@@ -36,9 +36,9 @@ export class EveSOFDataParameter
    * m_value (Vector4); typed subclasses provide their own value representation.
    * @type {Float32Array}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   value = vec4.create();
 
   /**

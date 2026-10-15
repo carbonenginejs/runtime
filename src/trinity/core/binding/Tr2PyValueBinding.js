@@ -1,52 +1,52 @@
 // Source: trinity/trinity/Tr2PyValueBinding.h
 // Source: trinity/trinity/Tr2PyValueBinding.cpp
 // Source: trinity/trinity/Tr2PyValueBinding_Blue.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { INotify } from "#blue/INotify";
 import { ITr2ValueBinding } from "../../curves/ITr2ValueBinding.js";
 
 /** Copies named JavaScript attributes through the portable Python-value adapter. */
-@meta.define({ className: "Tr2PyValueBinding", family: "trinityCore" })
-@meta.blue.inherit(ITr2ValueBinding)
-@meta.blue.interface(ITr2ValueBinding, INotify)
+@blue.define("Tr2PyValueBinding")
+@blue.inherit(ITr2ValueBinding)
+@blue.interface(ITr2ValueBinding, INotify)
 export class Tr2PyValueBinding extends INotify
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_isValid (bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   isValid = false;
 
   /** m_sourceObject (PyObject*) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.rootRef("PyObject")
+  @blue.notify
+  @blue.readwrite
+  @type.rootRef("PyObject")
   sourceObject = null;
 
   /** m_sourceAttribute (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   sourceAttribute = "";
 
   /** m_destinationObject (PyObject*) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.rootRef("PyObject")
+  @blue.notify
+  @blue.readwrite
+  @type.rootRef("PyObject")
   destinationObject = null;
 
   /** m_destinationAttribute (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   destinationAttribute = "";
 
   /**
@@ -55,7 +55,7 @@ export class Tr2PyValueBinding extends INotify
    * Native private helper; deliberately does not expose IInitialize.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -72,7 +72,7 @@ export class Tr2PyValueBinding extends INotify
    * @param {string|null} [_value=null] Changed member name.
    * @returns {boolean} True after revalidation.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(_value = null)
   {
@@ -86,7 +86,7 @@ export class Tr2PyValueBinding extends INotify
    * Adapted: Copies JavaScript object attributes in place of Carbon's Python C-API get/set calls.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CopyValue()
   {

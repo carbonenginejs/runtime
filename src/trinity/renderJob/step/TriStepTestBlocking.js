@@ -1,17 +1,17 @@
 // Source: trinity/trinity/RenderJob/TriStepTestBlocking.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A test step that reports itself in progress until its flag is cleared, so a job's resume path can be exercised. */
-@meta.define({ className: "TriStepTestBlocking", family: "renderJob" })
+@blue.define("TriStepTestBlocking")
 export class TriStepTestBlocking extends TriRenderStep
 {
 
   /** m_inProgress (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   inProgress = true;
 
   // Carbon TriStepTestBlocking.cpp:15-26. The step exists to hold a job open:
@@ -27,7 +27,7 @@ export class TriStepTestBlocking extends TriRenderStep
    * Adapted: Carbon logs the outcome through its own logger on each call; logging is a host
    * concern.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Execute(_realTime, _simTime, _renderContext)
   {

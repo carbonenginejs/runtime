@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteSet.cpp
 import { DictReader } from "#blue/DictReader";
 import { mat4 } from "#math/mat4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { CjsLightData } from "../../lights/CjsLightData.js";
 
 
@@ -11,35 +11,35 @@ import { CjsLightData } from "../../lights/CjsLightData.js";
  * range that modulate its radius, plus its light profile and the bone matrix
  * resolved for it each frame.
  */
-@meta.define({ className: "EveSpriteLight", family: "eve/attachment/sprites" })
+@blue.define("EveSpriteLight")
 export class EveSpriteLight
 {
   @meta.owned
-  @meta.type.root("CjsLightData")
+  @type.root("CjsLightData")
   lightData = new CjsLightData();
 
-  @meta.type.float32
+  @type.float32
   blinkPhase = 0;
 
-  @meta.type.float32
+  @type.float32
   blinkRate = 0;
 
-  @meta.type.float32
+  @type.float32
   minScale = 0;
 
-  @meta.type.float32
+  @type.float32
   maxScale = 0;
 
-  @meta.type.rootRef("Tr2LightProfileRes")
+  @type.rootRef("Tr2LightProfileRes")
   lightProfile = null;
 
-  @meta.type.uint32
+  @type.uint32
   index = 0;
 
-  @meta.type.mat4
+  @type.mat4
   boneMatrix = mat4.create();
 
-  @meta.type.wpath("Tr2LightProfileRes")
+  @type.wpath("Tr2LightProfileRes")
   lightProfilePath = "";
 
   /**

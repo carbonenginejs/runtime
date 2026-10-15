@@ -15,13 +15,13 @@
 // shape - which is all that distinguishes it from its siblings in Carbon either.
 
 import { Tr2PerObjectData } from "./Tr2PerObjectData.js";
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 
 /**
  * The child sphere pin's block, bound to both registers.
  */
-@meta.define({ className: "EveChildSpherePinPerObjectData", family: "trinityCore" })
+@blue.define("EveChildSpherePinPerObjectData")
 export class EveChildSpherePinPerObjectData extends Tr2PerObjectData
 {
   /** The payload, bound to both per-object registers. */
@@ -68,7 +68,7 @@ export class EveChildSpherePinPerObjectData extends Tr2PerObjectData
    * @param {object} renderContext The context to upload and bind against.
    * @returns {number} How many payloads were uploaded.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetPerObjectDataToDevice(buffers, constantTypeMask, renderContext)
   {

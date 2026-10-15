@@ -213,5 +213,7 @@ export class TnyInputMan
   }
 }
 
-CjsSchema.define(TnyInputMan, { className: "TnyInputMan",
-  methods: Object.fromEntries(["Attach", "Detach", "Register", "Unregister", "Enqueue", "Update", "Cancel", "Destroy"].map(name => [name, [meta.ours]])) });
+CjsSchema.meta.define(TnyInputMan, {
+  className: "TnyInputMan",
+  methods: Object.fromEntries(["Attach", "Detach", "Register", "Unregister", "Enqueue", "Update", "Cancel", "Destroy"].map(name => [name, [meta.ours]]))
+});

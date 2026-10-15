@@ -1,11 +1,11 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 
 /** Defines spotlight placement, intensity, saturation, cone angles, scales, noise, and profile data for an attachment. */
-@meta.define({ className: "EveSOFDataSpotLightAttachment", family: "eve" })
-@meta.blue.interface()
+@blue.define("EveSOFDataSpotLightAttachment")
+@blue.interface()
 export class EveSOFDataSpotLightAttachment
 {
 
@@ -14,9 +14,9 @@ export class EveSOFDataSpotLightAttachment
    * Native m_saturation (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   saturation = 1;
 
   /**
@@ -24,9 +24,9 @@ export class EveSOFDataSpotLightAttachment
    * Native m_intensity (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   intensity = 1;
 
   /**
@@ -34,9 +34,9 @@ export class EveSOFDataSpotLightAttachment
    * Native m_translation (Vector3) [READWRITE, PERSIST]
    * @type {Float32Array}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   translation = vec3.create();
 
   /**
@@ -44,9 +44,9 @@ export class EveSOFDataSpotLightAttachment
    * Native m_innerAngleMultiplier (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   innerAngleMultiplier = 0.5;
 
   /**
@@ -54,9 +54,9 @@ export class EveSOFDataSpotLightAttachment
    * Native m_outerAngleMultiplier (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   outerAngleMultiplier = 1;
 
   /**
@@ -64,9 +64,9 @@ export class EveSOFDataSpotLightAttachment
    * Native m_innerScaleMultiplier (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   innerScaleMultiplier = 1;
 
   /**
@@ -74,9 +74,9 @@ export class EveSOFDataSpotLightAttachment
    * Native m_outerScaleMultiplier (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   outerScaleMultiplier = 1;
 
   /**
@@ -84,9 +84,9 @@ export class EveSOFDataSpotLightAttachment
    * Native m_noiseAmplitude (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   noiseAmplitude = 0;
 
   /**
@@ -94,9 +94,9 @@ export class EveSOFDataSpotLightAttachment
    * Native m_noiseFrequency (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   noiseFrequency = 1;
 
   /**
@@ -104,9 +104,9 @@ export class EveSOFDataSpotLightAttachment
    * Native m_noiseOctaves (int32_t) [READWRITE, PERSIST]
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.readwrite
+  @blue.persist
+  @type.int32
   noiseOctaves = 1;
 
   /**
@@ -114,9 +114,9 @@ export class EveSOFDataSpotLightAttachment
    * Native m_lightProfilePath (std::wstring) [READWRITE, PERSIST]
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.wpath("Tr2LightProfileRes")
+  @blue.readwrite
+  @blue.persist
+  @type.wpath("Tr2LightProfileRes")
   lightProfilePath = "";
 
 }

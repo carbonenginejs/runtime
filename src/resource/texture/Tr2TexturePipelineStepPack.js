@@ -7,7 +7,7 @@
 // strides exist because the inputs are separate host bitmaps with their own
 // formats and mip pitches.
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { GetBytesPerPixel, PixelFormat, TextureType } from "#consts/render-context";
 
 // Source: trinity/trinity/Resources/TexturePipeline/ITr2TexturePipelineStep.h:26
@@ -254,19 +254,19 @@ export class Tr2TexturePipelineStepPack
 
 }
 
-CjsSchema.define(Tr2TexturePipelineStepPack, {
-  className: "Tr2TexturePipelineStepPack", family: "resources",
+CjsSchema.blue.define(Tr2TexturePipelineStepPack, {
+  className: "Tr2TexturePipelineStepPack",
   fields: {
-    format: [ meta.blue.persist, meta.type.int32, meta.type.enum("PixelFormat") ],
-    a: [ meta.blue.persist, meta.type.rootRef("Tr2TexturePackChannel") ],
-    b: [ meta.blue.persist, meta.type.rootRef("Tr2TexturePackChannel") ],
-    g: [ meta.blue.persist, meta.type.rootRef("Tr2TexturePackChannel") ],
-    r: [ meta.blue.persist, meta.type.rootRef("Tr2TexturePackChannel") ]
+    format: [ blue.persist, type.int32, type.enum("PixelFormat") ],
+    a: [ blue.persist, type.rootRef("Tr2TexturePackChannel") ],
+    b: [ blue.persist, type.rootRef("Tr2TexturePackChannel") ],
+    g: [ blue.persist, type.rootRef("Tr2TexturePackChannel") ],
+    r: [ blue.persist, type.rootRef("Tr2TexturePackChannel") ]
   },
   methods: {
     GetResourceDependencies: meta.implemented,
-    Execute: [ meta.blue.method, meta.adapted ],
-    swapRedBlue: [ meta.blue.method, meta.implemented ],
-    pack: [ meta.blue.method, meta.adapted ]
+    Execute: [ blue.method, meta.adapted ],
+    swapRedBlue: [ blue.method, meta.implemented ],
+    pack: [ blue.method, meta.adapted ]
   }
 });

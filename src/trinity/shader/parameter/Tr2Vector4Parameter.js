@@ -5,7 +5,7 @@ import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { ITriReroutable } from "../../core/ITriReroutable.js";
 import { num } from "#math/num";
 import { vec4 } from "#math/vec4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { CjsVectorParameter } from "./CjsVectorParameter.js";
 
 
@@ -13,36 +13,33 @@ import { CjsVectorParameter } from "./CjsVectorParameter.js";
  * Four-component float value for a named shader constant, with sRGB gamma
  * handling and optional rerouting into an external destination.
  */
-@meta.define({
-  className: "Tr2Vector4Parameter",
-  family: "shader"
-})
-@meta.blue.inherit(ITriReroutable)
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(ITriEffectParameter, ITriReroutable, IInitialize)
+@blue.define("Tr2Vector4Parameter")
+@blue.inherit(ITriReroutable)
+@blue.inherit(IInitialize)
+@blue.interface(ITriEffectParameter, ITriReroutable, IInitialize)
 export class Tr2Vector4Parameter extends CjsVectorParameter
 {
-  @meta.blue.readwrite
-  @meta.blue.persistOnly
-  @meta.type.vec4
+  @blue.readwrite
+  @blue.persistOnly
+  @type.vec4
   value = vec4.fromValues(1, 1, 1, 1);
 
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   isSrgb = false;
 
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   usedByCurrentTechnique = false;
 
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   usedByCurrentEffect = false;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   linearValue = vec4.fromValues(1, 1, 1, 1);
@@ -164,7 +161,7 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
   }
 
   /** The shader constant name this value binds to; empty until authored. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetParameterName()
   {
@@ -172,7 +169,7 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
   }
 
   /** Content hash: authored value bytes then name. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetHashValue(startingHash = CjsVectorParameter.FNV1_INITIAL)
   {
@@ -193,7 +190,7 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
    * Adapted: Carbon returns a const reference to its own value; JavaScript cannot express
    * that, so this copies rather than exposing internal state.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValue(out = vec4.create())
   {
@@ -215,7 +212,7 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
    * Copies four components in, refreshes the linear mirror and writes through to
    * the reroute destination when one is set.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetValue(value)
   {
@@ -232,7 +229,7 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
    * constant is never rerouted, because its value must be gamma-converted before
    * upload.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsRerouted()
   {
@@ -243,7 +240,7 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
    * Points the parameter at an external destination and seeds it with the current value; a target smaller than 16 bytes, not writable as four components, or belonging to an sRGB constant clears the reroute instead. Registered bindings are notified of the effective destination either way.
    * @param size destination capacity in bytes, not components
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetDestination(dest, size = 16)
   {
@@ -265,7 +262,7 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
    * parameter's own value - paired with its 16-byte size. The array is borrowed,
    * not copied.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetDestination()
   {
@@ -279,7 +276,7 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
    * Adds a binding to be notified whenever the destination is repointed;
    * duplicates are ignored.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RegisterBinding(binding)
   {
@@ -287,7 +284,7 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
   }
 
   /** Stops notifying a binding; unknown bindings are ignored. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UnregisterBinding(binding)
   {
@@ -299,7 +296,7 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
    * dropping the reroute when the shader is gone or the constant turns out to be
    * sRGB. Reads reflection metadata only; no GPU handle is bound.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RebuildEffectHandles(effectRes)
   {
@@ -324,7 +321,7 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
    * Seeds an existing reroute destination with the current value and refreshes
    * the linear mirror; always returns true.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -341,7 +338,7 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
    * gamma-converted linear mirror for an sRGB constant - into the caller's
    * destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CopyValueToEffect(_inputType, out)
   {

@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveLocatorSets.cpp
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { MatrixCopyFrom3x4 } from "../lights/lightConversion.js";
 import { Locator } from "./Locator.js";
 
@@ -59,27 +59,24 @@ export function EveGetLocatorPose(outPosition, outDirection, animationUpdater, l
  * Named group of locators that a space object publishes for turrets, effects and
  * distributions to attach to.
  */
-@meta.define({
-  className: "EveLocatorSets",
-  family: "eve/utils"
-})
+@blue.define("EveLocatorSets")
 export class EveLocatorSets
 {
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.structList("Locator")
+  @blue.read
+  @blue.persist
+  @type.structList("Locator")
   locators = [];
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /**
    * Shifts the position of every locator in the set by an offset, doing nothing
    * for a zero offset.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Translate(offset)
   {
@@ -97,7 +94,7 @@ export class EveLocatorSets
    * Appends copies of the given locators, so the set never aliases the caller's
    * records.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Append(locators)
   {
@@ -111,7 +108,7 @@ export class EveLocatorSets
    * Reports whether the set carries exactly this name; set lookups are an exact
    * string match.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasName(name)
   {
@@ -119,7 +116,7 @@ export class EveLocatorSets
   }
 
   /** Returns the set's live locator list, not a copy. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLocators()
   {
@@ -127,7 +124,7 @@ export class EveLocatorSets
   }
 
   /** Returns the name callers look this set up by. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetName()
   {
@@ -135,7 +132,7 @@ export class EveLocatorSets
   }
 
   /** Sets the name callers look this set up by, coercing the value to a string. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -146,7 +143,7 @@ export class EveLocatorSets
    * Replaces both the set name and its whole locator list with copies of the
    * given locators.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Set(name, locators)
   {

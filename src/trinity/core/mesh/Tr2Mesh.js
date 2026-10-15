@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2Mesh.h
 // Source: trinity/trinity/Tr2Mesh.cpp
 // Source: trinity/trinity/Tr2Mesh_Blue.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { ResourceRequirement } from "#resource";
 import { IsMatch, be, IInitialize, INotify } from "#blue";
 import { Tr2MeshBase } from "./Tr2MeshBase.js";
@@ -12,37 +12,37 @@ import { Tr2SerializedMorphAnimation } from "./Tr2SerializedMorphAnimation.js";
  * A mesh backed by a geometry resource, adding the resource path plus the
  * morph-target weights and baked-morph state on top of Tr2MeshBase.
  */
-@meta.define({ className: "Tr2Mesh", family: "trinityCore" })
-@meta.blue.inherit(IInitialize, INotify)
-@meta.blue.interface(IInitialize, INotify)
-@meta.blue.chainTo(Tr2MeshBase)
+@blue.define("Tr2Mesh")
+@blue.inherit(IInitialize, INotify)
+@blue.interface(IInitialize, INotify)
+@blue.chainTo(Tr2MeshBase)
 export class Tr2Mesh extends Tr2MeshBase
 {
   _morphAnimations = new Map();
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.path("TriGeometryRes")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.path("TriGeometryRes")
   geometryResPath = "";
 
-  @meta.blue.persistOnly
-  @meta.type.list("Tr2SerializedMorphAnimation")
+  @blue.persistOnly
+  @type.list("Tr2SerializedMorphAnimation")
   serializedMorphAnimations = [];
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   deferGeometryLoad = false;
 
-  @meta.blue.read
-  @meta.type.rootRef("TriGeometryRes")
+  @blue.read
+  @type.rootRef("TriGeometryRes")
   geometry = null;
 
   /** m_lowResGeometryResource: the stand-in rendered while the authored mesh loads. */
-  @meta.blue.read
-  @meta.type.rootRef("TriGeometryRes")
+  @blue.read
+  @type.rootRef("TriGeometryRes")
   lowResGeometry = null;
 
   /**
@@ -79,7 +79,7 @@ export class Tr2Mesh extends Tr2MeshBase
    * selected request, including failure, and retains completion across purges.
    * Low-detail fallback precedes the native fence; the primary request follows.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   IsLoading()
   {
@@ -87,7 +87,7 @@ export class Tr2Mesh extends Tr2MeshBase
   }
 
   /** Carbon Initialize (cpp:28-36): load the geometry unless the load is deferred. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -103,7 +103,7 @@ export class Tr2Mesh extends Tr2MeshBase
    * through the resource manager and bind the result. Adapted: resource-local
    * completion substitutes for Carbon's queue-wide load/prepare fence.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   InitializeGeometryResource()
   {
@@ -157,7 +157,7 @@ export class Tr2Mesh extends Tr2MeshBase
    * changed - the path refetches, clearing the defer flag starts the load a
    * deferred mesh skipped, and the mesh index rebuilds the morph targets.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName)
   {
@@ -180,7 +180,7 @@ export class Tr2Mesh extends Tr2MeshBase
    * Carbon SetMeshResPath (cpp:99-105): assign, then fire the notification by
    * hand - "this will automatically be triggered when set through python".
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetMeshResPath(path)
   {
@@ -194,7 +194,7 @@ export class Tr2Mesh extends Tr2MeshBase
    * already-prepared resource calls back immediately (BlueAsyncRes.cpp:274-276),
    * so a resource that is already good rebuilds here rather than on a later frame.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetGeometryRes(resource)
   {
@@ -220,7 +220,7 @@ export class Tr2Mesh extends Tr2MeshBase
    * Adapted: Bounds are computed on demand by Tr2MeshBase.GetBounds rather than cached, so
    * Carbon's CacheBounds call has nothing to refresh.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RebuildCachedData(resource)
   {
@@ -240,7 +240,7 @@ export class Tr2Mesh extends Tr2MeshBase
    * Carbon SetLowResGeometryRes (cpp:76-90): the same detach/bind/attach as
    * SetGeometryRes, for the stand-in shown while the authored mesh loads.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetLowResGeometryRes(resource)
   {
@@ -255,7 +255,7 @@ export class Tr2Mesh extends Tr2MeshBase
   }
 
   /** Carbon ReleaseCachedData (cpp:198-200): nothing cached to drop. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ReleaseCachedData(_resource)
   {
@@ -265,7 +265,7 @@ export class Tr2Mesh extends Tr2MeshBase
    * Carbon PySetGeometryRes (cpp:202-206): binding a resource by hand clears
    * the authored path first, so the next notification does not refetch it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PySetGeometryRes(resource)
   {
@@ -282,7 +282,7 @@ export class Tr2Mesh extends Tr2MeshBase
    * last completed (`CjsResource.AddNotifyTarget`). A failed primary is not
    * re-registered, or it would call back every frame.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetGeometryResource()
   {
@@ -293,7 +293,7 @@ export class Tr2Mesh extends Tr2MeshBase
   }
 
   /** Returns the authored geometry resource path. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetMeshResPath()
   {
@@ -304,7 +304,7 @@ export class Tr2Mesh extends Tr2MeshBase
    * Reads the selected geometry resource path, including the low-detail stand-in.
    * Source: trinity/trinity/Tr2MeshBase.cpp:425-434
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetGeometryResPath()
   {
@@ -314,7 +314,7 @@ export class Tr2Mesh extends Tr2MeshBase
   }
 
   /** The fixed number of mesh-area lists a mesh carries (14). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetAreasCount()
   {
@@ -381,7 +381,7 @@ export class Tr2Mesh extends Tr2MeshBase
    * Adapted: an empty list stands for Carbon's nullptr when there is no geometry or LOD.
    * @returns {string[]} the live list
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetMorphTargetNames()
   {
@@ -402,7 +402,7 @@ export class Tr2Mesh extends Tr2MeshBase
   }
 
   /** Sets one exact named morph target weight without clamping. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetMorphTargetWeight(name, value)
   {
@@ -426,7 +426,7 @@ export class Tr2Mesh extends Tr2MeshBase
   }
 
   /** Returns one exact named morph target weight, or the native zero fallback. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetMorphTargetWeight(name)
   {
@@ -439,7 +439,7 @@ export class Tr2Mesh extends Tr2MeshBase
    * @param {string} name
    * @param {boolean} isBaked
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetBakedMorphTarget(name, isBaked)
   {
@@ -461,7 +461,7 @@ export class Tr2Mesh extends Tr2MeshBase
    * @param {string} name
    * @returns {boolean}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBakedMorphTarget(name)
   {

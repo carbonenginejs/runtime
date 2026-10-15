@@ -14,7 +14,7 @@ import { mat4 } from "#math/mat4";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IsMatch } from "#blue";
 import { TriBatchType } from "#consts/graphics";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
@@ -60,10 +60,10 @@ const SPHERE_SCRATCH = vec4.create();
  * GetBatches produces nothing, which is Carbon's own no-draw path for an
  * invalid offset (EveChildBoosterSet.cpp:478).
  */
-@meta.define({ className: "EveChildBoosterSet", family: "eve/child" })
-@meta.blue.inherit(ITr2Renderable)
-@meta.blue.inherit(INotify, IInitialize, ITr2ControllerOwner)
-@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, INotify, IInitialize, EveEntity, ITr2Renderable, ITr2ControllerOwner)
+@blue.define("EveChildBoosterSet")
+@blue.inherit(ITr2Renderable)
+@blue.inherit(INotify, IInitialize, ITr2ControllerOwner)
+@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, INotify, IInitialize, EveEntity, ITr2Renderable, ITr2ControllerOwner)
 export class EveChildBoosterSet extends EveSpaceObjectChild
 {
 
@@ -73,135 +73,135 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
 
   static DEFAULT_EFFECT_PATH = "res:/Graphics/Effect/Managed/Space/Booster/ChildBoosterVolumetric.fx";
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   display = true;
 
   /** The biggest booster size of this set; runtime-derived. */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   maxSize = 0;
 
   /** The warp factor of the ship; runtime toggle, not persisted. */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   warpIntensity = 0;
 
   /** The thrust of the ship; runtime toggle, not persisted. */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   thrust = 0;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   glowScale = 1;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   glowColor = vec4.create();
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   symHaloScale = 1;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   haloScaleX = 1;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   haloScaleY = 1;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   haloColor = vec4.create();
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   warpGlowColor = vec4.create();
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   warpHaloColor = vec4.create();
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   lightOffset = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   lightFlickerAmplitude = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   lightFlickerFrequency = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   lightRadius = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   lightColor = vec4.create();
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   lightWarpRadius = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   lightWarpColor = vec4.create();
 
   /** Controller name the booster observes for the thrust value. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   driveName = EveChildBoosterSet.DEFAULT_DRIVE_NAME;
 
   /** When false the flares draw even at booster-LOD distances. */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @type.boolean
   flareLodEnabled = true;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2Effect")
   effect = null;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2Effect")
   effectFar = null;
 
   /** Sprite set rendering the glows on the boosters. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSpriteSet")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("EveSpriteSet")
   glows = null;
 
   /**
@@ -209,8 +209,8 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * values carry the boosters, and Initialize derives the flares, bounds and
    * max size from it.
    */
-  @meta.blue.persistOnly
-  @meta.type.list("EveChildBoosterSetSingleBoosterData")
+  @blue.persistOnly
+  @type.list("EveChildBoosterSetSingleBoosterData")
   _singleBoosters = [];
 
   // The exact exhaust-point bounding sphere (positions only; padded in
@@ -272,7 +272,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * derives what Add derives from them: the flares, the bounding sphere and
    * the max size.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -307,7 +307,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PrepareResources()
   {
@@ -319,7 +319,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Carbon OnPrepareResources (cpp:267-286): the box's one-position vertex declaration. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnPrepareResources()
   {
@@ -328,7 +328,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Carbon ReleaseResources (cpp:258-261): forget the declaration. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ReleaseResources(_storage)
   {
@@ -357,7 +357,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * @param {*} [value=null] The modified member, by exposed name.
    * @returns {boolean} Always true.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(value = null)
   {
@@ -435,7 +435,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * Adapted: Ring-buffer AdvanceFrame/UploadTransforms are the AL backend's; the CPU packs the rows and the offset
    * stays INVALID (Carbon's own no-draw state) until a ring buffer is installed.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateAsyncronous(_updateContext = null, params = null)
   {
@@ -505,7 +505,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Clears every booster, the glows and the bounds (Carbon cpp:142-157). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Clear()
   {
@@ -526,7 +526,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * glow set exists, and bounds/max-size growth. SetLightData and SetGlow
    * must run before Add - SOF respects that order.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Add(localMatrix, atlasIndex0, atlasIndex1, lightScale = 1)
   {
@@ -593,7 +593,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Sets the whole flare description in one call (Carbon cpp:198-216). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetData(glowScale, glowColor, warpGlowColor, symHaloScale, haloScaleX, haloScaleY, haloColor, warpHaloColor)
   {
@@ -608,7 +608,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Sets the point-light description in one call (Carbon cpp:222-231). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetLightData(offset, flickerAmplitude, flickerFrequency, radius, color, warpRadius, warpColor)
   {
@@ -622,7 +622,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Sets the near and far booster effects (Carbon cpp:237-241). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetEffect(effect, effectFar)
   {
@@ -631,7 +631,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Sets the glow sprite set (Carbon cpp:247-250). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetGlow(glow)
   {
@@ -639,7 +639,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Sets the controller name observed for the thrust value (Carbon cpp:396-399). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetDriveName(driveName)
   {
@@ -651,7 +651,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * from the async update, not the passed one - booster LOD from twice the
    * padded sphere's pixel size, plus the glow set's own visibility pass.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateVisibility(updateContext, _parentTransform = null, _parentLod = 0)
   {
@@ -681,7 +681,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Adds this set as a renderable when displayed, lit and visible (Carbon cpp:330-343). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetRenderables(renderables)
   {
@@ -698,7 +698,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * helper, then - unlike EveBoosterSet2 - the radius multiplies by the
    * parent scale. False before the first async update.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBoundingSphere(sphere = vec4.create(), _query = 0)
   {
@@ -709,7 +709,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Forwards quad registration to the glow set (Carbon cpp:368-374). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -720,7 +720,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Forwards glow quads when visible and past flare LOD (Carbon cpp:383-394). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddQuadsToQuadRenderer(_frustum, quadRenderer)
   {
@@ -736,7 +736,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * first update, a usable radius and positive thrust; radii pre-multiplied
    * by the parent scale - EveBoosterSet2 deliberately does NOT.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLights(lightManager)
   {
@@ -760,7 +760,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Thrust from the observed drive controller, warp from WarpState (Carbon cpp:442-452). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetControllerVariable(name, value)
   {
@@ -775,7 +775,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** The booster pass is additive-only (Carbon cpp:458-461). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasTransparentBatches()
   {
@@ -783,7 +783,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Fixed additive sort value (Carbon cpp:522-525). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetSortValue()
   {
@@ -799,7 +799,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * Adapted: The procedural box vertex buffer and quad-list index buffer are not ported yet; the batch carries the
    * material, per-object data, vertex declaration, draw arguments and the shared buffer name.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBatches(batches, batchType, perObjectData = null)
   {
@@ -830,7 +830,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * Adapted: Carbon's struct fill becomes the registered EveChildBoosterSet RawData layouts; the instanceOffset lane
    * carries the AL ring offset when one is installed.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetPerObjectData(accumulator = null)
   {

@@ -5,52 +5,49 @@ import { INotify } from "../../../global/blue/INotify.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { IEveVolume } from "./IEveVolume.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 
 /**
  * Oriented ellipsoid of influence with a hollow inner ellipsoid, weighting
  * points by falloff and seeding random points between the two shells.
  */
-@meta.define({
-  className: "EveEllipsoidVolume",
-  family: "eve/volume"
-})
-@meta.blue.inherit(INotify)
-@meta.blue.interface(IEveVolume, INotify)
+@blue.define("EveEllipsoidVolume")
+@blue.inherit(INotify)
+@blue.interface(IEveVolume, INotify)
 export class EveEllipsoidVolume extends IEveVolume
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   position = vec3.create();
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotation = quat.create();
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   innerShape = vec3.create();
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   shape = vec3.create();
 
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   debugShowIntersection = false;
 
   _callbacks = new Map();
@@ -63,7 +60,7 @@ export class EveEllipsoidVolume extends IEveVolume
    * Clamps the authored shapes, caches the inverse rotation and fires the change
    * callbacks.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -75,7 +72,7 @@ export class EveEllipsoidVolume extends IEveVolume
    * Returns a fresh sphere centred on the volume position with the largest shape
    * radius, so it covers the ellipsoid on every axis.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBoundingSphere()
   {
@@ -91,7 +88,7 @@ export class EveEllipsoidVolume extends IEveVolume
    * then compared radially against the inner and outer shapes - 1 inside the
    * inner ellipsoid, 0 outside the outer one, and a squared ramp between them.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetIntensity(position)
   {
@@ -119,7 +116,7 @@ export class EveEllipsoidVolume extends IEveVolume
    * @param points Caller-owned array the new points are pushed onto.
    * @param excludeInnerVolume Keeps every point in the shell between the inner and outer shapes.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GeneratePointsInVolume(points, howManyToAdd, excludeInnerVolume, fallOffFactor)
   {
@@ -172,7 +169,7 @@ export class EveEllipsoidVolume extends IEveVolume
    * Registers a callback fired whenever the volume changes, returning the id
    * needed to unregister it again.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RegisterForChanges(callback)
   {
@@ -182,7 +179,7 @@ export class EveEllipsoidVolume extends IEveVolume
   }
 
   /** Drops a change callback by the id RegisterForChanges returned. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UnregisterForChanges(callbackId)
   {
@@ -193,7 +190,7 @@ export class EveEllipsoidVolume extends IEveVolume
    * Re-clamps the shapes and the cached inverse rotation after an authored
    * change, and notifies every registered listener.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified()
   {
@@ -202,7 +199,7 @@ export class EveEllipsoidVolume extends IEveVolume
   }
 
   /** No debug drawing in this port. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   RenderDebugInfo()
   {
@@ -220,7 +217,7 @@ export class EveEllipsoidVolume extends IEveVolume
    * them on demand, so Setup refreshes the clamps and cached inverse rotation. The callback
    * fan-out matches Carbon's placement inside Setup.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Setup()
   {

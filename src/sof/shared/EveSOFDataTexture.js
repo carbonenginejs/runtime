@@ -1,27 +1,27 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:752-760
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /**
  * Stores a named texture binding and supports assignment and composition.
  * Native IRoot-only data with a self-only Blue table. The authored path is a
  * string, not a held resource; empty constructor/destructor need no lifecycle.
  */
-@meta.define({ className: "EveSOFDataTexture", family: "eve" })
-@meta.blue.interface()
+@blue.define("EveSOFDataTexture")
+@blue.interface()
 export class EveSOFDataTexture
 {
 
   /** m_resFilePath (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.path("TriTextureRes")
+  @blue.readwrite
+  @blue.persist
+  @type.path("TriTextureRes")
   resFilePath = "";
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /**

@@ -6,7 +6,7 @@ import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { quat } from "#math/quat";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { Origin } from "../../generated/eve/child/enums.js";
@@ -24,35 +24,35 @@ import { be, IsMatch } from "#blue";
 import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 
 /** A child that instantiates a source template across a list of authored or locator-driven transforms, forwarding controller and registration calls to the instances. */
-@meta.define({ className: "EveChildInstanceContainer", family: "eve/child" })
-@meta.blue.inherit(ITr2CurveSetOwner, INotify, IListNotify, ITr2ControllerOwner)
-@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, INotify, IEveEffectChildrenOwner, ITr2ControllerOwner, IListNotify, EveEntity)
-@meta.blue.inherit(IEveEffectChildrenOwner)
+@blue.define("EveChildInstanceContainer")
+@blue.inherit(ITr2CurveSetOwner, INotify, IListNotify, ITr2ControllerOwner)
+@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, INotify, IEveEffectChildrenOwner, ITr2ControllerOwner, IListNotify, EveEntity)
+@blue.inherit(IEveEffectChildrenOwner)
 export class EveChildInstanceContainer extends EveChildTransform
 {
 
   /** m_translation (Vector3) [READWRITE, PERSIST] - EveChildInstanceContainer_Blue.cpp:30 */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   translation = vec3.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] - EveChildInstanceContainer_Blue.cpp:31 */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_localTransform (Matrix) [READWRITE, PERSIST] (EveChildInstanceContainer_Blue.cpp:33) */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.mat4
+  @blue.readwrite
+  @blue.persist
+  @type.mat4
   localTransform = mat4.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] - EveChildInstanceContainer_Blue.cpp:32 */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotation = quat.create();
 
   _controllerVariables = new Map();
@@ -70,74 +70,74 @@ export class EveChildInstanceContainer extends EveChildTransform
   _worldVelocity = vec3.create();
 
   /** m_transformModifiers (PIEveChildTransformModifierVector) [READ, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("IEveChildTransformModifier")
+  @blue.notify
+  @blue.read
+  @blue.persist
+  @type.list("IEveChildTransformModifier")
   transformModifiers = [];
 
   /** m_transforms (PEveChildInstanceTransformStructureList) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.structList("EveChildInstanceTransform")
+  @blue.read
+  @blue.persist
+  @type.structList("EveChildInstanceTransform")
   transforms = [];
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   display = true;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_isAlwaysOn (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   alwaysOn = false;
 
   /** m_inheritProperties (EveChildInheritPropertiesPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveChildInheritProperties")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("EveChildInheritProperties")
   inheritProperties = null;
 
   /** m_reset (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   reset = true;
 
   /** m_instances (PIEveSpaceObjectChildVector) [READ] */
-  @meta.blue.read
-  @meta.type.list("IEveSpaceObjectChild")
+  @blue.read
+  @type.list("IEveSpaceObjectChild")
   instances = [];
 
   /** m_locatorSetName (BlueSharedString) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   locatorSet = "";
 
   /** m_source (IEveSpaceObjectChildPtr) [PERSISTONLY] */
-  @meta.blue.readwrite
-  @meta.blue.persistOnly
-  @meta.type.rootRef("IEveSpaceObjectChild")
+  @blue.readwrite
+  @blue.persistOnly
+  @type.rootRef("IEveSpaceObjectChild")
   source = null;
 
   /** m_origin (Origin - enum Origin) [READ] */
-  @meta.blue.read
-  @meta.type.int32
-  @meta.type.enum("trinity.EveSpaceObjectChild.Origin")
+  @blue.read
+  @type.int32
+  @type.enum("trinity.EveSpaceObjectChild.Origin")
   origin = 0;
 
   /** Carbon EveChildInstanceContainer::GetOwnerMaxSpeed (cpp:362-365). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetOwnerMaxSpeed()
   {
@@ -145,7 +145,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Propagates the owning space object to the source and live instances. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetOwner(owner)
   {
@@ -156,7 +156,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Propagates a modular part tag to the source and live instances. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetPartTag(tag)
   {
@@ -168,7 +168,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Carbon EveChildInstanceContainer.cpp:160-166: modifiers invalidate distributed instances. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnListModified(_event, _key = 0, _key2 = 0, _value = null, list = null)
   {
@@ -183,7 +183,7 @@ export class EveChildInstanceContainer extends EveChildTransform
    * @param {*} [value=null] The modified member, by exposed name.
    * @returns {boolean} Always true.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(value = null)
   {
@@ -200,7 +200,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Replaces the source and requests native instance recreation (cpp:116). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetSourceEffect(sourceEffect)
   {
@@ -209,7 +209,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Returns the authored source (cpp:122). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetSource()
   {
@@ -217,7 +217,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Transfers child ownership and the source's edit-mode registration (cpp:128). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetSource(source)
   {
@@ -231,7 +231,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Retains an authored transform and immediately creates its instance (cpp:146). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddInstanceTransform(scale, rotation, translation, boneIndex = -1)
   {
@@ -246,7 +246,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Recreates locator instances first, followed by authored transforms (cpp:194). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   CreateInstances(parent)
   {
@@ -264,7 +264,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Carbon GetEffectChildByName (cpp:513-517): none; the instances are not named children. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetEffectChildByName(_name)
   {
@@ -272,21 +272,21 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Carbon AddToEffectChildrenList (cpp:519-522): does nothing. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddToEffectChildrenList(_child)
   {
   }
 
   /** Carbon RemoveFromEffectChildrenList (cpp:524-527): does nothing. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RemoveFromEffectChildrenList(_child)
   {
   }
 
   /** Copies the source with Blue's copier, retaining native wrapper/registration order (cpp:234). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   CreateInstance(scale, rotation, translation, boneIndex = -1)
   {
@@ -318,7 +318,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Updates an existing root; an absent list entry is ignored (cpp:301). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateInstance(index, scale, rotation, translation)
   {
@@ -327,7 +327,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Unregisters components and detaches children before clearing (cpp:339). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ClearInstanceList()
   {
@@ -357,7 +357,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Selects whether an empty container exposes its source (cpp:333). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   DisableEditMode(disable)
   {
@@ -366,7 +366,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Sets one instance variable, preserving the donor boundary bug (cpp:557-566). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetControllerVariableForInstance(index, name, value)
   {
@@ -377,7 +377,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Sends one instance event; JS throws at the donor's invalid size boundary (cpp:568-577). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   HandleControllerEventForInstance(index, name)
   {
@@ -388,7 +388,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Carbon method HandleControllerEvent (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HandleControllerEvent(name)
   {
@@ -396,7 +396,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Carbon method SetControllerVariable (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetControllerVariable(name, value)
   {
@@ -408,7 +408,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Carbon method StartControllers (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   StartControllers()
   {
@@ -487,7 +487,7 @@ export class EveChildInstanceContainer extends EveChildTransform
    * @param {string} name Shader option name.
    * @param {string} value Shader option value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetShaderOption(name, value)
   {
@@ -539,7 +539,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Recreates pending instances, captures owner speed, and forwards native child params (cpp:388-410). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
@@ -566,7 +566,7 @@ export class EveChildInstanceContainer extends EveChildTransform
    * arm GetRenderables. The Matrix-overload declaration at header:64 has no
    * definition - it exists only to un-hide the base overload under C++ name
    * hiding, so JS ports ONE method. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateAsyncronous(updateContext, params)
   {
@@ -596,7 +596,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   /** Carbon EveChildInstanceContainer::UpdateVisibility (cpp:378-386): the
    * display gate, then the parent transform and LOD pass through UNCHANGED -
    * unlike the update pair, which rebase onto this container's transform. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform = null, parentLod = Tr2Lod.TR2_LOD_HIGH)
   {
@@ -608,7 +608,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   /** Carbon EveChildInstanceContainer::GetRenderables (cpp:367-375): gated on
    * display AND a completed async update; the std::vector& out-param becomes
    * the returned array. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetRenderables(out = [])
   {
@@ -620,7 +620,7 @@ export class EveChildInstanceContainer extends EveChildTransform
 
   /** Carbon EveChildInstanceContainer::RegisterWithQuadRenderer (cpp:467-473):
    * the shared source registers once for every instance. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -628,7 +628,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Carbon EveChildInstanceContainer::AddQuadsToQuadRenderer (cpp:475-478). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
@@ -638,7 +638,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   /** Carbon EveChildInstanceContainer::RegisterComponents (cpp:83-103):
    * forwards the instances; with no instances (and edit mode enabled) the source
    * template registers instead. Gate IsInRegistry() && m_display. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterComponents()
   {
@@ -659,7 +659,7 @@ export class EveChildInstanceContainer extends EveChildTransform
 
   /** Carbon EveChildInstanceContainer::UnRegisterComponents (cpp:105-122):
    * forwards the instances and the source; no display re-check. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UnRegisterComponents()
   {

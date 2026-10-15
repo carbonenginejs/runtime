@@ -1,4 +1,4 @@
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /**
  * CarbonEngineJS-original external graph reference.
@@ -12,17 +12,17 @@ import { meta } from "#schema";
  * by fetching and decoding the target graph, verifying the root against
  * `expects`, and splicing it into the owning slot.
  */
-@meta.define({ className: "CjsExternalRef", family: "sof" })
+@meta.define("CjsExternalRef")
 export class CjsExternalRef
 {
 
-  @meta.blue.persist
-  @meta.type.path
+  @blue.persist
+  @type.path
   resPath = "";
 
   /** Carbon interface name the loaded root must implement (load-time gate). */
-  @meta.blue.persist
-  @meta.type.string
+  @blue.persist
+  @type.string
   expects = "";
 
 }

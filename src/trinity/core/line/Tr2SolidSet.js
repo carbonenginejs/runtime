@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2SolidSet.h
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2PrimitiveSet } from "./Tr2PrimitiveSet.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -18,10 +18,10 @@ import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 
 
 /** A set of coloured triangles with a running centre of mass, submitted as one buffer. */
-@meta.define({ className: "Tr2SolidSet", family: "trinityCore" })
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(IInitialize)
-@meta.blue.chainTo(Tr2PrimitiveSet)
+@blue.define("Tr2SolidSet")
+@blue.inherit(IInitialize)
+@blue.interface(IInitialize)
+@blue.chainTo(Tr2PrimitiveSet)
 export class Tr2SolidSet extends Tr2PrimitiveSet
 {
 
@@ -37,19 +37,19 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   }
 
   /** m_triangles (std::vector<TriangleData>) */
-  @meta.type.list("TriangleData")
+  @type.list("TriangleData")
   triangles = [];
 
   /** m_maxCurrentTriangleCount (unsigned int) */
-  @meta.type.uint32
+  @type.uint32
   maxCurrentTriangleCount = 100;
 
   /** m_currentSubmittedTriangleCount (unsigned int) */
-  @meta.type.uint32
+  @type.uint32
   currentSubmittedTriangleCount = 0;
 
   /** Carbon method AddTriangle (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AddTriangle(position1, color1, position2, color2, position3, color3)
   {
@@ -68,7 +68,7 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   }
 
   /** Carbon method ClearTriangles (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ClearTriangles()
   {
@@ -76,7 +76,7 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   }
 
   /** Native SubmitChanges; JS array length replaces inaccessible vector capacity. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SubmitChanges()
   {
@@ -107,7 +107,7 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   /**
    * Prepares existing geometry after reader population; JS arrays need no reserve.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -134,7 +134,7 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources: defer while creation is disabled. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PrepareResources()
   {
@@ -142,7 +142,7 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   }
 
   /** Explicit AL destruction replaces Carbon's empty reference-counted handles. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ReleaseResources()
   {
@@ -151,7 +151,7 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   }
 
   /** Packs Carbon's native vertex records into mapped AL storage instead of memcpy. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnPrepareResources()
   {
@@ -203,7 +203,7 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   }
 
   /** Native Tr2SolidSet draw dispatch, including the visible-buffer gate for picking. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBatchesImpl(accumulator, perObjectData, effect, _reason)
   {

@@ -1,14 +1,14 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawnModifiers/IEveDistributionSpawnModifier.h
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 
 /** Required distribution spawn-modifier contract. */
-@meta.define({ className: "IEveDistributionSpawnModifier", family: "eve/distribution" })
+@blue.define("IEveDistributionSpawnModifier")
 export class IEveDistributionSpawnModifier
 {
 
   /** Applies this modifier to one newly spawned placement. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   ProcessSpawnModifier(_placement, _context)
   {

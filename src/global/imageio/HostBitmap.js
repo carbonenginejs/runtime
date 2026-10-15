@@ -1427,4 +1427,4 @@ export class HostBitmap extends BitmapDimensions
 
 
 // A call, not a decorator: see BitmapDimensions.js.
-CjsSchema.define(HostBitmap, { className: "HostBitmap", carbon: "HostBitmap" });
+CjsSchema.blue.define(HostBitmap, { className: "HostBitmap" });

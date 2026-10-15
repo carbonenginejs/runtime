@@ -128,4 +128,4 @@ CjsSchema.decorateMethod(CjsScriptCallback, "CallVoid", meta.adapted);
 // declaration is the only thing tying it back to BlueScriptCallback. Without it
 // a deliberately renamed port is indistinguishable from an invention, which is
 // exactly how this class read before 2026-09-13.
-CjsSchema.define(CjsScriptCallback, { className: "CjsScriptCallback", carbon: "BlueScriptCallback" });
+CjsSchema.blue.define(CjsScriptCallback, { className: "CjsScriptCallback", donors: [ "BlueScriptCallback" ] });

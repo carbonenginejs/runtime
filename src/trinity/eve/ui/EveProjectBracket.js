@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/UI/EveProjectBracket.cpp
 // Source: trinity/trinity/Eve/UI/EveProjectBracket_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; projection is portable CPU work.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { be } from "#blue";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
@@ -54,7 +54,7 @@ function callBlueCallback(callback, ...args)
 
 
 /** Projects an authored world position into a Sprite2D bracket. */
-@meta.define({ className: "EveProjectBracket", family: "eve/ui" })
+@blue.define("EveProjectBracket")
 export class EveProjectBracket
 {
   /**
@@ -67,7 +67,7 @@ export class EveProjectBracket
    * BlueScriptCallback accepts a host function or a Carbon callback object; Carbon's
    * optional global debug-text side effect is not ported yet and is omitted.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateValue(_time, renderContext)
   {
@@ -223,7 +223,7 @@ export class EveProjectBracket
    *
    * Adapted: BlueScriptCallback accepts a host function or a Carbon callback object.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetBracketDisplayState(state)
   {
@@ -240,128 +240,128 @@ export class EveProjectBracket
   }
 
   /** m_marginLeft (float) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   marginLeft = 0;
 
   /** m_marginRight (float) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   marginRight = 0;
 
   /** m_marginTop (float) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   marginTop = 0;
 
   /** m_marginBottom (float) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   marginBottom = 0;
 
   /** m_ballTrackingScaling (float) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   ballTrackingScaling = 1;
 
   /** m_bracketUpdateCallback (BlueScriptCallback) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rawStruct("BlueScriptCallback")
+  @blue.readwrite
+  @type.rawStruct("BlueScriptCallback")
   bracketUpdateCallback = null;
 
   /** m_displayChangeCallback (BlueScriptCallback) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rawStruct("BlueScriptCallback")
+  @blue.readwrite
+  @type.rawStruct("BlueScriptCallback")
   displayChangeCallback = null;
 
   /** m_minDispRange (float) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   minDispRange = 0;
 
   /** m_maxDispRange (float) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   maxDispRange = FLOAT32_MAX;
 
   /** m_trackBall (ITriVectorFunctionPtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("ITriVectorFunction")
+  @blue.readwrite
+  @type.rootRef("ITriVectorFunction")
   trackBall = null;
 
   /** m_cameraDistance (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   cameraDistance = 0;
 
   /** m_trackPosition (Vector3) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.vec3
+  @blue.readwrite
+  @type.vec3
   trackPosition = vec3.create();
 
   /** m_isInFront (bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   isInFront = true;
 
   /** m_offsetX (float) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   offsetX = 0;
 
   /** m_integerCoordinates (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   integerCoordinates = true;
 
   /** m_name (std::wstring) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.wstring
+  @blue.readwrite
+  @type.wstring
   name = "";
 
   /** m_parent (Tr2Sprite2dContainerPtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2Sprite2dContainer")
+  @blue.readwrite
+  @type.rootRef("Tr2Sprite2dContainer")
   parent = null;
 
   /** m_dock (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   dock = false;
 
   /** m_projectedPosition (Vector2) [READ] */
-  @meta.blue.read
-  @meta.type.vec2
+  @blue.read
+  @type.vec2
   projectedPosition = vec2.create();
 
   /** m_rawProjectedPosition (Vector2) [READ] */
-  @meta.blue.read
-  @meta.type.vec2
+  @blue.read
+  @type.vec2
   rawProjectedPosition = vec2.create();
 
   /** m_trackTransform (IWorldPositionPtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("IWorldPosition")
+  @blue.readwrite
+  @type.rootRef("IWorldPosition")
   trackTransform = null;
 
   /** m_bracket (Tr2Sprite2dContainerPtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2Sprite2dContainer")
+  @blue.readwrite
+  @type.rootRef("Tr2Sprite2dContainer")
   bracket = null;
 
   /** m_bracketIcon (EveSprite2dBracketPtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("EveSprite2dBracket")
+  @blue.readwrite
+  @type.rootRef("EveSprite2dBracket")
   bracketIcon = null;
 
   /** m_offsetY (float) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   offsetY = 0;
 
   /** m_isVisible (bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   isVisible = true;
 
   _isVisibleStateSet = false;

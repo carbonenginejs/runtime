@@ -5227,7 +5227,7 @@ for (const method of [ "SaveObject", "ReserveBackgroundLoadMemory", "ReleaseBack
 {
   CjsSchema.decorateMethod(CjsBlueResMan, method, meta.notImplemented);
 }
-CjsSchema.define(CjsBlueResMan, { className: "CjsBlueResMan", carbon: "BlueResMan" });
+CjsSchema.blue.define(CjsBlueResMan, { className: "CjsBlueResMan", donors: [ "BlueResMan" ] });
 
 /**
  * Reads a file's bytes through `be.paths`; a file no file system has is an

@@ -1,20 +1,20 @@
 // Source: trinity/trinity/RenderJob/TriStepUpdate.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that ticks one updateable object with the frame times. */
-@meta.define({ className: "TriStepUpdate", family: "renderJob" })
+@blue.define("TriStepUpdate")
 export class TriStepUpdate extends TriRenderStep
 {
 
   /** m_object (ITr2UpdateablePtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("ITr2Updateable")
+  @blue.readwrite
+  @type.rootRef("ITr2Updateable")
   object = null;
 
   /** Carbon method __init__ -> SetUpdateable (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   __init__(object = null)
   {
@@ -32,7 +32,7 @@ export class TriStepUpdate extends TriRenderStep
    * @param {Tr2RenderContext} renderContext Context supplied by the step executor.
    * @returns {number} Native render-step success result.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Execute(realTime, simTime, renderContext)
   {

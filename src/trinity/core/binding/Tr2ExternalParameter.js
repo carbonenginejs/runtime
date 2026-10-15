@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2ExternalParameter.h
 // Source: trinity/trinity/Tr2ExternalParameter.cpp
 // Source: trinity/trinity/Tr2ExternalParameter_Blue.cpp
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { IInitialize } from "#blue/IInitialize";
 import { INotify } from "#blue/INotify";
 import { TriValueBinding } from "./TriValueBinding.js";
@@ -10,9 +10,9 @@ import { TriValueBinding } from "./TriValueBinding.js";
  * A named handle onto one attribute - optionally one vector component - of
  * another object, exposing it for type-checked reads and writes.
  */
-@meta.define({ className: "Tr2ExternalParameter", family: "trinityCore" })
-@meta.blue.inherit(INotify)
-@meta.blue.interface(IInitialize, INotify)
+@blue.define("Tr2ExternalParameter")
+@blue.inherit(INotify)
+@blue.interface(IInitialize, INotify)
 export class Tr2ExternalParameter extends IInitialize
 {
 
@@ -29,28 +29,28 @@ export class Tr2ExternalParameter extends IInitialize
   _destinationType = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_destinationObject (IRootPtr) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("IRoot")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("IRoot")
   destinationObject = null;
 
   /** m_destinationAttribute (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   destinationAttribute = "";
 
   /** m_valid (bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   valid = false;
 
   /**
@@ -58,7 +58,7 @@ export class Tr2ExternalParameter extends IInitialize
    * Adapted: Returns a defensive JavaScript value copy in place of Carbon's BlueScriptValue conversion.
    * @returns {*} Defensive copy for arrays, otherwise the bound value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValue()
   {
@@ -77,7 +77,7 @@ export class Tr2ExternalParameter extends IInitialize
    * @param {*} value Value to convert and assign.
    * @returns {boolean} True after assignment and notification.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetValue(value)
   {
@@ -119,7 +119,7 @@ export class Tr2ExternalParameter extends IInitialize
    * Adapted: Resolves Carbon Blue entries through CjsSchema with a narrow plain-object fallback for portable graph adapters.
    * @returns {boolean} True, including when the destination is invalid.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -158,7 +158,7 @@ export class Tr2ExternalParameter extends IInitialize
    * @param {string|null} [_value=null] Changed member name.
    * @returns {boolean} True after resolving the destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(_value = null)
   {
@@ -170,7 +170,7 @@ export class Tr2ExternalParameter extends IInitialize
    * The parameter's exposed name.
    * @returns {string} Exposed name.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetName()
   {
@@ -183,7 +183,7 @@ export class Tr2ExternalParameter extends IInitialize
    * @param {*} name Name normalized by the portable string adapter.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetName(name)
   {
@@ -197,7 +197,7 @@ export class Tr2ExternalParameter extends IInitialize
    * @param {object|null} destinationObject Destination owner.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetDestinationObject(destinationObject)
   {
@@ -212,7 +212,7 @@ export class Tr2ExternalParameter extends IInitialize
    * @param {*} destinationAttribute Member name with an optional component.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetDestinationAttribute(destinationAttribute)
   {
@@ -225,7 +225,7 @@ export class Tr2ExternalParameter extends IInitialize
    * shape.
    * @returns {boolean} Whether the destination resolved.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsValid()
   {
@@ -239,7 +239,7 @@ export class Tr2ExternalParameter extends IInitialize
    * Adapted: Returns the portable field value instead of Carbon's raw Be::Var pointer.
    * @returns {*} Live destination value, or null.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetDestination()
   {
@@ -253,7 +253,7 @@ export class Tr2ExternalParameter extends IInitialize
    * Adapted: Returns CjsSchema field metadata plus the component offset instead of Carbon's Be::VarEntry pointer.
    * @returns {object|null} Portable field metadata and component offset.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetDestinationEntry()
   {
@@ -266,7 +266,7 @@ export class Tr2ExternalParameter extends IInitialize
    * Adapted: Constructs the maintained portable TriValueBinding rather than a native Blue instance.
    * @returns {TriValueBinding} Binding with its destination assigned.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CreateBinding()
   {

@@ -27,13 +27,13 @@ import {
   PER_OBJECT_VS_FLOAT_CAPACITY,
   Tr2PerObjectDataPSBuffer
 } from "./Tr2PerObjectDataPSBuffer.js";
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 
 /**
  * Per-object data with both a vertex and a pixel payload.
  */
-@meta.define({ className: "Tr2PerObjectDataStandard", family: "trinityCore" })
+@blue.define("Tr2PerObjectDataStandard")
 export class Tr2PerObjectDataStandard extends Tr2PerObjectDataPSBuffer
 {
   /** The vertex payload, in the shape this object was leased for. */
@@ -102,7 +102,7 @@ export class Tr2PerObjectDataStandard extends Tr2PerObjectDataPSBuffer
    * @param {object} renderContext The context to upload and bind against.
    * @returns {number} How many payloads were uploaded.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetPerObjectDataToDevice(buffers, constantTypeMask, renderContext)
   {
@@ -120,7 +120,7 @@ export class Tr2PerObjectDataStandard extends Tr2PerObjectDataPSBuffer
    * Adapted: Tr2IndirectDrawBufferWriter is unported and nothing on this path draws
    * indirectly.
    */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   ApplyConstantBuffers()
   {

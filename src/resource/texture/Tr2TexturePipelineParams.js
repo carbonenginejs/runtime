@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/TexturePipeline/ITr2TexturePipelineStep.h
 // Schema: format-carbon resources/Tr2TexturePipelineParams.json; maintained by the runtime resource layer.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, type } from "#schema";
 
 /** Data record mirroring Carbon's texture-pipeline execution parameters, holding the maximum output width and height. */
 export class Tr2TexturePipelineParams
@@ -14,10 +14,10 @@ export class Tr2TexturePipelineParams
 
 }
 
-CjsSchema.define(Tr2TexturePipelineParams, {
-  className: "Tr2TexturePipelineParams", family: "resources",
+CjsSchema.blue.define(Tr2TexturePipelineParams, {
+  className: "Tr2TexturePipelineParams",
   fields: {
-    maxWidth: meta.type.uint32,
-    maxHeight: meta.type.uint32
+    maxWidth: type.uint32,
+    maxHeight: type.uint32
   }
 });

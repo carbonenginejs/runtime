@@ -172,4 +172,4 @@ export class ITr2AudEmitter
 
 
 for (const name of EMITTER_METHODS) CjsSchema.decorateMethod(ITr2AudEmitter, name, meta.abstract);
-CjsSchema.define(ITr2AudEmitter, { className: "ITr2AudEmitter", family: "trinityAudioApi" });
+CjsSchema.blue.define(ITr2AudEmitter, { className: "ITr2AudEmitter" });

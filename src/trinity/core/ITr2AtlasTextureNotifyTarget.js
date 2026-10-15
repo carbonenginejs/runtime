@@ -11,10 +11,10 @@
 // Tr2AtlasTexture.cpp:463-471; notified at :491-497). Carbon declares it as its
 // own plain C++ interface (not a BLUE_INTERFACE), so it has no Blue exposure.
 // Implemented in Carbon by Tr2Sprite2dTexture (Sprite2d/Tr2Sprite2dTexture.h:20).
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 /** Receives change notifications from an atlas texture it registered with. */
-@meta.define({ className: "ITr2AtlasTextureNotifyTarget", family: "trinityCore", abstract: true })
+@blue.define({ className: "ITr2AtlasTextureNotifyTarget", abstract: true })
 export class ITr2AtlasTextureNotifyTarget
 {
   /**

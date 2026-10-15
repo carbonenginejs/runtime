@@ -1,4 +1,4 @@
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
@@ -11,133 +11,133 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
  * read it; a consumer that needs a profile-to-part join must diagnose a
  * missing one rather than assume the catalog is populated.
  */
-@meta.define({ className: "CjsCharacterProjectionProfile", family: "character" })
+@meta.define("CjsCharacterProjectionProfile")
 export class CjsCharacterProjectionProfile extends CjsCharacterRecord
 {
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.path
+    @blue.readwrite
+    @blue.persist
+    @type.path
     sourcePath = "";
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     label = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.int32
+    @blue.readwrite
+    @blue.persist
+    @type.int32
     mode = 0;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.float64
+    @blue.readwrite
+    @blue.persist
+    @type.float64
     angleRotation = 0;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.float64
+    @blue.readwrite
+    @blue.persist
+    @type.float64
     aspectRatio = 1;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.float64
+    @blue.readwrite
+    @blue.persist
+    @type.float64
     azimuth = 0;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.path
+    @blue.readwrite
+    @blue.persist
+    @type.path
     texturePath = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.path
+    @blue.readwrite
+    @blue.persist
+    @type.path
     maskPath = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.boolean
+    @blue.readwrite
+    @blue.persist
+    @type.boolean
     headEnabled = false;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.boolean
+    @blue.readwrite
+    @blue.persist
+    @type.boolean
     bodyEnabled = false;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.boolean
+    @blue.readwrite
+    @blue.persist
+    @type.boolean
     flipX = false;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.boolean
+    @blue.readwrite
+    @blue.persist
+    @type.boolean
     flipY = false;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.float64
+    @blue.readwrite
+    @blue.persist
+    @type.float64
     height = 0;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.float64
+    @blue.readwrite
+    @blue.persist
+    @type.float64
     incline = 0;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.int32
+    @blue.readwrite
+    @blue.persist
+    @type.int32
     layer = 0;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.boolean
+    @blue.readwrite
+    @blue.persist
+    @type.boolean
     maskPathEnabled = false;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.vec2
+    @blue.readwrite
+    @blue.persist
+    @type.vec2
     offset = vec2.create();
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.float64
+    @blue.readwrite
+    @blue.persist
+    @type.float64
     pitch = 0;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.float64
+    @blue.readwrite
+    @blue.persist
+    @type.float64
     planarBeta = 0;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.float64
+    @blue.readwrite
+    @blue.persist
+    @type.float64
     planarScale = 0;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.vec3
+    @blue.readwrite
+    @blue.persist
+    @type.vec3
     position = vec3.create();
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.float64
+    @blue.readwrite
+    @blue.persist
+    @type.float64
     radius = 0;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.float64
+    @blue.readwrite
+    @blue.persist
+    @type.float64
     roll = 0;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.float64
+    @blue.readwrite
+    @blue.persist
+    @type.float64
     scale = 0;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.float64
+    @blue.readwrite
+    @blue.persist
+    @type.float64
     yaw = 0;
 
 }

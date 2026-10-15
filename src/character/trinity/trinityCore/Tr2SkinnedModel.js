@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2SkinnedModel.h
 // Source: trinity/trinity/Tr2SkinnedModel.cpp
 import { be, IsMatch, IInitialize, INotify, ResourceRequirement } from "#blue";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2Model } from "./Tr2Model.js";
 import { vec3 } from "#math/vec3";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -19,10 +19,10 @@ const FLT_MAX = 3.4028234663852886e38;
  * Not ported: GetBatches and GetBatchesForArea (cpp:32-139), which need Carbon's Tr2PerObjectDataSkinned and
  * Tr2PerAreaDataSkinned (see the character README); until then Tr2Model's batches are used.
  */
-@meta.define({ className: "Tr2SkinnedModel", family: "trinityCore" })
-@meta.blue.inherit(IInitialize, INotify)
-@meta.blue.interface(IInitialize, INotify)
-@meta.blue.chainTo(Tr2Model)
+@blue.define("Tr2SkinnedModel")
+@blue.inherit(IInitialize, INotify)
+@blue.interface(IInitialize, INotify)
+@blue.chainTo(Tr2Model)
 export class Tr2SkinnedModel extends Tr2Model
 {
 
@@ -39,32 +39,32 @@ export class Tr2SkinnedModel extends Tr2Model
   _skeletonIx = NO_SKELETON;
 
   /** m_geometryResPath (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.path("TriGeometryRes")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.path("TriGeometryRes")
   geometryResPath = "";
 
   /** m_geometryRes (TriGeometryResPtr) [READ] */
-  @meta.blue.read
-  @meta.type.rootRef("TriGeometryRes")
+  @blue.read
+  @type.rootRef("TriGeometryRes")
   geometryRes = null;
 
   /** m_skeletonName (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   skeletonName = "";
 
   /** m_skinScale (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   skinScale = vec3.fromValues(1, 1, 1);
 
   /** Carbon OnModified (Tr2SkinnedModel.cpp:226-238): a new geometry path or skeleton name re-initialises. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName)
   {
@@ -85,7 +85,7 @@ export class Tr2SkinnedModel extends Tr2Model
    * when it already is).
    * @returns {boolean} true
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   @meta.invalidates("_areAllMeshesBound")
   Initialize()
@@ -112,7 +112,7 @@ export class Tr2SkinnedModel extends Tr2Model
   }
 
   /** Carbon OnListModified (Tr2SkinnedModel.cpp:276-283): an inserted mesh triggers rebinding. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   @meta.invalidates("_areAllMeshesBound")
   OnListModified(event)
@@ -125,7 +125,7 @@ export class Tr2SkinnedModel extends Tr2Model
   }
 
   /** Carbon ReleaseCachedData (Tr2SkinnedModel.cpp:240-243): forgets the selected skeleton. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ReleaseCachedData(_resource = null)
   {
@@ -136,7 +136,7 @@ export class Tr2SkinnedModel extends Tr2Model
    * Carbon RebuildCachedData (Tr2SkinnedModel.cpp:245-262): selects the first skeleton named skeletonName.
    * @param {TriGeometryRes|null} [_resource] - the notifying resource; the model reads its own geometryRes
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RebuildCachedData(_resource = null)
   {
@@ -160,7 +160,7 @@ export class Tr2SkinnedModel extends Tr2Model
    * Carbon GetSkeleton (Tr2SkinnedModel.cpp:264-272).
    * @returns {object|null} the selected payload skeleton, or null when none is selected
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetSkeleton()
   {
@@ -179,7 +179,7 @@ export class Tr2SkinnedModel extends Tr2Model
    * @param {number} numBones
    * @param {boolean} forceRebind
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   BindToRig(boneList, numBones, forceRebind)
   {
@@ -217,7 +217,7 @@ export class Tr2SkinnedModel extends Tr2Model
   }
 
   /** Carbon ResetBindings (Tr2SkinnedModel.cpp:197-200). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ResetBindings()
   {
@@ -225,7 +225,7 @@ export class Tr2SkinnedModel extends Tr2Model
   }
 
   /** Carbon method ResetAnimationBindings -> ResetBindings (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ResetAnimationBindings()
   {

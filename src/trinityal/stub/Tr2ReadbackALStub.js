@@ -56,8 +56,9 @@ export class Tr2ReadbackALStub extends Tr2DeviceResourceAL
   }
 }
 
-CjsSchema.define(Tr2ReadbackALStub, {
-  className: "Tr2ReadbackALStub", carbon: "Tr2ReadbackAL",
+CjsSchema.blue.define(Tr2ReadbackALStub, {
+  className: "Tr2ReadbackALStub",
+  donors: [ "Tr2ReadbackAL" ],
   methods: { IsReady: [meta.implemented], IsValid: [meta.implemented], Map: [meta.adapted],
     Destroy: [meta.adapted], Describe: [meta.implemented], GetMemoryClass: [meta.implemented] }
 });

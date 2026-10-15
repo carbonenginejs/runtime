@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Font/Tr2SBit.cpp
 // Source: trinity/trinity/Font/Tr2Sbit_Blue.cpp
 // Maintained browser-font adapter; native interfaces retain their Carbon names.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /**
  * Carbon's `RGBA::BlendOverAlpha` (Tr2FontMeasurer.cpp:1427-1442), for the
@@ -36,18 +36,18 @@ function blendOverAlpha(bytes, index, col, sourceAlpha)
 }
 
 /** Models Carbon's cached font-glyph wrapper, including placement coordinates and buffer-copy entry points. */
-@meta.define({ className: "Tr2SBitWrapper", family: "font", purpose: "Models Carbon's cached font-glyph wrapper, including placement coordinates and buffer-copy entry points." })
+@blue.define({ className: "Tr2SBitWrapper", purpose: "Models Carbon's cached font-glyph wrapper, including placement coordinates and buffer-copy entry points." })
 export class Tr2SBitWrapper
 {
 
   /** x (int) [READ] */
-  @meta.blue.read
-  @meta.type.int32
+  @blue.read
+  @type.int32
   x = 0;
 
   /** y (int) [READ] */
-  @meta.blue.read
-  @meta.type.int32
+  @blue.read
+  @type.int32
   y = 0;
 
   /** Browser-rasterized equivalent of the native FTC_SBit record. */
@@ -68,8 +68,8 @@ export class Tr2SBitWrapper
   fontSize = 12;
 
   /** Blue "xOffset" [READ] (Tr2Sbit_Blue.cpp:23-26): GetXOffset. @returns {number} Bitmap left offset. */
-  @meta.blue.read
-  @meta.type.int32
+  @blue.read
+  @type.int32
   @meta.implemented
   get xOffset()
   {
@@ -77,8 +77,8 @@ export class Tr2SBitWrapper
   }
 
   /** Blue "yOffset" [READ] (Tr2Sbit_Blue.cpp:28-31): GetYOffset. @returns {number} Bitmap top offset. */
-  @meta.blue.read
-  @meta.type.int32
+  @blue.read
+  @type.int32
   @meta.implemented
   get yOffset()
   {
@@ -86,8 +86,8 @@ export class Tr2SBitWrapper
   }
 
   /** Blue "width" [READ] (Tr2Sbit_Blue.cpp:33-36): GetWidth. @returns {number} Bitmap width. */
-  @meta.blue.read
-  @meta.type.int32
+  @blue.read
+  @type.int32
   @meta.implemented
   get width()
   {
@@ -95,8 +95,8 @@ export class Tr2SBitWrapper
   }
 
   /** Blue "height" [READ] (Tr2Sbit_Blue.cpp:38-41): GetHeight. @returns {number} Bitmap height. */
-  @meta.blue.read
-  @meta.type.int32
+  @blue.read
+  @type.int32
   @meta.implemented
   get height()
   {
@@ -104,8 +104,8 @@ export class Tr2SBitWrapper
   }
 
   /** Blue "xadvance" [READ] (Tr2Sbit_Blue.cpp:43-47): GetXAdvance. @returns {number} Horizontal advance. */
-  @meta.blue.read
-  @meta.type.int32
+  @blue.read
+  @type.int32
   @meta.implemented
   get xadvance()
   {
@@ -113,8 +113,8 @@ export class Tr2SBitWrapper
   }
 
   /** Blue "yadvance" [READ] (Tr2Sbit_Blue.cpp:49-53): GetYAdvance. @returns {number} Vertical advance. */
-  @meta.blue.read
-  @meta.type.int32
+  @blue.read
+  @type.int32
   @meta.implemented
   get yadvance()
   {
@@ -167,7 +167,7 @@ export class Tr2SBitWrapper
    * Copies browser grayscale coverage with Carbon's clipped, bottom-origin placement.
    * Adapted: typed byte views replace the Python writable-buffer interface.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ToBuffer(buffer, width, height, pitch, x, y, color)
   {
@@ -273,7 +273,7 @@ export class Tr2SBitWrapper
    * @param {number} extraSpace Extra underline length after the advance.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ToBufferWithUnderline(buffer, width, height, pitch, x, y, color, extraSpace)
   {

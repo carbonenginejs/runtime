@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveLocalPositionCurve.cpp
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { ITriTargetable } from "../../../core/ITriTargetable.js";
 import { EveSpaceObject2 } from "../../spaceObject/EveSpaceObject2.js";
@@ -15,67 +15,67 @@ import { be, ITriVectorFunction } from "#blue";
  * bounding hull, a damage or firing locator, a turret muzzle, or an authored
  * offset - selected by an authored behaviour.
  */
-@meta.define({ className: "EveLocalPositionCurve", family: "eve/renderable/stretch" })
+@blue.define("EveLocalPositionCurve")
 export class EveLocalPositionCurve extends ITriVectorFunction
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
- @meta.type.int32
-  @meta.type.enum("trinity.EveLocalPositionCurve.LocalPositionBehavior")
+  @blue.readwrite
+  @blue.persist
+ @type.int32
+  @type.enum("trinity.EveLocalPositionCurve.LocalPositionBehavior")
   behavior = 0;
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   impactSize = 1;
-  @meta.blue.readwrite
-  @meta.blue.persist
- @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+ @type.float32
   offset = 0;
-  @meta.blue.readwrite
-  @meta.blue.persist
- @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+ @type.vec3
   positionOffset = vec3.create();
-  @meta.blue.readwrite
-  @meta.blue.persist
- @meta.type.rootRef("ITriVectorFunction")
+  @blue.readwrite
+  @blue.persist
+ @type.rootRef("ITriVectorFunction")
   parentPositionCurve = null;
-  @meta.blue.readwrite
-  @meta.blue.persist
- @meta.type.rootRef("ITriVectorFunction")
+  @blue.readwrite
+  @blue.persist
+ @type.rootRef("ITriVectorFunction")
   alignPositionCurve = null;
-  @meta.blue.readwrite
-  @meta.blue.persist
- @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+ @type.vec3
   value = vec3.create();
-  @meta.blue.readwrite
-  @meta.blue.persist
- @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+ @type.vec3
   boundingSize = vec3.create();
-  @meta.blue.readwrite
-  @meta.type.rootRef("ITriQuaternionFunction")
+  @blue.readwrite
+  @type.rootRef("ITriQuaternionFunction")
   parentRotationCurve = null;
-  @meta.blue.readwrite
-  @meta.type.rootRef("IEveSpaceObject2")
+  @blue.readwrite
+  @type.rootRef("IEveSpaceObject2")
   parent = null;
-  @meta.blue.readwrite
-  @meta.type.rootRef("EveTurretSet")
+  @blue.readwrite
+  @type.rootRef("EveTurretSet")
   turretSetObject = null;
-  @meta.blue.readwrite
-  @meta.type.int32
+  @blue.readwrite
+  @type.int32
   muzzleIndex = 0;
-  @meta.blue.read
-  @meta.type.int32
+  @blue.read
+  @type.int32
   damageLocatorIndex = -1;
-  @meta.blue.readwrite
-  @meta.type.int32
+  @blue.readwrite
+  @type.int32
   locatorIndex = -1;
-  @meta.blue.readwrite
-  @meta.type.string
+  @blue.readwrite
+  @type.string
   locatorSetName = "";
 
   _impactEffectIndex = -1;
 
   /** Post-construction hook that selects the behaviour, defaulting to POS_NONE. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   __init__(behavior = EveLocalPositionCurve.LocalPositionBehavior.POS_NONE)
   {
@@ -86,7 +86,7 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * Selects which of the LocalPositionBehavior calculations this curve
    * evaluates.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetBehavior(behavior)
   {
@@ -100,7 +100,7 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * @param {Float32Array} out Caller-owned vec3, returned unchanged.
    * @returns {Float32Array} out
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Update(_time, out)
   {
@@ -147,7 +147,7 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * @param {Float32Array} out Caller-owned vec3.
    * @returns {Float32Array} out
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetValueAt(_time, out)
   {
@@ -180,7 +180,7 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * Adapted: Carbon's call resolves to its no-op double Update overload; forwarding to the collapsed dispatching
    * Update would be more active than the donor.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateValue(_time)
   {
@@ -190,7 +190,7 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * The first derivative is undefined for a locator-driven curve; out is
    * returned untouched.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetValueDotAt(_time, out)
   {
@@ -201,7 +201,7 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * The second derivative is undefined for a locator-driven curve; out is
    * returned untouched.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetValueDoubleDotAt(_time, out)
   {
@@ -215,7 +215,7 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    *
    * Adapted: Carbon's Vector3d is any three-element numeric output buffer here.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   InterpolatedPosition(_time, out)
   {

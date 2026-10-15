@@ -4,7 +4,7 @@
 // Promoted to hand-maintained source 2026-08-22; projection is portable CPU work.
 import { mat4 } from "#math/mat4";
 import { ITr2BoundingBox } from "#interfaces";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 
 
 const CLIP_EPSILON = 1e-5;
@@ -206,7 +206,7 @@ function clampProjectedSize(size, minSize, maxSize)
 
 
 /** Projects an owned world-space bounding box into a Sprite2D bracket. */
-@meta.define({ className: "Tr2ProjectBoundingBoxBracket", family: "trinityCore" })
+@blue.define("Tr2ProjectBoundingBoxBracket")
 export class Tr2ProjectBoundingBoxBracket
 {
   /**
@@ -216,7 +216,7 @@ export class Tr2ProjectBoundingBoxBracket
    * Adapted: Tr2Renderer view, projection and viewport globals are supplied by the active
    * Tr2RenderContext.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateValue(_time, renderContext)
   {
@@ -277,7 +277,7 @@ export class Tr2ProjectBoundingBoxBracket
   }
 
   /** Clears every published result and updates the attached bracket. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetEmptyProjection()
   {
@@ -294,7 +294,7 @@ export class Tr2ProjectBoundingBoxBracket
   }
 
   /** Publishes the current rectangle to the attached Sprite2D container. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateBracket()
   {
@@ -388,83 +388,83 @@ export class Tr2ProjectBoundingBoxBracket
     return true;
   }
 
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   cameraDistance = 0;
 
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   projectedHeight = 0;
 
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   screenMargin = 0;
 
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   integerCoordinates = true;
 
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   maxProjectedHeight = 0;
 
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   maxProjectedWidth = 0;
 
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   minProjectedHeight = 0;
 
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   minProjectedWidth = 0;
 
-  @meta.blue.readwrite
-  @meta.type.string
+  @blue.readwrite
+  @type.string
   name = "";
 
-  @meta.blue.readwrite
-  @meta.type.rootRef(BOUNDING_BOX_TYPE)
+  @blue.readwrite
+  @type.rootRef(BOUNDING_BOX_TYPE)
   object = null;
 
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2Sprite2dContainer")
+  @blue.readwrite
+  @type.rootRef("Tr2Sprite2dContainer")
   parent = null;
 
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2Sprite2dContainer")
+  @blue.readwrite
+  @type.rootRef("Tr2Sprite2dContainer")
   bracket = null;
 
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   isProjectionValid = false;
 
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   containsCamera = false;
 
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   coversViewport = false;
 
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   extendsOffscreen = false;
 
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   projectedWidth = 0;
 
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   projectedX = 0;
 
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   projectedY = 0;
 
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   projectedZ = 0;
 }

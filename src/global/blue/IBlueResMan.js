@@ -96,4 +96,4 @@ for (const method of [
 CjsSchema.decorateMethod(IBlueResMan, "GetResource", meta.renamed("GetResourceW"));
 CjsSchema.decorateMethod(IBlueResMan, "SaveObject", meta.renamed("SaveObjectW"));
 
-CjsSchema.define(IBlueResMan, { className: "IBlueResMan", carbon: "IBlueResMan", family: "blue", fields: {} });
+CjsSchema.blue.define(IBlueResMan, { className: "IBlueResMan", fields: {} });

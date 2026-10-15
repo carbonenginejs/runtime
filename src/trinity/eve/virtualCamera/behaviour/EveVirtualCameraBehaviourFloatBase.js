@@ -2,34 +2,31 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { IsMatch } from "#blue";
 import { INotify } from "../../../../global/blue/INotify.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 
 /**
  * Base for the virtual camera behaviours that contribute a scalar delta to a
  * camera's field of view or roll each update.
  */
-@meta.define({
-  className: "EveVirtualCameraBehaviourFloatBase",
-  family: "eve/virtualCamera/behaviour"
-})
-@meta.blue.inherit(INotify)
-@meta.blue.interface(INotify)
+@blue.define("EveVirtualCameraBehaviourFloatBase")
+@blue.inherit(INotify)
+@blue.interface(INotify)
 export class EveVirtualCameraBehaviourFloatBase
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   active = true;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** Returns the authored behaviour name shown in tooling. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetName()
   {
@@ -40,7 +37,7 @@ export class EveVirtualCameraBehaviourFloatBase
    * Sets the behaviour name, coercing to a string; subclasses override this to
    * rename the curves they own alongside it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -51,7 +48,7 @@ export class EveVirtualCameraBehaviourFloatBase
    * Re-applies the current name after a field change, which propagates it to any
    * owned curves through the subclass SetName override.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName)
   {
@@ -60,7 +57,7 @@ export class EveVirtualCameraBehaviourFloatBase
   }
 
   /** Reports whether the camera should evaluate this behaviour this update. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsActive()
   {

@@ -2,7 +2,7 @@
 // Source: trinity/trinity/RenderJob/TriStepClear.cpp
 // Source: trinity/trinity/RenderJob/TriStepClear_Blue.cpp
 import { vec4 } from "#math/vec4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
@@ -11,44 +11,44 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * Step that clears the bound colour, depth and stencil attachments, each
  * independently enabled with its own clear value.
  */
-@meta.define({ className: "TriStepClear", family: "renderJob" })
+@blue.define("TriStepClear")
 export class TriStepClear extends TriRenderStep
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.readwrite
+  @blue.persist
+  @type.color
   color = vec4.fromValues(0, 0, 0, 1);
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   depth = 1;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   stencil = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   isColorCleared = true;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   isDepthCleared = true;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   isStencilCleared = false;
 
   /**
    * Enables each clear channel according to whether its argument was supplied
    * and non-null, so constructing with a colour alone clears colour only.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   __init__(color, depth, stencil)
   {
@@ -65,7 +65,7 @@ export class TriStepClear extends TriRenderStep
    * one enable flag per channel; which attachments those apply to is the
    * render context's decision.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

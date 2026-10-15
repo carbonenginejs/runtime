@@ -1437,4 +1437,4 @@ export class Tr2RenderContextALStub
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
-CjsSchema.define(Tr2RenderContextALStub, { className: "Tr2RenderContextALStub", carbon: "Tr2RenderContextAL" });
+CjsSchema.blue.define(Tr2RenderContextALStub, { className: "Tr2RenderContextALStub", donors: [ "Tr2RenderContextAL" ] });

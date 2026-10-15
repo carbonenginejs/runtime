@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Resources/Tr2GrannyStateRes.h
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { CjsResource, ICacheable } from "#blue";
 import { assertResourcePayloadObject, resourceFormatRequiredError, resourcePayloadError } from "../../resourceBoundary.js";
 import { ResourceRequirement } from "#blue";
@@ -261,13 +261,12 @@ export class Tr2GrannyStateRes extends CjsResource
   static payload = ResourceRequirement.GRANNY_STATE;
 }
 
-CjsSchema.define(Tr2GrannyStateRes, {
+CjsSchema.blue.define(Tr2GrannyStateRes, {
   className: "Tr2GrannyStateRes",
-  family: "resources",
   methods: {
-    IsMemoryUsageKnown: [ meta.blue.method, meta.implemented ],
-    GetMemoryUsage: [ meta.blue.method, meta.adapted ]
+    IsMemoryUsageKnown: [ blue.method, meta.implemented ],
+    GetMemoryUsage: [ blue.method, meta.adapted ]
   }
 });
-meta.blue.inherit(ICacheable)(Tr2GrannyStateRes, { kind: "class" });
-meta.blue.interface(ICacheable)(Tr2GrannyStateRes);
+blue.inherit(ICacheable)(Tr2GrannyStateRes, { kind: "class" });
+blue.interface(ICacheable)(Tr2GrannyStateRes);

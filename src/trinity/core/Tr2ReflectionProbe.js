@@ -18,7 +18,7 @@ import { INotify } from "../../global/blue/INotify.js";
 // THE RENDER CONTEXT. Carbon reaches the main-thread context through
 // USE_MAIN_THREAD_RENDER_CONTEXT(); ours is Tr2RenderContext_GetMainThreadRenderContext(),
 // the default here, with an optional trailing context.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { mat4 } from "#math/mat4";
@@ -49,76 +49,76 @@ const FILTER_EFFECT = "res:/graphics/effect/managed/space/System/Reflection/Refl
 const COPY_MIP_EFFECT = "res:/graphics/effect/managed/space/System/Reflection/CopyCube.fx";
 
 /** Filters a cube into the prefiltered HDR reflection cube Eve's scene binds as its environment map. */
-@meta.define({ className: "Tr2ReflectionProbe", family: "trinityCore", purpose: "Filters a cube into the prefiltered HDR reflection cube Eve's scene binds as its environment map." })
-@meta.blue.inherit(INotify)
-@meta.blue.interface(INotify)
+@blue.define({ className: "Tr2ReflectionProbe", purpose: "Filters a cube into the prefiltered HDR reflection cube Eve's scene binds as its environment map." })
+@blue.inherit(INotify)
+@blue.interface(INotify)
 export class Tr2ReflectionProbe
 {
 
   /** m_renderFrequency (ReflectionProbeRenderFrequency - enum ReflectionProbeRenderFrequency) [READWRITE, NOTIFY, ENUM] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.int32
-  @meta.type.enum("trinity.Tr2ReflectionProbe.ReflectionProbeRenderFrequency")
+  @blue.notify
+  @blue.readwrite
+  @type.int32
+  @type.enum("trinity.Tr2ReflectionProbe.ReflectionProbeRenderFrequency")
   renderFrequency = 0;
 
   /** m_currentFrame (uint8_t) [READ] */
-  @meta.blue.read
-  @meta.type.uint8
+  @blue.read
+  @type.uint8
   currentFrame = 0;
 
   /** m_customSourceTexture (ITriTextureResPtr) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.rootRef("ITriTextureRes")
+  @blue.notify
+  @blue.readwrite
+  @type.rootRef("ITriTextureRes")
   customSourceTexture = null;
 
   /** m_backlightColor (Color) [READ] */
-  @meta.blue.read
-  @meta.type.color
+  @blue.read
+  @type.color
   backlightColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_backlightContrast (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   backlightContrast = 16;
 
   /** m_hollywoodMode (bool) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @type.boolean
   hollywoodMode = true;
 
   /** m_postFilterTarget (Tr2RenderTargetPtr) [READ] */
-  @meta.blue.read
-  @meta.type.rootRef("Tr2RenderTarget")
+  @blue.read
+  @type.rootRef("Tr2RenderTarget")
   reflectionTexture = null;
 
   /** m_hdrOutput (bool) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @type.boolean
   hdrOutput = true;
 
   /** m_lockPosition (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   lockPosition = false;
 
   /** m_position (Vector3) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.vec3
+  @blue.readwrite
+  @type.vec3
   position = vec3.create();
 
   /** m_intermediateSize (int) [READWRITE, NOTIFY]; Carbon's default is FILTER_SIZE * 4 (`cpp:32`). */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.int32
+  @blue.notify
+  @blue.readwrite
+  @type.int32
   reflectionSize = FILTER_SIZE * 4;
 
   /** m_renderTargetCube (Tr2RenderTargetPtr) [READ] */
-  @meta.blue.read
-  @meta.type.rootRef("Tr2RenderTarget")
+  @blue.read
+  @type.rootRef("Tr2RenderTarget")
   unfilteredTexture = null;
 
   /** m_initialized */
@@ -174,7 +174,7 @@ export class Tr2ReflectionProbe
    *
    * @returns {boolean} True when prepared.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsValid(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -182,7 +182,7 @@ export class Tr2ReflectionProbe
   }
 
   /** Carbon `HasData` (`cpp:68-71`): whether a filter has written the reflection. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasData()
   {
@@ -190,7 +190,7 @@ export class Tr2ReflectionProbe
   }
 
   /** Carbon `GetReflection` (`cpp:206-209`): the filtered cube. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetReflection()
   {
@@ -198,7 +198,7 @@ export class Tr2ReflectionProbe
   }
 
   /** Carbon `SetBackLightColor` (`cpp:211-214`). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetBackLightColor(color)
   {
@@ -206,7 +206,7 @@ export class Tr2ReflectionProbe
   }
 
   /** Carbon `SetBackLightContrast` (`cpp:216-219`). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetBackLightContrast(contrast)
   {
@@ -214,7 +214,7 @@ export class Tr2ReflectionProbe
   }
 
   /** Carbon `ReleaseResources` (`cpp:221-224`). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ReleaseResources(_storage)
   {
@@ -229,7 +229,7 @@ export class Tr2ReflectionProbe
    *
    * @returns {boolean} Whether the resources are ready.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnPrepareResources(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -248,7 +248,7 @@ export class Tr2ReflectionProbe
    *
    * @returns {boolean} Whether every target was created.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   DoPrepareResources(rtFormat, renderContext)
   {
@@ -328,7 +328,7 @@ export class Tr2ReflectionProbe
   }
 
   /** Carbon `OnModified` (`cpp:323-329`): rebuild everything on any change. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(_value)
   {
@@ -337,7 +337,7 @@ export class Tr2ReflectionProbe
   }
 
   /** Carbon `DestroyRenderTargets` (`cpp:331-345`). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   DestroyRenderTargets()
   {
@@ -362,7 +362,7 @@ export class Tr2ReflectionProbe
    * and copy the source into mip 0 - the last two with Hollywood backlighting
    * seen from the current view.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Filter(renderContext)
   {
@@ -394,7 +394,7 @@ export class Tr2ReflectionProbe
    * currently set texture": rebuild the targets in RGBA16F and filter
    * `customSourceTexture`.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RunFilter(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -404,7 +404,7 @@ export class Tr2ReflectionProbe
   }
 
   /** Carbon `IsHollyWoodModeOn` (`cpp:391-394`). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsHollyWoodModeOn()
   {
@@ -412,7 +412,7 @@ export class Tr2ReflectionProbe
   }
 
   /** Carbon `ReadyForDynamicObjectReflections` (`cpp:396-400`). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ReadyForDynamicObjectReflections()
   {
@@ -420,7 +420,7 @@ export class Tr2ReflectionProbe
   }
 
   /** Carbon `GetStartFace` (`cpp:80-87`). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetStartFace()
   {
@@ -430,7 +430,7 @@ export class Tr2ReflectionProbe
   }
 
   /** Carbon `GetEndFace` (`cpp:89-96`). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetEndFace()
   {
@@ -446,7 +446,7 @@ export class Tr2ReflectionProbe
    * current near/far terms, and inverts culling (the cube target is
    * left-handed). Without render-pass hints the faces are cleared here.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   InitRenderPass(renderContext)
   {
@@ -492,7 +492,7 @@ export class Tr2ReflectionProbe
    * (row-vector) is `xInverter` applied after the look-at, so in gl order the
    * inverter is the left operand.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   StartRenderFace(face, renderContext)
   {
@@ -516,7 +516,7 @@ export class Tr2ReflectionProbe
    * cube, restores culling and the saved state, filters, and advances the face
    * when only one side renders per frame.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   EndRenderPass(renderContext)
   {
@@ -550,7 +550,7 @@ export class Tr2ReflectionProbe
    * Carbon `GetFrustum` (`cpp:73-78`): the frustum of the current view and
    * projection from the probe position, over the current viewport.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetFrustum(_face, renderContext)
   {
@@ -561,7 +561,7 @@ export class Tr2ReflectionProbe
   }
 
   /** Carbon `GetDepthBuffer` (`h:59`): face `face`'s depth buffer. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetDepthBuffer(face)
   {

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import { dwordToFloat } from "#math/num";
 import {
 } from "#utils/is";
@@ -128,16 +128,15 @@ export class Tr2EffectParameterAnnotation
 // expressions are reused verbatim, so the registered metadata is identical.
 // Statics belong in `methods`: decorateMethod targets the prototype and
 // would register a static as an instance field.
-CjsSchema.define(Tr2EffectParameterAnnotation, {
+CjsSchema.blue.define(Tr2EffectParameterAnnotation, {
   className: "Tr2EffectParameterAnnotation",
-  family: "shader",
   fields: {
-    name: meta.type.string,
-    type: [ meta.type.int32, meta.type.enum("Type") ],
-    boolValue: meta.type.boolean,
-    rawValue: [ meta.adapted, meta.type.uint32 ],
-    intValue: meta.type.int32,
-    floatValue: meta.type.float32,
-    stringValue: meta.type.string
+    name: type.string,
+    type: [ type.int32, type.enum("Type") ],
+    boolValue: type.boolean,
+    rawValue: [ meta.adapted, type.uint32 ],
+    intValue: type.int32,
+    floatValue: type.float32,
+    stringValue: type.string
   }
 });

@@ -1,4 +1,4 @@
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /**
@@ -10,88 +10,88 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
  * optional normalized unsuffixed `modifierPath`, and exact `partSource` /
  * `modifierLocation` relationships only when a join is exact.
  */
-@meta.define({ className: "CjsCharacterPartMetadata", family: "character" })
+@meta.define("CjsCharacterPartMetadata")
 export class CjsCharacterPartMetadata extends CjsCharacterRecord
 {
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.path
+    @blue.readwrite
+    @blue.persist
+    @type.path
     sourcePath = "";
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     alternativeTextureSourcePath = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.boolean
+    @blue.readwrite
+    @blue.persist
+    @type.boolean
     forcesLooseTop = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.boolean
+    @blue.readwrite
+    @blue.persist
+    @type.boolean
     hidesBootShin = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     lod1Replacement = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     lod2Replacement = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.int32
+    @blue.readwrite
+    @blue.persist
+    @type.int32
     numColorAreas = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("string")
+    @blue.readwrite
+    @blue.persist
+    @type.list("string")
     dependentModifiers = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("string")
+    @blue.readwrite
+    @blue.persist
+    @type.list("string")
     occludesModifiers = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("CjsCharacterModifierReference")
+    @blue.readwrite
+    @blue.persist
+    @type.list("CjsCharacterModifierReference")
     dependencies = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("CjsCharacterModifierReference")
+    @blue.readwrite
+    @blue.persist
+    @type.list("CjsCharacterModifierReference")
     occlusions = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.int32
+    @blue.readwrite
+    @blue.persist
+    @type.int32
     soundTag = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.boolean
+    @blue.readwrite
+    @blue.persist
+    @type.boolean
     swapTops = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.boolean
+    @blue.readwrite
+    @blue.persist
+    @type.boolean
     swapBottom = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.boolean
+    @blue.readwrite
+    @blue.persist
+    @type.boolean
     swapSocks = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.boolean
+    @blue.readwrite
+    @blue.persist
+    @type.boolean
     wap = null;
 
 }

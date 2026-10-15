@@ -143,4 +143,4 @@ export class Tr2FenceALStub extends Tr2DeviceResourceAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
-CjsSchema.define(Tr2FenceALStub, { className: "Tr2FenceALStub", carbon: "Tr2FenceAL" });
+CjsSchema.blue.define(Tr2FenceALStub, { className: "Tr2FenceALStub", donors: [ "Tr2FenceAL" ] });

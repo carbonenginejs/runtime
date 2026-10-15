@@ -1,59 +1,59 @@
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec4 } from "#math/vec4";
 
 /** One authored character recipe selection and its material values. */
-@meta.define({ className: "CjsCharacterRecipeEntry", family: "character" })
+@meta.define("CjsCharacterRecipeEntry")
 export class CjsCharacterRecipeEntry
 {
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     category = "";
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     path = "";
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.float64
+    @blue.readwrite
+    @blue.persist
+    @type.float64
     weight = 1;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     colorVariation = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("CjsCharacterColorValue")
+    @blue.readwrite
+    @blue.persist
+    @type.list("CjsCharacterColorValue")
     colors = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("CjsCharacterColorValue")
+    @blue.readwrite
+    @blue.persist
+    @type.list("CjsCharacterColorValue")
     specularColors = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     pattern = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("CjsCharacterColorValue")
+    @blue.readwrite
+    @blue.persist
+    @type.list("CjsCharacterColorValue")
     patternColors = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.vec4
+    @blue.readwrite
+    @blue.persist
+    @type.vec4
     patternTransform = vec4.fromValues(0, 0, 1, 1);
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.float64
+    @blue.readwrite
+    @blue.persist
+    @type.float64
     patternRotation = 0;
 
 }

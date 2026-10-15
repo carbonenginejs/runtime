@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:532-543
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /** Declares the parameters and textures accepted by a decal shader and builds its configuration record.
  * Native IRoot-only data with a self-only Blue table. Independently initialized
@@ -8,8 +8,8 @@ import { meta } from "#schema";
  * construction needs no additional lifecycle, and the destructor is empty.
  * Existing JavaScript configuration helpers remain custom conveniences.
  */
-@meta.define({ className: "EveSOFDataGenericDecalShader", family: "eve" })
-@meta.blue.interface()
+@blue.define("EveSOFDataGenericDecalShader")
+@blue.interface()
 export class EveSOFDataGenericDecalShader
 {
 
@@ -17,9 +17,9 @@ export class EveSOFDataGenericDecalShader
    * Shader filename identifying this decal shader definition; native m_shader (BlueSharedString).
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   shader = "";
 
   /**
@@ -27,9 +27,9 @@ export class EveSOFDataGenericDecalShader
    * name. Native m_parameters vector.
    * @type {Array<EveSOFDataGenericString>}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataGenericString")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataGenericString")
   parameters = [];
 
   /**
@@ -37,9 +37,9 @@ export class EveSOFDataGenericDecalShader
    * vector.
    * @type {Array<EveSOFDataTexture>}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataTexture")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataTexture")
   defaultTextures = [];
 
   /**
@@ -47,9 +47,9 @@ export class EveSOFDataGenericDecalShader
    * m_parentTextures vector.
    * @type {Array<EveSOFDataGenericString>}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataGenericString")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataGenericString")
   parentTextures = [];
 
   /**
@@ -57,9 +57,9 @@ export class EveSOFDataGenericDecalShader
    * preserved as authored m_additive (bool).
    * @type {boolean}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.read
+  @blue.persist
+  @type.boolean
   additive = false;
 
   /**

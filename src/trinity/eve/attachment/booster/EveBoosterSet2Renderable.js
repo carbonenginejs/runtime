@@ -5,7 +5,7 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
@@ -21,50 +21,50 @@ import { EveBoosterSet2 } from "./EveBoosterSet2.js";
  * and rotation, derives the booster and trail intensities, and maintains the
  * five-point trail spline and its LOD flags.
  */
-@meta.define({ className: "EveBoosterSet2Renderable", family: "eve/attachment/boosters" })
-@meta.blue.inherit(ITr2Renderable)
+@blue.define("EveBoosterSet2Renderable")
+@blue.inherit(ITr2Renderable)
 export class EveBoosterSet2Renderable
 {
 
   /** m_trailIntensity (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   trailIntensity = 0;
 
   /** m_trailsTotalLength (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   trailsTotalLength = 0;
 
   /** m_isVisible (bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   isVisible = false;
 
   /** m_trailsVisible (bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   trailsVisible = false;
 
   /** m_boostersVisible (bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   boostersVisible = false;
 
   /** m_trailsTimeDelta (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   trailsTimeDelta = 1;
 
   /** m_boosterHighLod (bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   boosterHighLod = false;
 
   /** m_trailsBoundsMax (Vector3) [READ] */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   trailsBoundsMax = vec3.fromValues(
     -EveBoosterSet2Renderable._floatMax,
     -EveBoosterSet2Renderable._floatMax,
@@ -72,8 +72,8 @@ export class EveBoosterSet2Renderable
   );
 
   /** m_trailsBoundsMin (Vector3) [READ] */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   trailsBoundsMin = vec3.fromValues(
     EveBoosterSet2Renderable._floatMax,
     EveBoosterSet2Renderable._floatMax,
@@ -81,18 +81,18 @@ export class EveBoosterSet2Renderable
   );
 
   /** m_overallIntensity (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   overallIntensity = 0;
 
   /** m_parentRotation (Quaternion) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.quat
+  @blue.readwrite
+  @type.quat
   parentRotation = quat.create();
 
   /** m_parentSpeed (float) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   parentSpeed = 0;
 
   _boosterSet = null;
@@ -147,7 +147,7 @@ export class EveBoosterSet2Renderable
    * Binds this instance to the booster set whose booster records, colours
    * and light data it draws.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetBoosterSet(boosterSet)
   {
@@ -160,7 +160,7 @@ export class EveBoosterSet2Renderable
    * previous frame and the result clamped to 2; an always-on set returns its
    * authored intensity instead.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   CalculateIntensity(acceleration)
   {
@@ -193,7 +193,7 @@ export class EveBoosterSet2Renderable
    * speed from the transform delta when the set is not destiny-driven - and
    * recomputes the overall intensity, which it returns.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Update(deltaTime, _time, parentMatrix, parentSpeed, parentAcceleration, parentRotation)
   {
@@ -228,7 +228,7 @@ export class EveBoosterSet2Renderable
    * maximum, with nothing drawn outside that band; an always-on set is pinned to
    * full intensity.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateTrails(deltaTime, _time = 0)
   {
@@ -280,7 +280,7 @@ export class EveBoosterSet2Renderable
    * their normalized segment lengths, control normals carrying their length
    * factors, plus total length, intensity and world bounds.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetTrailSplineData()
   {
@@ -305,7 +305,7 @@ export class EveBoosterSet2Renderable
   }
 
   /** The overall booster intensity computed by the last Update. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetIntensity()
   {
@@ -314,7 +314,7 @@ export class EveBoosterSet2Renderable
 
   /** Carbon EveBoosterSet2Renderable::HasTransparentBatches is always false
    * (additive batches only, via the instanced geometry provider). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasTransparentBatches()
   {
@@ -322,7 +322,7 @@ export class EveBoosterSet2Renderable
   }
 
   /** Carbon EveBoosterSet2Renderable::GetSortValue is the constant one. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetSortValue()
   {
@@ -335,7 +335,7 @@ export class EveBoosterSet2Renderable
    * stream 0, its instance buffer on stream 1, the shared quad-list index
    * buffer, 3 * 2 * planes indices per booster instance.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBatches(batches, batchType, perObjectData, _reason)
   {
@@ -407,7 +407,7 @@ export class EveBoosterSet2Renderable
    * `Transpose(m_parentTransform)`; both 5-slot trail arrays are fully
    * written, exactly as Carbon's loop. The padding scalars are never written
    * (Carbon leaves them uninitialized). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPerObjectData(accumulator)
   {
@@ -453,7 +453,7 @@ export class EveBoosterSet2Renderable
    * The sphere is passed as a packed vec4, which is Carbon's `Vector4*` overload
    * and therefore the DEPTH pixel-size formula, not the Est one.
    * No lodFactor is applied anywhere here; Carbon does not apply one either. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateVisibility(updateContext)
   {
@@ -502,7 +502,7 @@ export class EveBoosterSet2Renderable
 
   /** Carbon EveBoosterSet2Renderable::GetRenderables (cpp:349-356): submits
    * itself only when UpdateVisibility left it visible. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetRenderables(out = [])
   {
@@ -522,7 +522,7 @@ export class EveBoosterSet2Renderable
    * Adapted: Exposes the stored parent transform through an accessor where Carbon reads the
    * member directly.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetParentTransform()
   {
@@ -537,7 +537,7 @@ export class EveBoosterSet2Renderable
    *
    * `out` is required, as in Carbon (`Vector4&`) - this is called per frame and
    * must not allocate. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBoundingSphere(out)
   {

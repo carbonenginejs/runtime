@@ -1,20 +1,20 @@
 // Source: trinity/trinity/RenderJob/TriStepRenderSceneDebug.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that draws a scene through its debug representation rather than its normal path. */
-@meta.define({ className: "TriStepRenderSceneDebug", family: "renderJob" })
+@blue.define("TriStepRenderSceneDebug")
 export class TriStepRenderSceneDebug extends TriRenderStep
 {
 
   /** m_scene (ITr2ScenePtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("ITr2Scene")
+  @blue.readwrite
+  @type.rootRef("ITr2Scene")
   scene = null;
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   __init__(scene = null)
   {
@@ -24,7 +24,7 @@ export class TriStepRenderSceneDebug extends TriRenderStep
   /**
    * Renders the bound scene through its debug representation and reports the step complete.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Execute(_realTime, _simTime, renderContext)
   {

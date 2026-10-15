@@ -4,32 +4,29 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 
 /**
  * Transform modifier that applies a fixed scale, rotation and translation ahead
  * of the child's own transform.
  */
-@meta.define({
-  className: "EveChildModifierSRT",
-  family: "eve/child/modifiers"
-})
+@blue.define("EveChildModifierSRT")
 export class EveChildModifierSRT extends IEveChildTransformModifier
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotation = quat.create();
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   translation = vec3.create();
 
   static _scratch = mat4.create();
@@ -48,7 +45,7 @@ export class EveChildModifierSRT extends IEveChildTransformModifier
    * @param {Float32Array} out - caller-owned; receives the result
    * @returns {Float32Array} out
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ApplyTransform(_context, transform, _boneCount = 0, _bones = null, out)
   {

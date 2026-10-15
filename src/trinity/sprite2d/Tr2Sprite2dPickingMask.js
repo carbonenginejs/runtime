@@ -4,14 +4,14 @@
 //   maskPath property pair)
 // Hand-maintained from Carbon source, promoted out of generated intake
 // 2026-09-06.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { ResourceRequirement } from "#resource";
 import { be } from "#blue";
 import { PixelFormat } from "#consts/render-context";
 
 /** Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite. */
-@meta.define({ className: "Tr2Sprite2dPickingMask", family: "sprite2d", purpose: "Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite." })
-@meta.blue.interface()
+@blue.define({ className: "Tr2Sprite2dPickingMask", purpose: "Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite." })
+@blue.interface()
 export class Tr2Sprite2dPickingMask
 {
 
@@ -19,8 +19,8 @@ export class Tr2Sprite2dPickingMask
   _maskPath = "";
 
   /** Carbon MAP_PROPERTY "maskPath" (Tr2Sprite2dPickingMask_Blue.cpp:27-33), read through GetMaskPath. @returns {string} */
-  @meta.blue.readwrite
-  @meta.type.wstring
+  @blue.readwrite
+  @type.wstring
   @meta.implemented
   get maskPath()
   {
@@ -35,43 +35,43 @@ export class Tr2Sprite2dPickingMask
   }
 
   /** Native anonymous BGRA channel chooser. @type {number} */
-  @meta.blue.readwrite
-  @meta.type.enum({ Red: 2, Green: 1, Blue: 0, Alpha: 3 })
-  @meta.type.uint32
+  @blue.readwrite
+  @type.enum({ Red: 2, Green: 1, Blue: 0, Alpha: 3 })
+  @type.uint32
   channel = 3;
 
   /** Sampled channel must exceed this native READWRITE threshold. @type {number} */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   threshold = 0;
 
   /** Native READWRITE mask edge in pixels. @type {number} */
-  @meta.blue.readwrite
-  @meta.type.uint32
+  @blue.readwrite
+  @type.uint32
   leftEdge = 0;
 
   /** Native READWRITE mask edge in pixels. @type {number} */
-  @meta.blue.readwrite
-  @meta.type.uint32
+  @blue.readwrite
+  @type.uint32
   topEdge = 0;
 
   /** Native READWRITE mask edge in pixels. @type {number} */
-  @meta.blue.readwrite
-  @meta.type.uint32
+  @blue.readwrite
+  @type.uint32
   rightEdge = 0;
 
   /** Native READWRITE mask edge in pixels. @type {number} */
-  @meta.blue.readwrite
-  @meta.type.uint32
+  @blue.readwrite
+  @type.uint32
   bottomEdge = 0;
 
   /** Native READ held image resource; excluded from value serialization. @type {Tr2ImageRes|null} */
-  @meta.blue.read
-  @meta.type.resource("Tr2ImageRes")
+  @blue.read
+  @type.resource("Tr2ImageRes")
   mask = null;
 
   /** Carbon GetMaskPath (Tr2Sprite2dPickingMask.cpp:18-21). @returns {string} */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetMaskPath()
   {
@@ -90,7 +90,7 @@ export class Tr2Sprite2dPickingMask
    * @param {string} path Image resource path.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetMaskPath(path)
   {
@@ -136,7 +136,7 @@ export class Tr2Sprite2dPickingMask
    * @param {number} height The sprite's height.
    * @returns {boolean} Whether the mask passes at the point.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SampleMask(point, topLeft, width, height)
   {

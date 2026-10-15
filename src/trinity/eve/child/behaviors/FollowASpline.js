@@ -3,7 +3,7 @@ import { INotify } from "../../../../global/blue/INotify.js";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { Formation } from "./Formation.js";
 import { SplineTunnelGroup } from "./tunnels/SplineTunnelGroup.js";
 import { vec3 } from "#math/vec3";
@@ -24,62 +24,62 @@ const FORCE_OFFSET = vec3.create();
 const NO_FORCES = [];
 
 /** A steering behaviour that pulls unassigned drones into spline tunnel entrances and steers locked drones along their assigned tunnel's points toward the exit. */
-@meta.define({ className: "FollowASpline", family: "eve/child/behaviors" })
-@meta.blue.inherit(INotify)
-@meta.blue.inherit(IBehavior)
-@meta.blue.interface(IBehavior, INotify)
+@blue.define("FollowASpline")
+@blue.inherit(INotify)
+@blue.inherit(IBehavior)
+@blue.interface(IBehavior, INotify)
 export class FollowASpline
 {
 
   /** Flattened CPU tunnel references used by the behavior system. */
-  @meta.type.list("SplineTunnel")
+  @type.list("SplineTunnel")
   privateTunnels = [];
 
-  @meta.type.boolean
+  @type.boolean
   shouldReassignTunnelIDs = true;
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.int32
   behaviorPriority = 0;
 
   /** m_tunnelGroupType (TunnelGroupType - enum TunnelGroupType) [READWRITE, PERSIST, ENUM] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.SplineTunnelGroup.TunnelGroupType")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.SplineTunnelGroup.TunnelGroupType")
   tunnelGroupType = 2;
 
   /** m_splineTunnels (PSplineTunnelGroupVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("SplineTunnelGroup")
+  @blue.read
+  @blue.persist
+  @type.list("SplineTunnelGroup")
   splineTunnels = [];
 
   /** m_smoothPullFactor (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   smoothPullFactor = 0.8;
 
   /** m_behaviorWeight (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   behaviorWeight = 600;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   enabled = true;
 
   /** m_cornerSmoothener (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   cornerSmoothener = 0.8;
 
   // Carbon m_frameCounter/m_framesBetweenUpdates/m_lastPullForces/
@@ -97,7 +97,7 @@ export class FollowASpline
   _returnForces = [];
 
   /** Carbon FollowASpline::GetProcessPriority (cpp:32-35). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetProcessPriority()
   {
@@ -105,7 +105,7 @@ export class FollowASpline
   }
 
   /** Carbon FollowASpline::OnModified (cpp:26-30). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(_value = null)
   {
@@ -120,7 +120,7 @@ export class FollowASpline
    * UpdateTunnelRegistry callback with debug colour 0xff5555aa. One body
    * here; the duplication is the donor's, not three behaviours.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnListModified(event, _key, _key2, value, theList)
   {
@@ -143,7 +143,7 @@ export class FollowASpline
    * Adapted: Carbon returns a byte size; the JS port models scratch as one plain record per agent, so any non-zero
    * value means 'has scratch'.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetScratchMemorySize()
   {
@@ -155,7 +155,7 @@ export class FollowASpline
    *
    * Adapted: Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   InitializeScratch()
   {
@@ -180,7 +180,7 @@ export class FollowASpline
    * Adapted: Debug force pairs are only collected when group.collectForces is set, keeping the per-agent loop
    * allocation-free.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CalculateBehavior(agents, scratchData, _deltaTime, group, system, _dronesInSearchRadius)
   {
@@ -309,7 +309,7 @@ export class FollowASpline
    * flatten every group's tunnels into it, and raise the reassign flag so
    * ReassignTunnelIDsAndAddSystemTunnels renumbers on the next tick.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateTunnelRegistry()
   {
@@ -322,7 +322,7 @@ export class FollowASpline
   }
 
   /** Blue exposure "remapTunnels" of UpdateTunnelRegistry (FollowASpline_Blue.cpp:37). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   remapTunnels()
   {

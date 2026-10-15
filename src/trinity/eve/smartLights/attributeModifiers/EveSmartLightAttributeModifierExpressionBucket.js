@@ -2,7 +2,7 @@
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import * as CcpLog from "../../../../global/logging/ccpLog.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { EveSmartLightBaseAttributeModifier } from "./EveSmartLightBaseAttributeModifier.js";
 import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttributeModifier.js";
 import { EveSmartLightAttributeModifierBucket } from "./EveSmartLightAttributeModifierBucket.js";
@@ -10,28 +10,28 @@ import { CjsControllerExpressionProgram } from "../../../controllers/expression/
 import { vec3 } from "#math/vec3";
 
 /** EveSmartLightAttributeModifierExpressionBucket (eve/smartLights/attributeModifiers) - generated from schema shapeHash 02cc58c3.... */
-@meta.define({ className: "EveSmartLightAttributeModifierExpressionBucket", family: "eve/smartLights/attributeModifiers" })
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(EveSmartLightAttributeModifierBucket, IEveSmartLightGroupAttributeModifier, EveSmartLightBaseAttributeModifier, IInitialize)
+@blue.define("EveSmartLightAttributeModifierExpressionBucket")
+@blue.inherit(IInitialize)
+@blue.interface(EveSmartLightAttributeModifierBucket, IEveSmartLightGroupAttributeModifier, EveSmartLightBaseAttributeModifier, IInitialize)
 export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLightAttributeModifierBucket
 {
 
   /** m_expression (std::string) [PERSISTONLY] */
-  @meta.blue.readwrite
-  @meta.blue.persistOnly
-  @meta.type.expression
+  @blue.readwrite
+  @blue.persistOnly
+  @type.expression
   expression = "";
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "bucket";
 
   /** m_inputs (PITriScalarFunctionVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITriScalarFunction")
+  @blue.read
+  @blue.persist
+  @type.list("ITriScalarFunction")
   expressionInputs = [];
 
   /** Compiled expression program (Carbon m_program, a CcpParser::Program). */
@@ -51,7 +51,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * Adapted: CcpParser is replaced by the shared CjsControllerExpressionProgram VM, matching
    * the Tr2CurveScalarExpression consumer pattern.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -69,7 +69,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * @param {number} index Input index.
    * @returns {number}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetInputValue(index)
   {
@@ -95,7 +95,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
   }
 
   /** Gets this bucket's random constant (cpp:123-126). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetRandomConstant()
   {
@@ -103,7 +103,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
   }
 
   /** Gets the authored expression (cpp:128-131). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetExpression()
   {
@@ -119,7 +119,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * Adapted: the shared CjsControllerExpressionProgram VM replaces CcpParser;
    * parse errors are retained on the program and reported through CcpLog.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetExpression(expression)
   {
@@ -134,7 +134,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
   }
 
   /** Regenerates the random constant (Carbon jessica hook, h:34). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ResetRandomConstant()
   {
@@ -148,7 +148,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * Adapted: Returns the term list in the CjsControllerExpressionProgram term-info shape
    * instead of Tr2ExpressionTermInfo instances.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetExpressionTermInfo()
   {
@@ -177,7 +177,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * Adapted: Returns the numeric value directly (0 when the expression does not compile)
    * instead of Carbon's BlueStdResult out-parameter pair.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   EvaluateExpression(expression)
   {
@@ -194,7 +194,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * expression-variable hookup as a todo
    * (EveSmartLightAttributeModifierExpressionBucket.cpp:215-223).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetControllerVariable(name, value)
   {
@@ -211,7 +211,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * updates the children with the UNSCALED parent multiplier, then evaluates
    * the expression into the attribute multiplier for the next fold.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateSyncronous(updateContext, params, activationMultiplier)
   {

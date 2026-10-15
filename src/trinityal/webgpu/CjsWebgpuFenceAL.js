@@ -144,4 +144,4 @@ export class CjsWebgpuFenceAL
 
 // Declared as a call for the reason recorded in Tr2BitmapDimensions.js; the
 // backend is on the class name, and `carbon` names the donor.
-CjsSchema.define(CjsWebgpuFenceAL, { className: "CjsWebgpuFenceAL", carbon: "Tr2FenceAL" });
+CjsSchema.blue.define(CjsWebgpuFenceAL, { className: "CjsWebgpuFenceAL", donors: [ "Tr2FenceAL" ] });

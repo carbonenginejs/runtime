@@ -1,28 +1,28 @@
 // Source: trinity/trinity/RenderJob/TriStepSetVariableStore.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { Tr2VariableStore } from "../../core/variable/Tr2VariableStore.js";
 import { TriVariable } from "../../core/variable/TriVariable.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
 /** A render step that writes one named value into the variable store shaders read. */
-@meta.define({ className: "TriStepSetVariableStore", family: "renderJob" })
+@blue.define("TriStepSetVariableStore")
 export class TriStepSetVariableStore extends TriRenderStep
 {
 
   /** m_variableName (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   variableName = "";
 
-  @meta.blue.readwrite
-  @meta.type.rawStruct("TriVariableValue")
+  @blue.readwrite
+  @type.rawStruct("TriVariableValue")
   value = null;
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   __init__(name = undefined, value = undefined)
   {
@@ -33,7 +33,7 @@ export class TriStepSetVariableStore extends TriRenderStep
   /**
    * Sets the name of the variable this step writes.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -43,7 +43,7 @@ export class TriStepSetVariableStore extends TriRenderStep
   /**
    * The value this step writes into the variable store.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValue()
   {
@@ -56,7 +56,7 @@ export class TriStepSetVariableStore extends TriRenderStep
    * Sets the value this step writes, copying array and typed-array values so a
    * later mutation by the caller cannot change what the step publishes.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetValue(value)
   {
@@ -67,7 +67,7 @@ export class TriStepSetVariableStore extends TriRenderStep
    * Registers the named value on the global variable store, so shaders reading
    * that variable see it from this point in the job order onward.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Execute(_realTime, _simTime, _renderContext)
   {

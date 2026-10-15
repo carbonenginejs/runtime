@@ -3,7 +3,7 @@
 import { color } from "#math/color";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { meta } from "#schema";
+import { meta, type } from "#schema";
 import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
 
 
@@ -16,8 +16,7 @@ import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
 @meta.define({
   className: "CjsLightData",
   sourceClass: "LightData",
-  aliases: ["LightData"],
-  family: "eve/lights"
+  aliases: ["LightData"]
 })
 export class CjsLightData
 {
@@ -28,56 +27,56 @@ export class CjsLightData
     "castsShadows", "isVolumetric"
   ];
 
-  @meta.type.vec3
+  @type.vec3
   position = vec3.create();
 
-  @meta.type.color
+  @type.color
   color = color.createLinear();
 
-  @meta.type.float32
+  @type.float32
   brightness = 1;
 
-  @meta.type.float32
+  @type.float32
   noiseAmplitude = 0;
 
-  @meta.type.float32
+  @type.float32
   noiseFrequency = 1;
 
-  @meta.type.uint32
+  @type.uint32
   noiseOctaves = 1;
 
-  @meta.type.float32
+  @type.float32
   radius = 0;
 
-  @meta.type.float32
+  @type.float32
   innerRadius = 0;
 
-  @meta.type.quat
+  @type.quat
   rotation = quat.create();
 
-  @meta.type.float32
+  @type.float32
   outerAngle = 0;
 
-  @meta.type.float32
+  @type.float32
   innerAngle = 0;
 
-  @meta.type.wpath("TriTextureRes")
+  @type.wpath("TriTextureRes")
   texturePath = "";
 
-  @meta.type.int32
+  @type.int32
   boneIndex = -1;
 
-  @meta.type.uint16
+  @type.uint16
   flags = 1;
 
-  @meta.type.float64
+  @type.float64
   startTime = 0;
 
-  @meta.type.int32
-  @meta.type.enum("trinity.PerLightShadowSetting")
+  @type.int32
+  @type.enum("trinity.PerLightShadowSetting")
   castsShadows = 0;
 
-  @meta.type.boolean
+  @type.boolean
   isVolumetric = false;
 
   static PerLightShadowSetting = PerLightShadowSetting;

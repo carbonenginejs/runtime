@@ -2,7 +2,7 @@
 //   trinity/trinity/Tr2DirectInstanceData.cpp
 //   trinity/trinity/Tr2DirectInstanceData_Blue.cpp
 import { vec3 } from "#math/vec3";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Failed } from "../../../trinityal/ALResult.js";
 import { Tr2BufferAL } from "../../../trinityal/Tr2BufferAL/Tr2BufferAL.js";
@@ -19,24 +19,24 @@ import { ITr2InstanceData } from "./ITr2InstanceData/index.js";
  * Owns a directly writable AL instance buffer, its declaration and bounds.
  * The selected AL supplies mapping storage; this provider keeps no CPU copy.
  */
-@meta.define({ className: "Tr2DirectInstanceData", family: "trinityCore" })
-@meta.blue.inherit(ITr2InstanceData)
+@blue.define("Tr2DirectInstanceData")
+@blue.inherit(ITr2InstanceData)
 export class Tr2DirectInstanceData
 {
 
   /** m_aabb.m_max (Vector3) [READ] */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   aabbMax = vec3.create();
 
   /** m_aabb.m_min (Vector3) [READ] */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   aabbMin = vec3.create();
 
   /** GetCount (MAP_PROPERTY_READONLY "count") - number of instances. */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   count = 0;
 
   /** m_layout (Tr2VertexDefinition) - CPU metadata for the direct GPU stream. */
@@ -63,7 +63,7 @@ export class Tr2DirectInstanceData
   }
 
   /** Resets AL ownership explicitly in place of C++ RAII assignment (cpp:25-29). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ReleaseResources()
   {
@@ -72,7 +72,7 @@ export class Tr2DirectInstanceData
   }
 
   /** Inherited Tr2DeviceResource.cpp:21-32 reset guard. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PrepareResources()
   {
@@ -84,7 +84,7 @@ export class Tr2DirectInstanceData
    * Recreates the buffer and declaration (cpp:39-65). JavaScript supplies an
    * AL description object instead of the native stride/count overload.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnPrepareResources()
   {
@@ -106,7 +106,7 @@ export class Tr2DirectInstanceData
   }
 
   /** Both a declaration and a valid AL allocation are required (cpp:74-77). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsInstanceDataReady()
   {
@@ -114,7 +114,7 @@ export class Tr2DirectInstanceData
   }
 
   /** Returns the borrowed AL buffer and current row geometry (cpp:88-93). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetInstanceData(_bufferIndex = 0, _screenSize = 0)
   {
@@ -122,7 +122,7 @@ export class Tr2DirectInstanceData
   }
 
   /** The sole stream's declaration handle; buffer index is unused (cpp:103-106). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetInstanceBufferVertexDeclaration(_bufferIndex = 0)
   {
@@ -133,7 +133,7 @@ export class Tr2DirectInstanceData
    * Maps count rows for writing, growing only when required (cpp:168-204).
    * The AL returns a byte view instead of Carbon's output pointer and HRESULT.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetData(count)
   {
@@ -152,7 +152,7 @@ export class Tr2DirectInstanceData
   }
 
   /** Publishes writes by unmapping the valid buffer (cpp:211-221). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateData()
   {
@@ -161,7 +161,7 @@ export class Tr2DirectInstanceData
   }
 
   /** Explicit AL release replaces C++ RAII; layout survives (cpp:236-240). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   DestroyData()
   {
@@ -174,7 +174,7 @@ export class Tr2DirectInstanceData
    * Accepts the JavaScript `{ min, max }` box representation; a two-vector
    * form is retained for consistency with `Tr2RuntimeInstanceData`.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetBoundingBox(bounds, maxBounds)
   {
@@ -189,7 +189,7 @@ export class Tr2DirectInstanceData
   }
 
   /** Number of instances in the GPU-side buffer. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetCount()
   {
@@ -200,7 +200,7 @@ export class Tr2DirectInstanceData
    * Byte stride of one instance, computed by SetLayout as the largest offset
    * plus element size in the layout.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetStride()
   {
@@ -212,7 +212,7 @@ export class Tr2DirectInstanceData
    * the existing element-array form as well as Tr2VertexDefinition; explicit
    * byteSize descriptors retain their existing representation.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetLayout(layout)
   {
@@ -242,7 +242,7 @@ export class Tr2DirectInstanceData
   }
 
   /** The owned vertex definition recorded by SetLayout. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLayout()
   {
@@ -253,7 +253,7 @@ export class Tr2DirectInstanceData
    * A detached copy of the recorded bounds; the buffer index is ignored because
    * only one stream is modelled.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetInstanceBufferBoundingBox(_bufferIndex = 0)
   {

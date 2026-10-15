@@ -4,7 +4,7 @@
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { ITr2ControllerOwner } from "../../controllers/ITr2ControllerOwner.js";
 import { TriBatchType } from "#consts/graphics";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";
 import { Tr2RenderBatch, TriRenderBatchAreaBlock } from "../../core/batch/TriRenderBatch/index.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
@@ -15,57 +15,57 @@ import { CarbonVertexElements } from "../../core/vertex/vertexUsage.js";
  * Named overlay pass attached to a mesh, holding one effect list per batch type
  * together with the curve set and controllers that animate them.
  */
-@meta.define({ className: "EveMeshOverlayEffect", family: "eve/overlays" })
-@meta.blue.inherit(IInitialize, ITr2ControllerOwner)
-@meta.blue.interface(IInitialize)
+@blue.define("EveMeshOverlayEffect")
+@blue.inherit(IInitialize, ITr2ControllerOwner)
+@blue.interface(IInitialize)
 export class EveMeshOverlayEffect
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITr2Controller")
+  @blue.read
+  @blue.persist
+  @type.list("ITr2Controller")
   controllers = [];
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("TriCurveSet")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("TriCurveSet")
   curveSet = null;
 
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("Tr2Effect")
+  @blue.read
+  @blue.persist
+  @type.list("Tr2Effect")
   additiveEffects = [];
 
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("Tr2Effect")
+  @blue.read
+  @blue.persist
+  @type.list("Tr2Effect")
   decalEffects = [];
 
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("Tr2Effect")
+  @blue.read
+  @blue.persist
+  @type.list("Tr2Effect")
   distortionEffects = [];
 
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("Tr2Effect")
+  @blue.read
+  @blue.persist
+  @type.list("Tr2Effect")
   opaqueEffects = [];
 
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("Tr2Effect")
+  @blue.read
+  @blue.persist
+  @type.list("Tr2Effect")
   transparentEffects = [];
 
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   update = true;
 
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   display = true;
 
   /**
@@ -75,7 +75,7 @@ export class EveMeshOverlayEffect
    * Adapted: Carbon reports success through a bool out-parameter; JavaScript returns null
    * for unsupported or hidden batches.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetEffects(batchType)
   {
@@ -96,7 +96,7 @@ export class EveMeshOverlayEffect
    * Reports whether the overlay applies to the opaque batch alone or to all
    * batches, given the batch type being queried.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetType(batchType)
   {
@@ -109,7 +109,7 @@ export class EveMeshOverlayEffect
    * Reports whether the overlay contributes any transparent effects, which
    * decides whether it needs a transparent pass.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasTransparentArea()
   {
@@ -117,7 +117,7 @@ export class EveMeshOverlayEffect
   }
 
   /** Sets a shader option on every effect across all five batch lists. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetShaderOption(name, value)
   {
@@ -133,7 +133,7 @@ export class EveMeshOverlayEffect
    *
    * Adapted: Blue root locking is represented by the hydrated JavaScript object identity.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -152,7 +152,7 @@ export class EveMeshOverlayEffect
    * Adapted: Plain JavaScript arrays do not raise Blue IList notifications; callers forward
    * the equivalent event explicitly.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = this.controllers)
   {
@@ -173,7 +173,7 @@ export class EveMeshOverlayEffect
   }
 
   /** Forwards a named variable value to every controller. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetControllerVariable(name, value)
   {
@@ -181,7 +181,7 @@ export class EveMeshOverlayEffect
   }
 
   /** Forwards a named event to every controller. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HandleControllerEvent(name)
   {
@@ -189,7 +189,7 @@ export class EveMeshOverlayEffect
   }
 
   /** Starts every controller attached to the overlay. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   StartControllers()
   {
@@ -201,7 +201,7 @@ export class EveMeshOverlayEffect
    * plays that range, otherwise the range is reset and the set plays from the
    * start; a name that does not match is ignored.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PlayCurveSet(name, rangeName = "")
   {
@@ -219,7 +219,7 @@ export class EveMeshOverlayEffect
    * Stops the overlay's curve set when its name matches, and does nothing
    * otherwise.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   StopCurveSet(name)
   {
@@ -230,7 +230,7 @@ export class EveMeshOverlayEffect
    * Returns the longest curve duration in the named curve set, or 0 when the
    * name does not match the overlay's set.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetCurveSetDuration(name)
   {
@@ -243,7 +243,7 @@ export class EveMeshOverlayEffect
    * Returns the duration of a named time range within the named curve set, or 0
    * when either name does not match.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetRangeDuration(name, rangeName)
   {
@@ -257,7 +257,7 @@ export class EveMeshOverlayEffect
    * every controller, matching Carbon's fixed 0.5 controller step; skipped
    * entirely when updates are disabled or no curve set is assigned.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Update(realTime, simTime, renderContext = null)
   {

@@ -35,7 +35,7 @@
 // service asks for a form both sides share, or one a cheap bridge turns into
 // an accepted one: bytes to text and back, a stream to bytes or text. No
 // shared or bridgeable form is an error, never a guess.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { BlueFileUtil } from "./BlueFileUtil.js";
 import { IBluePaths } from "./IBluePaths.js";
 import { BlueResFileSystemForm } from "./IBlueResFileSystem.js";
@@ -317,24 +317,23 @@ export class CjsBluePaths extends IBluePaths
   }
 }
 
-CjsSchema.define(CjsBluePaths, {
+CjsSchema.blue.define(CjsBluePaths, {
   className: "CjsBluePaths",
-  carbon: "BluePaths",
-  family: "blue",
+  donors: [ "BluePaths" ],
   fields: {},
   methods: {
     SetLocalFileSystem: [ meta.ours ],
     GetLocalFileSystem: [ meta.ours ],
     SetRemoteFileCache: [ meta.ours ],
     GetRemoteFileCache: [ meta.ours ],
-    RegisterFileSystem: [ meta.blue.method, meta.adapted ],
-    UnregisterFileSystem: [ meta.blue.method, meta.adapted ],
-    IsFileSystemRegistered: [ meta.blue.method, meta.adapted ],
-    GetDirectoryContents: [ meta.blue.method, meta.implemented ],
-    IsDirectory: [ meta.blue.method, meta.implemented ],
-    FileExists: [ meta.blue.method, meta.implemented ],
-    FileExistsLocally: [ meta.blue.method, meta.implemented ],
-    FileNeedsDownload: [ meta.blue.method, meta.implemented ],
+    RegisterFileSystem: [ blue.method, meta.adapted ],
+    UnregisterFileSystem: [ blue.method, meta.adapted ],
+    IsFileSystemRegistered: [ blue.method, meta.adapted ],
+    GetDirectoryContents: [ blue.method, meta.implemented ],
+    IsDirectory: [ blue.method, meta.implemented ],
+    FileExists: [ blue.method, meta.implemented ],
+    FileExistsLocally: [ blue.method, meta.implemented ],
+    FileNeedsDownload: [ blue.method, meta.implemented ],
     GetStreamFromPath: [ meta.renamed("GetStreamFromPathW"), meta.adapted ]
   }
 });

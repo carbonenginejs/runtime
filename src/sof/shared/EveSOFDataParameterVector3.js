@@ -3,14 +3,14 @@
 //   parameters through one macro beside their base.
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:20-38
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.cpp:85-102
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { EveSOFDataParameter } from "./EveSOFDataParameter.js";
 
 /** Three-component shader parameter: zero-pads w (0, not 1). */
-@meta.define({ className: "EveSOFDataParameterVector3", family: "eve" })
-@meta.blue.interface(EveSOFDataParameter)
+@blue.define("EveSOFDataParameterVector3")
+@blue.interface(EveSOFDataParameter)
 export class EveSOFDataParameterVector3 extends EveSOFDataParameter
 {
   /**
@@ -18,9 +18,9 @@ export class EveSOFDataParameterVector3 extends EveSOFDataParameter
    * Native m_value (Vector3) replaces the base vector in authored values.
    * @type {Float32Array}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   value = vec3.create();
 
   /** Returns a new four-component vector with a zero-filled w component. */

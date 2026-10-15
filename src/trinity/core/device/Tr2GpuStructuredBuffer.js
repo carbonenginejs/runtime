@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2GpuStructuredBuffer.h
 // Source: trinity/trinity/Tr2GpuStructuredBuffer.cpp
 // Hand-maintained from Carbon source; promoted from generated/trinityCore.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { INotify, IInitialize } from "#blue";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
@@ -9,9 +9,9 @@ import { ALResult, Tr2BufferDescriptionAL } from "#trinityal";
 import { ITr2GpuBuffer } from "../ITr2GpuBuffer.js";
 
 /** Describes the element count, stride, and creation flags of a GPU structured buffer. */
-@meta.define({ className: "Tr2GpuStructuredBuffer", family: "trinityCore", purpose: "Describes the element count, stride, and creation flags of a GPU structured buffer." })
-@meta.blue.inherit(ITr2GpuBuffer)
-@meta.blue.interface(INotify, IInitialize, ITr2GpuBuffer)
+@blue.define({ className: "Tr2GpuStructuredBuffer", purpose: "Describes the element count, stride, and creation flags of a GPU structured buffer." })
+@blue.inherit(ITr2GpuBuffer)
+@blue.interface(INotify, IInitialize, ITr2GpuBuffer)
 export class Tr2GpuStructuredBuffer
 {
 
@@ -36,24 +36,24 @@ export class Tr2GpuStructuredBuffer
   static CreationFlag = Object.freeze({ CPU_WRITABLE: 1, GPU_WRITABLE: 2 });
 
   /** m_creationFlags (CreationFlags) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   creationFlags = 0;
 
   /** m_count (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   count = 0;
 
   /** m_stride (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   stride = 0;
 
   /** m_name - debug label; not Blue-exposed. */
@@ -76,7 +76,7 @@ export class Tr2GpuStructuredBuffer
    * @param {Tr2RenderContext} renderContext The context to create on.
    * @returns {number} An `ALResult`.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Create(count, stride, creationFlags, renderContext)
   {
@@ -95,7 +95,7 @@ export class Tr2GpuStructuredBuffer
    * @param {Tr2RenderContext} renderContext The context to create on.
    * @returns {number} An `ALResult`.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CreateBuffer(renderContext)
   {
@@ -117,7 +117,7 @@ export class Tr2GpuStructuredBuffer
   }
 
   /** Carbon SetName (cpp:151-158): labels the buffer now and on every re-create. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -143,7 +143,7 @@ export class Tr2GpuStructuredBuffer
    * @param {number} [_index] Unused, as in Carbon.
    * @returns {object|null} The AL buffer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetGpuBuffer(_index = 0)
   {
@@ -151,7 +151,7 @@ export class Tr2GpuStructuredBuffer
   }
 
   /** Carbon IsValid (cpp:106-109). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsValid()
   {
@@ -159,7 +159,7 @@ export class Tr2GpuStructuredBuffer
   }
 
   /** Carbon GetCount (cpp:173-175): the created buffer's element count, 0 without one. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetCount()
   {
@@ -167,7 +167,7 @@ export class Tr2GpuStructuredBuffer
   }
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   __init__(...args)
   {
@@ -175,7 +175,7 @@ export class Tr2GpuStructuredBuffer
   }
 
   /** Carbon method DebugGetData -> PyGetData (MAP_METHOD). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   DebugGetData(...args)
   {

@@ -2,92 +2,92 @@
 import { IsMatch } from "#blue";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { INotify } from "#blue";
 import { LifeTimeFormulas } from "./enums.js";
 
 /** Owns common smart-light activation state and a nominal modifier contract whose optional colour and controller hooks default to no-ops while required update and attribute-processing methods throw until a concrete modifier implements them. */
-@meta.define({ className: "EveSmartLightBaseAttributeModifier", family: "eve/smartLights/attributeModifiers" })
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(IInitialize, INotify)
+@blue.define("EveSmartLightBaseAttributeModifier")
+@blue.inherit(IInitialize)
+@blue.interface(IInitialize, INotify)
 export class EveSmartLightBaseAttributeModifier
 {
 
   /** m_lifeTimeFormula (LifeTimeFormulas - enum LifeTimeFormulas) [READWRITE, PERSIST, ENUM] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("LifeTimeFormulas")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("LifeTimeFormulas")
   lifeTimeFormula = 0;
 
   /** m_activationOverLifetime (Tr2CurveScalarPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2CurveScalar")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2CurveScalar")
   activationOverLifetime = null;
 
   /** m_activationValue (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   activationValue = 1;
 
   /** m_playTime (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   playTime = 0;
 
   /** m_crossFadeDuration (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   crossFadeDuration = 1;
 
   /** m_crossFadeIntensity (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   crossFadeIntensity = 1;
 
   /** m_perInstanceOffset (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   perInstanceOffset = 0;
 
   /** m_activationStrength (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   attributeMultiplier = 1;
 
   /** m_startsActive (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   startsActive = true;
 
   /** m_restartPlayTimeWhenInactive (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   restartPlayTimeWhenInactive = true;
 
   /** m_finalActivationStrength (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   finalAttributeMultiplier = 1;
 
   /** m_active (bool) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   active = true;
 
   /** m_delayedActivation (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   delayedActivation = 0;
 
   // Carbon-protected crossfade state (EveSmartLightBaseAttributeModifier.h:47-60).
@@ -110,7 +110,7 @@ export class EveSmartLightBaseAttributeModifier
    * starting active animates into its active state
    * (EveSmartLightBaseAttributeModifier.cpp:27-33).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -124,7 +124,7 @@ export class EveSmartLightBaseAttributeModifier
    * Reacts to an `active` edit by restarting the crossfade from the current
    * (unmapped) position (EveSmartLightBaseAttributeModifier.cpp:35-48).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName)
   {
@@ -144,7 +144,7 @@ export class EveSmartLightBaseAttributeModifier
    * Applies an activation state, optionally restarting the play time
    * (EveSmartLightBaseAttributeModifier.cpp:50-63).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ResetPlayTime(active)
   {
@@ -166,7 +166,7 @@ export class EveSmartLightBaseAttributeModifier
    * mirrored around the deactivating direction
    * (EveSmartLightBaseAttributeModifier.cpp:65-70).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   MapActivationValue()
   {
@@ -180,7 +180,7 @@ export class EveSmartLightBaseAttributeModifier
    * parent multiplier into the final activation strength
    * (EveSmartLightBaseAttributeModifier.cpp:72-125).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateActivationStrength(parentActivationMultiplier, deltaTime)
   {
@@ -239,7 +239,7 @@ export class EveSmartLightBaseAttributeModifier
    * lifetime curve sampled per the lifetime formula
    * (EveSmartLightBaseAttributeModifier.cpp:127-151).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetActivationStrength(placement)
   {
@@ -268,7 +268,7 @@ export class EveSmartLightBaseAttributeModifier
   }
 
   /** Carbon declares ResetChildren inline empty on the base (EveSmartLightBaseAttributeModifier.h:41). */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   ResetChildren(_parentActive)
   {

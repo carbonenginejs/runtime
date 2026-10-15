@@ -6,7 +6,7 @@ import { BLUELISTEVENT } from "#consts/blue";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dLineTrace_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; portable value helpers are maintained here.
 import { CornerType, Tr2Sprite2dTextureSettings, Tr2SpriteObjectEffect, Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2TexturedSpriteObject } from "./Tr2TexturedSpriteObject.js";
 import { Tr2Sprite2dLineTraceVertex } from "./Tr2Sprite2dLineTraceVertex.js";
 import { Tr2Sprite2dVertexBase } from "./Tr2Sprite2dVertexBase.js";
@@ -38,9 +38,9 @@ const XM_EPSILON = 1.192092896e-7;
  * Stores editable Sprite2D line-strip vertices and builds the stroked, jointed line geometry Carbon renders.
  * Carbon declares a private `AddVertex` (Tr2Sprite2dLineTrace.h:74) but never defines or calls it, so it has no port.
  */
-@meta.define({ className: "Tr2Sprite2dLineTrace", family: "sprite2d" })
-@meta.blue.chainTo(Tr2TexturedSpriteObject)
-@meta.blue.inherit(IListNotify)
+@blue.define("Tr2Sprite2dLineTrace")
+@blue.chainTo(Tr2TexturedSpriteObject)
+@blue.inherit(IListNotify)
 export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
 {
 
@@ -62,7 +62,7 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @param {BlueList|null} _theList Changed list.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnListModified(event, _key, _key2, _value, _theList)
   {
@@ -85,51 +85,51 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
 
 
   /** m_cornerType (int) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.int32
+  @blue.notify
+  @blue.readwrite
+  @type.int32
   cornerType = CornerType.CORNERTYPE_MITER;
 
   /** m_isLoop (bool) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @type.boolean
   isLoop = false;
 
   /** m_textureOffset (float) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   textureOffset = 0;
 
   /** m_end (float) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   end = 1;
 
   /** m_start (float) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   start = 0;
 
   /** m_vertices (PTr2Sprite2dLineTraceVertexVector) [READ, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.read
-  @meta.type.list("Tr2Sprite2dLineTraceVertex")
+  @blue.notify
+  @blue.read
+  @type.list("Tr2Sprite2dLineTraceVertex")
   vertices = new BlueList(Tr2Sprite2dLineTraceVertex, { className: "Tr2Sprite2dLineTraceVertex" });
 
   /** m_lineWidth (float) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   lineWidth = 1;
 
   /** m_textureWidth (float) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   textureWidth = 1;
 
   /** m_name (std::wstring): private and unused in Carbon (Tr2Sprite2dLineTrace.h:104). @type {string} */
@@ -802,7 +802,7 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @param {string[]|string} [names] Sequence of names.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AppendVertices(positions, positionTransform, colors, names)
   {
@@ -876,7 +876,7 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
    * @param {string[]|string|null} [names] Name, sequence of names, or null.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetVertices(positions, positionTransform, colors, names)
   {

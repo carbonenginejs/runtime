@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Tr2Effect.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { vec4 } from "#math/vec4";
 
 /**
@@ -16,20 +16,20 @@ import { vec4 } from "#math/vec4";
  * Native 64-bit size 24; offsets and storage types: trinity/trinity/
  * Shader/Tr2Effect.h:41-45; Shader/Tr2Effect.cpp:33-37.
  */
-@meta.define({ className: "Tr2ConstantEffectParameter", family: "shader" })
+@blue.define("Tr2ConstantEffectParameter")
 @meta.struct.define({ size: 24 })
 export class Tr2ConstantEffectParameter
 {
 
   /** name (BlueSharedString) - persisted via the constParameters structure list. */
 
-  @meta.blue.persist
+  @blue.persist
   @meta.struct.SHAREDSTRING_1(0)
   name = "";
 
   /** value (Vector4) - persisted via the constParameters structure list. */
 
-  @meta.blue.persist
+  @blue.persist
   @meta.struct.FLOAT32_4(8)
   value = vec4.create();
 

@@ -1,6 +1,6 @@
 // Source: audio/src/AudStaticDataRepository.h + AudStaticDataRepository.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 
 // Wwise AK_INVALID_UNIQUE_ID - the C++ GetEventID default.
@@ -12,8 +12,8 @@ const INVALID_UNIQUE_ID = 0;
  * project, letting the engine reason about events without Wwise. Populated at
  * runtime (no persisted fields) from a plain audio metadata object.
  */
-@meta.define({ className: "AudStaticDataRepository", family: "audio" })
-@meta.blue.interface()
+@blue.define("AudStaticDataRepository")
+@blue.interface()
 export class AudStaticDataRepository
 {
 
@@ -40,7 +40,7 @@ export class AudStaticDataRepository
    * @param {object} audioMetadata Metadata containing Events, SoundBanks and WemFileIDs sections.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize(audioMetadata)
   {
@@ -87,7 +87,7 @@ export class AudStaticDataRepository
    *
    * @returns {boolean} Whether initialization completed.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsInitialized()
   {
@@ -118,7 +118,7 @@ export class AudStaticDataRepository
    * @param {string} eventName Event name.
    * @returns {number} Event ID or zero.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetEventID(eventName)
   {
@@ -134,7 +134,7 @@ export class AudStaticDataRepository
    * @param {string} eventName Event name.
    * @returns {number} Squared attenuation radius.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetEventRadiusSq(eventName)
   {
@@ -152,7 +152,7 @@ export class AudStaticDataRepository
    * @param {string} eventName Event name.
    * @returns {boolean} Whether the event loops.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   EventIsLoop(eventName)
   {
@@ -165,7 +165,7 @@ export class AudStaticDataRepository
    * @param {string} eventName Event name.
    * @returns {boolean} Whether the event is 2D.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   EventIs2D(eventName)
   {
@@ -178,7 +178,7 @@ export class AudStaticDataRepository
    * @param {string} eventName Event name.
    * @returns {boolean} Whether the event is vital.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   EventIsVital(eventName)
   {
@@ -192,7 +192,7 @@ export class AudStaticDataRepository
    * @param {string} eventPotentiallyStopping Potential stopping event.
    * @returns {boolean} Whether the second event stops the first; false if the first is unknown.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   EventIsStopped(eventPotentiallyStopped, eventPotentiallyStopping)
   {
@@ -206,7 +206,7 @@ export class AudStaticDataRepository
    * @param {number} sourceID WEM source ID.
    * @returns {boolean} Whether the source is essential.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SourceIsEssential(sourceID)
   {
@@ -219,7 +219,7 @@ export class AudStaticDataRepository
    * @param {string} soundBankName Sound-bank name.
    * @returns {boolean} Whether the bank is essential.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SoundBankIsEssential(soundBankName)
   {
@@ -233,7 +233,7 @@ export class AudStaticDataRepository
    * @param {string} eventName Event name.
    * @returns {ReadonlyArray<string>} Required sound-bank names.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SoundBanksRequiredForEvent(eventName)
   {

@@ -3,41 +3,41 @@
 import { IsMatch, IInitialize } from "#blue";
 import { INotify } from "#blue";
 import { ITriEffectParameter } from "./ITriEffectParameter.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { CjsParameter } from "./CjsParameter.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
 /** Forwards a named variable-store entry into a named effect constant or resource. */
-@meta.define({ className: "TriVariableParameter", family: "shader" })
-@meta.blue.inherit(INotify, IInitialize)
-@meta.blue.interface(ITriEffectParameter, INotify, IInitialize)
+@blue.define("TriVariableParameter")
+@blue.inherit(INotify, IInitialize)
+@blue.interface(ITriEffectParameter, INotify, IInitialize)
 export class TriVariableParameter extends CjsParameter
 {
 
   /** m_name (BlueSharedString) [READWRITE, NOTIFY, PERSIST] */
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_isUsedByEffect (bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   usedByCurrentTechnique = false;
 
   /** m_isUsedByEffect (bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   usedByCurrentEffect = false;
 
   /** m_variableName (BlueSharedString) [READWRITE, NOTIFY, PERSIST] */
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   variableName = "";
 
   variable = null;
@@ -50,7 +50,7 @@ export class TriVariableParameter extends CjsParameter
    * The shader constant or resource name the variable's value is uploaded to;
    * distinct from variableName, which names the store entry.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetParameterName()
   {
@@ -58,7 +58,7 @@ export class TriVariableParameter extends CjsParameter
   }
 
   /** Content hash: name only - the variable's value comes from the store. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
   {
@@ -69,7 +69,7 @@ export class TriVariableParameter extends CjsParameter
    * Resolves variableName against a store and caches the variable object; an empty variableName clears the binding. Always returns true.
    * @param variableStore store to bind against; null keeps the store supplied by an earlier call
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize(variableStore = null)
   {
@@ -92,7 +92,7 @@ export class TriVariableParameter extends CjsParameter
    * Consumes the two dirty flags: `variable` re-resolves the store binding,
    * `effectHandles` re-resolves usage against the cached shader.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName)
   {
@@ -112,7 +112,7 @@ export class TriVariableParameter extends CjsParameter
    * variable is a texture or buffer type and as a shader constant otherwise; an
    * unbound variable always counts as unused.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RebuildEffectHandles(effectRes)
   {
@@ -136,7 +136,7 @@ export class TriVariableParameter extends CjsParameter
    * Delegates the write to the bound variable, so the store owns the value; does
    * nothing when no variable is bound.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CopyValueToEffect(inputType, dest, size, renderContext)
   {
@@ -162,7 +162,7 @@ export class TriVariableParameter extends CjsParameter
    * @param {number} [flags] A `ResourceFlags` word; bit 0 is sRGB.
    * @returns {boolean} Whether the slot took the binding.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0, renderContext = null)
   {
@@ -179,7 +179,7 @@ export class TriVariableParameter extends CjsParameter
    * @param {number} registerIndex The register.
    * @returns {boolean} Whether the slot took the binding.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ApplyUav(resourceDesc, stage, registerIndex)
   {
@@ -192,7 +192,7 @@ export class TriVariableParameter extends CjsParameter
    * The bound variable's type tag, which decides whether the name binds as a
    * resource or a constant; `invalid` when nothing is bound.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetVariableType()
   {

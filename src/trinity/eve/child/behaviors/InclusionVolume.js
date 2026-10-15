@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/InclusionVolume.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/InclusionVolume.cpp
 import { IBehavior } from "./IBehavior.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { ProcessPriority } from "./enums.js";
 
@@ -15,44 +15,44 @@ const NO_FORCES = [];
  * Drone behavior that pulls agents back toward the inclusion volumes once they
  * drift into the falloff shell; agents fully inside feel no force.
  */
-@meta.define({ className: "InclusionVolume", family: "eve/child/behaviors" })
-@meta.blue.inherit(IBehavior)
-@meta.blue.interface(IBehavior)
+@blue.define("InclusionVolume")
+@blue.inherit(IBehavior)
+@blue.interface(IBehavior)
 export class InclusionVolume
 {
 
   static ProcessPriority = ProcessPriority;
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.IBehavior.ProcessPriority")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.IBehavior.ProcessPriority")
   behaviorPriority = 0;
 
   /** m_inclusionVolumes (PIEveVolumeVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("IEveVolume")
+  @blue.read
+  @blue.persist
+  @type.list("IEveVolume")
   inclusionVolumes = [];
 
   /** m_behaviorWeight (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   behaviorWeight = 60;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   enabled = true;
 
   /** m_framesBetweenUpdates (int32_t) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.readwrite
+  @blue.persist
+  @type.int32
   framesBetweenUpdates = 11;
 
   // Per-frame cache of the inclusion volume centres, prefetched so the
@@ -62,7 +62,7 @@ export class InclusionVolume
   _returnForces = [];
 
   /** Carbon InclusionVolume::GetProcessPriority (cpp:21-24). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetProcessPriority()
   {
@@ -86,7 +86,7 @@ export class InclusionVolume
    * @param {Array} _dronesInSearchRadius - unused
    * @returns {Array} debug force pairs when group.collectForces is on
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CalculateBehavior(agents, _scratchData, _deltaTime, group, _system, _dronesInSearchRadius)
   {
@@ -146,7 +146,7 @@ export class InclusionVolume
    * Adapted: Adds option strings through the supplied collection's add or insert method; the
    * debug adapter retains its capability checks.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetDebugOptions(options = new Set())
   {
@@ -166,7 +166,7 @@ export class InclusionVolume
    *
    * Adapted: ITr2DebugRenderer2 is an injected engine-owned capability.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RenderDebugInfo(renderer, _agents, parentWorldLocation)
   {

@@ -1,48 +1,48 @@
 // Source: trinity/trinity/RenderJob/TriStepFilterVisibilityResults.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { FilterType } from "../../generated/renderJob/enums.js";
 import { be } from "#blue";
 
 /** A render step that filters one visibility-result set into another by event and object filter. */
-@meta.define({ className: "TriStepFilterVisibilityResults", family: "renderJob" })
+@blue.define("TriStepFilterVisibilityResults")
 export class TriStepFilterVisibilityResults extends TriRenderStep
 {
 
   /** m_eventFilter (uint32_t) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   eventFilter = 0xffffffff;
 
   /** m_filterType (FilterType - enum FilterType) [READWRITE, PERSIST, ENUM] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.TriStepFilterVisibilityResults.FilterType")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.TriStepFilterVisibilityResults.FilterType")
   filterType = 1;
 
   /** m_inputResults (Tr2VisibilityResultsPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2VisibilityResults")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2VisibilityResults")
   inputResults = null;
 
   /** m_objects (PIRootVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("IRoot")
+  @blue.read
+  @blue.persist
+  @type.list("IRoot")
   objects = [];
 
   /** m_outputResults (Tr2VisibilityResultsPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2VisibilityResults")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2VisibilityResults")
   outputResults = null;
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   __init__(input = null, output = null, eventFilter = undefined, filter = undefined)
   {
@@ -53,7 +53,7 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
   }
 
   /** Carbon SetEventFilter (cpp:98): the event-type bitfield Execute masks by. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetEventFilter(eventFilter)
   {
@@ -61,7 +61,7 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
   }
 
   /** Carbon SetFilterType (cpp:112): ONLY_ vs EXCLUDE_OBJECTS_IN_LIST. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetFilterType(filterType)
   {
@@ -69,7 +69,7 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
   }
 
   /** Carbon SetInputResults (h:49-52): the non-owning source result set. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetInputResults(results)
   {
@@ -77,7 +77,7 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
   }
 
   /** Carbon SetOutputResults (h:53-56): the non-owning destination set. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetOutputResults(results)
   {
@@ -87,7 +87,7 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
   /**
    * Filters the input visibility results into the output set using the event and object masks.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Execute()
   {

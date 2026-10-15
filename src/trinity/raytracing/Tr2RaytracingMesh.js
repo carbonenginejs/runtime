@@ -1,59 +1,59 @@
 // Source: trinity/trinity/Raytracing/Tr2RaytracingGeometry.h
 // Source: trinity/trinity/Raytracing/Tr2RaytracingGeometry.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /** Tracks one ray-tracing mesh's geometry, transforms, skinning and morph offsets, screen size, and selected LOD. */
-@meta.define({ className: "Tr2RaytracingMesh", family: "raytracing", purpose: "Tracks one ray-tracing mesh's geometry, transforms, skinning and morph offsets, screen size, and selected LOD." })
+@blue.define({ className: "Tr2RaytracingMesh", purpose: "Tracks one ray-tracing mesh's geometry, transforms, skinning and morph offsets, screen size, and selected LOD." })
 export class Tr2RaytracingMesh
 {
 
   /** m_skinnedVertices (const Tr2BufferAL*) */
-  @meta.type.rootRef("Tr2BufferAL")
+  @type.rootRef("Tr2BufferAL")
   skinnedVertices = null;
 
   /** m_geometry (TriGeometryResPtr) */
-  @meta.type.rootRef("TriGeometryRes")
+  @type.rootRef("TriGeometryRes")
   geometry = null;
 
   /** m_meshIndex (uint32_t) */
-  @meta.type.uint32
+  @type.uint32
   meshIndex = 0;
 
   /** m_transforms (std::vector<float>) */
-  @meta.type.list("float")
+  @type.list("float")
   transforms = new Float32Array(0); // alloc: variable-length packed transform snapshot
 
   /** m_boneOffset (uint32_t) */
-  @meta.type.uint32
+  @type.uint32
   boneOffset = 0;
 
   /** m_skinnedVertexOffset (uint32_t) */
-  @meta.type.uint32
+  @type.uint32
   skinnedVertexOffset = 0;
 
   /** m_morphAnimationDatas (std::vector<uint8_t>) */
-  @meta.type.list("uint8_t")
+  @type.list("uint8_t")
   morphAnimationDatas = new Uint8Array(0); // alloc: variable-length packed morph snapshot
 
   /** m_morphAnimationDataOffset (uint32_t) */
-  @meta.type.uint32
+  @type.uint32
   morphAnimationDataOffset = 0;
 
   /** m_morphAnimationDataCount (uint32_t) */
-  @meta.type.uint32
+  @type.uint32
   morphAnimationDataCount = 0;
 
   /** m_isDirty (bool) */
-  @meta.type.boolean
+  @type.boolean
   isDirty = true;
 
   /** m_screenSize (float) */
-  @meta.type.float32
+  @type.float32
   screenSize = 0;
 
   /** m_lodIndex (int) */
-  @meta.type.int32
+  @type.int32
   lodIndex = 0;
 
 

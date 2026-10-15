@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAttenuationScaling.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAttenuationScaling.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAttenuationScaling_Blue.cpp
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { ITr2SoundEmitterOwner } from "../../eve/ITr2SoundEmitterOwner.js";
 
@@ -9,31 +9,31 @@ import { ITr2SoundEmitterOwner } from "../../eve/ITr2SoundEmitterOwner.js";
  * Controller action that sets an audio emitter's distance-attenuation scaling
  * factor on start, optionally multiplied by a named controller variable.
  */
-@meta.define({ className: "Tr2ActionSetAttenuationScaling", family: "controllers" })
-@meta.blue.interface(ITr2ControllerAction)
+@blue.define("Tr2ActionSetAttenuationScaling")
+@blue.interface(ITr2ControllerAction)
 export class Tr2ActionSetAttenuationScaling extends ITr2ControllerAction
 {
   /** m_emitterName: narrow emitter lookup name. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   emitter = "";
 
   /** m_controllerVariableName: optional variable sampled from the linked controller. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   controllerVariable = "";
 
   /** m_scalingFactor: authored attenuation multiplier. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   scalingFactor = 1;
 
   /** Live native READ property; samples the currently linked controller. */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   @meta.implemented
   get finalScalingFactor()
   {
@@ -44,7 +44,7 @@ export class Tr2ActionSetAttenuationScaling extends ITr2ControllerAction
   _controller = null;
 
   /** @param {ITr2ActionController} controller Controller supplying the multiplier. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Link(controller)
   {
@@ -52,7 +52,7 @@ export class Tr2ActionSetAttenuationScaling extends ITr2ControllerAction
   }
 
   /** Releases the linked controller pointer. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Unlink()
   {
@@ -65,7 +65,7 @@ export class Tr2ActionSetAttenuationScaling extends ITr2ControllerAction
    * (Tr2ActionSetAttenuationScaling.cpp:28-37,53-77).
    * @param {ITr2ActionController} controller The invoking controller.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Start(controller)
   {
@@ -80,7 +80,7 @@ export class Tr2ActionSetAttenuationScaling extends ITr2ControllerAction
    * Adapted: JavaScript TypeError represents native PyErr_SetString for null.
    * @param {ITr2ActionController} controller The invoking controller.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   StartWithController(controller)
   {
@@ -93,7 +93,7 @@ export class Tr2ActionSetAttenuationScaling extends ITr2ControllerAction
    * Native zero means no multiplier; negative and nonfinite values are not clamped.
    * @returns {number} The attenuation scaling factor.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetScalingFactor()
   {

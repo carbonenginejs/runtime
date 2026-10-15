@@ -135,4 +135,4 @@ export class CjsSfxEngineRtpcOverlayControls extends ICjsSfxControls
     }
 }
 
-CjsSchema.define(CjsSfxEngineRtpcOverlayControls, { className: "CjsSfxEngineRtpcOverlayControls", family: "audio", fields: {} });
+CjsSchema.meta.define(CjsSfxEngineRtpcOverlayControls, { className: "CjsSfxEngineRtpcOverlayControls", fields: {} });

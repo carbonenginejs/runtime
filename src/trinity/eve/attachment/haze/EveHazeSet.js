@@ -4,7 +4,7 @@ import { EveEntity } from "../../EveEntity.js";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveHazeSetLight } from "./EveHazeSetLight.js";
 import { EveComponentType } from "../../EntityComponents.js";
@@ -41,34 +41,34 @@ const BOX_INDICES = [ [ 0, 1, 2, 3 ], [ 7, 6, 5, 4 ], [ 0, 4, 5, 1 ], [ 3, 2, 6,
  * A hull's authored haze volumes, owning their per-bone bounds and the point
  * lights the haze emits.
  */
-@meta.define({ className: "EveHazeSet", family: "eve/attachment/haze" })
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(IInitialize, IEveSpaceObjectAttachment, EveEntity)
+@blue.define("EveHazeSet")
+@blue.inherit(IInitialize)
+@blue.interface(IInitialize, IEveSpaceObjectAttachment, EveEntity)
 export class EveHazeSet extends IEveSpaceObjectAttachment
 {
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2Effect")
   effect = null;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   display = true;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveHazeSetItem")
+  @blue.read
+  @blue.persist
+  @type.list("EveHazeSetItem")
   hazes = [];
 
-  @meta.blue.persist
-  @meta.type.list("EveHazeSetLight")
+  @blue.persist
+  @type.list("EveHazeSetLight")
   lights = [];
 
   _rebuildRevision = 0;
@@ -109,7 +109,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   }
 
   /** Sets the effect that draws the haze volumes. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Setup(effect)
   {
@@ -117,7 +117,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   }
 
   /** Carbon Initialize (cpp:77-82): the device half, then the bounds. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -130,7 +130,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * Carbon Rebuild (cpp:298-303): release and prepare the device half again,
    * then the bounds.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Rebuild()
   {
@@ -146,7 +146,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * Adapted: Tr2SuballocatedBuffer has no Free, so the allocation is dropped
    * rather than returned, as EveBoosterSet2 does.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ReleaseResources(_storage)
   {
@@ -155,7 +155,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources: creation only when the device allows it. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PrepareResources()
   {
@@ -169,7 +169,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * index and bone index - into the shared buffer, and quad-list indices for
    * all of them.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnPrepareResources()
   {
@@ -232,7 +232,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * Carbon GetBatches (cpp:254-292): one additive batch of all the boxes,
    * indexed as quads, never in a reflection.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBatches(accumulator, batchType, perObjectData, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
@@ -260,7 +260,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * Carbon CreateBoundingBox (EveHazeSet.cpp:245-248): one delegation to the
    * shared item-set helper, always skinned.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   CreateBoundingBox()
   {
@@ -270,7 +270,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   /** Carbon EveHazeSet::UpdateVisibility (cpp:208-218). Unlike the other sets
    * this one has no GetAabb of its own and never gates the bone count, because
    * its bounds are always built skinned. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
   {
@@ -294,7 +294,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * Appends an authored haze item; the bounds only pick it up on the next
    * Rebuild.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddHazeItem(item)
   {
@@ -304,7 +304,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   /**
    * Sets a shader option on the haze effect, doing nothing when no effect is attached.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetShaderOption(name, value)
   {
@@ -318,7 +318,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * Converts a SOF-authored light description into an EveHazeSetLight and
    * appends it to the set.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AddLightFromSOF(light)
   {
@@ -327,7 +327,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
 
   /** Carbon EveHazeSet::RegisterComponents (cpp:394-401): LightOwner when
    * lights are authored. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterComponents()
   {
@@ -348,7 +348,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * gets only the parent transform. Binding 0 is a mesh bone binding and can
    * be animated - the Bowhead (orecs2_t1) moves its MASTER binding through
    * Normal2Warp - so ours applies bone 0 like any other. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateLights(parentTransform, bones, boneCount, activationStrength, boosterGain = 0)
   {
@@ -381,7 +381,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    *
    * Adapted: Profile-index packing is by-reference per lightConversion.js conventions.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetLights(lightManager)
   {

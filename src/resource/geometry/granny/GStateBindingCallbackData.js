@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/Tr2GrannyStateRes.h
 // Schema: format-carbon resources/GStateBindingCallbackData.json; maintained by the runtime resource layer.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, type } from "#schema";
 
 /** Data record mirroring Carbon's GState binding callback payload, holding the `gsf_path` string that identifies the Granny state file to bind. */
 export class GStateBindingCallbackData
@@ -11,9 +11,9 @@ export class GStateBindingCallbackData
 
 }
 
-CjsSchema.define(GStateBindingCallbackData, {
-  className: "GStateBindingCallbackData", family: "resources",
+CjsSchema.blue.define(GStateBindingCallbackData, {
+  className: "GStateBindingCallbackData",
   fields: {
-    gsf_path: meta.type.string
+    gsf_path: type.string
   }
 });

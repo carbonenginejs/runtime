@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2RotationAdapter.cpp
 import { quat } from "#math/quat";
 import { ITriQuaternionFunction } from "#blue";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { CcpTime } from "#blue";
 
 
@@ -11,10 +11,7 @@ import { CcpTime } from "#blue";
  * remapping, falling back to a fixed authored quaternion when no child curve is
  * attached.
  */
-@meta.define({
-  className: "Tr2RotationAdapter",
-  family: "curves"
-})
+@blue.define("Tr2RotationAdapter")
 export class Tr2RotationAdapter extends ITriQuaternionFunction
 {
   /**
@@ -22,18 +19,18 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * is attached.
    * @type {Float32Array}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   value = quat.create();
 
   /**
    * Optional child quaternion function sampled using the adapter's remapped time.
    * @type {ITriQuaternionFunction|null}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITriQuaternionFunction")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITriQuaternionFunction")
   curve = null;
 
   /**
@@ -41,8 +38,8 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * is attached.
    * @type {Float32Array}
    */
-  @meta.blue.read
-  @meta.type.quat
+  @blue.read
+  @type.quat
   currentValue = quat.create();
 
   /**
@@ -69,7 +66,7 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateValue(time)
   {
@@ -86,7 +83,7 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(time, out)
   {
@@ -108,7 +105,7 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValueAt(time, out)
   {
@@ -126,7 +123,7 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @param {Float32Array} out Destination derivative.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValueDotAt(_time, out)
   {
@@ -140,7 +137,7 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @param {Float32Array} out Destination derivative.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValueDoubleDotAt(_time, out)
   {
@@ -153,7 +150,7 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @param {number} range Radius in seconds; zero or omission selects 60.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RandomizeStart(range = 60)
   {
@@ -166,7 +163,7 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @param {number} scale Time divisor.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ScaleTime(scale)
   {
@@ -177,7 +174,7 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * Clears the retained start timestamp.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ResetStart()
   {
@@ -189,7 +186,7 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
    * @param {number} time Time in seconds.
    * @returns {number} Scaled time in seconds.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLocalTime(time)
   {
@@ -250,4 +247,4 @@ export class Tr2RotationAdapter extends ITriQuaternionFunction
 }
 
 // Exact native exposure table; ITriFunction is intentionally not mapped.
-meta.blue.interface(ITriQuaternionFunction)(Tr2RotationAdapter);
+blue.interface(ITriQuaternionFunction)(Tr2RotationAdapter);

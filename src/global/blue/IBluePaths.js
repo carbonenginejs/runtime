@@ -76,4 +76,4 @@ CjsSchema.decorateMethod(IBluePaths, "ResolvePathForWriting", meta.renamed("Reso
 CjsSchema.decorateMethod(IBluePaths, "ResolvePathToRoot", meta.renamed("ResolvePathToRootW"));
 CjsSchema.decorateMethod(IBluePaths, "GetStreamFromPath", meta.renamed("GetStreamFromPathW"));
 
-CjsSchema.define(IBluePaths, { className: "IBluePaths", carbon: "IBluePaths", family: "blue", fields: {} });
+CjsSchema.blue.define(IBluePaths, { className: "IBluePaths", fields: {} });

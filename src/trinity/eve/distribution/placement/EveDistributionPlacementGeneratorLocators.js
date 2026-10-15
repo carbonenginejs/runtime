@@ -1,25 +1,25 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionPlacementGenerators/EveDistributionPlacementGeneratorLocators.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IEveDistributionPlacementGenerators } from "./IEveDistributionPlacementGenerators.js";
 import { InitialPlacement } from "../attributeModifiers/InitialPlacement.js";
 import { PlacementDataWithIdentifier } from "../../PlacementDataWithIdentifier.js";
 
 /** Builds distribution placements from an authored locator list and requests regeneration when that list changes. */
-@meta.define({ className: "EveDistributionPlacementGeneratorLocators", family: "eve/distribution/placement" })
+@blue.define("EveDistributionPlacementGeneratorLocators")
 export class EveDistributionPlacementGeneratorLocators extends IEveDistributionPlacementGenerators
 {
 
   _requestRegeneration = false;
 
   /** m_locators (PLocatorStructureList) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.structList("Locator")
+  @blue.read
+  @blue.persist
+  @type.structList("Locator")
   locators = [];
 
   /** Flags the pool as stale when the authored locator list changes. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnStructureListModified(_event, _item, _index, _list)
   {
@@ -32,7 +32,7 @@ export class EveDistributionPlacementGeneratorLocators extends IEveDistributionP
    * @param placements Caller-owned pool array that is appended to.
    * @param trackingID Mutable counter shared across all generators; each placement consumes one unique id from it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetInitialPlacements(placements, trackingID)
   {
@@ -54,7 +54,7 @@ export class EveDistributionPlacementGeneratorLocators extends IEveDistributionP
   }
 
   /** Reports whether the locator list changed since the pool was last generated. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsRequestingRegeneration()
   {
@@ -62,7 +62,7 @@ export class EveDistributionPlacementGeneratorLocators extends IEveDistributionP
   }
 
   /** No per-frame work; this generator only reacts to locator list changes. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateSyncronous(_updateContext, _params, _owner)
   {

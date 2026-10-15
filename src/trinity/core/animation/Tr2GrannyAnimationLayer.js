@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2GrannyAnimationLayer.h
 // Source: trinity/trinity/Tr2GrannyAnimationLayer.cpp
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { CjsGrannyCurves } from "../../curves/track/CjsGrannyCurves.js";
 
 
@@ -20,7 +20,7 @@ const NEVER = Infinity;
  * speed, clearWhenDone, held, stopAt? }`, `elapsed` counting unscaled layer
  * seconds since its start (negative while delayed).
  */
-@meta.define({ className: "Tr2GrannyAnimationLayer", family: "trinityCore/animation" })
+@blue.define("Tr2GrannyAnimationLayer")
 export class Tr2GrannyAnimationLayer
 {
 
@@ -83,7 +83,7 @@ export class Tr2GrannyAnimationLayer
    *
    * @returns {number} Remaining seconds; Infinity when a player never ends.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetAnimationRemainingTime()
   {
@@ -156,7 +156,7 @@ export class Tr2GrannyAnimationLayer
    * Adapted: Carbon's players are the JS queue, chained ones included, so
    * nothing is dropped; this port has no separate pre-sequencer queue.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   EndAnimation()
   {
@@ -193,7 +193,7 @@ export class Tr2GrannyAnimationLayer
    * Adapted: the single active request carries the pinned stop as `stopAt`
    * in its own elapsed seconds, with the pending queue dropped.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   StopAnimations(delay = 0)
   {
@@ -210,7 +210,7 @@ export class Tr2GrannyAnimationLayer
   }
 
   /** Drops every animation, playing and queued (Tr2GrannyAnimationLayer.cpp:495-525). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ClearAnimations()
   {
@@ -218,7 +218,7 @@ export class Tr2GrannyAnimationLayer
   }
 
   /** Carbon GetLayerWeight (Tr2GrannyAnimationLayer.cpp:1071-1074). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLayerWeight()
   {
@@ -226,7 +226,7 @@ export class Tr2GrannyAnimationLayer
   }
 
   /** Carbon SetLayerWeight (Tr2GrannyAnimationLayer.cpp:1076-1079). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetLayerWeight(layerWeight)
   {
@@ -234,7 +234,7 @@ export class Tr2GrannyAnimationLayer
   }
 
   /** Carbon SetControlParam (Tr2GrannyAnimationLayer.cpp:1081-1085). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetControlParam(controlParam)
   {
@@ -243,7 +243,7 @@ export class Tr2GrannyAnimationLayer
   }
 
   /** Carbon SetControlParamSkewRate (Tr2GrannyAnimationLayer.cpp:1087-1090). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetControlParamSkewRate(skewRate)
   {
@@ -258,7 +258,7 @@ export class Tr2GrannyAnimationLayer
    * @param {string} name Bone name.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddBone(grannyAnimation, name)
   {
@@ -276,7 +276,7 @@ export class Tr2GrannyAnimationLayer
    * @param {import("./Tr2GrannyAnimation.js").Tr2GrannyAnimation} grannyAnimation The owning animation.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddAllBones(grannyAnimation)
   {
@@ -295,7 +295,7 @@ export class Tr2GrannyAnimationLayer
    * @param {string} name Bone name.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RemoveBone(grannyAnimation, name)
   {
@@ -310,7 +310,7 @@ export class Tr2GrannyAnimationLayer
   }
 
   /** Not ported: queueing lives in Tr2GrannyAnimation._playLayer. */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   PlayAnimation(..._args)
   {
@@ -318,7 +318,7 @@ export class Tr2GrannyAnimationLayer
   }
 
   /** Not ported: queueing lives in Tr2GrannyAnimation._playLayer. */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   QueueAnimation(..._args)
   {
@@ -326,7 +326,7 @@ export class Tr2GrannyAnimationLayer
   }
 
   /** Not ported: the layer holds no absolute animation clock in this port. */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   GetAnimationChainCompleteTime(..._args)
   {
@@ -347,7 +347,7 @@ export class Tr2GrannyAnimationLayer
    * @param {import("./Tr2GrannyAnimation.js").Tr2GrannyAnimation} grannyAnimation The owning animation.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   InitializeAnimationLayer(grannyAnimation)
   {
@@ -369,7 +369,7 @@ export class Tr2GrannyAnimationLayer
   }
 
   /** Not ported: requests are consumed by Tr2GrannyAnimation._advanceLayer. */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   ConsumeAnimationQueue(..._args)
   {
@@ -377,7 +377,7 @@ export class Tr2GrannyAnimationLayer
   }
 
   /** Not ported: no sequencer or Granny controls to release. */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   Cleanup(..._args)
   {
@@ -385,7 +385,7 @@ export class Tr2GrannyAnimationLayer
   }
 
   /** Not ported: sampling lives in Tr2GrannyAnimation._sampleLayer. */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   SampleAnimation(..._args)
   {
@@ -407,7 +407,7 @@ export class Tr2GrannyAnimationLayer
    * @param {string} name Track mask name.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ExtractTrackMask(grannyAnimation, name)
   {
@@ -418,7 +418,7 @@ export class Tr2GrannyAnimationLayer
   }
 
   /** Not ported: pause is owner-wide (Tr2GrannyAnimation.TogglePauseAnimations). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   TogglePauseAnimation(..._args)
   {

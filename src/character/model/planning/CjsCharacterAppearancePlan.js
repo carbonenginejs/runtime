@@ -1,4 +1,4 @@
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { createChild, addChild, removeChild, deleteChild, clearChildren } from "../../../global/blue/children.js";
 import "./CjsCharacterAppearanceBinding.js";
 import "./CjsCharacterAppearanceColorSelection.js";
@@ -17,7 +17,7 @@ import "./CjsCharacterTextureAsset.js";
 import "./CjsCharacterTextureChannel.js";
 
 /** Renderer-neutral character appearance plan hydrated directly from model-shaped JSON. */
-@meta.define({ className: "CjsCharacterAppearancePlan", family: "character" })
+@meta.define("CjsCharacterAppearancePlan")
 export class CjsCharacterAppearancePlan
 {
 
@@ -285,74 +285,74 @@ export class CjsCharacterAppearancePlan
         return deleteChild(this, "diagnostics", value, options);
     }
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     schema = "carbonenginejs.characterAppearancePlan";
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.uint32
+    @blue.readwrite
+    @blue.persist
+    @type.uint32
     schemaVersion = 4;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     sourceBuild = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("CjsCharacterOrigin")
+    @blue.readwrite
+    @blue.persist
+    @type.list("CjsCharacterOrigin")
     origins = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("CjsCharacterAppearanceSelection")
+    @blue.readwrite
+    @blue.persist
+    @type.list("CjsCharacterAppearanceSelection")
     selections = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("CjsCharacterAppearanceColorSelection")
+    @blue.readwrite
+    @blue.persist
+    @type.list("CjsCharacterAppearanceColorSelection")
     colorSelections = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("CjsCharacterResolvedPart")
+    @blue.readwrite
+    @blue.persist
+    @type.list("CjsCharacterResolvedPart")
     parts = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("CjsCharacterAppearanceLayer")
+    @blue.readwrite
+    @blue.persist
+    @type.list("CjsCharacterAppearanceLayer")
     layers = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("CjsCharacterTextureAsset")
+    @blue.readwrite
+    @blue.persist
+    @type.list("CjsCharacterTextureAsset")
     textures = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("CjsCharacterCoverage")
+    @blue.readwrite
+    @blue.persist
+    @type.list("CjsCharacterCoverage")
     coverages = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("CjsCharacterMorphTargetWeight")
+    @blue.readwrite
+    @blue.persist
+    @type.list("CjsCharacterMorphTargetWeight")
     morphTargets = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("CjsCharacterCompositionTarget")
+    @blue.readwrite
+    @blue.persist
+    @type.list("CjsCharacterCompositionTarget")
     targets = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("CjsCharacterAppearanceBinding")
+    @blue.readwrite
+    @blue.persist
+    @type.list("CjsCharacterAppearanceBinding")
     bindings = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("CjsCharacterAppearanceDiagnostic")
+    @blue.readwrite
+    @blue.persist
+    @type.list("CjsCharacterAppearanceDiagnostic")
     diagnostics = [];
 
 }

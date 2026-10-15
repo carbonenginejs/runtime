@@ -1,21 +1,21 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/EveSocketParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IEveSocketParameter } from "./IEveSocketParameter.js";
 
 /** Provides named typed socket parameters with external-value binding, default capture, and propagation hooks. */
-@meta.define({ className: "EveSocketParameterBindingBase", family: "eve/socket" })
+@blue.define("EveSocketParameterBindingBase")
 export class EveSocketParameterBindingBase extends IEveSocketParameter
 {
 
   /** name (m_name =) */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_bindings (PITr2ValueBindingVector) */
-  @meta.type.list("ITr2ValueBinding")
+  @type.list("ITr2ValueBinding")
   bindings = [];
 
   /** Returns the name an external parameter has to match before it can bind here. */
@@ -34,7 +34,7 @@ export class EveSocketParameterBindingBase extends IEveSocketParameter
   }
 
   /** Drops every value binding, leaving the current value in place. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ClearBindings()
   {
@@ -46,7 +46,7 @@ export class EveSocketParameterBindingBase extends IEveSocketParameter
    *
    * @returns {boolean} True when the binding was created and stored.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   BindToExternalParameter(externalParameter)
   {
@@ -61,7 +61,7 @@ export class EveSocketParameterBindingBase extends IEveSocketParameter
   }
 
   /** Required hook where a typed subclass records the external parameter's current value as a restore default. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   ExtractDefault(_externalParameter)
   {
@@ -69,7 +69,7 @@ export class EveSocketParameterBindingBase extends IEveSocketParameter
   }
 
   /** Reports whether anything is bound to this parameter. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Used()
   {
@@ -77,7 +77,7 @@ export class EveSocketParameterBindingBase extends IEveSocketParameter
   }
 
   /** Pushes the current value out through every binding. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Propagate()
   {

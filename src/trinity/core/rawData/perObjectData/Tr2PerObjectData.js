@@ -12,7 +12,7 @@
 // Tr2IndirectDrawBufferWriter and nothing on this path draws indirectly yet.
 
 import { CjsConstantPayload } from "#interfaces";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { ShaderType } from "#consts/render-context";
 import { Tr2RenderUtils } from "../../Tr2RenderUtils.js";
 import { PER_OBJECT_PS, PER_OBJECT_VS } from "../../Tr2Renderer.js";
@@ -21,7 +21,7 @@ import { PER_OBJECT_PS, PER_OBJECT_VS } from "../../Tr2Renderer.js";
  * Per-object render data: the object id a batch is picked and identified by,
  * and the upload of its constant payloads through the abstraction layer.
  */
-@meta.define({ className: "Tr2PerObjectData", family: "trinityCore" })
+@blue.define("Tr2PerObjectData")
 export class Tr2PerObjectData
 {
   /** Starts with a zero object id. */
@@ -94,7 +94,7 @@ export class Tr2PerObjectData
    *
    * @returns {number} How many payloads were uploaded; none, at this level.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetPerObjectDataToDevice()
   {
@@ -110,7 +110,7 @@ export class Tr2PerObjectData
    * Adapted: Tr2IndirectDrawBufferWriter is unported and nothing on this path draws
    * indirectly; Carbon's base asserts here too.
    */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   ApplyConstantBuffers()
   {

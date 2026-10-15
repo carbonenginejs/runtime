@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/EveSocketParameter.h
 // Hand-authored following the eve/socket generated pattern (SOCKET_PARAM_DECLARE macro family).
 import { vec4 } from "#math/vec4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { EveSocketParameterBindingBase } from "./EveSocketParameterBindingBase.js";
 
 /**
@@ -9,14 +9,14 @@ import { EveSocketParameterBindingBase } from "./EveSocketParameterBindingBase.j
  * preserving defaults by copy for restoration. Carbon's Color is four floats;
  * the JavaScript runtime carries it as a vec4 like its other color values.
  */
-@meta.define({ className: "EveSocketParameterColor", family: "eve/socket" })
+@blue.define("EveSocketParameterColor")
 export class EveSocketParameterColor extends EveSocketParameterBindingBase
 {
 
   /** m_value (Color) */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   value = vec4.create();
 
   /** m_defaults - one default captured per bound external parameter. */
@@ -26,7 +26,7 @@ export class EveSocketParameterColor extends EveSocketParameterBindingBase
    * Discards the captured defaults along with the bindings, so nothing can be
    * restored afterwards.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ClearBindings()
   {
@@ -35,7 +35,7 @@ export class EveSocketParameterColor extends EveSocketParameterBindingBase
   }
 
   /** Restores every binding's default and copies it out, then clears. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Reset()
   {
@@ -75,7 +75,7 @@ export class EveSocketParameterColor extends EveSocketParameterBindingBase
    * Restores the first captured default into the existing value vector, or
    * zeroes it when nothing was captured.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetValueToDefault()
   {

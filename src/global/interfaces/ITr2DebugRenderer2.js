@@ -213,6 +213,7 @@ for (const method of [
 }
 // This JavaScript registration supplies one nominal interface identity for named
 // declarations and composition. It does not install a renderer implementation.
-CjsSchema.define(ITr2DebugRenderer2, {
-  className: "ITr2DebugRenderer2", carbon: "ITr2DebugRenderer2", fields: {}
+CjsSchema.blue.define(ITr2DebugRenderer2, {
+  className: "ITr2DebugRenderer2",
+  fields: {}
 });

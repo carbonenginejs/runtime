@@ -1,12 +1,12 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { type, blue } from "#schema";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
 /** Defines point-light placement, rotation, intensity, saturation, scale, noise, and profile data for an attachment. */
-@meta.define({ className: "EveSOFDataPointLightAttachment", family: "eve" })
-@meta.blue.interface()
+@blue.define("EveSOFDataPointLightAttachment")
+@blue.interface()
 export class EveSOFDataPointLightAttachment
 {
 
@@ -15,9 +15,9 @@ export class EveSOFDataPointLightAttachment
    * Native m_saturation (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   saturation = 1;
 
   /**
@@ -25,9 +25,9 @@ export class EveSOFDataPointLightAttachment
    * Native m_intensity (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   intensity = 1;
 
   /**
@@ -35,9 +35,9 @@ export class EveSOFDataPointLightAttachment
    * Native m_translation (Vector3) [READWRITE, PERSIST]
    * @type {Float32Array}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   translation = vec3.create();
 
   /**
@@ -45,9 +45,9 @@ export class EveSOFDataPointLightAttachment
    * Native m_rotation (Quaternion) [READWRITE, PERSIST]
    * @type {Float32Array}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotation = quat.create();
 
   /**
@@ -55,9 +55,9 @@ export class EveSOFDataPointLightAttachment
    * Native m_innerScaleMultiplier (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   innerScaleMultiplier = 1;
 
   /**
@@ -65,9 +65,9 @@ export class EveSOFDataPointLightAttachment
    * Native m_outerScaleMultiplier (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   outerScaleMultiplier = 2;
 
   /**
@@ -75,9 +75,9 @@ export class EveSOFDataPointLightAttachment
    * Native m_noiseAmplitude (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   noiseAmplitude = 0;
 
   /**
@@ -85,9 +85,9 @@ export class EveSOFDataPointLightAttachment
    * Native m_noiseFrequency (float) [READWRITE, PERSIST]
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   noiseFrequency = 1;
 
   /**
@@ -95,9 +95,9 @@ export class EveSOFDataPointLightAttachment
    * Native m_noiseOctaves (int32_t) [READWRITE, PERSIST]
    * @type {number}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.readwrite
+  @blue.persist
+  @type.int32
   noiseOctaves = 1;
 
   /**
@@ -105,9 +105,9 @@ export class EveSOFDataPointLightAttachment
    * Native m_lightProfilePath (std::wstring) [READWRITE, PERSIST]
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.wpath("Tr2LightProfileRes")
+  @blue.readwrite
+  @blue.persist
+  @type.wpath("Tr2LightProfileRes")
   lightProfilePath = "";
 
 }

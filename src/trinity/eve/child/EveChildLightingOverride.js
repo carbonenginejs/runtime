@@ -8,7 +8,7 @@ import { EveEntity } from "../EveEntity.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { EveComponentType } from "../EntityComponents.js";
 import { Priority } from "../../generated/postProcess/enums.js";
@@ -21,54 +21,54 @@ import "../../postProcess/Tr2PostProcessAttributes.js";
  * lighting, its blend strength driven by how deeply the camera sits inside the
  * volumes it owns.
  */
-@meta.define({ className: "EveChildLightingOverride", family: "eve/child" })
-@meta.blue.inherit(IEveLightingOverride)
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, IEveLightingOverride, IInitialize, ITr2DebugRenderable)
+@blue.define("EveChildLightingOverride")
+@blue.inherit(IEveLightingOverride)
+@blue.inherit(IInitialize)
+@blue.interface(EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, IEveLightingOverride, IInitialize, ITr2DebugRenderable)
 export class EveChildLightingOverride extends EveChildTransform
 {
   _overrideIntensity = 0;
   _boundingSphere = { center: vec3.create(), radius: 0, initialized: false };
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.PostProcessEnums.Priority")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.PostProcessEnums.Priority")
   priority = 2;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   backgroundIntensity = 1;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   intensity = 1;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   reflectionIntensity = 1;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   sunIntensity = 1;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.readwrite
+  @blue.persist
+  @type.color
   sunColor = vec4.fromValues(1, 1, 1, 1);
 
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("IEveVolume")
+  @blue.read
+  @blue.persist
+  @type.list("IEveVolume")
   volumes = [];
 
   /** Carbon EveChildLightingOverride::RegisterComponents (cpp:47-50):

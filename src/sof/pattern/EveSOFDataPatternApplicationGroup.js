@@ -1,34 +1,34 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { type, blue } from "#schema";
 
 /** Names per-layer pattern properties and provides searchable per-hull projections. */
-@meta.define({ className: "EveSOFDataPatternApplicationGroup", family: "eve" })
+@blue.define("EveSOFDataPatternApplicationGroup")
 export class EveSOFDataPatternApplicationGroup
 {
 
   /** m_layer1Properties (EveSOFDataPatternLayerPropertiesPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataPatternLayerProperties")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("EveSOFDataPatternLayerProperties")
   layer1Properties = null;
 
   /** m_layer2Properties (EveSOFDataPatternLayerPropertiesPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataPatternLayerProperties")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("EveSOFDataPatternLayerProperties")
   layer2Properties = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_projections (PEveSOFDataPatternPerHullVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataPatternPerHull")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataPatternPerHull")
   projections = [];
 
   /**

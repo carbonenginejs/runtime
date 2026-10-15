@@ -1,18 +1,18 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/EveSocketParameter.h
 // Hand-authored following the eve/socket generated pattern (SOCKET_PARAM_DECLARE macro family).
 import { vec4 } from "#math/vec4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { EveSocketParameterBindingBase } from "./EveSocketParameterBindingBase.js";
 
 /** Binds a named four-component vector socket value to external parameters, preserving defaults by copy for restoration. */
-@meta.define({ className: "EveSocketParameterVector4", family: "eve/socket" })
+@blue.define("EveSocketParameterVector4")
 export class EveSocketParameterVector4 extends EveSocketParameterBindingBase
 {
 
   /** m_value (Vector4) */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   value = vec4.create();
 
   /** m_defaults - one default captured per bound external parameter. */
@@ -22,7 +22,7 @@ export class EveSocketParameterVector4 extends EveSocketParameterBindingBase
    * Discards the captured defaults along with the bindings, so nothing can be
    * restored afterwards.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ClearBindings()
   {
@@ -31,7 +31,7 @@ export class EveSocketParameterVector4 extends EveSocketParameterBindingBase
   }
 
   /** Restores every binding's default and copies it out, then clears. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Reset()
   {
@@ -71,7 +71,7 @@ export class EveSocketParameterVector4 extends EveSocketParameterBindingBase
    * Restores the first captured default into the existing value vector, or
    * zeroes it when nothing was captured.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetValueToDefault()
   {

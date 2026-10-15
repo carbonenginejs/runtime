@@ -421,11 +421,14 @@ export class VideoPlayer
   }
 }
 
-CjsSchema.define(VideoPlayer, { className: "VideoPlayer", carbon: "VideoPlayer", methods: {
+CjsSchema.blue.define(VideoPlayer, {
+  className: "VideoPlayer",
+  methods: {
   Create: [meta.adapted], Update: [meta.adapted], Pause: [meta.adapted], Resume: [meta.adapted],
   IsPaused: [meta.adapted], GetMediaTime: [meta.adapted], GetDuration: [meta.adapted],
   GetDownloadedMediaTime: [meta.adapted], GetVideoInfo: [meta.adapted],
   ClearTextures: [meta.adapted], OnModified: [meta.adapted], OnTick: [meta.adapted],
   SetBgraTexture: [meta.adapted], GetBgraTexture: [meta.implemented],
   Seek: [meta.adapted], GetState: [meta.adapted], Validate: [meta.adapted], Destroy: [meta.adapted]
-} });
+}
+});

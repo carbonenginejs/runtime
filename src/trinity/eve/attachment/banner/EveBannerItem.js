@@ -4,7 +4,7 @@ import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 
 // Carbon persists banners as a raw structure list (BLUE_DECLARE_STRUCTURE_LIST
@@ -18,40 +18,40 @@ import { meta } from "#schema";
  * Native 64-bit size 56; offsets and storage types: trinity/trinity/
  * Eve/SpaceObject/Attachments/Sets/EveBannerSet.h:16-28; Eve/SpaceObject/Attachments/Sets/EveBannerSet.cpp:22-30 (reference storage is not exposed).
  */
-@meta.define({ className: "EveBannerItem", family: "eve/attachment/banners" })
+@blue.define("EveBannerItem")
 @meta.struct.define({ size: 56 })
 export class EveBannerItem
 {
 
-  @meta.blue.persist
+  @blue.persist
   @meta.struct.INT32_1(0)
   bone = -1;
 
-  @meta.blue.persist
+  @blue.persist
   @meta.struct.FLOAT32_3(4)
   position = vec3.create();
 
-  @meta.blue.persist
+  @blue.persist
   @meta.struct.FLOAT32_4(16)
-  @meta.type.quat
+  @type.quat
   rotation = quat.create();
 
-  @meta.blue.persist
+  @blue.persist
   @meta.struct.FLOAT32_3(32)
   scaling = vec3.fromValues(1, 1, 1);
 
-  @meta.blue.persist
+  @blue.persist
   @meta.struct.FLOAT32_1(44)
   angleX = 0;
 
-  @meta.blue.persist
+  @blue.persist
   @meta.struct.FLOAT32_1(48)
   angleY = 0;
 
   // Carbon keeps this as private structure metadata, but SOF-authored banner
   // identity is part of the editable description in CarbonEngineJS.
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.persist
+  @type.int32
   reference = 0;
 
   /**
@@ -63,7 +63,7 @@ export class EveBannerItem
    * Adapted: Carbon inlines the per-banner box inside the set rebuild; the port moves it
    * onto the item so the shared item-set builder can read it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBounds(out)
   {
@@ -83,7 +83,7 @@ export class EveBannerItem
    * Adapted: Accessor for the shared item-set bounds builder; Carbon reads jt->bone
    * directly.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBoneIndex()
   {

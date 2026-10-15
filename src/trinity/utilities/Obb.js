@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Utilities/Obb.h
 // Source: trinity/trinity/Utilities/Obb.cpp
 // Promoted to hand-maintained source 2026-08-22; this is portable CPU geometry.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { PlaneDotCoord, PlaneDotNormal } from "../core/view/TriFrustum.js";
 
@@ -35,7 +35,7 @@ const POINT_SIGNS = [
  * Zero-filled vectors adapt native uninitialized storage. Number arithmetic and
  * Float32Array intermediates retain the existing JS precision behavior.
  */
-@meta.define({ className: "Obb", family: "utilities" })
+@blue.define("Obb")
 export class Obb
 {
 
@@ -46,7 +46,7 @@ export class Obb
    * transformMat4 divides by w, while native Transform takes xyz directly; affine inputs
    * have w=1.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CreateClippedWorldBoundingObb(localMin, localMax, localToWorld, frustum = null)
   {
@@ -129,7 +129,7 @@ export class Obb
    * Adapted: Carbon asserts the 0..7 range; JavaScript reports the same contract with
    * RangeError.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetPoint(index)
   {
@@ -148,7 +148,7 @@ export class Obb
    * returns zero xyz for w=0. Number/Float32Array precision also follows the existing JS
    * math path.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ComputeAABB(min, max, transform)
   {
@@ -196,7 +196,7 @@ export class Obb
    * retains the local-to-world transform's scale rather than normalizing it.
    * @type {Float32Array|Float64Array|number[]}
    */
-  @meta.type.vec3
+  @type.vec3
   x = vec3.create();
 
   /**
@@ -204,7 +204,7 @@ export class Obb
    * retains the local-to-world transform's scale rather than normalizing it.
    * @type {Float32Array|Float64Array|number[]}
    */
-  @meta.type.vec3
+  @type.vec3
   y = vec3.create();
 
   /**
@@ -212,7 +212,7 @@ export class Obb
    * retains the local-to-world transform's scale rather than normalizing it.
    * @type {Float32Array|Float64Array|number[]}
    */
-  @meta.type.vec3
+  @type.vec3
   z = vec3.create();
 
   /**
@@ -220,7 +220,7 @@ export class Obb
    * Frustum clipping can move it as the box's sides are tightened.
    * @type {Float32Array|Float64Array|number[]}
    */
-  @meta.type.vec3
+  @type.vec3
   center = vec3.create();
 
   /**
@@ -228,7 +228,7 @@ export class Obb
    * corner offset multiplies a basis vector by its corresponding coefficient.
    * @type {Float32Array|Float64Array|number[]}
    */
-  @meta.type.vec3
+  @type.vec3
   sizes = vec3.create();
 
 }

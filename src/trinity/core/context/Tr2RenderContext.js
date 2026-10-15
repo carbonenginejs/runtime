@@ -18,7 +18,7 @@
 //    (2026-09-06) and the RenderBatches family is next; GetBackBuffer is not.
 //    Fork/Join parallel encoding is deliberately omitted - it exists to spread
 //    batch encoding across threads, and there is one.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { ALResult, Failed } from "../../../trinityal/ALResult.js";
@@ -48,7 +48,7 @@ const DEFAULT_TECHNIQUE = "Main";
 const FRUSTUM_PLANES = [ "FrustumPlane0", "FrustumPlane1", "FrustumPlane2", "FrustumPlane3", "FrustumPlane4", "FrustumPlane5" ];
 
 /** Tr2RenderContext (trinityCore) - generated from schema shapeHash 73e2a4e7.... */
-@meta.define({ className: "Tr2RenderContext", family: "trinityCore" })
+@blue.define("Tr2RenderContext")
 export class Tr2RenderContext
 {
   /**
@@ -2038,7 +2038,7 @@ export class Tr2RenderContext
   }
 
   /** Carbon's inverse-projected corner radius, relocated with context camera state. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetFrustumRadius()
   {
@@ -2111,7 +2111,7 @@ export class Tr2RenderContext
    *
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static DestroyMainThreadRenderContext()
   {

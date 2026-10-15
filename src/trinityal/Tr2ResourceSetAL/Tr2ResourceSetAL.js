@@ -1,6 +1,6 @@
 // Source: trinity/trinityal/include/Tr2ResourceSetAL.h:129
 // Source: trinity/trinityal/src/Tr2ResourceSetAL.cpp:547-607
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { ALResult, Failed } from "../ALResult.js";
 import { Tr2ALMemoryType } from "#consts/graphics";
 
@@ -14,7 +14,7 @@ const nullRS = {
 };
 
 /** Public handle; implementation selection belongs to the creating context. */
-@meta.define({ className: "Tr2ResourceSetAL", family: "trinityal" })
+@blue.define("Tr2ResourceSetAL")
 export class Tr2ResourceSetAL
 {
   m_resourceSet = nullRS;

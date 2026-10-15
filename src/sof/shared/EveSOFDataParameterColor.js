@@ -3,13 +3,13 @@
 //   parameters through one macro beside their base.
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:20-38
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.cpp:85-102
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec4 } from "#math/vec4";
 import { EveSOFDataParameter } from "./EveSOFDataParameter.js";
 
 /** Color shader parameter: passes the four components through unchanged. */
-@meta.define({ className: "EveSOFDataParameterColor", family: "eve" })
-@meta.blue.interface(EveSOFDataParameter)
+@blue.define("EveSOFDataParameterColor")
+@blue.interface(EveSOFDataParameter)
 export class EveSOFDataParameterColor extends EveSOFDataParameter
 {
   /**
@@ -17,9 +17,9 @@ export class EveSOFDataParameterColor extends EveSOFDataParameter
    * Native m_value (Color) replaces the base vector in authored values.
    * @type {Float32Array}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.readwrite
+  @blue.persist
+  @type.color
   value = vec4.create();
 
   /** Returns a copy of the four-component color value. */

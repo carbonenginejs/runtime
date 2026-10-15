@@ -192,4 +192,4 @@ export class Tr2OcclusionQueryALWebgl2 extends Tr2DeviceResourceAL
   }
 }
 
-CjsSchema.define(Tr2OcclusionQueryALWebgl2, { className: "Tr2OcclusionQueryALWebgl2", carbon: "Tr2OcclusionQueryAL" });
+CjsSchema.blue.define(Tr2OcclusionQueryALWebgl2, { className: "Tr2OcclusionQueryALWebgl2", donors: [ "Tr2OcclusionQueryAL" ] });

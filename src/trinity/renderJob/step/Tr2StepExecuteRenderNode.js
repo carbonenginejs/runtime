@@ -2,7 +2,7 @@
 // Source: trinity/trinity/RenderJob/Tr2StepExecuteRenderNode.cpp
 // Source: trinity/trinity/RenderJob/Tr2StepExecuteRenderNode_Blue.cpp
 // Promoted from generated source to supply TriRenderStep.Execute.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 
@@ -10,24 +10,24 @@ import { TriRenderStep } from "./TriRenderStep.js";
  * Executes one render-graph node into a destination target, optionally clearing
  * the target when the node is absent or fails validation.
  */
-@meta.define({ className: "Tr2StepExecuteRenderNode", family: "renderJob" })
+@blue.define("Tr2StepExecuteRenderNode")
 export class Tr2StepExecuteRenderNode extends TriRenderStep
 {
 
   /** m_destinationTarget (Tr2RenderTargetPtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2RenderTarget")
+  @blue.readwrite
+  @type.rootRef("Tr2RenderTarget")
   destinationTarget = null;
 
   /** m_clearTargetOnFailure (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   clearTargetOnFailure = true;
 
   /** m_node (ITr2RenderNodePtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITr2RenderNode")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITr2RenderNode")
   node = null;
 
   /**
@@ -38,7 +38,7 @@ export class Tr2StepExecuteRenderNode extends TriRenderStep
    * profile timer is null. The destination is the underlying texture, as in
    * Tr2StepExecuteRenderNode.cpp:35-49.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Execute(realTime, simTime, renderContext)
   {

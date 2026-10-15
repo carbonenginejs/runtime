@@ -9,7 +9,7 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IEveLineSetPath } from "./IEveLineSetPath.js";
 
 
@@ -17,112 +17,109 @@ import { IEveLineSetPath } from "./IEveLineSetPath.js";
  * Line-set path shaped as a ring: samples a circle of circleRadius, optionally
  * distorted per quadrant, and emits the resulting chain as line segments.
  */
-@meta.define({
-  className: "EveCircle",
-  family: "eve/child/lineSetPaths"
-})
-@meta.blue.inherit(INotify, IInitialize)
-@meta.blue.interface(IEveLineSetPath, INotify)
+@blue.define("EveCircle")
+@blue.inherit(INotify, IInitialize)
+@blue.interface(IEveLineSetPath, INotify)
 export class EveCircle extends IEveLineSetPath
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   display = true;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   translation = vec3.create();
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotation = quat.create();
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   isVisible = true;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   circleRadius = 100;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   circleDistort = vec4.fromValues(1, 0, 1, 0);
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   numSegments = 64;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   completeness = 1;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   startPoint = 0;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   lineWidth = 1;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   scaleSegmentsByCompleteness = false;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   scaleEndpoints = true;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   billboardObjects = false;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   objectScale = vec3.fromValues(1, 1, 1);
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   movementSpeed = 0;
 
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   animValue = 0;
 
   _points = [];
@@ -136,7 +133,7 @@ export class EveCircle extends IEveLineSetPath
   _regeneratePoints = true;
 
   /** Marks the point chain dirty so the first update regenerates it. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -148,7 +145,7 @@ export class EveCircle extends IEveLineSetPath
    * Clamps completeness to 0..2 and numSegments to 1..128, wraps startPoint into
    * one turn, then marks the point chain dirty.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName)
   {
@@ -164,7 +161,7 @@ export class EveCircle extends IEveLineSetPath
    * (wrapped into 0..1) and, when the points are dirty, regenerates them and the
    * bounding sphere; returns whether a regeneration ran.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(updateContext, _params = null)
   {
@@ -185,7 +182,7 @@ export class EveCircle extends IEveLineSetPath
    * Samples the ring into the point chain across the arc selected by completeness and startPoint, rotated by the animation value, with circleDistort applied as a per-quadrant Y offset; also refreshes the world transform. Does nothing when fewer than two segments are requested.
    * @param {Float32Array} [parentTransform] - a non-identity matrix is used and cached, so later identity calls reuse the last real parent transform
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GeneratePoints(parentTransform = mat4.create())
   {
@@ -225,7 +222,7 @@ export class EveCircle extends IEveLineSetPath
   }
 
   /** Number of generated points; zero until GeneratePoints has run. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetPointCount()
   {
@@ -236,7 +233,7 @@ export class EveCircle extends IEveLineSetPath
    * Sets the local bounding sphere to the origin with radius circleRadius + lineWidth + meshSize.
    * @param {Number} [meshSize] - a non-zero value is remembered and reused on later zero-argument calls
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CalculateBoundingSphere(meshSize = 0, _reCalculateChildren = true)
   {
@@ -256,7 +253,7 @@ export class EveCircle extends IEveLineSetPath
    * @param {Float32Array} [out] - caller-owned; allocated when omitted
    * @returns {Float32Array} out
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBoundingSphere(out = vec4.create())
   {
@@ -268,7 +265,7 @@ export class EveCircle extends IEveLineSetPath
    * system location, against the frustum and stores the result in isVisible; a
    * non-displayed path returns early and keeps its previous flag.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateVisibility(frustum, _parentLod = null, systemLocation = mat4.create())
   {
@@ -288,7 +285,7 @@ export class EveCircle extends IEveLineSetPath
    * points first), optionally animated at scrollSpeed; the wrap-around segment
    * closing the ring is skipped unless completeness is exactly 1.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AddLinesToSet(lineSet, color, animColor, scrollSpeed = 0)
   {
@@ -327,7 +324,7 @@ export class EveCircle extends IEveLineSetPath
    * Camera state is read from the supplied context instead of renderer globals.
    * JS scalar intermediates are not claimed SIMD/libm byte-identical.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateBuffer(renderContext, cursor, systemLocation, stride)
   {
@@ -383,7 +380,7 @@ export class EveCircle extends IEveLineSetPath
   }
 
   /** Carbon declares no circle-specific debug options (cpp:269-271). */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GetDebugOptions(_options)
   {

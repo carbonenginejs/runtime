@@ -3,7 +3,7 @@
 // Source: trinity/trinity/TriObserverLocal_Blue.cpp
 import { vec3 } from "#math/vec3";
 import { ITriObserverLocal } from "../../../global/blue/ITriObserverLocal.js";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 
 
 /**
@@ -13,35 +13,35 @@ import { CjsSchema, meta } from "#schema";
  * Native GetDebugOptions/RenderDebugInfo forwarding remains unported; this
  * migration does not provide debug-rendering parity.
  */
-@meta.define({ className: "TriObserverLocal", family: "trinityCore" })
-@meta.blue.interface(ITriObserverLocal)
+@blue.define("TriObserverLocal")
+@blue.interface(ITriObserverLocal)
 export class TriObserverLocal extends ITriObserverLocal
 {
   /**
    * Label identifying this local observer binding (native std::string m_name).
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /**
    * Observer position in object-local coordinates (native Vector3 m_position).
    * @type {Float32Array}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   position = vec3.create();
 
   /**
    * Object-local facing direction, initially +Z (native Vector3 m_front).
    * @type {Float32Array}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   front = vec3.fromValues(0, 0, 1);
 
   /**
@@ -51,8 +51,8 @@ export class TriObserverLocal extends ITriObserverLocal
   _mute = false;
 
   /** Gets native mute state. @returns {boolean} Current mute state. */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   @meta.implemented
   get mute()
   {
@@ -70,9 +70,9 @@ export class TriObserverLocal extends ITriObserverLocal
    * Placement observer receiving the transformed position and orientation (native IBluePlacementObserverPtr).
    * @type {IBluePlacementObserver|null}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("IBluePlacementObserver")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("IBluePlacementObserver")
   observer = null;
 
 
@@ -85,7 +85,7 @@ export class TriObserverLocal extends ITriObserverLocal
    * @param {Float32Array} worldTransform World matrix.
    * @returns {boolean} Whether an observer was updated.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(worldTransform)
   {
@@ -120,7 +120,7 @@ export class TriObserverLocal extends ITriObserverLocal
   }
 
   /** Gets the bound placement observer. @returns {object|null} Observer. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetObserver()
   {
@@ -133,7 +133,7 @@ export class TriObserverLocal extends ITriObserverLocal
    * @param {object|null} observer Placement observer.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetObserver(observer)
   {
@@ -146,7 +146,7 @@ export class TriObserverLocal extends ITriObserverLocal
    * @param {Float32Array|number[]} position Local position.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetPosition(position)
   {
@@ -159,7 +159,7 @@ export class TriObserverLocal extends ITriObserverLocal
    * @param {Float32Array|number[]} front Local facing vector.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetFront(front)
   {
@@ -167,7 +167,7 @@ export class TriObserverLocal extends ITriObserverLocal
   }
 
   /** Gets mute state. @returns {boolean} Whether the observer is muted. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetMute()
   {
@@ -182,7 +182,7 @@ export class TriObserverLocal extends ITriObserverLocal
    * @param {boolean} mute Desired state.
    * @returns {boolean} Whether the stored state changed.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetMute(mute)
   {
@@ -204,7 +204,7 @@ export class TriObserverLocal extends ITriObserverLocal
   }
 
   /** Native no-op callback. @returns {boolean} True. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   OnModified()
   {

@@ -2,7 +2,7 @@
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { be } from "#blue";
 import { LocatorType } from "./enums.js";
 import { quat } from "#math/quat";
@@ -19,100 +19,100 @@ const INV_DIR = vec3.create();
 const NO_FORCES = [];
 
 /** A steering behaviour that shuttles each drone between seek and deliver locators, slowing on approach, snapping its facing, and triggering effects on arrival. */
-@meta.define({ className: "BackAndForth", family: "eve/child/behaviors" })
-@meta.blue.inherit(IBehavior)
-@meta.blue.interface(IBehavior)
+@blue.define("BackAndForth")
+@blue.inherit(IBehavior)
+@blue.interface(IBehavior)
 export class BackAndForth
 {
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.int32
   behaviorPriority = 0;
 
   /** m_enabled (bool) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   enabled = true;
 
   /** m_locatorType (LocatorType - enum LocatorType) [READWRITE, PERSIST, ENUM, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.BackAndForth.LocatorType")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.BackAndForth.LocatorType")
   locatorType = 0;
 
   /** m_locatorSets (PEveLocatorSetsVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveLocatorSets")
+  @blue.read
+  @blue.persist
+  @type.list("EveLocatorSets")
   locatorSet = [];
 
   /** m_arrivedRadius (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   arrivedRadius = 50;
 
   /** m_distFromOrigin (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   distFromOrigin = 20;
 
   /** m_slowDownRadius (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   slowDownRadius = 200;
 
   /** m_backAndForthWeight (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   backAndForthWeight = 100;
 
   /** m_fxBehavior (IBehavior*) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("IBehavior")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("IBehavior")
   fxBehavior = null;
 
   /** m_target (EveSpaceObject2*) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
+  @blue.readwrite
+  @blue.persist
   @meta.reference
-  @meta.type.rootRef("EveSpaceObject2")
+  @type.rootRef("EveSpaceObject2")
   target = null;
 
   /** m_parent (EveSpaceObject2*) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
+  @blue.readwrite
+  @blue.persist
   @meta.reference
-  @meta.type.rootRef("EveSpaceObject2")
+  @type.rootRef("EveSpaceObject2")
   parent = null;
 
   /** m_seconds (float) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   secondsToTurn = 0.25;
 
   /** m_locatorSetName (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   locatorSetName = "damage";
 
   // Debug arrival point (Carbon m_arrivalPoint).
   _arrivalPoint = vec3.create();
 
   /** Carbon BackAndForth::GetProcessPriority (cpp:31-34). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetProcessPriority()
   {
@@ -120,7 +120,7 @@ export class BackAndForth
   }
 
   /** Carbon BackAndForth::GetBehaviorName (cpp:36-39). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBehaviorName()
   {
@@ -133,7 +133,7 @@ export class BackAndForth
    * Adapted: Carbon returns a byte size; the JS port models scratch as one plain record per agent, so any non-zero
    * value means 'has scratch'.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetScratchMemorySize()
   {
@@ -145,7 +145,7 @@ export class BackAndForth
    *
    * Adapted: Carbon initializes caller-provided raw memory; the JS port returns the fresh record instead.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   InitializeScratch()
   {
@@ -175,7 +175,7 @@ export class BackAndForth
    * Adapted: TriRandInt maps to Math.random and Be::Time fx timestamps to Date.now seconds; the steering math is
    * ported verbatim.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CalculateBehavior(agents, scratchData, deltaTime, group, system, _dronesInSearchRadius)
   {
@@ -324,7 +324,7 @@ export class BackAndForth
   }
 
   /** Carbon method AddLocatorSet (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddLocatorSet()
   {
@@ -336,7 +336,7 @@ export class BackAndForth
   }
 
   /** Carbon BackAndForth::SetParent (cpp:348-354). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetParent(parent)
   {
@@ -364,7 +364,7 @@ export class BackAndForth
    * the parent, then the world position and direction of its indexed locator
    * from the behaviour's named set, into the caller's two out-vectors.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetParentLocatorPosition(locatorIndex, outPosition, outDirection)
   {
@@ -372,7 +372,7 @@ export class BackAndForth
   }
 
   /** Carbon GetTargetLocatorPosition (cpp:365-372): the target twin. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetTargetLocatorPosition(locatorIndex, outPosition, outDirection)
   {

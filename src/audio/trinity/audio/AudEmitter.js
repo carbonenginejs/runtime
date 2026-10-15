@@ -1,7 +1,7 @@
 // Source: audio/src/AudEmitter.h + AudEmitter.cpp
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/AudEmitter.json.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { ITr2DebugRenderable } from "#interfaces/ITr2DebugRenderable";
 import { IBlueEventListener, IBluePlacementObserver } from "#blue";
 import { quat } from "#math/quat";
@@ -10,70 +10,70 @@ import { AudGameObjResource } from "./AudGameObjResource.js";
 import { ITr2AudEmitter } from "../trinityAudioApi/ITr2AudEmitter.js";
 
 /** Represents the concrete content-facing audio emitter (ITr2AudEmitter) with authored placement and attenuation controls. */
-@meta.define({ className: "AudEmitter", family: "audio" })
-@meta.blue.inherit(ITr2AudEmitter)
-@meta.blue.interface(IBlueEventListener, IBluePlacementObserver, ITr2AudEmitter, ITr2DebugRenderable)
-@meta.blue.chainTo(AudGameObjResource)
+@blue.define("AudEmitter")
+@blue.inherit(ITr2AudEmitter)
+@blue.interface(IBlueEventListener, IBluePlacementObserver, ITr2AudEmitter, ITr2DebugRenderable)
+@blue.chainTo(AudGameObjResource)
 export class AudEmitter extends AudGameObjResource
 {
 
   /** m_authoredRotation (Quaternion) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotation = quat.create();
 
   /** Effective front vector sent to Wwise; Carbon's read-only `front` property (GetFront). */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   get front()
   {
     return this.GetFront();
   }
 
   /** Effective top vector sent to Wwise; Carbon's read-only `top` property (GetTop). */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   get top()
   {
     return this.GetTop();
   }
 
   /** m_normalizeAttenuationScaling (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   normalizeAttenuationScaling = false;
 
   /** m_visualizationRadius (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   visualizationRadius = 0;
 
   /** m_maxNormalizedValue (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   maxNormalizedValue = 9000;
 
   /** m_maxNormalizedScalingFactor (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   maxNormalizedScalingFactor = 3.5;
 
   /** m_minNormalizedValue (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   minNormalizedValue = 30;
 
   /** m_minNormalizedScalingFactor (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   minNormalizedScalingFactor = 0.4;
 
   /**
@@ -82,7 +82,7 @@ export class AudEmitter extends AudGameObjResource
    *
    * @param {string} [name] Emitter name; Carbon defaults it to empty.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   __init__(name = "")
   {
@@ -91,7 +91,7 @@ export class AudEmitter extends AudGameObjResource
   }
 
   /** Carbon method SendEvent -> PostEvent (ITr2AudEmitter). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SendEvent(name, bypassPrefix = false)
   {
@@ -99,7 +99,7 @@ export class AudEmitter extends AudGameObjResource
   }
 
   /** Carbon method HandleEvent (IBlueEventListener): event tracks post directly on this emitter. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HandleEvent(eventName)
   {
@@ -111,7 +111,7 @@ export class AudEmitter extends AudGameObjResource
    * a game object as placed (which lets Wake register it), then applies the
    * parent placement.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetPosition(front, top, position)
   {
@@ -120,7 +120,7 @@ export class AudEmitter extends AudGameObjResource
   }
 
   /** Carbon Blue method SetPlacement -> SetPosition. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetPlacement(front, top, position)
   {
@@ -128,7 +128,7 @@ export class AudEmitter extends AudGameObjResource
   }
 
   /** Carbon method UpdatePlacement: placement observers forward here. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdatePlacement(front, top, position)
   {
@@ -139,7 +139,7 @@ export class AudEmitter extends AudGameObjResource
   // to [minNormalizedScalingFactor, maxNormalizedScalingFactor]. Carbon does
   // NOT clamp - out-of-domain inputs extrapolate. Preserved.
   /** Carbon method SetAttenuationScalingFactor: optional normalization, then base store/push. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetAttenuationScalingFactor(scalingFactor)
   {
@@ -155,7 +155,7 @@ export class AudEmitter extends AudGameObjResource
   }
 
   /** Carbon method SetName (ITr2AudEmitter). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -163,7 +163,7 @@ export class AudEmitter extends AudGameObjResource
   }
 
   /** Carbon method GetName (ITr2AudEmitter). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetName()
   {
@@ -171,7 +171,7 @@ export class AudEmitter extends AudGameObjResource
   }
 
   /** Carbon method SetPrefix (ITr2AudEmitter). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetPrefix(prefix)
   {
@@ -179,7 +179,7 @@ export class AudEmitter extends AudGameObjResource
   }
 
   /** Carbon method SetVisibility (ITr2AudEmitter). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetVisibility(isVisible)
   {

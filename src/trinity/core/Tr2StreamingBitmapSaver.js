@@ -12,7 +12,7 @@
 // behaviour: the pre-check never fails and the REAL format gate is
 // SaveHeader's switch, whose default returns SAVE_NOT_SUPPORTED. This port
 // keeps that net behaviour: no pre-check, the header switch rejects.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { GetBytesPerPixel, PixelFormat } from "#consts/render-context";
 import { ALResult } from "../../trinityal/ALResult.js";
 import "#consts/renderContext/formats";
@@ -22,30 +22,30 @@ const IMAGE_TYPE_RAW_RGB = 2;
 const IMAGE_TYPE_RAW_GREYSCALE = 3;
 
 /** Models Carbon's incremental bitmap saver through its dimensions, pixel format, current offset, and batch-copy entry points. */
-@meta.define({ className: "Tr2StreamingBitmapSaver", family: "trinityCore", purpose: "Models Carbon's incremental bitmap saver through its dimensions, pixel format, current offset, and batch-copy entry points." })
+@blue.define({ className: "Tr2StreamingBitmapSaver", purpose: "Models Carbon's incremental bitmap saver through its dimensions, pixel format, current offset, and batch-copy entry points." })
 export class Tr2StreamingBitmapSaver
 {
 
   /** m_currentOffset (uint32_t) [READ] - rows are written bottom-up, so it
    *  starts at the height. */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   currentOffset = 0;
 
   /** m_height (uint32_t) [READ] */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   height = 0;
 
   /** m_format (Tr2RenderContextEnum::PixelFormat - enum PixelFormat) [READ] */
-  @meta.blue.read
-  @meta.type.int32
-  @meta.type.enum("trinity.ImageIO.PixelFormat")
+  @blue.read
+  @type.int32
+  @type.enum("trinity.ImageIO.PixelFormat")
   format = 0;
 
   /** m_width (uint32_t) [READ] */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   width = 0;
 
   /** m_output - Carbon's Blue IResFile stream; here any { Write(Uint8Array) } sink. */
@@ -79,7 +79,7 @@ export class Tr2StreamingBitmapSaver
    * @param {number} pixelFormat A PixelFormat value.
    * @returns {number} An ALResult value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   StartSaving(output, width, height, pixelFormat)
   {
@@ -124,7 +124,7 @@ export class Tr2StreamingBitmapSaver
   }
 
   /** Carbon IsSaving (cpp:282-284): whether an output stream is open. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsSaving()
   {
@@ -132,7 +132,7 @@ export class Tr2StreamingBitmapSaver
   }
 
   /** Carbon HasStartedBatch (cpp:294-296): whether a batch is in flight. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasStartedBatch()
   {
@@ -140,7 +140,7 @@ export class Tr2StreamingBitmapSaver
   }
 
   /** Carbon method CopyFromRenderTargetRegion (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   CopyFromRenderTargetRegion(...args)
   {
@@ -148,7 +148,7 @@ export class Tr2StreamingBitmapSaver
   }
 
   /** Carbon EndSaving closes and pads the stream; unported with the batch pair. */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   EndSaving(...args)
   {
@@ -156,7 +156,7 @@ export class Tr2StreamingBitmapSaver
   }
 
   /** Carbon method FlushBatch (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   FlushBatch(...args)
   {
@@ -164,7 +164,7 @@ export class Tr2StreamingBitmapSaver
   }
 
   /** Carbon method StartBatch (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   StartBatch(...args)
   {

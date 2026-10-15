@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { type, blue } from "#schema";
 import { quat } from "#math/quat";
 import { EveSOFDataHullLightSetItem } from "./EveSOFDataHullLightSetItem.js";
 
@@ -8,26 +8,26 @@ import { EveSOFDataHullLightSetItem } from "./EveSOFDataHullLightSetItem.js";
 // Carbon derives this from EveSOFDataHullLightSetItem (EveSOFData.h:
 // 1422-1429) and maps the full base surface (including lightColor) plus
 // rotation, innerAngle, and outerAngle (EveSOFData_Blue.cpp:1096-1114).
-@meta.define({ className: "EveSOFDataHullLightSetSpotLight", family: "eve" })
+@blue.define("EveSOFDataHullLightSetSpotLight")
 export class EveSOFDataHullLightSetSpotLight extends EveSOFDataHullLightSetItem
 {
 
   /** m_data.rotation (Quaternion) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotation = quat.create();
 
   /** m_data.innerAngle (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   innerAngle = 0;
 
   /** m_data.outerAngle (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   outerAngle = 0;
 
 }

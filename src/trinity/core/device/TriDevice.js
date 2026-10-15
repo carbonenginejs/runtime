@@ -6,7 +6,7 @@ import { EveSpaceScene } from "../../eve/scene/EveSpaceScene.js";
 // unported Carbon behaviour, not a boundary: Carbon holds its handles on this
 // class and calls the AL from it.
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { PresentInterval, SwapEffect, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
 import {
   convertProjectionCoordToWorldPickRay,
@@ -34,7 +34,7 @@ import "#consts/renderContext/upscaling";
  * because WebGPU creates devices asynchronously. Effects, textures and
  * geometry do not register with this device yet, so they do not survive a loss.
  */
-@meta.define({ className: "TriDevice", family: "trinityCore" })
+@blue.define("TriDevice")
 // CARBON'S BASE LIST, AND IT HAS THREE ENTRIES (`TriDevice.h:33-36`):
 //
 //     BLUE_CLASS( TriDevice ) : public ITriDevice, public IBlueEvents,
@@ -47,7 +47,7 @@ import "#consts/renderContext/upscaling";
 // Native inheritance differs from Blue exposure: TriDevice_Blue.cpp maps only
 // ITriDevice. Its declaration remains quarantined in trinity/dropped; this
 // class currently composes the other two native contracts.
-@meta.blue.inherit(IBlueEvents, ISimTimeRebaseNotify)
+@blue.inherit(IBlueEvents, ISimTimeRebaseNotify)
 export class TriDevice
 {
 
@@ -64,177 +64,177 @@ export class TriDevice
   static ApplicationActivation = Object.freeze({ APP_ACTIVATED: 0, APP_DEACTIVATED: 1 });
 
   /** mPresentParam.presentInterval (Tr2PresentParametersAL - enum Tr2PresentParametersAL) [READWRITE, NOTIFY, PERSIST, ENUM] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.Tr2RenderContextEnum.PresentInterval")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.Tr2RenderContextEnum.PresentInterval")
   presentationInterval = 1;
 
   /** mSwapEffect (Tr2RenderContextEnum::SwapEffect - enum SwapEffect) [READWRITE, NOTIFY, PERSIST, ENUM] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.Tr2RenderContextEnum.SwapEffect")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.Tr2RenderContextEnum.SwapEffect")
   swapEffect = 0;
 
   /** m_throttlingState (uint32_t) [READ] */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   throttlingState = 0;
 
   /** m_deviceType (DeviceType - enum DeviceType) [READWRITE, ENUM] */
-  @meta.blue.readwrite
-  @meta.type.int32
-  @meta.type.enum("trinity.TriDevice.DeviceType")
+  @blue.readwrite
+  @type.int32
+  @type.enum("trinity.TriDevice.DeviceType")
   deviceType = 0;
 
   /** m_allowThrottling (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   allowThrottling = true;
 
   /** m_onDeviceRemoved (BlueScriptCallback) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rawStruct("BlueScriptCallback")
+  @blue.readwrite
+  @type.rawStruct("BlueScriptCallback")
   onDeviceRemoved = null;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("TriCurveSet")
+  @blue.read
+  @blue.persist
+  @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_supportedUpscalingTechniques (PTr2UpscalingTechniqueInfoStructureList) [READ] */
-  @meta.blue.read
-  @meta.type.list("Tr2UpscalingTechniqueInfo")
+  @blue.read
+  @type.list("Tr2UpscalingTechniqueInfo")
   supportedUpscalingTechniques = [];
 
   /** mViewport (PTriViewport) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.rootRef("TriViewport")
+  @blue.read
+  @blue.persist
+  @type.rootRef("TriViewport")
   viewport = null;
 
   /** mDisplayMode.width (Tr2DisplayModeInfo) [READ] */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   adapterWidth = 0;
 
   /** mDisplayMode.height (Tr2DisplayModeInfo) [READ] */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   adapterHeight = 0;
 
   /** mDisplayMode.refreshRateDenominator (Tr2DisplayModeInfo) [READ] */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   adapterRefreshRate = 0;
 
   /** mAdapter (int) [READ] */
-  @meta.blue.read
-  @meta.type.int32
+  @blue.read
+  @type.int32
   adapter = 0;
 
   /** mWidth (int32_t) [READ] */
-  @meta.blue.read
-  @meta.type.int32
+  @blue.read
+  @type.int32
   width = 0;
 
   /** mHeight (int32_t) [READ] */
-  @meta.blue.read
-  @meta.type.int32
+  @blue.read
+  @type.int32
   height = 0;
 
   /** mPresentParam.msaaType (Tr2PresentParametersAL) [READWRITE, NOTIFY, PERSIST] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   multiSampleType = 0;
 
   /** mPresentParam.msaaQuality (Tr2PresentParametersAL) [READWRITE, NOTIFY, PERSIST] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   multiSampleQuality = 0;
 
   /** m_scene (ITr2ScenePtr) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.rootRef("ITr2Scene")
+  @blue.notify
+  @blue.readwrite
+  @type.rootRef("ITr2Scene")
   scene = null;
 
   /** mBackBufferCount (int) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.int32
+  @blue.notify
+  @blue.readwrite
+  @type.int32
   backBufferCount = 1;
 
   /** mTickInterval (int) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.int32
+  @blue.readwrite
+  @type.int32
   tickInterval = 0;
 
   /** m_mipLevelSkipCount (unsigned int) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.uint32
+  @blue.readwrite
+  @type.uint32
   mipLevelSkipCount = 0;
 
   /** m_animationTimeScale (float) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   animationTimeScale = 1;
 
   /** m_animationTime (float) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   animationTime = 0;
 
   /** m_upscalingSetting (Tr2UpscalingAL::Setting) [READ] */
-  @meta.blue.read
-  @meta.type.uint32
-  @meta.type.enum("trinity.Tr2UpscalingAL.Setting")
+  @blue.read
+  @type.uint32
+  @type.enum("trinity.Tr2UpscalingAL.Setting")
   upscalingSetting = 1;
 
   /** m_upscalingTechnique (Tr2UpscalingAL::Technique) [READ] */
-  @meta.blue.read
-  @meta.type.uint32
-  @meta.type.enum("trinity.Tr2UpscalingAL.Technique")
+  @blue.read
+  @type.uint32
+  @type.enum("trinity.Tr2UpscalingAL.Technique")
   upscalingTechnique = 0;
 
   /** m_upscalingWithFrameGeneration (bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   frameGeneration = false;
 
   /** Get/SetGeometryLoadDisabled (MAP_PROPERTY) - disables external geometry loads for batch processing. */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   disableGeometryLoad = false;
 
   /** Get/SetTextureLoadDisabled (MAP_PROPERTY) - disables external texture loads for batch processing. */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   disableTextureLoad = false;
 
   /** Get/SetAsyncLoadDisabled (MAP_PROPERTY) - makes resource loads synchronous. */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   disableAsyncLoad = false;
 
   /** Get/SetMinimumModelLOD (MAP_PROPERTY) - prevents the first N model LODs from loading; 0 disables. */
-  @meta.blue.readwrite
-  @meta.type.int32
+  @blue.readwrite
+  @type.int32
   minimumModelLOD = 0;
 
   /**
    * Width over height of the device viewport in pixels; zero when there is no
    * viewport or its height is zero.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AspectRatio()
   {
@@ -251,7 +251,7 @@ export class TriDevice
    * DX maps viewport pixel CENTRES to view space, so for four pixels, pixel
    * 3 maps to 1 and pixel 0 to -1.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ScreenToProjection(x, y, viewport = this.viewport, out = {})
   {
@@ -271,7 +271,7 @@ export class TriDevice
    * The returned vectors are detached from the picking helper's reusable
    * scratch storage, so a later query cannot mutate an earlier result.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetPickRayFromViewport(x, y, viewport, view, projection)
   {
@@ -285,7 +285,7 @@ export class TriDevice
   }
 
   /** Time in seconds, recentered regularly (once per hour). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetAnimationTime()
   {
@@ -296,7 +296,7 @@ export class TriDevice
    * Elapsed animation time since startTime, correct across the hourly
    * ANIMATION_TIME_MAX recenter.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetAnimationTimeElapsed(startTime)
   {
@@ -334,7 +334,7 @@ export class TriDevice
   previousAnimationTime = 0;
 
   /** `Tr2Renderer::GetCurrentFrameCounter` reads this through gTriDev. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetCurrentFrameCounter()
   {
@@ -367,7 +367,7 @@ export class TriDevice
    * @param {*} [_cookie] The cookie this device registered with; unread.
    * @returns {TriDevice} This device.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnTick(realTime = 0, simTime = 0, _cookie = null)
   {
@@ -412,7 +412,7 @@ export class TriDevice
    *
    * @returns {TriDevice} This device.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   InvalidateAndUnregisterForTicks()
   {
@@ -482,7 +482,7 @@ export class TriDevice
    *
    * @returns {object[]} Registered resources at the time of this call.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   static GetResourcesRegistered()
   {
@@ -495,7 +495,7 @@ export class TriDevice
    * @param {object} resource A `Tr2DeviceResource`.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static RegisterResource(resource)
   {
@@ -523,7 +523,7 @@ export class TriDevice
    * @param {object} resource The registered resource.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static UnregisterResource(resource)
   {
@@ -540,7 +540,7 @@ export class TriDevice
    *
    * @returns {boolean} Whether the ambient context has a live backend.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   DeviceExists()
   {
@@ -558,7 +558,7 @@ export class TriDevice
    *
    * @returns {boolean} Whether the ambient context has a live backend.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   DoesD3DDeviceExist()
   {
@@ -571,7 +571,7 @@ export class TriDevice
    *
    * @returns {TriDevice} This device.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   DestroyRenderContext()
   {
@@ -604,7 +604,7 @@ export class TriDevice
    * @param {number} [storage] A `TriStorage` mask.
    * @returns {TriDevice} This device.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ReleaseDeviceResources(storage = TriStorageFlags.TRISTORAGE_ALL)
   {
@@ -632,7 +632,7 @@ export class TriDevice
    *
    * @returns {TriDevice} This device.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   PrepareDeviceResources()
   {
@@ -659,7 +659,7 @@ export class TriDevice
    * @param {object} presentParameters A `Tr2PresentParametersAL`.
    * @returns {boolean} Whether the parameters were accepted.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetPresentParameters(adapter, presentParameters)
   {
@@ -806,7 +806,7 @@ export class TriDevice
    *
    * @returns {boolean} False when there is no device to describe.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   InitD3DDevice()
   {
@@ -847,7 +847,7 @@ export class TriDevice
    * @param {number} [adapter] Which adapter.
    * @returns {boolean} Whether a device now exists.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CreateSimpleDevice(
     hwnd,
@@ -933,7 +933,7 @@ export class TriDevice
    * @param {object|null} presentParameters A `Tr2PresentParametersAL`, or null.
    * @returns {boolean} True, as Carbon's does unconditionally.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetPresentation(adapter, presentParameters)
   {
@@ -992,7 +992,7 @@ export class TriDevice
    * @param {*} [context] Passed back to it.
    * @returns {TriDevice} This device.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AddPostUpdateCallback(callback, context = null)
   {
@@ -1020,7 +1020,7 @@ export class TriDevice
    * @param {number} simTime The same, for simulation.
    * @returns {TriDevice} This device.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(realTime, simTime)
   {
@@ -1062,7 +1062,7 @@ export class TriDevice
    * @param {number} simTime The same, for simulation.
    * @returns {TriDevice} This device.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   HandleRenderTick(realTime, simTime)
   {
@@ -1110,7 +1110,7 @@ export class TriDevice
    * @param {number} newTime The simulation time after it.
    * @returns {TriDevice} This device.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnSimClockRebase(oldTime, newTime)
   {
@@ -1119,7 +1119,7 @@ export class TriDevice
   }
 
   /** Carbon method CreateUpscalingContext (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   CreateUpscalingContext(...args)
   {
@@ -1127,7 +1127,7 @@ export class TriDevice
   }
 
   /** Carbon method DeleteUpscalingContext (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   DeleteUpscalingContext(...args)
   {
@@ -1135,7 +1135,7 @@ export class TriDevice
   }
 
   /** Carbon method GetRenderResolution (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   GetRenderResolution(...args)
   {
@@ -1143,7 +1143,7 @@ export class TriDevice
   }
 
   /** Carbon method RefreshDeviceResources (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   RefreshDeviceResources(...args)
   {
@@ -1172,7 +1172,7 @@ export class TriDevice
    *
    * @returns {boolean} True, as Carbon's does.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Render()
   {
@@ -1212,7 +1212,7 @@ export class TriDevice
    *
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.notSupported
   Throttle()
   {
@@ -1224,7 +1224,7 @@ export class TriDevice
    * @param {object|null} renderJobs A `Tr2RenderJobs`, or null to detach.
    * @returns {TriDevice} This device.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetRenderJobs(renderJobs)
   {
@@ -1250,7 +1250,7 @@ export class TriDevice
   #renderJobs = null;
 
   /** Carbon method GetRenderingPlatformID (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   GetRenderingPlatformID(...args)
   {
@@ -1258,7 +1258,7 @@ export class TriDevice
   }
 
   /** Carbon method SupportsRenderTargetFormat (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   SupportsRenderTargetFormat(...args)
   {
@@ -1276,7 +1276,7 @@ export class TriDevice
    *
    * @returns {boolean} False.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   IsVariableRefreshRateSupported()
   {
@@ -1284,7 +1284,7 @@ export class TriDevice
   }
 
   /** Carbon method SupportsRaytracing (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   SupportsRaytracing(...args)
   {
@@ -1292,7 +1292,7 @@ export class TriDevice
   }
 
   /** Carbon method SetUpscaling (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   SetUpscaling(...args)
   {
@@ -1300,7 +1300,7 @@ export class TriDevice
   }
 
   /** Carbon method GetRenderContext (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   GetRenderContext(...args)
   {
@@ -1320,7 +1320,7 @@ export class TriDevice
    *
    * @returns {TriDevice} This device.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateAvailableUpscalingTechniques()
   {

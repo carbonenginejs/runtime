@@ -1,14 +1,14 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/IEveDistributionMethod.h
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 
 /** Required distribution placement contract. */
-@meta.define({ className: "IEveDistributionMethod", family: "eve/distribution" })
+@blue.define("IEveDistributionMethod")
 export class IEveDistributionMethod
 {
 
   /** Regenerates the distribution's complete placement data. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   RegeneratePlacementData()
   {
@@ -16,7 +16,7 @@ export class IEveDistributionMethod
   }
 
   /** Returns the number of available placements. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GetNumberOfPlacements()
   {
@@ -24,7 +24,7 @@ export class IEveDistributionMethod
   }
 
   /** Returns placement data for the requested entry. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GetPlacementData(_index)
   {
@@ -32,7 +32,7 @@ export class IEveDistributionMethod
   }
 
   /** Writes the center of the requested placement data. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GetPlacementDataCenter(_index, _out)
   {
@@ -40,7 +40,7 @@ export class IEveDistributionMethod
   }
 
   /** Reports whether the distribution produces dynamic movement. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GetHasDynamicMovement()
   {
@@ -48,21 +48,21 @@ export class IEveDistributionMethod
   }
 
   /** Runs the optional synchronous distribution update hook. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   UpdateSyncronous(_updateContext)
   {
   }
 
   /** Runs the optional asynchronous distribution update hook. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   UpdateAsyncronous(_updateContext)
   {
   }
 
   /** Accepts an optional controller variable. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   SetControllerVariable(_name, _value)
   {

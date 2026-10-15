@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Include/ITriTargetable.h
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { ImpactConfiguration } from "../generated/include/enums.js";
 
 /**
@@ -9,11 +9,11 @@ import { ImpactConfiguration } from "../generated/include/enums.js";
  * last argument (Carbon passes them first) except UpdateImpact, whose
  * implementers already take the output first.
  */
-@meta.define({ className: "ITriTargetable", carbon: "ITriTargetable", family: "trinityCore", abstract: true })
+@blue.define({ className: "ITriTargetable", abstract: true })
 export class ITriTargetable
 {
   /** Number of damage locators. @returns {number} */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GetDamageLocatorCount()
   {
@@ -21,7 +21,7 @@ export class ITriTargetable
   }
 
   /** Index of the damage locator closest to a world position. @param {Float32Array} _position @returns {number} */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GetClosestDamageLocatorIndex(_position)
   {
@@ -35,7 +35,7 @@ export class ITriTargetable
    * @param {Float32Array} _out Output position.
    * @returns {boolean} Whether the index named a locator.
    */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GetDamageLocatorPosition(_index, _inWorldSpace, _out)
   {
@@ -49,7 +49,7 @@ export class ITriTargetable
    * @param {Float32Array} _out Output direction.
    * @returns {boolean} Whether the index named a locator.
    */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GetDamageLocatorDirection(_index, _inWorldSpace, _out)
   {
@@ -62,7 +62,7 @@ export class ITriTargetable
    * @param {Float32Array} _source Shot origin.
    * @param {Float32Array} _out Output miss position.
    */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GetMissPosition(_hit, _source, _out)
   {
@@ -70,7 +70,7 @@ export class ITriTargetable
   }
 
   /** A randomized well-facing damage locator for a world position. @param {Float32Array} _position @returns {number} */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GetGoodDamageLocatorIndex(_position)
   {
@@ -78,7 +78,7 @@ export class ITriTargetable
   }
 
   /** Target radius. @returns {number} */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GetRadius()
   {
@@ -93,7 +93,7 @@ export class ITriTargetable
    * @param {number} _size Impact size.
    * @returns {number} Impact index, or -1.
    */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   CreateImpact(_damageLocatorIndex, _direction, _lifeTime, _size)
   {
@@ -107,7 +107,7 @@ export class ITriTargetable
    * @param {number} _impactIndex Impact index from CreateImpact.
    * @returns {boolean} Whether the impact is still live.
    */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   UpdateImpact(_out, _direction, _impactIndex)
   {
@@ -115,7 +115,7 @@ export class ITriTargetable
   }
 
   /** Carbon's default (ITriTargetable.h:23-26): no impact configuration. @returns {number} */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetImpactConfiguration()
   {
@@ -131,7 +131,7 @@ export class ITriTargetable
    * @param {Float32Array} _out Output impact position.
    * @returns {boolean} Whether the projectile hit.
    */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GetImpactPosition(_locator, _posPrev, _posNow, _epsilon, _out)
   {
@@ -139,7 +139,7 @@ export class ITriTargetable
   }
 
   /** Whether impacts use the shield ellipsoid. @returns {boolean} */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   HasImpactConfigurationShield()
   {
@@ -147,7 +147,7 @@ export class ITriTargetable
   }
 
   /** Carbon's default (ITriTargetable.h:32-34) ignores the locator. @param {number} _locator */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetLastDamageLocatorHit(_locator)
   {

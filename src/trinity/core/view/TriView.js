@@ -2,22 +2,22 @@
 //   trinity/trinity/TriView.cpp
 //   trinity/trinity/TriView_Blue.cpp
 import { mat4 } from "#math/mat4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 
 /** The camera view matrix, together with the look-at helper that builds it. */
-@meta.define({ className: "TriView", family: "trinityCore" })
+@blue.define("TriView")
 export class TriView
 {
 
   /** m_transform (Matrix) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.mat4
+  @blue.readwrite
+  @blue.persist
+  @type.mat4
   transform = mat4.create();
 
   /** Copies a view matrix in; the caller's buffer is not retained. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetTransform(value)
   {
@@ -31,7 +31,7 @@ export class TriView
    * Adapted: Copies the transform into the caller's output matrix instead of returning
    * Carbon's const Matrix reference.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetTransform(out = mat4.create())
   {
@@ -39,7 +39,7 @@ export class TriView
   }
 
   /** Builds Carbon's right-handed look-at view transform. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetLookAtPosition(eye, at, up)
   {

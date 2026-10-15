@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpotlightSet.cpp
 import { DictReader } from "#blue/DictReader";
 import { mat4 } from "#math/mat4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { CjsLightData } from "../../lights/CjsLightData.js";
 
 
@@ -10,26 +10,26 @@ import { CjsLightData } from "../../lights/CjsLightData.js";
  * The spot light one spotlight item contributes, carrying its booster-gain
  * influence flag, light profile and the bone matrix resolved for it each frame.
  */
-@meta.define({ className: "EveSpotlightLight", family: "eve/attachment/spotlights" })
+@blue.define("EveSpotlightLight")
 export class EveSpotlightLight
 {
   @meta.owned
-  @meta.type.root("CjsLightData")
+  @type.root("CjsLightData")
   lightData = new CjsLightData();
 
-  @meta.type.mat4
+  @type.mat4
   boneMatrix = mat4.create();
 
-  @meta.type.rootRef("Tr2LightProfileRes")
+  @type.rootRef("Tr2LightProfileRes")
   lightProfile = null;
 
-  @meta.type.boolean
+  @type.boolean
   boosterGainInfluence = false;
 
-  @meta.type.uint32
+  @type.uint32
   index = 0;
 
-  @meta.type.wpath("Tr2LightProfileRes")
+  @type.wpath("Tr2LightProfileRes")
   lightProfilePath = "";
 
   /**

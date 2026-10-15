@@ -2,16 +2,16 @@
 // Source: trinity/trinity/Tr2RuntimeGpuBuffer.cpp
 import { Tr2BufferAL } from "../../../trinityal/Tr2BufferAL/index.js";
 // Hand-maintained from Carbon source; the AL buffer is backend-private state.
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { ITr2GpuBuffer } from "../ITr2GpuBuffer.js";
 
 /**
  * An ITr2GpuBuffer over one runtime AL buffer: what `Tr2Effect::SetParameter`
  * wraps a `Tr2BufferAL` in so a buffer parameter can hold it.
  */
-@meta.define({ className: "Tr2RuntimeGpuBuffer", family: "trinityCore" })
-@meta.blue.inherit(ITr2GpuBuffer)
-@meta.blue.interface(ITr2GpuBuffer)
+@blue.define("Tr2RuntimeGpuBuffer")
+@blue.inherit(ITr2GpuBuffer)
+@blue.interface(ITr2GpuBuffer)
 export class Tr2RuntimeGpuBuffer
 {
   /** m_buffer: the AL buffer, or null for Carbon's default-constructed one. */
@@ -23,7 +23,7 @@ export class Tr2RuntimeGpuBuffer
    * @param {number} [_index] Unused.
    * @returns {object|null} The AL buffer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetGpuBuffer(_index = 0)
   {
@@ -36,7 +36,7 @@ export class Tr2RuntimeGpuBuffer
    * @param {object|null} buffer The AL buffer.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetGpuBuffer(buffer)
   {

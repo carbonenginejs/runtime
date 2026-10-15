@@ -1,13 +1,13 @@
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /** Base for one record whose identity is the key from its source document. */
-@meta.define({ className: "CjsCharacterRecord", family: "character" })
+@meta.define("CjsCharacterRecord")
 export class CjsCharacterRecord
 {
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     recordID = "";
 
 }

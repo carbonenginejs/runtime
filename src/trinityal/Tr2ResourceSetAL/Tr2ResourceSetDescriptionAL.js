@@ -2,7 +2,7 @@ import { Tr2BufferAL } from "../Tr2BufferAL/index.js";
 import { Tr2TextureAL } from "../Tr2TextureAL/index.js";
 // Source: trinity/trinityal/include/Tr2ResourceSetAL.h:44-127
 // Source: trinity/trinityal/src/Tr2ResourceSetAL.cpp:152-543
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { MAX_RESOURCES_IN_STAGE, Tr2RegisterMapAL } from "./Tr2RegisterMapAL.js";
 
 // Hash identities for the three distinct native invalid implementations:
@@ -15,7 +15,7 @@ const identities = new WeakMap();
 let nextIdentity = 1;
 
 /** A program's mapped resources. Constant buffers travel SetConstants. */
-@meta.define({ className: "Tr2ResourceSetDescriptionAL", family: "trinityal" })
+@blue.define("Tr2ResourceSetDescriptionAL")
 export class Tr2ResourceSetDescriptionAL
 {
   static MAX_RESOURCES_IN_STAGE = MAX_RESOURCES_IN_STAGE;

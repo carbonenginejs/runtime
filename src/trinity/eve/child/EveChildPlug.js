@@ -8,7 +8,7 @@ import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { EveEntity } from "../EveEntity.js";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { IsMatch } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { addChild, removeChild, clearChildren } from "../../../global/blue/children.js";
@@ -16,48 +16,48 @@ import { EveChildTransform } from "./EveChildTransform.js";
 import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 
 /** A container of child objects plugged into a socket, forwarding controller events, controller variables and component registration to what it contains. */
-@meta.define({ className: "EveChildPlug", family: "eve/child" })
-@meta.blue.inherit(ITr2CurveSetOwner, IInitialize, INotify, IListNotify)
-@meta.blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, IEveEffectChildrenOwner, ITr2SoundEmitterOwner, EveEntity)
-@meta.blue.inherit(IEveEffectChildrenOwner)
+@blue.define("EveChildPlug")
+@blue.inherit(ITr2CurveSetOwner, IInitialize, INotify, IListNotify)
+@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, IEveEffectChildrenOwner, ITr2SoundEmitterOwner, EveEntity)
+@blue.inherit(IEveEffectChildrenOwner)
 export class EveChildPlug extends EveChildTransform
 {
 
   _controllerVariables = new Map();
 
   /** m_objects (PIEveSpaceObjectChildVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("IEveSpaceObjectChild")
+  @blue.read
+  @blue.persist
+  @type.list("IEveSpaceObjectChild")
   objects = [];
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   display = true;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_externalParameters (PTr2ExternalParameterVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("Tr2ExternalParameter")
+  @blue.read
+  @blue.persist
+  @type.list("Tr2ExternalParameter")
   externalParameters = [];
 
   /** m_controllers (PITr2ControllerVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITr2Controller")
+  @blue.read
+  @blue.persist
+  @type.list("ITr2Controller")
   controllers = [];
 
   /** Registers hydrated children and links hydrated controllers. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -76,7 +76,7 @@ export class EveChildPlug extends EveChildTransform
    * @param {*} [value=null] The modified member, by exposed name.
    * @returns {boolean} Always true.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(value = null)
   {
@@ -96,7 +96,7 @@ export class EveChildPlug extends EveChildTransform
    * child-registration helper and, while this plug is in a registry, register
    * or unregister as entities.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
@@ -164,7 +164,7 @@ export class EveChildPlug extends EveChildTransform
    * Adapted: A JavaScript array has no notify slot, so the owner drives the notification
    * through the shared child service rather than the list driving it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AddToEffectChildrenList(child)
   {
@@ -178,7 +178,7 @@ export class EveChildPlug extends EveChildTransform
    * Adapted: A JavaScript array has no notify slot, so the owner drives the notification
    * through the shared child service rather than the list driving it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RemoveFromEffectChildrenList(child)
   {
@@ -186,7 +186,7 @@ export class EveChildPlug extends EveChildTransform
   }
 
   /** Propagates the owning space object through the plugged subtree. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetOwner(owner)
   {
@@ -196,7 +196,7 @@ export class EveChildPlug extends EveChildTransform
   }
 
   /** Propagates a modular part tag through the plugged subtree. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetPartTag(tag)
   {
@@ -207,7 +207,7 @@ export class EveChildPlug extends EveChildTransform
   }
 
   /** Carbon method HandleControllerEvent (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HandleControllerEvent(name)
   {
@@ -215,7 +215,7 @@ export class EveChildPlug extends EveChildTransform
   }
 
   /** Carbon method SetControllerVariable (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetControllerVariable(name, value)
   {
@@ -227,7 +227,7 @@ export class EveChildPlug extends EveChildTransform
   }
 
   /** Carbon method StartControllers (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   StartControllers()
   {
@@ -317,7 +317,7 @@ export class EveChildPlug extends EveChildTransform
 
   /** Carbon EveChildPlug::RegisterComponents (cpp:122-135): forward-only to
    * the plugged objects. Gate m_display. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterComponents()
   {
@@ -333,7 +333,7 @@ export class EveChildPlug extends EveChildTransform
 
   /** Carbon EveChildPlug::UnRegisterComponents (cpp:141-154): forwards to the
    * plugged objects; no display re-check. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UnRegisterComponents()
   {
@@ -348,7 +348,7 @@ export class EveChildPlug extends EveChildTransform
   }
 
   /** Carbon GetEffectChildByName (EveChildPlug.cpp:422-433): the first object with that name. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetEffectChildByName(name)
   {

@@ -11,4 +11,4 @@ export class ResourceGroupDiffAgainstGroupParams
     callbackSettings = new CallbackSettings();
 }
 
-CjsSchema.define(ResourceGroupDiffAgainstGroupParams, { className: "ResourceGroupDiffAgainstGroupParams", carbon: "ResourceGroupDiffAgainstGroupParams", family: "tools", fields: {} });
+CjsSchema.blue.define(ResourceGroupDiffAgainstGroupParams, { className: "ResourceGroupDiffAgainstGroupParams", fields: {} });

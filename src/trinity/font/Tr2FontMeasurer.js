@@ -8,46 +8,46 @@ import { Tr2TextureSubresource, Failed } from "#trinityal";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2RenderContext.js";
 import { Tr2Sprite2dD3DVertex } from "../sprite2d/Tr2Sprite2dD3DVertex.js";
 import { Tr2SpriteObjectEffect } from "../generated/sprite2d/enums.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /** Accumulates cursor position, vertical metrics, spacing, limits, and decoration bounds while measuring laid-out text. */
-@meta.define({ className: "Tr2FontMeasurer", family: "font", purpose: "Accumulates cursor position, vertical metrics, spacing, limits, and decoration bounds while measuring laid-out text." })
+@blue.define({ className: "Tr2FontMeasurer", purpose: "Accumulates cursor position, vertical metrics, spacing, limits, and decoration bounds while measuring laid-out text." })
 export class Tr2FontMeasurer
 {
 
   /** m_ascender (int) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.int32
+  @blue.readwrite
+  @type.int32
   ascender = 0;
 
   /** m_cursorX (int) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.int32
+  @blue.readwrite
+  @type.int32
   cursorX = 0;
 
   /** m_cursorY (int) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.int32
+  @blue.readwrite
+  @type.int32
   cursorY = 0;
 
   /** m_descender (int) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.int32
+  @blue.readwrite
+  @type.int32
   descender = 0;
 
   /** m_letterSpace (int) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.int32
+  @blue.readwrite
+  @type.int32
   letterSpace = 1;
 
   /** m_limit (int) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.int32
+  @blue.readwrite
+  @type.int32
   limit = 0;
 
   /** m_ascender (int) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.int32
+  @blue.readwrite
+  @type.int32
   get asc()
   {
     return this.ascender;
@@ -59,8 +59,8 @@ export class Tr2FontMeasurer
   }
 
   /** m_descender (int) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.int32
+  @blue.readwrite
+  @type.int32
   get des()
   {
     return this.descender;
@@ -72,8 +72,8 @@ export class Tr2FontMeasurer
   }
 
   /** m_underline (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   underline = false;
 
   _renderData = [];
@@ -95,8 +95,8 @@ export class Tr2FontMeasurer
   _currentFace = 0;
 
   /** CSS font family used by the browser backend. */
-  @meta.blue.readwrite
-  @meta.type.string
+  @blue.readwrite
+  @type.string
   get font()
   {
     return this.GetFont();
@@ -108,8 +108,8 @@ export class Tr2FontMeasurer
   }
 
   /** Requested pixel size. */
-  @meta.blue.readwrite
-  @meta.type.int32
+  @blue.readwrite
+  @type.int32
   get fontSize()
   {
     return this.GetFontSize();
@@ -125,8 +125,8 @@ export class Tr2FontMeasurer
    * reads it: alpha in bits 24-31, red 16-23, green 8-15, blue 0-7
    * (math/include/Color_inline.h:15-21).
    */
-  @meta.blue.readwrite
-  @meta.type.int32
+  @blue.readwrite
+  @type.int32
   get color()
   {
     return this._GetColor();
@@ -235,7 +235,7 @@ export class Tr2FontMeasurer
    * @param {string} text Text to add.
    * @returns {number} Number of characters added.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AddText(text)
   {
@@ -345,7 +345,7 @@ export class Tr2FontMeasurer
   }
 
   /** Commits pending segments with a placement offset and notifies text sprites. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   CommitText(shiftX, shiftY)
   {
@@ -361,7 +361,7 @@ export class Tr2FontMeasurer
   }
 
   /** Cancels only the latest uncommitted segment and restores its starting cursor. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   CancelLastText()
   {
@@ -370,7 +370,7 @@ export class Tr2FontMeasurer
   }
 
   /** Returns whether committed segments exist, including empty segments. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasCommittedText()
   {
@@ -378,7 +378,7 @@ export class Tr2FontMeasurer
   }
 
   /** Returns whether pending segments exist. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasUncommittedText()
   {
@@ -386,7 +386,7 @@ export class Tr2FontMeasurer
   }
 
   /** Clears segments and cursor/metric state, retaining font settings. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Reset()
   {
@@ -398,7 +398,7 @@ export class Tr2FontMeasurer
   }
 
   /** Native single-line index lookup, including its behavior in spacing gaps. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetIndexAtPos(x)
   {
@@ -416,7 +416,7 @@ export class Tr2FontMeasurer
   }
 
   /** Native width lookup sums advances, deliberately excluding letter spacing. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetWidthAtIndex(index)
   {
@@ -501,7 +501,7 @@ export class Tr2FontMeasurer
   }
 
   /** Renders committed text into a valid four-byte host bitmap. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   DrawToHostBitmap(bitmap)
   {
@@ -510,7 +510,7 @@ export class Tr2FontMeasurer
   }
 
   /** Writes to a mapped texture and always releases the mapping. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   DrawToTexture(resource)
   {
@@ -525,7 +525,7 @@ export class Tr2FontMeasurer
   }
 
   /** Draws through the native atlas lock contract, expressed as a JS result record. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   DrawToAtlasTexture(texture)
   {
@@ -539,8 +539,8 @@ export class Tr2FontMeasurer
   _fadeLeftStart = -3.4028234663852886e38;
 
   /** Native text fade boundary. */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   get fadeLeftStart()
   {
     return this.GetFadeLeftStart();
@@ -569,8 +569,8 @@ export class Tr2FontMeasurer
   _fadeLeftEnd = -3.4028234663852886e38;
 
   /** Native text fade boundary. */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   get fadeLeftEnd()
   {
     return this.GetFadeLeftEnd();
@@ -599,8 +599,8 @@ export class Tr2FontMeasurer
   _fadeRightStart = 3.4028234663852886e38;
 
   /** Native text fade boundary. */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   get fadeRightStart()
   {
     return this.GetFadeRightStart();
@@ -629,8 +629,8 @@ export class Tr2FontMeasurer
   _fadeRightEnd = 3.4028234663852886e38;
 
   /** Native text fade boundary. */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   get fadeRightEnd()
   {
     return this.GetFadeRightEnd();
@@ -659,8 +659,8 @@ export class Tr2FontMeasurer
   _fadeTopStart = -3.4028234663852886e38;
 
   /** Native text fade boundary. */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   get fadeTopStart()
   {
     return this.GetFadeTopStart();
@@ -689,8 +689,8 @@ export class Tr2FontMeasurer
   _fadeTopEnd = -3.4028234663852886e38;
 
   /** Native text fade boundary. */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   get fadeTopEnd()
   {
     return this.GetFadeTopEnd();
@@ -719,8 +719,8 @@ export class Tr2FontMeasurer
   _fadeBottomStart = 3.4028234663852886e38;
 
   /** Native text fade boundary. */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   get fadeBottomStart()
   {
     return this.GetFadeBottomStart();
@@ -749,8 +749,8 @@ export class Tr2FontMeasurer
   _fadeBottomEnd = 3.4028234663852886e38;
 
   /** Native text fade boundary. */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   get fadeBottomEnd()
   {
     return this.GetFadeBottomEnd();

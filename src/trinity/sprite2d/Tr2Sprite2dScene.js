@@ -17,7 +17,7 @@ import * as CcpLog from "../../global/logging/ccpLog.js";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dScene.h
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dScene.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dScene_Blue.cpp
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { IsMatch, INotify, BlueList } from "#blue";
 import { ITr2Scene } from "../core/ITr2Scene.js";
 import { ITr2Updateable } from "../core/ITr2Updateable.js";
@@ -60,9 +60,8 @@ const s_layerIndices = [0, 1, 3, 3, 1, 2];
  * Complete canonical members retain native order and indexed aliases. Legacy
  * getField/getDefaults expose no Scene fields; use Blue declaration consumers.
  */
-@meta.define({
-  className: "Tr2Sprite2dScene", family: "sprite2d",
-  // Explicit ordered declarations keep native stored aliases in member order.
+@blue.define({
+  className: "Tr2Sprite2dScene",
   members: [
     {"name":"name","type":{"kind":"wstring"},"edit":{"read":true,"write":true,"persist":true}},
     {"name":"display","type":{"kind":"boolean"},"edit":{"read":true,"write":true,"persist":true}},
@@ -96,14 +95,13 @@ const s_layerIndices = [0, 1, 3, 3, 1, 2];
     {"name":"maxSpriteCount","type":{"kind":"uint32"},"edit":{"read":true,"write":true,"notify":true}},
     {"name":"captureIndexDataCapacity","type":{"kind":"uint32"},"edit":{"read":true}}
   ],
-  // Tr2Sprite2dScene_Blue.cpp:229-239: MAP_PROPERTY pairs backed by the private accessors.
   properties: [
     {"name":"useLinearColorSpace","type":{"kind":"boolean"},"edit":{"read":true,"write":true}},
     {"name":"gammaCorrectText","type":{"kind":"boolean"},"edit":{"read":true,"write":true}}
   ]
 })
-@meta.blue.inherit(INotify)
-@meta.blue.interface(ITr2Scene, ITr2Updateable, INotify)
+@blue.inherit(INotify)
+@blue.interface(ITr2Scene, ITr2Updateable, INotify)
 export class Tr2Sprite2dScene extends ITr2Scene
 {
   /** Native wide-string scene label. @type {string} */
@@ -1285,7 +1283,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
    * @param {number} [_pickFilter] Carbon's unused Be::Optional<int> pick filter.
    * @returns {ITr2SpriteObject|null} The picked object.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   PickObject(x, y, projection = null, view = null, viewport = null, _pickFilter = undefined)
   {

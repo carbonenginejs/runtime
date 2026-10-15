@@ -1,4 +1,4 @@
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /**
  * One producer-verified atomic configuration/geometry relationship.
@@ -8,38 +8,38 @@ import { meta } from "#schema";
  * only when the paired paths agree on terminal LOD or normalized stem.
  * Bundles do not remove candidates from the version's inventories.
  */
-@meta.define({ className: "CjsCharacterPartModelBundle", family: "character" })
+@meta.define("CjsCharacterPartModelBundle")
 export class CjsCharacterPartModelBundle
 {
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.path
+    @blue.readwrite
+    @blue.persist
+    @type.path
     configurationPath = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.path
+    @blue.readwrite
+    @blue.persist
+    @type.path
     geometryPath = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.int32
+    @blue.readwrite
+    @blue.persist
+    @type.int32
     lod = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     lodOrigin = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     modelFamily = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     modelFamilyOrigin = null;
 
 }

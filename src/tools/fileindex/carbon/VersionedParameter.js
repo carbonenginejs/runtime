@@ -2,7 +2,7 @@
 //
 // A document field's tag and the construct it belongs to; it asks
 // ParameterInfo whether a document version carries the field.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { ParameterInfo } from "./ParameterInfo.js";
 
 /** `VersionedParameter` - a field's tag and construct, and whether a document version carries it. */
@@ -38,14 +38,12 @@ export class VersionedParameter
     }
 }
 
-CjsSchema.define(VersionedParameter, {
-    className: "VersionedParameter",
-    carbon: "VersionedParameter",
-    family: "tools",
-    fields: {},
-    methods: {
-        IsParameterExpectedInDocumentVersion: [ meta.blue.method, meta.implemented ],
-        GetTag: [ meta.blue.method, meta.implemented ]
+CjsSchema.blue.define(VersionedParameter, {
+  className: "VersionedParameter",
+  fields: {},
+  methods: {
+        IsParameterExpectedInDocumentVersion: [ blue.method, meta.implemented ],
+        GetTag: [ blue.method, meta.implemented ]
     }
 });
 

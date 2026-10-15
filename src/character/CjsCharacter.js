@@ -5,7 +5,7 @@ import { CjsCharacterDiagnostics } from "./CjsCharacterDiagnostics.js";
 // The first composed emitter (the @compose.notify spike, design record items
 // 9/11): the notify surface arrives by decorator, and the inheritance slot
 // stays free - this class never needed a base for anything else.
-@meta.define({ className: "CjsCharacter", family: "character" })
+@meta.define("CjsCharacter")
 @meta.events
 export class CjsCharacter
 {

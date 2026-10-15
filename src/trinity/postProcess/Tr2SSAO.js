@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2SSAO.h
 // Source: trinity/trinity/Tr2SSAO.cpp
 // Source: trinity/trinity/Tr2SSAO_Blue.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { PixelFormat, ShaderType, TextureType, Tr2GpuUsage } from "#consts/render-context";
 import { Failed, Tr2ConstantUsageAL } from "#trinityal";
@@ -54,93 +54,93 @@ function DispatchSize(tileSize, totalSize)
  * in the constructor, `Tr2SSAO.cpp:20`) and the one ported here; CACAO
  * (`PerformPass`, AMD's FidelityFX CACAO) is not.
  */
-@meta.define({ className: "Tr2SSAO", family: "trinityCore" })
+@blue.define("Tr2SSAO")
 export class Tr2SSAO
 {
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.int32
-  @meta.type.enum("trinity.SSAOQuality")
+  @blue.notify
+  @blue.readwrite
+  @type.int32
+  @type.enum("trinity.SSAOQuality")
   quality = SSAOQuality.HIGHEST;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   cortaoBentNormal = true;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   zoomLevel = 5;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   shadowClamp = 0.98;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   shadowPower = 2.6;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   shadowMultiplier = 1;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @type.boolean
   cortaoBlur = true;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   cortaoEnabled = true;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   sharpness = 0.5;
 
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   enabled = true;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   cortaoMipBias = -4;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   cortaoMaxBlockerSearchRadius = 0.25;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   cortaoRadius = 1e10;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   cortaoStrength = 1;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @type.boolean
   downsampled = false;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   radius = 6;
 
   /** Enables or disables Carbon's detail SSAO layer. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Enable(enable)
   {
@@ -148,7 +148,7 @@ export class Tr2SSAO
   }
 
   /** Selects the detail-layer quality and resolution policy. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetQuality(quality, downsampled)
   {
@@ -193,7 +193,7 @@ export class Tr2SSAO
    * @returns {GpuResourceHandle} The SSAO texture, or an empty handle.
    * @throws {Error} When CORTAO is off: the CACAO path is not ported.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Filter(depthBuffer, normalBuffer, gpuResourcePool, renderContext, temporal)
   {
@@ -241,7 +241,7 @@ export class Tr2SSAO
    * @param {boolean} temporal Whether to reseed and blur temporally.
    * @returns {GpuResourceHandle} The SSAO texture, or an empty handle.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ComputeCORTAO(depthBuffer, normalBuffer, gpuResourcePool, renderContext, temporal)
   {

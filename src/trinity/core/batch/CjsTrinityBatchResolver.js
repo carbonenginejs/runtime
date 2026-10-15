@@ -5,7 +5,7 @@ import { meta } from "#schema";
  * Nominal composition boundary that resolves Trinity CPU batch references for
  * a concrete renderer. Implementations may return promises.
  */
-@meta.define({ className: "CjsTrinityBatchResolver", family: "trinityCore" })
+@meta.define("CjsTrinityBatchResolver")
 export class CjsTrinityBatchResolver
 {
 

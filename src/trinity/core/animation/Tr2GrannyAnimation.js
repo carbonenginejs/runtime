@@ -10,7 +10,7 @@ import { mat3 } from "#math/mat3";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { CjsResource } from "#blue";
 import { CjsGrannyCurves } from "../../curves/track/CjsGrannyCurves.js";
 import { CjsCmfFormat } from "#resource/formats/cmf";
@@ -105,9 +105,9 @@ function sampleCmfChannel(out, curves, channel, time)
 
 
 /** Tr2GrannyAnimation (trinityCore) - promoted from generated; shapeHash 056bad2a. */
-@meta.define({ className: "Tr2GrannyAnimation", family: "trinityCore" })
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(IInitialize)
+@blue.define("Tr2GrannyAnimation")
+@blue.inherit(IInitialize)
+@blue.interface(IInitialize)
 export class Tr2GrannyAnimation
 {
 
@@ -180,13 +180,13 @@ export class Tr2GrannyAnimation
   _secondaryResources = new Map();
 
   /** m_resPath (std::string) [PERSISTONLY] */
-  @meta.blue.persistOnly
-  @meta.type.string
+  @blue.persistOnly
+  @type.string
   resPath_ = "";
 
   /** m_model (std::string) [PERSISTONLY] */
-  @meta.blue.persistOnly
-  @meta.type.string
+  @blue.persistOnly
+  @type.string
   model_ = "";
 
   /**
@@ -220,33 +220,33 @@ export class Tr2GrannyAnimation
   }
 
   /** m_grannyRes (TriGrannyResPtr) [READ] */
-  @meta.blue.read
-  @meta.type.rootRef("TriGrannyRes")
+  @blue.read
+  @type.rootRef("TriGrannyRes")
   grannyRes = null;
 
   /** m_eventListener (IBlueEventListenerPtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("IBlueEventListener")
+  @blue.readwrite
+  @type.rootRef("IBlueEventListener")
   eventListener = null;
 
   /** m_animationEnabled (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   animationEnabled = true;
 
   /** m_debugRenderJointNames (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   debugRenderJointNames = false;
 
   /** m_debugRenderSkeleton (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   debugRenderSkeleton = false;
 
   /** m_boneOffset (PGrannyBoneOffset) [READ] */
-  @meta.blue.read
-  @meta.type.rootRef("GrannyBoneOffset")
+  @blue.read
+  @type.rootRef("GrannyBoneOffset")
   boneOffset = new GrannyBoneOffset();
 
   /**
@@ -286,7 +286,7 @@ export class Tr2GrannyAnimation
    * of its own. A null resource clears the binding, which is Carbon's fallback
    * when the mesh has no geometry yet.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetSharedGeometryRes(resource)
   {
@@ -316,7 +316,7 @@ export class Tr2GrannyAnimation
    *
    * @param {object} resource Resource that released its payload.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ReleaseCachedData(resource)
   {
@@ -331,7 +331,7 @@ export class Tr2GrannyAnimation
    * branches on it to choose between this controller's palette and a separate
    * Tr2AnimationMeshBinding. Defaults false, matching cpp:81.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasMeshBinding()
   {
@@ -339,7 +339,7 @@ export class Tr2GrannyAnimation
   }
 
   /** Carbon `SetUseMeshBinding` (Tr2GrannyAnimation.h:60). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetUseMeshBinding(enable)
   {
@@ -360,7 +360,7 @@ export class Tr2GrannyAnimation
    *
    * @returns {object|null} The TriGeometryRes.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetSharedGeometryRes()
   {
@@ -379,7 +379,7 @@ export class Tr2GrannyAnimation
    *
    * @returns {object|null} The gr2 read.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetFileInfo()
   {
@@ -399,7 +399,7 @@ export class Tr2GrannyAnimation
    *
    * @returns {boolean} True when animating a CMF file.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   IsUsingCMF()
   {
@@ -412,7 +412,7 @@ export class Tr2GrannyAnimation
    *
    * @returns {object|null} The CMF payload.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetCMFData()
   {
@@ -562,7 +562,7 @@ export class Tr2GrannyAnimation
    * mesh bindings in file order. That order also controls sphere expansion.
    * @returns {boolean} Whether binding information is available.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   InitializeBoundingInfo()
   {
@@ -628,7 +628,7 @@ export class Tr2GrannyAnimation
    * @param {vec3} aabbMax Destination maximum.
    * @returns {boolean} False without changing outputs when no binding exists.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetDynamicBounds(boundingSphere, aabbMin, aabbMax)
   {
@@ -764,7 +764,7 @@ export class Tr2GrannyAnimation
   }
 
   /** The registered pose modifier, or null (Carbon Tr2GrannyAnimation.cpp:2170-2173). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPoseModifier()
   {
@@ -775,7 +775,7 @@ export class Tr2GrannyAnimation
    * Registers the non-owning modify-the-sampled-pose hook (Carbon
    * Tr2GrannyAnimation.cpp:2175-2178); pass null to clear it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetPoseModifier(poseModifier)
   {
@@ -814,7 +814,7 @@ export class Tr2GrannyAnimation
   }
 
   /** Carbon method PlayAnimationEx (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   PlayAnimationEx(animName, loopCount, delay, speed, clearWhenDone = true)
   {
@@ -829,7 +829,7 @@ export class Tr2GrannyAnimation
    * @param {number} [layerWeight=1] Layer weight.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddAnimationLayer(layerName, layerWeight = 1)
   {
@@ -941,7 +941,7 @@ export class Tr2GrannyAnimation
   }
 
   /** Carbon AddAnimationLayerAllBones (cpp:2252-2270): "" is the base layer. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddAnimationLayerAllBones(layerName)
   {
@@ -951,7 +951,7 @@ export class Tr2GrannyAnimation
   }
 
   /** Carbon AddAnimationLayerBone (cpp:2231-2249): "" is the base layer. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddAnimationLayerBone(layerName, boneName)
   {
@@ -966,7 +966,7 @@ export class Tr2GrannyAnimation
    * Adapted: Resource loading stays resource-layer-owned; registered decoded resources are attached synchronously
    * when available.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AddSecondaryResPath(resPath)
   {
@@ -998,7 +998,7 @@ export class Tr2GrannyAnimation
    * Adapted: Stores the native vectors in gl-matrix arrays. The correction is
    * applied after sampling and before pose modifiers and bone offsets.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AimBone(boneName, targetX, targetY, targetZ, axisX, axisY, axisZ)
   {
@@ -1056,7 +1056,7 @@ export class Tr2GrannyAnimation
   }
 
   /** Carbon method ChainAnimation (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ChainAnimation(animName)
   {
@@ -1064,7 +1064,7 @@ export class Tr2GrannyAnimation
   }
 
   /** Carbon method ChainAnimationEx (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ChainAnimationEx(animName, loopCount, delay, speed)
   {
@@ -1072,7 +1072,7 @@ export class Tr2GrannyAnimation
   }
 
   /** Carbon method ClearAnimations (Tr2GrannyAnimation.cpp:1515-1518): the base layer's. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ClearAnimations()
   {
@@ -1086,7 +1086,7 @@ export class Tr2GrannyAnimation
    * (finish the current loop) and ClearAnimations (drop everything with no
    * delay bookkeeping).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   StopAnimations(delay = 0)
   {
@@ -1101,7 +1101,7 @@ export class Tr2GrannyAnimation
    * @param {?string} name
    * @returns {?Tr2GrannyAnimationLayer}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetAnimationLayer(name = null)
   {
@@ -1113,7 +1113,7 @@ export class Tr2GrannyAnimation
   }
 
   /** Carbon method ClearAnimationLayers (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ClearAnimationLayers()
   {
@@ -1121,7 +1121,7 @@ export class Tr2GrannyAnimation
   }
 
   /** Carbon method DisableAimBone (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   DisableAimBone()
   {
@@ -1129,7 +1129,7 @@ export class Tr2GrannyAnimation
   }
 
   /** Carbon method EndAnimation (Tr2GrannyAnimation.cpp:1505-1508): the base layer's. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   EndAnimation()
   {
@@ -1137,7 +1137,7 @@ export class Tr2GrannyAnimation
   }
 
   /** Carbon method GetAdditiveBlendMode (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetAdditiveBlendMode()
   {
@@ -1145,7 +1145,7 @@ export class Tr2GrannyAnimation
   }
 
   /** Carbon method GetLayerWeight (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLayerWeight(layerName)
   {
@@ -1153,7 +1153,7 @@ export class Tr2GrannyAnimation
   }
 
   /** Carbon method GetSecondaryAnimationName (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetSecondaryAnimationName(resPath, index)
   {
@@ -1162,7 +1162,7 @@ export class Tr2GrannyAnimation
   }
 
   /** Carbon method PlayAnimation -> PlayAnimationOnce (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   PlayAnimation(animName, replace = true, loopCount = 1, delay = 0, speed = 1, clearWhenDone = true)
   {
@@ -1177,7 +1177,7 @@ export class Tr2GrannyAnimation
   }
 
   /** Carbon method PlayLayerAnimation -> PlayLayerAnimationByName (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   PlayLayerAnimation(layerName, animName, replace = true, loopCount = 1, delay = 0, speed = 1, clearWhenDone = true)
   {
@@ -1192,7 +1192,7 @@ export class Tr2GrannyAnimation
   }
 
   /** Carbon RemoveAnimationLayerBone (cpp:2273-2291): "" is the base layer. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RemoveAnimationLayerBone(layerName, boneName)
   {
@@ -1202,7 +1202,7 @@ export class Tr2GrannyAnimation
   }
 
   /** Carbon method GetAnimationNames (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetAnimationNames()
   {
@@ -1224,7 +1224,7 @@ export class Tr2GrannyAnimation
   }
 
   /** Carbon method SetAdditiveBlendMode (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetAdditiveBlendMode(additive)
   {
@@ -1232,7 +1232,7 @@ export class Tr2GrannyAnimation
   }
 
   /** Carbon method SetLayerControlParam (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetLayerControlParam(layerName, controlParam)
   {
@@ -1247,7 +1247,7 @@ export class Tr2GrannyAnimation
   }
 
   /** Carbon method SetLayerControlParamSkewRate (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetLayerControlParamSkewRate(layerName, skewRate)
   {
@@ -1261,7 +1261,7 @@ export class Tr2GrannyAnimation
   }
 
   /** Carbon method SetLayerWeight (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetLayerWeight(layerName, layerWeight)
   {
@@ -1275,7 +1275,7 @@ export class Tr2GrannyAnimation
   }
 
   /** Carbon method TogglePauseAnimations (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   TogglePauseAnimations(pause)
   {

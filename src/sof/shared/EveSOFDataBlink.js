@@ -1,9 +1,9 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 /** Empty native IRoot blink settings record; self exposure is in EveSOFData_Blue2.cpp:137-142. */
-@meta.define({ className: "EveSOFDataBlink", family: "eve" })
-@meta.blue.interface()
+@blue.define("EveSOFDataBlink")
+@blue.interface()
 export class EveSOFDataBlink
 {
 

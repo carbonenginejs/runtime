@@ -31,7 +31,7 @@
 // could not have reached them without copying them.
 
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { Tr2Blitter } from "./Tr2Blitter.js";
 import { TriSettingsRegistrar } from "./TriSettingsRegistrar.js";
 import { Tr2RenderUtils } from "./Tr2RenderUtils.js";
@@ -78,7 +78,7 @@ export const PER_OBJECT_VS_GUI = 6;
  * Class and method decorators expose identity and native contracts to tooling
  * independently of graph hydration.
  */
-@meta.define({ className: "Tr2Renderer", family: "trinityCore" })
+@blue.define("Tr2Renderer")
 export class Tr2Renderer
 {
   // Carbon's header calls these the defaults "for the currently set shader
@@ -109,7 +109,7 @@ export class Tr2Renderer
    *
    * @returns {number} A constant-buffer register.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPerFrameVSStartRegister()
   {
@@ -121,7 +121,7 @@ export class Tr2Renderer
    *
    * @returns {number} A constant-buffer register.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPerFramePSStartRegister()
   {
@@ -133,7 +133,7 @@ export class Tr2Renderer
    *
    * @returns {number} A constant-buffer register.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPerObjectVSStartRegister()
   {
@@ -145,7 +145,7 @@ export class Tr2Renderer
    *
    * @returns {number} A constant-buffer register.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPerObjectPSStartRegister()
   {
@@ -157,7 +157,7 @@ export class Tr2Renderer
    *
    * @returns {number} A constant-buffer register.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPerObjectRTVertexBufferDataRegister()
   {
@@ -169,7 +169,7 @@ export class Tr2Renderer
    *
    * @returns {number} A constant-buffer register.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPerObjectVSGUIStartRegister()
   {
@@ -187,7 +187,7 @@ export class Tr2Renderer
    * @param {number} shaderType A Carbon `ShaderType` value.
    * @returns {number} A constant-buffer register.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetPerObjectStartRegister(shaderType)
   {
@@ -252,7 +252,7 @@ export class Tr2Renderer
    * @param {object} [renderContext] The context to prepare the blitter against.
    * @returns {Tr2Blitter} The renderer's blitter.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   static prepareDeviceResources(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
@@ -301,7 +301,7 @@ export class Tr2Renderer
    * @param {object} material The material to draw with.
    * @returns {boolean} Whether the quad was drawn.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static drawScreenQuad(renderContext, material)
   {
@@ -326,7 +326,7 @@ export class Tr2Renderer
    * @param {Array<number>} bottomRight Bottom-right vertex corner.
    * @returns {boolean} Whether the quad was drawn.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   static drawScreenQuadRect(renderContext, effect, topLeft, bottomRight)
   {
@@ -344,7 +344,7 @@ export class Tr2Renderer
    * @param {object} material The material supplying its parameters.
    * @returns {boolean} Whether the quad was drawn.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static drawCameraSpaceScreenQuad(renderContext, shader, material)
   {
@@ -361,7 +361,7 @@ export class Tr2Renderer
    * @param {object} material The material to draw with.
    * @returns {boolean} Whether the quad was drawn.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static drawFullScreenWithShader(renderContext, material)
   {
@@ -386,7 +386,7 @@ export class Tr2Renderer
    * @param {object} [options] `material`, `tlTexCoord`, `brTexCoord`, `filter`.
    * @returns {boolean} Whether the quad was drawn.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   static drawTexture(renderContext, texture, options = {})
   {
@@ -428,7 +428,7 @@ export class Tr2Renderer
    *
    * @returns {TriSettings} The renderer's settings.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   static getSettings()
   {
@@ -444,7 +444,7 @@ export class Tr2Renderer
    *
    * @returns {number} Seconds since the clock was last recentred.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static GetAnimationTime()
   {
@@ -458,7 +458,7 @@ export class Tr2Renderer
    * @param {number} startTime An earlier reading of the animation clock.
    * @returns {number} The elapsed seconds.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static GetAnimationTimeElapsed(startTime)
   {
@@ -476,7 +476,7 @@ export class Tr2Renderer
    *
    * @returns {number[]} The published vector.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static BeginFrame()
   {
@@ -505,7 +505,7 @@ export class Tr2Renderer
    *
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   static EndFrame()
   {
@@ -523,7 +523,7 @@ export class Tr2Renderer
    *
    * @returns {*} Whatever the backend's BeginScene returns.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static BeginRenderContext()
   {
@@ -542,7 +542,7 @@ export class Tr2Renderer
    *
    * @returns {*} Whatever the backend's EndScene returns.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   static EndRenderContext()
   {
@@ -560,7 +560,7 @@ export class Tr2Renderer
    *
    * @returns {number} The frame number.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static GetCurrentFrameCounter()
   {
@@ -573,7 +573,7 @@ export class Tr2Renderer
    *
    * @returns {number} A `TR2SHADERMODEL` value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static GetShaderModel()
   {
@@ -581,7 +581,7 @@ export class Tr2Renderer
   }
 
   /** Carbon IsLowQuality (Tr2Renderer.cpp:1193-1197): the low shader model or below. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static IsLowQuality()
   {
@@ -597,7 +597,7 @@ export class Tr2Renderer
    * @param {number} shaderModel A `TR2SHADERMODEL` value.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   static SetShaderModel(shaderModel)
   {
@@ -614,7 +614,7 @@ export class Tr2Renderer
    *
    * @returns {boolean} True when creation is allowed.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   static IsResourceCreationAllowed()
   {
@@ -629,7 +629,7 @@ export class Tr2Renderer
    * @param {number} [numOfQuads] Quads the caller needs indices for.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static ReserveQuadListIndexBuffer(numOfQuads = 0)
   {
@@ -692,7 +692,7 @@ export class Tr2Renderer
    *
    * @returns {Tr2SuballocatedBufferAllocation} The allocation.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static GetQuadListIndexBuffer()
   {
@@ -714,7 +714,7 @@ export class Tr2Renderer
    *     `(techniqueName, groupDimX, groupDimY, groupDimZ, renderContext)`.
    * @returns {boolean} Whether at least one pass dispatched, and none failed.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   static runComputeShader(effect, ...args)
   {
@@ -770,7 +770,7 @@ export class Tr2Renderer
    * @param {object} renderContext The context to dispatch on.
    * @returns {boolean} False when there is no effect or shader, or a dispatch failed.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   static runComputeShaderIndirect(effect, indirectParams, offset, renderContext)
   {

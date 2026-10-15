@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionResetClipSphereCenter.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionResetClipSphereCenter.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionResetClipSphereCenter_Blue.cpp
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { EveSpaceObject2 } from "../../eve/spaceObject/EveSpaceObject2.js";
 import { ResetBehavior } from "../enums.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
@@ -12,38 +12,35 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
  * back to the object center or onto a locator chosen from a named set or from
  * the last damage-locator hit.
  */
-@meta.define({
-  className: "Tr2ActionResetClipSphereCenter",
-  family: "controllers"
-})
+@blue.define("Tr2ActionResetClipSphereCenter")
 export class Tr2ActionResetClipSphereCenter extends ITr2ControllerAction
 {
   /** Named locator set the CUSTOM mode reads.
    * @type {string}
    */
   @meta.member("locatorSetName")
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   locatorSetName = "";
 
   /** Locator index the CUSTOM mode reads; negative picks one at random.
    * @type {number}
    */
   @meta.member("locatorIndex")
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.readwrite
+  @blue.persist
+  @type.int32
   locatorIndex = -1;
 
   /** Authored reset mode.
    * @type {number}
    */
   @meta.member("resetBehavior")
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.Tr2ActionResetClipSphereCenter.ResetBehavior")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.Tr2ActionResetClipSphereCenter.ResetBehavior")
   resetBehavior = ResetBehavior.OBJECT_CENTER;
 
   /**
@@ -54,7 +51,7 @@ export class Tr2ActionResetClipSphereCenter extends ITr2ControllerAction
    * @param {ITr2ActionController} controller
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Start(controller)
   {
@@ -112,4 +109,4 @@ export class Tr2ActionResetClipSphereCenter extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionResetClipSphereCenter_Blue.cpp:21-22,26).
-meta.blue.interface(ITr2ControllerAction)(Tr2ActionResetClipSphereCenter);
+blue.interface(ITr2ControllerAction)(Tr2ActionResetClipSphereCenter);

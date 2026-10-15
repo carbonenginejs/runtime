@@ -1,55 +1,55 @@
 // Source: trinity/trinity/RenderJob/TriStepRenderLineGraph.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that draws a set of line graphs with a shared scale and legend. */
-@meta.define({ className: "TriStepRenderLineGraph", family: "renderJob" })
+@blue.define("TriStepRenderLineGraph")
 export class TriStepRenderLineGraph extends TriRenderStep
 {
 
   /** m_lineGraphs (PTr2LineGraphVector) [READ] */
-  @meta.blue.read
-  @meta.type.list("Tr2LineGraph")
+  @blue.read
+  @type.list("Tr2LineGraph")
   lineGraphs = [];
 
   /** m_scale (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   scale = 1;
 
   /** m_legendScale (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   legendScale = 1;
 
   /** m_autoScale (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   autoScale = true;
 
   /** m_showLegend (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   showLegend = true;
 
   /** m_maxLegend (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   maxLegend = 1000000000000;
 
   /** m_scaleChangeCallback (BlueScriptCallback) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rawStruct("BlueScriptCallback")
+  @blue.readwrite
+  @type.rawStruct("BlueScriptCallback")
   scaleChangeCallback = null;
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   __init__(graphs = [], legendScale = undefined, scale = undefined, autoScale = undefined)
   {
@@ -65,7 +65,7 @@ export class TriStepRenderLineGraph extends TriRenderStep
    * TriStepRenderLineGraph.cpp:98-106 calls a present Blue callback directly.
    * Adapted: A supplied JavaScript function is also accepted as a callback.
    */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   Execute(_realTime, _simTime, _renderContext)
   {

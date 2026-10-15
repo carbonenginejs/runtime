@@ -35,6 +35,7 @@ export class ITr2SkinnedObject
   }
 }
 
-CjsSchema.define(ITr2SkinnedObject, {
-  className: "ITr2SkinnedObject", carbon: "ITr2SkinnedObject", family: "trinityCore", fields: {}
+CjsSchema.blue.define(ITr2SkinnedObject, {
+  className: "ITr2SkinnedObject",
+  fields: {}
 });

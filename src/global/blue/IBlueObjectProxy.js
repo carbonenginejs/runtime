@@ -102,6 +102,7 @@ for (const name of [ "SetBuilder", "GetObject", "IsResident", "Freeze", "ClearOb
   CjsSchema.decorateMethod(IBlueObjectProxy, name, meta.requires, meta.abstract);
 }
 
-CjsSchema.define(IBlueObjectProxy, {
-  className: "IBlueObjectProxy", carbon: "IBlueObjectProxy", family: "blue", fields: {}
+CjsSchema.blue.define(IBlueObjectProxy, {
+  className: "IBlueObjectProxy",
+  fields: {}
 });

@@ -5,7 +5,7 @@ import { INotify } from "../../global/blue/INotify.js";
 import { IListNotify } from "../../global/blue/IListNotify.js";
 import { vec3 } from "#math/vec3";
 import { mat4 } from "#math/mat4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../curves/enums.js";
 import { Tr2CurveScalar } from "../curves/curve/Tr2CurveScalar.js";
 import { TriCurveSet } from "../curves/TriCurveSet.js";
@@ -15,67 +15,64 @@ import { TriCurveSet } from "../curves/TriCurveSet.js";
  * Tracks a set of moving points, estimates the volume covering them, and drives
  * a curve set from the eased camera distance to that volume.
  */
-@meta.define({
-  className: "EveDistanceField",
-  family: "eve"
-})
-@meta.blue.inherit(INotify)
-@meta.blue.interface(IListNotify, INotify)
+@blue.define("EveDistanceField")
+@blue.inherit(INotify)
+@blue.interface(IListNotify, INotify)
 export class EveDistanceField
 {
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   dimensions = vec3.create();
 
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   midpoint = vec3.create();
 
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   distanceThreshold = 3;
 
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   maxXZRatio = 1.5;
 
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   minYRatio = 0.2;
 
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   timeAdjustmentSecondsIn = 0.25;
 
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   timeAdjustmentSecondsOut = 2;
 
-  @meta.blue.notify
-  @meta.blue.read
-  @meta.type.list("ITriVectorFunction")
+  @blue.notify
+  @blue.read
+  @type.list("ITriVectorFunction")
   objects = [];
 
-  @meta.blue.readwrite
-  @meta.type.rootRef("TriView")
+  @blue.readwrite
+  @type.rootRef("TriView")
   cameraView = null;
 
-  @meta.blue.readwrite
-  @meta.type.rootRef("TriCurveSet")
+  @blue.readwrite
+  @type.rootRef("TriCurveSet")
   curveSet = null;
 
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   distance = -1;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   minDistance = 0;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   maxDistance = 75000;
 
   _distanceCurve = null;
@@ -91,7 +88,7 @@ export class EveDistanceField
    * ones rather than derived from tracked objects, and rebuilds the distance
    * curve set.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetupStaticDistanceField(dimensions, position, distanceThreshold, timeAdjustmentSecondsOut, timeAdjustmentSecondsIn)
   {
@@ -110,7 +107,7 @@ export class EveDistanceField
    * midpoint and extent are recomputed from the tracked objects on the next
    * update.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   @meta.invalidates("#dirty")
   SetupDynamicDistanceField(distanceThreshold, timeAdjustmentSecondsOut, timeAdjustmentSecondsIn)
@@ -130,7 +127,7 @@ export class EveDistanceField
    * moves, and drives the curve set. The distance is the curve set's time axis,
    * not a delta.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(updateContext)
   {
@@ -188,7 +185,7 @@ export class EveDistanceField
    * Defers a distance-curve rebuild to the next update when the minimum or
    * maximum distance changed.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   @meta.invalidates("#updateDistanceCurve")
   OnModified(propertyName)
@@ -205,7 +202,7 @@ export class EveDistanceField
    * midpoint and extent once the last one is removed; events for other lists are
    * ignored.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   @meta.invalidates("#dirty")
   OnListModified(event, _key = 0, _key2 = 0, _value = null, list = this.objects)
@@ -229,7 +226,7 @@ export class EveDistanceField
   }
 
   /** Debug rendering hook; this package produces no debug geometry. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   RenderDebugInfo()
   {

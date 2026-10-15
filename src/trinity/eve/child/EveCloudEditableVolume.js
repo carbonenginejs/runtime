@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume_Blue.cpp
 // Hand-maintained after promotion from generated intake.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { BlueList, CjsBlueOS, IInitialize, INotify, IListNotify } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { PixelFormat } from "#consts/render-context";
@@ -15,66 +15,66 @@ const MAX_FRAMES = 4;
 const Status = Object.freeze({ Working: 0, StopRequested: 1, DataReady: 2, Aborted: 3 });
 
 /** Holds the editable voxel dimensions, bitmap and texture backing, control balls, and curve sets used to author a cloud volume. */
-@meta.define({ className: "EveCloudEditableVolume", family: "eve/child", purpose: "Holds the editable voxel dimensions, bitmap and texture backing, control balls, and curve sets used to author a cloud volume." })
-@meta.blue.inherit(IInitialize, INotify, IListNotify)
-@meta.blue.interface(IListNotify, IInitialize, INotify)
+@blue.define({ className: "EveCloudEditableVolume", purpose: "Holds the editable voxel dimensions, bitmap and texture backing, control balls, and curve sets used to author a cloud volume." })
+@blue.inherit(IInitialize, INotify, IListNotify)
+@blue.interface(IListNotify, IInitialize, INotify)
 export class EveCloudEditableVolume
 {
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("TriCurveSet")
+  @blue.read
+  @blue.persist
+  @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_animated (bool) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   animated = false;
 
   /** m_balls (PEveCloudVolumeBallVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveCloudVolumeBall")
+  @blue.read
+  @blue.persist
+  @type.list("EveCloudVolumeBall")
   balls = new BlueList(EveCloudVolumeBall);
 
   /** m_bitmap (Tr2HostBitmapPtr) [READ] */
-  @meta.blue.read
-  @meta.type.rootRef("Tr2HostBitmap")
+  @blue.read
+  @type.rootRef("Tr2HostBitmap")
   bitmap = new Tr2HostBitmap();
 
   /** m_texture (TriTextureResPtr) [READ] */
-  @meta.blue.read
-  @meta.type.rootRef("TriTextureRes")
+  @blue.read
+  @type.rootRef("TriTextureRes")
   texture = new TriTextureRes();
 
   /** m_depth (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   depth = 64;
 
   /** m_height (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   height = 64;
 
   /** m_width (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   width = 64;
 
   /** m_renderDebugInfo (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   renderDebugInfo = false;
 
   _thread = null;
@@ -105,7 +105,7 @@ export class EveCloudEditableVolume
   }
 
   /** Begins the initial volume snapshot (cpp:64-68). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -114,7 +114,7 @@ export class EveCloudEditableVolume
   }
 
   /** Any notified volume property schedules regeneration (cpp:70-74). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(_names)
   {
@@ -128,7 +128,7 @@ export class EveCloudEditableVolume
    * pending iterator is drained here. Like native cpp:76-97 this explicit call
    * can block, and returns the current snapshot without waiting for a successor.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Rasterize()
   {
@@ -149,7 +149,7 @@ export class EveCloudEditableVolume
    * Native status remains DataReady after publication: subsequent Updates
    * republish the bitmap until a new job changes that status.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Update(time)
   {
@@ -165,7 +165,7 @@ export class EveCloudEditableVolume
    * Preserves native loading/unloading owner assignment and regeneration (cpp:119-170).
    * Adapted: JavaScript WeakRef stores the native BlueWeakRef owner.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnListModified(event, _key, _key2, value, _list)
   {
@@ -204,7 +204,7 @@ export class EveCloudEditableVolume
    * short event-loop slices. This is cooperative CPU work, not parallel work.
    * Curve sampling and snapshot allocation remain synchronous, as in Carbon.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnVolumeModified()
   {
@@ -256,7 +256,7 @@ export class EveCloudEditableVolume
   }
 
   /** Returns the owned texture, whose bitmap is adopted at publication (cpp:357-360). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetTexture()
   {
@@ -291,7 +291,7 @@ export class EveCloudEditableVolume
   }
 
   /** Adds the native editor overlay option (cpp:363-366). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetDebugOptions(options)
   {
@@ -299,7 +299,7 @@ export class EveCloudEditableVolume
   }
 
   /** Both native debug-drawing overloads still require the unported debug geometry renderer. */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   RenderDebugInfo(_rendererOrWorld, _worldOrContext)
   {

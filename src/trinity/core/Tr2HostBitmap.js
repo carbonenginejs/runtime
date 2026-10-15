@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2HostBitmap.h
 // Maintained promotion: native ImageIO storage replaces the generated model snapshots.
 // Async saving and the explicit unimplemented Trinity methods remain unsupported.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { PixelFormat, TextureType } from "#consts/render-context";
 import { HostBitmap } from "#imageio";
 import { CjsDdsFormat } from "#resource/formats/dds";
@@ -53,7 +53,7 @@ export class Tr2HostBitmap extends HostBitmap
   }
 
   /** Uses the inherited ImageIO volume allocation exposed by Tr2HostBitmap_Blue.cpp:467-471. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   CreateVolume(width, height, depth, mipCount, format)
   {
@@ -61,7 +61,7 @@ export class Tr2HostBitmap extends HostBitmap
   }
 
   /** Carbon method Create (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   Create(...args)
   {
@@ -69,7 +69,7 @@ export class Tr2HostBitmap extends HostBitmap
   }
 
   /** Carbon method CreateCube (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   CreateCube(...args)
   {
@@ -77,7 +77,7 @@ export class Tr2HostBitmap extends HostBitmap
   }
 
   /** Carbon method PopulateMargin (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   PopulateMargin(...args)
   {
@@ -85,7 +85,7 @@ export class Tr2HostBitmap extends HostBitmap
   }
 
   /** Carbon method SaveAsync -> PySaveAsync (MAP_METHOD). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   SaveAsync(...args)
   {
@@ -93,7 +93,7 @@ export class Tr2HostBitmap extends HostBitmap
   }
 
   /** Carbon method WaitForSave (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   WaitForSave(...args)
   {
@@ -101,7 +101,7 @@ export class Tr2HostBitmap extends HostBitmap
   }
 
   /** Carbon method ChangeFormat -> ChangeFormatFromScript (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   ChangeFormat(...args)
   {
@@ -120,7 +120,7 @@ export class Tr2HostBitmap extends HostBitmap
    * @param {object} [options] DDS worker options and cancellation signal.
    * @returns {Promise<boolean>} Whether the complete bitmap was published.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   async Compress(compressionFormat, qualityLevel, output, options = {})
   {
@@ -142,7 +142,7 @@ export class Tr2HostBitmap extends HostBitmap
   }
 
   /** Carbon method SetMipRawData -> PySetMipRawData (MAP_METHOD). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   SetMipRawData(...args)
   {
@@ -150,7 +150,7 @@ export class Tr2HostBitmap extends HostBitmap
   }
 
   /** Carbon method CopyFaceFromRenderTarget -> CopyFaceFromRenderTargetPython (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   CopyFaceFromRenderTarget(...args)
   {
@@ -158,7 +158,7 @@ export class Tr2HostBitmap extends HostBitmap
   }
 
   /** Carbon method CopyFromRenderTargetRegion -> CopyFromRenderTargetRegionPython (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   CopyFromRenderTargetRegion(...args)
   {
@@ -166,7 +166,7 @@ export class Tr2HostBitmap extends HostBitmap
   }
 
   /** Carbon method CopyFromRenderTarget -> CopyFromRenderTargetPython (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   CopyFromRenderTarget(...args)
   {
@@ -174,7 +174,7 @@ export class Tr2HostBitmap extends HostBitmap
   }
 
   /** Carbon method CopyFromTextureRes -> CopyFromTextureResPython (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   CopyFromTextureRes(...args)
   {
@@ -182,7 +182,7 @@ export class Tr2HostBitmap extends HostBitmap
   }
 
   /** Carbon method CountPixelsOfValue (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   CountPixelsOfValue(...args)
   {
@@ -190,7 +190,7 @@ export class Tr2HostBitmap extends HostBitmap
   }
 
   /** Carbon method CreateFromHeightData (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   CreateFromHeightData(...args)
   {
@@ -198,7 +198,7 @@ export class Tr2HostBitmap extends HostBitmap
   }
 
   /** Carbon method Crop (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   Crop(...args)
   {
@@ -206,7 +206,7 @@ export class Tr2HostBitmap extends HostBitmap
   }
 
   /** Carbon method IsSaveSucceeded (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   IsSaveSucceeded(...args)
   {
@@ -214,7 +214,7 @@ export class Tr2HostBitmap extends HostBitmap
   }
 
   /** Carbon method Downsample2x2 (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   Downsample2x2(...args)
   {
@@ -222,7 +222,7 @@ export class Tr2HostBitmap extends HostBitmap
   }
 
   /** Carbon method __init__ -> PyInit (MAP_METHOD). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   __init__(...args)
   {
@@ -230,7 +230,7 @@ export class Tr2HostBitmap extends HostBitmap
   }
 
   /** Carbon method IsSaveCompleted (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   IsSaveCompleted(...args)
   {
@@ -238,7 +238,7 @@ export class Tr2HostBitmap extends HostBitmap
   }
 
   /** Carbon method IsSaving (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   IsSaving(...args)
   {
@@ -246,7 +246,7 @@ export class Tr2HostBitmap extends HostBitmap
   }
 
   /** Uses the inherited ImageIO storage-validity predicate exposed by the native Blue table. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsValid()
   {
@@ -254,7 +254,7 @@ export class Tr2HostBitmap extends HostBitmap
   }
 
   /** Uses the inherited ImageIO compression predicate exposed by the native Blue table. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsCompressed()
   {
@@ -262,7 +262,7 @@ export class Tr2HostBitmap extends HostBitmap
   }
 
   /** Carbon method IsMonochrome (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   IsMonochrome(...args)
   {
@@ -270,7 +270,7 @@ export class Tr2HostBitmap extends HostBitmap
   }
 
   /** Carbon method GetMipRawData -> PyGetMipRawData (MAP_METHOD). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   GetMipRawData(...args)
   {
@@ -278,7 +278,7 @@ export class Tr2HostBitmap extends HostBitmap
   }
 
   /** Returns the inherited writable byte view; typed-array access replaces Python memoryview packaging while preserving the native CPU overload. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetRawData(x, y)
   {
@@ -286,7 +286,7 @@ export class Tr2HostBitmap extends HostBitmap
   }
 
   /** Carbon method Save -> PySave (MAP_METHOD). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   Save(...args)
   {
@@ -294,7 +294,7 @@ export class Tr2HostBitmap extends HostBitmap
   }
 
   /** Carbon method ConvertToVolume (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   ConvertToVolume(...args)
   {
@@ -307,8 +307,8 @@ export class Tr2HostBitmap extends HostBitmap
 
 }
 
-CjsSchema.define(Tr2HostBitmap, {
-  className: "Tr2HostBitmap", family: "trinityCore",
+CjsSchema.blue.define(Tr2HostBitmap, {
+  className: "Tr2HostBitmap",
   members: [
     { name: "format", key: "_format", type: { kind: "int32" }, enum: { enumType: "PixelFormat" }, edit: { read: true } },
     { name: "width", key: "_width", type: { kind: "uint32" }, edit: { read: true } },
@@ -318,4 +318,4 @@ CjsSchema.define(Tr2HostBitmap, {
     { name: "name", key: "_name", type: { kind: "string" }, edit: { read: true, write: true, persist: true } }
   ]
 });
-meta.blue.interface()(Tr2HostBitmap);
+blue.interface()(Tr2HostBitmap);

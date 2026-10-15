@@ -1,6 +1,6 @@
 // Source: audio/src/AudPosition.h + AudPosition.cpp
 // Hand-owned behavior port. Verify against audio/AudPosition.json.
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { IBluePlacementObserver } from "#blue/IBluePlacementObserver";
 import { vec3 } from "#math/vec3";
 
@@ -8,8 +8,8 @@ import { vec3 } from "#math/vec3";
  * Stores browser-safe front, top, and position vectors for Carbon
  * placement-observer updates.
  */
-@meta.define({ className: "AudPosition", family: "audio" })
-@meta.blue.interface(IBluePlacementObserver)
+@blue.define("AudPosition")
+@blue.interface(IBluePlacementObserver)
 export class AudPosition extends IBluePlacementObserver
 {
 
@@ -32,7 +32,7 @@ export class AudPosition extends IBluePlacementObserver
    * @param {ArrayLike<number>} position Position.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdatePlacement(front, top, position)
   {
@@ -48,7 +48,7 @@ export class AudPosition extends IBluePlacementObserver
    *
    * @returns {boolean} Always true.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified()
   {

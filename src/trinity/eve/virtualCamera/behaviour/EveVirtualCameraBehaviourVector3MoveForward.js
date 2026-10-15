@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { vec3 } from "#math/vec3";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { INotify } from "#blue";
 import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviourVector3Base.js";
 
@@ -10,27 +10,24 @@ import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviou
  * Vector3 behaviour that displaces the camera along its own forward axis by a
  * curve-shaped distance, and the base for the sideways and vertical variants.
  */
-@meta.define({
-  className: "EveVirtualCameraBehaviourVector3MoveForward",
-  family: "eve/virtualCamera/behaviour"
-})
-@meta.blue.interface(INotify)
-@meta.blue.chainTo(EveVirtualCameraBehaviourVector3Base)
+@blue.define("EveVirtualCameraBehaviourVector3MoveForward")
+@blue.interface(INotify)
+@blue.chainTo(EveVirtualCameraBehaviourVector3Base)
 export class EveVirtualCameraBehaviourVector3MoveForward extends EveVirtualCameraBehaviourVector3Base
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2CurveScalar")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2CurveScalar")
   scaleCurve = null;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   proportional = true;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   value = 0;
 
   /**
@@ -48,7 +45,7 @@ export class EveVirtualCameraBehaviourVector3MoveForward extends EveVirtualCamer
    * Sets the behaviour name and renames the owned scale curve to match.
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:425-428
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetName(name)
   {
@@ -57,7 +54,7 @@ export class EveVirtualCameraBehaviourVector3MoveForward extends EveVirtualCamer
   }
 
   /** Returns the camera's forward direction scaled by the current distance. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, anchorRadius, _anchorForwardDirection, out = vec3.create())
   {

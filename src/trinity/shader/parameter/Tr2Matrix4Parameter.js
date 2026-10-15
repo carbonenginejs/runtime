@@ -3,7 +3,7 @@
 import { ITriEffectParameter } from "./ITriEffectParameter.js";
 import { ITriReroutable } from "../../core/ITriReroutable.js";
 import { mat4 } from "#math/mat4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { CjsVectorParameter } from "./CjsVectorParameter.js";
 
 
@@ -11,31 +11,28 @@ import { CjsVectorParameter } from "./CjsVectorParameter.js";
  * 4x4 matrix value for a named shader constant, with optional rerouting into an
  * external 64-byte destination.
  */
-@meta.define({
-  className: "Tr2Matrix4Parameter",
-  family: "shader"
-})
-@meta.blue.inherit(ITriReroutable)
-@meta.blue.interface(ITriEffectParameter, ITriReroutable)
+@blue.define("Tr2Matrix4Parameter")
+@blue.inherit(ITriReroutable)
+@blue.interface(ITriEffectParameter, ITriReroutable)
 export class Tr2Matrix4Parameter extends CjsVectorParameter
 {
-  @meta.blue.readwrite
-  @meta.blue.persistOnly
-  @meta.type.mat4
+  @blue.readwrite
+  @blue.persistOnly
+  @type.mat4
   value = mat4.create();
 
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   usedByCurrentTechnique = false;
 
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   usedByCurrentEffect = false;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   #bindings = [];
@@ -43,7 +40,7 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
   #reroutedValue = null;
 
   /** The shader constant name this matrix binds to; empty until authored. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetParameterName()
   {
@@ -51,7 +48,7 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
   }
 
   /** Content hash: matrix bytes then name. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetHashValue(startingHash = CjsVectorParameter.FNV1_INITIAL)
   {
@@ -62,7 +59,7 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
    * Refreshes from the reroute destination when one is set, then copies 16 components out.
    * @param out defaults to a freshly allocated matrix the caller owns
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetValue(out = mat4.create())
   {
@@ -77,7 +74,7 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
    * Copies 16 components in and writes through to the reroute destination when
    * one is set.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetValue(value)
   {
@@ -89,7 +86,7 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
   }
 
   /** Whether reads and writes currently go through an external destination. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsRerouted()
   {
@@ -100,7 +97,7 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
    * Points the parameter at an external destination and seeds it with the current matrix; a target under 64 bytes or not writable as 16 components clears the reroute instead. Bindings are notified of the effective destination either way.
    * @param size destination capacity in bytes, not components
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetDestination(dest, size = 64)
   {
@@ -121,7 +118,7 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
    * parameter's own matrix - paired with its 64-byte size. The array is
    * borrowed, not copied.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetDestination()
   {
@@ -135,7 +132,7 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
    * Adds a binding to be notified whenever the destination is repointed;
    * duplicates are ignored.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RegisterBinding(binding)
   {
@@ -143,7 +140,7 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
   }
 
   /** Stops notifying a binding; unknown bindings are ignored. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UnregisterBinding(binding)
   {
@@ -155,7 +152,7 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
    * stale reroute when the shader is gone; reflection metadata only, no GPU
    * handle.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RebuildEffectHandles(effectRes)
   {
@@ -172,7 +169,7 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
    * Seeds an existing reroute destination with the current matrix; always
    * returns true.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -188,7 +185,7 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
    * reading back through the reroute first; the stored element order is copied
    * as-is, with no transpose.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CopyValueToEffect(_inputType, out)
   {

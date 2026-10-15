@@ -10,7 +10,7 @@
 // only when the scene's Tr2PostProcess2 enables that effect, so a scene
 // without them runs the chain end to end: copy, sharpening, tonemapping.
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { BloomDebugMode, Quality } from "../generated/postProcess/enums.js";
 import { be } from "#blue";
 import { num } from "#math/num";
@@ -79,33 +79,33 @@ function effectAt(path, options = null)
  * Carbon's post-process renderer: the chain from the scene's colour buffer to
  * the back buffer, driven by the scene's combined Tr2PostProcess2.
  */
-@meta.define({ className: "Tr2PostProcessRenderer", family: "postProcess" })
+@blue.define("Tr2PostProcessRenderer")
 export class Tr2PostProcessRenderer
 {
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.int32
-  @meta.type.enum("trinity.Tr2PostProcessRenderer.BloomDebugMode")
+  @blue.notify
+  @blue.readwrite
+  @type.int32
+  @type.enum("trinity.Tr2PostProcessRenderer.BloomDebugMode")
   bloomDebugMode = BloomDebugMode.BLOOM_DEBUG_NONE;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.int32
-  @meta.type.enum("trinity.PostProcess.Quality")
+  @blue.notify
+  @blue.readwrite
+  @type.int32
+  @type.enum("trinity.PostProcess.Quality")
   quality = Quality.HIGH;
 
   // THE EFFECTS CARBON'S CONSTRUCTOR CREATES (cpp:537-635), in its order.
 
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @type.rootRef("Tr2Effect")
   tonemappingEffect = effectAt(PostProcessEffectPaths.ToneMapping);
 
   _reactiveMaskEffect = effectAt(PostProcessEffectPaths.ReactiveMask);
 
   _transparencyMaskEffect = effectAt(PostProcessEffectPaths.TransparencyMask);
 
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @type.rootRef("Tr2Effect")
   bloomHighPassFilter = effectAt(PostProcessEffectPaths.HighPassFilter);
 
   _downSamplerLuminancePreserve = effectAt(PostProcessEffectPaths.Downsample, { LUNINANCE_PRESERVE: "LUNINANCE_PRESERVE_ON" });
@@ -116,76 +116,76 @@ export class Tr2PostProcessRenderer
 
   _upsamplerVertical = effectAt(PostProcessEffectPaths.Upsample, { UPSAMPLING_STEP: "UPSAMPLING_STEP_SECOND" });
 
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @type.rootRef("Tr2Effect")
   dynamicExposureToTextureShader = effectAt(PostProcessEffectPaths.ExposureToTexture);
 
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @type.rootRef("Tr2Effect")
   dynamicExposureCreateHistogramShader = effectAt(PostProcessEffectPaths.CreateHistograms);
 
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @type.rootRef("Tr2Effect")
   dynamicExposureMergeHistogramShader = effectAt(PostProcessEffectPaths.MergeHistograms);
 
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @type.rootRef("Tr2Effect")
   dynamicExposureMeasureExposureShader = effectAt(PostProcessEffectPaths.MeasureExposure);
 
   _fidelityFxCasShader = effectAt(PostProcessEffectPaths.CAS);
 
   _downsampleDepthEffect = effectAt(PostProcessEffectPaths.DownsampleDepth);
 
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @type.rootRef("Tr2Effect")
   fogColorEffect = effectAt(PostProcessEffectPaths.EnvironmentFogColor);
 
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @type.rootRef("Tr2Effect")
   fogCompositeEffect = effectAt(PostProcessEffectPaths.EnvironmentFogComposit);
 
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @type.rootRef("Tr2Effect")
   depthOfFieldBokehBlurShader = effectAt(PostProcessEffectPaths.Bokeh, { BOKEH_PIXEL_METHOD: "BOKEH_PIXEL_AVERAGE" });
 
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @type.rootRef("Tr2Effect")
   depthOfFieldBokehFillShader = effectAt(PostProcessEffectPaths.Bokeh, { BOKEH_PIXEL_METHOD: "BOKEH_PIXEL_MAX" });
 
   _depthOfFieldBokehTAAShader = effectAt(PostProcessEffectPaths.BokehTAA);
 
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @type.rootRef("Tr2Effect")
   depthOfFieldCoCShader = effectAt(PostProcessEffectPaths.CircleOfConfusion);
 
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @type.rootRef("Tr2Effect")
   godrayEffect = effectAt(PostProcessEffectPaths.Godrays);
 
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @type.rootRef("Tr2Effect")
   signalLossEffect = effectAt(PostProcessEffectPaths.SignalLoss);
 
   _grainShader = Tr2PostProcessRenderer._createGrainShader();
 
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @type.rootRef("Tr2Effect")
   taaEffect = effectAt(PostProcessEffectPaths.TAA);
 
   _taaCopyEffect = effectAt(PostProcessEffectPaths.TAACopy);
 
   /** Created on first use by RenderBloomDebug (cpp:1115-1144). */
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @type.rootRef("Tr2Effect")
   bloomDebugShader = null;
 
   /** Created while the exposure debug is on (cpp:1256-1260), dropped when off. */
   _dynamicExposureDebugShader = null;
 
   /** m_useNewBloom, from the newBloom setting at construction (cpp:525). */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @type.boolean
   useNewBloom = Tr2PostProcessRenderer.newBloom;
 
   /** m_blurEffects: the horizontal/vertical Blur.fx pair per BlurContext hash (cpp:897-931). */
@@ -211,7 +211,7 @@ export class Tr2PostProcessRenderer
   _bokehFrameCounter = 0;
 
   /** Returns the active Carbon post-process quality. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPostProcessingQuality()
   {
@@ -219,7 +219,7 @@ export class Tr2PostProcessRenderer
   }
 
   /** Selects the active Carbon post-process quality. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetPostProcessingQuality(quality)
   {
@@ -249,7 +249,7 @@ export class Tr2PostProcessRenderer
    * @param {Tr2Renderer} renderer The renderer owning the blitter.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Execute(destination, sourceBuffer, depthMap, velocity, opaqueColor, scene, upscalingContext, gpuResourcePool, renderContext, renderer)
   {
@@ -458,7 +458,7 @@ export class Tr2PostProcessRenderer
    * @param {number} middleValue The exposure middle value.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetupExposureConversion(enable, middleValue)
   {
@@ -475,7 +475,7 @@ export class Tr2PostProcessRenderer
    * @param {Tr2RenderContext} renderContext The context to render with.
    * @returns {GpuResourceHandle} The sharpened texture, or `input`.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RenderSharpening(enable, input, gpuResourcePool, renderContext)
   {
@@ -526,7 +526,7 @@ export class Tr2PostProcessRenderer
    * @param {Tr2Renderer} renderer The renderer owning the blitter.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RenderTonemapping(dest, postprocess, renderContext, renderer)
   {
@@ -572,7 +572,7 @@ export class Tr2PostProcessRenderer
    *
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RenderGenericEffect(dest, src, renderContext, genericEffect, renderer)
   {
@@ -596,7 +596,7 @@ export class Tr2PostProcessRenderer
    *
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RenderFilmGrain(dest, renderContext, filmGrain, renderer)
   {
@@ -618,7 +618,7 @@ export class Tr2PostProcessRenderer
    *
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RenderSignalLoss(dest, renderContext, signalLoss, renderer)
   {
@@ -632,7 +632,7 @@ export class Tr2PostProcessRenderer
    *
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RenderDynamicExposureDebug(_gpuResourcePool, _renderContext, dynamicExposure, _histogramBuffer)
   {
@@ -651,7 +651,7 @@ export class Tr2PostProcessRenderer
    * @param {Tr2GpuResourcePool} gpuResourcePool The pool.
    * @returns {GpuResourceHandle} The buffer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetExposureBuffer(gpuResourcePool)
   {
@@ -673,7 +673,7 @@ export class Tr2PostProcessRenderer
    * @param {Tr2GpuResourcePool} gpuResourcePool The pool.
    * @returns {GpuResourceHandle} The texture.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBlackTexture(gpuResourcePool)
   {
@@ -705,7 +705,7 @@ export class Tr2PostProcessRenderer
    * @param {Tr2Renderer} renderer The renderer owning the blitter.
    * @returns {GpuResourceHandle} The blurred texture.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Blur(src, gpuResourcePool, renderContext, blurContext, renderer)
   {
@@ -796,7 +796,7 @@ export class Tr2PostProcessRenderer
    * @param {Tr2Renderer} renderer The renderer owning the blitter.
    * @returns {GpuResourceHandle} The bloom texture, owned by the caller.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RenderBloom(dest, gpuResourcePool, renderContext, bloom, dynamicExposure, renderer)
   {
@@ -980,7 +980,7 @@ export class Tr2PostProcessRenderer
    * @param {Tr2Renderer} renderer The renderer owning the blitter.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RenderGodRays(dest, depth, gpuResourcePool, renderContext, godrays, renderer)
   {
@@ -1033,7 +1033,7 @@ export class Tr2PostProcessRenderer
    * @param {Tr2Renderer} renderer The renderer owning the blitter.
    * @returns {GpuResourceHandle} The down-sampled depth; the caller frees it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   DownSampleDepth(depth, gpuResourcePool, renderContext, renderer)
   {
@@ -1072,7 +1072,7 @@ export class Tr2PostProcessRenderer
    * @param {Tr2PPDynamicExposureEffect} dynamicExposure The exposure settings.
    * @returns {GpuResourceHandle} The merged histogram, owned by the caller.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RenderDynamicExposure(source, gpuResourcePool, renderContext, dynamicExposure)
   {
@@ -1149,7 +1149,7 @@ export class Tr2PostProcessRenderer
   }
 
   /** Carbon RenderUpscaling (cpp:1287-1390). */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   RenderUpscaling()
   {
@@ -1170,7 +1170,7 @@ export class Tr2PostProcessRenderer
    * @param {Tr2Renderer} renderer The renderer owning the blitter.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RenderFog(dest, source, gpuResourcePool, renderContext, fog, renderer)
   {
@@ -1253,7 +1253,7 @@ export class Tr2PostProcessRenderer
    * @param {Tr2Renderer} renderer The renderer owning the blitter.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RenderTaa(dest, velocity, opaqueColor, gpuResourcePool, renderContext, taa, dynamicExposure, renderer)
   {
@@ -1364,7 +1364,7 @@ export class Tr2PostProcessRenderer
    * @param {Tr2Renderer} renderer The renderer owning the blitter.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RenderDepthOfField(dest, gpuResourcePool, renderContext, depthOfField, temporal, upscalingAmount, renderer)
   {

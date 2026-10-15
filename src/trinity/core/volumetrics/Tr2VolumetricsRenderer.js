@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2VolumetricsRenderer.h
 // Source: trinity/trinity/Tr2VolumetricsRenderer.cpp
 // Source: trinity/trinity/Tr2VolumetricsRenderer_Blue.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
@@ -47,97 +47,97 @@ const FOG_LIGHT_BITS = new Uint32Array(FOG_LIGHTS.buffer); // alloc: uint32 view
  * Renders cloud slices and shadows, blends scene fog settings and keeps the fog's Mie environment map. The froxel fog
  * passes themselves wait on WGSL translation of their compute effects (see _RenderFog_Resources).
  */
-@meta.define({ className: "Tr2VolumetricsRenderer", family: "trinityCore" })
+@blue.define("Tr2VolumetricsRenderer")
 export class Tr2VolumetricsRenderer
 {
-  @meta.blue.readwrite
-  @meta.type.int32
-  @meta.type.enum("trinity.Tr2VolumerticQuality")
+  @blue.readwrite
+  @type.int32
+  @type.enum("trinity.Tr2VolumerticQuality")
   quality = Tr2VolumerticQuality.High;
 
-  @meta.blue.read
-  @meta.type.rootRef("Tr2TextureReference")
+  @blue.read
+  @type.rootRef("Tr2TextureReference")
   mieEnvironmentMap = new Tr2TextureReference();
 
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   blur = true;
 
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   logBlending = true;
 
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   gameBackClip = 1e6;
 
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   backgroundVisibility = 0;
 
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   thickness = 0;
 
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   environmentDirectionality = 0;
 
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   lightDirectionality = 0;
 
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   godRayNoiseAnimationSpeed = 0;
 
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   fogNoiseMovementSpeed = vec3.create();
 
-  @meta.blue.read
-  @meta.type.color
+  @blue.read
+  @type.color
   fogColor = vec4.create();
 
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   godRayNoiseFrequency = 0;
 
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   fogNoiseFrequency = 0;
 
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   godRayNoiseIntensity = 0;
 
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   fogNoiseIntensity = 0;
 
-  @meta.blue.readwrite
-  @meta.type.float64
+  @blue.readwrite
+  @type.float64
   logBlendingSmoothness = 4;
 
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   environmentIntensity = 0;
 
   /** The blended reflection intensity (m_froxelFogSettings.reflectionIntensity, Blue read-only). */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   reflectionIntensity = 1;
 
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   castShadows = false;
 
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   receiveShadows = false;
 
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   scaleFactor = 0.7;
 
   _godRayNoiseAnimation = 0;
@@ -173,13 +173,13 @@ export class Tr2VolumetricsRenderer
   _fogPerObjectData = RawData.create("FogPerObjectData");
 
   /** Native cloud pass effects (cpp:51-66). */
-  @meta.type.rootRef("Tr2Effect")
+  @type.rootRef("Tr2Effect")
   volumeBlit = new Tr2Effect();
-  @meta.type.rootRef("Tr2Effect")
+  @type.rootRef("Tr2Effect")
   downsampleDepth = new Tr2Effect();
-  @meta.type.rootRef("Tr2Effect")
+  @type.rootRef("Tr2Effect")
   hBlur = new Tr2Effect();
-  @meta.type.rootRef("Tr2Effect")
+  @type.rootRef("Tr2Effect")
   vBlur = new Tr2Effect();
   /** Native unsorted cloud accumulator. */
   batches = new TriRenderBatchAccumulator();
@@ -235,7 +235,7 @@ export class Tr2VolumetricsRenderer
    * Adapted: each attribute is selected by an accessor function where Carbon's
    * FROXEL_ACCUMULATE macro passes a member pointer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateFogSettings(registry, updateContext)
   {
@@ -280,7 +280,7 @@ export class Tr2VolumetricsRenderer
   }
 
   /** Reports whether the blended fog thickness is strictly positive. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HasFog()
   {
@@ -295,7 +295,7 @@ export class Tr2VolumetricsRenderer
    * @param {RawData} out The per-frame record.
    * @returns {RawData} out
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   PopulatePerFrameData(out)
   {
@@ -327,7 +327,7 @@ export class Tr2VolumetricsRenderer
   }
 
   /** Applies Carbon's four quality presets. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetQuality(quality)
   {
@@ -363,7 +363,7 @@ export class Tr2VolumetricsRenderer
    * Adapted: Carbon asserts a two-sphere span and copies it whole; this throws a RangeError for any other count and
    * copies the two vec4 records.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetPlanets(planets)
   {
@@ -376,7 +376,7 @@ export class Tr2VolumetricsRenderer
   }
 
   /** Stores the sun angle consumed by later fog constant production. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetSunAngle(angle)
   {
@@ -390,7 +390,7 @@ export class Tr2VolumetricsRenderer
    * explicit Free calls replace scope-bound pool handles. JS shader failures
    * throw, so finally also restores native target stacks and borrowed bindings.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RenderVolumetrics(registry, frustum, sceneDepth, froxelFog, sunDirection,
     depthSlices, raytracingEnabled, gpuResourcePool, renderContext)
@@ -528,7 +528,7 @@ export class Tr2VolumetricsRenderer
    * temporally.
    * @returns {object} The froxel texture, or the empty fog texture.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RenderFog(renderContext, gpuResourcePool, width, height, cascadedShadowMap, raytracingGeometry, shadowQuality,
     sunDirection, sunColor, origin, originShift, view, projection, viewLast, projectionLast)
@@ -546,7 +546,7 @@ export class Tr2VolumetricsRenderer
    * frame's. With the fog off it returns the empty fog texture.
    * @returns {object} The froxel texture, or the empty fog texture.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RenderFogIntoReflectionMap(renderContext, gpuResourcePool, width, height, sunDirection, sunColor, origin, view, projection)
   {
@@ -765,7 +765,7 @@ export class Tr2VolumetricsRenderer
    * and restarts the blend.
    * @param {object} renderContext The frame's Tr2RenderContext.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateFogEnvironmentMap(renderContext)
   {
@@ -1065,7 +1065,7 @@ export class Tr2VolumetricsRenderer
    * (`Tr2VolumetricsRenderer.cpp`, one line). The port had grown a
    * `renderContext` parameter that existed only to reach an executor.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateVariableStore()
   {
@@ -1076,7 +1076,7 @@ export class Tr2VolumetricsRenderer
    * Carbon shadow batches and target stack (Tr2VolumetricsRenderer.cpp:1115-1145).
    * Adapted: finally restores native stacks when a JavaScript shader draw throws.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RenderShadows(registry, shadowMap, renderContext)
   {

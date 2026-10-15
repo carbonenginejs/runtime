@@ -6,48 +6,48 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /**
  * One authored haze volume: its bone attachment, placement, colour and the
  * four-component haze shaping data.
  */
-@meta.define({ className: "EveHazeSetItem", family: "eve/attachment/haze" })
+@blue.define("EveHazeSetItem")
 export class EveHazeSetItem
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.readwrite
+  @blue.persist
+  @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotation = quat.create();
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.readwrite
+  @blue.persist
+  @type.int32
   boneIndex = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   position = vec3.create();
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   hazeData = vec4.fromValues(4, 0.2, 2, 0);
 
   /**
@@ -58,7 +58,7 @@ export class EveHazeSetItem
    * Adapted: Carbon returns AxisAlignedBox by value; JavaScript fills a caller-supplied
    * box3.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBounds(out)
   {
@@ -73,7 +73,7 @@ export class EveHazeSetItem
   }
 
   /** The parent bone this haze volume rides. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBoneIndex()
   {

@@ -5,7 +5,7 @@ import { ResourceRequirement } from "#resource";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 import { Tr2ParticleElementDeclarationName } from "../element/Tr2ParticleElementDeclarationName.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
@@ -25,23 +25,23 @@ import { CarbonUsageFromChannel, CarbonUsageFromCmf } from "../../core/vertex/ve
  */
 
 /** A one-shot particle emitter that spawns one particle per vertex of a geometry mesh on first update. */
-@meta.define({ className: "Tr2StaticEmitter", family: "particle" })
-@meta.blue.inherit(ITr2GenericEmitter)
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(IInitialize)
+@blue.define("Tr2StaticEmitter")
+@blue.inherit(ITr2GenericEmitter)
+@blue.inherit(IInitialize)
+@blue.interface(IInitialize)
 export class Tr2StaticEmitter
 {
 
   #isThreadSafe = false;
 
   /** Carbon's internal one-shot spawn state. */
-  @meta.type.boolean
+  @type.boolean
   hasSpawnedParticles = false;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /**
@@ -51,34 +51,34 @@ export class Tr2StaticEmitter
    * TriGrannyRes; ours has no load path, and TriGeometryRes carries the same
    * meshes in CMF form.
    */
-  @meta.blue.read
-  @meta.type.rootRef("TriGeometryRes")
+  @blue.read
+  @type.rootRef("TriGeometryRes")
   geometryResource = null;
 
   /** m_meshIndex (uint32_t) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   meshIndex = 0;
 
   /** m_particleSystem (Tr2ParticleSystemPtr) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2ParticleSystem")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2ParticleSystem")
   particleSystem = null;
 
   /** m_geometryResourcePath (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.path("TriGeometryRes")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.path("TriGeometryRes")
   geometryResourcePath = "";
 
   /**
    * Carbon Spawn (Tr2StaticEmitter.cpp:314-317): spawns again on the next update.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Spawn()
   {
@@ -103,7 +103,7 @@ export class Tr2StaticEmitter
    *
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ForceSpawn()
   {

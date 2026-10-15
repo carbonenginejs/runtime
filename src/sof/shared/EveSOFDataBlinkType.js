@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:301-324
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:70-77, 1140-1147
-import { meta } from "#schema";
+import { blue } from "#schema";
 import { be, EnumRegistrationType } from "#blue";
 
 /**
@@ -25,14 +25,17 @@ const slot = (name, index) => ({ name, key: "blinkType", index, type: { kind: "r
  * by chooser name. TYPE_STATIC has no exposed slot. Nothing in Carbon reads
  * the slots. Native IRoot-only data with no lifecycle.
  */
-@meta.define({ className: "EveSOFDataBlinkType", family: "eve", members: [
+@blue.define({
+  className: "EveSOFDataBlinkType",
+  members: [
   slot("Blink", BlinkType.TYPE_BLINK),
   slot("FadeIn", BlinkType.TYPE_FADE_IN),
   slot("FadeOut", BlinkType.TYPE_FADE_OUT),
   // Adapted: Carbon's slot is one past the end of its array (CE-115); see `blinkType`.
   { ...slot("Cycle", BlinkType.TYPE_CYCLE), impl: { adapted: true, status: "adapted" } }
-] })
-@meta.blue.interface()
+]
+})
+@blue.interface()
 export class EveSOFDataBlinkType
 {
   static BlinkType = BlinkType;

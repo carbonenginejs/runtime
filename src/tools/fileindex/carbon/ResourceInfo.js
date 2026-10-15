@@ -12,7 +12,7 @@
 // fill a plain object whose keys are the wire tags, in place of a yaml-cpp
 // node and emitter. Every scalar in it is the source text, as `as<std::string>()`
 // reads it; see ResourceGroupImpl.ImportFromYamlString.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { DocumentParameter } from "./DocumentParameter.js";
 import { Location } from "./Location.js";
 import { Parameter } from "./ParameterInfo.js";
@@ -544,51 +544,49 @@ export class ResourceInfo
     }
 }
 
-CjsSchema.define(ResourceInfo, {
-    className: "ResourceInfo",
-    carbon: "ResourceInfo",
-    family: "tools",
-    fields: {},
-    methods: {
-        typeId: [ meta.blue.method, meta.implemented ],
-        GetRelativePath: [ meta.blue.method, meta.adapted ],
-        GetType: [ meta.blue.method, meta.adapted ],
-        GetChecksum: [ meta.blue.method, meta.adapted ],
-        GetPrefix: [ meta.blue.method, meta.adapted ],
-        GetBinaryOperation: [ meta.blue.method, meta.adapted ],
-        GetCompressedSize: [ meta.blue.method, meta.adapted ],
-        GetUncompressedSize: [ meta.blue.method, meta.adapted ],
-        GetLocation: [ meta.blue.method, meta.adapted ],
-        SetRelativePath: [ meta.blue.method, meta.implemented ],
-        SetCompressedSize: [ meta.blue.method, meta.implemented ],
-        SetUncompressedSize: [ meta.blue.method, meta.implemented ],
-        SetDataChecksum: [ meta.blue.method, meta.implemented ],
-        UpdateLocation: [ meta.blue.method, meta.implemented ],
+CjsSchema.blue.define(ResourceInfo, {
+  className: "ResourceInfo",
+  fields: {},
+  methods: {
+        typeId: [ blue.method, meta.implemented ],
+        GetRelativePath: [ blue.method, meta.adapted ],
+        GetType: [ blue.method, meta.adapted ],
+        GetChecksum: [ blue.method, meta.adapted ],
+        GetPrefix: [ blue.method, meta.adapted ],
+        GetBinaryOperation: [ blue.method, meta.adapted ],
+        GetCompressedSize: [ blue.method, meta.adapted ],
+        GetUncompressedSize: [ blue.method, meta.adapted ],
+        GetLocation: [ blue.method, meta.adapted ],
+        SetRelativePath: [ blue.method, meta.implemented ],
+        SetCompressedSize: [ blue.method, meta.implemented ],
+        SetUncompressedSize: [ blue.method, meta.implemented ],
+        SetDataChecksum: [ blue.method, meta.implemented ],
+        UpdateLocation: [ blue.method, meta.implemented ],
         Equals: [ meta.adapted ],
         LessThan: [ meta.adapted ],
-        SetParametersFromResource: [ meta.blue.method, meta.implemented ],
-        ExportToCsv: [ meta.blue.method, meta.adapted ],
-        ImportFromYaml: [ meta.blue.method, meta.adapted ],
-        ExportToYaml: [ meta.blue.method, meta.adapted ],
+        SetParametersFromResource: [ blue.method, meta.implemented ],
+        ExportToCsv: [ blue.method, meta.adapted ],
+        ImportFromYaml: [ blue.method, meta.adapted ],
+        ExportToYaml: [ blue.method, meta.adapted ],
         _Read: [ meta.ours ],
-        GetDataStream: [ meta.blue.method, meta.notImplemented ],
-        GetData: [ meta.blue.method, meta.notImplemented ],
-        PutDataStream: [ meta.blue.method, meta.notImplemented ],
-        PutData: [ meta.blue.method, meta.notImplemented ],
-        SetParametersFromData: [ meta.blue.method, meta.notImplemented ],
-        SetParametersFromSourceStream: [ meta.blue.method, meta.notImplemented ],
-        GetDataLocalRelative: [ meta.blue.method, meta.notImplemented ],
-        GetDataLocalCdn: [ meta.blue.method, meta.notImplemented ],
-        GetDataRemoteCdn: [ meta.blue.method, meta.notImplemented ],
-        GetDataStreamLocalRelative: [ meta.blue.method, meta.notImplemented ],
-        GetDataStreamLocalCdn: [ meta.blue.method, meta.notImplemented ],
-        GetDataStreamRemoteCdn: [ meta.blue.method, meta.notImplemented ],
-        PutDataLocalRelative: [ meta.blue.method, meta.notImplemented ],
-        PutDataLocalCdn: [ meta.blue.method, meta.notImplemented ],
-        PutDataStreamLocalRelative: [ meta.blue.method, meta.notImplemented ],
-        PutDataStreamLocalCdn: [ meta.blue.method, meta.notImplemented ],
-        PutDataStreamRemoteCdn: [ meta.blue.method, meta.notImplemented ],
-        PutDataRemoteCdn: [ meta.blue.method, meta.notImplemented ],
-        GetDestinationPath: [ meta.blue.method, meta.notImplemented ]
+        GetDataStream: [ blue.method, meta.notImplemented ],
+        GetData: [ blue.method, meta.notImplemented ],
+        PutDataStream: [ blue.method, meta.notImplemented ],
+        PutData: [ blue.method, meta.notImplemented ],
+        SetParametersFromData: [ blue.method, meta.notImplemented ],
+        SetParametersFromSourceStream: [ blue.method, meta.notImplemented ],
+        GetDataLocalRelative: [ blue.method, meta.notImplemented ],
+        GetDataLocalCdn: [ blue.method, meta.notImplemented ],
+        GetDataRemoteCdn: [ blue.method, meta.notImplemented ],
+        GetDataStreamLocalRelative: [ blue.method, meta.notImplemented ],
+        GetDataStreamLocalCdn: [ blue.method, meta.notImplemented ],
+        GetDataStreamRemoteCdn: [ blue.method, meta.notImplemented ],
+        PutDataLocalRelative: [ blue.method, meta.notImplemented ],
+        PutDataLocalCdn: [ blue.method, meta.notImplemented ],
+        PutDataStreamLocalRelative: [ blue.method, meta.notImplemented ],
+        PutDataStreamLocalCdn: [ blue.method, meta.notImplemented ],
+        PutDataStreamRemoteCdn: [ blue.method, meta.notImplemented ],
+        PutDataRemoteCdn: [ blue.method, meta.notImplemented ],
+        GetDestinationPath: [ blue.method, meta.notImplemented ]
     }
 });

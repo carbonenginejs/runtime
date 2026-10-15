@@ -1,13 +1,13 @@
 // Source: trinity/trinity/TriRenderBatch.h
 import { RenderBatchSortType } from "../../../generated/trinityCore/enums.js";
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 /** Carbon's DefaultKeyGenerator batch sorting policy. */
-@meta.define({ className: "DefaultKeyGenerator", family: "trinityCore" })
+@blue.define("DefaultKeyGenerator")
 export class DefaultKeyGenerator
 {
   /** Carbon's unsorted comparator never requests a reorder. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static Less(_batch1, _batch2)
   {
@@ -15,7 +15,7 @@ export class DefaultKeyGenerator
   }
 
   /** Selects the unsorted accumulator path. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static GetSortType()
   {

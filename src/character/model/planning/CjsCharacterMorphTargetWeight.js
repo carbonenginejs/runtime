@@ -1,4 +1,4 @@
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /**
  * One exact renderer-neutral morph-target request in an appearance plan.
@@ -6,33 +6,33 @@ import { meta } from "#schema";
  * Matching the name against loaded geometry and the deformation itself are
  * renderer-owned; the request never implies hiding another garment.
  */
-@meta.define({ className: "CjsCharacterMorphTargetWeight", family: "character" })
+@meta.define("CjsCharacterMorphTargetWeight")
 export class CjsCharacterMorphTargetWeight
 {
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     modifierPath = "";
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     targetName = "";
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.float64
+    @blue.readwrite
+    @blue.persist
+    @type.float64
     weight = 0;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.rootRef("CjsCharacterAppearanceSelection")
+    @blue.readwrite
+    @blue.persist
+    @type.rootRef("CjsCharacterAppearanceSelection")
     owner = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.rootRef("CjsCharacterOrigin")
+    @blue.readwrite
+    @blue.persist
+    @type.rootRef("CjsCharacterOrigin")
     origin = null;
 
 }

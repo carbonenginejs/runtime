@@ -1,7 +1,7 @@
 // Source: audio/src/AudioCurveSetDriver.h
 // Source: audio/src/AudioCurveSetDriver.cpp
 // Source: audio/src/AudioCurveSetDriver_Blue.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { ICurveSetDriver } from "#blue/ICurveSetDriver";
 import { IInitialize } from "#blue/IInitialize";
 import { AudGameObjResource } from "./AudGameObjResource.js";
@@ -12,26 +12,26 @@ import { AudGameObjResource } from "./AudGameObjResource.js";
  * after configuration. The audio system adopts, retries initialization when enabled,
  * and disposes drivers. Construction alone installs no manager or audio backend.
  */
-@meta.define({ className: "AudioCurveSetDriver", family: "audio" })
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(ICurveSetDriver, IInitialize)
+@blue.define("AudioCurveSetDriver")
+@blue.inherit(IInitialize)
+@blue.interface(ICurveSetDriver, IInitialize)
 export class AudioCurveSetDriver extends ICurveSetDriver
 {
   /** m_name: authored display name, stored as std::wstring. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.wstring
+  @blue.readwrite
+  @blue.persist
+  @type.wstring
   name = "";
 
   /** m_audioParameterName: persistence bypasses the live registration setter. */
   @meta.member("audioParameterName")
-  @meta.blue.persistOnly
-  @meta.type.wstring
+  @blue.persistOnly
+  @type.wstring
   _audioParameterName = "";
 
   /** Live parameter name; assigning it transfers the monitored registration. */
-  @meta.blue.readwrite
-  @meta.type.wstring
+  @blue.readwrite
+  @type.wstring
   @meta.implemented
   get audioParameterName()
   {
@@ -46,13 +46,13 @@ export class AudioCurveSetDriver extends ICurveSetDriver
   }
 
   /** m_audioParameterValue: cached float, retained when no parameter record exists. */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   audioParameterValue = 0;
 
   /** Whether the current manager and monitored parameter can drive the curve set. */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   @meta.implemented
   get isValid()
   {
@@ -60,9 +60,9 @@ export class AudioCurveSetDriver extends ICurveSetDriver
   }
 
   /** m_fallbackCurve: sampled at the caller's unmodified time when audio is invalid. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITriScalarFunction")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITriScalarFunction")
   fallbackCurve = null;
 
   /** m_audioParameterExists: the last monitored record's existence flag. */
@@ -82,7 +82,7 @@ export class AudioCurveSetDriver extends ICurveSetDriver
    * @param {number} time Time forwarded unchanged to the fallback function.
    * @returns {number} Fallback sample or cached audio parameter value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetCurveSetTime(time)
   {
@@ -101,7 +101,7 @@ export class AudioCurveSetDriver extends ICurveSetDriver
   }
 
   /** @returns {boolean} Whether audio is enabled and the named parameter exists. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsValid()
   {
@@ -110,7 +110,7 @@ export class AudioCurveSetDriver extends ICurveSetDriver
   }
 
   /** @returns {string} The stored global audio parameter name. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetAudioParameterName()
   {
@@ -127,7 +127,7 @@ export class AudioCurveSetDriver extends ICurveSetDriver
    *
    * @returns {boolean} Always true; a silent uncomposed driver remains usable.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -157,7 +157,7 @@ export class AudioCurveSetDriver extends ICurveSetDriver
    * @param {string} name New global parameter name; an empty string detaches it.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetAudioParameterName(name)
   {

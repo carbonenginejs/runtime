@@ -5,42 +5,39 @@ import { IsMatch } from "#blue";
 import { INotify } from "../../../global/blue/INotify.js";
 import { vec3 } from "#math/vec3";
 import { IEveVolume } from "./IEveVolume.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 
 /**
  * Sphere of influence with a solid inner radius and a falloff out to the outer
  * radius, weighting points and seeding random ones inside it.
  */
-@meta.define({
-  className: "EveSphereVolume",
-  family: "eve/volume"
-})
-@meta.blue.inherit(INotify)
-@meta.blue.interface(IEveVolume, INotify)
+@blue.define("EveSphereVolume")
+@blue.inherit(INotify)
+@blue.interface(IEveVolume, INotify)
 export class EveSphereVolume extends IEveVolume
 {
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   position = vec3.create();
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   radius = 1;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   innerRadius = 1;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   _callbacks = new Map();
@@ -48,7 +45,7 @@ export class EveSphereVolume extends IEveVolume
   _nextCallbackId = 1;
 
   /** Returns a fresh sphere centred on the volume position with its outer radius. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBoundingSphere()
   {
@@ -63,7 +60,7 @@ export class EveSphereVolume extends IEveVolume
    * within the inner radius, 0 past the outer radius, and a ramp that is linear
    * in squared distance between them.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetIntensity(position)
   {
@@ -88,7 +85,7 @@ export class EveSphereVolume extends IEveVolume
    * @param points Caller-owned array the new points are pushed onto.
    * @param excludeInnerVolume Keeps every point outside the inner radius.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GeneratePointsInVolume(points, howManyToAdd, excludeInnerVolume, fallOffFactor)
   {
@@ -132,7 +129,7 @@ export class EveSphereVolume extends IEveVolume
    * Registers a callback fired whenever the volume changes, returning the id
    * needed to unregister it again.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RegisterForChanges(callback)
   {
@@ -142,7 +139,7 @@ export class EveSphereVolume extends IEveVolume
   }
 
   /** Drops a change callback by the id RegisterForChanges returned. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UnregisterForChanges(callbackId)
   {
@@ -153,7 +150,7 @@ export class EveSphereVolume extends IEveVolume
    * Clamps the radii so the outer radius stays non-negative and never smaller
    * than the inner one, then notifies every registered listener.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName)
   {
@@ -177,7 +174,7 @@ export class EveSphereVolume extends IEveVolume
   }
 
   /** No debug drawing in this port. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   RenderDebugInfo()
   {

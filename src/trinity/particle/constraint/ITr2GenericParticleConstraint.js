@@ -1,14 +1,14 @@
 // Source: trinity/trinity/Particle/ITr2GenericParticleConstraint.h
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 
 /** Required particle-constraint contract. */
-@meta.define({ className: "ITr2GenericParticleConstraint", family: "particle" })
+@blue.define("ITr2GenericParticleConstraint")
 export class ITr2GenericParticleConstraint
 {
 
   /** Binds the constraint to the particle-system declaration. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   Bind(_particleSystem)
   {
@@ -16,7 +16,7 @@ export class ITr2GenericParticleConstraint
   }
 
   /** Applies the constraint to one particle-system update. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   ApplyConstraint(_arguments, _buffers, _strides, _count, _dt)
   {
@@ -24,7 +24,7 @@ export class ITr2GenericParticleConstraint
   }
 
   /** Carbon's base debug hook is intentionally empty. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   RenderDebugInfo()
   {

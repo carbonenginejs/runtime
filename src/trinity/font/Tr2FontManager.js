@@ -45,7 +45,7 @@ import { Tr2Renderer } from "../core/Tr2Renderer.js";
 import { PixelFormat } from "#consts/render-context";
 import { TriStorageFlags } from "#consts/graphics";
 import { be, IBlueEvents } from "#blue";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /**
  * Carbon's `TR2_FONT_FALLBACK` (Tr2FontManager.h:23, value at
@@ -73,8 +73,8 @@ const INT_MAX = 0x7fffffff;
  */
 
 /** Tracks font-loading policy together with the glyph-cache memory budget and occupancy. */
-@meta.define({ className: "Tr2FontManager", family: "font", purpose: "Tracks font-loading policy together with the glyph-cache memory budget and occupancy." })
-@meta.blue.inherit(IBlueEvents)
+@blue.define({ className: "Tr2FontManager", purpose: "Tracks font-loading policy together with the glyph-cache memory budget and occupancy." })
+@blue.inherit(IBlueEvents)
 export class Tr2FontManager
 {
 
@@ -82,8 +82,8 @@ export class Tr2FontManager
    * m_glyphCacheBudget (size_t) [READWRITE], default 512 KiB (Tr2FontManager.cpp:101).
    * Browser meaning: the byte budget of the CPU sbit cache (see TrimGlyphCache).
    */
-  @meta.blue.readwrite
-  @meta.type.uint64
+  @blue.readwrite
+  @type.uint64
   @meta.adapted
   glyphCacheBudget = 524288;
 
@@ -92,8 +92,8 @@ export class Tr2FontManager
    * CFF glyphs are always hinted as with Carbon's default, FT_LOAD_DEFAULT,
    * and Canvas2D has no equivalent of the other flags.
    */
-  @meta.blue.readwrite
-  @meta.type.int32
+  @blue.readwrite
+  @type.int32
   @meta.adapted
   loadFlag = 0;
 
@@ -101,8 +101,8 @@ export class Tr2FontManager
    * m_totalGlyphsCachedSize (size_t) [READ].
    * Browser meaning: bytes held by the CPU sbit cache (see TrimGlyphCache).
    */
-  @meta.blue.read
-  @meta.type.uint64
+  @blue.read
+  @type.uint64
   @meta.adapted
   totalGlyphsCachedSize = 0;
 
@@ -575,7 +575,7 @@ export class Tr2FontManager
    * @returns {Tr2SBitWrapper} The sbit wrapper, at x = y = 0.
    * @throws {RangeError} "FTC_SBitCache_Lookup failed" for an unusable face or glyph.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   LookupSBit(faceID, width, height, glyphIndex)
   {
@@ -762,7 +762,7 @@ export class Tr2FontManager
    *
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ClearCachedGlyphs()
   {
@@ -791,7 +791,7 @@ export class Tr2FontManager
    * @param {number} cacheSize Budget in bytes.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   TrimGlyphCache(cacheSize)
   {
@@ -847,7 +847,7 @@ export class Tr2FontManager
    * @param {number} [color=0] Packed 32-bit value.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ClearBuffer(buffer, width, height, pitch, color = 0)
   {
@@ -955,8 +955,8 @@ export class Tr2FontManager
   }
 
   /** Blue "numGlyphsInUse" [READ] (Tr2FontManager_Blue.cpp:154-157). */
-  @meta.blue.read
-  @meta.type.int32
+  @blue.read
+  @type.int32
   @meta.adapted
   get numGlyphsInUse()
   {
@@ -964,8 +964,8 @@ export class Tr2FontManager
   }
 
   /** Blue "numGlyphsCached" [READ] (Tr2FontManager_Blue.cpp:159-162). */
-  @meta.blue.read
-  @meta.type.int32
+  @blue.read
+  @type.int32
   @meta.adapted
   get numGlyphsCached()
   {

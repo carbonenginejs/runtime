@@ -229,4 +229,4 @@ export class CjsWebgpuUtils
 
 // Declared as a call, as the other AL classes are: the layer is imported
 // straight from source by its tests.
-CjsSchema.define(CjsWebgpuUtils, { className: "CjsWebgpuUtils", modelledOn: "MetalUtils" });
+CjsSchema.meta.define(CjsWebgpuUtils, { className: "CjsWebgpuUtils", donors: [ "MetalUtils" ] });

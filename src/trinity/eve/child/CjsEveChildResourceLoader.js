@@ -2,7 +2,7 @@ import { meta } from "#schema";
 
 
 /** Trinity-owned promise-capable child-resource resolution contract. */
-@meta.define({ className: "CjsEveChildResourceLoader", family: "eve/child" })
+@meta.define("CjsEveChildResourceLoader")
 export class CjsEveChildResourceLoader
 {
 

@@ -1,14 +1,14 @@
 // Source: trinity/trinity/ITr2AttributeGenerator.h
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 
 /** Required particle-attribute generation contract. */
-@meta.define({ className: "ITr2AttributeGenerator", family: "particle" })
+@blue.define("ITr2AttributeGenerator")
 export class ITr2AttributeGenerator
 {
 
   /** Binds this generator to a particle-system declaration. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   Bind(_particleSystem, _boundElements)
   {
@@ -16,7 +16,7 @@ export class ITr2AttributeGenerator
   }
 
   /** Writes this generator's attribute values for one particle. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   Generate(_position, _velocity, _index)
   {

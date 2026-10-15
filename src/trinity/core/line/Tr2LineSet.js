@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2LineSet.h
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2PrimitiveSet } from "./Tr2PrimitiveSet.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -18,10 +18,10 @@ import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 
 
 /** A set of coloured lines with an accompanying picking-triangle list, submitted as one buffer. */
-@meta.define({ className: "Tr2LineSet", family: "trinityCore" })
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(IInitialize)
-@meta.blue.chainTo(Tr2PrimitiveSet)
+@blue.define("Tr2LineSet")
+@blue.inherit(IInitialize)
+@blue.interface(IInitialize)
+@blue.chainTo(Tr2PrimitiveSet)
 export class Tr2LineSet extends Tr2PrimitiveSet
 {
 
@@ -37,39 +37,39 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   }
 
   /** m_lines (std::vector<LineData>) */
-  @meta.type.list("LineData")
+  @type.list("LineData")
   lines = [];
 
   /** m_maxCurrentLineCount (unsigned int) */
-  @meta.type.uint32
+  @type.uint32
   maxCurrentLineCount = 0;
 
   /** m_currentSubmittedLineCount (unsigned int) */
-  @meta.type.uint32
+  @type.uint32
   currentSubmittedLineCount = 0;
 
   /** m_pickingVertexDeclHandle (unsigned int) */
-  @meta.type.uint32
+  @type.uint32
   pickingVertexDeclHandle = Tr2EffectStateManager.Unknown;
 
   /** m_pickingVertexBuffer (Tr2BufferAL) */
-  @meta.type.rawStruct("Tr2BufferAL")
+  @type.rawStruct("Tr2BufferAL")
   pickingVertexBuffer = new Tr2BufferAL();
 
   /** m_triangles (std::vector<Triangle>) */
-  @meta.type.list("Triangle")
+  @type.list("Triangle")
   triangles = [];
 
   /** m_maxCurrentTriangleCount (unsigned int) */
-  @meta.type.uint32
+  @type.uint32
   maxCurrentTriangleCount = 0;
 
   /** m_currentSubmittedTriangleCount (unsigned int) */
-  @meta.type.uint32
+  @type.uint32
   currentSubmittedTriangleCount = 0;
 
   /** Carbon method AddLine (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AddLine(position1, color1, position2, color2)
   {
@@ -85,7 +85,7 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   /**
    * Appends a triangle to the picking list that accompanies the lines.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AddPickingTriangle(position1, position2, position3)
   {
@@ -97,7 +97,7 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   }
 
   /** Carbon method ClearLines (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ClearLines()
   {
@@ -108,7 +108,7 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   /**
    * Empties the picking-triangle list, leaving the lines intact.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ClearPickingTriangles()
   {
@@ -116,7 +116,7 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   }
 
   /** Native SubmitChanges; JS array length replaces inaccessible vector capacity. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SubmitChanges()
   {
@@ -148,7 +148,7 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   /**
    * Prepares existing geometry after reader population; JS arrays need no reserve.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -158,7 +158,7 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources: defer while creation is disabled. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PrepareResources()
   {
@@ -166,7 +166,7 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   }
 
   /** Explicit AL destruction replaces Carbon's empty reference-counted handles. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ReleaseResources()
   {
@@ -177,7 +177,7 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   }
 
   /** Packs Carbon's native vertex records into mapped AL storage instead of memcpy. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnPrepareResources()
   {
@@ -254,7 +254,7 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   }
 
   /** Native Tr2LineSet draw dispatch, including the visible-buffer gate for picking. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBatchesImpl(accumulator, perObjectData, effect, reason)
   {

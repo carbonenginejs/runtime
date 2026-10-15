@@ -1,28 +1,28 @@
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /** Serializable diagnostic emitted while resolving a character appearance plan. */
-@meta.define({ className: "CjsCharacterAppearanceDiagnostic", family: "character" })
+@meta.define("CjsCharacterAppearanceDiagnostic")
 export class CjsCharacterAppearanceDiagnostic
 {
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     code = "";
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     message = "";
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     severity = "warning";
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.rootRef("CjsCharacterOrigin")
+    @blue.readwrite
+    @blue.persist
+    @type.rootRef("CjsCharacterOrigin")
     origin = null;
 
 }

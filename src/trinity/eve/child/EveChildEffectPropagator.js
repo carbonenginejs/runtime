@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator_Blue.cpp
 import { IInitialize } from "../../../global/blue/IInitialize.js";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { EveSpaceObject2 } from "../spaceObject/EveSpaceObject2.js";
 import { EveChildContainer } from "./EveChildContainer.js";
 import { EveEntity } from "../EveEntity.js";
@@ -60,173 +60,173 @@ function SortByCircleDist(lhs, rhs)
 
 
 /** EveChildEffectPropagator (eve/child) - generated from schema shapeHash 0f2a96e8.... */
-@meta.define({ className: "EveChildEffectPropagator", family: "eve/child" })
-@meta.blue.inherit(INotify, IInitialize)
-@meta.blue.interface(EveChildContainer, EveSpaceObjectChild, IEveSpaceObjectChild, INotify, EveEntity)
+@blue.define("EveChildEffectPropagator")
+@blue.inherit(INotify, IInitialize)
+@blue.interface(EveChildContainer, EveSpaceObjectChild, IEveSpaceObjectChild, INotify, EveEntity)
 export class EveChildEffectPropagator extends EveChildContainer
 {
 
   /** m_type (PropagationType - enum PropagationType) [READWRITE, PERSIST, ENUM, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.EveChildEffectPropagator.PropagationType")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.EveChildEffectPropagator.PropagationType")
   propagationType = 0;
 
   /** m_triggerMethod (TriggerType - enum TriggerType) [READWRITE, PERSIST, ENUM, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.EveChildEffectPropagator.TriggerType")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.EveChildEffectPropagator.TriggerType")
   triggerMethood = 0;
 
   /** m_stopAfterNumTriggers (float) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   stopAfterNumTriggers = -1;
 
   /** m_randScaleMin (float) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   randScaleMin = 1;
 
   /** m_randScaleMax (float) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   randScaleMax = 1;
 
   /** m_triggerSphereOffset (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   triggerSphereOffset = vec3.create();
 
   /** m_effect (EveChildInstanceContainerPtr) [PERSISTONLY, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persistOnly
-  @meta.type.rootRef("EveChildInstanceContainer")
+  @blue.notify
+  @blue.readwrite
+  @blue.persistOnly
+  @type.rootRef("EveChildInstanceContainer")
   effect = null;
 
   /** m_stopToClearDelay (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   stopToClearDelay = 0;
 
   /** m_rndClosenessPreference (float) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   ClosenessPreference = 0.25;
 
   /** m_effectScaling (Vector3) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   effectScaling = vec3.fromValues(1, 1, 1);
 
   /** m_effectDuration (float) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   durationPerEffect = 3;
 
   /** m_isPlaying (bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   isPlaying = false;
 
   /** m_localLocators (EveLocatorSetsPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveLocatorSets")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("EveLocatorSets")
   localLocators = null;
 
   /** m_triggerSphereRadiusCurve (Tr2CurveScalarPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2CurveScalar")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2CurveScalar")
   triggerSphereRadiusCurve = null;
 
   /** m_triggerSphereScalarMulti (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   triggerSphereScalarMulti = 1;
 
   /** m_locatorSetName (BlueSharedString) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   locatorSetName = "";
 
   /** m_completeness (float) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   completeness = 1;
 
   /** m_replayAfterDelay (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   replayAfterDelay = false;
 
   /** m_trigger (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   trigger = false;
 
   /** m_rndMinRangeThreshold (float) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   minRangeThreshold = 0;
 
   /** m_playTime (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   playTime = 0;
 
   /** m_rndRange (float) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   range = 500;
 
   /** m_numTriggers (int64_t) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int64
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.int64
   numTriggers = 10;
 
   /** m_frequency (float) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   frequency = 1;
 
   /** m_skipCleanup (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   skipCleanup = false;
 
   _currentTriggerIndex = 0;
@@ -243,7 +243,7 @@ export class EveChildEffectPropagator extends EveChildContainer
 
   /** Carbon EveChildEffectPropagator::Play (cpp:101-113): reset via Stop, then
    * arm playback; without an effect the propagator never starts. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Play()
   {
@@ -260,7 +260,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   }
 
   /** Carbon EveChildEffectPropagator::Stop (cpp:119-129). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Stop()
   {
@@ -276,7 +276,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   }
 
   /** Carbon EveChildEffectPropagator::Initialize (cpp:131-138). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -288,7 +288,7 @@ export class EveChildEffectPropagator extends EveChildContainer
    * on effect changes, clamps for completeness/randScaleMin/randScaleMax, and
    * the playTime re-anchor on frequency changes. The value argument follows
    * the repo's OnModified duck (field name or field value). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(value = null)
   {
@@ -327,7 +327,7 @@ export class EveChildEffectPropagator extends EveChildContainer
    * instance for every processed locator the growing trigger sphere has
    * swallowed; the list is distance-sorted so the scan stops at the first
    * locator still outside. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ManageTriggers()
   {
@@ -370,7 +370,7 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @param {Object} updateContext - frame context (EveUpdateContext)
    * @param {EveChildUpdateParams} params
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateSyncronous(updateContext, params)
   {
@@ -434,7 +434,7 @@ export class EveChildEffectPropagator extends EveChildContainer
    * advance playTime, let the trigger sphere fire instances, then handle the
    * end of the curve (skip cleanup, delayed replay with re-randomized locator
    * sizes, or stop). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateTriggerCurve(updateContext)
   {
@@ -482,7 +482,7 @@ export class EveChildEffectPropagator extends EveChildContainer
    * frequency-paced spawning from smart-random locators with a spawn cap,
    * plus paced deletion of expired instances (PopFront) until the loop
    * drains. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateTriggerInterval(updateContext)
   {
@@ -541,7 +541,7 @@ export class EveChildEffectPropagator extends EveChildContainer
    *
    * Adapted: Math.random replaces Carbon's unseeded TriRand.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetSmartRandomLocatorIndex()
   {
@@ -584,8 +584,8 @@ export class EveChildEffectPropagator extends EveChildContainer
    * @param {EveChildUpdateParams} params
    * @returns {Float32Array} worldTransform
    */
-  @meta.blue.method
-  @meta.blue.contextual(["camera"])
+  @blue.method
+  @blue.contextual(["camera"])
   @meta.implemented
   UpdateAsyncronous(updateContext, params)
   {
@@ -601,7 +601,7 @@ export class EveChildEffectPropagator extends EveChildContainer
 
   /** Carbon EveChildEffectPropagator::UpdateVisibility (cpp:389-395): the
    * effect container alone receives the visibility tick (no base fan-out). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform = null, parentLod = Tr2Lod.TR2_LOD_HIGH)
   {
@@ -611,7 +611,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   /** Carbon EveChildEffectPropagator::GetRenderables (cpp:397-408): nothing
    * renders until the first trigger fired; then the effect container
    * contributes its instances. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetRenderables(out = [])
   {
@@ -626,7 +626,7 @@ export class EveChildEffectPropagator extends EveChildContainer
 
   /** Carbon EveChildEffectPropagator::AddQuadsToQuadRenderer (cpp:370-381):
    * only the propagated effect adds quads, not the container's objects. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
@@ -638,7 +638,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   }
 
   /** Carbon EveChildEffectPropagator::RegisterWithQuadRenderer (cpp:383-389). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -651,7 +651,7 @@ export class EveChildEffectPropagator extends EveChildContainer
    *
    * Adapted: Math.random replaces Carbon's unseeded TriRand.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ProcessLocalLocators()
   {
@@ -696,7 +696,7 @@ export class EveChildEffectPropagator extends EveChildContainer
    * the instance to that bone, as the instance container's own locator path
    * does (EveChildInstanceContainer.cpp:211, :265-273).
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ProcessRefLocators(parent)
   {
@@ -748,7 +748,7 @@ export class EveChildEffectPropagator extends EveChildContainer
    *
    * Adapted: Math.random replaces Carbon's unseeded TriRand.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ProcessRandomSpreadLocators()
   {
@@ -790,7 +790,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   /** Carbon EveChildEffectPropagator::ProcessLocators (cpp:513-540): rebuild
    * the processed-locator list for the selected propagation type, stop when
    * nothing survived the completeness gate, then distance-sort. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ProcessLocators(parent = null)
   {
@@ -825,7 +825,7 @@ export class EveChildEffectPropagator extends EveChildContainer
    *
    * Adapted: Math.random replaces Carbon's unseeded TriRand.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RecalculateLocatorSizes()
   {
@@ -840,7 +840,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   /** Carbon EveChildEffectPropagator::DistanceSortLocators (cpp:556-564):
    * squared distance of every locator to the scaled trigger-sphere center,
    * then an ascending sort so ManageTriggers can early-out. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   DistanceSortLocators()
   {
@@ -856,7 +856,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   }
 
   /** Carbon EveChildEffectPropagator::GetEffect (cpp:640-643). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetEffect()
   {
@@ -866,7 +866,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   /** Carbon EveChildEffectPropagator::SetEffect (cpp:645-654): unregisters
    * the current effect from both the component registry and child hierarchy,
    * installs the replacement, then registers it with both owners. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetEffect(effect)
   {
@@ -879,7 +879,7 @@ export class EveChildEffectPropagator extends EveChildContainer
 
   /** Carbon EveChildEffectPropagator::SetControllerVariable (cpp:656-662):
    * the effect container alone receives the variable (no base fan-out). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetControllerVariable(name, value)
   {
@@ -887,7 +887,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   }
 
   /** Carbon EveChildEffectPropagator::RegisterComponents (cpp:45-51). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterComponents()
   {
@@ -898,7 +898,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   }
 
   /** Carbon EveChildEffectPropagator::UnRegisterComponents (cpp:53-59). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UnRegisterComponents()
   {

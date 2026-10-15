@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Tr2TextureAnimation.cpp
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { be } from "#blue";
 import { BitmapDimensions } from "#imageio";
 import { GetBytesPerPixel, PixelFormat, PixelFormatFromCanonical, TextureType, Tr2GpuUsage, Tr2CpuUsage } from "#consts/render-context";
@@ -12,9 +12,9 @@ import { Tr2TextureSubresource } from "../../../trinityal/Tr2HalHelperStructures
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 
 /** Advances a multi-channel texture flipbook, tracking frame and restart state per channel. */
-@meta.define({ className: "Tr2TextureAnimation", family: "trinityCore" })
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(IInitialize)
+@blue.define("Tr2TextureAnimation")
+@blue.inherit(IInitialize)
+@blue.interface(IInitialize)
 export class Tr2TextureAnimation
 {
   _channels = new Map();
@@ -25,38 +25,38 @@ export class Tr2TextureAnimation
 
   _restartState = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   fps = 1;
 
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   frame = 0;
 
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   time = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   paused = false;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   updateOnlyWhenRendered = true;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.wpath(".vta")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.wpath(".vta")
   resPath = "";
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   looped = true;
 
   /**
@@ -65,7 +65,7 @@ export class Tr2TextureAnimation
    * Adapted: Schedules promise-based reads and decoding instead of native queues.
    * @returns {boolean} True; asynchronous failures are reported by the load task.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -77,7 +77,7 @@ export class Tr2TextureAnimation
    * Reloads after a notification, matching Carbon's unconditional reload hook.
    * @returns {boolean} True.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified()
   {
@@ -95,7 +95,7 @@ export class Tr2TextureAnimation
    * still bind one, since the parameter invalidates only on an `animation` edit.
    * @returns {Promise<boolean>} Whether the initial frame decoded successfully.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ReadData()
   {
@@ -117,7 +117,7 @@ export class Tr2TextureAnimation
    * because files are always fetched and never limited to a local low-detail install.
    * @returns {object} Request record.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   MakeRequest()
   {
@@ -134,7 +134,7 @@ export class Tr2TextureAnimation
    * @param {number} dt Elapsed seconds.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AdvanceTime(dt)
   {
@@ -225,7 +225,7 @@ export class Tr2TextureAnimation
    * Adapted: Calls the active AL backend through the ambient render context.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateGrids()
   {
@@ -249,7 +249,7 @@ export class Tr2TextureAnimation
    * retain their synchronous Restart/Reset adapter behavior when no VTA is loaded.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RestartAnimation()
   {
@@ -284,7 +284,7 @@ export class Tr2TextureAnimation
    * Adapted: Returns a JavaScript array instead of a vector of shared strings.
    * @returns {string[]} Channel names.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetChannelNames()
   {
@@ -298,7 +298,7 @@ export class Tr2TextureAnimation
    * @param {string} channel Channel name.
    * @returns {object|null} Texture handle.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetTexture(channel)
   {
@@ -311,7 +311,7 @@ export class Tr2TextureAnimation
   }
 
   /** @returns {boolean} Whether the owner should advance only when rendered. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateOnlyWhenRendered()
   {

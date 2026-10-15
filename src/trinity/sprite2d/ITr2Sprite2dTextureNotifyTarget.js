@@ -10,10 +10,10 @@
 // declares it as its own plain C++ interface (not a BLUE_INTERFACE), so it has
 // no Blue exposure. Implemented in Carbon by Tr2TexturedSpriteObject
 // (Tr2SpriteObject.h:121) and Tr2Sprite2dLayer (Tr2Sprite2dLayer.h:18).
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 /** Receives change notifications from a Sprite2D texture it registered with. */
-@meta.define({ className: "ITr2Sprite2dTextureNotifyTarget", family: "sprite2d", abstract: true })
+@blue.define({ className: "ITr2Sprite2dTextureNotifyTarget", abstract: true })
 export class ITr2Sprite2dTextureNotifyTarget
 {
   /**

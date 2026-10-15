@@ -2,7 +2,7 @@ import { DictReader } from "#blue/DictReader";
 import "#blue/values";
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import {
 } from "#utils/is";
 import { copyBytes } from "#utils/bytes";
@@ -197,22 +197,21 @@ export class Tr2EffectLibrary
 // expressions are reused verbatim, so the registered metadata is identical.
 // Statics belong in `methods`: decorateMethod targets the prototype and
 // would register a static as an instance field.
-CjsSchema.define(Tr2EffectLibrary, {
+CjsSchema.blue.define(Tr2EffectLibrary, {
   className: "Tr2EffectLibrary",
-  family: "shader",
   fields: {
-    payloadSize: meta.type.uint32,
-    libraryHandle: meta.type.uint32,
-    rayGenName: meta.type.string,
-    missName: meta.type.string,
-    closestHitName: meta.type.string,
-    anyHitName: meta.type.string,
-    intersectionName: meta.type.string,
-    hitGroupName: meta.type.string,
-    globalInput: meta.type.rawStruct("Tr2EffectStageInput"),
-    localInput: meta.type.rawStruct("Tr2EffectStageInput"),
-    globalResourceSetDesc: meta.type.rawStruct("Tr2ResourceSetDescriptionAL"),
-    sourceProgram: [ meta.adapted, meta.type.rawStruct("CjsEffectSourceProgram") ],
-    exports: [ meta.adapted, meta.type.rawStruct("CjsEffectLibraryExports") ]
+    payloadSize: type.uint32,
+    libraryHandle: type.uint32,
+    rayGenName: type.string,
+    missName: type.string,
+    closestHitName: type.string,
+    anyHitName: type.string,
+    intersectionName: type.string,
+    hitGroupName: type.string,
+    globalInput: type.rawStruct("Tr2EffectStageInput"),
+    localInput: type.rawStruct("Tr2EffectStageInput"),
+    globalResourceSetDesc: type.rawStruct("Tr2ResourceSetDescriptionAL"),
+    sourceProgram: [ meta.adapted, type.rawStruct("CjsEffectSourceProgram") ],
+    exports: [ meta.adapted, type.rawStruct("CjsEffectLibraryExports") ]
   }
 });

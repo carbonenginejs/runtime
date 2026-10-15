@@ -84,4 +84,4 @@ export class ITr2EffectValue
   }
 }
 
-CjsSchema.define(ITr2EffectValue, { className: "ITr2EffectValue", carbon: "ITr2EffectValue", family: "trinityCore", fields: {} });
+CjsSchema.blue.define(ITr2EffectValue, { className: "ITr2EffectValue", fields: {} });

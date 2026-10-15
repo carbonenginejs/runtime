@@ -11,7 +11,7 @@ import { Tr2Renderer } from "../Tr2Renderer.js";
 import { SharedGeometryBuffer } from "./TriGeometryResAllocations.js";
 import { ReadValues } from "../../../global/blue/values.js";
 import { vec3 } from "#math/vec3";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2ParticleElementDeclaration } from "../../particle/element/Tr2ParticleElementDeclaration.js";
 import { Tr2VertexUsageCode } from "../vertex/usageCode.js";
 import { ITr2InstanceDataInstanceData, ITr2InstanceData } from "./ITr2InstanceData/index.js";
@@ -23,9 +23,9 @@ import { ITr2GpuBuffer } from "../ITr2GpuBuffer.js";
  * per-instance rows and their bounding box - and can spawn the same rows into a
  * particle system on demand.
  */
-@meta.define({ className: "Tr2RuntimeInstanceData", family: "trinityCore" })
-@meta.blue.inherit(ITr2InstanceData, ITr2GpuBuffer)
-@meta.blue.interface(ITr2InstanceData, ITr2GpuBuffer)
+@blue.define("Tr2RuntimeInstanceData")
+@blue.inherit(ITr2InstanceData, ITr2GpuBuffer)
+@blue.interface(ITr2InstanceData, ITr2GpuBuffer)
 export class Tr2RuntimeInstanceData
 {
   /**
@@ -49,14 +49,14 @@ export class Tr2RuntimeInstanceData
     return instance;
   }
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2ParticleSystem")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2ParticleSystem")
   particleSystem = null;
 
   // DIVERGENCE (deliberate): Carbon only Blue-persists name/particleSystem and
@@ -67,23 +67,23 @@ export class Tr2RuntimeInstanceData
   // .black files never populate these fields.
 
 
-  @meta.blue.notify
-  @meta.blue.persist
-  @meta.type.array("unknown")
+  @blue.notify
+  @blue.persist
+  @type.array("unknown")
   layout = [];
 
 
-  @meta.blue.notify
-  @meta.blue.persist
-  @meta.type.array("unknown")
+  @blue.notify
+  @blue.persist
+  @type.array("unknown")
   rows = [];
 
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.persist
+  @type.boolean
   explicitBoundingBox = false;
 
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   count = 0;
 
   /**
@@ -95,9 +95,9 @@ export class Tr2RuntimeInstanceData
    * @type {vec3}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.read
+  @blue.persist
+  @type.vec3
   aabbMin = vec3.create();
 
   /**
@@ -109,9 +109,9 @@ export class Tr2RuntimeInstanceData
    * @type {vec3}
    */
   @meta.adapted
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.read
+  @blue.persist
+  @type.vec3
   aabbMax = vec3.create();
 
   #layout = Object.freeze([]);
@@ -147,7 +147,7 @@ export class Tr2RuntimeInstanceData
   }
 
   /** Releases the borrowed allocator range and declaration; CPU rows survive. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   ReleaseResources()
   {
@@ -156,7 +156,7 @@ export class Tr2RuntimeInstanceData
   }
 
   /** Inherited Tr2DeviceResource.cpp:21-32 creation guard. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PrepareResources()
   {
@@ -164,7 +164,7 @@ export class Tr2RuntimeInstanceData
   }
 
   /** Allocates the native shared stream and interns its layout (cpp:210-231). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnPrepareResources()
   {
@@ -214,7 +214,7 @@ export class Tr2RuntimeInstanceData
    * Repacks the CPU buffer from the persisted layout and rows, then publishes
    * it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -244,7 +244,7 @@ export class Tr2RuntimeInstanceData
    * Replaces the element layout and discards every existing row - a layout must
    * be set before any SetData.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   @meta.invalidates("#dirty")
   SetElementLayout(layout)
@@ -257,7 +257,7 @@ export class Tr2RuntimeInstanceData
    * Replaces all instance rows and repacks the byte buffer; throws when no
    * layout has been set.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   @meta.invalidates("#dirty")
   SetData(rows)
@@ -269,7 +269,7 @@ export class Tr2RuntimeInstanceData
    * A detached copy of one instance row, with its component arrays cloned so the
    * caller cannot alias stored data.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetItem(index)
   {
@@ -281,7 +281,7 @@ export class Tr2RuntimeInstanceData
    * Validates one instance row against the layout, stores it and rewrites its
    * bytes in place, marking the data dirty.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   @meta.invalidates("#dirty")
   SetItem(index, row)
@@ -294,7 +294,7 @@ export class Tr2RuntimeInstanceData
   }
 
   /** A detached copy of one element of one instance row. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetItemElement(index, elementIndex)
   {
@@ -307,7 +307,7 @@ export class Tr2RuntimeInstanceData
    * Validates and stores a single element of one row, patching only that
    * element's bytes in the packed buffer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   @meta.invalidates("#dirty")
   SetItemElement(index, elementIndex, value)
@@ -328,7 +328,7 @@ export class Tr2RuntimeInstanceData
    * Publishes pending bytes to the shared AL allocation (cpp:442-458).
    * The JS dirty/revision counters also track publication before device setup.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateData()
   {
@@ -356,7 +356,7 @@ export class Tr2RuntimeInstanceData
    * explicitly, and zeroes the box when there is no such element or no
    * instances.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateBoundingBox()
   {
@@ -394,7 +394,7 @@ export class Tr2RuntimeInstanceData
    * Sets the box explicitly from either a { min, max } object or two vectors,
    * and latches explicitBoundingBox so UpdateBoundingBox stops recomputing it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetBoundingBox(bounds, maxBounds)
   {
@@ -415,7 +415,7 @@ export class Tr2RuntimeInstanceData
    * @param {vec3} [maxBounds] Caller-owned destination for the maximum.
    * @returns {boolean|{min: vec3, max: vec3}} True when written into the out vectors, otherwise a new { min, max } pair.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBoundingBox(minBounds, maxBounds)
   {
@@ -435,7 +435,7 @@ export class Tr2RuntimeInstanceData
    * The bounding box of the single CPU instance buffer; the buffer index is
    * ignored because only one stream exists.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetInstanceBufferBoundingBox(_bufferIndex = 0)
   {
@@ -443,7 +443,7 @@ export class Tr2RuntimeInstanceData
   }
 
   /** Number of packed instance rows. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetCount()
   {
@@ -451,7 +451,7 @@ export class Tr2RuntimeInstanceData
   }
 
   /** Byte size of one packed row, summed from the element layout. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetStride()
   {
@@ -462,7 +462,7 @@ export class Tr2RuntimeInstanceData
    * The frozen normalized element descriptors, each carrying usage, type,
    * component count, byte size and byte offset.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLayout()
   {
@@ -473,7 +473,7 @@ export class Tr2RuntimeInstanceData
    * A copy of the packed instance bytes, or null when no rows are set; the
    * caller owns the returned array.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetData()
   {
@@ -481,7 +481,7 @@ export class Tr2RuntimeInstanceData
   }
 
   /** Both a declaration and a valid allocation are required (cpp:239-242). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsInstanceDataReady()
   {
@@ -508,7 +508,7 @@ export class Tr2RuntimeInstanceData
   }
 
   /** Borrowed instance AL buffer (cpp:278-281). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetGpuBuffer(_bufferIndex = 0)
   {
@@ -519,7 +519,7 @@ export class Tr2RuntimeInstanceData
    * Drops every row and the packed buffer while keeping the layout, and marks
    * the data dirty.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   @meta.invalidates("#dirty")
   DestroyData()
@@ -539,7 +539,7 @@ export class Tr2RuntimeInstanceData
    * Adapted: Maps Carbon vertex semantics into the maintained CPU particle-system
    * declaration without GPU buffers.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Spawn()
   {
@@ -602,7 +602,7 @@ export class Tr2RuntimeInstanceData
    * Implements ITr2GenericEmitter. Does nothing as this emitter only emits
    * particles on demand (Spawn).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Update(_arguments)
   {
@@ -612,7 +612,7 @@ export class Tr2RuntimeInstanceData
    * Implements ITr2GenericEmitter. Does nothing as this emitter only emits
    * particles on demand (Spawn); both Carbon overloads are deliberate no-ops.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SpawnParticles(_arguments, _position = null, _velocity = null, _rateModifier = 1)
   {
@@ -628,14 +628,14 @@ export class Tr2RuntimeInstanceData
    * Implements ITr2GenericEmitter. Nothing to prepare - this emitter never
    * spawns from the threaded particle update.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetThreadSafeFlag()
   {
   }
 
   /** Carbon's CMF writer requires the native resource-path and file encoder. */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   SaveToCMF(...args)
   {
@@ -643,7 +643,7 @@ export class Tr2RuntimeInstanceData
   }
 
   /** Carbon's Granny writer requires the native Granny SDK and filesystem. */
-  @meta.blue.method
+  @blue.method
   @meta.notImplemented
   SaveToGranny(...args)
   {

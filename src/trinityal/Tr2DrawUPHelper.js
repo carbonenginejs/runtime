@@ -350,4 +350,4 @@ export class Tr2DrawUPHelper
 // straight from source by its tests - `#trinityal/...` resolves to `src/` - and
 // raw Node cannot parse decorator syntax, so a decorator here breaks every test
 // that reaches this file without a build first.
-CjsSchema.define(Tr2DrawUPHelper, { className: "Tr2DrawUPHelper", carbon: "Tr2DrawUPHelper" });
+CjsSchema.blue.define(Tr2DrawUPHelper, { className: "Tr2DrawUPHelper" });

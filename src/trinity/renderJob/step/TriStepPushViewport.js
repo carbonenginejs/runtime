@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepPushViewport.h
 // Source: trinity/trinity/RenderJob/TriStepPushViewport.cpp
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
 
@@ -8,14 +8,14 @@ import { TriRenderJob } from "../TriRenderJob.js";
 // viewport onto the render context's ESM stack.
 
 /** Step that saves the current viewport so a later pop can restore it. */
-@meta.define({ className: "TriStepPushViewport", family: "renderJob" })
+@blue.define("TriStepPushViewport")
 export class TriStepPushViewport extends TriRenderStep
 {
   /**
    * Pushes the render context's current viewport; the value is not supplied by the
    * step, only the intent to save it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

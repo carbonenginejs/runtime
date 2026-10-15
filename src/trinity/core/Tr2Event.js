@@ -1,8 +1,8 @@
 // Source: trinity/trinity/Tr2Event.h
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 /** Native weak-owner multicast event. JavaScript passes template method arguments explicitly. */
-@meta.define({ className: "Tr2Event", family: "trinityCore" })
+@blue.define("Tr2Event")
 export class Tr2Event
 {
   listeners = [];

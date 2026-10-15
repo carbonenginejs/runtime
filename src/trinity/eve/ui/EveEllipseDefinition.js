@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Eve/UI/EveEllipseDefinition.h
-import { meta } from "#schema";
+import { type, blue } from "#schema";
 import { INotify } from "../../../global/blue/INotify.js";
 //   trinity/trinity/Eve/UI/EveEllipseDefinition.cpp
 import { vec3 } from "#math/vec3";
@@ -10,41 +10,41 @@ import { vec3 } from "#math/vec3";
  * One authored ellipse of an ellipse set - centre, plane normal, in-plane
  * rotation in degrees and the two semi-axis lengths.
  */
-@meta.define({ className: "EveEllipseDefinition", family: "eve/ui" })
-@meta.blue.inherit(INotify)
-@meta.blue.interface(INotify)
+@blue.define("EveEllipseDefinition")
+@blue.inherit(INotify)
+@blue.interface(INotify)
 export class EveEllipseDefinition
 {
   _dirtyFlag = null;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   center = vec3.create();
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   planeNormal = vec3.fromValues(0, 1, 0);
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   rotationDegrees = 0;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   semiMajor = 1;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   semiMinor = 1;
 
   /**

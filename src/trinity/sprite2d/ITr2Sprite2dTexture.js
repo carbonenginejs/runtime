@@ -1,8 +1,8 @@
 // Source: trinity/trinity/Sprite2d/ITr2Sprite2dTexture.h
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 /** Native nominal contract for Sprite2D texture inputs. */
-@meta.define({ className: "ITr2Sprite2dTexture", family: "sprite2d", abstract: true })
+@blue.define({ className: "ITr2Sprite2dTexture", abstract: true })
 export class ITr2Sprite2dTexture
 {
   /** Applies the texture and sampling settings. */

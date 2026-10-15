@@ -1569,7 +1569,7 @@ function IsPlainObject(value)
   return Object.getPrototypeOf(prototype) === null && Object.prototype.toString.call(value) === "[object Object]";
 }
 
-CjsSchema.define(DictReader, { className: "DictReader", carbon: "DictReader" });
+CjsSchema.blue.define(DictReader, { className: "DictReader" });
 CjsSchema.decorateMethod(DictReader, "CreateObject", meta.adapted);
 CjsSchema.decorateMethod(DictReader, "ReadInto", meta.ours);
 CjsSchema.decorateMethod(DictReader, "ReadList", meta.adapted);

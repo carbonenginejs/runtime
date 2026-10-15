@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/fxAttributes/EveCameraFxAttributes.h
 //   trinity/trinity/Eve/SpaceObject/Utils/fxAttributes/EveCameraFxAttributes.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IEveFxAttribute } from "./IEveFxAttribute.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -15,39 +15,39 @@ const IDENTITY_TRANSFORM = mat4.create();
  * object, and object, child and camera forward directions - refreshed each child
  * update for effect bindings to read.
  */
-@meta.define({ className: "EveCameraFxAttributes", family: "eve/fxAttributes" })
+@blue.define("EveCameraFxAttributes")
 export class EveCameraFxAttributes extends IEveFxAttribute
 {
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_lookAngleToObject (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   lookAngleToObject = 0;
 
   /** m_objectRotation (Vector3) [READ] */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   objectRotation = vec3.create();
 
   /** m_rotationWithChildTransform (Vector3) [READ] */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   rotationWithChildTransform = vec3.create();
 
   /** m_cameraRotation (Vector3) [READ] */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   cameraRotation = vec3.create();
 
   /** m_distanceToCamera (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   distanceToCamera = 0;
 
   /**
@@ -57,8 +57,8 @@ export class EveCameraFxAttributes extends IEveFxAttribute
    * Adapted: Carbon reads Tr2Renderer camera globals; the runtime Trinity layer supplies the
    * equivalent state through updateContext.renderContext.
    */
-  @meta.blue.method
-  @meta.blue.contextual(["camera"])
+  @blue.method
+  @blue.contextual(["camera"])
   @meta.adapted
   UpdateAsyncronous(updateContext, params)
   {

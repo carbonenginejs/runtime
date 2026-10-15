@@ -3,21 +3,21 @@ import { BLUELISTEVENT } from "#consts/blue";
 import { ITr2GenericEmitter } from "../ITr2GenericEmitter/ITr2GenericEmitter.js";
 // Source: trinity/trinity/Particle/Tr2SphereConstraint.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { ITr2GenericParticleConstraint } from "./ITr2GenericParticleConstraint.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
 
 /** A collision constraint that keeps particles outside or inside a sphere, reflecting velocity and triggering generators and emitters on contact. */
-@meta.define({ className: "Tr2SphereConstraint", family: "particle" })
-@meta.blue.inherit(IListNotify)
-@meta.blue.interface(ITr2GenericParticleConstraint)
+@blue.define("Tr2SphereConstraint")
+@blue.inherit(IListNotify)
+@blue.interface(ITr2GenericParticleConstraint)
 export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
 {
 
   /** Carbon Tr2SphereConstraint.cpp:68-80 prepares newly inserted collision emitters. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
@@ -43,80 +43,80 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
   #radiusElement = null;
 
   /** m_affectPosition (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   affectPosition = true;
 
   /** m_affectVelocity (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   affectVelocity = true;
 
   /** m_position (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   position = vec3.create();
 
   /** m_radius (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   radius = 1;
 
   /** m_elasticity (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   elasticity = 1;
 
   /** m_friction (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   friction = 1;
 
   /** m_invertSphere (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   invertSphere = false;
 
   /** m_isValid (bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   isValid = false;
 
   /** m_onCollisionEmitters (PITr2GenericEmitterVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITr2GenericEmitter")
+  @blue.read
+  @blue.persist
+  @type.list("ITr2GenericEmitter")
   onCollisionEmitters = new BlueList(ITr2GenericEmitter);
 
   /** m_generators (PITr2AttributeGeneratorVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITr2AttributeGenerator")
+  @blue.read
+  @blue.persist
+  @type.list("ITr2AttributeGenerator")
   generators = [];
 
   /** m_particleRadiusComponent (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   particleRadiusComponent = "";
 
   /** m_reflectionNoise (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   reflectionNoise = 0;
 
   /** m_particleRadiusCoefficient (Vector4) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   particleRadiusCoefficient = vec4.fromValues(1, 0, 0, 0);
 
   /**

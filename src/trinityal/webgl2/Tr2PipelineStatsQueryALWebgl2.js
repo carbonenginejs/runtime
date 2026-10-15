@@ -168,4 +168,4 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
   }
 }
 
-CjsSchema.define(Tr2PipelineStatsQueryALWebgl2, { className: "Tr2PipelineStatsQueryALWebgl2", carbon: "Tr2PipelineStatsQueryAL" });
+CjsSchema.blue.define(Tr2PipelineStatsQueryALWebgl2, { className: "Tr2PipelineStatsQueryALWebgl2", donors: [ "Tr2PipelineStatsQueryAL" ] });

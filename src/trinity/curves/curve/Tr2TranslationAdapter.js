@@ -3,7 +3,7 @@
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { ITriVectorFunction } from "#blue";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { CcpTime } from "#blue";
 
 
@@ -12,10 +12,7 @@ import { CcpTime } from "#blue";
  * and rotating the sampled offset by a fixed rotation, falling back to a fixed
  * authored vector when no child curve is attached.
  */
-@meta.define({
-  className: "Tr2TranslationAdapter",
-  family: "curves"
-})
+@blue.define("Tr2TranslationAdapter")
 export class Tr2TranslationAdapter extends ITriVectorFunction
 {
   /**
@@ -23,18 +20,18 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * belong to the consuming object.
    * @type {Float32Array}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   value = vec3.create();
 
   /**
    * Optional child vector function sampled using the adapter's local time.
    * @type {ITriVectorFunction|null}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITriVectorFunction")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITriVectorFunction")
   curve = null;
 
   /**
@@ -42,17 +39,17 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * GetValueAt do not apply it.
    * @type {Float32Array}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotationOffset = quat.create();
 
   /**
    * Cached three-component vector from the latest update, returned by InterpolatedPosition.
    * @type {Float32Array}
    */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   currentValue = vec3.create();
 
   /**
@@ -91,7 +88,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateValue(time)
   {
@@ -108,7 +105,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(time, out)
   {
@@ -131,7 +128,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValueAt(time, out)
   {
@@ -149,7 +146,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {Float32Array} out Destination derivative.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValueDotAt(time, out)
   {
@@ -193,7 +190,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {Float32Array} out Destination derivative.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValueDoubleDotAt(_time, out)
   {
@@ -207,7 +204,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {Float32Array|Float64Array} out Destination position.
    * @returns {Float32Array|Float64Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   InterpolatedPosition(_time, out)
   {
@@ -220,7 +217,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {number} range Radius in seconds; zero or omission selects 60.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RandomizeStart(range = 60)
   {
@@ -233,7 +230,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {number} scale Time divisor.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ScaleTime(scale)
   {
@@ -244,7 +241,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * Clears the retained start timestamp.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ResetStart()
   {
@@ -256,7 +253,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
    * @param {number} time Time in seconds.
    * @returns {number} Scaled time in seconds.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLocalTime(time)
   {
@@ -318,4 +315,4 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
 }
 
 // Exact native exposure table; ITriFunction is intentionally not mapped.
-meta.blue.interface(ITriVectorFunction)(Tr2TranslationAdapter);
+blue.interface(ITriVectorFunction)(Tr2TranslationAdapter);

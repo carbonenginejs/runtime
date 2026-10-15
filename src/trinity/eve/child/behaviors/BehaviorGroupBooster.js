@@ -3,7 +3,7 @@ import { IsMatch, INotify, be, CcpTime } from "#blue";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroupBooster.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { quat } from "#math/quat";
@@ -30,9 +30,9 @@ const GROUP_SCALE = vec3.create();
 const HALO_ROTATION = quat.fromValues(0, 1, 0, 0);
 
 /** A drone-group component that builds and drives the group's shared booster and ambient or halo flare effects and contributes their point light to the scene. */
-@meta.define({ className: "BehaviorGroupBooster", family: "eve/child/behaviors" })
-@meta.blue.inherit(IInitialize, INotify)
-@meta.blue.interface(IInitialize, INotify)
+@blue.define("BehaviorGroupBooster")
+@blue.inherit(IInitialize, INotify)
+@blue.interface(IInitialize, INotify)
 export class BehaviorGroupBooster
 {
 
@@ -75,171 +75,171 @@ export class BehaviorGroupBooster
   _quadBytes = new Uint8Array(QUAD_INSTANCE_SIZE);
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   display = true;
 
   /** m_boosterOffset (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   boosterOffset = vec3.create();
 
   /** m_atlasIndex0 (uint32_t) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   atlasIndex0 = 0;
 
   /** m_atlasIndex1 (uint32_t) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   atlasIndex1 = 0;
 
   /** m_boosterEffect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2Effect")
   boosterEffect = null;
 
   /** m_flareCount (unsigned int) [READ] */
-  @meta.blue.read
-  @meta.type.uint32
+  @blue.read
+  @type.uint32
   flareCount = 0;
 
   /** m_displayAmbientFlare (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   displayAmbientFlare = true;
 
   /** m_displayBoosters (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   displayBoosters = true;
 
   /** m_displayHazeFlare (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   displayHazeFlare = true;
 
   /** m_ambientFlareBrightness (float) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   ambientFlareBrightness = 0;
 
   /** m_haloFlareBrightness (float) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   haloFlareBrightness = 0;
 
   /** m_ambientFlareColor (Color) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.color
   ambientFlareColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_haloFlareColor (Color) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.color
   haloFlareColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_lightColor (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.readwrite
+  @blue.persist
+  @type.color
   lightColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_ambientFlareEffect (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2Effect")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2Effect")
   ambientFlareEffect = null;
 
   /** m_haloFlareEffect (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2Effect")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2Effect")
   haloFlareEffect = null;
 
   /** m_ambientFlareNoiseAmplitude (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   ambientFlareNoiseAmplitude = 0.2;
 
   /** m_haloFlareNoiseAmplitude (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   haloFlareNoiseAmplitude = 0.2;
 
   /** m_ambientFlareNoiseOctaves (uint32_t) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   ambientFlareNoiseOctaves = 1;
 
   /** m_haloFlareNoiseOctaves (uint32_t) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   haloFlareNoiseOctaves = 1;
 
   /** m_ambientFlareNoiseSpeed (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   ambientFlareNoiseSpeed = 1;
 
   /** m_haloFlareNoiseSpeed (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   haloFlareNoiseSpeed = 1;
 
   /** m_ambientFlareOffset (Vector3) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   ambientFlareOffset = vec3.create();
 
   /** m_haloFlareOffset (Vector3) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   haloFlareOffset = vec3.create();
 
   /** m_lightRadius (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   lightRadius = 3.5;
 
   /** m_ambientFlareScale (Vector3) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   ambientFlareScale = vec3.fromValues(1, 1, 1);
 
   /** m_haloFlareScale (Vector3) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   haloFlareScale = vec3.fromValues(1, 1, 1);
 
   /**
@@ -250,7 +250,7 @@ export class BehaviorGroupBooster
    * Adapted: Flare registration is performed by the existing scene-owned quad renderer
    * rather than a native singleton.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   InitializeEffects()
   {
@@ -270,7 +270,7 @@ export class BehaviorGroupBooster
   }
 
   /** Carbon BehaviorGroupBooster::GetDisplay (cpp:254-257). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetDisplay()
   {
@@ -278,7 +278,7 @@ export class BehaviorGroupBooster
   }
 
   /** Carbon BehaviorGroupBooster::GetLightSize (cpp:259-266). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLightSize()
   {
@@ -290,7 +290,7 @@ export class BehaviorGroupBooster
   }
 
   /** Carbon BehaviorGroupBooster::GetOffset (cpp:268-271). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetOffset()
   {
@@ -298,7 +298,7 @@ export class BehaviorGroupBooster
   }
 
   /** Carbon BehaviorGroupBooster::GetAtlasIndex0 (cpp:273-276). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetAtlasIndex0()
   {
@@ -306,7 +306,7 @@ export class BehaviorGroupBooster
   }
 
   /** Carbon BehaviorGroupBooster::GetAtlasIndex1 (cpp:278-281). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetAtlasIndex1()
   {
@@ -314,7 +314,7 @@ export class BehaviorGroupBooster
   }
 
   /** Carbon BehaviorGroupBooster::GetEffect (cpp:365-368). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetEffect()
   {
@@ -322,7 +322,7 @@ export class BehaviorGroupBooster
   }
 
   /** Resizes the authored flare lists after an agent-count change. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RebuildFlareBuffer(count)
   {
@@ -334,7 +334,7 @@ export class BehaviorGroupBooster
    * Carbon SetupQuads updates the templates, retaining already-sized flare
    * records as native vector::resize does. JavaScript stores explicit row fields.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetupQuads()
   {
@@ -366,7 +366,7 @@ export class BehaviorGroupBooster
    * This is a potential lifecycle hazard, not a confirmed native execution bug.
    * See BehaviorGroupBooster.cpp:177-215 and BlackReader.cpp:394-405.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AdjustFlareLists()
   {
@@ -401,7 +401,7 @@ export class BehaviorGroupBooster
    * cpp:131-141); ours has no global quad renderer, so the effect is registered
    * with the scene's when it is first submitted. A batched change rebuilds once.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnModified(value)
   {
@@ -432,7 +432,7 @@ export class BehaviorGroupBooster
    * @param {Number} agentIndex - phase-offsets the noise
    * @param {Float32Array} _parentTransform - unused (as Carbon)
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AddLight(lightManager, position, radiusModifier, agentIndex, _parentTransform)
   {
@@ -451,7 +451,7 @@ export class BehaviorGroupBooster
    * Carbon Initialize builds the booster declaration and shared box indices.
    * Flare registration uses the scene-owned quad renderer when it collects us.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -470,7 +470,7 @@ export class BehaviorGroupBooster
    * Existing quad packing handles float16 storage; Blue ticks convert once to
    * seconds for noise. The halo modifier receives the owning render context.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AddFlare(agentTransform, lod, intensity, agentIndex, shipBoundingSphereRadius, groupScale)
   {
@@ -528,7 +528,7 @@ export class BehaviorGroupBooster
   }
 
   /** Carbon GetVertexDeclaration returns the combined box/instance declaration. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetVertexDeclaration()
   {
@@ -536,7 +536,7 @@ export class BehaviorGroupBooster
   }
 
   /** Carbon GetBatch binds the shared box and the owning system's instance stream. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBatch(instanceBuffer, startInstance, instanceDataStride, count)
   {
@@ -558,7 +558,7 @@ export class BehaviorGroupBooster
   }
 
   /** Carbon CreateBuffer selects the shared box for high shader quality. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   CreateBuffer()
   {
@@ -566,7 +566,7 @@ export class BehaviorGroupBooster
   }
 
   /** Registers Carbon's identical child-quad layout with the scene-owned renderer. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -584,7 +584,7 @@ export class BehaviorGroupBooster
    * including when a booster is shared by scenes. Old buckets may have other
    * owners and remain registered, as in Carbon's InitializeHalo/AmbientFlare.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AddQuadsToQuadRenderer(_frustum, quadRenderer)
   {

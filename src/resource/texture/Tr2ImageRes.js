@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Resources/Tr2ImageRes.cpp
 // Source: trinity/trinity/Resources/Tr2ImageRes_Blue.cpp
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { CjsResource, ICacheable } from "#blue";
 import { HostBitmap } from "#imageio";
 import { PixelFormat } from "#consts/render-context";
@@ -179,23 +179,22 @@ export class Tr2ImageRes extends CjsResource
 // Declared as data rather than with decorators, so the resource tree loads from
 // source without a transform. Field order is key order, and GetValues() exports
 // in that order.
-CjsSchema.define(Tr2ImageRes, {
+CjsSchema.blue.define(Tr2ImageRes, {
   className: "Tr2ImageRes",
-  family: "resources",
   fields: {
-    width: [ meta.type.uint32, meta.blue.persist ],
-    height: [ meta.type.uint32, meta.blue.persist ]
+    width: [ type.uint32, blue.persist ],
+    height: [ type.uint32, blue.persist ]
   },
   methods: {
     SetPayload: [ meta.ours ],
-    GetWidth: [ meta.blue.method, meta.adapted ],
-    GetHeight: [ meta.blue.method, meta.adapted ],
-    GetPixelColor: [ meta.blue.method, meta.adapted ],
-    IsPixelOpaque: [ meta.blue.method, meta.adapted ],
-    GetBitmap: [ meta.blue.method, meta.adapted ],
-    IsMemoryUsageKnown: [ meta.blue.method, meta.implemented ],
-    GetMemoryUsage: [ meta.blue.method, meta.adapted ]
+    GetWidth: [ blue.method, meta.adapted ],
+    GetHeight: [ blue.method, meta.adapted ],
+    GetPixelColor: [ blue.method, meta.adapted ],
+    IsPixelOpaque: [ blue.method, meta.adapted ],
+    GetBitmap: [ blue.method, meta.adapted ],
+    IsMemoryUsageKnown: [ blue.method, meta.implemented ],
+    GetMemoryUsage: [ blue.method, meta.adapted ]
   }
 });
-meta.blue.inherit(ICacheable)(Tr2ImageRes, { kind: "class" });
-meta.blue.interface(ICacheable)(Tr2ImageRes);
+blue.inherit(ICacheable)(Tr2ImageRes, { kind: "class" });
+blue.interface(ICacheable)(Tr2ImageRes);

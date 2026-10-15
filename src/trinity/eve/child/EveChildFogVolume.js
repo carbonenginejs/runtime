@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildFogVolume.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildFogVolume.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildFogVolume_Blue.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
@@ -55,139 +55,139 @@ function createFroxelFogSettings()
  * override, its strength driven by how deeply the camera sits inside the volumes
  * it owns.
  */
-@meta.define({ className: "EveChildFogVolume", family: "eve/child" })
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(ITr2FroxelFogSettings, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize)
+@blue.define("EveChildFogVolume")
+@blue.inherit(IInitialize)
+@blue.interface(ITr2FroxelFogSettings, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize)
 export class EveChildFogVolume extends ITr2FroxelFogSettings
 {
   _fogIntensity = 0;
 
   _froxelFogSettings = createFroxelFogSettings();
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.PostProcessEnums.Priority")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.PostProcessEnums.Priority")
   priority = 2;
 
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("IEveVolume")
+  @blue.read
+  @blue.persist
+  @type.list("IEveVolume")
   volumes = [];
 
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   boundingSphereCenter = vec3.create();
 
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   boundingSphereRadius = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   intensity = 1;
 
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.persist
+  @type.float32
   thickness = 1;
 
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.persist
+  @type.boolean
   thicknessEnabled = false;
 
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.persist
+  @type.float32
   lightDirectionality = 0.5;
 
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.persist
+  @type.boolean
   lightDirectionalityEnabled = false;
 
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.persist
+  @type.float32
   environmentIntensity = 1;
 
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.persist
+  @type.boolean
   environmentIntensityEnabled = false;
 
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.persist
+  @type.float32
   environmentDirectionality = 0.75;
 
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.persist
+  @type.boolean
   environmentDirectionalityEnabled = false;
 
-  @meta.blue.persist
-  @meta.type.color
+  @blue.persist
+  @type.color
   fogColor = vec4.fromValues(1, 1, 1, 1);
 
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.persist
+  @type.boolean
   fogColorEnabled = false;
 
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.persist
+  @type.float32
   backgroundVisibility = 0;
 
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.persist
+  @type.boolean
   backgroundVisibilityEnabled = false;
 
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.persist
+  @type.float32
   godRayNoiseIntensity = 0;
 
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.persist
+  @type.boolean
   godRayNoiseIntensityEnabled = false;
 
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.persist
+  @type.float32
   godRayNoiseFrequency = 15;
 
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.persist
+  @type.boolean
   godRayNoiseFrequencyEnabled = false;
 
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.persist
+  @type.float32
   godRayNoiseAnimationSpeed = 0;
 
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.persist
+  @type.boolean
   godRayNoiseAnimationSpeedEnabled = false;
 
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.persist
+  @type.float32
   fogNoiseIntensity = 0;
 
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.persist
+  @type.boolean
   fogNoiseIntensityEnabled = false;
 
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.persist
+  @type.float32
   fogNoiseFrequency = 15;
 
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.persist
+  @type.boolean
   fogNoiseFrequencyEnabled = false;
 
   /** A colour multiplier for the fog's reflections; 1 is the realistic default (EveChildFogVolume.cpp:30). */
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.persist
+  @type.float32
   reflectionIntensity = 1;
 
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.persist
+  @type.boolean
   reflectionIntensityEnabled = false;
 
   /**

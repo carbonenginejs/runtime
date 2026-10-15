@@ -56,4 +56,4 @@ export class ITriEffectParameter
 }
 
 
-CjsSchema.define(ITriEffectParameter, { className: "ITriEffectParameter" });
+CjsSchema.blue.define(ITriEffectParameter, { className: "ITriEffectParameter" });

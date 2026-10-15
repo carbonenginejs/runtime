@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2VariableStore.h
 // Source: trinity/trinity/Tr2VariableStore.cpp
 // Source: trinity/trinity/Tr2VariableStore_Blue.cpp
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { Tr2TextureAL } from "../../../trinityal/Tr2TextureAL/Tr2TextureAL.js";
 import { Tr2TextureReference } from "../Tr2TextureReference.js";
 import { TriVariable } from "./TriVariable.js";
@@ -17,10 +17,7 @@ import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
  * (RegisterVariableInternal / RegisterVariableType); raw AL textures go
  * through RegisterVariable__TextureAL, the native texture-reference overload.
  */
-@meta.define({
-  className: "Tr2VariableStore",
-  family: "trinityCore"
-})
+@blue.define("Tr2VariableStore")
 export class Tr2VariableStore
 {
   /**
@@ -39,8 +36,8 @@ export class Tr2VariableStore
    * Native live parent property; uses the existing root-protection setter.
    * @returns {Tr2VariableStore|null} Parent searched after local lookup.
    */
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2VariableStore")
+  @blue.readwrite
+  @type.rootRef("Tr2VariableStore")
   @meta.implemented
   get parentStore()
   {
@@ -75,7 +72,7 @@ export class Tr2VariableStore
    * which is the root.
    * @returns {Tr2VariableStore|null} Current parent.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetParentVariableStore()
   {
@@ -90,7 +87,7 @@ export class Tr2VariableStore
    * @param {Tr2VariableStore|null} variableStore Next store searched.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetParentVariableStore(variableStore)
   {
@@ -165,7 +162,7 @@ export class Tr2VariableStore
    * type) to reserve a name, or RegisterVariable__TextureAL for a raw texture.
    * @throws {TypeError} Always.
    */
-  @meta.blue.method
+  @blue.method
   @meta.notSupported
   RegisterVariable()
   {
@@ -177,7 +174,7 @@ export class Tr2VariableStore
    * @param {string} name Variable name to remove.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UnregisterVariable(name)
   {
@@ -200,7 +197,7 @@ export class Tr2VariableStore
    * @param {string|null} name Local key to remove.
    * @returns {boolean} Whether an entry was removed.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UnregisterLocalVariable(name)
   {
@@ -220,7 +217,7 @@ export class Tr2VariableStore
    * @param {string} name Variable name to search.
    * @returns {TriVariable|null} First matching local or ancestor variable.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   FindVariable(name)
   {
@@ -244,7 +241,7 @@ export class Tr2VariableStore
    * @param {string|null} name Local key to search.
    * @returns {TriVariable|null} Existing local variable.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   FindLocalVariable(name)
   {
@@ -257,7 +254,7 @@ export class Tr2VariableStore
    * @param {string} name Variable name to find or reserve.
    * @returns {TriVariable} Matching variable or a new local reservation.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetVariable(name)
   {
@@ -277,7 +274,7 @@ export class Tr2VariableStore
    * @param {string|null} name Local key to find or reserve.
    * @returns {TriVariable} Existing or reserved local variable.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetLocalVariable(name)
   {
@@ -290,7 +287,7 @@ export class Tr2VariableStore
    * native unordered-map iteration order.
    * @returns {string[]} Local names in insertion order.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetLocalNames()
   {
@@ -428,4 +425,4 @@ export class Tr2VariableStore
   }
 }
 
-meta.blue.interface()(Tr2VariableStore);
+blue.interface()(Tr2VariableStore);

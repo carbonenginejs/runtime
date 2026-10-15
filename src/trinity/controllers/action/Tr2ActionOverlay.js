@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionOverlay_Blue.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { be, CjsBlueClasses } from "#blue";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
@@ -26,55 +26,52 @@ function CastTo(value, className)
  * Controller action that adds a named overlay effect to its owner when the
  * action starts and removes it again when the action stops.
  */
-@meta.define({
-  className: "Tr2ActionOverlay",
-  family: "controllers"
-})
+@blue.define("Tr2ActionOverlay")
 export class Tr2ActionOverlay extends ITr2ControllerAction
 {
   /**
    * Resource path for loading the overlay when no matching overlay exists.
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.path("object")
+  @blue.readwrite
+  @blue.persist
+  @type.path("object")
   path = "";
 
   /**
    * Name used to find an existing overlay and assign to a newly loaded one.
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   overlayName = "";
 
   /**
    * Named parameter or stretch endpoint used to redirect overlay ownership when the controller owner cannot hold overlays.
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   targetAnotherOwner = "";
 
   /**
    * Whether Start may load and attach an overlay when none is already found.
    * @type {boolean}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   addOnStart = true;
 
   /**
    * Whether Stop removes the retained overlay from the resolved owner.
    * @type {boolean}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   removeOnStop = true;
 
   /** Carbon m_overlay: the overlay found or loaded by Start, until Stop. */
@@ -92,7 +89,7 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    * Adapted: the load is asynchronous (see LoadOverlay), so a redirected
    * owner is rebound once it settles.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Start(controller)
   {
@@ -117,7 +114,7 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
    *
    * Adapted: also discards a load still in flight.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Stop(controller)
   {
@@ -222,4 +219,4 @@ export class Tr2ActionOverlay extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionOverlay_Blue.cpp:12-13,37).
-meta.blue.interface(ITr2ControllerAction)(Tr2ActionOverlay);
+blue.interface(ITr2ControllerAction)(Tr2ActionOverlay);

@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveEulerRotation_Blue.cpp
 import { fromYawPitchRoll, quat } from "#math/quat";
 import { ITriQuaternionFunction, ITriFunction, ITriCurveLength } from "#blue";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
 import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
 
@@ -12,41 +12,38 @@ import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
  * Quaternion curve built from three scalar curves supplying yaw, pitch and roll
  * in radians.
  */
-@meta.define({
-  className: "Tr2CurveEulerRotation",
-  family: "curves"
-})
-@meta.blue.inherit(ITriCurveLength)
-@meta.blue.interface(ITriQuaternionFunction, ITriFunction, ITriCurveLength)
+@blue.define("Tr2CurveEulerRotation")
+@blue.inherit(ITriCurveLength)
+@blue.interface(ITriQuaternionFunction, ITriFunction, ITriCurveLength)
 export class Tr2CurveEulerRotation extends ITriQuaternionFunction
 {
   /** Authored narrow-string name. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** Owned yaw component curve in radians. */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.root("Tr2CurveScalar")
+  @blue.read
+  @blue.persist
+  @type.root("Tr2CurveScalar")
   yaw = new Tr2CurveScalar();
 
   /** Owned pitch component curve in radians. */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.root("Tr2CurveScalar")
+  @blue.read
+  @blue.persist
+  @type.root("Tr2CurveScalar")
   pitch = new Tr2CurveScalar();
 
   /** Owned roll component curve in radians. */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.root("Tr2CurveScalar")
+  @blue.read
+  @blue.persist
+  @type.root("Tr2CurveScalar")
   roll = new Tr2CurveScalar();
 
   /** Cached quaternion; exposed read-only without persistence. */
-  @meta.blue.read
-  @meta.type.quat
+  @blue.read
+  @type.quat
   currentValue = quat.create();
 
   /**
@@ -55,7 +52,7 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @param {number} time Source time in seconds.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateValue(time)
   {
@@ -74,7 +71,7 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(time, out)
   {
@@ -91,7 +88,7 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValueAt(time, out)
   {
@@ -105,7 +102,7 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The unchanged output buffer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GetValueDotAt(_time, out)
   {
@@ -119,7 +116,7 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The unchanged output buffer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GetValueDoubleDotAt(_time, out)
   {
@@ -131,7 +128,7 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    *
    * @returns {number} Duration in seconds.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Length()
   {
@@ -146,7 +143,7 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @param {Float32Array|number[]} out Caller-owned quaternion.
    * @returns {Float32Array|number[]} The same output buffer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValue(time, out)
   {
@@ -167,7 +164,7 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @param {number} [tangentType=Tr2CurveTangentType.AUTO_CLAMP] Tangent policy.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AddKey(time, value, interpolation = Tr2CurveInterpolation.HERMITE, leftTangent, rightTangent, tangentType = Tr2CurveTangentType.AUTO_CLAMP)
   {
@@ -183,7 +180,7 @@ export class Tr2CurveEulerRotation extends ITriQuaternionFunction
    * @param {number} extrapolation Native extrapolation enum value.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetExtrapolation(extrapolation)
   {

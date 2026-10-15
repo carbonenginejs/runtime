@@ -3,7 +3,7 @@ import { IsMatch, CcpTime } from "#blue";
 import { INotify } from "../../../global/blue/INotify.js";
 //   trinity/trinity/Eve/EveCamera.cpp
 //   trinity/trinity/Eve/EveCamera_Blue.cpp
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { fromYawPitchRoll, quat } from "#math/quat";
 import { mat4 } from "#math/mat4";
@@ -110,9 +110,9 @@ const CAMERA_INVERSE_ROTATION = quat.create();
 const CAMERA_YAW_PITCH_ROLL = new Float64Array(3);
 
 /** Carbon's orbit camera and its CPU-side view/projection state. */
-@meta.define({ className: "EveCamera", family: "eve" })
-@meta.blue.inherit(INotify)
-@meta.blue.interface(INotify)
+@blue.define("EveCamera")
+@blue.inherit(INotify)
+@blue.interface(INotify)
 export class EveCamera
 {
 
@@ -158,238 +158,238 @@ export class EveCamera
   stableView = false;
 
   /** m_errorListener (IBlueEventListenerPtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("IBlueEventListener")
+  @blue.readwrite
+  @type.rootRef("IBlueEventListener")
   errorHandler = null;
 
   /** m_noiseScale (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   noiseScale = 1;
 
   /** m_audio2Listener (IBluePlacementObserverPtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("IBluePlacementObserver")
+  @blue.readwrite
+  @type.rootRef("IBluePlacementObserver")
   audio2Listener = null;
 
   /** m_noise (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   noise = false;
 
   /** m_projectionCenterOffset (float) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   centerOffset = 0;
 
   /** m_pitch (float) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.read
+  @blue.persist
+  @type.float32
   pitch = 0;
 
   /** m_yaw (float) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.read
+  @blue.persist
+  @type.float32
   yaw = 0;
 
   /** m_extraParentTranslation (Vector3) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.vec3
+  @blue.readwrite
+  @type.vec3
   extraTranslation = vec3.create();
 
   /** m_idleSpeed (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   idleSpeed = 0.8;
 
   /** m_noiseDamp (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   noiseDamp = 1.1;
 
   /** m_pos (Vector3) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.read
+  @blue.persist
+  @type.vec3
   pos = vec3.create();
 
   /** m_intr (Vector3) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.read
+  @blue.persist
+  @type.vec3
   intr = vec3.create();
 
   /** m_viewVec (Vector3) [READ] */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   viewVec = vec3.create();
 
   /** m_rightVec (Vector3) [READ] */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   rightVec = vec3.create();
 
   /** m_upVec (Vector3) [READ] */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   upVec = vec3.create();
 
   /** m_rotationAroundParent (Quaternion) [READWRITE, NOTIFY, PERSIST] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotationAroundParent = quat.create();
 
   /** m_interestTranslationCurve (ITriVectorFunctionPtr) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.rootRef("ITriVectorFunction")
+  @blue.notify
+  @blue.readwrite
+  @type.rootRef("ITriVectorFunction")
   interest = null;
 
   /** m_rotationOfInterest (Quaternion) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.quat
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.quat
   rotationOfInterest = quat.create();
 
   /** m_fieldOfView (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   fieldOfView = Math.PI / 2;
 
   /** m_frontClip (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   frontClip = 10;
 
   /** m_backClip (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   backClip = 10000000;
 
   /** m_friction (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   friction = 7;
 
   /** m_noiseCurve (ITriScalarFunctionPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITriScalarFunction")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITriScalarFunction")
   noiseCurve = null;
 
   /** m_noiseScaleCurve (ITriScalarFunctionPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITriScalarFunction")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITriScalarFunction")
   noiseScaleCurve = null;
 
   /** m_noiseDampCurve (ITriScalarFunctionPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITriScalarFunction")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITriScalarFunction")
   noiseDampCurve = null;
 
   /** m_maxSpeed (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   maxSpeed = 0.05;
 
   /** m_update (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   update = true;
 
   /** m_zoomCurve (ITriScalarFunctionPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITriScalarFunction")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITriScalarFunction")
   zoomCurve = createDefaultZoomCurve();
 
   /** Blue exposes m_translationFromParent.z, not the native Vector3. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   translationFromParent = 20;
 
   /** m_minPitch (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   minPitch = -1.4;
 
   /** m_maxPitch (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   maxPitch = 1.4;
 
   /** m_minYaw (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   minYaw = 0;
 
   /** m_maxYaw (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   maxYaw = 0;
 
   /** m_parentTranslationCurve (ITriVectorFunctionPtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("ITriVectorFunction")
+  @blue.readwrite
+  @type.rootRef("ITriVectorFunction")
   parent = null;
 
   /** m_idleScale (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   idleScale = 2;
 
   /** m_alignment (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   alignment = vec3.fromValues(0, 1, 0);
 
   /** m_useExtraParentTranslation (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   useExtraTranslation = false;
 
   /** m_projectionMatrix (TriProjectionPtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("TriProjection")
+  @blue.readwrite
+  @type.rootRef("TriProjection")
   projectionMatrix = new TriProjection();
 
   /** m_viewMatrix (TriViewPtr) [READ] */
-  @meta.blue.read
-  @meta.type.rootRef("TriView")
+  @blue.read
+  @type.rootRef("TriView")
   viewMatrix = new TriView();
 
   /** m_idleMove (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   idleMove = false;
 
   /** Builds Carbon's aspect-clamped, off-centre projection matrix. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static CalculateProjectionMatrix(
     out,
@@ -428,7 +428,7 @@ export class EveCamera
    * produced by CalculateProjectionMatrix, undoing the aspect clamp that method
    * applies above 1.6.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static CalculateFovFromProjection(transform)
   {
@@ -442,7 +442,7 @@ export class EveCamera
    * preserving the field of view, aspect ratio and centre offsets recovered from
    * the original.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static ModifyClipPlanes(original, nearClip, farClip, out = mat4.create())
   {
@@ -464,7 +464,7 @@ export class EveCamera
    * added to those the original already carries, used to shift the view frustum
    * without moving the camera.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   static AddCenterOffset(original, xOffset, yOffset, nearClip, farClip, out = mat4.create())
   {
@@ -485,7 +485,7 @@ export class EveCamera
    * Returns the camera's TriView wrapper, whose transform is rewritten by each
    * successful update; it is live storage, not a copy.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetViewMatrix()
   {
@@ -496,7 +496,7 @@ export class EveCamera
    * Returns the camera's TriProjection wrapper, whose transform is rebuilt from
    * the field of view and clip planes on each update.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetProjection()
   {
@@ -507,7 +507,7 @@ export class EveCamera
    * Returns the world position resolved by the last update; the vector is the
    * camera's own storage and is overwritten next update.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetPosition()
   {
@@ -515,7 +515,7 @@ export class EveCamera
   }
 
   /** Carbon method Dolly (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Dolly(factor)
   {
@@ -523,7 +523,7 @@ export class EveCamera
   }
 
   /** Carbon method OrbitParent (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OrbitParent(horizontal, vertical)
   {
@@ -555,7 +555,7 @@ export class EveCamera
   }
 
   /** Carbon method RotateOnOrbit (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RotateOnOrbit(horizontal, vertical)
   {
@@ -597,7 +597,7 @@ export class EveCamera
    * @param {number} [key] The key to jump to; -1 steps to the next one.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Zoom(key = -1)
   {
@@ -641,7 +641,7 @@ export class EveCamera
    * Adapted: Receives Carbon's global device aspect ratio and real clock as optional
    * arguments so the camera remains GPU- and platform-free.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(time, aspectRatio = 1, realTime = time)
   {
@@ -927,7 +927,7 @@ export class EveCamera
    * and re-evaluates interest tracking (clearing the interest orbit speeds) when
    * the interest object changes.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName)
   {
@@ -951,7 +951,7 @@ export class EveCamera
   }
 
   /** Carbon method ResetStartTime (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ResetStartTime()
   {
@@ -959,7 +959,7 @@ export class EveCamera
   }
 
   /** Carbon method SetOrbit (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetOrbit(yaw, pitch)
   {
@@ -972,7 +972,7 @@ export class EveCamera
   }
 
   /** Carbon method SetRotationOnOrbit (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetRotationOnOrbit(yaw, pitch)
   {

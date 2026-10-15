@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Tr2InstancedMesh.cpp
 // Source: trinity/trinity/Tr2InstancedMesh_Blue.cpp
 import { vec3 } from "#math/vec3";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { TriGeometryRes, ResourceRequirement } from "#resource";
 import { TriDevice } from "../device/TriDevice.js";
 import { Tr2Mesh } from "./Tr2Mesh.js";
@@ -19,8 +19,8 @@ import { IsMatch, be, EnumRegistrationType } from "#blue";
  * A mesh drawn once per entry of a separate instance-data stream, with static
  * bounds or bounds expanded by the per-instance size.
  */
-@meta.define({ className: "Tr2InstancedMesh", family: "trinityCore" })
-@meta.blue.chainTo(Tr2Mesh)
+@blue.define("Tr2InstancedMesh")
+@blue.chainTo(Tr2Mesh)
 export class Tr2InstancedMesh extends Tr2Mesh
 {
   /** Carbon m_vertexDeclaration: combined mesh and instance elements. */
@@ -32,42 +32,42 @@ export class Tr2InstancedMesh extends Tr2Mesh
   /** Carbon m_loadedGeometryResource, preferred over an assigned provider. */
   _loadedGeometryResource = null;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.Tr2InstancedMesh.BoundsMethod")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.Tr2InstancedMesh.BoundsMethod")
   boundsMethod = 0;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.path("TriGeometryRes")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.path("TriGeometryRes")
   instanceGeometryResPath = "";
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   maxBounds = vec3.create();
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   maxInstanceSize = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   minBounds = vec3.create();
 
-  @meta.blue.readwrite
-  @meta.blue.persistOnly
-  @meta.type.rootRef("ITr2InstanceData")
+  @blue.readwrite
+  @blue.persistOnly
+  @type.rootRef("ITr2InstanceData")
   instanceGeometryResource = null;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.int32
   instanceMeshIndex = 0;
 
   /** Registers the inherited device-resource lifetime (Tr2DeviceResource.cpp:8-12). */
@@ -94,7 +94,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PrepareResources()
   {
@@ -103,7 +103,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   }
 
   /** Loads the instance path before base geometry (Tr2InstancedMesh.cpp:57-69). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -115,7 +115,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   }
 
   /** Resource path the instance data is loaded from. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetInstanceMeshResPath()
   {
@@ -123,7 +123,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   }
 
   /** Sets the instance-data resource path; schedules the instanceBuffer rebuild. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetInstanceMeshResPath(path)
   {
@@ -132,7 +132,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   }
 
   /** Index of the instance buffer within the instance geometry resource. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetInstanceMeshIndex()
   {
@@ -143,7 +143,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * The bound instance-data provider (an ITr2InstanceData), or null when none is
    * set.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetInstanceGeometryResource()
   {
@@ -151,7 +151,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   }
 
   /** Binds the instance provider and rebuilds declarations (cpp:198-208). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetInstanceGeometryRes(resource)
   {
@@ -162,7 +162,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   }
 
   /** Invalidates both cached declarations (Tr2InstancedMesh.cpp:78-82). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ReleaseResources()
   {
@@ -171,7 +171,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   }
 
   /** Recreates declarations when the device can prepare resources (cpp:89-93). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnPrepareResources()
   {
@@ -180,7 +180,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   }
 
   /** Rebuilds the declaration before the base geometry caches (cpp:160-164). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RebuildCachedData(resource)
   {
@@ -192,7 +192,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * Loads changed instance paths, releases deferred loading and refreshes
    * declarations (Tr2InstancedMesh.cpp:105-138).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName)
   {
@@ -230,7 +230,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * @param {boolean} [reverseAreas] Reverse each area's authored winding.
    * @returns {boolean} Whether a batch was committed.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBatches(batches, areas, data, screenSize = Infinity, reverseAreas = false)
   {
@@ -286,7 +286,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * Carbon prepares at resource load; our resource layer cannot import Trinity,
    * so preparation happens at first use, for loaded and assigned providers.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CreateVertexDeclaration()
   {
@@ -318,7 +318,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   }
 
   /** Returns the combined declaration handle (Tr2InstancedMesh.cpp:531-534). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetVertexDeclaration()
   {
@@ -329,7 +329,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * Sets the static bounds used when boundsMethod is STATIC; a missing vector is
    * treated as the origin.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetBoundingBox(minBounds, maxBounds)
   {
@@ -341,7 +341,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * Switches to DYNAMIC bounds, where the instance stream's box is expanded by a
    * fixed instance size in world units.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetDynamicBounds(maxInstanceSize)
   {
@@ -353,7 +353,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * Switches to DYNAMIC_SCALED bounds, where the instance stream's box is
    * expanded by maxScale multiplied by the mesh geometry's own radius.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetDynamicScaledBounds(maxScale)
   {
@@ -367,7 +367,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * DYNAMIC_SCALED); a zero box when no instance bounds are available. Always a
    * freshly allocated pair.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBounds()
   {
@@ -416,7 +416,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   }
 
   /** Overrides Tr2MeshBase - instanced areas share the whole-mesh bounds. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetAreaBounds(_areaIndex, _boneTransforms)
   {
@@ -424,7 +424,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   }
 
   /** Bounding box of a single instance - the mesh's own geometry bounds. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetInstanceBounds()
   {
@@ -447,7 +447,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * Returns null for the STATIC bounds method, matching Carbon's empty
    * sphere.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetInstanceBoundsClosestToPoint(point)
   {

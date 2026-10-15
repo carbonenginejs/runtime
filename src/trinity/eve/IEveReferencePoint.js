@@ -1,14 +1,14 @@
 // Source: trinity/trinity/Include/IEveReferencePoint.h
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 
 /** Required time-varying world reference-point contract. */
-@meta.define({ className: "IEveReferencePoint", family: "eve" })
+@blue.define("IEveReferencePoint")
 export class IEveReferencePoint
 {
 
   /** Writes the world reference point for the requested time. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GetReferencePoint(_time, _out)
   {

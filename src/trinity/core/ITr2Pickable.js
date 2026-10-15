@@ -17,7 +17,7 @@ export class ITr2Pickable
   }
 }
 
-CjsSchema.define(ITr2Pickable, {
+CjsSchema.blue.define(ITr2Pickable, {
   className: "ITr2Pickable",
   methods: { GetID: [meta.abstract], GetPickingBatches: [meta.abstract] }
 });

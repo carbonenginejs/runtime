@@ -130,4 +130,4 @@ for (const method of [
     CjsSchema.decorateMethod(ICjsCharacterAppearanceAL, method, meta.abstract);
 }
 
-CjsSchema.define(ICjsCharacterAppearanceAL, { className: "ICjsCharacterAppearanceAL", family: "character", fields: {} });
+CjsSchema.meta.define(ICjsCharacterAppearanceAL, { className: "ICjsCharacterAppearanceAL", fields: {} });

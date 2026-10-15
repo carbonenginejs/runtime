@@ -469,10 +469,9 @@ function wait(milliseconds, signal)
   });
 }
 
-CjsSchema.define(CjsBlueResFileSystemFetch, {
+CjsSchema.meta.define(CjsBlueResFileSystemFetch, {
   className: "CjsBlueResFileSystemFetch",
-  modelledOn: "BlueResFileSystemRemote",
-  family: "blue",
+  donors: [ "BlueResFileSystemRemote" ],
   fields: {},
   methods: {
     SetPath: [ meta.ours ],

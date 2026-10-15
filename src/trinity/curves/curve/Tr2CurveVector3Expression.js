@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveVector3Expression.cpp
 // Source: trinity/trinity/Curves/Tr2CurveVector3Expression_Blue.cpp
 import { ITriColorFunction, ITriVectorFunction, ITriFunction, IInitialize } from "#blue";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { CjsControllerExpressionProgram } from "../../controllers/expression/CjsControllerExpressionProgram.js";
 
@@ -17,29 +17,26 @@ import { CjsControllerExpressionProgram } from "../../controllers/expression/Cjs
  * is claimed. Sampling retains the seconds overloads with time-first output-buffer
  * signatures; Be::Time overloads remain unimplemented. Programs are not resources.
  */
-@meta.define({
-  className: "Tr2CurveVector3Expression",
-  family: "curves"
-})
-@meta.blue.inherit(ITriVectorFunction, IInitialize)
-@meta.blue.interface(ITriColorFunction, ITriVectorFunction, ITriFunction, IInitialize)
+@blue.define("Tr2CurveVector3Expression")
+@blue.inherit(ITriVectorFunction, IInitialize)
+@blue.interface(ITriColorFunction, ITriVectorFunction, ITriFunction, IInitialize)
 export class Tr2CurveVector3Expression extends ITriColorFunction
 {
   /** Authored narrow-string name. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** Native PERSISTONLY expression storage; readers bypass the live setter. */
   @meta.member("expressionX")
-  @meta.blue.persistOnly
-  @meta.type.expression
+  @blue.persistOnly
+  @type.expression
   _expressionX = "";
 
   /** Live expression property, separate from persisted backing storage. */
-  @meta.blue.readwrite
-  @meta.type.expression
+  @blue.readwrite
+  @type.expression
   @meta.implemented
   get expressionX()
   {
@@ -55,13 +52,13 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
 
   /** Native PERSISTONLY expression storage; readers bypass the live setter. */
   @meta.member("expressionY")
-  @meta.blue.persistOnly
-  @meta.type.expression
+  @blue.persistOnly
+  @type.expression
   _expressionY = "";
 
   /** Live expression property, separate from persisted backing storage. */
-  @meta.blue.readwrite
-  @meta.type.expression
+  @blue.readwrite
+  @type.expression
   @meta.implemented
   get expressionY()
   {
@@ -77,13 +74,13 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
 
   /** Native PERSISTONLY expression storage; readers bypass the live setter. */
   @meta.member("expressionZ")
-  @meta.blue.persistOnly
-  @meta.type.expression
+  @blue.persistOnly
+  @type.expression
   _expressionZ = "";
 
   /** Live expression property, separate from persisted backing storage. */
-  @meta.blue.readwrite
-  @meta.type.expression
+  @blue.readwrite
+  @type.expression
   @meta.implemented
   get expressionZ()
   {
@@ -98,38 +95,38 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   }
 
   /** Cached value after the last update. */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   currentValue = vec3.create();
 
   /** Owned scalar input functions in native declaration order. */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITriScalarFunction")
+  @blue.read
+  @blue.persist
+  @type.list("ITriScalarFunction")
   inputs = [];
 
   /** First authored scalar argument. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   input1 = 0;
 
   /** Second authored scalar argument. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   input2 = 0;
 
   /** Third authored scalar argument. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   input3 = 0;
 
   /** Fourth authored scalar argument. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   input4 = 0;
 
   /** Native runtime time scale; not an exposed member. */
@@ -152,7 +149,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * Adapted: uses the existing JavaScript expression program.
    * @returns {boolean} True.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -171,7 +168,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   /**
    * Updates the cached vector value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateValue(time)
   {
@@ -181,7 +178,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   /**
    * Updates and returns the vector value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(time, out)
   {
@@ -197,7 +194,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   /**
    * Gets the vector value at a time.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValueAt(time, out)
   {
@@ -207,7 +204,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   /**
    * Gets the vector value.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValue(time, out)
   {
@@ -222,7 +219,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   /**
    * Derivatives are not represented by Carbon expression curves.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GetValueDotAt(_time, out)
   {
@@ -232,7 +229,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   /**
    * Derivatives are not represented by Carbon expression curves.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GetValueDoubleDotAt(_time, out)
   {
@@ -267,7 +264,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   /**
    * Expression curves do not have segment interpolation state.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   InterpolatedPosition(_time, out)
   {
@@ -279,7 +276,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @param {number} index Native component index.
    * @returns {string} Stored source text.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetExpression(index)
   {
@@ -294,7 +291,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @param {string} expression Authored source text.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetExpression(index, expression)
   {
@@ -311,7 +308,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   }
 
   /** Gets the authored x-component expression source. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetExpressionX()
   {
@@ -319,7 +316,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   }
 
   /** Gets the authored y-component expression source. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetExpressionY()
   {
@@ -327,7 +324,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   }
 
   /** Gets the authored z-component expression source. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetExpressionZ()
   {
@@ -340,7 +337,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @param {string} expression Authored source text.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetExpressionX(expression)
   {
@@ -353,7 +350,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @param {string} expression Authored source text.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetExpressionY(expression)
   {
@@ -366,7 +363,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @param {string} expression Authored source text.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetExpressionZ(expression)
   {
@@ -379,7 +376,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * @param {number} index Input index.
    * @returns {number}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetInputValue(index)
   {
@@ -408,7 +405,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * ResetRandomConstant is called so `randomConstant` expressions are stable
    * over time.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetRandomConstant()
   {
@@ -416,7 +413,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   }
 
   /** Draws a new per-instance random constant in [0, 1). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ResetRandomConstant()
   {
@@ -424,7 +421,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   }
 
   /** Gets the curve expression terms offered to an editor for autocompletion. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetExpressionTermInfo()
   {
@@ -435,7 +432,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
    * Compiles and evaluates an arbitrary expression against this curve's context
    * at time 0, returning 0 when it does not compile.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   EvaluateExpression(expression)
   {

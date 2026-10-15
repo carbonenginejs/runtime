@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierBillboard3D_Blue.cpp
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 import { EveChildModifierTransformCommon } from "./EveChildModifierTransformCommon.js";
 
@@ -12,12 +12,12 @@ import { EveChildModifierTransformCommon } from "./EveChildModifierTransformComm
  * billboard that preserves the child's authored scale or as a free one that
  * screen-aligns and then re-aligns along the camera direction.
  */
-@meta.define({ className: "EveChildModifierBillboard3D", family: "eve/child/modifiers" })
+@blue.define("EveChildModifierBillboard3D")
 export class EveChildModifierBillboard3D extends IEveChildTransformModifier
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   fixed = false;
 
   /**
@@ -33,8 +33,8 @@ export class EveChildModifierBillboard3D extends IEveChildTransformModifier
    * @param {Float32Array} out - caller-owned; receives the result
    * @returns {Float32Array} out
    */
-  @meta.blue.method
-  @meta.blue.contextual(["camera"])
+  @blue.method
+  @blue.contextual(["camera"])
   @meta.implemented
   ApplyTransform(context, transform, _boneCount = 0, _bones = null, out)
   {

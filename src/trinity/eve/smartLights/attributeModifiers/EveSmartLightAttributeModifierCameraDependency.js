@@ -1,116 +1,116 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierCameraDependency.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttributeModifier.js";
 import { EveSmartLightAttributeModifierBucket } from "./EveSmartLightAttributeModifierBucket.js";
 import { vec3 } from "#math/vec3";
 
 /** EveSmartLightAttributeModifierCameraDependency (eve/smartLights/attributeModifiers) - generated from schema shapeHash 5e9c1bd9.... */
-@meta.define({ className: "EveSmartLightAttributeModifierCameraDependency", family: "eve/smartLights/attributeModifiers" })
-@meta.blue.interface(EveSmartLightAttributeModifierBucket, IEveSmartLightGroupAttributeModifier)
+@blue.define("EveSmartLightAttributeModifierCameraDependency")
+@blue.interface(EveSmartLightAttributeModifierBucket, IEveSmartLightGroupAttributeModifier)
 export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLightAttributeModifierBucket
 {
 
   /** m_minimumDistance (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   minimumDistance = 1000;
 
   /** m_maximumDistance (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   maximumDistance = 10000;
 
   /** m_lookAtVisionCone (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   lookAtVisionCone = 30;
 
   /** m_useCameraDistance (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   useCameraDistance = false;
 
   /** m_inverselookAtFormula (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   inverselookAtFormula = false;
 
   /** m_useCameraLookAt (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   useCameraLookAt = false;
 
   /** m_inverseDistanceFormula (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   inverseDistanceFormula = false;
 
   /** m_useCameraPlacement (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   useCameraPlacement = false;
 
   /** m_inversePlacementFormula (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   inversePlacementFormula = false;
 
   /** m_angleOverwrite (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   angleOverwrite = vec3.create();
 
   /** m_positionOverwrite (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   positionOverwrite = vec3.create();
 
   /** m_lookAtIntencity (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   lookAtIntensity = 1;
 
   /** m_placementIntencity (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   placementIntensity = 1;
 
   /** m_overwriteDirection (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   overwriteObjectDirection = false;
 
   /** m_overwritePosition (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   overwritePosition = false;
 
   /** m_maximumActivation (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   maximumActivation = 1;
 
   /** m_minimumActivation (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   minimumActivation = 0;
 
   /** Camera state source captured per update; Carbon reads Tr2Renderer statics. */
@@ -128,7 +128,7 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
    * no context. The captured context and its view getters are required whenever
    * camera state is consumed (native cpp:52-72,95-104).
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateSyncronous(updateContext, _params, activationMultiplier)
   {
@@ -140,7 +140,7 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
    * Scales the child modifiers by the camera-dependent activation value
    * (EveSmartLightAttributeModifierCameraDependency.cpp:106-117).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ProcessAttributeModifier(attribute, placement, entityPosition, entityDirection, modifierStrength)
   {

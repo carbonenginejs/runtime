@@ -1,5 +1,5 @@
 // Not Carbon. A texture-pipeline step of our own.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { HostBitmap } from "#imageio";
 import { PixelFormat } from "#consts/render-context";
 import { Tr2TexturePipelineStepPack } from "./Tr2TexturePipelineStepPack.js";
@@ -69,10 +69,10 @@ export class CjsTexturePipelineStepPack extends Tr2TexturePipelineStepPack
 
 }
 
-CjsSchema.define(CjsTexturePipelineStepPack, {
-  className: "CjsTexturePipelineStepPack", family: "resources",
+CjsSchema.meta.define(CjsTexturePipelineStepPack, {
+  className: "CjsTexturePipelineStepPack",
   fields: {
-    format: [ meta.blue.persist, meta.type.int32, meta.type.enum("PixelFormat") ]
+    format: [ blue.persist, type.int32, type.enum("PixelFormat") ]
   },
   methods: {
     Execute: meta.ours

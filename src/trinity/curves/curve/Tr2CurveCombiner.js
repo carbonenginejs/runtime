@@ -2,45 +2,42 @@
 // Source: trinity/trinity/Curves/Tr2CurveCombiner.cpp
 import { vec3 } from "#math/vec3";
 import { ITriFunction, ITriVectorFunction, ITriCurveLength, BlueList, be, CjsBlueClasses } from "#blue";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 
 /**
  * Vector function returning the component-wise sum of every child vector
  * function sampled at the same time; its length is the longest child's length.
  */
-@meta.define({
-  className: "Tr2CurveCombiner",
-  family: "curves"
-})
-@meta.blue.inherit(ITriCurveLength)
-@meta.blue.interface(ITriFunction, ITriVectorFunction, ITriCurveLength)
+@blue.define("Tr2CurveCombiner")
+@blue.inherit(ITriCurveLength)
+@blue.interface(ITriFunction, ITriVectorFunction, ITriCurveLength)
 export class Tr2CurveCombiner extends ITriVectorFunction
 {
   /**
    * Name identifying this vector-function combiner (native std::string m_name).
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /**
    * Typed child-vector list whose sampled values are summed (native PITriVectorFunctionVector m_curves).
    * @type {BlueList<ITriVectorFunction>}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITriVectorFunction")
+  @blue.read
+  @blue.persist
+  @type.list("ITriVectorFunction")
   curves = new BlueList(ITriVectorFunction, { className: null, listOps: 0 });
 
   /**
    * Three-component sum committed after all child updates succeed (native Vector3 m_currentValue).
    * @type {Float32Array}
    */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   currentValue = vec3.create();
 
   /**
@@ -55,7 +52,7 @@ export class Tr2CurveCombiner extends ITriVectorFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateValue(time)
   {
@@ -127,7 +124,7 @@ export class Tr2CurveCombiner extends ITriVectorFunction
    * JavaScript mapped constructor identities implement native BlueCastPtr; an exposed Length method is required.
    * @returns {number} Duration in seconds.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Length()
   {
@@ -148,7 +145,7 @@ export class Tr2CurveCombiner extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValue(time, out)
   {
@@ -162,7 +159,7 @@ export class Tr2CurveCombiner extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(time, out)
   {
@@ -177,7 +174,7 @@ export class Tr2CurveCombiner extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValueAt(time, out)
   {
@@ -196,7 +193,7 @@ export class Tr2CurveCombiner extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The unchanged destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GetValueDotAt(_time, out)
   {
@@ -209,7 +206,7 @@ export class Tr2CurveCombiner extends ITriVectorFunction
    * @param {Float32Array} out Destination value.
    * @returns {Float32Array} The unchanged destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GetValueDoubleDotAt(_time, out)
   {
@@ -222,7 +219,7 @@ export class Tr2CurveCombiner extends ITriVectorFunction
    * @param {Float32Array|Float64Array} out Destination position.
    * @returns {Float32Array|Float64Array} The unchanged destination.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   InterpolatedPosition(_time, out)
   {

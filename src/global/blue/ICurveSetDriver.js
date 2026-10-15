@@ -20,6 +20,7 @@ export class ICurveSetDriver
 }
 
 CjsSchema.decorateMethod(ICurveSetDriver, "GetCurveSetTime", meta.requires, meta.abstract);
-CjsSchema.define(ICurveSetDriver, {
-  className: "ICurveSetDriver", carbon: "ICurveSetDriver", family: "blue", fields: {}
+CjsSchema.blue.define(ICurveSetDriver, {
+  className: "ICurveSetDriver",
+  fields: {}
 });

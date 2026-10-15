@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter.cpp
 // Source: trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter_Blue.cpp
 import { IsMatch, INotify, CjsResource } from "#blue";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 import { ResourceFlags } from "./ITr2EffectValue.js";
@@ -14,29 +14,26 @@ import { RealizeTexture } from "../../core/Tr2ImageIOHelpers.js";
  * A named texture slot fed by a runtime-supplied texture provider rather than an
  * authored res path.
  */
-@meta.define({
-  className: "Tr2RuntimeTextureParameter",
-  family: "shader"
-})
-@meta.blue.inherit(ITriEffectResourceParameter)
-@meta.blue.inherit(INotify)
-@meta.blue.interface(ITriEffectResourceParameter, INotify)
+@blue.define("Tr2RuntimeTextureParameter")
+@blue.inherit(ITriEffectResourceParameter)
+@blue.inherit(INotify)
+@blue.interface(ITriEffectResourceParameter, INotify)
 export class Tr2RuntimeTextureParameter extends CjsParameter
 {
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITr2TextureProvider")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITr2TextureProvider")
   texture = null;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   uavMipLevel = 0;
 
   #materials = [];
@@ -45,7 +42,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
    * Blue construction form: forwards the name, provider and UAV mip level to
    * Create.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   __init__(name = "", texture = null, uavMipLevel = 0)
   {
@@ -56,7 +53,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
    * Assigns name, texture provider and UAV mip level together, notifying only
    * when at least one of them actually changed; returns whether it did.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Create(name, texture, uavMipLevel = 0)
   {
@@ -75,7 +72,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
   }
 
   /** The shader resource name this texture binds to. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetParameterName()
   {
@@ -83,7 +80,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
   }
 
   /** Content hash: the texture provider's identity (Carbon hashes its pointer). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
   {
@@ -94,7 +91,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
    * Invalidates the resource sets of every material this parameter is attached
    * to.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName)
   {
@@ -106,7 +103,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
    * Deliberately does nothing: Carbon caches the effect resource type here for
    * later resource-set binding, which the Trinity layer leaves to engine adapters.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RebuildEffectHandles(_effectRes)
   {
@@ -134,7 +131,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
    * @param {object} [renderContext] The context a resource's texture is made through.
    * @returns {boolean} Whether the slot took the binding.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0, renderContext = null)
   {
@@ -171,7 +168,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
    * @param {number} registerIndex The register.
    * @returns {boolean} Whether the slot took the binding.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   ApplyUav(resourceDesc, stage, registerIndex)
   {
@@ -186,7 +183,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
    * Swaps the texture provider and notifies owners; returns false when it is
    * already the same object.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetTextureProvider(texture)
   {
@@ -203,7 +200,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
    * The attached provider, or null; this package holds the reference but never
    * resolves or uploads it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetTextureProvider()
   {
@@ -214,7 +211,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
    * Sets the mip level to use when this texture is bound as an unordered-access
    * view, coerced to uint32.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetUavMipLevel(mipLevel)
   {
@@ -225,7 +222,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
    * Registers a material to be invalidated when this parameter changes;
    * duplicates are ignored.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnAddedToMaterial(material)
   {
@@ -256,7 +253,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
   }
 
   /** Stops tracking a material so later texture changes no longer invalidate its resource sets. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnRemovedFromMaterial(material)
   {

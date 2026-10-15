@@ -5,7 +5,7 @@ import { INotify } from "../../../global/blue/INotify.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { EveSmartLightBaseGroup } from "./EveSmartLightBaseGroup.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { EveChildTransform } from "../child/EveChildTransform.js";
 import { EveChildQuad } from "../../eve/child/EveChildQuad.js";
 import { resolveGroupColor } from "../../eve/smartLights/EveSmartLightBaseGroup.js";
@@ -21,59 +21,59 @@ import { BLUELISTEVENT } from "#consts/blue";
 import { packQuadInstanceData, QUAD_INSTANCE_SIZE } from "../child/packQuadInstanceData.js";
 
 /** A smart-light group member that places faction-colour-aware flare quads at each distribution placement and submits them to the quad renderer. */
-@meta.define({ className: "EveSmartLightQuad", family: "eve/smartLights" })
-@meta.blue.inherit(IInitialize, INotify, IListNotify)
-@meta.blue.interface(EveSmartLightBaseGroup, IInitialize, INotify, IListNotify)
-@meta.blue.chainTo(EveSmartLightBaseGroup)
+@blue.define("EveSmartLightQuad")
+@blue.inherit(IInitialize, INotify, IListNotify)
+@blue.interface(EveSmartLightBaseGroup, IInitialize, INotify, IListNotify)
+@blue.chainTo(EveSmartLightBaseGroup)
 export class EveSmartLightQuad extends EveChildTransform
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("Tr2Effect")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("Tr2Effect")
   effect = null;
 
   /** m_brightness (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   brightness = 1;
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   display = true;
 
   /** m_staticQuadScale (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   staticQuadScale = vec3.fromValues(1, 1, 1);
 
   /** m_staticOffsetTranslation (Vector3) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   staticOffsetTranslation = vec3.create();
 
   /** m_editMode (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   editMode = false;
 
   /** m_softQuad (bool) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   softQuad = false;
 
   // Flattened EveSmartLightBaseGroup secondary base (Carbon multiple
@@ -81,24 +81,24 @@ export class EveSmartLightQuad extends EveChildTransform
   // this class carries these fields).
 
   /** m_selectedColor (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] (EveSmartLightBaseGroup.h:31) */
-  @meta.blue.notify
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.notify
+  @blue.persist
+  @type.int32
   factionColor = -1;
 
   /** m_useFactionColor (bool) [READWRITE, PERSIST] (EveSmartLightBaseGroup.h:32) */
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.persist
+  @type.boolean
   useFactionColor = false;
 
   /** m_attributeModifiers (PIEveSmartLightGroupAttributeModifierVector) [READ, PERSIST] (EveSmartLightBaseGroup.h:29) */
-  @meta.blue.persist
-  @meta.type.list("IEveSmartLightGroupAttributeModifier")
+  @blue.persist
+  @type.list("IEveSmartLightGroupAttributeModifier")
   attributeModifiers = [];
 
   /** m_color (Color) [READWRITE, PERSIST] (EveSmartLightBaseGroup.h:30) */
-  @meta.blue.persist
-  @meta.type.color
+  @blue.persist
+  @type.color
   customColor = color.createLinear();
 
   /** m_parentColorSet (const Color*) - inherited faction color set, never persisted. */
@@ -121,7 +121,7 @@ export class EveSmartLightQuad extends EveChildTransform
    * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    * base-group surface through the shared resolveGroupColor helper.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetGroupColor()
   {
@@ -140,7 +140,7 @@ export class EveSmartLightQuad extends EveChildTransform
    * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    * base-group surface.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetColor(color)
   {
@@ -154,7 +154,7 @@ export class EveSmartLightQuad extends EveChildTransform
    * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    * base-group surface.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetInheritProperties(colorSet)
   {
@@ -175,7 +175,7 @@ export class EveSmartLightQuad extends EveChildTransform
    * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    * base-group surface.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetControllerVariable(name, value)
   {
@@ -192,7 +192,7 @@ export class EveSmartLightQuad extends EveChildTransform
    * Adapted: The secondary base's list handling lives on this class and receives the Blue
    * list event, inserted value and owning array explicitly.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnListModified(event, _key, _key2, value, list)
   {
@@ -210,7 +210,7 @@ export class EveSmartLightQuad extends EveChildTransform
   /**
    * softQuad edits swap the flare-quad effect path (EveSmartLightQuad.cpp:36-54).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName)
   {
@@ -226,7 +226,7 @@ export class EveSmartLightQuad extends EveChildTransform
    * Adapted: Caches the effect key here; registration with the supplied quad renderer occurs
    * through RegisterWithQuadRenderer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -245,7 +245,7 @@ export class EveSmartLightQuad extends EveChildTransform
    * Adapted: Uses the supplied quad renderer rather than Carbon's singleton, with
    * EveChildQuad's shared vertex definition.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -327,7 +327,7 @@ export class EveSmartLightQuad extends EveChildTransform
    * Adapted: Packs each logical instance into the JavaScript byte buffer and submits it
    * through the supplied quad renderer.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AddQuadsToQuadRenderer(placements, size, frustum, quadRenderer)
   {

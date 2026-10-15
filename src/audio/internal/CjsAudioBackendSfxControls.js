@@ -158,4 +158,4 @@ export class CjsAudioBackendSfxControls extends ICjsSfxControls
     }
 }
 
-CjsSchema.define(CjsAudioBackendSfxControls, { className: "CjsAudioBackendSfxControls", family: "audio", fields: {} });
+CjsSchema.meta.define(CjsAudioBackendSfxControls, { className: "CjsAudioBackendSfxControls", fields: {} });

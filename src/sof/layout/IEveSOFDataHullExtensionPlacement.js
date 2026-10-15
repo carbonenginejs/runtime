@@ -1,8 +1,8 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
-import { meta } from "#schema";
+import { blue } from "#schema";
 
 /** Empty Carbon marker interface for hull-extension placement list members (EveSOFData.h:1911-1915). */
-@meta.define({ className: "IEveSOFDataHullExtensionPlacement", family: "eve" })
+@blue.define("IEveSOFDataHullExtensionPlacement")
 export class IEveSOFDataHullExtensionPlacement
 {
 

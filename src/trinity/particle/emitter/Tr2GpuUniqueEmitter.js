@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Particle/Tr2GpuUniqueEmitter_Blue.cpp
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2GpuSharedEmitter } from "./Tr2GpuSharedEmitter.js";
 
 
@@ -20,25 +20,25 @@ const SCALED_PARAMS = Tr2GpuSharedEmitter._createParams();
  * GPU emitter owned by a single instance, adding parent scaling and a
  * per-instance attractor on top of the shared emitter parameters.
  */
-@meta.define({ className: "Tr2GpuUniqueEmitter", family: "particle" })
-@meta.blue.chainTo(Tr2GpuSharedEmitter)
+@blue.define("Tr2GpuUniqueEmitter")
+@blue.chainTo(Tr2GpuSharedEmitter)
 export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   scaledByParent = false;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   attractorPosition = vec3.create();
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   attractorStrength = 0;
 
   /**
@@ -53,7 +53,7 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
   }
 
   /** Retains the constructor's unique identity when parameters change. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GenerateID()
   {
@@ -72,7 +72,7 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
    * shared emission (cpp:18-53). Module scratch replaces C++ stack copies;
    * the schema's local attractor and other authored values remain unchanged.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(arguments_)
   {
@@ -105,7 +105,7 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
    * overload is SpawnParticles__StartEnd. Scaling uses reusable value copies.
    * As in Carbon, spawning does not update the attractor's world position.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SpawnParticles(arguments_, position = null, velocity = null, rateModifier = 1)
   {

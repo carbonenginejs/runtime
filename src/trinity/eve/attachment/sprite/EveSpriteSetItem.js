@@ -4,66 +4,66 @@
 import { vec3 } from "#math/vec3";
 import { box3 } from "#math/box3";
 import { vec4 } from "#math/vec4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /**
  * One authored sprite: its bone attachment, position, blink timing, scale range,
  * falloff and normal and warp colours.
  */
-@meta.define({ className: "EveSpriteSetItem", family: "eve/attachment/sprites" })
+@blue.define("EveSpriteSetItem")
 export class EveSpriteSetItem
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   blinkRate = 0.1;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   blinkPhase = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   minScale = 1;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   maxScale = 10;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   falloff = 0;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   position = vec3.create();
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.color
   warpColor = vec4.fromValues(1, 1, 1, 1);
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.readwrite
+  @blue.persist
+  @type.int32
   boneIndex = 0;
 
   /**
@@ -74,7 +74,7 @@ export class EveSpriteSetItem
    * Adapted: Carbon returns Sphere by value; JavaScript follows the runtime sphere
    * out-parameter convention.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBounds(out)
   {
@@ -82,7 +82,7 @@ export class EveSpriteSetItem
   }
 
   /** The parent bone this sprite rides. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBoneIndex()
   {

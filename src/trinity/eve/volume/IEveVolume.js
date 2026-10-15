@@ -1,14 +1,14 @@
 // Source: trinity/trinity/Eve/Volume/IEveVolume.h
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 
 /** Required EVE volume contract. */
-@meta.define({ className: "IEveVolume", family: "eve/volume" })
+@blue.define("IEveVolume")
 export class IEveVolume
 {
 
   /** Returns the volume intensity at a position. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GetIntensity(_position)
   {
@@ -16,7 +16,7 @@ export class IEveVolume
   }
 
   /** Registers a listener for volume changes and returns its identifier. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   RegisterForChanges(_listener)
   {
@@ -24,7 +24,7 @@ export class IEveVolume
   }
 
   /** Removes a previously registered volume-change listener. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   UnregisterForChanges(_listener)
   {
@@ -32,7 +32,7 @@ export class IEveVolume
   }
 
   /** Generates caller-owned sample points inside the volume. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GeneratePointsInVolume(_count, _out)
   {
@@ -40,7 +40,7 @@ export class IEveVolume
   }
 
   /** Renders volume debug information through the supplied renderer. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   RenderDebugInfo(_debugRenderer)
   {
@@ -48,7 +48,7 @@ export class IEveVolume
   }
 
   /** Writes the volume's current bounding sphere. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GetBoundingSphere(_out)
   {

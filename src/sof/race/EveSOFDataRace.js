@@ -1,47 +1,47 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { type, blue } from "#schema";
 import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.js";
 import { EveSOFDataBooster } from "../shared/EveSOFDataBooster.js";
 import { EveSOFDataRaceDamage } from "./EveSOFDataRaceDamage.js";
 
 /** Names a race, stores its heat color, and combines race-level booster and damage configuration. */
-@meta.define({ className: "EveSOFDataRace", family: "eve" })
+@blue.define("EveSOFDataRace")
 export class EveSOFDataRace
 {
   static ColorType = EveSOFDataFactionColorSet.ColorType;
 
 
   /** m_hullPrimaryHeatColorType (SOFDataFactionColorChooser::ColorType - enum ColorType) [READWRITE, PERSIST, ENUM] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.SOFDataFactionColorChooser.ColorType")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.SOFDataFactionColorChooser.ColorType")
   hullPrimaryHeatColorType = 16;
 
   /** m_hullReactorHeatColorType (SOFDataFactionColorChooser::ColorType - enum ColorType) [READWRITE, PERSIST, ENUM] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.SOFDataFactionColorChooser.ColorType")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.SOFDataFactionColorChooser.ColorType")
   hullReactorHeatColorType = 14;
 
   /** m_booster (EveSOFDataBoosterPtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataBooster")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("EveSOFDataBooster")
   booster = null;
 
   /** m_damage (EveSOFDataRaceDamagePtr) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("EveSOFDataRaceDamage")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("EveSOFDataRaceDamage")
   damage = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /**

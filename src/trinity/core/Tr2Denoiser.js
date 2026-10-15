@@ -25,7 +25,7 @@ import { INotify } from "../../global/blue/INotify.js";
 // the constructor only names them. Until a resource manager resolves those
 // paths the passes run and draw nothing, which is the same state every other
 // effect-driven path in this runtime is in.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
@@ -66,52 +66,52 @@ function effectAt(path)
 }
 
 /** Carries depth, normal, and plane weights together with radius, step size, and bypass state for spatial denoising. */
-@meta.define({ className: "Tr2Denoiser", family: "trinityCore", purpose: "Carries depth, normal, and plane weights together with radius, step size, and bypass state for spatial denoising." })
-@meta.blue.inherit(INotify)
-@meta.blue.interface(INotify)
+@blue.define({ className: "Tr2Denoiser", purpose: "Carries depth, normal, and plane weights together with radius, step size, and bypass state for spatial denoising." })
+@blue.inherit(INotify)
+@blue.interface(INotify)
 export class Tr2Denoiser
 {
 
   /** m_bypass (bool) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   bypass = false;
 
   /** m_depthWeight (float) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   depthWeight = 100;
 
   /** m_normalWeight (float) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   normalWeight = 1.5;
 
   /** m_planeWeight (float) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   planeWeight = 0;
 
   /** m_radius (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   radius = 5;
 
   /** m_stepSize (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   stepSize = 1;
 
   /** m_estimateNoise */
@@ -156,7 +156,7 @@ export class Tr2Denoiser
    * @param {object} renderer Legacy argument; fullscreen draws use the native static renderer.
    * @returns {object|null} The result handle, or null.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Apply(source, depth, normals, projection, upscaling, gpuResourcePool, renderContext, renderer)
   {
@@ -291,7 +291,7 @@ export class Tr2Denoiser
    * @param {number} value The new radius.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetRadius(value)
   {
@@ -305,7 +305,7 @@ export class Tr2Denoiser
    *
    * @returns {boolean} True, as Carbon's does.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified()
   {

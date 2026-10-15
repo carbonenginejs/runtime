@@ -373,4 +373,4 @@ export class BitmapDimensions
 // that reaches this file without a build first. `CjsSchema.define` is the same
 // metadata through the door the schema already provides for exactly this, and
 // it keeps the layer free of the decorator chain it has never carried.
-CjsSchema.define(BitmapDimensions, { className: "BitmapDimensions", carbon: "BitmapDimensions", aliases: [ "Tr2BitmapDimensions" ] });
+CjsSchema.blue.define(BitmapDimensions, { className: "BitmapDimensions", aliases: [ "Tr2BitmapDimensions" ] });

@@ -27,4 +27,4 @@ export class Version
     }
 }
 
-CjsSchema.define(Version, { className: "Version", carbon: "Version", family: "tools", fields: {} });
+CjsSchema.blue.define(Version, { className: "Version", fields: {} });

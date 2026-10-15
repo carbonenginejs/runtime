@@ -766,10 +766,8 @@ export class BlueCallbackMan extends IBlueCallbackMan
   }
 }
 
-CjsSchema.define(BlueCallbackMan, {
+CjsSchema.blue.define(BlueCallbackMan, {
   className: "BlueCallbackMan",
-  carbon: "BlueCallbackMan",
-  family: "blue",
   fields: {},
   methods: {
     Add: [ meta.adapted ],

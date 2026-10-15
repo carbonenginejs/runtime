@@ -4,7 +4,7 @@ import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { INotify } from "../../../global/blue/INotify.js";
 import { EveSmartLightBaseGroup } from "./EveSmartLightBaseGroup.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { EveEntity } from "../EveEntity.js";
 import { resolveGroupColor } from "../../eve/smartLights/EveSmartLightBaseGroup.js";
 import { PlacementDataWithIdentifier } from "../PlacementDataWithIdentifier.js";
@@ -14,31 +14,31 @@ import { vec4 } from "#math/vec4";
 import { BLUELISTEVENT } from "#consts/blue";
 
 /** A smart-light group that computes one shared faction-aware colour, applies it to its child light groups, and fans out their per-frame updates. */
-@meta.define({ className: "EveSmartLightColorShareGroup", family: "eve/smartLights" })
-@meta.blue.inherit(INotify, IListNotify)
-@meta.blue.interface(EveSmartLightBaseGroup, INotify, IListNotify, EveEntity)
-@meta.blue.chainTo(EveSmartLightBaseGroup)
+@blue.define("EveSmartLightColorShareGroup")
+@blue.inherit(INotify, IListNotify)
+@blue.interface(EveSmartLightBaseGroup, INotify, IListNotify, EveEntity)
+@blue.chainTo(EveSmartLightBaseGroup)
 export class EveSmartLightColorShareGroup extends EveEntity
 {
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   display = true;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_lightGroups (PIEveSmartLightGroupVector) [READ, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("IEveSmartLightGroup")
+  @blue.notify
+  @blue.read
+  @blue.persist
+  @type.list("IEveSmartLightGroup")
   lightGroups = [];
 
   // Flattened EveSmartLightBaseGroup secondary base (Carbon multiple
@@ -46,24 +46,24 @@ export class EveSmartLightColorShareGroup extends EveEntity
   // this class carries these fields).
 
   /** m_selectedColor (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] (EveSmartLightBaseGroup.h:31) */
-  @meta.blue.notify
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.notify
+  @blue.persist
+  @type.int32
   factionColor = -1;
 
   /** m_useFactionColor (bool) [READWRITE, PERSIST] (EveSmartLightBaseGroup.h:32) */
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.persist
+  @type.boolean
   useFactionColor = false;
 
   /** m_attributeModifiers (PIEveSmartLightGroupAttributeModifierVector) [READ, PERSIST] (EveSmartLightBaseGroup.h:29) */
-  @meta.blue.persist
-  @meta.type.list("IEveSmartLightGroupAttributeModifier")
+  @blue.persist
+  @type.list("IEveSmartLightGroupAttributeModifier")
   attributeModifiers = [];
 
   /** m_color (Color) [READWRITE, PERSIST] (EveSmartLightBaseGroup.h:30) */
-  @meta.blue.persist
-  @meta.type.color
+  @blue.persist
+  @type.color
   customColor = color.createLinear();
 
   /** m_parentColorSet (const Color*) - inherited faction color set, never persisted. */
@@ -80,7 +80,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    * base-group surface through the shared resolveGroupColor helper.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetGroupColor()
   {
@@ -99,7 +99,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * Adapted: Carbon inherits EveSmartLightBaseGroup; JS single inheritance flattens the
    * base-group surface.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetColor(color)
   {
@@ -109,7 +109,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
   /**
    * display edits re-register the shared groups (EveSmartLightColorShareGroup.cpp:17-24).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName)
   {
@@ -122,7 +122,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * set; inserted light groups register while this entity is registered
    * (EveSmartLightColorShareGroup.cpp:26-82).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnListModified(event, _key, _key2, value, list)
   {
@@ -166,7 +166,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
   }
 
   /** Registers the shared groups while displayed (EveSmartLightColorShareGroup.cpp:84-97). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterComponents()
   {
@@ -184,7 +184,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
   }
 
   /** Unregisters the shared groups (EveSmartLightColorShareGroup.cpp:99-112). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UnRegisterComponents()
   {
@@ -202,7 +202,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
   }
 
   /** Quad fan-out, gated on display (EveSmartLightColorShareGroup.cpp:114-125). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddQuadsToQuadRenderer(placements, size, frustum, quadRenderer)
   {
@@ -218,7 +218,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
   }
 
   /** Renderable fan-out, gated on display (EveSmartLightColorShareGroup.cpp:127-138). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetRenderables(renderables = [])
   {
@@ -290,7 +290,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * Fans a controller variable to the group's own modifiers, then to the
    * shared groups (EveSmartLightColorShareGroup.cpp:170-178).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetControllerVariable(name, value)
   {
@@ -310,7 +310,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
    * groups; a null set is ignored entirely
    * (EveSmartLightColorShareGroup.cpp:180-190).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetInheritProperties(colorSet)
   {
@@ -329,7 +329,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
   }
 
   /** Effect-registration fan-out (EveSmartLightColorShareGroup.cpp:192-198). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -340,7 +340,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
   }
 
   /** Carbon debug-render fan-out, gated by this group's display flag. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RenderDebugInfo(renderer, placements, size)
   {
@@ -355,7 +355,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
   }
 
   /** Visibility fan-out (EveSmartLightColorShareGroup.cpp:213-219). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform, parentLod)
   {

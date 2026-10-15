@@ -35,6 +35,7 @@ export class IBlueDynamicResourceConstructor
 
 CjsSchema.decorateMethod(IBlueDynamicResourceConstructor, "GetResource", meta.requires, meta.abstract);
 CjsSchema.decorateMethod(IBlueDynamicResourceConstructor, "IsCacheable", meta.ours);
-CjsSchema.define(IBlueDynamicResourceConstructor, {
-  className: "IBlueDynamicResourceConstructor", carbon: "IBlueDynamicResourceConstructor", family: "blue", fields: {}
+CjsSchema.blue.define(IBlueDynamicResourceConstructor, {
+  className: "IBlueDynamicResourceConstructor",
+  fields: {}
 });

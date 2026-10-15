@@ -1,14 +1,14 @@
 // Source: trinity/trinity/Particle/ITr2ParticleForce.h
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 
 /** Required particle-force contract. */
-@meta.define({ className: "ITr2ParticleForce", family: "particle" })
+@blue.define("ITr2ParticleForce")
 export class ITr2ParticleForce
 {
 
   /** Updates force-owned state before particle integration. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   Update(_dt)
   {
@@ -16,7 +16,7 @@ export class ITr2ParticleForce
   }
 
   /** Accumulates this force for one particle. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   GetForce(_position, _velocity, _dt, _mass, _out)
   {
@@ -24,7 +24,7 @@ export class ITr2ParticleForce
   }
 
   /** Carbon's base debug hook is intentionally empty. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   RenderDebugInfo()
   {

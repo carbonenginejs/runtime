@@ -10,7 +10,7 @@ import { vec4 } from "#math/vec4";
 import { sph3 } from "#math/sph3";
 import { quat } from "#math/quat";
 import { Tr2Lod } from "../../EveLODHelper.js";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";
 import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 import { TriFloat } from "../../../core/variable/TriFloat.js";
@@ -35,75 +35,75 @@ import { CjsStretchRuntime } from "./CjsStretchRuntime.js";
  * the span, at the destination and at a travelling point between them, driven by
  * its own controllers, dynamic bindings and curve sets.
  */
-@meta.define({ className: "EveStretch3", family: "eve/renderable/stretch" })
-@meta.blue.inherit(ITr2DynamicBindingOwner, IEveSpaceObject2, ITr2ControllerOwner,
+@blue.define("EveStretch3")
+@blue.inherit(ITr2DynamicBindingOwner, IEveSpaceObject2, ITr2ControllerOwner,
   INotify, IListNotify, IInitialize, ITr2CurveSetOwner, ITr2SoundEmitterOwner)
-@meta.blue.inherit(INotify, IListNotify, IInitialize)
-@meta.blue.interface(INotify, IListNotify, IInitialize, IEveSpaceObject2, IEveFiringEffectElement, ITr2ControllerOwner, ITr2CurveSetOwner, ITr2DynamicBindingOwner, ITr2SoundEmitterOwner, EveEntity)
+@blue.inherit(INotify, IListNotify, IInitialize)
+@blue.interface(INotify, IListNotify, IInitialize, IEveSpaceObject2, IEveFiringEffectElement, ITr2ControllerOwner, ITr2CurveSetOwner, ITr2DynamicBindingOwner, ITr2SoundEmitterOwner, EveEntity)
 export class EveStretch3 extends IEveFiringEffectElement
 {
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   sourcePosition = vec3.create();
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   destinationPosition = vec3.create();
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
- @meta.type.rootRef("ITriVectorFunction")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+ @type.rootRef("ITriVectorFunction")
   source = null;
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
- @meta.type.rootRef("ITriVectorFunction")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+ @type.rootRef("ITriVectorFunction")
   dest = null;
-  @meta.blue.readwrite
-  @meta.blue.persist
- @meta.type.string
+  @blue.readwrite
+  @blue.persist
+ @type.string
   name = "";
-  @meta.blue.readwrite
-  @meta.blue.persist
- @meta.type.rootRef("TriFloat")
+  @blue.readwrite
+  @blue.persist
+ @type.rootRef("TriFloat")
   moveProgression = new TriFloat();
-  @meta.blue.readwrite
-  @meta.blue.persist
- @meta.type.rootRef("IStretchAudio")
+  @blue.readwrite
+  @blue.persist
+ @type.rootRef("IStretchAudio")
   stretchAudio = null;
-  @meta.blue.read
-  @meta.blue.persist
- @meta.type.list("ITr2Controller")
+  @blue.read
+  @blue.persist
+ @type.list("ITr2Controller")
   controllers = [];
-  @meta.blue.read
-  @meta.blue.persist
- @meta.type.list("TriCurveSet")
+  @blue.read
+  @blue.persist
+ @type.list("TriCurveSet")
   curveSets = [];
-  @meta.blue.read
-  @meta.blue.persist
- @meta.type.rootRef("TriFloat")
+  @blue.read
+  @blue.persist
+ @type.rootRef("TriFloat")
   length = new TriFloat();
-  @meta.blue.read
-  @meta.blue.persist
- @meta.type.list("Tr2DynamicBinding")
+  @blue.read
+  @blue.persist
+ @type.list("Tr2DynamicBinding")
   dynamicBindings = [];
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
- @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+ @type.boolean
   display = true;
-  @meta.blue.readwrite
-  @meta.blue.persist
- @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+ @type.boolean
   update = true;
   /** Hidden persisted destObject storage, distinct from the live setter. */
   @meta.member("destObject")
-  @meta.blue.persistOnly
-  @meta.type.rootRef("EveSpaceObjectChild")
+  @blue.persistOnly
+  @type.rootRef("EveSpaceObjectChild")
   _destObject = null;
 
   /** Live destObject property. */
-  @meta.blue.readwrite
-  @meta.type.rootRef("EveSpaceObjectChild")
+  @blue.readwrite
+  @type.rootRef("EveSpaceObjectChild")
   @meta.implemented
   get destObject()
   {
@@ -118,13 +118,13 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
   /** Hidden persisted sourceObject storage, distinct from the live setter. */
   @meta.member("sourceObject")
-  @meta.blue.persistOnly
-  @meta.type.rootRef("EveSpaceObjectChild")
+  @blue.persistOnly
+  @type.rootRef("EveSpaceObjectChild")
   _sourceObject = null;
 
   /** Live sourceObject property. */
-  @meta.blue.readwrite
-  @meta.type.rootRef("EveSpaceObjectChild")
+  @blue.readwrite
+  @type.rootRef("EveSpaceObjectChild")
   @meta.implemented
   get sourceObject()
   {
@@ -139,13 +139,13 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
   /** Hidden persisted stretchObject storage, distinct from the live setter. */
   @meta.member("stretchObject")
-  @meta.blue.persistOnly
-  @meta.type.rootRef("EveSpaceObjectChild")
+  @blue.persistOnly
+  @type.rootRef("EveSpaceObjectChild")
   _stretchObject = null;
 
   /** Live stretchObject property. */
-  @meta.blue.readwrite
-  @meta.type.rootRef("EveSpaceObjectChild")
+  @blue.readwrite
+  @type.rootRef("EveSpaceObjectChild")
   @meta.implemented
   get stretchObject()
   {
@@ -159,22 +159,22 @@ export class EveStretch3 extends IEveFiringEffectElement
     this.SetStretchObject(value);
   }
   /** Be::Time is represented as numeric seconds in this JS update path. */
-  @meta.blue.read
-  @meta.type.float64
+  @blue.read
+  @type.float64
   startTime = 0;
-  @meta.blue.readwrite
-  @meta.blue.persist
- @meta.type.rootRef("ITr2Audio")
+  @blue.readwrite
+  @blue.persist
+ @type.rootRef("ITr2Audio")
   audio = null;
   /** Hidden persisted moveObject storage, distinct from the live setter. */
   @meta.member("moveObject")
-  @meta.blue.persistOnly
-  @meta.type.rootRef("EveSpaceObjectChild")
+  @blue.persistOnly
+  @type.rootRef("EveSpaceObjectChild")
   _moveObject = null;
 
   /** Live moveObject property. */
-  @meta.blue.readwrite
-  @meta.type.rootRef("EveSpaceObjectChild")
+  @blue.readwrite
+  @type.rootRef("EveSpaceObjectChild")
   @meta.implemented
   get moveObject()
   {
@@ -189,8 +189,8 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
 
   /** Live sourceSpaceObject pointer property; native backing storage is weak. */
-  @meta.blue.readwrite
-  @meta.type.rootRef("IEveSpaceObject2")
+  @blue.readwrite
+  @type.rootRef("IEveSpaceObject2")
   @meta.implemented
   get sourceSpaceObject()
   {
@@ -205,8 +205,8 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
 
   /** Live destSpaceObject pointer property; native backing storage is weak. */
-  @meta.blue.readwrite
-  @meta.type.rootRef("IEveSpaceObject2")
+  @blue.readwrite
+  @type.rootRef("IEveSpaceObject2")
   @meta.implemented
   get destSpaceObject()
   {
@@ -233,7 +233,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * Post-hydration hook; links any controller that is not already linked and
    * takes ownership of the dynamic bindings. JS stores lists without native parent locks.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Initialize()
   {
@@ -251,7 +251,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * The space object standing in as parent for the source-side children, or
    * null.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetSourceSpaceObject()
   {
@@ -262,7 +262,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * Sets the space object used as parent for the source-side children and
    * relinks the dynamic bindings, since it is one of their roots.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetSourceSpaceObject(value)
   {
@@ -271,7 +271,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
 
   /** The space object standing in as parent for the destination child, or null. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetDestSpaceObject()
   {
@@ -282,7 +282,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * Sets the space object used as parent for the destination child and relinks
    * the dynamic bindings, since it is one of their roots.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetDestSpaceObject(value)
   {
@@ -295,7 +295,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * JS uses the object directly where Carbon supplies its raw root.
    * @param {Boolean} [onlyUpdateBindings] - leave the controllers linked as they are
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Rebind(onlyUpdateBindings = false)
   {
@@ -316,7 +316,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * destination space objects, and the root object of each child.
    * JS objects serve as raw roots; the native unordered map becomes a plain name map.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetParameterMap()
   {
@@ -340,7 +340,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @param {Object} [out] - caller-owned map, mutated in place
    * @returns {Object} out
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBindingRoots(out = {})
   {
@@ -359,7 +359,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * dynamic-binding lists - linking on insert, unlinking on remove, unlinking
    * every controller on unload - and ignores events flagged as loading.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
@@ -392,7 +392,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
 
   /** Refreshes modifier or registration; JS notifications name the exposed native member. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName)
   {
@@ -410,7 +410,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
 
   /** Returns the source child. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetSourceObject()
   {
@@ -418,7 +418,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
 
   /** Replaces the source child and transfers its mapped entity registration. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetSourceObject(value)
   {
@@ -432,7 +432,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
 
   /** Returns the dest child. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetDestObject()
   {
@@ -440,7 +440,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
 
   /** Replaces the dest child and transfers its mapped entity registration. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetDestObject(value)
   {
@@ -454,7 +454,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
 
   /** Returns the stretch child. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetStretchObject()
   {
@@ -462,7 +462,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
 
   /** Replaces the stretch child and transfers its mapped entity registration. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetStretchObject(value)
   {
@@ -482,7 +482,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
 
   /** Returns the move child. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetMoveObject()
   {
@@ -490,7 +490,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
 
   /** Replaces the move child and transfers its mapped entity registration. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetMoveObject(value)
   {
@@ -558,7 +558,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
 
   /** Carbon's IEveSpaceObject2 spelling of UpdateSynchronous; forwards unchanged. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateSyncronous(context)
   {
@@ -632,7 +632,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * Carbon's IEveSpaceObject2 spelling of UpdateAsynchronous; forwards
    * unchanged.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateAsyncronous(context)
   {
@@ -643,7 +643,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * IEveFiringEffectElement synchronous hook; runs the normal synchronous
    * update.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateEffectSync(context)
   {
@@ -654,7 +654,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * IEveFiringEffectElement asynchronous hook; runs the normal asynchronous
    * update.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateEffectAsync(context)
   {
@@ -665,7 +665,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * IEveFiringEffectElement move hook; EveStretch3 drives its travelling child
    * from the moveProgression value instead of a start event.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   StartMoving()
   {
@@ -678,7 +678,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * normalize(source - destination) (TriQuaternionArcFromForward) at scale 1,
    * placed at the interpolated position.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateVisibility(context, parentTransform = EveStretch3._identity)
   {
@@ -698,7 +698,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   static _moveRotation = quat.create();
 
   /** Registers every displayed stretch component with Carbon's quad renderer. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
@@ -707,7 +707,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
 
   /** Submits displayed components in source, destination, stretch, then move order. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
@@ -716,7 +716,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
 
   /** Carbon's GetRenderables( renderables ): forwards with no impostor manager. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetRenderables(out)
   {
@@ -739,7 +739,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * Shows or hides the stretch, gating visibility, renderable collection,
    * curve-set control and component registration.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetDisplay(display)
   {
@@ -754,7 +754,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @param {Array} out - caller-owned packed (x, y, z, radius), overwritten
    * @returns {Boolean} whether any child contributed a sphere
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBoundingSphere(out = vec4.create(), query = 0)
   {
@@ -776,7 +776,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * Longest curve-set duration in seconds, each divided by that set's own time
    * scale.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetCurveDuration()
   {
@@ -792,7 +792,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * Requests a firing start; the controller variables are only applied on the next synchronous update, while the stretch audio starts immediately.
    * @param {Number} [delay] - seconds handed to the controllers as the FiringDelay variable
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   StartFiring(delay = 0)
   {
@@ -808,7 +808,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * Requests a firing stop; IsFiring is cleared on the next synchronous update,
    * while the stretch audio stops immediately.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   StopFiring()
   {
@@ -825,7 +825,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * effect, whose transform is used verbatim for the source child instead of the
    * derived span basis.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetFiringTransform(source, destination)
   {
@@ -847,21 +847,21 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
 
   /** Native stretch effects leave the requested model centre untouched. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   UpdateModelCenterWorldPosition(_position, _time)
   {
   }
 
   /** Native stretch effects leave the requested model centre untouched. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GetModelCenterWorldPosition(_position)
   {
   }
 
   /** Native stretch effects do not supply a local bounding box. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLocalBoundingBox(_min, _max)
   {
@@ -869,14 +869,14 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
 
   /** Native stretch effects leave the requested transform untouched. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GetLocalToWorldTransform(_transform)
   {
   }
 
   /** IEveFiringEffectElement hook; EveStretch3 cannot hide individual endpoints. */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   DisplayEndPoints(_displaySource, _displayDestination)
   {
@@ -885,7 +885,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   /**
    * Uniform scale applied to the destination child's asynchronous placement.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetDestObjectScale(scale)
   {
@@ -896,7 +896,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * IEveFiringEffectElement intensity hook; EveStretch3 has no intensity term of
    * its own.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   SetIntensity(_intensity)
   {
@@ -906,7 +906,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * Sets a controller variable on every child and on this stretch's own
    * controllers.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetControllerVariable(name, value)
   {
@@ -918,7 +918,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * Delivers a controller event to every child and to this stretch's own
    * controllers.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   HandleControllerEvent(name)
   {
@@ -927,7 +927,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
 
   /** Starts every child's controllers and this stretch's own. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   StartControllers()
   {
@@ -940,7 +940,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * when one is given, otherwise from the start with the range reset - and
    * forwards the call to the children. Ignored while hidden.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   PlayCurveSet(name, rangeName = "")
   {
@@ -962,7 +962,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * Stops every local curve set with the given name and forwards the call to the
    * children. Ignored while hidden.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   StopCurveSet(name)
   {
@@ -981,7 +981,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * display.
    * JS passes the optional render context through the existing curve-set API.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateCurveSet(name, time, renderContext = null)
   {
@@ -1003,7 +1003,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * Longest duration of the named curve set across this stretch and its
    * children; 0 while hidden.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetCurveSetDuration(name)
   {
@@ -1022,7 +1022,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * Longest duration of a named time range within the named curve set, across
    * this stretch and its children; 0 while hidden.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetRangeDuration(name, rangeName)
   {
@@ -1042,7 +1042,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * when the primary object fails the native cast, even if a primary lookup returns null.
    * Audio constructors are resolved by registration to preserve the optional service boundary.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   FindSoundEmitter(name)
   {
@@ -1057,7 +1057,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
 
   /** Registers all four mapped child entities while displayed. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   RegisterComponents()
   {
@@ -1073,7 +1073,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
 
   /** Unregisters all four mapped child entities without a display recheck. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UnRegisterComponents()
   {

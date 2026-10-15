@@ -1,18 +1,18 @@
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /** Reference to one logical channel of a resolved character texture. */
-@meta.define({ className: "CjsCharacterTextureChannel", family: "character" })
+@meta.define("CjsCharacterTextureChannel")
 export class CjsCharacterTextureChannel
 {
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.rootRef("CjsCharacterTextureAsset")
+    @blue.readwrite
+    @blue.persist
+    @type.rootRef("CjsCharacterTextureAsset")
     texture = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     channel = "a";
 
 }

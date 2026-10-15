@@ -1,4 +1,4 @@
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /**
@@ -9,53 +9,53 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
  * `bloodlineIDs` keeps authored identities without asserting availability,
  * allow-list or deny-list meaning.
  */
-@meta.define({ className: "CjsCharacterPartType", family: "character" })
+@meta.define("CjsCharacterPartType")
 export class CjsCharacterPartType extends CjsCharacterRecord
 {
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.path
+    @blue.readwrite
+    @blue.persist
+    @type.path
     sourcePath = "";
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("string")
+    @blue.readwrite
+    @blue.persist
+    @type.list("string")
     sourcePaths = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     sex = "";
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     partPath = "";
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     resourceVersion = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.string
+    @blue.readwrite
+    @blue.persist
+    @type.string
     colorVariant = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("string")
+    @blue.readwrite
+    @blue.persist
+    @type.list("string")
     bloodlineIDs = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.rootRef("CjsCharacterPartSource")
+    @blue.readwrite
+    @blue.persist
+    @type.rootRef("CjsCharacterPartSource")
     partSource = null;
 
-    @meta.blue.readwrite
-    @meta.blue.persist
-    @meta.type.list("CjsCharacterPartSource")
+    @blue.readwrite
+    @blue.persist
+    @type.list("CjsCharacterPartSource")
     partSources = [];
 
 }

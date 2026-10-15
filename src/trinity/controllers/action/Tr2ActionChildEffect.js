@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionChildEffect_Blue.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { be, CjsBlueClasses } from "#blue";
-import { meta, CjsSchema } from "#schema";
+import { meta, CjsSchema, type, blue } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
@@ -26,10 +26,7 @@ function CastTo(value, className)
  * Controller action that attaches a child effect loaded from a resource path to
  * its owner on start and detaches it on stop.
  */
-@meta.define({
-  className: "Tr2ActionChildEffect",
-  family: "controllers"
-})
+@blue.define("Tr2ActionChildEffect")
 export class Tr2ActionChildEffect extends ITr2ControllerAction
 {
   static _resourcePrefetcher = null;
@@ -61,33 +58,33 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
   }
 
   /** Native m_path: std::string with file-path editor/transport semantics. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.path("object")
+  @blue.readwrite
+  @blue.persist
+  @type.path("object")
   path = "";
 
   /** Native m_childName. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   childName = "";
 
   /** Native m_targetAnotherOwner: BlueSharedString. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   targetAnotherOwner = "";
 
   /** Native m_addOnStart. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   addOnStart = true;
 
   /** Native m_removeOnStop. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   removeOnStop = true;
 
   /** Native m_child: attached or preexisting child until Stop. */
@@ -105,7 +102,7 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
    * queues an urgent background ResFile open. The JS runtime owns those choices
    * through its callback; this action neither duplicates them nor claims parity.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Link(controller)
   {
@@ -119,7 +116,7 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
    *
    * Adapted: the load is asynchronous (see _loadChild).
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Start(controller)
   {
@@ -239,7 +236,7 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
    * Adapted: invalidates a pending asynchronous load, and releases the device
    * resources of a child this action loaded.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Stop(controller)
   {
@@ -321,4 +318,4 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionChildEffect_Blue.cpp:12-13,26).
-meta.blue.interface(ITr2ControllerAction)(Tr2ActionChildEffect);
+blue.interface(ITr2ControllerAction)(Tr2ActionChildEffect);

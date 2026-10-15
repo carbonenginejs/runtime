@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2ExpressionTermInfo.h
 // Source: trinity/trinity/Tr2ExpressionTermInfo.cpp
 // Source: trinity/trinity/Tr2ExpressionTermInfo_Blue.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { be } from "#blue";
 
 
@@ -16,31 +16,28 @@ const TermType = {
  * Describes one term the expression language exposes - a variable, a function or
  * a string function - with its category, argument names and help text.
  */
-@meta.define({
-  className: "Tr2ExpressionTermInfo",
-  family: "trinityCore"
-})
+@blue.define("Tr2ExpressionTermInfo")
 export class Tr2ExpressionTermInfo
 {
   /** Native term category; not persisted. */
-  @meta.blue.readwrite
-  @meta.type.int32
-  @meta.type.enum("trinity.Tr2ExpressionTermInfo.TermType")
+  @blue.readwrite
+  @type.int32
+  @type.enum("trinity.Tr2ExpressionTermInfo.TermType")
   type = TermType.VARIABLE;
 
   /** Help category name; not persisted. */
-  @meta.blue.readwrite
-  @meta.type.string
+  @blue.readwrite
+  @type.string
   category = "";
 
   /** Exposed term name; not persisted. */
-  @meta.blue.readwrite
-  @meta.type.string
+  @blue.readwrite
+  @type.string
   name = "";
 
   /** Help text for the term; not persisted. */
-  @meta.blue.readwrite
-  @meta.type.string
+  @blue.readwrite
+  @type.string
   description = "";
 
   /** Factory-owned argument names, absent from the native member table. */
@@ -50,7 +47,7 @@ export class Tr2ExpressionTermInfo
    * A detached copy of the argument-name list.
    * @returns {string[]} Argument names in factory order.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetArguments()
   {
@@ -135,4 +132,4 @@ be.enums.Create("trinity.Tr2ExpressionTermInfo.TermType", TermType, {
 });
 
 // Native IRoot record: concrete query identity with no exposure chain.
-meta.blue.interface()(Tr2ExpressionTermInfo);
+blue.interface()(Tr2ExpressionTermInfo);

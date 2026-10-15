@@ -35,6 +35,6 @@ export class YamlWriter extends IRootWriter
   }
 }
 
-CjsSchema.define(YamlWriter, { className: "YamlWriter", carbon: "YamlWriter", family: "blue", fields: {} });
+CjsSchema.blue.define(YamlWriter, { className: "YamlWriter", fields: {} });
 CjsSchema.decorateMethod(YamlWriter, "WriteObjectToStream", meta.notImplemented);
 CjsSchema.decorateMethod(YamlWriter, "WriteObjectToString", meta.notImplemented);

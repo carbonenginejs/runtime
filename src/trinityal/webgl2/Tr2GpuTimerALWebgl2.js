@@ -203,4 +203,4 @@ export class Tr2GpuTimerALWebgl2 extends Tr2DeviceResourceAL
   }
 }
 
-CjsSchema.define(Tr2GpuTimerALWebgl2, { className: "Tr2GpuTimerALWebgl2", carbon: "Tr2GpuTimerAL" });
+CjsSchema.blue.define(Tr2GpuTimerALWebgl2, { className: "Tr2GpuTimerALWebgl2", donors: [ "Tr2GpuTimerAL" ] });

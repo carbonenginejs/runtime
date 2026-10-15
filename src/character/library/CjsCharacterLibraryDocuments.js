@@ -1,4 +1,4 @@
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { createChild, addChild, removeChild, deleteChild, clearChildren } from "../../global/blue/children.js";
 import "../model/index.js";
 
@@ -26,7 +26,7 @@ const DOCUMENT_DEFINITIONS = [
 ];
 
 /** Typed document collections contained by one character library. */
-@meta.define({ className: "CjsCharacterLibraryDocuments", family: "character" })
+@meta.define("CjsCharacterLibraryDocuments")
 export class CjsCharacterLibraryDocuments
 {
     /**
@@ -123,124 +123,124 @@ export class CjsCharacterLibraryDocuments
         return clearChildren(this, RequireDocumentName(documentName), { ...options, listNotify: this });
     }
 
-    @meta.blue.readwrite
-    @meta.blue.persist
+    @blue.readwrite
+    @blue.persist
 
-    @meta.type.list("CjsCharacterAncestry")
+    @type.list("CjsCharacterAncestry")
     ancestries = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
+    @blue.readwrite
+    @blue.persist
 
-    @meta.type.list("CjsCharacterArchetype")
+    @type.list("CjsCharacterArchetype")
     archetypes = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
+    @blue.readwrite
+    @blue.persist
 
-    @meta.type.list("CjsCharacterBloodline")
+    @type.list("CjsCharacterBloodline")
     bloodlines = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
+    @blue.readwrite
+    @blue.persist
 
-    @meta.type.list("CjsCharacterAvatarBehavior")
+    @type.list("CjsCharacterAvatarBehavior")
     characterAvatarBehaviors = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
+    @blue.readwrite
+    @blue.persist
 
-    @meta.type.list("CjsCharacterColorLocation")
+    @type.list("CjsCharacterColorLocation")
     characterColorLocations = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
+    @blue.readwrite
+    @blue.persist
 
-    @meta.type.list("CjsCharacterColorName")
+    @type.list("CjsCharacterColorName")
     characterColorNames = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
+    @blue.readwrite
+    @blue.persist
 
-    @meta.type.list("CjsCharacterModifierLocation")
+    @type.list("CjsCharacterModifierLocation")
     characterModifierLocations = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
+    @blue.readwrite
+    @blue.persist
 
-    @meta.type.list("CjsCharacterPortraitResource")
+    @type.list("CjsCharacterPortraitResource")
     characterPortraitResources = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
+    @blue.readwrite
+    @blue.persist
 
-    @meta.type.list("CjsCharacterResource")
+    @type.list("CjsCharacterResource")
     characterResources = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
+    @blue.readwrite
+    @blue.persist
 
-    @meta.type.list("CjsCharacterSculptingLocation")
+    @type.list("CjsCharacterSculptingLocation")
     characterSculptingLocations = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
+    @blue.readwrite
+    @blue.persist
 
-    @meta.type.list("CjsCharacterPaperdoll")
+    @type.list("CjsCharacterPaperdoll")
     paperdolls = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
+    @blue.readwrite
+    @blue.persist
 
-    @meta.type.list("CjsCharacterRace")
+    @type.list("CjsCharacterRace")
     races = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
+    @blue.readwrite
+    @blue.persist
 
-    @meta.type.list("CjsCharacterDefinition")
+    @type.list("CjsCharacterDefinition")
     characterDefinitions = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
+    @blue.readwrite
+    @blue.persist
 
-    @meta.type.list("CjsCharacterPartType")
+    @type.list("CjsCharacterPartType")
     characterPartTypes = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
+    @blue.readwrite
+    @blue.persist
 
-    @meta.type.list("CjsCharacterPartSource")
+    @type.list("CjsCharacterPartSource")
     characterPartSources = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
+    @blue.readwrite
+    @blue.persist
 
-    @meta.type.list("CjsCharacterPartMetadata")
+    @type.list("CjsCharacterPartMetadata")
     characterPartMetadata = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
+    @blue.readwrite
+    @blue.persist
 
-    @meta.type.list("CjsCharacterMaterialProfile")
+    @type.list("CjsCharacterMaterialProfile")
     characterMaterialProfiles = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
+    @blue.readwrite
+    @blue.persist
 
-    @meta.type.list("CjsCharacterProjectionProfile")
+    @type.list("CjsCharacterProjectionProfile")
     characterProjectionProfiles = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
+    @blue.readwrite
+    @blue.persist
 
-    @meta.type.list("CjsCharacterRecipeProfile")
+    @type.list("CjsCharacterRecipeProfile")
     characterRecipeProfiles = [];
 
-    @meta.blue.readwrite
-    @meta.blue.persist
+    @blue.readwrite
+    @blue.persist
 
-    @meta.type.list("CjsCharacterTextureMetadata")
+    @type.list("CjsCharacterTextureMetadata")
     characterTextureMetadata = [];
 
 }

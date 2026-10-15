@@ -7,7 +7,7 @@
 // uploaded whole as the bloom upsample constant buffer, so `byteSize` and
 // `pack` reproduce its C++ layout: Vector3 + uint32 in the first 16 bytes,
 // then MAX_FILTER_STEPS / 2 Vector4s.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
@@ -24,7 +24,7 @@ const TRI_PI = Math.PI;
  * without persistence flags or query interfaces. Zero-filled storage is a JS
  * construction adapter; native fills the aggregate in its calculator function.
  */
-@meta.define({ className: "GaussianData", family: "postProcess" })
+@blue.define("GaussianData")
 export class GaussianData
 {
 
@@ -32,14 +32,14 @@ export class GaussianData
    * RGB multiplier for the blur output, held in this record's three-component buffer.
    * @type {Float32Array|Float64Array|number[]}
    */
-  @meta.type.vec3
+  @type.vec3
   overallWeight = vec3.create();
 
   /**
    * Number of active weightOffset entries; each encodes two [weight, offset] pairs.
    * @type {number}
    */
-  @meta.type.uint32
+  @type.uint32
   count = 0;
 
   /**
@@ -47,7 +47,7 @@ export class GaussianData
    * order. Weights are normalized; offsets use normalized texture coordinates.
    * @type {Array<Float32Array|Float64Array|number[]>}
    */
-  @meta.type.array("vec4")
+  @type.array("vec4")
   weightOffset = Array.from({ length: MAX_FILTER_STEPS / 2 }, () => vec4.create());
 
   /**

@@ -90,6 +90,7 @@ for (const method of [ "Start", "SetStartTime", "Sort", "ScaleTime", "Reverse", 
 {
   CjsSchema.decorateMethod(ITriDuration, method, meta.requires, meta.abstract);
 }
-CjsSchema.define(ITriDuration, {
-  className: "ITriDuration", carbon: "ITriDuration", family: "curves", fields: {}
+CjsSchema.blue.define(ITriDuration, {
+  className: "ITriDuration",
+  fields: {}
 });

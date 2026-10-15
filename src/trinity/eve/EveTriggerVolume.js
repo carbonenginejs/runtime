@@ -7,7 +7,7 @@ import { IEveSpaceObject2 } from "./IEveSpaceObject2.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 const WORLD_CENTER_SCRATCH = vec3.create();
 const TRACKED_POSITION_SCRATCH = vec3.create();
@@ -29,53 +29,53 @@ const SPHERE_RADIUS_EPSILON = 1e-4;
  * callback on threshold crossings. No renderables, no async work - the whole
  * evaluation runs in UpdateSyncronous.
  */
-@meta.define({ className: "EveTriggerVolume", family: "eve" })
-@meta.blue.inherit(IEveSpaceObject2)
-@meta.blue.inherit(IInitialize)
-@meta.blue.interface(IInitialize)
+@blue.define("EveTriggerVolume")
+@blue.inherit(IEveSpaceObject2)
+@blue.inherit(IInitialize)
+@blue.interface(IInitialize)
 export class EveTriggerVolume
 {
 
   /** Name identifier, passed to the callback so one handler can serve many trigger volumes. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** The volumes defining the trigger region. */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("IEveVolume")
+  @blue.read
+  @blue.persist
+  @type.list("IEveVolume")
   volumes = [];
 
   /** Volumes subtracted from the trigger region. */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("IEveVolume")
+  @blue.read
+  @blue.persist
+  @type.list("IEveVolume")
   exclusionVolumes = [];
 
   /** Volume intensity (0..1) at which the tracked position counts as inside. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   enterThreshold = 0.5;
 
   /** External parameters exposing per-placement values, e.g. for dungeon asset manipulations. */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("Tr2ExternalParameter")
+  @blue.read
+  @blue.persist
+  @type.list("Tr2ExternalParameter")
   externalParameters = [];
 
   /** m_ballPosition: vector function slot placing the trigger volume. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITriVectorFunction")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITriVectorFunction")
   translationCurve = null;
 
   /** m_ballRotation: quaternion function slot rotating the trigger volume. */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.rootRef("ITriQuaternionFunction")
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("ITriQuaternionFunction")
   rotationCurve = null;
 
   /**
@@ -83,17 +83,17 @@ export class EveTriggerVolume
    * exposes it READWRITE but NOT PERSIST (EveTriggerVolume_Blue.cpp:58-62) -
    * destiny wires it at runtime, so it never serializes.
    */
-  @meta.type.rootRef("ITriVectorFunction")
+  @type.rootRef("ITriVectorFunction")
   trackedPositionCurve = null;
 
   /** Whether the tracked position is currently inside the trigger region. */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   isInside = false;
 
   /** m_currentIntensity: most recent evaluated volume intensity of the tracked position. */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   intensity = 0;
 
   _worldTransform = mat4.create();
@@ -113,7 +113,7 @@ export class EveTriggerVolume
    * Sets the callable invoked on enter/exit transitions as
    * callback(name, entered); pass null to clear it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetCallback(callback)
   {
@@ -270,7 +270,7 @@ export class EveTriggerVolume
   }
 
   /** Advances the transform, the bounding sphere and the trigger state every sync update. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateSyncronous(updateContext = null)
   {
@@ -281,14 +281,14 @@ export class EveTriggerVolume
   }
 
   /** Carbon's async update is empty (cpp:160-162). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateAsyncronous(_updateContext = null)
   {
   }
 
   /** Carbon's visibility update is empty (cpp:164-166). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateVisibility(_updateContext = null, _parentTransform = null)
   {
@@ -304,7 +304,7 @@ export class EveTriggerVolume
    * Writes the world-space bounding sphere, its radius floored at 1 so the
    * object stays pickable (Carbon cpp:172-177); always reports true.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBoundingSphere(sphere = vec4.create(), _query = 0)
   {
@@ -316,7 +316,7 @@ export class EveTriggerVolume
   }
 
   /** Refreshes the world transform at a time and writes the model centre (cpp:179-183). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateModelCenterWorldPosition(position, time = 0)
   {
@@ -325,7 +325,7 @@ export class EveTriggerVolume
   }
 
   /** Writes the bounding-sphere centre in world space (cpp:185-188). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetModelCenterWorldPosition(position = vec3.create())
   {
@@ -336,7 +336,7 @@ export class EveTriggerVolume
    * Writes the local bounding box, falling back to a unit box when no volumes
    * are set up yet so the object stays pickable (cpp:190-199); always true.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLocalBoundingBox(min = vec3.create(), max = vec3.create())
   {
@@ -353,7 +353,7 @@ export class EveTriggerVolume
   }
 
   /** Writes the current world transform (cpp:201-204). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLocalToWorldTransform(transform = mat4.create())
   {
@@ -361,7 +361,7 @@ export class EveTriggerVolume
   }
 
   /** The world translation of the trigger volume (cpp:206-209). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetWorldPosition(out)
   {
@@ -370,7 +370,7 @@ export class EveTriggerVolume
   }
 
   /** The normalized world rotation of the trigger volume (cpp:211-214). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetWorldRotation(out = quat.create())
   {
@@ -379,7 +379,7 @@ export class EveTriggerVolume
   }
 
   /** Primes the transform at time 0 and builds the initial bounding sphere (cpp:216-221). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -392,7 +392,7 @@ export class EveTriggerVolume
    * Whether the tracked position currently counts as inside; mirrors the
    * READ-only Blue attribute for programmatic consumers.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsInside()
   {

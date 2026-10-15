@@ -2,53 +2,53 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dContainer.cpp
 // Hand-maintained Sprite2D traversal, picking and cache policy.
 import { Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2Sprite2dContainerBase } from "./Tr2Sprite2dContainerBase.js";
 
 /** Defines a pickable 2D sprite container with clipping, depth range, coordinate mode, and optional content caching. */
-@meta.define({ className: "Tr2Sprite2dContainer", family: "sprite2d", purpose: "Defines a pickable 2D sprite container with clipping, depth range, coordinate mode, and optional content caching." })
-@meta.blue.chainTo(Tr2Sprite2dContainerBase)
+@blue.define({ className: "Tr2Sprite2dContainer", purpose: "Defines a pickable 2D sprite container with clipping, depth range, coordinate mode, and optional content caching." })
+@blue.chainTo(Tr2Sprite2dContainerBase)
 export class Tr2Sprite2dContainer extends Tr2Sprite2dContainerBase
 {
 
   /** m_clip (bool) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @type.boolean
   clip = false;
 
   /** m_cacheContents (bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   isCachingContents = true;
 
   /** m_depthMax (float) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   depthMax = 1;
 
   /** m_depthMin (float) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   depthMin = -1;
 
   /** m_pickRadius (float) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   pickRadius = 0;
 
   /** m_cacheContentsHint (bool) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @type.boolean
   cacheContents = false;
 
   /** m_absoluteCoordinates (bool) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @type.boolean
   absoluteCoordinates = false;
 
   _dirtyFrameCount = 0;

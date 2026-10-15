@@ -3,7 +3,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 
 const UP = vec3.fromValues(0, 1, 0);
@@ -12,10 +12,7 @@ const UP = vec3.fromValues(0, 1, 0);
  * Transform modifier that yaws a child about world up until it faces the camera
  * in the horizontal plane, leaving its authored pitch and roll intact.
  */
-@meta.define({
-  className: "EveChildModifierCameraOrientedRotationConstrained",
-  family: "eve/child/modifiers"
-})
+@blue.define("EveChildModifierCameraOrientedRotationConstrained")
 export class EveChildModifierCameraOrientedRotationConstrained extends IEveChildTransformModifier
 {
   static scratch = {
@@ -83,8 +80,8 @@ export class EveChildModifierCameraOrientedRotationConstrained extends IEveChild
    * @param {Float32Array} out - caller-owned; receives the result
    * @returns {Float32Array} out
    */
-  @meta.blue.method
-  @meta.blue.contextual(["camera"])
+  @blue.method
+  @blue.contextual(["camera"])
   @meta.implemented
   ApplyTransform(context, transform, boneCount, bones, out)
   {

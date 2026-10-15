@@ -28,4 +28,4 @@ for (const method of [ "UpdateShLighting", "ClearShLighting" ])
 {
   CjsSchema.decorateMethod(ITr2ShLightingReceiver, method, meta.requires, meta.abstract);
 }
-CjsSchema.define(ITr2ShLightingReceiver, { className: "ITr2ShLightingReceiver", carbon: "ITr2ShLightingReceiver", fields: {} });
+CjsSchema.blue.define(ITr2ShLightingReceiver, { className: "ITr2ShLightingReceiver", fields: {} });

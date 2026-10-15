@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveVector3.cpp
 import { vec3 } from "#math/vec3";
 import { ITriFunction, ITriVectorFunction, ITriCurveLength } from "#blue";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
 import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
 
@@ -12,56 +12,53 @@ import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
  * and z; its length is the longest of the three.
  * JavaScript combines native time overloads as seconds-first calls with output last.
  */
-@meta.define({
-  className: "Tr2CurveVector3",
-  family: "curves"
-})
-@meta.blue.inherit(ITriCurveLength)
-@meta.blue.interface(ITriFunction, ITriVectorFunction, ITriCurveLength)
+@blue.define("Tr2CurveVector3")
+@blue.inherit(ITriCurveLength)
+@blue.interface(ITriFunction, ITriVectorFunction, ITriCurveLength)
 export class Tr2CurveVector3 extends ITriVectorFunction
 {
   /**
    * Authored curve label stored as native std::string.
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /**
    * Owned scalar curve for the vector x component.
    * @type {Tr2CurveScalar}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.root("Tr2CurveScalar")
+  @blue.read
+  @blue.persist
+  @type.root("Tr2CurveScalar")
   x = new Tr2CurveScalar();
 
   /**
    * Owned scalar curve for the vector y component.
    * @type {Tr2CurveScalar}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.root("Tr2CurveScalar")
+  @blue.read
+  @blue.persist
+  @type.root("Tr2CurveScalar")
   y = new Tr2CurveScalar();
 
   /**
    * Owned scalar curve for the vector z component.
    * @type {Tr2CurveScalar}
    */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.root("Tr2CurveScalar")
+  @blue.read
+  @blue.persist
+  @type.root("Tr2CurveScalar")
   z = new Tr2CurveScalar();
 
   /**
    * Cached three-component vector assembled from the x, y and z scalar curves.
    * @type {Float32Array}
    */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   currentValue = vec3.create();
 
   /**
@@ -70,7 +67,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @param {number} time Time in seconds.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateValue(time)
   {
@@ -84,7 +81,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    *
    * @returns {number} Longest scalar component length.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Length()
   {
@@ -98,7 +95,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @param {Float32Array|number[]} out Caller-owned output.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValue(time, out)
   {
@@ -118,7 +115,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @param {number} [tangentType = Tr2CurveTangentType.AUTO_CLAMP] Scalar tangent-maintenance rule.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AddKey(time, value, interpolation = Tr2CurveInterpolation.HERMITE, leftTangent, rightTangent, tangentType = Tr2CurveTangentType.AUTO_CLAMP)
   {
@@ -134,7 +131,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @param {number} extrapolation Before and after extrapolation mode.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetExtrapolation(extrapolation)
   {
@@ -150,7 +147,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @param {Float32Array|number[]} out Caller-owned output.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(time, out)
   {
@@ -165,7 +162,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @param {Float32Array|number[]} out Caller-owned output.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetValueAt(time, out)
   {
@@ -182,7 +179,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @param {Float32Array|number[]} out Caller-owned output.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GetValueDotAt(_time, out)
   {
@@ -196,7 +193,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @param {Float32Array|number[]} out Caller-owned output.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   GetValueDoubleDotAt(_time, out)
   {
@@ -210,7 +207,7 @@ export class Tr2CurveVector3 extends ITriVectorFunction
    * @param {Float32Array|number[]} out Caller-owned output.
    * @returns {Float32Array|number[]} The caller-owned output.
    */
-  @meta.blue.method
+  @blue.method
   @meta.noop
   InterpolatedPosition(_time, out)
   {

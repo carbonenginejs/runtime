@@ -128,7 +128,7 @@ export class BlueObjectMetadata extends IBlueObjectMetadata
 /** `BeObjectMetadata` - the process-wide object-metadata store. */
 export const BeObjectMetadata = new BlueObjectMetadata();
 
-CjsSchema.define(BlueObjectMetadata, { className: "BlueObjectMetadata", carbon: "BlueObjectMetadata", family: "blue", fields: {} });
+CjsSchema.blue.define(BlueObjectMetadata, { className: "BlueObjectMetadata", fields: {} });
 CjsSchema.decorateMethod(BlueObjectMetadata, "GetMetadata", meta.adapted);
 CjsSchema.decorateMethod(BlueObjectMetadata, "Set", meta.adapted);
 CjsSchema.decorateMethod(BlueObjectMetadata, "GetKeys", meta.adapted);

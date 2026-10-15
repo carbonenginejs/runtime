@@ -1,14 +1,14 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/fxAttributes/IEveFxAttribute.h
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 
 
 /** Required EVE effect-attribute update contract. */
-@meta.define({ className: "IEveFxAttribute", family: "eve/spaceObject" })
+@blue.define("IEveFxAttribute")
 export class IEveFxAttribute
 {
 
   /** Updates effect attributes during the asynchronous graph phase. */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   UpdateAsyncronous(_updateContext)
   {

@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/ProcessLifetime.h
-import { meta } from "#schema";
+import { type, blue } from "#schema";
 
 
 /**
@@ -7,24 +7,21 @@ import { meta } from "#schema";
  * agent is assigned, how far along that tunnel it is, and whether it has spawned
  * or already used its entry and exit tunnels.
  */
-@meta.define({
-  className: "ProcessLifetimeData",
-  family: "eve"
-})
+@blue.define("ProcessLifetimeData")
 export class ProcessLifetimeData
 {
-  @meta.type.boolean
+  @type.boolean
   hasUsedEntryTunnel = false;
 
-  @meta.type.boolean
+  @type.boolean
   hasUsedExitTunnel = false;
 
-  @meta.type.int32
+  @type.int32
   assignedLifeTimeTunnel = 0;
 
-  @meta.type.int32
+  @type.int32
   tunnelPoint = 0;
 
-  @meta.type.boolean
+  @type.boolean
   hasSpawned = false;
 }

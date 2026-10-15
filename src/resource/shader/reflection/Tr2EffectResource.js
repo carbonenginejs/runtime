@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
 import { assertCarbonRecord } from "../../format/carbonRecordGuard.js";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type } from "#schema";
 import {
 } from "#utils/is";
 import { recordText, toRecordText } from "./carbonRecordFields.js";
@@ -131,16 +131,15 @@ export class Tr2EffectResource
 // expressions are reused verbatim, so the registered metadata is identical.
 // Statics belong in `methods`: decorateMethod targets the prototype and
 // would register a static as an instance field.
-CjsSchema.define(Tr2EffectResource, {
+CjsSchema.blue.define(Tr2EffectResource, {
   className: "Tr2EffectResource",
-  family: "shader",
   fields: {
-    isSRGB: meta.type.boolean,
-    isAutoregister: meta.type.boolean,
-    name: meta.type.string,
-    type: [ meta.type.int32, meta.type.enum("Type") ],
-    arrayElements: meta.type.uint32,
-    arrayLayers: [ meta.ours, meta.type.list("string") ],
-    packed: [ meta.ours, meta.type.boolean ]
+    isSRGB: type.boolean,
+    isAutoregister: type.boolean,
+    name: type.string,
+    type: [ type.int32, type.enum("Type") ],
+    arrayElements: type.uint32,
+    arrayLayers: [ meta.ours, type.list("string") ],
+    packed: [ meta.ours, type.boolean ]
   }
 });

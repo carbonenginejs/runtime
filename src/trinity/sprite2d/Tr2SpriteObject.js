@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Sprite2d/Tr2SpriteObject.h
 // Source: trinity/trinity/Sprite2d/Tr2SpriteObject.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2SpriteObjectBase } from "./Tr2SpriteObjectBase.js";
 import { color } from "#math/color";
 import { vec2 } from "#math/vec2";
@@ -8,91 +8,91 @@ import { vec4 } from "#math/vec4";
 import { Tr2SpriteObjectBlendMode, Tr2SpriteObjectEffect, Tr2SpriteTarget } from "../generated/sprite2d/enums.js";
 
 /** Provides shared color, depth, blending, effect, glow, outline, shadow, and render-target state for drawable 2D sprites. */
-@meta.define({ className: "Tr2SpriteObject", family: "sprite2d", purpose: "Provides shared color, depth, blending, effect, glow, outline, shadow, and render-target state for drawable 2D sprites." })
-@meta.blue.chainTo(Tr2SpriteObjectBase)
+@blue.define({ className: "Tr2SpriteObject", purpose: "Provides shared color, depth, blending, effect, glow, outline, shadow, and render-target state for drawable 2D sprites." })
+@blue.chainTo(Tr2SpriteObjectBase)
 export class Tr2SpriteObject extends Tr2SpriteObjectBase
 {
 
   /** m_blendMode (Tr2SpriteObjectBlendMode - enum Tr2SpriteObjectBlendMode) [READWRITE, ENUM, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.int32
-  @meta.type.enum("Tr2SpriteObjectBlendMode")
+  @blue.notify
+  @blue.readwrite
+  @type.int32
+  @type.enum("Tr2SpriteObjectBlendMode")
   blendMode = 0;
 
   /** m_spriteEffect (Tr2SpriteObjectEffect - enum Tr2SpriteObjectEffect) [READWRITE, ENUM, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.int32
-  @meta.type.enum("Tr2SpriteObjectEffect")
+  @blue.notify
+  @blue.readwrite
+  @type.int32
+  @type.enum("Tr2SpriteObjectEffect")
   // Carbon TR2_SFX_COPY aliases ONE_TEXTURE.
   spriteEffect = Tr2SpriteObjectEffect.TR2_SFX_ONE_TEXTURE;
 
   /** m_target (Tr2SpriteTarget - enum Tr2SpriteTarget) [READWRITE, ENUM, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.int32
-  @meta.type.enum("Tr2SpriteTarget")
+  @blue.notify
+  @blue.readwrite
+  @type.int32
+  @type.enum("Tr2SpriteTarget")
   spriteTarget = 1;
 
   /** m_color (Color) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.color
+  @blue.notify
+  @blue.readwrite
+  @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
   /** m_depth (float) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   depth = 0;
 
   /** m_glowBrightness (float) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   glowBrightness = 1;
 
   /** m_glowColor (Color) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.color
+  @blue.notify
+  @blue.readwrite
+  @type.color
   glowColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_glowExpand (float) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   glowExpand = 0;
 
   /** m_glowFactor (float) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   glowFactor = 0;
 
   /** m_shadowOffset (Vector2) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.vec2
+  @blue.notify
+  @blue.readwrite
+  @type.vec2
   shadowOffset = vec2.create();
 
   /** m_outlineColor (Color) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.color
+  @blue.notify
+  @blue.readwrite
+  @type.color
   outlineColor = color.createLinear();
 
   /** m_outlineThreshold (float) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   outlineThreshold = 0;
 
   /** m_shadowColor (Color) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.color
+  @blue.notify
+  @blue.readwrite
+  @type.color
   shadowColor = color.createLinear();
 
   static Tr2SpriteObjectBlendMode = Tr2SpriteObjectBlendMode;

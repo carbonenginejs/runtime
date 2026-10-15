@@ -5,7 +5,7 @@ import { BlueList, IListNotify } from "#blue";
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPolygon_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; portable value helpers are maintained here.
 import { Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2TexturedSpriteObject } from "./Tr2TexturedSpriteObject.js";
 import { Tr2Sprite2dTriangle } from "./Tr2Sprite2dTriangle.js";
 import { Tr2Sprite2dVertex } from "./Tr2Sprite2dVertex.js";
@@ -26,9 +26,9 @@ const VERTEX_BASE_STRIDE = 44;
 const INVALID_INDEX = 0xffff;
 
 /** Stores editable Sprite2D polygon vertices and triangles and validates wrapped append input. */
-@meta.define({ className: "Tr2Sprite2dPolygon", family: "sprite2d" })
-@meta.blue.chainTo(Tr2TexturedSpriteObject)
-@meta.blue.inherit(IListNotify)
+@blue.define("Tr2Sprite2dPolygon")
+@blue.chainTo(Tr2TexturedSpriteObject)
+@blue.inherit(IListNotify)
 export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
 {
 
@@ -41,7 +41,7 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @param {BlueList|null} _theList Changed list.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnListModified(_event, _key, _key2, _value, _theList)
   {
@@ -61,13 +61,13 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
   static scratch = { vec2_0: vec2.create(), vec2_1: vec2.create(), vec2_2: vec2.create(), vec4_0: vec4.create(), mat4_0: mat4.create() };
 
   /** m_triangles (PTr2Sprite2dTriangleVector) [READ] */
-  @meta.blue.read
-  @meta.type.list("Tr2Sprite2dTriangle")
+  @blue.read
+  @type.list("Tr2Sprite2dTriangle")
   triangles = new BlueList(Tr2Sprite2dTriangle, { className: "Tr2Sprite2dTriangle" });
 
   /** m_vertices (PTr2Sprite2dVertexVector) [READ] */
-  @meta.blue.read
-  @meta.type.list("Tr2Sprite2dVertex")
+  @blue.read
+  @type.list("Tr2Sprite2dVertex")
   vertices = new BlueList(Tr2Sprite2dVertex, { className: "Tr2Sprite2dVertex" });
 
   /**
@@ -257,7 +257,7 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @param {Array<number[]>} triangles Sequence of 3-item vertex index arrays.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AppendTriangles(triangles)
   {
@@ -300,7 +300,7 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @param {number[]|Array<number[]>} [texCoords1] 2-item UV or sequence of them.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   AppendVertices(positions, positionTransform, colors, texCoords0, texCoords1)
   {
@@ -387,7 +387,7 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * @param {number[]|Array<number[]>|null} [texCoords1] 2-item UV, sequence of them, or null.
    * @returns {void}
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetVertices(positions, positionTransform, colors, texCoords0, texCoords1)
   {
@@ -481,7 +481,7 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
    * Carbon returns no vertices while hidden, otherwise the authored count (Tr2Sprite2dPolygon.cpp:163-171).
    * @returns {number} Vertex count.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetVertexCount()
   {

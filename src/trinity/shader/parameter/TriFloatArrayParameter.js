@@ -3,43 +3,40 @@
 import { IInitialize } from "#blue";
 import { INotify } from "#blue";
 import { ITriEffectParameter } from "./ITriEffectParameter.js";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { CjsParameter } from "./CjsParameter.js";
 
 
 /** An ordered list of vec4 rows uploaded into one named shader constant array. */
-@meta.define({
-  className: "TriFloatArrayParameter",
-  family: "shader"
-})
-@meta.blue.inherit(INotify, IInitialize)
-@meta.blue.interface(ITriEffectParameter, INotify, IInitialize)
+@blue.define("TriFloatArrayParameter")
+@blue.inherit(INotify, IInitialize)
+@blue.interface(ITriEffectParameter, INotify, IInitialize)
 export class TriFloatArrayParameter extends CjsParameter
 {
-  @meta.blue.notify
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("TriVector4")
+  @blue.notify
+  @blue.read
+  @blue.persist
+  @type.list("TriVector4")
   value = [];
 
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   usedByCurrentTechnique = false;
 
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   usedByCurrentEffect = false;
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   #cachedEffect = null;
 
   /** The shader constant-array name these rows bind to. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetParameterName()
   {
@@ -47,7 +44,7 @@ export class TriFloatArrayParameter extends CjsParameter
   }
 
   /** Content hash: each row's vec4 bytes, then name. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetHashValue(startingHash = CjsParameter.FNV1_INITIAL)
   {
@@ -59,7 +56,7 @@ export class TriFloatArrayParameter extends CjsParameter
   }
 
   /** Nothing to resolve - the rows are authored data; returns true. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -70,7 +67,7 @@ export class TriFloatArrayParameter extends CjsParameter
    * Re-resolves effect handles against the cached shader after any notified
    * field changes.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(_options = {})
   {
@@ -82,7 +79,7 @@ export class TriFloatArrayParameter extends CjsParameter
    * Caches the shader and records whether it reflects a constant of this name;
    * no GPU handle is bound.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RebuildEffectHandles(effectRes)
   {
@@ -96,7 +93,7 @@ export class TriFloatArrayParameter extends CjsParameter
    * Packs the rows contiguously into the destination, stopping at whichever limit comes first: the last row, the destination length, or the byte budget; a final row may be written partially.
    * @param size byte budget in the destination, four bytes per float
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CopyValueToEffect(_inputType, out, size = Number.POSITIVE_INFINITY)
   {

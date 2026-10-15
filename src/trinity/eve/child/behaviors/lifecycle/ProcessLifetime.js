@@ -4,7 +4,7 @@ import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/ProcessLifetime.cpp
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { IBehavior } from "../IBehavior.js";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { SplineTunnelGroup } from "../tunnels/SplineTunnelGroup.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -26,69 +26,69 @@ const FORCE_OFFSET = vec3.create();
 const SPAWN_POSITION = vec3.create();
 
 /** ProcessLifetime (eve/child/behaviors) - generated from schema shapeHash 1fd3ebfa.... */
-@meta.define({ className: "ProcessLifetime", family: "eve" })
-@meta.blue.inherit(IInitialize)
-@meta.blue.inherit(IBehavior)
-@meta.blue.interface(IBehavior, INotify, IInitialize)
+@blue.define("ProcessLifetime")
+@blue.inherit(IInitialize)
+@blue.inherit(IBehavior)
+@blue.interface(IBehavior, INotify, IInitialize)
 export class ProcessLifetime
 {
   static ProcessPriority = ProcessPriority;
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.IBehavior.ProcessPriority")
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.IBehavior.ProcessPriority")
   behaviorPriority = 0;
 
   /** m_splineTunnels (PSplineTunnelGroupVector) [READ, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("SplineTunnelGroup")
+  @blue.notify
+  @blue.read
+  @blue.persist
+  @type.list("SplineTunnelGroup")
   splineTunnels = [];
 
   /** m_respawnAgentsOnDeath (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   respawnAgentsOnDeath = true;
 
   /** m_firstAgentLifetime (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   firstAgentLifetime = 0;
 
   /** m_returningAge (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   returningAge = -1;
 
   /** m_wanderAmount (float) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   wanderAmount = 0.3;
 
   /** m_firstSpawnAtRandomPlaces (bool) [READWRITE, PERSIST, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   firstSpawnAtRandomPlaces = true;
 
   /** m_behaviorWeight (float) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   behaviorWeight = 900;
 
   /** m_exit (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   exit = false;
 
   // Flattened tunnel pointers: system tunnels first, then local group
@@ -109,7 +109,7 @@ export class ProcessLifetime
   _tunnelGroupSnapshot = [];
 
   /** Carbon ProcessLifetime::Initialize (cpp:33-38). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Initialize()
   {
@@ -126,7 +126,7 @@ export class ProcessLifetime
    * Adapted: inserted and loaded groups are re-wired as a whole list (_WireTunnelGroups) rather than one value at a
    * time.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
@@ -152,7 +152,7 @@ export class ProcessLifetime
   }
 
   /** Carbon ProcessLifetime::OnModified (cpp:27-31). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(_value = null)
   {
@@ -161,7 +161,7 @@ export class ProcessLifetime
   }
 
   /** Carbon ProcessLifetime::GetProcessPriority (cpp:74-77). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetProcessPriority()
   {
@@ -169,7 +169,7 @@ export class ProcessLifetime
   }
 
   /** Carbon ProcessLifetime::GetBehaviorName (cpp:79-82). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBehaviorName()
   {
@@ -181,7 +181,7 @@ export class ProcessLifetime
    *
    * Adapted: Carbon returns a byte size; scratch here is one record per agent, so any non-zero value means it has one.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetScratchMemorySize()
   {
@@ -193,7 +193,7 @@ export class ProcessLifetime
    *
    * Adapted: Carbon initializes caller-provided raw memory; here the fresh record is returned.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   InitializeScratch()
   {
@@ -201,7 +201,7 @@ export class ProcessLifetime
   }
 
   /** Carbon IBehavior::UpdateState override (h:59-62). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateState(state)
   {
@@ -225,7 +225,7 @@ export class ProcessLifetime
    * Adapted: rand() is Math.random; debug force pairs are collected only while group.collectForces is set, keeping the
    * per-agent loop allocation-free.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   CalculateBehavior(agents, scratchData, deltaTime, group, system, _dronesInSearchRadius)
   {
@@ -366,7 +366,7 @@ export class ProcessLifetime
    * groups and flags the ID reassignment (Carbon UpdateTunnelRegistry,
    * cpp:446-462).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateTunnelRegistry()
   {
@@ -387,7 +387,7 @@ export class ProcessLifetime
    * Adapted: Adds option strings through the supplied collection's add or insert method; the
    * debug adapter retains its capability checks.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetDebugOptions(options = new Set())
   {
@@ -401,7 +401,7 @@ export class ProcessLifetime
    *
    * Adapted: ITr2DebugRenderer2 is an injected engine-owned capability.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   RenderDebugInfo(renderer, _agents, parentWorldLocation)
   {
@@ -416,7 +416,7 @@ export class ProcessLifetime
    * First positions of every entrance tunnel; used by SpawnDrones to pick
    * timed spawn points (Carbon GetEntrancePoints, cpp:428-444).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetEntrancePoints()
   {

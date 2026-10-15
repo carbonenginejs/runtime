@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/UI/EveSpherePinIndexTree.h
 // Source: trinity/trinity/Eve/UI/EveSpherePinIndexTree.cpp
 // Hand-maintained CPU implementation of the native, non-Blue geometry index.
-import { meta } from "#schema";
+import { meta, blue } from "#schema";
 import { TreeNode } from "./TreeNode.js";
 import { Face } from "./Face.js";
 
@@ -83,7 +83,7 @@ function AddFaceToTree(node, face, spherical)
  * The decoded geometry payload replaces both native CMF and Granny streams.
  * This native helper has no Blue identity or serialized fields.
  */
-@meta.define({ className: "EveSpherePinIndexTree", family: "eve/ui" })
+@blue.define("EveSpherePinIndexTree")
 export class EveSpherePinIndexTree
 {
   granny = null;

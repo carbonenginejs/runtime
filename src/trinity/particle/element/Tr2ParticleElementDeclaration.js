@@ -1,42 +1,42 @@
 // Source: trinity/trinity/Particle/Tr2ParticleElementDeclaration.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema particle/Tr2ParticleElementDeclaration.json.).
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2ParticleElementDeclarationName } from "./Tr2ParticleElementDeclarationName.js";
 
 /** Tr2ParticleElementDeclaration (particle) - generated from schema shapeHash 272e6639.... */
-@meta.define({ className: "Tr2ParticleElementDeclaration", family: "particle" })
+@blue.define("Tr2ParticleElementDeclaration")
 export class Tr2ParticleElementDeclaration
 {
 
   /** m_name.m_type (Tr2ParticleElementDeclarationName::Type) [READWRITE, PERSIST, ENUM] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.Tr2ParticleElementDeclarationName.Type")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.Tr2ParticleElementDeclarationName.Type")
   elementType = 4;
 
   /** m_name.m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   customName = "";
 
   /** m_dimension (uint32_t) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   dimension = 1;
 
   /** m_usedByGPU (bool) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   usedByGPU = true;
 
   /** m_usageIndex (uint32_t) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.uint32
+  @blue.readwrite
+  @blue.persist
+  @type.uint32
   usageIndex = 0;
 
   /**
@@ -46,7 +46,7 @@ export class Tr2ParticleElementDeclaration
    * @returns {number} Two for lifetime, three for position or velocity, one for mass,
    * or the custom dimension.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetSize()
   {

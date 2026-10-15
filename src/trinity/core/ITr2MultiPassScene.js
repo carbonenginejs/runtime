@@ -21,4 +21,4 @@ export class ITr2MultiPassScene
   static RenderPassResult = RenderPassResult;
 }
 
-CjsSchema.define(ITr2MultiPassScene, { className: "ITr2MultiPassScene", carbon: "ITr2MultiPassScene", family: "trinityCore", fields: {} });
+CjsSchema.blue.define(ITr2MultiPassScene, { className: "ITr2MultiPassScene", fields: {} });

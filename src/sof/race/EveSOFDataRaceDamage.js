@@ -1,36 +1,36 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { type, blue } from "#schema";
 import { EveSOFDataParameter } from "../shared/EveSOFDataParameter.js";
 import { EveSOFDataTexture } from "../shared/EveSOFDataTexture.js";
 
 /** Stores, combines, and assigns race-level armor and shield damage parameters and textures. */
-@meta.define({ className: "EveSOFDataRaceDamage", family: "eve" })
+@blue.define("EveSOFDataRaceDamage")
 export class EveSOFDataRaceDamage
 {
 
   /** m_armorImpactParameters (PEveSOFDataParameterVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataParameter")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataParameter")
   armorImpactParameters = [];
 
   /** m_armorImpactTextures (PEveSOFDataTextureVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataTexture")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataTexture")
   armorImpactTextures = [];
 
   /** m_shieldImpactParameters (PEveSOFDataParameterVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataParameter")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataParameter")
   shieldImpactParameters = [];
 
   /** m_shieldImpactTextures (PEveSOFDataTextureVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataTexture")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataTexture")
   shieldImpactTextures = [];
 
   /**

@@ -1,46 +1,46 @@
 // Source: trinity/trinity/Particle/Tr2RandomUniformAttributeGenerator.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { ITr2AttributeGenerator } from "./ITr2AttributeGenerator.js";
 import { vec4 } from "#math/vec4";
 import { bindParticleElement } from "../element/particleElementBinding.js";
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
 
 /** Generates a per-particle attribute by sampling each component uniformly between a minimum and maximum range. */
-@meta.define({ className: "Tr2RandomUniformAttributeGenerator", family: "particle" })
+@blue.define("Tr2RandomUniformAttributeGenerator")
 export class Tr2RandomUniformAttributeGenerator extends ITr2AttributeGenerator
 {
 
   #element = null;
 
   /** m_name.m_type (Tr2ParticleElementDeclarationName::Type) [READWRITE, PERSIST, ENUM] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
-  @meta.type.enum("trinity.Tr2ParticleElementDeclarationName.Type")
+  @blue.readwrite
+  @blue.persist
+  @type.int32
+  @type.enum("trinity.Tr2ParticleElementDeclarationName.Type")
   elementType = Tr2ParticleElementDeclaration.Type.CUSTOM;
 
   /** m_name.m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   customName = "";
 
   /** m_maxRange (Vector4) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   maxRange = vec4.create();
 
   /** m_minRange (Vector4) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec4
+  @blue.readwrite
+  @blue.persist
+  @type.vec4
   minRange = vec4.create();
 
   /** m_valid (bool) [READ] */
-  @meta.blue.read
-  @meta.type.boolean
+  @blue.read
+  @type.boolean
   valid = false;
 
   /**

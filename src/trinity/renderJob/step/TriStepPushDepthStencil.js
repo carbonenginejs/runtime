@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepPushDepthStencil.h
 // Source: trinity/trinity/RenderJob/TriStepPushDepthStencil.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
 
@@ -9,15 +9,15 @@ import { TriRenderJob } from "../TriRenderJob.js";
  * Step that pushes either a named depth-stencil or the currently bound one onto
  * the render context's depth-stencil stack.
  */
-@meta.define({ className: "TriStepPushDepthStencil", family: "renderJob" })
+@blue.define("TriStepPushDepthStencil")
 export class TriStepPushDepthStencil extends TriRenderStep
 {
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   pushCurrent = false;
 
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2DepthStencil")
+  @blue.readwrite
+  @type.rootRef("Tr2DepthStencil")
   depthStencil = null;
 
   /**
@@ -25,7 +25,7 @@ export class TriStepPushDepthStencil extends TriRenderStep
    * whatever is bound at execution time; passing an argument - including null -
    * pushes that value instead.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   __init__(depthStencil)
   {
@@ -39,7 +39,7 @@ export class TriStepPushDepthStencil extends TriRenderStep
    * empty texture. A false from the texture push is RS_FAILED. Every push needs
    * a matching pop in the same job or the job's stack guard unwinds it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

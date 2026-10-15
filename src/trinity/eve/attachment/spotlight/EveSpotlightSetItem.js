@@ -5,54 +5,54 @@ import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /**
  * One authored spotlight: its bone attachment, placement matrix, the separate
  * cone, flare and sprite colours drawn for it, and whether booster gain
  * modulates it.
  */
-@meta.define({ className: "EveSpotlightSetItem", family: "eve/attachment/spotlights" })
+@blue.define("EveSpotlightSetItem")
 export class EveSpotlightSetItem
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.int32
+  @blue.readwrite
+  @blue.persist
+  @type.int32
   boneIndex = 0;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.readwrite
+  @blue.persist
+  @type.color
   coneColor = vec4.fromValues(1, 1, 1, 1);
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.readwrite
+  @blue.persist
+  @type.color
   flareColor = vec4.fromValues(1, 1, 1, 1);
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.readwrite
+  @blue.persist
+  @type.color
   spriteColor = vec4.fromValues(1, 1, 1, 1);
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.mat4
+  @blue.readwrite
+  @blue.persist
+  @type.mat4
   transform = mat4.create();
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.vec3
+  @blue.readwrite
+  @blue.persist
+  @type.vec3
   spriteScale = vec3.fromValues(1, 1, 1);
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.boolean
+  @blue.readwrite
+  @blue.persist
+  @type.boolean
   boosterGainInfluence = false;
 
   /**
@@ -62,7 +62,7 @@ export class EveSpotlightSetItem
    * Adapted: Carbon returns AxisAlignedBox by value; JavaScript fills a caller-supplied
    * box3.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   GetBounds(out)
   {
@@ -70,7 +70,7 @@ export class EveSpotlightSetItem
   }
 
   /** The parent bone this spotlight rides. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBoneIndex()
   {

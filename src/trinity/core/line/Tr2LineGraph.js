@@ -1,10 +1,10 @@
 // Source: trinity/trinity/Tr2LineGraph.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { vec4 } from "#math/vec4";
 
 /** A rolling sample history with named markers and running statistics, drawn as a line graph. */
-@meta.define({ className: "Tr2LineGraph", family: "trinityCore" })
+@blue.define("Tr2LineGraph")
 export class Tr2LineGraph
 {
 
@@ -15,19 +15,19 @@ export class Tr2LineGraph
   #markers = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /** m_color (Color) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.color
+  @blue.readwrite
+  @blue.persist
+  @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
   /** Carbon method AddMarker (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   AddMarker(name)
   {
@@ -45,7 +45,7 @@ export class Tr2LineGraph
   }
 
   /** Carbon method GetStatsHistory (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetStatsHistory()
   {
@@ -53,7 +53,7 @@ export class Tr2LineGraph
   }
 
   /** Carbon method SetSize (MAP_METHOD_AND_WRAP). */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   SetSize(size)
   {

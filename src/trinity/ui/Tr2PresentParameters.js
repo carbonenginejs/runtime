@@ -1,7 +1,7 @@
 // Source: trinity/trinity/UI/Tr2PresentParameters.h
 // Source: trinity/trinity/UI/Tr2PresentParameters.cpp
 // Source: trinity/trinity/UI/Tr2PresentParameters_Blue.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { PresentInterval, SwapEffect } from "#consts/render-context";
 import { Tr2PresentParametersAL } from "../../trinityal/Tr2PresentParametersAL.js";
 
@@ -10,13 +10,13 @@ import { Tr2PresentParametersAL } from "../../trinityal/Tr2PresentParametersAL.j
  * adapt Blue's nested member offsets to the existing JavaScript property path.
  * Its exposure table advertises no concrete or secondary query interfaces.
  */
-@meta.define({ className: "Tr2PresentParameters", family: "ui" })
-@meta.blue.interface()
+@blue.define("Tr2PresentParameters")
+@blue.interface()
 export class Tr2PresentParameters extends Tr2PresentParametersAL
 {
   /** Reads mode.width. @returns {number} Back-buffer pixel width. */
-  @meta.blue.readwrite
-  @meta.type.uint32
+  @blue.readwrite
+  @type.uint32
   @meta.adapted
   get backBufferWidth()
   {
@@ -31,8 +31,8 @@ export class Tr2PresentParameters extends Tr2PresentParametersAL
   }
 
   /** Reads mode.height. @returns {number} Back-buffer pixel height. */
-  @meta.blue.readwrite
-  @meta.type.uint32
+  @blue.readwrite
+  @type.uint32
   @meta.adapted
   get backBufferHeight()
   {
@@ -47,14 +47,14 @@ export class Tr2PresentParameters extends Tr2PresentParametersAL
   }
 
   /** Native windowed member, initialized false by the UI constructor. */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   windowed = false;
 
   /** Native bool with the existing hardware/software chooser identity. */
-  @meta.blue.readwrite
-  @meta.type.boolean
-  @meta.type.enum("trinity.TriDevice.DeviceType")
+  @blue.readwrite
+  @type.boolean
+  @type.enum("trinity.TriDevice.DeviceType")
   software = false;
 
   // Explicit values from the native UI constructor, not added Blue members.

@@ -1,24 +1,24 @@
 // Source: trinity/trinity/RenderJob/TriStepPushRenderTarget.h
 // Source: trinity/trinity/RenderJob/TriStepPushRenderTarget.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
 
 
 /** Step that pushes a render target onto the render context's stack for a given slot. */
-@meta.define({ className: "TriStepPushRenderTarget", family: "renderJob" })
+@blue.define("TriStepPushRenderTarget")
 export class TriStepPushRenderTarget extends TriRenderStep
 {
-  @meta.blue.readwrite
-  @meta.type.uint32
+  @blue.readwrite
+  @type.uint32
   slot = 0;
 
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2RenderTarget")
+  @blue.readwrite
+  @type.rootRef("Tr2RenderTarget")
   renderTarget = null;
 
   /** Stores the render target and the slot it is pushed for. */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   __init__(renderTarget = null, slot = 0)
   {
@@ -30,7 +30,7 @@ export class TriStepPushRenderTarget extends TriRenderStep
    * Pushes the render target for its slot; every push needs a matching
    * TriStepPopRenderTarget in the same job or the job's stack guard unwinds it.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Execute(_realTime, _simTime, renderContext)
   {

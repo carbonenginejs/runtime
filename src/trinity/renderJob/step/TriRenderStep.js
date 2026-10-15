@@ -1,13 +1,13 @@
 // Source: trinity/trinity/RenderJob/TriRenderStep.h
 // Source: trinity/trinity/RenderJob/TriRenderStep.cpp
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 
 
 /**
  * Base of every render-job step: an enable flag, a name, and the
  * begin/execute/end contract the owning job drives.
  */
-@meta.define({ className: "TriRenderStep", family: "renderJob" })
+@blue.define("TriRenderStep")
 export class TriRenderStep
 {
   static Result = Object.freeze({
@@ -22,20 +22,20 @@ export class TriRenderStep
   static RS_IN_PROGRESS = 2;
   static RS_TERMINATE = 3;
 
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   enabled = true;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
   /**
    * Reports whether the owning job should run this step; disabled steps are
    * skipped without advancing any state.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsEnabled()
   {
@@ -46,7 +46,7 @@ export class TriRenderStep
    * Hook the owning job calls before Execute; the base step does nothing, and
    * subclasses use it to set up state that EndExecute tears down.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   BeginExecute()
   {
@@ -57,7 +57,7 @@ export class TriRenderStep
    * concrete step that omits it is an incomplete implementation and fails
    * loudly when executed.
   */
-  @meta.blue.method
+  @blue.method
   @meta.abstract
   Execute(_realTime, _simTime, _context)
   {
@@ -68,7 +68,7 @@ export class TriRenderStep
    * Hook the owning job calls after Execute, including when Execute threw; the
    * base step does nothing.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   EndExecute()
   {

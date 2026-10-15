@@ -1,63 +1,63 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dTextObject.h
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dTextObject.cpp
 // Maintained implementation promoted from generated metadata.
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2SpriteObject } from "./Tr2SpriteObject.js";
 import { ITr2FontMeasurerNotifyTarget } from "../font/ITr2FontMeasurerNotifyTarget.js";
 import { Tr2SpriteObjectEffect, Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
 
 /** Defines a 2D text sprite's measured extent, primary texture, picking radius, shadow-effect mode, and tooltip flag. */
-@meta.define({ className: "Tr2Sprite2dTextObject", family: "sprite2d", purpose: "Defines a 2D text sprite's measured extent, primary texture, picking radius, shadow-effect mode, and tooltip flag." })
-@meta.blue.chainTo(Tr2SpriteObject)
-@meta.blue.inherit(ITr2FontMeasurerNotifyTarget)
+@blue.define({ className: "Tr2Sprite2dTextObject", purpose: "Defines a 2D text sprite's measured extent, primary texture, picking radius, shadow-effect mode, and tooltip flag." })
+@blue.chainTo(Tr2SpriteObject)
+@blue.inherit(ITr2FontMeasurerNotifyTarget)
 export class Tr2Sprite2dTextObject extends Tr2SpriteObject
 {
 
   /** m_shadowSpriteEffect (Tr2SpriteObjectEffect - enum Tr2SpriteObjectEffect) [READWRITE, ENUM, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.int32
-  @meta.type.enum("Tr2SpriteObjectEffect")
+  @blue.notify
+  @blue.readwrite
+  @type.int32
+  @type.enum("Tr2SpriteObjectEffect")
   shadowSpriteEffect = 43;
 
   /** m_hasAuxiliaryTooltip (bool) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.readwrite
+  @type.boolean
   hasAuxiliaryTooltip = false;
 
   /** m_textHeight (float) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   textHeight = 0;
 
   /** m_useSizeFromTexture (bool) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @type.boolean
   useSizeFromTexture = false;
 
   /** m_useShadowSpriteEffect (bool) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.boolean
+  @blue.notify
+  @blue.readwrite
+  @type.boolean
   useShadowSpriteEffect = false;
 
   /** m_texturePrimary (ITr2Sprite2dTexturePtr) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.rootRef("ITr2Sprite2dTexture")
+  @blue.notify
+  @blue.readwrite
+  @type.rootRef("ITr2Sprite2dTexture")
   texturePrimary = null;
 
   /** m_pickRadius (float) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   pickRadius = 0;
 
   /** m_textWidth (float) [READWRITE, NOTIFY] */
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.notify
+  @blue.readwrite
+  @type.float32
   textWidth = 0;
 
   static Tr2SpriteObjectEffect = Tr2SpriteObjectEffect;
@@ -66,8 +66,8 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
   _fontMeasurer = null;
 
   /** Native mapped property routes through subscription management. */
-  @meta.blue.readwrite
-  @meta.type.rootRef("Tr2FontMeasurer")
+  @blue.readwrite
+  @type.rootRef("Tr2FontMeasurer")
   get fontMeasurer()
   {
     return this.GetFontMeasurer();

@@ -110,6 +110,9 @@ export class CjsWebgpuVideoColorSampler
   }
 }
 
-CjsSchema.define(CjsWebgpuVideoColorSampler, { className: "CjsWebgpuVideoColorSampler", methods: {
+CjsSchema.meta.define(CjsWebgpuVideoColorSampler, {
+  className: "CjsWebgpuVideoColorSampler",
+  methods: {
   Request: [meta.ours], Destroy: [meta.ours], _Read: [meta.ours]
-} });
+}
+});

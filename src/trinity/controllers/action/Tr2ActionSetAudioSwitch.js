@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAudioSwitch.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAudioSwitch.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAudioSwitch_Blue.cpp
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { ITr2SoundEmitterOwner } from "../../eve/ITr2SoundEmitterOwner.js";
 
@@ -10,43 +10,40 @@ import { ITr2SoundEmitterOwner } from "../../eve/ITr2SoundEmitterOwner.js";
  * Controller action that sets a Wwise switch group to a given state on a named
  * audio emitter when it starts.
  */
-@meta.define({
-  className: "Tr2ActionSetAudioSwitch",
-  family: "controllers"
-})
+@blue.define("Tr2ActionSetAudioSwitch")
 export class Tr2ActionSetAudioSwitch extends ITr2ControllerAction
 {
   /**
    * Name of the sound emitter resolved on the controller owner.
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   emitter = "";
 
   /**
    * Wwise switch group receiving the selected state; native std::wstring.
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.wstring
+  @blue.readwrite
+  @blue.persist
+  @type.wstring
   switchGroup = "";
 
   /**
    * Wwise state applied to switchGroup on the emitter; native std::wstring.
    * @type {string}
    */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.wstring
+  @blue.readwrite
+  @blue.persist
+  @type.wstring
   switchState = "";
 
   /**
    * Sets a Wwise-style switch on a named emitter.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   Start(controller)
   {
@@ -60,7 +57,7 @@ export class Tr2ActionSetAudioSwitch extends ITr2ControllerAction
    * Starts manually with an explicit controller.
    * Adapted: TypeError represents the native null-controller Python error.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   StartWithController(controller)
   {
@@ -69,4 +66,4 @@ export class Tr2ActionSetAudioSwitch extends ITr2ControllerAction
 }
 
 // Native exposure ends at this concrete table (Tr2ActionSetAudioSwitch_Blue.cpp:14-15,25).
-meta.blue.interface(ITr2ControllerAction)(Tr2ActionSetAudioSwitch);
+blue.interface(ITr2ControllerAction)(Tr2ActionSetAudioSwitch);

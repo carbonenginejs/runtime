@@ -57,4 +57,4 @@ export class ITriReroutable
 }
 
 
-CjsSchema.define(ITriReroutable, { className: "ITriReroutable" });
+CjsSchema.blue.define(ITriReroutable, { className: "ITriReroutable" });

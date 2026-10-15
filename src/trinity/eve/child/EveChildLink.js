@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildLink.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { EveSpaceObject2 } from "../spaceObject/EveSpaceObject2.js";
 import { EveChildMesh } from "./EveChildMesh.js";
 import { mat4 } from "#math/mat4";
@@ -13,50 +13,50 @@ import { vec4 } from "#math/vec4";
  * A stretched link between a shield hull and an arc target: it orients itself
  * along the arc, keeps its own final world placement, and inherits the hull per-object values.
  */
-@meta.define({ className: "EveChildLink", family: "eve/child" })
+@blue.define("EveChildLink")
 export class EveChildLink extends EveChildMesh
 {
 
   /** m_linkStrengthCurves (PITriFunctionVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITriFunction")
+  @blue.read
+  @blue.persist
+  @type.list("ITriFunction")
   linkStrengthCurves = [];
 
   /** m_linkStrengthBindings (PITr2ValueBindingVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("ITr2ValueBinding")
+  @blue.read
+  @blue.persist
+  @type.list("ITr2ValueBinding")
   linkStrengthBindings = [];
 
   /** m_linkBarrier (float) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   linkBarrier = 1;
 
   /** m_currentDistance (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   currentDistance = 0;
 
   /** m_currentDirection (Vector3) [READ] */
-  @meta.blue.read
-  @meta.type.vec3
+  @blue.read
+  @type.vec3
   currentDirection = vec3.fromValues(0, 0, 1);
 
   /** m_target (ITriVectorFunctionPtr) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.rootRef("ITriVectorFunction")
+  @blue.readwrite
+  @type.rootRef("ITriVectorFunction")
   target = null;
 
   /** m_linkStrength (float) [READ] */
-  @meta.blue.read
-  @meta.type.float32
+  @blue.read
+  @type.float32
   linkStrength = 0;
 
   /** m_targetRadius (float) [READWRITE] */
-  @meta.blue.readwrite
-  @meta.type.float32
+  @blue.readwrite
+  @type.float32
   targetRadius = 0.5;
 
 
@@ -67,7 +67,7 @@ export class EveChildLink extends EveChildMesh
    * Adapted: Omits the base EveChildMesh::UpdateSyncronous call; only link
    * targeting runs here.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateSyncronous(updateContext, params)
   {
@@ -102,7 +102,7 @@ export class EveChildLink extends EveChildMesh
    * Adapted: Per-object GPU buffer invalidation (cpp:143-144) is not ported
    * yet; the vs/ps records are the backend-neutral value classes.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   UpdateAsyncronous(_updateContext, params)
   {
@@ -198,7 +198,7 @@ export class EveChildLink extends EveChildMesh
    * HOTFIX visibility from Carbon: never LOD out the tethering effect - a
    * present mesh is always visible (EveChildLink.cpp:154-169).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   UpdateVisibility(_updateContext, _parentTransform, _parentLod)
   {
@@ -218,7 +218,7 @@ export class EveChildLink extends EveChildMesh
    * Sphere at the center of the link: (direction, 1) * distance / 2
    * transformed by the world matrix (EveChildLink.cpp:171-178).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetBoundingSphere(out = vec4.create(), _query = 0)
   {
@@ -246,7 +246,7 @@ export class EveChildLink extends EveChildMesh
    * @param {mat4} out - receives the transform
    * @returns {mat4} out
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetLocalToWorldTransform(out)
   {

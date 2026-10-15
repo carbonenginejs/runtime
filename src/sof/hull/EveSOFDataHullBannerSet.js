@@ -1,22 +1,22 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { meta } from "#schema";
+import { type, blue } from "#schema";
 
 /** Groups banner items under a named visibility identity. */
-@meta.define({ className: "EveSOFDataHullBannerSet", family: "eve" })
+@blue.define("EveSOFDataHullBannerSet")
 export class EveSOFDataHullBannerSet
 {
 
   /** m_visibilityGroup (BlueSharedString) [READWRITE, PERSIST] */
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   visibilityGroup = "primary";
 
   /** m_banners (PEveSOFDataHullBannerSetItemVector) [READ, PERSIST] */
-  @meta.blue.read
-  @meta.blue.persist
-  @meta.type.list("EveSOFDataHullBannerSetItem")
+  @blue.read
+  @blue.persist
+  @type.list("EveSOFDataHullBannerSetItem")
   banners = [];
 
   /** Uses the banner set's visibility group as its externally comparable name. */

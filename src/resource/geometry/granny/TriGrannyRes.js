@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Resources/TriGrannyRes.h
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 import { CjsResource, ICacheable } from "#blue";
 import { assertResourcePayloadObject, resourcePayloadError } from "../../resourceBoundary.js";
 import { ResourceRequirement } from "#blue";
@@ -76,13 +76,12 @@ export class TriGrannyRes extends CjsResource
   static payload = ResourceRequirement.GEOMETRY;
 }
 
-CjsSchema.define(TriGrannyRes, {
+CjsSchema.blue.define(TriGrannyRes, {
   className: "TriGrannyRes",
-  family: "resources",
   methods: {
-    IsMemoryUsageKnown: [ meta.blue.method, meta.implemented ],
-    GetMemoryUsage: [ meta.blue.method, meta.implemented ]
+    IsMemoryUsageKnown: [ blue.method, meta.implemented ],
+    GetMemoryUsage: [ blue.method, meta.implemented ]
   }
 });
-meta.blue.inherit(ICacheable)(TriGrannyRes, { kind: "class" });
-meta.blue.interface(ICacheable)(TriGrannyRes);
+blue.inherit(ICacheable)(TriGrannyRes, { kind: "class" });
+blue.interface(ICacheable)(TriGrannyRes);

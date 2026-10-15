@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { vec3 } from "#math/vec3";
-import { meta } from "#schema";
+import { meta, type, blue } from "#schema";
 import { INotify } from "#blue";
 import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviourVector3Base.js";
 
@@ -10,17 +10,14 @@ import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviou
  * Vector3 behaviour that gives the camera value momentum, so it accelerates
  * towards its target and coasts rather than tracking it exactly.
  */
-@meta.define({
-  className: "EveVirtualCameraBehaviourVector3Inertia",
-  family: "eve/virtualCamera/behaviour"
-})
-@meta.blue.interface(INotify)
-@meta.blue.chainTo(EveVirtualCameraBehaviourVector3Base)
+@blue.define("EveVirtualCameraBehaviourVector3Inertia")
+@blue.interface(INotify)
+@blue.chainTo(EveVirtualCameraBehaviourVector3Base)
 export class EveVirtualCameraBehaviourVector3Inertia extends EveVirtualCameraBehaviourVector3Base
 {
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.float32
+  @blue.readwrite
+  @blue.persist
+  @type.float32
   inertiaFactor = 1;
 
   _lastPosition = vec3.create();
@@ -44,7 +41,7 @@ export class EveVirtualCameraBehaviourVector3Inertia extends EveVirtualCameraBeh
    * it and returns the offset from the incoming position; the first update seeds
    * position and velocity and returns zero.
    */
-  @meta.blue.method
+  @blue.method
   @meta.adapted
   Update(_camera, current, deltaTime, localElapsedTime, _anchorPosition, _anchorRadius, _anchorForwardDirection, out = vec3.create())
   {

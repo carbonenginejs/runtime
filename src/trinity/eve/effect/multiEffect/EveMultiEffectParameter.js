@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/EveMultiEffectParameter.cpp
 // Source: trinity/trinity/Eve/EveMultiEffectParameter_Blue.cpp
 import { INotify } from "../../../../global/blue/INotify.js";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { EveEffectRoot2 } from "../../spaceObject/EveEffectRoot2.js";
 import { EveSpaceObject2 } from "../../spaceObject/EveSpaceObject2.js";
 import { ParameterType } from "../../../generated/eve/enums.js";
@@ -12,30 +12,30 @@ import { IsMatch, be } from "#blue";
  * One named slot in an EveMultiEffect, holding the object bound to that name
  * together with the object type the effect expects there.
  */
-@meta.define({ className: "EveMultiEffectParameter", family: "eve/effect" })
-@meta.blue.inherit(INotify)
-@meta.blue.interface(INotify)
+@blue.define("EveMultiEffectParameter")
+@blue.inherit(INotify)
+@blue.interface(INotify)
 export class EveMultiEffectParameter
 {
-  @meta.blue.readwrite
-  @meta.type.int32
-  @meta.type.enum("trinity.EveMultiEffectParameter.ParameterType")
+  @blue.readwrite
+  @type.int32
+  @type.enum("trinity.EveMultiEffectParameter.ParameterType")
   type = 3;
 
-  @meta.blue.readwrite
-  @meta.blue.persist
-  @meta.type.string
+  @blue.readwrite
+  @blue.persist
+  @type.string
   name = "";
 
-  @meta.blue.notify
-  @meta.blue.readwrite
-  @meta.type.rootRef("IRoot")
+  @blue.notify
+  @blue.readwrite
+  @type.rootRef("IRoot")
   object = null;
 
   _owner = null;
 
   /** Binds an object to this slot, or clears it when given nothing. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetParameterObject(object)
   {
@@ -47,7 +47,7 @@ export class EveMultiEffectParameter
    * accepts any non-null object, and an unrecognised type accepts none
    * (Carbon's BlueCastPtr to the concrete class).
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   IsValid()
   {
@@ -69,7 +69,7 @@ export class EveMultiEffectParameter
    * Sets the effect rebound when this slot's object changes; passing nothing
    * detaches the slot.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   SetOwner(owner)
   {
@@ -77,7 +77,7 @@ export class EveMultiEffectParameter
   }
 
   /** The object bound to this slot, or null. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetParameterObject()
   {
@@ -85,7 +85,7 @@ export class EveMultiEffectParameter
   }
 
   /** The name bindings and controllers use to reach this slot. */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   GetName()
   {
@@ -96,7 +96,7 @@ export class EveMultiEffectParameter
    * Rebinds the owning effect after a model update, since the bound object is
    * the slot's only notifying field.
    */
-  @meta.blue.method
+  @blue.method
   @meta.implemented
   OnModified(propertyName)
   {

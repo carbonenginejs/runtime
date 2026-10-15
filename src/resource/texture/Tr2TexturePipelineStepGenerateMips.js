@@ -2,7 +2,7 @@
 // Marker step: Carbon registers the class with zero attributes; the mip
 // generation itself happens where the pipeline is executed.
 import * as CcpLog from "../../global/logging/ccpLog.js";
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 
 // Source: trinity/trinity/Resources/TexturePipeline/ITr2TexturePipelineStep.h:26
 const s_texturePipelineChannel = CcpLog.CCP_LOG_DEFINE_CHANNEL("TexturePipeline", "trinity");
@@ -42,13 +42,13 @@ export class Tr2TexturePipelineStepGenerateMips
 
 }
 
-CjsSchema.define(Tr2TexturePipelineStepGenerateMips, {
-  className: "Tr2TexturePipelineStepGenerateMips", family: "resources",
+CjsSchema.blue.define(Tr2TexturePipelineStepGenerateMips, {
+  className: "Tr2TexturePipelineStepGenerateMips",
   fields: {
 
   },
   methods: {
-    GetResourceDependencies: [ meta.blue.method, meta.implemented ],
-    Execute: [ meta.blue.method, meta.implemented ]
+    GetResourceDependencies: [ blue.method, meta.implemented ],
+    Execute: [ blue.method, meta.implemented ]
   }
 });
