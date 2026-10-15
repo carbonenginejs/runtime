@@ -1,3 +1,4 @@
+import { CjsSchema, blue } from "#schema";
 // Source: trinity/shadercompiler/CachingIncludeHandler.h
 // Source: trinity/shadercompiler/CachingIncludeHandler.cpp
 
@@ -200,3 +201,12 @@ function canonicalize(path)
     }
     return head + parts.join("/");
 }
+
+CjsSchema.blue.define(CachingIncludeHandler, {
+    className: "CachingIncludeHandler",
+    methods: {
+        Open: [blue.method],
+        AddPrefix: [blue.method],
+        SetRootPath: [blue.method]
+    }
+});

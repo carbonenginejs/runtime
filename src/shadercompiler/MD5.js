@@ -1,3 +1,4 @@
+import { CjsSchema, blue, meta } from "#schema";
 // Source: trinity/shadercompiler/md5.h
 // Source: trinity/shadercompiler/md5.cpp
 //
@@ -218,3 +219,15 @@ export class MD5
     /** Carbon's `HashBytes`: 16 bytes. */
     static hashBytes = 16;
 }
+
+CjsSchema.blue.define(MD5, {
+    className: "MD5",
+    methods: {
+        reset: [blue.method],
+        add: [blue.method],
+        getHash: [blue.method],
+        getHash__Bytes: [meta.renamed("getHash")],
+        _processBuffer: [meta.renamed("processBuffer")],
+        _processBlock: [meta.renamed("processBlock")]
+    }
+});

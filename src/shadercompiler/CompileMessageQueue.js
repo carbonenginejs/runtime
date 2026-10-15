@@ -1,3 +1,4 @@
+import { CjsSchema, blue, meta } from "#schema";
 // Source: trinity/shadercompiler/CompileMessageQueue.h
 // Source: trinity/shadercompiler/CompileMessageQueue.cpp
 
@@ -159,3 +160,14 @@ function isSpace(code)
 {
     return code === 32 || (code >= 9 && code <= 13);
 }
+
+CjsSchema.blue.define(CompileMessageQueue, {
+    className: "CompileMessageQueue",
+    methods: {
+        AddMessage: [blue.method],
+        Flush: [blue.method],
+        SetEntryFileName: [blue.method],
+        GetEntryFileName: [blue.method],
+        _OutputMessages: [meta.renamed("OutputMessages")]
+    }
+});

@@ -1,3 +1,4 @@
+import { CjsSchema } from "#schema";
 // Source: trinity/shadercompiler/CachingIncludeHandler.h
 //
 // Carbon nests this struct publicly in `CachingIncludeHandler`
@@ -43,3 +44,8 @@ export class IncludedFile
         return copy;
     }
 }
+
+CjsSchema.blue.define(IncludedFile, {
+    className: "IncludedFile",
+    donors: ["CachingIncludeHandler::IncludedFile"]
+});
