@@ -9,6 +9,7 @@ import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 /** Owns and updates a connector-built EveCurveLineSet. */
 @blue.define("EveLineContainer")
 @blue.inherit(IEveSpaceObject2)
+@blue.interface(IEveSpaceObject2)
 export class EveLineContainer
 {
 
@@ -83,6 +84,7 @@ export class EveLineContainer
 
   /** Collects the concrete line set only while this container is displayed. */
   @meta.implemented
+  @blue.method
   GetRenderables__Impostors(renderables, impostors)
   {
     if (this.display && this.lineSet)

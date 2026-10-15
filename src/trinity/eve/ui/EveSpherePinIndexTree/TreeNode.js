@@ -1,5 +1,7 @@
+import { blue } from "#schema";
 // Source: trinity/trinity/Eve/UI/EveSpherePinIndexTree.cpp
 /** Native TreeNode storage; plain JS links replace allocated C++ child pointers. */
+@blue.define({ className: "TreeNode", donors: ["EveSpherePinIndexTree::TreeNode"] })
 export class TreeNode
 {
   thetaMin = 0;

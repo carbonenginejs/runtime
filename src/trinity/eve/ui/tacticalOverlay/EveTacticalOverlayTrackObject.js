@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay.h
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay.cpp
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay_Blue.cpp
@@ -10,6 +11,8 @@ import { meta, type, blue } from "#schema";
  * presents it with.
  */
 @blue.define("EveTacticalOverlayTrackObject")
+@blue.inherit(IRoot)
+@blue.interface()
 export class EveTacticalOverlayTrackObject
 {
   @blue.readwrite

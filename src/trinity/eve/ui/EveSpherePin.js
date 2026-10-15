@@ -1,3 +1,4 @@
+import { ITr2Pickable } from "../../core/ITr2Pickable.js";
 // Source: trinity/trinity/Eve/UI/EveSpherePin.h
 // Source: trinity/trinity/Eve/UI/EveSpherePin.cpp
 // Hand-maintained after promotion from generated schema intake.
@@ -39,8 +40,8 @@ const pinColorMembers = [ { name: "color", key: "pinColor", type: { kind: "color
 
 /** A UI sphere pin: authored SRT placement plus the pin constant record. */
 @blue.define({ className: "EveSpherePin", members: pinColorMembers })
-@blue.inherit(IInitialize, ITr2Renderable, IEveSpaceObject2, IEveTransform, INotify)
-@blue.interface(IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2, INotify)
+@blue.inherit(IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2, ITr2Pickable, INotify)
+@blue.interface(IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2, ITr2Pickable, INotify)
 export class EveSpherePin
 {
 
@@ -388,6 +389,7 @@ export class EveSpherePin
 
   /** Native collection checks display only; the optional impostor manager is unused. */
   @meta.implemented
+  @blue.method
   GetRenderables__Impostors(renderables, _impostors)
   {
     if (this.display) renderables.push(this);

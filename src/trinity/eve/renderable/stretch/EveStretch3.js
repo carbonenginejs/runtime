@@ -1,3 +1,4 @@
+import { ITr2DebugRenderable } from "../../../../global/interfaces/ITr2DebugRenderable.js";
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch3.h
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch3.cpp
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch3_Blue.cpp
@@ -36,9 +37,8 @@ import { CjsStretchRuntime } from "./CjsStretchRuntime.js";
  * its own controllers, dynamic bindings and curve sets.
  */
 @blue.define("EveStretch3")
-@blue.inherit(ITr2DynamicBindingOwner, IEveSpaceObject2, ITr2ControllerOwner,
-  INotify, IListNotify, IInitialize, ITr2CurveSetOwner, ITr2SoundEmitterOwner)
-@blue.inherit(INotify, IListNotify, IInitialize)
+@blue.inherit(ITr2DebugRenderable, ITr2DynamicBindingOwner, IEveSpaceObject2, ITr2ControllerOwner,
+  INotify, IListNotify, IInitialize, ITr2CurveSetOwner, ITr2SoundEmitterOwner, EveEntity)
 @blue.interface(INotify, IListNotify, IInitialize, IEveSpaceObject2, IEveFiringEffectElement, ITr2ControllerOwner, ITr2CurveSetOwner, ITr2DynamicBindingOwner, ITr2SoundEmitterOwner, EveEntity)
 export class EveStretch3 extends IEveFiringEffectElement
 {
@@ -727,6 +727,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @returns {Array} out
    */
   @meta.implemented
+  @blue.method
   GetRenderables__Impostors(out = [], _impostors)
   {
     if (this.display) this._RunOnComponents((component) => component.GetRenderables(out));
@@ -1093,6 +1094,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @returns {void}
    */
   @meta.implemented
+  @blue.method
   _RunOnComponents(func)
   {
     if (this._sourceObject) func(this._sourceObject);
@@ -1109,6 +1111,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * @returns {number}
    */
   @meta.implemented
+  @blue.method
   _RunOnComponentsGetMax(func)
   {
     let result = -1;
@@ -1123,6 +1126,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * Takes ownership of every dynamic binding and links it, so the bindings
    * resolve against this stretch's roots.
    */
+  @blue.method
   _InitializeBindings()
   {
     for (const binding of this.dynamicBindings)

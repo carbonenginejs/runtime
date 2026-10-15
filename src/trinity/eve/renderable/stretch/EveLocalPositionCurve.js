@@ -16,6 +16,7 @@ import { be, ITriVectorFunction } from "#blue";
  * offset - selected by an authored behaviour.
  */
 @blue.define("EveLocalPositionCurve")
+@blue.interface(ITriVectorFunction)
 export class EveLocalPositionCurve extends ITriVectorFunction
 {
   @blue.readwrite
@@ -115,6 +116,7 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * @returns {Float32Array} out
    */
   @meta.adapted
+  @blue.method
   Update__Ticks(time, out)
   {
     switch (this.behavior)
@@ -162,6 +164,7 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * @returns {Float32Array} out
    */
   @meta.adapted
+  @blue.method
   GetValueAt__Ticks(time, out)
   {
     vec3.copy(out, this.value);
@@ -230,6 +233,7 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * curve and translated by the parent position curve, either of which may be
    * absent.
    */
+  @blue.method
   CalculateOffsetPosition(time, out)
   {
     vec3.copy(out, this.positionOffset);
@@ -252,6 +256,7 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * it back out along that flattened direction to its original distance from the
    * parent.
    */
+  @blue.method
   CalculateOffsetPlaneRotation(time, out)
   {
     if (this.parentPositionCurve) this.parentPositionCurve.GetValueAt__Ticks(time, EveLocalPositionCurve._parentPosition);
@@ -277,6 +282,7 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * is missing, and skips the ellipsoid term unless all three boundingSize axes
    * exceed 10.
    */
+  @blue.method
   CalculateNearestBoundingPoint(time, out)
   {
     if (!(this.parentPositionCurve && this.alignPositionCurve && this.parentRotationCurve))
@@ -311,6 +317,7 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * POS_CENTER_BOUNDING_POINT (EveLocalPositionCurve.cpp:144-156): asks the parent space object for its model centre
    * at time; out is unchanged when there is no parent.
    */
+  @blue.method
   GetCenterBoundingSphere(time, out)
   {
     if (this.parent)
@@ -325,6 +332,7 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * nearest the aligned point and latches it, then reports that locator's position on every call. A parent that is
    * not an ITriTargetable leaves out unchanged (Carbon logs an error).
    */
+  @blue.method
   GetDamageLocator(time, out)
   {
     if (!(this.alignPositionCurve && this.parent)) return out;
@@ -344,6 +352,7 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * impact on the parent at that locator the first time, then updates it each call with the direction from the
    * locator back towards the aligned point.
    */
+  @blue.method
   GetDamageLocatorImpact(time, out)
   {
     if (!(this.alignPositionCurve && this.parent)) return out;
@@ -371,6 +380,7 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * within the named locator set; out is unchanged when the parent, index or set name is missing, or the parent is
    * not an EveSpaceObject2.
    */
+  @blue.method
   GetNearestFiringLocator(_time, out)
   {
     if (this.parent && this.locatorIndex !== -1 && this.locatorSetName)
@@ -388,6 +398,7 @@ export class EveLocalPositionCurve extends ITriVectorFunction
    * POS_ACTIVE_TURRET (EveLocalPositionCurve.cpp:250-262): the translation of the turret set's firing bone for the
    * configured muzzle; out is unchanged without a turret set.
    */
+  @blue.method
   GetFiringTurretPosition(_time, out)
   {
     if (this.turretSetObject)

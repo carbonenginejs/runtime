@@ -1,3 +1,6 @@
+import { EveEntity } from "../../EveEntity.js";
+import { ITr2LightOwner } from "../../lights/ITr2LightOwner.js";
+import { ITr2DebugRenderable } from "../../../../global/interfaces/ITr2DebugRenderable.js";
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch.h
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch.cpp
 import "#consts/trinity";
@@ -24,14 +27,14 @@ import { sph3 } from "#math/sph3";
  * travelling from one end to the other.
  */
 @blue.define("EveStretch")
-@blue.inherit(IEveSpaceObject2, IEveTransform)
-@blue.interface(INotify)
-@blue.chainTo(IEveFiringEffectElement)
+@blue.inherit(INotify, IEveTransform, IEveSpaceObject2, ITr2DebugRenderable, ITr2LightOwner, EveEntity)
+@blue.interface(INotify, IEveTransform, IEveSpaceObject2, IEveFiringEffectElement, ITr2DebugRenderable, ITr2LightOwner, EveEntity)
 export class EveStretch extends IEveFiringEffectElement
 {
 
   /** Carbon EveStretch.cpp:43: display controls component registry membership. */
   @meta.implemented
+  @blue.method
   OnModified(names)
   {
     if (IsMatch(names, "display")) this.ReRegister();
@@ -142,7 +145,6 @@ export class EveStretch extends IEveFiringEffectElement
    * transform last given to SetSourceTransform. Skipped entirely while update is
    * false.
    */
-  @blue.method
   @meta.implemented
   UpdateSynchronous(context)
   {
@@ -156,6 +158,7 @@ export class EveStretch extends IEveFiringEffectElement
   }
 
   /** Carbon's IEveSpaceObject2 spelling of UpdateSynchronous; forwards unchanged. */
+  @blue.method
   UpdateSyncronous(context)
   {
     return this.UpdateSynchronous(context);
@@ -169,7 +172,6 @@ export class EveStretch extends IEveFiringEffectElement
    * Adapted: Carbon splits synchronous and asynchronous work; the browser graph keeps both
    * phases but executes child calls serially.
    */
-  @blue.method
   @meta.adapted
   UpdateAsynchronous(context)
   {
@@ -195,6 +197,7 @@ export class EveStretch extends IEveFiringEffectElement
    * Carbon's IEveSpaceObject2 spelling of UpdateAsynchronous; forwards
    * unchanged.
    */
+  @blue.method
   UpdateAsyncronous(context)
   {
     return this.UpdateAsynchronous(context);
@@ -204,6 +207,7 @@ export class EveStretch extends IEveFiringEffectElement
    * IEveFiringEffectElement synchronous hook; EveStretch does all of its firing
    * work in the asynchronous phase, so this only reports success.
    */
+  @blue.method
   UpdateEffectSync(context)
   {
     void context;
@@ -214,6 +218,7 @@ export class EveStretch extends IEveFiringEffectElement
    * IEveFiringEffectElement asynchronous hook; runs both update phases through
    * Update.
    */
+  @blue.method
   UpdateEffectAsync(context)
   {
     return this.Update(context);
@@ -348,6 +353,7 @@ export class EveStretch extends IEveFiringEffectElement
    * @returns {Array} out
    */
   @meta.adapted
+  @blue.method
   GetRenderables__Impostors(out = [], impostors)
   {
     if (!this.display) return out;

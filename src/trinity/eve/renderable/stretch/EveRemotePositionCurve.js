@@ -11,6 +11,7 @@ import { ITriVectorFunction, CcpTime } from "#blue";
  * one authored direction to another over a fixed time, once or repeatedly.
  */
 @blue.define("EveRemotePositionCurve")
+@blue.interface(ITriVectorFunction)
 export class EveRemotePositionCurve extends ITriVectorFunction
 {
   @blue.readwrite
@@ -89,6 +90,7 @@ export class EveRemotePositionCurve extends ITriVectorFunction
    * @returns {Float32Array} out
    */
   @meta.adapted
+  @blue.method
   Update__Ticks(time, out)
   {
     if (!this.startPositionCurve)

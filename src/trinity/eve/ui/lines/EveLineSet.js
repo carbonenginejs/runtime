@@ -36,9 +36,8 @@ const EVE_LINE_DATA_SIZE = EVE_LINE_DATA_FLOATS * 4;
  * renderTransparent.
  */
 @blue.define("EveLineSet")
-@blue.inherit(ITr2Renderable, IEveSpaceObject2, IEveTransform)
-@blue.inherit(IInitialize)
-@blue.interface(IInitialize)
+@blue.inherit(IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2)
+@blue.interface(IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2)
 export class EveLineSet
 {
 
@@ -132,6 +131,7 @@ export class EveLineSet
 
   /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32): only while resource creation is allowed. */
   @meta.implemented
+  @blue.method
   PrepareResources()
   {
     return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
@@ -139,6 +139,7 @@ export class EveLineSet
 
   /** Carbon ReleaseResources (cpp:45-50). Adapted: the buffer is destroyed explicitly. */
   @meta.adapted
+  @blue.method
   ReleaseResources(_storage)
   {
     this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
@@ -159,6 +160,7 @@ export class EveLineSet
    * Adapted: the AL description replaces the native stride/count overload.
    */
   @meta.adapted
+  @blue.method
   OnPrepareResources()
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -230,6 +232,7 @@ export class EveLineSet
 
   /** Carbon's GetRenderables( renderables, impostors ) (cpp:138-146): the set itself while displayed. */
   @meta.implemented
+  @blue.method
   GetRenderables__Impostors(out = [], _impostors = null)
   {
     if (!this.display) return out;

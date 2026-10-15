@@ -1,3 +1,4 @@
+import { INotify } from "../../../global/blue/INotify.js";
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay.h
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay.cpp
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay_Blue.cpp
@@ -88,9 +89,8 @@ function getSubdivisionCount(pixelSize, low, medium, high, updateContext)
 
 /** Produces tactical anchor, range, and velocity quad-instance records. */
 @blue.define("EveTacticalOverlay")
-@blue.inherit(IEveSpaceObject2)
-@blue.inherit(IInitialize)
-@blue.interface(IInitialize)
+@blue.inherit(IEveSpaceObject2, IInitialize, INotify)
+@blue.interface(IEveSpaceObject2, IInitialize)
 export class EveTacticalOverlay
 {
   /** Initializes the effect-local variable-store records. */
@@ -314,6 +314,7 @@ export class EveTacticalOverlay
 
   /** Carbon's tactical overlay has no ordinary renderable children. */
   @meta.noop
+  @blue.method
   GetRenderables__Impostors(_renderables, _impostors)
   {
   }
@@ -418,6 +419,7 @@ export class EveTacticalOverlay
   }
 
   /** Refreshes the variable-store values exposed to tactical effects. */
+  @blue.method
   _RegisterVariables()
   {
     vec4.set(
@@ -433,6 +435,7 @@ export class EveTacticalOverlay
   }
 
   /** Attaches the local variable store to one nullable effect. */
+  @blue.method
   _SetVariableStore(effect)
   {
     if (!effect) return;

@@ -104,6 +104,7 @@ export class EveSpherePinIndexTree
    * channels return failure rather than performing native invalid memory access.
    */
   @meta.adapted
+  @blue.method
   Initialize()
   {
     this.initialized = 0;
@@ -161,6 +162,7 @@ export class EveSpherePinIndexTree
 
   /** Native readiness flag. */
   @meta.implemented
+  @blue.method
   IsInitialized()
   {
     return this.initialized;
@@ -168,6 +170,7 @@ export class EveSpherePinIndexTree
 
   /** Marks each matching face once in left-before-right tree traversal order. */
   @meta.implemented
+  @blue.method
   MarkFaces(node, minTheta, maxTheta, minPhi, maxPhi)
   {
     let count = 0;
@@ -196,6 +199,7 @@ export class EveSpherePinIndexTree
    * unclamped pole tests are preserved (cpp:594-670).
    */
   @meta.adapted
+  @blue.method
   GetIndices(point, radius, output)
   {
     if (!this.initialized) return 0;

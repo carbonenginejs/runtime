@@ -18,7 +18,7 @@ const WORLD_SPHERE = vec4.create();
 
 /** An Eve-owned, transformed and visibility-culled Carbon curve-line set. */
 @blue.define("EveCurveLineSet")
-@blue.inherit(IEveSpaceObject2, IEveTransform)
+@blue.inherit(IEveTransform, IEveSpaceObject2)
 @blue.interface(IEveTransform, IEveSpaceObject2)
 @blue.chainTo(Tr2CurveLineSet)
 export class EveCurveLineSet extends Tr2CurveLineSet
@@ -93,6 +93,7 @@ export class EveCurveLineSet extends Tr2CurveLineSet
 
   /** Appends this renderable only when the last cull passed. */
   @meta.implemented
+  @blue.method
   GetRenderables__Impostors(renderables, _impostors)
   {
     if (this.isVisible)

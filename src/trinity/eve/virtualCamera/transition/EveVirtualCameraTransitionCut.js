@@ -9,6 +9,7 @@ import { EveVirtualCameraTransitionBase } from "./EveVirtualCameraTransitionBase
  * with no blend.
  */
 @blue.define("EveVirtualCameraTransitionCut")
+@blue.chainTo(EveVirtualCameraTransitionBase)
 export class EveVirtualCameraTransitionCut extends EveVirtualCameraTransitionBase
 {
   /** Always reports complete, which is what makes the hand-over a cut. */

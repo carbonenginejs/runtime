@@ -11,6 +11,7 @@ import { EveVirtualCameraTransitionBase } from "./EveVirtualCameraTransitionBase
  * from the source camera to the target camera over a fixed duration.
  */
 @blue.define("EveVirtualCameraTransitionLerp")
+@blue.chainTo(EveVirtualCameraTransitionBase)
 export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBase
 {
   @blue.readwrite

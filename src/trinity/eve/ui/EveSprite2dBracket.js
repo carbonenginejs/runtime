@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/EveSprite2dBracket.h
 // Source: trinity/trinity/EveSprite2dBracket.cpp
 import { vec2 } from "#math/vec2";
@@ -10,6 +11,8 @@ import { meta, type, blue } from "#schema";
  * translation and display flag.
  */
 @blue.define("EveSprite2dBracket")
+@blue.inherit(IRoot)
+@blue.interface()
 export class EveSprite2dBracket
 {
   @blue.readwrite

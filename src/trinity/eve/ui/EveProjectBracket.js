@@ -1,3 +1,4 @@
+import { ITriFunction } from "../../../global/blue/ITriFunction.js";
 // Source: trinity/trinity/Eve/UI/EveProjectBracket.h
 // Source: trinity/trinity/Eve/UI/EveProjectBracket.cpp
 // Source: trinity/trinity/Eve/UI/EveProjectBracket_Blue.cpp
@@ -55,6 +56,8 @@ function callBlueCallback(callback, ...args)
 
 /** Projects an authored world position into a Sprite2D bracket. */
 @blue.define("EveProjectBracket")
+@blue.inherit(ITriFunction)
+@blue.interface(ITriFunction)
 export class EveProjectBracket
 {
   /**

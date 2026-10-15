@@ -1,3 +1,4 @@
+import { ITr2Pickable } from "../../core/ITr2Pickable.js";
 // Source: trinity/trinity/Eve/UI/EveEllipseSet.h
 import { INotify } from "../../../global/blue/INotify.js";
 import { IEveSpaceObjectChild } from "../child/IEveSpaceObjectChild.js";
@@ -18,10 +19,8 @@ import { ITr2Renderable } from "../../core/ITr2Renderable.js";
  * are drawn with, used for the ribbon rings of UI overlays.
  */
 @blue.define("EveEllipseSet")
-@blue.inherit(ITr2Renderable)
-@blue.inherit(IListNotify)
-@blue.inherit(IListNotify, INotify)
-@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IListNotify, INotify)
+@blue.inherit(ITr2Renderable, IListNotify, INotify, ITr2Pickable)
+@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, ITr2Pickable, IListNotify, INotify)
 export class EveEllipseSet extends EveChildTransform
 {
 
@@ -157,6 +156,7 @@ export class EveEllipseSet extends EveChildTransform
    * Marks the ribbon geometry for rebuild when a notifying field such as the
    * segment count changes.
    */
+  @blue.method
   OnModified(_value = null)
   {
     this._MarkGeometryDirty();
@@ -207,6 +207,7 @@ export class EveEllipseSet extends EveChildTransform
    * Flags the ribbon geometry as stale so it is regenerated before the next
    * draw.
    */
+  @blue.method
   _MarkGeometryDirty()
   {
     this._geometryDirty = true;

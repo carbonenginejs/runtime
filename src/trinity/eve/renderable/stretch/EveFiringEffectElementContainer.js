@@ -13,6 +13,7 @@ import { EveEntity } from "../../EveEntity.js";
  */
 @blue.define("EveFiringEffectElementContainer")
 @blue.inherit(IEveSpaceObject2)
+@blue.interface(IEveSpaceObject2, EveEntity)
 export class EveFiringEffectElementContainer extends EveEntity
 {
   @blue.readwrite
@@ -61,7 +62,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Adapted: The browser runtime drives the nominal firing-element contract synchronously
    * instead of Carbon task dispatch.
    */
-  @blue.method
   @meta.adapted
   UpdateSynchronous(context)
   {
@@ -78,6 +78,7 @@ export class EveFiringEffectElementContainer extends EveEntity
   }
 
   /** Carbon's IEveSpaceObject2 spelling of UpdateSynchronous; forwards unchanged. */
+  @blue.method
   UpdateSyncronous(context)
   {
     return this.UpdateSynchronous(context);
@@ -90,7 +91,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Adapted: The element is updated in the synchronous phase; this asynchronous entry point
    * only reports success.
    */
-  @blue.method
   @meta.adapted
   UpdateAsynchronous(context)
   {
@@ -102,6 +102,7 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Carbon's IEveSpaceObject2 spelling of UpdateAsynchronous; forwards
    * unchanged.
    */
+  @blue.method
   UpdateAsyncronous(context)
   {
     return this.UpdateAsynchronous(context);
@@ -128,6 +129,7 @@ export class EveFiringEffectElementContainer extends EveEntity
    * @returns {Array} out
    */
   @meta.adapted
+  @blue.method
   GetRenderables__Impostors(out = [], _impostors)
   {
     if (this.display && this.element) this.element.GetRenderables(out);
@@ -212,7 +214,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    * which one was given is latched in useSourceTransform and applied on the next
    * synchronous update.
    */
-  @blue.method
   @meta.implemented
   SetFiringTransform(source, destination)
   {
@@ -234,7 +235,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Records the destination-end scale forwarded to the element on the next
    * synchronous update.
    */
-  @blue.method
   @meta.implemented
   SetDestObjectScale(scale)
   {
@@ -245,7 +245,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Records which endpoints the element should draw; forwarded on the next
    * synchronous update.
    */
-  @blue.method
   @meta.implemented
   DisplayEndPoints(displaySource, displayDestination)
   {
@@ -257,7 +256,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Shows or hides the container, gating visibility and renderable collection
    * but not the endpoint state push.
    */
-  @blue.method
   @meta.implemented
   SetDisplay(display)
   {
@@ -268,7 +266,6 @@ export class EveFiringEffectElementContainer extends EveEntity
    * Curve duration reported by the wrapped element, or 0 when there is no
    * element.
    */
-  @blue.method
   @meta.implemented
   GetCurveDuration()
   {

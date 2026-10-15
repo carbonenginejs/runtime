@@ -1,3 +1,5 @@
+import { ITr2LightOwner } from "../../lights/ITr2LightOwner.js";
+import { ITr2DebugRenderable } from "../../../../global/interfaces/ITr2DebugRenderable.js";
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch2.h
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch2.cpp
 import { IsMatch, CcpTime } from "#blue";
@@ -53,9 +55,8 @@ const STRETCH_VERTEX_DECL = [ { usage: Tr2VertexUsageCode.POSITION, usageIndex: 
  * of hosting child objects.
  */
 @blue.define("EveStretch2")
-@blue.inherit(ITr2Renderable)
-@blue.inherit(IInitialize, INotify)
-@blue.interface(ITr2Renderable, IEveFiringEffectElement, IInitialize, INotify, EveEntity)
+@blue.inherit(ITr2Renderable, IInitialize, INotify, ITr2DebugRenderable, ITr2LightOwner, EveEntity)
+@blue.interface(ITr2Renderable, IEveFiringEffectElement, IInitialize, INotify, ITr2LightOwner, EveEntity)
 export class EveStretch2 extends IEveFiringEffectElement
 {
   static MAX_QUAD_COUNT = 128;
@@ -423,6 +424,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @param {mat4} destination Receives the destination basis, translated to the destination.
    */
   @meta.implemented
+  @blue.method
   GetEndPointTransforms(source, destination)
   {
     // vec3_0 is the direction (Z), vec3_1 the up reference, vec3_2 the X axis and vec3_3 the Y axis.
@@ -606,6 +608,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    * @param {Array} [out] - caller-owned mat4; a fresh matrix is allocated when omitted
    * @returns {Array} out
    */
+  @blue.method
   GetDestinationTransform(out = mat4.create())
   {
     return mat4.copy(out, this._destinationTransform);

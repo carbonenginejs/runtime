@@ -1,3 +1,4 @@
+import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraTransition.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraTransition.cpp
 import { meta, type, blue } from "#schema";
@@ -8,7 +9,8 @@ import { EveVirtualCamera } from "../EveVirtualCamera.js";
  * Base for camera hand-overs, owning the source and target cameras plus the
  * temporary camera that is rendered while the hand-over runs.
  */
-@blue.define("EveVirtualCameraTransitionBase")
+@blue.define({ className: "EveVirtualCameraTransitionBase", abstract: true })
+@blue.inherit(IRoot)
 export class EveVirtualCameraTransitionBase
 {
   @meta.reference

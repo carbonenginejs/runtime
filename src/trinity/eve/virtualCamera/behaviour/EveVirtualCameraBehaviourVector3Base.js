@@ -13,7 +13,7 @@ import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
  * Base for the virtual camera behaviours that contribute a world-space vector3
  * offset to a camera's position or point of interest each update.
  */
-@blue.define("EveVirtualCameraBehaviourVector3Base")
+@blue.define({ className: "EveVirtualCameraBehaviourVector3Base", abstract: true })
 @blue.inherit(INotify)
 @blue.interface(INotify)
 export class EveVirtualCameraBehaviourVector3Base

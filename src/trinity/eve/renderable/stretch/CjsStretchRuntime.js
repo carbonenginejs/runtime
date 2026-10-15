@@ -1,7 +1,9 @@
+import { meta } from "#schema";
 import { mat4 } from "#math/mat4";
 
 
 /** Shared matrix construction for stretch and turret runtime objects. */
+@meta.define("CjsStretchRuntime")
 export class CjsStretchRuntime
 {
   /**

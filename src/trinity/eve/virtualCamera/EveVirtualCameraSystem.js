@@ -1,3 +1,5 @@
+import { ITr2DebugRenderable } from "../../../global/interfaces/ITr2DebugRenderable.js";
+import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraSystem.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraSystem.cpp
 import { meta, type, blue } from "#schema";
@@ -11,6 +13,7 @@ import { EveVirtualCameraTransitionLerp } from "./transition/EveVirtualCameraTra
  * runs the transition that hands control from one to another.
  */
 @blue.define("EveVirtualCameraSystem")
+@blue.inherit(IInitialize, ITr2DebugRenderable)
 export class EveVirtualCameraSystem
 {
   @blue.readwrite
@@ -206,6 +209,7 @@ export class EveVirtualCameraSystem
    * @param {EveVirtualCameraTransitionBase} transition
    */
   @meta.implemented
+  @blue.method
   SetMainCamera__Transition(camera, transition)
   {
     const current = this.GetMainCamera();

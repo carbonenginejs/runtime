@@ -1,3 +1,4 @@
+import { ITr2DebugRenderable } from "../../../global/interfaces/ITr2DebugRenderable.js";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCamera.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCamera.cpp
 import { mat4 } from "#math/mat4";
@@ -16,6 +17,7 @@ const SCRUB_MAX_ITERATIONS = 20;
  * local timeline.
  */
 @blue.define("EveVirtualCamera")
+@blue.inherit(ITr2DebugRenderable)
 export class EveVirtualCamera
 {
   @blue.read

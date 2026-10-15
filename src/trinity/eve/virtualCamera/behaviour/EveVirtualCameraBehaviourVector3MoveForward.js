@@ -68,6 +68,7 @@ export class EveVirtualCameraBehaviourVector3MoveForward extends EveVirtualCamer
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:436-447
    */
   @meta.implemented
+  @blue.method
   GetCurrentValue(camera, localElapsedTime, anchorRadius)
   {
     let value = this.value;

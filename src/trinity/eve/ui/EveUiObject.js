@@ -1,3 +1,4 @@
+import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 // Source: trinity/trinity/Eve/UI/EveUiObject.h
 // Source: trinity/trinity/Eve/UI/EveUiObject.cpp
 // Source: trinity/trinity/Eve/UI/EveUiObject_Blue.cpp
@@ -7,6 +8,8 @@ import { TriBatchType } from "#consts/graphics";
 
 /** Represents an Eve UI space object whose mesh areas can be shown, hidden, and identified from picking ids. */
 @blue.define("EveUiObject")
+@blue.interface(IEveSpaceObject2)
+@blue.chainTo(EveSpaceObject2)
 export class EveUiObject extends EveSpaceObject2
 {
 

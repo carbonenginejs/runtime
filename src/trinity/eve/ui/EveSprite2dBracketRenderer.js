@@ -154,6 +154,7 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
 
   /** Native device-resource release; callers also use this for explicit teardown. */
   @meta.implemented
+  @blue.method
   ReleaseResources(_storage)
   {
     this._vertexBuffer.Destroy();
@@ -163,6 +164,7 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
 
   /** Native resource preparation requires no additional work. */
   @meta.implemented
+  @blue.method
   OnPrepareResources()
   {
     return true;

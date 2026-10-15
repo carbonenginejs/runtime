@@ -44,7 +44,8 @@ const LINE_VERTEX_BYTES = TRAIL_VERTEX_DEFINITION.nextOffset[0];
  * points relative to the ego ball and drawn as a strip of quads with connectors, transparent under RM_ALPHA.
  */
 @blue.define("EveTacticalTrails")
-@blue.inherit(ITr2Renderable, IEveSpaceObject2)
+@blue.inherit(IEveSpaceObject2, ITr2Renderable)
+@blue.interface(IEveSpaceObject2, ITr2Renderable)
 export class EveTacticalTrails
 {
   /** m_vertexDeclHandle, interned on first need. */
@@ -101,6 +102,7 @@ export class EveTacticalTrails
 
   /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32): only while resource creation is allowed. */
   @meta.implemented
+  @blue.method
   PrepareResources()
   {
     return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
@@ -108,6 +110,7 @@ export class EveTacticalTrails
 
   /** Carbon OnPrepareResources (cpp:78-81): nothing to prepare; the buffer is built on demand. */
   @meta.implemented
+  @blue.method
   OnPrepareResources()
   {
     return true;
@@ -230,6 +233,7 @@ export class EveTacticalTrails
    * @param {number} now Scene time in Blue ticks.
    */
   @meta.implemented
+  @blue.method
   UpdateGraphicsState(now)
   {
     this.segments = this.trackedObjects.reduce((sum, object) => sum + Math.max(object.positions.length, 1) - 1, 0);
@@ -313,6 +317,7 @@ export class EveTacticalTrails
 
   /** Carbon's GetRenderables( renderables, impostors ) (cpp:269-272): always the trails themselves. */
   @meta.implemented
+  @blue.method
   GetRenderables__Impostors(out = [], _impostors = null)
   {
     out.push(this);
