@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Curves/Tr2BoneMatrixCurve.h
 // Source: trinity/trinity/Curves/Tr2BoneMatrixCurve_Blue.cpp
 // Source: trinity/trinity/include/Tr2Curve.h:26-33
@@ -13,6 +14,7 @@ import { type, blue } from "#schema";
  * uninitialized scalar. The identity matrix matches Matrix's default constructor
  * (math/include/Matrix_inline.h:7-11).
  */
+@blue.inherit(IRoot)
 @blue.define("Tr2MatrixKey")
 export class Tr2MatrixKey
 {

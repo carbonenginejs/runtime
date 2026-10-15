@@ -1,3 +1,4 @@
+import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Curves/TriEventKey.h
 // Source: trinity/trinity/Curves/TriEventKey.cpp
 // Source: trinity/trinity/Curves/TriEventKey_Blue.cpp
@@ -8,6 +9,7 @@ import { type, blue } from "#schema";
  * One key of a TriEventCurve: a time in seconds plus either a named event string
  * or a callable and its arguments to invoke when the playhead crosses it.
  */
+@blue.inherit(IRoot)
 @blue.define("TriEventKey")
 export class TriEventKey
 {

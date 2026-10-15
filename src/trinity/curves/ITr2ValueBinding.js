@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Include/ITr2ValueBinding.h:7-11
 import { CjsSchema, meta, blue } from "#schema";
 
@@ -6,6 +7,7 @@ import { CjsSchema, meta, blue } from "#schema";
  * Contract for applying a value binding. Carbon derives this interface from
  * IRoot; JavaScript uses a plain registered interface without model behavior.
  */
+@blue.inherit(IRoot)
 export class ITr2ValueBinding
 {
   /**

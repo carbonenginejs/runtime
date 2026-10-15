@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Curves/TriCurveSet.h
 // Source: trinity/trinity/Curves/TriCurveSet.cpp
 // Source: trinity/trinity/Curves/TriCurveSet_Blue.cpp
@@ -8,6 +9,7 @@ import { type, blue } from "#schema";
  * Named sub-interval of a curve set's scaled timeline, giving a start and end
  * time and whether playback loops inside it.
  */
+@blue.inherit(IRoot)
 @blue.define("Tr2CurveSetRange")
 export class Tr2CurveSetRange
 {

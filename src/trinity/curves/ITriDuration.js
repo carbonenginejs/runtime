@@ -1,3 +1,4 @@
+import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Include/ITriDuration.h:9-28
 import { CjsSchema, meta, blue } from "#schema";
 
@@ -8,6 +9,7 @@ import { CjsSchema, meta, blue } from "#schema";
  * supplies only the native method obligations. Be::Time and TRIEXTRAPOLATION
  * representations remain the concrete class's responsibility.
  */
+@blue.inherit(IRoot)
 export class ITriDuration
 {
   /**
