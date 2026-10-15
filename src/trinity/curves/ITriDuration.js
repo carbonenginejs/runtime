@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Include/ITriDuration.h:9-28
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 
 
 /**
@@ -88,7 +88,7 @@ export class ITriDuration
 
 for (const method of [ "Start", "SetStartTime", "Sort", "ScaleTime", "Reverse", "ScaleValue", "Length", "Extrapolation" ])
 {
-  CjsSchema.decorateMethod(ITriDuration, method, meta.requires, meta.abstract);
+  CjsSchema.decorateMethod(ITriDuration, method, blue.method, meta.requires, meta.abstract);
 }
 CjsSchema.blue.define(ITriDuration, {
   className: "ITriDuration",

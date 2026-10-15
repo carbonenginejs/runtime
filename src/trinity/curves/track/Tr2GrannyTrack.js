@@ -3,7 +3,7 @@
 import { IsMatch } from "#blue";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { meta, type, blue } from "#schema";
-import { INotify, ITriFunction } from "#blue";
+import { INotify, ITriFunction, ITriCurveLength } from "#blue";
 import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
 
 
@@ -12,8 +12,8 @@ import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
  * resource path, group and track name plus the cycle flag and resolved duration;
  * subclasses supply the track binding and sampling.
  */
-@blue.define("Tr2GrannyTrack")
-@blue.inherit(IInitialize)
+@blue.define({ className: "Tr2GrannyTrack", abstract: true })
+@blue.inherit(ITriFunction, IInitialize, ITriCurveLength, INotify)
 @blue.interface(ITriFunction, IInitialize, INotify)
 export class Tr2GrannyTrack
 {

@@ -1,5 +1,5 @@
 // Source: trinity/trinity/ITr2CurveSetOwner.h:9-19
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, meta, blue } from "#schema";
 
 
 /** Contract for an object that plays and queries named curve sets. */
@@ -76,10 +76,10 @@ export class ITr2CurveSetOwner
 
 for (const name of [ "PlayCurveSet", "StopCurveSet", "GetCurveSetDuration", "GetRangeDuration" ])
 {
-  CjsSchema.decorateMethod(ITr2CurveSetOwner, name, meta.abstract);
+  CjsSchema.decorateMethod(ITr2CurveSetOwner, name, blue.method, meta.abstract);
 }
 for (const name of [ "UpdateCurveSet", "PlayAllCurveSets", "StopAllCurveSets" ])
 {
-  CjsSchema.decorateMethod(ITr2CurveSetOwner, name, meta.noop);
+  CjsSchema.decorateMethod(ITr2CurveSetOwner, name, blue.method, meta.noop);
 }
 CjsSchema.blue.define(ITr2CurveSetOwner, { className: "ITr2CurveSetOwner" });

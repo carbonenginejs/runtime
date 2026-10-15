@@ -120,6 +120,7 @@ export class TriCurveSet extends IInitialize
    * @param {object|null} [renderContext=null] Rendering context forwarded to curves.
    * @returns {void}
    */
+  @blue.method
   @meta.implemented
   Update__RealTimeSimTime(realTime, simTime, renderContext = null)
   {
