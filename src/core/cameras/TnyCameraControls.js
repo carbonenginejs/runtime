@@ -60,7 +60,21 @@ export class TnyCameraControls
       ...preferences
     };
     this.SetKeyBindings(keyBindings);
+    this._baseBackClip = camera.backClip;
     this._initial = this.GetPose();
+  }
+
+  /**
+   * Sets the far clip to cover `reach` metres from the eye, but never below the
+   * base far clip (the camera's own, or a pose's). It shrinks again as well as
+   * grows: a far clip left at an earlier zoom-out (10^13 m against a 5 m near
+   * clip) leaves depth no precision, and SSAO then darkens every hull.
+   *
+   * @param {number} reach Metres the far clip must reach.
+   */
+  #FitBackClip(reach)
+  {
+    this.camera.backClip = Math.max(this._baseBackClip, reach * 1.05);
   }
 
   /** Registers below gizmos, sharing one input route and one bounded frame clock. */
@@ -237,7 +251,7 @@ export class TnyCameraControls
     const start = Math.max(minimum, camera.translationFromParent);
     const distance = Math.min(maximum, Math.max(minimum,
       start * Math.exp(Math.max(-20, Math.min(20, delta * this.preferences.dollySensitivity)))));
-    camera.backClip = Math.max(camera.backClip, (distance + radius) * 1.05);
+    this.#FitBackClip(distance + radius);
     camera.Dolly(distance - camera.translationFromParent);
     this.#Changed();
   }
@@ -258,13 +272,16 @@ export class TnyCameraControls
     return this.SetFieldOfView(this.camera.fieldOfView + delta * this.preferences.fovSensitivity);
   }
 
-  /** Captures a detached pose for reset, host persistence and UI updates. */
+  /**
+   * Captures a detached pose for reset, host persistence and UI updates. Its
+   * far clip is the base one; the far clip a zoom or frame fitted is not kept.
+   */
   GetPose()
   {
     const camera = this.camera;
     return { yaw: camera.yaw, pitch: camera.pitch, distance: camera.translationFromParent,
       center: Array.from(camera.extraTranslation), fieldOfView: camera.fieldOfView,
-      frontClip: camera.frontClip, backClip: camera.backClip };
+      frontClip: camera.frontClip, backClip: this._baseBackClip };
   }
 
   /** Restores an explicit pose through native SetOrbit and complete camera fields. */
@@ -278,7 +295,8 @@ export class TnyCameraControls
     camera.useExtraTranslation = true;
     camera.extraTranslation.set(pose.center);
     if (pose.frontClip > 0) camera.frontClip = pose.frontClip;
-    if (pose.backClip > camera.frontClip) camera.backClip = pose.backClip;
+    if (pose.backClip > camera.frontClip) this._baseBackClip = pose.backClip;
+    this.#FitBackClip(pose.distance);
     this.SetFieldOfView(pose.fieldOfView);
   }
 
@@ -320,7 +338,7 @@ export class TnyCameraControls
     const centre = camera.useExtraTranslation ? Array.from(camera.extraTranslation) : [ 0, 0, 0 ];
     const offset = [ 0, 1, 2 ].map(axis => centre[axis] + back[axis] * distance - target.centre[axis]);
     // The eye stays within max(start, end) of the target, so this far clip covers the whole flight.
-    camera.backClip = Math.max(camera.backClip, (Math.max(target.distance, Math.hypot(...offset)) + target.radius) * 1.05);
+    this.#FitBackClip(Math.max(target.distance, Math.hypot(...offset)) + target.radius);
     this._flight = { target, time: 0, duration, distance, back, offset };
     return true;
   }
@@ -372,7 +390,7 @@ export class TnyCameraControls
   {
     const camera = this.camera;
     camera.zoomCurve = null;
-    camera.backClip = Math.max(camera.backClip, (distance + radius) * 1.05);
+    this.#FitBackClip(distance + radius);
     camera.translationFromParent = distance;
     camera.useExtraTranslation = true;
     camera.extraTranslation.set(centre);
