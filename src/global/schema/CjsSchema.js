@@ -3445,10 +3445,9 @@ function describeValuesInput(value)
 
 // Install provenance here, after the schema exists. The registry core cannot
 // import schema: both Blue and schema need its storage during module loading.
-CjsSchema.define(CjsBlueEnumRegistry, {
+CjsSchema.meta.define(CjsBlueEnumRegistry, {
     className: "CjsBlueEnumRegistry",
-    modelledOn: "BlueRegistration",
-    family: "blue",
+    donors: [ "BlueRegistration", "EnumRegistration", "EnumTypeRegistration", "PyBlueEnumObject" ],
     fields: {},
     methods: Object.fromEntries([
         "Create", "Register", "Get", "Set", "GetValueName", "GetValueNameAsBitMask", "_Register",
