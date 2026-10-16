@@ -15,6 +15,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { meta, type, blue } from "#schema";
 import { TriBatchType } from "#consts/graphics";
+import { EveBasicPerObjectData } from "../../core/rawData/perObjectData/EveBasicPerObjectData.js";
 import { Tr2Transform } from "../../core/Tr2Transform.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
 import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "#consts/graphics/tr2PickType";
@@ -377,7 +378,8 @@ export class EveTransform extends Tr2Transform
   @meta.adapted
   GetPerObjectData(accumulator)
   {
-    const data = accumulator.Alloc("EveBasicPerObjectData");
+    const record = EveBasicPerObjectData.alloc(accumulator);
+    const data = record.vs;
 
     data.SetAndTranspose("world", this.worldTransform);
     data.SetAndTranspose("worldLast", this.lastWorldTransform);
@@ -397,7 +399,7 @@ export class EveTransform extends Tr2Transform
     }
 
     data.SetAndTranspose("worldInverse", INVERSE_PATCH_SCRATCH);
-    return data;
+    return record;
   }
 
   /**

@@ -110,7 +110,7 @@ test("EveMissileWarhead follows Carbon launch, state, particle, impact, and POD 
   const accumulator = new TriRenderBatchAccumulator().SetTriPoolAllocator(makePerObjectStore());
   const data = warhead.GetPerObjectData(accumulator);
   const missileSize = new Float32Array(4);
-  data.Copy("missileSize", missileSize);
+  data.vs.Copy("missileSize", missileSize);
   assert.deepEqual(Array.from(missileSize), [1, 1, 0, 0]);
   const sphere = vec4.create();
   assert.equal(warhead.GetLocalBoundingSphere(sphere), true);
