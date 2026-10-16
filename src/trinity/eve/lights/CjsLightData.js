@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Lights/Tr2Light.h
 // Source: trinity/trinity/Lights/Tr2Light.cpp
+import { be } from "#blue";
 import { color } from "#math/color";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -79,6 +80,15 @@ export class CjsLightData
 
   @type.boolean
   isVolumetric = false;
+
+  /**
+   * Captures the construction frame in Blue ticks.
+   * Source: trinity/trinity/Lights/Tr2Light.cpp:24.
+   */
+  constructor()
+  {
+    this.startTime = be.os.GetCurrentFrameTime();
+  }
 
   static PerLightShadowSetting = PerLightShadowSetting;
 }

@@ -80,6 +80,15 @@ export class Tr2Light
   _lightDataView = null;
 
   /**
+   * Captures the construction frame in Blue ticks.
+   * Source: trinity/trinity/Lights/Tr2Light.cpp:89.
+   */
+  constructor()
+  {
+    this.startTime = be.os.GetCurrentFrameTime();
+  }
+
+  /**
    * Compat LightData view over the concrete light's flattened fields, built on
    * first access and redirecting both reads and writes back to this object.
    */
