@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { structClassLayout } from "./blackClassStructures.js";
 import { CjsBlackPropertyReaders } from "./CjsBlackPropertyReaders.js";
 
@@ -782,3 +784,5 @@ export class CjsBlackSchemaRegistry
         return String(value || "").replace(/^m_/, "");
     }
 }
+
+CjsSchema.meta.define(CjsBlackSchemaRegistry, { className: "CjsBlackSchemaRegistry" });

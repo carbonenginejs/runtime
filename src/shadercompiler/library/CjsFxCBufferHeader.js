@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Not in Carbon: writes HLSL declarations for Carbon's constant-buffer structs.
 //
 // Carbon fills its per-frame and per-object constant buffers by copying a C++
@@ -266,3 +268,5 @@ function alignColumns(rows)
     const width = Math.max(...rows.map(([code]) => code.length));
     return rows.map(([code, note]) => `${code.padEnd(width)}  ${note}`);
 }
+
+CjsSchema.meta.define(CjsFxCBufferHeader, { className: "CjsFxCBufferHeader" });

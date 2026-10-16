@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 import { mat4 } from "#math/mat4";
 
 const IDENTITY_PALETTE = [
@@ -293,3 +295,5 @@ function MatrixEquals(left, right)
 
     return true;
 }
+
+CjsSchema.meta.define(CjsCharacterRigBinding, { className: "CjsCharacterRigBinding" });

@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsMemoryStorage } from "./CjsMemoryStorage.js";
 import { storageAddress, storageError, storageKey, storageLimit, estimateStorageSize } from "./storageRecord.js";
 
@@ -525,3 +527,5 @@ export class CjsStorage
         return this._closing;
     }
 }
+
+CjsSchema.meta.define(CjsStorage, { className: "CjsStorage" });

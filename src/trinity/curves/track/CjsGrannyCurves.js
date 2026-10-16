@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 /**
  * Granny animation-curve decoding authored by cppctamber for ccpwgl2.
  *
@@ -1126,3 +1128,5 @@ function decodeD3I1K8uC8u(c)
 {
   return decodeD3I1u(c);
 }
+
+CjsSchema.meta.define(CjsGrannyCurves, { className: "CjsGrannyCurves" });

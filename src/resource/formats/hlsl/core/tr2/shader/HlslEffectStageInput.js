@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 /**
  * Decoded per-stage input metadata for constants, resources, samplers, and signatures.
  */
@@ -84,3 +86,5 @@ function cloneJson(value)
     }
     return value;
 }
+
+CjsSchema.meta.define(HlslEffectStageInput, { className: "HlslEffectStageInput", donors: [ "Tr2EffectStageInput" ] });

@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 /**
  * Internal base for construction-bound readers.
  *
@@ -23,3 +25,5 @@ export class CjsReader
 }
 
 export default CjsReader;
+
+CjsSchema.meta.define(CjsReader, { className: "CjsReader" });

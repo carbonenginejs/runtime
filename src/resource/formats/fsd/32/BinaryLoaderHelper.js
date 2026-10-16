@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: fsd/BinaryLoaderHelper.h
 
 /** Whole-buffer DataViews, so repeated reads do not allocate a view each. */
@@ -71,3 +73,5 @@ export class BinaryLoaderHelper
 }
 
 export default BinaryLoaderHelper;
+
+CjsSchema.blue.define(BinaryLoaderHelper, { className: "BinaryLoaderHelper" });

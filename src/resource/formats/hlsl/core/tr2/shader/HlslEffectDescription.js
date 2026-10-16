@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 export const DEFAULT_TECHNIQUE = "Main";
 export const ANY_TECHNIQUE = "";
 
@@ -62,3 +64,5 @@ function mapAnnotationToJson(map)
         annotations: annotations.map((entry) => entry.toJSON())
     }));
 }
+
+CjsSchema.meta.define(HlslEffectDescription, { className: "HlslEffectDescription", donors: [ "Tr2EffectDescription" ] });

@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsFormatWriteError } from "./CjsFormatError.js";
 
 const textEncoder = new TextEncoder();
@@ -303,3 +305,5 @@ export class CjsByteWriter
 }
 
 export default CjsByteWriter;
+
+CjsSchema.meta.define(CjsByteWriter, { className: "CjsByteWriter" });

@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { Message, Operation } from "./protocol.js";
 
 /**
@@ -253,3 +255,5 @@ async function readFormat(payload) {
 const isWorkerScope = typeof WorkerGlobalScope !== "undefined"
   && globalThis instanceof WorkerGlobalScope;
 if (isWorkerScope) CjsResManWorker.install(globalThis);
+
+CjsSchema.meta.define(CjsResManWorker, { className: "CjsResManWorker" });

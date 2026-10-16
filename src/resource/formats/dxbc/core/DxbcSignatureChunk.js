@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { DxbcReader } from "./DxbcReader.js";
 import { DxbcReadError } from "./DxbcReadError.js";
 
@@ -158,3 +160,5 @@ export class DxbcSignatureChunk
         return semanticNameDecoder.decode(bytes.subarray(offset, end));
     }
 }
+
+CjsSchema.meta.define(DxbcSignatureChunk, { className: "DxbcSignatureChunk" });

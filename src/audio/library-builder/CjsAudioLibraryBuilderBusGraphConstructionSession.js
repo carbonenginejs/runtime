@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 // CarbonEngineJS original (no Carbon counterpart).
 import { CjsBnkFormat } from "#resource/formats/bnk";
 import { CjsAudioLibraryBuilderWwiseNodeBaseAncestry } from "./CjsAudioLibraryBuilderWwiseNodeBaseAncestry.js";
@@ -391,3 +393,5 @@ function CreateAuthoredAuxRouting(value, label)
 
     return result;
 }
+
+CjsSchema.meta.define(CjsAudioLibraryBuilderBusGraphConstructionSession, { className: "CjsAudioLibraryBuilderBusGraphConstructionSession" });

@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 import { throwIfAborted } from "#utils/errors";
 
 // Browser-safe audio-library construction. The high-level resource seam reads
@@ -4302,3 +4304,5 @@ function sortedKeys(value)
     }
     return sorted;
 }
+
+CjsSchema.meta.define(CjsAudioLibraryBuilder, { className: "CjsAudioLibraryBuilder" });

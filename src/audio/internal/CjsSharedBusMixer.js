@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 import {
     createBusEffectChain,
     normalizeWwiseDynamicsMode,
@@ -1110,3 +1112,5 @@ function IsDisabledHdr(value)
     return flags === (exponentialRelease ? 2 : 0)
         && value?.enabled === false;
 }
+
+CjsSchema.meta.define(CjsSharedBusMixer, { className: "CjsSharedBusMixer" });

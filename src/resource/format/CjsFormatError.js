@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 /**
  * Error raised when shared binary format bytes cannot be decoded safely.
  *
@@ -80,3 +82,9 @@ export class CjsFormatWriteError extends Error
 }
 
 export default CjsFormatReadError;
+
+CjsSchema.meta.define(CjsFormatReadError, { className: "CjsFormatReadError" });
+
+CjsSchema.meta.define(CjsFormatRangeError, { className: "CjsFormatRangeError" });
+
+CjsSchema.meta.define(CjsFormatWriteError, { className: "CjsFormatWriteError" });

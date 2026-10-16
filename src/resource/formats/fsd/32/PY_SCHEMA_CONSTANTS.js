@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: fsd/SchemaTypes.h
 // Source: fsd/SchemaTypes.cpp
 
@@ -93,3 +95,5 @@ export class PY_SCHEMA_CONSTANTS
 }
 
 export default PY_SCHEMA_CONSTANTS;
+
+CjsSchema.blue.define(PY_SCHEMA_CONSTANTS, { className: "PY_SCHEMA_CONSTANTS" });

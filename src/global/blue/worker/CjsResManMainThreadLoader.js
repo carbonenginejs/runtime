@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { assertResourceSource } from "./protocol.js";
 
 /**
@@ -101,4 +103,5 @@ function readFormatOnCurrentThread(
 
   throw new TypeError(`${Format.name} does not expose a read operation.`);
 }
-
+
+CjsSchema.meta.define(CjsResManMainThreadLoader, { className: "CjsResManMainThreadLoader" });

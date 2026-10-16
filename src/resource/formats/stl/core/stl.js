@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { assertFiniteNumber } from "#utils/validation";
 import { asUint8Array } from "#utils/bytes";
 
@@ -844,3 +846,5 @@ export function inspectTriangles(triangles, values, source = {})
     };
 }
 
+
+CjsSchema.meta.define(DisjointSet, { className: "DisjointSet" });

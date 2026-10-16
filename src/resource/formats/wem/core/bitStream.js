@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 /**
  * Bit-level IO for Wwise Vorbis repacking.
  *
@@ -288,3 +290,9 @@ export function ilog(value)
     }
     return result;
 }
+
+CjsSchema.meta.define(WemBitstreamError, { className: "WemBitstreamError" });
+
+CjsSchema.meta.define(BitReader, { className: "BitReader" });
+
+CjsSchema.meta.define(OggPageWriter, { className: "OggPageWriter" });

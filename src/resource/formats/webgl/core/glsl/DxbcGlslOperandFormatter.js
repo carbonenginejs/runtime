@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { WebglReadError } from "../WebglReadError.js";
 
 const COMPONENTS = [ "x", "y", "z", "w" ];
@@ -613,3 +615,5 @@ export class DxbcGlslOperandFormatter
         return String(immediate);
     }
 }
+
+CjsSchema.meta.define(DxbcGlslOperandFormatter, { className: "DxbcGlslOperandFormatter" });

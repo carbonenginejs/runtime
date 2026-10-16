@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 const originalIndices = new WeakMap();
 
 /**
@@ -188,3 +190,5 @@ function ValidatePolicy(policy)
 }
 
 export default CjsCharacterGlesPaletteCompatibility;
+
+CjsSchema.meta.define(CjsCharacterGlesPaletteCompatibility, { className: "CjsCharacterGlesPaletteCompatibility" });

@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: trinity/shadercompiler/ShaderCompiler.cpp:28-75 (the globals)
 //
 // Not in Carbon as a class: ShaderCompiler.cpp keeps one compile's state in
@@ -82,3 +84,5 @@ export class ShaderCompilerSession
         }
     }
 }
+
+CjsSchema.meta.define(ShaderCompilerSession, { className: "ShaderCompilerSession" });

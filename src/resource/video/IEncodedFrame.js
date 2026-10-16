@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: videoplayer/Metadata.h:223-236
 //
 // The base interface for an encoded frame, audio or video, as a container
@@ -54,3 +56,5 @@ export class IEncodedFrame
     throw new Error("IEncodedFrame.IsSkipFrame must be implemented.");
   }
 }
+
+CjsSchema.blue.define(IEncodedFrame, { className: "IEncodedFrame" });

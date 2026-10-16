@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 /**
  * Trinity shader permutation axis and option metadata.
  */
@@ -31,3 +33,5 @@ export class HlslShaderPermutation
         };
     }
 }
+
+CjsSchema.meta.define(HlslShaderPermutation, { className: "HlslShaderPermutation", donors: [ "Tr2ShaderPermutation" ] });

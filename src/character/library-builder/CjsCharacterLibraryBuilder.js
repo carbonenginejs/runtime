@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { CjsCharacterLibrary } from "../library/CjsCharacterLibrary.js";
 import { CjsCharacterLibraryDocuments } from "../library/CjsCharacterLibraryDocuments.js";
@@ -661,3 +663,5 @@ function DefineValue(target, key, value)
         writable: true
     });
 }
+
+CjsSchema.meta.define(CjsCharacterLibraryBuilder, { className: "CjsCharacterLibraryBuilder" });

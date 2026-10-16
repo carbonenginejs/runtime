@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsStorageBackend } from "./CjsStorageBackend.js";
 import { matchesStorage, storageKey, storageLimit, estimateStorageSize } from "./storageRecord.js";
 
@@ -151,3 +153,5 @@ export class CjsMemoryStorage extends CjsStorageBackend
         this.estimatedSize = 0;
     }
 }
+
+CjsSchema.meta.define(CjsMemoryStorage, { className: "CjsMemoryStorage" });

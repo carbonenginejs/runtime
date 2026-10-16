@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 // CarbonEngineJS original (no Carbon counterpart). Browser-safe interpreter
 // for the optional authored SFX program installed with one audio library.
 // It selects media identities only; CjsAudioMan retains ownership of delivery
@@ -2711,3 +2713,5 @@ function ContainerObjectID(node, gameObjID)
 {
     return node.scope === "global" ? null : gameObjID;
 }
+
+CjsSchema.meta.define(CjsSfxEngine, { className: "CjsSfxEngine" });

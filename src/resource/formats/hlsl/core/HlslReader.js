@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsByteReader } from "../../../format/CjsByteReader.js";
 import { HlslEffectReadError } from "./HlslEffectReadError.js";
 
@@ -15,3 +17,5 @@ export class HlslReader extends CjsByteReader
 }
 
 export default HlslReader;
+
+CjsSchema.meta.define(HlslReader, { className: "HlslReader" });

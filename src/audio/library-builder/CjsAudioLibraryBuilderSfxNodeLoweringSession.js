@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 // CarbonEngineJS original (no Carbon counterpart).
 import { PARAMETRIC_EQ_PLUGIN_ID, WWISE_DELAY_PLUGIN_ID, WWISE_COMPRESSOR_PLUGIN_ID, WWISE_PEAK_LIMITER_PLUGIN_ID, WWISE_FLANGER_PLUGIN_ID, WWISE_TREMOLO_PLUGIN_ID, WWISE_GUITAR_DISTORTION_PLUGIN_ID, WWISE_MATRIX_REVERB_PLUGIN_ID, WWISE_ROOMVERB_PLUGIN_ID, WWISE_METER_PLUGIN_ID, parseStaticParametricEqBytes, parseStaticWwiseDelayBytes, parseGraphSharedBusEffect, parseStaticWwiseFlangerBytes, parseStaticWwiseTremoloBytes, parseStaticWwiseGuitarDistortionBytes, parseStaticWwiseMatrixReverbBytes, parseStaticWwiseRoomVerbBytes, parseStaticWwiseMeterBytes } from "../internal/busEffects.js";
 import { CjsAudioLibraryBuilderUtils, WWISE_SILENCE_SOURCE_PLUGIN_ID, SFX_INITIAL_DELAY_PROPERTY, SFX_VOLUME_PROPERTY, SFX_PITCH_PROPERTY, SFX_LOW_PASS_PROPERTY, SFX_HIGH_PASS_PROPERTY, SFX_IMMEDIATE_STATE_SYNC, SFX_FILTER_ACCUMULATION, SFX_ADDITIVE_ACCUMULATION, WWISE_PRIORITY_PROPERTY, BUS_MAX_NUM_INSTANCES_RTPC_PROPERTY, WWISE_EXCLUSIVE_ACCUMULATION, WWISE_FILTERING_OVER_TIME_RAMP } from "./CjsAudioLibraryBuilderUtils.js";
@@ -2110,3 +2112,5 @@ function IsSupportedSfxStateValue(value, definitions)
                 : SFX_ADDITIVE_ACCUMULATION
         );
 }
+
+CjsSchema.meta.define(CjsAudioLibraryBuilderSfxNodeLoweringSession, { className: "CjsAudioLibraryBuilderSfxNodeLoweringSession" });

@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { DxbcReadError } from "./DxbcReadError.js";
 
 /**
@@ -101,3 +103,5 @@ export class DxbcShaderProgram
         };
     }
 }
+
+CjsSchema.meta.define(DxbcShaderProgram, { className: "DxbcShaderProgram" });

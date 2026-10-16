@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 // CarbonEngineJS original (no Carbon counterpart).
 import { evaluateWwiseInterpolation } from "./wwiseCurve.js";
 
@@ -75,3 +77,5 @@ export class CjsMusicEngineFade
         if (param && "value" in param) param.value = value;
     }
 }
+
+CjsSchema.meta.define(CjsMusicEngineFade, { className: "CjsMusicEngineFade" });

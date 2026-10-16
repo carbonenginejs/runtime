@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { DxbcReadError } from "./DxbcReadError.js";
 import {
     DXBC_OPCODE_CUSTOMDATA,
@@ -1054,3 +1056,5 @@ export class DxbcInstructionDecoder
         return operand;
     }
 }
+
+CjsSchema.meta.define(DxbcInstructionDecoder, { className: "DxbcInstructionDecoder" });

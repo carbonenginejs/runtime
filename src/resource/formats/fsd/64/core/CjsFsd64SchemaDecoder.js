@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { assertPositiveInteger } from "#utils/validation";
 import { AssertFlags, ReadRequiredString } from "./fsd64Records.js";
 import { CjsFsd64Binary } from "./CjsFsd64Binary.js";
@@ -886,3 +888,5 @@ function SchemaError(message)
 }
 
 export default CjsFsd64SchemaDecoder;
+
+CjsSchema.meta.define(CjsFsd64SchemaDecoder, { className: "CjsFsd64SchemaDecoder" });

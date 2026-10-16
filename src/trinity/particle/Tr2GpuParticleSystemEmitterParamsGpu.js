@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: trinity/trinity/Particle/Tr2GpuParticleSystem.h (EmitterParamsGpu, :179-201)
 // Source: trinity/trinity/Particle/Tr2GpuParticleSystem.cpp (its constructor, :59-77)
 // Hand-maintained: Carbon's nested struct, in its own file so it is findable by
@@ -54,3 +56,5 @@ export class Tr2GpuParticleSystemEmitterParamsGpu
     return out;
   }
 }
+
+CjsSchema.blue.define(Tr2GpuParticleSystemEmitterParamsGpu, { className: "Tr2GpuParticleSystemEmitterParamsGpu", donors: [ "Tr2GpuParticleSystem::EmitterParamsGpu" ] });

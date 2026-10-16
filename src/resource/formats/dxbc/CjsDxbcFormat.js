@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsFormat } from "../../format/CjsFormat.js";
 /**
  * Exposed CarbonEngineJS-facing DXBC format class.
@@ -225,3 +227,5 @@ export class CjsDxbcFormat extends CjsFormat
 }
 
 export default CjsDxbcFormat;
+
+CjsSchema.meta.define(CjsDxbcFormat, { className: "CjsDxbcFormat" });

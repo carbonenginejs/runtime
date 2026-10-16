@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { TnyServiceDatabase } from "./TnyServiceDatabase.js";
 
 // Source: tools-core CjsToolHttpProxy.HandleSdeRoute wire contract; Tny host extension.
@@ -93,3 +95,5 @@ export class TnyServiceAPI extends TnyServiceDatabase
         return { ...row.payload, [key]: id };
     }
 }
+
+CjsSchema.meta.define(TnyServiceAPI, { className: "TnyServiceAPI" });

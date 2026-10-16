@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 /**
  * Trinity sampler descriptor read from compiled effect metadata.
  */
@@ -53,3 +55,5 @@ export class HlslSamplerDescription
         };
     }
 }
+
+CjsSchema.meta.define(HlslSamplerDescription, { className: "HlslSamplerDescription", donors: [ "Tr2SamplerDescription" ] });

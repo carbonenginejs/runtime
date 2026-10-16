@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 import { CjsCharacterGlesFoundationTranslator } from "./CjsCharacterGlesFoundationTranslator.js";
 
 /**
@@ -226,3 +228,5 @@ function TranslateMorphTarget(target, index)
 }
 
 export default CjsCharacterGlesLegacyConstructionTranslator;
+
+CjsSchema.meta.define(CjsCharacterGlesLegacyConstructionTranslator, { className: "CjsCharacterGlesLegacyConstructionTranslator" });

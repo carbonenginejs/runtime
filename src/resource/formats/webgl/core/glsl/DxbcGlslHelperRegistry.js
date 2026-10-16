@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { WebglReadError } from "../WebglReadError.js";
 
 /**
@@ -88,3 +90,5 @@ export class DxbcGlslHelperRegistry
         return ordered.join("\n\n");
     }
 }
+
+CjsSchema.meta.define(DxbcGlslHelperRegistry, { className: "DxbcGlslHelperRegistry" });

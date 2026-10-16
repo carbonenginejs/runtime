@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsReader } from "./CjsReader.js";
 import { CjsFormatRangeError } from "./CjsFormatError.js";
 import { asUint8Array } from "#utils/bytes";
@@ -333,3 +335,5 @@ export class CjsByteReader extends CjsReader
 }
 
 export default CjsByteReader;
+
+CjsSchema.meta.define(CjsByteReader, { className: "CjsByteReader", donors: [ "EffectStream" ] });

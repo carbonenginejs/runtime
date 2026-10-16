@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: fsd/FsdList.h
 // Source: fsd/FsdList.cpp
 import { BinaryLoader } from "./BinaryLoader.js";
@@ -139,3 +141,5 @@ export class FsdList
 }
 
 export default FsdList;
+
+CjsSchema.blue.define(FsdList, { className: "FsdList" });

@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: videoplayer/IVideoDecoder.h
 //
 // A video decoder: it consumes encoded frames and publishes decoded ones.
@@ -35,3 +37,5 @@ export class IVideoDecoder
     throw new Error("IVideoDecoder.GetError must be implemented.");
   }
 }
+
+CjsSchema.blue.define(IVideoDecoder, { className: "IVideoDecoder" });

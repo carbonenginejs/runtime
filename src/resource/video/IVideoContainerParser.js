@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: videoplayer/IVideoContainerParser.h
 //
 // A container parser: it reads a stream, reports the track metadata, and fills
@@ -76,3 +78,5 @@ export class IVideoContainerParser
     throw new Error("IVideoContainerParser.GetError must be implemented.");
   }
 }
+
+CjsSchema.blue.define(IVideoContainerParser, { className: "IVideoContainerParser" });

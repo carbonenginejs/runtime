@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsFormat } from "../../format/CjsFormat.js";
 import { CLASS_KEYS } from "./core/schema.js";
 import {
@@ -296,3 +298,5 @@ export class CjsRedFormat extends CjsFormat
 }
 
 export default CjsRedFormat;
+
+CjsSchema.meta.define(CjsRedFormat, { className: "CjsRedFormat" });

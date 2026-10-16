@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 // CarbonEngineJS original (no Carbon counterpart). Internal state owners for
 // CjsWebAudioSoundEngine's realized authored-SFX continuation slots and batches.
 
@@ -47,3 +49,5 @@ export class CjsAudioBackendSfxProgramBatch
         }
     }
 }
+
+CjsSchema.meta.define(CjsAudioBackendSfxProgramBatch, { className: "CjsAudioBackendSfxProgramBatch" });

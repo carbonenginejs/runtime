@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { asUint8Array } from "#utils/bytes";
 
 /**
@@ -42,3 +44,5 @@ export class HlslShaderBytecode
         };
     }
 }
+
+CjsSchema.meta.define(HlslShaderBytecode, { className: "HlslShaderBytecode", donors: [ "Tr2ShaderBytecodeAL" ] });

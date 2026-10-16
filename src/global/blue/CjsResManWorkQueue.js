@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // resMan's two queues, `BlueResManQueue` (blue/include/IBlueResMan.h:12-18):
 // BRMQ_MAIN, ticked on the main thread, and BRMQ_BACKGROUND. Carbon backs each
 // with a BlueCallbackMan (BlueResMan.cpp:107-109); so does this. What stays
@@ -326,3 +328,5 @@ function normalizeLimit(value) {
 function defaultNow() {
   return CjsBlueOS.Monotonic();
 }
+
+CjsSchema.meta.define(CjsResManWorkQueue, { className: "CjsResManWorkQueue" });

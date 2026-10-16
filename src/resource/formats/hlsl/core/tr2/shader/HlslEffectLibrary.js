@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { HlslEffectStageInput } from "./HlslEffectStageInput.js";
 
 /**
@@ -48,3 +50,5 @@ export class HlslEffectLibrary
         };
     }
 }
+
+CjsSchema.meta.define(HlslEffectLibrary, { className: "HlslEffectLibrary", donors: [ "Tr2EffectLibrary" ] });

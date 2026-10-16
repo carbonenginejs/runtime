@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsByteReader } from "../../../format/CjsByteReader.js";
 import { DxbcReadError } from "./DxbcReadError.js";
 
@@ -15,3 +17,5 @@ export class DxbcReader extends CjsByteReader
 }
 
 export default DxbcReader;
+
+CjsSchema.meta.define(DxbcReader, { className: "DxbcReader" });

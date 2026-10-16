@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Custom: iteration order of a C++ std::map.
 
 /**
@@ -98,3 +100,5 @@ export class CjsFxStdMap extends Map
         return this.entries();
     }
 }
+
+CjsSchema.meta.define(CjsFxStdMap, { className: "CjsFxStdMap" });

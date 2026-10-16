@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { adler32 } from "#utils/checksum";
 import { asUint8Array, getArrayBufferViewName } from "#utils/bytes";
 import {
@@ -8331,3 +8333,7 @@ function readF64LE(bytes, offset)
 {
     return new DataView(bytes.buffer, bytes.byteOffset + offset, 8).getFloat64(0, true);
 }
+
+CjsSchema.meta.define(DeflateBitReader, { className: "DeflateBitReader" });
+
+CjsSchema.meta.define(DeflateHuffmanTable, { className: "DeflateHuffmanTable" });

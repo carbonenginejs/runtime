@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 const HEADER_SIZE = 32;
 const strictTextDecoder = new TextDecoder("utf-8", { fatal: true });
 
@@ -668,3 +670,5 @@ function NormalizeBytes(input)
 }
 
 export default CjsFsd64Binary;
+
+CjsSchema.meta.define(CjsFsd64Binary, { className: "CjsFsd64Binary" });

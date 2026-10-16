@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 import { throwIfAborted } from "#utils/errors";
 
 // CarbonEngineJS original (no Carbon counterpart). Browser-only sequential
@@ -939,3 +941,5 @@ function SetAudioParam(param, value, context)
         param.value = value;
     }
 }
+
+CjsSchema.meta.define(CjsJukebox, { className: "CjsJukebox" });

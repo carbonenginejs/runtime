@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsFsd64SchemaDecoder } from "./CjsFsd64SchemaDecoder.js";
 
 /**
@@ -76,3 +78,5 @@ export class CjsFsd64SchemaReader
 }
 
 export default CjsFsd64SchemaReader;
+
+CjsSchema.meta.define(CjsFsd64SchemaReader, { className: "CjsFsd64SchemaReader" });

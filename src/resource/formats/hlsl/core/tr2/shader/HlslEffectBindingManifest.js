@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { HlslRenderContextEnum, hlslShaderStageName } from "../HlslRenderContextEnum.js";
 
 /**
@@ -459,3 +461,5 @@ function cloneJson(value)
     }
     return value;
 }
+
+CjsSchema.meta.define(HlslEffectBindingManifest, { className: "HlslEffectBindingManifest" });

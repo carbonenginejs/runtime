@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 import { CjsCharacterTextureQuality } from "./CjsCharacterTextureQuality.js";
 
 const FEMALE_BODY_FOUNDATION = {
@@ -606,3 +608,5 @@ function ResolvePaperdollSex(paperdoll)
 }
 
 export default CjsCharacterFoundationConstruction;
+
+CjsSchema.meta.define(CjsCharacterFoundationConstruction, { className: "CjsCharacterFoundationConstruction" });

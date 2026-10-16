@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsError } from "#utils/errors";
 import { CjsResource } from "#blue";
 
@@ -113,3 +115,5 @@ export class CjsAudioBufferRes extends CjsResource
     }
 
 }
+
+CjsSchema.meta.define(CjsAudioBufferRes, { className: "CjsAudioBufferRes" });

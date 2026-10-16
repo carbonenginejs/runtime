@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 // CarbonEngineJS original (no Carbon counterpart).
 
 /** One retained music clip whose disposable Web Audio source may be resumed. */
@@ -381,3 +383,5 @@ export class CjsMusicEngineScheduledClip
         }
     }
 }
+
+CjsSchema.meta.define(CjsMusicEngineScheduledClip, { className: "CjsMusicEngineScheduledClip" });

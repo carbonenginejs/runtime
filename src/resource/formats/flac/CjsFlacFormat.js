@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { StreamType } from "#consts/media";
 import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
@@ -172,3 +174,5 @@ export class CjsFlacFormat extends CjsFormat
 }
 
 export default CjsFlacFormat;
+
+CjsSchema.meta.define(CjsFlacFormat, { className: "CjsFlacFormat" });

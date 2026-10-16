@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: blue/include/IBluePlacementObserver.h:36-44
 
 /**
@@ -27,3 +29,5 @@ export class PositionDescription
   /** @type {number} Position z component (native float). */
   pos_z = 0;
 }
+
+CjsSchema.blue.define(PositionDescription, { className: "PositionDescription" });

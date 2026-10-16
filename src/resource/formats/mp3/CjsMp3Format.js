@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { StreamType } from "#consts/media";
 import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
@@ -193,3 +195,5 @@ export class CjsMp3Format extends CjsFormat
 }
 
 export default CjsMp3Format;
+
+CjsSchema.meta.define(CjsMp3Format, { className: "CjsMp3Format" });

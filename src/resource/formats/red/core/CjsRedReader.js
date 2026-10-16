@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsBlueReader } from "../../../format/CjsBlueReader.js";
 import { parseRed, isTypedTable, decodeTypedTable, isStrippedKey } from "./redGraph.js";
 
@@ -349,3 +351,5 @@ export class CjsRedReader extends CjsBlueReader
     }
 
 }
+
+CjsSchema.blue.define(CjsRedReader, { className: "CjsRedReader", donors: [ "YamlReader" ] });

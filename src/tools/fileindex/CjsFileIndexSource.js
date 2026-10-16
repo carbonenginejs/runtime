@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsFileIndexEntry } from "./CjsFileIndexEntry.js";
 
 /** An immutable browser-safe mapping from a compact source ID to an HTTP(S) base URL. */
@@ -95,3 +97,5 @@ function normalizeHTTPURL(value)
 
     return url.href.replace(/\/$/u, "");
 }
+
+CjsSchema.meta.define(CjsFileIndexSource, { className: "CjsFileIndexSource" });

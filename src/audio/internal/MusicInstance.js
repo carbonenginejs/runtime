@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 // CarbonEngineJS original (no Carbon counterpart).
 
 /** One posted music event's selection, scheduling, and transport state. */
@@ -51,3 +53,5 @@ export class MusicInstance
         this.authoredPrepared = null;
     }
 }
+
+CjsSchema.meta.define(MusicInstance, { className: "MusicInstance" });

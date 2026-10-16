@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 import { coerceNonNegativeInteger } from "#utils/validation";
 import { evaluateWwiseInterpolation } from "./wwiseCurve.js";
 
@@ -618,3 +620,5 @@ function FiniteDb(value, label)
     }
     return number;
 }
+
+CjsSchema.meta.define(CjsBusDuckingController, { className: "CjsBusDuckingController" });

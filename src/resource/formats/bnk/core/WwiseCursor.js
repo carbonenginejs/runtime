@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // The one byte cursor for every exact Wwise payload, and the variable-length
 // integer it reads.
 //
@@ -317,3 +319,5 @@ export class WwiseCursor
         return result.value;
     }
 }
+
+CjsSchema.meta.define(WwiseCursor, { className: "WwiseCursor" });

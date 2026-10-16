@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: videoplayer/Metadata.h:11-29
 //
 // Video stream metadata. Carbon's constructor defaults every field, so a
@@ -35,3 +37,5 @@ export class VideoMetadata
     this.hasAlpha = hasAlpha;
   }
 }
+
+CjsSchema.blue.define(VideoMetadata, { className: "VideoMetadata" });

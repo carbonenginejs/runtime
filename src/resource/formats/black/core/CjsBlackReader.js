@@ -1075,3 +1075,5 @@ function WithClassStructure(field, className, fieldName)
 // GetErrorMessage are not implemented here and stay the interface's throwing
 // obligations: this reader throws from CreateObject rather than returning null.
 blue.inherit(IBlueObjectBuilder)(CjsBlackReader, { kind: "class" });
+
+CjsSchema.blue.define(CjsBlackReader, { className: "CjsBlackReader", donors: [ "BlackReader" ] });

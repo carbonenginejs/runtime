@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 const coverageStates = new WeakMap();
 
 /**
@@ -396,3 +398,5 @@ function CloneReport(value)
 }
 
 export default CjsCharacterGlesTriangleCoverage;
+
+CjsSchema.meta.define(CjsCharacterGlesTriangleCoverage, { className: "CjsCharacterGlesTriangleCoverage" });

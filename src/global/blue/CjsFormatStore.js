@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { requireRegisteredClassName } from "../compose/className.js";
 import { normalizeResourceExtension } from "#utils/path";
 
@@ -390,3 +392,7 @@ function pinRouteOutput(route, output)
 
 export { CjsFormatRoute };
 export default CjsFormatStore;
+
+CjsSchema.meta.define(CjsFormatStore, { className: "CjsFormatStore" });
+
+CjsSchema.meta.define(CjsFormatRoute, { className: "CjsFormatRoute" });

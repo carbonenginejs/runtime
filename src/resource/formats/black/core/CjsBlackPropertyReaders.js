@@ -834,3 +834,5 @@ export class CjsBlackPropertyReaders
         reader.Skip(byteLength);
     }
 }
+
+CjsSchema.meta.define(CjsBlackPropertyReaders, { className: "CjsBlackPropertyReaders", donors: [ "BlackReader" ] });

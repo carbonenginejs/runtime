@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 // CarbonEngineJS original (no Carbon counterpart). Internal admission-token
 // owner for CjsWebAudioSoundEngine's qualified authored-SFX Sound caps.
 
@@ -126,3 +128,5 @@ export class CjsAudioBackendSfxVoiceLimitLedger
         }
     }
 }
+
+CjsSchema.meta.define(CjsAudioBackendSfxVoiceLimitLedger, { className: "CjsAudioBackendSfxVoiceLimitLedger" });

@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 import { CjsCharacterLibrary } from "./CjsCharacterLibrary.js";
 import { normalizeResourcePath } from "#utils/path";
 
@@ -273,3 +275,5 @@ function PrepareLibrary(value)
 }
 
 export default CjsCharacterLibraryManager;
+
+CjsSchema.meta.define(CjsCharacterLibraryManager, { className: "CjsCharacterLibraryManager" });

@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsStorage } from "../../resource/storage/CjsStorage.js";
 import { TnyStore } from "./TnyStore.js";
 
@@ -56,3 +58,5 @@ export class TnyStorage
         return this._closing;
     }
 }
+
+CjsSchema.meta.define(TnyStorage, { className: "TnyStorage" });

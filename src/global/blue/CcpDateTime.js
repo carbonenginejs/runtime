@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: core/include/CcpTime.h:25-36
 //
 // The calendar breakdown of a Blue timestamp. Carbon declares it field-for-field
@@ -50,3 +52,5 @@ export class CcpDateTime
     this.milliseconds = 0;
   }
 }
+
+CjsSchema.blue.define(CcpDateTime, { className: "CcpDateTime" });

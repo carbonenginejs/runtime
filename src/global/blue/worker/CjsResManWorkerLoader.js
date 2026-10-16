@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { requireRegisteredClassName } from "../../compose/className.js";
 import { Message, Operation, assertResourceSource } from "./protocol.js";
 import { CjsResManMainThreadLoader } from "./CjsResManMainThreadLoader.js";
@@ -487,3 +489,5 @@ function normalizeWorkerError(value) {
   }
   return error;
 }
+
+CjsSchema.meta.define(CjsResManWorkerLoader, { className: "CjsResManWorkerLoader" });

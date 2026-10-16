@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { parseUint64Prefix } from "#utils/text";
 // Source: resources/src/ResourceGroupImpl.cpp (ImportFromCSV).
 // Source: resources/src/ResourceInfo/ResourceInfo.cpp (ExportToCsv).
@@ -168,3 +170,5 @@ export class CjsResFileIndexFormat extends CjsFormat
     static inputs = CjsFormat.defineInputs({ json: { default: true } });
 }
 
+
+CjsSchema.meta.define(CjsResFileIndexFormat, { className: "CjsResFileIndexFormat" });

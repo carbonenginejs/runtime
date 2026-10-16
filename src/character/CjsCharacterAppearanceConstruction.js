@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 import { CjsCharacterFoundationCoveragePolicy } from "./CjsCharacterFoundationCoveragePolicy.js";
 import { CjsCharacterTextureContributions } from "./CjsCharacterTextureContributions.js";
 import { CjsCharacterTexturePolicy } from "./CjsCharacterTexturePolicy.js";
@@ -464,3 +466,5 @@ function OptionalResourcePath(value)
 }
 
 export default CjsCharacterAppearanceConstruction;
+
+CjsSchema.meta.define(CjsCharacterAppearanceConstruction, { className: "CjsCharacterAppearanceConstruction" });

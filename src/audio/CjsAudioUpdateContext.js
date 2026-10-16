@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 // CarbonEngineJS original (no Carbon counterpart). Normalizes the optional
 // host-owned frame context while keeping browser audio scheduling on the
 // AudioContext clock.
@@ -155,3 +157,5 @@ export class CjsAudioUpdateContext
         return CjsBlueOS.Monotonic() / 1000;
     }
 }
+
+CjsSchema.meta.define(CjsAudioUpdateContext, { className: "CjsAudioUpdateContext" });

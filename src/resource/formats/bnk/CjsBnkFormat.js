@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { StreamType } from "#consts/media";
 import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
@@ -332,3 +334,5 @@ export class CjsBnkFormat extends CjsFormat
 }
 
 export default CjsBnkFormat;
+
+CjsSchema.meta.define(CjsBnkFormat, { className: "CjsBnkFormat" });

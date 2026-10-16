@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { asUint8Array } from "../../global/utils/bytes.js";
 import { decompressGzip } from "../../global/utils/compression.js";
 
@@ -107,3 +109,5 @@ async function transform(bytes, stream)
     const response = new Response(new Blob([bytes]).stream().pipeThrough(stream));
     return asUint8Array(await response.arrayBuffer());
 }
+
+CjsSchema.meta.define(CjsStorageFormatCodec, { className: "CjsStorageFormatCodec" });

@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: imageio/include/PsdHandler.h
 // Source: imageio/PsdHandler.cpp
 import { asUint8Array } from "#utils/bytes";
@@ -209,3 +211,5 @@ export class CjsPsdFormat extends CjsImageFormat
 }
 
 export default CjsPsdFormat;
+
+CjsSchema.meta.define(CjsPsdFormat, { className: "CjsPsdFormat" });

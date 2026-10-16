@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { decodeUtf8 } from "#utils/text";
 import { CjsFileIndexSource } from "./CjsFileIndexSource.js";
 import { CjsFileIndexEntry } from "./CjsFileIndexEntry.js";
@@ -316,3 +318,5 @@ function normalizeSourceURL(value)
 
     return value.trim();
 }
+
+CjsSchema.meta.define(CjsFileIndex, { className: "CjsFileIndex" });

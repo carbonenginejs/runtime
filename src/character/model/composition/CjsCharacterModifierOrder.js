@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 const DEFAULT_CATEGORIES = [
     "skin",
     "head",
@@ -215,3 +217,5 @@ function DefaultGroup(value)
 }
 
 export default CjsCharacterModifierOrder;
+
+CjsSchema.meta.define(CjsCharacterModifierOrder, { className: "CjsCharacterModifierOrder" });

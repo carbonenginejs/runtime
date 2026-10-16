@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { coerceNonNegativeInteger } from "#utils/validation";
 import { CjsError } from "#utils/errors";
 import { CjsResource } from "#blue";
@@ -311,3 +313,5 @@ export class CjsAudioRes extends CjsResource
     }
 
 }
+
+CjsSchema.meta.define(CjsAudioRes, { className: "CjsAudioRes" });

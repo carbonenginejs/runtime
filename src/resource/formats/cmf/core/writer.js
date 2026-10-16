@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { MeshoptEncoder } from "meshoptimizer/encoder";
 import {
     AnimationChannelTargetType,
@@ -734,3 +736,5 @@ export async function writeCmfAsync(graph, options = {})
     encoderReady = true;
     return writeCmf(graph, { ...options, compress: options.compress !== false });
 }
+
+CjsSchema.meta.define(Flattener, { className: "Flattener", donors: [ "FlattenedBuffer", "FlattenVisitor" ] });

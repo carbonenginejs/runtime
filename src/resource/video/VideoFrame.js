@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: videoplayer/Metadata.h:193-221
 //
 // One decoded frame. Carbon allocates the pixels immediately after the struct
@@ -38,3 +40,5 @@ export class VideoFrame
     this.bgra = bgra;
   }
 }
+
+CjsSchema.blue.define(VideoFrame, { className: "VideoFrame" });

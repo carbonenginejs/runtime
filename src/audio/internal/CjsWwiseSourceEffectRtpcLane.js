@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 // CarbonEngineJS original (no Carbon counterpart). Per-voice Web Audio
 // realization of already-qualified Wwise source-effect RTPC curves.
 import { CjsWwiseFilteredControl } from "./CjsWwiseFilteredControl.js";
@@ -297,3 +299,5 @@ function FilteredControlKey(curve)
 {
     return `${curve.scope}\0${curve.rtpc}`;
 }
+
+CjsSchema.meta.define(CjsWwiseSourceEffectRtpcLane, { className: "CjsWwiseSourceEffectRtpcLane" });

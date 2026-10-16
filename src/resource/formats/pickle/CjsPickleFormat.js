@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsFormat } from "../../format/CjsFormat.js";
 import { CjsPickleProtocol0Reader } from "./core/CjsPickleProtocol0Reader.js";
 import { CjsPickleProtocol4Reader } from "./core/CjsPickleProtocol4Reader.js";
@@ -281,3 +283,5 @@ export class CjsPickleFormat extends CjsFormat
 }
 
 export default CjsPickleFormat;
+
+CjsSchema.meta.define(CjsPickleFormat, { className: "CjsPickleFormat" });

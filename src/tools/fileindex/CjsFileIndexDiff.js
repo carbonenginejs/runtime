@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { parseResFileAddress } from "#utils/resfile";
 
 /**
@@ -152,3 +154,5 @@ export class CjsFileIndexDiff
     }
 
 }
+
+CjsSchema.meta.define(CjsFileIndexDiff, { className: "CjsFileIndexDiff" });

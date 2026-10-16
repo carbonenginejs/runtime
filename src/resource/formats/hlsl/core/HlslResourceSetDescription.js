@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 /**
  * JavaScript mirror of Carbon's resource-set descriptor builder.
  */
@@ -76,3 +78,5 @@ export class HlslResourceSetDescription
         };
     }
 }
+
+CjsSchema.meta.define(HlslResourceSetDescription, { className: "HlslResourceSetDescription", donors: [ "Tr2ResourceSetDescriptionAL" ] });

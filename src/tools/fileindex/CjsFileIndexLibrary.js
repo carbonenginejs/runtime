@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsFileIndex } from "./CjsFileIndex.js";
 import { CjsFileIndexEntry } from "./CjsFileIndexEntry.js";
 import { CjsFileIndexOverlay } from "./CjsFileIndexOverlay.js";
@@ -496,3 +498,5 @@ function freezeDeep(value, seen = new Set())
     for (const item of Object.values(value)) freezeDeep(item, seen);
     return value;
 }
+
+CjsSchema.meta.define(CjsFileIndexLibrary, { className: "CjsFileIndexLibrary" });

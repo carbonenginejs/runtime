@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsFormat } from "../../format/CjsFormat.js";
 
 const SQLITE_SIGNATURE = "SQLite format 3\0";
@@ -211,3 +213,5 @@ function Normalize(input)
   error.code = "CJS_STATIC_FORMAT_INPUT_INVALID";
   throw error;
 }
+
+CjsSchema.meta.define(CjsStaticFormat, { className: "CjsStaticFormat" });

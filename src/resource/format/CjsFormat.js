@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { StreamType } from "#consts/media";
 
 /**
@@ -849,3 +851,5 @@ export const CjsFormatReadMode = Object.freeze({
 });
 
 export default CjsFormat;
+
+CjsSchema.meta.define(CjsFormat, { className: "CjsFormat" });

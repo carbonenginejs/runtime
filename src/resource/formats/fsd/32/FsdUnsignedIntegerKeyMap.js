@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: fsd/FsdUnsignedIntegerKeyMap.cpp
 import { BinaryLoaderHelper } from "./BinaryLoaderHelper.js";
 import { PyErr_SetString, PyExc, PyLong_AsLong } from "./pyErr.js";
@@ -129,3 +131,5 @@ export class FsdUnsignedIntegerKeyMap
 }
 
 export default FsdUnsignedIntegerKeyMap;
+
+CjsSchema.blue.define(FsdUnsignedIntegerKeyMap, { className: "FsdUnsignedIntegerKeyMap" });

@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: trinity/shadercompiler/ShaderCompiler.cpp:717-845 (alias dedupe, file assembly)
 
 import { CjsByteWriter } from "../CjsByteWriter.js";
@@ -419,3 +421,5 @@ export class CjsCarbonEffectWriter
 
 export { CARBON_EFFECT_RECORD_BYTES, CARBON_EFFECT_SOURCE_HASH_BYTES };
 export default CjsCarbonEffectWriter;
+
+CjsSchema.meta.define(CjsCarbonEffectWriter, { className: "CjsCarbonEffectWriter" });

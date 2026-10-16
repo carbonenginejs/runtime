@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: fsd/FsdDictOffsetLookup.h
 // Source: fsd/FsdDictOffsetLookup.cpp
 import { BinaryLoaderHelper } from "../BinaryLoaderHelper.js";
@@ -124,3 +126,5 @@ export class FastLoadingHashedOffsetLookup extends FsdDictOffsetLookup
 }
 
 export default FastLoadingHashedOffsetLookup;
+
+CjsSchema.blue.define(FastLoadingHashedOffsetLookup, { className: "FastLoadingHashedOffsetLookup" });

@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { ensureRuntimeState, getRuntimeState } from "../../compose/runtimeState.js";
 
 export const CJS_LIFECYCLE = Object.freeze({
@@ -78,3 +80,5 @@ export function getLifecycleState(target)
     }
     return lifecycle;
 }
+
+CjsSchema.meta.define(CjsLifecycleState, { className: "CjsLifecycleState" });

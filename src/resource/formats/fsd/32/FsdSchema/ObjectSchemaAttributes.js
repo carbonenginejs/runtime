@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: fsd/FsdSchema.h
 // Source: fsd/FsdSchema.cpp
 
@@ -32,3 +34,5 @@ export class ObjectSchemaAttributes
 }
 
 export default ObjectSchemaAttributes;
+
+CjsSchema.blue.define(ObjectSchemaAttributes, { className: "ObjectSchemaAttributes" });

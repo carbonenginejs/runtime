@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // BC7 is defined as a little-endian 128-bit block format. The mode and
 // partition constants below are the fixed tables from the Khronos Data Format
 // Specification, section 20.1. The decoder itself is CarbonEngineJS code.
@@ -349,3 +351,5 @@ class Bc7BitReader extends CjsBitReader
         return this.ReadBits(bitCount);
     }
 }
+
+CjsSchema.meta.define(Bc7BitReader, { className: "Bc7BitReader" });

@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 /**
  * Trinity effect technique containing passes and optional shader libraries.
  */
@@ -29,3 +31,5 @@ export class HlslEffectTechnique
         };
     }
 }
+
+CjsSchema.meta.define(HlslEffectTechnique, { className: "HlslEffectTechnique", donors: [ "Tr2EffectTechnique" ] });

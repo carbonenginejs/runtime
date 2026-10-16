@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { HlslRenderStateSetup } from "./HlslRenderStateSetup.js";
 
 /**
@@ -135,3 +137,5 @@ export class HlslEffectStateManager
         return this.renderStates.get(handle) || null;
     }
 }
+
+CjsSchema.meta.define(HlslEffectStateManager, { className: "HlslEffectStateManager", donors: [ "Tr2EffectStateManager" ] });

@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 import { coerceNonNegativeInteger, coercePositiveInteger } from "#utils/validation";
 import { throwIfAborted } from "#utils/errors";
 import { normalizeResourcePath } from "#utils/path";
@@ -2192,3 +2194,5 @@ function DecodeAudioData(context, bytes)
         }
     });
 }
+
+CjsSchema.meta.define(CjsAudioMan, { className: "CjsAudioMan" });

@@ -808,3 +808,5 @@ CjsSchema.decorateMethod(BlueCallbackMan, "_ExtractFromQueue", blue.method, meta
  */
 export const BeCallbackMan = new BlueCallbackMan();
 BeCallbackMan.SetName("BeCallbackMan");
+
+CjsSchema.blue.define(BlueCallbackManThreadData, { className: "BlueCallbackManThreadData", donors: [ "BlueCallbackMan::ThreadData" ] });

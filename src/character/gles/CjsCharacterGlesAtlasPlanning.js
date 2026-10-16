@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 import { CjsCharacterGlesAtlasPlacement } from "./CjsCharacterGlesAtlasPlacement.js";
 
 /**
@@ -328,3 +330,5 @@ function ValidateBoolean(value, name)
         throw new TypeError("GLES atlas " + name + " must be boolean");
     }
 }
+
+CjsSchema.meta.define(CjsCharacterGlesAtlasPlanning, { className: "CjsCharacterGlesAtlasPlanning" });

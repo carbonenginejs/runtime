@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 // CarbonEngineJS original (no Carbon counterpart).
 import { throwIfAborted } from "#utils/errors";
 import { CjsAudioLibraryBuilderUtils } from "./CjsAudioLibraryBuilderUtils.js";
@@ -260,3 +262,5 @@ function compactBankInspection(value, source, bank)
         media,
     };
 }
+
+CjsSchema.meta.define(CjsAudioLibraryBuilderBankInspectionSession, { className: "CjsAudioLibraryBuilderBankInspectionSession" });

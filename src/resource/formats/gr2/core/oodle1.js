@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 /**
  * Granny Oodle1 section decompressor.
  *
@@ -474,3 +476,9 @@ export const oodle1 = {
     decompress: decompressOodle1,
     decompressOodle1
 };
+
+CjsSchema.meta.define(Decoder, { className: "Decoder" });
+
+CjsSchema.meta.define(WeighWindow, { className: "WeighWindow" });
+
+CjsSchema.meta.define(Dictionary, { className: "Dictionary" });

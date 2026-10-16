@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 /**
  * Scan position to natural coefficient index.
  *
@@ -662,3 +664,7 @@ function clampByte(value)
 {
     return Math.max(0, Math.min(255, Math.round(value)));
 }
+
+CjsSchema.meta.define(BaselineJpegDecoder, { className: "BaselineJpegDecoder" });
+
+CjsSchema.meta.define(EntropyReader, { className: "EntropyReader" });

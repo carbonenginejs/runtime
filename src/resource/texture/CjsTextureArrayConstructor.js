@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Not Carbon: `dynamic:/texturearray` is ours.
 import { IBlueDynamicResourceConstructor, ResourceRequirement } from "#blue";
 import { TriTextureRes } from "./TriTextureRes.js";
@@ -113,3 +115,5 @@ export function RegisterTextureArray(resourceManager)
   resourceManager.RegisterResourceConstructor("texturearray", new CjsTextureArrayConstructor(resourceManager));
   return resourceManager;
 }
+
+CjsSchema.meta.define(CjsTextureArrayConstructor, { className: "CjsTextureArrayConstructor" });

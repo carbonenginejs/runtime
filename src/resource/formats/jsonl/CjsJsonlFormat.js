@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsFormat } from "../../format/CjsFormat.js";
 
 import { CjsTableData } from "../../format/CjsTableData.js";
@@ -402,3 +404,5 @@ function AssertJSONValue(value, active = new Set())
 }
 
 export default CjsJsonlFormat;
+
+CjsSchema.meta.define(CjsJsonlFormat, { className: "CjsJsonlFormat" });

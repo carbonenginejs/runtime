@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 /** One immutable row from a CCP-style appfileindex or resfileindex. */
 export class CjsFileIndexEntry
 {
@@ -216,3 +218,5 @@ function normalizeOptionalInteger(value, label, lineNumber)
 
     return result;
 }
+
+CjsSchema.meta.define(CjsFileIndexEntry, { className: "CjsFileIndexEntry" });

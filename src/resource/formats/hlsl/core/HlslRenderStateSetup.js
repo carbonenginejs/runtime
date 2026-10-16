@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 /**
  * JavaScript mirror of a registered Carbon render-state setup.
  */
@@ -35,3 +37,5 @@ export class HlslRenderStateSetup
         return this.entries;
     }
 }
+
+CjsSchema.meta.define(HlslRenderStateSetup, { className: "HlslRenderStateSetup" });

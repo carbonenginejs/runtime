@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { encodeJson, decodeJson } from "../../global/utils/json.js";
 import { decodeUtf8 } from "../../global/utils/text.js";
 import { CjsStorageBackend } from "./CjsStorageBackend.js";
@@ -252,3 +254,5 @@ function assertJson(value, seen = new Set())
         assertJson(descriptor.value, seen);
     }
 }
+
+CjsSchema.meta.define(CjsLocalStorage, { className: "CjsLocalStorage" });

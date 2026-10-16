@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 /**
  * Baseline JPEG encoding, from the same normalized RGBA payload every image
  * format in this package decodes TO.
@@ -584,3 +586,5 @@ export function encodeJpeg(payload, options = {})
 
     return Uint8Array.from(writer.bytes);
 }
+
+CjsSchema.meta.define(BitWriter, { className: "BitWriter" });

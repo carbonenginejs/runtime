@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsFormatWriteError } from "./CjsFormatError.js";
 
 // Source: trinity/shadercompiler/StringTable.cpp, trinity/shadercompiler/StringTable.h
@@ -302,3 +304,5 @@ export class CjsStringTable
 }
 
 export default CjsStringTable;
+
+CjsSchema.blue.define(CjsStringTable, { className: "CjsStringTable", donors: [ "StringTable" ] });

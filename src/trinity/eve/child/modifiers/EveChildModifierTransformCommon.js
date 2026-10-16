@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierTransformCommon.h
 //
 // Shared camera-relative transform math for the camera-dependent
@@ -161,3 +163,5 @@ export class EveChildModifierTransformCommon
     return out;
   }
 }
+
+CjsSchema.meta.define(EveChildModifierTransformCommon, { className: "EveChildModifierTransformCommon" });

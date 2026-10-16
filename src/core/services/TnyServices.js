@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { validateStoragePolicy } from "./storagePolicy.js";
 
 /**
@@ -85,3 +87,5 @@ export class TnyServices
         if (errors.length) throw new AggregateError(errors, "Service shutdown failed");
     }
 }
+
+CjsSchema.meta.define(TnyServices, { className: "TnyServices" });

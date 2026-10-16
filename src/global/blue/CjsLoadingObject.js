@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsResource } from "./CjsResource.js";
 import { ResourceHandlerMode } from "../consts/resourceHandlerMode.js";
 
@@ -18,3 +20,5 @@ export class CjsLoadingObject extends CjsResource
 }
 
 export default CjsLoadingObject;
+
+CjsSchema.meta.define(CjsLoadingObject, { className: "CjsLoadingObject" });

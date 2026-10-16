@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import {
   MARK,
   PICKLE_LIMITS,
@@ -558,3 +560,5 @@ function readStackGlobal(state, offset)
 }
 
 export default CjsPickleProtocol4Reader;
+
+CjsSchema.meta.define(CjsPickleProtocol4Reader, { className: "CjsPickleProtocol4Reader" });

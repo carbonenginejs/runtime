@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 /**
  * Chooses retained character texture variants without coupling selection to a
  * resource manager or renderer.
@@ -121,3 +123,5 @@ export class CjsCharacterTextureQuality
 }
 
 export default CjsCharacterTextureQuality;
+
+CjsSchema.meta.define(CjsCharacterTextureQuality, { className: "CjsCharacterTextureQuality" });

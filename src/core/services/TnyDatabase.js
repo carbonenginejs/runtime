@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsTableData } from "../../resource/format/CjsTableData.js";
 
 // Source: operator-approved Tny orchestration extension; see services/README.md.
@@ -95,3 +97,5 @@ export class TnyDatabase
         return table;
     }
 }
+
+CjsSchema.meta.define(TnyDatabase, { className: "TnyDatabase" });

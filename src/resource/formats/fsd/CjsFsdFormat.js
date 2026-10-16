@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsFormat } from "../../format/CjsFormat.js";
 import { CjsFsd32Format } from "./32/index.js";
 import { CjsFsd64Format } from "./64/index.js";
@@ -114,3 +116,5 @@ export class CjsFsdFormat extends CjsFormat
 }
 
 export default CjsFsdFormat;
+
+CjsSchema.meta.define(CjsFsdFormat, { className: "CjsFsdFormat" });

@@ -50,3 +50,5 @@ export class CjsConstantPayload
 CjsSchema.decorateMethod(CjsConstantPayload, "GetData", meta.abstract);
 CjsSchema.decorateMethod(CjsConstantPayload, "IsDirty", meta.abstract);
 CjsSchema.decorateMethod(CjsConstantPayload, "ClearDirty", meta.abstract);
+
+CjsSchema.meta.define(CjsConstantPayload, { className: "CjsConstantPayload" });

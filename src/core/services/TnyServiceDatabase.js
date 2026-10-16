@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { TnyService } from "./TnyService.js";
 
 // Source: operator-approved host data-provider orchestration, not a native Carbon cache.
@@ -51,3 +53,5 @@ export class TnyServiceDatabase extends TnyService
         await Promise.allSettled([...this._pending.values()]);
     }
 }
+
+CjsSchema.meta.define(TnyServiceDatabase, { className: "TnyServiceDatabase" });

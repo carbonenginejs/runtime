@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 /** Our collection-scoped handle. It cannot close or purge the shared backend. */
 export class TnyStore
 {
@@ -29,3 +31,5 @@ export class TnyStore
     /** List identities belonging to this collection. */
     async List() { return this._owner._GetStorage().List(this._name); }
 }
+
+CjsSchema.meta.define(TnyStore, { className: "TnyStore" });

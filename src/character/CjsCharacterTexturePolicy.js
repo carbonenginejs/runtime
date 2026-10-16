@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 import { CjsCharacterTextureQuality } from "./CjsCharacterTextureQuality.js";
 
 const DEFAULT_CONFIGURED_GARMENT_GROUPS = new Set([
@@ -745,3 +747,5 @@ function SplitGroup(value)
 }
 
 export default CjsCharacterTexturePolicy;
+
+CjsSchema.meta.define(CjsCharacterTexturePolicy, { className: "CjsCharacterTexturePolicy" });

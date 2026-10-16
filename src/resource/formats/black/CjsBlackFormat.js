@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsFormat } from "../../format/CjsFormat.js";
 import { CLASS_KEYS } from "./core/schema.js";
 import {
@@ -348,3 +350,5 @@ function getBlackProbeView(input)
 }
 
 export default CjsBlackFormat;
+
+CjsSchema.meta.define(CjsBlackFormat, { className: "CjsBlackFormat" });

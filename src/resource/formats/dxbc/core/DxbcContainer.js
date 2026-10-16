@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { asUint8Array } from "#utils/bytes";
 import { DxbcReader } from "./DxbcReader.js";
 import { DxbcReadError } from "./DxbcReadError.js";
@@ -169,3 +171,5 @@ export class DxbcContainer
         };
     }
 }
+
+CjsSchema.meta.define(DxbcContainer, { className: "DxbcContainer" });

@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsFormat } from "../../../format/CjsFormat.js";
 import { CjsFsd64Binary } from "./core/CjsFsd64Binary.js";
 
@@ -264,3 +266,5 @@ export class CjsFsd64Format extends CjsFormat
 }
 
 export default CjsFsd64Format;
+
+CjsSchema.meta.define(CjsFsd64Format, { className: "CjsFsd64Format" });

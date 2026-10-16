@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { crc32 as sharedCrc32 } from "#utils/checksum";
 
 const textDecoder = new TextDecoder();
@@ -296,3 +298,5 @@ export function crc32(bytes, start = 0, end = bytes.byteLength)
 }
 
 
+
+CjsSchema.meta.define(BinaryReader, { className: "BinaryReader" });

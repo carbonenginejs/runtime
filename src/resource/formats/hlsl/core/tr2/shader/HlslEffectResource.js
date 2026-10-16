@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { HlslRenderContextEnum } from "../HlslRenderContextEnum.js";
 
 /**
@@ -46,3 +48,5 @@ export class HlslEffectResource
         return { ...this };
     }
 }
+
+CjsSchema.meta.define(HlslEffectResource, { className: "HlslEffectResource", donors: [ "Tr2EffectResource" ] });

@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsFormat } from "../../format/CjsFormat.js";
 import { CjsTableData } from "../../format/CjsTableData.js";
 import { ReadColumns } from "./core/sqliteSchema.js";
@@ -308,3 +310,5 @@ function Normalize(input) {
 }
 
 export default CjsSqliteFormat;
+
+CjsSchema.meta.define(CjsSqliteFormat, { className: "CjsSqliteFormat" });

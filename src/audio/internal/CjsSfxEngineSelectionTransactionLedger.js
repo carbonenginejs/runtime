@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 // CarbonEngineJS original (no Carbon counterpart).
 // Owns the SFX engine's speculative selection state; moved without behavior changes.
 
@@ -430,3 +432,5 @@ function DeleteKeysWithPrefix(map, prefix)
         }
     }
 }
+
+CjsSchema.meta.define(CjsSfxEngineSelectionTransactionLedger, { className: "CjsSfxEngineSelectionTransactionLedger" });

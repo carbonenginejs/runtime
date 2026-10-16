@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { crc32 } from "#utils/checksum";
 import { CjsByteWriter } from "../../../format/CjsByteWriter.js";
 import { CjsFormatWriteError } from "../../../format/CjsFormatError.js";
@@ -747,3 +749,5 @@ export const container = {
     write: writeGr2Container,
     writeGr2Container
 };
+
+CjsSchema.meta.define(SectionSerializer, { className: "SectionSerializer" });

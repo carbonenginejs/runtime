@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 /**
  * @typedef {object} CjsStorageAddress
  * @property {string} namespace Nonempty owner namespace; one service writes one namespace.
@@ -123,3 +125,5 @@ export class CjsStorageBackend
     {
     }
 }
+
+CjsSchema.meta.define(CjsStorageBackend, { className: "CjsStorageBackend" });

@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Not in Carbon: the WebGPU target, the driver's PLATFORM_WEBGPU.
 // Modelled on EffectCompilerMetal.cpp's CompileEffect, whose
 // target-independent passes it runs unchanged; it replaces only what is
@@ -618,3 +620,5 @@ function CollectConstants(state, stage, annotations, globalsStructs)
     }
     return true;
 }
+
+CjsSchema.meta.define(CjsFxEffectCompilerWebGPU, { className: "CjsFxEffectCompilerWebGPU", donors: [ "EffectCompilerMetal", "EffectCompilerDX11" ] });

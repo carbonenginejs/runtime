@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 // CarbonEngineJS original (no Carbon counterpart).
 import { parseStaticParametricEqBytes } from "../internal/busEffects.js";
 
@@ -960,3 +962,5 @@ export class CjsAudioLibraryBuilderUtils
         throw new TypeError(`${label} must be an object or Map`);
     }
 }
+
+CjsSchema.meta.define(CjsAudioLibraryBuilderUtils, { className: "CjsAudioLibraryBuilderUtils" });

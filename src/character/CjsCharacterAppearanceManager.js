@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 import { ICjsCharacterAppearanceAL } from "./ICjsCharacterAppearanceAL.js";
 
 /** The methods an appearance AL implements, read from the interface. */
@@ -620,3 +622,5 @@ function NormalizeSignatureValue(value, active)
 }
 
 export default CjsCharacterAppearanceManager;
+
+CjsSchema.meta.define(CjsCharacterAppearanceManager, { className: "CjsCharacterAppearanceManager" });

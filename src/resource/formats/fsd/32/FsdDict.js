@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: fsd/FsdDict.h
 // Source: fsd/FsdDict.cpp
 import { BinaryLoader } from "./BinaryLoader.js";
@@ -143,3 +145,5 @@ export class FsdDict
 }
 
 export default FsdDict;
+
+CjsSchema.blue.define(FsdDict, { className: "FsdDict" });

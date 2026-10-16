@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 /**
  * A format support report, normalized.
  *
@@ -126,3 +128,5 @@ function normalizeCapability(input)
 }
 
 export default CjsResourceProbe;
+
+CjsSchema.meta.define(CjsResourceProbe, { className: "CjsResourceProbe" });

@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: parser/include/ccpparser.h (CcpParser::Parse)
 import { CjsControllerExpressionCompileError } from "./CjsControllerExpressionCompileError.js";
 import { BLOCKED_IDENTIFIERS, CONSTANTS, GetFunction, Tokenize } from "./expressionRuntime.js";
@@ -452,3 +454,5 @@ export class CjsControllerExpressionParser
     });
   }
 }
+
+CjsSchema.meta.define(CjsControllerExpressionParser, { className: "CjsControllerExpressionParser" });

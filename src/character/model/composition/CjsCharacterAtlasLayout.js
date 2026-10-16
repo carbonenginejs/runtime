@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 const DEFAULT_SIZE = [ 2048, 1024 ];
 
 const NORMALIZED_RECTS = {
@@ -40,3 +42,5 @@ export class CjsCharacterAtlasLayout
 }
 
 export default CjsCharacterAtlasLayout;
+
+CjsSchema.meta.define(CjsCharacterAtlasLayout, { className: "CjsCharacterAtlasLayout" });

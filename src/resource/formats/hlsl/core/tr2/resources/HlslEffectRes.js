@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { asUint8Array } from "#utils/bytes";
 import { HlslEffectStateManager } from "../../HlslEffectStateManager.js";
 import { HlslShader } from "../shader/HlslShader.js";
@@ -398,3 +400,5 @@ function normalizeShaderOptions(options)
         return new HlslShaderOption(entry?.name || "", entry?.value || "");
     });
 }
+
+CjsSchema.meta.define(HlslEffectRes, { className: "HlslEffectRes", donors: [ "Tr2EffectRes" ] });

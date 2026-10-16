@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // NON-CARBON EXTENSION. Carbon selects a backend at link time and has no WebGL
 // target at all, so there is no Carbon class to port here. This exists because
 // a library must be able to answer "is WebGL2 available" as a fact of its own,
@@ -244,3 +246,5 @@ export class CjsWebGLProbe
 }
 
 export default CjsWebGLProbe;
+
+CjsSchema.meta.define(CjsWebGLProbe, { className: "CjsWebGLProbe" });

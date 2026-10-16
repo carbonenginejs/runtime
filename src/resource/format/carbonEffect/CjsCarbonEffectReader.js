@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: trinity/trinity/Resources/Tr2EffectRes.cpp (DoLoad, GetShader)
 // Source: trinity/shadercompiler/ShaderCompiler.cpp:746-845 (file assembly)
 
@@ -445,3 +447,7 @@ export function looksLikeCarbonEffectContainer(bytes)
 }
 
 export default CjsCarbonEffectReader;
+
+CjsSchema.meta.define(CjsCarbonEffectBodyReader, { className: "CjsCarbonEffectBodyReader" });
+
+CjsSchema.meta.define(CjsCarbonEffectReader, { className: "CjsCarbonEffectReader", donors: [ "Tr2EffectRes" ] });

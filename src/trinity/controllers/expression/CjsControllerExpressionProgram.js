@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: parser/include/ccpparser.h (CcpParser::Parse, Program, Observer)
 // Behavioral reference: ccpwgl/src/unsupported/state/expression/Tr2ExpressionProgram.js
 //
@@ -339,3 +341,5 @@ export class CjsControllerExpressionProgram
  * names and rejecting identifiers that could reach the JavaScript prototype
  * chain.
  */
+
+CjsSchema.blue.define(CjsControllerExpressionProgram, { className: "CjsControllerExpressionProgram", donors: [ "CcpParser::Program" ] });

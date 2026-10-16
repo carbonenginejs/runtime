@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsFileIndex } from "./CjsFileIndex.js";
 import { CjsFileIndexSource } from "./CjsFileIndexSource.js";
 
@@ -100,3 +102,5 @@ export class CjsFileIndexOverlay
     }
 
 }
+
+CjsSchema.meta.define(CjsFileIndexOverlay, { className: "CjsFileIndexOverlay" });

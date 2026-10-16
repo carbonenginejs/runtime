@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 // CarbonEngineJS original (no Carbon counterpart).
 
 
@@ -62,3 +64,5 @@ export class CjsAudioLibraryBuilderWwiseNodeBaseAncestry
         return result;
     }
 }
+
+CjsSchema.meta.define(CjsAudioLibraryBuilderWwiseNodeBaseAncestry, { className: "CjsAudioLibraryBuilderWwiseNodeBaseAncestry" });

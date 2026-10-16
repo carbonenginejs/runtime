@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: fsd/FsdSchema.h
 // Source: fsd/FsdSchema.cpp
 
@@ -26,3 +28,5 @@ export class ListSchemaAttributes
 }
 
 export default ListSchemaAttributes;
+
+CjsSchema.blue.define(ListSchemaAttributes, { className: "ListSchemaAttributes" });

@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: videoplayer/Metadata.h:164-185
 //
 // One decoded audio frame. As with VideoFrame, Carbon allocates the samples
@@ -31,3 +33,5 @@ export class PcmFrame
     this.data = data;
   }
 }
+
+CjsSchema.blue.define(PcmFrame, { className: "PcmFrame" });

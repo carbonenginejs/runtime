@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { createHandlers } from "./core/dataTypes.js";
 import { plainGraph, readGraph, writeGraph, throwReports } from "./core/graph.js";
 import { readEnvelope, writeEnvelope } from "./core/text.js";
@@ -112,3 +114,5 @@ export class CjsGraphFormat extends CjsFormat
     }
 }
 import { CjsFormat } from "../../format/CjsFormat.js";
+
+CjsSchema.meta.define(CjsGraphFormat, { className: "CjsGraphFormat" });

@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { HlslSamplerDescription } from "./HlslSamplerDescription.js";
 
 /**
@@ -27,3 +29,5 @@ export class HlslSamplerSetup
         };
     }
 }
+
+CjsSchema.meta.define(HlslSamplerSetup, { className: "HlslSamplerSetup", donors: [ "Tr2SamplerSetup" ] });

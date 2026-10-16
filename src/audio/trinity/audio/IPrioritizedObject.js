@@ -43,3 +43,5 @@ for (const method of [
 {
   CjsSchema.decorateMethod(IPrioritizedObject, method, blue.method, meta.requires, meta.abstract);
 }
+
+CjsSchema.blue.define(IPrioritizedObject, { className: "IPrioritizedObject" });

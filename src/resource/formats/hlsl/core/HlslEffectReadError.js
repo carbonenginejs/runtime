@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 /**
  * Error raised when a Carbon/Trinity effect payload cannot be decoded safely.
  */
@@ -16,3 +18,5 @@ export class HlslEffectReadError extends Error
         this.details = details;
     }
 }
+
+CjsSchema.meta.define(HlslEffectReadError, { className: "HlslEffectReadError" });

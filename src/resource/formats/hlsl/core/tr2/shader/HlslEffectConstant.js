@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 /**
  * Constant-buffer parameter metadata read from a Trinity effect body.
  */
@@ -36,3 +38,5 @@ export class HlslEffectConstant
         return { ...this };
     }
 }
+
+CjsSchema.meta.define(HlslEffectConstant, { className: "HlslEffectConstant", donors: [ "Tr2EffectConstant" ] });

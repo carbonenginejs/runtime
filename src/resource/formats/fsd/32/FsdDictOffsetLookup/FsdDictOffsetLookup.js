@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: fsd/FsdDictOffsetLookup.h
 
 /** @typedef {import("./FooterOffsetSize.js").FooterOffsetSize} FooterOffsetSize */
@@ -55,3 +57,5 @@ export class FsdDictOffsetLookup
 }
 
 export default FsdDictOffsetLookup;
+
+CjsSchema.blue.define(FsdDictOffsetLookup, { className: "FsdDictOffsetLookup" });

@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 import { assertBusGraphRouteProjection } from "./busGraph.js";
 
 /**
@@ -141,3 +143,5 @@ function CanonicalPositiveId(value, label)
     }
     return text;
 }
+
+CjsSchema.meta.define(CjsBusGraphRuntime, { className: "CjsBusGraphRuntime" });

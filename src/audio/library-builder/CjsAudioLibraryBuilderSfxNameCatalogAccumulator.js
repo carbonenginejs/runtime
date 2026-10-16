@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 // CarbonEngineJS original (no Carbon counterpart).
 import { CjsBnkFormat } from "#resource/formats/bnk";
 import { CjsAudioLibraryBuilderUtils, WWISE_FILTERING_OVER_TIME_RAMP } from "./CjsAudioLibraryBuilderUtils.js";
@@ -537,3 +539,5 @@ function NormalizeGameParameterID(value)
 
     return number >>> 0;
 }
+
+CjsSchema.meta.define(CjsAudioLibraryBuilderSfxNameCatalogAccumulator, { className: "CjsAudioLibraryBuilderSfxNameCatalogAccumulator" });

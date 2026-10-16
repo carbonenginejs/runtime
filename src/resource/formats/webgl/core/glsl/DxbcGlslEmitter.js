@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import CjsDxbcFormat from "../../../dxbc/index.js";
 import { WebglReadError } from "../WebglReadError.js";
 import { DxbcGlslOperandFormatter } from "./DxbcGlslOperandFormatter.js";
@@ -3788,3 +3790,5 @@ DxbcGlslEmitter.prototype._assemble = function _assemble(state)
     lines.push(...state.bodyLines, "}");
     return `${lines.join("\n")}\n`;
 };
+
+CjsSchema.meta.define(DxbcGlslEmitter, { className: "DxbcGlslEmitter" });

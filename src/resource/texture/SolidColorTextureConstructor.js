@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: trinity/trinity/Resources/Procedural/SolidColorTexture.cpp
 //
 // Carbon registers this constructor at static-initialisation time, inside its
@@ -53,3 +55,5 @@ export function RegisterSolidColorTexture(resourceManager)
   resourceManager.RegisterResourceConstructor("color", new SolidColorTextureConstructor());
   return resourceManager;
 }
+
+CjsSchema.blue.define(SolidColorTextureConstructor, { className: "SolidColorTextureConstructor" });

@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 // CarbonEngineJS original (no Carbon counterpart).
 import { CjsMusicEngineScheduledClip } from "./CjsMusicEngineScheduledClip.js";
 import { CjsMusicEngineFade, LINEAR_FADE_CURVE } from "./CjsMusicEngineFade.js";
@@ -333,3 +335,5 @@ export class CjsMusicEngineScheduledSegment
         this.gain?.disconnect();
     }
 }
+
+CjsSchema.meta.define(CjsMusicEngineScheduledSegment, { className: "CjsMusicEngineScheduledSegment" });

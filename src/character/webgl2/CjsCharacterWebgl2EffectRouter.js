@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 const DX11_AVATAR_ROOT = "res:/graphics/effect.dx11/managed/interior/avatar/";
 
 const ROUTES = [
@@ -347,3 +349,5 @@ function GetShape(value)
 }
 
 export default CjsCharacterWebgl2EffectRouter;
+
+CjsSchema.meta.define(CjsCharacterWebgl2EffectRouter, { className: "CjsCharacterWebgl2EffectRouter" });

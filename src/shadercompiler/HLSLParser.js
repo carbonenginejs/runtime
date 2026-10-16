@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: trinity/shadercompiler/HLSLParser.y
 //
 // Carbon's HLSL/FX grammar, rule for rule and in order, with lemon's tables
@@ -1972,3 +1974,5 @@ export class HLSLParser
         return rules;
     }
 }
+
+CjsSchema.meta.define(HLSLParser, { className: "HLSLParser" });

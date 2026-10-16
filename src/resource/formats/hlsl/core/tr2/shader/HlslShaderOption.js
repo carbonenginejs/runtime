@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 /**
  * Name/value shader permutation option used during effect lookup.
  */
@@ -28,3 +30,5 @@ export class HlslShaderOption
         };
     }
 }
+
+CjsSchema.meta.define(HlslShaderOption, { className: "HlslShaderOption", donors: [ "Tr2ShaderOption" ] });

@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 /**
  * Parameter annotation value attached to a Trinity effect parameter.
  */
@@ -34,3 +36,5 @@ export class HlslEffectParameterAnnotation
         return { ...this };
     }
 }
+
+CjsSchema.meta.define(HlslEffectParameterAnnotation, { className: "HlslEffectParameterAnnotation", donors: [ "Tr2EffectParameterAnnotation" ] });

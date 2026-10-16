@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: blue/include/BlueFileUtil.h, blue/src/BlueFileUtil.cpp
 //
 // The res-path helpers the paths service and its file systems share. Carbon
@@ -57,3 +59,5 @@ export class BlueFileUtil
     return filename;
   }
 }
+
+CjsSchema.meta.define(BlueFileUtil, { className: "BlueFileUtil" });

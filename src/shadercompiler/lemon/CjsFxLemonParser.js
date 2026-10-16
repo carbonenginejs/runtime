@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Custom: the parse loop of LEMON's driver template, over tables built by CjsFxLemon.
 //
 // LEMON's driver template, lempar.c, by D. Richard Hipp (SQLite), carries
@@ -211,3 +213,5 @@ export class CjsFxLemonParser
         }
     }
 }
+
+CjsSchema.meta.define(CjsFxLemonParser, { className: "CjsFxLemonParser" });

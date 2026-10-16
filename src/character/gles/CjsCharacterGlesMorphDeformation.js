@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 const deformationStates = new WeakMap();
 
 const TARGET_CHANNELS = new Set([
@@ -592,3 +594,5 @@ function CloneReport(value)
 }
 
 export default CjsCharacterGlesMorphDeformation;
+
+CjsSchema.meta.define(CjsCharacterGlesMorphDeformation, { className: "CjsCharacterGlesMorphDeformation" });

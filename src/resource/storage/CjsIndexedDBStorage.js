@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsStorageBackend } from "./CjsStorageBackend.js";
 import { matchesStorage, storageKey } from "./storageRecord.js";
 
@@ -239,3 +241,5 @@ export class CjsIndexedDBStorage extends CjsStorageBackend
         this.database = null;
     }
 }
+
+CjsSchema.meta.define(CjsIndexedDBStorage, { className: "CjsIndexedDBStorage" });

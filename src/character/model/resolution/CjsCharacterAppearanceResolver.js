@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 import { CjsCharacterPartMetadata } from "../catalog/CjsCharacterPartMetadata.js";
 import { CjsCharacterModifierReference } from "../catalog/CjsCharacterModifierReference.js";
 import { CjsCharacterPartSource } from "../catalog/CjsCharacterPartSource.js";
@@ -1242,3 +1244,5 @@ function AddDiagnostic(plan, code, message, severity, origin = null)
 }
 
 export default CjsCharacterAppearanceResolver;
+
+CjsSchema.meta.define(CjsCharacterAppearanceResolver, { className: "CjsCharacterAppearanceResolver" });

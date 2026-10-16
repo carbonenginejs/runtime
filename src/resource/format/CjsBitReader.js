@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: blue/include/BitPacker.h
 //   `BitPackerCore::DeQueueBits` (the LSB-first bit cursor)
 //   `BitPackerCore::DeQueueAlignedBlock` (align, then hand back whole bytes)
@@ -287,3 +289,5 @@ export class CjsBitReader extends CjsReader
 }
 
 export default CjsBitReader;
+
+CjsSchema.meta.define(CjsBitReader, { className: "CjsBitReader", donors: [ "BitPackerCore" ] });

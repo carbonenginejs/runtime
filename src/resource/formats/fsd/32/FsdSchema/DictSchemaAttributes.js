@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: fsd/FsdSchema.h
 // Source: fsd/FsdSchema.cpp
 import { FsdSchemaAttributes } from "./FsdSchemaAttributes.js";
@@ -35,3 +37,5 @@ export class DictSchemaAttributes
 }
 
 export default DictSchemaAttributes;
+
+CjsSchema.blue.define(DictSchemaAttributes, { className: "DictSchemaAttributes" });

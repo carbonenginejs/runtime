@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: videoplayer/IAudioSink.h
 //
 // Where decoded PCM goes. The sink also carries the clock: when one is present
@@ -53,3 +55,5 @@ export class IAudioSink
     throw new Error("IAudioSink.IsDone must be implemented.");
   }
 }
+
+CjsSchema.blue.define(IAudioSink, { className: "IAudioSink" });

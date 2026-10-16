@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 /**
  * Error raised when DirectX shader bytecode cannot be decoded safely.
  */
@@ -16,3 +18,5 @@ export class DxbcReadError extends Error
         this.details = details;
     }
 }
+
+CjsSchema.meta.define(DxbcReadError, { className: "DxbcReadError" });

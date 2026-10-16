@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { HlslEffectStageInput } from "./HlslEffectStageInput.js";
 import { HlslRenderContextEnum } from "../HlslRenderContextEnum.js";
 
@@ -41,3 +43,5 @@ export class HlslPass
         };
     }
 }
+
+CjsSchema.meta.define(HlslPass, { className: "HlslPass", donors: [ "Tr2Pass" ] });

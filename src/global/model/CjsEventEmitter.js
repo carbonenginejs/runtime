@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { installNotify } from "../compose/notify.js";
 
 /**
@@ -16,3 +18,5 @@ export class CjsEventEmitter
 }
 
 installNotify(CjsEventEmitter);
+
+CjsSchema.meta.define(CjsEventEmitter, { className: "CjsEventEmitter" });

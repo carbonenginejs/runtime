@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 /** Validates the one-to-one identity relationship between plan layers and textures. */
 export class CjsCharacterTextureContributions
 {
@@ -45,3 +47,5 @@ export class CjsCharacterTextureContributions
 }
 
 export default CjsCharacterTextureContributions;
+
+CjsSchema.meta.define(CjsCharacterTextureContributions, { className: "CjsCharacterTextureContributions" });

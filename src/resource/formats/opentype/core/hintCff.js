@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // CFF glyph hinting: ported from FreeType's Adobe CFF engine (src/psaux/
 // psblues.c, pshints.c, and the hint parts of psintrp.c and psft.c), the
 // engine FreeType uses for CFF fonts by default and so the one behind Carbon's
@@ -789,3 +791,5 @@ export function hintCffGlyph(cff, glyph, scales, bluesCache)
     }
     return { path: out, advanceWidth };
 }
+
+CjsSchema.meta.define(HintMap, { className: "HintMap" });

@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: core/include/CcpTime.h:38-46
 // Source: core/CcpTime.cpp:219-246 (TimeAsDouble), :255-264 (TimeFromDouble),
 //         :271-286 (TimeIsUTC),
@@ -224,3 +226,5 @@ export class CcpTime
     return { ok: true, time: ms * TICKS_PER_MILLISECOND };
   }
 }
+
+CjsSchema.meta.define(CcpTime, { className: "CcpTime" });

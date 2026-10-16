@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import {
     CjsCarbonEffectReader,
     readBackendBlock
@@ -397,3 +399,5 @@ export class CarbonWebgpuContainer
 }
 
 export default CarbonWebgpuContainer;
+
+CjsSchema.meta.define(CarbonWebgpuContainer, { className: "CarbonWebgpuContainer" });

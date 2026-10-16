@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 /**
  * Opt-in source-local Wwise RoomVerb approximation, selected by
  * `wwiseRoomVerb: "approximate-web-audio"`.
@@ -877,3 +879,5 @@ function SetParam(parameter, value)
 {
     if (parameter) parameter.value = value;
 }
+
+CjsSchema.meta.define(WwiseRoomVerbReader, { className: "WwiseRoomVerbReader" });

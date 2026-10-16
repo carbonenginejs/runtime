@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsBitReader } from "../../../format/CjsBitReader.js";
 import { imdct, vorbisWindowSlope } from "./imdct.js";
 
@@ -1288,3 +1290,7 @@ export function decodeVorbis(bytes)
         declaredGranule: lastGranule
     };
 }
+
+CjsSchema.meta.define(PacketReader, { className: "PacketReader" });
+
+CjsSchema.meta.define(Codebook, { className: "Codebook" });

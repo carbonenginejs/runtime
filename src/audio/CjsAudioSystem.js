@@ -698,3 +698,5 @@ export class CjsAudioSystem
         this.Detach();
     }
 }
+
+CjsSchema.meta.define(CjsAudioSystem, { className: "CjsAudioSystem" });

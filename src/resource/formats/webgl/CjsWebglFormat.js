@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsFormat } from "../../format/CjsFormat.js";
 /**
  * Exposed CarbonEngineJS-facing WebGL format class.
@@ -229,3 +231,5 @@ export class CjsWebglFormat extends CjsFormat
 }
 
 export default CjsWebglFormat;
+
+CjsSchema.meta.define(CjsWebglFormat, { className: "CjsWebglFormat" });

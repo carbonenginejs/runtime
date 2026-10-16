@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 /**
  * Pure GLES atlas-placement helpers.
  *
@@ -215,3 +217,5 @@ function ValidateTargetSize(size)
     }
     return [ size[0], size[1] ];
 }
+
+CjsSchema.meta.define(CjsCharacterGlesAtlasPlacement, { className: "CjsCharacterGlesAtlasPlacement" });

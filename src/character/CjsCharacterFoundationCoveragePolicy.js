@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 const FOOTWEAR_HEIGHTS = new Set([ "low", "shin", "medium", "knee", "high", "xhigh" ]);
 
 const FOUNDATION_ROLE_BY_MODIFIER_LOCATION = new Map([
@@ -283,3 +285,5 @@ function ResolveAuthoredFootwearHeight(metadata)
 }
 
 export default CjsCharacterFoundationCoveragePolicy;
+
+CjsSchema.meta.define(CjsCharacterFoundationCoveragePolicy, { className: "CjsCharacterFoundationCoveragePolicy" });

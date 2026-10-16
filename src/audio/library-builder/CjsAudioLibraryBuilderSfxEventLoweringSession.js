@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 // CarbonEngineJS original (no Carbon counterpart).
 import { SFX_UNSUPPORTED_PLAY_ACTIONS, SFX_PLAY_ACTION, SFX_PLAY_EVENT_ACTION, SFX_STOP_ACTION_FAMILY, SFX_PAUSE_ACTION_FAMILY, SFX_RESUME_ACTION_FAMILY, CjsAudioLibraryBuilderUtils, SFX_SET_VOICE_PITCH_ACTION_FAMILY, SFX_RESET_VOICE_PITCH_ACTION_FAMILY, SFX_SET_VOICE_VOLUME_ACTION_FAMILY, SFX_RESET_VOICE_VOLUME_ACTION_FAMILY, SFX_SET_BUS_VOLUME_ACTION_FAMILY, SFX_RESET_BUS_VOLUME_ACTION_FAMILY, SFX_SET_VOICE_LOW_PASS_ACTION_FAMILY, SFX_RESET_VOICE_LOW_PASS_ACTION_FAMILY, SFX_SET_VOICE_HIGH_PASS_ACTION_FAMILY, SFX_RESET_VOICE_HIGH_PASS_ACTION_FAMILY, SFX_SET_GAME_PARAMETER_ACTION_FAMILY, SFX_RESET_GAME_PARAMETER_ACTION_FAMILY, SFX_SET_SWITCH_ACTION_FAMILY, SFX_SET_STATE_ACTION_FAMILY, SFX_BUS_VOLUME_ACTION_FORMS, SFX_VOICE_FILTER_ACTION_FORMS } from "./CjsAudioLibraryBuilderUtils.js";
 import { CjsAudioLibraryBuilderWwiseNodeBaseAncestry } from "./CjsAudioLibraryBuilderWwiseNodeBaseAncestry.js";
@@ -1457,3 +1459,5 @@ function IsRetainedMusicSfxAction(action)
             && Number(action.targetFlags) === 0
             && !action.exceptions?.length);
 }
+
+CjsSchema.meta.define(CjsAudioLibraryBuilderSfxEventLoweringSession, { className: "CjsAudioLibraryBuilderSfxEventLoweringSession" });

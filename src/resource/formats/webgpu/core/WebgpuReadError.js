@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 /**
  * Error raised when a Carbon WebGPU package or WebGPU analysis pass cannot be
  * completed safely.
@@ -17,3 +19,5 @@ export class WebgpuReadError extends Error
         this.details = details;
     }
 }
+
+CjsSchema.meta.define(WebgpuReadError, { className: "WebgpuReadError" });

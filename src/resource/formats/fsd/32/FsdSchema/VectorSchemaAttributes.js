@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: fsd/FsdSchema.h
 
 /**
@@ -19,3 +21,5 @@ export class VectorSchemaAttributes
 }
 
 export default VectorSchemaAttributes;
+
+CjsSchema.blue.define(VectorSchemaAttributes, { className: "VectorSchemaAttributes" });

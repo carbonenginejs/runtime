@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Not Carbon: `dynamic:/texturepack` is ours. Carbon's dynamic constructors
 // (SolidColorTexture.cpp, GradientTexture.cpp) rasterize from values in the
 // query; this one composes other resources.
@@ -168,3 +170,5 @@ export function RegisterTexturePack(resourceManager)
   resourceManager.RegisterResourceConstructor("texturepack", new CjsTexturePackConstructor(resourceManager));
   return resourceManager;
 }
+
+CjsSchema.meta.define(CjsTexturePackConstructor, { className: "CjsTexturePackConstructor" });

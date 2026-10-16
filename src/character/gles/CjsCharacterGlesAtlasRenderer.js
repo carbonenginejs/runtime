@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 const composedStages = new WeakMap();
 
 /**
@@ -232,3 +234,5 @@ function CloneReport(report)
         } : {})
     };
 }
+
+CjsSchema.meta.define(CjsCharacterGlesAtlasRenderer, { className: "CjsCharacterGlesAtlasRenderer" });

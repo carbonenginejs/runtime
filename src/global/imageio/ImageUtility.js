@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: imageio/include/ImageUtility.h
 // Source: imageio/ImageUtility.cpp
 //
@@ -221,3 +223,5 @@ export class ImageUtility
   }
 
 }
+
+CjsSchema.meta.define(ImageUtility, { className: "ImageUtility" });

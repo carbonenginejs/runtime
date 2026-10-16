@@ -319,3 +319,5 @@ for (const name of [ "GetInfo", "Insert", "Append", "Remove", "GetAt", "FindKey"
 {
   CjsSchema.decorateMethod(BlueList, name, blue.method, meta.adapted);
 }
+
+CjsSchema.blue.define(BlueList, { className: "BlueList" });

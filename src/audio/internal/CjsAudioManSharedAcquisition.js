@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 import { throwIfAborted } from "#utils/errors";
 
 // CarbonEngineJS original (no Carbon counterpart). Internal lease owner for
@@ -154,3 +156,5 @@ function AbortReason(signal)
         ? signal.reason
         : new DOMException("Audio media load aborted", "AbortError");
 }
+
+CjsSchema.meta.define(CjsAudioManSharedAcquisition, { className: "CjsAudioManSharedAcquisition" });

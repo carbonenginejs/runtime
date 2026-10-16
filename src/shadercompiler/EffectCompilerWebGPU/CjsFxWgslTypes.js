@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Not in Carbon: HLSL types and names as WGSL spells them, for the WebGPU
 // target. Modelled on OutputHLSL.cpp's PrintTypeMSL (O:686-695), which already
 // turns HLSL `floatRxC` into the column-major `floatCxR`; WGSL's `matCxR<f32>`
@@ -196,3 +198,5 @@ export class CjsFxWgslTypes
         return name;
     }
 }
+
+CjsSchema.meta.define(CjsFxWgslTypes, { className: "CjsFxWgslTypes" });

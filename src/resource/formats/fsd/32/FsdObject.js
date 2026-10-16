@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: fsd/FsdObject.h
 // Source: fsd/FsdObject.cpp
 // Source: fsd/FsdObject_Blue.cpp
@@ -187,3 +189,5 @@ function ThrowUnlistedOptional(attributeName, path)
 }
 
 export default FsdObject;
+
+CjsSchema.blue.define(FsdObject, { className: "FsdObject" });

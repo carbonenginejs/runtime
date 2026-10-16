@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: videoplayer/Metadata.h:31-120
 //
 // Audio stream metadata. Carbon's nested `CodecInitializationData` is a buffer
@@ -42,3 +44,5 @@ export class AudioMetadata
     this.codecInitializationData = codecInitializationData;
   }
 }
+
+CjsSchema.blue.define(AudioMetadata, { className: "AudioMetadata" });

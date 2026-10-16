@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { TnyDatabase } from "./TnyDatabase.js";
 import { TnyStorage } from "./TnyStorage.js";
 import { TnyServices } from "./TnyServices.js";
@@ -49,3 +51,5 @@ export class Tny
         if (errors.length) throw new AggregateError(errors, "Tny shutdown failed");
     }
 }
+
+CjsSchema.meta.define(Tny, { className: "Tny" });

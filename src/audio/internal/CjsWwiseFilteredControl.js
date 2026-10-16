@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 // CarbonEngineJS original (no Carbon counterpart). Per-voice Web Audio
 // realization of already-qualified Wwise source-effect RTPC curves.
 const FILTER_SETTLE_MULTIPLIER = 2;
@@ -66,3 +68,5 @@ export class CjsWwiseFilteredControl
                 * Math.exp(-elapsed / this._timeConstant);
     }
 }
+
+CjsSchema.meta.define(CjsWwiseFilteredControl, { className: "CjsWwiseFilteredControl" });

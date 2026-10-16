@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 // CarbonEngineJS original (no Carbon counterpart). Internal realized-voice
 // state owner for CjsWebAudioSoundEngine's authored SFX playback.
 
@@ -195,3 +197,5 @@ export class CjsAudioBackendSfxVoice
         this.stopGain?.disconnect();
     }
 }
+
+CjsSchema.meta.define(CjsAudioBackendSfxVoice, { className: "CjsAudioBackendSfxVoice" });

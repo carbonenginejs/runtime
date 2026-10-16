@@ -1,3 +1,5 @@
+import { CjsError } from "../utils/errors/CjsError.js";
+import { CcpLogChannel_t } from "../logging/CcpLogChannel_t.js";
 import {
     cloneCarbonValue,
     coerceCarbonMathInto,
@@ -3455,3 +3457,11 @@ CjsSchema.meta.define(CjsBlueEnumRegistry, {
         "GetNameFromValue", "GetNameFromBitmask"
     ].map(name => [name, [CjsSchema.meta.adapted]]))
 });
+
+CjsSchema.blue.define(CcpLogChannel_t, { className: "CcpLogChannel_t" });
+
+CjsSchema.meta.define(CjsSchema, { className: "CjsSchema" });
+
+CjsSchema.meta.define(CjsError, { className: "CjsError" });
+
+CjsSchema.meta.define(CjsUnusedMethodError, { className: "CjsUnusedMethodError" });

@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // Source: trinity/trinity/Shader/Tr2EffectStateManager.h:104
 //   `typedef std::map<Tr2RenderContextEnum::RenderState, uint32_t> Tr2RenderStateSetup`
 //   registered by Tr2EffectStateManager::RegisterRenderStateSetup (:118), whose
@@ -725,3 +727,5 @@ export class Tr2RenderStateSetup
   }
 
 }
+
+CjsSchema.meta.define(Tr2RenderStateSetup, { className: "Tr2RenderStateSetup" });

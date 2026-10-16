@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 import { ICjsCharacterAppearanceAL } from "../ICjsCharacterAppearanceAL.js";
 import { CjsCharacterGlesFoundationTranslator } from "./CjsCharacterGlesFoundationTranslator.js";
 
@@ -424,3 +426,5 @@ function CloneResult(value)
 }
 
 export default CjsCharacterGlesAppearanceAL;
+
+CjsSchema.meta.define(CjsCharacterGlesAppearanceAL, { className: "CjsCharacterGlesAppearanceAL" });

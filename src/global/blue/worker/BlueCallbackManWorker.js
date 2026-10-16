@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 // The worker side of a `BlueCallbackMan` running its own threads.
 //
 // Ours: Carbon's callback threads run functions already in the process
@@ -85,3 +87,5 @@ export class BlueCallbackManWorker
     return () => scope.removeEventListener("message", onMessage);
   }
 }
+
+CjsSchema.meta.define(BlueCallbackManWorker, { className: "BlueCallbackManWorker" });

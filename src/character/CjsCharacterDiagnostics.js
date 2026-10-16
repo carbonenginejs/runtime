@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 /** Creates a detached proof snapshot from one resolved character session. */
 export class CjsCharacterDiagnostics
 {
@@ -83,3 +85,5 @@ export class CjsCharacterDiagnostics
 }
 
 export default CjsCharacterDiagnostics;
+
+CjsSchema.meta.define(CjsCharacterDiagnostics, { className: "CjsCharacterDiagnostics" });

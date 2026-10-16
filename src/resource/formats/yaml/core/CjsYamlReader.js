@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import {
     LineCounter,
     isAlias,
@@ -527,3 +529,5 @@ export class CjsYamlReader extends CjsReader
 }
 
 export default CjsYamlReader;
+
+CjsSchema.meta.define(CjsYamlReader, { className: "CjsYamlReader" });

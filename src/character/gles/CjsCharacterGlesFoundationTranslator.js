@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema";
+
 import { CjsCharacterTextureQuality } from "../CjsCharacterTextureQuality.js";
 
 const DEFAULT_SHADER_PATH =
@@ -250,3 +252,5 @@ function RequireResourcePath(value, label)
 }
 
 export default CjsCharacterGlesFoundationTranslator;
+
+CjsSchema.meta.define(CjsCharacterGlesFoundationTranslator, { className: "CjsCharacterGlesFoundationTranslator" });

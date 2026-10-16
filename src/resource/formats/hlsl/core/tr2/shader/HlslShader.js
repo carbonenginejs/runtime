@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { HlslRenderContextEnum } from "../HlslRenderContextEnum.js";
 import { ANY_TECHNIQUE, HlslEffectDescription } from "./HlslEffectDescription.js";
 
@@ -205,3 +207,5 @@ export class HlslShader
         };
     }
 }
+
+CjsSchema.meta.define(HlslShader, { className: "HlslShader", donors: [ "Tr2Shader" ] });

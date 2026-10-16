@@ -1,3 +1,5 @@
+import { CjsSchema } from "#schema/CjsSchema";
+
 import { CjsFormat } from "../../format/CjsFormat.js";
 import { CjsGeometryFormat } from "../../format/CjsGeometryFormat.js";
 /**
@@ -310,3 +312,5 @@ export class CjsStlFormat extends CjsGeometryFormat
 }
 
 export default CjsStlFormat;
+
+CjsSchema.meta.define(CjsStlFormat, { className: "CjsStlFormat" });
