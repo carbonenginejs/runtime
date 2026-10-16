@@ -496,7 +496,7 @@ export class Tr2ParticleSystem
     {
       return 0;
     }
-    const deltaTime = Math.max(0, Number(dt) || 0);
+    const deltaTime = dt;
     const lifetime = this._semanticElements[Tr2ParticleElementDeclaration.Type.LIFETIME];
     const position = this._semanticElements[Tr2ParticleElementDeclaration.Type.POSITION];
     const velocity = this._semanticElements[Tr2ParticleElementDeclaration.Type.VELOCITY];

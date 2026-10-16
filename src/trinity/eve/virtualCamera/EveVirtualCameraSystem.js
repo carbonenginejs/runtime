@@ -3,6 +3,7 @@ import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraSystem.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraSystem.cpp
 import { meta, type, blue } from "#schema";
+import { assertFiniteNumber } from "#utils/validation";
 import { EveVirtualCamera } from "./EveVirtualCamera.js";
 import { EveVirtualCameraTransitionCut } from "./transition/EveVirtualCameraTransitionCut.js";
 import { EveVirtualCameraTransitionLerp } from "./transition/EveVirtualCameraTransitionLerp.js";
@@ -159,13 +160,15 @@ export class EveVirtualCameraSystem
    * Advances every registered camera, the external camera and any running transition, clearing the transition once it completes.
    * @param {Number} simTime Absolute simulation time; the delta is derived from the previous call, and the first call produces a zero delta
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraSystem.cpp:133-160
-   * Adapted: simulation time is supplied as JavaScript seconds; existing numeric coercion is retained.
+   * Adapted: simulation time remains JavaScript seconds. Reject nonfinite or non-number
+   * timestamps before mutation: native Be::Time cannot carry NaN or infinity.
+   * @throws {TypeError} If simTime is not a finite number.
    */
   @blue.method
   @meta.adapted
   Update(simTime)
   {
-    const time = Number(simTime) || 0;
+    const time = assertFiniteNumber(simTime, "EveVirtualCameraSystem.Update simTime");
     if (this._lastUpdate === 0)
     {
       this._lastUpdate = time;

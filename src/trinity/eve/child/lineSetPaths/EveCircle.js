@@ -412,12 +412,11 @@ export class EveCircle extends IEveLineSetPath
   static _identityMatrix = mat4.create();
 
   /**
-   * Finite frame delta read from the required update-context contract.
+   * Reads the native frame delta without replacing nonfinite values.
    */
   static _getDeltaT(context)
   {
-    const value = context.GetDeltaT();
-    return Number.isFinite(Number(value)) ? Number(value) : 0;
+    return context.GetDeltaT();
   }
 
   /**

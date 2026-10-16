@@ -88,7 +88,7 @@ export class Tr2ParticleTurbulenceForce extends ITr2ParticleForce
   @meta.implemented
   Update(dt)
   {
-    this.#time += Math.max(0, Number(dt) || 0);
+    this.#time += dt;
   }
 
 }
