@@ -191,7 +191,7 @@ export function RasterizeGradient(path)
 
   for (let index = 0; index < data.length; index++)
   {
-    view.setUint16(index * 2, num.toHalfFloat(data[index]), true);
+    view.setUint16(index * 2, num.toCarbonHalfFloat(data[index]), true);
   }
 
   return bitmap;

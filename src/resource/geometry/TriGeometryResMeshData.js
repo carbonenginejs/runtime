@@ -15,7 +15,7 @@ export class TriGeometryResMeshData
   vertexDeclarationHandle = 0;
 
   /** m_bytesPerVertex (unsigned int) */
-  bytesPerVertex = -1;
+  bytesPerVertex = 0xffffffff;
 
   /** m_minBounds (Vector3) */
   minBounds = vec3.create();

@@ -304,7 +304,7 @@ test("SpatialAudioSettings and AudManager expose Carbon defaults and delegates",
   assert.equal(settings.GetMovementThreshold(), 100);
   assert.equal(settings.GetNumberOfPrimaryRays(), 35);
   assert.equal(settings.GetMaxDiffractionOrder(), 4);
-  assert.equal(settings.GetTransmissionLoss(), 0.7);
+  assert.equal(settings.GetTransmissionLoss(), Math.fround(0.7));
   settings.SetTransmissionLoss(2);
   assert.equal(settings.GetTransmissionLoss(), 1, "transmission loss clamps to Carbon's range");
   settings.SetTransmissionLoss(-1);

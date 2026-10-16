@@ -171,9 +171,9 @@ export class Tr2ControllerFloatVariable extends IInitialize
    * Binds a dirty-mask holder used when the variable changes.
    *
    * Adapted: a writable value holder replaces Carbon's uint64 pointer. BigInt
-   * preserves all 64 controller bits; a number holder can lose integer precision
-   * when the combined mask exceeds the safe integer range. Binding does not set
-   * any bits. Null detaches the holder; mask is still converted to BigInt.
+   * preserves all 64 controller bits. Safe integer inputs are promoted to BigInt;
+   * unsafe Number inputs are rejected because their bits are already lost.
+   * Values wrap to uint64. Binding does not set bits; null detaches the holder.
    *
    * @param {{value: bigint|number}|null} maskDestination Caller-owned mask holder.
    * @param {bigint|number} mask Bits to OR into the holder on modification.
@@ -184,8 +184,17 @@ export class Tr2ControllerFloatVariable extends IInitialize
   @meta.adapted
   SetDirtyMask(maskDestination, mask)
   {
+    for (const value of [mask, maskDestination?.value ?? 0n])
+    {
+      if (typeof value === "number" && !Number.isSafeInteger(value))
+      {
+        throw new RangeError("Dirty masks require BigInt or a safe integer");
+      }
+    }
+    const bits = BigInt.asUintN(64, BigInt(mask));
+    if (maskDestination) maskDestination.value = BigInt.asUintN(64, BigInt(maskDestination.value));
     this._dirtyMaskDestination = maskDestination;
-    this._dirtyMask = BigInt(mask);
+    this._dirtyMask = bits;
   }
 
   /**
@@ -218,8 +227,8 @@ export class Tr2ControllerFloatVariable extends IInitialize
   /**
    * ORs the configured dirty bit into the bound dirty-mask holder.
    *
-   * Preserves a bigint holder's type; converts the result back to number for a
-   * number holder. Does nothing when detached and never clears existing bits.
+   * Keeps the holder as an exact uint64 BigInt. Does nothing when detached
+   * and never clears existing bits.
    *
    * @returns {void}
    * @throws {RangeError|TypeError} If the holder value cannot convert to BigInt.
@@ -231,12 +240,11 @@ export class Tr2ControllerFloatVariable extends IInitialize
     {
       return;
     }
-    if (typeof destination.value === "bigint")
+    if (typeof destination.value !== "bigint")
     {
-      destination.value |= this._dirtyMask;
-      return;
+      throw new TypeError("Bound dirty-mask storage must remain BigInt");
     }
-    destination.value = Number(BigInt(destination.value) | this._dirtyMask);
+    destination.value = BigInt.asUintN(64, destination.value | this._dirtyMask);
   }
 
   /** Native presentation enum exposed for JavaScript callers. */

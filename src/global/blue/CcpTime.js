@@ -172,7 +172,8 @@ export class CcpTime
   static timeAsDateTime(dateTime, time)
   {
     const ms = Math.trunc(time / TICKS_PER_MILLISECOND) - MS_TO_UNIX_EPOCH;
-    const date = new Date(ms);
+    // CcpTime.cpp:151 divides signed integer milliseconds into whole seconds.
+    const date = new Date(Math.trunc(ms / 1000) * 1000);
 
     if (Number.isNaN(date.getTime())) return false;
 

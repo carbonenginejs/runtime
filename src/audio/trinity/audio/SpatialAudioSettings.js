@@ -34,7 +34,7 @@ export class SpatialAudioSettings
 
   _calcEmitterVirtualPosition = true;
 
-  _transmissionLoss = 0.7;
+  _transmissionLoss = Math.fround(0.7);
 
   _enableDiffraction = true;
 
@@ -69,7 +69,7 @@ export class SpatialAudioSettings
   @meta.implemented
   SetMovementThreshold(value)
   {
-    this._movementThreshold = Number(value);
+    this._movementThreshold = Math.fround(value);
   }
 
   /** Returns the maximum number of primary spatial-audio rays. */
@@ -85,7 +85,7 @@ export class SpatialAudioSettings
   @meta.implemented
   SetNumberOfPrimaryRays(value)
   {
-    this._numberOfPrimaryRays = Number(value);
+    this._numberOfPrimaryRays = Number(value) | 0;
   }
 
   /** Returns the maximum reflection order. */
@@ -101,7 +101,7 @@ export class SpatialAudioSettings
   @meta.implemented
   SetMaxReflectionOrder(value)
   {
-    this._maxReflectionOrder = Number(value);
+    this._maxReflectionOrder = Number(value) | 0;
   }
 
   /** Returns the maximum diffraction order. */
@@ -117,7 +117,7 @@ export class SpatialAudioSettings
   @meta.implemented
   SetMaxDiffractionOrder(value)
   {
-    this._maxDiffractionOrder = Number(value);
+    this._maxDiffractionOrder = Number(value) | 0;
   }
 
   /** Returns the maximum number of emitter room auxiliary sends. */
@@ -133,7 +133,7 @@ export class SpatialAudioSettings
   @meta.implemented
   SetMaxEmitterRoomAuxSends(value)
   {
-    this._maxEmitterRoomAuxSends = Number(value);
+    this._maxEmitterRoomAuxSends = Number(value) | 0;
   }
 
   /** Returns the diffraction order applied at reflection endpoints. */
@@ -149,7 +149,7 @@ export class SpatialAudioSettings
   @meta.implemented
   SetDiffractionOnReflectionsOrder(value)
   {
-    this._diffractionOnReflectionsOrder = Number(value);
+    this._diffractionOnReflectionsOrder = Number(value) | 0;
   }
 
   /** Returns the maximum spatial-audio path length. */
@@ -165,7 +165,7 @@ export class SpatialAudioSettings
   @meta.implemented
   SetMaxPathLength(value)
   {
-    this._maxPathLength = Number(value);
+    this._maxPathLength = Math.fround(value);
   }
 
   /** Returns the targeted spatial-audio CPU percentage. */
@@ -181,7 +181,7 @@ export class SpatialAudioSettings
   @meta.implemented
   SetCPULimitPercentage(value)
   {
-    this._cpuLimitPercentage = Number(value);
+    this._cpuLimitPercentage = Math.fround(value);
   }
 
   /** Returns the number of frames used for load balancing. */
@@ -197,7 +197,7 @@ export class SpatialAudioSettings
   @meta.implemented
   SetLoadBalancingSpread(value)
   {
-    this._loadBalancingSpread = Number(value);
+    this._loadBalancingSpread = Number(value) | 0;
   }
 
   /** Returns whether geometric diffraction and transmission are enabled. */
@@ -245,7 +245,7 @@ export class SpatialAudioSettings
   @meta.implemented
   SetTransmissionLoss(value)
   {
-    this._transmissionLoss = Math.max(0, Math.min(1, Number(value)));
+    this._transmissionLoss = Math.max(0, Math.min(1, Math.fround(value)));
   }
 
   /** Returns whether geometry diffraction is enabled. */
@@ -291,14 +291,14 @@ export class SpatialAudioSettings
   PopulateInitSettings(out = {})
   {
     out.fMovementThreshold = this._movementThreshold;
-    out.uNumberOfPrimaryRays = this._numberOfPrimaryRays;
-    out.uMaxReflectionOrder = this._maxReflectionOrder;
-    out.uMaxDiffractionOrder = this._maxDiffractionOrder;
-    out.uMaxEmitterRoomAuxSends = this._maxEmitterRoomAuxSends;
-    out.uDiffractionOnReflectionsOrder = this._diffractionOnReflectionsOrder;
+    out.uNumberOfPrimaryRays = this._numberOfPrimaryRays >>> 0;
+    out.uMaxReflectionOrder = this._maxReflectionOrder >>> 0;
+    out.uMaxDiffractionOrder = this._maxDiffractionOrder >>> 0;
+    out.uMaxEmitterRoomAuxSends = this._maxEmitterRoomAuxSends >>> 0;
+    out.uDiffractionOnReflectionsOrder = this._diffractionOnReflectionsOrder >>> 0;
     out.fMaxPathLength = this._maxPathLength;
     out.fCPULimitPercentage = this._cpuLimitPercentage;
-    out.uLoadBalancingSpread = this._loadBalancingSpread;
+    out.uLoadBalancingSpread = this._loadBalancingSpread >>> 0;
     out.bEnableGeometricDiffractionAndTransmission = this._enableDiffractionAndTransmission;
     out.bCalcEmitterVirtualPosition = this._calcEmitterVirtualPosition;
     return out;

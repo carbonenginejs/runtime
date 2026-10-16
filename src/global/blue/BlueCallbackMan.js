@@ -30,7 +30,7 @@ import { IBlueCallbackMan } from "./IBlueCallbackMan.js";
  * @property {string|null} name Worker callback name, or null.
  * @property {*} context Passed to the callback.
  * @property {Transferable[]} transfer Buffers handed to the worker with the context.
- * @property {number} timeStamp When it was queued, in seconds.
+ * @property {bigint} timeStamp When it was queued, in integer nanosecond ticks.
  * @property {number} fenceMask One bit per thread still to drain before it runs.
  * @property {{resolve: Function, reject: Function}|null} completion Settles a named entry's promise.
  */
@@ -42,10 +42,10 @@ const CCP_THREAD_PRIORITY_HIGHEST = 2;
 /** The most threads `SetThreadCount` allows (CallbackMan.cpp:86-90). */
 const MAX_THREAD_COUNT = 32;
 
-/** Seconds on a monotonic clock, in place of `CcpGetTimestamp` / `s_qpFreq`. */
-function timestampSeconds()
+/** Browser monotonic clock expressed as uint64 nanosecond ticks; frequency is 1e9. */
+function timestampTicks()
 {
-  return performance.now() / 1000;
+  return BigInt.asUintN(64, BigInt(Math.trunc(performance.now() * 1e6)));
 }
 
 /** The rejection a cancelled entry's promise gets. */
@@ -106,7 +106,7 @@ export class BlueCallbackMan extends IBlueCallbackMan
   /** @type {BlueCallbackEntry[]} */
   _fenceQueue = [];
 
-  /** Callback ids are a simple incrementing counter. */
+  /** Callback ids wrap as Carbon uint32 values. */
   _nextId = 1;
 
   _threadCount = 1;
@@ -122,9 +122,9 @@ export class BlueCallbackMan extends IBlueCallbackMan
 
   _stop = false;
 
-  _timeInQueueMax = 0;
+  _timeInQueueMax = 0n;
 
-  _timeInQueueTotal = 0;
+  _timeInQueueTotal = 0n;
 
   _timeInQueueAverage = 0;
 
@@ -216,7 +216,7 @@ export class BlueCallbackMan extends IBlueCallbackMan
       name,
       context,
       transfer,
-      timeStamp: timestampSeconds(),
+      timeStamp: timestampTicks(),
       fenceMask: 0,
       completion
     };
@@ -232,7 +232,7 @@ export class BlueCallbackMan extends IBlueCallbackMan
     if (flags & IBlueCallbackMan.BCBF_URGENT) this._urgentQueue.push(entry);
     else this._queue.push(entry);
 
-    ++this._nextId;
+    this._nextId = (this._nextId + 1) >>> 0;
     ++this._size;
 
     if (this._isRunningOwnThreads) this._Alarm();
@@ -444,14 +444,14 @@ export class BlueCallbackMan extends IBlueCallbackMan
 
     td.currentId = entry.id;
 
-    const delta = timestampSeconds() - entry.timeStamp;
-    if (delta > 0)
+    const delta = timestampTicks() - entry.timeStamp;
+    if (delta > 0n)
     {
       if (delta > this._timeInQueueMax) this._timeInQueueMax = delta;
-      this._timeInQueueTotal += delta;
+      this._timeInQueueTotal = BigInt.asUintN(64, this._timeInQueueTotal + delta);
+      this._entriesProcessed = (this._entriesProcessed + 1) >>> 0;
+      this._timeInQueueAverage = Number(this._timeInQueueTotal) / this._entriesProcessed;
     }
-    ++this._entriesProcessed;
-    this._timeInQueueAverage = this._timeInQueueTotal / this._entriesProcessed;
 
     const finish = () =>
     {
@@ -635,21 +635,21 @@ export class BlueCallbackMan extends IBlueCallbackMan
   /** `GetTimeInQueueMax` (CallbackMan.cpp:444-451), in seconds. */
   GetTimeInQueueMax()
   {
-    return this._timeInQueueMax;
+    return Math.fround(Number(this._timeInQueueMax) / 1e9);
   }
 
   /** `GetTimeInQueueAverage` (CallbackMan.cpp:453-460), in seconds. */
   GetTimeInQueueAverage()
   {
-    return this._timeInQueueAverage;
+    return Math.fround(this._timeInQueueAverage / 1e9);
   }
 
   /** `ResetQueueStats` (CallbackMan.cpp:462-468). */
   ResetQueueStats()
   {
     this._timeInQueueAverage = 0;
-    this._timeInQueueMax = 0;
-    this._timeInQueueTotal = 0;
+    this._timeInQueueMax = 0n;
+    this._timeInQueueTotal = 0n;
     this._entriesProcessed = 0;
   }
 

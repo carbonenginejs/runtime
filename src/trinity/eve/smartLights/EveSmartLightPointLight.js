@@ -10,6 +10,7 @@ import { ResourceRequirement } from "#resource";
 import { IsMatch, be } from "#blue";
 import { EveEntity } from "../EveEntity.js";
 import { resolveGroupColor } from "../../eve/smartLights/EveSmartLightBaseGroup.js";
+import { num } from "#math/num";
 import { color } from "#math/color";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -377,14 +378,14 @@ export class EveSmartLightPointLight extends EveEntity
   /**
    * Registers one light per distribution placement with the injected light
    * manager (EveSmartLightPointLight.cpp:65-131). The submitted record keeps
-   * typed CPU state only (float32 color/direction, unpacked flags, the
+   * typed CPU state (float32 color, half-rounded direction, unpacked flags, the
    * CjsLightData and unresolved profile reference); Carbon's Float_16/
-   * Vector3_16 packing and the profile-index flag packing
+   * Vector3_16 values are rounded before submission. Physical storage and profile-index flag packing
    * (GetTextureIndex() + 1 << 4) are renderer/resource-adapter concerns.
    * The record is scratch - the manager must copy, as Carbon's
    * Tr2LightManager::AddLight copies PerLightData by value.
    *
-   * Adapted: Physical per-light packing (half floats, profile-index flag bits) moves to the
+   * Adapted: Physical per-light packing (half words, profile-index flag bits) moves to the
    * renderer backend; Trinity submits the typed CPU record per placement.
    */
   @blue.method
@@ -422,7 +423,7 @@ export class EveSmartLightPointLight extends EveEntity
       perLightScaling *= Math.max(placement.additionalScale[0], placement.additionalScale[1], placement.additionalScale[2]);
 
       record.radius = this.radius * scaling * perLightScaling;
-      record.innerRadius = this.innerRadius * scaling * perLightScaling;
+      record.innerRadius = num.fromCarbonHalfFloat(num.toCarbonHalfFloat(Math.fround(Math.fround(this.innerRadius * scaling) * perLightScaling)));
       record.flags = this.flags;
 
       // Carbon (row-vector): initialRotation * additionalRotation - initialRotation first.
@@ -449,6 +450,10 @@ export class EveSmartLightPointLight extends EveEntity
       // TriVectorRotateMatrix: rotate by the world basis only (no translation).
       statics._TransformNormal(direction, direction, m);
       vec3.normalize(record.direction, direction);
+      for (let axis = 0; axis < 3; axis++)
+      {
+        record.direction[axis] = num.fromCarbonHalfFloat(num.toCarbonHalfFloat(record.direction[axis]));
+      }
 
       const strength = this.brightness * this._activationStrength;
       vec3.set(record.color, groupColor[0] * strength, groupColor[1] * strength, groupColor[2] * strength);
@@ -463,8 +468,8 @@ export class EveSmartLightPointLight extends EveEntity
 
       if (this.lightType === Tr2Light.SPOT_LIGHT)
       {
-        record.outerAngle = Math.cos((2 * Math.PI * this.outerAngle) / 360);
-        record.innerAngle = Math.cos((2 * Math.PI * this.innerAngle) / 360);
+        record.outerAngle = num.fromCarbonHalfFloat(num.toCarbonHalfFloat(Math.cos(Math.fround(Math.fround(Math.fround(2 * Math.PI) * this.outerAngle) / 360))));
+        record.innerAngle = num.fromCarbonHalfFloat(num.toCarbonHalfFloat(Math.cos(Math.fround(Math.fround(Math.fround(2 * Math.PI) * this.innerAngle) / 360))));
       }
 
       record.lightType = this.lightType;

@@ -177,7 +177,7 @@ export class TriCurveSet extends IInitialize
       this.ApplyTimeRange();
       if (this._endTime > 0 && this._startTime + this.scaledTime >= this._endTime)
       {
-        this.scaledTime = this._endTime - this._startTime - 0.001;
+        this.scaledTime = this._endTime - this._startTime - Math.fround(0.001);
         this._stopOnNextFrame = true;
       }
       this.Apply(renderContext);

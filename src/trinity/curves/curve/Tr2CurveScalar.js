@@ -673,7 +673,7 @@ export class Tr2CurveScalar extends ITriScalarFunction
   }
 
   /**
-   * Samples the curve into the destination buffer.
+   * Samples the curve into numeric storage with Carbon Float_16 rounding.
    *
    * @param {{width: number, stride: number, data: Float32Array|number[]}} destination Raster output and stride.
    * @returns {void}
@@ -684,8 +684,9 @@ export class Tr2CurveScalar extends ITriScalarFunction
   {
     for (let i = 0; i < destination.width; i++)
     {
-      const t = destination.width === 1 ? 0.5 : i / (destination.width - 1);
-      destination.data[i * destination.stride] = this.GetValue(t);
+      const t = destination.width === 1 ? 0.5 : Math.fround(Math.fround(i) / Math.fround(destination.width - 1));
+      // Float_16 storage rounded through the existing half-float helpers.
+      destination.data[i * destination.stride] = num.fromCarbonHalfFloat(num.toCarbonHalfFloat(this.GetValue(t)));
     }
   }
 

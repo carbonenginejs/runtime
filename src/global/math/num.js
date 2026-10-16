@@ -794,6 +794,58 @@ num.srgbFromLinear = function (a)
         : 1.055 * Math.pow(a, 1.0 / 2.4) - 0.055;
 };
 
+/**
+ * Encodes Carbon Float_16, including its non-IEEE exponent-31 and special values.
+ * Source: math/src/Float16.cpp:83-184. General IEEE storage uses toHalfFloat.
+ * @param {number} value Float32 input.
+ * @returns {number} Unsigned 16-bit storage word.
+ */
+num.toCarbonHalfFloat = (function()
+{
+    const floats = new Float32Array(1);
+    const words = new Uint32Array(floats.buffer);
+    return function(value)
+    {
+        floats[0] = value;
+        value = floats[0];
+        const sign = (words[0] >>> 16) & 0x8000;
+        if (!Number.isFinite(value)) return sign | 0x7fff;
+        if (value === 0) return sign;
+        let scaled = Math.abs(value), exponent = 0;
+        while (scaled < 1024) { scaled *= 2; exponent--; }
+        while (scaled >= 2048) { scaled /= 2; exponent++; }
+        exponent += 25;
+        const originalExponent = exponent;
+        let mantissa = Math.trunc(scaled);
+        const remainder = scaled - mantissa;
+        if (remainder > 0.5 || (remainder === 0.5 && (mantissa & 1))) mantissa++;
+        if (mantissa === 2048) { mantissa = 1024; exponent++; }
+        if (exponent > 31) return sign | 0x7fff;
+        if (exponent <= 0)
+        {
+            if (exponent < -11) return sign;
+            mantissa = Math.trunc(scaled * 8192) >>> (1 - originalExponent);
+            mantissa = (mantissa - (~(mantissa >>> 13) & 1)) >>> 0;
+            mantissa >>>= 12;
+            return sign | ((mantissa >>> 1) + (mantissa & 1));
+        }
+        return sign | (exponent << 10) | (mantissa & 0x3ff);
+    };
+})();
+
+/**
+ * Decodes Carbon Float_16; only magnitude 0x7fff is special in the donor.
+ * Source: math/src/Float16.cpp:188-220.
+ * @param {number} word Unsigned 16-bit storage word.
+ * @returns {number} Decoded float32 value.
+ */
+num.fromCarbonHalfFloat = function(word)
+{
+    if ((word & 0x7fff) === 0x7fff) return word & 0x8000 ? -NaN : NaN;
+    if ((word & 0x7c00) !== 0x7c00) return num.fromHalfFloat(word);
+    return (word & 0x8000 ? -1 : 1) * 65536 * (1 + (word & 0x3ff) / 1024);
+};
+
 export const {
     EPSILON,
     RAD2DEG,
@@ -813,6 +865,7 @@ export const {
     exponentialDecay,
     fract,
     fromHalfFloat,
+    fromCarbonHalfFloat,
     floor,
     getLongWordOrder,
     greaterThan,
@@ -848,6 +901,7 @@ export const {
     smoothStep,
     smootherStep,
     toHalfFloat,
+    toCarbonHalfFloat,
     colorFromLinear,
     linearFromColor,
     hexFromLinear,

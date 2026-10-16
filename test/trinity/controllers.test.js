@@ -158,7 +158,7 @@ test("Tr2ControllerFloatVariable writes destinations and dirty masks", () =>
   };
   variable.SetDirtyMask(numberDirty, 0x20);
   assert(variable.OnModified("value"));
-  assertEquals(numberDirty.value, 0x20);
+  assertEquals(numberDirty.value, 0x20n);
   assertEquals(CjsSchema.getField(Tr2ControllerFloatVariable, "variableType")?.type.kind, "int32");
   assertEquals(CjsSchema.getField(Tr2ControllerFloatVariable, "value")?.type.kind, "float32");
 });
