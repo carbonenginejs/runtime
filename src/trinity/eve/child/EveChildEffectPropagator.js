@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator_Blue.cpp
@@ -539,7 +540,7 @@ export class EveChildEffectPropagator extends EveChildContainer
    * history, with Carbon's early exit when the history covers the set or the
    * spawn rate saturates 75% of the locators.
    *
-   * Adapted: Math.random replaces Carbon's unseeded TriRand.
+   * Random draws delegate to the matching generator in global/math/random.js.
    */
   @blue.method
   @meta.adapted
@@ -551,7 +552,7 @@ export class EveChildEffectPropagator extends EveChildContainer
 
     if (ltSize >= ptSize || this.frequency * this.durationPerEffect > 0.75 * ptSize)
     {
-      locatorIndex = Math.floor(Math.random() * ptSize);
+      locatorIndex = carbonRandom.triRandInt(ptSize);
     }
     else
     {
@@ -560,7 +561,7 @@ export class EveChildEffectPropagator extends EveChildContainer
       // triggers).
       while (locatorIndex === -1)
       {
-        locatorIndex = Math.floor(Math.random() * ptSize);
+        locatorIndex = carbonRandom.triRandInt(ptSize);
         for (let index = 0; index < ltSize; index++)
         {
           if (locatorIndex === this._lastTriggered[index])
@@ -649,7 +650,7 @@ export class EveChildEffectPropagator extends EveChildContainer
    * sample the owned locator set through the completeness gate; the trigger
    * sphere scalar becomes twice the farthest locator distance.
    *
-   * Adapted: Math.random replaces Carbon's unseeded TriRand.
+   * Random draws delegate to the matching generator in global/math/random.js.
    */
   @blue.method
   @meta.adapted
@@ -665,7 +666,7 @@ export class EveChildEffectPropagator extends EveChildContainer
     this.triggerSphereScalarMulti = 0;
     for (const locator of locators)
     {
-      if (Math.random() > this.completeness)
+      if (carbonRandom.triRand() > this.completeness)
       {
         continue;
       }
@@ -677,7 +678,7 @@ export class EveChildEffectPropagator extends EveChildContainer
       // Locator directions persist as packed quaternions; copied verbatim
       // (Carbon t.rotation = it->direction - no composition).
       quat.copy(record.rotation, locator.direction);
-      const rand = this.randScaleMin + Math.random() * (this.randScaleMax - this.randScaleMin);
+      const rand = this.randScaleMin + carbonRandom.triRand() * (this.randScaleMax - this.randScaleMin);
       // Carbon t.scale = m_effectScaling * rand - scalar-vector scale.
       vec3.scale(record.scale, this.effectScaling, rand);
       this._processedTransforms.push(record);
@@ -690,8 +691,8 @@ export class EveChildEffectPropagator extends EveChildContainer
    * the named locator set (default "damage") from the space-object parent and
    * scale the trigger sphere by the parent's bounding-sphere radius.
    *
-   * Adapted: Math.random replaces Carbon's unseeded TriRand. Carbon drops the
-   * locator's bone, so a propagated effect stays where the locator was authored
+   * Random draws delegate to the matching generator in global/math/random.js.
+   * Carbon drops the locator's bone, so a propagated effect stays where the locator was authored
    * while the hull animates (CE-171); ours keeps it, and CreateInstance attaches
    * the instance to that bone, as the instance container's own locator path
    * does (EveChildInstanceContainer.cpp:211, :265-273).
@@ -724,7 +725,7 @@ export class EveChildEffectPropagator extends EveChildContainer
     {
       for (const locator of locators)
       {
-        if (Math.random() > this.completeness)
+        if (carbonRandom.triRand() > this.completeness)
         {
           continue;
         }
@@ -733,7 +734,7 @@ export class EveChildEffectPropagator extends EveChildContainer
         vec3.copy(record.position, locator.position);
         quat.copy(record.rotation, locator.direction);
         record.boneIndex = locator.boneIndex;
-        const rand = this.randScaleMin + Math.random() * (this.randScaleMax - this.randScaleMin);
+        const rand = this.randScaleMin + carbonRandom.triRand() * (this.randScaleMax - this.randScaleMin);
         // Carbon t.scale = m_effectScaling * rand - scalar-vector scale.
         vec3.scale(record.scale, this.effectScaling, rand);
         this._processedTransforms.push(record);
@@ -746,7 +747,7 @@ export class EveChildEffectPropagator extends EveChildContainer
    * closeness-biased distance inside [minRangeThreshold, range]; the packed
    * direction quaternion comes from TriQuaternionDirVector.
    *
-   * Adapted: Math.random replaces Carbon's unseeded TriRand.
+   * Random draws delegate to the matching generator in global/math/random.js.
    */
   @blue.method
   @meta.adapted
@@ -755,7 +756,7 @@ export class EveChildEffectPropagator extends EveChildContainer
     const count = Number(this.numTriggers);
     for (let index = 0; index < count; index++)
     {
-      if (Math.random() > this.completeness)
+      if (carbonRandom.triRand() > this.completeness)
       {
         continue;
       }
@@ -763,13 +764,13 @@ export class EveChildEffectPropagator extends EveChildContainer
       // Carbon (cpp:489-491): dist starts uniform, is pulled toward the
       // closeness preference by a second uniform draw, then maps into
       // [minRangeThreshold, range].
-      let dist = Math.random();
-      dist += (this.ClosenessPreference - dist) * Math.random();
+      let dist = carbonRandom.triRand();
+      dist += (this.ClosenessPreference - dist) * carbonRandom.triRand();
       dist = this.minRangeThreshold + (this.range - this.minRangeThreshold) * dist;
 
       // Carbon (cpp:493-495): uniform unit-sphere direction from (a, z).
-      const a = 2 * Math.PI * Math.random();
-      const z = Math.random() * 2 - 1;
+      const a = 2 * Math.PI * carbonRandom.triRand();
+      const z = carbonRandom.triRand() * 2 - 1;
       const s = Math.sqrt(1 - z * z);
 
       const record = NewTransformRecord();
@@ -779,7 +780,7 @@ export class EveChildEffectPropagator extends EveChildContainer
       // quaternion composition.
       vec3.set(SPHERE_CENTER_SCRATCH, s * Math.cos(a), s * Math.sin(a), z);
       TriQuaternionDirVector(record.rotation, SPHERE_CENTER_SCRATCH);
-      const rand = this.randScaleMin + Math.random() * (this.randScaleMax - this.randScaleMin);
+      const rand = this.randScaleMin + carbonRandom.triRand() * (this.randScaleMax - this.randScaleMin);
       // Carbon t.scale = m_effectScaling * rand - scalar-vector scale.
       vec3.scale(record.scale, this.effectScaling, rand);
       this._processedTransforms.push(record);
@@ -823,7 +824,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   /** Carbon EveChildEffectPropagator::RecalculateLocatorSizes (cpp:542-549):
    * re-randomize the per-locator scale for a delayed replay.
    *
-   * Adapted: Math.random replaces Carbon's unseeded TriRand.
+   * Random draws delegate to the matching generator in global/math/random.js.
    */
   @blue.method
   @meta.adapted
@@ -831,7 +832,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   {
     for (const record of this._processedTransforms)
     {
-      const rand = this.randScaleMin + Math.random() * (this.randScaleMax - this.randScaleMin);
+      const rand = this.randScaleMin + carbonRandom.triRand() * (this.randScaleMax - this.randScaleMin);
       // Carbon it->scale = m_effectScaling * rand - scalar-vector scale.
       vec3.scale(record.scale, this.effectScaling, rand);
     }

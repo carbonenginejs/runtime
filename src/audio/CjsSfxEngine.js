@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 import { CjsSchema } from "#schema";
 
 // CarbonEngineJS original (no Carbon counterpart). Browser-safe interpreter
@@ -89,7 +90,7 @@ export class CjsSfxEngine
     /**
      * Creates an interpreter for an installed, validated SFX graph.
      */
-    constructor({ graph, random = Math.random } = {})
+    constructor({ graph, random = carbonRandom.host } = {})
     {
         if (!graph || typeof graph !== "object" || Array.isArray(graph))
         {

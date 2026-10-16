@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionResetClipSphereCenter.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionResetClipSphereCenter.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionResetClipSphereCenter_Blue.cpp
@@ -77,7 +78,7 @@ export class Tr2ActionResetClipSphereCenter extends ITr2ControllerAction
    * moves the clip sphere centre to a locator of the named set; a negative
    * index picks one at random, an index past the set does nothing.
    *
-   * Math.random stands in for rand(). Carbon computes rand() % size on an empty
+   * Random draws delegate to the matching generator in global/math/random.js.
    * set when the index is negative, a division by zero (CE-56); an empty set
    * does nothing here.
    * @param {EveSpaceObject2} owner
@@ -95,7 +96,7 @@ export class Tr2ActionResetClipSphereCenter extends ITr2ControllerAction
       if (locatorIndex < 0)
       {
         if (!locators.length) return;
-        locatorIndex = Math.floor(Math.random() * locators.length);
+        locatorIndex = (carbonRandom.crtRand() % (locators.length));
       }
       owner.ResetClipSphereCenterToPos(locators[locatorIndex].position);
     }

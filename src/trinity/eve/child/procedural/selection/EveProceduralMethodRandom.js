@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodRandom.h
 import { IsMatch, INotify, IListNotify } from "#blue";
 import { IInitialize } from "../../../../../global/blue/IInitialize.js";
@@ -5,7 +6,6 @@ import { IInitialize } from "../../../../../global/blue/IInitialize.js";
 import { CjsSchema, meta, type, blue } from "#schema";
 import { EveProceduralMethodRandomParameter } from "./EveProceduralMethodRandomParameter.js";
 import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.js";
-import { CjsDistributionRandom } from "../../../CjsDistributionRandom.js";
 
 // Carbon BELIST_LOADING (blueexposure IList.h:50): list events raised while a
 // persisted list hydrates carry this flag and must not regenerate the map.
@@ -121,12 +121,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
   /** Carbon EveProceduralMethodRandom::SelectARandomParameter (cpp:57-82):
    * seed the generator from m_seed, draw an integer inside the total weight,
    * and pick the first cumulative threshold above it. Carbon uses
-   * srand((int)m_seed) + rand() % totalWeight; the port draws from the repo's
-   * seeded minstd generator so a given seed stays deterministic.
-   *
-   * Adapted: createMinStdRandom replaces the C runtime srand/rand pair -
-   * deterministic per seed like Carbon, though the exact integer sequence
-   * differs.
+   * srand((int)m_seed) + rand() % totalWeight on the shared CRT stream.
    */
   @blue.method
   @meta.adapted
@@ -138,8 +133,8 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
     }
 
     const currentChild = this.selectedChild;
-    const random = CjsDistributionRandom.createMinStdRandom(Math.trunc(this.seed_temp));
-    const rnd = Math.min(Math.floor(random() * this.totalWeight), this.totalWeight - 1);
+    carbonRandom.crtSrand(Math.trunc(this.seed_temp));
+    const rnd = carbonRandom.crtRand() % this.totalWeight;
 
     this.selectedChild = -1;
     for (let index = 0; index < this._parameterMapping.length; index++)

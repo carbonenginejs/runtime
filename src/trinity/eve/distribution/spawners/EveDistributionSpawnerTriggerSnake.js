@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerTriggerSnake.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { vec3 } from "#math/vec3";
@@ -67,7 +68,7 @@ export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
       return;
     }
 
-    const index = Math.floor(Math.random() * placements.length);
+    const index = carbonRandom.triRandInt(placements.length);
     const placement = placements[index].placement;
     vec3.copy(this._targetPoint, placement.initialTranslation);
     vec3.copy(this._lastTarget, this._targetPoint);
@@ -118,7 +119,7 @@ export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
     this.travelProgress = 0;
     this.destinationsReached++;
     this._travelDurationToNextPoint = this.minBaseTimeBetweenTriggers
-      + (this.maxBaseTimeBetweenTriggers - this.minBaseTimeBetweenTriggers) * Math.random();
+      + (this.maxBaseTimeBetweenTriggers - this.minBaseTimeBetweenTriggers) * carbonRandom.triFloatRandom01();
 
     const searchPoint = vec3.lerp(vec3.create(), this._lastTarget, this._targetPoint, 1.3);
     const closestPlacement = owner.GetClosestFreePlacement(searchPoint);

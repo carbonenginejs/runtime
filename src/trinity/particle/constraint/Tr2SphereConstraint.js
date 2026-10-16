@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 import { BlueList, IListNotify, IInitialize } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ITr2GenericEmitter } from "../ITr2GenericEmitter/ITr2GenericEmitter.js";
@@ -171,8 +172,7 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
    * nor enter the swept test still fall through to it, and that control flow
    * is preserved.
    *
-   * Adapted: Runs single-threaded against the CPU element views; Carbon's particle RNG is
-   * replaced by Math.random.
+   * Adapted: Runs single-threaded against CPU element views, using the shared particle RNG.
    */
   @blue.method
   @meta.adapted
@@ -291,7 +291,11 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
     if (this.reflectionNoise > 0)
     {
       const noise = Tr2SphereConstraint.#noise;
-      vec3.set(noise, Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1);
+      // MSVC evaluates the native vector-constructor arguments right to left.
+      for (let axis = 2; axis >= 0; axis--)
+      {
+        noise[axis] = carbonRandom.particleRandFloat() * 2 - 1;
+      }
       vec3.scale(noise, noise, this.reflectionNoise);
       vec3.scaleAndAdd(noise, noise, normal, -vec3.dot(noise, normal));
       vec3.scale(velocity, noise, vec3.length(velocity));

@@ -1,6 +1,6 @@
 // Tr2TextureAtlas / Tr2AtlasTexture / Tr2TextureAtlasMan on Carbon's stub AL.
 //
-// Every expected value is derived by hand from the donor, E:\carbonengine\trinity\trinity:
+// Every expected value is derived by hand from the donor, trinity/trinity:
 //   Tr2TextureAtlas.cpp (GetFreeArea :688-860, CreateTexture :1079-1164,
 //   RemoveFromAtlas :194-219, PullInOutsiders :967-1034, EjectTextureHelper
 //   :1287-1356, ReleasePendingFreeAreas :1393-1415, EjectAllTextures :1358-1391,

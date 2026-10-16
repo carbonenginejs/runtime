@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Particle/Tr2RandomUniformAttributeGenerator.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
@@ -73,7 +74,7 @@ export class Tr2RandomUniformAttributeGenerator extends ITr2AttributeGenerator
     for (let component = 0; component < this.#element.dimension; component++)
     {
       this.#element.buffer[offset + component] = this.minRange[component]
-        + Math.random() * (this.maxRange[component] - this.minRange[component]);
+        + carbonRandom.particleRandFloat() * (this.maxRange[component] - this.minRange[component]);
     }
   }
 

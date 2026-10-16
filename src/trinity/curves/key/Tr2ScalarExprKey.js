@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Curves/Tr2ScalarExprKeyCurve.h
 // Source: trinity/trinity/Curves/Tr2ScalarExprKeyCurve.cpp
 // Source: trinity/trinity/Curves/Tr2ScalarExprKeyCurve_Blue.cpp
@@ -187,10 +188,8 @@ export class Tr2ScalarExprKey extends IInitialize
   /**
    * Regenerates the key's random constant from its authored range.
    *
-   * Adapted: Uses the host Math.random stream and Number arithmetic instead of
-   * Carbon's rand()/RAND_MAX and float arithmetic (Tr2ScalarExprKeyCurve.cpp:238-241).
-   * The host unit sample is below one; the native quotient can equal one.
-   * Native random sequences are not reproduced.
+   * Uses Carbon's CRT rand()/RAND_MAX quotient, including its inclusive endpoint.
+   * Range arithmetic remains JavaScript Number arithmetic.
    *
    * @returns {void}
    */
@@ -198,7 +197,7 @@ export class Tr2ScalarExprKey extends IInitialize
   @meta.adapted
   RegenRandomConstant()
   {
-    this.randomConstant = this.randomMin + Math.random() * (this.randomMax - this.randomMin);
+    this.randomConstant = this.randomMin + carbonRandom.triFloatRandom01() * (this.randomMax - this.randomMin);
   }
 
   /**

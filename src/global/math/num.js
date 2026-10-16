@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 export const num = {};
 
 num.EPSILON = 0.000001;
@@ -454,7 +455,7 @@ num.radiansUnwrapped = function (a)
  */
 num.randomInt = function (low, high)
 {
-    return low + Math.floor(Math.random() * (high - low + 1));
+    return low + Math.floor(carbonRandom.host() * (high - low + 1));
 };
 
 /**
@@ -466,7 +467,7 @@ num.randomInt = function (low, high)
  */
 num.randomFloat = function (low, high)
 {
-    return low + Math.random() * (high - low);
+    return low + carbonRandom.host() * (high - low);
 };
 
 /**

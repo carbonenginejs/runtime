@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Particle/Tr2PlaneConstraint.h
 import { IsMatch, BlueList, IListNotify, INotify } from "#blue";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
@@ -279,7 +280,11 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
       return;
     }
     const noise = Tr2PlaneConstraint.#noise;
-    vec3.set(noise, Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1);
+    // MSVC evaluates the native vector-constructor arguments right to left.
+    for (let axis = 2; axis >= 0; axis--)
+    {
+      noise[axis] = carbonRandom.particleRandFloat() * 2 - 1;
+    }
     vec3.scale(noise, noise, this.reflectionNoise);
     vec3.scaleAndAdd(noise, noise, normal, -vec3.dot(noise, normal));
     vec3.scaleAndAdd(velocity, velocity, noise, vec3.length(velocity));

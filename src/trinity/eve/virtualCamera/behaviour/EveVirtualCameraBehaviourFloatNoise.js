@@ -1,7 +1,8 @@
+import { random } from "#math/random";
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { meta, type, blue } from "#schema";
-import { INotify } from "#blue";
+import { INotify, be } from "#blue";
 import { Tr2CurveScalar } from "../../../curves/curve/Tr2CurveScalar.js";
 import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
 import { TriPerlinCurve } from "../../../curves/curve/TriPerlinCurve.js";
@@ -50,6 +51,7 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
     super();
     this.magnitudeCurve = EveVirtualCameraBehaviourFloatNoise._createMagnitudeCurve();
     this.SetName("Shake");
+    random.triSrand(be.os.GetCurrentFrameTime()); // Carbon constructor reseeds the shared stream.
   }
 
   /**

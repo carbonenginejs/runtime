@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 import { ITr2LightOwner } from "../../lights/ITr2LightOwner.js";
 import { ITr2DebugRenderable } from "../../../../global/interfaces/ITr2DebugRenderable.js";
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch2.h
@@ -125,7 +126,7 @@ export class EveStretch2 extends IEveFiringEffectElement
   _inFrustum = true;
   _startTime = 0;
   _intensity = 1;
-  _effectData = [vec4.fromValues(0, 0, 0, Math.random()), vec4.fromValues(1, 0, 0, 0)];
+  _effectData = [vec4.fromValues(0, 0, 0, carbonRandom.triFloatRandom01()), vec4.fromValues(1, 0, 0, 0)];
 
   /** m_vb (Tr2ProceduralBuffer "EveStretch2VB"): the shared quad vertices (cpp:90). */
   _vb = new Tr2ProceduralBuffer("EveStretch2VB", GetEveStretch2Quads);
@@ -230,15 +231,14 @@ export class EveStretch2 extends IEveFiringEffectElement
   /**
    * Begins a shot: reseeds the per-shot random value carried in the effect data, plays the start and loop sets from -delay and stops the end set.
    *
-   * Adapted: Carbon seeds with rand() / RAND_MAX (EveStretch2.cpp:137-152); the browser has no C runtime generator, so
-   * the per-shot shader seed comes from Math.random.
+   * Uses the shared CRT rand()/RAND_MAX stream (EveStretch2.cpp:137-152).
    * @param {Number} [delay] - seconds the curve sets wait before reaching time zero
    */
   @blue.method
   @meta.adapted
   StartFiring(delay = 0)
   {
-    this._effectData[0][3] = Math.random();
+    this._effectData[0][3] = carbonRandom.triFloatRandom01();
     this.start?.PlayFrom(-delay);
     this.loop?.PlayFrom(-delay);
     this.end?.Stop();

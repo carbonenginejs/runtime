@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBoosterSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBoosterSet.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBoosterSet_Blue.cpp
@@ -553,7 +554,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
     booster.lightPhase = GenerateBoosterLightPhase();
     booster.atlasIndex0 = Number(atlasIndex0) >>> 0;
     booster.atlasIndex1 = Number(atlasIndex1) >>> 0;
-    booster.wavePhase = Math.random();
+    booster.wavePhase = carbonRandom.triFloatRandom01();
     this._singleBoosters.push(booster);
 
     if (this.glows)

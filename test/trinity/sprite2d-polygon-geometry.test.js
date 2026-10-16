@@ -4,7 +4,7 @@ import { Tr2Sprite2dPolygon } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2dP
 import { Tr2Sprite2dLineTrace } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2dLineTrace.js";
 import { Tr2SpriteObjectEffect } from "../../npm/dist/trinity/generated/sprite2d/enums.js";
 
-// Donor: E:\carbonengine\trinity\trinity\Sprite2d\Tr2Sprite2dPolygon.cpp, Tr2Sprite2dPolygon_Blue.cpp,
+// Donor: trinity/trinity/Sprite2d\Tr2Sprite2dPolygon.cpp, Tr2Sprite2dPolygon_Blue.cpp,
 // Tr2Sprite2dLineTrace_Blue.cpp. Expected values are computed by hand from the donor formulas below.
 
 /**

@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: videoplayer/python/videoplayer/playlistresource.py:24-165,231-254
 // One host-defined playlist owns one texture, player and colour sampler.
 import { IBlueDynamicResourceConstructor } from "#blue";
@@ -185,7 +186,7 @@ CjsSchema.blue.define(VideoPlaylistController, {
  * @param {object} [options] random, createPlayer and optional timeout/test host settings.
  * @returns {object} The same manager.
  */
-export function RegisterVideoPlaylists(resourceManager, playlists, { random = Math.random, ...options } = {})
+export function RegisterVideoPlaylists(resourceManager, playlists, { random = carbonRandom.host, ...options } = {})
 {
   let registered = registrations.get(resourceManager);
   if (!registered) registrations.set(resourceManager, registered = new Map());

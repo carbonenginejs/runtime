@@ -1,3 +1,4 @@
+import { be } from "#blue";
 // Source: trinity/trinity/Curves/Tr2CurveRandomAxisRotation.h
 // Source: trinity/trinity/Curves/Tr2CurveRandomAxisRotation.cpp
 // Source: trinity/trinity/Curves/Tr2CurveRandomAxisRotation_Blue.cpp
@@ -279,8 +280,8 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
   /**
    * Rebuilds the pre/post rotations using the existing generator.
    * Adapted: nonzero seeds use the current MSVC-compatible engine helper;
-   * seed zero retains Math.random instead of Carbon's clock-seeded engine.
-   * RNG and float-intermediate parity are outside this class-removal change.
+   * seed zero uses the Blue actual-time clock, as Carbon does.
+   * Angle samples retain native float intermediates.
    *
    * @returns {void}
    */
@@ -288,7 +289,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
   @meta.adapted
   SeedChanged()
   {
-    const engine = this.seed !== 0 ? Tr2CurveRandomAxisRotation._makeMsvcDefaultRandomEngine(this.seed) : Math.random;
+    const engine = Tr2CurveRandomAxisRotation._makeMsvcDefaultRandomEngine(this.seed !== 0 ? this.seed : be.os.GetActualTime());
     Tr2CurveRandomAxisRotation._buildCarbonRandomRotation(this.preRotation, engine);
     Tr2CurveRandomAxisRotation._buildCarbonRandomRotation(this.postRotation, engine);
   }
@@ -310,9 +311,8 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
   }
 
   /**
-   * Draws an angle with the existing JS arithmetic.
-   * Adapted: represents the native anonymous RandAngle helper without changing
-   * the existing double arithmetic to native float intermediates.
+   * Draws an angle with native float intermediates.
+   * Adapted: represents the native anonymous RandAngle helper in JavaScript.
    *
    * @param {Function} engine Existing unit-interval generator.
    * @returns {number} Angle in radians.
@@ -320,7 +320,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
   @meta.adapted
   static _randomAngle(engine)
   {
-    return engine() * Math.PI * 2;
+    return Math.fround(Math.fround(engine() * Math.fround(Math.PI)) * 2);
   }
 
   /**
@@ -333,7 +333,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
   static _makeMsvcDefaultRandomEngine(seed)
   {
     const engine = random.mt19937(seed >>> 0);
-    return () => engine() / 0xffffffff;
+    return () => Math.fround(Math.fround(engine()) / Math.fround(0xffffffff));
   }
 }
 

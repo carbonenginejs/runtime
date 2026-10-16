@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 import { CjsSchema } from "#schema";
 
 import { coerceNonNegativeInteger, coercePositiveInteger } from "#utils/validation";
@@ -154,7 +155,7 @@ export class CjsAudioMan
         cacheDecoded = true,
         cacheWholeBanks = true,
         selectEventMedia = null,
-        random = Math.random,
+        random = carbonRandom.host,
         distanceScale = 1,
         musicEngine = null,
         createMusicEngine = null,

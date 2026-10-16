@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/TriSequencer.h
 // Source: trinity/trinity/TriSequencer.cpp
 // Source: trinity/trinity/TriMath.cpp
@@ -24,7 +25,17 @@ export class TriPerlinCurve extends ITriScalarFunction
   @meta.setting("expressionCurveFakeRandom")
   static expressionCurveFakeRandom = false;
 
-  static _triRandState = 1234;
+  /** Reads the shared Carbon TriRand state through the compatibility API. */
+  static get _triRandState()
+  {
+    return carbonRandom.triRandGetSeed();
+  }
+
+  /** Seeds the shared Carbon TriRand stream through the compatibility API. */
+  static set _triRandState(seed)
+  {
+    carbonRandom.triSrand(seed);
+  }
 
   /** Native mName (std::wstring). */
   @blue.readwrite
@@ -184,20 +195,12 @@ export class TriPerlinCurve extends ITriScalarFunction
   /**
    * Draws the next per-instance noise phase from Carbon's shared
    * linear-congruential TriRand state, reproducing its 32-bit integer truncation
-   * so offsets match that sequence. Adapted: state remains local to this JS
-   * class, so interleaving with other native TriRand callers is not reproduced.
+   * so offsets match that sequence. The state is shared with other TriRand callers, as in Carbon.
    */
   @meta.adapted
   static _nextStartOffset()
   {
-    let state = TriPerlinCurve._triRandState;
-    state = ((state << 12) + 150889) >>> 0;
-    state %= 714025;
-    TriPerlinCurve._triRandState = state;
-
-    // Carbon casts 10,000,000,000 to its 32-bit `int` parameter on Windows.
-    const carbonIntLimit = 10000000000 >>> 0;
-    return Math.floor((Math.imul(carbonIntLimit, state) >>> 0) / 714025);
+    return carbonRandom.triRandInt(10000000000 | 0);
   }
 }
 

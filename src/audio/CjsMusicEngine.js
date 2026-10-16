@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // CarbonEngineJS original (no Carbon counterpart). Interactive-music engine:
 // interprets the authored Wwise music graph produced in tools-core's complete
 // audio-library build the way AK::MusicEngine would in the real client.
@@ -801,7 +802,7 @@ export class CjsMusicEngine extends ICjsMusicEngine
 
     _musicGain = null;
 
-    _random = Math.random;
+    _random = carbonRandom.host;
 
     _switchValues = new Map();
 

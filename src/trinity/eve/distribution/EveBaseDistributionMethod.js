@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/EveBaseDistributionMethod.h
 import { IInitialize } from "../../../global/blue/IInitialize.js";
@@ -531,7 +532,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
       // constructed PlacementDataWithIdentifier rather than a null pointer.
       return new PlacementDataWithIdentifier();
     }
-    const selectedIndex = Math.floor(Math.random() * this.freePlacements);
+    const selectedIndex = carbonRandom.triRandInt(this.freePlacements);
     return this._GetPlacement(this._initialPlacements[selectedIndex].placement.uniqueID);
   }
 

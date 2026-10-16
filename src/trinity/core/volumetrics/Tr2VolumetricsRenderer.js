@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2VolumetricsRenderer.h
 // Source: trinity/trinity/Tr2VolumetricsRenderer.cpp
@@ -207,8 +208,7 @@ export class Tr2VolumetricsRenderer
    * Reserves the fog and volume texture globals, sets the cloud and fog effect paths, and creates the 64³ froxel
    * noise texture on the main-thread render context (cpp:47-123).
    *
-   * Adapted: Carbon fills the noise with TriRandInt( -127, +128 ), its own LCG (TriMath.cpp:998-1004); the browser
-   * has no such generator, so Math.random draws the same [-127, 127] range, as the behaviors' TriRandInt ports do.
+   * Noise uses the shared TriRandInt(-127, +128) implementation (TriMath.cpp:998-1004).
    */
   constructor()
   {
@@ -227,7 +227,7 @@ export class Tr2VolumetricsRenderer
 
     const noiseResolution = 64;
     const noiseData = new Int8Array(noiseResolution * noiseResolution * noiseResolution); // alloc: one-time noise upload
-    for (let index = 0; index < noiseData.length; index++) noiseData[index] = Math.floor(Math.random() * 255) - 127;
+    for (let index = 0; index < noiseData.length; index++) noiseData[index] = carbonRandom.triRandIntRange(-127, 128);
     this._froxel3DNoise.GetTexture().Create(new Tr2BitmapDimensions({
       type: TextureType.TEX_TYPE_3D, format: PixelFormat.PIXEL_FORMAT_R8_SNORM,
       width: noiseResolution, height: noiseResolution, depth: noiseResolution, mipCount: 1, arraySize: 1

@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/Volume/EveBoxVolume.h
 // Source: trinity/trinity/Eve/Volume/EveBoxVolume.cpp
 // Source: trinity/trinity/Eve/Volume/EveBoxVolume_Blue.cpp
@@ -153,13 +154,13 @@ export class EveBoxVolume extends IEveVolume
     const count = Math.max(0, Math.trunc(howManyToAdd));
     for (let i = 0; i < count; i++)
     {
-      let zonePicker = Math.random();
+      let zonePicker = carbonRandom.triRand();
       if (zonePicker < innerToOuterSizeRatio)
       {
         points.push(vec3.fromValues(
-          this.innerScaling[0] * Math.random() - 0.5 * this.innerScaling[0],
-          this.innerScaling[1] * Math.random() - 0.5 * this.innerScaling[1],
-          this.innerScaling[2] * Math.random() - 0.5 * this.innerScaling[2]
+          this.innerScaling[0] * carbonRandom.triRand() - 0.5 * this.innerScaling[0],
+          this.innerScaling[1] * carbonRandom.triRand() - 0.5 * this.innerScaling[1],
+          this.innerScaling[2] * carbonRandom.triRand() - 0.5 * this.innerScaling[2]
         ));
         continue;
       }
@@ -169,29 +170,29 @@ export class EveBoxVolume extends IEveVolume
       if (zonePicker < 2 * leftRightSideSize)
       {
         const distance = 0.5 * this.innerScaling[0]
-          + Math.pow(Math.random(), fallOffFactor)
+          + Math.pow(carbonRandom.triRand(), fallOffFactor)
           * (this.scaling[0] - this.innerScaling[0]) * 0.5;
         position[0] = zonePicker < leftRightSideSize ? distance : -distance;
-        position[1] = Math.random() * this.scaling[1] - 0.5 * this.scaling[1];
-        position[2] = Math.random() * this.scaling[2] - 0.5 * this.scaling[2];
+        position[1] = carbonRandom.triRand() * this.scaling[1] - 0.5 * this.scaling[1];
+        position[2] = carbonRandom.triRand() * this.scaling[2] - 0.5 * this.scaling[2];
       }
       else if (zonePicker < 2 * (leftRightSideSize + topBottomSize))
       {
         const distance = 0.5 * this.innerScaling[1]
-          + Math.pow(Math.random(), fallOffFactor)
+          + Math.pow(carbonRandom.triRand(), fallOffFactor)
           * (this.scaling[1] - this.innerScaling[1]) * 0.5;
-        position[0] = Math.random() * this.innerScaling[0] - 0.5 * this.innerScaling[0];
+        position[0] = carbonRandom.triRand() * this.innerScaling[0] - 0.5 * this.innerScaling[0];
         position[1] = zonePicker < 2 * leftRightSideSize + topBottomSize ? distance : -distance;
-        position[2] = Math.random() * this.scaling[2] - 0.5 * this.scaling[2];
+        position[2] = carbonRandom.triRand() * this.scaling[2] - 0.5 * this.scaling[2];
       }
       else
       {
         // Carbon uses the Y dimensions for the front/back distance here.
         const distance = 0.5 * this.innerScaling[1]
-          + Math.pow(Math.random(), fallOffFactor)
+          + Math.pow(carbonRandom.triRand(), fallOffFactor)
           * (this.scaling[1] - this.innerScaling[1]) * 0.5;
-        position[0] = Math.random() * this.innerScaling[0] - 0.5 * this.innerScaling[0];
-        position[1] = Math.random() * this.innerScaling[1] - 0.5 * this.innerScaling[1];
+        position[0] = carbonRandom.triRand() * this.innerScaling[0] - 0.5 * this.innerScaling[0];
+        position[1] = carbonRandom.triRand() * this.innerScaling[1] - 0.5 * this.innerScaling[1];
         position[2] = zonePicker < outerSidesSize - frontBackLidSize ? distance : -distance;
       }
       points.push(position);

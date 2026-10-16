@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 import { CjsSchema } from "#schema";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -76,7 +77,7 @@ class SofLayoutRandom
    */
   next()
   {
-    this.state = ((((this.state << 12) >>> 0) + 150889) >>> 0) % 714025;
+    this.state = carbonRandom.triRandStep(this.state);
     this.drawCount++;
     return Math.fround(this.state / 714025);
   }

@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBulletStorm.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBulletStorm.cpp
 // Hand-maintained after promotion from generated schema intake.
@@ -219,8 +220,8 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   /**
    * Carbon method Rebuild (MAP_METHOD_AND_WRAP; cpp:156-205): one instance per locator of the source's set, multiplier
    * times, each carrying the locator position, its up axis and (rand, rand, rand, (j + streamRand) / multiplier).
-   * Adapted: Math.random stands in for TriRand; instances keeps the CPU copy, and the per-instance buffer is created only
-   * while resource creation is allowed.
+   * Random draws delegate to the matching generator in global/math/random.js.
+   * CPU instances are retained; GPU buffers are created only while resource creation is allowed.
    */
   @blue.method
   @meta.adapted
@@ -236,13 +237,17 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
     for (const locator of locators)
     {
       const direction = vec3.transformQuat(vec3.create(), vec3.fromValues(0, 1, 0), locator.direction);
-      const randomOffset = Math.random();
+      const randomOffset = carbonRandom.triRand();
       for (let i = 0; i < count; i++)
       {
+        // Native Vector3 constructor argument evaluation on the Windows target.
+        const randomZ = carbonRandom.triRand();
+        const randomY = carbonRandom.triRand();
+        const randomX = carbonRandom.triRand();
         this.instances.push({
           sourcePositionOS: vec3.clone(locator.position),
           sourceDirectionOS: vec3.clone(direction),
-          data: vec4.fromValues(Math.random(), Math.random(), Math.random(), (i + randomOffset) / count)
+          data: vec4.fromValues(randomX, randomY, randomZ, (i + randomOffset) / count)
         });
       }
     }

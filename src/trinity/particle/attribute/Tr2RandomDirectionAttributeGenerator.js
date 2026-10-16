@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Particle/Tr2RandomDirectionAttributeGenerator.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
@@ -48,8 +49,7 @@ export class Tr2RandomDirectionAttributeGenerator extends ITr2AttributeGenerator
   /**
    * Writes a random unit vector, sized to the bound element's dimension, into the particle's element slot.
    *
-   * Adapted: Carbon's particle RNG is replaced by Math.random while retaining its
-   * rejection-free normalize-or-fallback sampling.
+   * Uses the shared particle RNG with rejection-free normalize-or-fallback sampling.
    */
   @blue.method
   @meta.adapted
@@ -64,7 +64,7 @@ export class Tr2RandomDirectionAttributeGenerator extends ITr2AttributeGenerator
     let lengthSquared = 0;
     for (let component = 0; component < dimension; component++)
     {
-      value[component] = -1 + 2 * Math.random();
+      value[component] = -1 + 2 * carbonRandom.particleRandFloat();
       lengthSquared += value[component] * value[component];
     }
     if (lengthSquared === 0)

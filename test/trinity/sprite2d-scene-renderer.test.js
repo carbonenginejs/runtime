@@ -1,7 +1,7 @@
 // Tr2Sprite2dScene renderer methods ported 2026-10-12: PrepareTriangleVerts, the layer
 // stack (StartLayer/EndLayer), FlashDefaultTexture, the colour-space properties and the
 // sRGB handling around embedded jobs. Every expected value is derived from the donor,
-// E:\carbonengine\trinity\trinity\Sprite2d\Tr2Sprite2dScene.cpp, at the cited lines.
+// trinity/trinity/Sprite2d\Tr2Sprite2dScene.cpp, at the cited lines.
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Tr2Sprite2dScene, Tr2Sprite2dD3DVertex, Tr2Sprite2dVertexBase } from "../../npm/dist/trinity/index.js";

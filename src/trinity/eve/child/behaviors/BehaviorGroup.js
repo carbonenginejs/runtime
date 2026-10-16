@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroup.h
 import { IsMatch, BlueList } from "#blue";
 import { IBehavior } from "./IBehavior.js";
@@ -473,7 +474,7 @@ export class BehaviorGroup extends EveEntity
   /**
    * Carbon method RemoveAgent (cpp:415-426).
    *
-   * Adapted: Math.random stands in for Carbon's TriRandInt when picking the agent to remove.
+   * Random draws delegate to the matching generator in global/math/random.js.
    */
   @blue.method
   @meta.adapted
@@ -483,7 +484,7 @@ export class BehaviorGroup extends EveEntity
     {
       return;
     }
-    const index = Math.floor(Math.random() * this._agents.length);
+    const index = carbonRandom.triRandInt(this._agents.length);
     this.RemoveSpecificAgent(index);
     this._OnAgentCountChanged();
   }
@@ -779,7 +780,7 @@ export class BehaviorGroup extends EveEntity
   /**
    * Carbon GetBoosterInfoForBuffer packs position, rotation and intensity/phase/
    * atlas indices, and updates the group's lights and flares. The per-ID phase
-   * reproduces Windows CRT's first rand after srand without global RNG mutation.
+   * uses Carbon's shared CRT stream and preserves srand's effect on later callers.
    * A float offset replaces native byte-pointer arithmetic.
    */
   @blue.method
@@ -809,7 +810,8 @@ export class BehaviorGroup extends EveEntity
         vec3.scale(BOOSTER_POSITION, this.boosters.GetOffset(), this.scale);
         vec3.transformMat4(BOOSTER_POSITION, BOOSTER_POSITION, INSTANCE_POSE);
         data[offset + 8] = intensity;
-        data[offset + 9] = ((Math.imul(agent.id, 214013) + 2531011) >>> 16 & 0x7fff) / 32767;
+        carbonRandom.crtSrand(agent.id);
+        data[offset + 9] = carbonRandom.triFloatRandom01();
         data[offset + 10] = this.boosters.GetAtlasIndex0();
         data[offset + 11] = this.boosters.GetAtlasIndex1();
         if (lod < 0.25)
@@ -1236,7 +1238,7 @@ export class BehaviorGroup extends EveEntity
       velocityLength: 0,
       target: vec3.create(),
       targetDirection: vec3.create(),
-      id: Math.floor(Math.random() * 500),
+      id: carbonRandom.triRandInt(500),
       lifetime: 0,
       playFX: false,
       fxStartTime: -1,

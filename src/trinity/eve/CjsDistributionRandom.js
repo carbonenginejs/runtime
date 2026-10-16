@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 /** Shared seeded random and rotation helpers for placement modifiers. */
 export class CjsDistributionRandom
 {
@@ -9,22 +10,7 @@ export class CjsDistributionRandom
    */
   static createMinStdRandom(seed)
   {
-    const modulus = 2147483647;
-    let state = Math.trunc(seed) % modulus;
-    if (state === 0)
-    {
-      state = 1;
-    }
-    else if (state < 0)
-    {
-      state += modulus;
-    }
-
-    return function next()
-    {
-      state = state * 48271 % modulus;
-      return (state - 1) / (modulus - 1);
-    };
+    return carbonRandom.createMinStdRandom(seed);
   }
 
   /**

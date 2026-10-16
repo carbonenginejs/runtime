@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Particle/Tr2CapsuleShapeAttributeGenerator.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
@@ -133,8 +134,7 @@ export class Tr2CapsuleShapeAttributeGenerator extends ITr2AttributeGenerator
   /**
    * Samples a random cone direction and capsule interpolation point to write one particle's velocity and position offset from the parent transform.
    *
-   * Adapted: Carbon's particle RNG is replaced by Math.random while retaining its capsule
-   * sampling and interpolation order.
+   * Uses the shared particle RNG for capsule sampling and interpolation.
    */
   @blue.method
   @meta.adapted
@@ -144,8 +144,8 @@ export class Tr2CapsuleShapeAttributeGenerator extends ITr2AttributeGenerator
     {
       return;
     }
-    const phi = (this.minPhi + Math.random() * (this.maxPhi - this.minPhi)) * Math.PI / 180;
-    const theta = (this.minTheta + Math.random() * (this.maxTheta - this.minTheta)) * Math.PI / 180;
+    const phi = (this.minPhi + carbonRandom.particleRandFloat() * (this.maxPhi - this.minPhi)) * Math.PI / 180;
+    const theta = (this.minTheta + carbonRandom.particleRandFloat() * (this.maxTheta - this.minTheta)) * Math.PI / 180;
     const direction = Tr2CapsuleShapeAttributeGenerator.#direction;
     vec3.set(
       direction,
@@ -154,7 +154,7 @@ export class Tr2CapsuleShapeAttributeGenerator extends ITr2AttributeGenerator
       Math.sin(phi) * Math.sin(theta)
     );
 
-    const amount = Math.random();
+    const amount = carbonRandom.particleRandFloat();
     const rotation = quat.slerp(
       Tr2CapsuleShapeAttributeGenerator.#rotation,
       this.rotationStart,
@@ -165,7 +165,7 @@ export class Tr2CapsuleShapeAttributeGenerator extends ITr2AttributeGenerator
 
     if (this.#velocityElement)
     {
-      const speed = this.minSpeed + Math.random() * (this.maxSpeed - this.minSpeed);
+      const speed = this.minSpeed + carbonRandom.particleRandFloat() * (this.maxSpeed - this.minSpeed);
       const offset = this.#velocityElement.startOffset + index * this.#velocityElement.instanceStride;
       for (let component = 0; component < 3; component++)
       {
@@ -174,7 +174,7 @@ export class Tr2CapsuleShapeAttributeGenerator extends ITr2AttributeGenerator
       }
     }
 
-    const radius = this.minRadius + Math.random() * (this.maxRadius - this.minRadius);
+    const radius = this.minRadius + carbonRandom.particleRandFloat() * (this.maxRadius - this.minRadius);
     const position = vec3.lerp(
       Tr2CapsuleShapeAttributeGenerator.#position,
       this.positionStart,

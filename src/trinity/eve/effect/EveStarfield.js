@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/EveStarfield.h
 // Source: trinity/trinity/Eve/EveStarfield.cpp
 // Source: trinity/trinity/Eve/EveStarfield_Blue.cpp
@@ -225,20 +226,15 @@ export class EveStarfield
 
 /**
  * Packs StarfieldSpriteVertex (cpp:12-40): seven floats and four bytes.
- * Adapted: a local uint32 state implements TriSrand/TriRand (TriMath.cpp:972-996)
- * because JS has no Carbon global generator; the exact seeded sequence is kept.
+ * Uses the shared TriSrand/TriRand stream (TriMath.cpp:972-996).
  * Padding is deterministically zero instead of native uninitialized padding.
  */
 function GenerateVertices(stars)
 {
   const bytes = new Uint8Array(stars.numStars * 4 * 32); // alloc: regenerated native vertex payload
   const view = new DataView(bytes.buffer);
-  let state = (stars.seed >>> 0) % 714025;
-  const next = () => {
-    state = ((((state << 12) >>> 0) + 150889) >>> 0) % 714025;
-    return state;
-  };
-  const unit = () => Math.fround(next() / 714025);
+  carbonRandom.triSrand(stars.seed);
+  const unit = carbonRandom.triRand;
   const f = Math.fround;
   for (let index = 0; index < stars.numStars; index++)
   {
@@ -254,7 +250,7 @@ function GenerateVertices(stars)
     const intensity = f(f(unit() * f(1 - stars.minFlashIntensity)) + stars.minFlashIntensity);
     const phase = unit();
     const rate = f(f(unit() * f(stars.maxFlashRate - stars.minFlashRate)) + stars.minFlashRate);
-    const texture = Math.trunc(4 * next() / 714025);
+    const texture = carbonRandom.triRandInt(4);
     for (let corner = 0; corner < 4; corner++)
     {
       const offset = (index * 4 + corner) * 32;

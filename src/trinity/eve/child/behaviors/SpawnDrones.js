@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SpawnDrones.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/SpawnDrones.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -88,7 +89,7 @@ export class SpawnDrones
    * spawn position (Carbon UpdateGrid, cpp:26-85). Grid spawn points are
    * allocated here - a regeneration event, not the per-frame path.
    *
-   * Adapted: TriRand maps to Math.random; the spawn-point grid walk is ported verbatim.
+   * Random draws delegate to the matching generator in global/math/random.js.
    *
    * @param {Object} group - owning BehaviorGroup
    */
@@ -127,10 +128,10 @@ export class SpawnDrones
           // sometimes we may want to randomize the fullness
           if (this.gridFullnessFactor === -1)
           {
-            fullnessFactor = Math.random();
+            fullnessFactor = carbonRandom.triRand();
           }
           // the higher the gridRandomFactor the more full the grid should be
-          if (Math.random() <= fullnessFactor)
+          if (carbonRandom.triRand() <= fullnessFactor)
           {
             spawnPoints.push(vec3.clone(position));
           }
@@ -160,7 +161,7 @@ export class SpawnDrones
    * cpp:87-146). The concrete ProcessLifetime cast at cpp:121-133 gates
    * the required entrance-point call; a similarly named behavior is skipped.
    *
-   * Adapted: rand() maps to Math.random when picking the timed entrance point; the spawn
+   * Random draws delegate to the matching generator in global/math/random.js.
    * scheduling is ported verbatim.
    *
    * @param {Array} _agents - DroneAgent records (unused)
@@ -208,7 +209,7 @@ export class SpawnDrones
         const spawnPoints = behavior.GetEntrancePoints();
         if (spawnPoints.length !== 0)
         {
-          const randomNbr = Math.floor(Math.random() * spawnPoints.length);
+          const randomNbr = (carbonRandom.crtRand() % spawnPoints.length);
           vec3.copy(this.spawnPosition, spawnPoints[randomNbr]);
         }
       }

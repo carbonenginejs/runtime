@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Particle/Tr2GpuParticleSystem.h
 // Source: trinity/trinity/Particle/Tr2GpuParticleSystem.cpp
 // Source: trinity/trinity/Particle/Tr2GpuParticleSystem_Blue.cpp
@@ -922,9 +923,7 @@ export class Tr2GpuParticleSystem
    * seed in the high half.
    *
    * Adapted: the request is packed into the EmitterGpu and EmitterParamsGpu
-   * byte layouts here, where Carbon copies the structs; the seed uses
-   * Math.random in the range of MSVC's rand() (0-32767), which has no JS
-   * equivalent.
+   * byte layouts here, where Carbon copies the structs. The seed uses the shared CRT stream.
    *
    * @param {object} emitter A Tr2GpuSharedEmitter emitter record.
    * @param {number} id The params' semi-unique id.
@@ -947,7 +946,7 @@ export class Tr2GpuParticleSystem
     WriteVec3(words, 32, emitter.direction);
     words.setFloat32(44, emitter.angle, true);
     WriteVec3(words, 48, emitter.directionPrevious);
-    words.setUint32(EMITTER_SEED_OFFSET, (Math.floor(Math.random() * 32768) << 16) >>> 0, true);
+    words.setUint32(EMITTER_SEED_OFFSET, (carbonRandom.crtRand() << 16) >>> 0, true);
     WriteVec3(words, 64, emitter.velocity);
     words.setFloat32(76, emitter.minSpeed, true);
     WriteVec3(words, 80, emitter.velocityPrevious);

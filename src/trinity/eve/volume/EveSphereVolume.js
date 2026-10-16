@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/Volume/EveSphereVolume.h
 // Source: trinity/trinity/Eve/Volume/EveSphereVolume.cpp
 // Source: trinity/trinity/Eve/Volume/EveSphereVolume_Blue.cpp
@@ -103,19 +104,19 @@ export class EveSphereVolume extends IEveVolume
       let distance;
       if (excludeInnerVolume)
       {
-        distance = this.innerRadius + radiusRange * Math.pow(Math.random(), 1 / 3);
+        distance = this.innerRadius + radiusRange * Math.pow(carbonRandom.triFloatRandom01(), 1 / 3);
       }
-      else if (Math.random() < innerSelectionChance)
+      else if (carbonRandom.triFloatRandom01() < innerSelectionChance)
       {
-        distance = this.innerRadius * Math.pow(Math.random(), 1 / 3);
+        distance = this.innerRadius * Math.pow(carbonRandom.triFloatRandom01(), 1 / 3);
       }
       else
       {
-        distance = this.innerRadius + radiusRange * Math.pow(Math.random(), fallOffFactor);
+        distance = this.innerRadius + radiusRange * Math.pow(carbonRandom.triFloatRandom01(), fallOffFactor);
       }
 
-      const angle = Math.PI * 2 * Math.random();
-      const z = Math.random() * 2 - 1;
+      const angle = Math.PI * 2 * carbonRandom.triFloatRandom01();
+      const z = carbonRandom.triFloatRandom01() * 2 - 1;
       const radial = Math.sqrt(1 - z * z);
       points.push(vec3.fromValues(
         radial * Math.cos(angle) * distance,

@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 import { IEveShadowCaster } from "../../IEveShadowCaster.js";
 import { EveEntity } from "../../EveEntity.js";
 import { INotify } from "../../../../global/blue/INotify.js";
@@ -240,7 +241,7 @@ export class EveSwarm extends EveShip2
   _timeSinceUpdate = 0;
 
   /** m_lodUpdateTime: staggered a little so all fighters do not update together (EveSwarm.cpp:335-336). */
-  _lodUpdateTime = 1.1 - Math.random() * 0.2;
+  _lodUpdateTime = 1.1 - carbonRandom.triRand() * 0.2;
 
   /** m_started */
   _started = false;
@@ -942,7 +943,7 @@ export class EveSwarm extends EveShip2
    * the renderable at the last index, not its old one, and the renderables after the removed slot each draw the
    * vehicle one slot later than before.
    *
-   * Adapted: Carbon's TriRandInt is Math.random, as in the behaviors; the position is returned as a new vector.
+   * Random draws delegate to the matching generator in global/math/random.js.
    * @returns {vec3} the removed vehicle's position
    */
   @blue.method
@@ -977,7 +978,7 @@ export class EveSwarm extends EveShip2
     {
       this.boosters.SetCount(this.count);
     }
-    this.targetIndex = Math.floor(Math.random() * this.count);
+    this.targetIndex = carbonRandom.triRandInt(this.count);
     return vec3.clone(vehicle.position); // alloc: returned by value to the Blue caller
   }
 
@@ -987,7 +988,7 @@ export class EveSwarm extends EveShip2
    * Carbon quirk, kept: a negative count never terminates, since RemoveSwarmer on an empty swarm does not change
    * the count.
    *
-   * Adapted: Carbon's TriRandInt is Math.random, as in the behaviors.
+   * Random draws delegate to the matching generator in global/math/random.js.
    * @param {number} count
    */
   @blue.method
@@ -1004,7 +1005,7 @@ export class EveSwarm extends EveShip2
       {
         this.AddSwarmer();
       }
-      this.targetIndex = Math.floor(Math.random() * this.count);
+      this.targetIndex = carbonRandom.triRandInt(this.count);
     }
   }
 
@@ -1035,13 +1036,13 @@ export class EveSwarm extends EveShip2
   /**
    * Carbon PickFiringOrigin (EveSwarm.cpp:1058-1061): picks the fighter firing effects start from.
    *
-   * Adapted: Carbon's TriRandInt is Math.random, as in the behaviors.
+   * Random draws delegate to the matching generator in global/math/random.js.
    */
   @blue.method
   @meta.adapted
   PickFiringOrigin()
   {
-    this.firingIndex = Math.floor(Math.random() * this.count);
+    this.firingIndex = carbonRandom.triRandInt(this.count);
   }
 
   /**
@@ -1237,7 +1238,7 @@ export class EveSwarm extends EveShip2
    * Carbon Calculate_Separation (EveSwarm.cpp:1205-1214): pushes p0 away from p1, separationDistance / distance
    * strong; a random nudge when they coincide.
    *
-   * Adapted: written to out, which is returned; Carbon's TriRand is Math.random.
+   * Random draws delegate to the matching generator in global/math/random.js.
    * @returns {vec3} out
    */
   @meta.adapted
@@ -1248,7 +1249,11 @@ export class EveSwarm extends EveShip2
     const length = vec3.length(out);
     if (length === 0)
     {
-      return vec3.set(out, Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);
+      for (let axis = 2; axis >= 0; axis--)
+      {
+        out[axis] = carbonRandom.triRand() - 0.5;
+      }
+      return out;
     }
     vec3.normalize(out, out);
     return vec3.scale(out, out, this.separationDistance / length);
@@ -1259,7 +1264,7 @@ export class EveSwarm extends EveShip2
    * radius, then aims at that target on a sphere wanderDistance ahead of the vehicle (along its velocity, or along
    * the target itself when it is not moving).
    *
-   * Adapted: written to out, which is returned; Carbon's TriRand is Math.random.
+   * Random draws delegate to the matching generator in global/math/random.js.
    * @returns {vec3} out
    */
   @meta.adapted
@@ -1269,7 +1274,10 @@ export class EveSwarm extends EveShip2
     // Evolve the target point on the 'sphere' around a point wanderDistance in front of our swarmer.
     // vec3_20 is newOffset.
     const { vec3_20 } = EveSwarm.scratch;
-    vec3.set(vec3_20, 2 * Math.random() - 1, 2 * Math.random() - 1, 2 * Math.random() - 1);
+    for (let axis = 2; axis >= 0; axis--)
+    {
+      vec3_20[axis] = 2 * carbonRandom.triRand() - 1;
+    }
     vec3.normalize(vec3_20, vec3_20);
     vec3.scale(vec3_20, vec3_20, fluctuation * radius * t);
     vec3.add(out, s.wanderTarget, vec3_20);

@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2SSAO.h
 // Source: trinity/trinity/Tr2SSAO.cpp
@@ -417,7 +418,7 @@ export class Tr2SSAO
     {
       for (let i = 0; i < 4; i++)
       {
-        this._cortaoRandSeeds[i] = Tr2SSAO.hash(this._cortaoRandSeeds[i] + Math.floor(Math.random() * 32768));
+        this._cortaoRandSeeds[i] = Tr2SSAO.hash(this._cortaoRandSeeds[i] + carbonRandom.crtRand());
       }
     }
 

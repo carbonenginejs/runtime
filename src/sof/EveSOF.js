@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 import * as CcpLog from "../global/logging/ccpLog.js";
 import { normalizeResourcePath } from "#utils/path";
 import { GenerateBoosterLightPhase } from "#utils/boosterLightPhase";
@@ -3173,7 +3174,7 @@ export class EveSOF
           lightPhase: GenerateBoosterLightPhase(),
           atlasIndex0: Number(item.atlasIndex0 ?? 0) >>> 0,
           atlasIndex1: Number(item.atlasIndex1 ?? 0) >>> 0,
-          wavePhase: Math.random()
+          wavePhase: carbonRandom.triFloatRandom01()
         }));
       }
       addOffset(hullOffset, dna.GetHullNextSubsystemOffset(hullIndex));

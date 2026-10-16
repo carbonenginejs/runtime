@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildParticleSphere.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildParticleSphere.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -425,7 +426,7 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
   /**
    * Carbon EveChildParticleSphere::FillParticleData (cpp:341-399): a new particle at a random point in the sphere,
    * kept out of the volume the previous frame's sphere already covered when it can be (ten tries).
-   * Adapted: Math.random stands in for the C runtime rand().
+   * Random draws delegate to the matching generator in global/math/random.js.
    */
   @blue.method
   _FillParticleData(index, previousReferencePosition, velocityDirection)
@@ -439,16 +440,21 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
       let distance = 0;
       for (let attempt = 0; attempt < 10; attempt++)
       {
-        vec3.normalize(localPosition, vec3.set(localPosition, Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5));
+        // Native Vector3 arguments are evaluated right to left by MSVC.
+        for (let axis = 2; axis >= 0; axis--)
+        {
+          localPosition[axis] = carbonRandom.triFloatRandom01() - 0.5;
+        }
+        vec3.normalize(localPosition, localPosition);
         if (attempt === 9 || atOrigin)
         {
-          distance = this.radius * Math.pow(Math.random(), 0.5);
+          distance = this.radius * Math.pow(carbonRandom.triFloatRandom01(), 0.5);
           vec3.scale(localPosition, localPosition, distance);
         }
         else
         {
           const minDistance = Math.max(0, this.radius - vec3.length(previousReferencePosition));
-          distance = minDistance + Math.pow(Math.random(), 0.5) * (this.radius - minDistance);
+          distance = minDistance + Math.pow(carbonRandom.triFloatRandom01(), 0.5) * (this.radius - minDistance);
           vec3.scale(localPosition, localPosition, distance);
           if (vec3.distance(localPosition, previousReferencePosition) < this.radius) continue;
         }

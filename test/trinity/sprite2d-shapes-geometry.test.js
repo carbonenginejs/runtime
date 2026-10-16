@@ -1,6 +1,6 @@
 // Sprite2D shape geometry: Frame, Stretch, StretchVertical, Line and Arc, gathered through the
 // real Tr2Sprite2dScene. Every expected value is computed by hand from the donor formulas
-// (e:\carbonengine\trinity\trinity\Sprite2d\*.cpp), cited at each block. Positions are compared
+// (trinity/trinity/Sprite2d\*.cpp), cited at each block. Positions are compared
 // at 1e-4 because they are stored in Float32Array vertices (one float32 ulp at 128 is 7.6e-6);
 // exact values are chosen wherever the donor arithmetic is exact.
 import assert from "node:assert/strict";

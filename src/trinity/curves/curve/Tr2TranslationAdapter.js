@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Curves/Tr2TranslationAdapter.h
 // Source: trinity/trinity/Curves/Tr2TranslationAdapter.cpp
 import { quat } from "#math/quat";
@@ -213,7 +214,7 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
 
   /**
    * Chooses a random local offset within the supplied radius.
-   * JavaScript draws uniformly with Math.random rather than native rand()/modulo tick arithmetic; the offset is stored in ticks.
+   * Uses the native CRT rand()/modulo tick arithmetic; the offset is stored in ticks.
    * @param {number} range Radius in seconds; zero or omission selects 60.
    * @returns {void}
    */
@@ -222,7 +223,8 @@ export class Tr2TranslationAdapter extends ITriVectorFunction
   RandomizeStart(range = 60)
   {
     const radius = range || 60;
-    this._offset = Math.round((Math.random() * 2 - 1) * radius * 10_000_000);
+    const tickRange = Math.trunc(radius * 10_000_000);
+    this._offset = carbonRandom.crtRand() % ((tickRange * 2) | 0) - tickRange;
   }
 
   /**

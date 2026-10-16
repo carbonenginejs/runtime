@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 import { ITr2LightOwner } from "../../lights/ITr2LightOwner.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveBoosterSet2.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveBoosterSet2.cpp
@@ -431,7 +432,7 @@ export class EveBoosterSet2 extends EveEntity
       vertices.set(booster.transform, at);
       vertices.set(booster.functionality, at + 16);
       // (float)rand() / (float)RAND_MAX
-      vertices[at + 20] = Math.random();
+      vertices[at + 20] = carbonRandom.triFloatRandom01();
       vertices[at + 21] = booster.atlasIndex0;
       vertices[at + 22] = booster.atlasIndex1;
     }
@@ -956,8 +957,7 @@ export class EveBoosterSet2 extends EveEntity
    * radiusFactor and color * flicker (the 3-arg overload: innerRadius 0,
    * FLAG_DEFAULT - manager-side).
    *
-   * Adapted: The g_lightNoise table is module state filled with Math.random (Carbon fills it with rand()/RAND_MAX -
-   * random either way).
+   * Random draws delegate to the matching generator in global/math/random.js.
    */
   @blue.method
   @meta.adapted

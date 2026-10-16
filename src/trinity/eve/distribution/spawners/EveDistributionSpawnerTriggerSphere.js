@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerTriggerSphere.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { meta, type, blue } from "#schema";
@@ -122,7 +123,7 @@ export class EveDistributionSpawnerTriggerSphere extends IEveDistributionSpawner
     {
       while (normalizedPlayTime > this._distSortedIndexes[this._currentTrigger][0])
       {
-        if (Math.random() < this.triggerChance)
+        if (carbonRandom.triRand() < this.triggerChance)
         {
           owner.TriggerEntityByID(this._distSortedIndexes[this._currentTrigger][1]);
         }
@@ -138,7 +139,7 @@ export class EveDistributionSpawnerTriggerSphere extends IEveDistributionSpawner
     {
       while (1 - normalizedPlayTime < this._distSortedIndexes[this._currentTrigger][0])
       {
-        if (Math.random() < this.triggerChance)
+        if (carbonRandom.triRand() < this.triggerChance)
         {
           owner.TriggerEntityByID(this._distSortedIndexes[this._currentTrigger][1]);
         }

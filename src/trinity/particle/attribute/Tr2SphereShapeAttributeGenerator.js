@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Particle/Tr2SphereShapeAttributeGenerator.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
@@ -135,8 +136,7 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
   /**
    * Samples a direction within the configured cone and radius range to write one particle's position and velocity offset.
    *
-   * Adapted: Carbon's particle RNG is replaced by Math.random while retaining its cone
-   * sampling, rotation and distribution-exponent order.
+   * Uses the shared particle RNG for cone sampling, rotation and distribution-exponent order.
    */
   @blue.method
   @meta.adapted
@@ -146,8 +146,8 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
     {
       return;
     }
-    const phi = (this.minPhi + Math.random() * (this.maxPhi - this.minPhi)) * Math.PI / 180;
-    const theta = (this.minTheta + Math.random() * (this.maxTheta - this.minTheta)) * Math.PI / 180;
+    const phi = (this.minPhi + carbonRandom.particleRandFloat() * (this.maxPhi - this.minPhi)) * Math.PI / 180;
+    const theta = (this.minTheta + carbonRandom.particleRandFloat() * (this.maxTheta - this.minTheta)) * Math.PI / 180;
     const direction = Tr2SphereShapeAttributeGenerator.#direction;
     vec3.set(
       direction,
@@ -161,7 +161,7 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
     vec3.transformQuat(direction, direction, this.rotation);
     if (this.#velocityElement)
     {
-      const speed = this.minSpeed + Math.random() * (this.maxSpeed - this.minSpeed);
+      const speed = this.minSpeed + carbonRandom.particleRandFloat() * (this.maxSpeed - this.minSpeed);
       const offset = this.#velocityElement.startOffset + index * this.#velocityElement.instanceStride;
       for (let component = 0; component < 3; component++)
       {
@@ -174,7 +174,7 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
       // frand(min, max, exponent) = min + (max - min) * pow(rand, exponent)
       // (Tr2SphereShapeAttributeGenerator.cpp:21-24).
       const radius = this.minRadius
-        + (this.maxRadius - this.minRadius) * Math.pow(Math.random(), this.distributionExponent);
+        + (this.maxRadius - this.minRadius) * Math.pow(carbonRandom.particleRandFloat(), this.distributionExponent);
       const offset = this.#positionElement.startOffset + index * this.#positionElement.instanceStride;
       for (let component = 0; component < 3; component++)
       {

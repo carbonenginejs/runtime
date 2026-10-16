@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // The Type 2 charstring interpreter, from Adobe Technical Note #5177 ("The
 // Type 2 Charstring Format", 2000). Runs one glyph's charstring, following
 // local and global subroutines, and records what a rasteriser and a hinter
@@ -445,7 +446,7 @@ export function readCharstring(cff, glyphId, source = "CFF font")
                 break;
             }
             // TN #5177: a random number in (0, 1]; no client glyph is known to use it.
-            case OP2_RANDOM: s.push(1 - Math.random()); break;
+            case OP2_RANDOM: s.push(1 - carbonRandom.host()); break;
             case OP2_MUL: { const b = Pop(); const a = Pop(); s.push(a * b); break; }
             case OP2_SQRT: s.push(Math.sqrt(Pop())); break;
             case OP2_DUP: { const a = Pop(); s.push(a, a); break; }

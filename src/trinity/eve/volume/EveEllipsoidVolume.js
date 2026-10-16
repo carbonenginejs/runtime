@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/Volume/EveEllipsoidVolume.h
 // Source: trinity/trinity/Eve/Volume/EveEllipsoidVolume.cpp
 // Source: trinity/trinity/Eve/Volume/EveEllipsoidVolume_Blue.cpp
@@ -135,8 +136,8 @@ export class EveEllipsoidVolume extends IEveVolume
 
     for (let i = 0; i < count; i++)
     {
-      const angle = Math.PI * 2 * Math.random();
-      const z = Math.random() * 2 - 1;
+      const angle = Math.PI * 2 * carbonRandom.triFloatRandom01();
+      const z = carbonRandom.triFloatRandom01() * 2 - 1;
       const radial = Math.sqrt(1 - z * z);
       const direction = vec3.normalize(vec3.create(), vec3.fromValues(
         radial * Math.cos(angle),
@@ -145,9 +146,9 @@ export class EveEllipsoidVolume extends IEveVolume
       ));
 
       const position = vec3.create();
-      if (Math.random() > innerSelectionChance)
+      if (carbonRandom.triFloatRandom01() > innerSelectionChance)
       {
-        const distance = Math.pow(Math.random(), 0.75 * fallOffFactor);
+        const distance = Math.pow(carbonRandom.triFloatRandom01(), 0.75 * fallOffFactor);
         for (let axis = 0; axis < 3; axis++)
         {
           position[axis] = direction[axis]
@@ -156,7 +157,7 @@ export class EveEllipsoidVolume extends IEveVolume
       }
       else
       {
-        const distance = Math.pow(Math.random(), 1 / 3);
+        const distance = Math.pow(carbonRandom.triFloatRandom01(), 1 / 3);
         for (let axis = 0; axis < 3; axis++)
         {
           position[axis] = direction[axis] * this.innerShape[axis] * distance;

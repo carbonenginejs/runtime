@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Curves/Tr2CurveScalarExpression.h
 // Source: trinity/trinity/Curves/Tr2CurveScalarExpression.cpp
 // Source: trinity/trinity/Curves/Tr2CurveScalarExpression_Blue.cpp
@@ -95,7 +96,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   timeScale = 1;
 
   /** Runtime random constant using the existing JavaScript random adapter. */
-  randomConstant = Math.random();
+  randomConstant = carbonRandom.triFloatRandom01();
 
   /** Last scaled seconds value supplied to expression inputs. */
   _currentTime = 0;
@@ -272,7 +273,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   @meta.implemented
   ResetRandomConstant()
   {
-    this.randomConstant = Math.random();
+    this.randomConstant = carbonRandom.triFloatRandom01();
   }
 
   /**

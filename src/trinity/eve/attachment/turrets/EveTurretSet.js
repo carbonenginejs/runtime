@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 import { IShaderConfigurer } from "../../../shader/IShaderConfigurer.js";
 import { ITr2DebugRenderable } from "#interfaces";
 // Source: trinity/trinity/Eve/Turret/EveTurretSet.h
@@ -2359,14 +2360,14 @@ export class EveTurretSet extends EveEntity
   /**
    * Carbon CalcRandomDelay (EveTurretSet.cpp:3226-3237): a random share of the
    * shot time variance when useRandomFiringDelay is set, otherwise zero.
-   * Math.random stands in for TriFloatRandom01.
+   * Random draws delegate to the matching generator in global/math/random.js.
    * @returns {void}
    */
   @meta.implemented
   @blue.method
   _CalcRandomDelay()
   {
-    this.randomFiringDelay = this.useRandomFiringDelay ? this.GetShotTimeVariance() * Math.random() : 0;
+    this.randomFiringDelay = this.useRandomFiringDelay ? this.GetShotTimeVariance() * carbonRandom.triFloatRandom01() : 0;
   }
 
   /**

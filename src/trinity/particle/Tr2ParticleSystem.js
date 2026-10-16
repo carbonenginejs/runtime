@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 import { BlueList, IListNotify } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ITr2GenericParticleConstraint } from "./constraint/ITr2GenericParticleConstraint.js";
@@ -1338,6 +1339,18 @@ export class Tr2ParticleSystem
     }
   }
 
+  /** Carbon Tr2ParticleSystem::RandCheap (Tr2ParticleSystem.h:145). */
+  static randCheap()
+  {
+    return carbonRandom.particleRandCheap();
+  }
+
+  /** Carbon Tr2ParticleSystem::RandFloat (Tr2ParticleSystem.h:170). */
+  static randFloat()
+  {
+    return carbonRandom.particleRandFloat();
+  }
+
   static scratch = { mat4_0: mat4.create(), vec3_0: vec3.create(), vec3_1: vec3.create(), vec3_2: vec3.create() };
 
   static _boundsMin = vec3.create();
@@ -1353,5 +1366,6 @@ export class Tr2ParticleSystem
   static _defaultUpdateArguments = new ITr2GenericEmitterUpdateArguments();
 
   static MAX_PARTICLE_COUNT = 10000;
+
 
 }

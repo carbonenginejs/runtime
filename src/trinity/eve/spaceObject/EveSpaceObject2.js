@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 import { ITr2LightOwner } from "../lights/ITr2LightOwner.js";
 import { IShaderConfigurer } from "../../shader/IShaderConfigurer.js";
 import { ITr2DebugRenderable } from "../../../global/interfaces/ITr2DebugRenderable.js";
@@ -3505,8 +3506,7 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Ports Carbon's randomized distance/direction fit for impact variation.
    *
-   * Adapted: TriRand is represented by Math.random; all locator scoring remains
-   * source-faithful.
+   * Random draws delegate to the matching generator in global/math/random.js.
    */
   @blue.method
   @meta.adapted
@@ -3534,7 +3534,7 @@ export class EveSpaceObject2 extends EveEntity
       bestDirectionFit = Math.max(bestDirectionFit, EveSpaceObject2._GetDirectionFit(EveSpaceObject2._locatorDirection, EveSpaceObject2._locatorOffset));
     }
 
-    const desiredFit = Math.random() * (0.25 - (1 - bestDirectionFit)) + 0.75;
+    const desiredFit = carbonRandom.triRand() * (0.25 - (1 - bestDirectionFit)) + 0.75;
     let bestFit = 1;
     let bestLocator = -1;
     for (let index = 0; index < locators.length; index++)

@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildCloud2.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import "#consts/graphics/trinityEnums";
@@ -1256,9 +1257,8 @@ export class EveChildCloud2 extends EveSpaceObjectChild
 
   /**
    * Fills Cloud2's native struct (cpp:526-601), including integer bit patterns.
-   * Adapted: RawData transposes logical matrices once; the ambient context owns
-   * renderer camera state. Math.random replaces rand; zero noise size retains
-   * the previously documented zero guard rather than native modulo-zero UB.
+   * Adapted: RawData transposes matrices once; the ambient context owns camera state.
+   * Noise offsets use CRT rand; zero noise size retains the existing zero guard.
    */
   @blue.method
   @meta.adapted
@@ -1281,8 +1281,8 @@ export class EveChildCloud2 extends EveSpaceObjectChild
       Math.max(1, Math.floor(this.lightmapHeight * this.lightmapSizeScale)),
       Math.max(1, Math.floor(this.lightmapDepth * this.lightmapSizeScale)), this.lightmapDirtyOffset]);
     const noiseSize = this.noiseTextureSize >>> 0;
-    data.Set("noiseConfig", [noiseSize ? Math.floor(Math.random() * noiseSize) : 0,
-      noiseSize ? Math.floor(Math.random() * noiseSize) : 0, noiseSize, noiseSize]);
+    data.Set("noiseConfig", [noiseSize ? (carbonRandom.crtRand() % (noiseSize)) : 0,
+      noiseSize ? (carbonRandom.crtRand() % (noiseSize)) : 0, noiseSize, noiseSize]);
     data.Set("viewDirection", [-WV_SCRATCH[2], -WV_SCRATCH[6], -WV_SCRATCH[10]]);
     data.Set("depthSlice0", -WV_SCRATCH[14] - this.depthSlices[0] * WV_SCRATCH[15]);
     data.Set("depthSlice1", -WV_SCRATCH[14] - this.depthSlices[1] * WV_SCRATCH[15]);

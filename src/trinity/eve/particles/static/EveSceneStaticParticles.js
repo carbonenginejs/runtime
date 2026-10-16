@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 import { ITr2DebugRenderable } from "../../../../global/interfaces/ITr2DebugRenderable.js";
 // Source: trinity/trinity/Eve/Renderable/EveSceneStaticParticles.h
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
@@ -21,23 +22,6 @@ const SPHERE_SCRATCH = vec4.create();
 const DEBUG_CENTER_SCRATCH = vec3.create();
 const OFFSET_SCRATCH = vec3.create();
 
-
-function createRandom(seed)
-{
-  let state = (seed >>> 0) || 0x6d2b79f5;
-  return () =>
-  {
-    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
-    return state / 0xffffffff;
-  };
-}
-
-
-function randomGauss(random, deviation)
-{
-  const first = Math.max(random(), 1e-100);
-  return deviation * Math.pow(-2 * Math.log(first), 0.75) * Math.cos(random() * Math.PI * 2);
-}
 
 /**
  * A scene-scale field of static particle clusters, held as CPU instance rows
@@ -333,9 +317,8 @@ export class EveSceneStaticParticles
    * Source: trinity/trinity/Eve/Renderable/EveSceneStaticParticles.cpp:225-327
    *
    * Adapted: CPU rows use SetElementLayout/SetData in place of native buffer
-   * writes. The existing local PRNG, boolean return and empty-cluster cleanup
-   * remain unresolved parity differences from Carbon's global randomness,
-   * void return and unguarded empty-cluster calculation.
+   * writes. Random draws use Carbon's shared CRT stream; a nonzero cluster seed reseeds it.
+   * Boolean return and empty-cluster cleanup still differ from native.
    */
   @blue.method
   @meta.adapted
@@ -387,15 +370,14 @@ export class EveSceneStaticParticles
         cluster.position[1] - this.centerOfClusters[1],
         cluster.position[2] - this.centerOfClusters[2]
       );
-      const random = createRandom(cluster.randomSeed || clusterIndex + 1);
+      if (cluster.randomSeed > 0) carbonRandom.triRandomSeed(cluster.randomSeed);
 
       for (let index = 0; index < count; index++)
       {
-        const offset = vec3.fromValues(
-          randomGauss(random, 2 * deviation),
-          randomGauss(random, deviation),
-          randomGauss(random, 2 * deviation)
-        );
+        const offsetZ = carbonRandom.triFloatRandomGauss(0, 2 * deviation);
+        const offsetY = carbonRandom.triFloatRandomGauss(0, deviation);
+        const offsetX = carbonRandom.triFloatRandomGauss(0, 2 * deviation);
+        const offset = vec3.fromValues(offsetX, offsetY, offsetZ);
         const length = vec3.length(offset);
         const position = vec3.clone(relative);
         vec3.add(position, position, offset);
@@ -404,14 +386,14 @@ export class EveSceneStaticParticles
           vec3.scaleAndAdd(position, position, offset, cluster.radius / length);
         }
 
-        const mix = random();
+        const mix = carbonRandom.triFloatRandom01();
         const color = vec4.create();
         for (let channel = 0; channel < 4; channel++)
         {
           color[channel] = cluster.color1[channel] + (cluster.color2[channel] - cluster.color1[channel]) * mix;
         }
         color[3] = count > 0 ? index / count : 0;
-        const size = random() * Math.min(cluster.radius / 10, this.maxSize) + this.minSize;
+        const size = carbonRandom.triFloatRandom01() * Math.min(cluster.radius / 10, this.maxSize) + this.minSize;
         rows.push([position, size, color]);
       }
     }

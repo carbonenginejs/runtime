@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -174,8 +175,7 @@ export class BackAndForth
    * @param {Array} _dronesInSearchRadius - unused
    * @returns {Array} empty (as Carbon)
    *
-   * Adapted: TriRandInt maps to Math.random and Be::Time fx timestamps to Date.now seconds; the steering math is
-   * ported verbatim.
+   * Random draws delegate to the matching generator in global/math/random.js.
    */
   @blue.method
   @meta.adapted
@@ -211,7 +211,7 @@ export class BackAndForth
             const seekLocators = this._GetLocatorsForSet("seek");
             if (seekLocators !== null && seekLocators.length > 0)
             {
-              const index = Math.floor(Math.random() * seekLocators.length);
+              const index = carbonRandom.triRandInt(seekLocators.length);
               vec3.copy(data.locatorTarget, seekLocators[index].position);
               vec3.transformQuat(data.locatorDirection, UP_AXIS, seekLocators[index].direction);
             }
@@ -221,7 +221,7 @@ export class BackAndForth
             const deliverLocators = this._GetLocatorsForSet("deliver");
             if (deliverLocators !== null && deliverLocators.length > 0)
             {
-              const index = Math.floor(Math.random() * deliverLocators.length);
+              const index = carbonRandom.triRandInt(deliverLocators.length);
               vec3.copy(data.locatorTarget, deliverLocators[index].position);
               vec3.transformQuat(data.locatorDirection, UP_AXIS, deliverLocators[index].direction);
             }
@@ -240,7 +240,7 @@ export class BackAndForth
         {
           // Pick a new locator to go to
           const count = this.parent.GetLocatorCount(this.locatorSetName);
-          data.locatorIndex = Math.floor(Math.random() * Math.max(count, 1));
+          data.locatorIndex = carbonRandom.triRandInt(Math.max(count, 1));
         }
 
         this._GetOwnerLocatorPosition(this.parent, data);
@@ -252,7 +252,7 @@ export class BackAndForth
         {
           // Pick a new locator to go to
           const count = this.target.GetLocatorCount(this.locatorSetName);
-          data.locatorIndex = Math.floor(Math.random() * Math.max(count, 1));
+          data.locatorIndex = carbonRandom.triRandInt(Math.max(count, 1));
         }
 
         this._GetOwnerLocatorPosition(this.target, data);

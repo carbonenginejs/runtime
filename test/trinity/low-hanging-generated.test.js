@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "../../npm/dist/global/math/random.js";
 import { getRegisteredClassName } from "../../npm/dist/global/compose/className.js";
 import {Tr2RenderContext_GetMainThreadRenderContext} from "../../npm/dist/trinity/core/context/Tr2RenderContext.js";
 import {Tr2RenderContextALStub} from "../../npm/dist/trinityal/index.js";
@@ -1186,15 +1187,15 @@ test("capsule particle generators interpolate authored emitter transforms", () =
   emitter.generators.push(shape);
   assert.equal(emitter.Rebind(), true);
 
-  const random = Math.random;
-  Math.random = () => 0.5;
+  const random = carbonRandom.particleRandFloat;
+  carbonRandom.particleRandFloat = () => 0.5;
   try
   {
     emitter.SpawnParticles(new ITr2GenericEmitterUpdateArguments(), [10, 0, 0], [2, 0, 0], 1);
   }
   finally
   {
-    Math.random = random;
+    carbonRandom.particleRandFloat = random;
   }
 
   const generatedPosition = system.GetParticleElement(0, "position");

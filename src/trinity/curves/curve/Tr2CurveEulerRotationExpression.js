@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Curves/Tr2CurveEulerRotationExpression.h
 // Source: trinity/trinity/Curves/Tr2CurveEulerRotationExpression.cpp
 import { fromYawPitchRoll, quat } from "#math/quat";
@@ -159,10 +160,10 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
   timeScale = 1;
 
   /**
-   * Per-instance random value retained until ResetRandomConstant; generated with Math.random.
+   * Random draws delegate to the matching generator in global/math/random.js.
    * @type {number}
    */
-  randomConstant = Math.random();
+  randomConstant = carbonRandom.triFloatRandom01();
 
   /**
    * Compiled JavaScript expression programs for yaw, pitch and roll; null means no program.
@@ -415,12 +416,12 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
     return this.randomConstant;
   }
 
-  /** Draws via Math.random rather than the native RNG. @returns {void} */
+  /** Draws from the shared native-compatible CRT stream. @returns {void} */
   @blue.method
   @meta.adapted
   ResetRandomConstant()
   {
-    this.randomConstant = Math.random();
+    this.randomConstant = carbonRandom.triFloatRandom01();
   }
 
   /**

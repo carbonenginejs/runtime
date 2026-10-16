@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Curves/Tr2CurveVector3Expression.h
 // Source: trinity/trinity/Curves/Tr2CurveVector3Expression.cpp
 // Source: trinity/trinity/Curves/Tr2CurveVector3Expression_Blue.cpp
@@ -133,7 +134,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   timeScale = 1;
 
   /** Runtime random constant using the existing JavaScript random adapter. */
-  randomConstant = Math.random();
+  randomConstant = carbonRandom.triFloatRandom01();
 
   /** Compiled JavaScript component programs; no held resources. */
   _programs = [null, null, null];
@@ -417,7 +418,7 @@ export class Tr2CurveVector3Expression extends ITriColorFunction
   @meta.implemented
   ResetRandomConstant()
   {
-    this.randomConstant = Math.random();
+    this.randomConstant = carbonRandom.triFloatRandom01();
   }
 
   /** Gets the curve expression terms offered to an editor for autocompletion. */

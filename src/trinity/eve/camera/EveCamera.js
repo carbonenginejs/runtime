@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/EveCamera.h
 import { IsMatch, CcpTime } from "#blue";
 import { INotify } from "../../../global/blue/INotify.js";
@@ -740,10 +741,10 @@ export class EveCamera
         if (Number.isFinite(nextNoiseDamp)) this.noiseDamp = nextNoiseDamp;
       }
 
-      this._noiseX = (this._noiseX + this.noiseDamp * (Math.random() - 0.5)) /
+      this._noiseX = (this._noiseX + this.noiseDamp * (carbonRandom.triRand() - 0.5)) /
         (1 + this.noiseDamp * deltaTime);
       this._noiseX = Math.max(-this._maxNoise, Math.min(this._maxNoise, this._noiseX));
-      this._noiseY = (this._noiseY + this.noiseDamp * (Math.random() - 0.5)) /
+      this._noiseY = (this._noiseY + this.noiseDamp * (carbonRandom.triRand() - 0.5)) /
         (1 + this.noiseDamp * deltaTime);
       this._noiseY = Math.max(-this._maxNoise, Math.min(this._maxNoise, this._noiseY));
       idleYaw += this.noiseScale * this._noiseX;

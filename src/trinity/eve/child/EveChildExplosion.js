@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildExplosion.h
 //   trinity/trinity/Eve/SpaceObject/Children/EveChildExplosion.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -395,8 +396,7 @@ export class EveChildExplosion extends EveChildContainer
    * Carbon CalculateExplosionTimes (cpp:113-141): a random delay per local explosion, scaled by the interval
    * factor raised to its index; the global start, total duration and wreck-switch time follow from them.
    *
-   * Adapted: C rand()/RAND_MAX, which can reach 1, becomes Math.random(), which stays below 1; JavaScript has
-   * no C library generator.
+   * Uses the shared CRT quotient, including the native inclusive upper endpoint.
    * @param {number} localExplosionCount Number of local explosions.
    */
   @blue.method
@@ -416,7 +416,7 @@ export class EveChildExplosion extends EveChildContainer
 
     for (let i = 0; i < localExplosionCount; i++)
     {
-      const explosionTime = this.localExplosionIntervalFactor ** i * this.localExplosionInterval * Math.random();
+      const explosionTime = this.localExplosionIntervalFactor ** i * this.localExplosionInterval * carbonRandom.triFloatRandom01();
       this._localExplosionTimes.push(explosionTime);
       timeUntilLastLocalExplosion += explosionTime;
     }
@@ -518,7 +518,7 @@ export class EveChildExplosion extends EveChildContainer
    * or a random entry of localExplosions) through the shared-preserving copier, sets the copy up at LOW lod
    * and appends it.
    *
-   * Adapted: C rand() % n becomes Math.floor(Math.random() * n); JavaScript has no C library generator.
+   * Uses the native CRT rand() % n selection.
    * @param {mat4} transform Local explosion transform in this child's local frame.
    */
   @blue.method
@@ -537,7 +537,7 @@ export class EveChildExplosion extends EveChildContainer
     let localExplosion = this.localExplosion;
     if (this.localExplosions.length)
     {
-      localExplosion = this.localExplosions[Math.floor(Math.random() * this.localExplosions.length)];
+      localExplosion = this.localExplosions[(carbonRandom.crtRand() % (this.localExplosions.length))];
     }
     const instance = be.classes.CopyTo(
       localExplosion,

@@ -10,8 +10,7 @@ export const noise = {};
  * Source: trinity/trinity/Particle/Tr2ParticleTurbulenceForce.cpp:55-123
  * Source: trinity/trinity/Particle/Tr2ParticleTurbulenceForce.cpp:151-177
  * Carbon: Noise4D; Tr2ParticleTurbulenceForce::GetForce
- * Adapted: Accumulates scaled XYZ into an output array. Initialization uses
- * Math.random; coordinate conversion and numeric precision differ from native.
+ * Adapted: Accumulates scaled XYZ into an output array. Initialization uses the CRT stream; coordinate conversion and numeric precision differ from native.
  *
  * @param {vec4} out
  * @param {number} pos_0
@@ -35,14 +34,18 @@ noise.turbulence = (function()
      *
      * Source: trinity/trinity/Particle/Tr2ParticleTurbulenceForce.cpp:16-44
      * Carbon: InitializeNoise::InitializeNoise; s_rand
-     * Adapted: Initializes lazily using Math.random instead of native static rand.
+     * Adapted: Initializes lazily using the native CRT generator; native initialization is static.
      *
      */
     function initialize()
     {
         for (let i = 0; i < 256; i++)
         {
-            s_noiseLookup[i] = vec4.fromValues(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);
+            s_noiseLookup[i] = vec4.create();
+            for (let axis = 3; axis >= 0; axis--)
+            {
+                s_noiseLookup[i][axis] = random.triFloatRandom01() - 0.5;
+            }
             s_permutations[i] = i;
         }
 
@@ -51,7 +54,7 @@ noise.turbulence = (function()
         {
             const
                 tmp = s_permutations[i],
-                index = Math.floor(Math.random() * 256);
+                index = (random.crtRand() % 256);
 
             s_permutations[i] = s_permutations[index];
             s_permutations[index] = tmp;
@@ -147,13 +150,13 @@ noise.turbulence = (function()
  * Source: trinity/trinity/Include/TriMath.h:256-295
  * Source: trinity/trinity/TriMath.cpp:1021-1061
  * Carbon: TriPerlinNoise::TriPerlinNoise; TriPerlinNoise::operator(); TriPerlinNoise::FractalSum
- * Adapted: Returns closures; the optional seed uses Math.random instead of
+ * Adapted: Returns closures; the optional seed uses cryptographic host entropy to represent
  * std::random_device, and octave arguments are sanitized as JavaScript numbers.
  *
  * @param {number} [seed]
  * @returns {{ sample: (x: number) => number, fractalSum: (x: number, octaves: number, amplitudeScale?: number, frequencyScale?: number) => number }}
  */
-noise.createPerlinNoise1D = function(seed = Math.floor(Math.random() * 0x100000000))
+noise.createPerlinNoise1D = function(seed = random.randomDevice())
 {
     const next = random.mt19937(seed);
     const gradients = Float64Array.from(
@@ -250,13 +253,13 @@ noise.perlin1 = (function()
         for (; index < 256; index++)
         {
             permutations[index] = index;
-            gradients[index] = Math.random() * 2 - 1;
+            gradients[index] = random.host() * 2 - 1;
         }
 
         while (--index)
         {
             const value = permutations[index],
-                randomIndex = Math.floor(Math.random() * 256);
+                randomIndex = Math.floor(random.host() * 256);
             permutations[index] = permutations[randomIndex];
             permutations[randomIndex] = value;
         }

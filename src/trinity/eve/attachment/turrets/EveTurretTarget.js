@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 import { IRoot } from "../../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/Turret/EveTurretTarget.h
 // Source: trinity/trinity/Eve/Turret/EveTurretTarget.cpp
@@ -133,8 +134,8 @@ export class EveTurretTarget
    * authored, either creates the impact immediately (zero delay under
    * damage-locator behaviour) or arms it to be created once delay elapses.
    *
-   * Adapted: Carbon's random helpers map to Math.random; targetable calls use the
-   * org-standard out-last convention.
+   * Random draws delegate to the matching generator in global/math/random.js.
+   * Vector outputs use the org-standard out-last convention.
    */
   @blue.method
   @meta.adapted
@@ -148,9 +149,9 @@ export class EveTurretTarget
       vec3.copy(this.positionOld, this.position);
       this.positionOldInfluence = 1;
     }
-    this._randomMissDistanceOffset = Math.random();
-    const u = Math.random();
-    const v = Math.random();
+    this._randomMissDistanceOffset = carbonRandom.triFloatRandom01();
+    const u = carbonRandom.triFloatRandom01();
+    const v = carbonRandom.triFloatRandom01();
     const phi = u * Math.PI * 2;
     const theta = Math.acos(1 - Math.sqrt(v)) * 2;
     const sinPhi = Math.sin(phi) * 3;

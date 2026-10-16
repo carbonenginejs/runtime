@@ -14,6 +14,7 @@ export class CjsSOFEditManager
   /** One direct receiver, or null when only mutation results are needed. */
   _receive;
 
+  /** Creates an edit manager using the supplied schema and optional receipt callback. */
   constructor({ schema = CjsSchema, receive = null } = {})
   {
     if (receive !== null && typeof receive !== "function") throw new TypeError("SOF edit receiver must be a function.");

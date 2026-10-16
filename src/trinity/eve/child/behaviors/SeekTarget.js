@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SeekTarget.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SeekTarget.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
@@ -373,7 +374,7 @@ export class SeekTarget
    * inside slowDownRadius, facing it and starting its effect, and marking arrival inside arrivedRadius.
    * Carbon quirks kept as written: timePassed is raised to at least secondsToTurn, so the ramp is always at full
    * weight; the force applies behaviorWeight on top of that.
-   * Adapted: Math.random stands in for TriRandInt; returns the (position + offset, force) debug pairs Carbon returns.
+   * Random draws delegate to the matching generator in global/math/random.js.
    */
   @blue.method
   @meta.adapted
@@ -421,11 +422,11 @@ export class SeekTarget
           if (this._sortedLocators)
           {
             data.bucketId = agent.id % this._boundingBoxes.length;
-            data.locatorIndex = Math.floor(Math.random() * this._locatorBucketIndices[data.bucketId].length);
+            data.locatorIndex = carbonRandom.triRandInt(this._locatorBucketIndices[data.bucketId].length);
           }
           else
           {
-            data.locatorIndex = Math.floor(Math.random() * this.target.GetLocatorCount(this.locatorSetName));
+            data.locatorIndex = carbonRandom.triRandInt(this.target.GetLocatorCount(this.locatorSetName));
           }
         }
         const locatorIndex = this._sortedLocators ? this._locatorBucketIndices[data.bucketId][data.locatorIndex] : data.locatorIndex;
@@ -437,13 +438,13 @@ export class SeekTarget
         const seekLocators = this._GetLocatorsForSet(this.locatorSetName);
         if (seekLocators !== null && seekLocators.length > 0)
         {
-          const locator = seekLocators[Math.floor(Math.random() * seekLocators.length)];
+          const locator = seekLocators[carbonRandom.triRandInt(seekLocators.length)];
           vec3.copy(data.position, locator.position);
           vec3.transformQuat(data.direction, UP_AXIS, locator.direction);
         }
         else if (this._parent !== null)
         {
-          const locatorIndex = Math.floor(Math.random() * this._parent.GetLocatorCount(this.locatorSetName));
+          const locatorIndex = carbonRandom.triRandInt(this._parent.GetLocatorCount(this.locatorSetName));
           vec3.copy(data.position, this._parent.GetLocatorPositionFromSet(locatorIndex, false, this.locatorSetName));
           this._parent.GetLocatorDirection(data.direction, locatorIndex, false, this.locatorSetName);
         }
@@ -545,11 +546,11 @@ export class SeekTarget
     const seekLocators = this._GetLocatorsForSet(this.locatorSetName);
     if (seekLocators !== null && seekLocators.length > 0)
     {
-      return vec3.copy(out, seekLocators[Math.floor(Math.random() * seekLocators.length)].position);
+      return vec3.copy(out, seekLocators[carbonRandom.triRandInt(seekLocators.length)].position);
     }
     if (this._parent !== null)
     {
-      const locatorIndex = Math.floor(Math.random() * this._parent.GetLocatorCount(this.locatorSetName));
+      const locatorIndex = carbonRandom.triRandInt(this._parent.GetLocatorCount(this.locatorSetName));
       return vec3.copy(out, this._parent.GetLocatorPositionFromSet(locatorIndex, false, this.locatorSetName));
     }
     return vec3.set(out, 0, 0, 0);

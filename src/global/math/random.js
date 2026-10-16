@@ -125,3 +125,160 @@ random.uniformRealFloat = function(engine, min, max)
     const lower = Math.fround(min);
     return Math.fround(Math.fround(canonical * Math.fround(Math.fround(max) - lower)) + lower);
 };
+
+// Source: trinity/trinity/TriMath.cpp:209-238,970-1009
+// Carbon has TWO independent process streams here: CRT rand and TriRand.
+let crtState = 1;
+let triState = 1234;
+let particleState = null;
+
+/** Windows CRT srand: the stream is shared by all native rand consumers. */
+random.crtSrand = function(seed)
+{
+    crtState = Number(seed) >>> 0;
+};
+
+/** Windows CRT rand, matching the Windows Carbon target (RAND_MAX = 32767). */
+random.crtRand = function()
+{
+    crtState = (Math.imul(crtState, 214013) + 2531011) >>> 0;
+    return (crtState >>> 16) & 0x7fff;
+};
+
+/** Carbon TriRandomSeed delegates to the CRT stream, not TriSrand. */
+random.triRandomSeed = function(seed)
+{
+    random.crtSrand(seed);
+};
+
+/** Carbon TriFloatRandom01, including the inclusive upper endpoint. */
+random.triFloatRandom01 = function()
+{
+    return Math.fround(random.crtRand() / 32767);
+};
+
+/** Carbon's historical Gaussian helper, including its 0.75 exponent. */
+random.triFloatRandomGauss = function(mu, deviation)
+{
+    let first = random.triFloatRandom01();
+    // Preserve the native float assignment, including underflow of 1e-100.
+    if (first < 1e-100) first = Math.fround(1e-100);
+    first = Math.fround(-2 * Math.log(first));
+    const second = Math.fround(random.triFloatRandom01() * Math.fround(Math.PI * 2));
+    return Math.fround(mu + deviation * Math.pow(first, 0.75) * Math.cos(second));
+};
+
+/** One TriRand integer-state step; also used by isolated SOF planning state. */
+random.triRandStep = function(seed)
+{
+    return (((seed << 12) + 150889) >>> 0) % 714025;
+};
+
+/** Carbon TriSrand(uint32_t). */
+random.triSrand = function(seed)
+{
+    triState = (Number(seed) >>> 0) % 714025;
+};
+
+/** Carbon TriRandGetSeed. */
+random.triRandGetSeed = function()
+{
+    return triState;
+};
+
+/** Carbon TriRand; shares state with both integer overloads. */
+random.triRand = function()
+{
+    triState = random.triRandStep(triState);
+    return Math.fround(triState / 714025);
+};
+
+/** Carbon TriRandInt(int hi), including uint32 multiplication overflow. */
+random.triRandInt = function(hi)
+{
+    triState = random.triRandStep(triState);
+    return Math.trunc((Math.imul(hi | 0, triState) >>> 0) / 714025);
+};
+
+/** Carbon TriRandInt(int lo, int hi). */
+random.triRandIntRange = function(lo, hi)
+{
+    return (random.triRandInt((hi - lo) | 0) + (lo | 0)) | 0;
+};
+
+/** Source: Particle/Tr2ParticleSystem.h:145-174. Lazy CRT-seeded shared state. */
+random.particleRandCheap = function()
+{
+    if (particleState === null) particleState = random.crtRand();
+    const seed = particleState;
+    let lo = Math.imul(16807, seed & 0xffff) >>> 0;
+    const hi = Math.imul(16807, seed >>> 16) >>> 0;
+    lo = (lo + ((hi & 0x7fff) << 16)) >>> 0;
+    lo = (lo + (hi >>> 15)) >>> 0;
+    particleState = ((lo & 0x7fffffff) + (lo >>> 31)) >>> 0;
+    return particleState;
+};
+
+/** Carbon Tr2ParticleSystem::RandFloat. */
+random.particleRandFloat = function()
+{
+    return Math.fround(Math.fround(random.particleRandCheap() & 0x7fffffff) / Math.fround(0x7fffffff));
+};
+
+/** std::minstd_rand engine; distribution conversion is separate from its state. */
+random.minstdRand = function(seed)
+{
+    const modulus = 2147483647;
+    let state = (Number(seed) >>> 0) % modulus;
+    if (state === 0) state = 1;
+    return function()
+    {
+        state = state * 48271 % modulus;
+        return state;
+    };
+};
+
+/** MSVC 14.50 generate_canonical<float,24> for minstd_rand (include/random:298-358). */
+random.createMinStdRandom = function(seed)
+{
+    const engine = random.minstdRand(seed);
+    return function()
+    {
+        // R=2147483646, X=floor(R/2^24)=127; reject the incomplete top bucket.
+        let value;
+        do
+        {
+            value = engine() - 1;
+        }
+        while (value >= 2130706432);
+        return Math.floor(value / 127) * 2 ** -24;
+    };
+};
+
+/** Entropy for std::random_device consumers; never substitutes for a seeded engine. */
+random.randomDevice = function()
+{
+    return globalThis.crypto.getRandomValues(new Uint32Array(1))[0];
+};
+
+/** Host randomness for explicitly non-Carbon APIs, centralized at this boundary. */
+random.host = function()
+{
+    return Math.random();
+};
+
+/** Existing non-Carbon room-reverb generator; sequence preserved during consolidation. */
+random.mulberry32 = function(seed)
+{
+    let state = Number(seed) >>> 0 || 0x6d2b79f5;
+
+    return () =>
+    {
+        state += 0x6d2b79f5;
+        let value = state;
+
+        value = Math.imul(value ^ value >>> 15, value | 1);
+        value ^= value + Math.imul(value ^ value >>> 7, value | 61);
+        return ((value ^ value >>> 14) >>> 0) / 4294967296;
+    };
+};

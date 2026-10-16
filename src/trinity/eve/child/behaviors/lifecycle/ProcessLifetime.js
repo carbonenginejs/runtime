@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/ProcessLifetime.h
 import { INotify } from "../../../../../global/blue/INotify.js";
 import { IInitialize } from "../../../../../global/blue/IInitialize.js";
@@ -222,7 +223,7 @@ export class ProcessLifetime
    * @param {Array} _dronesInSearchRadius - unused
    * @returns {Array} debug force pairs when group.collectForces is on
    *
-   * Adapted: rand() is Math.random; debug force pairs are collected only while group.collectForces is set, keeping the
+   * Random draws delegate to the matching generator in global/math/random.js.
    * per-agent loop allocation-free.
    */
   @blue.method
@@ -518,7 +519,7 @@ export class ProcessLifetime
       const wanderSpan = tunnel.cylWidth * this.wanderAmount;
       for (let i = 0; i < 3; i++)
       {
-        OFFSET[i] += -wanderSpan + Math.random() * 2 * wanderSpan;
+        OFFSET[i] += -wanderSpan + carbonRandom.triFloatRandom01() * 2 * wanderSpan;
       }
 
       vec3.add(TARGET_VECTOR, TARGET_VECTOR, OFFSET);
@@ -610,7 +611,7 @@ export class ProcessLifetime
 
   /**
    * Places the very first spawn at a random time along a random entrance tunnel's curve, ageing the agent by the fraction of the tunnel it skipped and setting the spline point it resumes from (Carbon FindInitialSpawnPoint, cpp:329-388). Prefers this behavior's own tunnel groups and falls back to the system-wide ones.
-   * Adapted: Math.random selects native rand-based indices; the vector call fills a
+   * Random draws delegate to the matching generator in global/math/random.js.
    * JavaScript output buffer and returns it. Native zero-length division is preserved;
    * JavaScript NaN storage does not emulate C++ undefined float-to-int conversion.
    * @param {Float32Array} pos - caller-owned; receives the chosen spawn position
@@ -635,7 +636,7 @@ export class ProcessLifetime
     }
 
     // pick a random splineTunnel
-    const splineTunnel = tunnels[Math.floor(Math.random() * tunnels.length)];
+    const splineTunnel = tunnels[(carbonRandom.crtRand() % (tunnels.length))];
 
     const curveSets = splineTunnel.GetCurveSets();
 
@@ -649,11 +650,11 @@ export class ProcessLifetime
     if (groupType === TunnelGroupType.ENTRANCE_TUNNELS)
     {
       // we can have more than 1 curve so pick a random curve
-      const curve = curveSets[Math.floor(Math.random() * curveSets.length)];
+      const curve = curveSets[(carbonRandom.crtRand() % (curveSets.length))];
 
       // get random time
       const length = Math.trunc(curve.Length());
-      const time = Math.floor(Math.random() * (length + 1));
+      const time = (carbonRandom.crtRand() % ((length + 1)));
 
       // get value at time
       vec3.copy(pos, curve.GetValue(time, pos));
@@ -701,7 +702,7 @@ export class ProcessLifetime
         const point = vec3.clone(tunnel.splinePoints[0].pos);
         for (let i = 0; i < 3; i++)
         {
-          point[i] += -tunnel.pointOfNoReturnSize + Math.random() * 2 * tunnel.pointOfNoReturnSize;
+          point[i] += -tunnel.pointOfNoReturnSize + carbonRandom.triFloatRandom01() * 2 * tunnel.pointOfNoReturnSize;
         }
         potentialPoints.push(point);
         potentialRotations.push(tunnel.splinePoints[0].rot);
@@ -714,7 +715,7 @@ export class ProcessLifetime
       return;
     }
 
-    const randomNbr = Math.floor(Math.random() * potentialPoints.length);
+    const randomNbr = (carbonRandom.crtRand() % (potentialPoints.length));
     vec3.copy(group.spawnPosition, potentialPoints[randomNbr]);
     vec3.copy(agent.position, potentialPoints[randomNbr]);
     // Carbon TriQuaternionRotationArc(&agent.rotation, &zAxis, &potentialRotations[n])

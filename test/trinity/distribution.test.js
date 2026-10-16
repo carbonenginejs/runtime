@@ -1,3 +1,13 @@
+import { random } from "../../npm/dist/global/math/random.js";
+
+// Stub the native stream boundary for geometric branch tests, not the host RNG.
+function stubRandom(value)
+{
+  random.triRand = () => value;
+  random.triFloatRandom01 = () => value;
+  random.triRandInt = hi => Math.floor(value * hi);
+}
+
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
@@ -71,15 +81,15 @@ test("locator distributions rebuild and consume Carbon placement pools", () =>
   assert.equal(distribution.GetNumberOfPlacements(), 0);
   assert.equal(distribution.GetClosestFreePlacement([19, 0, 0]), 1);
 
-  const originalRandom = Math.random;
-  Math.random = () => 0;
+  const originalRandom = { triRand: random.triRand, triFloatRandom01: random.triFloatRandom01, triRandInt: random.triRandInt };
+  stubRandom(0);
   try
   {
     distribution.AddEntity();
   }
   finally
   {
-    Math.random = originalRandom;
+    Object.assign(random, originalRandom);
   }
 
   assert.equal(distribution.GetFreePlacementCount(), 1);
@@ -368,8 +378,8 @@ test("parent locator generators resolve and rebuild the Carbon locator-set contr
 
 test("volume generators consume Carbon volume points and change callbacks", () =>
 {
-  const originalRandom = Math.random;
-  Math.random = () => 0;
+  const originalRandom = { triRand: random.triRand, triFloatRandom01: random.triFloatRandom01, triRandInt: random.triRandInt };
+  stubRandom(0);
   try
   {
     const sphere = new EveSphereVolume();
@@ -407,10 +417,10 @@ test("volume generators consume Carbon volume points and change callbacks", () =
   }
   finally
   {
-    Math.random = originalRandom;
+    Object.assign(random, originalRandom);
   }
 
-  Math.random = () => 0.5;
+  stubRandom(0.5);
   try
   {
     const ellipsoid = new EveEllipsoidVolume();
@@ -430,7 +440,7 @@ test("volume generators consume Carbon volume points and change callbacks", () =
   }
   finally
   {
-    Math.random = originalRandom;
+    Object.assign(random, originalRandom);
   }
 
   assert.equal(
@@ -462,8 +472,8 @@ test("sphere and plane trigger spawners follow Carbon sorted trigger progress", 
     makePlacement(20, [0, 2, 0]),
     makePlacement(30, [0, 4, 0])
   ];
-  const originalRandom = Math.random;
-  Math.random = () => 0;
+  const originalRandom = { triRand: random.triRand, triFloatRandom01: random.triFloatRandom01, triRandInt: random.triRandInt };
+  stubRandom(0);
   try
   {
     const sphereCalls = [];
@@ -491,7 +501,7 @@ test("sphere and plane trigger spawners follow Carbon sorted trigger progress", 
   }
   finally
   {
-    Math.random = originalRandom;
+    Object.assign(random, originalRandom);
   }
 
   assert.equal(
@@ -526,8 +536,8 @@ test("snake trigger spawners follow Carbon nearest-placement travel", () =>
     GetInitialPlacementData: id => placements.find(value => value.placement.uniqueID === id)?.placement ?? null
   };
 
-  const originalRandom = Math.random;
-  Math.random = () => 0;
+  const originalRandom = { triRand: random.triRand, triFloatRandom01: random.triFloatRandom01, triRandInt: random.triRandInt };
+  stubRandom(0);
   try
   {
     const snake = new EveDistributionSpawnerTriggerSnake();
@@ -549,7 +559,7 @@ test("snake trigger spawners follow Carbon nearest-placement travel", () =>
   }
   finally
   {
-    Math.random = originalRandom;
+    Object.assign(random, originalRandom);
   }
 
   assert.equal(

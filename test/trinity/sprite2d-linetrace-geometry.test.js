@@ -4,7 +4,7 @@ import { Tr2Sprite2dLineTrace } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2
 import { Tr2Sprite2dScene } from "../../npm/dist/trinity/sprite2d/Tr2Sprite2dScene.js";
 import { Tr2SpriteObjectEffect, Tr2SpriteObjectPickState } from "../../npm/dist/trinity/generated/sprite2d/enums.js";
 
-// Donor: E:\carbonengine\trinity\trinity\Sprite2d\Tr2Sprite2dLineTrace.cpp. Expected values are computed by hand
+// Donor: trinity/trinity/Sprite2d\Tr2Sprite2dLineTrace.cpp. Expected values are computed by hand
 // from the donor formulas quoted beside each assertion.
 
 /**

@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveBoosterUtilities.h
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveBoosterUtilities.cpp
 //
@@ -132,7 +133,7 @@ export function CreateBoosterFlares(glows, transform, params)
     vec3.scale(FLARE_DIRECTION_SCRATCH, FLARE_DIRECTION_SCRATCH, scale / 3);
   }
 
-  const seed = Math.random() * 0.7;
+  const seed = carbonRandom.triFloatRandom01() * 0.7;
   AddBoosterFlare(glows, FLARE_POSITION_SCRATCH, FLARE_DIRECTION_SCRATCH, 2.5, seed, seed,
     scale * params.glowScale, scale * params.glowScale, params.glowColor, params.warpGlowColor);
   AddBoosterFlare(glows, FLARE_POSITION_SCRATCH, FLARE_DIRECTION_SCRATCH, 3, seed, 1 + seed,
@@ -161,7 +162,7 @@ export function ComputeBoosterLightFlicker(phase, amplitude, frequency, animatio
     lightNoiseInitialized = true;
     for (let index = 0; index < LIGHT_NOISE_SIZE; index++)
     {
-      LIGHT_NOISE[index] = Math.random();
+      LIGHT_NOISE[index] = carbonRandom.triFloatRandom01();
     }
   }
   const phased = (phase + animationTime) * frequency;

@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveBoosterUtilities.cpp
 //
 // Here rather than beside the rest of the booster utilities in trinity because
@@ -15,5 +16,5 @@ export const BOOSTER_LIGHT_NOISE_SIZE = 128;
  */
 export function GenerateBoosterLightPhase()
 {
-  return BOOSTER_LIGHT_NOISE_SIZE * Math.random();
+  return BOOSTER_LIGHT_NOISE_SIZE * carbonRandom.triFloatRandom01();
 }

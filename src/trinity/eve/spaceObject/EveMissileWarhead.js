@@ -1,5 +1,7 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/EveMissileWarhead.h
 // Source: trinity/trinity/Eve/SpaceObject/EveMissileWarhead.cpp
+import { EveMissileWarheadPerObjectData } from "../../core/rawData/perObjectData/EveMissileWarheadPerObjectData.js";
 import { mat4 } from "#math/mat4";
 import { carbonPerlin1D } from "#math/noise";
 import { num } from "#math/num";
@@ -88,8 +90,8 @@ export class EveMissileWarhead extends EveTransform
   _currentDurationEjectPhase = 0;
   _currentOffsetTransform = mat4.create();
   _finalDestinationTimer = 0;
-  _finalTargetTime = 0.75 - Math.random() * 0.1;
-  _speedModifier = 1.04 - Math.random() * 0.08;
+  _speedModifier = 1.04 - carbonRandom.triRand() * 0.08;
+  _finalTargetTime = 0.75 - carbonRandom.triRand() * 0.1;
   _explosionDistance = 0;
   _bombFlightpath = false;
   _lastPositionValid = false;
@@ -123,7 +125,7 @@ export class EveMissileWarhead extends EveTransform
   {
     this._currentEjectVelocity = this.startEjectVelocity;
     this._currentDurationEjectPhase = this.durationEjectPhase;
-    const distance = this.maxExplosionDistance - Math.random() * this.maxExplosionDistance * 0.5;
+    const distance = this.maxExplosionDistance - carbonRandom.triRand() * this.maxExplosionDistance * 0.5;
     this._explosionDistance = distance * distance;
     this._state = EveMissileWarhead.State.STATE_DELAYED;
     this._flyingTime = 0;
@@ -139,8 +141,8 @@ export class EveMissileWarhead extends EveTransform
     this.targetLocatorID = -1;
     vec3.set(this.explosionPosition, 0, 0, 0);
     mat4.identity(this._currentOffsetTransform);
-    this._speedModifier = 1.04 - Math.random() * 0.08;
-    this._finalTargetTime = 0.75 - Math.random() * 0.1;
+    this._speedModifier = 1.04 - carbonRandom.triRand() * 0.08;
+    this._finalTargetTime = 0.75 - carbonRandom.triRand() * 0.1;
     this._bombFlightpath = false;
     this._lastPositionValid = false;
   }
@@ -525,10 +527,11 @@ export class EveMissileWarhead extends EveTransform
   @meta.adapted
   GetPerObjectData(accumulator)
   {
-    const data = accumulator.Alloc("EveMissileWarheadPerObjectData");
+    const record = EveMissileWarheadPerObjectData.alloc(accumulator);
+    const data = record.vs;
     data.SetAndTranspose("world", this.worldTransform);
     data.Set("missileSize", [this.warheadRadius, this.warheadLength, 0, 0]);
-    return data;
+    return record;
   }
 
   /**

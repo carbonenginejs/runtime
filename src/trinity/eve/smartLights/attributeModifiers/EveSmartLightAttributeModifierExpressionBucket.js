@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierExpressionBucket.h
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -38,7 +39,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
   _program = null;
 
   /** m_randomConstant (float) - per-instance random constant (h:48). */
-  _randomConstant = Math.random();
+  _randomConstant = carbonRandom.triFloatRandom01();
 
   // m_arguments (h:50-55) - the expression variable bindings, refreshed each
   // synchronous update.
@@ -139,7 +140,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
   @meta.implemented
   ResetRandomConstant()
   {
-    this._randomConstant = Math.random();
+    this._randomConstant = carbonRandom.triFloatRandom01();
   }
 
   /**

@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: parser/include/ccpparser.h (CcpParser::Parse, Program, Observer)
 //
 // The tokenizer and the AST evaluator, split out of
@@ -536,7 +537,7 @@ export const DEFAULT_FUNCTIONS = {
   radians: (_ctx, x) => ToNumber(x) * Math.PI / 180,
   mod: (_ctx, x, y) => ToNumber(y) === 0 ? 0 : ToNumber(x) % ToNumber(y),
   lerp: (_ctx, a, b, x) => ToNumber(a) * (1 - ToNumber(x)) + ToNumber(b) * ToNumber(x),
-  random: (_ctx, min = 0, max = 1) => ToNumber(min) + Math.random() * (ToNumber(max) - ToNumber(min)),
+  random: (_ctx, min = 0, max = 1) => ToNumber(min) + carbonRandom.triFloatRandom01() * (ToNumber(max) - ToNumber(min)),
   Random: (_ctx, min = 0, max = 1) => RandomInteger(min, max),
   randomConstant: (ctx, min = 0, max = 1) => ToNumber(min) + GetRandomConstant(ctx) * (ToNumber(max) - ToNumber(min)),
   randconst: (ctx, min = 0, max = 1) => DEFAULT_FUNCTIONS.randomConstant(ctx, min, max),
@@ -668,7 +669,7 @@ export function RandomInteger(min, max)
   {
     return minValue;
   }
-  return minValue + Math.floor(Math.random() * span);
+  return minValue + (carbonRandom.crtRand() % span);
 }
 
 /**

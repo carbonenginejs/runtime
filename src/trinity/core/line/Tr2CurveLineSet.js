@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Tr2CurveLineSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
@@ -670,16 +671,15 @@ export class Tr2CurveLineSet
   }
 
   /**
-   * Writes particle quads with Math.random in place of the platform C rand
-   * stream. DataView replaces the native pointer; the native unwritten
-   * nextLineDir bytes are zeroed deterministically, with no seeded guarantee.
+   * Uses the shared CRT stream. DataView replaces the native pointer; the native
+   * unwritten nextLineDir bytes are zeroed deterministically.
    */
   @blue.method
   @meta.adapted
   WriteParticleVerticesToBuffer(pos1, col1, length1, pos2, col2, length2, lineID, buffer, offset = 0)
   {
     const line = this.lines[lineID], width = this.lineWidthFactor * line.width;
-    const random = Math.random(), color1 = swizzleColor(col1), color2 = swizzleColor(col2);
+    const random = carbonRandom.triFloatRandom01(), color1 = swizzleColor(col1), color2 = swizzleColor(col2);
     const multi = swizzleColor(line.multiColor), overlay = swizzleColor(line.overlayColor);
     for (let corner = 0; corner < 6; corner++, offset += LINE_STRIDE)
     {

@@ -1,3 +1,4 @@
+import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodCycling.h
 import { INotify } from "../../../../../global/blue/INotify.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
@@ -55,7 +56,7 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
 
   /** Carbon method restart -> SelectParameter (MAP_METHOD_AND_WRAP,
    * cpp:36-60): randomized order picks any OTHER index (the shifted draw);
-   * otherwise a plain cycle. Math.random replaces Carbon's unseeded rand().
+   * Random draws delegate to the matching generator in global/math/random.js.
    *
    * Adapted: An optional timestamp provides Carbon's current-frame clock
    * deterministically in browser tests.
@@ -73,7 +74,7 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
     if (this.randomizeOrder && count > 2)
     {
       const previous = this.selectedChild;
-      this.selectedChild = Math.floor(Math.random() * (count - 1));
+      this.selectedChild = (carbonRandom.crtRand() % ((count - 1)));
       if (this.selectedChild >= previous)
       {
         this.selectedChild++;
