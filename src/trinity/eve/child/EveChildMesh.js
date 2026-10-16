@@ -1,3 +1,4 @@
+import { Tr2PerObjectDataStandard } from "../../core/rawData/perObjectData/Tr2PerObjectDataStandard.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildMesh.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildMesh.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildMesh_Blue.cpp
@@ -1481,7 +1482,7 @@ export class EveChildMesh extends EveChildTransform
    * pose - and is uploaded even at rest, as Carbon does, because skinned
    * shaders read it regardless. Adapted: the morph ring is not ported, so its
    * offsets keep their defaults; Carbon allocates a pooled handle where this
-   * port returns the records directly.
+   * port wraps the persistent payloads in a per-gather picking record.
    */
   @blue.method
   @meta.adapted
@@ -1504,7 +1505,10 @@ export class EveChildMesh extends EveChildTransform
     this._perObjectData.vs.SetIndex("boneOffsets", 0, [ this._boneOffsets.GetCurrentFrameOffset() ]);
     this._perObjectData.vs.SetIndex("boneOffsets", 1, [ this._boneOffsets.GetPreviousFrameOffset() ]);
 
-    return { vs: this._perObjectData.vs, ps: this._perObjectData.ps };
+    const data = new Tr2PerObjectDataStandard();
+    data.vs = this._perObjectData.vs;
+    data.ps = this._perObjectData.ps;
+    return data;
   }
 
   /**

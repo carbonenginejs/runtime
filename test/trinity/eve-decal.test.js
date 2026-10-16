@@ -13,7 +13,7 @@ import { SharedGeometryBuffer } from "../../npm/dist/trinity/core/mesh/TriGeomet
 Tr2RenderContext_GetMainThreadRenderContext().GetRenderContextAL().CreateDevice({ mode: { width: 64, height: 64 } });
 
 
-test("EveSpaceObjectDecal fills the Carbon { vs, ps } per-object composite (cpp:346-386)", () =>
+test("EveSpaceObjectDecal fills the Carbon per-object composite with picking identity (cpp:346-386)", () =>
 {
   const decal = new EveSpaceObjectDecal();
   decal.position.set([1, 2, 3]);
@@ -33,6 +33,11 @@ test("EveSpaceObjectDecal fills the Carbon { vs, ps } per-object composite (cpp:
 
   const store = makePerObjectStore();
   const pod = decal.GetPerObjectData({ Alloc: name => store.Allocate(name) });
+  pod.SetUserData(17);
+  pod.SetPickingPointer(0x123456789n);
+  assert.equal(pod.GetUserData(), 17);
+  assert.equal(pod.GetPickingPointer(), 0x123456789n);
+  assert.deepEqual(pod.GetPayloads(), [pod.vs, pod.ps]);
 
   assert.deepEqual([...pod.vs.GetLayout().stages], ["vs"], "vs half binds the vertex slot");
   assert.deepEqual([...pod.ps.GetLayout().stages], ["ps"], "ps half binds the pixel slot");

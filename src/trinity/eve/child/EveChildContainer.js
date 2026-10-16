@@ -1,3 +1,4 @@
+import { Tr2PerObjectDataStandard } from "../../core/rawData/perObjectData/Tr2PerObjectDataStandard.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp
@@ -1147,7 +1148,7 @@ export class EveChildContainer extends EveChildTransform
    * [current offset, previous offset, bone count], then hands back this
    * container's two PERSISTENT buffers. Before any upload the offsets are
    * INVALID_OFFSET, Carbon's no-draw state. Adapted: Carbon allocates a pooled
-   * handle where this port returns the records directly.
+   * handle where this port wraps the persistent payloads in a per-gather picking record.
    */
   @blue.method
   @meta.adapted
@@ -1167,7 +1168,10 @@ export class EveChildContainer extends EveChildTransform
     this._perObjectData.vs.SetIndex("boneOffsets", 0, [ this._boneOffsets.GetCurrentFrameOffset() ]);
     this._perObjectData.vs.SetIndex("boneOffsets", 1, [ this._boneOffsets.GetPreviousFrameOffset() ]);
 
-    return { vs: this._perObjectData.vs, ps: this._perObjectData.ps };
+    const data = new Tr2PerObjectDataStandard();
+    data.vs = this._perObjectData.vs;
+    data.ps = this._perObjectData.ps;
+    return data;
   }
 
   /** Carbon EveChildContainer::HasRenderables (cpp:1129-1132): the container

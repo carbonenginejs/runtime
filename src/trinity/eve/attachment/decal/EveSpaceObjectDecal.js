@@ -1,3 +1,4 @@
+import { EveDecalPerObjectData } from "../../../core/rawData/perObjectData/EveDecalPerObjectData.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveSpaceObjectDecal.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveSpaceObjectDecal.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveSpaceObjectDecal_Blue.cpp
@@ -590,7 +591,7 @@ export class EveSpaceObjectDecal
    * Carbon EveSpaceObjectDecal::GetPerObjectData (cpp:346-386): the
    * EveDecalPerObjectData composite - a DecalVSPerObjectData +
    * DecalPSPerObjectData pair uploaded as TWO constant buffers (cpp:975-976).
-   * Here that is two Allocs returned as a { vs, ps } record.
+   * The existing EveDecalPerObjectData owns both payloads and picking identity.
    *
    * SetAndTranspose performs Carbon's Transpose. Carbon computes the two
    * inverses FROM the already-transposed matrices; because Inverse(M-transpose)
@@ -602,8 +603,8 @@ export class EveSpaceObjectDecal
   @meta.implemented
   GetPerObjectData(accumulator)
   {
-    const vs = accumulator.Alloc("DecalVSPerObjectData");
-    const ps = accumulator.Alloc("DecalPSPerObjectData");
+    const record = EveDecalPerObjectData.alloc(accumulator);
+    const { vs, ps } = record;
     const parentData = this._parentData;
 
     vs.SetAndTranspose("worldMatrix", parentData.transform);
@@ -648,7 +649,7 @@ export class EveSpaceObjectDecal
     }
     ps.Set("shLightingCoefficients", coefficients);
 
-    return { vs, ps };
+    return record;
   }
 
   /**

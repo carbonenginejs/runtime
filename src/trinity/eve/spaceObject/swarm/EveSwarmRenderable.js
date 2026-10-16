@@ -1,3 +1,4 @@
+import { Tr2PerObjectDataStandard } from "../../../core/rawData/perObjectData/Tr2PerObjectDataStandard.js";
 import { IShaderConfigurer } from "../../../shader/IShaderConfigurer.js";
 import { ITr2Pickable } from "../../../core/ITr2Pickable.js";
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.h
@@ -442,7 +443,10 @@ export class EveSwarmRenderable extends EveEntity
   @blue.method
   GetPerObjectData(_accumulator = null)
   {
-    return { vs: this._perObjectData.vs, ps: this._perObjectData.ps };
+    const data = new Tr2PerObjectDataStandard();
+    data.vs = this._perObjectData.vs;
+    data.ps = this._perObjectData.ps;
+    return data;
   }
 
   /** Carbon EveSwarmRenderable::GetShadowPerObjectData (EveSwarm.cpp:300-303):
