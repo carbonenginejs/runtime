@@ -1,3 +1,4 @@
+import sseReciprocalSqrtData from "./sseReciprocalSqrtTable.json" with { type: "json" };
 import { random as carbonRandom } from "#math/random";
 export const num = {};
 
@@ -846,7 +847,34 @@ num.fromCarbonHalfFloat = function(word)
     return (word & 0x8000 ? -1 : 1) * 65536 * (1 + (word & 0x3ff) / 1024);
 };
 
+/**
+ * Reproduces the captured Windows SSE RSQRTPS reference, without refinement.
+ * The checked table defines the CPU profile; JavaScript has no estimate intrinsic.
+ * Zero and subnormal inputs become signed infinity, as RSQRTPS specifies.
+ * @param {number} value Float32 input.
+ * @returns {number} Native reference estimate.
+ */
+num.reciprocalSqrtEstSse = (function()
+{
+    const floats = new Float32Array(1);
+    const words = new Uint32Array(floats.buffer);
+    return function(value)
+    {
+        floats[0] = value;
+        const word = words[0];
+        const exponent = (word >>> 23) & 255;
+        const mantissa = word & 0x7fffff;
+        if (exponent === 0) return word >>> 31 ? -Infinity : Infinity;
+        if (word >>> 31) return NaN;
+        if (exponent === 255) return mantissa ? NaN : 0;
+        const odd = exponent & 1;
+        const index = (mantissa >>> 11) + (odd ? 0 : 4096);
+        return (sseReciprocalSqrtData.values[index] / 32768) * 2 ** (-((exponent - (odd ? 127 : 128)) / 2));
+    };
+})();
+
 export const {
+    reciprocalSqrtEstSse,
     EPSILON,
     RAD2DEG,
     DEG2RAD,

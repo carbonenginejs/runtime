@@ -15,6 +15,32 @@ const vec3 = { ...glVec3 };
  */
 
 /**
+ * DirectXMath SSE LengthEst: float32 squares summed (x+z)+y, then SQRTPS.
+ * The native SSE path uses square root, not a reciprocal-root approximation.
+ * @param {vec3|number[]} a Input vector.
+ * @returns {number} Float32 length.
+ */
+vec3.lengthEstSse = function(a)
+{
+    const f = Math.fround;
+    const x = f(a[0]), y = f(a[1]), z = f(a[2]);
+    return f(Math.sqrt(f(f(f(x * x) + f(z * z)) + f(y * y))));
+};
+
+/**
+ * DirectXMath default SSE reciprocal length, using the captured RSQRTPS profile.
+ * Squares and sums round to float32 in the native (x+z)+y order.
+ * @param {vec3|number[]} a Input vector.
+ * @returns {number} Reciprocal length estimate.
+ */
+vec3.reciprocalLengthEstSse = function(a)
+{
+    const f = Math.fround;
+    const x = f(a[0]), y = f(a[1]), z = f(a[2]);
+    return num.reciprocalSqrtEstSse(f(f(f(x * x) + f(z * z)) + f(y * y)));
+};
+
+/**
  * Allocates a pooled vec3
  * @returns {Float32Array|vec3}
  */
@@ -914,6 +940,8 @@ export const {
     transformMat4,
     transformQuat,
     zero,
+    lengthEstSse,
+    reciprocalLengthEstSse,
     alloc,
     unalloc,
     unallocMany,

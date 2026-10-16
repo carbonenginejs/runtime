@@ -84,15 +84,15 @@ test("particle attractor and vortex forces preserve Carbon zero cases", () =>
   const attractor = new Tr2ParticleAttractorForce();
   attractor.magnitude = 3;
   const out = vec3.create();
-  assertVector(attractor.GetForce(vec3.fromValues(4, 0, 0), null, 0, 0, out), [-3, 0, 0]);
+  assertVector(attractor.GetForce(vec3.fromValues(4, 0, 0), null, 0, 0, out), [-2.9996337890625, 0, 0]);
   assertVector(attractor.GetForce(vec3.create(), null, 0, 0, out), [0, 0, 0]);
 
   const vortex = new Tr2ParticleVortexForce();
   vortex.magnitude = 2;
-  assertVector(vortex.GetForce(vec3.fromValues(1, 0, 0), null, 0, 0, out), [0, 0, -2]);
+  assertVector(vortex.GetForce(vec3.fromValues(1, 0, 0), null, 0, 0, out), [0, 0, -1.999755859375]);
   assertVector(vortex.GetForce(vec3.fromValues(0, 4, 0), null, 0, 0, out), [0, 0, 0]);
   vortex.axis[1] = -1;
-  assertVector(vortex.GetForce(vec3.fromValues(1, 0, 0), null, 0, 0, out), [0, 0, 2]);
+  assertVector(vortex.GetForce(vec3.fromValues(1, 0, 0), null, 0, 0, out), [0, 0, 1.999755859375]);
 });
 
 test("particle fluid drag clamps one-frame velocity reversal", () =>

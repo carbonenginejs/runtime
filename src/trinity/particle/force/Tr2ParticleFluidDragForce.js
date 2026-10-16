@@ -24,11 +24,21 @@ export class Tr2ParticleFluidDragForce extends ITr2ParticleForce
   @meta.adapted
   GetForce(_position, velocity, dt, mass, out = vec3.create())
   {
-    const speed = vec3.length(velocity);
-    const forceScale = -speed * this.drag;
-    const step = dt * mass;
-    const predictedDot = speed * speed * (1 + forceScale * step);
-    return vec3.scale(out, velocity, predictedDot < 0 ? -1 / step : forceScale);
+    const f = Math.fround;
+    const x = f(velocity[0]), y = f(velocity[1]), z = f(velocity[2]);
+    const forceScale = f(vec3.lengthEstSse(velocity) * -f(this.drag));
+    const step = f(f(dt) * f(mass));
+    // Keep the native multiply, add and dot operations: collapsing this test
+    // changes its result at float32 cancellation and overflow boundaries.
+    const fx = f(x * forceScale), fy = f(y * forceScale), fz = f(z * forceScale);
+    const nx = f(x + f(fx * step)), ny = f(y + f(fy * step)), nz = f(z + f(fz * step));
+    const dot = f(f(f(nx * x) + f(ny * y)) + f(nz * z));
+    if (dot < 0)
+    {
+      const maxScale = f(-1 / step);
+      return vec3.set(out, f(x * maxScale), f(y * maxScale), f(z * maxScale));
+    }
+    return vec3.set(out, fx, fy, fz);
   }
 
   /**

@@ -29,9 +29,18 @@ export class Tr2ParticleAttractorForce extends ITr2ParticleForce
   @meta.adapted
   GetForce(position, _velocity, _dt, _mass, out = vec3.create())
   {
-    vec3.subtract(out, this.position, position);
-    const length = vec3.length(out);
-    return length === 0 ? vec3.set(out, 0, 0, 0) : vec3.scale(out, out, this.magnitude / length);
+    const f = Math.fround;
+    let x = f(f(this.position[0]) - f(position[0]));
+    let y = f(f(this.position[1]) - f(position[1]));
+    let z = f(f(this.position[2]) - f(position[2]));
+    vec3.set(out, x, y, z);
+    const reciprocal = vec3.reciprocalLengthEstSse(out);
+    const magnitude = f(this.magnitude);
+    // Carbon selects zero only for a +infinity reciprocal, then scales.
+    // Keep normalization and magnitude as separate float32 multiplies.
+    return reciprocal === Infinity
+      ? vec3.set(out, f(0 * magnitude), f(0 * magnitude), f(0 * magnitude))
+      : vec3.set(out, f(f(x * reciprocal) * magnitude), f(f(y * reciprocal) * magnitude), f(f(z * reciprocal) * magnitude));
   }
 
   /**
