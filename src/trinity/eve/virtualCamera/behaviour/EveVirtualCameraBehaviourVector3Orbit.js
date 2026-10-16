@@ -84,7 +84,7 @@ export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehav
    * timeline time, then scaled by distance, by the anchor radius when
    * proportional, and by the distance scalar curve.
    * Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp:371-404
-   * Adapted: gl-matrix writes the output vector. The existing zero-direction fallback remains an unresolved difference from native normalization.
+   * Adapted: gl-matrix writes the output vector. Carbon retains the normalized zero direction; glMatrix arithmetic parity remains pending.
    */
   @blue.method
   @meta.adapted
@@ -99,14 +99,7 @@ export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehav
     else
     {
       vec3.set(out, anchorForwardDirection[0], 0, anchorForwardDirection[2]);
-      if (vec3.squaredLength(out) === 0)
-      {
-        vec3.set(out, 0, 0, 1);
-      }
-      else
-      {
-        vec3.normalize(out, out);
-      }
+      vec3.normalize(out, out);
     }
     const amount = this.orbitCurve ? this.orbitCurve.GetValue(time) : time;
     const angle = (this.start + (this.end - this.start) * amount) * Math.PI / 180;

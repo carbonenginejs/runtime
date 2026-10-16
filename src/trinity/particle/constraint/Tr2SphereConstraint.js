@@ -207,15 +207,8 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
         // Inside the prohibited space (Tr2SphereConstraint.cpp:142-178).
         if (this.affectPosition)
         {
-          const length = Math.sqrt(distanceSquared);
-          if (length > 0)
-          {
-            vec3.scale(offset, offset, 1 / length);
-          }
-          else
-          {
-            vec3.set(offset, 0, 1, 0);
-          }
+          // Native cpp:146 retains 0 * Infinity at the center; do not invent a direction.
+          vec3.scale(offset, offset, 1 / Math.sqrt(distanceSquared));
           vec3.scaleAndAdd(position, this.position, offset, radius);
           if (this.affectVelocity && velocity)
           {

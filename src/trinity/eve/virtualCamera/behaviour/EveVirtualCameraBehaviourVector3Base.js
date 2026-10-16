@@ -2,6 +2,7 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { IsMatch } from "#blue";
 import { INotify } from "../../../../global/blue/INotify.js";
+import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { meta, type, blue } from "#schema";
@@ -97,23 +98,31 @@ export class EveVirtualCameraBehaviourVector3Base
   }
 
   /**
-   * Rotates a vector about world up by the yaw of the anchor's forward
-   * direction, turning an anchor-relative offset into a world-space one that
-   * follows the anchored object's heading; the vector is returned unchanged when
-   * the forward direction has no horizontal component.
+   * Uses Carbon's cross/angle rotation (EveVirtualCameraBehaviour.cpp:14-21).
+   * A zero cross axis yields an identity matrix, including backward headings.
+   * glMatrix normalization arithmetic and float rounding remain pending parity work.
    */
   static rotateVectorWithAnchor(out, value, anchorForwardDirection)
   {
-    const horizontal = vec3.fromValues(anchorForwardDirection[0], 0, anchorForwardDirection[2]);
-    if (vec3.squaredLength(horizontal) === 0)
-    {
-      return vec3.copy(out, value);
-    }
-    vec3.normalize(horizontal, horizontal);
-    const yaw = Math.atan2(horizontal[0], horizontal[2]);
-    const rotation = quat.setAxisAngle(quat.create(), vec3.fromValues(0, 1, 0), yaw);
-    return vec3.transformQuat(out, value, rotation);
+    const { vec3_0, vec3_1, vec3_2, quat_0, mat4_0 } = EveVirtualCameraBehaviourVector3Base.scratch;
+    vec3.set(vec3_0, anchorForwardDirection[0], 0, anchorForwardDirection[2]);
+    vec3.normalize(vec3_0, vec3_0);
+    vec3.set(vec3_2, 0, 0, 1);
+    vec3.cross(vec3_1, vec3_2, vec3_0);
+    const angle = Math.acos(vec3.dot(vec3_0, vec3_2));
+    // Carbon RotationQuaternion normalizes its axis; setAxisAngle requires that here.
+    vec3.normalize(vec3_1, vec3_1);
+    quat.setAxisAngle(quat_0, vec3_1, angle);
+    mat4.fromQuat(mat4_0, quat_0);
+    const length = vec3.length(value);
+    vec3.normalize(out, value);
+    vec3.transformMat4(out, out, mat4_0);
+    return vec3.scale(out, out, length);
   }
+  static scratch = {
+    vec3_0: vec3.create(), vec3_1: vec3.create(), vec3_2: vec3.create(),
+    quat_0: quat.create(), mat4_0: mat4.create()
+  };
 }
 
 // Exact native Blue exposure: only these identities participate in loading.
