@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildCloud.h
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
+import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
 import { INotify, IsMatch } from "../../../global/blue/INotify.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 // Hand-maintained from Carbon source.
@@ -18,7 +19,6 @@ import { Tr2BufferAL } from "../../../trinityal/Tr2BufferAL/Tr2BufferAL.js";
 import { Tr2BufferDescriptionAL } from "../../../trinityal/Tr2BufferAL/Tr2BufferDescriptionAL.js";
 import { Tr2VertexDefinition } from "../../core/vertex/Tr2VertexDefinition/Tr2VertexDefinition.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
-import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { TriDevice } from "../../core/device/TriDevice.js";
 import { gTriDev } from "../../core/device/gTriDev.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
@@ -53,7 +53,7 @@ function updateBoundingSphere(cloud)
  */
 @blue.define({ className: "EveChildCloud", purpose: "Describes a transformable volumetric cloud child, including its effect, editable volume, tessellation, LOD, and bounds state." })
 @blue.inherit(ITr2Renderable, ITr2DebugRenderable)
-@blue.inherit(IInitialize, INotify)
+@blue.inherit(IInitialize, INotify, Tr2DeviceResource)
 @blue.interface(ITr2Renderable, IInitialize, INotify, EveSpaceObjectChild, IEveSpaceObjectChild)
 export class EveChildCloud extends EveSpaceObjectChild
 {
@@ -172,14 +172,6 @@ export class EveChildCloud extends EveSpaceObjectChild
       this.PrepareResources();
     }
     return true;
-  }
-
-  /** Inherited Tr2DeviceResource.cpp:21-32 resource-creation gate. */
-  @blue.method
-  @meta.implemented
-  PrepareResources()
-  {
-    return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
   }
 
   /** Explicit buffer destruction replaces native index-vector clear (cpp:275-279). */

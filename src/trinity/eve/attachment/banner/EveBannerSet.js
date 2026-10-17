@@ -1,4 +1,5 @@
 import { ITr2LightOwner } from "../../lights/ITr2LightOwner.js";
+import { Tr2DeviceResource } from "../../../core/device/Tr2DeviceResource.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveBannerSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveBannerSet.cpp
 import { EveEntity } from "../../EveEntity.js";
@@ -21,7 +22,6 @@ import { FLOAT_MAX } from "../../../core/view/TriFrustum.js";
 import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";
 import { num } from "#math/num";
 import { RenderingMode, TriBatchType } from "#consts/graphics";
-import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
 import { SharedGeometryBuffer } from "../../../core/mesh/TriGeometryResAllocations.js";
@@ -63,7 +63,7 @@ import {
  * largest single banner radius its LOD is measured on, and the banner lights.
  */
 @blue.define("EveBannerSet")
-@blue.inherit(IInitialize, ITr2LightOwner, EveEntity)
+@blue.inherit(IInitialize, ITr2LightOwner, EveEntity, Tr2DeviceResource)
 @blue.interface(IInitialize, IEveSpaceObjectAttachment, EveEntity, ITr2LightOwner)
 export class EveBannerSet extends IEveSpaceObjectAttachment
 {
@@ -219,14 +219,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
       this._vertexBuffer = shared.Allocate(BANNER_VERTEX_SIZE, vertices.length, bytes, renderContext);
       this._indexBuffer = shared.Allocate(2, indices.length, Uint16Array.from(indices), renderContext);
     }
-  }
-
-  /** Carbon Tr2DeviceResource::PrepareResources: creation only when the device allows it. */
-  @blue.method
-  @meta.implemented
-  PrepareResources()
-  {
-    return Tr2Renderer.IsResourceCreationAllowed() ? this.OnPrepareResources() : true;
   }
 
   /**

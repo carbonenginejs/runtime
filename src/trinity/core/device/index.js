@@ -1,4 +1,5 @@
 export * from "./TriDevice.js";
+export * from "./Tr2DeviceResource.js";
 export * from "./Tr2UpscalingTechniqueInfo.js";
 export * from "./Tr2SwapChain.js";
 export * from "./Tr2DepthStencil.js";

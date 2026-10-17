@@ -7,7 +7,11 @@ import { INotify } from "../../../../global/blue/INotify.js";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { box3 } from "#math/box3";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
+import { mat3 } from "#math/mat3";
 import { mat4 } from "#math/mat4";
+import { quat } from "#math/quat";
+import { vec3 } from "#math/vec3";
+import { vec4 } from "#math/vec4";
 import { CjsSchema, meta, type, blue } from "#schema";
 import { TriTextureRes } from "#resource";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
@@ -26,6 +30,7 @@ import {
   CreateLightRecord,
   MatrixCopyFrom3x4
 } from "../../lights/lightConversion.js";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 
 const WHITE = new Float32Array([1, 1, 1, 1]);
 
@@ -48,6 +53,39 @@ PLANE_VERTEX_DEFINITION.Add("UBYTE_4", "TEXCOORD", 7, 1, 1);
 
 /** sizeof( EvePlaneSet::PlaneVertex ). */
 const PLANE_VERTEX_SIZE = 108;
+
+/**
+ * Carbon's XMQuaternionRotationMatrix: the rotation of the upper 3x3, read as
+ * it stands (no scale is divided out, unlike mat4.getRotation). The byte
+ * layouts agree, so gl-matrix's fromMat3 yields the same quaternion.
+ * @param {quat} out
+ * @param {mat4} m
+ * @returns {quat} out
+ */
+function QuaternionRotationMatrix(out, m)
+{
+  return quat.fromMat3(out, mat3.fromMat4(DEBUG_BASIS, m));
+}
+
+// RenderDebugInfo scratch (debug drawing is single-threaded).
+const DEBUG_BASIS = mat3.create();
+const DEBUG_BONE = mat4.create();
+const DEBUG_TRANSFORM = mat4.create();
+const DEBUG_WORLD = mat4.create();
+const DEBUG_ROTATION = quat.create();
+const DEBUG_BONE_ROTATION = quat.create();
+const DEBUG_POSITION = vec3.create();
+const DEBUG_BOUNDS = box3.create();
+const DEBUG_AVERAGE_COLOR = vec4.create();
+const DEBUG_LIGHT_COLOR = vec4.create();
+
+/** The near-flat box Carbon draws for each plane (cpp:402-403). */
+const DEBUG_BOX_MIN = vec3.fromValues(-0.5, -0.5, -0.005);
+const DEBUG_BOX_MAX = vec3.fromValues(0.5, 0.5, 0.005);
+
+/** Carbon's plane debug colours (cpp:405). */
+const DEBUG_PLANE_COLOR = vec4.fromValues(0.0, 0.7, 0.9, 0.5);
+const DEBUG_PLANE_ZFAIL_COLOR = vec4.fromValues(0.0, 0.7, 0.9, 0.1);
 
 
 /**
@@ -347,6 +385,143 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
   GetPlanes()
   {
     return this.planes;
+  }
+
+  /**
+   * Carbon EvePlaneSet::GetDebugOptions (cpp:374-379).
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    options.add("Plane Sets");
+    options.add("Plane Sets Bounds");
+    options.add("Plane Sets Lights");
+  }
+
+  /**
+   * Carbon EvePlaneSet::RenderDebugInfo (cpp:381-470): three independent
+   * options.
+   *
+   * "Plane Sets" draws every plane twice - wireframe, then solid with a zero
+   * colour - as a near-flat box (z +/- 0.005), owned by the plane. A plane
+   * with a bone in range has its position moved through the bone and its
+   * rotation followed by the bone's rotation; an out-of-range bone is ignored.
+   *
+   * "Plane Sets Bounds" draws the item-set box in the parent space, and
+   * "Plane Sets Lights" draws each light twice, inner then outer radius, in
+   * the authored colour times the textures' average colour, saturated, with
+   * alpha scaled by the light's fade - the same colour GetLights emits.
+   * @param {ITr2DebugRenderer2} renderer
+   * @param {mat4} parentTransform
+   * @param {Float32Array|null} bones Packed Float4x3 bone matrices.
+   * @param {number} boneCount
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer, parentTransform, bones, boneCount)
+  {
+    if (renderer.HasOption(this, "Plane Sets"))
+    {
+      for (const plane of this.planes)
+      {
+        const rotation = quat.copy(DEBUG_ROTATION, plane.rotation);
+        const position = vec3.copy(DEBUG_POSITION, plane.position);
+        const boneIndex = plane.boneIndex;
+
+        // Carbon quirk (cpp:391): `> 0`, not `>= 0`, so a plane on bone 0 is
+        // drawn unskinned. Reproduced.
+        if (boneIndex > 0 && boneIndex < boneCount)
+        {
+          const boneTF = mat4.identity(DEBUG_BONE);
+          MatrixCopyFrom3x4(boneTF, bones, boneIndex);
+          vec3.transformMat4(position, position, boneTF);
+
+          // Carbon: XMQuaternionMultiply( rotation, XMQuaternionRotationMatrix( boneTF ) ) -
+          // rotation first, then the bone's, so the Hamilton product is bone * rotation.
+          QuaternionRotationMatrix(DEBUG_BONE_ROTATION, boneTF);
+          quat.multiply(rotation, DEBUG_BONE_ROTATION, rotation);
+        }
+
+        // Carbon (row-vector): XMMatrixTransformation( 0, identity, scaling, 0, rotation, position ) = S * R * T.
+        const t = mat4.fromRotationTranslationScale(DEBUG_TRANSFORM, rotation, position, plane.scaling);
+        // Carbon (row-vector): t * parentTransform.
+        const world = mat4.multiply(DEBUG_WORLD, parentTransform, t);
+
+        renderer.DrawBox__Transform(
+          Tr2DebugObjectReference.create__Object(plane),
+          world,
+          DEBUG_BOX_MIN,
+          DEBUG_BOX_MAX,
+          ITr2DebugRenderer2.Effect.Wireframe,
+          Tr2DebugColor.create__ColorZFail(DEBUG_PLANE_COLOR, DEBUG_PLANE_ZFAIL_COLOR));
+        renderer.DrawBox__Transform(
+          Tr2DebugObjectReference.create__Object(plane),
+          world,
+          DEBUG_BOX_MIN,
+          DEBUG_BOX_MAX,
+          ITr2DebugRenderer2.Effect.Solid,
+          Tr2DebugColor.create__Uint32(0));
+      }
+    }
+
+    if (renderer.HasOption(this, "Plane Sets Bounds"))
+    {
+      const aabb = this.GetAabb(DEBUG_BOUNDS, bones, boneCount);
+      renderer.DrawBox__Transform(
+        Tr2DebugObjectReference.create__Object(this),
+        parentTransform,
+        box3.$min(aabb),
+        box3.$max(aabb),
+        ITr2DebugRenderer2.Effect.Wireframe,
+        Tr2DebugColor.create__Uint32(0xff00ff00));
+    }
+
+    if (renderer.HasOption(this, "Plane Sets Lights"))
+    {
+      const averageColor = vec4.set(DEBUG_AVERAGE_COLOR, 0, 0, 0, 0);
+      if (this.lights.length > 0)
+      {
+        this.GetAverageColor(averageColor);
+      }
+
+      for (const l of this.lights)
+      {
+        const t = mat4.fromTranslation(DEBUG_TRANSFORM, l.lightData.position);
+        // Carbon (row-vector): TranslationMatrix( l.lightData.position ) * l.boneMatrix.
+        mat4.multiply(t, l.boneMatrix, t);
+
+        const c = vec4.copy(DEBUG_LIGHT_COLOR, l.lightData.color);
+        const fade = EveSpaceObjectAttachmentUtils.fade(Tr2Renderer.GetAnimationTime(), l.fadeType, l.blinkRate, l.blinkPhase);
+
+        vec4.multiply(c, c, averageColor);
+        EveSpaceObjectAttachmentUtils.saturate(c, c, l.saturation);
+
+        c[3] = 0.5 * fade;
+
+        // Carbon quirk (cpp:449): `>` not `>=`, so an index equal to the plane
+        // count reads one past the end; reproduced as an undefined read.
+        const planeItem = l.index > this.planes.length ? null : this.planes[l.index];
+
+        renderer.DrawSphere__TransformRadius(
+          Tr2DebugObjectReference.create__Object(planeItem),
+          t,
+          l.lightData.innerRadius,
+          10,
+          ITr2DebugRenderer2.Effect.Solid,
+          Tr2DebugColor.create__Color(c));
+
+        c[3] = 0.3 * fade;
+        renderer.DrawSphere__TransformRadius(
+          Tr2DebugObjectReference.create__Object(planeItem),
+          t,
+          l.lightData.radius,
+          10,
+          ITr2DebugRenderer2.Effect.Solid,
+          Tr2DebugColor.create__Color(c));
+      }
+    }
   }
 
   /**

@@ -1,13 +1,13 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveTrailsSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveTrailsSet.cpp
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
+import { Tr2DeviceResource } from "../../../core/device/Tr2DeviceResource.js";
 import { mat4 } from "#math/mat4";
 import { IsMatch, be } from "#blue";
 import { ResourceRequirement } from "#resource";
 import { TriStorageFlags } from "#consts/graphics";
 import { INotify } from "#blue";
 import { meta, type, blue } from "#schema";
-import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
 import { TriDevice } from "../../../core/device/TriDevice.js";
@@ -26,7 +26,7 @@ const INSTANCE_VERTEX_SIZE = 16;
  * its shape bent along each booster renderable's spline in the vertex shader.
  */
 @blue.define("EveTrailsSet")
-@blue.inherit(IInitialize, INotify)
+@blue.inherit(IInitialize, INotify, Tr2DeviceResource)
 @blue.interface(INotify, IInitialize)
 export class EveTrailsSet
 {
@@ -227,14 +227,6 @@ export class EveTrailsSet
   {
     this._instanceBuffer = null;
     this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
-  }
-
-  /** Carbon Tr2DeviceResource::PrepareResources: creation only when the device allows it. */
-  @blue.method
-  @meta.implemented
-  PrepareResources()
-  {
-    return Tr2Renderer.IsResourceCreationAllowed() ? this.OnPrepareResources() : true;
   }
 
   /** Carbon OnPrepareResources (cpp:224-242): the declaration once the mesh is in, then the instances. */

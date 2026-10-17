@@ -1,4 +1,5 @@
 import { ITr2DebugRenderable, ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
+import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
@@ -20,7 +21,6 @@ import { EveCurveLineSet } from "../ui/lines/EveCurveLineSet.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { TriDevice } from "../../core/device/TriDevice.js";
-import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { Tr2VertexDefinition } from "../../core/vertex/Tr2VertexDefinition/Tr2VertexDefinition.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
@@ -35,7 +35,7 @@ const DEBUG_TRANSFORM = mat4.create();
 @blue.define("EveChildLineSet")
 @blue.inherit(ITr2Renderable, IInitialize, INotify)
 @blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize, INotify, ITr2Renderable)
-@blue.inherit(ITr2DebugRenderable)
+@blue.inherit(ITr2DebugRenderable, Tr2DeviceResource)
 export class EveChildLineSet extends EveChildTransform
 {
 
@@ -494,14 +494,6 @@ export class EveChildLineSet extends EveChildTransform
   HasTransparentBatches()
   {
     return !!(this.display && this.mesh && this.mesh.GetAreas(TriBatchType.TRIBATCHTYPE_TRANSPARENT).length);
-  }
-
-  /** Inherited Tr2DeviceResource creation guard. */
-  @blue.method
-  @meta.implemented
-  PrepareResources()
-  {
-    return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
   }
 
   /** Creates Carbon's initial instance capacity using the AL description overload. */

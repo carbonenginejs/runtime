@@ -1,4 +1,5 @@
 import { random as carbonRandom } from "#math/random";
+import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildCloud2.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import "#consts/graphics/trinityEnums";
@@ -131,7 +132,7 @@ function TransformNormal(out, v, m)
 
 /** A volumetric cloud entity that renders as a raymarched unit-cube volume with its own lightmap, shadow map and lighting, and can also contribute reflection batches. */
 @blue.define("EveChildCloud2")
-@blue.inherit(ITr2Renderable, INotify, IListNotify, IInitialize, ITr2DebugRenderable, ITr2LightOwner)
+@blue.inherit(ITr2Renderable, INotify, IListNotify, IInitialize, ITr2DebugRenderable, ITr2LightOwner, Tr2DeviceResource)
 @blue.interface(IInitialize, INotify, IListNotify, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, ITr2LightOwner, EveEntity)
 export class EveChildCloud2 extends EveSpaceObjectChild
 {
@@ -401,14 +402,6 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     this._vertexBuffer.Destroy();
     this.PrepareResources();
     return true;
-  }
-
-  /** Native device-resource creation gate (Tr2DeviceResource.cpp:21-32). */
-  @blue.method
-  @meta.implemented
-  PrepareResources()
-  {
-    return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
   }
 
   /**

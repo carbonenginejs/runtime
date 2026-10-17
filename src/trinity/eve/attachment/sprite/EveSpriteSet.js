@@ -2,6 +2,7 @@ import { ITr2LightOwner } from "../../lights/ITr2LightOwner.js";
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteSet.cpp
 import { EveEntity } from "../../EveEntity.js";
+import { EveSpriteSetSpriteData } from "./EveSpriteSetSpriteData.js";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { box3 } from "#math/box3";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
@@ -324,11 +325,11 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
         this._poolBuffer[base + 24 + c] = colorByte(sprite.color[c]);
         this._poolBuffer[base + 28 + c] = colorByte(sprite.warpColor[c]);
       }
-      this._spriteData[i] = {
-        position: sprite.position,
-        // uint32_t (EveSpriteSet.h:73): a negative index wraps and misses every bone.
-        boneIndex: sprite.boneIndex >>> 0
-      };
+      // m_spriteData holds SpriteData by value (h:70-74): the position is copied.
+      const data = this._spriteData[i] ?? (this._spriteData[i] = new EveSpriteSetSpriteData());
+      vec3.copy(data.position, sprite.position);
+      // uint32_t (EveSpriteSet.h:73): a negative index wraps and misses every bone.
+      data.boneIndex = sprite.boneIndex >>> 0;
     }
 
     // Carbon rebuilds the item-set bounds at the tail of the same pack

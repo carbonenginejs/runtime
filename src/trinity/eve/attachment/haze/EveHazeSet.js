@@ -4,7 +4,11 @@ import { ITr2LightOwner } from "../../lights/ITr2LightOwner.js";
 import { EveEntity } from "../../EveEntity.js";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { box3 } from "#math/box3";
+import { mat3 } from "#math/mat3";
 import { mat4 } from "#math/mat4";
+import { quat } from "#math/quat";
+import { vec3 } from "#math/vec3";
+import { vec4 } from "#math/vec4";
 import { meta, type, blue } from "#schema";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveHazeSetLight } from "./EveHazeSetLight.js";
@@ -21,6 +25,7 @@ import { SharedGeometryBuffer } from "../../../core/mesh/TriGeometryResAllocatio
 import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
 import { TriDevice } from "../../../core/device/TriDevice.js";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 
 // Carbon's function-local s_hazeVertexDecl (EveHazeSet.cpp:131-145), stream 0:
 // it lands on HazeVertex (cpp:15-31) - three transform rows, three inverse
@@ -36,6 +41,33 @@ const HAZE_VERTEX_SIZE = 132;
 
 /** Carbon's s_boxInds (cpp:157-164): each box face's four corners. */
 const BOX_INDICES = [ [ 0, 1, 2, 3 ], [ 7, 6, 5, 4 ], [ 0, 4, 5, 1 ], [ 3, 2, 6, 7 ], [ 1, 5, 6, 2 ], [ 4, 0, 3, 7 ] ];
+
+/**
+ * Carbon's XMQuaternionRotationMatrix: the rotation of the upper 3x3, read as
+ * it stands (no scale is divided out, unlike mat4.getRotation). The byte
+ * layouts agree, so gl-matrix's fromMat3 yields the same quaternion.
+ * @param {quat} out
+ * @param {mat4} m
+ * @returns {quat} out
+ */
+function QuaternionRotationMatrix(out, m)
+{
+  return quat.fromMat3(out, mat3.fromMat4(DEBUG_BASIS, m));
+}
+
+// RenderDebugInfo scratch (debug drawing is single-threaded).
+const DEBUG_BASIS = mat3.create();
+const DEBUG_BONE = mat4.create();
+const DEBUG_TRANSFORM = mat4.create();
+const DEBUG_WORLD = mat4.create();
+const DEBUG_ROTATION = quat.create();
+const DEBUG_BONE_ROTATION = quat.create();
+const DEBUG_POSITION = vec3.create();
+const DEBUG_LIGHT_COLOR = vec4.create();
+
+/** The unit box Carbon draws for each haze (cpp:348-349). */
+const DEBUG_BOX_MIN = vec3.fromValues(-0.5, -0.5, -0.5);
+const DEBUG_BOX_MAX = vec3.fromValues(0.5, 0.5, 0.5);
 
 
 /**
@@ -300,6 +332,116 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   AddHazeItem(item)
   {
     this.hazes.push(item);
+  }
+
+  /**
+   * Carbon EveHazeSet::GetDebugOptions (cpp:319-323).
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    options.add("Haze Sets");
+    options.add("Haze Sets Lights");
+  }
+
+  /**
+   * Carbon EveHazeSet::RenderDebugInfo (cpp:326-381): two independent options.
+   *
+   * "Haze Sets" draws every haze as a unit box twice - wireframe, then solid
+   * with a zero colour - owned by the haze. A haze with a bone in range has its
+   * position moved through the bone and its rotation followed by the bone's
+   * rotation before the box transform is built; an out-of-range bone is
+   * silently ignored (no colour change, unlike the banner and sprite sets).
+   *
+   * "Haze Sets Lights" draws each light twice, inner then outer radius, owned
+   * by the light's haze.
+   * @param {ITr2DebugRenderer2} renderer
+   * @param {mat4} parentTransform
+   * @param {Float32Array|null} bones Packed Float4x3 bone matrices.
+   * @param {number} boneCount
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer, parentTransform, bones, boneCount)
+  {
+    if (renderer.HasOption(this, "Haze Sets"))
+    {
+      for (const haze of this.hazes)
+      {
+        const boneIndex = haze.boneIndex;
+        const rotation = quat.copy(DEBUG_ROTATION, haze.rotation);
+        const position = vec3.copy(DEBUG_POSITION, haze.position);
+
+        if (boneIndex > -1 && boneIndex < boneCount)
+        {
+          const boneTF = mat4.identity(DEBUG_BONE);
+          MatrixCopyFrom3x4(boneTF, bones, boneIndex);
+          vec3.transformMat4(position, position, boneTF);
+
+          // Carbon: XMQuaternionMultiply( rotation, XMQuaternionRotationMatrix( boneTF ) ) -
+          // rotation first, then the bone's, so the Hamilton product is bone * rotation.
+          QuaternionRotationMatrix(DEBUG_BONE_ROTATION, boneTF);
+          quat.multiply(rotation, DEBUG_BONE_ROTATION, rotation);
+        }
+
+        // Carbon (row-vector): XMMatrixTransformation( 0, identity, scaling, 0, rotation, position ) = S * R * T.
+        const t = mat4.fromRotationTranslationScale(DEBUG_TRANSFORM, rotation, position, haze.scaling);
+        // Carbon (row-vector): t * parentTransform.
+        const world = mat4.multiply(DEBUG_WORLD, parentTransform, t);
+
+        renderer.DrawBox__Transform(
+          Tr2DebugObjectReference.create__Object(haze),
+          world,
+          DEBUG_BOX_MIN,
+          DEBUG_BOX_MAX,
+          ITr2DebugRenderer2.Effect.Wireframe,
+          Tr2DebugColor.create__Uint32ZFail(0xff00ffff, 0x2200ffff));
+        renderer.DrawBox__Transform(
+          Tr2DebugObjectReference.create__Object(haze),
+          world,
+          DEBUG_BOX_MIN,
+          DEBUG_BOX_MAX,
+          ITr2DebugRenderer2.Effect.Solid,
+          Tr2DebugColor.create__Uint32(0));
+      }
+    }
+
+    if (renderer.HasOption(this, "Haze Sets Lights"))
+    {
+      for (const l of this.lights)
+      {
+        const t = mat4.fromTranslation(DEBUG_TRANSFORM, l.lightData.position);
+        // Carbon (row-vector): TranslationMatrix( l.lightData.position ) * l.boneMatrix.
+        mat4.multiply(t, l.boneMatrix, t);
+
+        const c = vec4.copy(DEBUG_LIGHT_COLOR, l.lightData.color);
+
+        c[3] = 0.5;
+
+        // Carbon quirk (cpp:361): `>` not `>=`, so an index equal to the haze
+        // count reads one past the end; reproduced as an undefined read.
+        const hazeItem = l.index > this.hazes.length ? null : this.hazes[l.index];
+
+        renderer.DrawSphere__TransformRadius(
+          Tr2DebugObjectReference.create__Object(hazeItem),
+          t,
+          l.lightData.innerRadius,
+          10,
+          ITr2DebugRenderer2.Effect.Solid,
+          Tr2DebugColor.create__Color(c));
+
+        c[3] = 0.3;
+        renderer.DrawSphere__TransformRadius(
+          Tr2DebugObjectReference.create__Object(hazeItem),
+          t,
+          l.lightData.radius,
+          10,
+          ITr2DebugRenderer2.Effect.Solid,
+          Tr2DebugColor.create__Color(c));
+      }
+    }
   }
 
   /**

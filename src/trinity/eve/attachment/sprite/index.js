@@ -3,3 +3,4 @@ export * from "./EveSpriteLineSet.js";
 export * from "./EveSpriteLineSetItem.js";
 export * from "./EveSpriteSet.js";
 export * from "./EveSpriteSetItem.js";
+export * from "./EveSpriteSetSpriteData.js";
