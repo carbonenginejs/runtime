@@ -135,19 +135,17 @@ export class EveChildProceduralContainer extends EveChildTransform
 
   /**
    * Carbon EveChildProceduralContainer::ConfigureSelectedObject
-   * (cpp:136-156): pull the newly selected child from the selection method,
-   * replay the stored procedural variables into it, then swap it in. Carbon
-   * also re-registers the entity with the scene component registry
-   * (engine-owned, omitted).
-   *
-   * Adapted: Entity Register/UnRegister against the component registry is not ported yet;
-   * the variable replay and swap are ported.
+   * (cpp:127-149): pull the newly selected child from the selection method
+   * and replay the stored procedural variables into it, then swap it in -
+   * the old object leaves the component registry and the child hierarchy,
+   * the new one joins both. The only caller checks the selection method first
+   * (cpp:94-97).
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   ConfigureSelectedObject()
   {
-    const child = this.selectionMethod ? this.selectionMethod.GetSelectedChild() : null;
+    const child = this.selectionMethod.GetSelectedChild();
     if (child)
     {
       for (const [name, value] of this._proceduralContainerVariables)
@@ -155,7 +153,97 @@ export class EveChildProceduralContainer extends EveChildTransform
         child.SetProceduralContainerVariable(name, value);
       }
     }
+
+    const registry = this.GetComponentRegistry();
+    const previous = CjsSchema.cast(this.selectedObject, EveEntity);
+    if (previous)
+    {
+      previous.UnRegister(registry);
+    }
+    this.UnregisterChild(this.selectedObject);
+
     this.selectedObject = child;
+
+    this.RegisterChild(this.selectedObject);
+    const next = CjsSchema.cast(this.selectedObject, EveEntity);
+    if (next)
+    {
+      next.Register(registry);
+    }
+  }
+
+  /**
+   * Carbon EveChildProceduralContainer::RegisterWithQuadRenderer (cpp:62-68):
+   * forwards to the selected object.
+   * @param {Tr2QuadRenderer} quadRenderer
+   */
+  @blue.method
+  @meta.implemented
+  RegisterWithQuadRenderer(quadRenderer)
+  {
+    if (this.selectedObject !== null)
+    {
+      this.selectedObject.RegisterWithQuadRenderer(quadRenderer);
+    }
+  }
+
+  /**
+   * Carbon EveChildProceduralContainer::AddQuadsToQuadRenderer (cpp:70-81):
+   * forwards to the selected object while displayed.
+   * @param {TriFrustum} frustum
+   * @param {Tr2QuadRenderer} quadRenderer
+   */
+  @blue.method
+  @meta.implemented
+  AddQuadsToQuadRenderer(frustum, quadRenderer)
+  {
+    if (!this.display)
+    {
+      return;
+    }
+
+    if (this.selectedObject !== null)
+    {
+      this.selectedObject.AddQuadsToQuadRenderer(frustum, quadRenderer);
+    }
+  }
+
+  /**
+   * Carbon EveChildProceduralContainer::SetOwner (cpp:386-396): a change of
+   * owner also reaches the selected object.
+   * @param {IEveSpaceObject2|null} owner
+   */
+  @blue.method
+  @meta.implemented
+  SetOwner(owner)
+  {
+    if (this.GetOwner() !== owner)
+    {
+      super.SetOwner(owner);
+      if (this.selectedObject)
+      {
+        this.selectedObject.SetOwner(owner);
+      }
+    }
+  }
+
+  /**
+   * Carbon EveChildProceduralContainer::SetPartTag (cpp:398-408): a change of
+   * part tag also reaches the selected object.
+   * @param {number} tag
+   */
+  @blue.method
+  @meta.implemented
+  SetPartTag(tag)
+  {
+    if (this.GetPartTag() !== tag)
+    {
+      super.SetPartTag(tag);
+      if (this.selectedObject)
+      {
+        this.selectedObject.SetPartTag(tag);
+      }
+    }
   }
 
   /** Carbon method GetMethodVariableName (MAP_METHOD_AND_WRAP). */

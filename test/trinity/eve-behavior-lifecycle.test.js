@@ -37,6 +37,21 @@ function createLinearCurve(length = 3)
 }
 
 
+test("SplineTunnelPoint compares every member exactly, as Carbon's operators do", () =>
+{
+  const a = new SplineTunnelPoint();
+  const b = new SplineTunnelPoint();
+  assert.equal(a.Equals(b), true);
+  assert.equal(a.NotEquals(b), false);
+  b.rot[1] = 0.5;
+  assert.equal(a.Equals(b), false);
+  assert.equal(a.NotEquals(b), true);
+  b.rot[1] = 0;
+  b.accelerationMultiplier = 2;
+  assert.equal(a.Equals(b), false);
+});
+
+
 test("lifecycle and tunnel records own Carbon defaults, enums, and maintained paths", () =>
 {
   const lifetime = new ProcessLifetime();

@@ -1405,10 +1405,21 @@ test("line-set paths inherit one abstract root contract", () =>
     () => new IEveLineSetPath().UpdateBuffer(null, 0, null, 0),
     /must be implemented/
   );
-  assert.throws(
-    () => new EveLineChildContainer().RenderDebugInfo(null, null),
-    /must be implemented/
-  );
+  // Each path draws its own debug spheres under "LineSets" (Carbon
+  // EveCircle.cpp:273-291, EveLineChildContainer.cpp:175-193).
+  const container = new EveLineChildContainer();
+  const circle = new EveCircle();
+  container.lines.push(circle);
+  circle.GeneratePoints();
+  const drawn = [];
+  const renderer = {
+    HasOption: (_owner, option) => option === "LineSets",
+    DrawSphere__TransformRadius: (owner, _transform, _radius, segments, _effect, color) =>
+      drawn.push([owner.object, segments, color.color])
+  };
+  container.RenderDebugInfo(renderer, mat4.create());
+  assert.ok(drawn.length > 0);
+  assert.ok(drawn.every(([owner, segments, color]) => owner === circle && segments === 4 && color === 0xffffffff));
   assert.equal(
     existsSync(new URL("../../src/trinity/generated/eve/child/lineSetPaths/EveLineChildContainer.js", import.meta.url)),
     false

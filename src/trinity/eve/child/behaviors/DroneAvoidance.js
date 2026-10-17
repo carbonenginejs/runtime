@@ -3,13 +3,22 @@
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";
 import { meta, type, blue } from "#schema";
+import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
+import { color } from "#math/color";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 
 // Module scratch for the per-agent loop (behavior updates run sequentially).
 const AVOIDANCE_DIRECTION = vec3.create();
 const VELOCITY_NORMALIZED = vec3.create();
 const FORCE_OFFSET = vec3.create();
 const NO_FORCES = [];
+
+// Debug-draw scratch (debug drawing runs sequentially).
+const DEBUG_TRANSFORM = mat4.create();
+const DEBUG_NEAR_COLOR = color.fromARGB(color.create(), 0xffffffff);
+const DEBUG_FAR_COLOR = color.fromARGB(color.create(), 0xff1111ff);
+const DEBUG_COLOR = color.create();
 
 /** A steering behaviour that pushes each drone away from its nearby neighbours, blended with its current velocity direction, to keep agents from clustering or overlapping. */
 @blue.define("DroneAvoidance")
@@ -211,6 +220,49 @@ export class DroneAvoidance
     }
     this._frameCounter++;
     return -1;
+  }
+
+  /**
+   * Carbon DroneAvoidance::GetDebugOptions (cpp:146-149).
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    options.add("BehaviorVisionRanges");
+  }
+
+  /**
+   * Carbon DroneAvoidance::RenderDebugInfo (cpp:151-163): a vision-range
+   * sphere around every agent, tinted from white toward blue (ARGB 0xff1111ff) as the range
+   * approaches 300.
+   * @param {ITr2DebugRenderer2} renderer
+   * @param {Array} agents DroneAgent records.
+   * @param {mat4} parentWorldLocation Places the agents in world space.
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer, agents, parentWorldLocation)
+  {
+    if (renderer.HasOption(this, "BehaviorVisionRanges"))
+    {
+      if (this.visionRange <= 0)
+      {
+        return;
+      }
+
+      const lengthLerp = Math.min(1, Math.max(0, this.visionRange / 300));
+      for (const agent of agents)
+      {
+        // Carbon Lerp( Color( 0xffffffff ), Color( 0xff1111ff ), lengthLerp ), componentwise.
+        color.lerp(DEBUG_COLOR, DEBUG_NEAR_COLOR, DEBUG_FAR_COLOR, lengthLerp);
+
+        // Carbon (row-vector): TranslationMatrix( agent->position ) * parentWorldLocation.
+        mat4.translate(DEBUG_TRANSFORM, parentWorldLocation, agent.position);
+        renderer.DrawSphere__TransformRadius(Tr2DebugObjectReference.create__Object(this), DEBUG_TRANSFORM, this.visionRange, 6, ITr2DebugRenderer2.Effect.Wireframe, Tr2DebugColor.create__Color(DEBUG_COLOR));
+      }
+    }
   }
 
   // Reuses (or grows) the cached pull-force slot for one agent index.

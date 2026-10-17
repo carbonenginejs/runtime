@@ -15,6 +15,9 @@ import { vec3 } from "#math/vec3";
 import { ITr2LightOwner } from "../lights/ITr2LightOwner.js";
 import { ITr2Pickable } from "../../core/ITr2Pickable.js";
 import { IEveShadowCaster } from "../IEveShadowCaster.js";
+import { ITr2GrannyAnimationOwner } from "../../core/animation/ITr2GrannyAnimationOwner.js";
+import { IEveSpaceObjectDecalOwner } from "../attachment/decal/IEveSpaceObjectDecalOwner.js";
+import { IEveSpaceObjectAttachmentOwner } from "../attachment/IEveSpaceObjectAttachmentOwner.js";
 import { getBoneList } from "../../core/animation/Tr2GrannyAnimation.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
 import { Tr2RingBuffer, Tr2RingBufferOffsets } from "../../core/device/Tr2RingBuffer/index.js";
@@ -68,8 +71,8 @@ const NO_BONE_TRANSFORMS = { bones: null, boneCount: 0 };
 @blue.define("EveChildMesh")
 @blue.inherit(ITr2Renderable, IEveShadowCaster)
 @blue.inherit(IListNotify)
-@blue.inherit(IInitialize, INotify, IListNotify)
-@blue.interface(EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IInitialize, INotify, IEveShadowCaster, ITr2LightOwner, ITr2Pickable)
+@blue.inherit(IInitialize, INotify, IListNotify, ITr2GrannyAnimationOwner, IEveSpaceObjectDecalOwner, IEveSpaceObjectAttachmentOwner)
+@blue.interface(EveEntity, IEveSpaceObjectDecalOwner, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, IInitialize, INotify, ITr2GrannyAnimationOwner, IEveSpaceObjectAttachmentOwner, ITr2LightOwner, ITr2Pickable, IEveShadowCaster)
 export class EveChildMesh extends EveChildTransform
 {
   _isMorphsBaked = false;

@@ -1,5 +1,5 @@
 // Source: blue/include/ITr2DebugRenderer2.h:127-187
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, blue } from "#schema";
 
 
 /**
@@ -345,12 +345,13 @@ export class ITr2DebugRenderer2
   DrawText(_font, _position, _color, _format, ..._args) {}
 
   /**
-   * Writes an option's color to caller-owned storage (h:182).
-   * @param {Float32Array} _color Output color, first as in Carbon.
+   * An option's color (h:182). Carbon writes it to an output parameter and
+   * returns whether one was set; the output becomes the return value
+   * (skill rule 11), null when none is set.
    * @param {string} _option The option name.
-   * @returns {boolean} Whether a color was found.
+   * @returns {Float32Array|null} The color.
    */
-  GetColorForOption(_color, _option) {}
+  GetColorForOption(_option) {}
 
   /**
    * Sets the color associated with an option (h:183).
@@ -386,7 +387,7 @@ for (const method of [
   "DrawText", "GetColorForOption", "SetColorForOption", "DrawAudioSpeaker"
 ])
 {
-  CjsSchema.decorateMethod(ITr2DebugRenderer2, method, blue.method, meta.requires, meta.abstract);
+  CjsSchema.decorateMethod(ITr2DebugRenderer2, method, blue.abstract);
 }
 // This JavaScript registration supplies one nominal interface identity for named
 // declarations and composition. It does not install a renderer implementation.

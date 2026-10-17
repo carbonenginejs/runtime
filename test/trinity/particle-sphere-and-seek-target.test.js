@@ -56,6 +56,7 @@ test("a particle sphere fills itself inside its radius and follows only its pare
 
   assert.equal(sphere.GetRenderables([]).length, 0, "nothing renders before an update");
   updateAt(sphere, context, 10, 20, 30);
+  assert.equal(sphere.isValid, true, "isValid is MAP_PROPERTY_READONLY over CheckBinding");
   assert.equal(sphere.CheckBinding(), true);
   assert.equal(sphere.particleSystem.aliveCount, 64, "every free slot is filled");
   for (const position of positions(sphere.particleSystem)) assert.ok(vec3.length(position) <= 100 + 1e-3, "inside the radius");

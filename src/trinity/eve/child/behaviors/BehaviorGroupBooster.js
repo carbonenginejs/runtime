@@ -9,6 +9,8 @@ import { vec4 } from "#math/vec4";
 import { quat } from "#math/quat";
 import { vec2 } from "#math/vec2";
 import { mat4 } from "#math/mat4";
+import { color } from "#math/color";
+import { ITr2DebugRenderer2, Tr2DebugColor } from "#interfaces";
 import { TriBatchType, TR2SHADERMODEL } from "#consts/graphics";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
@@ -28,6 +30,12 @@ const HALO_TRANSFORM = mat4.create();
 const HALO_OFFSET = vec3.create();
 const GROUP_SCALE = vec3.create();
 const HALO_ROTATION = quat.fromValues(0, 1, 0, 0);
+
+// Debug-draw scratch (debug drawing runs sequentially).
+const DEBUG_TRANSFORM = mat4.create();
+const DEBUG_CAP0 = vec3.fromValues(0, 0, 0);
+const DEBUG_CAP1 = vec3.fromValues(0, 0, -1);
+const DEBUG_COLOR = color.create();
 
 /** A drone-group component that builds and drives the group's shared booster and ambient or halo flare effects and contributes their point light to the scene. */
 @blue.define("BehaviorGroupBooster")
@@ -601,6 +609,47 @@ export class BehaviorGroupBooster
       for (let index = 0; index < this.flareCount; index++)
         quadRenderer.AddQuads(key, packQuadInstanceData(quads[index], this._quadBytes), 1);
     }
+  }
+
+  /**
+   * Carbon BehaviorGroupBooster::RenderBoosterDebug (cpp:480-493): a unit
+   * cylinder along -Z at the booster offset in the agent's frame.
+   * @param {ITr2DebugRenderer2} renderer
+   * @param {Tr2DebugObjectReference} owner
+   * @param {mat4} agentTransform The agent's world transform.
+   */
+  @blue.method
+  @meta.implemented
+  RenderBoosterDebug(renderer, owner, agentTransform)
+  {
+    // Carbon (row-vector): boosterTransform * agentTransform, boosterTransform = TranslationMatrix( m_boosterOffset ).
+    mat4.translate(DEBUG_TRANSFORM, agentTransform, this.boosterOffset);
+
+    renderer.DrawCylinder__TransformCaps(
+      owner,
+      DEBUG_TRANSFORM,
+      DEBUG_CAP0,
+      DEBUG_CAP1,
+      1.0,
+      8,
+      ITr2DebugRenderer2.Effect.Lit,
+      Tr2DebugColor.create__Uint32ZFail(0x88ffff00, 0x22ffff00));
+  }
+
+  /**
+   * Carbon BehaviorGroupBooster::RenderLightDebug (cpp:495-500): a
+   * half-transparent solid sphere of the light's radius and colour.
+   * @param {ITr2DebugRenderer2} renderer
+   * @param {Tr2DebugObjectReference} owner
+   * @param {mat4} agentTransform The light's world transform.
+   */
+  @blue.method
+  @meta.implemented
+  RenderLightDebug(renderer, owner, agentTransform)
+  {
+    const c = color.copy(DEBUG_COLOR, this.lightColor);
+    c[3] = 0.5;
+    renderer.DrawSphere__TransformRadius(owner, agentTransform, this.lightRadius, 10, ITr2DebugRenderer2.Effect.Solid, Tr2DebugColor.create__Color(c));
   }
 
   // Builds the hardcoded volumetric drone booster effect (Carbon

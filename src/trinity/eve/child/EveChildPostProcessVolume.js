@@ -1,4 +1,4 @@
-import { ITr2DebugRenderable } from "#interfaces";
+import { ITr2DebugRenderable, ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPostProcessVolume.h
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
@@ -10,6 +10,7 @@ import { EveChildTransform } from "./EveChildTransform.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { color } from "#math/color";
 import { Tr2PostProcessAttributes } from "../../postProcess/Tr2PostProcessAttributes.js";
 import { EveComponentType } from "../EntityComponents.js";
 
@@ -280,6 +281,63 @@ export class EveChildPostProcessVolume extends EveChildTransform
     return true;
   }
 
+  /**
+   * Carbon EveChildPostProcessVolume::GetDebugOptions (cpp:169-174).
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    options.add("Volumes");
+    options.add("ExclusionVolumes");
+    options.add("Bounding Sphere");
+  }
+
+  /**
+   * Carbon EveChildPostProcessVolume::RenderDebugInfo (cpp:176-198): the
+   * inclusion volumes in white with "Volumes", the exclusion volumes in red
+   * with "ExclusionVolumes", both under the world transform, then the
+   * bounding sphere placed at its centre under the world transform with
+   * "Bounding Sphere". Carbon passes the volume colours as packed words that
+   * convert implicitly to IEveVolume's `const Color&`; JavaScript holds them
+   * as converted Colors.
+   * @param {ITr2DebugRenderer2} renderer
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer)
+  {
+    if (renderer.HasOption(this, "Volumes"))
+    {
+      for (const volume of this.volumes)
+      {
+        volume.RenderDebugInfo(renderer, this.worldTransform, EveChildPostProcessVolume._debugVolumeColor);
+      }
+    }
+
+    if (renderer.HasOption(this, "ExclusionVolumes"))
+    {
+      for (const volume of this.exclusionVolumes)
+      {
+        volume.RenderDebugInfo(renderer, this.worldTransform, EveChildPostProcessVolume._debugExclusionColor);
+      }
+    }
+
+    if (renderer.HasOption(this, "Bounding Sphere"))
+    {
+      // Carbon (row-vector): TranslationMatrix( m_boundingSphere.center ) * m_worldTransform.
+      const transform = mat4.translate(EveChildPostProcessVolume._debugTransform, this.worldTransform, this._boundingSphere);
+      renderer.DrawSphere__TransformRadius(
+        Tr2DebugObjectReference.create__Object(this),
+        transform,
+        this._boundingSphere[3],
+        10,
+        ITr2DebugRenderer2.Effect.Wireframe,
+        Tr2DebugColor.create__Uint32(0xff333333));
+    }
+  }
+
   /** Carbon EveChildPostProcessVolume::RegisterComponents (cpp:62-65):
    * unconditional PostProcessOwner leaf self-registration. Carbon's
    * UnRegisterComponents (cpp:67-70) only removes this same component, which
@@ -340,6 +398,14 @@ export class EveChildPostProcessVolume extends EveChildTransform
   }
 
   static _inverseWorld = mat4.create();
+
+  static _debugTransform = mat4.create();
+
+  /** Color( 0xFFFFFFFF ) (cpp:182). */
+  static _debugVolumeColor = color.fromARGB(color.create(), 0xFFFFFFFF);
+
+  /** Color( 0xFFFF3333 ) (cpp:190). */
+  static _debugExclusionColor = color.fromARGB(color.create(), 0xFFFF3333);
 
   static _cameraInObjectSpace = vec3.create();
 

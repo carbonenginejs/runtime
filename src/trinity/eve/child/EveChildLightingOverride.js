@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildLightingOverride.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildLightingOverride.cpp
-import { ITr2DebugRenderable } from "../../../global/interfaces/ITr2DebugRenderable.js";
+import { ITr2DebugRenderable, ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
@@ -14,6 +14,8 @@ import { EveComponentType } from "../EntityComponents.js";
 import { Priority } from "../../generated/postProcess/enums.js";
 import { IEveLightingOverride } from "./IEveLightingOverride.js";
 import "../../postProcess/Tr2PostProcessAttributes.js";
+
+const DEBUG_TRANSFORM = mat4.create();
 
 
 /**
@@ -221,6 +223,50 @@ export class EveChildLightingOverride extends EveChildTransform
   {
     this._RebuildBoundingSphere();
     return true;
+  }
+
+  /**
+   * Carbon EveChildLightingOverride::GetDebugOptions (cpp:157-161).
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    options.add("Volumes");
+    options.add("Bounding Sphere");
+  }
+
+  /**
+   * Carbon EveChildLightingOverride::RenderDebugInfo (cpp:163-177): every
+   * volume under the world transform with "Volumes", then the bounding sphere
+   * placed at its centre under the world transform with "Bounding Sphere".
+   * @param {ITr2DebugRenderer2} renderer
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer)
+  {
+    if (renderer.HasOption(this, "Volumes"))
+    {
+      for (const volume of this.volumes)
+      {
+        volume.RenderDebugInfo(renderer, this.worldTransform);
+      }
+    }
+
+    if (renderer.HasOption(this, "Bounding Sphere"))
+    {
+      // Carbon (row-vector): TranslationMatrix( m_boundingSphere.center ) * m_worldTransform.
+      const transform = mat4.translate(DEBUG_TRANSFORM, this.worldTransform, this._boundingSphere.center);
+      renderer.DrawSphere__TransformRadius(
+        Tr2DebugObjectReference.create__Object(this),
+        transform,
+        this._boundingSphere.radius,
+        10,
+        ITr2DebugRenderer2.Effect.Wireframe,
+        Tr2DebugColor.create__Uint32(0xff333333));
+    }
   }
 
   /** No-op: a lighting override is not renderable and keeps no visibility state. */

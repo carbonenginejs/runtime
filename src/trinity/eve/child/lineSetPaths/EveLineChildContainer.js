@@ -7,8 +7,13 @@ import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { meta, type, blue } from "#schema";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { quat } from "#math/quat";
 import { IEveLineSetPath } from "./IEveLineSetPath.js";
+
+// Debug-drawing scratch (debug rendering is single-threaded).
+const DEBUG_TRANSFORM = mat4.create();
+const DEBUG_SPHERE = vec4.create();
 
 
 /** Groups line-path children beneath a shared transform with naming and visibility state. */
@@ -282,11 +287,43 @@ export class EveLineChildContainer extends IEveLineSetPath
     }
   }
 
-  /** Carbon declares no container-specific debug options. */
+  /** Carbon declares no container-specific debug options (cpp:170-173). */
   @blue.method
   @meta.noop
   GetDebugOptions(_options)
   {
+  }
+
+  /**
+   * Carbon EveLineChildContainer::RenderDebugInfo (cpp:175-193): under the
+   * "LineSets" option, the container's bounding sphere (with "Bounding
+   * Sphere") placed by its world transform under the parent, then every child
+   * path's debug info under the same parent location.
+   * @param {ITr2DebugRenderer2} renderer
+   * @param {mat4} parentWorldLocation
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer, parentWorldLocation)
+  {
+    if (!renderer.HasOption(this, "LineSets"))
+    {
+      return;
+    }
+
+    const { Wireframe } = ITr2DebugRenderer2.Effect;
+    if (renderer.HasOption(this, "Bounding Sphere"))
+    {
+      // Carbon (row-vector): m_worldTransform * parentWorldLocation.
+      const transform = mat4.multiply(DEBUG_TRANSFORM, parentWorldLocation, this.worldTransform);
+      const sphere = sph3.transformMat4(DEBUG_SPHERE, this._boundingSphere, transform);
+      renderer.DrawSphere__CenterRadius(Tr2DebugObjectReference.create__Object(this), sphere, sphere[3], 8, Wireframe, Tr2DebugColor.create__Uint32(0xaaaaffaa));
+    }
+
+    for (const line of this.lines)
+    {
+      line.RenderDebugInfo(renderer, parentWorldLocation);
+    }
   }
 
   static _identity = mat4.create();

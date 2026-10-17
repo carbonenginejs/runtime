@@ -6,7 +6,7 @@ import { CjsSchema, meta, type, blue } from "#schema";
 import { BlueList, IListNotify, IInitialize, INotify, IsMatch } from "#blue";
 import { BLUELISTEVENT } from "#consts/blue";
 import { DepthStencilFormat, ExFlag, Tr2GpuUsage, Tr2CpuUsage, TextureType, PixelFormat, ShaderType } from "#consts/render-context";
-import { ITr2DebugRenderer2 } from "#interfaces";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { Tr2DepthStencil } from "../../core/device/Tr2DepthStencil.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
 import { Tr2Light } from "../lights/Tr2Light.js";
@@ -45,8 +45,6 @@ import "../../core/volumetrics/Tr2VolumetricsRenderer.js";
 // value is a finite float32, NOT Infinity - downstream distance sums must stay
 // finite.
 const FLOAT32_MAX = 3.4028234663852886e38;
-
-const IDENTITY = mat4.create();
 
 // Module scratch (per-frame paths - never allocate in the hot loop).
 const INV_SCRATCH = mat4.create();
@@ -512,7 +510,10 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     if (this.depthShadowMapHandle) this.depthShadowMapHandle.Clear();
   }
 
-  /** Adds Carbon's two debug choices (EveChildCloud2.cpp:692-696). */
+  /**
+   * Carbon EveChildCloud2::GetDebugOptions (cpp:692-696).
+   * @param {Set<string>} options The caller-owned option set.
+   */
   @blue.method
   @meta.implemented
   GetDebugOptions(options)
@@ -522,9 +523,10 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   }
 
   /**
-   * Submits Carbon's box and sphere (EveChildCloud2.cpp:698-712).
-   * The supplied ITr2DebugRenderer2 must implement its geometry methods;
-   * the runtime's option-only Tr2DebugRenderer does not yet draw geometry.
+   * Carbon EveChildCloud2::RenderDebugInfo (cpp:698-712): with "Bounding Box",
+   * the unit box under the world transform; with "Bounding Sphere", the
+   * world-space bounding sphere.
+   * @param {ITr2DebugRenderer2} renderer
    */
   @blue.method
   @meta.implemented
@@ -534,12 +536,26 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     {
       vec3.set(CORNER_MIN_SCRATCH, -0.5, -0.5, -0.5);
       vec3.set(CORNER_MAX_SCRATCH, 0.5, 0.5, 0.5);
-      renderer.DrawBox(this, this.worldTransform, CORNER_MIN_SCRATCH, CORNER_MAX_SCRATCH,
-        ITr2DebugRenderer2.Effect.Wireframe, 0xff00ff00);
+      const color = 0xff00ff00;
+      renderer.DrawBox__Transform(
+        Tr2DebugObjectReference.create__Object(this),
+        this.worldTransform,
+        CORNER_MIN_SCRATCH,
+        CORNER_MAX_SCRATCH,
+        ITr2DebugRenderer2.Effect.Wireframe,
+        Tr2DebugColor.create__Uint32(color));
     }
+
     if (renderer.HasOption(this, "Bounding Sphere"))
-      renderer.DrawSphere(this, this.boundingSphere.center, this.boundingSphere.radius,
-        18, ITr2DebugRenderer2.Effect.Wireframe, 0xff00ff00);
+    {
+      renderer.DrawSphere__CenterRadius(
+        Tr2DebugObjectReference.create__Object(this),
+        this.boundingSphere.center,
+        this.boundingSphere.radius,
+        18,
+        ITr2DebugRenderer2.Effect.Wireframe,
+        Tr2DebugColor.create__Uint32(0xff00ff00));
+    }
   }
 
   /** Native EveChildCloud2.cpp:182-204: refresh affected registrations and effects. */
@@ -671,13 +687,14 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * min screen size (cpp:706); hasUpdated stamp (cpp:707). */
   @blue.method
   @meta.implemented
-  UpdateAsyncronous(updateContext, params = {})
+  UpdateAsyncronous(updateContext, params)
   {
     // Carbon TransformationMatrix(m_scaling, m_rotation, m_translation)
     // (cpp:689) - argument order differs, matrix identical.
     mat4.fromRotationTranslationScale(this.localTransform, this.rotation, this.translation, this.scaling);
 
-    const parent = params?.localToWorldTransform ?? IDENTITY;
+    // Carbon reads params.localToWorldTransform unchecked (EveChildCloud2.cpp:673).
+    const parent = params.localToWorldTransform;
     const w = this.worldTransform;
     const prevX = w[12];
     const prevY = w[13];

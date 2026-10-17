@@ -6,7 +6,9 @@ import { IBehavior } from "./IBehavior.js";
 import { CjsSchema, meta, type, blue } from "#schema";
 import { Formation } from "./Formation.js";
 import { SplineTunnelGroup } from "./tunnels/SplineTunnelGroup.js";
+import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { TunnelGroupType } from "./enums.js";
 import { BLUELISTEVENT } from "#consts/blue";
 
@@ -22,6 +24,9 @@ const DESIRED_NORMALIZED = vec3.create();
 const PULL_FORCE = vec3.create();
 const FORCE_OFFSET = vec3.create();
 const NO_FORCES = [];
+
+// Debug-draw scratch (debug drawing runs sequentially).
+const DEBUG_TRANSFORM = mat4.create();
 
 /** A steering behaviour that pulls unassigned drones into spline tunnel entrances and steers locked drones along their assigned tunnel's points toward the exit. */
 @blue.define("FollowASpline")
@@ -556,6 +561,46 @@ export class FollowASpline
       return true;
     }
     return false;
+  }
+
+  /**
+   * Carbon FollowASpline::GetDebugOptions (cpp:372-375).
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    options.add("SplineTunnels");
+  }
+
+  /**
+   * Carbon FollowASpline::RenderDebugInfo (cpp:377-392): a small sphere at
+   * every collected target point, then each spline tunnel group's own debug
+   * geometry. Carbon's trailing `return;` closes the block and changes
+   * nothing, so it is not repeated.
+   * @param {ITr2DebugRenderer2} renderer
+   * @param {Array} _agents DroneAgent records (unused, as in Carbon).
+   * @param {mat4} parentWorldLocation Places the target points in world space.
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer, _agents, parentWorldLocation)
+  {
+    if (renderer.HasOption(this, "SplineTunnels"))
+    {
+      for (const tPoint of this._targetPointVector)
+      {
+        // Carbon (row-vector): TranslationMatrix( *tPoint ) * parentWorldLocation.
+        mat4.translate(DEBUG_TRANSFORM, parentWorldLocation, tPoint);
+        renderer.DrawSphere__TransformRadius(Tr2DebugObjectReference.create__Object(this), DEBUG_TRANSFORM, 2, 6, ITr2DebugRenderer2.Effect.Wireframe, Tr2DebugColor.create__Uint32(0xff114444));
+      }
+
+      for (const t of this.splineTunnels)
+      {
+        t.RenderDebugInfo(renderer, parentWorldLocation);
+      }
+    }
   }
 
   // Reuses (or grows) the cached pull-force slot for one agent index.

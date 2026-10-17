@@ -1,4 +1,4 @@
-import { ITr2DebugRenderable } from "#interfaces";
+import { ITr2DebugRenderable, ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildFogVolume.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildFogVolume.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildFogVolume_Blue.cpp
@@ -20,6 +20,7 @@ import "../../postProcess/Tr2PostProcessAttributes.js";
 const INVERSE_WORLD = mat4.create();
 const LOCAL_VIEW = vec3.create();
 const UNION_DELTA = vec3.create();
+const DEBUG_TRANSFORM = mat4.create();
 
 
 function createAttribute(value)
@@ -366,6 +367,50 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
   {
     this.RebuildBoundingSphere();
     return true;
+  }
+
+  /**
+   * Carbon EveChildFogVolume::GetDebugOptions (cpp:158-162).
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    options.add("Volumes");
+    options.add("Bounding Sphere");
+  }
+
+  /**
+   * Carbon EveChildFogVolume::RenderDebugInfo (cpp:164-178): every volume
+   * under the world transform with "Volumes", then the bounding sphere placed
+   * at its centre under the world transform with "Bounding Sphere".
+   * @param {ITr2DebugRenderer2} renderer
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer)
+  {
+    if (renderer.HasOption(this, "Volumes"))
+    {
+      for (const volume of this.volumes)
+      {
+        volume.RenderDebugInfo(renderer, this.worldTransform);
+      }
+    }
+
+    if (renderer.HasOption(this, "Bounding Sphere"))
+    {
+      // Carbon (row-vector): TranslationMatrix( m_boundingSphere.center ) * m_worldTransform.
+      const transform = mat4.translate(DEBUG_TRANSFORM, this.worldTransform, this.boundingSphereCenter);
+      renderer.DrawSphere__TransformRadius(
+        Tr2DebugObjectReference.create__Object(this),
+        transform,
+        this.boundingSphereRadius,
+        10,
+        ITr2DebugRenderer2.Effect.Wireframe,
+        Tr2DebugColor.create__Uint32(0xff333333));
+    }
   }
 
   /** Carbon EveChildFogVolume::RegisterComponents (cpp:69-72): unconditional

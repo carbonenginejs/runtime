@@ -11,6 +11,7 @@ import { EveChildPartData, EveChildPartDataPartData } from "./child/EveChildPart
 import { EveChildInstancedMeshes } from "./child/EveChildInstancedMeshes/index.js";
 import { EveStation2 } from "./spaceObject/EveStation2.js";
 import { Tr2Lod } from "./EveLODHelper.js";
+import { Tr2QuadRenderer } from "../core/Tr2QuadRenderer/Tr2QuadRenderer.js";
 
 
 /** Transient edit session for one modular EveSpaceObject2. */
@@ -83,6 +84,13 @@ export class EveModularObjectModifier
       return EveModularObjectModifier.INVALID_PART_TAG;
     }
 
+    // Carbon registers every effect child with the quad renderer after the
+    // build (EveModularObjectModifier.cpp:102-105).
+    for (const child of this._object.effectChildren)
+    {
+      child.RegisterWithQuadRenderer(Tr2QuadRenderer.Instance());
+    }
+
     // Runtime SOF composes through GetValues/SetValues and may replace the
     // whole child list. Reacquire graph-owned records before mutating them.
     this._data = this._object.effectChildren.find(
@@ -137,6 +145,8 @@ export class EveModularObjectModifier
 
     child.Setup(scale, rotation, position, Tr2Lod.TR2_LOD_LOW);
     this._object.AddToEffectChildrenList(child);
+    // EveModularObjectModifier.cpp:136.
+    child.RegisterWithQuadRenderer(Tr2QuadRenderer.Instance());
     const id = this._AllocatePartId();
     child.SetPartTag(id);
 
@@ -245,7 +255,15 @@ export class EveModularObjectModifier
     return true;
   }
 
-  /** Recomputes culling bounds from the current modular part spheres. */
+  /**
+   * Recomputes culling bounds from the current modular part spheres
+   * (EveModularObjectModifier.cpp:46-69).
+   *
+   * Adapted: Carbon applies the bounds once, from the modifier's destructor
+   * (cpp:41-44). JavaScript has no deterministic destructor, so every edit
+   * applies them as it completes; the bounds after the last edit are the ones
+   * Carbon's destructor would set.
+   */
   @blue.method
   @meta.adapted
   ApplyBounds()

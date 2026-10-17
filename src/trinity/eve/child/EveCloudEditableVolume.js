@@ -10,6 +10,7 @@ import { num } from "#math/num";
 import { TriTextureRes } from "#resource/texture";
 import { Tr2HostBitmap } from "../../core/Tr2HostBitmap.js";
 import { EveCloudVolumeBall } from "./EveCloudVolumeBall.js";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 
 const MAX_FRAMES = 4;
 const Status = Object.freeze({ Working: 0, StopRequested: 1, DataReady: 2, Aborted: 3 });
@@ -287,7 +288,10 @@ export class EveCloudEditableVolume
     if (this._volumeDirty) this.OnVolumeModified();
   }
 
-  /** Adds the native editor overlay option (cpp:363-366). */
+  /**
+   * Carbon EveCloudEditableVolume::GetDebugOptions (cpp:362-365).
+   * @param {Set<string>} options The caller-owned option set.
+   */
   @blue.method
   @meta.implemented
   GetDebugOptions(options)
@@ -295,12 +299,60 @@ export class EveCloudEditableVolume
     options.add("Cloud Balls");
   }
 
-  /** Both native debug-drawing overloads still require the unported debug geometry renderer. */
+  /**
+   * Carbon `EveCloudEditableVolume::RenderDebugInfo( ITr2DebugRenderer2&,
+   * const Matrix& worldTransform )` (cpp:367-382): with "Cloud Balls", every
+   * ball twice under the world transform at its position and radius -
+   * wireframe, then solid with a zero colour. Each ball is its own owner.
+   * Carbon declares minBounds/maxBounds here and never uses them.
+   * @param {ITr2DebugRenderer2} renderer
+   * @param {mat4} worldTransform
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer, worldTransform)
+  {
+    if (renderer.HasOption(this, "Cloud Balls"))
+    {
+      const color = 0x888888ff;
+
+      for (const ball of this.balls)
+      {
+        renderer.DrawSphere__TransformCenterRadius(
+          Tr2DebugObjectReference.create__Object(ball),
+          worldTransform,
+          ball.position,
+          ball.radius,
+          16,
+          ITr2DebugRenderer2.Effect.Wireframe,
+          Tr2DebugColor.create__Uint32(color));
+        renderer.DrawSphere__TransformCenterRadius(
+          Tr2DebugObjectReference.create__Object(ball),
+          worldTransform,
+          ball.position,
+          ball.radius,
+          16,
+          ITr2DebugRenderer2.Effect.Solid,
+          Tr2DebugColor.create__Uint32(0));
+      }
+    }
+  }
+
+  /**
+   * Carbon `EveCloudEditableVolume::RenderDebugInfo( const Matrix& world,
+   * Tr2RenderContext& )` (cpp:338-355), split from the renderer overload per
+   * the overload rule. Under m_renderDebugInfo it draws a half-scaled oriented
+   * box and one sphere per ball through Carbon's immediate-mode
+   * Tr2Renderer::DrawOrientedBox / Tr2Renderer::DrawSphere, which have no
+   * JavaScript port.
+   * @param {mat4} _world
+   * @param {Tr2RenderContext} _renderContext
+   */
   @blue.method
   @meta.notImplemented
-  RenderDebugInfo(_rendererOrWorld, _worldOrContext)
+  RenderDebugInfo__RenderContext(_world, _renderContext)
   {
-    throw new Error("EveCloudEditableVolume.RenderDebugInfo requires the unported debug geometry renderer.");
+    throw new Error("EveCloudEditableVolume.RenderDebugInfo__RenderContext requires Tr2Renderer::DrawOrientedBox and Tr2Renderer::DrawSphere, which are not ported.");
   }
 
   /** Native worker entry (cpp:232-237); iterator suspension replaces its OS thread. */

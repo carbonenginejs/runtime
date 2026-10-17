@@ -36,8 +36,8 @@ test("ITr2DebugRenderable requires both concrete debug operations", () =>
   class MissingDebugRenderable extends ITr2DebugRenderable {}
   for (const renderable of [new ITr2DebugRenderable(), new MissingDebugRenderable()])
   {
-    assert.throws(() => renderable.GetDebugOptions(new Set()), /ITr2DebugRenderable\.GetDebugOptions must be implemented/u);
-    assert.throws(() => renderable.RenderDebugInfo({}), /ITr2DebugRenderable\.RenderDebugInfo must be implemented/u);
+    assert.throws(() => renderable.GetDebugOptions(new Set()), /ITr2DebugRenderable\.GetDebugOptions\(options\) must be implemented/u);
+    assert.throws(() => renderable.RenderDebugInfo({}), /ITr2DebugRenderable\.RenderDebugInfo\(renderer\) must be implemented/u);
   }
 });
 
@@ -153,7 +153,7 @@ test("ITr2DebugRenderer2 declares every unique native operation as an abstract o
     for (const method of methods)
     {
       assert.equal(CjsSchema.getMethod(ITr2DebugRenderer2, method).impl.status, "abstract");
-      assert.throws(() => renderer[method](), new RegExp(`ITr2DebugRenderer2\\.${method} must be implemented`, "u"));
+      assert.throws(() => renderer[method](), new RegExp(`ITr2DebugRenderer2\\.${method}\\(.*\\) must be implemented`, "u"));
     }
   }
 });
@@ -175,11 +175,10 @@ test("renderer composition preserves query booleans and caller-owned color outpu
       return false;
     }
 
-    GetColorForOption(color, option)
+    GetColorForOption(option)
     {
-      calls.push(["getColor", color, option]);
-      vec4.set(color, 0.25, 0.5, 0.75, 1);
-      return true;
+      calls.push(["getColor", option]);
+      return vec4.fromValues(0.25, 0.5, 0.75, 1);
     }
 
     SetColorForOption(option, color)
@@ -198,21 +197,19 @@ test("renderer composition preserves query booleans and caller-owned color outpu
   assert.equal(renderer.HasOption(owner, "disabled"), false);
   assert.equal(renderer.HasOption(owner, "enabled"), true);
   assert.equal(renderer.IsSelected__Root(owner), false);
-  assert.equal(renderer.GetColorForOption(color, "enabled"), true);
-  assert.deepEqual(Array.from(color), [0.25, 0.5, 0.75, 1]);
+  assert.deepEqual(Array.from(renderer.GetColorForOption("enabled")), [0.25, 0.5, 0.75, 1]);
   assert.equal(renderer.SetColorForOption("enabled", color), undefined);
   assert.deepEqual(calls, [
     ["option", owner, "disabled"], ["option", owner, "enabled"], ["selected", owner],
-    ["getColor", color, "enabled"], ["setColor", "enabled", color]
+    ["getColor", "enabled"], ["setColor", "enabled", color]
   ]);
   assert.equal(calls[0][1], owner);
-  assert.equal(calls[3][1], color);
   assert.equal(calls[4][2], color);
   assert.equal(CjsSchema.cast(renderer, ITr2DebugRenderer2), renderer);
   assert.equal(mappedInterfaces(Renderer).has(ITr2DebugRenderer2), false);
   blue.interface(ITr2DebugRenderer2)(Renderer);
   assert.deepEqual(mappedInterfaces(Renderer), new Set([Renderer, ITr2DebugRenderer2]));
-  assert.throws(() => renderer.DrawAxis(owner, mat4.create(), 0), /TestSharedDebugRendererQueries\.DrawAxis must be implemented/u);
+  assert.throws(() => renderer.DrawAxis(owner, mat4.create(), 0), /TestSharedDebugRendererQueries does not implement ITr2DebugRenderer2\.DrawAxis\(owner, transform, effect\)/u);
   assert.equal("GetRawRoot" in renderer, false);
 });
 

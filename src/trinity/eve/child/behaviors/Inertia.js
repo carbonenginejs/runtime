@@ -184,4 +184,17 @@ export class Inertia
     return returnForces;
   }
 
+  /**
+   * Carbon Inertia::RenderDebugInfo (cpp:84-86): an empty override; Inertia
+   * draws nothing and declares no GetDebugOptions, so it keeps IBehavior's.
+   * @param {ITr2DebugRenderer2} _renderer
+   * @param {Array} _agents DroneAgent records (unused, as in Carbon).
+   * @param {mat4} _parentWorldLocation
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(_renderer, _agents, _parentWorldLocation)
+  {
+  }
+
 }

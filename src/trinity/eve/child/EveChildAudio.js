@@ -10,6 +10,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { CjsSchema, meta, type, blue } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
+import { ITr2DebugRenderable } from "#interfaces";
 
 
 /**
@@ -17,7 +18,7 @@ import { EveChildTransform } from "./EveChildTransform.js";
  * and orientation tracking the child's world transform.
  */
 @blue.define("EveChildAudio")
-@blue.inherit(IInitialize, INotify)
+@blue.inherit(IInitialize, INotify, ITr2DebugRenderable)
 @blue.interface(IEveSpaceObjectChild, EveSpaceObjectChild, IInitialize, INotify)
 export class EveChildAudio extends EveChildTransform
 {
@@ -185,6 +186,38 @@ export class EveChildAudio extends EveChildTransform
   @blue.method
   ChangeLOD(_lod)
   {
+  }
+
+  /**
+   * Carbon EveChildAudio::GetDebugOptions (cpp:118-124): forwards to the
+   * audio emitter when it is debug-renderable.
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    const tmp = CjsSchema.cast(this.audioEmitter, ITr2DebugRenderable);
+    if (tmp)
+    {
+      tmp.GetDebugOptions(options);
+    }
+  }
+
+  /**
+   * Carbon EveChildAudio::RenderDebugInfo (cpp:126-133): forwards to the
+   * audio emitter when it is debug-renderable.
+   * @param {ITr2DebugRenderer2} renderer
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer)
+  {
+    const tmp = CjsSchema.cast(this.audioEmitter, ITr2DebugRenderable);
+    if (tmp)
+    {
+      tmp.RenderDebugInfo(renderer);
+    }
   }
 
   static FRONT = Object.freeze([0, 1, 0]);

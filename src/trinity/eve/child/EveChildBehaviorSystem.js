@@ -29,6 +29,7 @@ import { TriDevice } from "../../core/device/TriDevice.js";
 import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/index.js";
 import { CreateLodAllocations } from "../../core/mesh/TriGeometryResAllocations.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
+import { ITr2DebugRenderable } from "#interfaces";
 
 /**
  * A child that drives behaviour groups - swarms, drones and the like - from its
@@ -36,7 +37,7 @@ import { ITr2Renderable } from "../../core/ITr2Renderable.js";
  */
 @blue.define("EveChildBehaviorSystem")
 @blue.inherit(ITr2Renderable)
-@blue.inherit(INotify, IInitialize, IListNotify)
+@blue.inherit(INotify, IInitialize, IListNotify, ITr2DebugRenderable)
 @blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, INotify, EveEntity)
 export class EveChildBehaviorSystem extends EveChildTransform
 {
@@ -543,6 +544,48 @@ export class EveChildBehaviorSystem extends EveChildTransform
     this._boosterInstanceBuffer.Create(Tr2BufferDescriptionAL.create__Stride(
       this._boosterStride, this.instanceCount, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN
     ), null, context);
+  }
+
+  /**
+   * Carbon EveChildBehaviorSystem::GetDebugOptions (cpp:472-480): its own
+   * "SplineTunnels" option, then every behavior group's. Carbon does not ask
+   * the spline tunnel groups for theirs.
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    options.add("SplineTunnels");
+
+    for (const group of this.behaviorGroups)
+    {
+      group.GetDebugOptions(options);
+    }
+  }
+
+  /**
+   * Carbon EveChildBehaviorSystem::RenderDebugInfo (cpp:482-496): every
+   * behavior group under the world transform, then, with "SplineTunnels",
+   * every spline tunnel group under the same transform.
+   * @param {ITr2DebugRenderer2} renderer
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer)
+  {
+    for (const group of this.behaviorGroups)
+    {
+      group.RenderDebugInfo(renderer, this.worldTransform);
+    }
+
+    if (renderer.HasOption(this, "SplineTunnels"))
+    {
+      for (const tunnel of this.splineTunnels)
+      {
+        tunnel.RenderDebugInfo(renderer, this.worldTransform);
+      }
+    }
   }
 
   /** Carbon EveChildBehaviorSystem::GetTunnels (cpp:498-501). */

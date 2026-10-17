@@ -295,7 +295,7 @@ function truncateUtf8(text, limit)
  * @param {Array<*>} args Arguments, consumed once without recursive formatting.
  * @returns {string} Formatted text.
  */
-function formatMessage(format, args)
+export function formatMessage(format, args)
 {
     let cursor = 0;
     const source = String(format).split("\0", 1)[0];

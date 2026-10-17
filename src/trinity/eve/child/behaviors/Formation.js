@@ -3,8 +3,14 @@
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { IBehavior } from "./IBehavior.js";
 import { meta, type, blue } from "#schema";
+import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
+
+// Debug-draw scratch (debug drawing runs sequentially).
+const DEBUG_TRANSFORM = mat4.create();
+const DEBUG_POSITION = vec3.create();
 
 // Module scratch for the per-agent loops (behavior updates run sequentially).
 const ACCEL_NORMALIZED = vec3.create();
@@ -507,6 +513,52 @@ export class Formation
 
       vec3.normalize(SLOT_VECTOR, SLOT_VECTOR);
       vec3.scaleAndAdd(agent.acceleration, agent.acceleration, SLOT_VECTOR, this.behaviorWeight);
+    }
+  }
+
+  /**
+   * Carbon Formation::GetDebugOptions (cpp:349-352).
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    options.add("Formation");
+  }
+
+  /**
+   * Carbon Formation::RenderDebugInfo (cpp:354-367): while the formation is
+   * forming, a sphere at its centre, one 100 units along its last
+   * acceleration direction, and one at every grid slot.
+   * @param {ITr2DebugRenderer2} renderer
+   * @param {Array} _agents DroneAgent records (unused, as in Carbon).
+   * @param {mat4} parentWorldLocation Places the formation in world space.
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer, _agents, parentWorldLocation)
+  {
+    const { Wireframe } = ITr2DebugRenderer2.Effect;
+    if (renderer.HasOption(this, "Formation") && this._isFormalizing)
+    {
+      // Carbon (row-vector): TranslationMatrix( m_formationPosition ) * parentWorldLocation.
+      mat4.translate(DEBUG_TRANSFORM, parentWorldLocation, this._formationPosition);
+      renderer.DrawSphere__TransformRadius(Tr2DebugObjectReference.create__Object(this), DEBUG_TRANSFORM, 20, 8, Wireframe, Tr2DebugColor.create__Uint32(0xffff1111));
+
+      // Carbon (row-vector): TranslationMatrix( m_formationPosition + Normalize( m_lastFormationAcceleration ) * 100 ) * parentWorldLocation.
+      vec3.normalize(DEBUG_POSITION, this._lastFormationAcceleration);
+      vec3.scaleAndAdd(DEBUG_POSITION, this._formationPosition, DEBUG_POSITION, 100);
+      mat4.translate(DEBUG_TRANSFORM, parentWorldLocation, DEBUG_POSITION);
+      renderer.DrawSphere__TransformRadius(Tr2DebugObjectReference.create__Object(this), DEBUG_TRANSFORM, 20, 8, Wireframe, Tr2DebugColor.create__Uint32(0xffff1111));
+
+      for (const point of this._formationGrid)
+      {
+        // Carbon (row-vector): TranslationMatrix( m_formationPosition + *point ) * parentWorldLocation.
+        vec3.add(DEBUG_POSITION, this._formationPosition, point);
+        mat4.translate(DEBUG_TRANSFORM, parentWorldLocation, DEBUG_POSITION);
+        renderer.DrawSphere__TransformRadius(Tr2DebugObjectReference.create__Object(this), DEBUG_TRANSFORM, 20, 8, Wireframe, Tr2DebugColor.create__Uint32(0xffff1111));
+      }
     }
   }
 

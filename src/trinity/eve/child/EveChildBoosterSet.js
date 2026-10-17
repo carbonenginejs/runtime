@@ -23,6 +23,7 @@ import { TriBatchType } from "#consts/graphics";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { EveChildBoosterSetSingleBoosterData } from "./EveChildBoosterSetSingleBoosterData.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
+import { ITr2DebugRenderable, ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/index.js";
 import {
   AddBoosterLights,
@@ -49,6 +50,12 @@ const SPHERE_SCRATCH = vec4.create();
 
 const POSITION_SCRATCH = vec3.create();
 
+const DEBUG_TRANSFORM = mat4.create();
+
+const DEBUG_CAP0 = vec3.fromValues(0, 0, 0);
+
+const DEBUG_CAP1 = vec3.fromValues(0, 0, -1);
+
 
 /**
  * The child-graph booster set: instanced booster geometry, the lensflare
@@ -67,7 +74,7 @@ const POSITION_SCRATCH = vec3.create();
  */
 @blue.define("EveChildBoosterSet")
 @blue.inherit(ITr2Renderable)
-@blue.inherit(INotify, IInitialize, ITr2ControllerOwner)
+@blue.inherit(INotify, IInitialize, ITr2ControllerOwner, ITr2DebugRenderable)
 @blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, INotify, IInitialize, ITr2LightOwner, EveEntity, ITr2Renderable, ITr2ControllerOwner)
 export class EveChildBoosterSet extends EveSpaceObjectChild
 {
@@ -793,6 +800,60 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   GetSortValue()
   {
     return 1;
+  }
+
+  /**
+   * Carbon EveChildBoosterSet::GetDebugOptions (cpp:565-568).
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    options.add("Boosters");
+  }
+
+  /**
+   * Carbon EveChildBoosterSet::RenderDebugInfo (cpp:574-604): nothing before
+   * the first update or without "Boosters"; otherwise a lit unit cylinder
+   * along -Z per booster under its transform and the parent transform, owned
+   * by the set with the booster's index as the area, then the glow sprite
+   * set's debug info under the parent transform with no bones.
+   * @param {ITr2DebugRenderer2} renderer
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer)
+  {
+    if (!this._hasUpdated)
+    {
+      return;
+    }
+
+    if (!renderer.HasOption(this, "Boosters"))
+    {
+      return;
+    }
+
+    for (let j = 0; j < this._singleBoosters.length; ++j)
+    {
+      // Carbon (row-vector): m_singleBoosters[j].transform * m_parentTransform.
+      const transform = mat4.multiply(DEBUG_TRANSFORM, this._parentTransform, this._singleBoosters[j].transform);
+      renderer.DrawCylinder__TransformCaps(
+        Tr2DebugObjectReference.create__ObjectArea(this, j),
+        transform,
+        DEBUG_CAP0,
+        DEBUG_CAP1,
+        1.0,
+        8,
+        ITr2DebugRenderer2.Effect.Lit,
+        Tr2DebugColor.create__Uint32ZFail(0x88ffff00, 0x22ffff00));
+    }
+
+    if (this.glows)
+    {
+      this.glows.RenderDebugInfo(renderer, this._parentTransform, null, 0);
+    }
   }
 
   /**

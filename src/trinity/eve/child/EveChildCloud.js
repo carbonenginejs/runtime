@@ -9,7 +9,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { meta, type, blue } from "#schema";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
-import { ITr2DebugRenderable } from "#interfaces";
+import { ITr2DebugRenderable, ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { RenderingMode, TriBatchType } from "#consts/graphics";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
@@ -363,21 +363,48 @@ export class EveChildCloud extends EveSpaceObjectChild
     return record;
   }
 
-  /** Adds the cloud box and editable volume options (cpp:438-445). */
+  /**
+   * Carbon EveChildCloud::GetDebugOptions (cpp:438-445): its own box option,
+   * then the editable volume's.
+   * @param {Set<string>} options The caller-owned option set.
+   */
   @blue.method
   @meta.implemented
   GetDebugOptions(options)
   {
     options.add("Bounding Box");
-    if (this.volume) this.volume.GetDebugOptions(options);
+    if (this.volume)
+    {
+      this.volume.GetDebugOptions(options);
+    }
   }
 
-  /** The native debug box requires the unported debug geometry renderer. */
+  /**
+   * Carbon EveChildCloud::RenderDebugInfo (cpp:447-461): with "Bounding Box",
+   * the unit box under the world transform; then the editable volume's debug
+   * info under the same transform.
+   * @param {ITr2DebugRenderer2} renderer
+   */
   @blue.method
-  @meta.notImplemented
-  RenderDebugInfo()
+  @meta.implemented
+  RenderDebugInfo(renderer)
   {
-    throw new Error("EveChildCloud.RenderDebugInfo requires the unported debug geometry renderer.");
+    if (renderer.HasOption(this, "Bounding Box"))
+    {
+      const color = 0xff00ff00;
+      renderer.DrawBox__Transform(
+        Tr2DebugObjectReference.create__Object(this),
+        this.worldTransform,
+        LOCAL_MIN,
+        LOCAL_MAX,
+        ITr2DebugRenderer2.Effect.Wireframe,
+        Tr2DebugColor.create__Uint32(color));
+    }
+
+    if (this.volume)
+    {
+      this.volume.RenderDebugInfo(renderer, this.worldTransform);
+    }
   }
 
   /** Advances the editable volume, composes local SRT with its live parent and refreshes bounds. */

@@ -44,6 +44,7 @@ import { ITr2ControllerOwner } from "../../controllers/ITr2ControllerOwner.js";
 import { ITr2ActionController } from "../../controllers/ITr2Controller/ITr2ActionController.js";
 import { IsMatch, be, EnumRegistrationType } from "#blue";
 import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
+import { IEveSpaceObjectAttachmentOwner } from "../attachment/IEveSpaceObjectAttachmentOwner.js";
 
 // Module scratch (read-only zero vector; container recursion forbids mutable
 // module scratch here - see GetBoundingSphere).
@@ -58,8 +59,8 @@ const ZERO_VEC3 = vec3.create();
 @blue.define("EveChildContainer")
 @blue.inherit(ITr2Renderable, ITr2CurveSetOwner, IInitialize, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner)
 @blue.inherit(IInitialize, IListNotify, INotify)
-@blue.interface(EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, IListNotify, INotify, IEveEffectChildrenOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner, ITr2Renderable, ITr2LightOwner, IShaderConfigurer)
-@blue.inherit(IEveEffectChildrenOwner)
+@blue.interface(EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, IListNotify, INotify, IEveEffectChildrenOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner, IEveSpaceObjectAttachmentOwner, ITr2Renderable, ITr2LightOwner, IShaderConfigurer)
+@blue.inherit(IEveEffectChildrenOwner, IEveSpaceObjectAttachmentOwner)
 export class EveChildContainer extends EveChildTransform
 {
   @blue.notify

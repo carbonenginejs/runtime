@@ -14,6 +14,8 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { color } from "#math/color";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { BLUELISTEVENT } from "#consts/blue";
 import { ProcessPriority } from "./enums.js";
 import { EveKDdroneManagementTree } from "../../../eve/child/behaviors/EveKDdroneManagementTree.js";
@@ -34,6 +36,18 @@ const INSTANCE_POSE = mat4.create();
 const AGENT_WORLD = mat4.create();
 const BOOSTER_POSITION = vec3.create();
 const IDENTITY = mat4.create();
+
+// Debug-draw scratch (debug drawing runs sequentially).
+const DEBUG_TRANSFORM = mat4.create();
+const DEBUG_ROTATION = quat.create();
+const DEBUG_UNIT_SCALE = vec3.fromValues(1, 1, 1);
+const DEBUG_AXIS_SCALE = vec3.fromValues(100, 100, 100);
+const DEBUG_SCALE = vec3.create();
+const DEBUG_POINT = vec3.create();
+const DEBUG_POINT_END = vec3.create();
+const DEBUG_SLOW_COLOR = color.fromARGB(color.create(), 0xff11ff11);
+const DEBUG_FAST_COLOR = color.fromARGB(color.create(), 0xffff1111);
+const DEBUG_COLOR = color.create();
 
 // Carbon ClampLength: in-place clamp of a vec3 to a maximum length.
 function ClampLength(value, maxLength)
@@ -927,6 +941,32 @@ export class BehaviorGroup extends EveEntity
     return this._parent;
   }
 
+  /**
+   * Carbon BehaviorGroup::GetDebugOptions (cpp:934-951): the group's own
+   * options, the booster ones when it has a booster, then every behavior's.
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    options.add("AgentsKDTree");
+    options.add("Bounding Sphere");
+    options.add("DebugBehaviors");
+    options.add("AgentRotation");
+
+    if (this.boosters !== null)
+    {
+      options.add("Boosters");
+      options.add("Lights");
+    }
+
+    for (const group of this.behaviors)
+    {
+      group.GetDebugOptions(options);
+    }
+  }
+
   /** Carbon BehaviorGroup::GetBoundingSphereRadius (cpp:953-956). */
   @blue.method
   @meta.implemented
@@ -1077,6 +1117,127 @@ export class BehaviorGroup extends EveEntity
       if (this._playFXBehavior !== null)
       {
         this._playFXBehavior.AddQuadsToQuadRenderer(frustum, quadRenderer);
+      }
+    }
+  }
+
+  /**
+   * Carbon BehaviorGroup::RenderDebugInfo (cpp:1061-1154): every behavior's
+   * debug geometry, then the group's own - the k-d tree, bounding spheres and
+   * boosters per agent, the collected force lines, booster lights and agent
+   * axes. Turning "DebugBehaviors" on starts force collection for the next
+   * update; turning it off stops it.
+   * @param {ITr2DebugRenderer2} renderer
+   * @param {mat4} parentWorldLocation Places the agents in world space.
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer, parentWorldLocation)
+  {
+    const { Wireframe } = ITr2DebugRenderer2.Effect;
+    if (!this.display)
+    {
+      return;
+    }
+    for (const behavior of this.behaviors)
+    {
+      behavior.RenderDebugInfo(renderer, this._agents, parentWorldLocation);
+    }
+
+    if (renderer.HasOption(this, "AgentsKDTree"))
+    {
+      if (this._tree !== null)
+      {
+        this._tree.RenderDebugInfo(renderer, parentWorldLocation);
+      }
+      else
+      {
+        this.CreateAgentTree();
+      }
+    }
+
+    const drawBS = renderer.HasOption(this, "Bounding Sphere");
+    const drawBoosters = renderer.HasOption(this, "Boosters") && this.boosters !== null;
+
+    if (drawBoosters || drawBS)
+    {
+      for (const agent of this._agents)
+      {
+        if (drawBS)
+        {
+          // Carbon (row-vector): TranslationMatrix( agent->position ) * parentWorldLocation.
+          mat4.translate(DEBUG_TRANSFORM, parentWorldLocation, agent.position);
+          renderer.DrawSphere__TransformRadius(Tr2DebugObjectReference.create__Object(this), DEBUG_TRANSFORM, this.boundingSphereRadius * this.scale, 8, Wireframe, Tr2DebugColor.create__Uint32(0xffff00ff));
+        }
+        if (drawBoosters)
+        {
+          // Carbon (row-vector): TransformationMatrix( Vector3( 1, 1, 1 ), agent->rotation, agent->position ) * parentWorldLocation.
+          mat4.fromRotationTranslationScale(DEBUG_TRANSFORM, agent.rotation, agent.position, DEBUG_UNIT_SCALE);
+          mat4.multiply(DEBUG_TRANSFORM, parentWorldLocation, DEBUG_TRANSFORM);
+          this.boosters.RenderBoosterDebug(renderer, Tr2DebugObjectReference.create__Object(this), DEBUG_TRANSFORM);
+        }
+      }
+    }
+
+    if (renderer.HasOption(this, "DebugBehaviors"))
+    {
+      if (this.collectForces)
+      {
+        let loopToggle = true;
+        const point = DEBUG_POINT;
+        for (const force of this._forces)
+        {
+          if (loopToggle)
+          {
+            // Carbon ( *force ) + parentWorldLocation.GetTranslation().
+            vec3.add(point, force, mat4.getTranslation(DEBUG_POINT_END, parentWorldLocation));
+            loopToggle = false;
+          }
+          else
+          {
+            const lengthLerp = Math.min(1, Math.max(0, vec3.length(force) / this.maxVelocity));
+            // Carbon Lerp( Color( 0xff11ff11 ), Color( 0xffff1111 ), lengthLerp ), componentwise.
+            color.lerp(DEBUG_COLOR, DEBUG_SLOW_COLOR, DEBUG_FAST_COLOR, lengthLerp);
+            renderer.DrawLine(Tr2DebugObjectReference.create__Object(this), point, vec3.add(DEBUG_POINT_END, point, force), Tr2DebugColor.create__Color(DEBUG_COLOR));
+            loopToggle = true;
+          }
+        }
+      }
+      else
+      {
+        this.collectForces = true;
+      }
+    }
+    else
+    {
+      this.collectForces = false;
+    }
+
+    if (renderer.HasOption(this, "Lights"))
+    {
+      const iq = quat.identity(DEBUG_ROTATION);
+      const scale = DEBUG_UNIT_SCALE;
+
+      for (const info of this._lightInfo.values())
+      {
+        // Carbon (row-vector): TransformationMatrix( info.w * scale, iq, info.GetXYZ() ) * parentWorldLocation.
+        vec3.scale(DEBUG_SCALE, scale, info[3]);
+        vec3.set(DEBUG_POINT, info[0], info[1], info[2]);
+        mat4.fromRotationTranslationScale(DEBUG_TRANSFORM, iq, DEBUG_POINT, DEBUG_SCALE);
+        mat4.multiply(DEBUG_TRANSFORM, parentWorldLocation, DEBUG_TRANSFORM);
+        this.boosters.RenderLightDebug(renderer, Tr2DebugObjectReference.create__Object(this), DEBUG_TRANSFORM);
+      }
+    }
+
+    if (renderer.HasOption(this, "AgentRotation"))
+    {
+      for (const it of this._agents)
+      {
+        const rot = it.rotation;
+        // Carbon (row-vector): TransformationMatrix( Vector3( 100, 100, 100 ), rot, it->position ) * parentWorldLocation.
+        mat4.fromRotationTranslationScale(DEBUG_TRANSFORM, rot, it.position, DEBUG_AXIS_SCALE);
+        mat4.multiply(DEBUG_TRANSFORM, parentWorldLocation, DEBUG_TRANSFORM);
+        renderer.DrawAxis(Tr2DebugObjectReference.create__Object(this), DEBUG_TRANSFORM, Wireframe);
       }
     }
   }

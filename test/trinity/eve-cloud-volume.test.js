@@ -113,5 +113,22 @@ test('completed cloud status retains native Update publication and debug option 
   cloud.Update(0); cloud.Update(1);
   assert.equal(adopt.mock.callCount(), 2, 'cpp:100 checks DataReady without requiring a live thread handle');
   const options=new Set(); cloud.GetDebugOptions(options); assert.deepEqual([...options], ['Cloud Balls']);
-  assert.throws(()=>cloud.RenderDebugInfo(null,null), /unported debug geometry/);
+  assert.throws(()=>cloud.RenderDebugInfo__RenderContext(null,null), /DrawOrientedBox/);
+});
+
+test('cloud volume renderer overload draws every ball twice under the world transform (cpp:367-382)', t => {
+  const cloud = volume(t); const first = ball(); cloud.balls.push(first);
+  const world = new Float32Array(16); world[0] = world[5] = world[10] = world[15] = 1;
+  const calls = [];
+  cloud.RenderDebugInfo({
+    HasOption: (owner, option) => owner === cloud && option === 'Cloud Balls',
+    DrawSphere__TransformCenterRadius: (...args) => calls.push(args)
+  }, world);
+  assert.equal(calls.length, 2);
+  for (const [owner, transform, center, radius, segments] of calls) {
+    assert.equal(owner.object, first); assert.equal(transform, world);
+    assert.equal(center, first.position); assert.equal(radius, first.radius); assert.equal(segments, 16);
+  }
+  assert.equal(calls[0][5], 0); assert.equal(calls[0][6].color, 0x888888ff);
+  assert.equal(calls[1][5], 1); assert.equal(calls[1][6].color, 0);
 });

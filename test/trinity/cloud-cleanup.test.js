@@ -36,23 +36,43 @@ test("Cloud2 first/last native light-list events change light-owner membership",
   finally { registry.Clear(); }
 });
 
-test("Cloud2 debug methods pass native geometry and options to the required renderer", () =>
+test("Cloud2 debug methods pass native geometry and options to the required renderer (cpp:692-712)", () =>
 {
   const cloud = new EveChildCloud2(), options = new Set(), calls = [];
   cloud.GetDebugOptions(options);
   assert.deepEqual([...options], ["Bounding Box", "Bounding Sphere"]);
   cloud.RenderDebugInfo({
     HasOption: (_owner, option) => options.has(option),
-    DrawBox: (...args) => calls.push(args),
-    DrawSphere: (...args) => calls.push(args)
+    DrawBox__Transform: (...args) => calls.push(["DrawBox__Transform", ...args]),
+    DrawSphere__CenterRadius: (...args) => calls.push(["DrawSphere__CenterRadius", ...args])
   });
-  assert.equal(calls[0][0], cloud);
-  assert.equal(calls[0][1], cloud.worldTransform);
-  assert.deepEqual(Array.from(calls[0][2]), [-0.5, -0.5, -0.5]);
-  assert.deepEqual(Array.from(calls[0][3]), [0.5, 0.5, 0.5]);
-  assert.equal(calls[0][4], ITr2DebugRenderer2.Effect.Wireframe);
-  assert.equal(calls[1][3], 18);
-  assert.throws(() => cloud.RenderDebugInfo({ HasOption: () => true }), /DrawBox/);
+  assert.equal(calls.length, 2);
+
+  const [ boxVariant, boxOwner, boxTransform, boxMin, boxMax, boxEffect, boxColor ] = calls[0];
+  assert.equal(boxVariant, "DrawBox__Transform");
+  assert.equal(boxOwner.object, cloud);
+  assert.equal(boxTransform, cloud.worldTransform);
+  assert.deepEqual(Array.from(boxMin), [-0.5, -0.5, -0.5]);
+  assert.deepEqual(Array.from(boxMax), [0.5, 0.5, 0.5]);
+  assert.equal(boxEffect, ITr2DebugRenderer2.Effect.Wireframe);
+  assert.equal(boxColor.color, 0xff00ff00);
+
+  const [ sphereVariant, sphereOwner, center, radius, segments, sphereEffect, sphereColor ] = calls[1];
+  assert.equal(sphereVariant, "DrawSphere__CenterRadius");
+  assert.equal(sphereOwner.object, cloud);
+  assert.equal(center, cloud.boundingSphere.center);
+  assert.equal(radius, cloud.boundingSphere.radius);
+  assert.equal(segments, 18);
+  assert.equal(sphereEffect, ITr2DebugRenderer2.Effect.Wireframe);
+  assert.equal(sphereColor.color, 0xff00ff00);
+
+  assert.throws(() => cloud.RenderDebugInfo({ HasOption: () => true }), /DrawBox__Transform/);
+});
+
+test("Cloud2 UpdateAsyncronous reads the parent transform unchecked, as Carbon does (cpp:673)", () =>
+{
+  const cloud = new EveChildCloud2();
+  assert.throws(() => cloud.UpdateAsyncronous({ GetOriginShift: () => [0, 0, 0], GetLodFactor: () => 1 }, {}));
 });
 
 test("Cloud2 required effect and animation methods fail loudly", () =>

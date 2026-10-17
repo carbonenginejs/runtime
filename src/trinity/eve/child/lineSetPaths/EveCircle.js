@@ -10,7 +10,13 @@ import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { meta, type, blue } from "#schema";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { IEveLineSetPath } from "./IEveLineSetPath.js";
+
+// Debug-drawing scratch (debug rendering is single-threaded).
+const DEBUG_TRANSFORM = mat4.create();
+const DEBUG_POINT_TRANSFORM = mat4.create();
+const DEBUG_SPHERE = vec4.create();
 
 
 /**
@@ -384,6 +390,41 @@ export class EveCircle extends IEveLineSetPath
   @meta.noop
   GetDebugOptions(_options)
   {
+  }
+
+  /**
+   * Carbon EveCircle::RenderDebugInfo (cpp:273-291): under the "LineSets"
+   * option, the bounding sphere (with "Bounding Sphere") and a small sphere on
+   * every generated point, placed by the local transform under the system
+   * location.
+   * @param {ITr2DebugRenderer2} renderer
+   * @param {mat4} systemLocation
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer, systemLocation)
+  {
+    if (!renderer.HasOption(this, "LineSets"))
+    {
+      return;
+    }
+
+    const { Wireframe } = ITr2DebugRenderer2.Effect;
+    // Carbon (row-vector): m_localTransform * systemLocation - local first.
+    const transform = mat4.multiply(DEBUG_TRANSFORM, systemLocation, this.localTransform);
+
+    if (renderer.HasOption(this, "Bounding Sphere"))
+    {
+      const sphere = sph3.transformMat4(DEBUG_SPHERE, this._boundingSphere, transform);
+      renderer.DrawSphere__CenterRadius(Tr2DebugObjectReference.create__Object(this), sphere, sphere[3], 4, Wireframe, Tr2DebugColor.create__Uint32(0xaaaaaaff));
+    }
+
+    for (const point of this._points)
+    {
+      // Carbon (row-vector): TranslationMatrix(point) * m_localTransform * systemLocation.
+      mat4.translate(DEBUG_POINT_TRANSFORM, transform, point);
+      renderer.DrawSphere__TransformRadius(Tr2DebugObjectReference.create__Object(this), DEBUG_POINT_TRANSFORM, this._boundingSphere[3] / 100, 4, Wireframe, Tr2DebugColor.create__Uint32(0xffffffff));
+    }
   }
 
   /**

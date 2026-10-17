@@ -195,6 +195,18 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
     return true;
   }
 
+  /**
+   * Whether the particle system and generators match: Carbon's
+   * MAP_PROPERTY_READONLY "isValid" over CheckBinding
+   * (EveChildParticleSphere_Blue.cpp:18), so reading it binds on first use.
+   */
+  @blue.read
+  @type.boolean
+  get isValid()
+  {
+    return this.CheckBinding();
+  }
+
   /** Carbon EveChildParticleSphere::CheckBinding (cpp:233-240): binds on first use. */
   @blue.method
   @meta.implemented

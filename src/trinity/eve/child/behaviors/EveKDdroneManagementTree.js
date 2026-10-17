@@ -4,7 +4,21 @@ import { IRoot } from "../../../../global/blue/IRoot.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
 import { PlaneType } from "./enums.js";
+import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
+import { color } from "#math/color";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
+
+// Debug-draw scratch (debug drawing runs sequentially). Each primitive's
+// endpoints are consumed by the renderer before the next one is built.
+const DEBUG_SQUARE_CORNER1 = vec3.create();
+const DEBUG_SQUARE_CORNER2 = vec3.create();
+const DEBUG_PWT = vec3.create();
+const DEBUG_MIN = vec3.create();
+const DEBUG_MAX = vec3.create();
+const DEBUG_FROM = vec3.create();
+const DEBUG_TO = vec3.create();
+const DEBUG_COLOR = color.create();
 
 /** A spatial index that builds and incrementally rebalances a k-d tree over a group's drone agents and answers nearest-neighbour and multi-radius range queries against it. */
 @blue.define("EveKDdroneManagementTree")
@@ -514,6 +528,129 @@ export class EveKDdroneManagementTree
       {
         break;
       }
+    }
+  }
+
+  /**
+   * Carbon EveKDdroneManagementTree::RenderDebugInfo (cpp:534-542): the
+   * outer debug box, then every split plane of the tree.
+   * @param {ITr2DebugRenderer2} renderer
+   * @param {mat4} parentWorldLocation Only its translation offsets the split planes.
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer, parentWorldLocation)
+  {
+    const debugSquareCorner1 = vec3.set(DEBUG_SQUARE_CORNER1, this.debugSquareSize, this.debugSquareSize, this.debugSquareSize);
+    const debugSquareCorner2 = vec3.scale(DEBUG_SQUARE_CORNER2, debugSquareCorner1, -1);
+
+    // Carbon draws this outer box without the pwt offset the split planes get.
+    renderer.DrawBox__MinMax(Tr2DebugObjectReference.create__Object(null), debugSquareCorner1, debugSquareCorner2, ITr2DebugRenderer2.Effect.Wireframe, Tr2DebugColor.create__Uint32(0xff555555));
+    const pwt = mat4.getTranslation(DEBUG_PWT, parentWorldLocation);
+    this._DrawDebugTree(renderer, this.tree, debugSquareCorner1, debugSquareCorner2, pwt);
+  }
+
+  /**
+   * Carbon EveKDdroneManagementTree::DrawDebugTree (cpp:544-589): draws a
+   * node's split plane as a thin box with its inner lines, recurses into both
+   * halves, and grows debugSquareSize to 1.5 times the node's largest
+   * absolute coordinate.
+   * @param {ITr2DebugRenderer2} renderer
+   * @param {object|null} tree The AgentRef node.
+   * @param {vec3} debugSquareCorner1
+   * @param {vec3} debugSquareCorner2
+   * @param {vec3} pwt The parent world translation.
+   */
+  @blue.method
+  @meta.implemented
+  _DrawDebugTree(renderer, tree, debugSquareCorner1, debugSquareCorner2, pwt)
+  {
+    if (tree === null)
+    {
+      return;
+    }
+
+    if (tree.left === null && tree.right === null)
+    {
+      return;
+    }
+
+    // Carbon's per-call Vector3 locals, pooled because the recursion needs one
+    // pair per depth; released after the last use below.
+    const newCorner1 = vec3.alloc();
+    const newCorner2 = vec3.alloc();
+    const { Wireframe } = ITr2DebugRenderer2.Effect;
+
+    switch (tree.planeType)
+    {
+      case EveKDdroneManagementTree.PlaneType.X:
+        vec3.set(newCorner1, tree.agent.position[0] + Math.fround(0.1), debugSquareCorner1[1], debugSquareCorner1[2]);
+        vec3.set(newCorner2, tree.agent.position[0] - Math.fround(0.1), debugSquareCorner2[1], debugSquareCorner2[2]);
+        renderer.DrawBox__MinMax(Tr2DebugObjectReference.create__Object(null), vec3.add(DEBUG_MIN, newCorner1, pwt), vec3.add(DEBUG_MAX, newCorner2, pwt), Wireframe, Tr2DebugColor.create__Uint32(0xff2222ff));
+        this._DrawSquareInnerLines(renderer, tree.agent.position, newCorner1, newCorner2, color.fromARGB(DEBUG_COLOR, 0xff2222ff), EveKDdroneManagementTree.PlaneType.X, pwt);
+        this._DrawDebugTree(renderer, tree.left, newCorner1, debugSquareCorner2, pwt);
+        this._DrawDebugTree(renderer, tree.right, debugSquareCorner1, newCorner2, pwt);
+        break;
+      case EveKDdroneManagementTree.PlaneType.Y:
+        vec3.set(newCorner1, debugSquareCorner1[0], tree.agent.position[1] + Math.fround(0.1), debugSquareCorner1[2]);
+        vec3.set(newCorner2, debugSquareCorner2[0], tree.agent.position[1] - Math.fround(0.1), debugSquareCorner2[2]);
+        renderer.DrawBox__MinMax(Tr2DebugObjectReference.create__Object(null), vec3.add(DEBUG_MIN, newCorner1, pwt), vec3.add(DEBUG_MAX, newCorner2, pwt), Wireframe, Tr2DebugColor.create__Uint32(0xff22ff22));
+        this._DrawSquareInnerLines(renderer, tree.agent.position, newCorner1, newCorner2, color.fromARGB(DEBUG_COLOR, 0xff22ff22), EveKDdroneManagementTree.PlaneType.Y, pwt);
+        this._DrawDebugTree(renderer, tree.left, newCorner1, debugSquareCorner2, pwt);
+        this._DrawDebugTree(renderer, tree.right, debugSquareCorner1, newCorner2, pwt);
+        break;
+      case EveKDdroneManagementTree.PlaneType.Z:
+        vec3.set(newCorner1, debugSquareCorner1[0], debugSquareCorner1[1], tree.agent.position[2] + Math.fround(0.1));
+        vec3.set(newCorner2, debugSquareCorner2[0], debugSquareCorner2[1], tree.agent.position[2] - Math.fround(0.1));
+        renderer.DrawBox__MinMax(Tr2DebugObjectReference.create__Object(null), vec3.add(DEBUG_MIN, newCorner1, pwt), vec3.add(DEBUG_MAX, newCorner2, pwt), Wireframe, Tr2DebugColor.create__Uint32(0xffff2222));
+        this._DrawSquareInnerLines(renderer, tree.agent.position, newCorner1, newCorner2, color.fromARGB(DEBUG_COLOR, 0xffff2222), EveKDdroneManagementTree.PlaneType.Z, pwt);
+        this._DrawDebugTree(renderer, tree.left, newCorner1, debugSquareCorner2, pwt);
+        this._DrawDebugTree(renderer, tree.right, debugSquareCorner1, newCorner2, pwt);
+        break;
+    }
+    vec3.unalloc(newCorner1);
+    vec3.unalloc(newCorner2);
+
+    this.debugSquareSize = Math.max(Math.max(Math.max(this.debugSquareSize, 1.5 * Math.abs(tree.agent.position[0])),
+      1.5 * Math.abs(tree.agent.position[1])),
+    1.5 * Math.abs(tree.agent.position[2]));
+  }
+
+  /**
+   * Carbon EveKDdroneManagementTree::DrawSquareInnerLines (cpp:591-615):
+   * four lines from the agent to the split plane's corners.
+   * @param {ITr2DebugRenderer2} renderer
+   * @param {vec3} agentPos
+   * @param {vec3} P1
+   * @param {vec3} P2
+   * @param {Float32Array} C A Color, as Carbon takes it.
+   * @param {number} pt A PlaneType.
+   * @param {vec3} pwt The parent world translation.
+   */
+  @blue.method
+  @meta.implemented
+  _DrawSquareInnerLines(renderer, agentPos, P1, P2, C, pt, pwt)
+  {
+    switch (pt)
+    {
+      case EveKDdroneManagementTree.PlaneType.X:
+        renderer.DrawLine(Tr2DebugObjectReference.create__Object(null), vec3.add(DEBUG_FROM, agentPos, pwt), vec3.add(DEBUG_TO, P1, pwt), Tr2DebugColor.create__Color(C));
+        renderer.DrawLine(Tr2DebugObjectReference.create__Object(null), vec3.add(DEBUG_FROM, agentPos, pwt), vec3.add(DEBUG_TO, P2, pwt), Tr2DebugColor.create__Color(C));
+        renderer.DrawLine(Tr2DebugObjectReference.create__Object(null), vec3.add(DEBUG_FROM, agentPos, pwt), vec3.add(DEBUG_TO, vec3.set(DEBUG_TO, agentPos[0], P1[1], P2[2]), pwt), Tr2DebugColor.create__Color(C));
+        renderer.DrawLine(Tr2DebugObjectReference.create__Object(null), vec3.add(DEBUG_FROM, agentPos, pwt), vec3.add(DEBUG_TO, vec3.set(DEBUG_TO, agentPos[0], P2[1], P1[2]), pwt), Tr2DebugColor.create__Color(C));
+        break;
+      case EveKDdroneManagementTree.PlaneType.Y:
+        renderer.DrawLine(Tr2DebugObjectReference.create__Object(null), vec3.add(DEBUG_FROM, agentPos, pwt), vec3.add(DEBUG_TO, P1, pwt), Tr2DebugColor.create__Color(C));
+        renderer.DrawLine(Tr2DebugObjectReference.create__Object(null), vec3.add(DEBUG_FROM, agentPos, pwt), vec3.add(DEBUG_TO, P2, pwt), Tr2DebugColor.create__Color(C));
+        renderer.DrawLine(Tr2DebugObjectReference.create__Object(null), vec3.add(DEBUG_FROM, agentPos, pwt), vec3.add(DEBUG_TO, vec3.set(DEBUG_TO, P1[0], agentPos[1], P2[2]), pwt), Tr2DebugColor.create__Color(C));
+        renderer.DrawLine(Tr2DebugObjectReference.create__Object(null), vec3.add(DEBUG_FROM, agentPos, pwt), vec3.add(DEBUG_TO, vec3.set(DEBUG_TO, P2[0], agentPos[1], P1[2]), pwt), Tr2DebugColor.create__Color(C));
+        break;
+      case EveKDdroneManagementTree.PlaneType.Z:
+        renderer.DrawLine(Tr2DebugObjectReference.create__Object(null), vec3.add(DEBUG_FROM, agentPos, pwt), vec3.add(DEBUG_TO, P1, pwt), Tr2DebugColor.create__Color(C));
+        renderer.DrawLine(Tr2DebugObjectReference.create__Object(null), vec3.add(DEBUG_FROM, agentPos, pwt), vec3.add(DEBUG_TO, P2, pwt), Tr2DebugColor.create__Color(C));
+        renderer.DrawLine(Tr2DebugObjectReference.create__Object(null), vec3.add(DEBUG_FROM, agentPos, pwt), vec3.add(DEBUG_TO, vec3.set(DEBUG_TO, P1[0], P2[1], agentPos[2]), pwt), Tr2DebugColor.create__Color(C));
+        renderer.DrawLine(Tr2DebugObjectReference.create__Object(null), vec3.add(DEBUG_FROM, agentPos, pwt), vec3.add(DEBUG_TO, vec3.set(DEBUG_TO, P2[0], P1[1], agentPos[2]), pwt), Tr2DebugColor.create__Color(C));
+        break;
     }
   }
 

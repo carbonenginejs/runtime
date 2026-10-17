@@ -7,7 +7,10 @@ import { meta, type, blue } from "#schema";
 import { be } from "#blue";
 import { LocatorType } from "./enums.js";
 import { quat } from "#math/quat";
+import { mat3 } from "#math/mat3";
+import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { EveLocatorSets } from "../../locator/EveLocatorSets.js";
 
 // Module scratch for the per-agent loop (behavior updates run sequentially).
@@ -18,6 +21,13 @@ const AGENT_POSITION_WS = vec3.create();
 const DESIRED_VELOCITY = vec3.create();
 const INV_DIR = vec3.create();
 const NO_FORCES = [];
+
+// Debug-draw scratch (debug drawing runs sequentially).
+const DEBUG_TRANSFORM = mat4.create();
+const DEBUG_NORMAL_MATRIX = mat3.create();
+const DEBUG_CENTER = vec3.create();
+const DEBUG_DIRECTION = vec3.create();
+const DEBUG_POSITION = vec3.create();
 
 /** A steering behaviour that shuttles each drone between seek and deliver locators, slowing on approach, snapping its facing, and triggering effects on arrival. */
 @blue.define("BackAndForth")
@@ -323,6 +333,170 @@ export class BackAndForth
     }
 
     return NO_FORCES;
+  }
+
+  /**
+   * Carbon BackAndForth::GetDebugOptions (cpp:196-200).
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    options.add("Locators");
+    options.add("Locator Radius");
+  }
+
+  /**
+   * Carbon BackAndForth::RenderDebugInfo (cpp:202-316): a sphere arrow for
+   * every locator the behavior shuttles between (its own sets, or the
+   * parent's or target's named set), then the arrival spheres around the
+   * target points.
+   * @param {ITr2DebugRenderer2} renderer
+   * @param {Array} _agents DroneAgent records (unused, as in Carbon).
+   * @param {mat4} parentWorldLocation Places the locators in world space.
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer, _agents, parentWorldLocation)
+  {
+    const { Wireframe, Lit } = ITr2DebugRenderer2.Effect;
+    if (renderer.HasOption(this, "Locators"))
+    {
+      const boundingSphereRadius = 100;
+      const modelScale = 10;
+      if (this.locatorType === BackAndForth.LocatorType.LOCAL_LOCATORS)
+      {
+        for (const set of this.locatorSet)
+        {
+          const locators = set.GetLocators();
+          for (let i = 0; i < locators.length; ++i)
+          {
+            const locator = locators[i];
+            const position = locator.position;
+            const rotation = locator.direction;
+            const color = 0x990088ff;
+
+            // Carbon XMVector3TransformCoord( position, parentWorldLocation ).
+            vec3.transformMat4(DEBUG_CENTER, position, parentWorldLocation);
+
+            // Carbon (row-vector): XMVector3TransformNormal( Vector3( 0, 1, 0 ), Matrix( XMMatrixRotationQuaternion( rotation ) ) * parentWorldLocation ).
+            mat4.fromQuat(DEBUG_TRANSFORM, rotation);
+            mat4.multiply(DEBUG_TRANSFORM, parentWorldLocation, DEBUG_TRANSFORM);
+            vec3.transformMat3(DEBUG_DIRECTION, UP_AXIS, mat3.fromMat4(DEBUG_NORMAL_MATRIX, DEBUG_TRANSFORM));
+
+            renderer.DrawSphereArrow(
+              Tr2DebugObjectReference.create__ObjectArea(locators, i),
+              DEBUG_CENTER,
+              DEBUG_DIRECTION,
+              boundingSphereRadius * modelScale / 50,
+              8,
+              Lit,
+              Tr2DebugColor.create__Uint32(color));
+          }
+        }
+      }
+      else if (this.locatorType === BackAndForth.LocatorType.PARENT_LOCATORS && this.parent)
+      {
+        const locatorList = this.parent.GetLocatorsForSet(this.locatorSetName);
+        for (let i = 0; i < locatorList.length; ++i)
+        {
+          const locator = locatorList[i];
+          const position = locator.position;
+          const rotation = locator.direction;
+          const color = 0x990088ff;
+
+          // Carbon XMVector3TransformCoord( position, parentWorldLocation ).
+          vec3.transformMat4(DEBUG_CENTER, position, parentWorldLocation);
+
+          // Carbon (row-vector): XMVector3TransformNormal( Vector3( 0, 1, 0 ), Matrix( XMMatrixRotationQuaternion( rotation ) ) * parentWorldLocation ).
+          mat4.fromQuat(DEBUG_TRANSFORM, rotation);
+          mat4.multiply(DEBUG_TRANSFORM, parentWorldLocation, DEBUG_TRANSFORM);
+          vec3.transformMat3(DEBUG_DIRECTION, UP_AXIS, mat3.fromMat4(DEBUG_NORMAL_MATRIX, DEBUG_TRANSFORM));
+
+          renderer.DrawSphereArrow(
+            Tr2DebugObjectReference.create__ObjectArea(locatorList, i),
+            DEBUG_CENTER,
+            DEBUG_DIRECTION,
+            boundingSphereRadius * modelScale / 50,
+            8,
+            Lit,
+            Tr2DebugColor.create__Uint32(color));
+        }
+      }
+      else if (this.locatorType === BackAndForth.LocatorType.TARGET_LOCATORS && this.target)
+      {
+        const locatorList = this.target.GetLocatorsForSet(this.locatorSetName);
+        for (let i = 0; i < locatorList.length; ++i)
+        {
+          const locator = locatorList[i];
+          const position = locator.position;
+          const rotation = locator.direction;
+          const color = 0x990088ff;
+
+          // Carbon XMVector3TransformCoord( position, parentWorldLocation ).
+          vec3.transformMat4(DEBUG_CENTER, position, parentWorldLocation);
+
+          // Carbon (row-vector): XMVector3TransformNormal( Vector3( 0, 1, 0 ), Matrix( XMMatrixRotationQuaternion( rotation ) ) * parentWorldLocation ).
+          mat4.fromQuat(DEBUG_TRANSFORM, rotation);
+          mat4.multiply(DEBUG_TRANSFORM, parentWorldLocation, DEBUG_TRANSFORM);
+          vec3.transformMat3(DEBUG_DIRECTION, UP_AXIS, mat3.fromMat4(DEBUG_NORMAL_MATRIX, DEBUG_TRANSFORM));
+
+          renderer.DrawSphereArrow(
+            Tr2DebugObjectReference.create__ObjectArea(locatorList, i),
+            DEBUG_CENTER,
+            DEBUG_DIRECTION,
+            boundingSphereRadius * modelScale / 50,
+            8,
+            Lit,
+            Tr2DebugColor.create__Uint32(color));
+        }
+      }
+    }
+
+    if (renderer.HasOption(this, "Locator Radius"))
+    {
+      if (this.locatorType === BackAndForth.LocatorType.LOCAL_LOCATORS)
+      {
+        renderer.DrawSphere__CenterRadius(Tr2DebugObjectReference.create__Object(this), this._arrivalPoint, this.arrivedRadius, 8, Wireframe, Tr2DebugColor.create__Uint32(0xffff00ff));
+        renderer.DrawSphere__CenterRadius(Tr2DebugObjectReference.create__Object(this), this._arrivalPoint, 5, 8, Wireframe, Tr2DebugColor.create__Uint32(0xff0000ff));
+        renderer.DrawSphere__CenterRadius(Tr2DebugObjectReference.create__Object(this), this._arrivalPoint, this.slowDownRadius, 8, Wireframe, Tr2DebugColor.create__Uint32(0xff86d2fd));
+      }
+      else if (this.locatorType === BackAndForth.LocatorType.PARENT_LOCATORS && this.parent)
+      {
+        const count = this.parent.GetLocatorCount(this.locatorSetName);
+        for (let i = 0; i < count; ++i)
+        {
+          const pos = vec3.set(DEBUG_POSITION, 0, 0, 0);
+          const dir = vec3.set(DEBUG_DIRECTION, 0, 0, 0);
+          this.parent.GetLocatorPosition(pos, i, true, this.locatorSetName);
+          this.parent.GetLocatorDirection(dir, i, true, this.locatorSetName);
+
+          const targetPoint = vec3.normalize(DEBUG_CENTER, dir);
+          vec3.scale(targetPoint, targetPoint, this.arrivedRadius);
+          vec3.add(targetPoint, targetPoint, pos);
+          renderer.DrawSphere__CenterRadius(Tr2DebugObjectReference.create__Object(this), targetPoint, this.arrivedRadius, 8, Wireframe, Tr2DebugColor.create__Uint32(0xffff00ff));
+          renderer.DrawSphere__CenterRadius(Tr2DebugObjectReference.create__Object(this), targetPoint, this.slowDownRadius, 8, Wireframe, Tr2DebugColor.create__Uint32(0xff86d2fd));
+        }
+      }
+      else if (this.locatorType === BackAndForth.LocatorType.TARGET_LOCATORS && this.target)
+      {
+        const count = this.target.GetLocatorCount(this.locatorSetName);
+        for (let i = 0; i < count; ++i)
+        {
+          const pos = vec3.set(DEBUG_POSITION, 0, 0, 0);
+          const dir = vec3.set(DEBUG_DIRECTION, 0, 0, 0);
+          this.target.GetLocatorPosition(pos, i, true, this.locatorSetName);
+          this.target.GetLocatorDirection(dir, i, true, this.locatorSetName);
+
+          const targetPoint = vec3.normalize(DEBUG_CENTER, dir);
+          vec3.scale(targetPoint, targetPoint, this.arrivedRadius);
+          vec3.add(targetPoint, targetPoint, pos);
+          renderer.DrawSphere__CenterRadius(Tr2DebugObjectReference.create__Object(this), targetPoint, this.arrivedRadius, 8, Wireframe, Tr2DebugColor.create__Uint32(0xffff00ff));
+          renderer.DrawSphere__CenterRadius(Tr2DebugObjectReference.create__Object(this), targetPoint, this.slowDownRadius, 8, Wireframe, Tr2DebugColor.create__Uint32(0xff86d2fd));
+        }
+      }
+    }
   }
 
   /** Carbon method AddLocatorSet (MAP_METHOD_AND_WRAP). */

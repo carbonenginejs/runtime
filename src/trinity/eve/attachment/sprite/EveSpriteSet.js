@@ -20,6 +20,7 @@ import { AsPerPointLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../..
 import { TriBatchType } from "#consts/graphics";
 import { num } from "#math/num";
 import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 
 // Carbon PoolVertex (EveSpriteSet.h:56-70): 32 bytes -
 // position float3 @0; TEXCOORD0 half4 @12 = activation, blinkPhase,
@@ -580,12 +581,146 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
     }
   }
 
+  /**
+   * Carbon EveSpriteSet::GetDebugOptions (cpp:345-350).
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    options.add("Sprite Sets");
+    options.add("Sprite Sets Bounds");
+    options.add("Sprite Sets Lights");
+  }
+
+  /**
+   * Carbon EveSpriteSet::RenderDebugInfo (cpp:352-427): three independent
+   * options.
+   *
+   * "Sprite Sets" draws a lit sphere of the sprite's maxScale at its position,
+   * under its bone when it has one and the parent transform; a sprite whose
+   * bone index is out of range is drawn red instead of cyan. Each sprite is
+   * its own owner.
+   *
+   * "Sprite Sets Bounds" draws the item-set box in the parent space, and
+   * "Sprite Sets Lights" draws each light twice, inner then outer radius
+   * scaled by the light's current blink, owned by the light's sprite.
+   * @param {ITr2DebugRenderer2} renderer
+   * @param {mat4} parentTransform
+   * @param {Float32Array|null} bones Packed Float4x3 bone matrices.
+   * @param {number} boneCount
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer, parentTransform, bones, boneCount)
+  {
+    if (renderer.HasOption(this, "Sprite Sets"))
+    {
+      for (const sprite of this.sprites)
+      {
+        const transform = mat4.copy(EveSpriteSet._debugTransform, parentTransform);
+        const boneIndex = sprite.boneIndex;
+        let color = Tr2DebugColor.create__ColorZFail(EveSpriteSet._debugSpriteColor, EveSpriteSet._debugSpriteZFailColor);
+        if (boneIndex >= 0)
+        {
+          if (boneIndex < boneCount)
+          {
+            const boneTF = mat4.identity(EveSpriteSet._debugBone);
+            MatrixCopyFrom3x4(boneTF, bones, boneIndex);
+            // Carbon (row-vector): transform = boneTF * transform - the bone applies first.
+            mat4.multiply(transform, transform, boneTF);
+          }
+          else
+          {
+            color = Tr2DebugColor.create__ColorZFail(EveSpriteSet._debugMissingBoneColor, EveSpriteSet._debugMissingBoneZFailColor);
+          }
+        }
+
+        renderer.DrawSphere__TransformCenterRadius(
+          Tr2DebugObjectReference.create__Object(sprite),
+          transform,
+          sprite.position,
+          sprite.maxScale,
+          6,
+          ITr2DebugRenderer2.Effect.Lit,
+          color);
+      }
+    }
+
+    if (renderer.HasOption(this, "Sprite Sets Bounds"))
+    {
+      const aabb = this.GetAabb(EveSpriteSet._debugBounds, bones, boneCount);
+      renderer.DrawBox__Transform(
+        Tr2DebugObjectReference.create__Object(this),
+        parentTransform,
+        box3.$min(aabb),
+        box3.$max(aabb),
+        ITr2DebugRenderer2.Effect.Wireframe,
+        Tr2DebugColor.create__Uint32(0xff00ff00));
+    }
+
+    if (renderer.HasOption(this, "Sprite Sets Lights"))
+    {
+      for (const l of this.lights)
+      {
+        const t = mat4.fromTranslation(EveSpriteSet._debugTransform, l.lightData.position);
+        // Carbon (row-vector): TranslationMatrix( l.lightData.position ) * l.boneMatrix.
+        mat4.multiply(t, l.boneMatrix, t);
+
+        const c = vec4.copy(EveSpriteSet._debugLightColor, l.lightData.color);
+        const blinkScale = EveSpaceObjectAttachmentUtils.blink(Tr2Renderer.GetAnimationTime(), l.blinkRate, l.blinkPhase, l.minScale, l.maxScale);
+
+        c[3] = 0.5;
+
+        // Carbon quirk (cpp:408): `>` not `>=`, so an index equal to the
+        // sprite count reads one past the end; reproduced as an undefined read.
+        const sprite = l.index > this.sprites.length ? null : this.sprites[l.index];
+
+        renderer.DrawSphere__TransformRadius(
+          Tr2DebugObjectReference.create__Object(sprite),
+          t,
+          l.lightData.innerRadius * blinkScale,
+          10,
+          ITr2DebugRenderer2.Effect.Solid,
+          Tr2DebugColor.create__Color(c));
+
+        c[3] = 0.3;
+        renderer.DrawSphere__TransformRadius(
+          Tr2DebugObjectReference.create__Object(sprite),
+          t,
+          l.lightData.radius * blinkScale,
+          10,
+          ITr2DebugRenderer2.Effect.Solid,
+          Tr2DebugColor.create__Color(c));
+      }
+    }
+  }
+
   /** Per-frame scratch - UpdateVisibility must not allocate. */
   static _aabbScratch = box3.create();
 
   static _features = { parentBrightness: 0, parentScale: 1 };
 
   static _lightRecord = CreateLightRecord();
+
+  static _debugTransform = mat4.create();
+
+  static _debugBone = mat4.create();
+
+  static _debugBounds = box3.create();
+
+  static _debugLightColor = vec4.create();
+
+  /** Color( 0.0f, 0.7f, 0.9f, 0.5f ) / Color( 0.0f, 0.7f, 0.9f, 0.1f ) (cpp:360). */
+  static _debugSpriteColor = vec4.fromValues(0.0, 0.7, 0.9, 0.5);
+
+  static _debugSpriteZFailColor = vec4.fromValues(0.0, 0.7, 0.9, 0.1);
+
+  /** Color( 0.9f, 0.2f, 0.2f, 0.5f ) / Color( 0.9f, 0.2f, 0.2f, 0.1f ) (cpp:371). */
+  static _debugMissingBoneColor = vec4.fromValues(0.9, 0.2, 0.2, 0.5);
+
+  static _debugMissingBoneZFailColor = vec4.fromValues(0.9, 0.2, 0.2, 0.1);
 }
 
 // EveSpriteSet_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.

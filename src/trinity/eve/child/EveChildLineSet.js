@@ -1,4 +1,4 @@
-import { ITr2DebugRenderable } from "#interfaces";
+import { ITr2DebugRenderable, ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
@@ -28,6 +28,8 @@ import { CreateLodAllocations, RealizeBatchGeometry } from "../../core/mesh/TriG
 import { RawData } from "../../core/rawData/RawData.js";
 import { EveChildLineSetPerObjectData } from "../../core/rawData/perObjectData/EveChildLineSetPerObjectData.js";
 import { CalculateBoundingSphereForLineSetPaths } from "./lineSetPaths/IEveLineSetPath.js";
+
+const DEBUG_TRANSFORM = mat4.create();
 
 /** A child that renders a set of curved and sphere-projected line paths, as object geometry, as dedicated line rendering, or both. */
 @blue.define("EveChildLineSet")
@@ -598,7 +600,10 @@ export class EveChildLineSet extends EveChildTransform
   {
   }
 
-  /** Adds the native line-set debug toggle. */
+  /**
+   * Carbon EveChildLineSet::GetDebugOptions (cpp:511-514).
+   * @param {Set<string>} options The caller-owned option set.
+   */
   @blue.method
   @meta.implemented
   GetDebugOptions(options)
@@ -606,12 +611,39 @@ export class EveChildLineSet extends EveChildTransform
     options.add("LineSets");
   }
 
-  /** Path debug geometry remains unported; normal rendering uses GetBatches. */
+  /**
+   * Carbon EveChildLineSet::RenderDebugInfo (cpp:516-532): nothing while
+   * hidden; otherwise every path's debug info under the world transform, then
+   * the bounding sphere placed at its centre under the world transform with
+   * "Bounding Sphere".
+   * @param {ITr2DebugRenderer2} renderer
+   */
   @blue.method
-  @meta.notImplemented
-  RenderDebugInfo(_renderer)
+  @meta.implemented
+  RenderDebugInfo(renderer)
   {
-    throw new Error("EveChildLineSet.RenderDebugInfo: path debug geometry is not ported.");
+    if (!this.display)
+    {
+      return;
+    }
+
+    for (const line of this.lines)
+    {
+      line.RenderDebugInfo(renderer, this.worldTransform);
+    }
+
+    if (renderer.HasOption(this, "Bounding Sphere"))
+    {
+      // Carbon (row-vector): TranslationMatrix( m_boundingSphere.GetXYZ() ) * m_worldTransform.
+      const transform = mat4.translate(DEBUG_TRANSFORM, this.worldTransform, this._boundingSphere);
+      renderer.DrawSphere__TransformRadius(
+        Tr2DebugObjectReference.create__Object(this),
+        transform,
+        this._boundingSphere[3],
+        12,
+        ITr2DebugRenderer2.Effect.Wireframe,
+        Tr2DebugColor.create__Uint32(0xaaffffaa));
+    }
   }
 
   /** Returns native numeric TEXCOORD usage/index pairs in JS tuples. */

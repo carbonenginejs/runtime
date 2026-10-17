@@ -6,12 +6,21 @@ import { IBehavior } from "./IBehavior.js";
 import { meta, type, blue } from "#schema";
 import { be } from "#blue";
 import { CjsScriptCallback } from "#blue/CjsScriptCallback";
+import { mat3 } from "#math/mat3";
+import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { quat } from "#math/quat";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { EveLocatorSets } from "../../locator/EveLocatorSets.js";
 
 const Z_AXIS = vec3.fromValues(0, 0, 1);
 const UP_AXIS = vec3.fromValues(0, 1, 0);
+
+// Debug-draw scratch (debug drawing runs sequentially).
+const DEBUG_TRANSFORM = mat4.create();
+const DEBUG_NORMAL_MATRIX = mat3.create();
+const DEBUG_CENTER = vec3.create();
+const DEBUG_DIRECTION = vec3.create();
 
 /** A steering behaviour that assigns drones to repair locators on a target ship, splitting the target's bounding box into buckets so damage-seeking agents distribute evenly across it. */
 @blue.define("SeekTarget")
@@ -45,6 +54,9 @@ export class SeekTarget
   _returnForces = [];
 
   _forcePool = [];
+
+  /** m_arrivalPoints: each agent's target point from the last update, kept for debug drawing (h:86). */
+  _arrivalPoints = [];
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
   @blue.notify
@@ -380,6 +392,11 @@ export class SeekTarget
   @meta.adapted
   CalculateBehavior(agents, scratchData, deltaTime, group, _system, _dronesInSearchRadius)
   {
+    // Carbon m_arrivalPoints.resize( agents.size() ) (cpp:56): keeps existing points, zero-fills new ones.
+    const arrivalPoints = this._arrivalPoints;
+    while (arrivalPoints.length < agents.length) arrivalPoints.push(vec3.create());
+    arrivalPoints.length = agents.length;
+
     const forces = this._returnForces;
     forces.length = 0;
     let pooled = 0;
@@ -468,6 +485,9 @@ export class SeekTarget
       }
       vec3.add(fakePoint, fakePoint, agent.target);
 
+      // For debugging (Carbon m_arrivalPoints[agentCount] = fakePoint, cpp:190-191).
+      vec3.copy(arrivalPoints[index], fakePoint);
+
       const desiredVelocity = vec3.subtract(DESIRED_VELOCITY, fakePoint, agent.position);
       const distance = vec3.length(desiredVelocity);
       vec3.normalize(desiredVelocity, desiredVelocity);
@@ -523,6 +543,74 @@ export class SeekTarget
     this._doneRepairing = false;
     if (this._startTimer) this._repairTimePassed += deltaTime;
     return forces;
+  }
+
+  /**
+   * Carbon SeekTarget::GetDebugOptions (cpp:448-452).
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    options.add("SeekTarget");
+    options.add("Locators");
+  }
+
+  /**
+   * Carbon SeekTarget::RenderDebugInfo (cpp:454-489): the arrived, marker and
+   * slow-down spheres around each agent's last arrival point, and a sphere
+   * arrow for every locator of the behavior's own locator set.
+   * @param {ITr2DebugRenderer2} renderer
+   * @param {Array} _agents DroneAgent records (unused, as in Carbon).
+   * @param {mat4} parentWorldLocation Places the locators in world space.
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer, _agents, parentWorldLocation)
+  {
+    const { Wireframe, Lit } = ITr2DebugRenderer2.Effect;
+    if (renderer.HasOption(this, "SeekTarget"))
+    {
+      for (let i = 0; i < this._arrivalPoints.length; i++)
+      {
+        renderer.DrawSphere__CenterRadius(Tr2DebugObjectReference.create__Object(this), this._arrivalPoints[i], this.arrivedRadius, 8, Wireframe, Tr2DebugColor.create__Uint32(0xffffffff));
+        renderer.DrawSphere__CenterRadius(Tr2DebugObjectReference.create__Object(this), this._arrivalPoints[i], 5, 8, Wireframe, Tr2DebugColor.create__Uint32(0xff0000ff));
+        renderer.DrawSphere__CenterRadius(Tr2DebugObjectReference.create__Object(this), this._arrivalPoints[i], this.slowDownRadius, 8, Wireframe, Tr2DebugColor.create__Uint32(0xffcc11ff));
+      }
+    }
+
+    if (renderer.HasOption(this, "Locators"))
+    {
+      const boundingSphereRadius = 50;
+      const modelScale = 5;
+
+      const locators = this.locatorSet.GetLocators();
+      for (let i = 0; i < locators.length; ++i)
+      {
+        const locator = locators[i];
+        const position = locator.position;
+        const rotation = locator.direction;
+        const color = 0x990088ff;
+
+        // Carbon XMVector3TransformCoord( position, parentWorldLocation ).
+        vec3.transformMat4(DEBUG_CENTER, position, parentWorldLocation);
+
+        // Carbon (row-vector): XMVector3TransformNormal( Vector3( 0, 1, 0 ), Matrix( XMMatrixRotationQuaternion( rotation ) ) * parentWorldLocation ).
+        mat4.fromQuat(DEBUG_TRANSFORM, rotation);
+        mat4.multiply(DEBUG_TRANSFORM, parentWorldLocation, DEBUG_TRANSFORM);
+        vec3.transformMat3(DEBUG_DIRECTION, UP_AXIS, mat3.fromMat4(DEBUG_NORMAL_MATRIX, DEBUG_TRANSFORM));
+
+        renderer.DrawSphereArrow(
+          Tr2DebugObjectReference.create__ObjectArea(locators, i),
+          DEBUG_CENTER,
+          DEBUG_DIRECTION,
+          boundingSphereRadius * modelScale / 50,
+          8,
+          Lit,
+          Tr2DebugColor.create__Uint32(color));
+      }
+    }
   }
 
   /** One reusable vector of the returned force pairs, grown as the agent count does. */
