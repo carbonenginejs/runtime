@@ -59,7 +59,7 @@ For example, `SSAO`, `N`, and `Primary` stay those names; they are not renamed t
 The registered classes' member declarations are the Black definition, for every
 output: each field's codec comes from the declared Carbon type, so reading a
 file needs the classes it holds to be registered (import their package). A
-member declared `meta.type.mat4.wrapped("TriMatrix")` (likewise
+member declared `type.mat4.wrapped("TriMatrix")` (likewise
 `vec3.wrapped("TriVector")`, `quat.wrapped("TriQuaternion")`,
 `color.wrapped("TriColor")`) holds Carbon's embedded Blue math wrapper object
 as its plain value: the wrapper's elements are read straight into it.

@@ -90,13 +90,13 @@ installation transaction and its failure behavior.
 ## Native interface exposure
 
 Native base composition and Blue interface exposure are separate declarations.
-`meta.blue.inherit` supplies the base relationships used by dynamic casts.
+`blue.inherit` supplies the base relationships used by dynamic casts.
 Two decorators describe a class's interface table, following Carbon's exposure
 macros:
 
-- `meta.blue.interface(A, B)` is `MAP_INTERFACE`. The class itself is always the
+- `blue.interface(A, B)` is `MAP_INTERFACE`. The class itself is always the
   first entry, as `EXPOSURE_BEGIN` adds it, so it is never listed.
-- `meta.blue.chainTo(Parent)` is `EXPOSURE_CHAINTO`: after the class's own
+- `blue.chainTo(Parent)` is `EXPOSURE_CHAINTO`: after the class's own
   entries, the table continues into `Parent`'s table. Without it, the table
   ends, as `EXPOSURE_END` does.
 
@@ -308,7 +308,7 @@ all-storage flag. Pool destruction unregisters its device and sweep membership.
 
 ## Resource-address declarations
 
-Resource addresses use `meta.type.path`; graph member lookups and relative
+Resource addresses use `type.path`; graph member lookups and relative
 soundbank fragments remain strings. The class generator selects reviewed
 owner/member pairs rather than guessing from a field's name. This metadata
 preserves authored defaults, Blue exposure and native string storage. Black
@@ -321,39 +321,45 @@ only files the field can use. The type descriptor is
 `{ kind: "path", accepts: [...] }`; a path is accepted when any one entry
 accepts it:
 
-- `@meta.type.path()`, or bare `@meta.type.path`: any file (`accepts: []`).
-- A registered class name, for example `@meta.type.path("TriTextureRes")`: a path
+- `@type.path()`, or bare `@type.path`: any file (`accepts: []`).
+- A registered class name, for example `@type.path("TriTextureRes")`: a path
   the resource manager turns into that class, in any format registered for it.
   A tool can ask the resource manager which extensions those are.
 - `"object"`: a graph `LoadObject` builds (`.black`, `.red`).
-- A file type, for example `@meta.type.path(".vta")`: a file of that type,
+- A file type, for example `@type.path(".vta")`: a file of that type,
   read as a raw stream, as `Tr2TextureAnimation` reads volume animations.
 
 Several entries are written as a list, for example
-`@meta.type.path([ "TriGeometryRes", "object" ])`. Entries are validated when
+`@type.path([ "TriGeometryRes", "object" ])`. Entries are validated when
 the class is defined. The runtime does not enforce them on assignment.
 
 `string` and `wstring` are plain strings, narrow and wide; `path` and `wpath`
 are paths, narrow and wide, with the same entries. The wide kinds are Carbon's
 `std::wstring` members: Black keeps a narrow and a wide string table, and a
 member's declaration alone decides which table its index reads, so a
-`std::wstring` path is `@meta.type.wpath("TriTextureRes")`.
+`std::wstring` path is `@type.wpath("TriTextureRes")`.
 
 ## Declared types and Black binary blocks
 
-Decorator namespaces follow ownership: meta.blue is Carbon exposure, meta.ui is
-presentation, meta.type is shared type declarations, meta.struct is binary struct
-layout, and the flat meta namespace contains our registration and installers.
+Decorator namespaces follow ownership: blue is Carbon exposure (the generic
+flags and declarations stamped as Carbon's), type is shared type declarations,
+meta.ui is presentation, meta.struct is binary struct layout, and the flat meta
+namespace contains the generic flags, our registration, implementation status
+and installers. A member or method without the blue stamp is ours.
 Meaning types resolve to ordinary storage: rgb and translation use vector3;
 rgba, linear and mixed use vector4; rotation uses quaternion; local and world
 use matrix4. Scale uses vector3 with a unit default. Components supplies labels
 for packed channels. Formats dispatch the resolved data type, not these meanings.
-Flags stores uint32 and carries enum/FLAGS metadata. Named meta.requires installs
-throwing methods for missing class requirements and preserves implementations.
+Flags stores uint32 and carries enum/FLAGS metadata. A stored member's exposed
+name is `meta.attribute(name, { index })`, or `blue.attribute` for Carbon's
+`MAP_ATTRIBUTE`; it is omitted when it only repeats the JS key without an index.
+`meta.abstract` (ours) and `blue.abstract` (a Carbon pure virtual) record status
+abstract and install a generated throwing body that names the receiver, the
+declaring class and the declared parameters.
 
-meta.type.binary is Carbon's BINARYBLOCK, a custom binary block: how a member is
-stored, beside the type of the value it holds (`@meta.type.binary` with
-`@meta.type.uint32Array`). It requires meta.blue.persistOnly, and a class that
+type.binary is Carbon's BINARYBLOCK, a custom binary block: how a member is
+stored, beside the type of the value it holds (`@type.binary` with
+`@type.uint32Array`). It requires blue.persistOnly, and a class that
 maps ICustomPersist; define refuses it otherwise. Readers only move the bytes:
 Black reads a signed byte length and the raw bytes, Red a base64 `!!binary`
 scalar, and both hand them to the instance's AllocateReadBuffer and
