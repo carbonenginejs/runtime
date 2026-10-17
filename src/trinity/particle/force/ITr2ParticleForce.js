@@ -10,20 +10,12 @@ export class ITr2ParticleForce
 {
 
   /** Updates force-owned state before particle integration. */
-  @blue.method
-  @meta.abstract
-  Update(_dt)
-  {
-    throw new Error("ITr2ParticleForce.Update must be implemented by a concrete force.");
-  }
+  @blue.abstract
+  Update(_dt) {}
 
   /** Accumulates this force for one particle. */
-  @blue.method
-  @meta.abstract
-  GetForce(_position, _velocity, _dt, _mass, _out)
-  {
-    throw new Error("ITr2ParticleForce.GetForce must be implemented by a concrete force.");
-  }
+  @blue.abstract
+  GetForce(_position, _velocity, _dt, _mass, _out) {}
 
   /** Carbon's base debug hook is intentionally empty. */
   @blue.method

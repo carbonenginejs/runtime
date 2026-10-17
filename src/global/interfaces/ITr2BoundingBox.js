@@ -9,18 +9,12 @@ export class ITr2BoundingBox
 {
 
     /** Writes the current world-space minimum and maximum bounds. */
-    GetWorldBoundingBox(_minBounds, _maxBounds)
-    {
-        throw new Error("ITr2BoundingBox.GetWorldBoundingBox must be implemented by a bounding-box provider.");
-    }
+    GetWorldBoundingBox(_minBounds, _maxBounds) {}
 
     /** Reports whether the provider can currently answer a bounds query. */
-    IsBoundingBoxReady()
-    {
-        throw new Error("ITr2BoundingBox.IsBoundingBoxReady must be implemented by a bounding-box provider.");
-    }
+    IsBoundingBoxReady() {}
 }
 
-CjsSchema.decorateMethod(ITr2BoundingBox, "GetWorldBoundingBox", blue.method, meta.abstract);
-CjsSchema.decorateMethod(ITr2BoundingBox, "IsBoundingBoxReady", blue.method, meta.abstract);
+CjsSchema.decorateMethod(ITr2BoundingBox, "GetWorldBoundingBox", blue.abstract);
+CjsSchema.decorateMethod(ITr2BoundingBox, "IsBoundingBoxReady", blue.abstract);
 CjsSchema.blue.define(ITr2BoundingBox, { className: "ITr2BoundingBox" });

@@ -155,39 +155,38 @@ export class Tr2GrannyTrack
   }
 
   /**
-   * Subclass hook for sampled value updates.
+   * Carbon's pure virtual `UpdateValueImpl( double time )` (Tr2GrannyTrack.h:86):
+   * the subclass samples its tracks at a local time.
+   *
+   * @param {number} _time Local time in seconds.
    */
-  @blue.method
-  @meta.noop
-  UpdateValueImpl(_time)
-  {
-  }
+  @blue.abstract
+  UpdateValueImpl(_time) {}
 
   /**
-   * Subclass hook for clearing resource track handles.
+   * Carbon's pure virtual `ResetTracks( void )` (Tr2GrannyTrack.h:87): the
+   * subclass drops its resource track handles.
    */
-  @blue.method
-  @meta.noop
-  ResetTracks()
-  {
-  }
+  @blue.abstract
+  ResetTracks() {}
 
   /**
-   * Subclass hook for applying resource track handles.
+   * Carbon's pure virtual `ApplyTracks( granny_track_group* group, float
+   * duration, float timeStep )` (Tr2GrannyTrack.h:88): the subclass binds its
+   * tracks from the named group.
+   *
+   * @param {object} _group The decoded track group.
+   * @param {number} _duration Animation duration in seconds.
+   * @param {number} _timeStep Animation time step in seconds.
    */
-  @blue.method
-  @meta.noop
-  ApplyTracks(_group, _duration, _timeStep)
-  {
-  }
+  @blue.abstract
+  ApplyTracks(_group, _duration, _timeStep) {}
 
   /**
-   * Checks whether resource track handles are ready.
+   * Carbon's pure virtual `TracksReady( void )` (Tr2GrannyTrack.h:89).
+   *
+   * @returns {boolean} Whether the subclass's track handles are bound.
    */
-  @blue.method
-  @meta.noop
-  TracksReady()
-  {
-    return false;
-  }
+  @blue.abstract
+  TracksReady() {}
 }

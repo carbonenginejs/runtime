@@ -1,7 +1,7 @@
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Curves/Tr2FollowCurveKey.h:23-32
 // Source: trinity/trinity/Curves/Tr2FollowCurveKey_Blue.cpp:6
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, blue } from "#schema";
 
 
 /**
@@ -60,7 +60,7 @@ export class ITr2FollowCurveKey
 
 for (const method of [ "GetValue", "GetTime", "GetInterpolationType", "GetLeftTangent", "GetRightTangent" ])
 {
-  CjsSchema.decorateMethod(ITr2FollowCurveKey, method, blue.method, meta.requires, meta.abstract);
+  CjsSchema.decorateMethod(ITr2FollowCurveKey, method, blue.abstract);
 }
 CjsSchema.blue.define(ITr2FollowCurveKey, {
   className: "ITr2FollowCurveKey",

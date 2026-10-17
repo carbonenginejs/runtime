@@ -17,10 +17,7 @@ export class ICjsCharacterAppearanceAL
      * @param {object} [_context] - Request context.
      * @returns {Promise<object>} The prepared stage.
      */
-    async Prepare(_construction, _context = {})
-    {
-        throw new Error("ICjsCharacterAppearanceAL.Prepare must be overridden by an appearance AL.");
-    }
+    async Prepare(_construction, _context = {}) {}
 
     /**
      * Publishes the first prepared stage.
@@ -29,10 +26,7 @@ export class ICjsCharacterAppearanceAL
      * @param {object} [_context] - Request context.
      * @returns {Promise<*>} Implementation-defined completion.
      */
-    async Commit(_stage, _context = {})
-    {
-        throw new Error("ICjsCharacterAppearanceAL.Commit must be overridden by an appearance AL.");
-    }
+    async Commit(_stage, _context = {}) {}
 
     /**
      * Releases a prepared or committed stage.
@@ -41,10 +35,7 @@ export class ICjsCharacterAppearanceAL
      * @param {object} [_context] - Request context.
      * @returns {Promise<*>} Implementation-defined completion.
      */
-    async Release(_stage, _context = {})
-    {
-        throw new Error("ICjsCharacterAppearanceAL.Release must be overridden by an appearance AL.");
-    }
+    async Release(_stage, _context = {}) {}
 
     /**
      * Warms immutable configured model templates ahead of use.
@@ -52,10 +43,7 @@ export class ICjsCharacterAppearanceAL
      * @param {string[]} _paths - Template paths.
      * @returns {Promise<object>|object} Implementation-defined warm result.
      */
-    WarmConfiguredModelTemplates(_paths)
-    {
-        throw new Error("ICjsCharacterAppearanceAL.WarmConfiguredModelTemplates must be overridden by an appearance AL.");
-    }
+    WarmConfiguredModelTemplates(_paths) {}
 
     /**
      * Shows or hides one configured part of a stage, for diagnostics.
@@ -65,10 +53,7 @@ export class ICjsCharacterAppearanceAL
      * @param {boolean} _display - Whether to display it.
      * @returns {*} Implementation-defined result.
      */
-    SetConfiguredPartDisplay(_stage, _partSourceRecordID, _display)
-    {
-        throw new Error("ICjsCharacterAppearanceAL.SetConfiguredPartDisplay must be overridden by an appearance AL.");
-    }
+    SetConfiguredPartDisplay(_stage, _partSourceRecordID, _display) {}
 
     /**
      * Shows or hides one foundation role of a stage, for diagnostics.
@@ -78,10 +63,7 @@ export class ICjsCharacterAppearanceAL
      * @param {boolean} _display - Whether to display it.
      * @returns {*} Implementation-defined result.
      */
-    SetFoundationDisplay(_stage, _role, _display)
-    {
-        throw new Error("ICjsCharacterAppearanceAL.SetFoundationDisplay must be overridden by an appearance AL.");
-    }
+    SetFoundationDisplay(_stage, _role, _display) {}
 
     /**
      * Applies a morph-only update to a committed stage in place.
@@ -91,10 +73,7 @@ export class ICjsCharacterAppearanceAL
      * @param {object} [_context] - Request context.
      * @returns {*} Implementation-defined result.
      */
-    UpdateMorphTargets(_stage, _targets, _context = {})
-    {
-        throw new Error("ICjsCharacterAppearanceAL.UpdateMorphTargets must be overridden by an appearance AL.");
-    }
+    UpdateMorphTargets(_stage, _targets, _context = {}) {}
 
     /**
      * Hands visible ownership from one committed stage to another atomically.
@@ -104,10 +83,7 @@ export class ICjsCharacterAppearanceAL
      * @param {object} [_context] - Request context.
      * @returns {Promise<*>} Implementation-defined completion.
      */
-    async Handoff(_previous, _staged, _context = {})
-    {
-        throw new Error("ICjsCharacterAppearanceAL.Handoff must be overridden by an appearance AL.");
-    }
+    async Handoff(_previous, _staged, _context = {}) {}
 
     /**
      * Returns the detached state the manager and diagnostics need.
@@ -115,10 +91,7 @@ export class ICjsCharacterAppearanceAL
      * @param {object} _stage - The stage.
      * @returns {object} Detached diagnostics.
      */
-    GetDiagnostics(_stage)
-    {
-        throw new Error("ICjsCharacterAppearanceAL.GetDiagnostics must be overridden by an appearance AL.");
-    }
+    GetDiagnostics(_stage) {}
 
 }
 

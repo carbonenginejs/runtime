@@ -34,7 +34,7 @@ test("all ICustomPersist operations remain required, including release", () =>
     for (const method of methods)
     {
       assert.throws(() => instance[method](), {
-        message: `ICustomPersist.${method} must be implemented.`
+        message: new RegExp(`^ICustomPersist\\.${method}\\([^)]*\\) must be implemented\\.$`, "u")
       });
     }
   }

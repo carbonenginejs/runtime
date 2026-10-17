@@ -12,7 +12,7 @@
 // it as its own plain C++ interface (not a BLUE_INTERFACE), so it has no Blue
 // exposure. Implemented in Carbon by Tr2Sprite2dTextObject
 // (Sprite2d/Tr2Sprite2dTextObject.h:17).
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 
 /** Receives change notifications from a font measurer it registered with. */
 @blue.define({ className: "ITr2FontMeasurerNotifyTarget", abstract: true })
@@ -25,10 +25,6 @@ export class ITr2FontMeasurerNotifyTarget
    * @param {import("./Tr2FontMeasurer.js").Tr2FontMeasurer} _measurer The measurer that changed.
    * @returns {void}
    */
-  @meta.abstract
-  @blue.method
-  FontMeasurerChanged(_measurer)
-  {
-    throw new Error("ITr2FontMeasurerNotifyTarget.FontMeasurerChanged must be implemented by a concrete listener.");
-  }
+  @blue.abstract
+  FontMeasurerChanged(_measurer) {}
 }

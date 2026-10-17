@@ -23,7 +23,7 @@ test("callback cancellation and authored Stops are required backend contracts", 
   {
     assert.ok(METHODS.includes(method));
     assert.equal(CjsSchema.getMethod(ICjsWwiseSoundEngine, method).impl.status, "abstract");
-    assert.throws(() => backend[method](71), new RegExp(`${method} must be overridden`));
+    assert.throws(() => backend[method](71), new RegExp(`^Error: ICjsWwiseSoundEngine\\.${method}\\([^)]*\\) must be implemented\\.$`, "u"));
   }
 });
 

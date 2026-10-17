@@ -21,12 +21,7 @@ export class CjsBackendCandidate
      * @param {object} _context - Backend-selection context.
      * @returns {*} Backend-owned proof result.
      */
-    Prove(_context)
-    {
-        throw new Error(
-            "CjsBackendCandidate.Prove must be overridden by a concrete backend candidate."
-        );
-    }
+    Prove(_context) {}
 
 }
 

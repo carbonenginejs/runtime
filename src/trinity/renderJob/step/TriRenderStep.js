@@ -60,12 +60,8 @@ export class TriRenderStep
    * concrete step that omits it is an incomplete implementation and fails
    * loudly when executed.
   */
-  @blue.method
-  @meta.abstract
-  Execute(_realTime, _simTime, _context)
-  {
-    throw new Error("TriRenderStep.Execute must be implemented by a concrete render step.");
-  }
+  @blue.abstract
+  Execute(_realTime, _simTime, _context) {}
 
   /**
    * Hook the owning job calls after Execute, including when Execute threw; the

@@ -10,7 +10,7 @@ import {
     inferCarbonTypeFromCpp,
     normalizeCarbonValue
 } from "./types/carbonTypes.js";
-import { composeAbstractDecorator } from "../compose/abstract.js";
+import { claimAbstractMethods, decorateAbstractMethod, installAbstractMethod } from "../compose/abstract.js";
 import { CJS_CLASS_NAME, getRegisteredClassName, requireRegisteredClassName } from "../compose/className.js";
 import { composeNotifyDecorator } from "../compose/notify.js";
 import { carbonInheritDecorator, carbonInterfaceDecorator, carbonChainToDecorator, cast, mappedInterfaces } from "../compose/interface.js";
@@ -848,10 +848,10 @@ export class CjsSchema
     };
 
     // Composition decorators: type/edit/carbon/impl/jessica DESCRIBE, compose
-    // INSTALLS (design record, direction item 11). All three are live; the
-    // migration of existing classes onto them is separate work.
+    // INSTALLS (design record, direction item 11). The abstract installer is
+    // not here: `meta.abstract` and `blue.abstract` both describe and install
+    // (`abstractDecorator`, ruling 2026-10-17).
     static #compose = {
-        abstract: composeAbstractDecorator(Constructor => CjsSchema.getClassName(Constructor)),
         notify: composeNotifyDecorator,
         values: composeValuesDecorator(CjsSchema._statelessTransport)
     };
@@ -1019,6 +1019,9 @@ export class CjsSchema
         ui: { ...this.#jessica, components: createComponentsNamespace() },
         // No `ours`: a member or method without the blue stamp is ours (ruling 2026-10-15).
         ...this.#impl,
+        // Status `abstract` AND the generated throwing body (ruling 2026-10-17);
+        // `#impl.abstract` stays the status alone, for `_inheritedImplDecorators`.
+        abstract: abstractDecorator([ { namespace: "impl", value: { abstract: true, status: "abstract" } } ]),
         renamed: this.#renamed,
         keyIndex: index => {
             if (!Number.isSafeInteger(index) || index < 0) throw new TypeError("meta.keyIndex requires a nonnegative safe integer.");
@@ -1026,7 +1029,6 @@ export class CjsSchema
         },
         ...this.#lifecycle,
         events: this.#compose.notify,
-        requires: this.#compose.abstract,
         values: this.#compose.values,
         /**
          * Marks a static field as the value behind a named engine setting,
@@ -1071,6 +1073,11 @@ export class CjsSchema
             return [ name, combinedFieldDecorator({ [namespace]: value, carbon: { member: true } }) ];
         })),
         ...this.#carbon,
+        // A Carbon pure virtual: `meta.abstract` stamped as Carbon's method.
+        abstract: abstractDecorator([
+            { namespace: "impl", value: { abstract: true, status: "abstract" } },
+            { namespace: "carbon", value: { method: true } }
+        ]),
         define: (definitionOrConstructor, definition) => defineEntry(definitionOrConstructor, definition, true)
     };
 
@@ -1773,6 +1780,35 @@ function methodDecorator(namespace, value)
     }, namespace, value);
 }
 
+/**
+ * `meta.abstract` / `blue.abstract`: describes the method with `parts` and
+ * installs the generated throwing body (compose/abstract.js) in its place.
+ * Usable as a 2022-03 method decorator, through `CjsSchema.decorateMethod`,
+ * and as data in a `define({ methods })` entry, where registration installs
+ * the body (`defineClassMetadata`).
+ *
+ * @param {Array<{namespace: string, value: object}>} parts The metadata it records.
+ * @returns {Function} The decorator.
+ */
+function abstractDecorator(parts)
+{
+    const describers = parts.map(({ namespace, value }) => methodDecorator(namespace, value));
+    const decorator = function schemaAbstractDecorator(targetOrValue, contextOrMethodName)
+    {
+        if (contextOrMethodName && typeof contextOrMethodName === "object")
+        {
+            const thrower = decorateAbstractMethod(targetOrValue, contextOrMethodName);
+            for (const describe of describers) describe(targetOrValue, contextOrMethodName);
+            return thrower;
+        }
+
+        installAbstractMethod(targetOrValue, contextOrMethodName);
+        for (const describe of describers) describe(targetOrValue, contextOrMethodName);
+    };
+    Object.defineProperty(decorator, DECORATOR_METADATA, { value: { parts } });
+    return decorator;
+}
+
 function memberDecorator(namespace, value)
 {
     const forMethods = methodDecorator(namespace, value);
@@ -2070,7 +2106,12 @@ function defineClassMetadata(Constructor, definition)
     for (const method of definition.methods || [])
     {
         defineManualMemberMetadata(Constructor, "methods", method);
+        if (method.impl?.status === "abstract") installAbstractMethod(Constructor.prototype, method.name);
     }
+
+    // Before any consumer can copy them (`blue.inherit`), this class's own
+    // abstract throwers learn that it declares them.
+    claimAbstractMethods(Constructor);
 
     buildStructureDefinition(schema);
     registerClassMetadata(Constructor, schema);

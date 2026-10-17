@@ -19,10 +19,7 @@ export class ICjsMusicEngine
      * @param {string} _eventName - Event name.
      * @returns {boolean}
      */
-    HandlesEvent(_eventName)
-    {
-        throw new Error("ICjsMusicEngine.HandlesEvent must be overridden by a music engine.");
-    }
+    HandlesEvent(_eventName) {}
 
     /**
      * Posts a music event under a playing id the backend allocated.
@@ -33,10 +30,7 @@ export class ICjsMusicEngine
      * @param {{ busVolumeStates?: object|null, gameObjID?: number }} [_options]
      * @returns {boolean} Whether the id stays live.
      */
-    PostEvent(_eventName, _playingID, _onFinished, _options)
-    {
-        throw new Error("ICjsMusicEngine.PostEvent must be overridden by a music engine.");
-    }
+    PostEvent(_eventName, _playingID, _onFinished, _options) {}
 
     /**
      * Applies a transport action to one playing id.
@@ -45,10 +39,7 @@ export class ICjsMusicEngine
      * @param {number} _playingID - Playing id.
      * @param {number} [_fadeOutDuration] - Fade in milliseconds.
      */
-    ExecuteAction(_action, _playingID, _fadeOutDuration)
-    {
-        throw new Error("ICjsMusicEngine.ExecuteAction must be overridden by a music engine.");
-    }
+    ExecuteAction(_action, _playingID, _fadeOutDuration) {}
 
     /**
      * Current source play position in milliseconds, or -1 when unknown.
@@ -56,10 +47,7 @@ export class ICjsMusicEngine
      * @param {number} _playingID - Playing id.
      * @returns {number}
      */
-    GetSourcePlayPosition(_playingID)
-    {
-        throw new Error("ICjsMusicEngine.GetSourcePlayPosition must be overridden by a music engine.");
-    }
+    GetSourcePlayPosition(_playingID) {}
 
     /**
      * Sets a switch. Music switches are global; the game object is advisory.
@@ -68,10 +56,7 @@ export class ICjsMusicEngine
      * @param {string|number} _value - Switch name or id.
      * @param {number} [_gameObjID] - Posting game object.
      */
-    SetSwitch(_group, _value, _gameObjID)
-    {
-        throw new Error("ICjsMusicEngine.SetSwitch must be overridden by a music engine.");
-    }
+    SetSwitch(_group, _value, _gameObjID) {}
 
     /**
      * Sets a global state.
@@ -79,52 +64,31 @@ export class ICjsMusicEngine
      * @param {string|number} _group - State group name or id.
      * @param {string|number} _value - State name or id.
      */
-    SetState(_group, _value)
-    {
-        throw new Error("ICjsMusicEngine.SetState must be overridden by a music engine.");
-    }
+    SetState(_group, _value) {}
 
     /**
      * Sets the music category volume (0..1).
      *
      * @param {number} _value - Linear volume.
      */
-    SetMusicVolume(_value)
-    {
-        throw new Error("ICjsMusicEngine.SetMusicVolume must be overridden by a music engine.");
-    }
+    SetMusicVolume(_value) {}
 
     /** Reapplies live Bus Volume and filter state to scheduled routes. */
-    RefreshBusVolumeGains()
-    {
-        throw new Error("ICjsMusicEngine.RefreshBusVolumeGains must be overridden by a music engine.");
-    }
+    RefreshBusVolumeGains() {}
 
     /** Reapplies dynamic Bus Volume RTPCs to scheduled routes. */
-    RefreshBusRtpcs()
-    {
-        throw new Error("ICjsMusicEngine.RefreshBusRtpcs must be overridden by a music engine.");
-    }
+    RefreshBusRtpcs() {}
 
     /** Reapplies Immediate Audio Bus States to scheduled routes. */
-    RefreshBusStates()
-    {
-        throw new Error("ICjsMusicEngine.RefreshBusStates must be overridden by a music engine.");
-    }
+    RefreshBusStates() {}
 
     /** Reapplies the shared SFX/music Audio Bus ducking envelopes. */
-    RefreshBusDucking()
-    {
-        throw new Error("ICjsMusicEngine.RefreshBusDucking must be overridden by a music engine.");
-    }
+    RefreshBusDucking() {}
 
     /**
      * Scheduling tick, driven once per frame by the backend's RenderAudio.
      */
-    Process()
-    {
-        throw new Error("ICjsMusicEngine.Process must be overridden by a music engine.");
-    }
+    Process() {}
 
     /**
      * Releases one cached media source.
@@ -132,26 +96,17 @@ export class ICjsMusicEngine
      * @param {string} _sourceId - Media source id.
      * @returns {boolean} Whether a cached source was released.
      */
-    ReleaseMedia(_sourceId)
-    {
-        throw new Error("ICjsMusicEngine.ReleaseMedia must be overridden by a music engine.");
-    }
+    ReleaseMedia(_sourceId) {}
 
     /**
      * Releases every cached media source.
      *
      * @returns {number} The number released.
      */
-    ClearMedia()
-    {
-        throw new Error("ICjsMusicEngine.ClearMedia must be overridden by a music engine.");
-    }
+    ClearMedia() {}
 
     /** Cancels playback and releases the engine's state. */
-    Dispose()
-    {
-        throw new Error("ICjsMusicEngine.Dispose must be overridden by a music engine.");
-    }
+    Dispose() {}
 
 }
 

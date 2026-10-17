@@ -20,10 +20,7 @@ export class ICjsSfxControls
      * @param {Array<object>} _program - Resolved program.
      * @returns {Array<object>|null}
      */
-    installSfxProgram(_program)
-    {
-        throw new Error("ICjsSfxControls.installSfxProgram must be overridden.");
-    }
+    installSfxProgram(_program) {}
 
     /**
      * The posting game object's current switch in a group.
@@ -31,10 +28,7 @@ export class ICjsSfxControls
      * @param {string|number} _group - Switch group name or id.
      * @returns {string|number|null}
      */
-    getSwitch(_group)
-    {
-        throw new Error("ICjsSfxControls.getSwitch must be overridden.");
-    }
+    getSwitch(_group) {}
 
     /**
      * The current global state in a group.
@@ -42,10 +36,7 @@ export class ICjsSfxControls
      * @param {string|number} _group - State group name or id.
      * @returns {string|number|null}
      */
-    getState(_group)
-    {
-        throw new Error("ICjsSfxControls.getState must be overridden.");
-    }
+    getState(_group) {}
 
     /**
      * A state group's weighted states, mid-transition included.
@@ -54,10 +45,7 @@ export class ICjsSfxControls
      * @param {number} [_at] - AudioContext time; now when omitted.
      * @returns {Array<{ state: string|number, weight: number }>}
      */
-    getStatePropertyWeights(_group, _at)
-    {
-        throw new Error("ICjsSfxControls.getStatePropertyWeights must be overridden.");
-    }
+    getStatePropertyWeights(_group, _at) {}
 
     /**
      * The posting game object's RTPC value.
@@ -66,10 +54,7 @@ export class ICjsSfxControls
      * @param {number} [_at] - AudioContext time; now when omitted.
      * @returns {number|null|undefined} The value, or nothing when unset.
      */
-    getRTPC(_name, _at)
-    {
-        throw new Error("ICjsSfxControls.getRTPC must be overridden.");
-    }
+    getRTPC(_name, _at) {}
 
     /**
      * A global RTPC value.
@@ -78,10 +63,7 @@ export class ICjsSfxControls
      * @param {number} [_at] - AudioContext time; now when omitted.
      * @returns {number|null|undefined} The value, or nothing when unset.
      */
-    getGlobalRTPC(_name, _at)
-    {
-        throw new Error("ICjsSfxControls.getGlobalRTPC must be overridden.");
-    }
+    getGlobalRTPC(_name, _at) {}
 
     /**
      * Live Voice Volume offset, in dB, for the matched voices.
@@ -89,10 +71,7 @@ export class ICjsSfxControls
      * @param {Array<string|number>} _matchIds - Authored object ids.
      * @returns {number}
      */
-    getVoiceVolumeDb(_matchIds)
-    {
-        throw new Error("ICjsSfxControls.getVoiceVolumeDb must be overridden.");
-    }
+    getVoiceVolumeDb(_matchIds) {}
 
     /**
      * Live Voice Pitch offset, in cents, for the matched voices.
@@ -100,10 +79,7 @@ export class ICjsSfxControls
      * @param {Array<string|number>} _matchIds - Authored object ids.
      * @returns {number}
      */
-    getVoicePitchCents(_matchIds)
-    {
-        throw new Error("ICjsSfxControls.getVoicePitchCents must be overridden.");
-    }
+    getVoicePitchCents(_matchIds) {}
 
     /**
      * Live Voice Low-pass offset for the matched voices.
@@ -112,10 +88,7 @@ export class ICjsSfxControls
      * @param {number} [_at] - AudioContext time; now when omitted.
      * @returns {number}
      */
-    getVoiceLowPass(_matchIds, _at)
-    {
-        throw new Error("ICjsSfxControls.getVoiceLowPass must be overridden.");
-    }
+    getVoiceLowPass(_matchIds, _at) {}
 
     /**
      * Live Voice High-pass offset for the matched voices.
@@ -124,10 +97,7 @@ export class ICjsSfxControls
      * @param {number} [_at] - AudioContext time; now when omitted.
      * @returns {number}
      */
-    getVoiceHighPass(_matchIds, _at)
-    {
-        throw new Error("ICjsSfxControls.getVoiceHighPass must be overridden.");
-    }
+    getVoiceHighPass(_matchIds, _at) {}
 
     /**
      * Sets a switch on the posting game object (a SetSwitch action).
@@ -135,10 +105,7 @@ export class ICjsSfxControls
      * @param {string|number} _group - Switch group name or id.
      * @param {string|number} _value - Switch name or id.
      */
-    setSwitch(_group, _value)
-    {
-        throw new Error("ICjsSfxControls.setSwitch must be overridden.");
-    }
+    setSwitch(_group, _value) {}
 
     /**
      * Sets a global state (a SetState action).
@@ -146,10 +113,7 @@ export class ICjsSfxControls
      * @param {string|number} _group - State group name or id.
      * @param {string|number} _value - State name or id.
      */
-    setState(_group, _value)
-    {
-        throw new Error("ICjsSfxControls.setState must be overridden.");
-    }
+    setState(_group, _value) {}
 
     /**
      * The AbortSignal that ends one program leaf: its selection's, else its
@@ -161,10 +125,7 @@ export class ICjsSfxControls
      * @param {string|number} [_programBatchId] - Program batch id.
      * @returns {AbortSignal|null}
      */
-    getSfxProgramSignal(_programSlotId, _actionIndex, _leafIndex, _programBatchId)
-    {
-        throw new Error("ICjsSfxControls.getSfxProgramSignal must be overridden.");
-    }
+    getSfxProgramSignal(_programSlotId, _actionIndex, _leafIndex, _programBatchId) {}
 
 }
 

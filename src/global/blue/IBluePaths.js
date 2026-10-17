@@ -83,7 +83,7 @@ for (const method of [
   "FileExistsLocally", "FileNeedsDownload", "GetStreamFromPath", "GetFileContentsWithYield", "LogPaths"
 ])
 {
-  CjsSchema.decorateMethod(IBluePaths, method, blue.method, meta.requires, meta.abstract);
+  CjsSchema.decorateMethod(IBluePaths, method, blue.abstract);
 }
 
 // Carbon declares only the wide-character forms; a JS string covers both.

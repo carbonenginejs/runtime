@@ -117,41 +117,43 @@ export class Tr2ManipulationTool
     return [ outX, outY, outZ ];
   }
 
-  /** Required per-frame manipulator update contract (Tr2ManipulationTool.h:37). */
+  /**
+   * Required per-frame manipulator update contract (Tr2ManipulationTool.h:37).
+   * Carbon's `Update()` takes nothing; every caller and implementer passes the
+   * frame context standing in for Carbon's renderer globals.
+   *
+   * @param {object} _context The frame context.
+   */
   @meta.abstract
-  Update(..._args)
-  {
-    throw new Error("Tr2ManipulationTool.Update must be implemented by a concrete manipulation tool.");
-  }
+  Update(_context) {}
 
   /** Required guide-geometry construction contract (Tr2ManipulationTool.h:38). */
   @meta.abstract
-  GenLineSets(..._args)
-  {
-    throw new Error("Tr2ManipulationTool.GenLineSets must be implemented by a concrete manipulation tool.");
-  }
+  GenLineSets() {}
 
   /** Required primitive-colour reset contract (Tr2ManipulationTool.h:39). */
   @meta.abstract
-  ResetPrimitiveColors(..._args)
-  {
-    throw new Error("Tr2ManipulationTool.ResetPrimitiveColors must be implemented by a concrete manipulation tool.");
-  }
+  ResetPrimitiveColors() {}
 
   /** Required visible-primitive collection contract (Tr2ManipulationTool.h:40). */
   @meta.abstract
-  GetPrimitivesToRender(..._args)
-  {
-    throw new Error("Tr2ManipulationTool.GetPrimitivesToRender must be implemented by a concrete manipulation tool.");
-  }
+  GetPrimitivesToRender() {}
 
-  /** Carbon's pure-virtual Move contract, exposed through PyMove. */
-  @blue.method
-  @meta.abstract
-  Move(..._args)
-  {
-    throw new Error("Tr2ManipulationTool.Move must be implemented by a concrete manipulation tool.");
-  }
+  /**
+   * Carbon's pure-virtual `Move( int mouseX, int mouseY, int mouseXDelta, int
+   * mouseYDelta, Tr2Viewport& viewport, Matrix& viewMatrix, Matrix&
+   * projectionMatrix )` (Tr2ManipulationTool.h:41), exposed through PyMove.
+   *
+   * @param {number} _mouseX Cursor x.
+   * @param {number} _mouseY Cursor y.
+   * @param {number} _mouseXDelta Cursor x movement.
+   * @param {number} _mouseYDelta Cursor y movement.
+   * @param {Tr2Viewport} _viewport The viewport.
+   * @param {mat4} _viewMatrix The view matrix.
+   * @param {mat4} _projectionMatrix The projection matrix.
+   */
+  @blue.abstract
+  Move(_mouseX, _mouseY, _mouseXDelta, _mouseYDelta, _viewport, _viewMatrix, _projectionMatrix) {}
 
   /** Invokes Carbon's move veto callback with current and proposed transforms. */
   @meta.adapted

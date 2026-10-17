@@ -15,10 +15,7 @@ export class ITr2LightOwner
    * @param {object} _lightManager The Tr2LightManager collecting lights.
    * @returns {void}
    */
-  GetLights(_lightManager)
-  {
-    throw new Error("ITr2LightOwner.GetLights must be implemented by a light owner.");
-  }
+  GetLights(_lightManager) {}
 
   /**
    * Leaves adding a light to owners that override this native default.
@@ -38,7 +35,7 @@ export class ITr2LightOwner
   }
 }
 
-CjsSchema.decorateMethod(ITr2LightOwner, "GetLights", blue.method, meta.abstract);
+CjsSchema.decorateMethod(ITr2LightOwner, "GetLights", blue.abstract);
 CjsSchema.decorateMethod(ITr2LightOwner, "AddLight", blue.method, meta.noop);
 CjsSchema.decorateMethod(ITr2LightOwner, "ClearLights", blue.method, meta.noop);
 CjsSchema.blue.inherit(IRoot)(ITr2LightOwner);

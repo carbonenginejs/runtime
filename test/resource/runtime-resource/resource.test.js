@@ -1646,22 +1646,13 @@ test("resource exports no obsolete payload vocabulary or validators", () => {
   }
 });
 
-test("a resource refuses to load bytes it was never taught to read", () =>
+test("a resource that never learned to read its bytes fails its load, as Carbon's default does", () =>
 {
-  // DoLoad is the load contract, not an optional capability, so the base
-  // declares it and refuses. Returning quietly would publish an empty resource
-  // and let the manager mark it prepared - an absent load wearing the shape of
-  // a completed one.
+  // BlueAsyncRes.h:112: `virtual LoadingResult DoLoad() { return LR_FAILED; }`.
   const resource = new CjsResource();
 
-  assert.equal(CjsSchema.getMethod(CjsResource, "DoLoad")?.impl?.status, "abstract");
-
-  assert.throws(
-    () => resource.DoLoad(new Uint8Array([ 1, 2, 3 ])),
-    error => error.code === "CJS_RESOURCE_LOAD_NOT_IMPLEMENTED"
-      && /CjsResource/u.test(error.message),
-    "the base resource names itself and refuses"
-  );
+  assert.equal(CjsSchema.getMethod(CjsResource, "DoLoad")?.impl?.status, "adapted");
+  assert.equal(resource.DoLoad(new Uint8Array([ 1, 2, 3 ])), CjsResource.LoadingResult.LR_FAILED);
 });
 
 

@@ -1,6 +1,6 @@
 import { IRoot } from "../../../global/blue/IRoot.js";
 // Source: trinity/trinity/Particle/ITr2GenericEmitter.h
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, blue } from "#schema";
 
 
 /** Contract shared by CPU and GPU particle emitters. */
@@ -8,38 +8,21 @@ import { CjsSchema, meta, blue } from "#schema";
 export class ITr2GenericEmitter
 {
 
-  /** Updates emitter state for one frame. */
-  @blue.method
-  Update(_arguments)
-  {
-    throw new Error("ITr2GenericEmitter.Update must be implemented by a particle emitter.");
-  }
+  /** Carbon's pure virtual `Update( const UpdateArguments& arguments )` (ITr2GenericEmitter.h:59): updates emitter state for one frame. */
+  @blue.abstract
+  Update(_arguments) {}
 
-  /** Carbon's SpawnParticles( arguments, position, velocity, rateModifier ) (ITr2GenericEmitter.h:75). */
-  @blue.method
-  SpawnParticles(_arguments, _position = null, _velocity = null, _rateModifier = 1)
-  {
-    throw new Error("ITr2GenericEmitter.SpawnParticles must be implemented by a particle emitter.");
-  }
+  /** Carbon's pure virtual SpawnParticles( arguments, position, velocity, rateModifier ) (ITr2GenericEmitter.h:75). */
+  @blue.abstract
+  SpawnParticles(_arguments, _position = null, _velocity = null, _rateModifier = 1) {}
 
-  /** Carbon's SpawnParticles( arguments, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime ) (ITr2GenericEmitter.h:93). */
-  @blue.method
-  @meta.abstract
-  SpawnParticles__StartEnd(_arguments, _positionStart, _positionEnd, _velocityStart, _velocityEnd, _deltaTime)
-  {
-    throw new Error("ITr2GenericEmitter.SpawnParticles__StartEnd must be implemented by a particle emitter.");
-  }
+  /** Carbon's pure virtual SpawnParticles( arguments, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime ) (ITr2GenericEmitter.h:93). */
+  @blue.abstract
+  SpawnParticles__StartEnd(_arguments, _positionStart, _positionEnd, _velocityStart, _velocityEnd, _deltaTime) {}
 
-  /** Notifies the emitter that spawn calls may arrive from concurrent simulation. */
-  @blue.method
-  SetThreadSafeFlag()
-  {
-    throw new Error("ITr2GenericEmitter.SetThreadSafeFlag must be implemented by a particle emitter.");
-  }
+  /** Carbon's pure virtual `SetThreadSafeFlag()` (ITr2GenericEmitter.h:105): spawn calls may arrive from concurrent simulation. */
+  @blue.abstract
+  SetThreadSafeFlag() {}
 }
 
-for (const method of ["Update", "SpawnParticles", "SetThreadSafeFlag"])
-{
-  CjsSchema.decorateMethod(ITr2GenericEmitter, method, meta.abstract);
-}
 CjsSchema.blue.define(ITr2GenericEmitter, { className: "ITr2GenericEmitter" });

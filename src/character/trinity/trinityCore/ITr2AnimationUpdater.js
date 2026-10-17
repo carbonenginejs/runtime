@@ -1,6 +1,6 @@
 import { IRoot } from "#blue/IRoot";
 // Source: trinity/trinity/Include/ITr2AnimationUpdater.h:7-15
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, blue } from "#schema";
 
 /** Carbon animation pose-provider interface; IRoot has no JavaScript base. */
 export class ITr2AnimationUpdater
@@ -11,12 +11,8 @@ export class ITr2AnimationUpdater
    * @param {ArrayLike<number>} _modelTransform Model-to-world transform.
    * @returns {void}
    */
-  @blue.method
-  @meta.abstract
-  PrePhysicsAnimation(_time, _modelTransform)
-  {
-    throw new Error("ITr2AnimationUpdater.PrePhysicsAnimation must be implemented by a pose provider.");
-  }
+  @blue.abstract
+  PrePhysicsAnimation(_time, _modelTransform) {}
 
   /**
    * Updates the pose after physics at the supplied time and model transform.
@@ -24,36 +20,24 @@ export class ITr2AnimationUpdater
    * @param {ArrayLike<number>} _modelTransform Model-to-world transform.
    * @returns {void}
    */
-  @blue.method
-  @meta.abstract
-  PostPhysicsAnimation(_time, _modelTransform)
-  {
-    throw new Error("ITr2AnimationUpdater.PostPhysicsAnimation must be implemented by a pose provider.");
-  }
+  @blue.abstract
+  PostPhysicsAnimation(_time, _modelTransform) {}
 
   /**
    * Returns the animation's bone transforms.
    * Adapted: JavaScript providers return an array instead of Carbon's matrix pointer.
    * @returns {Array<ArrayLike<number>>} Bone transforms supplied by the provider.
    */
-  @blue.method
-  @meta.abstract
-  GetAnimationTransforms()
-  {
-    throw new Error("ITr2AnimationUpdater.GetAnimationTransforms must be implemented by a pose provider.");
-  }
+  @blue.abstract
+  GetAnimationTransforms() {}
 
   /**
    * Returns the names corresponding to the animation's bone transforms.
    * Adapted: the returned array carries its count instead of Carbon's output reference.
    * @returns {Array<string>} Bone names supplied by the provider.
    */
-  @blue.method
-  @meta.abstract
-  GetAnimationBoneList()
-  {
-    throw new Error("ITr2AnimationUpdater.GetAnimationBoneList must be implemented by a pose provider.");
-  }
+  @blue.abstract
+  GetAnimationBoneList() {}
 }
 
 CjsSchema.blue.define(ITr2AnimationUpdater, {

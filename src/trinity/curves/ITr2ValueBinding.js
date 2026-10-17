@@ -1,6 +1,6 @@
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Include/ITr2ValueBinding.h:7-11
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, blue } from "#schema";
 
 
 /**
@@ -19,7 +19,7 @@ export class ITr2ValueBinding
   }
 }
 
-CjsSchema.decorateMethod(ITr2ValueBinding, "CopyValue", blue.method, meta.requires, meta.abstract);
+CjsSchema.decorateMethod(ITr2ValueBinding, "CopyValue", blue.abstract);
 CjsSchema.blue.inherit(IRoot)(ITr2ValueBinding);
 CjsSchema.blue.define(ITr2ValueBinding, {
   className: "ITr2ValueBinding",

@@ -1,23 +1,31 @@
 // Source: trinity/trinity/ITr2Renderable.h
-import { CjsSchema, meta } from "#schema";
+import { CjsSchema, blue } from "#schema";
 
 /** Native nominal picking contract, independent of the renderable contract. */
 export class ITr2Pickable
 {
-  /** Resolves an area to the native root object represented by a hit. */
-  GetID(_areaId)
-  {
-    throw new Error("ITr2Pickable.GetID must be implemented.");
-  }
+  /**
+   * Carbon's pure virtual `IRoot* GetID( uint16_t areaId )` (ITr2Renderable.h:91):
+   * the root object a hit on an area represents.
+   *
+   * @param {number} _areaId The picked area.
+   * @returns {object|null} The represented object.
+   */
+  GetID(_areaId) {}
 
-  /** Collects the geometry participating in a requested pick pass. */
-  GetPickingBatches(_batches, _pickTypes, _perObjectData)
-  {
-    throw new Error("ITr2Pickable.GetPickingBatches must be implemented.");
-  }
+  /**
+   * Carbon's pure virtual `GetPickingBatches( ITriRenderBatchAccumulator*
+   * batches, Tr2PickTypes pickTypes, const Tr2PerObjectData* perObjectData )`
+   * (ITr2Renderable.h:92): the geometry taking part in a pick pass.
+   *
+   * @param {ITriRenderBatchAccumulator} _batches Receives the batches.
+   * @param {number} _pickTypes Requested pick types.
+   * @param {object} _perObjectData The object's per-object data.
+   */
+  GetPickingBatches(_batches, _pickTypes, _perObjectData) {}
 }
 
 CjsSchema.blue.define(ITr2Pickable, {
   className: "ITr2Pickable",
-  methods: { GetID: [meta.abstract], GetPickingBatches: [meta.abstract] }
+  methods: { GetID: blue.abstract, GetPickingBatches: blue.abstract }
 });

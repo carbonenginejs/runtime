@@ -1,32 +1,23 @@
 import { IRoot } from "#blue/IRoot";
 // Source: trinityaudioapi/include/ITr2AudGeometry.h:23-40
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, blue } from "#schema";
 
 /** Transfers Trinity geometry and placement to the audio implementation. */
 export class ITr2AudGeometry
 {
   /** Registers a mesh instance using its shared geometry and world transform. */
-  SetGeometry(_geometrySetId, _instanceId, _geometryData, _worldTransform)
-  {
-    throw new Error("ITr2AudGeometry.SetGeometry must be implemented.");
-  }
+  SetGeometry(_geometrySetId, _instanceId, _geometryData, _worldTransform) {}
 
   /** Updates the world transform of an existing geometry instance. */
-  SetGeometryTransform(_geometrySetId, _instanceId, _worldTransform)
-  {
-    throw new Error("ITr2AudGeometry.SetGeometryTransform must be implemented.");
-  }
+  SetGeometryTransform(_geometrySetId, _instanceId, _worldTransform) {}
 
   /** Releases a geometry instance and its reference to the shared mesh. */
-  RemoveGeometry(_geometrySetId, _instanceId)
-  {
-    throw new Error("ITr2AudGeometry.RemoveGeometry must be implemented.");
-  }
+  RemoveGeometry(_geometrySetId, _instanceId) {}
 }
 
 for (const method of [ "SetGeometry", "SetGeometryTransform", "RemoveGeometry" ])
 {
-  CjsSchema.decorateMethod(ITr2AudGeometry, method, blue.method, meta.abstract);
+  CjsSchema.decorateMethod(ITr2AudGeometry, method, blue.abstract);
 }
 blue.inherit(IRoot)(ITr2AudGeometry);
 CjsSchema.blue.define(ITr2AudGeometry, { className: "ITr2AudGeometry" });

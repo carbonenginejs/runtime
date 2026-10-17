@@ -10,12 +10,8 @@ export class IEveDistributionModifier
 {
 
   /** Applies this modifier to one distribution placement. */
-  @blue.method
-  @meta.abstract
-  ProcessDistributionModifier(_placement, _context)
-  {
-    throw new Error("IEveDistributionModifier.ProcessDistributionModifier must be implemented by a concrete modifier.");
-  }
+  @blue.abstract
+  ProcessDistributionModifier(_placement, _context) {}
 
   /** Reports whether this modifier changes placement transforms. */
   @blue.method

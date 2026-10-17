@@ -8,7 +8,7 @@
 // The implementation is `BlueCallbackMan`; the browser differences it carries
 // (workers instead of threads, async entries, a cancel that cannot block) are
 // marked there.
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, blue } from "#schema";
 
 /** `IBlueCallbackMan` - a callback queue, per blue/include/IBlueCallbackMan.h. */
 export class IBlueCallbackMan
@@ -117,7 +117,7 @@ for (const method of [
   "SetPriority", "SetThreadCount", "SetName"
 ])
 {
-  CjsSchema.decorateMethod(IBlueCallbackMan, method, blue.method, meta.requires, meta.abstract);
+  CjsSchema.decorateMethod(IBlueCallbackMan, method, blue.abstract);
 }
 
 CjsSchema.blue.define(IBlueCallbackMan, {

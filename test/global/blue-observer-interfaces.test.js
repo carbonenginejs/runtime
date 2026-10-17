@@ -41,15 +41,15 @@ test("Blue observer interfaces fail when their pure operations are unimplemented
   class MissingMultiObserver extends IBlueMultiPlacementObserver {}
   for (const listener of [new IBlueEventListener(), new MissingListener()])
   {
-    assert.throws(() => listener.HandleEvent("event"), /IBlueEventListener\.HandleEvent must be implemented/u);
+    assert.throws(() => listener.HandleEvent("event"), /IBlueEventListener\.HandleEvent\([^)]*\) must be implemented/u);
   }
   for (const observer of [new IBluePlacementObserver(), new MissingObserver()])
   {
-    assert.throws(() => observer.UpdatePlacement(null, null, null), /IBluePlacementObserver\.UpdatePlacement must be implemented/u);
+    assert.throws(() => observer.UpdatePlacement(null, null, null), /IBluePlacementObserver\.UpdatePlacement\([^)]*\) must be implemented/u);
   }
   for (const observer of [new IBlueMultiPlacementObserver(), new MissingMultiObserver()])
   {
-    assert.throws(() => observer.UpdatePlacements([]), /IBlueMultiPlacementObserver\.UpdatePlacements must be implemented/u);
+    assert.throws(() => observer.UpdatePlacements([]), /IBlueMultiPlacementObserver\.UpdatePlacements\([^)]*\) must be implemented/u);
   }
 });
 

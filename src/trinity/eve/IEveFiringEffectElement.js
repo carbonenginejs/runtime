@@ -9,92 +9,48 @@ export class IEveFiringEffectElement extends EveEntity
 {
 
   /** Sets the destination-object scale applied by this firing element. */
-  @blue.method
-  @meta.abstract
-  SetDestObjectScale(_scale)
-  {
-    throw new Error("IEveFiringEffectElement.SetDestObjectScale must be implemented by a concrete firing element.");
-  }
+  @blue.abstract
+  SetDestObjectScale(_scale) {}
 
   /** Starts movement owned by this firing element. */
-  @blue.method
-  @meta.abstract
-  StartMoving()
-  {
-    throw new Error("IEveFiringEffectElement.StartMoving must be implemented by a concrete firing element.");
-  }
+  @blue.abstract
+  StartMoving() {}
 
   /** Returns the duration of the firing element's authored curves. */
-  @blue.method
-  @meta.abstract
-  GetCurveDuration()
-  {
-    throw new Error("IEveFiringEffectElement.GetCurveDuration must be implemented by a concrete firing element.");
-  }
+  @blue.abstract
+  GetCurveDuration() {}
 
   /** Starts firing after the supplied delay. */
-  @blue.method
-  @meta.abstract
-  StartFiring(_delay)
-  {
-    throw new Error("IEveFiringEffectElement.StartFiring must be implemented by a concrete firing element.");
-  }
+  @blue.abstract
+  StartFiring(_delay) {}
 
   /** Stops the active firing sequence. */
-  @blue.method
-  @meta.abstract
-  StopFiring()
-  {
-    throw new Error("IEveFiringEffectElement.StopFiring must be implemented by a concrete firing element.");
-  }
+  @blue.abstract
+  StopFiring() {}
 
   /** Sets the firing source transform and destination position. */
-  @blue.method
-  @meta.abstract
-  SetFiringTransform(_source, _destination)
-  {
-    throw new Error("IEveFiringEffectElement.SetFiringTransform must be implemented by a concrete firing element.");
-  }
+  @blue.abstract
+  SetFiringTransform(_source, _destination) {}
 
   /** Sets whether the source and destination endpoints are displayed. */
-  @blue.method
-  @meta.abstract
-  DisplayEndPoints(_displaySource, _displayDestination)
-  {
-    throw new Error("IEveFiringEffectElement.DisplayEndPoints must be implemented by a concrete firing element.");
-  }
+  @blue.abstract
+  DisplayEndPoints(_displaySource, _displayDestination) {}
 
   /** Performs the asynchronous firing-effect update phase. */
-  @blue.method
-  @meta.abstract
-  UpdateEffectAsync(_updateContext)
-  {
-    throw new Error("IEveFiringEffectElement.UpdateEffectAsync must be implemented by a concrete firing element.");
-  }
+  @blue.abstract
+  UpdateEffectAsync(_updateContext) {}
 
   /** Performs the synchronous firing-effect update phase. */
-  @blue.method
-  @meta.abstract
-  UpdateEffectSync(_updateContext)
-  {
-    throw new Error("IEveFiringEffectElement.UpdateEffectSync must be implemented by a concrete firing element.");
-  }
+  @blue.abstract
+  UpdateEffectSync(_updateContext) {}
 
   /** Updates visibility beneath the supplied parent transform. */
-  @blue.method
-  @meta.abstract
-  UpdateVisibility(_updateContext, _parentTransform)
-  {
-    throw new Error("IEveFiringEffectElement.UpdateVisibility must be implemented by a concrete firing element.");
-  }
+  @blue.abstract
+  UpdateVisibility(_updateContext, _parentTransform) {}
 
   /** Appends this element's renderer-neutral renderables. */
-  @blue.method
-  @meta.abstract
-  GetRenderables(_renderables)
-  {
-    throw new Error("IEveFiringEffectElement.GetRenderables must be implemented by a concrete firing element.");
-  }
+  @blue.abstract
+  GetRenderables(_renderables) {}
 
   /** Runs the optional general update hook. */
   @blue.method

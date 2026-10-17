@@ -11,23 +11,14 @@ export class CjsTrinityBatchResolver
 
   /** Resolves a canonical batch's material into renderer-owned pipeline inputs. */
   @meta.abstract
-  ResolveMaterial(_material, _batch, _context)
-  {
-    throw new Error("CjsTrinityBatchResolver.ResolveMaterial must be implemented by a concrete resolver.");
-  }
+  ResolveMaterial(_material, _batch, _context) {}
 
   /** Resolves a canonical batch's geometry source into renderer-owned geometry. */
   @meta.abstract
-  ResolveGeometry(_geometrySource, _batch, _context)
-  {
-    throw new Error("CjsTrinityBatchResolver.ResolveGeometry must be implemented by a concrete resolver.");
-  }
+  ResolveGeometry(_geometrySource, _batch, _context) {}
 
   /** Resolves a canonical batch's object data into renderer-owned bindings. */
   @meta.abstract
-  ResolveBindings(_batch, _objectData, _context)
-  {
-    throw new Error("CjsTrinityBatchResolver.ResolveBindings must be implemented by a concrete resolver.");
-  }
+  ResolveBindings(_batch, _objectData, _context) {}
 
 }

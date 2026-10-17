@@ -12,10 +12,7 @@ export class ITr2MultiPassScene
    * @returns {number} Native RenderPassResult value.
    */
   @meta.abstract
-  RenderPass(_pass, _renderContext)
-  {
-    throw new Error("ITr2MultiPassScene.RenderPass must be implemented by a multi-pass scene.");
-  }
+  RenderPass(_pass, _renderContext) {}
 
   static PassType = PassType;
   static RenderPassResult = RenderPassResult;

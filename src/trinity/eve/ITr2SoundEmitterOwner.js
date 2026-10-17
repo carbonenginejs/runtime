@@ -12,10 +12,7 @@ export class ITr2SoundEmitterOwner
    * @returns {object|null} The named ITr2AudEmitter, or null when absent.
    */
   @blue.method
-  FindSoundEmitter(_name)
-  {
-    throw new Error("ITr2SoundEmitterOwner.FindSoundEmitter must be implemented by a sound-emitter owner.");
-  }
+  FindSoundEmitter(_name) {}
 
   /**
    * Leaves observer attachment to owners that override this native default.

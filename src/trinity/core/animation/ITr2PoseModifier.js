@@ -1,5 +1,5 @@
 // Source: trinity/Include/ITr2PoseModifier.h (created by 6b7e9e5c, 2026-09-01)
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 
 
 /**
@@ -18,11 +18,7 @@ export class ITr2PoseModifier
    * @param {Object} _skeleton - the mesh skeleton (cmf.Skeleton shape)
    * @param {Object} _pose - the sampled pose to modify in place
    */
-  @blue.method
-  @meta.abstract
-  ModifyPose(_skeleton, _pose)
-  {
-    throw new Error("ITr2PoseModifier.ModifyPose must be implemented by a concrete modifier.");
-  }
+  @blue.abstract
+  ModifyPose(_skeleton, _pose) {}
 
 }

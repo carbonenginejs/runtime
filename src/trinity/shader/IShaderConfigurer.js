@@ -1,6 +1,6 @@
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Shader/IShaderConfigurer.h:5-9
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, blue } from "#schema";
 
 
 /** Contract for an object whose shaders take named options, as Tr2ActionSetShaderOption sets them. */
@@ -12,12 +12,9 @@ export class IShaderConfigurer
    * @param {string} _value The option value.
    * @returns {void}
    */
-  SetShaderOption(_name, _value)
-  {
-    throw new Error("IShaderConfigurer.SetShaderOption must be implemented by a shader configurer.");
-  }
+  SetShaderOption(_name, _value) {}
 }
 
-CjsSchema.decorateMethod(IShaderConfigurer, "SetShaderOption", blue.method, meta.abstract);
+CjsSchema.decorateMethod(IShaderConfigurer, "SetShaderOption", blue.abstract);
 CjsSchema.blue.inherit(IRoot)(IShaderConfigurer);
 CjsSchema.blue.define(IShaderConfigurer, { className: "IShaderConfigurer" });

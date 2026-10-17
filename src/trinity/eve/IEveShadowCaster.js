@@ -39,10 +39,7 @@ export class IEveShadowCaster
    * @returns {boolean}
    */
   @blue.method
-  IsCastingShadow__ShadowFrustum(_cameraFrustum, _shadowFrustum, _renderReason, _sizeInShadow)
-  {
-    throw new Error("IEveShadowCaster.IsCastingShadow__ShadowFrustum must be implemented by a shadow caster.");
-  }
+  IsCastingShadow__ShadowFrustum(_cameraFrustum, _shadowFrustum, _renderReason, _sizeInShadow) {}
 
   /**
    * Carbon's IsCastingShadow( cameraFrustum, position, radius, renderReason )
@@ -58,17 +55,11 @@ export class IEveShadowCaster
 
   /** Carbon's GetShadowBatches (h:149). Pure virtual. */
   @blue.method
-  GetShadowBatches(_batches, _perObjectData, _shadowPixelSize)
-  {
-    throw new Error("IEveShadowCaster.GetShadowBatches must be implemented by a shadow caster.");
-  }
+  GetShadowBatches(_batches, _perObjectData, _shadowPixelSize) {}
 
   /** Carbon's GetShadowPerObjectData (h:150). Pure virtual. */
   @blue.method
-  GetShadowPerObjectData(_accumulator)
-  {
-    throw new Error("IEveShadowCaster.GetShadowPerObjectData must be implemented by a shadow caster.");
-  }
+  GetShadowPerObjectData(_accumulator) {}
 
   /** Carbon's PushRtGeometry (h:152): raytraced shadows; empty by default. */
   @blue.method

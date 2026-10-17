@@ -41,10 +41,7 @@ export class ITr2AudEmitter
    * @param {string} _prefix The event-name prefix.
    * @param {Float32Array} _position Initial world position.
    */
-  Initialize__WithParameters(_name, _prefix, _position)
-  {
-    throw new Error("ITr2AudEmitter.Initialize__WithParameters must be implemented by an audio emitter.");
-  }
+  Initialize__WithParameters(_name, _prefix, _position) {}
 
   /**
    * Sets the emitter's orientation and position.
@@ -54,30 +51,21 @@ export class ITr2AudEmitter
    * @param {Float32Array} _position World position.
    * @returns {number} A status code.
    */
-  SetPosition(_front, _top, _position)
-  {
-    throw new Error("ITr2AudEmitter.SetPosition must be implemented by an audio emitter.");
-  }
+  SetPosition(_front, _top, _position) {}
 
   /**
    * Renames the emitter.
    *
    * @param {string} _name The new name.
    */
-  SetName(_name)
-  {
-    throw new Error("ITr2AudEmitter.SetName must be implemented by an audio emitter.");
-  }
+  SetName(_name) {}
 
   /**
    * Sets the event-name prefix.
    *
    * @param {string} _prefix The new prefix.
    */
-  SetPrefix(_prefix)
-  {
-    throw new Error("ITr2AudEmitter.SetPrefix must be implemented by an audio emitter.");
-  }
+  SetPrefix(_prefix) {}
 
   /**
    * Posts a one-shot event on this emitter.
@@ -86,10 +74,7 @@ export class ITr2AudEmitter
    * @param {boolean} [_bypassPrefix] Whether to skip the prefix.
    * @returns {number} The playing id, or 0 when the post failed.
    */
-  SendEvent(_name, _bypassPrefix = false)
-  {
-    throw new Error("ITr2AudEmitter.SendEvent must be implemented by an audio emitter.");
-  }
+  SendEvent(_name, _bypassPrefix = false) {}
 
   /**
    * Sets one switch group to a state.
@@ -98,10 +83,7 @@ export class ITr2AudEmitter
    * @param {string} _switchState The state's name.
    * @returns {boolean} Whether the switch applied.
    */
-  SetSwitch(_switchGroup, _switchState)
-  {
-    throw new Error("ITr2AudEmitter.SetSwitch must be implemented by an audio emitter.");
-  }
+  SetSwitch(_switchGroup, _switchState) {}
 
   /**
    * Sets one RTPC value.
@@ -110,10 +92,7 @@ export class ITr2AudEmitter
    * @param {number} _rtpcValue Its new value.
    * @returns {boolean} Whether the parameter applied.
    */
-  SetRTPC(_rtpcName, _rtpcValue)
-  {
-    throw new Error("ITr2AudEmitter.SetRTPC must be implemented by an audio emitter.");
-  }
+  SetRTPC(_rtpcName, _rtpcValue) {}
 
   /**
    * Scales the emitter's attenuation radius.
@@ -121,58 +100,37 @@ export class ITr2AudEmitter
    * @param {number} _scalingFactor The scaling factor.
    * @returns {boolean} Whether the factor applied.
    */
-  SetAttenuationScalingFactor(_scalingFactor)
-  {
-    throw new Error("ITr2AudEmitter.SetAttenuationScalingFactor must be implemented by an audio emitter.");
-  }
+  SetAttenuationScalingFactor(_scalingFactor) {}
 
   /**
    * The emitter's name.
    *
    * @returns {string} The name.
    */
-  GetName()
-  {
-    throw new Error("ITr2AudEmitter.GetName must be implemented by an audio emitter.");
-  }
+  GetName() {}
 
   /**
    * Tells the emitter whether its owner is visible.
    *
    * @param {boolean} _visible Whether the owner is visible.
    */
-  SetVisibility(_visible)
-  {
-    throw new Error("ITr2AudEmitter.SetVisibility must be implemented by an audio emitter.");
-  }
+  SetVisibility(_visible) {}
 
   /** Silences the emitter. */
-  Mute()
-  {
-    throw new Error("ITr2AudEmitter.Mute must be implemented by an audio emitter.");
-  }
+  Mute() {}
 
   /** Restores the emitter after Mute. */
-  Unmute()
-  {
-    throw new Error("ITr2AudEmitter.Unmute must be implemented by an audio emitter.");
-  }
+  Unmute() {}
 
   /** Forces the emitter's culling state to be re-evaluated. */
-  ForceCullingStateChange()
-  {
-    throw new Error("ITr2AudEmitter.ForceCullingStateChange must be implemented by an audio emitter.");
-  }
+  ForceCullingStateChange() {}
 
   /** Releases a forced culling state. */
-  ReleaseForcedCullingState()
-  {
-    throw new Error("ITr2AudEmitter.ReleaseForcedCullingState must be implemented by an audio emitter.");
-  }
+  ReleaseForcedCullingState() {}
 }
 
 
-for (const name of EMITTER_METHODS) CjsSchema.decorateMethod(ITr2AudEmitter, name, blue.method, meta.abstract);
+for (const name of EMITTER_METHODS) CjsSchema.decorateMethod(ITr2AudEmitter, name, blue.abstract);
 CjsSchema.decorateMethod(ITr2AudEmitter, "Initialize__WithParameters", meta.renamed("Initialize"));
 blue.inherit(IRoot)(ITr2AudEmitter);
 CjsSchema.blue.define(ITr2AudEmitter, { className: "ITr2AudEmitter" });

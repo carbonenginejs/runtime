@@ -19,10 +19,7 @@ export class ICjsAudioGlobalReaders
      * @param {number} [_at] - AudioContext time; now when omitted.
      * @returns {number|null} The value, or null when it is unset.
      */
-    getGlobalRTPC(_name, _at)
-    {
-        throw new Error("ICjsAudioGlobalReaders.getGlobalRTPC must be overridden.");
-    }
+    getGlobalRTPC(_name, _at) {}
 
     /**
      * AudioContext times after `_from` at which a global RTPC transition changes slope.
@@ -30,10 +27,7 @@ export class ICjsAudioGlobalReaders
      * @param {number} _from - AudioContext time.
      * @returns {number[]}
      */
-    getGlobalRTPCTransitionBoundaries(_from)
-    {
-        throw new Error("ICjsAudioGlobalReaders.getGlobalRTPCTransitionBoundaries must be overridden.");
-    }
+    getGlobalRTPCTransitionBoundaries(_from) {}
 
     /**
      * A global State group's weighted states, mid-transition included.
@@ -42,10 +36,7 @@ export class ICjsAudioGlobalReaders
      * @param {number} [_at] - AudioContext time; now when omitted.
      * @returns {Array<{ state: string|number, weight: number }>}
      */
-    getGlobalStatePropertyWeights(_group, _at)
-    {
-        throw new Error("ICjsAudioGlobalReaders.getGlobalStatePropertyWeights must be overridden.");
-    }
+    getGlobalStatePropertyWeights(_group, _at) {}
 
     /**
      * AudioContext times after `_from` at which a global State transition changes slope.
@@ -53,10 +44,7 @@ export class ICjsAudioGlobalReaders
      * @param {number} _from - AudioContext time.
      * @returns {number[]}
      */
-    getGlobalStateTransitionBoundaries(_from)
-    {
-        throw new Error("ICjsAudioGlobalReaders.getGlobalStateTransitionBoundaries must be overridden.");
-    }
+    getGlobalStateTransitionBoundaries(_from) {}
 
 }
 

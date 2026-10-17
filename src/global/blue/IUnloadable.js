@@ -4,7 +4,7 @@
 // and take it back on next use. BlueObjectProxy casts for it before dropping
 // an unused object (BlueObjectProxy.cpp:84-96) and calls ReloadWhenReferenced
 // on next access (:46-55).
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, blue } from "#schema";
 
 /** `IUnloadable` - releases and restores an object's state in place. */
 export class IUnloadable
@@ -24,8 +24,8 @@ export class IUnloadable
   ReloadWhenReferenced() {}
 }
 
-CjsSchema.decorateMethod(IUnloadable, "UnloadWhenUnreferenced", blue.method, meta.requires, meta.abstract);
-CjsSchema.decorateMethod(IUnloadable, "ReloadWhenReferenced", blue.method, meta.requires, meta.abstract);
+CjsSchema.decorateMethod(IUnloadable, "UnloadWhenUnreferenced", blue.abstract);
+CjsSchema.decorateMethod(IUnloadable, "ReloadWhenReferenced", blue.abstract);
 
 CjsSchema.blue.define(IUnloadable, {
   className: "IUnloadable",

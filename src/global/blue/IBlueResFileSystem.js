@@ -124,7 +124,7 @@ export class IBlueResFileSystem
 
 for (const method of [ "FileExists", "IsDirectory", "GetDirectoryContents", "GetStreamFromPath", "ResolvePathW" ])
 {
-  CjsSchema.decorateMethod(IBlueResFileSystem, method, blue.method, meta.requires, meta.abstract);
+  CjsSchema.decorateMethod(IBlueResFileSystem, method, blue.abstract);
 }
 
 // Carbon declares only the wide-character form; a JS string covers both.

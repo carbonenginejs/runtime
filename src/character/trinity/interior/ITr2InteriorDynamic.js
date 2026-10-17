@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Include/ITr2Interior.h
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, blue } from "#schema";
 import { ITr2Interior } from "./ITr2Interior.js";
 
 /** Carbon's ITr2InteriorDynamic nominal interior contract. */
@@ -29,6 +29,6 @@ export class ITr2InteriorDynamic extends ITr2Interior
 }
 for (const method of ["GetWorldBoundingBox","IsBoundingBoxReady","PrePhysicsUpdate","PostPhysicsUpdate","AddToScene","RemoveFromScene","SetLOD"])
 {
-  CjsSchema.decorateMethod(ITr2InteriorDynamic, method, blue.method, meta.requires, meta.abstract);
+  CjsSchema.decorateMethod(ITr2InteriorDynamic, method, blue.abstract);
 }
 CjsSchema.blue.define(ITr2InteriorDynamic, { className: "ITr2InteriorDynamic", fields: {} });

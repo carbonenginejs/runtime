@@ -5,7 +5,7 @@
 // A variable-rate ticker that also wants to know when the frame is over.
 // Carbon's comment says the inheritance exists "to make CatchupTicks
 // compatible with the new ticking code", so the base is the newer of the two.
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, blue } from "#schema";
 import { IVariableTicker } from "./IVariableTicker.js";
 
 /** `ICatchupTicks` - a variable-rate ticker told when the frame ends, per blue/include/IBlueOS.h:256. */
@@ -20,6 +20,6 @@ export class ICatchupTicks extends IVariableTicker
   OnPostFrameTick(_timestamp, _cookie) {}
 }
 
-CjsSchema.decorateMethod(ICatchupTicks, "OnPostFrameTick", blue.method, meta.requires, meta.abstract);
+CjsSchema.decorateMethod(ICatchupTicks, "OnPostFrameTick", blue.abstract);
 
 CjsSchema.blue.define(ICatchupTicks, { className: "ICatchupTicks", fields: {} });

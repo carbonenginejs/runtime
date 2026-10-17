@@ -172,7 +172,7 @@ test("real gc3_t1 SOF ship prepares direct instance providers without an abstrac
   // Negative control restores the exact inherited placeholder from the old port.
   const ready = provider.IsInstanceDataReady;
   provider.IsInstanceDataReady = ITr2InstanceData.prototype.IsInstanceDataReady;
-  assert.throws(() => meshes[0].PrepareResources(), /ITr2InstanceData.IsInstanceDataReady must be implemented/);
+  assert.throws(() => meshes[0].PrepareResources(), /ITr2InstanceData\.IsInstanceDataReady\(\)/);
   provider.IsInstanceDataReady = ready;
   assert.doesNotThrow(() => meshes[0].PrepareResources());
   t.diagnostic("SOF gc3_t1:gallentebase:gallente: 4 direct-provider meshes, original abstract throw reproduced by negative control");

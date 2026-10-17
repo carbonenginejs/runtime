@@ -214,7 +214,7 @@ test("SelectBackend trusts an unprobed backend only after its nominal proof", as
             preference: [ "stub" ]
         }),
         error => error.code === "CJS_LIBRARY_BACKEND_UNAVAILABLE"
-            && /must be overridden/u.test(error.candidates[0].error)
+            && /CjsBackendCandidate\.Prove\(context\) must be implemented/u.test(error.candidates[0].error)
     );
 });
 

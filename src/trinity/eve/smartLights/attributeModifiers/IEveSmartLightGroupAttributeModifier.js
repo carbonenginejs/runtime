@@ -9,20 +9,12 @@ export class IEveSmartLightGroupAttributeModifier extends EveSmartLightBaseAttri
 {
 
   /** Updates modifier state for the current smart-light group activation. */
-  @blue.method
-  @meta.abstract
-  UpdateSyncronous(_updateContext, _params, _activationMultiplier)
-  {
-    throw new Error("IEveSmartLightGroupAttributeModifier.UpdateSyncronous must be implemented by a concrete modifier.");
-  }
+  @blue.abstract
+  UpdateSyncronous(_updateContext, _params, _activationMultiplier) {}
 
   /** Applies this modifier to one smart-light attribute. */
-  @blue.method
-  @meta.abstract
-  ProcessAttributeModifier(_attribute, _placement, _entityPosition, _entityDirection, _modifierStrength)
-  {
-    throw new Error("IEveSmartLightGroupAttributeModifier.ProcessAttributeModifier must be implemented by a concrete modifier.");
-  }
+  @blue.abstract
+  ProcessAttributeModifier(_attribute, _placement, _entityPosition, _entityDirection, _modifierStrength) {}
 
   /** Accepts an optional controller variable. */
   @blue.method

@@ -25,7 +25,7 @@ export class IWorldPosition
 
 for (const method of [ "GetWorldPosition", "GetWorldRotation" ])
 {
-  CjsSchema.decorateMethod(IWorldPosition, method, meta.requires, meta.abstract);
+  CjsSchema.decorateMethod(IWorldPosition, method, meta.abstract);
 }
 CjsSchema.blue.define(IWorldPosition, {
   className: "IWorldPosition",

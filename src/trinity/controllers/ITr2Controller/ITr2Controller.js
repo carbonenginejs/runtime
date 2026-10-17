@@ -72,12 +72,8 @@ export class ITr2Controller
    *
    * @returns {boolean} Whether Link has run without a matching Unlink.
    */
-  @blue.method
-  @meta.abstract
-  IsLinked()
-  {
-    throw new Error("ITr2Controller.IsLinked must be implemented by a controller.");
-  }
+  @blue.abstract
+  IsLinked() {}
 
   /** Begins controlling the owner. */
   @blue.method

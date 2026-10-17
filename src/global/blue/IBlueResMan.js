@@ -14,7 +14,7 @@
 // `SaveObjectW`, and `LoadObject`'s `const char*` / `const wchar_t*`
 // overloads) are identical in JavaScript, whose strings carry no encoding;
 // every one exists, and one forwards to the other.
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, blue } from "#schema";
 
 /** `BlueResManQueue` - the queues the manager runs work on. */
 export const BlueResManQueue = Object.freeze({
@@ -159,7 +159,7 @@ for (const method of [
   "GetPendingLoads", "GetPendingPrepares", "RegisterResourceConstructor", "UnregisterResourceConstructor"
 ])
 {
-  CjsSchema.decorateMethod(IBlueResMan, method, blue.method, meta.requires, meta.abstract);
+  CjsSchema.decorateMethod(IBlueResMan, method, blue.abstract);
 }
 
 CjsSchema.blue.define(IBlueResMan, { className: "IBlueResMan", fields: {} });

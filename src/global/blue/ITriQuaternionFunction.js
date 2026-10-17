@@ -119,7 +119,7 @@ export class ITriQuaternionFunction extends ITriFunction
 
 for (const method of [ "Update", "GetValueAt", "GetValueDotAt", "GetValueDoubleDotAt" ])
 {
-  CjsSchema.decorateMethod(ITriQuaternionFunction, method, blue.method, meta.requires, meta.abstract);
+  CjsSchema.decorateMethod(ITriQuaternionFunction, method, blue.abstract);
 }
 CjsSchema.decorateMethod(ITriQuaternionFunction, "Update__Ticks", blue.method, meta.adapted);
 CjsSchema.decorateMethod(ITriQuaternionFunction, "GetValueAt__Ticks", blue.method, meta.adapted);

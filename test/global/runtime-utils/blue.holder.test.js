@@ -288,7 +288,7 @@ test("an uncomposed paths service answers rather than refusing", () =>
 
   // What it genuinely cannot do without a file system is still refused.
   assert.throws(() => be.paths.ResolvePathW("res:/model/ship.gr2"),
-    /^Error: CjsBluePaths does not implement IBluePaths\.ResolvePathW\.$/u);
+    /^Error: CjsBluePaths does not implement IBluePaths\.ResolvePathW\(path\)\.$/u);
 });
 
 test("an implementation is installed into the holder, never captured from it", () =>
@@ -316,7 +316,7 @@ test("an implementation is installed into the holder, never captured from it", (
     // Only what it overrode answers; the rest still refuses, naming the class
     // that failed to honour the interface rather than the interface's file.
     assert.throws(() => be.resMan.LoadObject("res:/x.red"),
-      /^Error: RecordingResMan does not implement IBlueResMan\.LoadObject\.$/u);
+      /^Error: RecordingResMan does not implement IBlueResMan\.LoadObject\(path, init\)\.$/u);
   }
   finally { be.resMan = previous; }
 });

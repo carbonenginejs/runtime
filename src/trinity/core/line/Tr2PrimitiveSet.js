@@ -117,12 +117,8 @@ export class Tr2PrimitiveSet
   }
 
   /** Native subclasses supply their own geometry. */
-  @blue.method
-  @meta.abstract
-  GetBatchesImpl(_accumulator, _perObjectData, _effect, _reason)
-  {
-    throw new Error("Tr2PrimitiveSet.GetBatchesImpl must be implemented by a primitive set.");
-  }
+  @blue.abstract
+  GetBatchesImpl(_accumulator, _perObjectData, _effect, _reason) {}
 
   /** Native primitive sets participate in transparent sorting (cpp:47). */
   @blue.method

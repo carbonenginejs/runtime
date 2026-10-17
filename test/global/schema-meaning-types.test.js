@@ -91,17 +91,19 @@ test("component labels require valid explicit declarations; type.custom is gone"
   assert.throws(() => CjsBlackSchemaRegistry.fromDeclaredType({ kind: "typedArray", arrayType: "Uint32Array" }), /Unsupported canonical Black type: typedArray/);
 });
 
-test("named requirements install throwing methods while preserving implementations", () =>
+test("abstract methods throw while subclass implementations are preserved", () =>
 {
-  class Contract { Existing() { return "existing"; } }
-  meta.requires("Missing", "Second", "Existing", "Missing")(Contract, {kind:"class"});
+  // meta.requires is retired (ruling 2026-10-17): an abstract method is
+  // declared on its class and meta.abstract installs the throwing body.
+  class Contract { Existing() { return "existing"; } Missing(_value) {} Second() {} }
+  CjsSchema.decorateMethod(Contract, "Missing", meta.abstract);
+  CjsSchema.decorateMethod(Contract, "Second", meta.abstract);
   CjsSchema.define(Contract, {className:"NamedRequirementContract"});
   class Consumer extends Contract {}
   CjsSchema.define(Consumer, {className:"NamedRequirementConsumer"});
   const value = new Consumer();
   assert.equal(value.Existing(), "existing");
-  assert.throws(() => value.Missing(), /NamedRequirementConsumer does not implement NamedRequirementContract.Missing/);
+  assert.throws(() => value.Missing(), /NamedRequirementConsumer does not implement NamedRequirementContract\.Missing\(value\)/);
   assert.throws(() => value.Second(), /Second/);
-  assert.throws(() => meta.requires("A", ""), /nonempty/);
-  assert.throws(() => meta.requires("A")({}, {kind:"class"}), /only supports classes/);
+  assert.equal(meta.requires, undefined);
 });

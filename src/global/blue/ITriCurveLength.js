@@ -1,5 +1,5 @@
 // Source: blue/include/ITriCurveLength.h:8-13
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, blue } from "#schema";
 
 
 /**
@@ -18,7 +18,7 @@ export class ITriCurveLength
   }
 }
 
-CjsSchema.decorateMethod(ITriCurveLength, "Length", blue.method, meta.requires, meta.abstract);
+CjsSchema.decorateMethod(ITriCurveLength, "Length", blue.abstract);
 CjsSchema.blue.define(ITriCurveLength, {
   className: "ITriCurveLength",
   fields: {}

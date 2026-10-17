@@ -280,10 +280,7 @@ export class IRootReaderBase
   }
 
   /** Reads the current source value (`ReadValue`); a subclass provides it. */
-  ReadValue()
-  {
-    throw new Error("IRootReaderBase.ReadValue is provided by a reader.");
-  }
+  ReadValue() {}
 
   /** Whether a value holds objects below its top level; a subclass that reads them says so. */
   HasNestedObjects(_value)
@@ -304,28 +301,16 @@ export class IRootReaderBase
   }
 
   /** Reads into an existing object (`ReadIRoot`); a subclass provides it. */
-  ReadIRoot(_instance, _field)
-  {
-    throw new Error("IRootReaderBase.ReadIRoot is provided by a reader.");
-  }
+  ReadIRoot(_instance, _field) {}
 
   /** Reads a new object (`ReadIRootClass`); a subclass provides it. */
-  ReadIRootClass(_field)
-  {
-    throw new Error("IRootReaderBase.ReadIRootClass is provided by a reader.");
-  }
+  ReadIRootClass(_field) {}
 
   /** Reads a list member (`ReadList`); a subclass provides it. */
-  ReadList(_instance, _field)
-  {
-    throw new Error("IRootReaderBase.ReadList is provided by a reader.");
-  }
+  ReadList(_instance, _field) {}
 
   /** Reads a binary block into an ICustomPersist (`ReadBinaryBlock`, IRootReader.h:114); a subclass provides it. */
-  ReadBinaryBlock(_instance, _propertyName)
-  {
-    throw new Error("IRootReaderBase.ReadBinaryBlock is provided by a reader.");
-  }
+  ReadBinaryBlock(_instance, _propertyName) {}
 
   /** Whether a member's old and new values are the same, element by element for arrays. */
   static areEquivalent(a, b)
@@ -355,9 +340,9 @@ CjsSchema.decorateMethod(IRootReaderBase, "HandleAttribute", blue.method, meta.a
 CjsSchema.decorateMethod(IRootReaderBase, "HandlePropertyIRoot", blue.method, meta.adapted);
 CjsSchema.decorateMethod(IRootReaderBase, "ReadStructureList", blue.method, meta.adapted);
 CjsSchema.decorateMethod(IRootReaderBase, "FindEntry", blue.method, meta.adapted);
-CjsSchema.decorateMethod(IRootReaderBase, "ReadValue", blue.method, meta.abstract);
-CjsSchema.decorateMethod(IRootReaderBase, "ReadIRoot", blue.method, meta.abstract);
-CjsSchema.decorateMethod(IRootReaderBase, "ReadIRootClass", blue.method, meta.abstract);
-CjsSchema.decorateMethod(IRootReaderBase, "ReadList", blue.method, meta.abstract);
-CjsSchema.decorateMethod(IRootReaderBase, "ReadBinaryBlock", blue.method, meta.abstract);
+CjsSchema.decorateMethod(IRootReaderBase, "ReadValue", blue.abstract);
+CjsSchema.decorateMethod(IRootReaderBase, "ReadIRoot", blue.abstract);
+CjsSchema.decorateMethod(IRootReaderBase, "ReadIRootClass", blue.abstract);
+CjsSchema.decorateMethod(IRootReaderBase, "ReadList", blue.abstract);
+CjsSchema.decorateMethod(IRootReaderBase, "ReadBinaryBlock", blue.abstract);
 CjsSchema.decorateMethod(IRootReaderBase, "ReadIRootPtr", blue.method, meta.renamed("HandlePropertyIRootPtr"), meta.notImplemented);

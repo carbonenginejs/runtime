@@ -10,44 +10,24 @@ export class IEveDistributionMethod
 {
 
   /** Regenerates the distribution's complete placement data. */
-  @blue.method
-  @meta.abstract
-  RegeneratePlacementData()
-  {
-    throw new Error("IEveDistributionMethod.RegeneratePlacementData must be implemented by a concrete distribution.");
-  }
+  @blue.abstract
+  RegeneratePlacementData() {}
 
   /** Returns the number of available placements. */
-  @blue.method
-  @meta.abstract
-  GetNumberOfPlacements()
-  {
-    throw new Error("IEveDistributionMethod.GetNumberOfPlacements must be implemented by a concrete distribution.");
-  }
+  @blue.abstract
+  GetNumberOfPlacements() {}
 
   /** Returns placement data for the requested entry. */
-  @blue.method
-  @meta.abstract
-  GetPlacementData(_index)
-  {
-    throw new Error("IEveDistributionMethod.GetPlacementData must be implemented by a concrete distribution.");
-  }
+  @blue.abstract
+  GetPlacementData(_index) {}
 
   /** Writes the center of the requested placement data. */
-  @blue.method
-  @meta.abstract
-  GetPlacementDataCenter(_index, _out)
-  {
-    throw new Error("IEveDistributionMethod.GetPlacementDataCenter must be implemented by a concrete distribution.");
-  }
+  @blue.abstract
+  GetPlacementDataCenter(_index, _out) {}
 
   /** Reports whether the distribution produces dynamic movement. */
-  @blue.method
-  @meta.abstract
-  GetHasDynamicMovement()
-  {
-    throw new Error("IEveDistributionMethod.GetHasDynamicMovement must be implemented by a concrete distribution.");
-  }
+  @blue.abstract
+  GetHasDynamicMovement() {}
 
   /** Runs the optional synchronous distribution update hook. */
   @blue.method

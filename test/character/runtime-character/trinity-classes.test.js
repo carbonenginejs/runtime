@@ -169,7 +169,7 @@ test("the character layer exports the nominal animation-updater contract", () =>
   for (const method of [ "PrePhysicsAnimation", "PostPhysicsAnimation", "GetAnimationTransforms", "GetAnimationBoneList" ])
   {
     assert.equal(CjsSchema.getMethod(ITr2AnimationUpdater, method).impl.status, "abstract");
-    assert.throws(() => updater[method](), /must be implemented by a pose provider/);
+    assert.throws(() => updater[method](), new RegExp(`^Error: ITr2AnimationUpdater\\.${method}\\([^)]*\\) must be implemented\\.$`, "u"));
   }
 });
 
@@ -180,7 +180,7 @@ test("the character layer exports the nominal skinned-object transform contract"
   for (const method of [ "GetScaling", "GetRotation", "GetPosition" ])
   {
     assert.equal(CjsSchema.getMethod(ITr2SkinnedObject, method).impl.status, "abstract");
-    assert.throws(() => object[method](), /must be implemented by a skinned object/);
+    assert.throws(() => object[method](), new RegExp(`^Error: ITr2SkinnedObject\\.${method}\\(\\) must be implemented\\.$`, "u"));
   }
 });
 

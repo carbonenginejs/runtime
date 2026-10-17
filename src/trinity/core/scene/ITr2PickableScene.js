@@ -179,52 +179,28 @@ export class ITr2PickableScene
 
   /** Native virtual scene hook. */
   @meta.abstract
-  SetPerFrameDataForPicking(_context)
-  {
-    throw new Error("SetPerFrameDataForPicking is abstract.");
-  }
+  SetPerFrameDataForPicking(_context) {}
   /** Native virtual scene hook. */
   @meta.abstract
-  GetPickingObjectsToRender(_direction, _context)
-  {
-    throw new Error("GetPickingObjectsToRender is abstract.");
-  }
+  GetPickingObjectsToRender(_direction, _context) {}
   /** Native virtual scene hook. */
   @meta.abstract
-  GetOpaquePickingBatchAccumulator()
-  {
-    throw new Error("GetOpaquePickingBatchAccumulator is abstract.");
-  }
+  GetOpaquePickingBatchAccumulator() {}
   /** Native virtual scene hook. */
   @meta.abstract
-  GetPickingBatchAccumulator()
-  {
-    throw new Error("GetPickingBatchAccumulator is abstract.");
-  }
+  GetPickingBatchAccumulator() {}
   /** Native virtual scene hook. */
   @meta.abstract
-  GetRequiredPasses(_components)
-  {
-    throw new Error("GetRequiredPasses is abstract.");
-  }
+  GetRequiredPasses(_components) {}
   /** Native virtual scene hook. */
   @meta.abstract
-  RenderPickingAreasForComponents(_pass)
-  {
-    throw new Error("RenderPickingAreasForComponents is abstract.");
-  }
+  RenderPickingAreasForComponents(_pass) {}
   /** Native virtual scene hook. */
   @meta.abstract
-  DecodeBufferPixel(_data, _pass, _results)
-  {
-    throw new Error("DecodeBufferPixel is abstract.");
-  }
+  DecodeBufferPixel(_data, _pass, _results) {}
   /** Native virtual scene hook. */
   @meta.abstract
-  GetPickBuffer()
-  {
-    throw new Error("GetPickBuffer is abstract.");
-  }
+  GetPickBuffer() {}
 }
 
 CjsSchema.blue.define(ITr2PickableScene, { className: "ITr2PickableScene" });

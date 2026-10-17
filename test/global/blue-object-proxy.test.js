@@ -240,6 +240,6 @@ test("CjsBlackReader is an IBlueObjectBuilder, as Carbon's BlackReader is (Black
   assert.equal(reader.OnObjectDestroyed(0, null), undefined);
   assert.equal(reader.OnSelected(0, null), undefined);
   // Not implemented by this reader: explicit obligations, never silent.
-  assert.throws(() => reader.GetErrorMessage(), /must be implemented/);
-  assert.throws(() => reader.CreateObjectWithYield(0, null), /must be implemented/);
+  assert.throws(() => reader.GetErrorMessage(), /IBlueObjectBuilder\.GetErrorMessage\(\)/);
+  assert.throws(() => reader.CreateObjectWithYield(0, null), /IBlueObjectBuilder\.CreateObjectWithYield\(objectMarker, callingProxy\)/);
 });

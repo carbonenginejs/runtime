@@ -188,10 +188,7 @@ export class IRootWriter
   }
 
   /** Writes a binary block from an ICustomPersist (`WriteBinaryBlock`, IRootWriter.h:52); a writer provides it. */
-  WriteBinaryBlock(_persist, _propertyName)
-  {
-    throw new Error("IRootWriter.WriteBinaryBlock is provided by a writer.");
-  }
+  WriteBinaryBlock(_persist, _propertyName) {}
 
   /** Begins a plain record inside a value; a writer provides it. */
   WriteRecordBegin()
@@ -206,10 +203,7 @@ export class IRootWriter
   }
 
   /** Writes the next member's name; a writer provides it. */
-  WriteMemberName(_name)
-  {
-    throw new Error("IRootWriter.WriteMemberName is provided by a writer.");
-  }
+  WriteMemberName(_name) {}
 
   /**
    * Writes one value. Adapted: Carbon has a primitive per C++ type
@@ -222,22 +216,13 @@ export class IRootWriter
   }
 
   /** Writes an object, or an alias to one already written; a writer provides it. */
-  WriteIRoot(_instance, _declaredClassName)
-  {
-    throw new Error("IRootWriter.WriteIRoot is provided by a writer.");
-  }
+  WriteIRoot(_instance, _declaredClassName) {}
 
   /** Begins a list; a writer provides it. */
-  WriteVectorBegin(_size)
-  {
-    throw new Error("IRootWriter.WriteVectorBegin is provided by a writer.");
-  }
+  WriteVectorBegin(_size) {}
 
   /** Ends a list; a writer provides it. */
-  WriteVectorEnd(_size)
-  {
-    throw new Error("IRootWriter.WriteVectorEnd is provided by a writer.");
-  }
+  WriteVectorEnd(_size) {}
 }
 
 
@@ -283,8 +268,8 @@ CjsSchema.blue.define(IRootWriter, { className: "IRootWriter", abstract: true })
 CjsSchema.decorateMethod(IRootWriter, "WriteMembers", blue.method, meta.adapted);
 CjsSchema.decorateMethod(IRootWriter, "WriteValue", meta.adapted);
 CjsSchema.decorateMethod(IRootWriter, "WriteList", blue.method, meta.adapted);
-CjsSchema.decorateMethod(IRootWriter, "WriteBinaryBlock", blue.method, meta.abstract);
-CjsSchema.decorateMethod(IRootWriter, "WriteMemberName", blue.method, meta.abstract);
-CjsSchema.decorateMethod(IRootWriter, "WriteIRoot", blue.method, meta.abstract);
-CjsSchema.decorateMethod(IRootWriter, "WriteVectorBegin", blue.method, meta.abstract);
-CjsSchema.decorateMethod(IRootWriter, "WriteVectorEnd", blue.method, meta.abstract);
+CjsSchema.decorateMethod(IRootWriter, "WriteBinaryBlock", blue.abstract);
+CjsSchema.decorateMethod(IRootWriter, "WriteMemberName", blue.abstract);
+CjsSchema.decorateMethod(IRootWriter, "WriteIRoot", blue.abstract);
+CjsSchema.decorateMethod(IRootWriter, "WriteVectorBegin", blue.abstract);
+CjsSchema.decorateMethod(IRootWriter, "WriteVectorEnd", blue.abstract);

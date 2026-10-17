@@ -35,5 +35,5 @@ test("an injected music engine must declare the whole interface", () =>
 test("an interface method left unimplemented throws instead of doing nothing", () =>
 {
   class Incomplete extends ICjsMusicEngine {}
-  assert.throws(() => new Incomplete().Process(), /must be overridden/u);
+  assert.throws(() => new Incomplete().Process(), /^Error: ICjsMusicEngine\.Process\(\) must be implemented\.$/u);
 });

@@ -67,21 +67,21 @@ export class Tr2BaseDeviceResourceAL
   }
 
   /**
-   * Whether this resource still holds anything.
+   * Whether this resource still holds anything. Carbon's pure virtual
+   * (Tr2DeviceResourceAL.h:28).
    *
    * @returns {boolean} True when live.
    */
-  @meta.requires
-  @meta.abstract
+  @blue.abstract
   IsResourceValid() {}
 
   /**
-   * Which memory class this resource occupies.
+   * Which memory class this resource occupies. Carbon's pure virtual
+   * (Tr2DeviceResourceAL.h:29).
    *
    * @returns {number} A `Tr2ALMemoryType` value.
    */
-  @meta.requires
-  @meta.abstract
+  @blue.abstract
   GetResourceMemoryClass() {}
 
   /**

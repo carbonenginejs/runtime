@@ -10,7 +10,7 @@
 // declares it as its own plain C++ interface (not a BLUE_INTERFACE), so it has
 // no Blue exposure. Implemented in Carbon by Tr2TexturedSpriteObject
 // (Tr2SpriteObject.h:121) and Tr2Sprite2dLayer (Tr2Sprite2dLayer.h:18).
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 
 /** Receives change notifications from a Sprite2D texture it registered with. */
 @blue.define({ className: "ITr2Sprite2dTextureNotifyTarget", abstract: true })
@@ -23,10 +23,6 @@ export class ITr2Sprite2dTextureNotifyTarget
    * @param {import("./ITr2Sprite2dTexture.js").ITr2Sprite2dTexture} _texture The texture that changed.
    * @returns {void}
    */
-  @meta.abstract
-  @blue.method
-  Sprite2dTextureChanged(_texture)
-  {
-    throw new Error("ITr2Sprite2dTextureNotifyTarget.Sprite2dTextureChanged must be implemented by a concrete listener.");
-  }
+  @blue.abstract
+  Sprite2dTextureChanged(_texture) {}
 }

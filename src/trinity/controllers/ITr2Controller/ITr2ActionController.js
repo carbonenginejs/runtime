@@ -28,7 +28,7 @@
 // `IRoot`, Carbon's base for both, is not ported: it is Blue's reference-counted
 // object root, which a garbage-collected runtime has no use for.
 
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, blue } from "#schema";
 import { ITr2Controller } from "./ITr2Controller.js";
 
 /** Contract for a controller that also drives controller actions. */
@@ -40,60 +40,40 @@ export class ITr2ActionController extends ITr2Controller
    *
    * @returns {object} The owner.
    */
-  @blue.method
-  @meta.abstract
-  GetOwner()
-  {
-    throw new Error("ITr2ActionController.GetOwner must be implemented by an action controller.");
-  }
+  @blue.abstract
+  GetOwner() {}
 
   /**
    * Delivers a named callback to the controller.
    *
    * @param {string} _callbackName The callback's name.
    */
-  @blue.method
-  @meta.abstract
-  Callback(_callbackName)
-  {
-    throw new Error("ITr2ActionController.Callback must be implemented by an action controller.");
-  }
+  @blue.abstract
+  Callback(_callbackName) {}
 
   /**
    * Registers an object to be updated whenever this controller updates.
    *
    * @param {object} _updateable The object to update.
    */
-  @blue.method
-  @meta.abstract
-  RegisterUpdateable(_updateable)
-  {
-    throw new Error("ITr2ActionController.RegisterUpdateable must be implemented by an action controller.");
-  }
+  @blue.abstract
+  RegisterUpdateable(_updateable) {}
 
   /**
    * Stops updating a previously registered object.
    *
    * @param {object} _updateable The object to stop updating.
    */
-  @blue.method
-  @meta.abstract
-  UnRegisterUpdateable(_updateable)
-  {
-    throw new Error("ITr2ActionController.UnRegisterUpdateable must be implemented by an action controller.");
-  }
+  @blue.abstract
+  UnRegisterUpdateable(_updateable) {}
 
   /**
    * The named root objects a dynamic binding path may start from.
    *
    * @returns {Array} Name and root pairs.
    */
-  @blue.method
-  @meta.abstract
-  GetBindingPathRoots()
-  {
-    throw new Error("ITr2ActionController.GetBindingPathRoots must be implemented by an action controller.");
-  }
+  @blue.abstract
+  GetBindingPathRoots() {}
 
   /**
    * One float variable by name.
@@ -104,72 +84,48 @@ export class ITr2ActionController extends ITr2Controller
    * @param {string} _name The variable's name.
    * @returns {number|null} Its value, or null when there is no such variable.
    */
-  @blue.method
-  @meta.abstract
-  GetFloatVariableByName(_name)
-  {
-    throw new Error("ITr2ActionController.GetFloatVariableByName must be implemented by an action controller.");
-  }
+  @blue.abstract
+  GetFloatVariableByName(_name) {}
 
   /**
    * Adds the functions and variables this controller offers to expressions.
    *
    * @param {Array} _out Term info collected from every contributor.
    */
-  @blue.method
-  @meta.abstract
-  GetExpressionTermInfo(_out)
-  {
-    throw new Error("ITr2ActionController.GetExpressionTermInfo must be implemented by an action controller.");
-  }
+  @blue.abstract
+  GetExpressionTermInfo(_out) {}
 
   /**
    * The layout of this controller's variable buffer.
    *
    * @returns {Array} The variable view.
    */
-  @blue.method
-  @meta.abstract
-  GetVariableView()
-  {
-    throw new Error("ITr2ActionController.GetVariableView must be implemented by an action controller.");
-  }
+  @blue.abstract
+  GetVariableView() {}
 
   /**
    * The buffer the variable view describes.
    *
    * @returns {object} The variable buffer.
    */
-  @blue.method
-  @meta.abstract
-  GetVariableBuffer()
-  {
-    throw new Error("ITr2ActionController.GetVariableBuffer must be implemented by an action controller.");
-  }
+  @blue.abstract
+  GetVariableBuffer() {}
 
   /**
    * Grows the scratch arena expressions evaluate into.
    *
    * @param {number} _size Bytes required.
    */
-  @blue.method
-  @meta.abstract
-  EnsureTempArenaSize(_size)
-  {
-    throw new Error("ITr2ActionController.EnsureTempArenaSize must be implemented by an action controller.");
-  }
+  @blue.abstract
+  EnsureTempArenaSize(_size) {}
 
   /**
    * The scratch arena expressions evaluate into.
    *
    * @returns {object} The arena.
    */
-  @blue.method
-  @meta.abstract
-  GetTempArena()
-  {
-    throw new Error("ITr2ActionController.GetTempArena must be implemented by an action controller.");
-  }
+  @blue.abstract
+  GetTempArena() {}
 }
 
 

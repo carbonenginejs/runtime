@@ -49,7 +49,7 @@ test("the one method with no sensible default refuses to guess", () =>
   // reason, so an implementor that forgets it must find out.
   class Forgetful extends WithInterfaces(Object, ITr2Controller) {}
 
-  assert.throws(() => new Forgetful().IsLinked(), /IsLinked must be implemented/);
+  assert.throws(() => new Forgetful().IsLinked(), /ITr2Controller\.IsLinked\(\) must be implemented/);
 });
 
 test("a class keeps its own implementation, the contract only fills gaps", () =>
@@ -135,10 +135,10 @@ test("the eleven action verbs have no defaults and say so", () =>
 
   const controller = new Action();
 
-  assert.throws(() => controller.GetOwner(), /GetOwner must be implemented/);
-  assert.throws(() => controller.Callback("x"), /Callback must be implemented/);
-  assert.throws(() => controller.RegisterUpdateable({}), /RegisterUpdateable must be implemented/);
-  assert.throws(() => controller.GetVariableBuffer(), /GetVariableBuffer must be implemented/);
+  assert.throws(() => controller.GetOwner(), /ITr2ActionController\.GetOwner\(\) must be implemented/);
+  assert.throws(() => controller.Callback("x"), /ITr2ActionController\.Callback\(callbackName\) must be implemented/);
+  assert.throws(() => controller.RegisterUpdateable({}), /ITr2ActionController\.RegisterUpdateable\(updateable\) must be implemented/);
+  assert.throws(() => controller.GetVariableBuffer(), /ITr2ActionController\.GetVariableBuffer\(\) must be implemented/);
 
   assert.equal(controller.Update(1), undefined, "but the inherited defaults still do nothing");
 });

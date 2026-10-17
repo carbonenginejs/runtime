@@ -14,36 +14,21 @@ export class CjsConstantPayload
      *
      * @returns {ArrayBufferView} Packed constant data.
      */
-    GetData()
-    {
-        throw new Error(
-            "CjsConstantPayload.GetData must be overridden by a concrete constant payload."
-        );
-    }
+    GetData() {}
 
     /**
      * Checks whether the payload has changed since its last successful upload.
      *
      * @returns {boolean} True when the terminal data needs uploading.
      */
-    IsDirty()
-    {
-        throw new Error(
-            "CjsConstantPayload.IsDirty must be overridden by a concrete constant payload."
-        );
-    }
+    IsDirty() {}
 
     /**
      * Marks the current terminal data as successfully uploaded.
      *
      * @returns {CjsConstantPayload} This payload.
      */
-    ClearDirty()
-    {
-        throw new Error(
-            "CjsConstantPayload.ClearDirty must be overridden by a concrete constant payload."
-        );
-    }
+    ClearDirty() {}
 
 }
 

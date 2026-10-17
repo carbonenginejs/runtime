@@ -1,6 +1,6 @@
 // Source: blueexposure/include/IList.h:57-65
 // BLUELISTEVENT remains shared vocabulary in #consts/blue.
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, blue } from "#schema";
 
 /** `IListNotify` - the single observer a Blue list notifies. */
 export class IListNotify
@@ -23,7 +23,7 @@ export class IListNotify
   OnListModified(_event, _key, _key2, _value, _theList) {}
 }
 
-CjsSchema.decorateMethod(IListNotify, "OnListModified", blue.method, meta.requires, meta.abstract);
+CjsSchema.decorateMethod(IListNotify, "OnListModified", blue.abstract);
 
 CjsSchema.blue.define(IListNotify, {
   className: "IListNotify",

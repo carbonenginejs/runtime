@@ -22,28 +22,16 @@ export class ITr2Renderable
   }
 
   /** Emits batches of the requested type. */
-  GetBatches(_accumulator, _batchType, _perObjectData, _reason, _renderContext)
-  {
-    throw new Error("ITr2Renderable.GetBatches must be implemented by a renderable.");
-  }
+  GetBatches(_accumulator, _batchType, _perObjectData, _reason, _renderContext) {}
 
   /** Reports whether a transparent pass is required. */
-  HasTransparentBatches()
-  {
-    throw new Error("ITr2Renderable.HasTransparentBatches must be implemented by a renderable.");
-  }
+  HasTransparentBatches() {}
 
   /** Returns the current transparent-sort value. */
-  GetSortValue(_renderContext)
-  {
-    throw new Error("ITr2Renderable.GetSortValue must be implemented by a renderable.");
-  }
+  GetSortValue(_renderContext) {}
 
   /** Returns or allocates the renderable's per-object data. */
-  GetPerObjectData(_accumulator)
-  {
-    throw new Error("ITr2Renderable.GetPerObjectData must be implemented by a renderable.");
-  }
+  GetPerObjectData(_accumulator) {}
 }
 
 

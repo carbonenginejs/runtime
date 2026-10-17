@@ -21,7 +21,7 @@ test("ICurveSetDriver has one registered identity and an abstract native method"
 
 test("ICurveSetDriver requires a concrete GetCurveSetTime implementation", () =>
 {
-  assert.throws(() => new ICurveSetDriver().GetCurveSetTime(1.25), /ICurveSetDriver\.GetCurveSetTime must be implemented/u);
+  assert.throws(() => new ICurveSetDriver().GetCurveSetTime(1.25), /ICurveSetDriver\.GetCurveSetTime\([^)]*\) must be implemented/u);
   class UnimplementedDriver extends ICurveSetDriver {}
   assert.throws(() => new UnimplementedDriver().GetCurveSetTime(1.25), /ICurveSetDriver\.GetCurveSetTime/u);
 });

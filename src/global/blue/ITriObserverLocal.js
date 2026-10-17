@@ -1,5 +1,5 @@
 // Source: blue/include/ITriObserverLocal.h
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, blue } from "#schema";
 
 /** Native IRoot-shaped contract for binding a local placement observer. */
 export class ITriObserverLocal
@@ -17,6 +17,6 @@ export class ITriObserverLocal
 
 for (const method of ["GetObserver", "SetObserver"])
 {
-  CjsSchema.decorateMethod(ITriObserverLocal, method, blue.method, meta.requires, meta.abstract);
+  CjsSchema.decorateMethod(ITriObserverLocal, method, blue.abstract);
 }
 CjsSchema.blue.define(ITriObserverLocal, { className: "ITriObserverLocal", fields: {} });

@@ -59,10 +59,7 @@ export class IBehavior
    * @param {Array} _dronesInSearchRadius - per-agent neighbours within the search radius
    * @returns {Array}
    */
-  CalculateBehavior(_agents, _scratchData, _deltaTime, _group, _system, _dronesInSearchRadius)
-  {
-    throw new Error("IBehavior.CalculateBehavior must be implemented by a behavior.");
-  }
+  CalculateBehavior(_agents, _scratchData, _deltaTime, _group, _system, _dronesInSearchRadius) {}
 
   /** Debug-renderer options; none by default (h:57-59). */
   GetDebugOptions(_options)

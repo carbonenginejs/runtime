@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Include/IEveBallpark.h
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 import { IEveReferencePoint } from "./IEveReferencePoint.js";
 
 
@@ -9,35 +9,19 @@ export class IEveBallpark extends IEveReferencePoint
 {
 
   /** Writes the current and smoothed reference-point deltas for a time. */
-  @blue.method
-  @meta.abstract
-  Delta(_time, _referencePoint, _smoothedReferencePoint)
-  {
-    throw new Error("IEveBallpark.Delta must be implemented by a concrete ballpark.");
-  }
+  @blue.abstract
+  Delta(_time, _referencePoint, _smoothedReferencePoint) {}
 
   /** Writes the reference-point velocity delta for a time. */
-  @blue.method
-  @meta.abstract
-  DeltaVel(_time, _velocity)
-  {
-    throw new Error("IEveBallpark.DeltaVel must be implemented by a concrete ballpark.");
-  }
+  @blue.abstract
+  DeltaVel(_time, _velocity) {}
 
   /** Returns the ballpark unit scale. */
-  @blue.method
-  @meta.abstract
-  GetUnitBase()
-  {
-    throw new Error("IEveBallpark.GetUnitBase must be implemented by a concrete ballpark.");
-  }
+  @blue.abstract
+  GetUnitBase() {}
 
   /** Sets the ballpark unit scale. */
-  @blue.method
-  @meta.abstract
-  SetUnitBase(_unit)
-  {
-    throw new Error("IEveBallpark.SetUnitBase must be implemented by a concrete ballpark.");
-  }
+  @blue.abstract
+  SetUnitBase(_unit) {}
 
 }

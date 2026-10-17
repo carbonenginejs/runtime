@@ -9,21 +9,30 @@ import { meta, blue } from "#schema";
 export class ITr2GenericParticleConstraint
 {
 
-  /** Binds the constraint to the particle-system declaration. */
-  @blue.method
-  @meta.abstract
-  Bind(_particleSystem)
-  {
-    throw new Error("ITr2GenericParticleConstraint.Bind must be implemented by a concrete constraint.");
-  }
+  /**
+   * Carbon's pure virtual `Bind( Tr2ParticleSystem* system )`
+   * (ITr2GenericParticleConstraint.h:45): called when the constraint is added
+   * to a particle system or the system is re-bound.
+   *
+   * @param {Tr2ParticleSystem} _particleSystem The owning particle system.
+   */
+  @blue.abstract
+  Bind(_particleSystem) {}
 
-  /** Applies the constraint to one particle-system update. */
-  @blue.method
-  @meta.abstract
-  ApplyConstraint(_arguments, _buffers, _strides, _count, _dt)
-  {
-    throw new Error("ITr2GenericParticleConstraint.ApplyConstraint must be implemented by a concrete constraint.");
-  }
+  /**
+   * Carbon's pure virtual `ApplyConstraint( const
+   * ITr2GenericEmitter::UpdateArguments& arguments, float** particles,
+   * unsigned* strides, unsigned count, float dt )`
+   * (ITr2GenericParticleConstraint.h:36).
+   *
+   * @param {object} _arguments Arguments for child emitters.
+   * @param {Array<Float32Array>} _particles Particle data, one array per element.
+   * @param {Array<number>} _strides Floats per particle in each array.
+   * @param {number} _count Number of particles.
+   * @param {number} _dt Frame time.
+   */
+  @blue.abstract
+  ApplyConstraint(_arguments, _particles, _strides, _count, _dt) {}
 
   /** Carbon's base debug hook is intentionally empty. */
   @blue.method

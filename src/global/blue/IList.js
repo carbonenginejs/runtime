@@ -1,5 +1,5 @@
 // Source: blueexposure/include/IList.h:16-35,69-165
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, blue } from "#schema";
 
 
 /** Native IRoot-derived typed object-list contract, represented as a plain JS interface. */
@@ -98,6 +98,6 @@ export class IList
 
 for (const name of [ "GetSize", "GetInfo", "Insert", "Remove", "Append", "GetAt", "FindKey", "Swap", "Sort", "SetNotify", "Move", "GetAllItems" ])
 {
-  CjsSchema.decorateMethod(IList, name, blue.method, meta.requires, meta.abstract);
+  CjsSchema.decorateMethod(IList, name, blue.abstract);
 }
 CjsSchema.blue.define(IList, { className: "IList", fields: {} });

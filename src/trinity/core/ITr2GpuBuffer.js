@@ -11,10 +11,7 @@ export class ITr2GpuBuffer
    * @returns {object|null} The Tr2BufferAL, or null.
    */
   @meta.abstract
-  GetGpuBuffer(_index)
-  {
-    throw new Error("ITr2GpuBuffer.GetGpuBuffer must be implemented by a GPU buffer.");
-  }
+  GetGpuBuffer(_index) {}
 }
 
 CjsSchema.blue.define(ITr2GpuBuffer, { className: "ITr2GpuBuffer", fields: {} });

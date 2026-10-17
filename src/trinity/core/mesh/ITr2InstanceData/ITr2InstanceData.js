@@ -7,28 +7,16 @@ export class ITr2InstanceData
 {
 
   /** Whether the provider's instance stream is ready for batch collection. */
-  IsInstanceDataReady()
-  {
-    throw new Error("ITr2InstanceData.IsInstanceDataReady must be implemented by an instance-data provider.");
-  }
+  IsInstanceDataReady() {}
 
   /** Returns one realized instance-buffer slice for a screen-size selection. */
-  GetInstanceData(_bufferIndex, _screenSize)
-  {
-    throw new Error("ITr2InstanceData.GetInstanceData must be implemented by an instance-data provider.");
-  }
+  GetInstanceData(_bufferIndex, _screenSize) {}
 
   /** Returns the vertex declaration for one instance buffer. */
-  GetInstanceBufferVertexDeclaration(_bufferIndex)
-  {
-    throw new Error("ITr2InstanceData.GetInstanceBufferVertexDeclaration must be implemented by an instance-data provider.");
-  }
+  GetInstanceBufferVertexDeclaration(_bufferIndex) {}
 
   /** Returns the local bounding box represented by one instance buffer. */
-  GetInstanceBufferBoundingBox(_bufferIndex)
-  {
-    throw new Error("ITr2InstanceData.GetInstanceBufferBoundingBox must be implemented by an instance-data provider.");
-  }
+  GetInstanceBufferBoundingBox(_bufferIndex) {}
 }
 
 for (const method of [

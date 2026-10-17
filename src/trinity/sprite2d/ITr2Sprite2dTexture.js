@@ -1,6 +1,6 @@
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Sprite2d/ITr2Sprite2dTexture.h
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 
 /** Native nominal contract for Sprite2D texture inputs. */
 @blue.define({ className: "ITr2Sprite2dTexture", abstract: true })
@@ -8,75 +8,39 @@ import { meta, blue } from "#schema";
 export class ITr2Sprite2dTexture
 {
   /** Applies the texture and sampling settings. */
-  @meta.abstract
-  @blue.method
-  Apply(_renderer, _index)
-  {
-    throw new Error("ITr2Sprite2dTexture.Apply must be implemented by a concrete texture.");
-  }
+  @blue.abstract
+  Apply(_renderer, _index) {}
 
   /** Returns texture width. */
-  @meta.abstract
-  @blue.method
-  GetWidth()
-  {
-    throw new Error("ITr2Sprite2dTexture.GetWidth must be implemented by a concrete texture.");
-  }
+  @blue.abstract
+  GetWidth() {}
 
   /** Returns texture height. */
-  @meta.abstract
-  @blue.method
-  GetHeight()
-  {
-    throw new Error("ITr2Sprite2dTexture.GetHeight must be implemented by a concrete texture.");
-  }
+  @blue.abstract
+  GetHeight() {}
 
   /** Returns the source window width. */
-  @meta.abstract
-  @blue.method
-  GetSrcWidth()
-  {
-    throw new Error("ITr2Sprite2dTexture.GetSrcWidth must be implemented by a concrete texture.");
-  }
+  @blue.abstract
+  GetSrcWidth() {}
 
   /** Returns the source window height. */
-  @meta.abstract
-  @blue.method
-  GetSrcHeight()
-  {
-    throw new Error("ITr2Sprite2dTexture.GetSrcHeight must be implemented by a concrete texture.");
-  }
+  @blue.abstract
+  GetSrcHeight() {}
 
   /** Reports asynchronous texture loading. */
-  @meta.abstract
-  @blue.method
-  IsLoading()
-  {
-    throw new Error("ITr2Sprite2dTexture.IsLoading must be implemented by a concrete texture.");
-  }
+  @blue.abstract
+  IsLoading() {}
 
   /** Reports whether the texture is ready. */
-  @meta.abstract
-  @blue.method
-  IsGood()
-  {
-    throw new Error("ITr2Sprite2dTexture.IsGood must be implemented by a concrete texture.");
-  }
+  @blue.abstract
+  IsGood() {}
 
   /** Registers a change listener. */
-  @meta.abstract
-  @blue.method
-  RegisterForChangeNotification(_target)
-  {
-    throw new Error("ITr2Sprite2dTexture.RegisterForChangeNotification must be implemented by a concrete texture.");
-  }
+  @blue.abstract
+  RegisterForChangeNotification(_target) {}
 
   /** Removes a change listener. */
-  @meta.abstract
-  @blue.method
-  UnregisterForChangeNotification(_target)
-  {
-    throw new Error("ITr2Sprite2dTexture.UnregisterForChangeNotification must be implemented by a concrete texture.");
-  }
+  @blue.abstract
+  UnregisterForChangeNotification(_target) {}
 
 }

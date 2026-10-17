@@ -70,7 +70,7 @@ export class ITriScalarFunction extends ITriFunction
 
 for (const method of [ "Update", "GetValueAt", "ScaleTime" ])
 {
-  CjsSchema.decorateMethod(ITriScalarFunction, method, blue.method, meta.requires, meta.abstract);
+  CjsSchema.decorateMethod(ITriScalarFunction, method, blue.abstract);
 }
 CjsSchema.decorateMethod(ITriScalarFunction, "Update__Ticks", blue.method, meta.adapted);
 CjsSchema.decorateMethod(ITriScalarFunction, "GetValueAt__Ticks", blue.method, meta.adapted);

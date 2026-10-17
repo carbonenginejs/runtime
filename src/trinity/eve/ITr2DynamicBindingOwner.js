@@ -11,10 +11,7 @@ export class ITr2DynamicBindingOwner
    * @returns {Object<string, object>} The owner's parameter map.
    */
   @blue.method
-  GetParameterMap()
-  {
-    throw new Error("ITr2DynamicBindingOwner.GetParameterMap must be implemented by a dynamic-binding owner.");
-  }
+  GetParameterMap() {}
 }
 
 CjsSchema.decorateMethod(ITr2DynamicBindingOwner, "GetParameterMap", meta.abstract);

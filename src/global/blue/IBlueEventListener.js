@@ -1,6 +1,6 @@
 // Source: blue/include/IBlueEventListener.h:7-10
 // Source: blue/src/IBlueEventListener_Blue.cpp:6
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, blue } from "#schema";
 
 
 /**
@@ -20,7 +20,7 @@ export class IBlueEventListener
   }
 }
 
-CjsSchema.decorateMethod(IBlueEventListener, "HandleEvent", blue.method, meta.requires, meta.abstract);
+CjsSchema.decorateMethod(IBlueEventListener, "HandleEvent", blue.abstract);
 // Carbon defines an IID, not a class factory. JavaScript registers the interface
 // constructor so named declarations and nominal composition resolve one identity.
 CjsSchema.blue.define(IBlueEventListener, {

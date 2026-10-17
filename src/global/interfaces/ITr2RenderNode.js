@@ -7,18 +7,12 @@ export class ITr2RenderNode
 {
 
   /** Validates the node against its requested destinations and named outputs. */
-  Validate(_destinationDimensions, _outputs, _realTime, _simTime)
-  {
-    throw new Error("ITr2RenderNode.Validate must be implemented by a render node.");
-  }
+  Validate(_destinationDimensions, _outputs, _realTime, _simTime) {}
 
   /** Executes the node into its requested destinations. */
-  Execute(_destinations, _outputs, _realTime, _simTime, _rootTimer, _renderContext)
-  {
-    throw new Error("ITr2RenderNode.Execute must be implemented by a render node.");
-  }
+  Execute(_destinations, _outputs, _realTime, _simTime, _rootTimer, _renderContext) {}
 }
 
-CjsSchema.decorateMethod(ITr2RenderNode, "Validate", blue.method, meta.abstract);
-CjsSchema.decorateMethod(ITr2RenderNode, "Execute", blue.method, meta.abstract);
+CjsSchema.decorateMethod(ITr2RenderNode, "Validate", blue.abstract);
+CjsSchema.decorateMethod(ITr2RenderNode, "Execute", blue.abstract);
 CjsSchema.blue.define(ITr2RenderNode, { className: "ITr2RenderNode" });

@@ -1,4 +1,4 @@
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, blue } from "#schema";
 // Source: trinity/shadercompiler/OutputHLSL.h
 
 /**
@@ -10,8 +10,9 @@ import { CjsSchema, blue, meta } from "#schema";
  * `Indent`, `Unindent` and `Endl` tags call the hooks of the same names. The
  * port calls those methods directly; `Write` is the text-and-number case.
  *
- * Abstract: `Endl`, `ChangeLocation`, `Indent` and `Unindent` throw until a
- * subclass implements them, as Carbon declares them pure virtual.
+ * Abstract: `Endl`, `ChangeLocation`, `Indent` and `Unindent` are Carbon's
+ * pure virtuals (OutputHLSL.h:23-26); `blue.abstract` installs their throwing
+ * bodies.
  */
 export class CodeStream
 {
@@ -62,34 +63,21 @@ export class CodeStream
         return this._text;
     }
 
-    /** Carbon's pure virtual `Endl`. */
-    Endl()
-    {
-        throw new Error("CodeStream.Endl is abstract");
-    }
+    /** Carbon's pure virtual `Endl` (OutputHLSL.h:23). */
+    Endl() {}
 
     /**
-     * Carbon's pure virtual `ChangeLocation`.
+     * Carbon's pure virtual `ChangeLocation` (OutputHLSL.h:24).
      *
-     * @param {import("../ParserState/FileLocation.js").FileLocation} location The location of the node about to print.
+     * @param {import("../ParserState/FileLocation.js").FileLocation} _location The location of the node about to print.
      */
-    ChangeLocation(location)
-    {
-        void location;
-        throw new Error("CodeStream.ChangeLocation is abstract");
-    }
+    ChangeLocation(_location) {}
 
-    /** Carbon's pure virtual `Indent`. */
-    Indent()
-    {
-        throw new Error("CodeStream.Indent is abstract");
-    }
+    /** Carbon's pure virtual `Indent` (OutputHLSL.h:25). */
+    Indent() {}
 
-    /** Carbon's pure virtual `Unindent`. */
-    Unindent()
-    {
-        throw new Error("CodeStream.Unindent is abstract");
-    }
+    /** Carbon's pure virtual `Unindent` (OutputHLSL.h:26). */
+    Unindent() {}
 
     /**
      * C++ `std::ostream << float` with default flags: `%g`, precision 6, an
@@ -140,9 +128,9 @@ export class CodeStream
 CjsSchema.blue.define(CodeStream, {
     className: "CodeStream",
     methods: {
-        Endl: [blue.method, meta.abstract],
-        ChangeLocation: [blue.method, meta.abstract],
-        Indent: [blue.method, meta.abstract],
-        Unindent: [blue.method, meta.abstract]
+        Endl: blue.abstract,
+        ChangeLocation: blue.abstract,
+        Indent: blue.abstract,
+        Unindent: blue.abstract
     }
 });

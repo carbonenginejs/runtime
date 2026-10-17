@@ -233,7 +233,8 @@ async function ReadJavaScriptClasses(directory, includeDropped = false)
         if (member.type !== "ClassMethod" || member.kind === "constructor") continue;
         const name = GetMemberName(member);
         if (!name) continue;
-        const metadata = { hasCarbon: HasCarbonDecorator(member, "method"), isStatic: member.static === true };
+        // `blue.abstract` stamps a Carbon pure virtual as Carbon's, as `blue.method` does.
+        const metadata = { hasCarbon: HasCarbonDecorator(member, "method") || HasCarbonDecorator(member, "abstract"), isStatic: member.static === true };
         methods.set(name, metadata);
         // An overload variant `Name__Variant` credits Carbon's `Name`: C++
         // reserves `__`, so everything before it is the donor's name. Like a

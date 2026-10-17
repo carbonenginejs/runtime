@@ -13,20 +13,12 @@ import { ImpactConfiguration } from "../generated/include/enums.js";
 export class ITriTargetable
 {
   /** Number of damage locators. @returns {number} */
-  @blue.method
-  @meta.abstract
-  GetDamageLocatorCount()
-  {
-    throw new Error("ITriTargetable.GetDamageLocatorCount must be implemented by a targetable.");
-  }
+  @blue.abstract
+  GetDamageLocatorCount() {}
 
   /** Index of the damage locator closest to a world position. @param {Float32Array} _position @returns {number} */
-  @blue.method
-  @meta.abstract
-  GetClosestDamageLocatorIndex(_position)
-  {
-    throw new Error("ITriTargetable.GetClosestDamageLocatorIndex must be implemented by a targetable.");
-  }
+  @blue.abstract
+  GetClosestDamageLocatorIndex(_position) {}
 
   /**
    * Writes a damage locator's position.
@@ -35,12 +27,8 @@ export class ITriTargetable
    * @param {Float32Array} _out Output position.
    * @returns {boolean} Whether the index named a locator.
    */
-  @blue.method
-  @meta.abstract
-  GetDamageLocatorPosition(_index, _inWorldSpace, _out)
-  {
-    throw new Error("ITriTargetable.GetDamageLocatorPosition must be implemented by a targetable.");
-  }
+  @blue.abstract
+  GetDamageLocatorPosition(_index, _inWorldSpace, _out) {}
 
   /**
    * Writes a damage locator's direction.
@@ -49,12 +37,8 @@ export class ITriTargetable
    * @param {Float32Array} _out Output direction.
    * @returns {boolean} Whether the index named a locator.
    */
-  @blue.method
-  @meta.abstract
-  GetDamageLocatorDirection(_index, _inWorldSpace, _out)
-  {
-    throw new Error("ITriTargetable.GetDamageLocatorDirection must be implemented by a targetable.");
-  }
+  @blue.abstract
+  GetDamageLocatorDirection(_index, _inWorldSpace, _out) {}
 
   /**
    * Writes where a shot from source aimed at hit lands when it misses.
@@ -62,28 +46,16 @@ export class ITriTargetable
    * @param {Float32Array} _source Shot origin.
    * @param {Float32Array} _out Output miss position.
    */
-  @blue.method
-  @meta.abstract
-  GetMissPosition(_hit, _source, _out)
-  {
-    throw new Error("ITriTargetable.GetMissPosition must be implemented by a targetable.");
-  }
+  @blue.abstract
+  GetMissPosition(_hit, _source, _out) {}
 
   /** A randomized well-facing damage locator for a world position. @param {Float32Array} _position @returns {number} */
-  @blue.method
-  @meta.abstract
-  GetGoodDamageLocatorIndex(_position)
-  {
-    throw new Error("ITriTargetable.GetGoodDamageLocatorIndex must be implemented by a targetable.");
-  }
+  @blue.abstract
+  GetGoodDamageLocatorIndex(_position) {}
 
   /** Target radius. @returns {number} */
-  @blue.method
-  @meta.abstract
-  GetRadius()
-  {
-    throw new Error("ITriTargetable.GetRadius must be implemented by a targetable.");
-  }
+  @blue.abstract
+  GetRadius() {}
 
   /**
    * Creates an impact effect at a damage locator.
@@ -93,12 +65,8 @@ export class ITriTargetable
    * @param {number} _size Impact size.
    * @returns {number} Impact index, or -1.
    */
-  @blue.method
-  @meta.abstract
-  CreateImpact(_damageLocatorIndex, _direction, _lifeTime, _size)
-  {
-    throw new Error("ITriTargetable.CreateImpact must be implemented by a targetable.");
-  }
+  @blue.abstract
+  CreateImpact(_damageLocatorIndex, _direction, _lifeTime, _size) {}
 
   /**
    * Updates a live impact's position.
@@ -107,12 +75,8 @@ export class ITriTargetable
    * @param {number} _impactIndex Impact index from CreateImpact.
    * @returns {boolean} Whether the impact is still live.
    */
-  @blue.method
-  @meta.abstract
-  UpdateImpact(_out, _direction, _impactIndex)
-  {
-    throw new Error("ITriTargetable.UpdateImpact must be implemented by a targetable.");
-  }
+  @blue.abstract
+  UpdateImpact(_out, _direction, _impactIndex) {}
 
   /** Carbon's default (ITriTargetable.h:23-26): no impact configuration. @returns {number} */
   @blue.method
@@ -131,20 +95,12 @@ export class ITriTargetable
    * @param {Float32Array} _out Output impact position.
    * @returns {boolean} Whether the projectile hit.
    */
-  @blue.method
-  @meta.abstract
-  GetImpactPosition(_locator, _posPrev, _posNow, _epsilon, _out)
-  {
-    throw new Error("ITriTargetable.GetImpactPosition must be implemented by a targetable.");
-  }
+  @blue.abstract
+  GetImpactPosition(_locator, _posPrev, _posNow, _epsilon, _out) {}
 
   /** Whether impacts use the shield ellipsoid. @returns {boolean} */
-  @blue.method
-  @meta.abstract
-  HasImpactConfigurationShield()
-  {
-    throw new Error("ITriTargetable.HasImpactConfigurationShield must be implemented by a targetable.");
-  }
+  @blue.abstract
+  HasImpactConfigurationShield() {}
 
   /** Carbon's default (ITriTargetable.h:32-34) ignores the locator. @param {number} _locator */
   @blue.method

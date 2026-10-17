@@ -109,65 +109,41 @@ export class ITriRenderBatchAccumulator
    * shared state.
   */
   @meta.abstract
-  Clear()
-  {
-    throw new Error("ITriRenderBatchAccumulator.Clear is abstract");
-  }
+  Clear() {}
 
   /**
    * Abstract: concrete accumulators take ownership of a batch and file it for
    * sorting.
   */
   @meta.abstract
-  Commit(_batch)
-  {
-    throw new Error("ITriRenderBatchAccumulator.Commit is abstract");
-  }
+  Commit(_batch) {}
 
   /** Abstract: the GDPR-eligible batch vector. */
   @meta.abstract
-  GetGdprBatches()
-  {
-    throw new Error("ITriRenderBatchAccumulator.GetGdprBatches is abstract");
-  }
+  GetGdprBatches() {}
 
   /** Abstract: the plain batch vector. */
   @meta.abstract
-  GetBatches()
-  {
-    throw new Error("ITriRenderBatchAccumulator.GetBatches is abstract");
-  }
+  GetBatches() {}
 
   /** Abstract: concrete accumulators sort and group-count the collected batches. */
   @meta.abstract
-  Finalize()
-  {
-    throw new Error("ITriRenderBatchAccumulator.Finalize is abstract");
-  }
+  Finalize() {}
 
   /** Abstract: total number of collected batches. */
   @meta.abstract
-  GetBatchCount()
-  {
-    throw new Error("ITriRenderBatchAccumulator.GetBatchCount is abstract");
-  }
+  GetBatchCount() {}
 
   /**
    * Abstract: whether the collected batches are effect-sorted rather than
    * order-preserving.
   */
   @meta.abstract
-  IsChainedByEffect()
-  {
-    throw new Error("ITriRenderBatchAccumulator.IsChainedByEffect is abstract");
-  }
+  IsChainedByEffect() {}
 
   /** Abstract: folds another accumulator's batches into this one. */
   @meta.abstract
-  TransferFrom(_source)
-  {
-    throw new Error("ITriRenderBatchAccumulator.TransferFrom is abstract");
-  }
+  TransferFrom(_source) {}
 }
 
 CjsSchema.decorateMethod(ITriRenderBatchAccumulator, "Allocate", blue.method);

@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Tr2VolumetricsRenderer.h
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 
 
@@ -16,11 +16,7 @@ export class ITr2FroxelFogSettings extends EveChildTransform
 {
 
   /** Returns the provider's stable FroxelFogSettings value record. */
-  @blue.method
-  @meta.abstract
-  GetFroxelFogSettings()
-  {
-    throw new Error("ITr2FroxelFogSettings.GetFroxelFogSettings must be implemented by a froxel-fog component.");
-  }
+  @blue.abstract
+  GetFroxelFogSettings() {}
 
 }

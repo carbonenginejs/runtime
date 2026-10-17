@@ -13,20 +13,14 @@ export class ITr2CurveSetOwner
    * @param {string} _rangeName The range name.
    * @returns {void}
    */
-  PlayCurveSet(_name, _rangeName)
-  {
-    throw new Error("ITr2CurveSetOwner.PlayCurveSet must be implemented by a curve-set owner.");
-  }
+  PlayCurveSet(_name, _rangeName) {}
 
   /**
    * Stops a named curve set.
    * @param {string} _name The curve set name.
    * @returns {void}
    */
-  StopCurveSet(_name)
-  {
-    throw new Error("ITr2CurveSetOwner.StopCurveSet must be implemented by a curve-set owner.");
-  }
+  StopCurveSet(_name) {}
 
   /**
    * Leaves explicit curve-set updates to owners that override this native default.
@@ -43,10 +37,7 @@ export class ITr2CurveSetOwner
    * @param {string} _name The curve set name.
    * @returns {number} The duration reported by the owner.
    */
-  GetCurveSetDuration(_name)
-  {
-    throw new Error("ITr2CurveSetOwner.GetCurveSetDuration must be implemented by a curve-set owner.");
-  }
+  GetCurveSetDuration(_name) {}
 
   /**
    * Returns the duration of a named range in a curve set.
@@ -54,10 +45,7 @@ export class ITr2CurveSetOwner
    * @param {string} _rangeName The range name.
    * @returns {number} The range duration reported by the owner.
    */
-  GetRangeDuration(_name, _rangeName)
-  {
-    throw new Error("ITr2CurveSetOwner.GetRangeDuration must be implemented by a curve-set owner.");
-  }
+  GetRangeDuration(_name, _rangeName) {}
 
   /**
    * Leaves starting all curve sets to owners that override this native default.
@@ -78,7 +66,7 @@ export class ITr2CurveSetOwner
 
 for (const name of [ "PlayCurveSet", "StopCurveSet", "GetCurveSetDuration", "GetRangeDuration" ])
 {
-  CjsSchema.decorateMethod(ITr2CurveSetOwner, name, blue.method, meta.abstract);
+  CjsSchema.decorateMethod(ITr2CurveSetOwner, name, blue.abstract);
 }
 for (const name of [ "UpdateCurveSet", "PlayAllCurveSets", "StopAllCurveSets" ])
 {

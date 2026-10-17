@@ -42,12 +42,8 @@ export class ITr2StateMachineStateFinalizer
    * @param {object} _controller The owning controller.
    * @returns {boolean} Whether the state machine may leave the current state.
    */
-  @blue.method
-  @meta.abstract
-  CanTransition(_controller)
-  {
-    throw new Error("ITr2StateMachineStateFinalizer.CanTransition must be implemented by a finalizer.");
-  }
+  @blue.abstract
+  CanTransition(_controller) {}
 }
 
 

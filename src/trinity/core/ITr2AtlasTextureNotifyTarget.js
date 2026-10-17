@@ -25,8 +25,5 @@ export class ITr2AtlasTextureNotifyTarget
    * @returns {void}
    */
   @meta.abstract
-  AtlasTextureChanged(_texture)
-  {
-    throw new Error("ITr2AtlasTextureNotifyTarget.AtlasTextureChanged must be implemented by a concrete listener.");
-  }
+  AtlasTextureChanged(_texture) {}
 }

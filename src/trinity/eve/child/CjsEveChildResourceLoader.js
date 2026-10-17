@@ -8,9 +8,6 @@ export class CjsEveChildResourceLoader
 
   /** Resolves one child resource path for its owning graph object. */
   @meta.abstract
-  LoadChild(_resourcePath, _owner)
-  {
-    throw new Error("CjsEveChildResourceLoader.LoadChild must be implemented by a concrete loader.");
-  }
+  LoadChild(_resourcePath, _owner) {}
 
 }

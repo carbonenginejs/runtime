@@ -206,13 +206,17 @@ export class Tr2Transform
     return true;
   }
 
-  /** Abstract ITr2Renderable per-object-data obligation. */
-  @blue.method
-  @meta.abstract
-  GetPerObjectData(..._args)
-  {
-    throw new Error("Tr2Transform.GetPerObjectData must be implemented by a scene-specific subclass.");
-  }
+  /**
+   * Abstract ITr2Renderable per-object-data obligation: Carbon's pure virtual
+   * `GetPerObjectData( ITriRenderBatchAccumulator* accumulator )`
+   * (ITr2Renderable.h:56), left unimplemented by Tr2Transform
+   * (Tr2Transform.h:68).
+   *
+   * @param {ITriRenderBatchAccumulator} _accumulator The accumulator.
+   * @returns {Tr2PerObjectData|null} The object's per-object data.
+   */
+  @blue.abstract
+  GetPerObjectData(_accumulator) {}
 
   /** Returns whether the displayed mesh has transparent areas. */
   @blue.method

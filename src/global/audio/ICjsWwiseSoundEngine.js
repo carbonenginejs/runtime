@@ -21,10 +21,7 @@ export class ICjsWwiseSoundEngine
      *
      * @returns {boolean} Whether the engine is usable.
      */
-    Init()
-    {
-        throw new Error("ICjsWwiseSoundEngine.Init must be overridden by an audio backend.");
-    }
+    Init() {}
 
     /**
      * Loads a sound bank (`AK::SoundEngine::LoadBank`).
@@ -32,10 +29,7 @@ export class ICjsWwiseSoundEngine
      * @param {string} _name - Bank name.
      * @param {Function} [_callback] - Called with whether the load succeeded.
      */
-    LoadBank(_name, _callback)
-    {
-        throw new Error("ICjsWwiseSoundEngine.LoadBank must be overridden by an audio backend.");
-    }
+    LoadBank(_name, _callback) {}
 
     /**
      * Unloads a sound bank (`AK::SoundEngine::UnloadBank`).
@@ -43,36 +37,24 @@ export class ICjsWwiseSoundEngine
      * @param {string} _name - Bank name.
      * @param {Function} [_callback] - Called when the unload completes.
      */
-    UnloadBank(_name, _callback)
-    {
-        throw new Error("ICjsWwiseSoundEngine.UnloadBank must be overridden by an audio backend.");
-    }
+    UnloadBank(_name, _callback) {}
 
     /** Unloads every bank (`AK::SoundEngine::ClearBanks`). */
-    ClearBanks()
-    {
-        throw new Error("ICjsWwiseSoundEngine.ClearBanks must be overridden by an audio backend.");
-    }
+    ClearBanks() {}
 
     /**
      * Registers a game object (`AK::SoundEngine::RegisterGameObj`).
      *
      * @param {number} _gameObjID - Game object.
      */
-    RegisterGameObj(_gameObjID)
-    {
-        throw new Error("ICjsWwiseSoundEngine.RegisterGameObj must be overridden by an audio backend.");
-    }
+    RegisterGameObj(_gameObjID) {}
 
     /**
      * Unregisters a game object (`AK::SoundEngine::UnregisterGameObj`).
      *
      * @param {number} _gameObjID - Game object.
      */
-    UnregisterGameObj(_gameObjID)
-    {
-        throw new Error("ICjsWwiseSoundEngine.UnregisterGameObj must be overridden by an audio backend.");
-    }
+    UnregisterGameObj(_gameObjID) {}
 
     /**
      * Suppresses external completion delivery for this object's current events
@@ -83,10 +65,7 @@ export class ICjsWwiseSoundEngine
      * @param {number} _gameObjID - Game object whose current callbacks are cancelled.
      * @returns {void}
      */
-    CancelEventCallbackGameObject(_gameObjID)
-    {
-        throw new Error("ICjsWwiseSoundEngine.CancelEventCallbackGameObject must be overridden by an audio backend.");
-    }
+    CancelEventCallbackGameObject(_gameObjID) {}
 
     /**
      * Whether an installed authored program owns execution of an event's Stops.
@@ -95,10 +74,7 @@ export class ICjsWwiseSoundEngine
      * @param {string} _eventName - Event name.
      * @returns {boolean} Whether the backend owns authored Stop execution.
      */
-    HandlesEventStops(_eventName)
-    {
-        throw new Error("ICjsWwiseSoundEngine.HandlesEventStops must be overridden by an audio backend.");
-    }
+    HandlesEventStops(_eventName) {}
 
     /**
      * Posts an event on a game object (`AK::SoundEngine::PostEvent`).
@@ -110,10 +86,7 @@ export class ICjsWwiseSoundEngine
      * @param {string} [_eventName] - Event name.
      * @returns {number} The playing ID, or 0 when nothing was posted.
      */
-    PostEvent(_eventID, _gameObjID, _additionalFlags, _emitter, _eventName)
-    {
-        throw new Error("ICjsWwiseSoundEngine.PostEvent must be overridden by an audio backend.");
-    }
+    PostEvent(_eventID, _gameObjID, _additionalFlags, _emitter, _eventName) {}
 
     /**
      * Stops, pauses or resumes one playing ID (`AK::SoundEngine::ExecuteActionOnPlayingID`).
@@ -122,98 +95,65 @@ export class ICjsWwiseSoundEngine
      * @param {number} _playingID - Playing ID.
      * @param {number} [_fadeOutDuration] - Fade in milliseconds.
      */
-    ExecuteActionOnPlayingID(_action, _playingID, _fadeOutDuration)
-    {
-        throw new Error("ICjsWwiseSoundEngine.ExecuteActionOnPlayingID must be overridden by an audio backend.");
-    }
+    ExecuteActionOnPlayingID(_action, _playingID, _fadeOutDuration) {}
 
     /**
      * Seeks a playing ID by milliseconds (`AK::SoundEngine::SeekOnEvent`).
      *
      * @returns {boolean} Whether the seek applied.
      */
-    SeekOnEventMs(_playingID, _msToSeek)
-    {
-        throw new Error("ICjsWwiseSoundEngine.SeekOnEventMs must be overridden by an audio backend.");
-    }
+    SeekOnEventMs(_playingID, _msToSeek) {}
 
     /**
      * Seeks a playing ID by fraction of its duration (`AK::SoundEngine::SeekOnEvent`).
      *
      * @returns {boolean} Whether the seek applied.
      */
-    SeekOnEventPercent(_playingID, _percentToSeek)
-    {
-        throw new Error("ICjsWwiseSoundEngine.SeekOnEventPercent must be overridden by an audio backend.");
-    }
+    SeekOnEventPercent(_playingID, _percentToSeek) {}
 
     /** Places a game object (`AK::SoundEngine::SetPosition`). */
-    SetPosition(_gameObjID, _front, _top, _position)
-    {
-        throw new Error("ICjsWwiseSoundEngine.SetPosition must be overridden by an audio backend.");
-    }
+    SetPosition(_gameObjID, _front, _top, _position) {}
 
     /**
      * Places the listener (`AK::SoundEngine::SetPosition` on the listener object).
      *
      * @returns {boolean} Whether the pose was applied.
      */
-    SetListenerPosition(_gameObjID, _front, _top, _position)
-    {
-        throw new Error("ICjsWwiseSoundEngine.SetListenerPosition must be overridden by an audio backend.");
-    }
+    SetListenerPosition(_gameObjID, _front, _top, _position) {}
 
     /**
      * Scales a game object's attenuation (`AK::SoundEngine::SetScalingFactor`).
      *
      * @returns {boolean} Whether the factor applied.
      */
-    SetScalingFactor(_gameObjID, _value)
-    {
-        throw new Error("ICjsWwiseSoundEngine.SetScalingFactor must be overridden by an audio backend.");
-    }
+    SetScalingFactor(_gameObjID, _value) {}
 
     /** Sets a game object's switch (`AK::SoundEngine::SetSwitch`). */
-    SetSwitch(_switchGroup, _switchState, _gameObjID)
-    {
-        throw new Error("ICjsWwiseSoundEngine.SetSwitch must be overridden by an audio backend.");
-    }
+    SetSwitch(_switchGroup, _switchState, _gameObjID) {}
 
     /**
      * Sets a game object's RTPC (`AK::SoundEngine::SetRTPCValue`).
      *
      * @returns {boolean} Whether the value applied.
      */
-    SetRTPCValue(_rtpcName, _value, _gameObjID)
-    {
-        throw new Error("ICjsWwiseSoundEngine.SetRTPCValue must be overridden by an audio backend.");
-    }
+    SetRTPCValue(_rtpcName, _value, _gameObjID) {}
 
     /**
      * Sets a global RTPC (`AK::SoundEngine::SetRTPCValue` on no game object).
      *
      * @returns {boolean} Whether the value applied.
      */
-    SetGlobalRTPCValue(_rtpcName, _value)
-    {
-        throw new Error("ICjsWwiseSoundEngine.SetGlobalRTPCValue must be overridden by an audio backend.");
-    }
+    SetGlobalRTPCValue(_rtpcName, _value) {}
 
     /**
      * Reads a global RTPC (`AK::SoundEngine::Query::GetRTPCValue`).
      *
      * @returns {number|undefined} The value, or undefined when never set.
      */
-    GetGlobalRTPCValue(_rtpcName, _at)
-    {
-        throw new Error("ICjsWwiseSoundEngine.GetGlobalRTPCValue must be overridden by an audio backend.");
-    }
+    GetGlobalRTPCValue(_rtpcName, _at) {}
 
     /** Sets a global state (`AK::SoundEngine::SetState`). */
-    SetGlobalState(_stateGroup, _stateName)
-    {
-        throw new Error("ICjsWwiseSoundEngine.SetGlobalState must be overridden by an audio backend.");
-    }
+    SetGlobalState(_stateGroup, _stateName) {}
 
     /**
      * Sets a game object's obstruction and occlusion
@@ -221,68 +161,44 @@ export class ICjsWwiseSoundEngine
      *
      * @returns {boolean} Whether the values applied.
      */
-    SetObjectObstructionAndOcclusion(_gameObjID, _listenerID, _obstruction, _occlusion)
-    {
-        throw new Error("ICjsWwiseSoundEngine.SetObjectObstructionAndOcclusion must be overridden by an audio backend.");
-    }
+    SetObjectObstructionAndOcclusion(_gameObjID, _listenerID, _obstruction, _occlusion) {}
 
     /**
      * A playing ID's position in milliseconds (`AK::SoundEngine::GetSourcePlayPosition`).
      *
      * @returns {number} Milliseconds, or -1 when invalid or finished.
      */
-    GetSourcePlayPosition(_playingID)
-    {
-        throw new Error("ICjsWwiseSoundEngine.GetSourcePlayPosition must be overridden by an audio backend.");
-    }
+    GetSourcePlayPosition(_playingID) {}
 
     /** Advances the engine one tick (`AK::SoundEngine::RenderAudio`). */
-    RenderAudio()
-    {
-        throw new Error("ICjsWwiseSoundEngine.RenderAudio must be overridden by an audio backend.");
-    }
+    RenderAudio() {}
 
     /**
      * Initializes spatial-audio geometry (`AK::SpatialAudio::Init`).
      *
      * @returns {boolean} Whether geometry is available.
      */
-    InitSpatialAudioGeometry(_settings)
-    {
-        throw new Error("ICjsWwiseSoundEngine.InitSpatialAudioGeometry must be overridden by an audio backend.");
-    }
+    InitSpatialAudioGeometry(_settings) {}
 
     /**
      * Registers a geometry set (`AK::SpatialAudio::SetGeometry`).
      *
      * @returns {boolean} Whether the set was registered.
      */
-    SetGeometry(_geometrySetId, _params)
-    {
-        throw new Error("ICjsWwiseSoundEngine.SetGeometry must be overridden by an audio backend.");
-    }
+    SetGeometry(_geometrySetId, _params) {}
 
     /**
      * Places a geometry instance (`AK::SpatialAudio::SetGeometryInstance`).
      *
      * @returns {boolean} Whether the instance was placed.
      */
-    SetGeometryInstance(_geometryInstanceId, _params)
-    {
-        throw new Error("ICjsWwiseSoundEngine.SetGeometryInstance must be overridden by an audio backend.");
-    }
+    SetGeometryInstance(_geometryInstanceId, _params) {}
 
     /** Removes a geometry set (`AK::SpatialAudio::RemoveGeometry`). */
-    RemoveGeometry(_geometrySetId)
-    {
-        throw new Error("ICjsWwiseSoundEngine.RemoveGeometry must be overridden by an audio backend.");
-    }
+    RemoveGeometry(_geometrySetId) {}
 
     /** Removes a geometry instance (`AK::SpatialAudio::RemoveGeometryInstance`). */
-    RemoveGeometryInstance(_geometryInstanceId)
-    {
-        throw new Error("ICjsWwiseSoundEngine.RemoveGeometryInstance must be overridden by an audio backend.");
-    }
+    RemoveGeometryInstance(_geometryInstanceId) {}
 
 }
 

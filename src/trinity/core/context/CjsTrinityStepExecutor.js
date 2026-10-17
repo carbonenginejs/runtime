@@ -10,24 +10,15 @@ export class CjsTrinityStepExecutor
 
   /** Begins one canonical render step. */
   @meta.abstract
-  BeginStep(_step, _realTime, _simTime, _job, _context)
-  {
-    throw new Error("CjsTrinityStepExecutor.BeginStep must be implemented by a concrete executor.");
-  }
+  BeginStep(_step, _realTime, _simTime, _job, _context) {}
 
   /** Executes one canonical render step. */
   @meta.abstract
-  ExecuteStep(_step, _realTime, _simTime, _job, _context)
-  {
-    throw new Error("CjsTrinityStepExecutor.ExecuteStep must be implemented by a concrete executor.");
-  }
+  ExecuteStep(_step, _realTime, _simTime, _job, _context) {}
 
   /** Ends one canonical render step. */
   @meta.abstract
-  EndStep(_step, _realTime, _simTime, _job, _context)
-  {
-    throw new Error("CjsTrinityStepExecutor.EndStep must be implemented by a concrete executor.");
-  }
+  EndStep(_step, _realTime, _simTime, _job, _context) {}
 
   // THERE WAS A SCENE BRACKET HERE, AND IT IS GONE (2026-09-18). BeginScene
   // and EndScene are the BACKEND's, inherited by Carbon's render context from
@@ -38,16 +29,10 @@ export class CjsTrinityStepExecutor
 
   /** Opens a render-target and depth-stencil batch bracket. */
   @meta.abstract
-  BeginBatch(_owner, _context)
-  {
-    throw new Error("CjsTrinityStepExecutor.BeginBatch must be implemented by a concrete executor.");
-  }
+  BeginBatch(_owner, _context) {}
 
   /** Closes a render-target and depth-stencil batch bracket. */
   @meta.abstract
-  EndBatch(_owner, _context)
-  {
-    throw new Error("CjsTrinityStepExecutor.EndBatch must be implemented by a concrete executor.");
-  }
+  EndBatch(_owner, _context) {}
 
 }

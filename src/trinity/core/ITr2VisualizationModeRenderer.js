@@ -11,10 +11,7 @@ export class ITr2VisualizationModeRenderer
    * @returns {void}
    */
   @meta.abstract
-  SetVisualizationMode(_visualizationMode)
-  {
-    throw new Error("ITr2VisualizationModeRenderer.SetVisualizationMode must be implemented by a renderer.");
-  }
+  SetVisualizationMode(_visualizationMode) {}
 }
 
 CjsSchema.blue.define(ITr2VisualizationModeRenderer, { className: "ITr2VisualizationModeRenderer", fields: {} });

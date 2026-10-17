@@ -8,7 +8,7 @@ test("multi-pass scene exposes the native enums and requires RenderPass", () =>
 {
   assert.equal(ITr2MultiPassScene.PassType, PassType);
   assert.equal(ITr2MultiPassScene.RenderPassResult, RenderPassResult);
-  assert.throws(() => new ITr2MultiPassScene().RenderPass(0, null), /RenderPass must be implemented/);
+  assert.throws(() => new ITr2MultiPassScene().RenderPass(0, null), /ITr2MultiPassScene\.RenderPass\([^)]*\) must be implemented/);
   class Scene extends ITr2MultiPassScene
   {
     RenderPass() { return RenderPassResult.PASS_RESULT_TERMINATE; }
@@ -20,7 +20,7 @@ test("multi-pass scene exposes the native enums and requires RenderPass", () =>
 
 test("visualization renderer requires its native mode setter", () =>
 {
-  assert.throws(() => new ITr2VisualizationModeRenderer().SetVisualizationMode(0), /SetVisualizationMode must be implemented/);
+  assert.throws(() => new ITr2VisualizationModeRenderer().SetVisualizationMode(0), /ITr2VisualizationModeRenderer\.SetVisualizationMode\(visualizationMode\) must be implemented/);
   class Renderer extends ITr2VisualizationModeRenderer
   {
     SetVisualizationMode(mode) { this.mode = mode; }

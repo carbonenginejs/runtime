@@ -1,6 +1,6 @@
 import { IRoot } from "#blue/IRoot";
 // Source: trinityaudioapi/include/ITr2Audio.h
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, blue } from "#schema";
 
 /** Positions an asset's audio and locates its named emitters. */
 export class ITr2Audio
@@ -14,7 +14,7 @@ export class ITr2Audio
 
 for (const method of [ "Update", "FindEmitterByName" ])
 {
-  CjsSchema.decorateMethod(ITr2Audio, method, blue.method, meta.requires, meta.abstract);
+  CjsSchema.decorateMethod(ITr2Audio, method, blue.abstract);
 }
 blue.inherit(IRoot)(ITr2Audio);
 CjsSchema.blue.define(ITr2Audio, {

@@ -409,12 +409,8 @@ export class Tr2MeshBase
    *
    * @returns {object} The geometry resource.
    */
-  @blue.method
-  @meta.abstract
-  GetGeometryResource()
-  {
-    throw new Error("Tr2MeshBase.GetGeometryResource must be implemented by a mesh.");
-  }
+  @blue.abstract
+  GetGeometryResource() {}
 
   /**
    * The live area list for a TriBatchType, or null for a non-integer or unmapped

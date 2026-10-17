@@ -9,7 +9,7 @@
 // layers that may not import each other; both may import `blue`, so a class
 // one of them owns is reached by the other through this registry. A class
 // nobody registered is simply not found, and the caller fails at the call.
-import { CjsSchema, meta, blue } from "#schema";
+import { CjsSchema, blue } from "#schema";
 
 /** `IBlueClasses` - class registration and creation by name, per blueexposure/include/IBlueClasses.h. */
 export class IBlueClasses
@@ -159,7 +159,7 @@ for (const method of [
   "IsPendingDeletesEnabled", "RegisterThunker", "GetRtti"
 ])
 {
-  CjsSchema.decorateMethod(IBlueClasses, method, blue.method, meta.requires, meta.abstract);
+  CjsSchema.decorateMethod(IBlueClasses, method, blue.abstract);
 }
 
 CjsSchema.blue.define(IBlueClasses, { className: "IBlueClasses", fields: {} });

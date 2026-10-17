@@ -19,7 +19,7 @@ import { ITr2EffectValue } from "./ITr2EffectValue.js";
 // methods below are ITriEffectParameter's own. `SupportsDirtyNotification` is
 // the one Carbon DEFAULTS rather than leaving pure, so it defaults here too.
 
-import { CjsSchema, blue, meta } from "#schema";
+import { CjsSchema, blue } from "#schema";
 
 
 /** Contract for a shader parameter: its name, its effect handles and its content hash. */
@@ -27,22 +27,13 @@ export class ITriEffectParameter
 {
 
   /** The authored parameter name the effect binds by. */
-  GetParameterName()
-  {
-    throw new Error("ITriEffectParameter.GetParameterName must be implemented by a parameter.");
-  }
+  GetParameterName() {}
 
   /** Re-resolves this parameter's handles against a shader's reflection. */
-  RebuildEffectHandles(_effectRes)
-  {
-    throw new Error("ITriEffectParameter.RebuildEffectHandles must be implemented by a parameter.");
-  }
+  RebuildEffectHandles(_effectRes) {}
 
   /** Folds this parameter's content into a running FNV1 hash. */
-  GetHashValue(_startingHash)
-  {
-    throw new Error("ITriEffectParameter.GetHashValue must be implemented by a parameter.");
-  }
+  GetHashValue(_startingHash) {}
 
   /**
    * Whether writes to this parameter notify their destination.
@@ -58,8 +49,8 @@ export class ITriEffectParameter
 
 
 CjsSchema.blue.inherit(ITr2EffectValue)(ITriEffectParameter);
-CjsSchema.decorateMethod(ITriEffectParameter, "GetParameterName", blue.method, meta.abstract);
-CjsSchema.decorateMethod(ITriEffectParameter, "RebuildEffectHandles", blue.method, meta.abstract);
-CjsSchema.decorateMethod(ITriEffectParameter, "GetHashValue", blue.method, meta.abstract);
+CjsSchema.decorateMethod(ITriEffectParameter, "GetParameterName", blue.abstract);
+CjsSchema.decorateMethod(ITriEffectParameter, "RebuildEffectHandles", blue.abstract);
+CjsSchema.decorateMethod(ITriEffectParameter, "GetHashValue", blue.abstract);
 CjsSchema.decorateMethod(ITriEffectParameter, "SupportsDirtyNotification", blue.method);
 CjsSchema.blue.define(ITriEffectParameter, { className: "ITriEffectParameter" });

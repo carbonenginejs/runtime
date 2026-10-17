@@ -1,6 +1,6 @@
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Sprite2d/ITr2SpriteObject.h
-import { meta, blue } from "#schema";
+import { blue } from "#schema";
 
 /** Native IRoot-shaped abstract contract shared by Sprite2D objects. */
 @blue.define({ className: "ITr2SpriteObject", abstract: true })
@@ -12,12 +12,8 @@ export class ITr2SpriteObject
    * @param {object} _renderer Sprite scene renderer.
    * @returns {void}
    */
-  @blue.method
-  @meta.abstract
-  GatherSprites(_renderer)
-  {
-    throw new Error("ITr2SpriteObject.GatherSprites must be implemented by a concrete sprite object.");
-  }
+  @blue.abstract
+  GatherSprites(_renderer) {}
 
   /**
    * Required native PickPoint contract.
@@ -26,57 +22,37 @@ export class ITr2SpriteObject
    * @param {object} _renderer Sprite scene renderer.
    * @returns {ITr2SpriteObject|null}
    */
-  @blue.method
-  @meta.abstract
-  PickPoint(_x, _y, _renderer)
-  {
-    throw new Error("ITr2SpriteObject.PickPoint must be implemented by a concrete sprite object.");
-  }
+  @blue.abstract
+  PickPoint(_x, _y, _renderer) {}
 
   /**
    * Required native SetParent contract.
    * @param {ITr2SpriteObject|null} _parent New parent.
    * @returns {void}
    */
-  @blue.method
-  @meta.abstract
-  SetParent(_parent)
-  {
-    throw new Error("ITr2SpriteObject.SetParent must be implemented by a concrete sprite object.");
-  }
+  @blue.abstract
+  SetParent(_parent) {}
 
   /**
    * Required native SetDirty contract.
    * @returns {void}
    */
-  @blue.method
-  @meta.abstract
-  SetDirty()
-  {
-    throw new Error("ITr2SpriteObject.SetDirty must be implemented by a concrete sprite object.");
-  }
+  @blue.abstract
+  SetDirty() {}
 
   /**
    * Required native SetChildDirty contract.
    * @param {ITr2SpriteObject|null} _child Changed child.
    * @returns {void}
    */
-  @blue.method
-  @meta.abstract
-  SetChildDirty(_child)
-  {
-    throw new Error("ITr2SpriteObject.SetChildDirty must be implemented by a concrete sprite object.");
-  }
+  @blue.abstract
+  SetChildDirty(_child) {}
 
   /**
    * Required native IsAuxMouseover contract.
    * @returns {boolean}
    */
-  @blue.method
-  @meta.abstract
-  IsAuxMouseover()
-  {
-    throw new Error("ITr2SpriteObject.IsAuxMouseover must be implemented by a concrete sprite object.");
-  }
+  @blue.abstract
+  IsAuxMouseover() {}
 
 }

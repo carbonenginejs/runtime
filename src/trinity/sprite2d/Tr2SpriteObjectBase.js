@@ -21,21 +21,27 @@ import { be, INotify } from "#blue";
 export class Tr2SpriteObjectBase extends ITr2SpriteObject
 {
 
-  /** Required ITr2SpriteObject traversal contract. @param {...*} _args Renderer arguments. @returns {void} */
-  @blue.method
-  @meta.abstract
-  GatherSprites(..._args)
-  {
-    throw new Error("Tr2SpriteObjectBase.GatherSprites must be implemented by a concrete Sprite2D object.");
-  }
+  /**
+   * Required ITr2SpriteObject traversal contract, Carbon's pure virtual
+   * `GatherSprites( Tr2Sprite2dScene* renderer )` (ITr2SpriteObject.h:13).
+   *
+   * @param {Tr2Sprite2dScene} _renderer The scene gathering sprites.
+   */
+  @blue.abstract
+  GatherSprites(_renderer) {}
 
-  /** Required ITr2SpriteObject picking contract. @param {...*} _args Picking arguments. @returns {ITr2SpriteObject|null} */
-  @blue.method
-  @meta.abstract
-  PickPoint(..._args)
-  {
-    throw new Error("Tr2SpriteObjectBase.PickPoint must be implemented by a concrete Sprite2D object.");
-  }
+  /**
+   * Required ITr2SpriteObject picking contract, Carbon's pure virtual
+   * `PickPoint( float x, float y, Tr2Sprite2dScene* renderer )`
+   * (ITr2SpriteObject.h:14).
+   *
+   * @param {number} _x Point x.
+   * @param {number} _y Point y.
+   * @param {Tr2Sprite2dScene} _renderer The scene being picked.
+   * @returns {ITr2SpriteObject|null} The picked object.
+   */
+  @blue.abstract
+  PickPoint(_x, _y, _renderer) {}
 
   /** Carbon method GetDisplay.
    * @returns {boolean} Whether the sprite is displayed.
