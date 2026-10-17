@@ -8,20 +8,20 @@ import { be } from "#blue";
 export class Tr2ParticleElementData
 {
 
-  /** m_dimension (unsigned) */
+  /** m_dimension (unsigned). Carbon leaves it unset (Tr2ParticleElementDeclaration.h:74). */
   @type.uint32
   dimension = 0;
 
-  /** m_usageIndex (unsigned) */
+  /** m_usageIndex (unsigned). Carbon leaves it unset (Tr2ParticleElementDeclaration.h:76). */
   @type.uint32
   usageIndex = 0;
 
-  /** m_bufferType (BufferType - enum BufferType) */
+  /** m_bufferType (BufferType - enum BufferType). Carbon leaves it unset (Tr2ParticleElementDeclaration.h:78). */
   @type.int32
   @type.enum("trinity.Tr2ParticleElementData.BufferType")
   bufferType = 0;
 
-  /** m_offset (unsigned) */
+  /** m_offset (unsigned). Carbon leaves it unset (Tr2ParticleElementDeclaration.h:80). */
   @type.uint32
   offset = 0;
 

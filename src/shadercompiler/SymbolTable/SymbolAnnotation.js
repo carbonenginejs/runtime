@@ -13,6 +13,7 @@ import { ScannerToken } from "../ParserState/ScannerToken.js";
  */
 export class SymbolAnnotation
 {
+    /** Carbon leaves it unset. */
     type = 0;
 
     name = new InlineString();

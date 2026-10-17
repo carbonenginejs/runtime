@@ -13,25 +13,25 @@ export class Tr2EffectConstant
   /** name (BlueSharedString) */
   name = "";
 
-  /** offset (unsigned) */
+  /** offset (unsigned). Carbon leaves it unset (Shader/Tr2EffectDescription.h:48). */
   offset = 0;
 
-  /** size (unsigned) */
+  /** size (unsigned). Carbon leaves it unset (Shader/Tr2EffectDescription.h:50). */
   size = 0;
 
-  /** type (Type - enum Type) */
+  /** type (Type - enum Type). Carbon leaves it unset (Shader/Tr2EffectDescription.h:52). */
   type = 0;
 
-  /** dimension (unsigned) */
+  /** dimension (unsigned). Carbon leaves it unset (Shader/Tr2EffectDescription.h:54). */
   dimension = 0;
 
-  /** elements (unsigned) */
+  /** elements (unsigned). Carbon leaves it unset (Shader/Tr2EffectDescription.h:56). */
   elements = 0;
 
-  /** isSRGB (bool) */
+  /** isSRGB (bool). Carbon leaves it unset (Shader/Tr2EffectDescription.h:58). */
   isSRGB = false;
 
-  /** isAutoregister (bool) */
+  /** isAutoregister (bool). Carbon leaves it unset (Shader/Tr2EffectDescription.h:60). */
   isAutoregister = false;
 
   /**

@@ -24,38 +24,50 @@ const {
  * `float4x3` scans as width 4, height 3). `templateParameter` is shared, not
  * copied, as Carbon copies the pointer.
  *
- * Carbon leaves an unassigned `Type` uninitialised; a new one here is the
- * zeroed type `FromTokenType( 0 )` produces.
+ * Carbon declares no member initializers and no constructor, so a new one
+ * here holds each member's neutral value; Carbon's owners that need the
+ * `FromTokenType( 0 )` type call it themselves (ASTNode.cpp:14,
+ * SymbolTable.cpp:89).
  *
  * Out-parameters (`Type& type`) are filled with {@link Type#Assign}; a
  * counter passed as `int& casts` is a `{ value: number }` object.
  */
 export class Type
 {
-    /** @type {import("./SymbolTable/Symbol.js").Symbol|null} */
+    /** @type {import("./SymbolTable/Symbol.js").Symbol|null} Carbon leaves it unset. */
     symbol = null;
 
+    /** Carbon leaves it unset. */
     builtInType = 0;
 
-    width = 1;
+    /** Carbon leaves it unset. */
+    width = 0;
 
-    height = 1;
+    /** Carbon leaves it unset. */
+    height = 0;
 
-    /** @type {Type|null} */
+    /** @type {Type|null} Carbon leaves it unset. */
     templateParameter = null;
 
-    templateSamples = -1;
+    /** Carbon leaves it unset. */
+    templateSamples = 0;
 
+    /** Carbon leaves it unset. */
     arrayDimensions = 0;
 
+    /** Carbon leaves it unset. */
     arraySizes = [0, 0, 0, 0, 0, 0, 0, 0];
 
+    /** Carbon leaves it unset. */
     modifier = 0;
 
+    /** Carbon leaves it unset. */
     storageClass = 0;
 
+    /** Carbon leaves it unset. */
     metalTextureAccess = 0;
 
+    /** Carbon leaves it unset. */
     isDepthTexture = false;
 
     /**

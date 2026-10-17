@@ -10,9 +10,8 @@ export class TriGeometryResJointData
   /** m_name (std::string) */
   name = "";
 
-  /** m_parentJoint (unsigned int) */
-  // Empty records have no parent: the unsigned sentinel checked by Tr2MeshBase.cpp.
-  parentJoint = 0xffffffff;
+  /** m_parentJoint (unsigned int). Carbon leaves it unset (TriGeometryRes.h:237). */
+  parentJoint = 0;
 
   /** m_inverseWorldTransform (Matrix) */
   inverseWorldTransform = mat4.create();

@@ -19,11 +19,12 @@ export class Tr2SubresourceData
 {
   /**
    * Carbon's `const void* m_sysMem`. A pointer there; the bytes themselves here,
-   * because JavaScript has no pointer to hand a backend instead.
+   * because JavaScript has no pointer to hand a backend instead. Carbon leaves it
+   * unset (`Tr2HalHelperStructures.h:22`).
    */
   m_sysMem = null;
 
-  /** Size in bytes of one line of pixels. */
+  /** Size in bytes of one line of pixels. Carbon leaves it unset (`Tr2HalHelperStructures.h:23`). */
   m_sysMemPitch = 0;
 
   /**
@@ -32,6 +33,7 @@ export class Tr2SubresourceData
    * CANNOT BE ZERO, says Carbon's own comment on the field. It is not defaulted
    * away or validated here: the donor states the requirement and leaves the
    * caller to meet it, and a zero reaching a backend is the caller's bug to see.
+   * Carbon leaves it unset (`Tr2HalHelperStructures.h:24`).
    */
   m_sysMemSlicePitch = 0;
 

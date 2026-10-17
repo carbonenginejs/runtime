@@ -18,6 +18,7 @@ export class Permutation
 
     description = "";
 
+    /** Carbon leaves it unset. */
     type = 0;
 
     location = new FileLocation();

@@ -10,8 +10,10 @@ import { CjsSchema } from "#schema";
  */
 export class ParameterInfo
 {
+    /** Carbon leaves it unset. */
     parameterIndex = 0;
 
+    /** Carbon leaves it unset. */
     argumentIndex = 0;
 }
 

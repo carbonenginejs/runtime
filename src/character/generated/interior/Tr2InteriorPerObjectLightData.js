@@ -13,7 +13,7 @@ export class Tr2InteriorPerObjectLightData
   @type.vec3
   position = vec3.create();
 
-  /** radius (float) */
+  /** radius (float). Carbon leaves it unset. */
   @type.float32
   radius = 0;
 
@@ -21,23 +21,23 @@ export class Tr2InteriorPerObjectLightData
   @type.vec3
   color = vec3.create();
 
-  /** pointLightFalloff (float) */
+  /** pointLightFalloff (float). Carbon leaves it unset. */
   @type.float32
   pointLightFalloff = 0;
 
-  /** shadow0Influence (float) */
+  /** shadow0Influence (float). Carbon leaves it unset. */
   @type.float32
   shadow0Influence = 0;
 
-  /** shadow1Influence (float) */
+  /** shadow1Influence (float). Carbon leaves it unset. */
   @type.float32
   shadow1Influence = 0;
 
-  /** coneCosAlphaOuter (float) */
+  /** coneCosAlphaOuter (float). Carbon leaves it unset. */
   @type.float32
   coneCosAlphaOuter = 0;
 
-  /** coneCosAlphaInner (float) */
+  /** coneCosAlphaInner (float). Carbon leaves it unset. */
   @type.float32
   coneCosAlphaInner = 0;
 
@@ -45,7 +45,7 @@ export class Tr2InteriorPerObjectLightData
   @type.vec3
   spotDirection = vec3.create();
 
-  /** unused2 (float) */
+  /** unused2 (float). Carbon leaves it unset. */
   @type.float32
   unused2 = 0;
 

@@ -5,17 +5,20 @@ import { CjsSchema } from "#schema/CjsSchema";
  */
 export class HlslShaderPermutation
 {
-    /**
-   * Creates an empty permutation description as stored in an effect header.
-   */
-    constructor()
-    {
-        this.name = "";
-        this.options = [];
-        this.defaultOption = 0;
-        this.description = "";
-        this.type = 0;
-    }
+    /** Permutation name (BlueSharedString). */
+    name = "";
+
+    /** Option names (std::vector<BlueSharedString>). */
+    options = [];
+
+    /** Default option index (size_t). Carbon leaves it unset (Resources/Tr2EffectRes.h:22). */
+    defaultOption = 0;
+
+    /** Description (std::string). */
+    description = "";
+
+    /** Permutation type (uint8_t). Carbon leaves it unset (Resources/Tr2EffectRes.h:24). */
+    type = 0;
 
     /**
    * Returns the permutation metadata in report-friendly form.

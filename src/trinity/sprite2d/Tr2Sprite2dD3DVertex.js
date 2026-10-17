@@ -14,23 +14,23 @@ export class Tr2Sprite2dD3DVertex extends Tr2Sprite2dVertexBase
   @type.rawStruct("Tr2Sprite2dClipRect")
   clipRect = new Tr2Sprite2dClipRect();
 
-  /** glowBrightness (float) */
+  /** glowBrightness (float). Carbon leaves it unset. */
   @type.float32
   glowBrightness = 0;
 
-  /** transformIndex (uint8_t) */
+  /** transformIndex (uint8_t). Carbon leaves it unset. */
   @type.uint8
   transformIndex = 0;
 
-  /** blendMode (uint8_t) */
+  /** blendMode (uint8_t). Carbon leaves it unset. */
   @type.uint8
   blendMode = 0;
 
-  /** spriteEffect (uint8_t) */
+  /** spriteEffect (uint8_t). Carbon leaves it unset. */
   @type.uint8
   spriteEffect = 0;
 
-  /** tileMode (uint8_t) */
+  /** tileMode (uint8_t). Carbon leaves it unset. */
   @type.uint8
   tileMode = 0;
 
@@ -38,7 +38,7 @@ export class Tr2Sprite2dD3DVertex extends Tr2Sprite2dVertexBase
   @type.color
   outlineColor = vec4.create();
 
-  /** outlineThreshold (float) */
+  /** outlineThreshold (float). Carbon leaves it unset. */
   @type.float32
   outlineThreshold = 0;
 

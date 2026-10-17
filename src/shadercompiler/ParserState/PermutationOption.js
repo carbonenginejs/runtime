@@ -8,6 +8,7 @@ export class PermutationOption
 {
     name = "";
 
+    /** Carbon leaves it unset. */
     value = 0;
 }
 

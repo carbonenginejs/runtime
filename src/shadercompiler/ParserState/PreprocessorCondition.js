@@ -7,12 +7,16 @@ import { CjsSchema } from "#schema";
  */
 export class PreprocessorCondition
 {
+    /** Carbon leaves it unset. */
     skipMode = false;
 
+    /** Carbon leaves it unset. */
     inheridedSkipMode = false;
 
+    /** Carbon leaves it unset. */
     used = false;
 
+    /** Carbon leaves it unset. */
     seenElse = false;
 }
 

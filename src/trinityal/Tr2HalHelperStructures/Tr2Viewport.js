@@ -8,12 +8,10 @@ import { CjsSchema, type } from "#schema";
 // objects instead, so nothing named the type or its defaults.
 //
 // THE TWO CONSTRUCTORS DIFFER, and the difference is Carbon's. The default one
-// leaves EVERY field uninitialised - C++ gives a `float` member no value, so a
-// default-constructed viewport holds garbage until someone assigns it. The
-// `(width, height)` one sets all six. JavaScript cannot express "uninitialised",
-// so the fields read zero here; the depth range is therefore 0..0 rather than
-// Carbon's 0..1 until the sized constructor or an assignment runs, which is the
-// one behaviour a caller could tell apart.
+// (`Tr2HalHelperStructures.h:33-35`) leaves EVERY field unset, so each field
+// takes the neutral zero here. The `(width, height)` one (header 37-38) sets all
+// six, so the depth range is 0..0 until the sized constructor or an assignment
+// runs and 0..1 after it.
 
 
 /**
@@ -21,21 +19,28 @@ import { CjsSchema, type } from "#schema";
  */
 export class Tr2Viewport
 {
+  /** Carbon leaves it unset (`Tr2HalHelperStructures.h:33-35`). */
   m_x = 0;
 
+  /** Carbon leaves it unset (`Tr2HalHelperStructures.h:33-35`). */
   m_y = 0;
 
+  /** Carbon leaves it unset (`Tr2HalHelperStructures.h:33-35`). */
   m_width = 0;
 
+  /** Carbon leaves it unset (`Tr2HalHelperStructures.h:33-35`). */
   m_height = 0;
 
   /**
-   * Near depth. Carbon's sized constructor sets 0; its default constructor leaves
-   * this uninitialised, which JavaScript cannot reproduce.
+   * Near depth. Carbon's sized constructor sets 0; with its default constructor
+   * Carbon leaves it unset (`Tr2HalHelperStructures.h:33-35`).
    */
   m_minZ = 0;
 
-  /** Far depth. Carbon's sized constructor sets 1. */
+  /**
+   * Far depth. Carbon's sized constructor sets 1; with its default constructor
+   * Carbon leaves it unset (`Tr2HalHelperStructures.h:33-35`).
+   */
   m_maxZ = 0;
 
   /**

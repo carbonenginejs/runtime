@@ -7,10 +7,10 @@ import { CjsSchema } from "#schema";
  */
 export class StateValue
 {
-    /** @type {string} */
+    /** @type {string} Carbon leaves it unset. */
     name = "";
 
-    /** @type {number} Carbon's `unsigned`. */
+    /** @type {number} Carbon's `unsigned`. Carbon leaves it unset. */
     value = 0;
 }
 

@@ -6,12 +6,16 @@ import { CjsSchema } from "#schema";
  */
 export class Vector4
 {
+    /** Carbon leaves it unset. */
     x = 0;
 
+    /** Carbon leaves it unset. */
     y = 0;
 
+    /** Carbon leaves it unset. */
     z = 0;
 
+    /** Carbon leaves it unset. */
     w = 0;
 }
 

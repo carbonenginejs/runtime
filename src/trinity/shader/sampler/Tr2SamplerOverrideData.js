@@ -11,7 +11,7 @@ import { type, blue } from "#schema";
 export class Tr2SamplerOverrideData
 {
 
-  /** Native uint32 register; zero is the existing deterministic JavaScript default. */
+  /** Native uint32 register. Carbon leaves it unset (Shader/Tr2Material.h:32). */
   @type.uint32
   registerIndex = 0;
 

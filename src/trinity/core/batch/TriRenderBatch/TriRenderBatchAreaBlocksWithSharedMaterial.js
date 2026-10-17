@@ -19,12 +19,16 @@ import { TriRenderBatchAreaBlock } from "./TriRenderBatchAreaBlock.js";
  */
 export class TriRenderBatchAreaBlocksWithSharedMaterial extends TriRenderBatchAreaBlock
 {
+  /** Shared shader material; Carbon's Tr2EffectPtr starts null. */
+  shaderMaterial = null;
+
+  /** Blocks drawn with the shared material. */
+  areaBlockVector = [];
+
   /** Starts with no shared material and an empty block vector. */
   constructor()
   {
     super();
-    this.shaderMaterial = null;
-    this.areaBlockVector = [];
   }
 
   /** Compacts the owned block vector into minimal contiguous runs. */

@@ -18,13 +18,16 @@ export class Tr2ShaderPermutation
   /** Ordered option names accepted by the permutation. */
   options = [];
 
-  /** Index of the option selected when a caller supplies no override. */
+  /**
+   * Index of the option selected when a caller supplies no override. Carbon
+   * leaves it unset (Resources/Tr2EffectRes.h:22).
+   */
   defaultOption = 0;
 
   /** Human-readable description retained from the effect resource. */
   description = "";
 
-  /** Carbon permutation category value. */
+  /** Carbon permutation category value. Carbon leaves it unset (Resources/Tr2EffectRes.h:24). */
   type = 0;
 
 }

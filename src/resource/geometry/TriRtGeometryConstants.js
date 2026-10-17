@@ -6,64 +6,64 @@ import { CjsSchema, type } from "#schema";
 export class TriRtGeometryConstants
 {
 
-  /** indexBufferId (uint32_t) */
+  /** indexBufferId (uint32_t). Carbon leaves it unset (TriGeometryRes.h:57). */
   indexBufferId = 0;
 
-  /** indexBufferStride (uint32_t) */
+  /** indexBufferStride (uint32_t). Carbon leaves it unset (TriGeometryRes.h:58). */
   indexBufferStride = 0;
 
-  /** indexOffset (uint32_t) */
+  /** indexOffset (uint32_t). Carbon leaves it unset (TriGeometryRes.h:60). */
   indexOffset = 0;
 
-  /** vertexBufferId (uint32_t) */
+  /** vertexBufferId (uint32_t). Carbon leaves it unset (TriGeometryRes.h:62). */
   vertexBufferId = 0;
 
-  /** vertexBufferStride (uint32_t) */
+  /** vertexBufferStride (uint32_t). Carbon leaves it unset (TriGeometryRes.h:63). */
   vertexBufferStride = 0;
 
-  /** positionOffset (uint32_t) */
+  /** positionOffset (uint32_t). Carbon leaves it unset (TriGeometryRes.h:65). */
   positionOffset = 0;
 
-  /** positionType (uint32_t) */
+  /** positionType (uint32_t). Carbon leaves it unset (TriGeometryRes.h:66). */
   positionType = 0;
 
-  /** normalOffset (uint32_t) */
+  /** normalOffset (uint32_t). Carbon leaves it unset (TriGeometryRes.h:68). */
   normalOffset = 0;
 
-  /** normalType (uint32_t) */
+  /** normalType (uint32_t). Carbon leaves it unset (TriGeometryRes.h:69). */
   normalType = 0;
 
-  /** tangentOffset (uint32_t) */
+  /** tangentOffset (uint32_t). Carbon leaves it unset (TriGeometryRes.h:71). */
   tangentOffset = 0;
 
-  /** tangentType (uint32_t) */
+  /** tangentType (uint32_t). Carbon leaves it unset (TriGeometryRes.h:72). */
   tangentType = 0;
 
-  /** bitangentOffset (uint32_t) */
+  /** bitangentOffset (uint32_t). Carbon leaves it unset (TriGeometryRes.h:74). */
   bitangentOffset = 0;
 
-  /** bitangentType (uint32_t) */
+  /** bitangentType (uint32_t). Carbon leaves it unset (TriGeometryRes.h:75). */
   bitangentType = 0;
 
-  /** texCoord0Offset (uint32_t) */
+  /** texCoord0Offset (uint32_t). Carbon leaves it unset (TriGeometryRes.h:77). */
   texCoord0Offset = 0;
 
-  /** texCoord0Type (uint32_t) */
+  /** texCoord0Type (uint32_t). Carbon leaves it unset (TriGeometryRes.h:78). */
   texCoord0Type = 0;
 
-  /** texCoord1Offset (uint32_t) */
+  /** texCoord1Offset (uint32_t). Carbon leaves it unset (TriGeometryRes.h:80). */
   texCoord1Offset = 0;
 
-  /** texCoord1Type (uint32_t) */
+  /** texCoord1Type (uint32_t). Carbon leaves it unset (TriGeometryRes.h:81). */
   texCoord1Type = 0;
 
-  /** texCoord2Offset (uint32_t) */
+  /** texCoord2Offset (uint32_t). Carbon leaves it unset (TriGeometryRes.h:83). */
   texCoord2Offset = 0;
 
-  /** texCoord2Type (uint32_t) */
+  /** texCoord2Type (uint32_t). Carbon leaves it unset (TriGeometryRes.h:84). */
   texCoord2Type = 0;
 
-  /** padding (uint32_t) */
+  /** padding (uint32_t). Carbon leaves it unset (TriGeometryRes.h:86). */
   padding = 0;
 
 }

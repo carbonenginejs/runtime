@@ -8,9 +8,10 @@ import { CjsSchema } from "#schema";
  */
 export class SamplerToTexture
 {
-    /** @type {import("../SymbolTable/Symbol.js").Symbol|null} */
+    /** @type {import("../SymbolTable/Symbol.js").Symbol|null} Carbon leaves it unset. */
     texture = null;
 
+    /** Carbon leaves it unset. */
     processed = false;
 }
 

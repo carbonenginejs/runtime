@@ -15,11 +15,11 @@ export class Tr2EffectParam
   @type.rootRef("ITr2EffectValue")
   sourceValue = null;
 
-  /** m_registerIndex (unsigned int) */
+  /** m_registerIndex (unsigned int). Carbon leaves it unset (Shader/Tr2Material.h:23). */
   @type.uint32
   registerIndex = 0;
 
-  /** m_registerCount (unsigned int) */
+  /** m_registerCount (unsigned int). Carbon leaves it unset (Shader/Tr2Material.h:25). */
   @type.uint32
   registerCount = 0;
 

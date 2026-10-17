@@ -836,8 +836,8 @@ export class Tr2GpuParticleSystem
   /**
    * Carbon SortIncremental (cpp:636-676): one merge level.
    *
-   * Carbon leaves the fourth sort constant uninitialised (cpp:655-669); it is
-   * zero here.
+   * The fourth sort constant is written as the neutral 0: Carbon leaves it
+   * unset (Tr2GpuParticleSystem.cpp:655-669).
    *
    * @param {number} presorted The size already sorted.
    * @param {object} renderContext The Tr2RenderContext.
@@ -873,6 +873,7 @@ export class Tr2GpuParticleSystem
         words4_0[1] = mergeSubSize;
         words4_0[2] = 1;
       }
+      // Carbon leaves it unset (Tr2GpuParticleSystem.cpp:655-669).
       words4_0[3] = 0;
 
       this._sortCB ??= renderContext.CreateConstantBuffer();

@@ -36,8 +36,19 @@ export class Tr2TextureSubresource
   /** One past the last mip level. */
   m_endMipLevel = UNSET;
 
-  /** @type {Tr2TextureCoordBox} */
-  m_box = new Tr2TextureCoordBox();
+  /**
+   * Pixel box; every coordinate `0xffffffff` means "no box" (Carbon's
+   * constructors, Tr2HalHelperStructures.cpp:24,33,47).
+   * @type {Tr2TextureCoordBox}
+   */
+  m_box = Object.assign(new Tr2TextureCoordBox(), {
+    left: UNSET,
+    top: UNSET,
+    front: UNSET,
+    right: UNSET,
+    bottom: UNSET,
+    back: UNSET
+  });
 
   /**
    * A single mip level of the first slice.

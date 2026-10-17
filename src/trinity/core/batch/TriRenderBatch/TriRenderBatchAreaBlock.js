@@ -19,12 +19,18 @@ import { CjsSchema, type, blue, meta } from "#schema";
  */
 export class TriRenderBatchAreaBlock
 {
+  /** First mesh-group index of the block. Carbon leaves it unset. */
+  startIndex = 0;
+
+  /** Number of mesh groups in the block. Carbon leaves it unset. */
+  count = 0;
+
   /**
    * Creates a block covering count groups from startIndex; both are coerced to
    * unsigned integers.
    */
-  // Carbon's empty constructor leaves these integers uninitialized.
-  // JS deliberately initializes them to zero; the two-argument form copies values.
+  // Carbon's empty constructor leaves both members unset (TriRenderBatch.h:26);
+  // the two-argument form copies values (TriRenderBatch.h:29).
   constructor(startIndex = 0, count = 0)
   {
     this.startIndex = startIndex >>> 0;

@@ -6,13 +6,13 @@ import { CjsSchema, type } from "#schema";
 export class Tr2TextureLodUpdateRequest
 {
 
-  /** frameNumber (uint64_t) */
+  /** frameNumber (uint64_t). Carbon leaves it unset (Tr2TextureLodManager.h:11). */
   frameNumber = 0;
 
-  /** mipChange (int32_t) */
+  /** mipChange (int32_t). Carbon leaves it unset (Tr2TextureLodManager.h:12). */
   mipChange = 0;
 
-  /** cachedInRam (bool) */
+  /** cachedInRam (bool). Carbon leaves it unset (Tr2TextureLodManager.h:13). */
   cachedInRam = false;
 
 }

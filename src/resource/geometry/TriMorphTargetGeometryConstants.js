@@ -6,22 +6,22 @@ import { CjsSchema, type } from "#schema";
 export class TriMorphTargetGeometryConstants
 {
 
-  /** vertexBufferStride (uint32_t) */
+  /** vertexBufferStride (uint32_t). Carbon leaves it unset (TriGeometryRes.h:91). */
   vertexBufferStride = 0;
 
-  /** positionOffset (uint32_t) */
+  /** positionOffset (uint32_t). Carbon leaves it unset (TriGeometryRes.h:93). */
   positionOffset = 0;
 
-  /** positionType (uint32_t) */
+  /** positionType (uint32_t). Carbon leaves it unset (TriGeometryRes.h:94). */
   positionType = 0;
 
-  /** tangentOffset (uint32_t) */
+  /** tangentOffset (uint32_t). Carbon leaves it unset (TriGeometryRes.h:96). */
   tangentOffset = 0;
 
-  /** tangentType (uint32_t) */
+  /** tangentType (uint32_t). Carbon leaves it unset (TriGeometryRes.h:97). */
   tangentType = 0;
 
-  /** vertexCount (uint32_t) */
+  /** vertexCount (uint32_t). Carbon leaves it unset (TriGeometryRes.h:99). */
   vertexCount = 0;
 
 }

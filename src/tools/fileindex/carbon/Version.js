@@ -8,10 +8,13 @@ import { CjsSchema, type } from "#schema";
  */
 export class Version
 {
+    /** Carbon leaves it unset (`resources/include/Enums.h:246`). */
     major = 0;
 
+    /** Carbon leaves it unset (`resources/include/Enums.h:247`). */
     minor = 0;
 
+    /** Carbon leaves it unset (`resources/include/Enums.h:248`). */
     patch = 0;
 
     /**

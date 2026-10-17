@@ -23,11 +23,9 @@ export class SplineTunnel
   @type.float32
   cylWidth = 20;
 
-  /** accelerationMultiplier (float) */
+  /** accelerationMultiplier (float). Carbon leaves it unset. */
   @type.float32
-  // Carbon leaves this unused native member uninitialized. The portable
-  // record uses the multiplicative identity as a deterministic value.
-  accelerationMultiplier = 1;
+  accelerationMultiplier = 0;
 
   /** pullSize (float) */
   @type.float32

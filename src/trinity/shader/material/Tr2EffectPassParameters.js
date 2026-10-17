@@ -57,7 +57,10 @@ export class Tr2EffectPassParameters
   @type.boolean
   compatibleWithGdr = true;
 
-  /** m_usedTexturesDirty (bool) */
+  /**
+   * m_usedTexturesDirty (bool). Carbon leaves it unset: the constructor
+   * (Shader/Tr2Material.cpp:120) initializes only the other three scalars.
+   */
   @type.boolean
   usedTexturesDirty = false;
 

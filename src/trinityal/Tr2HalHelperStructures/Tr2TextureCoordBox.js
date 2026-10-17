@@ -9,31 +9,51 @@ import { CjsSchema, type, blue, meta } from "#schema";
 // against. It also makes an unported sibling visible as a missing FILE, which is
 // how two of these were found absent.
 
-/** Carbon's "not set" for every box coordinate: `0xffffffff`. */
-const UNSET = 0xffffffff;
-
 /**
  * A box within a texture, in pixels.
+ *
+ * Carbon's aggregate declares no initializers (Tr2HalHelperStructures.h:49-77).
+ * Its "not set" sentinel `0xffffffff` belongs to the owner: Tr2TextureSubresource's
+ * constructors fill its box with it (Tr2HalHelperStructures.cpp:24,33,47) and
+ * `HasBox` tests for it (cpp:159-161).
  */
 export class Tr2TextureCoordBox
 {
-  /** @type {number} */
-  left = UNSET;
+  /**
+   * Carbon leaves it unset.
+   * @type {number}
+   */
+  left = 0;
 
-  /** @type {number} */
-  top = UNSET;
+  /**
+   * Carbon leaves it unset.
+   * @type {number}
+   */
+  top = 0;
 
-  /** @type {number} */
-  front = UNSET;
+  /**
+   * Carbon leaves it unset.
+   * @type {number}
+   */
+  front = 0;
 
-  /** @type {number} */
-  right = UNSET;
+  /**
+   * Carbon leaves it unset.
+   * @type {number}
+   */
+  right = 0;
 
-  /** @type {number} */
-  bottom = UNSET;
+  /**
+   * Carbon leaves it unset.
+   * @type {number}
+   */
+  bottom = 0;
 
-  /** @type {number} */
-  back = UNSET;
+  /**
+   * Carbon leaves it unset.
+   * @type {number}
+   */
+  back = 0;
 
   /**
    * Width of the box.

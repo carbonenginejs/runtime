@@ -44,7 +44,9 @@ export class Symbol
         /** @type {import("./SymbolAnnotation.js").SymbolAnnotation[]|null} */
         this.annotations = null;
 
+        // SymbolTable.cpp:89
         this.type = new Type();
+        this.type.FromTokenType(0);
 
         /** @type {import("../ASTNode/ASTNode.js").ASTNode|null} */
         this.definition = null;

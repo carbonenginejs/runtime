@@ -9,12 +9,14 @@ import { Type } from "../Type.js";
  */
 export class GlobalInputElement
 {
-    type = null;
+    type = new Type();
 
-    name = null;
+    name = new InlineString();
 
+    /** @type {import("../ASTNode/ASTNode.js").ASTNode|null} Carbon leaves it unset. */
     declaration = null;
 
+    /** @type {import("../SymbolTable/Symbol.js").Symbol|null} */
     symbol = null;
 
     /**

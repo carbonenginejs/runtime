@@ -51,7 +51,7 @@ test("lifecycle and tunnel records own Carbon defaults, enums, and maintained pa
   assert.equal(tunnel.cylWidth, 20);
   assert.equal(tunnel.pullSize, 50);
   assert.equal(tunnel.pointOfNoReturnSize, 20);
-  assert.equal(tunnel.accelerationMultiplier, 1);
+  assert.equal(tunnel.accelerationMultiplier, 0);
   assert.equal(point.accelerationMultiplier, 1);
 
   const first = lifetime.InitializeScratch();

@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Shader/Tr2Material.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
+import { Tr2ResourceSetDescriptionAL } from "../../../trinityal/Tr2ResourceSetAL/index.js";
 import { Tr2MaterialStageInput } from "./Tr2MaterialStageInput.js";
 
 /** Collects one effect library's local and global stage inputs, rerouted parameters, and resource-set state. */
@@ -18,7 +19,7 @@ export class Tr2EffectLibraryParameters
 
   /** m_globalResourceSetDesc (Tr2ResourceSetDescriptionAL) */
   @type.rawStruct("Tr2ResourceSetDescriptionAL")
-  globalResourceSetDesc = null;
+  globalResourceSetDesc = new Tr2ResourceSetDescriptionAL();
 
   /** m_globalResourceSet (Tr2ResourceSetAL) */
   @type.rawStruct("Tr2ResourceSetAL")
@@ -40,7 +41,10 @@ export class Tr2EffectLibraryParameters
   @type.boolean
   globalResourceSetDirty = true;
 
-  /** m_usedTexturesDirty (bool) */
+  /**
+   * m_usedTexturesDirty (bool). Carbon leaves it unset: the constructor
+   * (Shader/Tr2Material.cpp:99) initializes only globalResourceSetDirty.
+   */
   @type.boolean
   usedTexturesDirty = false;
 

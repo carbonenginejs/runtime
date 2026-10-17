@@ -10,11 +10,12 @@ import { FileLocation } from "./FileLocation.js";
  */
 export class PreprocessorToken
 {
-    type = null;
+    /** Carbon leaves it unset. */
+    type = 0;
 
-    string = null;
+    string = new InlineString();
 
-    fileLocation = null;
+    fileLocation = new FileLocation();
 
     /**
      * @param {number} [type=0] Preprocessor token type.

@@ -5,10 +5,10 @@ import { CjsSchema, type } from "#schema";
 export class Tr2EffectDefine
 {
 
-  /** name (const char*) */
+  /** name (const char*). Carbon leaves it unset (Shader/Tr2EffectDescription.h:20). */
   name = "";
 
-  /** value (const char*) */
+  /** value (const char*). Carbon leaves it unset (Shader/Tr2EffectDescription.h:21). */
   value = "";
 
 }

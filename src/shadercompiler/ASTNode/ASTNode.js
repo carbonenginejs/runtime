@@ -58,6 +58,9 @@ export class ASTNode
         this._location = location.Copy();
 
         this._scope = scope;
+
+        // ASTNode.cpp:14
+        this._type.FromTokenType(0);
     }
 
     /**

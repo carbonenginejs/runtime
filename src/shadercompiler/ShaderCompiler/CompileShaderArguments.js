@@ -6,7 +6,7 @@ import { CjsSchema } from "#schema";
  */
 export class CompileShaderArguments
 {
-    /** @type {number} The permutation's index in the container. */
+    /** @type {number} The permutation's index in the container. Carbon leaves it unset. */
     permutation = 0;
 
     /** @type {import("../Macro.js").Macro[]} */
