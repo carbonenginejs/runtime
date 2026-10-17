@@ -166,6 +166,9 @@ export class Tr2RenderContext
    */
   constructor()
   {
+    // Tr2RenderContext.cpp:112
+    this._esm.Initialize();
+
     const store = Tr2VariableStore.globalStore();
     store.RegisterVariableInternal("pickingObjectLowBits", TriVariableContentType.TRIVARIABLE_INT, 0);
     store.RegisterVariableInternal("pickingObjectHighBits", TriVariableContentType.TRIVARIABLE_INT, 0);

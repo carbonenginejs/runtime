@@ -31,6 +31,8 @@ import {
 import { Tr2VertexDefinition } from "../core/vertex/Tr2VertexDefinition/index.js";
 import { Tr2RenderStateSetup } from "#resource/shader";
 import { Failed } from "../../trinityal/ALResult.js";
+import { Tr2VariableStore } from "../core/variable/Tr2VariableStore.js";
+import { TriVariableContentType } from "../generated/trinityCore/enums.js";
 
 // Carbon's tables are file-scope statics shared across every state manager
 // (Tr2EffectStateManager.cpp:17-27, "These are shared across managers."). Ours
@@ -395,7 +397,16 @@ export class Tr2EffectStateManager
   @type.rawStruct("std::list<CTriViewport>")
   viewportStack = null;
 
-  /** m_viewportSizeVar (Tr2Variable) */
+  /**
+   * m_viewportSizeVar (Tr2Variable), registered by {@link Tr2EffectStateManager#Initialize}
+   * (Tr2EffectStateManager.cpp:631-637). Booster depth UVs divide by
+   * ViewportSize.xy, so an unregistered variable leaves their
+   * non-autoregistered b0 at zero.
+   *
+   * Adapted: Carbon embeds a Tr2Variable by value; there is no JS Tr2Variable
+   * class, so the member is null until Initialize stores the global store's
+   * variable.
+   */
   @type.rawStruct("Tr2Variable")
   viewportSizeVar = null;
 
@@ -807,6 +818,30 @@ export class Tr2EffectStateManager
   }
 
   /**
+   * Registers the `ViewportSize` global and resets the redundancy cache
+   * (Tr2EffectStateManager.cpp:631-637). The owning context calls it from its
+   * constructor, as Tr2RenderContextBase's does (Tr2RenderContext.cpp:110-112),
+   * so the variable exists before any effect maps its constants.
+   *
+   * Adapted: there is no JS `Tr2Variable` wrapper, so Carbon's
+   * `m_viewportSizeVar.Register( name, value )` registers through the global
+   * store and keeps the store's variable; a variable already reserved under the
+   * name is the one returned.
+   *
+   * @returns {void}
+   */
+  @meta.adapted
+  @blue.method
+  Initialize()
+  {
+    this.viewportSizeVar = Tr2VariableStore.globalStore().RegisterVariableInternal(
+      "ViewportSize", TriVariableContentType.TRIVARIABLE_FLOAT4, [ 0, 0, 1, 0 ]);
+
+    this.#currentValues = NewCurrentValues();
+    this.#isManagedRendering = false;
+  }
+
+  /**
    * Forgets every program and vertex layout realized for this manager's
    * context, so the next apply creates them through whatever backend the
    * context holds now.
@@ -1131,12 +1166,12 @@ export class Tr2EffectStateManager
     // Carbon assigns a Vector4 of the AUTHORED extent and the target's
     // (cpp:1242). Note it uses the DEVICE extent in UpdateRenderTargetViewport
     // instead - transcribed as it stands rather than made consistent.
-    this.viewportSizeVar = [
+    this.viewportSizeVar.SetValue([
       authored.width,
       authored.height,
       this.renderTargetWidth,
       this.renderTargetHeight
-    ];
+    ]);
 
     if (this.#renderContext) this.#renderContext.SetViewport(this.viewportOnDevice);
   }
@@ -1162,7 +1197,7 @@ export class Tr2EffectStateManager
 
     this.viewport = { x: 0, y: 0, width, height, minZ: 0, maxZ: 1 };
     this.viewportOnDevice = { x: 0, y: 0, width, height, minZ: 0, maxZ: 1 };
-    this.viewportSizeVar = [ width, height, width, height ];
+    this.viewportSizeVar.SetValue([ width, height, width, height ]);
   }
 
   /**

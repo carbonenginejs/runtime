@@ -431,9 +431,9 @@ function renderTarget(width, height)
   const al = new Tr2RenderContextALStub();
 
   al.CreateDevice();
-  texture.Create(
-    Tr2BitmapDimensions.texture2D(width, height, 1, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM),
-    { gpuUsage: Tr2GpuUsage.RENDER_TARGET },
+  texture.Create__GpuUsage(
+    Tr2BitmapDimensions.create__WidthHeightMipCountFormat(width, height, 1, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM),
+    Tr2GpuUsage.RENDER_TARGET,
     al
   );
 
@@ -541,7 +541,7 @@ test("the manager reports the viewport and target sizes shaders read", () =>
 
   states.SetViewport({ x: 0, y: 0, width: 64, height: 32 });
 
-  assert.deepEqual(states.viewportSizeVar, [ 64, 32, 256, 128 ]);
+  assert.deepEqual(Array.from(states.viewportSizeVar.GetValue()), [ 64, 32, 256, 128 ]);
 });
 
 test("the binding family accepts what a draw needs bound", () =>

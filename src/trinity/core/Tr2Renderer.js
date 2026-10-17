@@ -208,9 +208,9 @@ export class Tr2Renderer
    * `BeginFrame` use, which still create them on first use for code that runs
    * without `InitializeTrinity` (tests building a context directly). Not
    * ported: `s_debugTextRenderer` (no debug text renderer), `s_poolAllocator`
-   * (JS allocates), and the main-thread effect state manager's `Initialize`
-   * (Tr2EffectStateManager.cpp:631-637), which registers the `ViewportSize`
-   * global; ours keeps `viewportSizeVar` as a plain array and registers none.
+   * (JS allocates). The effect state manager registers `ViewportSize`
+   * (Tr2EffectStateManager.cpp:631-637) at construction so standalone contexts
+   * also publish it before material mapping.
    *
    * @returns {boolean} True, as Carbon's.
    */
