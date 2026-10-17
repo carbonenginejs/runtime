@@ -51,7 +51,7 @@ export class EveImpactOverlay
   // EveImpactOverlay_Blue.cpp:33-48: armour/hull state lives on the damage overlay; these names are live properties over it.
 
   /** MAP_PROPERTY_READONLY "seed" over GetSeed. */
-  @blue.read
+  @blue.property()
   @type.uint32
   @meta.implemented
   get seed()
@@ -60,7 +60,7 @@ export class EveImpactOverlay
   }
 
   /** MAP_PROPERTY_READONLY "configuration" over GetImpactConfiguration. */
-  @blue.read
+  @blue.property()
   @type.int32
   @type.enum("trinity.ITriTargetable.ImpactConfiguration")
   @meta.implemented
@@ -70,7 +70,7 @@ export class EveImpactOverlay
   }
 
   /** MAP_PROPERTY_READONLY "impactDataNextIdx" over GetImpactDataNextIdx. */
-  @blue.read
+  @blue.property()
   @type.int32
   @meta.implemented
   get impactDataNextIdx()
@@ -79,7 +79,7 @@ export class EveImpactOverlay
   }
 
   /** MAP_PROPERTY_READONLY "armorImpactGoalCount" over GetArmorImpactGoalCount. */
-  @blue.read
+  @blue.property()
   @type.uint64
   @meta.implemented
   get armorImpactGoalCount()
@@ -88,7 +88,7 @@ export class EveImpactOverlay
   }
 
   /** MAP_PROPERTY_READONLY "armorImpactParentSize" over GetArmorImpactParentSize. */
-  @blue.read
+  @blue.property()
   @type.float32
   @meta.implemented
   get armorImpactParentSize()
@@ -97,7 +97,7 @@ export class EveImpactOverlay
   }
 
   /** MAP_PROPERTY "debugForceSpawnDebris" over Get/SetDebugForceSpawnDebris. */
-  @blue.readwrite
+  @blue.property()
   @type.boolean
   @meta.implemented
   get debugForceSpawnDebris()
@@ -112,7 +112,7 @@ export class EveImpactOverlay
   }
 
   /** MAP_PROPERTY_READONLY "renderPriority" over GetRenderPriority. */
-  @blue.read
+  @blue.property()
   @type.float32
   @meta.implemented
   get renderPriority()
@@ -121,7 +121,7 @@ export class EveImpactOverlay
   }
 
   /** MAP_PROPERTY_READONLY "dataTextureBlockID" over GetDataTextureBlockID. */
-  @blue.read
+  @blue.property()
   @type.int32
   @meta.implemented
   get dataTextureBlockID()
@@ -130,8 +130,7 @@ export class EveImpactOverlay
   }
 
   /** MAP_PROPERTY_PERSISTED "armorDamageShader" over Get/SetArmorDamageShaderEffect. */
-  @blue.readwrite
-  @blue.persist
+  @blue.property(undefined, { persisted: true })
   @type.rootRef("Tr2Effect")
   @meta.implemented
   get armorDamageShader()
@@ -146,7 +145,7 @@ export class EveImpactOverlay
   }
 
   /** MAP_PROPERTY "armorRepairing" over Get/SetArmorRepairing. */
-  @blue.readwrite
+  @blue.property()
   @type.rootRef("Tr2ScalarFader")
   @meta.implemented
   get armorRepairing()
@@ -161,7 +160,7 @@ export class EveImpactOverlay
   }
 
   /** MAP_PROPERTY "armorHardening" over Get/SetArmorHardening. */
-  @blue.readwrite
+  @blue.property()
   @type.rootRef("Tr2ScalarFader")
   @meta.implemented
   get armorHardening()
@@ -176,7 +175,7 @@ export class EveImpactOverlay
   }
 
   /** MAP_PROPERTY "hullRepairing" over Get/SetHullRepairing. */
-  @blue.readwrite
+  @blue.property()
   @type.rootRef("Tr2ScalarFader")
   @meta.implemented
   get hullRepairing()
@@ -191,8 +190,7 @@ export class EveImpactOverlay
   }
 
   /** MAP_PROPERTY_PERSISTED "hullDamageFlickerCurve" over Get/SetHullDamageFlickerCurve. */
-  @blue.readwrite
-  @blue.persist
+  @blue.property(undefined, { persisted: true })
   @type.rootRef("TriPerlinCurve")
   @meta.implemented
   get hullDamageFlickerCurve()
@@ -207,7 +205,7 @@ export class EveImpactOverlay
   }
 
   /** MAP_PROPERTY "hullDamageFactor" over Get/SetHullDamageFactor. */
-  @blue.readwrite
+  @blue.property()
   @type.float32
   @meta.implemented
   get hullDamageFactor()

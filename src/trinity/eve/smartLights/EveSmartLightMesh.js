@@ -27,12 +27,7 @@ import { BLUELISTEVENT } from "#consts/blue";
  * Carbon's EveSmartLightBaseGroup secondary base is flattened because
  * JavaScript has single inheritance.
  */
-@blue.define({
-  className: "EveSmartLightMesh",
-  fields: {
-    castShadows: [ type.boolean, blue.persist ]
-  }
-})
+@blue.define("EveSmartLightMesh")
 @meta.hideInherited([
   "partTag",
   "distribution"
@@ -70,8 +65,15 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   @type.color
   customColor = color.createLinear();
 
-  /** Carbon m_castShadow is exposed under the canonical derived key. */
+  /**
+   * Carbon m_castShadow is exposed under the canonical derived key:
+   * MAP_ATTRIBUTE("castShadows", m_castShadow, "", Be::READWRITE | Be::PERSIST)
+   * (EveSmartLightMesh_Blue.cpp:25). Ours: the storage is the inherited
+   * castShadow member, so the row is an attribute over this accessor pair.
+   */
   @blue.readwrite
+  @blue.persist
+  @type.boolean
   get castShadows()
   {
     return this.castShadow;

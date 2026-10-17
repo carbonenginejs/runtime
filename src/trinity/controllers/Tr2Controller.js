@@ -96,7 +96,7 @@ export class Tr2Controller extends EveThrottleable
    * JavaScript array length remains a Number, declared uint64.
    * @returns {number} Live callback count.
    */
-  @blue.read
+  @blue.property()
   @type.uint64
   @meta.implemented
   get callbackCount()

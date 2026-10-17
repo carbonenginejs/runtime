@@ -77,7 +77,7 @@ export class Tr2TimelineController extends EveThrottleable
   _bindingPathRoots = [];
 
   /** Blue property alias for the controller's runtime timeline clock. */
-  @blue.readwrite
+  @blue.property()
   @type.float32
   get time()
   {

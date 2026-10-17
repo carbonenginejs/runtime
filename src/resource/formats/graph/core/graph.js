@@ -10,6 +10,8 @@ const OBJECTS = new Set(["rootRef", "rootWeak", "root", "rawStruct"]);
 
 /**
  * The canonical stored member projection; never use the lossy compatibility fields bag.
+ * A persisted property (`MAP_PROPERTY_PERSISTED`) joins it after the stored
+ * members, reached through its accessors; other properties are not transported.
  *
  * @param {Function} Constructor Registered class.
  * @returns {Map<string, object>} Schema member declarations keyed by name.
@@ -18,7 +20,8 @@ const OBJECTS = new Set(["rootRef", "rootWeak", "root", "rawStruct"]);
 function declarations(Constructor)
 {
     const members = new Map();
-    for (const member of CjsSchema.getSchema(Constructor).members)
+    const info = CjsSchema.getSchema(Constructor);
+    for (const member of [ ...info.members, ...info.properties.filter(property => property.edit?.persist === true) ])
     {
         if (RESERVED.has(member.name)) throw new TypeError(`Reserved member '${member.name}'`);
         if (!members.has(member.name)) members.set(member.name, member);
@@ -44,14 +47,16 @@ function mapped(instance, name)
 
 /**
  * A stored member must be data, including when its exposed name differs from its key.
+ * A persisted property's slot is its accessor pair: the getter reads it, the setter writes it.
  *
  * @param {object} instance Owning instance.
  * @param {object} field Schema member declaration.
- * @returns {{target: object, key: string|number, value: unknown}} The storage slot and its current value.
+ * @returns {{target: object, key: string|number, value: unknown, property?: boolean}} The storage slot and its current value.
  * @throws {TypeError} When the member is not own data or its index is out of range.
  */
 function storage(instance, field)
 {
+    if (field.role === "property") return { target: instance, key: field.key, value: instance[field.key], property: true };
     const descriptor = Object.getOwnPropertyDescriptor(instance, field.key);
     if (!descriptor || !Object.hasOwn(descriptor, "value")) throw new TypeError(`Stored member '${field.name}' is not own data`);
     if (field.index === undefined) return { target: instance, key: field.key, value: descriptor.value };
@@ -540,7 +545,9 @@ export function readGraph(root, handlers, options = {})
     };
     const assign = (instance, field, slot, converted) =>
     {
-        if (slot.value && mapped(slot.value, "IList") && ["list", "array"].includes(field.type.kind))
+        // A property is always written through its setter.
+        if (slot.property) slot.target[slot.key] = converted;
+        else if (slot.value && mapped(slot.value, "IList") && ["list", "array"].includes(field.type.kind))
         {
             const previous = Array.from(listValues(slot.value));
             const replace = items =>

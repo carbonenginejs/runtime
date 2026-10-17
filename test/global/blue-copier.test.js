@@ -271,7 +271,8 @@ test("canonical members copy backing keys and indexes without invoking live prop
       { name: "second", key: "_slots", index: 1, type: { kind: "int32" }, edit: { persist: true } },
       { name: "label", key: "_label", type: { kind: "wstring" }, edit: { persist: true } }
     ],
-    properties: [ { name: "label", key: "label", type: { kind: "wstring" }, edit: { persist: true, notify: true } } ]
+    // A persisted property is size 0, so Copier.cpp:165-177 compares no bytes and skips it.
+    properties: [ { name: "label", key: "label", type: { kind: "wstring" }, property: { persisted: true } } ]
   });
   CjsSchema.blue.interface(INotify)(CopierStoredSlots);
   const source = new CopierStoredSlots();

@@ -420,7 +420,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Native Blue resPath property. */
-  @blue.readwrite
+  @blue.property()
   @type.path
   get resPath()
   {
@@ -434,7 +434,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Native Blue atlasTexture property. */
-  @blue.readwrite
+  @blue.property()
   @type.rootRef("Tr2AtlasTexture")
   get atlasTexture()
   {
@@ -448,7 +448,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Native Blue repeatMode property. */
-  @blue.readwrite
+  @blue.property()
   @type.int32
   get repeatMode()
   {
@@ -462,7 +462,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Native Blue srcX property. */
-  @blue.readwrite
+  @blue.property()
   @type.float32
   get srcX()
   {
@@ -476,7 +476,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Native Blue srcY property. */
-  @blue.readwrite
+  @blue.property()
   @type.float32
   get srcY()
   {
@@ -490,7 +490,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Native Blue srcWidth property. */
-  @blue.readwrite
+  @blue.property()
   @type.float32
   get srcWidth()
   {
@@ -504,7 +504,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Native Blue srcHeight property. */
-  @blue.readwrite
+  @blue.property()
   @type.float32
   get srcHeight()
   {
@@ -518,7 +518,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Native Blue tileX property. */
-  @blue.readwrite
+  @blue.property()
   @type.boolean
   get tileX()
   {
@@ -532,7 +532,7 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   }
 
   /** Native Blue tileY property. */
-  @blue.readwrite
+  @blue.property()
   @type.boolean
   get tileY()
   {

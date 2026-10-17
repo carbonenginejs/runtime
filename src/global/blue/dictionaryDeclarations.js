@@ -1,11 +1,13 @@
 import { CjsSchema } from "../schema/CjsSchema.js";
+import { isTransportedDeclaration } from "../compose/values.js";
 
 const VIEWS = new WeakMap();
 
 /**
  * Selects the JavaScript dictionary values view, not native persistence.
  * Derived owners claim exposed names first; within one owner stored members
- * precede live properties. Filters run after selection, without falling back
+ * precede live properties. A property takes part only when it is persisted
+ * (`isTransportedDeclaration`). Filters run after selection, without falling back
  * to a shadowed declaration; a decorated redeclaration already carries the
  * metadata it inherits, resolved by the schema. This keeps export/import
  * addressing identical, including the unrestricted all-fields values view.
@@ -27,7 +29,7 @@ export function getDictionaryDeclarations(Constructor)
     {
       for (const field of declarations)
       {
-        if (field.declaringClass !== owner || byName.has(field.name)) continue;
+        if (field.declaringClass !== owner || byName.has(field.name) || !isTransportedDeclaration(field)) continue;
         byName.set(field.name, field);
         fields.push(field);
       }

@@ -50,7 +50,7 @@ export class TriObserverLocal extends ITriObserverLocal
   _mute = false;
 
   /** Gets native mute state. @returns {boolean} Current mute state. */
-  @blue.readwrite
+  @blue.property()
   @type.boolean
   @meta.implemented
   get mute()

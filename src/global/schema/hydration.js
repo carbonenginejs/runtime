@@ -65,10 +65,11 @@ export function resolveHydrationAdapter(options = {})
  *
  * Carbon addresses the member by offset (IRootReader.cpp, HandleAttribute).
  * JavaScript uses an explicit data key and optional array index instead. A
- * property accessor is never a substitute for that backing storage.
+ * property accessor is never a substitute for a member's backing storage; a
+ * persisted property is read through its getter.
  *
  * @param {object} instance Destination instance.
- * @param {object} member Canonical stored-member declaration.
+ * @param {object} member Canonical stored-member or persisted property declaration.
  * @returns {*} The current stored value.
  */
 export function getReaderMemberValue(instance, member)
@@ -85,21 +86,28 @@ export function getReaderMemberValue(instance, member)
  * Readers ignore the notification's boolean result. The exposed member name
  * replaces Carbon's Be::Var pointer in the JavaScript INotify contract.
  *
+ * A persisted property (`MAP_PROPERTY_PERSISTED`) is written through its
+ * setter, every time. Adapted: Carbon's HandleAttribute writes at
+ * `instance + mOffset` whatever the entry is (IRootReader.cpp:69), and a
+ * property's offset is 0 (BlueExposureMacrosPython.h:216-230), so the setter
+ * is never reached; decision 2026-10-18 has our readers call the accessor.
+ *
  * @param {object} instance Destination instance.
- * @param {object} member Canonical stored-member declaration.
+ * @param {object} member Canonical stored-member or persisted property declaration.
  * @param {*} value Decoded value, with object references already resolved.
  * @returns {object} The destination instance.
  */
 export function applyReaderMember(instance, member, value)
 {
-    if (member.role !== "member" || member.edit?.persist !== true || member.type?.runtimeOnly === true)
+    const stored = member.role === "member" || member.role === "property";
+    if (!stored || member.edit?.persist !== true || member.type?.runtimeOnly === true)
     {
         throw new TypeError(`Reader member ${member.name} is not stored PERSIST data.`);
     }
 
     const storage = readerMemberStorage(instance, member);
     const next = readerMemberValue(storage.value, value, member);
-    if (!Object.is(next, storage.value)) storage.target[storage.key] = next;
+    if (member.role === "property" || !Object.is(next, storage.value)) storage.target[storage.key] = next;
 
     const interfaces = readerInterfaces(instance.constructor);
     if (!interfaces.initialize && interfaces.notify && member.edit.notify === true)
@@ -172,9 +180,17 @@ function readerInterfaces(Constructor)
     return { initialize, notify };
 }
 
-/** Resolves actual backing storage; inspecting a descriptor never runs a getter. */
+/**
+ * Resolves actual backing storage; inspecting a member's descriptor never
+ * runs a getter. A persisted property's slot is its accessor pair.
+ */
 function readerMemberStorage(instance, member)
 {
+    // An attribute over an accessor path (no property declaration) is reached the same way.
+    if (member.role === "property" && member.edit?.persist === true && typeof member.key === "string" && member.key)
+    {
+        return { target: instance, key: member.key, value: instance[member.key] };
+    }
     if (member.role !== "member" || typeof member.key !== "string" || !member.key)
     {
         throw new TypeError("Reader storage requires a canonical member and JavaScript key.");

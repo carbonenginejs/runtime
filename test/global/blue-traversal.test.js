@@ -106,7 +106,7 @@ test("native default is derived declarations before inherited storage, even unde
     CjsSchema.define(Derived, { className: "BlueTraversalDerived", members: [
         { name: "own", key: "_ownChild", type: { kind: "rootRef", className: Graph } }
     ], properties: [
-        { name: "child", key: "child", type: { kind: "rootRef", className: Graph } }
+        { name: "child", key: "child", type: { kind: "rootRef", className: Graph }, property: { persisted: false } }
     ] });
     const root = new Derived();
     root.name = "root";
@@ -127,7 +127,7 @@ test("stored aliases and indexed slots select backing data without accessor exec
         { name: "other", key: "slots", index: 1, type: { kind: "rootRef", className: Graph } },
         { name: "ignored", key: "accessorStorage", type: { kind: "rootRef", className: Graph } },
     ], properties: [
-        { name: "visible", key: "visible", type: { kind: "rootRef", className: Graph } }
+        { name: "visible", key: "visible", type: { kind: "rootRef", className: Graph }, property: { persisted: false } }
     ] });
     const root = new Slots();
     root.name = "root";

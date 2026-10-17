@@ -62,7 +62,7 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
   delayBinding = false;
 
   /** Live native READ property reporting the current binding. */
-  @blue.read
+  @blue.property()
   @type.boolean
   @meta.implemented
   get isBindingValid()
@@ -71,7 +71,7 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
   }
 
   /** Live native READ property observing retained compilation without compiling. */
-  @blue.read
+  @blue.property()
   @type.boolean
   @meta.implemented
   get isExpressionValid()

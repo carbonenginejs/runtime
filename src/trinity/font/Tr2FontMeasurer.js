@@ -47,7 +47,11 @@ export class Tr2FontMeasurer
   @type.int32
   limit = 0;
 
-  /** m_ascender (int) [READWRITE] */
+  /**
+   * m_ascender (int) [READWRITE]: Carbon's second MAP_ATTRIBUTE name for it
+   * (Tr2FontMeasurer_Blue.cpp:40). One JS key cannot carry two exposed
+   * names, so the alias is an attribute over this accessor onto ascender.
+   */
   @blue.readwrite
   @type.int32
   get asc()
@@ -60,7 +64,11 @@ export class Tr2FontMeasurer
     this.ascender = value;
   }
 
-  /** m_descender (int) [READWRITE] */
+  /**
+   * m_descender (int) [READWRITE]: Carbon's second MAP_ATTRIBUTE name for it
+   * (Tr2FontMeasurer_Blue.cpp:52). One JS key cannot carry two exposed
+   * names, so the alias is an attribute over this accessor onto descender.
+   */
   @blue.readwrite
   @type.int32
   get des()
@@ -97,7 +105,7 @@ export class Tr2FontMeasurer
   _currentFace = 0;
 
   /** CSS font family used by the browser backend. */
-  @blue.readwrite
+  @blue.property()
   @type.string
   get font()
   {
@@ -110,7 +118,7 @@ export class Tr2FontMeasurer
   }
 
   /** Requested pixel size. */
-  @blue.readwrite
+  @blue.property()
   @type.int32
   get fontSize()
   {
@@ -127,7 +135,7 @@ export class Tr2FontMeasurer
    * reads it: alpha in bits 24-31, red 16-23, green 8-15, blue 0-7
    * (math/include/Color_inline.h:15-21).
    */
-  @blue.readwrite
+  @blue.property()
   @type.int32
   get color()
   {
@@ -552,7 +560,7 @@ export class Tr2FontMeasurer
   _fadeLeftStart = -3.4028234663852886e38;
 
   /** Native text fade boundary. */
-  @blue.readwrite
+  @blue.property()
   @type.float32
   get fadeLeftStart()
   {
@@ -584,7 +592,7 @@ export class Tr2FontMeasurer
   _fadeLeftEnd = -3.4028234663852886e38;
 
   /** Native text fade boundary. */
-  @blue.readwrite
+  @blue.property()
   @type.float32
   get fadeLeftEnd()
   {
@@ -616,7 +624,7 @@ export class Tr2FontMeasurer
   _fadeRightStart = 3.4028234663852886e38;
 
   /** Native text fade boundary. */
-  @blue.readwrite
+  @blue.property()
   @type.float32
   get fadeRightStart()
   {
@@ -648,7 +656,7 @@ export class Tr2FontMeasurer
   _fadeRightEnd = 3.4028234663852886e38;
 
   /** Native text fade boundary. */
-  @blue.readwrite
+  @blue.property()
   @type.float32
   get fadeRightEnd()
   {
@@ -680,7 +688,7 @@ export class Tr2FontMeasurer
   _fadeTopStart = -3.4028234663852886e38;
 
   /** Native text fade boundary. */
-  @blue.readwrite
+  @blue.property()
   @type.float32
   get fadeTopStart()
   {
@@ -712,7 +720,7 @@ export class Tr2FontMeasurer
   _fadeTopEnd = -3.4028234663852886e38;
 
   /** Native text fade boundary. */
-  @blue.readwrite
+  @blue.property()
   @type.float32
   get fadeTopEnd()
   {
@@ -744,7 +752,7 @@ export class Tr2FontMeasurer
   _fadeBottomStart = 3.4028234663852886e38;
 
   /** Native text fade boundary. */
-  @blue.readwrite
+  @blue.property()
   @type.float32
   get fadeBottomStart()
   {
@@ -776,7 +784,7 @@ export class Tr2FontMeasurer
   _fadeBottomEnd = 3.4028234663852886e38;
 
   /** Native text fade boundary. */
-  @blue.readwrite
+  @blue.property()
   @type.float32
   get fadeBottomEnd()
   {

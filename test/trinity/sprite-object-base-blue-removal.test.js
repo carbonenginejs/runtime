@@ -75,7 +75,9 @@ test("declared dictionary notification and inherited transform notify reach nati
  new DictReader({declarations:true}).ReadInto(value,{displayX:3});assert.equal(value.displayX,3);assert.equal(parent.isDirty,true);assert.equal(value.isDirty,true);assert.deepEqual(notifications,["displayX"]);
  parent.isDirty=value.isDirty=false;new DictReader({declarations:true}).ReadInto(value,{rotation:0.5});assert.equal(value.rotation,0.5);assert.equal(parent.isDirty,true);assert.equal(value.isDirty,true);assert.deepEqual(notifications,["displayX","rotation"]);
  parent.isDirty=value.isDirty=false;new DictReader({declarations:true}).ReadInto(value,{name:"label"});assert.equal(parent.isDirty,false);assert.equal(value.isDirty,false);
- new DictReader({declarations:true}).ReadInto(value,{display:false});assert.equal(value.display,false);assert.equal(parent.isDirty,true);
+ // display is a MAP_PROPERTY, not PERSIST: the dictionary does not carry it (DictReader.cpp:706).
+ assert.throws(()=>new DictReader({declarations:true}).ReadInto(value,{display:false}),/Invalid attribute/);
+ value.display=false;assert.equal(value.display,false);assert.equal(parent.isDirty,true);
 });
 
 test("scalar setters retain change guards and required parent failures",()=>{

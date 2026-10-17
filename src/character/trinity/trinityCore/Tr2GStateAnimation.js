@@ -60,7 +60,7 @@ export class Tr2GStateAnimation
    * Returns the authored Granny animation resource path stored by this graph
    * shell.
    */
-  @blue.readwrite
+  @blue.property()
   @type.string
   get resPath()
   {
@@ -77,7 +77,7 @@ export class Tr2GStateAnimation
   }
 
   /** Returns the authored state-graph resource path stored by this graph shell. */
-  @blue.readwrite
+  @blue.property()
   @type.string
   get gStateResPath()
   {
@@ -94,7 +94,7 @@ export class Tr2GStateAnimation
   }
 
   /** Returns the authored Granny model name stored by this graph shell. */
-  @blue.readwrite
+  @blue.property()
   @type.string
   get model()
   {

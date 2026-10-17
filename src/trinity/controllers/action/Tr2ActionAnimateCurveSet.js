@@ -31,7 +31,7 @@ export class Tr2ActionAnimateCurveSet extends ITr2ControllerAction
   curveSet = null;
 
   /** Live readonly validity of the retained expression evaluator. */
-  @blue.read
+  @blue.property()
   @type.boolean
   @meta.adapted
   get isExpressionValid()

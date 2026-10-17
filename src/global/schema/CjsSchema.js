@@ -14,7 +14,7 @@ import { claimAbstractMethods, decorateAbstractMethod, installAbstractMethod } f
 import { CJS_CLASS_NAME, getRegisteredClassName, requireRegisteredClassName } from "../compose/className.js";
 import { composeNotifyDecorator } from "../compose/notify.js";
 import { carbonInheritDecorator, carbonInterfaceDecorator, carbonChainToDecorator, cast, mappedInterfaces } from "../compose/interface.js";
-import { composeValuesDecorator, createValuesTransport, isExportableField, isWritableField } from "../compose/values.js";
+import { composeValuesDecorator, createValuesTransport, isExportableField, isTransportedDeclaration, isWritableField } from "../compose/values.js";
 import { blueEnums, CjsBlueEnumRegistry, CJS_ENUM_NAME } from "../blue/enums/CjsBlueEnumRegistry.js";
 import { TriSettingNames } from "../consts/trinity.js";
 import { CjsUnusedMethodError } from "../utils/errors/CjsUnusedMethodError.js";
@@ -92,6 +92,12 @@ const STRUCT_TYPES = {
     SHORT_1: ["int16", "int16", 2, 2],
     BYTE_1: ["int8", "int8", 1, 1]
 };
+
+// TEMPORARY gate (2026-10-18): off until every accessor standing for a Carbon
+// MAP_PROPERTY row is declared with blue.property (EveTurretSet's three remain);
+// then on, and removed. While off, an accessor that carries a type but neither
+// a property declaration nor attribute flags is accepted.
+const ENFORCE_PROPERTY_DECLARATIONS = false;
 
 /** The member flags `meta` and `blue` share (Carbon's Be::EDITFLAGS). */
 const FLAG_NAMES = Object.freeze([ "read", "write", "readwrite", "notify", "hidden", "persist", "rpersist", "persistOnly" ]);
@@ -1006,8 +1012,10 @@ export class CjsSchema
     /**
      * Public grouping; these aliases share the existing implementations.
      * `attribute(name?, { index? })` declares stored data (Carbon's
-     * `MAP_ATTRIBUTE`) and `property(...)` a live property, with an exposed
-     * name independent of the decorated JS key.
+     * `MAP_ATTRIBUTE`), with an exposed name independent of the decorated JS
+     * key. `property(name?, { persisted? })` declares a getter, with its
+     * setter, as Carbon's `MAP_PROPERTY*` row; its flags are derived
+     * (`propertyDecorator`).
      * Explicit `members`/`properties` arrays use { name, key, index?, ...metadata }
      * and retain multiple indexed routes on one key. Legacy `fields` inputs and
      * decorator arrays remain JS-keyed and also populate the compatibility view.
@@ -1047,7 +1055,7 @@ export class CjsSchema
         setting: SETTING_DECORATOR,
         struct: createStructNamespace(),
         attribute: (name, options) => declarationDecorator("member", name, options),
-        property: (name, options) => declarationDecorator("property", name, options),
+        property: (name, options) => propertyDecorator(name, options, false),
         chooser: values => chooserDecorator(values),
         define: (definitionOrConstructor, definition) => defineEntry(definitionOrConstructor, definition, false),
         hideInherited: this.hideInherited
@@ -1081,6 +1089,8 @@ export class CjsSchema
             const { namespace, value } = getDecoratorMetadata(declarationDecorator("member", name, options));
             return combinedFieldDecorator({ [namespace]: value, carbon: { member: true } });
         },
+        // Carbon's `MAP_PROPERTY*` row: `meta.property` stamped as Carbon's member.
+        property: (name, options) => propertyDecorator(name, options, true),
         // Carbon's `MAP_ATTRIBUTE_WITH_CHOOSER` chooser table: `meta.chooser` stamped as Carbon's member.
         chooser: values =>
         {
@@ -1640,6 +1650,7 @@ function fieldDecorator(namespace, value)
             // to capture.
             if (context.kind === "getter" || context.kind === "setter" || context.kind === "accessor")
             {
+                if (namespace === "edit" && hasStage3Namespace(context, "property")) RejectPropertyFlags(context.name);
                 recordStage3FieldMetadata(context, namespace, value);
                 return undefined;
             }
@@ -1864,6 +1875,135 @@ function declarationDecorator(role, name, options = {})
     return fieldDecorator("declaration", declaration);
 }
 
+/**
+ * `meta.property` / `blue.property`: Carbon's `MAP_PROPERTY`,
+ * `MAP_PROPERTY_READONLY` and `MAP_PROPERTY_PERSISTED`
+ * (blueexposure/include/BlueExposureMacrosPython.h:182-230). Each builds a
+ * `VarEntry` with no storage (offset and size 0), the getter and setter
+ * pointers, and flags the macro fixes (BlueTypes.h:321-337).
+ *
+ * It decorates the getter of a get/set pair whose bodies call the class's
+ * Get/Set methods. The exposed name defaults to the accessor key; the type is
+ * declared with `type.*` (C++ infers it from the getter's return type, JS
+ * cannot). The flags are never written: a pair is READWRITE, a getter alone
+ * READ, and `persisted` adds PERSIST. `registerDeclaredProperties` derives
+ * them when the class registers, and the flag decorators refuse a property.
+ *
+ * @param {string} [name] Exposed name, when it differs from the accessor key.
+ * @param {{persisted?: boolean}} [options] `persisted`: `MAP_PROPERTY_PERSISTED`.
+ * @param {boolean} carbon Whether the row is Carbon's (`blue.property`).
+ * @returns {Function} The getter decorator.
+ */
+function propertyDecorator(name, options = {}, carbon)
+{
+    if (!options || typeof options !== "object") throw new TypeError("property options must be an object.");
+    for (const option of Object.keys(options))
+    {
+        if (option !== "persisted") throw new TypeError(`property takes only { persisted }, not "${option}".`);
+    }
+    if (Object.hasOwn(options, "persisted") && typeof options.persisted !== "boolean")
+    {
+        throw new TypeError("property persisted must be a boolean.");
+    }
+
+    const definition = {
+        declaration: getDecoratorMetadata(declarationDecorator("property", name)).value,
+        property: { persisted: options.persisted === true }
+    };
+    if (carbon) definition.carbon = { member: true };
+    const combined = combinedFieldDecorator(definition);
+
+    // Stage-3 decorators see the getter; `decorateField` and `define({ fields })`
+    // name an accessor key, and `registerDeclaredProperties` checks it has a getter.
+    const decorator = function schemaPropertyDecorator(target, context)
+    {
+        if (context && typeof context === "object" && context.kind !== "getter")
+        {
+            throw new TypeError("property decorates a getter; a writable property also has a setter.");
+        }
+        if (context && typeof context === "object" && hasStage3Namespace(context, "edit")) RejectPropertyFlags(context.name);
+        return combined(target, context);
+    };
+    Object.defineProperty(decorator, DECORATOR_METADATA, { value: getDecoratorMetadata(combined) });
+    return decorator;
+}
+
+/**
+ * A property's flags come from its accessors and `persisted`
+ * (BlueExposureMacrosPython.h:182-230 fixes them per macro), so a separate
+ * flag decorator on one is refused where it is written. An accessor with
+ * flags and no property declaration is an attribute whose storage is the
+ * accessor path (Tr2SkinnedObject's m_lod members), which keeps its flags.
+ *
+ * @param {string|symbol} key Accessor key.
+ * @throws {TypeError} Always.
+ */
+function RejectPropertyFlags(key)
+{
+    throw new TypeError(
+        `"${String(key)}" is a property: its flags are derived. Declare it with blue.property or ` +
+        "meta.property alone (READWRITE with a setter, READ without, { persisted: true } adds PERSIST)."
+    );
+}
+
+/** Whether this class's decorators already recorded `namespace` for the decorated key. */
+function hasStage3Namespace(context, namespace)
+{
+    const metadata = context?.metadata;
+    if (!metadata || !Object.prototype.hasOwnProperty.call(metadata, STAGE3_FIELD_METADATA)) return false;
+    return metadata[STAGE3_FIELD_METADATA].some(field => field.name === context.name && field.namespace === namespace);
+}
+
+/**
+ * Completes a class's own property declarations when it registers: records
+ * the getter and setter, as `VarEntry::mGetProperty`/`mSetProperty` do
+ * (BlueTypes.h:335-337), and derives the macro's flags from them - READWRITE
+ * for a pair, READ for a getter alone, PERSIST added by `persisted`
+ * (BlueExposureMacrosPython.h:182-230). Flags written on a property are
+ * refused. An accessor with flags and no property declaration is an attribute
+ * over the accessor path and keeps them; one with other metadata and neither
+ * must be declared.
+ *
+ * @param {Function} Constructor Class whose own declarations are completed.
+ * @throws {TypeError} For an undeclared exposed accessor, a missing getter, or a persisted getter alone.
+ */
+function registerDeclaredProperties(Constructor)
+{
+    const schema = CLASS_SCHEMA.get(Constructor);
+    if (!schema) return;
+
+    for (const record of schema.declarations)
+    {
+        const { entry } = record;
+        if (entry.role !== "property" || entry.declaringClass !== Constructor) continue;
+        const where = `${schema.className || "<unregistered>"}.${String(entry.key)}`;
+
+        if (!entry.property)
+        {
+            if (entry.edit !== undefined) continue;
+            const exposed = Object.keys(entry).filter(namespace =>
+                ![ "name", "key", "role", "index", "declaringClass", "impl" ].includes(namespace));
+            if (!exposed.length || !ENFORCE_PROPERTY_DECLARATIONS) continue;
+            throw new TypeError(`${where} is an accessor with ${exposed.join(", ")} metadata; declare it with blue.property or meta.property, or give an attribute its flags.`);
+        }
+
+        // The getter is recorded by the first pass; flags present before it were written.
+        if (!entry.property.getter && entry.edit !== undefined) RejectPropertyFlags(entry.key);
+
+        const descriptor = Object.getOwnPropertyDescriptor(Constructor.prototype, entry.key);
+        if (!descriptor || typeof descriptor.get !== "function") throw new TypeError(`${where}: a property needs a getter.`);
+        if (entry.property.persisted && typeof descriptor.set !== "function")
+        {
+            throw new TypeError(`${where}: MAP_PROPERTY_PERSISTED takes a setter; a getter alone is READ only.`);
+        }
+        if (Object.hasOwn(entry, "index")) throw new TypeError(`${where}: a property has no storage index.`);
+
+        entry.property = { ...entry.property, getter: descriptor.get, setter: descriptor.set || null };
+        entry.edit = { read: true, ...(descriptor.set ? { write: true } : {}), ...(entry.property.persisted ? { persist: true } : {}) };
+    }
+    refreshLegacyFields(schema);
+}
+
 function validateDeclaration(entry)
 {
     for (const key of [ "name", "key" ])
@@ -2084,7 +2224,7 @@ function defineClassMetadata(Constructor, definition)
     // The decorators recorded this class's members, and those of any ancestor
     // that never registers itself, on the classes' decorator metadata.
     // Consumed here, so the table built below is complete.
-    consumeLineageDecoratorMetadata(Constructor);
+    const lineage = consumeLineageDecoratorMetadata(Constructor);
 
     const schema = getOrCreateClassSchema(Constructor);
     if (definition.className)
@@ -2122,6 +2262,10 @@ function defineClassMetadata(Constructor, definition)
         defineManualMemberMetadata(Constructor, "methods", method);
         if (method.impl?.status === "abstract") installAbstractMethod(Constructor.prototype, method.name);
     }
+
+    // Every declaration is in: the properties among them get their getter,
+    // setter and derived flags, here and on unregistered ancestors.
+    for (const Class of lineage) registerDeclaredProperties(Class);
 
     // Before any consumer can copy them (`blue.inherit`), this class's own
     // abstract throwers learn that it declares them.
@@ -2328,6 +2472,7 @@ function importDeclaredValue(value, field)
 
 // Values select a declaration before applying its runtime-only exclusion.
 // Keep this schema-local: schema transports cannot depend on Blue readers.
+// A property is selected only when persisted, as dictionaryDeclarations does.
 function findValuesDeclaration(Constructor, name, storage = false)
 {
     if (typeof Constructor !== "function") return null;
@@ -2342,7 +2487,7 @@ function findValuesDeclaration(Constructor, name, storage = false)
             {
                 for (const field of fields)
                 {
-                    if (field.declaringClass !== owner || selected.has(field.name)) continue;
+                    if (field.declaringClass !== owner || selected.has(field.name) || !isTransportedDeclaration(field)) continue;
                     selected.set(field.name, field);
                 }
             }
@@ -2863,6 +3008,9 @@ function recordStage3MethodMetadata(context, namespace, value)
  * Consumes the decorator metadata of a class and of every ancestor that has
  * not registered, base first, so a class registering below an unregistered
  * base still carries the base's members.
+ *
+ * @param {Function} Constructor The class being defined.
+ * @returns {Array<Function>} The class and its consumed ancestors, base first.
  */
 function consumeLineageDecoratorMetadata(Constructor)
 {
@@ -2881,6 +3029,7 @@ function consumeLineageDecoratorMetadata(Constructor)
         const metadata = Object.prototype.hasOwnProperty.call(Class, DECORATOR_METADATA_KEY) ? Class[DECORATOR_METADATA_KEY] : null;
         registerStage3FieldMetadata(Class, metadata);
     }
+    return pending;
 }
 
 function registerStage3FieldMetadata(Constructor, metadata)

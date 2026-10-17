@@ -304,11 +304,12 @@ CjsSchema.blue.define(BlueObjectProxy, {
   className: "BlueObjectProxy",
   members: [ { name: "object", key: "_object", type: { kind: "rootRef", className: "IRoot" }, edit: { persist: true, persistOnly: true, hidden: true }, carbon: { member: true } } ],
   fields: {
-    object: [ blue.readwrite, type.rootRef("IRoot") ],
+    // MAP_PROPERTY rows (BlueObjectProxy_Blue.cpp:18-23, 47-59).
+    object: [ blue.property(), type.rootRef("IRoot") ],
     builder: [ blue.readwrite, type.rootRef("IBlueObjectBuilder") ],
     objectMarker: [ blue.readwrite, type.uint32 ],
-    temporary: [ blue.readwrite, type.boolean ],
-    isResident: [ blue.read, type.boolean ]
+    temporary: [ blue.property(), type.boolean ],
+    isResident: [ blue.property(), type.boolean ]
   },
   methods: {
     SetBuilder: [ blue.method, meta.implemented ],

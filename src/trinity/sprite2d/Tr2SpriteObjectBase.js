@@ -263,7 +263,7 @@ export class Tr2SpriteObjectBase extends ITr2SpriteObject
   auxMouseover = null;
 
   /** Native READWRITE display property. @returns {boolean} */
-  @blue.readwrite
+  @blue.property()
   @type.boolean
   get display()
   {

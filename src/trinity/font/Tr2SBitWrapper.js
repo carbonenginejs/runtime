@@ -69,7 +69,7 @@ export class Tr2SBitWrapper
   fontSize = 12;
 
   /** Blue "xOffset" [READ] (Tr2Sbit_Blue.cpp:23-26): GetXOffset. @returns {number} Bitmap left offset. */
-  @blue.read
+  @blue.property()
   @type.int32
   @meta.implemented
   get xOffset()
@@ -78,7 +78,7 @@ export class Tr2SBitWrapper
   }
 
   /** Blue "yOffset" [READ] (Tr2Sbit_Blue.cpp:28-31): GetYOffset. @returns {number} Bitmap top offset. */
-  @blue.read
+  @blue.property()
   @type.int32
   @meta.implemented
   get yOffset()
@@ -87,7 +87,7 @@ export class Tr2SBitWrapper
   }
 
   /** Blue "width" [READ] (Tr2Sbit_Blue.cpp:33-36): GetWidth. @returns {number} Bitmap width. */
-  @blue.read
+  @blue.property()
   @type.int32
   @meta.implemented
   get width()
@@ -96,7 +96,7 @@ export class Tr2SBitWrapper
   }
 
   /** Blue "height" [READ] (Tr2Sbit_Blue.cpp:38-41): GetHeight. @returns {number} Bitmap height. */
-  @blue.read
+  @blue.property()
   @type.int32
   @meta.implemented
   get height()
@@ -105,7 +105,7 @@ export class Tr2SBitWrapper
   }
 
   /** Blue "xadvance" [READ] (Tr2Sbit_Blue.cpp:43-47): GetXAdvance. @returns {number} Horizontal advance. */
-  @blue.read
+  @blue.property()
   @type.int32
   @meta.implemented
   get xadvance()
@@ -114,7 +114,7 @@ export class Tr2SBitWrapper
   }
 
   /** Blue "yadvance" [READ] (Tr2Sbit_Blue.cpp:49-53): GetYAdvance. @returns {number} Vertical advance. */
-  @blue.read
+  @blue.property()
   @type.int32
   @meta.implemented
   get yadvance()

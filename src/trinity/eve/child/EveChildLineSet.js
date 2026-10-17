@@ -531,7 +531,7 @@ export class EveChildLineSet extends EveChildTransform
   }
 
   /** Native Blue readonly property (EveChildLineSet_Blue.cpp:29). */
-  @blue.read
+  @blue.property()
   @type.boolean
   get isUpdating()
   {

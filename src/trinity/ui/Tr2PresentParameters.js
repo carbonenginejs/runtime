@@ -16,7 +16,13 @@ import { Tr2PresentParametersAL } from "../../trinityal/Tr2PresentParametersAL.j
 @blue.inherit(IRoot)
 export class Tr2PresentParameters extends Tr2PresentParametersAL
 {
-  /** Reads mode.width. @returns {number} Back-buffer pixel width. */
+  /**
+   * Reads mode.width: Carbon's MAP_ATTRIBUTE("backBufferWidth", mode.width,
+   * Be::READWRITE) (Tr2PresentParameters_Blue.cpp:13): an attribute over this
+   * accessor onto the nested AL record.
+   *
+   * @returns {number} Back-buffer pixel width.
+   */
   @blue.readwrite
   @type.uint32
   @meta.adapted
@@ -32,7 +38,13 @@ export class Tr2PresentParameters extends Tr2PresentParametersAL
     this.mode.width = value;
   }
 
-  /** Reads mode.height. @returns {number} Back-buffer pixel height. */
+  /**
+   * Reads mode.height: Carbon's MAP_ATTRIBUTE("backBufferHeight", mode.height,
+   * Be::READWRITE) (Tr2PresentParameters_Blue.cpp:18): an attribute over this
+   * accessor onto the nested AL record.
+   *
+   * @returns {number} Back-buffer pixel height.
+   */
   @blue.readwrite
   @type.uint32
   @meta.adapted

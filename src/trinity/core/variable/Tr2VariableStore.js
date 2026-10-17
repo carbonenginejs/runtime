@@ -38,7 +38,7 @@ export class Tr2VariableStore
    * Native live parent property; uses the existing root-protection setter.
    * @returns {Tr2VariableStore|null} Parent searched after local lookup.
    */
-  @blue.readwrite
+  @blue.property()
   @type.rootRef("Tr2VariableStore")
   @meta.implemented
   get parentStore()

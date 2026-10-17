@@ -200,7 +200,7 @@ export class EveSpaceObjectDecal
    * Property form of HasStaticIndexBuffers: whether any LOD carries decal
    * triangle indices.
    */
-  @blue.read
+  @blue.property()
   @type.boolean
   get hasStaticIndexBuffers()
   {

@@ -74,7 +74,7 @@ export class Tr2ActionSetExternalControllerVariable extends ITr2ControllerAction
    * Reports whether a destination owner has resolved, without validating the variable or relinking.
    * @returns {boolean} Whether the cached destination is non-null.
    */
-  @blue.read
+  @blue.property()
   @type.boolean
   @meta.implemented
   get destinationIsValid()

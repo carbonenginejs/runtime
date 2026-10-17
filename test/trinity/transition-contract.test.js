@@ -142,7 +142,7 @@ test("IsExpressionValid accepts its ignored attribute argument and retains no-ar
   }
 });
 
-test("the READ-only property has no assignment route and dictionary input skips it before destination access", () =>
+test("the READ-only property has no assignment route and dictionary input refuses it before destination access", () =>
 {
   const transition = new Type();
   transition.condition = "1";
@@ -155,34 +155,34 @@ test("the READ-only property has no assignment route and dictionary input skips 
     get() { destinationReads++; throw new Error("READ-only destination getter must not run during input"); }
   });
   transition.OnModified = () => { notifications++; throw new Error("READ-only input must not notify"); };
-  const changed = new DictReader({ declarations: true }).ReadInto(transition, { isConditionValid: false }, transition);
-  assert.deepEqual([...changed], []);
+  // MAP_PROPERTY_READONLY is not PERSIST, so DictReader::FindEntry never matches it (DictReader.cpp:706).
+  assert.throws(() => new DictReader({ declarations: true }).ReadInto(transition, { isConditionValid: false }, transition), /Invalid attribute/);
   assert.equal(destinationReads, 0);
   assert.equal(notifications, 0);
   assert.equal(transition.condition, "1");
   assert.equal(transition._program, null);
-  const created = new DictReader({ declarations: true }).CreateObject({ name: "from", condition: "1", isConditionValid: false }, Type);
+  assert.throws(() => new DictReader({ declarations: true }).CreateObject({ name: "from", condition: "1", isConditionValid: false }, Type), /Invalid attribute/);
+  const created = new DictReader({ declarations: true }).CreateObject({ name: "from", condition: "1" }, Type);
   assert.equal(created.name, "from");
-  assert.equal(created.isConditionValid, true, "the input cannot override the computed result");
+  assert.equal(created.isConditionValid, true);
   assert.equal(Object.hasOwn(created, "isConditionValid"), false);
 });
 
-test("unrestricted values include the current readable computed bool after the stored declarations", () =>
+test("unrestricted values carry the stored declarations but not the unpersisted computed bool", () =>
 {
   const transition = new Type();
   transition.name = "values";
   transition.condition = "1";
   assert.equal(transition._program, null);
   const values = new DictWriter().WriteObject(transition);
-  assert.equal(Object.hasOwn(values, "isConditionValid"), true);
+  // Only a persisted property is written (decision 2026-10-18; BlueMemberIterator.cpp:150-177).
+  assert.equal(Object.hasOwn(values, "isConditionValid"), false);
   assert.equal(values.name, "values");
   assert.equal(values.condition, "1");
-  assert.equal(values.isConditionValid, true);
-  assert.deepEqual(Object.keys(values).filter(name => ["name", "condition", "isConditionValid"].includes(name)),
-    ["name", "condition", "isConditionValid"]);
-  assert.notEqual(transition._program, null, "unrestricted output invokes the current lazy getter");
+  assert.equal(transition._program, null, "the unpersisted getter is never invoked");
+  assert.equal(transition.isConditionValid, true);
   transition.condition = "(";
-  assert.equal(new DictWriter().WriteObject(transition).isConditionValid, false);
+  assert.equal(transition.isConditionValid, false);
 });
 
 test("persistOnly and roundTrip values omit the computed property before reading its getter", () =>

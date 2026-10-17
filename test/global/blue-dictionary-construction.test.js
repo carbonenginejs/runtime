@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/global/schema/CjsSchema.js";
-import { type } from "../../npm/dist/global/schema/index.js";
+import { meta, type } from "../../npm/dist/global/schema/index.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import { IInitialize } from "../../npm/dist/global/blue/IInitialize.js";
 import { INotify } from "../../npm/dist/global/blue/INotify.js";
@@ -82,19 +82,20 @@ test("declared embedded population preserves storage and bypasses SetValues", ()
   assert.notEqual(BeObjectMetadata.GetMetadata(child), BeObjectMetadata.GetMetadata(source));
 });
 
+// DictReader::FindEntry matches a property only when PERSIST (DictReader.cpp:706).
 test("declared lifecycle never reads an unrelated live property", () => {
   class Node { get unused() { assert.fail("unrelated getter"); } }
-  define(Node, { unused: ref(null) });
+  define(Node, { unused: [ meta.property(), type.rootRef("IRoot") ] });
   assert.ok(reader().CreateObject({}, Node) instanceof Node);
   assert.ok(reader({ initialize: false }).CreateObject({}, Node) instanceof Node);
   class ReadOnly { get unused() { assert.fail("read-only getter"); } }
-  define(ReadOnly, { unused: { type: { kind: "rootRef" }, edit: { read: true } } });
-  assert.ok(reader().CreateObject({ unused: null }, ReadOnly) instanceof ReadOnly);
+  define(ReadOnly, { unused: [ meta.property(), type.rootRef("IRoot") ] });
+  assert.throws(() => reader().CreateObject({ unused: null }, ReadOnly), /Invalid attribute/);
 });
 
 test("declared resources are excluded before input access and create no anchors or notifications", () => {
   class Owner { value = 0; get cache() { assert.fail("resource storage read"); } OnModified() { assert.fail("resource notify"); } }
-  define(Owner, { value: type.int32, cache: [type.resource("Unused"), CjsSchema.blue.notify] }, [INotify]);
+  define(Owner, { value: type.int32, cache: [meta.property(), type.resource("Unused")] }, [INotify]);
   const source = Object.defineProperty({ value: 2 }, "cache", { enumerable: true, get() { assert.fail("incoming resource read"); } });
   assert.equal(reader().CreateObject(source, Owner).value, 2);
 });
@@ -130,7 +131,7 @@ test("nested declared collections construct nodes and preserve borrowed identiti
     static from() { assert.fail("legacy factory"); }
     Initialize() { this.initialized++; }
   }
-  const childName = define(Child, { value: type.int32, cache: type.resource("Unused") }, [IInitialize]);
+  const childName = define(Child, { value: type.int32, cache: [meta.property(), type.resource("Unused")] }, [IInitialize]);
   const childType = { kind: "rootRef", className: childName };
   const list = { kind: "list", itemType: childType };
   const cases = [

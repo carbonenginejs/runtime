@@ -27,7 +27,7 @@ export class EveShip2 extends EveMobile
   _boosters = null;
 
   /** Live booster property; persistence reads and writes the backing member directly. */
-  @blue.readwrite
+  @blue.property()
   @type.rootRef("EveBoosterSet2")
   @meta.implemented
   get boosters()

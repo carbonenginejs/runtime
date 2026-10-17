@@ -36,7 +36,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   _expression = "";
 
   /** Live expression property, separate from persisted backing storage. */
-  @blue.readwrite
+  @blue.property()
   @type.expression
   @meta.implemented
   get expression()

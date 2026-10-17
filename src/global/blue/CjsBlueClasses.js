@@ -504,7 +504,9 @@ export class CjsBlueClasses extends IBlueClasses
     const classes = [];
     for (const registration of getClassRegistrations())
     {
-      const members = CjsSchema.getSchema(registration.type).members
+      // BlueMemberIterator walks every PERSIST entry, a persisted property included.
+      const info = CjsSchema.getSchema(registration.type);
+      const members = [ ...info.members, ...info.properties ]
         .filter(member => member.edit !== undefined && (member.edit.persist === true || member.edit.rpersist === true));
       if (members.length) classes.push({ name: registration.name, members });
     }
@@ -564,7 +566,10 @@ export class CjsBlueClasses extends IBlueClasses
     for (const Interface of mappedInterfaces(Constructor)) interfaces[CjsSchema.getClassName(Interface)] = 0;
 
     const members = {};
-    for (const member of [ ...schema.members, ...schema.properties ])
+    // An accessor row is a property (blue.property/meta.property, flags derived)
+    // or an attribute over the accessor path (its own flags); one carrying only
+    // status markers is not exposed.
+    for (const member of [ ...schema.members, ...schema.properties.filter(property => property.property || property.edit) ])
     {
       const type = member.type;
       const reference = type && (type.kind === "rootRef" || type.kind === "rootWeak") ? type.className : null;

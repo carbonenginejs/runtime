@@ -21,11 +21,12 @@ test("resource decorator preserves the canonical rootRef fact", () => {
   assert.deepEqual(field.type, { kind: "rootRef", className: Resource, runtimeOnly: true });
 });
 
-for (const edit of [undefined, {}, { read: true, write: true }, { persist: true }, { rpersist: true }, { persistOnly: true }, { hidden: true }]) {
-  test(`resource exclusions precede edit flags ${JSON.stringify(edit)}`, () => {
+// A property's flags are derived from its accessors and persisted (decision 2026-10-18).
+for (const persisted of [false, true]) {
+  test(`resource exclusions precede property flags, persisted ${persisted}`, () => {
     class Owner { path = "path"; get cache() { return poison(); } set cache(_) { poison(); } }
     CjsSchema.define(Owner, { className: name(), fields: {
-      cache: { type: { kind: "rootRef", className: "Resource", runtimeOnly: true }, ...(edit ? { edit } : {}) },
+      cache: { type: { kind: "rootRef", className: "Resource", runtimeOnly: true }, property: { persisted } },
       path: type.string
     } });
     const target = new Owner();
@@ -66,7 +67,7 @@ test("selected resource claims its exposed name before reading input", () => {
 
 test("stateless recursive output excludes child resources in objects and collections", () => {
   class Child { label = "child"; get cache() { return poison(); } }
-  CjsSchema.define(Child, { className: name(), fields: { label: type.string, cache: type.resource("Resource") } });
+  CjsSchema.define(Child, { className: name(), fields: { label: type.string, cache: [meta.property(), type.resource("Resource")] } });
   const child = new Child();
   Object.defineProperty(child, "cache", { enumerable: true, get: poison });
   class Parent { child = child; array = [child]; map = new Map([["child", child]]); set = new Set([child]); }
@@ -164,7 +165,7 @@ test("metadata-only type inheritance never crosses roles, slots or explicit decl
   class Base { cache = null; }
   CjsSchema.define(Base, { className: name(), fields: { cache: type.resource("Resource") } });
   class Property extends Base { get cache() { return null; } }
-  CjsSchema.define(Property, { className: name(), fields: { cache: { edit: { read: true } } } });
+  CjsSchema.define(Property, { className: name(), fields: { cache: meta.property() } });
   assert.equal(CjsSchema.getSchema(Property).properties[0].type, undefined);
   class Explicit extends Base {}
   CjsSchema.define(Explicit, { className: name(), members: [{ name: "cache", key: "cache", edit: { persist: true } }] });
@@ -195,7 +196,7 @@ test("ordinary raw getter and opaque source carrier semantics remain unchanged",
 
 test("dictionary collection routes filter nested resource state", () => {
   class Child { authored = 1; get cache() { return poison(); } }
-  CjsSchema.define(Child, { className: name(), fields: { authored: type.int32, cache: type.resource("Resource") } });
+  CjsSchema.define(Child, { className: name(), fields: { authored: type.int32, cache: [meta.property(), type.resource("Resource")] } });
   const child = new Child();
   Object.defineProperty(child, "cache", { enumerable: true, get: poison });
   class Parent { map = new Map([["child", child]]); set = new Set([child]); raw = { nested: new Map([["child", child]]) }; }

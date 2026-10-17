@@ -95,9 +95,10 @@ const s_layerIndices = [0, 1, 3, 3, 1, 2];
     {"carbon":{"member":true},"name":"maxSpriteCount","type":{"kind":"uint32"},"edit":{"read":true,"write":true,"notify":true}},
     {"carbon":{"member":true},"name":"captureIndexDataCapacity","type":{"kind":"uint32"},"edit":{"read":true}}
   ],
+  // MAP_PROPERTY rows (Tr2Sprite2dScene_Blue.cpp:229-239): flags derived from the accessors.
   properties: [
-    {"carbon":{"member":true},"name":"useLinearColorSpace","type":{"kind":"boolean"},"edit":{"read":true,"write":true}},
-    {"carbon":{"member":true},"name":"gammaCorrectText","type":{"kind":"boolean"},"edit":{"read":true,"write":true}}
+    {"carbon":{"member":true},"name":"useLinearColorSpace","type":{"kind":"boolean"},"property":{"persisted":false}},
+    {"carbon":{"member":true},"name":"gammaCorrectText","type":{"kind":"boolean"},"property":{"persisted":false}}
   ]
 })
 @blue.inherit(INotify)

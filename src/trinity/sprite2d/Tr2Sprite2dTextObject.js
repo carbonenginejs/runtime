@@ -66,7 +66,7 @@ export class Tr2Sprite2dTextObject extends Tr2SpriteObject
   _fontMeasurer = null;
 
   /** Native mapped property routes through subscription management. */
-  @blue.readwrite
+  @blue.property()
   @type.rootRef("Tr2FontMeasurer")
   get fontMeasurer()
   {

@@ -37,7 +37,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * Texture width; native readonly Blue property.
    * @returns {number} Current texture description value.
    */
-  @blue.read
+  @blue.property()
   @type.uint32
   @meta.implemented
   get width()
@@ -49,7 +49,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * Texture height; native readonly Blue property.
    * @returns {number} Current texture description value.
    */
-  @blue.read
+  @blue.property()
   @type.uint32
   @meta.implemented
   get height()
@@ -61,7 +61,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * Texture depth; native readonly Blue property.
    * @returns {number} Current texture description value.
    */
-  @blue.read
+  @blue.property()
   @type.uint32
   @meta.implemented
   get depth()
@@ -73,7 +73,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * Texture type; native readonly Blue property.
    * @returns {number} Current texture description value.
    */
-  @blue.read
+  @blue.property()
   @type.uint32
   @meta.implemented
   get type()
@@ -85,7 +85,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * Number of mip levels; native readonly Blue property.
    * @returns {number} Current texture description value.
    */
-  @blue.read
+  @blue.property()
   @type.uint32
   @meta.implemented
   get mipCount()
@@ -97,7 +97,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * Pixel format; native readonly Blue property.
    * @returns {number} Current texture description value.
    */
-  @blue.read
+  @blue.property()
   @type.uint32
   @meta.implemented
   get format()
@@ -109,7 +109,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * Number of textures in the array; native readonly Blue property.
    * @returns {number} Current texture description value.
    */
-  @blue.read
+  @blue.property()
   @type.uint32
   @meta.implemented
   get arraySize()
@@ -121,7 +121,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * Texture name; native readonly Blue property.
    * @returns {string} Current texture description value.
    */
-  @blue.read
+  @blue.property()
   @type.string
   @meta.implemented
   get name()

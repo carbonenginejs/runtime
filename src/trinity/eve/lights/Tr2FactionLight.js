@@ -227,7 +227,7 @@ export class Tr2FactionLight extends Tr2Light
    * Light colour helper: Carbon's MAP_PROPERTY_READONLY "selectedColor" over
    * GetSelectedColor (Tr2FactionLight_Blue.cpp:29).
    */
-  @blue.read
+  @blue.property()
   @type.color
   get selectedColor()
   {

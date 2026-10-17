@@ -56,7 +56,7 @@ class ResourceProperty extends ResourceBase
     get cache() { throw new Error("resource property getter must not run"); }
 }
 CjsSchema.define(ResourceProperty, { className: "ResourceBlackCopyProperty", properties: [
-    member("cache", "rootRef", { type: { kind: "rootRef", runtimeOnly: true } })
+    { name: "cache", key: "cache", type: { kind: "rootRef", runtimeOnly: true }, property: { persisted: false } }
 ] });
 
 test("Copier preserves a destination resource and clone keeps its constructor resource", () =>

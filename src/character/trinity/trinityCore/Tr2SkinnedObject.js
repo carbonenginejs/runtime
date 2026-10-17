@@ -19,11 +19,8 @@ import { ITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
   className: "Tr2SkinnedObject",
   abstract: true,
   fields: {
-    // Tr2SkinnedObject_Blue.cpp:49-51: IBlueObjectProxyPtr, READWRITE | PERSIST | NOTIFY.
-    highDetailModel: [type.rootRef("IBlueObjectProxy"), blue.notify, blue.readwrite, blue.persist],
-    mediumDetailModel: [type.rootRef("IBlueObjectProxy"), blue.notify, blue.readwrite, blue.persist],
-    lowDetailModel: [type.rootRef("IBlueObjectProxy"), blue.notify, blue.readwrite, blue.persist],
-    currentLod: [type.int32, blue.read]
+    // MAP_PROPERTY_READONLY (Tr2SkinnedObject_Blue.cpp:48).
+    currentLod: [blue.property(), type.int32]
   }
 })
 @blue.inherit(ITr2Renderable, IWorldPosition, IListNotify, INotify, ITr2SkinnedObject, ITr2DebugRenderable)
@@ -147,10 +144,16 @@ export class Tr2SkinnedObject
   @type.rootRef("ITr2WorldTransformUpdater")
   worldTransformUpdater = null;
 
-  // Carbon maps this exposed field directly into m_lod storage. Accessors
-  // preserve that alias before any member notification in a batch is settled.
+  // MAP_ATTRIBUTE("highDetailModel", m_lod.m_highDetailProxy, READWRITE | PERSIST | NOTIFY)
+  // (Tr2SkinnedObject_Blue.cpp:49-51): an attribute whose offset points into the
+  // embedded Tr2SkinnedObjectLod m_lod (Tr2SkinnedObject.h:218). The accessors are
+  // only that path; a write is a raw store, and NOTIFY then reaches OnModified.
 
   /** Reads the high-detail proxy stored by the native LOD helper. */
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("IBlueObjectProxy")
   get highDetailModel()
   {
     return this.lod.highDetailProxy;
@@ -162,10 +165,16 @@ export class Tr2SkinnedObject
     this.lod.highDetailProxy = value;
   }
 
-  // Carbon maps this exposed field directly into m_lod storage. Accessors
-  // preserve that alias before any member notification in a batch is settled.
+  // MAP_ATTRIBUTE("lowDetailModel", m_lod.m_lowDetailProxy, READWRITE | PERSIST | NOTIFY)
+  // (Tr2SkinnedObject_Blue.cpp:49-51): an attribute whose offset points into the
+  // embedded Tr2SkinnedObjectLod m_lod (Tr2SkinnedObject.h:218). The accessors are
+  // only that path; a write is a raw store, and NOTIFY then reaches OnModified.
 
   /** Reads the low-detail proxy stored by the native LOD helper. */
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("IBlueObjectProxy")
   get lowDetailModel()
   {
     return this.lod.lowDetailProxy;
@@ -177,10 +186,16 @@ export class Tr2SkinnedObject
     this.lod.lowDetailProxy = value;
   }
 
-  // Carbon maps this exposed field directly into m_lod storage. Accessors
-  // preserve that alias before any member notification in a batch is settled.
+  // MAP_ATTRIBUTE("mediumDetailModel", m_lod.m_mediumDetailProxy, READWRITE | PERSIST | NOTIFY)
+  // (Tr2SkinnedObject_Blue.cpp:49-51): an attribute whose offset points into the
+  // embedded Tr2SkinnedObjectLod m_lod (Tr2SkinnedObject.h:218). The accessors are
+  // only that path; a write is a raw store, and NOTIFY then reaches OnModified.
 
   /** Reads the medium-detail proxy stored by the native LOD helper. */
+  @blue.notify
+  @blue.readwrite
+  @blue.persist
+  @type.rootRef("IBlueObjectProxy")
   get mediumDetailModel()
   {
     return this.lod.mediumDetailProxy;

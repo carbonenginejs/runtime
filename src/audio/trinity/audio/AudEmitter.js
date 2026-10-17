@@ -25,7 +25,7 @@ export class AudEmitter extends AudGameObjResource
   rotation = quat.create();
 
   /** Effective front vector sent to Wwise; Carbon's read-only `front` property (GetFront). */
-  @blue.read
+  @blue.property()
   @type.vec3
   get front()
   {
@@ -33,7 +33,7 @@ export class AudEmitter extends AudGameObjResource
   }
 
   /** Effective top vector sent to Wwise; Carbon's read-only `top` property (GetTop). */
-  @blue.read
+  @blue.property()
   @type.vec3
   get top()
   {

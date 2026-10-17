@@ -77,7 +77,7 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
    * The colour being used: Carbon's MAP_PROPERTY_READONLY "activeBlendColor"
    * over GetGroupColor (EveSmartLightAttributeModifierColor_Blue.cpp:24).
    */
-  @blue.read
+  @blue.property()
   @type.color
   get activeBlendColor()
   {

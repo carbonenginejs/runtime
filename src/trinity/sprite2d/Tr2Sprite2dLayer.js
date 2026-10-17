@@ -84,7 +84,7 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
   spriteEffect = Tr2SpriteObjectEffect.TR2_SFX_COPY;
 
   /** textureSecondary (MAP_PROPERTY GetTextureSecondary/SetTextureSecondary): secondary texture for the layer sprite. */
-  @blue.readwrite
+  @blue.property()
   @type.rootRef("ITr2Sprite2dTexture")
   get textureSecondary()
   {

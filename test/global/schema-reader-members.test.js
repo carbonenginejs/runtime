@@ -87,8 +87,21 @@ test("stored-member reads and writes reject accessor routes without invoking the
   assert.throws(() => getReaderMemberValue(target, field), /backing key/);
   assert.throws(() => applyReaderMember(target, field, 1), /backing key/);
   assert.equal(calls, 0);
-  assert.throws(() => applyReaderMember({}, { ...field, role: "property" }, 1), /stored PERSIST/);
+  assert.throws(() => applyReaderMember({}, { ...field, role: "property", edit: { read: true, write: true } }, 1), /stored PERSIST/);
   assert.throws(() => applyReaderMember({}, { ...field, edit: { rpersist: true } }, 1), /stored PERSIST/);
+});
+
+// MAP_PROPERTY_PERSISTED (BlueExposureMacrosPython.h:216-230): read through the getter, written through the setter.
+test("a persisted property is read and written through its accessors", () => {
+  const calls = [];
+  const target = { _value: 1, get value() { calls.push("get"); return this._value; }, set value(next) { calls.push("set"); this._value = next; } };
+  const field = member("value", "int32", { role: "property", edit: { read: true, write: true, persist: true } });
+  assert.equal(getReaderMemberValue(target, field), 1);
+  applyReaderMember(target, field, 1);
+  assert.equal(target._value, 1);
+  applyReaderMember(target, field, 4);
+  assert.equal(target._value, 4);
+  assert.deepEqual(calls, [ "get", "get", "set", "get", "set" ], "the setter runs even for an equal value");
 });
 
 test("decoded references and collection destinations retain identities", () => {

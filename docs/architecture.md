@@ -358,6 +358,16 @@ name is `meta.attribute(name, { index })`, or `blue.attribute` for Carbon's
 `MAP_ATTRIBUTE_WITH_CHOOSER` chooser table without that bit: the member reports
 the registered enum's chooser and its flags stay as declared, as on the lights'
 `flags`.
+`blue.property(name?, { persisted })` (`meta.property` for ours) is Carbon's
+`MAP_PROPERTY` row: it goes on a getter, with its setter, whose bodies call the
+class's Get/Set methods, and the type is declared with `type.*`. Its flags are
+derived and never written: a getter and setter are READWRITE, a getter alone is
+READ, and `persisted` adds PERSIST (`MAP_PROPERTY_PERSISTED`). Readers, writers
+and the values interface reach a property through its accessors, and only a
+persisted property is read or written. An accessor that carries flags and no
+property declaration is instead a `MAP_ATTRIBUTE` whose storage is the
+accessor's path (`Tr2SkinnedObject`'s `m_lod` members): it keeps its flags,
+NOTIFY included, and is read, written and copied like a stored member.
 `meta.abstract` (ours) and `blue.abstract` (a Carbon pure virtual) record status
 abstract and install a generated throwing body that names the receiver, the
 declaring class and the declared parameters.

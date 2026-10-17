@@ -28,6 +28,28 @@ export function isWritableField(field)
 
 
 /**
+ * Whether a declaration takes part in persistence and the values transport.
+ *
+ * A stored member always does. A property (Carbon's `MAP_PROPERTY*` row) does
+ * only when it is PERSIST: `DictReader::FindEntry` matches a property only on
+ * PERSIST (blue/src/DictReader.cpp:706), and `MAP_PROPERTY_PERSISTED` is the
+ * only macro that sets it (BlueExposureMacrosPython.h:216-230). Readers and
+ * writers reach a selected property through its accessors. An accessor with
+ * flags and no property declaration is an attribute over the accessor path
+ * (Tr2SkinnedObject_Blue.cpp:49-51 maps m_lod members) and takes part like a
+ * stored member. A runtime-only declaration stays selected so it still claims
+ * its exposed name; every reader and writer then skips it unread.
+ *
+ * @param {object} field Declared field metadata.
+ * @returns {boolean} Whether readers and writers see the declaration.
+ */
+export function isTransportedDeclaration(field)
+{
+    return field?.role !== "property" || !field.property || field.edit?.persist === true || field.type?.runtimeOnly === true;
+}
+
+
+/**
  * Selects persisted output by PERSIST, not RPERSIST.
  * The unrestricted JS values view retains all declared fields.
  * @param {object} field Declared field metadata.

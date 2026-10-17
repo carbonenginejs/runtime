@@ -21,7 +21,7 @@ export class Tr2Sprite2dPickingMask
   _maskPath = "";
 
   /** Carbon MAP_PROPERTY "maskPath" (Tr2Sprite2dPickingMask_Blue.cpp:27-33), read through GetMaskPath. @returns {string} */
-  @blue.readwrite
+  @blue.property()
   @type.wstring
   @meta.implemented
   get maskPath()

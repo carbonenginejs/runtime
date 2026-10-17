@@ -195,7 +195,7 @@ export class Tr2GrannyAnimation
    * separate schema field: exporting both names would create conflicting keys
    * when sparse model values author only the canonical persisted name.
    */
-  @blue.readwrite
+  @blue.property()
   @type.string
   get resPath()
   {
@@ -210,7 +210,7 @@ export class Tr2GrannyAnimation
   }
 
   /** Blue property alias for the persisted model_ backing field. */
-  @blue.readwrite
+  @blue.property()
   @type.string
   get model()
   {

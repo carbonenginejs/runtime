@@ -113,7 +113,7 @@ export class EveSmartLightBaseGroup
    * GetGroupColor (EveSmartLightBaseGroup_Blue.cpp:18), so each group
    * subclass's own GetGroupColor answers it.
    */
-  @blue.read
+  @blue.property()
   @type.color
   get activeColor()
   {

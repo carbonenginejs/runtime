@@ -57,7 +57,7 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
   delayBinding = false;
 
   /** Live native READ property; does not compile the expression. */
-  @blue.read
+  @blue.property()
   @type.boolean
   @meta.implemented
   get isExpressionValid()
@@ -66,7 +66,7 @@ export class Tr2ActionSetValue extends ITr2ControllerAction
   }
 
   /** Live native READ property; does not resolve a destination. */
-  @blue.read
+  @blue.property()
   @type.boolean
   @meta.implemented
   get isBindingValid()

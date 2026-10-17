@@ -143,7 +143,7 @@ export class Tr2AtlasTexture
    *
    * @returns {boolean} Whether it is stand-alone.
    */
-  @blue.readwrite
+  @blue.property()
   @type.boolean
   get isStandAlone()
   {
@@ -166,7 +166,7 @@ export class Tr2AtlasTexture
    *
    * @returns {object|null} The texture resource.
    */
-  @blue.readwrite
+  @blue.property()
   @type.rootRef("TriTextureRes")
   get textureRes()
   {

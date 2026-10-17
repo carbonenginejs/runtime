@@ -200,7 +200,7 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
    * MAP_PROPERTY_READONLY "isValid" over CheckBinding
    * (EveChildParticleSphere_Blue.cpp:18), so reading it binds on first use.
    */
-  @blue.read
+  @blue.property()
   @type.boolean
   get isValid()
   {

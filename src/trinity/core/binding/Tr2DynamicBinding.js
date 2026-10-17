@@ -43,7 +43,9 @@ export class Tr2DynamicBinding extends INotify
 
   /**
    * Native destination member: the weakly held endpoint, or null once it is
-   * gone. Adapted: a WeakRef replaces native BlueWeakRef storage.
+   * gone. Adapted: a WeakRef replaces native BlueWeakRef storage, so
+   * Carbon's MAP_ATTRIBUTE("destination", m_destination, Be::READ) row
+   * (Tr2DynamicBinding_Blue.cpp:16) is an attribute over this accessor.
    *
    * @returns {object|null} The destination object.
    */
@@ -58,7 +60,7 @@ export class Tr2DynamicBinding extends INotify
    * Native readonly endpoint validity property.
    * @returns {boolean} Whether the endpoint is alive.
    */
-  @blue.read
+  @blue.property()
   @type.boolean
   @meta.implemented
   get isDestinationValid()
@@ -82,7 +84,9 @@ export class Tr2DynamicBinding extends INotify
 
   /**
    * Native source member: the weakly held endpoint, or null once it is gone.
-   * Adapted: a WeakRef replaces native BlueWeakRef storage.
+   * Adapted: a WeakRef replaces native BlueWeakRef storage, so Carbon's
+   * MAP_ATTRIBUTE("source", m_source, Be::READ) row
+   * (Tr2DynamicBinding_Blue.cpp:21) is an attribute over this accessor.
    *
    * @returns {object|null} The source object.
    */
@@ -110,7 +114,7 @@ export class Tr2DynamicBinding extends INotify
    * Native readonly endpoint validity property.
    * @returns {boolean} Whether the endpoint is alive.
    */
-  @blue.read
+  @blue.property()
   @type.boolean
   @meta.implemented
   get isSourceValid()

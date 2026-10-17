@@ -59,7 +59,7 @@ export class Tr2ActionBindRTPC extends ITr2ControllerAction
    * Live readonly validity of the retained AST evaluator, without recompilation.
    * @returns {boolean} Whether a valid compiled expression is retained.
    */
-  @blue.read
+  @blue.property()
   @type.boolean
   @meta.adapted
   get isExpressionValid()

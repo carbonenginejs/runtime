@@ -48,7 +48,7 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
   #reroutedValue = null;
 
   /** Blue MAP_PROPERTY "x"/"v1" - refreshes from the rerouted value on read. */
-  @blue.readwrite
+  @blue.property()
   @type.float32
   get x()
   {
@@ -66,7 +66,7 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
   }
 
   /** Blue MAP_PROPERTY "y"/"v2". */
-  @blue.readwrite
+  @blue.property()
   @type.float32
   get y()
   {
@@ -84,7 +84,7 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
   }
 
   /** Blue MAP_PROPERTY "z"/"v3". */
-  @blue.readwrite
+  @blue.property()
   @type.float32
   get z()
   {
@@ -102,7 +102,7 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
   }
 
   /** Blue MAP_PROPERTY "w"/"v4". */
-  @blue.readwrite
+  @blue.property()
   @type.float32
   get w()
   {
@@ -120,7 +120,7 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
   }
 
   /** Blue MAP_PROPERTY alias reading `x`. */
-  @blue.readwrite
+  @blue.property()
   @type.float32
   get v1()
   {
@@ -134,7 +134,7 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
   }
 
   /** Blue MAP_PROPERTY alias reading `y`. */
-  @blue.readwrite
+  @blue.property()
   @type.float32
   get v2()
   {
@@ -148,7 +148,7 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
   }
 
   /** Blue MAP_PROPERTY alias reading `z`. */
-  @blue.readwrite
+  @blue.property()
   @type.float32
   get v3()
   {
@@ -162,7 +162,7 @@ export class Tr2Vector4Parameter extends CjsVectorParameter
   }
 
   /** Blue MAP_PROPERTY alias reading `w`. */
-  @blue.readwrite
+  @blue.property()
   @type.float32
   get v4()
   {

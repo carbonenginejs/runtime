@@ -13,7 +13,7 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
 {
 
   /** m_texturePrimary (ITr2Sprite2dTexturePtr) */
-  @blue.readwrite
+  @blue.property()
   @type.rootRef("ITr2Sprite2dTexture")
   get texturePrimary()
   {
@@ -26,7 +26,7 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
   }
 
   /** m_textureSecondary (ITr2Sprite2dTexturePtr) */
-  @blue.readwrite
+  @blue.property()
   @type.rootRef("ITr2Sprite2dTexture")
   get textureSecondary()
   {

@@ -87,7 +87,7 @@ export class Tr2ImpostorManager
   maxUpdates = 16;
 
   /** Native READ projection of the live impostor table. */
-  @blue.read
+  @blue.property()
   @type.uint32
   get count()
   {

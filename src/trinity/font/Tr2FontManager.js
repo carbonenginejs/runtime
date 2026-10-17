@@ -965,7 +965,7 @@ export class Tr2FontManager
   }
 
   /** Blue "numGlyphsInUse" [READ] (Tr2FontManager_Blue.cpp:154-157). */
-  @blue.read
+  @blue.property()
   @type.int32
   @meta.adapted
   get numGlyphsInUse()
@@ -974,7 +974,7 @@ export class Tr2FontManager
   }
 
   /** Blue "numGlyphsCached" [READ] (Tr2FontManager_Blue.cpp:159-162). */
-  @blue.read
+  @blue.property()
   @type.int32
   @meta.adapted
   get numGlyphsCached()

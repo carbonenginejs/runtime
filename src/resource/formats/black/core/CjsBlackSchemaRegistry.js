@@ -11,9 +11,11 @@ export class CjsBlackSchemaRegistry
 {
     /**
      * Derives Black decoder records from Blue's stored declarations.
-     * Native IRootReader::FindEntry selects the first inherited PERSIST member;
-     * live properties and their flags do not participate in this lookup.
-     * The declaration is retained for the shared reader's storage operation.
+     * Native IRootReader::FindEntry selects the first inherited PERSIST entry
+     * (IRootReader.cpp:303-320), a `MAP_PROPERTY_PERSISTED` property included;
+     * stored members are matched before properties. The declaration is
+     * retained for the shared reader's storage operation, which reaches a
+     * property through its setter (`applyReaderMember`).
      *
      * @param {object} info Canonical class info from CjsSchema.getSchema.
      * @returns {import("./helpers.js").BlackSourceShape} A reader-local shape, never a second declaration registry.
@@ -23,7 +25,7 @@ export class CjsBlackSchemaRegistry
     {
         const fields = [];
         const names = new Set();
-        for (const declaration of info.members)
+        for (const declaration of [ ...info.members, ...info.properties ])
         {
             if (names.has(declaration.name)) continue;
             if (declaration.type?.runtimeOnly === true)

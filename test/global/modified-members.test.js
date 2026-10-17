@@ -15,15 +15,17 @@ function fixture(model, liveB = false)
     seen = [];
     OnModified(name) { this.seen.push(name); return this.action?.(name) ?? true; }
   }
+  if (liveB)
+  {
+    // This fixture exercises live setter failure, not stored-member access:
+    // b is a persisted property, whose flags are derived and never NOTIFY.
+    Object.defineProperty(Probe.prototype, "b", { configurable: true, get() { return 0; }, set(_) {} });
+  }
   for (const name of ["a", "b", "quiet"])
   {
     CjsSchema.defineField(Probe, name, "type", { kind: "int32" });
-    CjsSchema.defineField(Probe, name, "edit", { persist: true, notify: name !== "quiet" });
-    if (name === "b" && liveB)
-    {
-      // This fixture exercises live setter failure, not stored-member access.
-      CjsSchema.defineField(Probe, name, "declaration", { role: "property" });
-    }
+    if (name === "b" && liveB) CjsSchema.defineField(Probe, name, "property", { persisted: true });
+    else CjsSchema.defineField(Probe, name, "edit", { persist: true, notify: name !== "quiet" });
   }
   CjsSchema.define(Probe, { className: `MemberNotificationProbe${serial++}` });
   if (!model)
@@ -116,7 +118,9 @@ test("writes before a later setter failure survive without replaying names", () 
   assert.deepEqual(p.seen, []);
   reject = false;
   p.SetValues({ a: 1, b: 2 });
-  assert.deepEqual(p.seen, ["b"]);
+  assert.equal(b, 2);
+  // a is not replayed, and b - a property - is never NOTIFY.
+  assert.deepEqual(p.seen, []);
   assert.equal(p.IsDirty(), false);
 });
 

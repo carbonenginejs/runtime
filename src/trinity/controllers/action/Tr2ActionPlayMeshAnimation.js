@@ -129,7 +129,7 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Live binding validity: OWNER is valid; CHILD requires a cached destination.
    * @returns {boolean} Whether the binding is valid without resolving it.
    */
-  @blue.read
+  @blue.property()
   @type.boolean
   @meta.implemented
   get isBindingValid()

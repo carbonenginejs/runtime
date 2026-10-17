@@ -37,7 +37,7 @@ test("canonical Black selects the first persisted stored declaration without mer
 test("canonical Black refuses missing wire facts instead of borrowing legacy field metadata", () =>
 {
     assert.throws(() => CjsBlackSchemaRegistry.fromClassInfo({
-        className: "Incomplete", members: [member("value", "unknown")],
+        className: "Incomplete", members: [member("value", "unknown")], properties: [],
         fields: [{ name: "value", black: { beType: "FLOAT" } }]
     }), /Unsupported canonical Black type/);
     assert.throws(() => CjsBlackSchemaRegistry.fromDeclaredType({ kind: "list" }), /item type: missing/);
@@ -67,7 +67,7 @@ test("canonical Black keeps declared reference, embedded and collection codec di
 test("schema:null decodes inherited canonical members with distinct narrow and wide tables", () =>
 {
     class Base {}
-    class Record extends Base {}
+    class Record extends Base { get narrow() { throw new Error("live getter must not run"); } }
     CjsSchema.define(Base, {
         className: "BlackCanonicalBase",
         members: [member("narrow", "string", { key: "_narrow" })]
@@ -75,7 +75,7 @@ test("schema:null decodes inherited canonical members with distinct narrow and w
     CjsSchema.define(Record, {
         className: "BlackCanonicalRecord",
         members: [member("wide", "wstring")],
-        properties: [member("narrow", "uint32", { role: "property" })]
+        properties: [{ name: "narrow", key: "narrow", type: { kind: "uint32" }, property: { persisted: false } }]
     });
     const fixture = new BlackFixture();
     fixture.String("narrow table"); // Index zero in both tables must select different values.
@@ -93,10 +93,10 @@ test("schema:null decodes inherited canonical members with distinct narrow and w
 
 test("canonical field absence cannot use unknown-value guessing or a same-name live property", () =>
 {
-    class OnlyProperty {}
+    class OnlyProperty { get value() { return 0; } set value(_) { assert.fail("setter"); } }
     CjsSchema.define(OnlyProperty, {
         className: "BlackCanonicalPropertyOnly", members: [],
-        properties: [member("value", "float32", { role: "property" })]
+        properties: [{ name: "value", key: "value", type: { kind: "float32" }, property: { persisted: false } }]
     });
     const fixture = new BlackFixture();
     const bytes = fixture.Finish(fixture.Object(1, "BlackCanonicalPropertyOnly", [[ "value", u32(0) ]]));
@@ -145,7 +145,7 @@ test("canonical runtime bypasses accessors and values, preserves cycles, and ini
         className: "BlackCanonicalRoot",
         members: [member("label", "string", { key: "_label" }), member("first", "rootRef"),
             member("later", "rootRef"), member("shared", "rootRef"), member("self", "rootRef")],
-        properties: [member("label", "string", { role: "property", edit: { read: true, write: true } })]
+        properties: [{ name: "label", key: "label", type: { kind: "string" }, property: { persisted: false } }]
     });
     const fixture = new BlackFixture();
     const bytes = fixture.Finish(fixture.Object(1, "BlackCanonicalRoot", [

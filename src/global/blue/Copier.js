@@ -204,8 +204,12 @@ export class Copier extends ICopier
 
     // Runtime-only resources stay owned by the destination. A derived stored
     // declaration also blocks an inherited persisted route with the same name.
+    // An attribute over an accessor path (flags, no property declaration) is a
+    // member with a non-zero size in Carbon and is copied; a property's size is
+    // 0, so Copier.cpp:163-177 compares no bytes and never copies it.
     const runtimeNames = new Set();
-    for (const field of CjsSchema.getSchema(dest.constructor).members)
+    const info = CjsSchema.getSchema(dest.constructor);
+    for (const field of [ ...info.members, ...info.properties.filter(property => !property.property) ])
     {
       if (runtimeNames.has(field.name)) continue;
       if (field.type?.runtimeOnly === true)
@@ -403,9 +407,16 @@ export class Copier extends ICopier
       && sourceInfo.listOps === destInfo.listOps;
   }
 
-  /** Resolves a stored member's JavaScript equivalent of its native offset. */
+  /**
+   * Resolves a stored member's JavaScript equivalent of its native offset. An
+   * attribute over an accessor path resolves to that accessor.
+   */
   static _memberStorage(instance, member)
   {
+    if (member.role === "property" && !member.property && typeof member.key === "string" && member.key)
+    {
+      return { target: instance, key: member.key, value: instance[member.key] };
+    }
     if (member.role !== "member" || typeof member.key !== "string" || !member.key)
     {
       throw new TypeError("Copier storage requires a canonical member and JavaScript key.");

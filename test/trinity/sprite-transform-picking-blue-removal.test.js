@@ -38,12 +38,14 @@ test("PickingMask declarations preserve native property order, chooser and held 
  for(const member of members)assert.notEqual(member.edit?.persist,true);
 });
 
-test("direct and dictionary path writes run the live resource acquisition property",()=>{
+test("direct writes run the live resource acquisition property, which the dictionary does not carry",()=>{
  const mask=new Tr2Sprite2dPickingMask();const count=stub.requests.length;
  mask.maskPath="res:/test/pick-mask.png";assert.equal(mask.GetMaskPath(),mask.maskPath);assert.equal(mask.mask,image);assert.equal(stub.requests.length,count+1);assert.equal(stub.requests.at(-1).options.requirement,ResourceRequirement.IMAGE);
  mask.SetMaskPath(mask.maskPath);assert.equal(stub.requests.length,count+1);assert.equal(mask.mask,image);
- new DictReader({declarations:true}).ReadInto(mask,{maskPath:"res:/test/other-mask.png",channel:2,leftEdge:1});assert.equal(mask.maskPath,"res:/test/other-mask.png");assert.equal(stub.requests.length,count+2);assert.equal(mask.mask,image);
- const result=new DictWriter().WriteObject(mask);assert.equal(result.maskPath,mask.maskPath);assert.equal("mask" in result,false);assert.equal("_maskPath" in result,false);
+ // maskPath is a MAP_PROPERTY, not PERSIST (DictReader.cpp:706).
+ assert.throws(()=>new DictReader({declarations:true}).ReadInto(mask,{maskPath:"res:/test/other-mask.png"}),/Invalid attribute/);
+ new DictReader({declarations:true}).ReadInto(mask,{channel:2,leftEdge:1});mask.maskPath="res:/test/other-mask.png";assert.equal(mask.maskPath,"res:/test/other-mask.png");assert.equal(stub.requests.length,count+2);assert.equal(mask.mask,image);
+ const result=new DictWriter().WriteObject(mask);assert.equal("maskPath" in result,false);assert.equal("mask" in result,false);assert.equal("_maskPath" in result,false);
  mask.maskPath="";assert.equal(mask.mask,null);assert.equal(stub.requests.length,count+2);
 });
 

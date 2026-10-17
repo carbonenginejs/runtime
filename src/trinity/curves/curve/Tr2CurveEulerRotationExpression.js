@@ -35,7 +35,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
   _expressionYaw = "";
 
   /** Gets the live yaw expression text. @returns {string} Source text. */
-  @blue.readwrite
+  @blue.property()
   @type.expression
   @meta.implemented
   get expressionYaw()
@@ -60,7 +60,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
   _expressionPitch = "";
 
   /** Gets the live pitch expression text. @returns {string} Source text. */
-  @blue.readwrite
+  @blue.property()
   @type.expression
   @meta.implemented
   get expressionPitch()
@@ -85,7 +85,7 @@ export class Tr2CurveEulerRotationExpression extends ITriQuaternionFunction
   _expressionRoll = "";
 
   /** Gets the live roll expression text. @returns {string} Source text. */
-  @blue.readwrite
+  @blue.property()
   @type.expression
   @meta.implemented
   get expressionRoll()

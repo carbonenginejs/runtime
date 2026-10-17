@@ -376,7 +376,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
   }
 
   /** How many textures are in the atlas texture? Counts live textures only. */
-  @blue.read
+  @blue.property()
   @type.int32
   get texturesInAtlasCount()
   {
@@ -384,7 +384,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
   }
 
   /** How many textures are registered with the atlas but didn't fit? Counts live textures only. */
-  @blue.read
+  @blue.property()
   @type.int32
   get texturesOutsideAtlasCount()
   {
@@ -392,7 +392,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
   }
 
   /** multiSampleType: always 1 (`Tr2TextureAtlas.cpp:1582-1585`). */
-  @blue.read
+  @blue.property()
   @type.uint32
   get multiSampleType()
   {
@@ -400,7 +400,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
   }
 
   /** multiSampleQuality: always 0 (`Tr2TextureAtlas.cpp:1587-1590`). */
-  @blue.read
+  @blue.property()
   @type.uint32
   get multiSampleQuality()
   {
