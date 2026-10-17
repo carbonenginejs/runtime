@@ -73,7 +73,7 @@ export class Tr2ForceSphereVolume extends ITr2ParticleForce
     for (const force of this.forces)
     {
       vec3.set(contribution, 0, 0, 0);
-      vec3.add(out, out, force.GetForce(position, velocity, dt, mass, contribution) ?? contribution);
+      vec3.add(out, out, force.GetForce(position, velocity, dt, mass, contribution));
     }
     return vec3.scale(out, out, Math.pow(1 - distance / this.radius, this.exponent));
   }

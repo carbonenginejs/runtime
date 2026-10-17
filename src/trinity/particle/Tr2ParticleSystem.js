@@ -663,7 +663,7 @@ export class Tr2ParticleSystem
               deltaTime,
               massValue,
               forceContribution
-            ) ?? forceContribution;
+            );
             vec3.add(forceValue, forceValue, result);
           }
           const inverseMass = massValue ? 1 / massValue : 0;

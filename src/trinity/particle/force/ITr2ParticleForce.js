@@ -13,7 +13,21 @@ export class ITr2ParticleForce
   @blue.abstract
   Update(_dt) {}
 
-  /** Accumulates this force for one particle. */
+  /**
+   * Carbon's `XMVECTOR GetForce( FXMVECTOR position, FXMVECTOR velocity,
+   * float dt, float mass )` (ITr2ParticleForce.h:13): the force on one
+   * particle.
+   *
+   * Adapted: Carbon returns the vector by value. Forces are evaluated per
+   * particle per frame, so the vector is written into `out` and `out` is
+   * returned, rather than allocated per call; every force returns `out`.
+   * @param {vec3} _position The particle position.
+   * @param {vec3} _velocity The particle velocity.
+   * @param {number} _dt Frame time.
+   * @param {number} _mass The particle mass.
+   * @param {vec3} [_out] Receives the force.
+   * @returns {vec3} out
+   */
   @blue.abstract
   GetForce(_position, _velocity, _dt, _mass, _out) {}
 
