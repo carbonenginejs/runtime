@@ -156,6 +156,33 @@ export class TriDebugTextRenderer
   }
 
   /**
+   * Carbon OnPrepareResources (cpp:135-138): nothing to prepare; the text
+   * texture is created on first draw.
+   * @returns {boolean} True, always.
+   */
+  @blue.method
+  @meta.implemented
+  OnPrepareResources()
+  {
+    return true;
+  }
+
+  /**
+   * Carbon GetDescription (TriDebugTextRenderer.h:43-48, TRINITYDEV): the
+   * device-resource description.
+   *
+   * Adapted: returned rather than written to an output string, as the other
+   * resource descriptions are (TriDebugResourceHelper.GetDescription).
+   * @returns {string} "<TriDebugFont>".
+   */
+  @blue.method
+  @meta.adapted
+  GetDescription()
+  {
+    return "<TriDebugFont>";
+  }
+
+  /**
    * Carbon ReleaseResources (cpp:130-133): drops the text texture.
    * @param {number} _s TriStorage flags.
    */
