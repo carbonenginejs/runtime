@@ -5,14 +5,14 @@
 // carries it; DocumentParameter adds the optional value.
 //
 // Adapted: Carbon assigns with `operator=`, which JavaScript cannot overload,
-// so a value is assigned to `m_value`. An unset `std::optional` is `undefined`.
+// so a value is assigned to `_value` (Carbon's protected `m_value`). An unset `std::optional` is `undefined`.
 import { CjsSchema, meta, blue } from "#schema";
 import { VersionedParameter } from "./VersionedParameter.js";
 
 /** `DocumentParameter<T>` - a versioned field holding an optional value. */
 export class DocumentParameter extends VersionedParameter
 {
-    m_value = undefined;
+    _value = undefined;
 
     /**
      * `GetValue` - the value, as `std::optional::value()` returns it.
@@ -21,20 +21,20 @@ export class DocumentParameter extends VersionedParameter
      */
     GetValue()
     {
-        if (!this.HasValue()) throw new Error("bad optional access: " + this.m_tag);
-        return this.m_value;
+        if (!this.HasValue()) throw new Error("bad optional access: " + this._tag);
+        return this._value;
     }
 
     /** `HasValue` - whether the value is set. */
     HasValue()
     {
-        return this.m_value !== undefined;
+        return this._value !== undefined;
     }
 
     /** `Reset` - unsets the value. */
     Reset()
     {
-        this.m_value = undefined;
+        this._value = undefined;
     }
 }
 

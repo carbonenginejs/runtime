@@ -50,9 +50,9 @@ function SlotFor(description, kind, binding)
   {
     if ((binding.visibility & bit) === 0) continue;
 
-    const map = description.m_registerMap;
+    const map = description._registerMap;
     const slots = kind === "srv" ? map.srvs : kind === "uav" ? map.uavs : map.samplers;
-    const records = kind === "srv" ? description.m_srv : kind === "uav" ? description.m_uav : description.m_samplers;
+    const records = kind === "srv" ? description._srv : kind === "uav" ? description._uav : description._samplers;
     const slot = records?.[slots[stage][binding.registerIndex]];
     if (slot && slot.type !== 0) return slot;
   }
@@ -68,14 +68,14 @@ function SlotFor(description, kind, binding)
 export class CjsWebgpuResourceSetAL
 {
   /** A process-unique identity, for the context's bind-group cache. Zero until Create. */
-  m_id = 0;
+  _id = 0;
 
-  m_description = null;
+  _description = null;
 
-  m_program = null;
+  _program = null;
 
   /** `"group:binding"` to the `GPUBindingResource` that fills it, non-uniform slots only. */
-  m_entries = new Map();
+  _entries = new Map();
 
   /**
    * Resolves the description against the program.
@@ -103,11 +103,11 @@ export class CjsWebgpuResourceSetAL
     // has no bindings to lay out against, which is the same refusal.
     if (!program || typeof program.GetBindings !== "function" || !program.IsValid()) return ALResult.E_INVALIDARG;
 
-    if (!description.m_registerMap.equals(program.GetRegisterMap())) return ALResult.E_INVALIDARG;
+    if (!description._registerMap.equals(program.GetRegisterMap())) return ALResult.E_INVALIDARG;
 
-    if (description.m_srv?.some(record => record.type === 3)
-      || description.m_uav?.some(record => record.type === 3)
-      || description.m_samplers?.some(record => record.type === 2)) return ALResult.E_FAIL;
+    if (description._srv?.some(record => record.type === 3)
+      || description._uav?.some(record => record.type === 3)
+      || description._samplers?.some(record => record.type === 2)) return ALResult.E_FAIL;
 
     const entries = new Map();
     // The writable storage views bound so far, and the dummies handed out;
@@ -122,10 +122,10 @@ export class CjsWebgpuResourceSetAL
       entries.set(`${binding.group}:${binding.binding}`, this._Resolve(description, binding, renderContext, storage));
     }
 
-    this.m_entries = entries;
-    this.m_description = new Tr2ResourceSetDescriptionAL({ copy: description });
-    this.m_program = program;
-    this.m_id = nextResourceSetId;
+    this._entries = entries;
+    this._description = new Tr2ResourceSetDescriptionAL({ copy: description });
+    this._program = program;
+    this._id = nextResourceSetId;
     nextResourceSetId += 1;
 
     return ALResult.S_OK;
@@ -214,7 +214,7 @@ export class CjsWebgpuResourceSetAL
 
     for (let registerIndex = 0; registerIndex < registerCount; registerIndex += 1)
     {
-      const slot = this.m_description ? SlotFor(this.m_description, "sampler", { visibility: 2, registerIndex }) : null;
+      const slot = this._description ? SlotFor(this._description, "sampler", { visibility: 2, registerIndex }) : null;
       const description = slot?.type === 1 ? slot.sampler.GetDescription() : null;
 
       if (description) modes.set([ description.addressU, description.addressV, description.addressW, 0 ], registerIndex * 4);
@@ -226,35 +226,35 @@ export class CjsWebgpuResourceSetAL
   /** The resolved entries by `"group:binding"`. @returns {Map<string, object>} */
   GetEntries()
   {
-    return this.m_entries;
+    return this._entries;
   }
 
   /** The `Tr2ResourceSetDescriptionAL` it was created from, or null. */
   GetDescription()
   {
-    return this.m_description;
+    return this._description;
   }
 
   /** The shader program whose bindings were resolved, or null. */
   GetProgram()
   {
-    return this.m_program;
+    return this._program;
   }
 
   /** Whether the set has been created and carries an identity. */
   IsValid()
   {
-    return this.m_id !== 0;
+    return this._id !== 0;
   }
 
   /** Drops the resolved entries, leaving the set invalid. */
   Destroy()
   {
-    this.m_entries = new Map();
-    if (this.m_description) this.m_description.ClearResources();
-    this.m_description = null;
-    this.m_program = null;
-    this.m_id = 0;
+    this._entries = new Map();
+    if (this._description) this._description.ClearResources();
+    this._description = null;
+    this._program = null;
+    this._id = 0;
   }
 
   /** Where the set lives, which is managed memory rather than the device. */

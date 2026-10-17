@@ -21,22 +21,22 @@ import { CjsSchema, type } from "#schema";
 export class Tr2Viewport
 {
   /** Carbon leaves it unset (`Tr2HalHelperStructures.h:33-35`). */
-  m_x = 0;
+  x = 0;
 
   /** Carbon leaves it unset (`Tr2HalHelperStructures.h:33-35`). */
-  m_y = 0;
+  y = 0;
 
   /** Carbon leaves it unset (`Tr2HalHelperStructures.h:33-35`). */
-  m_width = 0;
+  width = 0;
 
   /** Carbon leaves it unset (`Tr2HalHelperStructures.h:33-35`). */
-  m_height = 0;
+  height = 0;
 
   /** Near depth. Carbon leaves it unset (`Tr2HalHelperStructures.h:33-35`). */
-  m_minZ = 0;
+  minZ = 0;
 
   /** Far depth. Carbon leaves it unset (`Tr2HalHelperStructures.h:33-35`). */
-  m_maxZ = 0;
+  maxZ = 0;
 
   /**
    * Carbon's sized constructor (`Tr2HalHelperStructures.h:37-40`): origin 0, 0,
@@ -50,21 +50,21 @@ export class Tr2Viewport
   {
     const viewport = new Tr2Viewport();
 
-    viewport.m_x = 0;
-    viewport.m_y = 0;
-    viewport.m_width = width;
-    viewport.m_height = height;
-    viewport.m_minZ = 0;
-    viewport.m_maxZ = 1;
+    viewport.x = 0;
+    viewport.y = 0;
+    viewport.width = width;
+    viewport.height = height;
+    viewport.minZ = 0;
+    viewport.maxZ = 1;
 
     return viewport;
   }
 }
 
-CjsSchema.decorateField(Tr2Viewport, "m_x", type.float32);
-CjsSchema.decorateField(Tr2Viewport, "m_y", type.float32);
-CjsSchema.decorateField(Tr2Viewport, "m_width", type.float32);
-CjsSchema.decorateField(Tr2Viewport, "m_height", type.float32);
-CjsSchema.decorateField(Tr2Viewport, "m_minZ", type.float32);
-CjsSchema.decorateField(Tr2Viewport, "m_maxZ", type.float32);
+CjsSchema.decorateField(Tr2Viewport, "x", type.float32);
+CjsSchema.decorateField(Tr2Viewport, "y", type.float32);
+CjsSchema.decorateField(Tr2Viewport, "width", type.float32);
+CjsSchema.decorateField(Tr2Viewport, "height", type.float32);
+CjsSchema.decorateField(Tr2Viewport, "minZ", type.float32);
+CjsSchema.decorateField(Tr2Viewport, "maxZ", type.float32);
 CjsSchema.blue.define(Tr2Viewport, { className: "Tr2Viewport" });

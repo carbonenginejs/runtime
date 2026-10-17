@@ -96,11 +96,11 @@ function DecompressBc1(width, height, depth, src, decompressed)
 {
   const pitch = width * 4;
   const slice = pitch * height;
-  const view = View(src.m_sysMem);
+  const view = View(src.sysMem);
 
   for (let k = 0; k < depth; ++k)
   {
-    let source = src.m_sysMemSlicePitch * k;
+    let source = src.sysMemSlicePitch * k;
 
     for (let j = 0; j < height; j += 4)
     {
@@ -155,11 +155,11 @@ function DecompressBc2(width, height, depth, src, decompressed)
 {
   const pitch = width * 4;
   const slice = pitch * height;
-  const view = View(src.m_sysMem);
+  const view = View(src.sysMem);
 
   for (let k = 0; k < depth; ++k)
   {
-    let source = src.m_sysMemSlicePitch * k;
+    let source = src.sysMemSlicePitch * k;
 
     for (let j = 0; j < height; j += 4)
     {
@@ -206,11 +206,11 @@ function DecompressBc3(width, height, depth, src, decompressed)
 {
   const pitch = width * 4;
   const slice = pitch * height;
-  const bytes = src.m_sysMem;
+  const bytes = src.sysMem;
 
   for (let k = 0; k < depth; ++k)
   {
-    let source = src.m_sysMemSlicePitch * k;
+    let source = src.sysMemSlicePitch * k;
 
     for (let j = 0; j < height; j += 4)
     {

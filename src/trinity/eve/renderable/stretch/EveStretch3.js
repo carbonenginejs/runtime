@@ -96,7 +96,7 @@ export class EveStretch3 extends IEveFiringEffectElement
  @type.boolean
   update = true;
   /** Hidden persisted destObject storage, distinct from the live setter. */
-  @meta.member("destObject")
+  @blue.attribute("destObject")
   @blue.persistOnly
   @type.rootRef("EveSpaceObjectChild")
   _destObject = null;
@@ -117,7 +117,7 @@ export class EveStretch3 extends IEveFiringEffectElement
     this.SetDestObject(value);
   }
   /** Hidden persisted sourceObject storage, distinct from the live setter. */
-  @meta.member("sourceObject")
+  @blue.attribute("sourceObject")
   @blue.persistOnly
   @type.rootRef("EveSpaceObjectChild")
   _sourceObject = null;
@@ -138,7 +138,7 @@ export class EveStretch3 extends IEveFiringEffectElement
     this.SetSourceObject(value);
   }
   /** Hidden persisted stretchObject storage, distinct from the live setter. */
-  @meta.member("stretchObject")
+  @blue.attribute("stretchObject")
   @blue.persistOnly
   @type.rootRef("EveSpaceObjectChild")
   _stretchObject = null;
@@ -167,7 +167,7 @@ export class EveStretch3 extends IEveFiringEffectElement
  @type.rootRef("ITr2Audio")
   audio = null;
   /** Hidden persisted moveObject storage, distinct from the live setter. */
-  @meta.member("moveObject")
+  @blue.attribute("moveObject")
   @blue.persistOnly
   @type.rootRef("EveSpaceObjectChild")
   _moveObject = null;

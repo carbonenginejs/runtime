@@ -284,7 +284,7 @@ test('atlas view preserves texture identity, rectangle mapping, margins and noti
   const { Tr2AtlasTexture } = await import('../../npm/dist/trinity/index.js');
   const texture = new Tr2AtlasTexture(), maps = [];
   let unmapped = 0, changed = 0;
-  const al = { IsValid: () => true, MapForWriting(region) { maps.push(region.m_box); return { result: 0, data: new Uint8Array(64), pitch: 16 }; }, UnmapForWriting() { unmapped++; } };
+  const al = { IsValid: () => true, MapForWriting(region) { maps.push(region.box); return { result: 0, data: new Uint8Array(64), pitch: 16 }; }, UnmapForWriting() { unmapped++; } };
   texture.atlas = { GetTexture: () => al, GetMargin: () => 2 };
   texture._atlasArea = {};
   texture.x = 4; texture.y = 6; texture.width = 4; texture.height = 4;

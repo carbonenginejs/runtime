@@ -61,21 +61,21 @@ function comparePaths(left, right)
 /** `CarbonResources::ResourceInfo` - one resource record in a group. */
 export class ResourceInfo
 {
-    m_relativePath = new DocumentParameter(Parameter.RELATIVE_PATH, ResourceInfo.typeId());
+    _relativePath = new DocumentParameter(Parameter.RELATIVE_PATH, ResourceInfo.typeId());
 
-    m_location = new DocumentParameter(Parameter.LOCATION, ResourceInfo.typeId());
+    _location = new DocumentParameter(Parameter.LOCATION, ResourceInfo.typeId());
 
-    m_type = new DocumentParameter(Parameter.TYPE, ResourceInfo.typeId());
+    _type = new DocumentParameter(Parameter.TYPE, ResourceInfo.typeId());
 
-    m_checksum = new DocumentParameter(Parameter.CHECKSUM, ResourceInfo.typeId());
+    _checksum = new DocumentParameter(Parameter.CHECKSUM, ResourceInfo.typeId());
 
-    m_compressedSize = new DocumentParameter(Parameter.COMPRESSED_SIZE, ResourceInfo.typeId());
+    _compressedSize = new DocumentParameter(Parameter.COMPRESSED_SIZE, ResourceInfo.typeId());
 
-    m_uncompressedSize = new DocumentParameter(Parameter.UNCOMPRESSED_SIZE, ResourceInfo.typeId());
+    _uncompressedSize = new DocumentParameter(Parameter.UNCOMPRESSED_SIZE, ResourceInfo.typeId());
 
-    m_binaryOperation = new DocumentParameter(Parameter.BINARY_OPERATION, ResourceInfo.typeId());
+    _binaryOperation = new DocumentParameter(Parameter.BINARY_OPERATION, ResourceInfo.typeId());
 
-    m_prefix = new DocumentParameter(Parameter.PREFIX, ResourceInfo.typeId());
+    _prefix = new DocumentParameter(Parameter.PREFIX, ResourceInfo.typeId());
 
     /**
      * Carbon's constructor (ResourceInfo.cpp:62-92). A compressed size of 0 and
@@ -89,15 +89,15 @@ export class ResourceInfo
      */
     constructor(params = new ResourceInfoParams())
     {
-        this.m_relativePath.m_value = params.relativePath;
-        this.m_location.m_value = new Location(params.location);
-        this.m_type.m_value = ResourceInfo.typeId();
-        this.m_checksum.m_value = params.checksum;
-        if (BigInt(params.compressedSize) > 0n) this.m_compressedSize.m_value = BigInt(params.compressedSize);
-        this.m_uncompressedSize.m_value = BigInt(params.uncompressedSize);
-        if (params.binaryOperation) this.m_binaryOperation.m_value = params.binaryOperation;
-        if (params.prefix !== "") this.m_prefix.m_value = params.prefix;
-        else this.m_prefix.Reset();
+        this._relativePath._value = params.relativePath;
+        this._location._value = new Location(params.location);
+        this._type._value = ResourceInfo.typeId();
+        this._checksum._value = params.checksum;
+        if (BigInt(params.compressedSize) > 0n) this._compressedSize._value = BigInt(params.compressedSize);
+        this._uncompressedSize._value = BigInt(params.uncompressedSize);
+        if (params.binaryOperation) this._binaryOperation._value = params.binaryOperation;
+        if (params.prefix !== "") this._prefix._value = params.prefix;
+        else this._prefix.Reset();
     }
 
     /** `TypeId` - the type name this class reads and writes. */
@@ -109,69 +109,69 @@ export class ResourceInfo
     /** `GetRelativePath` - the relative path into `out.value`; RESOURCE_VALUE_NOT_SET when unset. */
     GetRelativePath(out)
     {
-        return this._Read(this.m_relativePath, out);
+        return this._Read(this._relativePath, out);
     }
 
     /** `GetType` - the type name into `out.value`. */
     GetType(out)
     {
-        return this._Read(this.m_type, out);
+        return this._Read(this._type, out);
     }
 
     /** `GetChecksum` - the checksum into `out.value`. */
     GetChecksum(out)
     {
-        return this._Read(this.m_checksum, out);
+        return this._Read(this._checksum, out);
     }
 
     /** `GetPrefix` - the prefix into `out.value`. */
     GetPrefix(out)
     {
-        return this._Read(this.m_prefix, out);
+        return this._Read(this._prefix, out);
     }
 
     /** `GetBinaryOperation` - the binary operation into `out.value`. */
     GetBinaryOperation(out)
     {
-        return this._Read(this.m_binaryOperation, out);
+        return this._Read(this._binaryOperation, out);
     }
 
     /** `GetCompressedSize` - the compressed size (BigInt) into `out.value`. */
     GetCompressedSize(out)
     {
-        return this._Read(this.m_compressedSize, out);
+        return this._Read(this._compressedSize, out);
     }
 
     /** `GetUncompressedSize` - the uncompressed size (BigInt) into `out.value`. */
     GetUncompressedSize(out)
     {
-        return this._Read(this.m_uncompressedSize, out);
+        return this._Read(this._uncompressedSize, out);
     }
 
     /** `GetLocation` - the stored location's text into `out.value`. */
     GetLocation(out)
     {
-        if (!this.m_location.HasValue()) return new Result(ResultType.RESOURCE_VALUE_NOT_SET);
-        out.value = this.m_location.GetValue().ToString();
+        if (!this._location.HasValue()) return new Result(ResultType.RESOURCE_VALUE_NOT_SET);
+        out.value = this._location.GetValue().ToString();
         return new Result();
     }
 
     /** `SetRelativePath` - sets the path; the location is not recomputed, as in Carbon. */
     SetRelativePath(value)
     {
-        this.m_relativePath.m_value = value;
+        this._relativePath._value = value;
     }
 
     /** `SetCompressedSize`. */
     SetCompressedSize(value)
     {
-        this.m_compressedSize.m_value = BigInt(value);
+        this._compressedSize._value = BigInt(value);
     }
 
     /** `SetUncompressedSize`. */
     SetUncompressedSize(value)
     {
-        this.m_uncompressedSize.m_value = BigInt(value);
+        this._uncompressedSize._value = BigInt(value);
     }
 
     /**
@@ -180,7 +180,7 @@ export class ResourceInfo
      */
     SetDataChecksum(value)
     {
-        this.m_checksum.m_value = value;
+        this._checksum._value = value;
         this.UpdateLocation();
     }
 
@@ -197,9 +197,9 @@ export class ResourceInfo
         const result = this.GetRelativePath(out);
         if (result.type !== ResultType.SUCCESS) return result;
         const location = new Location();
-        const located = location.SetFromRelativePathAndDataChecksum(out.value, this.m_checksum.GetValue());
+        const located = location.SetFromRelativePathAndDataChecksum(out.value, this._checksum.GetValue());
         if (located.type !== ResultType.SUCCESS) return located;
-        this.m_location.m_value = location;
+        this._location._value = location;
         return new Result();
     }
 
@@ -209,9 +209,9 @@ export class ResourceInfo
      */
     Equals(other)
     {
-        if (!this.m_relativePath.HasValue()) return false;
-        if (!other.m_relativePath.HasValue()) return false;
-        return comparePaths(this.m_relativePath.GetValue(), other.m_relativePath.GetValue()) === 0;
+        if (!this._relativePath.HasValue()) return false;
+        if (!other._relativePath.HasValue()) return false;
+        return comparePaths(this._relativePath.GetValue(), other._relativePath.GetValue()) === 0;
     }
 
     /**
@@ -223,9 +223,9 @@ export class ResourceInfo
      */
     LessThan(other)
     {
-        if (!this.m_relativePath.HasValue()) return other.m_relativePath.HasValue();
-        if (!other.m_relativePath.HasValue()) return true;
-        return comparePaths(this.m_relativePath.GetValue(), other.m_relativePath.GetValue()) < 0;
+        if (!this._relativePath.HasValue()) return other._relativePath.HasValue();
+        if (!other._relativePath.HasValue()) return true;
+        return comparePaths(this._relativePath.GetValue(), other._relativePath.GetValue()) < 0;
     }
 
     /**
@@ -242,36 +242,36 @@ export class ResourceInfo
         if (!other) return new Result(ResultType.FAIL);
 
         for (const [ parameter, getter ] of [
-            [ this.m_relativePath, "GetRelativePath" ],
-            [ this.m_location, "GetLocation" ],
-            [ this.m_checksum, "GetChecksum" ],
-            [ this.m_uncompressedSize, "GetUncompressedSize" ]
+            [ this._relativePath, "GetRelativePath" ],
+            [ this._location, "GetLocation" ],
+            [ this._checksum, "GetChecksum" ],
+            [ this._uncompressedSize, "GetUncompressedSize" ]
         ])
         {
             if (!parameter.IsParameterExpectedInDocumentVersion(documentVersion)) continue;
             const out = {};
             const result = other[getter](out);
             if (result.type !== ResultType.SUCCESS) return result;
-            parameter.m_value = parameter === this.m_location ? new Location(out.value) : out.value;
+            parameter._value = parameter === this._location ? new Location(out.value) : out.value;
         }
 
-        if (this.m_compressedSize.IsParameterExpectedInDocumentVersion(documentVersion))
+        if (this._compressedSize.IsParameterExpectedInDocumentVersion(documentVersion))
         {
             const out = {};
-            if (other.GetCompressedSize(out).type === ResultType.SUCCESS) this.m_compressedSize.m_value = out.value;
-            else this.m_compressedSize.Reset();
+            if (other.GetCompressedSize(out).type === ResultType.SUCCESS) this._compressedSize._value = out.value;
+            else this._compressedSize.Reset();
         }
 
-        if (this.m_prefix.IsParameterExpectedInDocumentVersion(documentVersion))
+        if (this._prefix.IsParameterExpectedInDocumentVersion(documentVersion))
         {
             const out = {};
             const result = other.GetPrefix(out);
-            if (result.type === ResultType.SUCCESS) this.m_prefix.m_value = out.value;
+            if (result.type === ResultType.SUCCESS) this._prefix._value = out.value;
             else if (result.type !== ResultType.RESOURCE_VALUE_NOT_SET) return result;
-            else this.m_prefix.Reset();
+            else this._prefix.Reset();
         }
 
-        if (this.m_binaryOperation.IsParameterExpectedInDocumentVersion(documentVersion))
+        if (this._binaryOperation.IsParameterExpectedInDocumentVersion(documentVersion))
         {
             const out = {};
             const result = other.GetBinaryOperation(out);
@@ -279,13 +279,13 @@ export class ResourceInfo
             {
                 if (result.type === ResultType.RESOURCE_VALUE_NOT_SET)
                 {
-                    this.m_binaryOperation.Reset();
+                    this._binaryOperation.Reset();
                     return new Result();
                 }
                 return result;
             }
-            if (out.value !== 0) this.m_binaryOperation.m_value = out.value;
-            else this.m_binaryOperation.Reset();
+            if (out.value !== 0) this._binaryOperation._value = out.value;
+            else this._binaryOperation.Reset();
         }
 
         return new Result();
@@ -298,21 +298,21 @@ export class ResourceInfo
      */
     ExportToCsv(out, _documentVersion)
     {
-        let result = this.m_prefix.HasValue() ? this.m_prefix.GetValue() + ":/" : "";
-        if (!this.m_relativePath.HasValue()) return new Result(ResultType.REQUIRED_RESOURCE_PARAMETER_NOT_SET);
+        let result = this._prefix.HasValue() ? this._prefix.GetValue() + ":/" : "";
+        if (!this._relativePath.HasValue()) return new Result(ResultType.REQUIRED_RESOURCE_PARAMETER_NOT_SET);
         const relativePath = {};
         const got = this.GetRelativePath(relativePath);
         if (got.type !== ResultType.SUCCESS) return got;
         result += String(relativePath.value).replaceAll("\\", "/") + ",";
-        if (!this.m_location.HasValue()) return new Result(ResultType.REQUIRED_RESOURCE_PARAMETER_NOT_SET);
-        result += this.m_location.GetValue().ToString() + ",";
-        if (!this.m_checksum.HasValue()) return new Result(ResultType.REQUIRED_RESOURCE_PARAMETER_NOT_SET);
-        result += this.m_checksum.GetValue() + ",";
-        if (!this.m_uncompressedSize.HasValue()) return new Result(ResultType.REQUIRED_RESOURCE_PARAMETER_NOT_SET);
-        result += this.m_uncompressedSize.GetValue() + ",";
-        if (!this.m_compressedSize.HasValue()) return new Result(ResultType.REQUIRED_RESOURCE_PARAMETER_NOT_SET);
-        result += this.m_compressedSize.GetValue();
-        if (this.m_binaryOperation.HasValue()) result += "," + this.m_binaryOperation.GetValue();
+        if (!this._location.HasValue()) return new Result(ResultType.REQUIRED_RESOURCE_PARAMETER_NOT_SET);
+        result += this._location.GetValue().ToString() + ",";
+        if (!this._checksum.HasValue()) return new Result(ResultType.REQUIRED_RESOURCE_PARAMETER_NOT_SET);
+        result += this._checksum.GetValue() + ",";
+        if (!this._uncompressedSize.HasValue()) return new Result(ResultType.REQUIRED_RESOURCE_PARAMETER_NOT_SET);
+        result += this._uncompressedSize.GetValue() + ",";
+        if (!this._compressedSize.HasValue()) return new Result(ResultType.REQUIRED_RESOURCE_PARAMETER_NOT_SET);
+        result += this._compressedSize.GetValue();
+        if (this._binaryOperation.HasValue()) result += "," + this._binaryOperation.GetValue();
         out.value = result;
         return new Result();
     }
@@ -332,40 +332,40 @@ export class ResourceInfo
     {
         const has = tag => Object.hasOwn(resource, tag);
 
-        if (this.m_binaryOperation.IsParameterExpectedInDocumentVersion(documentVersion))
+        if (this._binaryOperation.IsParameterExpectedInDocumentVersion(documentVersion))
         {
-            const tag = this.m_binaryOperation.GetTag();
-            if (has(tag)) this.m_binaryOperation.m_value = Number(asUnsigned(resource[tag], UINT32_MAX, tag));
-            else this.m_binaryOperation.Reset();
+            const tag = this._binaryOperation.GetTag();
+            if (has(tag)) this._binaryOperation._value = Number(asUnsigned(resource[tag], UINT32_MAX, tag));
+            else this._binaryOperation.Reset();
         }
 
-        for (const parameter of [ this.m_relativePath, this.m_location, this.m_type, this.m_checksum ])
+        for (const parameter of [ this._relativePath, this._location, this._type, this._checksum ])
         {
             if (!parameter.IsParameterExpectedInDocumentVersion(documentVersion)) continue;
             const tag = parameter.GetTag();
             if (!has(tag)) return new Result(ResultType.MALFORMED_RESOURCE_INPUT);
             const text = String(resource[tag]);
-            parameter.m_value = parameter === this.m_location ? new Location(text) : text;
+            parameter._value = parameter === this._location ? new Location(text) : text;
         }
 
-        if (this.m_uncompressedSize.IsParameterExpectedInDocumentVersion(documentVersion))
+        if (this._uncompressedSize.IsParameterExpectedInDocumentVersion(documentVersion))
         {
-            const tag = this.m_uncompressedSize.GetTag();
+            const tag = this._uncompressedSize.GetTag();
             if (!has(tag)) return new Result(ResultType.MALFORMED_RESOURCE_INPUT);
-            this.m_uncompressedSize.m_value = asUnsigned(resource[tag], UINTMAX_MAX, tag);
+            this._uncompressedSize._value = asUnsigned(resource[tag], UINTMAX_MAX, tag);
         }
 
-        if (this.m_compressedSize.IsParameterExpectedInDocumentVersion(documentVersion))
+        if (this._compressedSize.IsParameterExpectedInDocumentVersion(documentVersion))
         {
-            const tag = this.m_compressedSize.GetTag();
-            if (has(tag)) this.m_compressedSize.m_value = asUnsigned(resource[tag], UINTMAX_MAX, tag);
-            else this.m_compressedSize.Reset();
+            const tag = this._compressedSize.GetTag();
+            if (has(tag)) this._compressedSize._value = asUnsigned(resource[tag], UINTMAX_MAX, tag);
+            else this._compressedSize.Reset();
         }
 
-        if (this.m_prefix.IsParameterExpectedInDocumentVersion(documentVersion))
+        if (this._prefix.IsParameterExpectedInDocumentVersion(documentVersion))
         {
-            const tag = this.m_prefix.GetTag();
-            if (has(tag)) this.m_prefix.m_value = String(resource[tag]);
+            const tag = this._prefix.GetTag();
+            if (has(tag)) this._prefix._value = String(resource[tag]);
         }
 
         return new Result();
@@ -383,35 +383,35 @@ export class ResourceInfo
      */
     ExportToYaml(out, documentVersion)
     {
-        if (this.m_relativePath.IsParameterExpectedInDocumentVersion(documentVersion))
+        if (this._relativePath.IsParameterExpectedInDocumentVersion(documentVersion))
         {
-            if (!this.m_relativePath.HasValue()) return new Result(ResultType.REQUIRED_RESOURCE_PARAMETER_NOT_SET);
+            if (!this._relativePath.HasValue()) return new Result(ResultType.REQUIRED_RESOURCE_PARAMETER_NOT_SET);
             const relativePath = {};
             const got = this.GetRelativePath(relativePath);
             if (got.type !== ResultType.SUCCESS) return got;
-            out[this.m_relativePath.GetTag()] = String(relativePath.value).replaceAll("\\", "/");
+            out[this._relativePath.GetTag()] = String(relativePath.value).replaceAll("\\", "/");
         }
-        if (this.m_type.IsParameterExpectedInDocumentVersion(documentVersion))
+        if (this._type.IsParameterExpectedInDocumentVersion(documentVersion))
         {
-            if (!this.m_type.HasValue()) return new Result(ResultType.REQUIRED_RESOURCE_PARAMETER_NOT_SET);
-            out[this.m_type.GetTag()] = this.m_type.GetValue();
+            if (!this._type.HasValue()) return new Result(ResultType.REQUIRED_RESOURCE_PARAMETER_NOT_SET);
+            out[this._type.GetTag()] = this._type.GetValue();
         }
-        if (this.m_location.IsParameterExpectedInDocumentVersion(documentVersion))
+        if (this._location.IsParameterExpectedInDocumentVersion(documentVersion))
         {
-            if (!this.m_location.HasValue()) return new Result(ResultType.REQUIRED_RESOURCE_PARAMETER_NOT_SET);
-            out[this.m_location.GetTag()] = this.m_location.GetValue().ToString();
+            if (!this._location.HasValue()) return new Result(ResultType.REQUIRED_RESOURCE_PARAMETER_NOT_SET);
+            out[this._location.GetTag()] = this._location.GetValue().ToString();
         }
-        if (this.m_checksum.IsParameterExpectedInDocumentVersion(documentVersion))
+        if (this._checksum.IsParameterExpectedInDocumentVersion(documentVersion))
         {
-            if (!this.m_checksum.HasValue()) return new Result(ResultType.REQUIRED_RESOURCE_PARAMETER_NOT_SET);
-            out[this.m_checksum.GetTag()] = this.m_checksum.GetValue();
+            if (!this._checksum.HasValue()) return new Result(ResultType.REQUIRED_RESOURCE_PARAMETER_NOT_SET);
+            out[this._checksum.GetTag()] = this._checksum.GetValue();
         }
-        if (this.m_uncompressedSize.IsParameterExpectedInDocumentVersion(documentVersion))
+        if (this._uncompressedSize.IsParameterExpectedInDocumentVersion(documentVersion))
         {
-            if (!this.m_uncompressedSize.HasValue()) return new Result(ResultType.REQUIRED_RESOURCE_PARAMETER_NOT_SET);
-            out[this.m_uncompressedSize.GetTag()] = this.m_uncompressedSize.GetValue();
+            if (!this._uncompressedSize.HasValue()) return new Result(ResultType.REQUIRED_RESOURCE_PARAMETER_NOT_SET);
+            out[this._uncompressedSize.GetTag()] = this._uncompressedSize.GetValue();
         }
-        for (const parameter of [ this.m_compressedSize, this.m_binaryOperation, this.m_prefix ])
+        for (const parameter of [ this._compressedSize, this._binaryOperation, this._prefix ])
         {
             if (parameter.IsParameterExpectedInDocumentVersion(documentVersion) && parameter.HasValue())
             {

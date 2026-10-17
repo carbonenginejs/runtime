@@ -6,7 +6,7 @@ test("schema-only values use canonical member names without Blue services", () =
 {
     class Record { value = 1; }
     CjsSchema.define(Record, { className: "SchemaOnlyKeyRecord", fields: {
-        value: [meta.member("Value"), type.int32, blue.readwrite]
+        value: [meta.attribute("Value"), type.int32, blue.readwrite]
     } });
     const item = new Record();
     CjsSchema.setValues(item, { Value: 4 });

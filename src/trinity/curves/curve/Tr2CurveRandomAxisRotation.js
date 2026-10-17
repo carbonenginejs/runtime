@@ -32,7 +32,7 @@ export class Tr2CurveRandomAxisRotation extends ITriQuaternionFunction
   period = 1;
 
   /** Native PERSISTONLY seed storage; readers bypass the live setter. */
-  @meta.member("seed")
+  @blue.attribute("seed")
   @blue.persistOnly
   @type.uint32
   _seed = 0;

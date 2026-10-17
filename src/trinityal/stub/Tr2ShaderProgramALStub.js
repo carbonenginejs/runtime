@@ -28,12 +28,12 @@ export class Tr2ShaderProgramALStub extends Tr2DeviceResourceAL
   /** The shaders the program linked, in the order they were given. */
   _shaders = [];
 
-  m_registerMap = new Tr2RegisterMapAL();
+  _registerMap = new Tr2RegisterMapAL();
 
   /** Returns the register map that Carbon's stub deliberately leaves empty. */
   GetRegisterMap()
   {
-    return this.m_registerMap;
+    return this._registerMap;
   }
 
   /**
@@ -136,7 +136,7 @@ export class Tr2ShaderProgramALStub extends Tr2DeviceResourceAL
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
 CjsSchema.decorateField(Tr2ShaderProgramALStub, "_isValid", type.boolean);
-CjsSchema.decorateField(Tr2ShaderProgramALStub, "m_registerMap", type.rawStruct("Tr2RegisterMapAL"));
+CjsSchema.decorateField(Tr2ShaderProgramALStub, "_registerMap", type.rawStruct("Tr2RegisterMapAL"));
 CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "GetRegisterMap", blue.method);
 CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "Create", blue.method);
 CjsSchema.decorateMethod(Tr2ShaderProgramALStub, "Destroy", blue.method);

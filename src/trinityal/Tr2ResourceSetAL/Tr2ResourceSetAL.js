@@ -16,15 +16,15 @@ const nullRS = {
 /** Public handle; implementation selection belongs to the creating context. */
 export class Tr2ResourceSetAL
 {
-  m_resourceSet = nullRS;
+  _resourceSet = nullRS;
 
   /** JS copy construction retains the shared ownership record. */
   constructor({ copy = null } = {})
   {
     if (copy)
     {
-      this.m_resourceSet = copy.m_resourceSet;
-      this.m_resourceSet.owners += 1;
+      this._resourceSet = copy._resourceSet;
+      this._resourceSet.owners += 1;
     }
   }
 
@@ -63,20 +63,20 @@ export class Tr2ResourceSetAL
     this.Destroy();
     const { result, implementation } = renderContext.CreateResourceSet(description, program, true);
     if (Failed(result)) return result;
-    this.m_resourceSet = { implementation, owners: 1 };
+    this._resourceSet = { implementation, owners: 1 };
     return result;
   }
 
   /** Reports whether the shared backend implementation is valid. */
   IsValid()
   {
-    return this.m_resourceSet.implementation.IsValid();
+    return this._resourceSet.implementation.IsValid();
   }
 
   /** Returns the shared backend implementation's memory class. */
   GetMemoryClass()
   {
-    return this.m_resourceSet.implementation.GetMemoryClass();
+    return this._resourceSet.implementation.GetMemoryClass();
   }
 
   /** Names a valid resource set, rejecting an absent name. */
@@ -84,7 +84,7 @@ export class Tr2ResourceSetAL
   {
     if (!this.IsValid()) return ALResult.E_INVALIDCALL;
     if (name === null || name === undefined) return ALResult.E_INVALIDARG;
-    return this.m_resourceSet.implementation.SetName(name);
+    return this._resourceSet.implementation.SetName(name);
   }
 
   /**
@@ -96,13 +96,13 @@ export class Tr2ResourceSetAL
   @meta.adapted
   Destroy()
   {
-    const owned = this.m_resourceSet;
-    this.m_resourceSet = nullRS;
+    const owned = this._resourceSet;
+    this._resourceSet = nullRS;
     if (--owned.owners === 0) owned.implementation.Destroy();
   }
 }
 
-CjsSchema.decorateField(Tr2ResourceSetAL, "m_resourceSet", type.unknown);
+CjsSchema.decorateField(Tr2ResourceSetAL, "_resourceSet", type.unknown);
 CjsSchema.decorateMethod(Tr2ResourceSetAL, "Create__Program", blue.method);
 CjsSchema.decorateMethod(Tr2ResourceSetAL, "Create__Pipeline", blue.method);
 CjsSchema.decorateMethod(Tr2ResourceSetAL, "IsValid", blue.method);

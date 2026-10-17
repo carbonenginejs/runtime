@@ -1005,8 +1005,9 @@ export class CjsSchema
 
     /**
      * Public grouping; these aliases share the existing implementations.
-     * `member(name?, { index? })` declares stored data and `property(...)` a
-     * live property, with an exposed name independent of the decorated JS key.
+     * `attribute(name?, { index? })` declares stored data (Carbon's
+     * `MAP_ATTRIBUTE`) and `property(...)` a live property, with an exposed
+     * name independent of the decorated JS key.
      * Explicit `members`/`properties` arrays use { name, key, index?, ...metadata }
      * and retain multiple indexed routes on one key. Legacy `fields` inputs and
      * decorator arrays remain JS-keyed and also populate the compatibility view.
@@ -1045,7 +1046,7 @@ export class CjsSchema
          */
         setting: SETTING_DECORATOR,
         struct: createStructNamespace(),
-        member: (name, options) => declarationDecorator("member", name, options),
+        attribute: (name, options) => declarationDecorator("member", name, options),
         property: (name, options) => declarationDecorator("property", name, options),
         define: (definitionOrConstructor, definition) => defineEntry(definitionOrConstructor, definition, false),
         hideInherited: this.hideInherited
@@ -1073,6 +1074,12 @@ export class CjsSchema
             return [ name, combinedFieldDecorator({ [namespace]: value, carbon: { member: true } }) ];
         })),
         ...this.#carbon,
+        // Carbon's `MAP_ATTRIBUTE` exposed name: `meta.attribute` stamped as Carbon's member.
+        attribute: (name, options) =>
+        {
+            const { namespace, value } = getDecoratorMetadata(declarationDecorator("member", name, options));
+            return combinedFieldDecorator({ [namespace]: value, carbon: { member: true } });
+        },
         // A Carbon pure virtual: `meta.abstract` stamped as Carbon's method.
         abstract: abstractDecorator([
             { namespace: "impl", value: { abstract: true, status: "abstract" } },

@@ -24,7 +24,7 @@ test("destroying a texture drops the cached groups that bind its views", () =>
   const cache = new Map([ [ "uses-view", {} ], [ "unrelated", {} ] ]);
   const texture = new CjsWebgpuTextureAL();
   const view = { kind: "view" };
-  texture.m_views.set("2d:linear", view);
+  texture._views.set("2d:linear", view);
   RegisterBindingUse(view, cache, "uses-view");
   RegisterBindingUse({ kind: "other view" }, cache, "unrelated");
 

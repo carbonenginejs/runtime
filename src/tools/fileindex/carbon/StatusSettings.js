@@ -16,18 +16,18 @@ import { StatusUpdate } from "./StatusUpdate.js";
 export class StatusSettings
 {
     /** @type {StatusSettings|null} */
-    m_parent = null;
+    _parent = null;
 
-    m_nestingLevel = 0;
+    _nestingLevel = 0;
 
-    m_callbackSettings = new CallbackSettings();
+    _callbackSettings = new CallbackSettings();
 
-    m_lastUpdate = new StatusUpdate();
+    _lastUpdate = new StatusUpdate();
 
     /** `SetCallbackSettings` - copies the settings, as Carbon assigns the struct (StatusSettings.cpp:22-25). */
     SetCallbackSettings(callbackSettings)
     {
-        this.m_callbackSettings = StatusSettings._Copy(callbackSettings);
+        this._callbackSettings = StatusSettings._Copy(callbackSettings);
     }
 
     /**
@@ -41,8 +41,8 @@ export class StatusSettings
      */
     RequiresStatusUpdates()
     {
-        return Boolean(this.m_callbackSettings.statusCallback)
-            && (this.m_nestingLevel <= this.m_callbackSettings.verbosityLevel || this.m_callbackSettings.verbosityLevel === -1);
+        return Boolean(this._callbackSettings.statusCallback)
+            && (this._nestingLevel <= this._callbackSettings.verbosityLevel || this._callbackSettings.verbosityLevel === -1);
     }
 
     /**
@@ -51,23 +51,23 @@ export class StatusSettings
      */
     Update(statusProgressType, progress, percentageSizeOfJob, info, nestedStatusSettingsOut = null)
     {
-        const settings = this.m_callbackSettings;
+        const settings = this._callbackSettings;
         if (!settings.statusCallback) return;
-        if (this.m_nestingLevel >= settings.verbosityLevel && settings.verbosityLevel !== -1) return;
+        if (this._nestingLevel >= settings.verbosityLevel && settings.verbosityLevel !== -1) return;
 
-        this.m_lastUpdate.statusProgressType = statusProgressType;
-        this.m_lastUpdate.progress = Math.fround(progress);
-        this.m_lastUpdate.percentageSizeOfJob = Math.fround(percentageSizeOfJob);
-        this.m_lastUpdate.info = info;
+        this._lastUpdate.statusProgressType = statusProgressType;
+        this._lastUpdate.progress = Math.fround(progress);
+        this._lastUpdate.percentageSizeOfJob = Math.fround(percentageSizeOfJob);
+        this._lastUpdate.info = info;
 
         const scaled = this.CalculateOverallProgress();
-        settings.statusCallback(statusProgressType, this.m_lastUpdate.progress, scaled.progress, this.m_lastUpdate.percentageSizeOfJob, this.m_nestingLevel, info);
+        settings.statusCallback(statusProgressType, this._lastUpdate.progress, scaled.progress, this._lastUpdate.percentageSizeOfJob, this._nestingLevel, info);
 
         if (nestedStatusSettingsOut)
         {
-            nestedStatusSettingsOut.m_parent = this;
-            nestedStatusSettingsOut.m_callbackSettings = StatusSettings._Copy(settings);
-            nestedStatusSettingsOut.m_nestingLevel = this.m_nestingLevel + 1;
+            nestedStatusSettingsOut._parent = this;
+            nestedStatusSettingsOut._callbackSettings = StatusSettings._Copy(settings);
+            nestedStatusSettingsOut._nestingLevel = this._nestingLevel + 1;
             nestedStatusSettingsOut.Update(StatusProgressType.START, 0, 0, "Starting Process");
         }
     }
@@ -75,9 +75,9 @@ export class StatusSettings
     /** `CalculateOverallProgress` (StatusSettings.cpp:67-93): this scope's progress scaled through its parents. */
     CalculateOverallProgress()
     {
-        const own = this.m_lastUpdate;
-        if (!this.m_parent) return new StatusReturn(own.progress, own.percentageSizeOfJob / 100);
-        const parent = this.m_parent.CalculateOverallProgress();
+        const own = this._lastUpdate;
+        if (!this._parent) return new StatusReturn(own.progress, own.percentageSizeOfJob / 100);
+        const parent = this._parent.CalculateOverallProgress();
         const scaledProgress = Math.fround(own.progress * parent.scale);
         const scaledScale = Math.fround((own.percentageSizeOfJob / 100) * parent.scale);
         return new StatusReturn(parent.progress + scaledProgress, scaledScale);
@@ -86,7 +86,7 @@ export class StatusSettings
     /** Carbon's destructor (StatusSettings.cpp:15-21): reports the end unless progress reached 100. */
     Dispose()
     {
-        if (this.m_lastUpdate.progress < 100) this.Update(StatusProgressType.END, 100, 0, "Process complete.");
+        if (this._lastUpdate.progress < 100) this.Update(StatusProgressType.END, 100, 0, "Process complete.");
     }
 
     /** A struct copy of callback settings, as C++ assignment makes. */

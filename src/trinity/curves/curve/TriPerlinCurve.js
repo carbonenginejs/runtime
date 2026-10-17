@@ -80,7 +80,7 @@ export class TriPerlinCurve extends ITriScalarFunction
   beta = 2;
 
   /** Native mN exposed as N; n retains the existing JavaScript storage spelling. */
-  @meta.member("N")
+  @blue.attribute("N")
   @blue.readwrite
   @blue.persist
   @type.int32

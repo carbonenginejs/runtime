@@ -19,7 +19,6 @@ export class Tr2ActionResetClipSphereCenter extends ITr2ControllerAction
   /** Named locator set the CUSTOM mode reads.
    * @type {string}
    */
-  @meta.member("locatorSetName")
   @blue.readwrite
   @blue.persist
   @type.string
@@ -28,7 +27,6 @@ export class Tr2ActionResetClipSphereCenter extends ITr2ControllerAction
   /** Locator index the CUSTOM mode reads; negative picks one at random.
    * @type {number}
    */
-  @meta.member("locatorIndex")
   @blue.readwrite
   @blue.persist
   @type.int32
@@ -37,7 +35,6 @@ export class Tr2ActionResetClipSphereCenter extends ITr2ControllerAction
   /** Authored reset mode.
    * @type {number}
    */
-  @meta.member("resetBehavior")
   @blue.readwrite
   @blue.persist
   @type.int32

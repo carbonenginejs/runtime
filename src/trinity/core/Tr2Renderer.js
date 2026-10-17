@@ -283,7 +283,7 @@ export class Tr2Renderer
     if (!(s & TriStorageFlags.TRISTORAGE_MANAGEDMEMORY)) return;
 
     const allocation = Tr2Renderer.#quadListIndexBuffer;
-    if (allocation.m_parent) allocation.m_parent.Free(allocation);
+    if (allocation._parent) allocation._parent.Free(allocation);
   }
 
   /**
@@ -672,7 +672,7 @@ export class Tr2Renderer
     }
 
     const previous = Tr2Renderer.#quadListIndexBuffer;
-    if (previous.m_parent) previous.m_parent.Free(previous);
+    if (previous._parent) previous._parent.Free(previous);
     const allocation = SharedGeometryBuffer(renderContext).Allocate(Typed.BYTES_PER_ELEMENT, count * 6, indices, renderContext);
 
     if (!allocation)

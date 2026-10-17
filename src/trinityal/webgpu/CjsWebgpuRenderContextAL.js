@@ -348,7 +348,7 @@ export class CjsWebgpuRenderContextAL
    * The backend's translation tables, `MetalContext::m_utils` (`MetalContext.h:34`),
    * reached as Metal reaches its own: `context.m_utils.GetGPUTextureFormat(...)`.
    */
-  m_utils = new CjsWebgpuUtils();
+  _utils = new CjsWebgpuUtils();
 
   /** The frame's command encoder, between BeginScene and EndScene. */
   _commandEncoder = null;
@@ -1635,7 +1635,7 @@ export class CjsWebgpuRenderContextAL
    * Carbon asserts at these points; a JS frame must not die at a draw, so the
    * reason is kept where a harness can read it instead.
    */
-  m_pipelineFailure = null;
+  _pipelineFailure = null;
 
   /**
    * Resolves and binds the pipeline the bound state describes.
@@ -1763,7 +1763,7 @@ export class CjsWebgpuRenderContextAL
 
     this._pipeline = pipeline;
     this._pipelineDirty = false;
-    this.m_pipelineFailure = null;
+    this._pipelineFailure = null;
     this._Record([ { type: "pipeline", key, created } ]);
     this._workQueue.SetRenderPipeline(pipeline);
 
@@ -1791,7 +1791,7 @@ export class CjsWebgpuRenderContextAL
 
     // A reason describes THIS attempt; one left from an earlier refusal would
     // outlive the draw that succeeded after it.
-    this.m_pipelineFailure = null;
+    this._pipelineFailure = null;
 
     if (!this.EmitRenderPipelineState()) return false;
 
@@ -1968,7 +1968,7 @@ export class CjsWebgpuRenderContextAL
 
     if (!layouts.length) return true;
 
-    const set = this._resourceSet?.m_resourceSet.implementation;
+    const set = this._resourceSet?._resourceSet.implementation;
     const entries = set && set.IsValid() && set.GetProgram() === program ? set.GetEntries() : null;
     const bindings = program.GetBindings();
     const device = this._webgpu.GetDevice();
@@ -2173,8 +2173,8 @@ export class CjsWebgpuRenderContextAL
 
     if (!(source instanceof CjsWebgpuConstantBufferAL) || !source.IsValid()) return null;
 
-    const token = source.m_token;
-    const wanted = Math.max(size, source.m_shadowCopy.length);
+    const token = source._token;
+    const wanted = Math.max(size, source._shadowCopy.length);
 
     // Metal's `UploadConstants` (`MetalWorkQueue.mm:2426-2439`): a token from
     // this frame is left alone. The size test is ours - a layout may demand
@@ -2182,7 +2182,7 @@ export class CjsWebgpuRenderContextAL
     // validation error rather than a wrong picture.
     if (token.frame !== this.GetRecordingFrameNumber() || token.size < wanted)
     {
-      const region = arena.Allocate(source.m_shadowCopy, wanted);
+      const region = arena.Allocate(source._shadowCopy, wanted);
 
       token.frame = this.GetRecordingFrameNumber();
       token.page = region.page;
@@ -2459,7 +2459,7 @@ export class CjsWebgpuRenderContextAL
   /** Records why a draw cannot proceed and says no. */
   _RefusePipeline(reason)
   {
-    this.m_pipelineFailure = reason;
+    this._pipelineFailure = reason;
 
     return false;
   }

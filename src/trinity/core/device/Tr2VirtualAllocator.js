@@ -5,15 +5,15 @@ import { CjsSchema, meta, type, blue } from "#schema";
 /** Allocates aligned virtual byte ranges, reclaiming frees and expanding by reserved blocks. */
 export class Tr2VirtualAllocator
 {
-  m_blockSize = 0;
+  _blockSize = 0;
 
-  m_maxSize = 0;
+  _maxSize = 0;
 
-  m_currentSize = 0;
+  _currentSize = 0;
 
-  m_allocatedMemory = 0;
+  _allocatedMemory = 0;
 
-  m_reservedBlocks = [];
+  _reservedBlocks = [];
 
   /** Adapted: ordered free spans replace VMA's native virtual-block handle. */
   block = [];
@@ -30,26 +30,26 @@ export class Tr2VirtualAllocator
     {
       throw new RangeError("Tr2VirtualAllocator requires a power-of-two block and block-aligned sizes.");
     }
-    this.m_blockSize = blockSize;
-    this.m_maxSize = maxSize;
+    this._blockSize = blockSize;
+    this._maxSize = maxSize;
     this.block = [ { offset: 0, size: maxSize } ];
     for (let index = 0; index < maxSize / blockSize; index += 1)
     {
       const allocation = {};
       this.Allocate(blockSize, 1, allocation);
-      this.m_reservedBlocks.push(allocation);
+      this._reservedBlocks.push(allocation);
     }
-    this.m_reservedBlocks.reverse();
-    while (this.m_currentSize < initialSize) this.Expand();
+    this._reservedBlocks.reverse();
+    while (this._currentSize < initialSize) this.Expand();
   }
 
   /** Exposes the lowest reserved block, or returns false at the maximum size. */
   Expand()
   {
-    if (this.m_reservedBlocks.length === 0) return false;
-    this.m_currentSize += this.m_blockSize;
-    this.Free(this.m_reservedBlocks[this.m_reservedBlocks.length - 1]);
-    this.m_reservedBlocks.pop();
+    if (this._reservedBlocks.length === 0) return false;
+    this._currentSize += this._blockSize;
+    this.Free(this._reservedBlocks[this._reservedBlocks.length - 1]);
+    this._reservedBlocks.pop();
     return true;
   }
 
@@ -100,7 +100,7 @@ export class Tr2VirtualAllocator
     result.allocation = { offset: bestOffset, size: reservedSize };
     result.offset = Math.ceil(bestOffset / alignment) * alignment;
     result.size = size;
-    this.m_allocatedMemory += size;
+    this._allocatedMemory += size;
     return true;
   }
 
@@ -127,38 +127,38 @@ export class Tr2VirtualAllocator
       current.size += next.size;
       this.block.splice(index + 1, 1);
     }
-    this.m_allocatedMemory -= allocation.size;
+    this._allocatedMemory -= allocation.size;
   }
 
   /** Bytes exposed by each successful Expand. */
   GetBlockSize()
   {
-    return this.m_blockSize;
+    return this._blockSize;
   }
 
   /** Maximum virtual address-space size. */
   GetMaxSize()
   {
-    return this.m_maxSize;
+    return this._maxSize;
   }
 
   /** Currently exposed capacity, including free spans. */
   GetCurrentSize()
   {
-    return this.m_currentSize;
+    return this._currentSize;
   }
 
   /** Requested bytes held by clients, excluding padding and reserved blocks. */
   GetAllocatedMemory()
   {
-    return this.m_allocatedMemory - this.m_reservedBlocks.length * this.m_blockSize;
+    return this._allocatedMemory - this._reservedBlocks.length * this._blockSize;
   }
 }
 
-CjsSchema.decorateField(Tr2VirtualAllocator, "m_blockSize", type.uint64);
-CjsSchema.decorateField(Tr2VirtualAllocator, "m_maxSize", type.uint64);
-CjsSchema.decorateField(Tr2VirtualAllocator, "m_currentSize", type.uint64);
-CjsSchema.decorateField(Tr2VirtualAllocator, "m_allocatedMemory", type.uint64);
+CjsSchema.decorateField(Tr2VirtualAllocator, "_blockSize", type.uint64);
+CjsSchema.decorateField(Tr2VirtualAllocator, "_maxSize", type.uint64);
+CjsSchema.decorateField(Tr2VirtualAllocator, "_currentSize", type.uint64);
+CjsSchema.decorateField(Tr2VirtualAllocator, "_allocatedMemory", type.uint64);
 CjsSchema.blue.define(Tr2VirtualAllocator, {
   className: "Tr2VirtualAllocator",
   methods: {

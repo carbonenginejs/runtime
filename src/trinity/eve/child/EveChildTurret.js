@@ -192,7 +192,7 @@ export class EveChildTurret extends EveChildMesh
 
   // Carbon m_target: created in the constructor with fade-on-locator-change
   // enabled (EveChildTurret.cpp:26-27); Blue exposes it READ-only.
-  @meta.member("target")
+  @blue.attribute("target")
   @blue.read
   @type.rootRef("EveTurretTarget")
   _target = new EveTurretTarget();

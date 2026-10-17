@@ -1012,7 +1012,7 @@ test("virtual camera vector offset, damping, and inertia follow Carbon", () =>
   assertVec3(offset.Update(null, vec3.create(), 0, 0, vec3.create(), 2, vec3.fromValues(1, 0, 0)), [0, 0, 1]);
 
   const damping = new EveVirtualCameraBehaviourVector3Damping();
-  damping.m_dampingRatio = 0.5;
+  damping.dampingRatio = 0.5;
   assertVec3(damping.Update(null, vec3.fromValues(0, 0, 0), 0, 0), [0, 0, 0]);
   assertVec3(damping.Update(null, vec3.fromValues(10, 0, 0), 0, 1), [-5, 0, 0]);
   assertVec3(damping.Update(null, vec3.fromValues(10, 0, 0), 0, 2), [-2.5, 0, 0]);
@@ -1022,7 +1022,7 @@ test("virtual camera vector offset, damping, and inertia follow Carbon", () =>
   assertVec3(inertia.Update(null, vec3.create(), 0.5, 0), [0, 0, 0]);
   assertVec3(inertia.Update(null, vec3.fromValues(10, 0, 0), 0.5, 1), [-5, 0, 0]);
   assertVec3(inertia.Update(null, vec3.fromValues(10, 0, 0), 0.5, 2), [-1.25, 0, 0]);
-  assertEquals(CjsSchema.getField(EveVirtualCameraBehaviourVector3Damping, "m_dampingRatio")?.type.kind, "float32");
+  assertEquals(CjsSchema.getField(EveVirtualCameraBehaviourVector3Damping, "dampingRatio")?.type.kind, "float32");
 });
 
 test("virtual camera vector shake uses Carbon component phases and view scaling", () =>

@@ -13,14 +13,14 @@ import { CjsResFileIndexFormat } from "../../../src/resource/formats/resfileinde
 const csv = text =>
 {
     const group = new ResourceGroup();
-    assert.equal(group.m_impl.ImportFromCSV(text).type, ResultType.SUCCESS);
+    assert.equal(group._impl.ImportFromCSV(text).type, ResultType.SUCCESS);
     return group;
 };
 
 const exportCsv = group =>
 {
     const out = { value: "" };
-    assert.equal(group.m_impl.ExportCsv(new VersionInternal(0, 0, 0), out).type, ResultType.SUCCESS);
+    assert.equal(group._impl.ExportCsv(new VersionInternal(0, 0, 0), out).type, ResultType.SUCCESS);
     return out.value;
 };
 
@@ -50,7 +50,7 @@ test("finding 1: without TotalResourcesSizeCompressed the total is unset, and ex
     // ResourceGroupImpl.cpp:1610-1614 resets; ExportYaml writes it only when set (:1745-1752).
     const group = new ResourceGroupImpl();
     assert.equal(group.ImportFromYamlString(yamlGroup([ "NumberOfResources: 1", "TotalResourcesSizeUnCompressed: 5", ...RESOURCE ])).type, ResultType.SUCCESS);
-    assert.equal(group.m_totalResourcesSizeCompressed.HasValue(), false);
+    assert.equal(group._totalResourcesSizeCompressed.HasValue(), false);
     const out = {};
     assert.equal(group.ExportYaml(new VersionInternal(0, 1, 0), out).type, ResultType.SUCCESS);
     assert.doesNotMatch(out.value, /TotalResourcesSizeCompressed/u);
@@ -83,11 +83,11 @@ test("findings 3 and 4: YAML scalars stay source text, and BinaryOperation 0 is 
 {
     // ResourceInfo.cpp:832-857 read strings with as<std::string>(); :1024-1031 reset a zero operation.
     const group = new ResourceGroup();
-    assert.equal(group.m_impl.ImportFromYamlString(yamlGroup([
+    assert.equal(group._impl.ImportFromYamlString(yamlGroup([
         "NumberOfResources: 1", "TotalResourcesSizeCompressed: 0", "TotalResourcesSizeUnCompressed: 5",
         ...RESOURCE, "    BinaryOperation: 0"
     ])).type, ResultType.SUCCESS);
-    const resource = group.m_impl.m_resourcesParameter[0];
+    const resource = group._impl._resourcesParameter[0];
     const checksum = {};
     resource.GetChecksum(checksum);
     assert.equal(checksum.value, "0123", "leading zero kept");
@@ -100,7 +100,7 @@ test("findings 3 and 4: YAML scalars stay source text, and BinaryOperation 0 is 
     params.mergedResourceGroup = merged;
     params.resourceGroupToMerge = new ResourceGroup();
     assert.equal(group.Merge(params).type, ResultType.SUCCESS);
-    assert.equal(merged.m_impl.m_resourcesParameter[0].m_binaryOperation.HasValue(), false);
+    assert.equal(merged._impl._resourcesParameter[0]._binaryOperation.HasValue(), false);
 });
 
 test("finding 5: resource YAML is written in Carbon's key order", () =>
@@ -108,7 +108,7 @@ test("finding 5: resource YAML is written in Carbon's key order", () =>
     // ResourceInfo.cpp:1164-1266: RelativePath, Type, Location, Checksum, UncompressedSize, CompressedSize, BinaryOperation, Prefix.
     const group = csv("res:/dir/a.txt,aa/aa_1,sum,5,3,2");
     const out = {};
-    assert.equal(group.m_impl.ExportYaml(new VersionInternal(0, 1, 0), out).type, ResultType.SUCCESS);
+    assert.equal(group._impl.ExportYaml(new VersionInternal(0, 1, 0), out).type, ResultType.SUCCESS);
     const keys = [ ...out.value.matchAll(/^\s+-?\s*(\w+):/gmu) ].map(match => match[1]);
     assert.deepEqual(keys, [ "RelativePath", "Type", "Location", "Checksum", "UncompressedSize", "CompressedSize", "BinaryOperation", "Prefix" ]);
 });
@@ -140,7 +140,7 @@ test("finding 11: an empty sixth column followed by more is malformed; a trailin
     assert.equal(new ResourceGroupImpl().ImportFromCSV("res:/a,x/1,c,2,2,,7\n").type, ResultType.MALFORMED_RESOURCE_INPUT);
     const trailing = new ResourceGroupImpl();
     assert.equal(trailing.ImportFromCSV("res:/a,x/1,c,2,2,\n").type, ResultType.SUCCESS);
-    assert.equal(trailing.m_resourcesParameter[0].m_binaryOperation.HasValue(), false);
+    assert.equal(trailing._resourcesParameter[0]._binaryOperation.HasValue(), false);
     assert.throws(() => CjsResFileIndexFormat.read("res:/a,x/1,c,2,2,,7\n"), SyntaxError);
 });
 
@@ -154,7 +154,7 @@ test("the format and the Carbon port read CSV rows through the same rules", () =
     assert.throws(() => CjsResFileIndexFormat.readRow("res:/a,x/1,c,1,1,4294967296"), RangeError);
 
     const group = csv(line);
-    const resource = group.m_impl.m_resourcesParameter[0];
+    const resource = group._impl._resourcesParameter[0];
     const path = {};
     resource.GetRelativePath(path);
     assert.equal(path.value, "Dir/A.dds", "case kept");
@@ -162,7 +162,7 @@ test("the format and the Carbon port read CSV rows through the same rules", () =
 
 test("finding 12: the resource count is uintmax_t", () =>
 {
-    assert.equal(csv("res:/a,x/1,c,1,1").m_impl.m_numberOfResources.GetValue(), 1n);
+    assert.equal(csv("res:/a,x/1,c,1,1")._impl._numberOfResources.GetValue(), 1n);
 });
 
 test("finding 13: callback settings are copied, and a missing callback is one answer", () =>
@@ -178,7 +178,7 @@ test("finding 13: callback settings are copied, and a missing callback is one an
     assert.equal(calls.length, 1, "the scope kept its own copy");
 
     const empty = new StatusSettings();
-    empty.m_callbackSettings.statusCallback = undefined;
+    empty._callbackSettings.statusCallback = undefined;
     assert.equal(empty.RequiresStatusUpdates(), false);
 });
 

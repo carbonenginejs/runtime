@@ -131,12 +131,12 @@ test("TriStepToggleCubemap applies Carbon's interior scene toggle", () =>
   };
   const toggle = new TriStepToggleCubemap();
   toggle.__init__(false, scene);
-  assertEquals(toggle.m_showCubemap, false);
+  assertEquals(toggle.showCubemap, false);
   assertEquals(toggle.Execute(0, 0, null), TriRenderStep.RS_OK);
   assertEquals(calls.join(","), "false");
 
   toggle.__init__();
-  assertEquals(toggle.m_showCubemap, true);
+  assertEquals(toggle.showCubemap, true);
   assertEquals(toggle.Execute(0, 0, null), TriRenderStep.RS_OK);
 });
 
@@ -761,7 +761,7 @@ test("TriStepCopyRenderTarget computes Carbon's copy rectangles", () =>
   const copies = [];
   const record = (dest, src, srcRegion) =>
   {
-    copies.push({ dest: [ dest.m_box.left, dest.m_box.top, dest.m_box.right, dest.m_box.bottom ], src, srcRegion });
+    copies.push({ dest: [ dest.box.left, dest.box.top, dest.box.right, dest.box.bottom ], src, srcRegion });
     return ALResult.S_OK;
   };
   destination.GetRenderTarget().CopySubresourceRegion = record;
@@ -775,7 +775,7 @@ test("TriStepCopyRenderTarget computes Carbon's copy rectangles", () =>
   copy.sourceViewport = { x: 10, y: 20, width: 30, height: 40 };
   copy.destinationViewport = { x: -5, y: -7 };
   assertEquals(copy.Execute(0, 0, context), TriRenderJob.StepResult.RS_OK);
-  const region = copies[1].srcRegion.m_box;
+  const region = copies[1].srcRegion.box;
   assertEquals(JSON.stringify([ region.left, region.top, region.right, region.bottom ]), JSON.stringify([ 10, 20, 35, 53 ]));
   assertEquals(JSON.stringify(copies[1].dest), JSON.stringify([ 0, 0, 25, 33 ]));
 
@@ -788,7 +788,7 @@ test("TriStepCopyRenderTarget computes Carbon's copy rectangles", () =>
   const textureCopies = [];
   texture.GetTexture = () => ({ CopySubresourceRegion: (dest, src, srcRegion) =>
   {
-    textureCopies.push({ dest: dest.m_box, srcRegion: srcRegion.m_box });
+    textureCopies.push({ dest: dest.box, srcRegion: srcRegion.box });
     return ALResult.E_FAIL;
   } });
   const textureCopy = new TriStepCopyRenderTarget();

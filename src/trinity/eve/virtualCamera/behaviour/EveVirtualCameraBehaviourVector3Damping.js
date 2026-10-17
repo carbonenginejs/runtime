@@ -15,10 +15,12 @@ import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviou
 @blue.chainTo(EveVirtualCameraBehaviourVector3Base)
 export class EveVirtualCameraBehaviourVector3Damping extends EveVirtualCameraBehaviourVector3Base
 {
+  /** m_dampingRatio; Carbon exposes the member name itself (EveVirtualCameraBehaviour_Blue.cpp:206). */
+  @blue.attribute("m_dampingRatio")
   @blue.readwrite
   @blue.persist
   @type.float32
-  m_dampingRatio = 1;
+  dampingRatio = 1;
 
   _lastPosition = vec3.create();
 
@@ -33,7 +35,7 @@ export class EveVirtualCameraBehaviourVector3Damping extends EveVirtualCameraBeh
   }
 
   /**
-   * Lerps the retained position towards the incoming one by m_dampingRatio and
+   * Lerps the retained position towards the incoming one by dampingRatio and
    * returns the offset from the incoming position to that smoothed one; the
    * first update (local time at or below zero) seeds the retained position and
    * returns zero.
@@ -47,7 +49,7 @@ export class EveVirtualCameraBehaviourVector3Damping extends EveVirtualCameraBeh
       vec3.copy(this._lastPosition, current);
       return vec3.zero(out);
     }
-    vec3.lerp(this._lastPosition, this._lastPosition, current, this.m_dampingRatio);
+    vec3.lerp(this._lastPosition, this._lastPosition, current, this.dampingRatio);
     return vec3.subtract(out, this._lastPosition, current);
   }
 }

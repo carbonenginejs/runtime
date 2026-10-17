@@ -6,9 +6,9 @@ import { CjsSchema, meta, blue, type } from "#schema";
 /** Carbon resource-document version; this is not a game build number. */
 export class VersionInternal
 {
-    m_major = undefined;
-    m_minor = undefined;
-    m_patch = undefined;
+    _major = undefined;
+    _minor = undefined;
+    _patch = undefined;
 
     /**
      * Native constructors collapsed into one JS overload.
@@ -21,15 +21,15 @@ export class VersionInternal
     {
         if (typeof major === "object")
         {
-            this.m_major = major.major;
-            this.m_minor = major.minor;
-            this.m_patch = major.patch;
+            this._major = major.major;
+            this._minor = major.minor;
+            this._patch = major.patch;
         }
         else
         {
-            this.m_major = major;
-            this.m_minor = minor;
-            this.m_patch = patch;
+            this._major = major;
+            this._minor = minor;
+            this._patch = patch;
         }
     }
 
@@ -45,7 +45,7 @@ export class VersionInternal
      */
     GreaterThan(value)
     {
-        return this.m_major > value.m_major || this.m_minor > value.m_minor || this.m_patch > value.m_patch;
+        return this._major > value._major || this._minor > value._minor || this._patch > value._patch;
     }
 
     /**
@@ -58,7 +58,7 @@ export class VersionInternal
      */
     LessThan(value)
     {
-        return this.m_major < value.m_major || this.m_minor < value.m_minor || this.m_patch < value.m_patch;
+        return this._major < value._major || this._minor < value._minor || this._patch < value._patch;
     }
 
     /**
@@ -69,8 +69,8 @@ export class VersionInternal
      */
     GreaterThanOrEqual(value)
     {
-        return this.m_major > value.m_major || (this.m_major === value.m_major
-            && (this.m_minor > value.m_minor || (this.m_minor === value.m_minor && this.m_patch >= value.m_patch)));
+        return this._major > value._major || (this._major === value._major
+            && (this._minor > value._minor || (this._minor === value._minor && this._patch >= value._patch)));
     }
 
     /**
@@ -92,7 +92,7 @@ export class VersionInternal
      */
     Equals(value)
     {
-        return this.m_major === value.m_major && this.m_minor === value.m_minor && this.m_patch === value.m_patch;
+        return this._major === value._major && this._minor === value._minor && this._patch === value._patch;
     }
 
     /**
@@ -102,7 +102,7 @@ export class VersionInternal
      */
     ToString()
     {
-        return this.m_major + "." + this.m_minor + "." + this.m_patch;
+        return this._major + "." + this._minor + "." + this._patch;
     }
 
     /**
@@ -114,7 +114,7 @@ export class VersionInternal
     FromString(text)
     {
         const parts = String(text).split(".");
-        const fields = ["m_major", "m_minor", "m_patch"];
+        const fields = ["_major", "_minor", "_patch"];
         for (let i = 0; i < 3; i++)
         {
             const match = (parts[i] ?? "").match(/^\s*[+-]?\d+/u);
@@ -133,7 +133,7 @@ export class VersionInternal
      */
     getMajor()
     {
-        return this.m_major;
+        return this._major;
     }
 
     /**
@@ -143,7 +143,7 @@ export class VersionInternal
      */
     getMinor()
     {
-        return this.m_minor;
+        return this._minor;
     }
 
     /**
@@ -153,7 +153,7 @@ export class VersionInternal
      */
     getPatch()
     {
-        return this.m_patch;
+        return this._patch;
     }
 
     /**
@@ -172,9 +172,9 @@ export class VersionInternal
 CjsSchema.blue.define(VersionInternal, {
   className: "VersionInternal",
   fields: {
-        m_major: [type.uint32],
-        m_minor: [type.uint32],
-        m_patch: [type.uint32]
+        _major: [type.uint32],
+        _minor: [type.uint32],
+        _patch: [type.uint32]
     },
   methods: {
         GreaterThan: [ meta.renamed("operator>"), meta.adapted ],

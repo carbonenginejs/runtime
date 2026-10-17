@@ -32,7 +32,7 @@ test("the public decorator surface has one namespace per vocabulary and preserve
         assert.equal(typeof meta[name], "function", "generic flag: " + name);
         assert.equal(typeof CjsSchema.blue[name], "function", "Carbon flag: " + name);
     }
-    for (const name of ["interface", "inherit", "chainTo", "method", "define"])
+    for (const name of ["interface", "inherit", "chainTo", "method", "define", "attribute"])
         assert.equal(typeof CjsSchema.blue[name], "function", "Carbon declaration: " + name);
     for (const name of ["edit", "impl", "carbon", "lifecycle", "jessica", "compose", "custom"])
         assert.equal(Object.hasOwn(meta, name), false, "removed meta alias: " + name);
@@ -42,6 +42,9 @@ test("the public decorator surface has one namespace per vocabulary and preserve
         assert.equal(Object.hasOwn(type, name), false, "class declaration is flat: " + name);
     // Ruling 2026-10-15: the absence of the blue stamp means ours, so there is no meta.ours.
     assert.equal(Object.hasOwn(meta, "ours"), false);
+    // Amendment 2026-10-17: the stored-member declaration is `attribute` (MAP_ATTRIBUTE).
+    assert.equal(typeof meta.attribute, "function");
+    assert.equal(Object.hasOwn(meta, "member"), false, "removed: meta.member");
     class Types {}
     CjsSchema.define(Types, {
         className: "DeclarationTypes",
@@ -61,7 +64,7 @@ test("Stage-3 and explicit declarations produce the same separate stored and liv
         get boosters() { throw new Error("registration evaluated a getter"); }
         set boosters(value) {}
     }
-    applyStage3(metadata, "_boosters", "field", [ meta.member("boosters"), type.rootRef("Booster"), blue.persistOnly ]);
+    applyStage3(metadata, "_boosters", "field", [ blue.attribute("boosters"), type.rootRef("Booster"), blue.persistOnly ]);
     applyStage3(metadata, "boosters", "getter", [ type.rootRef("Booster"), blue.readwrite, meta.implemented ]);
     applyStage3(metadata, "boosters", "setter", [ blue.notify ]);
     meta.define({ className: "DeclarationDecorated" })(Decorated, { kind: "class", metadata });
@@ -85,6 +88,27 @@ test("Stage-3 and explicit declarations produce the same separate stored and liv
     assert.equal(decorated.properties[0].key, "boosters");
     assert.deepEqual(decorated.fields.map(entry => entry.name), [ "_boosters", "boosters" ]);
     assert.equal(decorated.members[0].declaringClass, Decorated);
+});
+
+test("blue.attribute is meta.attribute stamped as Carbon's member", () =>
+{
+    class Ours {}
+    CjsSchema.define(Ours, {
+        className: "DeclarationAttributeOurs",
+        fields: { _ratio: [ meta.attribute("ratio", { index: 2 }), type.float32 ] }
+    });
+    class Carbon {}
+    CjsSchema.define(Carbon, {
+        className: "DeclarationAttributeCarbon",
+        fields: { dampingRatio: [ blue.attribute("m_dampingRatio"), type.float32 ] }
+    });
+    const [ ours ] = CjsSchema.getSchema(Ours).members;
+    const [ carbon ] = CjsSchema.getSchema(Carbon).members;
+    assert.deepEqual({ name: ours.name, key: ours.key, index: ours.index }, { name: "ratio", key: "_ratio", index: 2 });
+    assert.equal(ours.carbon?.member, undefined);
+    assert.deepEqual({ name: carbon.name, key: carbon.key }, { name: "m_dampingRatio", key: "dampingRatio" });
+    assert.equal(carbon.carbon.member, true);
+    assert.throws(() => blue.attribute("x", { index: -1 }), /nonnegative safe integer/u);
 });
 
 test("imperative metadata and explicit fields infer accessors without evaluating or replacing them", () =>
@@ -128,12 +152,12 @@ test("indexed declarations retain every route including index zero and reject ex
         className: "DeclarationDuplicate",
         members: [ { name: "x", key: "values", index: 0 }, { name: "x", key: "values", index: 0 } ]
     }), /duplicate member/u);
-    assert.throws(() => meta.member("x", { index: -1 }), /nonnegative safe integer/u);
-    assert.throws(() => meta.member("x", { index: 0.5 }), /nonnegative safe integer/u);
+    assert.throws(() => meta.attribute("x", { index: -1 }), /nonnegative safe integer/u);
+    assert.throws(() => meta.attribute("x", { index: 0.5 }), /nonnegative safe integer/u);
     class IndexedDecorator {}
     CjsSchema.define(IndexedDecorator, {
         className: "DeclarationIndexedDecorator",
-        fields: { values: [ meta.member("x", { index: 0 }), type.float32 ] }
+        fields: { values: [ meta.attribute("x", { index: 0 }), type.float32 ] }
     });
     assert.equal(CjsSchema.getSchema(IndexedDecorator).members[0].index, 0);
 });
@@ -175,7 +199,7 @@ test("native tables keep class occurrences and derived-first ordering while lega
     class Base {}
     CjsSchema.define(Base, {
         className: "DeclarationBase",
-        fields: { stored: [ meta.member("shared"), type.float32, blue.persist ], baseOnly: type.uint32 }
+        fields: { stored: [ meta.attribute("shared"), type.float32, blue.persist ], baseOnly: type.uint32 }
     });
     class Derived extends Base { get shared() { throw new Error("getter read"); } }
     CjsSchema.define(Derived, {

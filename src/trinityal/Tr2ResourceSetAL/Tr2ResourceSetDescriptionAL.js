@@ -19,10 +19,10 @@ export class Tr2ResourceSetDescriptionAL
 {
   static MAX_RESOURCES_IN_STAGE = MAX_RESOURCES_IN_STAGE;
 
-  m_registerMap = new Tr2RegisterMapAL();
-  m_srv = null;
-  m_uav = null;
-  m_samplers = null;
+  _registerMap = new Tr2RegisterMapAL();
+  _srv = null;
+  _uav = null;
+  _samplers = null;
 
   /**
    * JS adaptation: named selectors replace C++ constructor overloads.
@@ -32,26 +32,26 @@ export class Tr2ResourceSetDescriptionAL
   constructor({ registers = null, program = null, copy = null, move = null } = {})
   {
     const source = copy ?? move;
-    const map = source ? source.m_registerMap : registers ?? program?.GetRegisterMap();
+    const map = source ? source._registerMap : registers ?? program?.GetRegisterMap();
     if (!map) return;
-    this.m_registerMap = new Tr2RegisterMapAL({ copy: map });
+    this._registerMap = new Tr2RegisterMapAL({ copy: map });
     if (move)
     {
-      this.m_srv = move.m_srv;
-      this.m_uav = move.m_uav;
-      this.m_samplers = move.m_samplers;
-      move.m_srv = move.m_uav = move.m_samplers = null;
+      this._srv = move._srv;
+      this._uav = move._uav;
+      this._samplers = move._samplers;
+      move._srv = move._uav = move._samplers = null;
       return;
     }
-    for (const [ field, count ] of [ [ "m_srv", map.srvCount ], [ "m_uav", map.uavCount ], [ "m_samplers", map.samplerCount ] ])
+    for (const [ field, count ] of [ [ "_srv", map.srvCount ], [ "_uav", map.uavCount ], [ "_samplers", map.samplerCount ] ])
     {
       if (count === 0) continue;
       // Backend references already represent implementation identities here.
       // Copies share those identities, never mutable description records.
-      this[field] = copy ? copy[field].map(record => field === "m_samplers" ? { ...record } : ({ ...record,
+      this[field] = copy ? copy[field].map(record => field === "_samplers" ? { ...record } : ({ ...record,
         buffer: record.buffer ? new Tr2BufferAL({ copy: record.buffer }) : null,
         texture: record.texture ? new Tr2TextureAL({ copy: record.texture }) : null }))
-        : Array.from({ length: count }, () => field === "m_samplers"
+        : Array.from({ length: count }, () => field === "_samplers"
           ? { type: 0, sampler: null }
           : { type: 0, texture: null, buffer: null, colorSpace: 0 });
     }
@@ -105,9 +105,9 @@ export class Tr2ResourceSetDescriptionAL
   /** The Srv record mapped to a stage register, or null out of range. */
   _SrvRecord(stage, registerIndex)
   {
-    const index = this.m_registerMap.srvs[stage]?.[registerIndex];
-    if (this.m_registerMap.srvCount === 0 || index === undefined || index >= this.m_registerMap.srvCount) return null;
-    return this.m_srv[index];
+    const index = this._registerMap.srvs[stage]?.[registerIndex];
+    if (this._registerMap.srvCount === 0 || index === undefined || index >= this._registerMap.srvCount) return null;
+    return this._srv[index];
   }
 
   /**
@@ -158,9 +158,9 @@ export class Tr2ResourceSetDescriptionAL
   /** The Uav record mapped to a stage register, or null out of range. */
   _UavRecord(stage, registerIndex)
   {
-    const index = this.m_registerMap.uavs[stage]?.[registerIndex];
-    if (this.m_registerMap.uavCount === 0 || index === undefined || index >= this.m_registerMap.uavCount) return null;
-    return this.m_uav[index];
+    const index = this._registerMap.uavs[stage]?.[registerIndex];
+    if (this._registerMap.uavCount === 0 || index === undefined || index >= this._registerMap.uavCount) return null;
+    return this._uav[index];
   }
 
   /**
@@ -172,9 +172,9 @@ export class Tr2ResourceSetDescriptionAL
   @meta.adapted
   SetSampler(stage, registerIndex, sampler)
   {
-    const index = this.m_registerMap.samplers[stage]?.[registerIndex];
-    if (this.m_registerMap.samplerCount === 0 || index === undefined || index >= this.m_registerMap.samplerCount) return false;
-    const current = this.m_samplers[index];
+    const index = this._registerMap.samplers[stage]?.[registerIndex];
+    if (this._registerMap.samplerCount === 0 || index === undefined || index >= this._registerMap.samplerCount) return false;
+    const current = this._samplers[index];
     if (current.type === 1 && current.sampler === sampler) return false;
     current.type = 1;
     current.sampler = sampler;
@@ -190,10 +190,10 @@ export class Tr2ResourceSetDescriptionAL
   @meta.adapted
   SetSrvHeapView(stage, registerIndex)
   {
-    const index = this.m_registerMap.srvs[stage]?.[registerIndex];
-    if (this.m_registerMap.srvCount === 0 || index === undefined || index >= this.m_registerMap.srvCount) return false;
-    if (this.m_srv[index].type === 3) return false;
-    this.m_srv[index].type = 3;
+    const index = this._registerMap.srvs[stage]?.[registerIndex];
+    if (this._registerMap.srvCount === 0 || index === undefined || index >= this._registerMap.srvCount) return false;
+    if (this._srv[index].type === 3) return false;
+    this._srv[index].type = 3;
     return true;
   }
 
@@ -206,10 +206,10 @@ export class Tr2ResourceSetDescriptionAL
   @meta.adapted
   SetUavHeapView(stage, registerIndex)
   {
-    const index = this.m_registerMap.uavs[stage]?.[registerIndex];
-    if (this.m_registerMap.uavCount === 0 || index === undefined || index >= this.m_registerMap.uavCount) return false;
-    if (this.m_uav[index].type === 3) return false;
-    this.m_uav[index].type = 3;
+    const index = this._registerMap.uavs[stage]?.[registerIndex];
+    if (this._registerMap.uavCount === 0 || index === undefined || index >= this._registerMap.uavCount) return false;
+    if (this._uav[index].type === 3) return false;
+    this._uav[index].type = 3;
     return true;
   }
 
@@ -222,10 +222,10 @@ export class Tr2ResourceSetDescriptionAL
   @meta.adapted
   SetSamplerHeapView(stage, registerIndex)
   {
-    const index = this.m_registerMap.samplers[stage]?.[registerIndex];
-    if (this.m_registerMap.samplerCount === 0 || index === undefined || index >= this.m_registerMap.samplerCount) return false;
-    if (this.m_samplers[index].type === 2) return false;
-    this.m_samplers[index].type = 2;
+    const index = this._registerMap.samplers[stage]?.[registerIndex];
+    if (this._registerMap.samplerCount === 0 || index === undefined || index >= this._registerMap.samplerCount) return false;
+    if (this._samplers[index].type === 2) return false;
+    this._samplers[index].type = 2;
     return true;
   }
 
@@ -240,7 +240,7 @@ export class Tr2ResourceSetDescriptionAL
   Equals(other)
   {
     // Carbon quirk: allocation identity, not contents (cpp:434-437; CE-24).
-    return this.m_srv === other.m_srv && this.m_uav === other.m_uav && this.m_samplers === other.m_samplers;
+    return this._srv === other._srv && this._uav === other._uav && this._samplers === other._samplers;
   }
 
   /**
@@ -253,7 +253,7 @@ export class Tr2ResourceSetDescriptionAL
   @meta.adapted
   ClearResources()
   {
-    for (const records of [ this.m_srv, this.m_uav ])
+    for (const records of [ this._srv, this._uav ])
     {
       for (const record of records ?? [])
       {
@@ -279,7 +279,7 @@ export class Tr2ResourceSetDescriptionAL
   ComputeHash()
   {
     let hash = 0;
-    for (const [ records, sampler ] of [ [ this.m_srv, false ], [ this.m_uav, false ], [ this.m_samplers, true ] ])
+    for (const [ records, sampler ] of [ [ this._srv, false ], [ this._uav, false ], [ this._samplers, true ] ])
     {
       for (const record of records ?? [])
       {
@@ -311,10 +311,10 @@ function sameValue(left, right)
   return (left ? left.TrinityALImpl_GetObject() : null) === (right ? right.TrinityALImpl_GetObject() : null);
 }
 
-CjsSchema.decorateField(Tr2ResourceSetDescriptionAL, "m_registerMap", type.rawStruct("Tr2RegisterMapAL"));
-CjsSchema.decorateField(Tr2ResourceSetDescriptionAL, "m_srv", type.array({ kind: "rawStruct", className: "Tr2ResourceSetDescriptionAL::Resource" }));
-CjsSchema.decorateField(Tr2ResourceSetDescriptionAL, "m_uav", type.array({ kind: "rawStruct", className: "Tr2ResourceSetDescriptionAL::Resource" }));
-CjsSchema.decorateField(Tr2ResourceSetDescriptionAL, "m_samplers", type.array({ kind: "rawStruct", className: "Tr2ResourceSetDescriptionAL::Sampler" }));
+CjsSchema.decorateField(Tr2ResourceSetDescriptionAL, "_registerMap", type.rawStruct("Tr2RegisterMapAL"));
+CjsSchema.decorateField(Tr2ResourceSetDescriptionAL, "_srv", type.array({ kind: "rawStruct", className: "Tr2ResourceSetDescriptionAL::Resource" }));
+CjsSchema.decorateField(Tr2ResourceSetDescriptionAL, "_uav", type.array({ kind: "rawStruct", className: "Tr2ResourceSetDescriptionAL::Resource" }));
+CjsSchema.decorateField(Tr2ResourceSetDescriptionAL, "_samplers", type.array({ kind: "rawStruct", className: "Tr2ResourceSetDescriptionAL::Sampler" }));
 CjsSchema.decorateMethod(Tr2ResourceSetDescriptionAL, "Equals", blue.method, meta.renamed("operator=="));
 CjsSchema.decorateMethod(Tr2ResourceSetDescriptionAL, "SetSrv__BufferAL", blue.method);
 CjsSchema.decorateMethod(Tr2ResourceSetDescriptionAL, "SetSrv__TextureAL", blue.method);

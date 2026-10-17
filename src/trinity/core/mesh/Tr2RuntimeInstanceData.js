@@ -189,7 +189,7 @@ export class Tr2RuntimeInstanceData
   /** Frees only this provider's range, leaving sibling allocations alive. */
   #freeAllocation()
   {
-    if (this.#allocation && this.#allocation.IsValid()) this.#allocation.m_parent.Free(this.#allocation);
+    if (this.#allocation && this.#allocation.IsValid()) this.#allocation._parent.Free(this.#allocation);
     this.#allocation = null;
   }
 

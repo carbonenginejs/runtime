@@ -383,7 +383,7 @@ test("promoted shader graph containers track dirty resources", () =>
   // as a guarantee.
   let cleared = 0;
   let released = 0;
-  pass.resourceSet.m_resourceSet = { owners: 1, implementation: { IsValid: () => true, Destroy() { released += 1; } } };
+  pass.resourceSet._resourceSet = { owners: 1, implementation: { IsValid: () => true, Destroy() { released += 1; } } };
   pass.resourceSetDesc = {
     ClearResources()
     {
@@ -1039,9 +1039,9 @@ test("ClearResources drops resources and keeps samplers, as Carbon's does", () =
 
   desc.ClearResources();
 
-  assertEquals(desc.m_srv[0].type, 0, "srv cleared");
-  assertEquals(desc.m_uav[0].type, 0, "uav cleared");
-  assertEquals(desc.m_samplers[0].sampler, sampler, "sampler kept");
+  assertEquals(desc._srv[0].type, 0, "srv cleared");
+  assertEquals(desc._uav[0].type, 0, "uav cleared");
+  assertEquals(desc._samplers[0].sampler, sampler, "sampler kept");
 });
 
 test("ApplyMaterialDataForPass binds only the stages the technique declares", () =>
@@ -1129,7 +1129,7 @@ test("ApplyMaterialDataForPass binds only the stages the technique declares", ()
   assertEquals(setConstants.join(","), "0,1", "only the declared stages bound constants");
   assertEquals(locked.join(","), "0,1", "and only those had their mirror copied into the buffer");
 
-  const srv = pass.resourceSetDesc.m_srv[0];
+  const srv = pass.resourceSetDesc._srv[0];
   // Unprepared: an empty AL value selects the backend fallback.
   assertEquals(srv?.texture, null, "the parameter selected the fallback without passing a resource as an AL value");
   assertEquals(srv?.colorSpace, Tr2ColorSpace.COLOR_SPACE_SRGB, "registerCount carried the sRGB flag");
@@ -1140,15 +1140,15 @@ test("ApplyMaterialDataForPass binds only the stages the technique declares", ()
   assert(material.resourceSetHash !== 0, "and the material folds every pass hash in");
 
   // A second apply with nothing changed must not rebuild the set.
-  const realized = pass.resourceSet.m_resourceSet;
+  const realized = pass.resourceSet._resourceSet;
   assertEquals(material.ApplyMaterialDataForPass(0, 0, renderContext), true);
-  assertEquals(pass.resourceSet.m_resourceSet, realized, "an unchanged pass reuses its realized set");
+  assertEquals(pass.resourceSet._resourceSet, realized, "an unchanged pass reuses its realized set");
 
   // Invalidation drops it, so the next apply rebuilds.
   material.InvalidateResourceSets();
   assertEquals(pass.resourceSet.IsValid(), false);
   material.ApplyMaterialDataForPass(0, 0, renderContext);
-  assert(pass.resourceSet.IsValid() && pass.resourceSet.m_resourceSet !== realized, "invalidation forces a rebuild");
+  assert(pass.resourceSet.IsValid() && pass.resourceSet._resourceSet !== realized, "invalidation forces a rebuild");
 });
 
 test("a material with no shader applies nothing", () =>
@@ -1195,11 +1195,11 @@ test("a material seeds its pass description with sampler states on first apply, 
 
   const description = effect.parametersForPasses[0].passes[0].resourceSetDesc;
 
-  assertEquals(description.m_samplers[0].type, 0, "a rebuild seeds nothing; it has no context");
+  assertEquals(description._samplers[0].type, 0, "a rebuild seeds nothing; it has no context");
   effect.ApplyMaterialDataForPass(0, 0, context);
 
-  const diffuse = description.m_samplers[0].sampler;
-  const pattern = description.m_samplers[1].sampler;
+  const diffuse = description._samplers[0].sampler;
+  const pattern = description._samplers[1].sampler;
 
   assert(diffuse instanceof Tr2SamplerStateALStub, "the applying context's kind of sampler state");
   assertEquals(diffuse.GetDescription().addressU, 1);
@@ -1211,17 +1211,17 @@ test("a material seeds its pass description with sampler states on first apply, 
   effect.ApplyMaterialDataForPass(0, 0, context);
 
   const after = effect.parametersForPasses[0].passes[0].resourceSetDesc;
-  const overridden = after.m_samplers[1].sampler;
+  const overridden = after._samplers[1].sampler;
 
   assertEquals(overridden.GetDescription().addressU, 4);
   assertEquals(overridden.GetDescription().addressV, 4);
-  assertEquals(after.m_samplers[0].sampler, diffuse, "the other register keeps the authored state, from the same factory");
+  assertEquals(after._samplers[0].sampler, diffuse, "the other register keeps the authored state, from the same factory");
   assertEquals(effect.parametersForPasses[0].passes[0].compatibleWithGdr, false, "an override that changed the description leaves the GDR path");
 
   // A non-dynamic sampler's name is out of an override's reach, as in Carbon.
   effect.AddSamplerOverride("DiffuseSampler", 4, 4);
   effect.ApplyMaterialDataForPass(0, 0, context);
-  assertEquals(effect.parametersForPasses[0].passes[0].resourceSetDesc.m_samplers[0].sampler, diffuse);
+  assertEquals(effect.parametersForPasses[0].passes[0].resourceSetDesc._samplers[0].sampler, diffuse);
 });
 
 
@@ -1241,7 +1241,7 @@ test("material maps retain authored stage order before assigning dense indexes",
   const effect = new Tr2Effect();
   effect.shader = shader;
   effect.RebuildCachedDataInternal();
-  const map = effect.parametersForPasses[0].passes[0].resourceSetDesc.m_registerMap;
+  const map = effect.parametersForPasses[0].passes[0].resourceSetDesc._registerMap;
   assertEquals(map.srvs[1][3], 0);
   assertEquals(map.srvs[0][3], 1);
 });

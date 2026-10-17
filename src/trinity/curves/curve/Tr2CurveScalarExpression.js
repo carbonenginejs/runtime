@@ -30,7 +30,7 @@ export class Tr2CurveScalarExpression extends ITriScalarFunction
   name = "";
 
   /** Native PERSISTONLY expression storage; readers bypass the live setter. */
-  @meta.member("expression")
+  @blue.attribute("expression")
   @blue.persistOnly
   @type.expression
   _expression = "";

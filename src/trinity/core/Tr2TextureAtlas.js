@@ -1396,8 +1396,8 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
     if (!this.margin)
     {
       const dest = Tr2TextureSubresource.create__FaceMipLevel(0, 0);
-      dest.m_box.left = r.left;
-      dest.m_box.top = r.top;
+      dest.box.left = r.left;
+      dest.box.top = r.top;
       return Succeeded(this._texture.CopySubresourceRegion(dest, tex.GetTexture(), Tr2TextureSubresource.create__FaceMipLevel(0, 0), renderContext));
     }
 
@@ -1753,11 +1753,11 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
     }
 
     const subrect = new Tr2TextureSubresource();
-    subrect.m_endMipLevel = 1;
-    subrect.m_box.left = copyRect.left;
-    subrect.m_box.right = copyRect.right;
-    subrect.m_box.top = copyRect.top;
-    subrect.m_box.bottom = copyRect.bottom;
+    subrect.endMipLevel = 1;
+    subrect.box.left = copyRect.left;
+    subrect.box.right = copyRect.right;
+    subrect.box.top = copyRect.top;
+    subrect.box.bottom = copyRect.bottom;
     if (Succeeded(tex._texture.CopySubresourceRegion(new Tr2TextureSubresource(), this._texture, subrect, renderContext)))
     {
       tex.x = 0;

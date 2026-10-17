@@ -16,9 +16,9 @@ function dims(type, format, width, height, depth = 1, mips = 1, arraySize = 1)
 function data(bytes, pitch = 0, slicePitch = 0)
 {
     const level = new Tr2SubresourceData();
-    level.m_sysMem = bytes;
-    level.m_sysMemPitch = pitch;
-    level.m_sysMemSlicePitch = slicePitch;
+    level.sysMem = bytes;
+    level.sysMemPitch = pitch;
+    level.sysMemSlicePitch = slicePitch;
     return level;
 }
 

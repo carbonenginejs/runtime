@@ -121,7 +121,7 @@ test("switching ships lets the idle owner's GPU objects expire while the current
   assert.equal(b.buffer.IsValid(), true);
   assert.equal(b.allocation.IsValid(), true);
   const pool = SharedGeometryBuffer(render);
-  assert.equal(pool.m_allocations.length, 3, "only second ship's vertex, index and reversed-index slices remain");
+  assert.equal(pool._allocations.length, 3, "only second ship's vertex, index and reversed-index slices remain");
   now = 20;
   RealizeTexture(b.texture, al);
   manager.motherLode.KeepAlive(b.geometry.GetPath());

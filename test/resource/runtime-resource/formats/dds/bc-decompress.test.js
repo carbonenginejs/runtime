@@ -29,7 +29,7 @@ function bc1Block(color0, color1, indices)
     return block;
 }
 
-const level = (bytes, slicePitch = 0) => ({ m_sysMem: bytes, m_sysMemSlicePitch: slicePitch });
+const level = (bytes, slicePitch = 0) => ({ sysMem: bytes, sysMemSlicePitch: slicePitch });
 const pixel = (out, i) => Array.from(out.subarray(i * 4, i * 4 + 4));
 const red = [ 0, 0, 255, 255 ], blue = [ 255, 0, 0, 255 ];
 

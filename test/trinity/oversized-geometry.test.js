@@ -64,13 +64,13 @@ test("Chjita-sized mesh realizes once and reuses its allocation across render pa
     assert.equal(allocation.GetStride(), stride);
     assert.equal(allocation.GetSize(), 38389500);
     assert.equal(allocation.GetBuffer().GetSize(), SHARED_BUFFER_BLOCK_SIZE * 2);
-    const before = SharedGeometryBuffer(context).m_allocations.length;
+    const before = SharedGeometryBuffer(context)._allocations.length;
     const getPayload = geometry.GetPayload;
     geometry.GetPayload = () => { throw new Error("already-realized LOD must not repack"); };
     for (let pass = 0; pass < 12; pass++) assert.equal(CreateLodAllocations(geometry,0,lod,context), true);
     geometry.GetPayload = getPayload;
     assert.equal(lod.vertexAllocation, allocation);
-    assert.equal(SharedGeometryBuffer(context).m_allocations.length, before);
+    assert.equal(SharedGeometryBuffer(context)._allocations.length, before);
     assert.deepEqual(uploads, [{offset:allocation.GetOffset(),size:38389500,first:7,last:19}]);
   }
   finally { SharedGeometryBuffer(context).ReleaseResources(); context.Destroy(); }

@@ -35,13 +35,13 @@ const NO_HEAP_INDEX = 0xffffffff;
 export class CjsWebgpuSamplerStateAL
 {
   /** The `GPUSampler`, or null before Create. */
-  m_sampler = null;
+  _sampler = null;
 
   /** The authored description, normalised; what `GetDescription` answers. */
-  m_description = null;
+  _description = null;
 
   /** The `GPUSamplerDescriptor` the sampler was created from. */
-  m_descriptor = null;
+  _descriptor = null;
 
   /**
    * Creates the sampler.
@@ -75,9 +75,9 @@ export class CjsWebgpuSamplerStateAL
       return ALResult.E_INVALIDARG;
     }
 
-    this.m_sampler = webgpu.GetDevice().createSampler(descriptor);
-    this.m_description = normalized;
-    this.m_descriptor = descriptor;
+    this._sampler = webgpu.GetDevice().createSampler(descriptor);
+    this._description = normalized;
+    this._descriptor = descriptor;
 
     return ALResult.S_OK;
   }
@@ -92,19 +92,19 @@ export class CjsWebgpuSamplerStateAL
    */
   GetSampler()
   {
-    return this.m_sampler;
+    return this._sampler;
   }
 
   /** The authored description, normalised. @returns {object|null} */
   GetDescription()
   {
-    return this.m_description;
+    return this._description;
   }
 
   /** Whether the state holds a `GPUSampler`. */
   IsValid()
   {
-    return this.m_sampler !== null;
+    return this._sampler !== null;
   }
 
   /** No descriptor heap here, as the stub answers. */
@@ -117,9 +117,9 @@ export class CjsWebgpuSamplerStateAL
   Destroy()
   {
     // A GPUSampler has no destroy(); dropping the reference releases it.
-    this.m_sampler = null;
-    this.m_description = null;
-    this.m_descriptor = null;
+    this._sampler = null;
+    this._description = null;
+    this._descriptor = null;
   }
 
   /** Where the sampler lives, which is managed memory rather than the device. */
@@ -149,7 +149,7 @@ export class CjsWebgpuSamplerStateAL
    */
   SetName(name)
   {
-    if (this.m_sampler) this.m_sampler.label = String(name);
+    if (this._sampler) this._sampler.label = String(name);
 
     return ALResult.S_OK;
   }

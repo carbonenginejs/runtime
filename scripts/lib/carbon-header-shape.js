@@ -171,7 +171,9 @@ export function compareDefaults(type, jsClass, cppConstants = {}, jsConstants = 
         .map(node => [ node.key.name, node.value ]));
     for (const [ nativeName, expression ] of defaults)
     {
-        const field = fields.get(nativeName) ?? fields.get(nativeName.replace(/^m_/, ""));
+        // Public members drop `m_`; private and protected ones take `_` plus the name.
+        const bare = nativeName.replace(/^m_/, "");
+        const field = fields.get(nativeName) ?? fields.get(bare) ?? fields.get("_" + bare);
         const expected = literalValue(expression, cppConstants);
         let actual = { known: false };
         if (field?.type === "NumericLiteral" || field?.type === "BooleanLiteral") actual = { known: true, value: field.value };

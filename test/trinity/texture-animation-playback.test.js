@@ -37,7 +37,7 @@ function setup(t)
     const texture = al.CreateTexture(desc, { ...options, cpuUsage: Tr2CpuUsage.NONE });
     assert.ok(texture && texture.IsValid());
     texture.desc = desc;
-    texture.uploads = [Array.from(options.initialData[0].m_sysMem)];
+    texture.uploads = [Array.from(options.initialData[0].sysMem)];
     const implementation = texture.TrinityALImpl_GetObject();
     const destroy = implementation.Destroy.bind(implementation);
     let destroyed = false;
@@ -158,11 +158,11 @@ test("playback time accumulates in float32 like Carbon's float dt * m_fps", asyn
 test("WebGPU MapForWriting on a volume maps every depth slice", () =>
 {
   const texture = new CjsWebgpuTextureAL();
-  texture.m_texture = {};
-  texture.m_cpuUsage = Tr2CpuUsage.WRITE;
-  texture.m_desc = BitmapDimensions.create__TypeFormatWidthHeightDepthMipCount(TextureType.TEX_TYPE_3D, PixelFormat.PIXEL_FORMAT_R8_UNORM, 4, 2, 3, 1);
+  texture._texture = {};
+  texture._cpuUsage = Tr2CpuUsage.WRITE;
+  texture._desc = BitmapDimensions.create__TypeFormatWidthHeightDepthMipCount(TextureType.TEX_TYPE_3D, PixelFormat.PIXEL_FORMAT_R8_UNORM, 4, 2, 3, 1);
   let upload;
-  texture.m_webgpu = { GetDevice: () => ({ queue: { writeTexture: (_target, bytes, layout, size) => { upload = { bytes, layout, size }; } } }) };
+  texture._webgpu = { GetDevice: () => ({ queue: { writeTexture: (_target, bytes, layout, size) => { upload = { bytes, layout, size }; } } }) };
   const al = { IsValid: () => true };
   const mapping = texture.MapForWriting(Tr2TextureSubresource.create__MipLevel(0), al);
   assert.equal(mapping.pitch, 4);
@@ -241,10 +241,10 @@ test("reload cancellation and load failure cannot publish stale frames", async t
 test("WebGPU updates upload every depth slice of a volume mip", () =>
 {
   const texture = new CjsWebgpuTextureAL();
-  texture.m_texture = {};
-  texture.m_desc = BitmapDimensions.create__TypeFormatWidthHeightDepthMipCount(TextureType.TEX_TYPE_3D, PixelFormat.PIXEL_FORMAT_R8_UNORM, 4, 2, 4, 2);
+  texture._texture = {};
+  texture._desc = BitmapDimensions.create__TypeFormatWidthHeightDepthMipCount(TextureType.TEX_TYPE_3D, PixelFormat.PIXEL_FORMAT_R8_UNORM, 4, 2, 4, 2);
   let extent;
-  texture.m_webgpu = { GetDevice: () => ({ queue: { writeTexture: (_target, _bytes, _layout, size) => { extent = size; } } }) };
+  texture._webgpu = { GetDevice: () => ({ queue: { writeTexture: (_target, _bytes, _layout, size) => { extent = size; } } }) };
   texture.UpdateSubresource(Tr2TextureSubresource.create__MipLevel(1), new Uint8Array(4), 2, 2, null);
   assert.deepEqual(extent, { width: 2, height: 1, depthOrArrayLayers: 2 });
 });

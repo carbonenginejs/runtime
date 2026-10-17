@@ -5,13 +5,13 @@ import { CjsSchema, type } from "#schema";
 /** `ParameterContext` - one construct a parameter appears in, and the versions it spans. */
 export class ParameterContext
 {
-    m_context = "";
+    context = "";
 
     /** @type {import('./VersionInternal.js').VersionInternal|null} */
-    m_introducedInVersion = null;
+    introducedInVersion = null;
 
     /** @type {import('./VersionInternal.js').VersionInternal|null} */
-    m_deprecatedInVersion = null;
+    deprecatedInVersion = null;
 
     /**
      * @param {string} context Construct name, such as "Resource" or "ResourceGroup".
@@ -20,13 +20,13 @@ export class ParameterContext
      */
     constructor(context, introducedInVersion, deprecatedInVersion)
     {
-        this.m_context = context;
-        this.m_introducedInVersion = introducedInVersion;
-        this.m_deprecatedInVersion = deprecatedInVersion;
+        this.context = context;
+        this.introducedInVersion = introducedInVersion;
+        this.deprecatedInVersion = deprecatedInVersion;
     }
 }
 
 CjsSchema.blue.define(ParameterContext, { className: "ParameterContext", fields: {
-        m_context: [type.string]
+        context: [type.string]
     } });
 

@@ -241,7 +241,7 @@ test("CjsWebgpuUtils carries Metal's pixel format table (MetalUtils.mm:12-121)",
   assert.equal(utils.GetGPUTextureFormat(PixelFormat.PIXEL_FORMAT_SENTINEL), null);
   assert.equal(utils.GetSRGBViewFormat("bgra8unorm"), "bgra8unorm-srgb");
   assert.equal(utils.GetSRGBViewFormat("r8unorm"), null);
-  assert.ok(new CjsWebgpuRenderContextAL().m_utils instanceof CjsWebgpuUtils, "the context owns one, as MetalContext does");
+  assert.ok(new CjsWebgpuRenderContextAL()._utils instanceof CjsWebgpuUtils, "the context owns one, as MetalContext does");
 });
 
 /** A legacy 24-bit RGB volume DDS, the shape of EVE's noise32cube_volume.dds. */
@@ -336,7 +336,7 @@ test("MapForWriting refuses a texture without CPU write and an incomplete box", 
   const writable = new CjsWebgpuTextureAL();
   writable.Create(desc, new Tr2MsaaDesc(), Tr2GpuUsage.NONE, Tr2CpuUsage.WRITE, init, al);
   const boxed = Tr2TextureSubresource.create__MipLevel(0);
-  boxed.m_box.left = 1;
+  boxed.box.left = 1;
   assert.equal(writable.MapForWriting(boxed, al).result, ALResult.E_INVALIDARG);
 });
 
@@ -535,7 +535,7 @@ test("native R8 volumes reach writeTexture without an estimated staging-buffer l
   const bitmap = new HostBitmap();
   bitmap.CreateVolume(19, 9, 2, 1, PixelFormat.PIXEL_FORMAT_R8_UNORM);
   const { desc, initialData } = DescribeBitmap(bitmap);
-  assert.equal(initialData[0].m_sysMem.byteLength, 342, "one R8 byte per voxel, no RGBA expansion");
+  assert.equal(initialData[0].sysMem.byteLength, 342, "one R8 byte per voxel, no RGBA expansion");
   assert.equal(new CjsWebgpuTextureAL().Create(desc, new Tr2MsaaDesc(), Tr2GpuUsage.SHADER_RESOURCE, Tr2CpuUsage.NONE, initialData, al), ALResult.S_OK);
   assert.equal(calls.textures.at(-1).format, "r8unorm");
   assert.equal(calls.writes.length, 1);
@@ -660,10 +660,10 @@ test("unaligned BC textures retain compressed mip data with Carbon block-rounded
         assert.deepEqual(upload.size, { width: blocks * 4, height: blocks * 4, depthOrArrayLayers: 1 });
         assert.ok(upload.size.width <= physicalExtent, "source blocks fit the padded GPU mip");
         assert.equal(upload.layout.bytesPerRow, blocks * blockBytes);
-        assert.equal(initialData[mip].m_sysMemSlicePitch, blocks * blocks * blockBytes);
+        assert.equal(initialData[mip].sysMemSlicePitch, blocks * blocks * blockBytes);
         assert.equal(upload.layout.rowsPerImage, blocks);
         assert.ok(upload.bytes >= blocks * blocks * blockBytes, "pointer-style mip view contains all requested blocks");
-        assert.equal(uploaded[mip], initialData[mip].m_sysMem, "original compressed bytes, no conversion or copy");
+        assert.equal(uploaded[mip], initialData[mip].sysMem, "original compressed bytes, no conversion or copy");
       }
       texture.Destroy();
     }

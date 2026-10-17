@@ -44,19 +44,19 @@ export const CONST_ALIGNMENT = 256;
 export class CjsWebgpuConstantArena
 {
   /** m_pages: one `GPUBuffer` per page, created on first use. */
-  m_pages = [];
+  _pages = [];
 
   /** The current page index and the offset the next allocation takes. */
-  m_page = 0;
+  _page = 0;
 
-  m_offset = 0;
+  _offset = 0;
 
   /** m_totalUploadedSize, for a stats line. */
-  m_totalUploadedSize = 0;
+  _totalUploadedSize = 0;
 
-  m_webgpu = null;
+  _webgpu = null;
 
-  m_alignment = CONST_ALIGNMENT;
+  _alignment = CONST_ALIGNMENT;
 
   /**
    * @param {object} webgpu The `CjsWebgpuDevice`.
@@ -65,19 +65,19 @@ export class CjsWebgpuConstantArena
   {
     if (!webgpu) fail("a device is required");
 
-    this.m_webgpu = webgpu;
+    this._webgpu = webgpu;
 
     const limit = webgpu.GetDevice()?.limits?.minUniformBufferOffsetAlignment;
 
-    if (Number.isInteger(limit) && limit > CONST_ALIGNMENT) this.m_alignment = limit;
+    if (Number.isInteger(limit) && limit > CONST_ALIGNMENT) this._alignment = limit;
   }
 
   /** Carbon's `Reset`: the next frame starts at page zero, offset zero. */
   Reset()
   {
-    this.m_page = 0;
-    this.m_offset = 0;
-    this.m_totalUploadedSize = 0;
+    this._page = 0;
+    this._offset = 0;
+    this._totalUploadedSize = 0;
   }
 
   /**
@@ -89,26 +89,26 @@ export class CjsWebgpuConstantArena
    */
   Allocate(bytes, size = bytes.byteLength)
   {
-    const reserved = Math.ceil(Math.max(size, bytes.byteLength, 1) / this.m_alignment) * this.m_alignment;
+    const reserved = Math.ceil(Math.max(size, bytes.byteLength, 1) / this._alignment) * this._alignment;
 
     if (reserved > CONST_PAGE_SIZE) fail(`a constant buffer of ${size} bytes does not fit a ${CONST_PAGE_SIZE}-byte page`);
 
-    if (this.m_offset + reserved > CONST_PAGE_SIZE)
+    if (this._offset + reserved > CONST_PAGE_SIZE)
     {
-      this.m_totalUploadedSize += this.m_offset;
-      this.m_page += 1;
-      this.m_offset = 0;
+      this._totalUploadedSize += this._offset;
+      this._page += 1;
+      this._offset = 0;
     }
 
-    const page = this.GetPage(this.m_page);
-    const offset = this.m_offset;
+    const page = this.GetPage(this._page);
+    const offset = this._offset;
 
-    this.m_offset += reserved;
+    this._offset += reserved;
 
     // `writeBuffer` wants a four-byte-aligned length; the reserve is.
-    this.m_webgpu.GetDevice().queue.writeBuffer(page, offset, bytes, 0, bytes.byteLength & ~3);
+    this._webgpu.GetDevice().queue.writeBuffer(page, offset, bytes, 0, bytes.byteLength & ~3);
 
-    return { page: this.m_page, offset, size: reserved };
+    return { page: this._page, offset, size: reserved };
   }
 
   /**
@@ -119,9 +119,9 @@ export class CjsWebgpuConstantArena
    */
   GetPage(page)
   {
-    if (!this.m_pages[page]) this._CreatePage(page);
+    if (!this._pages[page]) this._CreatePage(page);
 
-    return this.m_pages[page];
+    return this._pages[page];
   }
 
   /**
@@ -137,9 +137,9 @@ export class CjsWebgpuConstantArena
    */
   _CreatePage(index)
   {
-    const usage = this.m_webgpu.GetBufferUsage();
+    const usage = this._webgpu.GetBufferUsage();
 
-    this.m_pages[index] = this.m_webgpu.GetDevice().createBuffer({
+    this._pages[index] = this._webgpu.GetDevice().createBuffer({
       label: `Constant buffer page ${index}`,
       size: CONST_PAGE_SIZE,
       usage: usage.UNIFORM | usage.COPY_DST
@@ -149,15 +149,15 @@ export class CjsWebgpuConstantArena
   /** Bytes allocated this frame so far. */
   GetTotalUploadedSize()
   {
-    return this.m_totalUploadedSize + this.m_offset;
+    return this._totalUploadedSize + this._offset;
   }
 
   /** Releases every page. */
   Destroy()
   {
-    for (const page of this.m_pages) page?.destroy?.();
+    for (const page of this._pages) page?.destroy?.();
 
-    this.m_pages = [];
+    this._pages = [];
     this.Reset();
   }
 }
@@ -169,7 +169,7 @@ export class CjsWebgpuConstantArena
 // that reaches this file without a build first. `CjsSchema.define` is the same
 // metadata through the door the schema already provides for exactly this, and
 // it keeps the layer free of the decorator chain it has never carried.
-CjsSchema.decorateField(CjsWebgpuConstantArena, "m_totalUploadedSize", type.uint32);
+CjsSchema.decorateField(CjsWebgpuConstantArena, "_totalUploadedSize", type.uint32);
 CjsSchema.decorateMethod(CjsWebgpuConstantArena, "Reset", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuConstantArena, "Allocate", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuConstantArena, "GetPage", blue.method);

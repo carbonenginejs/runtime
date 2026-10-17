@@ -18,16 +18,16 @@ import { RenderContextALOf } from "../renderContextAL.js";
 export class CjsWebgpuFenceAL
 {
   /** m_frame */
-  m_frame = 0;
+  _frame = 0;
 
   /** m_isValid */
-  m_isValid = false;
+  _isValid = false;
 
   /** m_hasBeenPut */
-  m_hasBeenPut = false;
+  _hasBeenPut = false;
 
   /** m_name */
-  m_name = "";
+  _name = "";
 
   /**
    * Metal's `Create` (`mm:19-28`).
@@ -39,8 +39,8 @@ export class CjsWebgpuFenceAL
   {
     if (!RenderContextALOf(renderContext)?.IsValid()) return ALResult.E_INVALIDARG;
 
-    this.m_isValid = true;
-    this.m_hasBeenPut = false;
+    this._isValid = true;
+    this._hasBeenPut = false;
 
     return ALResult.S_OK;
   }
@@ -48,13 +48,13 @@ export class CjsWebgpuFenceAL
   /** Metal's `Destroy` (`mm:30-33`). */
   Destroy()
   {
-    this.m_isValid = false;
+    this._isValid = false;
   }
 
   /** @returns {boolean} Whether the fence was created. */
   IsValid()
   {
-    return this.m_isValid;
+    return this._isValid;
   }
 
   /**
@@ -67,10 +67,10 @@ export class CjsWebgpuFenceAL
   {
     const al = RenderContextALOf(renderContext);
 
-    if (!this.m_isValid || !al?.IsValid()) return ALResult.E_FAIL;
+    if (!this._isValid || !al?.IsValid()) return ALResult.E_FAIL;
 
-    this.m_frame = al.GetRecordingFrameNumber();
-    this.m_hasBeenPut = true;
+    this._frame = al.GetRecordingFrameNumber();
+    this._hasBeenPut = true;
 
     return ALResult.S_OK;
   }
@@ -91,9 +91,9 @@ export class CjsWebgpuFenceAL
   {
     const al = RenderContextALOf(renderContext);
 
-    if (!this.m_isValid || !this.m_hasBeenPut || !al?.IsValid()) return { result: ALResult.E_FAIL, isReached: false };
+    if (!this._isValid || !this._hasBeenPut || !al?.IsValid()) return { result: ALResult.E_FAIL, isReached: false };
 
-    return { result: ALResult.S_OK, isReached: al.GetRenderedFrameNumber() >= this.m_frame };
+    return { result: ALResult.S_OK, isReached: al.GetRenderedFrameNumber() >= this._frame };
   }
 
   /**
@@ -117,7 +117,7 @@ export class CjsWebgpuFenceAL
     if (!description) return description;
 
     description.type = "Tr2FenceAL";
-    description.name = this.m_name;
+    description.name = this._name;
 
     return description;
   }
@@ -136,7 +136,7 @@ export class CjsWebgpuFenceAL
    */
   SetName(name)
   {
-    this.m_name = String(name ?? "");
+    this._name = String(name ?? "");
 
     return ALResult.S_OK;
   }
@@ -144,10 +144,10 @@ export class CjsWebgpuFenceAL
 
 // Declared as a call for the reason recorded in Tr2BitmapDimensions.js; the
 // backend is on the class name, and `carbon` names the donor.
-CjsSchema.decorateField(CjsWebgpuFenceAL, "m_frame", type.uint64);
-CjsSchema.decorateField(CjsWebgpuFenceAL, "m_name", type.string);
-CjsSchema.decorateField(CjsWebgpuFenceAL, "m_isValid", type.boolean);
-CjsSchema.decorateField(CjsWebgpuFenceAL, "m_hasBeenPut", type.boolean);
+CjsSchema.decorateField(CjsWebgpuFenceAL, "_frame", type.uint64);
+CjsSchema.decorateField(CjsWebgpuFenceAL, "_name", type.string);
+CjsSchema.decorateField(CjsWebgpuFenceAL, "_isValid", type.boolean);
+CjsSchema.decorateField(CjsWebgpuFenceAL, "_hasBeenPut", type.boolean);
 CjsSchema.decorateMethod(CjsWebgpuFenceAL, "Create", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuFenceAL, "Destroy", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuFenceAL, "IsValid", blue.method);

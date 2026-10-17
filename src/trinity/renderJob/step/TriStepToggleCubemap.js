@@ -13,17 +13,18 @@ export class TriStepToggleCubemap extends TriRenderStep
   /** Carbon-private Tr2InteriorScene pointer; runtime-only and not serialized. */
   #scene = null;
 
-  /** m_showCubemap (bool) [READWRITE] */
+  /** m_showCubemap (bool) [READWRITE]; Carbon exposes the member name itself (TriStepToggleCubemap_Blue.cpp:17). */
+  @blue.attribute("m_showCubemap")
   @blue.readwrite
   @type.boolean
-  m_showCubemap = true;
+  showCubemap = true;
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
   @blue.method
   @meta.implemented
   __init__(showCubemap = true, scene = null)
   {
-    this.m_showCubemap = Boolean(showCubemap);
+    this.showCubemap = Boolean(showCubemap);
     this.#scene = scene;
   }
 
@@ -34,7 +35,7 @@ export class TriStepToggleCubemap extends TriRenderStep
   {
     if (this.#scene)
     {
-      this.#scene.SetRenderBackgroundCubeMap(this.m_showCubemap);
+      this.#scene.SetRenderBackgroundCubeMap(this.showCubemap);
     }
     return TriRenderStep.Result.RS_OK;
   }

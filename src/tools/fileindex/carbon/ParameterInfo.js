@@ -38,14 +38,14 @@ export const Parameter = Object.freeze({
 /** `ParameterInfo` - a parameter's wire tag, the constructs it appears in, and whether it is optional. */
 export class ParameterInfo
 {
-    m_id = 0;
+    id = 0;
 
-    m_tag = "";
+    tag = "";
 
     /** @type {ParameterContext[]} */
-    m_context = [];
+    context = [];
 
-    m_isOptional = false;
+    isOptional = false;
 
     /**
      * @param {number} id `Parameter`.
@@ -55,10 +55,10 @@ export class ParameterInfo
      */
     constructor(id, tag, context, isOptional = false)
     {
-        this.m_id = id;
-        this.m_tag = tag;
-        this.m_context = context;
-        this.m_isOptional = isOptional;
+        this.id = id;
+        this.tag = tag;
+        this.context = context;
+        this.isOptional = isOptional;
     }
 
     /**
@@ -89,11 +89,11 @@ export class ParameterInfo
     {
         const info = ParameterInfo.getParameterInfo(parameter);
         if (!info) return false;
-        for (const entry of info.m_context)
+        for (const entry of info.context)
         {
-            if (entry.m_context === context
-                && entry.m_introducedInVersion.LessThanOrEqual(version)
-                && entry.m_deprecatedInVersion.GreaterThan(version))
+            if (entry.context === context
+                && entry.introducedInVersion.LessThanOrEqual(version)
+                && entry.deprecatedInVersion.GreaterThan(version))
             {
                 return true;
             }
@@ -115,15 +115,15 @@ export class ParameterInfo
     {
         const info = ParameterInfo.getParameterInfo(parameter);
         if (!info) return false;
-        if (ParameterInfo.isParameterExpected(parameter, context, version)) return !info.m_isOptional;
+        if (ParameterInfo.isParameterExpected(parameter, context, version)) return !info.isOptional;
 
         let maxMinorVersion = 0;
-        for (const entry of info.m_context)
+        for (const entry of info.context)
         {
-            if (version.getMajor() === entry.m_introducedInVersion.getMajor()
-                && entry.m_introducedInVersion.getMinor() > maxMinorVersion)
+            if (version.getMajor() === entry.introducedInVersion.getMajor()
+                && entry.introducedInVersion.getMinor() > maxMinorVersion)
             {
-                maxMinorVersion = entry.m_introducedInVersion.getMinor();
+                maxMinorVersion = entry.introducedInVersion.getMinor();
             }
         }
         return maxMinorVersion <= version.getMinor();
@@ -173,14 +173,14 @@ const PARAMETERS = new Map([
     new ParameterInfo(Parameter.BINARY_OPERATION, "BinaryOperation", [ span(CONTEXT_RESOURCE, VERSION_0_0_0) ], true),
     new ParameterInfo(Parameter.PREFIX, "Prefix", [ span(CONTEXT_RESOURCE, VERSION_0_0_0) ], true),
     new ParameterInfo(Parameter.REMOVED_RESOURCE_RELATIVE_PATHS, "RemovedResourceRelativePaths", [ span(CONTEXT_PATCH_GROUP, VERSION_0_1_0) ])
-].map(info => [ info.m_id, info ]));
+].map(info => [ info.id, info ]));
 
 CjsSchema.blue.define(ParameterInfo, {
   className: "ParameterInfo",
   fields: {
-        m_id: [type.int32, type.enum(Parameter)],
-        m_tag: [type.string],
-        m_isOptional: [type.boolean]
+        id: [type.int32, type.enum(Parameter)],
+        tag: [type.string],
+        isOptional: [type.boolean]
     },
   methods: {
         getParameterInfo: [ meta.adapted ],

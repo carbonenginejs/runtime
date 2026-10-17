@@ -152,7 +152,7 @@ export class TriGeometryRes extends CjsResource
         for (const field of [ "vertexAllocation", "indexAllocation", "reversedIndexAllocation" ])
         {
           const allocation = lod[field];
-          if (allocation?.m_parent) allocation.m_parent.Free(allocation);
+          if (allocation?._parent) allocation._parent.Free(allocation);
           lod[field] = null;
         }
         lod.allocationsValid = false;

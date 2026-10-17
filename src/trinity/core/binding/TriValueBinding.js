@@ -46,7 +46,7 @@ export class TriValueBinding extends INotify
   isEnabled = true;
 
   /** Native persisted endpoint storage; readers bypass the live setter. */
-  @meta.member("sourceObject")
+  @blue.attribute("sourceObject")
   @blue.persistOnly
   @type.rootRef("IRoot")
   _sourceObject = null;
@@ -84,7 +84,7 @@ export class TriValueBinding extends INotify
   sourceAttribute = "";
 
   /** Native persisted endpoint storage; readers bypass the live setter. */
-  @meta.member("destinationObject")
+  @blue.attribute("destinationObject")
   @blue.persistOnly
   @type.rootRef("IRoot")
   _destinationObject = null;

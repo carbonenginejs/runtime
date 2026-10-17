@@ -9,7 +9,7 @@ import { CjsSchema, meta, blue } from "#schema";
 export class ResourceGroup
 {
     static ResourceGroupImpl = ResourceGroupImpl;
-    m_impl = null;
+    _impl = null;
 
     /**
      * Native default and protected implementation constructors.
@@ -18,7 +18,7 @@ export class ResourceGroup
      */
     constructor(impl = new ResourceGroupImpl())
     {
-        this.m_impl = impl;
+        this._impl = impl;
     }
 
     /**
@@ -68,7 +68,7 @@ export class ResourceGroup
         const status = new StatusSettings();
         status.SetCallbackSettings(params.callbackSettings);
         status.Update(StatusProgressType.START, 0, 0, "Starting Process");
-        try { return this.m_impl[method](params, status); }
+        try { return this._impl[method](params, status); }
         finally { status.Dispose(); }
     }
 
@@ -121,7 +121,7 @@ export class ResourceGroup
         const status = new StatusSettings();
         status.SetCallbackSettings(params.callbackSettings);
         status.Update(StatusProgressType.START, 0, 0, "Starting Process");
-        try { return await this.m_impl[method](params, status); }
+        try { return await this._impl[method](params, status); }
         finally { status.Dispose(); }
     }
 

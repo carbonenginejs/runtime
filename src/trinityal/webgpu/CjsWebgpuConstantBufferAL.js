@@ -41,13 +41,13 @@ let nextConstantBufferId = 1;
 export class CjsWebgpuConstantBufferAL
 {
   /** m_shadowCopy */
-  m_shadowCopy = new Uint8Array(0);
+  _shadowCopy = new Uint8Array(0);
 
   /** m_size, the REQUESTED size; the shadow is aligned up. */
-  m_size = 0;
+  _size = 0;
 
   /** m_usage */
-  m_usage = Tr2ConstantUsageAL.REUSABLE;
+  _usage = Tr2ConstantUsageAL.REUSABLE;
 
   /**
    * m_token: the arena region the shadow was last uploaded to, and for which
@@ -59,10 +59,10 @@ export class CjsWebgpuConstantBufferAL
    * straight into the buffer's impl - `buffer.m_buffer->m_token`
    * (`Tr2RenderContextMetal.mm:688-697`).
    */
-  m_token = { frame: -1, page: 0, offset: 0, size: 0 };
+  _token = { frame: -1, page: 0, offset: 0, size: 0 };
 
   /** A process-unique identity, for caches and diagnostics. Zero until Create. */
-  m_id = 0;
+  _id = 0;
 
   /**
    * Creates the buffer.
@@ -83,17 +83,17 @@ export class CjsWebgpuConstantBufferAL
     if (!Number.isInteger(size) || size <= 0) return ALResult.E_INVALIDARG;
     if (usage === Tr2ConstantUsageAL.IMMUTABLE && !initialData) return ALResult.E_INVALIDARG;
 
-    this.m_shadowCopy = new Uint8Array(Math.ceil(size / ALIGNMENT) * ALIGNMENT);
-    this.m_size = size;
-    this.m_usage = usage;
-    this.m_id = nextConstantBufferId;
+    this._shadowCopy = new Uint8Array(Math.ceil(size / ALIGNMENT) * ALIGNMENT);
+    this._size = size;
+    this._usage = usage;
+    this._id = nextConstantBufferId;
     nextConstantBufferId += 1;
 
     if (initialData)
     {
       const bytes = new Uint8Array(initialData.buffer, initialData.byteOffset, initialData.byteLength);
 
-      this.m_shadowCopy.set(bytes.subarray(0, Math.min(bytes.length, this.m_shadowCopy.length)));
+      this._shadowCopy.set(bytes.subarray(0, Math.min(bytes.length, this._shadowCopy.length)));
     }
 
     return ALResult.S_OK;
@@ -109,9 +109,9 @@ export class CjsWebgpuConstantBufferAL
   {
     if (!this.IsValid()) return { result: ALResult.E_FAIL, data: null };
 
-    this.m_token.frame = -1;
+    this._token.frame = -1;
 
-    return { result: ALResult.S_OK, data: this.m_shadowCopy };
+    return { result: ALResult.S_OK, data: this._shadowCopy };
   }
 
   /**
@@ -151,22 +151,22 @@ export class CjsWebgpuConstantBufferAL
   /** Whether the buffer has a shadow copy, which `Create` gives it. */
   IsValid()
   {
-    return this.m_shadowCopy.length !== 0;
+    return this._shadowCopy.length !== 0;
   }
 
   /** The requested size, as Carbon's `GetSize` reports it. */
   GetSize()
   {
-    return this.m_size;
+    return this._size;
   }
 
   /** Releases the shadow copy and its arena token, leaving the buffer invalid. */
   Destroy()
   {
-    this.m_shadowCopy = new Uint8Array(0);
-    this.m_size = 0;
-    this.m_token = { frame: -1, page: 0, offset: 0, size: 0 };
-    this.m_id = 0;
+    this._shadowCopy = new Uint8Array(0);
+    this._size = 0;
+    this._token = { frame: -1, page: 0, offset: 0, size: 0 };
+    this._id = 0;
   }
 
   /** Where the buffer lives, which is managed memory, not the device. */
@@ -186,7 +186,7 @@ export class CjsWebgpuConstantBufferAL
     if (!description) return description;
 
     description.memoryClass = this.GetMemoryClass();
-    description.size = this.m_shadowCopy.length;
+    description.size = this._shadowCopy.length;
 
     return description;
   }
@@ -211,7 +211,7 @@ export class CjsWebgpuConstantBufferAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
-CjsSchema.decorateField(CjsWebgpuConstantBufferAL, "m_size", type.uint32);
+CjsSchema.decorateField(CjsWebgpuConstantBufferAL, "_size", type.uint32);
 CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Create", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Lock", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "Unlock", blue.method);

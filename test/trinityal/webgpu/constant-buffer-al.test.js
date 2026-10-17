@@ -75,9 +75,9 @@ test("Create makes a shadow and no device buffer; the arena is where bytes go", 
   assert.equal(buffer.Create(20, Tr2ConstantUsageAL.REUSABLE, null, renderContext), ALResult.S_OK);
   assert.equal(buffer.IsValid(), true);
   assert.equal(buffer.GetSize(), 20, "Carbon reports the requested size");
-  assert.equal(buffer.m_shadowCopy.length, 32, "the shadow is rounded to sixteen bytes");
+  assert.equal(buffer._shadowCopy.length, 32, "the shadow is rounded to sixteen bytes");
   assert.equal(calls.length, 0, "Metal's constant buffer owns no MTLBuffer either");
-  assert.ok(buffer.m_id > 0);
+  assert.ok(buffer._id > 0);
 });
 
 test("Lock invalidates the token; each bind after a Lock lands in a fresh region", () =>
@@ -154,7 +154,7 @@ test("initial data seeds the shadow, and Carbon's create-time refusals are kept"
   assert.equal(buffer.Create(16, Tr2ConstantUsageAL.REUSABLE, null, { IsValid: () => false }), ALResult.E_INVALIDARG);
   assert.equal(buffer.Lock(renderContext).result, ALResult.E_FAIL, "an invalid buffer cannot be locked");
   assert.equal(buffer.Create(16, Tr2ConstantUsageAL.IMMUTABLE, new Uint8Array([ 7, 7, 7, 7 ]), renderContext), ALResult.S_OK);
-  assert.deepEqual(Array.from(buffer.m_shadowCopy.subarray(0, 4)), [ 7, 7, 7, 7 ]);
+  assert.deepEqual(Array.from(buffer._shadowCopy.subarray(0, 4)), [ 7, 7, 7, 7 ]);
 
   buffer.Destroy();
   assert.equal(buffer.IsValid(), false);

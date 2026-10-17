@@ -119,11 +119,11 @@ export class Tr2ResourceSetALWebgl2 extends Tr2DeviceResourceAL
   {
     this._Reset();
 
-    if (!program.GetRegisterMap().equals(description.m_registerMap)) return ALResult.E_INVALIDARG;
+    if (!program.GetRegisterMap().equals(description._registerMap)) return ALResult.E_INVALIDARG;
 
     this._description = new Tr2ResourceSetDescriptionAL({ copy: description });
     description = this._description;
-    const map = description.m_registerMap;
+    const map = description._registerMap;
     const stages = Array.from({ length: ShaderType.SHADER_TYPE_COUNT }, StageInput);
     const uavs = new Array(MAX_RESOURCES).fill(null);
     let uavOffset = MAX_RESOURCES;
@@ -145,7 +145,7 @@ export class Tr2ResourceSetALWebgl2 extends Tr2DeviceResourceAL
       {
         if (map.srvs[stageIndex][registerIndex] >= map.srvCount) continue;
 
-        const desc = description.m_srv[map.srvs[stageIndex][registerIndex]];
+        const desc = description._srv[map.srvs[stageIndex][registerIndex]];
         switch (desc.type)
         {
           case RESOURCE_BUFFER:
@@ -167,7 +167,7 @@ export class Tr2ResourceSetALWebgl2 extends Tr2DeviceResourceAL
       {
         if (map.samplers[stageIndex][registerIndex] >= map.samplerCount) continue;
 
-        const desc = description.m_samplers[map.samplers[stageIndex][registerIndex]];
+        const desc = description._samplers[map.samplers[stageIndex][registerIndex]];
         if (desc.type === SAMPLER_SAMPLER)
         {
           stage.samplers[registerIndex] = desc.sampler;
@@ -180,7 +180,7 @@ export class Tr2ResourceSetALWebgl2 extends Tr2DeviceResourceAL
       {
         if (map.uavs[stageIndex][registerIndex] >= map.uavCount) continue;
 
-        const desc = description.m_uav[map.uavs[stageIndex][registerIndex]];
+        const desc = description._uav[map.uavs[stageIndex][registerIndex]];
         if (desc.type === RESOURCE_NONE) continue;
         if (stageIndex !== ShaderType.PIXEL_SHADER && stageIndex !== ShaderType.COMPUTE_SHADER) return ALResult.E_INVALIDARG;
 

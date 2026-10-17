@@ -22,10 +22,10 @@ export class Tr2SubresourceData
    * because JavaScript has no pointer to hand a backend instead. Carbon leaves it
    * unset (`Tr2HalHelperStructures.h:22`).
    */
-  m_sysMem = null;
+  sysMem = null;
 
   /** Size in bytes of one line of pixels. Carbon leaves it unset (`Tr2HalHelperStructures.h:23`). */
-  m_sysMemPitch = 0;
+  sysMemPitch = 0;
 
   /**
    * Size in bytes of the entire mip level.
@@ -35,7 +35,7 @@ export class Tr2SubresourceData
    * caller to meet it, and a zero reaching a backend is the caller's bug to see.
    * Carbon leaves it unset (`Tr2HalHelperStructures.h:24`).
    */
-  m_sysMemSlicePitch = 0;
+  sysMemSlicePitch = 0;
 
   /**
    * @param {ArrayBufferView|null} [sysMem] The pixels for this mip.
@@ -44,13 +44,13 @@ export class Tr2SubresourceData
    */
   constructor(sysMem = null, sysMemPitch = 0, sysMemSlicePitch = 0)
   {
-    this.m_sysMem = sysMem;
-    this.m_sysMemPitch = sysMemPitch;
-    this.m_sysMemSlicePitch = sysMemSlicePitch;
+    this.sysMem = sysMem;
+    this.sysMemPitch = sysMemPitch;
+    this.sysMemSlicePitch = sysMemSlicePitch;
   }
 }
 
-CjsSchema.decorateField(Tr2SubresourceData, "m_sysMem", type.unknown);
-CjsSchema.decorateField(Tr2SubresourceData, "m_sysMemPitch", type.uint32);
-CjsSchema.decorateField(Tr2SubresourceData, "m_sysMemSlicePitch", type.uint32);
+CjsSchema.decorateField(Tr2SubresourceData, "sysMem", type.unknown);
+CjsSchema.decorateField(Tr2SubresourceData, "sysMemPitch", type.uint32);
+CjsSchema.decorateField(Tr2SubresourceData, "sysMemSlicePitch", type.uint32);
 CjsSchema.blue.define(Tr2SubresourceData, { className: "Tr2SubresourceData" });

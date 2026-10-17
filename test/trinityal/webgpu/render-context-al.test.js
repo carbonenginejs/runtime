@@ -383,7 +383,7 @@ test("the frame ends synchronously: end the pass, finish, submit", () =>
   // a reason - but Metal opens the encoder BEFORE it asks whether it can draw
   // (MetalWorkQueue.mm:2922-2944), and so does this.
   assert.ok(Failed(al.DrawIndexedInstanced(3, 1, 0, 0, 0)));
-  assert.match(al.m_pipelineFailure, /a program this backend linked/);
+  assert.match(al._pipelineFailure, /a program this backend linked/);
   assert.equal(al.GetDrawnBatchCount(), 0, "a refused draw is not counted");
 
   // Carbon's EndScene is a function call; so is this one now that every draw

@@ -116,13 +116,13 @@ export class TriStepCopyRenderTarget extends TriRenderStep
         {
           if (this.destinationViewport.x < 0)
           {
-            dest.m_box.left = 0;
-            dest.m_box.right = (sourceRT.GetWidth() + this.destinationViewport.x) >>> 0;
+            dest.box.left = 0;
+            dest.box.right = (sourceRT.GetWidth() + this.destinationViewport.x) >>> 0;
           }
           if (this.destinationViewport.y < 0)
           {
-            dest.m_box.top = 0;
-            dest.m_box.bottom = (sourceRT.GetHeight() + this.destinationViewport.y) >>> 0;
+            dest.box.top = 0;
+            dest.box.bottom = (sourceRT.GetHeight() + this.destinationViewport.y) >>> 0;
           }
         }
         result = destinationRT.GetRenderTarget().CopySubresourceRegion(dest, sourceRT.GetRenderTarget(), Tr2TextureSubresource.create__MipLevel(0), renderContext);
@@ -139,17 +139,17 @@ export class TriStepCopyRenderTarget extends TriRenderStep
           if (this.destinationViewport.x < 0)
           {
             destX = 0;
-            src.m_box.right -= -this.destinationViewport.x;
+            src.box.right -= -this.destinationViewport.x;
           }
           if (this.destinationViewport.y < 0)
           {
             destY = 0;
-            src.m_box.bottom -= -this.destinationViewport.y;
+            src.box.bottom -= -this.destinationViewport.y;
           }
         }
 
         const dest = Tr2TextureSubresource.create__MipLevel(0);
-        dest.SetRect(destX, destY, destX + src.m_box.right - src.m_box.left, destY + src.m_box.bottom - src.m_box.top);
+        dest.SetRect(destX, destY, destX + src.box.right - src.box.left, destY + src.box.bottom - src.box.top);
 
         result = destinationRT.GetRenderTarget().CopySubresourceRegion(dest, sourceRT.GetRenderTarget(), src, renderContext);
       }
@@ -157,17 +157,17 @@ export class TriStepCopyRenderTarget extends TriRenderStep
     else if (this.destinationTexture.GetTexture())
     {
       const destView = new Tr2TextureSubresource();
-      destView.m_box.left = destX;
-      destView.m_box.top = destY;
+      destView.box.left = destX;
+      destView.box.top = destY;
 
       const sourceView = new Tr2TextureSubresource();
       if (this.sourceViewport)
       {
         const vp = this.sourceViewport;
-        sourceView.m_box.left = vp.x;
-        sourceView.m_box.top = vp.y;
-        sourceView.m_box.right = vp.x + vp.width;
-        sourceView.m_box.bottom = vp.y + vp.height;
+        sourceView.box.left = vp.x;
+        sourceView.box.top = vp.y;
+        sourceView.box.right = vp.x + vp.width;
+        sourceView.box.bottom = vp.y + vp.height;
       }
 
       result = this.destinationTexture.GetTexture().CopySubresourceRegion(destView, sourceRT.GetRenderTarget(), sourceView, renderContext);

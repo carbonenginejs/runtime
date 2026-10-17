@@ -13,28 +13,24 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 export class Tr2ActionPlaySound extends ITr2ControllerAction
 {
   /** m_emitterName: narrow BlueSharedString emitter lookup name. */
-  @meta.member("emitter")
   @blue.readwrite
   @blue.persist
   @type.string
   emitter = "";
 
   /** m_soundEvent: narrow BlueSharedString, converted to wide text by native SendEvent. */
-  @meta.member("event")
   @blue.readwrite
   @blue.persist
   @type.string
   event = "";
 
   /** m_target: optional parameter or effect-child name. */
-  @meta.member("target")
   @blue.readwrite
   @blue.persist
   @type.string
   target = "";
 
   /** m_bypassPrefix: whether SendEvent bypasses the emitter prefix. */
-  @meta.member("bypassPrefix")
   @blue.readwrite
   @blue.persist
   @type.boolean

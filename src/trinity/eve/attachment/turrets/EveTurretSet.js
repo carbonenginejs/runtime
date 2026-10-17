@@ -75,7 +75,7 @@ export class EveTurretSet extends EveEntity
   impactBehaviour = 0;
 
   /** Hidden native backing member; not persisted (EveTurretSet_Blue.cpp:103). */
-  @meta.member("firingEffect")
+  @blue.attribute("firingEffect")
   @blue.hidden
   @type.rootRef("EveTurretFiringFX")
   _firingEffect = null;
@@ -97,7 +97,7 @@ export class EveTurretSet extends EveEntity
   }
 
   /** Persisted ambient backing member (EveTurretSet_Blue.cpp:121). */
-  @meta.member("ambientEffect")
+  @blue.attribute("ambientEffect")
   @blue.persistOnly
   @type.rootRef("EveSpaceObjectChild")
   _ambientEffect = null;
@@ -561,7 +561,7 @@ export class EveTurretSet extends EveEntity
   @meta.adapted
   InitializeInstanceBuffer()
   {
-    if (this._instanceBuffer.IsValid()) this._instanceBuffer.m_parent.Free(this._instanceBuffer);
+    if (this._instanceBuffer.IsValid()) this._instanceBuffer._parent.Free(this._instanceBuffer);
     const context = Tr2RenderContext_GetMainThreadRenderContext();
     const allocation = SharedGeometryBuffer(context).Allocate(4, EveTurretSet.MAX_TURRETS_PER_SET, EveTurretSet._instanceIds, context);
     if (allocation) this._instanceBuffer = allocation;
@@ -573,7 +573,7 @@ export class EveTurretSet extends EveEntity
   ReleaseResources()
   {
     this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
-    if (this._instanceBuffer.IsValid()) this._instanceBuffer.m_parent.Free(this._instanceBuffer);
+    if (this._instanceBuffer.IsValid()) this._instanceBuffer._parent.Free(this._instanceBuffer);
   }
 
   /** Native declaration and instance preparation (cpp:1103-1120). */

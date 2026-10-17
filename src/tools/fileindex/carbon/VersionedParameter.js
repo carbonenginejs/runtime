@@ -8,11 +8,11 @@ import { ParameterInfo, Parameter } from "./ParameterInfo.js";
 /** `VersionedParameter` - a field's tag and construct, and whether a document version carries it. */
 export class VersionedParameter
 {
-    m_tag = "";
+    _tag = "";
 
-    m_context = "";
+    _context = "";
 
-    m_parameter = 0;
+    _parameter = 0;
 
     /**
      * @param {number} parameter `Parameter`.
@@ -20,30 +20,30 @@ export class VersionedParameter
      */
     constructor(parameter, context)
     {
-        this.m_parameter = parameter;
-        this.m_context = context;
-        this.m_tag = ParameterInfo.getParameterInfo(parameter).m_tag;
+        this._parameter = parameter;
+        this._context = context;
+        this._tag = ParameterInfo.getParameterInfo(parameter).tag;
     }
 
     /** `IsParameterExpectedInDocumentVersion` - whether this field is in a document of that version. */
     IsParameterExpectedInDocumentVersion(documentVersion)
     {
-        return ParameterInfo.isParameterExpected(this.m_parameter, this.m_context, documentVersion);
+        return ParameterInfo.isParameterExpected(this._parameter, this._context, documentVersion);
     }
 
     /** `GetTag` - the field's wire tag. */
     GetTag()
     {
-        return this.m_tag;
+        return this._tag;
     }
 }
 
 CjsSchema.blue.define(VersionedParameter, {
   className: "VersionedParameter",
   fields: {
-        m_tag: [type.string],
-        m_context: [type.string],
-        m_parameter: [type.int32, type.enum(Parameter)]
+        _tag: [type.string],
+        _context: [type.string],
+        _parameter: [type.int32, type.enum(Parameter)]
     },
   methods: {
         IsParameterExpectedInDocumentVersion: [ blue.method, meta.implemented ],

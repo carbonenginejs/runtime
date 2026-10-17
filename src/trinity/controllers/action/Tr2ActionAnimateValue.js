@@ -21,7 +21,6 @@ import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
 export class Tr2ActionAnimateValue extends ITr2ControllerAction
 {
   /** Flattened adapter storage for m_destination.m_path. */
-  @meta.member("path")
   @blue.notify
   @blue.readwrite
   @blue.persist
@@ -29,7 +28,6 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
   path = "";
 
   /** Flattened adapter storage for m_destination.m_object. */
-  @meta.member("destination")
   @blue.notify
   @blue.readwrite
   @blue.persist
@@ -37,7 +35,6 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
   destination = null;
 
   /** Flattened adapter storage for m_destination.m_attribute. */
-  @meta.member("attribute")
   @blue.notify
   @blue.readwrite
   @blue.persist
@@ -45,7 +42,6 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
   attribute = "";
 
   /** m_value: expression compiled when linked or notified. */
-  @meta.member("value")
   @blue.notify
   @blue.readwrite
   @blue.persist
@@ -53,14 +49,12 @@ export class Tr2ActionAnimateValue extends ITr2ControllerAction
   value = "Curve(StateTime())";
 
   /** m_curve: native scalar curve, without member notification. */
-  @meta.member("curve")
   @blue.readwrite
   @blue.persist
   @type.rootRef("ITriScalarFunction")
   curve = null;
 
   /** m_delayBinding: defers a nonempty path binding to Start. */
-  @meta.member("delayBinding")
   @blue.notify
   @blue.readwrite
   @blue.persist

@@ -21,7 +21,7 @@ function context()
 
 function usedBytes(buffer)
 {
-  return buffer.m_allocators.reduce((sum, allocator) => sum + allocator.GetAllocatedMemory(), 0);
+  return buffer._allocators.reduce((sum, allocator) => sum + allocator.GetAllocatedMemory(), 0);
 }
 
 function mesh()
@@ -91,7 +91,7 @@ test("Free reuses holes in earlier blocks without moving surviving allocations",
   assert.equal(usedBytes(buffer), 128);
   buffer.Free(first);
   assert.equal(first.IsValid(), false, "Tr2SuballocatedBuffer.cpp:217-220 validity follows m_parent");
-  assert.equal(first.m_parent, null);
+  assert.equal(first._parent, null);
   assert.equal(usedBytes(buffer), 96);
   buffer.Free(first);
   assert.equal(usedBytes(buffer), 96, "Free of a detached allocation is a no-op (cpp:68)");
@@ -108,7 +108,7 @@ test("Free reuses holes in earlier blocks without moving surviving allocations",
   assert.equal(secondBlock.IsValid(), true);
   assert.equal(buffer.GetBlocks().length, 2, "reclamation never needs a third block");
   buffer.ReleaseResources();
-  assert.equal(secondBlock.m_parent, null);
+  assert.equal(secondBlock._parent, null);
 });
 
 test("failed uploads release their reservation before a later allocation", () =>
@@ -139,8 +139,8 @@ test("suballocated buffer ReleaseResources honours managed storage and detaches 
   assert.equal(allocation.IsValid(), true, "Tr2SuballocatedBuffer.cpp:88 gates teardown on managed storage");
   buffer.ReleaseResources();
   assert.equal(allocation.IsValid(), false);
-  assert.equal(allocation.m_parent, null);
-  assert.equal(buffer.m_allocations.length, 0);
+  assert.equal(allocation._parent, null);
+  assert.equal(buffer._allocations.length, 0);
   assert.equal(usedBytes(buffer), 0);
   assert.ok(buffer.Allocate(4, 16, null, renderContext), "the pool can be recreated after full teardown");
   buffer.ReleaseResources();
@@ -178,7 +178,7 @@ test(`${source} geometry evict/reload cycles return every LOD's used bytes to th
     const result = motherLode.PurgeInactive({ time: 10, maxIdleMilliseconds: 5 });
     assert.equal(result.purged, 1);
     assert.equal(usedBytes(buffer), baseline, "TriGeometryRes.cpp:1834 and Allocation::~Allocation reclaim every mesh allocation");
-    assert.equal(buffer.m_allocations.length, 1, "only the other live resource remains registered");
+    assert.equal(buffer._allocations.length, 1, "only the other live resource remains registered");
     assert.equal(buffer.GetBlocks().length, 1, "reload cycles do not grow physical buffer capacity");
     assert.equal(live.GetBuffer(), liveBuffer);
     assert.equal(live.IsValid(), true);

@@ -72,7 +72,7 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
   _vertexShader = null;
 
   /** m_registerMap */
-  m_registerMap = new Tr2RegisterMapAL();
+  _registerMap = new Tr2RegisterMapAL();
 
   /** The linked `WebGLProgram`, or null. */
   _program = null;
@@ -105,7 +105,7 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
    */
   GetRegisterMap()
   {
-    return this.m_registerMap;
+    return this._registerMap;
   }
 
   /**
@@ -199,7 +199,7 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
     this._shaders = stages;
     this._vertexShader = stages.get(ShaderType.VERTEX_SHADER) ?? null;
     this._LayOutBindings(gl, program, stages);
-    this.m_registerMap = new Tr2RegisterMapAL({ shaders: shaders.slice() });
+    this._registerMap = new Tr2RegisterMapAL({ shaders: shaders.slice() });
     this._isValid = true;
 
     return ALResult.S_OK;
@@ -296,7 +296,7 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
     this._isValid = false;
     this._shaders = new Map();
     this._vertexShader = null;
-    this.m_registerMap = new Tr2RegisterMapAL();
+    this._registerMap = new Tr2RegisterMapAL();
     this._program = null;
     this._fullScreenShader = null;
     this._constantBuffers = [];
@@ -412,7 +412,7 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
 CjsSchema.decorateField(Tr2ShaderProgramALWebgl2, "_name", type.string);
 CjsSchema.decorateField(Tr2ShaderProgramALWebgl2, "_log", type.string);
 CjsSchema.decorateField(Tr2ShaderProgramALWebgl2, "_isValid", type.boolean);
-CjsSchema.decorateField(Tr2ShaderProgramALWebgl2, "m_registerMap", type.rawStruct("Tr2RegisterMapAL"));
+CjsSchema.decorateField(Tr2ShaderProgramALWebgl2, "_registerMap", type.rawStruct("Tr2RegisterMapAL"));
 CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "GetRegisterMap", blue.method);
 CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "Create", blue.method);
 CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "Destroy", blue.method);

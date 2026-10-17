@@ -35,53 +35,53 @@ export const SHARED_BUFFER_MAX_SIZE = 2048 * 1024 * 1024;
 export class Tr2SuballocatedBufferAllocation
 {
   /** The block's `Tr2BufferAL`. */
-  m_buffer = null;
+  _buffer = null;
 
   /** Carbon's virtual reservation, including its native alignment padding. */
-  m_allocation = {};
+  _allocation = {};
 
-  m_offset = 0;
+  _offset = 0;
 
-  m_size = 0;
+  _size = 0;
 
-  m_stride = 0;
+  _stride = 0;
 
-  m_parent = null;
+  _parent = null;
 
   /** The block's `Tr2BufferAL`. */
   GetBuffer()
   {
-    return this.m_buffer;
+    return this._buffer;
   }
 
   /** The allocation's first byte within that block. */
   GetOffset()
   {
-    return this.m_offset;
+    return this._offset;
   }
 
   /** The allocation's size in bytes. */
   GetSize()
   {
-    return this.m_size;
+    return this._size;
   }
 
   /** Bytes per element, which `GetStartIndex` divides by. */
   GetStride()
   {
-    return this.m_stride;
+    return this._stride;
   }
 
   /** `m_offset / m_stride`: the first element, which the draw arguments add. */
   GetStartIndex()
   {
-    return this.m_stride ? Math.floor(this.m_offset / this.m_stride) : 0;
+    return this._stride ? Math.floor(this._offset / this._stride) : 0;
   }
 
   /** Whether the allocation still has its parent (Tr2SuballocatedBuffer.cpp:217-220). */
   IsValid()
   {
-    return this.m_parent !== null;
+    return this._parent !== null;
   }
 
   /**
@@ -95,15 +95,15 @@ export class Tr2SuballocatedBufferAllocation
    */
   Update(data, renderContext, offset = 0, size = data.byteLength)
   {
-    return this.m_buffer.UpdateBuffer(this.m_offset + offset, size, data, renderContext);
+    return this._buffer.UpdateBuffer(this._offset + offset, size, data, renderContext);
   }
 }
 
 CjsSchema.decorateMethod(Tr2SuballocatedBufferAllocation, "IsValid", blue.method, meta.implemented);
 
-CjsSchema.decorateField(Tr2SuballocatedBufferAllocation, "m_offset", type.uint32);
-CjsSchema.decorateField(Tr2SuballocatedBufferAllocation, "m_size", type.uint32);
-CjsSchema.decorateField(Tr2SuballocatedBufferAllocation, "m_stride", type.uint32);
+CjsSchema.decorateField(Tr2SuballocatedBufferAllocation, "_offset", type.uint32);
+CjsSchema.decorateField(Tr2SuballocatedBufferAllocation, "_size", type.uint32);
+CjsSchema.decorateField(Tr2SuballocatedBufferAllocation, "_stride", type.uint32);
 CjsSchema.decorateMethod(Tr2SuballocatedBufferAllocation, "GetBuffer", blue.method);
 CjsSchema.decorateMethod(Tr2SuballocatedBufferAllocation, "GetOffset", blue.method);
 CjsSchema.decorateMethod(Tr2SuballocatedBufferAllocation, "GetSize", blue.method);

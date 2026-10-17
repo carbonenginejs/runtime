@@ -21,7 +21,7 @@ export class EveShip2 extends EveMobile
 {
 
   /** Hidden persisted m_boosters storage (EveShip2_Blue.cpp:21), separate from its live property. */
-  @meta.member("boosters")
+  @blue.attribute("boosters")
   @blue.persistOnly
   @type.rootRef("EveBoosterSet2")
   _boosters = null;

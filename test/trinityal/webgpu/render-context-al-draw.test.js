@@ -165,7 +165,7 @@ test("a draw resolves a pipeline from bound state once, and the next draw reuses
 
   assert.equal(al.DrawIndexedInstanced(36, 1, 0, 0, 0), ALResult.S_OK);
   assert.equal(al.DrawIndexedInstanced(36, 1, 0, 0, 0), ALResult.S_OK);
-  assert.equal(al.m_pipelineFailure, null);
+  assert.equal(al._pipelineFailure, null);
 
   const events = al.DrainTransitions();
 
@@ -333,7 +333,7 @@ test("a hit restores the dummy vertex stream slot its pipeline was built with", 
   // The encoder binds the dummy at this slot (EmitRenderEncoderState); the
   // work queue drops the rebind here because the pass still holds it.
   assert.equal(al._dummyVertexStream, 1);
-  assert.equal(al.m_pipelineFailure, null);
+  assert.equal(al._pipelineFailure, null);
 });
 
 test("a hit binds the streams of the pipeline it found, not of the last miss", () =>
@@ -366,7 +366,7 @@ test("a hit binds the streams of the pipeline it found, not of the last miss", (
   const drawWith = (layout) =>
   {
     al.SetVertexLayout(layout);
-    assert.equal(al.DrawIndexedInstanced(36, 1), ALResult.S_OK, al.m_pipelineFailure ?? "drew");
+    assert.equal(al.DrawIndexedInstanced(36, 1), ALResult.S_OK, al._pipelineFailure ?? "drew");
     return al.GetPsoDescription().vertexBufferLayouts.filter(Boolean).length;
   };
 
@@ -394,8 +394,8 @@ test("the indirect draws resolve state like a draw and read their arguments from
 
   bindGeometry(al, programFor(al));
 
-  assert.equal(al.DrawInstancedIndirect(args, 16), ALResult.S_OK, al.m_pipelineFailure ?? "drew");
-  assert.equal(al.DrawIndexedInstancedIndirect(args, 32), ALResult.S_OK, al.m_pipelineFailure ?? "drew");
+  assert.equal(al.DrawInstancedIndirect(args, 16), ALResult.S_OK, al._pipelineFailure ?? "drew");
+  assert.equal(al.DrawIndexedInstancedIndirect(args, 32), ALResult.S_OK, al._pipelineFailure ?? "drew");
 
   assert.equal(pipelines.length, 1, "one pipeline, resolved as for a direct draw");
   assert.ok(log.includes("drawIndirect:args:16"), log.join(" | "));
@@ -485,7 +485,7 @@ test("a program that declares bind groups draws with the bound constant buffer a
   assert.equal(log.filter(entry => entry === "setBindGroup:0:1:0").length, 1, "bound once for the encoder, at offset 0");
   assert.equal(log.filter(entry => entry.startsWith("drawIndexed")).length, 2);
   assert.equal(created.writes.length, 1, "locked once, drawn twice: one upload");
-  assert.equal(constants.m_token.frame, al.GetRecordingFrameNumber(), "the bind consumed the token");
+  assert.equal(constants._token.frame, al.GetRecordingFrameNumber(), "the bind consumed the token");
 
   // THE PER-OBJECT CASE: lock again and draw again in the same frame. The
   // bytes land in a NEW region, the bind group is the same object, and the
@@ -564,18 +564,18 @@ test("what the vertex half cannot say refuses the draw and names the gap", () =>
   al.SetRenderStates(Tr2RenderStateSetup.fromKeyValues([]));
 
   assert.ok(Failed(al.DrawIndexedInstanced(36, 1)));
-  assert.match(al.m_pipelineFailure, /stride for vertex stream 0/);
+  assert.match(al._pipelineFailure, /stride for vertex stream 0/);
 
   // A valid AL value whose implementation has no device buffer must refuse.
   al.SetStreamSource(0, deviceBuffer(null, al), 0, 12);
   assert.ok(Failed(al.DrawIndexedInstanced(36, 1)));
-  assert.match(al.m_pipelineFailure, /device buffer on vertex stream 0/);
+  assert.match(al._pipelineFailure, /device buffer on vertex stream 0/);
 
   // An index stride WebGPU has no format for.
   al.SetStreamSource(0, deviceBuffer("vb", al), 0, 12);
   al.SetIndices__Stride(deviceBuffer("ib", al), 3);
   assert.ok(Failed(al.DrawIndexedInstanced(36, 1)));
-  assert.match(al.m_pipelineFailure, /index format for a 3-byte stride/);
+  assert.match(al._pipelineFailure, /index format for a 3-byte stride/);
 
   // A declaration whose element type this backend cannot name: WebGPU has no
   // three-component 8-bit format. (FLOAT32_3 is Carbon's own DataType name and
@@ -583,7 +583,7 @@ test("what the vertex half cannot say refuses the draw and names the gap", () =>
   al.SetIndices__Stride(deviceBuffer("ib", al), 2);
   al.SetVertexLayout(al.CreateVertexLayout([ { usage: 0, usageIndex: 0, type: "UBYTE_3", offset: 0 } ]));
   assert.ok(Failed(al.DrawIndexedInstanced(36, 1)));
-  assert.match(al.m_pipelineFailure, /vertex format for stream 0/);
+  assert.match(al._pipelineFailure, /vertex format for stream 0/);
 
   assert.equal(log.length, 0, "no refusal reached the encoder");
 });
@@ -594,7 +594,7 @@ test("a program the backend did not link cannot resolve", () =>
 
   bindGeometry(al, { IsValid: () => true, id: "foreign" });
   assert.ok(Failed(al.DrawIndexedInstanced(36, 1)));
-  assert.match(al.m_pipelineFailure, /a program this backend linked/);
+  assert.match(al._pipelineFailure, /a program this backend linked/);
 });
 
 test("releasing device resources drops the resolved pipelines", () =>
@@ -653,7 +653,7 @@ test("inputs the mesh lacks read a constant dummy stream, as Metal's do", () =>
 
   bindGeometry(al, program);
 
-  assert.equal(al.DrawIndexedInstanced(36, 1, 0, 0, 0), ALResult.S_OK, al.m_pipelineFailure ?? "drew");
+  assert.equal(al.DrawIndexedInstanced(36, 1, 0, 0, 0), ALResult.S_OK, al._pipelineFailure ?? "drew");
 
   const buffers = pipelines[0].descriptor.vertex.buffers;
 
@@ -713,7 +713,7 @@ test("a draw fills the emulated-addressing modes buffer from the bound sampler s
   assert.equal(al.DrawIndexedInstanced(36, 1), ALResult.S_OK);
   assert.notEqual(al._addressModes, null, "the backend recognised the buffer");
 
-  const modes = new Float32Array(al._addressModes.m_shadowCopy.buffer, 0, 16);
+  const modes = new Float32Array(al._addressModes._shadowCopy.buffer, 0, 16);
 
   assert.deepEqual([ ...modes.slice(12, 16) ], [ 4, 4, 3, 0 ], "s3: border U and V, clamp W");
   assert.deepEqual([ ...modes.slice(0, 12) ], new Array(12).fill(0), "s0..s2: nothing to emulate");
@@ -737,7 +737,7 @@ test("an invalid instance extent refuses pipeline creation and a repaired next d
   ]));
   al.SetStreamSource(1, deviceBuffer("instances", al), 0, 32);
   assert.ok(Failed(al.DrawIndexedInstanced(6, 2)));
-  assert.match(al.m_pipelineFailure, /stream 1.*offset \(32\).*arrayStride \(32\)/);
+  assert.match(al._pipelineFailure, /stream 1.*offset \(32\).*arrayStride \(32\)/);
   assert.equal(pipelines.length, 0, "invalid descriptor never reaches createRenderPipeline");
   assert.equal(log.some(entry => entry.startsWith("setPipeline:")), false);
   al.SetStreamSource(1, deviceBuffer("instances", al), 0, 40);

@@ -422,8 +422,8 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
   /** Sizes the CPU buffer to one mip of the region and hands it back. */
   _Allocate(region)
   {
-    const pitch = this._desc.GetMipPitch(region.m_startMipLevel);
-    const size = pitch * this._desc.GetMipHeight(region.m_startMipLevel);
+    const pitch = this._desc.GetMipPitch(region.startMipLevel);
+    const size = pitch * this._desc.GetMipHeight(region.startMipLevel);
 
     if (this._data === null || this._data.length !== size) this._data = new Uint8Array(size);
 
@@ -630,16 +630,16 @@ export function CopyRegion(region)
 {
   const copy = new Tr2TextureSubresource();
 
-  copy.m_startFace = region.m_startFace;
-  copy.m_endFace = region.m_endFace;
-  copy.m_startMipLevel = region.m_startMipLevel;
-  copy.m_endMipLevel = region.m_endMipLevel;
-  copy.m_box.left = region.m_box.left;
-  copy.m_box.top = region.m_box.top;
-  copy.m_box.front = region.m_box.front;
-  copy.m_box.right = region.m_box.right;
-  copy.m_box.bottom = region.m_box.bottom;
-  copy.m_box.back = region.m_box.back;
+  copy.startFace = region.startFace;
+  copy.endFace = region.endFace;
+  copy.startMipLevel = region.startMipLevel;
+  copy.endMipLevel = region.endMipLevel;
+  copy.box.left = region.box.left;
+  copy.box.top = region.box.top;
+  copy.box.front = region.box.front;
+  copy.box.right = region.box.right;
+  copy.box.bottom = region.box.bottom;
+  copy.box.back = region.box.back;
 
   return copy;
 }

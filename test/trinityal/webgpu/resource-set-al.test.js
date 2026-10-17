@@ -123,7 +123,7 @@ test("what the description leaves empty takes a dummy of the slot's kind, and a 
   description.SetSrv__TextureAL(ShaderType.PIXEL_SHADER, 2, null);
 
   const set = al.CreateResourceSet(description, program);
-  const entries = set.m_resourceSet.implementation.GetEntries();
+  const entries = set._resourceSet.implementation.GetEntries();
 
   assert.equal(entries.get("0:1").dimension, "cube", "the dummy matches the layout's dimension");
   assert.equal(entries.get("0:2").kind, "sampler");
@@ -175,11 +175,11 @@ test("context binding keeps the old implementation when its public handle is rec
   const set = al.CreateResourceSet(description, program);
   al.SetResourceSet(set);
   const bound = al.GetBoundState().resourceSet;
-  const previous = bound.m_resourceSet.implementation;
+  const previous = bound._resourceSet.implementation;
   assert.notEqual(bound, set);
   assert.equal(set.Create__Program(description, program, al), ALResult.S_OK);
-  assert.notEqual(set.m_resourceSet.implementation, previous);
-  assert.equal(bound.m_resourceSet.implementation, previous);
+  assert.notEqual(set._resourceSet.implementation, previous);
+  assert.equal(bound._resourceSet.implementation, previous);
   assert.equal(bound.IsValid(), true);
   assert.equal(set.Create__Program(new Tr2ResourceSetDescriptionAL(), program, al), ALResult.E_INVALIDARG);
   assert.equal(set.IsValid(), false, "failed Create resets the public handle");

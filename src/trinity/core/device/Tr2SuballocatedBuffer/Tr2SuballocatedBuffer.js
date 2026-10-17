@@ -29,21 +29,21 @@ export const SHARED_BUFFER_MAX_SIZE = 2048 * 1024 * 1024;
  */
 export class Tr2SuballocatedBuffer
 {
-  m_name = "";
+  _name = "";
 
-  m_gpuUsage = 0;
+  _gpuUsage = 0;
 
-  m_blockSize = SHARED_BUFFER_BLOCK_SIZE;
+  _blockSize = SHARED_BUFFER_BLOCK_SIZE;
 
-  m_maxSize = SHARED_BUFFER_MAX_SIZE;
+  _maxSize = SHARED_BUFFER_MAX_SIZE;
 
   /** Physical blocks, each a whole multiple of the growth block size. */
-  m_blocks = [];
+  _blocks = [];
 
   /** Adapted: one virtual allocator per physical block instead of one copied buffer. */
-  m_allocators = [];
+  _allocators = [];
 
-  m_allocations = [];
+  _allocations = [];
 
   /**
    * Creates the shared pool; physical blocks are made on demand.
@@ -55,10 +55,10 @@ export class Tr2SuballocatedBuffer
    */
   constructor(name, gpuUsage, blockSize = SHARED_BUFFER_BLOCK_SIZE, maxSize = SHARED_BUFFER_MAX_SIZE)
   {
-    this.m_name = String(name ?? "");
-    this.m_gpuUsage = gpuUsage;
-    this.m_blockSize = blockSize;
-    this.m_maxSize = maxSize;
+    this._name = String(name ?? "");
+    this._gpuUsage = gpuUsage;
+    this._blockSize = blockSize;
+    this._maxSize = maxSize;
     // Carbon's Tr2DeviceResource base constructor registers every resource.
     TriDevice.RegisterResource(this);
   }
@@ -81,37 +81,37 @@ export class Tr2SuballocatedBuffer
   {
     if (!Number.isInteger(stride) || stride <= 0 || !Number.isInteger(count) || count <= 0) return null;
     const size = stride * count;
-    if (!Number.isSafeInteger(size) || size > this.m_maxSize) return null;
+    if (!Number.isSafeInteger(size) || size > this._maxSize) return null;
     const alignment = Lcm(stride, 4);
     const reservation = {};
     let blockIndex = 0;
-    while (blockIndex < this.m_allocators.length)
+    while (blockIndex < this._allocators.length)
     {
-      if (this.m_allocators[blockIndex].Allocate(size, alignment, reservation)) break;
+      if (this._allocators[blockIndex].Allocate(size, alignment, reservation)) break;
       blockIndex += 1;
     }
-    if (blockIndex === this.m_allocators.length)
+    if (blockIndex === this._allocators.length)
     {
       // Non-power-of-two stride padding is part of Carbon's virtual reservation.
       const reservedSize = size + (Number.isInteger(Math.log2(alignment)) ? 0 : alignment - 1);
       // Carbon expands its single buffer until this reservation fits. The JS
       // independent-block adaptation must also accept meshes larger than one
       // growth step (for example, station interiors), including stride padding.
-      const blockSize = Math.ceil(reservedSize / this.m_blockSize) * this.m_blockSize;
-      const capacity = this.m_allocators.reduce((sum, allocator) => sum + allocator.GetCurrentSize(), 0);
-      if (capacity + blockSize > this.m_maxSize) return null;
+      const blockSize = Math.ceil(reservedSize / this._blockSize) * this._blockSize;
+      const capacity = this._allocators.reduce((sum, allocator) => sum + allocator.GetCurrentSize(), 0);
+      if (capacity + blockSize > this._maxSize) return null;
       if (!this._AddBlock(renderContext, blockSize)) return null;
-      if (!this.m_allocators[blockIndex].Allocate(size, alignment, reservation)) return null;
+      if (!this._allocators[blockIndex].Allocate(size, alignment, reservation)) return null;
     }
 
     const allocation = new Tr2SuballocatedBufferAllocation();
-    allocation.m_buffer = this.m_blocks[blockIndex];
-    allocation.m_allocation = reservation;
-    allocation.m_offset = reservation.offset;
-    allocation.m_size = size;
-    allocation.m_stride = stride;
-    allocation.m_parent = this;
-    this.m_allocations.push(allocation);
+    allocation._buffer = this._blocks[blockIndex];
+    allocation._allocation = reservation;
+    allocation._offset = reservation.offset;
+    allocation._size = size;
+    allocation._stride = stride;
+    allocation._parent = this;
+    this._allocations.push(allocation);
     try
     {
       if (data && Failed(allocation.Update(data, renderContext)))
@@ -136,46 +136,46 @@ export class Tr2SuballocatedBuffer
    */
   Free(allocation)
   {
-    if (!allocation.m_parent) return;
-    const index = this.m_allocations.indexOf(allocation);
+    if (!allocation._parent) return;
+    const index = this._allocations.indexOf(allocation);
     if (index === -1)
     {
       CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "Memory corruption in Tr2SuballocatedBuffer::Free()! Trying to free an allocation that has already been freed!");
       return;
     }
-    const blockIndex = this.m_blocks.indexOf(allocation.m_buffer);
-    this.m_allocators[blockIndex].Free(allocation.m_allocation);
-    allocation.m_parent = null;
-    allocation.m_buffer = null;
-    this.m_allocations.splice(index, 1);
+    const blockIndex = this._blocks.indexOf(allocation._buffer);
+    this._allocators[blockIndex].Free(allocation._allocation);
+    allocation._parent = null;
+    allocation._buffer = null;
+    this._allocations.splice(index, 1);
   }
 
   /**
    * Creates the next byte pool through Carbon's buffer-description path.
    * Custom: independent blocks replace the donor's single-buffer Expand copy.
    */
-  _AddBlock(renderContext, blockSize = this.m_blockSize)
+  _AddBlock(renderContext, blockSize = this._blockSize)
   {
-    const allocator = new Tr2VirtualAllocator(this.m_blockSize, blockSize, blockSize);
-    const description = Tr2BufferDescriptionAL.create__Stride(4, blockSize / 4, this.m_gpuUsage, Tr2CpuUsage.WRITE);
+    const allocator = new Tr2VirtualAllocator(this._blockSize, blockSize, blockSize);
+    const description = Tr2BufferDescriptionAL.create__Stride(4, blockSize / 4, this._gpuUsage, Tr2CpuUsage.WRITE);
     const block = renderContext.CreateBuffer(description, null);
     if (!block) return false;
-    block.SetName(`${this.m_name} block ${this.m_blocks.length}`);
-    this.m_blocks.push(block);
-    this.m_allocators.push(allocator);
+    block.SetName(`${this._name} block ${this._blocks.length}`);
+    this._blocks.push(block);
+    this._allocators.push(allocator);
     return true;
   }
 
   /** The most recent block; adapted from Carbon's single shared buffer. */
   GetBuffer()
   {
-    return this.m_blocks[this.m_blocks.length - 1] ?? null;
+    return this._blocks[this._blocks.length - 1] ?? null;
   }
 
   /** Custom: all physical blocks of the JavaScript growth adaptation. */
   GetBlocks()
   {
-    return this.m_blocks;
+    return this._blocks;
   }
 
   /**
@@ -186,10 +186,10 @@ export class Tr2SuballocatedBuffer
   ReleaseResources(storage = TriStorageFlags.TRISTORAGE_ALL)
   {
     if (!(storage & TriStorageFlags.TRISTORAGE_MANAGEDMEMORY)) return;
-    for (const block of this.m_blocks) block.Destroy();
-    while (this.m_allocations.length) this.Free(this.m_allocations[this.m_allocations.length - 1]);
-    this.m_blocks = [];
-    this.m_allocators = [];
+    for (const block of this._blocks) block.Destroy();
+    while (this._allocations.length) this.Free(this._allocations[this._allocations.length - 1]);
+    this._blocks = [];
+    this._allocators = [];
   }
 
   /**

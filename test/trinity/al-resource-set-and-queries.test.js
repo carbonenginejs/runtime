@@ -66,18 +66,18 @@ test("descriptions allocate from maps and retain inactive fields and qualifiers"
   assert.equal(desc.SetSrv__TextureAL(1, 3, texture, 0), true);
   assert.equal(desc.ComputeHash(), hash, "Carbon quirk: qualifiers are absent from the hash");
   assert.equal(desc.SetSrv__BufferAL(1, 3, buffer), true);
-  assert.notEqual(desc.m_srv[0].texture, texture);
-  assert.equal(desc.m_srv[0].texture.Equals(texture), true, "inactive texture is retained");
+  assert.notEqual(desc._srv[0].texture, texture);
+  assert.equal(desc._srv[0].texture.Equals(texture), true, "inactive texture is retained");
   assert.equal(desc.SetUav__TextureAL(1, 4, texture, 7), true);
   assert.equal(desc.SetUav__BufferAL(1, 4, buffer), true);
-  assert.equal(desc.m_uav[0].colorSpace, 7, "union qualifier survives the buffer overload");
+  assert.equal(desc._uav[0].colorSpace, 7, "union qualifier survives the buffer overload");
   assert.equal(desc.SetSampler(1, 2, sampler), true);
   desc.ClearResources();
-  assert.equal(desc.m_srv[0].type, 0);
-  assert.equal(desc.m_srv[0].buffer, null);
-  assert.equal(desc.m_uav[0].colorSpace, 7);
-  assert.equal(desc.m_samplers[0].sampler, sampler);
-  assert.equal(desc.m_registerMap.srvCount, 2);
+  assert.equal(desc._srv[0].type, 0);
+  assert.equal(desc._srv[0].buffer, null);
+  assert.equal(desc._uav[0].colorSpace, 7);
+  assert.equal(desc._samplers[0].sampler, sampler);
+  assert.equal(desc._registerMap.srvCount, 2);
 });
 
 test("copy and move preserve Carbon's array-identity equality quirk", t =>
@@ -87,18 +87,18 @@ test("copy and move preserve Carbon's array-identity equality quirk", t =>
   first.SetSrv__TextureAL(1, 3, resource);
   const copy = new Tr2ResourceSetDescriptionAL({ copy: first });
   assert.equal(copy.Equals(first), false);
-  assert.notEqual(copy.m_srv[0].texture, resource);
-  assert.equal(copy.m_srv[0].texture.Equals(resource), true);
-  assert.notEqual(copy.m_srv[0], first.m_srv[0]);
+  assert.notEqual(copy._srv[0].texture, resource);
+  assert.equal(copy._srv[0].texture.Equals(resource), true);
+  assert.notEqual(copy._srv[0], first._srv[0]);
   assert.equal(copy.ComputeHash(), first.ComputeHash());
   copy.ClearResources();
-  assert.equal(first.m_srv[0].texture.Equals(resource), true);
-  const allocation = first.m_srv;
+  assert.equal(first._srv[0].texture.Equals(resource), true);
+  const allocation = first._srv;
   const moved = new Tr2ResourceSetDescriptionAL({ move: first });
-  assert.equal(moved.m_srv, allocation);
+  assert.equal(moved._srv, allocation);
   t.after(() => moved.ClearResources());
-  assert.equal(first.m_srv, null);
-  assert.equal(first.m_registerMap.srvCount, 2, "native moved-from map is not reset");
+  assert.equal(first._srv, null);
+  assert.equal(first._registerMap.srvCount, 2, "native moved-from map is not reset");
   assert.equal(new Tr2ResourceSetDescriptionAL().Equals(new Tr2ResourceSetDescriptionAL()), true);
 });
 
@@ -123,7 +123,7 @@ test("the stub Create succeeds even without a context, as the donor does", () =>
   assert.equal(set.IsValid(), true);
   assert.notEqual(set.GetDescription(), description);
   assert.equal(set.GetDescription().ComputeHash(), description.ComputeHash());
-  assert.equal(set.GetDescription().m_registerMap.equals(description.m_registerMap), true);
+  assert.equal(set.GetDescription()._registerMap.equals(description._registerMap), true);
   set.Destroy();
   assert.equal(set.IsValid(), false);
 });
@@ -134,11 +134,11 @@ test("public resource-set copies retain implementations across recreate and rese
   const description = new Tr2ResourceSetDescriptionAL();
   const original = context.CreateResourceSet(description, {});
   const copy = new Tr2ResourceSetAL({ copy: original });
-  const old = copy.m_resourceSet.implementation;
+  const old = copy._resourceSet.implementation;
   assert.equal(original.SetName(null), ALResult.E_INVALIDARG);
   assert.equal(original.SetName(""), ALResult.S_OK);
   assert.equal(original.Create__Program(description, {}, context), ALResult.S_OK);
-  assert.notEqual(original.m_resourceSet.implementation, old);
+  assert.notEqual(original._resourceSet.implementation, old);
   original.Destroy();
   assert.equal(original.SetName("x"), ALResult.E_INVALIDCALL);
   assert.equal(copy.IsValid(), true);
@@ -246,7 +246,7 @@ test("stub program maps remain empty while signature-built descriptions have res
   assert.equal(program.IsValid(), true);
   assert.equal(program.GetRegisterMap().srvCount, 0, "Carbon stub quirk");
   const desc = new Tr2ResourceSetDescriptionAL({ registers: new Tr2RegisterMapAL({ shaders: [shader] }) });
-  assert.equal(desc.m_registerMap.srvCount, 1);
+  assert.equal(desc._registerMap.srvCount, 1);
   assert.equal(desc.SetSrv__TextureAL(ShaderType.PIXEL_SHADER, 3, resources(t).texture), true);
   desc.ClearResources();
   shader.Destroy();

@@ -26,23 +26,23 @@ const UNSET = 0xffffffff;
 export class Tr2TextureSubresource
 {
   /** First slice. */
-  m_startFace = 0;
+  startFace = 0;
 
   /** One past the last slice. */
-  m_endFace = UNSET;
+  endFace = UNSET;
 
   /** First mip level. */
-  m_startMipLevel = 0;
+  startMipLevel = 0;
 
   /** One past the last mip level. */
-  m_endMipLevel = UNSET;
+  endMipLevel = UNSET;
 
   /**
    * Pixel box; every coordinate `0xffffffff` means "no box" (Carbon's
    * constructors, Tr2HalHelperStructures.cpp:24,33,47).
    * @type {Tr2TextureCoordBox}
    */
-  m_box = Object.assign(new Tr2TextureCoordBox(), {
+  box = Object.assign(new Tr2TextureCoordBox(), {
     left: UNSET,
     top: UNSET,
     front: UNSET,
@@ -63,10 +63,10 @@ export class Tr2TextureSubresource
   {
     const region = new Tr2TextureSubresource();
 
-    region.m_startFace = 0;
-    region.m_endFace = 1;
-    region.m_startMipLevel = mipLevel;
-    region.m_endMipLevel = mipLevel + 1;
+    region.startFace = 0;
+    region.endFace = 1;
+    region.startMipLevel = mipLevel;
+    region.endMipLevel = mipLevel + 1;
 
     return region;
   }
@@ -84,10 +84,10 @@ export class Tr2TextureSubresource
   {
     const region = new Tr2TextureSubresource();
 
-    region.m_startFace = face;
-    region.m_endFace = face + 1;
-    region.m_startMipLevel = mipLevel;
-    region.m_endMipLevel = mipLevel + 1;
+    region.startFace = face;
+    region.endFace = face + 1;
+    region.startMipLevel = mipLevel;
+    region.endMipLevel = mipLevel + 1;
 
     return region;
   }
@@ -99,7 +99,7 @@ export class Tr2TextureSubresource
    */
   GetWidth()
   {
-    return this.m_box.GetWidth();
+    return this.box.GetWidth();
   }
 
   /**
@@ -109,7 +109,7 @@ export class Tr2TextureSubresource
    */
   GetHeight()
   {
-    return this.m_box.GetHeight();
+    return this.box.GetHeight();
   }
 
   /**
@@ -119,7 +119,7 @@ export class Tr2TextureSubresource
    */
   GetDepth()
   {
-    return this.m_box.GetDepth();
+    return this.box.GetDepth();
   }
 
   /**
@@ -129,7 +129,7 @@ export class Tr2TextureSubresource
    */
   GetMipCount()
   {
-    return this.m_endMipLevel - this.m_startMipLevel;
+    return this.endMipLevel - this.startMipLevel;
   }
 
   /**
@@ -139,7 +139,7 @@ export class Tr2TextureSubresource
    */
   GetFaceCount()
   {
-    return this.m_endFace - this.m_startFace;
+    return this.endFace - this.startFace;
   }
 
   /**
@@ -152,7 +152,7 @@ export class Tr2TextureSubresource
    */
   HasBox()
   {
-    const box = this.m_box;
+    const box = this.box;
 
     return box.left !== UNSET ||
       box.top !== UNSET ||
@@ -169,7 +169,7 @@ export class Tr2TextureSubresource
    */
   IsSingleSubresource()
   {
-    return this.m_endFace === this.m_startFace + 1 && this.m_endMipLevel === this.m_startMipLevel + 1;
+    return this.endFace === this.startFace + 1 && this.endMipLevel === this.startMipLevel + 1;
   }
 
   /**
@@ -180,7 +180,7 @@ export class Tr2TextureSubresource
    */
   SetBox(ltfrbb)
   {
-    const box = this.m_box;
+    const box = this.box;
 
     box.left = ltfrbb[0];
     box.top = ltfrbb[1];
@@ -215,16 +215,16 @@ export class Tr2TextureSubresource
   {
     const arraySize = Math.max(texture.GetArraySize(), 1);
 
-    this.m_startFace = Math.min(this.m_startFace, arraySize - 1);
-    this.m_endFace = Math.min(this.m_endFace, arraySize);
+    this.startFace = Math.min(this.startFace, arraySize - 1);
+    this.endFace = Math.min(this.endFace, arraySize);
 
-    this.m_startMipLevel = Math.min(this.m_startMipLevel, texture.GetTrueMipCount() - 1);
-    this.m_endMipLevel = Math.min(this.m_endMipLevel, texture.GetTrueMipCount());
+    this.startMipLevel = Math.min(this.startMipLevel, texture.GetTrueMipCount() - 1);
+    this.endMipLevel = Math.min(this.endMipLevel, texture.GetTrueMipCount());
 
-    const mipWidth = texture.GetMipWidth(this.m_startMipLevel);
-    const mipHeight = texture.GetMipHeight(this.m_startMipLevel);
-    const mipDepth = Math.max(texture.GetDepth() >> this.m_startMipLevel, 1);
-    const box = this.m_box;
+    const mipWidth = texture.GetMipWidth(this.startMipLevel);
+    const mipHeight = texture.GetMipHeight(this.startMipLevel);
+    const mipDepth = Math.max(texture.GetDepth() >> this.startMipLevel, 1);
+    const box = this.box;
 
     if (this.HasBox())
     {
@@ -263,15 +263,15 @@ export class Tr2TextureSubresource
    */
   IsSubresourceFull(texture)
   {
-    if (this.m_startFace > 0 || this.m_endFace < texture.GetArraySize()) return false;
+    if (this.startFace > 0 || this.endFace < texture.GetArraySize()) return false;
 
-    if (this.m_startMipLevel > 0) return false;
+    if (this.startMipLevel > 0) return false;
 
-    if (this.m_endMipLevel < texture.GetTrueMipCount()) return false;
+    if (this.endMipLevel < texture.GetTrueMipCount()) return false;
 
     if (this.HasBox())
     {
-      const box = this.m_box;
+      const box = this.box;
 
       if (box.left > 0 || box.top > 0 || box.front > 0) return false;
 
@@ -292,19 +292,19 @@ export class Tr2TextureSubresource
    */
   IsValidForBitmap(bitmap)
   {
-    if (this.m_endFace > bitmap.GetArraySize()) return false;
+    if (this.endFace > bitmap.GetArraySize()) return false;
 
-    if (this.m_endMipLevel > bitmap.GetTrueMipCount()) return false;
+    if (this.endMipLevel > bitmap.GetTrueMipCount()) return false;
 
     if (this.HasBox())
     {
-      const box = this.m_box;
+      const box = this.box;
 
-      if (box.right > bitmap.GetMipWidth(this.m_startMipLevel)) return false;
+      if (box.right > bitmap.GetMipWidth(this.startMipLevel)) return false;
 
-      if (box.bottom > bitmap.GetMipHeight(this.m_startMipLevel)) return false;
+      if (box.bottom > bitmap.GetMipHeight(this.startMipLevel)) return false;
 
-      if (bitmap.GetType() === TextureType.TEX_TYPE_3D && box.back > bitmap.GetMipDepth(this.m_startMipLevel)) return false;
+      if (bitmap.GetType() === TextureType.TEX_TYPE_3D && box.back > bitmap.GetMipDepth(this.startMipLevel)) return false;
     }
 
     return true;
@@ -319,12 +319,12 @@ export class Tr2TextureSubresource
   {
     if (this.HasBox())
     {
-      const box = this.m_box;
+      const box = this.box;
 
       if (box.left >= box.right || box.top >= box.bottom || box.front >= box.back) return false;
     }
 
-    return this.m_startFace < this.m_endFace && this.m_startMipLevel < this.m_endMipLevel;
+    return this.startFace < this.endFace && this.startMipLevel < this.endMipLevel;
   }
 
   /**
@@ -335,11 +335,11 @@ export class Tr2TextureSubresource
    */
   Equals(other)
   {
-    return this.m_startFace === other.m_startFace &&
-      this.m_endFace === other.m_endFace &&
-      this.m_startMipLevel === other.m_startMipLevel &&
-      this.m_endMipLevel === other.m_endMipLevel &&
-      this.m_box.Equals(other.m_box);
+    return this.startFace === other.startFace &&
+      this.endFace === other.endFace &&
+      this.startMipLevel === other.startMipLevel &&
+      this.endMipLevel === other.endMipLevel &&
+      this.box.Equals(other.box);
   }
 }
 
@@ -367,20 +367,20 @@ export function Crop(sourceSR, sourceBD, destSR, destBD)
 
   if (sourceSR.GetWidth() < destSR.GetWidth())
   {
-    destSR.m_box.right = destSR.m_box.left + sourceSR.GetWidth();
+    destSR.box.right = destSR.box.left + sourceSR.GetWidth();
   }
   else
   {
-    sourceSR.m_box.right = sourceSR.m_box.left + destSR.GetWidth();
+    sourceSR.box.right = sourceSR.box.left + destSR.GetWidth();
   }
 
   if (sourceSR.GetHeight() < destSR.GetHeight())
   {
-    destSR.m_box.bottom = destSR.m_box.top + sourceSR.GetHeight();
+    destSR.box.bottom = destSR.box.top + sourceSR.GetHeight();
   }
   else
   {
-    sourceSR.m_box.bottom = sourceSR.m_box.top + destSR.GetHeight();
+    sourceSR.box.bottom = sourceSR.box.top + destSR.GetHeight();
   }
 
   sourceSR.ClampToTexture(sourceBD);
@@ -389,11 +389,11 @@ export function Crop(sourceSR, sourceBD, destSR, destBD)
   return sourceSR.IsValid() && destSR.IsValid();
 }
 
-CjsSchema.decorateField(Tr2TextureSubresource, "m_startFace", type.uint32);
-CjsSchema.decorateField(Tr2TextureSubresource, "m_endFace", type.uint32);
-CjsSchema.decorateField(Tr2TextureSubresource, "m_startMipLevel", type.uint32);
-CjsSchema.decorateField(Tr2TextureSubresource, "m_endMipLevel", type.uint32);
-CjsSchema.decorateField(Tr2TextureSubresource, "m_box", type.rawStruct("Tr2TextureCoordBox"));
+CjsSchema.decorateField(Tr2TextureSubresource, "startFace", type.uint32);
+CjsSchema.decorateField(Tr2TextureSubresource, "endFace", type.uint32);
+CjsSchema.decorateField(Tr2TextureSubresource, "startMipLevel", type.uint32);
+CjsSchema.decorateField(Tr2TextureSubresource, "endMipLevel", type.uint32);
+CjsSchema.decorateField(Tr2TextureSubresource, "box", type.rawStruct("Tr2TextureCoordBox"));
 CjsSchema.decorateMethod(Tr2TextureSubresource, "GetWidth", blue.method);
 CjsSchema.decorateMethod(Tr2TextureSubresource, "GetHeight", blue.method);
 CjsSchema.decorateMethod(Tr2TextureSubresource, "GetDepth", blue.method);

@@ -23,7 +23,6 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Name of the geometry animation to play or enqueue.
    * @type {string}
    */
-  @meta.member("animation")
   @blue.readwrite
   @blue.persist
   @type.string
@@ -33,7 +32,6 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Animation track-mask and layer name; empty selects the default layer.
    * @type {string}
    */
-  @meta.member("mask")
   @blue.readwrite
   @blue.persist
   @type.string
@@ -43,7 +41,6 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * PlayAction enum selecting immediate or queued playback on Start.
    * @type {number}
    */
-  @meta.member("playAction")
   @blue.readwrite
   @blue.persist
   @type.int32
@@ -54,7 +51,6 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * StopAction enum selecting immediate stop, queued stop, or no stop.
    * @type {number}
    */
-  @meta.member("stopAction")
   @blue.readwrite
   @blue.persist
   @type.int32
@@ -65,7 +61,6 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Signed loop count; native values at or below zero request infinite playback.
    * @type {number}
    */
-  @meta.member("loops")
   @blue.readwrite
   @blue.persist
   @type.int32
@@ -75,7 +70,6 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Delay before animation playback, in seconds (native float).
    * @type {number}
    */
-  @meta.member("delay")
   @blue.readwrite
   @blue.persist
   @type.float32
@@ -85,7 +79,6 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Animation playback speed multiplier (native float).
    * @type {number}
    */
-  @meta.member("speed")
   @blue.readwrite
   @blue.persist
   @type.float32
@@ -95,7 +88,6 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * DestinationType enum selecting the controller owner or a bound child.
    * @type {number}
    */
-  @meta.member("destinationType")
   @blue.notify
   @blue.readwrite
   @blue.persist
@@ -107,7 +99,6 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Child binding path used by the flattened JavaScript destination adapter.
    * @type {string}
    */
-  @meta.member("path")
   @blue.notify
   @blue.readwrite
   @blue.persist
@@ -118,7 +109,6 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Explicit destination object in the JavaScript adapter for native embedded Tr2BindingPoint storage.
    * @type {IRoot|null}
    */
-  @meta.member("destination")
   @blue.notify
   @blue.readwrite
   @blue.persist
@@ -129,7 +119,6 @@ export class Tr2ActionPlayMeshAnimation extends ITr2ControllerAction
    * Whether a nonempty destination path is resolved at action execution instead of Link.
    * @type {boolean}
    */
-  @meta.member("delayBinding")
   @blue.notify
   @blue.readwrite
   @blue.persist

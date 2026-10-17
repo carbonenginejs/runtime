@@ -24,7 +24,7 @@ export class AudioCurveSetDriver extends ICurveSetDriver
   name = "";
 
   /** m_audioParameterName: persistence bypasses the live registration setter. */
-  @meta.member("audioParameterName")
+  @blue.attribute("audioParameterName")
   @blue.persistOnly
   @type.wstring
   _audioParameterName = "";

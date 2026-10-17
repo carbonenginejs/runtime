@@ -81,19 +81,19 @@ function StorageFormatFor(format)
 export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
 {
   /** m_desc, a `Tr2BitmapDimensions`. */
-  m_desc = null;
+  _desc = null;
 
-  m_msaa = new Tr2MsaaDesc();
+  _msaa = new Tr2MsaaDesc();
 
-  m_gpuUsage = Tr2GpuUsage.NONE;
+  _gpuUsage = Tr2GpuUsage.NONE;
 
-  m_cpuUsage = Tr2CpuUsage.NONE;
+  _cpuUsage = Tr2CpuUsage.NONE;
 
   /** The `GPUTexture`, or null before Create. */
-  m_texture = null;
+  _texture = null;
 
   /** Whether the texture is a float stand-in for a UNORM format (CjsWebgpuUtils.IsUnormSubstitute). */
-  m_unormSubstitute = false;
+  _unormSubstitute = false;
 
   /**
    * Whether a pipeline rendering to this texture must store as UNORM does.
@@ -102,24 +102,24 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
    */
   IsUnormSubstitute()
   {
-    return this.m_unormSubstitute;
+    return this._unormSubstitute;
   }
 
   /** The `GPUTextureFormat` it was created with. */
-  m_format = null;
+  _format = null;
 
   /** The sRGB sibling format, when the format has one and a view of it exists. */
-  m_srgbFormat = null;
+  _srgbFormat = null;
 
   /** Views by `dimension:colorSpace`, made on first request. */
-  m_views = new Map();
+  _views = new Map();
 
-  m_webgpu = null;
+  _webgpu = null;
 
   /** Context owning command submission for this platform storage. */
   _al = null;
 
-  m_name = "";
+  _name = "";
 
   /**
    * Creates the texture and uploads its initial data.
@@ -161,7 +161,7 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
     // pass's back-buffer copy is COPY_DESTINATION | SHADER_RESOURCE, no data.
     if (!IsWritable(gpuUsage) && !HasFlag(cpuUsage, Tr2CpuUsage.WRITE) && !initialData) return ALResult.E_INVALIDARG;
 
-    const requestedFormat = al.m_utils.GetGPUTextureFormat(desc.GetFormat());
+    const requestedFormat = al._utils.GetGPUTextureFormat(desc.GetFormat());
 
     if (!requestedFormat) return ALResult.E_INVALIDARG;
 
@@ -209,7 +209,7 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
     const usageFlags = webgpu.GetTextureUsage();
     const srgbFormat = requestedFormat !== format && requestedFormat.endsWith("-srgb")
       ? requestedFormat
-      : al.m_utils.GetSRGBViewFormat(format);
+      : al._utils.GetSRGBViewFormat(format);
     const mipCount = Math.max(1, desc.GetTrueMipCount());
     const layers = type === TextureType.TEX_TYPE_3D ? Math.max(1, desc.GetDepth()) : Math.max(1, desc.GetArraySize());
     let usage = usageFlags.TEXTURE_BINDING | usageFlags.COPY_DST;
@@ -236,8 +236,8 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
 
     if (depthShadow) usage |= usageFlags.COPY_SRC ?? 0;
 
-    this.m_texture = device.createTexture({
-      label: this.m_name || "Tr2TextureAL",
+    this._texture = device.createTexture({
+      label: this._name || "Tr2TextureAL",
       size: { width, height, depthOrArrayLayers: layers },
       mipLevelCount: mipCount,
       sampleCount: 1,
@@ -246,14 +246,14 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
       usage,
       ...(srgbFormat ? { viewFormats: [ srgbFormat ] } : {})
     });
-    this.m_format = format;
-    this.m_srgbFormat = srgbFormat;
-    this.m_unormSubstitute = al.m_utils.IsUnormSubstitute(desc.GetFormat());
-    this.m_desc = desc;
-    this.m_msaa = msaa;
-    this.m_gpuUsage = gpuUsage;
-    this.m_cpuUsage = cpuUsage;
-    this.m_webgpu = webgpu;
+    this._format = format;
+    this._srgbFormat = srgbFormat;
+    this._unormSubstitute = al._utils.IsUnormSubstitute(desc.GetFormat());
+    this._desc = desc;
+    this._msaa = msaa;
+    this._gpuUsage = gpuUsage;
+    this._cpuUsage = cpuUsage;
+    this._webgpu = webgpu;
     this._videoGeneration = null;
     this._al = al;
 
@@ -264,7 +264,7 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
     {
       try
       {
-        this._Upload(initialData, mipCount, type, al.m_utils.GetUploadConversion(desc.GetFormat()));
+        this._Upload(initialData, mipCount, type, al._utils.GetUploadConversion(desc.GetFormat()));
       }
       catch (error)
       {
@@ -295,22 +295,22 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
   /** Makes the float shadow and the row-aligned buffer the copy passes through. */
   _CreateDepthShadow(device, usageFlags)
   {
-    const width = this.m_desc.GetWidth();
-    const height = this.m_desc.GetHeight();
+    const width = this._desc.GetWidth();
+    const height = this._desc.GetHeight();
     // copyTextureToBuffer rows are 256-byte aligned.
     const bytesPerRow = Math.ceil((width * 4) / 256) * 256;
-    const bufferUsage = this.m_webgpu.GetBufferUsage();
+    const bufferUsage = this._webgpu.GetBufferUsage();
 
     this._depthShadow = {
       bytesPerRow,
       texture: device.createTexture({
-        label: `${this.m_name || "Tr2TextureAL"} depth shadow`,
+        label: `${this._name || "Tr2TextureAL"} depth shadow`,
         size: { width, height, depthOrArrayLayers: 1 },
         format: "r32float",
         usage: usageFlags.TEXTURE_BINDING | usageFlags.COPY_DST
       }),
       buffer: device.createBuffer({
-        label: `${this.m_name || "Tr2TextureAL"} depth shadow`,
+        label: `${this._name || "Tr2TextureAL"} depth shadow`,
         size: bytesPerRow * height,
         usage: bufferUsage.COPY_SRC | bufferUsage.COPY_DST
       })
@@ -330,10 +330,10 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
 
     if (!shadow || !commandEncoder) return false;
 
-    const size = { width: this.m_desc.GetWidth(), height: this.m_desc.GetHeight(), depthOrArrayLayers: 1 };
+    const size = { width: this._desc.GetWidth(), height: this._desc.GetHeight(), depthOrArrayLayers: 1 };
     const layout = { offset: 0, bytesPerRow: shadow.bytesPerRow, rowsPerImage: size.height };
 
-    commandEncoder.copyTextureToBuffer({ texture: this.m_texture, aspect: "depth-only" }, { buffer: shadow.buffer, ...layout }, size);
+    commandEncoder.copyTextureToBuffer({ texture: this._texture, aspect: "depth-only" }, { buffer: shadow.buffer, ...layout }, size);
     commandEncoder.copyBufferToTexture({ buffer: shadow.buffer, ...layout }, { texture: shadow.texture }, size);
 
     return true;
@@ -351,8 +351,8 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
   @meta.adapted
   _Upload(initialData, mipCount, type, convert = null)
   {
-    const desc = this.m_desc;
-    const queue = this.m_webgpu.GetDevice().queue;
+    const desc = this._desc;
+    const queue = this._webgpu.GetDevice().queue;
     const layerCount = type === TextureType.TEX_TYPE_3D ? 1 : Math.max(1, desc.GetArraySize());
 
     for (let layer = 0; layer < layerCount; layer += 1)
@@ -361,16 +361,16 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
       {
         const subresource = initialData[mip + layer * mipCount];
 
-        if (!subresource || !subresource.m_sysMem) continue;
+        if (!subresource || !subresource.sysMem) continue;
 
-        const bytes = convert ? convert(subresource.m_sysMem) : subresource.m_sysMem;
-        const pitch = subresource.m_sysMemPitch;
-        const slicePitch = subresource.m_sysMemSlicePitch || bytes.byteLength;
+        const bytes = convert ? convert(subresource.sysMem) : subresource.sysMem;
+        const pitch = subresource.sysMemPitch;
+        const slicePitch = subresource.sysMemSlicePitch || bytes.byteLength;
         const depth = type === TextureType.TEX_TYPE_3D ? Math.max(1, desc.GetMipDepth(mip)) : 1;
 
         // writeTexture owns upload validation; we do not allocate a staging buffer here.
         queue.writeTexture(
-          { texture: this.m_texture, mipLevel: mip, origin: { x: 0, y: 0, z: layer } },
+          { texture: this._texture, mipLevel: mip, origin: { x: 0, y: 0, z: layer } },
           bytes,
           { offset: 0, bytesPerRow: pitch, rowsPerImage: pitch ? Math.max(1, Math.floor(slicePitch / pitch)) : undefined },
           { width: desc.GetMipWidth(mip), height: desc.GetMipHeight(mip), depthOrArrayLayers: depth }
@@ -394,33 +394,33 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
    * @param {string} [sampleType] The consuming layout's `GPUTextureSampleType`.
    * @returns {object|null} A `GPUTextureView`, or null before Create.
    */
-  GetDeviceTextureView(viewDimension = VIEW_DIMENSION_OF_TYPE[this.m_desc?.GetType()] ?? "2d", colorSpace = 0, sampleType)
+  GetDeviceTextureView(viewDimension = VIEW_DIMENSION_OF_TYPE[this._desc?.GetType()] ?? "2d", colorSpace = 0, sampleType)
   {
-    if (!this.m_texture) return null;
+    if (!this._texture) return null;
 
     // Translated colour-texture reads use Carbon's R32_FLOAT view. An
     // authored DepthTexture2D instead requires the native depth attachment.
     const useShadow = this._depthShadow && sampleType !== "depth";
-    const source = useShadow ? this._depthShadow.texture : this.m_texture;
-    const format = useShadow ? "r32float" : this.m_format;
+    const source = useShadow ? this._depthShadow.texture : this._texture;
+    const format = useShadow ? "r32float" : this._format;
     if (sampleType === "float" && [ "r32float", "rg32float", "rgba32float" ].includes(format)
-      && !this.m_webgpu.GetDevice().features.has("float32-filterable"))
+      && !this._webgpu.GetDevice().features.has("float32-filterable"))
     {
-      throw new Error(`WebGPU filtered ${format} binding for "${this.m_name || "Tr2TextureAL"}" requires active float32-filterable. Enable webgpuFloat32Filterable before creating the next WebGPU device, subject to adapter support.`);
+      throw new Error(`WebGPU filtered ${format} binding for "${this._name || "Tr2TextureAL"}" requires active float32-filterable. Enable webgpuFloat32Filterable before creating the next WebGPU device, subject to adapter support.`);
     }
-    const srgb = colorSpace !== 0 && this.m_srgbFormat !== null;
+    const srgb = colorSpace !== 0 && this._srgbFormat !== null;
     const key = `${viewDimension}:${srgb ? "srgb" : "linear"}${sampleType === "depth" ? ":depth" : ""}`;
-    let view = this.m_views.get(key) ?? null;
+    let view = this._views.get(key) ?? null;
 
     if (!view)
     {
       view = source.createView({
-        label: `${this.m_name || "Tr2TextureAL"} ${key}`,
+        label: `${this._name || "Tr2TextureAL"} ${key}`,
         dimension: viewDimension,
         ...(sampleType === "depth" ? { aspect: "depth-only" } : {}),
-        ...(srgb ? { format: this.m_srgbFormat } : {})
+        ...(srgb ? { format: this._srgbFormat } : {})
       });
-      this.m_views.set(key, view);
+      this._views.set(key, view);
     }
 
     return view;
@@ -440,20 +440,20 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
   GetDeviceStorageView(viewDimension, mip)
   {
     // Only a texture created with UNORDERED_ACCESS carries STORAGE_BINDING.
-    if (!this.m_texture || !HasFlag(this.m_gpuUsage, Tr2GpuUsage.UNORDERED_ACCESS)) return null;
+    if (!this._texture || !HasFlag(this._gpuUsage, Tr2GpuUsage.UNORDERED_ACCESS)) return null;
 
     const key = `storage:${viewDimension}:${mip}`;
-    let view = this.m_views.get(key) ?? null;
+    let view = this._views.get(key) ?? null;
 
     if (!view)
     {
-      view = this.m_texture.createView({
-        label: `${this.m_name || "Tr2TextureAL"} ${key}`,
+      view = this._texture.createView({
+        label: `${this._name || "Tr2TextureAL"} ${key}`,
         dimension: viewDimension,
         baseMipLevel: mip,
         mipLevelCount: 1
       });
-      this.m_views.set(key, view);
+      this._views.set(key, view);
     }
 
     return view;
@@ -470,22 +470,22 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
    */
   GetDeviceRenderTargetView(slice = 0)
   {
-    if (!this.m_texture) return null;
+    if (!this._texture) return null;
 
     const key = `attachment:${slice}`;
-    let view = this.m_views.get(key) ?? null;
+    let view = this._views.get(key) ?? null;
 
     if (!view)
     {
-      view = this.m_texture.createView({
-        label: `${this.m_name || "Tr2TextureAL"} ${key}`,
+      view = this._texture.createView({
+        label: `${this._name || "Tr2TextureAL"} ${key}`,
         dimension: "2d",
         baseMipLevel: 0,
         mipLevelCount: 1,
         baseArrayLayer: slice,
         arrayLayerCount: 1
       });
-      this.m_views.set(key, view);
+      this._views.set(key, view);
     }
 
     return view;
@@ -500,20 +500,20 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
    */
   GetDeviceFormat()
   {
-    return this.m_format;
+    return this._format;
   }
 
   /** The `GPUTexture`; Metal's `GetMetalTexture` under this backend's name. */
   GetDeviceTexture()
   {
-    return this.m_texture;
+    return this._texture;
   }
 
   /** Whether the texture holds a `GPUTexture`. */
   IsValid()
   {
-    return this.m_texture !== null && (this._videoGeneration == null
-      || (this.m_webgpu.IsReady() && this._videoGeneration === this.m_webgpu.GetGeneration()));
+    return this._texture !== null && (this._videoGeneration == null
+      || (this._webgpu.IsReady() && this._videoGeneration === this._webgpu.GetGeneration()));
   }
 
   /** Shared textures need a native handle WebGPU does not expose; always fails. */
@@ -525,73 +525,73 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
   /** The `Tr2BitmapDimensions` this texture was created from, or null. */
   GetDesc()
   {
-    return this.m_desc;
+    return this._desc;
   }
 
   /** The multisample description; this backend creates single-sampled textures. */
   GetMsaaDesc()
   {
-    return this.m_msaa;
+    return this._msaa;
   }
 
   /** The `Tr2GpuUsage` flags it was created with. */
   GetGpuUsage()
   {
-    return this.m_gpuUsage;
+    return this._gpuUsage;
   }
 
   /** The `Tr2CpuUsage` flags it was created with. */
   GetCpuUsage()
   {
-    return this.m_cpuUsage;
+    return this._cpuUsage;
   }
 
   /** Width in texels of mip zero, or zero before Create. */
   GetWidth()
   {
-    return this.m_desc ? this.m_desc.GetWidth() : 0;
+    return this._desc ? this._desc.GetWidth() : 0;
   }
 
   /** Height in texels of mip zero, or zero before Create. */
   GetHeight()
   {
-    return this.m_desc ? this.m_desc.GetHeight() : 0;
+    return this._desc ? this._desc.GetHeight() : 0;
   }
 
   /** Depth in texels of mip zero, which is one unless the texture is 3D. */
   GetDepth()
   {
-    return this.m_desc ? this.m_desc.GetDepth() : 0;
+    return this._desc ? this._desc.GetDepth() : 0;
   }
 
   /** The mip count requested at creation, which may be zero for a full chain. */
   GetMipCount()
   {
-    return this.m_desc ? this.m_desc.GetMipCount() : 0;
+    return this._desc ? this._desc.GetMipCount() : 0;
   }
 
   /** The mip count actually created, with a requested zero resolved. */
   GetTrueMipCount()
   {
-    return this.m_desc ? this.m_desc.GetTrueMipCount() : 0;
+    return this._desc ? this._desc.GetTrueMipCount() : 0;
   }
 
   /** The Carbon `PixelFormat`, or `PIXEL_FORMAT_UNKNOWN` before Create. */
   GetFormat()
   {
-    return this.m_desc ? this.m_desc.GetFormat() : PixelFormat.PIXEL_FORMAT_UNKNOWN;
+    return this._desc ? this._desc.GetFormat() : PixelFormat.PIXEL_FORMAT_UNKNOWN;
   }
 
   /** The Carbon `TextureType`, or `TEX_TYPE_INVALID` before Create. */
   GetType()
   {
-    return this.m_desc ? this.m_desc.GetType() : TextureType.TEX_TYPE_INVALID;
+    return this._desc ? this._desc.GetType() : TextureType.TEX_TYPE_INVALID;
   }
 
   /** The layer count, which for a cube counts its six faces. */
   GetArraySize()
   {
-    return this.m_desc ? this.m_desc.GetArraySize() : 0;
+    return this._desc ? this._desc.GetArraySize() : 0;
   }
 
   /**
@@ -602,7 +602,7 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
    */
   GetMipSize(level)
   {
-    return this.m_desc ? this.m_desc.GetMipSize(level) : 0;
+    return this._desc ? this._desc.GetMipSize(level) : 0;
   }
 
   /**
@@ -614,23 +614,23 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
   CreateReadback(region, renderContext)
   {
     const al = RenderContextALOf(renderContext);
-    if (!HasFlag(this.m_cpuUsage, Tr2CpuUsage.READ) || !this.IsValid() || !al.IsValid()) return null;
-    if (!region.IsValidForBitmap(this.m_desc) || !region.IsSingleSubresource()) return null;
+    if (!HasFlag(this._cpuUsage, Tr2CpuUsage.READ) || !this.IsValid() || !al.IsValid()) return null;
+    if (!region.IsValidForBitmap(this._desc) || !region.IsSingleSubresource()) return null;
     if (this.GetType() === TextureType.TEX_TYPE_3D || IsCompressedFormat(this.GetFormat())
-      || this.m_format.startsWith("depth") || this.m_format.startsWith("stencil")
-      || al.m_utils.GetGPUTextureFormat(this.GetFormat()) !== this.m_format) return null;
-    const mip = region.m_startMipLevel;
-    const box = region.HasBox() ? region.m_box : null;
-    const width = box ? box.right - box.left : this.m_desc.GetMipWidth(mip);
-    const height = box ? box.bottom - box.top : this.m_desc.GetMipHeight(mip);
+      || this._format.startsWith("depth") || this._format.startsWith("stencil")
+      || al._utils.GetGPUTextureFormat(this.GetFormat()) !== this._format) return null;
+    const mip = region.startMipLevel;
+    const box = region.HasBox() ? region.box : null;
+    const width = box ? box.right - box.left : this._desc.GetMipWidth(mip);
+    const height = box ? box.bottom - box.top : this._desc.GetMipHeight(mip);
     const rowPitch = Math.ceil(width * GetBytesPerPixel(this.GetFormat()) / 256) * 256;
-    const device = this.m_webgpu.GetDevice();
-    const usage = this.m_webgpu.GetBufferUsage();
+    const device = this._webgpu.GetDevice();
+    const usage = this._webgpu.GetBufferUsage();
     const buffer = device.createBuffer({ label: "Tr2ReadbackAL", size: rowPitch * height, usage: usage.MAP_READ | usage.COPY_DST });
     try
     {
-      al.GetWorkQueue().CopyTextureToMTLBuffer(this.m_texture, buffer, rowPitch, rowPitch * height,
-        { x: box ? box.left : 0, y: box ? box.top : 0, z: region.m_startFace },
+      al.GetWorkQueue().CopyTextureToMTLBuffer(this._texture, buffer, rowPitch, rowPitch * height,
+        { x: box ? box.left : 0, y: box ? box.top : 0, z: region.startFace },
         { width, height, depthOrArrayLayers: 1 }, mip, false, device);
       return new Tr2ReadbackALWebgpu(buffer, rowPitch, al);
     }
@@ -691,21 +691,21 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
    */
   MapForWriting(region, renderContext)
   {
-    if (!HasFlag(this.m_cpuUsage, Tr2CpuUsage.WRITE)) return { result: ALResult.E_INVALIDCALL, data: null, pitch: 0 };
+    if (!HasFlag(this._cpuUsage, Tr2CpuUsage.WRITE)) return { result: ALResult.E_INVALIDCALL, data: null, pitch: 0 };
 
     const al = RenderContextALOf(renderContext);
 
     if (!this.IsValid() || !al || !al.IsValid()) return { result: ALResult.E_FAIL, data: null, pitch: 0 };
-    if (!region.IsValid() || !region.IsValidForBitmap(this.m_desc) || !region.IsSingleSubresource() || (region.HasBox() && IsCompressedFormat(this.m_desc.GetFormat())))
+    if (!region.IsValid() || !region.IsValidForBitmap(this._desc) || !region.IsSingleSubresource() || (region.HasBox() && IsCompressedFormat(this._desc.GetFormat())))
     {
       return { result: ALResult.E_INVALIDARG, data: null, pitch: 0 };
     }
 
-    const mip = region.m_startMipLevel;
-    const box = region.HasBox() ? region.m_box : null;
-    const pitch = box ? (box.right - box.left) * GetBytesPerPixel(this.m_desc.GetFormat()) : this.m_desc.GetMipPitch(mip);
-    const rows = box ? box.bottom - box.top : this.m_desc.GetMipNumRows(mip);
-    const depth = box ? box.back - box.front : Math.max(1, this.m_desc.GetMipDepth(mip));
+    const mip = region.startMipLevel;
+    const box = region.HasBox() ? region.box : null;
+    const pitch = box ? (box.right - box.left) * GetBytesPerPixel(this._desc.GetFormat()) : this._desc.GetMipPitch(mip);
+    const rows = box ? box.bottom - box.top : this._desc.GetMipNumRows(mip);
+    const depth = box ? box.back - box.front : Math.max(1, this._desc.GetMipDepth(mip));
     const size = pitch * rows * depth;
 
     if (size === 0) return { result: ALResult.E_FAIL, data: null, pitch: 0 };
@@ -731,14 +731,14 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
     if (this._mappedRegion === null) return ALResult.E_INVALIDCALL;
 
     const region = this._mappedRegion;
-    const mip = region.m_startMipLevel;
-    const box = region.HasBox() ? region.m_box : null;
-    const pitch = box ? (box.right - box.left) * GetBytesPerPixel(this.m_desc.GetFormat()) : this.m_desc.GetMipPitch(mip);
-    const rows = box ? box.bottom - box.top : this.m_desc.GetMipNumRows(mip);
+    const mip = region.startMipLevel;
+    const box = region.HasBox() ? region.box : null;
+    const pitch = box ? (box.right - box.left) * GetBytesPerPixel(this._desc.GetFormat()) : this._desc.GetMipPitch(mip);
+    const rows = box ? box.bottom - box.top : this._desc.GetMipNumRows(mip);
     const result = this.UpdateSubresource(region, this._mappedData, pitch, pitch * rows, renderContext);
 
     this._mappedRegion = null;
-    if (!HasFlag(this.m_cpuUsage, Tr2CpuUsage.WRITE_OFTEN)) this._mappedData = null;
+    if (!HasFlag(this._cpuUsage, Tr2CpuUsage.WRITE_OFTEN)) this._mappedData = null;
 
     return result;
   }
@@ -760,33 +760,33 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
     if (!this.IsValid()) return ALResult.E_INVALIDCALL;
     if (!region || !source) return ALResult.E_INVALIDARG;
 
-    const mip = region.m_startMipLevel ?? 0;
-    const layer = region.m_startFace ?? 0;
+    const mip = region.startMipLevel ?? 0;
+    const layer = region.startFace ?? 0;
 
     if (!ArrayBuffer.isView(source) && !(source instanceof ArrayBuffer))
     {
       if (!region.IsSingleSubresource() || region.HasBox() || mip !== 0 || layer !== 0
-        || this.m_format !== "rgba8unorm" || !HasFlag(this.m_gpuUsage, Tr2GpuUsage.RENDER_TARGET)) return ALResult.E_INVALIDARG;
-      this._videoGeneration = this.m_webgpu.GetGeneration();
-      this.m_webgpu.GetDevice().queue.copyExternalImageToTexture(
+        || this._format !== "rgba8unorm" || !HasFlag(this._gpuUsage, Tr2GpuUsage.RENDER_TARGET)) return ALResult.E_INVALIDARG;
+      this._videoGeneration = this._webgpu.GetGeneration();
+      this._webgpu.GetDevice().queue.copyExternalImageToTexture(
         { source, flipY: false },
-        { texture: this.m_texture, colorSpace: "srgb", premultipliedAlpha: false },
-        { width: this.m_desc.GetWidth(), height: this.m_desc.GetHeight(), depthOrArrayLayers: 1 }
+        { texture: this._texture, colorSpace: "srgb", premultipliedAlpha: false },
+        { width: this._desc.GetWidth(), height: this._desc.GetHeight(), depthOrArrayLayers: 1 }
       );
       return ALResult.S_OK;
     }
-    if (!region.IsValid() || !region.IsValidForBitmap(this.m_desc) || !region.IsSingleSubresource()) return ALResult.E_INVALIDARG;
-    const box = region.HasBox() ? region.m_box : null;
-    if (box && IsCompressedFormat(this.m_desc.GetFormat())) return ALResult.E_INVALIDARG;
-    const volume = this.m_desc.GetType() === TextureType.TEX_TYPE_3D;
+    if (!region.IsValid() || !region.IsValidForBitmap(this._desc) || !region.IsSingleSubresource()) return ALResult.E_INVALIDARG;
+    const box = region.HasBox() ? region.box : null;
+    if (box && IsCompressedFormat(this._desc.GetFormat())) return ALResult.E_INVALIDARG;
+    const volume = this._desc.GetType() === TextureType.TEX_TYPE_3D;
     if (box && !volume && (box.front !== 0 || box.back !== 1)) return ALResult.E_INVALIDARG;
-    this.m_webgpu.GetDevice().queue.writeTexture(
-      { texture: this.m_texture, mipLevel: mip, origin: { x: box ? box.left : 0, y: box ? box.top : 0, z: volume && box ? box.front : layer } },
+    this._webgpu.GetDevice().queue.writeTexture(
+      { texture: this._texture, mipLevel: mip, origin: { x: box ? box.left : 0, y: box ? box.top : 0, z: volume && box ? box.front : layer } },
       source,
       { offset: 0, bytesPerRow: pitch, rowsPerImage: pitch ? Math.max(1, Math.floor((slicePitch || source.byteLength) / pitch)) : undefined },
-      { width: box ? box.right - box.left : this.m_desc.GetMipWidth(mip),
-        height: box ? box.bottom - box.top : this.m_desc.GetMipHeight(mip),
-        depthOrArrayLayers: volume ? (box ? box.back - box.front : this.m_desc.GetMipDepth(mip)) : 1 }
+      { width: box ? box.right - box.left : this._desc.GetMipWidth(mip),
+        height: box ? box.bottom - box.top : this._desc.GetMipHeight(mip),
+        depthOrArrayLayers: volume ? (box ? box.back - box.front : this._desc.GetMipDepth(mip)) : 1 }
     );
 
     return ALResult.S_OK;
@@ -807,32 +807,32 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
   {
     if (!this.IsValid() || !renderContext?.IsValid()) return ALResult.E_INVALIDCALL;
     if (!source?.IsValid()) return ALResult.E_INVALIDARG;
-    if (!HasFlag(this.m_cpuUsage, Tr2CpuUsage.WRITE) && !IsWritable(this.m_gpuUsage)) return ALResult.E_INVALIDCALL;
+    if (!HasFlag(this._cpuUsage, Tr2CpuUsage.WRITE) && !IsWritable(this._gpuUsage)) return ALResult.E_INVALIDCALL;
 
     // Carbon takes both regions by value and Crop mutates them.
     const src = CopyRegion(sourceSubresource);
     const dst = CopyRegion(destSubresource);
 
-    if (!Crop(src, source.m_desc, dst, this.m_desc)) return ALResult.E_FAIL;
+    if (!Crop(src, source._desc, dst, this._desc)) return ALResult.E_FAIL;
 
     const queue = RenderContextALOf(renderContext).GetWorkQueue();
-    const slices = src.m_endFace - src.m_startFace;
-    const mips = src.m_endMipLevel - src.m_startMipLevel;
+    const slices = src.endFace - src.startFace;
+    const mips = src.endMipLevel - src.startMipLevel;
 
     for (let slice = 0; slice < slices; ++slice)
     {
       for (let mip = 0; mip < mips; ++mip)
       {
         queue.CopyTextureToTexture(
-          source.m_texture,
-          src.m_startFace + slice,
-          src.m_startMipLevel + mip,
-          { x: src.m_box.left, y: src.m_box.top, z: src.m_box.front },
+          source._texture,
+          src.startFace + slice,
+          src.startMipLevel + mip,
+          { x: src.box.left, y: src.box.top, z: src.box.front },
           { width: src.GetWidth(), height: src.GetHeight(), depthOrArrayLayers: src.GetDepth() },
-          this.m_texture,
-          dst.m_startFace + slice,
-          dst.m_startMipLevel + mip,
-          { x: dst.m_box.left, y: dst.m_box.top, z: dst.m_box.front }
+          this._texture,
+          dst.startFace + slice,
+          dst.startMipLevel + mip,
+          { x: dst.box.left, y: dst.box.top, z: dst.box.front }
         );
       }
     }
@@ -852,14 +852,14 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
    */
   GenerateMipMaps(renderContext)
   {
-    if (!HasFlag(this.m_gpuUsage, Tr2GpuUsage.RENDER_TARGET) || !HasFlag(this.m_gpuUsage, Tr2GpuUsage.SHADER_RESOURCE))
+    if (!HasFlag(this._gpuUsage, Tr2GpuUsage.RENDER_TARGET) || !HasFlag(this._gpuUsage, Tr2GpuUsage.SHADER_RESOURCE))
     {
       return ALResult.E_INVALIDCALL;
     }
 
     const al = RenderContextALOf(renderContext);
 
-    al.GetWorkQueue().GenerateMipMaps(this.m_texture, al.GetMipGenerator());
+    al.GetWorkQueue().GenerateMipMaps(this._texture, al.GetMipGenerator());
 
     return ALResult.S_OK;
   }
@@ -876,7 +876,7 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
    */
   Resolve(destination, renderContext)
   {
-    if ((this.m_msaa?.samples ?? 1) <= 1)
+    if ((this._msaa?.samples ?? 1) <= 1)
     {
       return destination.CopySubresourceRegion(new Tr2TextureSubresource(), this, new Tr2TextureSubresource(), renderContext);
     }
@@ -905,8 +905,8 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
   /** Ours: asynchronously average the existing straight encoded video texture. */
   RequestAverageColor()
   {
-    if (!this.IsValid() || this._videoGeneration == null || this.m_format !== "rgba8unorm") return null;
-    if (!this._videoSampler) this._videoSampler = new CjsWebgpuVideoColorSampler(this.m_webgpu.GetDevice(), this.m_texture);
+    if (!this.IsValid() || this._videoGeneration == null || this._format !== "rgba8unorm") return null;
+    if (!this._videoSampler) this._videoSampler = new CjsWebgpuVideoColorSampler(this._webgpu.GetDevice(), this._texture);
     // Busy is a skipped GPU sample, not a request to start a canvas fallback.
     return this._videoSampler.Request() ?? Promise.resolve(null);
   }
@@ -924,8 +924,8 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
     if (this._videoSampler) this._videoSampler.Destroy();
     this._videoSampler = null;
     // Cached bind groups that bind any of this texture's views go with it.
-    for (const view of this.m_views.values()) ForgetBindingResource(view);
-    const texture = this.m_texture;
+    for (const view of this._views.values()) ForgetBindingResource(view);
+    const texture = this._texture;
     const shadow = this._depthShadow;
     if (texture) this._al.ReleaseLater(() => texture.destroy());
     if (shadow) this._al.ReleaseLater(() =>
@@ -933,18 +933,18 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
       shadow.texture.destroy();
       shadow.buffer.destroy();
     });
-    this.m_texture = null;
+    this._texture = null;
     this._depthShadow = null;
-    this.m_views = new Map();
+    this._views = new Map();
     this._mappedData = null;
     this._mappedRegion = null;
-    this.m_desc = null;
-    this.m_format = null;
-    this.m_srgbFormat = null;
-    this.m_webgpu = null;
+    this._desc = null;
+    this._format = null;
+    this._srgbFormat = null;
+    this._webgpu = null;
     this._al = null;
-    this.m_gpuUsage = Tr2GpuUsage.NONE;
-    this.m_cpuUsage = Tr2CpuUsage.NONE;
+    this._gpuUsage = Tr2GpuUsage.NONE;
+    this._cpuUsage = Tr2CpuUsage.NONE;
   }
 
   /** Where the texture lives, which for this backend is always video memory. */
@@ -976,9 +976,9 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
    */
   SetName(name)
   {
-    this.m_name = String(name ?? "");
+    this._name = String(name ?? "");
 
-    if (this.m_texture) this.m_texture.label = this.m_name;
+    if (this._texture) this._texture.label = this._name;
 
     return ALResult.S_OK;
   }
@@ -986,7 +986,7 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
   /** The name given by `SetName`. */
   GetName()
   {
-    return this.m_name;
+    return this._name;
   }
 }
 
@@ -999,9 +999,9 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
-CjsSchema.decorateField(CjsWebgpuTextureAL, "m_name", type.string);
-CjsSchema.decorateField(CjsWebgpuTextureAL, "m_desc", type.rawStruct("Tr2BitmapDimensions"));
-CjsSchema.decorateField(CjsWebgpuTextureAL, "m_msaa", type.rawStruct("Tr2MsaaDesc"));
+CjsSchema.decorateField(CjsWebgpuTextureAL, "_name", type.string);
+CjsSchema.decorateField(CjsWebgpuTextureAL, "_desc", type.rawStruct("Tr2BitmapDimensions"));
+CjsSchema.decorateField(CjsWebgpuTextureAL, "_msaa", type.rawStruct("Tr2MsaaDesc"));
 CjsSchema.decorateMethod(CjsWebgpuTextureAL, "Create", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuTextureAL, "IsValid", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuTextureAL, "OpenShared", blue.method);

@@ -549,7 +549,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
         for (let mip = 0; mip < mips; ++mip)
         {
           const data = initialData[index++];
-          if (data && data.m_sysMem) this._UploadLevel(gl, layout, texture, slice, mip, null, data.m_sysMem, data.m_sysMemPitch, data.m_sysMemSlicePitch);
+          if (data && data.sysMem) this._UploadLevel(gl, layout, texture, slice, mip, null, data.sysMem, data.sysMemPitch, data.sysMemSlicePitch);
         }
       }
     }
@@ -851,8 +851,8 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
     if (this._layout.compressed || this._decompressed) return fail(ALResult.E_FAIL);
 
     const gl = this._gl;
-    const mip = region.m_startMipLevel;
-    const box = region.HasBox() ? region.m_box : null;
+    const mip = region.startMipLevel;
+    const box = region.HasBox() ? region.box : null;
     const x = box ? box.left : 0;
     const y = box ? box.top : 0;
     const width = box ? box.right - box.left : this._desc.GetMipWidth(mip);
@@ -862,7 +862,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
     const bytes = new Uint8Array(pitch * height);
     const previous = gl.getParameter(gl.READ_FRAMEBUFFER_BINDING);
 
-    this._BindForRead(gl, mip, region.m_startFace);
+    this._BindForRead(gl, mip, region.startFace);
     gl.readPixels(x, y, width, height, this._layout.format, this._layout.type, PixelsFor(gl, this._layout.type, bytes));
     gl.bindFramebuffer(gl.READ_FRAMEBUFFER, previous);
 
@@ -905,9 +905,9 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
     if (!region.IsSingleSubresource()) return fail(ALResult.E_INVALIDARG);
     if (region.HasBox() && IsCompressedFormat(this._desc.GetFormat())) return fail(ALResult.E_INVALIDARG);
 
-    const mip = region.m_startMipLevel;
+    const mip = region.startMipLevel;
     const box = region.HasBox()
-      ? { ...region.m_box }
+      ? { ...region.box }
       : { left: 0, top: 0, front: 0, right: this._desc.GetMipWidth(mip), bottom: this._desc.GetMipHeight(mip), back: this._desc.GetMipDepth(mip) };
 
     if (box.right > this._desc.GetMipWidth(mip) || box.bottom > this._desc.GetMipHeight(mip) || box.back > this._desc.GetMipDepth(mip))
@@ -922,7 +922,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
     const depth = Math.max(1, box.back - box.front);
 
     this._writeStaging = new Uint8Array(pitch * rows * depth);
-    this._writeRegion = { mip, face: region.m_startFace, box: region.HasBox() ? box : null, pitch, slicePitch: pitch * rows };
+    this._writeRegion = { mip, face: region.startFace, box: region.HasBox() ? box : null, pitch, slicePitch: pitch * rows };
 
     return { result: ALResult.S_OK, data: this._writeStaging, pitch };
   }
@@ -983,7 +983,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
     if (!ArrayBuffer.isView(source) && !(source instanceof ArrayBuffer))
     {
       const gl = this._gl;
-      if (this._target !== gl.TEXTURE_2D || region.HasBox() || region.m_startMipLevel !== 0
+      if (this._target !== gl.TEXTURE_2D || region.HasBox() || region.startMipLevel !== 0
         || this._layout.compressed || this._layout.type !== gl.UNSIGNED_BYTE) return ALResult.E_INVALIDARG;
       const previous = gl.getParameter(gl.TEXTURE_BINDING_2D);
       const names = [gl.UNPACK_FLIP_Y_WEBGL, gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,
@@ -1018,7 +1018,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
       }
       return ALResult.S_OK;
     }
-    this._Upload(region.m_startFace, region.m_startMipLevel, region.HasBox() ? region.m_box : null, source, pitch, slicePitch);
+    this._Upload(region.startFace, region.startMipLevel, region.HasBox() ? region.box : null, source, pitch, slicePitch);
     return ALResult.S_OK;
   }
 
@@ -1061,7 +1061,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
     const gl = this._gl;
     const previousRead = gl.getParameter(gl.READ_FRAMEBUFFER_BINDING);
     const previousTexture = gl.getParameter(this._BindingOf(gl, this._target));
-    const box = { ...src.m_box };
+    const box = { ...src.box };
     const mipCount = Math.min(src.GetMipCount(), dst.GetMipCount());
 
     gl.bindTexture(this._target, this._texture);
@@ -1070,12 +1070,12 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
     {
       for (let face = 0; face < src.GetFaceCount(); ++face)
       {
-        source._BindForRead(gl, src.m_startMipLevel + mip, src.m_startFace + face);
+        source._BindForRead(gl, src.startMipLevel + mip, src.startFace + face);
 
-        const destMip = dst.m_startMipLevel + mip;
-        const destFace = dst.m_startFace + face;
-        const x = dst.m_box.left >> mip;
-        const y = dst.m_box.top >> mip;
+        const destMip = dst.startMipLevel + mip;
+        const destFace = dst.startFace + face;
+        const x = dst.box.left >> mip;
+        const y = dst.box.top >> mip;
         const width = Math.max(1, box.right - box.left);
         const height = Math.max(1, box.bottom - box.top);
 

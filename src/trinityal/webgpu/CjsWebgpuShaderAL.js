@@ -182,24 +182,24 @@ function StageBindings(type, signature)
 export class CjsWebgpuShaderAL
 {
   /** m_type - a Carbon `ShaderType`; `INVALID_SHADER` until Create succeeds. */
-  m_type = ShaderType.INVALID_SHADER;
+  _type = ShaderType.INVALID_SHADER;
 
   /** m_signature */
-  m_signature = null;
+  _signature = null;
 
   /** The WGSL this module was compiled from. */
-  m_source = "";
+  _source = "";
 
   /** The compiled module, or null before Create. */
-  m_module = null;
+  _module = null;
 
   /** The colour locations a pixel stage writes (FragmentOutputLocations). */
-  m_outputs = [];
+  _outputs = [];
 
   /** The colour locations whose UNORM override the stage declares. */
-  m_unormOverrides = [];
+  _unormOverrides = [];
 
-  m_webgpu = null;
+  _webgpu = null;
 
   /**
    * This stage's bind-group declarations, from the pass's backend block.
@@ -214,10 +214,10 @@ export class CjsWebgpuShaderAL
    * table describes its own bindings, which is what lets two passes share an
    * identical vertex stage.
    */
-  m_bindings = [];
+  _bindings = [];
 
   /** Carbon's `m_signature.pipelineInputs`, the vertex inputs this stage reads. */
-  m_inputs = [];
+  _inputs = [];
 
   /**
    * Compiles the shader.
@@ -252,20 +252,20 @@ export class CjsWebgpuShaderAL
     const bindings = StageBindings(type, signature);
     if (bindings === null) return ALResult.E_INVALIDARG;
 
-    this.m_source = wgslFrom(bytecode);
-    this.m_module = webgpu.GetDevice().createShaderModule({
+    this._source = wgslFrom(bytecode);
+    this._module = webgpu.GetDevice().createShaderModule({
       label: shaderPath || "Tr2ShaderAL",
-      code: this.m_source
+      code: this._source
     });
-    this.m_webgpu = webgpu;
-    this.m_type = type;
-    this.m_signature = signature;
-    this.m_bindings = bindings;
-    this.m_inputs = Array.isArray(signature?.pipelineInputs) ? signature.pipelineInputs.slice() : [];
-    this.m_outputs = type === ShaderType.PIXEL_SHADER ? FragmentOutputLocations(this.m_source) : [];
-    this.m_unormOverrides = type === ShaderType.PIXEL_SHADER ? UnormTargetOverrides(this.m_source) : [];
-    this.m_coverageDiscard = type === ShaderType.PIXEL_SHADER
-      && new RegExp(`override\\s+${CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE}\\s*:`, "u").test(this.m_source);
+    this._webgpu = webgpu;
+    this._type = type;
+    this._signature = signature;
+    this._bindings = bindings;
+    this._inputs = Array.isArray(signature?.pipelineInputs) ? signature.pipelineInputs.slice() : [];
+    this._outputs = type === ShaderType.PIXEL_SHADER ? FragmentOutputLocations(this._source) : [];
+    this._unormOverrides = type === ShaderType.PIXEL_SHADER ? UnormTargetOverrides(this._source) : [];
+    this._coverageDiscard = type === ShaderType.PIXEL_SHADER
+      && new RegExp(`override\\s+${CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE}\\s*:`, "u").test(this._source);
 
     return ALResult.S_OK;
   }
@@ -278,7 +278,7 @@ export class CjsWebgpuShaderAL
    */
   GetUnormTargetOverrides()
   {
-    return this.m_unormOverrides;
+    return this._unormOverrides;
   }
 
   /**
@@ -290,7 +290,7 @@ export class CjsWebgpuShaderAL
    */
   HasCoverageDiscardOverride()
   {
-    return this.m_coverageDiscard === true;
+    return this._coverageDiscard === true;
   }
 
   /**
@@ -300,19 +300,19 @@ export class CjsWebgpuShaderAL
    */
   GetOutputs()
   {
-    return this.m_outputs;
+    return this._outputs;
   }
 
   /** This stage's bind-group declarations. @returns {object[]} */
   GetBindings()
   {
-    return this.m_bindings;
+    return this._bindings;
   }
 
   /** The vertex inputs this stage reads. @returns {object[]} */
   GetInputs()
   {
-    return this.m_inputs;
+    return this._inputs;
   }
 
   /**
@@ -325,31 +325,31 @@ export class CjsWebgpuShaderAL
    */
   IsValid()
   {
-    return this.m_module !== null && this.m_type !== ShaderType.INVALID_SHADER;
+    return this._module !== null && this._type !== ShaderType.INVALID_SHADER;
   }
 
   /** The stage this shader was created for. */
   GetType()
   {
-    return this.m_type;
+    return this._type;
   }
 
   /** The WGSL this was compiled from, as bytes, matching the stub's contract. */
   GetBytecode()
   {
-    return new TextEncoder().encode(this.m_source);
+    return new TextEncoder().encode(this._source);
   }
 
   /** The reflected signature. */
   GetSignature()
   {
-    return this.m_signature;
+    return this._signature;
   }
 
   /** The `GPUShaderModule`, for a pipeline to reference. */
   GetModule()
   {
-    return this.m_module;
+    return this._module;
   }
 
   /** Releases the module. */
@@ -357,15 +357,15 @@ export class CjsWebgpuShaderAL
   {
     // A GPUShaderModule has no destroy(); it is released when nothing
     // references it. Dropping the reference is the whole of it.
-    this.m_module = null;
-    this.m_webgpu = null;
-    this.m_type = ShaderType.INVALID_SHADER;
-    this.m_signature = null;
-    this.m_source = "";
-    this.m_bindings = [];
-    this.m_inputs = [];
-    this.m_outputs = [];
-    this.m_unormOverrides = [];
+    this._module = null;
+    this._webgpu = null;
+    this._type = ShaderType.INVALID_SHADER;
+    this._signature = null;
+    this._source = "";
+    this._bindings = [];
+    this._inputs = [];
+    this._outputs = [];
+    this._unormOverrides = [];
   }
 
   /**
@@ -378,7 +378,7 @@ export class CjsWebgpuShaderAL
    */
   SetNullShaderType(type)
   {
-    this.m_type = type;
+    this._type = type;
   }
 
   /**
@@ -417,7 +417,7 @@ export class CjsWebgpuShaderAL
    */
   SetName(name)
   {
-    if (this.m_module) this.m_module.label = String(name);
+    if (this._module) this._module.label = String(name);
 
     return ALResult.S_OK;
   }

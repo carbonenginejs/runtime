@@ -1411,7 +1411,7 @@ export class Tr2RenderContextALWebgl2
   _ApplyTextureUnits()
   {
     const gl = this._gl;
-    const set = this._resourceSet ? this._resourceSet.m_resourceSet.implementation : null;
+    const set = this._resourceSet ? this._resourceSet._resourceSet.implementation : null;
     if (!set || !set.IsValid()) return;
 
     for (const unit of set.GetUnits())

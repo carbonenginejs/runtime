@@ -346,7 +346,7 @@ test("a whole-to-whole copy succeeds and a cropped one is checked", () =>
 
   assert.equal(destination.CopySubresourceRegion(region, source, caller, al), ALResult.S_OK);
 
-  assert.equal(caller.m_box.right, 32, "the caller's region survived the crop unchanged");
+  assert.equal(caller.box.right, 32, "the caller's region survived the crop unchanged");
 
   source.Destroy();
   destination.Destroy();

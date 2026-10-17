@@ -78,14 +78,14 @@ function LayoutKey(binding)
 export class CjsWebgpuShaderProgramAL
 {
   /** m_shaders, in the order given. */
-  m_shaders = [];
+  _shaders = [];
 
-  m_registerMap = new Tr2RegisterMapAL();
+  _registerMap = new Tr2RegisterMapAL();
 
   /** Returns the dense register map built from the linked shader signatures. */
   GetRegisterMap()
   {
-    return this.m_registerMap;
+    return this._registerMap;
   }
 
   /**
@@ -95,19 +95,19 @@ export class CjsWebgpuShaderProgramAL
    * (`MetalWorkQueue.mm:1610-1611`); an id is the same thing in a language
    * without addresses. Zero until Create.
    */
-  m_id = 0;
+  _id = 0;
 
   /** The merged bindings, one entry per `(group, binding)` slot. */
-  m_bindings = [];
+  _bindings = [];
 
   /** `GPUBindGroupLayout` per group, contiguous from group zero. */
-  m_bindGroupLayouts = [];
+  _bindGroupLayouts = [];
 
   /** The `GPUPipelineLayout`, this backend's root signature; null until Create. */
-  m_pipelineLayout = null;
+  _pipelineLayout = null;
 
   /** Metal's `m_iaInputs`: the vertex stage's pipeline inputs. */
-  m_inputs = [];
+  _inputs = [];
 
   /**
    * Links the shaders into a program.
@@ -220,18 +220,18 @@ export class CjsWebgpuShaderProgramAL
       }));
     }
 
-    this.m_pipelineLayout = device.createPipelineLayout({
+    this._pipelineLayout = device.createPipelineLayout({
       label: "Tr2ShaderProgramAL.layout",
       bindGroupLayouts
     });
-    this.m_bindGroupLayouts = bindGroupLayouts;
-    this.m_bindings = bindings;
-    this.m_shaders = shaders.slice();
-    this.m_registerMap = new Tr2RegisterMapAL({ shaders });
-    this.m_inputs = shaders
+    this._bindGroupLayouts = bindGroupLayouts;
+    this._bindings = bindings;
+    this._shaders = shaders.slice();
+    this._registerMap = new Tr2RegisterMapAL({ shaders });
+    this._inputs = shaders
       .find(shader => shader.GetType() === ShaderType.VERTEX_SHADER)
       ?.GetInputs() ?? [];
-    this.m_id = nextProgramId;
+    this._id = nextProgramId;
     nextProgramId += 1;
 
     return ALResult.S_OK;
@@ -240,7 +240,7 @@ export class CjsWebgpuShaderProgramAL
   /** Whether the program linked. */
   IsValid()
   {
-    return this.m_shaders.length > 0;
+    return this._shaders.length > 0;
   }
 
   /**
@@ -250,19 +250,19 @@ export class CjsWebgpuShaderProgramAL
    */
   GetIdentity()
   {
-    return this.m_id ? `program:${this.m_id}` : null;
+    return this._id ? `program:${this._id}` : null;
   }
 
   /** The merged bind-group declarations, sorted by group then binding. */
   GetBindings()
   {
-    return this.m_bindings;
+    return this._bindings;
   }
 
   /** Metal's `GetInputs`: the vertex stage's pipeline inputs. */
   GetInputs()
   {
-    return this.m_inputs;
+    return this._inputs;
   }
 
   /**
@@ -273,7 +273,7 @@ export class CjsWebgpuShaderProgramAL
    */
   GetFragmentOutputs()
   {
-    const pixel = this.m_shaders.find(shader => shader.GetType() === ShaderType.PIXEL_SHADER);
+    const pixel = this._shaders.find(shader => shader.GetType() === ShaderType.PIXEL_SHADER);
 
     return pixel ? pixel.GetOutputs() : null;
   }
@@ -286,7 +286,7 @@ export class CjsWebgpuShaderProgramAL
    */
   GetUnormTargetOverrides()
   {
-    const pixel = this.m_shaders.find(shader => shader.GetType() === ShaderType.PIXEL_SHADER);
+    const pixel = this._shaders.find(shader => shader.GetType() === ShaderType.PIXEL_SHADER);
 
     return pixel ? pixel.GetUnormTargetOverrides() : [];
   }
@@ -294,7 +294,7 @@ export class CjsWebgpuShaderProgramAL
   /** Whether the pixel stage declares the coverage-discard override. */
   HasCoverageDiscardOverride()
   {
-    const pixel = this.m_shaders.find(shader => shader.GetType() === ShaderType.PIXEL_SHADER);
+    const pixel = this._shaders.find(shader => shader.GetType() === ShaderType.PIXEL_SHADER);
 
     return pixel ? pixel.HasCoverageDiscardOverride() : false;
   }
@@ -302,19 +302,19 @@ export class CjsWebgpuShaderProgramAL
   /** One `GPUBindGroupLayout` per group, contiguous from zero. */
   GetBindGroupLayouts()
   {
-    return this.m_bindGroupLayouts;
+    return this._bindGroupLayouts;
   }
 
   /** The `GPUPipelineLayout` a pipeline built from this program takes. */
   GetPipelineLayout()
   {
-    return this.m_pipelineLayout;
+    return this._pipelineLayout;
   }
 
   /** The linked shaders, in the order they were given. */
   GetShaders()
   {
-    return this.m_shaders;
+    return this._shaders;
   }
 
   /**
@@ -325,7 +325,7 @@ export class CjsWebgpuShaderProgramAL
    */
   GetModuleFor(type)
   {
-    const shader = this.m_shaders.find(candidate => candidate.GetType() === type);
+    const shader = this._shaders.find(candidate => candidate.GetType() === type);
 
     return shader ? shader.GetModule() : null;
   }
@@ -334,13 +334,13 @@ export class CjsWebgpuShaderProgramAL
   Destroy()
   {
     // Layout objects have no destroy(); dropping the references releases them.
-    this.m_shaders = [];
-    this.m_registerMap = new Tr2RegisterMapAL();
-    this.m_bindings = [];
-    this.m_bindGroupLayouts = [];
-    this.m_pipelineLayout = null;
-    this.m_inputs = [];
-    this.m_id = 0;
+    this._shaders = [];
+    this._registerMap = new Tr2RegisterMapAL();
+    this._bindings = [];
+    this._bindGroupLayouts = [];
+    this._pipelineLayout = null;
+    this._inputs = [];
+    this._id = 0;
   }
 
   /**
@@ -401,7 +401,7 @@ export class CjsWebgpuShaderProgramAL
    */
   SetName(name)
   {
-    for (const shader of this.m_shaders) shader.SetName(name);
+    for (const shader of this._shaders) shader.SetName(name);
 
     return ALResult.S_OK;
   }
@@ -416,7 +416,7 @@ export class CjsWebgpuShaderProgramAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
-CjsSchema.decorateField(CjsWebgpuShaderProgramAL, "m_registerMap", type.rawStruct("Tr2RegisterMapAL"));
+CjsSchema.decorateField(CjsWebgpuShaderProgramAL, "_registerMap", type.rawStruct("Tr2RegisterMapAL"));
 CjsSchema.decorateMethod(CjsWebgpuShaderProgramAL, "GetRegisterMap", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuShaderProgramAL, "Create", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuShaderProgramAL, "IsValid", blue.method);

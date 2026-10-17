@@ -12,8 +12,8 @@ function geometry()
   {
     const vertexAllocation = new Tr2SuballocatedBufferAllocation();
     const indexAllocation = new Tr2SuballocatedBufferAllocation();
-    vertexAllocation.m_buffer = {label:`vertex-${index}`};
-    indexAllocation.m_buffer = {label:`index-${index}`};
+    vertexAllocation._buffer = {label:`vertex-${index}`};
+    indexAllocation._buffer = {label:`index-${index}`};
     return {maxScreenSize,areas:[{}],vertexAllocation,indexAllocation};
   });
   const resource = new TriGeometryRes();

@@ -64,8 +64,8 @@ test("a texture payload describes Carbon's bitmap dimensions and subresource arr
   assert.equal(described.desc.GetType(), TextureType.TEX_TYPE_2D);
   assert.equal(described.desc.GetMipCount(), 2);
   assert.equal(described.initialData.length, 2);
-  assert.deepEqual([ described.initialData[0].m_sysMemPitch, described.initialData[0].m_sysMem.byteLength ], [ 16, 32 ]);
-  assert.equal(described.initialData[1].m_sysMem[0], 2, "the second mip's bytes, not the first's");
+  assert.deepEqual([ described.initialData[0].sysMemPitch, described.initialData[0].sysMem.byteLength ], [ 16, 32 ]);
+  assert.equal(described.initialData[1].sysMem[0], 2, "the second mip's bytes, not the first's");
 
   // A cube's subresources land at mip + layer * mipCount.
   const cube = DescribeTexturePayload({
@@ -82,7 +82,7 @@ test("a texture payload describes Carbon's bitmap dimensions and subresource arr
   const rgba = DescribeTexturePayload({ payloadType: "rgba", width: 2, height: 1, pixelFormat: "rgba8unorm", data: new Uint8Array(8), strideBytes: 8, origin: "top-left", colorSpace: "srgb", alphaMode: "straight" });
 
   assert.equal(rgba.desc.GetFormat(), PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM_SRGB);
-  assert.equal(rgba.initialData[0].m_sysMemPitch, 8);
+  assert.equal(rgba.initialData[0].sysMemPitch, 8);
 
   assert.equal(DescribeTexturePayload({ payloadType: "video" }), null);
   assert.equal(DescribeTexturePayload({ payloadType: "texture", pixelFormat: "rgb8unorm", dimension: "2d", width: 1, height: 1 }), null, "a format Carbon cannot spell");
@@ -132,7 +132,7 @@ test("a texture parameter binds the realized texture, or the resource until it i
 
   // Not ready: an empty AL texture selects the backend fallback.
   assert.equal(parameter.CopyToResourceSet(description, 1, 3, 0, context), true);
-  assert.equal(description.m_srv[0].texture, null);
+  assert.equal(description._srv[0].texture, null);
 
   resource.SetPayload(bc1Bitmap());
   resource.SetState(TriTextureRes.State.PREPARED);
@@ -140,7 +140,7 @@ test("a texture parameter binds the realized texture, or the resource until it i
   assert.ok(dirtied.length >= 1, "becoming prepared fired m_onTextureChange, which re-dirtied the material");
   assert.equal(parameter.CopyToResourceSet(description, 1, 3, ResourceFlags.RESOURCE_FLAG_SRGB, context), true, "the slot changed: texture replaces the fallback");
 
-  const bound = description.m_srv[0];
+  const bound = description._srv[0];
 
   assert.ok(bound.texture.constructor === Tr2TextureAL && bound.texture.TrinityALImpl_GetObject().constructor === Tr2TextureALStub);
   assert.equal(bound.colorSpace, Tr2ColorSpace.COLOR_SPACE_SRGB);
@@ -168,16 +168,16 @@ test("merged texture parameters bind a fallback while pending, then a shared AL 
       const binding = { texture: { viewDimension: "2d" }, registerIndex: 3, visibility: 2 };
       const backend = new CjsWebgpuResourceSetAL();
       assert.equal(backend._Resolve(description, binding, { GetDummyTexture: () => dummy }, {}), dummy);
-      assert.equal(description.m_srv[0].texture, null, "a pending provider must never enter an AL value copy");
+      assert.equal(description._srv[0].texture, null, "a pending provider must never enter an AL value copy");
       const resource = bridge.GetResource();
       const before = changed;
       resource.SetPayload(bc1Bitmap());
       resource.MarkPrepared();
       assert.equal(changed, before + 1, "completion invalidates the effect's cached resource sets");
       assert.equal(bridge.CopyToResourceSet(description, 1, 3, ResourceFlags.RESOURCE_FLAG_SRGB, context), true);
-      assert.equal(description.m_srv[0].texture.IsValid(), true);
-      assert.equal(description.m_srv[0].texture.TrinityALImpl_GetObject(), resource.GetTexture().TrinityALImpl_GetObject());
-      assert.equal(description.m_srv[0].colorSpace, Tr2ColorSpace.COLOR_SPACE_SRGB);
+      assert.equal(description._srv[0].texture.IsValid(), true);
+      assert.equal(description._srv[0].texture.TrinityALImpl_GetObject(), resource.GetTexture().TrinityALImpl_GetObject());
+      assert.equal(description._srv[0].colorSpace, Tr2ColorSpace.COLOR_SPACE_SRGB);
       assert.equal(bridge.CopyToResourceSet(description, 1, 3, ResourceFlags.RESOURCE_FLAG_SRGB, context), false, "the completed texture remains shared");
       description.ClearResources();
       resource.SetPayload(null);

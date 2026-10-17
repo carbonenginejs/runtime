@@ -37,27 +37,27 @@ export class ResourceGroupImpl
     /** `DocumentType` (ResourceGroupImpl.h:41-45); a namespace-scope enum in Carbon, held on the class here. */
     static DocumentType = Object.freeze({ CSV: 0, YAML: 1 });
 
-    m_versionParameter = new DocumentParameter(Parameter.VERSION, ResourceGroupImpl.typeId());
+    _versionParameter = new DocumentParameter(Parameter.VERSION, ResourceGroupImpl.typeId());
 
-    m_type = new DocumentParameter(Parameter.TYPE, ResourceGroupImpl.typeId());
+    _type = new DocumentParameter(Parameter.TYPE, ResourceGroupImpl.typeId());
 
-    m_numberOfResources = new DocumentParameter(Parameter.NUMBER_OF_RESOURCES, ResourceGroupImpl.typeId());
+    _numberOfResources = new DocumentParameter(Parameter.NUMBER_OF_RESOURCES, ResourceGroupImpl.typeId());
 
-    m_totalResourcesSizeCompressed = new DocumentParameter(Parameter.TOTAL_RESOURCE_SIZE_COMPRESSED, ResourceGroupImpl.typeId());
+    _totalResourcesSizeCompressed = new DocumentParameter(Parameter.TOTAL_RESOURCE_SIZE_COMPRESSED, ResourceGroupImpl.typeId());
 
-    m_totalResourcesSizeUncompressed = new DocumentParameter(Parameter.TOTAL_RESOURCE_SIZE_UNCOMPRESSED, ResourceGroupImpl.typeId());
+    _totalResourcesSizeUncompressed = new DocumentParameter(Parameter.TOTAL_RESOURCE_SIZE_UNCOMPRESSED, ResourceGroupImpl.typeId());
 
     /** @type {ResourceInfo[]} */
-    m_resourcesParameter = [];
+    _resourcesParameter = [];
 
     /** Carbon's constructor: the current document version, this type, and zeroed totals. */
     constructor()
     {
-        this.m_versionParameter.m_value = new VersionInternal(S_DOCUMENT_VERSION);
-        this.m_type.m_value = ResourceGroupImpl.typeId();
-        this.m_numberOfResources.m_value = 0n;
-        this.m_totalResourcesSizeCompressed.m_value = 0n;
-        this.m_totalResourcesSizeUncompressed.m_value = 0n;
+        this._versionParameter._value = new VersionInternal(S_DOCUMENT_VERSION);
+        this._type._value = ResourceGroupImpl.typeId();
+        this._numberOfResources._value = 0n;
+        this._totalResourcesSizeCompressed._value = 0n;
+        this._totalResourcesSizeUncompressed._value = 0n;
     }
 
     /** `TypeId`. */
@@ -75,13 +75,13 @@ export class ResourceGroupImpl
     /** `GetSize` - the number of resources held, duplicates included. */
     GetSize()
     {
-        return this.m_resourcesParameter.length;
+        return this._resourcesParameter.length;
     }
 
     /** Iterates the resources in their current order; Carbon's `begin`/`end`. */
     [Symbol.iterator]()
     {
-        return this.m_resourcesParameter[Symbol.iterator]();
+        return this._resourcesParameter[Symbol.iterator]();
     }
 
     /**
@@ -95,15 +95,15 @@ export class ResourceGroupImpl
      */
     AddResource(resource)
     {
-        this.m_resourcesParameter.push(resource);
-        this.m_numberOfResources.m_value = uintmax(this.m_numberOfResources.GetValue() + 1n);
+        this._resourcesParameter.push(resource);
+        this._numberOfResources._value = uintmax(this._numberOfResources.GetValue() + 1n);
         const size = {};
         const result = resource.GetUncompressedSize(size);
         if (result.type !== ResultType.SUCCESS) return result;
-        this.m_totalResourcesSizeUncompressed.m_value = uintmax(this.m_totalResourcesSizeUncompressed.GetValue() + size.value);
+        this._totalResourcesSizeUncompressed._value = uintmax(this._totalResourcesSizeUncompressed.GetValue() + size.value);
         if (resource.GetCompressedSize(size).type === ResultType.SUCCESS)
         {
-            this.m_totalResourcesSizeCompressed.m_value = uintmax(this.m_totalResourcesSizeCompressed.GetValue() + size.value);
+            this._totalResourcesSizeCompressed._value = uintmax(this._totalResourcesSizeCompressed.GetValue() + size.value);
         }
         return new Result();
     }
@@ -153,7 +153,7 @@ export class ResourceGroupImpl
                 params.compressedSize = row.compressedSize;
                 params.binaryOperation = row.binaryOperation ?? 0;
 
-                this.m_versionParameter.m_value = new VersionInternal(0, 1, 0);
+                this._versionParameter._value = new VersionInternal(0, 1, 0);
                 const result = this.AddResource(new ResourceInfo(params));
                 if (result.type !== ResultType.SUCCESS) return result;
                 nested.Update(StatusProgressType.UNBOUNDED, 0, 0, "Imported resource: " + params.relativePath);
@@ -208,15 +208,15 @@ export class ResourceGroupImpl
         status.Update(StatusProgressType.PERCENTAGE, 0, 30, "Importing from Yaml file.");
         const has = tag => document !== null && typeof document === "object" && Object.hasOwn(document, tag);
 
-        if (!has(this.m_type.GetTag())) return new Result(ResultType.MALFORMED_RESOURCE_GROUP);
-        this.m_type.m_value = String(document[this.m_type.GetTag()]);
-        if (this.m_type.GetValue() !== this.GetType()) return new Result(ResultType.FILE_TYPE_MISMATCH);
+        if (!has(this._type.GetTag())) return new Result(ResultType.MALFORMED_RESOURCE_GROUP);
+        this._type._value = String(document[this._type.GetTag()]);
+        if (this._type.GetValue() !== this.GetType()) return new Result(ResultType.FILE_TYPE_MISMATCH);
 
-        if (!has(this.m_versionParameter.GetTag())) return new Result(ResultType.MALFORMED_RESOURCE_GROUP);
+        if (!has(this._versionParameter.GetTag())) return new Result(ResultType.MALFORMED_RESOURCE_GROUP);
         const version = new VersionInternal();
-        version.FromString(String(document[this.m_versionParameter.GetTag()]));
-        this.m_versionParameter.m_value = version;
-        if (this.m_versionParameter.GetValue().getMajor() > S_DOCUMENT_VERSION.major)
+        version.FromString(String(document[this._versionParameter.GetTag()]));
+        this._versionParameter._value = version;
+        if (this._versionParameter.GetValue().getMajor() > S_DOCUMENT_VERSION.major)
         {
             return new Result(ResultType.DOCUMENT_VERSION_UNSUPPORTED);
         }
@@ -225,9 +225,9 @@ export class ResourceGroupImpl
             status.Update(StatusProgressType.WARNING, 0, 0, "Supplied resource group version greater than resources build max version. Some data may be lost during import.");
         }
 
-        if (!has(this.m_numberOfResources.GetTag())) return new Result(ResultType.MALFORMED_RESOURCE_GROUP);
-        if (!has(this.m_totalResourcesSizeCompressed.GetTag())) this.m_totalResourcesSizeCompressed.Reset();
-        if (!has(this.m_totalResourcesSizeUncompressed.GetTag())) return new Result(ResultType.MALFORMED_RESOURCE_GROUP);
+        if (!has(this._numberOfResources.GetTag())) return new Result(ResultType.MALFORMED_RESOURCE_GROUP);
+        if (!has(this._totalResourcesSizeCompressed.GetTag())) this._totalResourcesSizeCompressed.Reset();
+        if (!has(this._totalResourcesSizeUncompressed.GetTag())) return new Result(ResultType.MALFORMED_RESOURCE_GROUP);
 
         const special = this.ImportGroupSpecialisedYaml(document);
         if (special.type !== ResultType.SUCCESS) return special;
@@ -277,7 +277,7 @@ export class ResourceGroupImpl
         if (type !== ResourceInfo.typeId()) return new Result(ResultType.MALFORMED_RESOURCE, `Unexpected Resource Info Type: '${type}'.`);
 
         const resource = new ResourceInfo();
-        const imported = resource.ImportFromYaml(node, this.m_versionParameter.GetValue());
+        const imported = resource.ImportFromYaml(node, this._versionParameter.GetValue());
         if (imported.type !== ResultType.SUCCESS) return imported;
         out.value = resource;
         return new Result();
@@ -321,23 +321,23 @@ export class ResourceGroupImpl
         status.Update(StatusProgressType.PERCENTAGE, 0, 20, "Exporting Yaml");
         if (!version.isVersionValid()) return new Result(ResultType.DOCUMENT_VERSION_UNSUPPORTED);
         let selected = version;
-        if (selected.GreaterThan(this.m_versionParameter.GetValue())) selected = this.m_versionParameter.GetValue();
+        if (selected.GreaterThan(this._versionParameter.GetValue())) selected = this._versionParameter.GetValue();
         if (selected.GreaterThan(new VersionInternal(S_DOCUMENT_VERSION))) selected = new VersionInternal(S_DOCUMENT_VERSION);
 
         const document = {};
-        document[this.m_versionParameter.GetTag()] = selected.ToString();
-        document[this.m_type.GetTag()] = this.m_type.GetValue();
-        document[this.m_numberOfResources.GetTag()] = this.m_numberOfResources.GetValue();
-        if (this.m_totalResourcesSizeCompressed.HasValue())
+        document[this._versionParameter.GetTag()] = selected.ToString();
+        document[this._type.GetTag()] = this._type.GetValue();
+        document[this._numberOfResources.GetTag()] = this._numberOfResources.GetValue();
+        if (this._totalResourcesSizeCompressed.HasValue())
         {
-            document[this.m_totalResourcesSizeCompressed.GetTag()] = this.m_totalResourcesSizeCompressed.GetValue();
+            document[this._totalResourcesSizeCompressed.GetTag()] = this._totalResourcesSizeCompressed.GetValue();
         }
-        document[this.m_totalResourcesSizeUncompressed.GetTag()] = this.m_totalResourcesSizeUncompressed.GetValue();
+        document[this._totalResourcesSizeUncompressed.GetTag()] = this._totalResourcesSizeUncompressed.GetValue();
         const special = this.ExportGroupSpecialisedYaml(document, selected);
         if (special.type !== ResultType.SUCCESS) return special;
 
         document.Resources = [];
-        for (const resource of this.m_resourcesParameter)
+        for (const resource of this._resourcesParameter)
         {
             const row = {};
             const result = resource.ExportToYaml(row, selected);
@@ -359,11 +359,11 @@ export class ResourceGroupImpl
     {
         status.Update(StatusProgressType.PERCENTAGE, 0, 10, "Exporting  to CSV");
         if (version.getMajor() > 0 || version.getMinor() > 0 || version.getPatch() > 0) return new Result(ResultType.UNSUPPORTED_FILE_FORMAT);
-        this.m_resourcesParameter.sort(ResourceGroupImpl._Compare);
-        for (const resource of this.m_resourcesParameter)
+        this._resourcesParameter.sort(ResourceGroupImpl._Compare);
+        for (const resource of this._resourcesParameter)
         {
             const row = {};
-            const result = resource.ExportToCsv(row, this.m_versionParameter.GetValue());
+            const result = resource.ExportToCsv(row, this._versionParameter.GetValue());
             if (result.type !== ResultType.SUCCESS) return result;
             out.value += row.value + "\n";
         }
@@ -380,8 +380,8 @@ export class ResourceGroupImpl
         status.Update(StatusProgressType.PERCENTAGE, 0, 20, "Merging resource groups.");
         if (!params.mergedResourceGroup) return new Result(ResultType.RESOURCE_GROUP_NOT_SET);
         if (!params.resourceGroupToMerge) return new Result(ResultType.RESOURCE_GROUP_NOT_SET);
-        const incoming = [ ...params.resourceGroupToMerge.m_impl.m_resourcesParameter ].sort(ResourceGroupImpl._Compare);
-        const current = [ ...this.m_resourcesParameter ].sort(ResourceGroupImpl._Compare);
+        const incoming = [ ...params.resourceGroupToMerge._impl._resourcesParameter ].sort(ResourceGroupImpl._Compare);
+        const current = [ ...this._resourcesParameter ].sort(ResourceGroupImpl._Compare);
 
         const union = [];
         let a = 0;
@@ -404,7 +404,7 @@ export class ResourceGroupImpl
             const out = {};
             const copied = this.CreateResourceFromResource(resource, out);
             if (copied.type !== ResultType.SUCCESS) return copied;
-            const added = params.mergedResourceGroup.m_impl.AddResource(out.value);
+            const added = params.mergedResourceGroup._impl.AddResource(out.value);
             if (added.type !== ResultType.SUCCESS) return added;
         }
         return new Result();
@@ -423,7 +423,7 @@ export class ResourceGroupImpl
         if (result.type !== ResultType.SUCCESS) return result;
         if (type.value !== ResourceInfo.typeId()) throw new Error(`ResourceGroupImpl: resource type ${type.value} is not ported.`);
         out.value = new ResourceInfo();
-        return out.value.SetParametersFromResource(resource, this.m_versionParameter.GetValue());
+        return out.value.SetParametersFromResource(resource, this._versionParameter.GetValue());
     }
 
     /**
@@ -443,16 +443,16 @@ export class ResourceGroupImpl
         status.Update(StatusProgressType.PERCENTAGE, 0, 20, "Diffing changes as lists.");
         if (!params.resourceGroupToDiffAgainst) return new Result(ResultType.RESOURCE_GROUP_NOT_SET);
         if (!params.additions || !params.subtractions) return new Result(ResultType.REQUIRED_INPUT_PARAMETER_NOT_SET);
-        const left = [ ...this.m_resourcesParameter ].sort(ResourceGroupImpl._Compare);
-        const right = [ ...params.resourceGroupToDiffAgainst.m_impl.m_resourcesParameter ].sort(ResourceGroupImpl._Compare);
+        const left = [ ...this._resourcesParameter ].sort(ResourceGroupImpl._Compare);
+        const right = [ ...params.resourceGroupToDiffAgainst._impl._resourcesParameter ].sort(ResourceGroupImpl._Compare);
         let a = 0;
         let b = 0;
         const changes = [];
         const added = [];
         while (a < left.length || b < right.length)
         {
-            if (b === right.length || (a < left.length && left[a].LessThan(right[b]))) added.push(left[a++].m_relativePath.GetValue());
-            else if (a === left.length || right[b].LessThan(left[a])) params.subtractions.push(right[b++].m_relativePath.GetValue());
+            if (b === right.length || (a < left.length && left[a].LessThan(right[b]))) added.push(left[a++]._relativePath.GetValue());
+            else if (a === left.length || right[b].LessThan(left[a])) params.subtractions.push(right[b++]._relativePath.GetValue());
             else
             {
                 const x = {};
@@ -461,7 +461,7 @@ export class ResourceGroupImpl
                 const second = right[b].GetChecksum(y);
                 if (first.type !== ResultType.SUCCESS) return first;
                 if (second.type !== ResultType.SUCCESS) return second;
-                if (x.value !== y.value) changes.push(left[a].m_relativePath.GetValue());
+                if (x.value !== y.value) changes.push(left[a]._relativePath.GetValue());
                 a++;
                 b++;
             }
@@ -481,19 +481,19 @@ export class ResourceGroupImpl
      */
     RemoveResource(resource)
     {
-        const index = this.m_resourcesParameter.findIndex(item => item.Equals(resource));
+        const index = this._resourcesParameter.findIndex(item => item.Equals(resource));
         if (index < 0) return new Result(ResultType.RESOURCE_NOT_FOUND);
-        const found = this.m_resourcesParameter[index];
-        this.m_numberOfResources.m_value = uintmax(this.m_numberOfResources.GetValue() - 1n);
+        const found = this._resourcesParameter[index];
+        this._numberOfResources._value = uintmax(this._numberOfResources.GetValue() - 1n);
         const uncompressed = {};
         const first = found.GetUncompressedSize(uncompressed);
         if (first.type !== ResultType.SUCCESS) return first;
         const compressed = {};
         const second = found.GetCompressedSize(compressed);
         if (second.type !== ResultType.SUCCESS) return second;
-        this.m_totalResourcesSizeUncompressed.m_value = uintmax(this.m_totalResourcesSizeUncompressed.GetValue() - uncompressed.value);
-        this.m_totalResourcesSizeCompressed.m_value = uintmax(this.m_totalResourcesSizeCompressed.GetValue() - compressed.value);
-        this.m_resourcesParameter.splice(index, 1);
+        this._totalResourcesSizeUncompressed._value = uintmax(this._totalResourcesSizeUncompressed.GetValue() - uncompressed.value);
+        this._totalResourcesSizeCompressed._value = uintmax(this._totalResourcesSizeCompressed.GetValue() - compressed.value);
+        this._resourcesParameter.splice(index, 1);
         return new Result();
     }
 
@@ -518,7 +518,7 @@ export class ResourceGroupImpl
     GetLargestResourceSize(out)
     {
         out.value = 0n;
-        for (const resource of this.m_resourcesParameter)
+        for (const resource of this._resourcesParameter)
         {
             const size = {};
             const result = resource.GetUncompressedSize(size);

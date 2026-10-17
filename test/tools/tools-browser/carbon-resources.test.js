@@ -11,13 +11,13 @@ const fixture = name => fs.readFileSync(new URL("../fixtures/carbon-resources/" 
 const csv = text =>
 {
     const group = new ResourceGroup();
-    assert.equal(group.m_impl.ImportFromCSV(text).type, ResultType.SUCCESS);
+    assert.equal(group._impl.ImportFromCSV(text).type, ResultType.SUCCESS);
     return group;
 };
 const exportCsv = group =>
 {
     const out = { value: "" };
-    assert.equal(group.m_impl.ExportCsv(new VersionInternal(0, 0, 0), out).type, ResultType.SUCCESS);
+    assert.equal(group._impl.ExportCsv(new VersionInternal(0, 0, 0), out).type, ResultType.SUCCESS);
     return out.value;
 };
 
@@ -62,21 +62,21 @@ test("uint64 sizes retain all bits through CSV import and export", () =>
 test("native parser retains case and duplicate rows rather than applying CjsFileIndex policy", () =>
 {
     const group = csv("res:/A,aa/first,abc,1,1\nres:/A,aa/second,def,1,1");
-    assert.equal(group.m_impl.GetSize(), 2);
-    assert.equal(group.m_impl.m_resourcesParameter[0].m_relativePath.GetValue(), "A");
+    assert.equal(group._impl.GetSize(), 2);
+    assert.equal(group._impl._resourcesParameter[0]._relativePath.GetValue(), "A");
 });
 
 test("zero compressed size remains unset, and failed removal retains Carbon's counter mutation", () =>
 {
     // ResourceInfo.cpp:71 and ResourceGroupImpl.cpp:3041-3065.
     const group = csv("res:/empty,aa/empty,abc,0,0");
-    const resource = group.m_impl.m_resourcesParameter[0];
+    const resource = group._impl._resourcesParameter[0];
     assert.equal(resource.GetCompressedSize({}).type, ResultType.RESOURCE_VALUE_NOT_SET);
     const params = new ResourceGroupRemoveResourcesParams();
     params.resourcesToRemove = ["empty"];
     assert.equal(group.RemoveResources(params).type, ResultType.RESOURCE_VALUE_NOT_SET);
-    assert.equal(group.m_impl.GetSize(), 1);
-    assert.equal(group.m_impl.m_numberOfResources.GetValue(), 0n, "uintmax_t count");
+    assert.equal(group._impl.GetSize(), 1);
+    assert.equal(group._impl._numberOfResources.GetValue(), 0n, "uintmax_t count");
 });
 
 test("native empty YAML document round trips with group identity intact", () =>
