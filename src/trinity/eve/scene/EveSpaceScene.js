@@ -30,7 +30,9 @@ import { EveCamera } from "../camera/EveCamera.js";
 import { CjsPerFrameLayouts } from "../../core/rawData/CjsPerFrameLayouts.js";
 import { CullMode, PixelFormat, RenderState, ShaderType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
 import { Tr2ColorAttachment, Tr2ConstantBufferAL, Tr2DepthAttachment, Tr2SubresourceData } from "#trinityal";
-import { RenderingMode, TriBatchType } from "#consts/graphics";
+import { RenderingMode, TriBatchType, TriStorageFlags } from "#consts/graphics";
+import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
+import { TriDevice } from "../../core/device/TriDevice.js";
 import { DefaultKeyGenerator, EffectKeyGenerator, TriRenderBatchAccumulator } from "../../core/batch/TriRenderBatch/index.js";
 import { Tr2RenderUtils } from "../../core/Tr2RenderUtils.js";
 import { PER_FRAME_PS, PER_FRAME_VS, Tr2Renderer } from "../../core/Tr2Renderer.js";
@@ -198,7 +200,7 @@ function EmptyShadowResources()
 
 /** Owns and updates an Eve space scene's entities, component registry, lighting, fog, post-process state, culling, and per-frame shader data. */
 @blue.define("EveSpaceScene")
-@blue.inherit(ITr2Scene, IInitialize, INotify, IListNotify)
+@blue.inherit(ITr2Scene, IInitialize, INotify, IListNotify, Tr2DeviceResource)
 @blue.interface(ITr2Scene, ITr2Updateable, IInitialize, INotify)
 export class EveSpaceScene
 {
@@ -962,6 +964,62 @@ export class EveSpaceScene
     this._shadowPerFrameVSBuffer.Destroy();
     this.dataTextureMgr.Release();
     this.ClearComponentRegistry();
+    // Carbon's Tr2DeviceResource destructor (Tr2DeviceResource.cpp:11-14).
+    TriDevice.UnregisterResource(this);
+  }
+
+  /**
+   * Carbon ReleaseResources (EveSpaceScene.cpp:327-346): clears both env-map
+   * variables, and on a full release drops the per-frame constant buffers.
+   * @param {number} s TriStorageFlags.
+   */
+  @blue.method
+  @meta.implemented
+  ReleaseResources(s)
+  {
+    if (this._staticEnvMapHandle)
+    {
+      this._staticEnvMapHandle.Clear();
+    }
+    if (this._envMapHandle)
+    {
+      this._envMapHandle.Clear();
+    }
+
+    if ((s & TriStorageFlags.TRISTORAGE_ALL) === TriStorageFlags.TRISTORAGE_ALL)
+    {
+      // m_xBuffer = Tr2ConstantBufferAL().
+      this._perFrameVSBuffer.Destroy();
+      this._perFramePSBuffer.Destroy();
+      this._shadowPerFrameVSBuffer.Destroy();
+    }
+  }
+
+  /**
+   * Carbon OnPrepareResources (EveSpaceScene.cpp:432-440): the 1x1 picking
+   * target and its depth buffer.
+   * @returns {boolean} False when either cannot be created.
+   */
+  @blue.method
+  @meta.implemented
+  OnPrepareResources()
+  {
+    const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+
+    if (Failed(this._pickBuffer.Create__GpuUsageCpuUsage(
+      Tr2BitmapDimensions.create__WidthHeightMipCountFormat(1, 1, 1, PixelFormat.PIXEL_FORMAT_R32G32B32A32_UINT),
+      Tr2GpuUsage.RENDER_TARGET, Tr2CpuUsage.READ_OFTEN, renderContext)))
+    {
+      return false;
+    }
+    if (Failed(this._pickDepthBuffer.Create__GpuUsage(
+      Tr2BitmapDimensions.create__WidthHeightMipCountFormat(1, 1, 1, PixelFormat.PIXEL_FORMAT_D24_UNORM_S8_UINT),
+      Tr2GpuUsage.DEPTH_STENCIL, renderContext)))
+    {
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -1820,9 +1878,15 @@ export class EveSpaceScene
     return true;
   }
 
-  /** Registers the bone provider before effect hydration (EveSpaceScene.cpp:257-258). */
+  /**
+   * Registers the bone provider before effect hydration (EveSpaceScene.cpp:257-258),
+   * and registers with the device as Carbon's Tr2DeviceResource base does
+   * (Tr2DeviceResource.cpp:6-9); Destroy unregisters.
+   */
   constructor()
   {
+    TriDevice.RegisterResource(this);
+
     // cpp:285.
     this._visualizerEffects[EveVisualizeMethod.VW_LIGHT_COUNT].type = VisualizerType.FULL_SCREEN_QUAD_OVERLAY;
 

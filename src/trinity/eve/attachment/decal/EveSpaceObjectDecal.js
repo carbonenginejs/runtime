@@ -21,6 +21,7 @@ import { SharedGeometryBuffer } from "../../../core/mesh/TriGeometryResAllocatio
 import { CarbonVertexElements } from "../../../core/vertex/vertexUsage.js";
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
 import { Tr2PickType } from "#consts/graphics/tr2PickType";
+import { Tr2DeviceResource } from "../../../core/device/Tr2DeviceResource.js";
 import { BuildDecalGeometry, BuildStaticDecalGeometry, FindCachedDecalGeometry } from "./decalIndices.js";
 import "#consts/graphics/trinityEnums";
 
@@ -31,7 +32,7 @@ import "#consts/graphics/trinityEnums";
  * visibility ramp.
  */
 @blue.define("EveSpaceObjectDecal")
-@blue.inherit(IInitialize, INotify, ITr2Pickable, ITr2Renderable)
+@blue.inherit(IInitialize, INotify, ITr2Pickable, ITr2Renderable, Tr2DeviceResource)
 @blue.interface(IInitialize, INotify, ITr2Renderable, ITr2Pickable)
 export class EveSpaceObjectDecal
 {
@@ -39,11 +40,49 @@ export class EveSpaceObjectDecal
    * Establishes Carbon's opaque decal batch type after schema initialization,
    * because the schema's legacy TriBatchType default is 0.
    */
+  /**
+   * Carbon's constructor (cpp:45-58) prepares its resources.
+   *
+   * Adapted: Carbon's Tr2DeviceResource base also registers the decal with the
+   * device (Tr2DeviceResource.cpp:6-9) and its destructor unregisters it. A
+   * JavaScript decal has no destructor and no Destroy to end its life, so a
+   * registration would hold every decal forever. It is left out: Carbon's
+   * ReleaseResources is empty for a decal, so a device reset loses only the
+   * stale-geometry check OnPrepareResources makes, which the next Initialize
+   * or prepare also makes.
+   */
   constructor()
   {
     // The schema's legacy TriBatchType default is 0. Carbon's decal default is
     // the opaque batch (1), so establish it after model/schema initialization.
     this.batchType = 1;
+    this.PrepareResources();
+  }
+
+  /**
+   * Carbon ReleaseResources (cpp:102-104): nothing to release.
+   * @param {number} _s TriStorageFlags.
+   */
+  @blue.method
+  @meta.noop
+  ReleaseResources(_s)
+  {
+  }
+
+  /**
+   * Carbon OnPrepareResources (cpp:107-115): drops built decal geometry whose
+   * index buffer no longer exists, so it is rebuilt on the next draw.
+   * @returns {boolean} True.
+   */
+  @blue.method
+  @meta.implemented
+  OnPrepareResources()
+  {
+    if (this._decalGeometry && !this._decalGeometry.indexBuffer.IsValid())
+    {
+      this._decalGeometry = null;
+    }
+    return true;
   }
 
   @blue.readwrite
@@ -176,7 +215,10 @@ export class EveSpaceObjectDecal
   @meta.adapted
   Initialize()
   {
-    return this._UpdateDecalMatrix();
+    const result = this._UpdateDecalMatrix();
+    // cpp:80.
+    this.PrepareResources();
+    return result;
   }
 
   /**
