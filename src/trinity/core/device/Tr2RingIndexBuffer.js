@@ -35,7 +35,7 @@ export class Tr2RingIndexBuffer extends Tr2DynamicRingBuffer
   {
     this._buffer?.Destroy();
     this._buffer = Tr2RenderContext_GetMainThreadRenderContext().CreateBuffer(
-      Tr2BufferDescriptionAL.FromStride(this._indexSize, size / this._indexSize, Tr2GpuUsage.INDEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN | Tr2CpuUsage.NON_SYNCRONIZED_WRITE),
+      Tr2BufferDescriptionAL.create__Stride(this._indexSize, size / this._indexSize, Tr2GpuUsage.INDEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN | Tr2CpuUsage.NON_SYNCRONIZED_WRITE),
       null
     );
 

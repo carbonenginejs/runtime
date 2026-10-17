@@ -21,9 +21,11 @@ const context = () =>
 
 /** A plain 2D colour texture the GPU can render into. */
 const colour = (width = 64, height = 64, mipCount = 1) =>
-  Tr2BitmapDimensions.texture2D(width, height, mipCount, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM);
+  Tr2BitmapDimensions.create__WidthHeightMipCountFormat(width, height, mipCount, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM);
 
-const create = (texture, desc, options, al) => texture.Create(desc, options, al);
+/** Calls the backend's one positional Create (Tr2TextureALStub.h:44), defaulting what a test leaves out as Tr2TextureAL's overloads do. */
+const create = (texture, desc, { msaa = new Tr2MsaaDesc(), gpuUsage = Tr2GpuUsage.NONE, cpuUsage = Tr2CpuUsage.NONE, initialData = null }, al) =>
+  texture.Create(desc, msaa, gpuUsage, cpuUsage, initialData, al);
 
 
 test("a texture refuses to create against a context with no device", () =>
@@ -98,15 +100,7 @@ test("a cube must have exactly six faces", () =>
   const al = context();
   const texture = new Tr2TextureALStub();
 
-  const cube = (arraySize) => new Tr2BitmapDimensions({
-    type: TextureType.TEX_TYPE_CUBE,
-    format: PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM,
-    width: 32,
-    height: 32,
-    depth: 1,
-    mipCount: 1,
-    arraySize
-  });
+  const cube = (arraySize) => Tr2BitmapDimensions.create__AllFields(TextureType.TEX_TYPE_CUBE, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM, 32, 32, 1, 1, arraySize);
 
   assert.equal(create(texture, cube(5), { gpuUsage: Tr2GpuUsage.RENDER_TARGET }, al), ALResult.E_INVALIDARG);
   assert.equal(create(texture, cube(6), { gpuUsage: Tr2GpuUsage.RENDER_TARGET }, al), ALResult.S_OK);
@@ -190,7 +184,7 @@ test("mapping needs the usage it was created with", () =>
 
   create(texture, colour(), { gpuUsage: Tr2GpuUsage.RENDER_TARGET }, al);
 
-  const region = Tr2TextureSubresource.ForMipLevel(0);
+  const region = Tr2TextureSubresource.create__MipLevel(0);
   const mapped = texture.MapForReading(region, al);
 
   assert.equal(mapped.result, ALResult.E_INVALIDCALL);
@@ -216,7 +210,7 @@ test("a map hands back a real buffer at the mip pitch", () =>
 
   assert.equal(result, ALResult.S_OK);
 
-  const mapped = texture.MapForWriting(Tr2TextureSubresource.ForMipLevel(0), al);
+  const mapped = texture.MapForWriting(Tr2TextureSubresource.create__MipLevel(0), al);
 
   assert.equal(mapped.result, ALResult.S_OK);
   assert.equal(mapped.pitch, 64 * 4);
@@ -227,7 +221,7 @@ test("a map hands back a real buffer at the mip pitch", () =>
   texture.UnmapForWriting();
 
   // Not a WRITE_OFTEN texture, so the buffer went with the unmap.
-  const remapped = texture.MapForWriting(Tr2TextureSubresource.ForMipLevel(0), al);
+  const remapped = texture.MapForWriting(Tr2TextureSubresource.create__MipLevel(0), al);
 
   assert.equal(remapped.data[0], 0, "the buffer was released rather than kept");
 
@@ -246,12 +240,12 @@ test("a texture mapped often keeps its buffer across an unmap", () =>
     al
   );
 
-  const mapped = texture.MapForWriting(Tr2TextureSubresource.ForMipLevel(0), al);
+  const mapped = texture.MapForWriting(Tr2TextureSubresource.create__MipLevel(0), al);
 
   mapped.data[0] = 7;
   texture.UnmapForWriting();
 
-  const remapped = texture.MapForWriting(Tr2TextureSubresource.ForMipLevel(0), al);
+  const remapped = texture.MapForWriting(Tr2TextureSubresource.create__MipLevel(0), al);
 
   assert.equal(remapped.data[0], 7);
 
@@ -263,7 +257,7 @@ test("a compressed mip pitch counts blocks, not pixels", () =>
   // The trap this exists for: a BC1 mip below 4x4 still occupies a whole 4x4
   // block, so the chain does not keep halving. A pitch computed as pixels is
   // right at the top and wrong everywhere else.
-  const desc = Tr2BitmapDimensions.texture2D(64, 64, 0, PixelFormat.PIXEL_FORMAT_BC1_UNORM);
+  const desc = Tr2BitmapDimensions.create__WidthHeightMipCountFormat(64, 64, 0, PixelFormat.PIXEL_FORMAT_BC1_UNORM);
 
   assert.equal(desc.GetTrueMipCount(), 7);
   assert.equal(desc.GetMipWidth(0), 64);
@@ -279,7 +273,7 @@ test("a compressed mip pitch counts blocks, not pixels", () =>
 
 test("an uncompressed mip chain halves and floors at one", () =>
 {
-  const desc = Tr2BitmapDimensions.texture2D(8, 4, 0, PixelFormat.PIXEL_FORMAT_R8_UNORM);
+  const desc = Tr2BitmapDimensions.create__WidthHeightMipCountFormat(8, 4, 0, PixelFormat.PIXEL_FORMAT_R8_UNORM);
 
   assert.equal(desc.GetTrueMipCount(), 4);
   assert.deepEqual([ 0, 1, 2, 3 ].map(level => desc.GetMipWidth(level)), [ 8, 4, 2, 1 ]);
@@ -303,7 +297,7 @@ test("a region past the mip chain is refused rather than mapped", () =>
 
   assert.equal(created, ALResult.S_OK);
 
-  const mapped = texture.MapForReading(Tr2TextureSubresource.ForMipLevel(3), al);
+  const mapped = texture.MapForReading(Tr2TextureSubresource.create__MipLevel(3), al);
 
   assert.equal(mapped.result, ALResult.E_INVALIDARG);
 
@@ -318,12 +312,12 @@ test("a box on a compressed texture cannot be written through a map", () =>
 
   create(
     texture,
-    Tr2BitmapDimensions.texture2D(64, 64, 1, PixelFormat.PIXEL_FORMAT_BC3_UNORM),
+    Tr2BitmapDimensions.create__WidthHeightMipCountFormat(64, 64, 1, PixelFormat.PIXEL_FORMAT_BC3_UNORM),
     { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, cpuUsage: Tr2CpuUsage.WRITE },
     al
   );
 
-  const region = Tr2TextureSubresource.ForMipLevel(0).SetRect(0, 0, 8, 8);
+  const region = Tr2TextureSubresource.create__MipLevel(0).SetRect(0, 0, 8, 8);
   const mapped = texture.MapForWriting(region, al);
 
   assert.equal(mapped.result, ALResult.E_INVALIDARG);
@@ -347,8 +341,8 @@ test("a whole-to-whole copy succeeds and a cropped one is checked", () =>
     ALResult.S_OK
   );
 
-  const region = Tr2TextureSubresource.ForMipLevel(0).SetRect(0, 0, 32, 32);
-  const caller = Tr2TextureSubresource.ForMipLevel(0).SetRect(0, 0, 32, 32);
+  const region = Tr2TextureSubresource.create__MipLevel(0).SetRect(0, 0, 32, 32);
+  const caller = Tr2TextureSubresource.create__MipLevel(0).SetRect(0, 0, 32, 32);
 
   assert.equal(destination.CopySubresourceRegion(region, source, caller, al), ALResult.S_OK);
 

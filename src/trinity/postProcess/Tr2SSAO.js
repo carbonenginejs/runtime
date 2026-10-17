@@ -5,8 +5,8 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Tr2SSAO_Blue.cpp
 import { meta, type, blue } from "#schema";
 import { mat4 } from "#math/mat4";
-import { PixelFormat, ShaderType, TextureType, Tr2GpuUsage } from "#consts/render-context";
-import { Failed, Tr2ConstantUsageAL } from "#trinityal";
+import { PixelFormat, ShaderType, Tr2GpuUsage } from "#consts/render-context";
+import { Failed, Tr2BitmapDimensions, Tr2ConstantUsageAL } from "#trinityal";
 import { ResourceRequirement } from "#resource";
 import { SSAOQuality } from "../generated/trinityCore/enums.js";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
@@ -261,7 +261,8 @@ export class Tr2SSAO
       if (res < 32) break;
     }
 
-    const packedBuffer = gpuResourcePool.GetTempTexture("cortao_packed", this._Target(width, height, mipLevels, PixelFormat.PIXEL_FORMAT_R32_FLOAT));
+    const packedBuffer = gpuResourcePool.GetTempTexture("cortao_packed",
+      Tr2BitmapDimensions.create__WidthHeightMipCountFormat(width, height, mipLevels, PixelFormat.PIXEL_FORMAT_R32_FLOAT), CORTAO_USAGE);
     const packed = packedBuffer.Get();
 
     try
@@ -285,7 +286,7 @@ export class Tr2SSAO
       if (Failed(renderContext.SetConstants(this._cortaoConstantBuffer, ShaderType.COMPUTE_SHADER, PER_OBJECT_VS))) return new GpuResourceHandle();
 
       const outputFormat = this.cortaoBentNormal ? PixelFormat.PIXEL_FORMAT_R8G8B8A8_SNORM : PixelFormat.PIXEL_FORMAT_R8_UNORM;
-      const outputTarget = gpuResourcePool.GetTempTexture("cortao_output", this._Target(width, height, 1, outputFormat));
+      const outputTarget = gpuResourcePool.GetTempTexture__WidthHeight("cortao_output", width, height, outputFormat, CORTAO_USAGE);
       const output = outputTarget.Get();
       const bentNormal = this.cortaoBentNormal ? "BENT_NORMAL_ENABLED" : "BENT_NORMAL_DISABLED";
       const cortao = this._cortaoEffect;
@@ -312,7 +313,8 @@ export class Tr2SSAO
 
       if (this.cortaoBlur)
       {
-        const blurBuffer = gpuResourcePool.GetTempTexture("cortao_blur", this._Target(width, height, 1, outputFormat));
+        const blurBuffer = gpuResourcePool.GetTempTexture("cortao_blur",
+          Tr2BitmapDimensions.create__WidthHeightMipCountFormat(width, height, 1, outputFormat), CORTAO_USAGE);
         const blur = this._cortaoBlurEffect;
         const groupsX = DispatchSize(BLUR_WORK_GROUP_SIZE, width);
         const groupsY = DispatchSize(BLUR_WORK_GROUP_SIZE, height);
@@ -449,20 +451,6 @@ export class Tr2SSAO
 
     // mipCount and the three padding words
     uints(160, mipCount, 0, 0, 0);
-  }
-
-  /** A CORTAO pool target: a 2D texture computed into and sampled. */
-  _Target(width, height, mipCount, format)
-  {
-    return {
-      type: TextureType.TEX_TYPE_2D,
-      width,
-      height,
-      depth: 1,
-      mipCount,
-      format,
-      gpuUsage: CORTAO_USAGE
-    };
   }
 
   /**

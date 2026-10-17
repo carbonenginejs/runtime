@@ -3,14 +3,14 @@ import { test } from "node:test";
 
 import { Tr2TextureALWebgl2 } from "../../../npm/dist/trinityal/webgl2/index.js";
 import { ALResult, Tr2BitmapDimensions, Tr2MsaaDesc, Tr2SubresourceData } from "../../../npm/dist/trinityal/index.js";
-import { PixelFormat, TextureType, Tr2ColorSpace, Tr2GpuUsage } from "../../../npm/dist/global/consts/renderContext/index.js";
+import { PixelFormat, TextureType, Tr2ColorSpace, Tr2CpuUsage, Tr2GpuUsage } from "../../../npm/dist/global/consts/renderContext/index.js";
 import { FakeRenderContext, FakeWebgl2 } from "./fakeWebgl2.js";
 
 const S3TC = { COMPRESSED_RGBA_S3TC_DXT1_EXT: 0x83f1 };
 
 function dims(type, format, width, height, depth = 1, mips = 1, arraySize = 1)
 {
-    return new Tr2BitmapDimensions({ type, format, width, height, depth, mipCount: mips, arraySize });
+    return Tr2BitmapDimensions.create__AllFields(type, format, width, height, depth, mips, arraySize);
 }
 
 function data(bytes, pitch = 0, slicePitch = 0)
@@ -22,12 +22,13 @@ function data(bytes, pitch = 0, slicePitch = 0)
     return level;
 }
 
-function create(desc, options, extensions = {})
+/** Calls the backend's one positional Create, defaulting what a test leaves out as Tr2TextureAL's overloads do. */
+function create(desc, { msaa = new Tr2MsaaDesc(), gpuUsage = Tr2GpuUsage.NONE, cpuUsage = Tr2CpuUsage.NONE, initialData = null } = {}, extensions = {})
 {
     const { gl, calls } = FakeWebgl2();
     gl.extensions = extensions;
     const texture = new Tr2TextureALWebgl2();
-    const result = texture.Create(desc, options, FakeRenderContext(gl));
+    const result = texture.Create(desc, msaa, gpuUsage, cpuUsage, initialData, FakeRenderContext(gl));
     return { gl, calls, texture, result };
 }
 

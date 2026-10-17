@@ -24,7 +24,7 @@ function device()
 function texture(context, width, height, gpuUsage, format = PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM)
 {
     const created = new Tr2TextureAL();
-    assert.equal(created.Create(Tr2BitmapDimensions.texture2D(width, height, 1, format), { gpuUsage }, context), ALResult.S_OK);
+    assert.equal(created.Create__GpuUsage(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(width, height, 1, format), gpuUsage, context), ALResult.S_OK);
     return created;
 }
 
@@ -178,8 +178,8 @@ function drawable()
     });
     const program = context.CreateShaderProgram(shaders);
     const layout = context.CreateVertexLayout({ items: [ { usage: 0, usageIndex: 0, type: "FLOAT32_3", offset: 0, stream: 0, instanceStepRate: 0 } ] });
-    const vertices = context.CreateBuffer(Tr2BufferDescriptionAL.FromStride(12, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.NONE), new Float32Array(12));
-    const indices = context.CreateBuffer(Tr2BufferDescriptionAL.FromStride(2, 6, Tr2GpuUsage.INDEX_BUFFER, Tr2CpuUsage.NONE), new Uint16Array(6));
+    const vertices = context.CreateBuffer(Tr2BufferDescriptionAL.create__Stride(12, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.NONE), new Float32Array(12));
+    const indices = context.CreateBuffer(Tr2BufferDescriptionAL.create__Stride(2, 6, Tr2GpuUsage.INDEX_BUFFER, Tr2CpuUsage.NONE), new Uint16Array(6));
 
     context.SetShaderProgram(program);
     context.SetVertexLayout(layout);

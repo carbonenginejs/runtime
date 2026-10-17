@@ -293,7 +293,7 @@ export class BlueList extends Array
 /** Native QI admission, represented by the exact constructor identity in the exposure table. */
 function AcceptsItem(list, value)
 {
-  return value !== null && typeof value === "object" && be.classes.QueryThisInterface(value, list._itemType, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null;
+  return value !== null && typeof value === "object" && be.classes.QueryThisInterface(value, list._itemType, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null;
 }
 
 /** JavaScript rejects keys that cannot represent a valid native item position. */

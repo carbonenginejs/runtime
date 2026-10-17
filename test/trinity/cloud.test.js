@@ -631,9 +631,8 @@ test("DensityMap supplies native 3D dimensions; missing LightMap selects the gra
 {
   const context = Tr2RenderContext_GetMainThreadRenderContext();
   const cloud = new EveChildCloud2(), provider = new Tr2TextureReference();
-  provider.GetTexture().Create(new BitmapDimensions({ type: TextureType.TEX_TYPE_3D,
-    format: PixelFormat.PIXEL_FORMAT_R8_UNORM, width: 64, height: 32, depth: 16, mipCount: 1 }),
-  { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.COPY_DESTINATION }, context);
+  provider.GetTexture().Create__GpuUsage(BitmapDimensions.create__TypeFormatWidthHeightDepthMipCount(TextureType.TEX_TYPE_3D, PixelFormat.PIXEL_FORMAT_R8_UNORM, 64, 32, 16, 1),
+  Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.COPY_DESTINATION, context);
   const parameter = new TriTextureParameter();
   parameter.resource = provider;
   let hasLightMap = true;

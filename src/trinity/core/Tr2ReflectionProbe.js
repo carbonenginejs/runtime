@@ -265,7 +265,7 @@ export class Tr2ReflectionProbe
         const source = this.customSourceTexture;
         const stencilSize = source && source.IsValid() ? source.GetWidth() : size;
         this._stencilMaps[face] = renderContext.CreateTexture(
-          Tr2BitmapDimensions.texture2D(stencilSize, stencilSize, 1, PixelFormat.PIXEL_FORMAT_D32_FLOAT),
+          Tr2BitmapDimensions.create__WidthHeightMipCountFormat(stencilSize, stencilSize, 1, PixelFormat.PIXEL_FORMAT_D32_FLOAT),
           { gpuUsage: Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE });
         if (!this._stencilMaps[face]) return false;
       }
@@ -523,8 +523,8 @@ export class Tr2ReflectionProbe
     const cube = this.unfilteredTexture.GetRenderTarget();
     for (let face = this.GetStartFace(); face < this.GetEndFace(); face += 1)
     {
-      cube.CopySubresourceRegion(Tr2TextureSubresource.ForFace(face, 0), this._renderTargets[face].GetRenderTarget(),
-        Tr2TextureSubresource.ForFace(0, 0), renderContext);
+      cube.CopySubresourceRegion(Tr2TextureSubresource.create__FaceMipLevel(face, 0), this._renderTargets[face].GetRenderTarget(),
+        Tr2TextureSubresource.create__FaceMipLevel(0, 0), renderContext);
     }
 
     const esm = renderContext.GetEffectStateManager();

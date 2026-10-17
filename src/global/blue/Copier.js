@@ -55,8 +55,14 @@ export class Copier extends ICopier
   /** m_override: the copy-override callback, or null. */
   _override = null;
 
+  /** m_overrideContext: passed to the copy-override callback. */
+  _overrideContext = null;
+
   /** m_postCopy: the post-copy callback, or null. */
   _postCopy = null;
+
+  /** m_postCopyContext: passed to the post-copy callback. */
+  _postCopyContext = null;
 
   /** mLevel: the recursion depth of the CopyTo in progress. */
   _level = 0;
@@ -65,34 +71,37 @@ export class Copier extends ICopier
   _pointers = null;
 
   /**
-   * Installs the copy-override callback (Copier.cpp:24-28). It receives the
-   * source and the requested destination (null to create one), and returns
-   * `{ result, dest }`: SUCCESS with the object to use, FAILURE, or FALLBACK
-   * to let the copier copy it.
+   * Installs the copy-override callback and its context (Copier.cpp:23-27).
+   * The callback receives the source, the requested destination (null to
+   * create one), the copier and the context, and returns `{ result, dest }`:
+   * SUCCESS with the object to use, FAILURE, or FALLBACK to let the copier
+   * copy it.
    *
-   * Adapted: Carbon passes a C callback and a void* context; a JavaScript
-   * closure carries its own context, and the callback returns
-   * `{ result, dest }` in place of an out-pointer.
+   * Adapted: the callback returns `{ result, dest }`, where Carbon's writes
+   * the destination through its `dest` output parameter and returns the
+   * result.
    *
-   * @param {((source: object, dest: object|null, copier: Copier) => {result: number, dest?: object|null})|null} copyOverride
+   * @param {((source: object, dest: object|null, copier: Copier, context: *) => {result: number, dest?: object|null})|null} copyOverride
+   * @param {*} context Passed to the callback as its last argument.
    */
-  SetCopyOverrideCallback(copyOverride)
+  SetCopyOverrideCallback(copyOverride, context)
   {
     this._override = copyOverride;
+    this._overrideContext = context;
   }
 
   /**
-   * Installs the post-copy callback (Copier.cpp:30-34), called with the source
-   * and the destination after every successful copy, nested ones included.
+   * Installs the post-copy callback and its context (Copier.cpp:29-33),
+   * called with the source, the destination, the copier and the context
+   * after every successful copy, nested ones included.
    *
-   * Adapted: Carbon passes a C callback and a void* context; a JavaScript
-   * closure carries its own context.
-   *
-   * @param {((source: object, dest: object, copier: Copier) => void)|null} postCopy
+   * @param {((source: object, dest: object, copier: Copier, context: *) => void)|null} postCopy
+   * @param {*} context Passed to the callback as its last argument.
    */
-  SetPostCopyCallback(postCopy)
+  SetPostCopyCallback(postCopy, context)
   {
     this._postCopy = postCopy;
+    this._postCopyContext = context;
   }
 
   /**
@@ -115,7 +124,7 @@ export class Copier extends ICopier
   {
     if (this._override)
     {
-      const outcome = this._override(source, dest, this);
+      const outcome = this._override(source, dest, this, this._overrideContext);
       if (outcome?.result === OverrideResult.SUCCESS) return outcome.dest ?? dest;
       if (outcome?.result === OverrideResult.FAILURE) return null;
     }
@@ -157,7 +166,7 @@ export class Copier extends ICopier
     }
     if (!result) return null;
 
-    this._postCopy?.(source, target, this);
+    if (this._postCopy) this._postCopy(source, target, this, this._postCopyContext);
     return target;
   }
 
@@ -489,7 +498,7 @@ CjsSchema.blue.define(Copier, {
   fields: {},
   methods: {
     SetCopyOverrideCallback: [ blue.method, meta.adapted ],
-    SetPostCopyCallback: [ blue.method, meta.adapted ],
+    SetPostCopyCallback: [ blue.method, meta.implemented ],
     CopyTo: [ blue.method, meta.adapted ],
     CloneTo: [ blue.method, meta.adapted ],
     _CopyToInternal: [ blue.method, meta.renamed("CopyToInternal"), meta.adapted ]

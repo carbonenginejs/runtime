@@ -226,7 +226,7 @@ export class Tr2Blitter
       // WRITE_OFTEN because the quad is rewritten every draw; VERTEX_BUFFER
       // because that is all it is ever bound as. Carbon's own flags
       // (`Tr2Blitter.cpp:175`).
-      this.#vertexBuffer = renderContext.CreateBuffer(Tr2BufferDescriptionAL.FromStride(
+      this.#vertexBuffer = renderContext.CreateBuffer(Tr2BufferDescriptionAL.create__Stride(
         SCREEN_VERTEX_BYTES,
         SCREEN_QUAD_VERTICES,
         Tr2GpuUsage.VERTEX_BUFFER,

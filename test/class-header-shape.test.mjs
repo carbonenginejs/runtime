@@ -94,7 +94,9 @@ test("real Carbon sampler: filter, address and comparison zero mutations each fa
     assert.deepEqual(original.mismatches, []);
     for (const member of [ "m_minFilter", "m_magFilter", "m_mipFilter", "m_addressU", "m_addressV", "m_addressW", "m_comparisonFunc" ])
     {
-        const mutated = source.replace(new RegExp(`${member} = [^;]+;`), `${member} = 0;`);
+        // The JS field is Carbon's member without its m_ prefix; mismatches report the native name.
+        const field = member.replace(/^m_/, "");
+        const mutated = source.replace(new RegExp(`\\b${field} = [^;]+;`), `${field} = 0;`);
         const result = compareDefaults(type, jsClasses(mutated)[0], cppConstants, jsConstants);
         assert.equal(result.mismatches.length, 1, member);
         assert.ok(result.mismatches[0].startsWith(member + ":"));

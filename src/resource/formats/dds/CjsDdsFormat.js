@@ -413,7 +413,7 @@ export class CjsDdsFormat extends CjsImageFormat
 
         if (!meta.isCube)
         {
-            const full = new BitmapDimensions(description);
+            const full = BitmapDimensions.create__AllFields(description.type, description.format, description.width, description.height, description.depth, description.mipCount, description.arraySize);
             const range = loadParameters.GetMipLevelRange(meta.width, meta.height, meta.hasMipMaps ? meta.mipCount : 0);
 
             if (range.skipCount)
@@ -438,7 +438,7 @@ export class CjsDdsFormat extends CjsImageFormat
             metadata.metadata = loadCcpMetadata(bytes, meta.dataOffset + meta.expectedDataBytes);
         }
 
-        if (!bitmap.CreateFromBitmapDimensions(new BitmapDimensions(description)))
+        if (!bitmap.CreateFromBitmapDimensions(BitmapDimensions.create__AllFields(description.type, description.format, description.width, description.height, description.depth, description.mipCount, description.arraySize)))
         {
             return new ImageIOResult(Code.ERROR_CREATING_BITMAP);
         }

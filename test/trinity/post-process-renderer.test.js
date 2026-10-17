@@ -42,15 +42,7 @@ function stubContext()
 
 function colour(pool, name, format = PixelFormat.PIXEL_FORMAT_R16G16B16A16_FLOAT)
 {
-  return pool.GetTempTexture(name, {
-    type: TextureType.TEX_TYPE_2D,
-    width: 64,
-    height: 32,
-    depth: 1,
-    mipCount: 1,
-    format,
-    gpuUsage: Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE
-  });
+  return pool.GetTempTexture__WidthHeight(name, 64, 32, format, Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE);
 }
 
 test("Execute runs copy, sharpening and tonemapping for a scene without a post process", () =>

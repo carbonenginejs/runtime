@@ -55,64 +55,128 @@ export const SAMPLER_LOD_UNBOUNDED = 3.4028234663852886e38;
 /**
  * The authored sampler state a `Tr2SamplerStateAL` is created from, and the key
  * its factory dedupes on.
+ *
+ * The field initialisers are Carbon's default constructor
+ * (Tr2HalHelperStructures.h:139-157); Carbon's two other constructors are the
+ * `create__` factories below.
  */
 export class Tr2SamplerDescription
 {
-  m_minFilter = TextureFilter.TF_POINT;
+  /** m_minFilter, a `TextureFilter` value. */
+  minFilter = TextureFilter.TF_POINT;
 
-  m_magFilter = TextureFilter.TF_POINT;
+  /** m_magFilter, a `TextureFilter` value. */
+  magFilter = TextureFilter.TF_POINT;
 
-  m_mipFilter = TextureFilter.TF_POINT;
+  /** m_mipFilter, a `TextureFilter` value. */
+  mipFilter = TextureFilter.TF_POINT;
 
-  m_isComparisonFilter = false;
+  /** m_isComparisonFilter */
+  isComparisonFilter = false;
 
-  m_addressU = TextureAddressMode.TA_WRAP;
+  /** m_addressU, a `TextureAddressMode` value. */
+  addressU = TextureAddressMode.TA_WRAP;
 
-  m_addressV = TextureAddressMode.TA_WRAP;
+  /** m_addressV, a `TextureAddressMode` value. */
+  addressV = TextureAddressMode.TA_WRAP;
 
-  m_addressW = TextureAddressMode.TA_WRAP;
+  /** m_addressW, a `TextureAddressMode` value. */
+  addressW = TextureAddressMode.TA_WRAP;
 
-  m_mipLODBias = 0;
+  /** m_mipLODBias */
+  mipLODBias = 0;
 
-  m_maxAnisotropy = 1;
+  /** m_maxAnisotropy */
+  maxAnisotropy = 1;
 
-  m_comparisonFunc = CompareFunc.CMP_ALWAYS;
+  /** m_comparisonFunc, a `CompareFunc` value. */
+  comparisonFunc = CompareFunc.CMP_ALWAYS;
 
-  /** Four floats, RGBA. Carbon's constructor zeroes all four. */
-  m_borderColor = [ 0, 0, 0, 0 ];
+  /** m_borderColor: four floats, RGBA. Carbon's constructor zeroes all four. */
+  borderColor = new Float32Array(4);
 
-  m_minLOD = 0;
+  /** m_minLOD */
+  minLOD = 0;
 
-  m_maxLOD = SAMPLER_LOD_UNBOUNDED;
+  /** m_maxLOD */
+  maxLOD = SAMPLER_LOD_UNBOUNDED;
 
   /**
-   * Carbon's second constructor, which takes every field.
+   * Carbon's every-field constructor (Tr2HalHelperStructures.h:159-190): each
+   * parameter initialises its own member, and the border colour is copied
+   * element by element.
    *
-   * Its first form is the default constructor, which is the field initialisers
-   * above. Passing nothing here is that form.
-   *
-   * @param {object} [values] Field values in the normal form, as
-   *   {@link NormalizeSamplerDescription} produces.
+   * @param {number} minFilter A `TextureFilter` value.
+   * @param {number} magFilter A `TextureFilter` value.
+   * @param {number} mipFilter A `TextureFilter` value.
+   * @param {boolean} isComparisonFilter Whether this is a comparison sampler.
+   * @param {number} addressU A `TextureAddressMode` value.
+   * @param {number} addressV A `TextureAddressMode` value.
+   * @param {number} addressW A `TextureAddressMode` value.
+   * @param {number} mipLODBias Mip LOD bias.
+   * @param {number} maxAnisotropy Maximum anisotropy.
+   * @param {number} comparisonFunc A `CompareFunc` value.
+   * @param {ArrayLike<number>} borderColor Four floats, RGBA.
+   * @param {number} minLOD Minimum LOD.
+   * @param {number} maxLOD Maximum LOD.
+   * @returns {Tr2SamplerDescription} The description.
    */
-  constructor(values = undefined)
+  static create__AllFields(minFilter, magFilter, mipFilter, isComparisonFilter, addressU, addressV, addressW,
+    mipLODBias, maxAnisotropy, comparisonFunc, borderColor, minLOD, maxLOD)
   {
-    if (!values) return;
+    const description = new Tr2SamplerDescription();
 
-    Object.assign(this, {
-      m_minFilter: values.minFilter,
-      m_magFilter: values.magFilter,
-      m_mipFilter: values.mipFilter,
-      m_isComparisonFilter: values.isComparisonFilter,
-      m_addressU: values.addressU,
-      m_addressV: values.addressV,
-      m_addressW: values.addressW,
-      m_mipLODBias: values.mipLODBias,
-      m_maxAnisotropy: values.maxAnisotropy,
-      m_comparisonFunc: values.comparisonFunc,
-      m_borderColor: [ ...values.borderColor ],
-      m_minLOD: values.minLOD,
-      m_maxLOD: values.maxLOD
-    });
+    description.minFilter = minFilter;
+    description.magFilter = magFilter;
+    description.mipFilter = mipFilter;
+    description.isComparisonFilter = isComparisonFilter;
+    description.addressU = addressU;
+    description.addressV = addressV;
+    description.addressW = addressW;
+    description.mipLODBias = mipLODBias;
+    description.maxAnisotropy = maxAnisotropy;
+    description.comparisonFunc = comparisonFunc;
+    description.minLOD = minLOD;
+    description.maxLOD = maxLOD;
+    description.borderColor[0] = borderColor[0];
+    description.borderColor[1] = borderColor[1];
+    description.borderColor[2] = borderColor[2];
+    description.borderColor[3] = borderColor[3];
+
+    return description;
+  }
+
+  /**
+   * Carbon's compact constructor (Tr2HalHelperStructures.h:192-215): one
+   * filter for min, mag and mip, one address mode for U, V and W, no
+   * comparison, zero mip LOD bias, `CMP_ALWAYS` and a zero border. The three
+   * trailing parameters carry Carbon's default arguments.
+   *
+   * @param {number} filter A `TextureFilter` value for all three stages.
+   * @param {number} address A `TextureAddressMode` value for all three axes.
+   * @param {number} [maxAnisotropy] Maximum anisotropy.
+   * @param {number} [minLOD] Minimum LOD.
+   * @param {number} [maxLOD] Maximum LOD; Carbon's `FLT_MAX` by default.
+   * @returns {Tr2SamplerDescription} The description.
+   */
+  static create__FilterAddress(filter, address, maxAnisotropy = 1, minLOD = 0, maxLOD = SAMPLER_LOD_UNBOUNDED)
+  {
+    const description = new Tr2SamplerDescription();
+
+    description.minFilter = filter;
+    description.magFilter = filter;
+    description.mipFilter = filter;
+    description.isComparisonFilter = false;
+    description.addressU = address;
+    description.addressV = address;
+    description.addressW = address;
+    description.mipLODBias = 0;
+    description.maxAnisotropy = maxAnisotropy;
+    description.comparisonFunc = CompareFunc.CMP_ALWAYS;
+    description.minLOD = minLOD;
+    description.maxLOD = maxLOD;
+
+    return description;
   }
 }
 
@@ -175,17 +239,17 @@ export function SamplerDescriptionKey(description)
   return normalized ? JSON.stringify(normalized) : null;
 }
 
-CjsSchema.decorateField(Tr2SamplerDescription, "m_minFilter", type.int32);
-CjsSchema.decorateField(Tr2SamplerDescription, "m_magFilter", type.int32);
-CjsSchema.decorateField(Tr2SamplerDescription, "m_mipFilter", type.int32);
-CjsSchema.decorateField(Tr2SamplerDescription, "m_isComparisonFilter", type.boolean);
-CjsSchema.decorateField(Tr2SamplerDescription, "m_addressU", type.int32);
-CjsSchema.decorateField(Tr2SamplerDescription, "m_addressV", type.int32);
-CjsSchema.decorateField(Tr2SamplerDescription, "m_addressW", type.int32);
-CjsSchema.decorateField(Tr2SamplerDescription, "m_mipLODBias", type.float32);
-CjsSchema.decorateField(Tr2SamplerDescription, "m_maxAnisotropy", type.uint32);
-CjsSchema.decorateField(Tr2SamplerDescription, "m_comparisonFunc", type.uint32);
-CjsSchema.decorateField(Tr2SamplerDescription, "m_borderColor", type.array({ kind: "float32" }));
-CjsSchema.decorateField(Tr2SamplerDescription, "m_minLOD", type.float32);
-CjsSchema.decorateField(Tr2SamplerDescription, "m_maxLOD", type.float32);
+CjsSchema.decorateField(Tr2SamplerDescription, "minFilter", type.int32);
+CjsSchema.decorateField(Tr2SamplerDescription, "magFilter", type.int32);
+CjsSchema.decorateField(Tr2SamplerDescription, "mipFilter", type.int32);
+CjsSchema.decorateField(Tr2SamplerDescription, "isComparisonFilter", type.boolean);
+CjsSchema.decorateField(Tr2SamplerDescription, "addressU", type.int32);
+CjsSchema.decorateField(Tr2SamplerDescription, "addressV", type.int32);
+CjsSchema.decorateField(Tr2SamplerDescription, "addressW", type.int32);
+CjsSchema.decorateField(Tr2SamplerDescription, "mipLODBias", type.float32);
+CjsSchema.decorateField(Tr2SamplerDescription, "maxAnisotropy", type.uint32);
+CjsSchema.decorateField(Tr2SamplerDescription, "comparisonFunc", type.uint32);
+CjsSchema.decorateField(Tr2SamplerDescription, "borderColor", type.float32Array);
+CjsSchema.decorateField(Tr2SamplerDescription, "minLOD", type.float32);
+CjsSchema.decorateField(Tr2SamplerDescription, "maxLOD", type.float32);
 CjsSchema.blue.define(Tr2SamplerDescription, { className: "Tr2SamplerDescription" });

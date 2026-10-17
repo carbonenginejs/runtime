@@ -53,7 +53,7 @@ function deviceAndContext()
 
 /** The Tr2Blitter screen-quad description: four 24-byte vertices, rewritten every draw. */
 const quadDescription = () =>
-  Tr2BufferDescriptionAL.FromStride(24, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN);
+  Tr2BufferDescriptionAL.create__Stride(24, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN);
 
 const writes = (calls) => calls.filter(call => call[0] === "writeBuffer");
 
@@ -198,18 +198,18 @@ test("Carbon's create-time refusals are kept", () =>
 
   // count == 0, in every backend.
   assert.equal(
-    buffer.Create(Tr2BufferDescriptionAL.FromStride(24, 0, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN), null, context),
+    buffer.Create(Tr2BufferDescriptionAL.create__Stride(24, 0, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN), null, context),
     ALResult.E_INVALIDARG);
 
   // Immutable with no contents: nothing could ever put bytes in it.
   assert.equal(
-    buffer.Create(Tr2BufferDescriptionAL.FromStride(24, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.NONE), null, context),
+    buffer.Create(Tr2BufferDescriptionAL.create__Stride(24, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.NONE), null, context),
     ALResult.E_INVALIDARG);
 
   // READ with WRITE_OFTEN, which DX12 refuses outright and we have no read path for.
   assert.equal(
     buffer.Create(
-      Tr2BufferDescriptionAL.FromStride(24, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN | Tr2CpuUsage.READ),
+      Tr2BufferDescriptionAL.create__Stride(24, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN | Tr2CpuUsage.READ),
       null, context),
     ALResult.E_INVALIDARG);
 
@@ -224,7 +224,7 @@ test("a CPU-readable typed UAV buffer is created as storage, as Carbon's exposur
   // Tr2PostProcessRenderer::GetExposureBuffer: R32_FLOAT x 8, SRV | UAV, CPU READ.
   const { fake, context } = deviceAndContext();
   const buffer = new CjsWebgpuBufferAL();
-  const description = Tr2BufferDescriptionAL.FromFormat(
+  const description = Tr2BufferDescriptionAL.create__Format(
     PixelFormat.PIXEL_FORMAT_R32_FLOAT, 8,
     Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.UNORDERED_ACCESS, Tr2CpuUsage.READ);
 
@@ -267,7 +267,7 @@ test("MapForReading answers one frame late from a completed staging copy", async
   };
   const webgpu = new CjsWebgpuDevice({ device, shaderStage: SHADER_STAGE, bufferUsage: usage });
   const buffer = new CjsWebgpuBufferAL();
-  const description = Tr2BufferDescriptionAL.FromFormat(
+  const description = Tr2BufferDescriptionAL.create__Format(
     PixelFormat.PIXEL_FORMAT_R32_FLOAT, 8,
     Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.UNORDERED_ACCESS, Tr2CpuUsage.READ);
 
@@ -303,7 +303,7 @@ test("UpdateBuffer writes a WRITE_OFTEN buffer and a plain WRITE one", () =>
   assert.deepEqual(Array.from(writes(fake.calls).at(-1)[3]), [ 1, 1, 1, 1 ]);
 
   const plain = new CjsWebgpuBufferAL();
-  plain.Create(Tr2BufferDescriptionAL.FromStride(16, 2, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE), null, context);
+  plain.Create(Tr2BufferDescriptionAL.create__Stride(16, 2, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE), null, context);
 
   const before = writes(fake.calls).length;
   assert.equal(plain.UpdateBuffer(8, 4, new Uint8Array([ 1, 2, 3, 4 ]), context), ALResult.S_OK);

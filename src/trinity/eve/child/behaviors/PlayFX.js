@@ -378,7 +378,7 @@ export class PlayFX extends EveEntity
       const diff = agentSize - this._count;
       for (let i = 0; i < diff; i++)
       {
-        const newFx = be.classes.CloneTo(this.firingEffect);
+        const newFx = be.classes.CloneTo(this.firingEffect, null);
         if (!newFx)
         {
           return;

@@ -12,7 +12,7 @@ fixtureAL.CreateDevice();
 
 function deviceBuffer(handle)
 {
-  const value = fixtureAL.CreateBuffer(Tr2BufferDescriptionAL.FromStride(4, 64, Tr2GpuUsage.VERTEX_BUFFER | Tr2GpuUsage.INDEX_BUFFER, Tr2CpuUsage.WRITE));
+  const value = fixtureAL.CreateBuffer(Tr2BufferDescriptionAL.create__Stride(4, 64, Tr2GpuUsage.VERTEX_BUFFER | Tr2GpuUsage.INDEX_BUFFER, Tr2CpuUsage.WRITE));
   value.TrinityALImpl_GetObject().GetDeviceBuffer = () => handle;
   return value;
 }
@@ -170,7 +170,7 @@ test("a scene cannot open before a device exists", () =>
   assert.throws(() => new CjsWebgpuRenderContextAL().BeginScene(), /before CreateDevice/);
 });
 
-const target = (width, height) => fixtureAL.CreateTexture(Tr2BitmapDimensions.texture2D(width, height, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), { gpuUsage: Tr2GpuUsage.RENDER_TARGET });
+const target = (width, height) => fixtureAL.CreateTexture(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(width, height, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), { gpuUsage: Tr2GpuUsage.RENDER_TARGET });
 
 test("binding a target resets the viewport to it", () =>
 {

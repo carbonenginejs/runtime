@@ -157,7 +157,7 @@ export class Tr2SuballocatedBuffer
   _AddBlock(renderContext, blockSize = this.m_blockSize)
   {
     const allocator = new Tr2VirtualAllocator(this.m_blockSize, blockSize, blockSize);
-    const description = Tr2BufferDescriptionAL.FromStride(4, blockSize / 4, this.m_gpuUsage, Tr2CpuUsage.WRITE);
+    const description = Tr2BufferDescriptionAL.create__Stride(4, blockSize / 4, this.m_gpuUsage, Tr2CpuUsage.WRITE);
     const block = renderContext.CreateBuffer(description, null);
     if (!block) return false;
     block.SetName(`${this.m_name} block ${this.m_blocks.length}`);

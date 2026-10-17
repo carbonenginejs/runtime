@@ -109,7 +109,7 @@ export class TriStepCopyRenderTarget extends TriRenderStep
     {
       if (!this.sourceViewport)
       {
-        const dest = Tr2TextureSubresource.ForMipLevel(0);
+        const dest = Tr2TextureSubresource.create__MipLevel(0);
         dest.SetRect(destX, destY, destX + sourceRT.GetWidth(), destY + sourceRT.GetHeight());
 
         if (this.destinationViewport)
@@ -125,12 +125,12 @@ export class TriStepCopyRenderTarget extends TriRenderStep
             dest.m_box.bottom = (sourceRT.GetHeight() + this.destinationViewport.y) >>> 0;
           }
         }
-        result = destinationRT.GetRenderTarget().CopySubresourceRegion(dest, sourceRT.GetRenderTarget(), Tr2TextureSubresource.ForMipLevel(0), renderContext);
+        result = destinationRT.GetRenderTarget().CopySubresourceRegion(dest, sourceRT.GetRenderTarget(), Tr2TextureSubresource.create__MipLevel(0), renderContext);
       }
       else
       {
         const vp = this.sourceViewport;
-        const src = Tr2TextureSubresource.ForMipLevel(0);
+        const src = Tr2TextureSubresource.create__MipLevel(0);
         src.SetRect(vp.x >>> 0, vp.y >>> 0, (vp.x + vp.width) >>> 0, (vp.y + vp.height) >>> 0);
         if (vp.width <= 0 || vp.height <= 0) return TriRenderJob.StepResult.RS_OK;
 
@@ -148,7 +148,7 @@ export class TriStepCopyRenderTarget extends TriRenderStep
           }
         }
 
-        const dest = Tr2TextureSubresource.ForMipLevel(0);
+        const dest = Tr2TextureSubresource.create__MipLevel(0);
         dest.SetRect(destX, destY, destX + src.m_box.right - src.m_box.left, destY + src.m_box.bottom - src.m_box.top);
 
         result = destinationRT.GetRenderTarget().CopySubresourceRegion(dest, sourceRT.GetRenderTarget(), src, renderContext);

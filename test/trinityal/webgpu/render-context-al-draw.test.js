@@ -127,7 +127,7 @@ function programFor(al, { block = null, fragment = true } = {})
 
 function deviceBuffer(name, al)
 {
-  const value = al.CreateBuffer(Tr2BufferDescriptionAL.FromStride(4, 64,
+  const value = al.CreateBuffer(Tr2BufferDescriptionAL.create__Stride(4, 64,
     Tr2GpuUsage.VERTEX_BUFFER | Tr2GpuUsage.INDEX_BUFFER, Tr2CpuUsage.WRITE));
   assert.ok(value && value.IsValid());
   value.TrinityALImpl_GetObject().GetDeviceBuffer = () => name;
@@ -136,7 +136,7 @@ function deviceBuffer(name, al)
 
 function deviceTexture(id, al)
 {
-  const value = al.CreateTexture(Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM),
+  const value = al.CreateTexture(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(4, 4, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM),
     { gpuUsage: Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE });
   assert.ok(value && value.IsValid());
   value.TrinityALImpl_GetObject().GetDeviceTextureView = dimension => ({ kind: "view", dimension, id });

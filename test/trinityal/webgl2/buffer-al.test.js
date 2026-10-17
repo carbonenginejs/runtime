@@ -20,7 +20,7 @@ function created(desc, initialData = null)
 
 test("an immutable buffer needs its contents at Create, as dx11 requires", () =>
 {
-    const desc = Tr2BufferDescriptionAL.FromStride(16, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.NONE);
+    const desc = Tr2BufferDescriptionAL.create__Stride(16, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.NONE);
     const { buffer, result } = created(desc);
 
     assert.equal(result, ALResult.E_INVALIDARG);
@@ -29,7 +29,7 @@ test("an immutable buffer needs its contents at Create, as dx11 requires", () =>
 
 test("an immutable vertex buffer uploads its contents STATIC_DRAW through the copy target", () =>
 {
-    const desc = Tr2BufferDescriptionAL.FromStride(8, 2, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.NONE);
+    const desc = Tr2BufferDescriptionAL.create__Stride(8, 2, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.NONE);
     const { gl, calls, buffer, result } = created(desc, floats([ 1, 2, 3, 4 ]));
 
     assert.equal(result, ALResult.S_OK);
@@ -49,7 +49,7 @@ test("an immutable vertex buffer uploads its contents STATIC_DRAW through the co
 
 test("an index buffer fixes its type with no vertex array bound, then restores it", () =>
 {
-    const desc = Tr2BufferDescriptionAL.FromFormat(PixelFormat.PIXEL_FORMAT_R16_UINT, 3, Tr2GpuUsage.INDEX_BUFFER, Tr2CpuUsage.NONE);
+    const desc = Tr2BufferDescriptionAL.create__Format(PixelFormat.PIXEL_FORMAT_R16_UINT, 3, Tr2GpuUsage.INDEX_BUFFER, Tr2CpuUsage.NONE);
     const { gl, calls } = FakeWebgl2();
     const vao = { kind: "vao" };
     gl.bindVertexArray(vao);
@@ -64,7 +64,7 @@ test("an index buffer fixes its type with no vertex array bound, then restores i
 
 test("unordered access is refused: WebGL2 has no storage buffers", () =>
 {
-    const desc = Tr2BufferDescriptionAL.FromStride(16, 4, Tr2GpuUsage.UNORDERED_ACCESS, Tr2CpuUsage.WRITE);
+    const desc = Tr2BufferDescriptionAL.create__Stride(16, 4, Tr2GpuUsage.UNORDERED_ACCESS, Tr2CpuUsage.WRITE);
     const { buffer, result } = created(desc);
 
     assert.equal(result, ALResult.E_INVALIDARG);
@@ -73,7 +73,7 @@ test("unordered access is refused: WebGL2 has no storage buffers", () =>
 
 test("WRITE_OFTEN maps CPU memory and orphans the storage on unmap, dx11's WRITE_DISCARD", () =>
 {
-    const desc = Tr2BufferDescriptionAL.FromStride(4, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN);
+    const desc = Tr2BufferDescriptionAL.create__Stride(4, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN);
     const { gl, calls, context, buffer } = created(desc);
 
     const { result, data } = buffer.MapForWriting(context);
@@ -89,7 +89,7 @@ test("WRITE_OFTEN maps CPU memory and orphans the storage on unmap, dx11's WRITE
 test("NON_SYNCRONIZED_WRITE keeps the storage and writes over it, dx11's WRITE_NO_OVERWRITE", () =>
 {
     const cpu = Tr2CpuUsage.WRITE_OFTEN | Tr2CpuUsage.NON_SYNCRONIZED_WRITE;
-    const desc = Tr2BufferDescriptionAL.FromStride(4, 2, Tr2GpuUsage.VERTEX_BUFFER, cpu);
+    const desc = Tr2BufferDescriptionAL.create__Stride(4, 2, Tr2GpuUsage.VERTEX_BUFFER, cpu);
     const { calls, context, buffer } = created(desc);
 
     buffer.MapForWriting(context);
@@ -101,7 +101,7 @@ test("NON_SYNCRONIZED_WRITE keeps the storage and writes over it, dx11's WRITE_N
 
 test("UpdateBuffer on a WRITE buffer is a sub-data upload at the offset", () =>
 {
-    const desc = Tr2BufferDescriptionAL.FromStride(4, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE);
+    const desc = Tr2BufferDescriptionAL.create__Stride(4, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE);
     const { calls, context, buffer } = created(desc);
 
     assert.equal(buffer.UpdateBuffer(4, 4, new Uint8Array([ 1, 2, 3, 4 ]), context), ALResult.S_OK);
@@ -114,7 +114,7 @@ test("UpdateBuffer on a WRITE buffer is a sub-data upload at the offset", () =>
 
 test("UpdateBuffer on a buffer the CPU cannot write is refused", () =>
 {
-    const desc = Tr2BufferDescriptionAL.FromStride(4, 1, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.NONE);
+    const desc = Tr2BufferDescriptionAL.create__Stride(4, 1, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.NONE);
     const { context, buffer } = created(desc, new Uint8Array(4));
 
     assert.equal(buffer.UpdateBuffer(0, 4, new Uint8Array(4), context), ALResult.E_INVALIDCALL);
@@ -123,7 +123,7 @@ test("UpdateBuffer on a buffer the CPU cannot write is refused", () =>
 test("MapForReading reads the device buffer back, whole or ranged", () =>
 {
     const cpu = Tr2CpuUsage.READ | Tr2CpuUsage.WRITE;
-    const desc = Tr2BufferDescriptionAL.FromStride(1, 8, Tr2GpuUsage.VERTEX_BUFFER, cpu);
+    const desc = Tr2BufferDescriptionAL.create__Stride(1, 8, Tr2GpuUsage.VERTEX_BUFFER, cpu);
     const { context, buffer } = created(desc, new Uint8Array([ 0, 1, 2, 3, 4, 5, 6, 7 ]));
 
     const whole = buffer.MapForReading(context);
@@ -140,7 +140,7 @@ test("MapForReading reads the device buffer back, whole or ranged", () =>
 
 test("reading a buffer without READ is refused", () =>
 {
-    const desc = Tr2BufferDescriptionAL.FromStride(4, 1, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE);
+    const desc = Tr2BufferDescriptionAL.create__Stride(4, 1, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE);
     const { context, buffer } = created(desc);
 
     assert.equal(buffer.MapForReading(context).result, ALResult.E_INVALIDCALL);
@@ -148,7 +148,7 @@ test("reading a buffer without READ is refused", () =>
 
 test("an R32_FLOAT shader-resource buffer is an R32F data texture, rebuilt only when its bytes change", () =>
 {
-    const desc = Tr2BufferDescriptionAL.FromFormat(PixelFormat.PIXEL_FORMAT_R32_FLOAT, 3, Tr2GpuUsage.SHADER_RESOURCE, Tr2CpuUsage.WRITE);
+    const desc = Tr2BufferDescriptionAL.create__Format(PixelFormat.PIXEL_FORMAT_R32_FLOAT, 3, Tr2GpuUsage.SHADER_RESOURCE, Tr2CpuUsage.WRITE);
     const { gl, calls, context, buffer } = created(desc);
 
     const texture = buffer.GetShaderResourceTexture();
@@ -174,7 +174,7 @@ test("an R32_FLOAT shader-resource buffer is an R32F data texture, rebuilt only 
 test("a structured buffer is read four words to a texel, rows of the emitter's width", () =>
 {
     const count = DATA_TEXTURE_WIDTH + 1;
-    const desc = Tr2BufferDescriptionAL.FromStride(16, count, Tr2GpuUsage.SHADER_RESOURCE, Tr2CpuUsage.WRITE);
+    const desc = Tr2BufferDescriptionAL.create__Stride(16, count, Tr2GpuUsage.SHADER_RESOURCE, Tr2CpuUsage.WRITE);
     const { gl, calls, buffer } = created(desc);
 
     buffer.GetShaderResourceTexture();
@@ -185,7 +185,7 @@ test("a structured buffer is read four words to a texel, rows of the emitter's w
 test("a raw (non-structured) shader-resource buffer is viewed as R32_UINT, as dx11 views it", () =>
 {
     const gpu = Tr2GpuUsage.VERTEX_BUFFER | Tr2GpuUsage.SHADER_RESOURCE;
-    const desc = Tr2BufferDescriptionAL.FromStride(4, 4, gpu, Tr2CpuUsage.WRITE);
+    const desc = Tr2BufferDescriptionAL.create__Stride(4, 4, gpu, Tr2CpuUsage.WRITE);
     const { gl, calls, buffer } = created(desc);
 
     buffer.GetShaderResourceTexture();
@@ -195,7 +195,7 @@ test("a raw (non-structured) shader-resource buffer is viewed as R32_UINT, as dx
 
 test("Destroy deletes the device objects", () =>
 {
-    const desc = Tr2BufferDescriptionAL.FromFormat(PixelFormat.PIXEL_FORMAT_R32_FLOAT, 1, Tr2GpuUsage.SHADER_RESOURCE, Tr2CpuUsage.WRITE);
+    const desc = Tr2BufferDescriptionAL.create__Format(PixelFormat.PIXEL_FORMAT_R32_FLOAT, 1, Tr2GpuUsage.SHADER_RESOURCE, Tr2CpuUsage.WRITE);
     const { calls, buffer } = created(desc);
     const device = buffer.GetGpuResource();
     const texture = buffer.GetShaderResourceTexture();

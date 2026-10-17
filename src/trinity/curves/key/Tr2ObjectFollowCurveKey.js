@@ -213,7 +213,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
     {
       return null;
     }
-    if (be.classes.QueryThisInterface(object, EveSpaceObject2, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
+    if (be.classes.QueryThisInterface(object, EveSpaceObject2, object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
     {
       const locators = object.GetLocatorsForSet(this.offsetLocatorName);
       if (locators && locators.length > 0)
@@ -241,7 +241,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
         break;
       case RotationSetting.MODEL_ROTATION:
         {
-          if (this.object && be.classes.QueryThisInterface(this.object, IWorldPosition, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
+          if (this.object && be.classes.QueryThisInterface(this.object, IWorldPosition, this.object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
           {
             return quat.normalize(this._rotation, this.object.GetWorldRotation());
           }
@@ -258,7 +258,7 @@ export class Tr2ObjectFollowCurveKey extends ITr2FollowCurveKey
    */
   GetWorldPosition(out)
   {
-    return this.object && be.classes.QueryThisInterface(this.object, IWorldPosition, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null
+    return this.object && be.classes.QueryThisInterface(this.object, IWorldPosition, this.object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null
       ? this.object.GetWorldPosition(out) : null;
   }
 

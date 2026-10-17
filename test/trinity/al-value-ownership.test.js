@@ -4,8 +4,8 @@ import {Tr2RenderContextALStub,Tr2TextureAL,Tr2BufferAL,Tr2BufferDescriptionAL,T
 import {Tr2TextureReference,Tr2RuntimeGpuBuffer,Tr2Effect,Tr2GpuResourcePool} from '../../npm/dist/trinity/index.js';
 import {Tr2GpuUsage,Tr2CpuUsage,TextureType,PixelFormat} from '../../npm/dist/global/consts/renderContext/index.js';
 function context(){const al=new Tr2RenderContextALStub();al.CreateDevice();return al;}
-function texture(al){return al.CreateTexture(Tr2BitmapDimensions.texture2D(4,4,1,PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM),{gpuUsage:Tr2GpuUsage.RENDER_TARGET|Tr2GpuUsage.SHADER_RESOURCE,cpuUsage:Tr2CpuUsage.READ});}
-const bufferDesc=()=>Tr2BufferDescriptionAL.FromStride(4,16,Tr2GpuUsage.VERTEX_BUFFER,Tr2CpuUsage.WRITE|Tr2CpuUsage.READ);
+function texture(al){return al.CreateTexture(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(4,4,1,PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM),{gpuUsage:Tr2GpuUsage.RENDER_TARGET|Tr2GpuUsage.SHADER_RESOURCE,cpuUsage:Tr2CpuUsage.READ});}
+const bufferDesc=()=>Tr2BufferDescriptionAL.create__Stride(4,16,Tr2GpuUsage.VERTEX_BUFFER,Tr2CpuUsage.WRITE|Tr2CpuUsage.READ);
 
 test('texture copies retain one registered implementation through final owner release',()=>{
  const al=context(),a=texture(al),b=new Tr2TextureAL({copy:a}),implementation=a.TrinityALImpl_GetObject();
@@ -39,7 +39,7 @@ test('runtime buffer parameter survives caller reset and is released with its ef
 });
 test('pool handles and escaped values survive explicit pool destruction',()=>{
  const al=context(),pool=new Tr2GpuResourcePool().SetRenderContext(al);
- const handle=pool.GetPersistentTexture('retained',{type:TextureType.TEX_TYPE_2D,format:PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM,width:4,height:4,depth:1,mipCount:1,gpuUsage:Tr2GpuUsage.RENDER_TARGET});
+ const handle=pool.GetPersistentTexture__WidthHeight('retained',4,4,PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM,Tr2GpuUsage.RENDER_TARGET,null);
  const borrowed=handle.Get(),copy=new Tr2TextureAL({copy:borrowed}),implementation=copy.TrinityALImpl_GetObject();
  pool.Destroy();assert.ok(handle.Get().IsValid());pool.Free(handle);assert.equal(handle.Get(),null);assert.equal(borrowed.IsValid(),false);assert.ok(copy.IsValid());
  copy.Destroy();assert.equal(implementation.IsRegistered(),false);al.Destroy();
@@ -53,7 +53,7 @@ test('empty texture operands keep native errors and repeated maps agree',()=>{
  const al=context(),value=texture(al),empty=new Tr2TextureAL(),region=new Tr2TextureSubresource();
  assert.equal(value.CopySubresourceRegion(region,empty,region,al),ALResult.E_INVALIDARG);
  assert.equal(value.Resolve(empty,al),ALResult.E_INVALIDCALL);assert.equal(empty.Resolve(value,al),ALResult.E_INVALIDARG);
- const mip=Tr2TextureSubresource.ForMipLevel(0);
+ const mip=Tr2TextureSubresource.create__MipLevel(0);
  const first=value.MapForReading(mip,al);value.UnmapForReading(al);const second=value.MapForReading(mip,al);
  assert.equal(first.result,second.result);assert.equal(first.result,ALResult.S_OK);value.UnmapForReading(al);value.Destroy();al.Destroy();
 });

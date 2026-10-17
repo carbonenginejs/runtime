@@ -100,9 +100,9 @@ test("PSD save rejection matches Carbon, while mip chains save only the top leve
 {
     assert.equal(CjsPsdFormat.save(new HostBitmap()).result.code, Code.INVALID_BITMAP);
     for (const dimensions of [
-        new BitmapDimensions({ type: TextureType.TEX_TYPE_CUBE, format: F.PIXEL_FORMAT_R8_UNORM, width: 4, height: 4, arraySize: 6 }),
-        new BitmapDimensions({ type: TextureType.TEX_TYPE_2D, format: F.PIXEL_FORMAT_R8_UNORM, width: 4, height: 4, arraySize: 2 }),
-        new BitmapDimensions({ type: TextureType.TEX_TYPE_2D, format: F.PIXEL_FORMAT_R8G8B8A8_UNORM, width: 4, height: 4 })
+        BitmapDimensions.create__AllFields(TextureType.TEX_TYPE_CUBE, F.PIXEL_FORMAT_R8_UNORM, 4, 4, 0, 0, 6),
+        BitmapDimensions.create__AllFields(TextureType.TEX_TYPE_2D, F.PIXEL_FORMAT_R8_UNORM, 4, 4, 0, 0, 2),
+        BitmapDimensions.create__TypeFormatWidthHeightDepthMipCount(TextureType.TEX_TYPE_2D, F.PIXEL_FORMAT_R8G8B8A8_UNORM, 4, 4, 0, 0)
     ]) assert.equal(CjsPsdFormat.isSaveSupported(dimensions).code, Code.SAVE_NOT_SUPPORTED);
     const unsupported = new HostBitmap();
     unsupported.Create(1, 1, 1, F.PIXEL_FORMAT_R8G8B8A8_UNORM);

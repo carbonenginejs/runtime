@@ -228,13 +228,9 @@ export class Tr2VolumetricsRenderer
     const noiseResolution = 64;
     const noiseData = new Int8Array(noiseResolution * noiseResolution * noiseResolution); // alloc: one-time noise upload
     for (let index = 0; index < noiseData.length; index++) noiseData[index] = carbonRandom.triRandIntRange(-127, 128);
-    this._froxel3DNoise.GetTexture().Create(new Tr2BitmapDimensions({
-      type: TextureType.TEX_TYPE_3D, format: PixelFormat.PIXEL_FORMAT_R8_SNORM,
-      width: noiseResolution, height: noiseResolution, depth: noiseResolution, mipCount: 1, arraySize: 1
-    }), {
-      gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, cpuUsage: Tr2CpuUsage.NONE,
-      initialData: [ new Tr2SubresourceData(new Uint8Array(noiseData.buffer), noiseResolution, noiseResolution * noiseResolution) ] // alloc: byte view of the one-time noise upload
-    }, Tr2RenderContext_GetMainThreadRenderContext());
+    this._froxel3DNoise.GetTexture().Create__GpuUsageCpuUsageInitialData(Tr2BitmapDimensions.create__AllFields(TextureType.TEX_TYPE_3D, PixelFormat.PIXEL_FORMAT_R8_SNORM, noiseResolution, noiseResolution, noiseResolution, 1, 1), Tr2GpuUsage.SHADER_RESOURCE, Tr2CpuUsage.NONE,
+    [ new Tr2SubresourceData(new Uint8Array(noiseData.buffer), noiseResolution, noiseResolution * noiseResolution) ], // alloc: byte view of the one-time noise upload
+    Tr2RenderContext_GetMainThreadRenderContext());
 
     this._updateMieEnvironmentMap.SetEffectPathName("res:/Graphics/Effect/Managed/Space/SpecialFX/Volumetric/Fog/UpdateMieEnvironmentMap.fx");
   }
@@ -415,16 +411,16 @@ export class Tr2VolumetricsRenderer
     const originalWidth = sceneDepth.GetWidth(), originalHeight = sceneDepth.GetHeight();
     const width = Math.min(originalWidth, Math.max(1, Math.floor(originalWidth * this.scaleFactor)));
     const height = Math.min(originalHeight, Math.max(1, Math.floor(originalHeight * this.scaleFactor)));
-    const description = { type: TextureType.TEX_TYPE_2D,
-      format: PixelFormat.PIXEL_FORMAT_R16G16B16A16_FLOAT,
-      width, height, depth: 1, mipCount: 1, arraySize: 4,
-      gpuUsage: Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE };
+    const slices = 4;
+    const description = Tr2BitmapDimensions.create__AllFields(TextureType.TEX_TYPE_2D,
+      PixelFormat.PIXEL_FORMAT_R16G16B16A16_FLOAT, width, height, 1, 1, slices);
+    const slicesUsage = Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE;
     const componentType = EveComponentType.VolumetricRenderable;
     const count = registry.ComponentCount(componentType);
     if (count === 0)
     {
       if (width === this.lastRequestedWidth && height === this.lastRequestedHeight)
-        gpuResourcePool.Free(gpuResourcePool.GetTempTexture("VolumetricSlices", description));
+        gpuResourcePool.Free(gpuResourcePool.GetTempTexture("VolumetricSlices", description, slicesUsage));
       return Tr2VolumetricsRenderer.getEmptyVolumetricTexture(gpuResourcePool);
     }
     const store = Tr2VariableStore.globalStore();
@@ -441,7 +437,7 @@ export class Tr2VolumetricsRenderer
     {
       registry.ProcessComponents(componentType, cloud => cloud.SetSceneInformation(sceneInformation));
       registry.ProcessComponentsUntil(componentType, cloud => cloud.UpdateVolumetricLightmap(renderContext));
-      volumeSlices = gpuResourcePool.GetTempTexture("VolumetricSlices", description);
+      volumeSlices = gpuResourcePool.GetTempTexture("VolumetricSlices", description, slicesUsage);
       this.lastRequestedWidth = width;
       this.lastRequestedHeight = height;
       for (let slot = 0; slot < 4; slot++)
@@ -455,8 +451,8 @@ export class Tr2VolumetricsRenderer
         this.volumeBlit.SetOption("CLOUD_UPSAMPLING", "CLOUD_UPSAMPLING_NONE");
       else
       {
-        volumetricDepth = gpuResourcePool.GetTempTexture("VolumetricDepth", {
-          ...description, arraySize: 1, format: PixelFormat.PIXEL_FORMAT_R32_FLOAT });
+        volumetricDepth = gpuResourcePool.GetTempTexture__WidthHeight("VolumetricDepth", width, height,
+          PixelFormat.PIXEL_FORMAT_R32_FLOAT, Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE);
         this.volumeBlit.SetOption("CLOUD_UPSAMPLING", "CLOUD_UPSAMPLING_BILINEAR");
         esm.SetRenderTarget(0, volumetricDepth.Get());
         esm.SetRenderTarget(1, null);
@@ -481,7 +477,8 @@ export class Tr2VolumetricsRenderer
       }
       if (this.blur)
       {
-        blurScratch = gpuResourcePool.GetTempTexture("VolumetricBlurScratch", { ...description, arraySize: 1 });
+        blurScratch = gpuResourcePool.GetTempTexture__WidthHeight("VolumetricBlurScratch", width, height,
+          PixelFormat.PIXEL_FORMAT_R16G16B16A16_FLOAT, Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE);
         esm.ApplyStandardStates(RenderingMode.RM_FULLSCREEN);
         esm.SetRenderTarget(0, blurScratch.Get());
         for (let slot = 1; slot < 4; slot++) esm.SetRenderTarget(slot, null);
@@ -534,11 +531,9 @@ export class Tr2VolumetricsRenderer
   static getEmptyVolumetricTexture(gpuResourcePool)
   {
     const initialData = Array.from({ length: 4 }, () => new Tr2SubresourceData(EMPTY_VOLUME_TEXEL, 4, 4));
-    return gpuResourcePool.GetPersistentTexture("EmptyEmptyVolumetricSlices", {
-      type: TextureType.TEX_TYPE_2D, format: PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM,
-      width: 1, height: 1, depth: 1, mipCount: 1, arraySize: 4,
-      gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, initialData
-    });
+    return gpuResourcePool.GetPersistentTexture("EmptyEmptyVolumetricSlices",
+      Tr2BitmapDimensions.create__AllFields(TextureType.TEX_TYPE_2D, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM, 1, 1, 1, 1, 4),
+      Tr2GpuUsage.SHADER_RESOURCE, initialData);
   }
 
   /**
@@ -576,18 +571,15 @@ export class Tr2VolumetricsRenderer
     return fog;
   }
 
-  /** Native transparent 3D fog texel (cpp:536-553); options combine the pool overloads. */
-  @meta.adapted
+  /** Native transparent 3D fog texel (cpp:536-553). */
+  @meta.implemented
   @blue.method
   @meta.renamed("GetEmptyFogTexture")
   static getEmptyFogTexture(gpuResourcePool)
   {
-    return gpuResourcePool.GetPersistentTexture("EmptyFroxelFog", {
-      type: TextureType.TEX_TYPE_3D, format: PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM,
-      width: 1, height: 1, depth: 1, mipCount: 1, arraySize: 1,
-      gpuUsage: Tr2GpuUsage.SHADER_RESOURCE,
-      initialData: [new Tr2SubresourceData(EMPTY_VOLUME_TEXEL, 4, 4)]
-    });
+    const dimensions = Tr2BitmapDimensions.create__AllFields(TextureType.TEX_TYPE_3D, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM, 1, 1, 1, 1, 1);
+    return gpuResourcePool.GetPersistentTexture("EmptyFroxelFog", dimensions, Tr2GpuUsage.SHADER_RESOURCE,
+      [new Tr2SubresourceData(EMPTY_VOLUME_TEXEL, 4, 4)]);
   }
 
   /**
@@ -707,12 +699,10 @@ export class Tr2VolumetricsRenderer
     if (Failed(this._fogConstantBuffer.Unlock(renderContext))) return null;
     if (Failed(renderContext.SetConstants(this._fogConstantBuffer, ShaderType.COMPUTE_SHADER, PER_OBJECT_VS))) return null;
 
-    const dimensions = {
-      type: TextureType.TEX_TYPE_3D, format: PixelFormat.PIXEL_FORMAT_R11G11B10_FLOAT,
-      width, height, depth, mipCount: 1, arraySize: 1,
-      gpuUsage: Tr2GpuUsage.UNORDERED_ACCESS | Tr2GpuUsage.SHADER_RESOURCE
-    };
-    const fogFroxels = gpuResourcePool.GetTempTexture("FogFroxels", dimensions);
+    const dimensions = Tr2BitmapDimensions.create__AllFields(TextureType.TEX_TYPE_3D, PixelFormat.PIXEL_FORMAT_R11G11B10_FLOAT,
+      width, height, depth, 1, 1);
+    const froxelUsage = Tr2GpuUsage.UNORDERED_ACCESS | Tr2GpuUsage.SHADER_RESOURCE;
+    const fogFroxels = gpuResourcePool.GetTempTexture("FogFroxels", dimensions, froxelUsage);
 
     const workgroupSize = 4;
     const wgX = Math.floor((width + workgroupSize - 1) / workgroupSize);
@@ -742,8 +732,8 @@ export class Tr2VolumetricsRenderer
       if (temporalFog)
       {
         const clear = texture => { renderContext.ClearUav(texture, Tr2VolumetricsRenderer._temporalClearValue, true); };
-        temporalFroxels0 = gpuResourcePool.GetPersistentTexture("TemporalFroxelFog0", dimensions, clear);
-        temporalFroxels1 = gpuResourcePool.GetPersistentTexture("TemporalFroxelFog1", dimensions, clear);
+        temporalFroxels0 = gpuResourcePool.GetPersistentTexture("TemporalFroxelFog0", dimensions, froxelUsage, clear);
+        temporalFroxels1 = gpuResourcePool.GetPersistentTexture("TemporalFroxelFog1", dimensions, froxelUsage, clear);
 
         const temporalInput = resources.currentTemporalFroxels ? temporalFroxels0 : temporalFroxels1;
         const temporalOutput = resources.currentTemporalFroxels ? temporalFroxels1 : temporalFroxels0;
@@ -805,18 +795,12 @@ export class Tr2VolumetricsRenderer
       if (environmentLightingEnabled)
       {
         // Full 32-bit precision: the map is blended into with a low weight.
-        mieEnvironmentMap.Create(new Tr2BitmapDimensions({
-          type: TextureType.TEX_TYPE_CUBE, format: PixelFormat.PIXEL_FORMAT_R32G32B32A32_FLOAT,
-          width: environmentMapResolution, height: environmentMapResolution, depth: 1, mipCount: 1, arraySize: 6
-        }), { gpuUsage: Tr2GpuUsage.UNORDERED_ACCESS | Tr2GpuUsage.SHADER_RESOURCE }, mainThreadRenderContext);
+        mieEnvironmentMap.Create__GpuUsage(Tr2BitmapDimensions.create__AllFields(TextureType.TEX_TYPE_CUBE, PixelFormat.PIXEL_FORMAT_R32G32B32A32_FLOAT, environmentMapResolution, environmentMapResolution, 1, 1, 6), Tr2GpuUsage.UNORDERED_ACCESS | Tr2GpuUsage.SHADER_RESOURCE, mainThreadRenderContext);
       }
       else
       {
         const initialData = Array.from({ length: 6 }, () => new Tr2SubresourceData(EMPTY_VOLUME_TEXEL, 4, 4));
-        mieEnvironmentMap.Create(new Tr2BitmapDimensions({
-          type: TextureType.TEX_TYPE_CUBE, format: PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM,
-          width: 1, height: 1, depth: 1, mipCount: 1, arraySize: 6
-        }), { gpuUsage: Tr2GpuUsage.UNORDERED_ACCESS | Tr2GpuUsage.SHADER_RESOURCE, initialData }, mainThreadRenderContext);
+        mieEnvironmentMap.Create__GpuUsageInitialData(Tr2BitmapDimensions.create__AllFields(TextureType.TEX_TYPE_CUBE, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM, 1, 1, 1, 1, 6), Tr2GpuUsage.UNORDERED_ACCESS | Tr2GpuUsage.SHADER_RESOURCE, initialData, mainThreadRenderContext);
       }
       if (!mieEnvironmentMap.IsValid())
       {

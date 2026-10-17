@@ -52,7 +52,8 @@ function fourCC(text)
  */
 export function writeDds(packet)
 {
-    const bd = new BitmapDimensions(packet.description);
+    const d = packet.description;
+    const bd = BitmapDimensions.create__AllFields(d.type, d.format, d.width, d.height, d.depth, d.mipCount, d.arraySize);
     if (!isDdsSaveSupported(bd)) throw new TypeError("DDS writer requires a BC1-BC5 UNORM bitmap");
     const width = bd.GetWidth(), height = bd.GetHeight(), depth = bd.GetDepth();
     const faces = bd.GetArraySize(), mips = bd.GetTrueMipCount(), type = bd.GetType();

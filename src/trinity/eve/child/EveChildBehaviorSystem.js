@@ -537,10 +537,10 @@ export class EveChildBehaviorSystem extends EveChildTransform
     this.instanceCount = Math.max(1, count);
     if (!Tr2Renderer.IsResourceCreationAllowed()) return;
     const context = Tr2RenderContext_GetMainThreadRenderContext();
-    if (Failed(this._shipInstanceBuffer.Create(Tr2BufferDescriptionAL.FromStride(
+    if (Failed(this._shipInstanceBuffer.Create(Tr2BufferDescriptionAL.create__Stride(
       this._shipStride, this.instanceCount, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN
     ), null, context))) return;
-    this._boosterInstanceBuffer.Create(Tr2BufferDescriptionAL.FromStride(
+    this._boosterInstanceBuffer.Create(Tr2BufferDescriptionAL.create__Stride(
       this._boosterStride, this.instanceCount, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN
     ), null, context);
   }

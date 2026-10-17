@@ -28,7 +28,7 @@ class TestLocalFileSystem extends IBlueResFileSystem
     return data === undefined ? null : { form: BlueResFileSystemForm.BYTES, data };
   }
 
-  ResolvePath(path) { return this.present.has(path) ? path : null; }
+  ResolvePathW(path) { return this.present.has(path) ? path : null; }
 
   async WriteFile(path, bytes)
   {

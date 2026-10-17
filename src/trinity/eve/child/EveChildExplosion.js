@@ -327,7 +327,7 @@ export class EveChildExplosion extends EveChildContainer
         this._countdownToGlobalExplosionStart -= dt;
         if (this._countdownToGlobalExplosionStart < 0 && !this._globalExplosionInstances.length)
         {
-          const instance = be.classes.CopyTo(this.globalExplosion);
+          const instance = be.classes.CopyTo(this.globalExplosion, null);
           if (instance)
           {
             const container = new EveChildContainer();
@@ -354,7 +354,7 @@ export class EveChildExplosion extends EveChildContainer
           this.generatedGlobalExplosions = container;
           for (const globalExplosion of this.globalExplosions)
           {
-            const instance = be.classes.CopyTo(globalExplosion);
+            const instance = be.classes.CopyTo(globalExplosion, null);
             if (instance)
             {
               addChild(container, "objects", instance, { listNotify: container });
@@ -539,11 +539,13 @@ export class EveChildExplosion extends EveChildContainer
     {
       localExplosion = this.localExplosions[(carbonRandom.crtRand() % (this.localExplosions.length))];
     }
-    const instance = be.classes.CopyTo(
+    const instance = be.classes.CopyTo__Callbacks(
       localExplosion,
       null,
       source => this.CopyElement(source),
-      (_source, dest) => EveChildExplosion.updateEmitter(dest, t)
+      null,
+      (_source, dest) => EveChildExplosion.updateEmitter(dest, t),
+      null
     );
     if (!instance)
     {

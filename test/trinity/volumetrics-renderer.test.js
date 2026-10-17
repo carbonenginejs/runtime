@@ -107,7 +107,7 @@ test("Tr2VolumetricsRenderer is maintained with Carbon defaults and scene owners
     [ "RenderFog", "implemented" ],
     [ "RenderFogIntoReflectionMap", "implemented" ],
     [ "_RenderFog_Resources", "adapted" ],
-    [ "getEmptyFogTexture", "adapted" ],
+    [ "getEmptyFogTexture", "implemented" ],
     [ "UpdateFogEnvironmentMap", "implemented" ],
     [ "SetIsReflectionProbe", "implemented" ],
     [ "UpdateVariableStore", "implemented" ],
@@ -392,9 +392,7 @@ function volumeFixture()
   al.CreateDevice({ mode: { width: 80, height: 40 } });
   context.SetRenderContextAL(al);
   const pool = new core.Tr2GpuResourcePool().SetRenderContext(context);
-  const depth = context.CreateTexture(new Tr2BitmapDimensions({ type: TextureType.TEX_TYPE_2D,
-    width: 80, height: 40, depth: 1, mipCount: 1, arraySize: 1,
-    format: PixelFormat.PIXEL_FORMAT_R32_FLOAT }), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.RENDER_TARGET });
+  const depth = context.CreateTexture(Tr2BitmapDimensions.create__AllFields(TextureType.TEX_TYPE_2D, PixelFormat.PIXEL_FORMAT_R32_FLOAT, 80, 40, 1, 1, 1), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.RENDER_TARGET });
   return { context, pool, depth, close() { depth.Destroy(); pool.Destroy(); context.Destroy(); } };
 }
 

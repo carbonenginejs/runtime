@@ -223,7 +223,7 @@ export class EveChildCloud extends EveSpaceObjectChild
           vertices[offset + 1] = j / dimension * 2 - 1;
         }
       }
-      if (Failed(this._vertexBuffer.Create(Tr2BufferDescriptionAL.FromStride(
+      if (Failed(this._vertexBuffer.Create(Tr2BufferDescriptionAL.create__Stride(
         8, vertices.length / 2, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.NONE
       ), vertices, context))) return false;
     }
@@ -251,7 +251,7 @@ export class EveChildCloud extends EveSpaceObjectChild
           }
         }
         const buffer = new Tr2BufferAL();
-        if (Failed(buffer.Create(Tr2BufferDescriptionAL.FromStride(
+        if (Failed(buffer.Create(Tr2BufferDescriptionAL.create__Stride(
           2, indices.length, Tr2GpuUsage.INDEX_BUFFER, Tr2CpuUsage.NONE
         ), indices, context))) return false;
         this._indexBuffers.push(buffer);

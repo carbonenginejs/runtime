@@ -208,7 +208,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
 
     if (!this._vertexBuffer.IsValid())
     {
-      if (Failed(this._vertexBuffer.Create(Tr2BufferDescriptionAL.FromStride(CORNER_STRIDE, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.NONE),
+      if (Failed(this._vertexBuffer.Create(Tr2BufferDescriptionAL.create__Stride(CORNER_STRIDE, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.NONE),
         EveChildBulletStorm._corners, Tr2RenderContext_GetMainThreadRenderContext()))) return false;
     }
 
@@ -262,7 +262,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
         vertices.set(instance.sourceDirectionOS, index * 10 + 3);
         vertices.set(instance.data, index * 10 + 6);
       }
-      if (Failed(this._perInstanceBuffer.Create(Tr2BufferDescriptionAL.FromStride(INSTANCE_STRIDE, this.objectCount, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.NONE),
+      if (Failed(this._perInstanceBuffer.Create(Tr2BufferDescriptionAL.create__Stride(INSTANCE_STRIDE, this.objectCount, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.NONE),
         vertices, Tr2RenderContext_GetMainThreadRenderContext()))) return false;
     }
     return true;

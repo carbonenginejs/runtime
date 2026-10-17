@@ -28,7 +28,7 @@ import { EveUpdateContext } from "../EveUpdateContext.js";
 import { EveEffectRoot2 } from "../spaceObject/EveEffectRoot2.js";
 import { EveCamera } from "../camera/EveCamera.js";
 import { CjsPerFrameLayouts } from "../../core/rawData/CjsPerFrameLayouts.js";
-import { CullMode, PixelFormat, RenderState, ShaderType, TextureType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
+import { CullMode, PixelFormat, RenderState, ShaderType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
 import { Tr2ColorAttachment, Tr2DepthAttachment, Tr2SubresourceData } from "#trinityal";
 import { RenderingMode, TriBatchType } from "#consts/graphics";
 import { DefaultKeyGenerator, EffectKeyGenerator, TriRenderBatchAccumulator } from "../../core/batch/TriRenderBatch/index.js";
@@ -1131,13 +1131,13 @@ export class EveSpaceScene
       const visible = this.GetPickingObjectsToRender(renderContext);
       if (!this._pickBuffer.IsValid())
       {
-        this._pickBuffer.Create(Tr2BitmapDimensions.texture2D(1, 1, 1, PixelFormat.PIXEL_FORMAT_R32G32B32A32_UINT),
-          { gpuUsage: Tr2GpuUsage.RENDER_TARGET, cpuUsage: Tr2CpuUsage.READ_OFTEN }, renderContext);
+        this._pickBuffer.Create__GpuUsageCpuUsage(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(1, 1, 1, PixelFormat.PIXEL_FORMAT_R32G32B32A32_UINT),
+          Tr2GpuUsage.RENDER_TARGET, Tr2CpuUsage.READ_OFTEN, renderContext);
       }
       if (!this._pickDepthBuffer.IsValid())
       {
-        this._pickDepthBuffer.Create(Tr2BitmapDimensions.texture2D(1, 1, 1, PixelFormat.PIXEL_FORMAT_D24_UNORM_S8_UINT),
-          { gpuUsage: Tr2GpuUsage.DEPTH_STENCIL }, renderContext);
+        this._pickDepthBuffer.Create__GpuUsage(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(1, 1, 1, PixelFormat.PIXEL_FORMAT_D24_UNORM_S8_UINT),
+          Tr2GpuUsage.DEPTH_STENCIL, renderContext);
       }
       if (this._pickBuffer.IsValid() && this._pickDepthBuffer.IsValid() && !Failed(renderContext.BeginScene()))
       {
@@ -1180,7 +1180,7 @@ export class EveSpaceScene
         {
           renderContext.EndScene();
         }
-        request.readback = this._pickBuffer.CreateReadback(Tr2TextureSubresource.ForMipLevel(0), renderContext);
+        request.readback = this._pickBuffer.CreateReadback(Tr2TextureSubresource.create__MipLevel(0), renderContext);
       }
     }
     catch (error)
@@ -1874,16 +1874,8 @@ export class EveSpaceScene
 
     const emptyShadow = (name, format, publication) =>
     {
-      const handle = gpuResourcePool.GetPersistentTexture(name, {
-        type: TextureType.TEX_TYPE_2D,
-        width: 1,
-        height: 1,
-        depth: 1,
-        mipCount: 1,
-        format,
-        gpuUsage: Tr2GpuUsage.SHADER_RESOURCE,
-        initialData: [ new Tr2SubresourceData(new Uint8Array([ 255 ]), 1, 1) ]
-      });
+      const handle = gpuResourcePool.GetPersistentTexture__WidthHeight(name, 1, 1, format, Tr2GpuUsage.SHADER_RESOURCE,
+        [ new Tr2SubresourceData(new Uint8Array([ 255 ]), 1, 1) ]);
       try
       {
         publish(publication, handle.Get());

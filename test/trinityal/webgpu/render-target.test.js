@@ -255,7 +255,7 @@ test("the canvas pass supplies depth and restores it after an offscreen depth bi
   device.createCommandEncoder = () => ({ beginRenderPass: () => ({ end() {} }), finish: () => "command-buffer" });
   const al = new CjsWebgpuRenderContextAL({ webgpu: target._webgpu, renderTarget: target });
   al.CreateDevice();
-  const depth = al.CreateTexture(Tr2BitmapDimensions.texture2D(64, 64, 1, PixelFormat.PIXEL_FORMAT_D32_FLOAT), { gpuUsage: Tr2GpuUsage.DEPTH_STENCIL });
+  const depth = al.CreateTexture(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(64, 64, 1, PixelFormat.PIXEL_FORMAT_D32_FLOAT), { gpuUsage: Tr2GpuUsage.DEPTH_STENCIL });
   assert.ok(depth && depth.IsValid());
   al.BeginScene();
   al.SetRenderTarget(0, target);
@@ -286,7 +286,7 @@ test("canvas colour and implicit depth clear on consecutive frames and after an 
   });
   const al = new CjsWebgpuRenderContextAL({ webgpu: target._webgpu, renderTarget: target });
   al.CreateDevice();
-  const offscreen = al.CreateTexture(Tr2BitmapDimensions.texture2D(1, 1, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM),
+  const offscreen = al.CreateTexture(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(1, 1, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM),
     { gpuUsage: Tr2GpuUsage.RENDER_TARGET });
   const color = [0.14, 0.17, 0.21, 1];
   for (let frame = 0; frame < 2; frame++)
@@ -340,7 +340,7 @@ for (const submit of [true, false]) test(submit
   device.createCommandEncoder = () => ({ beginRenderPass: () => ({ end() {} }), finish() { events.push("finish"); return {}; } });
   const al = new CjsWebgpuRenderContextAL({ webgpu: target._webgpu, renderTarget: target });
   al.CreateDevice();
-  const value = al.CreateTexture(Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM),
+  const value = al.CreateTexture(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(4, 4, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM),
     { gpuUsage: Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE });
   const implementation = value.TrinityALImpl_GetObject();
   const storage = implementation.GetDeviceTexture();

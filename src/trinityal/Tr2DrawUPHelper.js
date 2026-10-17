@@ -262,7 +262,7 @@ export class Tr2DrawUPHelper
       // stride is. The stride the DRAW uses comes from `SetStreamSource`, not
       // from the description, so the two never have to agree.
       const created = renderContext.CreateBuffer(
-        Tr2BufferDescriptionAL.FromStride(
+        Tr2BufferDescriptionAL.create__Stride(
           4,
           Math.floor((totalSize + 3) / 4),
           Tr2GpuUsage.VERTEX_BUFFER,
@@ -301,7 +301,7 @@ export class Tr2DrawUPHelper
     if (!existing || existing.GetDesc().count < indexCount)
     {
       const created = renderContext.CreateBuffer(
-        Tr2BufferDescriptionAL.FromStride(bytesPerIndex, indexCount, Tr2GpuUsage.INDEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN)
+        Tr2BufferDescriptionAL.create__Stride(bytesPerIndex, indexCount, Tr2GpuUsage.INDEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN)
       );
 
       if (!created) return ALResult.E_FAIL;

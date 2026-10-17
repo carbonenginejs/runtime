@@ -394,14 +394,14 @@ test("QueryThisInterface walks the exposure table and chain, logging a miss unle
 
   const classes = new CjsBlueClasses();
   const child = new Child();
-  assert.equal(classes.QueryThisInterface(child, Child), child);
-  assert.equal(classes.QueryThisInterface(child, Parent), child);
-  assert.equal(classes.QueryThisInterface(child, IThing), child);
+  assert.equal(classes.QueryThisInterface(child, Child, child.constructor), child);
+  assert.equal(classes.QueryThisInterface(child, Parent, child.constructor), child);
+  assert.equal(classes.QueryThisInterface(child, IThing, child.constructor), child);
   assert.deepEqual(errors, []);
 
-  assert.equal(classes.QueryThisInterface(child, Unrelated, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT), null);
+  assert.equal(classes.QueryThisInterface(child, Unrelated, child.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT), null);
   assert.deepEqual(errors, []);
-  assert.equal(classes.QueryThisInterface(child, Unrelated), null);
+  assert.equal(classes.QueryThisInterface(child, Unrelated, child.constructor), null);
   assert.equal(errors.length, 1);
   assert.match(errors[0], /Interface QtiUnrelated not found on class QtiChild/);
 });

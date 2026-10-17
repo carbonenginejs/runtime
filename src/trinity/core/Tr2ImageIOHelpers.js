@@ -50,7 +50,7 @@ export function DescribeTexturePayload(payload)
     const srgb = payload.colorSpace === "srgb";
 
     return {
-      desc: Tr2BitmapDimensions.texture2D(
+      desc: Tr2BitmapDimensions.create__WidthHeightMipCountFormat(
         payload.width,
         payload.height,
         1,
@@ -82,15 +82,7 @@ export function DescribeTexturePayload(payload)
   // grey disc on a polished hull, which is a long way from an array count.
   const faces = payload.dimension === "cube" ? Math.max(1, payload.faces | 0) : 1;
   const arraySize = payload.dimension === "3d" ? 1 : Math.max(1, payload.arraySize | 0) * faces;
-  const desc = new Tr2BitmapDimensions({
-    type,
-    format,
-    width: payload.width,
-    height: payload.height,
-    depth: payload.dimension === "3d" ? Math.max(1, payload.depth | 0) : 1,
-    mipCount,
-    arraySize
-  });
+  const desc = Tr2BitmapDimensions.create__AllFields(type, format, payload.width, payload.height, payload.dimension === "3d" ? Math.max(1, payload.depth | 0) : 1, mipCount, arraySize);
   const initialData = new Array(mipCount * arraySize).fill(null);
 
   // Carbon's index: `i + j * trueMipLevelCount` for mip i of layer j.
@@ -152,15 +144,7 @@ export function DescribeBitmap(bitmap)
   }
 
   return {
-    desc: new Tr2BitmapDimensions({
-      type: bitmap.GetType(),
-      format: bitmap.GetFormat(),
-      width: bitmap.GetWidth(),
-      height: bitmap.GetHeight(),
-      depth: bitmap.GetDepth(),
-      mipCount,
-      arraySize
-    }),
+    desc: Tr2BitmapDimensions.create__AllFields(bitmap.GetType(), bitmap.GetFormat(), bitmap.GetWidth(), bitmap.GetHeight(), bitmap.GetDepth(), mipCount, arraySize),
     initialData,
     memoryUse
   };
@@ -263,7 +247,7 @@ export function RealizeTexture(resource, renderContext)
 }
 
 
-const videoSubresource = Tr2TextureSubresource.ForMipLevel(0);
+const videoSubresource = Tr2TextureSubresource.create__MipLevel(0);
 
 /**
  * Browser adaptation of VideoPlayer's texture UpdateSubresource call.

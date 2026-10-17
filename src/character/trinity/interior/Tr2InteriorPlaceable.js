@@ -116,8 +116,8 @@ export class Tr2InteriorPlaceable
       if (this.placeableRes && this.isUnique)
       {
         ++this._loadRequest;
-        const copy = be.classes.CloneTo(this.placeableRes);
-        this.placeableRes = copy ? be.classes.QueryThisInterface(copy, WodPlaceableRes) : null;
+        const copy = be.classes.CloneTo(this.placeableRes, null);
+        this.placeableRes = copy ? be.classes.QueryThisInterface(copy, WodPlaceableRes, copy.constructor) : null;
       }
       else
       {
@@ -156,7 +156,7 @@ export class Tr2InteriorPlaceable
       return null;
     }
     if (request !== this._loadRequest || path !== this.placeableResPath) return null;
-    if (!object || be.classes.QueryThisInterface(object, WodPlaceableRes, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === null)
+    if (!object || be.classes.QueryThisInterface(object, WodPlaceableRes, object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === null)
     {
       CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Resource ${path} is not a WodPlaceableRes.`);
       return null;

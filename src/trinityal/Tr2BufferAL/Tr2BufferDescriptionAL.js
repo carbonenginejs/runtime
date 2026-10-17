@@ -6,8 +6,9 @@ import { GetBytesPerPixel, PixelFormat, Tr2CpuUsage, Tr2GpuUsage } from "../../g
 /**
  * How a buffer is laid out and what may touch it.
  *
- * Carbon's two non-default constructors differ only in where the stride comes
- * from: `FromFormat` derives it from the pixel format, `FromStride` is given
+ * The field initialisers are Carbon's default constructor (Tr2BufferAL.cpp:11-18).
+ * Carbon's two other constructors differ only in where the stride comes from:
+ * `create__Format` derives it from the pixel format, `create__Stride` is given
  * it outright for a structured buffer.
  */
 export class Tr2BufferDescriptionAL
@@ -28,7 +29,9 @@ export class Tr2BufferDescriptionAL
   cpuUsage = Tr2CpuUsage.NONE;
 
   /**
-   * A typed buffer, whose stride follows from its format.
+   * Carbon's `Tr2BufferDescriptionAL( format, count, gpuUsage, cpuUsage )`
+   * (Tr2BufferAL.cpp:20-31): a typed buffer, whose stride follows from its
+   * format.
    *
    * @param {number} format A `PixelFormat` value.
    * @param {number} count Elements.
@@ -36,7 +39,7 @@ export class Tr2BufferDescriptionAL
    * @param {number} cpuUsage A `Tr2CpuUsage` bit set.
    * @returns {Tr2BufferDescriptionAL} The description.
    */
-  static FromFormat(format, count, gpuUsage, cpuUsage)
+  static create__Format(format, count, gpuUsage, cpuUsage)
   {
     const description = new Tr2BufferDescriptionAL();
 
@@ -50,7 +53,9 @@ export class Tr2BufferDescriptionAL
   }
 
   /**
-   * A structured buffer, whose stride is given.
+   * Carbon's `Tr2BufferDescriptionAL( stride, count, gpuUsage, cpuUsage )`
+   * (Tr2BufferAL.cpp:33-44): a structured buffer, whose stride is given and
+   * whose format is `PIXEL_FORMAT_UNKNOWN`.
    *
    * @param {number} stride Bytes per element.
    * @param {number} count Elements.
@@ -58,10 +63,11 @@ export class Tr2BufferDescriptionAL
    * @param {number} cpuUsage A `Tr2CpuUsage` bit set.
    * @returns {Tr2BufferDescriptionAL} The description.
    */
-  static FromStride(stride, count, gpuUsage, cpuUsage)
+  static create__Stride(stride, count, gpuUsage, cpuUsage)
   {
     const description = new Tr2BufferDescriptionAL();
 
+    description.format = PixelFormat.PIXEL_FORMAT_UNKNOWN;
     description.stride = stride;
     description.count = count;
     description.gpuUsage = gpuUsage;

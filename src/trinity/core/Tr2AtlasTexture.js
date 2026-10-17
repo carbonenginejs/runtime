@@ -527,7 +527,7 @@ export class Tr2AtlasTexture
       return null;
     }
 
-    const region = Tr2TextureSubresource.ForMipLevel(0).SetRect(this.x, this.y, this.x + this.width, this.y + this.height);
+    const region = Tr2TextureSubresource.create__MipLevel(0).SetRect(this.x, this.y, this.x + this.width, this.y + this.height);
     const mapping = texture.MapForWriting(region, renderContext);
 
     if (Failed(mapping.result))
@@ -566,7 +566,7 @@ export class Tr2AtlasTexture
     }
 
     const margin = this.atlas.GetMargin();
-    const region = Tr2TextureSubresource.ForMipLevel(0).SetRect(this.x - margin, this.y - margin, this.x + this.width + margin, this.y + this.height + margin);
+    const region = Tr2TextureSubresource.create__MipLevel(0).SetRect(this.x - margin, this.y - margin, this.x + this.width + margin, this.y + this.height + margin);
     const mapping = texture.MapForWriting(region, renderContext);
 
     if (Failed(mapping.result))

@@ -34,7 +34,8 @@ import { CjsSchema, blue, type } from "#schema";
 import { Tr2ResourceSetAL } from "../../Tr2ResourceSetAL/Tr2ResourceSetAL.js";
 import { ALResult, Failed, Tr2BitmapDimensions, Tr2BufferALStub, Tr2CapsALStub, Tr2ConstantBufferALStub, Tr2ConstantUsageAL, Tr2FenceALStub, Tr2ResourceSetALStub, Tr2SamplerStateALStub, Tr2ShaderALStub, Tr2ShaderProgramALStub, Tr2TextureALStub, Tr2VertexLayoutALStub } from "../../../trinityal/index.js";
 import { SamplerDescriptionKey } from "../../Tr2HalHelperStructures/Tr2SamplerDescription.js";
-import { INVALID_UPSCALING_CONTEXT_ID, PixelFormat, ShaderType, Topology, Tr2GpuUsage, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "../../../global/consts/renderContext/index.js";
+import { Tr2MsaaDesc } from "../../Tr2HalHelperStructures/Tr2MsaaDesc.js";
+import { INVALID_UPSCALING_CONTEXT_ID, PixelFormat, ShaderType, Topology, Tr2CpuUsage, Tr2GpuUsage, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "../../../global/consts/renderContext/index.js";
 
 
 function fail(message)
@@ -293,15 +294,16 @@ export class Tr2RenderContextALStub
    */
   CreateTexture(desc, options, implementationOnly = false)
   {
+    const { gpuUsage = Tr2GpuUsage.NONE, cpuUsage = Tr2CpuUsage.NONE, msaa = new Tr2MsaaDesc(), initialData = null } = options ?? {};
     if (implementationOnly)
     {
       const implementation = new Tr2TextureALStub();
-      const result = implementation.Create(desc, options ?? {}, this);
+      const result = implementation.Create(desc, msaa, gpuUsage, cpuUsage, initialData, this);
       if (Failed(result)) implementation.Destroy();
       return { result, implementation };
     }
     const value = new Tr2TextureAL();
-    return Failed(value.Create(desc, options ?? {}, this)) ? null : value;
+    return Failed(value.Create(desc, msaa, gpuUsage, cpuUsage, initialData, this)) ? null : value;
   }
 
   /**
@@ -433,9 +435,9 @@ export class Tr2RenderContextALStub
   {
     const { mode } = presentParameters;
 
-    const result = this._defaultBackBuffer.Create(
-      Tr2BitmapDimensions.texture2D(mode.width, mode.height, 1, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM),
-      { gpuUsage: Tr2GpuUsage.RENDER_TARGET },
+    const result = this._defaultBackBuffer.Create__GpuUsage(
+      Tr2BitmapDimensions.create__WidthHeightMipCountFormat(mode.width, mode.height, 1, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM),
+      Tr2GpuUsage.RENDER_TARGET,
       this
     );
 

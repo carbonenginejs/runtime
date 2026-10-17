@@ -95,7 +95,7 @@ test("switching ships lets the idle owner's GPU objects expire while the current
     privateResource.Initialize(`res:/${name}.private`);
     privateResource.SetPayload(new Uint8Array(16));
     privateResource.MarkPrepared();
-    const buffer = al.CreateBuffer(Tr2BufferDescriptionAL.FromStride(4, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.IMMUTABLE), new Uint8Array(16));
+    const buffer = al.CreateBuffer(Tr2BufferDescriptionAL.create__Stride(4, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.IMMUTABLE), new Uint8Array(16));
     privateResource.SetAdapterResource("webgpu", buffer);
     manager.motherLode.Insert(privateResource.GetPath(), privateResource);
     return { texture, geometry, privateResource, buffer, allocation, mesh, effect };

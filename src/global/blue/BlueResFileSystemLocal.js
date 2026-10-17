@@ -47,11 +47,30 @@ export class BlueResFileSystemLocal extends IBlueResFileSystem
   async GetStreamFromPath(_resPath, _request) { return noDisk("GetStreamFromPath"); }
 
   /**
-   * `ResolvePathW`, and Carbon's own `ResolvePath(const wchar_t*)`: the disk
-   * path of the file, or `null`. JS cannot hold both names; both answer the
-   * same question.
+   * `ResolvePathW` - the disk path of the file in the first search path that
+   * holds it, or of the path itself when it names an existing file. Carbon
+   * writes the path to its `resolvedPath` output parameter and returns
+   * whether it did; the output parameter is the return value here, and
+   * `null` is Carbon's false.
+   *
+   * @param {string} _path Res path.
+   * @returns {string|null} The absolute disk path, or `null`.
    */
-  ResolvePath(_path) { return noDisk("ResolvePath"); }
+  ResolvePathW(_path) { return noDisk("ResolvePathW"); }
+
+  /**
+   * `ResolvePath` - the disk path of the file, or an empty string when
+   * `ResolvePathW` finds none.
+   *
+   * @param {string} path Res path.
+   * @returns {string} The absolute disk path, or `""`.
+   */
+  ResolvePath(path)
+  {
+    // Carbon (BlueResFileSystemLocal.cpp:626-631): ResolvePathW into an empty string.
+    const result = this.ResolvePathW(path);
+    return result === null ? "" : result;
+  }
 
   /** `Initialize` - records the initial working directory and sets the default search paths. */
   Initialize(_initialPath) { return noDisk("Initialize"); }
@@ -74,11 +93,22 @@ export class BlueResFileSystemLocal extends IBlueResFileSystem
   /** `ResolvePathToRootW` - a disk path back to a res path under the given protocol. */
   ResolvePathToRoot(_root, _path) { return noDisk("ResolvePathToRoot"); }
 
-  /** `GetExpandedSearchPaths()` - every protocol's expanded search path. */
+  /**
+   * `GetExpandedSearchPaths()` - every protocol's expanded search path.
+   *
+   * @returns {Map<string, string[]>} Expanded folders by lower-case protocol.
+   */
   GetExpandedSearchPaths() { return noDisk("GetExpandedSearchPaths"); }
 
-  /** `GetExpandedSearchPaths(key, paths)` - adds one protocol's expanded search path to `paths`. */
-  GetExpandedSearchPaths__KeyPaths(_key, _paths) { return noDisk("GetExpandedSearchPaths__KeyPaths"); }
+  /**
+   * `GetExpandedSearchPaths(key, paths)` - one protocol's expanded search
+   * path. Carbon appends it to the caller's `paths` output parameter; the
+   * output parameter is the return value here, a new array.
+   *
+   * @param {string} _key Protocol, compared lower-case.
+   * @returns {string[]} The protocol's expanded folders; empty when it has none.
+   */
+  GetExpandedSearchPaths__Key(_key) { return noDisk("GetExpandedSearchPaths__Key"); }
 
   /** `LogPaths` - writes the search paths to the log. */
   LogPaths() { return noDisk("LogPaths"); }
@@ -89,8 +119,17 @@ export class BlueResFileSystemLocal extends IBlueResFileSystem
   /** `GetAllSearchPaths` - every protocol's search path as set. */
   GetAllSearchPaths() { return noDisk("GetAllSearchPaths"); }
 
-  /** `GetExpandedSearchPathsAsDict` (Blue name `GetExpandedSearchPaths`) - every protocol's expanded search path, for script. */
-  GetExpandedSearchPathsAsDict() { return noDisk("GetExpandedSearchPathsAsDict"); }
+  /**
+   * `GetExpandedSearchPathsAsDict` (Blue name `GetExpandedSearchPaths`) -
+   * every protocol's expanded search path, for script.
+   *
+   * @returns {Map<string, string[]>} Expanded folders by lower-case protocol.
+   */
+  GetExpandedSearchPathsAsDict()
+  {
+    // Carbon (BlueResFileSystemLocal.cpp:633-636): returns GetExpandedSearchPaths().
+    return this.GetExpandedSearchPaths();
+  }
 
   /** `ListDirFromScript` (Blue name `listdir`) - a directory's entries, for script. */
   ListDirFromScript(_dir) { return noDisk("ListDirFromScript"); }
@@ -105,7 +144,8 @@ CjsSchema.blue.define(BlueResFileSystemLocal, {
     IsDirectory: [ blue.method, meta.notImplemented ],
     GetDirectoryContents: [ blue.method, meta.notImplemented ],
     GetStreamFromPath: [ blue.method, meta.renamed("GetStreamFromPathW"), meta.notImplemented ],
-    ResolvePath: [ blue.method, meta.notImplemented ],
+    ResolvePathW: [ blue.method, meta.notImplemented ],
+    ResolvePath: [ blue.method, meta.implemented ],
     Initialize: [ blue.method, meta.notImplemented ],
     InitializeStdAppPaths: [ blue.method, meta.notImplemented ],
     SetSearchPath: [ blue.method, meta.renamed("SetSearchPathW"), meta.notImplemented ],
@@ -114,11 +154,11 @@ CjsSchema.blue.define(BlueResFileSystemLocal, {
     ResolvePathForWriting: [ blue.method, meta.renamed("ResolvePathForWritingW"), meta.notImplemented ],
     ResolvePathToRoot: [ blue.method, meta.renamed("ResolvePathToRootW"), meta.notImplemented ],
     GetExpandedSearchPaths: [ blue.method, meta.notImplemented ],
-    GetExpandedSearchPaths__KeyPaths: [ blue.method, meta.renamed("GetExpandedSearchPaths"), meta.notImplemented ],
+    GetExpandedSearchPaths__Key: [ blue.method, meta.notImplemented ],
     LogPaths: [ blue.method, meta.notImplemented ],
     GetInitialWorkingDirectory: [ blue.method, meta.notImplemented ],
     GetAllSearchPaths: [ blue.method, meta.notImplemented ],
-    GetExpandedSearchPathsAsDict: [ blue.method, meta.notImplemented ],
+    GetExpandedSearchPathsAsDict: [ blue.method, meta.implemented ],
     ListDirFromScript: [ blue.method, meta.notImplemented ]
   }
 });

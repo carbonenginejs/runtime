@@ -23,15 +23,8 @@ function stubContext()
 /** A real R8 texture of the given size, borrowed from a pool. */
 function surface(pool, name, size = 64)
 {
-  return pool.GetTempTexture(name, {
-    type: TextureType.TEX_TYPE_2D,
-    width: size,
-    height: size,
-    depth: 1,
-    mipCount: 1,
-    format: PixelFormat.PIXEL_FORMAT_R8_UNORM,
-    gpuUsage: Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE
-  });
+  return pool.GetTempTexture__WidthHeight(name, size, size, PixelFormat.PIXEL_FORMAT_R8_UNORM,
+    Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE);
 }
 
 test("the denoiser carries Carbon's authored defaults", () =>

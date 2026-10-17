@@ -173,7 +173,7 @@ test("the remote file system substitutes black for red", async () =>
   remote.GetDirectoryContents("res:/nothing", results);
   assert.equal(results.size, 2, "a missing directory adds nothing");
   assert.equal(await remote.GetStreamFromPath("res:/unlisted.gr2"), null);
-  assert.equal(remote.ResolvePath("res:/unlisted.gr2"), null);
+  assert.equal(remote.ResolvePathW("res:/unlisted.gr2"), null);
 });
 
 test("paths separates listed from here, and neither is the resource manager's", () =>

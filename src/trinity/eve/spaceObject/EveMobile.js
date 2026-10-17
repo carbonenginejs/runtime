@@ -85,7 +85,7 @@ export class EveMobile extends EveSpaceObject2
     const action = event & BLUELISTEVENT.BELIST_EVENTMASK;
     if (action === BLUELISTEVENT.BELIST_INSERTED || action === BLUELISTEVENT.BELIST_REMOVED)
     {
-      if (list !== this.turretSets || !value || be.classes.QueryThisInterface(value, EveTurretSet, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === null) return;
+      if (list !== this.turretSets || !value || be.classes.QueryThisInterface(value, EveTurretSet, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === null) return;
       this.RebuildTurretPositions();
       if (action === BLUELISTEVENT.BELIST_INSERTED)
       {
@@ -97,7 +97,7 @@ export class EveMobile extends EveSpaceObject2
     {
       for (const entity of list)
       {
-        if (entity && be.classes.QueryThisInterface(entity, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) entity.UnRegister(this.GetComponentRegistry());
+        if (entity && be.classes.QueryThisInterface(entity, EveEntity, entity.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) entity.UnRegister(this.GetComponentRegistry());
       }
     }
   }

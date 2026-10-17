@@ -47,7 +47,7 @@ import { Tr2TextureAL } from "../Tr2TextureAL/index.js";
 // shader reads it yet.
 
 import { CjsSchema, blue, meta, type } from "#schema";
-import { CompareFunc, CullMode, FillMode, HasFlag, PixelFormat, RenderState, ShaderType, Topology, Tr2GpuUsage, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
+import { CompareFunc, CullMode, FillMode, HasFlag, PixelFormat, RenderState, ShaderType, Topology, Tr2CpuUsage, Tr2GpuUsage, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
 import { float32FromBits } from "#utils/bytes";
 import { ALResult, Failed } from "../ALResult.js";
 import { Tr2DrawUPHelper } from "../Tr2DrawUPHelper.js";
@@ -55,6 +55,7 @@ import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
 import { Tr2ResourceSetAL } from "../Tr2ResourceSetAL/Tr2ResourceSetAL.js";
 import { Tr2ConstantUsageAL } from "../stub/Tr2ConstantBufferALStub.js";
 import { SamplerDescriptionKey } from "../Tr2HalHelperStructures/Tr2SamplerDescription.js";
+import { Tr2MsaaDesc } from "../Tr2HalHelperStructures/Tr2MsaaDesc.js";
 import { Tr2BufferALWebgl2 } from "./Tr2BufferALWebgl2.js";
 import { Tr2CapsALWebgl2 } from "./Tr2CapsALWebgl2.js";
 import { Tr2ConstantBufferALWebgl2 } from "./Tr2ConstantBufferALWebgl2.js";
@@ -468,15 +469,16 @@ export class Tr2RenderContextALWebgl2
    */
   CreateTexture(desc, options, implementationOnly = false)
   {
+    const { gpuUsage = Tr2GpuUsage.NONE, cpuUsage = Tr2CpuUsage.NONE, msaa = new Tr2MsaaDesc(), initialData = null } = options ?? {};
     if (implementationOnly)
     {
       const implementation = new Tr2TextureALWebgl2();
-      const result = implementation.Create(desc, options ?? {}, this);
+      const result = implementation.Create(desc, msaa, gpuUsage, cpuUsage, initialData, this);
       if (Failed(result)) implementation.Destroy();
       return { result, implementation };
     }
     const value = new Tr2TextureAL();
-    return Failed(value.Create(desc, options ?? {}, this)) ? null : value;
+    return Failed(value.Create(desc, msaa, gpuUsage, cpuUsage, initialData, this)) ? null : value;
   }
 
   /**
@@ -592,9 +594,9 @@ export class Tr2RenderContextALWebgl2
     this._defaultBackBuffer.Destroy();
     this._defaultBackBuffer = new Tr2TextureAL();
 
-    const result = this._defaultBackBuffer.Create(
-      Tr2BitmapDimensions.texture2D(width, height, 1, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM),
-      { gpuUsage: Tr2GpuUsage.RENDER_TARGET },
+    const result = this._defaultBackBuffer.Create__GpuUsage(
+      Tr2BitmapDimensions.create__WidthHeightMipCountFormat(width, height, 1, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM),
+      Tr2GpuUsage.RENDER_TARGET,
       this
     );
     if (Failed(result)) return result;

@@ -553,7 +553,14 @@ export class CjsBlueResMan
 
   /**
    * Enqueues a resource task on the selected execution lane for the resource
-   * manager.
+   * manager. Carbon writes the request id to its `id` output parameter
+   * (IBlueResMan.h:82); the output parameter is the return value here.
+   *
+   * @param {*} queue The queue.
+   * @param {Function} callback The callback.
+   * @param {*} [context=null] The callback's context.
+   * @param {number} [flags=0] `IBlueCallbackMan` flags.
+   * @returns {number} The request id.
    */
   AddToQueue(queue, callback, context = null, flags = 0) {
     const task = this.QueueTask(queue, callback, context, { flags });
@@ -688,15 +695,33 @@ export class CjsBlueResMan
   }
 
   /**
-   * `SaveObject` (BlueResMan.cpp:885-930) - writes an object to a black or red file.
+   * `SaveObject` (BlueResMan.cpp:885-889) - writes an object to a black or
+   * red file, through `SaveObjectW`.
+   *
+   * @param {object} object The object.
+   * @param {string} path File path.
+   * @returns {boolean} As `SaveObjectW`.
+   * @throws {Error} Always, from `SaveObjectW`.
+   */
+  SaveObject(object, path) {
+    // Carbon (BlueResMan.cpp:885-889): widens the name and calls SaveObjectW; a JS string is both.
+    return this.SaveObjectW(object, path);
+  }
+
+  /**
+   * `SaveObjectW` (BlueResMan.cpp:891-930) - writes an object to a black or
+   * red file.
    *
    * Not implemented: writing goes through a host file system, and nothing
    * here saves objects yet.
    *
+   * @param {object} _object The object.
+   * @param {string} _path File path.
+   * @returns {never}
    * @throws {Error} Always.
    */
-  SaveObject(_object, _path) {
-    throw new Error("CjsBlueResMan.SaveObject is not implemented.");
+  SaveObjectW(_object, _path) {
+    throw new Error("CjsBlueResMan.SaveObjectW is not implemented.");
   }
 
   /**
@@ -1284,6 +1309,19 @@ export class CjsBlueResMan
   }
 
   /**
+   * `GetResourceW` (BlueResMan.cpp:143-160) - `GetResource` for a
+   * wide-character path.
+   *
+   * @param {string} path Carbon-style source resource path.
+   * @param {object} [options={}] As `GetResource`.
+   * @returns {CjsResource} As `GetResource`.
+   */
+  GetResourceW(path, options = {}) {
+    // Carbon (BlueResMan.cpp:130-141): GetResource widens its strings and calls GetResourceW; a JS string is both.
+    return this.GetResource(path, options);
+  }
+
+  /**
    * GetResource's body, also the handle the manager's own object path uses
    * for an object file (the cached builder's resource).
    *
@@ -1449,9 +1487,9 @@ export class CjsBlueResMan
    * `sourceRevision` selects read-cache provenance but does not replace a
    * resident payload by itself—use one-shot `reload: true` for replacement.
    *
-   * Carbon's const char* and const wchar_t* overloads (BlueResMan.h:82) differ
-   * only in string encoding, which JavaScript strings do not have, so both are
-   * this one method.
+   * This is Carbon's `const char*` overload (BlueResMan.h:82); the
+   * `const wchar_t*` one (BlueResMan.h:83) is `LoadObject__WChars`, which
+   * differs only in string encoding, which JavaScript strings do not have.
    *
    * @param {string} path Carbon-style source resource path.
    * @param {object} [options={}] Identity, source, format, loader, and queue options.
@@ -1461,6 +1499,20 @@ export class CjsBlueResMan
   LoadObject(path, options = {})
   {
     return this._LoadObject(path, options, true);
+  }
+
+  /**
+   * `LoadObject( const wchar_t* name, ... )` (BlueResMan.cpp:653) -
+   * `LoadObject` for a wide-character path.
+   *
+   * @param {string} path Carbon-style source resource path.
+   * @param {object} [options={}] As `LoadObject`.
+   * @returns {Promise<*>} As `LoadObject`.
+   */
+  LoadObject__WChars(path, options = {})
+  {
+    // Carbon (BlueResMan.cpp:547-551): the const char* overload widens and calls this one; a JS string is both.
+    return this.LoadObject(path, options);
   }
 
   /**
@@ -5222,9 +5274,11 @@ CjsBlueResMan.getBluePaths = () =>
 };
 
 CjsSchema.decorateMethod(CjsBlueResMan, "GetResource", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "GetResourceW", blue.method, meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "IsOnMainThread", blue.method, meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "WaitUrgent", blue.method, meta.adapted);
-for (const method of [ "SaveObject", "ReserveBackgroundLoadMemory", "ReleaseBackgroundLoadMemory" ])
+CjsSchema.decorateMethod(CjsBlueResMan, "SaveObject", blue.method, meta.implemented);
+for (const method of [ "SaveObjectW", "ReserveBackgroundLoadMemory", "ReleaseBackgroundLoadMemory" ])
 {
   CjsSchema.decorateMethod(CjsBlueResMan, method, blue.method, meta.notImplemented);
 }
@@ -5243,6 +5297,7 @@ CjsSchema.decorateMethod(CjsBlueResMan, "Wait", blue.method, meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "RegisterResourceConstructor", blue.method, meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "UnregisterResourceConstructor", blue.method, meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "LoadObject", blue.method, meta.adapted);
+CjsSchema.decorateMethod(CjsBlueResMan, "LoadObject__WChars", blue.method, meta.adapted);
 CjsSchema.decorateMethod(CjsBlueResMan, "OnTick", blue.method, meta.implemented);
 CjsSchema.blue.define(CjsBlueResMan, { className: "CjsBlueResMan", donors: [ "BlueResMan" ] });
 

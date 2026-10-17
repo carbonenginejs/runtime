@@ -31,6 +31,7 @@ import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
+import { NormalizeSamplerDescription } from "../Tr2HalHelperStructures/Tr2SamplerDescription.js";
 import { TextureAddressMode, TextureFilter } from "../../global/consts/renderContext/index.js";
 
 
@@ -102,7 +103,14 @@ export class Tr2SamplerStateALWebgl2 extends Tr2DeviceResourceAL
    * Creates the sampler from a description, following dx11's field mapping
    * (`Tr2SamplerStateALDx11.cpp:23-56`).
    *
-   * @param {import("../Tr2HalHelperStructures/Tr2SamplerDescription.js").Tr2SamplerDescription} description
+   * Adapted: the description is normalised first, as the WebGPU backend does
+   * (`CjsWebgpuSamplerStateAL.Create`). Descriptions reach the AL in two
+   * spellings - the effect reader's, with raw float bits (`minLODRaw`,
+   * `maxLODRaw`, `mipLODBiasRaw`, `borderColorRaw`) and `comparison` for the
+   * flag, and the override's plain floats - and Carbon's single struct is the
+   * normal form both reduce to.
+   *
+   * @param {object} description A `Tr2SamplerDescription`, either spelling.
    *   The authored state.
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
@@ -114,37 +122,40 @@ export class Tr2SamplerStateALWebgl2 extends Tr2DeviceResourceAL
     const gl = al ? al.GetWebgl2() : null;
     if (!gl) return ALResult.E_FAIL;
 
+    const normalized = NormalizeSamplerDescription(description);
+    if (!normalized) return ALResult.E_INVALIDARG;
+
     this._Reset();
 
     const sampler = gl.createSampler();
     if (!sampler) return ALResult.E_OUTOFMEMORY;
 
     const force = Tr2SamplerStateALWebgl2.forceAnisotropy;
-    const anisotropic = force !== 1 && (description.m_minFilter === TextureFilter.TF_ANISOTROPIC
-      || description.m_magFilter === TextureFilter.TF_ANISOTROPIC
-      || description.m_mipFilter === TextureFilter.TF_ANISOTROPIC);
+    const anisotropic = force !== 1 && (normalized.minFilter === TextureFilter.TF_ANISOTROPIC
+      || normalized.magFilter === TextureFilter.TF_ANISOTROPIC
+      || normalized.mipFilter === TextureFilter.TF_ANISOTROPIC);
 
     // An anisotropic filter is linear in every stage (D3D11_ENCODE_ANISOTROPIC_FILTER).
-    const minLinear = anisotropic || description.m_minFilter !== TextureFilter.TF_POINT;
-    const magLinear = anisotropic || description.m_magFilter !== TextureFilter.TF_POINT;
-    const mipLinear = anisotropic || (description.m_mipFilter !== TextureFilter.TF_POINT
-      && description.m_mipFilter !== TextureFilter.TF_NONE);
+    const minLinear = anisotropic || normalized.minFilter !== TextureFilter.TF_POINT;
+    const magLinear = anisotropic || normalized.magFilter !== TextureFilter.TF_POINT;
+    const mipLinear = anisotropic || (normalized.mipFilter !== TextureFilter.TF_POINT
+      && normalized.mipFilter !== TextureFilter.TF_NONE);
 
     gl.samplerParameteri(sampler, gl.TEXTURE_MIN_FILTER, MinFilter(gl, minLinear, mipLinear));
     gl.samplerParameteri(sampler, gl.TEXTURE_MAG_FILTER, magLinear ? gl.LINEAR : gl.NEAREST);
-    gl.samplerParameteri(sampler, gl.TEXTURE_WRAP_S, WrapMode(gl, description.m_addressU));
-    gl.samplerParameteri(sampler, gl.TEXTURE_WRAP_T, WrapMode(gl, description.m_addressV));
-    gl.samplerParameteri(sampler, gl.TEXTURE_WRAP_R, WrapMode(gl, description.m_addressW));
+    gl.samplerParameteri(sampler, gl.TEXTURE_WRAP_S, WrapMode(gl, normalized.addressU));
+    gl.samplerParameteri(sampler, gl.TEXTURE_WRAP_T, WrapMode(gl, normalized.addressV));
+    gl.samplerParameteri(sampler, gl.TEXTURE_WRAP_R, WrapMode(gl, normalized.addressW));
 
     // dx11 pins MaxLOD to MinLOD when there is no mip filter.
-    const maxLOD = description.m_mipFilter === TextureFilter.TF_NONE ? description.m_minLOD : description.m_maxLOD;
-    gl.samplerParameterf(sampler, gl.TEXTURE_MIN_LOD, description.m_minLOD);
+    const maxLOD = normalized.mipFilter === TextureFilter.TF_NONE ? normalized.minLOD : normalized.maxLOD;
+    gl.samplerParameterf(sampler, gl.TEXTURE_MIN_LOD, normalized.minLOD);
     gl.samplerParameterf(sampler, gl.TEXTURE_MAX_LOD, Math.min(maxLOD, 1000));
 
-    if (description.m_isComparisonFilter)
+    if (normalized.isComparisonFilter)
     {
       gl.samplerParameteri(sampler, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
-      gl.samplerParameteri(sampler, gl.TEXTURE_COMPARE_FUNC, GL_NEVER + description.m_comparisonFunc - 1);
+      gl.samplerParameteri(sampler, gl.TEXTURE_COMPARE_FUNC, GL_NEVER + normalized.comparisonFunc - 1);
     }
 
     if (anisotropic)
@@ -153,7 +164,7 @@ export class Tr2SamplerStateALWebgl2 extends Tr2DeviceResourceAL
       if (extension)
       {
         const limit = gl.getParameter(extension.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
-        const level = force ? force : description.m_maxAnisotropy;
+        const level = force ? force : normalized.maxAnisotropy;
         gl.samplerParameterf(sampler, extension.TEXTURE_MAX_ANISOTROPY_EXT, Math.max(1, Math.min(level, limit)));
       }
     }

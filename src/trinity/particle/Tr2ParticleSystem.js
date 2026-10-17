@@ -733,7 +733,7 @@ export class Tr2ParticleSystem
       const context = Tr2RenderContext_GetMainThreadRenderContext();
       this._vertexBuffer?.Destroy();
       this._mappedData = null;
-      this._vertexBuffer = context.CreateBuffer(Tr2BufferDescriptionAL.FromStride(
+      this._vertexBuffer = context.CreateBuffer(Tr2BufferDescriptionAL.create__Stride(
         this._strides[0] * 4, this.maxParticleCount,
         Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN
       ));

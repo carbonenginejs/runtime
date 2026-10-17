@@ -50,7 +50,7 @@ export class CjsBlueResFileSystemCallback extends IBlueResFileSystem
   GetDirectoryContents(_dir, _results) {}
 
   /** `ResolvePathW` - `null`: the function keeps no files anywhere a path names. */
-  ResolvePath(_path)
+  ResolvePathW(_path)
   {
     return null;
   }
@@ -80,7 +80,7 @@ CjsSchema.meta.define(CjsBlueResFileSystemCallback, {
     FileExists: [ blue.method, meta.adapted ],
     IsDirectory: [ blue.method, meta.adapted ],
     GetDirectoryContents: [ blue.method, meta.adapted ],
-    ResolvePath: [ blue.method, meta.renamed("ResolvePathW"), meta.adapted ],
+    ResolvePathW: [ blue.method, meta.adapted ],
     GetStreamFromPath: [ blue.method, meta.renamed("GetStreamFromPathW"), meta.adapted ]
   }
 });

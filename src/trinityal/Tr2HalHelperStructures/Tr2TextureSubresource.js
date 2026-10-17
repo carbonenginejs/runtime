@@ -19,8 +19,9 @@ const UNSET = 0xffffffff;
 /**
  * A range of faces, mip levels and pixels within a texture.
  *
- * The default is the whole resource. `ForMipLevel` and `ForFace` are Carbon's
- * other two constructors.
+ * The default is the whole resource (Carbon's default constructor,
+ * Tr2HalHelperStructures.cpp:19-26). `create__MipLevel` and
+ * `create__FaceMipLevel` are Carbon's other two constructors.
  */
 export class Tr2TextureSubresource
 {
@@ -51,12 +52,14 @@ export class Tr2TextureSubresource
   });
 
   /**
-   * A single mip level of the first slice.
+   * Carbon's `Tr2TextureSubresource( uint32_t mipLevel )`
+   * (Tr2HalHelperStructures.cpp:28-35): a single mip level of the first slice,
+   * with no box.
    *
    * @param {number} mipLevel The mip level.
    * @returns {Tr2TextureSubresource} The region.
    */
-  static ForMipLevel(mipLevel)
+  static create__MipLevel(mipLevel)
   {
     const region = new Tr2TextureSubresource();
 
@@ -69,18 +72,22 @@ export class Tr2TextureSubresource
   }
 
   /**
-   * A single mip level of a single slice.
+   * Carbon's `Tr2TextureSubresource( uint32_t face, uint32_t mipLevel )`
+   * (Tr2HalHelperStructures.cpp:42-49): a single mip level of a single slice,
+   * with no box.
    *
    * @param {number} face The slice or cube face.
    * @param {number} mipLevel The mip level.
    * @returns {Tr2TextureSubresource} The region.
    */
-  static ForFace(face, mipLevel)
+  static create__FaceMipLevel(face, mipLevel)
   {
-    const region = Tr2TextureSubresource.ForMipLevel(mipLevel);
+    const region = new Tr2TextureSubresource();
 
     region.m_startFace = face;
     region.m_endFace = face + 1;
+    region.m_startMipLevel = mipLevel;
+    region.m_endMipLevel = mipLevel + 1;
 
     return region;
   }

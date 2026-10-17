@@ -384,7 +384,7 @@ export class EveChildLineSet extends EveChildTransform
     for (const line of this.lines) this._totalObjectCount += line.GetPointCount();
     if (!this._vertexBuffer.IsValid() || this._vertexBuffer.GetDesc().count < this._totalObjectCount)
     {
-      this._vertexBuffer.Create(Tr2BufferDescriptionAL.FromStride(
+      this._vertexBuffer.Create(Tr2BufferDescriptionAL.create__Stride(
         this._stride, this._totalObjectCount, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN
       ), null, renderContext);
     }
@@ -507,7 +507,7 @@ export class EveChildLineSet extends EveChildTransform
   @meta.adapted
   OnPrepareResources()
   {
-    return !Failed(this._vertexBuffer.Create(Tr2BufferDescriptionAL.FromStride(
+    return !Failed(this._vertexBuffer.Create(Tr2BufferDescriptionAL.create__Stride(
       this._stride, 128, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN
     ), null, Tr2RenderContext_GetMainThreadRenderContext()));
   }

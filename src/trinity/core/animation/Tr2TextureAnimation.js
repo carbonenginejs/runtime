@@ -151,10 +151,7 @@ export class Tr2TextureAnimation
       {
         // The decoder bitmap is a volume in the grid's own format
         // (imageio/VtaHandler.cpp:432); pitches follow it as cpp:151-152 do.
-        const dimensions = new BitmapDimensions({
-          type: TextureType.TEX_TYPE_3D, format: this._gridPixelFormat(grid),
-          width: grid.width, height: grid.height, depth: grid.depth, mipCount: 1
-        });
+        const dimensions = BitmapDimensions.create__TypeFormatWidthHeightDepthMipCount(TextureType.TEX_TYPE_3D, this._gridPixelFormat(grid), grid.width, grid.height, grid.depth, 1);
         const pitch = dimensions.GetMipPitch(0);
         const texture = context.CreateTexture(dimensions, {
           gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, cpuUsage: Tr2CpuUsage.WRITE,
@@ -238,7 +235,7 @@ export class Tr2TextureAnimation
       if (texture)
       {
         const pitch = grid.width * GetBytesPerPixel(this._gridPixelFormat(grid));
-        texture.UpdateSubresource(Tr2TextureSubresource.ForMipLevel(0), grid.frames[0], pitch, pitch * grid.height, context);
+        texture.UpdateSubresource(Tr2TextureSubresource.create__MipLevel(0), grid.frames[0], pitch, pitch * grid.height, context);
       }
     }
   }

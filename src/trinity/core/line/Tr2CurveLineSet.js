@@ -525,7 +525,7 @@ export class Tr2CurveLineSet
     const count = this.GetNumOfLines();
     if (!this._vertexBuffer.IsValid() || count > this._vertexBufferSize)
     {
-      const result = this._vertexBuffer.Create(Tr2BufferDescriptionAL.FromStride(
+      const result = this._vertexBuffer.Create(Tr2BufferDescriptionAL.create__Stride(
         LINE_STRIDE, count * 6, Tr2GpuUsage.VERTEX_BUFFER,
         this.dynamic ? Tr2CpuUsage.WRITE_OFTEN : Tr2CpuUsage.WRITE
       ), null, context);

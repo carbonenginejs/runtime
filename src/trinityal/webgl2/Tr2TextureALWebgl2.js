@@ -339,26 +339,18 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
    * the three WebGL2 refusals after them are named where they are made.
    *
    * @param {Tr2BitmapDimensions} desc The texture description.
-   * @param {object} options Creation options.
-   * @param {number} [options.gpuUsage] A `Tr2GpuUsage` bit set.
-   * @param {number} [options.cpuUsage] A `Tr2CpuUsage` bit set.
-   * @param {Tr2MsaaDesc} [options.msaa] Multisample description.
-   * @param {object[]} [options.initialData] Initial subresource data, slices
+   * @param {Tr2MsaaDesc} msaa Multisample description.
+   * @param {number} gpuUsage A `Tr2GpuUsage` bit set.
+   * @param {number} cpuUsage A `Tr2CpuUsage` bit set.
+   * @param {object[]|null} initialData Initial subresource data, slices
    *   by mips, as Carbon indexes it.
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
    */
   @meta.adapted
-  Create(desc, options, renderContext)
+  Create(desc, msaa, gpuUsage, cpuUsage, initialData, renderContext)
   {
     this._Reset();
-
-    const {
-      gpuUsage = Tr2GpuUsage.NONE,
-      cpuUsage = Tr2CpuUsage.NONE,
-      msaa = new Tr2MsaaDesc(),
-      initialData = null
-    } = options;
 
     if (HasBufferFlags(gpuUsage)) return ALResult.E_INVALIDARG;
 

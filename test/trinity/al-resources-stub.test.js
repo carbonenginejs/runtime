@@ -36,7 +36,7 @@ test("the caps say yes to some things, which is the point of them", () =>
 
 test("a buffer description derives its stride from its format", () =>
 {
-  const typed = Tr2BufferDescriptionAL.FromFormat(
+  const typed = Tr2BufferDescriptionAL.create__Format(
     PixelFormat.PIXEL_FORMAT_R32G32B32A32_FLOAT,
     100,
     Tr2GpuUsage.VERTEX_BUFFER,
@@ -46,7 +46,7 @@ test("a buffer description derives its stride from its format", () =>
   assert.equal(typed.stride, 16);
   assert.equal(typed.GetSizeInBytes(), 1600);
 
-  const structured = Tr2BufferDescriptionAL.FromStride(48, 10, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE);
+  const structured = Tr2BufferDescriptionAL.create__Stride(48, 10, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE);
 
   assert.equal(structured.format, PixelFormat.PIXEL_FORMAT_UNKNOWN);
   assert.equal(structured.GetSizeInBytes(), 480);
@@ -58,13 +58,13 @@ test("an empty buffer, and one nothing can fill, are both refused", () =>
   const buffer = new Tr2BufferALStub();
 
   assert.equal(
-    buffer.Create(Tr2BufferDescriptionAL.FromStride(16, 0, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE), null, al),
+    buffer.Create(Tr2BufferDescriptionAL.create__Stride(16, 0, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE), null, al),
     ALResult.E_INVALIDARG,
     "no elements"
   );
 
   assert.equal(
-    buffer.Create(Tr2BufferDescriptionAL.FromStride(16, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.NONE), null, al),
+    buffer.Create(Tr2BufferDescriptionAL.create__Stride(16, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.NONE), null, al),
     ALResult.E_INVALIDARG,
     "no CPU write and no initial data"
   );
@@ -80,7 +80,7 @@ test("a buffer created with no device is refused", () =>
 
   assert.equal(
     buffer.Create(
-      Tr2BufferDescriptionAL.FromStride(16, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE),
+      Tr2BufferDescriptionAL.create__Stride(16, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE),
       null,
       new Tr2RenderContextALStub()
     ),
@@ -98,7 +98,7 @@ test("vertices written through a map read back through one", () =>
   const buffer = new Tr2BufferALStub();
 
   const created = buffer.Create(
-    Tr2BufferDescriptionAL.FromStride(4, 8, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.READ | Tr2CpuUsage.WRITE),
+    Tr2BufferDescriptionAL.create__Stride(4, 8, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.READ | Tr2CpuUsage.WRITE),
     null,
     al
   );
@@ -132,7 +132,7 @@ test("a ranged read returns the bytes of that range", () =>
   const buffer = new Tr2BufferALStub();
 
   buffer.Create(
-    Tr2BufferDescriptionAL.FromStride(1, 8, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.READ | Tr2CpuUsage.WRITE),
+    Tr2BufferDescriptionAL.create__Stride(1, 8, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.READ | Tr2CpuUsage.WRITE),
     null,
     al
   );
@@ -154,7 +154,7 @@ test("a range past the end, or of nothing, is refused", () =>
   const buffer = new Tr2BufferALStub();
 
   buffer.Create(
-    Tr2BufferDescriptionAL.FromStride(1, 8, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.READ | Tr2CpuUsage.WRITE),
+    Tr2BufferDescriptionAL.create__Stride(1, 8, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.READ | Tr2CpuUsage.WRITE),
     null,
     al
   );
@@ -171,7 +171,7 @@ test("mapping a buffer needs the usage it was created with", () =>
   const buffer = new Tr2BufferALStub();
 
   buffer.Create(
-    Tr2BufferDescriptionAL.FromStride(4, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE),
+    Tr2BufferDescriptionAL.create__Stride(4, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE),
     null,
     al
   );
@@ -190,7 +190,7 @@ test("UpdateBuffer validates, and refuses a buffer that is mapped often", () =>
   const buffer = new Tr2BufferALStub();
 
   buffer.Create(
-    Tr2BufferDescriptionAL.FromStride(4, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE),
+    Tr2BufferDescriptionAL.create__Stride(4, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE),
     null,
     al
   );
@@ -201,7 +201,7 @@ test("UpdateBuffer validates, and refuses a buffer that is mapped often", () =>
   const often = new Tr2BufferALStub();
 
   often.Create(
-    Tr2BufferDescriptionAL.FromStride(4, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN),
+    Tr2BufferDescriptionAL.create__Stride(4, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN),
     null,
     al
   );

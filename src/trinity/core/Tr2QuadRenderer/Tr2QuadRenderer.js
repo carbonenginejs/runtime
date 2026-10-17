@@ -221,7 +221,7 @@ export class Tr2QuadRenderer
       for (let i = 0; i < quad.length; ++i) quad[i] = i;
 
       this._quad?.Destroy();
-      this._quad = renderContext.CreateBuffer(Tr2BufferDescriptionAL.FromStride(4, 4 * quadCount, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.NONE), quad);
+      this._quad = renderContext.CreateBuffer(Tr2BufferDescriptionAL.create__Stride(4, 4 * quadCount, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.NONE), quad);
     }
     if (!this._quadIB?.IsValid() || this._quadIB.GetDesc().count < quadCount * 6)
     {
@@ -233,7 +233,7 @@ export class Tr2QuadRenderer
       }
 
       this._quadIB?.Destroy();
-      this._quadIB = renderContext.CreateBuffer(Tr2BufferDescriptionAL.FromStride(2, quadCount * 6, Tr2GpuUsage.INDEX_BUFFER, Tr2CpuUsage.NONE), quadIB);
+      this._quadIB = renderContext.CreateBuffer(Tr2BufferDescriptionAL.create__Stride(2, quadCount * 6, Tr2GpuUsage.INDEX_BUFFER, Tr2CpuUsage.NONE), quadIB);
     }
   }
 

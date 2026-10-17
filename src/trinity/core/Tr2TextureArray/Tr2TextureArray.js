@@ -106,15 +106,7 @@ export class Tr2TextureArray
         element.CreateFromBitmapDimensions(bitmap);
         element.GetRawData().set(bitmap.GetRawData());
 
-        this.dimensions = new BitmapDimensions({
-            type: bitmap.GetType(),
-            format: bitmap.GetFormat(),
-            width: bitmap.GetWidth(),
-            height: bitmap.GetHeight(),
-            depth: bitmap.GetDepth(),
-            mipCount: bitmap.GetTrueMipCount(),
-            arraySize: Math.ceil(this.elements.length / this.increment) * this.increment
-        });
+        this.dimensions = BitmapDimensions.create__AllFields(bitmap.GetType(), bitmap.GetFormat(), bitmap.GetWidth(), bitmap.GetHeight(), bitmap.GetDepth(), bitmap.GetTrueMipCount(), Math.ceil(this.elements.length / this.increment) * this.increment);
 
         this.#revision += 1;
         this.onTextureChange.Broadcast();

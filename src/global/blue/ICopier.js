@@ -15,11 +15,23 @@ export class ICopier
     FALLBACK: 2
   });
 
-  /** `SetCopyOverrideCallback` - a callback that may copy an object itself before the copier does. */
-  SetCopyOverrideCallback(_copyOverride) {}
+  /**
+   * `SetCopyOverrideCallback` - a callback that may copy an object itself
+   * before the copier does, and the context it is called with.
+   *
+   * @param {Function|null} _copyOverride The callback.
+   * @param {*} _context Passed to the callback as its last argument.
+   */
+  SetCopyOverrideCallback(_copyOverride, _context) {}
 
-  /** `SetPostCopyCallback` - a callback run on every object after it is copied. */
-  SetPostCopyCallback(_postCopy) {}
+  /**
+   * `SetPostCopyCallback` - a callback run on every object after it is
+   * copied, and the context it is called with.
+   *
+   * @param {Function|null} _postCopy The callback.
+   * @param {*} _context Passed to the callback as its last argument.
+   */
+  SetPostCopyCallback(_postCopy, _context) {}
 
   /** `CopyTo` - copy `source` into `dest`, creating `dest` when it is null. */
   CopyTo(_source, _dest) {}

@@ -106,7 +106,7 @@ export class BlueResFileSystemRemote extends IBlueResFileSystem
    * for `.red` but the name lookup does not, so a `.red` path resolves to
    * itself.
    */
-  ResolvePath(path)
+  ResolvePathW(path)
   {
     if (!this._remoteFileCache.FileExists(substituteBlackForRedInFilename(path))) return null;
     return this._remoteFileCache.GetLocallyCachedName(path);
@@ -123,6 +123,6 @@ CjsSchema.blue.define(BlueResFileSystemRemote, {
     IsDirectory: [ blue.method, meta.implemented ],
     GetDirectoryContents: [ blue.method, meta.implemented ],
     GetStreamFromPath: [ blue.method, meta.renamed("GetStreamFromPathW"), meta.adapted ],
-    ResolvePath: [ blue.method, meta.renamed("ResolvePathW"), meta.adapted ]
+    ResolvePathW: [ blue.method, meta.adapted ]
   }
 });

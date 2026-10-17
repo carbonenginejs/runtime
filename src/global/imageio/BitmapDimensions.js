@@ -17,10 +17,10 @@
 // for every mip after it, which is the kind of defect that shows up as a
 // diagonal smear rather than as an error.
 //
-// ONE LANGUAGE DIFFERENCE. Carbon has four constructor overloads; JavaScript
-// has none, so the constructor takes a description object whose defaults are
-// the default constructor's values, and `Texture2D` names the four-argument
-// overload the render context uses.
+// CONSTRUCTORS. Carbon has four (BitmapDimensions.h:21-41). The JS constructor
+// is the default one, whose values are the field initialisers; the other three
+// are the `create__` static factories, each built as Carbon's initializer list
+// builds it.
 
 import { CjsSchema, blue } from "#schema";
 import {
@@ -72,55 +72,86 @@ export class BitmapDimensions
   _format = PixelFormat.PIXEL_FORMAT_UNKNOWN;
 
   /**
-   * @param {object} [description] Texture description.
-   * @param {number} [description.type] A `TextureType` value.
-   * @param {number} [description.format] A `PixelFormat` value.
-   * @param {number} [description.width] Width of mip zero.
-   * @param {number} [description.height] Height of mip zero.
-   * @param {number} [description.depth] Volume depth.
-   * @param {number} [description.mipCount] Declared mip count, or zero for a full chain.
-   * @param {number} [description.arraySize] Slices; defaults to six for a cube.
-   */
-  constructor(description = {})
-  {
-    const {
-      type = TextureType.TEX_TYPE_INVALID,
-      format = PixelFormat.PIXEL_FORMAT_UNKNOWN,
-      width = 0,
-      height = 0,
-      depth = 0,
-      mipCount = 0,
-      arraySize = type === TextureType.TEX_TYPE_CUBE ? 6 : 1
-    } = description;
-
-    this._type = type;
-    this._format = format;
-    this._width = width;
-    this._height = height;
-    this._depth = depth;
-    this._mipCount = mipCount;
-    this._arraySize = arraySize;
-  }
-
-  /**
-   * Carbon's four-argument overload: a plain 2D texture with one slice.
+   * Carbon's `BitmapDimensions( width, height, mipCount, format )`
+   * (BitmapDimensions.h:23-26, 96-109): a plain 2D texture with one slice and a
+   * volume depth of one.
    *
    * @param {number} width Width of mip zero.
    * @param {number} height Height of mip zero.
-   * @param {number} mipCount Declared mip count.
+   * @param {number} mipCount Declared mip count, or zero for a full chain.
    * @param {number} format A `PixelFormat` value.
    * @returns {BitmapDimensions} The description.
    */
-  static texture2D(width, height, mipCount, format)
+  static create__WidthHeightMipCountFormat(width, height, mipCount, format)
   {
-    return new BitmapDimensions({
-      type: TextureType.TEX_TYPE_2D,
-      format,
-      width,
-      height,
-      depth: 1,
-      mipCount
-    });
+    const dimensions = new BitmapDimensions();
+
+    dimensions._width = width;
+    dimensions._height = height;
+    dimensions._depth = 1;
+    dimensions._mipCount = mipCount;
+    dimensions._arraySize = 1;
+    dimensions._type = TextureType.TEX_TYPE_2D;
+    dimensions._format = format;
+
+    return dimensions;
+  }
+
+  /**
+   * Carbon's `BitmapDimensions( type, format, width, height, depth, mipCount )`
+   * (BitmapDimensions.h:28-33, 111-126): the array size follows from the type,
+   * six for a cube and one otherwise.
+   *
+   * @param {number} type A `TextureType` value.
+   * @param {number} format A `PixelFormat` value.
+   * @param {number} width Width of mip zero.
+   * @param {number} height Height of mip zero.
+   * @param {number} depth Volume depth.
+   * @param {number} mipCount Declared mip count, or zero for a full chain.
+   * @returns {BitmapDimensions} The description.
+   */
+  static create__TypeFormatWidthHeightDepthMipCount(type, format, width, height, depth, mipCount)
+  {
+    const dimensions = new BitmapDimensions();
+
+    dimensions._width = width;
+    dimensions._height = height;
+    dimensions._depth = depth;
+    dimensions._mipCount = mipCount;
+    dimensions._arraySize = type === TextureType.TEX_TYPE_CUBE ? 6 : 1;
+    dimensions._type = type;
+    dimensions._format = format;
+
+    return dimensions;
+  }
+
+  /**
+   * Carbon's `BitmapDimensions( type, format, width, height, depth, mipCount,
+   * arraySize )` (BitmapDimensions.h:35-41, 128-144): every member from its
+   * parameter.
+   *
+   * @param {number} type A `TextureType` value.
+   * @param {number} format A `PixelFormat` value.
+   * @param {number} width Width of mip zero.
+   * @param {number} height Height of mip zero.
+   * @param {number} depth Volume depth.
+   * @param {number} mipCount Declared mip count, or zero for a full chain.
+   * @param {number} arraySize Slices.
+   * @returns {BitmapDimensions} The description.
+   */
+  static create__AllFields(type, format, width, height, depth, mipCount, arraySize)
+  {
+    const dimensions = new BitmapDimensions();
+
+    dimensions._width = width;
+    dimensions._height = height;
+    dimensions._depth = depth;
+    dimensions._mipCount = mipCount;
+    dimensions._arraySize = arraySize;
+    dimensions._type = type;
+    dimensions._format = format;
+
+    return dimensions;
   }
 
   /**
@@ -356,13 +387,15 @@ export class BitmapDimensions
    */
   Equals(other)
   {
-    return this._width === other.width &&
-      this._height === other.height &&
-      this._depth === other.depth &&
-      this._mipCount === other.mipCount &&
-      this._arraySize === other.arraySize &&
-      this._type === other.type &&
-      this._format === other.format;
+    // Carbon's operator== (BitmapDimensions.h:66, 282-291). The other's
+    // state is private too, so it is read through its accessors.
+    return this._width === other.GetWidth() &&
+      this._height === other.GetHeight() &&
+      this._depth === other.GetDepth() &&
+      this._mipCount === other.GetMipCount() &&
+      this._arraySize === other.GetArraySize() &&
+      this._type === other.GetType() &&
+      this._format === other.GetFormat();
   }
 }
 

@@ -112,22 +112,23 @@ export class IBlueResFileSystem
 
   /**
    * `ResolvePathW` - where this file system keeps the file, or `null` when it
-   * does not. Carbon returns false and leaves the out-parameter unset.
+   * does not. Carbon writes the path to its `resolvedPath` output parameter
+   * and returns whether it did; the output parameter is the return value
+   * here, and `null` is Carbon's false.
    *
    * @param {string} _path Res path.
    * @returns {string|null} The resolved path, or `null`.
    */
-  ResolvePath(_path) {}
+  ResolvePathW(_path) {}
 }
 
-for (const method of [ "FileExists", "IsDirectory", "GetDirectoryContents", "GetStreamFromPath", "ResolvePath" ])
+for (const method of [ "FileExists", "IsDirectory", "GetDirectoryContents", "GetStreamFromPath", "ResolvePathW" ])
 {
   CjsSchema.decorateMethod(IBlueResFileSystem, method, blue.method, meta.requires, meta.abstract);
 }
 
-// Carbon declares only the wide-character forms; a JS string covers both.
+// Carbon declares only the wide-character form; a JS string covers both.
 CjsSchema.decorateMethod(IBlueResFileSystem, "GetStreamFromPath", blue.method, meta.renamed("GetStreamFromPathW"));
-CjsSchema.decorateMethod(IBlueResFileSystem, "ResolvePath", blue.method, meta.renamed("ResolvePathW"));
 
 CjsSchema.blue.define(IBlueResFileSystem, {
   className: "IBlueResFileSystem",

@@ -20,7 +20,6 @@ import {
   INVALID_UPSCALING_CONTEXT_ID,
   PixelFormat,
   ShaderType,
-  TextureType,
   Tr2CpuUsage,
   Tr2GpuUsage,
   Tr2LoadAction,
@@ -280,10 +279,10 @@ export class Tr2PostProcessRenderer
 
     if (upscalingEnabled) displaySize = { width: upscalingInfo.displayWidth, height: upscalingInfo.displayHeight };
 
-    let output = this._Temp(gpuResourcePool, "Final Result", displaySize, destinationFormat, RENDER_TARGET);
+    let output = gpuResourcePool.GetTempTexture__Size("Final Result", displaySize, destinationFormat, RENDER_TARGET);
 
     // Always copy (cpp:691-693).
-    let nonMsaaSource = this._Temp(gpuResourcePool, "Pre-upscaling Composite", renderSize, source.GetFormat(), RENDER_TARGET);
+    let nonMsaaSource = gpuResourcePool.GetTempTexture__Size("Pre-upscaling Composite", renderSize, source.GetFormat(), RENDER_TARGET);
     source.Resolve(nonMsaaSource.Get(), renderContext);
 
     let dynamicExposure = null;
@@ -394,7 +393,7 @@ export class Tr2PostProcessRenderer
       {
         if (upscalingContext && !upscalingInfo.temporal)
         {
-          const tonemappedOutput = this._Temp(gpuResourcePool, "Tonemapping Result", renderSize, destinationFormat, RENDER_TARGET);
+          const tonemappedOutput = gpuResourcePool.GetTempTexture__Size("Tonemapping Result", renderSize, destinationFormat, RENDER_TARGET);
 
           this.RenderTonemapping(tonemappedOutput.Get(), postProcess, renderContext, renderer);
 
@@ -484,10 +483,8 @@ export class Tr2PostProcessRenderer
 
     const texture = input.Get();
     const format = Tr2PostProcessRenderer.getUavCompatibleFormat(texture.GetFormat());
-    const output = this._Temp(
-      gpuResourcePool,
-      "Sharpening Output",
-      { width: texture.GetWidth(), height: texture.GetHeight() },
+    const output = gpuResourcePool.GetTempTexture__WidthHeight("Sharpening Output",
+      texture.GetWidth(), texture.GetHeight(),
       format,
       RENDER_TARGET | Tr2GpuUsage.UNORDERED_ACCESS
     );
@@ -658,7 +655,7 @@ export class Tr2PostProcessRenderer
   {
     return gpuResourcePool.GetPersistentBuffer(
       "Exposure Buffer",
-      Tr2BufferDescriptionAL.FromFormat(
+      Tr2BufferDescriptionAL.create__Format(
         PixelFormat.PIXEL_FORMAT_R32_FLOAT,
         8,
         Tr2GpuUsage.UNORDERED_ACCESS | Tr2GpuUsage.SHADER_RESOURCE,
@@ -678,16 +675,8 @@ export class Tr2PostProcessRenderer
   @meta.implemented
   GetBlackTexture(gpuResourcePool)
   {
-    return gpuResourcePool.GetPersistentTexture("Black", {
-      type: TextureType.TEX_TYPE_2D,
-      width: 4,
-      height: 4,
-      depth: 1,
-      mipCount: 1,
-      format: PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM,
-      gpuUsage: Tr2GpuUsage.SHADER_RESOURCE,
-      initialData: [ new Tr2SubresourceData(new Uint32Array(4 * 4), 4 * 4, 4 * 4 * 4) ]
-    });
+    return gpuResourcePool.GetPersistentTexture__WidthHeight("Black", 4, 4, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM,
+      Tr2GpuUsage.SHADER_RESOURCE, [ new Tr2SubresourceData(new Uint32Array(4 * 4), 4 * 4, 4 * 4 * 4) ]);
   }
 
   // THE PASSES NOT PORTED YET. Each runs only when the post process enables it.
@@ -748,7 +737,7 @@ export class Tr2PostProcessRenderer
     const [ horizontal, vertical ] = effects;
     const source = src.Get();
 
-    const rt2 = this._Temp(gpuResourcePool, "Blur Temp 1", { width: source.GetWidth(), height: source.GetHeight() }, source.GetFormat(), RENDER_TARGET);
+    const rt2 = gpuResourcePool.GetTempTexture__WidthHeight("Blur Temp 1", source.GetWidth(), source.GetHeight(), source.GetFormat(), RENDER_TARGET);
     horizontal.SetParameter__TextureAL("BlitCurrent", source);
     try
     {
@@ -761,7 +750,7 @@ export class Tr2PostProcessRenderer
     }
 
     const second = rt2.Get();
-    const rt1 = this._Temp(gpuResourcePool, "Blur Temp 2", { width: second.GetWidth(), height: second.GetHeight() }, second.GetFormat(), RENDER_TARGET);
+    const rt1 = gpuResourcePool.GetTempTexture__WidthHeight("Blur Temp 2", second.GetWidth(), second.GetHeight(), second.GetFormat(), RENDER_TARGET);
     vertical.SetParameter__TextureAL("BlitCurrent", second);
     try
     {
@@ -818,7 +807,7 @@ export class Tr2PostProcessRenderer
       highPass.SetParameter("LuminanceScale", bloom.luminanceScale);
       highPass.SetParameter("ExposureDependency", exposureDependant ? 1 : 0);
 
-      const rt1 = this._Temp(gpuResourcePool, "Bloom", Tr2PostProcessRenderer.scaledSize(destination, 0.5), destination.GetFormat(), RENDER_TARGET);
+      const rt1 = gpuResourcePool.GetTempTexture__Size("Bloom", Tr2PostProcessRenderer.scaledSize(destination, 0.5), destination.GetFormat(), RENDER_TARGET);
       const exposure = this.GetExposureBuffer(gpuResourcePool);
       highPass.SetParameter__TextureAL("BlitCurrent", destination);
       highPass.SetParameter__BufferAL("Exposure", exposure.Get());
@@ -856,8 +845,8 @@ export class Tr2PostProcessRenderer
         if (Math.trunc(minDim * currentSize) === 0) break;
 
         const size = Tr2PostProcessRenderer.scaledSize(destination, currentSize);
-        downsampleTexture[i] = this._Temp(gpuResourcePool, `Downsample_${i}`, size, destination.GetFormat(), RENDER_TARGET);
-        upsampleTexture[i] = this._Temp(gpuResourcePool, `Upsample_${i}`, size, destination.GetFormat(), RENDER_TARGET);
+        downsampleTexture[i] = gpuResourcePool.GetTempTexture__Size(`Downsample_${i}`, size, destination.GetFormat(), RENDER_TARGET);
+        upsampleTexture[i] = gpuResourcePool.GetTempTexture__Size(`Upsample_${i}`, size, destination.GetFormat(), RENDER_TARGET);
 
         // The debug views (cpp:1006-1010) need RenderBloomDebug, not ported.
         if (this.bloomDebugMode !== BloomDebugMode.BLOOM_DEBUG_NONE)
@@ -991,7 +980,7 @@ export class Tr2PostProcessRenderer
     esm.ApplyStandardStates(RenderingMode.RM_FULLSCREEN);
 
     const rt1 = this.DownSampleDepth(depth, gpuResourcePool, renderContext, renderer);
-    const rt2 = this._Temp(gpuResourcePool, "God rays", Tr2PostProcessRenderer.scaledSize(dest, 0.5), dest.GetFormat(), RENDER_TARGET);
+    const rt2 = gpuResourcePool.GetTempTexture__Size("God rays", Tr2PostProcessRenderer.scaledSize(dest, 0.5), dest.GetFormat(), RENDER_TARGET);
 
     try
     {
@@ -1039,9 +1028,7 @@ export class Tr2PostProcessRenderer
   DownSampleDepth(depth, gpuResourcePool, renderContext, renderer)
   {
     const effect = this._downsampleDepthEffect;
-    const destination = this._Temp(
-      gpuResourcePool,
-      "Down-sampled Depth",
+    const destination = gpuResourcePool.GetTempTexture__Size("Down-sampled Depth",
       Tr2PostProcessRenderer.scaledSize(depth, 0.5),
       PixelFormat.PIXEL_FORMAT_R32_FLOAT,
       Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE
@@ -1084,11 +1071,11 @@ export class Tr2PostProcessRenderer
 
     const localHistograms = gpuResourcePool.GetTempBuffer(
       "LocalHistograms",
-      Tr2BufferDescriptionAL.FromFormat(PixelFormat.PIXEL_FORMAT_R32G32B32A32_UINT, localHistogramCount, uav, Tr2CpuUsage.NONE)
+      Tr2BufferDescriptionAL.create__Format(PixelFormat.PIXEL_FORMAT_R32G32B32A32_UINT, localHistogramCount, uav, Tr2CpuUsage.NONE)
     );
     const histogram = gpuResourcePool.GetTempBuffer(
       "Histogram",
-      Tr2BufferDescriptionAL.FromFormat(PixelFormat.PIXEL_FORMAT_R32_UINT, 65, uav, Tr2CpuUsage.NONE)
+      Tr2BufferDescriptionAL.create__Format(PixelFormat.PIXEL_FORMAT_R32_UINT, 65, uav, Tr2CpuUsage.NONE)
     );
     const exposure = this.GetExposureBuffer(gpuResourcePool);
 
@@ -1179,7 +1166,7 @@ export class Tr2PostProcessRenderer
 
     // Fog colour.
     const colorEffect = this.fogColorEffect;
-    const rt1 = this._Temp(gpuResourcePool, "Fog Color", Tr2PostProcessRenderer.scaledSize(dest, 0.5), dest.GetFormat(), RENDER_TARGET);
+    const rt1 = gpuResourcePool.GetTempTexture__Size("Fog Color", Tr2PostProcessRenderer.scaledSize(dest, 0.5), dest.GetFormat(), RENDER_TARGET);
     const color = fog.color;
 
     colorEffect.SetParameter__TextureAL("BlitCurrent", dest);
@@ -1268,15 +1255,8 @@ export class Tr2PostProcessRenderer
       al.Clear({ clearColor: true, color: 0 });
     };
     const clearUav = texture => al.ClearUav(texture, new Uint32Array(4));
-    const persistent = (name, format, gpuUsage, initialize) => gpuResourcePool.GetPersistentTexture(name, {
-      type: TextureType.TEX_TYPE_2D,
-      width: dest.GetWidth(),
-      height: dest.GetHeight(),
-      depth: 1,
-      mipCount: 1,
-      format,
-      gpuUsage
-    }, initialize);
+    const persistent = (name, format, gpuUsage, initialize) =>
+      gpuResourcePool.GetPersistentTexture__WidthHeight(name, dest.GetWidth(), dest.GetHeight(), format, gpuUsage, initialize);
 
     const accumulationBuffer0 = persistent("TAA Accumulation 0", PixelFormat.PIXEL_FORMAT_R16G16B16A16_UNORM, RENDER_TARGET, clear);
     const accumulationBuffer1 = persistent("TAA Accumulation 1", PixelFormat.PIXEL_FORMAT_R16G16B16A16_UNORM, RENDER_TARGET, clear);
@@ -1385,12 +1365,12 @@ export class Tr2PostProcessRenderer
     {
       if (!depthOfField.foregroundBlurNeeded)
       {
-        coc = this._Temp(gpuResourcePool, "CoC", cocSize, PixelFormat.PIXEL_FORMAT_R8_UNORM, RENDER_TARGET);
+        coc = gpuResourcePool.GetTempTexture__Size("CoC", cocSize, PixelFormat.PIXEL_FORMAT_R8_UNORM, RENDER_TARGET);
         Tr2PostProcessRenderer.drawInto(coc.Get(), Tr2LoadAction.DONT_CARE, cocShader, renderContext, renderer);
       }
       else
       {
-        const coc2 = this._Temp(gpuResourcePool, "CoC", cocSize, PixelFormat.PIXEL_FORMAT_R8G8_UNORM, RENDER_TARGET);
+        const coc2 = gpuResourcePool.GetTempTexture__Size("CoC", cocSize, PixelFormat.PIXEL_FORMAT_R8G8_UNORM, RENDER_TARGET);
         const { BlurType, BlurChannel, BlurProcess, BlurFinalize } = BlurContext;
 
         Tr2PostProcessRenderer.drawInto(coc2.Get(), Tr2LoadAction.DONT_CARE, cocShader, renderContext, renderer);
@@ -1405,7 +1385,7 @@ export class Tr2PostProcessRenderer
 
       const adjustedScale = Math.fround(depthOfField.scale / upscalingAmount);
 
-      blur = this._Temp(gpuResourcePool, "Bokeh Blend", { width: dest.GetWidth(), height: dest.GetHeight() }, dest.GetFormat(), RENDER_TARGET);
+      blur = gpuResourcePool.GetTempTexture__WidthHeight("Bokeh Blend", dest.GetWidth(), dest.GetHeight(), dest.GetFormat(), RENDER_TARGET);
 
       if (depthOfField.useTAAFriendlyBokeh)
       {
@@ -1498,20 +1478,6 @@ export class Tr2PostProcessRenderer
   {
     this._bloomConstantBuffer ??= renderContext.CreateConstantBuffer();
     return this._bloomConstantBuffer;
-  }
-
-  /** A pool temp texture of Carbon's `GetTempTexture( name, size, format, usage )` form. */
-  _Temp(gpuResourcePool, name, size, format, gpuUsage)
-  {
-    return gpuResourcePool.GetTempTexture(name, {
-      type: TextureType.TEX_TYPE_2D,
-      width: size.width,
-      height: size.height,
-      depth: 1,
-      mipCount: 1,
-      format,
-      gpuUsage
-    });
   }
 
   /** g_newBloom ("newBloom", cpp:23-24): the bloom a new renderer starts with. */

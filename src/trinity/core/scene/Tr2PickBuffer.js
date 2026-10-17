@@ -63,10 +63,10 @@ export class Tr2PickBuffer
   OnPrepareResources(context = Tr2RenderContext_GetMainThreadRenderContext())
   {
     const size = Math.max(this._size, 1);
-    if (Failed(this._pickTarget.Create(Tr2BitmapDimensions.texture2D(size, size, 1, this._format),
-      { gpuUsage: Tr2GpuUsage.RENDER_TARGET, cpuUsage: Tr2CpuUsage.READ_OFTEN }, context))) return false;
-    return !Failed(this._depthBuffer.Create(Tr2BitmapDimensions.texture2D(size, size, 1, PixelFormat.PIXEL_FORMAT_D24_UNORM_S8_UINT),
-      { gpuUsage: Tr2GpuUsage.DEPTH_STENCIL }, context));
+    if (Failed(this._pickTarget.Create__GpuUsageCpuUsage(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(size, size, 1, this._format),
+      Tr2GpuUsage.RENDER_TARGET, Tr2CpuUsage.READ_OFTEN, context))) return false;
+    return !Failed(this._depthBuffer.Create__GpuUsage(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(size, size, 1, PixelFormat.PIXEL_FORMAT_D24_UNORM_S8_UINT),
+      Tr2GpuUsage.DEPTH_STENCIL, context));
   }
 
   /** Binds, clears and selects the full pick-target viewport. */
@@ -109,7 +109,7 @@ export class Tr2PickBuffer
   /** JS submission snapshot for polling without starting an awaited map. */
   CreateReadback(context)
   {
-    return this._pickTarget.CreateReadback(Tr2TextureSubresource.ForMipLevel(0), context);
+    return this._pickTarget.CreateReadback(Tr2TextureSubresource.create__MipLevel(0), context);
   }
 
   /** Completes the native borrowed-map lifetime. */

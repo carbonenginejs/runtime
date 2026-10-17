@@ -504,7 +504,7 @@ export class Tr2StateMachineState
    */
   static _asAction(value)
   {
-    return value ? be.classes.QueryThisInterface(value, ITr2ControllerAction, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    return value ? be.classes.QueryThisInterface(value, ITr2ControllerAction, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
   }
 
   /**
@@ -514,7 +514,7 @@ export class Tr2StateMachineState
    */
   static _asTransition(value)
   {
-    return value ? be.classes.QueryThisInterface(value, Tr2StateMachineTransition, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    return value ? be.classes.QueryThisInterface(value, Tr2StateMachineTransition, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
   }
 
   /**

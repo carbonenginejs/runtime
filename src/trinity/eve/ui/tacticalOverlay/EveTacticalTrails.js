@@ -286,7 +286,7 @@ export class EveTacticalTrails
     if (!this._vertexBuffer.IsValid() || this._vertexBuffer.GetDesc().count < needed)
     {
       const capacity = Math.max(1024, needed * 2);
-      this._vertexBuffer.Create(Tr2BufferDescriptionAL.FromStride(LINE_VERTEX_BYTES, capacity, Tr2GpuUsage.VERTEX_BUFFER,
+      this._vertexBuffer.Create(Tr2BufferDescriptionAL.create__Stride(LINE_VERTEX_BYTES, capacity, Tr2GpuUsage.VERTEX_BUFFER,
         Tr2CpuUsage.WRITE_OFTEN), null, renderContext);
     }
     const mapping = this._vertexBuffer.IsValid() ? this._vertexBuffer.MapForWriting(renderContext) : null;

@@ -367,9 +367,9 @@ export class Tr2ImpostorManager
       copyHash(impostor.oldHash, impostor.hash);
       const x = Math.fround(fromHalfFloat(impostor.texcoord[0]) * this.width) >>> 0;
       const y = Math.fround(fromHalfFloat(impostor.texcoord[1]) * this.height) >>> 0;
-      const destination = Tr2TextureSubresource.ForMipLevel(0);
+      const destination = Tr2TextureSubresource.create__MipLevel(0);
       destination.SetRect(x, y, x + this.itemWidth, y + this.itemHeight);
-      const source = Tr2TextureSubresource.ForMipLevel(0);
+      const source = Tr2TextureSubresource.create__MipLevel(0);
       source.SetRect(i * this.itemWidth, 0, (i + 1) * this.itemWidth, this.itemHeight);
       this.atlas.GetRenderTarget().CopySubresourceRegion(destination, this._itemRt.GetRenderTarget() ?? emptyTexture, source, renderContext);
     }

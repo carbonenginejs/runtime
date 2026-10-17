@@ -25,7 +25,7 @@ function bgraBitmap()
 /** RGBA of the same four pixels, row by row. */
 const RGBA = [ 255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 255, 255, 255, 255 ];
 
-const dims = (type, format, arraySize = 1) => new BitmapDimensions({ type, format, width: 4, height: 4, depth: 1, mipCount: 1, arraySize });
+const dims = (type, format, arraySize = 1) => BitmapDimensions.create__AllFields(type, format, 4, 4, 1, 1, arraySize);
 
 test("each format keeps Carbon's dimension check and accepts any convertible format", () =>
 {

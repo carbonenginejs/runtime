@@ -6,8 +6,9 @@
 // the machine, not about fetching, and keeping the two apart is what stops a
 // caller needing the manager to ask it.
 //
-// The `W` variants collapse, as they do on the manager: they are Carbon's
-// wide-character twins.
+// Carbon declares only wide-character forms of most methods. The resolve
+// methods keep Carbon's `W` names; `SetSearchPath`, `GetSearchPath` and
+// `GetStreamFromPath` still carry the script spelling, marked `renamed`.
 import { CjsSchema, meta, blue } from "#schema";
 
 /** `IBluePaths` - search paths, resolution, existence and streams, per blue/include/IBluePaths.h. */
@@ -22,14 +23,31 @@ export class IBluePaths
   /** `GetSearchPath` - the location bound to a search-path key. */
   GetSearchPath(_key) {}
 
-  /** `ResolvePath` - a res path resolved through the search paths. */
-  ResolvePath(_path) {}
+  /**
+   * `ResolvePathW` - a res path resolved through the search paths.
+   *
+   * @param {string} _path Res path.
+   * @returns {string} The resolved path.
+   */
+  ResolvePathW(_path) {}
 
-  /** `ResolvePathForWriting` - a res path resolved to where a write may go. */
-  ResolvePathForWriting(_path) {}
+  /**
+   * `ResolvePathForWritingW` - a res path resolved to where a write may go.
+   *
+   * @param {string} _path Res path.
+   * @returns {string} The resolved path.
+   */
+  ResolvePathForWritingW(_path) {}
 
-  /** `ResolvePathToRoot` - a res path resolved against one named root. */
-  ResolvePathToRoot(_root, _path) {}
+  /**
+   * `ResolvePathToRootW` - a file-system path resolved back to a res path
+   * under one named root.
+   *
+   * @param {string} _root Root key.
+   * @param {string} _path File-system path.
+   * @returns {string} The res path, or an empty string.
+   */
+  ResolvePathToRootW(_root, _path) {}
 
   /** `GetExpandedSearchPaths` - every location a search-path key expands to. */
   GetExpandedSearchPaths(_key) {}
@@ -60,8 +78,8 @@ export class IBluePaths
 }
 
 for (const method of [
-  "InitializeStdAppPaths", "SetSearchPath", "GetSearchPath", "ResolvePath", "ResolvePathForWriting",
-  "ResolvePathToRoot", "GetExpandedSearchPaths", "GetDirectoryContents", "IsDirectory", "FileExists",
+  "InitializeStdAppPaths", "SetSearchPath", "GetSearchPath", "ResolvePathW", "ResolvePathForWritingW",
+  "ResolvePathToRootW", "GetExpandedSearchPaths", "GetDirectoryContents", "IsDirectory", "FileExists",
   "FileExistsLocally", "FileNeedsDownload", "GetStreamFromPath", "GetFileContentsWithYield", "LogPaths"
 ])
 {
@@ -71,9 +89,6 @@ for (const method of [
 // Carbon declares only the wide-character forms; a JS string covers both.
 CjsSchema.decorateMethod(IBluePaths, "SetSearchPath", blue.method, meta.renamed("SetSearchPathW"));
 CjsSchema.decorateMethod(IBluePaths, "GetSearchPath", blue.method, meta.renamed("GetSearchPathW"));
-CjsSchema.decorateMethod(IBluePaths, "ResolvePath", blue.method, meta.renamed("ResolvePathW"));
-CjsSchema.decorateMethod(IBluePaths, "ResolvePathForWriting", blue.method, meta.renamed("ResolvePathForWritingW"));
-CjsSchema.decorateMethod(IBluePaths, "ResolvePathToRoot", blue.method, meta.renamed("ResolvePathToRootW"));
 CjsSchema.decorateMethod(IBluePaths, "GetStreamFromPath", blue.method, meta.renamed("GetStreamFromPathW"));
 
 CjsSchema.blue.define(IBluePaths, { className: "IBluePaths", fields: {} });

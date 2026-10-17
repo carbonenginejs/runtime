@@ -153,7 +153,7 @@ test("a filtered float32 resource fails before a set or bind group can be publis
   const { al } = composed();
   const program = programWith(al, [ { ...BINDINGS[1], type: "texture_2d<f32>" } ]);
   const description = new Tr2ResourceSetDescriptionAL({ program });
-  const texture = al.CreateTexture(Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_R32_FLOAT), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.RENDER_TARGET });
+  const texture = al.CreateTexture(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(4, 4, 1, PixelFormat.PIXEL_FORMAT_R32_FLOAT), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.RENDER_TARGET });
   assert.equal(texture.IsValid(), true);
   description.SetSrv__TextureAL(ShaderType.PIXEL_SHADER, 2, texture);
   const set = new CjsWebgpuResourceSetAL();

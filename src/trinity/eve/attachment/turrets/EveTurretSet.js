@@ -1175,7 +1175,7 @@ export class EveTurretSet extends EveEntity
   SetAmbientEffect(ambientEffect)
   {
     const previous = this._ambientEffect;
-    if (previous && be.classes.QueryThisInterface(previous, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) previous.UnRegister(this.GetComponentRegistry());
+    if (previous && be.classes.QueryThisInterface(previous, EveEntity, previous.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) previous.UnRegister(this.GetComponentRegistry());
     this._ambientEffect = ambientEffect;
     this.InitializeAmbientEffect();
   }
@@ -1187,7 +1187,7 @@ export class EveTurretSet extends EveEntity
   {
     const registry = this.GetComponentRegistry();
     const previous = this.generatedDistributedAmbientEffect;
-    if (previous && be.classes.QueryThisInterface(previous, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) previous.UnRegister(registry);
+    if (previous && be.classes.QueryThisInterface(previous, EveEntity, previous.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) previous.UnRegister(registry);
     this.generatedDistributedAmbientEffect = null;
     if (!this.ambientEffect) return;
     mat4.identity(this._ambientOffsetMatrix);
@@ -1198,7 +1198,7 @@ export class EveTurretSet extends EveEntity
     for (const turret of this._turrets)
       generated.AddInstanceTransform(EveTurretSet._unitScale, turret.localQuaternion, turret.localPosition);
     const ambient = this.GetAmbientEffectOrGeneratedEffect();
-    if (ambient && be.classes.QueryThisInterface(ambient, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) ambient.Register(registry);
+    if (ambient && be.classes.QueryThisInterface(ambient, EveEntity, ambient.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) ambient.Register(registry);
     if (this.state === EveTurretSet.State.STATE_FIRING)
     {
       ambient.SetControllerVariable("TurretState", EveTurretSet.State.STATE_TARGETING);
@@ -1651,9 +1651,9 @@ export class EveTurretSet extends EveEntity
   {
     const registry = this.GetComponentRegistry();
     const previous = this._firingEffect;
-    if (previous && be.classes.QueryThisInterface(previous, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) previous.UnRegister(registry);
+    if (previous && be.classes.QueryThisInterface(previous, EveEntity, previous.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) previous.UnRegister(registry);
     this._firingEffect = effect;
-    if (effect && be.classes.QueryThisInterface(effect, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) effect.Register(registry);
+    if (effect && be.classes.QueryThisInterface(effect, EveEntity, effect.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) effect.Register(registry);
     this.InitializeFiringEffect();
   }
 
@@ -2026,9 +2026,9 @@ export class EveTurretSet extends EveEntity
     {
       registry.RegisterComponent(EveComponentType.ShadowCaster, this);
       const firing = this.firingEffect;
-      if (firing && be.classes.QueryThisInterface(firing, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) firing.Register(registry);
+      if (firing && be.classes.QueryThisInterface(firing, EveEntity, firing.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) firing.Register(registry);
       const ambient = this.GetAmbientEffectOrGeneratedEffect();
-      if (ambient && be.classes.QueryThisInterface(ambient, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) ambient.Register(registry);
+      if (ambient && be.classes.QueryThisInterface(ambient, EveEntity, ambient.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) ambient.Register(registry);
     }
   }
 
@@ -2044,9 +2044,9 @@ export class EveTurretSet extends EveEntity
     if (registry)
     {
       const firing = this.firingEffect;
-      if (firing && be.classes.QueryThisInterface(firing, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) firing.UnRegister(registry);
+      if (firing && be.classes.QueryThisInterface(firing, EveEntity, firing.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) firing.UnRegister(registry);
       const ambient = this.GetAmbientEffectOrGeneratedEffect();
-      if (ambient && be.classes.QueryThisInterface(ambient, EveEntity, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) ambient.UnRegister(registry);
+      if (ambient && be.classes.QueryThisInterface(ambient, EveEntity, ambient.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null) ambient.UnRegister(registry);
     }
   }
 

@@ -171,7 +171,7 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
     {
       if (!this._vertexBuffer.IsValid() || this.currentSubmittedTriangleCount < this.triangles.length)
       {
-        if (Failed(this._vertexBuffer.Create(Tr2BufferDescriptionAL.FromStride(40, this.triangles.length * 3,
+        if (Failed(this._vertexBuffer.Create(Tr2BufferDescriptionAL.create__Stride(40, this.triangles.length * 3,
           Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN), null, context))) return false;
         this.currentSubmittedTriangleCount = this.triangles.length;
       }

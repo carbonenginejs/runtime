@@ -463,7 +463,7 @@ export class Tr2RingBuffer
     this._buffer = null;
     if (!renderContext.IsValid()) return;
 
-    const description = Tr2BufferDescriptionAL.FromStride(
+    const description = Tr2BufferDescriptionAL.create__Stride(
       this.stride,
       this.size,
       Tr2GpuUsage.SHADER_RESOURCE,

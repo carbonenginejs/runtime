@@ -273,7 +273,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
     const context = Tr2RenderContext_GetMainThreadRenderContext();
     if (this._points.length)
     {
-      if (!this._vertexBuffer.IsValid() && Failed(this._vertexBuffer.Create(Tr2BufferDescriptionAL.FromStride(
+      if (!this._vertexBuffer.IsValid() && Failed(this._vertexBuffer.Create(Tr2BufferDescriptionAL.create__Stride(
         40, this._points.length / 10, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN), null, context))) return false;
       const mapped = this._vertexBuffer.MapForWriting(context);
       if (Failed(mapped.result)) return false;
@@ -290,7 +290,7 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
     }
     for (const [buffer, data] of [[this._triangleIndexBuffer, this._triangleIndices], [this._lineIndexBuffer, this._lineIndices]])
     {
-      if (data.length && Failed(buffer.Create(Tr2BufferDescriptionAL.FromStride(4, data.length,
+      if (data.length && Failed(buffer.Create(Tr2BufferDescriptionAL.create__Stride(4, data.length,
         Tr2GpuUsage.INDEX_BUFFER, Tr2CpuUsage.NONE), new Uint8Array(data.buffer), context))) return false; // alloc: byte view for the AL upload.
     }
     return true;

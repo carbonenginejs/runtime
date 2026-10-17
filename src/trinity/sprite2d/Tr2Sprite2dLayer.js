@@ -211,9 +211,9 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
     if (this._renderTarget.IsValid()) return true;
 
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
-    const result = this._renderTarget.Create(
-      BitmapDimensions.texture2D(toUint32(this.displayWidth), toUint32(this.displayHeight), 1, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM),
-      { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.RENDER_TARGET, cpuUsage: Tr2CpuUsage.READ },
+    const result = this._renderTarget.Create__GpuUsageCpuUsage(
+      BitmapDimensions.create__WidthHeightMipCountFormat(toUint32(this.displayWidth), toUint32(this.displayHeight), 1, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM),
+      Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.RENDER_TARGET, Tr2CpuUsage.READ,
       renderContext);
 
     if (Failed(result))

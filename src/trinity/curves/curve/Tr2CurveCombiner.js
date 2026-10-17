@@ -131,7 +131,7 @@ export class Tr2CurveCombiner extends ITriVectorFunction
     let maxLength = 0;
     for (const curve of this.curves)
     {
-      if (be.classes.QueryThisInterface(curve, ITriCurveLength, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
+      if (be.classes.QueryThisInterface(curve, ITriCurveLength, curve.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) !== null)
       {
         maxLength = Math.max(curve.Length(), maxLength);
       }

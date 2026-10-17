@@ -28,7 +28,7 @@ test("MIT libsquish port matches 2310 scalar 1.15 reference blocks", () =>
 function packet(overrides = {})
 {
     const description = { type: T.TEX_TYPE_2D, width: 7, height: 5, depth: 1, mipCount: 3, arraySize: 1, format: 28, ...overrides };
-    const data = new Uint8Array(getRawDataSize(new BitmapDimensions(description)));
+    const data = new Uint8Array(getRawDataSize(BitmapDimensions.create__AllFields(description.type, description.format, description.width, description.height, description.depth, description.mipCount, description.arraySize)));
     for (let i = 0; i < data.length; i++) data[i] = (i * 71 + 13) & 255;
     return { description, data, metadata: { cutout: {}, metadata: [["duplicate", "one"], ["duplicate", "tū"], ["", ""]] } };
 }
@@ -127,7 +127,8 @@ test("Carbon cancellation before and during encoding publishes no partial output
 test("HostBitmap facade publishes corrected DXT3/BC2 output only on worker success", async t =>
 {
     const source = new Tr2HostBitmap();
-    source.CreateFromBitmapDimensions(new BitmapDimensions(packet().description));
+    const d = packet().description;
+    source.CreateFromBitmapDimensions(BitmapDimensions.create__AllFields(d.type, d.format, d.width, d.height, d.depth, d.mipCount, d.arraySize));
     source.GetRawData().set(packet().data);
     let published = null;
     const output = { CreateFromHostBitmap(bitmap) { published = bitmap; return true; } };
@@ -207,7 +208,7 @@ test("pitched RT output leaves padding intact and rejects incomplete input trans
 test("unsigned high-bit extents terminate mip counting and reject insufficient storage", () =>
 {
     const description = {type:T.TEX_TYPE_2D,width:0x80000000,height:1,depth:1,arraySize:1,mipCount:0,format:61};
-    const dimensions = new BitmapDimensions(description);
+    const dimensions = BitmapDimensions.create__AllFields(description.type, description.format, description.width, description.height, description.depth, description.mipCount, description.arraySize);
     assert.equal(dimensions.GetTrueMipCount(),32);
     assert.equal(dimensions.GetMipWidth(0),0x80000000);
     assert.throws(()=>DDS.compressBitmap({description,data:new Uint8Array(1)},8),/storage/);

@@ -6144,7 +6144,7 @@ test("resPathInsert existence goes through BePaths, as Carbon's FileExists does"
     IsDirectory() { return false; }
     GetDirectoryContents() {}
     async GetStreamFromPath() { return null; }
-    ResolvePath(path) { return path; }
+    ResolvePathW(path) { return path; }
   })();
   be.paths.RegisterFileSystem(fileSystem);
   try

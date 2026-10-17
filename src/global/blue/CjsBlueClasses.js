@@ -39,7 +39,7 @@ import { getCarbonTypeDefinition } from "../schema/types/carbonTypes.js";
 import { mappedInterfaces, exposureChainTo } from "../compose/interface.js";
 import { IBlueClasses } from "./IBlueClasses.js";
 import { Copier } from "./Copier.js";
-import { IRoot } from "./IRoot.js";
+import * as CcpLog from "../logging/ccpLog.js";
 // The class, not the `blue` instance: the holder constructs this registry,
 // so importing the instance here would be an import cycle.
 import { CjsBlue } from "./CjsBlue.js";
@@ -87,6 +87,18 @@ export class CjsBlueClasses extends IBlueClasses
   }
 
   /**
+   * `RegisterClasses( std::vector<Be::ClassRegistration>& table )`: register
+   * every entry of a vector (BlueClasses.cpp:314-320).
+   *
+   * @param {Array<{name: string, type: Function, createFn?: Function, flags?: number}>} table Registrations.
+   */
+  RegisterClasses__Vector(table)
+  {
+    // Carbon (BlueClasses.cpp:296-320): both overloads register each entry; a JS array carries its length.
+    return this.RegisterClasses(table);
+  }
+
+  /**
    * Remove every entry of a table (BlueClasses.cpp:304-310, 282-294).
    *
    * @param {Array<{name: string}>} table Registrations to remove.
@@ -97,6 +109,18 @@ export class CjsBlueClasses extends IBlueClasses
     {
       unregisterClass(registration.name);
     }
+  }
+
+  /**
+   * `UnregisterClasses( std::vector<Be::ClassRegistration>& table )`: remove
+   * every entry of a vector (BlueClasses.cpp:323-329).
+   *
+   * @param {Array<{name: string}>} table Registrations to remove.
+   */
+  UnregisterClasses__Vector(table)
+  {
+    // Carbon (BlueClasses.cpp:305-329): both overloads remove each entry; a JS array carries its length.
+    return this.UnregisterClasses(table);
   }
 
   /**
@@ -115,10 +139,11 @@ export class CjsBlueClasses extends IBlueClasses
   }
 
   /**
-   * The class id registered under a name, or null (BlueClasses.cpp:355-364).
+   * `FindClsid( const char* name )`: the class id registered under a name, or
+   * null (BlueClasses.cpp:355-364).
    *
-   * Adapted: Carbon's out-parameter overload and its module argument collapse: the id is the
-   * name, and Carbon ignores the module.
+   * Adapted: the id is the class name; the registered spelling is returned
+   * where Carbon returns a pointer to the registered `Be::Clsid`.
    *
    * @param {string} name Class name.
    * @returns {string|null} Class id.
@@ -126,6 +151,25 @@ export class CjsBlueClasses extends IBlueClasses
   FindClsid(name)
   {
     return getClassRegistration(name)?.name ?? null;
+  }
+
+  /**
+   * `FindClsid( Be::Clsid& clsid, const char* module, const char* name )`: the
+   * class id registered under a module and name, or null
+   * (BlueClasses.cpp:338-353). Carbon writes the id to its `clsid` output
+   * parameter and returns whether it found one; the output parameter is the
+   * return value here, and null is Carbon's false.
+   *
+   * Adapted: the id is the class name, as in `FindClsid(name)`.
+   *
+   * @param {string} _module Module name; Carbon ignores it.
+   * @param {string} name Class name.
+   * @returns {string|null} Class id.
+   */
+  FindClsid__Module(_module, name)
+  {
+    // Carbon (BlueClasses.cpp:340-345): the module is ignored and the name looked up, as FindClsid(name).
+    return this.FindClsid(name);
   }
 
   /**
@@ -155,6 +199,7 @@ export class CjsBlueClasses extends IBlueClasses
    */
   CreateInstanceFromName(className)
   {
+    // Carbon (BlueClasses.cpp:448-464) looks the name up itself; a class id is the name here, so CreateInstance answers.
     return this.CreateInstance(className);
   }
 
@@ -165,59 +210,89 @@ export class CjsBlueClasses extends IBlueClasses
   }
 
   /**
-   * The object when its exposure table maps the interface, otherwise null
+   * `QueryThisInterface( pThis, riid, ppv, type, options = BEQI_NONE )`: the
+   * object when `type`'s exposure table maps the interface, otherwise null
    * (BlueClasses.cpp:376-415). The table is the class's own entries followed by
-   * each `chainTo` parent's, which is the order Carbon walks `mParentClassInfo`.
-   * A miss is logged unless `BEQI_SILENT` is set.
+   * each `chainTo` parent's, which is the order Carbon walks
+   * `mParentClassInfo`. A miss is logged unless `BEQI_SILENT` is set, and
+   * only when a type was given, as Carbon logs only for a non-null `type`.
    *
-   * Adapted: Carbon writes the offset-adjusted pointer through ppv and returns bool;
-   * JavaScript has no offsets, so it returns the same object or null. The class
-   * type is read from the object rather than passed, and the log names the class
-   * without Carbon's module prefix, which JavaScript classes do not carry.
+   * Adapted: Carbon writes the offset-adjusted pointer to its `ppv` output
+   * parameter and returns bool; the output parameter is the return value
+   * here, and JavaScript has no offsets, so it is `self` or null. `type` is
+   * the class itself, a JavaScript class being its own type information. The
+   * log names the class without Carbon's module prefix, which JavaScript
+   * classes do not carry.
    *
    * @param {object} self The object to query.
    * @param {Function} riid The interface or class to ask for.
-   * @param {number} [options] `BLUEQIOPT` flags.
+   * @param {Function|null} type The class whose exposure table is walked, usually `self.constructor`.
+   * @param {number} [options=BEQI_NONE] `BLUEQIOPT` flags.
    * @returns {object|null} `self`, or null.
    */
-  QueryThisInterface(self, riid, options = CjsBlueClasses.BLUEQIOPT.BEQI_NONE)
+  QueryThisInterface(self, riid, type, options = CjsBlueClasses.BLUEQIOPT.BEQI_NONE)
   {
-    return IRoot.prototype.QueryInterface.call(self, riid, options);
+    if (mappedInterfaces(type).has(riid)) return self;
+    if (type && (options & CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === 0)
+    {
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("blue"), "Interface %s not found on class %s",
+        CjsSchema.getClassName(riid), CjsSchema.getClassName(type));
+    }
+    return null;
   }
 
   /**
-   * Copies `source` into `dest`, or into a new instance of its class when
-   * `dest` is null, through a fresh Copier (BlueClasses.cpp:498-510).
-   *
-   * Adapted: Carbon returns bool and writes the destination through an
-   * IRoot**, and each callback carries a void* context; JavaScript returns the
-   * destination or null, and closures carry their own context.
+   * `CopyTo( source, dest )`: `CopyTo__Callbacks` with Carbon's default
+   * callbacks and contexts, all null (IBlueClasses.h:72-79).
    *
    * @param {object} source The object to copy.
-   * @param {object|null} [dest=null] An existing object of the same class, or null.
-   * @param {Function|null} [copyOverride=null] See `Copier.SetCopyOverrideCallback`.
-   * @param {Function|null} [postCopy=null] See `Copier.SetPostCopyCallback`.
+   * @param {object|null} dest An existing object of the same class, which is filled and returned, or null for a new one.
    * @returns {object|null} The destination, or null when the copy failed.
    */
-  CopyTo(source, dest = null, copyOverride = null, postCopy = null)
+  CopyTo(source, dest)
+  {
+    // Carbon (IBlueClasses.h:72-79): copyOverride, overrideContext, postCopy and postCopyContext default to nullptr.
+    return this.CopyTo__Callbacks(source, dest, null, null, null, null);
+  }
+
+  /**
+   * `CopyTo( source, dest, copyOverride, overrideContext, postCopy, postCopyContext )`:
+   * copies `source` into `dest`, or into a new instance of its class when
+   * `dest` is null, through a fresh Copier given both callbacks and their
+   * contexts (BlueClasses.cpp:498-510).
+   *
+   * Adapted: Carbon returns bool and writes the destination to its `dest`
+   * output parameter; the output parameter is the return value here, the
+   * destination or null.
+   *
+   * @param {object} source The object to copy.
+   * @param {object|null} dest An existing object of the same class, which is filled and returned, or null for a new one.
+   * @param {Function|null} [copyOverride=null] See `Copier.SetCopyOverrideCallback`.
+   * @param {*} [overrideContext=null] Passed to `copyOverride` as its last argument.
+   * @param {Function|null} [postCopy=null] See `Copier.SetPostCopyCallback`.
+   * @param {*} [postCopyContext=null] Passed to `postCopy` as its last argument.
+   * @returns {object|null} The destination, or null when the copy failed.
+   */
+  CopyTo__Callbacks(source, dest, copyOverride = null, overrideContext = null, postCopy = null, postCopyContext = null)
   {
     const copier = new Copier();
-    copier.SetCopyOverrideCallback(copyOverride);
-    copier.SetPostCopyCallback(postCopy);
+    copier.SetCopyOverrideCallback(copyOverride, overrideContext);
+    copier.SetPostCopyCallback(postCopy, postCopyContext);
     return copier.CopyTo(source, dest);
   }
 
   /**
    * Copies preserving topology, through a fresh Copier (BlueClasses.cpp:512-516).
    *
-   * Adapted: Carbon returns bool and writes the destination through an
-   * IRoot**; JavaScript returns the destination or null.
+   * Adapted: Carbon returns bool and writes the destination to its `dest`
+   * output parameter; the output parameter is the return value here, the
+   * destination or null.
    *
    * @param {object} source The object to copy.
-   * @param {object|null} [dest=null] An existing object of the same class, or null.
+   * @param {object|null} dest An existing object of the same class, which is filled and returned, or null for a new one.
    * @returns {object|null} The destination, or null when the copy failed.
    */
-  CloneTo(source, dest = null)
+  CloneTo(source, dest)
   {
     return new Copier().CloneTo(source, dest);
   }
@@ -541,13 +616,17 @@ CjsSchema.blue.define(CjsBlueClasses, {
   methods: {
     _RegisterSingleClass: [ blue.method, meta.adapted ],
     RegisterClasses: [ blue.method, meta.adapted ],
+    RegisterClasses__Vector: [ blue.method, meta.implemented ],
     UnregisterClasses: [ blue.method, meta.implemented ],
+    UnregisterClasses__Vector: [ blue.method, meta.implemented ],
     GetClassRegistration: [ blue.method, meta.adapted ],
     FindClsid: [ blue.method, meta.adapted ],
+    FindClsid__Module: [ blue.method, meta.adapted ],
     CreateInstance: [ blue.method, meta.adapted ],
     CreateInstanceFromName: [ blue.method, meta.adapted ],
     QueryThisInterface: [ blue.method, meta.adapted ],
-    CopyTo: [ blue.method, meta.adapted ],
+    CopyTo: [ blue.method, meta.implemented ],
+    CopyTo__Callbacks: [ blue.method, meta.adapted ],
     CloneTo: [ blue.method, meta.adapted ],
     GetClassTypes: [ blue.method, meta.adapted ],
     LiveCount: [ blue.method, meta.notSupported ],

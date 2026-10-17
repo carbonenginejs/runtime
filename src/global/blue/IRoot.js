@@ -26,8 +26,14 @@ export class IRoot
   }
 
   /**
-   * Adapted: returns the same object or null instead of an adjusted out-pointer.
-   * Shared by CjsBlueClasses so instance and service queries have one path.
+   * `QueryInterface` - Carbon's `RootQIImpl::QueryInterface` (BlueClass.h:38-40),
+   * which asks `BeClasses->QueryThisInterface(this, riid, ppv, ClassType_(), options)`.
+   *
+   * Adapted: returns the same object or null instead of an adjusted
+   * out-pointer. IRoot cannot reach `be.classes` (the holder that builds the
+   * registry imports classes that extend IRoot), so this walks its own class's
+   * table here, as `CjsBlueClasses.QueryThisInterface` does for
+   * `this.constructor`.
    *
    * @param {Function} riid Requested interface identity.
    * @param {number} [options=0] BLUEQIOPT flags; bit one suppresses miss logging.

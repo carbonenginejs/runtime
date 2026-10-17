@@ -225,7 +225,7 @@ export class CjsBlueResFileSystemFetch extends IBlueResFileSystem
    *
    * Adapted: a URL, where Carbon gives a disk path.
    */
-  ResolvePath(path)
+  ResolvePathW(path)
   {
     try
     {
@@ -483,7 +483,7 @@ CjsSchema.meta.define(CjsBlueResFileSystemFetch, {
     FileExists: [ blue.method, meta.adapted ],
     IsDirectory: [ blue.method, meta.adapted ],
     GetDirectoryContents: [ blue.method, meta.adapted ],
-    ResolvePath: [ blue.method, meta.renamed("ResolvePathW"), meta.adapted ],
+    ResolvePathW: [ blue.method, meta.adapted ],
     GetStreamFromPath: [ blue.method, meta.renamed("GetStreamFromPathW"), meta.adapted ]
   }
 });

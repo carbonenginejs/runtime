@@ -244,7 +244,7 @@ export class Tr2ControllerReference extends ITr2Controller
     }
     if (request !== this._loadRequest || path !== this.path) return null;
     // Native LoadObject<ITr2Controller> requires the exposed interface identity.
-    const controller = object ? be.classes.QueryThisInterface(object, ITr2Controller, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    const controller = object ? be.classes.QueryThisInterface(object, ITr2Controller, object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
     if (!controller)
     {
       CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Resource ${path} is not an ITr2Controller.`);

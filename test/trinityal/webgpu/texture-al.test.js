@@ -5,7 +5,7 @@ import { CjsWebgpuDevice } from "../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuRenderContextAL, CjsWebgpuTextureAL, CjsWebgpuUtils } from "../../../npm/dist/trinityal/webgpu/internal.js";
 import { CjsBlueResMan, RegisterTextureResources, TriTextureRes, CjsMotherLode } from "../../../npm/dist/resource/index.js";
 import { DescribeBitmap, RealizeTexture } from "../../../npm/dist/trinity/core/Tr2ImageIOHelpers.js";
-import { Tr2BaseDeviceResourceAL, Tr2TextureAL, ALResult, Tr2BitmapDimensions, Tr2SubresourceData } from "../../../npm/dist/trinityal/index.js";
+import { Tr2BaseDeviceResourceAL, Tr2TextureAL, ALResult, Tr2BitmapDimensions, Tr2MsaaDesc, Tr2SubresourceData } from "../../../npm/dist/trinityal/index.js";
 import { PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage } from "../../../npm/dist/global/consts/renderContext/index.js";
 
 import { HostBitmap } from "../../../npm/dist/global/imageio/index.js";
@@ -76,25 +76,25 @@ test("a UAV texture WebGPU cannot store to is created in a storage-capable forma
 
   // R11G11B10 takes rgba16float, Carbon's own DX12 substitute.
   const packed = new CjsWebgpuTextureAL();
-  assert.equal(packed.Create(Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_R11G11B10_FLOAT), { gpuUsage: uav }, al), ALResult.S_OK);
+  assert.equal(packed.Create(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(4, 4, 1, PixelFormat.PIXEL_FORMAT_R11G11B10_FLOAT), new Tr2MsaaDesc(), uav, Tr2CpuUsage.NONE, null, al), ALResult.S_OK);
   assert.equal(calls.textures.at(-1).format, "rgba16float");
   assert.equal(packed.GetDeviceFormat(), "rgba16float");
   assert.notEqual(packed.GetDeviceStorageView("2d", 0), null);
 
   // An sRGB format takes its linear sibling and keeps the sRGB view.
   const srgb = new CjsWebgpuTextureAL();
-  assert.equal(srgb.Create(Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM_SRGB), { gpuUsage: uav }, al), ALResult.S_OK);
+  assert.equal(srgb.Create(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(4, 4, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM_SRGB), new Tr2MsaaDesc(), uav, Tr2CpuUsage.NONE, null, al), ALResult.S_OK);
   assert.equal(calls.textures.at(-1).format, "rgba8unorm");
   assert.deepEqual(calls.textures.at(-1).viewFormats, [ "rgba8unorm-srgb" ]);
 
   // Pixels laid out for R11G11B10 cannot go into rgba16float.
   const seeded = new CjsWebgpuTextureAL();
   const initialData = [ new Tr2SubresourceData(new Uint8Array(64), 16, 64) ];
-  assert.equal(seeded.Create(Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_R11G11B10_FLOAT), { gpuUsage: uav, initialData }, al), ALResult.E_INVALIDARG);
+  assert.equal(seeded.Create(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(4, 4, 1, PixelFormat.PIXEL_FORMAT_R11G11B10_FLOAT), new Tr2MsaaDesc(), uav, Tr2CpuUsage.NONE, initialData, al), ALResult.E_INVALIDARG);
 
   // A texture without UAV usage has no storage view.
   const sampled = new CjsWebgpuTextureAL();
-  assert.equal(sampled.Create(Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_R32_FLOAT), { gpuUsage: Tr2GpuUsage.RENDER_TARGET }, al), ALResult.S_OK);
+  assert.equal(sampled.Create(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(4, 4, 1, PixelFormat.PIXEL_FORMAT_R32_FLOAT), new Tr2MsaaDesc(), Tr2GpuUsage.RENDER_TARGET, Tr2CpuUsage.NONE, null, al), ALResult.S_OK);
   assert.equal(sampled.GetDeviceStorageView("2d", 0), null);
 });
 
@@ -104,7 +104,7 @@ test("a render-target view names one mip and one slice, and is cached", () =>
   const depth = new CjsWebgpuTextureAL();
 
   assert.equal(depth.GetDeviceRenderTargetView(), null, "nothing before Create");
-  assert.equal(depth.Create(Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_D32_FLOAT), { gpuUsage: Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE }, al), ALResult.S_OK);
+  assert.equal(depth.Create(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(4, 4, 1, PixelFormat.PIXEL_FORMAT_D32_FLOAT), new Tr2MsaaDesc(), Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE, Tr2CpuUsage.NONE, null, al), ALResult.S_OK);
   assert.equal(depth.GetDeviceFormat(), "depth32float");
 
   const view = depth.GetDeviceRenderTargetView(0);
@@ -122,9 +122,9 @@ test("Create makes the texture with its sRGB sibling declared and uploads one wr
 {
   const { al, calls } = composed();
   const texture = new CjsWebgpuTextureAL();
-  const desc = Tr2BitmapDimensions.texture2D(8, 8, 2, PixelFormat.PIXEL_FORMAT_BC1_UNORM);
+  const desc = Tr2BitmapDimensions.create__WidthHeightMipCountFormat(8, 8, 2, PixelFormat.PIXEL_FORMAT_BC1_UNORM);
 
-  assert.equal(texture.Create(desc, { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, cpuUsage: Tr2CpuUsage.READ, initialData: bc1Mips() }, al), ALResult.S_OK);
+  assert.equal(texture.Create(desc, new Tr2MsaaDesc(), Tr2GpuUsage.SHADER_RESOURCE, Tr2CpuUsage.READ, bc1Mips(), al), ALResult.S_OK);
   assert.equal(texture.IsValid(), true);
 
   const created = calls.textures[0];
@@ -153,7 +153,7 @@ test("views are made per dimension and colour space, once each; sRGB reinterpret
   const { al, calls } = composed();
   const texture = new CjsWebgpuTextureAL();
 
-  texture.Create(Tr2BitmapDimensions.texture2D(8, 8, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), { initialData: [ new Tr2SubresourceData(new Uint8Array(256), 32, 256) ] }, al);
+  texture.Create(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(8, 8, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), new Tr2MsaaDesc(), Tr2GpuUsage.NONE, Tr2CpuUsage.NONE, [ new Tr2SubresourceData(new Uint8Array(256), 32, 256) ], al);
 
   const linear = texture.GetDeviceTextureView("2d", 0);
   const srgb = texture.GetDeviceTextureView("2d", 1);
@@ -168,7 +168,7 @@ test("views are made per dimension and colour space, once each; sRGB reinterpret
   // A format with no sRGB sibling answers the linear view for both spaces.
   const single = new CjsWebgpuTextureAL();
 
-  single.Create(Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_BC5_UNORM), { initialData: [ new Tr2SubresourceData(new Uint8Array(16), 16, 16) ] }, al);
+  single.Create(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(4, 4, 1, PixelFormat.PIXEL_FORMAT_BC5_UNORM), new Tr2MsaaDesc(), Tr2GpuUsage.NONE, Tr2CpuUsage.NONE, [ new Tr2SubresourceData(new Uint8Array(16), 16, 16) ], al);
   assert.equal(single.GetDeviceTextureView("2d", 1).format, undefined);
   assert.equal(calls.textures[1].viewFormats, undefined);
 });
@@ -177,10 +177,10 @@ test("a cube uploads six layers in Carbon's mip + layer * mipCount order, and vi
 {
   const { al, calls } = composed();
   const texture = new CjsWebgpuTextureAL();
-  const desc = new Tr2BitmapDimensions({ type: TextureType.TEX_TYPE_CUBE, format: PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM, width: 2, height: 2, depth: 1, mipCount: 1, arraySize: 6 });
+  const desc = Tr2BitmapDimensions.create__AllFields(TextureType.TEX_TYPE_CUBE, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM, 2, 2, 1, 1, 6);
   const initialData = Array.from({ length: 6 }, (_, face) => (new Tr2SubresourceData(new Uint8Array(16).fill(face), 8, 16)));
 
-  assert.equal(texture.Create(desc, { initialData }, al), ALResult.S_OK);
+  assert.equal(texture.Create(desc, new Tr2MsaaDesc(), Tr2GpuUsage.NONE, Tr2CpuUsage.NONE, initialData, al), ALResult.S_OK);
   assert.deepEqual(calls.textures[0].size, { width: 2, height: 2, depthOrArrayLayers: 6 });
   assert.deepEqual(calls.writes.map(write => write.destination.origin.z), [ 0, 1, 2, 3, 4, 5 ]);
   assert.equal(texture.GetDeviceTextureView().dimension, "cube");
@@ -192,15 +192,15 @@ test("Carbon's refusals: no data for an unwritable texture, an unknown format, a
   const { al, calls } = composed();
   const texture = new CjsWebgpuTextureAL();
 
-  assert.equal(texture.Create(Tr2BitmapDimensions.texture2D(8, 8, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), {}, al), ALResult.E_INVALIDARG, "samples black forever");
-  assert.equal(texture.Create(Tr2BitmapDimensions.texture2D(8, 8, 1, PixelFormat.PIXEL_FORMAT_R32G32B32_FLOAT), { initialData: [ {} ] }, al), ALResult.E_INVALIDARG, "no WebGPU format");
-  assert.equal(texture.Create(new Tr2BitmapDimensions({ type: TextureType.TEX_TYPE_CUBE, format: PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM, width: 2, height: 2, mipCount: 1, arraySize: 5 }), { initialData: [ {} ] }, al), ALResult.E_INVALIDARG);
-  assert.equal(texture.Create(Tr2BitmapDimensions.texture2D(8, 8, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), { initialData: [ {} ] }, { IsValid: () => false }), ALResult.E_FAIL);
+  assert.equal(texture.Create(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(8, 8, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), new Tr2MsaaDesc(), Tr2GpuUsage.NONE, Tr2CpuUsage.NONE, null, al), ALResult.E_INVALIDARG, "samples black forever");
+  assert.equal(texture.Create(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(8, 8, 1, PixelFormat.PIXEL_FORMAT_R32G32B32_FLOAT), new Tr2MsaaDesc(), Tr2GpuUsage.NONE, Tr2CpuUsage.NONE, [ {} ], al), ALResult.E_INVALIDARG, "no WebGPU format");
+  assert.equal(texture.Create(Tr2BitmapDimensions.create__AllFields(TextureType.TEX_TYPE_CUBE, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM, 2, 2, 0, 1, 5), new Tr2MsaaDesc(), Tr2GpuUsage.NONE, Tr2CpuUsage.NONE, [ {} ], al), ALResult.E_INVALIDARG);
+  assert.equal(texture.Create(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(8, 8, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), new Tr2MsaaDesc(), Tr2GpuUsage.NONE, Tr2CpuUsage.NONE, [ {} ], { IsValid: () => false }), ALResult.E_FAIL);
   assert.equal(calls.textures.length, 0);
   assert.equal(texture.IsValid(), false);
 
   // A render target needs no data: the GPU writes it.
-  assert.equal(texture.Create(Tr2BitmapDimensions.texture2D(8, 8, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), { gpuUsage: Tr2GpuUsage.RENDER_TARGET }, al), ALResult.S_OK);
+  assert.equal(texture.Create(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(8, 8, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), new Tr2MsaaDesc(), Tr2GpuUsage.RENDER_TARGET, Tr2CpuUsage.NONE, null, al), ALResult.S_OK);
   assert.equal(calls.textures[0].usage & TEXTURE_USAGE.RENDER_ATTACHMENT, TEXTURE_USAGE.RENDER_ATTACHMENT);
 
   texture.SetName("hull");
@@ -213,7 +213,7 @@ test("Carbon's refusals: no data for an unwritable texture, an unknown format, a
 test("the context creates the backend's texture, and Create accepts Trinity's context", () =>
 {
   const { al } = composed();
-  const desc = Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM);
+  const desc = Tr2BitmapDimensions.create__WidthHeightMipCountFormat(4, 4, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM);
   const data = [ new Tr2SubresourceData(new Uint8Array(64), 16, 64) ];
 
   const value = al.CreateTexture(desc, { initialData: data });
@@ -223,7 +223,7 @@ test("the context creates the backend's texture, and Create accepts Trinity's co
 
   const texture = new CjsWebgpuTextureAL();
 
-  assert.equal(texture.Create(desc, { initialData: data }, { GetRenderContextAL: () => al }), ALResult.S_OK);
+  assert.equal(texture.Create(desc, new Tr2MsaaDesc(), Tr2GpuUsage.NONE, Tr2CpuUsage.NONE, data, { GetRenderContextAL: () => al }), ALResult.S_OK);
 });
 
 test("CjsWebgpuUtils carries Metal's pixel format table (MetalUtils.mm:12-121)", () =>
@@ -286,7 +286,7 @@ test("a 24-bit volume DDS becomes a 3D bgra8unorm texture, one write for all its
   const { al, calls } = composed();
   const texture = new CjsWebgpuTextureAL();
 
-  assert.equal(texture.Create(desc, { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, initialData }, al), ALResult.S_OK);
+  assert.equal(texture.Create(desc, new Tr2MsaaDesc(), Tr2GpuUsage.SHADER_RESOURCE, Tr2CpuUsage.NONE, initialData, al), ALResult.S_OK);
   assert.equal(calls.textures[0].format, "bgra8unorm");
   assert.equal(calls.textures[0].dimension, "3d");
   assert.deepEqual(calls.textures[0].size, { width: 4, height: 4, depthOrArrayLayers: 4 });
@@ -300,14 +300,14 @@ test("a CPU-writable texture maps for writing and uploads on unmap (Carbon's Map
   const { al, calls } = composed();
   const texture = new CjsWebgpuTextureAL();
   // 4x2 RGBA32F, zero-filled, CPU read|write: Tr2DataTextureManager::OnPrepareResources.
-  const desc = Tr2BitmapDimensions.texture2D(4, 2, 1, PixelFormat.PIXEL_FORMAT_R32G32B32A32_FLOAT);
+  const desc = Tr2BitmapDimensions.create__WidthHeightMipCountFormat(4, 2, 1, PixelFormat.PIXEL_FORMAT_R32G32B32A32_FLOAT);
   const init = [ new Tr2SubresourceData(new Uint8Array(128), 64, 128) ];
 
-  assert.equal(texture.Create(desc, { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, cpuUsage: Tr2CpuUsage.READ | Tr2CpuUsage.WRITE, initialData: init }, al), ALResult.S_OK);
+  assert.equal(texture.Create(desc, new Tr2MsaaDesc(), Tr2GpuUsage.SHADER_RESOURCE, Tr2CpuUsage.READ | Tr2CpuUsage.WRITE, init, al), ALResult.S_OK);
   assert.equal(calls.textures[0].format, "rgba32float");
   calls.writes.length = 0;
 
-  const mapped = texture.MapForWriting(Tr2TextureSubresource.ForMipLevel(0), al);
+  const mapped = texture.MapForWriting(Tr2TextureSubresource.create__MipLevel(0), al);
   assert.equal(mapped.result, ALResult.S_OK);
   assert.equal(mapped.pitch, 64);
   assert.equal(mapped.data.byteLength, 128);
@@ -326,16 +326,16 @@ test("MapForWriting refuses a texture without CPU write and an incomplete box", 
 {
   const { Tr2TextureSubresource } = await import("../../../npm/dist/trinityal/index.js");
   const { al } = composed();
-  const desc = Tr2BitmapDimensions.texture2D(4, 2, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM);
+  const desc = Tr2BitmapDimensions.create__WidthHeightMipCountFormat(4, 2, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM);
   const init = [ new Tr2SubresourceData(new Uint8Array(32), 16, 32) ];
 
   const readOnly = new CjsWebgpuTextureAL();
-  readOnly.Create(desc, { initialData: init }, al);
-  assert.equal(readOnly.MapForWriting(Tr2TextureSubresource.ForMipLevel(0), al).result, ALResult.E_INVALIDCALL);
+  readOnly.Create(desc, new Tr2MsaaDesc(), Tr2GpuUsage.NONE, Tr2CpuUsage.NONE, init, al);
+  assert.equal(readOnly.MapForWriting(Tr2TextureSubresource.create__MipLevel(0), al).result, ALResult.E_INVALIDCALL);
 
   const writable = new CjsWebgpuTextureAL();
-  writable.Create(desc, { cpuUsage: Tr2CpuUsage.WRITE, initialData: init }, al);
-  const boxed = Tr2TextureSubresource.ForMipLevel(0);
+  writable.Create(desc, new Tr2MsaaDesc(), Tr2GpuUsage.NONE, Tr2CpuUsage.WRITE, init, al);
+  const boxed = Tr2TextureSubresource.create__MipLevel(0);
   boxed.m_box.left = 1;
   assert.equal(writable.MapForWriting(boxed, al).result, ALResult.E_INVALIDARG);
 });
@@ -346,7 +346,7 @@ test("a sampled depth texture is read through an r32float shadow copied via a ro
   const depth = new CjsWebgpuTextureAL();
   const sampledDepth = Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE;
 
-  assert.equal(depth.Create(Tr2BitmapDimensions.texture2D(100, 4, 1, PixelFormat.PIXEL_FORMAT_D32_FLOAT), { gpuUsage: sampledDepth }, al), ALResult.S_OK);
+  assert.equal(depth.Create(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(100, 4, 1, PixelFormat.PIXEL_FORMAT_D32_FLOAT), new Tr2MsaaDesc(), sampledDepth, Tr2CpuUsage.NONE, null, al), ALResult.S_OK);
 
   // The attachment stays depth32float; the shader view is the shadow's.
   const [ created, shadow ] = calls.textures.slice(-2);
@@ -376,7 +376,7 @@ test("a sampled depth texture is read through an r32float shadow copied via a ro
 
   // A depth texture nothing samples has no shadow and copies nothing.
   const attachmentOnly = new CjsWebgpuTextureAL();
-  assert.equal(attachmentOnly.Create(Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_D32_FLOAT), { gpuUsage: Tr2GpuUsage.DEPTH_STENCIL }, al), ALResult.S_OK);
+  assert.equal(attachmentOnly.Create(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(4, 4, 1, PixelFormat.PIXEL_FORMAT_D32_FLOAT), new Tr2MsaaDesc(), Tr2GpuUsage.DEPTH_STENCIL, Tr2CpuUsage.NONE, null, al), ALResult.S_OK);
   assert.equal(attachmentOnly.EncodeDepthShadowCopy(encoder), false);
 });
 
@@ -387,7 +387,7 @@ test("TAA's R16G16B16A16_UNORM accumulator renders into rgba16float", () =>
   const { al, calls } = composed();
   const accumulator = new CjsWebgpuTextureAL();
 
-  assert.equal(accumulator.Create(Tr2BitmapDimensions.texture2D(8, 8, 1, PixelFormat.PIXEL_FORMAT_R16G16B16A16_UNORM), { gpuUsage: Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE }, al), ALResult.S_OK);
+  assert.equal(accumulator.Create(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(8, 8, 1, PixelFormat.PIXEL_FORMAT_R16G16B16A16_UNORM), new Tr2MsaaDesc(), Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE, Tr2CpuUsage.NONE, null, al), ALResult.S_OK);
   assert.equal(calls.textures.at(-1).format, "rgba16float");
 });
 
@@ -403,7 +403,7 @@ test("R16_UNORM data uploads into r16float as half floats, so it can be filtered
   const lookup = new CjsWebgpuTextureAL();
   const texels = new Uint8Array(new Uint16Array([ 0, 65535, 32768 ]).buffer);
 
-  assert.equal(lookup.Create(Tr2BitmapDimensions.texture2D(3, 1, 1, PixelFormat.PIXEL_FORMAT_R16_UNORM), { initialData: [ new Tr2SubresourceData(texels, 6, 6) ] }, al), ALResult.S_OK);
+  assert.equal(lookup.Create(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(3, 1, 1, PixelFormat.PIXEL_FORMAT_R16_UNORM), new Tr2MsaaDesc(), Tr2GpuUsage.NONE, Tr2CpuUsage.NONE, [ new Tr2SubresourceData(texels, 6, 6) ], al), ALResult.S_OK);
   assert.equal(lookup.GetDeviceFormat(), "r16float");
 
   const halves = new Uint16Array(written[0].buffer);
@@ -419,9 +419,9 @@ test("a texture past the device's size limit is refused rather than made invalid
   const atlas = new CjsWebgpuTextureAL();
   const before = calls.textures.length;
 
-  assert.equal(atlas.Create(Tr2BitmapDimensions.texture2D(16384, 4096, 1, PixelFormat.PIXEL_FORMAT_D32_FLOAT), { gpuUsage: Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE }, al), ALResult.E_INVALIDARG);
+  assert.equal(atlas.Create(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(16384, 4096, 1, PixelFormat.PIXEL_FORMAT_D32_FLOAT), new Tr2MsaaDesc(), Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE, Tr2CpuUsage.NONE, null, al), ALResult.E_INVALIDARG);
   assert.equal(calls.textures.length, before, "nothing was created");
-  assert.equal(atlas.Create(Tr2BitmapDimensions.texture2D(8192, 4096, 1, PixelFormat.PIXEL_FORMAT_D32_FLOAT), { gpuUsage: Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE }, al), ALResult.S_OK);
+  assert.equal(atlas.Create(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(8192, 4096, 1, PixelFormat.PIXEL_FORMAT_D32_FLOAT), new Tr2MsaaDesc(), Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE, Tr2CpuUsage.NONE, null, al), ALResult.S_OK);
 });
 
 test("a BC 3D texture is made only on a device with texture-compression-bc-sliced-3d", () =>
@@ -429,16 +429,16 @@ test("a BC 3D texture is made only on a device with texture-compression-bc-slice
   // The impact effects' volume maps (fisfx/impact/3dfx_*.dds) are BC3. Without
   // the feature the GPUTexture is invalid and every submit binding it fails.
   const { al, calls } = composed();
-  const volume = () => new Tr2BitmapDimensions({ type: TextureType.TEX_TYPE_3D, format: PixelFormat.PIXEL_FORMAT_BC3_UNORM, width: 4, height: 4, depth: 4, mipCount: 1 });
+  const volume = () => Tr2BitmapDimensions.create__TypeFormatWidthHeightDepthMipCount(TextureType.TEX_TYPE_3D, PixelFormat.PIXEL_FORMAT_BC3_UNORM, 4, 4, 4, 1);
   const data = [ new Tr2SubresourceData(new Uint8Array(64), 16, 16) ];
 
   al.GetWebgpu().GetDevice().features = new Set([ "texture-compression-bc" ]);
   const before = calls.textures.length;
-  assert.throws(() => new CjsWebgpuTextureAL().Create(volume(), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, initialData: data }, al), /requires texture-compression-bc-sliced-3d/);
+  assert.throws(() => new CjsWebgpuTextureAL().Create(volume(), new Tr2MsaaDesc(), Tr2GpuUsage.SHADER_RESOURCE, Tr2CpuUsage.NONE, data, al), /requires texture-compression-bc-sliced-3d/);
   assert.equal(calls.textures.length, before, "nothing was created");
 
   al.GetWebgpu().GetDevice().features = new Set([ "texture-compression-bc", "texture-compression-bc-sliced-3d" ]);
-  assert.equal(new CjsWebgpuTextureAL().Create(volume(), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, initialData: data }, al), ALResult.S_OK);
+  assert.equal(new CjsWebgpuTextureAL().Create(volume(), new Tr2MsaaDesc(), Tr2GpuUsage.SHADER_RESOURCE, Tr2CpuUsage.NONE, data, al), ALResult.S_OK);
   assert.equal(calls.textures.at(-1).format, "bc3-rgba-unorm");
   assert.equal(calls.textures.at(-1).dimension, "3d");
 });
@@ -492,7 +492,7 @@ test("cache eviction reaches WebGPU AL Destroy on every texture reload without a
 test("TriTextureRes.SetTexture borrows caller storage across eviction", () =>
 {
   const { al, calls } = composed();
-  const value = al.CreateTexture(Tr2BitmapDimensions.texture2D(2, 2, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), { gpuUsage: Tr2GpuUsage.RENDER_TARGET });
+  const value = al.CreateTexture(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(2, 2, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), { gpuUsage: Tr2GpuUsage.RENDER_TARGET });
   const resource = new TriTextureRes();
   resource.SetTexture(value);
   calls.destroyed = false;
@@ -515,10 +515,9 @@ test("core WebGPU widens RG8 UAV storage and preserves the other format conversi
     [PixelFormat.PIXEL_FORMAT_R8G8_SINT, "rgba16float"]
   ])
   {
-    const desc = new Tr2BitmapDimensions({type: TextureType.TEX_TYPE_3D,
-      format, width: 4, height: 5, depth: 6, mipCount: 1});
+    const desc = Tr2BitmapDimensions.create__TypeFormatWidthHeightDepthMipCount(TextureType.TEX_TYPE_3D, format, 4, 5, 6, 1);
     const texture = new CjsWebgpuTextureAL();
-    assert.equal(texture.Create(desc, {gpuUsage: Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.UNORDERED_ACCESS}, al), ALResult.S_OK);
+    assert.equal(texture.Create(desc, new Tr2MsaaDesc(), Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.UNORDERED_ACCESS, Tr2CpuUsage.NONE, null, al), ALResult.S_OK);
     assert.equal(texture.GetDesc().GetFormat(), format);
     assert.equal(texture.GetDeviceFormat(), expected);
     assert.equal(calls.textures.at(-1).dimension, "3d");
@@ -537,7 +536,7 @@ test("native R8 volumes reach writeTexture without an estimated staging-buffer l
   bitmap.CreateVolume(19, 9, 2, 1, PixelFormat.PIXEL_FORMAT_R8_UNORM);
   const { desc, initialData } = DescribeBitmap(bitmap);
   assert.equal(initialData[0].m_sysMem.byteLength, 342, "one R8 byte per voxel, no RGBA expansion");
-  assert.equal(new CjsWebgpuTextureAL().Create(desc, { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, initialData }, al), ALResult.S_OK);
+  assert.equal(new CjsWebgpuTextureAL().Create(desc, new Tr2MsaaDesc(), Tr2GpuUsage.SHADER_RESOURCE, Tr2CpuUsage.NONE, initialData, al), ALResult.S_OK);
   assert.equal(calls.textures.at(-1).format, "r8unorm");
   assert.equal(calls.writes.length, 1);
   assert.equal(calls.writes[0].bytes, 342);
@@ -548,7 +547,7 @@ test("BC DDS content without enabled BC support fails explicitly before texture 
 {
   const { al, calls } = composed();
   al.GetWebgpu().GetDevice().features.clear();
-  assert.throws(() => new CjsWebgpuTextureAL().Create(Tr2BitmapDimensions.texture2D(8, 8, 2, PixelFormat.PIXEL_FORMAT_BC1_UNORM), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, initialData: bc1Mips() }, al), /requires texture-compression-bc/);
+  assert.throws(() => new CjsWebgpuTextureAL().Create(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(8, 8, 2, PixelFormat.PIXEL_FORMAT_BC1_UNORM), new Tr2MsaaDesc(), Tr2GpuUsage.SHADER_RESOURCE, Tr2CpuUsage.NONE, bc1Mips(), al), /requires texture-compression-bc/);
   assert.equal(calls.textures.length, 0);
 });
 
@@ -559,7 +558,7 @@ test("texture factory unregisters failed BC and throwing writeTexture implementa
   const device = al.GetWebgpu().GetDevice();
   const count = Tr2BaseDeviceResourceAL.GetResourceCount();
   device.features.clear();
-  assert.throws(() => al.CreateTexture(Tr2BitmapDimensions.texture2D(8, 8, 2, PixelFormat.PIXEL_FORMAT_BC1_UNORM), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, initialData: bc1Mips() }), /requires texture-compression-bc/);
+  assert.throws(() => al.CreateTexture(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(8, 8, 2, PixelFormat.PIXEL_FORMAT_BC1_UNORM), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, initialData: bc1Mips() }), /requires texture-compression-bc/);
   assert.equal(Tr2BaseDeviceResourceAL.GetResourceCount(), count);
   device.limits.maxBufferSize = 4096;
   const bitmap = new HostBitmap();
@@ -580,7 +579,7 @@ test("float32 sampled views require the active filtering feature, including cach
   {
     const texture = new CjsWebgpuTextureAL();
     const gpuUsage = Tr2GpuUsage.SHADER_RESOURCE | (format === PixelFormat.PIXEL_FORMAT_D32_FLOAT ? Tr2GpuUsage.DEPTH_STENCIL : Tr2GpuUsage.RENDER_TARGET);
-    assert.equal(texture.Create(Tr2BitmapDimensions.texture2D(4, 4, 1, format), { gpuUsage }, al), ALResult.S_OK);
+    assert.equal(texture.Create(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(4, 4, 1, format), new Tr2MsaaDesc(), gpuUsage, Tr2CpuUsage.NONE, null, al), ALResult.S_OK);
     const point = texture.GetDeviceTextureView("2d", 0, "unfilterable-float");
     const viewsBefore = calls.views.length;
     assert.throws(() => texture.GetDeviceTextureView("2d", 0, "float"), /filtered (r32float|rg32float|rgba32float) binding.*requires active float32-filterable.*webgpuFloat32Filterable/);
@@ -591,7 +590,7 @@ test("float32 sampled views require the active filtering feature, including cach
     texture.Destroy();
   }
   const ordinary = new CjsWebgpuTextureAL();
-  ordinary.Create(Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.RENDER_TARGET }, al);
+  ordinary.Create(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(4, 4, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), new Tr2MsaaDesc(), Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.RENDER_TARGET, Tr2CpuUsage.NONE, null, al);
   assert.ok(ordinary.GetDeviceTextureView("2d", 0, "float"));
   ordinary.Destroy();
 });
@@ -602,10 +601,10 @@ test("boxed atlas writes upload only their rectangle and preserve adjacent texel
   const { Tr2TextureSubresource } = await import("../../../npm/dist/trinityal/index.js");
   const { al, calls } = composed();
   const texture = new CjsWebgpuTextureAL();
-  const desc = Tr2BitmapDimensions.texture2D(32, 16, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM);
-  assert.equal(texture.Create(desc, { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, cpuUsage: Tr2CpuUsage.WRITE }, al), ALResult.S_OK);
+  const desc = Tr2BitmapDimensions.create__WidthHeightMipCountFormat(32, 16, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM);
+  assert.equal(texture.Create(desc, new Tr2MsaaDesc(), Tr2GpuUsage.SHADER_RESOURCE, Tr2CpuUsage.WRITE, null, al), ALResult.S_OK);
   calls.writes.length = 0;
-  const region = Tr2TextureSubresource.ForMipLevel(0).SetRect(7, 3, 12, 9);
+  const region = Tr2TextureSubresource.create__MipLevel(0).SetRect(7, 3, 12, 9);
   const mapping = texture.MapForWriting(region, al);
   assert.equal(mapping.result, ALResult.S_OK);
   assert.equal(mapping.pitch, 20);
@@ -617,7 +616,7 @@ test("boxed atlas writes upload only their rectangle and preserve adjacent texel
   assert.deepEqual(calls.writes[0].size, { width: 5, height: 6, depthOrArrayLayers: 1 });
   assert.equal(calls.writes[0].layout.bytesPerRow, 20);
   assert.equal(calls.writes[0].layout.rowsPerImage, 6);
-  assert.equal(texture.MapForWriting(Tr2TextureSubresource.ForMipLevel(0).SetRect(31, 0, 34, 1), al).result, ALResult.E_INVALIDARG);
+  assert.equal(texture.MapForWriting(Tr2TextureSubresource.create__MipLevel(0).SetRect(31, 0, 34, 1), al).result, ALResult.E_INVALIDARG);
 });
 
 
@@ -634,7 +633,7 @@ test("unaligned BC textures retain compressed mip data with Carbon block-rounded
       const mipCount = Math.floor(Math.log2(size)) + 1;
       const bitmap = new HostBitmap();
       // DDS uses this creation path; ordinary HostBitmap.Create rejects odd BC sizes.
-      assert.ok(bitmap.CreateFromBitmapDimensions(Tr2BitmapDimensions.texture2D(size, size, mipCount, format)));
+      assert.ok(bitmap.CreateFromBitmapDimensions(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(size, size, mipCount, format)));
       const { desc, initialData } = DescribeBitmap(bitmap);
       const uploaded = [];
       const device = al.GetWebgpu().GetDevice();
@@ -645,7 +644,7 @@ test("unaligned BC textures retain compressed mip data with Carbon block-rounded
         write(destination, data, layout, extent);
       };
       const texture = new CjsWebgpuTextureAL();
-      assert.equal(texture.Create(desc, { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, initialData }, al), ALResult.S_OK);
+      assert.equal(texture.Create(desc, new Tr2MsaaDesc(), Tr2GpuUsage.SHADER_RESOURCE, Tr2CpuUsage.NONE, initialData, al), ALResult.S_OK);
       const allocation = calls.textures[0];
       const rounded = Math.ceil(size / 4) * 4;
       assert.equal(allocation.format, gpuFormat);

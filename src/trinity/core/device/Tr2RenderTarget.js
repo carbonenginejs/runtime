@@ -146,7 +146,7 @@ export class Tr2RenderTarget
 
     const { gpuUsage, cpuUsage } = GetUsage(msaaType, flags);
     const textureType = type || TextureType.TEX_TYPE_2D;
-    const dimensions = new Tr2BitmapDimensions({ type: textureType, format, width, height, depth: 1, mipCount: mipLevelCount });
+    const dimensions = Tr2BitmapDimensions.create__TypeFormatWidthHeightDepthMipCount(textureType, format, width, height, 1, mipLevelCount);
 
     return this._Create(dimensions, new Tr2MsaaDesc(msaaType, msaaQuality), gpuUsage, cpuUsage, renderContext, false);
   }
@@ -166,7 +166,7 @@ export class Tr2RenderTarget
     const { gpuUsage, cpuUsage } = GetUsage(0, flags);
     const textureType = type || TextureType.TEX_TYPE_2D;
     const slices = textureType === TextureType.TEX_TYPE_CUBE ? arraySize * 6 : arraySize;
-    const dimensions = new Tr2BitmapDimensions({ type: textureType, format, width, height, depth: 1, mipCount: mipLevelCount, arraySize: slices });
+    const dimensions = Tr2BitmapDimensions.create__AllFields(textureType, format, width, height, 1, mipLevelCount, slices);
 
     return this._Create(dimensions, new Tr2MsaaDesc(), gpuUsage, cpuUsage, renderContext, false);
   }
@@ -183,7 +183,7 @@ export class Tr2RenderTarget
   {
     if (this.IsAttached()) return ALResult.E_INVALIDARG;
 
-    const dimensions = new Tr2BitmapDimensions({ type, format, width, height, depth: 1, mipCount: mipLevelCount });
+    const dimensions = Tr2BitmapDimensions.create__TypeFormatWidthHeightDepthMipCount(type, format, width, height, 1, mipLevelCount);
 
     return this._Create(dimensions, new Tr2MsaaDesc(msaaType, msaaQuality), gpuUsage, cpuUsage, renderContext, true);
   }

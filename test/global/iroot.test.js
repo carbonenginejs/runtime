@@ -31,7 +31,7 @@ test("IRoot exposes root identity and shared concrete class metadata", () =>
     assert.equal(value.GetRootObject(), value);
     assert.equal(CjsSchema.cast(value, IRoot), value);
     assert.equal(value.QueryInterface(IRoot), value);
-    assert.equal(classes.QueryThisInterface(value, IRoot), value);
+    assert.equal(classes.QueryThisInterface(value, IRoot, value.constructor), value);
     assert.equal(value.QueryInterface(Type), value);
   }
   assert.notEqual(new RootTestObject().ClassType(), new RootTestChild().ClassType());
@@ -47,15 +47,15 @@ test("instance and service queries honor explicit exposure instead of method inh
   assert.equal(value.QueryInterface(Child), value);
   assert.equal(value.QueryInterface(IRoot), value);
   assert.equal(value.QueryInterface(RootTestObject, 1), null);
-  assert.equal(classes.QueryThisInterface(value, RootTestObject, 1), null);
+  assert.equal(classes.QueryThisInterface(value, RootTestObject, value.constructor, 1), null);
   assert.equal(value.QueryInterface(Hidden, 1), null);
-  assert.equal(classes.QueryThisInterface(value, Hidden, 1), null);
+  assert.equal(classes.QueryThisInterface(value, Hidden, value.constructor, 1), null);
   // Existing classes have not yet migrated to extends IRoot.
   class Legacy {}
   blue.interface()(Legacy);
   const legacy = new Legacy();
-  assert.equal(classes.QueryThisInterface(legacy, Legacy), legacy);
-  assert.equal(classes.QueryThisInterface(legacy, IRoot, 1), null);
+  assert.equal(classes.QueryThisInterface(legacy, Legacy, legacy.constructor), legacy);
+  assert.equal(classes.QueryThisInterface(legacy, IRoot, legacy.constructor, 1), null);
 });
 
 test("IRoot adds no lifetime API or serialized state", () =>

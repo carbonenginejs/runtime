@@ -293,7 +293,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   {
     if (!this.source) return;
     const translationParent = new EveChildContainer();
-    const instance = be.classes.CopyTo(this.source);
+    const instance = be.classes.CopyTo(this.source, null);
     if (!instance) return;
     for (const modifier of this.transformModifiers) instance.AddTransformModifier(modifier);
     translationParent.AddToEffectChildrenList(instance);

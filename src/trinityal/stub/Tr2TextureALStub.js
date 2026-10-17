@@ -17,10 +17,9 @@
 // map returns a genuine buffer of the right pitch, so a caller reading pixels
 // back headless reads the shape it would read on a device.
 //
-// THREE LANGUAGE DIFFERENCES.
+// TWO LANGUAGE DIFFERENCES. (`Create` is the implementation's one positional
+// signature, Tr2TextureALStub.h:44; Carbon's six overloads live on `Tr2TextureAL`.)
 //
-// - Carbon has six `Create` overloads over one implementation; this takes the
-//   implementation's arguments, with the optional ones in a description object.
 // - Carbon's map functions return the result and hand back the pointer and the
 //   pitch through reference arguments. JavaScript has no reference arguments,
 //   so they return `{ result, data, pitch }`.
@@ -83,24 +82,16 @@ export class Tr2TextureALStub extends Tr2DeviceResourceAL
    * (`Tr2TextureALStub.cpp:18-95`).
    *
    * @param {Tr2BitmapDimensions} desc The texture description.
-   * @param {object} options Creation options.
-   * @param {number} [options.gpuUsage] A `Tr2GpuUsage` bit set.
-   * @param {number} [options.cpuUsage] A `Tr2CpuUsage` bit set.
-   * @param {Tr2MsaaDesc} [options.msaa] Multisample description.
-   * @param {object[]} [options.initialData] Initial subresource data, if any.
+   * @param {Tr2MsaaDesc} msaa Multisample description.
+   * @param {number} gpuUsage A `Tr2GpuUsage` bit set.
+   * @param {number} cpuUsage A `Tr2CpuUsage` bit set.
+   * @param {object[]|null} initialData Initial subresource data, if any.
    * @param {object} renderContext The context to create against.
    * @returns {number} An `ALResult` value.
    */
-  Create(desc, options, renderContext)
+  Create(desc, msaa, gpuUsage, cpuUsage, initialData, renderContext)
   {
     this._Reset();
-
-    const {
-      gpuUsage = Tr2GpuUsage.NONE,
-      cpuUsage = Tr2CpuUsage.NONE,
-      msaa = new Tr2MsaaDesc(),
-      initialData = null
-    } = options;
 
     // A texture is not a buffer. Asking for one with vertex or index usage is
     // a mixed-up call, not a capability question.

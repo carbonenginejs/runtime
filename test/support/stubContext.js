@@ -51,7 +51,7 @@ export function StubTarget(width = 64, height = 64)
 {
   const al = new Tr2RenderContextALStub();
   al.CreateDevice();
-  const texture = al.CreateTexture(Tr2BitmapDimensions.texture2D(width, height, 1, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM),
+  const texture = al.CreateTexture(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(width, height, 1, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM),
     { gpuUsage: Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE });
   al.Destroy();
   return texture;
@@ -62,7 +62,7 @@ export function StubBuffer()
 {
   const al = new Tr2RenderContextALStub();
   al.CreateDevice();
-  const buffer = al.CreateBuffer(Tr2BufferDescriptionAL.FromStride(4, 64,
+  const buffer = al.CreateBuffer(Tr2BufferDescriptionAL.create__Stride(4, 64,
     Tr2GpuUsage.VERTEX_BUFFER | Tr2GpuUsage.INDEX_BUFFER, Tr2CpuUsage.WRITE));
   al.Destroy();
   return buffer;

@@ -173,7 +173,7 @@ export class EveLineSet
 
     if (!this._vertexBuffer.IsValid())
     {
-      if (Failed(this._vertexBuffer.Create(Tr2BufferDescriptionAL.FromStride(EVE_LINE_DATA_SIZE, this.maxCurrentLineCount,
+      if (Failed(this._vertexBuffer.Create(Tr2BufferDescriptionAL.create__Stride(EVE_LINE_DATA_SIZE, this.maxCurrentLineCount,
         Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN), null, renderContext))) return false;
     }
 

@@ -91,7 +91,7 @@ export class Tr2DirectInstanceData
       (!this._vertexBuffer.IsValid() || this._vertexBuffer.GetDesc().count < this.count))
     {
       const context = Tr2RenderContext_GetMainThreadRenderContext();
-      const result = this._vertexBuffer.Create(Tr2BufferDescriptionAL.FromStride(
+      const result = this._vertexBuffer.Create(Tr2BufferDescriptionAL.create__Stride(
         this._stride, this.count, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN
       ), null, context);
       if (Failed(result)) return false;
@@ -141,7 +141,7 @@ export class Tr2DirectInstanceData
     const context = Tr2RenderContext_GetMainThreadRenderContext();
     if (!this._vertexBuffer.IsValid() || this._vertexBuffer.GetDesc().count < this.count)
     {
-      const result = this._vertexBuffer.Create(Tr2BufferDescriptionAL.FromStride(
+      const result = this._vertexBuffer.Create(Tr2BufferDescriptionAL.create__Stride(
         this._stride, this.count, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN
       ), null, context);
       if (Failed(result)) return null;

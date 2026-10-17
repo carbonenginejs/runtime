@@ -157,7 +157,7 @@ export class EveStarfield
     this._bytesPerVertex = 32;
     const bytes = GenerateVertices(this);
     const context = Tr2RenderContext_GetMainThreadRenderContext();
-    const result = this._vertexBuffer.Create(Tr2BufferDescriptionAL.FromStride(
+    const result = this._vertexBuffer.Create(Tr2BufferDescriptionAL.create__Stride(
       this._bytesPerVertex, this._vertexCount, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.NONE
     ), bytes, context);
     if (Failed(result)) return false;

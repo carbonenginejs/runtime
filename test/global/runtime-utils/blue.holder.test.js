@@ -287,8 +287,8 @@ test("an uncomposed paths service answers rather than refusing", () =>
   assert.equal(be.paths.FileExistsLocally("res:/model/ship.gr2"), false);
 
   // What it genuinely cannot do without a file system is still refused.
-  assert.throws(() => be.paths.ResolvePath("res:/model/ship.gr2"),
-    /^Error: CjsBluePaths does not implement IBluePaths\.ResolvePath\.$/u);
+  assert.throws(() => be.paths.ResolvePathW("res:/model/ship.gr2"),
+    /^Error: CjsBluePaths does not implement IBluePaths\.ResolvePathW\.$/u);
 });
 
 test("an implementation is installed into the holder, never captured from it", () =>
@@ -338,16 +338,16 @@ test("both interfaces publish the verb list Carbon publishes", () =>
 
   assert.deepEqual(names(IBlueResMan), [
     "AddToQueue", "CancelFromQueue", "GetNextIdForQueue", "GetPendingLoads", "GetPendingPrepares",
-    "GetResource", "IsOnMainThread", "IsUrgentResourceLoads", "LoadObject", "PauseQueue",
-    "PumpMainThreadQueue", "RegisterResourceConstructor", "ReleaseBackgroundLoadMemory",
-    "ReserveBackgroundLoadMemory", "ResumeQueue", "SaveObject", "SetUrgentResourceLoads",
-    "UnregisterResourceConstructor"
+    "GetResource", "GetResourceW", "IsOnMainThread", "IsUrgentResourceLoads", "LoadObject",
+    "LoadObject__WChars", "PauseQueue", "PumpMainThreadQueue", "RegisterResourceConstructor",
+    "ReleaseBackgroundLoadMemory", "ReserveBackgroundLoadMemory", "ResumeQueue", "SaveObject",
+    "SaveObjectW", "SetUrgentResourceLoads", "UnregisterResourceConstructor"
   ]);
 
   assert.deepEqual(names(IBluePaths), [
     "FileExists", "FileExistsLocally", "FileNeedsDownload", "GetDirectoryContents",
     "GetExpandedSearchPaths", "GetFileContentsWithYield", "GetSearchPath", "GetStreamFromPath",
-    "InitializeStdAppPaths", "IsDirectory", "LogPaths", "ResolvePath", "ResolvePathForWriting",
-    "ResolvePathToRoot", "SetSearchPath"
+    "InitializeStdAppPaths", "IsDirectory", "LogPaths", "ResolvePathForWritingW", "ResolvePathToRootW",
+    "ResolvePathW", "SetSearchPath"
   ]);
 });

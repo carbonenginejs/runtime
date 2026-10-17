@@ -377,7 +377,7 @@ export class EveMissileWarhead extends EveTransform
   {
     for (const child of this.children)
     {
-      if (be.classes.QueryThisInterface(child, EveTransform, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === null) continue;
+      if (be.classes.QueryThisInterface(child, EveTransform, child.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) === null) continue;
       for (const emitter of child.particleEmitters)
       {
         if (CjsSchema.cast(emitter, Tr2GpuSharedEmitter)) emitter.Enable(enable);

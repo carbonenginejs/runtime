@@ -20,7 +20,9 @@
 // walks outward. That is how a scene-local pool shares the global one's
 // resources without owning them.
 
-import { Tr2BitmapDimensions } from "../../../trinityal/index.js";
+import { Failed, Tr2BitmapDimensions, Tr2TextureAL } from "../../../trinityal/index.js";
+import { Tr2CpuUsage } from "#consts/render-context";
+import { isFunction } from "#utils/is";
 import { TriDevice } from "../device/TriDevice.js";
 import { TriStorageFlags } from "#consts/graphics";
 import { GpuResourceHandle } from "./GpuResourceHandle.js";
@@ -87,42 +89,106 @@ export class Tr2GpuResourcePool
   }
 
   /**
-   * Borrows a scratch texture, creating one only if no free match exists.
+   * Carbon's `GetTempTexture( name, width, height, pixelFormat, gpuUsage )`
+   * (Tr2GpuResourcePool.h:87, cpp:97-100): a 2D texture of one mip.
+   *
+   * @param {string} name A debug name.
+   * @param {number} width Width in pixels.
+   * @param {number} height Height in pixels.
+   * @param {number} pixelFormat A `PixelFormat` value.
+   * @param {number} gpuUsage A `Tr2GpuUsage` bit set.
+   * @returns {GpuResourceHandle} The borrowed texture.
+   */
+  GetTempTexture__WidthHeight(name, width, height, pixelFormat, gpuUsage)
+  {
+    return this.GetTempTexture(name, Tr2BitmapDimensions.create__WidthHeightMipCountFormat(width, height, 1, pixelFormat), gpuUsage);
+  }
+
+  /**
+   * Carbon's `GetTempTexture( name, size, pixelFormat, gpuUsage )`
+   * (Tr2GpuResourcePool.h:88, cpp:102-105): a 2D texture of one mip.
+   *
+   * @param {string} name A debug name.
+   * @param {TextureSize2D} size Width and height in pixels.
+   * @param {number} pixelFormat A `PixelFormat` value.
+   * @param {number} gpuUsage A `Tr2GpuUsage` bit set.
+   * @returns {GpuResourceHandle} The borrowed texture.
+   */
+  GetTempTexture__Size(name, size, pixelFormat, gpuUsage)
+  {
+    return this.GetTempTexture(name, Tr2BitmapDimensions.create__WidthHeightMipCountFormat(size.width, size.height, 1, pixelFormat), gpuUsage);
+  }
+
+  /**
+   * Carbon's `GetTempTexture( name, desc, gpuUsage )` (Tr2GpuResourcePool.h:89,
+   * cpp:107-146), which the other two overloads forward to: borrows a scratch
+   * texture, creating one only if no free match exists.
    *
    * A FREE MATCH IS ONE NOBODY HOLDS. A record with a live lock is never handed
    * out again, which is what lets two passes ask for "a 512 square" and get
    * different surfaces when both are in flight, and the same one when they are
-   * not.
+   * not. A match is the same description and GPU usage.
    *
    * @param {string} name A debug name.
-   * @param {object} description A `Tr2BitmapDimensions` shape (`type`, `width`,
-   *   `height`, `depth`, `mipCount`, `format`) plus `gpuUsage`, `cpuUsage`,
-   *   `msaa` and `initialData`.
+   * @param {Tr2BitmapDimensions} desc The texture description.
+   * @param {number} gpuUsage A `Tr2GpuUsage` bit set.
    * @returns {GpuResourceHandle} The borrowed texture.
    */
-  GetTempTexture(name, description)
+  GetTempTexture(name, desc, gpuUsage)
   {
-    return this.#Borrow(this.#tempTextures, name, description, () => this.#CreateTexture(description));
+    return this.#Borrow(this.#tempTextures, name, { desc, gpuUsage }, SameTexture, () => this.#CreateTexture(name, desc, gpuUsage, null, false));
   }
 
   /**
-   * Borrows a persistent texture, initializing it the first time only.
+   * Carbon's `GetPersistentTexture( name, width, height, pixelFormat, gpuUsage,
+   * initializer )` (Tr2GpuResourcePool.h:90, cpp:148-151): a 2D texture of one
+   * mip.
    *
    * @param {string} name A debug name.
-   * @param {object} description As `GetTempTexture`.
-   * @param {Function} [initialize] Called once, with the new texture.
+   * @param {number} width Width in pixels.
+   * @param {number} height Height in pixels.
+   * @param {number} pixelFormat A `PixelFormat` value.
+   * @param {number} gpuUsage A `Tr2GpuUsage` bit set.
+   * @param {Function|Tr2SubresourceData[]|null} initializer As `GetPersistentTexture`.
    * @returns {GpuResourceHandle} The texture.
    */
-  GetPersistentTexture(name, description, initialize = null)
+  GetPersistentTexture__WidthHeight(name, width, height, pixelFormat, gpuUsage, initializer)
   {
-    const existing = this.#Find(this.#persistentTextures, name, description, false);
+    return this.GetPersistentTexture(name, Tr2BitmapDimensions.create__WidthHeightMipCountFormat(width, height, 1, pixelFormat), gpuUsage, initializer);
+  }
+
+  /**
+   * Carbon's `GetPersistentTexture( name, desc, gpuUsage, initializer )`
+   * (Tr2GpuResourcePool.h:91, cpp:153-186): borrows a persistent texture,
+   * matched on name, description and GPU usage, initializing it the first
+   * time only.
+   *
+   * Carbon's TextureInitializer is a variant (h:86): initial subresource data
+   * goes to `Create`, and a function runs once on the created texture with the
+   * render context. JavaScript has no variant type, so the alternative is
+   * selected the way `std::get_if` does, by what the value holds; null is
+   * neither.
+   *
+   * @param {string} name A debug name.
+   * @param {Tr2BitmapDimensions} desc The texture description.
+   * @param {number} gpuUsage A `Tr2GpuUsage` bit set.
+   * @param {Function|Tr2SubresourceData[]|null} initializer Initial
+   *   subresource data, or a function called once with the new texture and
+   *   the render context.
+   * @returns {GpuResourceHandle} The texture.
+   */
+  GetPersistentTexture(name, desc, gpuUsage, initializer)
+  {
+    const description = { desc, gpuUsage };
+    const existing = this.#Find(this.#persistentTextures, name, description, SameTexture, false);
 
     if (existing) return new GpuResourceHandle(existing);
 
-    const texture = this.#CreateTexture(description);
+    const initFunc = isFunction(initializer) ? initializer : null;
+    const texture = this.#CreateTexture(name, desc, gpuUsage, initFunc ? null : initializer, true);
 
     if (!texture) return new GpuResourceHandle();
-    if (initialize) initialize(texture);
+    if (initFunc) initFunc(texture, this.#renderContext);
 
     return new GpuResourceHandle(this.#Add(this.#persistentTextures, name, description, texture));
   }
@@ -136,7 +202,7 @@ export class Tr2GpuResourcePool
    */
   GetTempBuffer(name, description)
   {
-    return this.#Borrow(this.#tempBuffers, name, description, () => this.#CreateBuffer(description));
+    return this.#Borrow(this.#tempBuffers, name, description, SameDescription, () => this.#CreateBuffer(description));
   }
 
   /**
@@ -154,7 +220,7 @@ export class Tr2GpuResourcePool
    */
   GetPersistentBuffer(name, description, initializer = null)
   {
-    const existing = this.#Find(this.#persistentBuffers, name, description, false);
+    const existing = this.#Find(this.#persistentBuffers, name, description, SameDescription, false);
 
     if (existing) return new GpuResourceHandle(existing);
 
@@ -293,25 +359,32 @@ export class Tr2GpuResourcePool
       .reduce((total, list) => total + list.filter(record => record.lockCount > 0).length, 0);
   }
 
-  /** Splits the pool's flat description into the AL's two arguments. */
-  #CreateTexture(description)
+  /**
+   * Creates and names a pool texture as Carbon's accessors do: a temp texture
+   * with `Create( desc, gpuUsage, renderContext )` (cpp:132), a persistent one
+   * with `Create( desc, gpuUsage, Tr2CpuUsage::NONE, initData, renderContext )`
+   * (cpp:169). Null when the backend refuses.
+   *
+   * THE CONTEXT CHOOSES THE BACKEND. This used to be `new Tr2TextureALStub()`,
+   * which named the backend at authoring time: every texture the pool handed
+   * out was a stub no matter which backend was bound, so a WebGPU pass would
+   * have been handed textures that reach no device and drawn nothing, with no
+   * error anywhere. Tr2Blitter's head comment names this exact defect.
+   * `Tr2TextureAL.Create` asks the bound context for its implementation.
+   */
+  #CreateTexture(name, desc, gpuUsage, initialData, persistent)
   {
     if (!this.#renderContext) fail("a pool creates against a render context; none is bound");
 
-    const { gpuUsage, cpuUsage, msaa, initialData, ...dimensions } = description;
+    const texture = new Tr2TextureAL();
+    const result = persistent
+      ? texture.Create__GpuUsageCpuUsageInitialData(desc, gpuUsage, Tr2CpuUsage.NONE, initialData ?? null, this.#renderContext)
+      : texture.Create__GpuUsage(desc, gpuUsage, this.#renderContext);
 
-    // THE CONTEXT IS THE FACTORY. This used to be `new Tr2TextureALStub()`,
-    // which named the backend at authoring time: every texture the pool handed
-    // out was a stub no matter which backend was bound, so a WebGPU pass would
-    // have been handed textures that reach no device and drawn nothing, with
-    // no error anywhere. Tr2Blitter's head comment names this exact defect.
-    //
-    // The dimensions spread carries type, depth and mipCount, so an array or a
-    // 3D texture is expressible here and always was.
-    return this.#renderContext.CreateTexture(
-      new Tr2BitmapDimensions(dimensions),
-      { gpuUsage, cpuUsage, msaa, initialData }
-    );
+    if (Failed(result)) return null;
+    texture.SetName(name);
+
+    return texture;
   }
 
   /**
@@ -322,7 +395,7 @@ export class Tr2GpuResourcePool
   {
     if (!this.#renderContext) fail("a pool creates against a render context; none is bound");
 
-    // Through the context for the same reason as the texture above. The
+    // Through the context, which chooses the backend (see #CreateTexture). The
     // previous form also passed the context as `initialData`, leaving
     // renderContext undefined and throwing a TypeError on the first line of
     // Create that touched it - which is why neither buffer accessor had ever
@@ -334,25 +407,25 @@ export class Tr2GpuResourcePool
    * Borrows a matching free resource from this pool or its outer pool,
    * allocating when necessary.
    */
-  #Borrow(list, name, description, create)
+  #Borrow(list, name, description, same, create)
   {
-    const free = this.#Find(list, name, description, true);
+    const free = this.#Find(list, name, description, same, true);
 
     if (free) return new GpuResourceHandle(free);
 
     if (this.#outer) return this.#outer.#Borrow(list === this.#tempTextures
       ? this.#outer.#tempTextures
-      : this.#outer.#tempBuffers, name, description, create);
+      : this.#outer.#tempBuffers, name, description, same, create);
 
     return new GpuResourceHandle(this.#Add(list, name, description, create()));
   }
 
   /** Finds a matching pool record and updates its last-access frame. */
-  #Find(list, name, description, freeOnly)
+  #Find(list, name, description, same, freeOnly)
   {
     const match = list.find(record =>
       record.name === name
-      && SameDescription(record.description, description)
+      && same(record.description, description)
       && (!freeOnly || record.lockCount === 0));
 
     if (match) match.lastAccessFrame = (this.#renderContext ? this.#renderContext.GetRecordingFrameNumber() : 0);
@@ -372,6 +445,16 @@ export class Tr2GpuResourcePool
   }
 }
 
+/**
+ * A texture record matches on Carbon's terms (cpp:119-125, 161-163): an equal
+ * description and the same GPU usage. The initializer is never compared.
+ */
+function SameTexture(left, right)
+{
+  return left.desc.Equals(right.desc) && left.gpuUsage === right.gpuUsage;
+}
+
+/** A buffer record matches when every description field is equal. */
 function SameDescription(left, right)
 {
   if (left === right) return true;
@@ -381,11 +464,6 @@ function SameDescription(left, right)
 
   for (const key of keys)
   {
-    // Carbon matches a persistent texture on its dimensions, GPU usage and
-    // name (Tr2GpuResourcePool.cpp:161-163), never on the initializer. Callers
-    // build a fresh initialData array per call, so comparing it made every
-    // call a miss and created a new texture each time.
-    if (key === "initialData") continue;
     if (left[key] !== right[key]) return false;
   }
 

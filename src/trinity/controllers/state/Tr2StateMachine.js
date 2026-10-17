@@ -95,7 +95,7 @@ export class Tr2StateMachine
     {
       return;
     }
-    const state = value ? be.classes.QueryThisInterface(value, Tr2StateMachineState, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    const state = value ? be.classes.QueryThisInterface(value, Tr2StateMachineState, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
     switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
     {
       case BLUELISTEVENT.BELIST_INSERTED:

@@ -202,7 +202,8 @@ export function compressSurface(input, width, height, format, output, options = 
  */
 export function compressBitmap(packet, format, options = {})
 {
-    const source = new BitmapDimensions(packet.description);
+    const d = packet.description;
+    const source = BitmapDimensions.create__AllFields(d.type, d.format, d.width, d.height, d.depth, d.mipCount, d.arraySize);
     if (!isCompressionSourceSupported(source.GetFormat())) throw new TypeError("Unsupported compression source format");
     integer(source.GetWidth(), "width", 1); integer(source.GetHeight(), "height", 1);
     for (const value of [source.GetWidth(), source.GetHeight(), source.GetDepth(), source.GetMipCount(), source.GetArraySize()])
@@ -214,7 +215,7 @@ export function compressBitmap(packet, format, options = {})
     const srgb = options.srgb ?? [P.PIXEL_FORMAT_R8G8B8A8_UNORM_SRGB,
         P.PIXEL_FORMAT_B8G8R8A8_UNORM_SRGB, P.PIXEL_FORMAT_B8G8R8X8_UNORM_SRGB].includes(source.GetFormat());
     const description = { ...packet.description, format: compressionPixelFormat(format, srgb), mipCount: source.GetTrueMipCount() };
-    const destination = new BitmapDimensions(description);
+    const destination = BitmapDimensions.create__AllFields(description.type, description.format, description.width, description.height, description.depth, description.mipCount, description.arraySize);
     const data = new Uint8Array(getRawDataSize(destination)); // alloc: complete variable-sized encoded texture returned to caller
     let sourceOffset = 0, outputOffset = 0;
     for (let face = 0; face < source.GetArraySize(); face++)

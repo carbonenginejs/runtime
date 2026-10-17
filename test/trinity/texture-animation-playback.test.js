@@ -160,11 +160,11 @@ test("WebGPU MapForWriting on a volume maps every depth slice", () =>
   const texture = new CjsWebgpuTextureAL();
   texture.m_texture = {};
   texture.m_cpuUsage = Tr2CpuUsage.WRITE;
-  texture.m_desc = new BitmapDimensions({ type: TextureType.TEX_TYPE_3D, format: PixelFormat.PIXEL_FORMAT_R8_UNORM, width: 4, height: 2, depth: 3, mipCount: 1 });
+  texture.m_desc = BitmapDimensions.create__TypeFormatWidthHeightDepthMipCount(TextureType.TEX_TYPE_3D, PixelFormat.PIXEL_FORMAT_R8_UNORM, 4, 2, 3, 1);
   let upload;
   texture.m_webgpu = { GetDevice: () => ({ queue: { writeTexture: (_target, bytes, layout, size) => { upload = { bytes, layout, size }; } } }) };
   const al = { IsValid: () => true };
-  const mapping = texture.MapForWriting(Tr2TextureSubresource.ForMipLevel(0), al);
+  const mapping = texture.MapForWriting(Tr2TextureSubresource.create__MipLevel(0), al);
   assert.equal(mapping.pitch, 4);
   assert.equal(mapping.data.length, 4 * 2 * 3);
   texture.UnmapForWriting(al);
@@ -242,10 +242,10 @@ test("WebGPU updates upload every depth slice of a volume mip", () =>
 {
   const texture = new CjsWebgpuTextureAL();
   texture.m_texture = {};
-  texture.m_desc = new BitmapDimensions({ type: TextureType.TEX_TYPE_3D, format: PixelFormat.PIXEL_FORMAT_R8_UNORM, width: 4, height: 2, depth: 4, mipCount: 2 });
+  texture.m_desc = BitmapDimensions.create__TypeFormatWidthHeightDepthMipCount(TextureType.TEX_TYPE_3D, PixelFormat.PIXEL_FORMAT_R8_UNORM, 4, 2, 4, 2);
   let extent;
   texture.m_webgpu = { GetDevice: () => ({ queue: { writeTexture: (_target, _bytes, _layout, size) => { extent = size; } } }) };
-  texture.UpdateSubresource(Tr2TextureSubresource.ForMipLevel(1), new Uint8Array(4), 2, 2, null);
+  texture.UpdateSubresource(Tr2TextureSubresource.create__MipLevel(1), new Uint8Array(4), 2, 2, null);
   assert.deepEqual(extent, { width: 2, height: 1, depthOrArrayLayers: 2 });
 });
 

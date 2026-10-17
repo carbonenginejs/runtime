@@ -7,8 +7,8 @@ import { CjsBlueResMan, RegisterVideoPlaylists, TriTextureRes } from "../../npm/
 import { RealizeTexture } from "../../npm/dist/trinity/core/Tr2ImageIOHelpers.js";
 import { Tr2TexturedPointLight, TriTextureParameter } from "../../npm/dist/trinity/index.js";
 import { CjsWebgpuTextureAL } from "../../npm/dist/trinityal/webgpu/CjsWebgpuTextureAL.js";
-import { Tr2TextureSubresource } from "../../npm/dist/trinityal/index.js";
-import { Tr2GpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
+import { Tr2MsaaDesc, Tr2TextureSubresource } from "../../npm/dist/trinityal/index.js";
+import { Tr2CpuUsage, Tr2GpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
 
 function fixture()
 {
@@ -181,7 +181,7 @@ test("WebGPU external frame upload uses straight sRGB copy and leaves byte uploa
   texture.m_texture={};texture.m_format="rgba8unorm";texture.m_gpuUsage=Tr2GpuUsage.RENDER_TARGET;
   texture.m_webgpu={GetGeneration:()=>1,IsReady:()=>true,GetDevice:()=>({queue:{copyExternalImageToTexture:(...args)=>calls.push(args),writeTexture:(...args)=>calls.push(args)}})};
   texture.m_desc={GetWidth:()=>640,GetHeight:()=>360,GetMipWidth:()=>640,GetMipHeight:()=>360,GetType:()=>0};
-  const region=Tr2TextureSubresource.ForMipLevel(0),video={};
+  const region=Tr2TextureSubresource.create__MipLevel(0),video={};
   assert.equal(texture.UpdateSubresource(region,video,0,0),0);
   assert.equal(calls[0][0].source,video);assert.equal(calls[0][1].premultipliedAlpha,false);
   assert.equal(calls[0][1].colorSpace,"srgb");
@@ -243,10 +243,10 @@ test("video renderer bridge creates WebGL2-compatible storage and updates both r
 {
   const {gl,calls}=FakeWebgl2(),context=FakeRenderContext(gl),f=fixture();
   context.IsValid=()=>true;
-  context.CreateTexture=(desc,options)=>{const texture=new Tr2TextureALWebgl2();assert.equal(texture.Create(desc,options,context),0);return texture;};
+  context.CreateTexture=(desc,{msaa=new Tr2MsaaDesc(),gpuUsage=Tr2GpuUsage.NONE,cpuUsage=Tr2CpuUsage.NONE,initialData=null})=>{const texture=new Tr2TextureALWebgl2();assert.equal(texture.Create(desc,msaa,gpuUsage,cpuUsage,initialData,context),0);return texture;};
   f.player._getRenderContext=()=>context;
   f.player.Create(new Uint8Array([1]));f.videos[0].frame(1,0);
-  const texture=f.texture.GetTexture(),source=f.videos[0],region=Tr2TextureSubresource.ForMipLevel(0);
+  const texture=f.texture.GetTexture(),source=f.videos[0],region=Tr2TextureSubresource.create__MipLevel(0);
   assert.equal(texture.UpdateSubresource(region,source,0,0,context),0);
   const first=texture._texture,twin=texture._twin,allocations=calls.filter(c=>c[0]==="createTexture").length;
   assert.ok(twin);assert.equal(texture.UpdateSubresource(region,source,0,0,context),0);

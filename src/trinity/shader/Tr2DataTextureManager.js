@@ -146,7 +146,7 @@ export class Tr2DataTextureManager
     const height = this.textureHeight;
     const zeros = new Float32Array(width * height * 4);
     const texture = renderContext.CreateTexture(
-      Tr2BitmapDimensions.texture2D(width, height, 1, PixelFormat.PIXEL_FORMAT_R32G32B32A32_FLOAT),
+      Tr2BitmapDimensions.create__WidthHeightMipCountFormat(width, height, 1, PixelFormat.PIXEL_FORMAT_R32G32B32A32_FLOAT),
       {
         gpuUsage: Tr2GpuUsage.SHADER_RESOURCE,
         cpuUsage: Tr2CpuUsage.READ | Tr2CpuUsage.WRITE,
@@ -204,7 +204,7 @@ export class Tr2DataTextureManager
     let pixelOffset = 0;
     this._dataTextureOffsets.clear();
     const texture = this._dataTexture.GetTexture();
-    const mapped = texture ? texture.MapForWriting(Tr2TextureSubresource.ForMipLevel(0), renderContext) : null;
+    const mapped = texture ? texture.MapForWriting(Tr2TextureSubresource.create__MipLevel(0), renderContext) : null;
     if (mapped && Succeeded(mapped.result))
     {
       const floats = new Float32Array(mapped.data.buffer, mapped.data.byteOffset, mapped.data.byteLength >> 2);

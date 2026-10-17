@@ -232,7 +232,7 @@ function CopyToTexture(bitmap, texture, x, y, margin, renderContext)
 
   if (!margin)
   {
-    const region = Tr2TextureSubresource.ForMipLevel(0).SetRect(x, y, x + bitmap.GetWidth(), y + bitmap.GetHeight());
+    const region = Tr2TextureSubresource.create__MipLevel(0).SetRect(x, y, x + bitmap.GetWidth(), y + bitmap.GetHeight());
     const result = texture.UpdateSubresource(region, bitmap.GetRawData(), bitmap.GetPitch(), 0, renderContext);
     if (Failed(result)) CcpLog.CCP_LOGERR("Tr2ImageHandler::CopyToTexture - UpdateSubresource failed [no margin]: %08x", result);
     return Succeeded(result);
@@ -240,7 +240,7 @@ function CopyToTexture(bitmap, texture, x, y, margin, renderContext)
 
   const { output, outputPitch } = AddMargin(bitmap.GetFormat(), bitmap.GetRawData(), bitmap.GetWidth(), bitmap.GetHeight(), margin);
 
-  const region = Tr2TextureSubresource.ForMipLevel(0).SetRect(x, y, x + bitmap.GetWidth() + 2 * margin, y + bitmap.GetHeight() + 2 * margin);
+  const region = Tr2TextureSubresource.create__MipLevel(0).SetRect(x, y, x + bitmap.GetWidth() + 2 * margin, y + bitmap.GetHeight() + 2 * margin);
   const result = texture.UpdateSubresource(region, output, outputPitch, 0, renderContext);
   if (Failed(result)) CcpLog.CCP_LOGERR("Tr2ImageHandler::CopyToTexture - UpdateSubresource failed [margin]: %08x", result);
   return Succeeded(result);
@@ -484,9 +484,9 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
 
       this.mipCount = this._hasMipMaps ? Math.trunc(0.5 + Math.log(Math.max(this.height, this.width)) / Math.log(2.0)) : 1;
       const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
-      hr = this._texture.Create(
-        Tr2BitmapDimensions.texture2D(this.width, this.height, this.mipCount, this.format),
-        { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, cpuUsage: Tr2CpuUsage.READ | Tr2CpuUsage.WRITE },
+      hr = this._texture.Create__GpuUsageCpuUsage(
+        Tr2BitmapDimensions.create__WidthHeightMipCountFormat(this.width, this.height, this.mipCount, this.format),
+        Tr2GpuUsage.SHADER_RESOURCE, Tr2CpuUsage.READ | Tr2CpuUsage.WRITE,
         renderContext);
 
       if (Failed(hr))
@@ -1191,7 +1191,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
 
     if (!isValidArea) return;
 
-    const mapping = this._texture.MapForWriting(Tr2TextureSubresource.ForMipLevel(0), renderContext);
+    const mapping = this._texture.MapForWriting(Tr2TextureSubresource.create__MipLevel(0), renderContext);
     if (Failed(mapping.result)) return;
 
     try
@@ -1395,16 +1395,16 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
 
     if (!this.margin)
     {
-      const dest = Tr2TextureSubresource.ForFace(0, 0);
+      const dest = Tr2TextureSubresource.create__FaceMipLevel(0, 0);
       dest.m_box.left = r.left;
       dest.m_box.top = r.top;
-      return Succeeded(this._texture.CopySubresourceRegion(dest, tex.GetTexture(), Tr2TextureSubresource.ForFace(0, 0), renderContext));
+      return Succeeded(this._texture.CopySubresourceRegion(dest, tex.GetTexture(), Tr2TextureSubresource.create__FaceMipLevel(0, 0), renderContext));
     }
 
     if (this._hasMipMaps) this._dirtyMipRegions.push(CopyRect(r));
 
     const source = tex.GetTexture();
-    const mapping = source.MapForReading(Tr2TextureSubresource.ForMipLevel(0), renderContext);
+    const mapping = source.MapForReading(Tr2TextureSubresource.create__MipLevel(0), renderContext);
     if (Failed(mapping.result)) return false;
 
     try
@@ -1414,7 +1414,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
       // Area may be larger than texture due to alignment
       const right = r.left + tex.GetWidth() + 2 * this.margin;
       const bottom = r.top + tex.GetHeight() + 2 * this.margin;
-      return Succeeded(this._texture.UpdateSubresource(Tr2TextureSubresource.ForMipLevel(0).SetRect(r.left, r.top, right, bottom), output, outputPitch, 0, renderContext));
+      return Succeeded(this._texture.UpdateSubresource(Tr2TextureSubresource.create__MipLevel(0).SetRect(r.left, r.top, right, bottom), output, outputPitch, 0, renderContext));
     }
     finally
     {
@@ -1481,9 +1481,9 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
       if (!Tr2Renderer.IsResourceCreationAllowed()) return null;
 
       const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
-      const hr = tex._texture.Create(
-        Tr2BitmapDimensions.texture2D(width, height, 1, this.format),
-        { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, cpuUsage: Tr2CpuUsage.READ | Tr2CpuUsage.WRITE },
+      const hr = tex._texture.Create__GpuUsageCpuUsage(
+        Tr2BitmapDimensions.create__WidthHeightMipCountFormat(width, height, 1, this.format),
+        Tr2GpuUsage.SHADER_RESOURCE, Tr2CpuUsage.READ | Tr2CpuUsage.WRITE,
         renderContext);
       if (Failed(hr)) return null;
 
@@ -1741,9 +1741,9 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
       return false;
     }
 
-    const hr = tex._texture.Create(
-      Tr2BitmapDimensions.texture2D(width, height, 1, this.format),
-      { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, cpuUsage: Tr2CpuUsage.READ | Tr2CpuUsage.WRITE },
+    const hr = tex._texture.Create__GpuUsageCpuUsage(
+      Tr2BitmapDimensions.create__WidthHeightMipCountFormat(width, height, 1, this.format),
+      Tr2GpuUsage.SHADER_RESOURCE, Tr2CpuUsage.READ | Tr2CpuUsage.WRITE,
       renderContext);
 
     if (Failed(hr))
@@ -1969,7 +1969,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
     }
 
     // Get a copy of the first mip level into system memory
-    const source = this._texture.MapForReading(Tr2TextureSubresource.ForMipLevel(0), renderContext);
+    const source = this._texture.MapForReading(Tr2TextureSubresource.create__MipLevel(0), renderContext);
     if (Failed(source.result))
     {
       CcpLog.CCP_LOGERR("Tr2TextureAtlas::UpdateMipMaps: Failed to read texture");
@@ -2003,7 +2003,7 @@ export class Tr2TextureAtlas extends ITr2TextureProvider
         const srcBase = sourcePitch * src.top + src.left * 4;
         let dst = destPitch * dest.top + dest.left * 4;
 
-        const region = Tr2TextureSubresource.ForMipLevel(i).SetRect(dest.left, dest.top, dest.right, dest.bottom);
+        const region = Tr2TextureSubresource.create__MipLevel(i).SetRect(dest.left, dest.top, dest.right, dest.bottom);
         const mapped = this._texture.MapForWriting(region, renderContext);
         if (Succeeded(mapped.result))
         {

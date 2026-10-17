@@ -60,8 +60,8 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
     {
       this._bracketCountInBuffers = 0;
       const usage = Tr2CpuUsage.READ | Tr2CpuUsage.WRITE;
-      if (Failed(this._vertexBuffer.Create(Tr2BufferDescriptionAL.FromStride(88, count * 4, Tr2GpuUsage.VERTEX_BUFFER, usage), null, context))) return;
-      if (Failed(this._indexBuffer.Create(Tr2BufferDescriptionAL.FromStride(2, count * 6, Tr2GpuUsage.INDEX_BUFFER, usage), null, context))) return;
+      if (Failed(this._vertexBuffer.Create(Tr2BufferDescriptionAL.create__Stride(88, count * 4, Tr2GpuUsage.VERTEX_BUFFER, usage), null, context))) return;
+      if (Failed(this._indexBuffer.Create(Tr2BufferDescriptionAL.create__Stride(2, count * 6, Tr2GpuUsage.INDEX_BUFFER, usage), null, context))) return;
 
       const mapping = this._indexBuffer.MapForWriting(context);
       if (Failed(mapping.result)) return;

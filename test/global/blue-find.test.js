@@ -104,7 +104,7 @@ test("FindInterface tests only the object's own interface table, as Carbon's IsM
   root.items = [ marked, chained ];
 
   // Through QueryInterface the chained class does expose IMarker...
-  assert.equal(be.classes.QueryThisInterface(chained, IMarker, 1), chained);
+  assert.equal(be.classes.QueryThisInterface(chained, IMarker, chained.constructor, 1), chained);
   // ...but Carbon's Find tests the concrete class's own table only.
   assert.deepEqual(be.FindInterface(root, "BlueFindIMarker"), [ marked ]);
   assert.deepEqual(be.FindInterface(root, "NoSuchInterface"), []);

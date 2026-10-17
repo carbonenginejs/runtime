@@ -6,7 +6,7 @@ import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
 import { BitmapDimensions } from "#imageio";
 import { Tr2MsaaDesc, Tr2TextureSubresource } from "../Tr2HalHelperStructures/index.js";
-import { PixelFormat } from "#consts/render-context";
+import { PixelFormat, Tr2CpuUsage } from "#consts/render-context";
 import { Tr2ReadbackAL } from "../Tr2ReadbackAL/Tr2ReadbackAL.js";
 
 const emptyDescription = new BitmapDimensions();
@@ -25,14 +25,122 @@ export class Tr2TextureAL
     if (this._texture) this._texture.owners += 1;
   }
 
-  /** Creates a fresh implementation, preserving existing copies. Context allocation replaces compile-time backend selection. */
+  /**
+   * Carbon's Create( desc, gpuUsage, renderContext ) (Tr2TextureAL.h:50): the
+   * full overload with an empty multisample description, no CPU usage and no
+   * initial data (Tr2TextureAL.cpp:63-66).
+   *
+   * @param {BitmapDimensions} desc The texture description.
+   * @param {number} gpuUsage A `Tr2GpuUsage` bit set.
+   * @param {object} renderContext The context to create against.
+   * @returns {number} An `ALResult` value.
+   */
+  @blue.method
+  @meta.implemented
+  Create__GpuUsage(desc, gpuUsage, renderContext)
+  {
+    return this.Create(desc, new Tr2MsaaDesc(), gpuUsage, Tr2CpuUsage.NONE, null, renderContext);
+  }
+
+  /**
+   * Carbon's Create( desc, msaa, gpuUsage, renderContext ) (Tr2TextureAL.h:51):
+   * the full overload with no CPU usage and no initial data
+   * (Tr2TextureAL.cpp:68-71).
+   *
+   * @param {BitmapDimensions} desc The texture description.
+   * @param {Tr2MsaaDesc} msaa The multisample description.
+   * @param {number} gpuUsage A `Tr2GpuUsage` bit set.
+   * @param {object} renderContext The context to create against.
+   * @returns {number} An `ALResult` value.
+   */
+  @blue.method
+  @meta.implemented
+  Create__MsaaGpuUsage(desc, msaa, gpuUsage, renderContext)
+  {
+    return this.Create(desc, msaa, gpuUsage, Tr2CpuUsage.NONE, null, renderContext);
+  }
+
+  /**
+   * Carbon's Create( desc, gpuUsage, initialData, renderContext )
+   * (Tr2TextureAL.h:52): the full overload with an empty multisample
+   * description and no CPU usage (Tr2TextureAL.cpp:73-76).
+   *
+   * @param {BitmapDimensions} desc The texture description.
+   * @param {number} gpuUsage A `Tr2GpuUsage` bit set.
+   * @param {Tr2SubresourceData[]|null} initialData Initial subresource data, indexed `mip + layer * mipCount`.
+   * @param {object} renderContext The context to create against.
+   * @returns {number} An `ALResult` value.
+   */
+  @blue.method
+  @meta.implemented
+  Create__GpuUsageInitialData(desc, gpuUsage, initialData, renderContext)
+  {
+    return this.Create(desc, new Tr2MsaaDesc(), gpuUsage, Tr2CpuUsage.NONE, initialData, renderContext);
+  }
+
+  /**
+   * Carbon's Create( desc, gpuUsage, cpuUsage, renderContext )
+   * (Tr2TextureAL.h:53): the full overload with an empty multisample
+   * description and no initial data (Tr2TextureAL.cpp:78-81).
+   *
+   * @param {BitmapDimensions} desc The texture description.
+   * @param {number} gpuUsage A `Tr2GpuUsage` bit set.
+   * @param {number} cpuUsage A `Tr2CpuUsage` bit set.
+   * @param {object} renderContext The context to create against.
+   * @returns {number} An `ALResult` value.
+   */
+  @blue.method
+  @meta.implemented
+  Create__GpuUsageCpuUsage(desc, gpuUsage, cpuUsage, renderContext)
+  {
+    return this.Create(desc, new Tr2MsaaDesc(), gpuUsage, cpuUsage, null, renderContext);
+  }
+
+  /**
+   * Carbon's Create( desc, gpuUsage, cpuUsage, initialData, renderContext )
+   * (Tr2TextureAL.h:54): the full overload with an empty multisample
+   * description (Tr2TextureAL.cpp:83-86).
+   *
+   * @param {BitmapDimensions} desc The texture description.
+   * @param {number} gpuUsage A `Tr2GpuUsage` bit set.
+   * @param {number} cpuUsage A `Tr2CpuUsage` bit set.
+   * @param {Tr2SubresourceData[]|null} initialData Initial subresource data, indexed `mip + layer * mipCount`.
+   * @param {object} renderContext The context to create against.
+   * @returns {number} An `ALResult` value.
+   */
+  @blue.method
+  @meta.implemented
+  Create__GpuUsageCpuUsageInitialData(desc, gpuUsage, cpuUsage, initialData, renderContext)
+  {
+    return this.Create(desc, new Tr2MsaaDesc(), gpuUsage, cpuUsage, initialData, renderContext);
+  }
+
+  /**
+   * Carbon's full Create( desc, msaa, gpuUsage, cpuUsage, initialData,
+   * renderContext ) (Tr2TextureAL.h:55, Tr2TextureAL.cpp:88-97), which the
+   * other five overloads forward to. Creates a fresh implementation and leaves
+   * this value empty when the backend refuses.
+   *
+   * Adapted: the render context allocates the backend implementation instead
+   * of a compile-time platform include, and this value's previous share is
+   * released explicitly because JavaScript has no shared_ptr; existing copies
+   * keep the old implementation alive.
+   *
+   * @param {BitmapDimensions} desc The texture description.
+   * @param {Tr2MsaaDesc} msaa The multisample description.
+   * @param {number} gpuUsage A `Tr2GpuUsage` bit set.
+   * @param {number} cpuUsage A `Tr2CpuUsage` bit set.
+   * @param {Tr2SubresourceData[]|null} initialData Initial subresource data, indexed `mip + layer * mipCount`, or null.
+   * @param {object} renderContext The context to create against.
+   * @returns {number} An `ALResult` value.
+   */
   @blue.method
   @meta.adapted
-  Create(description, options, renderContext)
+  Create(desc, msaa, gpuUsage, cpuUsage, initialData, renderContext)
   {
-    description = Object.assign(new BitmapDimensions(), description);
+    desc = Object.assign(new BitmapDimensions(), desc);
     this.Destroy();
-    const { result, implementation } = RenderContextALOf(renderContext).CreateTexture(description, options, true);
+    const { result, implementation } = RenderContextALOf(renderContext).CreateTexture(desc, { msaa, gpuUsage, cpuUsage, initialData }, true);
     if (!Failed(result)) this._texture = { implementation, owners: 1 };
     return result;
   }

@@ -157,7 +157,7 @@ export class VideoPlayer
     {
       // Carbon VideoPlayer.cpp:167-179 creates/updates its bgraTexture. Browser
       // frames go straight to the AL; no video record is published as an image.
-      texture = context.CreateTexture(BitmapDimensions.texture2D(
+      texture = context.CreateTexture(BitmapDimensions.create__WidthHeightMipCountFormat(
         video.videoWidth, video.videoHeight, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM
       ), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.RENDER_TARGET,
         cpuUsage: Tr2CpuUsage.NONE });

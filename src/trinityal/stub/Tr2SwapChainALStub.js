@@ -48,14 +48,14 @@ export class Tr2SwapChainALStub extends Tr2DeviceResourceAL
     this._backBuffer.Destroy();
     this._backBuffer = new Tr2TextureAL();
 
-    return this._backBuffer.Create(
-      Tr2BitmapDimensions.texture2D(
+    return this._backBuffer.Create__GpuUsage(
+      Tr2BitmapDimensions.create__WidthHeightMipCountFormat(
         STUB_BACK_BUFFER_SIZE,
         STUB_BACK_BUFFER_SIZE,
         1,
         PixelFormat.PIXEL_FORMAT_B8G8R8X8_UNORM
       ),
-      { gpuUsage: Tr2GpuUsage.RENDER_TARGET },
+      Tr2GpuUsage.RENDER_TARGET,
       renderContext
     );
   }

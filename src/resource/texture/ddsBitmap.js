@@ -15,8 +15,9 @@ import { BitmapDimensions, Cutout, HostBitmap, Metadata } from "#imageio";
 export function createDdsBitmap(payload)
 {
   const bitmap = new HostBitmap();
+  const d = payload.description;
   if (!(payload.data instanceof Uint8Array)
-    || !bitmap.CreateFromBitmapDimensions(new BitmapDimensions(payload.description))
+    || !bitmap.CreateFromBitmapDimensions(BitmapDimensions.create__AllFields(d.type, d.format, d.width, d.height, d.depth, d.mipCount, d.arraySize))
     || bitmap.GetRawDataSize() !== payload.data.byteLength)
   {
     throw new TypeError("Invalid DDS bitmap payload.");

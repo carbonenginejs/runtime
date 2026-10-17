@@ -113,11 +113,11 @@ export function createDemoSelectionOutline({ canvas, target, getScene, getView, 
             if (mask) mask.Destroy();
             if (silhouette) silhouette.Destroy();
             silhouette = new Tr2TextureAL();
-            silhouette.Create(Tr2BitmapDimensions.texture2D(width, height, 1, PixelFormat.PIXEL_FORMAT_R8_UNORM),
-                { gpuUsage: Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE }, renderContext);
+            silhouette.Create__GpuUsage(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(width, height, 1, PixelFormat.PIXEL_FORMAT_R8_UNORM),
+                Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE, renderContext);
             mask = new Tr2TextureAL();
-            mask.Create(Tr2BitmapDimensions.texture2D(width, height, 1, PixelFormat.PIXEL_FORMAT_R8_UNORM),
-                { gpuUsage: Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE }, renderContext);
+            mask.Create__GpuUsage(Tr2BitmapDimensions.create__WidthHeightMipCountFormat(width, height, 1, PixelFormat.PIXEL_FORMAT_R8_UNORM),
+                Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE, renderContext);
         }
         return mask;
     }

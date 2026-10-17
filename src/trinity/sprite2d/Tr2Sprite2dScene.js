@@ -1653,7 +1653,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
       }
 
       const capacity = Math.min(capacities[i], counts[i] + Math.floor(counts[i] / 4));
-      const description = Tr2BufferDescriptionAL.FromStride(i ? 4 : 1, i ? capacity : capacity * 88,
+      const description = Tr2BufferDescriptionAL.create__Stride(i ? 4 : 1, i ? capacity : capacity * 88,
         i ? Tr2GpuUsage.INDEX_BUFFER : Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE);
       if (Failed(list[key].Create(description, data[i], context)))
       {

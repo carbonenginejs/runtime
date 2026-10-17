@@ -76,7 +76,7 @@ import { Tr2TextureAL } from "../Tr2TextureAL/index.js";
 import { CjsSchema, blue, meta, type } from "#schema";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { Tr2ResourceSetAL } from "../Tr2ResourceSetAL/Tr2ResourceSetAL.js";
-import { PixelFormat, RenderState, ShaderType, Topology, Tr2LoadAction, Tr2StoreAction, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
+import { PixelFormat, RenderState, ShaderType, Topology, Tr2CpuUsage, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
 import { Tr2ColorAttachment, Tr2ConstantUsageAL, Tr2DepthAttachment, Tr2VertexLayoutALStub, resolveBindingPlan, ALResult, Failed, Tr2DrawUPHelper } from "#trinityal";
 import { CjsWebgpuWorkQueue, EncoderType } from "./core/CjsWebgpuWorkQueue.js";
 import { RegisterBindingUse } from "./core/bindingIndex.js";
@@ -92,6 +92,7 @@ import { CjsWebgpuConstantArena } from "./core/CjsWebgpuConstantArena.js";
 import { CjsWebgpuUtils } from "./core/CjsWebgpuUtils.js";
 import { TOPOLOGIES } from "./core/topology.js";
 import { SamplerDescriptionKey } from "../Tr2HalHelperStructures/Tr2SamplerDescription.js";
+import { Tr2MsaaDesc } from "../Tr2HalHelperStructures/Tr2MsaaDesc.js";
 import { CjsWebgpuCapsAL } from "./CjsWebgpuCapsAL.js";
 import { CjsWebgpuPsoDescription, MAX_VERTEX_STREAMS } from "./core/CjsWebgpuPsoDescription.js";
 import { CjsWebgpuShaderAL, WEBGPU_ENTRY_POINT } from "./CjsWebgpuShaderAL.js";
@@ -2407,12 +2408,13 @@ export class CjsWebgpuRenderContextAL
    */
   CreateTexture(desc, options, implementationOnly = false)
   {
+    const { gpuUsage = Tr2GpuUsage.NONE, cpuUsage = Tr2CpuUsage.NONE, msaa = new Tr2MsaaDesc(), initialData = null } = options ?? {};
     if (implementationOnly)
     {
       const implementation = new CjsWebgpuTextureAL();
       try
       {
-        const result = implementation.Create(desc, options ?? {}, this);
+        const result = implementation.Create(desc, msaa, gpuUsage, cpuUsage, initialData, this);
         if (Failed(result)) implementation.Destroy();
         return { result, implementation };
       }
@@ -2423,7 +2425,7 @@ export class CjsWebgpuRenderContextAL
       }
     }
     const value = new Tr2TextureAL();
-    return Failed(value.Create(desc, options ?? {}, this)) ? null : value;
+    return Failed(value.Create(desc, msaa, gpuUsage, cpuUsage, initialData, this)) ? null : value;
   }
 
   /**

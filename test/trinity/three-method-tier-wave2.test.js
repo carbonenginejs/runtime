@@ -138,7 +138,7 @@ test("EveChildExplosion shares, aliases and rebases as Carbon's copier flow does
   const local = new EveChildExplosion();
   const ownChild = new EveChildExplosion();
   local.objects.push(sharedThing, ownChild);
-  const copy = be.classes.CopyTo(local, null, from => explosion.CopyElement(from));
+  const copy = be.classes.CopyTo__Callbacks(local, null, from => explosion.CopyElement(from), null);
   assert.notEqual(copy, local);
   assert.equal(copy.objects[0], sharedThing, "shared node aliased");
   assert.notEqual(copy.objects[1], ownChild, "own node copied");

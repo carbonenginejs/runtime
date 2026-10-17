@@ -130,18 +130,19 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
    * content throws because this path has no decoded fallback.
    *
    * @param {object} desc A `Tr2BitmapDimensions`.
-   * @param {object} options `{ gpuUsage, cpuUsage, msaa, initialData }`;
-   *   `initialData` is an array of `Tr2SubresourceData`
+   * @param {Tr2MsaaDesc} msaa Multisample description.
+   * @param {number} gpuUsage A `Tr2GpuUsage` bit set.
+   * @param {number} cpuUsage A `Tr2CpuUsage` bit set.
+   * @param {Tr2SubresourceData[]|null} initialData Initial subresource data,
    *   indexed `mip + layer * mipCount`, as Carbon's is.
    * @param {object} renderContext The render context, Trinity's or the AL.
    * @returns {number} An `ALResult` value.
    */
   @meta.adapted
-  Create(desc, options, renderContext)
+  Create(desc, msaa, gpuUsage, cpuUsage, initialData, renderContext)
   {
     this._Reset();
 
-    const { gpuUsage = Tr2GpuUsage.NONE, cpuUsage = Tr2CpuUsage.NONE, msaa = new Tr2MsaaDesc(), initialData = null } = options ?? {};
     const al = RenderContextALOf(renderContext);
 
     if (!al || !al.IsValid()) return ALResult.E_FAIL;

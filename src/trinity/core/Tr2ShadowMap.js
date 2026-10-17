@@ -6,7 +6,7 @@ import { meta, type, blue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { PixelFormat, TextureType, Tr2GpuUsage } from "#consts/render-context";
+import { PixelFormat, Tr2GpuUsage } from "#consts/render-context";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
 import { Tr2Denoiser } from "./Tr2Denoiser.js";
 import { Tr2VariableStore } from "./variable/Tr2VariableStore.js";
@@ -520,15 +520,8 @@ export class Tr2ShadowMap
   {
     // Carbon's GetTempTexture( name, width, height, format, usage ) overload:
     // a 2D texture of one mip.
-    const cascadedShadowDepth = gpuResourcePool.GetTempTexture("cascadedShadowDepth", {
-      type: TextureType.TEX_TYPE_2D,
-      width: this.size * this._width,
-      height: this.size * this._height,
-      depth: 1,
-      mipCount: 1,
-      format: PixelFormat.PIXEL_FORMAT_D32_FLOAT,
-      gpuUsage: Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE
-    });
+    const cascadedShadowDepth = gpuResourcePool.GetTempTexture__WidthHeight("cascadedShadowDepth", this.size * this._width,
+      this.size * this._height, PixelFormat.PIXEL_FORMAT_D32_FLOAT, Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE);
 
     if (!cascadedShadowDepth || !cascadedShadowDepth.IsValid()) return null;
 
@@ -630,15 +623,8 @@ export class Tr2ShadowMap
   @meta.adapted
   DrawToShadowMapResult(renderContext, gpuResourcePool, depthMap, cascadedShadowDepth, upscaling, renderer)
   {
-    let shadowMapResult = gpuResourcePool.GetTempTexture("shadowMapResult", {
-      type: TextureType.TEX_TYPE_2D,
-      width: depthMap.GetWidth(),
-      height: depthMap.GetHeight(),
-      depth: 1,
-      mipCount: 1,
-      format: PixelFormat.PIXEL_FORMAT_R8_UNORM,
-      gpuUsage: Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE
-    });
+    let shadowMapResult = gpuResourcePool.GetTempTexture__WidthHeight("shadowMapResult", depthMap.GetWidth(), depthMap.GetHeight(),
+      PixelFormat.PIXEL_FORMAT_R8_UNORM, Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE);
 
     const esm = renderContext.GetEffectStateManager();
 

@@ -205,7 +205,7 @@ export class Tr2LineSet extends Tr2PrimitiveSet
     {
       if (!this._vertexBuffer.IsValid() || this.currentSubmittedLineCount < this.lines.length)
       {
-        if (Failed(this._vertexBuffer.Create(Tr2BufferDescriptionAL.FromStride(56, this.lines.length,
+        if (Failed(this._vertexBuffer.Create(Tr2BufferDescriptionAL.create__Stride(56, this.lines.length,
           Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN), null, context))) return false;
         this.currentSubmittedLineCount = this.lines.length;
       }
@@ -236,7 +236,7 @@ export class Tr2LineSet extends Tr2PrimitiveSet
     {
       if (!this.pickingVertexBuffer.IsValid() || this.currentSubmittedTriangleCount < this.triangles.length)
       {
-        if (Failed(this.pickingVertexBuffer.Create(Tr2BufferDescriptionAL.FromStride(36, this.triangles.length,
+        if (Failed(this.pickingVertexBuffer.Create(Tr2BufferDescriptionAL.create__Stride(36, this.triangles.length,
           Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN), null, context))) return false;
         this.currentSubmittedTriangleCount = this.triangles.length;
       }

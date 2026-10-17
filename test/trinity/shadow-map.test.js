@@ -239,7 +239,7 @@ test("shadow rendering sets its own device state, as Carbon's does", () =>
 
   const borrowed = [];
   const gpuResourcePool = {
-    GetTempTexture(name, description) { borrowed.push([ name, description ]); return handle; }
+    GetTempTexture__WidthHeight(name, ...rest) { borrowed.push([ name, ...rest ]); return handle; }
   };
 
   const shadowMap = new core.Tr2ShadowMap();
@@ -286,7 +286,7 @@ test("a pool that cannot supply the depth surface stops the pass", () =>
     Clear() { calls.push("clear"); return true; },
     SetReadOnlyDepth() { return true; }
   };
-  const gpuResourcePool = { GetTempTexture: () => ({ IsValid: () => false }) };
+  const gpuResourcePool = { GetTempTexture__WidthHeight: () => ({ IsValid: () => false }) };
 
   assert.equal(new core.Tr2ShadowMap().PrepareShadowRendering(gpuResourcePool, renderContext), null);
   assert.deepEqual(calls, []);
@@ -397,15 +397,8 @@ function stubShadowContext()
 /** A real R8 surface borrowed from a pool. */
 function poolSurface(pool, name, width, height)
 {
-  return pool.GetTempTexture(name, {
-    type: consts.TextureType.TEX_TYPE_2D,
-    width,
-    height,
-    depth: 1,
-    mipCount: 1,
-    format: consts.PixelFormat.PIXEL_FORMAT_R8_UNORM,
-    gpuUsage: consts.Tr2GpuUsage.RENDER_TARGET | consts.Tr2GpuUsage.SHADER_RESOURCE
-  }).Get();
+  return pool.GetTempTexture__WidthHeight(name, width, height, consts.PixelFormat.PIXEL_FORMAT_R8_UNORM,
+    consts.Tr2GpuUsage.RENDER_TARGET | consts.Tr2GpuUsage.SHADER_RESOURCE).Get();
 }
 
 test("resolving every frame does not grow the effect resource list", () =>

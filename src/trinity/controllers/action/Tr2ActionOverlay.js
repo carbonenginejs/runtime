@@ -18,7 +18,7 @@ function CastTo(value, className)
   const registration = be.classes.GetClassRegistration(className);
   if (!registration) throw new Error(`Tr2ActionOverlay: class ${className} is not registered with Blue`);
   if (!value || typeof value !== "object") return null;
-  return be.classes.QueryThisInterface(value, registration.type, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
+  return be.classes.QueryThisInterface(value, registration.type, value.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
 }
 
 

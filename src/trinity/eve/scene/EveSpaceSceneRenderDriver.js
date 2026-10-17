@@ -635,16 +635,8 @@ export class EveSpaceSceneRenderDriver
   @meta.implemented
   static getEmptySSAO(gpuResourcePool)
   {
-    return gpuResourcePool.GetPersistentTexture("EmptySSAO", {
-      type: TextureType.TEX_TYPE_2D,
-      width: 1,
-      height: 1,
-      depth: 1,
-      mipCount: 1,
-      format: PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM,
-      gpuUsage: Tr2GpuUsage.SHADER_RESOURCE,
-      initialData: [ new Tr2SubresourceData(new Uint8Array([ 255, 255, 255, 255 ]), 4, 4) ]
-    });
+    return gpuResourcePool.GetPersistentTexture__WidthHeight("EmptySSAO", 1, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM,
+      Tr2GpuUsage.SHADER_RESOURCE, [ new Tr2SubresourceData(new Uint8Array([ 255, 255, 255, 255 ]), 4, 4) ]);
   }
 
   /** EveSpaceScene::ShadowResources with every texture empty: no shadow pass is ported. */
@@ -1157,15 +1149,8 @@ export class EveSpaceSceneRenderDriver
   _ApplyDistortion(destination, distortion, renderContext)
   {
     const effect = this._distortionEffect;
-    const backBufferCopy = this._gpuResourcePool.GetTempTexture("backBufferCopy", {
-      type: TextureType.TEX_TYPE_2D,
-      width: destination.GetWidth(),
-      height: destination.GetHeight(),
-      depth: 1,
-      mipCount: 1,
-      format: this.internalPixelFormat,
-      gpuUsage: Tr2GpuUsage.COPY_DESTINATION | Tr2GpuUsage.SHADER_RESOURCE
-    });
+    const backBufferCopy = this._gpuResourcePool.GetTempTexture__WidthHeight("backBufferCopy", destination.GetWidth(),
+      destination.GetHeight(), this.internalPixelFormat, Tr2GpuUsage.COPY_DESTINATION | Tr2GpuUsage.SHADER_RESOURCE);
 
     try
     {
@@ -1189,15 +1174,7 @@ export class EveSpaceSceneRenderDriver
   /** A render-target pool texture of the scene's size. */
   _TempTexture(name, size, format, gpuUsage = Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE)
   {
-    return this._gpuResourcePool.GetTempTexture(name, {
-      type: TextureType.TEX_TYPE_2D,
-      width: size.width,
-      height: size.height,
-      depth: 1,
-      mipCount: 1,
-      format,
-      gpuUsage
-    });
+    return this._gpuResourcePool.GetTempTexture__Size(name, size, format, gpuUsage);
   }
 
   /**
@@ -1226,15 +1203,7 @@ export class EveSpaceSceneRenderDriver
     this._PrepareContext(renderContext);
 
     const size = { width: target.GetWidth(), height: target.GetHeight() };
-    const texture = (name, format, gpuUsage) => pool.GetTempTexture(name, {
-      type: TextureType.TEX_TYPE_2D,
-      width: size.width,
-      height: size.height,
-      depth: 1,
-      mipCount: 1,
-      format,
-      gpuUsage
-    });
+    const texture = (name, format, gpuUsage) => pool.GetTempTexture__Size(name, size, format, gpuUsage);
 
     return {
       size,

@@ -28,7 +28,7 @@ function memoryFileSystem(protocols, forms, files)
     FileExists(path) { return files.has(path); }
     IsDirectory() { return false; }
     GetDirectoryContents() {}
-    ResolvePath(path) { return files.has(path) ? path : null; }
+    ResolvePathW(path) { return files.has(path) ? path : null; }
     async GetStreamFromPath(path, request)
     {
       this.asked.push({ path, form: request.form });
@@ -67,7 +67,7 @@ test("BlueFileUtil ports GetResProtocol and the red/black substitutions", () =>
 test("BePaths refuses a file system that does not declare its protocols and forms", () =>
 {
   const paths = new CjsBluePaths();
-  const plain = { FileExists: () => false, IsDirectory: () => false, GetDirectoryContents() {}, GetStreamFromPath: async () => null, ResolvePath: () => null };
+  const plain = { FileExists: () => false, IsDirectory: () => false, GetDirectoryContents() {}, GetStreamFromPath: async () => null, ResolvePathW: () => null };
   assert.throws(() => paths.RegisterFileSystem(plain), /static protocols/u);
   assert.throws(() => paths.RegisterFileSystem(new BlueResFileSystemLocal()), /static protocols/u, "the local stub declares no protocols");
   assert.throws(() => paths.RegisterFileSystem(memoryFileSystem([ "res" ], [ "pixels" ], new Map())), /static forms/u);
@@ -77,8 +77,8 @@ test("BePaths refuses a file system that does not declare its protocols and form
 test("BlueResFileSystemLocal keeps Carbon's members and throws in a browser", async () =>
 {
   const local = new BlueResFileSystemLocal();
-  for (const member of [ "FileExists", "IsDirectory", "ResolvePath", "SetSearchPath", "GetSearchPath", "ClearSearchPaths",
-    "ResolvePathForWriting", "ResolvePathToRoot", "GetExpandedSearchPaths", "GetExpandedSearchPaths__KeyPaths",
+  for (const member of [ "FileExists", "IsDirectory", "ResolvePathW", "ResolvePath", "SetSearchPath", "GetSearchPath", "ClearSearchPaths",
+    "ResolvePathForWriting", "ResolvePathToRoot", "GetExpandedSearchPaths", "GetExpandedSearchPaths__Key",
     "InitializeStdAppPaths", "LogPaths", "GetInitialWorkingDirectory", "GetAllSearchPaths", "GetExpandedSearchPathsAsDict",
     "ListDirFromScript", "Initialize", "GetDirectoryContents" ])
   {
@@ -149,14 +149,14 @@ test("the fetch file system builds URLs from its table, as the resource manager 
   assert.equal(fileSystem.BuildUrl("res:/DX9/Model/a.dds"), "https://host/eve/1/res/dx9/model/a.dds", "normalized lower case");
   assert.equal(fileSystem.BuildUrl("res:/a/b.red"), "https://host/eve/1/res/a/b.black", "red reads as black");
   assert.equal(fileSystem.BuildUrl("https://Other/Path.png"), "https://Other/Path.png", "http(s) as it is");
-  assert.equal(fileSystem.ResolvePath("res:/a.dds"), "https://host/eve/1/res/a.dds");
+  assert.equal(fileSystem.ResolvePathW("res:/a.dds"), "https://host/eve/1/res/a.dds");
 
   assert.throws(() => fileSystem.SetPath("cdn", "https://x/"), /does not map the protocol "cdn"/u);
   assert.throws(() => fileSystem.SetPath("http", "https://x/"), /does not map/u);
 
   const bare = new CjsBlueResFileSystemFetch({ fetch: async () => null });
   assert.throws(() => bare.BuildUrl("res:/a.dds"), error => error.code === "CJS_RESMAN_PATH_PREFIX_UNREGISTERED");
-  assert.equal(bare.ResolvePath("res:/a.dds"), null);
+  assert.equal(bare.ResolvePathW("res:/a.dds"), null);
 
   bare.SetPathResolver(path => `/resource/${path.slice(5)}`);
   assert.equal(bare.BuildUrl("res:/A.dds"), "/resource/a.dds");

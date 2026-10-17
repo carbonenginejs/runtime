@@ -162,7 +162,7 @@ export class Tr2SkinnedObjectLod
   {
     if (!this.highDetailProxy)
     {
-      const clsid = be.classes.FindClsid("BlueObjectProxy");
+      const clsid = be.classes.FindClsid__Module("blue", "BlueObjectProxy");
       if (clsid)
       {
         this.highDetailProxy = be.classes.CreateInstance(clsid);
@@ -191,7 +191,7 @@ export class Tr2SkinnedObjectLod
   {
     if (!this.mediumDetailProxy)
     {
-      const clsid = be.classes.FindClsid("BlueObjectProxy");
+      const clsid = be.classes.FindClsid__Module("blue", "BlueObjectProxy");
       if (clsid)
       {
         this.mediumDetailProxy = be.classes.CreateInstance(clsid);
@@ -220,7 +220,7 @@ export class Tr2SkinnedObjectLod
   {
     if (!this.lowDetailProxy)
     {
-      const clsid = be.classes.FindClsid("BlueObjectProxy");
+      const clsid = be.classes.FindClsid__Module("blue", "BlueObjectProxy");
       if (clsid)
       {
         this.lowDetailProxy = be.classes.CreateInstance(clsid);

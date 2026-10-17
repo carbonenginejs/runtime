@@ -80,7 +80,7 @@ test('generated paths write consecutive live AL instance records and hidden leav
   const p=new EveCircle();p.numSegments=4;p.circleRadius=2;p.GeneratePoints();
   const b=new EveBezierCurve();b.segments=3;b.point2.set([6,0,0]);b.bezierPoint.set([3,2,0]);b.billboardObjects=false;b.GeneratePoints();
   const root=new EveLineChildContainer();root.lines=[p,b];root.localTransform[12]=500;
-  const buffer=new Tr2BufferAL();assert.equal(buffer.Create(Tr2BufferDescriptionAL.FromStride(48,7,Tr2GpuUsage.VERTEX_BUFFER,Tr2CpuUsage.WRITE_OFTEN),null,context),ALResult.S_OK);
+  const buffer=new Tr2BufferAL();assert.equal(buffer.Create(Tr2BufferDescriptionAL.create__Stride(48,7,Tr2GpuUsage.VERTEX_BUFFER,Tr2CpuUsage.WRITE_OFTEN),null,context),ALResult.S_OK);
   try {
     const mapped=buffer.MapForWriting(context),c={view:new DataView(mapped.data.buffer,mapped.data.byteOffset,mapped.data.byteLength),offset:0};
     root.UpdateBuffer(context,c,mat4.create(),48);buffer.UnmapForWriting(context);assert.equal(c.offset,336);

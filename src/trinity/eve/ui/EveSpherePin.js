@@ -319,7 +319,7 @@ export class EveSpherePin
     // alloc: AL upload storage, created only when the native subset is dirty.
     const indices = new Uint16Array(output.indices.slice(0, this.primitiveCount * 3)); // alloc: retained until AL copies the upload
     const bytes = new Uint8Array(indices.buffer); // alloc: byte view of that upload
-    const result = this._indexBuffer.Create(Tr2BufferDescriptionAL.FromStride(
+    const result = this._indexBuffer.Create(Tr2BufferDescriptionAL.create__Stride(
       2, this.primitiveCount * 3, Tr2GpuUsage.INDEX_BUFFER, Tr2CpuUsage.NONE
     ), bytes, Tr2RenderContext_GetMainThreadRenderContext());
     if (Failed(result)) return;

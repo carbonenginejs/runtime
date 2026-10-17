@@ -139,7 +139,7 @@ export class Tr2GpuBuffer
     else if (this.creationFlags & CPU_WRITABLE) cpuUsage |= Tr2CpuUsage.WRITE;
     if (this.creationFlags & DRAW_INDIRECT) gpuUsage |= Tr2GpuUsage.DRAW_INDIRECT_ARGS;
 
-    const buffer = renderContext.CreateBuffer(Tr2BufferDescriptionAL.FromFormat(this.format, this.count, gpuUsage, cpuUsage), null);
+    const buffer = renderContext.CreateBuffer(Tr2BufferDescriptionAL.create__Format(this.format, this.count, gpuUsage, cpuUsage), null);
 
     if (!buffer) return ALResult.E_FAIL;
 

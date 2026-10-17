@@ -122,7 +122,7 @@ export class Tr2DepthStencil
 
     const msaa = new Tr2MsaaDesc(msaaType, msaaQuality);
     const texture = renderContext?.CreateTexture(
-      Tr2BitmapDimensions.texture2D(width, height, 1, ConvertDepthStencilFormat(format)),
+      Tr2BitmapDimensions.create__WidthHeightMipCountFormat(width, height, 1, ConvertDepthStencilFormat(format)),
       { gpuUsage, msaa }
     );
 

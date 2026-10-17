@@ -237,7 +237,7 @@ export class Tr2BindingPoint
     this._destinationObject = object;
     this._entryOffset = entryOffset;
     this._arraySize = arraySize;
-    this._notifyPtr = be.classes.QueryThisInterface(object, INotify, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
+    this._notifyPtr = be.classes.QueryThisInterface(object, INotify, object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
     return true;
   }
 
@@ -338,7 +338,7 @@ export class Tr2BindingPoint
   {
     if (Array.isArray(object)) return object;
     if (!object || typeof object !== "object") return null;
-    return be.classes.QueryThisInterface(object, IList, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
+    return be.classes.QueryThisInterface(object, IList, object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT);
   }
 
   /** Carbon GetListElement by index (cpp:78-92); negative counts from the end. */

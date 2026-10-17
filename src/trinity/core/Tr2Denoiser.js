@@ -29,7 +29,7 @@ import { meta, type, blue } from "#schema";
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
-import { PixelFormat, TextureType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
+import { PixelFormat, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
 import { RenderingMode } from "#consts/graphics";
 import { Tr2ColorAttachment } from "../../trinityal/Tr2RenderPassAL/Tr2ColorAttachment.js";
 
@@ -316,15 +316,7 @@ export class Tr2Denoiser
   /** Borrows one R8 pass target of the source's size. */
   #Pass(gpuResourcePool, name, width, height)
   {
-    return gpuResourcePool.GetTempTexture(name, {
-      type: TextureType.TEX_TYPE_2D,
-      width,
-      height,
-      depth: 1,
-      mipCount: 1,
-      format: PixelFormat.PIXEL_FORMAT_R8_UNORM,
-      gpuUsage: TARGET_USAGE
-    });
+    return gpuResourcePool.GetTempTexture__WidthHeight(name, width, height, PixelFormat.PIXEL_FORMAT_R8_UNORM, TARGET_USAGE);
   }
 
   /**

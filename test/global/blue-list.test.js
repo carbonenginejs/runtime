@@ -301,7 +301,7 @@ test("AssignTo clears before pre-sizing and sends only destination completion af
       assert.deepEqual(observer.events[0].items, [ old ]);
     }
     return { result: ICopier.OverrideResult.FALLBACK };
-  });
+  }, null);
   assert.equal(source.AssignTo(dest, copier), true);
   assert.deepEqual(dest.map(item => item.value), [ 1, 2 ]);
   assert.notEqual(dest[0], a);
@@ -329,7 +329,7 @@ test("AssignTo truncates the copied prefix on copier failure or wrong copied exp
       ? wrongExposure
         ? { result: ICopier.OverrideResult.SUCCESS, dest: new UnexposedItem() }
         : { result: ICopier.OverrideResult.FAILURE }
-      : { result: ICopier.OverrideResult.FALLBACK });
+      : { result: ICopier.OverrideResult.FALLBACK }, null);
     assert.equal(source.AssignTo(dest, copier), false);
     assert.equal(dest.length, 1);
     assert.equal(dest[0].value, 1);

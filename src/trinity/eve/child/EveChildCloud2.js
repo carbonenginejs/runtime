@@ -425,10 +425,10 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     const context = Tr2RenderContext_GetMainThreadRenderContext();
     if (!this._vertexBuffer.IsValid())
     {
-      this._vertexBuffer.Create(Tr2BufferDescriptionAL.FromStride(
+      this._vertexBuffer.Create(Tr2BufferDescriptionAL.create__Stride(
         12, 8, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.NONE), EveChildCloud2._vertices, context);
       this._indexBuffer.Destroy();
-      this._indexBuffer.Create(Tr2BufferDescriptionAL.FromStride(
+      this._indexBuffer.Create(Tr2BufferDescriptionAL.create__Stride(
         2, 36, Tr2GpuUsage.INDEX_BUFFER, Tr2CpuUsage.NONE), EveChildCloud2._indices, context);
     }
     if (this._declaration === Tr2EffectStateManager.Unknown)
@@ -482,11 +482,8 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   {
     const texture = this._emptyLightMap.GetTexture();
     if (texture.IsValid()) return;
-    texture.Create(new BitmapDimensions({
-      type: TextureType.TEX_TYPE_3D, format: PixelFormat.PIXEL_FORMAT_R8G8_UNORM,
-      width: 1, height: 1, depth: 1, mipCount: 1
-    }), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE,
-      initialData: [new Tr2SubresourceData(EveChildCloud2._gray, 4, 4)] }, context);
+    texture.Create__GpuUsageCpuUsageInitialData(BitmapDimensions.create__TypeFormatWidthHeightDepthMipCount(TextureType.TEX_TYPE_3D, PixelFormat.PIXEL_FORMAT_R8G8_UNORM, 1, 1, 1, 1), Tr2GpuUsage.SHADER_RESOURCE, Tr2CpuUsage.NONE,
+    [new Tr2SubresourceData(EveChildCloud2._gray, 4, 4)], context);
     texture.SetName("EveChildCloud2 Empty Lightmap");
     this._emptyLightMap.OnTextureChange().Broadcast();
   }
@@ -934,10 +931,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
       if (texture.GetWidth() !== scaledWidth || texture.GetHeight() !== scaledHeight ||
         texture.GetDesc().GetDepth() !== scaledDepth)
       {
-        const result = texture.Create(new BitmapDimensions({
-          type: TextureType.TEX_TYPE_3D, format: PixelFormat.PIXEL_FORMAT_R8G8_UNORM,
-          width: scaledWidth, height: scaledHeight, depth: scaledDepth, mipCount: 1
-        }), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.UNORDERED_ACCESS }, renderContext);
+        const result = texture.Create__GpuUsageCpuUsage(BitmapDimensions.create__TypeFormatWidthHeightDepthMipCount(TextureType.TEX_TYPE_3D, PixelFormat.PIXEL_FORMAT_R8G8_UNORM, scaledWidth, scaledHeight, scaledDepth, 1), Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.UNORDERED_ACCESS, Tr2CpuUsage.NONE, renderContext);
         if (Failed(result)) return false;
         texture.SetName("EveChildCloud2 Lightmap");
         this.lightmap.OnTextureChange().Broadcast();

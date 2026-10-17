@@ -30,7 +30,7 @@ export class Tr2RingVertexBuffer extends Tr2DynamicRingBuffer
   {
     this._buffer?.Destroy();
     this._buffer = Tr2RenderContext_GetMainThreadRenderContext().CreateBuffer(
-      Tr2BufferDescriptionAL.FromStride(1, size, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN | Tr2CpuUsage.NON_SYNCRONIZED_WRITE),
+      Tr2BufferDescriptionAL.create__Stride(1, size, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN | Tr2CpuUsage.NON_SYNCRONIZED_WRITE),
       null
     );
 

@@ -112,7 +112,7 @@ export class Tr2GpuStructuredBuffer
     if (this.creationFlags & GPU_WRITABLE) gpuUsage |= Tr2GpuUsage.UNORDERED_ACCESS;
     else if (this.creationFlags & CPU_WRITABLE) cpuUsage = Tr2CpuUsage.WRITE_OFTEN;
 
-    const buffer = renderContext.CreateBuffer(Tr2BufferDescriptionAL.FromStride(this.stride, this.count, gpuUsage, cpuUsage), null);
+    const buffer = renderContext.CreateBuffer(Tr2BufferDescriptionAL.create__Stride(this.stride, this.count, gpuUsage, cpuUsage), null);
     if (!buffer) return ALResult.E_FAIL;
     if (this._name) buffer.SetName(this._name);
     this._buffer = buffer;

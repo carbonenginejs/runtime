@@ -110,7 +110,7 @@ export class Tr2MaterialParameterStore extends IInitialize
       return null;
     }
     if (request !== this._loadRequest || path !== this.parentPath) return null;
-    const parent = object ? be.classes.QueryThisInterface(object, Tr2MaterialParameterStore, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
+    const parent = object ? be.classes.QueryThisInterface(object, Tr2MaterialParameterStore, object.constructor, CjsBlueClasses.BLUEQIOPT.BEQI_SILENT) : null;
     if (!parent)
     {
       CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Resource ${path} is not a Tr2MaterialParameterStore.`);

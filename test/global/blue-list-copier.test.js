@@ -99,7 +99,7 @@ test("configured list copy preserves destination and observer, pre-sizes, and fi
       assert.deepEqual(observer.events[0].items, [ old ]);
     }
     return { result: FALLBACK };
-  });
+  }, null);
   assert.equal(copier.CopyTo(source, destination), destination);
   assert.equal(destination.items, originalList);
   const info = {};
@@ -280,7 +280,7 @@ test("item admission failure leaves only the copied prefix without finish or par
   const observer = Observe(destination.items), copier = new Copier();
   copier.SetCopyOverrideCallback(item => item === rejected
     ? { result: SUCCESS, dest: new Host() }
-    : { result: FALLBACK });
+    : { result: FALLBACK }, null);
   assert.equal(copier.CopyTo(source, destination), null);
   assert.deepEqual(Array.from(destination.items, item => item.value), [ 1 ]);
   assert.deepEqual(observer.events.map(event => event.event), [ BELIST_UNLOADSTART ]);
@@ -300,14 +300,14 @@ for (const failure of [ "false", "throw" ])
       if (item !== rejected) return { result: FALLBACK };
       if (failure === "throw") throw new Error("controlled child-copy failure");
       return { result: FAILURE };
-    });
+    }, null);
     if (failure === "throw") assert.throws(() => copier.CopyTo(source, destination), /controlled child-copy failure/);
     else assert.equal(copier.CopyTo(source, destination), null);
     const partial = destination.items[0];
     assert.equal(partial.value, 1);
     assert.equal(destination.initialized, 0);
     first.value = 9;
-    copier.SetCopyOverrideCallback(null);
+    copier.SetCopyOverrideCallback(null, null);
     assert.equal(copier.CopyTo(source, destination), destination);
     assert.notEqual(destination.items[0], partial);
     assert.equal(destination.items[0].value, 9);

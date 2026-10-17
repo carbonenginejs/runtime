@@ -531,7 +531,7 @@ export class Tr2FontMeasurer
     const texture = resource.GetTexture();
     if (!texture || !texture.IsValid() || GetBytesPerPixel(texture.GetFormat()) !== 4) return;
     const context = Tr2RenderContext_GetMainThreadRenderContext();
-    const mapping = texture.MapForWriting(Tr2TextureSubresource.ForMipLevel(0), context);
+    const mapping = texture.MapForWriting(Tr2TextureSubresource.create__MipLevel(0), context);
     if (Failed(mapping.result)) return;
     try { this._DrawToBuffer(resource.GetWidth(), resource.GetHeight(), mapping.data, mapping.pitch); }
     finally { texture.UnmapForWriting(context); }

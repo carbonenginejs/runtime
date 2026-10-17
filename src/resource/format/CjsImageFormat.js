@@ -319,15 +319,7 @@ export class CjsImageFormat extends CjsFormat
       : (SRGB_BLOCK_FORMATS.has(bitmap.GetFormat()) ? PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM_SRGB : PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM);
 
     const target = new HostBitmap();
-    const created = target.CreateFromBitmapDimensions(new BitmapDimensions({
-      type: bitmap.GetType(),
-      format,
-      width: bitmap.GetWidth(),
-      height: bitmap.GetHeight(),
-      depth: bitmap.GetDepth(),
-      mipCount: bitmap.GetMipCount(),
-      arraySize: bitmap.GetArraySize()
-    }));
+    const created = target.CreateFromBitmapDimensions(BitmapDimensions.create__AllFields(bitmap.GetType(), format, bitmap.GetWidth(), bitmap.GetHeight(), bitmap.GetDepth(), bitmap.GetMipCount(), bitmap.GetArraySize()));
 
     if (!created) return null;
 
@@ -460,15 +452,7 @@ export class CjsImageFormat extends CjsFormat
     if (!CjsImageFormat._SAVE_FORMATS.has(bitmap.GetFormat()))
     {
       source = new HostBitmap();
-      source.CreateFromBitmapDimensions(new BitmapDimensions({
-        type: bitmap.GetType(),
-        format: bitmap.GetFormat(),
-        width: bitmap.GetWidth(),
-        height: bitmap.GetHeight(),
-        depth: 1,
-        mipCount: 1,
-        arraySize: 1
-      }));
+      source.CreateFromBitmapDimensions(BitmapDimensions.create__AllFields(bitmap.GetType(), bitmap.GetFormat(), bitmap.GetWidth(), bitmap.GetHeight(), 1, 1, 1));
       source.GetMipRawData(0).set(bitmap.GetMipRawData(0).subarray(0, source.GetMipRawData(0).length));
 
       if (!CjsImageFormat.convertImage(source, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM))
