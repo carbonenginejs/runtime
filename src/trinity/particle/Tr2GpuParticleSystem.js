@@ -25,6 +25,8 @@ import { PixelFormat, ShaderType, Topology } from "#consts/render-context";
 import { Tr2GpuBuffer } from "../core/device/Tr2GpuBuffer.js";
 import { Tr2GpuStructuredBuffer } from "../core/device/Tr2GpuStructuredBuffer.js";
 import { TriDevice } from "../core/device/TriDevice.js";
+import { Tr2DeviceResource } from "../core/device/Tr2DeviceResource.js";
+import { IRenderCallback } from "../core/IRenderCallback.js";
 import { Tr2Renderer, PER_OBJECT_VS } from "../core/Tr2Renderer.js";
 import { Tr2RenderUtils } from "../core/Tr2RenderUtils.js";
 import { Tr2ConstantBufferAL } from "#trinityal";
@@ -93,7 +95,7 @@ function CheckEffect(effect)
 
 /** Describes the GPU particle pipeline's capacity, visible-count controls, and compute and render effect stages. */
 @blue.define({ className: "Tr2GpuParticleSystem", purpose: "Describes the GPU particle pipeline's capacity, visible-count controls, and compute and render effect stages." })
-@blue.inherit(IInitialize, INotify)
+@blue.inherit(IInitialize, INotify, IRenderCallback, Tr2DeviceResource)
 @blue.interface(IInitialize, INotify)
 export class Tr2GpuParticleSystem
 {
@@ -402,18 +404,6 @@ export class Tr2GpuParticleSystem
     this.maxParticles = maxParticles >>> 0;
     this.PrepareResources();
     this.Clear();
-  }
-
-  /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32). */
-  @blue.method
-  @meta.implemented
-  PrepareResources()
-  {
-    if (Tr2Renderer.IsResourceCreationAllowed())
-    {
-      if (!this.OnPrepareResources()) return false;
-    }
-    return true;
   }
 
   /**

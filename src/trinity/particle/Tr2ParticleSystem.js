@@ -14,7 +14,7 @@ import { Tr2EffectStateManager } from "../shader/Tr2EffectStateManager.js";
 import { Tr2VertexDefinition } from "../core/vertex/Tr2VertexDefinition/Tr2VertexDefinition.js";
 import { Tr2ParticleElementDeclarationName } from "./element/Tr2ParticleElementDeclarationName.js";
 import { TriDevice } from "../core/device/TriDevice.js";
-import { Tr2Renderer } from "../core/Tr2Renderer.js";
+import { Tr2DeviceResource } from "../core/device/Tr2DeviceResource.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -29,7 +29,7 @@ const DEBUG_AABB = box3.create();
 
 /** Owns a particle system's element declaration, CPU-side attribute buffers, and per-frame simulation of aging, forces, movement, constraints and bounds. */
 @blue.define("Tr2ParticleSystem")
-@blue.inherit(IInitialize, INotify, IListNotify, ITr2InstanceData, ITr2GpuBuffer, ISimTimeRebaseNotify)
+@blue.inherit(IInitialize, INotify, IListNotify, ITr2InstanceData, ITr2GpuBuffer, ISimTimeRebaseNotify, Tr2DeviceResource)
 @blue.interface(IInitialize, INotify, ITr2InstanceData, ITr2GpuBuffer)
 export class Tr2ParticleSystem
 {
@@ -76,15 +76,6 @@ export class Tr2ParticleSystem
     this._instanceData.buffer = null;
     this._instanceData.count = 0;
     TriDevice.UnregisterResource(this);
-  }
-
-  /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32). */
-  @blue.method
-  @meta.implemented
-  PrepareResources()
-  {
-    if (Tr2Renderer.IsResourceCreationAllowed() && !this.OnPrepareResources()) return false;
-    return true;
   }
 
   _buffers = [null, null];
