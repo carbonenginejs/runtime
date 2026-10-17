@@ -6,7 +6,7 @@
 // and regions are reused once their fence is reached. Carbon's header also
 // declares Tr2RingVertexBuffer and Tr2RingIndexBuffer; each has its own file.
 import { meta, type, blue } from "#schema";
-import { ALResult, Failed } from "#trinityal";
+import { ALResult, Failed, Tr2FenceAL } from "#trinityal";
 import { Tr2Renderer } from "../Tr2Renderer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 
@@ -202,14 +202,20 @@ export class Tr2DynamicRingBuffer
     return !Failed(this.CreateBuffer(this._bufferSize));
   }
 
-  /** Carbon AllocateFence (cpp:260-277): a recycled fence, or a new one. */
+  /**
+   * Carbon AllocateFence (cpp:261-277): a recycled fence, or a new
+   * `Tr2FenceAL` created against the main-thread context. Like Carbon's, a
+   * fence whose Create failed is still returned; it answers as invalid.
+   */
   @blue.method
   @meta.implemented
   AllocateFence()
   {
     if (this._availableFences.length) return this._availableFences.pop();
 
-    return Tr2RenderContext_GetMainThreadRenderContext().CreateFence();
+    const fence = new Tr2FenceAL();
+    fence.Create(Tr2RenderContext_GetMainThreadRenderContext());
+    return fence;
   }
 
   /** Carbon DeallocateFence (cpp:284-290). */

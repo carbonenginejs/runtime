@@ -3,15 +3,12 @@ import { CjsSchema, blue, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
+import { Tr2OcclusionQueryAL } from "../Tr2OcclusionQueryAL/Tr2OcclusionQueryAL.js";
 
 
-/** Carbon's `Tr2OcclusionQueryAL::WaitMode`. */
-export const OcclusionWaitMode = Object.freeze({
-  /** Return whatever is available now. */
-  DO_NOT_WAIT: 0,
-  /** Block until the result is ready. */
-  WAIT: 1
-});
+// Carbon's `Tr2OcclusionQueryAL::WaitMode` is declared on the handle, where
+// Carbon nests it (`Tr2OcclusionQueryAL.h:20-24`). This file's own copy,
+// `OcclusionWaitMode`, had WAIT and DO_NOT_WAIT swapped and is gone.
 
 
 /**
@@ -88,10 +85,14 @@ export class Tr2OcclusionQueryALStub extends Tr2DeviceResourceAL
   /**
    * How many pixels passed.
    *
-   * @param {number} [_waitMode] An `OcclusionWaitMode`; nothing to wait for here.
+   * Carbon's arguments (`Tr2OcclusionQueryALStub.cpp:67`), less the `count`
+   * output, which comes back in the result.
+   *
+   * @param {object} _renderContext The context; the stub reads nothing from it.
+   * @param {number} [_waitMode] A `WaitMode`; nothing to wait for here.
    * @returns {object} `{ result, count }`.
    */
-  GetPixelCount(_waitMode = OcclusionWaitMode.DO_NOT_WAIT)
+  GetPixelCount(_renderContext, _waitMode = Tr2OcclusionQueryAL.WaitMode.DO_NOT_WAIT)
   {
     if (!this._isValid) return { result: ALResult.E_INVALIDCALL, count: 0 };
 

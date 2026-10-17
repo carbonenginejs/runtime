@@ -1103,6 +1103,9 @@
   "Tr2EffectTechniqueInputs": [
     "swap"
   ],
+  "Tr2FenceAL": [
+    "Describe"
+  ],
   "Tr2FontManager": [
     "FaceRequester",
     "GetAtlasTextureForSbit",
@@ -1267,6 +1270,9 @@
     "ReleaseResources",
     "SetName",
     "py__init__"
+  ],
+  "Tr2GpuTimerAL": [
+    "Describe"
   ],
   "Tr2GpuUniqueEmitter": [
     "GenerateID"
@@ -1662,6 +1668,9 @@
     "GetLocatorRotation",
     "GetModelRotation"
   ],
+  "Tr2OcclusionQueryAL": [
+    "Describe"
+  ],
   "Tr2PPTaaEffect": [
     "IncrementJitter"
   ],
@@ -1700,6 +1709,11 @@
   ],
   "Tr2PerObjectDataStandard": [
     "CopyToVSFloatBuffer"
+  ],
+  "Tr2PipelineStatsQueryAL": [
+    "Describe",
+    "EncoderEnding",
+    "EncoderStarted"
   ],
   "Tr2PlatformInfo": [
     "GetPlatformID",
@@ -1991,8 +2005,28 @@
     "ApplyRenderStates",
     "ApplyShaderOverride"
   ],
+  "Tr2ShaderAL": [
+    "Describe",
+    "GetMemoryClass",
+    "ReleaseShader",
+    "SetNullShaderType"
+  ],
   "Tr2ShaderBuffer": [
     "SetDataFromScript"
+  ],
+  "Tr2ShaderProgramAL": [
+    "CompileShader",
+    "Describe",
+    "GetComputeKernel",
+    "GetFragmentShader",
+    "GetInputs",
+    "GetInputsHash",
+    "GetResourceMasks",
+    "GetThreadGroupSize",
+    "GetVertexShader",
+    "IsComputeProgramDx12",
+    "MakeShaderBytecode",
+    "SetDummyResources"
   ],
   "Tr2SharedConstantBuffers": [
     "GetBuffer",
@@ -2265,6 +2299,11 @@
     "UnmapForReading",
     "Update"
   ],
+  "Tr2SwapChainAL": [
+    "CreateDx12",
+    "Describe",
+    "GetNextBackbuffer"
+  ],
   "Tr2TextureAnimation": [
     "AdvanceTime",
     "DecodeFirstFrame",
@@ -2403,6 +2442,15 @@
   ],
   "Tr2VertexDefinition": [
     "Item"
+  ],
+  "Tr2VertexLayoutAL": [
+    "AddVertexDescriptor",
+    "CalculateHash",
+    "Describe",
+    "GenerateVertexDescriptor",
+    "PopulateInputLayout",
+    "SetLayout",
+    "SetVertexLayout"
   ],
   "Tr2VolumetricsRenderer": [
     "FogViewDependentResources",

@@ -130,34 +130,42 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
    * two stages of one type. Linking and laying out the bindings is WebGL2's;
    * see the head comment.
    *
-   * @param {Tr2ShaderALWebgl2[]} shaders The stages.
+   * The stages arrive as `Tr2ShaderAL` values, as dx11's `::Tr2ShaderAL*`
+   * array does, and each one's implementation is read as dx11 reads
+   * `shaders[i].m_shader` (`:48-49`).
+   *
+   * @param {object[]} shaders The `Tr2ShaderAL` stages.
+   * @param {number} count How many of them to link.
    * @param {object} renderContext The context to link against.
    * @returns {number} An `ALResult` value.
    */
   @meta.adapted
-  Create(shaders, renderContext)
+  Create(shaders, count, renderContext)
   {
     this._Reset();
 
     const al = RenderContextALOf(renderContext);
     if (!al || !al.IsValid()) return ALResult.E_INVALIDCALL;
 
-    if (shaders.length === 0) return ALResult.E_INVALIDARG;
+    if (count === 0) return ALResult.E_INVALIDARG;
 
     const stages = new Map();
+    const linked = [];
 
-    for (const shader of shaders)
+    for (let i = 0; i < count; ++i)
     {
-      if (!shader.IsValid()) return ALResult.E_INVALIDARG;
+      if (!shaders[i].IsValid()) return ALResult.E_INVALIDARG;
 
-      const type = shader.GetType();
+      const type = shaders[i].GetType();
       if (stages.has(type)) return ALResult.E_INVALIDARG;
       if (type !== ShaderType.VERTEX_SHADER && type !== ShaderType.PIXEL_SHADER && type !== ShaderType.COMPUTE_SHADER)
       {
         return ALResult.E_INVALIDARG;
       }
 
+      const shader = shaders[i].TrinityALImpl_GetObject();
       stages.set(type, shader);
+      linked.push(shader);
     }
 
     const gl = al.GetWebgl2();
@@ -199,7 +207,7 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
     this._shaders = stages;
     this._vertexShader = stages.get(ShaderType.VERTEX_SHADER) ?? null;
     this._LayOutBindings(gl, program, stages);
-    this._registerMap = new Tr2RegisterMapAL({ shaders: shaders.slice() });
+    this._registerMap = new Tr2RegisterMapAL({ shaders: linked });
     this._isValid = true;
 
     return ALResult.S_OK;

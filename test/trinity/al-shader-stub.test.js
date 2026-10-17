@@ -1,8 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { ALResult, Tr2RenderContextALStub, Tr2SamplerStateALStub, Tr2ShaderALStub, Tr2ShaderProgramALStub } from "../../npm/dist/trinityal/index.js";
+import { ALResult, Tr2RenderContextALStub, Tr2SamplerStateALStub, Tr2ShaderAL, Tr2ShaderALStub, Tr2ShaderProgramALStub } from "../../npm/dist/trinityal/index.js";
 import { ShaderStageType } from "../../npm/dist/resource/index.js";
+
+/** Carbon links `Tr2ShaderAL` values: wraps each implementation and passes the count. */
+function link(shaders)
+{
+    return [ shaders.map(shader => Tr2ShaderAL.create__Shader(shader)), shaders.length ];
+}
+
 
 const context = () =>
 {
@@ -92,7 +99,7 @@ test("a program links one shader per stage", () =>
   const program = new Tr2ShaderProgramALStub();
   const shaders = [ shader(ShaderStageType.VERTEX_SHADER), shader(ShaderStageType.PIXEL_SHADER) ];
 
-  assert.equal(program.Create(shaders, al), ALResult.S_OK);
+  assert.equal(program.Create(...link(shaders), al), ALResult.S_OK);
   assert.equal(program.IsValid(), true);
   assert.equal(program.GetShaders().length, 2);
 
@@ -108,7 +115,7 @@ test("two shaders for the same stage are refused", () =>
   const program = new Tr2ShaderProgramALStub();
   const shaders = [ shader(ShaderStageType.VERTEX_SHADER), shader(ShaderStageType.VERTEX_SHADER) ];
 
-  assert.equal(program.Create(shaders, al), ALResult.E_INVALIDARG);
+  assert.equal(program.Create(...link(shaders), al), ALResult.E_INVALIDARG);
   assert.equal(program.IsValid(), false);
 
   program.Destroy();
@@ -120,14 +127,14 @@ test("an empty program, an invalid shader and no device are each refused", () =>
   const al = context();
   const program = new Tr2ShaderProgramALStub();
 
-  assert.equal(program.Create([], al), ALResult.E_INVALIDARG);
+  assert.equal(program.Create(...link([]), al), ALResult.E_INVALIDARG);
 
   const empty = new Tr2ShaderALStub();
 
-  assert.equal(program.Create([ empty ], al), ALResult.E_INVALIDARG);
+  assert.equal(program.Create(...link([ empty ]), al), ALResult.E_INVALIDARG);
 
   assert.equal(
-    program.Create([ shader(ShaderStageType.VERTEX_SHADER) ], new Tr2RenderContextALStub()),
+    program.Create(...link([ shader(ShaderStageType.VERTEX_SHADER) ]), new Tr2RenderContextALStub()),
     ALResult.E_INVALIDCALL
   );
 
@@ -141,7 +148,7 @@ test("a program keeps its own list, so a caller's later edit cannot reach it", (
   const program = new Tr2ShaderProgramALStub();
   const shaders = [ shader(ShaderStageType.VERTEX_SHADER) ];
 
-  program.Create(shaders, al);
+  program.Create(...link(shaders), al);
   shaders.push(shader(ShaderStageType.PIXEL_SHADER));
 
   assert.equal(program.GetShaders().length, 1);

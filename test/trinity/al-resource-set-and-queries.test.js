@@ -3,6 +3,7 @@ import test from "node:test";
 
 import { Tr2GpuTimerALStub, Tr2OcclusionQueryALStub, Tr2PipelineStatsQueryALStub, Tr2RegisterMapAL, Tr2ResourceSetAL, Tr2ResourceSetALStub, Tr2VideoAdapterInfoStub } from "../../npm/dist/trinityal/index.js";
 import { Tr2BitmapDimensions, Tr2BufferDescriptionAL, Tr2FenceALStub, Tr2RenderContextALStub, Tr2ResourceSetDescriptionAL, Tr2SamplerStateAL, ALResult } from "../../npm/dist/trinityal/index.js";
+import { Tr2FenceAL, Tr2GpuTimerAL, Tr2OcclusionQueryAL, Tr2PipelineStatsQueryAL, Tr2ShaderAL, Tr2ShaderProgramAL, Tr2SwapChainAL, Tr2VertexLayoutAL } from "../../npm/dist/trinityal/index.js";
 import { PixelFormat, Tr2GpuUsage, Tr2CpuUsage, ShaderType } from "../../npm/dist/global/consts/renderContext/index.js";
 
 const device = () =>
@@ -183,7 +184,7 @@ test("an occlusion query catches a mispaired End", () =>
   assert.equal(query.Begin(), ALResult.S_OK);
   assert.equal(query.End(), ALResult.S_OK);
 
-  assert.deepEqual(query.GetPixelCount(), { result: ALResult.S_OK, count: 0 });
+  assert.deepEqual(query.GetPixelCount(null), { result: ALResult.S_OK, count: 0 });
 });
 
 test("a GPU timer reports a tiny time, and minus one without a device", () =>
@@ -266,4 +267,111 @@ test("explicit invalid buffer, texture and sampler bindings retain distinct hash
   desc.SetSampler(1, 2, new Tr2SamplerStateAL());
   const samplerHash = desc.ComputeHash();
   assert.equal(new Set([0, bufferHash, textureHash, samplerHash]).size, 4);
+});
+
+// THE BACKEND-NEUTRAL HANDLES (trinityal/include/*.h): each is invalid until
+// Create, realized against a context whose backend supplies the
+// implementation, and a failed Create leaves it on the shared null
+// implementation (e.g. Tr2FenceAL.cpp:22-31).
+test("every handle is invalid until Create, and shares its implementation by copy", () =>
+{
+  const al = device();
+  const cases = [
+    [ Tr2FenceAL, value => value.Create(al) ],
+    [ Tr2VertexLayoutAL, value => value.Create([ { usage: 0, usageIndex: 0, type: "FLOAT32_3", offset: 0, stream: 0 } ], al) ],
+    [ Tr2ShaderAL, value => value.Create(ShaderType.VERTEX_SHADER, new Uint8Array([ 1 ]), null, "", al) ],
+    [ Tr2SwapChainAL, value => value.Create(0, al) ],
+    [ Tr2GpuTimerAL, value => value.Create(al) ],
+    [ Tr2OcclusionQueryAL, value => value.Create(al) ]
+  ];
+
+  for (const [ Handle, create ] of cases)
+  {
+    const value = new Handle();
+
+    assert.equal(value.IsValid(), false, `${Handle.name} starts invalid`);
+    assert.equal(value.SetName("x"), ALResult.E_INVALIDCALL, `${Handle.name} refuses a name while invalid`);
+    assert.ok(new Handle().Equals(value), `${Handle.name}: every default shares the null implementation`);
+
+    assert.equal(create(value), ALResult.S_OK, Handle.name);
+    assert.equal(value.IsValid(), true, Handle.name);
+
+    const copy = new Handle({ copy: value });
+
+    assert.ok(copy.Equals(value), `${Handle.name}: a copy shares the implementation`);
+    value.Destroy();
+    assert.equal(value.IsValid(), false, `${Handle.name}: Destroy returns to the null implementation`);
+    assert.equal(copy.IsValid(), true, `${Handle.name}: the copy keeps it alive`);
+    copy.Destroy();
+  }
+});
+
+test("a shader program links Tr2ShaderAL values, and a failed Create leaves the null program", () =>
+{
+  const al = device();
+  const vertex = new Tr2ShaderAL();
+  const pixel = new Tr2ShaderAL();
+
+  vertex.Create(ShaderType.VERTEX_SHADER, new Uint8Array([ 1 ]), null, "", al);
+  pixel.Create(ShaderType.PIXEL_SHADER, new Uint8Array([ 1 ]), null, "", al);
+
+  const program = new Tr2ShaderProgramAL();
+
+  assert.equal(program.Create([ vertex, pixel ], 2, al), ALResult.S_OK);
+  assert.equal(program.IsValid(), true);
+  assert.equal(program.TrinityALImpl_GetObject().GetShaders()[0], vertex, "the stub keeps the values it linked");
+
+  assert.equal(program.Create([ vertex, vertex ], 2, al), ALResult.E_INVALIDARG, "two stages of one type");
+  assert.ok(program.Equals(new Tr2ShaderProgramAL()), "a refused Create leaves the null program");
+  assert.equal(program.GetRegisterMap().equals(new Tr2RegisterMapAL()), true);
+  assert.equal(program.CreateCommandSignatures({}, al), ALResult.E_FAIL, "DX12 alone builds command signatures");
+});
+
+test("the occlusion query's WaitMode is Carbon's, declared on the handle", () =>
+{
+  // Tr2OcclusionQueryAL.h:20-24: WAIT first. The stub's own copy had them swapped.
+  assert.deepEqual({ ...Tr2OcclusionQueryAL.WaitMode }, { WAIT: 0, DO_NOT_WAIT: 1 });
+
+  const query = new Tr2OcclusionQueryAL();
+  const al = device();
+
+  assert.deepEqual(query.GetPixelCount(al), { result: ALResult.E_INVALIDCALL, count: 0 }, "the null query refuses");
+  query.Create(al);
+  assert.equal(query.Begin(al), ALResult.S_OK);
+  assert.equal(query.End(al), ALResult.S_OK);
+  assert.deepEqual(query.GetPixelCount(al), { result: ALResult.S_OK, count: 0 });
+});
+
+test("a pipeline statistics record is read through the backend that made it", () =>
+{
+  const query = new Tr2PipelineStatsQueryAL();
+  const al = device();
+
+  assert.equal(query.IsValid(), false, "the null query is invalid, as dx11's default is");
+  assert.equal(query.Create(al), ALResult.S_OK);
+  assert.equal(query.IsValid(), true, "the stub's is always valid");
+
+  const { result, data } = query.GetStats(al);
+
+  assert.equal(result, ALResult.S_OK);
+  assert.equal(Tr2PipelineStatsQueryAL.GetValueCount(data), 0);
+  assert.equal(Tr2PipelineStatsQueryAL.GetLabel(data, 0), "");
+  assert.equal(Tr2PipelineStatsQueryAL.GetValue(data, 0), 0);
+});
+
+test("a backend without a query or a standalone swap chain refuses Create with E_FAIL", async () =>
+{
+  // Metal refuses a counter the device cannot sample with E_FAIL
+  // (Tr2GpuTimerALMetal.mm:48-51); the handle stays on the null implementation.
+  const { CjsWebgpuRenderContextAL } = await import("../../npm/dist/trinityal/webgpu/internal.js");
+  const webgpu = new CjsWebgpuRenderContextAL();
+
+  for (const Handle of [ Tr2SwapChainAL, Tr2GpuTimerAL, Tr2OcclusionQueryAL, Tr2PipelineStatsQueryAL ])
+  {
+    const value = new Handle();
+    const result = Handle === Tr2SwapChainAL ? value.Create(0, webgpu) : value.Create(webgpu);
+
+    assert.equal(result, ALResult.E_FAIL, Handle.name);
+    assert.equal(value.IsValid(), false, Handle.name);
+  }
 });

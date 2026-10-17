@@ -92,7 +92,7 @@ test("an occlusion query reports 1 when any sample passed, 0 when none, S_FALSE 
     const [ , target, native ] = calls.find(call => call[0] === "beginQuery");
     assert.equal(target, gl.ANY_SAMPLES_PASSED);
 
-    assert.deepEqual(query.GetPixelCount(context, 1), { result: ALResult.S_FALSE, count: 0 }, "WAIT cannot block");
+    assert.deepEqual(query.GetPixelCount(context, Tr2OcclusionQueryALWebgl2.WaitMode.WAIT), { result: ALResult.S_FALSE, count: 0 }, "WAIT cannot block");
 
     native.available = true;
     native.result = 1;

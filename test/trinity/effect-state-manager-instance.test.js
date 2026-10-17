@@ -272,7 +272,8 @@ test("NullDeclaration unbinds and Unknown does not, because they are different s
   const states = context.GetEffectStateManager();
 
   assert.equal(states.ApplyVertexDeclaration(Tr2EffectStateManager.NullDeclaration), true);
-  assert.deepEqual(bound, [ null ], "NullDeclaration binds an empty layout");
+  assert.equal(bound.length, 1);
+  assert.equal(bound[0].IsValid(), false, "NullDeclaration binds a default-constructed, invalid layout (cpp:891)");
 
   // Uninitialized is a caller defect. Carbon asserts; we refuse rather than
   // report a success that bound nothing, which is what hid the bug.

@@ -821,17 +821,6 @@ export class Tr2RenderContext
   }
 
   /**
-   * Creates a fence of the running backend's kind, for the reason
-   * `CreateBuffer` is here: Carbon's `new Tr2FenceAL` compiles to one backend.
-   *
-   * @returns {object|null} A created `Tr2FenceAL`, or null when refused.
-   */
-  CreateFence()
-  {
-    return this._requireAL("CreateFence").CreateFence();
-  }
-
-  /**
    * Creates a resource set of the running backend's kind from a filled
    * description and the realized program it binds against.
    *
@@ -867,47 +856,6 @@ export class Tr2RenderContext
     return this._requireAL("CreateTexture").CreateTexture(desc, options);
   }
 
-  /**
-   * Creates the running backend's vertex layout from a vertex definition.
-   *
-   * The same reason `CreateBuffer` is here. Carbon's effect state manager holds
-   * a `Tr2VertexLayoutAL` in its own intern table and calls `hvl.Create` on
-   * first use (`Tr2EffectStateManager.cpp:899-906`), which it can do because
-   * one backend is compiled. The manager here cannot name a layout class, so it
-   * asks the context, which knows which backend it holds.
-   *
-   * @param {object[]|object} definition The vertex element list or definition.
-   * @returns {object|null} A `Tr2VertexLayoutAL`, or null when Create refused.
-   */
-  CreateVertexLayout(definition)
-  {
-    return this._requireAL("CreateVertexLayout").CreateVertexLayout(definition);
-  }
-
-  /**
-   * Creates one shader stage on the running backend.
-   *
-   * @param {number} stageType A `ShaderType`.
-   * @param {ArrayBufferView|string} bytecode The stage's bytecode.
-   * @param {object|null} signature The reflected signature.
-   * @param {string} [shaderPath] A debug label.
-   * @returns {object|null} A `Tr2ShaderAL`, or null when Create refused.
-   */
-  CreateShader(stageType, bytecode, signature, shaderPath = "")
-  {
-    return this._requireAL("CreateShader").CreateShader(stageType, bytecode, signature, shaderPath);
-  }
-
-  /**
-   * Links created stages into a program on the running backend.
-   *
-   * @param {object[]} shaders The stages to link.
-   * @returns {object|null} A `Tr2ShaderProgramAL`, or null when Create refused.
-   */
-  CreateShaderProgram(shaders)
-  {
-    return this._requireAL("CreateShaderProgram").CreateShaderProgram(shaders);
-  }
 
   /**
    * Binds the shader program following draws use.
@@ -918,7 +866,7 @@ export class Tr2RenderContext
    * such method at all until 2026-09-09, which is why the manager recorded a
    * handle and bound nothing.
    *
-   * @param {object|null} shaderProgram A `Tr2ShaderProgramAL`, or null to unbind.
+   * @param {object} shaderProgram A `Tr2ShaderProgramAL`; a default one unbinds.
    * @returns {number} An `ALResult`: whether the backend accepted it.
    */
   SetShaderProgram(shaderProgram)

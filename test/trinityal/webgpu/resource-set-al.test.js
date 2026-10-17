@@ -4,7 +4,7 @@ import { test } from "node:test";
 
 import { CjsWebgpuDevice } from "../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuRenderContextAL, CjsWebgpuResourceSetAL } from "../../../npm/dist/trinityal/webgpu/internal.js";
-import { ALResult, Tr2ResourceSetDescriptionAL, Tr2BitmapDimensions } from "../../../npm/dist/trinityal/index.js";
+import { ALResult, Tr2ResourceSetDescriptionAL, Tr2BitmapDimensions, Tr2ShaderProgramAL } from "../../../npm/dist/trinityal/index.js";
 import { ShaderType, PixelFormat, Tr2GpuUsage } from "../../../npm/dist/global/consts/renderContext/index.js";
 import { writeBackendBlock } from "../../../npm/dist/resource/format/index.js";
 
@@ -104,7 +104,7 @@ test("Create resolves every non-uniform slot against the program, by the stage t
   assert.equal(entries.get("0:2"), sampler.TrinityALImpl_GetObject().GetSampler());
   assert.equal(entries.get("0:3").buffer.id, "bones");
   assert.equal(created.textures, 0, "nothing needed a dummy");
-  assert.equal(set.GetProgram(), program);
+  assert.equal(set.GetProgram(), program.TrinityALImpl_GetObject(), "the implementation, which the draw compares with its bound one");
   assert.notEqual(set.GetDescription(), description);
   assert.equal(set.GetDescription().ComputeHash(), description.ComputeHash());
 
@@ -142,9 +142,9 @@ test("a program this backend did not link, or no description, is refused", () =>
   const { al } = composed();
   const set = new CjsWebgpuResourceSetAL();
 
-  assert.equal(set.Create(new Tr2ResourceSetDescriptionAL(), { IsValid: () => true, id: "row" }, al), ALResult.E_INVALIDARG);
+  assert.equal(set.Create(new Tr2ResourceSetDescriptionAL(), { IsValid: () => true, TrinityALImpl_GetObject: () => ({ IsValid: () => true, id: "row" }) }, al), ALResult.E_INVALIDARG);
   assert.equal(set.Create(null, programWith(al, BINDINGS), al), ALResult.E_INVALIDARG);
-  assert.equal(al.CreateResourceSet(new Tr2ResourceSetDescriptionAL(), null), null);
+  assert.equal(al.CreateResourceSet(new Tr2ResourceSetDescriptionAL(), new Tr2ShaderProgramAL()), null);
   assert.equal(set.IsValid(), false);
 });
 

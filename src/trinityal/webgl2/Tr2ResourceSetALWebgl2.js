@@ -241,7 +241,8 @@ export class Tr2ResourceSetALWebgl2 extends Tr2DeviceResourceAL
     this._uavCount = uavCount;
     this._csUavs = csUavs;
     this._empty = empty;
-    this._units = this._PlaceUnits(program);
+    // dx11 reads the program as a friend (`program.m_program`); ours is its implementation.
+    this._units = this._PlaceUnits(program.TrinityALImpl_GetObject());
     this._isValid = true;
 
     return ALResult.S_OK;

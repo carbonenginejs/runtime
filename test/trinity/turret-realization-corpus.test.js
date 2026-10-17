@@ -455,7 +455,7 @@ test("real packed turret shader receives native instance IDs and final opaque/sh
   let currentInputs=inputs;
   const state={_vertexLayout:null,_streams:[],_shaderProgram:{GetInputs:()=>currentInputs}};
   const layout=al.SetVertexLayout.bind(al),stream=al.SetStreamSource.bind(al),draw=al.DrawIndexedInstanced.bind(al),draws=[];
-  al.SetVertexLayout=value=>{state._vertexLayout=value;return layout(value);};
+  al.SetVertexLayout=value=>{state._vertexLayout=value.IsValid()?value._layout.implementation:null;return layout(value);};
   al.SetStreamSource=(index,buffer,offset,stride)=>{state._streams[index]={buffer,offset,stride};return stream(index,buffer,offset,stride);};
   al.DrawIndexedInstanced=(...args)=>{
     const layouts=CjsWebgpuRenderContextAL.prototype.BuildVertexBufferLayouts.call(state);

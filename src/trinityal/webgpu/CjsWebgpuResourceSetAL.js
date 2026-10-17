@@ -86,17 +86,21 @@ export class CjsWebgpuResourceSetAL
    * WebGPU representation and return E_FAIL.
    *
    * @param {object} description A `Tr2ResourceSetDescriptionAL`.
-   * @param {object} program The `CjsWebgpuShaderProgramAL` this set binds against.
+   * @param {object} shaderProgram The `Tr2ShaderProgramAL` this set binds against.
    * @param {object} renderContext The WebGPU render context AL.
    * @returns {number} An `ALResult` value.
    */
   @meta.adapted
-  Create(description, program, renderContext)
+  Create(description, shaderProgram, renderContext)
   {
     this.Destroy();
 
     if (!renderContext || !renderContext.IsValid()) return ALResult.E_INVALIDARG;
     if (!description) return ALResult.E_INVALIDARG;
+
+    // Metal reads the program's implementation as a friend
+    // (`program.m_program`, `Tr2ResourceSetALMetal.mm:79-80`); so does this.
+    const program = shaderProgram.TrinityALImpl_GetObject();
 
     // DX12 refuses a description whose register map is not the program's
     // (`Tr2ResourceSetALDx12.cpp:78-81`); a program this backend did not link

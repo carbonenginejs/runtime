@@ -7,7 +7,7 @@ import {
     Tr2ShaderProgramALWebgl2,
     Tr2VertexLayoutALWebgl2
 } from "../../../npm/dist/trinityal/webgl2/index.js";
-import { Tr2TextureAL, ALResult, Failed, Tr2BitmapDimensions, Tr2BufferDescriptionAL, Tr2ConstantUsageAL } from "../../../npm/dist/trinityal/index.js";
+import { Tr2TextureAL, ALResult, Failed, Tr2BitmapDimensions, Tr2BufferDescriptionAL, Tr2ConstantUsageAL, Tr2ShaderAL } from "../../../npm/dist/trinityal/index.js";
 import { PixelFormat, RenderState, ShaderType, Topology, Tr2CpuUsage, Tr2GpuUsage } from "../../../npm/dist/global/consts/renderContext/index.js";
 import { writeGlslBackendBlock } from "../../../npm/dist/resource/formats/webgl/core/glslBackendBlock.js";
 import { FakeWebgl2 } from "./fakeWebgl2.js";
@@ -174,7 +174,7 @@ function drawable()
     {
         const shader = new Tr2ShaderALWebgl2();
         assert.equal(shader.Create(type, source, { backendBlock: BLOCK, registers: [], pipelineInputs: [ { usage: 0, usageIndex: 0, registerIndex: 0 } ] }, "test", context), ALResult.S_OK);
-        return shader;
+        return Tr2ShaderAL.create__Shader(shader);
     });
     const program = context.CreateShaderProgram(shaders);
     const layout = context.CreateVertexLayout({ items: [ { usage: 0, usageIndex: 0, type: "FLOAT32_3", offset: 0, stream: 0, instanceStepRate: 0 } ] });
@@ -197,7 +197,7 @@ test("an indexed draw binds the program, points the attribute and draws elements
 
     assert.equal(context.DrawIndexedPrimitive(4, 3, 1), ALResult.S_OK);
 
-    assert.deepEqual(calledWith(calls, "useProgram"), [ [ program.GetGpuResource() ] ]);
+    assert.deepEqual(calledWith(calls, "useProgram"), [ [ program.TrinityALImpl_GetObject().GetGpuResource() ] ]);
     assert.ok(calledWith(calls, "bindBuffer").some(([ target, buffer ]) => target === gl.ARRAY_BUFFER && buffer === vertices.TrinityALImpl_GetObject().GetGpuResource()));
     assert.deepEqual(calledWith(calls, "vertexAttribPointer"), [ [ 0, 3, gl.FLOAT, false, 12, 0 ] ]);
     assert.ok(calledWith(calls, "bindBuffer").some(([ target, buffer ]) => target === gl.ELEMENT_ARRAY_BUFFER && buffer === indices.TrinityALImpl_GetObject().GetGpuResource()));

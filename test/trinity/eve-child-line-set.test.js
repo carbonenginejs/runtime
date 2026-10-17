@@ -39,7 +39,7 @@ function setup(t) {
     return layoutState._vertexLayout.GetDefinition().map((item,index)=>({...item,registerIndex:index}));
   }}};
   const setLayout=al.SetVertexLayout.bind(al),setStream=al.SetStreamSource.bind(al);
-  al.SetVertexLayout=layout=>{layoutState._vertexLayout=layout;return setLayout(layout);};
+  al.SetVertexLayout=layout=>{layoutState._vertexLayout=layout.IsValid()?layout._layout.implementation:null;return setLayout(layout);};
   al.SetStreamSource=(stream,buffer,offset,stride)=>{layoutState._streams[stream]={buffer,offset,stride};return setStream(stream,buffer,offset,stride);};
   const draws=[],draw=al.DrawIndexedInstanced.bind(al);
   al.DrawIndexedInstanced=(...args)=>{

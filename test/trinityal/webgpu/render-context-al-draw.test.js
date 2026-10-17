@@ -190,13 +190,13 @@ test("a draw resolves a pipeline from bound state once, and the next draw reuses
   // the bound target's format.
   const descriptor = pipelines[0].descriptor;
 
-  assert.equal(descriptor.layout, program.GetPipelineLayout());
-  assert.equal(descriptor.vertex.module, program.GetModuleFor(ShaderType.VERTEX_SHADER));
+  assert.equal(descriptor.layout, program.TrinityALImpl_GetObject().GetPipelineLayout());
+  assert.equal(descriptor.vertex.module, program.TrinityALImpl_GetObject().GetModuleFor(ShaderType.VERTEX_SHADER));
   assert.equal(descriptor.vertex.entryPoint, "main");
   assert.deepEqual(descriptor.vertex.buffers, [
     { arrayStride: 12, stepMode: "vertex", attributes: [ { shaderLocation: 0, offset: 0, format: "float32x3" } ] }
   ]);
-  assert.equal(descriptor.fragment.module, program.GetModuleFor(ShaderType.PIXEL_SHADER));
+  assert.equal(descriptor.fragment.module, program.TrinityALImpl_GetObject().GetModuleFor(ShaderType.PIXEL_SHADER));
   assert.deepEqual(descriptor.fragment.targets.map(target => target.format), [ "bgra8unorm" ]);
   assert.equal(descriptor.primitive.topology, "triangle-list");
   assert.equal(descriptor.depthStencil.format, "depth24plus");
@@ -592,7 +592,7 @@ test("a program the backend did not link cannot resolve", () =>
 {
   const { al } = composed();
 
-  bindGeometry(al, { IsValid: () => true, id: "foreign" });
+  bindGeometry(al, { IsValid: () => true, TrinityALImpl_GetObject: () => ({ IsValid: () => true, id: "foreign" }) });
   assert.ok(Failed(al.DrawIndexedInstanced(36, 1)));
   assert.match(al._pipelineFailure, /a program this backend linked/);
 });
@@ -615,7 +615,7 @@ test("a pixel stage reports the colour locations its WGSL writes", () =>
 {
   const { al } = composed();
   const signature = { registers: [], pipelineInputs: [], backendBlock: null };
-  const outputs = source => al.CreateShader(ShaderType.PIXEL_SHADER, source, signature, "f.wgsl").GetOutputs();
+  const outputs = source => al.CreateShader(ShaderType.PIXEL_SHADER, source, signature, "f.wgsl").TrinityALImpl_GetObject().GetOutputs();
 
   // Our lowering's struct (SV_TargetN -> @location(N)), and a direct return.
   assert.deepEqual(outputs("struct FragmentOutput\n{\n    @location(1) output1: vec2<f32>,\n    @location(0) output0: vec4<f32>,\n};\n@fragment fn main() -> FragmentOutput { var output: FragmentOutput; return output; }"), [ 0, 1 ]);
@@ -625,8 +625,8 @@ test("a pixel stage reports the colour locations its WGSL writes", () =>
   assert.deepEqual(outputs("struct FragmentOutput\n{\n    @builtin(frag_depth) depth: f32,\n};\n@fragment fn main() -> FragmentOutput { var output: FragmentOutput; return output; }"), []);
 
   // And the program answers for its pixel stage, or null without one.
-  assert.deepEqual(programFor(al).GetFragmentOutputs(), [ 0 ]);
-  assert.equal(programFor(al, { fragment: false }).GetFragmentOutputs(), null);
+  assert.deepEqual(programFor(al).TrinityALImpl_GetObject().GetFragmentOutputs(), [ 0 ]);
+  assert.equal(programFor(al, { fragment: false }).TrinityALImpl_GetObject().GetFragmentOutputs(), null);
 });
 
 test("inputs the mesh lacks read a constant dummy stream, as Metal's do", () =>

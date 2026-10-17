@@ -8,7 +8,7 @@ import { IRoot } from "../../../global/blue/IRoot.js";
 // AL rather than reporting stored numbers. This class does the same.
 import { meta, type, blue } from "#schema";
 import { Succeeded } from "../../../trinityal/ALResult.js";
-import { Tr2SwapChainALStub } from "../../../trinityal/stub/Tr2SwapChainALStub.js";
+import { Tr2SwapChainAL } from "../../../trinityal/Tr2SwapChainAL/index.js";
 
 /** Tr2SwapChain (trinityCore) - generated from schema shapeHash 955529ab.... */
 @blue.define("Tr2SwapChain")
@@ -55,12 +55,11 @@ export class Tr2SwapChain
   height = 0;
 
   /**
-   * m_swapChain, defaulted to the stub exactly as `Tr2RenderContext` defaults
-   * its own AL. Carbon's member is a `Tr2SwapChainAL` compiled against whichever
-   * backend the build selected, so it is never absent; defaulting to the stub is
-   * how that stays true here.
+   * m_swapChain: Carbon's by-value `Tr2SwapChainAL` (`Tr2SwapChain.h`), invalid
+   * until `OnPrepareResources` creates it against the context, whose backend
+   * supplies the implementation.
    */
-  #swapChain = new Tr2SwapChainALStub();
+  #swapChain = new Tr2SwapChainAL();
 
   /** m_windowHandle */
   #windowHandle = 0;
@@ -116,7 +115,7 @@ export class Tr2SwapChain
   @meta.adapted
   OnPrepareResources(renderContext)
   {
-    if (!Succeeded(this.#swapChain.Create(this.#windowHandle, renderContext.GetRenderContextAL()))) return false;
+    if (!Succeeded(this.#swapChain.Create(this.#windowHandle, renderContext))) return false;
 
     this.width = this.#swapChain.GetWidth();
     this.height = this.#swapChain.GetHeight();
@@ -168,8 +167,8 @@ export class Tr2SwapChain
 
   /**
    * Drops the AL chain, as Carbon's `m_swapChain = Tr2SwapChainAL()` does
-   * (`Tr2SwapChain.cpp:35`) - a fresh object, not a null one, so the member is
-   * still callable afterwards.
+   * (`Tr2SwapChain.cpp:24-27`): the value returns to the null implementation,
+   * so the member is still callable afterwards.
    *
    * @param {number} _storage Carbon's `TriStorage` mask; every AL surface here
    *   belongs to video memory, so there is nothing to select between.
@@ -178,23 +177,23 @@ export class Tr2SwapChain
   @meta.implemented
   ReleaseResources(_storage)
   {
-    this.#swapChain = new Tr2SwapChainALStub();
+    this.#swapChain.Destroy();
     this.width = 0;
     this.height = 0;
   }
 
   /**
-   * Installs a backend's AL chain in place of the stub. The accessor pair
-   * matches `Tr2RenderContext.SetRenderContextAL`/`GetRenderContextAL`, down to
-   * null restoring the stub rather than emptying the field: Carbon selects its
-   * backend at compile time and cannot detach one, so neither can this.
+   * Installs an abstraction-layer swap chain value. The accessor pair matches
+   * `Tr2RenderContext.SetRenderContextAL`/`GetRenderContextAL`, down to null
+   * restoring a default value rather than emptying the field: Carbon's member
+   * is by value and never absent, so neither is this.
    *
-   * @param {object|null} al The abstraction-layer swap chain.
-   * @returns {object} The backend now installed.
+   * @param {Tr2SwapChainAL|null} al The abstraction-layer swap chain.
+   * @returns {Tr2SwapChainAL} The value now installed.
    */
   SetSwapChainAL(al = null)
   {
-    this.#swapChain = al ?? new Tr2SwapChainALStub();
+    this.#swapChain = al ?? new Tr2SwapChainAL();
     this.width = this.#swapChain.GetWidth();
     this.height = this.#swapChain.GetHeight();
 

@@ -2,6 +2,18 @@ import { Tr2BufferAL } from "../../Tr2BufferAL/index.js";
 import { Tr2TextureAL } from "../../Tr2TextureAL/index.js";
 import { Tr2ConstantBufferAL } from "../../Tr2ConstantBufferAL/index.js";
 import { Tr2SamplerStateAL } from "../../Tr2SamplerStateAL/index.js";
+import { Tr2FenceAL } from "../../Tr2FenceAL/index.js";
+import { Tr2VertexLayoutAL } from "../../Tr2VertexLayoutAL/index.js";
+import { Tr2ShaderAL } from "../../Tr2ShaderAL/index.js";
+import { Tr2ShaderProgramAL } from "../../Tr2ShaderProgramAL/index.js";
+import { Tr2SwapChainAL } from "../../Tr2SwapChainAL/index.js";
+import { Tr2GpuTimerAL } from "../../Tr2GpuTimerAL/index.js";
+import { Tr2OcclusionQueryAL } from "../../Tr2OcclusionQueryAL/index.js";
+import { Tr2PipelineStatsQueryAL } from "../../Tr2PipelineStatsQueryAL/index.js";
+import { Tr2SwapChainALStub } from "../Tr2SwapChainALStub.js";
+import { Tr2GpuTimerALStub } from "../Tr2GpuTimerALStub.js";
+import { Tr2OcclusionQueryALStub } from "../Tr2OcclusionQueryALStub.js";
+import { Tr2PipelineStatsQueryALStub } from "../Tr2PipelineStatsQueryALStub/index.js";
 import { Tr2StubPlatformCaps } from "../Tr2CapsALStub.js";
 // Source: trinity/trinityal/stub/Tr2RenderContextStub.cpp
 // Source: trinity/trinityal/stub/Tr2RenderContextStub.h
@@ -278,17 +290,137 @@ export class Tr2RenderContextALStub
   }
 
   /**
-   * This backend's `Tr2FenceAL`, created against this context: Carbon's
-   * `new Tr2FenceAL` then `fence->Create( renderContext )`
-   * (`Tr2DynamicRingBuffer.cpp:AllocateFence`), as one call.
+   * Creates a fence; with `implementationOnly`, this backend's implementation
+   * and its result, for the `Tr2FenceAL` handle to own.
    *
-   * @returns {object|null} The fence, or null when Create refused.
+   * The handle's `Create` asks here because this is where Carbon's platform
+   * include resolves (`Tr2FenceAL.cpp:5`); the implementation is created
+   * against this context as `m_fence->Create( renderContext )` is
+   * (`Tr2FenceAL.cpp:22-31`). Without `implementationOnly` it returns a created
+   * handle for probes and tests; Trinity creates its handles itself.
+   *
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null when Create refused.
    */
-  CreateFence()
+  CreateFence(implementationOnly = false)
   {
-    const fence = new Tr2FenceALStub();
+    if (!implementationOnly)
+    {
+      const value = new Tr2FenceAL();
+      return Failed(value.Create(this)) ? null : value;
+    }
 
-    return Failed(fence.Create(this)) ? null : fence;
+    const implementation = new Tr2FenceALStub();
+    const result = implementation.Create(this);
+    if (Failed(result)) implementation.Destroy();
+    return { result, implementation };
+  }
+
+  /**
+   * Creates a swap chain; with `implementationOnly`, this backend's
+   * implementation and its result, for the `Tr2SwapChainAL` handle to own.
+   *
+   * The handle's `Create` asks here because this is where Carbon's platform
+   * include resolves (`Tr2SwapChainAL.cpp:5`; the implementation is created as
+   * `m_swapChain->Create( windowHandle, renderContext )` is, `:21-31`).
+   * Without `implementationOnly` it returns a created handle for probes and
+   * tests.
+   *
+   * @param {number|object} windowHandle The window to present into.
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null when Create refused.
+   */
+  CreateSwapChain(windowHandle, implementationOnly = false)
+  {
+    if (!implementationOnly)
+    {
+      const value = new Tr2SwapChainAL();
+      return Failed(value.Create(windowHandle, this)) ? null : value;
+    }
+
+    const implementation = new Tr2SwapChainALStub();
+    const result = implementation.Create(windowHandle, this);
+    if (Failed(result)) implementation.Destroy();
+    return { result, implementation };
+  }
+
+  /**
+   * Creates a GPU timer; with `implementationOnly`, this backend's
+   * implementation and its result, for the `Tr2GpuTimerAL` handle to own.
+   *
+   * The handle's `Create` asks here because this is where Carbon's platform
+   * include resolves (`Tr2GpuTimerAl.cpp:6`; the implementation is created as
+   * `m_gpu_timer->Create( renderContext )` is, `:20-35`). Without
+   * `implementationOnly` it returns a created handle for probes and tests.
+   *
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null when Create refused.
+   */
+  CreateGpuTimer(implementationOnly = false)
+  {
+    if (!implementationOnly)
+    {
+      const value = new Tr2GpuTimerAL();
+      return Failed(value.Create(this)) ? null : value;
+    }
+
+    const implementation = new Tr2GpuTimerALStub();
+    const result = implementation.Create(this);
+    if (Failed(result)) implementation.Destroy();
+    return { result, implementation };
+  }
+
+  /**
+   * Creates an occlusion query; with `implementationOnly`, this backend's
+   * implementation and its result, for the `Tr2OcclusionQueryAL` handle to own.
+   *
+   * The handle's `Create` asks here because this is where Carbon's platform
+   * include resolves (`Tr2OcclusionQueryAL.cpp:5`; the implementation is
+   * created as `m_query->Create( renderContext )` is, `:23-32`). Without
+   * `implementationOnly` it returns a created handle for probes and tests.
+   *
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null when Create refused.
+   */
+  CreateOcclusionQuery(implementationOnly = false)
+  {
+    if (!implementationOnly)
+    {
+      const value = new Tr2OcclusionQueryAL();
+      return Failed(value.Create(this)) ? null : value;
+    }
+
+    const implementation = new Tr2OcclusionQueryALStub();
+    const result = implementation.Create(this);
+    if (Failed(result)) implementation.Destroy();
+    return { result, implementation };
+  }
+
+  /**
+   * Creates a pipeline statistics query; with `implementationOnly`, this backend's
+   * implementation and its result, for the `Tr2PipelineStatsQueryAL` handle to own.
+   *
+   * The handle's `Create` asks here because this is where Carbon's platform
+   * include resolves (`Tr2PipelineStatsQueryAL.h:48`; the implementation is
+   * created as `m_query->Create( renderContext )` is,
+   * `Tr2PipelineStatsQueryAL.cpp:24-33`). Without `implementationOnly` it
+   * returns a created handle for probes and tests.
+   *
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null when Create refused.
+   */
+  CreatePipelineStatsQuery(implementationOnly = false)
+  {
+    if (!implementationOnly)
+    {
+      const value = new Tr2PipelineStatsQueryAL();
+      return Failed(value.Create(this)) ? null : value;
+    }
+
+    const implementation = new Tr2PipelineStatsQueryALStub();
+    const result = implementation.Create(this);
+    if (Failed(result)) implementation.Destroy();
+    return { result, implementation };
   }
 
   /**
@@ -392,58 +524,92 @@ export class Tr2RenderContextALStub
   }
 
   /**
-   * Creates a vertex layout, this backend's kind of `Tr2VertexLayoutAL`.
+   * Creates a vertex layout; with `implementationOnly`, this backend's
+   * implementation and its result, for the `Tr2VertexLayoutAL` handle to own.
    *
-   * The same reason `CreateBuffer` exists. Carbon compiles ONE backend, so its
-   * `Tr2VertexLayoutAL` is unambiguous and the effect state manager holds one
-   * directly, calling `hvl.Create( definition, renderContext )` the first time
-   * a declaration is applied (`Tr2EffectStateManager.cpp:899-906`). We ship
-   * every backend at once, so the manager cannot name a layout class and has to
-   * ask the context that knows which one it is.
+   * The handle's `Create` asks here because this is where Carbon's platform
+   * include resolves (`Tr2VertexLayoutAL.cpp:5`); the implementation is
+   * created against this context as `m_layout->Create( definition,
+   * renderContext )` is (`Tr2VertexLayoutAL.cpp:21-30`). Without
+   * `implementationOnly` it returns a created handle for probes and tests.
    *
    * @param {object[]|object} definition The vertex element list or definition.
-   * @returns {object|null} The created layout, or null when Create refused.
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null when Create refused.
    */
-  CreateVertexLayout(definition)
+  CreateVertexLayout(definition, implementationOnly = false)
   {
-    const layout = new Tr2VertexLayoutALStub();
+    if (!implementationOnly)
+    {
+      const value = new Tr2VertexLayoutAL();
+      return Failed(value.Create(definition, this)) ? null : value;
+    }
 
-    if (Failed(layout.Create(definition, this))) return null;
-
-    return layout;
+    const implementation = new Tr2VertexLayoutALStub();
+    const result = implementation.Create(definition, this);
+    if (Failed(result)) implementation.Destroy();
+    return { result, implementation };
   }
 
   /**
-   * Creates one shader stage, this backend's kind of `Tr2ShaderAL`.
+   * Creates one shader stage; with `implementationOnly`, this backend's
+   * implementation and its result, for the `Tr2ShaderAL` handle to own.
+   *
+   * The handle's `Create` asks here because this is where Carbon's platform
+   * include resolves (`Tr2ShaderAL.cpp:6`); the implementation is created
+   * against this context as `m_shader->Create( type, bytecode, signature,
+   * shaderPath, renderContext )` is (`Tr2ShaderAL.cpp:142-156`). Without
+   * `implementationOnly` it returns a created handle for probes and tests.
    *
    * @param {number} stageType A Carbon `ShaderType`.
    * @param {ArrayBufferView|string} bytecode The stage's bytecode.
    * @param {object|null} signature The reflected signature.
    * @param {string} [shaderPath] A debug label.
-   * @returns {object|null} The created shader, or null when Create refused.
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null when Create refused.
    */
-  CreateShader(stageType, bytecode, signature, shaderPath = "")
+  CreateShader(stageType, bytecode, signature, shaderPath = "", implementationOnly = false)
   {
-    const shader = new Tr2ShaderALStub();
+    if (!implementationOnly)
+    {
+      const value = new Tr2ShaderAL();
+      return Failed(value.Create(stageType, bytecode, signature, shaderPath, this)) ? null : value;
+    }
 
-    if (Failed(shader.Create(stageType, bytecode, signature, shaderPath, this))) return null;
-
-    return shader;
+    const implementation = new Tr2ShaderALStub();
+    const result = implementation.Create(stageType, bytecode, signature, shaderPath, this);
+    if (Failed(result)) implementation.Destroy();
+    return { result, implementation };
   }
 
   /**
-   * Links created stages into this backend's kind of `Tr2ShaderProgramAL`.
+   * Links `Tr2ShaderAL` values into a program; with `implementationOnly`, this
+   * backend's implementation and its result, for the `Tr2ShaderProgramAL`
+   * handle to own.
    *
-   * @param {object[]} shaders The stages to link.
-   * @returns {object|null} The created program, or null when Create refused.
+   * The handle's `Create` asks here because this is where Carbon's platform
+   * include resolves (`Tr2ShaderProgramAL.cpp:5`); the implementation links
+   * the handles as `m_program->Create( shaders, count, renderContext )` does
+   * (`Tr2ShaderProgramAL.cpp:23-32`). Without `implementationOnly` it returns
+   * a created handle for probes and tests.
+   *
+   * @param {object[]} shaders The `Tr2ShaderAL` stages to link.
+   * @param {number} [count] How many to link; all of them by default.
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null when Create refused.
    */
-  CreateShaderProgram(shaders)
+  CreateShaderProgram(shaders, count = shaders.length, implementationOnly = false)
   {
-    const program = new Tr2ShaderProgramALStub();
+    if (!implementationOnly)
+    {
+      const value = new Tr2ShaderProgramAL();
+      return Failed(value.Create(shaders, count, this)) ? null : value;
+    }
 
-    if (Failed(program.Create(shaders, this))) return null;
-
-    return program;
+    const implementation = new Tr2ShaderProgramALStub();
+    const result = implementation.Create(shaders, count, this);
+    if (Failed(result)) implementation.Destroy();
+    return { result, implementation };
   }
 
   /**

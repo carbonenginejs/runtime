@@ -349,8 +349,10 @@ for (const submit of [true, false]) test(submit
   const map = new Tr2RegisterMapAL({ stage: 1, signature: { registers: [{ registerType: 36, registerIndex: 0 }] } });
   const description = new Tr2ResourceSetDescriptionAL({ registers: map });
   description.SetSrv__TextureAL(1, 0, value);
-  const program = { IsValid: () => true, GetRegisterMap: () => map,
+  const linked = { IsValid: () => true, GetRegisterMap: () => map,
     GetBindings: () => [{ group: 0, binding: 0, registerIndex: 0, visibility: 2, texture: { viewDimension: "2d" } }] };
+  // A stand-in Tr2ShaderProgramAL value holding that implementation.
+  const program = { IsValid: () => true, GetRegisterMap: () => map, TrinityALImpl_GetObject: () => linked };
   const set = al.CreateResourceSet(description, program);
   assert.ok(set && set.IsValid());
   al.BeginScene();

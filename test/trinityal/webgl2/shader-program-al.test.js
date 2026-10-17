@@ -2,10 +2,17 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { Tr2ShaderALWebgl2, Tr2ShaderProgramALWebgl2 } from "../../../npm/dist/trinityal/webgl2/index.js";
-import { ALResult } from "../../../npm/dist/trinityal/index.js";
+import { ALResult, Tr2ShaderAL } from "../../../npm/dist/trinityal/index.js";
 import { ShaderType } from "../../../npm/dist/global/consts/renderContext/index.js";
 import { writeGlslBackendBlock } from "../../../npm/dist/resource/formats/webgl/core/glslBackendBlock.js";
 import { FakeRenderContext, FakeWebgl2 } from "./fakeWebgl2.js";
+
+/** Carbon links `Tr2ShaderAL` values: wraps each implementation and passes the count. */
+function link(shaders)
+{
+    return [ shaders.map(shader => Tr2ShaderAL.create__Shader(shader)), shaders.length ];
+}
+
 
 const VERTEX = `#version 300 es
 in highp vec4 in_POSITION0;
@@ -93,7 +100,7 @@ test("a program links its stages, binding vertex inputs to their registers", () 
     const pixel = shader(gl, ShaderType.PIXEL_SHADER, PIXEL).shader;
     const program = new Tr2ShaderProgramALWebgl2();
 
-    assert.equal(program.Create([ vertex, pixel ], FakeRenderContext(gl)), ALResult.S_OK);
+    assert.equal(program.Create(...link([ vertex, pixel ]), FakeRenderContext(gl)), ALResult.S_OK);
     assert.equal(program.IsValid(), true);
 
     const linked = program.GetGpuResource();
@@ -105,7 +112,7 @@ test("the program gives each sampler uniform a unit and records its paired sampl
 {
     const { gl, calls } = FakeWebgl2();
     const program = new Tr2ShaderProgramALWebgl2();
-    program.Create([ shader(gl, ShaderType.VERTEX_SHADER, VERTEX).shader, shader(gl, ShaderType.PIXEL_SHADER, PIXEL).shader ], FakeRenderContext(gl));
+    program.Create(...link([ shader(gl, ShaderType.VERTEX_SHADER, VERTEX).shader, shader(gl, ShaderType.PIXEL_SHADER, PIXEL).shader ]), FakeRenderContext(gl));
 
     const textures = program.GetTextures();
     assert.deepEqual(textures.map(t => [ t.name, t.unit, t.samplerRegister, t.samplerConflict ]),
@@ -126,9 +133,9 @@ test("dx11's refusals: no stages, an invalid stage, two stages of one type", () 
     const context = FakeRenderContext(gl);
     const vertex = shader(gl, ShaderType.VERTEX_SHADER, VERTEX).shader;
 
-    assert.equal(new Tr2ShaderProgramALWebgl2().Create([], context), ALResult.E_INVALIDARG);
-    assert.equal(new Tr2ShaderProgramALWebgl2().Create([ vertex, vertex ], context), ALResult.E_INVALIDARG);
-    assert.equal(new Tr2ShaderProgramALWebgl2().Create([ new Tr2ShaderALWebgl2() ], context), ALResult.E_INVALIDARG);
+    assert.equal(new Tr2ShaderProgramALWebgl2().Create(...link([]), context), ALResult.E_INVALIDARG);
+    assert.equal(new Tr2ShaderProgramALWebgl2().Create(...link([ vertex, vertex ]), context), ALResult.E_INVALIDARG);
+    assert.equal(new Tr2ShaderProgramALWebgl2().Create(...link([ new Tr2ShaderALWebgl2() ]), context), ALResult.E_INVALIDARG);
 });
 
 test("a link failure answers E_FAIL and keeps the log", () =>
@@ -137,7 +144,7 @@ test("a link failure answers E_FAIL and keeps the log", () =>
     const vertex = shader(gl, ShaderType.VERTEX_SHADER, `${VERTEX}\n// #nolink`).shader;
     const program = new Tr2ShaderProgramALWebgl2();
 
-    assert.equal(program.Create([ vertex ], FakeRenderContext(gl)), ALResult.E_FAIL);
+    assert.equal(program.Create(...link([ vertex ]), FakeRenderContext(gl)), ALResult.E_FAIL);
     assert.equal(program.IsValid(), false);
     assert.equal(program.GetLinkLog(), "link failed");
 });
@@ -148,7 +155,7 @@ test("a compute-only program links with a full-screen vertex stage of its own", 
     const compute = shader(gl, ShaderType.COMPUTE_SHADER, PIXEL).shader;
     const program = new Tr2ShaderProgramALWebgl2();
 
-    assert.equal(program.Create([ compute ], FakeRenderContext(gl)), ALResult.S_OK);
+    assert.equal(program.Create(...link([ compute ]), FakeRenderContext(gl)), ALResult.S_OK);
     const attached = program.GetGpuResource().shaders;
     assert.equal(attached.length, 2);
     assert.match(attached[0].source, /gl_VertexID/);

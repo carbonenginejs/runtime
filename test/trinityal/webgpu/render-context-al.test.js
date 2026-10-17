@@ -7,6 +7,13 @@ import { Tr2RenderContextALStub, Tr2BufferAL, Tr2BufferDescriptionAL, Tr2BitmapD
 import { PixelFormat, Tr2CpuUsage, Tr2GpuUsage, Topology, Tr2LoadAction, Tr2StoreAction } from "../../../npm/dist/global/consts/renderContext/index.js";
 import { Failed } from "../../../npm/dist/trinityal/index.js";
 
+/** A stand-in `Tr2ShaderProgramAL` value: valid, holding the given implementation. */
+const programValue = implementation => ({ IsValid: () => true, TrinityALImpl_GetObject: () => implementation });
+
+/** A stand-in `Tr2VertexLayoutAL` value: valid, holding the given implementation (read as a friend). */
+const layoutValue = implementation => ({ IsValid: () => true, _layout: { implementation } });
+
+
 const fixtureAL = new Tr2RenderContextALStub();
 fixtureAL.CreateDevice();
 
@@ -30,8 +37,8 @@ const ready = () =>
 
 const geometry = al =>
 {
-  al.SetShaderProgram({ id: "program" });
-  al.SetVertexLayout({ id: "layout" });
+  al.SetShaderProgram(programValue({ id: "program" }));
+  al.SetVertexLayout(layoutValue({ id: "layout" }));
   al.SetStreamSource(0, deviceBuffer("vertices"), 0, 32);
   al.SetIndices__Stride(deviceBuffer("indices"), 2);
 };
@@ -59,7 +66,7 @@ test("an indexed draw with nothing to index is refused", () =>
   // (Tr2RenderContextMetal.mm:419-422). A backend can catch that without a GPU.
   const al = ready();
 
-  al.SetShaderProgram({ id: "program" });
+  al.SetShaderProgram(programValue({ id: "program" }));
 
   assert.ok(Failed(al.DrawIndexedInstanced(36, 1)), "no index buffer");
   assert.deepEqual(al.DrainTransitions(), [], "and nothing was recorded");
@@ -376,7 +383,7 @@ test("the frame ends synchronously: end the pass, finish, submit", () =>
 
   al.CreateDevice();
   al.BeginScene();
-  al.SetShaderProgram({ id: "program" });
+  al.SetShaderProgram(programValue({ id: "program" }));
   al.SetIndices__Stride(deviceBuffer("indices"), 2);
 
   // A stand-in program cannot resolve a pipeline, so the draw is refused with
@@ -519,7 +526,7 @@ test("debug markers pop on the encoder that pushed them", () =>
   const frameEncoder = al.GetWorkQueue();
   assert.equal(frameEncoder.GetRenderPass(), null);
 
-  al.SetShaderProgram({ id: "program" });
+  al.SetShaderProgram(programValue({ id: "program" }));
   al.SetIndices__Stride(deviceBuffer("indices"), 2);
   al.DrawIndexedInstanced(3, 1, 0, 0, 0);
 
@@ -736,7 +743,7 @@ test("the setters accumulate a pipeline description, as Carbon's do", () =>
   assert.equal(description.topology, Topology.TOP_TRIANGLES, "BeginScene left the default bound");
 
   al.SetTopology(Topology.TOP_LINES);
-  al.SetShaderProgram({ id: "program", IsValid: () => true });
+  al.SetShaderProgram(programValue({ id: "program", IsValid: () => true }));
   al.SetRenderStates({ id: "setup" }, { invertedCullMode: true });
 
   const filled = al.GetPsoDescription();
@@ -763,7 +770,7 @@ test("an incomplete description says what is missing rather than building on a g
 
   composedAl.CreateDevice();
   composedAl.BeginScene();
-  composedAl.SetShaderProgram({ id: "program", IsValid: () => true });
+  composedAl.SetShaderProgram(programValue({ id: "program", IsValid: () => true }));
   composedAl.SetRenderStates({ id: "setup" });
 
   // BeginScene binds the render target at slot zero, and only the render target
@@ -822,7 +829,7 @@ function composedWithPasses()
   al.BeginScene();
 
   // A stand-in program: the draw is refused, but Metal opens the pass first.
-  al.SetShaderProgram({ id: "program" });
+  al.SetShaderProgram(programValue({ id: "program" }));
 
   return { al, passes };
 }
@@ -964,7 +971,7 @@ test("ClearUav zeroes a buffer with clearBuffer, outside any pass, and refuses w
 
   al.CreateDevice();
   al.BeginScene();
-  al.SetShaderProgram({ id: "program" });
+  al.SetShaderProgram(programValue({ id: "program" }));
   al.SetIndices__Stride(deviceBuffer("indices"), 2);
   al.DrawIndexedInstanced(3, 1, 0, 0, 0);
 

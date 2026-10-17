@@ -86,8 +86,10 @@ test("Lock invalidates the token; each bind after a Lock lands in a fresh region
   // (Tr2RenderContextMetal.mm:679-697). The buffer keeps the shadow and the
   // token; the context owns the arena and writes the token.
   const { calls, al } = composedContext();
-  // UploadConstants reads the implementation, as Carbon's reaches buffer.m_buffer.
-  const buffer = al.CreateConstantBuffer(16).TrinityALImpl_GetObject();
+  // UploadConstants__Buffer takes the handle and reads its implementation, as
+  // Carbon's reaches buffer.m_buffer; Lock/Unlock go through the handle too.
+  const handle = al.CreateConstantBuffer(16);
+  const buffer = handle.TrinityALImpl_GetObject();
   const first = buffer.Lock(al);
 
   assert.equal(first.result, ALResult.S_OK);
@@ -95,16 +97,16 @@ test("Lock invalidates the token; each bind after a Lock lands in a fresh region
   assert.equal(buffer.Unlock(al), ALResult.S_OK);
   assert.equal(calls.filter(call => call[0] === "writeBuffer").length, 0, "nothing uploaded yet");
 
-  const regionA = al.UploadConstants(buffer, 64);
+  const regionA = al.UploadConstants__Buffer(handle);
 
   assert.deepEqual([ regionA.page, regionA.offset, regionA.size ], [ 0, 0, 256 ], "aligned to the device's 256");
-  assert.equal(al.UploadConstants(buffer, 64), regionA, "bound twice in one frame without a Lock: one region");
+  assert.equal(al.UploadConstants__Buffer(handle), regionA, "bound twice in one frame without a Lock: one region");
 
   // The per-object case: lock again, draw again, same frame.
   buffer.Lock(al).data.set([ 9 ]);
   buffer.Unlock(al);
 
-  const regionB = al.UploadConstants(buffer, 64);
+  const regionB = al.UploadConstants__Buffer(handle);
 
   assert.equal(regionB.offset, 256, "a NEW region; the first draw's bytes are untouched");
 
@@ -118,14 +120,17 @@ test("Lock invalidates the token; each bind after a Lock lands in a fresh region
 
   // Carbon's OTHER overload: bytes, not a buffer, get a fresh region every
   // call because the token it constructs is zeroed each time (:679-686).
-  const bytes = al.UploadConstants(new Uint8Array(16), 16);
+  const bytes = al.UploadConstants__DataSize(new Uint8Array(16), 16);
 
   assert.equal(bytes.offset, 512);
-  assert.notEqual(al.UploadConstants(new Uint8Array(16), 16).offset, bytes.offset);
+  assert.notEqual(al.UploadConstants__DataSize(new Uint8Array(16), 16).offset, bytes.offset);
 
-  // Nothing to upload is Carbon's `return 0`.
-  assert.equal(al.UploadConstants(null), null);
-  assert.equal(al.UploadConstants(new CjsWebgpuConstantBufferAL()), null, "an uncreated buffer");
+  // The bare name routes by argument, for literal ports.
+  assert.equal(al.UploadConstants(handle), al.UploadConstants__Buffer(handle));
+  assert.equal(al.UploadConstants(new Uint8Array(16), 16).offset, 1024);
+
+  // An uncreated handle has no storage: Carbon's `return 0`.
+  assert.equal(al.UploadConstants__Buffer(new Tr2ConstantBufferAL()), null, "an uncreated buffer");
 });
 
 test("the arena turns a page when one is full, and a buffer too big for a page is refused", () =>

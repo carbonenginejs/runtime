@@ -2,6 +2,17 @@ import { Tr2BufferAL } from "../Tr2BufferAL/index.js";
 import { Tr2TextureAL } from "../Tr2TextureAL/index.js";
 import { Tr2ConstantBufferAL, Tr2ConstantUsageAL } from "../Tr2ConstantBufferAL/index.js";
 import { Tr2SamplerStateAL } from "../Tr2SamplerStateAL/index.js";
+import { Tr2FenceAL } from "../Tr2FenceAL/index.js";
+import { Tr2VertexLayoutAL } from "../Tr2VertexLayoutAL/index.js";
+import { Tr2ShaderAL } from "../Tr2ShaderAL/index.js";
+import { Tr2ShaderProgramAL } from "../Tr2ShaderProgramAL/index.js";
+import { Tr2SwapChainAL } from "../Tr2SwapChainAL/index.js";
+import { Tr2GpuTimerAL } from "../Tr2GpuTimerAL/index.js";
+import { Tr2OcclusionQueryAL } from "../Tr2OcclusionQueryAL/index.js";
+import { Tr2PipelineStatsQueryAL } from "../Tr2PipelineStatsQueryAL/index.js";
+import { Tr2GpuTimerALWebgl2 } from "./Tr2GpuTimerALWebgl2.js";
+import { Tr2OcclusionQueryALWebgl2 } from "./Tr2OcclusionQueryALWebgl2.js";
+import { Tr2PipelineStatsQueryALWebgl2 } from "./Tr2PipelineStatsQueryALWebgl2.js";
 // Source: trinity/trinityal/dx11/Tr2RenderContextDx11.h
 // Source: trinity/trinityal/dx11/Tr2RenderContextDx11.cpp
 // Source: trinity/trinityal/dx11/Tr2PrimaryRenderContextDx11.h
@@ -469,14 +480,141 @@ export class Tr2RenderContextALWebgl2
   }
 
   /**
-   * Creates a fence against this context.
+   * Creates a fence; with `implementationOnly`, this backend's implementation
+   * and its result, for the `Tr2FenceAL` handle to own.
    *
-   * @returns {Tr2FenceALWebgl2|null} The fence, or null when Create refused.
+   * The handle's `Create` asks here because this is where Carbon's platform
+   * include resolves (`Tr2FenceAL.cpp:5`); the implementation is created
+   * against this context as `m_fence->Create( renderContext )` is
+   * (`Tr2FenceAL.cpp:22-31`). Without `implementationOnly` it returns a created
+   * handle for probes and tests; Trinity creates its handles itself.
+   *
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null when Create refused.
    */
-  CreateFence()
+  CreateFence(implementationOnly = false)
   {
-    const fence = new Tr2FenceALWebgl2();
-    return Failed(fence.Create(this)) ? null : fence;
+    if (!implementationOnly)
+    {
+      const value = new Tr2FenceAL();
+      return Failed(value.Create(this)) ? null : value;
+    }
+
+    const implementation = new Tr2FenceALWebgl2();
+    const result = implementation.Create(this);
+    if (Failed(result)) implementation.Destroy();
+    return { result, implementation };
+  }
+
+  /**
+   * Creates a swap chain; with `implementationOnly`, this backend's
+   * implementation and its result, for the `Tr2SwapChainAL` handle to own.
+   *
+   * The handle's `Create` asks here because this is where Carbon's platform
+   * include resolves (`Tr2SwapChainAL.cpp:5`; the implementation is created as
+   * `m_swapChain->Create( windowHandle, renderContext )` is, `:21-31`).
+   * Without `implementationOnly` it returns a created handle for probes and
+   * tests.
+   *
+   * REFUSED WITH `E_FAIL`: this backend's caps report no standalone swap chain
+   * (`SupportsStandaloneSwapChain`), because the browser owns presentation of
+   * the one canvas the context draws to. Every Carbon backend supports one, so
+   * there is no donor refusal; Carbon's own tests gate on the cap
+   * (`trinityal/tests/SwapChain.cpp:28`), and `E_FAIL` is the answer its
+   * backends give for a capability the device lacks (`Tr2GpuTimerALMetal.mm:48-51`).
+   *
+   * @param {number|object} windowHandle The window to present into.
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null when Create refused.
+   */
+  CreateSwapChain(windowHandle, implementationOnly = false)
+  {
+    if (!implementationOnly)
+    {
+      const value = new Tr2SwapChainAL();
+      return Failed(value.Create(windowHandle, this)) ? null : value;
+    }
+
+    return { result: ALResult.E_FAIL, implementation: null };
+  }
+
+  /**
+   * Creates a GPU timer; with `implementationOnly`, this backend's
+   * implementation and its result, for the `Tr2GpuTimerAL` handle to own.
+   *
+   * The handle's `Create` asks here because this is where Carbon's platform
+   * include resolves (`Tr2GpuTimerAl.cpp:6`; the implementation is created as
+   * `m_gpu_timer->Create( renderContext )` is, `:20-35`). Without
+   * `implementationOnly` it returns a created handle for probes and tests.
+   *
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null when Create refused.
+   */
+  CreateGpuTimer(implementationOnly = false)
+  {
+    if (!implementationOnly)
+    {
+      const value = new Tr2GpuTimerAL();
+      return Failed(value.Create(this)) ? null : value;
+    }
+
+    const implementation = new Tr2GpuTimerALWebgl2();
+    const result = implementation.Create(this);
+    if (Failed(result)) implementation.Destroy();
+    return { result, implementation };
+  }
+
+  /**
+   * Creates an occlusion query; with `implementationOnly`, this backend's
+   * implementation and its result, for the `Tr2OcclusionQueryAL` handle to own.
+   *
+   * The handle's `Create` asks here because this is where Carbon's platform
+   * include resolves (`Tr2OcclusionQueryAL.cpp:5`; the implementation is
+   * created as `m_query->Create( renderContext )` is, `:23-32`). Without
+   * `implementationOnly` it returns a created handle for probes and tests.
+   *
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null when Create refused.
+   */
+  CreateOcclusionQuery(implementationOnly = false)
+  {
+    if (!implementationOnly)
+    {
+      const value = new Tr2OcclusionQueryAL();
+      return Failed(value.Create(this)) ? null : value;
+    }
+
+    const implementation = new Tr2OcclusionQueryALWebgl2();
+    const result = implementation.Create(this);
+    if (Failed(result)) implementation.Destroy();
+    return { result, implementation };
+  }
+
+  /**
+   * Creates a pipeline statistics query; with `implementationOnly`, this backend's
+   * implementation and its result, for the `Tr2PipelineStatsQueryAL` handle to own.
+   *
+   * The handle's `Create` asks here because this is where Carbon's platform
+   * include resolves (`Tr2PipelineStatsQueryAL.h:48`; the implementation is
+   * created as `m_query->Create( renderContext )` is,
+   * `Tr2PipelineStatsQueryAL.cpp:24-33`). Without `implementationOnly` it
+   * returns a created handle for probes and tests.
+   *
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null when Create refused.
+   */
+  CreatePipelineStatsQuery(implementationOnly = false)
+  {
+    if (!implementationOnly)
+    {
+      const value = new Tr2PipelineStatsQueryAL();
+      return Failed(value.Create(this)) ? null : value;
+    }
+
+    const implementation = new Tr2PipelineStatsQueryALWebgl2();
+    const result = implementation.Create(this);
+    if (Failed(result)) implementation.Destroy();
+    return { result, implementation };
   }
 
   /**
@@ -564,42 +702,92 @@ export class Tr2RenderContextALWebgl2
   }
 
   /**
-   * Creates a vertex layout.
+   * Creates a vertex layout; with `implementationOnly`, this backend's
+   * implementation and its result, for the `Tr2VertexLayoutAL` handle to own.
    *
-   * @param {object[]|object} definition The vertex definition.
-   * @returns {Tr2VertexLayoutALWebgl2|null} The layout, or null when Create refused.
+   * The handle's `Create` asks here because this is where Carbon's platform
+   * include resolves (`Tr2VertexLayoutAL.cpp:5`); the implementation is
+   * created against this context as `m_layout->Create( definition,
+   * renderContext )` is (`Tr2VertexLayoutAL.cpp:21-30`). Without
+   * `implementationOnly` it returns a created handle for probes and tests.
+   *
+   * @param {object[]|object} definition The vertex element list or definition.
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null when Create refused.
    */
-  CreateVertexLayout(definition)
+  CreateVertexLayout(definition, implementationOnly = false)
   {
-    const layout = new Tr2VertexLayoutALWebgl2();
-    return Failed(layout.Create(definition, this)) ? null : layout;
+    if (!implementationOnly)
+    {
+      const value = new Tr2VertexLayoutAL();
+      return Failed(value.Create(definition, this)) ? null : value;
+    }
+
+    const implementation = new Tr2VertexLayoutALWebgl2();
+    const result = implementation.Create(definition, this);
+    if (Failed(result)) implementation.Destroy();
+    return { result, implementation };
   }
 
   /**
-   * Creates one shader stage.
+   * Creates one shader stage; with `implementationOnly`, this backend's
+   * implementation and its result, for the `Tr2ShaderAL` handle to own.
    *
-   * @param {number} stageType A `ShaderType`.
-   * @param {ArrayBufferView|string} bytecode The GLSL source.
+   * The handle's `Create` asks here because this is where Carbon's platform
+   * include resolves (`Tr2ShaderAL.cpp:6`); the implementation is created
+   * against this context as `m_shader->Create( type, bytecode, signature,
+   * shaderPath, renderContext )` is (`Tr2ShaderAL.cpp:142-156`). Without
+   * `implementationOnly` it returns a created handle for probes and tests.
+   *
+   * @param {number} stageType A Carbon `ShaderType`.
+   * @param {ArrayBufferView|string} bytecode The stage's bytecode.
    * @param {object|null} signature The reflected signature.
    * @param {string} [shaderPath] A debug label.
-   * @returns {Tr2ShaderALWebgl2|null} The shader, or null when Create refused.
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null when Create refused.
    */
-  CreateShader(stageType, bytecode, signature, shaderPath = "")
+  CreateShader(stageType, bytecode, signature, shaderPath = "", implementationOnly = false)
   {
-    const shader = new Tr2ShaderALWebgl2();
-    return Failed(shader.Create(stageType, bytecode, signature, shaderPath, this)) ? null : shader;
+    if (!implementationOnly)
+    {
+      const value = new Tr2ShaderAL();
+      return Failed(value.Create(stageType, bytecode, signature, shaderPath, this)) ? null : value;
+    }
+
+    const implementation = new Tr2ShaderALWebgl2();
+    const result = implementation.Create(stageType, bytecode, signature, shaderPath, this);
+    if (Failed(result)) implementation.Destroy();
+    return { result, implementation };
   }
 
   /**
-   * Links stages into a program.
+   * Links `Tr2ShaderAL` values into a program; with `implementationOnly`, this
+   * backend's implementation and its result, for the `Tr2ShaderProgramAL`
+   * handle to own.
    *
-   * @param {object[]} shaders The stages.
-   * @returns {Tr2ShaderProgramALWebgl2|null} The program, or null when Create refused.
+   * The handle's `Create` asks here because this is where Carbon's platform
+   * include resolves (`Tr2ShaderProgramAL.cpp:5`); the implementation links
+   * the handles as `m_program->Create( shaders, count, renderContext )` does
+   * (`Tr2ShaderProgramAL.cpp:23-32`). Without `implementationOnly` it returns
+   * a created handle for probes and tests.
+   *
+   * @param {object[]} shaders The `Tr2ShaderAL` stages to link.
+   * @param {number} [count] How many to link; all of them by default.
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null when Create refused.
    */
-  CreateShaderProgram(shaders)
+  CreateShaderProgram(shaders, count = shaders.length, implementationOnly = false)
   {
-    const program = new Tr2ShaderProgramALWebgl2();
-    return Failed(program.Create(shaders, this)) ? null : program;
+    if (!implementationOnly)
+    {
+      const value = new Tr2ShaderProgramAL();
+      return Failed(value.Create(shaders, count, this)) ? null : value;
+    }
+
+    const implementation = new Tr2ShaderProgramALWebgl2();
+    const result = implementation.Create(shaders, count, this);
+    if (Failed(result)) implementation.Destroy();
+    return { result, implementation };
   }
 
   // THE BACK BUFFER AND PRESENT.
@@ -1248,12 +1436,17 @@ export class Tr2RenderContextALWebgl2
   /**
    * Binds the vertex layout (`:1562-1567`).
    *
-   * @param {object} layout A `Tr2VertexLayoutALWebgl2`.
+   * Adapted: dx11 copies the handle; this records its implementation, read
+   * as dx11's friend reads `m_layout`, and null for an invalid handle, so the
+   * draw tests one pointer as dx11 tests `m_vertexLayout.m_layout`.
+   *
+   * @param {Tr2VertexLayoutAL} layout The vertex layout.
    * @returns {number} `S_OK`.
    */
+  @meta.adapted
   SetVertexLayout(layout)
   {
-    this._vertexLayout = layout;
+    this._vertexLayout = layout.IsValid() ? layout._layout.implementation : null;
     return ALResult.S_OK;
   }
 
@@ -1301,12 +1494,17 @@ export class Tr2RenderContextALWebgl2
   /**
    * Binds the shader program (`:1569-1606`).
    *
-   * @param {object} shaderProgram A `Tr2ShaderProgramALWebgl2`.
+   * Adapted: dx11 copies the handle; this records its implementation, read
+   * as dx11's friend reads `m_program`, and null for an invalid handle, so the
+   * draw tests one pointer.
+   *
+   * @param {Tr2ShaderProgramAL} shaderProgram The shader program.
    * @returns {number} `S_OK`.
    */
+  @meta.adapted
   SetShaderProgram(shaderProgram)
   {
-    this._shaderProgram = shaderProgram;
+    this._shaderProgram = shaderProgram.IsValid() ? shaderProgram.TrinityALImpl_GetObject() : null;
     return ALResult.S_OK;
   }
 

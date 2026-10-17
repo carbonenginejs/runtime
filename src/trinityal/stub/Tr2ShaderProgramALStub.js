@@ -37,34 +37,35 @@ export class Tr2ShaderProgramALStub extends Tr2DeviceResourceAL
   }
 
   /**
-   * Links the shaders into a program.
+   * Links the shaders into a program (`Tr2ShaderProgramALStub.cpp:20-49`).
    *
-   * @param {object[]} shaders The shaders to link.
+   * @param {object[]} shaders The `Tr2ShaderAL` values to link.
+   * @param {number} count How many of them to link.
    * @param {object} renderContext The context to link against.
    * @returns {number} An `ALResult` value.
    */
-  Create(shaders, renderContext)
+  Create(shaders, count, renderContext)
   {
     this._Reset();
 
     if (!renderContext.IsValid()) return ALResult.E_INVALIDCALL;
 
-    if (shaders.length === 0) return ALResult.E_INVALIDARG;
+    if (count === 0) return ALResult.E_INVALIDARG;
 
     let mask = 0;
 
-    for (const shader of shaders)
+    for (let i = 0; i < count; ++i)
     {
-      if (!shader.IsValid()) return ALResult.E_INVALIDARG;
+      if (!shaders[i].IsValid()) return ALResult.E_INVALIDARG;
 
-      const bit = 1 << shader.GetType();
+      const bit = 1 << shaders[i].GetType();
 
       if ((mask & bit) !== 0) return ALResult.E_INVALIDARG;
 
       mask |= bit;
     }
 
-    this._shaders = shaders.slice();
+    this._shaders = shaders.slice(0, count);
     this._isValid = true;
 
     return ALResult.S_OK;
@@ -97,7 +98,7 @@ export class Tr2ShaderProgramALStub extends Tr2DeviceResourceAL
   /**
    * The linked shaders.
    *
-   * @returns {object[]} The shaders, in the order they were given.
+   * @returns {object[]} The `Tr2ShaderAL` values, in the order they were given.
    */
   GetShaders()
   {

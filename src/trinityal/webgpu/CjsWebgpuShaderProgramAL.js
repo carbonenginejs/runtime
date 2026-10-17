@@ -112,16 +112,23 @@ export class CjsWebgpuShaderProgramAL
   /**
    * Links the shaders into a program.
    *
-   * @param {object[]} shaders The `CjsWebgpuShaderAL`s to link.
+   * The stages arrive as `Tr2ShaderAL` values, as Metal's `::Tr2ShaderAL*`
+   * array does, and each one's implementation is read as Metal reads
+   * `shader->m_shader` (`Tr2ShaderProgramALMetal.mm:63-70`).
+   *
+   * @param {object[]} values The `Tr2ShaderAL` stages to link.
+   * @param {number} count How many of them to link.
    * @param {object} renderContext The context to link against.
    * @returns {number} An `ALResult` value.
    */
-  Create(shaders, renderContext)
+  Create(values, count, renderContext)
   {
     this.Destroy();
 
     if (!renderContext || !renderContext.IsValid()) return ALResult.E_INVALIDCALL;
-    if (!shaders || shaders.length === 0) return ALResult.E_INVALIDARG;
+    if (count === 0) return ALResult.E_INVALIDARG;
+
+    const shaders = values.slice(0, count).map(value => value.TrinityALImpl_GetObject());
 
     // A program with an uncompiled stage would fail at pipeline creation with a
     // message about the pipeline, not the shader. Refuse where the cause is.

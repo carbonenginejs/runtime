@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { Tr2ResourceSetALWebgl2, Tr2ShaderALWebgl2, Tr2ShaderProgramALWebgl2 } from "../../../npm/dist/trinityal/webgl2/index.js";
-import { ALResult, Tr2RegisterMapAL, Tr2ResourceSetDescriptionAL, Tr2SamplerStateAL } from "../../../npm/dist/trinityal/index.js";
+import { ALResult, Tr2RegisterMapAL, Tr2ResourceSetDescriptionAL, Tr2SamplerStateAL, Tr2ShaderAL, Tr2ShaderProgramAL } from "../../../npm/dist/trinityal/index.js";
 import { ShaderType, Tr2ColorSpace } from "../../../npm/dist/global/consts/renderContext/index.js";
 import { writeGlslBackendBlock } from "../../../npm/dist/resource/formats/webgl/core/glslBackendBlock.js";
 import { FakeRenderContext, FakeWebgl2 } from "./fakeWebgl2.js";
@@ -52,18 +52,27 @@ function shader(gl, type, source, signature)
 {
     const created = new Tr2ShaderALWebgl2();
     assert.equal(created.Create(type, source, signature, "test", FakeRenderContext(gl)), ALResult.S_OK);
-    return created;
+    return Tr2ShaderAL.create__Shader(created);
 }
 
 /** A linked program, its stages carrying the given register lists. */
 function program(gl, { vertexRegisters = [], pixelRegisters = PIXEL_REGISTERS } = {})
 {
-    const linked = new Tr2ShaderProgramALWebgl2();
     const stages = [
         shader(gl, ShaderType.VERTEX_SHADER, VERTEX, { registers: vertexRegisters }),
         shader(gl, ShaderType.PIXEL_SHADER, PIXEL, { backendBlock: PIXEL_BLOCK, registers: pixelRegisters })
     ];
-    assert.equal(linked.Create(stages, FakeRenderContext(gl)), ALResult.S_OK);
+    // The handle asks its context's factory, as Tr2ShaderProgramAL::Create does.
+    const context = {
+        ...FakeRenderContext(gl),
+        CreateShaderProgram(shaders, count)
+        {
+            const implementation = new Tr2ShaderProgramALWebgl2();
+            return { result: implementation.Create(shaders, count, FakeRenderContext(gl)), implementation };
+        }
+    };
+    const linked = new Tr2ShaderProgramAL();
+    assert.equal(linked.Create(stages, stages.length, context), ALResult.S_OK);
     return linked;
 }
 

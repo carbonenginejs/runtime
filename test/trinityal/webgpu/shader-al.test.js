@@ -3,8 +3,15 @@ import { test } from "node:test";
 
 import { CjsWebgpuDevice } from "../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuShaderAL, CjsWebgpuShaderProgramAL } from "../../../npm/dist/trinityal/webgpu/internal.js";
-import { ALResult } from "../../../npm/dist/trinityal/index.js";
+import { ALResult, Tr2ShaderAL } from "../../../npm/dist/trinityal/index.js";
 import { ShaderType } from "../../../npm/dist/global/consts/renderContext/index.js";
+
+/** Carbon links `Tr2ShaderAL` values: wraps each implementation and passes the count. */
+function link(shaders)
+{
+    return [ shaders.map(shader => Tr2ShaderAL.create__Shader(shader)), shaders.length ];
+}
+
 
 
 // WebGPU's own GPUShaderStage bitflags, for the fake device - unrelated to
@@ -123,7 +130,7 @@ test("a program links compiled stages and answers for each", () =>
 
   const program = new CjsWebgpuShaderProgramAL();
 
-  assert.equal(program.Create([ vertex, fragment ], context), ALResult.S_OK);
+  assert.equal(program.Create(...link([ vertex, fragment ]), context), ALResult.S_OK);
   assert.equal(program.IsValid(), true);
   assert.deepEqual(program.GetShaders(), [ vertex, fragment ]);
 
@@ -140,11 +147,11 @@ test("a program refuses an empty list and an uncompiled stage", () =>
   const { context } = deviceAndContext();
   const program = new CjsWebgpuShaderProgramAL();
 
-  assert.equal(program.Create([], context), ALResult.E_INVALIDARG);
+  assert.equal(program.Create(...link([]), context), ALResult.E_INVALIDARG);
 
   // Refuse where the cause is: an uncompiled stage would otherwise surface at
   // pipeline creation, as a message about the pipeline.
-  assert.equal(program.Create([ new CjsWebgpuShaderAL() ], context), ALResult.E_INVALIDARG);
+  assert.equal(program.Create(...link([ new CjsWebgpuShaderAL() ]), context), ALResult.E_INVALIDARG);
   assert.equal(program.IsValid(), false);
 });
 
@@ -180,7 +187,7 @@ test("a program answers the device-resource surface and names every stage under 
   vertex.Create(ShaderType.VERTEX_SHADER, new TextEncoder().encode(VERTEX_WGSL), { inputs: [] }, "v.wgsl", context);
 
   const program = new CjsWebgpuShaderProgramAL();
-  program.Create([ vertex ], context);
+  program.Create(...link([ vertex ]), context);
 
   assert.equal(program.GetMemoryClass(), 2);
   assert.equal(program.Describe({}).memoryClass, program.GetMemoryClass());

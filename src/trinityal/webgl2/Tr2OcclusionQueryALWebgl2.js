@@ -23,6 +23,7 @@ import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
+import { Tr2OcclusionQueryAL } from "../Tr2OcclusionQueryAL/Tr2OcclusionQueryAL.js";
 
 
 /**
@@ -30,11 +31,8 @@ import { RenderContextALOf } from "../renderContextAL.js";
  */
 export class Tr2OcclusionQueryALWebgl2 extends Tr2DeviceResourceAL
 {
-  /** `Tr2OcclusionQueryAL::WaitMode` (Tr2OcclusionQueryAL.h:18-22): whether `GetPixelCount` blocks for the result. */
-  static WaitMode = Object.freeze({
-    WAIT: 0,
-    DO_NOT_WAIT: 1
-  });
+  /** `Tr2OcclusionQueryAL::WaitMode`, declared on the handle (`Tr2OcclusionQueryAL.h:20-24`). */
+  static WaitMode = Tr2OcclusionQueryAL.WaitMode;
 
   /** m_query */
   _query = null;

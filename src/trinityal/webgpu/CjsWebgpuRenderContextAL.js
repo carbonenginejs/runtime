@@ -2,6 +2,14 @@ import { Tr2BufferAL } from "../Tr2BufferAL/index.js";
 import { Tr2TextureAL } from "../Tr2TextureAL/index.js";
 import { Tr2ConstantBufferAL } from "../Tr2ConstantBufferAL/index.js";
 import { Tr2SamplerStateAL } from "../Tr2SamplerStateAL/index.js";
+import { Tr2FenceAL } from "../Tr2FenceAL/index.js";
+import { Tr2VertexLayoutAL } from "../Tr2VertexLayoutAL/index.js";
+import { Tr2ShaderAL } from "../Tr2ShaderAL/index.js";
+import { Tr2ShaderProgramAL } from "../Tr2ShaderProgramAL/index.js";
+import { Tr2SwapChainAL } from "../Tr2SwapChainAL/index.js";
+import { Tr2GpuTimerAL } from "../Tr2GpuTimerAL/index.js";
+import { Tr2OcclusionQueryAL } from "../Tr2OcclusionQueryAL/index.js";
+import { Tr2PipelineStatsQueryAL } from "../Tr2PipelineStatsQueryAL/index.js";
 // Source: trinity/trinityal/metal/Tr2RenderContextMetal.h
 // Source: trinity/trinityal/metal/Tr2RenderContextMetal.mm
 // Source: trinity/trinityal/stub/Tr2RenderContextStub.h
@@ -76,6 +84,7 @@ import { Tr2SamplerStateAL } from "../Tr2SamplerStateAL/index.js";
 //   backend too, so a WebGPU spelling is the faithful thing, not a divergence.
 
 import { CjsSchema, blue, meta, type } from "#schema";
+import { isTyped } from "#utils/is";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { Tr2ResourceSetAL } from "../Tr2ResourceSetAL/Tr2ResourceSetAL.js";
 import { PixelFormat, RenderState, ShaderType, Topology, Tr2CpuUsage, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
@@ -418,25 +427,38 @@ export class CjsWebgpuRenderContextAL
   }
 
   /**
-   * Creates a vertex layout, this backend's kind of `Tr2VertexLayoutAL`.
+   * Creates a vertex layout; with `implementationOnly`, this backend's
+   * implementation and its result, for the `Tr2VertexLayoutAL` handle to own.
+   *
+   * The handle's `Create` asks here because this is where Carbon's platform
+   * include resolves (`Tr2VertexLayoutAL.cpp:5`); the implementation is
+   * created against this context as `m_layout->Create( definition,
+   * renderContext )` is (`Tr2VertexLayoutAL.cpp:21-30`). Without
+   * `implementationOnly` it returns a created handle for probes and tests.
    *
    * IT HOLDS THE DEFINITION AND NOTHING DEVICE-SIDE, and that is not a stub
    * standing in for real work. WebGPU has no input-layout object: the vertex
    * buffer layouts are part of the render pipeline descriptor and are fixed at
    * pipeline creation, so a layout here can only be the definition a pipeline
    * will later be built from. That is why `Tr2VertexLayoutALStub` is the right
-   * shape for this backend too rather than a placeholder for a WebGPU one.
+   * implementation for this backend too rather than a placeholder for a WebGPU one.
    *
    * @param {object[]|object} definition The vertex element list or definition.
-   * @returns {object|null} The created layout, or null when Create refused.
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null when Create refused.
    */
-  CreateVertexLayout(definition)
+  CreateVertexLayout(definition, implementationOnly = false)
   {
-    const layout = new Tr2VertexLayoutALStub();
+    if (!implementationOnly)
+    {
+      const value = new Tr2VertexLayoutAL();
+      return Failed(value.Create(definition, this)) ? null : value;
+    }
 
-    if (Failed(layout.Create(definition, this))) return null;
-
-    return layout;
+    const implementation = new Tr2VertexLayoutALStub();
+    const result = implementation.Create(definition, this);
+    if (Failed(result)) implementation.Destroy();
+    return { result, implementation };
   }
 
   /**
@@ -473,17 +495,146 @@ export class CjsWebgpuRenderContextAL
   }
 
   /**
-   * This backend's `Tr2FenceAL`, created against this context: Carbon's
-   * `new Tr2FenceAL` then `fence->Create( renderContext )`
-   * (`Tr2DynamicRingBuffer.cpp:AllocateFence`), as one call.
+   * Creates a fence; with `implementationOnly`, this backend's implementation
+   * and its result, for the `Tr2FenceAL` handle to own.
    *
-   * @returns {object|null} The fence, or null when Create refused.
+   * The handle's `Create` asks here because this is where Carbon's platform
+   * include resolves (`Tr2FenceAL.cpp:5`); the implementation is created
+   * against this context as `m_fence->Create( renderContext )` is
+   * (`Tr2FenceAL.cpp:22-31`). Without `implementationOnly` it returns a created
+   * handle for probes and tests; Trinity creates its handles itself.
+   *
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null when Create refused.
    */
-  CreateFence()
+  CreateFence(implementationOnly = false)
   {
-    const fence = new CjsWebgpuFenceAL();
+    if (!implementationOnly)
+    {
+      const value = new Tr2FenceAL();
+      return Failed(value.Create(this)) ? null : value;
+    }
 
-    return Failed(fence.Create(this)) ? null : fence;
+    const implementation = new CjsWebgpuFenceAL();
+    const result = implementation.Create(this);
+    if (Failed(result)) implementation.Destroy();
+    return { result, implementation };
+  }
+
+  /**
+   * Creates a swap chain; with `implementationOnly`, this backend's
+   * implementation and its result, for the `Tr2SwapChainAL` handle to own.
+   *
+   * The handle's `Create` asks here because this is where Carbon's platform
+   * include resolves (`Tr2SwapChainAL.cpp:5`; the implementation is created as
+   * `m_swapChain->Create( windowHandle, renderContext )` is, `:21-31`).
+   * Without `implementationOnly` it returns a created handle for probes and
+   * tests.
+   *
+   * REFUSED WITH `E_FAIL`: this backend's caps report no standalone swap chain
+   * (`SupportsStandaloneSwapChain`), because the browser owns presentation of
+   * the one canvas the context draws to. Every Carbon backend supports one, so
+   * there is no donor refusal; Carbon's own tests gate on the cap
+   * (`trinityal/tests/SwapChain.cpp:28`), and `E_FAIL` is the answer its
+   * backends give for a capability the device lacks (`Tr2GpuTimerALMetal.mm:48-51`).
+   *
+   * @param {number|object} windowHandle The window to present into.
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null when Create refused.
+   */
+  CreateSwapChain(windowHandle, implementationOnly = false)
+  {
+    if (!implementationOnly)
+    {
+      const value = new Tr2SwapChainAL();
+      return Failed(value.Create(windowHandle, this)) ? null : value;
+    }
+
+    return { result: ALResult.E_FAIL, implementation: null };
+  }
+
+  /**
+   * Creates a GPU timer; with `implementationOnly`, this backend's
+   * implementation and its result, for the `Tr2GpuTimerAL` handle to own.
+   *
+   * The handle's `Create` asks here because this is where Carbon's platform
+   * include resolves (`Tr2GpuTimerAl.cpp:6`; the implementation is created as
+   * `m_gpu_timer->Create( renderContext )` is, `:20-35`). Without
+   * `implementationOnly` it returns a created handle for probes and tests.
+   *
+   * REFUSED WITH `E_FAIL`, as Metal's `Create` refuses when the device cannot
+   * sample counters (`Tr2GpuTimerALMetal.mm:27-32`, `:48-51`). This backend
+   * has no GPU timer implementation; WebGPU's would sit on the optional
+   * `timestamp-query` feature.
+   *
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null when Create refused.
+   */
+  CreateGpuTimer(implementationOnly = false)
+  {
+    if (!implementationOnly)
+    {
+      const value = new Tr2GpuTimerAL();
+      return Failed(value.Create(this)) ? null : value;
+    }
+
+    return { result: ALResult.E_FAIL, implementation: null };
+  }
+
+  /**
+   * Creates an occlusion query; with `implementationOnly`, this backend's
+   * implementation and its result, for the `Tr2OcclusionQueryAL` handle to own.
+   *
+   * The handle's `Create` asks here because this is where Carbon's platform
+   * include resolves (`Tr2OcclusionQueryAL.cpp:5`; the implementation is
+   * created as `m_query->Create( renderContext )` is, `:23-32`). Without
+   * `implementationOnly` it returns a created handle for probes and tests.
+   *
+   * REFUSED WITH `E_FAIL`, the answer Carbon's backends give for a query the
+   * device cannot make (`Tr2GpuTimerALMetal.mm:48-51`). This backend has no
+   * occlusion query implementation; WebGPU's would sit on an `occlusion`
+   * `GPUQuerySet`.
+   *
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null when Create refused.
+   */
+  CreateOcclusionQuery(implementationOnly = false)
+  {
+    if (!implementationOnly)
+    {
+      const value = new Tr2OcclusionQueryAL();
+      return Failed(value.Create(this)) ? null : value;
+    }
+
+    return { result: ALResult.E_FAIL, implementation: null };
+  }
+
+  /**
+   * Creates a pipeline statistics query; with `implementationOnly`, this backend's
+   * implementation and its result, for the `Tr2PipelineStatsQueryAL` handle to own.
+   *
+   * The handle's `Create` asks here because this is where Carbon's platform
+   * include resolves (`Tr2PipelineStatsQueryAL.h:48`; the implementation is
+   * created as `m_query->Create( renderContext )` is,
+   * `Tr2PipelineStatsQueryAL.cpp:24-33`). Without `implementationOnly` it
+   * returns a created handle for probes and tests.
+   *
+   * REFUSED WITH `E_FAIL`, as Metal's `Create` refuses when the device has no
+   * statistics counter set (`Tr2PipelineStatsQueryALMetal.mm:69-72`,
+   * `:107-110`). WebGPU has no pipeline statistics query at all.
+   *
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null when Create refused.
+   */
+  CreatePipelineStatsQuery(implementationOnly = false)
+  {
+    if (!implementationOnly)
+    {
+      const value = new Tr2PipelineStatsQueryAL();
+      return Failed(value.Create(this)) ? null : value;
+    }
+
+    return { result: ALResult.E_FAIL, implementation: null };
   }
 
   /**
@@ -535,7 +686,14 @@ export class CjsWebgpuRenderContextAL
   }
 
   /**
-   * Compiles one shader stage into a `GPUShaderModule`.
+   * Creates one shader stage; with `implementationOnly`, this backend's
+   * implementation and its result, for the `Tr2ShaderAL` handle to own.
+   *
+   * The handle's `Create` asks here because this is where Carbon's platform
+   * include resolves (`Tr2ShaderAL.cpp:6`); the implementation is created
+   * against this context as `m_shader->Create( type, bytecode, signature,
+   * shaderPath, renderContext )` is (`Tr2ShaderAL.cpp:142-156`). Without
+   * `implementationOnly` it returns a created handle for probes and tests.
    *
    * THE FIRST CONSTRUCTION OF THESE CLASSES. `CjsWebgpuShaderAL` and
    * `CjsWebgpuShaderProgramAL` were written for the immediate-draw route and
@@ -547,30 +705,51 @@ export class CjsWebgpuRenderContextAL
    *   bytecode; see the head comment on `CjsWebgpuShaderAL`.
    * @param {object|null} signature The reflected signature.
    * @param {string} [shaderPath] A debug label.
-   * @returns {object|null} The created shader, or null when Create refused.
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null when Create refused.
    */
-  CreateShader(stageType, bytecode, signature, shaderPath = "")
+  CreateShader(stageType, bytecode, signature, shaderPath = "", implementationOnly = false)
   {
-    const shader = new CjsWebgpuShaderAL();
+    if (!implementationOnly)
+    {
+      const value = new Tr2ShaderAL();
+      return Failed(value.Create(stageType, bytecode, signature, shaderPath, this)) ? null : value;
+    }
 
-    if (Failed(shader.Create(stageType, bytecode, signature, shaderPath, this))) return null;
-
-    return shader;
+    const implementation = new CjsWebgpuShaderAL();
+    const result = implementation.Create(stageType, bytecode, signature, shaderPath, this);
+    if (Failed(result)) implementation.Destroy();
+    return { result, implementation };
   }
 
   /**
-   * Links compiled stages into a program.
+   * Links `Tr2ShaderAL` values into a program; with `implementationOnly`, this
+   * backend's implementation and its result, for the `Tr2ShaderProgramAL`
+   * handle to own.
    *
-   * @param {object[]} shaders The stages to link.
-   * @returns {object|null} The created program, or null when Create refused.
+   * The handle's `Create` asks here because this is where Carbon's platform
+   * include resolves (`Tr2ShaderProgramAL.cpp:5`); the implementation links
+   * the handles as `m_program->Create( shaders, count, renderContext )` does
+   * (`Tr2ShaderProgramAL.cpp:23-32`). Without `implementationOnly` it returns
+   * a created handle for probes and tests.
+   *
+   * @param {object[]} shaders The `Tr2ShaderAL` stages to link.
+   * @param {number} [count] How many to link; all of them by default.
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null when Create refused.
    */
-  CreateShaderProgram(shaders)
+  CreateShaderProgram(shaders, count = shaders.length, implementationOnly = false)
   {
-    const program = new CjsWebgpuShaderProgramAL();
+    if (!implementationOnly)
+    {
+      const value = new Tr2ShaderProgramAL();
+      return Failed(value.Create(shaders, count, this)) ? null : value;
+    }
 
-    if (Failed(program.Create(shaders, this))) return null;
-
-    return program;
+    const implementation = new CjsWebgpuShaderProgramAL();
+    const result = implementation.Create(shaders, count, this);
+    if (Failed(result)) implementation.Destroy();
+    return { result, implementation };
   }
 
   /**
@@ -1424,13 +1603,22 @@ export class CjsWebgpuRenderContextAL
   }
 
   /**
-   * Binds the vertex declaration.
+   * Binds the vertex declaration (`Tr2RenderContextMetal.mm:894-899`).
    *
-   * @param {object} layout A `Tr2VertexLayoutAL`.
+   * Adapted: Metal copies the handle; this records its implementation, read
+   * as Metal's friend reads `m_layout`, and null for an invalid handle, so the
+   * draw tests one pointer as `CheckDrawResources` tests
+   * `m_vertexLayout.IsValid()` (`:532-539`). The redundancy test and the
+   * pipeline dirtying are DX12's (`Tr2RenderContextDx12.cpp:321`).
+   *
+   * @param {Tr2VertexLayoutAL} vertexLayout The vertex layout.
    * @returns {number} `S_OK`.
    */
-  SetVertexLayout(layout)
+  @meta.adapted
+  SetVertexLayout(vertexLayout)
   {
+    const layout = vertexLayout.IsValid() ? vertexLayout._layout.implementation : null;
+
     if (this._vertexLayout === layout) return ALResult.S_OK;
 
     // DIRTIES THE PIPELINE, AS DX12'S DOES (`Tr2RenderContextDx12.cpp:321`).
@@ -1497,13 +1685,21 @@ export class CjsWebgpuRenderContextAL
   }
 
   /**
-   * Binds the shader program following draws run.
+   * Binds the shader program following draws run
+   * (`Tr2RenderContextMetal.mm:901-920`): an unchanged program is skipped.
    *
-   * @param {object} shaderProgram A `Tr2ShaderProgramAL`.
+   * Adapted: Metal copies the handle; this records its implementation, read
+   * as Metal's friend reads `m_program`, and null for an invalid handle, so
+   * the draw tests one pointer.
+   *
+   * @param {Tr2ShaderProgramAL} value The shader program.
    * @returns {number} `S_OK`.
    */
-  SetShaderProgram(shaderProgram)
+  @meta.adapted
+  SetShaderProgram(value)
   {
+    const shaderProgram = value.IsValid() ? value.TrinityALImpl_GetObject() : null;
+
     if (this._shaderProgram === shaderProgram) return ALResult.S_OK;
 
     this._shaderProgram = shaderProgram;
@@ -2023,7 +2219,7 @@ export class CjsWebgpuRenderContextAL
 
           if (constantBuffer)
           {
-            const region = this.UploadConstants(constantBuffer, size);
+            const region = this._UploadConstants(constantBuffer._shadowCopy, size, constantBuffer._token);
 
             resource = { buffer: this._Arena().GetPage(region.page), offset: 0, size };
             dynamicOffsets.push(region.offset);
@@ -2162,48 +2358,98 @@ export class CjsWebgpuRenderContextAL
   }
 
   /**
-   * Copies constants into this frame's arena and says where they landed.
+   * Carbon's bare `UploadConstants`, for literal ports: routes on the first
+   * argument, bytes selecting `UploadConstants__DataSize` and a
+   * `Tr2ConstantBufferAL` `UploadConstants__Buffer`
+   * (`Tr2RenderContextMetal.h:159-160`). Engine code calls the specific names;
+   * this inspects its argument only because JavaScript cannot overload.
    *
-   * CARBON'S TWO OVERLOADS, in one method as JavaScript spells them
-   * (`Tr2RenderContextMetal.mm:679-697`, `Tr2RenderContextDx12.cpp:538-548`):
-   *
-   * - given BYTES, a fresh region every call - Carbon constructs a zeroed
-   *   token each time, so nothing is reused;
-   * - given a `Tr2ConstantBufferAL`, the buffer's OWN token, so a buffer bound
-   *   twice in a frame without a Lock between keeps one region. Carbon reaches
-   *   straight into the impl for it (`buffer.m_buffer->m_token`), which is why
-   *   ours is public.
-   *
-   * Carbon returns a `uint64_t` packing Metal's page and offset together; the
-   * region object is that pair unpacked, which is what a bind group needs.
-   *
-   * @param {object|ArrayBufferView} source A constant buffer, or the bytes.
-   * @param {number} [size] Bytes the binding demands at least.
-   * @returns {{page: number, offset: number, size: number}|null} The region,
-   *   or null when there is nothing to upload - Carbon's `return 0`.
+   * @param {ArrayBufferView|Tr2ConstantBufferAL} dataOrBuffer The bytes, or the buffer.
+   * @param {number} [size] Bytes, for the bytes overload.
+   * @returns {{page: number, offset: number, size: number}|null} The region.
    */
-  UploadConstants(source, size = 0)
+  UploadConstants(dataOrBuffer, size)
   {
-    if (!this._webgpu || !source) return null;
+    return isTyped(dataOrBuffer)
+      ? this.UploadConstants__DataSize(dataOrBuffer, size)
+      : this.UploadConstants__Buffer(dataOrBuffer);
+  }
 
-    const arena = this._Arena();
+  /**
+   * Carbon's UploadConstants( data, size ) (`Tr2RenderContextMetal.h:159`,
+   * `Tr2RenderContextMetal.mm:679-686`): copies the bytes into this frame's
+   * arena under a fresh, zeroed token, so every call takes a new region.
+   *
+   * Adapted: Carbon returns a `uint64_t` packing Metal's page and offset; the
+   * region is that pair unpacked, which is what a bind group needs. Null with
+   * no device, where Carbon always has one.
+   *
+   * @param {ArrayBufferView} data The constants.
+   * @param {number} size Bytes to upload.
+   * @returns {{page: number, offset: number, size: number}|null} The region.
+   */
+  @meta.adapted
+  UploadConstants__DataSize(data, size)
+  {
+    if (!this._webgpu) return null;
 
-    if (ArrayBuffer.isView(source)) return arena.Allocate(source, Math.max(size, source.byteLength));
+    const token = { frame: 0, page: 0, offset: 0, size: 0 };
+    return this._UploadConstants(data, size, token);
+  }
 
-    if (!(source instanceof CjsWebgpuConstantBufferAL) || !source.IsValid()) return null;
+  /**
+   * Carbon's UploadConstants( buffer ) (`Tr2RenderContextMetal.h:160`,
+   * `Tr2RenderContextMetal.mm:688-697`): uploads the buffer's shadow under the
+   * buffer's OWN token, so a buffer bound twice in a frame without a Lock
+   * between keeps one region. Carbon reaches straight into the impl for it
+   * (`buffer.m_buffer->m_token`), which is why the impl's token is public.
+   *
+   * Adapted: the packed `uint64_t` is returned unpacked, and Carbon's
+   * `return 0` for no storage is null. An implementation of another backend's
+   * kind has no shadow this arena can read and answers null too; Carbon's
+   * handle can only hold the one compiled backend's.
+   *
+   * @param {Tr2ConstantBufferAL} buffer The constant buffer.
+   * @returns {{page: number, offset: number, size: number}|null} The region.
+   */
+  @meta.adapted
+  UploadConstants__Buffer(buffer)
+  {
+    if (!this._webgpu) return null;
 
-    const token = source._token;
-    const wanted = Math.max(size, source._shadowCopy.length);
+    const implementation = buffer.TrinityALImpl_GetObject();
+    if (!(implementation instanceof CjsWebgpuConstantBufferAL) || !implementation.IsValid()) return null;
 
-    // Metal's `UploadConstants` (`MetalWorkQueue.mm:2426-2439`): a token from
-    // this frame is left alone. The size test is ours - a layout may demand
-    // more than an earlier binding reserved, and a short region is a
-    // validation error rather than a wrong picture.
-    if (token.frame !== this.GetRecordingFrameNumber() || token.size < wanted)
+    return this._UploadConstants(implementation._shadowCopy, implementation._shadowCopy.length, implementation._token);
+  }
+
+  /**
+   * Metal's work-queue `UploadConstants( constantBuffer, size, token )`
+   * (`MetalWorkQueue.h:298`, `MetalWorkQueue.mm:2426-2437`): a token from this
+   * frame is left alone, otherwise the bytes take a new arena region and the
+   * token records it. Both context overloads and the draw's constant binding
+   * (Metal's `MetalWorkQueue::SetConstants`, `:2396-2424`) reach it.
+   *
+   * Adapted: it lives on the context because our work queue is device-free and
+   * holds no arena. The size test is ours - a layout may demand more than an
+   * earlier binding reserved, and a short region is a validation error rather
+   * than a wrong picture.
+   *
+   * @param {ArrayBufferView} constantBuffer The bytes.
+   * @param {number} size Bytes the region must hold at least.
+   * @param {{frame: number, page: number, offset: number, size: number}} token The token to refresh.
+   * @returns {{frame: number, page: number, offset: number, size: number}} The token.
+   */
+  _UploadConstants(constantBuffer, size, token)
+  {
+    const frameNo = this.GetRecordingFrameNumber();
+    const wanted = Math.max(size, constantBuffer.byteLength);
+
+    if (token.frame !== frameNo || token.size < wanted)
     {
-      const region = arena.Allocate(source._shadowCopy, wanted);
+      const region = this._Arena().Allocate(constantBuffer, wanted);
 
-      token.frame = this.GetRecordingFrameNumber();
+      token.frame = frameNo;
       token.page = region.page;
       token.offset = region.offset;
       token.size = region.size;
@@ -3526,7 +3772,8 @@ CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "SetIndices__Stride", blue.me
 CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "SetShaderProgram", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "SetRenderStates", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "SetRenderState", blue.method);
-CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "UploadConstants", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "UploadConstants__DataSize", blue.method);
+CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "UploadConstants__Buffer", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "SetResourceSet", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "SetConstants", blue.method);
 CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "AddGpuMarker", blue.method);

@@ -3,9 +3,16 @@ import { test } from "node:test";
 
 import { CjsWebgpuDevice } from "../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuShaderAL, CjsWebgpuShaderProgramAL } from "../../../npm/dist/trinityal/webgpu/internal.js";
-import { ALResult } from "../../../npm/dist/trinityal/index.js";
+import { ALResult, Tr2ShaderAL } from "../../../npm/dist/trinityal/index.js";
 import { ShaderType } from "../../../npm/dist/global/consts/renderContext/index.js";
 import { writeBackendBlock } from "../../../npm/dist/resource/format/index.js";
+
+/** Carbon links `Tr2ShaderAL` values: wraps each implementation and passes the count. */
+function link(shaders)
+{
+    return [ shaders.map(shader => Tr2ShaderAL.create__Shader(shader)), shaders.length ];
+}
+
 
 // The pipeline layout is built at Create, from the stages, the way DX12 builds
 // its root signature (Tr2ShaderProgramALDx12.cpp:220-252): each stage's
@@ -121,7 +128,7 @@ test("a program merges its stages into one pipeline layout, as DX12 merges a roo
   const fragment = stage(ShaderType.PIXEL_SHADER, FRAGMENT_WGSL, signature, renderContext).shader;
   const program = new CjsWebgpuShaderProgramAL();
 
-  assert.equal(program.Create([ vertex, fragment ], renderContext), ALResult.S_OK);
+  assert.equal(program.Create(...link([ vertex, fragment ]), renderContext), ALResult.S_OK);
 
   // One group, three slots. The uniform both stages read is ONE entry visible
   // to both; the texture and sampler are the fragment stage's alone.
@@ -148,7 +155,7 @@ test("a program merges its stages into one pipeline layout, as DX12 merges a roo
   // Two programs are two identities, which is what the pipeline cache keys on.
   const second = new CjsWebgpuShaderProgramAL();
 
-  assert.equal(second.Create([ vertex, fragment ], renderContext), ALResult.S_OK);
+  assert.equal(second.Create(...link([ vertex, fragment ]), renderContext), ALResult.S_OK);
   assert.notEqual(second.GetIdentity(), program.GetIdentity());
   assert.match(program.GetIdentity(), /^program:\d+$/);
 
@@ -170,10 +177,10 @@ test("a layout past a per-stage limit is refused at Create, before any device ob
   const atLimit = stage(ShaderType.PIXEL_SHADER, FRAGMENT_WGSL, signatureWith(blockBytes(textures(16))), renderContext).shader;
   const pastLimit = stage(ShaderType.PIXEL_SHADER, FRAGMENT_WGSL, signatureWith(blockBytes(textures(17))), renderContext).shader;
 
-  assert.equal(new CjsWebgpuShaderProgramAL().Create([ vertex, atLimit ], renderContext), ALResult.S_OK);
+  assert.equal(new CjsWebgpuShaderProgramAL().Create(...link([ vertex, atLimit ]), renderContext), ALResult.S_OK);
   assert.equal(device.calls.bindGroupLayouts.length, 1);
 
-  assert.equal(new CjsWebgpuShaderProgramAL().Create([ vertex, pastLimit ], renderContext), ALResult.E_INVALIDARG);
+  assert.equal(new CjsWebgpuShaderProgramAL().Create(...link([ vertex, pastLimit ]), renderContext), ALResult.E_INVALIDARG);
   assert.equal(device.calls.bindGroupLayouts.length, 1, "nothing made for the refused one");
 });
 
@@ -184,7 +191,7 @@ test("a program without blocks has an empty layout rather than none", () =>
   const fragment = stage(ShaderType.PIXEL_SHADER, FRAGMENT_WGSL, null, renderContext).shader;
   const program = new CjsWebgpuShaderProgramAL();
 
-  assert.equal(program.Create([ vertex, fragment ], renderContext), ALResult.S_OK);
+  assert.equal(program.Create(...link([ vertex, fragment ]), renderContext), ALResult.S_OK);
   assert.equal(device.calls.bindGroupLayouts.length, 0);
   assert.deepEqual(device.calls.pipelineLayouts[0].bindGroupLayouts, []);
   assert.deepEqual(program.GetBindings(), []);
@@ -207,7 +214,7 @@ test("two stages claiming one slot with different layouts are refused at link", 
 
   // A container defect, refused where the cause is rather than at pipeline
   // creation with a message about the pipeline.
-  assert.equal(program.Create([ vertex, fragment ], renderContext), ALResult.E_INVALIDARG);
+  assert.equal(program.Create(...link([ vertex, fragment ]), renderContext), ALResult.E_INVALIDARG);
   assert.equal(program.IsValid(), false);
 });
 
@@ -232,7 +239,7 @@ test("the vertex stage's pipeline inputs become the program's inputs", () =>
   const fragment = stage(ShaderType.PIXEL_SHADER, FRAGMENT_WGSL, { pipelineInputs: [ { usage: 9 } ] }, renderContext).shader;
   const program = new CjsWebgpuShaderProgramAL();
 
-  program.Create([ fragment, vertex ], renderContext);
+  program.Create(...link([ fragment, vertex ]), renderContext);
 
   // Metal's m_iaInputs come from the VERTEX stage regardless of link order
   // (Tr2ShaderProgramALMetal.mm:86).

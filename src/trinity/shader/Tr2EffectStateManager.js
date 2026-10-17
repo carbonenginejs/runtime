@@ -1,6 +1,9 @@
 // Source: trinity/trinity/Shader/Tr2EffectStateManager.h
 import { meta, type, blue } from "#schema";
 import { Tr2BufferAL } from "../../trinityal/Tr2BufferAL/index.js";
+import { Tr2VertexLayoutAL } from "../../trinityal/Tr2VertexLayoutAL/index.js";
+import { Tr2ShaderAL } from "../../trinityal/Tr2ShaderAL/index.js";
+import { Tr2ShaderProgramAL } from "../../trinityal/Tr2ShaderProgramAL/index.js";
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 //
 // STILL INCOMPLETE, and not finished-by-design - but much less so than this
@@ -1610,7 +1613,7 @@ export class Tr2EffectStateManager
       ? this.GetShaderProgram(handle)
       : null;
 
-    this.#renderContext.SetShaderProgram(program);
+    this.#renderContext.SetShaderProgram(program ?? new Tr2ShaderProgramAL());
 
     return true;
   }
@@ -1619,12 +1622,13 @@ export class Tr2EffectStateManager
    * Creates the backend's program for an interned handle, once.
    *
    * Carbon's row already HOLDS the created `Tr2ShaderProgramAL`
-   * (`s_shaderPrograms[ix].first`), because it compiles one backend and can put
-   * a device object in its own table. Ours holds identity plus the bytecode and
-   * signature each stage registered, and the backend builds from those - the
-   * same reason `CreateVertexLayout` and `CreateBuffer` live on the context.
+   * (`s_shaderPrograms[ix].first`), created at registration against the main
+   * thread's context. Ours holds identity plus the bytecode and signature each
+   * stage registered, and creates the `Tr2ShaderAL` and `Tr2ShaderProgramAL`
+   * values on first use, per context, because the table is shared and a
+   * program belongs to the backend that realized it.
    *
-   * Carbon's `GetShaderProgram` (`Tr2EffectStateManager.cpp`), which
+   * Carbon's `GetShaderProgram` (`Tr2EffectStateManager.cpp:780-787`), which
    * `Tr2Material::ApplyMaterialDataForPass` calls to hand the program to
    * `Tr2ResourceSetAL::Create` (`Tr2Material.cpp:232-234`). Public for the
    * same caller here.
@@ -1646,21 +1650,28 @@ export class Tr2EffectStateManager
     // into per-draw work.
     if (cached !== undefined) return cached;
 
+    // Carbon's RegisterShader / RegisterShaderProgram (cpp:500-509, 572-576):
+    // a `Tr2ShaderAL` value per stage, linked into a `Tr2ShaderProgramAL`
+    // value; a refused Create leaves no program (`CR_RETURN_VAL( ..., UNKNOWN )`).
     const stages = [];
 
     for (const shaderHandle of shaderPrograms[handle].shaderHandles)
     {
       const row = shaders[shaderHandle];
-      const stage = row
-        ? this.#renderContext.CreateShader(row.stageType, row.bytecode, row.signature ?? null, "")
-        : null;
+      const stage = new Tr2ShaderAL();
 
-      if (!stage) { stages.length = 0; break; }
+      if (!row || Failed(stage.Create(row.stageType, row.bytecode, row.signature ?? null, "", this.#renderContext))) { stages.length = 0; break; }
 
       stages.push(stage);
     }
 
-    const program = stages.length > 0 ? this.#renderContext.CreateShaderProgram(stages) : null;
+    let program = null;
+
+    if (stages.length > 0)
+    {
+      program = new Tr2ShaderProgramAL();
+      if (Failed(program.Create(stages, stages.length, this.#renderContext))) program = null;
+    }
 
     realized.set(handle, program);
     shaderProgramObjects.set(this.#renderContext, realized);
@@ -1686,11 +1697,10 @@ export class Tr2EffectStateManager
     // last held. Carbon `cpp:879-910`: NULL_DECLARATION unbinds with a default
     // layout, otherwise the interned layout is created ON FIRST USE and set.
     //
-    // Carbon can hold a `Tr2VertexLayoutAL` in its own table because it
-    // compiles one backend. We ship every backend at once, so the layout is
-    // created by the context - the same reason `CreateBuffer` lives there -
-    // and cached per handle so a second apply reuses it, as `hvl.IsValid()`
-    // does for Carbon.
+    // Carbon holds a `Tr2VertexLayoutAL` value in its intern table and
+    // creates it on first apply. Ours holds the same value, per context
+    // because the table is shared and a layout belongs to the backend that
+    // realized it (see vertexLayoutObjects).
     // A manager with no context records and reaches nothing, exactly as
     // DoApplyRenderStates does. Carbon's manager always has one; ours is
     // constructed before it is bound.
@@ -1707,7 +1717,7 @@ export class Tr2EffectStateManager
     // what this did between two commits on 2026-09-09.
     if (handle === Tr2EffectStateManager.NullDeclaration)
     {
-      this.#renderContext.SetVertexLayout(null);
+      this.#renderContext.SetVertexLayout(new Tr2VertexLayoutAL());
 
       return true;
     }
@@ -1733,11 +1743,15 @@ export class Tr2EffectStateManager
 
     if (!layout)
     {
-      layout = this.#renderContext.CreateVertexLayout(elements);
+      layout = new Tr2VertexLayoutAL();
 
       realized.set(handle, layout);
       vertexLayoutObjects.set(this.#renderContext, realized);
     }
+
+    // Carbon's `if( !hvl.IsValid() ) hvl.Create( ... )` (cpp:899-906): a
+    // layout whose Create refused is retried on the next apply.
+    if (!layout.IsValid()) layout.Create(elements, this.#renderContext);
 
     this.#renderContext.SetVertexLayout(layout);
 

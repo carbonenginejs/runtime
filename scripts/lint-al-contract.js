@@ -288,6 +288,16 @@ for (const backend of backends)
             // IsValid; the stored description is the implementation's.
             if (backend === "Tr2SamplerStateAL" && method === "GetDescription") continue;
 
+            // The same for the other public handles: each answers only what its
+            // include/ header declares, and these are the implementation's.
+            // Tr2ShaderAL.h:163-195 has no GetMemoryClass or SetNullShaderType;
+            // Tr2ShaderProgramAL.h:33-59 no GetShaders; Tr2VertexLayoutAL.h:19-38
+            // no GetDefinition; Tr2PipelineStatsQueryAL.h:19-46 no Describe.
+            if (backend === "Tr2ShaderAL" && ["GetMemoryClass", "SetNullShaderType"].includes(method)) continue;
+            if (backend === "Tr2ShaderProgramAL" && method === "GetShaders") continue;
+            if (backend === "Tr2VertexLayoutAL" && method === "GetDefinition") continue;
+            if (backend === "Tr2PipelineStatsQueryAL" && method === "Describe") continue;
+
             // `#` AND `_` ARE BOTH "NOT THE CONTRACT". The layer used `#` until
             // 2026-09-10, when the AL dropped JavaScript privates for an `_`
             // prefix - Carbon's AL facade holds one private member and its impl
