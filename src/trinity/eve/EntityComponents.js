@@ -26,7 +26,7 @@ export const EveComponentType = Object.freeze({
   /** ITr2PostProcessOwner (PostProcess/ITr2PostProcessOwner.h:15). */
   PostProcessOwner: "PostProcessOwner",
 
-  /** IEveInstanceMeshProvider (Eve/EveInstancedMeshManager.h:273). */
+  /** IEveInstanceMeshProvider (Eve/EveInstancedMeshManager.h:302). */
   InstancedMeshProvider: "InstancedMeshProvider",
 
   /** ITr2LightOwner (Lights/ITr2LightOwner.h:18). */
@@ -70,7 +70,7 @@ export const EveComponentRequiredMethods = {
   /** PostProcess/ITr2PostProcessOwner.h:12. */
   PostProcessOwner: ["GetPostProcessAttributes"],
 
-  /** Eve/EveInstancedMeshManager.h:270. */
+  /** Eve/EveInstancedMeshManager.h:299. */
   InstancedMeshProvider: ["AddMeshesToManager"],
 
   /** Lights/ITr2LightOwner.h:13. */

@@ -23,13 +23,7 @@ import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { EveChildInstancedMeshArea } from "./EveChildInstancedMeshArea.js";
 import { EveChildInstancedMeshInstance } from "./EveChildInstancedMeshInstance.js";
 import { EveChildInstancedMesh } from "./EveChildInstancedMesh.js";
-
-
-/** Carbon EveInstancedMeshManager::InstanceFlags (EveInstancedMeshManager.h:
- * 13-26, cpp:998-1048): a uint32 bitfield - bit (1 << batchType) per present
- * batch type, CASTS_SHADOW = 1 << 30, RENDER_IN_REFLECTION = 1 << 31. */
-export const INSTANCE_FLAG_CASTS_SHADOW = 0x40000000;
-export const INSTANCE_FLAG_RENDER_IN_REFLECTION = 0x80000000;
+import { IEveInstanceMeshProvider } from "../../instancedMeshManager/IEveInstanceMeshProvider.js";
 
 const POSITION_SCRATCH = vec3.create();
 const OVERLAY_LOCAL_SCRATCH = mat4.create();
@@ -62,8 +56,8 @@ function FindDamageLocators(sets)
  * world cull bounds.
  */
 @blue.define("EveChildInstancedMeshes")
-@blue.inherit(ITr2Renderable, IEveShadowCaster)
-@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, EveEntity, ITr2Renderable, IEveShadowCaster)
+@blue.inherit(ITr2Renderable, IEveShadowCaster, IEveInstanceMeshProvider)
+@blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, EveEntity, ITr2Renderable, IEveShadowCaster, IEveInstanceMeshProvider)
 export class EveChildInstancedMeshes extends EveSpaceObjectChild
 {
   @blue.readwrite
@@ -333,9 +327,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
       }
 
       // cpp:251 - refreshed every pass (set OR cleared).
-      mesh.flags = EntityComponents.shouldReflect(mesh.reflectionMode)
-        ? (mesh.flags | INSTANCE_FLAG_RENDER_IN_REFLECTION) >>> 0
-        : (mesh.flags & ~INSTANCE_FLAG_RENDER_IN_REFLECTION) >>> 0;
+      mesh.flags.SetRenderInReflections(EntityComponents.shouldReflect(mesh.reflectionMode));
 
       const meshData = geometry.GetMeshData(mesh.meshIndex);
       const minBounds = meshData.minBounds;
@@ -729,11 +721,11 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     // async pass. cpp:590 clears the registration latch.
     if (mesh.castsShadow)
     {
-      mesh.flags = (mesh.flags | INSTANCE_FLAG_CASTS_SHADOW) >>> 0;
+      mesh.flags.SetCastsShadow(true);
     }
     for (const area of mesh.areas)
     {
-      mesh.flags = (mesh.flags | (1 << area.batchType)) >>> 0;
+      mesh.flags.AddBatchType(area.batchType);
     }
     this.meshes.push(mesh);
     this._allRegistered = false;
@@ -1508,13 +1500,14 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
           this._allRegistered = false;
           continue;
         }
-        area.meshGroupHandle = manager.AddMeshGroup(
+        area.meshGroupHandle = manager.AddMeshGroup__StaticPerInstanceData(
           geometry,
           0,
           area.batchType,
           mesh.meshIndex,
           area.areaIndex,
           area.areaCount,
+          area.reversed,
           area.effect,
           area.effectHash,
           mesh.inheritOverlayEffects ? this._perObjectDataHandle : this._perObjectDataNoClipHandle,

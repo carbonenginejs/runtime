@@ -12,8 +12,7 @@ import {
   EveCustomMask,
   EveSpaceObject2,
   EveUpdateContext,
-  INSTANCE_FLAG_CASTS_SHADOW,
-  INSTANCE_FLAG_RENDER_IN_REFLECTION
+  EveInstancedMeshManagerInstanceFlags
 } from "../../npm/dist/trinity/index.js";
 
 
@@ -51,7 +50,7 @@ class TestInstancedMeshManager
       return handle;
     }
 
-    AddMeshGroup(...args)
+    AddMeshGroup__StaticPerInstanceData(...args)
     {
       const handle = Object.freeze({ kind: "group", args });
       this.calls.groups.push(handle);
@@ -140,8 +139,9 @@ test("UpdateAsyncronous: instance cull spheres, combined world bounds, reflectio
 
   // Flags: batch types 0 and 2, castsShadow, reflection refresh
   // (reflectionMode 0 = REFLECT_HIGH -> ShouldReflect true at HIGH).
-  const expected = ((1 << 0) | (1 << 2) | INSTANCE_FLAG_CASTS_SHADOW | INSTANCE_FLAG_RENDER_IN_REFLECTION) >>> 0;
-  assert.equal(mesh.flags, expected, "flag bits");
+  const { castsShadow, renderInReflection } = EveInstancedMeshManagerInstanceFlags;
+  const expected = ((1 << 0) | (1 << 2) | castsShadow | renderInReflection) >>> 0;
+  assert.equal(mesh.flags.flags, expected, "flag bits");
 
   assert.equal(provider.hasUpdated, true, "hasUpdated stamped (cpp:281)");
 });
@@ -162,17 +162,19 @@ test("AddMeshesToManager: full registration, add-once idempotence, hasUpdated ga
   assert.equal(manager.calls.spheres.length, 1, "one sphere group per mesh");
   assert.equal(manager.calls.spheres[0].count, 2, "instance sphere count");
   assert.equal(manager.calls.groups.length, 2, "one mesh group per area");
-  // AddMeshGroup positional contract: geometry, declaration(0), batchType,
-  // meshIndex, areaIndex, areaCount, effect, effectHash, podHandle,
+  // AddMeshGroup__StaticPerInstanceData positional contract: geometry,
+  // declaration(0), batchType, meshIndex, areaIndex, areaCount, areaReversed,
+  // effect, effectHash, podHandle,
   // sphereHandle, instances, count, pickingOwner, pickingOwnerIndex.
   const args = manager.calls.groups[1].args;
   assert.equal(args[0], GEOMETRY, "geometry threaded");
   assert.equal(args[2], 2, "area batch type");
   assert.equal(args[5], 2, "area count");
-  assert.equal(args[8], manager.calls.perObject[0], "per-object handle threaded");
-  assert.equal(args[9], manager.calls.spheres[0], "sphere handle threaded");
-  assert.equal(args[12], provider, "picking owner is the provider");
-  assert.equal(args[13], 0, "picking owner index = mesh ordinal");
+  assert.equal(args[6], false, "area winding (EveChildInstancedMeshes.cpp:816)");
+  assert.equal(args[9], manager.calls.perObject[0], "per-object handle threaded");
+  assert.equal(args[10], manager.calls.spheres[0], "sphere handle threaded");
+  assert.equal(args[13], provider, "picking owner is the provider");
+  assert.equal(args[14], 0, "picking owner index = mesh ordinal");
 
   provider.AddMeshesToManager(manager);
   assert.equal(manager.calls.groups.length, 2, "latch: nothing re-registers");
@@ -259,7 +261,7 @@ test("Manager handles are opaque and may use zero-valued primitive identities", 
 
     AddBoundingSphereGroup() { return this.nextHandle++; }
 
-    AddMeshGroup() { return this.nextHandle++; }
+    AddMeshGroup__StaticPerInstanceData() { return this.nextHandle++; }
 
     SetSphereGroupBounds() { }
 

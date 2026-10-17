@@ -9,6 +9,7 @@ import { IEveSpaceObject2 } from "./IEveSpaceObject2.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { color as colorMath } from "#math/color";
 import { meta, type, blue } from "#schema";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 
@@ -412,6 +413,9 @@ export class EveTriggerVolume
     options.add("Trigger Bounding Sphere");
   }
 
+  /** RenderDebugInfo's volume colour scratch. */
+  static _debugColor = colorMath.create();
+
   /**
    * Carbon EveTriggerVolume::RenderDebugInfo (EveTriggerVolume.cpp:230-259):
    * three independent options. "Trigger Volumes" has each volume draw itself
@@ -439,9 +443,11 @@ export class EveTriggerVolume
         color = 0xFF33FF33;
       }
 
+      // Carbon's uint32 argument converts implicitly to Color.
+      colorMath.fromARGB(EveTriggerVolume._debugColor, color);
       for (const volume of this.volumes)
       {
-        volume.RenderDebugInfo(renderer, this._worldTransform, color);
+        volume.RenderDebugInfo(renderer, this._worldTransform, EveTriggerVolume._debugColor);
       }
     }
 
@@ -449,7 +455,7 @@ export class EveTriggerVolume
     {
       for (const volume of this.exclusionVolumes)
       {
-        volume.RenderDebugInfo(renderer, this._worldTransform, 0xFFFF3333);
+        volume.RenderDebugInfo(renderer, this._worldTransform, colorMath.fromARGB(EveTriggerVolume._debugColor, 0xFFFF3333));
       }
     }
 

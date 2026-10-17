@@ -45,4 +45,5 @@ export * from "./overlays/index.js";
 export * from "./particles/index.js";
 export * from "./renderable/index.js";
 export * from "./perObjectData/index.js";
+export * from "./instancedMeshManager/index.js";
 export * from "./AudioGameObject.js";

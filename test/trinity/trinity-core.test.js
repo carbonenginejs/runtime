@@ -996,7 +996,6 @@ test("dropped Blue and native scanner shapes stay quarantined", () =>
     trinityCore: ["TriVector", "TriQuaternion", "TriColor"],
     include: ["ITriVector", "ITriMatrix", "ITriQuaternion", "ITriColor", "ITriDevice", "Point", "Tr2CurveBase", "Tr2Rect", "TriPerlinNoise"],
     curves: ["Tr2CurveRasterizeDestination", "Tr2CurveScalarDefinition", "Tr2Key"],
-    "eve/scene": ["EveInstancedMeshManager"],
     particle: ["Tr2ParticleStreamIterator"],
     postProcess: ["CASConstants"],
     raytracing: ["Tr2RaytracingMeshArea"],

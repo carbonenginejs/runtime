@@ -4,9 +4,26 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/Volume/EveSphereVolume_Blue.cpp
 import { IsMatch } from "#blue";
 import { INotify } from "../../../global/blue/INotify.js";
+import { color } from "#math/color";
+import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { IEveVolume } from "./IEveVolume.js";
 import { meta, type, blue } from "#schema";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
+
+// RenderDebugInfo scratch (debug drawing is single-threaded).
+const DEBUG_TRANSFORM = mat4.create();
+const DEBUG_BASE_COLOR = color.create();
+const DEBUG_COLOR = color.create();
+
+// IEveVolume.h:18's default baseColor, Color( 0xFFFFFFFF ).
+const DEFAULT_BASE_COLOR = color.fromARGB(color.create(), 0xFFFFFFFF);
+// Carbon scales baseColor by the float literals 0.5f and 0.6f.
+const OUTER_COLOR_SCALE = 0.5;
+const INNER_COLOR_SCALE = Math.fround(0.6);
+
+// Scratch for the TranslationMatrix temporary.
+const DEBUG_TRANSLATION = mat4.create();
 
 
 /**
@@ -174,11 +191,42 @@ export class EveSphereVolume extends IEveVolume
     return true;
   }
 
-  /** No debug drawing in this port. */
+  /**
+   * Carbon EveSphereVolume::RenderDebugInfo (EveSphereVolume.cpp:20-24): the
+   * outer and inner spheres as 20-segment wireframes translated to their
+   * centres, at 0.5 and 0.6 of baseColor - Carbon's Color * float scales all
+   * four channels, alpha included (Color_inline.h:125-128).
+   *
+   * Carbon's members are m_outerSphere and m_innerSphere (EveSphereVolume.h:38-39);
+   * the exposed attributes map position, radius and innerRadius onto
+   * m_outerSphere.center, m_outerSphere.radius and m_innerSphere.radius
+   * (EveSphereVolume_Blue.cpp:16-18). m_innerSphere.center is zero from the
+   * constructor (cpp:10) and nothing writes it, so Carbon's
+   * TranslationMatrix( m_outerSphere.center + m_innerSphere.center ) is the
+   * translation to position here.
+   *
+   * @param {ITr2DebugRenderer2} renderer The debug renderer.
+   * @param {mat4} parentTransform The parent's world transform.
+   * @param {vec4} [baseColor] Base colour, Carbon's `const Color&`; defaults to Color( 0xFFFFFFFF ).
+   */
   @blue.method
-  @meta.noop
-  RenderDebugInfo()
+  @meta.implemented
+  RenderDebugInfo(renderer, parentTransform, baseColor = DEFAULT_BASE_COLOR)
   {
+    const owner = Tr2DebugObjectReference.create__Object(this);
+    color.copy(DEBUG_BASE_COLOR, baseColor);
+
+    // Carbon TranslationMatrix( m_outerSphere.center ) * parentTransform (row-vector).
+    mat4.multiply(DEBUG_TRANSFORM, parentTransform, mat4.fromTranslation(DEBUG_TRANSLATION, this.position));
+    color.scale(DEBUG_COLOR, DEBUG_BASE_COLOR, OUTER_COLOR_SCALE);
+    renderer.DrawSphere__TransformRadius(owner, DEBUG_TRANSFORM, this.radius, 20,
+      ITr2DebugRenderer2.Effect.Wireframe, Tr2DebugColor.create__Color(DEBUG_COLOR));
+
+    // Carbon TranslationMatrix( m_outerSphere.center + m_innerSphere.center ) * parentTransform
+    // (row-vector); m_innerSphere.center is always zero, so the translation is unchanged.
+    color.scale(DEBUG_COLOR, DEBUG_BASE_COLOR, INNER_COLOR_SCALE);
+    renderer.DrawSphere__TransformRadius(owner, DEBUG_TRANSFORM, this.innerRadius, 20,
+      ITr2DebugRenderer2.Effect.Wireframe, Tr2DebugColor.create__Color(DEBUG_COLOR));
   }
 }
 

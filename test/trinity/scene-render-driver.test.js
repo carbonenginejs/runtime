@@ -85,6 +85,9 @@ function sceneRecording(calls)
     UpdateFogSettings() { calls.push([ "UpdateFogSettings" ]); },
     UpdateVisibility() { calls.push([ "UpdateVisibility" ]); },
     GetRenderables(out) { calls.push([ "GetRenderables" ]); return out; },
+    // EveSpaceScene owns its instanced mesh manager and component registry (h:708; GatherBatches cpp:1525).
+    componentRegistry: {},
+    instancedMeshManager: { CollectMeshes() { calls.push([ "CollectMeshes" ]); } },
     PopulateAndApplyPerFrameData() {},
     RenderVolumetrics(_depth, pool) { return [new GpuResourceHandle(), new GpuResourceHandle()]; },
     GetPerFramePSData() { return null; },
@@ -191,6 +194,8 @@ test("the frame runs Carbon's order", () =>
     "UpdateVisibility",
     "GetRenderables",
     "Collect",
+    // GatherBatches: the instanced mesh manager after the renderables (cpp:1525).
+    "CollectMeshes",
     // After the gather: the scene's global textures (cpp:1390-1397).
     "UpdateVariableStore",
     // AFTER the gather: the blended sun colour is only current once lights have

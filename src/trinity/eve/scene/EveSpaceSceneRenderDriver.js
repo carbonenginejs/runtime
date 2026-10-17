@@ -736,6 +736,10 @@ export class EveSpaceSceneRenderDriver
       this.scene.UpdateVisibility(renderContext.GetInverseViewTransform());
 
       map = this._Collect(this.scene.GetRenderables([], renderContext), renderContext);
+      // Carbon GatherBatches (EveSpaceScene.cpp:1525): after the renderables' batches,
+      // the instanced mesh manager collects its providers. Its GetBatches
+      // (cpp:1527) and ReportUsedScreenSizes (cpp:1529) are not ported yet.
+      this.scene.instancedMeshManager.CollectMeshes(this.scene.componentRegistry);
       // Carbon's allObjects is the scene list plus camera parent, not flattened
       // renderables or planets. Dispatch after FinalizeBatches (cpp:1470-1527).
       if (this.scene.shLightingManager)

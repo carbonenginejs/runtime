@@ -4,10 +4,27 @@ import { random as carbonRandom } from "#math/random";
 // Source: trinity/trinity/Eve/Volume/EveBoxVolume_Blue.cpp
 import { IsMatch, INotify } from "#blue";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
+import { color } from "#math/color";
+import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { IEveVolume } from "./IEveVolume.js";
 import { meta, type, blue } from "#schema";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
+
+// RenderDebugInfo scratch (debug drawing is single-threaded).
+const DEBUG_TRANSFORM = mat4.create();
+const DEBUG_BASE_COLOR = color.create();
+const DEBUG_COLOR = color.create();
+
+// IEveVolume.h:18's default baseColor, Color( 0xFFFFFFFF ).
+const DEFAULT_BASE_COLOR = color.fromARGB(color.create(), 0xFFFFFFFF);
+// Carbon scales baseColor by the float literals 0.5f and 0.6f.
+const OUTER_COLOR_SCALE = 0.5;
+const INNER_COLOR_SCALE = Math.fround(0.6);
+
+// Scratch for the intersection centres moved into box space.
+const DEBUG_POSITION = vec3.create();
 
 
 /**
@@ -58,6 +75,32 @@ export class EveBoxVolume extends IEveVolume
 
   _inverseRotation = quat.create();
 
+  /** Carbon m_boxTransform (EveBoxVolume.h:49, identity at cpp:21): Setup builds it (cpp:104). */
+  _boxTransform = mat4.create();
+
+  /** Carbon m_innerBoxTransform (EveBoxVolume.h:50, identity at cpp:22): Setup builds it (cpp:105). */
+  _innerBoxTransform = mat4.create();
+
+  /**
+   * Carbon m_innerIntersection (EveBoxVolume.h:54, zero at cpp:19). Carbon
+   * writes it in GetIntensity (cpp:80, cpp:83); this port's adapted GetIntensity
+   * does not, so it stays at the origin.
+   */
+  _innerIntersection = vec3.create();
+
+  /**
+   * Carbon m_outerIntersection (EveBoxVolume.h:55, zero at cpp:20). Carbon
+   * writes it in GetIntensity (cpp:79); this port's adapted GetIntensity does
+   * not, so it stays at the origin.
+   */
+  _outerIntersection = vec3.create();
+
+  /** Carbon EveBoxVolume::MAX_AABB (EveBoxVolume.h:59, cpp:11). */
+  static _MAX_AABB = vec3.fromValues(0.5, 0.5, 0.5);
+
+  /** Carbon EveBoxVolume::MIN_AABB (EveBoxVolume.h:60, cpp:12). */
+  static _MIN_AABB = vec3.fromValues(-0.5, -0.5, -0.5);
+
   /**
    * Clamps the authored scalings and caches the inverse rotation the intensity
    * test needs.
@@ -89,6 +132,11 @@ export class EveBoxVolume extends IEveVolume
    * point is moved into box-local space with the cached inverse rotation, then
    * compared radially against the inner and outer boxes - 1 inside the inner
    * box, 0 outside the outer one, and a squared ramp between them.
+   *
+   * Carbon (EveBoxVolume.cpp:58-86) intersects a ray with both boxes and
+   * records the hits in m_outerIntersection/m_innerIntersection, which
+   * RenderDebugInfo draws; this port does not record them, so
+   * _outerIntersection/_innerIntersection stay at the origin.
    */
   @blue.method
   @meta.adapted
@@ -236,25 +284,68 @@ export class EveBoxVolume extends IEveVolume
     return true;
   }
 
-  /** No debug drawing in this port. */
+  /**
+   * Carbon EveBoxVolume::RenderDebugInfo (EveBoxVolume.cpp:41-51): the outer
+   * and inner boxes as wireframe unit boxes (MIN_AABB to MAX_AABB) under the
+   * transforms Setup caches, at 0.5 and 0.6 of baseColor - Carbon's
+   * Color * float scales all four channels, alpha included
+   * (Color_inline.h:125-128) - and, when debugShowIntersection is set, the
+   * intersection points as solid spheres of radius 1.
+   *
+   * The intersection points are Carbon's members, but this port's adapted
+   * GetIntensity never writes them, so with debugShowIntersection on both
+   * spheres sit at the box centre.
+   *
+   * @param {ITr2DebugRenderer2} renderer The debug renderer.
+   * @param {mat4} parentTransform The parent's world transform.
+   * @param {vec4} [baseColor] Base colour, Carbon's `const Color&`; defaults to Color( 0xFFFFFFFF ).
+   */
   @blue.method
-  @meta.noop
-  RenderDebugInfo()
+  @meta.implemented
+  RenderDebugInfo(renderer, parentTransform, baseColor = DEFAULT_BASE_COLOR)
   {
+    const owner = Tr2DebugObjectReference.create__Object(this);
+    color.copy(DEBUG_BASE_COLOR, baseColor);
+
+    // Carbon m_boxTransform * parentTransform (row-vector).
+    mat4.multiply(DEBUG_TRANSFORM, parentTransform, this._boxTransform);
+    color.scale(DEBUG_COLOR, DEBUG_BASE_COLOR, OUTER_COLOR_SCALE);
+    renderer.DrawBox__Transform(owner, DEBUG_TRANSFORM, EveBoxVolume._MIN_AABB, EveBoxVolume._MAX_AABB,
+      ITr2DebugRenderer2.Effect.Wireframe, Tr2DebugColor.create__Color(DEBUG_COLOR));
+
+    // Carbon m_innerBoxTransform * parentTransform (row-vector).
+    mat4.multiply(DEBUG_TRANSFORM, parentTransform, this._innerBoxTransform);
+    color.scale(DEBUG_COLOR, DEBUG_BASE_COLOR, INNER_COLOR_SCALE);
+    renderer.DrawBox__Transform(owner, DEBUG_TRANSFORM, EveBoxVolume._MIN_AABB, EveBoxVolume._MAX_AABB,
+      ITr2DebugRenderer2.Effect.Wireframe, Tr2DebugColor.create__Color(DEBUG_COLOR));
+
+    if (this.debugShowIntersection)
+    {
+      // Carbon TransformCoord( m_innerIntersection, m_boxTransform ).
+      vec3.transformMat4(DEBUG_POSITION, this._innerIntersection, this._boxTransform);
+      renderer.DrawSphere__TransformCenterRadius(owner, parentTransform, DEBUG_POSITION, 1, 16,
+        ITr2DebugRenderer2.Effect.Solid, Tr2DebugColor.create__Uint32(0xff555555));
+
+      // Carbon TransformCoord( m_outerIntersection, m_boxTransform ).
+      vec3.transformMat4(DEBUG_POSITION, this._outerIntersection, this._boxTransform);
+      renderer.DrawSphere__TransformCenterRadius(owner, parentTransform, DEBUG_POSITION, 1, 16,
+        ITr2DebugRenderer2.Effect.Solid, Tr2DebugColor.create__Uint32(0xffffff00));
+    }
   }
 
   /**
    * Carbon Setup (EveBoxVolume.cpp:99-112): clamp the scalings, keep the
    * inner scaling inside the outer, refresh the cached derived state.
    * Carbon caches four full matrices plus the bounding sphere; this port
-   * computes transforms and the sphere on demand, so the cached state is
-   * the inverse rotation the intensity test reads. Box's Setup does NOT
+   * caches the box and inner box transforms RenderDebugInfo reads
+   * (cpp:104-105) and the inverse rotation its intensity test reads, and
+   * derives the inverses and the sphere on demand. Box's Setup does NOT
    * fire change callbacks - OnModified does (cpp:194-215), unlike the
    * ellipsoid, whose Setup fires them itself.
    *
-   * Adapted: Carbon caches boxTransform/innerBoxTransform/inverses and the bounding sphere;
-   * this port derives them on demand, so Setup refreshes the clamps and the cached inverse
-   * rotation.
+   * Adapted: Carbon caches the two inverse box transforms and the bounding sphere; this
+   * port's GetIntensity and GetBoundingSphere derive their own state on demand, so Setup
+   * refreshes the clamps, the two box transforms and the cached inverse rotation.
    */
   @blue.method
   @meta.adapted
@@ -266,6 +357,14 @@ export class EveBoxVolume extends IEveVolume
       this.innerScaling[i] = Math.min(Math.max(0, this.innerScaling[i]), this.scaling[i]);
     }
     quat.invert(this._inverseRotation, this.rotation);
+
+    // Carbon m_boxTransform = TransformationMatrix( m_scaling, m_rotation, m_position )
+    // (cpp:104): row-vector S * R * T.
+    mat4.fromRotationTranslationScale(this._boxTransform, this.rotation, this.position, this.scaling);
+
+    // Carbon m_innerBoxTransform = TransformationMatrix( m_innerScaling, m_rotation, m_position )
+    // (cpp:105): row-vector S * R * T.
+    mat4.fromRotationTranslationScale(this._innerBoxTransform, this.rotation, this.position, this.innerScaling);
   }
 
   /**

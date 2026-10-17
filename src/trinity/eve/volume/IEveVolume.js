@@ -57,10 +57,10 @@ export class IEveVolume
    *
    * @param {ITr2DebugRenderer2} _renderer The debug renderer.
    * @param {mat4} _parentTransform The parent's world transform.
-   * @param {number} [_baseColor=0xFFFFFFFF] Base colour, packed ARGB.
+   * @param {vec4} [_baseColor] Base colour, Carbon's `const Color&`; defaults to Color( 0xFFFFFFFF ).
    */
   @blue.abstract
-  RenderDebugInfo(_renderer, _parentTransform, _baseColor = 0xFFFFFFFF) {}
+  RenderDebugInfo(_renderer, _parentTransform, _baseColor) {}
 
   /**
    * Carbon `const CcpMath::Sphere GetBoundingSphere() const`

@@ -5,6 +5,7 @@ import { vec3 } from "#math/vec3";
 import { meta, type, blue } from "#schema";
 import { EveChildInstancedMeshArea } from "./EveChildInstancedMeshArea.js";
 import { EveChildInstancedMeshInstance } from "./EveChildInstancedMeshInstance.js";
+import { EveInstancedMeshManagerInstanceFlags } from "../../instancedMeshManager/EveInstancedMeshManagerInstanceFlags.js";
 
 
 /**
@@ -93,10 +94,11 @@ export class EveChildInstancedMesh
    * by UpdateAsyncronous (cpp:259-269). */
   instanceSpheres = [];
 
-  /** Carbon Mesh::flags (InstanceFlags uint32) - batch-type bits stamped at
-   * AddMesh (cpp:578-581), CASTS_SHADOW at AddMesh (cpp:574-577),
-   * RENDER_IN_REFLECTION refreshed each async pass (cpp:251). */
-  flags = 0;
+  /** Carbon Mesh::flags (EveInstancedMeshManager::InstanceFlags, h:151),
+   * embedded by value - batch-type bits stamped at AddMesh (cpp:589),
+   * CASTS_SHADOW at AddMesh (cpp:585), RENDER_IN_REFLECTION refreshed each
+   * async pass (cpp:289). */
+  flags = new EveInstancedMeshManagerInstanceFlags();
 
   _geometry = null;
 

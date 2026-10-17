@@ -18,6 +18,7 @@ import { vec4 } from "#math/vec4";
 import { EveEntity } from "../EveEntity.js";
 import { BLUELISTEVENT } from "#consts/blue";
 import { EveComponentRegistry } from "./components/EveComponentRegistry.js";
+import { EveInstancedMeshManager } from "../instancedMeshManager/EveInstancedMeshManager.js";
 import { Tr2PostProcess2 } from "../../postProcess/Tr2PostProcess2.js";
 import { Tr2PostProcessAttributes } from "../../postProcess/Tr2PostProcessAttributes.js";
 import { Tr2ShaderBuffer } from "../../shader/Tr2ShaderBuffer.js";
@@ -428,10 +429,16 @@ export class EveSpaceScene
   debugRenderer = null;
 
   /**
-   * Pre-92483097 m_instancedMeshManager. Its production implementation remains
-   * unported; null limits legacy picking to ordinary collision-set objects.
+   * m_instancedMeshManager (std::unique_ptr<EveInstancedMeshManager>,
+   * EveSpaceScene.h:708, public), created with the scene (cpp:301). Its
+   * CollectMeshes runs in GatherBatches (cpp:1525); the JS gather is split
+   * between this class and EveSpaceSceneRenderDriver, which calls it after
+   * collecting the renderables' batches. Its draw
+   * side (GetBatches, GetShadowBatches, GetPickingBatches, GetPickedObject,
+   * ReportUsedScreenSizes) is not ported.
    */
-  instancedMeshManager = null;
+  @type.rawStruct("EveInstancedMeshManager")
+  instancedMeshManager = new EveInstancedMeshManager();
 
   /** m_objects (PIEveSpaceObject2Vector) [READ, PERSIST] */
   @blue.read
@@ -1082,8 +1089,8 @@ export class EveSpaceScene
    * Pre-92483097 EveSpaceScene.cpp:3578-3771: retained collision-set indices,
    * request-owned BGRA8 main target and independent float debug target.
    * Browser readback readiness replaces native frame-number synchronization.
-   * The instancing manager remains an unported dependency; when supplied it
-   * owns native batch collection and immediate traceback. The debug renderer's
+   * The instancing manager's picking side (GetPickingBatches, GetPickedObject)
+   * is not ported yet, so instanced meshes are not pickable. The debug renderer's
    * Pick entry is an explicit unported obligation, not silently skipped.
    */
   @meta.adapted
@@ -1112,18 +1119,11 @@ export class EveSpaceScene
       }
       const batches = this._pickingBatches;
       batches.SetTriPoolAllocator(renderContext.GetTriPoolAllocator());
-      if (this.instancedMeshManager)
-      {
-        const lists = [];
-        if (pickTypes & Tr2PickType.PICK_TYPE_OPAQUE) lists.push([TriBatchType.TRIBATCHTYPE_OPAQUE, batches]);
-        if (pickTypes & Tr2PickType.PICK_TYPE_TRANSPARENT)
-        {
-          lists.push([TriBatchType.TRIBATCHTYPE_TRANSPARENT, batches]);
-          lists.push([TriBatchType.TRIBATCHTYPE_ADDITIVE, batches]);
-        }
-        if (lists.length) this.instancedMeshManager.GetPickingBatches(request, this.updateContext.GetFrustum(),
-          this.CreatePickingFrustum(renderContext), this.updateContext.GetInvLodFactor(), request.collisionSet.length, lists);
-      }
+      // Waiting: Carbon's instanced picking batches (EveSpaceScene.cpp:3641-3660,
+      // m_instancedMeshManager->GetPickingBatches) arrive with the manager's
+      // draw side. The manager now exists with the scene but does not yet
+      // implement GetPickingBatches, so no instanced batches are gathered here,
+      // as before when the member was null.
       if ((request.collisionSet.length || batches.GetBatchCount()) && !Failed(renderContext.BeginScene()))
       {
         try
@@ -1325,7 +1325,10 @@ export class EveSpaceScene
     const mainData = mapping.result === ALResult.S_OK ? mapping.data : null;
     const debugData = debug.result === ALResult.S_OK ? debug.data : null;
     const result = pending.framework === "objectId"
-      ? pending.DecodeResult__ObjectId(mainData, debugData, immediate, this.instancedMeshManager)
+      // Waiting: immediate instanced traceback goes through the manager's
+      // GetPickedObject (EveInstancedMeshManager.h:101), not yet ported, so no
+      // manager is supplied - as before when the member was null.
+      ? pending.DecodeResult__ObjectId(mainData, debugData, immediate, null)
       : mainData ? pending.DecodeResult(mainData) : [null, 0, 0];
     listener.UpdateResult(pending.pickedX, pending.pickedY, ...result);
     listener.readbacks.shift();
@@ -2612,8 +2615,8 @@ export class EveSpaceScene
    * Adapted:
    * - `renderer` is passed in, as RenderBackgroundPassObjects and
    *   SetupCascadedShadows take it here.
-   * - EveInstancedMeshManager is dropped (trinity/dropped), so there are no
-   *   instanced batches; raytraced shadows are unported, so the RAYTRACED quality
+   * - EveInstancedMeshManager's GetBatches is not ported yet (cpp:1915-1925),
+   *   so there are no instanced batches; raytraced shadows are unported, so the RAYTRACED quality
    *   draws no reflection shadows (Carbon's m_rtManager is absent).
    * - Carbon locks the saved DepthMap provider while it is swapped out; a JS
    *   reference needs no lock.
