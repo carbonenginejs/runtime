@@ -402,6 +402,28 @@ export class Tr2Renderer
       ? Tr2Renderer.#blitter.Draw__EffectTextureTexCoords(renderContext, options.material, texture, tlTexCoord, brTexCoord)
       : Tr2Renderer.#blitter.Draw__Texture(renderContext, texture, tlTexCoord, brTexCoord, options.filter);
   }
+  /**
+   * Carbon DrawTexture( renderContext, effect, tlTexCoord, brTexCoord )
+   * (Tr2Renderer.cpp:806-817): a quad drawn with a material and no source
+   * texture, its coordinates adjusted to the viewport first. False without a
+   * blitter, as Carbon returns.
+   *
+   * @param {object} renderContext The context to draw through.
+   * @param {object} effect The material to draw with.
+   * @param {ArrayLike<number>} tlTexCoord Top-left texture coordinate.
+   * @param {ArrayLike<number>} brTexCoord Bottom-right texture coordinate.
+   * @returns {boolean} Whether the quad was drawn.
+   */
+  @blue.method
+  @meta.implemented
+  static DrawTexture__EffectTexCoords(renderContext, effect, tlTexCoord, brTexCoord)
+  {
+    if (!Tr2Renderer.#blitter) return false;
+
+    const adjusted = Tr2RenderUtils.adjustTextureCoordsToViewport(renderContext, tlTexCoord, brTexCoord);
+    return Tr2Renderer.#blitter.Draw__EffectTexCoords(renderContext, effect, adjusted.tlTexCoord, adjusted.brTexCoord);
+  }
+
 
   // ------------------------------------------------------------------------
   // THE FRAME STATICS. Source: Tr2Renderer.h:125-133, Tr2Renderer.cpp:1040-1091

@@ -64,7 +64,30 @@ import { Tr2TextureAL, Tr2BitmapDimensions, Tr2TextureSubresource, Failed, ALRes
 import { Tr2CpuUsage } from "#consts/render-context";
 import { Tr2PickType, TR2_PICK_TYPE_DEFAULT } from "#consts/graphics/tr2PickType";
 import "./EveSpaceSceneRenderDriver.js";
+import { Tr2Effect } from "../../shader/Tr2Effect.js";
 
+
+/** VISUALIZER_EFFECT_PATH (EveSpaceScene.cpp:124-132), indexed by EveVisualizeMethod. */
+const VISUALIZER_EFFECT_PATH = [
+  "",
+  "res:/Graphics/Effect/Managed/Space/Visualizer/Texcoord0.fx",
+  "res:/Graphics/Effect/Managed/Space/Visualizer/Texcoord1.fx",
+  "res:/Graphics/Effect/Managed/Space/Visualizer/White.fx",
+  "res:/Graphics/Effect/Managed/Space/Visualizer/Overdraw.fx",
+  "res:/Graphics/Effect/Managed/Space/Visualizer/Wireframe.fx",
+  "res:/Graphics/Effect/Managed/Space/Visualizer/LightCount.fx"
+];
+
+/** EveSpaceScene::VisualizerEffect::VisualizerType (EveSpaceScene.h:573-578). */
+const VisualizerType = {
+  PIXEL_SHADER_REPLACEMENT: 0,
+  FULL_SCREEN_QUAD: 1,
+  FULL_SCREEN_QUAD_OVERLAY: 2
+};
+
+/** The overlay's full-viewport texture coordinates (cpp:2885). */
+const OVERLAY_TL = [ 0, 0 ];
+const OVERLAY_BR = [ 1, 1 ];
 
 // Module scratch for the per-frame sun-direction read (assume-dirty).
 const sunDirectionScratch = vec3.create();
@@ -191,6 +214,18 @@ export class EveSpaceScene
   @type.int32
   @type.enum("trinity.EveSpaceScene.EveVisualizeMethod")
   visualizeMethod = 0;
+
+  /**
+   * m_visualizerEffects[VM_COUNT] (EveSpaceScene.h:571-589): one
+   * { effect, type } record per EveVisualizeMethod. VisualizerEffect's
+   * constructor sets PIXEL_SHADER_REPLACEMENT and no effect (h:580-584); the
+   * scene's constructor makes LIGHT_COUNT an overlay (cpp:285), and each effect
+   * is created the first time its method renders (cpp:1315-1322).
+   */
+  _visualizerEffects = Array.from({ length: EveVisualizeMethod.VM_COUNT }, () => ({
+    effect: null,
+    type: VisualizerType.PIXEL_SHADER_REPLACEMENT
+  }));
 
   /** m_envMap1ResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
   @blue.notify
@@ -1794,6 +1829,9 @@ export class EveSpaceScene
   /** Registers the bone provider before effect hydration (EveSpaceScene.cpp:257-258). */
   constructor()
   {
+    // cpp:285.
+    this._visualizerEffects[EveVisualizeMethod.VW_LIGHT_COUNT].type = VisualizerType.FULL_SCREEN_QUAD_OVERLAY;
+
     for (const list of [this.backgroundObjects, this.planets, this.objects, this.uiObjects]) list.SetNotify(this);
     const bones = Tr2RingBuffer.GetInstance("Float4x3", 48, Tr2RenderContext_GetMainThreadRenderContext());
     bones.SetName("BoneTransformsBuffer");
@@ -2141,6 +2179,13 @@ export class EveSpaceScene
 
     mat4.copy(this.viewLast, renderContext.GetViewTransform());
     mat4.copy(this.projectionLast, this.projection);
+
+    // An overlay visualizer draws over the finished frame (cpp:2883-2886).
+    const visualizerEffect = this._visualizerEffects[this.visualizeMethod];
+    if (visualizerEffect.type === VisualizerType.FULL_SCREEN_QUAD_OVERLAY)
+    {
+      Tr2Renderer.DrawTexture__EffectTexCoords(renderContext, visualizerEffect.effect, OVERLAY_TL, OVERLAY_BR);
+    }
   }
 
   /**
@@ -2210,12 +2255,11 @@ export class EveSpaceScene
   }
 
   /**
-   * Carbon EveSpaceScene::RenderBatch (cpp:1095-1115): finalize, apply the
-   * rendering mode's standard states, draw, clear.
-   *
-   * Adapted: Carbon draws through the scene's visualizer effect (a pixel-shader
-   * replacement, or none for the ordinary view); visualizer effects are not
-   * ported, so this always draws the ordinary view.
+   * Carbon EveSpaceScene::RenderBatch (cpp:1101-1121): finalize, apply the
+   * rendering mode's standard states, draw through the current visualizer -
+   * its effect replacing every material, or the ordinary materials under an
+   * overlay - and clear. VM_NONE has no effect, so its replacement draw is the
+   * ordinary one.
    *
    * @param {object} batch The accumulator to draw.
    * @param {number} rm The RenderingMode.
@@ -2223,12 +2267,24 @@ export class EveSpaceScene
    * @returns {void}
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   RenderBatch(batch, rm, renderContext)
   {
+    const visualizerEffect = this._visualizerEffects[this.visualizeMethod];
+
     batch.Finalize();
     renderContext.GetEffectStateManager().ApplyStandardStates(rm);
-    renderContext.RenderBatches(batch);
+    switch (visualizerEffect.type)
+    {
+      case VisualizerType.PIXEL_SHADER_REPLACEMENT:
+        renderContext.RenderBatchesWithOverride(batch, visualizerEffect.effect);
+        break;
+      case VisualizerType.FULL_SCREEN_QUAD_OVERLAY:
+        renderContext.RenderBatches(batch);
+        break;
+      default:
+        break;
+    }
     batch.Clear();
   }
 
@@ -2855,31 +2911,63 @@ export class EveSpaceScene
   }
 
   /**
-   * Native opaque/decal order (cpp:1124-1147).
-   * Adapted: shader-replacement visualizers are unported; draws ordinary materials.
+   * Carbon RenderOpaqueBatches (cpp:1130-1156): opaque then decal batches,
+   * through the current visualizer as RenderBatch does.
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   RenderOpaqueBatches(batches, context)
   {
-    context.GetEffectStateManager().ApplyStandardStates(RenderingMode.RM_OPAQUE);
-    context.RenderBatches(batches.get(TriBatchType.TRIBATCHTYPE_OPAQUE));
-    context.GetEffectStateManager().ApplyStandardStates(RenderingMode.RM_DECAL);
-    context.RenderBatches(batches.get(TriBatchType.TRIBATCHTYPE_DECAL));
+    const visualizerEffect = this._visualizerEffects[this.visualizeMethod];
+    const esm = context.GetEffectStateManager();
+
+    switch (visualizerEffect.type)
+    {
+      case VisualizerType.PIXEL_SHADER_REPLACEMENT:
+        esm.ApplyStandardStates(RenderingMode.RM_OPAQUE);
+        context.RenderBatchesWithOverride(batches.get(TriBatchType.TRIBATCHTYPE_OPAQUE), visualizerEffect.effect);
+        esm.ApplyStandardStates(RenderingMode.RM_DECAL);
+        context.RenderBatchesWithOverride(batches.get(TriBatchType.TRIBATCHTYPE_DECAL), visualizerEffect.effect);
+        break;
+      case VisualizerType.FULL_SCREEN_QUAD_OVERLAY:
+        esm.ApplyStandardStates(RenderingMode.RM_OPAQUE);
+        context.RenderBatches(batches.get(TriBatchType.TRIBATCHTYPE_OPAQUE));
+        esm.ApplyStandardStates(RenderingMode.RM_DECAL);
+        context.RenderBatches(batches.get(TriBatchType.TRIBATCHTYPE_DECAL));
+        break;
+      default:
+        break;
+    }
   }
 
   /**
-   * Native transparent/additive order (cpp:1156-1179).
-   * Adapted: shader-replacement visualizers are unported; draws ordinary materials.
+   * Carbon RenderTransparentBatches (cpp:1163-1185): transparent then
+   * additive batches, through the current visualizer as RenderBatch does.
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   RenderTransparentBatches(batches, context)
   {
-    context.GetEffectStateManager().ApplyStandardStates(RenderingMode.RM_ALPHA);
-    context.RenderBatches(batches.get(TriBatchType.TRIBATCHTYPE_TRANSPARENT));
-    context.GetEffectStateManager().ApplyStandardStates(RenderingMode.RM_ALPHA_ADDITIVE);
-    context.RenderBatches(batches.get(TriBatchType.TRIBATCHTYPE_ADDITIVE));
+    const visualizerEffect = this._visualizerEffects[this.visualizeMethod];
+    const esm = context.GetEffectStateManager();
+
+    switch (visualizerEffect.type)
+    {
+      case VisualizerType.PIXEL_SHADER_REPLACEMENT:
+        esm.ApplyStandardStates(RenderingMode.RM_ALPHA);
+        context.RenderBatchesWithOverride(batches.get(TriBatchType.TRIBATCHTYPE_TRANSPARENT), visualizerEffect.effect);
+        esm.ApplyStandardStates(RenderingMode.RM_ALPHA_ADDITIVE);
+        context.RenderBatchesWithOverride(batches.get(TriBatchType.TRIBATCHTYPE_ADDITIVE), visualizerEffect.effect);
+        break;
+      case VisualizerType.FULL_SCREEN_QUAD_OVERLAY:
+        esm.ApplyStandardStates(RenderingMode.RM_ALPHA);
+        context.RenderBatches(batches.get(TriBatchType.TRIBATCHTYPE_TRANSPARENT));
+        esm.ApplyStandardStates(RenderingMode.RM_ALPHA_ADDITIVE);
+        context.RenderBatches(batches.get(TriBatchType.TRIBATCHTYPE_ADDITIVE));
+        break;
+      default:
+        break;
+    }
   }
 
   /**
@@ -3670,6 +3758,17 @@ export class EveSpaceScene
   {
     if (!this.display) return;
 
+    // The current visualizer's effect, created on first use (cpp:1315-1322).
+    if (this.visualizeMethod !== EveVisualizeMethod.VM_NONE)
+    {
+      const visualizerEffect = this._visualizerEffects[this.visualizeMethod];
+      if (!visualizerEffect.effect)
+      {
+        visualizerEffect.effect = new Tr2Effect();
+        visualizerEffect.effect.SetEffectPathName(VISUALIZER_EFFECT_PATH[this.visualizeMethod]);
+      }
+    }
+
     // Carbon opens BeginRender's managed-rendering span here (cpp:1381-1382);
     // RenderBackgroundPass closes it (cpp:2083).
     const esm = renderContext.GetEffectStateManager();
@@ -4030,6 +4129,9 @@ export class EveSpaceScene
   }
 
   static EveVisualizeMethod = EveVisualizeMethod;
+
+  /** EveSpaceScene::VisualizerEffect::VisualizerType (h:573-578). */
+  static VisualizerType = VisualizerType;
 
   /** g_eveSpaceSceneGammaBrightness (TRI_REGISTER_SETTING "eveSpaceSceneGammaBrightness",
    * cpp:102-103): the tonemapper's OutputGamma and the per-frame GammaBrightness. */
