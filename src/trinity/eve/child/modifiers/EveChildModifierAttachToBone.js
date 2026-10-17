@@ -34,9 +34,11 @@ export class EveChildModifierAttachToBone extends IEveChildTransformModifier
    */
   @blue.method
   @meta.implemented
-  ApplyTransform(_context, transform, boneCount = 0, bones = null, out)
+  ApplyTransform(_context, transform, boneCount, bones, out)
   {
-    if (this.boneIndex < 0 || this.boneIndex >= boneCount || !bones)
+    // Carbon checks only the index (cpp:15-18); an in-range index reads the
+    // palette unchecked (cpp:21).
+    if (this.boneIndex < 0 || this.boneIndex >= boneCount)
     {
       return mat4.copy(out, transform);
     }

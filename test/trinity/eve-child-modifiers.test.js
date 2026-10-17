@@ -388,6 +388,10 @@ test("EveChildModifierAttachToBone composes the Float4x3 bone before the child",
   // translation (1,0,0) is rotated by the +90-degree Z child into (0,1,0).
   assert.ok(Math.abs(out[12]) < EPSILON, "tx rotated away");
   assert.ok(Math.abs(out[13] - 1) < EPSILON, "bone translation rotated onto +Y");
+
+  // Carbon checks the index, not the palette (cpp:15-21): an in-range index
+  // with no palette dereferences it.
+  assert.throws(() => modifier.ApplyTransform(null, transform, 1, null, out), TypeError);
 });
 
 test("EveChildModifierTranslateWithCamera adds or replaces the view position", () =>

@@ -102,15 +102,14 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
   /** Carbon EveProceduralMethodCycling::OnListModified (cpp:28-34): a
    * non-loading change to the parameter list reselects.
    *
-   * Adapted: The list argument defaults to the parameters list; the reselect
-   * uses restart's default wall clock (no frame context reaches list
-   * notifies).
+   * Adapted: the reselect uses restart's default wall clock (no frame
+   * context reaches list notifies).
    */
   @blue.method
   @meta.adapted
-  OnListModified(event = 0, _key = 0, _key2 = 0, _value = null, list = null)
+  OnListModified(event, _key, _key2, _value, list)
   {
-    if ((list === null || list === this.parameters) && (event & BELIST_LOADING) === 0)
+    if (list === this.parameters && (event & BELIST_LOADING) === 0)
     {
       this.restart();
     }

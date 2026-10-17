@@ -90,14 +90,12 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
 
   /** Carbon EveProceduralMethodRandom::OnListModified (cpp:37-43): a
    * non-loading change to the parameter list regenerates the weight map.
-   *
-   * Adapted: The list argument defaults to the parameters list.
    */
   @blue.method
-  @meta.adapted
-  OnListModified(event = 0, _key = 0, _key2 = 0, _value = null, list = null)
+  @meta.implemented
+  OnListModified(event, _key, _key2, _value, list)
   {
-    if ((list === null || list === this.parameters) && (event & BELIST_LOADING) === 0)
+    if (list === this.parameters && (event & BELIST_LOADING) === 0)
     {
       this.GenerateParameterMapping();
     }
