@@ -29,8 +29,6 @@ Every quarantined file has an explicit disposition:
 | `Tr2CurveBase.js` | Generic C++ template whose emitted `KeyValue`/`Key` fields are unresolved template parameters. | Maintained concrete curve classes own concrete storage and behavior. |
 | `Tr2CurveRasterizeDestination.js` | Native method destination record, not a Blue graph class. | Plain destination records consumed by `Tr2CurveScalar.Rasterize`. |
 | `Tr2CurveScalarDefinition.js` | Native method definition record, not a Blue graph class. | Plain definition records consumed by `Tr2CurveScalar.GetDefinition`/`SetDefinition`. |
-| `Tr2DebugColor.js` | Native debug-renderer value struct, not persisted graph state. | Plain engine/debug-adapter record when a renderer needs it. |
-| `Tr2DebugObjectReference.js` | Native debug-renderer reference struct, not persisted graph state. | Plain engine/debug-adapter record when a renderer needs it. |
 | `Tr2Key.js` | Generic C++ key template with unresolved value type `T`. | Concrete maintained key classes such as `Tr2CurveScalarKey`. |
 | `Tr2ParticleStreamIterator.js` | Internal C++ template that advances typed pointers through particle buffers; the scanner exposed its stride local as model state. | Plain typed-array indexing inside maintained CPU particle simulation code. |
 | `Tr2RaytracingMeshArea.js` | Native per-area BLAS/cache helper with device acceleration structures; it has no `BLUE_CLASS` declaration and the emitted `true` field is a method literal. | Raytracing engine backend area state associated with the maintained graph/resource owner. |
@@ -62,8 +60,7 @@ scanner had incorrectly promoted to constructible `CjsModel` classes:
 - Native method records `Tr2CurveScalarDefinition` and
   `Tr2CurveRasterizeDestination`. `Tr2CurveScalar` consumes their shapes as
   ordinary JavaScript records rather than registered constructors.
-- Native utility/debug records `Point`, `Tr2Rect`, `Tr2DebugColor`,
-  `Tr2DebugObjectReference`, and `TriPerlinNoise`. They are not persisted Blue
+- Native utility records `Point`, `Tr2Rect` and `TriPerlinNoise`. They are not persisted Blue
   model classes and their generated static/member shapes are misleading.
 - Native Granny extended-data records `BoundingBox`, `AreaBoundsInfo`, and
   `MeshBoundsInfo`, plus the native double-precision value structs `Vector3d`

@@ -53,8 +53,12 @@ test("EveChildBoosterSet.Add derives light state, bounds and max size", () =>
   assert.equal(set.GetBoundingSphere(sphere), false);
   set.UpdateAsyncronous(null, updateParams(3));
   assert.equal(set.GetBoundingSphere(sphere), true);
-  // Single point: radius 0 -> centre [0,0,5] scaled by 3, w 0.
-  assert.deepEqual(Array.from(sphere), [ 0, 0, 15, 0 ]);
+  // Carbon grows a zero sphere (CE-172): one point at [0,0,5] gives centre
+  // [0,0,2.5], radius 2.5; the pad moves the centre to 1.25 and doubles the
+  // radius, then the parent scales both by 3.
+  assert.deepEqual(Array.from(sphere), [ 0, 0, 3.75, 15 ]);
+  assert.deepEqual(Array.from(set.boosterBoundingSphereCenter), [ 0, 0, 2.5 ]);
+  assert.equal(set.boosterBoundingSphereRadius, 2.5);
   assertNear(set.thrust, 0);
 });
 

@@ -196,19 +196,21 @@ test("EveSceneStaticParticles publishes and renders Carbon's bounding-sphere deb
   particles.boundingSphere.set([1, 2, 3, 4]);
   mat4.fromTranslation(particles.worldMatrix, [10, 20, 30]);
 
-  const options = particles.GetDebugOptions();
+  const options = new Set();
+  particles.GetDebugOptions(options);
   assert.deepEqual([...options], ["Bounding Sphere"]);
 
   const calls = [];
   const renderer = {
     HasOption: (owner, option) => owner === particles && option === "Bounding Sphere",
-    DrawSphere: (...args) => calls.push(args),
+    DrawSphere__CenterRadius: (...args) => calls.push(args),
   };
   particles.RenderDebugInfo(renderer);
   assert.equal(calls.length, 1);
-  assert.equal(calls[0][0], particles);
+  assert.equal(calls[0][0].object, particles);
   assert.deepEqual(Array.from(calls[0][1]), [11, 22, 33]);
-  assert.deepEqual(calls[0].slice(2), [4, 10, 0, 0xffffff00]);
+  assert.deepEqual(calls[0].slice(2, 5), [4, 10, 0]);
+  assert.equal(calls[0][5].color, 0xffffff00);
 
   calls.length = 0;
   particles.RenderDebugInfo({ ...renderer, HasOption: () => false });

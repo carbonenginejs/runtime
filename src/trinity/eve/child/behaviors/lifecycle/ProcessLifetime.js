@@ -383,33 +383,33 @@ export class ProcessLifetime
   }
 
   /**
-   * Adds Carbon's spline-tunnel debug option.
-   *
-   * Adapted: Adds option strings through the supplied collection's add or insert method; the
-   * debug adapter retains its capability checks.
+   * Carbon ProcessLifetime::GetDebugOptions (cpp:496-499).
+   * @param {Set<string>} options The caller-owned option set.
    */
   @blue.method
-  @meta.adapted
-  GetDebugOptions(options = new Set())
+  @meta.implemented
+  GetDebugOptions(options)
   {
-    if (options?.add) options.add("SplineTunnels");
-    else options?.insert?.("SplineTunnels");
-    return options;
+    options.add("SplineTunnels");
   }
 
   /**
-   * Delegates local tunnel debug geometry when its option is enabled.
-   *
-   * Adapted: ITr2DebugRenderer2 is an injected engine-owned capability.
+   * Carbon ProcessLifetime::RenderDebugInfo (cpp:501-510): delegates every
+   * spline tunnel's debug geometry when its option is enabled.
+   * @param {ITr2DebugRenderer2} renderer
+   * @param {Array} _agents DroneAgent records (unused, as in Carbon).
+   * @param {mat4} parentWorldLocation
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   RenderDebugInfo(renderer, _agents, parentWorldLocation)
   {
-    if (!renderer?.HasOption?.(this, "SplineTunnels")) return;
-    for (const group of this.splineTunnels)
+    if (renderer.HasOption(this, "SplineTunnels"))
     {
-      group?.RenderDebugInfo?.(renderer, parentWorldLocation);
+      for (const tunnel of this.splineTunnels)
+      {
+        tunnel.RenderDebugInfo(renderer, parentWorldLocation);
+      }
     }
   }
 

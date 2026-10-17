@@ -109,14 +109,20 @@ color.fromARGB = function(out, argb)
  *
  * Source: math/include/Color_inline.h:43-51
  * Carbon: Color::operator uint32_t() const
- * Adapted: Uses unsigned JS bit operations and JS number intermediates.
+ * Adapted: Uses unsigned JS bit operations. Each step rounds to float32, as
+ * Carbon's `r * 255.0f + 0.5f` does: in double, 0.7 * 255 + 0.5 truncates to
+ * 178 where Carbon gets 179.
  *
  * @param {color} a
  * @returns {Number} The ARGB word, unsigned.
  */
 color.toARGB = function(a)
 {
-    const byte = value => value >= 1 ? 0xff : value <= 0 ? 0x00 : (value * 255 + 0.5) | 0;
+    const byte = value =>
+    {
+        const channel = f32(value);
+        return channel >= 1 ? 0xff : channel <= 0 ? 0x00 : f32(f32(channel * 255) + 0.5) | 0;
+    };
     return ((byte(a[3]) << 24) | (byte(a[0]) << 16) | (byte(a[1]) << 8) | byte(a[2])) >>> 0;
 };
 

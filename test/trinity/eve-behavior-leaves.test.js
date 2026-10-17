@@ -135,7 +135,9 @@ test("volume behaviors publish and delegate their Carbon debug options", () =>
     behavior[property].push({
       RenderDebugInfo: (...args) => calls.push(args),
     });
-    assert.deepEqual([...behavior.GetDebugOptions()], [option]);
+    const options = new Set();
+    behavior.GetDebugOptions(options);
+    assert.deepEqual([...options], [option]);
 
     const renderer = {
       HasOption: (owner, name) => owner === behavior && name === option,

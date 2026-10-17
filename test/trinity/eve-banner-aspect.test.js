@@ -4,6 +4,8 @@ import { box3 } from "../../npm/dist/global/math/box3.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
+import { color } from "../../npm/dist/global/math/color.js";
+import { ITr2DebugRenderer2 } from "../../npm/dist/global/interfaces/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { EveBannerItem, EveBannerSet, IEveSpaceObjectAttachment, Tr2Effect, TriFrustum } from "../../npm/dist/trinity/index.js";
 
@@ -175,32 +177,30 @@ test("EveBannerSet reports the screen size to its effect on every path, culled o
 test("EveBannerSet publishes its three debug options and draws each (cpp:219-311)", () =>
 {
   const set = MakeBannerSet(MakeBanner([0, 0, 0], 1), MakeBanner([5, 0, 0], 1, 9));
-  assert.deepEqual(
-    Array.from(set.GetDebugOptions()),
-    ["Banner Sets", "Banner Sets Bounds", "Banner Sets Lights"]
-  );
+  const options = new Set();
+  set.GetDebugOptions(options);
+  assert.deepEqual(Array.from(options), ["Banner Sets", "Banner Sets Bounds", "Banner Sets Lights"]);
 
   const boxes = [];
   const renderer = {
     HasOption: (owner, option) => option !== "Banner Sets Lights",
-    DrawBox: (owner, index, transform, min, max, effect, color) =>
-      boxes.push({ index, effect, color: Array.from(color?.length ? color : [color]) }),
-    DrawSphere: () => assert.fail("lights option was off")
+    DrawBox__Transform: (owner, transform, min, max, effect, color) =>
+      boxes.push({ owner, effect, color: color.color }),
+    DrawSphere__TransformRadius: () => assert.fail("lights option was off")
   };
 
-  set.RenderDebugInfo(renderer, mat4.create());
+  set.RenderDebugInfo(renderer, mat4.create(), null, 0);
 
-  // Two banners drawn wireframe THEN solid, plus one bounds box.
-  assert.deepEqual(boxes.map(box => box.index), [0, 0, 1, 1, -1]);
-  assert.deepEqual(boxes.map(box => box.effect), [
-    EveBannerSet.DebugEffect.Wireframe,
-    EveBannerSet.DebugEffect.Solid,
-    EveBannerSet.DebugEffect.Wireframe,
-    EveBannerSet.DebugEffect.Solid,
-    EveBannerSet.DebugEffect.Wireframe
-  ]);
+  // Two banners drawn wireframe THEN solid, owned by (banner list, index),
+  // plus one bounds box owned by the set itself.
+  assert.deepEqual(boxes.map(box => box.owner.area), [0, 0, 1, 1, 0]);
+  assert.deepEqual(boxes.map(box => box.owner.object), [set.banners, set.banners, set.banners, set.banners, set]);
+  const { Wireframe, Solid } = ITr2DebugRenderer2.Effect;
+  assert.deepEqual(boxes.map(box => box.effect), [Wireframe, Solid, Wireframe, Solid, Wireframe]);
 
   // Banner 1 asks for bone 9 with no bone list, so it is drawn red, not blue.
-  assert.deepEqual(boxes[0].color, [0.1, 0.1, 0.7, 0.5]);
-  assert.deepEqual(boxes[2].color, [0.7, 0.1, 0.1, 0.5]);
+  assert.equal(boxes[0].color, color.toARGB([0.1, 0.1, 0.7, 0.5]));
+  assert.equal(boxes[2].color, color.toARGB([0.7, 0.1, 0.1, 0.5]));
+  assert.equal(boxes[1].color, 0);
+  assert.equal(boxes[4].color, 0xff00ff00);
 });

@@ -24,7 +24,7 @@ import { IsMatch } from "#blue";
 import { ITr2LightOwner } from "../lights/ITr2LightOwner.js";
 import { IShaderConfigurer } from "../../shader/IShaderConfigurer.js";
 import { IEveEffectChildrenOwner } from "../child/IEveEffectChildrenOwner.js";
-import { ITr2BoundingBox } from "#interfaces";
+import { ITr2BoundingBox, ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { ITr2SecondaryLightSource } from "../../core/lighting/ITr2SecondaryLightSource.js";
 import { EveEntity } from "../EveEntity.js";
 import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
@@ -1093,41 +1093,69 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /**
-   * Collects the Carbon debug-option names and child options.
-   *
-   * Adapted: Collects names through the supplied collection's add method and forwards to
-   * available child and observer debug hooks.
+   * Carbon EveEffectRoot2::GetDebugOptions (EveEffectRoot2.cpp:830-847): its
+   * own two options, then every observer's, then those of each effect child
+   * that is debug-renderable.
+   * @param {Set<string>} options The caller-owned option set.
    */
   @blue.method
-  @meta.adapted
-  GetDebugOptions(options = new Set())
+  @meta.implemented
+  GetDebugOptions(options)
   {
-    options.add?.("Bounding Sphere");
-    options.add?.("Lights");
-    for (const observer of this.observers) observer?.GetDebugOptions?.(options);
-    for (const child of this.effectChildren) child?.GetDebugOptions?.(options);
-    return options;
+    options.add("Bounding Sphere");
+    options.add("Lights");
+
+    for (const observer of this.observers)
+    {
+      observer.GetDebugOptions(options);
+    }
+
+    for (const child of this.effectChildren)
+    {
+      const renderable = CjsSchema.cast(child, ITr2DebugRenderable);
+      if (renderable) renderable.GetDebugOptions(options);
+    }
   }
 
   /**
-   * Forwards root debug geometry to an injected debug renderer.
-   *
-   * Adapted: The debug renderer is an injected engine-owned capability.
+   * Carbon EveEffectRoot2::RenderDebugInfo (EveEffectRoot2.cpp:850-877): the
+   * bounding sphere, every debug-renderable effect child, the lights in world
+   * space, then every observer.
+   * @param {ITr2DebugRenderer2} renderer
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   RenderDebugInfo(renderer)
   {
-    if (renderer?.HasOption?.(this, "Bounding Sphere"))
+    if (renderer.HasOption(this, "Bounding Sphere"))
     {
-      renderer?.DrawSphere?.(this, this.boundingSphereCenter, this.boundingSphereRadius, 8, "wireframe", 0xffff00ff);
+      renderer.DrawSphere__CenterRadius(
+        Tr2DebugObjectReference.create__Object(this),
+        this.boundingSphereCenter,
+        this.GetBoundingSphereRadius(),
+        8,
+        ITr2DebugRenderer2.Effect.Wireframe,
+        Tr2DebugColor.create__Uint32(0xffff00ff));
     }
-    for (const child of this.effectChildren) child?.RenderDebugInfo?.(renderer);
-    if (renderer?.HasOption?.(this, "Lights"))
+
+    for (const child of this.effectChildren)
     {
-      for (const light of this.lights) light?.RenderDebugInfo?.(renderer, this._worldTransform);
+      const renderable = CjsSchema.cast(child, ITr2DebugRenderable);
+      if (renderable) renderable.RenderDebugInfo(renderer);
     }
-    for (const observer of this.observers) observer?.RenderDebugInfo?.(renderer);
+
+    if (renderer.HasOption(this, "Lights"))
+    {
+      for (const light of this.lights)
+      {
+        light.RenderDebugInfo(renderer, this._worldTransform);
+      }
+    }
+
+    for (const observer of this.observers)
+    {
+      observer.RenderDebugInfo(renderer);
+    }
   }
 
   /** Stores and propagates a controller variable to current and future members. */

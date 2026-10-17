@@ -1,5 +1,6 @@
 import { random as carbonRandom } from "#math/random";
 import { ITr2DebugRenderable } from "../../../../global/interfaces/ITr2DebugRenderable.js";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 // Source: trinity/trinity/Eve/Renderable/EveSceneStaticParticles.h
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 //   trinity/trinity/Eve/Renderable/EveSceneStaticParticles.cpp
@@ -248,49 +249,36 @@ export class EveSceneStaticParticles
   }
 
   /**
-   * Adds Carbon's sole debug option to a Set-like option bag.
-   *
-   * Adapted: Adds option strings through the supplied collection's add or insert method; the
-   * debug adapter retains its capability checks.
+   * Carbon EveSceneStaticParticles::GetDebugOptions (cpp:176-179).
+   * @param {Set<string>} options The caller-owned option set.
    */
   @blue.method
-  @meta.adapted
-  GetDebugOptions(options = new Set())
+  @meta.implemented
+  GetDebugOptions(options)
   {
-    if (options?.add)
-    {
-      options.add("Bounding Sphere");
-    }
-    else
-    {
-      options?.insert?.("Bounding Sphere");
-    }
-    return options;
+    options.add("Bounding Sphere");
   }
 
   /**
-   * Draws the transformed cluster bounds through the injected debug renderer.
-   *
-   * Adapted: ITr2DebugRenderer2 is an injected engine-owned capability; its
-   * Effect::Wireframe value is retained as 0.
+   * Carbon EveSceneStaticParticles::RenderDebugInfo (cpp:185-193): the
+   * cluster bounding sphere, centre transformed into world space.
+   * @param {ITr2DebugRenderer2} renderer
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   RenderDebugInfo(renderer)
   {
-    if (!renderer?.HasOption?.(this, "Bounding Sphere"))
+    if (renderer.HasOption(this, "Bounding Sphere"))
     {
-      return;
+      vec3.transformMat4(DEBUG_CENTER_SCRATCH, this.boundingSphere, this.worldMatrix);
+      renderer.DrawSphere__CenterRadius(
+        Tr2DebugObjectReference.create__Object(this),
+        DEBUG_CENTER_SCRATCH,
+        this.boundingSphere[3],
+        10,
+        ITr2DebugRenderer2.Effect.Wireframe,
+        Tr2DebugColor.create__Uint32(0xffffff00));
     }
-    vec3.transformMat4(DEBUG_CENTER_SCRATCH, this.boundingSphere, this.worldMatrix);
-    renderer.DrawSphere?.(
-      this,
-      DEBUG_CENTER_SCRATCH,
-      this.boundingSphere[3],
-      10,
-      0,
-      0xffffff00
-    );
   }
 
   /**

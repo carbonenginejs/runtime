@@ -138,11 +138,14 @@
     },
     "global/interfaces": {
       "mayImport": [
-        "global/schema"
+        "global/schema",
+        "global/math"
       ],
       "why": [
         "Interface roots use schema implementation metadata so required",
-        "methods carry @impl.abstract as well as their throwing body."
+        "methods carry @impl.abstract as well as their throwing body.",
+        "Tr2DebugColor, declared in the same Carbon header as ITr2DebugRenderer2,",
+        "converts Carbon Colors to packed words through global/math/color."
       ]
     },
     "global/blue/classes": {

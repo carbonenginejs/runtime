@@ -28,6 +28,7 @@ import { SharedGeometryBuffer } from "../../../core/mesh/TriGeometryResAllocatio
 import { Tr2VertexDefinition, Tr2VertexDefinitionItem } from "../../../core/vertex/Tr2VertexDefinition/index.js";
 import { Tr2VertexUsageCode } from "../../../core/vertex/usageCode.js";
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { TriDevice } from "../../../core/device/TriDevice.js";
 
 /** sizeof( EveBannerSet::Vertex ) (cpp:65-84): position float3, normal half4, texCoord half2. */
@@ -561,47 +562,42 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   }
 
   /**
-   * Carbon EveBannerSet::GetDebugOptions (cpp:219-224).
-   *
-   * Adapted: Adds option strings through the supplied collection's add or insert method; the
-   * debug adapter retains its capability checks.
+   * Carbon EveBannerSet::GetDebugOptions (cpp:218-223).
+   * @param {Set<string>} options The caller-owned option set.
    */
   @blue.method
-  @meta.adapted
-  GetDebugOptions(options = new Set())
+  @meta.implemented
+  GetDebugOptions(options)
   {
-    for (const option of EveBannerSet.DebugOptions)
-    {
-      if (options?.add) options.add(option);
-      else options?.insert?.(option);
-    }
-    return options;
+    options.add("Banner Sets");
+    options.add("Banner Sets Bounds");
+    options.add("Banner Sets Lights");
   }
 
   /**
-   * Carbon EveBannerSet::RenderDebugInfo (cpp:226-311): three independent
-   * options, each emitting draw intents onto the injected debug renderer.
+   * Carbon EveBannerSet::RenderDebugInfo (cpp:225-311): three independent
+   * options.
    *
    * "Banner Sets" draws every banner TWICE - wireframe then solid - as a
    * near-flat box (z +/- 0.005), NOT the half-open bounds box the LOD uses. A
    * banner whose bone index is out of range is drawn RED instead of blue, which
-   * is how a missing bone shows up on screen.
+   * is how a missing bone shows up on screen. Each banner's owner is the
+   * banner list with the banner's index as the area.
    *
    * "Banner Sets Bounds" draws the item-set box in the parent space, and
    * "Banner Sets Lights" draws each light twice, inner then outer radius, with
    * the saturated authored color - or the texture average color when a primary
    * texture parameter is attached, exactly as GetLights decides it.
-   *
-   * Adapted: The supplied debug renderer receives owner/index arguments and numeric effect
-   * ordinals; optional debug-method checks remain in this adapter.
+   * @param {ITr2DebugRenderer2} renderer
+   * @param {mat4} parentTransform
+   * @param {Float32Array|null} bones Packed Float4x3 bone matrices.
+   * @param {number} boneCount
    */
   @blue.method
-  @meta.adapted
-  RenderDebugInfo(renderer, parentTransform, bones = null, boneCount = 0)
+  @meta.implemented
+  RenderDebugInfo(renderer, parentTransform, bones, boneCount)
   {
-    if (!renderer) return false;
-
-    if (renderer.HasOption?.(this, "Banner Sets"))
+    if (renderer.HasOption(this, "Banner Sets"))
     {
       const transform = EveBannerSet._debugTransform;
       for (let index = 0; index < this.banners.length; index++)
@@ -612,10 +608,10 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
         let color = EveBannerSet._debugBannerColor;
         if (banner.bone >= 0)
         {
-          if (bones && banner.bone < boneCount)
+          if (banner.bone < boneCount)
           {
             MatrixCopyFrom3x4(EveBannerSet._debugBone, bones, banner.bone);
-            // Carbon (row-vector): t * boneTF - the banner applies first.
+            // Carbon (row-vector): t *= boneTF - the banner applies first.
             mat4.multiply(transform, EveBannerSet._debugBone, transform);
           }
           else
@@ -623,20 +619,39 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
             color = EveBannerSet._debugMissingBoneColor;
           }
         }
+        // Carbon (row-vector): t *= parentTransform.
         mat4.multiply(transform, parentTransform, transform);
 
-        renderer.DrawBox?.(this, index, transform, EveBannerSet._debugBoxMin, EveBannerSet._debugBoxMax, EveBannerSet.DebugEffect.Wireframe, color);
-        renderer.DrawBox?.(this, index, transform, EveBannerSet._debugBoxMin, EveBannerSet._debugBoxMax, EveBannerSet.DebugEffect.Solid, 0);
+        renderer.DrawBox__Transform(
+          Tr2DebugObjectReference.create__ObjectArea(this.banners, index),
+          transform,
+          EveBannerSet._debugBoxMin,
+          EveBannerSet._debugBoxMax,
+          ITr2DebugRenderer2.Effect.Wireframe,
+          Tr2DebugColor.create__Color(color));
+        renderer.DrawBox__Transform(
+          Tr2DebugObjectReference.create__ObjectArea(this.banners, index),
+          transform,
+          EveBannerSet._debugBoxMin,
+          EveBannerSet._debugBoxMax,
+          ITr2DebugRenderer2.Effect.Solid,
+          Tr2DebugColor.create__Uint32(0));
       }
     }
 
-    if (renderer.HasOption?.(this, "Banner Sets Bounds"))
+    if (renderer.HasOption(this, "Banner Sets Bounds"))
     {
       const aabb = this.GetAabb(EveBannerSet._debugBounds, bones, boneCount);
-      renderer.DrawBox?.(this, -1, parentTransform, box3.$min(aabb), box3.$max(aabb), EveBannerSet.DebugEffect.Wireframe, 0xff00ff00);
+      renderer.DrawBox__Transform(
+        Tr2DebugObjectReference.create__Object(this),
+        parentTransform,
+        box3.$min(aabb),
+        box3.$max(aabb),
+        ITr2DebugRenderer2.Effect.Wireframe,
+        Tr2DebugColor.create__Uint32(0xff00ff00));
     }
 
-    if (renderer.HasOption?.(this, "Banner Sets Lights"))
+    if (renderer.HasOption(this, "Banner Sets Lights"))
     {
       const color = EveBannerSet._debugLightColor;
       for (const light of this.lights)
@@ -645,23 +660,31 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
         // Carbon (row-vector): TranslationMatrix(position) * boneMatrix.
         mat4.multiply(transform, light.boneMatrix, transform);
 
+        EveSpaceObjectAttachmentUtils.saturate(color, light.lightData.color, light.saturation);
         if (this.primaryTextureParameter)
         {
           this.GetAverageColor(color);
         }
-        else
-        {
-          EveSpaceObjectAttachmentUtils.saturate(color, light.lightData.color, light.saturation);
-        }
 
         color[3] = 0.5;
-        renderer.DrawSphere?.(this, light.index, transform, light.lightData.innerRadius, 10, EveBannerSet.DebugEffect.Solid, color);
+        renderer.DrawSphere__TransformRadius(
+          Tr2DebugObjectReference.create__ObjectArea(this.banners, light.index),
+          transform,
+          light.lightData.innerRadius,
+          10,
+          ITr2DebugRenderer2.Effect.Solid,
+          Tr2DebugColor.create__Color(color));
+
         color[3] = 0.3;
-        renderer.DrawSphere?.(this, light.index, transform, light.lightData.radius, 10, EveBannerSet.DebugEffect.Solid, color);
+        renderer.DrawSphere__TransformRadius(
+          Tr2DebugObjectReference.create__ObjectArea(this.banners, light.index),
+          transform,
+          light.lightData.radius,
+          10,
+          ITr2DebugRenderer2.Effect.Solid,
+          Tr2DebugColor.create__Color(color));
       }
     }
-
-    return true;
   }
 
   /**
@@ -976,12 +999,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
       lightManager.AddLight(record);
     }
   }
-
-  /** Carbon ITr2DebugRenderer2::Effect (Include/ITr2DebugRenderer2.h:134-139). */
-  static DebugEffect = Object.freeze({ Wireframe: 0, Solid: 1, Lit: 2 });
-
-  /** The option names this set publishes (cpp:221-223). */
-  static DebugOptions = Object.freeze(["Banner Sets", "Banner Sets Bounds", "Banner Sets Lights"]);
 
   static _debugTransform = mat4.create();
 

@@ -226,13 +226,15 @@ test("spline tunnel debug output preserves Carbon transform order and option gat
   const spheres = [];
   const cylinders = [];
   const renderer = {
-    DrawSphere(_owner, transform, radius, segments, style, color)
+    DrawSphere__TransformRadius(owner, transform, radius, segments, style, color)
     {
-      spheres.push([Array.from(transform), radius, segments, style, color]);
+      assert.equal(owner.object, group);
+      spheres.push([Array.from(transform), radius, segments, style, color.color]);
     },
-    DrawCylinder(_owner, start, end, radius, segments, style, color)
+    DrawCylinder__Caps(owner, start, end, radius, segments, style, color)
     {
-      cylinders.push([Array.from(start), Array.from(end), radius, segments, style, color]);
+      assert.equal(owner.object, group);
+      cylinders.push([Array.from(start), Array.from(end), radius, segments, style, color.color]);
     }
   };
   group.RenderDebugInfo(renderer, parent);
@@ -252,7 +254,9 @@ test("spline tunnel debug output preserves Carbon transform order and option gat
   lifetime.RenderDebugInfo({ HasOption: () => false }, [], parent);
   lifetime.RenderDebugInfo({ HasOption: () => true }, [], parent);
   assert.equal(delegated, 1);
-  assert.ok(lifetime.GetDebugOptions().has("SplineTunnels"));
+  const options = new Set();
+  lifetime.GetDebugOptions(options);
+  assert.ok(options.has("SplineTunnels"));
 });
 
 

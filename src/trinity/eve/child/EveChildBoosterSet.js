@@ -16,6 +16,7 @@ import { mat4 } from "#math/mat4";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { sph3 } from "#math/sph3";
 import { meta, type, blue } from "#schema";
 import { IsMatch } from "#blue";
 import { TriBatchType } from "#consts/graphics";
@@ -45,6 +46,8 @@ export const CHILD_BOOSTER_INSTANCE_STRIDE = 16;
 export const INVALID_RING_OFFSET = 0xffffffff;
 
 const SPHERE_SCRATCH = vec4.create();
+
+const POSITION_SCRATCH = vec3.create();
 
 
 /**
@@ -215,11 +218,33 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   @type.list("EveChildBoosterSetSingleBoosterData")
   _singleBoosters = [];
 
-  // The exact exhaust-point bounding sphere (positions only; padded in
-  // GetBoundingSphere) plus Carbon's uninitialized sentinel as a flag.
+  // m_boosterBoundingSphere (h:187): the exact exhaust-point bounding sphere
+  // (positions only; padded in GetBoundingSphere). BoundingSphereInitialize
+  // zeroes it, so the origin is always inside (cpp:57,155).
   _boosterBoundingSphere = vec4.create();
 
-  _boosterBoundingSphereInitialized = false;
+  /**
+   * The centre of the minimum bounding sphere of the boosters
+   * (EveChildBoosterSet_Blue.cpp:33, MAPFLOATARRAYSIZE over the first three
+   * floats of m_boosterBoundingSphere).
+   */
+  @blue.read
+  @type.vec3
+  get boosterBoundingSphereCenter()
+  {
+    return this._boosterBoundingSphere.subarray(0, 3);
+  }
+
+  /**
+   * The radius of the minimum bounding sphere of the boosters
+   * (EveChildBoosterSet_Blue.cpp:36, m_boosterBoundingSphere.w).
+   */
+  @blue.read
+  @type.float32
+  get boosterBoundingSphereRadius()
+  {
+    return this._boosterBoundingSphere[3];
+  }
 
   // The packed Tr2ChildBoosterInstanceData rows (CPU half of cpp:107-117).
   _instanceData = new Float32Array(0);
@@ -295,13 +320,13 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
       }
       this.glows.Rebuild();
     }
-    this._boosterBoundingSphereInitialized = false;
+    // BoundingSphereInitialize (BoundingSphere.cpp:9-12).
     vec4.set(this._boosterBoundingSphere, 0, 0, 0, 0);
     this.maxSize = 0;
     for (const booster of this._singleBoosters)
     {
       const transform = booster.transform;
-      this._IncludeBoundingPoint(transform[12], transform[13], transform[14]);
+      sph3.boundingSphereUpdate(this._boosterBoundingSphere, mat4.getTranslation(POSITION_SCRATCH, transform));
       this.maxSize = Math.max(this.maxSize, Math.max(
         Math.hypot(transform[0], transform[1], transform[2]),
         Math.hypot(transform[4], transform[5], transform[6])));
@@ -515,7 +540,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
     this._singleBoosters.length = 0;
     if (this.glows) this.glows.Clear();
     this.maxSize = 0;
-    this._boosterBoundingSphereInitialized = false;
+    // BoundingSphereInitialize (BoundingSphere.cpp:9-12).
     vec4.set(this._boosterBoundingSphere, 0, 0, 0, 0);
     this._instanceCount = 0;
     // cpp:158 - also release the resources.
@@ -564,35 +589,12 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
 
     // Exact positions only - the exhaust size padding happens in
     // GetBoundingSphere (Carbon's warning comment, cpp:183-186).
-    this._IncludeBoundingPoint(transform[12], transform[13], transform[14]);
+    sph3.boundingSphereUpdate(this._boosterBoundingSphere, mat4.getTranslation(POSITION_SCRATCH, transform));
 
     if (scale > this.maxSize)
     {
       this.maxSize = scale;
     }
-  }
-
-  /** Carbon BoundingSphereUpdate: grow the exact sphere to include a point. */
-  _IncludeBoundingPoint(x, y, z)
-  {
-    const sphere = this._boosterBoundingSphere;
-    if (!this._boosterBoundingSphereInitialized)
-    {
-      this._boosterBoundingSphereInitialized = true;
-      vec4.set(sphere, x, y, z, 0);
-      return;
-    }
-    const deltaX = x - sphere[0];
-    const deltaY = y - sphere[1];
-    const deltaZ = z - sphere[2];
-    const distance = Math.hypot(deltaX, deltaY, deltaZ);
-    if (distance <= sphere[3]) return;
-    const shift = 0.5 * (distance - sphere[3]);
-    const scale = shift / distance;
-    sphere[0] += deltaX * scale;
-    sphere[1] += deltaY * scale;
-    sphere[2] += deltaZ * scale;
-    sphere[3] += shift;
   }
 
   /** Sets the whole flare description in one call (Carbon cpp:198-216). */

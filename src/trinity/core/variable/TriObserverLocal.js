@@ -4,14 +4,13 @@
 import { vec3 } from "#math/vec3";
 import { ITriObserverLocal } from "../../../global/blue/ITriObserverLocal.js";
 import { CjsSchema, meta, type, blue } from "#schema";
+import { ITr2DebugRenderable } from "#interfaces";
 
 
 /**
  * Holds an audio or placement observer at a fixed local position and facing
  * inside an object, and republishes it in world space as the object moves.
  * Native interface queries expose only ITriObserverLocal, not self or INotify.
- * Native GetDebugOptions/RenderDebugInfo forwarding remains unported; this
- * migration does not provide debug-rendering parity.
  */
 @blue.define("TriObserverLocal")
 @blue.interface(ITriObserverLocal)
@@ -116,6 +115,38 @@ export class TriObserverLocal extends ITriObserverLocal
       if (up) vec3.unalloc(up);
       if (front) vec3.unalloc(front);
       vec3.unalloc(position);
+    }
+  }
+
+  /**
+   * Carbon TriObserverLocal::GetDebugOptions (cpp:96-102): forwards to the
+   * observer when it is debug-renderable.
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    const renderable = CjsSchema.cast(this.observer, ITr2DebugRenderable);
+    if (renderable)
+    {
+      renderable.GetDebugOptions(options);
+    }
+  }
+
+  /**
+   * Carbon TriObserverLocal::RenderDebugInfo (cpp:104-111): forwards to the
+   * observer when it is debug-renderable.
+   * @param {ITr2DebugRenderer2} renderer
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer)
+  {
+    const renderable = CjsSchema.cast(this.observer, ITr2DebugRenderable);
+    if (renderable)
+    {
+      renderable.RenderDebugInfo(renderer);
     }
   }
 

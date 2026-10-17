@@ -141,42 +141,33 @@ export class InclusionVolume
   }
 
   /**
-   * Adds Carbon's inclusion-volume debug option.
-   *
-   * Adapted: Adds option strings through the supplied collection's add or insert method; the
-   * debug adapter retains its capability checks.
+   * Carbon InclusionVolume::GetDebugOptions (cpp:71-74).
+   * @param {Set<string>} options The caller-owned option set.
    */
   @blue.method
-  @meta.adapted
-  GetDebugOptions(options = new Set())
+  @meta.implemented
+  GetDebugOptions(options)
   {
-    if (options?.add)
-    {
-      options.add("InclusionVolumes");
-    }
-    else
-    {
-      options?.insert?.("InclusionVolumes");
-    }
-    return options;
+    options.add("InclusionVolumes");
   }
 
   /**
-   * Delegates inclusion-volume debug geometry when its option is enabled.
-   *
-   * Adapted: ITr2DebugRenderer2 is an injected engine-owned capability.
+   * Carbon InclusionVolume::RenderDebugInfo (cpp:76-85): delegates inclusion-volume
+   * debug geometry when its option is enabled.
+   * @param {ITr2DebugRenderer2} renderer
+   * @param {Array} _agents DroneAgent records (unused, as in Carbon).
+   * @param {mat4} parentWorldLocation
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   RenderDebugInfo(renderer, _agents, parentWorldLocation)
   {
-    if (!renderer?.HasOption?.(this, "InclusionVolumes"))
+    if (renderer.HasOption(this, "InclusionVolumes"))
     {
-      return;
-    }
-    for (const volume of this.inclusionVolumes)
-    {
-      volume.RenderDebugInfo(renderer, parentWorldLocation);
+      for (const volume of this.inclusionVolumes)
+      {
+        volume.RenderDebugInfo(renderer, parentWorldLocation);
+      }
     }
   }
 

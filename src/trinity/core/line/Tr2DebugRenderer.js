@@ -140,13 +140,33 @@ export class Tr2DebugRenderer
   }
 
   /**
-   * Whether an object is in the current selection.
+   * Carbon's `IsSelected( IRoot* owner )` (Tr2DebugRenderer.cpp:157-160):
+   * whether the object is in the current selection.
+   *
+   * Adapted: the selection holds objects, not Carbon's (object, area)
+   * references, so an object counts as selected whatever area was selected.
+   * @param {object} owner The object being queried.
+   * @returns {boolean}
    */
-  @meta.implemented
-  IsSelected(owner)
+  @meta.adapted
+  IsSelected__Root(owner)
   {
-    const object = owner?.object ?? owner;
-    return this.selectedObjects.has(object);
+    return this.selectedObjects.has(owner);
+  }
+
+  /**
+   * Carbon's `IsSelected( Tr2DebugObjectReference owner )`
+   * (Tr2DebugRenderer.cpp:162-165): whether the referenced area is selected.
+   *
+   * Adapted: the selection holds objects, not Carbon's (object, area)
+   * references, so the area is not compared.
+   * @param {Tr2DebugObjectReference} owner The object and area being queried.
+   * @returns {boolean}
+   */
+  @meta.adapted
+  IsSelected__Reference(owner)
+  {
+    return this.selectedObjects.has(owner.object);
   }
 
   /** Legacy EVE debug picking geometry/readback submission is not ported. */
@@ -169,5 +189,6 @@ export class Tr2DebugRenderer
 }
 
 CjsSchema.decorateMethod(Tr2DebugRenderer, "HasOption", blue.method);
-CjsSchema.decorateMethod(Tr2DebugRenderer, "IsSelected", blue.method);
+CjsSchema.decorateMethod(Tr2DebugRenderer, "IsSelected__Root", blue.method);
+CjsSchema.decorateMethod(Tr2DebugRenderer, "IsSelected__Reference", blue.method);
 CjsSchema.decorateMethod(Tr2DebugRenderer, "Pick", blue.method);

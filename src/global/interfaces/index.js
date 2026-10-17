@@ -4,3 +4,5 @@ export { ITr2BoundingBox } from "./ITr2BoundingBox.js";
 export { ITr2DebugRenderable } from "./ITr2DebugRenderable.js";
 export { ITr2DebugRenderer2 } from "./ITr2DebugRenderer2.js";
 export { ITr2RenderNode } from "./ITr2RenderNode.js";
+export { Tr2DebugColor } from "./Tr2DebugColor.js";
+export { Tr2DebugObjectReference } from "./Tr2DebugObjectReference.js";

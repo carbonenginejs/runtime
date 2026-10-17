@@ -100,7 +100,7 @@ test("Tr2DebugRenderer stores Carbon option, selection, and color state", () =>
   assertEquals(renderer.HasOption(owner, "Volumes"), true);
   assertEquals(renderer.HasOption(owner, "Bounds"), false);
   renderer.SetSelectedObjects([[owner, 0]]);
-  assertEquals(renderer.IsSelected(owner), true);
+  assertEquals(renderer.IsSelected__Root(owner), true);
   renderer.SetColorForOption("Volumes", [0.25, 0.5, 0.75, 1]);
   assertEquals(renderer.GetColorForOption("Volumes")[2], 0.75);
   assertEquals(renderer.GetColorForOption("Missing"), null);
@@ -994,7 +994,7 @@ test("dropped Blue and native scanner shapes stay quarantined", () =>
 {
   const droppedByFamily = {
     trinityCore: ["TriVector", "TriQuaternion", "TriColor"],
-    include: ["ITriVector", "ITriMatrix", "ITriQuaternion", "ITriColor", "ITriDevice", "Point", "Tr2CurveBase", "Tr2DebugColor", "Tr2DebugObjectReference", "Tr2Rect", "TriPerlinNoise"],
+    include: ["ITriVector", "ITriMatrix", "ITriQuaternion", "ITriColor", "ITriDevice", "Point", "Tr2CurveBase", "Tr2Rect", "TriPerlinNoise"],
     curves: ["Tr2CurveRasterizeDestination", "Tr2CurveScalarDefinition", "Tr2Key"],
     "eve/scene": ["EveInstancedMeshManager"],
     particle: ["Tr2ParticleStreamIterator"],

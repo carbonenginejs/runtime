@@ -8,15 +8,8 @@
   "src/global/blue/CjsBlueResMan.js": 3,
   "src/global/blue/CjsMotherLode.js": 5,
   "src/trinity/controllers/action/Tr2ActionPython.js": 4,
-  "src/trinity/eve/attachment/banner/EveBannerSet.js": 8,
-  "src/trinity/eve/child/behaviors/CollisionAvoidance.js": 1,
-  "src/trinity/eve/child/behaviors/InclusionVolume.js": 1,
-  "src/trinity/eve/child/behaviors/lifecycle/ProcessLifetime.js": 2,
-  "src/trinity/eve/child/behaviors/tunnels/SplineTunnelGroup.js": 5,
-  "src/trinity/eve/particles/static/EveSceneStaticParticles.js": 2,
-  "src/trinity/eve/spaceObject/EveEffectRoot2.js": 8,
   "src/trinity/renderJob/step/TriStepRenderSceneDebug.js": 1,
-  "src/trinity/shader/parameter/TriTextureParameter.js": 5,
   "src/trinity/shader/Tr2Effect.js": 14,
+  "src/trinity/shader/parameter/TriTextureParameter.js": 5,
   "src/trinityal/webgpu/core/CjsWebgpuTrinityBatchResolver.js": 12
 }

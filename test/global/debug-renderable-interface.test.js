@@ -9,6 +9,8 @@ import { vec4 } from "@carbonenginejs/runtime/math/vec4";
 import { mat4 } from "@carbonenginejs/runtime/math/mat4";
 import { ITr2DebugRenderable as DirectDebugRenderable } from "../../src/global/interfaces/ITr2DebugRenderable.js";
 import { ITr2DebugRenderer2 as DirectDebugRenderer } from "../../src/global/interfaces/ITr2DebugRenderer2.js";
+import { Tr2DebugColor } from "../../src/global/interfaces/Tr2DebugColor.js";
+import { Tr2DebugObjectReference } from "../../src/global/interfaces/Tr2DebugObjectReference.js";
 import { mappedInterfaces } from "../../src/global/compose/interface.js";
 
 test("ITr2DebugRenderable has one registered identity and its two native abstract methods", () =>
@@ -127,10 +129,16 @@ test("the shared debug contract imports without Trinity, audio, model or device 
 test("ITr2DebugRenderer2 declares every unique native operation as an abstract obligation", () =>
 {
   const methods = [
-    "HasOption", "IsSelected", "DrawLine", "DrawTriangle", "DrawBox", "DrawSphere",
-    "DrawCylinder", "DrawCone", "DrawCapsule", "DrawArrow", "DrawDoubleArrow",
-    "DrawSphereArrow", "DrawAxis", "DrawExtrusionShape", "DrawText",
-    "GetColorForOption", "SetColorForOption", "DrawAudioSpeaker"
+    "HasOption", "IsSelected__Root", "IsSelected__Reference", "DrawLine",
+    "DrawTriangle__VertexNormals", "DrawTriangle__FaceNormal",
+    "DrawBox__MinMax", "DrawBox__Transform",
+    "DrawSphere__Sphere", "DrawSphere__CenterRadius", "DrawSphere__Transform",
+    "DrawSphere__TransformRadius", "DrawSphere__TransformCenterRadius",
+    "DrawCylinder__TransformHeight", "DrawCylinder__Caps", "DrawCylinder__TransformCaps",
+    "DrawCone__TransformRadius", "DrawCone__BaseFocal", "DrawCone__TransformAngle",
+    "DrawCapsule__TransformHeight", "DrawCapsule__Caps",
+    "DrawArrow", "DrawDoubleArrow", "DrawSphereArrow", "DrawAxis", "DrawExtrusionShape",
+    "DrawText", "GetColorForOption", "SetColorForOption", "DrawAudioSpeaker"
   ];
   assert.equal(ITr2DebugRenderer2, DirectDebugRenderer);
   assert.equal(CjsSchema.getConstructor("ITr2DebugRenderer2"), ITr2DebugRenderer2);
@@ -161,7 +169,7 @@ test("renderer composition preserves query booleans and caller-owned color outpu
       return option === "enabled";
     }
 
-    IsSelected(owner)
+    IsSelected__Root(owner)
     {
       calls.push(["selected", owner]);
       return false;
@@ -179,7 +187,7 @@ test("renderer composition preserves query booleans and caller-owned color outpu
       calls.push(["setColor", option, color]);
     }
   }
-  const implementations = ["HasOption", "IsSelected", "GetColorForOption", "SetColorForOption"]
+  const implementations = ["HasOption", "IsSelected__Root", "GetColorForOption", "SetColorForOption"]
     .map(name => [name, Renderer.prototype[name]]);
   blue.inherit(ITr2DebugRenderer2)(Renderer, { kind: "class" });
   CjsSchema.define(Renderer, { className: "TestSharedDebugRendererQueries" });
@@ -189,7 +197,7 @@ test("renderer composition preserves query booleans and caller-owned color outpu
   const color = vec4.create();
   assert.equal(renderer.HasOption(owner, "disabled"), false);
   assert.equal(renderer.HasOption(owner, "enabled"), true);
-  assert.equal(renderer.IsSelected(owner), false);
+  assert.equal(renderer.IsSelected__Root(owner), false);
   assert.equal(renderer.GetColorForOption(color, "enabled"), true);
   assert.deepEqual(Array.from(color), [0.25, 0.5, 0.75, 1]);
   assert.equal(renderer.SetColorForOption("enabled", color), undefined);
@@ -208,16 +216,15 @@ test("renderer composition preserves query booleans and caller-owned color outpu
   assert.equal("GetRawRoot" in renderer, false);
 });
 
-test("concrete renderer overload dispatch retains native argument order and identity", () =>
+test("each DrawSphere overload is its own method and keeps native argument order and identity", () =>
 {
   const calls = [];
+  const variants = [
+    "DrawSphere__Sphere", "DrawSphere__CenterRadius", "DrawSphere__Transform",
+    "DrawSphere__TransformRadius", "DrawSphere__TransformCenterRadius"
+  ];
   class Renderer
   {
-    DrawSphere(...args)
-    {
-      calls.push(args);
-    }
-
     DrawAxis(owner, transform, effect)
     {
       calls.push([owner, transform, effect]);
@@ -228,15 +235,21 @@ test("concrete renderer overload dispatch retains native argument order and iden
       calls.push([font, position, color, format, ...args]);
     }
   }
-  const drawSphere = Renderer.prototype.DrawSphere;
+  for (const name of variants)
+  {
+    Renderer.prototype[name] = function(...args)
+    {
+      calls.push([name, ...args]);
+    };
+  }
   blue.inherit(ITr2DebugRenderer2)(Renderer, { kind: "class" });
   CjsSchema.define(Renderer, { className: "TestSharedDebugRendererOverloads" });
   const renderer = new Renderer();
-  const owner = {};
+  const owner = Tr2DebugObjectReference.create__Object({});
   const transform = mat4.create();
   const center = vec3.fromValues(2, 3, 4);
   const sphere = vec4.fromValues(2, 3, 4, 5);
-  const debugColor = { color: 0xff00ff00 };
+  const debugColor = Tr2DebugColor.create__Uint32(0xff00ff00);
   const overloads = [
     [owner, sphere, 8, 0, debugColor],
     [owner, center, 5, 8, 0, debugColor],
@@ -244,12 +257,13 @@ test("concrete renderer overload dispatch retains native argument order and iden
     [owner, transform, 5, 8, 0, debugColor],
     [owner, transform, center, 5, 8, 0, debugColor]
   ];
-  for (const args of overloads) assert.equal(renderer.DrawSphere(...args), undefined);
-  assert.equal(Renderer.prototype.DrawSphere, drawSphere);
+  for (let i = 0; i < variants.length; i++) assert.equal(renderer[variants[i]](...overloads[i]), undefined);
+  assert.equal("DrawSphere" in renderer, false);
   for (let i = 0; i < overloads.length; i++)
   {
-    assert.equal(calls[i].length, overloads[i].length);
-    for (let j = 0; j < overloads[i].length; j++) assert.equal(calls[i][j], overloads[i][j]);
+    assert.equal(calls[i][0], variants[i]);
+    assert.equal(calls[i].length, overloads[i].length + 1);
+    for (let j = 0; j < overloads[i].length; j++) assert.equal(calls[i][j + 1], overloads[i][j]);
   }
   renderer.DrawAxis(owner, transform, 2);
   assert.deepEqual(calls[5], [owner, transform, 2]);
@@ -258,4 +272,40 @@ test("concrete renderer overload dispatch retains native argument order and iden
   assert.deepEqual(calls[6], [0, center, textColor, "%s %d", "marker", 7]);
   assert.equal(calls[6][1], center);
   assert.equal(calls[6][2], textColor);
+});
+
+test("Tr2DebugColor factories build Carbon's four words", () =>
+{
+  const fromWord = Tr2DebugColor.create__Uint32(0x80102030);
+  assert.equal(fromWord.color, 0x80102030);
+  assert.equal(fromWord.zFailColor, 0);
+  // Each RGB channel gains 0.7f and clamps at one, all in float32; alpha stays.
+  assert.equal(fromWord.colorSelected, 0x80c3d3e3);
+  assert.equal(fromWord.zFailColorSelected, 0);
+
+  const pair = Tr2DebugColor.create__Uint32ZFail(0xff000000, 0xffffffff);
+  assert.equal(pair.colorSelected, 0xffb3b3b3);
+  assert.equal(pair.zFailColorSelected, 0xffffffff);
+
+  const fromColor = Tr2DebugColor.create__Color(vec4.fromValues(1, 0, 0, 1));
+  assert.equal(fromColor.color, 0xffff0000);
+
+  const explicit = Tr2DebugColor.create__ColorZFailSelected(
+    vec4.fromValues(1, 0, 0, 1), vec4.fromValues(0, 1, 0, 1), vec4.fromValues(0, 0, 1, 1), vec4.fromValues(0, 0, 0, 0));
+  assert.deepEqual([explicit.color, explicit.zFailColor, explicit.colorSelected, explicit.zFailColorSelected],
+    [0xffff0000, 0xff00ff00, 0xff0000ff, 0]);
+});
+
+test("Tr2DebugObjectReference compares object and area as Carbon's operators do", () =>
+{
+  const object = {};
+  const whole = Tr2DebugObjectReference.create__Object(object);
+  const area = Tr2DebugObjectReference.create__ObjectArea(object, 3);
+  assert.equal(whole.area, 0);
+  assert.equal(whole.IsValid(), true);
+  assert.equal(new Tr2DebugObjectReference().IsValid(), false);
+  assert.equal(whole.Equals(Tr2DebugObjectReference.create__Object(object)), true);
+  assert.equal(whole.NotEquals(area), true);
+  assert.equal(CjsSchema.getClassName(Tr2DebugColor), "Tr2DebugColor");
+  assert.equal(CjsSchema.getClassName(Tr2DebugObjectReference), "Tr2DebugObjectReference");
 });

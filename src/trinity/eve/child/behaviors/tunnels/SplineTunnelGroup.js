@@ -5,6 +5,7 @@ import { INotify } from "../../../../../global/blue/INotify.js";
 import { meta, type, blue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { BLUELISTEVENT } from "#consts/blue";
 import { TunnelGroupType } from "../enums.js";
 import { SplineTunnel } from "./SplineTunnel.js";
@@ -235,53 +236,48 @@ export class SplineTunnelGroup
   }
 
   /**
-   * Registers this group's "SplineTunnels" debug option in the caller's option
-   * bag (Set-like add or insert) and returns that bag.
-   *
-   * Adapted: Adds option strings through the supplied collection's add or insert method; the
-   * debug adapter retains its capability checks.
+   * Carbon SplineTunnelGroup::GetDebugOptions (cpp:143-146).
+   * @param {Set<string>} options The caller-owned option set.
    */
   @blue.method
-  @meta.adapted
-  GetDebugOptions(options = new Set())
+  @meta.implemented
+  GetDebugOptions(options)
   {
-    if (options?.add) options.add("SplineTunnels");
-    else options?.insert?.("SplineTunnels");
-    return options;
+    options.add("SplineTunnels");
   }
 
   /**
-   * Draws every tunnel's shape: pull and point-of-no-return spheres at its first spline point, a marker sphere at its last, and a cylWidth cylinder along each point's direction vector.
-   *
-   * Adapted: Emits Carbon's tunnel primitives through an injected
-   * ITr2DebugRenderer2-compatible capability.
-   *
-   * @param {Object} renderer - injected debug renderer capability
-   * @param {Float32Array} [parentWorldLocation] - places the tunnel geometry in world space
+   * Carbon SplineTunnelGroup::RenderDebugInfo (cpp:148-168): every tunnel's
+   * shape - pull and point-of-no-return spheres at its first spline point, a
+   * marker sphere at point GetNumBreakPoints() + 1, and a cylWidth sphere and
+   * cylinder along each point's direction vector.
+   * @param {ITr2DebugRenderer2} renderer
+   * @param {mat4} parentWorldLocation Places the tunnel geometry in world space.
    */
   @blue.method
-  @meta.adapted
-  RenderDebugInfo(renderer, parentWorldLocation = mat4.create())
+  @meta.implemented
+  RenderDebugInfo(renderer, parentWorldLocation)
   {
+    const { Wireframe } = ITr2DebugRenderer2.Effect;
     for (const tunnel of this.tunnels)
     {
-      const points = tunnel?.splinePoints ?? [];
-      if (!points.length) continue;
-      const first = points[0];
-      const last = points[points.length - 1];
-      mat4.translate(DEBUG_TRANSFORM, parentWorldLocation, first.pos);
-      renderer?.DrawSphere?.(this, DEBUG_TRANSFORM, tunnel.pullSize, 6, 0, 0xff551111);
-      renderer?.DrawSphere?.(this, DEBUG_TRANSFORM, tunnel.pointOfNoReturnSize, 6, 0, 0xff551111);
-      mat4.translate(DEBUG_TRANSFORM, parentWorldLocation, last.pos);
-      renderer?.DrawSphere?.(this, DEBUG_TRANSFORM, 5, 6, 0, 0xff335555);
-      for (const point of points)
+      // Carbon (row-vector): TranslationMatrix(pos) * parentWorldLocation.
+      mat4.translate(DEBUG_TRANSFORM, parentWorldLocation, tunnel.splinePoints[0].pos);
+      renderer.DrawSphere__TransformRadius(Tr2DebugObjectReference.create__Object(this), DEBUG_TRANSFORM, tunnel.pullSize, 6, Wireframe, Tr2DebugColor.create__Uint32(0xff551111));
+      renderer.DrawSphere__TransformRadius(Tr2DebugObjectReference.create__Object(this), DEBUG_TRANSFORM, tunnel.pointOfNoReturnSize, 6, Wireframe, Tr2DebugColor.create__Uint32(0xff551111));
+
+      mat4.translate(DEBUG_TRANSFORM, parentWorldLocation, tunnel.splinePoints[this.GetNumBreakPoints() + 1].pos);
+      renderer.DrawSphere__TransformRadius(Tr2DebugObjectReference.create__Object(this), DEBUG_TRANSFORM, 5, 6, Wireframe, Tr2DebugColor.create__Uint32(0xff335555));
+
+      for (const point of tunnel.splinePoints)
       {
         mat4.translate(DEBUG_TRANSFORM, parentWorldLocation, point.pos);
-        renderer?.DrawSphere?.(this, DEBUG_TRANSFORM, tunnel.cylWidth, 6, 0, 0xff555555);
+        renderer.DrawSphere__TransformRadius(Tr2DebugObjectReference.create__Object(this), DEBUG_TRANSFORM, tunnel.cylWidth, 6, Wireframe, Tr2DebugColor.create__Uint32(0xff555555));
+
         vec3.add(DEBUG_END, point.pos, point.rot);
         vec3.transformMat4(DEBUG_START, point.pos, parentWorldLocation);
         vec3.transformMat4(DEBUG_END, DEBUG_END, parentWorldLocation);
-        renderer?.DrawCylinder?.(this, DEBUG_START, DEBUG_END, tunnel.cylWidth, 8, 0, this._debugColor);
+        renderer.DrawCylinder__Caps(Tr2DebugObjectReference.create__Object(this), DEBUG_START, DEBUG_END, tunnel.cylWidth, 8, Wireframe, Tr2DebugColor.create__Uint32(this._debugColor));
       }
     }
   }
