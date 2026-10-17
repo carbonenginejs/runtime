@@ -15,6 +15,7 @@ import { Tr2VertexDefinition } from "../core/vertex/Tr2VertexDefinition/Tr2Verte
 import { Tr2ParticleElementDeclarationName } from "./element/Tr2ParticleElementDeclarationName.js";
 import { TriDevice } from "../core/device/TriDevice.js";
 import { Tr2DeviceResource } from "../core/device/Tr2DeviceResource.js";
+import { Tr2Renderer } from "../core/Tr2Renderer.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -50,6 +51,7 @@ export class Tr2ParticleSystem
   /** Registers the inherited device-resource lifetime (Tr2DeviceResource.cpp:8-12). */
   constructor()
   {
+    Tr2ParticleSystem.getAllSystems().add(this);
     this.constraints.SetNotify(this);
     TriDevice.RegisterResource(this);
   }
@@ -61,6 +63,8 @@ export class Tr2ParticleSystem
    */
   Destroy()
   {
+    Tr2ParticleSystem.getAllSystems().delete(this);
+    this._DestroyBuffers();
     if (this._rebaseOS) this._rebaseOS.UnregisterForSimTimeRebase(this);
     this._rebaseOS = null;
     this.ReleaseResources();
@@ -246,26 +250,101 @@ export class Tr2ParticleSystem
   @meta.adapted
   SetMaxParticleCount(value)
   {
-    this._vertexBuffer?.Destroy();
+    this._DestroyBuffers();
+    this.maxParticleCount = Math.min(Number(value) >>> 0, Tr2ParticleSystem.MAX_PARTICLE_COUNT);
+    this._BuildBuffers();
+    vec3.set(this.aabbMin, 0, 0, 0);
+    vec3.set(this.aabbMax, 0, 0, 0);
+    return this.maxParticleCount;
+  }
+
+  /**
+   * Carbon DestroyBuffers (cpp:350-379): frees the CPU buffers, the sort
+   * indexes and the vertex buffer, empties the system, and returns its
+   * capacity to the global count.
+   *
+   * Adapted: Carbon tests `m_buffers[0]`, which it always allocates; here a
+   * buffer with no stride stays null, so either buffer marks a built set.
+   * The CCP_STATS counters have no JavaScript counterpart and are omitted.
+   */
+  @meta.adapted
+  _DestroyBuffers()
+  {
+    if (this._buffers[0] === null && this._buffers[1] === null)
+    {
+      return;
+    }
+
+    this._indexes = [];
+    this._buffers.fill(null);
+    for (const element of this._runtimeElements)
+    {
+      element.buffer = null;
+    }
+
+    // m_vertexBuffer = Tr2BufferAL().
+    if (this._vertexBuffer) this._vertexBuffer.Destroy();
     this._vertexBuffer = null;
     this._mappedData = null;
-    this.maxParticleCount = Math.min(Number(value) >>> 0, Tr2ParticleSystem.MAX_PARTICLE_COUNT);
+
     this.aliveCount = 0;
+    Tr2ParticleSystem._totalParticleCount -= this.maxParticleCount;
+  }
+
+  /**
+   * Carbon BuildBuffers (cpp:385-427): allocates the CPU buffers for a valid
+   * system with capacity and claims that capacity from the global count. A
+   * dynamic system that would take the total to cpuMaxParticleCount or more
+   * gets no buffers and a zero capacity instead.
+   *
+   * Adapted: typed arrays replace aligned allocations, and a buffer with no
+   * stride stays null. The CCP_STATS counter is omitted.
+   */
+  @meta.adapted
+  _BuildBuffers()
+  {
+    if (!this.maxParticleCount)
+    {
+      return;
+    }
+
+    if (!this.isValid)
+    {
+      return;
+    }
+
+    const totalParticleCount = Tr2ParticleSystem._totalParticleCount + this.maxParticleCount;
+
+    // only dynamic system are being capped!
+    if (this.IsDynamic())
+    {
+      if (totalParticleCount >= Tr2ParticleSystem.cpuMaxParticleCount)
+      {
+        this.maxParticleCount = 0;
+        return;
+      }
+    }
+
+    if (this.requiresSorting)
+    {
+      this._indexes = new Array(this.maxParticleCount);
+    }
+
     for (let index = 0; index < this._buffers.length; index++)
     {
       const stride = this._strides[index];
-      this._buffers[index] = stride && this.maxParticleCount
-        ? new Float32Array(stride * this.maxParticleCount)
-        : null;
+      this._buffers[index] = stride ? new Float32Array(stride * this.maxParticleCount) : null;
     }
     for (const element of this._runtimeElements)
     {
       element.buffer = this._buffers[element.bufferIndex];
     }
-    vec3.set(this.aabbMin, 0, 0, 0);
-    vec3.set(this.aabbMax, 0, 0, 0);
-    this.CreateVertexBuffer();
-    return this.maxParticleCount;
+
+    if (this._strides[0] > 0 && Tr2Renderer.IsResourceCreationAllowed())
+    {
+      this.CreateVertexBuffer();
+    }
+    Tr2ParticleSystem._totalParticleCount = totalParticleCount;
   }
 
   /** Returns the currently active, possibly LOD-clamped particle budget. */
@@ -427,6 +506,7 @@ export class Tr2ParticleSystem
   UpdateElementDeclaration()
   {
     this.isValid = false;
+    this._DestroyBuffers();
     this.ReleaseResources();
     this.aliveCount = 0;
     this._elementMap.clear();
@@ -496,19 +576,14 @@ export class Tr2ParticleSystem
         this._strides[index] += 4 - remainder;
       }
       if (index === 0) this._strides[index] *= 2;
-      if (this._strides[index] && this.maxParticleCount)
-      {
-        this._buffers[index] = new Float32Array(this._strides[index] * this.maxParticleCount);
-      }
     }
     for (const element of this._runtimeElements)
     {
       element.instanceStride = this._strides[element.bufferIndex];
-      element.buffer = this._buffers[element.bufferIndex];
     }
-    this.originalMaxParticles = this.maxParticleCount;
     this._declarationHash++;
     this.isValid = true;
+    this._BuildBuffers();
     this.OnPrepareResources();
     this.RebindConstraints();
     return true;
@@ -1371,6 +1446,63 @@ export class Tr2ParticleSystem
       vec3.max(this.aabbMax, this.aabbMax, value);
     }
   }
+
+  /**
+   * Carbon GetAllSystems (cpp:874-878): every live particle system. The
+   * constructor adds a system and Destroy, which stands in for Carbon's
+   * destructor (cpp:91), removes it.
+   *
+   * Carbon's std::set<Tr2ParticleSystem*> is ordered by address, so its
+   * order means nothing; this Set's insertion order serves.
+   * @returns {Set<Tr2ParticleSystem>}
+   */
+  @meta.renamed("GetAllSystems")
+  static getAllSystems()
+  {
+    return Tr2ParticleSystem._allSystems;
+  }
+
+  /**
+   * Carbon UpdateAllSystems (cpp:844-866): updates every live system with
+   * the same arguments.
+   *
+   * Carbon quirk, kept: `previousUpdateTime` starts at -1 and is never
+   * assigned, so the same-time early return never fires (cpp:848-856).
+   *
+   * Adapted: Tr2ParallelDo becomes a loop, and the CCP_STATS counters it
+   * resets and publishes are omitted. Nothing in Carbon calls it.
+   * @param {ITr2GenericEmitterUpdateArguments} updateArguments
+   */
+  @meta.adapted
+  @meta.renamed("UpdateAllSystems")
+  static updateAllSystems(updateArguments)
+  {
+    if (Tr2ParticleSystem._previousUpdateTime !== -1 && Tr2ParticleSystem._previousUpdateTime === updateArguments.time)
+    {
+      return;
+    }
+
+    for (const system of Tr2ParticleSystem.getAllSystems())
+    {
+      system.Update(updateArguments);
+    }
+  }
+
+  /** Carbon s_allSystems, the function-local set of GetAllSystems (cpp:876). */
+  static _allSystems = new Set();
+
+  /** Carbon UpdateAllSystems' function-local previousUpdateTime (cpp:848); never assigned. */
+  static _previousUpdateTime = -1;
+
+  /** Carbon s_totalParticleCount (h:221, cpp:16): capacity held by every system's buffers. */
+  static _totalParticleCount = 0;
+
+  /**
+   * Carbon s_maxParticleCount (cpp:20-21), the "cpuMaxParticleCount"
+   * setting: the global capacity above which dynamic systems get no buffers.
+   */
+  @meta.setting("cpuMaxParticleCount")
+  static cpuMaxParticleCount = 1024 * 512;
 
   /** Carbon Tr2ParticleSystem::RandCheap (Tr2ParticleSystem.h:145). */
   static randCheap()
