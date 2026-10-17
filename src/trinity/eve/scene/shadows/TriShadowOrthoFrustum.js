@@ -10,9 +10,11 @@ import { vec3 } from "#math/vec3";
 import { TriFrustumOrtho } from "../../../core/view/TriFrustumOrtho.js";
 import { PlaneDotCoord, PlaneDotNormal } from "../../../core/view/TriFrustum.js";
 import { TriFrustumTestResult } from "../../../generated/trinityCore/enums.js";
+import { IEveShadowFrustum } from "./IEveShadowFrustum.js";
 
 /** Carbon's native orthographic-shadow frustum adapter. */
 @blue.define("TriShadowOrthoFrustum")
+@blue.inherit(IEveShadowFrustum)
 export class TriShadowOrthoFrustum
 {
 

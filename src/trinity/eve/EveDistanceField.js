@@ -6,7 +6,10 @@ import { INotify } from "../../global/blue/INotify.js";
 import { IListNotify } from "../../global/blue/IListNotify.js";
 import { vec3 } from "#math/vec3";
 import { mat4 } from "#math/mat4";
+import { color } from "#math/color";
 import { meta, type, blue } from "#schema";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
+import { TriDebugFont } from "../core/TriDebugTextRenderer.js";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../curves/enums.js";
 import { Tr2CurveScalar } from "../curves/curve/Tr2CurveScalar.js";
 import { TriCurveSet } from "../curves/TriCurveSet.js";
@@ -83,6 +86,16 @@ export class EveDistanceField
   _updateDistanceCurve = false;
 
   _isDynamic = false;
+
+  /**
+   * m_debug (EveDistanceField.h:97): raised by RenderDebugInfo so the next
+   * Update records the tracked positions. Carbon's constructor leaves it
+   * uninitialised (cpp:15-30); false is the defined start.
+   */
+  _debug = false;
+
+  /** m_debugPositions (EveDistanceField.h:98): the tracked positions recorded for debug drawing. */
+  _debugPositions = [];
 
   /**
    * Configures the field as static, so its extent and midpoint are the authored
@@ -180,6 +193,23 @@ export class EveDistanceField
         this.curveSet.Update(this.distance, updateContext.renderContext);
       }
     }
+
+    // Carbon (cpp:170-180): after a debug draw, record every tracked position once.
+    // The vectors are reused across frames instead of Carbon's clear() and push_back().
+    if (this._debug)
+    {
+      const positions = this._debugPositions;
+      positions.length = this.objects.length;
+      for (let i = 0; i < this.objects.length; i++)
+      {
+        if (!positions[i])
+        {
+          positions[i] = vec3.create();
+        }
+        EveDistanceField._sampleObject(this.objects[i], time, positions[i]);
+      }
+      this._debug = false;
+    }
   }
 
   /**
@@ -226,11 +256,84 @@ export class EveDistanceField
     }
   }
 
-  /** Debug rendering hook; this package produces no debug geometry. */
+  /**
+   * Carbon EveDistanceField::GetDebugOptions (EveDistanceField.cpp:297-300).
+   * @param {Set<string>} options The caller-owned option set.
+   */
   @blue.method
-  @meta.noop
-  RenderDebugInfo()
+  @meta.implemented
+  GetDebugOptions(options)
   {
+    options.add("DistanceField");
+  }
+
+  /**
+   * Carbon EveDistanceField::RenderDebugInfo (EveDistanceField.cpp:304-328):
+   * under "DistanceField", raises the debug flag so the next Update records the
+   * tracked positions, then draws a 1000-unit sphere at the midpoint, the
+   * field's box, the object count as text at the midpoint, and for each
+   * recorded position a line from the midpoint with its minimum- and
+   * maximum-distance spheres.
+   *
+   * The text goes through renderer.DrawText as Carbon's does; the renderer
+   * decides whether it can draw it.
+   * @param {ITr2DebugRenderer2} renderer
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer)
+  {
+    if (!renderer.HasOption(this, "DistanceField"))
+    {
+      return;
+    }
+    this._debug = true;
+
+    // Show the dimension and midpoint of the field
+    const aabbMin = vec3.scaleAndAdd(EveDistanceField._debugMin, this.midpoint, this.dimensions, -0.5);
+    const aabbMax = vec3.scaleAndAdd(EveDistanceField._debugMax, this.midpoint, this.dimensions, 0.5);
+    renderer.DrawSphere__CenterRadius(
+      Tr2DebugObjectReference.create__Object(this),
+      this.midpoint,
+      1000,
+      3,
+      ITr2DebugRenderer2.Effect.Wireframe,
+      Tr2DebugColor.create__Uint32(0xff00ff00));
+    renderer.DrawBox__MinMax(
+      Tr2DebugObjectReference.create__Object(this),
+      aabbMin,
+      aabbMax,
+      ITr2DebugRenderer2.Effect.Wireframe,
+      Tr2DebugColor.create__Uint32(0xff00ff00));
+    const str = "Object Count: " + this.objects.length;
+    renderer.DrawText(
+      TriDebugFont.TRI_DBG_FONT_LARGE,
+      this.midpoint,
+      color.fromARGB(EveDistanceField._debugTextColor, 0xff00ff00),
+      str);
+
+    for (const pos of this._debugPositions)
+    {
+      renderer.DrawLine(
+        Tr2DebugObjectReference.create__Object(this),
+        this.midpoint,
+        pos,
+        Tr2DebugColor.create__Uint32(0x7f00ff00));
+      renderer.DrawSphere__CenterRadius(
+        Tr2DebugObjectReference.create__Object(this),
+        pos,
+        this.minDistance,
+        8,
+        ITr2DebugRenderer2.Effect.Wireframe,
+        Tr2DebugColor.create__Uint32(0x3f3f3f3f));
+      renderer.DrawSphere__CenterRadius(
+        Tr2DebugObjectReference.create__Object(this),
+        pos,
+        this.maxDistance,
+        8,
+        ITr2DebugRenderer2.Effect.Wireframe,
+        Tr2DebugColor.create__Uint32(0x1f1f1f1f));
+    }
   }
 
   /**
@@ -353,6 +456,11 @@ export class EveDistanceField
 
   static _cameraPosition = vec3.create();
   static _cameraTransform = mat4.create();
+
+  // RenderDebugInfo scratch (debug drawing is single-threaded).
+  static _debugMin = vec3.create();
+  static _debugMax = vec3.create();
+  static _debugTextColor = color.create();
 }
 
 // Exact native Blue exposure: only these identities participate in loading.

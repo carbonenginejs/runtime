@@ -211,9 +211,17 @@ export class EveLineSet
   /** Carbon EveLineSet::Update forwards to UpdateSyncronous (cpp:120-123). */
   @blue.method
   @meta.implemented
-  Update(updateContext)
+  Update__UpdateContext(updateContext)
   {
     this.UpdateSyncronous(updateContext);
+  }
+
+  /** Carbon's Update( const EveUpdateContext& ) under its bare name (rule 11). */
+  @blue.method
+  @meta.implemented
+  Update(updateContext)
+  {
+    return this.Update__UpdateContext(updateContext);
   }
 
   /** Carbon UpdateViewDependentData (cpp:130-132): nothing to do. */

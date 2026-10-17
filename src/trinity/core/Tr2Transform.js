@@ -85,7 +85,7 @@ export class Tr2Transform
    */
   @blue.method
   @meta.adapted
-  Update(time, renderContext = null)
+  Update__Time(time, renderContext = null)
   {
     if (!this.update)
     {
@@ -97,6 +97,19 @@ export class Tr2Transform
     {
       curveSet.Update(seconds, renderContext);
     }
+  }
+
+  /**
+   * Carbon's Update( Be::Time ) under its bare name (rule 11). EveTransform
+   * overrides this to route between its two overloads.
+   * @param {number} time
+   * @param {object|null} [renderContext]
+   */
+  @blue.method
+  @meta.implemented
+  Update(time, renderContext = null)
+  {
+    return this.Update__Time(time, renderContext);
   }
 
   /**

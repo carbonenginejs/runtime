@@ -10,6 +10,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { meta, type, blue } from "#schema";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 
 const WORLD_CENTER_SCRATCH = vec3.create();
 const TRACKED_POSITION_SCRATCH = vec3.create();
@@ -17,6 +18,8 @@ const OBJECT_POSITION_SCRATCH = vec3.create();
 const INVERSE_WORLD_SCRATCH = mat4.create();
 const CURVE_TRANSLATION_SCRATCH = vec3.create();
 const CURVE_ROTATION_SCRATCH = quat.create();
+// RenderDebugInfo scratch (debug drawing is single-threaded).
+const DEBUG_SPHERE_TRANSFORM = mat4.create();
 
 // Carbon Sphere::IsPointInside epsilon (math Sphere_inline.h:107-116).
 const SPHERE_RADIUS_EPSILON = 1e-4;
@@ -394,6 +397,75 @@ export class EveTriggerVolume
     this._UpdateWorldTransform(0);
     this._RebuildBoundingSphere();
     return true;
+  }
+
+  /**
+   * Carbon EveTriggerVolume::GetDebugOptions (EveTriggerVolume.cpp:223-228).
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    options.add("Trigger Volumes");
+    options.add("Trigger Exclusion Volumes");
+    options.add("Trigger Bounding Sphere");
+  }
+
+  /**
+   * Carbon EveTriggerVolume::RenderDebugInfo (EveTriggerVolume.cpp:230-259):
+   * three independent options. "Trigger Volumes" has each volume draw itself
+   * under the world transform, green while the tracked position is inside and
+   * white otherwise; "Trigger Exclusion Volumes" draws the exclusion volumes in
+   * red; "Trigger Bounding Sphere" draws the broad-phase sphere as a
+   * 10-segment wireframe sphere.
+   *
+   * Carbon's CcpMath::Sphere marks an unset sphere with radius -1
+   * (Sphere_inline.h:9-13); this class carries that as
+   * _boundingSphereInitialized beside a radius of 0, so the radius passed is
+   * -1 while the flag is clear, as Carbon passes it.
+   * @param {ITr2DebugRenderer2} renderer
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer)
+  {
+    if (renderer.HasOption(this, "Trigger Volumes"))
+    {
+      // green when the tracked position is inside, white otherwise
+      let color = 0xFFFFFFFF;
+      if (this.isInside)
+      {
+        color = 0xFF33FF33;
+      }
+
+      for (const volume of this.volumes)
+      {
+        volume.RenderDebugInfo(renderer, this._worldTransform, color);
+      }
+    }
+
+    if (renderer.HasOption(this, "Trigger Exclusion Volumes"))
+    {
+      for (const volume of this.exclusionVolumes)
+      {
+        volume.RenderDebugInfo(renderer, this._worldTransform, 0xFFFF3333);
+      }
+    }
+
+    if (renderer.HasOption(this, "Trigger Bounding Sphere"))
+    {
+      const transform = mat4.fromTranslation(DEBUG_SPHERE_TRANSFORM, this._boundingSphereCenter);
+      // Carbon (row-vector): TranslationMatrix( m_boundingSphere.center ) * m_worldTransform.
+      mat4.multiply(transform, this._worldTransform, transform);
+      renderer.DrawSphere__TransformRadius(
+        Tr2DebugObjectReference.create__Object(this),
+        transform,
+        this._boundingSphereInitialized ? this._boundingSphereRadius : -1,
+        10,
+        ITr2DebugRenderer2.Effect.Wireframe,
+        Tr2DebugColor.create__Uint32(0xff333333));
+    }
   }
 
   /**

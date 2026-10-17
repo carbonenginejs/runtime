@@ -50,6 +50,33 @@ export class EveComponentRegistry
   }
 
   /**
+   * Carbon `template <typename T> void Clear()` (EveComponentRegistry.h:232-247):
+   * empties one component type's collection, first clearing that component's
+   * bit from each entity in it. Nothing happens when the collection was never
+   * created.
+   *
+   * Adapted: JavaScript names the component explicitly, as RegisterComponent
+   * does, because it has no template specialization. Carbon's collection
+   * loop guard has no counterpart without threads.
+   * @param {string} componentName The component type's registered name.
+   */
+  @blue.method
+  @meta.adapted
+  Clear__Component(componentName)
+  {
+    const collection = this.GetComponentCollection(componentName);
+    if (collection === null)
+    {
+      return;
+    }
+    for (const entity of collection.collection)
+    {
+      this.RemoveCollectionFromEntityState(collection, entity);
+    }
+    collection.Clear();
+  }
+
+  /**
    * Removes the entity from this registry and adds it back, moving it to the end
    * of the registration order.
    */

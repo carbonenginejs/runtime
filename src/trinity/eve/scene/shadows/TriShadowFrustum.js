@@ -6,9 +6,11 @@ import { blue } from "#schema";
 // (ECS-VISIBILITY-SPEC-2026-07-23 "Shadow frustums"). The shadow member is a
 // TriFrustum owned by value and copied in, as Carbon's member is (ruling 16).
 import { TriFrustum } from "../../../core/view/TriFrustum.js";
+import { IEveShadowFrustum } from "./IEveShadowFrustum.js";
 
 /** Carbon's native perspective-shadow frustum adapter. */
 @blue.define("TriShadowFrustum")
+@blue.inherit(IEveShadowFrustum)
 export class TriShadowFrustum
 {
 

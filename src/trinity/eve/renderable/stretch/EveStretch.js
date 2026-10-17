@@ -224,17 +224,22 @@ export class EveStretch extends IEveFiringEffectElement
     return this.Update(context);
   }
 
-  /**
-   * Runs both update phases in order, for callers that drive the stretch outside
-   * the scene's split synchronous/asynchronous pass.
-   */
+  /** Runs both update phases in order, for callers that drive the stretch outside the scene's split synchronous/asynchronous pass. */
   @blue.method
   @meta.implemented
-  Update(context)
+  Update__UpdateContext(updateContext)
   {
-    this.UpdateSynchronous(context);
-    this.UpdateAsynchronous(context);
+    this.UpdateSynchronous(updateContext);
+    this.UpdateAsynchronous(updateContext);
     return true;
+  }
+
+  /** Carbon's Update( const EveUpdateContext& ) under its bare name (rule 11). */
+  @blue.method
+  @meta.implemented
+  Update(updateContext)
+  {
+    return this.Update__UpdateContext(updateContext);
   }
 
   /**

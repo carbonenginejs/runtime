@@ -7,19 +7,22 @@ import "#consts/trinity";
 import { mat4 } from "#math/mat4";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { IEveTransform } from "../IEveTransform.js";
+import { isNumber } from "#utils/is";
 import { ITr2CurveSetOwner } from "../../curves/ITr2CurveSetOwner.js";
 import { box3 } from "#math/box3";
 import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { meta, type, blue } from "#schema";
+import { color } from "#math/color";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { TriBatchType } from "#consts/graphics";
 import { EveBasicPerObjectData } from "../../core/rawData/perObjectData/EveBasicPerObjectData.js";
 import { Tr2Transform } from "../../core/Tr2Transform.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
 import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "#consts/graphics/tr2PickType";
-import { ITr2BoundingBox } from "#interfaces";
+import { ITr2BoundingBox, ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
+import { TriDebugFont } from "../../core/TriDebugTextRenderer.js";
 import { IWorldPosition } from "../../core/IWorldPosition.js";
 import { IInitialize } from "#blue/IInitialize";
 import { CcpTime } from "../../../global/blue/CcpTime.js";
@@ -215,13 +218,37 @@ export class EveTransform extends Tr2Transform
     return this.worldTransform;
   }
 
-  /** Runs the synchronous pass then the asynchronous pass, in Carbon's order. */
+  /**
+   * Carbon's `Update( const EveUpdateContext& )` (EveTransform.h:55): runs the
+   * synchronous pass then the asynchronous pass, in Carbon's order.
+   * @param {EveUpdateContext} context
+   */
   @blue.method
   @meta.implemented
-  Update(context)
+  Update__UpdateContext(context)
   {
     this.UpdateSyncronous(context);
     this.UpdateAsyncronous(context);
+  }
+
+  /**
+   * Carbon's two Update overloads under the bare name: EveTransform's
+   * `Update( const EveUpdateContext& )` (h:55) and Tr2Transform's
+   * `Update( Be::Time )`, kept by `using Tr2Transform::Update` (h:143). A
+   * number is a Be::Time and goes to Update__Time; anything else is the update
+   * context.
+   * @param {number|EveUpdateContext} timeOrContext
+   * @param {object|null} [renderContext] For the time form only.
+   */
+  @blue.method
+  @meta.implemented
+  Update(timeOrContext, renderContext = null)
+  {
+    if (isNumber(timeOrContext))
+    {
+      return this.Update__Time(timeOrContext, renderContext);
+    }
+    return this.Update__UpdateContext(timeOrContext);
   }
 
   /**
@@ -268,7 +295,7 @@ export class EveTransform extends Tr2Transform
       }
     }
 
-    for (const child of this.children) child.Update(context);
+    for (const child of this.children) child.Update__UpdateContext(context);
 
     for (const system of this.particleSystems) system.UpdateTransform(this.worldTransform);
     if (this.particleEmitters.length)
@@ -551,6 +578,139 @@ export class EveTransform extends Tr2Transform
     return out ? quat.copy(out, this.rotation) : this.rotation;
   }
 
+  /**
+   * Carbon EveTransform::GetDebugOptions (EveTransform.cpp:178-193): the three
+   * transform options, then each observer's, then the mesh's.
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    options.add("Bounding Box");
+    options.add("Bounding Sphere");
+    options.add("Names");
+
+    for (const observer of this.observers)
+    {
+      observer.GetDebugOptions(options);
+    }
+
+    if (this.mesh)
+    {
+      this.mesh.GetDebugOptions(options);
+    }
+  }
+
+  /**
+   * Carbon EveTransform::RenderDebugInfo (EveTransform.cpp:195-262). Nothing is
+   * drawn for a hideOnLowQuality node under low quality or an invisible node.
+   * Otherwise the observers draw first; "Bounding Box" draws the override
+   * bounds, else the mesh bounds (both white), else a blue unit box, under the
+   * world transform; "Bounding Sphere" draws the world bounding sphere;
+   * "Names" draws the name as text at the mesh's local maximum corner; then the
+   * mesh draws under the world transform, and every debug-renderable child
+   * draws itself.
+   *
+   * Two Carbon quirks are reproduced. The sphere centre is
+   * Vector3( sphere.x, sphere.x, sphere.x ) (cpp:236), so it is drawn off its
+   * real centre unless x, y and z coincide. The name is placed at the local
+   * maxBounds, never transformed into world space (cpp:240-248).
+   *
+   * The text goes through renderer.DrawText as Carbon's does; the renderer
+   * decides whether it can draw it.
+   * @param {ITr2DebugRenderer2} renderer
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer)
+  {
+    // is this one here enabled?
+    if (this.hideOnLowQuality && Tr2Renderer.IsLowQuality())
+    {
+      return;
+    }
+
+    if (!this._isVisible)
+    {
+      return;
+    }
+
+    for (const observer of this.observers)
+    {
+      observer.RenderDebugInfo(renderer);
+    }
+
+    if (renderer.HasOption(this, "Bounding Box"))
+    {
+      const minBounds = vec3.set(EveTransform._debugMin, -0.5, -0.5, -0.5);
+      const maxBounds = vec3.set(EveTransform._debugMax, 0.5, 0.5, 0.5);
+      let boxColor = 0xff0000ff;
+      if (this.overrideBoundsMax[0] !== this.overrideBoundsMin[0] || this.overrideBoundsMax[1] !== this.overrideBoundsMin[1] || this.overrideBoundsMax[2] !== this.overrideBoundsMin[2])
+      {
+        vec3.copy(minBounds, this.overrideBoundsMin);
+        vec3.copy(maxBounds, this.overrideBoundsMax);
+        boxColor = 0xffffffff;
+      }
+      else if (this.mesh && this.mesh.GetBoundingBox(minBounds, maxBounds))
+      {
+        boxColor = 0xffffffff;
+      }
+      renderer.DrawBox__Transform(
+        Tr2DebugObjectReference.create__Object(this),
+        this.worldTransform,
+        minBounds,
+        maxBounds,
+        ITr2DebugRenderer2.Effect.Wireframe,
+        Tr2DebugColor.create__Uint32(boxColor));
+    }
+    if (renderer.HasOption(this, "Bounding Sphere"))
+    {
+      const sphere = EveTransform._debugSphere;
+      if (this.GetBoundingSphere(sphere))
+      {
+        // Carbon quirk (EveTransform.cpp:236): the centre is Vector3( sphere.x, sphere.x, sphere.x ), reproduced.
+        const center = vec3.set(EveTransform._debugCenter, sphere[0], sphere[0], sphere[0]);
+        renderer.DrawSphere__CenterRadius(
+          Tr2DebugObjectReference.create__Object(this),
+          center,
+          sphere[3],
+          10,
+          ITr2DebugRenderer2.Effect.Wireframe,
+          Tr2DebugColor.create__Uint32(0xff808000));
+      }
+    }
+
+    if (renderer.HasOption(this, "Names"))
+    {
+      const minBounds = vec3.set(EveTransform._debugMin, -0.5, -0.5, -0.5);
+      const maxBounds = vec3.set(EveTransform._debugMax, 0.5, 0.5, 0.5);
+      if (this.mesh)
+      {
+        this.mesh.GetBoundingBox(minBounds, maxBounds);
+      }
+      renderer.DrawText(
+        TriDebugFont.TRI_DBG_FONT_SMALL,
+        maxBounds,
+        color.fromARGB(EveTransform._debugTextColor, 0xffffffff),
+        this.name);
+    }
+
+    if (this.mesh)
+    {
+      this.mesh.RenderDebugInfo(this.worldTransform, renderer);
+    }
+
+    for (const child of this.children)
+    {
+      const renderable = CjsSchema.cast(child, ITr2DebugRenderable);
+      if (renderable)
+      {
+        renderable.RenderDebugInfo(renderer);
+      }
+    }
+  }
+
   /** Returns the LOD level chosen by the last visibility pass. */
   @blue.method
   @meta.implemented
@@ -689,6 +849,13 @@ export class EveTransform extends Tr2Transform
    * @type {box3}
    */
   static _worldBounds = box3.create();
+
+  // RenderDebugInfo scratch (debug drawing is single-threaded).
+  static _debugMin = vec3.create();
+  static _debugMax = vec3.create();
+  static _debugCenter = vec3.create();
+  static _debugSphere = vec4.create();
+  static _debugTextColor = color.create();
 }
 
 // Supported native interfaces; ITr2Pickable has no runtime declaration yet.

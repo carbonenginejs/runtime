@@ -55,8 +55,17 @@ export class EveCurveLineSet extends Tr2CurveLineSet
   /** Carbon's IEveTransform update is intentionally empty. */
   @blue.method
   @meta.implemented
-  Update(_updateContext)
+  Update__UpdateContext(updateContext)
   {
+
+  }
+
+  /** Carbon's Update( const EveUpdateContext& ) under its bare name (rule 11). */
+  @blue.method
+  @meta.implemented
+  Update(updateContext)
+  {
+    return this.Update__UpdateContext(updateContext);
   }
 
   /** Composes local SRT with the parent and culls the transformed local sphere. */

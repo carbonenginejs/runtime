@@ -293,14 +293,14 @@ export class EveMissileWarhead extends EveTransform
    */
   @blue.method
   @meta.adapted
-  Update(context)
+  Update__UpdateContext(context)
   {
     const position = this._flyingTime * this.pathOffsetNoiseSpeed + this._noisePhase;
     this.pathOffset[0] = carbonPerlin1D(position, 1.1, 2, 3) * this.pathOffsetNoiseScale;
     this.pathOffset[1] = carbonPerlin1D(position + 10.1, 1.1, 2, 3) * this.pathOffsetNoiseScale;
     this.pathOffset[2] = carbonPerlin1D(position + 18.3, 1.1, 2, 3) * this.pathOffsetNoiseScale;
     vec3.subtract(this._positionLastFrame, this._positionLastFrame, context.GetOriginShift());
-    super.Update(context);
+    super.Update__UpdateContext(context);
     this.GetWorldPosition(EveMissileWarhead._positionNow);
     vec3.subtract(this._movement, EveMissileWarhead._positionNow, this._positionLastFrame);
     vec3.copy(this._positionLastFrame, EveMissileWarhead._positionNow);

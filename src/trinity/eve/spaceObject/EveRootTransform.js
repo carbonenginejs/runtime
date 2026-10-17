@@ -103,7 +103,7 @@ export class EveRootTransform extends EveTransform
   /** Advances this detached root in Carbon's synchronous/asynchronous order. */
   @blue.method
   @meta.implemented
-  Update(updateContext)
+  Update__UpdateContext(updateContext)
   {
     this.UpdateSyncronous(updateContext);
     this.UpdateAsyncronous(updateContext);

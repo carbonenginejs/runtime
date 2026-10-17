@@ -2,15 +2,15 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/IEveTransform.h
 //
 // The contract for entries in a `children` list on EveSpaceObject2 and
-// EveTransform. Carbon declares five pure virtuals; FOUR are ported.
+// EveTransform.
 //
-// `Update(const EveUpdateContext&)` is DELIBERATELY NOT PORTED. The name is
-// already taken on the transform lineage by Tr2Transform.Update(time,
-// renderContext) - a different signature and meaning. C++ resolves the two by
-// overload; JavaScript cannot, and a mixin installing a throwing Update would
-// silently change what Tr2Transform.Update means for every subclass. Callers
-// iterating `children` therefore keep their hedge on `child?.Update?.()`
-// until the implementors' own Update surfaces are reconciled.
+// Carbon's `Update( const EveUpdateContext& )` (IEveTransform.h:17) is an
+// overload on EveTransform, which also keeps Tr2Transform's
+// `Update( Be::Time )` (EveTransform.h:55,143; Tr2Transform.h:74). Per rule
+// 11 the context form is `Update__UpdateContext` and the time form
+// `Update__Time`; EveTransform's bare Update routes between them, and
+// single-overload implementors forward their bare Update to
+// Update__UpdateContext. Children loops call Update__UpdateContext.
 
 import { CjsSchema, blue } from "#schema";
 
@@ -18,6 +18,15 @@ import { CjsSchema, blue } from "#schema";
 /** Contract for a child entry a space object drives and renders. */
 export class IEveTransform
 {
+
+  /**
+   * Carbon's `void Update( const EveUpdateContext& updateContext )`
+   * (IEveTransform.h:17): advances the child for the frame.
+   *
+   * @param {object} _updateContext The frame's EveUpdateContext.
+   */
+  @blue.abstract
+  Update__UpdateContext(_updateContext) {}
 
   /**
    * Decides frame visibility against the frustum.

@@ -2,7 +2,10 @@
 // Source: trinity/trinity/Tr2InstancedMesh.cpp
 // Source: trinity/trinity/Tr2InstancedMesh_Blue.cpp
 import { vec3 } from "#math/vec3";
+import { mat4 } from "#math/mat4";
+import { box3 } from "#math/box3";
 import { CjsSchema, meta, type, blue } from "#schema";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { TriGeometryRes, ResourceRequirement } from "#resource";
 import { TriDevice } from "../device/TriDevice.js";
 import { Tr2Mesh } from "./Tr2Mesh.js";
@@ -475,6 +478,110 @@ export class Tr2InstancedMesh extends Tr2Mesh
     return { center, radius: instanceSize };
   }
 
+  /**
+   * Carbon Tr2InstancedMesh::GetDebugOptions (Tr2InstancedMesh.cpp:520-523;
+   * Tr2InstancedMesh.h:99). Overrides Tr2MeshBase's and, as Carbon's does, does
+   * not offer the base "Mesh Bounds" option.
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    options.add("Instance Mesh Bounds");
+  }
+
+  /**
+   * Carbon Tr2InstancedMesh::RenderDebugInfo (Tr2InstancedMesh.cpp:525-551;
+   * Tr2InstancedMesh.h:100). Under "Instance Mesh Bounds": the authored static
+   * box for STATIC bounds; otherwise, while the instance resource is set and
+   * the eye is outside the whole-mesh bounds, the box around the instance
+   * sphere nearest the eye (the eye taken into mesh space through the inverse
+   * world transform), then the whole-mesh bounds. All under worldTransform as
+   * wireframe boxes. The skinning and morph arguments are accepted to match the
+   * base signature and, as in Carbon, unused.
+   *
+   * Carbon quirk (cpp:541): the eye-outside test compares the WORLD view
+   * position against the mesh-space bounds; reproduced.
+   *
+   * Adapted: Carbon skips the dynamic drawing when GetBounds returns an
+   * uninitialised box (AxisAlignedBox_inline.h:43-51). This class's GetBounds
+   * returns a zero box in that case instead, so the zero box is drawn here
+   * where Carbon draws nothing. Carbon's Tr2Renderer::GetViewPosition static
+   * is read from the main-thread render context, which holds it in this port.
+   * @param {mat4} worldTransform
+   * @param {ITr2DebugRenderer2} renderer
+   * @param {mat4[]|null} [_boneTransforms]
+   * @param {ArrayLike<number>|null} [_meshBindingIndices]
+   * @param {number} [_boneCount]
+   * @param {{ index: number, weight: number }[]|null} [_morphTargets]
+   * @param {number} [_morphTargetsCount]
+   */
+  @blue.method
+  @meta.adapted
+  RenderDebugInfo(worldTransform, renderer, _boneTransforms = null, _meshBindingIndices = null, _boneCount = 0, _morphTargets = null, _morphTargetsCount = 0)
+  {
+    if (renderer.HasOption(this, "Instance Mesh Bounds"))
+    {
+      if (this.boundsMethod === Tr2InstancedMesh.BoundsMethod.STATIC)
+      {
+        renderer.DrawBox__Transform(
+          Tr2DebugObjectReference.create__Object(this),
+          worldTransform,
+          this.minBounds,
+          this.maxBounds,
+          ITr2DebugRenderer2.Effect.Wireframe,
+          Tr2DebugColor.create__Uint32ZFail(0xffaa8800, 0x22aa8800));
+      }
+      else
+      {
+        const parentBounds = this.GetBounds();
+        if (parentBounds)
+        {
+          if (this.instanceGeometryResource)
+          {
+            const viewPosition = Tr2RenderContext_GetMainThreadRenderContext().GetViewPosition();
+
+            // Carbon Inverse returns the matrix itself when it is singular (math/src/Matrix.cpp:12-16).
+            const inverseWorld = Tr2InstancedMesh._debugInverseWorld;
+            if (!mat4.invert(inverseWorld, worldTransform))
+            {
+              mat4.copy(inverseWorld, worldTransform);
+            }
+            const localView = vec3.transformMat4(Tr2InstancedMesh._debugPoint, viewPosition, inverseWorld);
+            const sphere = this.GetInstanceBoundsClosestToPoint(localView);
+
+            // Carbon quirk (cpp:541): world view position against mesh-space bounds.
+            const parentBox = box3.fromBounds(Tr2InstancedMesh._debugBox, parentBounds.min, parentBounds.max);
+            // A sphere is set when its radius is not negative (Sphere_inline.h:33-36); STATIC returns null.
+            if (sphere !== null && sphere.radius >= 0 && !box3.containsPoint(parentBox, viewPosition))
+            {
+              // Carbon AxisAlignedBox( sphere ) (AxisAlignedBox_inline.h:30-34).
+              const aabbMin = vec3.set(Tr2InstancedMesh._debugMin,
+                sphere.center[0] - sphere.radius, sphere.center[1] - sphere.radius, sphere.center[2] - sphere.radius);
+              const aabbMax = vec3.set(Tr2InstancedMesh._debugMax,
+                sphere.center[0] + sphere.radius, sphere.center[1] + sphere.radius, sphere.center[2] + sphere.radius);
+              renderer.DrawBox__Transform(
+                Tr2DebugObjectReference.create__Object(this),
+                worldTransform,
+                aabbMin,
+                aabbMax,
+                ITr2DebugRenderer2.Effect.Wireframe,
+                Tr2DebugColor.create__Uint32ZFail(0xff008888, 0x22008888));
+            }
+          }
+          renderer.DrawBox__Transform(
+            Tr2DebugObjectReference.create__Object(this),
+            worldTransform,
+            parentBounds.min,
+            parentBounds.max,
+            ITr2DebugRenderer2.Effect.Wireframe,
+            Tr2DebugColor.create__Uint32ZFail(0xff888888, 0x22888888));
+        }
+      }
+    }
+  }
+
   /** A detached { min, max } pair cloned from the two vectors. */
   static _cloneBounds(minBounds, maxBounds)
   {
@@ -505,6 +612,13 @@ export class Tr2InstancedMesh extends Tr2Mesh
   }
 
   static _zero = [0, 0, 0];
+
+  // RenderDebugInfo scratch (debug drawing is single-threaded).
+  static _debugInverseWorld = mat4.create();
+  static _debugPoint = vec3.create();
+  static _debugBox = box3.create();
+  static _debugMin = vec3.create();
+  static _debugMax = vec3.create();
 
   static BoundsMethod = {
     STATIC: 0,

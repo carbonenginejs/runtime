@@ -11,6 +11,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsSchema, meta, type, blue } from "#schema";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 
 
 /**
@@ -253,6 +254,98 @@ export class AudioGameObject
   }
 
   /**
+   * Carbon AudioGameObject::UpdateModelCenterWorldPosition (AudioGameObject.cpp:95-100;
+   * AudioGameObject.h:63): brings the world transform up to t, then takes the
+   * translation of the authored rotation and translation composed with that
+   * world transform.
+   * @param {vec3} position - receives the world-space model centre
+   * @param {number} t - the time to update to, in Blue ticks
+   * @returns {vec3} position
+   */
+  @blue.method
+  @meta.implemented
+  UpdateModelCenterWorldPosition(position, t)
+  {
+    this.UpdateWorldTransform(t);
+
+    const { mat4_0, mat4_1 } = AudioGameObject.scratch;
+    mat4.fromRotationTranslation(mat4_0, this.rotation, this.translation);
+    // Carbon (row-vector): TransformationMatrix( Vector3( 1, 1, 1 ), m_rotation, m_translation ) * m_worldTransform.
+    mat4.multiply(mat4_1, this._worldTransform, mat4_0);
+    return mat4.getTranslation(position, mat4_1);
+  }
+
+  /**
+   * Carbon AudioGameObject::GetModelCenterWorldPosition (AudioGameObject.cpp:102-106;
+   * AudioGameObject.h:64): the translation of the authored rotation and
+   * translation composed with the last world transform, without advancing the
+   * curves.
+   * @param {vec3} position - receives the world-space model centre
+   * @returns {vec3} position
+   */
+  @blue.method
+  @meta.implemented
+  GetModelCenterWorldPosition(position)
+  {
+    const { mat4_0, mat4_1 } = AudioGameObject.scratch;
+    mat4.fromRotationTranslation(mat4_0, this.rotation, this.translation);
+    // Carbon (row-vector): TransformationMatrix( Vector3( 1, 1, 1 ), m_rotation, m_translation ) * m_worldTransform.
+    mat4.multiply(mat4_1, this._worldTransform, mat4_0);
+    return mat4.getTranslation(position, mat4_1);
+  }
+
+  /**
+   * Carbon AudioGameObject::GetDebugOptions (AudioGameObject.cpp:173-181):
+   * "Audio Speaker", then whatever the emitter offers when it is
+   * debug-renderable.
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    options.add("Audio Speaker");
+
+    const tmp = CjsSchema.cast(this.audioEmitter, ITr2DebugRenderable);
+    if (tmp)
+    {
+      tmp.GetDebugOptions(options);
+    }
+  }
+
+  /**
+   * Carbon AudioGameObject::RenderDebugInfo (AudioGameObject.cpp:183-196):
+   * under "Audio Speaker", a wireframe speaker of size 30 and 5 segments at the
+   * world transform; then the emitter draws its own debug info when it is
+   * debug-renderable.
+   *
+   * Carbon also builds RotationMatrix( m_rotation ) and takes its Z axis
+   * (cpp:187-188) but never reads either; those dead locals are not ported.
+   * @param {ITr2DebugRenderer2} renderer
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer)
+  {
+    if (renderer.HasOption(this, "Audio Speaker"))
+    {
+      renderer.DrawAudioSpeaker(
+        Tr2DebugObjectReference.create__Object(this),
+        this._worldTransform,
+        30,
+        5,
+        ITr2DebugRenderer2.Effect.Wireframe,
+        Tr2DebugColor.create__Uint32(0xffff00ff));
+    }
+
+    const tmp = CjsSchema.cast(this.audioEmitter, ITr2DebugRenderable);
+    if (tmp)
+    {
+      tmp.RenderDebugInfo(renderer);
+    }
+  }
+
+  /**
    * IEveSpaceObject2 hook (AudioGameObject.cpp:91-93): an audio game object is
    * not rendered, so it contributes nothing to a child's per-object records and
    * Carbon's body is empty. Present so a child parented to one can call it.
@@ -284,6 +377,8 @@ export class AudioGameObject
     vec3_0: vec3.create(),
     vec3_1: vec3.create(),
     vec3_2: vec3.create(),
-    quat_0: quat.create()
+    quat_0: quat.create(),
+    mat4_0: mat4.create(),
+    mat4_1: mat4.create()
   };
 }

@@ -1782,7 +1782,7 @@ export class EveSpaceObject2 extends EveEntity
 
     for (const child of this.children)
     {
-      child?.Update(updateContext);
+      child.Update__UpdateContext(updateContext);
     }
 
     if (this.effectChildren.length)

@@ -364,10 +364,18 @@ export class EveSpherePin
   /** Native update orders synchronous geometry publication before curve updates. */
   @blue.method
   @meta.implemented
-  Update(updateContext)
+  Update__UpdateContext(updateContext)
   {
     this.UpdateSyncronous(updateContext);
     this.UpdateAsyncronous(updateContext);
+  }
+
+  /** Carbon's Update( const EveUpdateContext& ) under its bare name (rule 11). */
+  @blue.method
+  @meta.implemented
+  Update(updateContext)
+  {
+    return this.Update__UpdateContext(updateContext);
   }
 
   /** Native visibility updates placement but performs no frustum cull. */
