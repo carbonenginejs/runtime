@@ -3,6 +3,14 @@ import test from "node:test";
 import { ITr2PickableScene, Tr2PrimitiveScene, Tr2PrimitiveSet, Tr2RenderContext,
   TriProjection, TriView, TriViewport } from "../../npm/dist/trinity/index.js";
 import { ALResult, Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
+import { Tr2EffectStateManager } from "../../npm/dist/trinity/shader/index.js";
+import { ShaderType } from "../../npm/dist/global/consts/renderContext/index.js";
+
+// A REGISTERED program, so a bind can be told from the default-constructed
+// program BeginManagedRendering binds to unbind (Tr2EffectStateManager.cpp:674).
+const program = Tr2EffectStateManager.registerShaderProgram([
+  Tr2EffectStateManager.registerShader(ShaderType.PIXEL_SHADER, new Uint8Array([ 0x9C, 1 ]))
+]);
 
 for (const managed of [false, true])
 {
@@ -30,18 +38,18 @@ for (const managed of [false, true])
       // Any repeated handle exercises the real ESM's redundancy cache. The
       // backend sentinel models WebGPU unbinding its program at EndScene.
       let bound = false;
-      t.mock.method(context, "SetShaderProgram", () => { bound = true; });
+      t.mock.method(context, "SetShaderProgram", value => { bound = value.IsValid(); });
       t.mock.method(context, "EndScene", () => { bound = false; return ALResult.S_OK; });
       t.mock.method(scene, "RenderPicking", () =>
       {
-        esm.ApplyShaderProgram(123456);
+        esm.ApplyShaderProgram(program);
         assert.equal(bound, true, "each picking pass must rebind its shader");
         if (fail) throw new Error("draw failed");
         return true;
       });
       if (managed) esm.BeginManagedRendering();
       else esm.EndManagedRendering();
-      esm.ApplyShaderProgram(123456);
+      esm.ApplyShaderProgram(program);
       bound = false;
       for (let attempt = 0; attempt < 2; attempt++)
       {
@@ -51,7 +59,7 @@ for (const managed of [false, true])
         if (fail) await assert.rejects(pending, /draw failed/u);
         else { await pending; assert.equal(results.object, object); }
         assert.equal(bound, false, "submission cleared the backend binding");
-        esm.ApplyShaderProgram(123456);
+        esm.ApplyShaderProgram(program);
         assert.equal(bound, true, "the caller must also rebind after picking");
         bound = false;
       }

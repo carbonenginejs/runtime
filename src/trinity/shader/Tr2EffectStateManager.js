@@ -111,6 +111,16 @@ const vertexLayoutObjects = new WeakMap();
 /** Realized shader programs per context, per handle; see vertexLayoutObjects. */
 const shaderProgramObjects = new WeakMap();
 
+/**
+ * Realized shader stages per context, per shader handle; see vertexLayoutObjects.
+ *
+ * Carbon's `s_shaders` row holds the one created `Tr2ShaderAL` for a
+ * registration (cpp:500-512), and every program that links the handle copies
+ * that value (`args[i] = *s_shaders[shaders[i]]`, cpp:562). Keeping the stage
+ * here, rather than one per program, is what lets the release reach it.
+ */
+const shaderObjects = new WeakMap();
+
 // Carbon interns once at asset load and stores the handle on the mesh, so its
 // linear scan never runs per draw. This runtime has no load hook, so the handle
 // is memoised against the element list or definition a payload already owns -
@@ -844,13 +854,28 @@ export class Tr2EffectStateManager
   }
 
   /**
-   * Forgets every program and vertex layout realized for this manager's
-   * context, so the next apply creates them through whatever backend the
-   * context holds now.
+   * Destroys every shader, program and vertex layout realized for this
+   * manager's context and forgets them, so the next apply creates them
+   * through whatever backend the context holds now.
    *
-   * Called when the context's backend changes: the realized objects belong to
-   * the backend that made them, and a WebGPU draw handed a stub program
-   * refuses the resource set built against it.
+   * Called when the context's backend changes, on device loss and on context
+   * teardown: the realized objects belong to the backend that made them, and
+   * a WebGPU draw handed a stub program refuses the resource set built
+   * against it.
+   *
+   * The release is Carbon's. `ReleaseDeviceResources` deletes every
+   * `s_shaders` row and then every `s_shaderPrograms` row (cpp:998-1007), and
+   * `Shutdown` deletes the shaders again at exit (cpp:652-666); each delete
+   * runs the value's destructor, which drops its share of the implementation.
+   * Carbon never deletes an `s_vertexLayoutMap` row: `DestroyDeviceResources`
+   * (`TriDevice.cpp:592`) destroys the implementation behind it and the next
+   * apply re-creates it (cpp:899-906). Ours drops the layout with its context,
+   * so its share is released here too. JavaScript has no destructor, so each
+   * value's `Destroy` releases the share explicitly, and the last share
+   * destroys the backend object (WebGL2's `deleteShader` / `deleteProgram`).
+   *
+   * Ours (no blue stamp): Carbon's tables are one per process with one
+   * backend; ours are per context because the backend can change under it.
    *
    * @returns {void}
    */
@@ -858,6 +883,19 @@ export class Tr2EffectStateManager
   {
     if (!this.#renderContext) return;
 
+    // s_shaders (cpp:998-1002).
+    for (const shader of (shaderObjects.get(this.#renderContext) ?? new Map()).values()) shader.Destroy();
+
+    // s_shaderPrograms (cpp:1003-1007). A cached null is a remembered refusal
+    // and owns nothing.
+    for (const program of (shaderProgramObjects.get(this.#renderContext) ?? new Map()).values())
+    {
+      if (program) program.Destroy();
+    }
+
+    for (const layout of (vertexLayoutObjects.get(this.#renderContext) ?? new Map()).values()) layout.Destroy();
+
+    shaderObjects.delete(this.#renderContext);
     shaderProgramObjects.delete(this.#renderContext);
     vertexLayoutObjects.delete(this.#renderContext);
   }
@@ -1243,17 +1281,12 @@ export class Tr2EffectStateManager
   }
 
   /**
-   * Begins a managed-rendering span, in which redundant applies are filtered.
+   * Releases the cache's shares of the bound vertex and index buffers.
    *
-   * Carbon resets the redundancy cache and unbinds the shader program first
-   * (cpp:670-694), because outside a span nothing tracks what the device holds
-   * and a stale cache would skip a needed bind.
+   * Carbon's `CurrentValues::Reset` assigns default `Tr2BufferAL` values over
+   * them (cpp:423-428), and the assignment drops each share. JavaScript has
+   * no destructor, so the shares are released explicitly.
    *
-   * The cull-mode argument is not a state to set: it selects mirroring, so
-   * `CULLMODE_CCW` means "this span is mirrored" and `CULLMODE_NONE` leaves the
-   * current setting alone.
-   *
-   * @param {number} [cullMode] A `CullMode` member.
    * @returns {void}
    */
   _ReleaseBufferBindings()
@@ -1274,12 +1307,31 @@ export class Tr2EffectStateManager
     this.#isManagedRendering = false;
   }
 
-  /** Starts a fresh managed state span, releasing the preceding cache's values. */
+  /**
+   * Begins a managed-rendering span, in which redundant applies are filtered.
+   *
+   * Carbon resets the redundancy cache and binds a default-constructed shader
+   * program, which unbinds, before the span starts (cpp:672-676). Outside a
+   * span nothing tracks what the device holds, so a stale cache would skip a
+   * needed bind, and the unbind makes the device match the reset cache.
+   *
+   * The cull-mode argument is not a state to set: it selects mirroring, so
+   * `CULLMODE_CCW` means "this span is mirrored" and `CULLMODE_NONE` leaves the
+   * current setting alone.
+   *
+   * @param {number} [cullMode] A `CullMode` member.
+   * @returns {void}
+   */
   @blue.method
   BeginManagedRendering(cullMode = CullMode.CULLMODE_NONE)
   {
     this._ReleaseBufferBindings();
     this.#currentValues = NewCurrentValues();
+
+    // m_renderContext.SetShaderProgram( Tr2ShaderProgramAL() ) (cpp:674). A
+    // manager not yet bound to a context reaches nothing, as every apply does.
+    if (this.#renderContext) this.#renderContext.SetShaderProgram(new Tr2ShaderProgramAL());
+
     this.#isManagedRendering = true;
 
     if (cullMode === CullMode.CULLMODE_CW) this.SetInvertedCullMode(false);
@@ -1651,16 +1703,28 @@ export class Tr2EffectStateManager
     if (cached !== undefined) return cached;
 
     // Carbon's RegisterShader / RegisterShaderProgram (cpp:500-509, 572-576):
-    // a `Tr2ShaderAL` value per stage, linked into a `Tr2ShaderProgramAL`
-    // value; a refused Create leaves no program (`CR_RETURN_VAL( ..., UNKNOWN )`).
+    // one `Tr2ShaderAL` value per registered stage, shared by every program
+    // that links it, linked into a `Tr2ShaderProgramAL` value; a refused
+    // Create leaves no program (`CR_RETURN_VAL( ..., UNKNOWN )`). A refused
+    // stage is not kept, as Carbon pushes no row for it (cpp:502-510).
+    const realizedShaders = shaderObjects.get(this.#renderContext) ?? new Map();
     const stages = [];
+
+    shaderObjects.set(this.#renderContext, realizedShaders);
 
     for (const shaderHandle of shaderPrograms[handle].shaderHandles)
     {
-      const row = shaders[shaderHandle];
-      const stage = new Tr2ShaderAL();
+      let stage = realizedShaders.get(shaderHandle) ?? null;
 
-      if (!row || Failed(stage.Create(row.stageType, row.bytecode, row.signature ?? null, "", this.#renderContext))) { stages.length = 0; break; }
+      if (!stage)
+      {
+        const row = shaders[shaderHandle];
+
+        stage = new Tr2ShaderAL();
+        if (!row || Failed(stage.Create(row.stageType, row.bytecode, row.signature ?? null, "", this.#renderContext))) { stages.length = 0; break; }
+
+        realizedShaders.set(shaderHandle, stage);
+      }
 
       stages.push(stage);
     }

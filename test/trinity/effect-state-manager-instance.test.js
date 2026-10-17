@@ -5,8 +5,10 @@ import { test } from "node:test";
 import { Tr2EffectStateManager } from "../../npm/dist/trinity/shader/index.js";
 import { Tr2RenderContext } from "../../npm/dist/trinity/core/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
-import { CullMode, Topology } from "../../npm/dist/global/consts/renderContext/index.js";
+import { CullMode, ShaderType, Topology } from "../../npm/dist/global/consts/renderContext/index.js";
 import { ALResult } from "../../npm/dist/trinityal/index.js";
+import { Tr2RenderContextALWebgl2 } from "../../npm/dist/trinityal/webgl2/index.js";
+import { FakeWebgl2 } from "../trinityal/webgl2/fakeWebgl2.js";
 
 const { Unknown, RenderingMode } = Tr2EffectStateManager;
 
@@ -63,6 +65,36 @@ test("beginning a span resets the cache", () =>
   manager.BeginManagedRendering();
 
   assert.equal(manager.GetCurrentValues().shaderProgram, Unknown);
+});
+
+test("beginning a span binds a default program, so the device matches the reset cache", () =>
+{
+  // Carbon's BeginManagedRendering: m_currentValues.Reset(), then
+  // m_renderContext.SetShaderProgram( Tr2ShaderProgramAL() )
+  // (Tr2EffectStateManager.cpp:672-674). Without the unbind a span inherited
+  // the previous span's program while its cache said UNKNOWN.
+  const context = new Tr2RenderContext();
+  const al = new Tr2RenderContextALStub();
+  const bound = [];
+
+  al.CreateDevice();
+  context.SetRenderContextAL(al);
+
+  const setShaderProgram = al.SetShaderProgram.bind(al);
+  al.SetShaderProgram = program => { bound.push(program); return setShaderProgram(program); };
+
+  const states = context.GetEffectStateManager();
+
+  states.BeginManagedRendering();
+
+  assert.equal(bound.length, 1);
+  assert.equal(bound[0].IsValid(), false, "a default-constructed, invalid program (cpp:674)");
+  assert.equal(states.IsManagedRendering(), true);
+
+  // A manager bound to no context still begins its span and reaches nothing.
+  const unbound = new Tr2EffectStateManager();
+  unbound.BeginManagedRendering();
+  assert.equal(unbound.IsManagedRendering(), true);
 });
 
 test("a mirrored span inverts the cull mode, and the override outlives it", () =>
@@ -279,4 +311,103 @@ test("NullDeclaration unbinds and Unknown does not, because they are different s
   // report a success that bound nothing, which is what hid the bug.
   assert.equal(states.ApplyVertexDeclaration(Tr2EffectStateManager.Unknown), false);
   assert.equal(bound.length, 1, "and reaches the backend with nothing");
+});
+
+test("releasing the realized objects destroys the shaders, programs and layouts made for the context", () =>
+{
+  // Carbon deletes every s_shaders and s_shaderPrograms row on device loss
+  // (Tr2EffectStateManager.cpp:998-1007), and each delete drops the value's
+  // share of its implementation. This forgot the maps without releasing a
+  // share, so every backend object behind them leaked.
+  const context = new Tr2RenderContext();
+  const al = new Tr2RenderContextALStub();
+
+  al.CreateDevice();
+  context.SetRenderContextAL(al);
+
+  const states = context.GetEffectStateManager();
+  const vertex = Tr2EffectStateManager.registerShader(ShaderType.VERTEX_SHADER, new Uint8Array([ 0xE5, 1 ]));
+  const pixel = Tr2EffectStateManager.registerShader(ShaderType.PIXEL_SHADER, new Uint8Array([ 0xE5, 2 ]));
+  const otherPixel = Tr2EffectStateManager.registerShader(ShaderType.PIXEL_SHADER, new Uint8Array([ 0xE5, 3 ]));
+  const program = states.GetShaderProgram(Tr2EffectStateManager.registerShaderProgram([ vertex, pixel ]));
+  const other = states.GetShaderProgram(Tr2EffectStateManager.registerShaderProgram([ vertex, otherPixel ]));
+
+  // One stage value per registration, shared by every program linking it
+  // (cpp:510, 562).
+  const stages = program.TrinityALImpl_GetObject().GetShaders();
+  assert.equal(stages[0].TrinityALImpl_GetObject(), other.TrinityALImpl_GetObject().GetShaders()[0].TrinityALImpl_GetObject());
+
+  const declaration = Tr2EffectStateManager.getVertexDeclarationHandle([ { usage: 0, usageIndex: 0, registerIndex: 0 } ]);
+  const bound = [];
+  const setVertexLayout = al.SetVertexLayout.bind(al);
+
+  al.SetVertexLayout = layout => { bound.push(layout); return setVertexLayout(layout); };
+  states.ApplyVertexDeclaration(declaration);
+
+  const implementations = [
+    program.TrinityALImpl_GetObject(),
+    other.TrinityALImpl_GetObject(),
+    ...stages.map(stage => stage.TrinityALImpl_GetObject()),
+    other.TrinityALImpl_GetObject().GetShaders()[1].TrinityALImpl_GetObject(),
+    bound[0]._layout.implementation
+  ];
+  const destroyed = [];
+
+  for (const implementation of implementations)
+  {
+    assert.equal(implementation.IsValid(), true);
+
+    const destroy = implementation.Destroy.bind(implementation);
+    implementation.Destroy = () => { destroyed.push(implementation); destroy(); };
+  }
+
+  states.ReleaseRealizedObjects();
+
+  assert.equal(destroyed.length, implementations.length, "every realized implementation is destroyed once");
+  assert.equal(new Set(destroyed).size, implementations.length);
+  assert.equal(program.IsValid(), false);
+  assert.equal(bound[0].IsValid(), false);
+
+  // The next apply realizes fresh objects through the backend now installed.
+  const again = states.GetShaderProgram(Tr2EffectStateManager.registerShaderProgram([ vertex, pixel ]));
+  assert.equal(again.IsValid(), true);
+  assert.notEqual(again.TrinityALImpl_GetObject(), implementations[0]);
+});
+
+test("a WebGL2 context's GL shaders and programs are deleted with the realized objects", () =>
+{
+  // The leak as a GL object count: each registered stage is compiled once,
+  // each program linked once, and the release deletes all of them.
+  const { gl, calls } = FakeWebgl2();
+  const al = new Tr2RenderContextALWebgl2({ gl });
+
+  assert.equal(al.CreateDevice({ mode: { width: 4, height: 4 } }), ALResult.S_OK);
+
+  const context = new Tr2RenderContext();
+  context.SetRenderContextAL(al);
+
+  const states = context.GetEffectStateManager();
+  const glsl = source => new TextEncoder().encode(`#version 300 es\n${source}\nvoid main() {}\n`);
+  const vertex = Tr2EffectStateManager.registerShader(ShaderType.VERTEX_SHADER, glsl("// esm leak vs"));
+  const pixel = Tr2EffectStateManager.registerShader(ShaderType.PIXEL_SHADER, glsl("// esm leak ps a"));
+  const otherPixel = Tr2EffectStateManager.registerShader(ShaderType.PIXEL_SHADER, glsl("// esm leak ps b"));
+  const count = name => calls.filter(call => call[0] === name).length;
+  const before = { shaders: count("createShader"), programs: count("createProgram") };
+
+  assert.equal(states.GetShaderProgram(Tr2EffectStateManager.registerShaderProgram([ vertex, pixel ])).IsValid(), true);
+  assert.equal(states.GetShaderProgram(Tr2EffectStateManager.registerShaderProgram([ vertex, otherPixel ])).IsValid(), true);
+
+  const shaders = count("createShader") - before.shaders;
+  const programs = count("createProgram") - before.programs;
+
+  assert.equal(shaders, 3, "the shared vertex stage is compiled once");
+  assert.equal(programs, 2);
+
+  const deleted = { shaders: count("deleteShader"), programs: count("deleteProgram") };
+
+  // Replacing the backend is the release's ordinary caller.
+  context.SetRenderContextAL(null);
+
+  assert.equal(count("deleteShader") - deleted.shaders, shaders);
+  assert.equal(count("deleteProgram") - deleted.programs, programs);
 });
