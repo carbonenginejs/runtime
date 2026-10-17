@@ -940,6 +940,66 @@ export class EveTurretFiringFX extends EveEntity
     }
   }
 
+  /**
+   * Carbon EveTurretFiringFX::GetDebugOptions (cpp:862-881): forwards to every
+   * debug-renderable stretch element, then to the source and destination
+   * observers.
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    for (const stretch of this.stretch)
+    {
+      const debugRenderable = CjsSchema.cast(stretch, ITr2DebugRenderable);
+      if (debugRenderable)
+      {
+        debugRenderable.GetDebugOptions(options);
+      }
+    }
+
+    if (this.sourceObserver !== null)
+    {
+      this.sourceObserver.GetDebugOptions(options);
+    }
+
+    if (this.destinationObserver !== null)
+    {
+      this.destinationObserver.GetDebugOptions(options);
+    }
+  }
+
+  /**
+   * Carbon EveTurretFiringFX::RenderDebugInfo (cpp:883-902): forwards to every
+   * debug-renderable stretch element, then to the source and destination
+   * observers.
+   * @param {ITr2DebugRenderer2} renderer
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer)
+  {
+    for (const stretch of this.stretch)
+    {
+      const debugRenderable = CjsSchema.cast(stretch, ITr2DebugRenderable);
+      if (debugRenderable)
+      {
+        debugRenderable.RenderDebugInfo(renderer);
+      }
+    }
+
+    if (this.sourceObserver !== null)
+    {
+      this.sourceObserver.RenderDebugInfo(renderer);
+    }
+
+    if (this.destinationObserver !== null)
+    {
+      this.destinationObserver.RenderDebugInfo(renderer);
+    }
+  }
+
   /** Carbon EveTurretFiringFX::RegisterComponents (cpp:739-752): forwards the
    * stretch elements. Gate m_display && m_isFiring. */
   @blue.method

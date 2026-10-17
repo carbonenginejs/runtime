@@ -24,6 +24,7 @@ import { SharedGeometryBuffer } from "../../../core/mesh/TriGeometryResAllocatio
 import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
 import { TR2SHADERMODEL } from "#consts/graphics";
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import {
   AddBoosterLights,
   CreateBoosterFlares,
@@ -31,6 +32,14 @@ import {
   MakeBoosterBoxBuffer,
   MakeBoosterStarBuffer
 } from "./boosterUtilities.js";
+
+// RenderDebugInfo scratch (debug drawing is single-threaded).
+const DEBUG_TRANSFORM = mat4.create();
+
+/** The booster cylinder's caps (cpp:1092-1093). */
+const DEBUG_CAP0 = vec3.fromValues(0, 0, 0);
+const DEBUG_CAP1 = vec3.fromValues(0, 0, -1);
+
 
 
 /**
@@ -793,6 +802,54 @@ export class EveBoosterSet2 extends EveEntity
   {
     const renderable = this.instances[index >>> 0];
     return renderable ? renderable.GetIntensity() : 0;
+  }
+
+  /**
+   * Carbon EveBoosterSet2::RenderDebugInfo (cpp:1082-1108). Carbon declares no
+   * GetDebugOptions and tests no option: the owning ship calls this directly
+   * (EveShip2.cpp:219).
+   *
+   * Per renderable instance: a lit unit cylinder from the origin to -Z for
+   * every booster, under the booster's transform then the instance's parent
+   * transform, owned by the set with the booster's index as the area; the
+   * instance's trails box, untransformed; then the glow sprite set's own debug
+   * drawing at the instance's parent transform, with no bones.
+   * @param {ITr2DebugRenderer2} renderer
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer)
+  {
+    for (const renderable of this.instances)
+    {
+      for (let j = 0; j < this._singleBoosters.length; ++j)
+      {
+        // Carbon (row-vector): m_singleBoosters[j].transform * m_parentTransform.
+        const transform = mat4.multiply(DEBUG_TRANSFORM, renderable.GetParentTransform(), this._singleBoosters[j].transform);
+        renderer.DrawCylinder__TransformCaps(
+          Tr2DebugObjectReference.create__ObjectArea(this, j),
+          transform,
+          DEBUG_CAP0,
+          DEBUG_CAP1,
+          1.0,
+          8,
+          ITr2DebugRenderer2.Effect.Lit,
+          Tr2DebugColor.create__Uint32ZFail(0x88ffff00, 0x22ffff00));
+      }
+
+      // trails box
+      renderer.DrawBox__MinMax(
+        Tr2DebugObjectReference.create__Object(this),
+        renderable.trailsBoundsMin,
+        renderable.trailsBoundsMax,
+        ITr2DebugRenderer2.Effect.Wireframe,
+        Tr2DebugColor.create__Uint32(0xff00ffff));
+
+      if (this.glows)
+      {
+        this.glows.RenderDebugInfo(renderer, renderable.GetParentTransform(), null, 0);
+      }
+    }
   }
 
   /** The union of every renderable's world bounding sphere. Carbon has no

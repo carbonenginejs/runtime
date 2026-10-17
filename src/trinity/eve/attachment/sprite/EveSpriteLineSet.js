@@ -15,9 +15,25 @@ import { Tr2Light } from "../../lights/Tr2Light.js";
 import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";
 import { AsPerPointLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
 import { vec3 } from "#math/vec3";
+import { vec4 } from "#math/vec4";
 import { num } from "#math/num";
 import { TriBatchType } from "#consts/graphics";
 import { EveSpriteSet } from "./EveSpriteSet.js";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
+// RenderDebugInfo scratch (debug drawing is single-threaded).
+const DEBUG_TRANSFORM = mat4.create();
+const DEBUG_BONE = mat4.create();
+const DEBUG_LIGHT_COLOR = vec4.create();
+
+/** Carbon's `Vector3 lastPos( 0.0, 0.0, 0.0 )` (cpp:281). */
+const DEBUG_ORIGIN = vec3.fromValues(0, 0, 0);
+
+/** Carbon's sprite line debug colours (cpp:265, cpp:276). */
+const DEBUG_LINE_COLOR = vec4.fromValues(0.0, 0.7, 0.9, 0.5);
+const DEBUG_LINE_ZFAIL_COLOR = vec4.fromValues(0.0, 0.7, 0.9, 0.1);
+const DEBUG_MISSING_BONE_COLOR = vec4.fromValues(0.9, 0.2, 0.2, 0.5);
+const DEBUG_MISSING_BONE_ZFAIL_COLOR = vec4.fromValues(0.9, 0.2, 0.2, 0.1);
+
 
 
 /**
@@ -270,6 +286,134 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
     if (this.effect)
     {
       this.effect.SetOption(name, value);
+    }
+  }
+
+  /**
+   * Carbon EveSpriteLineSet::GetDebugOptions (cpp:249-253).
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    options.add("Sprite Line Sets");
+    options.add("Sprite Line Sets Lights");
+  }
+
+  /**
+   * Carbon EveSpriteLineSet::RenderDebugInfo (cpp:255-341): two independent
+   * options.
+   *
+   * "Sprite Line Sets" draws, for every sprite line, a lit sphere of maxScale
+   * at each expanded sprite position and a lit cylinder of radius minScale / 2
+   * joining each position to the one before, owned by the line. A line whose
+   * bone index is out of range is drawn red instead of cyan.
+   *
+   * "Sprite Line Sets Lights" draws each light twice, inner then outer radius
+   * scaled by the light's current blink, owned by the light's line.
+   * @param {ITr2DebugRenderer2} renderer
+   * @param {mat4} parentTransform
+   * @param {Float32Array|null} bones Packed Float4x3 bone matrices.
+   * @param {number} boneCount
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer, parentTransform, bones, boneCount)
+  {
+    if (renderer.HasOption(this, "Sprite Line Sets"))
+    {
+      // Carbon quirk (cpp:259, cpp:272): the transform is declared once,
+      // outside the line loop, so each skinned line's bone is composed onto
+      // every earlier line's. Reproduced.
+      const transform = mat4.copy(DEBUG_TRANSFORM, parentTransform);
+
+      for (const spriteLine of this.spriteLines)
+      {
+        const boneIndex = spriteLine.boneIndex;
+
+        let color = Tr2DebugColor.create__ColorZFail(DEBUG_LINE_COLOR, DEBUG_LINE_ZFAIL_COLOR);
+        if (boneIndex >= 0)
+        {
+          if (boneIndex < boneCount)
+          {
+            const boneTF = mat4.identity(DEBUG_BONE);
+            MatrixCopyFrom3x4(boneTF, bones, boneIndex);
+            // Carbon (row-vector): transform = boneTF * transform - the bone applies first.
+            mat4.multiply(transform, transform, boneTF);
+          }
+          else
+          {
+            color = Tr2DebugColor.create__ColorZFail(DEBUG_MISSING_BONE_COLOR, DEBUG_MISSING_BONE_ZFAIL_COLOR);
+          }
+        }
+
+        let index = 0;
+        let lastPos = DEBUG_ORIGIN;
+        for (const position of spriteLine.GetPositions())
+        {
+          if (index !== 0)
+          {
+            renderer.DrawCylinder__TransformCaps(
+              Tr2DebugObjectReference.create__Object(spriteLine),
+              transform,
+              lastPos,
+              position,
+              spriteLine.minScale / 2.0,
+              8,
+              ITr2DebugRenderer2.Effect.Lit,
+              color);
+          }
+          index += 1;
+          // GetPositions returns fresh vectors, so keeping the reference is Carbon's copy.
+          lastPos = position;
+
+          renderer.DrawSphere__TransformCenterRadius(
+            Tr2DebugObjectReference.create__Object(spriteLine),
+            transform,
+            position,
+            spriteLine.maxScale,
+            6,
+            ITr2DebugRenderer2.Effect.Lit,
+            color);
+        }
+      }
+    }
+
+    if (renderer.HasOption(this, "Sprite Line Sets Lights"))
+    {
+      for (const l of this.lights)
+      {
+        const t = mat4.fromTranslation(DEBUG_TRANSFORM, l.lightData.position);
+        // Carbon (row-vector): TranslationMatrix( l.lightData.position ) * l.boneMatrix.
+        mat4.multiply(t, l.boneMatrix, t);
+
+        const c = vec4.copy(DEBUG_LIGHT_COLOR, l.lightData.color);
+        const blinkScale = EveSpaceObjectAttachmentUtils.blink(Tr2Renderer.GetAnimationTime(), l.blinkRate, l.blinkPhase, l.minScale, l.maxScale);
+
+        c[3] = 0.5;
+
+        // Carbon quirk (cpp:322): `>` not `>=`, so an index equal to the line
+        // count reads one past the end; reproduced as an undefined read.
+        const spriteLine = l.index > this.spriteLines.length ? null : this.spriteLines[l.index];
+
+        renderer.DrawSphere__TransformRadius(
+          Tr2DebugObjectReference.create__Object(spriteLine),
+          t,
+          l.lightData.innerRadius * blinkScale,
+          10,
+          ITr2DebugRenderer2.Effect.Solid,
+          Tr2DebugColor.create__Color(c));
+
+        c[3] = 0.3;
+        renderer.DrawSphere__TransformRadius(
+          Tr2DebugObjectReference.create__Object(spriteLine),
+          t,
+          l.lightData.radius * blinkScale,
+          10,
+          ITr2DebugRenderer2.Effect.Solid,
+          Tr2DebugColor.create__Color(c));
+      }
     }
   }
 

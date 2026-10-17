@@ -1,6 +1,6 @@
 import { random as carbonRandom } from "#math/random";
 import { IShaderConfigurer } from "../../../shader/IShaderConfigurer.js";
-import { ITr2DebugRenderable } from "#interfaces";
+import { ITr2DebugRenderable, ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 // Source: trinity/trinity/Eve/Turret/EveTurretSet.h
 // Source: trinity/trinity/Eve/Turret/EveTurretSet.cpp
 
@@ -58,6 +58,9 @@ function BoundingSphereTransform(transform, sphere)
   );
   return sphere;
 }
+
+// RenderDebugInfo scratch (debug drawing is single-threaded).
+const DEBUG_CENTER = vec3.create();
 
 /** Owns a hull's instanced turrets and drives their aiming, animation, firing, visibility, batches, shadows, and per-object data. */
 @blue.define("EveTurretSet")
@@ -1366,6 +1369,99 @@ export class EveTurretSet extends EveEntity
       }
     }
     return valid;
+  }
+
+  /**
+   * Carbon EveTurretSet::RenderDebugInfo (cpp:1845-1878).
+   *
+   * "TurretBounds" draws the set's bounding sphere, moved through each valid
+   * turret's world matrix, as a wireframe sphere owned by the set. The
+   * ambient (or generated) effect and the firing effect then draw their own,
+   * and the movement observer draws while movement sound plays.
+   *
+   * Adapted: Carbon's "TurretBounds" branch also calls RenderDynamicBounds
+   * (cpp:763-900), which draws every turret's per-bone boxes, bounding
+   * sphere and box through the immediate-mode statics Tr2Renderer::DrawLine,
+   * Tr2Renderer::DrawSphere and Tr2Renderer::DrawBox. JavaScript has neither
+   * RenderDynamicBounds nor those statics, so that call is left out.
+   * @param {ITr2DebugRenderer2} renderer
+   */
+  @blue.method
+  @meta.adapted
+  RenderDebugInfo(renderer)
+  {
+    if (renderer.HasOption(this, "TurretBounds"))
+    {
+      // draw bounding sphere for every turret in this set
+      for (const turret of this._turrets)
+      {
+        if (turret.valid)
+        {
+          // TransformCoord( m_boundingSphere.GetXYZ(), turret.worldMatrix ): vec3.transformMat4 reads only xyz.
+          const center = vec3.transformMat4(DEBUG_CENTER, this.boundingSphere, turret.worldMatrix);
+          renderer.DrawSphere__CenterRadius(
+            Tr2DebugObjectReference.create__Object(this),
+            center,
+            this.boundingSphere[3],
+            10,
+            ITr2DebugRenderer2.Effect.Wireframe,
+            Tr2DebugColor.create__Uint32(0xffffff00));
+        }
+      }
+    }
+
+    const ambientEffect = this.GetAmbientEffectOrGeneratedEffect();
+    if (ambientEffect)
+    {
+      const debuggable = CjsSchema.cast(ambientEffect, ITr2DebugRenderable);
+      if (debuggable)
+      {
+        debuggable.RenderDebugInfo(renderer);
+      }
+    }
+    if (this._firingEffect)
+    {
+      this._firingEffect.RenderDebugInfo(renderer);
+    }
+
+    if (this.turretMovementObserver && this.playMovementSound)
+    {
+      this.turretMovementObserver.RenderDebugInfo(renderer);
+    }
+  }
+
+  /**
+   * Carbon EveTurretSet::GetDebugOptions (cpp:1880-1902): "TurretBounds",
+   * then the options of the ambient (or generated) effect, the firing effect
+   * and the movement observer. Unlike RenderDebugInfo, the observer is not
+   * gated on movement sound.
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    options.add("TurretBounds");
+
+    const ambientEffect = this.GetAmbientEffectOrGeneratedEffect();
+    if (ambientEffect)
+    {
+      const debuggable = CjsSchema.cast(ambientEffect, ITr2DebugRenderable);
+      if (debuggable)
+      {
+        debuggable.GetDebugOptions(options);
+      }
+    }
+
+    if (this._firingEffect)
+    {
+      this._firingEffect.GetDebugOptions(options);
+    }
+
+    if (this.turretMovementObserver)
+    {
+      this.turretMovementObserver.GetDebugOptions(options);
+    }
   }
 
   /** Selects EMPTY or HIGHEST at twice the visibility threshold (cpp:1130-1167).

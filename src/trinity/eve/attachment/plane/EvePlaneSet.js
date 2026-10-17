@@ -79,11 +79,11 @@ const DEBUG_BOUNDS = box3.create();
 const DEBUG_AVERAGE_COLOR = vec4.create();
 const DEBUG_LIGHT_COLOR = vec4.create();
 
-/** The near-flat box Carbon draws for each plane (cpp:402-403). */
+/** The near-flat box Carbon draws for each plane (cpp:404-405). */
 const DEBUG_BOX_MIN = vec3.fromValues(-0.5, -0.5, -0.005);
 const DEBUG_BOX_MAX = vec3.fromValues(0.5, 0.5, 0.005);
 
-/** Carbon's plane debug colours (cpp:405). */
+/** Carbon's plane debug colours (cpp:407). */
 const DEBUG_PLANE_COLOR = vec4.fromValues(0.0, 0.7, 0.9, 0.5);
 const DEBUG_PLANE_ZFAIL_COLOR = vec4.fromValues(0.0, 0.7, 0.9, 0.1);
 

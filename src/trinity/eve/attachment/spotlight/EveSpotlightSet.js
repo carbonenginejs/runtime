@@ -5,6 +5,8 @@ import { EveEntity } from "../../EveEntity.js";
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
 import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
+import { vec3 } from "#math/vec3";
+import { vec4 } from "#math/vec4";
 import { meta, type, blue } from "#schema";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveSpotlightLight } from "./EveSpotlightLight.js";
@@ -16,6 +18,7 @@ import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/in
 import { TriBatchType } from "#consts/graphics";
 import { num } from "#math/num";
 import { Tr2QuadRenderer } from "../../../core/Tr2QuadRenderer/index.js";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 
 
 // Carbon's two nested pool-vertex layouts, BUILT as Carbon builds them
@@ -48,6 +51,20 @@ const CONE_POOL_VERTEX_SIZE = CONE_POOL_VERTEX_DEFINITION.nextOffset[1];
 // Carbon's anonymous-namespace quad counts (EveSpotlightSet.cpp:53-54).
 const CONE_QUAD_COUNT = 4;
 const SPRITE_QUAD_COUNT = 2;
+
+/** Carbon's TRI_2PI (TriMath.h:245), the float literal 6.283185307f. */
+const TRI_2PI = Math.fround(6.283185307);
+
+// RenderDebugInfo scratch (debug drawing is single-threaded).
+const DEBUG_ROTATION_X = mat4.create();
+const DEBUG_TRANSLATION = mat4.create();
+const DEBUG_OFFSET = mat4.create();
+const DEBUG_WORLD = mat4.create();
+const DEBUG_BOUNDS = box3.create();
+const DEBUG_LIGHT_COLOR = vec4.create();
+
+/** XMMatrixTranslation( 0, 0, 0.5f ) in the cone offset (cpp:451). */
+const DEBUG_CONE_OFFSET = vec3.fromValues(0, 0, 0.5);
 
 
 /**
@@ -430,6 +447,128 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
       this.glowEffect.SetOption(name, value);
       this._glowEffectHash = Number(this.glowEffect.GetHashValue()) >>> 0;
       this.RegisterQuadRendererGlow(Tr2QuadRenderer.Instance());
+    }
+  }
+
+  /**
+   * Carbon EveSpotlightSet::GetDebugOptions (cpp:440-445).
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    options.add("Spotlight Sets");
+    options.add("Spotlight Sets Bounds");
+    options.add("Spotlight Sets Lights");
+  }
+
+  /**
+   * Carbon EveSpotlightSet::RenderDebugInfo (cpp:447-522): three independent
+   * options.
+   *
+   * "Spotlight Sets" draws each spotlight's cone twice - wireframe, then solid
+   * with a zero colour - as a unit cone (radius 0.5, height 1) turned from +Y
+   * to -Z and pushed 0.5 along Z, under the item's transform and the parent
+   * transform, owned by the item. Carbon ignores the item's bone here.
+   *
+   * "Spotlight Sets Bounds" draws the item-set box in the parent space, and
+   * "Spotlight Sets Lights" draws each light's inner and outer cone (height
+   * the light radius, angle the authored degrees in radians), owned by the
+   * light's item.
+   * @param {ITr2DebugRenderer2} renderer
+   * @param {mat4} parentTransform
+   * @param {Float32Array|null} bones Packed Float4x3 bone matrices.
+   * @param {number} boneCount
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer, parentTransform, bones, boneCount)
+  {
+    if (renderer.HasOption(this, "Spotlight Sets"))
+    {
+      const rotation = mat4.fromXRotation(DEBUG_ROTATION_X, -Math.PI / 2);
+      const translation = mat4.fromTranslation(DEBUG_TRANSLATION, DEBUG_CONE_OFFSET);
+      // Carbon (row-vector): RotationX( -XM_PI / 2 ) * Translation( 0, 0, 0.5 ).
+      const offset = mat4.multiply(DEBUG_OFFSET, translation, rotation);
+
+      for (const item of this.spotlightItems)
+      {
+        const transform = item.transform;
+
+        // Carbon (row-vector): offset * transform * parentTransform.
+        const world = mat4.multiply(DEBUG_WORLD, transform, offset);
+        mat4.multiply(world, parentTransform, world);
+
+        renderer.DrawCone__TransformRadius(
+          Tr2DebugObjectReference.create__Object(item),
+          world,
+          0.5,
+          1.0,
+          10,
+          ITr2DebugRenderer2.Effect.Wireframe,
+          Tr2DebugColor.create__Uint32ZFail(0xffaaff00, 0x22aaff00));
+
+        renderer.DrawCone__TransformRadius(
+          Tr2DebugObjectReference.create__Object(item),
+          world,
+          0.5,
+          1.0,
+          10,
+          ITr2DebugRenderer2.Effect.Solid,
+          Tr2DebugColor.create__Uint32(0));
+      }
+    }
+
+    if (renderer.HasOption(this, "Spotlight Sets Bounds"))
+    {
+      const aabb = this.GetAabb(DEBUG_BOUNDS, bones, boneCount);
+      renderer.DrawBox__Transform(
+        Tr2DebugObjectReference.create__Object(this),
+        parentTransform,
+        box3.$min(aabb),
+        box3.$max(aabb),
+        ITr2DebugRenderer2.Effect.Wireframe,
+        Tr2DebugColor.create__Uint32(0xff00ff00));
+    }
+
+    if (renderer.HasOption(this, "Spotlight Sets Lights"))
+    {
+      for (const l of this.lights)
+      {
+        // Carbon (row-vector): RotationMatrix( l.lightData.rotation ) * TranslationMatrix( l.lightData.position ) * l.boneMatrix.
+        const t = mat4.fromRotationTranslation(DEBUG_WORLD, l.lightData.rotation, l.lightData.position);
+        mat4.multiply(t, l.boneMatrix, t);
+
+        const c = vec4.copy(DEBUG_LIGHT_COLOR, l.lightData.color);
+
+        c[3] = 0.5;
+
+        // Carbon quirk (cpp:496): `>` not `>=`, so an index equal to the item
+        // count reads one past the end; reproduced as an undefined read.
+        const spotlightItem = l.index > this.spotlightItems.length ? null : this.spotlightItems[l.index];
+
+        renderer.DrawCone__TransformAngle(
+          Tr2DebugObjectReference.create__Object(spotlightItem),
+          t,
+          l.lightData.innerRadius,
+          TRI_2PI * l.lightData.innerAngle / 360,
+          10,
+          10,
+          ITr2DebugRenderer2.Effect.Solid,
+          Tr2DebugColor.create__Color(c));
+
+        c[3] = 0.3;
+        renderer.DrawCone__TransformAngle(
+          Tr2DebugObjectReference.create__Object(spotlightItem),
+          t,
+          l.lightData.radius,
+          TRI_2PI * l.lightData.outerAngle / 360,
+          10,
+          10,
+          ITr2DebugRenderer2.Effect.Solid,
+          Tr2DebugColor.create__Color(c));
+      }
     }
   }
 
