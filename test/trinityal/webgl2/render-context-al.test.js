@@ -229,7 +229,7 @@ test("a ONE_SHOT constant buffer is copied when bound, so refilling it later cha
     const constants = context.CreateConstantBuffer(16, Tr2ConstantUsageAL.ONE_SHOT, new Float32Array([ 1, 2, 3, 4 ]));
 
     assert.equal(context.SetConstants(constants, ShaderType.VERTEX_SHADER, 1), ALResult.S_OK);
-    constants.GetMirror().set(new Uint8Array(new Float32Array([ 9, 9, 9, 9 ]).buffer));
+    constants.TrinityALImpl_GetObject().GetMirror().set(new Uint8Array(new Float32Array([ 9, 9, 9, 9 ]).buffer));
     calls.length = 0;
 
     context.DrawPrimitive(0, 1);

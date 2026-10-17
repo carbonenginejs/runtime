@@ -29,7 +29,7 @@ import { EveEffectRoot2 } from "../spaceObject/EveEffectRoot2.js";
 import { EveCamera } from "../camera/EveCamera.js";
 import { CjsPerFrameLayouts } from "../../core/rawData/CjsPerFrameLayouts.js";
 import { CullMode, PixelFormat, RenderState, ShaderType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
-import { Tr2ColorAttachment, Tr2DepthAttachment, Tr2SubresourceData } from "#trinityal";
+import { Tr2ColorAttachment, Tr2ConstantBufferAL, Tr2DepthAttachment, Tr2SubresourceData } from "#trinityal";
 import { RenderingMode, TriBatchType } from "#consts/graphics";
 import { DefaultKeyGenerator, EffectKeyGenerator, TriRenderBatchAccumulator } from "../../core/batch/TriRenderBatch/index.js";
 import { Tr2RenderUtils } from "../../core/Tr2RenderUtils.js";
@@ -962,10 +962,10 @@ export class EveSpaceScene
     for (const batches of this._shadowBatches) batches.Clear();
     this._pickBuffer.Destroy();
     this._pickDepthBuffer.Destroy();
-    this._perFrameVSBuffer?.Destroy();
-    this._perFramePSBuffer?.Destroy();
-    this._shadowPerFrameVSBuffer?.Destroy();
-    this._perFrameVSBuffer = this._perFramePSBuffer = this._shadowPerFrameVSBuffer = null;
+    // m_xBuffer = Tr2ConstantBufferAL() (cpp:342-344).
+    this._perFrameVSBuffer.Destroy();
+    this._perFramePSBuffer.Destroy();
+    this._shadowPerFrameVSBuffer.Destroy();
     this.dataTextureMgr.Release();
     this.ClearComponentRegistry();
   }
@@ -2087,10 +2087,11 @@ export class EveSpaceScene
     };
   }
 
-  /** Carbon m_perFrameVSBuffer / m_perFramePSBuffer: created empty on first apply, sized by FillAndSetConstants. */
-  _perFrameVSBuffer = null;
+  /** m_perFrameVSBuffer (EveSpaceScene.h:536), by value: invalid until FillAndSetConstants sizes it (cpp:833). */
+  _perFrameVSBuffer = new Tr2ConstantBufferAL();
 
-  _perFramePSBuffer = null;
+  /** m_perFramePSBuffer (h:537), by value; filled at cpp:834. */
+  _perFramePSBuffer = new Tr2ConstantBufferAL();
 
   /**
    * Carbon EveSpaceScene::Jitter (cpp:1253-1291), called from BeginRender
@@ -3321,8 +3322,8 @@ export class EveSpaceScene
   /** The shadow pass's per-frame vertex block, of which only ViewProjectionMat is set (cpp:764-765). */
   _shadowPerFrameVS = RawData.create("EveSpaceScenePerFrameVSData");
 
-  /** m_shadowPerFrameVSBuffer */
-  _shadowPerFrameVSBuffer = null;
+  /** m_shadowPerFrameVSBuffer (h:538), by value; filled at cpp:778 and cpp:2429. */
+  _shadowPerFrameVSBuffer = new Tr2ConstantBufferAL();
 
   /**
    * Carbon EveSpaceScene::RenderShadows (cpp:2618-2676): the cascaded shadow
@@ -3484,7 +3485,6 @@ export class EveSpaceScene
 
         // column_major for shaders: Carbon stores Transpose(lightViewProjection).
         this._shadowPerFrameVS.SetAndTranspose("ViewProjectionMat", splitSetups[splitIndex].lightViewProjection);
-        this._shadowPerFrameVSBuffer ??= renderContext.CreateConstantBuffer();
 
         const data = this._shadowPerFrameVS.GetData();
 
@@ -3597,8 +3597,8 @@ export class EveSpaceScene
    * adaptation, and with the block bound for vertex only it read zero and
    * exposure never left its initial 0.
    *
-   * The buffers come from the render context on first use, as Carbon's
-   * default-constructed members are sized by FillAndSetConstants.
+   * The buffers are by-value members, sized by FillAndSetConstants as
+   * Carbon's are.
    *
    * @param {Tr2RenderContext} renderContext The context to bind on.
    * @returns {void}
@@ -3624,9 +3624,6 @@ export class EveSpaceScene
       | (1 << ShaderType.HULL_SHADER)
       | (1 << ShaderType.DOMAIN_SHADER)
     ));
-
-    this._perFrameVSBuffer ??= renderContext.CreateConstantBuffer();
-    this._perFramePSBuffer ??= renderContext.CreateConstantBuffer();
 
     const vs = perFrameVS.GetData();
     const ps = perFramePS.GetData();

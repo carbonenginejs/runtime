@@ -143,8 +143,11 @@ export class CjsWebgpuResourceSetAL
     if (binding.sampler)
     {
       const slot = SlotFor(description, "sampler", binding);
-      const state = slot?.type === 1 ? slot.sampler : null;
-      const sampler = state && typeof state.GetSampler === "function" ? state.GetSampler() : null;
+      // The record holds a Tr2SamplerStateAL by value (Tr2ResourceSetAL.h:116);
+      // Metal reads its implementation's state (`sampler.sampler.m_sampler->GetMetalSamplerState()`,
+      // Tr2ResourceSetALMetal.mm:209); the null sampler takes the dummy.
+      const state = slot?.type === 1 && slot.sampler.IsValid() ? slot.sampler.TrinityALImpl_GetObject() : null;
+      const sampler = state ? state.GetSampler() : null;
 
       return sampler ?? renderContext.GetDummySampler(binding.sampler.type);
     }
@@ -215,7 +218,8 @@ export class CjsWebgpuResourceSetAL
     for (let registerIndex = 0; registerIndex < registerCount; registerIndex += 1)
     {
       const slot = this._description ? SlotFor(this._description, "sampler", { visibility: 2, registerIndex }) : null;
-      const description = slot?.type === 1 ? slot.sampler.GetDescription() : null;
+      const state = slot?.type === 1 && slot.sampler.IsValid() ? slot.sampler.TrinityALImpl_GetObject() : null;
+      const description = state ? state.GetDescription() : null;
 
       if (description) modes.set([ description.addressU, description.addressV, description.addressW, 0 ], registerIndex * 4);
     }

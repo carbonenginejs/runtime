@@ -170,7 +170,9 @@ export class Tr2ResourceSetALWebgl2 extends Tr2DeviceResourceAL
         const desc = description._samplers[map.samplers[stageIndex][registerIndex]];
         if (desc.type === SAMPLER_SAMPLER)
         {
-          stage.samplers[registerIndex] = desc.sampler;
+          // dx11 reads desc.sampler.m_sampler->m_samplerState (Tr2ResourceSetALDx11.cpp:78);
+          // the null sampler has no state, which binds none.
+          stage.samplers[registerIndex] = desc.sampler.IsValid() ? desc.sampler.TrinityALImpl_GetObject() : null;
           stage.samplerOffset = Math.min(stage.samplerOffset, registerIndex);
           stage.samplerCount = Math.max(stage.samplerCount, registerIndex + 1);
         }

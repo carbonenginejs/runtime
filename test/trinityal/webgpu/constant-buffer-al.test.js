@@ -4,7 +4,7 @@ import { test } from "node:test";
 import { CjsWebgpuDevice } from "../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuConstantBufferAL, CjsWebgpuRenderContextAL } from "../../../npm/dist/trinityal/webgpu/internal.js";
 import { CjsWebgpuConstantArena, CONST_PAGE_SIZE } from "../../../npm/dist/trinityal/webgpu/core/CjsWebgpuConstantArena.js";
-import { ALResult, Tr2ConstantUsageAL } from "../../../npm/dist/trinityal/index.js";
+import { ALResult, Tr2ConstantBufferAL, Tr2ConstantUsageAL } from "../../../npm/dist/trinityal/index.js";
 
 // Carbon's constant buffer is a CPU shadow and a token; Lock invalidates the
 // token (Tr2ConstantBufferALMetal.mm:60-69), Unlock is a no-op, and the bind
@@ -86,7 +86,8 @@ test("Lock invalidates the token; each bind after a Lock lands in a fresh region
   // (Tr2RenderContextMetal.mm:679-697). The buffer keeps the shadow and the
   // token; the context owns the arena and writes the token.
   const { calls, al } = composedContext();
-  const buffer = al.CreateConstantBuffer(16);
+  // UploadConstants reads the implementation, as Carbon's reaches buffer.m_buffer.
+  const buffer = al.CreateConstantBuffer(16).TrinityALImpl_GetObject();
   const first = buffer.Lock(al);
 
   assert.equal(first.result, ALResult.S_OK);
@@ -174,16 +175,24 @@ test("Create accepts Trinity's context, as Carbon's upcast does", () =>
 
 test("SetConstants on the buffer binds on the context, as Metal's does", () =>
 {
-  const { renderContext } = context();
-  const bound = [];
-  const binding = { ...renderContext, SetConstants: (buffer, stage, register) => (bound.push([ buffer, stage, register ]), ALResult.S_OK) };
+  // Metal's context hands the buffer's implementation the bind
+  // (Tr2RenderContextMetal.mm:664-677), which records itself only when it has
+  // storage (Tr2ConstantBufferALMetal.mm:81-92).
+  const { al } = composedContext();
   const buffer = new CjsWebgpuConstantBufferAL();
 
-  assert.equal(buffer.SetConstants(1, 0, binding), ALResult.E_INVALIDCALL, "an invalid buffer binds nothing");
-  buffer.Create(16, Tr2ConstantUsageAL.REUSABLE, null, renderContext);
-  assert.equal(buffer.SetConstants(1, 0, binding), ALResult.S_OK);
-  assert.deepEqual(bound, [ [ buffer, 1, 0 ] ]);
+  assert.equal(buffer.SetConstants(1, 0, al), ALResult.S_OK);
+  assert.equal(al.GetConstants(1, 0), null, "an invalid buffer binds nothing");
+  buffer.Create(16, Tr2ConstantUsageAL.REUSABLE, null, al);
+  assert.equal(buffer.SetConstants(1, 0, al), ALResult.S_OK);
+  assert.equal(al.GetConstants(1, 0), buffer);
   assert.deepEqual(buffer.Describe({}), { memoryClass: buffer.GetMemoryClass(), size: 16 });
+
+  // The context's own verb takes the handle and unwraps it.
+  const handle = al.CreateConstantBuffer(16);
+
+  assert.equal(al.SetConstants(handle, 0, 2), ALResult.S_OK);
+  assert.equal(al.GetConstants(0, 2), handle.TrinityALImpl_GetObject());
 });
 
 test("the render context creates the backend's constant buffer, empty or sized", () =>
@@ -199,13 +208,21 @@ test("the render context creates the backend's constant buffer, empty or sized",
 
   const empty = al.CreateConstantBuffer();
 
-  assert.ok(empty instanceof CjsWebgpuConstantBufferAL);
+  assert.ok(empty instanceof Tr2ConstantBufferAL, "the backend-neutral handle");
   assert.equal(empty.IsValid(), false);
   assert.equal(empty.Create(32, Tr2ConstantUsageAL.REUSABLE, null, al), ALResult.S_OK);
+  assert.ok(empty.TrinityALImpl_GetObject() instanceof CjsWebgpuConstantBufferAL, "of this backend's kind");
 
   const sized = al.CreateConstantBuffer(48);
 
   assert.equal(sized.IsValid(), true);
   assert.equal(sized.GetSize(), 48);
   assert.equal(al.CreateConstantBuffer(16, Tr2ConstantUsageAL.IMMUTABLE, null), null, "a refused sized create is null");
+
+  // Carbon's ceiling (Tr2ConstantBufferAL.cpp:30-34) at this backend's limit.
+  const big = new Tr2ConstantBufferAL();
+
+  assert.equal(big.Create__Size(64 * 1024 + 16, al), ALResult.E_INVALIDARG);
+  assert.equal(big.IsValid(), false);
+  assert.equal(big.Create__Size(64 * 1024, al), ALResult.S_OK);
 });

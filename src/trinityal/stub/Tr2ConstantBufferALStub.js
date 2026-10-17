@@ -18,17 +18,10 @@ import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 
 
-/** `Tr2ConstantUsageAL` (`Tr2ConstantBufferAL.h:16-24`). */
-export const Tr2ConstantUsageAL = Object.freeze({
-  /** Written once at creation and never again. */
-  IMMUTABLE: 0,
-
-  /** Written and consumed within one frame. */
-  ONE_SHOT: 1,
-
-  /** Written repeatedly across frames. */
-  REUSABLE: 2
-});
+// Carbon declares `Tr2ConstantUsageAL` beside the public handle (`Tr2ConstantBufferAL.h:16-24`);
+// re-exported here for the importers that reach it through the stub.
+import { Tr2ConstantUsageAL } from "../Tr2ConstantBufferAL/Tr2ConstantBufferAL.js";
+export { Tr2ConstantUsageAL };
 
 
 /**

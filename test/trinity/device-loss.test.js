@@ -119,11 +119,14 @@ test("a lost device is released, notified, replaced over ticks and prepared agai
       const removed = [];
       device.onDeviceRemoved = (...args) => removed.push(args);
 
+      // A Tr2SamplerStateAL value sharing the factory's implementation
+      // (Tr2SamplerStateAL.cpp:25-28).
       const sampler = al.CreateSamplerState({
         minFilter: 2, magFilter: 2, mipFilter: 2, comparison: false,
         addressU: 1, addressV: 1, addressW: 1, maxAnisotropy: 1
       });
-      assert.equal(sampler.GetSampler().device, first.device);
+      const state = sampler.TrinityALImpl_GetObject();
+      assert.equal(state.GetSampler().device, first.device);
       assert.equal(Tr2Renderer.GetQuadListIndexBuffer().IsValid(), true, "prepared on creation");
       events.length = 0;
       assert.equal(device.IsDeviceLost(), false);
@@ -162,8 +165,9 @@ test("a lost device is released, notified, replaced over ticks and prepared agai
 
       // Nothing the layer holds points at the old device.
       assert.equal(configured.at(-1)[0], second.device, "the canvas was configured with the new device");
-      assert.equal(sampler.GetSampler().device, second.device, "same sampler state, new GPU object");
-      assert.equal(al.CreateSamplerState(sampler.GetDescription()), sampler, "identity kept");
+      assert.equal(sampler.TrinityALImpl_GetObject(), state, "same sampler state");
+      assert.equal(state.GetSampler().device, second.device, "same sampler state, new GPU object");
+      assert.ok(al.CreateSamplerState(state.GetDescription()).Equals(sampler), "identity kept");
       const quadList = Tr2Renderer.GetQuadListIndexBuffer();
       assert.equal(quadList.IsValid(), true, "prepared again");
       assert.equal(quadList.GetBuffer().TrinityALImpl_GetObject().GetDeviceBuffer().device, second.device);

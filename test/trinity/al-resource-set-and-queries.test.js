@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { Tr2GpuTimerALStub, Tr2OcclusionQueryALStub, Tr2PipelineStatsQueryALStub, Tr2RegisterMapAL, Tr2ResourceSetAL, Tr2ResourceSetALStub, Tr2VideoAdapterInfoStub } from "../../npm/dist/trinityal/index.js";
-import { Tr2BitmapDimensions, Tr2BufferDescriptionAL, Tr2FenceALStub, Tr2RenderContextALStub, Tr2ResourceSetDescriptionAL, ALResult } from "../../npm/dist/trinityal/index.js";
+import { Tr2BitmapDimensions, Tr2BufferDescriptionAL, Tr2FenceALStub, Tr2RenderContextALStub, Tr2ResourceSetDescriptionAL, Tr2SamplerStateAL, ALResult } from "../../npm/dist/trinityal/index.js";
 import { PixelFormat, Tr2GpuUsage, Tr2CpuUsage, ShaderType } from "../../npm/dist/global/consts/renderContext/index.js";
 
 const device = () =>
@@ -54,7 +54,8 @@ test("register maps retain input traversal, counts and 255 sentinels", () =>
 test("descriptions allocate from maps and retain inactive fields and qualifiers", t =>
 {
   const desc = new Tr2ResourceSetDescriptionAL({ registers: mapFor() });
-  const { texture, buffer } = resources(t), sampler = {};
+  const { texture, buffer } = resources(t);
+  const sampler = new Tr2RenderContextALStub().CreateSamplerState({ minFilter: 2, magFilter: 2, mipFilter: 2, addressU: 1, addressV: 1, addressW: 1 });
   assert.equal(new Tr2ResourceSetDescriptionAL().SetSrv__TextureAL(1, 3, texture), false);
   assert.equal(desc.SetSrv__TextureAL(1, 31, texture), false);
   assert.equal(desc.SetSrv__TextureAL(99, 3, texture), false);
@@ -76,7 +77,7 @@ test("descriptions allocate from maps and retain inactive fields and qualifiers"
   assert.equal(desc._srv[0].type, 0);
   assert.equal(desc._srv[0].buffer, null);
   assert.equal(desc._uav[0].colorSpace, 7);
-  assert.equal(desc._samplers[0].sampler, sampler);
+  assert.equal(desc._samplers[0].sampler.Equals(sampler), true, "the sampler record keeps its value (Tr2ResourceSetAL.cpp:439-455)");
   assert.equal(desc._registerMap.srvCount, 2);
 });
 
@@ -262,7 +263,7 @@ test("explicit invalid buffer, texture and sampler bindings retain distinct hash
   desc.SetSrv__TextureAL(1, 3, null);
   const textureHash = desc.ComputeHash();
   desc.ClearResources();
-  desc.SetSampler(1, 2, null);
+  desc.SetSampler(1, 2, new Tr2SamplerStateAL());
   const samplerHash = desc.ComputeHash();
   assert.equal(new Set([0, bufferHash, textureHash, samplerHash]).size, 4);
 });

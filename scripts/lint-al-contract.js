@@ -283,6 +283,11 @@ for (const backend of backends)
             // validity and mapping; these two belong to TrinityALImpl.
             if (backend === "Tr2ReadbackAL" && ["Describe", "GetMemoryClass"].includes(method)) continue;
 
+            // Tr2SamplerStateAL is the public handle, not a backend. Carbon's
+            // include/Tr2SamplerStateAL.h:17-39 declares only Create and
+            // IsValid; the stored description is the implementation's.
+            if (backend === "Tr2SamplerStateAL" && method === "GetDescription") continue;
+
             // `#` AND `_` ARE BOTH "NOT THE CONTRACT". The layer used `#` until
             // 2026-09-10, when the AL dropped JavaScript privates for an `_`
             // prefix - Carbon's AL facade holds one private member and its impl

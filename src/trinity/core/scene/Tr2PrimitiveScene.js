@@ -12,6 +12,7 @@ import { TriRenderBatchAccumulator } from "../batch/TriRenderBatch/index.js";
 import { TriPoolAllocator } from "../rawData/TriPoolAllocator.js";
 import { RawData } from "../rawData/RawData.js";
 import { Tr2RenderUtils } from "../Tr2RenderUtils.js";
+import { Tr2ConstantBufferAL } from "#trinityal";
 import { PER_FRAME_VS } from "../Tr2Renderer.js";
 import { TriDevice } from "../device/TriDevice.js";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
@@ -48,7 +49,7 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
   @type.rawStruct("TriRenderBatchAccumulator")
   _pickingBatches = new TriRenderBatchAccumulator().SetTriPoolAllocator(this._allocator);
   @type.rawStruct("Tr2ConstantBufferAL")
-  _vertexConstants = null;
+  _vertexConstants = new Tr2ConstantBufferAL();
   _frameData = RawData.create("Tr2PerFrameVSData");
 
   /** Native device-resource registration with lazy attachment preparation. */
@@ -147,8 +148,8 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
   @meta.adapted
   ReleaseResources()
   {
-    if (this._vertexConstants) this._vertexConstants.Destroy();
-    this._vertexConstants = null;
+    // m_vertexConstants = Tr2ConstantBufferAL() (Tr2PrimitiveScene.cpp:139).
+    this._vertexConstants.Destroy();
   }
 
   /** Explicit destruction releases the owned picker and device registration. */
@@ -201,7 +202,6 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
       data.SetAndTranspose("ViewMat", view);
       data.SetAndTranspose("ProjectionMat", projection);
       data.SetAndTranspose("ViewProjectionMat", combined);
-      this._vertexConstants ??= context.CreateConstantBuffer();
       const bytes = data.GetData();
       Tr2RenderUtils.fillAndSetConstants(this._vertexConstants, bytes, bytes.byteLength, 1 << ShaderType.VERTEX_SHADER, PER_FRAME_VS, context);
     }

@@ -22,6 +22,7 @@ import { CjsSchema, meta, blue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { ALResult, Failed } from "../../../trinityal/ALResult.js";
+import { Tr2ConstantBufferAL } from "../../../trinityal/Tr2ConstantBufferAL/index.js";
 import { ConstantBufferSlot, TextureAddressMode, TextureFilter } from "#consts/render-context";
 import { RenderingMode } from "#consts/graphics";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
@@ -230,8 +231,9 @@ export class Tr2RenderContext
     // buffers and the realized programs and layouts the state manager keeps per
     // context were all created through the stub. Left in place, WebGPU met a
     // stub buffer at a uniform slot and a stub program at the resource set.
-    for (const buffer of this._perObjectConstantBuffers) buffer?.Destroy();
-    this._perObjectConstantBuffers.fill(null);
+    // The by-value handles are reset, so the next fill creates against the new
+    // backend (FillAndSetConstants, Tr2RenderUtils.cpp:106-110).
+    for (const buffer of this._perObjectConstantBuffers) buffer.Destroy();
     this._esm.ReleaseRealizedObjects();
     this._esm.Destroy();
 
@@ -243,8 +245,7 @@ export class Tr2RenderContext
   {
     this._esm.Destroy();
     this._esm.ReleaseRealizedObjects();
-    for (const buffer of this._perObjectConstantBuffers) if (buffer) buffer.Destroy();
-    this._perObjectConstantBuffers.fill(null);
+    for (const buffer of this._perObjectConstantBuffers) buffer.Destroy();
     if (this._blitter) this._blitter.Destroy();
     this._blitter = null;
     ReleaseSharedGeometryBuffer(this);
@@ -701,10 +702,10 @@ export class Tr2RenderContext
    * stage rather than allocating two hundred. A per-draw allocation would be
    * correct and unusably slow.
    *
-   * Carbon default-constructs them eagerly and they are invalid until
-   * `FillAndSetConstants` creates one at the size it needs; ours are made on
-   * first ask, which reaches the same state without holding seven objects a
-   * headless context never uses.
+   * Carbon default-constructs them as value members and they are invalid until
+   * `FillAndSetConstants` creates one at the size it needs
+   * (`Tr2RenderUtils.cpp:106-110`); ours are the same backend-neutral
+   * `Tr2ConstantBufferAL` values.
    *
    * @param {number} slot A `ShaderType`, or `CBUFFER_GUI`.
    * @returns {object|null} A `Tr2ConstantBufferAL`, or null for a bad slot.
@@ -712,11 +713,6 @@ export class Tr2RenderContext
   GetConstantBuffer(slot)
   {
     if (!Number.isInteger(slot) || slot < 0 || slot >= ConstantBufferSlot.CBUFFER_COUNT) return null;
-
-    // The backend's kind, not the stub's. This constructed `Tr2ConstantBufferALStub`
-    // directly, so per-object constants landed in a CPU shadow on every
-    // backend - the same hard-wiring `Tr2RingBuffer` had, fixed the same way.
-    this._perObjectConstantBuffers[slot] ??= this.CreateConstantBuffer();
 
     return this._perObjectConstantBuffers[slot];
   }
@@ -735,7 +731,8 @@ export class Tr2RenderContext
     );
   }
 
-  _perObjectConstantBuffers = new Array(ConstantBufferSlot.CBUFFER_COUNT).fill(null);
+  /** m_perObjectConstantBuffers[CBUFFER_COUNT] (Tr2RenderContext.h:60): value members, invalid until filled. */
+  _perObjectConstantBuffers = Array.from({ length: ConstantBufferSlot.CBUFFER_COUNT }, () => new Tr2ConstantBufferAL());
 
   /**
    * Binds a realized resource set for following draws.
@@ -824,24 +821,6 @@ export class Tr2RenderContext
   }
 
   /**
-   * Creates a constant buffer of the running backend's kind.
-   *
-   * The same reason `CreateBuffer` is here. Carbon default-constructs a
-   * `Tr2ConstantBufferAL` member and sizes it later (`FillAndSetConstants`,
-   * `Tr2MaterialStageInput::AllocateConstants`); a caller here asks for the
-   * empty object with no size and fills it the same way.
-   *
-   * @param {number} [size] Bytes; zero returns an empty, invalid buffer.
-   * @param {number} [usage] A `Tr2ConstantUsageAL`.
-   * @param {ArrayBufferView|null} [initialData] Initial contents, if any.
-   * @returns {object|null} A `Tr2ConstantBufferAL`, or null when a sized Create refused.
-   */
-  CreateConstantBuffer(size = 0, usage = undefined, initialData = null)
-  {
-    return this._requireAL("CreateConstantBuffer").CreateConstantBuffer(size, usage, initialData);
-  }
-
-  /**
    * Creates a fence of the running backend's kind, for the reason
    * `CreateBuffer` is here: Carbon's `new Tr2FenceAL` compiles to one backend.
    *
@@ -850,23 +829,6 @@ export class Tr2RenderContext
   CreateFence()
   {
     return this._requireAL("CreateFence").CreateFence();
-  }
-
-  /**
-   * The running backend's sampler state for a description.
-   *
-   * Carbon's `Tr2SamplerStateAL::Create` is a factory lookup on the primary
-   * context; equal descriptions are one state. Created at effect load
-   * (`Tr2EffectDescription.cpp:436`) and for sampler overrides
-   * (`Tr2Effect.cpp:690`), both through the main-thread context, which is
-   * `Tr2RenderContext_GetMainThreadRenderContext()` here.
-   *
-   * @param {object} description A `Tr2SamplerDescription`.
-   * @returns {object|null} A `Tr2SamplerStateAL`, shared, or null.
-   */
-  CreateSamplerState(description)
-  {
-    return this._requireAL("CreateSamplerState").CreateSamplerState(description);
   }
 
   /**

@@ -22,7 +22,6 @@
 import { ShaderType } from "#consts/render-context";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { Tr2ConstantUsageAL } from "../../trinityal/index.js";
 import { Failed } from "../../trinityal/ALResult.js";
 
 
@@ -96,7 +95,7 @@ export class Tr2RenderUtils
 
     if (!buffer.IsValid() || dataSize > buffer.GetSize())
     {
-      if (Failed(buffer.Create(dataSize, Tr2ConstantUsageAL.REUSABLE, null, renderContext))) return false;
+      if (Failed(buffer.Create__Size(dataSize, renderContext))) return false;
     }
 
     const { result, data: mapped } = buffer.Lock(renderContext);

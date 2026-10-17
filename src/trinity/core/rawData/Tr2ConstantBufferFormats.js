@@ -23,11 +23,13 @@ import { CjsSchema } from "#schema";
 // expected `shipData`. The hull rendered blown-out white.
 //
 // Kept per CONTEXT rather than per module, which is the one deliberate
-// difference from Carbon's statics: a buffer is of the backend's kind, and two
+// difference from Carbon's statics: the handles are backend-neutral, but the
+// implementation each one is created with is of its context's backend, and two
 // contexts on different backends must not share one.
 import { ShaderType } from "#consts/render-context";
 import { Tr2RenderUtils } from "../Tr2RenderUtils.js";
 import { PER_FRAME_PS, PER_FRAME_VS } from "../Tr2Renderer.js";
+import { Tr2ConstantBufferAL } from "../../../trinityal/Tr2ConstantBufferAL/index.js";
 
 
 /** Carbon's `s_perFrameVSData` / `s_perFramePSData`, one pair per context. */
@@ -83,16 +85,16 @@ export class Tr2ConstantBufferFormats
    *
    * @param {object} renderContext The `Tr2RenderContext` to create through.
    * @param {number} stage A `ShaderType`; only the two per-frame stages are used.
-   * @returns {object|null} A `Tr2ConstantBufferAL`, or null when none can be made.
+   * @returns {Tr2ConstantBufferAL} The stage's buffer, invalid until the first fill.
    */
   static _perFrameBuffer(renderContext, stage)
   {
     const held = perFrameBuffers.get(renderContext) ?? {};
 
-    held[stage] ??= renderContext.CreateConstantBuffer();
+    held[stage] ??= new Tr2ConstantBufferAL();
     perFrameBuffers.set(renderContext, held);
 
-    return held[stage] ?? null;
+    return held[stage];
   }
 }
 

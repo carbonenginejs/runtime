@@ -1,5 +1,7 @@
 import { Tr2BufferAL } from "../Tr2BufferAL/index.js";
 import { Tr2TextureAL } from "../Tr2TextureAL/index.js";
+import { Tr2ConstantBufferAL, Tr2ConstantUsageAL } from "../Tr2ConstantBufferAL/index.js";
+import { Tr2SamplerStateAL } from "../Tr2SamplerStateAL/index.js";
 // Source: trinity/trinityal/dx11/Tr2RenderContextDx11.h
 // Source: trinity/trinityal/dx11/Tr2RenderContextDx11.cpp
 // Source: trinity/trinityal/dx11/Tr2PrimaryRenderContextDx11.h
@@ -53,11 +55,10 @@ import { ALResult, Failed } from "../ALResult.js";
 import { Tr2DrawUPHelper } from "../Tr2DrawUPHelper.js";
 import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
 import { Tr2ResourceSetAL } from "../Tr2ResourceSetAL/Tr2ResourceSetAL.js";
-import { Tr2ConstantUsageAL } from "../stub/Tr2ConstantBufferALStub.js";
 import { SamplerDescriptionKey } from "../Tr2HalHelperStructures/Tr2SamplerDescription.js";
 import { Tr2MsaaDesc } from "../Tr2HalHelperStructures/Tr2MsaaDesc.js";
 import { Tr2BufferALWebgl2 } from "./Tr2BufferALWebgl2.js";
-import { Tr2CapsALWebgl2 } from "./Tr2CapsALWebgl2.js";
+import { Tr2CapsALWebgl2, Tr2Webgl2PlatformCaps } from "./Tr2CapsALWebgl2.js";
 import { Tr2ConstantBufferALWebgl2 } from "./Tr2ConstantBufferALWebgl2.js";
 import { Tr2FenceALWebgl2 } from "./Tr2FenceALWebgl2.js";
 import { Tr2ResourceSetALWebgl2 } from "./Tr2ResourceSetALWebgl2.js";
@@ -435,18 +436,36 @@ export class Tr2RenderContextALWebgl2
   }
 
   /**
-   * Creates a constant buffer; with no size, an empty one to be created later.
+   * Creates a constant buffer; with `implementationOnly`, this backend's
+   * implementation and its result, for the `Tr2ConstantBufferAL` handle to own.
    *
-   * @param {number} [size] Bytes.
+   * The handle's `Create` asks here because this is where Carbon's platform
+   * include resolves (`Tr2ConstantBufferAL.cpp:6`), so the handle's size
+   * ceiling (`Tr2ConstantBufferAL.cpp:30-34`) is applied here against this
+   * backend's `MAX_CONSTANT_BUFFER_SIZE` (`Tr2Webgl2PlatformCaps`, WebGL2's
+   * guaranteed uniform-block size). Without `implementationOnly` it returns a
+   * created handle - an empty one for no size - for probes and tests.
+   *
+   * @param {number} [size] Bytes; zero returns an empty, invalid handle.
    * @param {number} [usage] A `Tr2ConstantUsageAL`.
    * @param {ArrayBufferView|null} [initialData] Initial contents.
-   * @returns {Tr2ConstantBufferALWebgl2|null} The buffer, or null when a sized Create refused.
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null when a sized Create refused.
    */
-  CreateConstantBuffer(size = 0, usage = Tr2ConstantUsageAL.REUSABLE, initialData = null)
+  CreateConstantBuffer(size = 0, usage = Tr2ConstantUsageAL.REUSABLE, initialData = null, implementationOnly = false)
   {
-    const buffer = new Tr2ConstantBufferALWebgl2();
-    if (size > 0 && Failed(buffer.Create(size, usage, initialData, this))) return null;
-    return buffer;
+    if (implementationOnly)
+    {
+      if (size > Tr2Webgl2PlatformCaps.MAX_CONSTANT_BUFFER_SIZE) return { result: ALResult.E_INVALIDARG, implementation: null };
+
+      const implementation = new Tr2ConstantBufferALWebgl2();
+      const result = implementation.Create(size, usage, initialData, this);
+      if (Failed(result)) implementation.Destroy();
+      return { result, implementation };
+    }
+
+    const value = new Tr2ConstantBufferAL();
+    return size > 0 && Failed(value.Create(size, usage, initialData, this)) ? null : value;
   }
 
   /**
@@ -505,25 +524,43 @@ export class Tr2RenderContextALWebgl2
   }
 
   /**
-   * The sampler state for a description, created once per distinct description:
-   * Carbon's factory lookup on the primary context (`Tr2SamplerStateAL.cpp:25-28`).
+   * Carbon's `Tr2ObjectFactory::Get` on `m_samplerStateFactory`
+   * (`Tr2ObjectFactory.h:14-33`, reached from `Tr2SamplerStateAL.cpp:25-28`):
+   * one implementation per distinct description, an invalid cached one erased
+   * and recreated, a refused create not cached.
+   *
+   * With `implementationOnly` it returns `{ result, implementation }` for the
+   * `Tr2SamplerStateAL` handle; otherwise a new handle sharing it, or null.
+   *
+   * Adapted: `SamplerDescriptionKey` stands in for Carbon's hash of
+   * `Tr2SamplerDescription`; a missing description, which C++ cannot pass, is
+   * refused with `E_INVALIDARG`.
    *
    * @param {object} description A `Tr2SamplerDescription`.
-   * @returns {Tr2SamplerStateALWebgl2|null} The shared state, or null.
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null.
    */
-  CreateSamplerState(description)
+  CreateSamplerState(description, implementationOnly = false)
   {
+    if (!implementationOnly)
+    {
+      const value = new Tr2SamplerStateAL();
+      return Failed(value.Create(description, this)) ? null : value;
+    }
+
     const key = SamplerDescriptionKey(description);
-    if (key === null) return null;
+    if (key === null) return { result: ALResult.E_INVALIDARG, implementation: null };
 
     const existing = this._samplerStates.get(key);
-    if (existing) return existing;
+    if (existing && existing.IsValid()) return { result: ALResult.S_OK, implementation: existing };
+    if (existing) this._samplerStates.delete(key);
 
-    const state = new Tr2SamplerStateALWebgl2();
-    if (Failed(state.Create(description, this))) return null;
+    const implementation = new Tr2SamplerStateALWebgl2();
+    const result = implementation.Create(description, this);
+    if (Failed(result)) return { result, implementation: null };
 
-    this._samplerStates.set(key, state);
-    return state;
+    this._samplerStates.set(key, implementation);
+    return { result, implementation };
   }
 
   /**
@@ -1289,14 +1326,21 @@ export class Tr2RenderContextALWebgl2
   }
 
   /**
-   * Binds a constant buffer to a stage register (`:1171-1271`).
+   * Binds a constant buffer to a stage register (`Tr2RenderContextDx11.cpp:1171-1271`).
    *
    * A `ONE_SHOT` buffer's bytes are copied now into the slot's shared buffer,
-   * as dx11 copies them, because the caller refills it for the next bind; a
-   * `REUSABLE` one is bound as it is and read at the draw. An unchanged
-   * one-shot payload is skipped, as dx11's cache skips it.
+   * as dx11 copies them, because the caller refills it for the next bind; an
+   * unchanged payload is skipped, as dx11's cache skips it. Any other buffer is
+   * bound as it is and read at the draw, and it clears the slot's shared size
+   * so the next one-shot bind cannot be skipped against it (`:1231-1238`). An
+   * invalid handle binds nothing, as dx11 binds its null `m_buffer`.
    *
-   * @param {object} buffer A `Tr2ConstantBufferALWebgl2`.
+   * Adapted: WebGL2 binds at the draw, so the slot records the implementation
+   * (dx11's `buffer.m_buffer->m_buffer`) instead of calling
+   * `*SSetConstantBuffers`; the register range is checked for every usage
+   * because the slot table is a JavaScript array.
+   *
+   * @param {Tr2ConstantBufferAL} buffer The constant buffer.
    * @param {number} constantType A `ShaderType`.
    * @param {number} registerIndex The constant-buffer register.
    * @returns {number} An `ALResult` value.
@@ -1307,36 +1351,36 @@ export class Tr2RenderContextALWebgl2
     if (constantType < 0 || constantType >= ShaderType.SHADER_TYPE_COUNT || registerIndex >= CB_SLOT_COUNT) return ALResult.E_INVALIDARG;
 
     const index = constantType * CB_SLOT_COUNT + registerIndex;
+    const implementation = buffer.TrinityALImpl_GetObject();
 
-    if (buffer.GetUsage() !== Tr2ConstantUsageAL.ONE_SHOT)
+    if (implementation.GetUsage() !== Tr2ConstantUsageAL.ONE_SHOT)
     {
-      this._constantSlots[index] = { buffer, shared: null };
+      if (this._sharedConstantBuffers[index]) this._sharedConstantBuffers[index].size = 0;
+      this._constantSlots[index] = { buffer: implementation.IsValid() ? implementation : null, shared: null };
       return ALResult.S_OK;
     }
 
-    const data = buffer.GetMirror();
+    const data = implementation.GetMirror();
     const size = buffer.GetSize();
     if (size === 0) return ALResult.S_OK;
 
     let shared = this._sharedConstantBuffers[index];
     if (!shared)
     {
-      shared = { constantBuffer: null, mirror: new Uint8Array(0), size: 0 };
+      shared = { constantBuffer: new Tr2ConstantBufferAL(), mirror: new Uint8Array(0), size: 0 };
       this._sharedConstantBuffers[index] = shared;
     }
 
-    const slot = this._constantSlots[index];
-    if (shared.size === size && slot && slot.shared === shared && BytesEqual(shared.mirror, data, size)) return ALResult.S_OK;
-
     if (shared.mirror.length < size) shared.mirror = new Uint8Array(size);
+    if (shared.size === size && BytesEqual(shared.mirror, data, size)) return ALResult.S_OK;
+
     shared.mirror.set(data.subarray(0, size));
     shared.size = size;
 
-    if (!shared.constantBuffer || shared.constantBuffer.GetSize() < size)
+    if (!shared.constantBuffer.IsValid() || shared.constantBuffer.GetSize() < size)
     {
-      if (shared.constantBuffer) shared.constantBuffer.Destroy();
-      shared.constantBuffer = this.CreateConstantBuffer(Math.ceil(size / 16) * 16, Tr2ConstantUsageAL.REUSABLE, null);
-      if (!shared.constantBuffer) return ALResult.E_FAIL;
+      const created = shared.constantBuffer.Create__Size(Math.ceil(size / 16) * 16, this);
+      if (Failed(created)) return created;
     }
 
     const lock = shared.constantBuffer.Lock(this);
@@ -1345,7 +1389,7 @@ export class Tr2RenderContextALWebgl2
     const unlocked = shared.constantBuffer.Unlock(this);
     if (Failed(unlocked)) return unlocked;
 
-    this._constantSlots[index] = { buffer: shared.constantBuffer, shared };
+    this._constantSlots[index] = { buffer: shared.constantBuffer.TrinityALImpl_GetObject(), shared };
     return ALResult.S_OK;
   }
 
@@ -1391,11 +1435,11 @@ export class Tr2RenderContextALWebgl2
 
       if (record.style === "std140")
       {
-        if (record.bindingPoint !== undefined) gl.bindBufferBase(gl.UNIFORM_BUFFER, record.bindingPoint, slot.buffer.GetGpuResource());
+        if (record.bindingPoint !== undefined) gl.bindBufferBase(gl.UNIFORM_BUFFER, record.bindingPoint, slot.buffer ? slot.buffer.GetGpuResource() : null);
         continue;
       }
 
-      if (!record.location) continue;
+      if (!record.location || (!slot.shared && !slot.buffer)) continue;
 
       const floats = record.sizeInVec4 * 4;
       const bytes = slot.shared ? slot.shared.mirror : slot.buffer.GetMirror();
@@ -2241,7 +2285,7 @@ export class Tr2RenderContextALWebgl2
     }
 
     this._defaultBackBuffer.Destroy();
-    for (const shared of this._sharedConstantBuffers) if (shared && shared.constantBuffer) shared.constantBuffer.Destroy();
+    for (const shared of this._sharedConstantBuffers) if (shared) shared.constantBuffer.Destroy();
     this._sharedConstantBuffers = [];
     this._constantSlots = [];
     this._drawUP.Destroy();

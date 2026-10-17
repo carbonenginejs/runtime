@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Shader/Tr2Material.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
+import { Tr2ConstantBufferAL } from "../../../trinityal/Tr2ConstantBufferAL/index.js";
 
 /** Organizes one shader stage's constants, parameters, textures, UAVs, and CPU-side constant mirror. */
 @blue.define("Tr2MaterialStageInput")
@@ -31,9 +32,9 @@ export class Tr2MaterialStageInput
   @type.list("Tr2EffectParam")
   uavs = [];
 
-  /** m_constantBuffer (Tr2ConstantBufferAL) */
+  /** m_constantBuffer (Tr2ConstantBufferAL, Shader/Tr2Material.h:98), by value; invalid until the first apply creates it. */
   @type.rawStruct("Tr2ConstantBufferAL")
-  constantBuffer = null;
+  constantBuffer = new Tr2ConstantBufferAL();
 
   /** m_constantMirror (CcpMallocBuffer) */
   @type.rawStruct("CcpMallocBuffer")

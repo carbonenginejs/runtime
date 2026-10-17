@@ -6,7 +6,7 @@ import { Tr2Shader } from "#resource/shader";
 import { ShaderType, CompareFunc } from "#consts/render-context";
 import { FNV1_INITIAL, hashFnv1Floats } from "../../global/utils/hash.js";
 import { Failed } from "../../trinityal/ALResult.js";
-import { Tr2ConstantUsageAL } from "../../trinityal/index.js";
+import { Tr2ConstantUsageAL, Tr2SamplerStateAL } from "../../trinityal/index.js";
 import { Tr2EffectStateManager } from "./Tr2EffectStateManager.js";
 import { EFFECT_CONSTANTS } from "../core/Tr2Renderer.js";
 import { SAMPLER_LOD_UNBOUNDED } from "../../trinityal/Tr2HalHelperStructures/Tr2SamplerDescription.js";
@@ -285,11 +285,9 @@ export class Tr2Material
     // a fully static stage - Carbon's shared immutable buffer - is correct
     // without ever being locked. Until 2026-09-10 nothing created this buffer
     // at all, so b0 never reached any backend from this path.
-    if (!input.constantBuffer)
+    if (!input.constantBuffer.IsValid())
     {
-      input.constantBuffer = renderContext.CreateConstantBuffer(mirror.byteLength, Tr2ConstantUsageAL.ONE_SHOT, mirror);
-
-      if (!input.constantBuffer) return false;
+      if (Failed(input.constantBuffer.Create(mirror.byteLength, Tr2ConstantUsageAL.ONE_SHOT, mirror, renderContext))) return false;
     }
 
     this.UpdateConstants(shaderType, input, hasReroutables, renderContext);
@@ -337,7 +335,8 @@ export class Tr2Material
   @blue.method
   UpdateConstants(shaderType, input, hasReroutables, renderContext)
   {
-    if (!input.constantBuffer) return false;
+    // Carbon's test is `cb.GetSize()` (cpp:318).
+    if (!input.constantBuffer.GetSize()) return false;
     if (!input.constantBufferDirty && !hasReroutables && !input.shaderParameters.length) return false;
 
     const mirror = input.constantMirror;
@@ -417,9 +416,10 @@ export class Tr2Material
 
       for (const [ registerIndex, setup ] of stage.samplers ?? [])
       {
-        const state = renderContext.CreateSamplerState(setup?.sampler);
+        // samplerSetup.sampler.Create( sampler, primary ) (Tr2EffectDescription.cpp:436).
+        const state = new Tr2SamplerStateAL();
 
-        if (state) description.SetSampler(stageType, registerIndex, state);
+        if (!Failed(state.Create(setup?.sampler, renderContext))) description.SetSampler(stageType, registerIndex, state);
       }
 
       for (const override of overrides)
@@ -428,11 +428,13 @@ export class Tr2Material
         {
           if (!setup?.isDynamic || setup.name !== override.name) continue;
 
-          const state = renderContext.CreateSamplerState(SamplerDescriptionFromOverride(override));
+          // over.sampler.Create( CreateSamplerDescription( over ), ... ) (Tr2Effect.cpp:688-691).
+          const state = new Tr2SamplerStateAL();
 
           // Carbon: an override that CHANGED the description makes the pass
           // incompatible with the GDR path (Tr2Effect.cpp:653-657).
-          if (state && description.SetSampler(stageType, registerIndex, state)) pass.compatibleWithGdr = false;
+          if (!Failed(state.Create(SamplerDescriptionFromOverride(override), renderContext))
+            && description.SetSampler(stageType, registerIndex, state)) pass.compatibleWithGdr = false;
 
           break;
         }

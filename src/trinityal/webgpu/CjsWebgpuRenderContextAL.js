@@ -1,5 +1,7 @@
 import { Tr2BufferAL } from "../Tr2BufferAL/index.js";
 import { Tr2TextureAL } from "../Tr2TextureAL/index.js";
+import { Tr2ConstantBufferAL } from "../Tr2ConstantBufferAL/index.js";
+import { Tr2SamplerStateAL } from "../Tr2SamplerStateAL/index.js";
 // Source: trinity/trinityal/metal/Tr2RenderContextMetal.h
 // Source: trinity/trinityal/metal/Tr2RenderContextMetal.mm
 // Source: trinity/trinityal/stub/Tr2RenderContextStub.h
@@ -82,7 +84,7 @@ import { CjsWebgpuWorkQueue, EncoderType } from "./core/CjsWebgpuWorkQueue.js";
 import { RegisterBindingUse } from "./core/bindingIndex.js";
 import { CjsWebgpuMipGenerator } from "./core/CjsWebgpuMipGenerator.js";
 import { CjsWebgpuBufferAL } from "./CjsWebgpuBufferAL.js";
-import { CjsWebgpuConstantBufferAL } from "./CjsWebgpuConstantBufferAL.js";
+import { CjsWebgpuConstantBufferAL, CONSTANT_BUFFER_REGISTERS } from "./CjsWebgpuConstantBufferAL.js";
 import { CjsWebgpuFenceAL } from "./CjsWebgpuFenceAL.js";
 import { CARBON_BACKEND_ADDRESS_MODES_SYMBOL } from "#resource/format";
 import { CjsWebgpuSamplerStateAL } from "./CjsWebgpuSamplerStateAL.js";
@@ -93,7 +95,7 @@ import { CjsWebgpuUtils } from "./core/CjsWebgpuUtils.js";
 import { TOPOLOGIES } from "./core/topology.js";
 import { SamplerDescriptionKey } from "../Tr2HalHelperStructures/Tr2SamplerDescription.js";
 import { Tr2MsaaDesc } from "../Tr2HalHelperStructures/Tr2MsaaDesc.js";
-import { CjsWebgpuCapsAL } from "./CjsWebgpuCapsAL.js";
+import { CjsWebgpuCapsAL, CjsWebgpuPlatformCaps } from "./CjsWebgpuCapsAL.js";
 import { CjsWebgpuPsoDescription, MAX_VERTEX_STREAMS } from "./core/CjsWebgpuPsoDescription.js";
 import { CjsWebgpuShaderAL, WEBGPU_ENTRY_POINT } from "./CjsWebgpuShaderAL.js";
 import { CjsWebgpuShaderProgramAL } from "./CjsWebgpuShaderProgramAL.js";
@@ -232,15 +234,8 @@ const CANVAS_PIXEL_FORMAT = Object.freeze({
 let primaryRenderContext = null;
 
 
-/**
- * How many constant-buffer registers a stage has.
- *
- * Carbon's Metal backend fixes this at 20 (`METAL_CONST_BUFFER_COUNT`,
- * `MetalWorkQueue.h:39`) and rejects anything past it. Kept at Carbon's number
- * rather than a WebGPU limit: this bounds the REGISTER INDEX an effect declares,
- * which the shader compiler already fixed, not the bind-group slot count.
- */
-const CONSTANT_BUFFER_REGISTERS = 20;
+// CONSTANT_BUFFER_REGISTERS (Metal's `METAL_CONST_BUFFER_COUNT`) is declared beside
+// the constant buffer, whose `SetConstants` keys the bound table with it too.
 
 
 /** WebGPU behind the abstraction layer, holding a work queue as Metal does. */
@@ -445,23 +440,36 @@ export class CjsWebgpuRenderContextAL
   }
 
   /**
-   * Creates a constant buffer, this backend's kind of `Tr2ConstantBufferAL`.
+   * Creates a constant buffer; with `implementationOnly`, this backend's
+   * implementation and its result, for the `Tr2ConstantBufferAL` handle to own.
    *
-   * See the stub's note: with no size this returns an empty buffer for a
-   * Trinity caller to `Create` later, as Carbon default-constructs its member.
+   * The handle's `Create` asks here because this is where Carbon's platform
+   * include resolves (`Tr2ConstantBufferAL.cpp:6`), so the handle's size
+   * ceiling (`Tr2ConstantBufferAL.cpp:30-34`) is applied here against this
+   * backend's `MAX_CONSTANT_BUFFER_SIZE` (`CjsWebgpuPlatformCaps`, WebGPU's
+   * guaranteed uniform binding size). Without `implementationOnly` it returns a
+   * created handle - an empty one for no size - for probes and tests.
    *
-   * @param {number} [size] Bytes; zero returns an empty, invalid buffer.
+   * @param {number} [size] Bytes; zero returns an empty, invalid handle.
    * @param {number} [usage] A `Tr2ConstantUsageAL`.
    * @param {ArrayBufferView|null} [initialData] Initial contents, if any.
-   * @returns {object|null} The buffer, or null when a sized Create refused.
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null when a sized Create refused.
    */
-  CreateConstantBuffer(size = 0, usage = Tr2ConstantUsageAL.REUSABLE, initialData = null)
+  CreateConstantBuffer(size = 0, usage = Tr2ConstantUsageAL.REUSABLE, initialData = null, implementationOnly = false)
   {
-    const buffer = new CjsWebgpuConstantBufferAL();
+    if (implementationOnly)
+    {
+      if (size > CjsWebgpuPlatformCaps.MAX_CONSTANT_BUFFER_SIZE) return { result: ALResult.E_INVALIDARG, implementation: null };
 
-    if (size > 0 && Failed(buffer.Create(size, usage, initialData, this))) return null;
+      const implementation = new CjsWebgpuConstantBufferAL();
+      const result = implementation.Create(size, usage, initialData, this);
+      if (Failed(result)) implementation.Destroy();
+      return { result, implementation };
+    }
 
-    return buffer;
+    const value = new Tr2ConstantBufferAL();
+    return size > 0 && Failed(value.Create(size, usage, initialData, this)) ? null : value;
   }
 
   /**
@@ -485,34 +493,45 @@ export class CjsWebgpuRenderContextAL
   _samplerStates = new Map();
 
   /**
-   * The sampler state for a description, this backend's kind of
-   * `Tr2SamplerStateAL`, created once per distinct description.
+   * Carbon's `Tr2ObjectFactory::Get` on `m_samplerStateFactory`
+   * (`Tr2ObjectFactory.h:14-33`, reached from `Tr2SamplerStateAL.cpp:25-28`):
+   * one implementation per distinct description, an invalid cached one erased
+   * and recreated, a refused create not cached. The primary context owns the
+   * factory and hands back the shared object, which is why a resource set can
+   * compare sampler states by identity.
    *
-   * Carbon's `Tr2SamplerStateAL::Create` IS this lookup
-   * (`Tr2SamplerStateAL.cpp:25-28`): the primary context owns the factory and
-   * hands back the shared object, which is why a resource set can compare
-   * sampler states by identity.
+   * With `implementationOnly` it returns `{ result, implementation }` for the
+   * `Tr2SamplerStateAL` handle; otherwise a new handle sharing it, or null.
+   *
+   * Adapted: `SamplerDescriptionKey` stands in for Carbon's hash of
+   * `Tr2SamplerDescription`; a missing description, which C++ cannot pass, is
+   * refused with `E_INVALIDARG`.
    *
    * @param {object} description A `Tr2SamplerDescription`, either spelling.
-   * @returns {object|null} The shared state, or null when Create refused.
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null.
    */
-  CreateSamplerState(description)
+  CreateSamplerState(description, implementationOnly = false)
   {
-    const key = SamplerDescriptionKey(description);
+    if (!implementationOnly)
+    {
+      const value = new Tr2SamplerStateAL();
+      return Failed(value.Create(description, this)) ? null : value;
+    }
 
-    if (key === null) return null;
+    const key = SamplerDescriptionKey(description);
+    if (key === null) return { result: ALResult.E_INVALIDARG, implementation: null };
 
     const existing = this._samplerStates.get(key);
+    if (existing && existing.IsValid()) return { result: ALResult.S_OK, implementation: existing };
+    if (existing) this._samplerStates.delete(key);
 
-    if (existing) return existing;
+    const implementation = new CjsWebgpuSamplerStateAL();
+    const result = implementation.Create(description, this);
+    if (Failed(result)) return { result, implementation: null };
 
-    const state = new CjsWebgpuSamplerStateAL();
-
-    if (Failed(state.Create(description, this))) return null;
-
-    this._samplerStates.set(key, state);
-
-    return state;
+    this._samplerStates.set(key, implementation);
+    return { result, implementation };
   }
 
   /**
@@ -2211,12 +2230,10 @@ export class CjsWebgpuRenderContextAL
 
       const buffer = this._constantBuffers.get(stage * CONSTANT_BUFFER_REGISTERS + binding.registerIndex) ?? null;
 
-      // A buffer of another backend's kind - a stub made before this backend
-      // was installed - has no shadow this arena can upload; it is skipped and
-      // the slot takes the null buffer, which is DX12's answer to an unbound
-      // CBV. Asked by TYPE, which is the question: Carbon has one constant
-      // buffer class per compiled backend and cannot be handed another's.
-      if (buffer instanceof CjsWebgpuConstantBufferAL && buffer.IsValid()) return buffer;
+      // Only this backend's implementations reach the table (SetConstants
+      // filters by kind). One destroyed since its bind is skipped, and the slot
+      // takes the null buffer, which is DX12's answer to an unbound CBV.
+      if (buffer && buffer.IsValid()) return buffer;
     }
 
     return null;
@@ -2601,29 +2618,39 @@ export class CjsWebgpuRenderContextAL
   /**
    * Binds a constant buffer to one shader stage at one register.
    *
-   * Carbon rejects a register past the backend's constant-buffer count and
-   * otherwise hands the buffer to itself to bind
-   * (`Tr2RenderContextMetal.mm:664-677`). The bound state is what the resolver
-   * reads when it assembles a draw.
+   * Metal's (`Tr2RenderContextMetal.mm:664-677`): a register past the
+   * backend's constant-buffer count is refused, otherwise the buffer's
+   * implementation binds itself (`Tr2ConstantBufferALMetal.mm:81-92`). The
+   * bound state is what the draw reads when it assembles its bind groups.
    *
-   * @param {object} buffer A `Tr2ConstantBufferAL`.
+   * Adapted: the shader type is range-checked too, because the bound table is
+   * keyed by it in JavaScript.
+   *
+   * @param {Tr2ConstantBufferAL} buffer The constant buffer.
    * @param {number} constantType A `ShaderType`.
    * @param {number} registerIndex The constant-buffer register.
    * @param {number} [_maxRegisterCount] Carbon's optional bound.
    * @returns {number} An `ALResult`: whether the AL accepted it.
    */
+  @meta.adapted
   SetConstants(buffer, constantType, registerIndex, _maxRegisterCount = 0)
   {
-    if (registerIndex < 0 || registerIndex >= CONSTANT_BUFFER_REGISTERS) return ALResult.E_FAIL;
-    if (constantType < 0 || constantType >= ShaderType.SHADER_TYPE_COUNT) return ALResult.E_FAIL;
+    if (registerIndex < 0 || registerIndex >= CONSTANT_BUFFER_REGISTERS) return ALResult.E_INVALIDARG;
+    if (constantType < 0 || constantType >= ShaderType.SHADER_TYPE_COUNT) return ALResult.E_INVALIDARG;
 
-    this._constantBuffers.set(constantType * CONSTANT_BUFFER_REGISTERS + registerIndex, buffer ?? null);
+    // An implementation of another backend's kind - a stub made before this
+    // backend was installed - or the null one has no shadow this arena can
+    // upload, so it binds nothing, as Metal's impl does with no `m_buffer`
+    // (`Tr2ConstantBufferALMetal.mm:85-89`). Asked by TYPE, which is the
+    // question: Carbon has one constant buffer class per compiled backend.
+    const implementation = buffer.TrinityALImpl_GetObject();
+    if (implementation instanceof CjsWebgpuConstantBufferAL) implementation.SetConstants(constantType, registerIndex, this);
 
     return ALResult.S_OK;
   }
 
   /**
-   * The constant buffer bound to one stage and register.
+   * The constant-buffer implementation bound to one stage and register.
    *
    * @param {number} constantType A `ShaderType`.
    * @param {number} registerIndex The constant-buffer register.

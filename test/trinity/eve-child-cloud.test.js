@@ -8,7 +8,7 @@ import {
   TriRenderBatchAccumulator, Tr2RenderContext_GetMainThreadRenderContext,
   Tr2EffectStateManager
 } from "../../npm/dist/trinity/index.js";
-import { Tr2RenderContextALStub, Tr2ConstantBufferALStub, ALResult } from "../../npm/dist/trinityal/index.js";
+import { Tr2RenderContextALStub, Tr2ConstantBufferAL, ALResult } from "../../npm/dist/trinityal/index.js";
 import { CjsPerObjectLayouts } from "../../npm/dist/trinity/core/rawData/CjsPerObjectLayouts.js";
 import { gTriDev } from "../../npm/dist/trinity/core/device/gTriDev.js";
 
@@ -223,7 +223,7 @@ test("native transparent batch reaches AL indexed draw and constants use the ver
   context.SubmitGeometry(batches[0]);
   assert.equal(draws.length, 1);
   assert.deepEqual(draws[0].slice(0, 5), [6144, 1, 0, 0, 0]);
-  const buffers = Array.from({ length: 6 }, () => new Tr2ConstantBufferALStub());
+  const buffers = Array.from({ length: 6 }, () => new Tr2ConstantBufferAL());
   const stages = [];
   t.mock.method(context, "SetConstants", (_buffer, stage, register) => stages.push([stage, register]));
   assert.equal(record.SetPerObjectDataToDevice(buffers, 3, context), 1);

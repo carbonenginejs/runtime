@@ -23,7 +23,7 @@ import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
-import { Tr2ConstantUsageAL } from "../stub/Tr2ConstantBufferALStub.js";
+import { Tr2ConstantUsageAL } from "../Tr2ConstantBufferAL/Tr2ConstantBufferAL.js";
 
 
 /**

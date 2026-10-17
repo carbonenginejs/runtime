@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { EveSpaceScene, EveSpaceObject2, EvePickingContext, Tr2PerObjectData, TriProjection,
   TriView, TriViewport, Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";
-import { ALResult, Tr2RenderContextALStub, Tr2TextureAL, Tr2ReadbackAL } from "../../npm/dist/trinityal/index.js";
+import { ALResult, Tr2ConstantBufferAL, Tr2RenderContextALStub, Tr2TextureAL, Tr2ReadbackAL } from "../../npm/dist/trinityal/index.js";
 
 function setup(t, framework = "pointer")
 {
@@ -87,10 +87,10 @@ test("scene destruction releases owned frame buffers and unregisters borrowed li
   h.scene.SetShLightingManager(manager);
   h.scene.SetShLightingManager(manager);
   assert.deepEqual(events, [["register", manager]]);
-  const buffers = [h.context.CreateConstantBuffer(), h.context.CreateConstantBuffer(), h.context.CreateConstantBuffer()];
+  const buffers = [h.scene._perFrameVSBuffer, h.scene._perFramePSBuffer, h.scene._shadowPerFrameVSBuffer];
+  assert.ok(buffers.every(buffer => buffer instanceof Tr2ConstantBufferAL), "by-value members (EveSpaceScene.h:536-538)");
   let destroyed = 0;
   for (const buffer of buffers) t.mock.method(buffer, "Destroy", () => { destroyed++; });
-  [h.scene._perFrameVSBuffer, h.scene._perFramePSBuffer, h.scene._shadowPerFrameVSBuffer] = buffers;
   h.scene.Destroy(); h.scene.Destroy();
   assert.equal(destroyed, 3);
   assert.equal(releaseDataTexture.mock.callCount(), 1);

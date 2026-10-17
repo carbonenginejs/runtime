@@ -97,8 +97,11 @@ test("canonical sampler records preserve list identity, unsigned fields and full
     const pass = { compatibleWithGdr: true, resourceSetDesc: {
         SetSampler(stage, register, state) { bindings.set(`${stage}:${register}`, state); return true; }
     } };
-    effect.SeedSamplers(0, 0, pass, { CreateSamplerState: description => description });
-    const sampler = bindings.get("0:2");
+    // Each state is a Tr2SamplerStateAL value created through the context's
+    // factory (Tr2SamplerStateAL.cpp:25-28); this recording factory hands back
+    // the description itself as the implementation.
+    effect.SeedSamplers(0, 0, pass, { CreateSamplerState: description => ({ result: 0, implementation: description }) });
+    const sampler = bindings.get("0:2").TrinityALImpl_GetObject();
     assert.equal(sampler.addressU, 4);
     assert.equal(sampler.addressV, 2);
     assert.equal(sampler.addressW, 3);
@@ -108,7 +111,7 @@ test("canonical sampler records preserve list identity, unsigned fields and full
     assert.equal(sampler.mipLODBias, 1.5);
     assert.equal(sampler.minLOD, 4);
     assert.equal(sampler.maxAnisotropy, 8);
-    assert.equal(bindings.get("0:3"), authored, "non-dynamic sampler is not overridden");
+    assert.equal(bindings.get("0:3").TrinityALImpl_GetObject(), authored, "non-dynamic sampler is not overridden");
     assert.equal(pass.compatibleWithGdr, false);
 });
 

@@ -20,7 +20,7 @@ import { EveComponentType } from "../../eve/EntityComponents.js";
 import { Tr2LightManager } from "../lighting/Tr2LightManager.js";
 import { CjsTr2VolumetricsRendererLayout } from "../rawData/layouts/CjsTr2VolumetricsRendererLayout.js";
 import { PixelFormat, ShaderType, TextureType, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
-import { Failed, Tr2ConstantUsageAL } from "#trinityal";
+import { Failed, Tr2ConstantBufferAL } from "#trinityal";
 import { RawData } from "../rawData/RawData.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
@@ -183,8 +183,8 @@ export class Tr2VolumetricsRenderer
   @type.boolean
   _isReflectionProbe = false;
 
-  /** m_fogConstantBuffer (cpp:658-661), created on first use, and the record its bytes are filled from. */
-  _fogConstantBuffer = null;
+  /** m_fogConstantBuffer (h:303), by value, created on first use (cpp:661-663); and the record its bytes are filled from. */
+  _fogConstantBuffer = new Tr2ConstantBufferAL();
   _fogPerObjectData = RawData.create("FogPerObjectData");
 
   /** Native cloud pass effects (cpp:51-66). */
@@ -682,10 +682,9 @@ export class Tr2VolumetricsRenderer
       jitter[2] -= Math.floor(jitter[2]);
     }
 
-    if (!this._fogConstantBuffer || !this._fogConstantBuffer.IsValid())
+    if (!this._fogConstantBuffer.IsValid())
     {
-      this._fogConstantBuffer = renderContext.CreateConstantBuffer();
-      if (Failed(this._fogConstantBuffer.Create(this._fogPerObjectData.GetData().byteLength, Tr2ConstantUsageAL.REUSABLE, null, renderContext))) return null;
+      if (Failed(this._fogConstantBuffer.Create__Size(this._fogPerObjectData.GetData().byteLength, renderContext))) return null;
     }
 
     const data = this._fogPerObjectData;

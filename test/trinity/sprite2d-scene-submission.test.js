@@ -93,7 +93,6 @@ function captureContext(t)
     // Carbon's render context is the backend context; buffer creation reaches it through GetRenderContextAL.
     GetRenderContextAL() { return this; },
     AddGpuMarker() {},
-    CreateConstantBuffer: () => ({ Destroy() {} }),
     CreateBuffer(desc, initialData)
     {
       const buffer = {

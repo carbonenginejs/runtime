@@ -886,9 +886,9 @@ export class Tr2EffectStateManager
     Tr2EffectStateManager.releaseDeviceResources();
     this.ReleaseRealizedObjects();
 
-    const buffers = this.#renderContext._perObjectConstantBuffers;
-    for (const buffer of buffers) if (buffer) buffer.Destroy();
-    buffers.fill(null);
+    // m_perObjectConstantBuffers[i] = Tr2ConstantBufferAL() (cpp:1018-1021): the
+    // by-value handles are reset, not removed.
+    for (const buffer of this.#renderContext._perObjectConstantBuffers) buffer.Destroy();
   }
 
   /**

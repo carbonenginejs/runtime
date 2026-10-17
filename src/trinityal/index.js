@@ -18,6 +18,8 @@ export * from "./ALResult.js";
 // (Tr2RenderContextEnum.h:435); the class lives in global/imageio.
 export { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
 export * from "./Tr2BufferAL/index.js";
+export * from "./Tr2ConstantBufferAL/index.js";
+export * from "./Tr2SamplerStateAL/index.js";
 export * from "./Tr2TextureAL/index.js";
 export * from "./Tr2ReadbackAL/index.js";
 export * from "./Tr2DeviceResourceAL/index.js";

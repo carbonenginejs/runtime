@@ -27,6 +27,7 @@ import { Tr2GpuStructuredBuffer } from "../core/device/Tr2GpuStructuredBuffer.js
 import { TriDevice } from "../core/device/TriDevice.js";
 import { Tr2Renderer, PER_OBJECT_VS } from "../core/Tr2Renderer.js";
 import { Tr2RenderUtils } from "../core/Tr2RenderUtils.js";
+import { Tr2ConstantBufferAL } from "#trinityal";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2RenderContext.js";
 import { Tr2VariableStore } from "../core/variable/Tr2VariableStore.js";
 import { Tr2EffectStateManager } from "../shader/Tr2EffectStateManager.js";
@@ -240,14 +241,21 @@ export class Tr2GpuParticleSystem
   /** How many of `_emitRequests` are live. */
   _emitRequestCount = 0;
 
-  /** m_emitCB */
-  _emitCB = null;
+  /**
+   * m_emitCB (Tr2GpuParticleSystem.h:241), held by value and created with the
+   * system; invalid until FillAndSetConstants creates it at the size it needs
+   * (Tr2RenderUtils.cpp:106-110, called at Tr2GpuParticleSystem.cpp:589).
+   */
+  @type.rawStruct("Tr2ConstantBufferAL")
+  _emitCB = new Tr2ConstantBufferAL();
 
-  /** m_updateCB */
-  _updateCB = null;
+  /** m_updateCB (h:243), by value; filled at cpp:403 and cpp:451. */
+  @type.rawStruct("Tr2ConstantBufferAL")
+  _updateCB = new Tr2ConstantBufferAL();
 
-  /** m_sortCB */
-  _sortCB = null;
+  /** m_sortCB (h:245), by value; filled at cpp:671. */
+  @type.rawStruct("Tr2ConstantBufferAL")
+  _sortCB = new Tr2ConstantBufferAL();
 
   /** m_liveTime: time until the last particle in the system dies. */
   _liveTime = 0;
@@ -418,9 +426,10 @@ export class Tr2GpuParticleSystem
   @meta.implemented
   ReleaseResources(storage)
   {
-    if (this._emitCB && (storage & this._emitCB.GetMemoryClass())) this._emitCB = null;
-    if (this._updateCB && (storage & this._updateCB.GetMemoryClass())) this._updateCB = null;
-    if (this._sortCB && (storage & this._sortCB.GetMemoryClass())) this._sortCB = null;
+    // m_xCB = Tr2ConstantBufferAL() (cpp:182-192).
+    if (storage & this._emitCB.GetMemoryClass()) this._emitCB.Destroy();
+    if (storage & this._updateCB.GetMemoryClass()) this._updateCB.Destroy();
+    if (storage & this._sortCB.GetMemoryClass()) this._sortCB.Destroy();
     if (storage & TriStorageFlags.TRISTORAGE_MANAGEDMEMORY) this.Clear();
   }
 
@@ -616,7 +625,6 @@ export class Tr2GpuParticleSystem
     renderContext.ClearUav(this._counters.GetGpuBuffer(0), words4_0);
 
     words4_0[0] = this._particleData.GetCount();
-    this._updateCB ??= renderContext.CreateConstantBuffer();
     Tr2RenderUtils.fillAndSetConstants(this._updateCB, words4_0, 16, COMPUTE_MASK, PER_OBJECT_VS, renderContext);
     return Tr2Renderer.runComputeShader(this.clear, 1, 1, 1, renderContext);
   }
@@ -657,7 +665,6 @@ export class Tr2GpuParticleSystem
       for (let i = 0; i < 4; i++) data.setFloat32(64 + plane * 16 + i * 4, vec4_0[i], true);
     }
 
-    this._updateCB ??= renderContext.CreateConstantBuffer();
     Tr2RenderUtils.fillAndSetConstants(this._updateCB, data, UPDATE_CB_SIZE, COMPUTE_MASK, PER_OBJECT_VS, renderContext);
     Tr2Renderer.runComputeShader(this.update, "ClearCounters", 1, 1, 1, renderContext);
     Tr2Renderer.runComputeShader(this.update, groupX, groupY, groupZ, renderContext);
@@ -793,7 +800,6 @@ export class Tr2GpuParticleSystem
         data.set(this._emitRequests[i + j].emitterBytes, EMITTER_CB_PREFIX_SIZE + j * EMITTER_GPU_SIZE);
       }
 
-      this._emitCB ??= renderContext.CreateConstantBuffer();
       Tr2RenderUtils.fillAndSetConstants(this._emitCB, data, EMITTER_CB_PREFIX_SIZE + count * EMITTER_GPU_SIZE, COMPUTE_MASK, PER_OBJECT_VS, renderContext);
       Tr2Renderer.runComputeShader(this.emit, count, 1, 1, renderContext);
     }
@@ -876,7 +882,6 @@ export class Tr2GpuParticleSystem
       // Carbon leaves it unset (Tr2GpuParticleSystem.cpp:655-669).
       words4_0[3] = 0;
 
-      this._sortCB ??= renderContext.CreateConstantBuffer();
       Tr2RenderUtils.fillAndSetConstants(this._sortCB, words4_0, 16, COMPUTE_MASK, PER_OBJECT_VS, renderContext);
       Tr2Renderer.runComputeShader(this.sortStep, numThreadGroups, 1, 1, renderContext);
     }

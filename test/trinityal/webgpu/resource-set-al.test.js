@@ -101,7 +101,7 @@ test("Create resolves every non-uniform slot against the program, by the stage t
 
   assert.deepEqual([ ...entries.keys() ], [ "0:1", "0:2", "0:3" ], "the uniform slot is not the set's");
   assert.deepEqual(entries.get("0:1"), { kind: "view", dimension: "cube", colorSpace: 1, sampleType: "float" }, "the view receives the layout's dimension, colour space and filtering requirement");
-  assert.equal(entries.get("0:2"), sampler.GetSampler());
+  assert.equal(entries.get("0:2"), sampler.TrinityALImpl_GetObject().GetSampler());
   assert.equal(entries.get("0:3").buffer.id, "bones");
   assert.equal(created.textures, 0, "nothing needed a dummy");
   assert.equal(set.GetProgram(), program);

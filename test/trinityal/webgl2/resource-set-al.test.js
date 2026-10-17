@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { Tr2ResourceSetALWebgl2, Tr2ShaderALWebgl2, Tr2ShaderProgramALWebgl2 } from "../../../npm/dist/trinityal/webgl2/index.js";
-import { ALResult, Tr2RegisterMapAL, Tr2ResourceSetDescriptionAL } from "../../../npm/dist/trinityal/index.js";
+import { ALResult, Tr2RegisterMapAL, Tr2ResourceSetDescriptionAL, Tr2SamplerStateAL } from "../../../npm/dist/trinityal/index.js";
 import { ShaderType, Tr2ColorSpace } from "../../../npm/dist/global/consts/renderContext/index.js";
 import { writeGlslBackendBlock } from "../../../npm/dist/resource/formats/webgl/core/glslBackendBlock.js";
 import { FakeRenderContext, FakeWebgl2 } from "./fakeWebgl2.js";
@@ -79,8 +79,12 @@ test("each texture unit gets its register's resource and its paired sampler", ()
     const linked = program(gl);
     const texture = StubTarget();
     const buffer = StubBuffer();
-    const first = { kind: "sampler s3" };
-    const second = { kind: "sampler s0" };
+    // Tr2SamplerStateAL values sharing stand-in implementations; the set
+    // reads each one's implementation (Tr2ResourceSetALDx11.cpp:78).
+    const first = new Tr2SamplerStateAL();
+    first._sampler = { kind: "sampler s3", IsValid: () => true };
+    const second = new Tr2SamplerStateAL();
+    second._sampler = { kind: "sampler s0", IsValid: () => true };
 
     const description = new Tr2ResourceSetDescriptionAL({ program: linked });
     description.SetSrv__TextureAL(ShaderType.PIXEL_SHADER, 0, texture, Tr2ColorSpace.COLOR_SPACE_SRGB);
@@ -94,8 +98,8 @@ test("each texture unit gets its register's resource and its paired sampler", ()
     assert.equal(set.GetUnits()[0].resource.Equals(texture), true);
     assert.equal(set.GetUnits()[1].resource.Equals(buffer), true);
     assert.deepEqual(set.GetUnits().map(({ resource, ...unit }) => unit), [
-        { unit: 0, colorSpace: Tr2ColorSpace.COLOR_SPACE_SRGB, isBuffer: false, sampler: first, samplerConflict: false },
-        { unit: 1, colorSpace: 0, isBuffer: true, sampler: second, samplerConflict: true }
+        { unit: 0, colorSpace: Tr2ColorSpace.COLOR_SPACE_SRGB, isBuffer: false, sampler: first.TrinityALImpl_GetObject(), samplerConflict: false },
+        { unit: 1, colorSpace: 0, isBuffer: true, sampler: second.TrinityALImpl_GetObject(), samplerConflict: true }
     ]);
 });
 

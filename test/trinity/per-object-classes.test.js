@@ -96,7 +96,7 @@ test("setPerObjectDataToDevice uploads each payload at its own register", () =>
     id,
     IsValid: () => false,
     GetSize: () => 0,
-    Create()
+    Create__Size()
     {
       return 0;
     },
@@ -223,7 +223,7 @@ test("the instance upload binds exactly what the static does for a plain record"
     id,
     IsValid: () => false,
     GetSize: () => 0,
-    Create: () => 0,
+    Create__Size: () => 0,
     Lock: () => ({ result: 0, data: new Uint8Array(256) }),
     Unlock: () => 0
   });

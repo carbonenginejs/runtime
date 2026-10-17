@@ -451,10 +451,11 @@ test("the frame number counts submitted frames and recording is one ahead", asyn
 test("SetConstants binds per stage and register, and rejects what Carbon rejects", () =>
 {
   const al = ready();
-  const buffer = { id: "constants" };
+  const buffer = al.CreateConstantBuffer(16);
 
+  // The bound table holds the implementation, as Metal's work queue does.
   assert.equal(al.SetConstants(buffer, 1, 3), ALResult.S_OK);
-  assert.equal(al.GetConstants(1, 3), buffer);
+  assert.equal(al.GetConstants(1, 3), buffer.TrinityALImpl_GetObject());
 
   // A different stage at the same register is a different slot.
   assert.equal(al.GetConstants(0, 3), null);
@@ -610,7 +611,8 @@ test("Destroy drops every piece of bound state", () =>
 {
   const al = ready();
 
-  al.SetConstants({ id: "cb" }, 1, 0);
+  al.SetConstants(al.CreateConstantBuffer(16), 1, 0);
+  assert.notEqual(al.GetConstants(1, 0), null);
   al.SetRenderState(7, 1);
   al.SetReadOnlyDepth(true);
 

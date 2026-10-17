@@ -41,7 +41,7 @@ import { Tr2RenderUtils } from "../Tr2RenderUtils.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
 import { Tr2Effect } from "../../shader/Tr2Effect.js";
-import { Succeeded, Tr2ConstantUsageAL } from "#trinityal";
+import { Succeeded, Tr2ConstantBufferAL, Tr2ConstantUsageAL } from "#trinityal";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
 // Tr2LightManager.cpp:30-48 - copied verbatim; the buffer sizes are the ABI
@@ -758,8 +758,8 @@ export class Tr2LightManager
   @type.rootRef("Tr2GpuBuffer")
   _indexBufferCounter = new Tr2GpuBuffer();
 
-  /** m_perFrameData (Tr2ConstantBufferAL): PerFrameData for the dispatch. */
-  _perFrameData = null;
+  /** m_perFrameData (Tr2ConstantBufferAL, Tr2LightManager.h:188): PerFrameData for the dispatch, by value. */
+  _perFrameData = new Tr2ConstantBufferAL();
 
   /** The PerFrameData record filled each dispatch, and its float and uint views. */
   _perFrameRecord = new ArrayBuffer(PER_FRAME_WORDS * 4);
@@ -889,7 +889,6 @@ export class Tr2LightManager
     this._indexBuffer.SetName("Light indices");
     this._indexBufferCounter.Create(1, PixelFormat.PIXEL_FORMAT_R32_SINT, Tr2GpuBuffer.CreationFlags.GPU_WRITABLE, renderContext);
     this.ClearLightIndices(renderContext);
-    this._perFrameData = renderContext.CreateConstantBuffer();
     this._perFrameData.Create(this._perFrameRecord.byteLength, Tr2ConstantUsageAL.ONE_SHOT, null, renderContext);
 
     this._effect.SetParameter__GpuBuffer("LightBuffer", this._lightBuffer);
@@ -909,7 +908,8 @@ export class Tr2LightManager
   @meta.implemented
   ReleaseResources(storage)
   {
-    if (this._perFrameData && (storage & this._perFrameData.GetMemoryClass())) this._perFrameData = null;
+    // m_perFrameData = Tr2ConstantBufferAL() (cpp:645).
+    if (storage & this._perFrameData.GetMemoryClass()) this._perFrameData.Destroy();
   }
 
   /**
@@ -1024,8 +1024,7 @@ export class Tr2LightManager
     try
     {
       // The per-frame constants are released with their memory class
-      // (ReleaseResources); Carbon's empty buffer is recreated by the fill.
-      this._perFrameData ??= renderContext.CreateConstantBuffer();
+      // (ReleaseResources); the fill recreates them (cpp:425).
       if (!Tr2RenderUtils.fillAndSetConstants(this._perFrameData, words, this._perFrameRecord.byteLength, 1 << ShaderType.COMPUTE_SHADER, PER_FRAME_PS, renderContext))
       {
         return false;

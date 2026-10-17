@@ -13,7 +13,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
-import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
+import { Tr2ConstantBufferAL, Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { CjsWebgpuRenderContextAL } from "../../npm/dist/trinityal/webgpu/internal.js";
 import { Tr2RenderContextALWebgl2 } from "../../npm/dist/trinityal/webgl2/index.js";
 import { FakeWebgl2 } from "./webgl2/fakeWebgl2.js";
@@ -30,7 +30,7 @@ const VERBS = [
   [ "SetVertexLayout", null ],
   [ "SetShaderProgram", null ],
   [ "SetResourceSet", null ],
-  [ "SetConstants", { GetUsage: () => 0, GetSize: () => 0, GetMirror: () => new Uint8Array(0) }, 0, 0 ],
+  [ "SetConstants", new Tr2ConstantBufferAL(), 0, 0 ],
   [ "SetRenderState", 0, 0 ],
   [ "SetRenderStates", null ],
   [ "SetRenderTarget", 0, null ],

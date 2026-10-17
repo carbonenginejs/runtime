@@ -22,7 +22,7 @@ import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { vec4 } from "../../npm/dist/global/math/vec4.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import * as ResourceShader from "../../npm/dist/resource/shader/index.js";
-import { Tr2ConstantBufferALStub, Tr2RegisterMapAL, Tr2ResourceSetALStub, Tr2ResourceSetDescriptionAL, Tr2SamplerStateALStub } from "../../npm/dist/trinityal/index.js";
+import { Tr2ConstantBufferAL, Tr2RegisterMapAL, Tr2RenderContextALStub, Tr2ResourceSetALStub, Tr2ResourceSetDescriptionAL, Tr2SamplerStateALStub } from "../../npm/dist/trinityal/index.js";
 import { ResourceFlags } from "../../npm/dist/trinity/shader/index.js";
 import { Tr2EffectStateManager } from "../../npm/dist/trinity/shader/index.js";
 import { Tr2ColorSpace } from "../../npm/dist/global/consts/renderContext/index.js";
@@ -621,10 +621,13 @@ test("promoted variable, transform, and shader buffer classes expose graph behav
   buffer.SetData(new Uint8Array([1, 2, 3, 4]));
   assertEquals(buffer.size, 4);
   assertEquals(buffer.data[2], 3);
-  const constants = new Tr2ConstantBufferALStub();
+  const constants = new Tr2ConstantBufferAL();
+  const al = new Tr2RenderContextALStub();
+  al.CreateDevice();
   const bindings = [];
   const context = {
     IsValid: () => true,
+    GetRenderContextAL: () => al,
     GetConstantBuffer: () => constants,
     SetConstants: (value, stage, register) => bindings.push([value, stage, register])
   };
@@ -1031,7 +1034,8 @@ test("ClearResources drops resources and keeps samplers, as Carbon's does", () =
   const desc = new Tr2ResourceSetDescriptionAL({ registers: new Tr2RegisterMapAL({ stages: [0, 1], signatures: [ { registers: [{registerType:36, registerIndex:3}, {registerType:1, registerIndex:2}] }, { registers: [{registerType:64, registerIndex:4}] } ] }) });
   const texture = { id: "texture" };
   const buffer = { id: "buffer" };
-  const sampler = { id: "sampler" };
+  const al = new Tr2RenderContextALStub();
+  const sampler = al.CreateSamplerState({ minFilter: 2, magFilter: 2, mipFilter: 2, addressU: 1, addressV: 1, addressW: 1 });
 
   assert(desc.SetSrv__TextureAL(0, 3, texture));
   assert(desc.SetUav__TextureAL(1, 4, buffer));
@@ -1041,7 +1045,8 @@ test("ClearResources drops resources and keeps samplers, as Carbon's does", () =
 
   assertEquals(desc._srv[0].type, 0, "srv cleared");
   assertEquals(desc._uav[0].type, 0, "uav cleared");
-  assertEquals(desc._samplers[0].sampler, sampler, "sampler kept");
+  assert(desc._samplers[0].sampler.Equals(sampler), "sampler kept");
+  assertEquals(desc._samplers[0].type, 1, "and still a sampler record");
 });
 
 test("ApplyMaterialDataForPass binds only the stages the technique declares", () =>
@@ -1112,6 +1117,8 @@ test("ApplyMaterialDataForPass binds only the stages the technique declares", ()
   {
     pass.stageInput[stage].constantBuffer = {
       id: `cb${stage}`,
+      IsValid: () => true,
+      GetSize: () => 16,
       Lock: () => (locked.push(stage), { result: 0, data: new Uint8Array(16) }),
       Unlock: () => 0
     };
@@ -1201,9 +1208,9 @@ test("a material seeds its pass description with sampler states on first apply, 
   const diffuse = description._samplers[0].sampler;
   const pattern = description._samplers[1].sampler;
 
-  assert(diffuse instanceof Tr2SamplerStateALStub, "the applying context's kind of sampler state");
-  assertEquals(diffuse.GetDescription().addressU, 1);
-  assertEquals(pattern, diffuse, "equal descriptions are ONE state - Carbon's factory");
+  assert(diffuse.TrinityALImpl_GetObject() instanceof Tr2SamplerStateALStub, "the applying context's kind of sampler state");
+  assertEquals(diffuse.TrinityALImpl_GetObject().GetDescription().addressU, 1);
+  assert(pattern.Equals(diffuse), "equal descriptions are ONE state - Carbon's factory");
 
   // A pattern layer switched to clamp-to-border by name, as EveSOF does. The
   // rebuild makes fresh pass parameters, seeded again on the next apply.
@@ -1213,15 +1220,15 @@ test("a material seeds its pass description with sampler states on first apply, 
   const after = effect.parametersForPasses[0].passes[0].resourceSetDesc;
   const overridden = after._samplers[1].sampler;
 
-  assertEquals(overridden.GetDescription().addressU, 4);
-  assertEquals(overridden.GetDescription().addressV, 4);
-  assertEquals(after._samplers[0].sampler, diffuse, "the other register keeps the authored state, from the same factory");
+  assertEquals(overridden.TrinityALImpl_GetObject().GetDescription().addressU, 4);
+  assertEquals(overridden.TrinityALImpl_GetObject().GetDescription().addressV, 4);
+  assert(after._samplers[0].sampler.Equals(diffuse), "the other register keeps the authored state, from the same factory");
   assertEquals(effect.parametersForPasses[0].passes[0].compatibleWithGdr, false, "an override that changed the description leaves the GDR path");
 
   // A non-dynamic sampler's name is out of an override's reach, as in Carbon.
   effect.AddSamplerOverride("DiffuseSampler", 4, 4);
   effect.ApplyMaterialDataForPass(0, 0, context);
-  assertEquals(effect.parametersForPasses[0].passes[0].resourceSetDesc._samplers[0].sampler, diffuse);
+  assert(effect.parametersForPasses[0].passes[0].resourceSetDesc._samplers[0].sampler.Equals(diffuse));
 });
 
 

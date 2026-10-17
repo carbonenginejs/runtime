@@ -15,7 +15,7 @@ import { meta, type, blue } from "#schema";
 import { BloomDebugMode, Quality } from "../generated/postProcess/enums.js";
 import { be } from "#blue";
 import { num } from "#math/num";
-import { Tr2ColorAttachment, Tr2BufferDescriptionAL, Tr2SubresourceData } from "#trinityal";
+import { Tr2ColorAttachment, Tr2BufferDescriptionAL, Tr2ConstantBufferAL, Tr2SubresourceData } from "#trinityal";
 import {
   INVALID_UPSCALING_CONTEXT_ID,
   PixelFormat,
@@ -192,8 +192,8 @@ export class Tr2PostProcessRenderer
   /** m_blurEffects: the horizontal/vertical Blur.fx pair per BlurContext hash (cpp:897-931). */
   _blurEffects = new Map();
 
-  /** m_bloomConstantBuffer (h:166): created empty on first use, sized by FillAndSetConstants. */
-  _bloomConstantBuffer = null;
+  /** m_bloomConstantBuffer (h:166), by value: invalid until FillAndSetConstants sizes it. */
+  _bloomConstantBuffer = new Tr2ConstantBufferAL();
 
   /** Final owner teardown releases effect member values and the bloom constants. */
   Destroy()
@@ -202,8 +202,7 @@ export class Tr2PostProcessRenderer
     for (const pair of this._blurEffects.values()) for (const effect of pair) effects.add(effect);
     for (const effect of effects) if (effect) effect.Destroy();
     this._blurEffects.clear();
-    if (this._bloomConstantBuffer) this._bloomConstantBuffer.Destroy();
-    this._bloomConstantBuffer = null;
+    this._bloomConstantBuffer.Destroy();
   }
 
   _taaFrameCounter = 0;
@@ -876,7 +875,7 @@ export class Tr2PostProcessRenderer
         effect.SetParameter__BufferAL("Exposure", exposure.Get());
         try
         {
-          Tr2RenderUtils.fillAndSetConstants(this._BloomConstantBuffer(renderContext), downsampleInfo, downsampleInfo.byteLength, pixelShaderMask, perObjectRegister, renderContext);
+          Tr2RenderUtils.fillAndSetConstants(this._bloomConstantBuffer, downsampleInfo, downsampleInfo.byteLength, pixelShaderMask, perObjectRegister, renderContext);
           Tr2PostProcessRenderer.drawInto(rt, Tr2LoadAction.DONT_CARE, effect, renderContext, renderer);
         }
         finally
@@ -906,7 +905,7 @@ export class Tr2PostProcessRenderer
         this._upsamplerHorizontal.SetParameter__TextureAL("BlitCurrent", currentMip);
         const gaussianOutput = GaussianData.calculateGaussianPassParameters(radiusInPixels, directionalWeight[0], invTexelSizeX, Tr2PostProcessRenderer._gaussianWhite, Tr2PostProcessRenderer._gaussianHorizontal, Tr2PostProcessRenderer._gaussianScratch);
         GaussianData.pack(gaussianOutput, gaussianBytes);
-        Tr2RenderUtils.fillAndSetConstants(this._BloomConstantBuffer(renderContext), gaussianBytes, gaussianBytes.byteLength, pixelShaderMask, perObjectRegister, renderContext);
+        Tr2RenderUtils.fillAndSetConstants(this._bloomConstantBuffer, gaussianBytes, gaussianBytes.byteLength, pixelShaderMask, perObjectRegister, renderContext);
         Tr2PostProcessRenderer.drawInto(currentUpsampled, Tr2LoadAction.DONT_CARE, this._upsamplerHorizontal, renderContext, renderer);
       }
 
@@ -928,7 +927,7 @@ export class Tr2PostProcessRenderer
         const gaussianTint = vec3.set(Tr2PostProcessRenderer._gaussianTint3, tint[0], tint[1], tint[2]);
         const gaussianOutput = GaussianData.calculateGaussianPassParameters(radiusInPixels, directionalWeight[1], invTexelSizeY, gaussianTint, Tr2PostProcessRenderer._gaussianVertical, Tr2PostProcessRenderer._gaussianScratch);
         GaussianData.pack(gaussianOutput, gaussianBytes);
-        Tr2RenderUtils.fillAndSetConstants(this._BloomConstantBuffer(renderContext), gaussianBytes, gaussianBytes.byteLength, pixelShaderMask, perObjectRegister, renderContext);
+        Tr2RenderUtils.fillAndSetConstants(this._bloomConstantBuffer, gaussianBytes, gaussianBytes.byteLength, pixelShaderMask, perObjectRegister, renderContext);
 
         // Into the downsample texture, which is not read again (cpp:1100).
         Tr2PostProcessRenderer.drawInto(currentMip, Tr2LoadAction.DONT_CARE, this._upsamplerVertical, renderContext, renderer);
@@ -1466,19 +1465,6 @@ export class Tr2PostProcessRenderer
     }
   }
 
-  /**
-   * m_bloomConstantBuffer, created empty on first use. Carbon default-constructs
-   * the member (cpp:565) and FillAndSetConstants sizes it; our constant
-   * buffers come from the render context, which the constructor has not got.
-   *
-   * @param {Tr2RenderContext} renderContext The context to create against.
-   * @returns {object} A `Tr2ConstantBufferAL`.
-   */
-  _BloomConstantBuffer(renderContext)
-  {
-    this._bloomConstantBuffer ??= renderContext.CreateConstantBuffer();
-    return this._bloomConstantBuffer;
-  }
 
   /** g_newBloom ("newBloom", cpp:23-24): the bloom a new renderer starts with. */
   @meta.setting("newBloom", { applies: meta.setting.CREATE })

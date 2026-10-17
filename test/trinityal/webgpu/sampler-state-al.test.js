@@ -82,8 +82,11 @@ test("the context's factory dedupes on the description, whichever spelling it ar
   const second = al.CreateSamplerState(fromOverride);
   const third = al.CreateSamplerState(authored({ addressU: 4 }));
 
-  assert.equal(first, second, "one state for equal descriptions - identity is the comparison");
-  assert.notEqual(first, third);
+  // Carbon's factory hands every handle a share of one implementation
+  // (Tr2ObjectFactory.h:14-33); the handles compare by it (operator==).
+  assert.ok(first.Equals(second), "one state for equal descriptions - identity is the comparison");
+  assert.equal(first.TrinityALImpl_GetObject(), second.TrinityALImpl_GetObject());
+  assert.ok(!first.Equals(third));
   assert.equal(samplers.length, 2, "two distinct descriptions, two device samplers");
   assert.equal(samplers[0].lodMinClamp, 2);
   assert.equal(samplers[0].lodMaxClamp, 32, "Carbon's FLT_MAX lands on WebGPU's upper clamp");

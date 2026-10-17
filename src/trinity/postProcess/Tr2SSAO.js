@@ -6,7 +6,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 import { meta, type, blue } from "#schema";
 import { mat4 } from "#math/mat4";
 import { PixelFormat, ShaderType, Tr2GpuUsage } from "#consts/render-context";
-import { Failed, Tr2BitmapDimensions, Tr2ConstantUsageAL } from "#trinityal";
+import { Failed, Tr2BitmapDimensions, Tr2ConstantBufferAL } from "#trinityal";
 import { ResourceRequirement } from "#resource";
 import { SSAOQuality } from "../generated/trinityCore/enums.js";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
@@ -172,7 +172,7 @@ export class Tr2SSAO
   _cortaoLookupTable = null;
 
   /** m_cortaoConstantBuffer: CortaoPerObjectData. */
-  _cortaoConstantBuffer = null;
+  _cortaoConstantBuffer = new Tr2ConstantBufferAL();
 
   /**
    * m_cortaoRandSeeds. Carbon never initialises them (`Tr2SSAO.h:113`), so
@@ -267,10 +267,9 @@ export class Tr2SSAO
 
     try
     {
-      if (!this._cortaoConstantBuffer?.IsValid())
+      if (!this._cortaoConstantBuffer.IsValid())
       {
-        this._cortaoConstantBuffer = renderContext.CreateConstantBuffer();
-        if (Failed(this._cortaoConstantBuffer.Create(CORTAO_PER_OBJECT_DATA_SIZE, Tr2ConstantUsageAL.REUSABLE, null, renderContext)))
+        if (Failed(this._cortaoConstantBuffer.Create__Size(CORTAO_PER_OBJECT_DATA_SIZE, renderContext)))
         {
           return new GpuResourceHandle();
         }

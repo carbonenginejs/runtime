@@ -23,7 +23,7 @@ test("dynamic parameters land in the constant mirror as whole floats", () =>
 
   const uploaded = new Uint8Array(32);
   const input = {
-    constantBuffer: { Lock: () => ({ result: 0, data: uploaded }), Unlock: () => 0 },
+    constantBuffer: { GetSize: () => uploaded.byteLength, Lock: () => ({ result: 0, data: uploaded }), Unlock: () => 0 },
     constantBufferDirty: true,
     constantMirror: mirror,
     shaderParameters: [

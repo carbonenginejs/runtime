@@ -1,16 +1,18 @@
 import { Tr2BufferAL } from "../Tr2BufferAL/index.js";
 import { Tr2TextureAL } from "../Tr2TextureAL/index.js";
+import { Tr2SamplerStateAL } from "../Tr2SamplerStateAL/index.js";
 // Source: trinity/trinityal/include/Tr2ResourceSetAL.h:44-127
 // Source: trinity/trinityal/src/Tr2ResourceSetAL.cpp:152-543
 import { CjsSchema, meta, blue, type } from "#schema";
 import { MAX_RESOURCES_IN_STAGE, Tr2RegisterMapAL } from "./Tr2RegisterMapAL.js";
 
-// Hash identities for the three distinct native invalid implementations:
-// src/Tr2BufferAL.cpp:49, src/Tr2TextureAL.cpp:16, src/Tr2SamplerStateAL.cpp:10.
-// Null remains the existing JS AL's invalid handle representation in records.
+// Hash identities for the native invalid buffer and texture implementations
+// (src/Tr2BufferAL.cpp:49, src/Tr2TextureAL.cpp:16): those JS handles report
+// null when uncreated. A sampler record holds a Tr2SamplerStateAL by value
+// (Tr2ResourceSetAL.h:116), whose uncreated implementation is its own shared
+// null sampler (src/Tr2SamplerStateAL.cpp:10), so it needs no stand-in.
 const nullBuffer = {};
 const nullTexture = {};
-const nullSampler = {};
 const identities = new WeakMap();
 let nextIdentity = 1;
 
@@ -48,11 +50,11 @@ export class Tr2ResourceSetDescriptionAL
       if (count === 0) continue;
       // Backend references already represent implementation identities here.
       // Copies share those identities, never mutable description records.
-      this[field] = copy ? copy[field].map(record => field === "_samplers" ? { ...record } : ({ ...record,
+      this[field] = copy ? copy[field].map(record => field === "_samplers" ? { ...record, sampler: new Tr2SamplerStateAL({ copy: record.sampler }) } : ({ ...record,
         buffer: record.buffer ? new Tr2BufferAL({ copy: record.buffer }) : null,
         texture: record.texture ? new Tr2TextureAL({ copy: record.texture }) : null }))
         : Array.from({ length: count }, () => field === "_samplers"
-          ? { type: 0, sampler: null }
+          ? { type: 0, sampler: new Tr2SamplerStateAL() }
           : { type: 0, texture: null, buffer: null, colorSpace: 0 });
     }
   }
@@ -164,10 +166,17 @@ export class Tr2ResourceSetDescriptionAL
   }
 
   /**
-   * Assigns the mapped sampler and reports whether its type or identity changed.
+   * Carbon's SetSampler( stage, registerIndex, const Tr2SamplerStateAL& sampler )
+   * (Tr2ResourceSetAL.h:64, Tr2ResourceSetAL.cpp:413-430): assigns the mapped
+   * sampler by value and reports whether its type or implementation changed.
    *
    * Adapted: Out-of-bounds JS indexes return false instead of native undefined memory
-   * access.
+   * access. The record keeps its own copy of the handle, as the C++ assignment does.
+   *
+   * @param {number} stage A `ShaderType`.
+   * @param {number} registerIndex The sampler register.
+   * @param {Tr2SamplerStateAL} sampler The sampler state.
+   * @returns {boolean} Whether the record changed.
    */
   @meta.adapted
   SetSampler(stage, registerIndex, sampler)
@@ -175,9 +184,9 @@ export class Tr2ResourceSetDescriptionAL
     const index = this._registerMap.samplers[stage]?.[registerIndex];
     if (this._registerMap.samplerCount === 0 || index === undefined || index >= this._registerMap.samplerCount) return false;
     const current = this._samplers[index];
-    if (current.type === 1 && current.sampler === sampler) return false;
+    if (current.type === 1 && current.sampler.Equals(sampler)) return false;
+    current.sampler = new Tr2SamplerStateAL({ copy: sampler });
     current.type = 1;
-    current.sampler = sampler;
     return true;
   }
 
@@ -285,7 +294,7 @@ export class Tr2ResourceSetDescriptionAL
       {
         if (record.type === 0) continue;
         const heap = record.type === (sampler ? 2 : 3);
-        const object = sampler ? record.sampler ?? nullSampler
+        const object = sampler ? record.sampler.TrinityALImpl_GetObject()
           : record.type === 1 ? record.buffer?.TrinityALImpl_GetObject() ?? nullBuffer : record.texture?.TrinityALImpl_GetObject() ?? nullTexture;
         let identity = heap ? record.type : 0;
         if (!heap)

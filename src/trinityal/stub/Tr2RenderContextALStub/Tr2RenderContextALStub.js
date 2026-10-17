@@ -1,5 +1,8 @@
 import { Tr2BufferAL } from "../../Tr2BufferAL/index.js";
 import { Tr2TextureAL } from "../../Tr2TextureAL/index.js";
+import { Tr2ConstantBufferAL } from "../../Tr2ConstantBufferAL/index.js";
+import { Tr2SamplerStateAL } from "../../Tr2SamplerStateAL/index.js";
+import { Tr2StubPlatformCaps } from "../Tr2CapsALStub.js";
 // Source: trinity/trinityal/stub/Tr2RenderContextStub.cpp
 // Source: trinity/trinityal/stub/Tr2RenderContextStub.h
 //
@@ -242,26 +245,36 @@ export class Tr2RenderContextALStub
   }
 
   /**
-   * Creates a constant buffer, this backend's kind of `Tr2ConstantBufferAL`.
+   * Creates a constant buffer; with `implementationOnly`, this backend's
+   * implementation and its result, for the `Tr2ConstantBufferAL` handle to own.
    *
-   * WITH NO SIZE, AN EMPTY ONE. Carbon default-constructs `Tr2ConstantBufferAL`
-   * as a member and calls `Create` later, when the size is known
-   * (`Tr2RenderUtils.h:35-67` `FillAndSetConstants` creates on first fill). A
-   * Trinity class here cannot name the backend's class, so it asks the context
-   * for the empty object and fills it exactly as Carbon does.
+   * The handle's `Create` asks here because this is where Carbon's platform
+   * include resolves (`Tr2ConstantBufferAL.cpp:6`), so the handle's size
+   * ceiling (`Tr2ConstantBufferAL.cpp:30-34`) is applied here against this
+   * backend's `TRINITY_PLATFORM_MAX_CONSTANT_BUFFER_SIZE` (`Tr2CapsALStub.h:18`).
+   * Without `implementationOnly` it returns a created handle - an empty one for
+   * no size - for probes and tests; Trinity holds its handles by value.
    *
-   * @param {number} [size] Bytes; zero returns an empty, invalid buffer.
+   * @param {number} [size] Bytes; zero returns an empty, invalid handle.
    * @param {number} [usage] A `Tr2ConstantUsageAL`.
    * @param {ArrayBufferView|null} [initialData] Initial contents, if any.
-   * @returns {object|null} The buffer, or null when a sized Create refused.
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null when a sized Create refused.
    */
-  CreateConstantBuffer(size = 0, usage = Tr2ConstantUsageAL.REUSABLE, initialData = null)
+  CreateConstantBuffer(size = 0, usage = Tr2ConstantUsageAL.REUSABLE, initialData = null, implementationOnly = false)
   {
-    const buffer = new Tr2ConstantBufferALStub();
+    if (implementationOnly)
+    {
+      if (size > Tr2StubPlatformCaps.MAX_CONSTANT_BUFFER_SIZE) return { result: ALResult.E_INVALIDARG, implementation: null };
 
-    if (size > 0 && Failed(buffer.Create(size, usage, initialData, this))) return null;
+      const implementation = new Tr2ConstantBufferALStub();
+      const result = implementation.Create(size, usage, initialData, this);
+      if (Failed(result)) implementation.Destroy();
+      return { result, implementation };
+    }
 
-    return buffer;
+    const value = new Tr2ConstantBufferAL();
+    return size > 0 && Failed(value.Create(size, usage, initialData, this)) ? null : value;
   }
 
   /**
@@ -337,33 +350,45 @@ export class Tr2RenderContextALStub
   _samplerStates = new Map();
 
   /**
-   * The sampler state for a description, created once per distinct description.
-   *
-   * Carbon's `Tr2SamplerStateAL::Create` is a factory lookup on the primary
-   * context (`Tr2SamplerStateAL.cpp:25-28`); the factory is in the SHARED
+   * Carbon's `Tr2ObjectFactory::Get` on `m_samplerStateFactory`
+   * (`Tr2ObjectFactory.h:14-33`, reached from `Tr2SamplerStateAL.cpp:25-28`):
+   * one implementation per distinct description, an invalid cached one erased
+   * and recreated, a refused create not cached. The factory is in the SHARED
    * facade, so the stub dedupes too, and a headless resource set compares
    * states by identity exactly as a device one does.
    *
+   * With `implementationOnly` it returns `{ result, implementation }` for the
+   * `Tr2SamplerStateAL` handle; otherwise a new handle sharing it, or null.
+   *
+   * Adapted: `SamplerDescriptionKey` stands in for Carbon's hash of
+   * `Tr2SamplerDescription`; a missing description, which C++ cannot pass, is
+   * refused with `E_INVALIDARG`.
+   *
    * @param {object} description A `Tr2SamplerDescription`.
-   * @returns {object|null} The shared state, or null for no description.
+   * @param {boolean} [implementationOnly] Whether the handle is asking.
+   * @returns {object|null} `{ result, implementation }`, a handle, or null.
    */
-  CreateSamplerState(description)
+  CreateSamplerState(description, implementationOnly = false)
   {
-    const key = SamplerDescriptionKey(description);
+    if (!implementationOnly)
+    {
+      const value = new Tr2SamplerStateAL();
+      return Failed(value.Create(description, this)) ? null : value;
+    }
 
-    if (key === null) return null;
+    const key = SamplerDescriptionKey(description);
+    if (key === null) return { result: ALResult.E_INVALIDARG, implementation: null };
 
     const existing = this._samplerStates.get(key);
+    if (existing && existing.IsValid()) return { result: ALResult.S_OK, implementation: existing };
+    if (existing) this._samplerStates.delete(key);
 
-    if (existing) return existing;
+    const implementation = new Tr2SamplerStateALStub();
+    const result = implementation.Create(description, this);
+    if (Failed(result)) return { result, implementation: null };
 
-    const state = new Tr2SamplerStateALStub();
-
-    if (Failed(state.Create(description, this))) return null;
-
-    this._samplerStates.set(key, state);
-
-    return state;
+    this._samplerStates.set(key, implementation);
+    return { result, implementation };
   }
 
   /**

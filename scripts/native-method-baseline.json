@@ -999,6 +999,12 @@
     "AddKey_",
     "Interpolate"
   ],
+  "Tr2ConstantBufferAL": [
+    "Describe",
+    "GetDataPtr",
+    "GetUsage",
+    "SetConstants"
+  ],
   "Tr2ControllerExpression": [
     "CreateParser"
   ],
@@ -1963,6 +1969,10 @@
   "Tr2SSSSS": [
     "SetupScreenSpaceSubSurfaceScattering",
     "UpdateSubSurfaceFrontScatterData"
+  ],
+  "Tr2SamplerStateAL": [
+    "Describe",
+    "GetMetalSamplerState"
   ],
   "Tr2ScalarExprKey": [
     "SetExpression"

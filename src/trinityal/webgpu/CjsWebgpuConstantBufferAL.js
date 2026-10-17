@@ -18,7 +18,7 @@
 //
 // FIELDS ARE PUBLIC AND CARBON-NAMED, for the reason recorded on
 // `CjsWebgpuShaderAL`: Carbon's impl class carries public state.
-import { CjsSchema, blue, type } from "#schema";
+import { CjsSchema, blue, meta, type } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Tr2ConstantUsageAL } from "#trinityal";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -30,6 +30,16 @@ import { RenderContextALOf } from "../renderContextAL.js";
  * Carbon's stub rounds its mirror the same way.
  */
 const ALIGNMENT = 16;
+
+/**
+ * How many constant-buffer registers a stage has.
+ *
+ * Carbon's Metal backend fixes this at 20 (`METAL_CONST_BUFFER_COUNT`,
+ * `MetalWorkQueue.h:39`) and rejects anything past it. Kept at Carbon's number
+ * rather than a WebGPU limit: this bounds the REGISTER INDEX an effect declares,
+ * which the shader compiler already fixed, not the bind-group slot count.
+ */
+export const CONSTANT_BUFFER_REGISTERS = 20;
 
 let nextConstantBufferId = 1;
 
@@ -129,23 +139,29 @@ export class CjsWebgpuConstantBufferAL
    * Binds this buffer at one stage and register.
    *
    * Metal's context delegates to the buffer for this
-   * (`Tr2RenderContextMetal.mm:664-677` → `Tr2ConstantBufferALMetal.mm:79-89`);
+   * (`Tr2RenderContextMetal.mm:664-677` → `Tr2ConstantBufferALMetal.mm:81-92`),
+   * and the buffer records itself on the work queue only when it has storage;
    * the upload itself happens when the draw emits its bindings.
+   *
+   * Adapted: Metal's work queue keeps `m_constantBuffers`; ours is the render
+   * context's `_constantBuffers`, written here as Metal's impl writes its
+   * queue, by friend access.
    *
    * @param {number} shaderType A `ShaderType`.
    * @param {number} constantIndex The constant-buffer register.
    * @param {object} renderContext The render context to bind on.
-   * @returns {number} An `ALResult` value.
+   * @returns {number} `S_OK`.
    */
+  @meta.adapted
   SetConstants(shaderType, constantIndex, renderContext)
   {
-    if (!this.IsValid()) return ALResult.E_INVALIDCALL;
+    if (this.IsValid())
+    {
+      const al = RenderContextALOf(renderContext);
+      al._constantBuffers.set(shaderType * CONSTANT_BUFFER_REGISTERS + constantIndex, this);
+    }
 
-    const al = RenderContextALOf(renderContext);
-
-    if (!al) return ALResult.E_INVALIDARG;
-
-    return al.SetConstants(this, shaderType, constantIndex);
+    return ALResult.S_OK;
   }
 
   /** Whether the buffer has a shadow copy, which `Create` gives it. */

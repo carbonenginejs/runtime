@@ -8,7 +8,7 @@ import { Tr2VertexDefinition } from "../core/vertex/Tr2VertexDefinition/Tr2Verte
 import { Tr2RenderUtils } from "../core/Tr2RenderUtils.js";
 import { PER_OBJECT_VS_GUI } from "../core/Tr2Renderer.js";
 import { g_textureAtlasMan } from "../core/Tr2TextureAtlasMan.js";
-import { Tr2BufferAL, Tr2BufferDescriptionAL, Tr2TextureAL, Failed } from "#trinityal";
+import { Tr2BufferAL, Tr2BufferDescriptionAL, Tr2ConstantBufferAL, Tr2TextureAL, Failed } from "#trinityal";
 import { PixelFormat, RenderState, ShaderType, Topology, Tr2ColorSpace, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Tr2AtlasTexture } from "../core/Tr2AtlasTexture.js";
 import { Tr2Sprite2dD3DVertex } from "./Tr2Sprite2dD3DVertex.js";
@@ -1102,8 +1102,8 @@ export class Tr2Sprite2dScene extends ITr2Scene
   @blue.method
   ReleaseResources(storage)
   {
-    this._uiTransformsCb?.Destroy();
-    this._uiTransformsCb = null;
+    // m_uiTransformsCb = Tr2ConstantBufferAL() (Tr2Sprite2dScene.cpp:1201).
+    this._uiTransformsCb.Destroy();
     this._effect = null;
     // Carbon's m_defaultTexture = nullptr drops the scene's only reference, so
     // the texture's OnShutdown gives its region back to the atlas at once.
@@ -1405,7 +1405,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
   _transformCurrent = 0;
   _transformArray = Array.from({ length: 32 }, () => mat4.create()); // alloc: per-instance transform palette, retained for subsequent draws
   _transposedTransforms = new Float32Array(32 * 16); // alloc: per-instance packed matrix palette, not a vector
-  _uiTransformsCb = null;
+  _uiTransformsCb = new Tr2ConstantBufferAL();
   _effect = null;
   _textureRegisters = [0, 1];
   _defaultTexture = null;
@@ -2115,7 +2115,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
         entry.effect = this._effect;
         entry.texelSize0.set(this._texelSizeValues[0]);
         entry.texelSize1.set(this._texelSizeValues[1]);
-        this._uiTransformsCb ??= context.CreateConstantBuffer();
         entry.uiTransformsCb = this._uiTransformsCb;
         this._captureDisplayList.entries.push(entry);
       }
@@ -2186,7 +2185,6 @@ export class Tr2Sprite2dScene extends ITr2Scene
   @blue.method
   SubmitGeometry(context)
   {
-    this._uiTransformsCb ??= context.CreateConstantBuffer();
     for (let i = 0; i < 32; i++) mat4.transpose(this._transposedTransforms.subarray(i * 16, (i + 1) * 16), this._transformArray[i]);
     Tr2RenderUtils.fillAndSetConstants(this._uiTransformsCb, this._transposedTransforms, this._transposedTransforms.byteLength, 1 << ShaderType.VERTEX_SHADER, PER_OBJECT_VS_GUI, context);
     context.SetTopology(Topology.TOP_TRIANGLES);

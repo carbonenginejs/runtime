@@ -5,6 +5,7 @@ import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { Copier, DictReader } from "../../npm/dist/global/blue/index.js";
 import { GetResources } from "../../npm/dist/global/blue/getResources.js";
 import { Tr2SamplerOverrideData, Tr2SamplerOverride, Tr2Effect } from "../../npm/dist/trinity/index.js";
+import { Tr2SamplerStateAL } from "../../npm/dist/trinityal/index.js";
 
 test("sampler records are plain native structs without query or model behavior", () =>
 {
@@ -41,7 +42,9 @@ test("sampler data retains opaque AL value semantics without resource traversal"
   assert.equal(members[1].type.className, "Tr2SamplerStateAL");
   assert.notEqual(members[1].type.runtimeOnly, true);
   assert.equal(row.registerIndex, 0);
-  assert.equal(row.sampler, null);
+  // Tr2SamplerStateAL sampler (Shader/Tr2Material.h:33), by value and invalid until created.
+  assert.ok(row.sampler instanceof Tr2SamplerStateAL);
+  assert.equal(row.sampler.IsValid(), false);
   row.sampler = { isResource: true };
   assert.deepEqual(GetResources(row), [], "opaque sampler state is not a declared Blue resource edge");
 });

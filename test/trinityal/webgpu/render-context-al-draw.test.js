@@ -481,11 +481,11 @@ test("a program that declares bind groups draws with the bound constant buffer a
   assert.deepEqual([ entries[0].resource.offset, entries[0].resource.size ], [ 0, 64 ]);
   assert.equal(entries[0].resource.buffer.descriptor.usage & 16, 16, "UNIFORM");
   assert.equal(entries[1].resource.id, "diffuse");
-  assert.equal(entries[2].resource, sampler.GetSampler());
+  assert.equal(entries[2].resource, sampler.TrinityALImpl_GetObject().GetSampler());
   assert.equal(log.filter(entry => entry === "setBindGroup:0:1:0").length, 1, "bound once for the encoder, at offset 0");
   assert.equal(log.filter(entry => entry.startsWith("drawIndexed")).length, 2);
   assert.equal(created.writes.length, 1, "locked once, drawn twice: one upload");
-  assert.equal(constants._token.frame, al.GetRecordingFrameNumber(), "the bind consumed the token");
+  assert.equal(constants.TrinityALImpl_GetObject()._token.frame, al.GetRecordingFrameNumber(), "the bind consumed the token");
 
   // THE PER-OBJECT CASE: lock again and draw again in the same frame. The
   // bytes land in a NEW region, the bind group is the same object, and the

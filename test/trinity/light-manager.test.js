@@ -228,14 +228,23 @@ function recordingContext({ width = 33, height = 17 } = {})
       buffers.push(buffer);
       return buffer;
     },
-    CreateConstantBuffer: () => ({
-      IsValid: () => constants.size > 0,
-      GetSize: () => constants.size,
-      Create(size, usage) { constants.size = size; constants.usage = usage; constants.bytes = new Uint8Array(size); return 0; },
-      Lock: () => ({ result: 0, data: constants.bytes }),
-      Unlock: () => 0,
-      GetMemoryClass: () => 1
-    }),
+    // The AL factory the by-value Tr2ConstantBufferAL asks for its
+    // implementation (Tr2ConstantBufferAL.cpp:28-47).
+    CreateConstantBuffer: (size, usage, initialData, implementationOnly) =>
+    {
+      assert.equal(implementationOnly, true, "the by-value handle asks for its implementation");
+      constants.size = size;
+      constants.usage = usage;
+      constants.bytes = new Uint8Array(size);
+      return { result: 0, implementation: {
+        IsValid: () => constants.size > 0,
+        GetSize: () => constants.size,
+        Lock: () => ({ result: 0, data: constants.bytes }),
+        Unlock: () => 0,
+        GetMemoryClass: () => 1,
+        Destroy() {}
+      } };
+    },
     SetConstants: (buffer, stage, register) => log.push([ "constants", stage, register ]),
     ClearUav: (buffer, values) => { log.push([ "clearUav", buffer.GetDesc().count, Array.from(values) ]); return 0; },
     GetEffectStateManager: () => ({ renderTargetWidth: width, renderTargetHeight: height }),
@@ -264,8 +273,12 @@ async function preparedManager(context)
       super.SetParameter__TextureAL(name, texture, uavMipLevel);
     }
   })();
-  const own = [ "CreateBuffer", "CreateConstantBuffer", "ClearUav" ];
+  const own = [ "CreateBuffer", "ClearUav" ];
+  const al = main.GetRenderContextAL();
+  const factory = al.CreateConstantBuffer;
   for (const name of own) main[name] = context[name];
+  // A handle's Create reaches the AL's factory (RenderContextALOf).
+  al.CreateConstantBuffer = context.CreateConstantBuffer;
   try
   {
     assert.equal(manager.OnPrepareResources(), true);
@@ -273,6 +286,7 @@ async function preparedManager(context)
   finally
   {
     for (const name of own) delete main[name];
+    al.CreateConstantBuffer = factory;
   }
   return manager;
 }

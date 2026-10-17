@@ -32,18 +32,20 @@ function effect(name, passes = 1)
 function recordingContext()
 {
   const log = [];
-  const constantBuffer = () =>
+  // The AL factory a by-value Tr2ConstantBufferAL asks for its implementation
+  // when FillAndSetConstants creates it (Tr2ConstantBufferAL.cpp:28-47).
+  const constantBuffer = (size, _usage, _initialData, implementationOnly) =>
   {
-    let size = 0;
-    const bytes = { current: new Uint8Array(0) };
-    return {
+    assert.equal(implementationOnly, true, "the by-value handle asks for its implementation");
+    const bytes = new Uint8Array(size);
+    return { result: 0, implementation: {
       IsValid: () => size > 0,
       GetSize: () => size,
-      Create(bytesWanted) { size = bytesWanted; bytes.current = new Uint8Array(size); return 0; },
-      Lock: () => ({ result: 0, data: bytes.current }),
-      Unlock() { log.push([ "constants", Array.from(new Uint32Array(bytes.current.buffer.slice(0, 16))) ]); return 0; },
-      GetMemoryClass: () => 1
-    };
+      Lock: () => ({ result: 0, data: bytes }),
+      Unlock() { log.push([ "constants", Array.from(new Uint32Array(bytes.buffer.slice(0, 16))) ]); return 0; },
+      GetMemoryClass: () => 1,
+      Destroy() {}
+    } };
   };
   const esm = {
     ApplyStandardStates: mode => log.push([ "states", mode ]),
