@@ -583,6 +583,48 @@ mat4.fromMat3 = function (out, m)
     return out;
 };
 
+/**
+ * Carbon OrthoNormalBasisZ (math Matrix_inline.h:531-546): identity; row Z =
+ * Normalize(z); X seeded (0,1,0) when |Z.x| > 0.99 else (1,0,0); Y =
+ * Normalize(Cross(X, Z)); X = Cross(Y, Z). Carbon's basis rows land at gl flat
+ * [0..2]/[4..6]/[8..10] on the shared byte layout - single-matrix build, no
+ * composition, no operand swap. A zero-length z NaNs exactly as Carbon's
+ * Normalize does.
+ *
+ * @param {mat4} out
+ * @param {vec3} z The basis Z axis; need not be normalised.
+ * @returns {mat4} out
+ */
+mat4.orthoNormalBasisZ = function (out, z)
+{
+    mat4.identity(out);
+    const zl = Math.hypot(z[0], z[1], z[2]);
+    const zx = z[0] / zl;
+    const zy = z[1] / zl;
+    const zz = z[2] / zl;
+    out[8] = zx;
+    out[9] = zy;
+    out[10] = zz;
+    const xx = Math.abs(zx) > 0.99 ? 0 : 1;
+    const xy = Math.abs(zx) > 0.99 ? 1 : 0;
+    // Y = Normalize(Cross(X, Z)) with xz = 0 on either seed.
+    let yx = xy * zz;
+    let yy = -xx * zz;
+    let yz = xx * zy - xy * zx;
+    const yl = Math.hypot(yx, yy, yz);
+    yx /= yl;
+    yy /= yl;
+    yz /= yl;
+    out[4] = yx;
+    out[5] = yy;
+    out[6] = yz;
+    // X = Cross(Y, Z).
+    out[0] = yy * zz - yz * zy;
+    out[1] = yz * zx - yx * zz;
+    out[2] = yx * zy - yy * zx;
+    return out;
+};
+
 // D3D ortho, depth maps to [0..1]
 mat4.orthoD3D = function(out, l, r, b, t, n, f)
 {
@@ -1320,6 +1362,7 @@ export const {
     arcFromForward,
     copyTranslation,
     fromMat3,
+    orthoNormalBasisZ,
     orthoD3D,
     lookAtD3D,
     lookAtCarbon,

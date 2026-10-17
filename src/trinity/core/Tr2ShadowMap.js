@@ -92,37 +92,6 @@ function writePerspectiveOffCenter(out, left, right, bottom, top, near, far)
   return out;
 }
 
-/** Carbon OrthoNormalBasisZ. Flat matrix bytes match gl-matrix storage. */
-function writeOrthoNormalBasisZ(out, z)
-{
-  mat4.identity(out);
-  const length = Math.hypot(z[0], z[1], z[2]);
-  const zx = z[0] / length;
-  const zy = z[1] / length;
-  const zz = z[2] / length;
-  out[8] = zx;
-  out[9] = zy;
-  out[10] = zz;
-
-  const xx = Math.abs(zx) > 0.99 ? 0 : 1;
-  const xy = Math.abs(zx) > 0.99 ? 1 : 0;
-  let yx = xy * zz;
-  let yy = -xx * zz;
-  let yz = xx * zy - xy * zx;
-  const yLength = Math.hypot(yx, yy, yz);
-  yx /= yLength;
-  yy /= yLength;
-  yz /= yLength;
-
-  out[4] = yx;
-  out[5] = yy;
-  out[6] = yz;
-  out[0] = yy * zz - yz * zy;
-  out[1] = yz * zx - yx * zz;
-  out[2] = yx * zy - yy * zx;
-  return out;
-}
-
 /** Carbon OrthoOffCenterMatrix: D3D zero-to-one depth. */
 function writeOrthoOffCenter(out, left, right, bottom, top, near, far)
 {
@@ -453,7 +422,7 @@ export class Tr2ShadowMap
     LIGHT_DIRECTION_SCRATCH[0] = -lightDirection[0];
     LIGHT_DIRECTION_SCRATCH[1] = -lightDirection[1];
     LIGHT_DIRECTION_SCRATCH[2] = -lightDirection[2];
-    writeOrthoNormalBasisZ(BASIS_SCRATCH, LIGHT_DIRECTION_SCRATCH);
+    mat4.orthoNormalBasisZ(BASIS_SCRATCH, LIGHT_DIRECTION_SCRATCH);
     mat4.invert(LIGHT_VIEW_SCRATCH, BASIS_SCRATCH);
 
     Tr2ShadowMap.CalculateAABB(

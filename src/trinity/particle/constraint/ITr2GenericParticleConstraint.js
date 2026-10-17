@@ -34,10 +34,19 @@ export class ITr2GenericParticleConstraint
   @blue.abstract
   ApplyConstraint(_arguments, _particles, _strides, _count, _dt) {}
 
-  /** Carbon's base debug hook is intentionally empty. */
+  /**
+   * Carbon's virtual `RenderDebugInfo( ITr2DebugRenderer2& renderer, const
+   * Matrix& worldTransform, const CcpMath::AxisAlignedBox& aabb ) const`
+   * (ITr2GenericParticleConstraint.h:47): the base body is empty, so a constraint that draws nothing
+   * inherits this.
+   *
+   * @param {ITr2DebugRenderer2} _renderer The debug renderer.
+   * @param {mat4} _worldTransform The owning particle system's world transform.
+   * @param {box3} _aabb The particle system's bounds, packed min/max.
+   */
   @blue.method
   @meta.noop
-  RenderDebugInfo()
+  RenderDebugInfo(_renderer, _worldTransform, _aabb)
   {
   }
 

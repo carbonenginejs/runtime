@@ -630,6 +630,47 @@ export class EveChildParticleSystem extends EveChildTransform
     }
   }
 
+  /**
+   * Carbon EveChildParticleSystem::GetDebugOptions
+   * (Eve/SpaceObject/Children/EveChildParticleSystem.cpp:310-320): the mesh's
+   * options when there is a mesh, then every particle system's.
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    if (this.mesh)
+    {
+      this.mesh.GetDebugOptions(options);
+    }
+    for (const ps of this.particleSystems)
+    {
+      ps.GetDebugOptions(options);
+    }
+  }
+
+  /**
+   * Carbon EveChildParticleSystem::RenderDebugInfo
+   * (Eve/SpaceObject/Children/EveChildParticleSystem.cpp:322-332): the mesh
+   * under the world transform when displayed, then every particle system,
+   * which draws regardless of display.
+   * @param {ITr2DebugRenderer2} renderer The debug renderer.
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer)
+  {
+    if (this.display && this.mesh)
+    {
+      this.mesh.RenderDebugInfo(this.worldTransform, renderer);
+    }
+    for (const ps of this.particleSystems)
+    {
+      ps.RenderDebugInfo(renderer, this.worldTransform);
+    }
+  }
+
   /** Carbon method AddTransformModifier (EveChildParticleSystem.cpp:344-347). */
   @blue.method
   @meta.implemented

@@ -3,6 +3,7 @@
 import { meta, type, blue } from "#schema";
 import { ITr2ParticleForce } from "./ITr2ParticleForce.js";
 import { vec3 } from "#math/vec3";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 
 /** Aggregates child forces within a spherical region, scaling their combined contribution by a falloff toward the sphere's edge. */
 @blue.interface(ITr2ParticleForce)
@@ -75,6 +76,33 @@ export class Tr2ForceSphereVolume extends ITr2ParticleForce
       vec3.add(out, out, force.GetForce(position, velocity, dt, mass, contribution) ?? contribution);
     }
     return vec3.scale(out, out, Math.pow(1 - distance / this.radius, this.exponent));
+  }
+
+  /**
+   * Carbon Tr2ForceSphereVolume::RenderDebugInfo (Particle/Tr2ForceSphereVolume.cpp:61-68):
+   * the volume as a 20-segment wireframe sphere in 0xffaaaa00, then every
+   * contained force with the same arguments.
+   * @param {ITr2DebugRenderer2} renderer The debug renderer.
+   * @param {mat4} worldTransform The owning particle system's world transform.
+   * @param {box3} aabb The particle system's bounds, packed min/max.
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer, worldTransform, aabb)
+  {
+    renderer.DrawSphere__TransformCenterRadius(
+      Tr2DebugObjectReference.create__Object(this),
+      worldTransform,
+      this.position,
+      this.radius,
+      20,
+      ITr2DebugRenderer2.Effect.Wireframe,
+      Tr2DebugColor.create__Uint32(0xffaaaa00));
+
+    for (const force of this.forces)
+    {
+      force.RenderDebugInfo(renderer, worldTransform, aabb);
+    }
   }
 
   // #delta is consumed into a scalar before any child GetForce runs, so a

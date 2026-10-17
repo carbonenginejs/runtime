@@ -22,6 +22,10 @@ import { Tr2ParticleElementDeclaration } from "./element/Tr2ParticleElementDecla
 import { ITr2InstanceDataInstanceData, ITr2InstanceData } from "../core/mesh/ITr2InstanceData/index.js";
 import { ITr2GenericEmitterUpdateArguments } from "./ITr2GenericEmitter/index.js";
 import { ITr2GpuBuffer } from "../core/ITr2GpuBuffer.js";
+import { box3 } from "#math/box3";
+
+// RenderDebugInfo scratch (debug drawing is single-threaded).
+const DEBUG_AABB = box3.create();
 
 /** Owns a particle system's element declaration, CPU-side attribute buffers, and per-frame simulation of aging, forces, movement, constraints and bounds. */
 @blue.define("Tr2ParticleSystem")
@@ -297,6 +301,44 @@ export class Tr2ParticleSystem
   @meta.noop
   SetThreadSafeFlag()
   {
+  }
+
+  /**
+   * Carbon Tr2ParticleSystem::GetDebugOptions (Particle/Tr2ParticleSystem.cpp:1664-1667).
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    options.add("Particle Systems");
+  }
+
+  /**
+   * Carbon Tr2ParticleSystem::RenderDebugInfo (Particle/Tr2ParticleSystem.cpp:1669-1684):
+   * under "Particle Systems", every force and then every constraint draws
+   * itself against the system's current bounds.
+   * @param {ITr2DebugRenderer2} renderer The debug renderer.
+   * @param {mat4} worldTransform The owner's world transform.
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer, worldTransform)
+  {
+    if (!renderer.HasOption(this, "Particle Systems"))
+    {
+      return;
+    }
+
+    const aabb = box3.fromBounds(DEBUG_AABB, this.aabbMin, this.aabbMax);
+    for (const force of this.forces)
+    {
+      force.RenderDebugInfo(renderer, worldTransform, aabb);
+    }
+    for (const force of this.constraints)
+    {
+      force.RenderDebugInfo(renderer, worldTransform, aabb);
+    }
   }
 
   /** Carbon IsValid (Tr2ParticleSystem.cpp:1339-1342): whether the element layout was built. */

@@ -246,6 +246,18 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   }
 
   /**
+   * Carbon IsValid (Tr2DynamicEmitter.cpp:97-100): whether the emitter bound
+   * to its particle system on the last Rebind.
+   * @returns {boolean}
+   */
+  @blue.method
+  @meta.implemented
+  IsValid()
+  {
+    return this.isValid;
+  }
+
+  /**
    * The running count of particles emitted since the last reset.
    */
   @blue.method

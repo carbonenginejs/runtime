@@ -9,7 +9,20 @@ import { ITr2GenericEmitter } from "../ITr2GenericEmitter/ITr2GenericEmitter.js"
 import { ITr2GenericParticleConstraint } from "./ITr2GenericParticleConstraint.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { mat4 } from "#math/mat4";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
+
+// RenderDebugInfo scratch (debug drawing is single-threaded).
+const DEBUG_AXIS = vec3.create();
+const DEBUG_TRANSLATION = mat4.create();
+const DEBUG_BASIS = mat4.create();
+const DEBUG_LOCAL = mat4.create();
+const DEBUG_INVERSE_LOCAL = mat4.create();
+const DEBUG_WORLD = mat4.create();
+const DEBUG_CENTER = vec3.create();
+const DEBUG_P0 = vec3.create();
+const DEBUG_P1 = vec3.create();
 
 /** A collision constraint that keeps particles on one side of a plane, reflecting velocity with elasticity, friction and noise, and triggering generators and emitters on contact. */
 @blue.define("Tr2PlaneConstraint")
@@ -229,6 +242,74 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
       }
     }
     return collisions;
+  }
+
+  /**
+   * Carbon Tr2PlaneConstraint::RenderDebugInfo (Particle/Tr2PlaneConstraint.cpp:257-280):
+   * nothing while invalid; otherwise an 11 x 11 grid of lines in the plane,
+   * centred on the system bounds' centre projected into plane space, half-size
+   * max(10, |aabb size| / 4), in 0xffff4444.
+   *
+   * The bounds centre and size are taken straight from the packed min/max as
+   * CcpMath::AxisAlignedBox::Center/Size do (AxisAlignedBox_inline.h:63-71),
+   * not through box3.getCenter/getSize, which return zero for an inverted box
+   * where Carbon does not check.
+   * @param {ITr2DebugRenderer2} renderer The debug renderer.
+   * @param {mat4} worldTransform The owning particle system's world transform.
+   * @param {box3} aabb The particle system's bounds, packed min/max.
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer, worldTransform, aabb)
+  {
+    if (!this.isValid)
+    {
+      return;
+    }
+
+    const f = Math.fround;
+    const plane = this.#normalizedPlane;
+    const translation = mat4.fromTranslation(DEBUG_TRANSLATION, vec3.set(DEBUG_AXIS, 0, 0, -plane[3]));
+    const basis = mat4.orthoNormalBasisZ(DEBUG_BASIS, vec3.set(DEBUG_AXIS, plane[0], plane[1], plane[2]));
+    // Carbon (row-vector): TranslationMatrix( 0, 0, -d ) * OrthoNormalBasisZ( a, b, c ).
+    const local = mat4.multiply(DEBUG_LOCAL, basis, translation);
+    // Carbon (row-vector): local * worldTransform.
+    const world = mat4.multiply(DEBUG_WORLD, worldTransform, local);
+
+    const center = vec3.set(
+      DEBUG_CENTER,
+      f(f(aabb[0] + aabb[3]) * 0.5),
+      f(f(aabb[1] + aabb[4]) * 0.5),
+      f(f(aabb[2] + aabb[5]) * 0.5));
+    vec3.transformMat4(center, center, mat4.invert(DEBUG_INVERSE_LOCAL, local));
+    center[2] = 0;
+
+    const sx = f(aabb[3] - aabb[0]);
+    const sy = f(aabb[4] - aabb[1]);
+    const sz = f(aabb[5] - aabb[2]);
+    const sizeLength = f(f(Math.sqrt(f(f(f(sx * sx) + f(sy * sy)) + f(sz * sz)))) * 0.25);
+    // std::max( 10.f, x ) returns 10 unless 10 < x (a NaN length gives 10).
+    const radius = 10 < sizeLength ? sizeLength : 10;
+    const step = f(radius * f(0.2));
+
+    const owner = Tr2DebugObjectReference.create__Object(this);
+    const color = Tr2DebugColor.create__Uint32(0xffff4444);
+    const p0 = DEBUG_P0;
+    const p1 = DEBUG_P1;
+
+    for (let i = -5; i <= 5; ++i)
+    {
+      vec3.add(p0, vec3.set(p0, f(i * step), -radius, 0), center);
+      vec3.add(p1, vec3.set(p1, f(i * step), radius, 0), center);
+      renderer.DrawLine(owner, vec3.transformMat4(p0, p0, world), vec3.transformMat4(p1, p1, world), color);
+    }
+
+    for (let i = -5; i <= 5; ++i)
+    {
+      vec3.add(p0, vec3.set(p0, -radius, f(i * step), 0), center);
+      vec3.add(p1, vec3.set(p1, radius, f(i * step), 0), center);
+      renderer.DrawLine(owner, vec3.transformMat4(p0, p0, world), vec3.transformMat4(p1, p1, world), color);
+    }
   }
 
   /**

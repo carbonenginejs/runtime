@@ -64,42 +64,6 @@ const BOUNDS_MIN_SCRATCH = vec3.create();
 const BOUNDS_MAX_SCRATCH = vec3.create();
 const LIGHT_SCRATCH = { position: vec3.create(), radius: 0, color: vec3.create() };
 
-/** Carbon OrthoNormalBasisZ (math Matrix_inline.h:531-546): identity; row Z =
- * Normalize(z); X seeded (0,1,0) when |Z.x| > 0.99 else (1,0,0); Y =
- * Normalize(Cross(X, Z)); X = Cross(Y, Z). Carbon's basis rows land at gl flat
- * [0..2]/[4..6]/[8..10] on the shared byte layout - single-matrix build, no
- * composition, no operand swap. A zero-length z NaNs exactly as Carbon's
- * Normalize does. */
-function OrthoNormalBasisZ(out, z)
-{
-  mat4.identity(out);
-  const zl = Math.hypot(z[0], z[1], z[2]);
-  const zx = z[0] / zl;
-  const zy = z[1] / zl;
-  const zz = z[2] / zl;
-  out[8] = zx;
-  out[9] = zy;
-  out[10] = zz;
-  const xx = Math.abs(zx) > 0.99 ? 0 : 1;
-  const xy = Math.abs(zx) > 0.99 ? 1 : 0;
-  // Y = Normalize(Cross(X, Z)) with xz = 0 on either seed.
-  let yx = xy * zz;
-  let yy = -xx * zz;
-  let yz = xx * zy - xy * zx;
-  const yl = Math.hypot(yx, yy, yz);
-  yx /= yl;
-  yy /= yl;
-  yz /= yl;
-  out[4] = yx;
-  out[5] = yy;
-  out[6] = yz;
-  // X = Cross(Y, Z).
-  out[0] = yy * zz - yz * zy;
-  out[1] = yz * zx - yx * zz;
-  out[2] = yx * zy - yy * zx;
-  return out;
-}
-
 /** Carbon OrthoOffCenterMatrix (math Matrix_inline.h:749-765): D3D-style
  * z-in-[0,1] off-center orthographic projection. Deliberately NOT gl-matrix's
  * mat4.ortho (GL z-in-[-1,1], different off-center terms). Carbon m[i][j]
@@ -1110,7 +1074,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   SetupShadowFrustum(shadowInfo, sunDir)
   {
     vec3.set(SUN_SCRATCH, -sunDir[0], -sunDir[1], -sunDir[2]);
-    OrthoNormalBasisZ(BASIS_SCRATCH, SUN_SCRATCH);
+    mat4.orthoNormalBasisZ(BASIS_SCRATCH, SUN_SCRATCH);
     if (!mat4.invert(LIGHT_VIEW_SCRATCH, BASIS_SCRATCH))
     {
       mat4.identity(LIGHT_VIEW_SCRATCH);

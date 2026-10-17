@@ -11,6 +11,7 @@ import { TriBatchType } from "#consts/graphics";
 import { Tr2RenderBatch, TriRenderBatchAreaBlock, TriRenderBatchAreaBlocksWithSharedMaterial } from "../batch/TriRenderBatch/index.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { CarbonVertexElements } from "../vertex/vertexUsage.js";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 
 
 /**
@@ -494,6 +495,56 @@ export class Tr2MeshBase
     if (!property) return false;
     const key = this[property].FindKey(area);
     return key >= 0 && this[property].Remove(key);
+  }
+
+  /**
+   * Carbon Tr2MeshBase::GetDebugOptions (Tr2MeshBase.cpp:540-543).
+   * @param {Set<string>} options The caller-owned option set.
+   */
+  @blue.method
+  @meta.implemented
+  GetDebugOptions(options)
+  {
+    options.add("Mesh Bounds");
+  }
+
+  /**
+   * Carbon Tr2MeshBase::RenderDebugInfo (Tr2MeshBase.cpp:545-552; defaults
+   * Tr2MeshBase.h:91): under "Mesh Bounds", the mesh bounds for the given
+   * skinning state as a wireframe box under worldTransform, coloured
+   * Tr2DebugColor( 0xffaa8800, 0x22aa8800 ).
+   *
+   * Adapted: Carbon's GetBounds always returns a box; ours returns null when
+   * the mesh has no geometry resource or the geometry has no bounding box for
+   * this mesh (see GetBounds), and then nothing is drawn.
+   * @param {mat4} worldTransform
+   * @param {ITr2DebugRenderer2} renderer
+   * @param {mat4[]|null} [boneTransforms]
+   * @param {ArrayLike<number>|null} [meshBindingIndices]
+   * @param {number} [boneCount]
+   * @param {{ index: number, weight: number }[]|null} [morphTargets]
+   * @param {number} [morphTargetsCount]
+   */
+  @blue.method
+  @meta.adapted
+  RenderDebugInfo(worldTransform, renderer, boneTransforms = null, meshBindingIndices = null, boneCount = 0, morphTargets = null, morphTargetsCount = 0)
+  {
+    if (renderer.HasOption(this, "Mesh Bounds"))
+    {
+      const bounds = this.GetBounds(boneTransforms, meshBindingIndices, boneCount, morphTargets, morphTargetsCount);
+      if (bounds === null)
+      {
+        return;
+      }
+
+      renderer.DrawBox__Transform(
+        Tr2DebugObjectReference.create__Object(this),
+        worldTransform,
+        bounds.min,
+        bounds.max,
+        ITr2DebugRenderer2.Effect.Wireframe,
+        Tr2DebugColor.create__Uint32ZFail(0xffaa8800, 0x22aa8800));
+    }
   }
 
   /**

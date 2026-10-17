@@ -8,6 +8,7 @@ import { CjsSchema, meta, type, blue } from "#schema";
 import { ITr2GenericParticleConstraint } from "./ITr2GenericParticleConstraint.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
 
 /** A collision constraint that keeps particles outside or inside a sphere, reflecting velocity and triggering generators and emitters on contact. */
@@ -258,6 +259,33 @@ export class Tr2SphereConstraint extends ITr2GenericParticleConstraint
       }
     }
     return processed;
+  }
+
+  /**
+   * Carbon Tr2SphereConstraint::RenderDebugInfo (Particle/Tr2SphereConstraint.cpp:330-336):
+   * nothing while invalid; otherwise the constraint sphere as a 20-segment
+   * wireframe in 0xffff4444.
+   * @param {ITr2DebugRenderer2} renderer The debug renderer.
+   * @param {mat4} worldTransform The owning particle system's world transform.
+   * @param {box3} _aabb The particle system's bounds, packed min/max.
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(renderer, worldTransform, _aabb)
+  {
+    if (!this.isValid)
+    {
+      return;
+    }
+
+    renderer.DrawSphere__TransformCenterRadius(
+      Tr2DebugObjectReference.create__Object(this),
+      worldTransform,
+      this.position,
+      this.radius,
+      20,
+      ITr2DebugRenderer2.Effect.Wireframe,
+      Tr2DebugColor.create__Uint32(0xffff4444));
   }
 
   /**
