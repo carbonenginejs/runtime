@@ -573,6 +573,11 @@ export class CjsBlueClasses extends IBlueClasses
       if (member.edit !== undefined) for (const [ flag, bit ] of EDIT_FLAG_BITS) if (member.edit[flag] === true) editflags |= bit;
       if (member.type?.flags === true) editflags |= EDIT_FLAGS;
       if (member.enum) editflags |= EDIT_ENUM;
+      // PyGetChooserInfo (TypeInfo.cpp:28-68) reads mChooserTable whatever the
+      // edit flags say: a `chooser` declaration (MAP_ATTRIBUTE_WITH_CHOOSER
+      // without ENUM) reports its table and sets no bit; otherwise an enum's
+      // registered chooser.
+      const chooser = member.chooser ? member.chooser.entries : member.enum && member.enum.chooser;
       members[member.name] = {
         type: getCarbonTypeDefinition(type).kind,
         iid_name: typeof reference === "function" ? CjsSchema.getClassName(reference) : reference || "",
@@ -581,9 +586,7 @@ export class CjsBlueClasses extends IBlueClasses
         editflags,
         min: null,
         max: null,
-        choosers: member.enum && member.enum.chooser
-          ? member.enum.chooser.map(item => [ item.name, item.value, item.description || "" ])
-          : null
+        choosers: chooser ? chooser.map(item => [ item.name, item.value, item.description || "" ]) : null
       };
     }
 

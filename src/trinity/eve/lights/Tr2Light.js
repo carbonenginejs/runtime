@@ -7,11 +7,8 @@ import { ResourceRequirement } from "#resource";
 import { IsMatch, be, IInitialize, INotify } from "#blue";
 import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
 import { CjsLightData, createCjsLightDataView } from "./CjsLightData.js";
-import {
-  AreLightFlagsValid,
-  CreateLightRecord,
-  MatrixCopyFrom3x4
-} from "./lightConversion.js";
+import { Tr2LightManager } from "../../core/lighting/Tr2LightManager.js";
+import { CreateLightRecord, MatrixCopyFrom3x4 } from "./lightConversion.js";
 import { LightFeatures } from "./LightFeatures.js";
 
 
@@ -250,7 +247,7 @@ export class Tr2Light
     {
       this.Update();
     }
-    if (!AreLightFlagsValid(this.lightData.flags ?? 0))
+    if (!Tr2LightManager.areLightFlagsValid(this.lightData.flags ?? 0))
     {
       return;
     }
@@ -377,6 +374,18 @@ export class Tr2Light
 
   static PerLightShadowSetting = PerLightShadowSetting;
 
+  /**
+   * Carbon's `Tr2LightFlagChooser`, registered as the BlueEnum object
+   * `Tr2LightFlags` (Tr2Light_Blue.cpp:16-21). Its members are the chooser's
+   * keys and its values Tr2LightManager's flag bits, the one home of those
+   * values. Every light's `flags` member names it as its chooser without the
+   * ENUM bit (`blue.chooser`; Tr2PointLight_Blue.cpp:18 and siblings).
+   */
+  static Tr2LightFlags = {
+    AFFECTS_SURFACES: Tr2LightManager.FLAG_AFFECTS_SURFACES,
+    AFFECTS_PARTICLES: Tr2LightManager.FLAG_AFFECTS_PARTICLES
+  };
+
   static _lightTransformScratch = mat4.create();
 
   static _featuresScratch = new LightFeatures();
@@ -387,4 +396,15 @@ export class Tr2Light
 
 // Carbon neither registers this nor gives it a chooser.
 be.enums.Create("trinity.Tr2Light.LIGHT_TYPE", Tr2Light.LightType);
+
+// BLUE_REGISTER_ENUM_EX( "Tr2LightFlags", uint16_t, Tr2LightFlagChooser,
+// ENUM_REG_ENUM_OBJECT_ON_MODULE ) (Tr2Light_Blue.cpp:16-21).
+be.enums.Create("trinity.Tr2LightFlags", Tr2Light.Tr2LightFlags, {
+  exposedName: "Tr2LightFlags",
+  exposure: 2,
+  chooser: [
+    { name: "AFFECTS_SURFACES", value: Tr2LightManager.FLAG_AFFECTS_SURFACES, description: "Affects surfaces" },
+    { name: "AFFECTS_PARTICLES", value: Tr2LightManager.FLAG_AFFECTS_PARTICLES, description: "Affects lit particles" }
+  ]
+});
 

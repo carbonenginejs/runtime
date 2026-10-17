@@ -66,10 +66,11 @@ export class Tr2SpotLight extends Tr2Light
   @type.enum("trinity.PerLightShadowSetting")
   castsShadows = 0;
 
-  /** m_lightData.flags (uint16_t) [READWRITE, PERSIST] */
+  /** m_lightData.flags (uint16_t) [READWRITE, PERSIST], with Tr2LightFlagChooser and no ENUM bit (Tr2SpotLight_Blue.cpp:18). */
   @blue.readwrite
   @blue.persist
   @type.uint16
+  @blue.chooser("trinity.Tr2LightFlags")
   flags = 1;
 
   /** m_lightData.position (Vector3) [READWRITE, PERSIST] */

@@ -1,32 +1,16 @@
 // Source: trinity/trinity/Lights/Tr2Light.cpp (LightData::
 //   AsPerPointLightData cpp:37-69, AsPerSpotLightData cpp:71-80)
-// Source: trinity/trinity/Tr2LightManager.h (PerLightData
-//   h:55-85, flags h:100-105, ShadowQuality h:25-31) and Tr2LightManager.cpp
-//   (AreLightFlagsValid cpp:677-680)
+// Source: trinity/trinity/Tr2LightManager.h (PerLightData h:55-85)
 //
-// The light flags and the per-light record CjsLightData.AsPerPointLightData /
+// The per-light record CjsLightData.AsPerPointLightData /
 // AsPerSpotLightData write (Carbon LightData's own methods, ported onto
 // CjsLightData). The record follows the EveSmartLightPointLight convention:
 // typed CPU floats, flags unpacked, the light profile carried by reference;
 // Carbon's Float_16 narrowing and profileIndex << 4 packing wait on the light
 // manager's port. Records are scratch; Tr2LightManager.AddLight copies them,
-// as Carbon's copies by value.
+// as Carbon's copies by value. The light flag bits live on Tr2LightManager
+// (Tr2LightManager.FLAG_*), their Carbon owner.
 import { vec3 } from "#math/vec3";
-
-/** Carbon Tr2LightManager light flags (Tr2LightManager.h:100-105).
- * NOTE: these bit-flag constants should be modelled as an enum (a proper
- * schema enum / bitfield), not loose exported consts. */
-export const LIGHT_FLAG_AFFECTS_SURFACES = 1;
-export const LIGHT_FLAG_AFFECTS_PARTICLES = 1 << 1;
-export const LIGHT_FLAG_CASTS_SHADOWS = 1 << 2;
-export const LIGHT_FLAG_IS_VOLUMETRIC = 1 << 3;
-export const LIGHT_FLAG_DEFAULT = LIGHT_FLAG_AFFECTS_SURFACES;
-
-/** Carbon Tr2LightManager::AreLightFlagsValid (Tr2LightManager.cpp:677-680). */
-export function AreLightFlagsValid(flags)
-{
-  return (flags & (LIGHT_FLAG_AFFECTS_SURFACES | LIGHT_FLAG_AFFECTS_PARTICLES)) !== 0;
-}
 
 /** A fresh per-light record in the EveSmartLightPointLight shape
  * (Tr2LightManager::PerLightData, h:55-85 + the JS-side owner/profile refs). */

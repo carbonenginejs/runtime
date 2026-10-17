@@ -4,8 +4,6 @@ import { Tr2LightManager, TriFrustum } from "../../npm/dist/trinity/index.js";
 import { CreateLightRecord } from "../../npm/dist/trinity/eve/lights/lightConversion.js";
 import { ShadowQuality } from "../../npm/dist/trinity/generated/trinityCore/enums.js";
 
-const FLAGS = Tr2LightManager.Flags;
-
 /**
  * The shadow-atlas CPU half (Tr2LightManager.cpp:92-122, 262-295, 442-508,
  * 568-620, 718-815), ported behind the same useDynamicLightsShadows setting
@@ -42,7 +40,7 @@ function frustumWithSizes(sizes)
 function caster(x, { innerAngle = 0, radius = 1 } = {})
 {
     const record = CreateLightRecord();
-    record.flags = FLAGS.DEFAULT | FLAGS.CASTS_SHADOWS;
+    record.flags = Tr2LightManager.FLAG_DEFAULT | Tr2LightManager.FLAG_CASTS_SHADOWS;
     record.color.set([ 1, 1, 1 ]);
     record.radius = radius;
     record.position.set([ x, 0, 0 ]);
@@ -122,11 +120,11 @@ test("the caster half selects the largest sixteen and strips the losers", () =>
         const data = manager.GetLightBufferData();
         const bits = new Uint32Array(data.buffer, data.byteOffset, data.length);
         // Light 0 (largest) keeps CASTS_SHADOWS and gets a packed entry.
-        assert.ok((bits[7] >>> 16) & FLAGS.CASTS_SHADOWS);
+        assert.ok((bits[7] >>> 16) & Tr2LightManager.FLAG_CASTS_SHADOWS);
         assert.notEqual(bits[11], 0, "winner carries a packed atlas entry");
         // Light 17 (smallest) was stripped.
         const flags17 = bits[17 * 12 + 7] >>> 16;
-        assert.equal(flags17 & FLAGS.CASTS_SHADOWS, 0, "loser stripped of CASTS_SHADOWS");
+        assert.equal(flags17 & Tr2LightManager.FLAG_CASTS_SHADOWS, 0, "loser stripped of CASTS_SHADOWS");
         assert.equal(bits[17 * 12 + 11], 0, "loser has no atlas entry");
     });
 });
@@ -183,6 +181,6 @@ test("the setting ships false: casters are stripped and no atlas packs", () =>
     assert.equal(manager.GetShadowCastingLights().length, 0);
     const data = manager.GetLightBufferData();
     const bits = new Uint32Array(data.buffer, data.byteOffset, data.length);
-    assert.equal((bits[7] >>> 16) & FLAGS.CASTS_SHADOWS, 0, "AddLight strips the flag under the pin");
+    assert.equal((bits[7] >>> 16) & Tr2LightManager.FLAG_CASTS_SHADOWS, 0, "AddLight strips the flag under the pin");
     assert.equal(bits[11], 0, "shadow union stays zero");
 });

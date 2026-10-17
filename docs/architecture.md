@@ -353,6 +353,11 @@ for packed channels. Formats dispatch the resolved data type, not these meanings
 Flags stores uint32 and carries enum/FLAGS metadata. A stored member's exposed
 name is `meta.attribute(name, { index })`, or `blue.attribute` for Carbon's
 `MAP_ATTRIBUTE`; it is omitted when it only repeats the JS key without an index.
+`type.enum` sets the ENUM bit and reports its registered enum's chooser.
+`blue.chooser(name)` (`meta.chooser` for ours) is Carbon's
+`MAP_ATTRIBUTE_WITH_CHOOSER` chooser table without that bit: the member reports
+the registered enum's chooser and its flags stay as declared, as on the lights'
+`flags`.
 `meta.abstract` (ours) and `blue.abstract` (a Carbon pure virtual) record status
 abstract and install a generated throwing body that names the receiver, the
 declaring class and the declared parameters.

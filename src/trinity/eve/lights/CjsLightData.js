@@ -10,7 +10,8 @@ import { mat4 } from "#math/mat4";
 import { noise } from "#math/noise";
 import { CcpTime } from "../../../global/blue/CcpTime.js";
 import { ShadowQuality } from "../../generated/trinityCore/enums.js";
-import { CreateLightRecord, LIGHT_FLAG_CASTS_SHADOWS, LIGHT_FLAG_IS_VOLUMETRIC } from "./lightConversion.js";
+import { Tr2LightManager } from "../../core/lighting/Tr2LightManager.js";
+import { CreateLightRecord } from "./lightConversion.js";
 
 // Conversion scratch (lights convert one at a time).
 const ROTATION_SCRATCH = mat4.create();
@@ -205,9 +206,9 @@ export class CjsLightData
       || (this.castsShadows === PerLightShadowSetting.ENABLED_ONLY_ON_HIGH_QUALITY && shadowQuality === ShadowQuality.SHADOW_HIGH)
       || (this.castsShadows === PerLightShadowSetting.ENABLED_ONLY_ON_HIGH_QUALITY && shadowQuality === ShadowQuality.SHADOW_RAYTRACED))
     {
-      out.flags |= LIGHT_FLAG_CASTS_SHADOWS;
+      out.flags |= Tr2LightManager.FLAG_CASTS_SHADOWS;
     }
-    out.flags |= this.isVolumetric ? LIGHT_FLAG_IS_VOLUMETRIC : 0;
+    out.flags |= this.isVolumetric ? Tr2LightManager.FLAG_IS_VOLUMETRIC : 0;
 
     return out;
   }

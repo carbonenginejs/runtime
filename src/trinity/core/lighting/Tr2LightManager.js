@@ -201,14 +201,25 @@ export class Tr2LightManager
   // Non-Carbon: bumped by ResolveLightData so the AL can skip re-uploads.
   _revision = 0;
 
-  /** Tr2LightManager.h:100-105 - the light flag bits, Carbon's raw uint16 spelling. */
-  static Flags = Object.freeze({
-    AFFECTS_SURFACES: 1,
-    AFFECTS_PARTICLES: 1 << 1,
-    CASTS_SHADOWS: 1 << 2,
-    IS_VOLUMETRIC: 1 << 3,
-    DEFAULT: 1
-  });
+  // The light flag bits: Carbon's `static const uint16_t` members
+  // (Tr2LightManager.h:100-105), and the one JS home of these values. A light's
+  // `flags` member reports the AFFECTS_* pair through the Blue chooser
+  // `trinity.Tr2LightFlags` (Tr2Light.js, Tr2Light_Blue.cpp:16-21).
+
+  /** Carbon `FLAG_AFFECTS_SURFACES` (Tr2LightManager.h:100). */
+  static FLAG_AFFECTS_SURFACES = 1;
+
+  /** Carbon `FLAG_AFFECTS_PARTICLES` (Tr2LightManager.h:101). */
+  static FLAG_AFFECTS_PARTICLES = 1 << 1;
+
+  /** Carbon `FLAG_CASTS_SHADOWS` (Tr2LightManager.h:102). */
+  static FLAG_CASTS_SHADOWS = 1 << 2;
+
+  /** Carbon `FLAG_IS_VOLUMETRIC` (Tr2LightManager.h:103). */
+  static FLAG_IS_VOLUMETRIC = 1 << 3;
+
+  /** Carbon `FLAG_DEFAULT = FLAG_AFFECTS_SURFACES` (Tr2LightManager.h:105). */
+  static FLAG_DEFAULT = Tr2LightManager.FLAG_AFFECTS_SURFACES;
 
   /** The variable-store names the AL binds the packed buffers under
    * (Tr2LightManager.h:46-47; both isAutoregister). The NAMES are Trinity's
@@ -238,7 +249,7 @@ export class Tr2LightManager
   @meta.implemented
   static areLightFlagsValid(flags)
   {
-    return (flags & (Tr2LightManager.Flags.AFFECTS_SURFACES | Tr2LightManager.Flags.AFFECTS_PARTICLES)) !== 0;
+    return (flags & (Tr2LightManager.FLAG_AFFECTS_SURFACES | Tr2LightManager.FLAG_AFFECTS_PARTICLES)) !== 0;
   }
 
   /**
@@ -365,7 +376,7 @@ export class Tr2LightManager
    */
   @blue.method
   @meta.implemented
-  AddPointLight(position, radius, color, innerRadius = 0, flags = Tr2LightManager.Flags.DEFAULT)
+  AddPointLight(position, radius, color, innerRadius = 0, flags = Tr2LightManager.FLAG_DEFAULT)
   {
     if (!Tr2LightManager.areLightFlagsValid(flags)) return;
 
@@ -423,7 +434,7 @@ export class Tr2LightManager
       || (usingShadowMap && this._shadowMap.qualityUsedByAtlas === ShadowQuality.SHADOW_DISABLED)
       || !Tr2LightManager.useDynamicLightsShadows)
     {
-      record.flags &= ~Tr2LightManager.Flags.CASTS_SHADOWS;
+      record.flags &= ~Tr2LightManager.FLAG_CASTS_SHADOWS;
     }
 
     const scale = record.radius * dimming;
@@ -460,7 +471,7 @@ export class Tr2LightManager
     const volumetric = [];
     for (let i = 0; i < this._records.length; i++)
     {
-      if (this._records[i].flags & Tr2LightManager.Flags.IS_VOLUMETRIC)
+      if (this._records[i].flags & Tr2LightManager.FLAG_IS_VOLUMETRIC)
       {
         const size = this._ScreenSize(this._records[i]);
         volumetric.push([ i, Math.min(size, INFINITE_SIZE_CLAMP) ]);
@@ -472,7 +483,7 @@ export class Tr2LightManager
     for (let i = 0; i < volumetric.length; i++)
     {
       if (i < MAX_NUM_VOLUMETRIC_LIGHTS) this._volumetricLights.push(volumetric[i][0]);
-      else this._records[volumetric[i][0]].flags &= ~Tr2LightManager.Flags.IS_VOLUMETRIC;
+      else this._records[volumetric[i][0]].flags &= ~Tr2LightManager.FLAG_IS_VOLUMETRIC;
     }
 
     this._ResolveShadowCasters();
@@ -503,7 +514,7 @@ export class Tr2LightManager
     const lightTuples = [];
     for (let i = 0; i < this._records.length; i++)
     {
-      if ((this._records[i].flags & Tr2LightManager.Flags.CASTS_SHADOWS) !== 0)
+      if ((this._records[i].flags & Tr2LightManager.FLAG_CASTS_SHADOWS) !== 0)
       {
         let sizeAcross = this._frustum
           ? this._frustum.GetPixelSizeAccrossEst__CenterRadius(this._records[i].position, this._records[i].radius)
@@ -529,7 +540,7 @@ export class Tr2LightManager
     for (; i < lightTuples.length; i++)
     {
       const record = this._records[lightTuples[i].lightIndex];
-      record.flags &= ~Tr2LightManager.Flags.CASTS_SHADOWS;
+      record.flags &= ~Tr2LightManager.FLAG_CASTS_SHADOWS;
       if (raytraced)
       {
         record.raytracingShadowMask = 0;

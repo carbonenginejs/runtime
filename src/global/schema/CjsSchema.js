@@ -1048,6 +1048,7 @@ export class CjsSchema
         struct: createStructNamespace(),
         attribute: (name, options) => declarationDecorator("member", name, options),
         property: (name, options) => declarationDecorator("property", name, options),
+        chooser: values => chooserDecorator(values),
         define: (definitionOrConstructor, definition) => defineEntry(definitionOrConstructor, definition, false),
         hideInherited: this.hideInherited
     };
@@ -1078,6 +1079,12 @@ export class CjsSchema
         attribute: (name, options) =>
         {
             const { namespace, value } = getDecoratorMetadata(declarationDecorator("member", name, options));
+            return combinedFieldDecorator({ [namespace]: value, carbon: { member: true } });
+        },
+        // Carbon's `MAP_ATTRIBUTE_WITH_CHOOSER` chooser table: `meta.chooser` stamped as Carbon's member.
+        chooser: values =>
+        {
+            const { namespace, value } = getDecoratorMetadata(chooserDecorator(values));
             return combinedFieldDecorator({ [namespace]: value, carbon: { member: true } });
         },
         // A Carbon pure virtual: `meta.abstract` stamped as Carbon's method.
@@ -3237,6 +3244,48 @@ function normalizePathAccepts(accepts)
     return out;
 }
 
+/**
+ * `meta.chooser` / `blue.chooser`: the member's chooser table, Carbon's
+ * `VarEntry::mChooserTable` (blueexposure/include/BlueTypes.h:333), which
+ * `MAP_ATTRIBUTE_WITH_CHOOSER` fills from its `_chooser` argument
+ * (BlueExposureMacros.h:163-169) and `MAP_ATTRIBUTE` leaves NULL (:149-155).
+ *
+ * The macro sets no edit flag: ENUM (0x200) and FLAGS (0x100) are whatever
+ * the row passes in `_flags`. So a chooser is declared apart from the type.
+ * `type.enum` already carries its registered enum's chooser and the ENUM bit;
+ * this is for a row that names a chooser without ENUM, such as the lights'
+ * `flags` (Tr2PointLight_Blue.cpp:18). Carbon's choosers are
+ * `BLUE_REGISTER_ENUM_EX` tables, so the argument is a registered enum - its
+ * qualified name or object - whose registration carries the chooser; it
+ * resolves when schema metadata is read, as `type.enum` names do.
+ *
+ * @param {string|object} values Registered enum name or object.
+ * @returns {Function} The field decorator.
+ */
+function chooserDecorator(values)
+{
+    const definition = normalizeEnumDefinition(values);
+    if (typeof definition.enumType !== "string" || !definition.enumType.includes("."))
+    {
+        throw new TypeError("chooser requires a registered enum's qualified name or object.");
+    }
+    return fieldDecorator("chooser", { enumType: definition.enumType });
+}
+
+/**
+ * Resolves a `chooser` declaration to its registered table: identity and the
+ * ordered `{ name, value, description }` entries. A registration without a
+ * chooser has no table to report, and throws.
+ */
+function enrichChooserField(exported)
+{
+    const enumType = exported?.chooser?.enumType;
+    if (!enumType) return exported;
+    const info = blueEnums.GetEnumInfo(enumType);
+    if (info.chooser === undefined) throw new TypeError(`Enum ${enumType} registers no chooser.`);
+    return { ...exported, chooser: { ...exported.chooser, identity: info.name, entries: info.chooser } };
+}
+
 function normalizeEnumDefinition(values)
 {
     if (typeof values === "string")
@@ -3377,10 +3426,16 @@ function mergeNamespace(existing, value)
     return value;
 }
 
+// Resolves a field's `enum` and `chooser` declarations for export.
+function enrichEnumField(exported, Constructor)
+{
+    return enrichChooserField(enrichEnumRecord(exported, Constructor));
+}
+
 // Resolves @schema.enum("X") through the owning class's PascalCase static so
 // exported schemas are self-describing: adds the class-scoped identity and a
 // reference to the frozen member map when the static resolves.
-function enrichEnumField(exported, Constructor)
+function enrichEnumRecord(exported, Constructor)
 {
     const enumType = exported?.enum?.enumType;
     if (!enumType) return exported;

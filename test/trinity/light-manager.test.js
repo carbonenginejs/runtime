@@ -1,9 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { Tr2LightManager, TriFrustum } from "../../npm/dist/trinity/index.js";
-import { CreateLightRecord, LIGHT_FLAG_CASTS_SHADOWS, LIGHT_FLAG_IS_VOLUMETRIC } from "../../npm/dist/trinity/eve/lights/lightConversion.js";
-
-const FLAGS = Tr2LightManager.Flags;
+import { CreateLightRecord } from "../../npm/dist/trinity/eve/lights/lightConversion.js";
 
 /** Decodes one IEEE binary16 half from its bits, for pack assertions. */
 function fromHalf(bits)
@@ -46,11 +44,11 @@ test("AddLight applies Carbon's gates, premultiply, and in-place shadow strip", 
 
   // Zero brightness and zero radius are rejected.
   const dark = CreateLightRecord();
-  dark.flags = FLAGS.DEFAULT;
+  dark.flags = Tr2LightManager.FLAG_DEFAULT;
   dark.radius = 10;
   manager.AddLight(dark);
   const flat = CreateLightRecord();
-  flat.flags = FLAGS.DEFAULT;
+  flat.flags = Tr2LightManager.FLAG_DEFAULT;
   flat.color.set([ 1, 0, 0 ]);
   manager.AddLight(flat);
   assert.equal(manager.GetLightData().length, 0);
@@ -59,7 +57,7 @@ test("AddLight applies Carbon's gates, premultiply, and in-place shadow strip", 
   // the radius (contract: a producer omitting the premultiply is dim by a
   // factor of its own radius).
   const record = CreateLightRecord();
-  record.flags = FLAGS.DEFAULT | LIGHT_FLAG_CASTS_SHADOWS;
+  record.flags = Tr2LightManager.FLAG_DEFAULT | Tr2LightManager.FLAG_CASTS_SHADOWS;
   record.color.set([ 0.5, 0.25, 1 ]);
   record.radius = 4;
   record.position.set([ 1, 2, 3 ]);
@@ -67,7 +65,7 @@ test("AddLight applies Carbon's gates, premultiply, and in-place shadow strip", 
 
   // The caller's scratch record is mutated in place, as Carbon's non-const
   // reference is: the shadow flag is stripped under the shipping pin.
-  assert.equal(record.flags & LIGHT_FLAG_CASTS_SHADOWS, 0);
+  assert.equal(record.flags & Tr2LightManager.FLAG_CASTS_SHADOWS, 0);
 
   const stored = manager.GetLightData()[0];
   assert.notEqual(stored, record, "the manager copies; producers reuse scratch records");
@@ -107,7 +105,7 @@ test("ResolveLightData keeps the sixteen largest volumetric lights and clears th
   for (let i = 0; i < 17; i++)
   {
     const record = CreateLightRecord();
-    record.flags = FLAGS.DEFAULT | LIGHT_FLAG_IS_VOLUMETRIC;
+    record.flags = Tr2LightManager.FLAG_DEFAULT | Tr2LightManager.FLAG_IS_VOLUMETRIC;
     record.color.set([ 1, 1, 1 ]);
     record.radius = 1 + i;
     manager.AddLight(record);
@@ -120,8 +118,8 @@ test("ResolveLightData keeps the sixteen largest volumetric lights and clears th
   assert.equal(manager.GetDataRevision(), before + 1);
   assert.equal(manager.GetVolumetricLights().length, 16);
   const stored = manager.GetLightData();
-  assert.equal(stored[16].flags & LIGHT_FLAG_IS_VOLUMETRIC, 0, "loser flag cleared so shader and CPU agree");
-  assert.equal(stored[0].flags & LIGHT_FLAG_IS_VOLUMETRIC, LIGHT_FLAG_IS_VOLUMETRIC);
+  assert.equal(stored[16].flags & Tr2LightManager.FLAG_IS_VOLUMETRIC, 0, "loser flag cleared so shader and CPU agree");
+  assert.equal(stored[0].flags & Tr2LightManager.FLAG_IS_VOLUMETRIC, Tr2LightManager.FLAG_IS_VOLUMETRIC);
 });
 
 test("the packed buffer carries the contract layout, including biased profile slots", () =>
@@ -130,7 +128,7 @@ test("the packed buffer carries the contract layout, including biased profile sl
 
   const profile = { name: "profile-a" };
   const record = CreateLightRecord();
-  record.flags = FLAGS.DEFAULT | LIGHT_FLAG_IS_VOLUMETRIC;
+  record.flags = Tr2LightManager.FLAG_DEFAULT | Tr2LightManager.FLAG_IS_VOLUMETRIC;
   record.color.set([ 1, 1, 1 ]);
   record.radius = 2;
   record.position.set([ 10, 20, 30 ]);
@@ -143,7 +141,7 @@ test("the packed buffer carries the contract layout, including biased profile sl
   manager.AddLight(record);
 
   const second = CreateLightRecord();
-  second.flags = FLAGS.DEFAULT;
+  second.flags = Tr2LightManager.FLAG_DEFAULT;
   second.color.set([ 1, 1, 1 ]);
   second.radius = 1;
   second.lightProfile = profile;
@@ -162,7 +160,7 @@ test("the packed buffer carries the contract layout, including biased profile sl
   const bits = new Uint32Array(data.buffer, data.byteOffset, data.length);
   assert.ok(Math.abs(fromHalf(bits[7] & 0xFFFF) - 0.5) < 1e-3, "innerRadius half");
   const flagsWord = bits[7] >>> 16;
-  assert.equal(flagsWord & 0xF, FLAGS.DEFAULT | LIGHT_FLAG_IS_VOLUMETRIC);
+  assert.equal(flagsWord & 0xF, Tr2LightManager.FLAG_DEFAULT | Tr2LightManager.FLAG_IS_VOLUMETRIC);
   assert.equal(flagsWord >>> 4, 1, "profile slot 0, stored biased as 1");
   assert.equal((bits[19] >>> 16) >>> 4, 1, "second record shares the slot");
 
@@ -185,7 +183,7 @@ test("Clear drops records, not frustum state", () =>
   const manager = new Tr2LightManager();
 
   const record = CreateLightRecord();
-  record.flags = FLAGS.DEFAULT;
+  record.flags = Tr2LightManager.FLAG_DEFAULT;
   record.color.set([ 1, 1, 1 ]);
   record.radius = 1;
   manager.AddLight(record);
@@ -309,7 +307,7 @@ async function recordCompute(t, log, answer = () => true)
 function addTwoLights(manager)
 {
   manager.AddPointLight([ 0, 0, 0 ], 10, [ 1, 1, 1 ]);
-  manager.AddPointLight([ 5, 0, 0 ], 10, [ 1, 0, 0 ], 0, FLAGS.AFFECTS_SURFACES | FLAGS.AFFECTS_PARTICLES);
+  manager.AddPointLight([ 5, 0, 0 ], 10, [ 1, 0, 0 ], 0, Tr2LightManager.FLAG_AFFECTS_SURFACES | Tr2LightManager.FLAG_AFFECTS_PARTICLES);
   manager.ResolveLightData();
   assert.equal(manager.GetLightCount(), 2);
 }

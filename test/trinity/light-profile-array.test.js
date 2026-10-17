@@ -7,8 +7,6 @@ import { CreateLightRecord } from "../../npm/dist/trinity/eve/lights/lightConver
 import { Tr2LightProfileRes } from "../../npm/dist/resource/index.js";
 import { CjsIESFormat } from "../../npm/dist/resource/formats/ies/index.js";
 
-const FLAGS = Tr2LightManager.Flags;
-
 /**
  * The rank-1 light-profiles chain: bake -> resource -> shared array ->
  * packed slot. Carbon citations per behaviour live in the classes; these
@@ -41,7 +39,7 @@ function profileResource(payload = bakedProfilePayload())
 function lightWith(profile)
 {
     const record = CreateLightRecord();
-    record.flags = FLAGS.DEFAULT;
+    record.flags = Tr2LightManager.FLAG_DEFAULT;
     record.color.set([ 1, 1, 1 ]);
     record.radius = 2;
     record.lightProfile = profile;
