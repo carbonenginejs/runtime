@@ -584,8 +584,9 @@ mat4.fromMat3 = function (out, m)
 };
 
 /**
- * Carbon OrthoNormalBasisZ (math Matrix_inline.h:531-546): identity; row Z =
- * Normalize(z); X seeded (0,1,0) when |Z.x| > 0.99 else (1,0,0); Y =
+ * Carbon: OrthoNormalBasisZ (math/include/Matrix_inline.h:531-546)
+ *
+ * Identity; row Z = Normalize(z); X seeded (0,1,0) when |Z.x| > 0.99 else (1,0,0); Y =
  * Normalize(Cross(X, Z)); X = Cross(Y, Z). Carbon's basis rows land at gl flat
  * [0..2]/[4..6]/[8..10] on the shared byte layout - single-matrix build, no
  * composition, no operand swap. A zero-length z NaNs exactly as Carbon's
