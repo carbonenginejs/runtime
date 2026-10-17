@@ -51,7 +51,7 @@ import { ITr2SecondaryLightSource } from "../../core/lighting/ITr2SecondaryLight
 import { ITr2ShLightingReceiver } from "../../core/lighting/ITr2ShLightingReceiver.js";
 import { Tr2VolumetricsRenderer } from "../../core/volumetrics/Tr2VolumetricsRenderer.js";
 import { convertProjectionCoordToWorldPickRay, screenToProjection } from "../../core/view/pickRay.js";
-import { EveVisualizeMethod } from "../../generated/eve/enums.js";
+import { EveVisualizeMethod, VisualizerType } from "../../generated/eve/enums.js";
 import { ShadowQuality, Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 import { TriFrustum } from "../../core/view/TriFrustum.js";
 import { TriShadowOrthoFrustum } from "./shadows/TriShadowOrthoFrustum.js";
@@ -78,12 +78,6 @@ const VISUALIZER_EFFECT_PATH = [
   "res:/Graphics/Effect/Managed/Space/Visualizer/LightCount.fx"
 ];
 
-/** EveSpaceScene::VisualizerEffect::VisualizerType (EveSpaceScene.h:573-578). */
-const VisualizerType = {
-  PIXEL_SHADER_REPLACEMENT: 0,
-  FULL_SCREEN_QUAD: 1,
-  FULL_SCREEN_QUAD_OVERLAY: 2
-};
 
 /** The overlay's full-viewport texture coordinates (cpp:2885). */
 const OVERLAY_TL = [ 0, 0 ];

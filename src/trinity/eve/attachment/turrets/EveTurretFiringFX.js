@@ -6,6 +6,7 @@ import { IsMatch, CjsBlueClasses } from "#blue";
 
 import { CjsSchema, meta, type, blue } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
+import { EveTurretFiringFXPerMuzzleData } from "./EveTurretFiringFXPerMuzzleData.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { CjsStretchRuntime } from "../../renderable/stretch/CjsStretchRuntime.js";
@@ -304,7 +305,7 @@ export class EveTurretFiringFX extends EveEntity
 
   /**
    * Per-muzzle transforms, start delays and firing progress retained between updates.
-   * @type {Array<{started: boolean, readyToStart: boolean, muzzlePositionBoneID: number, muzzleTransform: Float32Array, currentStartDelay: number, constantDelay: number, elapsedTime: number}>}
+   * @type {Array<EveTurretFiringFXPerMuzzleData>}
    */
   _perMuzzleData = [];
 
@@ -1065,16 +1066,17 @@ export class EveTurretFiringFX extends EveEntity
   {
     while (this._perMuzzleData.length < EveTurretFiringFX.MUZZLE_COUNT_MAX)
     {
+      // The constructor's per-muzzle writes (cpp:50-58); elapsedTime, which
+      // Carbon leaves unset there, keeps the record's 0.
       const index = this._perMuzzleData.length;
-      this._perMuzzleData.push({
-        started: false,
-        readyToStart: false,
-        muzzlePositionBoneID: EveTurretFiringFX.INVALID_INDEX,
-        muzzleTransform: mat4.create(),
-        currentStartDelay: 0,
-        constantDelay: this[`firingDelay${index + 1}`],
-        elapsedTime: 0
-      });
+      const data = new EveTurretFiringFXPerMuzzleData();
+      data.started = false;
+      data.readyToStart = false;
+      data.muzzlePositionBoneID = EveTurretFiringFX.INVALID_INDEX;
+      data.constantDelay = this[`firingDelay${index + 1}`];
+      data.currentStartDelay = 0;
+      mat4.identity(data.muzzleTransform);
+      this._perMuzzleData.push(data);
     }
     for (let index = 0; index < EveTurretFiringFX.MUZZLE_COUNT_MAX; index++)
     {

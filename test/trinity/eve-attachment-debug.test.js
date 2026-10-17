@@ -21,7 +21,8 @@ import {
   EveSpriteLineSet,
   EveSpriteLineSetItem,
   EveTurretFiringFX,
-  EveTurretSet
+  EveTurretSet,
+  EveTurretSetSingleTurretData
 } from "../../npm/dist/trinity/index.js";
 
 const { Wireframe, Solid, Lit } = ITr2DebugRenderer2.Effect;
@@ -297,7 +298,10 @@ test("EveTurretSet debug: bounding sphere per valid turret, then firing effect a
   const calls = [];
   const set = new EveTurretSet();
   set.boundingSphere.set([ 1, 0, 0, 2 ]);
-  set._turrets.push({ valid: true, worldMatrix: translated(5, 0, 0) }, { valid: false, worldMatrix: mat4.create() });
+  const first = new EveTurretSetSingleTurretData();
+  first.valid = true;
+  mat4.copy(first.worldMatrix, translated(5, 0, 0));
+  set._turrets.push(first, new EveTurretSetSingleTurretData());
   set._firingEffect = fakeDebuggable("firing", calls);
   set.turretMovementObserver = fakeDebuggable("observer", calls);
   set.playMovementSound = false;

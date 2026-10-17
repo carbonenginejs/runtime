@@ -16,6 +16,8 @@ import { EveEntity } from "../../EveEntity.js";
 import { EveComponentType } from "../../EntityComponents.js";
 import { IEveSpaceObject2ParentData } from "../../spaceObject/IEveSpaceObject2ParentData.js";
 import { EveTurretFiringFX } from "./EveTurretFiringFX.js";
+import { EveTurretSetAnimationRequest } from "./EveTurretSetAnimationRequest.js";
+import { EveTurretSetSingleTurretData } from "./EveTurretSetSingleTurretData.js";
 import { EveTurretAiming } from "./EveTurretAiming.js";
 import { EVE_TURRET_RANDOM_DELAY_MAX, EveTurretTarget } from "./EveTurretTarget.js";
 import { mat4 } from "#math/mat4";
@@ -464,7 +466,10 @@ export class EveTurretSet extends EveEntity
    */
   _skeletonBoneIndices = [];
 
-  /** Buffered native AnimationRequest records omit delay (cpp:2483-2490). */
+  /**
+   * m_animationQueue: buffered AnimationRequest records, which omit delay (cpp:2483-2490).
+   * @type {Array<EveTurretSetAnimationRequest>}
+   */
   _animationQueue = [];
 
   /** JS delta-driven equivalent of the renderer animation clock. */
@@ -1627,7 +1632,11 @@ export class EveTurretSet extends EveEntity
     if (!this.geometryResource || !this.turretEffect) return 0;
     if (!this.geometryResource.IsPrepared())
     {
-      this._animationQueue.push({ turretIndex, animName, animNameIdle });
+      const request = new EveTurretSetAnimationRequest();
+      request.turretIndex = turretIndex;
+      request.animName = animName;
+      request.animNameIdle = animNameIdle;
+      this._animationQueue.push(request);
       return 0;
     }
     if (!this.geometryResource.IsGood()) return 0;
@@ -1809,8 +1818,9 @@ export class EveTurretSet extends EveEntity
 
   /**
    * Stores a scale-free locator matrix without orthogonalizing its axes
-   * (EveTurretSet.cpp:1784; TriMath.cpp:683). JS plain records replace the
-   * native SingleTurretData allocation; no second transform convention is used.
+   * (EveTurretSet.cpp:1784; TriMath.cpp:683). New SingleTurretData records
+   * get their sequencer from InitializeAnimation rather than Carbon's per-branch
+   * CMF/Granny allocation; no second transform convention is used.
    */
   @blue.method
   @meta.adapted
@@ -2586,21 +2596,16 @@ export class EveTurretSet extends EveEntity
   /**
    * A new SingleTurretData record (EveTurretSet.h:323-347), invalid and hidden until SetLocalTransform places it.
    * The CMF sequencer and pose are attached by InitializeAnimation.
-   * @returns {object} The record.
+   * @returns {EveTurretSetSingleTurretData} The record.
    */
   static _CreateTurretData()
   {
-    return {
-      valid: false,
-      visible: false,
-      localPosition: vec4.create(),
-      localQuaternion: quat.create(),
-      localMatrix: mat4.create(),
-      worldMatrix: mat4.create(),
-      sequencer: null,
-      pose: null,
-      worldTransforms: []
-    };
+    // SetLocalTransform's fill (cpp:1713-1729) before the sequencer exists.
+    const data = new EveTurretSetSingleTurretData();
+    mat4.identity(data.worldMatrix);
+    data.valid = false;
+    data.visible = false;
+    return data;
   }
 
   static ImpactBehaviour = EveTurretTarget.ImpactBehaviour;
