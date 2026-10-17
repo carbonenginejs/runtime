@@ -1,12 +1,10 @@
 // Source: trinity/trinity/TriDevice.h
-import { Tr2OcclusionBuffer } from "../../eve/effect/lensflare/Tr2OcclusionBuffer.js";
 import { DestroyGlobalGpuResourcePool, Tr2GpuResourcePool } from "../Tr2GpuResourcePool/Tr2GpuResourcePool.js";
-import { EveSpaceScene } from "../../eve/scene/EveSpaceScene.js";
 // Hand-maintained from Carbon source. Unimplemented backend methods here are
 // unported Carbon behaviour, not a boundary: Carbon holds its handles on this
 // class and calls the AL from it.
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { meta, type, blue } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { PresentInterval, SwapEffect, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
 import {
   convertProjectionCoordToWorldPickRay,
@@ -410,15 +408,24 @@ export class TriDevice
   /**
    * Tears the device down and stops it being ticked (`TriDevice.cpp:687-691`).
    *
+   * Adapted: also releases the scene's and occlusion buffer's static GPU
+   * resources, which Carbon leaves to process exit. Both classes are reached
+   * by registered name, not imported: EveSpaceScene is a Tr2DeviceResource,
+   * whose module imports this one, so a static import here is a cycle. A
+   * class that was never loaded created no statics.
+   *
    * @returns {TriDevice} This device.
    */
   @blue.method
-  @meta.implemented
+  @meta.adapted
   InvalidateAndUnregisterForTicks()
   {
     be.os.UnregisterForTicks(this, TriDevice.TICK_COOKIE);
-    EveSpaceScene.ReleaseStaticResources();
-    Tr2OcclusionBuffer.ReleaseStaticResources();
+    for (const name of [ "EveSpaceScene", "Tr2OcclusionBuffer" ])
+    {
+      const Constructor = CjsSchema.getConstructor(name);
+      if (Constructor) Constructor.ReleaseStaticResources();
+    }
     DestroyGlobalGpuResourcePool();
     this.DestroyRenderContext();
     this.#hwnd = null;
