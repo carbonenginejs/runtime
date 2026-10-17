@@ -1,21 +1,24 @@
-// Source: trinity/trinity/Lights/Tr2Light.h
-// Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema eve/lights/LightFeatures.json.).
+// Source: trinity/trinity/Lights/Tr2Light.h:11-18
+// Source: trinity/trinity/Lights/Tr2Light.cpp (LightFeatures::LightFeatures)
 import { type, blue } from "#schema";
 
-/** LightFeatures (eve/lights) - generated from schema shapeHash 47b89708.... */
-@blue.define("LightFeatures")
+/**
+ * Carbon LightFeatures: what a light's owner contributes to its conversion -
+ * the light profile's index, and the parent's scale and brightness.
+ */
+@blue.define({ className: "LightFeatures", donors: [ "LightFeatures" ] })
 export class LightFeatures
 {
 
-  /** profileIndex (int16_t) */
+  /** profileIndex (int16_t) = 0 (cpp:31). */
   @type.int16
   profileIndex = 0;
 
-  /** parentScale (float) */
+  /** parentScale (float) = 1 (cpp:30). */
   @type.float32
   parentScale = 1;
 
-  /** parentBrightness (float) */
+  /** parentBrightness (float) = 1 (cpp:29). */
   @type.float32
   parentBrightness = 1;
 

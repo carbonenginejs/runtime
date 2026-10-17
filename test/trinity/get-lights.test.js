@@ -13,9 +13,11 @@ import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import assert from "node:assert/strict";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
+import { noise } from "../../npm/dist/global/math/noise.js";
+import { CcpTime } from "../../npm/dist/global/blue/CcpTime.js";
+import { be } from "../../npm/dist/global/blue/index.js";
 import {
-  AsPerPointLightData,
-  AsPerSpotLightData,
+  CjsLightData,
   EveSpaceObjectAttachmentUtils,
   CreateLightRecord,
   EveBannerSet,
@@ -102,7 +104,8 @@ function MakeLightManager({ shadowQuality = 0, animationTime = 0 } = {})
 
 function MakeLightData(overrides = {})
 {
-  return {
+  // A real LightData: the conversions are its own methods (Tr2Light.h:30-31).
+  return Object.assign(new CjsLightData(), {
     position: [1, 2, 3],
     color: [0.5, 0.25, 1, 1],
     brightness: 2,
@@ -116,7 +119,7 @@ function MakeLightData(overrides = {})
     isVolumetric: false,
     boneIndex: -1,
     ...overrides
-  };
+  });
 }
 
 test("AsPerPointLightData: swapped rotation composition, scaling, shadow/volumetric flags (Tr2Light.cpp:37-69)", () =>
@@ -132,7 +135,7 @@ test("AsPerPointLightData: swapped rotation composition, scaling, shadow/volumet
 
   const lightData = MakeLightData({ rotation });
   const features = { parentBrightness: 3, parentScale: 2 };
-  AsPerPointLightData(record, lightData, transform, features, ShadowQuality.SHADOW_DISABLED);
+  lightData.AsPerPointLightData(transform, features, ShadowQuality.SHADOW_DISABLED, record);
 
   // color = rgb * brightness * parentBrightness.
   assertVecClose(record.color, [0.5 * 6, 0.25 * 6, 1 * 6], "composed color");
@@ -152,26 +155,43 @@ test("AsPerPointLightData: swapped rotation composition, scaling, shadow/volumet
   assert.equal(record.flags, 1, "no shadow flag at DISABLED");
 
   // Shadow flag matrix (cpp:62-65).
-  AsPerPointLightData(record, MakeLightData({ castsShadows: 2 }), transform, features, ShadowQuality.SHADOW_DISABLED);
+  MakeLightData({ castsShadows: 2 }).AsPerPointLightData(transform, features, ShadowQuality.SHADOW_DISABLED, record);
   assert.equal(record.flags & 4, 4, "ALWAYS_ENABLED casts");
-  AsPerPointLightData(record, MakeLightData({ castsShadows: 1 }), transform, features, ShadowQuality.SHADOW_HIGH);
+  MakeLightData({ castsShadows: 1 }).AsPerPointLightData(transform, features, ShadowQuality.SHADOW_HIGH, record);
   assert.equal(record.flags & 4, 4, "HIGH-quality-only casts at SHADOW_HIGH");
-  AsPerPointLightData(record, MakeLightData({ castsShadows: 1 }), transform, features, ShadowQuality.SHADOW_LOW);
+  MakeLightData({ castsShadows: 1 }).AsPerPointLightData(transform, features, ShadowQuality.SHADOW_LOW, record);
   assert.equal(record.flags & 4, 0, "HIGH-quality-only does not cast at SHADOW_LOW");
-  AsPerPointLightData(record, MakeLightData({ isVolumetric: true }), transform, features, 0);
+  MakeLightData({ isVolumetric: true }).AsPerPointLightData(transform, features, 0, record);
   assert.equal(record.flags & 8, 8, "volumetric flag");
 });
 
 test("AsPerSpotLightData: cos-of-degree angles and 1/tan projection distance (Tr2Light.cpp:71-80)", () =>
 {
   const record = CreateLightRecord();
-  AsPerSpotLightData(record, MakeLightData(), mat4.create(), { parentBrightness: 1, parentScale: 1 }, 0);
+  MakeLightData().AsPerSpotLightData(mat4.create(), { parentBrightness: 1, parentScale: 1 }, 0, record);
   assertClose(record.outerAngle, Math.cos(Math.PI / 3), "cos(60deg)");
   assertClose(record.innerAngle, Math.cos(Math.PI / 6), "cos(30deg)");
   assertClose(record.projectionPlaneDistance, 1 / Math.tan(Math.PI / 3), "1/tan(60deg)");
 
-  AsPerSpotLightData(record, MakeLightData({ outerAngle: 0 }), mat4.create(), { parentBrightness: 1, parentScale: 1 }, 0);
+  MakeLightData({ outerAngle: 0 }).AsPerSpotLightData(mat4.create(), { parentBrightness: 1, parentScale: 1 }, 0, record);
   assert.equal(record.projectionPlaneDistance, Infinity, "outerAngle 0 ships Infinity, as Carbon does");
+});
+
+test("AsPerPointLightData flickers brightness with Carbon's fixed-seed Perlin noise (Tr2Light.cpp:42-47)", () =>
+{
+  const steady = MakeLightData();
+  const flicker = MakeLightData({ noiseAmplitude: 0.5, noiseFrequency: 3, noiseOctaves: 2 });
+  flicker.startTime = be.os.GetCurrentFrameTime() - 25_000_000;
+  const features = { parentBrightness: 1, parentScale: 1 };
+
+  const base = steady.AsPerPointLightData(mat4.create(), features, 0);
+  const lit = flicker.AsPerPointLightData(mat4.create(), features, 0);
+
+  // PerlinNoise1D( TimeAsDouble( now - start ) * frequency, 2, 2, octaves ).
+  const value = Math.fround(noise.carbonPerlin1D(CcpTime.timeAsDouble(be.os.GetCurrentFrameTime() - flicker.startTime) * 3, 2, 2, 2));
+  const scale = Math.fround(Math.fround((value + 1) / 2) * 0.5);
+  assertClose(lit.color[0], base.color[0] * scale, "red follows the flicker");
+  assertClose(lit.color[2], base.color[2] * scale, "blue follows the flicker");
 });
 
 test("Tr2Light.AddLight: flag validity, UNDEFINED inertness, bone*transform swap, sticky bone (Tr2Light.cpp:98-149)", () =>

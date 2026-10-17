@@ -9,11 +9,10 @@ import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
 import { CjsLightData, createCjsLightDataView } from "./CjsLightData.js";
 import {
   AreLightFlagsValid,
-  AsPerPointLightData,
-  AsPerSpotLightData,
   CreateLightRecord,
   MatrixCopyFrom3x4
 } from "./lightConversion.js";
+import { LightFeatures } from "./LightFeatures.js";
 
 
 /**
@@ -267,13 +266,13 @@ export class Tr2Light
     const record = Tr2Light._lightRecord;
     if (this.type === Tr2Light.POINT_LIGHT)
     {
-      AsPerPointLightData(record, this.lightData, Tr2Light._lightTransformScratch, features,
-        lightManager?.GetCurrentSpaceSceneShadowQuality() ?? 0);
+      this.lightData.AsPerPointLightData(Tr2Light._lightTransformScratch, features,
+        lightManager.GetCurrentSpaceSceneShadowQuality(), record);
     }
     else if (this.type === Tr2Light.SPOT_LIGHT)
     {
-      AsPerSpotLightData(record, this.lightData, Tr2Light._lightTransformScratch, features,
-        lightManager?.GetCurrentSpaceSceneShadowQuality() ?? 0);
+      this.lightData.AsPerSpotLightData(Tr2Light._lightTransformScratch, features,
+        lightManager.GetCurrentSpaceSceneShadowQuality(), record);
     }
     else
     {
@@ -380,7 +379,7 @@ export class Tr2Light
 
   static _lightTransformScratch = mat4.create();
 
-  static _featuresScratch = { parentBrightness: 1, parentScale: 1 };
+  static _featuresScratch = new LightFeatures();
 
   static _lightRecord = CreateLightRecord();
 

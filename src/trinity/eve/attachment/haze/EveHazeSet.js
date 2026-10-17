@@ -14,7 +14,8 @@ import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveHazeSetLight } from "./EveHazeSetLight.js";
 import { EveComponentType } from "../../EntityComponents.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
-import { AsPerPointLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
+import { CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
+import { LightFeatures } from "../../lights/LightFeatures.js";
 import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2RenderReason } from "../../../generated/trinityCore/enums.js";
@@ -540,7 +541,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
       {
         features.parentBrightness *= this._boosterGain;
       }
-      AsPerPointLightData(record, light.lightData, light.boneMatrix, features, quality);
+      light.lightData.AsPerPointLightData(light.boneMatrix, features, quality, record);
       record.lightType = Tr2Light.POINT_LIGHT;
       record.lightData = light.lightData;
       record.lightProfile = light.lightProfile;
@@ -552,7 +553,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   /** Per-frame scratch - UpdateVisibility must not allocate. */
   static _aabbScratch = box3.create();
 
-  static _features = { parentBrightness: 0, parentScale: 1 };
+  static _features = new LightFeatures();
 
   static _lightRecord = CreateLightRecord();
 }

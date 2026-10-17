@@ -4,16 +4,14 @@
 //   h:55-85, flags h:100-105, ShadowQuality h:25-31) and Tr2LightManager.cpp
 //   (AreLightFlagsValid cpp:677-680)
 //
-// The LightData -> PerLightData conversion core shared by Tr2Light.AddLight
-// and the packed-set GetLights family. The produced record follows the
-// EveSmartLightPointLight convention: typed CPU floats only (no Float_16/
-// Vector3_16 packing), flags unpacked, the light profile carried by
-// reference instead of Carbon's profileIndex << 4 flag packing - physical
-// packing is a renderer-backend concern. Records are scratch; the manager
-// duck must copy (Carbon's Tr2LightManager::AddLight copies by value).
-import { mat4 } from "#math/mat4";
+// The light flags and the per-light record CjsLightData.AsPerPointLightData /
+// AsPerSpotLightData write (Carbon LightData's own methods, ported onto
+// CjsLightData). The record follows the EveSmartLightPointLight convention:
+// typed CPU floats, flags unpacked, the light profile carried by reference;
+// Carbon's Float_16 narrowing and profileIndex << 4 packing wait on the light
+// manager's port. Records are scratch; Tr2LightManager.AddLight copies them,
+// as Carbon's copies by value.
 import { vec3 } from "#math/vec3";
-import { ShadowQuality } from "../../generated/trinityCore/enums.js";
 
 /** Carbon Tr2LightManager light flags (Tr2LightManager.h:100-105).
  * NOTE: these bit-flag constants should be modelled as an enum (a proper
@@ -49,134 +47,6 @@ export function CreateLightRecord()
     innerAngle: 0,
     projectionPlaneDistance: 0
   };
-}
-
-const ROTATION_SCRATCH = mat4.create();
-const LIGHT_ROTATION_SCRATCH = mat4.create();
-const DIRECTION_SCRATCH = vec3.create();
-
-/**
- * Carbon LightData::AsPerPointLightData (Tr2Light.cpp:37-69), writing into
- * the caller's record (returned). `lightData` is any duck with the CjsLightData
- * field surface; `features` is {parentBrightness, parentScale}. Compositions:
- * cpp:55 `RotationMatrix(rotation) * transform` is row-vector (rotation
- * first) -> gl `mat4.multiply(out, transform, rotationMatrix)` - SWAPPED.
- * cpp:53 TransformCoord and cpp:56's w=0 basis transform are single-matrix
- * applications (the latter via explicit basis rows - vec3.transformMat4 would
- * add the translation).
- *
- * ADAPTATION (documented once here for every consumer): the Perlin noise
- * brightness flicker (cpp:43-47) reads the global frame clock - an engine
- * seam; the base brightness is used until it lands. Carbon's Float_16
- * narrowing is omitted (typed CPU floats).
- */
-export function AsPerPointLightData(record, lightData, transform, features, shadowQuality)
-{
-  // cpp:42 - composed brightness (noise flicker: see the adaptation note).
-  const composedBrightness = (lightData.brightness ?? 0) * features.parentBrightness;
-
-  // cpp:48 - color.rgb * composedBrightness.
-  const color = lightData.color;
-  record.color[0] = (color?.[0] ?? 0) * composedBrightness;
-  record.color[1] = (color?.[1] ?? 0) * composedBrightness;
-  record.color[2] = (color?.[2] ?? 0) * composedBrightness;
-
-  // cpp:49-50 - radii scaled by the parent scale.
-  record.radius = (lightData.radius ?? 0) * features.parentScale;
-  record.innerRadius = (lightData.innerRadius ?? 0) * features.parentScale;
-
-  // cpp:51-52 - Carbon packs profileIndex << 4 into the flags; the JS record
-  // carries the profile by reference (set by the caller), flags unpacked.
-  record.flags = lightData.flags ?? 0;
-
-  // cpp:53 - TransformCoord: single-matrix point transform.
-  vec3.transformMat4(record.position, lightData.position, transform);
-
-  // cpp:55 - COMPOSITION (row-vector, rotation first): operands swap.
-  mat4.fromQuat(ROTATION_SCRATCH, lightData.rotation ?? IDENTITY_ROTATION);
-  mat4.multiply(LIGHT_ROTATION_SCRATCH, transform, ROTATION_SCRATCH);
-  // cpp:56 - Transform((0,0,-1,0), lightRotation): w = 0, basis rows only.
-  const m = LIGHT_ROTATION_SCRATCH;
-  DIRECTION_SCRATCH[0] = -m[8];
-  DIRECTION_SCRATCH[1] = -m[9];
-  DIRECTION_SCRATCH[2] = -m[10];
-  vec3.normalize(record.direction, DIRECTION_SCRATCH);
-
-  // cpp:58-60 - point defaults; 1/tan(45deg) = 1.
-  record.outerAngle = 0;
-  record.innerAngle = 0;
-  record.projectionPlaneDistance = 1 / Math.tan(2 * Math.PI * 45 / 360);
-
-  // cpp:62-66 - shadow + volumetric flags.
-  const castsShadows = lightData.castsShadows ?? 0;
-  if (castsShadows === 2 ||
-    (castsShadows === 1 && (shadowQuality === ShadowQuality.SHADOW_HIGH || shadowQuality === ShadowQuality.SHADOW_RAYTRACED)))
-  {
-    record.flags |= LIGHT_FLAG_CASTS_SHADOWS;
-  }
-  record.flags |= lightData.isVolumetric ? LIGHT_FLAG_IS_VOLUMETRIC : 0;
-
-  return record;
-}
-
-/** Carbon LightData::AsPerSpotLightData (Tr2Light.cpp:71-80): the point
- * conversion, then cos-of-degree angles and 1/tan(outerAngle deg) - Infinity
- * at outerAngle 0, exactly as Carbon ships it. */
-export function AsPerSpotLightData(record, lightData, transform, features, shadowQuality)
-{
-  AsPerPointLightData(record, lightData, transform, features, shadowQuality);
-  record.outerAngle = Math.cos(2 * Math.PI * (lightData.outerAngle ?? 0) / 360);
-  record.innerAngle = Math.cos(2 * Math.PI * (lightData.innerAngle ?? 0) / 360);
-  record.projectionPlaneDistance = 1 / Math.tan(2 * Math.PI * (lightData.outerAngle ?? 0) / 360);
-  return record;
-}
-
-const IDENTITY_ROTATION = new Float32Array([0, 0, 0, 1]);
-
-/** A scratch plain LightData copy for by-value loop mutation (Carbon's
- * `auto light` / `lightDataCopy` pattern in EvePlaneSet/EveBannerSet
- * GetLights - the stored items must NOT be mutated). Holds exactly the
- * fields the conversions read. */
-export function CreateLightDataScratch()
-{
-  return {
-    position: vec3.create(),
-    color: new Float32Array(4),
-    brightness: 0,
-    radius: 0,
-    innerRadius: 0,
-    rotation: new Float32Array([0, 0, 0, 1]),
-    outerAngle: 0,
-    innerAngle: 0,
-    flags: 0,
-    castsShadows: 0,
-    isVolumetric: false
-  };
-}
-
-/** Copies the conversion-read fields of a CjsLightData(-shaped) source into
- * a CreateLightDataScratch record. */
-export function CopyLightData(out, lightData)
-{
-  vec3.copy(out.position, lightData.position);
-  out.color[0] = lightData.color?.[0] ?? 0;
-  out.color[1] = lightData.color?.[1] ?? 0;
-  out.color[2] = lightData.color?.[2] ?? 0;
-  out.color[3] = lightData.color?.[3] ?? 1;
-  out.brightness = lightData.brightness ?? 0;
-  out.radius = lightData.radius ?? 0;
-  out.innerRadius = lightData.innerRadius ?? 0;
-  const rotation = lightData.rotation ?? IDENTITY_ROTATION;
-  out.rotation[0] = rotation[0];
-  out.rotation[1] = rotation[1];
-  out.rotation[2] = rotation[2];
-  out.rotation[3] = rotation[3];
-  out.outerAngle = lightData.outerAngle ?? 0;
-  out.innerAngle = lightData.innerAngle ?? 0;
-  out.flags = lightData.flags ?? 0;
-  out.castsShadows = lightData.castsShadows ?? 0;
-  out.isVolumetric = !!lightData.isVolumetric;
-  return out;
 }
 
 /** Carbon TriMatrixCopyFrom3x4 (Utilities/MatrixUtils.cpp:81-96): unpacks a

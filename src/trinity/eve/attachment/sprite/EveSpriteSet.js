@@ -17,7 +17,8 @@ import { EveComponentType } from "../../EntityComponents.js";
 import { EveSpaceObjectAttachmentUtils } from "../EveSpaceObjectAttachmentUtils.js";
 import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
-import { AsPerPointLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
+import { CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
+import { LightFeatures } from "../../lights/LightFeatures.js";
 import { TriBatchType } from "#consts/graphics";
 import { num } from "#math/num";
 import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
@@ -570,7 +571,7 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
 
     for (const light of this.lights)
     {
-      AsPerPointLightData(record, light.lightData, light.boneMatrix, features, quality);
+      light.lightData.AsPerPointLightData(light.boneMatrix, features, quality, record);
       const blinkScale = EveSpaceObjectAttachmentUtils.blink(time, light.blinkRate, light.blinkPhase, light.minScale, light.maxScale);
       record.radius *= blinkScale;
       record.innerRadius *= blinkScale;
@@ -701,7 +702,7 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
   /** Per-frame scratch - UpdateVisibility must not allocate. */
   static _aabbScratch = box3.create();
 
-  static _features = { parentBrightness: 0, parentScale: 1 };
+  static _features = new LightFeatures();
 
   static _lightRecord = CreateLightRecord();
 

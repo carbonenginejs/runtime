@@ -14,7 +14,8 @@ import { EveSpotlightSetSpotlightData } from "./EveSpotlightSetSpotlightData.js"
 import { EveComponentType } from "../../EntityComponents.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
 import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";
-import { AsPerSpotLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
+import { CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
+import { LightFeatures } from "../../lights/LightFeatures.js";
 import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
 import { TriBatchType } from "#consts/graphics";
 import { num } from "#math/num";
@@ -667,7 +668,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
       {
         features.parentBrightness *= this._boosterGain;
       }
-      AsPerSpotLightData(record, light.lightData, light.boneMatrix, features, quality);
+      light.lightData.AsPerSpotLightData(light.boneMatrix, features, quality, record);
       record.lightType = Tr2Light.SPOT_LIGHT;
       record.lightData = light.lightData;
       record.lightProfile = light.lightProfile;
@@ -679,7 +680,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   /** Per-frame scratch - UpdateVisibility must not allocate. */
   static _aabbScratch = box3.create();
 
-  static _features = { parentBrightness: 0, parentScale: 1 };
+  static _features = new LightFeatures();
 
   static _lightRecord = CreateLightRecord();
 }

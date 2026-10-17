@@ -49,13 +49,9 @@ function TransformNormal(out, v, m)
   out[2] = x * m[2] + y * m[6] + z * m[10];
   return out;
 }
-import {
-  AsPerPointLightData,
-  CopyLightData,
-  CreateLightDataScratch,
-  CreateLightRecord,
-  MatrixCopyFrom3x4
-} from "../../lights/lightConversion.js";
+import { CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
+import { LightFeatures } from "../../lights/LightFeatures.js";
+import { CjsLightData } from "../../lights/CjsLightData.js";
 
 
 /**
@@ -981,9 +977,9 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
 
     for (const light of this.lights)
     {
-      CopyLightData(dataCopy, light.lightData);
+      dataCopy.Copy(light.lightData);
       EveSpaceObjectAttachmentUtils.saturate(dataCopy.color, averageColor, light.saturation);
-      AsPerPointLightData(record, dataCopy, light.boneMatrix, features, quality);
+      dataCopy.AsPerPointLightData(light.boneMatrix, features, quality, record);
       record.lightType = Tr2Light.POINT_LIGHT;
       record.lightData = light.lightData;
       record.lightProfile = light.lightProfile;
@@ -1022,11 +1018,11 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   /** Carbon passes a single 1.0 density (cpp:154) - a banner is one flat quad. */
   static _uvDensities = [1];
 
-  static _features = { parentBrightness: 0, parentScale: 1 };
+  static _features = new LightFeatures();
 
   static _lightRecord = CreateLightRecord();
 
-  static _lightDataScratch = CreateLightDataScratch();
+  static _lightDataScratch = new CjsLightData();
 
   static _averageColorScratch = new Float32Array(4);
 

@@ -24,13 +24,9 @@ import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js"
 import { num } from "#math/num";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
-import {
-  AsPerPointLightData,
-  CopyLightData,
-  CreateLightDataScratch,
-  CreateLightRecord,
-  MatrixCopyFrom3x4
-} from "../../lights/lightConversion.js";
+import { CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
+import { LightFeatures } from "../../lights/LightFeatures.js";
+import { CjsLightData } from "../../lights/CjsLightData.js";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 
 const WHITE = new Float32Array([1, 1, 1, 1]);
@@ -718,14 +714,14 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
 
     for (const light of this.lights)
     {
-      CopyLightData(dataCopy, light.lightData);
+      dataCopy.Copy(light.lightData);
       dataCopy.color[0] *= averageColor[0];
       dataCopy.color[1] *= averageColor[1];
       dataCopy.color[2] *= averageColor[2];
       dataCopy.color[3] *= averageColor[3];
       EveSpaceObjectAttachmentUtils.saturate(dataCopy.color, dataCopy.color, light.saturation);
       dataCopy.brightness *= EveSpaceObjectAttachmentUtils.fade(time, light.fadeType, light.blinkRate, light.blinkPhase);
-      AsPerPointLightData(record, dataCopy, light.boneMatrix, features, quality);
+      dataCopy.AsPerPointLightData(light.boneMatrix, features, quality, record);
       record.lightType = Tr2Light.POINT_LIGHT;
       record.lightData = light.lightData;
       record.lightProfile = light.lightProfile;
@@ -734,7 +730,7 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
     }
   }
 
-  static _features = { parentBrightness: 0, parentScale: 1 };
+  static _features = new LightFeatures();
 
   /** Carbon CreateBoundingBoxes skips an item whose color is exactly
    * Color(0, 0, 0, 0) (cpp:332-335) - an authored "off" plane contributes no
@@ -750,7 +746,7 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
 
   static _lightRecord = CreateLightRecord();
 
-  static _lightDataScratch = CreateLightDataScratch();
+  static _lightDataScratch = new CjsLightData();
 
   static _averageColorScratch = new Float32Array(4);
 }
