@@ -134,10 +134,11 @@ test("rotated nonuniform parent, visibility, sorting and pre-update collection",
   near(cloud.worldTransform.slice(12, 15), [4, 22, -18]);
   near(cloud.boundingSphere, [4, 22, -18, Math.sqrt(29) / 2]);
   cloud.minScreenSize = 5;
-  update.SetFrustum({ IsSphereVisible: () => true, GetPixelSizeAccross: () => 9 });
+  // The context owns its frustum by value (ruling 16); pin the answers on it.
+  Object.assign(update.GetFrustum(), { IsSphereVisible: () => true, GetPixelSizeAccross: () => 9 });
   cloud.UpdateVisibility(update);
   cloud.GetRenderables(renderables); assert.equal(renderables.length, 0);
-  update.SetFrustum({ IsSphereVisible: () => true, GetPixelSizeAccross: () => 10 });
+  Object.assign(update.GetFrustum(), { IsSphereVisible: () => true, GetPixelSizeAccross: () => 10 });
   cloud.UpdateVisibility(update); cloud.GetRenderables(renderables);
   assert.deepEqual(renderables, [cloud]);
   assert.ok(Math.abs(cloud.GetSortValue(context) - (Math.hypot(4, 22, -18) - Math.sqrt(3))) < 0.00001);

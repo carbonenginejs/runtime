@@ -174,23 +174,25 @@ test("scene drive order matches Carbon GatherBatches: visibility then gather, ca
     "cameraParent.GetRenderables__Impostors",
     "staticParticles.GetRenderables"
   ]);
-  assert.equal(log[3].frustumArg, camera.frustum, "staticParticles gather receives the stamped frustum");
+  assert.equal(log[3].frustumArg, scene.updateContext.GetFrustum(), "staticParticles gather receives the context's frustum");
+  assert.deepEqual(Array.from(log[3].frustumArg.planes[0]), Array.from(camera.frustum.planes[0]), "a copy of the stamped one");
   assert.deepEqual(out, ["object0", "object1", "staticParticles"]);
   assert.deepEqual(Array.from(identity), Array.from(mat4.create()), "identity still untouched after gather");
 });
 
 // --- Fixture 2: StampFrameContext -------------------------------------------
 
-test("StampFrameContext stamps thresholds, LOD invariant, and holds the frustum by reference", () =>
+test("StampFrameContext stamps thresholds, LOD invariant, and copies the frustum", () =>
 {
   const scene = new EveSpaceScene();
+  const { frustum } = MakeCamera();
 
-  scene.StampFrameContext({ lodFactor: 4 });
+  scene.StampFrameContext({ frustum, lodFactor: 4 });
   assert.equal(scene.updateContext.GetLodFactor(), 4);
   assert.equal(scene.updateContext.invLodFactor, 0.25, "SetLodFactor maintains invLodFactor");
 
   // Carbon console-var defaults (cpp:75-84) when keys are omitted.
-  scene.StampFrameContext();
+  scene.StampFrameContext({ frustum });
   assert.equal(scene.updateContext.GetVisibilityThreshold(), 5);
   assert.equal(scene.updateContext.GetLowDetailThreshold(), 100);
   assert.equal(scene.updateContext.GetMediumDetailThreshold(), 400);
@@ -198,11 +200,11 @@ test("StampFrameContext stamps thresholds, LOD invariant, and holds the frustum 
   assert.equal(scene.updateContext.GetLodFactor(), 1);
   assert.equal(scene.updateContext.invLodFactor, 1);
   assert.equal(scene.updateContext.raytracingEnabled, false);
-  assert.equal(scene.updateContext.GetFrustum(), null);
 
-  const { frustum } = MakeCamera();
   scene.StampFrameContext({ frustum, raytracingEnabled: 1 });
-  assert.equal(scene.updateContext.GetFrustum(), frustum, "frustum held by reference, not copied");
+  // Carbon's EveUpdateContext owns its frustum by value (h:182-190).
+  assert.notEqual(scene.updateContext.GetFrustum(), frustum, "frustum copied, not held by reference");
+  assert.deepEqual(Array.from(scene.updateContext.GetFrustum().planes[2]), Array.from(frustum.planes[2]));
   assert.equal(scene.updateContext.raytracingEnabled, true, "raytracing flag coerced to boolean");
 });
 
@@ -661,7 +663,7 @@ test("display=false gates every BeginRender-phase method; update=false gates Upd
   frozen.Update(0, 5);
   assert.equal(frozen.updateTime, 0, "Update gated by m_update");
   assert.equal(frozen.updateContext.GetTime(), 0);
-  frozen.StampFrameContext({ lodFactor: 2, visibilityThreshold: 9 });
+  frozen.StampFrameContext({ frustum: MakeCamera().frustum, lodFactor: 2, visibilityThreshold: 9 });
   assert.equal(frozen.updateContext.GetLodFactor(), 2, "stamping is unconditional");
   assert.equal(frozen.updateContext.GetVisibilityThreshold(), 9);
 });

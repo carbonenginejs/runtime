@@ -583,7 +583,7 @@ test("TriShadowOrthoFrustum culls with the ortho frustum and the sun-facing came
   const camera = MakeFixture();
   // Huge ortho bounds so only the camera-plane logic decides the cull cases.
   const { ortho } = MakeOrtho([-2000, -2000, -2000], [2000, 2000, 2000]);
-  const shadow = new TriShadowOrthoFrustum(ortho, 2048, SUN_DIR);
+  const shadow = TriShadowOrthoFrustum.create__AllFields(ortho, 2048, SUN_DIR);
 
   // Interior sphere: visible in the shadow.
   const anchor = vec3.scaleAndAdd(vec3.create(), EYE, camera.forward, 60);
@@ -593,7 +593,7 @@ test("TriShadowOrthoFrustum culls with the ortho frustum and the sun-facing came
 
   // Sphere fully outside a tight ortho frustum: invisible regardless of camera.
   const { ortho: tightOrtho } = MakeOrtho();
-  const tightShadow = new TriShadowOrthoFrustum(tightOrtho, 2048, SUN_DIR);
+  const tightShadow = TriShadowOrthoFrustum.create__AllFields(tightOrtho, 2048, SUN_DIR);
   const outsideOrtho = SunViewPoint(BuildSunView(SUN_EYE, SUN_DIR, [0, 0, 1]), 500, 500, 100);
   const outsideSphere = vec4.fromValues(outsideOrtho[0], outsideOrtho[1], outsideOrtho[2], 5);
   assert.equal(tightShadow.IsVisible(camera.frustum, outsideSphere), false);
@@ -614,12 +614,12 @@ test("TriShadowOrthoFrustum culls with the ortho frustum and the sun-facing came
   ];
   const behindSphere = vec4.fromValues(behindLeft[0], behindLeft[1], behindLeft[2], radius);
 
-  const sunOpposing = new TriShadowOrthoFrustum(ortho, 2048, [-n[0], -n[1], -n[2]]);
+  const sunOpposing = TriShadowOrthoFrustum.create__AllFields(ortho, 2048, [-n[0], -n[1], -n[2]]);
   assert.equal(sunOpposing.IsVisible(camera.frustum, behindSphere), false,
     "behind an away-facing camera plane: culled");
   assert.equal(sunOpposing.SphereTest(camera.frustum, { center: behindLeft, radius }), TriFrustumTestResult.Outside);
 
-  const sunAligned = new TriShadowOrthoFrustum(ortho, 2048, [n[0], n[1], n[2]]);
+  const sunAligned = TriShadowOrthoFrustum.create__AllFields(ortho, 2048, [n[0], n[1], n[2]]);
   assert.equal(sunAligned.IsVisible(camera.frustum, behindSphere), true,
     "sun along the plane normal (DotNormal >= 0): kept");
 
@@ -652,7 +652,7 @@ test("TriShadowFrustum delegates to its perspective shadow frustum", () =>
   const lightFrustum = new TriFrustum();
   lightFrustum.DeriveFrustum(lightView, lightEye, lightProjection, lightViewport);
 
-  const shadow = new TriShadowFrustum(lightFrustum);
+  const shadow = TriShadowFrustum.create__Shadow(lightFrustum);
 
   const target = vec3.fromValues(10, 2, 4);
   const targetSphere = vec4.fromValues(target[0], target[1], target[2], 5);
@@ -670,7 +670,9 @@ test("TriShadowFrustum delegates to its perspective shadow frustum", () =>
   assert.equal(shadow.SphereTest(camera.frustum, { center: target, radius: 5 }), lightFrustum.SphereTest({ center: target, radius: 5 }));
 
   assert.equal(shadow.GetSizeInShadow(targetSphere), lightFrustum.GetPixelSizeAccross(targetSphere));
-  assert.equal(shadow.GetEyePos(), lightFrustum.viewPos);
+  // Carbon owns the shadow frustum by value (IEveShadowCaster.h:109,112-115).
+  assert.deepEqual(Array.from(shadow.GetEyePos()), Array.from(lightFrustum.viewPos));
+  assert.notEqual(shadow.shadow, lightFrustum);
 });
 
 // --- EveUpdateContext getter/setter surface ---------------------------------
@@ -695,9 +697,11 @@ test("EveUpdateContext getter/setter surface and the invLodFactor invariant", ()
   context.SetLowDetailThreshold(30);
   assert.equal(context.GetLowDetailThreshold(), 30);
 
-  const frustum = new TriFrustum();
+  // Carbon copies the frustum into the context's own (EveUpdateContext.h:182-190).
+  const frustum = MakeFixture().frustum;
   context.SetFrustum(frustum);
-  assert.equal(context.GetFrustum(), frustum);
+  assert.notEqual(context.GetFrustum(), frustum);
+  assert.deepEqual(context.GetFrustum().planes.map(plane => Array.from(plane)), frustum.planes.map(plane => Array.from(plane)));
 
   assert.equal(context.GetBallpark(), null);
   const taskGroup = {};

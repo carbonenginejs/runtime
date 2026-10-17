@@ -77,7 +77,7 @@ export class EveUpdateContext
   taskGroup = null;
 
   /** m_frustum (TriFrustum) - Carbon holds one by value (EveUpdateContext.h:216), so a
-   * context always has a frustum; SetFrustum swaps in the per-frame one by reference. */
+   * context always has its own frustum; SetFrustum copies into it (ruling 16). */
   @type.rootRef("TriFrustum")
   frustum = new TriFrustum();
 
@@ -193,7 +193,8 @@ export class EveUpdateContext
   @meta.adapted
   GetOrigin()
   {
-    return this.origin[0] !== Infinity ? this.origin : EveUpdateContext._zeroOrigin;
+    // Carbon returns Vector3d by value (h:107-114): a copy, ruling 16.
+    return this.origin[0] !== Infinity ? new Float64Array(this.origin) : new Float64Array(3);
   }
 
   /**
@@ -205,7 +206,8 @@ export class EveUpdateContext
   @meta.implemented
   GetOriginShift()
   {
-    return this.originShift;
+    // Carbon returns Vector3 by value (h:103-106): a copy, ruling 16.
+    return vec3.clone(this.originShift);
   }
 
   /**
@@ -411,16 +413,15 @@ export class EveUpdateContext
   }
 
   /**
-   * Carbon EveUpdateContext::SetFrustum (h:182-185) - the driver stamps a
-   * ready TriFrustum per frame (spec decision 4); held by reference, not
-   * copied.
+   * Carbon EveUpdateContext::SetFrustum (h:182-185): takes the frustum by
+   * value and assigns it into the context's own (ruling 16).
    * @param {TriFrustum} frustum
    */
   @blue.method
   @meta.implemented
   SetFrustum(frustum)
   {
-    this.frustum = frustum;
+    this.frustum.Copy(frustum);
   }
 
   /**
@@ -436,5 +437,4 @@ export class EveUpdateContext
 
   static _originScratch = new Float64Array(3);
 
-  static _zeroOrigin = new Float64Array(3);
 }

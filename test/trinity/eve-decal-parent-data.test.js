@@ -53,6 +53,9 @@ function updateContext(visible = true)
   })();
   const context = new EveUpdateContext();
   context.SetFrustum(frustum);
+  // The context copies the frustum by value (ruling 16, EveUpdateContext.h:182-185),
+  // which slices a stub subclass; keep the stub's pinned answers on its own copy.
+  Object.setPrototypeOf(context.GetFrustum(), Object.getPrototypeOf(frustum));
   context.SetVisibilityThreshold(1);
   context.SetLowDetailThreshold(20);
   context.SetMediumDetailThreshold(60);

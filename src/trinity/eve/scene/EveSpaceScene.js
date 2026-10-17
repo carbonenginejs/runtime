@@ -701,7 +701,7 @@ export class EveSpaceScene
    * regardless of m_update (cpp:444-462); only the cold path skips stamping
    * when !m_update (cpp:466 precedes 475) - benign divergence.
    * @param {Object} [options]
-   * @param {Object|null} [options.frustum] - a ready TriFrustum, held by reference
+   * @param {TriFrustum} options.frustum - a ready TriFrustum, copied into the update context (ruling 16)
    * @param {Number} [options.visibilityThreshold]
    * @param {Number} [options.lowDetailThreshold]
    * @param {Number} [options.mediumDetailThreshold]
@@ -710,14 +710,14 @@ export class EveSpaceScene
    * @param {Boolean} [options.raytracingEnabled]
    */
   StampFrameContext({
-    frustum = null,
+    frustum,
     visibilityThreshold = EveSpaceScene.eveSpaceSceneVisibilityThreshold / this.upscalingAmount,
     lowDetailThreshold = EveSpaceScene.eveSpaceSceneLowDetailThreshold / this.upscalingAmount,
     mediumDetailThreshold = EveSpaceScene.eveSpaceSceneMediumDetailThreshold / this.upscalingAmount,
     highDetailThreshold = EveSpaceScene.eveSpaceSceneHighDetailThreshold / this.upscalingAmount,
     lodFactor = EveSpaceScene.eveSpaceSceneLODFactor / this.upscalingAmount,
     raytracingEnabled = false
-  } = {})
+  })
   {
     const context = this.updateContext;
     context.SetFrustum(frustum);
@@ -1285,7 +1285,8 @@ export class EveSpaceScene
   GetPickingObjectsToRender(renderContext)
   {
     const visible = [];
-    const previous = this.updateContext.GetFrustum();
+    // Carbon copies the frustum it restores (TriFrustum frustum = GetFrustum(), cpp:660).
+    const previous = new TriFrustum().Copy(this.updateContext.GetFrustum());
     const frustum = new TriFrustum();
     frustum.DeriveFrustum(renderContext.GetViewTransform(), renderContext.GetViewPosition(),
       renderContext.GetProjection(), { width: 1, height: 1 });
@@ -2270,7 +2271,8 @@ export class EveSpaceScene
     if (this.planets.length)
     {
       renderContext.PushViewTransform();
-      const normalFrustum = this.updateContext.GetFrustum();
+      // Carbon: auto normalFrustum = m_updateContext.GetFrustum() copies (cpp:1830).
+      const normalFrustum = new TriFrustum().Copy(this.updateContext.GetFrustum());
       const planetView = mat4.alloc();
       const planetProjection = mat4.alloc();
       try
@@ -2533,7 +2535,8 @@ export class EveSpaceScene
       mat4.copy(this._reflectionProjection, this.projection);
       mat4.copy(this._reflectionJitter, this.jitterMatrix);
       mat4.identity(this.jitterMatrix);
-      const normalFrustum = this.updateContext.GetFrustum();
+      // Carbon: auto normalFrustum = m_updateContext.GetFrustum() copies (cpp:2042).
+      const normalFrustum = new TriFrustum().Copy(this.updateContext.GetFrustum());
       try
       {
         probe.InitRenderPass(renderContext);
@@ -3332,7 +3335,7 @@ export class EveSpaceScene
 
       cameraFrustum.ExtractFrustum(viewProj);
       cameraFrustums.push(cameraFrustum);
-      shadowFrustums.push(new TriShadowOrthoFrustum(splitSetup.shadowFrustum, shadowMapSize, sunDir));
+      shadowFrustums.push(TriShadowOrthoFrustum.create__AllFields(splitSetup.shadowFrustum, shadowMapSize, sunDir));
       splitSetups.push(splitSetup);
     }
 

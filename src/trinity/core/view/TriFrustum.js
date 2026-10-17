@@ -96,6 +96,31 @@ export class TriFrustum
   fov = 1;
 
   /**
+   * Carbon's implicit copy assignment (TriFrustum.h:16-77 declares no
+   * operator=, so every member is copied), which JavaScript cannot overload.
+   * Carbon's culling statistics counters (h:42-44) are not ported.
+   * @param {TriFrustum} other
+   * @returns {TriFrustum} this
+   */
+  @meta.renamed("operator=")
+  Copy(other)
+  {
+    for (let i = 0; i < this.planes.length; i++)
+    {
+      vec4.copy(this.planes[i], other.planes[i]);
+    }
+    mat4.copy(this.projectionMatrix, other.projectionMatrix);
+    vec3.copy(this.viewPos, other.viewPos);
+    vec3.copy(this.viewDir, other.viewDir);
+    this.halfWidthProjection = other.halfWidthProjection;
+    this.zNear = other.zNear;
+    this.zFar = other.zFar;
+    this.aspectRatio = other.aspectRatio;
+    this.fov = other.fov;
+    return this;
+  }
+
+  /**
    * Carbon TriFrustum::DeriveFrustum (cpp:26-36) - extracts the frustum planes
    * from the view and projection matrix in world coordinates.
    * @param {Float32Array} view

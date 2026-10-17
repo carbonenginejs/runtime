@@ -31,7 +31,13 @@ export function UpdateContext({ time, frustum, visibilityThreshold, lowDetailThr
 {
   const context = new EveUpdateContext();
   if (time !== undefined) context.SetTime(time);
-  if (frustum !== undefined) context.SetFrustum(frustum);
+  if (frustum !== undefined)
+  {
+    context.SetFrustum(frustum);
+    // The context copies the frustum by value (ruling 16, EveUpdateContext.h:182-185),
+    // which slices a FixedFrustum; keep its pinned answers on the context's copy.
+    Object.setPrototypeOf(context.GetFrustum(), Object.getPrototypeOf(frustum));
+  }
   if (visibilityThreshold !== undefined) context.SetVisibilityThreshold(visibilityThreshold);
   if (lowDetailThreshold !== undefined) context.SetLowDetailThreshold(lowDetailThreshold);
   if (mediumDetailThreshold !== undefined) context.SetMediumDetailThreshold(mediumDetailThreshold);

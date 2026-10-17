@@ -1,4 +1,4 @@
-import { CjsSchema, type, blue } from "#schema";
+import { CjsSchema, type, blue, meta } from "#schema";
 // Source: trinity/trinity/TriFrustumOrtho.h
 // Source: trinity/trinity/TriFrustumOrtho.cpp
 //
@@ -30,6 +30,21 @@ export class TriFrustumOrtho
   boundsMax = vec3.create();
 
   #eyePos = vec3.create();
+
+  /**
+   * Carbon's implicit copy assignment (TriFrustumOrtho.h:9-27 declares no
+   * operator=, so its three members are copied), which JavaScript cannot
+   * overload.
+   * @param {TriFrustumOrtho} other
+   * @returns {TriFrustumOrtho} this
+   */
+  Copy(other)
+  {
+    mat4.copy(this.view, other.view);
+    vec3.copy(this.boundsMin, other.boundsMin);
+    vec3.copy(this.boundsMax, other.boundsMax);
+    return this;
+  }
 
   /**
    * Carbon TriFrustumOrtho::DeriveFrustum (cpp:13-18) - copies the view matrix
@@ -196,6 +211,7 @@ export class TriFrustumOrtho
   }
 }
 
+CjsSchema.decorateMethod(TriFrustumOrtho, "Copy", meta.renamed("operator="));
 CjsSchema.decorateField(TriFrustumOrtho, "view", type.mat4);
 CjsSchema.decorateField(TriFrustumOrtho, "boundsMin", type.vec3);
 CjsSchema.decorateField(TriFrustumOrtho, "boundsMax", type.vec3);

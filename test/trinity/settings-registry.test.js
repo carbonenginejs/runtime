@@ -65,12 +65,12 @@ test("the scene stamps its thresholds from the settings, over the upscaling amou
   settings.SetValue("eveSpaceSceneVisibilityThreshold", 10);
   try
   {
-    scene.StampFrameContext();
+    scene.StampFrameContext({ frustum: new TriFrustum() });
     assert.equal(scene.updateContext.GetLodFactor(), 2);
     assert.equal(scene.updateContext.GetVisibilityThreshold(), 10);
 
     scene.upscalingAmount = 2;
-    scene.StampFrameContext();
+    scene.StampFrameContext({ frustum: new TriFrustum() });
     assert.equal(scene.updateContext.GetLodFactor(), 1, "Carbon divides by m_upscalingAmount (cpp:459)");
     assert.equal(scene.updateContext.GetVisibilityThreshold(), 5);
   }

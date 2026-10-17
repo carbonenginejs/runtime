@@ -4,10 +4,10 @@ import { blue } from "#schema";
 // the cascaded-shadow-map IEveShadowFrustum adapter). Transient per-shadow-pass
 // CPU cull adapter - NOT a registry component and never a scene member
 // (ECS-VISIBILITY-SPEC-2026-07-23 "Shadow frustums"). The camera argument is a
-// TriFrustum duck (world-space planes array); the shadow member is a
-// TriFrustumOrtho held by reference (Carbon copies by value into the
-// transient).
+// TriFrustum; the shadow member is a TriFrustumOrtho owned by value and
+// copied in, as Carbon's member is (ruling 16).
 import { vec3 } from "#math/vec3";
+import { TriFrustumOrtho } from "../../../core/view/TriFrustumOrtho.js";
 import { PlaneDotCoord, PlaneDotNormal } from "../../../core/view/TriFrustum.js";
 import { TriFrustumTestResult } from "../../../generated/trinityCore/enums.js";
 
@@ -16,8 +16,8 @@ import { TriFrustumTestResult } from "../../../generated/trinityCore/enums.js";
 export class TriShadowOrthoFrustum
 {
 
-  /** m_shadow (TriFrustumOrtho) */
-  shadow = null;
+  /** m_shadow (TriFrustumOrtho), by value. */
+  shadow = new TriFrustumOrtho();
 
   /** m_shadowMapSize (uint32_t) */
   shadowMapSize = 0;
@@ -26,20 +26,21 @@ export class TriShadowOrthoFrustum
   sunDir = vec3.create();
 
   /**
-   * Carbon's argument constructor (h:42-47); all arguments optional to keep
-   * the default-constructible shell contract (h:35-40).
-   * @param {Object|null} [shadow] - TriFrustumOrtho
-   * @param {Number} [shadowMapSize]
-   * @param {Float32Array|null} [sunDir]
+   * Carbon's argument constructor (h:42-47): copies the ortho frustum and the
+   * sun direction. The JavaScript constructor is Carbon's default one
+   * (h:35-40), whose values are the field initializers.
+   * @param {TriFrustumOrtho} shadow
+   * @param {number} shadowMapSize
+   * @param {Float32Array} sunDir
+   * @returns {TriShadowOrthoFrustum}
    */
-  constructor(shadow = null, shadowMapSize = 0, sunDir = null)
+  static create__AllFields(shadow, shadowMapSize, sunDir)
   {
-    this.shadow = shadow ?? null;
-    this.shadowMapSize = Number(shadowMapSize) >>> 0;
-    if (sunDir)
-    {
-      vec3.copy(this.sunDir, sunDir);
-    }
+    const frustum = new TriShadowOrthoFrustum();
+    frustum.shadow.Copy(shadow);
+    frustum.shadowMapSize = shadowMapSize >>> 0;
+    vec3.copy(frustum.sunDir, sunDir);
+    return frustum;
   }
 
   /**
@@ -55,14 +56,10 @@ export class TriShadowOrthoFrustum
   @blue.method
   IsVisible(camera, boundingSphere)
   {
-    if (!this.shadow)
-    {
-      return false;
-    }
     const sphereIsVisible = this.shadow.IsSphereVisibleIgnoreFarPlane(boundingSphere, boundingSphere[3]);
     if (sphereIsVisible)
     {
-      const planes = camera?.planes ?? [];
+      const planes = camera.planes;
       for (let j = 0; j < 6; ++j)
       {
         // first check if sun direction is perpendicular of the plane
@@ -89,7 +86,7 @@ export class TriShadowOrthoFrustum
   @blue.method
   GetSizeInShadow(boundingSphere)
   {
-    return this.shadow ? this.shadow.GetPixelSize(boundingSphere, this.shadowMapSize) : 0;
+    return this.shadow.GetPixelSize(boundingSphere, this.shadowMapSize);
   }
 
   /**
@@ -99,7 +96,7 @@ export class TriShadowOrthoFrustum
   @blue.method
   GetEyePos()
   {
-    return this.shadow ? this.shadow.GetEyePos() : TriShadowOrthoFrustum.#zeroEyePos;
+    return this.shadow.GetEyePos();
   }
 
   /**
@@ -113,17 +110,13 @@ export class TriShadowOrthoFrustum
   @blue.method
   SphereTest(camera, sphere)
   {
-    if (!this.shadow)
-    {
-      return TriFrustumTestResult.Outside;
-    }
     let orthoResult = this.shadow.SphereTestIgnoreFarPlane(sphere);
     if (orthoResult !== TriFrustumTestResult.Outside)
     {
       const packed = typeof sphere?.length === "number" && sphere.length >= 4;
       const center = packed ? sphere : sphere.center;
       const radius = packed ? sphere[3] : sphere.radius;
-      const planes = camera?.planes ?? [];
+      const planes = camera.planes;
       for (let j = 0; j < 6; ++j)
       {
         // first check if sun direction is perpendicular of the plane
@@ -146,6 +139,5 @@ export class TriShadowOrthoFrustum
     return orthoResult;
   }
 
-  static #zeroEyePos = vec3.create();
 
 }

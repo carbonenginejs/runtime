@@ -4,26 +4,29 @@ import { blue } from "#schema";
 // perspective IEveShadowFrustum adapter). Transient per-shadow-pass CPU cull
 // adapter - NOT a registry component and never a scene member
 // (ECS-VISIBILITY-SPEC-2026-07-23 "Shadow frustums"). The shadow member is a
-// TriFrustum held by reference (Carbon copies by value into the transient).
-import { vec3 } from "#math/vec3";
-import { TriFrustumTestResult } from "../../../generated/trinityCore/enums.js";
+// TriFrustum owned by value and copied in, as Carbon's member is (ruling 16).
+import { TriFrustum } from "../../../core/view/TriFrustum.js";
 
 /** Carbon's native perspective-shadow frustum adapter. */
 @blue.define("TriShadowFrustum")
 export class TriShadowFrustum
 {
 
-  /** m_shadow (TriFrustum) */
-  shadow = null;
+  /** m_shadow (TriFrustum), by value. */
+  shadow = new TriFrustum();
 
   /**
-   * Carbon's constructor (h:112-115); optional to keep the shell
-   * default-constructible.
-   * @param {Object|null} [shadow] - TriFrustum
+   * Carbon's only constructor (h:112-115): copies the shadow frustum. Carbon
+   * has no default constructor; the JavaScript one leaves the frustum at
+   * TriFrustum's defaults.
+   * @param {TriFrustum} shadow
+   * @returns {TriShadowFrustum}
    */
-  constructor(shadow = null)
+  static create__Shadow(shadow)
   {
-    this.shadow = shadow ?? null;
+    const frustum = new TriShadowFrustum();
+    frustum.shadow.Copy(shadow);
+    return frustum;
   }
 
   /**
@@ -37,7 +40,7 @@ export class TriShadowFrustum
   @blue.method
   IsVisible(_camera, boundingSphere)
   {
-    return !!this.shadow?.IsSphereVisible(boundingSphere);
+    return this.shadow.IsSphereVisible(boundingSphere);
   }
 
   /**
@@ -48,7 +51,7 @@ export class TriShadowFrustum
   @blue.method
   GetSizeInShadow(boundingSphere)
   {
-    return this.shadow ? this.shadow.GetPixelSizeAccross(boundingSphere) : 0;
+    return this.shadow.GetPixelSizeAccross(boundingSphere);
   }
 
   /**
@@ -59,7 +62,7 @@ export class TriShadowFrustum
   @blue.method
   GetEyePos()
   {
-    return this.shadow ? this.shadow.viewPos : TriShadowFrustum.#zeroEyePos;
+    return this.shadow.viewPos;
   }
 
   /**
@@ -72,9 +75,8 @@ export class TriShadowFrustum
   @blue.method
   SphereTest(_camera, sphere)
   {
-    return this.shadow ? this.shadow.SphereTest(sphere) : TriFrustumTestResult.Outside;
+    return this.shadow.SphereTest(sphere);
   }
 
-  static #zeroEyePos = vec3.create();
 
 }

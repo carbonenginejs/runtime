@@ -176,6 +176,9 @@ function createFrame(worldTransform)
   const updateContext = new EveUpdateContext();
   updateContext.renderContext = renderContext;
   updateContext.SetFrustum(frustum);
+  // The context copies the frustum by value (ruling 16, EveUpdateContext.h:182-185),
+  // which slices a stub subclass; keep the stub's pinned answers on its own copy.
+  Object.setPrototypeOf(updateContext.GetFrustum(), Object.getPrototypeOf(frustum));
   updateContext.SetVisibilityThreshold(0);
   updateContext.SetLodFactor(1);
 

@@ -26,9 +26,13 @@ const DEBUG_COLOR = color.create();
 export class EveKDdroneManagementTree
 {
 
-  /** m_tree (AgentRef) */
+  /**
+   * m_tree (AgentRef, h:103): the root record, held by value. Carbon's
+   * AgentRef constructor (h:58-64) nulls agent and children and sets plane X;
+   * b and e are left unset.
+   */
   @type.rootRef("Agent")
-  tree = null;
+  tree = { agent: null, planeType: 0, b: 0, e: 0, left: null, right: null };
 
   /** m_debugSquareSize (float) */
   @type.float32
@@ -107,23 +111,24 @@ export class EveKDdroneManagementTree
    * Builds the k-d tree over the agents and sizes the per-behavior search
    * result block (Carbon EveKDdroneManagementTree::CreateTree, cpp:18-42).
    *
-   * Adapted: Carbon copies the root AgentRef by value into m_tree; the JS port keeps a
-   * reference into agentRefs (same fields, shared identity).
+   * The root AgentRef is copied into m_tree by value (cpp:28-29, ruling 16),
+   * so the tree's root is a separate record from its agentRefs entry.
    *
    * @param {Array} agents - DroneAgent records
    * @param {Number} numberOfBehaviors
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   CreateTree(agents, numberOfBehaviors)
   {
-    if (!agents || agents.length === 0)
+    if (agents.length === 0)
     {
       return;
     }
 
     this._ChangeAgentsIntoAgentRefs(agents);
-    this.tree = this._SplitSort(0, agents.length - 1, EveKDdroneManagementTree.PlaneType.Z);
+    // AgentRef tree = *SplitSort( ... ); m_tree = tree; (cpp:28-29).
+    Object.assign(this.tree, this._SplitSort(0, agents.length - 1, EveKDdroneManagementTree.PlaneType.Z));
 
     const infoBlock = this.groupSearchReturnInfoBlock;
     infoBlock.length = 0;
@@ -151,7 +156,8 @@ export class EveKDdroneManagementTree
     if (this.timeBetweenUpdate !== -1 && this.updateTimeCounter >= this.timeBetweenUpdate)
     {
       this.updateTimeCounter = 0;
-      this.tree = this._CompareNodeToChildren(this.tree);
+      // m_tree = *CompareNodeToChildren( &m_tree ) (cpp:49): copied back by value.
+      Object.assign(this.tree, this._CompareNodeToChildren(this.tree));
     }
     else
     {
@@ -169,7 +175,8 @@ export class EveKDdroneManagementTree
   @meta.implemented
   FindClosestAgent(pos)
   {
-    if (!this.tree || !this.tree.agent)
+    // cpp:278.
+    if (this.tree.agent === null)
     {
       return null;
     }

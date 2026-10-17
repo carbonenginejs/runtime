@@ -711,7 +711,8 @@ test("EveChildCloud participates in the owned child contract", () =>
   const context = new EveUpdateContext();
   context.SetTime((7) * 10_000_000);
   context.SetLodFactor(2);
-  context.SetFrustum({
+  // The context owns its frustum by value (ruling 16); pin the answers on it.
+  Object.assign(context.GetFrustum(), {
     IsSphereVisible: () => true,
     GetPixelSizeAccross: () => 20
   });
