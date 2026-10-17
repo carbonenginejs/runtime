@@ -240,13 +240,30 @@ for (const file of files)
 }
 
 // RULE 2: a backend class answers what its stub counterpart answers.
+//
+// A BACKEND IS A DIRECTORY THAT HOLDS A RENDER CONTEXT. Carbon's backends are
+// `trinityal/dx11`, `dx12`, `metal` and `stub`, and each declares its own
+// context (`Tr2RenderContextDx11.h`, `Tr2RenderContextDx12.h`,
+// `Tr2RenderContextMetal.h`, `Tr2RenderContextStub.h`). The public handles
+// (`Tr2TextureAL`, `Tr2SamplerStateAL`, ...) live in `include/` and `src/`
+// beside them, not in a backend, and each answers only what its `include/`
+// header declares. Ours keeps every handle in its own class-named directory,
+// so "every top-level directory is a backend" compared each handle against
+// the stub's IMPLEMENTATION and needed a cited exemption per handle method.
+// `dropped/` and `Tr2HalHelperStructures/` hold no context either.
 const stubFiles = files.filter(file => file.includes(`${path.sep}stub${path.sep}`));
-const backends = [ ...new Set(
-    files
-        .map(file => path.relative(alRoot, file).split(path.sep))
-        .filter(parts => parts.length > 1 && parts[0] !== "stub")
-        .map(parts => parts[0])
-) ];
+const topLevel = file => path.relative(alRoot, file).split(path.sep);
+const backends = [];
+
+for (const directory of new Set(files.map(topLevel).filter(parts => parts.length > 1).map(parts => parts[0])))
+{
+    if (directory === "stub") continue;
+
+    const directoryFiles = files.filter(file => topLevel(file)[0] === directory);
+    const classes = [ ...(await surfaceOf(directoryFiles)).keys() ];
+
+    if (classes.some(name => contractName(name).startsWith("RenderContext"))) backends.push(directory);
+}
 
 const stubSurface = await surfaceOf(stubFiles);
 
@@ -278,26 +295,6 @@ for (const backend of backends)
 
         for (const method of stubMethods)
         {
-            // Tr2ReadbackAL is a value facade, not a device-resource backend.
-            // Carbon include/Tr2TextureAL.h:24-43 exposes only readiness,
-            // validity and mapping; these two belong to TrinityALImpl.
-            if (backend === "Tr2ReadbackAL" && ["Describe", "GetMemoryClass"].includes(method)) continue;
-
-            // Tr2SamplerStateAL is the public handle, not a backend. Carbon's
-            // include/Tr2SamplerStateAL.h:17-39 declares only Create and
-            // IsValid; the stored description is the implementation's.
-            if (backend === "Tr2SamplerStateAL" && method === "GetDescription") continue;
-
-            // The same for the other public handles: each answers only what its
-            // include/ header declares, and these are the implementation's.
-            // Tr2ShaderAL.h:163-195 has no GetMemoryClass or SetNullShaderType;
-            // Tr2ShaderProgramAL.h:33-59 no GetShaders; Tr2VertexLayoutAL.h:19-38
-            // no GetDefinition; Tr2PipelineStatsQueryAL.h:19-46 no Describe.
-            if (backend === "Tr2ShaderAL" && ["GetMemoryClass", "SetNullShaderType"].includes(method)) continue;
-            if (backend === "Tr2ShaderProgramAL" && method === "GetShaders") continue;
-            if (backend === "Tr2VertexLayoutAL" && method === "GetDefinition") continue;
-            if (backend === "Tr2PipelineStatsQueryAL" && method === "Describe") continue;
-
             // `#` AND `_` ARE BOTH "NOT THE CONTRACT". The layer used `#` until
             // 2026-09-10, when the AL dropped JavaScript privates for an `_`
             // prefix - Carbon's AL facade holds one private member and its impl
