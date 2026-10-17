@@ -28,4 +28,27 @@ export class Tr2Sprite2dClipRect
   @type.float32
   bottom = 0;
 
+  /**
+   * Carbon's four-argument constructor (ITr2Sprite2dRenderer.h:67-70): each
+   * parameter initialises its own member. The JavaScript constructor is
+   * Carbon's no-argument one (h:64-66).
+   *
+   * @param {number} l Left bound.
+   * @param {number} t Top bound.
+   * @param {number} r Right bound.
+   * @param {number} b Bottom bound.
+   * @returns {Tr2Sprite2dClipRect} The clip rectangle.
+   */
+  static create__AllFields(l, t, r, b)
+  {
+    const clipRect = new Tr2Sprite2dClipRect();
+
+    clipRect.left = l;
+    clipRect.top = t;
+    clipRect.right = r;
+    clipRect.bottom = b;
+
+    return clipRect;
+  }
+
 }

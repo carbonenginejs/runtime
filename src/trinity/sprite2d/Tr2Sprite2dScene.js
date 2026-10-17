@@ -965,8 +965,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
   _PrepareStacksBeforeRender()
   {
     const maximum = 3.4028234663852886e38;
-    const clip = new Tr2Sprite2dClipRect();
-    Object.assign(clip, { left: -maximum, top: -maximum, right: maximum, bottom: maximum });
+    const clip = Tr2Sprite2dClipRect.create__AllFields(-maximum, -maximum, maximum, maximum); // Tr2Sprite2dScene.cpp:2389
     this._depthStack.push([this.depthMin, this.depthMax]);
     this._clipStack.push(clip);
   }
@@ -1841,11 +1840,8 @@ export class Tr2Sprite2dScene extends ITr2Scene
     this._transformStack = []; // alloc: Carbon CCP_NEWs a fresh stack per layer
     this._clipStack = []; // alloc: Carbon CCP_NEWs a fresh stack per layer
 
-    const clip = new Tr2Sprite2dClipRect(); // alloc: the layer's root clip entry, owned until EndLayer
-    clip.left = 0;
-    clip.top = 0;
-    clip.right = width;
-    clip.bottom = height;
+    // alloc: the layer's root clip entry, owned until EndLayer (Tr2Sprite2dScene.cpp:1629)
+    const clip = Tr2Sprite2dClipRect.create__AllFields(0, 0, width, height);
     this._clipStack.push(clip);
   }
 

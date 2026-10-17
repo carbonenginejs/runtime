@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { EveSprite2dBracketRenderer, EveSprite2dBracket, Tr2Sprite2dScene, Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";
+import { EveSprite2dBracketRenderer, EveSprite2dBracket, Tr2Sprite2dClipRect, Tr2Sprite2dScene, Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";
 
 function buffer()
 {
@@ -21,7 +21,7 @@ function fixture()
   const calls = [];
   const renderer = {
     GetTranslation: () => [10, 20],
-    GetClipRectangle: () => ({ left: 1, top: 2, right: 300, bottom: 400 }),
+    GetClipRectangle: () => Tr2Sprite2dClipRect.create__AllFields(1, 2, 300, 400),
     SetTexture(...args) { calls.push(["texture", ...args]); },
     RenderTriangleVerts__Tr2BufferAL(...args) { calls.push(["draw", ...args]); }
   };

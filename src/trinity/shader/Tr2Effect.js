@@ -1190,7 +1190,18 @@ export class Tr2Effect extends Tr2Material
    * Merges dynamic parameters by unique name. Values may be raw
    * (number/vector/matrix/res path string) or explicit `{ type, ... }`
    * descriptors; `null` removes. Texture values route to `resources`.
+   *
+   * Ours: a convenience over Carbon's per-parameter API. Carbon's
+   * `SetParameter` overloads create or update ONE parameter by name
+   * (Tr2Effect.h:93-102, e.g. Tr2Effect.cpp:2123-2139) and its `Add*`
+   * methods only add, refusing an existing name (Tr2Effect.h:84-89). Carbon
+   * has no map merge and no remove by name; the nearest is
+   * `ClearAllParameters` / `ClearAllResources` (Tr2Effect.h:90-91).
+   *
+   * @param {object|null} [values={}] Parameter names mapped to values, descriptors or null.
+   * @returns {boolean} Whether any parameter or resource was added, updated or removed.
    */
+  @meta.adapted
   SetParameters(values = {})
   {
     let updated = false;
@@ -1500,7 +1511,21 @@ export class Tr2Effect extends Tr2Material
     this.RebuildCachedDataInternal();
   }
 
-  /** Merges texture resources by unique name from res path strings. */
+  /**
+   * Merges texture resources by unique name from res path strings; `null`
+   * removes.
+   *
+   * Ours: a convenience over Carbon's per-texture API. Carbon's
+   * `SetResourceTexture2D` updates or adds ONE texture by name
+   * (Tr2Effect.h:103, Tr2Effect.cpp:2257-2268) and `AddResourceTexture2D`
+   * only adds, refusing an existing name (Tr2Effect.h:85,
+   * Tr2Effect.cpp:424-439). Carbon has no map merge and no remove by name;
+   * the nearest is `ClearAllResources` (Tr2Effect.h:91).
+   *
+   * @param {object|null} [values={}] Resource names mapped to res path strings or null.
+   * @returns {boolean} Whether any resource was added, updated or removed.
+   */
+  @meta.adapted
   SetTextures(values = {})
   {
     let updated = false;
@@ -1523,9 +1548,21 @@ export class Tr2Effect extends Tr2Material
   }
 
   /**
-   * Merges authored constant parameters by unique name. Numbers splat to a
-   * vec4, matching Carbon's AddParameterFloat authoring behavior.
+   * Merges authored constant parameters by unique name; `null` removes.
+   * Numbers splat to a vec4, matching Carbon's AddParameterFloat authoring
+   * behavior (Tr2Effect.cpp:504-509).
+   *
+   * Ours: Carbon's constant-parameter API only adds. `AddParameterVector4`,
+   * `AddParameterFloat` and `AddParameterColor` refuse an existing name
+   * (Tr2Effect.h:87-89, Tr2Effect.cpp:484-529), and no `SetParameter`
+   * overload writes `m_constParameters`. Carbon has no update or remove by
+   * name; the nearest is `ClearAllParameters` (Tr2Effect.h:90).
+   *
+   * @param {object|null} [values={}] Constant names mapped to numbers, vectors or null.
+   * @returns {boolean} Whether any constant was added, updated or removed.
+   * @throws {TypeError} If a value cannot be read as a vec4.
    */
+  @meta.adapted
   SetConstParameters(values = {})
   {
     let updated = false;
@@ -1573,10 +1610,16 @@ export class Tr2Effect extends Tr2Material
    * are rejected; native rows do not run values-service dirty/event settling.
    * Earlier successful mutations remain if a later entry throws.
    *
+   * Ours: Carbon's sampler-override API only adds. `AddSamplerOverride`
+   * takes a name and two address modes and refuses an existing name
+   * (Tr2Effect.h:86, Tr2Effect.cpp:452-478). Carbon has no update or remove
+   * by name.
+   *
    * @param {object|null} [values={}] Sampler names mapped to scalar bags, instances or null.
    * @returns {boolean} Whether an override was inserted, removed, replaced or changed.
    * @throws {TypeError} If the map, a row or a field is unsupported.
    */
+  @meta.adapted
   SetSamplerOverrides(values = {})
   {
     if (values !== null && (typeof values !== "object" || Array.isArray(values) || ArrayBuffer.isView(values)))

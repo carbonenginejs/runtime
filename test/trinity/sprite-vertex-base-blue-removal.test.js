@@ -27,7 +27,7 @@ test("plain base has no native query and preserves its existing declaration adap
 
 test("D3D derived vertex dictionary transport retains base and derived typed values",()=>{
  const vertex=new Tr2Sprite2dD3DVertex(),position=vertex.position,color=vertex.color;new DictReader({declarations:true}).ReadInto(vertex,{position:[1,2,3],color:[0,0.5,1,1],glowBrightness:2,transformIndex:3,outlineColor:[1,0,0,1]});assert.equal(vertex.position,position);assert.equal(vertex.color,color);assert.deepEqual([...vertex.position],[1,2,3]);assert.deepEqual([...vertex.color],[0,0.5,1,1]);assert.equal(vertex.glowBrightness,2);assert.equal(vertex.transformIndex,3);
- vertex.texCoord[0].set([0.25,0.5]);vertex.texCoord[1].set([0.75,1]);vertex.clipRect=Object.assign(new Tr2Sprite2dClipRect(),{left:1,top:2,right:30,bottom:40});
+ vertex.texCoord[0].set([0.25,0.5]);vertex.texCoord[1].set([0.75,1]);vertex.clipRect=Tr2Sprite2dClipRect.create__AllFields(1,2,30,40);
  const written=new DictWriter().WriteObject(vertex);assert.deepEqual(written.position,[1,2,3]);assert.deepEqual(written.texCoord,[[0.25,0.5],[0.75,1]]);assert.equal(written.clipRect.right,30);assert.deepEqual(written.outlineColor,[1,0,0,1]);
  const copy=new Tr2Sprite2dD3DVertex();be.classes.CopyTo(vertex,copy);assert.deepEqual([...copy.position],[1,2,3]);assert.notEqual(copy.position,vertex.position);assert.deepEqual([...copy.color],[1,1,1,1],"existing unflagged base color is not persisted");
 });
