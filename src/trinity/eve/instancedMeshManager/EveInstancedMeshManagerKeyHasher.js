@@ -23,7 +23,7 @@ import { identityOf } from "#utils/hash";
  * bucket collision. A static and a dynamic mesh group of the same mesh
  * therefore get separate MeshData in Carbon, which matters because the key's
  * `isDynamic` chooses the instance buffer and element layout. A key from
- * operator=='s seven fields would merge them. Carbon quirk (proposed CE, unnumbered): the hash
+ * operator=='s seven fields would merge them. Carbon quirk (CE-178): the hash
  * is inconsistent with `operator==`, which `std::unordered_map` requires to
  * agree, and it also reads MeshKey's two trailing padding bytes, which the
  * aggregate initializations at cpp:252-260 and cpp:317-324 leave

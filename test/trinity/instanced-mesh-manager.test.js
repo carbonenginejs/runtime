@@ -228,7 +228,7 @@ test("mesh groups: keyed MeshData, first-registration mesh data, swap-with-back 
   assert.equal(manager._meshInstances.size, 2, "a different area is a different key");
   const dynamic = manager.AddMeshGroup__DynamicPerInstanceData(geometry, 0, TriBatchType.TRIBATCHTYPE_OPAQUE, 0, 0, 1, null, 7,
     pod, sphere, [ new EveInstancedMeshManagerDynamicPerInstanceData() ], 1, null, 0);
-  assert.equal(manager._meshInstances.size, 3, "a dynamic group of the same mesh keeps its own MeshData (KeyHasher quirk)");
+  assert.equal(manager._meshInstances.size, 3, "a dynamic group of the same mesh keeps its own MeshData (KeyHasher, CE-178)");
   assert.equal(dynamic.index, 0);
 
   manager.RemoveMeshGroup(a);
