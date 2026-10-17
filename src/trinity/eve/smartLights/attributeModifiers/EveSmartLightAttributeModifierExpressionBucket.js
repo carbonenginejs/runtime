@@ -9,6 +9,7 @@ import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttri
 import { EveSmartLightAttributeModifierBucket } from "./EveSmartLightAttributeModifierBucket.js";
 import { CjsControllerExpressionProgram } from "../../../controllers/expression/CjsControllerExpressionProgram.js";
 import { vec3 } from "#math/vec3";
+import { EveSmartLightAttributeModifierExpressionBucketArguments } from "./EveSmartLightAttributeModifierExpressionBucketArguments.js";
 
 /** EveSmartLightAttributeModifierExpressionBucket (eve/smartLights/attributeModifiers) - generated from schema shapeHash 02cc58c3.... */
 @blue.define("EveSmartLightAttributeModifierExpressionBucket")
@@ -35,15 +36,28 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
   @type.list("ITriScalarFunction")
   expressionInputs = [];
 
+  /**
+   * Value after the last update: Carbon's READ attribute "currentValue" over
+   * the inherited m_activationStrength
+   * (EveSmartLightAttributeModifierExpressionBucket_Blue.cpp:23), which this
+   * port stores as attributeMultiplier.
+   */
+  @blue.read
+  @type.float32
+  get currentValue()
+  {
+    return this.attributeMultiplier;
+  }
+
   /** Compiled expression program (Carbon m_program, a CcpParser::Program). */
   _program = null;
 
   /** m_randomConstant (float) - per-instance random constant (h:48). */
   _randomConstant = carbonRandom.triFloatRandom01();
 
-  // m_arguments (h:50-55) - the expression variable bindings, refreshed each
-  // synchronous update.
-  _arguments = { time: 0, shipSpeed: 0, shipMaxSpeed: 0 };
+  // m_arguments (h:50-55): the expression variable bindings, embedded by
+  // value and refreshed each synchronous update.
+  _arguments = new EveSmartLightAttributeModifierExpressionBucketArguments();
 
   /**
    * Compiles the authored expression after load
@@ -231,8 +245,9 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
     }
 
     this._arguments.time = this.playTime;
-    this._arguments.shipSpeed = EveSmartLightAttributeModifierExpressionBucket._ShipSpeed(params?.spaceObjectParent);
-    this._arguments.shipMaxSpeed = Number(params?.ownerMaxSpeed ?? 0);
+    // cpp:240-242 reads the params unchecked.
+    this._arguments.shipSpeed = EveSmartLightAttributeModifierExpressionBucket._ShipSpeed(params.spaceObjectParent);
+    this._arguments.shipMaxSpeed = params.ownerMaxSpeed;
 
     if (this._program?.IsValid())
     {

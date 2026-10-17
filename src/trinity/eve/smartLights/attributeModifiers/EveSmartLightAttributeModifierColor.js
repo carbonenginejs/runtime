@@ -74,6 +74,17 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
   }
 
   /**
+   * The colour being used: Carbon's MAP_PROPERTY_READONLY "activeBlendColor"
+   * over GetGroupColor (EveSmartLightAttributeModifierColor_Blue.cpp:24).
+   */
+  @blue.read
+  @type.color
+  get activeBlendColor()
+  {
+    return this.GetGroupColor();
+  }
+
+  /**
    * Resolves the blend color: the selected faction color when enabled and in
    * range, otherwise the authored blend color
    * (EveSmartLightAttributeModifierColor.cpp:26-36). Carbon's bound is

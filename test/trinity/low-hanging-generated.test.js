@@ -1286,7 +1286,8 @@ test("Carbon light accessors remain backed by one shared CjsLightData", () =>
   assert.equal(smartSpot.lightType, Tr2Light.SPOT_LIGHT);
   assert.equal(smartSpot.innerAngle, 0);
   assert.equal(smartSpot.outerAngle, 0);
-  assert.throws(() => smartSpot.RenderDebugInfo(), /not implemented/u);
+  // Carbon EveSmartLightSpotLight.cpp:15-18: without the "smartLightSets" option nothing draws.
+  assert.equal(smartSpot.RenderDebugInfo({ HasOption: () => false }, [], 0), undefined);
   smartSpot.innerAngle = 20;
   smartSpot.outerAngle = 40;
   assert.equal(smartSpot.innerAngle, 20);

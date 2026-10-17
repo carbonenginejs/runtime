@@ -247,14 +247,16 @@ export class EveSmartLightBaseAttributeModifier
 
     if (this.activationOverLifetime)
     {
-      const idOffset = Number(placement?.initialPlacementID ?? 0) * this.perInstanceOffset;
+      // The placement is read unchecked and the sums are float, as Carbon's are
+      // (cpp:133-140; rulings 12 and 2026-10-16).
+      const idOffset = Math.fround(Math.fround(placement.initialPlacementID) * this.perInstanceOffset);
       switch (this.lifeTimeFormula)
       {
         case EveSmartLightBaseAttributeModifier.LifeTimeFormulas.PER_INSTANCE_LIFETIME:
-          activationMultiplier = this.activationOverLifetime.GetValueAt((placement?.lifeTime ?? 0) + idOffset);
+          activationMultiplier = this.activationOverLifetime.GetValueAt(Math.fround(placement.lifeTime + idOffset));
           break;
         case EveSmartLightBaseAttributeModifier.LifeTimeFormulas.PER_MODIFIER_PLAYTIME:
-          activationMultiplier = this.activationOverLifetime.GetValueAt(this.playTime + idOffset);
+          activationMultiplier = this.activationOverLifetime.GetValueAt(Math.fround(this.playTime + idOffset));
           break;
         case EveSmartLightBaseAttributeModifier.LifeTimeFormulas.STATIC:
           activationMultiplier = this.activationOverLifetime.GetValueAt(idOffset);

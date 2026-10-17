@@ -10,6 +10,7 @@ import { vec4 } from "#math/vec4";
 import { meta, type, blue } from "#schema";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveSpotlightLight } from "./EveSpotlightLight.js";
+import { EveSpotlightSetSpotlightData } from "./EveSpotlightSetSpotlightData.js";
 import { EveComponentType } from "../../EntityComponents.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
 import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";
@@ -141,7 +142,10 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   /** m_glowBuffer: one GlowPoolVertex per spotlight, packed bytes. */
   _glowBuffer = new Uint8Array(0);
 
-  /** m_spotlightData: { transform, boneIndex, boosterGainInfluence } per spotlight. */
+  /**
+   * m_spotlightData: one SpotlightData per spotlight.
+   * @type {Array<EveSpotlightSetSpotlightData>}
+   */
   _spotlightData = [];
 
   /**
@@ -178,7 +182,13 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
         half(glow, base + 64 + c * 2, item.spriteScale[c]);
       }
 
-      return { transform: item.transform, boneIndex: item.boneIndex >>> 0, boosterGainInfluence: item.boosterGainInfluence ? 1 : 0 };
+      // m_spotlightData holds SpotlightData by value (h:143-148): the item's
+      // transform is copied, not shared.
+      const data = new EveSpotlightSetSpotlightData();
+      mat4.copy(data.transform, item.transform);
+      data.boneIndex = item.boneIndex >>> 0;
+      data.boosterGainInfluence = item.boosterGainInfluence ? 1 : 0;
+      return data;
     });
 
     CreateItemSetBoundingBoxes(this._staticBounds, this._boneBounds, this.skinned, this.spotlightItems);

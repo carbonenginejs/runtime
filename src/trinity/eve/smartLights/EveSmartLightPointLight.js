@@ -20,6 +20,7 @@ import { Tr2Light } from "../lights/Tr2Light.js";
 import { EveComponentType } from "../EntityComponents.js";
 import { createCjsLightDataView } from "../lights/CjsLightData.js";
 import { BLUELISTEVENT } from "#consts/blue";
+import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 
 /** A smart-light group member that places faction-colour-aware point or spot lights at each distribution placement and submits them to the light manager. */
 @blue.define("EveSmartLightPointLight")
@@ -466,12 +467,71 @@ export class EveSmartLightPointLight extends EveEntity
     }
   }
 
-  /** Carbon method RenderDebugInfo (EveSmartLightPointLight.cpp:133-161). */
+  /**
+   * Carbon EveSmartLightPointLight::RenderDebugInfo
+   * (EveSmartLightPointLight.cpp:133-161): behind the "smartLightSets" option
+   * and `display`, two solid spheres per placement, outer then inner radius,
+   * in the captured world transform.
+   *
+   * The sphere centre is the static offset rotated by the placement rotation
+   * (initial then additional) plus both placement translations; both radii
+   * scale by the product of the largest initial and additional scale
+   * components, and the inner radius is rounded through Float_16. The colour
+   * is the group colour * brightness at alpha 0.03, zero-fail-selected
+   * 1.5x + alpha 0.01.
+   *
+   * @param {ITr2DebugRenderer2} renderer The debug renderer.
+   * @param {Array<object>} placements Placement data with identifiers.
+   * @param {number} size Number of placements to draw.
+   */
   @blue.method
-  @meta.notImplemented
-  RenderDebugInfo(..._args)
+  @meta.implemented
+  RenderDebugInfo(renderer, placements, size)
   {
-    throw new Error("EveSmartLightPointLight.RenderDebugInfo is not implemented in CarbonEngineJS.");
+    if (!renderer.HasOption(this, "smartLightSets") || !this.display)
+    {
+      return;
+    }
+
+    const statics = EveSmartLightPointLight;
+    const baseColor = color.scale(statics._debugBaseColor, this.GetGroupColor(), this.brightness);
+    baseColor[3] = 0.03;
+    const selectedColor = vec4.scaleAndAdd(statics._debugSelectedColor, statics._debugSelectedOffset, baseColor, 1.5);
+    const lightTransform = mat4.copy(statics._debugLightTransform, this._worldTransform);
+
+    for (let index = 0; index < size; index++)
+    {
+      const placement = placements[index];
+
+      // Carbon (row-vector): initialRotation * additionalRotation - initialRotation first.
+      const lightRotation = quat.multiply(statics._debugRotation, placement.additionalRotation, placement.initialRotation);
+      // Carbon's own spelling of the local (cpp:147).
+      const ligtPosition = vec3.transformQuat(statics._debugPosition, this.staticOffsetTranslation, lightRotation);
+      vec3.add(ligtPosition, ligtPosition, vec3.add(statics._debugTranslation, placement.initialTranslation, placement.additionalTranslation));
+
+      let perLightScaling = Math.max(placement.initialScale[0], placement.initialScale[1], placement.initialScale[2]);
+      perLightScaling = Math.fround(perLightScaling * Math.max(placement.additionalScale[0], placement.additionalScale[1], placement.additionalScale[2]));
+
+      const radius = Math.fround(this.radius * perLightScaling);
+      const innerRadius = num.fromCarbonHalfFloat(num.toCarbonHalfFloat(Math.fround(this.innerRadius * perLightScaling)));
+
+      renderer.DrawSphere__TransformCenterRadius(
+        Tr2DebugObjectReference.create__Object(this),
+        lightTransform,
+        ligtPosition,
+        radius,
+        10,
+        ITr2DebugRenderer2.Effect.Solid,
+        Tr2DebugColor.create__ColorZFail(selectedColor, baseColor));
+      renderer.DrawSphere__TransformCenterRadius(
+        Tr2DebugObjectReference.create__Object(this),
+        lightTransform,
+        ligtPosition,
+        innerRadius,
+        10,
+        ITr2DebugRenderer2.Effect.Solid,
+        Tr2DebugColor.create__ColorZFail(selectedColor, baseColor));
+    }
   }
 
   static LightDataFields = ["flags", "innerRadius", "brightness", "radius"];
@@ -495,6 +555,23 @@ export class EveSmartLightPointLight extends EveEntity
   static _position = vec3.create();
 
   static _direction = vec3.create();
+
+  // RenderDebugInfo scratch (debug drawing is single-threaded); the spot
+  // subclass shares it.
+  static _debugBaseColor = color.create();
+
+  static _debugSelectedColor = color.create();
+
+  /** Carbon's `Color( 0.0, 0.0, 0.0, 0.01 )` (EveSmartLightPointLight.cpp:142). */
+  static _debugSelectedOffset = color.fromValues(0, 0, 0, 0.01);
+
+  static _debugLightTransform = mat4.create();
+
+  static _debugRotation = quat.create();
+
+  static _debugPosition = vec3.create();
+
+  static _debugTranslation = vec3.create();
 
   // Scratch per-light record (Carbon Tr2LightManager::PerLightData,
   // Tr2LightManager.h:55-68) - reused across placements; the manager copies.

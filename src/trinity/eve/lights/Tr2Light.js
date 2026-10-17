@@ -357,14 +357,20 @@ export class Tr2Light
   }
 
   /**
-   * Carbon Tr2Light::RenderDebugInfo (Tr2Light.cpp:205-207) is an EMPTY
-   * base implementation - subclasses draw their own markers. Ported as the
-   * same deliberate no-op so the debug-renderer traversal can call it
+   * Carbon Tr2Light::RenderDebugInfo (Tr2Light.cpp:205-207; declared
+   * Tr2Light.h:87 with `bones = nullptr, boneCount = 0`): an EMPTY virtual
+   * base - Tr2PointLight, Tr2SpotLight and Tr2FactionLight draw their own
+   * markers. Ported as the same empty body so the debug traversal can call it
    * unconditionally.
+   *
+   * @param {ITr2DebugRenderer2} _renderer The debug renderer.
+   * @param {mat4} _worldMatrix The owner's world matrix.
+   * @param {Float32Array|null} [_bones] Packed Float4x3 bone matrices.
+   * @param {number} [_boneCount] Number of bones in `_bones`.
    */
   @blue.method
-  @meta.implemented
-  RenderDebugInfo(_renderer = null)
+  @meta.noop
+  RenderDebugInfo(_renderer, _worldMatrix, _bones = null, _boneCount = 0)
   {
   }
 

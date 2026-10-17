@@ -15,6 +15,7 @@ import { EveChildMesh } from "../child/EveChildMesh.js";
 import { EveChildInstanceMeshRenderer } from "../child/EveChildInstanceMeshRenderer.js";
 import { PlacementDataWithIdentifier } from "../PlacementDataWithIdentifier.js";
 import { EveSmartLightBaseGroup, resolveGroupColor } from "./EveSmartLightBaseGroup.js";
+import { IEveSmartLightGroup } from "./IEveSmartLightGroup.js";
 import { Tr2Effect } from "../../shader/Tr2Effect.js";
 import { Tr2InstancedMesh } from "../../core/mesh/Tr2InstancedMesh.js";
 import { RotationalConstraints } from "../../generated/eve/child/enums.js";
@@ -37,7 +38,7 @@ import { BLUELISTEVENT } from "#consts/blue";
   "distribution"
 ])
 @blue.inherit(EveSmartLightBaseGroup)
-@blue.interface(EveChildInstanceMeshRenderer, ITr2Renderable, IInitialize, INotify, IEveShadowCaster)
+@blue.interface(EveChildInstanceMeshRenderer, IEveSmartLightGroup, ITr2Renderable, IInitialize, INotify, IEveShadowCaster)
 export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
 {
   @blue.readwrite
@@ -420,4 +421,4 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   static _firstRotationQuaternion = quat.create();
 }
 
-// EveSmartLightMesh_Blue.cpp: native exposure; unported contracts: IEveSmartLightGroup.
+// EveSmartLightMesh_Blue.cpp: native exposure.

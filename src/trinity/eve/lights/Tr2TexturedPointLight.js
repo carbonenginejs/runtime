@@ -71,6 +71,19 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   }
 
   /**
+   * Carbon SetLightData (cpp:25-29): the point light's copy, then the texture
+   * is refetched from the new data's path.
+   * @param {CjsLightData} lightData
+   */
+  @blue.method
+  @meta.implemented
+  SetLightData(lightData)
+  {
+    super.SetLightData(lightData);
+    this.SetTexturePath(this.texturePath);
+  }
+
+  /**
    * Carbon OnModified (cpp:42–49): texture changes refetch, then forward base.
    */
   @blue.method

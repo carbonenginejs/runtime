@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightBaseGroup.h
 import { IListNotify } from "../../../global/blue/IListNotify.js";
+import { IEveSmartLightGroup } from "./IEveSmartLightGroup.js";
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
 import { color } from "#math/color";
@@ -28,8 +29,8 @@ export function resolveGroupColor(customColor, useFactionColor, factionColor, pa
 
 /** The shared faction-colour resolution and attribute-modifier surface flattened into every smart-light group implementation. */
 @blue.define("EveSmartLightBaseGroup")
-@blue.inherit(IListNotify)
-@blue.interface(IListNotify)
+@blue.inherit(IEveSmartLightGroup, IListNotify)
+@blue.interface(IEveSmartLightGroup, IListNotify)
 export class EveSmartLightBaseGroup
 {
 
@@ -105,6 +106,18 @@ export class EveSmartLightBaseGroup
   @meta.noop
   RegisterWithQuadRenderer(_quadRenderer)
   {
+  }
+
+  /**
+   * The colour being used: Carbon's MAP_PROPERTY_READONLY "activeColor" over
+   * GetGroupColor (EveSmartLightBaseGroup_Blue.cpp:18), so each group
+   * subclass's own GetGroupColor answers it.
+   */
+  @blue.read
+  @type.color
+  get activeColor()
+  {
+    return this.GetGroupColor();
   }
 
   /** Faction-aware group color (EveSmartLightBaseGroup.cpp:43-53). */

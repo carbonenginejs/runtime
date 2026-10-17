@@ -16,6 +16,7 @@ import { CjsSchema, meta, type, blue } from "#schema";
 import { TriTextureRes } from "#resource";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EvePlaneLight } from "./EvePlaneLight.js";
+import { EvePlaneSetVolatileData } from "./EvePlaneSetVolatileData.js";
 import { EveComponentType } from "../../EntityComponents.js";
 import { EveSpaceObjectAttachmentUtils } from "../EveSpaceObjectAttachmentUtils.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
@@ -173,7 +174,10 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
   /** m_items: one PlaneVertex per visible plane, packed bytes. */
   _items = new Uint8Array(0);
 
-  /** m_volatileData: { transform, color } per packed plane. */
+  /**
+   * m_volatileData: one VolatileData per packed plane.
+   * @type {Array<EvePlaneSetVolatileData>}
+   */
   _volatileData = [];
 
   /** m_aabb - the union of every unskinned, non-transparent plane (cpp:323-355). */
@@ -214,9 +218,12 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
       this._items[base + 105] = plane.boneIndex & 0xff;
       this._items[base + 106] = plane.maskAtlasID & 0xff;
 
-      // Carbon TransformationMatrix( scaling, rotation, position ).
-      const transform = mat4.fromRotationTranslationScale(mat4.create(), plane.rotation, plane.position, plane.scaling);
-      return { transform, color: [ plane.color[0], plane.color[1], plane.color[2], plane.color[3] ] };
+      // Carbon TransformationMatrix( scaling, rotation, position ), pushed by
+      // value with the colour as a Vector4 (cpp:302-303).
+      const data = new EvePlaneSetVolatileData();
+      mat4.fromRotationTranslationScale(data.transform, plane.rotation, plane.position, plane.scaling);
+      vec4.set(data.color, plane.color[0], plane.color[1], plane.color[2], plane.color[3]);
+      return data;
     });
 
     // Carbon CreateBoundingBoxes (cpp:323-355) is the shared builder plus one
