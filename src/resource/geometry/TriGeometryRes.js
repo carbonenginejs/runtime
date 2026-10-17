@@ -149,7 +149,9 @@ export class TriGeometryRes extends CjsResource
       const lods = mesh.lods?.length ? mesh.lods : [ mesh ];
       for (const lod of lods)
       {
-        for (const field of [ "vertexAllocation", "indexAllocation", "reversedIndexAllocation" ])
+        // wireframeIndexAllocation: the lazy edge list wireframe draws build
+        // (TriGeometryResAllocations.CreateLodWireframeIndices).
+        for (const field of [ "vertexAllocation", "indexAllocation", "reversedIndexAllocation", "wireframeIndexAllocation" ])
         {
           const allocation = lod[field];
           if (allocation?._parent) allocation._parent.Free(allocation);

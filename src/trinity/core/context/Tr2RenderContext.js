@@ -23,7 +23,7 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { ALResult, Failed } from "../../../trinityal/ALResult.js";
 import { Tr2ConstantBufferAL } from "../../../trinityal/Tr2ConstantBufferAL/index.js";
-import { ConstantBufferSlot, TextureAddressMode, TextureFilter } from "#consts/render-context";
+import { ConstantBufferSlot, TextureAddressMode, TextureFilter, Topology } from "#consts/render-context";
 import { RenderingMode } from "#consts/graphics";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
@@ -37,7 +37,7 @@ import { Tr2Shader } from "#resource/shader";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { Tr2RenderContextALStub } from "../../../trinityal/stub/Tr2RenderContextALStub/index.js";
 import { Tr2Blitter } from "../Tr2Blitter.js";
-import { RealizeBatchGeometry, ReleaseSharedGeometryBuffer } from "../mesh/TriGeometryResAllocations.js";
+import { RealizeBatchGeometry, ReleaseSharedGeometryBuffer, ResolveWireframeDraw } from "../mesh/TriGeometryResAllocations.js";
 import { Tr2RingBuffer } from "../device/Tr2RingBuffer/Tr2RingBuffer.js";
 
 const DIRECT_STEP_EXECUTOR = Object.freeze(new CjsDirectTrinityStepExecutor());
@@ -1210,11 +1210,34 @@ export class Tr2RenderContext
     // streams, which WebGPU refused, dropping the frame.
     if (batch.geometrySource && !batch.vertexStreams[0] && !RealizeBatchGeometry(batch, this)) return false;
 
-    this.SetTopology(batch.topology);
+    // Wireframe as a line list over the LOD's edge buffer, since no browser
+    // backend has Carbon's fill mode (Tr2EffectStateManager's wireframe note).
+    // The batch itself is left as built.
+    const wireframe = this._esm.IsWireframeRendering()
+      && batch.geometrySource
+      && batch.indexBuffer
+      && batch.topology === Topology.TOP_TRIANGLES
+      ? ResolveWireframeDraw(batch, this)
+      : null;
+
+    this.SetTopology(wireframe ? Topology.TOP_LINES : batch.topology);
     this._esm.ApplyVertexDeclaration(batch.vertexDeclaration);
 
     if (batch.vertexStreams[0]) this._esm.ApplyStreamSource(0, batch.vertexStreams[0], 0, batch.stride[0]);
     if (batch.vertexStreams[1]) this._esm.ApplyStreamSource(1, batch.vertexStreams[1], 0, batch.stride[1]);
+
+    if (wireframe)
+    {
+      this._esm.ApplyIndexBuffer__Stride(wireframe.indexBuffer, wireframe.indexStride);
+
+      return !Failed(this.DrawIndexedInstanced(
+        wireframe.indexCountPerInstance,
+        batch.instanceCount,
+        wireframe.startIndexLocation,
+        batch.baseVertexLocation,
+        batch.startInstanceLocation
+      ));
+    }
 
     if (batch.indexBuffer)
     {

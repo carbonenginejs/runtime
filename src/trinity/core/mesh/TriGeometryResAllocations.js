@@ -22,7 +22,9 @@
 // reader) and re-strides to a multiple of four.
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { CarbonVertexElements } from "../vertex/vertexUsage.js";
-import { PackLodGeometry } from "#resource/geometry/pack";
+import { PackLodGeometry, PackLodIndices } from "#resource/geometry/pack";
+import { TriGeometryRes } from "#resource/geometry";
+import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { Tr2GpuUsage } from "#consts/render-context";
 import { Tr2SuballocatedBuffer } from "../device/Tr2SuballocatedBuffer/index.js";
 import { TriDevice } from "../device/TriDevice.js";
@@ -174,6 +176,117 @@ export function CreateLodAllocations(geometry, meshIndex, lod, renderContext)
       lod.reversedIndicesValid = false;
     }
   }
+}
+
+
+/**
+ * Expands a triangle list into its edge list: each triangle (a, b, c) becomes
+ * the three lines a-b, b-c, c-a, so index i of the triangle list starts at
+ * index 2i of the edge list.
+ */
+function EdgeIndices(bytes, format)
+{
+  const Typed = format === "uint32" ? Uint32Array : Uint16Array;
+  const source = new Typed(bytes.buffer, bytes.byteOffset, bytes.byteLength / Typed.BYTES_PER_ELEMENT);
+  const triangleIndexCount = source.length - source.length % 3;
+  const edges = new Typed(triangleIndexCount * 2);
+
+  for (let index = 0; index < triangleIndexCount; index += 3)
+  {
+    const a = source[index], b = source[index + 1], c = source[index + 2];
+    const out = index * 2;
+    edges[out] = a;
+    edges[out + 1] = b;
+    edges[out + 2] = b;
+    edges[out + 3] = c;
+    edges[out + 4] = c;
+    edges[out + 5] = a;
+  }
+
+  return new Uint8Array(edges.buffer);
+}
+
+/** LODs already reported as having no CPU indices to build edges from. */
+const reportedWithoutIndices = new WeakSet();
+
+/**
+ * Makes a LOD's wireframe edge-index allocation in the shared buffer, once,
+ * on its first wireframe draw. ReleasePayload frees it with the LOD's other
+ * allocations.
+ *
+ * Ours: Carbon draws wireframe through the fill-mode render-state override
+ * (Tr2EffectStateManager.cpp:801-812). Neither browser backend has a fill
+ * mode, so wireframe is drawn as a line list over this edge buffer instead
+ * (operator ruling, route (a)); see Tr2EffectStateManager's wireframe note.
+ *
+ * @param {object} geometry The `TriGeometryRes`.
+ * @param {number} meshIndex The mesh.
+ * @param {object} lod The LOD the batch's area belongs to.
+ * @param {object} renderContext The `Tr2RenderContext` to allocate through.
+ * @returns {boolean} Whether the LOD has an edge allocation afterwards.
+ */
+export function CreateLodWireframeIndices(geometry, meshIndex, lod, renderContext)
+{
+  if (lod.wireframeIndexAllocation) return true;
+
+  const mesh = geometry.GetPayload()?.meshes?.[meshIndex];
+  const lodIndex = mesh && Array.isArray(mesh.lods) ? Math.max(0, mesh.lods.indexOf(lod)) : 0;
+  const indices = mesh ? PackLodIndices(mesh, lodIndex) : null;
+
+  if (!indices)
+  {
+    if (!reportedWithoutIndices.has(lod))
+    {
+      reportedWithoutIndices.add(lod);
+      CcpLog.CCP_LOGWARN(`Wireframe: mesh ${meshIndex} has no CPU indices to build edges from; drawn solid`);
+    }
+    return false;
+  }
+
+  const stride = indices.format === "uint32" ? 4 : 2;
+  const edges = EdgeIndices(indices.bytes, indices.format);
+  const allocation = SharedGeometryBuffer(renderContext).Allocate(stride, edges.byteLength / stride, edges, renderContext);
+
+  if (!allocation) return false;
+
+  lod.wireframeIndexAllocation = allocation;
+  geometry._memoryUse += edges.byteLength;
+  return true;
+}
+
+/**
+ * The line-list draw that shows a realized geometry batch as wireframe: the
+ * batch's area range (start, count) in the edge buffer is (start * 2,
+ * count * 2). Winding does not matter to edges, so a reversed batch draws the
+ * forward range.
+ *
+ * @param {object} batch A realized `Tr2RenderBatch` whose `geometrySource` is set.
+ * @param {object} renderContext The `Tr2RenderContext` submitting it.
+ * @returns {{indexBuffer: object, indexStride: number, indexCountPerInstance: number, startIndexLocation: number}|null}
+ *   Null when the LOD has no edges or the area no primitives.
+ */
+export function ResolveWireframeDraw(batch, renderContext)
+{
+  const source = batch.geometrySource;
+  const lod = source.lod ?? source.geometry.GetMeshLod__LodIndex(source.meshIndex, 0);
+
+  if (!lod || !CreateLodWireframeIndices(source.geometry, source.meshIndex, lod, renderContext)) return null;
+
+  const index = Math.max(0, source.areaIndex | 0);
+  const count = Math.max(0, source.count | 0);
+  const primitiveCount = TriGeometryRes.getPrimitiveCount(lod, index, count);
+
+  if (!primitiveCount) return null;
+
+  const firstIndex = TriGeometryRes.getAreaFirstIndex(lod.areas?.[index]);
+  const allocation = lod.wireframeIndexAllocation;
+
+  return {
+    indexBuffer: allocation.GetBuffer(),
+    indexStride: allocation.GetStride(),
+    indexCountPerInstance: primitiveCount * 3 * 2,
+    startIndexLocation: allocation.GetStartIndex() + firstIndex * 2
+  };
 }
 
 

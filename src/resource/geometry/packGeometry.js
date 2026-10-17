@@ -71,15 +71,29 @@ export function PackLodGeometry(mesh, lodIndex = 0)
 
   const lod = mesh?.lods?.[lodIndex] ?? null;
   const channels = lod?.vertex ?? mesh?.vertex ?? {};
-  const groups = lod?.indices ?? mesh?.indices ?? null;
 
   const vertex = AlignStride(packVertexBuffer(decl, channels));
+
+  return { decl, vertex, index: PackLodIndices(mesh, lodIndex) };
+}
+
+/**
+ * Packs one LOD's index buffer alone, from the same LOD-then-mesh sources
+ * PackLodGeometry uses; the wireframe edge build reads it without repacking
+ * the vertices.
+ *
+ * @param {object} mesh Decoded mesh.
+ * @param {number} [lodIndex] Which LOD to pack.
+ * @returns {{bytes: Uint8Array, format: string, count: number}|null} Null when the LOD has no indices.
+ */
+export function PackLodIndices(mesh, lodIndex = 0)
+{
+  const lod = mesh?.lods?.[lodIndex] ?? null;
+  const groups = lod?.indices ?? mesh?.indices ?? null;
   const indexBuffer = lod?.indexBuffer ?? (lod?.indices ? null : mesh?.indexBuffer) ?? null;
   const packedIndices = groups || indexBuffer ? packIndexBuffer(groups, indexBuffer) : null;
 
-  const index = packedIndices && packedIndices.count > 0
+  return packedIndices && packedIndices.count > 0
     ? { bytes: packedIndices.bytes, format: packedIndices.stride === 4 ? "uint32" : "uint16", count: packedIndices.count }
     : null;
-
-  return { decl, vertex, index };
 }

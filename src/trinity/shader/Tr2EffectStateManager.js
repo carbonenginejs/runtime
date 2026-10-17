@@ -355,25 +355,24 @@ export class Tr2EffectStateManager
    * that already includes the flags' effect, so the two variants are distinct
    * cache entries rather than one entry that must be invalidated.
    *
-   * Wireframe (`SetWireframeRendering`, cpp:800-812) is NOT YET PORTED, which
-   * is different from being unwanted - it is a working tool for anyone looking
-   * at geometry.
+   * Wireframe (`SetWireframeRendering`, cpp:801-812). Carbon overrides
+   * RS_FILLMODE; neither browser backend has a fill mode (no equivalent of
+   * `glPolygonMode`), so that render-state route cannot be projected. The
+   * operator ruled for LINE TOPOLOGY (route (a), 2026-10-18) over barycentric
+   * edges in the fragment shader:
    *
-   * An earlier note here said it was "deliberately absent" because neither
-   * browser backend has a fill mode. Half of that is true and the conclusion
-   * is not. Neither has an equivalent of `glPolygonMode`, so Carbon's
-   * render-state route genuinely cannot be projected - but wireframe does not
-   * need one:
+   *   - this flag is stored here and read by `Tr2RenderContext.SubmitGeometry`;
+   *   - an indexed triangle-list batch with a geometry source draws TOP_LINES
+   *     over its LOD's edge list instead, area (start, count) mapping to
+   *     (start * 2, count * 2) (`TriGeometryResAllocations.ResolveWireframeDraw`);
+   *   - the edge list is built lazily from the retained CPU indices on the
+   *     first wireframe draw, allocated in the shared geometry buffer, and
+   *     freed with the LOD's other allocations by `TriGeometryRes.ReleasePayload`;
+   *   - a LOD with no CPU indices logs once and draws solid.
    *
-   *   - LINE TOPOLOGY, reachable today. Carbon's topology 2 and 3 already map
-   *     to line primitives in the engine layer, so a pass can be drawn as
-   *     lines by choosing its topology. Edges are shared, so a triangle list
-   *     drawn this way is not a true wireframe without an index rebuild.
-   *   - BARYCENTRIC EDGES in the fragment shader. No new geometry, no index
-   *     rebuild, and usable line widths. This is the usual browser answer.
-   *
-   * So the blocker is a decision about which route to take, not a missing
-   * capability. What must NOT happen is the toggle silently doing nothing.
+   * Not covered: batches without a geometry source (line sets, sprites,
+   * particles, the debug renderer) draw as they are. Carbon's override also
+   * reaches them, through the fill mode.
    */
   #overrides = { invertedDepthTest: false, invertedCullMode: false, wireframe: false };
 
