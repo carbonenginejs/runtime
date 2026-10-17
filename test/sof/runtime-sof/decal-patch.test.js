@@ -7,7 +7,10 @@ import { EveShip2, EveChildContainer } from "../../../npm/dist/trinity/index.js"
 import { composeStubResMan } from "../../support/stubResMan.js";
 
 const manager = composeStubResMan();
-const patch = { lists: "patch" };
+// EveShip2 carries no values methods of ours (operator, 2026-10-17): the editor
+// patch goes through the values service, with the decal scope supplied here.
+const patch = { lists: "patch", listPatchKeys: { decals: "sof_source_id" } };
+const SetShipValues = (ship, values, options = {}) => CjsSchema.setValues(ship, values, { ...options, returnBoolean: true });
 
 async function Fixture()
 {
@@ -59,7 +62,7 @@ test("identical SOF decal patches return false and preserve decal and effect obj
   const parameters = effects.map(x => x.parameters[0]);
   const requests = manager.requests.length;
   const input = structuredClone(values.decals);
-  assert.equal(ship.SetValues(values, patch), false);
+  assert.equal(SetShipValues(ship, values, patch), false);
   assert.deepEqual(ship.decals, decals);
   for (let i = 0; i < decals.length; i++)
   {
@@ -77,18 +80,18 @@ test("one changed decal updates in place; reorder and partial lists never remove
   const { ship, values, checkVfx } = await Fixture();
   const [first, second] = ship.decals;
   const secondEffect = second.decalEffect;
-  assert.equal(ship.SetValues({ decals: values.decals.slice().reverse() }, patch), false);
+  assert.equal(SetShipValues(ship, { decals: values.decals.slice().reverse() }, patch), false);
   assert.equal(ship.decals[0], first);
   assert.equal(ship.decals[1], second);
   values.decals[0].position = [9, 0.1, 0];
-  assert.equal(ship.SetValues({ decals: [values.decals[0]] }, patch), true);
+  assert.equal(SetShipValues(ship, { decals: [values.decals[0]] }, patch), true);
   assert.equal(ship.decals[0], first);
   assert.equal(ship.decals[1], second);
   assert.equal(second.decalEffect, secondEffect);
   assert.equal(first.position[0], 9);
   assert.equal(second.position[0], 2);
-  assert.equal(ship.SetValues({ decals: [] }, patch), false);
-  assert.equal(ship.SetValues({}, patch), false);
+  assert.equal(SetShipValues(ship, { decals: [] }, patch), false);
+  assert.equal(SetShipValues(ship, {}, patch), false);
   checkVfx();
 });
 
@@ -100,14 +103,14 @@ test("decal shader-path patch keeps the effect and replaces its acquired resourc
   const remove = old.RemoveNotifyTarget.bind(old);
   old.RemoveNotifyTarget = target => { if (target === effect) detached++; return remove(target); };
   values.decals[0].decalEffect.effectFilePath = "res:/decal/b.sm_depth";
-  assert.equal(ship.SetValues(values, patch), true);
+  assert.equal(SetShipValues(ship, values, patch), true);
   assert.equal(ship.decals[0], decal);
   assert.equal(decal.decalEffect, effect);
   assert.notEqual(effect.effectResource, old);
   assert.equal(effect.effectResource.GetPath(), "res:/decal/b.sm_depth");
   assert.equal(detached, 1);
   assert.equal(ship.decals[1].decalEffect.effectResource, old);
-  assert.equal(ship.SetValues(values, patch), false);
+  assert.equal(SetShipValues(ship, values, patch), false);
   checkVfx();
 });
 
@@ -126,7 +129,7 @@ test("missing, duplicate and ambiguous decal IDs refuse the whole patch before w
     if (invalid === "duplicate existing") BeObjectMetadata.Set(second, "sof_source_id", BeObjectMetadata.Get(first, "sof_source_id"));
     if (invalid === "wrong type") values.decals.push({ _type: "Tr2Effect", __bluemetadata__: { sof_source_id: "new" } });
     const requests = manager.requests.length;
-    assert.throws(() => ship.SetValues(values, patch), /Patch/u, invalid);
+    assert.throws(() => SetShipValues(ship, values, patch), /Patch/u, invalid);
     assert.equal(first.name, originalName);
     assert.equal(first.decalEffect, effect);
     assert.equal(effect.effectFilePath, "res:/decal/a.sm_depth");
@@ -143,13 +146,13 @@ test("added decals use owner list notifications and retain their populated effec
   const addition = structuredClone(values.decals[0]);
   addition.__bluemetadata__.sof_source_id = "opaque-new-source";
   addition.name = "new decal";
-  assert.equal(ship.SetValues({ decals: [addition] }, patch), true);
+  assert.equal(SetShipValues(ship, { decals: [addition] }, patch), true);
   assert.equal(ship.decals.length, 3);
   assert.equal(ship.decals[0], first);
   assert.equal(ship.decals[2].decalEffect.effectFilePath, addition.decalEffect.effectFilePath);
   assert.equal(ship.decals[2].decalEffect.parameters[0].name, "Amount");
   assert.equal(ship.decals[2]._priority, 2);
-  assert.equal(ship.SetValues({ decals: [addition] }, patch), false);
+  assert.equal(SetShipValues(ship, { decals: [addition] }, patch), false);
   checkVfx();
 });
 
@@ -158,11 +161,11 @@ test("metadata-only decal patch returns false; default values still replace list
   const { ship, values, checkVfx } = await Fixture();
   const first = ship.decals[0];
   const metadata = { ...values.decals[0].__bluemetadata__, SofDna: "changed bookkeeping" };
-  assert.equal(ship.SetValues({ decals: [{ __bluemetadata__: metadata }] }, patch), false);
+  assert.equal(SetShipValues(ship, { decals: [{ __bluemetadata__: metadata }] }, patch), false);
   assert.equal(BeObjectMetadata.Get(first, "SofDna"), "changed bookkeeping");
   checkVfx();
-  assert.equal(ship.SetValues({ decals: [values.decals[0]] }), true);
+  assert.equal(SetShipValues(ship, { decals: [values.decals[0]] }), true);
   assert.equal(ship.decals.length, 1);
   assert.notEqual(ship.decals[0], first);
-  assert.equal(new EveShip2().SetValues({ decals: [] }), false);
+  assert.equal(SetShipValues(new EveShip2(), { decals: [] }), false);
 });

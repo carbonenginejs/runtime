@@ -1,13 +1,12 @@
 // Source: trinity/trinity/Lights/Tr2Light.h
 // Source: trinity/trinity/Lights/Tr2Light.cpp
-import { ReadValues } from "../../../global/blue/values.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { meta, type, blue } from "#schema";
 import { ResourceRequirement } from "#resource";
 import { IsMatch, be, IInitialize, INotify } from "#blue";
 import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
-import { CjsLightData, createCjsLightDataView, setCjsLightDataOwnerValues } from "./CjsLightData.js";
+import { CjsLightData, createCjsLightDataView } from "./CjsLightData.js";
 import {
   AreLightFlagsValid,
   AsPerPointLightData,
@@ -75,8 +74,7 @@ export class Tr2Light
 
   // Compat view over the flattened light fields (2026-07-23 flatten
   // decision): the flat decorated fields on the concrete light classes are
-  // the real storage; this keeps Carbon's GetLightData() reference surface
-  // and the SOF layer's separate-node hydration shape working.
+  // the real storage; this keeps Carbon's GetLightData() reference surface.
   _lightDataView = null;
 
   /**
@@ -96,22 +94,6 @@ export class Tr2Light
   {
     this._lightDataView ??= createCjsLightDataView(this, this.constructor.LightDataFields);
     return this._lightDataView;
-  }
-
-  /**
-   * Applies a value bag, first folding any nested `lightData` bag (the
-   * pre-flatten hydration shape) into the flattened fields so everything lands
-   * in one schema pass.
-   */
-  SetValues(values = {}, options = {})
-  {
-    return setCjsLightDataOwnerValues(
-      this,
-      values,
-      options,
-      (ownerValues, ownerOptions) => ReadValues(this, ownerValues, ownerOptions),
-      this.constructor.LightDataFields
-    );
   }
 
   /**

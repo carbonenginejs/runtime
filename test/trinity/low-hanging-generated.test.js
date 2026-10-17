@@ -1287,7 +1287,8 @@ test("Carbon light accessors remain backed by one shared CjsLightData", () =>
   assert.equal(smartSpot.innerAngle, 0);
   assert.equal(smartSpot.outerAngle, 0);
   assert.throws(() => smartSpot.RenderDebugInfo(), /not implemented/u);
-  smartSpot.SetValues({ innerAngle: 20, outerAngle: 40 });
+  smartSpot.innerAngle = 20;
+  smartSpot.outerAngle = 40;
   assert.equal(smartSpot.innerAngle, 20);
   assert.equal(smartSpot.outerAngle, 40);
   // Flattened storage (2026-07-23 decision): the m_lightGroupData members are

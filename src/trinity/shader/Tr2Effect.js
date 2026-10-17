@@ -14,7 +14,6 @@ import { Tr2EffectPassParameters } from "./material/Tr2EffectPassParameters.js";
 import { Tr2EffectTechniqueInputs } from "./material/Tr2EffectTechniqueInputs.js";
 import { ResourceRequirement } from "#resource";
 import { be, BlueList, IInitialize, INotify, IListNotify } from "#blue";
-import { ReadValues } from "../../global/blue/values.js";
 import { ITriEffectParameter } from "./parameter/ITriEffectParameter.js";
 import { BLUELISTEVENT } from "#consts/blue";
 import { GetEffectPathDefaults, NormalizeResourcePath, ResolveEffectPath } from "#utils/effectPath";
@@ -1188,43 +1187,6 @@ export class Tr2Effect extends Tr2Material
   }
 
   /**
-   * JS convenience over the Carbon lists: the effect collections also accept
-   * unique-name plain-object maps. Canonical arrays use the shared dictionary
-   * population service; `textures` is an input alias for `resources`.
-   */
-  SetValues(values = {}, options = {})
-  {
-    const source = values && typeof values === "object" ? values : {};
-    const rest = {};
-    const changedCollections = new Set();
-    for (const key of Object.keys(source))
-    {
-      const route = Tr2Effect.#VALUE_COLLECTIONS[key];
-      const value = source[key];
-      if (route && value && typeof value === "object" && !Array.isArray(value))
-      {
-        if (this[route.setter](value))
-        {
-          changedCollections.add(route.field);
-        }
-        continue;
-      }
-      if (key === "textures")
-      {
-        continue;
-      }
-      rest[key] = value;
-    }
-    const result = ReadValues(this, rest, { ...options, returnBoolean: false });
-    const changed = result instanceof Set ? result : new Set();
-    for (const field of changedCollections)
-    {
-      changed.add(field);
-    }
-    return options?.returnBoolean === true ? changed.size > 0 : changed;
-  }
-
-  /**
    * Merges dynamic parameters by unique name. Values may be raw
    * (number/vector/matrix/res path string) or explicit `{ type, ... }`
    * descriptors; `null` removes. Texture values route to `resources`.
@@ -1871,13 +1833,6 @@ export class Tr2Effect extends Tr2Material
     }
     return null;
   }
-
-  static #VALUE_COLLECTIONS = Object.freeze({
-    parameters: { setter: "SetParameters", field: "parameters" },
-    textures: { setter: "SetTextures", field: "resources" },
-    constParameters: { setter: "SetConstParameters", field: "constParameters" },
-    samplerOverrides: { setter: "SetSamplerOverrides", field: "samplerOverrides" }
-  });
 
   /**
    * Ordered parameter constructors considered when inferring a parameter from a value.

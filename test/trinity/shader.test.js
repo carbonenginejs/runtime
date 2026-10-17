@@ -888,36 +888,24 @@ function assertCarbonMethod(ctor, methodName, status)
   assertEquals(method?.impl?.status, status, `${ctor.name}.${methodName} should be marked ${status}`);
 }
 
-test("effect collections accept unique-name value maps with class-claimed inference", () =>
+test("effect named-map setters accept unique-name maps with class-claimed inference", () =>
 {
+  // Tr2Effect carries no values methods of ours (operator, 2026-10-17); the
+  // name maps go to the effect's own setters directly.
   const effect = new Tr2Effect();
-  const changed = effect.SetValues({
-    effectFilePath: "res:/fx/ship.fx",
-    parameters: {
-      Gloss: 0.5,
-      UvOffset: [1, 2],
-      Tint: [1, 2, 3],
-      DiffuseColor: [0, 0, 0, 1],
-      WorldMatrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-      PaintMaskMap: "res:/paint.dds"
-    },
-    textures: {
-      AlbedoMap: "res:/albedo.dds"
-    },
-    constParameters: {
-      Scalar: 2,
-      AuthoredColor: [1, 2, 3, 4]
-    },
-    samplerOverrides: {
-      AlbedoMapSampler: { addressU: 4, addressV: 4 }
-    }
-  });
-
-  assert(changed instanceof Set);
-  assert(changed.has("parameters"));
-  assert(changed.has("resources"));
-  assert(changed.has("constParameters"));
-  assert(changed.has("samplerOverrides"));
+  assertEquals("SetValues" in effect, false);
+  effect.effectFilePath = "res:/fx/ship.fx";
+  assert(effect.SetParameters({
+    Gloss: 0.5,
+    UvOffset: [1, 2],
+    Tint: [1, 2, 3],
+    DiffuseColor: [0, 0, 0, 1],
+    WorldMatrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+    PaintMaskMap: "res:/paint.dds"
+  }));
+  assert(effect.SetTextures({ AlbedoMap: "res:/albedo.dds" }));
+  assert(effect.SetConstParameters({ Scalar: 2, AuthoredColor: [1, 2, 3, 4] }));
+  assert(effect.SetSamplerOverrides({ AlbedoMapSampler: { addressU: 4, addressV: 4 } }));
   assertEquals(effect.effectFilePath, "res:/fx/ship.fx");
 
   assert(Array.isArray(effect.parameters), "parameters must stay a Carbon list");
@@ -989,9 +977,9 @@ test("effect collections accept unique-name value maps with class-claimed infere
   assert(threw, "uninferrable values must throw");
   assert(Array.isArray(effect.parameters), "failed input must not corrupt the list");
 
-  // canonical array input still flows through the inherited model path
+  // canonical array input flows through the values service
   const kept = effect.parameters.slice();
-  effect.SetValues({ parameters: kept });
+  CjsSchema.setValues(effect, { parameters: kept });
   assertEquals(effect.parameters.length, kept.length);
   assert(effect.parameters[0] === kept[0]);
 });

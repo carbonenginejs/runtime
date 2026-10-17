@@ -1317,9 +1317,12 @@ export class CjsSOFUpdater
 
   /**
    * Applies preflighted leaves and pattern-list edits through owner mutation routes.
-   * Effect options use SetOption; other collections use SetValues name maps.
-   * Multiple owner changes share one existing update batch, without closing a
-   * caller-owned batch. This class never replaces the effect's packed lists.
+   * Effect options use SetOption; the texture, sampler-override and constant
+   * name maps go to the effect's own named setters (SetTextures,
+   * SetSamplerOverrides, SetConstParameters), and every other field through
+   * the values service. Multiple owner changes share one existing update batch,
+   * without closing a caller-owned batch. This class never replaces the
+   * effect's packed lists.
    * @param {object} change Collected target, type and changed fields.
    * @returns {void}
    */
@@ -1343,14 +1346,20 @@ export class CjsSOFUpdater
       CjsSchema.setValues(object, values);
       return;
     }
-    const { options, ...rest } = values;
+    const { options, textures, samplerOverrides, constParameters, ...rest } = values;
     const optionNames = Object.keys(options ?? {});
-    const operations = optionNames.length + Object.keys(rest).length;
+    const maps = [ textures, samplerOverrides, constParameters ].filter(map => map !== undefined).length;
+    const operations = optionNames.length + maps + Object.keys(rest).length;
     const ownBatch = operations > 1 && !object.insideStartUpdate;
     if (ownBatch) object.StartUpdate();
     try
     {
       for (const name of optionNames) object.SetOption(name, options[name].value);
+
+      if (textures !== undefined) object.SetTextures(textures);
+      if (samplerOverrides !== undefined) object.SetSamplerOverrides(samplerOverrides);
+      if (constParameters !== undefined) object.SetConstParameters(constParameters);
+
       if (Object.keys(rest).length) CjsSchema.setValues(object, rest);
     }
     finally

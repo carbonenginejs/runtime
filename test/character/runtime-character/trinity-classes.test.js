@@ -532,27 +532,10 @@ test("interior constant-buffer records preserve native fixed-array cardinalities
     "root");
   assert.equal(CjsSchema.getField(Tr2InteriorPerObjectPSData, "pointLights")?.type?.itemType?.className,
     "Tr2InteriorPerObjectLightData");
-
-  const normalizedObject = CjsSchema.from("Tr2InteriorPerObjectPSData", {
-    padding: [ 4 ],
-    pointLights: [ { radius: 3 } ],
-    spotLights: [ new Array(16).fill(2), new Array(16).fill(3), new Array(16).fill(4), new Array(16).fill(5), new Array(16).fill(6) ]
-  });
-  assert.deepEqual(normalizedObject.padding, [ 4, 0, 0 ]);
-  assert.equal(normalizedObject.pointLights.length, 10);
-  assert.equal(normalizedObject.pointLights[0].radius, 3);
-  assert.ok(normalizedObject.pointLights.every(value => value instanceof Tr2InteriorPerObjectLightData));
-  assert.equal(normalizedObject.spotLights.length, 4);
-
-  const normalizedLight = CjsSchema.from("Tr2InteriorPerLightPSData", {
-    shadowMatrix: [],
-    shadowRect: [[ 1, 2, 3, 4 ]],
-    shadowInfluence: Array.from({ length: 8 }, () => [ 5, 6, 7, 8 ])
-  });
-  assert.equal(normalizedLight.shadowMatrix.length, 6);
-  assert.equal(normalizedLight.shadowRect.length, 6);
-  assert.deepEqual(Array.from(normalizedLight.shadowRect[0]), [ 1, 2, 3, 4 ]);
-  assert.equal(normalizedLight.shadowInfluence.length, 6);
+  // Carbon classes carry no values methods of ours (operator, 2026-10-17):
+  // the fixed-cardinality import normalization went with SetValues.
+  assert.equal("SetValues" in perObject, false);
+  assert.equal("SetValues" in perLight, false);
 });
 
 test("interior light sets and sort keys expose only their real source surface", () =>

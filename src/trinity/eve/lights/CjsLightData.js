@@ -129,39 +129,6 @@ export function createCjsLightDataView(owner, fieldNames)
   return view;
 }
 
-/**
- * Routes a nested `lightData` value bag (the pre-flatten hydration shape,
- * still emitted by the SOF layer) into the owner's flattened fields, then
- * applies everything through one schema-backed SetValues pass. Explicit flat
- * keys win over the nested bag.
- */
-export function setCjsLightDataOwnerValues(owner, values, options, setOwnerValues, fieldNames)
-{
-  if (!values || typeof values !== "object") return setOwnerValues(values, options);
-  if (!Object.prototype.hasOwnProperty.call(values, "lightData")) return setOwnerValues(values, options);
-
-  const merged = {};
-  for (const [key, value] of Object.entries(values))
-  {
-    if (key !== "lightData") merged[key] = value;
-  }
-
-  const nested = values.lightData;
-  if (nested && typeof nested === "object")
-  {
-    const fieldSet = new Set(fieldNames);
-    for (const fieldName of CjsLightData.Fields)
-    {
-      if (!fieldSet.has(fieldName)) continue;
-      if (!Object.prototype.hasOwnProperty.call(nested, fieldName)) continue;
-      if (Object.prototype.hasOwnProperty.call(values, fieldName)) continue;
-      merged[fieldName] = nested[fieldName];
-    }
-  }
-
-  return setOwnerValues(merged, options);
-}
-
 // Carbon registers this in Tr2Light_Blue.cpp:14. It is registered here because
 // the attachment lights load this module without Tr2Light, and Tr2Light
 // imports this module, so the reverse import would be a cycle.

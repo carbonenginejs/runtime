@@ -694,9 +694,9 @@ test("Tr2Light subclasses preserve Carbon graph defaults without resource realiz
   // The compat view shares the owner's math buffers and mirrors its values.
   assert(point.position === point.lightData.position, "the compat view returns the flat math buffer");
   assert(point.color === point.lightData.color, "the compat view returns the flat math buffer");
-  point.SetValues({ position: [1, 2, 3] });
+  vec3.set(point.position, 1, 2, 3);
   assertVec3(point.lightData.position, [1, 2, 3]);
-  point.SetValues({ brightness: 2.5 });
+  point.brightness = 2.5;
   assertEquals(point.lightData.brightness, 2.5);
   // The flat fields carry the Carbon Blue persistence flags: this is what
   // fixes the light round-trip asymmetry (CARBON-PARITY-REVIEW §3.2).
@@ -731,10 +731,12 @@ test("Tr2Light subclasses preserve Carbon graph defaults without resource realiz
   assertVec3(hydrated.lightData.position, [4, 5, 6]);
   assertEquals(hydrated.brightness, 3);
   assert(hydrated.position !== point.position, "light instances keep independent mutable values");
-  // The pre-flatten nested shape still hydrates (runtime-sof compat).
-  const nested = CjsSchema.from("Tr2PointLight", { lightData: { position: [7, 8, 9], radius: 5 } });
-  assertVec3(nested.position, [7, 8, 9]);
-  assertEquals(nested.radius, 5);
+  // The pre-flatten nested `lightData` shape left with Tr2Light.SetValues
+  // (operator, 2026-10-17): lightData is not a Blue member, so it is rejected.
+  let nestedError = null;
+  try { CjsSchema.from("Tr2PointLight", { lightData: { position: [7, 8, 9], radius: 5 } }); }
+  catch (error) { nestedError = error; }
+  assert(/Invalid attribute: lightData/.test(String(nestedError?.message)), "nested lightData is not a Blue member");
   const values = CjsSchema.getValues(hydrated);
   assertEquals(Object.hasOwn(values, "lightData"), false, "flattened fields serialize flat");
   assertVec3(values.position, [4, 5, 6]);

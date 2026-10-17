@@ -1,6 +1,5 @@
 // Source: trinity/trinity/Interior/Tr2InteriorConstantBufferFormats.h
 import { type, blue } from "#schema";
-import { DictReader } from "#blue/DictReader";
 import { mat4 } from "#math/mat4";
 import { vec4 } from "#math/vec4";
 import { Tr2InteriorPerObjectLightData } from "../../generated/interior/Tr2InteriorPerObjectLightData.js";
@@ -40,51 +39,4 @@ export class Tr2InteriorPerObjectPSData
   @type.array("mat4")
   spotLights = Array.from({ length: 4 }, () => mat4.create());
 
-  /**
-   * Imports values while normalizing padding, ten point lights, and four
-   * spot-light matrices to Carbon cardinality.
-   *
-   * Custom: Carbon declares fixed-size arrays in
-   * trinity/trinity/Interior/Tr2InteriorConstantBufferFormats.h; these structs
-   * have no values-import method. JavaScript import supplies the normalization
-   * and default filling described here; these are not native initializers.
-   *
-   * Supplied arrays are truncated or filled to three padding entries, ten point
-   * lights and four spot-light matrices. Missing padding becomes zero, missing
-   * lights become new records, and missing or non-16-element matrices become
-   * identity matrices. Omitted fields are left to the dictionary reader.
-   *
-   * @param {object} [values={}] Field values to apply through the schema setter.
-   * @param {object} [options={}] Options forwarded to the dictionary reader.
-   * @returns {Set<string>|boolean} The dictionary reader's change result.
-   */
-  SetValues(values = {}, options = {})
-  {
-    const normalized = { ...values };
-    if (Object.hasOwn(values, "padding"))
-    {
-      normalized.padding = Array.from({ length: 3 }, (_, index) => Number(values.padding?.[index] ?? 0) | 0);
-    }
-    if (Object.hasOwn(values, "pointLights"))
-    {
-      normalized.pointLights = Array.from({ length: 10 }, (_, index) =>
-        values.pointLights?.[index] ?? new Tr2InteriorPerObjectLightData());
-    }
-    if (Object.hasOwn(values, "spotLights"))
-    {
-      normalized.spotLights = FixedMat4Array(values.spotLights, 4);
-    }
-    const changed = new DictReader(options).ReadInto(this, normalized, null);
-    return options.returnBoolean === true ? changed.size > 0 : changed;
-  }
-
-}
-
-function FixedMat4Array(values, count)
-{
-  return Array.from({ length: count }, (_, index) =>
-  {
-    const value = values?.[index];
-    return value?.length === 16 ? mat4.copy(mat4.create(), value) : mat4.create();
-  });
 }

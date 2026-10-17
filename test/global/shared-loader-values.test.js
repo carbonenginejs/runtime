@@ -237,7 +237,7 @@ test("the real Crisis effect custom setter initializes once after population, an
   assert.equal(observations.length, 1, "disabled initialization must not escape through OnModified");
   // Negative control: ordinary editor notifications reinitialize immediately.
   const control = new Tr2Effect();
-  control.SetValues(structuredClone(values));
+  CjsSchema.setValues(control, structuredClone(values));
   assert.ok(observations.length > 1, "an unsuppressed setter reproduces early initialization");
 });
 

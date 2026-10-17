@@ -1,5 +1,4 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightPointLight.h
-import { ReadValues } from "../../../global/blue/values.js";
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { INotify } from "../../../global/blue/INotify.js";
 import { IInitialize } from "../../../global/blue/IInitialize.js";
@@ -19,10 +18,7 @@ import { vec4 } from "#math/vec4";
 import { ITr2LightOwner } from "../lights/ITr2LightOwner.js";
 import { Tr2Light } from "../lights/Tr2Light.js";
 import { EveComponentType } from "../EntityComponents.js";
-import {
-  createCjsLightDataView,
-  setCjsLightDataOwnerValues
-} from "../lights/CjsLightData.js";
+import { createCjsLightDataView } from "../lights/CjsLightData.js";
 import { BLUELISTEVENT } from "#consts/blue";
 
 /** A smart-light group member that places faction-colour-aware point or spot lights at each distribution placement and submits them to the light manager. */
@@ -190,20 +186,6 @@ export class EveSmartLightPointLight extends EveEntity
   {
     this._lightDataView ??= createCjsLightDataView(this, this.constructor.LightDataFields);
     return this._lightDataView;
-  }
-
-  /**
-   * Routes light-data properties through the shared light-data setter and delegates everything else to the base entity.
-   */
-  SetValues(values = {}, options = {})
-  {
-    return setCjsLightDataOwnerValues(
-      this,
-      values,
-      options,
-      (ownerValues, ownerOptions) => ReadValues(this, ownerValues, ownerOptions),
-      this.constructor.LightDataFields
-    );
   }
 
   /**

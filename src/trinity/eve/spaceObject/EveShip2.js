@@ -66,23 +66,6 @@ export class EveShip2 extends EveMobile
   _acceleration = vec3.create();
 
   /**
-   * Applies declared values, returning whether object data changed. The editor's
-   * optional patch mode updates only root decals, keyed by SOF origin within this
-   * ship; other root fields are outside that operation. Metadata alone is not data.
-   * @param {object} values Desired values.
-   * @param {object} [options] `lists: "patch"` retains unmatched root decals; the default replaces lists.
-   * @returns {boolean} Whether object data changed.
-   */
-  SetValues(values, options = {})
-  {
-    return CjsSchema.setValues(this, values, {
-      ...options, returnBoolean: true, useClassSetter: false,
-      listPatchKeys: { decals: "sof_source_id" }
-    });
-  }
-
-
-  /**
    * Carbon EveShip2::UpdateSyncronous - base sync, then speed from the world
    * velocity, audio speed parameter, and booster acceleration from the
    * position curve's second derivative (EveShip2.cpp:16-45).

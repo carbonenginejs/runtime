@@ -7,20 +7,20 @@ import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { IInitialize, INotify } from "../../npm/dist/global/blue/index.js";
 import { Tr2Light, Tr2PointLight, Tr2SpotLight, Tr2TexturedPointLight, Tr2FactionLight, IEveInheritPropertiesOwner } from "../../npm/dist/trinity/index.js";
 
-test("real chain point light preserves flat storage and owned legacy value normalization", () =>
+test("real chain point light preserves flat storage and carries no values methods", () =>
 {
   const values = JSON.parse(readFileSync(new URL("../support/pointLightAsset.json", import.meta.url), "utf8")).object;
   const flat = CjsSchema.from(values._type, values);
   assert.equal(flat.radius, 6666);
   assert.deepEqual(Array.from(flat.color), values.color);
-  const nested = CjsSchema.from("Tr2PointLight", { lightData: { radius: values.radius, color: values.color, brightness: values.brightness } });
-  assert.equal(nested.radius, flat.radius);
-  assert.deepEqual(Array.from(nested.color), Array.from(flat.color));
-  assert.equal(nested.lightData.radius, flat.radius);
-  assert.equal(Object.hasOwn(CjsSchema.getValues(nested), "lightData"), false);
-  assert.equal("GetValues" in nested, false);
-  assert.throws(() => ReadValues(new Tr2PointLight(), { lightData: { radius: values.radius } }), /Invalid attribute/,
-    "negative control: bypassing the owned normalizer rejects the legacy shape");
+  assert.equal(flat.lightData.radius, flat.radius);
+  assert.equal(Object.hasOwn(CjsSchema.getValues(flat), "lightData"), false);
+  assert.equal("GetValues" in flat, false);
+  assert.equal("SetValues" in flat, false, "Carbon classes carry no values methods of ours (operator, 2026-10-17)");
+  // lightData is not a Blue member, so the pre-flatten nested shape is rejected
+  // on every values route now that no class-owned normalizer folds it.
+  assert.throws(() => CjsSchema.from("Tr2PointLight", { lightData: { radius: values.radius } }), /Invalid attribute/);
+  assert.throws(() => ReadValues(new Tr2PointLight(), { lightData: { radius: values.radius } }), /Invalid attribute/);
   assert.deepEqual(mappedInterfaces(Tr2Light), new Set([Tr2Light]));
   for (const Type of [Tr2PointLight, Tr2SpotLight, Tr2TexturedPointLight])
     assert.deepEqual(mappedInterfaces(Type), new Set([Type, Tr2Light, IInitialize, INotify]));
