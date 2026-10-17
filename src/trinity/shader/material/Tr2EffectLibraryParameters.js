@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Shader/Tr2Material.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
-import { Tr2ResourceSetDescriptionAL } from "../../../trinityal/Tr2ResourceSetAL/index.js";
+import { Tr2ResourceSetAL, Tr2ResourceSetDescriptionAL } from "../../../trinityal/Tr2ResourceSetAL/index.js";
 import { Tr2MaterialStageInput } from "./Tr2MaterialStageInput.js";
 
 /** Collects one effect library's local and global stage inputs, rerouted parameters, and resource-set state. */
@@ -21,9 +21,14 @@ export class Tr2EffectLibraryParameters
   @type.rawStruct("Tr2ResourceSetDescriptionAL")
   globalResourceSetDesc = new Tr2ResourceSetDescriptionAL();
 
-  /** m_globalResourceSet (Tr2ResourceSetAL) */
+  /**
+   * m_globalResourceSet (Tr2ResourceSetAL), held by value (Shader/Tr2Material.h:162),
+   * so it is created with the library. A default handle is invalid until
+   * created (trinityal/src/Tr2ResourceSetAL.cpp:552-555); Carbon tests
+   * IsValid() before creating it (Shader/Tr2Material.cpp:581).
+   */
   @type.rawStruct("Tr2ResourceSetAL")
-  globalResourceSet = null;
+  globalResourceSet = new Tr2ResourceSetAL();
 
   /** m_reroutedParameters (std::vector<ITriReroutable*>) */
   @type.list("ITriReroutable")

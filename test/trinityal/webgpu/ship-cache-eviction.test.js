@@ -7,7 +7,7 @@ import { Tr2RenderContext } from "../../../npm/dist/trinity/core/index.js";
 import { Tr2Effect } from "../../../npm/dist/trinity/shader/Tr2Effect.js";
 import { RealizeTexture } from "../../../npm/dist/trinity/core/Tr2ImageIOHelpers.js";
 import { CreateLodAllocations, SharedGeometryBuffer, ReleaseSharedGeometryBuffer } from "../../../npm/dist/trinity/core/mesh/TriGeometryResAllocations.js";
-import { Tr2BufferDescriptionAL, Tr2ResourceSetDescriptionAL, Tr2RegisterMapAL } from "../../../npm/dist/trinityal/index.js";
+import { Tr2BufferDescriptionAL, Tr2ResourceSetAL, Tr2ResourceSetDescriptionAL, Tr2RegisterMapAL } from "../../../npm/dist/trinityal/index.js";
 import { Tr2GpuUsage, Tr2CpuUsage, ShaderType } from "../../../npm/dist/global/consts/renderContext/index.js";
 
 // The real resource manager, texture/geometry owners and WebGPU AL run against
@@ -76,7 +76,7 @@ test("switching ships lets the idle owner's GPU objects expire while the current
     }) });
     description.SetSrv__TextureAL(ShaderType.PIXEL_SHADER, 0, texture.GetTexture());
     const effect = new Tr2Effect();
-    effect.parametersForPasses = [ { passes: [ { stageInput: [], resourceSetDesc: description } ] } ];
+    effect.parametersForPasses = [ { passes: [ { stageInput: [], resourceSetDesc: description, resourceSet: new Tr2ResourceSetAL() } ] } ];
     const geometry = new TriGeometryRes();
     geometry.Initialize(`res:/${name}.gr2`, "gr2");
     const mesh = {

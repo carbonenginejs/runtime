@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Shader/Tr2Material.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { type, blue } from "#schema";
-import { Tr2ResourceSetDescriptionAL } from "../../../trinityal/Tr2ResourceSetAL/index.js";
+import { Tr2ResourceSetAL, Tr2ResourceSetDescriptionAL } from "../../../trinityal/Tr2ResourceSetAL/index.js";
 import { Tr2MaterialStageInput } from "./Tr2MaterialStageInput.js";
 
 /** Collects one effect pass's per-stage inputs, rerouted parameters, used resources, and resource-set state. */
@@ -33,9 +33,14 @@ export class Tr2EffectPassParameters
   @type.rawStruct("Tr2ResourceSetDescriptionAL")
   resourceSetDesc = new Tr2ResourceSetDescriptionAL();
 
-  /** m_resourceSet (Tr2ResourceSetAL) */
+  /**
+   * m_resourceSet (Tr2ResourceSetAL), held by value (Shader/Tr2Material.h:142),
+   * so it is created with the pass. A default handle is invalid until
+   * Create__Program fills it (trinityal/src/Tr2ResourceSetAL.cpp:552-555);
+   * IsValid() says whether a set has been created yet.
+   */
   @type.rawStruct("Tr2ResourceSetAL")
-  resourceSet = null;
+  resourceSet = new Tr2ResourceSetAL();
 
   /** m_usedResources (std::vector<ITr2EffectValuePtr>) */
   @type.list("ITr2EffectValue")

@@ -4,27 +4,27 @@ import { type, blue } from "#schema";
 
 /**
  * Carries the bounds of a Sprite2D clipping rectangle as a plain native struct.
- * No native query interface or persistence flags are declared. The existing
- * JavaScript zero defaults are deterministic adapters: Carbon leaves the
- * default-constructed scalar fields uninitialized until the caller fills them.
+ * No native query interface or persistence flags are declared. Carbon's
+ * no-argument constructor (ITr2Sprite2dRenderer.h:64-66) has an empty body, so
+ * all four bounds start at their neutral value.
  */
 @blue.define("Tr2Sprite2dClipRect")
 export class Tr2Sprite2dClipRect
 {
 
-  /** left (float) */
+  /** left (float). Carbon leaves it unset. */
   @type.float32
   left = 0;
 
-  /** top (float) */
+  /** top (float). Carbon leaves it unset. */
   @type.float32
   top = 0;
 
-  /** right (float) */
+  /** right (float). Carbon leaves it unset. */
   @type.float32
   right = 0;
 
-  /** bottom (float) */
+  /** bottom (float). Carbon leaves it unset. */
   @type.float32
   bottom = 0;
 

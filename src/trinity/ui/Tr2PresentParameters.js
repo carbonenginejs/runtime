@@ -81,10 +81,12 @@ export class Tr2PresentParameters extends Tr2PresentParametersAL
    */
   swapEffect = SwapEffect.SWAP_EFFECT_DISCARD;
   /**
-   * Opaque native Tr2WindowHandle identifying the output window; the UI default is zero.
+   * Opaque native Tr2WindowHandle identifying the output window. Carbon's
+   * Tr2WindowHandle is an HWND pointer and the UI constructor assigns it 0, the
+   * null pointer (Tr2PresentParameters.cpp:13), so the default is null.
    * @type {unknown}
    */
-  outputWindow = 0;
+  outputWindow = null;
   /**
    * Native PresentInterval synchronization setting; the UI default is ONE refresh interval.
    * @type {number}

@@ -55,8 +55,8 @@ export class Type
     /** Carbon leaves it unset. */
     arrayDimensions = 0;
 
-    /** Carbon leaves it unset. */
-    arraySizes = [0, 0, 0, 0, 0, 0, 0, 0];
+    /** Carbon's `int arraySizes[8]` (Type.h:41). Carbon leaves it unset. */
+    arraySizes = new Int32Array(8);
 
     /** Carbon leaves it unset. */
     modifier = 0;

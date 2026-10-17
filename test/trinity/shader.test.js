@@ -383,7 +383,7 @@ test("promoted shader graph containers track dirty resources", () =>
   // as a guarantee.
   let cleared = 0;
   let released = 0;
-  pass.resourceSet = { Destroy() { released += 1; } };
+  pass.resourceSet.m_resourceSet = { owners: 1, implementation: { IsValid: () => true, Destroy() { released += 1; } } };
   pass.resourceSetDesc = {
     ClearResources()
     {
@@ -396,7 +396,7 @@ test("promoted shader graph containers track dirty resources", () =>
   assert(pass.stageInput[0].constantBufferDirty);
   assert(library.globalInput.constantBufferDirty);
   material.InvalidateResourceSets();
-  assertEquals(pass.resourceSet, null, "the realized set is dropped, as Carbon drops it");
+  assertEquals(pass.resourceSet.IsValid(), false, "the realized set is dropped, as Carbon drops it");
   assertEquals(cleared, 1, "and the description it was built from is cleared");
   assertEquals(released, 1, "the realized resource set is explicitly released");
 
@@ -1068,13 +1068,15 @@ test("ApplyMaterialDataForPass binds only the stages the technique declares", ()
     {
       return { GetShaderProgram: () => ({ id: "program" }) };
     },
-    CreateResourceSet(description, program)
+    // The pass's by-value handle asks for the backend implementation
+    // (Tr2ResourceSetAL.Create__Program passes implementationOnly).
+    CreateResourceSet(description, program, implementationOnly)
     {
-      const set = new Tr2ResourceSetALStub();
+      assert(implementationOnly, "the pass handle creates in place");
+      const implementation = new Tr2ResourceSetALStub();
+      const result = implementation.Create(description, program, renderContext);
 
-      set.Create(description, program, renderContext);
-
-      return set;
+      return { result, implementation };
     },
     SetConstants(buffer, stage)
     {
@@ -1138,15 +1140,15 @@ test("ApplyMaterialDataForPass binds only the stages the technique declares", ()
   assert(material.resourceSetHash !== 0, "and the material folds every pass hash in");
 
   // A second apply with nothing changed must not rebuild the set.
-  const realized = pass.resourceSet;
+  const realized = pass.resourceSet.m_resourceSet;
   assertEquals(material.ApplyMaterialDataForPass(0, 0, renderContext), true);
-  assertEquals(pass.resourceSet, realized, "an unchanged pass reuses its realized set");
+  assertEquals(pass.resourceSet.m_resourceSet, realized, "an unchanged pass reuses its realized set");
 
   // Invalidation drops it, so the next apply rebuilds.
   material.InvalidateResourceSets();
-  assertEquals(pass.resourceSet, null);
+  assertEquals(pass.resourceSet.IsValid(), false);
   material.ApplyMaterialDataForPass(0, 0, renderContext);
-  assert(pass.resourceSet && pass.resourceSet !== realized, "invalidation forces a rebuild");
+  assert(pass.resourceSet.IsValid() && pass.resourceSet.m_resourceSet !== realized, "invalidation forces a rebuild");
 });
 
 test("a material with no shader applies nothing", () =>

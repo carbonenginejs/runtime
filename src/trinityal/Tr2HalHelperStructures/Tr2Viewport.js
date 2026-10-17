@@ -9,9 +9,10 @@ import { CjsSchema, type } from "#schema";
 //
 // THE TWO CONSTRUCTORS DIFFER, and the difference is Carbon's. The default one
 // (`Tr2HalHelperStructures.h:33-35`) leaves EVERY field unset, so each field
-// takes the neutral zero here. The `(width, height)` one (header 37-38) sets all
-// six, so the depth range is 0..0 until the sized constructor or an assignment
-// runs and 0..1 after it.
+// takes the neutral zero here and that is the JS constructor. The
+// `(width, height)` one (header 37-40) sets all six and is
+// `Tr2Viewport.create__WidthHeight`, so the depth range is 0..0 after the
+// default constructor and 0..1 after the sized one.
 
 
 /**
@@ -31,32 +32,32 @@ export class Tr2Viewport
   /** Carbon leaves it unset (`Tr2HalHelperStructures.h:33-35`). */
   m_height = 0;
 
-  /**
-   * Near depth. Carbon's sized constructor sets 0; with its default constructor
-   * Carbon leaves it unset (`Tr2HalHelperStructures.h:33-35`).
-   */
+  /** Near depth. Carbon leaves it unset (`Tr2HalHelperStructures.h:33-35`). */
   m_minZ = 0;
 
-  /**
-   * Far depth. Carbon's sized constructor sets 1; with its default constructor
-   * Carbon leaves it unset (`Tr2HalHelperStructures.h:33-35`).
-   */
+  /** Far depth. Carbon leaves it unset (`Tr2HalHelperStructures.h:33-35`). */
   m_maxZ = 0;
 
   /**
-   * @param {number} [width] Width in pixels; omit for Carbon's default constructor.
-   * @param {number} [height] Height in pixels.
+   * Carbon's sized constructor (`Tr2HalHelperStructures.h:37-40`): origin 0, 0,
+   * the given size, and the depth range 0..1.
+   *
+   * @param {number} width Width in pixels.
+   * @param {number} height Height in pixels.
+   * @returns {Tr2Viewport} The viewport.
    */
-  constructor(width = undefined, height = undefined)
+  static create__WidthHeight(width, height)
   {
-    if (width === undefined && height === undefined) return;
+    const viewport = new Tr2Viewport();
 
-    this.m_x = 0;
-    this.m_y = 0;
-    this.m_width = Number(width);
-    this.m_height = Number(height);
-    this.m_minZ = 0;
-    this.m_maxZ = 1;
+    viewport.m_x = 0;
+    viewport.m_y = 0;
+    viewport.m_width = width;
+    viewport.m_height = height;
+    viewport.m_minZ = 0;
+    viewport.m_maxZ = 1;
+
+    return viewport;
   }
 }
 

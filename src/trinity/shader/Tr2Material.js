@@ -139,9 +139,9 @@ export class Tr2Material
     // device context - `Tr2RenderContext_GetMainThreadRenderContext()`
     // exists, but nothing installs a backend on it - so seeding there made
     // every sampler state the stub's, which a WebGPU resource set cannot bind
-    // and replaced with its dummy. A fresh pass (no set yet) is seeded here,
+    // and replaced with its dummy. A pass with no valid set yet is seeded here,
     // by the context that will build its resource set, of that backend's kind.
-    if (pass.resourceSet === null) this.SeedSamplers(techniqueIndex, passIndex, pass, renderContext);
+    if (!pass.resourceSet.IsValid()) this.SeedSamplers(techniqueIndex, passIndex, pass, renderContext);
 
     let mask = this.shader.GetShaderTypeMask(techniqueIndex);
     let descChanged = pass.resourceSetDirty;
@@ -158,7 +158,7 @@ export class Tr2Material
       mask &= ~(1 << stage);
     }
 
-    if (descChanged || !pass.resourceSet)
+    if (descChanged || !pass.resourceSet.IsValid())
     {
       const handle = this.shader.GetEffect()?.techniques?.[techniqueIndex]?.passes?.[passIndex]?.shaderProgram;
 
@@ -177,12 +177,11 @@ export class Tr2Material
       // (Tr2Material.cpp:232-236); a stage that refused to compile is such a case.
       if (!program) return false;
 
-      const resourceSet = renderContext.CreateResourceSet(pass.resourceSetDesc, program);
+      // Carbon creates the set in place on the pass's by-value handle
+      // (Tr2Material.cpp:238); a failed Create leaves the handle invalid
+      // (trinityal/src/Tr2ResourceSetAL.cpp:557-566), so the next apply retries.
+      if (Failed(pass.resourceSet.Create__Program(pass.resourceSetDesc, program, renderContext))) return false;
 
-      if (!resourceSet) return false;
-
-      if (pass.resourceSet) pass.resourceSet.Destroy();
-      pass.resourceSet = resourceSet;
       pass.resourceSetHash = pass.resourceSetDesc.ComputeHash();
       pass.resourceSetDirty = false;
 
@@ -479,8 +478,9 @@ export class Tr2Material
         // resource sets" - which was the engine-means-`trinityal/webgpu`
         // misreading written down as a guarantee. Trinity owns the
         // description; the abstraction layer owns the set built from it.
-        if (pass.resourceSet) pass.resourceSet.Destroy();
-        pass.resourceSet = null;
+        // Carbon assigns a default handle (Tr2Material.cpp:388); Destroy
+        // resets ours to the invalid default and releases its share.
+        pass.resourceSet.Destroy();
         pass.resourceSetDesc?.ClearResources();
         pass.resourceSetHash = 0;
         pass.resourceSetDirty = true;

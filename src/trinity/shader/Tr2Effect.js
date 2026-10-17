@@ -243,7 +243,7 @@ export class Tr2Effect extends Tr2Material
       for (const pass of technique.passes)
       {
         for (const input of pass.stageInput) if (input.constantBuffer) input.constantBuffer.Destroy();
-        if (pass.resourceSet) pass.resourceSet.Destroy();
+        pass.resourceSet.Destroy();
         if (pass.resourceSetDesc) pass.resourceSetDesc.ClearResources();
       }
     }
