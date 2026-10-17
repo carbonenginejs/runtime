@@ -42,13 +42,19 @@ export class Tr2EffectLibrary
   /** hitGroupName (BlueSharedStringW) */
   hitGroupName = "";
 
-  /** globalInput (Tr2EffectStageInput) */
-  globalInput = null;
+  /** globalInput (Tr2EffectStageInput), embedded by value (Tr2EffectDescription.h:227). */
+  globalInput = new Tr2EffectStageInput();
 
-  /** localInput (Tr2EffectStageInput) */
-  localInput = null;
+  /** localInput (Tr2EffectStageInput), embedded by value (Tr2EffectDescription.h:228). */
+  localInput = new Tr2EffectStageInput();
 
-  /** globalResourceSetDesc (Tr2ResourceSetDescriptionAL) */
+  /**
+   * globalResourceSetDesc (Tr2ResourceSetDescriptionAL)
+   *
+   * Adapted: Carbon embeds it by value (Tr2EffectDescription.h:229), but the
+   * class lives in trinityal, which the resource layer may not import
+   * (layers.json), so the member starts null here.
+   */
   globalResourceSetDesc = null;
 
   /**

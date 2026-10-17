@@ -1,6 +1,7 @@
 import { CjsSchema } from "#schema/CjsSchema";
 
 import { HlslEffectStageInput } from "./HlslEffectStageInput.js";
+import { HlslResourceSetDescription } from "../../HlslResourceSetDescription.js";
 
 /**
  * Ray-tracing shader library metadata from v14+ Trinity effects.
@@ -23,7 +24,9 @@ export class HlslEffectLibrary
         this.exports = [];
         this.globalInput = new HlslEffectStageInput();
         this.localInput = new HlslEffectStageInput();
-        this.globalResourceSetDesc = null;
+        // Carbon embeds globalResourceSetDesc by value
+        // (trinity/trinity/Shader/Tr2EffectDescription.h:229).
+        this.globalResourceSetDesc = new HlslResourceSetDescription();
         this.cjsShaderBytecode = null;
     }
 
@@ -46,7 +49,7 @@ export class HlslEffectLibrary
             exports: this.exports.map((entry) => ({ ...entry })),
             globalInput: this.globalInput.toJSON(),
             localInput: this.localInput.toJSON(),
-            globalResourceSetDesc: this.globalResourceSetDesc?.toJSON() ?? null
+            globalResourceSetDesc: this.globalResourceSetDesc.toJSON()
         };
     }
 }

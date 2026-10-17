@@ -22,10 +22,16 @@ export class TriGeometryResAreaData
   /** m_maxBounds (Vector3) */
   maxBounds = vec3.create();
 
-  /** m_jointBindings (TrackableStdVector<int>) */
-  jointBindings = null;
+  /** m_jointBindings (TrackableStdVector<int>), an empty vector at construction (TriGeometryRes.cpp:1892). */
+  jointBindings = [];
 
-  /** m_staticBlas (Tr2RtBottomLevelAccelerationStructureAL) */
+  /**
+   * m_staticBlas (Tr2RtBottomLevelAccelerationStructureAL)
+   *
+   * Adapted: Carbon embeds it by value (TriGeometryRes.h:113), but the class
+   * lives in trinityal, which the resource layer may not import (layers.json),
+   * so the member starts null here.
+   */
   staticBlas = null;
 
   /** m_isSkinned (bool) */
@@ -34,7 +40,12 @@ export class TriGeometryResAreaData
   /** m_isMorphed (bool) */
   isMorphed = false;
 
-  /** m_rtGeometryConstants (Tr2ConstantBufferAL) */
+  /**
+   * m_rtGeometryConstants (Tr2ConstantBufferAL)
+   *
+   * Adapted: embedded by value (TriGeometryRes.h:116); null for the same
+   * layer reason as staticBlas.
+   */
   rtGeometryConstants = null;
 
 }

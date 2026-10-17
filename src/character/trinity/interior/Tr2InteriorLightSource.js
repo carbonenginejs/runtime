@@ -8,6 +8,7 @@ import { color } from "#math/color";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { mat4 } from "#math/mat4";
+import { Tr2KelvinColor } from "../../../trinity/core/lighting/Tr2KelvinColor.js";
 
 /**
  * Authored interior light definition with position, color, falloff, cone, and
@@ -68,11 +69,16 @@ export class Tr2InteriorLightSource
   @type.float32
   falloff = 1;
 
-  /** m_kelvinColor (Tr2KelvinColorPtr) [READWRITE, PERSIST] */
+  /**
+   * m_kelvinColor (Tr2KelvinColorPtr) [READWRITE, PERSIST]
+   *
+   * A pointer member, but the Carbon constructor CreateInstance()s it
+   * (cpp:42), so the record exists with the light.
+   */
   @blue.readwrite
   @blue.persist
   @type.rootRef("Tr2KelvinColor")
-  kelvinColor = null;
+  kelvinColor = new Tr2KelvinColor();
 
   /** m_radius (float) [READWRITE, PERSIST, NOTIFY] */
   @blue.notify
@@ -173,8 +179,9 @@ export class Tr2InteriorLightSource
 
     if (this.useKelvinColor && this.kelvinColor)
     {
-      // Carbon eagerly CreateInstance()s the kelvin record (cpp:42); here
-      // hydration supplies it, and a null falls through to the rgb field.
+      // The field holds the record Carbon CreateInstance()s (cpp:42). Carbon
+      // has no null test here (cpp:105-107); this one only sends a read that
+      // wrote null into the pointer to the rgb field.
       // Carbon cpp:107-108: Color k = AsRGB(); color = Vector3( k.r, k.g, k.b ).
       const k = this.kelvinColor.AsRGB(Tr2InteriorLightSource._kelvinScratch);
       vec3.set(lightData.color, k[0], k[1], k[2]);
