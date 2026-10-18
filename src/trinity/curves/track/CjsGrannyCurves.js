@@ -392,13 +392,16 @@ export class CjsGrannyCurves
    * and Tr2GrannyVectorTrack use in place of Granny's evaluator
    * (Tr2GrannyTransformTrack.cpp:30-46, Tr2GrannyVectorTrack.cpp:24-31).
    * The frame is `int(float(numFrames) * time / duration)` with numFrames the
-   * control count over the dimension, read with no bounds check. Its caller
-   * admits `time == duration` (Tr2GrannyTrack.cpp:37), so Carbon reads one
-   * frame past the end there: Carbon defect CE-194 (GrannyCurveHelpers.h:17-19).
+   * control count over the dimension, read with no bounds check.
    *
-   * Adapted: an unchecked frame outside the controls throws a RangeError
-   * instead of reading undefined (ruling 11). That includes the CE-194 end-time
-   * read; whether it should clamp instead is open with the operator.
+   * Fixes CE-194: Carbon reads one frame past the end at `time == duration`,
+   * which its caller admits (Tr2GrannyTrack.cpp:37), and indexes with an
+   * undefined int(NaN) for a zero-duration track (GrannyCurveHelpers.h:17-19);
+   * ours clamps the end time to the last frame and reads frame 0 for a zero
+   * duration (operator, 2026-10-18).
+   *
+   * Adapted: any other frame outside the controls (a negative time) throws a
+   * RangeError instead of reading undefined (ruling 11).
    *
    * @param {number[]|Float32Array} out Caller-owned output, at least the curve dimension long.
    * @param {{controls: ArrayLike<number>, dimension: number}} curve Decoded keyframed curve.
@@ -410,7 +413,8 @@ export class CjsGrannyCurves
   static getKeyFrameAtT(out, curve, time, duration)
   {
     const numFrames = Math.trunc(curve.controls.length / curve.dimension);
-    const frame = Math.trunc(Math.fround(numFrames) * time / duration);
+    // Fixes CE-194: the end time clamps to the last frame, a zero duration reads frame 0.
+    const frame = duration === 0 ? 0 : Math.min(Math.trunc(Math.fround(numFrames) * time / duration), numFrames - 1);
 
     if (!(frame >= 0 && frame < numFrames))
     {

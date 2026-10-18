@@ -516,7 +516,7 @@ test("CjsGrannyCurves samples keyframed, linear, and quadratic controls", () =>
   }, 1.5, false, 2, { keyframed: true });
   assertAlmostEquals(out[0], 9);
 });
-test("GetKeyFrameAtT reads Carbon's unchecked frame and throws outside the frames", () =>
+test("GetKeyFrameAtT reads Carbon's frame, clamps the CE-194 end and zero-duration reads, and throws for a negative time", () =>
 {
   const out = new Float32Array(2);
   const curve = { controls: [1, 2, 3, 4, 5, 6], dimension: 2 };
@@ -524,7 +524,12 @@ test("GetKeyFrameAtT reads Carbon's unchecked frame and throws outside the frame
   assertVector(Array.from(out), [1, 2]);
   CjsGrannyCurves.getKeyFrameAtT(out, curve, 2.99, 3);
   assertVector(Array.from(out), [5, 6]);
-  for (const [time, duration] of [[3, 3], [-1.5, 3], [0, 0]])
+  // Fixes CE-194: time == duration clamps to the last frame; a zero duration reads frame 0.
+  CjsGrannyCurves.getKeyFrameAtT(out, curve, 3, 3);
+  assertVector(Array.from(out), [5, 6]);
+  CjsGrannyCurves.getKeyFrameAtT(out, curve, 0, 0);
+  assertVector(Array.from(out), [1, 2]);
+  for (const [time, duration] of [[-1.5, 3]])
   {
     let error = null;
     try
