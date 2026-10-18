@@ -13,6 +13,7 @@ import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js"
  * One geometry-and-areas record inside an EveChildInstancedMeshes child, holding
  * its instance placements, per-instance world cull spheres, instance flags and
  * manager registration handles.
+ * The name stays because it is the SOF-persisted `_type` (EveSOF.js:1511, 2673), and SOF's layout is the sanctioned divergence.
  */
 @meta.define({ className: "EveChildInstancedMesh", carbon: "EveChildInstancedMeshes::Mesh" })
 export class EveChildInstancedMesh

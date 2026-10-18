@@ -21,6 +21,7 @@ import { meta, type } from "#schema";
  * A single placement of an instanced mesh: its transform, the index of its
  * cull sphere in the owning mesh's instance sphere list, whether it mirrors,
  * and the mesh and instance indices its picking hits decode to.
+ * The name stays because it is the SOF-persisted `_type` (EveSOF.js:1504, 2664), and SOF's layout is the sanctioned divergence.
  */
 @meta.define({ className: "EveChildInstancedMeshInstance", carbon: "EveInstancedMeshManager::StaticPerInstanceData" })
 export class EveChildInstancedMeshInstance
