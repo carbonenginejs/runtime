@@ -200,9 +200,9 @@ export class EveProjectBracket
       x = Math.floor(x + 0.5);
       y = Math.floor(y + 0.5);
     }
-    // Carbon optionally calls g_debugRenderer->Printf here. Trinity owns the
-    // projection policy, not the process-global debug renderer; engine/tool
-    // integration may realize that presentation-only side effect.
+    // Waiting: g_debugRenderer. Carbon prints the bracket's name here when the
+    // process-global ITr2DebugRenderer is set (EveProjectBracket.cpp:216-219);
+    // that global and its interface are not ported.
 
     if (this.bracket)
     {

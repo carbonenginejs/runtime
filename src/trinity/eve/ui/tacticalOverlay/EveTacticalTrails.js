@@ -1,3 +1,4 @@
+import { Tr2DeviceResource } from "../../../core/device/Tr2DeviceResource.js";
 // Source: trinity/trinity/Eve/UI/EveTacticalTrails.h
 // Source: trinity/trinity/Eve/UI/EveTacticalTrails.cpp
 // Hand-maintained after promotion from generated schema intake.
@@ -44,7 +45,7 @@ const LINE_VERTEX_BYTES = TRAIL_VERTEX_DEFINITION.nextOffset[0];
  * points relative to the ego ball and drawn as a strip of quads with connectors, transparent under RM_ALPHA.
  */
 @blue.define("EveTacticalTrails")
-@blue.inherit(IEveSpaceObject2, ITr2Renderable)
+@blue.inherit(IEveSpaceObject2, ITr2Renderable, Tr2DeviceResource)
 @blue.interface(IEveSpaceObject2, ITr2Renderable)
 export class EveTacticalTrails
 {
@@ -98,14 +99,6 @@ export class EveTacticalTrails
   ReleaseResources(_storage)
   {
     this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
-  }
-
-  /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32): only while resource creation is allowed. */
-  @meta.implemented
-  @blue.method
-  PrepareResources()
-  {
-    return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
   }
 
   /** Carbon OnPrepareResources (cpp:78-81): nothing to prepare; the buffer is built on demand. */

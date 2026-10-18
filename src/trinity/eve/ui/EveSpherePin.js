@@ -1,3 +1,4 @@
+import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
 import { ITr2Pickable } from "../../core/ITr2Pickable.js";
 // Source: trinity/trinity/Eve/UI/EveSpherePin.h
 // Source: trinity/trinity/Eve/UI/EveSpherePin.cpp
@@ -40,7 +41,7 @@ const pinColorMembers = [ { name: "color", key: "pinColor", type: { kind: "color
 
 /** A UI sphere pin: authored SRT placement plus the pin constant record. */
 @blue.define({ className: "EveSpherePin", members: pinColorMembers })
-@blue.inherit(IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2, ITr2Pickable, INotify)
+@blue.inherit(IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2, ITr2Pickable, INotify, Tr2DeviceResource)
 @blue.interface(IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2, ITr2Pickable, INotify)
 export class EveSpherePin
 {
@@ -269,14 +270,6 @@ export class EveSpherePin
   @meta.noop
   ReleaseResources(_storage)
   {
-  }
-
-  /** Native resource-creation guard. */
-  @blue.method
-  @meta.implemented
-  PrepareResources()
-  {
-    return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
   }
 
   /** Requests index regeneration when initialized geometry outlives its AL buffer. */

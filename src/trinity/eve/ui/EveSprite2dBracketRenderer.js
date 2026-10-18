@@ -1,3 +1,4 @@
+import { Tr2DeviceResource } from "../../core/device/Tr2DeviceResource.js";
 import { vec4 } from "#math/vec4";
 // Source: trinity/trinity/EveSprite2dBracketRenderer.h
 // Source: trinity/trinity/EveSprite2dBracketRenderer.cpp
@@ -13,10 +14,19 @@ import { Tr2SpriteObject } from "../../sprite2d/Tr2SpriteObject.js";
 
 /**
  * Binds a bracket collection and icon atlas for rendering EVE UI markers in a
- * Sprite2D scene.
+ * Sprite2D scene: Carbon EveSprite2dBracketRenderer
+ * (EveSprite2dBracketRenderer.h:15), a Tr2SpriteObject and a Tr2DeviceResource.
+ *
+ * Adapted: Carbon's Tr2DeviceResource base also registers the renderer with
+ * the device (Tr2DeviceResource.cpp:6-9) and its destructor unregisters it.
+ * This renderer has no Destroy to end its life, so a registration would hold
+ * it forever; it is left out, as EveSpaceObjectDecal's is. A device reset
+ * therefore does not call ReleaseResources here; the next render recreates
+ * buffers that are no longer valid.
  */
 @blue.define("EveSprite2dBracketRenderer")
 @blue.chainTo(Tr2SpriteObject)
+@blue.inherit(Tr2DeviceResource)
 export class EveSprite2dBracketRenderer extends Tr2SpriteObject
 {
 

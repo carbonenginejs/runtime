@@ -1,3 +1,4 @@
+import { Tr2DeviceResource } from "../../../core/device/Tr2DeviceResource.js";
 // Source: trinity/trinity/Eve/UI/EveLineSet.h
 // Source: trinity/trinity/Eve/UI/EveLineSet.cpp
 import { IInitialize } from "../../../../global/blue/IInitialize.js";
@@ -36,7 +37,7 @@ const EVE_LINE_DATA_SIZE = EVE_LINE_DATA_FLOATS * 4;
  * renderTransparent.
  */
 @blue.define("EveLineSet")
-@blue.inherit(IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2)
+@blue.inherit(IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2, Tr2DeviceResource)
 @blue.interface(IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2)
 export class EveLineSet
 {
@@ -127,14 +128,6 @@ export class EveLineSet
     this.maxCurrentLineCount = 100;
     this.PrepareResources();
     return true;
-  }
-
-  /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32): only while resource creation is allowed. */
-  @meta.implemented
-  @blue.method
-  PrepareResources()
-  {
-    return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
   }
 
   /** Carbon ReleaseResources (cpp:45-50). Adapted: the buffer is destroyed explicitly. */
