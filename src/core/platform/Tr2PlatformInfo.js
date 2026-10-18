@@ -207,13 +207,6 @@ export class Tr2PlatformInfo
         };
     }
 
-    /** Registers the detected capabilities with a CjsLibrary capability registry. */
-    RegisterCapabilities(library)
-    {
-        library.RegisterCapabilities(this.GetCapabilities());
-        return this;
-    }
-
     /**
      * Resolves a content demand into a GPUDeviceDescriptor for the probed
      * adapter, plus the demands dropped so `requestDevice` would not reject.
