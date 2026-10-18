@@ -154,14 +154,6 @@ test("unloading a profile releases its slice for reuse", () =>
     next.SetPayload(null);
 });
 
-test("foreign profile objects without GetTextureIndex keep the first-sight fallback", () =>
-{
-    const manager = new Tr2LightManager();
-    manager.AddLight(lightWith({ name: "foreign" }));
-    manager.ResolveLightData();
-    assert.equal(packedProfileSlot(manager), 1, "first-sight slot, biased");
-});
-
 test("the element handle class is exported for AL-side consumers", () =>
 {
     assert.equal(typeof Tr2TextureArrayElement, "function");

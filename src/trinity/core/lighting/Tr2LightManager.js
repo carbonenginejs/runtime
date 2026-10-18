@@ -26,7 +26,6 @@
 // premultiply and fade band.
 
 import { CjsSchema, meta, type, blue } from "#schema";
-import { CjsResource } from "#blue";
 import { num } from "#math/num";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -182,11 +181,6 @@ export class Tr2LightManager
     atlasNodes: [],
     qualityUsedByAtlas: ShadowQuality.SHADOW_DISABLED
   };
-
-  // Non-Carbon: profile-object -> slice index, assigned on first sight. The
-  // slot registry is description-side (Carbon assigns slices through the
-  // manager-owned Tr2TextureArray, cpp:682-686, whose realization is AL).
-  _profileSlots = new Map();
 
   // The packed PerLightData buffer (contract: 48 bytes / 3 RGBA32 texels per
   // light), built by ResolveLightData, uploaded by the AL.
@@ -1140,8 +1134,7 @@ export class Tr2LightManager
    * DoPrepare (Tr2LightProfileRes.cpp:95-99), which the layering forbids
    * (resource cannot import trinity), so the manager performs it at the
    * first pack instead; same array, same first-fit slot, one seam later.
-   * The first-sight map remains only for foreign profile objects that
-   * expose no GetTextureIndex.
+   * The profile is Carbon's m_lightProfile, a Tr2LightProfileRes.
    */
   _ProfileSlot(profile)
   {
@@ -1149,34 +1142,23 @@ export class Tr2LightManager
     // Asked where it is used, once per packed light per frame: renews the
     // profile and packs "no profile" while it is not good, which is what a
     // loading profile without a bitmap already packed (CjsResource.IsGood).
-    const resource = CjsSchema.cast(profile, CjsResource);
-    if (resource && !resource.IsGood()) return 0;
-    if (typeof profile.GetTextureIndex === "function")
+    if (!profile.IsGood()) return 0;
+    let index = profile.GetTextureIndex();
+    if (index < 0)
     {
-      let index = profile.GetTextureIndex();
-      if (index < 0 && typeof profile.RegisterProfileElement === "function")
+      // Carbon hands the profile's m_bitmap to the array (Tr2LightProfileRes.cpp:95-99).
+      const bitmap = profile.GetBitmap();
+      if (bitmap.IsValid())
       {
-        // Carbon hands the profile's m_bitmap to the array (Tr2LightProfileRes.cpp:95-99).
-        const bitmap = profile.GetBitmap();
-        if (bitmap.IsValid())
+        const element = Tr2LightManager.getLightProfileArray().AddElement(bitmap);
+        if (element.IsValid())
         {
-          const element = Tr2LightManager.getLightProfileArray().AddElement(bitmap);
-          if (element.IsValid())
-          {
-            profile.RegisterProfileElement(element);
-            index = element.GetElementIndex();
-          }
+          profile.RegisterProfileElement(element);
+          index = element.GetElementIndex();
         }
       }
-      return index >= 0 ? index + 1 : 0;
     }
-    let slot = this._profileSlots.get(profile);
-    if (slot === undefined)
-    {
-      slot = this._profileSlots.size;
-      this._profileSlots.set(profile, slot);
-    }
-    return slot + 1;
+    return index >= 0 ? index + 1 : 0;
   }
 
   /**

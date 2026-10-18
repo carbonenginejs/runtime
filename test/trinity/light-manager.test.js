@@ -2,6 +2,17 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { Tr2LightManager, TriFrustum } from "../../npm/dist/trinity/index.js";
 import { CreateLightRecord } from "../../npm/dist/trinity/eve/lights/lightConversion.js";
+import { Tr2LightProfileRes } from "../../npm/dist/resource/index.js";
+import { CjsIESFormat } from "../../npm/dist/resource/formats/ies/index.js";
+
+/** A loaded light profile, as Carbon's m_lightProfile is a Tr2LightProfileRes. */
+function profileResource()
+{
+  const numbers = [ 1, 100, 1, 2, 1, 1, 1, 0.2, 0.3, 0.4, 1, 0, 60, 0, 180, 0, 500, 0 ];
+  const bytes = new TextEncoder().encode(`IESNA:LM-63-1995\nTILT=NONE\n${numbers.join(" ")}\n`);
+  const payload = CjsIESFormat.read(bytes, { emit: "lightProfile" });
+  return new Tr2LightProfileRes().Initialize("res:/lights/profile-a.ies").SetPayload(payload).MarkPrepared();
+}
 
 /** Decodes one IEEE binary16 half from its bits, for pack assertions. */
 function fromHalf(bits)
@@ -126,7 +137,7 @@ test("the packed buffer carries the contract layout, including biased profile sl
 {
   const manager = new Tr2LightManager();
 
-  const profile = { name: "profile-a" };
+  const profile = profileResource();
   const record = CreateLightRecord();
   record.flags = Tr2LightManager.FLAG_DEFAULT | Tr2LightManager.FLAG_IS_VOLUMETRIC;
   record.color.set([ 1, 1, 1 ]);
@@ -156,13 +167,15 @@ test("the packed buffer carries the contract layout, including biased profile sl
   assert.deepEqual(Array.from(data.slice(0, 4)), [ 10, 20, 30, 2 ]);
 
   // Texel 1.w: innerRadius f16 low, flags u16 high with the profile slot
-  // biased by one in bits 4-15 (both records share slot 1).
+  // biased by one in bits 4-15 (both records share the profile's slice).
   const bits = new Uint32Array(data.buffer, data.byteOffset, data.length);
   assert.ok(Math.abs(fromHalf(bits[7] & 0xFFFF) - 0.5) < 1e-3, "innerRadius half");
   const flagsWord = bits[7] >>> 16;
   assert.equal(flagsWord & 0xF, Tr2LightManager.FLAG_DEFAULT | Tr2LightManager.FLAG_IS_VOLUMETRIC);
-  assert.equal(flagsWord >>> 4, 1, "profile slot 0, stored biased as 1");
-  assert.equal((bits[19] >>> 16) >>> 4, 1, "second record shares the slot");
+  const slot = profile.GetTextureIndex() + 1;
+  assert.ok(slot > 0, "the profile took a slice");
+  assert.equal(flagsWord >>> 4, slot, "the profile's slice, stored biased by one");
+  assert.equal((bits[19] >>> 16) >>> 4, slot, "second record shares the slot");
 
   // Texel 2: direction halves, projection plane distance, angles, zeroed union.
   assert.ok(Math.abs(fromHalf(bits[8] >>> 16) - 1) < 1e-3, "direction.y");
