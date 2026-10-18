@@ -243,7 +243,7 @@ test('lensflare controller initialization, insertion replay and destruction pres
   assert.equal(flare.controllers.Append(inserted),true);
   assert.equal(inserted.owner,flare);
   assert.deepEqual(log.slice(-2),['link',['radius',5]]);
-  flare.Destroy();
+  flare.Destruct();
   assert.deepEqual(log.slice(-2),[['unlink',UnlinkReason.DELETING],['unlink',UnlinkReason.DELETING]]);
 });
 

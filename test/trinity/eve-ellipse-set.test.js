@@ -32,7 +32,7 @@ function setup(t)
   const sets = [];
   t.after(() =>
   {
-    for (const set of sets) set.Destroy();
+    for (const set of sets) set.Destruct();
     context.SetRenderContextAL(prior);
   });
   const make = () =>
@@ -384,7 +384,7 @@ test("__init__ creates the configured ribbon effect only for a set without one",
   assert.equal(assigned.effect, effect, "an assigned effect is retained");
 });
 
-test("__init__ and Destroy rebind and unbind the definitions' dirty callbacks", (t) =>
+test("__init__ and Destruct rebind and unbind the definitions' dirty callbacks", (t) =>
 {
   const { make } = setup(t);
   const set = make();
@@ -395,7 +395,7 @@ test("__init__ and Destroy rebind and unbind the definitions' dirty callbacks", 
   ellipse.OnModified();
   assert.equal(set._geometryDirty, true, "a hydrated definition is bound");
 
-  set.Destroy();
+  set.Destruct();
   set._geometryDirty = false;
   ellipse.OnModified();
   assert.equal(set._geometryDirty, false, "a destroyed set no longer hears its definitions");

@@ -52,5 +52,5 @@ test("actual effect options create, update, query and remove the model-free opti
  const effect=new Tr2Effect();effect.SetOption("QUALITY","LOW");const option=effect.options[0];assert.equal(option.constructor,Tr2ShaderOption);assert.equal(effect.GetOption("QUALITY"),"LOW");
  effect.SetOption("QUALITY","HIGH");assert.equal(effect.options[0],option);assert.equal(option.value,"HIGH");assert.equal(effect.options.length,1);
  const written=new DictWriter().WriteObject(effect,{}, {persistOnly:true});assert.deepEqual(written.options.map(value=>[value.name,value.value]),[["QUALITY","HIGH"]]);
- effect.ResetOption("QUALITY");assert.equal(effect.GetOption("QUALITY"),"");assert.equal(effect.options.length,0);effect.Destroy();
+ effect.ResetOption("QUALITY");assert.equal(effect.GetOption("QUALITY"),"");assert.equal(effect.options.length,0);effect.Destruct();
 });

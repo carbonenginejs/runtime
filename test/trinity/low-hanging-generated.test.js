@@ -631,7 +631,7 @@ test("Tr2CurveLineSet preserves Carbon line IDs, edits, and segment submissions"
   const al = new Tr2RenderContextALStub();
   context.SetRenderContextAL(al);
   al.CreateDevice();
-  t.after(() => { set.Destroy(); context.SetRenderContextAL(prior); });
+  t.after(() => { set.Destruct(); context.SetRenderContextAL(prior); });
   const set = new Tr2CurveLineSet();
   const straight = set.AddStraightLine([0, 0, 0], [1, 0, 0, 1], [1, 0, 0], [0, 1, 0, 1], 2);
   const curved = set.AddCurvedLineCrt([0, 0, 0], [1, 1, 1, 1], [4, 0, 0], [1, 1, 1, 1], [2, 2, 0], 3, 4);

@@ -60,8 +60,12 @@ export class Tr2ParticleSystem
    * Ends the final owner's CPU-particle lifetime (Tr2ParticleSystem.cpp:89-101,
    * 350-378). Adapted: explicit JS teardown replaces native destructors and
    * clears views of the owned CPU buffers; device reset retains that data.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
    */
-  Destroy()
+  Destruct()
   {
     Tr2ParticleSystem.getAllSystems().delete(this);
     this._DestroyBuffers();
@@ -1496,7 +1500,7 @@ export class Tr2ParticleSystem
 
   /**
    * Carbon GetAllSystems (cpp:874-878): every live particle system. The
-   * constructor adds a system and Destroy, which stands in for Carbon's
+   * constructor adds a system and Destruct, which stands in for Carbon's
    * destructor (cpp:91), removes it.
    *
    * Carbon's std::set<Tr2ParticleSystem*> is ordered by address, so its

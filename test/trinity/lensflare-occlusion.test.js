@@ -51,7 +51,7 @@ test("a destroyed lens flare returns its slots, as Carbon's Offset deleter does"
   const taken = [ lensflare.occlusionOffset, lensflare.backgroundOcclusionOffset ];
   const freeBefore = occlusionBuffer.free.length;
 
-  lensflare.Destroy();
+  lensflare.Destruct();
 
   assert.equal(occlusionBuffer.free.length, freeBefore + 2);
   assert.deepEqual(occlusionBuffer.free.slice(-2), taken);

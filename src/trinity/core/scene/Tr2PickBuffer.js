@@ -118,8 +118,14 @@ export class Tr2PickBuffer
     if (this._pickTarget.IsValid()) this._pickTarget.UnmapForReading(context);
   }
 
-  /** Replaces the native destructor and base-class unregistration. */
-  Destroy()
+  /**
+   * Replaces the native destructor and base-class unregistration.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
+  Destruct()
   {
     this.ReleaseResources();
     TriDevice.UnregisterResource(this);
@@ -137,7 +143,7 @@ CjsSchema.blue.define(Tr2PickBuffer, {
     SetSize: [meta.implemented], GetSize: [meta.implemented], GetDescription: [meta.adapted], SetClearColor: [meta.implemented],
     ReleaseResources: [meta.adapted], PrepareResources: [meta.adapted], OnPrepareResources: [meta.adapted],
     BeginRendering: [meta.adapted], EndRendering: [meta.implemented], MapForReading: [meta.adapted],
-    UnmapForReading: [meta.implemented], Destroy: [meta.adapted], CreateReadback: []
+    UnmapForReading: [meta.implemented], Destruct: [meta.adapted], CreateReadback: []
   }
 });
 

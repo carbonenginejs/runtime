@@ -34,7 +34,7 @@ const CARBON_TABLES=new Map([
  [Tr2Sprite2dRenderJob,[Tr2Sprite2dRenderJob,ITr2SpriteObject,Tr2SpriteObjectBase,INotify]],
 ]);
 
-// Destroy is now an explicit UI resource cleanup method, not an inherited model helper.
+// Destruct is now an explicit UI resource cleanup method, not an inherited model helper.
 test("native six-verb sprite interface stays abstract and model-free",()=>{
  assert.equal(Object.getPrototypeOf(ITr2SpriteObject.prototype),Object.prototype);
  const nativeVerbs=["GatherSprites","PickPoint","SetParent","SetDirty","SetChildDirty","IsAuxMouseover"];

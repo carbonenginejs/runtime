@@ -454,8 +454,14 @@ export class Tr2InteriorScene
     }
   }
 
-  /** Explicit JS final lifetime releases the shadow wrappers owned by this scene. */
-  Destroy()
+  /**
+   * Explicit JS final lifetime releases the shadow wrappers owned by this scene.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
+  Destruct()
   {
     for (const target of this.lightRenderTargets) target.Destroy();
     this.lightRenderTargets.length = 0;

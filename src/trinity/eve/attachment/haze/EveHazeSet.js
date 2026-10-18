@@ -138,7 +138,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * Carbon's constructor (cpp:62-70): registers with the device, as the
    * Tr2DeviceResource base constructor does (Tr2DeviceResource.cpp:6-9), so a
    * set initialized before the device exists gets its buffer once resources
-   * can be created. Destroy unregisters it.
+   * can be created. Destruct unregisters it.
    */
   constructor()
   {
@@ -153,9 +153,13 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
    * Tr2DeviceResource destructor unregisters (Tr2DeviceResource.cpp:11-14).
    *
    * JavaScript has no deterministic destructor, so the owner calls this
-   * explicitly. No owner calls Destroy yet.
+   * explicitly. No owner calls Destruct yet.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
    */
-  Destroy()
+  Destruct()
   {
     if (this._vertexBuffer.IsValid()) this._vertexBuffer._parent.Free(this._vertexBuffer);
     TriDevice.UnregisterResource(this);

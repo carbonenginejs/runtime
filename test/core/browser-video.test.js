@@ -83,7 +83,7 @@ test("decoded frames upload once for 100 consumers; media clock, cached light co
   assert.equal(f.counts.reads,2,"light consumes cached colour without sampling");
   f.player.Pause();assert.equal(v.paused,true);assert.equal(f.timers.size,0);
   f.player.Resume();assert.equal(v.paused,false);
-  f.player.Destroy();assert.equal(v.frames.size,0);assert.equal(v.listeners.size,0);
+  f.player.Destruct();assert.equal(v.frames.size,0);assert.equal(v.listeners.size,0);
   assert.equal(f.timers.size,0);assert.equal(f.revoked.length,1);
 });
 
@@ -100,7 +100,7 @@ test("dimension changes and resource recreation upload current frame without per
   assert.equal(f.counts.allocations,2);assert.equal(f.counts.destroys,1);
   f.texture.ReleaseResources();f.player.OnTick(0,0,null);RealizeTexture(f.texture,f.render);
   assert.equal(f.counts.allocations,3);assert.equal(f.counts.uploads,4);
-  f.player.Destroy();
+  f.player.Destruct();
 });
 
 test("old clip callbacks and deferred samples cannot overwrite the replacement", () =>
@@ -112,7 +112,7 @@ test("old clip callbacks and deferred samples cannot overwrite the replacement",
   assert.deepEqual(f.texture.GetAverageColor(),[0,0,1,1]);assert.equal(f.counts.reads,0);
   assert.equal(old.frames.size,0);assert.equal(old.listeners.size,0);
   f.videos[1].frame(1,0);f.flush();assert.deepEqual(f.texture.GetAverageColor(),[1,0,0,1]);
-  f.player.Destroy();assert.equal(f.revoked.length,2);
+  f.player.Destruct();assert.equal(f.revoked.length,2);
 });
 
 test("autoplay denial waits for host Resume and does not trigger playlist retries", async () =>
@@ -123,7 +123,7 @@ test("autoplay denial waits for host Resume and does not trigger playlist retrie
   f.player.Resume();await settle();assert.equal(f.player.autoplayBlocked,true);
   assert.equal(f.timers.size,0);assert.equal(errors,0);
   v.playError=null;f.player.Resume();await settle();assert.equal(f.player.autoplayBlocked,false);
-  f.player.Destroy();
+  f.player.Destruct();
 });
 
 test("shared playlists advance, loop, preserve identity on replacement and clean up on manager clear", async () =>
@@ -209,7 +209,7 @@ test("GPU colour reads coalesce and discard completed results from replaced clip
   assert.deepEqual(f.texture.GetAverageColor(),[0,1,0,1]);
   const next=f.videos[1];next.frame(1,0);assert.equal(requests,3);
   f.texture.ReleaseResources();resolve(new Float32Array([1,0,1,1]));await settle();
-  assert.deepEqual(f.texture.GetAverageColor(),[0,1,0,1]);f.player.Destroy();
+  assert.deepEqual(f.texture.GetAverageColor(),[0,1,0,1]);f.player.Destruct();
 });
 
 test("Carbon player methods use media nanoseconds, expose unknown alpha, clear and retarget storage", () =>
@@ -227,7 +227,7 @@ test("Carbon player methods use media nanoseconds, expose unknown alpha, clear a
   const other=new TriTextureRes();other.Initialize("dynamic:/color/0,0,0,1", "");
   f.player.SetBgraTexture(other);assert.equal(f.player.GetBgraTexture(),other);
   assert.equal(f.texture.GetPayload(),null);
-  f.player.OnTick(0,0,null);assert.equal(other.GetWidth(),640);f.player.Destroy();
+  f.player.OnTick(0,0,null);assert.equal(other.GetWidth(),640);f.player.Destruct();
 });
 
 
@@ -239,7 +239,7 @@ test("colour backend failures preserve playback and retry only after texture rec
   assert.match(f.player.averageColorError.message,/sampling failed/);assert.equal(f.player.error,null);
   assert.equal(f.player.video,v);assert.equal(f.counts.uploads,3);
   f.texture.ReleaseResources();v.frame(4,450);f.flush();
-  assert.equal(f.player.averageColorError,null);assert.equal(f.counts.reads,2);f.player.Destroy();
+  assert.equal(f.player.averageColorError,null);assert.equal(f.counts.reads,2);f.player.Destruct();
 });
 
 
@@ -257,7 +257,7 @@ test("video renderer bridge creates WebGL2-compatible storage and updates both r
   assert.equal(texture._texture,first);assert.equal(texture._twin,twin);
   assert.equal(calls.filter(c=>c[0]==="createTexture").length,allocations);
   assert.equal(calls.filter(c=>c[0]==="texSubImage2D"&&c.at(-1)===source).length,6);
-  texture.Destroy();f.player.Destroy();
+  texture.Destroy();f.player.Destruct();
 });
 
 
@@ -273,7 +273,7 @@ test("player never sends video into bitmap publication and retries unavailable d
   assert.equal(f.texture.GetPayload(),null);assert.equal(f.texture.GetBitmap(),null);
   f.videos[0].frame(2,40);assert.deepEqual(values,[null]);
   assert.equal(f.counts.allocations,1);assert.equal(f.counts.uploads,2);
-  f.player.Destroy();
+  f.player.Destruct();
 });
 
 test("a paused playlist recreates its frame on bind after device loss", () =>
@@ -285,5 +285,5 @@ test("a paused playlist recreates its frame on bind after device loss", () =>
   assert.ok(replacement);assert.notEqual(replacement,previous);
   assert.equal(f.counts.uploads,2);assert.equal(f.counts.allocations,2);
   assert.equal(f.player.IsPaused(),true);assert.equal(f.texture.GetPayload(),null);
-  f.player.Destroy();
+  f.player.Destruct();
 });

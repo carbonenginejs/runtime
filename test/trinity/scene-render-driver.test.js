@@ -741,13 +741,13 @@ test("retiring one driver preserves the other driver's published SSAO value", as
   const published=Tr2VariableStore.globalStore().FindVariable('SSAOMap').GetValue();
   const secondBackend=published.GetTexture().TrinityALImpl_GetObject();
   assert.notEqual(firstBackend,secondBackend);
-  first.Destroy();first.Destroy();
+  first.Destruct();first.Destruct();
   assert.equal(firstBackend.IsRegistered(),false);
   assert.equal(Tr2VariableStore.globalStore().FindVariable('SSAOMap').GetValue(),published);
   assert.equal(published.GetTexture().IsValid(),true);
   assert.equal(second.Execute([target],null,0,0,null,context),true);
-  second.Destroy();assert.equal(secondBackend.IsRegistered(),false);
-  target.Destroy();context.Destroy();
+  second.Destruct();assert.equal(secondBackend.IsRegistered(),false);
+  target.Destroy();context.Destruct();
 });
 
 test("the opaque map is available to scene draws and cleared before post-processing across AA toggles", () =>
@@ -796,9 +796,9 @@ test("the opaque map is available to scene draws and cleared before post-process
   }
   finally
   {
-    driver.Destroy();
+    driver.Destruct();
     target.Destroy();
-    context.Destroy();
+    context.Destruct();
   }
 });
 
@@ -822,9 +822,9 @@ test("an interrupted transparent pass releases the published opaque-map share", 
   }
   finally
   {
-    driver.Destroy();
+    driver.Destruct();
     target.Destroy();
-    context.Destroy();
+    context.Destruct();
   }
 });
 
@@ -873,7 +873,7 @@ function nodeJob(t, driver, context)
   step.clearTargetOnFailure = false;
   const job = new TriRenderJob();
   job.steps.push(step);
-  t.after(() => { driver.Destroy(); target.Destroy(); });
+  t.after(() => { driver.Destruct(); target.Destroy(); });
   return { job, step, target };
 }
 
@@ -1024,7 +1024,7 @@ test("render job bypasses child validation when rendering is disabled but still 
   assert.deepEqual(calls.map(x => x[0]), ["StampFrameContext", "Update"]);
 });
 
-test("the driver is a device resource: registered on construction, unregistered by Destroy (Tr2DeviceResource.cpp:6-14)", () =>
+test("the driver is a device resource: registered on construction, unregistered by Destruct (Tr2DeviceResource.cpp:6-14)", () =>
 {
   const driver = new EveSpaceSceneRenderDriver();
 
@@ -1035,7 +1035,7 @@ test("the driver is a device resource: registered on construction, unregistered 
   // GetDescription is the base's: the driver does not override it.
   assert.equal(driver.GetDescription(), "<Unknown>");
 
-  driver.Destroy();
+  driver.Destruct();
   assert.equal(TriDevice.GetResourcesRegistered().includes(driver), false);
 });
 
@@ -1054,7 +1054,7 @@ test("ReleaseResources deletes the upscaling context only for exactly TRISTORAGE
   assert.equal(driver._upscalingContext, null);
   assert.deepEqual(detached, [ null ], "DeleteUpscalingContext detaches the HUD-less texture (cpp:48-56)");
 
-  driver.Destroy();
+  driver.Destruct();
 });
 
 test("scene is a property over GetScene/SetScene, backed by the persist-only member (_Blue.cpp:78-84)", () =>
@@ -1080,7 +1080,7 @@ test("scene is a property over GetScene/SetScene, backed by the persist-only mem
   driver.scene = null;
   assert.equal(driver.GetScene(), null);
 
-  driver.Destroy();
+  driver.Destruct();
 });
 
 test("debugMode toggles the pool's debug mode, forwarding only on change (cpp:742-753)", () =>
@@ -1104,7 +1104,7 @@ test("debugMode toggles the pool's debug mode, forwarding only on change (cpp:74
   assert.equal(driver.GetDebugMode(), false);
   assert.deepEqual(forwarded, [ true, false ]);
 
-  driver.Destroy();
+  driver.Destruct();
 });
 
 test("GetAllTempTextures wraps every pooled temp texture in a Tr2TextureReference (cpp:725-740)", () =>
@@ -1127,7 +1127,7 @@ test("GetAllTempTextures wraps every pooled temp texture in a Tr2TextureReferenc
 
   pool.Free(first);
   pool.Free(second);
-  driver.Destroy();
+  driver.Destruct();
 });
 
 test("SetSettings replaces every Settings member; the record holds Carbon's defaults (h:54-84)", () =>
@@ -1160,7 +1160,7 @@ test("SetSettings replaces every Settings member; the record holds Carbon's defa
   assert.equal(driver.clearColor, clearColor, "the colour is copied by value");
   assert.deepEqual(Array.from(driver.clearColor), [ 0.5, 0, 0, 1 ]);
 
-  driver.Destroy();
+  driver.Destruct();
 });
 
 test("Validate sets up upscaling and the render size is the display size without a context (cpp:321-324, 393-402)", () =>
@@ -1189,7 +1189,7 @@ test("Validate sets up upscaling and the render size is the display size without
   assert.equal(driver._upscalingContext, null);
   assert.deepEqual(detached, [ null ]);
 
-  driver.Destroy();
+  driver.Destruct();
 });
 
 test("a custom stencil format gives the depth pass a custom stencil target, published as SpaceSceneCustomStencil (cpp:516-523, 687-700)", () =>
@@ -1234,5 +1234,5 @@ test("a custom stencil format gives the depth pass a custom stencil target, publ
   // Emptied when Execute returns (cpp:523).
   assert.equal(driver._customStencilReference.GetTexture().IsValid(), false);
 
-  driver.Destroy();
+  driver.Destruct();
 });

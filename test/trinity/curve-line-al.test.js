@@ -19,7 +19,7 @@ function setup(t) {
   const shader={GetTechniqueIndex:()=>0,GetPassCount:()=>1,GetShaderTypeMask:()=>3,ApplyAllStateForPass(){}};
   const effect={GetShaderStateInterface:()=>shader,IsGood:()=>true,CompatibleWithGdr:()=>false,ApplyMaterialDataForPass(){}};
   t.after(()=>{
-    for(const resource of TriDevice.GetResourcesRegistered())if(!registered.has(resource)&&CjsSchema.cast(resource,INotify))resource.Destroy();
+    for(const resource of TriDevice.GetResourcesRegistered())if(!registered.has(resource)&&CjsSchema.cast(resource,INotify))resource.Destruct();
     Tr2Renderer.PopProjection();Tr2Renderer.PopViewTransform();context.SetRenderContextAL(prior);
   });
   return {context,al,effect,draws};
@@ -107,7 +107,7 @@ test('buffer capacity, allocation/map failures and device recreation follow nati
   assert.equal(lines.PrepareResources(),false);assert.equal(lines.currentSubmittedLineCount,0);assert.equal(lines.OnModified('lineWidthFactor'),true);create.mock.restore();
   assert.equal(lines.PrepareResources(),true);assert.equal(collect(lines).length,1);
   lines.ClearLines();lines.SubmitChanges();assert.equal(lines.currentSubmittedLineCount,0);assert.equal(lines._vertexBuffer.IsValid(),true);
-  near(Array.from(lines.boundingSphere),[0,0,0,0]);lines.Destroy();assert.ok(!TriDevice.GetResourcesRegistered().includes(lines));
+  near(Array.from(lines.boundingSphere),[0,0,0,0]);lines.Destruct();assert.ok(!TriDevice.GetResourcesRegistered().includes(lines));
 });
 
 test('line batch categories dispatch real nonindexed draws and camera depth uses the native local bound',t=>{

@@ -201,8 +201,8 @@ export class Tr2OcclusionBuffer
     const store = Tr2VariableStore.globalStore();
     const published = store.FindVariable("FlareOcclusionBuffer");
     if (published && published.GetValue() === instance.buffer) store.UnregisterVariable("FlareOcclusionBuffer");
-    instance.management.Destroy();
-    instance.buffer.Destroy();
+    instance.management.Destruct();
+    instance.buffer.Destruct();
     instance.clear.length = 0;
     instance.free.length = 0;
     instance.size = 0;

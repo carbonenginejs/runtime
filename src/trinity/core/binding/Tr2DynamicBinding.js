@@ -146,7 +146,7 @@ export class Tr2DynamicBinding extends INotify
   /** Portable validity cache refreshed from the weak endpoint. */
   _isSourceValid = false;
 
-  /** The OS the constructor registered with, so Destroy unregisters from that same one. */
+  /** The OS the constructor registered with, so Destruct unregisters from that same one. */
   _rebaseOS = null;
 
   /**
@@ -169,12 +169,17 @@ export class Tr2DynamicBinding extends INotify
    * abandons a binding calls this; until then the OS keeps it registered.
    * Carbon's registry is a non-owning std::vector<ISimTimeRebaseNotify*>
    * (BlueOS.h:169) while CjsBlueOS holds a strong array, the same shape as
-   * TriDevice's resource registry; which owners call Destroy is pending the
+   * TriDevice's resource registry; which owners call Destruct is pending the
    * open teardown ruling (operator, with TriDevice's registry and plan Q4).
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   *
    * @returns {void}
    */
   @meta.adapted
-  Destroy()
+  Destruct()
   {
     if (this._rebaseOS)
     {

@@ -439,8 +439,14 @@ export class VideoPlayer
     this._objectUrl = null;
   }
 
-  /** Explicit destructor for the shared resource owner; individual billboards never call it. */
-  Destroy()
+  /**
+   * Explicit destructor for the shared resource owner; individual billboards never call it.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
+  Destruct()
   {
     this._ReleaseMedia();
     this._canvas = this._context = null;
@@ -460,6 +466,6 @@ CjsSchema.blue.define(VideoPlayer, {
   GetDownloadedMediaTime: [blue.method, meta.adapted], GetVideoInfo: [blue.method, meta.adapted],
   ClearTextures: [blue.method, meta.adapted], OnModified: [blue.method, meta.adapted], OnTick: [blue.method, meta.adapted],
   SetBgraTexture: [blue.method, meta.adapted], GetBgraTexture: [blue.method, meta.implemented],
-  Seek: [blue.method, meta.adapted], GetState: [blue.method, meta.adapted], Validate: [blue.method, meta.adapted], Destroy: [meta.adapted]
+  Seek: [blue.method, meta.adapted], GetState: [blue.method, meta.adapted], Validate: [blue.method, meta.adapted], Destruct: [meta.adapted]
 }
 });

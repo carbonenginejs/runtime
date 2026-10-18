@@ -44,12 +44,21 @@ export class Tr2MouseCursor
      * The bitmap, then each alternate representation, is tried in order: a CSS
      * keyword, a URL or `url(...)` string, a canvas-like object
      * (`toDataURL`), an object with `url`, `src` or `dataURL`, or a
-     * blob-like source turned into an object URL that Destroy() revokes.
-     * Returns false when none resolves.
+     * blob-like source turned into an object URL that the next Create or
+     * Destruct() revokes. Returns false when none resolves.
+     *
+     * The previous cursor is released first, inline, as Carbon's Create
+     * releases m_cursor before building the new one (Tr2MouseCursor.cpp:274-279).
      */
     Create(bitmap, hotspotX = 0, hotspotY = 0, representations = [])
     {
-        this.Destroy();
+        if (this.#objectUrl && typeof globalThis.URL?.revokeObjectURL === "function")
+        {
+            globalThis.URL.revokeObjectURL(this.#objectUrl);
+        }
+        this.#objectUrl = null;
+        this.cssCursor = null;
+
         const candidates = [ bitmap, ...(representations ?? []) ];
         let source = null;
         let selected = null;
@@ -88,8 +97,14 @@ export class Tr2MouseCursor
         return true;
     }
 
-    /** Releases any owned object URL and clears the cursor value. */
-    Destroy()
+    /**
+     * Releases any owned object URL and clears the cursor value.
+     *
+     * Temporary destructor stand-in: exists because teardown is required before
+     * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+     * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+     */
+    Destruct()
     {
         if (this.#objectUrl && typeof globalThis.URL?.revokeObjectURL === "function")
         {

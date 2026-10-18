@@ -105,7 +105,7 @@ test("switching ships lets the idle owner's GPU objects expire while the current
   now = 5;
   const b = await ship("second");
   assert.deepEqual(counts(), [first[0] + 1, first[1] + 1]);
-  a.effect.Destroy();
+  a.effect.Destruct();
   assert.equal(destroyed.length, 0, "retiring material bindings leaves the cache owner's texture until idle expiry");
   now = 11;
   manager.Update();
@@ -135,8 +135,8 @@ test("switching ships lets the idle owner's GPU objects expire while the current
   assert.equal(pool.GetBlocks().length, 1, "the expired geometry's space is reused");
   assert.deepEqual(counts(), [beforeReuse[0] + 1, beforeReuse[1] + 1]);
   assert.equal(again.allocation.IsValid(), true);
-  b.effect.Destroy();
-  again.effect.Destroy();
+  b.effect.Destruct();
+  again.effect.Destruct();
   manager.Clear();
   ReleaseSharedGeometryBuffer(render);
   assert.deepEqual(counts(), initial, "context shutdown releases the shared GPU block too");

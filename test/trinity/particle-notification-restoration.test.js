@@ -35,10 +35,10 @@ test("particle batch handles sorting, clock rebasing and both emitter notificati
     assert.equal(os._rebaseListeners.includes(system), false);
     system.useSimTimeRebase = true;
     system.OnModified("useSimTimeRebase");
-    system.Destroy();
+    system.Destruct();
     assert.equal(os._rebaseListeners.includes(system), false);
   }
-  finally { system.Destroy(); be.os = prior; }
+  finally { system.Destruct(); be.os = prior; }
 });
 
 test("particle initialization registers and flags emitters; destruction releases the original clock", () =>
@@ -55,9 +55,9 @@ test("particle initialization registers and flags emitters; destruction releases
     assert.deepEqual(calls, ["death", "alive"]);
     assert.equal(os._rebaseListeners.filter(value => value === system).length, 1);
     be.os = replacement;
-    system.Destroy();
+    system.Destruct();
     assert.equal(os._rebaseListeners.includes(system), false);
     assert.equal(replacement._rebaseListeners.includes(system), false);
   }
-  finally { system.Destroy(); be.os = prior; }
+  finally { system.Destruct(); be.os = prior; }
 });

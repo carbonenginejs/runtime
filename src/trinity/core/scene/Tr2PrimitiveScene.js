@@ -152,12 +152,18 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
     this._vertexConstants.Destroy();
   }
 
-  /** Explicit destruction releases the owned picker and device registration. */
+  /**
+   * Explicit destruction releases the owned picker and device registration.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
   @meta.adapted
-  Destroy()
+  Destruct()
   {
     this.ReleaseResources();
-    this._pickBuffer.Destroy();
+    this._pickBuffer.Destruct();
     this._opaqueBatches.Clear();
     this._pickingBatches.Clear();
     this._allocator.Clear();

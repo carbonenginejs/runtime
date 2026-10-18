@@ -328,8 +328,12 @@ export class Tr2GpuParticleSystem
    * JavaScript has no deterministic destructor, so the final owner calls this
    * explicitly. Device ReleaseResources is a separate reset operation. This
    * does not destroy buffers or effects that may still be shared by callers.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
    */
-  Destroy()
+  Destruct()
   {
     if (this._variableStore)
     {

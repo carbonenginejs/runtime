@@ -51,7 +51,7 @@ const s_layerIndices = [0, 1, 3, 3, 1, 2];
  * Owns sprite declarations and CPU curve updates using raw Blue frame clocks.
  * Direct rendering, layers and captured display lists use the effect/AL pipeline.
  * Native automatic device-resource registration remains unported; resource
- * teardown is explicit (`Destroy`).
+ * teardown is explicit (`Destruct`).
  *
  * Build choice: Carbon's `#if !CCP_DEPLOY` and `CCP_ASSERT` branches are ported as the
  * shipping (deploy, NDEBUG) build compiles them: the default-texture substitution in
@@ -1113,8 +1113,14 @@ export class Tr2Sprite2dScene extends ITr2Scene
     if (storage & TriStorageFlags.TRISTORAGE_MANAGEDMEMORY) this._vertexDecl = -1;
   }
 
-  /** Explicit native destructor equivalent: JavaScript does not destroy owned AL values on scope exit. */
-  Destroy()
+  /**
+   * Explicit native destructor equivalent: JavaScript does not destroy owned AL values on scope exit.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
+  Destruct()
   {
     this._ResetCapture();
     this.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
@@ -1670,7 +1676,7 @@ export class Tr2Sprite2dScene extends ITr2Scene
   @blue.method
   _ResetCapture()
   {
-    this._captureDisplayList?.Destroy();
+    this._captureDisplayList?.Destruct();
     this._captureDisplayList = null;
     this._captureVertexDataSize = this._captureIndexDataSize = 0;
     this._vertexCount = this._indexCount = this._transformCurrent = 0;

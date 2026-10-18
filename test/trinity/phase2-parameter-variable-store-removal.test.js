@@ -193,5 +193,5 @@ test("real variable parameter and effect retain selected store lookup and value 
   assert.equal(effect.GetVariableStore(), Tr2VariableStore.globalStore());
   effect.variableStore = store;
   assert.equal(effect.GetVariableStore(), store);
-  effect.Destroy();
+  effect.Destruct();
 });

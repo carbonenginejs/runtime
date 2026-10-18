@@ -26,7 +26,7 @@ for (const mode of ["fov", "off-center", "custom", "ortho"])
     scene.primitives.push(handle);
     Tr2Renderer.PushProjection();
     Tr2Renderer.PushViewTransform();
-    t.after(() => { Tr2Renderer.PopViewTransform(); Tr2Renderer.PopProjection(); scene.Destroy(); });
+    t.after(() => { Tr2Renderer.PopViewTransform(); Tr2Renderer.PopProjection(); scene.Destruct(); });
     // Carbon sets the view and the projection the way a pass does.
     Tr2Renderer.SetViewTransform(view.GetTransform());
     projection.SetProjection();

@@ -67,7 +67,7 @@ test("a retained sibling keeps its shared particle provider alive", async t =>
   action.Stop(controller);
   assert.equal(destroyed, 0);
   assert.ok(TriDevice.GetResourcesRegistered().includes(sibling.particleSystems[0]));
-  sibling.particleSystems[0].Destroy();
+  sibling.particleSystems[0].Destruct();
   assert.equal(destroyed, 1);
 });
 

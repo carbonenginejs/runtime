@@ -343,9 +343,14 @@ export class Tr2TextureAnimation
    * by refcount when their last holder lets go. No texture is destroyed here
    * either: a bound resource set may still hold one, and garbage collection
    * reclaims it after the last reference drops.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   *
    * @returns {void}
    */
-  Destroy()
+  Destruct()
   {
     this._clear();
   }

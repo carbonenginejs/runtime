@@ -24,7 +24,7 @@ import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 function setup(t)
 {
   const registered=new Set(TriDevice.GetResourcesRegistered());
-  t.after(()=>{for(const resource of TriDevice.GetResourcesRegistered())if(!registered.has(resource)&&(resource.constructor===Tr2RuntimeInstanceData||resource.constructor===Tr2ParticleSystem||resource.constructor===Tr2InstancedMesh))resource.Destroy();});
+  t.after(()=>{for(const resource of TriDevice.GetResourcesRegistered())if(!registered.has(resource)&&(resource.constructor===Tr2RuntimeInstanceData||resource.constructor===Tr2ParticleSystem||resource.constructor===Tr2InstancedMesh))resource.Destruct();});
   const context=Tr2RenderContext_GetMainThreadRenderContext(),prior=context.GetRenderContextAL(),manager=be.resMan;
   const al=new Tr2RenderContextALStub();context.SetRenderContextAL(al);al.CreateDevice();al.BeginScene();be.resMan=new StubResMan();
   Tr2Renderer.SetViewTransform(mat4.create());
@@ -371,7 +371,7 @@ test("real angde1 and angbc2 warp electricity draws repeatedly while kill lightn
       if(scenario==="kills")assert.ok(killEntries>1,"kill control independently repeats its authored lightning state");
       else assert.equal(killEntries,0,scenario);
       t.diagnostic(JSON.stringify({file,scenario,killEntries,cycles:stats.map(row=>row.draws.size)}));
-      for(const resource of TriDevice.GetResourcesRegistered())if(!registered.has(resource)&&(resource.constructor===Tr2ParticleSystem||resource.constructor===Tr2InstancedMesh))resource.Destroy();
+      for(const resource of TriDevice.GetResourcesRegistered())if(!registered.has(resource)&&(resource.constructor===Tr2ParticleSystem||resource.constructor===Tr2InstancedMesh))resource.Destruct();
     }
   }
 });
@@ -412,7 +412,7 @@ test("runtime instance streams upload, merge native semantics, update and releas
   provider.UpdateData();assert.equal(collect(mesh,[area])[0].instanceCount,1);
   provider.DestroyData();assert.equal(provider.IsInstanceDataReady(),false);
   assert.equal(collect(mesh,[area]).length,0);
-  provider.Destroy();assert.equal(TriDevice.GetResourcesRegistered().includes(provider),false);
+  provider.Destruct();assert.equal(TriDevice.GetResourcesRegistered().includes(provider),false);
 });
 
 const deathlessValues=process.env.CJS_DEATHLESS_VALUES;
@@ -440,7 +440,7 @@ test("real Deathless layout runtime instances reach draw submission", {
     context.RenderBatches({GetBatches:()=>batches});
     assert.equal(draws.at(-1)[1],provider.count);
     instances+=provider.count;
-    provider.Destroy();mesh.Destroy();
+    provider.Destruct();mesh.Destruct();
   }
   t.diagnostic(JSON.stringify({meshGroups:meshes.length,instances,draws:draws.length}));
 });

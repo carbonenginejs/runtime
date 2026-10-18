@@ -25,7 +25,7 @@ function observer(owner, name)
 test('particle constraints and collision emitters use constructor-owned list callbacks', t =>
 {
   const system = new Tr2ParticleSystem();
-  t.after(() => system.Destroy());
+  t.after(() => system.Destruct());
   observer(system, 'constraints');
   const constraint = new Tr2SphereConstraint();
   let bound = null, binds = 0;

@@ -18,7 +18,7 @@ test("one non-Carbon setting defaults to objectId and routes the scene wrapper",
   assert.equal(setting.carbon, false);
   assert.deepEqual(setting.values, ["objectId", "pointer"]);
   const previous = Tr2RenderContext.eveSpacePickingFramework, scene = new EveSpaceScene();
-  t.after(() => { Tr2RenderContext.eveSpacePickingFramework = previous; scene.Destroy(); });
+  t.after(() => { Tr2RenderContext.eveSpacePickingFramework = previous; scene.Destruct(); });
   const args = [{}, false, 12, 34, {}, {}, {}, 3, {}];
   t.mock.method(scene, "PerformPicking__ObjectId", (...received) => { assert.deepEqual(received, args); return "old"; });
   t.mock.method(scene, "PerformPicking__Pointer", (...received) => { assert.deepEqual(received, args); return "new"; });
@@ -78,7 +78,7 @@ test("primitive picking keeps its float buffer and explicit objectId draw path e
   const scene = new Tr2PrimitiveScene();
   const previous = Tr2RenderContext.eveSpacePickingFramework;
   Tr2RenderContext.eveSpacePickingFramework = "pointer";
-  t.after(() => { scene.Destroy(); Tr2RenderContext.eveSpacePickingFramework = previous; });
+  t.after(() => { scene.Destruct(); Tr2RenderContext.eveSpacePickingFramework = previous; });
   assert.equal(scene._pickBuffer._format, PixelFormat.PIXEL_FORMAT_R32G32B32A32_FLOAT);
   const events = [];
   const esm = { IsDepthTestInverted: () => false, SetInvertedDepthTest() {}, ApplyStandardStates() {} };

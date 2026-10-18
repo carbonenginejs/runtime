@@ -26,7 +26,7 @@ test("EveSpherePin uses itself as its picking identity", t =>
 {
   const manager = composeStubResMan();
   const pin = new EveSpherePin();
-  t.after(() => { pin.Destroy(); manager.restore(); });
+  t.after(() => { pin.Destruct(); manager.restore(); });
   assert.equal(pin.GetID(), pin);
 });
 

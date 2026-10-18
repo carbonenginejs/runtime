@@ -90,5 +90,5 @@ test("runtime instance-data owner reuses its plain borrowed record after CPU pub
   assert.equal(owner.GetData().byteLength, 32);
   assert.deepEqual([data.offset, data.stride, data.count], [0, 16, 2]);
   assert.equal("SetValues" in data, false);
-  owner.Destroy();
+  owner.Destruct();
 });

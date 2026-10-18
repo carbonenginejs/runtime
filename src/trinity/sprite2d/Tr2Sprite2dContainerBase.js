@@ -47,14 +47,18 @@ export class Tr2Sprite2dContainerBase extends Tr2SpriteObjectBase
    * every background item, then every child, by setting its parent to null.
    *
    * Adapted: JS has no destructors and Carbon has no other teardown path for
-   * this class, so the destructor body runs from an explicit Destroy, the
-   * name this package uses for destructor stand-ins. A subclass Destroy must
+   * this class, so the destructor body runs from an explicit Destruct, the
+   * name this package uses for destructor stand-ins. A subclass Destruct must
    * call this one, as a C++ derived destructor runs its base destructor.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
    *
    * @returns {void}
    */
   @meta.adapted
-  Destroy()
+  Destruct()
   {
     for (const item of this.background)
     {

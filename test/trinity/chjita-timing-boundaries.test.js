@@ -66,7 +66,7 @@ test("scene GPU-particle handoff advances gas at real elapsed seconds", t =>
   const system = new Tr2GpuParticleSystem();
   driver.scene = scene;
   scene.SetGpuParticleSystem(system);
-  t.after(() => { scene.SetGpuParticleSystem(null); system.Destroy(); driver.Destroy(); });
+  t.after(() => { scene.SetGpuParticleSystem(null); system.Destruct(); driver.Destruct(); });
   for (const slot of ["emit", "update", "clear", "setDrawParameters"])
   {
     system[slot] = {

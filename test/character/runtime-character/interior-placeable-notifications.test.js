@@ -22,7 +22,7 @@ function setup(t, resolve)
   const old = be.resMan;
   be.resMan = new StubResMan(resolve);
   const owners = [];
-  t.after(() => { for (const owner of owners) owner.Destroy(); be.resMan = old; });
+  t.after(() => { for (const owner of owners) owner.Destruct(); be.resMan = old; });
   return { manager: be.resMan, owner() { const value = new Tr2InteriorPlaceable(); owners.push(value); return value; } };
 }
 
@@ -134,7 +134,7 @@ test("empty paths, destruction, and direct path mutation reject pending results"
   {
     const value = owner(); value.placeableResPath = "res:/a.black";
     const request = value.LoadPlaceableRes();
-    if (mode === "destroy") value.Destroy();
+    if (mode === "destroy") value.Destruct();
     else if (mode === "empty") CjsSchema.setValues(value, { placeableResPath: "" });
     else value.placeableResPath = "res:/b.black";
     pending.at(-1).resolve(new WodPlaceableRes());

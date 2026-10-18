@@ -57,7 +57,7 @@ function hashedEffect(key)
 }
 
 
-test("EveBoosterSet2 is a Tr2DeviceResource that frees its instance range and unregisters on Destroy", () =>
+test("EveBoosterSet2 is a Tr2DeviceResource that frees its instance range and unregisters on Destruct", () =>
 {
   const set = new EveBoosterSet2();
   assert.equal(CjsSchema.cast(set, Tr2DeviceResource), set, "EveBoosterSet2.h:177");
@@ -73,7 +73,7 @@ test("EveBoosterSet2 is a Tr2DeviceResource that frees its instance range and un
   // The destructor's members: the Allocation frees itself, the base unregisters.
   const kept = allocate();
   set._instanceBuffer = kept;
-  set.Destroy();
+  set.Destruct();
   assert.equal(kept.IsValid(), false);
   assert.equal(TriDevice.GetResourcesRegistered().includes(set), false);
 });
@@ -85,7 +85,7 @@ test("EveBoosterSet2.RebuildInstanceData frees the previous range before allocat
   set._instanceBuffer = previous;
   set.RebuildInstanceData(context);
   assert.equal(previous.IsValid(), false, "no boosters: freed, nothing new allocated");
-  set.Destroy();
+  set.Destruct();
 });
 
 test("EveHazeSet is a Tr2DeviceResource whose vertex range is an embedded allocation", () =>
@@ -102,12 +102,12 @@ test("EveHazeSet is a Tr2DeviceResource whose vertex range is an embedded alloca
 
   const kept = allocate();
   set._vertexBuffer = kept;
-  set.Destroy();
+  set.Destruct();
   assert.equal(kept.IsValid(), false);
   assert.equal(TriDevice.GetResourcesRegistered().includes(set), false);
 });
 
-test("EveTurretSet is a Tr2DeviceResource and Destroy follows Carbon's destructor order", t =>
+test("EveTurretSet is a Tr2DeviceResource and Destruct follows Carbon's destructor order", t =>
 {
   const set = new EveTurretSet();
   assert.equal(CjsSchema.cast(set, Tr2DeviceResource), set, "EveTurretSet.h:104");
@@ -116,7 +116,7 @@ test("EveTurretSet is a Tr2DeviceResource and Destroy follows Carbon's destructo
   const calls = [];
   t.mock.method(set, "Cleanup", () => { calls.push("Cleanup"); });
   t.mock.method(set, "ReleaseResources", storage => { calls.push([ "ReleaseResources", storage ]); });
-  set.Destroy();
+  set.Destruct();
   assert.deepEqual(calls, [ "Cleanup", [ "ReleaseResources", TriStorageFlags.TRISTORAGE_ALL ] ], "cpp:130-145");
   assert.equal(TriDevice.GetResourcesRegistered().includes(set), false);
 });
@@ -128,7 +128,7 @@ test("EveTurretSet.ReleaseResources frees the instance range", () =>
   set._instanceBuffer = range;
   set.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
   assert.equal(range.IsValid(), false, "cpp:1092-1096");
-  set.Destroy();
+  set.Destruct();
 });
 
 
@@ -329,7 +329,7 @@ test("EveChildTurret forwards quad registration and submission to its firing eff
 test("EveChildBehaviorSystem carries Carbon's two undefined ITr2InstanceData declarations (h:95, 97)", t =>
 {
   const system = new EveChildBehaviorSystem();
-  t.after(() => system.Destroy());
+  t.after(() => system.Destruct());
   assert.throws(() => system.IsInstanceDataReady(), /no Carbon body/);
   assert.throws(() => system.GetInstanceBufferVertexDeclaration(0), /no Carbon body/);
 });

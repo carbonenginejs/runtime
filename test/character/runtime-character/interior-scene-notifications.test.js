@@ -12,7 +12,7 @@ import {StubResMan} from '../../support/stubResMan.js';
 function setup(t) {
   const context=Tr2RenderContext_GetMainThreadRenderContext(),oldAL=context.GetRenderContextAL(),oldManager=be.resMan;
   const al=new Tr2RenderContextALStub();al.CreateDevice();context.SetRenderContextAL(al);be.resMan=new StubResMan();
-  const scenes=[];t.after(()=>{for(const scene of scenes)scene.Destroy();context.SetRenderContextAL(oldAL);be.resMan=oldManager;al.Destroy();});
+  const scenes=[];t.after(()=>{for(const scene of scenes)scene.Destruct();context.SetRenderContextAL(oldAL);be.resMan=oldManager;al.Destroy();});
   return {context,al,manager:be.resMan,scene:()=>{const scene=new Tr2InteriorScene();scenes.push(scene);return scene;}};
 }
 
@@ -65,7 +65,7 @@ test('shadow rebuild and final destruction release old AL surfaces exactly once'
   const target=s.lightRenderTargets[0],depth=s._lightDepthStencil;
   const targetDestroy=t.mock.method(target.GetRenderTarget(),'Destroy'),depthDestroy=t.mock.method(depth.GetDepthStencil(),'Destroy');
   s.SetupShadowMaps();assert.equal(targetDestroy.mock.callCount(),1);assert.equal(depthDestroy.mock.callCount(),1);
-  const nextTarget=s.lightRenderTargets[0],nextDepth=s._lightDepthStencil;s.Destroy();s.Destroy();
+  const nextTarget=s.lightRenderTargets[0],nextDepth=s._lightDepthStencil;s.Destruct();s.Destruct();
   assert.equal(nextTarget.IsValid(),false);assert.equal(nextDepth.IsValid(),false);assert.deepEqual(s.lightRenderTargets,[]);assert.equal(s._lightDepthStencil,null);
 });
 

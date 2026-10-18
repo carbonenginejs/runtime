@@ -113,7 +113,7 @@ function turretDrawFixture(t)
   const al=new Tr2RenderContextALStub();context.SetRenderContextAL(al);al.CreateDevice();
   const set=new EveTurretSet(),geometry=new TriGeometryRes();
   geometry.SetPayload({meshes:[{decl:[{usage:"Position",usageIndex:0,type:"Float32",elementCount:3,offset:0}],vertex:{position:[0,0,0,1,0,0,0,1,0]},indices:[{faces:[0,1,2]}],areas:[{firstElement:0,elementCount:1}]}]});geometry.MarkPrepared();
-  t.after(()=>{set.Destroy();SharedGeometryBuffer(context).ReleaseResources();context.SetRenderContextAL(prior);});
+  t.after(()=>{set.Destruct();SharedGeometryBuffer(context).ReleaseResources();context.SetRenderContextAL(prior);});
   return {set,geometry};
 }
 

@@ -262,7 +262,7 @@ export class TnyOutlineHelper extends ITr2RenderNode
     if (this._mask) this._mask.Destroy();
     this._mask = null;
     this._context = null;
-    for (const effect of Object.values(this._effects)) effect.Destroy();
+    for (const effect of Object.values(this._effects)) effect.Destruct();
     this._effects = {};
   }
 }

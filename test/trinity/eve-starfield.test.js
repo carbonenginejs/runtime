@@ -17,7 +17,7 @@ function setup(t) {
   al.DrawIndexedInstanced=(...args)=>{draws.push(args);return draw(...args);};
   const shader={GetTechniqueIndex:()=>0,GetPassCount:()=>1,GetShaderTypeMask:()=>3,ApplyAllStateForPass(){}};
   const effect={GetShaderStateInterface:()=>shader,IsGood:()=>true,CompatibleWithGdr:()=>false,ApplyMaterialDataForPass(){}};
-  t.after(()=>{for(const resource of TriDevice.GetResourcesRegistered())if(!before.has(resource)&&resource.constructor===EveStarfield)resource.Destroy();SharedGeometryBuffer(context).ReleaseResources();context.SetRenderContextAL(prior);});
+  t.after(()=>{for(const resource of TriDevice.GetResourcesRegistered())if(!before.has(resource)&&resource.constructor===EveStarfield)resource.Destruct();SharedGeometryBuffer(context).ReleaseResources();context.SetRenderContextAL(prior);});
   return {context,al,uploads,draws,effect};
 }
 
@@ -42,7 +42,7 @@ test('mapped starfield initialization uploads seeded native sprite records',t=>{
   const declaration=Tr2EffectStateManager.getVertexDeclarationElements(stars._vertexDeclHandle);
   assert.deepEqual(declaration.items.map(item=>[item.offset,item.type]),[[0,'FLOAT32_3'],[12,'FLOAT32_1'],[16,'FLOAT32_1'],[20,'FLOAT32_1'],[24,'FLOAT32_1'],[28,'UBYTE_4']]);
   const again=make({seed:0,minDist:10,maxDist:10,minFlashRate:2,maxFlashRate:2,minFlashIntensity:1});
-  assert.deepEqual(uploads[1],bytes);again.Destroy();
+  assert.deepEqual(uploads[1],bytes);again.Destruct();
 });
 
 test('batched edits rebuild once; inert callback control leaves old uploaded stars',t=>{
@@ -77,7 +77,7 @@ test('starfield scene background submits actual additive indexed draws',t=>{
   assert.equal(draws.length,1);assert.equal(draws[0][0],18);assert.equal(draws[0][1],1);
   assert.ok(modes.includes(RenderingMode.RM_ALPHA_ADDITIVE));assert.equal(scene._secondaryAdditiveBatches.GetBatches().length,0);
   stars.display=false;scene.RenderBackgroundPassObjects(null,null,context,null,EveSpaceScene.BackgroundRenderingReason.BACKGROUND_RENDER_COLOR);assert.equal(draws.length,1);
-  stars.Destroy();assert.ok(!TriDevice.GetResourcesRegistered().includes(stars));
+  stars.Destruct();assert.ok(!TriDevice.GetResourcesRegistered().includes(stars));
 });
 
 test('starfield promotion preserves declaration ownership and interface mappings',()=>{

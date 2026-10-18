@@ -133,7 +133,7 @@ export class VideoPlaylistController extends IBlueDynamicResourceConstructor
     {
       // Cancel the old player before an asynchronous replacement read can finish.
       const paused = this.video.IsPaused();
-      this.video.Destroy();
+      this.video.Destruct();
       this.video = this._createPlayer();
       this.video.bgraTexture = this._texture;
       this.video.onStateChange = player =>
@@ -162,7 +162,7 @@ export class VideoPlaylistController extends IBlueDynamicResourceConstructor
     this._CancelRead();
     if (this._retry !== null) this._host.clearTimeout(this._retry);
     this._retry = null;
-    if (this.video) this.video.Destroy();
+    if (this.video) this.video.Destruct();
     this.video = null;
     this.currentPath = null;
     this._texture = null;

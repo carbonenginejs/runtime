@@ -275,7 +275,7 @@ test('text object subscriptions invalidate without changing the active clip stac
   second.SubmitSprites = () => { throw new Error('submission fixture'); };
   assert.throws(() => text.GatherSprites({ PushClipRectangle() { depth++; }, PopClipRectangle() { depth--; } }), /submission fixture/);
   assert.equal(depth, 0);
-  text.Destroy();
+  text.Destruct();
   assert.ok(!second._changeListeners.has(text));
 });
 

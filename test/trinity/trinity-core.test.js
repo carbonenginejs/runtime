@@ -116,7 +116,7 @@ test("primitive sets retain CPU geometry and native AL submission state", t =>
   al.BeginScene();
   context.SetRenderContextAL(al);
   t.after(() => {
-    for (const resource of TriDevice.GetResourcesRegistered()) if (!registered.has(resource)) resource.Destroy();
+    for (const resource of TriDevice.GetResourcesRegistered()) if (!registered.has(resource)) resource.Destruct();
     context.SetRenderContextAL(previous);
     al.Destroy();
   });
@@ -816,7 +816,7 @@ test("TriView builds Carbon's right-handed look-at transform", () =>
 test("Tr2DirectInstanceData retains detached CPU bounds", t =>
 {
   const data = new Tr2DirectInstanceData();
-  t.after(() => data.Destroy());
+  t.after(() => data.Destruct());
   const min = [-3, -2, -1];
   const max = [4, 5, 6];
 

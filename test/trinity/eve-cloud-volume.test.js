@@ -10,7 +10,7 @@ function volume(t, values = {}) {
   const result = new EveCloudEditableVolume();
   result.width = result.height = result.depth = 2;
   Object.assign(result, values);
-  t.after(() => result.Destroy());
+  t.after(() => result.Destruct());
   return result;
 }
 function ball() {
@@ -91,7 +91,7 @@ test('animated cloud samples four curve times into native channels and restores 
 test('cloud loading initializes real list identities and asynchronous work publishes only on Update', async t => {
   const cloud = CjsSchema.from('EveCloudEditableVolume', {width:2,height:2,depth:2,
     balls:[{_type:'EveCloudVolumeBall',radius:.25,opacity:1,selfIllumination:[1,0,0,1]}]});
-  t.after(() => cloud.Destroy());
+  t.after(() => cloud.Destruct());
   assert.equal(cloud.balls.constructor, BlueList); assert.equal(cloud.balls[0]._owner.deref(), cloud);
   assert.equal(cloud.bitmap.IsValid(), false);
   const deadline = Date.now()+2000;
@@ -99,7 +99,7 @@ test('cloud loading initializes real list identities and asynchronous work publi
   assert.equal(cloud._timer, null); assert.equal(cloud.bitmap.IsValid(), false, 'job completion does not publish');
   cloud.Update(0); assert.deepEqual(pixel(cloud.bitmap), [0,0,255,255]);
   CjsSchema.setValues(cloud, {width:4,height:3}); assert.ok(cloud._thread);
-  cloud.Destroy(); assert.equal(cloud._timer, null); assert.equal(cloud._thread, null);
+  cloud.Destruct(); assert.equal(cloud._timer, null); assert.equal(cloud._thread, null);
 });
 
 test('default zero-radius balls preserve existing voxel contributions', t => {

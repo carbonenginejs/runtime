@@ -90,7 +90,7 @@ test("Layer renders its children into its own target between StartLayer and EndL
   assert.deepEqual(calls.map(call => call.name), ["StartLayer", "background", "second", "first", "EndLayer"]);
   assert.equal(calls[0].rt.GetWidth(), 16);
 
-  layer.Destroy();
+  layer.Destruct();
 });
 
 test("A hidden layer gathers nothing", () =>
@@ -104,7 +104,7 @@ test("A hidden layer gathers nothing", () =>
   layer.GatherSprites(scene);
 
   assert.deepEqual(calls, []);
-  layer.Destroy();
+  layer.Destruct();
 });
 
 test("A child change dirties the layer and its parent (cpp:30-37)", () =>
@@ -118,5 +118,5 @@ test("A child change dirties the layer and its parent (cpp:30-37)", () =>
 
   assert.equal(layer.isDirty, true);
   assert.equal(outer.isDirty, true);
-  layer.Destroy();
+  layer.Destruct();
 });

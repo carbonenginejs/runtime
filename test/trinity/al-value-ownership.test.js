@@ -25,23 +25,23 @@ test('owned providers and effects release only their own value shares',()=>{
  const effect=new Tr2Effect();effect.SetParameter__TextureAL('ColorMap',value);value.Destroy();
  assert.ok(reference.GetTexture().IsValid());assert.ok(implementation.IsValid());
  effect.ClearAllResources();assert.ok(implementation.IsValid());reference.SetTexture(null);
- assert.equal(implementation.IsRegistered(),false);effect.Destroy();al.Destroy();
+ assert.equal(implementation.IsRegistered(),false);effect.Destruct();al.Destroy();
 });
 test('effect final teardown preserves a caller-owned provider',()=>{
  const al=context(),value=texture(al),reference=new Tr2TextureReference(),effect=new Tr2Effect();
- reference.SetTexture(value);value.Destroy();effect.SetParameter__TextureProvider('ColorMap',reference);effect.Destroy();
+ reference.SetTexture(value);value.Destroy();effect.SetParameter__TextureProvider('ColorMap',reference);effect.Destruct();
  assert.ok(reference.GetTexture().IsValid());reference.SetTexture(null);al.Destroy();
 });
 test('runtime buffer parameter survives caller reset and is released with its effect',()=>{
  const al=context(),buffer=al.CreateBuffer(bufferDesc()),implementation=buffer.TrinityALImpl_GetObject(),effect=new Tr2Effect();
  effect.SetParameter__BufferAL('Data',buffer);buffer.Destroy();assert.ok(implementation.IsValid());
- effect.Destroy();assert.equal(implementation.IsValid(),false);assert.equal(implementation.IsRegistered(),false);al.Destroy();
+ effect.Destruct();assert.equal(implementation.IsValid(),false);assert.equal(implementation.IsRegistered(),false);al.Destroy();
 });
 test('pool handles and escaped values survive explicit pool destruction',()=>{
  const al=context(),pool=new Tr2GpuResourcePool().SetRenderContext(al);
  const handle=pool.GetPersistentTexture__WidthHeight('retained',4,4,PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM,Tr2GpuUsage.RENDER_TARGET,null);
  const borrowed=handle.Get(),copy=new Tr2TextureAL({copy:borrowed}),implementation=copy.TrinityALImpl_GetObject();
- pool.Destroy();assert.ok(handle.Get().IsValid());pool.Free(handle);assert.equal(handle.Get(),null);assert.equal(borrowed.IsValid(),false);assert.ok(copy.IsValid());
+ pool.Destruct();assert.ok(handle.Get().IsValid());pool.Free(handle);assert.equal(handle.Get(),null);assert.equal(borrowed.IsValid(),false);assert.ok(copy.IsValid());
  copy.Destroy();assert.equal(implementation.IsRegistered(),false);al.Destroy();
 });
 test('context binding and saved stack independently retain texture values',()=>{
@@ -71,7 +71,7 @@ test('typed and structured GPU owners release replacements but preserve native i
   const current=owner.GetGpuBuffer().TrinityALImpl_GetObject();
   assert.equal(owner.Create(0,format,1,al),ALResult.E_INVALIDARG);
   assert.equal(current.IsRegistered(),structured,'structured refusal retains its previous value; typed refusal resets it');
-  owner.Destroy();owner.Destroy();
+  owner.Destruct();owner.Destruct();
   assert.equal(current.IsRegistered(),false);
   assert.equal(owner.GetGpuBuffer(),null);
  }
@@ -86,10 +86,10 @@ test('final context shutdown releases only its own shared geometry blocks',async
  const second=SharedGeometryBuffer(b).Allocate(4,4,new Uint8Array(16),b);
  const firstBackend=first.GetBuffer().TrinityALImpl_GetObject();
  const secondBackend=second.GetBuffer().TrinityALImpl_GetObject();
- a.Destroy();a.Destroy();
+ a.Destruct();a.Destruct();
  assert.equal(first.IsValid(),false);assert.equal(firstBackend.IsRegistered(),false);
  assert.equal(second.IsValid(),true);assert.equal(secondBackend.IsRegistered(),true);
- b.Destroy();assert.equal(secondBackend.IsRegistered(),false);
+ b.Destruct();assert.equal(secondBackend.IsRegistered(),false);
 });
 
 test('render-target final disposal releases an attachment retained by operational detach',async()=>{
@@ -114,7 +114,7 @@ test('device final teardown releases the occlusion singleton without creating a 
  assert.equal(Tr2OcclusionBuffer._instance,null);
  assert.equal(backend.IsRegistered(),false);
  assert.equal(Tr2VariableStore.globalStore().FindVariable('FlareOcclusionBuffer'),null);
- renderContext.Destroy();
+ renderContext.Destruct();
 });
 
 test('effect replacement and resource removal release internally minted provider shares',()=>{
@@ -124,5 +124,5 @@ test('effect replacement and resource removal release internally minted provider
  effect.SetParameter__TextureAL('ColorMap',second);second.Destroy();
  assert.equal(firstBackend.IsRegistered(),false);assert.equal(secondBackend.IsRegistered(),true);
  effect.ClearAllResources();assert.equal(secondBackend.IsRegistered(),false);
- effect.Destroy();effect.Destroy();al.Destroy();
+ effect.Destruct();effect.Destruct();al.Destroy();
 });

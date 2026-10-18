@@ -431,9 +431,15 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     this.shadowMapDS = null;
   }
 
-  /** Explicit final release substitutes for Carbon's deterministic resource destructors. */
+  /**
+   * Explicit final release substitutes for Carbon's deterministic resource destructors.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
   @meta.adapted
-  Destroy()
+  Destruct()
   {
     this.ReleaseResources();
     this._vertexBuffer.Destroy();

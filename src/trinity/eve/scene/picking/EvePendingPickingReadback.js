@@ -142,8 +142,8 @@ export class EvePendingPickingReadback
   Destroy()
   {
     this.Unmap();
-    if (this.mainPickBuffer) this.mainPickBuffer.Destroy();
-    if (this.debugPickBuffer) this.debugPickBuffer.Destroy();
+    if (this.mainPickBuffer) this.mainPickBuffer.Destruct();
+    if (this.debugPickBuffer) this.debugPickBuffer.Destruct();
     this.blueObjects.length = 0;
     this.collisionSet.length = this.instancedTraceback.length = 0;
     this.debugLineObjects.length = this.debugTriangleObjects.length = 0;

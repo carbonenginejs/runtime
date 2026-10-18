@@ -89,7 +89,7 @@ test("direct instance buffer implements Carbon allocation, mapping and reset lif
   assert.equal(provider.GetCount(), 0);
   assert.equal(provider.IsInstanceDataReady(), false);
   assert.equal(provider.GetInstanceBufferVertexDeclaration(), declaration);
-  provider.Destroy();
+  provider.Destruct();
   assert.equal(TriDevice.GetResourcesRegistered().includes(provider), false);
 });
 

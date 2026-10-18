@@ -40,7 +40,7 @@ export class EveSpaceObjectDecal
   /**
    * Carbon's constructor (cpp:45-58): registers with the device, as its
    * Tr2DeviceResource base does (Tr2DeviceResource.cpp:6-9), and prepares its
-   * resources. Destroy unregisters.
+   * resources. Destruct unregisters.
    */
   constructor()
   {
@@ -57,9 +57,13 @@ export class EveSpaceObjectDecal
    *
    * Ours: JavaScript has no destructor, so the owner calls this when it drops
    * the decal. No owner does yet: EveSpaceObject2, which holds decals, has no
-   * Destroy of its own, so a dropped decal stays registered until one is added.
+   * Destruct of its own, so a dropped decal stays registered until one is added.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
    */
-  Destroy()
+  Destruct()
   {
     this.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
     TriDevice.UnregisterResource(this);

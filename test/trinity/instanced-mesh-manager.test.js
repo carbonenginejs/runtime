@@ -334,7 +334,7 @@ test("the scene owns an instanced mesh manager (EveSpaceScene.cpp:301)", () =>
 {
   const scene = new EveSpaceScene();
   assert.equal(scene.instancedMeshManager.constructor, EveInstancedMeshManager);
-  scene.Destroy();
+  scene.Destruct();
 });
 
 // ---------------------------------------------------------------------------

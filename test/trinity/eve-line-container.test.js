@@ -21,7 +21,7 @@ beforeEach(() => {
 });
 afterEach(() => {
   for (const resource of trinity.TriDevice.GetResourcesRegistered()) {
-    if (!previousResources.has(resource)) resource.Destroy();
+    if (!previousResources.has(resource)) resource.Destruct();
   }
   trinity.Tr2RenderContext_GetMainThreadRenderContext().SetRenderContextAL(priorAL);
 });

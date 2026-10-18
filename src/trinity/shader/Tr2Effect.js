@@ -250,8 +250,14 @@ export class Tr2Effect extends Tr2Material
     this.parametersForPasses = [];
   }
 
-  /** Deterministic adaptation of the effect destructor and its owned value members. */
-  Destroy()
+  /**
+   * Deterministic adaptation of the effect destructor and its owned value members.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
+  Destruct()
   {
     if (this._destroyed) return;
     this._destroyed = true;

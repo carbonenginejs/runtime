@@ -312,7 +312,7 @@ test("EveSpherePin composes its world under the parent and fills the Carbon per-
 {
   const manager = composeStubResMan();
   const pin = new EveSpherePin();
-  t.after(() => { pin.Destroy(); manager.restore(); });
+  t.after(() => { pin.Destruct(); manager.restore(); });
 
   // Carbon (row-vector): local * parent - local first (cpp:243-251). Parent
   // rotates 90deg about Z then translates (10,0,0); local translates (1,0,0).

@@ -254,7 +254,7 @@ test("device registry snapshots cannot mutate membership and retain their origin
   finally { TriDevice.UnregisterResource(resource); }
 });
 
-test("particle final-owner Destroy detaches nine effect stores once and unregisters immediately", () =>
+test("particle final-owner Destruct detaches nine effect stores once and unregisters immediately", () =>
 {
   const system = new Tr2GpuParticleSystem();
   const other = new Tr2GpuParticleSystem();
@@ -275,12 +275,12 @@ test("particle final-owner Destroy detaches nine effect stores once and unregist
     assert.ok(TriDevice.GetResourcesRegistered().includes(system), "cpp:180-198 device reset is not object destruction");
     assert.notEqual(system._variableStore, null);
     assert.equal(system.PrepareResources(), true, "an active resource remains preparable after reset");
-    system.Destroy();
+    system.Destruct();
     assert.equal(TriDevice.GetResourcesRegistered().includes(system), false, "Tr2DeviceResource.cpp:15-18 base destructor unregisters");
     assert.ok(TriDevice.GetResourcesRegistered().includes(other), "unrelated resources stay registered");
     assert.equal(system._variableStore, null);
     assert.deepEqual(events, slots.flatMap(slot => [ [ slot, "start" ], [ slot, "store", null ], [ slot, "end" ] ]), "Tr2GpuParticleSystem.cpp:106-119 preserves every effect update boundary");
-    system.Destroy();
+    system.Destruct();
     assert.equal(events.length, 27, "explicit teardown is idempotent");
   }
   finally
@@ -317,12 +317,12 @@ test("scene and context setters preserve a shared system until its final caller 
     // demo.dispose boundary after its rendering loop has been stopped.
     const finalSystem = scene.GetGpuParticleSystem();scene.SetGpuParticleSystem(null);
     assert.ok(TriDevice.GetResourcesRegistered().includes(finalSystem), "even final setter is assignment only");
-    finalSystem.Destroy();
+    finalSystem.Destruct();
     assert.equal(scene.GetGpuParticleSystem(), null);assert.equal(TriDevice.GetResourcesRegistered().includes(shared), false);
     assert.equal(shared._variableStore, null);for (const slot of slots) assert.equal(shared[slot].variableStore, null);
     assert.ok(context.GetGpuParticleSystem() === replacement && TriDevice.GetResourcesRegistered().includes(replacement), "other system remains owned and registered");
     assert.ok(slots.every((slot, i) => shared[slot] === effects[i]), "final owner detaches effect stores without destroying shared effect objects");
-    finalSystem.Destroy();assert.equal(TriDevice.GetResourcesRegistered().includes(shared), false);
+    finalSystem.Destruct();assert.equal(TriDevice.GetResourcesRegistered().includes(shared), false);
   }
-  finally {scene.SetGpuParticleSystem(null);context.SetGpuParticleSystem(null);shared.Destroy();replacement.Destroy();}
+  finally {scene.SetGpuParticleSystem(null);context.SetGpuParticleSystem(null);shared.Destruct();replacement.Destruct();}
 });

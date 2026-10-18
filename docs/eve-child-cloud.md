@@ -11,7 +11,7 @@ It is separate from the raymarched `EveChildCloud2` implementation.
 The child owns its vertex buffer, LOD index buffers and declaration through the
 Trinity abstraction layer. Construction registers the device-resource lifetime;
 `Initialize` and notified `preTesselationLevel` changes recreate geometry.
-`Destroy` releases ownership and unregisters the resource. Importing the module
+`Destruct` releases ownership and unregisters the resource. Importing the module
 creates no device resources.
 
 After updating the child and its visibility, `GetRenderables` includes it only

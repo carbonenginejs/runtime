@@ -84,8 +84,12 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * Ends the final owner's mesh lifetime; shared providers are only detached.
    * Adapted: explicit JS teardown replaces the native mesh and device-resource
    * destructors, including base geometry completion subscriptions.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
    */
-  Destroy()
+  Destruct()
   {
     this.SetGeometryRes(null);
     this.SetLowResGeometryRes(null);

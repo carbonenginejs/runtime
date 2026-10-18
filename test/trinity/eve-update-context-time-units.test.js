@@ -93,7 +93,7 @@ test("device render jobs preserve tick timestamps through the real scene context
   t.after(() =>
   {
     device.SetRenderJobs(null);
-    driver.Destroy();
+    driver.Destruct();
     target.Destroy();
     device.InvalidateAndUnregisterForTicks();
     be.os.UnregisterForTicks(device, TriDevice.TICK_COOKIE);

@@ -9,7 +9,7 @@ import {CjsBlackFormat} from "../../npm/dist/resource/formats/black/index.js";
 // BehaviorGroup.cpp:524,600-620 clamps dt and integrates acceleration/velocity.
 test("behavior updates consume seconds from Blue ticks without a second conversion",t=>{
   const group=new BehaviorGroup(),system=new EveChildBehaviorSystem(),context=new EveUpdateContext();
-  t.after(()=>system.Destroy());group.SetCount(1);system.behaviorGroups=[group];
+  t.after(()=>system.Destruct());group.SetCount(1);system.behaviorGroups=[group];
   system._behaviorGroupLoaded=system._behaviorGroupLoadedForTunnel=true;
   group.maxVelocity=1000;group.GetAgents()[0].velocity.set([60,0,0]);context.SetTime(10000000);
   for(let frame=1;frame<=60;frame++){
@@ -28,7 +28,7 @@ for(const [key,label,authoredScale,authoredCounts] of [["CJS_MATIGU_BOIDS","exte
     const walk=value=>{if(!value||typeof value!=="object")return;if(value._type==="BehaviorGroup")groups.push(value);for(const item of Object.values(value))walk(item);};
     walk(document);assert.equal(groups.length,2);assert.deepEqual(groups.map(g=>g.count),authoredCounts);
     const before=new Set(TriDevice.GetResourcesRegistered());
-    t.after(()=>{for(const r of TriDevice.GetResourcesRegistered())if(!before.has(r))r.Destroy();});
+    t.after(()=>{for(const r of TriDevice.GetResourcesRegistered())if(!before.has(r))r.Destruct();});
     t.mock.method(Math,"random",()=>0.41);
     for(const values of groups){
       // Geometry loading is independent of the authored behavior graph.

@@ -31,7 +31,7 @@ function setup(t)
   {
     for (const resource of TriDevice.GetResourcesRegistered())
     {
-      if (!registered.has(resource) && resource.constructor === EveChildBulletStorm) resource.Destroy();
+      if (!registered.has(resource) && resource.constructor === EveChildBulletStorm) resource.Destruct();
     }
     context.SetRenderContextAL(prior);
   });

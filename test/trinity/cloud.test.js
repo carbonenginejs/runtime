@@ -43,7 +43,7 @@ beforeEach(t =>
   t.after(() =>
   {
     for (const resource of TriDevice.GetResourcesRegistered())
-      if (!registered.has(resource) && resource.constructor === EveChildCloud2) resource.Destroy();
+      if (!registered.has(resource) && resource.constructor === EveChildCloud2) resource.Destruct();
     context.SetRenderContextAL(prior);
   });
 });

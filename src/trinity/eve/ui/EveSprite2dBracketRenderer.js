@@ -26,7 +26,7 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
 
   /**
    * Carbon's constructor (cpp:9-13): registers with the device, as its
-   * Tr2DeviceResource base does (Tr2DeviceResource.cpp:6-9). Destroy unregisters.
+   * Tr2DeviceResource base does (Tr2DeviceResource.cpp:6-9). Destruct unregisters.
    */
   constructor()
   {
@@ -42,8 +42,12 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
    * the renderer. No owner in this package does: bracket renderers are made
    * and dropped by the client, so a dropped one stays registered until its
    * owner calls this.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
    */
-  Destroy()
+  Destruct()
   {
     this.ReleaseResources(0);
     TriDevice.UnregisterResource(this);

@@ -199,6 +199,6 @@ test("the scene renews the environment maps it publishes, once a frame", async (
   }
   finally
   {
-    scene.Destroy();
+    scene.Destruct();
   }
 });

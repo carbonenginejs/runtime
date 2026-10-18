@@ -185,8 +185,14 @@ export class EveChildCloud extends EveSpaceObjectChild
     this._indexBuffers.length = 0;
   }
 
-  /** Releases final ownership because JavaScript has no deterministic destructor. */
-  Destroy()
+  /**
+   * Releases final ownership because JavaScript has no deterministic destructor.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
+  Destruct()
   {
     this.ReleaseResources();
     this._vertexBuffer.Destroy();

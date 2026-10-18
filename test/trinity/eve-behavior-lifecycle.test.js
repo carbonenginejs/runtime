@@ -327,7 +327,7 @@ test("BehaviorGroup list notifications maintain scratch slots and preserve Carbo
 test("behavior system load notifications defer wiring and instance modifiers invalidate instances", t =>
 {
   const system = new EveChildBehaviorSystem();
-  t.after(() => system.Destroy());
+  t.after(() => system.Destruct());
   system._behaviorGroupLoaded = system._behaviorGroupLoadedForTunnel = true;
   system.OnListModified(BLUELISTEVENT.BELIST_LOADFINISHED, 0, 0, null, system.behaviorGroups);
   system.OnListModified(BLUELISTEVENT.BELIST_LOADFINISHED, 0, 0, null, system.splineTunnels);

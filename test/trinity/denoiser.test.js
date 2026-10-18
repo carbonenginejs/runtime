@@ -175,7 +175,7 @@ test("repeated denoising returns all local handles to the pool", () =>
   finally
   {
     pool.Free(depth);
-    pool.Destroy();
+    pool.Destruct();
   }
 });
 
@@ -209,7 +209,7 @@ test("each interrupted denoiser pass releases its local handles and restores sta
     {
       Tr2Renderer.drawScreenQuad = originalDraw;
       pool.Free(depth);
-      pool.Destroy();
+      pool.Destruct();
     }
   }
 });
@@ -223,5 +223,5 @@ test("invalid depth still releases the source passed by value", () =>
   assert.equal(denoiser.Apply(source, { IsValid: () => false }, null, [], 1, pool, context, {}), null);
   assert.equal(source.IsValid(), false);
   assert.equal(pool.GetHeldCount(), 0);
-  pool.Destroy();
+  pool.Destruct();
 });

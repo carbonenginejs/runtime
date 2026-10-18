@@ -63,6 +63,6 @@ test("registerWithVariableStore publishes a real shadow map in place of the fall
   assert.notEqual(Global("EveSpaceSceneShadowMap"), shadows.shadowMap.Get());
   assert.equal(Global("EveSpaceSceneShadowMap").Equals(shadows.shadowMap.Get()), true);
   pool.Free(shadows.shadowMap);
-  pool.Destroy();
+  pool.Destruct();
   assert.equal(Global("EveSpaceSceneShadowMap").IsValid(), true);
 });

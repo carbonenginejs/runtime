@@ -26,7 +26,7 @@ for (const managed of [false, true])
       viewport.width = 800; viewport.height = 600;
       projection.PerspectiveFov(Math.PI / 4, 4 / 3, 1, 10000);
       view.SetLookAtPosition([700, 500, 1000], [0, 0, 0], [0, 1, 0]);
-      t.after(() => { scene.Destroy(); esm.EndManagedRendering(); });
+      t.after(() => { scene.Destruct(); esm.EndManagedRendering(); });
       t.mock.method(scene, "GetPickingObjectsToRender", () => [object]);
       t.mock.method(scene, "GetBatches", () => {});
       t.mock.method(scene, "GetRequiredPasses", () => [1, 4]);

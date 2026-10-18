@@ -338,14 +338,18 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
    * Tr2DeviceResource's (Tr2DeviceResource.cpp:15-18), which JS has no deterministic equivalent
    * of: frees the target, drops the texture subscription and unregisters from the device.
    *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   *
    * @returns {void}
    */
-  Destroy()
+  Destruct()
   {
     this._FreeRenderTarget();
     if (this._textureSecondary) this._textureSecondary.UnregisterForChangeNotification(this);
     TriDevice.UnregisterResource(this);
-    super.Destroy();
+    super.Destruct();
   }
 
 }

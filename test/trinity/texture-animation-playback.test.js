@@ -104,7 +104,7 @@ test("texture animation advances one frame after the strict threshold and keeps 
   assert.equal(animation.frame, 0);
   assert.deepEqual(texture.uploads.at(-1), [1, 2, 3, 4]);
   const retained = textures.map(value => new Tr2TextureAL({ copy: value }));
-  animation.Destroy();
+  animation.Destruct();
   // Explicit copies represent the native shared values retained by bindings.
   assert.ok(textures.every(item => !item.destroyed));
   retained.forEach(value => value.Destroy());
@@ -128,7 +128,7 @@ test("reload drops grid textures without destroying ones a resource set may stil
   assert.equal(textures.length, 4);
   assert.equal(textures[1].destroyed, true, "unretained old heat texture was released");
   assert.ok(textures.slice(2).every(item => !item.destroyed));
-  animation.Destroy();
+  animation.Destruct();
   assert.equal(retained.IsValid(), true);
   retained.Destroy();
   assert.ok(textures.every(item => item.destroyed));
@@ -140,7 +140,7 @@ test("grid textures take the grid's pixel format", async t =>
   await animation.ReadData();
   animation.AdvanceTime(0);
   assert.equal(textures[0].desc.GetFormat(), PixelFormat.PIXEL_FORMAT_R8_UNORM);
-  animation.Destroy();
+  animation.Destruct();
 });
 
 test("playback time accumulates in float32 like Carbon's float dt * m_fps", async t =>
@@ -152,7 +152,7 @@ test("playback time accumulates in float32 like Carbon's float dt * m_fps", asyn
   animation.fps = 3;
   animation.AdvanceTime(0.1);
   assert.equal(animation.time, Math.fround(Math.fround(0.1) * 3));
-  animation.Destroy();
+  animation.Destruct();
 });
 
 test("WebGPU MapForWriting on a volume maps every depth slice", () =>
@@ -195,7 +195,7 @@ test("unlooped playback stops at the last frame and paused restart still complet
   assert.equal(animation.frame, 0);
   assert.equal(animation.time, 0);
   assert.deepEqual(textures[0].uploads.at(-1), [1, 2, 3, 4]);
-  animation.Destroy();
+  animation.Destruct();
 });
 
 test("restart requested during pending decode waits before rewinding", async t =>
@@ -212,7 +212,7 @@ test("restart requested during pending decode waits before rewinding", async t =
   animation.AdvanceTime(100);
   assert.equal(animation.time, 0);
   assert.equal(animation._restartState, Tr2TextureAnimation.RestartState.NotRestarting);
-  animation.Destroy();
+  animation.Destruct();
 });
 
 test("reload cancellation and load failure cannot publish stale frames", async t =>
@@ -235,7 +235,7 @@ test("reload cancellation and load failure cannot publish stale frames", async t
   assert.equal(await animation.ReadData(), false);
   assert.equal(animation._asyncState.error.message, "unavailable");
   assert.equal(errors.length, 1);
-  animation.Destroy();
+  animation.Destruct();
 });
 
 test("WebGPU updates upload every depth slice of a volume mip", () =>
@@ -262,5 +262,5 @@ test("loaded VTA preserves duplicate channel names and returns the first texture
   assert.deepEqual(animation.GetChannelNames(), ["density", "density"]);
   assert.equal(animation.GetTexture("density"), textures[0]);
   assert.equal(animation.GetTexture("unknown"), null);
-  animation.Destroy();
+  animation.Destruct();
 });

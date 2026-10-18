@@ -20,7 +20,7 @@ function setup(t){
   al.DrawInstanced=(...args)=>{draws.push(args);return draw(...args);};
   const shader={GetTechniqueIndex:()=>0,GetPassCount:()=>1,GetShaderTypeMask:()=>3,ApplyAllStateForPass(){}};
   const effect={GetShaderStateInterface:()=>shader,IsGood:()=>true,CompatibleWithGdr:()=>false,ApplyMaterialDataForPass(){}};
-  t.after(()=>{for(const item of TriDevice.GetResourcesRegistered())if(!before.has(item))item.Destroy();context.SetRenderContextAL(old);});
+  t.after(()=>{for(const item of TriDevice.GetResourcesRegistered())if(!before.has(item))item.Destruct();context.SetRenderContextAL(old);});
   return {context,maps,draws,effect};
 }
 function floats(maps,buffer){const data=maps.get(buffer);assert.ok(data,"upload must occur");return [...new Float32Array(data.buffer,data.byteOffset,data.byteLength/4)];}
@@ -80,7 +80,7 @@ test("colors resubmit, device release can reprepare, owner destruction unregiste
     for(let offset=colorOffset;offset<data.length;offset+=stride)assert.deepEqual(data.slice(offset,offset+4),[.5,.25,1,.75]);
     const bound=[...s.boundingSphere];s.ReleaseResources();assert.equal(s._vertexBuffer.IsValid(),false);
     assert.deepEqual([...s.boundingSphere],bound);assert.equal(s.PrepareResources(),true);assert.equal(s._vertexBuffer.IsValid(),true);
-    s.Destroy();s.Destroy();assert.equal(TriDevice.GetResourcesRegistered().includes(s),false);assert.equal(s._vertexBuffer.IsValid(),false);
+    s.Destruct();s.Destruct();assert.equal(TriDevice.GetResourcesRegistered().includes(s),false);assert.equal(s._vertexBuffer.IsValid(),false);
     assert.equal(s.OnPrepareResources(),false);
   }
 });

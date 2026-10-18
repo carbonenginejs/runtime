@@ -338,8 +338,14 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
     return "<Tr2GrannyPrimitiveSet>";
   }
 
-  /** Explicit owner teardown replaces the C++ destructor and notify-target lifetime. */
-  Destroy()
+  /**
+   * Explicit owner teardown replaces the C++ destructor and notify-target lifetime.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
+  Destruct()
   {
     this._destroyed = true;
     this.#DetachResource();

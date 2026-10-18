@@ -22,7 +22,7 @@ function setup(t)
   const made = [];
   t.after(() =>
   {
-    for (const trails of made) trails.Destroy();
+    for (const trails of made) trails.Destruct();
     context.SetRenderContextAL(prior);
   });
   return { context, make: () => { const trails = new EveTacticalTrails(); made.push(trails); return trails; } };

@@ -95,7 +95,7 @@ test('texture listeners receive Sprite2dTextureChanged through protected _SetDir
   assert.throws(() => new ITr2Sprite2dTextureNotifyTarget().Sprite2dTextureChanged(texture));
 });
 
-test('ContainerBase Destroy detaches background then children (Tr2Sprite2dContainer.cpp:18-34)', () =>
+test('ContainerBase Destruct detaches background then children (Tr2Sprite2dContainer.cpp:18-34)', () =>
 {
   const outer = new Tr2Sprite2dContainerBase(), container = new Tr2Sprite2dContainerBase();
   const child = new Tr2Sprite2d(), backdrop = new Tr2Sprite2d();
@@ -113,7 +113,7 @@ test('ContainerBase Destroy detaches background then children (Tr2Sprite2dContai
   assert.equal(container.isDirty, true);
   assert.equal(outer.isDirty, true);
 
-  container.Destroy();
+  container.Destruct();
   assert.equal(child._parent, null);
   assert.equal(backdrop._parent, null);
 

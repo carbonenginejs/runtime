@@ -127,8 +127,14 @@ export class Tr2TexturedSpriteObject extends Tr2SpriteObject
     if (this.spriteEffect >= Tr2SpriteObjectEffect.TR2_SFX_TWO_TEXTURES) this._textureSecondary.Apply(renderer, 1);
   }
 
-  /** Explicit cleanup adapts the native texture-listener destructor to JS. */
-  Destroy()
+  /**
+   * Explicit cleanup adapts the native texture-listener destructor to JS.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
+  Destruct()
   {
     if (this._texturePrimary) this._texturePrimary.UnregisterForChangeNotification(this);
     if (this._textureSecondary) this._textureSecondary.UnregisterForChangeNotification(this);

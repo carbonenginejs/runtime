@@ -133,7 +133,7 @@ test("capture retains global indices across texture batches and replays without 
   assert.deepEqual(Array.from(new Uint32Array(allocations[1].bytes.buffer).slice(0, 6)), [0, 1, 0, 2, 2, 2]);
   scene.ReplayCapture(list);
   assert.deepEqual(draws, [[2, 0, 1], [3, 3, 1]]);
-  list.Destroy();
+  list.Destruct();
   assert.ok(allocations.every(buffer => !buffer.alive));
   scene._CleanUpStacksAfterRender();
 });
@@ -148,10 +148,10 @@ test("recapture transfers fitting buffers without destroying them with the old d
   scene.StartCapture(owner);
   scene.RenderTriangleVerts([vertex], 1, [0, 0, 0], 3);
   const next = scene.EndCapture(old);
-  old.Destroy();
+  old.Destruct();
   assert.equal(allocations.length, 2);
   assert.ok(allocations.every(buffer => buffer.alive && buffer.updates === 1));
-  next.Destroy();
+  next.Destruct();
   scene._CleanUpStacksAfterRender();
 });
 
@@ -213,6 +213,6 @@ test("capture records embedded jobs in sequence between geometry batches", t =>
   const list = scene.EndCapture(null);
   assert.deepEqual(list.entries.map(entry => entry.job), [null, job, null]);
   assert.deepEqual(list.entries.map(entry => entry.startIndex), [0, 0, 3]);
-  list.Destroy();
+  list.Destruct();
   scene._CleanUpStacksAfterRender();
 });

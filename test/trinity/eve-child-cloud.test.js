@@ -49,7 +49,7 @@ function setup(t)
   {
     for (const resource of TriDevice.GetResourcesRegistered())
     {
-      if (!registered.has(resource) && resource.constructor === EveChildCloud) resource.Destroy();
+      if (!registered.has(resource) && resource.constructor === EveChildCloud) resource.Destruct();
     }
     context.SetRenderContextAL(prior);
     gTriDev.device.width = oldWidth; gTriDev.device.height = oldHeight;
@@ -97,7 +97,7 @@ test("notified tessellation edits and device release rebuild owned storage", t =
   assert.equal(cloud._declaration, Tr2EffectStateManager.Unknown);
   assert.equal(cloud.PrepareResources(), true);
   assert.equal(cloud._indexBuffers.length, 1);
-  cloud.Destroy();
+  cloud.Destruct();
   assert.equal(vertex.IsValid(), false);
   assert.ok(!TriDevice.GetResourcesRegistered().includes(cloud));
 });

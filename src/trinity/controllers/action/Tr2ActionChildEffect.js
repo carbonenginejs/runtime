@@ -309,7 +309,7 @@ export class Tr2ActionChildEffect extends ITr2ControllerAction
         resources.push(model);
       }
     }
-    for (const resource of resources) resource.Destroy();
+    for (const resource of resources) resource.Destruct();
   }
 }
 

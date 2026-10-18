@@ -220,8 +220,14 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
     accumulator.Commit(batch);
   }
 
-  /** Owner teardown replaces the C++ destructor and automatic device unregistration. */
-  Destroy()
+  /**
+   * Owner teardown replaces the C++ destructor and automatic device unregistration.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
+  Destruct()
   {
     this._destroyed = true;
     this.ReleaseResources();

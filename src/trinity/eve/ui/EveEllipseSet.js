@@ -194,9 +194,13 @@ export class EveEllipseSet extends EveChildTransform
    * and Tr2DeviceResource's destructor unregisters it (Tr2DeviceResource.cpp:11-14).
    * JavaScript has no deterministic destructor, so the owner calls this.
    *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   *
    * @returns {void}
    */
-  Destroy()
+  Destruct()
   {
     for (const ellipse of this.ellipses)
     {

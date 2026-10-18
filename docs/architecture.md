@@ -163,7 +163,7 @@ additive states. The starfield owns its packed sprite buffer and uses the shared
 quad index allocation. Notified generation settings mark it dirty; the scene
 update recreates its buffer and retries failed creation. Seeded integer random
 draws match Carbon; JavaScript trigonometry is rounded to float32 for positions.
-The final owner calls `Destroy` to release storage and device registration.
+The final owner calls `Destruct` to release storage and device registration.
 
 Editable cloud volumes snapshot their control balls and curve samples before
 rasterization. Portable CPU work yields in short event-loop slices; it is not
@@ -176,7 +176,7 @@ Curve-line sets own an AL vertex buffer and submit non-indexed triangles through
 the same batch walk. Width-factor notifications refill their tessellated stream;
 the context caches the inverse-projected frustum corner radius for depth sorting.
 Device recreation rebuilds the buffer from retained line records. Final owners
-call `Destroy` to unregister and release storage. The headless AL exercises the
+call `Destruct` to unregister and release storage. The headless AL exercises the
 same upload and submission path; it does not establish shader pixel parity.
 Circle and Bézier paths also provide packed instance transforms. Their buffer
 contract advances a shared byte cursor through nested path containers; hidden
@@ -187,7 +187,7 @@ The owning `EveChildLineSet` coordinates path updates, visibility and edit
 notifications with line tessellation and object instancing. It supplies persistent
 VS/PS constants, realizes shared geometry before binding its instance stream,
 and emits current/previous transform aliases at TEXCOORD8..13. Both render modes
-use the same native update gate. Its final `Destroy` releases its instance buffer
+use the same native update gate. Its final `Destruct` releases its instance buffer
 and created default line sets; an explicitly assigned line set remains borrowed.
 Replaced defaults are retained until that final ownership decision so sharing
 cannot turn a later reinitialization into premature destruction.
@@ -235,7 +235,7 @@ prepared declaration does not require allocating an unrelated full-detail LOD.
 `Tr2ParticleSystem`, `Tr2InstancedMesh` and runtime/direct instance providers
 register with `TriDevice`. Device
 `ReleaseResources` retains their owned lifetime; the final owner explicitly calls
-`Destroy` to release CPU storage or mesh subscriptions and unregister. Mesh
+`Destruct` to release CPU storage or mesh subscriptions and unregister. Mesh
 destruction detaches its provider without destroying that shared object.
 
 The WebGPU demo snapshots device identities only around synchronous ship
@@ -291,7 +291,7 @@ its separate value. Tr2TextureReference.SetTexture and
 Tr2RuntimeGpuBuffer.SetGpuBuffer retain copies. Effects release adapters they
 create internally while preserving providers supplied by the caller.
 
-After rendering stops, scene-driver Destroy releases its local pool and values.
+After rendering stops, scene-driver Destruct releases its local pool and values.
 Device final shutdown releases global pools and static publishers. Context
 shutdown releases only its backend's shared geometry allocator. WebGPU defers
 platform storage destruction until the open command encoder has been submitted,
@@ -300,7 +300,7 @@ or until it has been abandoned during final teardown.
 Tr2RenderTarget.Destroy and Detach retain their native operational semantics,
 including the attached texture value. Its final owner calls Dispose to release
 both owned and attached values. GPU buffer owners and effects expose explicit
-Destroy methods for final release. Every device tick retires pool membership
+Destruct methods for final release. Every device tick retires pool membership
 aged three recording frames across temporary and persistent textures and buffers.
 Outstanding handles and explicit value copies survive retirement. Every debug-mode
 setter call clears membership, and device release clears it only for the exact

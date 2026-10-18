@@ -204,13 +204,17 @@ export class EveSpherePin
    * Explicit JS lifetime replaces native member destruction. Constructor effects
    * stay owned after replacement; a graph retirement walk can retain or retire
    * shared effects itself by including them in managedResources.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
    */
-  Destroy(managedResources = null)
+  Destruct(managedResources = null)
   {
     this.ReleaseResources();
     for (const effect of this._ownedEffects)
     {
-      if (!managedResources?.has(effect)) effect.Destroy();
+      if (!managedResources?.has(effect)) effect.Destruct();
     }
     this._ownedEffects.clear();
     this._indexBuffer.Destroy();

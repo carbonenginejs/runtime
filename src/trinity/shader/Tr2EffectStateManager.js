@@ -1347,8 +1347,14 @@ export class Tr2EffectStateManager
     this.#currentValues.indexBuffer = null;
   }
 
-  /** Explicitly releases values that Carbon releases with its state cache. */
-  Destroy()
+  /**
+   * Explicitly releases values that Carbon releases with its state cache.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
+  Destruct()
   {
     this._ReleaseBufferBindings();
     this.#isManagedRendering = false;

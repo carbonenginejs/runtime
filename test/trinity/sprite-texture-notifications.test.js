@@ -71,7 +71,7 @@ test('sprite atlas replacement, cropping and Apply preserve the native callback 
   texture.srcX=3;calls.length=0;texture.Apply(renderer,2);assert.deepEqual(calls[1],['window',2,3,0,128,64]);
   assert.deepEqual(calls.map(c=>c[0]),['texture','window','transform','tile']);
   texture.SetAtlasTexture(second);assert.equal(first.listeners.size,0);assert.ok(second.listeners.has(texture));
-  texture.Destroy();texture.Destroy();assert.equal(second.listeners.size,0);assert.equal(texture.GetAtlasTexture(),null);
+  texture.Destruct();texture.Destruct();assert.equal(second.listeners.size,0);assert.equal(texture.GetAtlasTexture(),null);
 });
 
 test('repeat flags retain the native unshifted setter quirk while tiling preserves unrelated bits',()=>{
@@ -96,5 +96,5 @@ test('centered texture matrices apply oriented nonuniform scaling before rotatio
 test('texture initialization accepts a supplied atlas and unsupported acquisition fails explicitly',()=>{
   const texture=new Tr2Sprite2dTexture();texture.atlasTexture=atlas();assert.equal(texture.Initialize(),true);
   assert.equal(texture.resPath,'');assert.throws(()=>texture.SetResPath('res:/ui/texture.dds'),/unported atlas resource acquisition/);
-  assert.equal(texture.GetWidth(),128,'unsupported acquisition does not install a plain texture substitute');texture.Destroy();
+  assert.equal(texture.GetWidth(),128,'unsupported acquisition does not install a plain texture substitute');texture.Destruct();
 });

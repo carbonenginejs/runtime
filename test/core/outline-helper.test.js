@@ -95,7 +95,7 @@ async function fixture(t, options = {})
   compositeStep.clearTargetOnFailure = false;
   const job = new TriRenderJob();
   job.steps.push(driverStep, compositeStep);
-  t.after(() => { outline.Destroy(); driver.Destroy(); target.Destroy(); resMan.restore(); SetEffectPathDefaults(null); });
+  t.after(() => { outline.Destroy(); driver.Destruct(); target.Destroy(); resMan.restore(); SetEffectPathDefaults(null); });
   return { outline, context, al, driver, target, job, resMan };
 }
 

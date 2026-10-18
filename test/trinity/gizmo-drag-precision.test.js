@@ -55,7 +55,7 @@ function setup(t, mode, axis, behind = false)
   t.after(() =>
   {
     gizmo.Destroy();
-    for (const resource of TriDevice.GetResourcesRegistered()) if (!before.has(resource)) resource.Destroy();
+    for (const resource of TriDevice.GetResourcesRegistered()) if (!before.has(resource)) resource.Destruct();
     Tr2Renderer.PopViewTransform(); Tr2Renderer.PopProjection(); context.SetRenderContextAL(previous);
   });
   return { gizmo, local };

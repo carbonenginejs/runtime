@@ -78,7 +78,7 @@ export class EveSpaceSceneRenderDriver
    * Carbon's constructor (EveSpaceSceneRenderDriver.cpp:143-160) takes
    * Tr2DeviceResource as its second C++ base (h:27-29), whose constructor
    * registers with the device (Tr2DeviceResource.cpp:6-9). `@blue.inherit`
-   * has no constructor to run, so the registration is made here; Destroy
+   * has no constructor to run, so the registration is made here; Destruct
    * unregisters, where Carbon's base destructor would.
    */
   constructor()
@@ -568,7 +568,7 @@ export class EveSpaceSceneRenderDriver
 
   /**
    * m_upscalingContext (Tr2UpscalingContextAL*, h:127), nullptr in Carbon.
-   * SetupUpscaling creates it; ReleaseResources and Destroy delete it.
+   * SetupUpscaling creates it; ReleaseResources and Destruct delete it.
    */
   _upscalingContext = null;
 
@@ -605,8 +605,12 @@ export class EveSpaceSceneRenderDriver
    * destructor deletes the upscaling context (cpp:162-165), and its
    * Tr2DeviceResource base unregisters from the device
    * (Tr2DeviceResource.cpp:11-14).
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
    */
-  Destroy()
+  Destruct()
   {
     if (this._destroyed) return;
     this._destroyed = true;
@@ -616,9 +620,9 @@ export class EveSpaceSceneRenderDriver
     this._normalMapReference.SetTexture(null);
     this._customStencilReference.SetTexture(null);
     this._opaqueMapReference.SetTexture(null);
-    this._distortionEffect.Destroy();
-    this.postProcess.Destroy();
-    this._gpuResourcePool.Destroy();
+    this._distortionEffect.Destruct();
+    this.postProcess.Destruct();
+    this._gpuResourcePool.Destruct();
     this._preparedContext = null;
     EveSpaceSceneRenderDriver.deleteUpscalingContext(this._upscalingContext);
     this._upscalingContext = null;

@@ -70,7 +70,7 @@ export class TnyTransformGizmo
     const Type = TOOL_TYPES[mode];
     if (!Type && mode !== "off") throw new TypeError("Unknown transform mode.");
     this.Cancel();
-    if (this.tool) this.tool.Destroy();
+    if (this.tool) this.tool.Destruct();
     this.mode = mode;
     this.tool = Type ? new Type() : null;
     if (this.tool) this.tool.SetMoveCallback((current, next) => this.#Apply(current, next));
@@ -299,9 +299,9 @@ export class TnyTransformGizmo
   Destroy()
   {
     this.Uninstall();
-    if (this.tool) this.tool.Destroy();
+    if (this.tool) this.tool.Destruct();
     this.tool = null;
-    this.scene.Destroy();
+    this.scene.Destruct();
     this.target = null;
   }
 

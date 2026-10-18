@@ -557,8 +557,12 @@ export class EveTurretSet extends EveEntity
    * Ours: the component-registry UnRegister first. Carbon's owner unregisters
    * before destruction, and EveEntity's destructor only logs when it did not
    * (EveEntity.cpp:43-50).
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
    */
-  Destroy()
+  Destruct()
   {
     this.UnRegister(this.GetComponentRegistry());
 

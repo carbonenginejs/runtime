@@ -147,8 +147,14 @@ export class Tr2Sprite2dTexture extends ITr2Sprite2dTexture
   _settings = Tr2Sprite2dTextureSettings.S2D_TS_NONE;
   _transform = mat4.create();
 
-  /** Explicit JS destruction replaces the native atlas-listener destructor. */
-  Destroy()
+  /**
+   * Explicit JS destruction replaces the native atlas-listener destructor.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
+  Destruct()
   {
     if (this._atlasTexture) this._atlasTexture.UnregisterForChangeNotification(this);
     this._atlasTexture = null;

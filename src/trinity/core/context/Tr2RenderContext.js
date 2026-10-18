@@ -196,18 +196,24 @@ export class Tr2RenderContext
     // backend (FillAndSetConstants, Tr2RenderUtils.cpp:106-110).
     for (const buffer of this._perObjectConstantBuffers) buffer.Destroy();
     this._esm.ReleaseRealizedObjects();
-    this._esm.Destroy();
+    this._esm.Destruct();
 
     return this._al;
   }
 
-  /** Explicit context teardown releases owned state values before its backend. */
-  Destroy()
+  /**
+   * Explicit context teardown releases owned state values before its backend.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
+  Destruct()
   {
-    this._esm.Destroy();
+    this._esm.Destruct();
     this._esm.ReleaseRealizedObjects();
     for (const buffer of this._perObjectConstantBuffers) buffer.Destroy();
-    if (this._blitter) this._blitter.Destroy();
+    if (this._blitter) this._blitter.Destruct();
     this._blitter = null;
     ReleaseSharedGeometryBuffer(this);
     this._al.Destroy();
@@ -1567,7 +1573,7 @@ export class Tr2RenderContext
   @meta.implemented
   static DestroyMainThreadRenderContext()
   {
-    if (s_mainThreadRenderContext) s_mainThreadRenderContext.Destroy();
+    if (s_mainThreadRenderContext) s_mainThreadRenderContext.Destruct();
     s_mainThreadRenderContext = null;
   }
 

@@ -19,8 +19,8 @@ function setup(t)
   particles.AddCluster([0, 0, 0], 1, [1, 0, 0, 1], [0, 1, 0, 1], 10);
   t.after(() =>
   {
-    mesh.Destroy();
-    data.Destroy();
+    mesh.Destruct();
+    data.Destruct();
   });
   return { particles, mesh, data };
 }
@@ -41,7 +41,7 @@ test("particle operations reject a different instance-data class despite matchin
   const unexpected = () => assert.fail("EveSceneStaticParticles.cpp:211-215 rejects the wrong concrete class");
   Object.assign(foreign, { SetElementLayout: unexpected, SetData: unexpected, DestroyData: unexpected });
   mesh.SetInstanceGeometryRes(foreign);
-  t.after(() => foreign.Destroy());
+  t.after(() => foreign.Destruct());
   assert.doesNotThrow(() => particles.Rebuild());
   particles.ClearClusters();
   assert.equal(particles.clusters.length, 0);

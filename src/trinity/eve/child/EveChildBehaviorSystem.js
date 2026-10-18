@@ -132,8 +132,14 @@ export class EveChildBehaviorSystem extends EveChildTransform
     this.PrepareResources();
   }
 
-  /** Explicit final ownership release replaces Carbon's member destructors. */
-  Destroy()
+  /**
+   * Explicit final ownership release replaces Carbon's member destructors.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
+  Destruct()
   {
     this._shipInstanceBuffer.Destroy();
     this._boosterInstanceBuffer.Destroy();

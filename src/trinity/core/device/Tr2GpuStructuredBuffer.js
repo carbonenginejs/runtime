@@ -131,9 +131,13 @@ export class Tr2GpuStructuredBuffer
   /**
    * Explicit final-owner teardown replaces destruction of Carbon's AL value member.
    * Operational device-resource release remains separate.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
    */
   @meta.adapted
-  Destroy()
+  Destruct()
   {
     if (this._buffer) this._buffer.Destroy();
     this._buffer = null;

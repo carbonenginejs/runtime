@@ -137,8 +137,14 @@ export class Tr2RuntimeInstanceData
     TriDevice.RegisterResource(this);
   }
 
-  /** Explicit final-owner teardown replaces Carbon's resource destructor. */
-  Destroy()
+  /**
+   * Explicit final-owner teardown replaces Carbon's resource destructor.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
+  Destruct()
   {
     this.ReleaseResources();
     TriDevice.UnregisterResource(this);

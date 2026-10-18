@@ -43,7 +43,7 @@ curve in metres so its update can calculate Carbon's distance falloff:
 the native fallback scale is one. Both global and per-object glare constants
 receive the calculated scale. Loaded controllers link during initialization;
 the notifying controller list links inserted controllers and replays variables.
-The owner must call `Destroy` when retiring a flare to unlink controllers and
+The owner must call `Destruct` when retiring a flare to unlink controllers and
 release its occlusion slots.
 
 ## Application responsibilities and limits

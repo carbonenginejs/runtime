@@ -23,7 +23,7 @@ manager. Shadow size/count edits recreate shared Trinity render-target and
 depth-stencil wrappers through the supplied or application-installed render
 context. The scene chooses native dimensions/formats and owns wrapper lifetime;
 resource acquisition and backend texture realization remain in their existing
-owners. Final `Destroy` releases the scene's shadow surfaces. Initializing the
+owners. Final `Destruct` releases the scene's shadow surfaces. Initializing the
 scene acquires the cubemap only. List lifecycle and scene render passes remain
 unported, so allocation tests do not establish rendered interior shadows.
 

@@ -237,12 +237,18 @@ export class Tr2Blitter
     return true;
   }
 
-  /** Final owner release includes both effects and their retained pass values. */
-  Destroy()
+  /**
+   * Final owner release includes both effects and their retained pass values.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
+  Destruct()
   {
     this.ReleaseResources();
-    if (this.#blitEffect) this.#blitEffect.Destroy();
-    if (this.#blitFilteredEffect) this.#blitFilteredEffect.Destroy();
+    if (this.#blitEffect) this.#blitEffect.Destruct();
+    if (this.#blitFilteredEffect) this.#blitFilteredEffect.Destruct();
     this.#blitEffect = null;
     this.#blitFilteredEffect = null;
   }

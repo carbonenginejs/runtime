@@ -52,7 +52,7 @@ function setup(t, framework = "pointer")
   });
   t.after(() =>
   {
-    scene.Destroy();
+    scene.Destruct();
     context.SetRenderContextAL(previous);
     Tr2RenderContext.eveSpacePickingFramework = previousFramework;
   });
@@ -65,8 +65,8 @@ test("scene destruction releases attachments but preserves the listener's indepe
   const pending = h.scene.PickObject(...h.args);
   assert.equal(h.scene._pickBuffer.IsValid(), true);
   assert.equal(h.scene._pickDepthBuffer.IsValid(), true);
-  h.scene.Destroy();
-  h.scene.Destroy();
+  h.scene.Destruct();
+  h.scene.Destruct();
   assert.equal(h.scene._pickBuffer.IsValid(), false);
   assert.equal(h.scene._pickDepthBuffer.IsValid(), false);
   assert.equal(h.scene.componentRegistry, null);
@@ -92,7 +92,7 @@ test("scene destruction releases owned frame buffers and unregisters borrowed li
   assert.ok(buffers.every(buffer => buffer instanceof Tr2ConstantBufferAL), "by-value members (EveSpaceScene.h:536-538)");
   let destroyed = 0;
   for (const buffer of buffers) t.mock.method(buffer, "Destroy", () => { destroyed++; });
-  h.scene.Destroy(); h.scene.Destroy();
+  h.scene.Destruct(); h.scene.Destruct();
   assert.equal(destroyed, 3);
   assert.equal(releaseDataTexture.mock.callCount(), 1);
   assert.deepEqual(events, [["register", manager], ["unregister", manager], ["clear"]]);

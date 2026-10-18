@@ -144,5 +144,5 @@ test("effect owner reuses its provider and releases only its own AL value share"
   assert.equal(second.value.IsValid(), true);
   second.value.Destroy();
   assert.equal(second.state.destroyed, 1);
-  effect.Destroy();
+  effect.Destruct();
 });

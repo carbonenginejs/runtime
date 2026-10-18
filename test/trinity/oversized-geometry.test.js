@@ -25,7 +25,7 @@ test("oversized reservations include stride padding, reuse freed storage and acc
     assert.equal(reused.GetBuffer(), old);
     assert.equal(pool.GetBlocks().length, 2);
   }
-  finally { pool.ReleaseResources(); context.Destroy(); }
+  finally { pool.ReleaseResources(); context.Destruct(); }
 });
 
 test("Chjita-sized mesh realizes once and reuses its allocation across render passes", () =>
@@ -73,5 +73,5 @@ test("Chjita-sized mesh realizes once and reuses its allocation across render pa
     assert.equal(SharedGeometryBuffer(context)._allocations.length, before);
     assert.deepEqual(uploads, [{offset:allocation.GetOffset(),size:38389500,first:7,last:19}]);
   }
-  finally { SharedGeometryBuffer(context).ReleaseResources(); context.Destroy(); }
+  finally { SharedGeometryBuffer(context).ReleaseResources(); context.Destruct(); }
 });

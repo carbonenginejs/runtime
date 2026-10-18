@@ -776,7 +776,7 @@ export class EveSpaceScene
 
   /**
    * Carbon SetGpuParticleSystem (EveSpaceScene.h:526-529).
-   * Shared assignment never destroys the old system; JS callers explicitly Destroy
+   * Shared assignment never destroys the old system; JS callers explicitly Destruct
    * only when its final owner releases it, replacing Carbon shared-pointer destruction.
    *
    * @param {object|null} ps The Tr2GpuParticleSystem, or null.
@@ -1062,9 +1062,13 @@ export class EveSpaceScene
    * The scene-created data texture manager is released with its owner; shared
    * scene objects/managers remain caller-owned. Readback snapshots are
    * owned by their picking contexts and remain usable after the scene retires.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
    */
   @meta.adapted
-  Destroy()
+  Destruct()
   {
     if (this._destroyed) return;
     this._destroyed = true;
@@ -2035,7 +2039,7 @@ export class EveSpaceScene
   /**
    * Registers the bone provider before effect hydration (EveSpaceScene.cpp:257-258),
    * and registers with the device as Carbon's Tr2DeviceResource base does
-   * (Tr2DeviceResource.cpp:6-9); Destroy unregisters.
+   * (Tr2DeviceResource.cpp:6-9); Destruct unregisters.
    */
   constructor()
   {

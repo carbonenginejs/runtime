@@ -498,7 +498,7 @@ test("TriValueBinding live endpoint edits rebuild and detach reroutes", () =>
 });
 
 
-test("Tr2DynamicBinding registers for sim-time rebases from construction until Destroy", t =>
+test("Tr2DynamicBinding registers for sim-time rebases from construction until Destruct", t =>
 {
   // Carbon's constructor registers and its destructor unregisters (Tr2DynamicBinding.cpp:172-190);
   // a rebase moves the pending tick time (:206-209).
@@ -520,7 +520,7 @@ test("Tr2DynamicBinding registers for sim-time rebases from construction until D
   assert.equal(binding.Update(101_000_000), false, "the due time moved with the rebase");
   assert.equal(binding.Update(151_000_000), true);
   assert.equal(destination.value, 7);
-  binding.Destroy();
-  assert.equal(be.os._rebaseListeners.includes(binding), false, "Destroy unregisters");
+  binding.Destruct();
+  assert.equal(be.os._rebaseListeners.includes(binding), false, "Destruct unregisters");
   assert.equal(binding.binding, null);
 });

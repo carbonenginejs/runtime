@@ -194,9 +194,13 @@ export class Tr2InteriorPlaceable
   /**
    * Adapted native destruction: release the object reference and invalidate any
    * pending JavaScript load so a retired owner cannot publish its result.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
    */
   @meta.adapted
-  Destroy()
+  Destruct()
   {
     ++this._loadRequest;
     this.placeableRes = null;

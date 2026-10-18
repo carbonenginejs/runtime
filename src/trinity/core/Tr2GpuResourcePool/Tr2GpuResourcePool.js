@@ -279,8 +279,12 @@ export class Tr2GpuResourcePool
    * Explicit final-owner teardown replaces the native pool destructor.
    * Outstanding handles retain their record and their own resource value;
    * this drops the pool's membership and unregisters it from device sweeps.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
    */
-  Destroy()
+  Destruct()
   {
     this.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
     allPools.delete(this);
@@ -487,6 +491,6 @@ export function GetGlobalGpuResourcePool()
 /** Device final shutdown releases the global pool; individual drivers never call this. */
 export function DestroyGlobalGpuResourcePool()
 {
-  if (globalPool) globalPool.Destroy();
+  if (globalPool) globalPool.Destruct();
   globalPool = null;
 }

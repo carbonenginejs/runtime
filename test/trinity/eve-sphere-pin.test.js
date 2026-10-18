@@ -31,7 +31,7 @@ function setup(t) {
   al.CreateDevice();al.BeginScene();context.SetRenderContextAL(al);Tr2Renderer.SetViewTransform(mat4.create());be.resMan=new StubResMan();
   t.after(()=>{
     for(const resource of TriDevice.GetResourcesRegistered().filter(x=>!before.has(x))) {
-      if(CjsSchema.cast(resource,EveSpherePin))resource.Destroy();
+      if(CjsSchema.cast(resource,EveSpherePin))resource.Destruct();
       else {resource.ReleaseResources();TriDevice.UnregisterResource(resource);}
     }
     SharedGeometryBuffer(context).ReleaseResources();context.SetRenderContextAL(prior);be.resMan=manager;al.Destroy();
@@ -146,7 +146,7 @@ test('visibility places pins without frustum culling and bounds remain local',t=
 });
 
 test('final pin destruction releases default effects and registration but preserves assigned effects',t=>{
-  setup(t);const p=pin(),owned=[...p._ownedEffects],calls=owned.map(e=>t.mock.method(e,'Destroy'));
-  const borrowed={Destroy(){throw Error('borrowed effect destroyed');}};p.pinEffect=borrowed;p.Destroy();p.Destroy();
+  setup(t);const p=pin(),owned=[...p._ownedEffects],calls=owned.map(e=>t.mock.method(e,'Destruct'));
+  const borrowed={Destruct(){throw Error('borrowed effect destroyed');}};p.pinEffect=borrowed;p.Destruct();p.Destruct();
   calls.forEach(c=>assert.equal(c.mock.callCount(),1));assert.equal(p._indexBuffer.IsValid(),false);assert.equal(TriDevice.GetResourcesRegistered().includes(p),false);
 });

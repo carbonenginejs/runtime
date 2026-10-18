@@ -190,8 +190,12 @@ export class EveChildLineSet extends EveChildTransform
    * Explicit destruction replaces C++ member destructors. The final graph owner
    * may supply line sets whose lifetime it manages separately, including shared
    * sets retained by another graph; JS has no BluePtr reference count.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
    */
-  Destroy(managedLineSets = null)
+  Destruct(managedLineSets = null)
   {
     this.ReleaseResources();
     this._vertexBuffer.Destroy();
@@ -199,7 +203,7 @@ export class EveChildLineSet extends EveChildTransform
     if (this._ownedLineSet) this._retiredLineSets.add(this._ownedLineSet);
     for (const lineSet of this._retiredLineSets)
     {
-      if (!managedLineSets?.has(lineSet)) lineSet.Destroy();
+      if (!managedLineSets?.has(lineSet)) lineSet.Destruct();
     }
     this._retiredLineSets.clear();
     this._ownedLineSet = null;

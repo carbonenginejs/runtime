@@ -103,7 +103,7 @@ test("aged membership retires even while a handle retains the resource", () =>
   assert.equal(pool.DebugGetAllTempTextures().length, 0);
   assert.equal(held.Get().IsValid(), true, "the held value survives retirement");
   pool.Free(held);
-  pool.Destroy();
+  pool.Destruct();
 });
 
 test("a recently used resource survives a clear", () =>
@@ -241,7 +241,7 @@ test("all four aged lists retire at the threshold while explicit copies survive"
   assert.equal(pool.ClearUnusedResources(), 0);
   for (const handle of handles) pool.Free(handle);
   for (const copy of copies) { assert.equal(copy.IsValid(), true); copy.Destroy(); }
-  pool.Destroy();
+  pool.Destruct();
 });
 
 test("repeated debug setters clear membership and exact all-storage release is required", async () =>
@@ -262,7 +262,7 @@ test("repeated debug setters clear membership and exact all-storage release is r
   const fifth = pool.GetPersistentTexture__WidthHeight("p", ...square(), null);
   assert.equal(fourth.Get().Equals(fifth.Get()), false);
   for (const h of [first, second, third, fourth, fifth]) { assert.equal(h.Get().IsValid(), true); pool.Free(h); }
-  pool.Destroy();
+  pool.Destruct();
 });
 
 test("device tick sweeps a registered pool once and destruction unregisters it", async () =>
@@ -276,7 +276,7 @@ test("device tick sweeps a registered pool once and destruction unregisters it",
   device.HandleRenderTick = () => {};
   device.OnTick(0, 0);
   assert.equal(sweeps, 1);
-  pool.Destroy();
+  pool.Destruct();
   device.OnTick(0, 0);
   assert.equal(sweeps, 1);
 });

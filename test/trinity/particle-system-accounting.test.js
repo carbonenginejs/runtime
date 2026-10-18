@@ -17,15 +17,15 @@ function positionSystem(maxParticleCount, dynamic = true)
   return system;
 }
 
-test("the registry holds a system from construction until Destroy", () =>
+test("the registry holds a system from construction until Destruct", () =>
 {
   const system = new Tr2ParticleSystem();
   assert.ok(Tr2ParticleSystem.getAllSystems().has(system));
-  system.Destroy();
+  system.Destruct();
   assert.ok(!Tr2ParticleSystem.getAllSystems().has(system));
 });
 
-test("built buffers claim capacity, Destroy and resizing return it, and dynamic systems are capped", () =>
+test("built buffers claim capacity, Destruct and resizing return it, and dynamic systems are capped", () =>
 {
   const savedCap = Tr2ParticleSystem.cpuMaxParticleCount;
   const base = Tr2ParticleSystem._totalParticleCount;
@@ -48,9 +48,9 @@ test("built buffers claim capacity, Destroy and resizing return it, and dynamic 
     assert.equal(staticSystem.maxParticleCount, 60);
     assert.equal(Tr2ParticleSystem._totalParticleCount, base + 100);
 
-    first.Destroy();
-    staticSystem.Destroy();
-    capped.Destroy();
+    first.Destruct();
+    staticSystem.Destruct();
+    capped.Destruct();
     assert.equal(Tr2ParticleSystem._totalParticleCount, base);
   }
   finally
@@ -71,6 +71,6 @@ test("updateAllSystems updates every live system; the same-time guard never fire
   for (const system of systems)
   {
     assert.equal(seen.filter(([ s ]) => s === system).length, 2);
-    system.Destroy();
+    system.Destruct();
   }
 });

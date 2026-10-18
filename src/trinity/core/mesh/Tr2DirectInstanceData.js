@@ -54,8 +54,14 @@ export class Tr2DirectInstanceData
     TriDevice.RegisterResource(this);
   }
 
-  /** Explicit JS teardown replaces the native resource destructor. */
-  Destroy()
+  /**
+   * Explicit JS teardown replaces the native resource destructor.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
+  Destruct()
   {
     this.ReleaseResources();
     TriDevice.UnregisterResource(this);

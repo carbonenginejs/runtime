@@ -58,7 +58,7 @@ test("real turret geometry remains READ-accessible and collected but is excluded
   let clone;
   try { clone=new Copier().CloneTo(set); }
   finally { Object.defineProperty(set,"geometryResource",descriptor); }
-  assert.ok(clone);t.after(()=>clone.Destroy());
+  assert.ok(clone);t.after(()=>clone.Destruct());
   assert.equal(clone.geometryResPath,geometryPath);
   assert.equal(clone.geometryResource,null,"READ-only LOD is not copied, so the constructor's initial LOD has no loaded handle");
   clone.lodLevel=EveTurretSet.LOD.LOD_HIGHEST;clone.Initialize();
@@ -493,7 +493,7 @@ test("real packed turret shader receives native instance IDs and final opaque/sh
   assert.equal(set.PrepareResources(),true,"native OnPrepareResources returns true after void InitializeInstanceBuffer");assert.equal(set._instanceBuffer.IsValid(),false);assert.equal(set.GetShadowBatches(accumulator,pod,100),false);shared.Allocate=allocating;
   assert.equal(set.PrepareResources(),true);assert.equal(instanceUploads.length,firstCount+1);assert.equal(set.GetShadowBatches(accumulator,pod,100),true);
   resource.MarkPurged();assert.equal(set.GetShadowBatches(accumulator,pod,100),false);
-  set.Destroy();set.Destroy();assert.equal(TriDevice.GetResourcesRegistered().includes(set),false);assert.equal(set._instanceBuffer.IsValid(),false);
+  set.Destruct();set.Destruct();assert.equal(TriDevice.GetResourcesRegistered().includes(set),false);assert.equal(set._instanceBuffer.IsValid(),false);
   assert.equal(set.GetBatches(accumulator,TriBatchType.TRIBATCHTYPE_OPAQUE,pod),false);
 });
 
@@ -536,7 +536,7 @@ test("native turret LOD consumes maximum view estimate, releases and reloads pos
   assert.equal(set.lodLevel,EveTurretSet.LOD.LOD_HIGHEST);assert.ok(set.geometryResource===resource);assert.ok(set.GetTurrets()[0].pose!==oldPose);assert.equal(set.firingEffect.GetDisplaySourceObject(),true);
   set.estimatedPixelDiameter=0;set.FreezeHighDetailLOD();assert.equal(set.lodLevel,EveTurretSet.LOD.LOD_DISABLED);
   assert.equal(set.UpdateLOD(threshold),false);assert.equal(set.estimatedPixelDiameter,0,"cpp:1133 disabled returns before estimate reset");
-  const empty=new EveTurretSet();t.after(()=>empty.Destroy());empty.estimatedPixelDiameter=99;empty.UpdateSyncronous(threshold);assert.equal(empty.estimatedPixelDiameter,99,"cpp:1175 no-mount gate");
+  const empty=new EveTurretSet();t.after(()=>empty.Destruct());empty.estimatedPixelDiameter=99;empty.UpdateSyncronous(threshold);assert.equal(empty.estimatedPixelDiameter,99,"cpp:1175 no-mount gate");
 });
 
 test("GR2 and CMF turret bounds follow donor traversal, animated world joints and optional output gates",{skip},async t=>
@@ -599,7 +599,7 @@ test("native ambient instances copy controlled source, isolate controller state 
   let ambientLod;source.UpdateVisibility=(_context,_parent,lod)=>{ambientLod=lod;};
   for(const [turretLod,childLod] of [[EveTurretSet.LOD.LOD_INVALID,Tr2Lod.TR2_LOD_UNSPECIFIED],[EveTurretSet.LOD.LOD_EMPTY,Tr2Lod.TR2_LOD_LOW],[EveTurretSet.LOD.LOD_HIGHEST,Tr2Lod.TR2_LOD_HIGH]]){set.lodLevel=turretLod;set.UpdateVisibility({GetFrustum:()=>({IsSphereVisible:()=>false})});assert.equal(ambientLod,childLod);}
   set.ambientEffectEditingMode=false;set.OnModified("ambientEffectEditingMode");set.SetAmbientEffect(null);assert.equal(set.GetAmbientEffectOrGeneratedEffect(),null);assert.equal(source.IsInRegistry(),false);
-  set.Destroy();resource.MarkPrepared();assert.equal(set.geometryResource,null);assert.equal(set.IsInRegistry(),false);assert.equal(TriDevice.GetResourcesRegistered().includes(set),false);
+  set.Destruct();resource.MarkPrepared();assert.equal(set.geometryResource,null);assert.equal(set.IsInRegistry(),false);assert.equal(TriDevice.GetResourcesRegistered().includes(set),false);
   ship.turretSets.length=0;assert.equal(ship.GetRenderables__Impostors([]).includes(set),false,"removed/destroyed turret is not collected");
 });
 
@@ -664,7 +664,7 @@ test("hull-to-turret quad forwarding observes firing, display and ambient clip g
     set._parentData.clipRadiusSq=.05;calls.length=0;ship.AddQuadsToQuadRenderer(frustum,renderer);assert.deepEqual(calls,[["fire-add",frustum,renderer]]);
     set.display=false;calls.length=0;ship.AddQuadsToQuadRenderer(frustum,renderer);assert.deepEqual(calls,[]);
   }
-  finally{set.firingEffect=null;set.Destroy();}
+  finally{set.firingEffect=null;set.Destruct();}
 });
 
 // The pulse asset has no authored ambient-controller recipe. This explicitly

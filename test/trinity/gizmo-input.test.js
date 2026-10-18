@@ -172,7 +172,7 @@ function setupGizmo(t, mode)
   t.after(() =>
   {
     gizmo.Destroy();
-    for (const resource of TriDevice.GetResourcesRegistered()) if (!before.has(resource)) resource.Destroy();
+    for (const resource of TriDevice.GetResourcesRegistered()) if (!before.has(resource)) resource.Destruct();
     context.SetRenderContextAL(previous);
   });
   return gizmo;
@@ -240,7 +240,7 @@ test("off destroys handles, rolls back a drag and keeps object selection active"
     readParentWorld: out => mat4.identity(out) };
   gizmo.SetTarget(target).Install(input);
   t.mock.method(gizmo.scene, "PickObject", async () => gizmo.tool.primitives[0]);
-  const tool = gizmo.tool, destroy = t.mock.method(tool, "Destroy");
+  const tool = gizmo.tool, destroy = t.mock.method(tool, "Destruct");
   input.Enqueue(pointer("pointerdown"));
   await input.Update();
   local[12] = 400;

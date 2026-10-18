@@ -94,7 +94,7 @@ test("Tr2MouseCursor realizes browser CSS cursor state without native handles", 
     assert.equal(cursor.IsValid(), true);
     assert.equal(cursor.Apply(target), true);
     assert.equal(target.style.cursor, "url(\"res:/ui/cursor.png\") 4 7, auto");
-    cursor.Destroy();
+    cursor.Destruct();
     assert.equal(cursor.IsValid(), false);
 });
 

@@ -83,7 +83,7 @@ test('Sprite2D container cache retries failed capture, replays success, and rese
   node.children.push({ SetParent() {} });
   let gathers = 0, replay = 0, succeeds = false;
   node._GatherSpritesHelper = () => { gathers++; };
-  const record = { Destroy() {} };
+  const record = { Destruct() {} };
   const renderer = { IsCapturing: () => false, StartCapture: () => succeeds, EndCapture: () => record,
     ReplayCapture: value => { assert.equal(value, record); replay++; } };
   node.GatherSprites(renderer);

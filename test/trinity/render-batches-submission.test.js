@@ -158,7 +158,7 @@ test("pointer picking variables exist before material binding and retain both id
     [0, 0, 0, 2], [0, 4, 0, 3],
     [0, 0x87654321 | 0, 0xfedcba98 | 0, 4]
   ]);
-  context.Destroy();
+  context.Destruct();
 });
 
 test("switching picking frameworks retains areaId's handle and copies FLOAT or INT bits as required", t =>
@@ -167,7 +167,7 @@ test("switching picking frameworks retains areaId's handle and copies FLOAT or I
   t.after(() => { Tr2RenderContext.eveSpacePickingFramework = previous; });
   Tr2RenderContext.eveSpacePickingFramework = "objectId";
   const { context, accumulator } = contextWith(1);
-  t.after(() => context.Destroy());
+  t.after(() => context.Destruct());
   const store = Tr2VariableStore.globalStore(), area = store.FindVariable("areaId");
   const batch = accumulator.GetBatches()[0];
   batch.objectData = { GetUserData: () => 513, GetPickingPointer: () => 0x1234567887654321n, SetPerObjectDataToDevice() {} };

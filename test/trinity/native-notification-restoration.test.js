@@ -10,7 +10,7 @@ import { NotifyModified } from "../../npm/dist/global/blue/index.js";
 test("primitive color notification updates real line endpoints; unrelated edits preserve them", t =>
 {
   const lines = new Tr2LineSet();
-  t.after(() => lines.Destroy());
+  t.after(() => lines.Destruct());
   lines.AddLine([0,0,0], [1,0,0,1], [1,1,1], [0,1,0,1]);
   lines.color.set([0,0,1,1]);
   lines.OnModified("name");
@@ -28,7 +28,7 @@ test("bounding notifications rebuild geometry and forward batched color to the n
   al.BeginScene();
   context.SetRenderContextAL(al);
   const bounds = new Tr2BoundingLineSet();
-  t.after(() => { bounds.Destroy(); context.SetRenderContextAL(previous); al.Destroy(); });
+  t.after(() => { bounds.Destruct(); context.SetRenderContextAL(previous); al.Destroy(); });
   bounds.UpdateBounds([-1,-1,-1], [1,1,1]);
   const before = bounds.lines[0];
   bounds.minBounds.set([-3,-4,-5]);
@@ -109,5 +109,5 @@ test(`${Type.name} initializes and recreates on notification with native refusal
     assert.equal(owner.OnModified("count"), true, "native callback ignores AL refusal");
     assert.equal(second.IsRegistered(), Type === Tr2GpuStructuredBuffer);
   }
-  finally { owner.Destroy(); context.SetRenderContextAL(previous); al.Destroy(); }
+  finally { owner.Destruct(); context.SetRenderContextAL(previous); al.Destroy(); }
 });

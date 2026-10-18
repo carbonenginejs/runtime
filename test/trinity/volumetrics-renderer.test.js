@@ -393,7 +393,7 @@ function volumeFixture()
   context.SetRenderContextAL(al);
   const pool = new core.Tr2GpuResourcePool().SetRenderContext(context);
   const depth = context.CreateTexture(Tr2BitmapDimensions.create__AllFields(TextureType.TEX_TYPE_2D, PixelFormat.PIXEL_FORMAT_R32_FLOAT, 80, 40, 1, 1, 1), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.RENDER_TARGET });
-  return { context, pool, depth, close() { depth.Destroy(); pool.Destroy(); context.Destroy(); } };
+  return { context, pool, depth, close() { depth.Destroy(); pool.Destruct(); context.Destruct(); } };
 }
 
 /** Implements the native registry iteration contract over test renderables. */

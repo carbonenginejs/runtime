@@ -94,8 +94,14 @@ export class EveCloudEditableVolume
     this.balls.SetNotify(this);
   }
 
-  /** Cancels pending computation; shared bitmap and texture references remain usable. */
-  Destroy()
+  /**
+   * Cancels pending computation; shared bitmap and texture references remain usable.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
+  Destruct()
   {
     clearTimeout(this._timer);
     this._timer = null;

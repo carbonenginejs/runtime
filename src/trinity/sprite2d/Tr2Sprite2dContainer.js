@@ -62,17 +62,21 @@ export class Tr2Sprite2dContainer extends Tr2Sprite2dContainerBase
    * destructor detaches the children.
    *
    * Adapted: JS has no destructors, so the destructor bodies run from an explicit
-   * Destroy, derived first and then the base, as C++ orders them.
+   * Destruct, derived first and then the base, as C++ orders them.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
    *
    * @returns {void}
    */
   @meta.adapted
-  Destroy()
+  Destruct()
   {
-    this._cachedDisplayList?.Destroy();
+    this._cachedDisplayList?.Destruct();
     this._cachedDisplayList = null;
 
-    super.Destroy();
+    super.Destruct();
   }
 
   /** Applies Carbon's dirty/clean-frame cache policy before gathering or replaying. */
@@ -92,7 +96,7 @@ export class Tr2Sprite2dContainer extends Tr2Sprite2dContainerBase
         if (this._dirtyFrameCount > 10)
         {
           this.isCachingContents = false;
-          this._cachedDisplayList?.Destroy();
+          this._cachedDisplayList?.Destruct();
           this._cachedDisplayList = null;
         }
         else this._dirtyFrameCount++;
@@ -108,7 +112,7 @@ export class Tr2Sprite2dContainer extends Tr2Sprite2dContainerBase
     {
       this._dirtyFrameCount = this._cleanFrameCount = 0;
       this.isCachingContents = false;
-      this._cachedDisplayList?.Destroy();
+      this._cachedDisplayList?.Destruct();
       this._cachedDisplayList = null;
     }
 
@@ -126,7 +130,7 @@ export class Tr2Sprite2dContainer extends Tr2Sprite2dContainerBase
           this._cachedDisplayList = renderer.EndCapture(previous);
           this.isDirty = false;
         }
-        previous?.Destroy();
+        previous?.Destruct();
       }
 
       if (this._cachedDisplayList) renderer.ReplayCapture(this._cachedDisplayList);

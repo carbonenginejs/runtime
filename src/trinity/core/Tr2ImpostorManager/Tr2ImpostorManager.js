@@ -421,8 +421,12 @@ export class Tr2ImpostorManager
    * destroys owned surfaces/effects and drops source references. Shared graph
    * effect retirement can be supplied as for other Trinity owners. Global
    * variable bindings persist as in Carbon and may already name another manager.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
    */
-  Destroy(managedResources = null)
+  Destruct(managedResources = null)
   {
     this._quadRenderer.UnregisterEffect(this._effectKey);
     this.atlas.Destroy();
@@ -430,7 +434,7 @@ export class Tr2ImpostorManager
     this._ds.Destroy();
     for (const effect of this._ownedEffects)
     {
-      if (!managedResources?.has(effect)) effect.Destroy();
+      if (!managedResources?.has(effect)) effect.Destruct();
     }
     this._ownedEffects.clear();
     this._objects.clear();

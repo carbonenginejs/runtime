@@ -24,7 +24,7 @@ function setup(t)
   const sets = [];
   t.after(() =>
   {
-    for (const set of sets) set.Destroy();
+    for (const set of sets) set.Destruct();
     context.SetRenderContextAL(prior);
   });
   const make = () => { const set = new EveLineSet(); sets.push(set); return set; };

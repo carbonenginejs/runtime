@@ -358,18 +358,24 @@ export class Tr2ManipulationTool
     return result;
   }
 
-  /** Explicit release of the native tool's owned primitive and effect references. */
+  /**
+   * Explicit release of the native tool's owned primitive and effect references.
+   *
+   * Temporary destructor stand-in: exists because teardown is required before
+   * the lifecycle (Destructor) pattern exists. NOT the final mechanism; do not
+   * copy this as a pattern. Replaced by the lifecycle API after the IRoot pilot.
+   */
   @meta.adapted
-  Destroy()
+  Destruct()
   {
     const effects = new Set();
     for (const primitive of this.primitives)
     {
       if (primitive.effect) effects.add(primitive.effect);
       if (primitive.pickEffect) effects.add(primitive.pickEffect);
-      primitive.Destroy();
+      primitive.Destruct();
     }
-    for (const effect of effects) effect.Destroy();
+    for (const effect of effects) effect.Destruct();
     this.primitives.length = 0;
     this.moveCallback = null;
     this.captured = false;

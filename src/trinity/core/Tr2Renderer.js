@@ -246,7 +246,7 @@ export class Tr2Renderer
   @meta.adapted
   static shutdown()
   {
-    if (Tr2Renderer.#blitter) Tr2Renderer.#blitter.Destroy();
+    if (Tr2Renderer.#blitter) Tr2Renderer.#blitter.Destruct();
     Tr2Renderer.#blitter = null;
   }
 

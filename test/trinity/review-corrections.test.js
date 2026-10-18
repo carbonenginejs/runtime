@@ -11,7 +11,7 @@ import { mat4 } from "../../npm/dist/global/math/mat4.js";
 test("ambient synchronous visibility and asynchronous display use different native predicates", t =>
 {
   const turret = new EveTurretSet();
-  t.after(() => turret.Destroy());
+  t.after(() => turret.Destruct());
   turret.SetLocalTransform(0, mat4.create());
   const ambient = new EveChildContainer();
   turret.ambientEffectEditingMode = true;
@@ -38,7 +38,7 @@ test("ambient synchronous visibility and asynchronous display use different nati
 test("locator decomposition preserves Carbon's nonunit quaternion under shear", t =>
 {
   const turret = new EveTurretSet();
-  t.after(() => turret.Destroy());
+  t.after(() => turret.Destruct());
   turret.SetLocalTransform(0, mat4.create());
   const ambient = new EveChildContainer();
   turret.SetAmbientEffect(ambient);

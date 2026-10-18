@@ -26,7 +26,7 @@ import { Tr2Renderer } from "../../npm/dist/trinity/core/Tr2Renderer.js";
 
 const context={GetViewTransform:()=>mat4.create()};
 
-// Destroy is now an explicit scene resource cleanup method, not an inherited model helper.
+// Destruct is now an explicit scene resource cleanup method, not an inherited model helper.
 test("Scene uses its native primary and exact query while removing model helpers",()=>{
  const scene=be.classes.CreateInstanceFromName("Tr2Sprite2dScene");assert.equal(scene.constructor,Tr2Sprite2dScene);assert.equal(Object.getPrototypeOf(Tr2Sprite2dScene.prototype),ITr2Scene.prototype);assert.equal(Object.getPrototypeOf(ITr2Scene.prototype),ITr2Updateable.prototype);
  assert.deepEqual([...mappedInterfaces(Tr2Sprite2dScene)],[Tr2Sprite2dScene,ITr2Scene,ITr2Updateable,INotify]);for(const name of ["SetValues","GetValues","Clone","Traverse","GetResources","OnEvent"])assert.equal(name in scene,false);
@@ -76,7 +76,7 @@ test("resource invalidation clamps the native sprite limit and an invalid contex
 });
 
 
-// Destroy is now an explicit scene resource cleanup method, not an inherited model helper.
+// Destruct is now an explicit scene resource cleanup method, not an inherited model helper.
 test("Scene uses the main-thread view fallback and tolerates a missing shader handle", () =>
 {
   const main = Tr2RenderContext_GetMainThreadRenderContext();
