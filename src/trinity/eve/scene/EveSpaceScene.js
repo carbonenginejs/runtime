@@ -1272,9 +1272,6 @@ export class EveSpaceScene
                 const data = renderable.GetPerObjectData(batches);
                 if (data)
                 {
-                  if (typeof data.SetUserData !== "function")
-                    throw new TypeError("Picking: " + renderable.constructor.name + " (" + (renderable.name || "unnamed") +
-                      ") GetPerObjectData returned " + (data.constructor?.name || typeof data) + " without SetUserData");
                   data.SetUserData(index);
                 }
                 if (pickTypes !== Tr2PickType.PICK_TYPE_PICKING)
