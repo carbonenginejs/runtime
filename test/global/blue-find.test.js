@@ -75,7 +75,8 @@ test("FindAllReferences maps each reached object to the references reaching it (
   assert.deepEqual(references.get(c).map(([ parent, type, key ]) => [ parent === a || parent === root.byName, type, key ]).sort(),
     [[ true, 0, "child" ], [ true, 1, "key" ]].sort());
   assert.equal(references.has(root), false, "the root is not referenced within its own tree");
-  assert.equal(be.FindAllReferences(null).size, 0);
+  // Carbon dereferences root unchecked (Find.cpp:556).
+  assert.throws(() => be.FindAllReferences(null), TypeError);
 });
 
 test("FindReference answers reachability (Find.cpp:507-548)", () =>

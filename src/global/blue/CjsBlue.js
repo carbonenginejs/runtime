@@ -242,14 +242,17 @@ export class CjsBlue
    * A collection item's reference names its collection and index, as Carbon
    * names the list object; the collection itself is not a key.
    *
-   * @param {object|null} root Root of the tree.
+   * @param {IRoot} root Root of the tree.
    * @returns {Map<object, Array<Array<*>>>} References per reached object.
+   * @throws {TypeError} For a null root, which Carbon dereferences unchecked.
    */
   FindAllReferences(root)
   {
     const result = new Map();
-    if (!root) return result;
-
+    // Carbon dereferences root unchecked (Find.cpp:556). enumerateChildren skips
+    // a null object, so that dereference's failure is raised here; Carbon's
+    // root-object check has nothing to catch, GetRootObject being the object.
+    if (root === null || root === undefined) throw new TypeError("FindAllReferences: root is null.");
     const record = (child, reference) =>
     {
       let found = result.get(child);

@@ -46,15 +46,17 @@ export class EveSocketParameterBindingBase extends IEveSocketParameter
   /**
    * Creates a binding that reads this parameter's `value` field and writes it to the external parameter, keeping it only when the names match, the binding initializes and a default could be captured.
    *
+   * Carbon takes the parameter by reference and uses the created binding
+   * unchecked (EveSocketParameter.cpp:29-52).
+   *
    * @returns {boolean} True when the binding was created and stored.
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   BindToExternalParameter(externalParameter)
   {
-    if (!externalParameter || !externalParameter.IsValid() || externalParameter.GetName() !== this.name) return false;
+    if (!externalParameter.IsValid() || externalParameter.GetName() !== this.name) return false;
     const binding = externalParameter.CreateBinding();
-    if (!binding) return false;
     binding.SetSource("value", this);
     binding.Initialize();
     if (!binding.IsValid() || !this.ExtractDefault(externalParameter)) return false;
