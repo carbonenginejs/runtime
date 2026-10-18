@@ -113,6 +113,8 @@ function sceneRecording(calls)
     RunLensflareOcclusionQueries() { calls.push([ "RunLensflareOcclusionQueries" ]); },
     RenderDepthPass(depthMap, normalMap, customStencil, renderContext, techniqueName) { calls.push([ "RenderDepthPass", normalMap, techniqueName, customStencil ]); },
     RenderShadows() { calls.push([ "RenderShadows" ]); return null; },
+    // Distortion is on by default (EveSpaceSceneRenderDriver.h:68); these frames have no distortion batches.
+    RenderDistortionBatches() { return false; },
     UpdateVariableStore() { calls.push([ "UpdateVariableStore" ]); },
     // EveSpaceScene.h:522-525; no GPU particle system in these frames.
     GetGpuParticleSystem() { return null; },

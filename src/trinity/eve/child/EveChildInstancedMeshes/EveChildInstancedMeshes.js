@@ -1749,7 +1749,8 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
    * Carbon quirk, reproduced: `m_nextOffset[1] = 0` after TEXCOORD10
    * (cpp:719) restarts the stream-1 ledger, so TEXCOORD11-13 read the same
    * bytes as TEXCOORD8-10 - a static instance record's world transform
-   * stands in as its previous-frame transform.
+   * stands in as its previous-frame transform. That looks deliberate (a
+   * static record has no previous transform), so it is not a CE.
    *
    * Adapted: the trigger, since IBlueAsyncResNotifyTarget is not ported (see
    * AddMeshesToManager); the mesh's elements are the geometry payload's

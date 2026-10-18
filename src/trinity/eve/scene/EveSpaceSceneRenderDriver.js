@@ -61,6 +61,13 @@ import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 import "../../postProcess/effect/Tr2PPEffect.js";
 import "#consts/renderContext/formats";
 
+/**
+ * Carbon's default m_settings (EveSpaceSceneRenderDriver.h:54-71): the flat
+ * Settings attributes below take their defaults from it, so the record and the
+ * driver share one source.
+ */
+const CARBON_DEFAULT_SETTINGS = new EveSpaceSceneRenderDriverSettings();
+
 /** Collects camera, quality, pass-toggle, overlay, background, and post-process state for driving an EVE space-scene frame. */
 @blue.define({ className: "EveSpaceSceneRenderDriver", purpose: "Collects camera, quality, pass-toggle, overlay, background, and post-process state for driving an EVE space-scene frame." })
 @blue.inherit(ITr2RenderNode, Tr2DeviceResource)
@@ -84,13 +91,13 @@ export class EveSpaceSceneRenderDriver
   @blue.readwrite
   @type.int32
   @type.enum("trinity.EveSpaceSceneRenderDriver.AmbientOcclusionQuality")
-  aoQuality = 0;
+  aoQuality = CARBON_DEFAULT_SETTINGS.aoQuality;
 
   /** m_settings.antiAliasingQuality (AntiAliasingQuality - enum AntiAliasingQuality) [READWRITE, ENUM] */
   @blue.readwrite
   @type.int32
   @type.enum("trinity.EveSpaceSceneRenderDriver.AntiAliasingQuality")
-  antiAliasingQuality = 0;
+  antiAliasingQuality = CARBON_DEFAULT_SETTINGS.antiAliasingQuality;
 
   /** m_settings.visualizeMethod (EveSpaceScene::EveVisualizeMethod - enum EveVisualizeMethod) [READWRITE, ENUM] */
   @blue.readwrite
@@ -102,13 +109,13 @@ export class EveSpaceSceneRenderDriver
   @blue.readwrite
   @type.int32
   @type.enum("trinity.PostProcess.Quality")
-  postProcessingQuality = 0;
+  postProcessingQuality = CARBON_DEFAULT_SETTINGS.postProcessingQuality;
 
   /** m_settings.shadowQuality (ShadowQuality - enum ShadowQuality) [READWRITE, ENUM] */
   @blue.readwrite
   @type.int32
   @type.enum("trinity.ShadowQuality")
-  shadowQuality = 0;
+  shadowQuality = CARBON_DEFAULT_SETTINGS.shadowQuality;
 
   /** m_customStencilFormat (ImageIO::PixelFormat - enum PixelFormat) [READWRITE, ENUM] */
   @blue.readwrite
@@ -126,7 +133,7 @@ export class EveSpaceSceneRenderDriver
   @blue.readwrite
   @type.int32
   @type.enum("trinity.Tr2VolumerticQuality")
-  volumetricQuality = 0;
+  volumetricQuality = CARBON_DEFAULT_SETTINGS.volumetricQuality;
 
   /**
    * m_scene (EveSpaceScenePtr): the persisted backing member,
@@ -187,7 +194,7 @@ export class EveSpaceSceneRenderDriver
   /** m_settings.enableUpscaling (bool) [READWRITE] */
   @blue.readwrite
   @type.boolean
-  enableUpscaling = false;
+  enableUpscaling = CARBON_DEFAULT_SETTINGS.enableUpscaling;
 
   /** m_projection (TriProjectionPtr) [READWRITE] */
   @blue.readwrite
@@ -217,7 +224,7 @@ export class EveSpaceSceneRenderDriver
   /** m_settings.enableDistortion (bool) [READWRITE] */
   @blue.readwrite
   @type.boolean
-  enableDistortion = false;
+  enableDistortion = CARBON_DEFAULT_SETTINGS.enableDistortion;
 
   /** m_reflectionCorrectionEnabled (bool) [READWRITE] */
   @blue.readwrite
@@ -419,7 +426,7 @@ export class EveSpaceSceneRenderDriver
    * Tr2DeviceResource override: a full release deletes the upscaling
    * context.
    *
-   * Carbon quirk, reproduced: the storage is compared for equality with
+   * Carbon quirk (CE-184), reproduced: the storage is compared for equality with
    * TRISTORAGE_ALL (cpp:169) rather than tested as a mask, as
    * EveSpaceScene's ReleaseResources tests it, so a TRISTORAGE_VIDEOMEMORY
    * release before a device reset keeps the upscaling context.
@@ -1515,7 +1522,9 @@ export class EveSpaceSceneRenderDriver
    * customStencilFormat whenever that format is not PIXEL_FORMAT_UNKNOWN.
    *
    * Adapted: Carbon also allocates it for a named "CustomStencilMap"
-   * render-job output; none exists here.
+   * render-job output; none exists here. That Carbon branch requests the
+   * target even when customStencilFormat is PIXEL_FORMAT_UNKNOWN
+   * (cpp:690-692, CE-186).
    *
    * @param {{width: number, height: number}} size The render size.
    * @returns {GpuResourceHandle|null} The map, or null.
@@ -1535,7 +1544,9 @@ export class EveSpaceSceneRenderDriver
    * when forced.
    *
    * Adapted: Carbon also allocates it for a named output and a frame with
-   * SSSSS opaque batches; neither exists here.
+   * SSSSS opaque batches; neither exists here. Carbon's named-output branch
+   * looks up "OpaqueColorMap" (cpp:704), a name Validate never accepts
+   * (cpp:346-355), so it cannot fire (CE-185).
    *
    * @param {{width: number, height: number}} size The render size.
    * @returns {GpuResourceHandle|null} The copy, or null.

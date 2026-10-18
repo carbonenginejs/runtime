@@ -66,6 +66,7 @@ test("no distortion batches: nothing is bound and the driver does not apply (cpp
 test("the driver borrows a distortion map only while distortion is enabled", () =>
 {
   const driver = new EveSpaceSceneRenderDriver();
-  assert.equal(driver.enableDistortion, false, "Carbon's default");
+  assert.equal(driver.enableDistortion, true, "Carbon's default (EveSpaceSceneRenderDriver.h:68)");
+  driver.enableDistortion = false;
   assert.equal(driver._GetDistortionMapIfNeeded({ width: 4, height: 4 }), null);
 });
