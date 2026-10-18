@@ -287,11 +287,13 @@ function RestoreTextures(effect, textures)
     {
         const parameter = effect?.parameters?.[name];
         if (!parameter) continue;
+        // Host feature check: the effect and its parameters are ccpwgl Tw2 objects.
         if (source.textureRes && typeof parameter.AttachTextureRes === "function")
         {
             parameter.AttachTextureRes(source.textureRes);
             restored.push(name);
         }
+        // Host feature check: the effect and its parameters are ccpwgl Tw2 objects.
         else if (source.resourcePath && typeof parameter.SetValue === "function")
         {
             parameter.SetValue(source.resourcePath);
@@ -308,6 +310,7 @@ function HasParameter(effect, name)
 
 function SetEffectFilePath(effect, effectFilePath)
 {
+    // Host feature check: the effect and its parameters are ccpwgl Tw2 objects.
     if (typeof effect?.SetValues === "function") effect.SetValues({ effectFilePath });
     else effect.effectFilePath = effectFilePath;
 }
@@ -316,6 +319,7 @@ function ReadParameterValue(parameter)
 {
     try
     {
+        // Host feature check: the effect and its parameters are ccpwgl Tw2 objects.
         const value = typeof parameter?.GetValue === "function"
             ? parameter.GetValue([])
             : parameter?.value;
@@ -331,11 +335,13 @@ function ReadParameterValue(parameter)
 function SetParameterValue(effect, name, parameter, value)
 {
     const copy = Array.isArray(value) ? [ ...value ] : value;
+    // Host feature check: the effect and its parameters are ccpwgl Tw2 objects.
     if (typeof parameter?.SetValue === "function")
     {
         parameter.SetValue(copy);
         return;
     }
+    // Host feature check: the effect and its parameters are ccpwgl Tw2 objects.
     if (typeof effect?.SetParameters === "function"
         && effect.SetParameters({ [name]: copy }) !== false) return;
     throw new Error("WebGL2 effect route cannot restore " + name);

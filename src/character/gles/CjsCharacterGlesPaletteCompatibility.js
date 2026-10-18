@@ -74,6 +74,7 @@ function MaskMesh(mesh, bonePrefixes, geometryHost)
             : 0);
 
     if (!indices?.length || !bindings.length || !vertexCount
+        // Host feature check: the mesh is a ccpwgl GLES mesh, not one of ours.
         || typeof mesh?.GetVertexBlendIndice !== "function"
         || typeof mesh?.GetVertexBlendWeight !== "function")
     {

@@ -108,6 +108,7 @@ export class CjsFsd64Format extends CjsFormat
         {
             const metadata = this.describe(input, options);
             const reader = options.reader ?? options.registry;
+            // Host feature check: the FSD reader is supplied by the host application.
             const canReadPayload = Boolean(options.schema) || typeof reader?.Read === "function";
             const canReadJson = Boolean(options.schema) || typeof reader?.ReadJSON === "function";
 

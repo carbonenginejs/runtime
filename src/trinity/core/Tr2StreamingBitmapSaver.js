@@ -90,6 +90,7 @@ export class Tr2StreamingBitmapSaver
     }
 
     if (!width || !height) return ALResult.E_INVALIDARG;
+    // Host feature check: the write sink is supplied by the caller in place of Carbon's ResFile.
     if (typeof output?.Write !== "function") return ALResult.E_FAIL;
 
     // The TGA header (Tr2TgaHandler.cpp SaveHeader): idLength, colorMapType,

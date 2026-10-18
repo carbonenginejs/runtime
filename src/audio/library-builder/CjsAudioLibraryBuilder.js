@@ -2711,10 +2711,12 @@ function normalizeBankLoader(options)
 
     const provider = options.bankProvider;
 
+    // Host feature check: the bank provider is supplied by the host application.
     if (provider && typeof provider.LoadBank === "function")
     {
         return (bank, context) => provider.LoadBank(bank, context);
     }
+    // Host feature check: the bank provider is supplied by the host application.
     if (provider && typeof provider.Read === "function")
     {
         return (bank, context) => provider.Read(bank, context);

@@ -563,6 +563,7 @@ export class CjsAudioMan
             || options.read !== undefined;
         const generation = ++this._installGeneration;
         const library = await CjsAudioLibraryBuilder.buildFromResources(
+            // Host feature check: the media provider is supplied by the host application.
             !hasSource && provider && typeof provider.Read === "function"
                 ? {
                     ...options,
@@ -663,6 +664,7 @@ export class CjsAudioMan
     SetMediaProvider(provider)
     {
         if (!provider
+            // Host feature check: the media provider is supplied by the host application.
             || (typeof provider.Read !== "function"
                 && typeof provider.ReadRange !== "function"))
         {
@@ -1242,12 +1244,14 @@ export class CjsAudioMan
             this._library.embeddedMedia?.[mediaID],
         );
 
+        // Host feature check: the media provider is supplied by the host application.
         if (delivery !== "range" || typeof this._mediaProvider.Read === "function")
         {
             for (let index = 0; index < direct.length; index++)
             {
                 const source = direct[index];
 
+                // Host feature check: the media provider is supplied by the host application.
                 if (typeof this._mediaProvider.Read !== "function"
                     || !ProviderAllows(
                         this._mediaProvider,
@@ -1318,6 +1322,7 @@ export class CjsAudioMan
             let route = null;
 
             if ((delivery === "auto" || delivery === "range")
+                // Host feature check: the media provider is supplied by the host application.
                 && typeof this._mediaProvider.ReadRange === "function"
                 && ProviderAllows(
                     this._mediaProvider,
@@ -1329,6 +1334,7 @@ export class CjsAudioMan
                 route = "range";
             }
             else if (delivery !== "range"
+                // Host feature check: the media provider is supplied by the host application.
                 && typeof this._mediaProvider.Read === "function"
                 && ProviderAllows(
                     this._mediaProvider,

@@ -257,6 +257,7 @@ export class Tr2TextureAnimation
       this.time = 0;
       for (const channel of this._channels.values())
       {
+        // Host feature check: SetChannels adapters are caller-owned host objects.
         if (typeof channel?.Restart === "function") channel.Restart();
         else if (typeof channel?.Reset === "function") channel.Reset();
       }

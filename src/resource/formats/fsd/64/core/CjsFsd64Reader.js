@@ -121,6 +121,7 @@ export class CjsFsd64Reader
             throw error;
         }
 
+        // Host feature check: the FSD reader is supplied by the host application.
         if (typeof reader.ReadJSON !== "function")
         {
             const error = new Error(`FSD reader does not expose JSON decoding: ${path}`);
@@ -170,6 +171,7 @@ function NormalizeReader(value)
         return { Read: value };
     }
 
+    // Host feature check: the FSD reader is supplied by the host application.
     if (!value || typeof value.Read !== "function")
     {
         const error = new TypeError("FSD reader must be a function or expose Read(bytes, context).");
