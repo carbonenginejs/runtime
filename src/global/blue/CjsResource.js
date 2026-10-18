@@ -1130,6 +1130,7 @@ meta.events(CjsResource);
 // Field order is key order, and GetValues() exports in that order.
 CjsSchema.meta.define(CjsResource, {
   className: "CjsResource",
+  donors: [ "BlueAsyncRes" ],
   fields: {
     path: type.path,
     ext: type.string,
