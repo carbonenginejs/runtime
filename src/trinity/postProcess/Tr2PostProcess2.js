@@ -122,10 +122,10 @@ export class Tr2PostProcess2
   {
     if (qualitySetting < Tr2PostProcess2.LOW) return container;
     container.length = 0;
-    if (Tr2PostProcess2.IsEffectActive(this.lut, effect => Number(effect.influence) > 0)) container.push(this.lut);
+    if (Tr2PostProcess2.IsEffectActive(this.lut)) container.push(this.lut);
     for (const lut of this.luts)
     {
-      if (Tr2PostProcess2.IsEffectActive(lut, effect => Number(effect.influence) > 0)) container.push(lut);
+      if (Tr2PostProcess2.IsEffectActive(lut)) container.push(lut);
     }
     container.sort((a, b) => Number(a.influence) - Number(b.influence));
     return container;
@@ -157,7 +157,7 @@ export class Tr2PostProcess2
   @blue.method
   GetSignalLossIfAvailable(quality = Tr2PostProcess2.HIGH)
   {
-    return Tr2PostProcess2.GetIfAvailable(this.signalLoss, quality, Tr2PostProcess2.LOW, effect => Number(effect.strength) > 0);
+    return Tr2PostProcess2.GetIfAvailable(this.signalLoss, quality, Tr2PostProcess2.LOW);
   }
 
   /**
@@ -167,7 +167,7 @@ export class Tr2PostProcess2
   @blue.method
   GetGodRaysIfAvailable(quality = Tr2PostProcess2.HIGH)
   {
-    return Tr2PostProcess2.GetIfAvailable(this.godRays, quality, Tr2PostProcess2.HIGH, effect => Number(effect.intensity) > 0);
+    return Tr2PostProcess2.GetIfAvailable(this.godRays, quality, Tr2PostProcess2.HIGH);
   }
 
   /**
@@ -197,7 +197,7 @@ export class Tr2PostProcess2
   @blue.method
   GetFilmGrainIfAvailable(quality = Tr2PostProcess2.HIGH)
   {
-    return Tr2PostProcess2.GetIfAvailable(this.filmGrain, quality, Tr2PostProcess2.HIGH, effect => Number(effect.intensity) > 0);
+    return Tr2PostProcess2.GetIfAvailable(this.filmGrain, quality, Tr2PostProcess2.HIGH);
   }
 
   /**
@@ -217,7 +217,7 @@ export class Tr2PostProcess2
   @blue.method
   GetFadeIfAvailable(quality = Tr2PostProcess2.HIGH)
   {
-    return Tr2PostProcess2.GetIfAvailable(this.fade, quality, Tr2PostProcess2.LOW, effect => Number(effect.intensity) > 0);
+    return Tr2PostProcess2.GetIfAvailable(this.fade, quality, Tr2PostProcess2.LOW);
   }
 
   /**
@@ -237,7 +237,7 @@ export class Tr2PostProcess2
   @blue.method
   GetFogIfAvailable(quality = Tr2PostProcess2.HIGH)
   {
-    return Tr2PostProcess2.GetIfAvailable(this.fog, quality, Tr2PostProcess2.HIGH, effect => Number(effect.intensity) > 0);
+    return Tr2PostProcess2.GetIfAvailable(this.fog, quality, Tr2PostProcess2.HIGH);
   }
 
   /**
@@ -423,16 +423,13 @@ export class Tr2PostProcess2
   }
 
   /**
-   * Decides whether an effect contributes: its own IsActive() wins when it has
-   * one, otherwise a false display flag disqualifies it and the optional
-   * predicate has the final say.
+   * Whether an effect contributes: Carbon's `effect && effect->IsActive()`
+   * (Tr2PostProcess2.cpp:10). Every effect is a Tr2PPEffect, whose IsActive
+   * each subclass refines.
    */
-  static IsEffectActive(effect, predicate = null)
+  static IsEffectActive(effect)
   {
-    if (!effect) return false;
-    if (typeof effect.IsActive === "function") return !!effect.IsActive();
-    if (effect.display === false) return false;
-    return predicate ? !!predicate(effect) : true;
+    return !!effect && effect.IsActive();
   }
 
   /**
@@ -440,8 +437,8 @@ export class Tr2PostProcess2
    * minimum the effect requires, otherwise null; the shared body behind every
    * Get*IfAvailable accessor.
    */
-  static GetIfAvailable(effect, qualitySetting, minimumQuality, predicate = null)
+  static GetIfAvailable(effect, qualitySetting, minimumQuality)
   {
-    return Tr2PostProcess2.IsEffectActive(effect, predicate) && qualitySetting >= minimumQuality ? effect : null;
+    return Tr2PostProcess2.IsEffectActive(effect) && qualitySetting >= minimumQuality ? effect : null;
   }
 }
