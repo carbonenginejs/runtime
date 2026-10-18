@@ -611,13 +611,17 @@ test("EveCamera restores Carbon constructor defaults and portable controls", () 
   assert.equal(camera._zoomKey, 1);
   camera.Zoom(0);
   assert.equal(camera._zoomKey, 0);
+  camera.Zoom(9);
+  assert.equal(camera._zoomKey, 0, "a key at or past the last key wraps to 0, as EveCamera.cpp:207-208 does");
+  assert.throws(() => camera.Zoom(-3), RangeError, "Carbon indexes a negative key unchecked");
+  assert.equal(camera._zoomKey, -3, "the key is stored before the indexing, as in Carbon");
+  camera.Zoom(0);
   camera.ResetStartTime();
 
-  for (const name of ["Dolly", "OrbitParent", "RotateOnOrbit", "ResetStartTime", "SetOrbit", "SetRotationOnOrbit"])
+  for (const name of ["Dolly", "OrbitParent", "RotateOnOrbit", "ResetStartTime", "SetOrbit", "SetRotationOnOrbit", "Zoom"])
   {
     assert.equal(CjsSchema.getMethod(EveCamera, name)?.impl?.status, "implemented", name);
   }
-  assert.equal(CjsSchema.getMethod(EveCamera, "Zoom")?.impl?.status, "adapted");
 });
 
 test("Tr2CurveLineSet preserves Carbon line IDs, edits, and segment submissions", t =>

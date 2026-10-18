@@ -592,14 +592,15 @@ export class EveCamera
   /**
    * Carbon Zoom (EveCamera.cpp:190-214): steps, or jumps to, a zoom curve key
    * and starts the field-of-view animation towards it. The zoom curve is
-   * BlueCastPtr'd to Tr2CurveScalar.
-   *
-   * Adapted: a key past the list fails closed where Carbon would index past it.
+   * BlueCastPtr'd to Tr2CurveScalar. A key at or past the last key wraps to 0;
+   * Carbon then indexes the keys unchecked, so a negative key throws here
+   * instead of reading undefined (ruling 11), after storing it as Carbon does.
    * @param {number} [key] The key to jump to; -1 steps to the next one.
    * @returns {void}
+   * @throws {RangeError} When the selected key is negative.
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   Zoom(key = -1)
   {
     const curve = CjsSchema.cast(this.zoomCurve, Tr2CurveScalar);
@@ -625,9 +626,9 @@ export class EveCamera
     }
 
     const selected = keys[this._zoomKey];
-    if (!selected)
+    if (selected === undefined)
     {
-      return;
+      throw new RangeError(`EveCamera.Zoom: zoom key ${this._zoomKey} out of range, key count is ${keys.length}.`);
     }
     this._zoomTime = selected.time;
   }
@@ -680,15 +681,25 @@ export class EveCamera
       failed = true;
     }
 
-    // Carbon cpp:275-287: the zoom curve as a Tr2CurveScalar.
+    // Carbon cpp:275-287: the zoom curve as a Tr2CurveScalar. Carbon checks
+    // only the upper bound before indexing; a negative zoom key (stored by
+    // Zoom before it threw) reads keys[key + 1] unchecked, which throws here.
     const zoomCurve = CjsSchema.cast(this.zoomCurve, Tr2CurveScalar);
     if (zoomCurve && zoomCurve.Length() > 0)
     {
-      const nextKey = zoomCurve.GetKeys()[this._zoomKey + 1];
-      if (nextKey && this._zoomTime < nextKey.time)
+      const keys = zoomCurve.GetKeys();
+      if (keys.length > this._zoomKey + 1)
       {
-        this._zoomTime = Math.min(this._zoomTime + deltaTime, nextKey.time);
-        this.fieldOfView = zoomCurve.Update(this._zoomTime);
+        const nextKey = keys[this._zoomKey + 1];
+        if (nextKey === undefined)
+        {
+          throw new RangeError(`EveCamera.Update: zoom key ${this._zoomKey + 1} out of range, key count is ${keys.length}.`);
+        }
+        if (this._zoomTime < nextKey.time)
+        {
+          this._zoomTime = Math.min(this._zoomTime + deltaTime, nextKey.time);
+          this.fieldOfView = zoomCurve.Update(this._zoomTime);
+        }
       }
     }
 
