@@ -2086,6 +2086,7 @@ function copyVector(value)
  */
 function flattenParameterValue(parameter)
 {
+  // External data shape: tools-core and its tests hand EveSOF.Create plain {name, value} records.
   if (typeof parameter?.GetValue === "function") return Array.from(parameter.GetValue());
   const value = parameter?.value;
   if (typeof value === "boolean")

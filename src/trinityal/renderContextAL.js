@@ -19,5 +19,6 @@ export function RenderContextALOf(context)
 {
   if (!context) return null;
 
+  // Upcast stand-in (Tr2RenderContext.h:108-125): trinityal may not import Tr2RenderContext to check it exactly.
   return typeof context.GetRenderContextAL === "function" ? context.GetRenderContextAL() : context;
 }
