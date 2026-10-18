@@ -17,6 +17,8 @@ import { Tr2RenderTarget } from "../../../trinity/core/device/Tr2RenderTarget.js
 import { Tr2DepthStencil } from "../../../trinity/core/device/Tr2DepthStencil.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../trinity/core/context/Tr2RenderContext.js";
 import { Tr2DebugRenderer } from "../../../trinity/core/line/Tr2DebugRenderer.js";
+import { Tr2RenderContext } from "../../../trinity/core/context/Tr2RenderContext.js";
+import { ITr2DebugRenderer2 } from "#interfaces";
 import { color } from "#math/color";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -371,9 +373,6 @@ export class Tr2InteriorScene
    * renderer it creates one only when shadow maps are to be shown, and
    * otherwise does nothing (cpp:833-845).
    *
-   * Carbon also overloads RenderDebugInfo with ITr2DebugRenderable's
-   * `( ITr2DebugRenderer2& )` form; the render-job step calls this one by the
-   * bare name through ITr2Scene, so the other is RenderDebugInfo__Renderer.
    *
    * Waiting: R9 (Tr2Renderer view statics). Past the early out, Carbon fills
    * the debug per-frame data from Tr2Renderer's view and projection
@@ -382,9 +381,8 @@ export class Tr2InteriorScene
    * that path throws rather than drawing nothing.
    * @param {Tr2RenderContext} _renderContext
    */
-  @blue.method
   @meta.notImplemented
-  RenderDebugInfo(_renderContext)
+  RenderDebugInfo__RenderContext(_renderContext)
   {
     if (!this.debugRenderer)
     {
@@ -399,6 +397,28 @@ export class Tr2InteriorScene
       }
     }
     throw new Error("Tr2InteriorScene.RenderDebugInfo: waiting on R9 (Tr2Renderer view/projection statics and Tr2Renderer.RenderDebugInfo).");
+  }
+
+  /**
+   * Carbon's two RenderDebugInfo overloads under the bare name: ITr2Scene's
+   * `( Tr2RenderContext& )` (h:77) and ITr2DebugRenderable's
+   * `( ITr2DebugRenderer2& )` (h:92). Routes by an exact cast of the
+   * argument and throws when it is neither (rule 11).
+   * @param {Tr2RenderContext|ITr2DebugRenderer2} contextOrRenderer
+   */
+  @blue.method
+  @meta.implemented
+  RenderDebugInfo(contextOrRenderer)
+  {
+    if (CjsSchema.cast(contextOrRenderer, Tr2RenderContext))
+    {
+      return this.RenderDebugInfo__RenderContext(contextOrRenderer);
+    }
+    if (CjsSchema.cast(contextOrRenderer, ITr2DebugRenderer2))
+    {
+      return this.RenderDebugInfo__Renderer(contextOrRenderer);
+    }
+    throw new TypeError("Tr2InteriorScene.RenderDebugInfo needs a Tr2RenderContext (RenderDebugInfo__RenderContext) or an ITr2DebugRenderer2 (RenderDebugInfo__Renderer).");
   }
 
   /**

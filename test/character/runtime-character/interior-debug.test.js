@@ -3,13 +3,14 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { Tr2InteriorScene } from "../../../npm/dist/character/index.js";
 import { TriStepRenderSceneDebug } from "../../../npm/dist/trinity/renderJob/index.js";
+import { Tr2RenderContext, Tr2DebugRenderer, Tr2RenderTarget } from "../../../npm/dist/trinity/core/index.js";
 
 test("the render-job debug step skips an interior scene with no debug renderer (cpp:833-845)", () =>
 {
   const scene = new Tr2InteriorScene();
   const step = new TriStepRenderSceneDebug();
   step.scene = scene;
-  assert.doesNotThrow(() => step.Execute(0, 0, null));
+  assert.doesNotThrow(() => step.Execute(0, 0, new Tr2RenderContext()));
   assert.equal(scene.debugRenderer, null, "no renderer is created unless shadow maps are shown");
 });
 
@@ -17,7 +18,7 @@ test("showing shadow maps creates the debug renderer, then waits on R9", () =>
 {
   const scene = new Tr2InteriorScene();
   scene.debugRenderShadowMaps = true;
-  assert.throws(() => scene.RenderDebugInfo(null), /R9/);
+  assert.throws(() => scene.RenderDebugInfo__RenderContext(null), /R9/);
   assert.notEqual(scene.debugRenderer, null);
 });
 
@@ -27,6 +28,18 @@ test("GetDebugOptions offers Shadow Maps; the renderer form draws nothing withou
   const options = new Set();
   scene.GetDebugOptions(options);
   assert.deepEqual([ ...options ], [ "Shadow Maps" ]);
-  const renderer = { HasOption: (_owner, option) => option === "Shadow Maps" };
-  assert.doesNotThrow(() => scene.RenderDebugInfo__Renderer(renderer));
+  scene.debugRenderShadowMaps = true;
+  assert.doesNotThrow(() => scene.RenderDebugInfo__Renderer(new Tr2DebugRenderer()));
+});
+
+test("bare RenderDebugInfo routes a context to __RenderContext and a renderer to __Renderer (rule 11)", () =>
+{
+  const scene = new Tr2InteriorScene();
+  scene.debugRenderShadowMaps = true;
+  scene.lightRenderTargets.push(new Tr2RenderTarget());
+  // The context form, past its early out, waits on R9.
+  assert.throws(() => scene.RenderDebugInfo(new Tr2RenderContext()), /R9/);
+  // The renderer form, with a light target to tile, waits on DrawTexture.
+  assert.throws(() => scene.RenderDebugInfo(new Tr2DebugRenderer()), /DrawTexture/);
+  assert.throws(() => scene.RenderDebugInfo({}), TypeError, "neither: it cannot tell");
 });
