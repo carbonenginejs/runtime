@@ -437,10 +437,10 @@ export class EveChildProceduralContainer extends EveChildTransform
   /** Carbon EveChildProceduralContainer::UpdateCurveSet (cpp:226-232). */
   @blue.method
   @meta.implemented
-  UpdateCurveSet(name, time, renderContext = null)
+  UpdateCurveSet(name, time)
   {
     const owner = CjsSchema.cast(this.selectedObject, ITr2CurveSetOwner);
-    if (owner) owner.UpdateCurveSet(name, time, renderContext);
+    if (owner) owner.UpdateCurveSet(name, time);
   }
 
   /** Carbon EveChildProceduralContainer::GetCurveSetDuration (cpp:234-244). */

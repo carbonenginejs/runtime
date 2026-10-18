@@ -307,7 +307,7 @@ export class EveEffectRoot2 extends EveEntity
 
     this.UpdateControllers(frequency);
     const time = updateContext.GetTime();
-    for (const curveSet of this.curveSets) curveSet.Update__RealTimeSimTime(time, time, updateContext.renderContext);
+    for (const curveSet of this.curveSets) curveSet.Update__RealTimeSimTime(time, time);
     if (this.effectChildren.length)
     {
       const params = this._CreateChildUpdateParams();
@@ -1034,17 +1034,17 @@ export class EveEffectRoot2 extends EveEntity
   /** Samples matching root and child curve sets at an explicit time. */
   @blue.method
   @meta.implemented
-  UpdateCurveSet(name, time, renderContext = null)
+  UpdateCurveSet(name, time)
   {
     const target = String(name ?? "");
     for (const curveSet of this.curveSets)
     {
-      if (curveSet.GetName() === target) curveSet.Update__RealTimeSimTime(time, time, renderContext);
+      if (curveSet.GetName() === target) curveSet.Update__RealTimeSimTime(time, time);
     }
     for (const child of this.effectChildren)
     {
       const owner = CjsSchema.cast(child, ITr2CurveSetOwner);
-      if (owner) owner.UpdateCurveSet(target, time, renderContext);
+      if (owner) owner.UpdateCurveSet(target, time);
     }
   }
 

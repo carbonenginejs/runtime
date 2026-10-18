@@ -251,16 +251,17 @@ export class EveMultiEffect
   }
 
   /**
-   * Advances every curve set with the given name to an explicit time, bypassing
-   * the effect's own update pass.
+   * Carbon EveMultiEffect::UpdateCurveSet (EveMultiEffect.cpp:253-262): advances
+   * every curve set with the given name to an explicit time on both clocks,
+   * bypassing the effect's own update pass.
    */
   @blue.method
   @meta.implemented
-  UpdateCurveSet(name, time, renderContext = null)
+  UpdateCurveSet(name, time)
   {
     for (const curveSet of this.curveSets)
     {
-      if (curveSet.GetName() === name) curveSet.Update__RealTimeSimTime(time, time, renderContext);
+      if (curveSet.GetName() === name) curveSet.Update__RealTimeSimTime(time, time);
     }
   }
 
@@ -311,7 +312,7 @@ export class EveMultiEffect
   UpdateSyncronous(updateContext)
   {
     const time = updateContext.GetTime();
-    for (const curveSet of this.curveSets) curveSet.Update__RealTimeSimTime(time, time, updateContext.renderContext);
+    for (const curveSet of this.curveSets) curveSet.Update__RealTimeSimTime(time, time);
     for (const controller of this.controllers) controller.Update(0.5);
     for (const binding of this.bindings) binding.Update(time);
   }

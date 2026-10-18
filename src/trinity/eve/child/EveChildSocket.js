@@ -345,9 +345,9 @@ export class EveChildSocket extends EveChildTransform
   /** Carbon cpp:376-382 forwards a sample to the plug; while it loads there is no plug and the sample is dropped. */
   @blue.method
   @meta.implemented
-  UpdateCurveSet(name, time, renderContext = null)
+  UpdateCurveSet(name, time)
   {
-    if (this.plug) this.plug.UpdateCurveSet(name, time, renderContext);
+    if (this.plug) this.plug.UpdateCurveSet(name, time);
   }
 
   /** Carbon cpp:384-391: the plug's duration, 0 without one. */

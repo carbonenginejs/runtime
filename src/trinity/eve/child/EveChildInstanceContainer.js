@@ -464,14 +464,14 @@ export class EveChildInstanceContainer extends EveChildTransform
     });
   }
 
-  /** Carbon EveChildInstanceContainer::UpdateCurveSet (cpp:602-611); renderContext travels as EveChildContainer's does. */
+  /** Carbon EveChildInstanceContainer::UpdateCurveSet (cpp:602-611). */
   @blue.method
   @meta.implemented
-  UpdateCurveSet(name, time, renderContext = null)
+  UpdateCurveSet(name, time)
   {
     this._RunOnInstances(instance => {
       const owner = CjsSchema.cast(instance, ITr2CurveSetOwner);
-      if (owner) owner.UpdateCurveSet(name, time, renderContext);
+      if (owner) owner.UpdateCurveSet(name, time);
     });
   }
 

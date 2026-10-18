@@ -284,15 +284,15 @@ export class EveChildPlug extends EveChildTransform
     }
   }
 
-  /** Carbon EveChildPlug::UpdateCurveSet (cpp:316-325); renderContext travels as EveChildContainer's does. */
+  /** Carbon EveChildPlug::UpdateCurveSet (cpp:316-325). */
   @blue.method
   @meta.implemented
-  UpdateCurveSet(name, time, renderContext = null)
+  UpdateCurveSet(name, time)
   {
     for (const object of this.objects)
     {
       const owner = CjsSchema.cast(object, ITr2CurveSetOwner);
-      if (owner) owner.UpdateCurveSet(name, time, renderContext);
+      if (owner) owner.UpdateCurveSet(name, time);
     }
   }
 

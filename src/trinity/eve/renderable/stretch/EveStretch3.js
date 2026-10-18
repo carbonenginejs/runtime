@@ -580,7 +580,7 @@ export class EveStretch3 extends IEveFiringEffectElement
     const time = context.GetTime();
     if (this.startTime === 0) this.startTime = time;
     const relative = time - this.startTime;
-    for (const curveSet of this.curveSets) curveSet.Update__RealTimeSimTime(relative, relative, context.renderContext);
+    for (const curveSet of this.curveSets) curveSet.Update__RealTimeSimTime(relative, relative);
 
     const params = this._makeParams();
     vec3.subtract(EveStretch3._moveDirection, this.sourcePosition, this.destinationPosition);
@@ -975,26 +975,25 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
 
   /**
-   * Advances every local curve set with the given name to an explicit time and
-   * forwards the call to the children; unlike play and stop this is not gated on
-   * display.
-   * JS passes the optional render context through the existing curve-set API.
+   * Carbon EveStretch3::UpdateCurveSet (EveStretch3.cpp:940-956): advances every
+   * local curve set with the given name to an explicit time and forwards the
+   * call to the children; unlike play and stop this is not gated on display.
    */
   @blue.method
-  @meta.adapted
-  UpdateCurveSet(name, time, renderContext = null)
+  @meta.implemented
+  UpdateCurveSet(name, time)
   {
     for (const curveSet of this.curveSets)
     {
       if (curveSet.GetName() === name)
       {
-        curveSet.Update__RealTimeSimTime(time, time, renderContext);
+        curveSet.Update__RealTimeSimTime(time, time);
       }
     }
     this._RunOnComponents((component) =>
     {
       const owner = CjsSchema.cast(component, ITr2CurveSetOwner);
-      if (owner) owner.UpdateCurveSet(name, time, renderContext);
+      if (owner) owner.UpdateCurveSet(name, time);
     });
   }
 

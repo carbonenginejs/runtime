@@ -1795,7 +1795,7 @@ export class EveSpaceObject2 extends EveEntity
     {
       for (const curveSet of this.curveSets)
       {
-        curveSet.Update__RealTimeSimTime(time, time, updateContext.renderContext);
+        curveSet.Update__RealTimeSimTime(time, time);
       }
     }
 
@@ -3886,13 +3886,13 @@ export class EveSpaceObject2 extends EveEntity
   /** Carbon EveSpaceObject2::UpdateCurveSet (cpp:3901-3924): samples matching own sets at an explicit time on both clocks, then the children. */
   @meta.implemented
   @blue.method
-  UpdateCurveSet(name, time, renderContext = null)
+  UpdateCurveSet(name, time)
   {
     for (const curveSet of this.curveSets)
     {
-      if (curveSet.GetName() === name) curveSet.Update__RealTimeSimTime(time, time, renderContext);
+      if (curveSet.GetName() === name) curveSet.Update__RealTimeSimTime(time, time);
     }
-    for (const owner of this._CurveSetOwners()) owner.UpdateCurveSet(name, time, renderContext);
+    for (const owner of this._CurveSetOwners()) owner.UpdateCurveSet(name, time);
   }
 
   /** Carbon EveSpaceObject2::PlayCurveSet (cpp:3930-3961): matching own sets play whole or a named range, then the children. */

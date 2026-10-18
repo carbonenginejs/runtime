@@ -893,7 +893,7 @@ export class EveChildContainer extends EveChildTransform
       const time = updateContext.GetTime();
       for (const curveSet of this.curveSets)
       {
-        curveSet.Update__RealTimeSimTime(time, time, updateContext.renderContext);
+        curveSet.Update__RealTimeSimTime(time, time);
       }
     }
 
@@ -1365,21 +1365,21 @@ export class EveChildContainer extends EveChildTransform
    * own and child sets at an explicit time (both clocks, as Carbon does). */
   @blue.method
   @meta.implemented
-  UpdateCurveSet(name, time, renderContext = null)
+  UpdateCurveSet(name, time)
   {
     const target = String(name ?? "");
     for (const curveSet of this.curveSets)
     {
       if (curveSet.GetName() === target)
       {
-        curveSet.Update__RealTimeSimTime(time, time, renderContext);
+        curveSet.Update__RealTimeSimTime(time, time);
       }
     }
 
     for (const child of this.objects)
     {
       const owner = CjsSchema.cast(child, ITr2CurveSetOwner);
-      if (owner) owner.UpdateCurveSet(target, time, renderContext);
+      if (owner) owner.UpdateCurveSet(target, time);
     }
   }
 
