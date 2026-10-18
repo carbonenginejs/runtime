@@ -4,7 +4,7 @@ import { ITriFunction } from "../../../global/blue/ITriFunction.js";
 // Source: trinity/trinity/Eve/UI/EveProjectBracket_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; projection is portable CPU work.
 import { meta, type, blue } from "#schema";
-import { be } from "#blue";
+import { be, CjsScriptCallback } from "#blue";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 import { Vec3TransformByViewport } from "../../core/view/TriViewport.js";
@@ -47,13 +47,6 @@ function bicylindricProjection(out, source, projection, viewport, scratch)
 }
 
 
-function callBlueCallback(callback, ...args)
-{
-  if (typeof callback === "function") return callback(...args);
-  return callback.CallVoid(...args);
-}
-
-
 /** Projects an authored world position into a Sprite2D bracket. */
 @blue.define("EveProjectBracket")
 @blue.inherit(ITriFunction)
@@ -67,8 +60,9 @@ export class EveProjectBracket
    * BeOS->GetCurrentFrameTime(); so does this, through be.os.
    *
    * Adapted: Tr2Renderer camera state is supplied by the active Tr2RenderContext;
-   * BlueScriptCallback accepts a host function or a Carbon callback object; Carbon's
-   * optional global debug-text side effect is not ported yet and is omitted.
+   * the callback member is wrapped as a CjsScriptCallback at the call, which
+   * takes exactly a function or a CjsScriptCallback; Carbon's optional global
+   * debug-text side effect is not ported yet (Waiting: g_debugRenderer).
    */
   @blue.method
   @meta.adapted
@@ -213,7 +207,7 @@ export class EveProjectBracket
     this.projectedPosition[1] = y;
     if (this.bracketUpdateCallback)
     {
-      callBlueCallback(this.bracketUpdateCallback, this);
+      CjsScriptCallback.from(this.bracketUpdateCallback).CallVoid(this);
     }
     if (this.bracketIcon)
     {
@@ -224,7 +218,8 @@ export class EveProjectBracket
   /**
    * Applies one visibility transition to both owned bracket representations.
    *
-   * Adapted: BlueScriptCallback accepts a host function or a Carbon callback object.
+   * Adapted: the callback member is wrapped as a CjsScriptCallback at the
+   * call, which takes exactly a function or a CjsScriptCallback.
    */
   @blue.method
   @meta.adapted
@@ -238,7 +233,7 @@ export class EveProjectBracket
     if (this.bracketIcon) this.bracketIcon.SetDisplay(next);
     if (this.displayChangeCallback)
     {
-      callBlueCallback(this.displayChangeCallback, this, next);
+      CjsScriptCallback.from(this.displayChangeCallback).CallVoid(this, next);
     }
   }
 

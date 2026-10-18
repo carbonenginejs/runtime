@@ -9,6 +9,7 @@ import { CjsSchema, meta, type, blue } from "#schema";
 import { IsMatch, be } from "#blue";
 import { TriBatchType } from "#consts/graphics";
 import { EveChildMesh } from "./EveChildMesh.js";
+import { EveEntity } from "../EveEntity.js";
 import { Tr2GrannyAnimation } from "../../core/animation/Tr2GrannyAnimation.js";
 import { SendEventToAudEmitter } from "../../core/variable/TriObserverLocal.js";
 import { EveTurretAiming } from "../attachment/turrets/EveTurretAiming.js";
@@ -139,10 +140,50 @@ export class EveChildTurret extends EveChildMesh
   @type.uint32
   currentCyclingFiresPos = 0;
 
-  /** The module for the firing effect of this turret. */
+  /** Hidden native backing member m_firingEffect (protected, h:135); not persisted (EveChildTurret_Blue.cpp:42). */
+  @blue.attribute("firingEffect")
   @blue.hidden
   @type.rootRef("EveTurretFiringFX")
-  firingEffect = null;
+  _firingEffect = null;
+
+  /**
+   * Carbon MAP_PROPERTY "firingEffect" over GetFiringEffect/SetFiringEffect
+   * (EveChildTurret_Blue.cpp:43): the setter transfers registration and binds
+   * the muzzle joints.
+   */
+  @blue.property()
+  @type.rootRef("EveTurretFiringFX")
+  @meta.implemented
+  get firingEffect()
+  {
+    return this.GetFiringEffect();
+  }
+
+  /** Transfers registration and binds the replacement's authored muzzle joints. */
+  @meta.implemented
+  set firingEffect(value)
+  {
+    this.SetFiringEffect(value);
+  }
+
+  /**
+   * Carbon MAP_PROPERTY "targetObject" over GetTargetObject/SetTargetObject
+   * (EveChildTurret_Blue.cpp:22); validation stays with EveTurretTarget.
+   */
+  @blue.property()
+  @type.rootRef("ITriTargetable")
+  @meta.implemented
+  get targetObject()
+  {
+    return this.GetTargetObject();
+  }
+
+  /** Offers the replacement to the turret target and leaves a firing state on clear. */
+  @meta.implemented
+  set targetObject(value)
+  {
+    this.SetTargetObject(value);
+  }
 
   /** A res path to the redfile containing the primary firing effect. */
   @blue.notify
@@ -275,7 +316,7 @@ export class EveChildTurret extends EveChildMesh
   Initialize()
   {
     this._target.SetImpactBehaviour(this.impactSize, this.impactBehaviour);
-    if (!this.firingEffect && this.firingEffectResPath)
+    if (!this._firingEffect && this.firingEffectResPath)
     {
       this._LoadFiringEffectFromPath();
     }
@@ -340,7 +381,7 @@ export class EveChildTurret extends EveChildMesh
     const registry = this.GetComponentRegistry();
     if (registry && this.display)
     {
-      if (this.firingEffect) this.firingEffect.Register(registry);
+      if (this._firingEffect) this._firingEffect.Register(registry);
     }
   }
 
@@ -353,7 +394,7 @@ export class EveChildTurret extends EveChildMesh
     const registry = this.GetComponentRegistry();
     if (registry)
     {
-      if (this.firingEffect) this.firingEffect.UnRegister(registry);
+      if (this._firingEffect) this._firingEffect.UnRegister(registry);
     }
   }
 
@@ -369,16 +410,16 @@ export class EveChildTurret extends EveChildMesh
   {
     const deltaT = updateContext.GetDeltaT();
 
-    if (this.firingEffect)
+    if (this._firingEffect)
     {
-      this.firingEffect.SetDisplaySourceObject(this.IsVisible(updateContext));
+      this._firingEffect.SetDisplaySourceObject(this.IsVisible(updateContext));
     }
 
     this.UpdateCachedGeometryData();
 
-    if (this.firingEffect)
+    if (this._firingEffect)
     {
-      if (this.firingEffect.IsLooping() && this.state === EveChildTurret.State.STATE_FIRING)
+      if (this._firingEffect.IsLooping() && this.state === EveChildTurret.State.STATE_FIRING)
       {
         this._recheckTimeLeft -= deltaT;
         if (this._recheckTimeLeft < 0)
@@ -393,14 +434,14 @@ export class EveChildTurret extends EveChildMesh
           this._recheckTimeLeft = 2;
         }
       }
-      this.firingEffect.UpdateSynchronous(updateContext);
+      this._firingEffect.UpdateSynchronous(updateContext);
     }
 
     vec3.set(FIRE_POSITION_SCRATCH,
       this.worldTransform[12], this.worldTransform[13], this.worldTransform[14]);
-    if (this.firingEffect)
+    if (this._firingEffect)
     {
-      this.firingEffect.GetStartPosition(FIRE_POSITION_SCRATCH);
+      this._firingEffect.GetStartPosition(FIRE_POSITION_SCRATCH);
     }
     this._target.Update(deltaT, FIRE_POSITION_SCRATCH);
 
@@ -462,31 +503,31 @@ export class EveChildTurret extends EveChildMesh
 
     const result = super.UpdateAsyncronous(updateContext, params);
 
-    if (this.firingEffect)
+    if (this._firingEffect)
     {
       if (this.mesh)
       {
-        for (let muzzle = 0; muzzle < this.firingEffect.GetPerMuzzleEffectCount(); muzzle++)
+        for (let muzzle = 0; muzzle < this._firingEffect.GetPerMuzzleEffectCount(); muzzle++)
         {
           this.GetFiringBoneWorldTransform(muzzle, MUZZLE_TRANSFORM_SCRATCH);
-          this.firingEffect.SetMuzzleTransform(muzzle, MUZZLE_TRANSFORM_SCRATCH);
+          this._firingEffect.SetMuzzleTransform(muzzle, MUZZLE_TRANSFORM_SCRATCH);
         }
         this._firingEffectMuzzlePosSet = true;
       }
 
-      this.firingEffect.SetEndPosition(this._target.GetTargetPosition());
+      this._firingEffect.SetEndPosition(this._target.GetTargetPosition());
 
-      if (this.firingEffect.UpdateAsynchronous(updateContext))
+      if (this._firingEffect.UpdateAsynchronous(updateContext))
       {
         if (!this._firingEffectMuzzlePosSet)
         {
-          for (let muzzle = 0; muzzle < this.firingEffect.GetPerMuzzleEffectCount(); muzzle++)
+          for (let muzzle = 0; muzzle < this._firingEffect.GetPerMuzzleEffectCount(); muzzle++)
           {
-            this.firingEffect.SetMuzzleTransform(muzzle, this.worldTransform);
+            this._firingEffect.SetMuzzleTransform(muzzle, this.worldTransform);
           }
           this._firingEffectMuzzlePosSet = true;
         }
-        this.firingEffect.SetDisplayDestObject(this._target.ShowDestObject());
+        this._firingEffect.SetDisplayDestObject(this._target.ShowDestObject());
       }
     }
     return result;
@@ -498,9 +539,9 @@ export class EveChildTurret extends EveChildMesh
   UpdateVisibility(updateContext, parentTransform, parentLod)
   {
     const result = super.UpdateVisibility(updateContext, parentTransform, parentLod);
-    if (this.display && this.firingEffect)
+    if (this.display && this._firingEffect)
     {
-      this.firingEffect.UpdateVisibility(updateContext);
+      this._firingEffect.UpdateVisibility(updateContext);
     }
     return result;
   }
@@ -511,9 +552,9 @@ export class EveChildTurret extends EveChildMesh
   GetRenderables(renderables)
   {
     super.GetRenderables(renderables);
-    if (this.display && this.firingEffect)
+    if (this.display && this._firingEffect)
     {
-      this.firingEffect.GetRenderables(renderables);
+      this._firingEffect.GetRenderables(renderables);
     }
     return renderables;
   }
@@ -598,7 +639,7 @@ export class EveChildTurret extends EveChildMesh
         this._delayToFadeOutTracking = 0;
         break;
       case State.STATE_FIRING:
-        if (this.firingEffect) this.firingEffect.StopFiring();
+        if (this._firingEffect) this._firingEffect.StopFiring();
         // DON'T break, just continue with stopping things:
         // eslint-disable-next-line no-fallthrough
       case State.STATE_TARGETING:
@@ -642,7 +683,7 @@ export class EveChildTurret extends EveChildMesh
       case State.STATE_FIRING:
         this._delayToFadeOutTracking = 0.0001;
         this._target.StopFireAtLocator();
-        if (this.firingEffect) this.firingEffect.StopFiring();
+        if (this._firingEffect) this._firingEffect.StopFiring();
         this.PlayAnimation("", "Active", TRACKING_FADE_TIME);
         if (this.playMovementSound && this.targetingToIdleMovementAudioEvent)
         {
@@ -686,7 +727,7 @@ export class EveChildTurret extends EveChildMesh
         break;
       case State.STATE_FIRING:
         this._target.StopFireAtLocator();
-        if (this.firingEffect) this.firingEffect.StopFiring();
+        if (this._firingEffect) this._firingEffect.StopFiring();
         this.PlayAnimation("", "Active", 0);
         break;
       default:
@@ -715,27 +756,27 @@ export class EveChildTurret extends EveChildMesh
     if (!this.SetupFiringState()) return;
     const State = EveChildTurret.State;
 
-    if (this.firingEffect && this.state === State.STATE_FIRING)
+    if (this._firingEffect && this.state === State.STATE_FIRING)
     {
-      if (this.firingEffect.IsLooping())
+      if (this._firingEffect.IsLooping())
       {
-        this.firingEffect.PrepareFiringEffectMoveObjects();
+        this._firingEffect.PrepareFiringEffectMoveObjects();
         return;
       }
-      this.firingEffect.StopFiring();
+      this._firingEffect.StopFiring();
     }
 
-    if (this.firingEffect)
+    if (this._firingEffect)
     {
       if (this.maxCyclingFirePos > 1)
       {
-        this.firingEffect.PrepareFiring(0, this.currentCyclingFiresPos, this.cyclingFireGroupCount);
+        this._firingEffect.PrepareFiring(0, this.currentCyclingFiresPos, this.cyclingFireGroupCount);
       }
       else
       {
-        this.firingEffect.PrepareFiring(0);
+        this._firingEffect.PrepareFiring(0);
       }
-      this.firingEffect.SetImpactConfiguration(this._target.GetImpactConfiguration());
+      this._firingEffect.SetImpactConfiguration(this._target.GetImpactConfiguration());
     }
 
     this.state = State.STATE_FIRING;
@@ -769,8 +810,8 @@ export class EveChildTurret extends EveChildMesh
       }
     }
 
-    const effectTotalTime = this.firingEffect ? this.firingEffect.GetFiringDuration() : 0;
-    const effectPeakTime = this.firingEffect ? this.firingEffect.GetFiringPeakTime() : 0;
+    const effectTotalTime = this._firingEffect ? this._firingEffect.GetFiringDuration() : 0;
+    const effectPeakTime = this._firingEffect ? this._firingEffect.GetFiringPeakTime() : 0;
     // Carbon cpp:531: m_parentData.transform, which EveChildMesh's update set to this child's world transform.
     const parentTransform = this._parentData.transform;
     vec3.set(FIRE_SOURCE_SCRATCH, parentTransform[12], parentTransform[13], parentTransform[14]);
@@ -821,7 +862,7 @@ export class EveChildTurret extends EveChildMesh
       case State.STATE_FIRING:
         this._delayToFadeOutTracking = 0.0001;
         this._target.StopFireAtLocator();
-        if (this.firingEffect) this.firingEffect.StopFiring();
+        if (this._firingEffect) this._firingEffect.StopFiring();
         this.PlayAnimation("Reload", "Active", TRACKING_FADE_TIME);
         break;
       default:
@@ -838,7 +879,7 @@ export class EveChildTurret extends EveChildMesh
     this.trackingInfluence = 0;
     this._delayToFadeOutTracking = 0;
     this._target.StopFireAtLocator();
-    if (this.firingEffect) this.firingEffect.StopFiring();
+    if (this._firingEffect) this._firingEffect.StopFiring();
     this.state = EveChildTurret.State.STATE_DEACTIVE;
     this.ForceIdleAnimation();
   }
@@ -889,11 +930,11 @@ export class EveChildTurret extends EveChildMesh
   @meta.implemented
   GetFiringBoneWorldTransform(muzzle, out = mat4.create())
   {
-    if (!this.mesh || !this.firingEffect)
+    if (!this.mesh || !this._firingEffect)
     {
       return mat4.copy(out, this.worldTransform);
     }
-    const boneID = this.firingEffect.GetPerMuzzleBoneID(muzzle);
+    const boneID = this._firingEffect.GetPerMuzzleBoneID(muzzle);
     return this.GetTurretBoneTransform(boneID, out);
   }
 
@@ -912,7 +953,7 @@ export class EveChildTurret extends EveChildMesh
   InitializeFiringEffect()
   {
     this._firingEffectMuzzlePosSet = false;
-    if (!this.firingEffect) return;
+    if (!this._firingEffect) return;
 
     const geometryRes = this.GetGeometryRes();
     if (geometryRes && geometryRes.GetSkeletonCount())
@@ -920,12 +961,12 @@ export class EveChildTurret extends EveChildMesh
       const skeletonData = geometryRes.GetSkeletonData(0);
       if (skeletonData)
       {
-        const muzzleCount = this.firingEffect.GetPerMuzzleEffectCount();
+        const muzzleCount = this._firingEffect.GetPerMuzzleEffectCount();
         const boneCount = Math.min(muzzleCount, EveChildTurret.MUZZLECOUNT_MAX);
         for (let muzzle = 0; muzzle < boneCount; muzzle++)
         {
-          const boneName = `${this.firingEffect.GetFiringBoneName()}${String(muzzle + 1).padStart(2, "0")}`;
-          this.firingEffect.SetMuzzleBoneID(muzzle, TriGeometryResSkeletonData.prototype.FindJoint.call(skeletonData, boneName));
+          const boneName = `${this._firingEffect.GetFiringBoneName()}${String(muzzle + 1).padStart(2, "0")}`;
+          this._firingEffect.SetMuzzleBoneID(muzzle, TriGeometryResSkeletonData.prototype.FindJoint.call(skeletonData, boneName));
         }
       }
     }
@@ -974,7 +1015,7 @@ export class EveChildTurret extends EveChildMesh
       this._hookedUpdater.SetPoseModifier(null);
     }
     this._hookedUpdater = null;
-    if (this.firingEffect) this.firingEffect.CleanUp(context);
+    if (this._firingEffect) this._firingEffect.CleanUp(context);
     this.ReleaseCachedGeometryData();
   }
 
@@ -1094,7 +1135,7 @@ export class EveChildTurret extends EveChildMesh
   @meta.implemented
   GetFiringEffect()
   {
-    return this.firingEffect;
+    return this._firingEffect;
   }
 
   /**
@@ -1110,9 +1151,10 @@ export class EveChildTurret extends EveChildMesh
     const pending = this._pendingFiringEffectCalls;
     this._pendingFiringEffectCalls = null;
     const registry = this.GetComponentRegistry();
-    if (this.firingEffect) this.firingEffect.UnRegister(registry);
-    this.firingEffect = firingEffect;
-    if (this.firingEffect) this.firingEffect.Register(registry);
+    // Carbon registers through BlueCastPtr<EveEntity> (cpp:825-833).
+    CjsSchema.cast(this._firingEffect, EveEntity)?.UnRegister(registry);
+    this._firingEffect = firingEffect;
+    CjsSchema.cast(this._firingEffect, EveEntity)?.Register(registry);
     this.InitializeFiringEffect();
     if (pending) for (const call of pending) call();
   }
@@ -1131,7 +1173,7 @@ export class EveChildTurret extends EveChildMesh
       this._pendingFiringEffectCalls.push(() => this.SetControllerVariable(name, value));
       return;
     }
-    if (this.firingEffect) this.firingEffect.SetControllerVariable(name, value);
+    if (this._firingEffect) this._firingEffect.SetControllerVariable(name, value);
   }
 
   /**
@@ -1174,7 +1216,7 @@ export class EveChildTurret extends EveChildMesh
       this._pendingFiringEffectCalls.push(() => this.StartControllers());
       return;
     }
-    if (this.firingEffect) this.firingEffect.StartControllers();
+    if (this._firingEffect) this._firingEffect.StartControllers();
   }
 
   /**
@@ -1222,9 +1264,9 @@ export class EveChildTurret extends EveChildMesh
   @meta.implemented
   SetTargetScale()
   {
-    if (this.firingEffect)
+    if (this._firingEffect)
     {
-      this.firingEffect.SetScaleByRadius(this._target.GetRadius());
+      this._firingEffect.SetScaleByRadius(this._target.GetRadius());
     }
   }
 

@@ -18,11 +18,36 @@ import { EveSmartLightAttributeModifierExpressionBucketArguments } from "./EveSm
 export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLightAttributeModifierBucket
 {
 
-  /** m_expression (std::string) [PERSISTONLY] */
-  @blue.readwrite
+  /**
+   * m_expression (std::string, private, h:41), persisted under its exposed
+   * name by MAP_ATTRIBUTE "expression" PERSISTONLY
+   * (EveSmartLightAttributeModifierExpressionBucket_Blue.cpp:20). Readers
+   * write it directly, bypassing the setter; Initialize compiles it.
+   */
+  @blue.attribute("expression")
   @blue.persistOnly
   @type.expression
-  expression = "";
+  _expression = "";
+
+  /**
+   * Carbon MAP_PROPERTY "expression" over GetExpression/SetExpression
+   * (EveSmartLightAttributeModifierExpressionBucket_Blue.cpp:21): the setter
+   * compiles the replacement.
+   */
+  @blue.property()
+  @type.expression
+  @meta.implemented
+  get expression()
+  {
+    return this.GetExpression();
+  }
+
+  /** Stores and compiles the replacement expression. */
+  @meta.implemented
+  set expression(value)
+  {
+    this.SetExpression(value);
+  }
 
   /** m_name (std::string) [READWRITE, PERSIST] */
   @blue.readwrite
@@ -71,9 +96,9 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
   Initialize()
   {
     super.Initialize();
-    if (this.expression)
+    if (this._expression)
     {
-      this.SetExpression(this.expression);
+      this.SetExpression(this._expression);
     }
     return true;
   }
@@ -123,7 +148,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
   @meta.implemented
   GetExpression()
   {
-    return this.expression;
+    return this._expression;
   }
 
   /**
@@ -139,13 +164,13 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
   @meta.adapted
   SetExpression(expression)
   {
-    this.expression = String(expression ?? "");
-    this._program = this.expression
-      ? CjsControllerExpressionProgram.Compile(this.expression, { emptyValue: 0 })
+    this._expression = String(expression ?? "");
+    this._program = this._expression
+      ? CjsControllerExpressionProgram.Compile(this._expression, { emptyValue: 0 })
       : null;
     if (this._program && !this._program.IsValid())
     {
-      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "EveSmartLightAttributeModifierExpressionBucket::SetExpression invalid expression \"%s\": %s", this.expression, this._program.error);
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "EveSmartLightAttributeModifierExpressionBucket::SetExpression invalid expression \"%s\": %s", this._expression, this._program.error);
     }
   }
 
@@ -239,7 +264,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
       attributeModifier.UpdateSyncronous(updateContext, params, activationMultiplier);
     }
 
-    if (!this.expression)
+    if (!this._expression)
     {
       return;
     }

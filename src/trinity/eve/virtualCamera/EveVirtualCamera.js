@@ -107,6 +107,43 @@ export class EveVirtualCamera
   running = false;
 
   /**
+   * Carbon MAP_PROPERTY_READONLY "forward" over GetViewDirection
+   * (EveVirtualCamera_Blue.cpp:29): the unit direction towards the point of
+   * interest.
+   */
+  @blue.property()
+  @type.vec3
+  @meta.implemented
+  get forward()
+  {
+    return this.GetViewDirection();
+  }
+
+  /**
+   * Carbon MAP_PROPERTY_READONLY "right" over GetRightDirection
+   * (EveVirtualCamera_Blue.cpp:30): the unit right direction.
+   */
+  @blue.property()
+  @type.vec3
+  @meta.implemented
+  get right()
+  {
+    return this.GetRightDirection();
+  }
+
+  /**
+   * Carbon MAP_PROPERTY_READONLY "up" over GetUpDirection
+   * (EveVirtualCamera_Blue.cpp:31): the roll-adjusted unit up direction.
+   */
+  @blue.property()
+  @type.vec3
+  @meta.implemented
+  get up()
+  {
+    return this.GetUpDirection();
+  }
+
+  /**
    * Builds a D3D-handed look-at view matrix from the current position, point of
    * interest and roll-adjusted up direction.
    */

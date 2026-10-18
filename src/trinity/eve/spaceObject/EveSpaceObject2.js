@@ -627,12 +627,31 @@ export class EveSpaceObject2 extends EveEntity
   worldVelocity = vec3.create();
 
   /**
-   * Audio geometry associated with the object's transform and mute state.
+   * m_audioGeometry (ITr2AudGeometryPtr, protected, h:777): audio geometry
+   * associated with the object's transform and mute state.
    * @type {ITr2AudGeometry|null}
    */
-  @blue.readwrite
+  _audioGeometry = null;
+
+  /**
+   * Carbon MAP_PROPERTY "audioGeometry" over the protected
+   * GetAudioGeometry/SetAudioGeometry (EveSpaceObject2_Blue.cpp:327): the
+   * Wwise spatial-audio geometry interface.
+   */
+  @blue.property()
   @type.rootRef("ITr2AudGeometry")
-  audioGeometry = null;
+  @meta.implemented
+  get audioGeometry()
+  {
+    return this._GetAudioGeometry();
+  }
+
+  /** Replaces the audio geometry interface. */
+  @meta.implemented
+  set audioGeometry(value)
+  {
+    this._SetAudioGeometry(value);
+  }
 
   /**
    * Visibility result used to gate rendering and update frequency.
@@ -2663,6 +2682,34 @@ export class EveSpaceObject2 extends EveEntity
         attachment?.UnRegister(registry);
       }
     }
+  }
+
+  /**
+   * Carbon EveSpaceObject2::GetAudioGeometry (protected, cpp:4564-4567).
+   *
+   * @returns {ITr2AudGeometry|null} The audio geometry interface.
+   */
+  @meta.implemented
+  _GetAudioGeometry()
+  {
+    return this._audioGeometry;
+  }
+
+  /**
+   * Carbon EveSpaceObject2::SetAudioGeometry (protected, cpp:4569-4578):
+   * stores the replacement audio geometry interface.
+   *
+   * Adapted: Carbon unregisters the old geometry and registers the mesh's
+   * audio geometry with the new one (UnregisterAudioGeometry and
+   * RegisterAudioGeometry, cpp:4580-4616). Those stay audio-engine-owned and
+   * unported, as in RegisterComponents and UnRegisterComponents.
+   *
+   * @param {ITr2AudGeometry|null} audioGeometry The replacement, or null.
+   */
+  @meta.adapted
+  _SetAudioGeometry(audioGeometry)
+  {
+    this._audioGeometry = audioGeometry ?? null;
   }
 
   /**

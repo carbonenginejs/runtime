@@ -1,7 +1,7 @@
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { type, blue } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /** Groups banner items under a named visibility identity. */
 @blue.define("EveSOFDataHullBannerSet")
@@ -20,6 +20,19 @@ export class EveSOFDataHullBannerSet
   @blue.persist
   @type.list("EveSOFDataHullBannerSetItem")
   banners = [];
+
+  /**
+   * Carbon MAP_PROPERTY_READONLY "name" over GetName
+   * (EveSOFData_Blue.cpp:692): the banner set's visibility group. Carbon persists no name for
+   * this class; the getter derives it.
+   */
+  @blue.property()
+  @type.string
+  @meta.implemented
+  get name()
+  {
+    return this.GetName();
+  }
 
   /** Uses the banner set's visibility group as its externally comparable name. */
   @blue.method

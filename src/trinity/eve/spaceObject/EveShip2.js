@@ -57,10 +57,28 @@ export class EveShip2 extends EveMobile
   @type.rootRef("TriFloat")
   speed = null;
 
-  /** audioSpeedParameter (MAP_PROPERTY) - root audio value holder. */
-  @blue.readwrite
+  /** m_audioSpeedParameter (IRootPtr, private, h:76) - the audio value holder. */
+  _audioSpeedParameter = null;
+
+  /**
+   * Carbon MAP_PROPERTY "audioSpeedParameter" over the private
+   * GetAudioParameter/SetAudioParameter (EveShip2_Blue.cpp:19): the audio
+   * parameter fed the ship's speed every update.
+   */
+  @blue.property()
   @type.rootRef("IRoot")
-  audioSpeedParameter = null;
+  @meta.implemented
+  get audioSpeedParameter()
+  {
+    return this._GetAudioParameter();
+  }
+
+  /** Rebinds the speed feed to the replacement audio parameter. */
+  @meta.implemented
+  set audioSpeedParameter(value)
+  {
+    this._SetAudioParameter(value);
+  }
 
   /** m_acceleration - second derivative of the position curve, fed to boosters. */
   _acceleration = vec3.create();
@@ -334,11 +352,39 @@ export class EveShip2 extends EveMobile
     {
       return;
     }
-    const parameter = this.audioSpeedParameter;
+    const parameter = this._audioSpeedParameter;
     if (parameter && typeof parameter === "object" && "value" in parameter)
     {
       parameter.value = (this.speed?.value ?? 0) / this.maxSpeed;
     }
+  }
+
+  /**
+   * Carbon EveShip2::SetAudioParameter (private, EveShip2.cpp:291-325):
+   * stores the audio parameter that UpdateShipSpeedForAudio feeds.
+   *
+   * Adapted: Carbon also resolves the parameter's float "value" member and
+   * its NOTIFY flag through Blue reflection (m_audioParameterInfo,
+   * cpp:296-324); UpdateShipSpeedForAudio's value-holder check stands in
+   * for that cached member pointer.
+   *
+   * @param {object|null} aud The audio parameter, or null to unbind.
+   */
+  @meta.adapted
+  _SetAudioParameter(aud)
+  {
+    this._audioSpeedParameter = aud ?? null;
+  }
+
+  /**
+   * Carbon EveShip2::GetAudioParameter (private, EveShip2.cpp:348-351).
+   *
+   * @returns {object|null} The bound audio parameter.
+   */
+  @meta.implemented
+  _GetAudioParameter()
+  {
+    return this._audioSpeedParameter;
   }
 
   /**

@@ -272,10 +272,27 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   /** m_currentQuality (cpp:85) - Tr2VolumerticQuality.High. */
   currentQuality = 2;
 
-  /** m_lightmapDirty (cpp:89). */
-  @blue.readwrite
+  /** m_lightmapDirty (private, h:185; ctor cpp:89). */
+  _lightmapDirty = true;
+
+  /**
+   * Carbon MAP_PROPERTY "lightmapDirty" over IsLightmapDirty/MarkLightmapDirty
+   * (EveChildCloud2_Blue.cpp:38): setting it also zeroes the dirty offset.
+   */
+  @blue.property()
   @type.boolean
-  lightmapDirty = true;
+  @meta.implemented
+  get lightmapDirty()
+  {
+    return this.IsLightmapDirty();
+  }
+
+  /** Marks the lightmap dirty or clean and restarts the slice offset. */
+  @meta.implemented
+  set lightmapDirty(value)
+  {
+    this.MarkLightmapDirty(value);
+  }
 
   /** m_renderedLastFrame (cpp:90). */
   renderedLastFrame = true;
@@ -404,7 +421,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   ReleaseResources(storage = 0)
   {
     this._declaration = Tr2EffectStateManager.Unknown;
-    this.lightmapDirty = true;
+    this._lightmapDirty = true;
     this.lightmapDirtyOffset = 0;
     if (storage & TriStorageFlags.TRISTORAGE_MANAGEDMEMORY) this.lightmapWidth = 0;
     this.ClearVariableStore();
@@ -582,14 +599,14 @@ export class EveChildCloud2 extends EveSpaceObjectChild
       if (this.effectHash !== hash)
       {
         this.effectHash = hash;
-        this.lightmapDirty = true;
+        this._lightmapDirty = true;
         this.lightmapWidth = 0;
         this.lightmapHeight = 0;
         this.lightmapDepth = 0;
       }
       // Asked before reading its shader: renews the effect while the cloud updates.
       const shader = this.effect.IsGood() ? this.effect.GetShaderStateInterface() : null;
-      if (this.lightmapDirty && this.lightmapWidth === 0 && shader)
+      if (this._lightmapDirty && this.lightmapWidth === 0 && shader)
       {
         if (shader.GetResource("LightMap"))
         {
@@ -618,7 +635,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
           this._variableStore.RegisterVariableInternal("LightMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this._emptyLightMap);
           this.lightmap.GetTexture().Destroy();
           this.lightmap.OnTextureChange().Broadcast();
-          this.lightmapDirty = false;
+          this._lightmapDirty = false;
         }
       }
     }
@@ -757,22 +774,22 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     return det !== 0 && Number.isFinite(det);
   }
 
-  /** Carbon EveChildCloud2::IsLightmapDirty (cpp:748-751). */
+  /** Carbon EveChildCloud2::IsLightmapDirty (cpp:730-733). */
   @blue.method
   @meta.implemented
   IsLightmapDirty()
   {
-    return this.lightmapDirty;
+    return this._lightmapDirty;
   }
 
-  /** Carbon EveChildCloud2::MarkLightmapDirty (cpp:753-757): also zeroes the
+  /** Carbon EveChildCloud2::MarkLightmapDirty (cpp:735-739): also zeroes the
    * dirty offset (contrast SetSceneInformation's scale-change path, which
    * sets the flag WITHOUT resetting the offset - cpp:398-402). */
   @blue.method
   @meta.implemented
   MarkLightmapDirty(dirty)
   {
-    this.lightmapDirty = !!dirty;
+    this._lightmapDirty = !!dirty;
     this.lightmapDirtyOffset = 0;
   }
 
@@ -894,7 +911,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     {
       return false;
     }
-    if (this.lightmapDirty && this.effect && this.lightmapWidth > 0 && this.HasValidTransform())
+    if (this._lightmapDirty && this.effect && this.lightmapWidth > 0 && this.HasValidTransform())
     {
       const scaledWidth = Math.max(1, Math.floor(this.lightmapWidth * this.lightmapSizeScale));
       const scaledHeight = Math.max(1, Math.floor(this.lightmapHeight * this.lightmapSizeScale));
@@ -931,7 +948,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
         this.lightmapDirtyOffset += slices;
         if (this.lightmapDirtyOffset >= scaledWidth)
         {
-          this.lightmapDirty = false;
+          this._lightmapDirty = false;
           this.lightmapDirtyOffset = 0;
           this._variableStore.RegisterVariableInternal("LightMap", TriVariableContentType.TRIVARIABLE_TEXTURE_RES, this.lightmap);
           this._emptyLightMap.GetTexture().Destroy();
@@ -973,7 +990,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
     if (lightmapSizeScale !== this.lightmapSizeScale)
     {
       this.lightmapSizeScale = lightmapSizeScale;
-      this.lightmapDirty = true;
+      this._lightmapDirty = true;
     }
     this.currentQuality = sceneInformation.quality;
 

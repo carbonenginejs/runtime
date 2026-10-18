@@ -3,7 +3,7 @@
 import { mat4 } from "#math/mat4";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { vec3 } from "#math/vec3";
-import { meta, type, blue } from "#schema";
+import { CjsSchema, meta, type, blue } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 
 
@@ -16,10 +16,57 @@ import { EveEntity } from "../../EveEntity.js";
 @blue.interface(IEveSpaceObject2, EveEntity)
 export class EveFiringEffectElementContainer extends EveEntity
 {
-  @blue.readwrite
+  /**
+   * m_element (IEveFiringEffectElementPtr, private, h:62), persisted under its
+   * exposed name by MAP_ATTRIBUTE "element" PERSISTONLY
+   * (EveFiringEffectElementContainer_Blue.cpp:21-25). Readers write it
+   * directly, bypassing the setter.
+   */
+  @blue.attribute("element")
   @blue.persistOnly
- @type.rootRef("IEveFiringEffectElement")
-  element = null;
+  @type.rootRef("IEveFiringEffectElement")
+  _element = null;
+
+  /**
+   * Carbon MAP_PROPERTY "element" over GetElement/SetElement
+   * (EveFiringEffectElementContainer_Blue.cpp:27-31): the setter moves
+   * component registration to the replacement.
+   */
+  @blue.property()
+  @type.rootRef("IEveFiringEffectElement")
+  @meta.implemented
+  get element()
+  {
+    return this.GetElement();
+  }
+
+  /** Moves component registration to the replacement element. */
+  @meta.implemented
+  set element(value)
+  {
+    this.SetElement(value);
+  }
+
+  /**
+   * Carbon MAP_PROPERTY "active" over GetActive/SetActive
+   * (EveFiringEffectElementContainer_Blue.cpp:33-37): setting it starts or
+   * stops the element when the state changes.
+   */
+  @blue.property()
+  @type.boolean
+  @meta.implemented
+  get active()
+  {
+    return this.GetActive();
+  }
+
+  /** Starts or stops firing when the requested state differs. */
+  @meta.implemented
+  set active(value)
+  {
+    this.SetActive(value);
+  }
+
   @blue.readwrite
   @type.vec3
   source = vec3.create();
@@ -65,14 +112,14 @@ export class EveFiringEffectElementContainer extends EveEntity
   @meta.adapted
   UpdateSynchronous(context)
   {
-    if (!this.element) return true;
+    if (!this._element) return true;
     const source = this.useSourceTransform ? this.sourceTransform : this.source;
-    this.element.SetFiringTransform(source, this.destination);
-    this.element.SetDestObjectScale(this.destinationScale);
-    this.element.DisplayEndPoints(this.displaySource, this.displayDestination);
+    this._element.SetFiringTransform(source, this.destination);
+    this._element.SetDestObjectScale(this.destinationScale);
+    this._element.DisplayEndPoints(this.displaySource, this.displayDestination);
     if (this._active)
     {
-      this.element.Update(context);
+      this._element.Update(context);
     }
     return true;
   }
@@ -118,7 +165,7 @@ export class EveFiringEffectElementContainer extends EveEntity
   @meta.adapted
   UpdateVisibility(context, transform)
   {
-    if (this.display && this.element) this.element.UpdateVisibility(context, transform);
+    if (this.display && this._element) this._element.UpdateVisibility(context, transform);
   }
 
   /**
@@ -132,7 +179,7 @@ export class EveFiringEffectElementContainer extends EveEntity
   @blue.method
   GetRenderables__Impostors(out = [], _impostors)
   {
-    if (this.display && this.element) this.element.GetRenderables(out);
+    if (this.display && this._element) this._element.GetRenderables(out);
     return out;
   }
 
@@ -145,9 +192,9 @@ export class EveFiringEffectElementContainer extends EveEntity
   @meta.implemented
   StartFiring()
   {
-    if (this.element)
+    if (this._element)
     {
-      this.element.StartFiring(0);
+      this._element.StartFiring(0);
       this._active = true;
     }
   }
@@ -161,9 +208,9 @@ export class EveFiringEffectElementContainer extends EveEntity
   @meta.implemented
   StopFiring()
   {
-    if (this.element)
+    if (this._element)
     {
-      this.element.StopFiring();
+      this._element.StopFiring();
       this._active = false;
     }
   }
@@ -190,14 +237,18 @@ export class EveFiringEffectElementContainer extends EveEntity
   }
 
   /**
-   * Replaces the wrapped firing-effect element; the container's active state is
-   * not reapplied to the new element.
+   * Replaces the wrapped firing-effect element, moving its component
+   * registration from the old element to the new one; the container's active
+   * state is not reapplied to the new element (Carbon cpp:121-133).
    */
   @blue.method
   @meta.implemented
   SetElement(element)
   {
-    this.element = element ?? null;
+    const registry = this.GetComponentRegistry();
+    CjsSchema.cast(this._element, EveEntity)?.UnRegister(registry);
+    this._element = element ?? null;
+    CjsSchema.cast(this._element, EveEntity)?.Register(registry);
   }
 
   /** The wrapped firing-effect element, or null. */
@@ -205,7 +256,7 @@ export class EveFiringEffectElementContainer extends EveEntity
   @meta.implemented
   GetElement()
   {
-    return this.element;
+    return this._element;
   }
 
   /**
@@ -269,7 +320,7 @@ export class EveFiringEffectElementContainer extends EveEntity
   @meta.implemented
   GetCurveDuration()
   {
-    return this.element ? Number(this.element.GetCurveDuration()) : 0;
+    return this._element ? Number(this._element.GetCurveDuration()) : 0;
   }
 
   /** Carbon EveFiringEffectElementContainer::RegisterComponents
@@ -279,7 +330,7 @@ export class EveFiringEffectElementContainer extends EveEntity
   @meta.implemented
   RegisterComponents()
   {
-    this.element?.Register(this.GetComponentRegistry());
+    this._element?.Register(this.GetComponentRegistry());
   }
 
   /** Carbon EveFiringEffectElementContainer::UnRegisterComponents
@@ -288,7 +339,7 @@ export class EveFiringEffectElementContainer extends EveEntity
   @meta.implemented
   UnRegisterComponents()
   {
-    this.element?.UnRegister(this.GetComponentRegistry());
+    this._element?.UnRegister(this.GetComponentRegistry());
   }
 
   static _zero = vec3.create();

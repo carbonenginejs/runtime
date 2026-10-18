@@ -34,6 +34,19 @@ export class EveMultiEffectParameter
 
   _owner = null;
 
+  /**
+   * Carbon MAP_PROPERTY_READONLY "isValid" over IsValid
+   * (EveMultiEffectParameter_Blue.cpp:26): whether the bound object matches
+   * the declared parameter type.
+   */
+  @blue.property()
+  @type.boolean
+  @meta.implemented
+  get isValid()
+  {
+    return this.IsValid();
+  }
+
   /** Binds an object to this slot, or clears it when given nothing. */
   @blue.method
   @meta.implemented

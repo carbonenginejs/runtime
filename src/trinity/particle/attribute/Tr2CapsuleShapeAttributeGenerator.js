@@ -108,6 +108,19 @@ export class Tr2CapsuleShapeAttributeGenerator extends ITr2AttributeGenerator
   valid = false;
 
   /**
+   * Carbon MAP_PROPERTY_READONLY "name" over GetName
+   * (Tr2CapsuleShapeAttributeGenerator_Blue.cpp:15): the elements the generator
+   * writes. Carbon's description reuses the element-name wording.
+   */
+  @blue.property()
+  @type.string
+  @meta.implemented
+  get name()
+  {
+    return this.GetName();
+  }
+
+  /**
    * Resolves the position element, and the velocity element when velocity control is enabled, marking the generator valid only when both required elements resolve.
    */
   @blue.method

@@ -110,12 +110,37 @@ export class EveChildEffectPropagator extends EveChildContainer
   @type.vec3
   triggerSphereOffset = vec3.create();
 
-  /** m_effect (EveChildInstanceContainerPtr) [PERSISTONLY, NOTIFY] */
+  /**
+   * m_effect (EveChildInstanceContainerPtr, private, h:100), persisted under
+   * its exposed name by MAP_ATTRIBUTE "effect" PERSISTONLY | NOTIFY
+   * (EveChildEffectPropagator_Blue.cpp:37). Readers write it directly,
+   * bypassing the setter, and OnModified then locks its edit mode.
+   */
+  @blue.attribute("effect")
   @blue.notify
-  @blue.readwrite
   @blue.persistOnly
   @type.rootRef("EveChildInstanceContainer")
-  effect = null;
+  _effect = null;
+
+  /**
+   * Carbon MAP_PROPERTY "effect" over GetEffect/SetEffect
+   * (EveChildEffectPropagator_Blue.cpp:38): the setter moves component and
+   * child registration to the replacement container.
+   */
+  @blue.property()
+  @type.rootRef("EveChildInstanceContainer")
+  @meta.implemented
+  get effect()
+  {
+    return this.GetEffect();
+  }
+
+  /** Re-registers the propagated effect container with the child hierarchy. */
+  @meta.implemented
+  set effect(value)
+  {
+    this.SetEffect(value);
+  }
 
   /** m_stopToClearDelay (float) [READWRITE, PERSIST] */
   @blue.readwrite
@@ -250,7 +275,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   {
     this.Stop();
 
-    if (!this.effect)
+    if (!this._effect)
     {
       return;
     }
@@ -270,9 +295,9 @@ export class EveChildEffectPropagator extends EveChildContainer
     this._currentTriggerIndex = 0;
     this._numDeleted = 0;
 
-    if (this.effect)
+    if (this._effect)
     {
-      this.effect.ClearInstanceList();
+      this._effect.ClearInstanceList();
     }
   }
 
@@ -281,7 +306,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   @meta.implemented
   Initialize()
   {
-    if (this.effect) this.effect.DisableEditMode(true);
+    if (this._effect) this._effect.DisableEditMode(true);
     return super.Initialize();
   }
 
@@ -295,7 +320,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   {
     if (IsMatch(value, "effect"))
     {
-      if (this.effect) this.effect.DisableEditMode(true);
+      if (this._effect) this._effect.DisableEditMode(true);
     }
 
     if (IsMatch(value, "completeness"))
@@ -337,7 +362,7 @@ export class EveChildEffectPropagator extends EveChildContainer
       return;
     }
 
-    if (!this.effect)
+    if (!this._effect)
     {
       return;
     }
@@ -351,7 +376,7 @@ export class EveChildEffectPropagator extends EveChildContainer
       const record = records[index];
       if (record.sqrDistToSphereCenter < currentRadSqr)
       {
-        this.effect.CreateInstance(record.scale, record.rotation, record.position, record.boneIndex);
+        this._effect.CreateInstance(record.scale, record.rotation, record.position, record.boneIndex);
         this._currentTriggerIndex++;
       }
       else
@@ -393,7 +418,7 @@ export class EveChildEffectPropagator extends EveChildContainer
       }
     }
 
-    if (this.effect) this.effect.UpdateSyncronous(updateContext, params);
+    if (this._effect) this._effect.UpdateSyncronous(updateContext, params);
 
     if (!this.isPlaying)
     {
@@ -421,7 +446,7 @@ export class EveChildEffectPropagator extends EveChildContainer
         {
           for (const record of this._processedTransforms)
           {
-            this.effect.CreateInstance(record.scale, record.rotation, record.position, record.boneIndex);
+            this._effect.CreateInstance(record.scale, record.rotation, record.position, record.boneIndex);
           }
           this._currentTriggerIndex++;
         }
@@ -442,7 +467,7 @@ export class EveChildEffectPropagator extends EveChildContainer
     const dt = updateContext.GetDeltaT();
     this.playTime += dt;
 
-    if (this.effect)
+    if (this._effect)
     {
       this.ManageTriggers();
     }
@@ -515,14 +540,14 @@ export class EveChildEffectPropagator extends EveChildContainer
       this._lastTriggered.push(locatorIndex);
 
       const record = this._processedTransforms[locatorIndex];
-      this.effect.CreateInstance(record.scale, record.rotation, record.position, record.boneIndex);
+      this._effect.CreateInstance(record.scale, record.rotation, record.position, record.boneIndex);
       this._currentTriggerIndex++;
     }
 
     if (this.durationPerEffect !== -1 &&
       this.playTime > (this._numDeleted / this.frequency) + this.durationPerEffect)
     {
-      this.effect.PopFront();
+      this._effect.PopFront();
       this._numDeleted++;
 
       if (this._numDeleted === this._currentTriggerIndex)
@@ -595,7 +620,7 @@ export class EveChildEffectPropagator extends EveChildContainer
       return this.worldTransform;
     }
 
-    if (this.effect) this.effect.UpdateAsyncronous(updateContext, params);
+    if (this._effect) this._effect.UpdateAsyncronous(updateContext, params);
 
     return super.UpdateAsyncronous(updateContext, params);
   }
@@ -606,7 +631,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   @meta.implemented
   UpdateVisibility(updateContext, parentTransform = null, parentLod = Tr2Lod.TR2_LOD_HIGH)
   {
-    if (this.effect) this.effect.UpdateVisibility(updateContext, parentTransform, parentLod);
+    if (this._effect) this._effect.UpdateVisibility(updateContext, parentTransform, parentLod);
   }
 
   /** Carbon EveChildEffectPropagator::GetRenderables (cpp:397-408): nothing
@@ -621,7 +646,7 @@ export class EveChildEffectPropagator extends EveChildContainer
       return out;
     }
 
-    if (this.effect) this.effect.GetRenderables(out);
+    if (this._effect) this._effect.GetRenderables(out);
     return out;
   }
 
@@ -635,7 +660,7 @@ export class EveChildEffectPropagator extends EveChildContainer
     {
       return;
     }
-    if (this.effect) this.effect.AddQuadsToQuadRenderer(frustum, quadRenderer);
+    if (this._effect) this._effect.AddQuadsToQuadRenderer(frustum, quadRenderer);
   }
 
   /** Carbon EveChildEffectPropagator::RegisterWithQuadRenderer (cpp:383-389). */
@@ -643,7 +668,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
-    if (this.effect) this.effect.RegisterWithQuadRenderer(quadRenderer);
+    if (this._effect) this._effect.RegisterWithQuadRenderer(quadRenderer);
   }
 
   /** Carbon EveChildEffectPropagator::ProcessLocalLocators (cpp:410-438):
@@ -856,15 +881,15 @@ export class EveChildEffectPropagator extends EveChildContainer
     this._processedTransforms.sort(SortByCircleDist);
   }
 
-  /** Carbon EveChildEffectPropagator::GetEffect (cpp:640-643). */
+  /** Carbon EveChildEffectPropagator::GetEffect (cpp:642-645). */
   @blue.method
   @meta.implemented
   GetEffect()
   {
-    return this.effect;
+    return this._effect;
   }
 
-  /** Carbon EveChildEffectPropagator::SetEffect (cpp:645-654): unregisters
+  /** Carbon EveChildEffectPropagator::SetEffect (cpp:647-658): unregisters
    * the current effect from both the component registry and child hierarchy,
    * installs the replacement, then registers it with both owners. */
   @blue.method
@@ -872,9 +897,9 @@ export class EveChildEffectPropagator extends EveChildContainer
   SetEffect(effect)
   {
     this.UnRegisterComponents();
-    this.UnregisterChild(this.effect);
-    this.effect = effect ?? null;
-    this.RegisterChild(this.effect);
+    this.UnregisterChild(this._effect);
+    this._effect = effect ?? null;
+    this.RegisterChild(this._effect);
     this.RegisterComponents();
   }
 
@@ -884,7 +909,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   @meta.implemented
   SetControllerVariable(name, value)
   {
-    if (this.effect) this.effect.SetControllerVariable(String(name ?? ""), Number(value));
+    if (this._effect) this._effect.SetControllerVariable(String(name ?? ""), Number(value));
   }
 
   /** Carbon EveChildEffectPropagator::RegisterComponents (cpp:45-51). */
@@ -892,9 +917,9 @@ export class EveChildEffectPropagator extends EveChildContainer
   @meta.implemented
   RegisterComponents()
   {
-    if (this.IsInRegistry() && this.effect)
+    if (this.IsInRegistry() && this._effect)
     {
-      this.effect.Register(this.GetComponentRegistry());
+      this._effect.Register(this.GetComponentRegistry());
     }
   }
 
@@ -903,9 +928,9 @@ export class EveChildEffectPropagator extends EveChildContainer
   @meta.implemented
   UnRegisterComponents()
   {
-    if (this.IsInRegistry() && this.effect)
+    if (this.IsInRegistry() && this._effect)
     {
-      this.effect.UnRegister(this.GetComponentRegistry());
+      this._effect.UnRegister(this.GetComponentRegistry());
     }
   }
 

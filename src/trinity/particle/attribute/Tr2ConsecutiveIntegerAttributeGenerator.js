@@ -47,6 +47,32 @@ export class Tr2ConsecutiveIntegerAttributeGenerator extends ITr2AttributeGenera
   valid = false;
 
   /**
+   * Carbon MAP_PROPERTY_READONLY "name" over GetName
+   * (Tr2ConsecutiveIntegerAttributeGenerator_Blue.cpp:16): the element name composed of type and
+   * customName.
+   */
+  @blue.property()
+  @type.string
+  @meta.implemented
+  get name()
+  {
+    return this.GetName();
+  }
+
+  /**
+   * Carbon MAP_PROPERTY_READONLY "dimension" over GetDimension
+   * (Tr2ConsecutiveIntegerAttributeGenerator_Blue.cpp:27): the bound element's dimension, or 0 when
+   * unbound.
+   */
+  @blue.property()
+  @type.uint32
+  @meta.implemented
+  get dimension()
+  {
+    return this.GetDimension();
+  }
+
+  /**
    * Resolves the target element by semantic type or custom name, marking the generator valid only when it resolves.
    */
   @blue.method

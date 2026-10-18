@@ -830,7 +830,8 @@ test("banner aspect maintenance preserves Carbon mutation semantics", () => {
   assert.equal(banner.GetTargetAspectRatio(), 1);
 
   banner.usage = EveSOFDataHullBanner.Usage.VERTICAL_BANNER;
-  banner.scaling[0] = 2;
+  // Writes m_scaling directly, as a reader does; the scaling getter returns a copy.
+  banner._scaling[0] = 2;
   assert.equal(banner.GetAspectRatio(), 2);
   const detached = banner.GetScaling();
   detached[0] = 99;
@@ -877,7 +878,7 @@ test("banner aspect maintenance preserves Carbon mutation semantics", () => {
 
   const item = new EveSOFDataHullBannerSetItem();
   assert.equal(item.GetTargetAspectRatio(), 0.25);
-  item.scaling[0] = 3;
+  item._scaling[0] = 3;
   assert.equal(item.GetAspectRatio(), 3);
   item.SetAngleY(0);
   assert.ok(Math.abs(item.scaling[0] - 0.25) < 1e-6);

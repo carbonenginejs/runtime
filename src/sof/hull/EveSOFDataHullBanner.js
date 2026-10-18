@@ -1,7 +1,7 @@
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { type, blue } from "#schema";
+import { meta, type, blue } from "#schema";
 import { be, EnumRegistrationType } from "#blue";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -55,23 +55,95 @@ export class EveSOFDataHullBanner
   @type.int32
   boneIndex = -1;
 
-  /** m_scaling (Vector3) [PERSISTONLY] */
-  @blue.readwrite
+  /**
+   * m_scaling (Vector3), persisted under its exposed name by
+   * MAP_ATTRIBUTE "scaling" PERSISTONLY (EveSOFData_Blue.cpp:672).
+   * Readers write it directly, bypassing the aspect-ratio correction.
+   */
+  @blue.attribute("scaling")
   @blue.persistOnly
   @type.vec3
-  scaling = vec3.fromValues(1, 1, 1);
+  _scaling = vec3.fromValues(1, 1, 1);
 
-  /** m_angleX (float) [PERSISTONLY] */
-  @blue.readwrite
+  /**
+   * Carbon MAP_PROPERTY "scaling" over GetScaling/SetScaling
+   * (EveSOFData_Blue.cpp:673): the getter returns a copy, and the setter
+   * corrects one axis to keep the usage's target aspect ratio.
+   */
+  @blue.property()
+  @type.vec3
+  @meta.implemented
+  get scaling()
+  {
+    return this.GetScaling();
+  }
+
+  /** Stores the scale and corrects one axis when aspect preservation is on. */
+  @meta.implemented
+  set scaling(value)
+  {
+    this.SetScaling(value);
+  }
+
+  /**
+   * m_angleX (float), persisted under its exposed name by
+   * MAP_ATTRIBUTE "angleX" PERSISTONLY (EveSOFData_Blue.cpp:675).
+   * Readers write it directly, bypassing the aspect-ratio correction.
+   */
+  @blue.attribute("angleX")
   @blue.persistOnly
   @type.float32
-  angleX = 0;
+  _angleX = 0;
 
-  /** m_angleY (float) [PERSISTONLY] */
-  @blue.readwrite
+  /**
+   * Carbon MAP_PROPERTY "angleX" over GetAngleX/SetAngleX
+   * (EveSOFData_Blue.cpp:676): the horizontal curve angle; the setter
+   * rescales the vertical axis when aspect preservation is on.
+   */
+  @blue.property()
+  @type.float32
+  @meta.implemented
+  get angleX()
+  {
+    return this.GetAngleX();
+  }
+
+  /** Stores the horizontal curve angle and rescales the vertical axis when aspect preservation is on. */
+  @meta.implemented
+  set angleX(value)
+  {
+    this.SetAngleX(value);
+  }
+
+  /**
+   * m_angleY (float), persisted under its exposed name by
+   * MAP_ATTRIBUTE "angleY" PERSISTONLY (EveSOFData_Blue.cpp:677).
+   * Readers write it directly, bypassing the aspect-ratio correction.
+   */
+  @blue.attribute("angleY")
   @blue.persistOnly
   @type.float32
-  angleY = 0;
+  _angleY = 0;
+
+  /**
+   * Carbon MAP_PROPERTY "angleY" over GetAngleY/SetAngleY
+   * (EveSOFData_Blue.cpp:678): the vertical curve angle; the setter
+   * rescales the horizontal axis when aspect preservation is on.
+   */
+  @blue.property()
+  @type.float32
+  @meta.implemented
+  get angleY()
+  {
+    return this.GetAngleY();
+  }
+
+  /** Stores the vertical curve angle and rescales the horizontal axis when aspect preservation is on. */
+  @meta.implemented
+  set angleY(value)
+  {
+    this.SetAngleY(value);
+  }
 
   /** m_lightOverride (EveSOFDataHullBannerLightPtr) [READ, PERSIST] */
   @blue.read
@@ -144,9 +216,9 @@ export class EveSOFDataHullBanner
     return EveSOFDataHullBanner.GetBannerAspectRatio({
       position: vec3.create(),
       rotation: quat.create(),
-      scaling: this.scaling,
-      angleX: this.angleX,
-      angleY: this.angleY
+      scaling: this._scaling,
+      angleX: this._angleX,
+      angleY: this._angleY
     });
   }
 
@@ -154,7 +226,7 @@ export class EveSOFDataHullBanner
   @blue.method
   GetAngleX()
   {
-    return this.angleX;
+    return this._angleX;
   }
 
   /**
@@ -164,10 +236,10 @@ export class EveSOFDataHullBanner
   @blue.method
   SetAngleX(angle)
   {
-    this.angleX = angle;
+    this._angleX = angle;
     if (this.maintainAspectRatio)
     {
-      this.scaling[1] *= this.GetAspectRatio() / this.GetTargetAspectRatio();
+      this._scaling[1] *= this.GetAspectRatio() / this.GetTargetAspectRatio();
     }
   }
 
@@ -175,7 +247,7 @@ export class EveSOFDataHullBanner
   @blue.method
   GetAngleY()
   {
-    return this.angleY;
+    return this._angleY;
   }
 
   /**
@@ -185,13 +257,13 @@ export class EveSOFDataHullBanner
   @blue.method
   SetAngleY(angle)
   {
-    this.angleY = angle;
+    this._angleY = angle;
     if (this.maintainAspectRatio)
     {
       const ratio = this.GetAspectRatio();
       if (ratio !== 0)
       {
-        this.scaling[0] *= this.GetTargetAspectRatio() / ratio;
+        this._scaling[0] *= this.GetTargetAspectRatio() / ratio;
       }
     }
   }
@@ -200,7 +272,7 @@ export class EveSOFDataHullBanner
   @blue.method
   GetScaling()
   {
-    return vec3.clone(this.scaling);
+    return vec3.clone(this._scaling);
   }
 
   /**
@@ -210,7 +282,7 @@ export class EveSOFDataHullBanner
   @blue.method
   SetScaling(scaling)
   {
-    vec3.copy(this.scaling, scaling);
+    vec3.copy(this._scaling, scaling);
     if (this.maintainAspectRatio)
     {
       const ratio = this.GetAspectRatio();
@@ -218,12 +290,12 @@ export class EveSOFDataHullBanner
       {
         if (ratio !== 0)
         {
-          this.scaling[0] *= this.GetTargetAspectRatio() / ratio;
+          this._scaling[0] *= this.GetTargetAspectRatio() / ratio;
         }
       }
       else
       {
-        this.scaling[1] *= ratio / this.GetTargetAspectRatio();
+        this._scaling[1] *= ratio / this.GetTargetAspectRatio();
       }
     }
   }

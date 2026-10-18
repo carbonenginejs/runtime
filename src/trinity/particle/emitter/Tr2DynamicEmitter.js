@@ -60,6 +60,19 @@ export class Tr2DynamicEmitter extends ITr2GenericEmitter
   particleSystem = null;
 
   /**
+   * Carbon MAP_PROPERTY_READONLY "emittedParticles" over
+   * GetEmittedParticleCount (Tr2DynamicEmitter_Blue.cpp:22): the particles
+   * emitted since the last reset.
+   */
+  @blue.property()
+  @type.uint32
+  @meta.implemented
+  get emittedParticles()
+  {
+    return this.GetEmittedParticleCount();
+  }
+
+  /**
    * Carbon method Rebind (MAP_METHOD_AND_WRAP).
    *
    * Adapted: Browser attribute generators bind directly to the CPU particle-system adapter

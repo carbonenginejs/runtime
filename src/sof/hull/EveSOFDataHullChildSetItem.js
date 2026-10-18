@@ -2,7 +2,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import "#consts/trinity";
-import { type, blue } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2Lod } from "#consts/trinity";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -51,6 +51,19 @@ export class EveSOFDataHullChildSetItem
   @blue.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
+
+  /**
+   * Carbon MAP_PROPERTY_READONLY "name" over GetName
+   * (EveSOFData_Blue.cpp:843): the red file path's basename without its extension. Carbon persists no name for
+   * this class; the getter derives it.
+   */
+  @blue.property()
+  @type.string
+  @meta.implemented
+  get name()
+  {
+    return this.GetName();
+  }
 
   /**
    * Derives a child-set item's basename without its extension only from resource

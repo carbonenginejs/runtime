@@ -43,11 +43,36 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   @type.float32
   falloffFactor = 1.5;
 
-  /** m_volume (IEveVolumePtr) [PERSISTONLY] */
-  @blue.readwrite
+  /**
+   * m_volume (IEveVolumePtr, private, h:39), persisted under its exposed name
+   * by MAP_ATTRIBUTE "volume" PERSISTONLY
+   * (EveDistributionPlacementGeneratorVolume_Blue.cpp:18). Readers write it
+   * directly, bypassing the setter; Initialize then subscribes to it.
+   */
+  @blue.attribute("volume")
   @blue.persistOnly
   @type.rootRef("IEveVolume")
-  volume = null;
+  _volume = null;
+
+  /**
+   * Carbon MAP_PROPERTY "volume" over GetVolume/SetVolume
+   * (EveDistributionPlacementGeneratorVolume_Blue.cpp:19): the setter moves
+   * the change subscription to the replacement volume.
+   */
+  @blue.property()
+  @type.rootRef("IEveVolume")
+  @meta.implemented
+  get volume()
+  {
+    return this.GetVolume();
+  }
+
+  /** Moves the regeneration subscription to the replacement volume. */
+  @meta.implemented
+  set volume(value)
+  {
+    this.SetVolume(value);
+  }
 
   /**
    * Appends one placement per point sampled from the assigned volume, translated by the volume's bounding-sphere centre and oriented so +Y points along the sampled radial direction; appends nothing when no volume is assigned.
@@ -59,14 +84,14 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   @meta.adapted
   GetInitialPlacements(placements, trackingID)
   {
-    if (!this.volume)
+    if (!this._volume)
     {
       return;
     }
 
     const points = [];
-    this.volume.GeneratePointsInVolume(points, this.numGenerated, this.hollowVolume, this.falloffFactor);
-    const offset = this.volume.GetBoundingSphere().center;
+    this._volume.GeneratePointsInVolume(points, this.numGenerated, this.hollowVolume, this.falloffFactor);
+    const offset = this._volume.GetBoundingSphere().center;
     const direction = vec3.create();
     const up = vec3.fromValues(0, 1, 0);
 
@@ -92,7 +117,7 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   @meta.implemented
   GetVolume()
   {
-    return this.volume;
+    return this._volume;
   }
 
   /**
@@ -105,7 +130,7 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   {
     this.RemoveVolumeCallbacks();
     this._volumeCallbackID = 0;
-    this.volume = volume ?? null;
+    this._volume = volume ?? null;
     this.AddVolumeCallbacks();
   }
 
@@ -117,10 +142,10 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   @meta.implemented
   AddVolumeCallbacks()
   {
-    this._subscribedVolume = this.volume;
-    if (this.volume)
+    this._subscribedVolume = this._volume;
+    if (this._volume)
     {
-      this._volumeCallbackID = this.volume.RegisterForChanges(() => this.RequestRegeneration());
+      this._volumeCallbackID = this._volume.RegisterForChanges(() => this.RequestRegeneration());
     }
   }
 

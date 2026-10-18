@@ -242,13 +242,27 @@ export class EveChildContainer extends EveChildTransform
 
   _hasUpdated = false;
 
-  /** Blue read-only property alias for IsRendering. */
+  /**
+   * Carbon MAP_PROPERTY_READONLY "isRendering" over IsRendering
+   * (EveChildContainer_Blue.cpp:60): whether the children render under the
+   * current display filter and shader settings.
+   */
+  @blue.property()
+  @type.boolean
+  @meta.implemented
   get isRendering()
   {
     return this.IsRendering();
   }
 
-  /** Blue read-only property alias for IsUpdating. */
+  /**
+   * Carbon MAP_PROPERTY_READONLY "isUpdating" over IsUpdating
+   * (EveChildContainer_Blue.cpp:61): whether the children update under the
+   * current display filter and shader settings.
+   */
+  @blue.property()
+  @type.boolean
+  @meta.implemented
   get isUpdating()
   {
     return this.IsUpdating();

@@ -226,11 +226,49 @@ export class Tr2ParticleSystem
   @type.boolean
   useSimTimeRebase = false;
 
-  /** m_maxParticleCount (unsigned) [PERSISTONLY] */
-  @blue.readwrite
+  /**
+   * m_maxParticleCount (unsigned, private, h:215), persisted under its exposed
+   * name by MAP_ATTRIBUTE "maxParticleCount" PERSISTONLY
+   * (Tr2ParticleSystem_Blue.cpp:97-101). Readers write it directly, bypassing
+   * the setter; the declaration rebuild then sizes the buffers from it.
+   */
+  @blue.attribute("maxParticleCount")
   @blue.persistOnly
   @type.uint32
-  maxParticleCount = 0;
+  _maxParticleCount = 0;
+
+  /**
+   * Carbon MAP_PROPERTY "maxParticleCount" over the private GetMaxParticleCount
+   * and the public SetMaxParticleCount (Tr2ParticleSystem_Blue.cpp:109-113): setting it
+   * rebuilds the buffers, which clears the particle system.
+   */
+  @blue.property()
+  @type.uint32
+  @meta.implemented
+  get maxParticleCount()
+  {
+    return this._GetMaxParticleCount();
+  }
+
+  /** Rebuilds the particle buffers at the capped replacement capacity. */
+  @meta.implemented
+  set maxParticleCount(value)
+  {
+    this.SetMaxParticleCount(value);
+  }
+
+  /**
+   * Carbon MAP_PROPERTY_READONLY "gpuStride" over GetGpuStride
+   * (Tr2ParticleSystem_Blue.cpp:115-118): the size of one GPU buffer element
+   * in bytes.
+   */
+  @blue.property()
+  @type.uint32
+  @meta.implemented
+  get gpuStride()
+  {
+    return this.GetGpuStride();
+  }
 
   /** m_aliveCount (unsigned) [READ] */
   @blue.read
@@ -252,11 +290,11 @@ export class Tr2ParticleSystem
   SetMaxParticleCount(value)
   {
     this._DestroyBuffers();
-    this.maxParticleCount = Math.min(Number(value) >>> 0, Tr2ParticleSystem.MAX_PARTICLE_COUNT);
+    this._maxParticleCount = Math.min(Number(value) >>> 0, Tr2ParticleSystem.MAX_PARTICLE_COUNT);
     this._BuildBuffers();
     vec3.set(this.aabbMin, 0, 0, 0);
     vec3.set(this.aabbMax, 0, 0, 0);
-    return this.maxParticleCount;
+    return this._maxParticleCount;
   }
 
   /**
@@ -289,7 +327,7 @@ export class Tr2ParticleSystem
     this._mappedData = null;
 
     this.aliveCount = 0;
-    Tr2ParticleSystem._totalParticleCount -= this.maxParticleCount;
+    Tr2ParticleSystem._totalParticleCount -= this._maxParticleCount;
   }
 
   /**
@@ -304,7 +342,7 @@ export class Tr2ParticleSystem
   @meta.adapted
   _BuildBuffers()
   {
-    if (!this.maxParticleCount)
+    if (!this._maxParticleCount)
     {
       return;
     }
@@ -314,27 +352,27 @@ export class Tr2ParticleSystem
       return;
     }
 
-    const totalParticleCount = Tr2ParticleSystem._totalParticleCount + this.maxParticleCount;
+    const totalParticleCount = Tr2ParticleSystem._totalParticleCount + this._maxParticleCount;
 
     // only dynamic system are being capped!
     if (this.IsDynamic())
     {
       if (totalParticleCount >= Tr2ParticleSystem.cpuMaxParticleCount)
       {
-        this.maxParticleCount = 0;
+        this._maxParticleCount = 0;
         return;
       }
     }
 
     if (this.requiresSorting)
     {
-      this._indexes = new Array(this.maxParticleCount);
+      this._indexes = new Array(this._maxParticleCount);
     }
 
     for (let index = 0; index < this._buffers.length; index++)
     {
       const stride = this._strides[index];
-      this._buffers[index] = stride ? new Float32Array(stride * this.maxParticleCount) : null;
+      this._buffers[index] = stride ? new Float32Array(stride * this._maxParticleCount) : null;
     }
     for (const element of this._runtimeElements)
     {
@@ -348,12 +386,16 @@ export class Tr2ParticleSystem
     Tr2ParticleSystem._totalParticleCount = totalParticleCount;
   }
 
-  /** Returns the currently active, possibly LOD-clamped particle budget. */
-  @blue.method
+  /**
+   * Carbon GetMaxParticleCount (private, cpp:202-205): the currently active,
+   * possibly LOD-clamped particle budget.
+   *
+   * @returns {number} m_maxParticleCount.
+   */
   @meta.implemented
-  GetMaxParticleCount()
+  _GetMaxParticleCount()
   {
-    return this.maxParticleCount;
+    return this._maxParticleCount;
   }
 
   /** Returns the particle budget captured when the declaration was built. */
@@ -840,13 +882,13 @@ export class Tr2ParticleSystem
   @meta.adapted
   CreateVertexBuffer()
   {
-    if (this.maxParticleCount > 0 && this._strides[0] > 0)
+    if (this._maxParticleCount > 0 && this._strides[0] > 0)
     {
       const context = Tr2RenderContext_GetMainThreadRenderContext();
       this._vertexBuffer?.Destroy();
       this._mappedData = null;
       this._vertexBuffer = context.CreateBuffer(Tr2BufferDescriptionAL.create__Stride(
-        this._strides[0] * 4, this.maxParticleCount,
+        this._strides[0] * 4, this._maxParticleCount,
         Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN
       ));
       if (!this._vertexBuffer) return false;
@@ -964,7 +1006,7 @@ export class Tr2ParticleSystem
     if (this.useSimTimeRebase) this.#UpdateRebaseRegistration();
     if (this.emitParticleOnDeathEmitter) this.emitParticleOnDeathEmitter.SetThreadSafeFlag();
     if (this.emitParticleDuringLifeEmitter) this.emitParticleDuringLifeEmitter.SetThreadSafeFlag();
-    this.originalMaxParticles = this.maxParticleCount;
+    this.originalMaxParticles = this._maxParticleCount;
     return true;
   }
 
@@ -974,7 +1016,7 @@ export class Tr2ParticleSystem
   OnModified(names)
   {
     if (IsMatch(names, "requiresSorting"))
-      this._indexes = this.requiresSorting && this.maxParticleCount ? new Array(this.maxParticleCount) : [];
+      this._indexes = this.requiresSorting && this._maxParticleCount ? new Array(this._maxParticleCount) : [];
     if (IsMatch(names, "useSimTimeRebase")) this.#UpdateRebaseRegistration();
     if (IsMatch(names, "emitParticleOnDeathEmitter") && this.emitParticleOnDeathEmitter)
       this.emitParticleOnDeathEmitter.SetThreadSafeFlag();
@@ -1087,7 +1129,7 @@ export class Tr2ParticleSystem
   @meta.adapted
   InsertParticle(particle)
   {
-    if (this.aliveCount < this.maxParticleCount)
+    if (this.aliveCount < this._maxParticleCount)
     {
       for (let index = 0; index < this._buffers.length; index++)
       {
@@ -1125,7 +1167,7 @@ export class Tr2ParticleSystem
   @meta.adapted
   BeginSpawnParticle()
   {
-    if (!this.isValid || this.aliveCount >= this.maxParticleCount)
+    if (!this.isValid || this.aliveCount >= this._maxParticleCount)
     {
       return null;
     }
@@ -1181,7 +1223,7 @@ export class Tr2ParticleSystem
   SetParticleElement(index, type, value)
   {
     const element = this._ResolveElement(type);
-    if (!element || index < 0 || index >= this.maxParticleCount)
+    if (!element || index < 0 || index >= this._maxParticleCount)
     {
       return false;
     }

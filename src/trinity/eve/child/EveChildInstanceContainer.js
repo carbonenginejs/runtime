@@ -125,11 +125,36 @@ export class EveChildInstanceContainer extends EveChildTransform
   @type.string
   locatorSet = "";
 
-  /** m_source (IEveSpaceObjectChildPtr) [PERSISTONLY] */
-  @blue.readwrite
+  /**
+   * m_source (EveSpaceObjectChildPtr, protected, h:154), persisted under its
+   * exposed name by MAP_ATTRIBUTE "source" PERSISTONLY
+   * (EveChildInstanceContainer_Blue.cpp:58). Readers write it directly,
+   * bypassing the setter; OnModified then requests recreation.
+   */
+  @blue.attribute("source")
   @blue.persistOnly
   @type.rootRef("IEveSpaceObjectChild")
-  source = null;
+  _source = null;
+
+  /**
+   * Carbon MAP_PROPERTY "source" over GetSource/SetSource
+   * (EveChildInstanceContainer_Blue.cpp:59): the setter moves child ownership
+   * and the source's edit-mode registration to the replacement.
+   */
+  @blue.property()
+  @type.rootRef("IEveSpaceObjectChild")
+  @meta.implemented
+  get source()
+  {
+    return this.GetSource();
+  }
+
+  /** Transfers child ownership and edit-mode registration to the replacement. */
+  @meta.implemented
+  set source(value)
+  {
+    this.SetSource(value);
+  }
 
   /** m_origin (Origin - enum Origin) [READ] */
   @blue.read
@@ -153,7 +178,7 @@ export class EveChildInstanceContainer extends EveChildTransform
     if (this.GetOwner() === owner) return;
     super.SetOwner(owner);
     for (const child of this.instances) child.SetOwner(owner);
-    if (this.source) this.source.SetOwner(owner);
+    if (this._source) this._source.SetOwner(owner);
   }
 
   /** Propagates a modular part tag to the source and live instances. */
@@ -165,7 +190,7 @@ export class EveChildInstanceContainer extends EveChildTransform
     if (this.GetPartTag() === next) return;
     super.SetPartTag(next);
     for (const child of this.instances) child.SetPartTag(next);
-    if (this.source) this.source.SetPartTag(next);
+    if (this._source) this._source.SetPartTag(next);
   }
 
   /** Carbon EveChildInstanceContainer.cpp:160-166: modifiers invalidate distributed instances. */
@@ -214,7 +239,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   @meta.implemented
   GetSource()
   {
-    return this.source;
+    return this._source;
   }
 
   /** Transfers child ownership and the source's edit-mode registration (cpp:128). */
@@ -223,9 +248,9 @@ export class EveChildInstanceContainer extends EveChildTransform
   SetSource(source)
   {
     const registry = this.GetComponentRegistry();
-    CjsSchema.cast(this.source, EveEntity)?.UnRegister(registry);
-    this.UnregisterChild(this.source);
-    this.source = source;
+    CjsSchema.cast(this._source, EveEntity)?.UnRegister(registry);
+    this.UnregisterChild(this._source);
+    this._source = source;
     this.RegisterChild(source);
     if (!this.instances.length && !this.disableEditMode)
       CjsSchema.cast(source, EveEntity)?.Register(registry);
@@ -252,7 +277,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   CreateInstances(parent)
   {
     this.ClearInstanceList();
-    if (!this.source) return;
+    if (!this._source) return;
     if (this.locatorSet)
     {
       const spaceObject = CjsSchema.cast(parent, EveSpaceObject2);
@@ -291,9 +316,9 @@ export class EveChildInstanceContainer extends EveChildTransform
   @meta.implemented
   CreateInstance(scale, rotation, translation, boneIndex = -1)
   {
-    if (!this.source) return;
+    if (!this._source) return;
     const translationParent = new EveChildContainer();
-    const instance = be.classes.CopyTo(this.source, null);
+    const instance = be.classes.CopyTo(this._source, null);
     if (!instance) return;
     for (const modifier of this.transformModifiers) instance.AddTransformModifier(modifier);
     translationParent.AddToEffectChildrenList(instance);
@@ -404,7 +429,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   {
     const key = String(name);
     const next = Number(value);
-    this.source?.SetControllerVariable(key, next);
+    this._source?.SetControllerVariable(key, next);
     this._controllerVariables.set(key, next);
     this._RunOnInstances(instance => instance.SetControllerVariable(key, next));
   }
@@ -455,7 +480,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   @meta.implemented
   GetCurveSetDuration(name)
   {
-    const owner = CjsSchema.cast(this.source, ITr2CurveSetOwner);
+    const owner = CjsSchema.cast(this._source, ITr2CurveSetOwner);
     return owner ? owner.GetCurveSetDuration(name) : 0;
   }
 
@@ -464,7 +489,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   @meta.implemented
   GetRangeDuration(name, rangeName)
   {
-    const owner = CjsSchema.cast(this.source, ITr2CurveSetOwner);
+    const owner = CjsSchema.cast(this._source, ITr2CurveSetOwner);
     return owner ? owner.GetRangeDuration(name, rangeName) : 0;
   }
 
@@ -508,9 +533,9 @@ export class EveChildInstanceContainer extends EveChildTransform
    * enabled. */
   _RunOnInstances(func)
   {
-    if (!this.instances.length && this.source && !this.disableEditMode)
+    if (!this.instances.length && this._source && !this.disableEditMode)
     {
-      func(this.source);
+      func(this._source);
       return;
     }
     for (const instance of this.instances)
@@ -633,7 +658,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
-    if (this.source) this.source.RegisterWithQuadRenderer(quadRenderer);
+    if (this._source) this._source.RegisterWithQuadRenderer(quadRenderer);
   }
 
   /** Carbon EveChildInstanceContainer::AddQuadsToQuadRenderer (cpp:475-478). */
@@ -661,7 +686,7 @@ export class EveChildInstanceContainer extends EveChildTransform
 
       if (!this.instances.length && !this.disableEditMode)
       {
-        this.source?.Register(registry);
+        this._source?.Register(registry);
       }
     }
   }
@@ -679,7 +704,7 @@ export class EveChildInstanceContainer extends EveChildTransform
       {
         instance?.UnRegister(registry);
       }
-      this.source?.UnRegister(registry);
+      this._source?.UnRegister(registry);
     }
   }
 

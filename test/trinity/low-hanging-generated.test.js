@@ -120,7 +120,8 @@ test("EveChildEffectPropagator.Stop resets playback and clears effect instances"
   let clearCalls = 0;
   propagator.isPlaying = true;
   propagator.playTime = 4;
-  propagator.effect = {
+  // The backing member: the effect property runs Carbon's SetEffect (EveChildEffectPropagator_Blue.cpp:38).
+  propagator._effect = {
     instances: [{}, {}],
     ClearInstanceList()
     {

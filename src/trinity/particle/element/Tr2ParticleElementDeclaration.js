@@ -17,6 +17,19 @@ export class Tr2ParticleElementDeclaration
   @type.enum("trinity.Tr2ParticleElementDeclarationName.Type")
   elementType = 4;
 
+  /**
+   * Carbon MAP_PROPERTY_READONLY "name" over GetName
+   * (Tr2ParticleElementDeclaration_Blue.cpp:45): the element name composed of
+   * type and customName.
+   */
+  @blue.property()
+  @type.string
+  @meta.implemented
+  get name()
+  {
+    return this.GetName();
+  }
+
   /** m_name.m_name (std::string) [READWRITE, PERSIST] */
   @blue.readwrite
   @blue.persist

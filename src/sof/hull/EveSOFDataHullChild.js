@@ -2,7 +2,7 @@ import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import "#consts/trinity";
-import { type, blue } from "#schema";
+import { meta, type, blue } from "#schema";
 import { Tr2Lod } from "#consts/trinity";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -63,6 +63,19 @@ export class EveSOFDataHullChild
   @blue.persist
   @type.int32
   groupIndex = -1;
+
+  /**
+   * Carbon MAP_PROPERTY_READONLY "name" over GetName
+   * (EveSOFData_Blue.cpp:859): the red file path's basename without its extension. Carbon persists no name for
+   * this class; the getter derives it.
+   */
+  @blue.property()
+  @type.string
+  @meta.implemented
+  get name()
+  {
+    return this.GetName();
+  }
 
   /**
    * Extracts the final path component without its extension when the resource

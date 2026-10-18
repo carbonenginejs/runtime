@@ -108,6 +108,19 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
   valid = false;
 
   /**
+   * Carbon MAP_PROPERTY_READONLY "name" over GetName
+   * (Tr2SphereShapeAttributeGenerator_Blue.cpp:15): the elements the generator
+   * writes. Carbon's description reuses the element-name wording.
+   */
+  @blue.property()
+  @type.string
+  @meta.implemented
+  get name()
+  {
+    return this.GetName();
+  }
+
+  /**
    * Resolves the position and velocity elements according to the control flags, marking the generator valid only when every required element resolves.
    */
   @blue.method

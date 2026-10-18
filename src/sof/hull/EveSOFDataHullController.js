@@ -1,7 +1,7 @@
 import { IRoot } from "../../global/blue/IRoot.js";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { type, blue } from "#schema";
+import { meta, type, blue } from "#schema";
 
 /** Names a controller resource path and its build filter, deriving the controller name from the path. */
 @blue.define("EveSOFDataHullController")
@@ -20,6 +20,19 @@ export class EveSOFDataHullController
   @blue.persist
   @type.path("object")
   path = "";
+
+  /**
+   * Carbon MAP_PROPERTY_READONLY "name" over GetName
+   * (EveSOFData_Blue.cpp:902): the controller path's basename without its extension. Carbon persists no name for
+   * this class; the getter derives it.
+   */
+  @blue.property()
+  @type.string
+  @meta.implemented
+  get name()
+  {
+    return this.GetName();
+  }
 
   /**
    * Derives the controller resource's basename without its extension when a
