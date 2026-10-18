@@ -506,21 +506,9 @@ export class TriDevice
   @meta.implemented
   static RegisterResource(resource)
   {
-    // CHECKED AT THE DOOR, because both verbs are non-optional on Carbon's
-    // base: ReleaseResources is pure virtual and PrepareResources is concrete
-    // on Tr2DeviceResource itself (`Tr2DeviceResource.h:45,53`). A registry
-    // that accepted something without them would have to hedge every call, and
-    // a resource silently never released is exactly the failure this device is
-    // meant to prevent.
-    if (typeof resource?.ReleaseResources !== "function"
-      || typeof resource?.PrepareResources !== "function")
-    {
-      throw new TypeError(
-        "TriDevice.RegisterResource expects a Tr2DeviceResource with "
-        + "PrepareResources and ReleaseResources."
-      );
-    }
-
+    // Carbon takes a Tr2DeviceResource* (TriDevice.h:135), whose ReleaseResources
+    // is pure virtual and PrepareResources concrete (Tr2DeviceResource.h:45,53),
+    // so both are called directly when the device prepares and releases.
     TriDevice.#resourcesRegistered.add(resource);
   }
 
