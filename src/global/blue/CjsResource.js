@@ -595,9 +595,6 @@ export class CjsResource
    * @returns {CjsResource} This resource.
    */
   SetFormatStore(store = null) {
-    if (store !== null && typeof store?.Resolve !== "function") {
-      throw new TypeError("CjsResource.SetFormatStore requires a format store or null.");
-    }
     this.__formatStore = store;
     return this;
   }

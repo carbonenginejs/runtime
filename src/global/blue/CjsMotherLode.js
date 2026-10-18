@@ -42,7 +42,6 @@ const BEQI_SILENT = 0x1;
  *
  * @typedef {CjsMotherLodeMutationOptions & object} CjsMotherLodeInsertOptions
  * @property {boolean} [replace=true] Whether an existing different resource may be displaced.
- * @property {string} [variant] Variant used only by the legacy resource-first insertion form.
  * @property {boolean} [cacheable=true] Carbon's `allowCaching` (`IMotherLode::CACHING_ALLOWED`):
  *   whether the entry may enter the cache once unused, if its class is `ICacheable`.
  * @property {number} [frame] Explicit non-negative activity frame; otherwise the counter advances.
@@ -246,31 +245,27 @@ export class CjsMotherLode
   /**
    * Insert a canonical key and report whether an existing owner was displaced.
    *
-   * The legacy `Insert(resource, path, variant)` form remains accepted while
-   * ResMan and consumers migrate to `Insert(key, resource, options)`.
-   * Cleanup completes before canonical ownership changes, so a cleanup error
+   * Carbon's one form, key first (`IMotherLode::Insert( key, object, ... )`,
+   * IMotherLode.h:60-65). Cleanup completes before canonical ownership changes, so a cleanup error
    * leaves the previous resource registered and the supplied resource owned by
    * its caller.
    *
-   * @param {string|object|Function} keyOrResource Canonical key, or the legacy resource object.
-   * @param {object|Function|string} resourceOrPath Resource object, or the legacy source path.
-   * @param {CjsMotherLodeInsertOptions|string} [optionsOrVariant={}] Insertion options, or legacy variant.
+   * @param {string} key Canonical resolved key.
+   * @param {object|Function} resource Resource object.
+   * @param {CjsMotherLodeInsertOptions} [insertOptions={}] Insertion options.
    * @returns {CjsMotherLodeInsertResult} Canonical ownership result.
    * @throws {TypeError} If the key, resource, metadata, or activity values are invalid.
    * @throws {Error} If the registry is inactive or displaced-resource cleanup fails.
    */
-  Insert(keyOrResource, resourceOrPath, optionsOrVariant = {})
+  Insert(key, resource, insertOptions = {})
   {
     if (!this._active)
     {
       throw motherLodeInactiveError();
     }
 
-    const { key, resource, options } = normalizeInsertArguments(
-      keyOrResource,
-      resourceOrPath,
-      optionsOrVariant
-    );
+    key = normalizeResolvedKey(key);
+    const options = normalizeOptions(insertOptions, "insert");
     assertResource(resource);
 
     const existing = this._entries.get(key) || null;
@@ -1073,7 +1068,7 @@ export class CjsMotherLode
       if (record.lockCount > 0) locked += 1;
       if (hasOwnedPayload(record.resource)) payloads += 1;
 
-      const path = record.resource?.GetPath?.() || record.resource?.path || getKeyPath(record.key);
+      const path = CastResource(record.resource)?.GetPath() || getKeyPath(record.key);
       if (path) paths.add(path);
 
       const state = typeof record.resource?.state === "string" ? record.resource.state : "unknown";
@@ -1326,25 +1321,6 @@ export function getMotherLodeKey(path, variant = "")
     throw new TypeError("CjsMotherLode variant may not contain a null character.");
   }
   return `${normalizedPath}\u0000${normalizedVariant}`;
-}
-
-function normalizeInsertArguments(keyOrResource, resourceOrPath, optionsOrVariant)
-{
-  if (typeof keyOrResource === "string")
-  {
-    return {
-      key: normalizeResolvedKey(keyOrResource),
-      resource: resourceOrPath,
-      options: normalizeOptions(optionsOrVariant, "insert")
-    };
-  }
-
-  const resource = keyOrResource;
-  const path = resourceOrPath ?? resource?.GetPath?.() ?? resource?.path;
-  const isOptions = optionsOrVariant && typeof optionsOrVariant === "object" && !Array.isArray(optionsOrVariant);
-  const options = isOptions ? normalizeOptions(optionsOrVariant, "insert") : {};
-  const variant = isOptions ? options.variant || "" : optionsOrVariant;
-  return { key: getMotherLodeKey(path, variant), resource, options };
 }
 
 function normalizeDeleteArguments(key, variantOrOptions, maybeOptions)

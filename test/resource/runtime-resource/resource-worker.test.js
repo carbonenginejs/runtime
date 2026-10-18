@@ -169,7 +169,7 @@ test("CjsBlueResMan loads through the worker when its source offers a worker req
   const resMan = new CjsBlueResMan({
     autoPumpMainThreadQueue: false,
     source,
-    workerLoader: { worker }
+    workerLoader: new CjsResManWorkerLoader({ worker })
   });
   resMan.RegisterObjectLoader("bin", input => new Uint8Array(input));
 

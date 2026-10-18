@@ -54,7 +54,6 @@ export class CjsResManWorkerLoader
     }
 
     this.fallback = options.fallback || new CjsResManMainThreadLoader();
-    assertResourceLoader(this.fallback, "fallback");
     this.workerFactory = options.workerFactory || defaultWorkerFactory;
     if (typeof this.workerFactory !== "function") {
       throw new TypeError("CjsResManWorkerLoader workerFactory must be a function.");
@@ -143,11 +142,10 @@ export class CjsResManWorkerLoader
   /**
    * Replace the unsupported-operation fallback.
    *
-   * @param {CjsResManMainThreadLoader|object} fallback Loader exposing Read and ReadFormat.
+   * @param {CjsResManMainThreadLoader} fallback The main-thread loader.
    * @returns {CjsResManWorkerLoader} This loader.
    */
   SetFallback(fallback) {
-    assertResourceLoader(fallback, "fallback");
     this.fallback = fallback;
     return this;
   }
@@ -172,6 +170,7 @@ export class CjsResManWorkerLoader
    */
   Read(source, path, options = {}) {
     assertResourceSource(source);
+    // Host feature check: an application source may opt in to worker reads.
     if (typeof source.CreateWorkerRequest !== "function") {
       return this.fallback.Read(source, path, options);
     }
@@ -356,12 +355,6 @@ export class CjsResManWorkerLoader
   _OnError(event) {
     const reason = event?.error || event || new Error("Resource worker failed.");
     this.Disable(reason);
-  }
-}
-
-function assertResourceLoader(loader, name = "loader") {
-  if (!loader || typeof loader.Read !== "function" || typeof loader.ReadFormat !== "function") {
-    throw new TypeError(`CjsResManWorkerLoader ${name} must provide Read and ReadFormat.`);
   }
 }
 

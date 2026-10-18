@@ -117,7 +117,6 @@ test("an unknown dynamic name and a constructor yielding nothing are raised by n
     error => error.code === "CJS_RESMAN_DYNAMIC_RESOURCE_UNAVAILABLE"
   );
   assert.throws(() => resMan.RegisterResourceConstructor("", { GetResource() {} }), TypeError);
-  assert.throws(() => resMan.RegisterResourceConstructor("bad", {}), TypeError);
 });
 
 test("a malformed dynamic colour fails without falling back to a source read", async () =>
@@ -177,7 +176,4 @@ test("each dynamic constructor declares its cache policy; Carbon's default is no
   assert.equal(new GradientTextureConstructor().IsCacheable(), false);
   // A solid colour is four numbers; it is kept for good.
   assert.equal(new SolidColorTextureConstructor().IsCacheable(), true);
-
-  const resMan = new CjsBlueResMan();
-  assert.throws(() => resMan.RegisterResourceConstructor("half", { GetResource() {} }), /IsCacheable/);
 });

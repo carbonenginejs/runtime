@@ -389,10 +389,6 @@ test("CjsBlueResMan registers immutable extension handlers through every short f
   assert.deepEqual(resource.GetPayload(), { byte: 7 });
   assert.equal(await resMan.LoadObject("res:/data/one.route"), resource);
 
-  assert.throws(
-    () => resMan.RegisterExtension("bad", class {}, TestRouteFormat),
-    /CjsResource-compatible handler/u
-  );
   class MissingMode extends CjsResource {}
   MissingMode.handlerMode = "other";
   assert.throws(
@@ -1046,7 +1042,7 @@ test("CjsMotherLode clears cached entries and shuts down idempotently", () =>
 
   motherLode.Startup();
   const restarted = new CjsResource().Initialize("res:/data/restarted.bin");
-  const restartedResult = motherLode.Insert(restarted, restarted.GetPath(), "legacy");
+  const restartedResult = motherLode.Insert(getMotherLodeKey(restarted.GetPath(), "legacy"), restarted);
   assert.equal(restartedResult.inserted, true);
   assert.equal(restartedResult.key, getMotherLodeKey(restarted.GetPath(), "legacy"));
   assert.equal(motherLode.Has(restarted.GetPath(), "legacy"), true);

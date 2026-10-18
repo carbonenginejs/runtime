@@ -22,6 +22,7 @@ export const Message = Object.freeze({
  */
 export function assertResourceSource(source)
 {
+  // Host feature check: the source is supplied by the composing application.
   if (!source || (typeof source !== "object" && typeof source !== "function")
     || typeof source.Read !== "function")
   {

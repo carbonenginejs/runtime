@@ -361,7 +361,7 @@ export class CjsBlueResMan
    * @param {object} [options.cacheCleanup] Cleanup policy used if a smaller configured budget evicts cached identities.
    * @param {object} [options.mainThreadLoader] Direct execution strategy.
    * @param {object|Map|object[]} [options.extensions] Extension route registrations.
-   * @param {object} [options.workerLoader] Worker loader instance or construction options.
+   * @param {CjsResManWorkerLoader|null} [options.workerLoader] Worker loader.
    * @param {boolean} [options.useWorkerLoading=true] Whether worker-backed execution is selected.
    * @returns {CjsBlueResMan} This resource manager.
    * @throws {TypeError} If options or any configured component are invalid.
@@ -473,11 +473,10 @@ export class CjsBlueResMan
    * Replace the direct execution strategy used by unsupported worker
    * operations and whenever worker loading is not selected.
    *
-   * @param {object} loader Loader exposing `Read` and `ReadFormat`.
+   * @param {CjsResManMainThreadLoader} loader The main-thread loader.
    * @returns {CjsBlueResMan} This resource manager.
    */
   SetMainThreadLoader(loader) {
-    assertResourceLoader(loader, "mainThreadLoader");
     const wasSelected = this.resourceLoader === this.mainThreadLoader;
     this.mainThreadLoader = loader;
     this.workerLoader?.SetFallback(loader);
@@ -486,12 +485,12 @@ export class CjsBlueResMan
   }
 
   /**
-   * Install a worker loader instance or construct one from options.
+   * Install a worker loader, or remove it with null.
    *
    * Installation does not select worker execution; call
    * `UseWorkerLoading(true)` or pass `useWorkerLoading: true`.
    *
-   * @param {object|null} loader Worker loader or CjsResManWorkerLoader options.
+   * @param {CjsResManWorkerLoader|null} loader The worker loader.
    * @returns {CjsBlueResMan} This resource manager.
    */
   SetWorkerLoader(loader) {
@@ -502,15 +501,8 @@ export class CjsBlueResMan
       return this;
     }
 
-    const resolved = isResourceLoader(loader)
-      ? loader
-      : new CjsResManWorkerLoader({
-        ...(loader || {}),
-        fallback: loader?.fallback || this.mainThreadLoader
-      });
-    assertResourceLoader(resolved, "workerLoader");
-    this.workerLoader = resolved;
-    if (wasSelected) this.resourceLoader = resolved;
+    this.workerLoader = loader;
+    if (wasSelected) this.resourceLoader = loader;
     return this;
   }
 
@@ -527,7 +519,7 @@ export class CjsBlueResMan
       this.resourceLoader = this.mainThreadLoader;
       return this;
     }
-    if (!this.workerLoader) this.SetWorkerLoader({});
+    if (!this.workerLoader) this.SetWorkerLoader(new CjsResManWorkerLoader({ fallback: this.mainThreadLoader }));
     this.workerLoader.Reset();
     this.resourceLoader = this.workerLoader;
     return this;
@@ -1127,12 +1119,6 @@ export class CjsBlueResMan
     {
       throw new TypeError("CjsBlueResMan.RegisterExtension requires an extension.");
     }
-    if (typeof Handler !== "function"
-      || typeof Handler.prototype?.Initialize !== "function")
-    {
-      throw new TypeError("CjsBlueResMan.RegisterExtension requires a CjsResource-compatible handler constructor.");
-    }
-
     const handlerMode = Handler.handlerMode;
     if (!Object.values(ResourceHandlerMode).includes(handlerMode))
     {
@@ -1219,9 +1205,9 @@ export class CjsBlueResMan
    * constructor's `GetResource(query)` returns a resource for that query.
    *
    * @param {string} name Name following `dynamic:/`.
-   * @param {{GetResource: function(string): object}} constructor Resource constructor.
+   * @param {IBlueDynamicResourceConstructor} constructor Resource constructor.
    * @returns {CjsBlueResMan} This resource manager.
-   * @throws {TypeError} If the name is empty or the constructor has no GetResource.
+   * @throws {TypeError} If the name is empty.
    */
   RegisterResourceConstructor(name, constructor)
   {
@@ -1229,10 +1215,6 @@ export class CjsBlueResMan
     if (!key)
     {
       throw new TypeError("CjsBlueResMan.RegisterResourceConstructor requires a name.");
-    }
-    if (typeof constructor?.GetResource !== "function" || typeof constructor.IsCacheable !== "function")
-    {
-      throw new TypeError(`CjsBlueResMan dynamic resource constructor "${key}" must implement IBlueDynamicResourceConstructor (GetResource and IsCacheable).`);
     }
     this._dynamicConstructors.set(key, constructor);
     return this;
@@ -2304,7 +2286,6 @@ export class CjsBlueResMan
       : null;
     const runInWorker = Boolean(
       resolved.descriptor
-      && typeof this.resourceLoader?.CanReadFormat === "function"
       && this.resourceLoader.CanReadFormat(
         resolved.descriptor,
         formatOptions,
@@ -3171,6 +3152,7 @@ export class CjsBlueResMan
         format: 0
       };
     }
+    // Host feature check: a source is supplied by the composing application.
     if ((typeof source !== "object" && typeof source !== "function")
       || typeof source.Read !== "function")
     {
@@ -3226,6 +3208,7 @@ export class CjsBlueResMan
     // Carbon reads every file through BePaths (BlueAsyncRes::DoOpenStream,
     // BlueAsyncRes.cpp:377-387). An explicit source still overrides it.
     const source = options.source || this.source || this._bluePathsSource;
+    // Host feature check: an explicit source is supplied by the composing application.
     if ((typeof source !== "object" && typeof source !== "function") || typeof source.Read !== "function")
     {
       throw new TypeError("CjsBlueResMan requires a source with Read(path, options) to load objects.");
@@ -5021,36 +5004,6 @@ function getResourceDiagnosticPath(resource)
  * @returns {void}
  */
 function noop() {}
-
-/**
- * Validate a resource execution strategy.
- *
- * @param {*} loader Candidate loader.
- * @param {string} name Configuration field name.
- * @returns {void}
- */
-function assertResourceLoader(loader, name)
-{
-  if (!isResourceLoader(loader))
-  {
-    throw new TypeError(`CjsBlueResMan ${name} must provide Read and ReadFormat.`);
-  }
-}
-
-/**
- * Test the structural resource loader contract.
- *
- * @param {*} loader Candidate loader.
- * @returns {boolean}
- */
-function isResourceLoader(loader)
-{
-  return Boolean(
-    loader
-    && typeof loader.Read === "function"
-    && typeof loader.ReadFormat === "function"
-  );
-}
 
 /**
  * Merge snapshotted registration defaults with one request's format overrides.

@@ -200,13 +200,8 @@ test("a bound format store answers instead of the caller naming the reader", () 
 });
 
 
-test("a format store binding is a store or nothing", () =>
+test("a format store binding can be cleared", () =>
 {
-  assert.throws(
-    () => new Tr2GrannyStateRes().SetFormatStore({}),
-    TypeError,
-    "an object that cannot resolve is not a store"
-  );
   assert.equal(new Tr2GrannyStateRes().SetFormatStore(null).GetFormatStore(), null);
 });
 
