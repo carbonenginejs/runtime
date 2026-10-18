@@ -164,11 +164,7 @@ export class EveChildLink extends EveChildMesh
     inverseRotationWorld[12] = 0;
     inverseRotationWorld[13] = 0;
     inverseRotationWorld[14] = 0;
-    if (!mat4.invert(inverseRotationWorld, inverseRotationWorld))
-    {
-      // JS-only guard: Carbon inverts unconditionally.
-      mat4.identity(inverseRotationWorld);
-    }
+    mat4.inverseCarbon(inverseRotationWorld, inverseRotationWorld);
 
     // Carbon (row-vector): linkRotationMat * invRotationWorldMat - linkRotationMat first. (EveChildLink.cpp:131)
     mat4.multiply(linkRotation, inverseRotationWorld, linkRotation);

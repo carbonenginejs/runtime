@@ -314,8 +314,9 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
 
     this._fogIntensity = 0;
     const viewPosition = updateContext.renderContext.GetViewPosition();
-    const inverse = mat4.invert(INVERSE_WORLD, this.worldTransform);
-    if (!inverse || !initialized) return;
+    // Inverse( m_worldTransform ) (EveChildFogVolume.cpp:105), unconditional.
+    const inverse = mat4.inverseCarbon(INVERSE_WORLD, this.worldTransform);
+    if (!initialized) return;
     vec3.transformMat4(LOCAL_VIEW, viewPosition, inverse);
     if (vec3.distance(LOCAL_VIEW, this.boundingSphereCenter) > this.boundingSphereRadius) return;
     for (const volume of this.volumes)

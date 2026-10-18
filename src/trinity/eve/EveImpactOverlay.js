@@ -663,11 +663,8 @@ export class EveImpactOverlay
       }
 
       const parentWorldTransform = parent.GetLocalToWorldTransform(mat4.create());
-      const parentInverseWorldTransform = mat4.invert(mat4.create(), parentWorldTransform);
-      if (!parentInverseWorldTransform)
-      {
-        throw new Error("EveImpactOverlay.CreateImpact requires an invertible parent transform.");
-      }
+      // Inverse( parentWorldTransform ) (EveImpactOverlay.cpp:236), unconditional.
+      const parentInverseWorldTransform = mat4.inverseCarbon(mat4.create(), parentWorldTransform);
       const ellipsoidCenter = vec3.create();
       const ellipsoidRadii = vec3.fromValues(1, 1, 1);
       parent.GetShapeEllipsoid(ellipsoidCenter, ellipsoidRadii);
@@ -870,11 +867,8 @@ export class EveImpactOverlay
     if (!this.HasGeneralActivity()) return;
 
     const parentWorldTransform = parent.GetLocalToWorldTransform(mat4.create());
-    const parentInverseWorldTransform = mat4.invert(mat4.create(), parentWorldTransform);
-    if (!parentInverseWorldTransform)
-    {
-      throw new Error("EveImpactOverlay.UpdateAsyncronous requires an invertible parent transform.");
-    }
+    // Inverse( parentWorldTransform ) (EveImpactOverlay.cpp:672), unconditional.
+    const parentInverseWorldTransform = mat4.inverseCarbon(mat4.create(), parentWorldTransform);
 
     this.shieldImpactParentSize = Math.max(
       IMPACT_SHIELD_SIZE_MIN,
