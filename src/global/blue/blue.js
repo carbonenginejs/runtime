@@ -71,10 +71,7 @@ export function installBlueServices(services = {}, running = true)
     }
     if (Object.hasOwn(services, "sof"))
     {
-      const sof = services.sof;
-      if (sof !== null && (!sof || typeof sof.Fetch !== "function"))
-        throw new TypeError("Blue service sof must provide Fetch or be null.");
-      next.sof = sof;
+      next.sof = services.sof;
     }
 
     const candidate = running ? { os: next.os, resMan: next.resMan } : null;
