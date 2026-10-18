@@ -5,6 +5,7 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { ITr2Pickable } from "../ITr2Pickable.js";
 import { TriBatchType, RenderingMode } from "#consts/graphics";
+import { CullMode } from "#consts/render-context";
 import { ALResult, Failed } from "#trinityal";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
 import { screenToProjection, convertProjectionCoordToWorldPickRay } from "../view/pickRay.js";
@@ -55,6 +56,9 @@ export class ITr2PickableScene
         {
           if (Failed(context.BeginScene())) continue;
           const managed = esm.IsManagedRendering();
+          // The caller's winding: BeginManagedRendering's default cull is CW,
+          // which would end a mirrored-cull span (Tr2EffectStateManager.cpp:670-690).
+          const callerCull = esm.IsCullModeInverted() ? CullMode.CULLMODE_CCW : CullMode.CULLMODE_CW;
           let rendered = false;
           try
           {
@@ -70,9 +74,10 @@ export class ITr2PickableScene
             try { context.EndScene(); }
             finally
             {
-              // Resume the caller's mode with an empty cache before any readback
-              // yields; restoring old handles would suppress its next rebind.
-              if (managed) esm.BeginManagedRendering();
+              // Resume the caller's mode and winding with an empty cache before
+              // any readback yields; restoring old handles would suppress its
+              // next rebind.
+              if (managed) esm.BeginManagedRendering(callerCull);
             }
           }
           if (rendered) mappings.push({ pass, mapping: this.GetPickBuffer().MapForReading(context) });
