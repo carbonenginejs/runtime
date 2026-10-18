@@ -261,6 +261,23 @@ test("WebGPU cull mode is resolved against a clockwise front face", () =>
   assert.equal(webgpuOf([ [ RS_CULLMODE, 3 ] ]).primitive.cullMode, "back");
 });
 
+test("WebGPU culls the faces dx11 culls: the whole primitive state per cull mode", () =>
+{
+  // dx11 maps D3DCULL_NONE 1 to D3D11_CULL_NONE, CCW 3 to D3D11_CULL_BACK and
+  // CW 2 to D3D11_CULL_FRONT, always with FrontCounterClockwise = FALSE
+  // (Tr2RenderContextDx11.cpp:1818-1825): clockwise is the front face. WebGPU
+  // classifies winding from the same y-up NDC as D3D, so "cw" front plus the
+  // face name is the same discard. The shader translation does not flip
+  // clip-space Y, so nothing mirrors the winding in between.
+  assert.deepEqual(webgpuOf([ [ RS_CULLMODE, 1 ] ]).primitive, { cullMode: "none", frontFace: "cw" });
+  assert.deepEqual(webgpuOf([ [ RS_CULLMODE, 2 ] ]).primitive, { cullMode: "front", frontFace: "cw" });
+  assert.deepEqual(webgpuOf([ [ RS_CULLMODE, 3 ] ]).primitive, { cullMode: "back", frontFace: "cw" });
+
+  // SetInvertedCullMode's table { 0, NONE, CCW, CW } (Tr2EffectStateManager.cpp:815-826).
+  assert.deepEqual(webgpuOf([ [ RS_CULLMODE, 2 ] ], { invertedCullMode: true }).primitive, { cullMode: "back", frontFace: "cw" });
+  assert.deepEqual(webgpuOf([ [ RS_CULLMODE, 3 ] ], { invertedCullMode: true }).primitive, { cullMode: "front", frontFace: "cw" });
+});
+
 test("Carbon's inverted cull override swaps the two windings", () =>
 {
   // Tr2EffectStateManager::SetInvertedCullMode installs this as a global

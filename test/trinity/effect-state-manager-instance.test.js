@@ -111,6 +111,20 @@ test("a mirrored span inverts the cull mode, and the override outlives it", () =
   assert.equal(manager.IsCullModeInverted(), false);
 });
 
+test("a bare BeginManagedRendering clears a mirrored span: Carbon's default is CULLMODE_CW", () =>
+{
+  // Tr2EffectStateManager.h:48 defaults the argument to CULLMODE_CW, and the
+  // CW case is SetInvertedCullMode( false ) (cpp:678-682). Only the reflection
+  // path, which renders into a mirrored cube face, passes CULLMODE_NONE
+  // (EveSpaceScene.cpp:1933).
+  const manager = new Tr2EffectStateManager();
+
+  manager.SetInvertedCullMode(true);
+  manager.BeginManagedRendering();
+
+  assert.equal(manager.IsCullModeInverted(), false);
+});
+
 test("CULLMODE_NONE leaves the current setting alone", () =>
 {
   const manager = new Tr2EffectStateManager();
@@ -410,4 +424,62 @@ test("a WebGL2 context's GL shaders and programs are deleted with the realized o
 
   assert.equal(count("deleteShader") - deleted.shaders, shaders);
   assert.equal(count("deleteProgram") - deleted.programs, programs);
+});
+
+test("a release through one context destroys every context's programs, so a reused handle cannot serve a stale one", async () =>
+{
+  // Carbon has one table and one backend, so `ReleaseDeviceResources` deletes
+  // every row and nothing else holds them (Tr2EffectStateManager.cpp:998-1007).
+  // Ours realizes per context (our multi-context extension), and the static
+  // release truncates the shared tables, so the next registration reuses the
+  // handle numbers. A second context that kept its objects then answered the
+  // reused number with the program it realized for the OLD registration.
+  const { TriStorageFlags } = await import("../../npm/dist/global/consts/graphics/index.js");
+  const contexts = [ new Tr2RenderContext(), new Tr2RenderContext() ];
+
+  for (const context of contexts)
+  {
+    const al = new Tr2RenderContextALStub();
+
+    al.CreateDevice();
+    context.SetRenderContextAL(al);
+  }
+
+  const [ first, second ] = contexts.map(context => context.GetEffectStateManager());
+
+  // Start from empty tables, so the handle numbers below are reused for certain.
+  first.ReleaseDeviceResources(TriStorageFlags.TRISTORAGE_ALL);
+
+  const oldHandle = Tr2EffectStateManager.registerShaderProgram([
+    Tr2EffectStateManager.registerShader(ShaderType.VERTEX_SHADER, new Uint8Array([ 0xE6, 1 ])),
+    Tr2EffectStateManager.registerShader(ShaderType.PIXEL_SHADER, new Uint8Array([ 0xE6, 2 ]))
+  ]);
+
+  first.GetShaderProgram(oldHandle);
+
+  const stale = second.GetShaderProgram(oldHandle);
+  const staleStages = stale.TrinityALImpl_GetObject().GetShaders().map(stage => stage.TrinityALImpl_GetObject());
+
+  first.ReleaseDeviceResources(TriStorageFlags.TRISTORAGE_ALL);
+
+  // The second context's objects are released with the tables (cpp:998-1007).
+  assert.equal(stale.IsValid(), false, "the other context's program is destroyed with the tables");
+
+  for (const stage of staleStages) assert.equal(stage.IsValid(), false, "and so are its stages");
+
+  const newVertex = Tr2EffectStateManager.registerShader(ShaderType.VERTEX_SHADER, new Uint8Array([ 0xE6, 3 ]));
+  const newPixel = Tr2EffectStateManager.registerShader(ShaderType.PIXEL_SHADER, new Uint8Array([ 0xE6, 4 ]));
+  const newHandle = Tr2EffectStateManager.registerShaderProgram([ newVertex, newPixel ]);
+
+  assert.equal(newHandle, oldHandle, "the release frees the number for reuse");
+
+  const fresh = second.GetShaderProgram(newHandle);
+
+  assert.notEqual(fresh, stale, "the reused number realizes the new registration");
+  assert.equal(fresh.IsValid(), true);
+
+  const freshStages = fresh.TrinityALImpl_GetObject().GetShaders().map(stage => stage.TrinityALImpl_GetObject());
+
+  assert.equal(freshStages.length, 2);
+  for (const stage of freshStages) assert.equal(staleStages.includes(stage), false, "built from the new stages");
 });

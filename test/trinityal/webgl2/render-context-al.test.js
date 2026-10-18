@@ -265,6 +265,25 @@ test("render states reach GL at the draw: blend, depth and cull", () =>
     assert.equal(calledWith(calls, "blendFuncSeparate").length, 0, "unchanged states are not set again");
 });
 
+test("CULLMODE_CW culls dx11's front faces and NONE disables culling", () =>
+{
+    // dx11: CW 2 is D3D11_CULL_FRONT with FrontCounterClockwise = FALSE
+    // (Tr2RenderContextDx11.cpp:1818-1825). Targets are stored top-down through
+    // the clip flip, which mirrors winding, so dx11's clockwise front is GL's CCW.
+    for (const [ value, enabled, face ] of [ [ 2, true, "FRONT" ], [ 3, true, "BACK" ], [ 1, false, null ] ])
+    {
+        const { gl, calls, context } = drawable();
+        context.SetRenderStates(setup([ [ RenderState.RS_CULLMODE, value ] ]));
+        calls.length = 0;
+
+        context.DrawPrimitive(0, 1);
+
+        assert.deepEqual(calledWith(calls, "frontFace"), [ [ gl.CCW ] ]);
+        assert.deepEqual(calledWith(calls, enabled ? "enable" : "disable").filter(([ cap ]) => cap === gl.CULL_FACE), [ [ gl.CULL_FACE ] ]);
+        assert.deepEqual(calledWith(calls, "cullFace"), face ? [ [ gl[face] ] ] : []);
+    }
+});
+
 test("the state manager's inverted cull and depth tables are applied to the pairs", () =>
 {
     const { gl, calls, context } = drawable();

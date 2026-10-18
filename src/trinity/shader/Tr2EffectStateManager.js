@@ -121,6 +121,22 @@ const shaderProgramObjects = new WeakMap();
  */
 const shaderObjects = new WeakMap();
 
+/**
+ * Every context's map in `shaderObjects` and in `shaderProgramObjects` that
+ * may hold a realized object.
+ *
+ * The tables are shared and the realized objects are per context (multiple
+ * contexts are our extension; Carbon has one table and one backend). The
+ * static `releaseDeviceResources` truncates the tables, which frees every
+ * handle number for the next registration, so it must release the objects
+ * every context realized under those numbers - not only the calling
+ * context's. A context that kept them answered a reused number with the
+ * program realized for the old registration. The sets hold the maps, not the
+ * contexts, so a context still dies with its WeakMap entries.
+ */
+const realizedShaderMaps = new Set();
+const realizedShaderProgramMaps = new Set();
+
 // Carbon interns once at asset load and stores the handle on the mesh, so its
 // linear scan never runs per draw. This runtime has no load hook, so the handle
 // is memoised against the element list or definition a payload already owns -
@@ -782,10 +798,38 @@ export class Tr2EffectStateManager
    * Every handle held on a pass is stale afterwards. Carbon's recovery is that
    * releasing the effect resource forces a re-parse and re-registration.
    *
+   * Carbon deletes every `s_shaders` row and then every `s_shaderPrograms`
+   * row before clearing them (cpp:995-1005). Ours realizes those values per
+   * context (`GetShaderProgram`), so the same deletes are every context's
+   * realized shaders, then every context's realized programs
+   * (`realizedShaderMaps`): the numbers are reused by the next registration,
+   * and an object left in any context's map would answer for it.
+   *
    * @returns {void}
    */
   static releaseDeviceResources()
   {
+    for (const realizedShaders of realizedShaderMaps)
+    {
+      for (const shader of realizedShaders.values()) shader.Destroy();
+
+      realizedShaders.clear();
+    }
+
+    // A cached null is a remembered refusal and owns nothing.
+    for (const realizedPrograms of realizedShaderProgramMaps)
+    {
+      for (const program of realizedPrograms.values())
+      {
+        if (program) program.Destroy();
+      }
+
+      realizedPrograms.clear();
+    }
+
+    realizedShaderMaps.clear();
+    realizedShaderProgramMaps.clear();
+
     shaders.length = 0;
     shaderPrograms.length = 0;
     renderStateSetups.length = RenderingMode.RM_COUNT;
@@ -895,6 +939,8 @@ export class Tr2EffectStateManager
 
     for (const layout of (vertexLayoutObjects.get(this.#renderContext) ?? new Map()).values()) layout.Destroy();
 
+    realizedShaderMaps.delete(shaderObjects.get(this.#renderContext));
+    realizedShaderProgramMaps.delete(shaderProgramObjects.get(this.#renderContext));
     shaderObjects.delete(this.#renderContext);
     shaderProgramObjects.delete(this.#renderContext);
     vertexLayoutObjects.delete(this.#renderContext);
@@ -907,8 +953,9 @@ export class Tr2EffectStateManager
    * redundancy cache, clear the shared shader, program and render-state tables,
    * and drop the per-object constant buffers.
    *
-   * Adapted: the shared tables are the static `releaseDeviceResources`; the
-   * programs and layouts realized for this context are dropped too
+   * Adapted: the shared tables are the static `releaseDeviceResources`, which
+   * also destroys the shaders and programs every context realized for them;
+   * the layouts realized for this context are dropped too
    * (`ReleaseRealizedObjects`), and the per-object constant buffers are held
    * on the render context, so they are destroyed there.
    *
@@ -1317,13 +1364,16 @@ export class Tr2EffectStateManager
    *
    * The cull-mode argument is not a state to set: it selects mirroring, so
    * `CULLMODE_CCW` means "this span is mirrored" and `CULLMODE_NONE` leaves the
-   * current setting alone.
+   * current setting alone. The default is Carbon's `CULLMODE_CW`
+   * (`Tr2EffectStateManager.h:48`), so a bare call ends any mirroring a
+   * previous span left behind; the reflection path, which draws into a
+   * mirrored cube face, passes `CULLMODE_NONE` (`EveSpaceScene.cpp:1933`).
    *
    * @param {number} [cullMode] A `CullMode` member.
    * @returns {void}
    */
   @blue.method
-  BeginManagedRendering(cullMode = CullMode.CULLMODE_NONE)
+  BeginManagedRendering(cullMode = CullMode.CULLMODE_CW)
   {
     this._ReleaseBufferBindings();
     this.#currentValues = NewCurrentValues();
@@ -1711,6 +1761,7 @@ export class Tr2EffectStateManager
     const stages = [];
 
     shaderObjects.set(this.#renderContext, realizedShaders);
+    realizedShaderMaps.add(realizedShaders);
 
     for (const shaderHandle of shaderPrograms[handle].shaderHandles)
     {
@@ -1739,6 +1790,7 @@ export class Tr2EffectStateManager
 
     realized.set(handle, program);
     shaderProgramObjects.set(this.#renderContext, realized);
+    realizedShaderProgramMaps.add(realized);
 
     return program;
   }
