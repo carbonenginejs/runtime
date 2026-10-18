@@ -502,11 +502,6 @@ export class CjsCharacterLibrary
     /** Supplies the resource manager used by extension-neutral data inspection. */
     SetResourceManager(resMan = null)
     {
-        if (resMan !== null && typeof resMan.GetResource !== "function")
-        {
-            throw new TypeError("Character library resource manager must expose GetResource");
-        }
-
         this._resourceManager = resMan;
         return this;
     }
@@ -529,9 +524,9 @@ export class CjsCharacterLibrary
         const existing = this.Get("characterTextureMetadata", identity);
         if (existing) return existing;
 
-        if (!resMan || typeof resMan.GetResource !== "function")
+        if (!resMan)
         {
-            throw new TypeError("Character resource inspection requires resMan.GetResource");
+            throw new TypeError("Character resource inspection requires a resource manager");
         }
 
         if (!this._textureMetadataRequests.has(identity))

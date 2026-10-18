@@ -55,11 +55,6 @@ export class CjsCharacterLibraryManager
     /** Supplies the runtime resource manager used for incremental resource-data inspection. */
     SetResourceManager(resMan = null)
     {
-        if (resMan !== null && typeof resMan.GetResource !== "function")
-        {
-            throw new TypeError("Character library resource manager must expose GetResource");
-        }
-
         this._resourceManager = resMan;
         this._library.SetResourceManager(resMan);
         return this;

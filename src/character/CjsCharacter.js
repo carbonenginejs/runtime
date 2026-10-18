@@ -33,28 +33,6 @@ export class CjsCharacter
         appearanceManager = null
     } = {})
     {
-        if (!libraryManager
-            || typeof libraryManager.GetLibrary !== "function"
-            || typeof libraryManager.Get !== "function")
-        {
-            throw new TypeError("CjsCharacter requires a character library manager");
-        }
-        if (typeof appearanceResolver?.resolvePaperdoll !== "function")
-        {
-            throw new TypeError("CjsCharacter requires a paper-doll appearance resolver");
-        }
-        if (typeof constructionResolver?.Resolve !== "function")
-        {
-            throw new TypeError("CjsCharacter requires a construction resolver");
-        }
-        if (appearanceManager !== null
-            && typeof appearanceManager?.ApplyConstruction !== "function")
-        {
-            throw new TypeError(
-                "CjsCharacter appearance manager must expose ApplyConstruction(sequence)"
-            );
-        }
-
         this._libraryManager = libraryManager;
         this._appearanceResolver = appearanceResolver;
         this._constructionResolver = constructionResolver;

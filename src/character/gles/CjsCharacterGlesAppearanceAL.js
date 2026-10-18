@@ -36,10 +36,6 @@ export class CjsCharacterGlesAppearanceAL extends ICjsCharacterAppearanceAL
         this._resourceHost = RequireResourceHost(resourceHost);
         this._visualHost = RequireVisualHost(visualHost);
         this._operationHost = RequireOptionalOperationHost(operationHost);
-        if (typeof foundationTranslator?.Translate !== "function")
-        {
-            throw new TypeError("GLES appearance AL requires a foundation translator");
-        }
         this._foundationTranslator = foundationTranslator;
     }
 
@@ -159,6 +155,7 @@ export class CjsCharacterGlesAppearanceAL extends ICjsCharacterAppearanceAL
     /** Delegates immutable configured-template warmup when the host supports it. */
     WarmConfiguredModelTemplates(paths)
     {
+        // Host feature check: the GLES visual and operation hosts are supplied by the host renderer.
         if (typeof this._operationHost?.WarmConfiguredModelTemplates !== "function")
         {
             return Promise.resolve({
@@ -173,6 +170,7 @@ export class CjsCharacterGlesAppearanceAL extends ICjsCharacterAppearanceAL
     UpdateMorphTargets(stage, targets, context = {})
     {
         RequireStage(stage, "committed");
+        // Host feature check: the GLES visual and operation hosts are supplied by the host renderer.
         if (typeof this._operationHost?.UpdateMorphTargets !== "function")
         {
             return Promise.resolve({
@@ -187,6 +185,7 @@ export class CjsCharacterGlesAppearanceAL extends ICjsCharacterAppearanceAL
     SetConfiguredPartDisplay(stage, partSourceRecordID, display)
     {
         RequireStage(stage, "committed");
+        // Host feature check: the GLES visual and operation hosts are supplied by the host renderer.
         if (typeof this._visualHost.SetConfiguredPartDisplay !== "function")
         {
             throw new Error("GLES visual host cannot isolate configured parts");
@@ -202,6 +201,7 @@ export class CjsCharacterGlesAppearanceAL extends ICjsCharacterAppearanceAL
     SetFoundationDisplay(stage, role, display)
     {
         RequireStage(stage, "committed");
+        // Host feature check: the GLES visual and operation hosts are supplied by the host renderer.
         if (typeof this._visualHost.SetFoundationDisplay !== "function")
         {
             throw new Error("GLES visual host cannot isolate foundations");
@@ -219,6 +219,7 @@ export class CjsCharacterGlesAppearanceAL extends ICjsCharacterAppearanceAL
             resourceCount: stage.resources?.length ?? 0,
             foundationRoles: [ ...stage.foundationResources.keys() ],
             operationResults: stage.operationResults?.map(CloneResult) ?? [],
+            // Host feature check: the GLES visual and operation hosts are supplied by the host renderer.
             host: typeof this._visualHost.GetDiagnostics === "function"
                 ? this._visualHost.GetDiagnostics(stage)
                 : null
@@ -286,6 +287,7 @@ export class CjsCharacterGlesAppearanceAL extends ICjsCharacterAppearanceAL
     /** Executes an operation through the optional host or reports it as deferred. */
     async _ExecuteDelegatedOperation(stage, operation, context)
     {
+        // Host feature check: the GLES visual and operation hosts are supplied by the host renderer.
         if (typeof this._operationHost?.Execute !== "function")
         {
             return {

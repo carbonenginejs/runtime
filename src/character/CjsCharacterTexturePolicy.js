@@ -719,8 +719,7 @@ function NormalizeOptional(value)
 function RequireLibrary(value)
 {
     if (!value || value.schema !== "carbonenginejs.characterLibrary"
-        || ![ 7, 8, 9, 10, 11 ].includes(value.schemaVersion)
-        || typeof value.Get !== "function")
+        || ![ 7, 8, 9, 10, 11 ].includes(value.schemaVersion))
     {
         throw new TypeError(
             "Character texture policy requires a schema-v7 through schema-v10 character library"

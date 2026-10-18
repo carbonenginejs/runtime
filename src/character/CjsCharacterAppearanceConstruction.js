@@ -29,18 +29,6 @@ export class CjsCharacterAppearanceConstruction
         shouldDeferContribution = IsNonRenderableRagdollProxy
     } = {})
     {
-        if (typeof foundationResolver?.Resolve !== "function")
-        {
-            throw new TypeError("Character appearance construction requires a foundation resolver");
-        }
-        if (typeof texturePolicy?.Resolve !== "function")
-        {
-            throw new TypeError("Character appearance construction requires a texture policy");
-        }
-        if (typeof foundationCoveragePolicy?.Resolve !== "function")
-        {
-            throw new TypeError("Character appearance construction requires a foundation coverage policy");
-        }
         if (typeof shouldDeferContribution !== "function")
         {
             throw new TypeError("Character appearance construction shouldDeferContribution must be a function");

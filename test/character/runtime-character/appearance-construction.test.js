@@ -86,10 +86,13 @@ test("combines injected foundation intent, exact parts, texture policy, and morp
     assert.equal(result.evidence.rule, "character-appearance-construction-v1");
 });
 
-test("requires an injected foundation resolver rather than selecting a GPU backend", () =>
+test("resolves through the injected foundation resolver rather than selecting a GPU backend", () =>
 {
+    // Nothing is chosen for it: with no resolver injected, the first Resolve
+    // calls into nothing and throws, rather than a backend being picked.
+    const construction = new CjsCharacterAppearanceConstruction();
     assert.throws(
-        () => new CjsCharacterAppearanceConstruction(),
-        /foundation resolver/u
+        () => construction.Resolve(null, { parts: [], layers: [] }, {}),
+        TypeError
     );
 });

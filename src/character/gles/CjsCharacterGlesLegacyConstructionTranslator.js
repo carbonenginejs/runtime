@@ -11,16 +11,9 @@ export class CjsCharacterGlesLegacyConstructionTranslator
 {
     _foundationTranslator;
 
-    /**
-     * Validates and retains the foundation translator used for legacy
-     * construction.
-     */
+    /** Retains the foundation translator used for legacy construction. */
     constructor({ foundationTranslator = new CjsCharacterGlesFoundationTranslator() } = {})
     {
-        if (!foundationTranslator || typeof foundationTranslator.Translate !== "function")
-        {
-            throw new TypeError("GLES legacy construction translator requires a foundation translator");
-        }
         this._foundationTranslator = foundationTranslator;
     }
 

@@ -69,9 +69,7 @@ export class CjsCharacterAppearanceResolver
     {
         if (!library
             || library.schema !== "carbonenginejs.characterLibrary"
-            || ![ 7, 8, 9, 10, 11 ].includes(library.schemaVersion)
-            || typeof library.Get !== "function"
-            || typeof library.GetDocument !== "function")
+            || ![ 7, 8, 9, 10, 11 ].includes(library.schemaVersion))
         {
             throw new TypeError("Character appearance resolution requires CjsCharacterLibrary");
         }
