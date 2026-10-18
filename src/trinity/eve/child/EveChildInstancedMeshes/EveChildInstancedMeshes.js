@@ -656,7 +656,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   }
 
   /**
-   * Appends one instanced mesh: normalizes the area ducks, copies the instance transforms with each instance's sphere index, mirroring and picking indices (Carbon cpp:557-567), stamps CASTS_SHADOW plus one flag bit per area batch type (Carbon cpp:583-590), and clears the registration latch so the next AddMeshesToManager pass picks it up. Carbon's merge into an existing matching mesh (cpp:464-538) is not ported; every call appends a mesh.
+   * Carbon AddMesh (cpp:443-590). Instances join an existing mesh with the same geometry, mesh index, shadow and reflection flags, areas (effect path, hash, batch type and range), SOF hull and locator set, and locator-set ownership (cpp:464-538): they are appended after its instances, the mesh's manager registrations are dropped, and the latch clears so they re-register. Otherwise a mesh is appended: the area ducks are normalized, the instance transforms copied with each instance's sphere index, mirroring and picking indices (cpp:557-567), CASTS_SHADOW plus one flag bit per area batch type stamped (cpp:583-590), and the latch cleared.
    * @param {Iterable} areas - area ducks ({effect, batchType, areaIndex, areaCount})
    * @param {Iterable<Float32Array>} instanceTransforms - 16-value matrices; copied, not retained
    * @param {Number} partTag - modular owner shared by every appended instance
@@ -691,34 +691,122 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     // hit decodes to.
     const pickingMeshIndex = this.meshes.length >>> 0;
     const normalizedAreas = sourceAreas.map(area => EveChildInstancedMeshes._CreateArea(area));
-    const instances = sourceTransforms.map((transform, sphereIndex) =>
+    for (const transform of sourceTransforms)
     {
       if (!transform || transform.length !== 16)
       {
         throw new TypeError("EveChildInstancedMeshes instance transforms must contain 16 values");
       }
-      // Carbon cpp:559-565: the per-instance record. IsMirrored is
-      // Determinant( m ) < 0 (MatrixUtils.cpp:28-31); a transpose has the
-      // same determinant, so gl-matrix's reads Carbon's bytes unchanged.
+    }
+    // Carbon cpp:521-527 and 559-565: the per-instance record. IsMirrored is
+    // Determinant( m ) < 0 (MatrixUtils.cpp:28-31); a transpose has the same
+    // determinant, so gl-matrix's reads Carbon's bytes unchanged.
+    const CreateInstance = (transform, sphereIndex, instanceMeshIndex, instanceIndex) =>
+    {
       const instance = new EveChildInstancedMeshInstance();
       mat4.copy(instance.transform, transform);
-      instance.sphereIndex = sphereIndex;
+      instance.sphereIndex = sphereIndex >>> 0;
       instance.mirrored = mat4.determinant(transform) < 0;
-      instance.pickingMeshIndex = pickingMeshIndex;
-      instance.pickingInstanceIndex = sphereIndex >>> 0;
+      instance.pickingMeshIndex = instanceMeshIndex >>> 0;
+      instance.pickingInstanceIndex = instanceIndex >>> 0;
       return instance;
-    });
+    };
+
+    const path = String(geometryPath ?? "");
+    const index = Number(meshIndex) >>> 0;
+    const reflection = reflectionMode === undefined ? 3 : Number(reflectionMode) | 0;
+    const hullName = String(sofHullName ?? "");
+    const locatorSetName = String(sofLocatorSetName ?? "");
+    const ownsLocatorSets = Array.from(ownedLocatorSets ?? []).length !== 0;
+
+    // Carbon cpp:464-538: merge into the first matching mesh.
+    for (let existingIndex = 0; existingIndex < this.meshes.length; existingIndex++)
+    {
+      const existing = this.meshes[existingIndex];
+      if (existing.geometryPath !== path || existing.meshIndex !== index)
+      {
+        continue;
+      }
+      if (existing.flags.GetCastsShadow() !== !!castsShadow || existing.reflectionMode !== reflection)
+      {
+        continue;
+      }
+      if (existing.areas.length !== normalizedAreas.length)
+      {
+        continue;
+      }
+      let areasEqual = true;
+      for (let i = 0; i < normalizedAreas.length; ++i)
+      {
+        const a = existing.areas[i];
+        const b = normalizedAreas[i];
+        if (a.effect.GetEffectPathName() !== b.effect.GetEffectPathName() || a.batchType !== b.batchType ||
+          a.areaIndex !== b.areaIndex || a.areaCount !== b.areaCount)
+        {
+          areasEqual = false;
+          break;
+        }
+        if (a.effectHash !== EveChildInstancedMeshes._GetEffectHash(b.effect))
+        {
+          areasEqual = false;
+          break;
+        }
+      }
+      if (!areasEqual)
+      {
+        continue;
+      }
+      if (!(existing.sofHullName === hullName && existing.sofLocatorSetName === locatorSetName))
+      {
+        continue;
+      }
+      if ((existing.ownedLocatorSets.length === 0) !== !ownsLocatorSets)
+      {
+        continue;
+      }
+
+      const existingCount = existing.instances.length;
+      let instanceIndex = existingCount;
+      for (let i = 0; i < sourceTransforms.length; ++i)
+      {
+        existing.instances.push(CreateInstance(sourceTransforms[i], existingCount + i, existingIndex, instanceIndex++));
+        existing.partTags.push(Number(partTag) >>> 0);
+      }
+      existing.instanceSpheres.length = existing.instances.length;
+      if (existing.sphereHandle !== null)
+      {
+        existing.sphereHandle.owner.RemoveBoundingSphereGroup(existing.sphereHandle);
+        existing.sphereHandle = null;
+      }
+      for (const area of existing.areas)
+      {
+        if (area.meshGroupHandle !== null)
+        {
+          area.meshGroupHandle.owner.RemoveMeshGroup(area.meshGroupHandle);
+          area.meshGroupHandle = null;
+        }
+      }
+      if (existing.ownedLocatorSets.length && this.GetOwner())
+      {
+        this.GetOwner().InvalidateMergedLocators("structure");
+      }
+      this._allRegistered = false;
+      this._revision++;
+      return true;
+    }
+
+    const instances = sourceTransforms.map((transform, sphereIndex) => CreateInstance(transform, sphereIndex, pickingMeshIndex, sphereIndex));
 
     const mesh = new EveChildInstancedMesh();
-    mesh.geometryPath = String(geometryPath ?? "");
+    mesh.geometryPath = path;
     mesh.castsShadow = !!castsShadow;
-    mesh.reflectionMode = reflectionMode === undefined ? 3 : Number(reflectionMode) | 0;
-    mesh.meshIndex = Number(meshIndex) >>> 0;
+    mesh.reflectionMode = reflection;
+    mesh.meshIndex = index;
     mesh.areas = normalizedAreas;
     mesh.instances = instances;
     mesh.partTags = instances.map(() => Number(partTag) >>> 0);
-    mesh.sofHullName = String(sofHullName ?? "");
-    mesh.sofLocatorSetName = String(sofLocatorSetName ?? "");
+    mesh.sofHullName = hullName;
+    mesh.sofLocatorSetName = locatorSetName;
     mesh.ownedLocatorSets = Array.from(ownedLocatorSets ?? []);
     mesh.armorDamageShader = armorDamageShader ?? null;
     // Carbon cpp:586-589: the owner merges this part's sets per instance.
@@ -1655,7 +1743,10 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
       areas: mesh.areas.map(area => ({ ...area })),
       instances: mesh.instances.map(instance => ({
         transform: mat4.clone(instance.transform),
-        sphereIndex: instance.sphereIndex
+        sphereIndex: instance.sphereIndex,
+        mirrored: instance.mirrored,
+        pickingMeshIndex: instance.pickingMeshIndex,
+        pickingInstanceIndex: instance.pickingInstanceIndex
       })),
       partTags: mesh.partTags.slice(),
       sofHullName: mesh.sofHullName,

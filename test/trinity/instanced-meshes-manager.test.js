@@ -124,6 +124,7 @@ function createEffect(name)
       this[option] = value;
     },
     GetHashValue: () => name.length,
+    GetEffectPathName: () => `res:/fx/${name}.fx`,
     GetShaderStateInterface: () => ({ name }),
     IsGood: () => true
   };
@@ -364,4 +365,35 @@ test("instanced per-object custom masks retain their terminal GPU orientation", 
     Array.from(manager.calls.perObject[0].data.GetIndex("customMaskMatrix", 0)),
     Array.from(parentVs.GetIndex("customMaskMatrix", 0)),
     "the cross-layout copy does not transpose an already-transposed matrix twice");
+});
+
+test("AddMesh merges matching instances into the existing mesh and drops its registrations (cpp:464-538)", () =>
+{
+  const provider = MakeProvider();
+  const manager = MakeManager();
+  provider.AddMeshesToManager(manager);
+  const mesh = provider.meshes[0];
+  assert.notEqual(mesh.sphereHandle, null);
+
+  const added = mat4.fromTranslation(mat4.create(), [ 0, 5, 0 ]);
+  mat4.scale(added, added, [ -1, 1, 1 ]);
+  assert.equal(provider.AddMesh("res:/geo", true, 0, 0,
+    [
+      { effect: createEffect("fx"), batchType: 0, areaIndex: 0, areaCount: 1 },
+      { effect: createEffect("fx2"), batchType: 2, areaIndex: 1, areaCount: 2 }
+    ],
+    [ added ]), true);
+
+  assert.equal(provider.meshes.length, 1, "no second mesh");
+  assert.equal(mesh.instances.length, 3);
+  const instance = mesh.instances[2];
+  assert.deepEqual([ instance.sphereIndex, instance.pickingMeshIndex, instance.pickingInstanceIndex, instance.mirrored ], [ 2, 0, 2, true ]);
+  assert.equal(mesh.instanceSpheres.length, 3);
+  assert.equal(mesh.sphereHandle, null, "the sphere group is removed for re-registration");
+  assert.ok(mesh.areas.every(area => area.meshGroupHandle === null), "and every mesh group");
+
+  // A different area range is a different mesh.
+  provider.AddMesh("res:/geo", true, 0, 0, [ { effect: createEffect("fx"), batchType: 0, areaIndex: 3, areaCount: 1 } ], [ mat4.create() ]);
+  assert.equal(provider.meshes.length, 2);
+  assert.equal(provider.meshes[1].instances[0].pickingMeshIndex, 1);
 });
