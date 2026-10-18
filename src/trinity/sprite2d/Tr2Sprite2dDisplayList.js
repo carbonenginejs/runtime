@@ -38,6 +38,10 @@ export class Tr2Sprite2dDisplayList
    * (Tr2Sprite2dDisplayList.h:55, cpp:116-119). Carbon prepares nothing here
    * and reports success.
    *
+   * Stays public although Carbon declares it private: it is a virtual override
+   * the base dispatches by name, so a `_` rename would break dispatch; the `_`
+   * rule covers private methods that are not overrides.
+   *
    * @returns {boolean} Always true, as Carbon returns.
    */
   @meta.implemented
