@@ -13,11 +13,12 @@ import { ContinueOnMainThread } from "../../core/continueOnMainThread.js";
  * forwarding link, start, stop and update callbacks and persisting the
  * instance's own opaque state bytes.
  * Adapted: a registered JavaScript factory replaces Python import/instantiation.
- * Optional host hooks remain a caller-supplied extension, not engine methods.
+ * The host's hooks are Carbon's VTable: callables extracted once per instance,
+ * each slot empty when the host has none (Tr2ActionPython.cpp:147-181).
  * Host/factory errors propagate; no Python exception reporting is reproduced.
  * Owner getter results pass directly to hooks (Tr2ActionPython.cpp:79-141).
- * Queued callbacks retain their selected JS instance, unlike native callbacks
- * that capture self and consult its current callback table when the queue drains.
+ * Queued callbacks retain the hook selected when they were queued, unlike native
+ * callbacks that capture self and consult its current table when the queue drains.
  * State is Carbon's custom binary block: readers move its bytes through this
  * class's ICustomPersist methods.
  */
@@ -66,6 +67,16 @@ export class Tr2ActionPython extends ITr2ControllerAction
       return null;
     }
     return this._factory(moduleName, className, action) ?? null;
+  }
+
+  /**
+   * Carbon's VTable value-initialized (`m_vtable = {}`, Tr2ActionPython.cpp:149):
+   * every slot empty.
+   * @returns {{onLink: Function|null, onUnlink: Function|null, onStart: Function|null, onStop: Function|null, onUpdate: Function|null, onLoad: Function|null, onSave: Function|null}} An empty table.
+   */
+  static emptyVTable()
+  {
+    return { onLink: null, onUnlink: null, onStart: null, onStop: null, onUpdate: null, onLoad: null, onSave: null };
   }
 
   /**
@@ -140,6 +151,12 @@ export class Tr2ActionPython extends ITr2ControllerAction
 
   _instance = null;
 
+  /**
+   * Carbon's m_vtable (Tr2ActionPython.h:40-58): the instance's hook
+   * callables, each null when the instance has none.
+   */
+  _vtable = Tr2ActionPython.emptyVTable();
+
   _loadedState = null;
 
   _isPlaying = false;
@@ -186,9 +203,8 @@ export class Tr2ActionPython extends ITr2ControllerAction
     }
     // Carbon InstantiateObject (cpp:147-181) drops the old instance, then only
     // creates the new one; the saved state is not replayed into it, now or later.
-    this._instance = null;
     this._loadedState = this.state;
-    this._instance = Tr2ActionPython.createInstance(this.module, this.className, this);
+    this._InstantiateObject();
     if (controller)
     {
       this.Link(controller);
@@ -202,8 +218,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
 
   /**
    * Links this action to a controller and notifies the host instance.
-   * Adapted: first use may create/load the host, and optional hooks are looked
-   * up dynamically rather than captured in a native callable-only VTable.
+   * Adapted: first use may create/load the host.
    * @param {ITr2ActionController} controller The linked controller.
    */
   @blue.method
@@ -211,8 +226,9 @@ export class Tr2ActionPython extends ITr2ControllerAction
   Link(controller)
   {
     this._controller = controller;
-    const instance = this._ensureInstance();
-    instance?.OnLink?.(controller.GetOwner(), controller);
+    this._ensureInstance();
+    if (!this._vtable.onLink) return;
+    this._vtable.onLink(controller.GetOwner(), controller);
   }
 
   /**
@@ -225,7 +241,8 @@ export class Tr2ActionPython extends ITr2ControllerAction
   Unlink()
   {
     this._controller = null;
-    this._instance?.OnUnlink?.();
+    if (!this._vtable.onUnlink) return;
+    this._vtable.onUnlink();
   }
 
   /**
@@ -233,8 +250,8 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * them. The host OnStart is queued on the main-thread queue, and the previous
    * times are Blue's actual and frame times in ticks (Tr2ActionPython.cpp:98-114).
    * Adapted: optional linked-controller invocation and lazy host creation are
-   * retained. The queued closure captures the selected instance, not a mutable
-   * native callback table. Host errors can abort the queue's current batch.
+   * retained. The queued closure captures the selected hook, not the mutable
+   * callback table. Host errors can abort the queue's current batch.
    * @param {ITr2ActionController} [controller] Invoking or linked controller.
    */
   @blue.method
@@ -247,17 +264,18 @@ export class Tr2ActionPython extends ITr2ControllerAction
     }
     this._controller = controller;
     this._isPlaying = true;
-    const instance = this._ensureInstance();
-    if (instance?.OnUpdate)
+    this._ensureInstance();
+    if (this._vtable.onUpdate)
     {
       controller.RegisterUpdateable(this);
     }
-    if (instance?.OnStart)
+    const onStart = this._vtable.onStart;
+    if (onStart)
     {
       const owner = controller.GetOwner();
       ContinueOnMainThread(() =>
       {
-        instance.OnStart(owner, controller);
+        onStart(owner, controller);
       });
     }
     this._prevRealTime = be.os.GetActualTime();
@@ -281,15 +299,15 @@ export class Tr2ActionPython extends ITr2ControllerAction
     }
     this._isPlaying = false;
     controller.UnRegisterUpdateable(this);
-    const instance = this._instance;
-    if (!instance?.OnStop)
+    const onStop = this._vtable.onStop;
+    if (!onStop)
     {
       return;
     }
     const owner = controller.GetOwner();
     ContinueOnMainThread(() =>
     {
-      instance.OnStop(owner, controller);
+      onStop(owner, controller);
     });
   }
 
@@ -297,8 +315,8 @@ export class Tr2ActionPython extends ITr2ControllerAction
    * Queues the host OnUpdate with the real and simulation deltas since the
    * previous update, converted from Blue ticks with TimeAsFloat
    * (Tr2ActionPython.cpp:129-141).
-   * Adapted: no linked controller/update hook means no work. Callback lookup
-   * remains dynamic on the captured host; errors propagate from the queue.
+   * Adapted: no linked controller/update hook means no work. The queued
+   * closure captures the selected hook; errors propagate from the queue.
    * @param {number} realTime Actual time in Blue ticks.
    * @param {number} simTime Simulation time in Blue ticks.
    */
@@ -307,8 +325,8 @@ export class Tr2ActionPython extends ITr2ControllerAction
   Update(realTime, simTime)
   {
     const controller = this._controller;
-    const instance = this._instance;
-    if (!controller || !instance?.OnUpdate)
+    const onUpdate = this._vtable.onUpdate;
+    if (!controller || !onUpdate)
     {
       return;
     }
@@ -317,7 +335,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
     const simDt = CcpTime.timeAsFloat(simTime - this._prevSimTime);
     ContinueOnMainThread(() =>
     {
-      instance.OnUpdate(owner, controller, realDt, simDt);
+      onUpdate(owner, controller, realDt, simDt);
     });
     this._prevRealTime = realTime;
     this._prevSimTime = simTime;
@@ -347,7 +365,7 @@ export class Tr2ActionPython extends ITr2ControllerAction
   @meta.adapted
   GetWriteBufferAndSize(_memberName = "state")
   {
-    const bytes = Tr2ActionPython.stateToBytes(this._instance?.OnSave?.());
+    const bytes = this._vtable.onSave ? Tr2ActionPython.stateToBytes(this._vtable.onSave()) : null;
     if (bytes)
     {
       this.state = bytes;
@@ -408,14 +426,45 @@ export class Tr2ActionPython extends ITr2ControllerAction
   {
     if (!this._instance)
     {
-      this._instance = Tr2ActionPython.createInstance(this.module, this.className, this);
+      this._InstantiateObject();
     }
     if (this._instance && this.state.length && this.state !== this._loadedState)
     {
-      this._instance.OnLoad?.(this.state);
+      if (this._vtable.onLoad) this._vtable.onLoad(this.state);
       this._loadedState = this.state;
     }
     return this._instance;
+  }
+
+  /**
+   * Carbon InstantiateObject (Tr2ActionPython.cpp:147-181): clears the table
+   * and the instance, creates the instance, then extracts each hook.
+   * ExtractMethod keeps an attribute only when it is callable
+   * (`PyCallable_Check`, cpp:167); the host is a caller-supplied object, so
+   * that test is Carbon's, not a hedge on a method of ours. Bound here because
+   * a BlueScriptCallback carries its instance.
+   * Adapted: the registered JS factory replaces the Python import.
+   */
+  @meta.adapted
+  _InstantiateObject()
+  {
+    this._vtable = Tr2ActionPython.emptyVTable();
+    this._instance = null;
+    this._instance = Tr2ActionPython.createInstance(this.module, this.className, this);
+    const instance = this._instance;
+    if (!instance) return;
+    const extractMethod = methodName =>
+    {
+      const method = instance[methodName];
+      return typeof method === "function" ? method.bind(instance) : null;
+    };
+    this._vtable.onLink = extractMethod("OnLink");
+    this._vtable.onUnlink = extractMethod("OnUnlink");
+    this._vtable.onStart = extractMethod("OnStart");
+    this._vtable.onStop = extractMethod("OnStop");
+    this._vtable.onUpdate = extractMethod("OnUpdate");
+    this._vtable.onLoad = extractMethod("OnLoad");
+    this._vtable.onSave = extractMethod("OnSave");
   }
 }
 
