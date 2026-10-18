@@ -6161,8 +6161,6 @@ test("resPathInsert existence goes through BePaths, as Carbon's FileExists does"
   // The temporary resFileIndex adapter still overrides paths.
   const adapted = (await (await EveSOF.Create({ black: makeData("insert"), resFileIndex: [] })).Register({ paths }));
   assert.equal((await diffuse(adapted, "rifter:minmatar:minmatar")), "res:/x/ship_d.dds", "resFileIndex overrides paths");
-
-  (await assert.rejects(async () => (await new EveSOF().Register({ paths: {} })), /FileExists/));
 });
 
 test("SOF stamps the injected buildTime as every light's startTime", async () => {

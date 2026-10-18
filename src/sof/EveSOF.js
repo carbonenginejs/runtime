@@ -568,13 +568,8 @@ export class EveSOF
     }
     if (Object.prototype.hasOwnProperty.call(options, "paths"))
     {
-      const paths = options.paths ?? null;
-      // A host-supplied service, validated once here at the boundary.
-      if (paths !== null && typeof paths.FileExists !== "function")
-      {
-        throw new TypeError("EveSOF paths must provide FileExists(path), or be null");
-      }
-      this._paths = paths;
+      // An IBluePaths, as be.paths is, or null.
+      this._paths = options.paths ?? null;
       this._existingFilesCache.clear();
     }
     if (Object.prototype.hasOwnProperty.call(options, "resFileIndex"))
