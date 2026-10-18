@@ -3883,7 +3883,7 @@ export class EveSpaceScene
     const scratch = shadowPassScratch;
 
     // Get distance from camera to zFar (cpp:2391-2393).
-    // Carbon quirk, reproduced: aabbMax is the cloud's bound in LIGHT-VIEW
+    // Carbon quirk (CE-189), reproduced: aabbMax is the cloud's bound in LIGHT-VIEW
     // space (EveChildCloud2.cpp:893-906) while the view position is in world
     // space, so this distance mixes two frames.
     const dist = vec3.distance(renderContext.GetViewPosition(), cloudShadowInformation.aabbMax);
@@ -3917,7 +3917,7 @@ export class EveSpaceScene
 
     const shadowFrustum = TriShadowOrthoFrustum.create__AllFields(cloudShadowInformation.shadowFrustum, cloudShadowInformation.shadowMapSize, this.sunDirection);
 
-    // Carbon quirk, reproduced: one sizeInShadow serves every caster
+    // Carbon quirk (CE-187), reproduced: one sizeInShadow serves every caster
     // (cpp:2405) and IsCastingShadow's result is ignored, so a caster that
     // returns before writing the size is gathered with the previous caster's
     // size.
@@ -3938,6 +3938,7 @@ export class EveSpaceScene
 
     // The instanced meshes cull against the update context's frustum, not
     // the clipped one the casters were given (cpp:2416).
+    // As Carbon has it: the instanced meshes take the update context's frustum (cpp:2416), the casters the cloud-clipped one (cpp:2408).
     this.instancedMeshManager.GetShadowBatches(this.updateContext.GetFrustum(), shadowFrustum, this.updateContext.GetInvLodFactor(),
       [ [ TriBatchType.TRIBATCHTYPE_OPAQUE, batches ] ]);
 
@@ -4073,7 +4074,7 @@ export class EveSpaceScene
 
     const casterShadowFrustum = TriShadowFrustum.create__Shadow(shadowFrustum);
 
-    // Carbon quirk, reproduced: one sizeInShadow serves every caster
+    // Carbon quirk (CE-187), reproduced: one sizeInShadow serves every caster
     // (cpp:2531) and IsCastingShadow's result is ignored, as in
     // RenderIntoCloudShadowMap.
     const sizeInShadow = [ 0 ];
@@ -4118,7 +4119,7 @@ export class EveSpaceScene
       {
         esm.SetInvertedDepthTest(true);
 
-        // Carbon quirk, reproduced: the ON_BLOCK_EXIT restore belongs to
+        // Carbon quirk (CE-188), reproduced: the ON_BLOCK_EXIT restore belongs to
         // this inner block (cpp:2560-2564), so it runs here, before the
         // draw; the casters draw with the depth test as it was found.
         esm.SetInvertedDepthTest(false);
