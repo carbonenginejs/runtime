@@ -7,7 +7,10 @@ import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
 import { Tr2SpriteObjectBlendMode, Tr2SpriteObjectEffect, Tr2SpriteTarget } from "../generated/sprite2d/enums.js";
 
-/** Provides shared color, depth, blending, effect, glow, outline, shadow, and render-target state for drawable 2D sprites. */
+/**
+ * Provides shared color, depth, blending, effect, glow, outline, shadow, and render-target state for drawable 2D sprites.
+ * Carbon declares a protected `ValidateAndSetTextures` here (Tr2SpriteObject.h:100) but defines only Tr2TexturedSpriteObject's (Tr2SpriteObject.cpp:294), so it has no port on this class.
+ */
 @blue.define({ className: "Tr2SpriteObject", abstract: true, purpose: "Provides shared color, depth, blending, effect, glow, outline, shadow, and render-target state for drawable 2D sprites." })
 @blue.chainTo(Tr2SpriteObjectBase)
 export class Tr2SpriteObject extends Tr2SpriteObjectBase

@@ -4,6 +4,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { parse } from "@babel/parser";
 import { isCarbonDecorator, findCarbonMethod } from "./carbon-decorators.js";
+import { headerTypes, memberDeclarations } from "../lib/carbon-header-shape.js";
 
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -12,6 +13,12 @@ const summaryPath = path.join(sourceRoot, "generated", "summary.json");
 const options = ParseOptions(process.argv.slice(2));
 const defaultSchemaRoot = path.resolve(root, "..", "tools-core", ".scratch", "schema-build");
 const schemaRoot = path.resolve(options.schemaRoot ?? process.env.CARBON_SCHEMA_ROOT ?? defaultSchemaRoot);
+// The donor checkout. Access specifiers, nested types and definitions are read
+// from Carbon's own source, never inferred from our spelling.
+const carbonRoot = path.resolve(process.env.CARBON_ROOT ?? path.resolve(root, "..", "..", "carbonengine"));
+
+// Names the schema reports as methods that are C++ type keywords (IsPortableMember).
+const CPP_TYPE_KEYWORDS = new Set([ "void", "bool", "char", "short", "int", "long", "float", "double", "signed", "unsigned", "auto", "const" ]);
 
 const summary = JSON.parse(await fs.readFile(summaryPath, "utf8"));
 // Preserve the historical full audit cohort; ownership is the wider install guard.
@@ -22,6 +29,16 @@ const droppedClasses = await ReadJavaScriptClasses(path.join(sourceRoot, "droppe
 const quarantined = skipped.filter(entry => droppedClasses.has(entry.className));
 const promoted = skipped.filter(entry => !droppedClasses.has(entry.className));
 const classes = await ReadJavaScriptClasses(sourceRoot);
+// Trinity classes promoted to global/interfaces on purpose (runtime fbef98b36:
+// Tr2DebugColor, Tr2DebugObjectReference) stay Trinity parity subjects. Only a
+// parity subject is taken from there, and a Trinity file of the same name wins:
+// the shared interfaces' placeholder bodies must not credit Trinity classes
+// that inherit them.
+const interfaceClasses = await ReadJavaScriptClasses(path.join(root, "src", "global", "interfaces"));
+for (const entry of promoted)
+{
+  if (!classes.has(entry.className) && interfaceClasses.has(entry.className)) classes.set(entry.className, interfaceClasses.get(entry.className));
+}
 // Promoted classes remain Trinity-owned; their native bases may live in Blue.
 // Use the real shared declarations for both primary and composed-base lookup.
 const baseClasses = new Map([
@@ -29,9 +46,15 @@ const baseClasses = new Map([
   ...await ReadJavaScriptClasses(path.join(root, "src", "trinityal")),
   ...classes
 ]);
-const schema = await ReadSchemaClasses(schemaRoot);
+const schemaDeclarations = new Map();
+const schema = await ReadSchemaClasses(schemaRoot, schemaDeclarations);
+const headerCache = new Map();
+let carbonMentions = null;
 const omissions = [];
 const unexposed = [];
+const underscoredPublic = [];
+const declarationOnly = [];
+const nestedResolved = [];
 const missingClasses = [];
 const missingSchemas = [];
 const ambiguousSchemas = [];
@@ -63,10 +86,27 @@ for (const entry of promoted)
     if (!methodName || seen.has(methodName)) continue;
     if (!IsPortableMember(entry.className, methodName)) continue;
     seen.add(methodName);
-    const actualMethod = findCarbonMethod(actualMethods, methodName, method.static === true);
-    // Native obligations require a body; only Blue-mapped methods require exposure.
-    // A Carbon method the class lists in define({ unused }) is deliberately absent.
-    if (actualMethod && (method.native === true || actualMethod.hasCarbon || actualMethod.unused)) continue;
+    let actualMethod = findCarbonMethod(actualMethods, methodName, method.static === true);
+    const declaredOn = method.declaredOn ?? schemaClass.cppClass;
+    const cppName = method.target ?? methodName;
+    const declarations = !actualMethod || actualMethod.privateSpelling ? await CarbonDeclarations(declaredOn, cppName) : null;
+
+    // Carbon declares the method inside a nested type that the schema flattens
+    // into the owner's list (Tr2Sprite2dDisplayList::Entry::SubmitGeometry,
+    // Tr2Sprite2dDisplayList.h:42). Under the nested-type rule the owner carries
+    // `static Entry = <our class>`, so the method is looked up on that class.
+    let nestedOwner = null;
+    if (!actualMethod && declarations?.length)
+    {
+      const nested = new Set(declarations.map(item => item.nested));
+      const nestedName = nested.size === 1 ? [ ...nested ][0] : null;
+      const nestedClass = nestedName ? ResolveNestedClass(actualClass, nestedName, baseClasses) : null;
+      if (nestedClass)
+      {
+        actualMethod = findCarbonMethod(CollectMethods(nestedClass, baseClasses, unresolvedBases), methodName, method.static === true);
+        if (actualMethod) nestedOwner = `${nestedName} = ${nestedClass.className}`;
+      }
+    }
 
     const record = {
       family: entry.family,
@@ -79,6 +119,35 @@ for (const entry of promoted)
       schemaFile: schemaClass.file,
       classFile: actualClass.file
     };
+
+    // `_Name` is the spelling of a Carbon private or protected `Name` (rule 8),
+    // so it credits Name only where Carbon's header declares every overload so.
+    if (actualMethod?.privateSpelling
+      && (!declarations?.length || declarations.some(item => item.access === "public")))
+    {
+      underscoredPublic.push({ ...record, access: declarations?.map(item => item.access) ?? null });
+      continue;
+    }
+
+    // Native obligations require a body; only Blue-mapped methods require exposure.
+    // A Carbon method the class lists in define({ unused }) is deliberately absent.
+    if (actualMethod && (method.native === true || actualMethod.hasCarbon || actualMethod.unused))
+    {
+      if (nestedOwner) nestedResolved.push({ ...record, nestedOwner });
+      continue;
+    }
+
+    // Carbon declares it and defines it nowhere (Tr2SpriteObject::
+    // ValidateAndSetTextures, Tr2SpriteObject.h:100): there is no body to port,
+    // and a call would not link. Owed only when a body exists.
+    if (!actualMethod && method.native === true && declarations?.length
+      && declarations.every(item => item.nested === null && !item.inline && !item.pure)
+      && !await IsMentionedInCarbon(declaredOn, cppName))
+    {
+      declarationOnly.push(record);
+      continue;
+    }
+
     if (actualMethod)
     {
       unexposed.push(record);
@@ -100,6 +169,9 @@ const result = {
     classesWithParityGaps: parityGapClasses.size,
     omittedMethods: omissions.length,
     unexposedMethods: unexposed.length,
+    underscoredPublicMethods: underscoredPublic.length,
+    declarationOnlyMethods: declarationOnly.length,
+    nestedResolvedMethods: nestedResolved.length,
     missingClasses: missingClasses.length,
     missingSchemas: missingSchemas.length,
     ambiguousSchemas: ambiguousSchemas.length,
@@ -108,6 +180,9 @@ const result = {
   quarantined,
   omissions,
   unexposed,
+  underscoredPublic,
+  declarationOnly,
+  nestedResolved,
   missingClasses,
   missingSchemas,
   ambiguousSchemas,
@@ -134,6 +209,7 @@ const baselineFile = path.join(root, "scripts", "trinity-parity-baseline.json");
 const findings = [
   ...omissions.map(item => `omitted ${item.className}.${item.method}`),
   ...unexposed.map(item => `unexposed ${item.className}.${item.method}`),
+  ...underscoredPublic.map(item => `underscored-public ${item.className}.${item.method}`),
   ...missingClasses.map(item => `missing-class ${item.className}`),
   ...missingSchemas.map(item => `missing-schema ${item.className}`),
   ...ambiguousSchemas.map(item => `ambiguous-schema ${item.className}`),
@@ -228,8 +304,17 @@ async function ReadJavaScriptClasses(directory, includeDropped = false)
       if (declaration?.type !== "ClassDeclaration" || !declaration.id?.name) continue;
       const className = declaration.id.name;
       const methods = new Map();
+      // `static Entry = Tr2Sprite2dDisplayListEntry`: the nested-type rule's
+      // alias from Carbon's nested name to our class.
+      const nested = new Map();
       for (const member of declaration.body.body)
       {
+        if (member.type === "ClassProperty" && member.static && member.value?.type === "Identifier")
+        {
+          const key = GetMemberName(member);
+          if (key) nested.set(key, imports.get(member.value.name) ?? member.value.name);
+          continue;
+        }
         if (member.type !== "ClassMethod" || member.kind === "constructor") continue;
         const name = GetMemberName(member);
         if (!name) continue;
@@ -241,12 +326,16 @@ async function ReadJavaScriptClasses(directory, includeDropped = false)
         // renamed twin, it must not erase the exposure of the exact-name method.
         // `_Name` is the library's private spelling of Carbon's private or
         // protected `Name`, as the native-method lint already credits it.
+        // The main loop checks Carbon's access specifier before it accepts that credit.
         const privateOf = name.startsWith("_") && !name.startsWith("__") ? name.slice(1) : null;
         for (const original of [ OverloadDonor(name), privateOf ])
         {
           if (!original) continue;
+          const credit = name.startsWith("_") ? { ...metadata, privateSpelling: true } : metadata;
           const existing = methods.get(original);
-          methods.set(original, existing ? { ...existing, hasCarbon: existing.hasCarbon || metadata.hasCarbon } : metadata);
+          methods.set(original, existing
+            ? { ...existing, hasCarbon: existing.hasCarbon || metadata.hasCarbon, privateSpelling: existing.privateSpelling === true && credit.privateSpelling === true }
+            : credit);
         }
         // A browser wrapper can keep its Blue name while declaring its C++
         // original, just as the native-method audit already resolves aliases.
@@ -269,7 +358,7 @@ async function ReadJavaScriptClasses(directory, includeDropped = false)
       // bases, so they carry members, and an audit that reads only `extends`
       // reports every one of those members missing.
       const inherits = ReadInheritedBases(declaration, imports);
-      const record = { className, baseClass, inherits, methods, file: relativeFile };
+      const record = { className, baseClass, inherits, methods, nested, file: relativeFile };
       const existing = records.get(className);
       if (!existing || existing.file.startsWith("src/trinity/generated/")) records.set(className, record);
     }
@@ -336,8 +425,12 @@ function ReadImports(ast)
   return imports;
 }
 
-/** @param {string} directory */
-async function ReadSchemaClasses(directory)
+/**
+ * @param {string} directory
+ * @param {Map<string,{source:string,line:number}>} declarations Filled with each
+ *   C++ class's header declaration, including classes with no methods.
+ */
+async function ReadSchemaClasses(directory, declarations)
 {
   const records = new Map();
   for (const file of await GetFiles(directory, ".json"))
@@ -346,6 +439,8 @@ async function ReadSchemaClasses(directory)
     if (name === "index.json" || name === "enums.json") continue;
     const doc = JSON.parse(await fs.readFile(file, "utf8"));
     if (!doc.blueClass) continue;
+    const declared = Array.isArray(doc.declarations) ? doc.declarations.find(item => /\.h(?:pp)?$/u.test(item.source ?? "")) : null;
+    if (doc.cppClass && declared && !declarations.has(doc.cppClass)) declarations.set(doc.cppClass, declared);
     // Carbon's `methods` is the BLUE-EXPOSED surface, and for a class Blue never
     // exposed it is empty - Tr2Renderer has 90 members and `methods: []`.
     // Comparing against that reports parity for anything native, which is how
@@ -358,6 +453,7 @@ async function ReadSchemaClasses(directory)
     if (!merged.length) continue;
     const record = {
       family: doc.family ?? null,
+      cppClass: doc.cppClass ?? doc.blueClass,
       file: path.relative(directory, file).replaceAll(path.sep, "/"),
       methods: merged,
       sourceRefs: doc.sourceRefs ?? {}
@@ -401,6 +497,91 @@ function ReadInheritedBases(declaration, imports)
     }
   }
   return names;
+}
+
+/**
+ * Our class for Carbon's nested type `nestedName` under `record`: the owner's
+ * `static <nestedName> = <class>` alias, searched up the JS base chain.
+ *
+ * @param {object} record The owner's class record.
+ * @param {string} nestedName Carbon's nested type name.
+ * @param {Map} classes All class records.
+ * @returns {object|null}
+ */
+function ResolveNestedClass(record, nestedName, classes)
+{
+  const visited = new Set();
+  for (let current = record; current && !visited.has(current.className); current = classes.get(current.baseClass))
+  {
+    visited.add(current.className);
+    const target = current.nested?.get(nestedName);
+    if (target) return classes.get(target) ?? null;
+  }
+  return null;
+}
+
+/**
+ * Carbon's declarations of `name` in `cppClass`, read from the header the
+ * schema cites for the class, or null when that header cannot be read.
+ *
+ * @param {string} cppClass The declaring C++ class.
+ * @param {string} name The C++ member function name.
+ * @returns {Promise<object[]|null>} memberDeclarations records.
+ */
+async function CarbonDeclarations(cppClass, name)
+{
+  const declared = cppClass ? schemaDeclarations.get(cppClass) : null;
+  if (!declared) return null;
+  if (!headerCache.has(declared.source))
+  {
+    let types = null;
+    try { types = headerTypes(await fs.readFile(path.join(carbonRoot, declared.source), "utf8")); }
+    catch (error) { if (error.code !== "ENOENT") throw error; }
+    headerCache.set(declared.source, types);
+  }
+  const types = headerCache.get(declared.source);
+  const bare = cppClass.split("::").pop();
+  const type = types?.find(item => item.name === bare && item.line === declared.line)
+    ?? types?.find(item => item.name === bare);
+  return type ? memberDeclarations(type, name) : null;
+}
+
+/**
+ * Whether any Carbon source mentions `Class::name`: an out-of-line definition,
+ * a qualified call, or a member pointer. Deliberately broad, so a method is
+ * judged declaration-only only when nothing in Carbon names it qualified.
+ *
+ * @param {string} cppClass The declaring C++ class.
+ * @param {string} name The C++ member function name.
+ * @returns {Promise<boolean>}
+ */
+async function IsMentionedInCarbon(cppClass, name)
+{
+  if (!carbonMentions)
+  {
+    carbonMentions = new Set();
+    for (const file of await GetCarbonSources(carbonRoot))
+    {
+      // Unmasked: a mention inside a comment or string only makes this more conservative.
+      const source = await fs.readFile(file, "utf8");
+      for (const match of source.matchAll(/\b(\w+)\s*(?:<[^<>;{}()]*>)?\s*::\s*~?(\w+)\b/gu)) carbonMentions.add(`${match[1]}::${match[2]}`);
+    }
+  }
+  return carbonMentions.has(`${cppClass.split("::").pop()}::${name}`);
+}
+
+/** @param {string} directory */
+async function GetCarbonSources(directory)
+{
+  const files = [];
+  for (const entry of await fs.readdir(directory, { withFileTypes: true }))
+  {
+    if (entry.name === ".git" || entry.name === "node_modules") continue;
+    const entryPath = path.join(directory, entry.name);
+    if (entry.isDirectory()) files.push(...await GetCarbonSources(entryPath));
+    else if (entry.isFile() && /\.(?:c|cc|cpp|cxx|h|hpp|inl)$/iu.test(entry.name)) files.push(entryPath);
+  }
+  return files;
 }
 
 function CollectMethods(record, classes, unresolvedBases)
@@ -516,6 +697,10 @@ function IsPortableMember(className, methodName)
   if (methodName === className) return false;
   if (methodName.startsWith("~")) return false;
   if (methodName.startsWith("operator")) return false;
+  // A type keyword is the schema misreading a declaration, not a method:
+  // `operator bool()` arrives as "bool" (ITr2DebugRenderer2.h:121) and
+  // `std::function<void()>` as "void" (EveBoxVolume.h:31).
+  if (CPP_TYPE_KEYWORDS.has(methodName)) return false;
   if (methodName === methodName.toUpperCase() && /[A-Z]/u.test(methodName)) return false;
   return true;
 }
@@ -532,6 +717,9 @@ function PrintReport(audit, listItems)
   console.log(`- Classes with parity gaps: ${summary.classesWithParityGaps}.`);
   console.log(`- Omitted Carbon methods: ${summary.omittedMethods}.`);
   console.log(`- Present but unexposed Carbon methods: ${summary.unexposedMethods}.`);
+  console.log(`- Carbon-public methods spelled private (_Name): ${summary.underscoredPublicMethods}.`);
+  console.log(`- Declared but never defined in Carbon (nothing to port): ${summary.declarationOnlyMethods}.`);
+  console.log(`- Resolved through a nested-type alias: ${summary.nestedResolvedMethods}.`);
   console.log(`- Missing JavaScript classes: ${summary.missingClasses}.`);
   console.log(`- Missing or ambiguous schemas: ${summary.missingSchemas + summary.ambiguousSchemas}.`);
   console.log(`- Unresolved base classes: ${summary.unresolvedBases}.`);
@@ -557,6 +745,17 @@ function PrintReport(audit, listItems)
       const source = item.source ? ` (${item.source.file}:${item.source.line ?? "?"})` : "";
       console.log(`- ${item.className}.${item.method}${declaration}${source}`);
     }
+  }
+  for (const [ heading, records ] of [
+    [ "Carbon-public methods spelled private", audit.underscoredPublic ],
+    [ "Declared but never defined in Carbon", audit.declarationOnly ],
+    [ "Resolved through a nested-type alias", audit.nestedResolved ]
+  ])
+  {
+    if (!records.length) continue;
+    console.log();
+    console.log(`## ${heading}`);
+    for (const item of records) console.log(`- ${item.className}.${item.method}${item.nestedOwner ? ` (${item.nestedOwner})` : ""}`);
   }
   for (const [heading, records] of [
     ["Missing JavaScript classes", audit.missingClasses],

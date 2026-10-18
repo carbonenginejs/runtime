@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 import path from "node:path";
 import test from "node:test";
-import { headerTypes, jsClasses, structDefaults, compareDefaults, literalValue } from "../scripts/lib/carbon-header-shape.js";
+import { headerTypes, jsClasses, structDefaults, compareDefaults, literalValue, memberDeclarations } from "../scripts/lib/carbon-header-shape.js";
 
 test("header coverage distinguishes definitions, nested types, forwards and specializations", () =>
 {
@@ -102,4 +102,34 @@ test("real Carbon sampler: filter, address and comparison zero mutations each fa
         assert.ok(result.mismatches[0].startsWith(member + ":"));
     }
     assert.ok(original.unchecked.includes("constructor body requires review"));
+});
+
+test("member declarations carry Carbon access, nested owner and inline body", () =>
+{
+    // The continued string (EveCamera.h:6-11) must not unbalance the masking.
+    const source = `#define DESCRIPTION \\
+    "line one \r\n\\
+line two."
+class Owner : public IRoot
+{
+public:
+    struct Entry : public ICallback
+    {
+        void Submit( int context ) override;
+    };
+    void Run() { Helper(); }
+    const char* Name() const { return "owner"; }
+protected:
+    bool Helper( int a = Other( 1 ) );
+private:
+    virtual void Pure() = 0;
+};
+`;
+    const owner = headerTypes(source).find(type => type.name === "Owner");
+    assert.ok(owner);
+    assert.deepEqual(memberDeclarations(owner, "Submit"), [ { access: "public", nested: "Entry", inline: false, pure: false } ]);
+    assert.deepEqual(memberDeclarations(owner, "Run"), [ { access: "public", nested: null, inline: true, pure: false } ]);
+    assert.deepEqual(memberDeclarations(owner, "Helper"), [ { access: "protected", nested: null, inline: false, pure: false } ]);
+    assert.deepEqual(memberDeclarations(owner, "Other"), []);
+    assert.deepEqual(memberDeclarations(owner, "Pure"), [ { access: "private", nested: null, inline: false, pure: true } ]);
 });

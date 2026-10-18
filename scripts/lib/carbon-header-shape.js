@@ -1,9 +1,13 @@
 import { parse } from "@babel/parser";
 
-/** Remove comments and string contents without moving source offsets. */
+/**
+ * Remove comments and string contents without moving source offsets. An escape
+ * takes any next character, line breaks included: a string continued with a
+ * trailing backslash (EveCamera.h:6-11) must not end the literal early.
+ */
 export function maskCpp(source)
 {
-    return source.replace(/\/\*[\s\S]*?\*\/|\/\/[^\r\n]*|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g,
+    return source.replace(/\/\*[\s\S]*?\*\/|\/\/[^\r\n]*|"(?:\\[\s\S]|[^"\\])*"|'(?:\\[\s\S]|[^'\\])*'/g,
         value => value.replace(/[^\r\n]/g, " "));
 }
 
@@ -305,4 +309,76 @@ function enumValue(expression, members)
         total |= value;
     }
     return total < 0 ? total >>> 0 : total;
+}
+
+/**
+ * Every declaration of the member function `name` in a class body from
+ * headerTypes, with the access specifier and nested type it is declared under.
+ *
+ * The body is walked token by token: `{`/`}` open and close frames, a frame is a
+ * type body when a `class`/`struct`/`union` head precedes its brace, and an
+ * access label applies to the innermost type frame. A class body starts
+ * `private`, a struct or union body `public`, as C++ defines. A name counts as a
+ * declaration only directly inside a type frame at parenthesis depth 0, so calls
+ * in inline bodies, default arguments and `X::name` / `obj.name` uses are not
+ * declarations.
+ *
+ * @param {{ body: string, kind: string }} type A record from headerTypes.
+ * @param {string} name The member function name.
+ * @returns {{ access: string, nested: string|null, inline: boolean, pure: boolean }[]}
+ *   `nested` is the enclosing nested type's name, or null for the class itself;
+ *   `inline` is true when a body follows the declaration; `pure` for `= 0`.
+ */
+export function memberDeclarations(type, name)
+{
+    const body = maskCpp(type.body);
+    const defaultAccess = kind => kind === "class" ? "private" : "public";
+    const frames = [ { type: type.name ?? null, nested: null, access: defaultAccess(type.kind) } ];
+    const escaped = name.replace(/[$()*+.?[\\]^{|}]/g, "\$&");
+    const tokens = new RegExp(String.raw`[{}();]|\b(public|protected|private)\s*:(?!:)|\b(class|struct|union|enum)\s+(?:[A-Z][A-Z0-9_]{2,}\s+)?(\w+)|(?<![\w.>:~])(${escaped})\s*\(`, "g");
+    const result = [];
+    let parens = 0;
+    let pendingType = null;
+    for (const match of body.matchAll(tokens))
+    {
+        const top = frames[frames.length - 1];
+        const token = match[0];
+        if (match[1])
+        {
+            if (top.type !== null && parens === 0) top.access = match[1];
+            continue;
+        }
+        if (match[2])
+        {
+            if (parens === 0) pendingType = match[2] === "enum" ? { kind: "enum", name: match[3] } : { kind: match[2], name: match[3] };
+            continue;
+        }
+        if (match[4])
+        {
+            if (parens === 0 && top.type !== null)
+            {
+                const close = closing(body, match.index + token.length - 1, "(", ")");
+                const tail = body.slice(close + 1).match(/^[^{;=]*?(?:([{;])|=\s*(0)\b|=)/);
+                const inline = tail?.[1] === "{" || /^[^{;=]*:(?!:)/.test(body.slice(close + 1, close + 1 + (tail?.[0].length ?? 0)));
+                result.push({ access: top.access, nested: top.nested, inline, pure: tail?.[2] === "0" });
+            }
+            parens++;
+            pendingType = null;
+            continue;
+        }
+        if (token === "(") { parens++; if (parens === 1) pendingType = null; continue; }
+        if (token === ")") { parens = Math.max(0, parens - 1); continue; }
+        if (token === ";") { if (parens === 0) pendingType = null; continue; }
+        if (token === "{")
+        {
+            const opened = parens === 0 && pendingType && pendingType.kind !== "enum"
+                ? { type: pendingType.name, nested: pendingType.name, access: defaultAccess(pendingType.kind) }
+                : { type: null, nested: top.nested, access: top.access };
+            frames.push(opened);
+            pendingType = null;
+            continue;
+        }
+        if (token === "}" && frames.length > 1) frames.pop();
+    }
+    return result;
 }
