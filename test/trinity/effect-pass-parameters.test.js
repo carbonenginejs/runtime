@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { Tr2Effect } from "../../npm/dist/trinity/shader/index.js";
+import { Tr2Effect, Tr2Vector4Parameter } from "../../npm/dist/trinity/shader/index.js";
 import { ShaderStageType } from "../../npm/dist/resource/shader/index.js";
 
 const { VERTEX_SHADER, PIXEL_SHADER, GEOMETRY_SHADER } = ShaderStageType;
@@ -100,12 +100,25 @@ test("a bound parameter records its byte offset and size, not a register", () =>
 test("a notifying parameter goes in the separate vector", () =>
 {
   // MarkConstantBuffersDirty keys off exactly this split.
+  // A real ITriEffectParameter that notifies: Carbon asks only a value that
+  // casts to the interface (Tr2Effect.cpp:1930-1936).
+  class NotifyingVector4 extends Tr2Vector4Parameter
+  {
+    SupportsDirtyNotification()
+    {
+      return true;
+    }
+
+    // The shader below is a reflection stand-in, not a Tr2Shader, so there
+    // are no handles to resolve against it.
+    RebuildEffectHandles()
+    {
+    }
+  }
   const effect = new Tr2Effect();
-  effect.parameters.push({
-    name: "Animated",
-    SupportsDirtyNotification: () => true,
-    RebuildEffectHandles() {}
-  });
+  const animated = new NotifyingVector4();
+  animated.name = "Animated";
+  effect.parameters.push(animated);
   effect.shader = shaderWith({
     [VERTEX_SHADER]: stage({ constants: [ { name: "Animated", offset: 0, size: 16 } ] })
   });

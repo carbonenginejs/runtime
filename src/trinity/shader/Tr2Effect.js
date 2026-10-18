@@ -324,7 +324,7 @@ export class Tr2Effect extends Tr2Material
    */
   static #GlobalVariable(name)
   {
-    return Tr2VariableStore.globalStore().GetVariable?.(name) ?? null;
+    return Tr2VariableStore.globalStore().GetVariable(name);
   }
 
   /** The effect's store, falling back to the global store at call time. */
@@ -374,11 +374,11 @@ export class Tr2Effect extends Tr2Material
     }
     for (const parameter of this.parameters)
     {
-      hash = parameter?.GetHashValue?.(hash) ?? hash;
+      hash = parameter?.GetHashValue(hash) ?? hash;
     }
     for (const resource of this.resources)
     {
-      hash = resource?.GetHashValue?.(hash) ?? hash;
+      hash = resource?.GetHashValue(hash) ?? hash;
     }
     return hash >>> 0;
   }
@@ -553,7 +553,7 @@ export class Tr2Effect extends Tr2Material
   {
     this._ClearPassBindings();
 
-    const techniques = this.shader?.GetEffect?.()?.techniques ?? [];
+    const techniques = this.shader?.GetEffect()?.techniques ?? [];
 
     for (const technique of techniques)
     {
@@ -639,7 +639,7 @@ export class Tr2Effect extends Tr2Material
   @meta.renamed("MapPassParameters")
   #MapPassParameters(stage, stageInput, passParameters)
   {
-    const constantSize = stage.GetConstantBufferSize?.() ?? 0;
+    const constantSize = stage.GetConstantBufferSize();
     const constants = stage.constants ?? [];
     const constParameters = this.GetConstParameters();
     const bound = new Map();
@@ -657,7 +657,7 @@ export class Tr2Effect extends Tr2Material
 
       const value = this.FindParameterByName(name)
         ?? this.#ResolveResourceValue(name, passParameters)
-        ?? this.GetVariableStore().FindVariable?.(name)
+        ?? this.GetVariableStore().FindVariable(name)
         ?? (constant.isAutoregister ? Tr2Effect.#GlobalVariable(name) : null)
         ?? null;
 
@@ -696,9 +696,18 @@ export class Tr2Effect extends Tr2Material
       parameter.registerIndex = constant.offset;
       parameter.registerCount = constant.size;
 
-      value.RebuildEffectHandles?.(this.shader);
+      // Carbon casts the found value (Tr2Effect.cpp:1930-1936): a store
+      // variable is not an ITriEffectParameter and is neither rebuilt nor asked.
+      const effectParameter = CjsSchema.cast(value, ITriEffectParameter);
+      let supportsDirtyNotification = false;
 
-      if (value.SupportsDirtyNotification?.())
+      if (effectParameter !== null)
+      {
+        effectParameter.RebuildEffectHandles(this.shader);
+        supportsDirtyNotification = effectParameter.SupportsDirtyNotification();
+      }
+
+      if (supportsDirtyNotification)
       {
         stageInput.shaderParametersWithNotification.push(parameter);
       }
@@ -763,7 +772,7 @@ export class Tr2Effect extends Tr2Material
         }
         else
         {
-          value = this.GetVariableStore().FindVariable?.(name)
+          value = this.GetVariableStore().FindVariable(name)
             ?? (resource.isAutoregister ? Tr2Effect.#GlobalVariable(name) : null)
             ?? null;
         }
@@ -861,7 +870,7 @@ export class Tr2Effect extends Tr2Material
     this._acquiredEffectResource = resource;
     this._acquiredEffectPath = this.actualEffectFilePath;
     resource.AddNotifyTarget(this);
-    resource.Ready?.();
+    resource.Ready();
   }
 
   /** Re-runs Initialize after notified fields change; always returns true. */
@@ -950,11 +959,11 @@ export class Tr2Effect extends Tr2Material
       {
         parameter.Initialize(this.GetVariableStore());
       }
-      parameter?.RebuildEffectHandles?.(this.shader);
+      parameter?.RebuildEffectHandles(this.shader);
     }
     for (const resource of this.resources)
     {
-      resource?.RebuildEffectHandles?.(this.shader);
+      resource?.RebuildEffectHandles(this.shader);
       if (resource?.UsedWithScreenSize && !this.lodTextureParameters.includes(resource))
       {
         this.lodTextureParameters.push(resource);
@@ -1013,11 +1022,11 @@ export class Tr2Effect extends Tr2Material
     this.shader = null;
     for (const parameter of this.parameters)
     {
-      parameter?.RebuildEffectHandles?.(null);
+      parameter?.RebuildEffectHandles(null);
     }
     for (const resource of this.resources)
     {
-      resource?.RebuildEffectHandles?.(null);
+      resource?.RebuildEffectHandles(null);
     }
     this.lodTextureParameters = [];
   }
