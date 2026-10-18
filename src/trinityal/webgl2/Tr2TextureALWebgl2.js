@@ -1249,6 +1249,17 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
   }
 
   /**
+   * Ours: Carbon's textures have no asynchronous colour reduction. Only the
+   * WebGPU backend implements one (CjsWebgpuTextureAL.RequestAverageColor);
+   * null here selects the browser's CPU fallback.
+   * @returns {null}
+   */
+  RequestAverageColor()
+  {
+    return null;
+  }
+
+  /**
    * Names the texture. WebGL has no debug names, so it is kept for `Describe`
    * and `GetName`.
    *

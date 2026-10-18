@@ -158,8 +158,7 @@ export class Tr2TextureAL
   RequestAverageColor()
   {
     const implementation = this._texture ? this._texture.implementation : null;
-    return implementation && typeof implementation.RequestAverageColor === "function"
-      ? implementation.RequestAverageColor() : null;
+    return implementation ? implementation.RequestAverageColor() : null;
   }
 
   /** Reports whether this value references valid backend storage. */
