@@ -350,7 +350,7 @@ export class CjsWebAudioSoundEngine extends ICjsWwiseSoundEngine
         {
             if (record.music && record.musicEngine === previous)
             {
-                previous?.ExecuteAction?.("stop", playingID, 0);
+                previous?.ExecuteAction("stop", playingID, 0);
                 this._FinishMusicPlaying(playingID);
             }
         }
@@ -4814,7 +4814,7 @@ export class CjsWebAudioSoundEngine extends ICjsWwiseSoundEngine
             && !descriptor.getHighPass
             && !descriptor.getHighPassAtAdditionalPercent;
         const mixerOwnsRouteFilters = this._busMixer
-            ?.OwnsRouteStateFilters?.(busGraphRoute) === true;
+            ?.OwnsRouteStateFilters(busGraphRoute) === true;
         const emitterRouteBranch = mixerOwnsRouteFilters && !allowAudibleAux
             ? null
             : this._GetEmitterRouteBranch(
@@ -7108,7 +7108,7 @@ export class CjsWebAudioSoundEngine extends ICjsWwiseSoundEngine
     /** Applies live RTPC automation to qualified source-effect parameters. */
     _ApplyVoiceSourceEffects(voice, smooth = false)
     {
-        voice.sourceEffectRtpcLane?.Apply?.(
+        voice.sourceEffectRtpcLane?.Apply(
             voice.controlTransitionBoundaries ?? [],
             smooth,
         );
@@ -7460,7 +7460,7 @@ export class CjsWebAudioSoundEngine extends ICjsWwiseSoundEngine
             record.sourceGain?.disconnect();
             if (!record.callbacksCancelled)
             {
-                record.emitter?.EventFinishedCallback?.(playingID);
+                record.emitter?.EventFinishedCallback(playingID);
                 record.onFinished?.(playingID);
             }
             this._ReleaseRetiredEmitterNodes(

@@ -295,12 +295,12 @@ export class CjsMusicEngineScheduledSegment
 
                 if (stopAt <= entry.startCtx)
                 {
-                    entry.duckActivity?.Cancel?.(stopAt);
+                    entry.duckActivity?.Cancel(stopAt);
                     entry.duckActivity = null;
                 }
                 else
                 {
-                    entry.duckActivity?.End?.(stopAt);
+                    entry.duckActivity?.End(stopAt);
                 }
                 entry.ScheduleStopAt(stopAt);
             }

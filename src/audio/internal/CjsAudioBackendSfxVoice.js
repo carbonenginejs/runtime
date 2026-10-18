@@ -168,7 +168,7 @@ export class CjsAudioBackendSfxVoice
     DisconnectSourceEffects()
     {
         this.StopSourceEffects();
-        this.sourceEffectRtpcLane?.Dispose?.();
+        this.sourceEffectRtpcLane?.Dispose();
         this.sourceEffectRtpcLane = null;
         for (const node of this.sourceEffectNodes ?? [])
         {

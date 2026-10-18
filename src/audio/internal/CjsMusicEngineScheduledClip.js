@@ -172,11 +172,11 @@ export class CjsMusicEngineScheduledClip
 
             if (endedAt <= this.startCtx)
             {
-                this.duckActivity?.Cancel?.(endedAt);
+                this.duckActivity?.Cancel(endedAt);
             }
             else
             {
-                this.duckActivity?.End?.(endedAt);
+                this.duckActivity?.End(endedAt);
             }
             this.duckActivity = null;
             this.ended = true;
@@ -296,7 +296,7 @@ export class CjsMusicEngineScheduledClip
                 this.source.disconnect();
                 this.source = null;
             }
-            this.duckActivity?.End?.(effectiveEnd);
+            this.duckActivity?.End(effectiveEnd);
             this.duckActivity = null;
             this.ended = true;
             return;
@@ -326,11 +326,11 @@ export class CjsMusicEngineScheduledClip
         }
         if (pauseAt <= this.startCtx)
         {
-            this.duckActivity?.Cancel?.(pauseAt);
+            this.duckActivity?.Cancel(pauseAt);
         }
         else
         {
-            this.duckActivity?.End?.(pauseAt);
+            this.duckActivity?.End(pauseAt);
         }
         this.duckActivity = null;
     }
@@ -368,11 +368,11 @@ export class CjsMusicEngineScheduledClip
 
         if (now <= this.startCtx)
         {
-            this.duckActivity?.Cancel?.(now);
+            this.duckActivity?.Cancel(now);
         }
         else
         {
-            this.duckActivity?.End?.(now);
+            this.duckActivity?.End(now);
         }
         this.duckActivity = null;
         if (this.source)
