@@ -15,6 +15,9 @@ import {
   resourcePayloadError
 } from "../resourceBoundary.js";
 
+/** INVALID_LOD (TriTextureRes.cpp:76): no mip has been requested. */
+const INVALID_LOD = 0xffffffff;
+
 /**
  * Resource record that owns Carbon-style texture identity and validated
  * HostBitmap data with mirrored dimension/format
@@ -45,6 +48,8 @@ export class TriTextureRes extends CjsResource
   gpuMip = 0;
   wrappedRenderTarget = null;
   originalResolution = 0;
+  /** m_requestedMip (TriTextureRes.h:184), INVALID_LOD until a request (cpp:145). */
+  requestedMip = INVALID_LOD;
   originalMemoryUsage = 0;
   name = "";
   arraySize = 0;
@@ -480,6 +485,30 @@ export class TriTextureRes extends CjsResource
    */
   HadLodRequests() {
     return this.hadLodRequests;
+  }
+
+  /**
+   * Carbon RequestResolution (TriTextureRes.cpp:712-721): keeps the finest
+   * (smallest) mip requested since the last LOD update. A texture with no
+   * original resolution takes no request.
+   *
+   * @param {number} requestedLod Requested mip level.
+   * @returns {void}
+   */
+  RequestResolution(requestedLod) {
+    if (this.requestedMip === requestedLod || this.originalResolution === 0) return;
+    this.hadLodRequests = true;
+    // AtomicMinUpdate (cpp:119-125); JS has one thread, so a plain min.
+    this.requestedMip = Math.min(this.requestedMip, requestedLod);
+  }
+
+  /**
+   * Carbon GetOriginalResolutionAsFloat (TriTextureRes.cpp:819-822).
+   *
+   * @returns {number} The original resolution.
+   */
+  GetOriginalResolutionAsFloat() {
+    return this.originalResolution;
   }
 
   /**

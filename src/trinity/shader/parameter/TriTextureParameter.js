@@ -9,6 +9,7 @@ import { ITriEffectParameter } from "./ITriEffectParameter.js";
 
 import { ResourceRequirement } from "#resource";
 import { Tr2EffectResource, Tr2EffectParameterAnnotation } from "#resource/shader";
+import { TriTextureRes } from "#resource/texture";
 import { be, CjsResource } from "#blue";
 import { Tr2ColorSpace } from "#consts/render-context";
 import { CjsParameter } from "./CjsParameter.js";
@@ -380,8 +381,10 @@ export class TriTextureParameter extends CjsParameter
       }
     }
     let requestedLod = 0;
-    const resource = this.GetResource();
-    const original = resource?.GetOriginalResolutionAsFloat?.() ?? 0;
+    // Carbon reads m_textureRes, its resource cast to TriTextureRes
+    // (TriTextureParameter.cpp:237, 266); another provider has no LOD.
+    const textureRes = CjsSchema.cast(this.GetResource(), TriTextureRes);
+    const original = textureRes?.GetOriginalResolutionAsFloat() ?? 0;
     if (resolution > 0 && original > 0)
     {
       const requestedResolution = Math.max(1, resolution);
@@ -568,9 +571,8 @@ export class TriTextureParameter extends CjsParameter
   {
     for (const material of this._materials)
     {
-      const target = material;
-      target?.ResourceChanged?.();
-      target?.MarkConstantBuffersDirty?.();
+      material.ResourceChanged();
+      material.MarkConstantBuffersDirty();
     }
   }
 
@@ -580,8 +582,7 @@ export class TriTextureParameter extends CjsParameter
    */
   _requestResourceResolution(lod)
   {
-    const target = this.GetResource();
-    target?.RequestResolution?.(lod);
+    CjsSchema.cast(this.GetResource(), TriTextureRes)?.RequestResolution(lod);
   }
 
   /** JS convenience: raw values this parameter class claims for map-form inference. */

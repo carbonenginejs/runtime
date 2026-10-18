@@ -2,7 +2,6 @@ import { CjsParameter } from "../../npm/dist/trinity/shader/parameter/CjsParamet
 import { NotifyModified } from "../../npm/dist/global/blue/index.js";
 import { NOTIFY_METHODS } from "../../npm/dist/global/compose/notify.js";
 import { composeStubResMan } from "../support/stubResMan.js";
-import { Tr2Event } from "../../npm/dist/trinity/core/index.js";
 
 // be.resMan throws until something composes a manager, so a test that
 // builds an object with a res path composes one. It answers null, which is
@@ -783,29 +782,18 @@ test("TriTextureParameter stays graph-owned and backend-free", () =>
   // Carbon's SetResourcePath calls OnModified internally and tells no one else;
   // outward "modified" events belong to the values door.
   assertEquals(modified.length, 0);
-  const resourceLods = [];
-  const textureChange = new Tr2Event();
-  parameter.SetResource({
-    path: "res:/runtime.dds",
-    OnTextureChange()
-    {
-      return textureChange;
-    },
-    RequestResolution(lod)
-    {
-      resourceLods.push(lod);
-    },
-    GetOriginalResolutionAsFloat()
-    {
-      return 1024;
-    }
-  });
+  // A real TriTextureRes: Carbon reads LOD through m_textureRes, the
+  // resource cast to TriTextureRes (TriTextureParameter.cpp:237).
+  const runtime = new TriTextureRes().Initialize("res:/runtime.dds");
+  runtime.originalResolution = 1024;
+  parameter.SetResource(runtime);
   assertEquals(modified.length, 0);
   assertEquals(parameter.GetResourcePath(), "res:/runtime.dds");
   parameter.EnableTextureLoding([2, 4, 0, 0, 0]);
   const lod = parameter.UsedWithScreenSize(512, 64, [2]);
   assertEquals(lod, 4);
-  assertEquals(resourceLods[0], 4);
+  assertEquals(runtime.requestedMip, 4);
+  assert(runtime.HadLodRequests());
   const materialEvents = [];
   const material = {
     ResourceChanged()
