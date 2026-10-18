@@ -40,29 +40,21 @@ test("script callbacks adapt external values once to one nominal identity", () =
     assert.equal(fromFunction.Call(1), "function-result");
     assert.equal(fromFunction.CallVoid(2), undefined);
 
-    const external = {
-        Call(...args)
-        {
-            calls.push([ "Call", ...args ]);
-            return "external-result";
-        },
-        CallVoid(...args)
-        {
-            calls.push([ "CallVoid", ...args ]);
-        }
-    };
-    const adapted = CjsScriptCallback.from(external);
+    // Carbon's copy constructor: the copy holds the same callable, and
+    // destroying it leaves the original valid.
+    const copied = new CjsScriptCallback(fromFunction);
 
-    assert.ok(adapted instanceof CjsScriptCallback);
-    assert.equal(adapted.Call(3), "external-result");
-    assert.equal(adapted.CallVoid(4), undefined);
-    assert.equal(CjsScriptCallback.from(adapted), adapted);
+    assert.equal(copied.Call(3), "function-result");
+    copied.Destroy();
+    assert.equal(fromFunction.IsValid(), true);
+    assert.equal(CjsScriptCallback.from(fromFunction), fromFunction);
     assert.equal(CjsScriptCallback.from(null), null);
-    assert.throws(() => CjsScriptCallback.from({ Call() {} }), /Call and CallVoid/u);
+    // Carbon's script callback holds one kind of callable; a callback-shaped
+    // object is not one.
+    assert.throws(() => CjsScriptCallback.from({ Call() {}, CallVoid() {} }), /function or a CjsScriptCallback/u);
     assert.deepEqual(calls, [
         [ 1 ],
         [ 2 ],
-        [ "Call", 3 ],
-        [ "CallVoid", 4 ]
+        [ 3 ]
     ]);
 });

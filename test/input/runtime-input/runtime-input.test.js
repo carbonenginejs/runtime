@@ -161,16 +161,11 @@ test("Tr2MainWindow normalizes callbacks once and distinguishes CallVoid from Ca
     const documentTarget = new FakeTarget();
     const target = new FakeTarget();
     const calls = [];
-    const callback = {
-        Call(...args)
-        {
-            calls.push([ "Call", ...args ]);
-            return false;
-        },
-        CallVoid(...args)
-        {
-            calls.push([ "CallVoid", ...args ]);
-        }
+    // One script callback: keydown discards its result (CallVoid), close uses it (Call).
+    const callback = (...args) =>
+    {
+        calls.push([ "called", ...args ]);
+        return false;
     };
     documentTarget.documentElement = target;
     windowTarget.document = documentTarget;
@@ -196,8 +191,8 @@ test("Tr2MainWindow normalizes callbacks once and distinguishes CallVoid from Ca
         }
     });
 
-    assert.equal(calls[0][0], "CallVoid");
-    assert.equal(calls[1][0], "Call");
+    assert.equal(calls[0][0], "called");
+    assert.equal(calls[1][0], "called");
     assert.deepEqual(calls[2], [ "preventDefault" ]);
     assert.equal(beforeUnload.returnValue, "");
     assert.equal(mainWindow.Close(), false);
@@ -208,8 +203,8 @@ test("Tr2MainWindow normalizes callbacks once and distinguishes CallVoid from Ca
     assert.equal(mainWindow.Close(), true);
     assert.equal(mainWindow.ProcessMessages(), false);
     assert.throws(
-        () => { mainWindow.onKeyUp = { Call() {} }; },
-        /Call and CallVoid/u
+        () => { mainWindow.onKeyUp = { Call() {}, CallVoid() {} }; },
+        /function or a CjsScriptCallback/u
     );
     assert.equal(mainWindow.onKeyUp, null);
 });

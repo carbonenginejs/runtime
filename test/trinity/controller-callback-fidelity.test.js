@@ -102,15 +102,9 @@ test("curve stop releases a replacement callback installed during invocation", (
 {
   const value = new TriCurveSet();
   let invoked = 0;
-  const replacement = {
-    Call()
-    {
-      invoked++;
-    },
-    CallVoid()
-    {
-      invoked++;
-    }
+  const replacement = () =>
+  {
+    invoked++;
   };
   value.PlayFrom(0);
   value.StopAfterWithCallback(1, () =>

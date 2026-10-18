@@ -3,7 +3,7 @@
 // AudActionRecord*.json schema documents.
 
 import { meta, blue } from "#schema";
-import { be } from "#blue";
+import { be, CjsScriptCallback } from "#blue";
 import { IAudActionLog } from "./IAudActionLog.js";
 import { AudActionRecordPostEvent } from "./AudActionRecordPostEvent.js";
 import { AudActionRecordExecuteActionOnPlayingID } from "./AudActionRecordExecuteActionOnPlayingID.js";
@@ -27,11 +27,11 @@ export class AudActionLogCB extends IAudActionLog
   /**
    * Registers the callback used by Flush; null unregisters without clearing records.
    *
-   * Adapted: A JavaScript function or CallVoid object replaces BlueScriptCallback
-   * (audio/src/AudActionLog.cpp:131-134). Invalid input throws; undefined also
-   * unregisters the callback.
+   * Carbon stores a BlueScriptCallback (audio/src/AudActionLog.cpp:131-134); a
+   * function is wrapped at the boundary (CjsScriptCallback.from), anything else
+   * throws, and undefined also unregisters the callback.
    *
-   * @param {Function|{CallVoid: Function}|null|undefined} callback Record recipient.
+   * @param {Function|CjsScriptCallback|null|undefined} callback Record recipient.
    * @returns {void}
    * @throws {TypeError} If the callback cannot be invoked.
    */
@@ -39,12 +39,7 @@ export class AudActionLogCB extends IAudActionLog
   @meta.adapted
   RegisterCallback(callback)
   {
-    if (callback !== null && callback !== undefined
-      && typeof callback !== "function" && typeof callback?.CallVoid !== "function")
-    {
-      throw new TypeError("AudActionLogCB.RegisterCallback requires a function, CallVoid object, or null.");
-    }
-    this._callback = callback ?? null;
+    this._callback = CjsScriptCallback.from(callback);
   }
 
   /**
@@ -156,14 +151,7 @@ export class AudActionLogCB extends IAudActionLog
     while (this._callback && this._queue.length)
     {
       const record = this._queue[0].ToPyObject();
-      if (typeof this._callback === "function")
-      {
-        this._callback(record);
-      }
-      else
-      {
-        this._callback.CallVoid(record);
-      }
+      this._callback.CallVoid(record);
       this._queue.shift();
     }
   }

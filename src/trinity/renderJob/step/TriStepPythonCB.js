@@ -2,6 +2,7 @@
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { meta, type, blue } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
+import { CjsScriptCallback } from "#blue";
 
 /** A render step that invokes a host-supplied callback at its point in the job order. */
 @blue.define("TriStepPythonCB")
@@ -22,16 +23,15 @@ export class TriStepPythonCB extends TriRenderStep
     this.SetCallback(callback);
   }
 
-  /** Carbon method SetCallback (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method SetCallback (MAP_METHOD_AND_WRAP): stores the script
+   * callback, wrapping a function at the boundary (CjsScriptCallback.from).
+   */
   @blue.method
   @meta.adapted
   SetCallback(callback)
   {
-    if (callback != null && typeof callback !== "function" && typeof callback.CallVoid !== "function")
-    {
-      throw new TypeError("callback must be a function, callback object, or null");
-    }
-    this.callback = callback;
+    this.callback = CjsScriptCallback.from(callback);
   }
 
   /**
@@ -43,8 +43,7 @@ export class TriStepPythonCB extends TriRenderStep
   {
     try
     {
-      if (typeof this.callback === "function") this.callback();
-      else if (this.callback) this.callback.CallVoid();
+      this.callback?.CallVoid();
     }
     catch (error)
     {

@@ -1,16 +1,17 @@
 // Source: blueexposure/include/BlueScriptCallback.h
 //   blueexposure/BlueScriptCallback.cpp
 //
-// Stores a JavaScript function or host callback object. Call returns its result;
-// CallVoid discards it. Invocation adaptations are documented on those methods.
+// Stores a JavaScript function, the script callable Carbon's BlueScriptCallback
+// holds. Call returns its result; CallVoid discards it. Invocation adaptations
+// are documented on those methods.
 import { CjsSchema, meta, blue } from "../schema/index.js";
 
 /**
  * A stored script callback that can be invoked later.
  *
- * External JavaScript functions and callback-shaped host objects are adapted
- * once through {@link CjsScriptCallback.from}; runtime hot paths then call
- * `Call` or `CallVoid` directly.
+ * A JavaScript function is wrapped once at the boundary through
+ * {@link CjsScriptCallback.from}; runtime hot paths then call `Call` or
+ * `CallVoid` directly.
  */
 export class CjsScriptCallback
 {
@@ -19,40 +20,39 @@ export class CjsScriptCallback
     _callback = null;
 
     /**
-     * Wraps one already-validated callable.
+     * Wraps a function, or copies another callback's callable.
      *
      * Carbon's default constructor leaves the callback null, which is the
      * invalid state `IsValid` reports; constructing with no argument does the
-     * same here. Prefer `from` at any boundary, which validates first.
+     * same here. Given a CjsScriptCallback this is Carbon's copy constructor:
+     * the new callback holds the same callable, and destroying either leaves
+     * the other valid. Prefer `from` at any boundary, which validates first.
      *
-     * @param {Function|{Call: Function, CallVoid: Function}|null} [callback]
+     * @param {Function|CjsScriptCallback|null} [callback]
      */
     constructor(callback = null)
     {
-        this._callback = callback ?? null;
+        this._callback = callback instanceof CjsScriptCallback ? callback._callback : callback ?? null;
     }
 
     /**
-     * Adapts one external callback value to this nominal identity.
+     * Adapts one boundary value to a script callback.
      *
      * Custom: Carbon's BlueExtractArgumentImpl accepts a Python callable or None
-     * (blueexposure/BlueScriptCallback.cpp:322-340). This adapter accepts functions
-     * and host objects with Call and CallVoid, preserves existing wrappers, and
-     * returns null for null or undefined instead of clearing a native output object.
+     * (blueexposure/BlueScriptCallback.cpp:322-340). The JavaScript callable is
+     * a function; an existing CjsScriptCallback passes through, and null or
+     * undefined return null instead of clearing a native output object.
      *
-     * @param {CjsScriptCallback|Function|object|null|undefined} value - Callback boundary value.
-     * @returns {CjsScriptCallback|null} A nominal callback or null.
+     * @param {CjsScriptCallback|Function|null|undefined} value - Callback boundary value.
+     * @returns {CjsScriptCallback|null} A script callback or null.
+     * @throws {TypeError} Anything else, as Carbon's extraction fails.
      */
     static from(value)
     {
         if (value === null || value === undefined) return null;
         if (value instanceof CjsScriptCallback) return value;
         if (typeof value === "function") return new CjsScriptCallback(value);
-        if (typeof value !== "object" || typeof value.Call !== "function" || typeof value.CallVoid !== "function")
-        {
-            throw new TypeError("A script callback must be a function, CjsScriptCallback, or object with Call and CallVoid methods.");
-        }
-        return new CjsScriptCallback(value);
+        throw new TypeError("A script callback must be a function or a CjsScriptCallback.");
     }
 
     /**
@@ -92,7 +92,7 @@ export class CjsScriptCallback
         const callback = this._callback;
 
         if (callback === null) return undefined;
-        return typeof callback === "function" ? callback(...args) : callback.Call(...args);
+        return callback(...args);
     }
 
     /**
@@ -111,8 +111,7 @@ export class CjsScriptCallback
         const callback = this._callback;
 
         if (callback === null) return;
-        if (typeof callback === "function") callback(...args);
-        else callback.CallVoid(...args);
+        callback(...args);
     }
 
 }
