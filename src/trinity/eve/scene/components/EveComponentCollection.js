@@ -37,22 +37,37 @@ export class EveComponentCollection
   /**
    * Removes the entry at an index by moving the last element into its place and
    * returns that moved entity so the caller can fix up its stored index, or null
-   * when nothing moved or the index is out of range.
+   * when nothing moved (EveComponentRegistry.h:163-174). Removing the only or
+   * the last element moves nothing, whatever the index.
+   *
+   * Carbon indexes m_collection unchecked; an index it would write outside the
+   * collection, or a pop from an empty one, throws a RangeError here
+   * (ruling 11).
+   *
+   * @param {number} index Index of the entity to remove.
+   * @returns {object|null} The entity moved into index, or null.
+   * @throws {RangeError} When the write at index or the pop falls outside the collection.
    */
   @blue.method
   @meta.implemented
   SwapWithBack(index)
   {
-    if (index < 0 || index >= this.collection.length)
-    {
-      return null;
-    }
-    const lastIndex = this.collection.length - 1;
+    const size = this.collection.length;
     let swappedEntity = null;
-    if (index !== lastIndex)
+
+    if (size !== 1 && index !== size - 1)
     {
-      swappedEntity = this.collection[lastIndex];
-      this.collection[index] = swappedEntity;
+      if (!(Number.isInteger(index) && index >= 0 && index < size))
+      {
+        throw new RangeError(`EveComponentCollection.SwapWithBack: index ${index} out of range, size is ${size}.`);
+      }
+      this.collection[index] = this.collection[size - 1];
+      swappedEntity = this.collection[index];
+    }
+
+    if (size === 0)
+    {
+      throw new RangeError("EveComponentCollection.SwapWithBack: pop_back on an empty collection.");
     }
     this.collection.pop();
     return swappedEntity;

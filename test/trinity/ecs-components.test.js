@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { EveChildCloud2, EveChildContainer, EveChildMesh, EveComponentRegistry, EveComponentRequiredMethods, EveComponentType, EveEntity, EveSpaceObject2, ReflectionMode, ReflectionSetting, EntityComponents } from "../../npm/dist/trinity/index.js";
+import { EveChildCloud2, EveChildContainer, EveChildMesh, EveComponentCollection, EveComponentRegistry, EveComponentRequiredMethods, EveComponentType, EveEntity, EveSpaceObject2, ReflectionMode, ReflectionSetting, EntityComponents } from "../../npm/dist/trinity/index.js";
 
 
 test("EveComponentType carries the nine Carbon component-name strings verbatim", () =>
@@ -209,4 +209,24 @@ test("EveChildCloud2 registers VolumetricRenderable unconditionally and gates Re
   {
     EntityComponents.setReflectionSetting(ReflectionSetting.REFLECTION_SETTING_HIGH);
   }
+});
+
+test("EveComponentCollection.SwapWithBack follows EveComponentRegistry.h:163-174, throwing where Carbon indexes out of range", () =>
+{
+  const a = {}, b = {}, c = {};
+  const collection = new EveComponentCollection();
+  collection.collection.push(a, b, c);
+  assert.equal(collection.SwapWithBack(0), c, "the back element moves into the removed slot");
+  assert.deepEqual(collection.collection, [ c, b ]);
+  assert.equal(collection.SwapWithBack(1), null, "removing the last element moves nothing");
+  assert.deepEqual(collection.collection, [ c ]);
+  assert.throws(() => new EveComponentCollection().SwapWithBack(0), RangeError);
+
+  const pair = new EveComponentCollection();
+  pair.collection.push(a, b);
+  assert.throws(() => pair.SwapWithBack(5), RangeError);
+  assert.deepEqual(pair.collection, [ a, b ], "the out-of-range write throws before the pop");
+
+  assert.equal(collection.SwapWithBack(5), null, "a single element is popped without indexing, as Carbon does");
+  assert.equal(collection.Size(), 0);
 });
