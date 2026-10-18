@@ -128,9 +128,9 @@ function RouteEffect(effect)
     try
     {
         SetEffectFilePath(effect, route.target);
-        // ccpwgl Tw2Effect boundary: AutoPopulate exists only there.
-        effect.Initialize?.();
-        effect.AutoPopulate?.(false);
+        // The routed effect is a ccpwgl Tw2Effect, which declares both.
+        effect.Initialize();
+        effect.AutoPopulate(false);
         if (!route.required.every(name => HasParameter(effect, name)))
         {
             throw new Error("destination-contract-unqualified");
@@ -219,9 +219,9 @@ function CaptureEffectState(effect, route)
 function RestoreEffectState(effect, snapshot)
 {
     SetEffectFilePath(effect, snapshot.effectFilePath);
-    // ccpwgl Tw2Effect boundary: AutoPopulate exists only there.
-    effect.Initialize?.();
-    effect.AutoPopulate?.(false);
+    // The routed effect is a ccpwgl Tw2Effect, which declares both.
+    effect.Initialize();
+    effect.AutoPopulate(false);
     RestoreControls(effect, snapshot.controls);
     RestoreTextures(effect, snapshot.textures);
 }
