@@ -90,7 +90,7 @@ export function getReaderMemberValue(instance, member)
  * setter, every time. Adapted: Carbon's HandleAttribute writes at
  * `instance + mOffset` whatever the entry is (IRootReader.cpp:69), and a
  * property's offset is 0 (BlueExposureMacrosPython.h:216-230), so the setter
- * is never reached; decision 2026-10-18 has our readers call the accessor.
+ * is never reached (CE-179); decision 2026-10-18 has our readers call the accessor.
  *
  * @param {object} instance Destination instance.
  * @param {object} member Canonical stored-member or persisted property declaration.

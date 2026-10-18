@@ -182,15 +182,7 @@ test("separate flag decorators on a property are refused, in either decorator or
   /flags are derived/);
 });
 
-// Switched on once EveTurretSet's MAP_PROPERTY accessors are declared (ENFORCE_PROPERTY_DECLARATIONS).
-const enforced = (() =>
-{
-  class Probe { get value() { return 1; } }
-  try { CjsSchema.define(Probe, { className: "SchemaPropertyGateProbe", fields: { value: type.int32 } }); return false; }
-  catch { return true; }
-})();
-
-test("an accessor with a type but no declaration is refused", { skip: !enforced && "ENFORCE_PROPERTY_DECLARATIONS is off" }, () =>
+test("an accessor with a type but no declaration is refused", () =>
 {
   class Undeclared { get value() { return 1; } }
   assert.throws(() => CjsSchema.define(Undeclared, { className: "SchemaPropertyUndeclared",

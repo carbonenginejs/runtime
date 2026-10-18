@@ -93,12 +93,6 @@ const STRUCT_TYPES = {
     BYTE_1: ["int8", "int8", 1, 1]
 };
 
-// TEMPORARY gate (2026-10-18): off until every accessor standing for a Carbon
-// MAP_PROPERTY row is declared with blue.property (EveTurretSet's three remain);
-// then on, and removed. While off, an accessor that carries a type but neither
-// a property declaration nor attribute flags is accepted.
-const ENFORCE_PROPERTY_DECLARATIONS = false;
-
 /** The member flags `meta` and `blue` share (Carbon's Be::EDITFLAGS). */
 const FLAG_NAMES = Object.freeze([ "read", "write", "readwrite", "notify", "hidden", "persist", "rpersist", "persistOnly" ]);
 
@@ -1983,7 +1977,7 @@ function registerDeclaredProperties(Constructor)
             if (entry.edit !== undefined) continue;
             const exposed = Object.keys(entry).filter(namespace =>
                 ![ "name", "key", "role", "index", "declaringClass", "impl" ].includes(namespace));
-            if (!exposed.length || !ENFORCE_PROPERTY_DECLARATIONS) continue;
+            if (!exposed.length) continue;
             throw new TypeError(`${where} is an accessor with ${exposed.join(", ")} metadata; declare it with blue.property or meta.property, or give an attribute its flags.`);
         }
 
