@@ -30,7 +30,7 @@ import { IEveEffectChildrenOwner } from "./IEveEffectChildrenOwner.js";
 @blue.define("EveChildRef")
 @blue.inherit(ITr2CurveSetOwner, IInitialize, INotify)
 @blue.interface(EveSpaceObjectChild, IEveSpaceObjectChild, ITr2CurveSetOwner, IInitialize, INotify, IEveEffectChildrenOwner, IShaderConfigurer, ITr2SoundEmitterOwner, EveEntity)
-@blue.inherit(IEveEffectChildrenOwner)
+@blue.inherit(IEveEffectChildrenOwner, ITr2SoundEmitterOwner)
 export class EveChildRef extends EveChildTransform
 {
 
@@ -209,7 +209,8 @@ export class EveChildRef extends EveChildTransform
   @meta.implemented
   GetEffectChildByName(name)
   {
-    return typeof this.child?.GetEffectChildByName === "function" ? this.child.GetEffectChildByName(name) : null;
+    const owner = CjsSchema.cast(this.child, IEveEffectChildrenOwner);
+    return owner === null ? null : owner.GetEffectChildByName(name);
   }
 
   /** Carbon EveChildRef::AddToEffectChildrenList (cpp:109-115). */
@@ -217,7 +218,7 @@ export class EveChildRef extends EveChildTransform
   @meta.implemented
   AddToEffectChildrenList(child)
   {
-    if (typeof this.child?.AddToEffectChildrenList === "function") this.child.AddToEffectChildrenList(child);
+    CjsSchema.cast(this.child, IEveEffectChildrenOwner)?.AddToEffectChildrenList(child);
   }
 
   /** Carbon EveChildRef::RemoveFromEffectChildrenList (cpp:117-123). */
@@ -225,7 +226,7 @@ export class EveChildRef extends EveChildTransform
   @meta.implemented
   RemoveFromEffectChildrenList(child)
   {
-    if (typeof this.child?.RemoveFromEffectChildrenList === "function") this.child.RemoveFromEffectChildrenList(child);
+    CjsSchema.cast(this.child, IEveEffectChildrenOwner)?.RemoveFromEffectChildrenList(child);
   }
 
   /** Carbon EveChildRef::SetProceduralContainerVariable (cpp:125-131). */
@@ -432,7 +433,8 @@ export class EveChildRef extends EveChildTransform
   @meta.implemented
   FindSoundEmitter(name)
   {
-    return typeof this.child?.FindSoundEmitter === "function" ? this.child.FindSoundEmitter(name) : null;
+    const owner = CjsSchema.cast(this.child, ITr2SoundEmitterOwner);
+    return owner === null ? null : owner.FindSoundEmitter(name);
   }
 
   /** Carbon EveChildRef::SetOwner (cpp:371-381). */
