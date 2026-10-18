@@ -1,24 +1,26 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { EveSmartLightAttributeModifierCameraDependency, EveSmartLightQuad, EveUpdateContext, EveChildUpdateParams, Tr2RenderContext, Tr2QuadRenderer, Tr2Effect } from "../../npm/dist/trinity/index.js";
+import { EveSmartLightAttributeModifierCameraDependency, EveSmartLightQuad, EveUpdateContext, EveChildUpdateParams, Tr2RenderContext_GetMainThreadRenderContext, Tr2QuadRenderer, Tr2Effect } from "../../npm/dist/trinity/index.js";
+import { mat4 } from "../../npm/dist/global/math/mat4.js";
 
-test("camera-dependent lights require the captured view transform method", () =>
+test("camera-dependent lights read Tr2Renderer's view where this runtime keeps it: the main-thread context (cpp:56, 97)", () =>
 {
   const modifier = new EveSmartLightAttributeModifierCameraDependency();
   modifier.useCameraLookAt = true;
-  modifier._renderContext = new Tr2RenderContext();
-  modifier._renderContext.GetViewTransform = undefined;
-  assert.throws(() => modifier._GetLookAtAmplitude([0, 0, -1]), /GetViewTransform/);
+  Tr2RenderContext_GetMainThreadRenderContext().SetViewTransform(mat4.create());
+  // Identity view: GetViewLookAt is +Z, so an object straight down -Z is fully looked at.
+  assert.equal(modifier._GetLookAtAmplitude([0, 0, -1]), 1);
+  assert.equal(modifier._GetLookAtAmplitude([0, 0, 1]), 0);
 });
 
-test("camera-dependent lights do not replace missing view results with neutral strength", () =>
+test("camera-dependent lights do not replace missing view results with neutral strength", t =>
 {
   const modifier = new EveSmartLightAttributeModifierCameraDependency();
   modifier.useCameraLookAt = true;
-  modifier._renderContext = new Tr2RenderContext();
-  modifier._renderContext.GetViewTransform = () => null;
+  const main = Tr2RenderContext_GetMainThreadRenderContext();
+  t.mock.method(main, "GetViewTransform", () => null);
   assert.throws(() => modifier._GetLookAtAmplitude([0, 0, -1]), TypeError);
-  modifier._renderContext.GetViewPosition = () => null;
+  t.mock.method(main, "GetViewPosition", () => null);
   assert.throws(() => modifier._GetActivationValue([0, 0, -1], [0, 0, 1]), TypeError);
 });
 
@@ -27,7 +29,6 @@ test("camera-dependent lights preserve the disabled look-at branch and read the 
   const modifier = new EveSmartLightAttributeModifierCameraDependency();
   assert.equal(modifier._GetLookAtAmplitude([0, 0, -1]), 1);
   const update = new EveUpdateContext();
-  update.renderContext = new Tr2RenderContext();
   modifier.UpdateSyncronous(update, new EveChildUpdateParams(), 1);
   modifier.useCameraLookAt = true;
   modifier.lookAtVisionCone = 90;

@@ -4,6 +4,7 @@ import { meta, type, blue } from "#schema";
 import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttributeModifier.js";
 import { EveSmartLightAttributeModifierBucket } from "./EveSmartLightAttributeModifierBucket.js";
 import { vec3 } from "#math/vec3";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
 
 /** EveSmartLightAttributeModifierCameraDependency (eve/smartLights/attributeModifiers) - generated from schema shapeHash 5e9c1bd9.... */
 @blue.define("EveSmartLightAttributeModifierCameraDependency")
@@ -113,26 +114,15 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
   @type.float32
   minimumActivation = 0;
 
-  /** Camera state source captured per update; Carbon reads Tr2Renderer statics. */
-  _renderContext = null;
-
   /**
    * Advances only this modifier's crossfade - Carbon deliberately does NOT
    * update the child modifiers here
-   * (EveSmartLightAttributeModifierCameraDependency.cpp:31-34). The relocated
-   * camera state (Tr2Renderer::GetViewPosition/GetViewLookAt) is captured from
-   * the update context for use in ProcessAttributeModifier.
-   *
-   * Adapted: Carbon reads Tr2Renderer view statics; the relocated camera state is captured
-   * from the update context's render context here because ProcessAttributeModifier carries
-   * no context. The captured context and its view getters are required whenever
-   * camera state is consumed (native cpp:52-72,95-104).
+   * (EveSmartLightAttributeModifierCameraDependency.cpp:31-34).
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   UpdateSyncronous(updateContext, _params, activationMultiplier)
   {
-    this._renderContext = updateContext.renderContext;
     this.UpdateActivationStrength(activationMultiplier, updateContext.GetDeltaT());
   }
 
@@ -160,11 +150,16 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
    * Product of the enabled camera amplitudes, remapped into the
    * [minimumActivation, maximumActivation] range
    * (EveSmartLightAttributeModifierCameraDependency.cpp:95-104).
+   *
+   * Adapted: Carbon reads the Tr2Renderer::GetViewPosition static (cpp:97);
+   * this runtime keeps the renderer's view state on the main-thread render
+   * context (Tr2RenderContext.js, view-state section), so it is read there.
    */
   @blue.method
+  @meta.adapted
   _GetActivationValue(objectPosition, entityDirection)
   {
-    const camPos = this._renderContext.GetViewPosition();
+    const camPos = Tr2RenderContext_GetMainThreadRenderContext().GetViewPosition();
     const vec2obj = EveSmartLightAttributeModifierCameraDependency._vec2obj;
     if (this.overwritePosition)
     {
@@ -202,17 +197,23 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
   /**
    * Camera look-at cone amplitude
    * (EveSmartLightAttributeModifierCameraDependency.cpp:52-72). Carbon's
-   * Tr2Renderer::GetViewLookAt() is the view matrix column (_13,_23,_33),
-   * which on the shared byte layout is view[2], view[6], view[10].
+   * Tr2Renderer::GetViewLookAt() is the view matrix column (_13,_23,_33)
+   * (Tr2Renderer.cpp:593-600), which on the shared byte layout is view[2],
+   * view[6], view[10].
+   *
+   * Adapted: the view is read from the main-thread render context, where this
+   * runtime keeps Tr2Renderer's view statics; there is no GetViewLookAt
+   * accessor on it, so the column is taken from the view transform here.
    */
   @blue.method
+  @meta.adapted
   _GetLookAtAmplitude(vec2obj)
   {
     if (!this.useCameraLookAt)
     {
       return 1;
     }
-    const view = this._renderContext.GetViewTransform();
+    const view = Tr2RenderContext_GetMainThreadRenderContext().GetViewTransform();
     const scratch = EveSmartLightAttributeModifierCameraDependency._normalized;
     vec3.normalize(scratch, vec2obj);
     let lookAtAmplitude = -(view[2] * scratch[0] + view[6] * scratch[1] + view[10] * scratch[2]);
