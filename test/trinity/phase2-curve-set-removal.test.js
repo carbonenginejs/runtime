@@ -32,7 +32,7 @@ class SampleFunction extends ITriFunction
   samples = [];
   resets = 0;
   Reset() { this.resets++; }
-  UpdateValue(time, context) { this.samples.push([time, context]); }
+  UpdateValue(time) { this.samples.push([time]); }
 }
 CjsSchema.define(SampleFunction, { className: "Phase2CurveSetSampleFunction", fields: {
   name: { type: "string", edit: { read: true, write: true, persist: true } }
@@ -112,16 +112,16 @@ test("native list Add methods admit mapped items and reject structural lookalike
   assert.equal(set.GetBinding(0), binding);
 });
 
-test("play requires Reset and applies every curve before bindings with the exact context", () =>
+test("play requires Reset and applies every curve before bindings with Carbon's one-argument UpdateValue", () =>
 {
-  const set = new TriCurveSet(), curve = new SampleFunction(), binding = new SampleBinding(), calls = [], context = {};
+  const set = new TriCurveSet(), curve = new SampleFunction(), binding = new SampleBinding(), calls = [];
   curve.Reset = () => calls.push("reset");
-  curve.UpdateValue = (time, received) => { assert.equal(time, 3); assert.equal(received, context); calls.push("curve"); };
+  curve.UpdateValue = (...args) => { assert.deepEqual(args, [ 3 ]); calls.push("curve"); };
   binding.CopyValue = () => calls.push("binding");
   set.AddCurve(curve);
   set.AddBinding(binding);
   set.PlayFrom(3);
-  set.Update(40, context);
+  set.Update(40);
   assert.deepEqual(calls, ["reset", "curve", "binding"]);
   curve.Reset = undefined;
   assert.throws(() => set.Play(), { name: "TypeError", message: /Reset/ });

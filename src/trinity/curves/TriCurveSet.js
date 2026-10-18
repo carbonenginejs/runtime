@@ -117,14 +117,13 @@ export class TriCurveSet extends IInitialize
    * converts the clock selected by useRealTime to seconds and updates at it.
    * @param {number} realTime Real-time Blue 100ns ticks.
    * @param {number} simTime Simulation time in Blue 100ns ticks.
-   * @param {object|null} [renderContext=null] Rendering context forwarded to curves.
    * @returns {void}
    */
   @blue.method
   @meta.implemented
-  Update__RealTimeSimTime(realTime, simTime, renderContext = null)
+  Update__RealTimeSimTime(realTime, simTime)
   {
-    this.Update(CcpTime.timeAsDouble(this.useRealTime ? realTime : simTime), renderContext);
+    this.Update(CcpTime.timeAsDouble(this.useRealTime ? realTime : simTime));
   }
 
   /**
@@ -153,12 +152,11 @@ export class TriCurveSet extends IInitialize
    * to UpdateWithCurrentTime (TriCurveSet_Blue.cpp:100-103), and JavaScript keeps
    * the C++ names, so a script-style caller uses UpdateWithCurrentTime.
    * @param {number} time Source seconds before optional driver conversion.
-   * @param {object|null} [renderContext=null] Active rendering context.
    * @returns {void}
    */
   @blue.method
   @meta.implemented
-  Update(time, renderContext = null)
+  Update(time)
   {
     if (this.driver)
     {
@@ -184,7 +182,7 @@ export class TriCurveSet extends IInitialize
         this.scaledTime = this._endTime - this._startTime - Math.fround(0.001);
         this._stopOnNextFrame = true;
       }
-      this.Apply(renderContext);
+      this.Apply();
     }
     if (this._stopOnNextFrame)
     {
@@ -196,16 +194,15 @@ export class TriCurveSet extends IInitialize
 
   /**
    * Applies all curves at the current scaled time, then copies bindings.
-   * @param {object|null} [renderContext=null] Active rendering context forwarded to functions.
    * @returns {void}
    */
   @blue.method
   @meta.implemented
-  Apply(renderContext = null)
+  Apply()
   {
     for (const curve of this.curves)
     {
-      curve.UpdateValue(this.scaledTime, renderContext);
+      curve.UpdateValue(this.scaledTime);
     }
     for (const binding of this.bindings)
     {
@@ -216,15 +213,14 @@ export class TriCurveSet extends IInitialize
   /**
    * Applies all curves and bindings at an explicit scaled time.
    * @param {number} time Scaled sample time in seconds.
-   * @param {object|null} [renderContext=null] Active rendering context.
    * @returns {void}
    */
   @blue.method
   @meta.implemented
-  ApplyTime(time, renderContext = null)
+  ApplyTime(time)
   {
     this.scaledTime = time;
-    this.Apply(renderContext);
+    this.Apply();
   }
 
   /**

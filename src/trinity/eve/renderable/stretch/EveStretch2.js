@@ -332,8 +332,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    * end observers and GPU emitters from them (EveStretch2.cpp:218-269).
    *
    * Adapted: the emitters receive the JavaScript mirror of Carbon's ITr2GenericEmitter::UpdateArguments, one reused
-   * object per end, rather than a stack-constructed structure; and the curve sets also receive the context's render
-   * context, which TriCurveSet forwards to its curves.
+   * object per end, rather than a stack-constructed structure.
    */
   @blue.method
   @meta.adapted
@@ -346,17 +345,17 @@ export class EveStretch2 extends IEveFiringEffectElement
     effectData[0] = effectData[1] = effectData[2] = 0;
     if (this.start)
     {
-      this.start.Update(relative, context.renderContext);
+      this.start.Update(relative);
       effectData[0] = this.start.GetScaledTime();
     }
     if (this.loop)
     {
-      this.loop.Update(relative, context.renderContext);
+      this.loop.Update(relative);
       effectData[1] = this.loop.GetScaledTime();
     }
     if (this.end)
     {
-      this.end.Update(relative, context.renderContext);
+      this.end.Update(relative);
       effectData[2] = this.end.GetScaledTime();
     }
     this.GetEndPointTransforms(this._sourceTransform, this._destinationTransform);

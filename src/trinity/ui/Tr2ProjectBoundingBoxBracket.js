@@ -6,6 +6,7 @@ import { ITriFunction } from "../../global/blue/ITriFunction.js";
 import { mat4 } from "#math/mat4";
 import { ITr2BoundingBox } from "#interfaces";
 import { CjsSchema, meta, type, blue } from "#schema";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2RenderContext.js";
 
 
 const CLIP_EPSILON = 1e-5;
@@ -213,20 +214,21 @@ function clampProjectedSize(size, minSize, maxSize)
 export class Tr2ProjectBoundingBoxBracket
 {
   /**
-   * Updates the projection using the active render context threaded by
-   * TriCurveSet. Carbon reads the same state from Tr2Renderer globals.
+   * Carbon UpdateValue (Tr2ProjectBoundingBoxBracket.cpp:319-358): projects
+   * the object's world bounding box through the renderer's view, projection
+   * and viewport.
    *
-   * Adapted: Tr2Renderer view, projection and viewport globals are supplied by the active
-   * Tr2RenderContext.
+   * Adapted: Carbon reads the Tr2Renderer view-position, view and projection
+   * statics (cpp:329, 339); this runtime keeps that state on the main-thread
+   * render context (Tr2RenderContext.js, view-state section), so it is read
+   * there. Tr2Renderer::GetViewport is itself a main-thread-context read
+   * (Tr2Renderer.cpp:1392-1396).
    */
   @blue.method
   @meta.adapted
-  UpdateValue(_time, renderContext)
+  UpdateValue(_time)
   {
-    if (!renderContext)
-    {
-      throw new TypeError("Tr2ProjectBoundingBoxBracket.UpdateValue requires the active Tr2RenderContext");
-    }
+    const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
     if (!this.object || !this.object.IsBoundingBoxReady() || !this.object.GetWorldBoundingBox(boundsMin, boundsMax))
     {
       this.SetEmptyProjection();

@@ -7,15 +7,24 @@ import { vec2 } from "../../npm/dist/global/math/vec2.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { be, CjsScriptCallback } from "../../npm/dist/global/blue/index.js";
-import { gTriDev, TriDevice, Tr2RenderContext, TriViewport } from "../../npm/dist/trinity/core/index.js";
+import { gTriDev, TriDevice, Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext, TriViewport } from "../../npm/dist/trinity/core/index.js";
 import * as eve from "../../npm/dist/trinity/eve/index.js";
 import * as generatedEve from "../../npm/dist/trinity/generated/eve/index.js";
 import * as trinity from "../../npm/dist/trinity/index.js";
 
 
+// The bracket reads the renderer's view state where Carbon reads its
+// Tr2Renderer statics; this runtime keeps them on the main-thread context.
+function freshMainContext()
+{
+  Tr2RenderContext.DestroyMainThreadRenderContext();
+  return Tr2RenderContext_GetMainThreadRenderContext();
+}
+
+
 function makeContext({ animationTime = 0, viewport = [ 0, 0, 100, 100 ] } = {})
 {
-  const context = new Tr2RenderContext();
+  const context = freshMainContext();
   context.SetViewTransform(mat4.create());
   context.SetProjection(mat4.create());
   const activeViewport = new TriViewport();
@@ -69,7 +78,7 @@ test("EveProjectBracket is maintained with corrected Carbon defaults", () =>
 test("EveProjectBracket samples the priority track ball on the OS frame clock (EveProjectBracket.cpp:72)", t =>
 {
   const bracket = new eve.EveProjectBracket();
-  const context = makeContext({ animationTime: 17.25, viewport: [ 10, 20, 200, 100 ] });
+  makeContext({ animationTime: 17.25, viewport: [ 10, 20, 200, 100 ] });
   const frame = 123456789;
   t.mock.method(be.os, "GetCurrentFrameTime", () => frame);
   const calls = [];
@@ -89,7 +98,7 @@ test("EveProjectBracket samples the priority track ball on the OS frame clock (E
     }
   };
 
-  bracket.UpdateValue(99, context);
+  bracket.UpdateValue(99);
   assert.equal(calls.length, 1);
   assert.equal(calls[0][0], frame, "Carbon's Be::Time overload on BeOS->GetCurrentFrameTime()");
   assert.deepEqual(Array.from(bracket.rawProjectedPosition), [ 160, 20 ]);
@@ -102,7 +111,7 @@ test("EveProjectBracket samples the priority track ball on the OS frame clock (E
 test("EveProjectBracket uses transform and fixed-position fallbacks by direct contract", () =>
 {
   const bracket = new eve.EveProjectBracket();
-  const context = makeContext();
+  makeContext();
   bracket.integerCoordinates = false;
   bracket.trackTransform = {
     GetWorldPosition(out)
@@ -110,24 +119,23 @@ test("EveProjectBracket uses transform and fixed-position fallbacks by direct co
       return vec3.set(out, -0.5, 0.5, -1);
     }
   };
-  bracket.UpdateValue(0, context);
+  bracket.UpdateValue(0);
   assert.deepEqual(Array.from(bracket.projectedPosition), [ 25, 25 ]);
 
   bracket.trackTransform = null;
   vec3.set(bracket.trackPosition, 0.5, -0.5, -1);
-  bracket.UpdateValue(0, context);
+  bracket.UpdateValue(0);
   assert.deepEqual(Array.from(bracket.projectedPosition), [ 75, 75 ]);
 
   bracket.trackTransform = {};
-  assert.throws(() => bracket.UpdateValue(0, context), /GetWorldPosition/u);
-  assert.throws(() => bracket.UpdateValue(0, null), /active Tr2RenderContext/u);
+  assert.throws(() => bracket.UpdateValue(0), /GetWorldPosition/u);
 });
 
 
 test("EveProjectBracket applies a non-identity view and perspective divide in order", () =>
 {
   const bracket = new eve.EveProjectBracket();
-  const context = new Tr2RenderContext();
+  const context = freshMainContext();
   const view = mat4.fromValues(
     1, -1, 2, 0,
     2, 1, -1, 0,
@@ -148,7 +156,7 @@ test("EveProjectBracket applies a non-identity view and perspective divide in or
   bracket.integerCoordinates = false;
   vec3.set(bracket.trackPosition, 1, 2, -3);
 
-  bracket.UpdateValue(0, context);
+  bracket.UpdateValue(0);
   assert.deepEqual(Array.from(bracket.rawProjectedPosition), [ 260, 160 ]);
   assert.ok(Math.abs(bracket.cameraDistance - Math.hypot(6, -2, -4)) < 1e-5);
   assert.equal(bracket.isInFront, true);
@@ -159,23 +167,23 @@ test("EveProjectBracket applies a non-identity view and perspective divide in or
 test("EveProjectBracket hides rear positions without docking and requires frame projection state", () =>
 {
   const bracket = new eve.EveProjectBracket();
-  const context = makeContext();
+  makeContext();
   vec3.set(bracket.trackPosition, 0, 0, 1);
-  bracket.UpdateValue(0, context);
+  bracket.UpdateValue(0);
   assert.equal(bracket.isInFront, false);
   assert.equal(bracket.isVisible, false);
 
-  const missingViewport = new Tr2RenderContext();
+  const missingViewport = freshMainContext();
   missingViewport.SetViewTransform(mat4.create());
   missingViewport.SetProjection(mat4.create());
-  assert.throws(() => bracket.UpdateValue(0, missingViewport), /active viewport/u);
+  assert.throws(() => bracket.UpdateValue(0), /active viewport/u);
 
-  const missingProjection = new Tr2RenderContext();
+  const missingProjection = freshMainContext();
   const viewport = new TriViewport();
   viewport.__init__(0, 0, 100, 100);
   missingProjection.SetViewTransform(mat4.create());
   missingProjection.SetViewport(viewport);
-  assert.throws(() => bracket.UpdateValue(0, missingProjection), /active projection/u);
+  assert.throws(() => bracket.UpdateValue(0), /active projection/u);
 });
 
 
@@ -196,22 +204,22 @@ test("EveProjectBracket visibility callbacks observe the first-state latch and e
   };
   vec3.set(bracket.trackPosition, 0, 0, -2);
 
-  const context = makeContext();
-  bracket.UpdateValue(0, context);
-  bracket.UpdateValue(0, context);
+  makeContext();
+  bracket.UpdateValue(0);
+  bracket.UpdateValue(0);
   assert.deepEqual(states.map(([, state ]) => state), [ true ]);
   assert.equal(updates, 2);
 
   bracket.maxDispRange = 1;
-  bracket.UpdateValue(0, context);
-  bracket.UpdateValue(0, context);
+  bracket.UpdateValue(0);
+  bracket.UpdateValue(0);
   assert.deepEqual(states.map(([, state ]) => state), [ true, false ]);
   assert.equal(sprite.display, false);
   assert.equal(icon.display, false);
   assert.equal(updates, 2, "hidden early exits do not invoke the update callback");
 
   bracket.maxDispRange = 10;
-  bracket.UpdateValue(0, context);
+  bracket.UpdateValue(0);
   assert.deepEqual(states.map(([, state ]) => state), [ true, false, true ]);
 });
 
@@ -231,7 +239,8 @@ test("EveProjectBracket applies parent-relative layout, bracket centering, offse
   project.offsetY = 0.6;
   vec3.set(project.trackPosition, 0, 0, -1);
 
-  project.UpdateValue(0, makeContext({ viewport: [ 10, 20, 200, 100 ] }));
+  makeContext({ viewport: [ 10, 20, 200, 100 ] });
+  project.UpdateValue(0);
   assert.deepEqual(Array.from(project.rawProjectedPosition), [ 110, 70 ]);
   assert.deepEqual(Array.from(project.projectedPosition), [ 90, 46 ]);
   assert.equal(bracket.x, 90);
@@ -243,18 +252,18 @@ test("EveProjectBracket applies parent-relative layout, bracket centering, offse
 test("EveProjectBracket docks front and rear positions with Carbon's cylindrical policy", () =>
 {
   const project = new eve.EveProjectBracket();
-  const context = makeContext();
+  makeContext();
   project.dock = true;
   project.integerCoordinates = false;
 
   vec3.set(project.trackPosition, -2, 2, -1);
-  project.UpdateValue(0, context);
+  project.UpdateValue(0);
   assert.deepEqual(Array.from(project.rawProjectedPosition), [ -50, -50 ]);
   assert.deepEqual(Array.from(project.projectedPosition), [ 0, 100 ]);
   assert.equal(project.isInFront, true);
 
   vec3.set(project.trackPosition, 0, 0, 1);
-  project.UpdateValue(0, context);
+  project.UpdateValue(0);
   assert.deepEqual(Array.from(project.rawProjectedPosition), [ 50, 50 ]);
   assert.deepEqual(Array.from(project.projectedPosition), [ 100, 50 ]);
   assert.equal(project.isInFront, false);
@@ -269,26 +278,27 @@ test("EveProjectBracket callbacks take a CjsScriptCallback or a function; other 
   bracket.displayChangeCallback = new CjsScriptCallback((owner, state) => calls.push([ "display", owner, state ]));
   bracket.bracketUpdateCallback = new CjsScriptCallback(owner => calls.push([ "update", owner ]));
   vec3.set(bracket.trackPosition, 0, 0, -1);
-  bracket.UpdateValue(0, makeContext());
+  makeContext();
+  bracket.UpdateValue(0);
   assert.deepEqual(calls.map(([ name ]) => name), [ "display", "update" ]);
   assert.ok(calls.every(([, owner ]) => owner === bracket));
 
   // No duck callback objects (callback convention ruling): CjsScriptCallback.from refuses them.
   bracket.bracketUpdateCallback = { CallVoid() {} };
-  assert.throws(() => bracket.UpdateValue(0, makeContext()), /function or a CjsScriptCallback/u);
+  assert.throws(() => bracket.UpdateValue(0), /function or a CjsScriptCallback/u);
   bracket.bracketUpdateCallback = {};
-  assert.throws(() => bracket.UpdateValue(0, makeContext()), /function or a CjsScriptCallback/u);
+  assert.throws(() => bracket.UpdateValue(0), /function or a CjsScriptCallback/u);
   bracket.bracketUpdateCallback = null;
   bracket.bracketIcon = { SetTranslation() {} };
   bracket.bracket = { ...makeSprite(), SetDisplayX: undefined };
-  assert.throws(() => bracket.UpdateValue(0, makeContext()), /SetDisplayX/u);
+  assert.throws(() => bracket.UpdateValue(0), /SetDisplayX/u);
 });
 
 
 test("EveProjectBracket preserves outer projection scratch across a reentrant visibility callback", () =>
 {
   const bracket = new eve.EveProjectBracket();
-  const context = makeContext();
+  makeContext();
   let reentered = false;
   bracket.dock = true;
   bracket.integerCoordinates = false;
@@ -298,10 +308,10 @@ test("EveProjectBracket preserves outer projection scratch across a reentrant vi
     if (reentered) return;
     reentered = true;
     vec3.set(bracket.trackPosition, 0, 0, -1);
-    bracket.UpdateValue(0, context);
+    bracket.UpdateValue(0);
   };
 
-  bracket.UpdateValue(0, context);
+  bracket.UpdateValue(0);
   assert.equal(reentered, true);
   assert.deepEqual(Array.from(bracket.projectedPosition), [ 0, 100 ],
     "the outer docking calculation retains its own view-space position");

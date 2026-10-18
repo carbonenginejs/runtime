@@ -8,6 +8,7 @@ import { be, CjsScriptCallback } from "#blue";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 import { Vec3TransformByViewport } from "../../core/view/TriViewport.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
 
 
 const FLOAT32_MAX = 3.4028234663852886e38;
@@ -54,25 +55,30 @@ function bicylindricProjection(out, source, projection, viewport, scratch)
 export class EveProjectBracket
 {
   /**
-   * Projects the tracked position using the active frame context.
+   * Carbon UpdateValue (EveProjectBracket.cpp:67-239): projects the tracked
+   * position through the renderer's view, projection and viewport.
    *
    * Carbon ignores the curve-set time and samples the OS frame clock,
    * BeOS->GetCurrentFrameTime(); so does this, through be.os.
    *
-   * Adapted: Tr2Renderer camera state is supplied by the active Tr2RenderContext;
-   * the callback member is wrapped as a CjsScriptCallback at the call, which
-   * takes exactly a function or a CjsScriptCallback; Carbon's optional global
-   * debug-text side effect is not ported yet (Waiting: g_debugRenderer).
+   * Adapted: Carbon reads the Tr2Renderer view and projection statics
+   * (cpp:85, 95); this runtime keeps that state on the main-thread render
+   * context (Tr2RenderContext.js, view-state section), so it is read there.
+   * Tr2Renderer::GetViewport is itself a main-thread-context read
+   * (Tr2Renderer.cpp:1392-1396). The callback member is wrapped as a
+   * CjsScriptCallback at the call, which takes exactly a function or a
+   * CjsScriptCallback; Carbon's optional global debug-text side effect is not
+   * ported yet (Waiting: g_debugRenderer).
    */
   @blue.method
   @meta.adapted
-  UpdateValue(_time, renderContext)
+  UpdateValue(_time)
   {
     const scratchIndex = this._scratchDepth++;
     const scratch = this._scratch[scratchIndex] ??= createProjectionScratch();
     try
     {
-      return this._UpdateValue(renderContext, scratch);
+      return this._UpdateValue(scratch);
     }
     finally
     {
@@ -81,13 +87,10 @@ export class EveProjectBracket
   }
 
   /** Evaluates one bracket projection using depth-indexed reentrant scratch. */
-  _UpdateValue(renderContext, scratch)
+  _UpdateValue(scratch)
   {
     const { position, projected } = scratch;
-    if (!renderContext)
-    {
-      throw new TypeError("EveProjectBracket.UpdateValue requires the active Tr2RenderContext");
-    }
+    const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
 
     if (this.trackBall)
     {

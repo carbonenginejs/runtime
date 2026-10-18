@@ -158,7 +158,8 @@ export class EveCloudEditableVolume
       this._thread = null;
       this._PublishRasterization();
     }
-    for (const curves of this.curveSets) curves.Update(time, time);
+    // Carbon's Update( Be::Time, Be::Time ) overload (EveCloudEditableVolume.cpp:115).
+    for (const curves of this.curveSets) curves.Update__RealTimeSimTime(time, time);
   }
 
   /**

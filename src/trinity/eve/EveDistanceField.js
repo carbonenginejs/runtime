@@ -190,7 +190,7 @@ export class EveDistanceField
       }
       else
       {
-        this.curveSet.Update(this.distance, updateContext.renderContext);
+        this.curveSet.Update(this.distance);
       }
     }
 

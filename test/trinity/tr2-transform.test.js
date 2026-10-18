@@ -63,21 +63,22 @@ test("Tr2Transform is one maintained nominal base with Carbon defaults and stabl
   assert.deepEqual(Array.from(transform.translation), [ 5, 6, 7 ]);
 });
 
-test("Tr2Transform updates curve sets directly and preserves parent-local history", () =>
+test("Tr2Transform updates curve sets at TimeAsDouble of its Be::Time and preserves parent-local history", () =>
 {
   const transform = new core.Tr2Transform();
   const renderContext = makeRenderContext();
   const calls = [];
   transform.curveSets.push({
-    Update(time, context)
+    Update(...args)
     {
-      calls.push([ time, context ]);
+      calls.push(args);
     }
   });
-  transform.Update(3, renderContext);
-  assert.deepEqual(calls, [[ 3, renderContext ]]);
+  // Tr2Transform.cpp:38: ( *it )->Update( TimeAsDouble( time ) ).
+  transform.Update(30_000_000);
+  assert.deepEqual(calls, [[ 3 ]]);
   transform.update = false;
-  transform.Update(4, renderContext);
+  transform.Update(40_000_000);
   assert.equal(calls.length, 1);
 
   transform.update = true;

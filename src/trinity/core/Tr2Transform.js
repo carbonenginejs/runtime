@@ -9,7 +9,7 @@ import { meta, type, blue } from "#schema";
 import { vec3 } from "#math/vec3";
 import { Tr2TransformModifier } from "../generated/trinityCore/enums.js";
 import { ITr2Renderable } from "./ITr2Renderable.js";
-import { be } from "#blue";
+import { be, CcpTime } from "#blue";
 
 
 // Carbon uses row vectors. A single matrix has the same flat bytes as our
@@ -78,38 +78,35 @@ export class Tr2Transform
 {
 
   /**
-   * Advances authored curve sets while update is enabled.
-   *
-   * Adapted: The active render context is threaded to context-dependent curve functions
-   * instead of read from a process-global renderer.
+   * Carbon's Update( Be::Time ) (Tr2Transform.cpp:29-40): while update is
+   * enabled, advances every curve set at the Blue ticks converted to seconds.
+   * @param {number} time Blue 100ns ticks.
    */
   @blue.method
-  @meta.adapted
-  Update__Time(time, renderContext = null)
+  @meta.implemented
+  Update__Time(time)
   {
     if (!this.update)
     {
       return;
     }
 
-    const seconds = Number(time);
     for (const curveSet of this.curveSets)
     {
-      curveSet.Update(seconds, renderContext);
+      curveSet.Update(CcpTime.timeAsDouble(time));
     }
   }
 
   /**
    * Carbon's Update( Be::Time ) under its bare name (rule 11). EveTransform
    * overrides this to route between its two overloads.
-   * @param {number} time
-   * @param {object|null} [renderContext]
+   * @param {number} time Blue 100ns ticks.
    */
   @blue.method
   @meta.implemented
-  Update(time, renderContext = null)
+  Update(time)
   {
-    return this.Update__Time(time, renderContext);
+    return this.Update__Time(time);
   }
 
   /**

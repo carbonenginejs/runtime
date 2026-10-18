@@ -261,8 +261,8 @@ export class EveStretch extends IEveFiringEffectElement
     if (!this.update) return;
     if (this.moving && this.startTime === -1) this.startTime = time;
     if (this.moving && this.progressCurve) this.progressCurve.UpdateValue(CcpTime.timeAsDouble(time - this.startTime));
-    if (this.moveCompletion) this.moveCompletion.Update(CcpTime.timeAsDouble(time), context.renderContext);
-    for (const curveSet of this.curveSets) curveSet.Update(CcpTime.timeAsDouble(time), context.renderContext);
+    if (this.moveCompletion) this.moveCompletion.Update(CcpTime.timeAsDouble(time));
+    for (const curveSet of this.curveSets) curveSet.Update(CcpTime.timeAsDouble(time));
   }
 
   /**

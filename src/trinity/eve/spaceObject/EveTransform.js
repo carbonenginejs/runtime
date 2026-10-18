@@ -238,15 +238,14 @@ export class EveTransform extends Tr2Transform
    * number is a Be::Time and goes to Update__Time; anything else is the update
    * context.
    * @param {number|EveUpdateContext} timeOrContext
-   * @param {object|null} [renderContext] For the time form only.
    */
   @blue.method
   @meta.implemented
-  Update(timeOrContext, renderContext = null)
+  Update(timeOrContext)
   {
     if (isNumber(timeOrContext))
     {
-      return this.Update__Time(timeOrContext, renderContext);
+      return this.Update__Time(timeOrContext);
     }
     return this.Update__UpdateContext(timeOrContext);
   }
@@ -271,10 +270,9 @@ export class EveTransform extends Tr2Transform
    * world transform and particle systems against identity, both with the
    * context's GPU particle system and origin shift.
    *
-   * Adapted: curve sets also receive the context's render context, which the
-   * JavaScript curves read in place of Carbon's renderer globals; the emitter
-   * and system argument records carry time in seconds, the unit every
-   * JavaScript emitter reads.
+   * Adapted: the emitter and system argument records are the JavaScript mirror
+   * of Carbon's ITr2GenericEmitter::UpdateArguments, one reused static object
+   * each, rather than stack-constructed structures (cpp:145, 153).
    */
   @blue.method
   @meta.adapted
@@ -291,7 +289,7 @@ export class EveTransform extends Tr2Transform
       if (!this.useLodLevel || EveLODHelper.ShouldUpdate(this.lodLevel, this._lastCurveUpdateDelta))
       {
         this._lastCurveUpdateDelta = 0;
-        for (const curveSet of this.curveSets) curveSet.Update(CcpTime.timeAsDouble(time), context.renderContext);
+        for (const curveSet of this.curveSets) curveSet.Update(CcpTime.timeAsDouble(time));
       }
     }
 

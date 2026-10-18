@@ -41,25 +41,25 @@ test("Scene declaration order, stored aliases and list identities match native s
  assert.equal(CjsSchema.cast(scene.children[0],ITr2SpriteObject),scene.children[0]);
 });
 
-test("actual step forwards both raw clocks and caller view to real curve sets",()=>{
+test("actual step forwards both raw clocks to real curve sets; the view is the main-thread context's",()=>{
  const scene=new Tr2Sprite2dScene(),step=new TriStepUpdate();step.object=scene;
  const values=[];for(const useRealTime of [true,false]){const set=new TriCurveSet(),curve=new Tr2CurveScalar();curve.AddKey(0,0);curve.AddKey(100,100);set.curves.Append(curve);set.useRealTime=useRealTime;set.isPlaying=true;scene.curveSets.Append(set);values.push(set);}
- const view=mat4.create();view[2]=1;view[6]=0;view[10]=0;let reads=0;step.Execute(20_000_000,50_000_000,{GetViewTransform(){reads++;return view;}});assert.equal(reads,1);assert.deepEqual(values.map(s=>s.scaledTime),[2,5]);assert.equal(scene._realTime,20_000_000);assert.equal(scene._simTime,50_000_000);
+ const view=mat4.create();view[2]=1;view[6]=0;view[10]=0;const main=Tr2RenderContext_GetMainThreadRenderContext();main.SetViewTransform(view);step.Execute(20_000_000,50_000_000,main);assert.deepEqual(values.map(s=>s.scaledTime),[2,5]);assert.equal(scene._realTime,20_000_000);assert.equal(scene._simTime,50_000_000);
  const qx=0.332621,qy=0.332621,qw=0.882455,expected=[qw*qw+qx*qx-qy*qy,2*qx*qy,-2*qy*qw,1];const dot=Tr2VariableStore.globalStore().GetVariable("g_DotVector").GetValue();for(let i=0;i<4;i++)assert.ok(Math.abs(dot[i]-expected[i])<1e-6);
  // The variable must not retain released pool memory.
  const temporary=vec3.alloc();temporary.fill(99);vec3.unalloc(temporary);for(let i=0;i<4;i++)assert.ok(Math.abs(dot[i]-expected[i])<1e-6);
 });
 
 test("hidden Scene retains clocks and skips view, updates and cleanup",()=>{
- const scene=new Tr2Sprite2dScene(),set=new TriCurveSet();assert.deepEqual([...Tr2VariableStore.globalStore().GetVariable("g_DotVector").GetValue()],[0,0,0,1]);scene.curveSets.Append(set);scene.clearFinishedCurveSets=true;scene.display=false;set.Update__RealTimeSimTime=()=>{throw Error("hidden update");};scene.Update(31,47,{GetViewTransform(){throw Error("hidden camera");}});assert.deepEqual([scene._realTime,scene._simTime],[31,47]);assert.equal(scene.curveSets.length,1);assert.deepEqual([...Tr2VariableStore.globalStore().GetVariable("g_DotVector").GetValue()],[0,0,0,1]);
+ const scene=new Tr2Sprite2dScene(),set=new TriCurveSet();assert.deepEqual([...Tr2VariableStore.globalStore().GetVariable("g_DotVector").GetValue()],[0,0,0,1]);scene.curveSets.Append(set);scene.clearFinishedCurveSets=true;scene.display=false;set.Update__RealTimeSimTime=()=>{throw Error("hidden update");};scene.Update(31,47);assert.deepEqual([scene._realTime,scene._simTime],[31,47]);assert.equal(scene.curveSets.length,1);assert.deepEqual([...Tr2VariableStore.globalStore().GetVariable("g_DotVector").GetValue()],[0,0,0,1]);
 });
 
 test("cleanup follows all updates and removes adjacent stopped sets with Blue notifications",()=>{
- const scene=new Tr2Sprite2dScene(),events=[],sets=Array.from({length:3},()=>new TriCurveSet());sets.forEach((set,i)=>{set.Update__RealTimeSimTime=()=>events.push("update"+i);set.isPlaying=i===2;scene.curveSets.Append(set);});class Observer extends IListNotify{OnListModified(_event,_key,_key2,value){events.push("remove"+sets.indexOf(value));}}scene.curveSets.SetNotify(new Observer());const list=scene.curveSets;scene.clearFinishedCurveSets=true;scene.Update(1,2,context);assert.equal(scene.curveSets,list);assert.deepEqual([...list],[sets[2]]);assert.deepEqual(events,["update0","update1","update2","remove0","remove1"]);
+ const scene=new Tr2Sprite2dScene(),events=[],sets=Array.from({length:3},()=>new TriCurveSet());sets.forEach((set,i)=>{set.Update__RealTimeSimTime=()=>events.push("update"+i);set.isPlaying=i===2;scene.curveSets.Append(set);});class Observer extends IListNotify{OnListModified(_event,_key,_key2,value){events.push("remove"+sets.indexOf(value));}}scene.curveSets.SetNotify(new Observer());const list=scene.curveSets;scene.clearFinishedCurveSets=true;scene.Update(1,2);assert.equal(scene.curveSets,list);assert.deepEqual([...list],[sets[2]]);assert.deepEqual(events,["update0","update1","update2","remove0","remove1"]);
 });
 
 test("required updateable and curve calls fail rather than skip malformed objects",()=>{
- const step=new TriStepUpdate();step.object={};assert.throws(()=>step.Execute(1,2,context),TypeError);const scene=new Tr2Sprite2dScene();scene.curveSets.push({});assert.throws(()=>scene.Update(1,2,context),TypeError);
+ const step=new TriStepUpdate();step.object={};assert.throws(()=>step.Execute(1,2,context),TypeError);const scene=new Tr2Sprite2dScene();scene.curveSets.push({});assert.throws(()=>scene.Update(1,2),TypeError);
  const alloc=vec3.alloc,unalloc=vec3.unalloc;let active=0;vec3.alloc=()=>{active++;return alloc();};vec3.unalloc=value=>{active--;unalloc(value);};try{scene._dotVectorVar={SetValue(){throw Error("variable");}};assert.throws(()=>scene.Update(1,2,context),/variable/);assert.equal(active,0);}finally{vec3.alloc=alloc;vec3.unalloc=unalloc;}
 });
 

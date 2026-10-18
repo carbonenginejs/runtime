@@ -1019,12 +1019,12 @@ export class Tr2Sprite2dScene extends ITr2Scene
   /**
    * Publishes the camera direction and updates every owned curve set before cleanup.
    *
-   * Adapted: Reads relocated view state from the supplied or main-thread context and writes
+   * Adapted: Carbon reads Tr2Renderer::GetViewLookAt (cpp:205); this runtime keeps the
+   * view statics on the main-thread render context, so it is read there; writes go
    * through the existing variable-store handle; curve-set clocks remain raw ticks.
    *
    * @param {number} realTime Raw Blue real-time ticks (100ns).
    * @param {number} simTime Raw Blue simulation ticks (100ns).
-   * @param {Tr2RenderContext|null} [renderContext=null] Relocated camera state.
    * Not Blue-exposed: Tr2Sprite2dScene_Blue.cpp:242 maps PickObject only; Update is the
    * ITr2Scene interface entry.
    *
@@ -1032,12 +1032,12 @@ export class Tr2Sprite2dScene extends ITr2Scene
    */
   @meta.adapted
   @blue.method
-  Update(realTime, simTime, renderContext = null)
+  Update(realTime, simTime)
   {
     this._realTime = realTime;
     this._simTime = simTime;
     if (!this.display) return;
-    const view = (renderContext ?? Tr2RenderContext_GetMainThreadRenderContext()).GetViewTransform();
+    const view = Tr2RenderContext_GetMainThreadRenderContext().GetViewTransform();
     const direction = vec3.alloc();
     const dot = this._dotVectorValue;
     try

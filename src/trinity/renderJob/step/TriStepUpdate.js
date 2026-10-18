@@ -24,21 +24,19 @@ export class TriStepUpdate extends TriRenderStep
   }
 
   /**
-   * Ticks the bound updateable object with raw frame clocks and relocated context.
-   *
-   * Adapted: Forwards the caller context as a third argument for relocated JavaScript view
-   * state; both native clocks remain unchanged.
+   * Ticks the bound updateable object with the raw frame clocks
+   * (TriStepUpdate.cpp:19-26); the render context is not forwarded.
    *
    * @param {number} realTime Raw Blue real-time ticks.
    * @param {number} simTime Raw Blue simulation ticks.
-   * @param {Tr2RenderContext} renderContext Context supplied by the step executor.
+   * @param {Tr2RenderContext} _renderContext Context supplied by the step executor; unused, as in Carbon.
    * @returns {number} Native render-step success result.
    */
   @blue.method
-  @meta.adapted
-  Execute(realTime, simTime, renderContext)
+  @meta.implemented
+  Execute(realTime, simTime, _renderContext)
   {
-    this.object?.Update(realTime, simTime, renderContext);
+    this.object?.Update(realTime, simTime);
     return TriRenderStep.Result.RS_OK;
   }
 
