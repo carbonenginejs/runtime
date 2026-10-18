@@ -76,3 +76,17 @@ test("the record form packs and unpacks through its own elements", () =>
   assert.equal(restored[15], 1, "the reconstructed fourth column is (0,0,0,1)");
   assert.equal(restored[3], 0);
 });
+
+test("mat4.getAffineCarbon and fromAffineCarbon round-trip a rotation, scale and translation (MatrixUtils.cpp:6-26)", () =>
+{
+  const matrix = transform();
+  const packed = mat4.getAffineCarbon(new Float32Array(12), matrix);
+
+  // Carbon's elements[0..3] are _11, _21, _31, _41: column one, translation x last.
+  assert.deepEqual(Array.from(packed.subarray(0, 4)), [ matrix[0], matrix[4], matrix[8], matrix[12] ]);
+  assert.deepEqual(Array.from(packed), Array.from(Float4x3.fromMat4(matrix)), "one implementation");
+
+  const restored = mat4.fromAffineCarbon(mat4.create(), packed);
+  assert.deepEqual(Array.from(restored), Array.from(matrix));
+  assert.deepEqual([ restored[3], restored[7], restored[11], restored[15] ], [ 0, 0, 0, 1 ]);
+});

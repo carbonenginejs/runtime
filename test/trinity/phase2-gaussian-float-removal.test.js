@@ -24,7 +24,8 @@ for (const Type of [GaussianData, Float4x3]) test(`${Type.name} is a plain typed
 test("Float4x3 dictionary arrays retain twelve values while persist-only copying retains defaults", () =>
 {
   const field = CjsSchema.getField(Float4x3,"elements");
-  assert.equal(field.type.kind,"array");
+  assert.equal(field.type.kind,"typedArray");
+  assert.equal(field.type.arrayType,"Float32Array");
   const values=Array.from({length:12},(_,i)=>i+1);
   const record=new DictReader({declarations:true}).CreateObject({_type:"Float4x3",elements:values});
   assert.deepEqual(Array.from(record.elements),values);

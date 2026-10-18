@@ -981,6 +981,57 @@ mat4.orthoOffCenterCarbon = function (out, l, r, b, t, zn, zf)
     return out;
 };
 
+/**
+ * Carbon: Float4x3( const Matrix& ) (trinity/Utilities/MatrixUtils.cpp:6-20)
+ *
+ * Packs a transform into Carbon's twelve affine floats: elements[0..3] are
+ * _11,_21,_31,_41, then the second and third columns the same way - the
+ * first three columns transposed into three rows of four, translation
+ * included, the constant fourth column dropped. One matrix, no composition:
+ * Carbon's _rc is m[(r - 1) * 4 + (c - 1)] on the shared byte layout.
+ *
+ * @param {Float32Array|number[]} out Receives the twelve floats; must not alias m.
+ * @param {mat4} m Transform to pack.
+ * @returns {Float32Array|number[]} out
+ */
+mat4.getAffineCarbon = function (out, m)
+{
+    for (let column = 0; column < 3; column++)
+    {
+        for (let row = 0; row < 4; row++)
+        {
+            out[column * 4 + row] = m[row * 4 + column];
+        }
+    }
+    return out;
+};
+
+/**
+ * Carbon: Float4x3::operator Matrix() (trinity/Utilities/MatrixUtils.cpp:22-26)
+ *
+ * Unpacks Carbon's twelve affine floats into a transform, restoring the fourth
+ * column as 0, 0, 0, 1.
+ *
+ * @param {mat4} out Receives the matrix; must not alias a.
+ * @param {Float32Array|number[]} a The twelve packed floats.
+ * @returns {mat4} out
+ */
+mat4.fromAffineCarbon = function (out, a)
+{
+    for (let column = 0; column < 3; column++)
+    {
+        for (let row = 0; row < 4; row++)
+        {
+            out[row * 4 + column] = a[column * 4 + row];
+        }
+    }
+    out[3] = 0;
+    out[7] = 0;
+    out[11] = 0;
+    out[15] = 1;
+    return out;
+};
+
 /** Carbon's Normalize over three components: a zero vector stays zero. */
 function normalizeOrZeroVec3(out, x, y, z)
 {
@@ -1572,6 +1623,8 @@ export const {
     perspectiveOffCenterCarbon,
     orthoCarbon,
     orthoOffCenterCarbon,
+    getAffineCarbon,
+    fromAffineCarbon,
     perspectiveRHD3D,
     setLookRotation,
     maxScaleOnAxis,

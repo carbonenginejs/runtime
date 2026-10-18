@@ -9,8 +9,8 @@ import { mat4 } from "#math/mat4";
  * Native Float4x3 is a plain struct without Blue exposure; registered typed
  * storage is JavaScript dictionary/inspection only, with no persistence or
  * query interfaces. Zero-filled default storage adapts native uninitialized
- * aggregate storage. The typed-array initializer fixes the runtime width at 12;
- * the existing dictionary array declaration does not enforce that width.
+ * aggregate storage. The typed-array initializer fixes the runtime width at 12.
+ * The conversions are mat4.getAffineCarbon / mat4.fromAffineCarbon.
  */
 @blue.define("Float4x3")
 export class Float4x3
@@ -19,11 +19,11 @@ export class Float4x3
   /**
    * Twelve components grouped as native matrix columns [_11, _21, _31, _41],
    * [_12, _22, _32, _42], [_13, _23, _33, _43]: three float4 registers, with the
-   * affine fourth column (0, 0, 0, 1) omitted. Initial Float32Array storage belongs
-   * to this record; dictionary array input can replace it with a number array.
-   * @type {Float32Array|number[]}
+   * affine fourth column (0, 0, 0, 1) omitted. The Float32Array storage belongs
+   * to this record; its width of 12 comes from the initializer.
+   * @type {Float32Array}
    */
-  @type.array("float32")
+  @type.float32Array
   elements = new Float32Array(12);
 
   // Carbon MatrixUtils.cpp:6-20 writes elements[0..3] from _11,_21,_31,_41 -
@@ -45,14 +45,7 @@ export class Float4x3
   @meta.adapted
   static fromMat4(matrix, out = new Float32Array(12))
   {
-    for (let column = 0; column < 3; column++)
-    {
-      for (let row = 0; row < 4; row++)
-      {
-        out[column * 4 + row] = matrix[row * 4 + column];
-      }
-    }
-    return out;
+    return mat4.getAffineCarbon(out, matrix);
   }
 
   /**
@@ -64,19 +57,7 @@ export class Float4x3
   @meta.adapted
   static toMat4(elements, out = mat4.create())
   {
-    for (let column = 0; column < 3; column++)
-    {
-      for (let row = 0; row < 4; row++)
-      {
-        out[row * 4 + column] = elements[column * 4 + row];
-      }
-    }
-
-    out[3] = 0;
-    out[7] = 0;
-    out[11] = 0;
-    out[15] = 1;
-    return out;
+    return mat4.fromAffineCarbon(out, elements);
   }
 
   /** Packs a transform into this record's elements. */
