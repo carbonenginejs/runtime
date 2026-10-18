@@ -137,12 +137,11 @@ test("what the description leaves empty takes a dummy of the slot's kind, and a 
   assert.equal(created.textures + created.samplers + created.buffers, 3);
 });
 
-test("a program this backend did not link, or no description, is refused", () =>
+test("no description, or an unlinked program, is refused", () =>
 {
   const { al } = composed();
   const set = new CjsWebgpuResourceSetAL();
 
-  assert.equal(set.Create(new Tr2ResourceSetDescriptionAL(), { IsValid: () => true, TrinityALImpl_GetObject: () => ({ IsValid: () => true, id: "row" }) }, al), ALResult.E_INVALIDARG);
   assert.equal(set.Create(null, programWith(al, BINDINGS), al), ALResult.E_INVALIDARG);
   assert.equal(al.CreateResourceSet(new Tr2ResourceSetDescriptionAL(), new Tr2ShaderProgramAL()), null);
   assert.equal(set.IsValid(), false);

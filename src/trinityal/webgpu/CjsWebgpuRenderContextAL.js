@@ -1451,9 +1451,7 @@ export class CjsWebgpuRenderContextAL
   _EmitComputeState()
   {
     const program = this._shaderProgram;
-    const module = program && typeof program.GetModuleFor === "function"
-      ? program.GetModuleFor(ShaderType.COMPUTE_SHADER)
-      : null;
+    const module = program ? program.GetModuleFor(ShaderType.COMPUTE_SHADER) : null;
 
     if (!module)
     {
@@ -1886,12 +1884,6 @@ export class CjsWebgpuRenderContextAL
 
     const description = this.GetPsoDescription();
     const program = description.shaderProgram;
-
-    if (!program || typeof program.GetPipelineLayout !== "function")
-    {
-      return this._RefusePipeline("a program this backend linked");
-    }
-
     const missing = description.GetMissing();
 
     if (missing) return this._RefusePipeline(missing);

@@ -7,7 +7,7 @@ import { Tr2RenderStateSetup } from "../../../npm/dist/resource/shader/index.js"
 import { PixelFormat, Tr2CpuUsage, Tr2GpuUsage, ShaderType, Topology } from "../../../npm/dist/global/consts/renderContext/index.js";
 import { writeBackendBlock } from "../../../npm/dist/resource/format/index.js";
 import { Tr2BufferAL, Tr2BitmapDimensions, Tr2BufferDescriptionAL, Tr2ResourceSetDescriptionAL } from "../../../npm/dist/trinityal/index.js";
-import { ALResult, Failed } from "../../../npm/dist/trinityal/index.js";
+import { ALResult, Failed, Tr2ShaderProgramAL } from "../../../npm/dist/trinityal/index.js";
 
 // A draw verb resolves its pipeline from BOUND STATE, inside the verb, the way
 // Metal's EmitRenderPipelineState (MetalWorkQueue.mm:1595-1747) and DX12's
@@ -588,13 +588,13 @@ test("what the vertex half cannot say refuses the draw and names the gap", () =>
   assert.equal(log.length, 0, "no refusal reached the encoder");
 });
 
-test("a program the backend did not link cannot resolve", () =>
+test("an unlinked program draws nothing", () =>
 {
-  const { al } = composed();
+  const { al, log } = composed();
 
-  bindGeometry(al, { IsValid: () => true, TrinityALImpl_GetObject: () => ({ IsValid: () => true, id: "foreign" }) });
+  bindGeometry(al, new Tr2ShaderProgramAL());
   assert.ok(Failed(al.DrawIndexedInstanced(36, 1)));
-  assert.match(al._pipelineFailure, /a program this backend linked/);
+  assert.equal(log.length, 0, "nothing reached the encoder");
 });
 
 test("releasing device resources drops the resolved pipelines", () =>

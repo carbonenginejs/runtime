@@ -10,6 +10,27 @@ import { Failed } from "../../../npm/dist/trinityal/index.js";
 /** A stand-in `Tr2ShaderProgramAL` value: valid, holding the given implementation. */
 const programValue = implementation => ({ IsValid: () => true, TrinityALImpl_GetObject: () => implementation });
 
+/**
+ * A complete stand-in for a linked `CjsWebgpuShaderProgramAL`: every query the
+ * context makes, answering "no stages, no bindings". With no render states
+ * bound the draw is refused at GetMissing, after the encoder opens.
+ */
+const linkedProgram = id => programValue({
+  id,
+  IsValid: () => true,
+  GetIdentity: () => id,
+  GetRegisterMap: () => null,
+  GetBindings: () => [],
+  GetInputs: () => [],
+  GetFragmentOutputs: () => null,
+  GetUnormTargetOverrides: () => [],
+  HasCoverageDiscardOverride: () => false,
+  GetBindGroupLayouts: () => [],
+  GetPipelineLayout: () => null,
+  GetShaders: () => [],
+  GetModuleFor: () => null
+});
+
 /** A stand-in `Tr2VertexLayoutAL` value: valid, holding the given implementation (read as a friend). */
 const layoutValue = implementation => ({ IsValid: () => true, _layout: { implementation } });
 
@@ -383,14 +404,14 @@ test("the frame ends synchronously: end the pass, finish, submit", () =>
 
   al.CreateDevice();
   al.BeginScene();
-  al.SetShaderProgram(programValue({ id: "program" }));
+  al.SetShaderProgram(linkedProgram("program"));
   al.SetIndices__Stride(deviceBuffer("indices"), 2);
 
-  // A stand-in program cannot resolve a pipeline, so the draw is refused with
-  // a reason - but Metal opens the encoder BEFORE it asks whether it can draw
+  // With no render states bound the draw is refused with a reason - but Metal
+  // opens the encoder BEFORE it asks whether it can draw
   // (MetalWorkQueue.mm:2922-2944), and so does this.
   assert.ok(Failed(al.DrawIndexedInstanced(3, 1, 0, 0, 0)));
-  assert.match(al._pipelineFailure, /a program this backend linked/);
+  assert.match(al._pipelineFailure, /a render-state setup/);
   assert.equal(al.GetDrawnBatchCount(), 0, "a refused draw is not counted");
 
   // Carbon's EndScene is a function call; so is this one now that every draw
@@ -526,7 +547,7 @@ test("debug markers pop on the encoder that pushed them", () =>
   const frameEncoder = al.GetWorkQueue();
   assert.equal(frameEncoder.GetRenderPass(), null);
 
-  al.SetShaderProgram(programValue({ id: "program" }));
+  al.SetShaderProgram(linkedProgram("program"));
   al.SetIndices__Stride(deviceBuffer("indices"), 2);
   al.DrawIndexedInstanced(3, 1, 0, 0, 0);
 
@@ -828,8 +849,8 @@ function composedWithPasses()
   al.CreateDevice();
   al.BeginScene();
 
-  // A stand-in program: the draw is refused, but Metal opens the pass first.
-  al.SetShaderProgram(programValue({ id: "program" }));
+  // No render states: the draw is refused, but Metal opens the pass first.
+  al.SetShaderProgram(linkedProgram("program"));
 
   return { al, passes };
 }
@@ -971,7 +992,7 @@ test("ClearUav zeroes a buffer with clearBuffer, outside any pass, and refuses w
 
   al.CreateDevice();
   al.BeginScene();
-  al.SetShaderProgram(programValue({ id: "program" }));
+  al.SetShaderProgram(linkedProgram("program"));
   al.SetIndices__Stride(deviceBuffer("indices"), 2);
   al.DrawIndexedInstanced(3, 1, 0, 0, 0);
 

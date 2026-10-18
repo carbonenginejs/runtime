@@ -103,9 +103,8 @@ export class CjsWebgpuResourceSetAL
     const program = shaderProgram.TrinityALImpl_GetObject();
 
     // DX12 refuses a description whose register map is not the program's
-    // (`Tr2ResourceSetALDx12.cpp:78-81`); a program this backend did not link
-    // has no bindings to lay out against, which is the same refusal.
-    if (!program || typeof program.GetBindings !== "function" || !program.IsValid()) return ALResult.E_INVALIDARG;
+    // (`Tr2ResourceSetALDx12.cpp:78-81`).
+    if (!program || !program.IsValid()) return ALResult.E_INVALIDARG;
 
     if (!description._registerMap.equals(program.GetRegisterMap())) return ALResult.E_INVALIDARG;
 
