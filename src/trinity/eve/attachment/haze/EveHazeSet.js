@@ -26,6 +26,8 @@ import { SharedGeometryBuffer } from "../../../core/mesh/TriGeometryResAllocatio
 import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
 import { TriDevice } from "../../../core/device/TriDevice.js";
+import { Tr2DeviceResource } from "../../../core/device/Tr2DeviceResource.js";
+import { Tr2SuballocatedBufferAllocation } from "../../../core/device/Tr2SuballocatedBuffer/index.js";
 import { ITr2DebugRenderer2, Tr2DebugColor, Tr2DebugObjectReference } from "#interfaces";
 
 // Carbon's function-local s_hazeVertexDecl (EveHazeSet.cpp:131-145), stream 0:
@@ -76,7 +78,7 @@ const DEBUG_BOX_MAX = vec3.fromValues(0.5, 0.5, 0.5);
  * lights the haze emits.
  */
 @blue.define("EveHazeSet")
-@blue.inherit(IInitialize, ITr2LightOwner, EveEntity)
+@blue.inherit(IInitialize, Tr2DeviceResource, ITr2LightOwner, EveEntity)
 @blue.interface(IInitialize, IEveSpaceObjectAttachment, EveEntity, ITr2LightOwner)
 export class EveHazeSet extends IEveSpaceObjectAttachment
 {
@@ -126,20 +128,37 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   /** m_vertexCount: 24 per haze, a box of six quads. */
   _vertexCount = 0;
 
-  /** m_vertexBuffer: the shared-buffer allocation, null until prepared. */
-  _vertexBuffer = null;
+  /** m_vertexBuffer (h:110): the shared-buffer allocation, invalid until prepared. */
+  _vertexBuffer = new Tr2SuballocatedBufferAllocation();
 
   /** m_cachedTransforms: each haze's local transform. */
   _cachedTransforms = [];
 
   /**
-   * A Tr2DeviceResource: the device prepares it again once resources can be
-   * created, so a set initialized before the device exists gets its buffer.
+   * Carbon's constructor (cpp:62-70): registers with the device, as the
+   * Tr2DeviceResource base constructor does (Tr2DeviceResource.cpp:6-9), so a
+   * set initialized before the device exists gets its buffer once resources
+   * can be created. Destroy unregisters it.
    */
   constructor()
   {
     super();
     TriDevice.RegisterResource(this);
+  }
+
+  /**
+   * Carbon's destructor (cpp:76-78) is empty; what it releases is its
+   * members' and bases': the m_vertexBuffer Allocation destructor frees the
+   * shared-buffer range (Tr2SuballocatedBuffer.cpp:184-190) and the
+   * Tr2DeviceResource destructor unregisters (Tr2DeviceResource.cpp:11-14).
+   *
+   * JavaScript has no deterministic destructor, so the owner calls this
+   * explicitly. No owner calls Destroy yet.
+   */
+  Destroy()
+  {
+    if (this._vertexBuffer.IsValid()) this._vertexBuffer._parent.Free(this._vertexBuffer);
+    TriDevice.UnregisterResource(this);
   }
 
   /** Sets the effect that draws the haze volumes. */
@@ -175,25 +194,18 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   }
 
   /**
-   * Carbon ReleaseResources (cpp:84-88).
+   * Carbon ReleaseResources (cpp:105-109): forgets the vertex declaration and
+   * frees the vertex range back to the shared buffer.
    *
-   * Adapted: Tr2SuballocatedBuffer has no Free, so the allocation is dropped
-   * rather than returned, as EveBoosterSet2 does.
+   * Adapted: the allocation's own parent stands in for g_sharedBuffer, since
+   * the shared buffer here is per render context (TriGeometryResAllocations).
    */
   @blue.method
   @meta.adapted
   ReleaseResources(_storage)
   {
     this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
-    this._vertexBuffer = null;
-  }
-
-  /** Carbon Tr2DeviceResource::PrepareResources: creation only when the device allows it. */
-  @blue.method
-  @meta.implemented
-  PrepareResources()
-  {
-    return Tr2Renderer.IsResourceCreationAllowed() ? this.OnPrepareResources() : true;
+    if (this._vertexBuffer.IsValid()) this._vertexBuffer._parent.Free(this._vertexBuffer);
   }
 
   /**
@@ -209,7 +221,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   {
     this._cachedTransforms = [];
 
-    if (this._vertexBuffer) return true;
+    if (this._vertexBuffer.IsValid()) return true;
     if (!this.hazes.length) return true;
 
     this._vertexDeclHandle = Tr2EffectStateManager.getVertexDeclarationHandle(HAZE_VERTEX_DEFINITION);
@@ -255,8 +267,9 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
     });
 
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
-    this._vertexBuffer = SharedGeometryBuffer(renderContext).Allocate(HAZE_VERTEX_SIZE, this._vertexCount, bytes, renderContext);
-    if (!this._vertexBuffer) return false;
+    const allocation = SharedGeometryBuffer(renderContext).Allocate(HAZE_VERTEX_SIZE, this._vertexCount, bytes, renderContext);
+    if (!allocation) return false;
+    this._vertexBuffer = allocation;
 
     Tr2Renderer.ReserveQuadListIndexBuffer(this._vertexCount / 4);
     return true;
@@ -270,7 +283,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   @meta.adapted
   GetBatches(accumulator, batchType, perObjectData, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
-    if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE || !this._vertexBuffer || reason === Tr2RenderReason.TR2RENDERREASON_REFLECTION) return;
+    if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE || !this._vertexBuffer.IsValid() || reason === Tr2RenderReason.TR2RENDERREASON_REFLECTION) return;
     if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
     if (!this.display || !this.effect) return;
     // Ask before drawing: renews what the effect holds, and skips it while its resource is not good.

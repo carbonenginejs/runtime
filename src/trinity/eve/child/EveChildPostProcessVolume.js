@@ -12,13 +12,13 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { color } from "#math/color";
 import { Tr2PostProcessAttributes } from "../../postProcess/Tr2PostProcessAttributes.js";
+import { ITr2PostProcessOwner } from "../../postProcess/ITr2PostProcessOwner.js";
 import { EveComponentType } from "../EntityComponents.js";
 
 /** A child that unions a set of inclusion and exclusion volumes into a bounding sphere and drives a post-process effect's intensity from the camera's position relative to them. */
 @blue.define("EveChildPostProcessVolume")
-@blue.inherit(IInitialize)
-@blue.interface(EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize)
-@blue.inherit(ITr2DebugRenderable)
+@blue.inherit(IInitialize, ITr2DebugRenderable, ITr2PostProcessOwner)
+@blue.interface(ITr2PostProcessOwner, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild, IInitialize)
 export class EveChildPostProcessVolume extends EveChildTransform
 {
 
@@ -339,10 +339,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
   }
 
   /** Carbon EveChildPostProcessVolume::RegisterComponents (cpp:62-65):
-   * unconditional PostProcessOwner leaf self-registration. Carbon's
-   * UnRegisterComponents (cpp:67-70) only removes this same component, which
-   * EveEntity::UnRegister already did via UnRegisterAllComponents
-   * (EveEntity.cpp:90), so the JS un-side keeps the base no-op. */
+   * unconditional PostProcessOwner leaf self-registration. */
   @blue.method
   @meta.implemented
   RegisterComponents()
@@ -352,6 +349,19 @@ export class EveChildPostProcessVolume extends EveChildTransform
     {
       registry.RegisterComponent(EveComponentType.PostProcessOwner, this);
     }
+  }
+
+  /**
+   * Carbon EveChildPostProcessVolume::UnRegisterComponents (cpp:67-70):
+   * removes the PostProcessOwner component. Reached from EveEntity::UnRegister
+   * (EveEntity.cpp:81-94) after UnRegisterAllComponents has already removed
+   * it, so there the removal finds nothing; Carbon does it anyway.
+   */
+  @blue.method
+  @meta.implemented
+  UnRegisterComponents()
+  {
+    this.GetComponentRegistry().UnRegisterComponent(EveComponentType.PostProcessOwner, this);
   }
 
   /** Returns the owned attribute record (EveChildPostProcessVolume.cpp:217-220). */
@@ -411,4 +421,4 @@ export class EveChildPostProcessVolume extends EveChildTransform
 
 }
 
-// EveChildPostProcessVolume_Blue.cpp: native exposure; unported contracts: ITr2PostProcessOwner.
+// EveChildPostProcessVolume_Blue.cpp: native exposure.

@@ -40,6 +40,7 @@ import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { TriFrustumOrtho } from "../../core/view/TriFrustumOrtho.js";
 import { Tr2RenderReason, Tr2VolumerticQuality, TriVariableContentType } from "../../generated/trinityCore/enums.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
+import { ITr2VolumetricRenderable } from "../../core/ITr2VolumetricRenderable.js";
 import "../../core/volumetrics/Tr2VolumetricsRenderer.js";
 
 // Carbon std::numeric_limits<float>::max() (cpp:916). The renderable-side sort
@@ -96,8 +97,8 @@ function TransformNormal(out, v, m)
 
 /** A volumetric cloud entity that renders as a raymarched unit-cube volume with its own lightmap, shadow map and lighting, and can also contribute reflection batches. */
 @blue.define("EveChildCloud2")
-@blue.inherit(ITr2Renderable, INotify, IListNotify, IInitialize, ITr2DebugRenderable, ITr2LightOwner, Tr2DeviceResource)
-@blue.interface(IInitialize, INotify, IListNotify, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, ITr2LightOwner, EveEntity)
+@blue.inherit(ITr2VolumetricRenderable, ITr2Renderable, INotify, IListNotify, IInitialize, ITr2DebugRenderable, ITr2LightOwner, Tr2DeviceResource)
+@blue.interface(ITr2VolumetricRenderable, IInitialize, INotify, IListNotify, EveSpaceObjectChild, IEveSpaceObjectChild, ITr2Renderable, ITr2LightOwner, EveEntity)
 export class EveChildCloud2 extends EveSpaceObjectChild
 {
 

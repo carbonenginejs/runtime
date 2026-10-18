@@ -75,10 +75,7 @@ export class EveChildLightingOverride extends EveChildTransform
   volumes = [];
 
   /** Carbon EveChildLightingOverride::RegisterComponents (cpp:47-50):
-   * unconditional EveLightingOverride leaf self-registration. Carbon's
-   * UnRegisterComponents (cpp:52-55) only removes this same component, which
-   * EveEntity::UnRegister already did via UnRegisterAllComponents
-   * (EveEntity.cpp:90), so the JS un-side keeps the base no-op. */
+   * unconditional EveLightingOverride leaf self-registration. */
   @blue.method
   @meta.implemented
   RegisterComponents()
@@ -88,6 +85,20 @@ export class EveChildLightingOverride extends EveChildTransform
     {
       registry.RegisterComponent(EveComponentType.EveLightingOverride, this);
     }
+  }
+
+  /**
+   * Carbon EveChildLightingOverride::UnRegisterComponents (cpp:52-55):
+   * removes the EveLightingOverride component. Reached from
+   * EveEntity::UnRegister (EveEntity.cpp:81-94) after UnRegisterAllComponents
+   * has already removed it, so there the removal finds nothing; Carbon does it
+   * anyway.
+   */
+  @blue.method
+  @meta.implemented
+  UnRegisterComponents()
+  {
+    this.GetComponentRegistry().UnRegisterComponent(EveComponentType.EveLightingOverride, this);
   }
 
   /**

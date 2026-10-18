@@ -23,6 +23,7 @@ import { EveChildModifierHalo } from "../modifiers/EveChildModifierHalo.js";
 import { packQuadInstanceData, QUAD_INSTANCE_SIZE } from "../packQuadInstanceData.js";
 import { carbonPerlin1D } from "#math/noise";
 import { Tr2Effect } from "../../../shader/Tr2Effect.js";
+import { Tr2QuadRenderer } from "../../../core/Tr2QuadRenderer/index.js";
 
 // Module scratch for the light registration path.
 const LIGHT_COLOR = vec4.create();
@@ -81,6 +82,12 @@ export class BehaviorGroupBooster
   _ambientFlares = [];
 
   _quadBytes = new Uint8Array(QUAD_INSTANCE_SIZE);
+
+  /** m_haloFlareHash (h:118): the halo flare's quad-renderer key, 0 until registered (cpp:52). */
+  _haloFlareHash = 0;
+
+  /** m_ambientFlareHash (h:131): the ambient flare's quad-renderer key, 0 until registered (cpp:61). */
+  _ambientFlareHash = 0;
 
   /** m_display (bool) [READWRITE, PERSIST] */
   @blue.readwrite
@@ -251,30 +258,53 @@ export class BehaviorGroupBooster
   haloFlareScale = vec3.fromValues(1, 1, 1);
 
   /**
-   * Creates the hardcoded booster and flare effects when absent (Carbon
-   * InitializeEffects, cpp:149-166). The scene registers their flare buckets
-   * through RegisterWithQuadRenderer.
-   *
-   * Adapted: Flare registration is performed by the existing scene-owned quad renderer
-   * rather than a native singleton.
+   * Carbon InitializeEffects (cpp:112-129): creates the hardcoded booster and
+   * flare effects when absent, registering each new flare effect with the
+   * quad renderer, then rebuilds the flare templates.
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   InitializeEffects()
   {
     if (this.boosterEffect === null)
     {
-      this.boosterEffect = BehaviorGroupBooster._CreateBoosterEffect("BOOSTER_LOD_HIGH");
+      this.boosterEffect = this._CreateBoosterEffect("BOOSTER_LOD_HIGH");
     }
     if (this.ambientFlareEffect === null)
     {
-      this.ambientFlareEffect = BehaviorGroupBooster._CreateFlareEffect();
+      this.ambientFlareEffect = this._CreateFlareEffect();
+      this._InitializeAmbientFlare();
     }
     if (this.haloFlareEffect === null)
     {
-      this.haloFlareEffect = BehaviorGroupBooster._CreateFlareEffect();
+      this.haloFlareEffect = this._CreateFlareEffect();
+      this._InitializeHaloFlare();
     }
     this.SetupQuads();
+  }
+
+  /**
+   * Carbon InitializeHaloFlare (cpp:131-135, private): keys the halo flare
+   * effect by its hash and registers it with the global quad renderer.
+   */
+  @meta.implemented
+  _InitializeHaloFlare()
+  {
+    this._haloFlareHash = this.haloFlareEffect.GetHashValue();
+    Tr2QuadRenderer.Instance().RegisterEffect(this._haloFlareHash, TriBatchType.TRIBATCHTYPE_ADDITIVE,
+      QUAD_INSTANCE_SIZE, 1, EveChildQuad.GetQuadDefinition(), this.haloFlareEffect);
+  }
+
+  /**
+   * Carbon InitializeAmbientFlare (cpp:137-141, private): keys the ambient
+   * flare effect by its hash and registers it with the global quad renderer.
+   */
+  @meta.implemented
+  _InitializeAmbientFlare()
+  {
+    this._ambientFlareHash = this.ambientFlareEffect.GetHashValue();
+    Tr2QuadRenderer.Instance().RegisterEffect(this._ambientFlareHash, TriBatchType.TRIBATCHTYPE_ADDITIVE,
+      QUAD_INSTANCE_SIZE, 1, EveChildQuad.GetQuadDefinition(), this.ambientFlareEffect);
   }
 
   /** Carbon BehaviorGroupBooster::GetDisplay (cpp:254-257). */
@@ -401,13 +431,13 @@ export class BehaviorGroupBooster
   }
 
   /**
-   * Carbon OnModified (BehaviorGroupBooster.cpp:143-174) refreshes the flare
-   * templates and removes detached effects.
+   * Carbon OnModified (BehaviorGroupBooster.cpp:143-174): a new halo or
+   * ambient flare effect is registered (InitializeHaloFlare /
+   * InitializeAmbientFlare) and the templates rebuilt; a removed one clears its
+   * flare list; any other member rebuilds the templates.
    *
-   * Adapted: when a halo or ambient flare effect is set, Carbon registers it with
-   * its global quad renderer at once (InitializeHaloFlare/InitializeAmbientFlare,
-   * cpp:131-141); ours has no global quad renderer, so the effect is registered
-   * with the scene's when it is first submitted. A batched change rebuilds once.
+   * Adapted: JavaScript coalesces changed names into one call, so each name
+   * takes Carbon's branch and the batch rebuilds once, before the clears.
    */
   @blue.method
   @meta.adapted
@@ -416,8 +446,24 @@ export class BehaviorGroupBooster
     let clearHalo = false, clearAmbient = false, setup = false;
     for (const name of Array.isArray(value) ? value : [value])
     {
-      if (IsMatch(name, "haloFlareEffect") && !this.haloFlareEffect) clearHalo = true;
-      else if (IsMatch(name, "ambientFlareEffect") && !this.ambientFlareEffect) clearAmbient = true;
+      if (IsMatch(name, "haloFlareEffect"))
+      {
+        if (this.haloFlareEffect)
+        {
+          this._InitializeHaloFlare();
+          setup = true;
+        }
+        else clearHalo = true;
+      }
+      else if (IsMatch(name, "ambientFlareEffect"))
+      {
+        if (this.ambientFlareEffect)
+        {
+          this._InitializeAmbientFlare();
+          setup = true;
+        }
+        else clearAmbient = true;
+      }
       else setup = true;
     }
     if (setup) this.SetupQuads();
@@ -456,13 +502,16 @@ export class BehaviorGroupBooster
   }
 
   /**
-   * Carbon Initialize builds the booster declaration and shared box indices.
-   * Flare registration uses the scene-owned quad renderer when it collects us.
+   * Carbon Initialize (cpp:82-110): registers the flare effects that are set,
+   * rebuilds the flare templates, then builds the booster declaration and
+   * reserves the shared quad indices.
    */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   Initialize()
   {
+    if (this.ambientFlareEffect !== null) this._InitializeAmbientFlare();
+    if (this.haloFlareEffect !== null) this._InitializeHaloFlare();
     this.SetupQuads();
     const definition = new Tr2VertexDefinition();
     definition.Add("FLOAT32_3", "POSITION");
@@ -573,24 +622,40 @@ export class BehaviorGroupBooster
     if (Tr2Renderer.GetShaderModel() >= TR2SHADERMODEL.TR2SM_3_0_HI) this._vertexBuffer = MakeBoosterBoxBuffer();
   }
 
-  /** Registers Carbon's identical child-quad layout with the scene-owned renderer. */
+  /**
+   * Carbon RegisterWithQuadRenderer (cpp:365-378): keys each set flare effect
+   * by its hash and registers it, in the child-quad layout, with the given
+   * quad renderer.
+   */
   @blue.method
-  @meta.adapted
+  @meta.implemented
   RegisterWithQuadRenderer(quadRenderer)
   {
-    for (const effect of [this.ambientFlareEffect, this.haloFlareEffect])
+    if (this.ambientFlareEffect !== null)
     {
-      if (effect) quadRenderer.RegisterEffect(effect.GetHashValue(), TriBatchType.TRIBATCHTYPE_ADDITIVE,
-        QUAD_INSTANCE_SIZE, 1, EveChildQuad.GetQuadDefinition(), effect);
+      this._ambientFlareHash = this.ambientFlareEffect.GetHashValue();
+      quadRenderer.RegisterEffect(this._ambientFlareHash, TriBatchType.TRIBATCHTYPE_ADDITIVE,
+        QUAD_INSTANCE_SIZE, 1, EveChildQuad.GetQuadDefinition(), this.ambientFlareEffect);
+    }
+
+    if (this.haloFlareEffect !== null)
+    {
+      this._haloFlareHash = this.haloFlareEffect.GetHashValue();
+      quadRenderer.RegisterEffect(this._haloFlareHash, TriBatchType.TRIBATCHTYPE_ADDITIVE,
+        QUAD_INSTANCE_SIZE, 1, EveChildQuad.GetQuadDefinition(), this.haloFlareEffect);
     }
   }
 
   /**
-   * Submits the native flare lists with their independent display switches.
-   * Registration is idempotent and deferred to the scene-owned renderer: edits
-   * before scene attachment and replacement effects reach the correct bucket,
-   * including when a booster is shared by scenes. Old buckets may have other
-   * owners and remain registered, as in Carbon's InitializeHalo/AmbientFlare.
+   * Carbon AddQuadsToQuadRenderer (cpp:380-396): submits the flare lists
+   * with their independent display switches.
+   *
+   * Adapted: Carbon adds at m_haloFlareHash / m_ambientFlareHash, registered
+   * with the global quad renderer by InitializeHaloFlare and
+   * InitializeAmbientFlare. Ours also registers the effect with the renderer
+   * it is given, idempotently, so a booster shared by several scene-owned
+   * quad renderers reaches each one's bucket. Old buckets may have other
+   * owners and remain registered, as in Carbon.
    */
   @blue.method
   @meta.adapted
@@ -652,20 +717,15 @@ export class BehaviorGroupBooster
     renderer.DrawSphere__TransformRadius(owner, agentTransform, this.lightRadius, 10, ITr2DebugRenderer2.Effect.Solid, Tr2DebugColor.create__Color(c));
   }
 
-  // Builds the hardcoded volumetric drone booster effect (Carbon
-  // CreateBoosterEffect + SetupBoosterEffect, cpp:284-336).
   /**
-   * Builds and configures the drone booster effect, including its noise, colour and texture parameters.
+   * Carbon SetupBoosterEffect (cpp:246-283, private): the drone booster
+   * effect's default noise, colour, atlas and scale parameters and its four
+   * textures.
+   * @param {Tr2Effect} effect The effect to configure.
    */
-  @blue.method
-  static _CreateBoosterEffect(lodOption)
+  @meta.implemented
+  _SetupBoosterEffect(effect)
   {
-    const effect = new Tr2Effect();
-    effect.StartUpdate();
-
-    effect.SetEffectPathName("res:/Graphics/Effect/Managed/Space/Booster/DroneBoosterVolumetric.fx");
-    effect.SetOption("BOOSTER_LOD", lodOption);
-
     effect.AddParameterFloat("NoiseSpeed0", 6);
     effect.AddParameterVector4("NoiseAmplitudeStart0", vec4.fromValues(-0.05, -0.05, -0.05, -0.05));
     effect.AddParameterVector4("NoiseAmplitudeEnd0", vec4.fromValues(0.1, 0.1, 0.1, 0.2));
@@ -686,17 +746,37 @@ export class BehaviorGroupBooster
     effect.AddResourceTexture2D("GradientMap0", "res:/dx9/model/booster/gradient01.dds");
     effect.AddResourceTexture2D("GradientMap1", "res:/dx9/model/booster/gradient02.dds");
     effect.AddResourceTexture2D("NoiseMap", "res:/Texture/Global/noise32cube_volume.dds");
+  }
 
+  /**
+   * Carbon CreateBoosterEffect (cpp:285-299, private): the volumetric drone
+   * booster effect at the given LOD option, configured by SetupBoosterEffect.
+   * @param {string} lodOption The BOOSTER_LOD option value.
+   * @returns {Tr2Effect} The new effect.
+   */
+  @meta.implemented
+  _CreateBoosterEffect(lodOption)
+  {
+    const effect = new Tr2Effect();
+    effect.StartUpdate();
+
+    effect.SetEffectPathName("res:/Graphics/Effect/Managed/Space/Booster/DroneBoosterVolumetric.fx");
+    effect.SetOption("BOOSTER_LOD", lodOption);
+
+    this._SetupBoosterEffect(effect);
+
+    // finish effect and set it
     effect.EndUpdate();
     return effect;
   }
 
-  // Builds the shared flare quad effect (Carbon CreateFlareEffect, cpp:338-349).
   /**
-   * Builds the shared flare-quad effect used by both the ambient and halo flares.
+   * Carbon CreateFlareEffect (cpp:301-312, private): the flare-quad effect
+   * used by both the ambient and halo flares.
+   * @returns {Tr2Effect} The new effect.
    */
-  @blue.method
-  static _CreateFlareEffect()
+  @meta.implemented
+  _CreateFlareEffect()
   {
     const effect = new Tr2Effect();
     effect.StartUpdate();

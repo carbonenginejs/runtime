@@ -25,7 +25,7 @@ import { vec4 } from "#math/vec4";
 import { CjsSchema, meta, type, blue } from "#schema";
 import { Tr2InstancedMesh } from "../../core/mesh/Tr2InstancedMesh.js";
 import { BLUELISTEVENT } from "#consts/blue";
-import { IsMatch, IListNotify } from "#blue";
+import { BeObjectMetadata, IsMatch, IListNotify } from "#blue";
 import { EveEntity } from "../EveEntity.js";
 import { ReflectionMode, TriBatchType } from "#consts/graphics";
 import { EveChildTransform, applyTransformModifiers } from "./EveChildTransform.js";
@@ -859,15 +859,56 @@ export class EveChildMesh extends EveChildTransform
   }
 
   /**
-   * Always returns null: a child mesh exposes no packed area-id lookup, since
-   * its SOF identity lives directly on its
-   * sofParentHullName/sofLocatorSetName/sofLocatorIndex fields.
+   * Carbon GetSofSourceLocator (EveChildMesh.cpp:2008-2043): the SOF locator
+   * a picked area came from, read from the object metadata EveSOF stamps
+   * (EveSOF.cpp:4012,4150). Null unless the metadata holds both
+   * SofParentHullName and SofLocatorSetName. An instanced mesh's locator
+   * index is the area id; any other takes SofLocatorIndex, parsed as
+   * strtoul does, or 0 when absent.
+   *
+   * Adapted: Carbon's Python tuple (or None) is an array (or null), as
+   * EveChildInstancedMeshes.GetSofSourceLocator returns.
+   * @param {number} areaId The picked area.
+   * @returns {Array|null} [hullName, locatorSetName, locatorIndex], or null.
    */
   @blue.method
   @meta.adapted
-  GetSofSourceLocator()
+  GetSofSourceLocator(areaId)
   {
-    return null;
+    const metadata = BeObjectMetadata.GetMetadata(this);
+    if (!metadata) return null;
+
+    if (!Object.hasOwn(metadata, "SofParentHullName")) return null;
+    if (!Object.hasOwn(metadata, "SofLocatorSetName")) return null;
+
+    let locatorIndex = 0;
+    // Carbon's cached Tr2InstancedMesh downcast (m_instancedMesh, cpp:206).
+    if (CjsSchema.cast(this.mesh, Tr2InstancedMesh))
+    {
+      locatorIndex = areaId >>> 0;
+    }
+    else if (Object.hasOwn(metadata, "SofLocatorIndex"))
+    {
+      locatorIndex = EveChildMesh._strtoul(metadata.SofLocatorIndex);
+    }
+
+    return [metadata.SofParentHullName, metadata.SofLocatorSetName, locatorIndex];
+  }
+
+  /**
+   * `(uint32_t)strtoul( text, nullptr, 10 )` (cpp:2033): leading whitespace
+   * and sign, then decimal digits; 0 when none parse, a negative value wraps,
+   * and an out-of-range value saturates at ULONG_MAX, which is 32 bits on
+   * Carbon's MSVC targets.
+   * @param {string} text The text.
+   * @returns {number} The uint32 value.
+   */
+  static _strtoul(text)
+  {
+    const value = parseInt(text, 10);
+    if (Number.isNaN(value)) return 0;
+    if (Math.abs(value) > 0xFFFFFFFF) return 0xFFFFFFFF;
+    return value >>> 0;
   }
 
   /**

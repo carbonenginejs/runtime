@@ -413,11 +413,8 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
     }
   }
 
-  /** Carbon EveChildFogVolume::RegisterComponents (cpp:69-72): unconditional
-   * FroxelFogSettings leaf self-registration. Carbon's UnRegisterComponents
-   * (cpp:74-77) only removes this same component, which EveEntity::UnRegister
-   * already did via UnRegisterAllComponents (EveEntity.cpp:90), so the JS
-   * un-side keeps the base no-op. */
+  /** Carbon EveChildFogVolume::RegisterComponents (cpp:71-74): unconditional
+   * FroxelFogSettings leaf self-registration. */
   @blue.method
   @meta.implemented
   RegisterComponents()
@@ -427,6 +424,19 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
     {
       registry.RegisterComponent(EveComponentType.FroxelFogSettings, this);
     }
+  }
+
+  /**
+   * Carbon EveChildFogVolume::UnRegisterComponents (cpp:76-79): removes the
+   * FroxelFogSettings component. Reached from EveEntity::UnRegister
+   * (EveEntity.cpp:81-94) after UnRegisterAllComponents has already removed
+   * it, so there the removal finds nothing; Carbon does it anyway.
+   */
+  @blue.method
+  @meta.implemented
+  UnRegisterComponents()
+  {
+    this.GetComponentRegistry().UnRegisterComponent(EveComponentType.FroxelFogSettings, this);
   }
 
   /**

@@ -24,15 +24,15 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { TriBatchType } from "#consts/graphics";
+import { TriBatchType, TriStorageFlags } from "#consts/graphics";
 import { Tr2RenderReason } from "../../../generated/trinityCore/enums.js";
 import { Tr2PerObjectData } from "../../../core/rawData/perObjectData/Tr2PerObjectData.js";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
 import { Tr2RingBuffer, Tr2RingBufferOffsets } from "../../../core/device/Tr2RingBuffer/index.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
 import { TriDevice } from "../../../core/device/TriDevice.js";
+import { Tr2DeviceResource } from "../../../core/device/Tr2DeviceResource.js";
 import { Tr2QuadRenderer } from "../../../core/Tr2QuadRenderer/index.js";
-import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { Tr2SuballocatedBufferAllocation } from "../../../core/device/Tr2SuballocatedBuffer/index.js";
 import { SharedGeometryBuffer, CreateLodAllocations } from "../../../core/mesh/TriGeometryResAllocations.js";
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
@@ -66,7 +66,7 @@ const DEBUG_CENTER = vec3.create();
 
 /** Owns a hull's instanced turrets and drives their aiming, animation, firing, visibility, batches, shadows, and per-object data. */
 @blue.define("EveTurretSet")
-@blue.inherit(IInitialize, INotify, ITr2Renderable, IShaderConfigurer, ITr2ControllerOwner, ITr2DebugRenderable, IEveShadowCaster)
+@blue.inherit(IInitialize, INotify, Tr2DeviceResource, ITr2Renderable, IShaderConfigurer, ITr2ControllerOwner, ITr2DebugRenderable, IEveShadowCaster)
 @blue.interface(EveEntity, IInitialize, INotify, ITr2Renderable)
 export class EveTurretSet extends EveEntity
 {
@@ -546,29 +546,30 @@ export class EveTurretSet extends EveEntity
   }
 
   /**
-   * Explicit final-owner teardown replaces native deterministic destruction
-   * (cpp:130-145 and Tr2DeviceResource.cpp:15-18). Shared geometry/effects are
-   * not destroyed; native firing cleanup, notifications and owned allocation
-   * are released. Removing one shared parent is not final ownership.
+   * Explicit final-owner teardown replaces native deterministic destruction.
+   * The steps are Carbon's destructor's, in its order (cpp:130-145): the
+   * firing effect's CleanUp, Cleanup, the geometry notify target, then
+   * ReleaseResources(TRISTORAGE_ALL); the Tr2DeviceResource base destructor
+   * then unregisters (Tr2DeviceResource.cpp:11-14). Shared geometry and
+   * effects are not destroyed. Removing one shared parent is not final
+   * ownership.
+   *
+   * Ours: the component-registry UnRegister first. Carbon's owner unregisters
+   * before destruction, and EveEntity's destructor only logs when it did not
+   * (EveEntity.cpp:43-50).
    */
   Destroy()
   {
     this.UnRegister(this.GetComponentRegistry());
+
     if (this.firingEffect) this.firingEffect.CleanUp();
+    this.Cleanup();
     const resource = this.geometryResource;
     if (resource) resource.RemoveNotifyTarget(this);
     this.geometryResource = null;
-    this.Cleanup();
-    this.ReleaseResources();
-    TriDevice.UnregisterResource(this);
-  }
+    this.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
 
-  /** Carbon Tr2DeviceResource::PrepareResources (cpp:21-32). */
-  @blue.method
-  @meta.implemented
-  PrepareResources()
-  {
-    return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
+    TriDevice.UnregisterResource(this);
   }
 
   /**
@@ -585,10 +586,16 @@ export class EveTurretSet extends EveEntity
     if (allocation) this._instanceBuffer = allocation;
   }
 
-  /** Native device release (cpp:1092): the declaration and owned instance range. */
+  /**
+   * Carbon ReleaseResources (cpp:1092-1096): the declaration and owned
+   * instance range.
+   *
+   * Adapted: the allocation's own parent stands in for g_sharedBuffer, since
+   * the shared buffer here is per render context (TriGeometryResAllocations).
+   */
   @blue.method
-  @meta.implemented
-  ReleaseResources()
+  @meta.adapted
+  ReleaseResources(_storage)
   {
     this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
     if (this._instanceBuffer.IsValid()) this._instanceBuffer._parent.Free(this._instanceBuffer);

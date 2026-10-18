@@ -634,12 +634,46 @@ export class EveChildBehaviorSystem extends EveChildTransform
     }
   }
 
+  /**
+   * Carbon declares `bool IsInstanceDataReady() const` (h:95) in the class's
+   * ITr2InstanceData section, but defines it nowhere in trinity, and the class
+   * does not take ITr2InstanceData as a base (h:24-33), so no Carbon call can
+   * reach it: a call would fail to link.
+   *
+   * Not implemented: the name is carried so the declaration is present; there
+   * is no Carbon body to port, so a call throws.
+   * @returns {boolean}
+   */
+  @meta.notImplemented
+  IsInstanceDataReady()
+  {
+    throw new Error("EveChildBehaviorSystem.IsInstanceDataReady is declared by Carbon (EveChildBehaviorSystem.h:95) but has no Carbon body.");
+  }
+
   /** Carbon EveChildBehaviorSystem::GetInstanceBufferCount (cpp:206-209). */
   @blue.method
   @meta.implemented
   GetInstanceBufferCount()
   {
     return 1;
+  }
+
+  /**
+   * Carbon declares `unsigned int GetInstanceBufferVertexDeclaration( unsigned
+   * int bufferIndex ) const` (h:97) in the class's ITr2InstanceData section,
+   * but defines it nowhere in trinity, and the class does not take
+   * ITr2InstanceData as a base (h:24-33), so no Carbon call can reach it: a
+   * call would fail to link.
+   *
+   * Not implemented: the name is carried so the declaration is present; there
+   * is no Carbon body to port, so a call throws.
+   * @param {number} _bufferIndex The instance buffer.
+   * @returns {number}
+   */
+  @meta.notImplemented
+  GetInstanceBufferVertexDeclaration(_bufferIndex)
+  {
+    throw new Error("EveChildBehaviorSystem.GetInstanceBufferVertexDeclaration is declared by Carbon (EveChildBehaviorSystem.h:97) but has no Carbon body.");
   }
 
   /** Carbon EveChildBehaviorSystem::GetInstanceBufferVertexCount (cpp:221-229). */

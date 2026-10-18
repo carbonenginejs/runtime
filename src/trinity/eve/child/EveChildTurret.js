@@ -17,6 +17,7 @@ import { EveTurretFiringFX } from "../attachment/turrets/EveTurretFiringFX.js";
 import { EveTurretSet } from "../attachment/turrets/EveTurretSet.js";
 import { EveTurretTarget } from "../attachment/turrets/EveTurretTarget.js";
 import { TriGeometryResSkeletonData } from "../../../resource/geometry/TriGeometryResSkeletonData.js";
+import { Tr2QuadRenderer } from "../../core/Tr2QuadRenderer/index.js";
 
 // Carbon file-scope constants (EveChildTurret.cpp:12-16).
 const INVALID_BONE_INDEX = 0xffffffff;
@@ -560,6 +561,49 @@ export class EveChildTurret extends EveChildMesh
   }
 
   /**
+   * Carbon RegisterWithQuadRenderer (cpp:282-290): the mesh's registration,
+   * then the firing effect's.
+   *
+   * The base call reaches EveSpaceObjectChild's no-op: EveChildMesh's own
+   * override (EveChildMesh.cpp:1507-1513, forwarding to its attachments) is
+   * not ported yet.
+   * @param {Tr2QuadRenderer} quadRenderer The quad renderer.
+   */
+  @blue.method
+  @meta.implemented
+  RegisterWithQuadRenderer(quadRenderer)
+  {
+    super.RegisterWithQuadRenderer(quadRenderer);
+
+    if (this._firingEffect)
+    {
+      this._firingEffect.RegisterWithQuadRenderer(quadRenderer);
+    }
+  }
+
+  /**
+   * Carbon AddQuadsToQuadRenderer (cpp:292-300): the mesh's quads, then the
+   * firing effect's while displayed.
+   *
+   * The base call reaches EveSpaceObjectChild's no-op: EveChildMesh's own
+   * override (EveChildMesh.cpp:1879-1891, its attachments' quads) is not
+   * ported yet.
+   * @param {TriFrustum} frustum The view frustum.
+   * @param {Tr2QuadRenderer} quadRenderer The quad renderer.
+   */
+  @blue.method
+  @meta.implemented
+  AddQuadsToQuadRenderer(frustum, quadRenderer)
+  {
+    super.AddQuadsToQuadRenderer(frustum, quadRenderer);
+
+    if (this.display && this._firingEffect)
+    {
+      this._firingEffect.AddQuadsToQuadRenderer(frustum, quadRenderer);
+    }
+  }
+
+  /**
    * Rebuilds the cached sysbone/muzzle lookups when the geometry resource
    * changes (Carbon cpp:302-315).
    */
@@ -941,12 +985,11 @@ export class EveChildTurret extends EveChildMesh
   /**
    * Wires the firing effect's muzzle bones from the skeleton: bones named
    * GetFiringBoneName() + a two-digit 1-based index, e.g. Pos_Fire01
-   * (Carbon cpp:679-712). Carbon also registers the effect with the quad
-   * renderer singleton here; quad registration is not ported yet in the
-   * browser runtime and happens through the engine's own registration pass.
+   * (Carbon cpp:679-712), after registering the effect with the global quad
+   * renderer (cpp:686).
    *
-   * Adapted: Tr2QuadRenderer is an engine singleton in Carbon; the browser engine owns quad
-   * registration.
+   * Adapted: Carbon's CCP_LOGERR for more firing bones than MUZZLECOUNT_MAX
+   * (cpp:694-697) is not reproduced; the count is clamped as Carbon clamps it.
    */
   @blue.method
   @meta.adapted
@@ -954,6 +997,7 @@ export class EveChildTurret extends EveChildMesh
   {
     this._firingEffectMuzzlePosSet = false;
     if (!this._firingEffect) return;
+    this._firingEffect.RegisterWithQuadRenderer(Tr2QuadRenderer.Instance());
 
     const geometryRes = this.GetGeometryRes();
     if (geometryRes && geometryRes.GetSkeletonCount())

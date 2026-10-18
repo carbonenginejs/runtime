@@ -9,6 +9,7 @@ import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { EveChildTurret } from "../../npm/dist/trinity/eve/child/EveChildTurret.js";
 import { EveTurretAiming } from "../../npm/dist/trinity/eve/attachment/turrets/EveTurretAiming.js";
 import { EveTurretSet } from "../../npm/dist/trinity/eve/attachment/turrets/EveTurretSet.js";
+import { EveTurretFiringFX } from "../../npm/dist/trinity/eve/attachment/turrets/EveTurretFiringFX.js";
 import { EveEffectRoot2 } from "../../npm/dist/trinity/eve/spaceObject/EveEffectRoot2.js";
 import { EveUpdateContext } from "../../npm/dist/trinity/eve/EveUpdateContext.js";
 import { EveChildUpdateParams } from "../../npm/dist/trinity/eve/EveChildUpdateParams.js";
@@ -282,10 +283,12 @@ test("clearing a child turret's target drops it to idle and controllers reach th
   assert.ok(turret.GetTargetObject() === null, "child turret target cleared");
 
   const calls = [];
-  turret.firingEffect = {
-    SetControllerVariable(name, value) { calls.push([ "set", name, value ]); },
-    StartControllers() { calls.push([ "start" ]); }
-  };
+  // A real firing effect: SetFiringEffect registers it with the quad renderer
+  // (EveChildTurret.cpp:686), which a bare record cannot answer.
+  const firingEffect = new EveTurretFiringFX();
+  firingEffect.SetControllerVariable = (name, value) => { calls.push([ "set", name, value ]); };
+  firingEffect.StartControllers = () => { calls.push([ "start" ]); };
+  turret.firingEffect = firingEffect;
   turret.SetControllerVariable("Heat", 0.5);
   turret.StartControllers();
   assert.deepEqual(calls, [ [ "set", "Heat", 0.5 ], [ "start" ] ]);

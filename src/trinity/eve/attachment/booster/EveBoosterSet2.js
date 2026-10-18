@@ -19,6 +19,7 @@ import { EveComponentType } from "../../EntityComponents.js";
 import { TriStorageFlags } from "#consts/graphics";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
 import { TriDevice } from "../../../core/device/TriDevice.js";
+import { Tr2DeviceResource } from "../../../core/device/Tr2DeviceResource.js";
 import { Tr2SuballocatedBufferAllocation } from "../../../core/device/Tr2SuballocatedBuffer/index.js";
 import { SharedGeometryBuffer } from "../../../core/mesh/TriGeometryResAllocations.js";
 import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
@@ -48,7 +49,7 @@ const DEBUG_CAP1 = vec3.fromValues(0, 0, -1);
  * renderable instances draw.
  */
 @blue.define("EveBoosterSet2")
-@blue.inherit(IInitialize, INotify, ITr2LightOwner)
+@blue.inherit(IInitialize, INotify, Tr2DeviceResource, ITr2LightOwner)
 @blue.interface(INotify, IInitialize, EveEntity, ITr2LightOwner)
 export class EveBoosterSet2 extends EveEntity
 {
@@ -316,15 +317,31 @@ export class EveBoosterSet2 extends EveEntity
   _glowsVisible = true;
 
   /**
-   * Registers with the device, as Carbon's Tr2DeviceResource base does
-   * (Tr2DeviceResource.cpp:10-13), so a set built before the device exists is
-   * prepared when it comes up. JavaScript has no destructor, so the set is
-   * never unregistered.
+   * Carbon's constructor (cpp:583-622): registers with the device, as the
+   * Tr2DeviceResource base constructor does (Tr2DeviceResource.cpp:6-9), so a
+   * set built before the device exists is prepared when it comes up.
+   * Destroy unregisters it.
    */
   constructor()
   {
     super();
     TriDevice.RegisterResource(this);
+  }
+
+  /**
+   * Carbon's destructor (cpp:646-648) is empty; what it releases is its
+   * members' and bases': the m_instanceBuffer Allocation destructor frees the
+   * shared-buffer range (Tr2SuballocatedBuffer.cpp:184-190) and the
+   * Tr2DeviceResource destructor unregisters (Tr2DeviceResource.cpp:11-14).
+   * m_vertexBuffer is a shared Tr2ProceduralBuffer handle and owns nothing.
+   *
+   * Adapted: JavaScript has no deterministic destructor, so the owner calls
+   * this explicitly. No owner calls Destroy yet.
+   */
+  Destroy()
+  {
+    if (this._instanceBuffer.IsValid()) this._instanceBuffer._parent.Free(this._instanceBuffer);
+    TriDevice.UnregisterResource(this);
   }
 
   /** Carbon g_eveSpaceObjectTrailsEnabled (cpp:31-32), a registered engine setting: trails update and draw. */
@@ -367,29 +384,18 @@ export class EveBoosterSet2 extends EveEntity
     return true;
   }
 
-  /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32). */
-  @blue.method
-  @meta.implemented
-  PrepareResources()
-  {
-    if (Tr2Renderer.IsResourceCreationAllowed())
-    {
-      if (!this.OnPrepareResources()) return false;
-    }
-    return true;
-  }
-
   /**
-   * Carbon EveBoosterSet2::ReleaseResources (cpp:891-895).
+   * Carbon EveBoosterSet2::ReleaseResources (cpp:891-895): frees the instance
+   * range back to the shared buffer and forgets the vertex declaration.
    *
-   * Adapted: Tr2SuballocatedBuffer has no Free, so the instance allocation is dropped rather than returned to the
-   * shared buffer.
+   * Adapted: the allocation's own parent stands in for g_sharedBuffer, since
+   * the shared buffer here is per render context (TriGeometryResAllocations).
    */
   @blue.method
   @meta.adapted
   ReleaseResources(_storage)
   {
-    this._instanceBuffer = new Tr2SuballocatedBufferAllocation();
+    if (this._instanceBuffer.IsValid()) this._instanceBuffer._parent.Free(this._instanceBuffer);
     this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
   }
 
@@ -422,13 +428,15 @@ export class EveBoosterSet2 extends EveEntity
    * wavePhase, atlasIndex0, atlasIndex1. Carbon's Matrix and gl-matrix share
    * the byte layout, so the transform copies straight across.
    *
-   * Adapted: Tr2SuballocatedBuffer has no Free, so the previous allocation is dropped rather than returned.
+   * Adapted: the allocation's own parent stands in for g_sharedBuffer (see
+   * ReleaseResources), and Allocate returns a new Allocation rather than
+   * filling m_instanceBuffer in place.
    */
   @blue.method
   @meta.adapted
   RebuildInstanceData(renderContext)
   {
-    this._instanceBuffer = new Tr2SuballocatedBufferAllocation();
+    if (this._instanceBuffer.IsValid()) this._instanceBuffer._parent.Free(this._instanceBuffer);
 
     const boosterCount = this._singleBoosters.length;
     if (!boosterCount) return;
