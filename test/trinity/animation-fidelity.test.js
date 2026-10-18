@@ -43,7 +43,7 @@ test("removing an active unowned timeline action does not stop or unlink it", ()
   const calls = [];
   timeline.AddAction({ Start() {}, Stop() { calls.push("stop"); }, Unlink() { calls.push("unlink"); } }, 0, 1);
   timeline.Start();
-  assert.equal(timeline.RemoveAction(0), true);
+  assert.equal(timeline.RemoveAction(0), undefined);
   assert.deepEqual(calls, []);
 });
 

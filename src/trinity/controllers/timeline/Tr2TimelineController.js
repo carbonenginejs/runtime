@@ -180,7 +180,7 @@ export class Tr2TimelineController extends EveThrottleable
     for (let i = 0; i < this.actions.length; i++)
     {
       const entry = this._entryAt(i);
-      if (entry && this.IsActionEnabled(i) && Tr2TimelineController._inRange(this._time, entry))
+      if (this.IsActionEnabled(i) && Tr2TimelineController._inRange(this._time, entry))
       {
         this.actions[i].Start(this);
       }
@@ -201,7 +201,7 @@ export class Tr2TimelineController extends EveThrottleable
     for (let i = 0; i < this.actions.length; i++)
     {
       const entry = this._entryAt(i);
-      if (entry && this.IsActionEnabled(i) && Tr2TimelineController._inRange(this._time, entry))
+      if (this.IsActionEnabled(i) && Tr2TimelineController._inRange(this._time, entry))
       {
         this.actions[i].Stop(this);
       }
@@ -462,68 +462,111 @@ export class Tr2TimelineController extends EveThrottleable
   }
 
   /**
-   * Gets an action by index.
+   * Gets an action by index (Tr2TimelineController.cpp:382-390).
+   *
+   * Adapted: Carbon's output reference comes back as the return value.
+   *
+   * @param {number} index Action index.
+   * @returns {ITr2ControllerAction} The action.
+   * @throws {RangeError} "Index out of range", Carbon's BlueStdResult value error.
    */
   @blue.method
   @meta.adapted
   GetAction(index)
   {
-    return this.actions[index] ?? null;
+    if (!(Number.isInteger(index) && index >= 0 && index < this.actions.length))
+    {
+      throw new RangeError("Index out of range");
+    }
+    return this.actions[index];
   }
 
   /**
-   * Gets the timeline start time in seconds of the action at an index, or 0 when
-   * the index has no entry.
+   * Gets the timeline start time in seconds of the action at an index
+   * (Tr2TimelineController.cpp:392-400).
+   *
+   * Adapted: Carbon's output reference comes back as the return value.
+   *
+   * @param {number} index Action index.
+   * @returns {number} Start time.
+   * @throws {RangeError} "Index out of range", Carbon's BlueStdResult value error.
    */
   @blue.method
-  @meta.implemented
+  @meta.adapted
   GetActionStartTime(index)
   {
-    return this._entryAt(index)?.startTime ?? 0;
+    if (!(Number.isInteger(index) && index >= 0 && index < this.actions.length))
+    {
+      throw new RangeError("Index out of range");
+    }
+    return this._entryAt(index).startTime;
   }
 
   /**
-   * Gets the timeline end time in seconds of the action at an index, or 0 when
-   * the index has no entry.
+   * Gets the timeline end time in seconds of the action at an index
+   * (Tr2TimelineController.cpp:402-410).
+   *
+   * Adapted: Carbon's output reference comes back as the return value.
+   *
+   * @param {number} index Action index.
+   * @returns {number} End time.
+   * @throws {RangeError} "Index out of range", Carbon's BlueStdResult value error.
    */
   @blue.method
-  @meta.implemented
+  @meta.adapted
   GetActionEndTime(index)
   {
-    return this._entryAt(index)?.endTime ?? 0;
+    if (!(Number.isInteger(index) && index >= 0 && index < this.actions.length))
+    {
+      throw new RangeError("Index out of range");
+    }
+    return this._entryAt(index).endTime;
   }
 
   /**
-   * Gets the track the action at an index belongs to, or 0 when the index has no
-   * entry.
+   * Gets the track the action at an index belongs to
+   * (Tr2TimelineController.cpp:412-420).
+   *
+   * Adapted: Carbon's output reference comes back as the return value.
+   *
+   * @param {number} index Action index.
+   * @returns {number} Track ID.
+   * @throws {RangeError} "Index out of range", Carbon's BlueStdResult value error.
    */
   @blue.method
-  @meta.implemented
+  @meta.adapted
   GetActionTrackID(index)
   {
-    return this._entryAt(index)?.trackID ?? 0;
+    if (!(Number.isInteger(index) && index >= 0 && index < this.actions.length))
+    {
+      throw new RangeError("Index out of range");
+    }
+    return this._entryAt(index).trackID;
   }
 
   /**
    * Moves an action's start time, starting or stopping the action immediately
-   * when the edit changes whether it covers the current time; returns false for
-   * an out-of-range index.
+   * when the edit changes whether it covers the current time
+   * (Tr2TimelineController.cpp:422-447).
+   *
+   * Adapted: no controller mutex; JavaScript runs actions on one thread.
+   *
+   * @param {number} index Action index.
+   * @param {number} startTime New start time.
+   * @returns {void}
+   * @throws {RangeError} "Index out of range", Carbon's BlueStdResult value error.
    */
   @blue.method
   @meta.adapted
   SetActionStartTime(index, startTime)
   {
-    if (index < 0 || index >= this.actions.length)
+    if (!(Number.isInteger(index) && index >= 0 && index < this.actions.length))
     {
-      return false;
-    }
-    const entry = this._entryAt(index);
-    if (!entry)
-    {
-      return false;
+      throw new RangeError("Index out of range");
     }
     if (this.isPlaying && this.IsActionEnabled(index))
     {
+      const entry = this._entryAt(index);
       const wasActive = Tr2TimelineController._inRange(this._time, entry);
       const isActive = Tr2TimelineController._inRange(this._time, {
         startTime,
@@ -538,30 +581,32 @@ export class Tr2TimelineController extends EveThrottleable
         this.actions[index].Start(this);
       }
     }
-    entry.startTime = startTime;
-    return true;
+    this._entryAt(index).startTime = startTime;
   }
 
   /**
    * Moves an action's end time, starting or stopping the action immediately when
-   * the edit changes whether it covers the current time; returns false for an
-   * out-of-range index.
+   * the edit changes whether it covers the current time
+   * (Tr2TimelineController.cpp:449-473).
+   *
+   * Adapted: no controller mutex; JavaScript runs actions on one thread.
+   *
+   * @param {number} index Action index.
+   * @param {number} endTime New end time.
+   * @returns {void}
+   * @throws {RangeError} "Index out of range", Carbon's BlueStdResult value error.
    */
   @blue.method
   @meta.adapted
   SetActionEndTime(index, endTime)
   {
-    if (index < 0 || index >= this.actions.length)
+    if (!(Number.isInteger(index) && index >= 0 && index < this.actions.length))
     {
-      return false;
-    }
-    const entry = this._entryAt(index);
-    if (!entry)
-    {
-      return false;
+      throw new RangeError("Index out of range");
     }
     if (this.isPlaying && this.IsActionEnabled(index))
     {
+      const entry = this._entryAt(index);
       const wasActive = Tr2TimelineController._inRange(this._time, entry);
       const isActive = Tr2TimelineController._inRange(this._time, {
         startTime: entry.startTime,
@@ -576,29 +621,31 @@ export class Tr2TimelineController extends EveThrottleable
         this.actions[index].Start(this);
       }
     }
-    entry.endTime = endTime;
-    return true;
+    this._entryAt(index).endTime = endTime;
   }
 
   /**
    * Reassigns an action to another track, starting or stopping it when the move
    * changes whether its track is enabled while the action covers the current
-   * time.
+   * time (Tr2TimelineController.cpp:475-502).
+   *
+   * Adapted: no controller mutex; JavaScript runs actions on one thread.
+   *
+   * @param {number} index Action index.
+   * @param {number} trackID New track ID.
+   * @returns {void}
+   * @throws {RangeError} "Index out of range", Carbon's BlueStdResult value error.
    */
   @blue.method
   @meta.adapted
   SetActionTrackID(index, trackID)
   {
-    if (index < 0 || index >= this.actions.length)
+    if (!(Number.isInteger(index) && index >= 0 && index < this.actions.length))
     {
-      return false;
+      throw new RangeError("Index out of range");
     }
     const wasEnabled = this.IsActionEnabled(index);
     const entry = this._entryAt(index);
-    if (!entry)
-    {
-      return false;
-    }
     entry.trackID = trackID;
     const isEnabled = this.IsActionEnabled(index);
     if (this.isPlaying && wasEnabled !== isEnabled && Tr2TimelineController._inRange(this._time, entry))
@@ -612,7 +659,6 @@ export class Tr2TimelineController extends EveThrottleable
         this.actions[index].Stop(this);
       }
     }
-    return true;
   }
 
   /**
@@ -646,42 +692,49 @@ export class Tr2TimelineController extends EveThrottleable
   }
 
   /**
-   * Removes an action and its entry, stopping and unlinking only when owned.
+   * Removes an action and its entry, stopping and unlinking only when owned
+   * (Tr2TimelineController.cpp:530-553).
    *
-   * Adapted: Returns false for an invalid index instead of a BlueStdResult error.
+   * Adapted: no controller mutex; JavaScript runs actions on one thread.
+   *
+   * @param {number} index Action index.
+   * @returns {void}
+   * @throws {RangeError} "Index out of range", Carbon's BlueStdResult value error.
    */
   @blue.method
   @meta.adapted
   RemoveAction(index)
   {
-    if (index < 0 || index >= this.actions.length)
+    if (!(Number.isInteger(index) && index >= 0 && index < this.actions.length))
     {
-      return false;
+      throw new RangeError("Index out of range");
     }
     const action = this.actions[index];
-    const entry = this._entryAt(index);
-    if (this._owner && entry && this.isPlaying && this.IsActionEnabled(index) && Tr2TimelineController._inRange(this._time, entry))
-    {
-      action.Stop(this);
-    }
     if (this._owner)
     {
+      if (this.isPlaying && this.IsActionEnabled(index) && Tr2TimelineController._inRange(this._time, this._entryAt(index)))
+      {
+        action.Stop(this);
+      }
       action.Unlink();
     }
     this.actions.splice(index, 1);
     this.entries.splice(index, 1);
-    return true;
   }
 
   /**
-   * Checks whether the action's track is enabled.
+   * Checks whether the action's track is enabled
+   * (Tr2TimelineController.cpp:555-558). Carbon indexes m_entries unchecked.
+   *
+   * @param {number} index Action index.
+   * @returns {boolean} Whether the entry's track is enabled.
+   * @throws {RangeError} When no entry exists at index (ruling 11).
    */
   @blue.method
   @meta.implemented
   IsActionEnabled(index)
   {
-    const entry = this._entryAt(index);
-    return !!entry && !this._disabledTracks.has(entry.trackID);
+    return !this._disabledTracks.has(this._entryAt(index).trackID);
   }
 
   /**
@@ -715,7 +768,7 @@ export class Tr2TimelineController extends EveThrottleable
       for (let i = 0; i < this.actions.length; i++)
       {
         const entry = this._entryAt(i);
-        if (entry && entry.trackID === trackID && Tr2TimelineController._inRange(this._time, entry))
+        if (Tr2TimelineController._inRange(this._time, entry) && entry.trackID === trackID)
         {
           if (enable)
           {
@@ -794,10 +847,6 @@ export class Tr2TimelineController extends EveThrottleable
         continue;
       }
       const entry = this._entryAt(i);
-      if (!entry)
-      {
-        continue;
-      }
       const wasActive = Tr2TimelineController._inRange(oldTime, entry);
       const isActive = Tr2TimelineController._inRange(this._time, entry);
       if (wasActive && !isActive)
@@ -851,12 +900,22 @@ export class Tr2TimelineController extends EveThrottleable
   }
 
   /**
-   * Gets the timeline entry parallel to the action at an index, or null when the
-   * lists are not the same length.
+   * Reads m_entries[index], which Carbon indexes unchecked
+   * (BlueStructureList.h:235-238 over std::vector::operator[]). An index with
+   * no entry throws instead of reading undefined (ruling 11).
+   *
+   * @param {number} index Entry index.
+   * @returns {Tr2TimelineEntry} The entry parallel to the action at index.
+   * @throws {RangeError} When no entry exists at index.
    */
   _entryAt(index)
   {
-    return this.entries[index] ?? null;
+    const entry = this.entries[index];
+    if (entry === undefined)
+    {
+      throw new RangeError(`Tr2TimelineController: no entry at index ${index}, size is ${this.entries.length}.`);
+    }
+    return entry;
   }
 
   /**
