@@ -23,13 +23,14 @@ import { identityOf } from "#utils/hash";
  * bucket collision. A static and a dynamic mesh group of the same mesh
  * therefore get separate MeshData in Carbon, which matters because the key's
  * `isDynamic` chooses the instance buffer and element layout. A key from
- * operator=='s seven fields would merge them. Carbon quirk (CE-178): the hash
- * is inconsistent with `operator==`, which `std::unordered_map` requires to
- * agree, and it also reads MeshKey's two trailing padding bytes, which the
- * aggregate initializations at cpp:252-260 and cpp:317-324 leave
- * indeterminate. This port reproduces the dominant observable behaviour -
- * distinct entries for keys differing in any field - and cannot reproduce
- * the padding.
+ * operator=='s seven fields would merge them.
+ *
+ * Fixes CE-178: Carbon hashes all 40 bytes of MeshKey, including two
+ * trailing padding bytes the aggregate initializations at cpp:252-260 and
+ * cpp:317-324 leave indeterminate, while `operator==` compares only seven
+ * fields (h:179-188, 251-258), breaking `std::unordered_map`'s
+ * hash/equality contract; ours keys on all nine fields and nothing else, so
+ * equal keys always share an entry and keys differing in any field never do.
  */
 @meta.define({ className: "EveInstancedMeshManagerKeyHasher", carbon: "EveInstancedMeshManager::KeyHasher" })
 export class EveInstancedMeshManagerKeyHasher
