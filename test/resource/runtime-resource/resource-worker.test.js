@@ -346,7 +346,10 @@ test("CjsBlueResMan sends worker-safe reads off the main queue and publishes on 
     },
     GetPendingCount() {
       return pendingWorkers;
-    }
+    },
+    // The rest of CjsResManWorkerLoader's surface, which resMan calls directly.
+    Reset() {},
+    SetFallback() {}
   };
   class TestWorkerQueueFormat
   {

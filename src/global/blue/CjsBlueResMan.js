@@ -480,7 +480,7 @@ export class CjsBlueResMan
     assertResourceLoader(loader, "mainThreadLoader");
     const wasSelected = this.resourceLoader === this.mainThreadLoader;
     this.mainThreadLoader = loader;
-    this.workerLoader?.SetFallback?.(loader);
+    this.workerLoader?.SetFallback(loader);
     if (wasSelected || !this.resourceLoader) this.resourceLoader = loader;
     return this;
   }
@@ -528,7 +528,7 @@ export class CjsBlueResMan
       return this;
     }
     if (!this.workerLoader) this.SetWorkerLoader({});
-    this.workerLoader.Reset?.();
+    this.workerLoader.Reset();
     this.resourceLoader = this.workerLoader;
     return this;
   }
@@ -548,7 +548,7 @@ export class CjsBlueResMan
    * @returns {number}
    */
   GetPendingWorkers() {
-    return this.workerLoader?.GetPendingCount?.() || 0;
+    return this.workerLoader?.GetPendingCount() ?? 0;
   }
 
   /**
@@ -2615,7 +2615,7 @@ export class CjsBlueResMan
         `no dynamic constructor is registered for "${name}"`);
     }
     const resource = constructor.GetResource(query);
-    if (!resource || typeof resource.Initialize !== "function" || typeof resource.SetObjectLoader !== "function")
+    if (!CjsSchema.cast(resource, CjsResource))
     {
       throw dynamicResourceError(key, name, "CJS_RESMAN_DYNAMIC_RESOURCE_UNAVAILABLE",
         `dynamic constructor "${name}" returned no CjsResource-compatible resource`);
@@ -3442,7 +3442,7 @@ export class CjsBlueResMan
    */
   CreateResource(Constructor, path, ext, options = {}, disallowedAlias = null, extensionRoute = null) {
     const resource = new Constructor(options.values);
-    if (!resource || typeof resource.Initialize !== "function") {
+    if (!CjsSchema.cast(resource, CjsResource)) {
       throw new TypeError("Resource constructor must create a CjsResource-compatible object.");
     }
     if (disallowedAlias && resource === disallowedAlias)
@@ -4754,9 +4754,7 @@ function resolveResourceHandlerMode(resource, routedMode = null)
   if (routedMode === ResourceHandlerMode.RESOURCE) return ResourceHandlerMode.RESOURCE;
   if (routedMode === ResourceHandlerMode.OBJECT) return ResourceHandlerMode.OBJECT;
   if (resource?.constructor === CjsResource) return ResourceHandlerMode.OBJECT;
-  return typeof resource?.SetPayload === "function"
-    ? ResourceHandlerMode.RESOURCE
-    : ResourceHandlerMode.OBJECT;
+  return CjsSchema.cast(resource, CjsResource) ? ResourceHandlerMode.RESOURCE : ResourceHandlerMode.OBJECT;
 }
 
 /**
