@@ -173,7 +173,7 @@ function WithGenericBodySpecular(textures, genericBodySurface)
 
 function ResolveGenericFoundationSurface(sex, library, textureQuality)
 {
-    if (!library || typeof library.GetDocument !== "function") return null;
+    if (!library) return null;
     const diffusePath = SelectFoundationTexture(
         library,
         BODY_DIFFUSE_FOUNDATIONS[sex],

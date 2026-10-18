@@ -404,14 +404,14 @@ function ResolvePartMetadata(library, recordID, jsonPointer)
 {
     const version = ResolvePartSourceVersion(library, recordID, jsonPointer);
     if (version?.metadata) return version.metadata;
-    if (!recordID || typeof library?.Get !== "function") return null;
+    if (!recordID || !library) return null;
     const source = library.Get("characterPartSources", recordID);
     return source?.metadata ?? null;
 }
 
 function ResolvePartSourceVersion(library, recordID, jsonPointer)
 {
-    if (!recordID || typeof library?.Get !== "function") return null;
+    if (!recordID || !library) return null;
     const source = library.Get("characterPartSources", recordID);
     const match = String(jsonPointer ?? "").match(/^\/versions\/(\d+)$/u);
     return match ? source?.versions?.[Number(match[1])] ?? null : null;

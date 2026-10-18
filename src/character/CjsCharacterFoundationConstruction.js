@@ -323,7 +323,7 @@ export function ResolveFoundationGeometry(baseGeometry, sex, library)
         value[1],
         value[2] ? { ...value[2] } : undefined
     ]);
-    if (!library || typeof library.Get !== "function") return result;
+    if (!library) return result;
 
     const torso = library.Get("characterPartSources", `${sex}/topinner/torso_nude`);
     const metadata = ResolveEffectiveMetadata(torso);
@@ -379,7 +379,7 @@ function FoundationSupportOrder(role)
 /** Resolves one exact authored brow carrier through the selected head metadata. */
 export function ResolveSelectedBrowSupport(sex, archetypeSourceRecordID, library)
 {
-    if (!library || typeof library.GetDocument !== "function") return null;
+    if (!library) return null;
     const archetypeID = String(archetypeSourceRecordID ?? "").trim().toLowerCase();
     const prefix = `${sex}/archetypes/`;
     if (!archetypeID.startsWith(prefix)) return null;
@@ -429,7 +429,7 @@ export function ResolveSelectedBrowSupport(sex, archetypeSourceRecordID, library
 /** Resolves one selected skintone through retained base, PRS, and archetype records. */
 export function ResolveSelectedFoundationSkin(paperdoll, sex, library, textureQuality = "4k")
 {
-    if (!library || typeof library.Get !== "function" || typeof library.GetDocument !== "function")
+    if (!library)
     {
         return null;
     }
