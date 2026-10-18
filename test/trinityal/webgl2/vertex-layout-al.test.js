@@ -4,6 +4,7 @@ import { test } from "node:test";
 import { AttributeFormat, Tr2VertexLayoutALWebgl2 } from "../../../npm/dist/trinityal/webgl2/index.js";
 import { ALResult } from "../../../npm/dist/trinityal/index.js";
 import { FakeRenderContext, FakeWebgl2 } from "./fakeWebgl2.js";
+import { Tr2VertexDefinition } from "../../../npm/dist/trinity/core/index.js";
 
 // Carbon's Tr2VertexDefinition::UsageCode values (Tr2VertexDefinition.h:17-30).
 const POSITION = 0;
@@ -131,4 +132,75 @@ test("Destroy clears the definition and every plan", () =>
     layout.Destroy();
     assert.equal(layout.IsValid(), false);
     assert.equal(layout.GetCurrentPlan(), null);
+});
+
+
+/**
+ * EveChildInstancedMeshes::RebuildCachedData's combined declaration
+ * (EveChildInstancedMeshes.cpp:713-725): the mesh's own items - here one
+ * geometry-payload POSITION, as CarbonVertexElements hands them over - then six
+ * FLOAT32_4, a UINT32_1 and a UINT32_2 at TEXCOORD8-15 on stream 1 with step
+ * rate 1. Carbon resets stream 1's ledger after TEXCOORD10 (:719), so
+ * TEXCOORD11-13 restart at offset 0.
+ */
+function instancedMeshDeclaration(Tr2VertexDefinition)
+{
+    const elements = new Tr2VertexDefinition();
+
+    elements.items.push({ usage: 0, usageIndex: 0, type: "Float32", elementCount: 3, offset: 0, stream: 0, instanceStepRate: 0 });
+    elements.nextOffset[0] = 12;
+
+    elements.Add("FLOAT32_4", "TEXCOORD", 8, 1, 1);
+    elements.Add("FLOAT32_4", "TEXCOORD", 9, 1, 1);
+    elements.Add("FLOAT32_4", "TEXCOORD", 10, 1, 1);
+    elements.nextOffset[1] = 0;
+    elements.Add("FLOAT32_4", "TEXCOORD", 11, 1, 1);
+    elements.Add("FLOAT32_4", "TEXCOORD", 12, 1, 1);
+    elements.Add("FLOAT32_4", "TEXCOORD", 13, 1, 1);
+    elements.Add("UINT32_1", "TEXCOORD", 14, 1, 1);
+    elements.Add("UINT32_2", "TEXCOORD", 15, 1, 1);
+
+    return elements;
+}
+
+/** The vertex stage's inputs for that declaration, each at its own register. */
+const INSTANCED_MESH_INPUTS = [
+    { usage: 0, usageIndex: 0, registerIndex: 0 },
+    ...[ 8, 9, 10, 11, 12, 13, 14, 15 ].map((usageIndex, index) => ({ usage: 5, usageIndex, registerIndex: index + 1 }))
+];
+
+test("the format table reads UINT32_2 and a geometry payload's type plus count", () =>
+{
+    const { gl } = FakeWebgl2();
+
+    assert.deepEqual(AttributeFormat(gl, "UINT32_2"), { size: 2, type: gl.UNSIGNED_INT, normalized: false, integer: true, bytes: 8 });
+    assert.deepEqual(AttributeFormat(gl, { type: "Float32", elementCount: 3 }), { size: 3, type: gl.FLOAT, normalized: false, integer: false, bytes: 12 });
+    assert.deepEqual(AttributeFormat(gl, { type: "UInt8Norm", elementCount: 4 }), { size: 4, type: gl.UNSIGNED_BYTE, normalized: true, integer: false, bytes: 4 });
+    assert.equal(AttributeFormat(gl, { type: "Float64", elementCount: 2 }), null);
+});
+
+test("the instanced-mesh declaration plans integer, per-instance attributes on stream 1", () =>
+{
+    // Integer formats are bound with vertexAttribIPointer
+    // (Tr2RenderContextALWebgl2._ApplyVertexAttributes), the step rate is the divisor.
+    const { gl } = FakeWebgl2();
+    const layout = new Tr2VertexLayoutALWebgl2();
+
+    assert.equal(layout.Create(instancedMeshDeclaration(Tr2VertexDefinition), FakeRenderContext(gl)), ALResult.S_OK);
+    assert.equal(layout.SetLayout(vertexShader(INSTANCED_MESH_INPUTS), FakeRenderContext(gl)), ALResult.S_OK);
+
+    const float4 = AttributeFormat(gl, "FLOAT32_4");
+
+    assert.deepEqual(layout.GetCurrentPlan(), [
+        { location: 0, format: AttributeFormat(gl, { type: "Float32", elementCount: 3 }), stream: 0, offset: 0, divisor: 0, constant: null },
+        { location: 1, format: float4, stream: 1, offset: 0, divisor: 1, constant: null },
+        { location: 2, format: float4, stream: 1, offset: 16, divisor: 1, constant: null },
+        { location: 3, format: float4, stream: 1, offset: 32, divisor: 1, constant: null },
+        { location: 4, format: float4, stream: 1, offset: 0, divisor: 1, constant: null },
+        { location: 5, format: float4, stream: 1, offset: 16, divisor: 1, constant: null },
+        { location: 6, format: float4, stream: 1, offset: 32, divisor: 1, constant: null },
+        { location: 7, format: AttributeFormat(gl, "UINT32_1"), stream: 1, offset: 48, divisor: 1, constant: null },
+        { location: 8, format: AttributeFormat(gl, "UINT32_2"), stream: 1, offset: 52, divisor: 1, constant: null }
+    ]);
+    assert.equal(layout.GetCurrentPlan()[8].format.integer, true);
 });

@@ -273,6 +273,18 @@
         "and Trinity contracts. It never imports core, tools, or another backend."
       ]
     },
+    "trinityal/webgl2": {
+      "mayImport": [
+        "global",
+        "resource",
+        "trinityal"
+      ],
+      "why": [
+        "A backend like trinityal/webgpu: it reads vertex elements through the shared",
+        "resource-layer decomposition WebGPU uses. It never imports core, tools,",
+        "trinity, or another backend."
+      ]
+    },
     "core": {
       "mayImport": [
         "global",

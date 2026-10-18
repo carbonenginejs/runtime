@@ -124,6 +124,108 @@ export class Tr2VertexDefinition
   /** Carbon's vertex-usage vocabulary, in its declared order. */
   static UsageCode = Tr2VertexUsageCode;
 
+  /**
+   * Carbon Tr2VertexDefinition::DataType (Tr2VertexDefinition.h:31-120), every
+   * member with Carbon's value: the base type in the low three bits, the
+   * unsigned and normalized bits, and the component count minus one at
+   * DT_SIZE_OFFSET.
+   *
+   * Items here carry the member NAME (`item.type = "UINT32_1"`), which is what
+   * both backends' vertex-format tables read; this map is the numbering for
+   * code that holds Carbon's integer, as Tr2RuntimeInstanceData's does.
+   */
+  static DataType = Object.freeze({
+    DT_INT8: 0,
+    DT_INT16: 1,
+    DT_INT32: 2,
+    DT_FLOAT16: 3,
+    DT_FLOAT32: 4,
+
+    DT_TYPE_MASK: 7,
+
+    DT_UNSIGNED_BIT: 1 << 3,
+    DT_NORMALIZED_BIT: 1 << 4,
+
+    DT_SIZE_OFFSET: 5,
+    DT_SIZE_MASK: 3 << 5,
+    DT_SIZE_1: 0 << 5,
+    DT_SIZE_2: 1 << 5,
+    DT_SIZE_3: 2 << 5,
+    DT_SIZE_4: 3 << 5,
+
+    BYTE_1: 0,
+    BYTE_2: 32,
+    BYTE_3: 64,
+    BYTE_4: 96,
+
+    UBYTE_1: 8,
+    UBYTE_2: 40,
+    UBYTE_3: 72,
+    UBYTE_4: 104,
+
+    SHORT_1: 1,
+    SHORT_2: 33,
+    SHORT_3: 65,
+    SHORT_4: 97,
+
+    USHORT_1: 9,
+    USHORT_2: 41,
+    USHORT_3: 73,
+    USHORT_4: 105,
+
+    INT32_1: 2,
+    INT32_2: 34,
+    INT32_3: 66,
+    INT32_4: 98,
+
+    UINT32_1: 10,
+    UINT32_2: 42,
+    UINT32_3: 74,
+    UINT32_4: 106,
+
+    FLOAT16_1: 3,
+    FLOAT16_2: 35,
+    FLOAT16_3: 67,
+    FLOAT16_4: 99,
+
+    UFLOAT16_1: 11,
+    UFLOAT16_2: 43,
+    UFLOAT16_3: 75,
+    UFLOAT16_4: 107,
+
+    FLOAT32_1: 4,
+    FLOAT32_2: 36,
+    FLOAT32_3: 68,
+    FLOAT32_4: 100,
+
+    UFLOAT32_1: 12,
+    UFLOAT32_2: 44,
+    UFLOAT32_3: 76,
+    UFLOAT32_4: 108,
+
+    BYTE_1_NORM: 16,
+    BYTE_2_NORM: 48,
+    BYTE_3_NORM: 80,
+    BYTE_4_NORM: 112,
+
+    UBYTE_1_NORM: 24,
+    UBYTE_2_NORM: 56,
+    UBYTE_3_NORM: 88,
+    UBYTE_4_NORM: 120,
+
+    SHORT_1_NORM: 17,
+    SHORT_2_NORM: 49,
+    SHORT_3_NORM: 81,
+    SHORT_4_NORM: 113,
+
+    USHORT_1_NORM: 25,
+    USHORT_2_NORM: 57,
+    USHORT_3_NORM: 89,
+    USHORT_4_NORM: 121,
+
+    DT_UNKNOWN_TYPE: 0xFFFFFFFF
+  });
+
   /** Carbon's nested Item class (h:123-141), reachable as Carbon spells it:
    *  Tr2VertexDefinition::Item. JS cannot nest the declaration, so the class
    *  is declared at module scope and aliased here. */

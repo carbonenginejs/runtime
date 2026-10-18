@@ -190,3 +190,69 @@ test("a definition built from usage names resolves against numeric shader inputs
   assert.equal(plan.complete, true);
   assert.equal(plan.entries[1].element.offset, 16);
 });
+
+
+/**
+ * EveChildInstancedMeshes::RebuildCachedData's combined declaration
+ * (EveChildInstancedMeshes.cpp:713-725): the mesh's own items - here one
+ * geometry-payload POSITION, as CarbonVertexElements hands them over - then six
+ * FLOAT32_4, a UINT32_1 and a UINT32_2 at TEXCOORD8-15 on stream 1 with step
+ * rate 1. Carbon resets stream 1's ledger after TEXCOORD10 (:719), so
+ * TEXCOORD11-13 restart at offset 0.
+ */
+function instancedMeshDeclaration(Tr2VertexDefinition)
+{
+  const elements = new Tr2VertexDefinition();
+
+  elements.items.push({ usage: 0, usageIndex: 0, type: "Float32", elementCount: 3, offset: 0, stream: 0, instanceStepRate: 0 });
+  elements.nextOffset[0] = 12;
+
+  elements.Add("FLOAT32_4", "TEXCOORD", 8, 1, 1);
+  elements.Add("FLOAT32_4", "TEXCOORD", 9, 1, 1);
+  elements.Add("FLOAT32_4", "TEXCOORD", 10, 1, 1);
+  elements.nextOffset[1] = 0;
+  elements.Add("FLOAT32_4", "TEXCOORD", 11, 1, 1);
+  elements.Add("FLOAT32_4", "TEXCOORD", 12, 1, 1);
+  elements.Add("FLOAT32_4", "TEXCOORD", 13, 1, 1);
+  elements.Add("UINT32_1", "TEXCOORD", 14, 1, 1);
+  elements.Add("UINT32_2", "TEXCOORD", 15, 1, 1);
+
+  return elements;
+}
+
+/** The vertex stage's inputs for that declaration, each at its own register. */
+const INSTANCED_MESH_INPUTS = [
+  { usage: 0, usageIndex: 0, registerIndex: 0 },
+  ...[ 8, 9, 10, 11, 12, 13, 14, 15 ].map((usageIndex, index) => ({ usage: 5, usageIndex, registerIndex: index + 1 }))
+];
+
+test("DataType carries Carbon's values, and the UINT32 members size as Carbon's do", () =>
+{
+  // Tr2VertexDefinition.h:31-80: DT_INT32 | DT_SIZE_n | DT_UNSIGNED_BIT.
+  const { DataType } = Tr2VertexDefinition;
+
+  assert.equal(DataType.UINT32_1, DataType.DT_INT32 | DataType.DT_SIZE_1 | DataType.DT_UNSIGNED_BIT);
+  assert.equal(DataType.UINT32_1, 10);
+  assert.equal(DataType.UINT32_2, 42);
+  assert.equal(DataType.FLOAT32_4, 100);
+  assert.equal(DataType.USHORT_4_NORM, DataType.USHORT_4 | DataType.DT_NORMALIZED_BIT);
+  assert.equal(DataType.DT_UNKNOWN_TYPE, 0xFFFFFFFF);
+
+  // GetDataTypeSizeInBytes (h:188-205).
+  assert.equal(Tr2VertexDefinition.getDataTypeSizeInBytes("UINT32_1"), 4);
+  assert.equal(Tr2VertexDefinition.getDataTypeSizeInBytes("UINT32_2"), 8);
+});
+
+test("the instanced-mesh declaration lays its instance inputs out as Carbon's ledger does", () =>
+{
+  const elements = instancedMeshDeclaration(Tr2VertexDefinition);
+  const instance = elements.items.slice(1);
+
+  assert.deepEqual(instance.map(item => [ item.type, item.usageIndex, item.offset ]), [
+    [ "FLOAT32_4", 8, 0 ], [ "FLOAT32_4", 9, 16 ], [ "FLOAT32_4", 10, 32 ],
+    [ "FLOAT32_4", 11, 0 ], [ "FLOAT32_4", 12, 16 ], [ "FLOAT32_4", 13, 32 ],
+    [ "UINT32_1", 14, 48 ], [ "UINT32_2", 15, 52 ]
+  ]);
+  assert.equal(instance.every(item => item.stream === 1 && item.instanceStepRate === 1 && item.usage === Usage.TEXCOORD), true);
+  assert.deepEqual(elements.nextOffset.slice(0, 2), [ 12, 60 ]);
+});

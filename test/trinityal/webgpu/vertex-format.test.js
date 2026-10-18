@@ -3,6 +3,8 @@ import { test } from "node:test";
 
 import { WebgpuVertexFormat, WebgpuVertexBufferLayout } from "../../../npm/dist/trinityal/webgpu/index.js";
 import { VertexElementType } from "../../../npm/dist/resource/geometry/index.js";
+import { resolveBindingPlan } from "../../../npm/dist/trinityal/index.js";
+import { Tr2VertexDefinition } from "../../../npm/dist/trinity/core/index.js";
 
 /** A declaration element. */
 const element = (type, elementCount, offset = 0) => ({ type, elementCount, offset });
@@ -129,4 +131,76 @@ test("WebGPU layout stride and attribute alignment are checked without a device"
   assert.equal(WebgpuVertexBufferLayout(4, [{ registerIndex: 0, element: element("UInt8", 2, 2) }]).attributes[0].offset, 2);
   assert.throws(() => WebgpuVertexBufferLayout(4, [{ registerIndex: 0, element: element("UInt8", 2, 1) }]), /aligned to 2/);
   assert.equal(WebgpuVertexBufferLayout(0, [{ registerIndex: 0, element: element("Float32", 4) }]).arrayStride, 0, "zero stride is WebGPU's constant stream");
+});
+
+
+
+/**
+ * EveChildInstancedMeshes::RebuildCachedData's combined declaration
+ * (EveChildInstancedMeshes.cpp:713-725): the mesh's own items - here one
+ * geometry-payload POSITION, as CarbonVertexElements hands them over - then six
+ * FLOAT32_4, a UINT32_1 and a UINT32_2 at TEXCOORD8-15 on stream 1 with step
+ * rate 1. Carbon resets stream 1's ledger after TEXCOORD10 (:719), so
+ * TEXCOORD11-13 restart at offset 0.
+ */
+function instancedMeshDeclaration(Tr2VertexDefinition)
+{
+  const elements = new Tr2VertexDefinition();
+
+  elements.items.push({ usage: 0, usageIndex: 0, type: "Float32", elementCount: 3, offset: 0, stream: 0, instanceStepRate: 0 });
+  elements.nextOffset[0] = 12;
+
+  elements.Add("FLOAT32_4", "TEXCOORD", 8, 1, 1);
+  elements.Add("FLOAT32_4", "TEXCOORD", 9, 1, 1);
+  elements.Add("FLOAT32_4", "TEXCOORD", 10, 1, 1);
+  elements.nextOffset[1] = 0;
+  elements.Add("FLOAT32_4", "TEXCOORD", 11, 1, 1);
+  elements.Add("FLOAT32_4", "TEXCOORD", 12, 1, 1);
+  elements.Add("FLOAT32_4", "TEXCOORD", 13, 1, 1);
+  elements.Add("UINT32_1", "TEXCOORD", 14, 1, 1);
+  elements.Add("UINT32_2", "TEXCOORD", 15, 1, 1);
+
+  return elements;
+}
+
+/** The vertex stage's inputs for that declaration, each at its own register. */
+const INSTANCED_MESH_INPUTS = [
+  { usage: 0, usageIndex: 0, registerIndex: 0 },
+  ...[ 8, 9, 10, 11, 12, 13, 14, 15 ].map((usageIndex, index) => ({ usage: 5, usageIndex, registerIndex: index + 1 }))
+];
+
+test("Carbon's UINT32 members are WebGPU's uint32 formats", () =>
+{
+  // dx11 maps them to DXGI_FORMAT_R32_UINT / R32G32_UINT (Tr2VertexLayoutALDx11.cpp:25-76).
+  assert.equal(WebgpuVertexFormat({ type: "UINT32_1", offset: 0 }), "uint32");
+  assert.equal(WebgpuVertexFormat({ type: "UINT32_2", offset: 0 }), "uint32x2");
+  assert.deepEqual(VertexElementType({ type: "UINT32_2" }), { base: "uint", bits: 32, count: 2, normalized: false, bytes: 8 });
+});
+
+test("the instanced-mesh declaration builds a per-vertex stream 0 and a per-instance stream 1", () =>
+{
+  const plan = resolveBindingPlan(instancedMeshDeclaration(Tr2VertexDefinition), INSTANCED_MESH_INPUTS);
+  const stream = index => plan.entries.filter(entry => entry.element.stream === index);
+
+  assert.equal(plan.complete, true);
+
+  assert.deepEqual(WebgpuVertexBufferLayout(12, stream(0)), {
+    arrayStride: 12, stepMode: "vertex", attributes: [ { shaderLocation: 0, offset: 0, format: "float32x3" } ]
+  });
+
+  // The stride is the packer's; 60 is the ledger's extent and a multiple of 4.
+  assert.deepEqual(WebgpuVertexBufferLayout(60, stream(1)), {
+    arrayStride: 60,
+    stepMode: "instance",
+    attributes: [
+      { shaderLocation: 1, offset: 0, format: "float32x4" },
+      { shaderLocation: 2, offset: 16, format: "float32x4" },
+      { shaderLocation: 3, offset: 32, format: "float32x4" },
+      { shaderLocation: 4, offset: 0, format: "float32x4" },
+      { shaderLocation: 5, offset: 16, format: "float32x4" },
+      { shaderLocation: 6, offset: 32, format: "float32x4" },
+      { shaderLocation: 7, offset: 48, format: "uint32" },
+      { shaderLocation: 8, offset: 52, format: "uint32x2" }
+    ]
+  });
 });

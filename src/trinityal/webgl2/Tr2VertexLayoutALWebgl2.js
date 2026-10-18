@@ -32,40 +32,46 @@ import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
 import { resolveBindingPlan } from "../vertexLayoutMatch.js";
+import { IsVertexElementType, VertexElementType } from "#resource/geometry/vertex";
 
 
 /**
- * The WebGL2 attribute format of a Carbon vertex data type name, such as
- * `FLOAT32_3` or `UBYTE_4_NORM`: dx11's `GetDxgiDataType` table
- * (`Tr2VertexLayoutALDx11.cpp:25-76`) in GL's terms.
+ * The WebGL2 attribute format of a vertex element: dx11's `GetDxgiDataType`
+ * table (`Tr2VertexLayoutALDx11.cpp:25-76`) in GL's terms.
+ *
+ * The element is decomposed by the geometry layer's `VertexElementType`, the
+ * one WebGPU's format table reads, so both vocabularies a declaration holds
+ * are accepted: a Carbon DataType name that carries its count (`FLOAT32_3`,
+ * `UBYTE_4_NORM`, `UINT32_2`), or a geometry payload's type plus
+ * `elementCount` (`Float32` x 3). A combined declaration has both - the
+ * mesh's payload items and Carbon-named instance items added after them
+ * (`EveChildInstancedMeshes.cpp:715-724`). An unnormalized integer is
+ * `integer`, which the render context binds with `vertexAttribIPointer`, as
+ * D3D's `_UINT` and `_SINT` formats reach the shader as integers.
  *
  * @param {WebGL2RenderingContext} gl The context whose enums to use.
- * @param {string} dataType The data type name.
+ * @param {string|object} element A declaration element, or a bare Carbon DataType name.
  * @returns {{size: number, type: number, normalized: boolean, integer: boolean, bytes: number}|null}
- *   The format, or null for an unknown name.
+ *   The format, or null for an unknown type.
  */
-export function AttributeFormat(gl, dataType)
+export function AttributeFormat(gl, element)
 {
-  const match = /^(U?BYTE|U?SHORT|U?INT32|FLOAT16|FLOAT32)_([1-4])(_NORM)?$/u.exec(String(dataType));
-  if (!match) return null;
+  const described = typeof element === "string" ? { type: element } : element;
+  if (!IsVertexElementType(described.type)) return null;
 
-  const [ , base, count, norm ] = match;
-  const size = Number(count);
-  const normalized = Boolean(norm);
+  const { base, bits, count, normalized, bytes } = VertexElementType(described);
   const TYPES = {
-    BYTE: [ gl.BYTE, 1 ],
-    UBYTE: [ gl.UNSIGNED_BYTE, 1 ],
-    SHORT: [ gl.SHORT, 2 ],
-    USHORT: [ gl.UNSIGNED_SHORT, 2 ],
-    INT32: [ gl.INT, 4 ],
-    UINT32: [ gl.UNSIGNED_INT, 4 ],
-    FLOAT16: [ gl.HALF_FLOAT, 2 ],
-    FLOAT32: [ gl.FLOAT, 4 ]
+    "float:32": gl.FLOAT,
+    "float:16": gl.HALF_FLOAT,
+    "uint:32": gl.UNSIGNED_INT,
+    "sint:32": gl.INT,
+    "uint:16": gl.UNSIGNED_SHORT,
+    "sint:16": gl.SHORT,
+    "uint:8": gl.UNSIGNED_BYTE,
+    "sint:8": gl.BYTE
   };
-  const [ type, width ] = TYPES[base];
-  const float = base === "FLOAT16" || base === "FLOAT32";
 
-  return { size, type, normalized, integer: !float && !normalized, bytes: size * width };
+  return { size: count, type: TYPES[`${base}:${bits}`], normalized, integer: base !== "float" && !normalized, bytes };
 }
 
 
@@ -111,7 +117,7 @@ export class Tr2VertexLayoutALWebgl2 extends Tr2DeviceResourceAL
 
     for (const item of items)
     {
-      const format = AttributeFormat(gl, item.type);
+      const format = AttributeFormat(gl, item);
       if (!format) return ALResult.E_INVALIDARG;
 
       converted.push({

@@ -1099,34 +1099,21 @@ export class Tr2RuntimeInstanceData
 
   static UsageCode = Tr2VertexUsageCode;
 
-  static DataType = Object.freeze({
-    BYTE_1: 0,
-    BYTE_2: 32,
-    BYTE_3: 64,
-    BYTE_4: 96,
-    UBYTE_1: 8,
-    UBYTE_2: 40,
-    UBYTE_3: 72,
-    UBYTE_4: 104,
-    SHORT_1: 1,
-    SHORT_2: 33,
-    SHORT_3: 65,
-    SHORT_4: 97,
-    USHORT_1: 9,
-    USHORT_2: 41,
-    USHORT_3: 73,
-    USHORT_4: 105,
-    INT32_1: 2,
-    INT32_2: 34,
-    INT32_3: 66,
-    INT32_4: 98,
-    UINT32_1: 10,
-    UINT32_2: 42,
-    UINT32_3: 74,
-    UINT32_4: 106,
-    FLOAT32_1: 4,
-    FLOAT32_2: 36,
-    FLOAT32_3: 68,
-    FLOAT32_4: 100
-  });
+  /**
+   * The Tr2VertexDefinition::DataType members runtime instance data accepts,
+   * with Carbon's values taken from their owner, `Tr2VertexDefinition.DataType`
+   * (Tr2VertexDefinition.h:31-120), so the numbering has one home. A subset,
+   * not an alias: `#normalizeType` reverse-looks-up a code, and the full map
+   * has the DT_ bit members that share those codes (DT_INT8 and BYTE_1 are
+   * both 0).
+   */
+  static DataType = Object.freeze(Object.fromEntries([
+    "BYTE_1", "BYTE_2", "BYTE_3", "BYTE_4",
+    "UBYTE_1", "UBYTE_2", "UBYTE_3", "UBYTE_4",
+    "SHORT_1", "SHORT_2", "SHORT_3", "SHORT_4",
+    "USHORT_1", "USHORT_2", "USHORT_3", "USHORT_4",
+    "INT32_1", "INT32_2", "INT32_3", "INT32_4",
+    "UINT32_1", "UINT32_2", "UINT32_3", "UINT32_4",
+    "FLOAT32_1", "FLOAT32_2", "FLOAT32_3", "FLOAT32_4"
+  ].map(name => [ name, Tr2VertexDefinition.DataType[name] ])));
 }
