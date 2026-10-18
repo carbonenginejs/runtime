@@ -39,8 +39,8 @@ import { TriVariableContentType } from "../generated/trinityCore/enums.js";
 /** Carbon DEFAULT_MAX_PARTICLES (cpp:19). */
 const DEFAULT_MAX_PARTICLES = 1024 * 1024;
 
-/** Carbon MAXIMUM_FRAME_TIME (cpp:21). */
-const MAXIMUM_FRAME_TIME = 1 / 15;
+/** Carbon `const float MAXIMUM_FRAME_TIME = 1.f / 15.f` (cpp:21): the float clamp on a frame delta. */
+const MAXIMUM_FRAME_TIME = Math.fround(1 / 15);
 
 /** Carbon TURBULENCE_ANIMATION_SPEED (cpp:23). */
 const TURBULENCE_ANIMATION_SPEED = 0.05;

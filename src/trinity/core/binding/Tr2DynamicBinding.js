@@ -167,6 +167,10 @@ export class Tr2DynamicBinding extends INotify
    *
    * Adapted: JavaScript has no deterministic destructor, so the holder that
    * abandons a binding calls this; until then the OS keeps it registered.
+   * Carbon's registry is a non-owning std::vector<ISimTimeRebaseNotify*>
+   * (BlueOS.h:169) while CjsBlueOS holds a strong array, the same shape as
+   * TriDevice's resource registry; which owners call Destroy is pending the
+   * open teardown ruling (operator, with TriDevice's registry and plan Q4).
    * @returns {void}
    */
   @meta.adapted
